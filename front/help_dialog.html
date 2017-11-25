@@ -30,15 +30,30 @@
 		padding-right: 12px;
 	}
 }
+#HelpBanner {
+	height: 26px;
+	padding: 3px;
+}
+#HelpTitle {
+	font-size: 20px;
+	line-height: 130%;
+}
+#HelpLinks {
+	float: right;
+	position: relative;
+	top: 7px;
+	font-size: 0;
+}
 
+.Vim {
+	color: #2f508e;
+}
 .HelpTable {
 	border-collapse: separate;
 	border-spacing: 5.5px 3px;
 	contain: content;
 	float: left;
 	line-height: 130%;
-	overflow: visible;
-	table-layout: auto;
 	width: 50%;
 	/* XML pages have a different default value of "word-break" */
 	word-break: normal;
@@ -47,11 +62,7 @@
 	white-space: normal;
 	font: 12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
-.HelpTr {
-	display: table-row;
-}
 .HelpTd {
-	display: table-cell;
 	line-height: 19.2px;
 	padding: 0;
 	vertical-align: top;
@@ -63,7 +74,6 @@
 	/* keep 1px so it can be more conspicuous than 0.5px */
 	border-bottom: 1px solid #ddd;
 	clear: both;
-	display: block;
 	height: 1px;
 	margin: 10px 1px;
 }
@@ -77,7 +87,6 @@
 
 .HelpKeys {
 	clear: both;
-	color: black;
 	font-family: Consolas, "Liberation Mono", "Courier New", monospace;
 	text-align: right;
 	white-space: nowrap;
@@ -138,6 +147,22 @@
 	vertical-align: text-bottom;
 }
 
+#HelpFooter {
+	font-size: 13px;
+	height: 42px;
+	position: relative;
+}
+#HelpTip {
+	position: absolute;
+	top: -34px;
+}
+#HelpBottomLeft {
+	float: left;
+}
+#HelpBottomRight {
+	float: right;
+	text-align: right;
+}
 #AdvancedCommands {
 	position: absolute;
 	right: 0px;
@@ -189,9 +214,9 @@
 </style>
 
 <div id="HelpContent">
-	<div style="height:26px;padding:3px;">
-		<span style="font-size:20px;line-height:130%;"><span style="color:#2f508e">Vim</span>ium++ {{title}}</span>
-		<span style="float:right;position:relative;top:7px;font-size:0">
+	<div id="HelpBanner">
+		<span id="HelpTitle"><span class="Vim">Vim</span>ium++ {{title}}</span>
+		<span id="HelpLinks">
 			<a class="L TopLink" id="OptionsPage">Options</a>
 			<a class="L TopLink" target="_blank" href="https://github.com/philc/vimium/wiki">Wiki</a>
 			<a class="L TopLink" id="HClose" role="button" href="javascript:;"><span id="HCloseT">&#215;</span></a>
@@ -200,40 +225,40 @@
 	<div class="HDivider"></div>
 	<table class="HelpTable">
 		<tbody class="Column">
-			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating the page</td></tr>
+			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating the page</td></tr>
 {{pageNavigation}}{{lbPad}}
 		</tbody>
 	</table>
 	<table class="HelpTable">
 		<tbody class="Column">
-			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Using the Vomnibar</td></tr>
+			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Using the Vomnibar</td></tr>
 {{vomnibarCommands}}
-			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Using find</td></tr>
+			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Using find</td></tr>
 {{findCommands}}
-			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating history</td></tr>
+			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating history</td></tr>
 {{historyNavigation}}
-			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Manipulating tabs</td></tr>
+			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Manipulating tabs</td></tr>
 {{tabManipulation}}
-			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Miscellaneous</td></tr>
+			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Miscellaneous</td></tr>
 {{misc}}
-			<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>
+			<tr><td class="HelpTd TdBottom">&#160;</td></tr>
 		</tbody>
 	</table>
 
 	<div class="HDivider"></div>
 
-	<div style="position:relative;font-size:13px;height:42px;">
-		<div style="position:absolute;top:-34px;">{{tip}}</div>
+	<div id="HelpFooter">
+		<div id="HelpTip">{{tip}}</div>
 		<a class="L" id="AdvancedCommands" role="button" href="javascript:;">Show advanced commands</a>
 
-		<div style="float:left;">
+		<div id="HelpBottomLeft">
 			Enjoying Vimium++? <a class="L" target="_blank" href="https://github.com/gdh1995/vimium-plus">Star it on GitHub</a>.
 			<a class="L" target="_blank"
 				href="https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews"
 				>Review on Web Store</a>.
 			<br/> Found a bug? <a class="L" target="_blank" href="https://github.com/gdh1995/vimium-plus/issues">Report it here</a>.
 		</div>
-		<div style="float:right;text-align:right;">
+		<div id="HelpBottomRight">
 			<span>Version {{version}}</span><br/>
 			<span>Modified from <a class="L" target="_blank" href="https://github.com/philc/vimium">Vimium</a></span>
 		</div>

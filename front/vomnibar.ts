@@ -1,7 +1,7 @@
 /// <reference path="../content/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
 interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
-  favIconUrl?: string;
+  favIcon?: string;
   relevancy: number | string;
 }
 interface SuggestionEx extends SuggestionE {
@@ -31,6 +31,8 @@ declare const enum HeightData {
   MarginV = 20,
   InputBarAndMargin = InputBar + MarginV,
   InputBarWithLineAndMargin = InputBarWithLine + MarginV,
+  FrameMarginTop = 70, FrameMarginBottom = 8,
+  AllNotList = InputBarWithLineAndMargin + FrameMarginTop - FrameMarginBottom,
 }
 
 declare var VSettings: undefined | null | {
@@ -49,7 +51,8 @@ var Vomnibar = {
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
     this.width(options.width * 0.8);
-    this.init && this.setFav();
+    this.mode.maxResults = Math.min(Math.max(3, Math.round((options.height - HeightData.AllNotList) / HeightData.Item)), this.maxResults);
+    this.init && this.setFav(options.ptype);
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
     }
@@ -201,7 +204,7 @@ var Vomnibar = {
       return this._updateInput(line, line.parsed);
     }
     (line as Partial<SuggestionEx>).https == null && (line.https = line.url.startsWith("https://"));
-    if (line.type !== "history" && line.type[0] !== "#") {
+    if (line.type !== "history" && line.type.indexOf("#") < 0) {
       if (line.parsed == null) {
         VUtils.ensureText(line);
         line.parsed = "";
@@ -221,7 +224,7 @@ var Vomnibar = {
       handler: "parseSearchUrl",
       url: str
     }, function(search): void {
-      line.parsed = search ? search.keyword + " " + search.url : line.text;
+      line.parsed = search ? (Vomnibar.modeType !== "omni" ? ":o " : "") + search.keyword + " " + search.url : line.text;
       if (sel === Vomnibar.selection) {
         return Vomnibar._updateInput(line, line.parsed);
       }
@@ -363,7 +366,7 @@ var Vomnibar = {
     let arr = this._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
     if (len >= n) { sel *= n; }
     else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
-    else if (len < (len && this.completions[0].type[0] === "#" ? 3 : n)) { return; }
+    else if (len < (len && this.completions[0].type.indexOf("#") < 0 ? n : 3)) { return; }
 
     sel += i;
     sel = sel < 0 ? 0 : sel > 90 ? 90 : sel;
@@ -424,7 +427,7 @@ var Vomnibar = {
   OnMenu (this: void, event: Event): void {
     let el = event.target as Element | null;
     for (; el && !el.classList.contains("url"); el = el.parentElement) {}
-    if (!el) { return; }
+    if (!el || (el as HTMLAnchorElement).href) { return; }
     const _i = [].indexOf.call(Vomnibar.list.children, (el.parentNode as HTMLElement).parentNode);
     (el as HTMLAnchorElement).href = Vomnibar.completions[_i].url;
   },
@@ -452,26 +455,23 @@ var Vomnibar = {
     return this.goPage(event.deltaY > 0);
   },
   onInput (): void {
-    let s0 = this.lastQuery, s1 = this.input.value, str: string, arr: RegExpExecArray | null;
+    const s0 = this.lastQuery, s1 = this.input.value, str = s1.trim();
     this.blurWanted = false;
-    if ((str = s1.trim()) === (this.selection === -1 || this.isSelOriginal
-        ? s0 : this.completions[this.selection].text)) {
+    if (str === (this.selection === -1 || this.isSelOriginal ? s0 : this.completions[this.selection].text)) {
       return;
     }
     if (this.matchType === CompletersNS.MatchType.emptyResult && s1.startsWith(s0)) { return; }
     if (!str) { this.isHttps = null; }
-    const i = this.input.selectionStart;
+    let i = this.input.selectionStart, arr: RegExpExecArray | null;
     if (this.isSearchOnTop) {}
     else if (i > s1.length - 2) {
       if (s1.endsWith(" +") && !this.timer && str.substring(0, str.length - 2).trimRight() === s0) {
         return;
       }
     } else if ((arr = this._pageNumRe.exec(s0)) && str.endsWith(arr[0])) {
-      const j = arr[0].length;
-      s1 = s1.trimRight();
-      s1 = s1.substring(0, s1.length - j).trimRight();
-      if (s1.trimLeft() !== s0.substring(0, s0.length - j).trimRight()) {
-        this.input.value = s1;
+      const j = arr[0].length, s2 = s1.substring(0, s1.trimRight().length - j);
+      if (s2.trim() !== s0.substring(0, s0.length - j).trimRight()) {
+        this.input.value = s2.trimRight();
         this.input.setSelectionRange(i, i);
       }
     }
@@ -562,13 +562,11 @@ var Vomnibar = {
     }
     this.init = VUtils.makeListRenderer = null as never;
   },
-  setFav (): void {
-    let fav = this.showFavIcon, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
-    if (fav < 2 && location.protocol.startsWith("chrome") && (f = chrome.runtime.getManifest) && (manifest = f())) {
+  setFav (type: VomnibarNS.PageType): void {
+    let fav = (2 - type) as 0 | 1 | 2, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
+    if (type === VomnibarNS.PageType.ext && location.protocol.startsWith("chrome") && (f = chrome.runtime.getManifest) && (manifest = f())) {
       const arr = manifest.permissions || [];
-      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? fav + 1 as 0 | 1 | 2 : 0;
-    } else {
-      fav = 0;
+      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? 1 : 0;
     }
     this.mode.favIcon = fav;
   },
@@ -595,14 +593,16 @@ var Vomnibar = {
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner as
         any, 0, { name: "focus", lastKey: request.lastKey });
   },
-  width (w?: number): void { this.mode.maxChars = Math.ceil(((w || window.innerWidth) - 74) / 7.72); },
-  secret: null as never as (this: void, request: BgVomnibarReq["secret"]) => void,
+  // 22 is better than 21, because 74 is a result that has been cut (`floor(71 + 7.72 /2)`)
+  width (w?: number): void { this.mode.maxChars = Math.ceil(((w || window.innerWidth - 22) - 74) / 7.72); },
+  secret: null as never as (request: BgVomnibarReq["secret"]) => void,
 
+  maxResults: (<number>window.VomnibarListLength | 0) || 10,
   mode: {
     handler: "omni" as "omni",
     type: "omni" as CompletersNS.ValidTypes,
     maxChars: 0,
-    maxResults: Math.min(Math.max((<number>window.VomnibarListLength | 0) || 10, 3), 20),
+    maxResults: 0,
     favIcon: 1 as 0 | 1 | 2,
     query: ""
   },
@@ -617,8 +617,8 @@ var Vomnibar = {
       mode.type = this.matchType < CompletersNS.MatchType.singleMatch || !str.startsWith(mode.query) ? this.modeType
         : this.matchType === CompletersNS.MatchType.searchWanted ? "search"
         : (newMatchType = this.matchType,
-            (s2 = this.completions[0].type)[0] === "#" ? "tab" : s2 as CompletersNS.ValidTypes);
-      mode.query = str;
+          (s2 = this.completions[0].type).indexOf("#") < 0 ? s2 as CompletersNS.ValidTypes : "tab");
+      mode.query = str.substring(0, 200);
       this.width();
       this.matchType = newMatchType;
     } else {
@@ -628,15 +628,20 @@ var Vomnibar = {
   },
 
   parse (item: SuggestionE): void {
-    let str: string;
-    if (this.showFavIcon && (str = item.url) && !str.startsWith("vimium://")) {
-      item.favIconUrl = '<img src="chrome://favicon/size/16/' +
-        (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeHTML(str))
-        + '" />\n\t\t\t';
-    } else {
-      item.favIconUrl = "";
-    }
+    let str = this.showFavIcon ? item.url : "";
+    item.favIcon = str
+      ? ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
+        ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)"
+      : "";
     item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
+  },
+  parseFavIcon (item: SuggestionE, url: string): string {
+    let str = url.substring(0, 11).toLowerCase();
+    return str.startsWith("vimium://") ? "chrome-extension://" + (window.ExtId || chrome.runtime.id) + "/pages/options.html"
+      : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
+      : item.type === "search"
+        ? url.startsWith("http") ? url.substring(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || url.length) : ""
+      : url;
   },
   navigateToUrl (item: { url: string }): void {
     if (item.url.substring(0, 11).toLowerCase() === "javascript:") {
@@ -658,7 +663,7 @@ var Vomnibar = {
     });
     if (this.actionType > ReuseType.newBg) { return; }
     window.getSelection().removeAllRanges();
-    if (item.type[0] !== "#") {
+    if (item.type.indexOf("#") < 0) {
       return this.refresh();
     }
     window.onfocus = function(e: Event): void {
@@ -697,16 +702,16 @@ VUtils = {
     }
     return i;
   },
-  escapeHTML (s: string): string {
+  escapeCSSStringInAttr (s: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
-      return i === 38 ? "&amp;" : i === 39 ? "&apos;" : i < 39 ? "&quot;" : i === 60 ? "&lt;" : "&gt;";
+      return i === 38 ? "&amp;" : i === 39 ? "&apos;" : i < 39 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
     }
-    this.escapeHTML = function(s): string {
+    this.escapeCSSStringInAttr = function(s): string {
       return s.replace(escapeRe, escapeCallback);
     };
-    return this.escapeHTML(s);
+    return this.escapeCSSStringInAttr(s);
   }
 },
 VPort = {
@@ -747,7 +752,7 @@ VPort = {
     const data = { name: "vimium++." + type }, port = this.port = (window.ExtId ?
       chrome.runtime.connect(window.ExtId, data) : chrome.runtime.connect(data)) as FgPort;
     port.onDisconnect.addListener(this.ClearPort);
-    port.onMessage.addListener(this.Listener);
+    port.onMessage.addListener(this.Listener as (message: object) => void);
     return port;
   },
   EnsurePort (this: void, e: Event): void { if (e.isTrusted != false && VPort) { return VPort.postMessage({ handler: "blank" }); } },
@@ -758,22 +763,31 @@ VPort = {
     VPort.postToOwner({ name: "unload" });
   }
 };
+"".startsWith || (String.prototype.startsWith = function(this: string, s: string): boolean {
+  return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
+});
+"".endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
+  const i = this.length - s.length;
+  return i >= 0 && this.indexOf(s, i) === i;
+});
 (function(): void {
   if (!(+<string>(document.documentElement as HTMLElement).getAttribute("data-version") >=
-        1.61)) {
+        1.62)) {
     location.href = "about:blank";
     return;
   }
-  if (location.pathname !== "/vomnibar.html" || location.protocol !== "chrome-extension:" || !document.currentScript) {}
-  else if ((document.currentScript as HTMLScriptElement).src.lastIndexOf("/front/") !== -1) {
-    window.ExtId = new URL((document.currentScript as HTMLScriptElement).src).hostname;
+  let curEl: HTMLScriptElement;
+  if (location.pathname === "/front/vomnibar.html" || location.protocol !== "chrome-extension:"
+   || !(curEl = document.currentScript as typeof curEl)) {}
+  else if (curEl.src.endsWith("/front/vomnibar.js") && curEl.src.startsWith("chrome-extension:")) {
+    window.ExtId = new URL(curEl.src).hostname;
   } else {
-    document.currentScript.remove();
+    curEl.remove();
     window.onmessage = function(event): void {
       if (event.source !== window.parent) { return; }
-      const data: VomnibarNS.MessageData = event.data, script = document.createElement("script");
-      script.src = (data[1] as VomnibarNS.FgOptions).script;
-      window.ExtId = new URL(script.src).hostname;
+      const data: VomnibarNS.MessageData = event.data, script = document.createElement("script"),
+      src = script.src = (data[1] as VomnibarNS.FgOptions).script;
+      window.ExtId = new URL(src).hostname;
       script.onload = function(): void {
         return window.onmessage(event);
       };
@@ -783,17 +797,16 @@ VPort = {
     return;
   }
 
-  let _secr = null as number | null, step = 0, _port: VomnibarNS.IframePort | undefined, _options: Options | null | undefined,
-  handler = function(this: void, secret: number, port?: VomnibarNS.IframePort, options?: Options | null): void {
-    if (0 === step++) {
-      _secr = secret, _port = port, _options = options;
+  let _sec = 0 as number,
+  unsafeMsg = [] as [number, VomnibarNS.IframePort, Options | null][],
+  handler = function(this: void, secret: number, port: VomnibarNS.IframePort, options: Options | null): void {
+    if (_sec < 1 || secret != _sec) {
+      _sec || unsafeMsg.push([secret, port, options]);
       return;
     }
-    if (_secr !== secret) { return; }
+    _sec = -1;
     clearTimeout(timer);
     window.onmessage = null as never;
-    port || (port = _port as VomnibarNS.IframePort);
-    options || (options = _options);
     Vomnibar.sameOrigin = !!port.sameOrigin;
     VPort.postToOwner = port.postMessage.bind(port);
     port.onmessage = VPort.OnOwnerMessage;
@@ -805,10 +818,17 @@ VPort = {
     }
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);
-  Vomnibar.secret = function(request): void {
-    Vomnibar.secret = function() {};
+  Vomnibar.secret = function(this: typeof Vomnibar, request): void {
+    this.secret = function() {};
     Vomnibar.browserVersion = request.browserVersion;
-    return handler(request.secret);
+    const { secret } = request, msgs = unsafeMsg;
+    _sec = secret;
+    unsafeMsg = null as never;
+    for (let i of msgs) {
+      if (i[0] == secret) {
+        return handler(i[0], i[1], i[2]);
+      }
+    }
   };
   window.onmessage = function(event): void {
     if (event.source === window.parent) {
@@ -817,11 +837,4 @@ VPort = {
     }
   };
 VPort.connect(PortType.omnibar);
-String.prototype.startsWith || (String.prototype.startsWith = function(this: string, s: string): boolean {
-  return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
-});
-String.prototype.endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
-  const i = this.length - s.length;
-  return i >= 0 && this.indexOf(s, i) === i;
-});
 })();

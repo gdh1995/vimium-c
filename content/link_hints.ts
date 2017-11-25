@@ -1,35 +1,9 @@
-const enum HintMode {
-  empty = 0, focused = 1, newTab = 2, queue = 64,
-  mask_focus_new = focused | newTab, mask_queue_focus_new = mask_focus_new | queue,
-  min_job = 128, min_link_job = 136, min_disable_queue = 256,
-  DEFAULT = empty,
-  OPEN_IN_CURRENT_TAB = DEFAULT, // also 1
-  OPEN_IN_NEW_BG_TAB = newTab,
-  OPEN_IN_NEW_FG_TAB = newTab | focused,
-  OPEN_CURRENT_WITH_QUEUE = queue,
-  OPEN_WITH_QUEUE = queue | newTab,
-  OPEN_FG_WITH_QUEUE = queue | newTab | focused,
-  HOVER = min_job,
-  LEAVE,
-  COPY_TEXT,
-  SEARCH_TEXT,
-  DOWNLOAD_IMAGE,
-  OPEN_IMAGE,
-  DOWNLOAD_LINK = min_link_job,
-  COPY_LINK_URL,
-  OPEN_INCOGNITO_LINK,
-  EDIT_LINK_URL = min_disable_queue,
-    max_link_job = EDIT_LINK_URL,
-    min_edit = EDIT_LINK_URL,
-  EDIT_TEXT,
-    max_edit = EDIT_TEXT,
-  FOCUS_EDITABLE,
-}
 const enum ClickType {
   Default = 0,
   click = Default, edit, listener,
   classname = 4, tabindex,
-  maxNotBox = 6, frame = maxNotBox + 1, scrollX, scrollY,
+  maxNotBox = 6, minBox = maxNotBox + 1,
+  frame = minBox, scrollX, scrollY,
 }
 declare namespace HintsNS {
   type LinkEl = Hint[0];
@@ -108,7 +82,7 @@ var VHints = {
   noHUD: false,
   options: null as never as HintsNS.Options,
   timer: 0,
-  activate (count?: number, options?: FgOptions | null): void {
+  activate (count: number, options: FgOptions): void {
     if (this.isActive) { return; }
     if (document.body == null) {
       this.clean();
@@ -119,7 +93,7 @@ var VHints = {
       if (!VDom.isHTML()) { return; }
     }
     VUtils.remove(this);
-    this.setModeOpt((count as number) | 0, Object.setPrototypeOf(options || (options = {} as any as FgOptions), null));
+    this.setModeOpt((count as number) | 0, options);
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
     if (str.length < 3) {
       this.clean(true);
@@ -128,6 +102,7 @@ var VHints = {
 
     let elements: Hint[] | undefined;
     const arr = VDom.getViewBox();
+    VScroller.getScale();
     if (this.tooHigh !== null) {
       this.tooHigh = (document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
@@ -164,7 +139,8 @@ var VHints = {
   setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
     let ref = this.Modes, modeOpt: HintsNS.ModeOpt | undefined,
-    mode = ((options.mode as number) > 0 ? options.mode as number : (this.CONST[options.mode as string]) as number) | 0;
+    mode = (<number>options.mode >= 0 ? options.mode as number
+      : (this.CONST[options.mode as string]) as number | undefined | Function as number) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
     }
@@ -223,8 +199,8 @@ var VHints = {
       this.frameNested = null;
       return false;
     }
-    child.VEventMode.focusAndListen(done ? null : function() {
-      VUtils.execCommand(child, command, a, b);
+    child.VEventMode.focusAndListen(done ? null : function(): void {
+      return VUtils.execCommand(child, command, a, b);
     });
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
@@ -238,7 +214,7 @@ var VHints = {
     let marker = VDom.createElement("span") as HintsNS.Marker, i: number;
     marker.clickableItem = link[0];
     i = link.length < 5 ? link[1][0] : (link[4] as [VRect, number])[0][0] + (link[4] as [VRect, number])[1];
-    marker.className = link[2] < 7 ? "LH" : "LH BH";
+    marker.className = link[2] < ClickType.minBox ? "LH" : "LH BH";
     const st = marker.style;
     st.left = i + "px";
     if (i > this.maxLeft) {
@@ -253,14 +229,14 @@ var VHints = {
     return marker;
   },
   adjustMarkers (elements: Hint[]): void {
-    if (VDom.bodyZoom === 1 || !VDom.UI.root) { return; }
     const root = VDom.UI.root, z = "" + 1 / VDom.bodyZoom;
+    if (z === "1" || !root) { return; }
     let arr = this.hintMarkers as HintsNS.Marker[], i = elements.length - 1;
     if (elements[i][0] === Vomnibar.box) { arr[i--].style.zoom = z; }
     if (!root.querySelector('#HelpDialog') || i < 0) { return; }
     while (0 <= i && root.contains(elements[i][0])) { arr[i--].style.zoom = z; }
   },
-  btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
+  btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,
   GetClickable (this: Hint[], element: Element): void {
     let arr: VRect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) {
@@ -279,6 +255,13 @@ var VHints = {
     switch (element.tagName.toLowerCase()) {
     case "a": case "details": isClickable = true; break;
     case "frame": case "iframe":
+      if (element === Vomnibar.box) {
+        if (arr = VDom.getVisibleClientRect(element)) {
+          arr[0] += 10.5; arr[1] += 8;
+          this.push([element, arr, ClickType.frame]);
+        }
+        return;
+      }
       isClickable = element !== VFindMode.box;
       type = isClickable ? ClickType.frame : ClickType.Default;
       break;
@@ -332,7 +315,7 @@ var VHints = {
         : ClickType.Default;
     }
     if ((isClickable || type > ClickType.Default) && (arr = VDom.getVisibleClientRect(element))
-        && (type < ClickType.scrollX || VScroller.isScrollable(element, type - 8 as 0 | 1))
+        && (type < ClickType.scrollX || VScroller.shouldScroll(element, type - ClickType.scrollX as 0 | 1))
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
           || VHints.mode >= HintMode.min_job)
@@ -363,7 +346,7 @@ var VHints = {
       break;
     default:
       if ((s = element.contentEditable) === "inherit" || !s || s === "false") { return; }
-      type = 1;
+      type = ClickType.edit;
       break;
     }
     if (arr = VDom.getVisibleClientRect(element)) {
@@ -416,12 +399,12 @@ var VHints = {
     if ((this as typeof VHints).ngEnabled === null && key === "*") {
       (this as typeof VHints).ngEnabled = document.querySelector('.ng-scope') != null;
     }
-    let query: string = key, addUI = true;
+    let query: string = key, uiRoot = VDom.UI.root;
     if (VSettings.cache.deepHints) {
       // `/deep/` is only applyed on Shadow DOM v0, and Shadow DOM v1 does not support it at all
       // ref: https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/HX5Y8Ykr5Ns
       query = "* /deep/ " + key;
-      addUI = typeof Element.prototype.attachShadow === "function";
+      if (uiRoot && uiRoot.mode !== "closed") { uiRoot = null; }
     }
     const output: Hint[] | Element[] = [], isTag = (<RegExpOne>/^\*$|^[a-z]+$/).test(query),
     box = root || document.webkitFullscreenElement || document;
@@ -432,8 +415,8 @@ var VHints = {
     (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(list, filter, output);
     if (root) { return output; }
     list = null;
-    if (addUI && VDom.UI.root) {
-      (Array.prototype.forEach as any).call(VDom.UI.root.querySelectorAll(key), filter, output);
+    if (uiRoot) {
+      (Array.prototype.forEach as any).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
     }
     const wantClickable = (filter as Function) === (this as typeof VHints).GetClickable && key === "*";
     if (wantClickable) { (this as typeof VHints).deduplicate(output as Hint[]); }
@@ -516,7 +499,7 @@ var VHints = {
       output = [];
       VDom.prepareCrop();
       type Iter = HintsNS.ElementIterator<Hint>;
-      ([].forEach as Iter).call(document.querySelectorAll("iframe,frame"), this.GetClickable, output = []);
+      (output.forEach as any as Iter).call(document.querySelectorAll("iframe,frame"), this.GetClickable, output);
     }
     if (output.length !== 1) {
       return output.length !== 0 && null;
@@ -542,7 +525,7 @@ var VHints = {
       : this.traverse("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable);
     if (this.maxRight > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(VSettings.cache.linkHintCharacters.length));
-      this.maxLeft -= 11 * _i + 8;
+      this.maxLeft -= 16 * _i + 12;
     }
     visibleElements.reverse();
 
@@ -880,7 +863,7 @@ alphabetHints: {
         return [];
       }
       this.hintKeystroke = this.hintKeystroke.slice(0, -1);
-    } else if (keyChar = VKeyboard.getKeyChar(event).toUpperCase()) {
+    } else if ((keyChar = VKeyboard.getKeyChar(event).toUpperCase()) && keyChar.length === 1) {
       if (this.chars.indexOf(keyChar) === -1) {
         return [];
       }
@@ -949,17 +932,12 @@ Modes: {
 HOVER: {
   128: "Hover over node",
   192: "Hover over nodes continuously",
-  activator (element): void | false {
-    if (element instanceof HTMLIFrameElement || element instanceof HTMLFrameElement) {
-      const ret = element === Vomnibar.box ? (Vomnibar.focus(1), false)
-        : (this as typeof VHints).highlightChild(element);
-      (this as typeof VHints).mode = HintMode.DEFAULT;
-      return ret;
-    }
+  activator (element): void {
     const type = VDom.getEditableType(element);
     VDom.unhoverLast(element);
     VScroller.current = element;
-    if (!type && element.tabIndex >= 0) { element.focus(); }
+    type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
+      element instanceof HTMLFrameElement || element.focus();
     if ((this as typeof VHints).mode < HintMode.min_job) {
       return VHUD.showForDuration("Hover for scrolling", 1000);
     }
@@ -1143,7 +1121,12 @@ DEFAULT: {
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
   activator (link, hint): void | false {
-    if (link instanceof HTMLDetailsElement) {
+    if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
+      const ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)
+        : (this as typeof VHints).highlightChild(link);
+      (this as typeof VHints).mode = HintMode.DEFAULT;
+      return ret;
+    } else if (link instanceof HTMLDetailsElement) {
       link.open = !link.open;
       return;
     } else if (hint.classList.contains("BH")) {

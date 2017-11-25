@@ -8,7 +8,7 @@ declare namespace VomnibarNS {
     close (this: Port): void | 1;
   }
   interface IFrameWindow extends Window {
-    Vomnibar: { showFavIcon: 0 | 1 | 2 };
+    Vomnibar: object;
     VPort?: object;
     onmessage: (this: void, ev: { source: Window, data: VomnibarNS.MessageData, ports: IframePort[] }) => void | 1;
   }
@@ -46,13 +46,13 @@ var Vomnibar = {
     }
     if (this.status === VomnibarNS.Status.NotInited && VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
     this.options = null;
-    const width = window.innerWidth;
+    options.width = window.innerWidth; options.height = window.innerHeight;
     this.zoom = VDom.UI.getZoom();
     this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
     if (this.status === VomnibarNS.Status.NotInited) {
       this.status = VomnibarNS.Status.Initing;
-      this.init(options.secret, options.vomnibar, options.ptype, options.vomnibar2);
+      this.init(options);
     } else if (this.isABlank()) {
       this.onReset = function(this: typeof Vomnibar): void { this.onReset = null; return this.activate(count, options); };
       return;
@@ -62,8 +62,8 @@ var Vomnibar = {
       this.box.contentWindow.focus();
       this.onShown();
     }
-    options.secret = 0; options.vomnibar = "";
-    options.width = width, options.name = "activate";
+    options.secret = 0; options.vomnibar = options.CSS = "";
+    options.name = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
       if (url = VDom.getSelectionText()) {
@@ -106,8 +106,8 @@ var Vomnibar = {
     active || window.focus();
     this.box.style.cssText = "display: none;";
   },
-  init (secret: number, page: string, type: VomnibarNS.PageType, inner: string | null): HTMLIFrameElement {
-    const el = VDom.createElement("iframe") as typeof Vomnibar.box;
+  init ({secret, vomnibar: page, ptype: type, vomnibar2: inner, CSS}: VomnibarNS.FullOptions): void {
+    const el = VDom.createElement("iframe") as typeof Vomnibar.box, UI = VDom.UI;
     el.className = "R UI Omnibar";
     type === VomnibarNS.PageType.web && (el.referrerPolicy = "no-referrer");
     el.src = page;
@@ -160,10 +160,15 @@ var Vomnibar = {
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
       if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }
-      wnd.Vomnibar.showFavIcon = type === VomnibarNS.PageType.inner ? 2 : 1;
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
-    return VDom.UI.addElement(this.box = el, {adjust: true, showing: false});
+    if (CSS) {
+      UI.css("");
+    }
+    UI.addElement(this.box = el, AdjustType.AdjustButNotShow);
+    if (CSS) {
+      UI.css(CSS);
+    }
   },
   reset (redo?: boolean): void | 1 {
     if (this.status === VomnibarNS.Status.NotInited) { return; }
@@ -201,7 +206,7 @@ var Vomnibar = {
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).lastKey);
     case "hide": return this.hide(1);
     case "scroll": return VEventMode.scroll(data as Req["scroll"]);
-    case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
+    case "scrollGoing": VScroller.keyIsDown = VScroller.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
     case "evalJS": VUtils.evalIfOK((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;

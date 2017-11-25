@@ -2103,7 +2103,6 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     insertAdjacentElement(position: string, insertedElement: Element): Element | null;
     insertAdjacentHTML(where: string, html: string): void;
     insertAdjacentText(where: string, text: string): void;
-    attachShadow?(shadowRootInitDict: ShadowRootInit): ShadowRoot;
     createShadowRoot(): ShadowRoot;
     addEventListener<K extends keyof ElementEventMap>(type: K, listener: (this: Element, ev: ElementEventMap[K]) => void, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -2115,6 +2114,7 @@ declare var Element: {
 }
 
 interface ErrorEvent extends Event {
+    readonly type: "error";
     readonly colno: number;
     readonly error: any;
     readonly filename: string;
@@ -2894,71 +2894,71 @@ interface HTMLElement extends Element {
     readonly offsetParent: Element;
     readonly offsetTop: number;
     readonly offsetWidth: number;
-    onabort: (this: HTMLElement, ev: UIEvent) => any;
-    onactivate: (this: HTMLElement, ev: UIEvent) => any;
-    onbeforeactivate: (this: HTMLElement, ev: UIEvent) => any;
-    onbeforecopy: (this: HTMLElement, ev: ClipboardEvent) => any;
-    onbeforecut: (this: HTMLElement, ev: ClipboardEvent) => any;
-    onbeforedeactivate: (this: HTMLElement, ev: UIEvent) => any;
-    onbeforepaste: (this: HTMLElement, ev: ClipboardEvent) => any;
-    onblur: (this: HTMLElement, ev: FocusEvent) => any;
-    oncanplay: (this: HTMLElement, ev: Event) => any;
-    oncanplaythrough: (this: HTMLElement, ev: Event) => any;
-    onchange: (this: HTMLElement, ev: Event) => any;
-    onclick: (this: HTMLElement, ev: MouseEvent) => any;
-    oncontextmenu: (this: HTMLElement, ev: PointerEvent) => any;
-    oncopy: (this: HTMLElement, ev: ClipboardEvent) => any;
-    oncuechange: (this: HTMLElement, ev: Event) => any;
-    oncut: (this: HTMLElement, ev: ClipboardEvent) => any;
-    ondblclick: (this: HTMLElement, ev: MouseEvent) => any;
-    ondeactivate: (this: HTMLElement, ev: UIEvent) => any;
-    ondrag: (this: HTMLElement, ev: DragEvent) => any;
-    ondragend: (this: HTMLElement, ev: DragEvent) => any;
-    ondragenter: (this: HTMLElement, ev: DragEvent) => any;
-    ondragleave: (this: HTMLElement, ev: DragEvent) => any;
-    ondragover: (this: HTMLElement, ev: DragEvent) => any;
-    ondragstart: (this: HTMLElement, ev: DragEvent) => any;
-    ondrop: (this: HTMLElement, ev: DragEvent) => any;
-    ondurationchange: (this: HTMLElement, ev: Event) => any;
-    onemptied: (this: HTMLElement, ev: Event) => any;
-    onerror: (this: HTMLElement, ev: ErrorEvent) => any;
-    onfocus: (this: HTMLElement, ev: FocusEvent) => any;
-    oninput: (this: HTMLElement, ev: Event) => any;
-    oninvalid: (this: HTMLElement, ev: Event) => any;
-    onkeydown: (this: HTMLElement, ev: KeyboardEvent) => any;
-    onkeypress: (this: HTMLElement, ev: KeyboardEvent) => any;
-    onkeyup: (this: HTMLElement, ev: KeyboardEvent) => any;
-    onload: (this: HTMLElement, ev: Event) => any;
-    onloadeddata: (this: HTMLElement, ev: Event) => any;
-    onloadedmetadata: (this: HTMLElement, ev: Event) => any;
-    onloadstart: (this: HTMLElement, ev: Event) => any;
-    onmousedown: (this: HTMLElement, ev: MouseEvent) => any;
-    onmouseenter: (this: HTMLElement, ev: MouseEvent) => any;
-    onmouseleave: (this: HTMLElement, ev: MouseEvent) => any;
-    onmousemove: (this: HTMLElement, ev: MouseEvent) => any;
-    onmouseout: (this: HTMLElement, ev: MouseEvent) => any;
-    onmouseover: (this: HTMLElement, ev: MouseEvent) => any;
-    onmouseup: (this: HTMLElement, ev: MouseEvent) => any;
-    onmousewheel: (this: HTMLElement, ev: WheelEvent) => any;
-    onmscontentzoom: (this: HTMLElement, ev: UIEvent) => any;
-    onpaste: (this: HTMLElement, ev: ClipboardEvent) => any;
-    onpause: (this: HTMLElement, ev: Event) => any;
-    onplay: (this: HTMLElement, ev: Event) => any;
-    onplaying: (this: HTMLElement, ev: Event) => any;
-    onprogress: (this: HTMLElement, ev: ProgressEvent) => any;
-    onratechange: (this: HTMLElement, ev: Event) => any;
-    onreset: (this: HTMLElement, ev: Event) => any;
-    onscroll: (this: HTMLElement, ev: UIEvent) => any;
-    onseeked: (this: HTMLElement, ev: Event) => any;
-    onseeking: (this: HTMLElement, ev: Event) => any;
-    onselect: (this: HTMLElement, ev: UIEvent) => any;
-    onselectstart: (this: HTMLElement, ev: Event) => any;
-    onstalled: (this: HTMLElement, ev: Event) => any;
-    onsubmit: (this: HTMLElement, ev: Event) => any;
-    onsuspend: (this: HTMLElement, ev: Event) => any;
-    ontimeupdate: (this: HTMLElement, ev: Event) => any;
-    onvolumechange: (this: HTMLElement, ev: Event) => any;
-    onwaiting: (this: HTMLElement, ev: Event) => any;
+    onabort: (ev: UIEvent) => any;
+    onactivate: (ev: UIEvent) => any;
+    onbeforeactivate: (ev: UIEvent) => any;
+    onbeforecopy: (ev: ClipboardEvent) => any;
+    onbeforecut: (ev: ClipboardEvent) => any;
+    onbeforedeactivate: (ev: UIEvent) => any;
+    onbeforepaste: (ev: ClipboardEvent) => any;
+    onblur: (ev: FocusEvent) => any;
+    oncanplay: (ev: Event) => any;
+    oncanplaythrough: (ev: Event) => any;
+    onchange: (ev: Event) => any;
+    onclick: (ev: MouseEvent) => any;
+    oncontextmenu: (ev: PointerEvent) => any;
+    oncopy: (ev: ClipboardEvent) => any;
+    oncuechange: (ev: Event) => any;
+    oncut: (ev: ClipboardEvent) => any;
+    ondblclick: (ev: MouseEvent) => any;
+    ondeactivate: (ev: UIEvent) => any;
+    ondrag: (ev: DragEvent) => any;
+    ondragend: (ev: DragEvent) => any;
+    ondragenter: (ev: DragEvent) => any;
+    ondragleave: (ev: DragEvent) => any;
+    ondragover: (ev: DragEvent) => any;
+    ondragstart: (ev: DragEvent) => any;
+    ondrop: (ev: DragEvent) => any;
+    ondurationchange: (ev: Event) => any;
+    onemptied: (ev: Event) => any;
+    onerror: (ev: ErrorEvent) => any;
+    onfocus: (ev: FocusEvent) => any;
+    oninput: (ev: Event) => any;
+    oninvalid: (ev: Event) => any;
+    onkeydown: (ev: KeyboardEvent) => any;
+    onkeypress: (ev: KeyboardEvent) => any;
+    onkeyup: (ev: KeyboardEvent) => any;
+    onload: (ev: Event) => any;
+    onloadeddata: (ev: Event) => any;
+    onloadedmetadata: (ev: Event) => any;
+    onloadstart: (ev: Event) => any;
+    onmousedown: (ev: MouseEvent) => any;
+    onmouseenter: (ev: MouseEvent) => any;
+    onmouseleave: (ev: MouseEvent) => any;
+    onmousemove: (ev: MouseEvent) => any;
+    onmouseout: (ev: MouseEvent) => any;
+    onmouseover: (ev: MouseEvent) => any;
+    onmouseup: (ev: MouseEvent) => any;
+    onmousewheel: (ev: WheelEvent) => any;
+    onmscontentzoom: (ev: UIEvent) => any;
+    onpaste: (ev: ClipboardEvent) => any;
+    onpause: (ev: Event) => any;
+    onplay: (ev: Event) => any;
+    onplaying: (ev: Event) => any;
+    onprogress: (ev: ProgressEvent) => any;
+    onratechange: (ev: Event) => any;
+    onreset: (ev: Event) => any;
+    onscroll: (ev: UIEvent) => any;
+    onseeked: (ev: Event) => any;
+    onseeking: (ev: Event) => any;
+    onselect(ev: UIEvent): any;
+    onselectstart: (ev: Event) => any;
+    onstalled: (ev: Event) => any;
+    onsubmit: (ev: Event) => any;
+    onsuspend: (ev: Event) => any;
+    ontimeupdate: (ev: Event) => any;
+    onvolumechange: (ev: Event) => any;
+    onwaiting: (ev: Event) => any;
     outerText: string;
     spellcheck: boolean;
     readonly style: CSSStyleDeclaration;
@@ -7537,8 +7537,8 @@ interface Storage {
     key(index: number): string | null;
     removeItem(key: string): void;
     setItem(key: string, data: string): void;
-    [key: string]: any;
-    [index: number]: string;
+    // [key: string]: any;
+    // [index: number]: string;
 }
 
 declare var Storage: {
@@ -8580,8 +8580,8 @@ interface XMLHttpRequestEventTargetEventMap {
 
 interface XMLHttpRequestEventTarget {
     onabort: (this: XMLHttpRequestEventTarget, ev: Event) => any;
-    onerror: (this: XMLHttpRequestEventTarget, ev: ErrorEvent) => any;
-    onload: (this: XMLHttpRequestEventTarget, ev: Event) => any;
+    onerror: (ev: ErrorEvent) => any;
+    onload: (ev: TypedEvent<"load">) => any;
     onloadend: (this: XMLHttpRequestEventTarget, ev: ProgressEvent) => any;
     onloadstart: (this: XMLHttpRequestEventTarget, ev: Event) => any;
     onprogress: (this: XMLHttpRequestEventTarget, ev: ProgressEvent) => any;
@@ -8706,6 +8706,7 @@ interface DocumentOrShadowRoot {
 }
 
 interface ShadowRoot extends DocumentOrShadowRoot, DocumentFragment {
+    readonly mode?: 'open'|'closed';
     readonly host: Element;
     innerHTML: string;
 }

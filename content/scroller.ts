@@ -13,7 +13,6 @@ declare namespace ScrollerNS {
   }
 }
 var VScroller = {
-Core: {
 animate (a: number, d: ScrollByY, e: Element | null): void | number {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: Element | null = null, //
   sign = 0, timestamp = ScrollerNS.Consts.invalidTime, totalDelta = 0.0, totalElapsed = 0.0, //
@@ -28,7 +27,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     elapsed = newTimestamp - int1;
     elapsed = elapsed > 0 ? elapsed : ScrollerNS.Consts.tickForUnexpectedTime;
     int1 = (totalElapsed += elapsed);
-    const _this = VScroller.Core;
+    const _this = VScroller;
     if (continuous = VScroller.keyIsDown > 0) {
       if (int1 >= ScrollerNS.Consts.delayToChangeSpeed) {
         if (int1 > _this.minDelay) { --VScroller.keyIsDown; }
@@ -51,7 +50,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     element = null;
     last = 0;
   };
-  this.animate = function(this: typeof VScroller.Core, newAmount, newDi, newEl): void | number {
+  this.animate = function(this: typeof VScroller, newAmount, newDi, newEl): void | number {
     amount = Math.abs(newAmount); calibration = 1.0; di = newDi;
     duration = Math.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * Math.log(amount));
     element = newEl;
@@ -98,8 +97,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     }
     this.performScroll(element, di, amount);
     return VScroller.checkCurrent(element);
-  }
-},
+  },
 
   current: null as Element | null,
   top: null as Element | null,
@@ -118,7 +116,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     amount = !factor ? this.adjustAmount(di, amount, element)
       : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
       : amount * this.getDimension(element, di, factor === "max" ? 2 : 0);
-    this.Core.scroll(element, di, amount);
+    this.scroll(element, di, amount);
     this.top = null;
   },
   ScTo (this: void, count: number, options: FgOptions): void {
@@ -131,7 +129,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     amount = this.adjustAmount(di, amount, element);
     fromMax && (amount = this.getDimension(element, di, 2) - amount);
     amount -= element ? element[this.Properties[4 + di]] : di ? window.scrollY : window.scrollX;
-    this.Core.scroll(element, di, amount);
+    this.scroll(element, di, amount);
     this.top = null;
   },
   adjustAmount (di: ScrollByY, amount: number, element: Element | null): number {
@@ -140,7 +138,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
       ? Math.ceil(amount * 0.6) : amount;
   },
   findScrollable (element: Element | null, di: ScrollByY, amount: number): Element | null {
-    while (element !== this.top && !(this.scrollDo(element, di, amount) && this.shouldScroll(element as Element, di))) {
+    while (element !== this.top && !this.shouldScroll(element as Element, di, amount)) {
       element = VDom.getParent(element as Element) || this.top;
     }
     return element;
@@ -148,14 +146,15 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   getActivatedElement (): Element | null {
     let element: Element | null;
     this.top = document.scrollingElement || document.body || (VDom.isHTML() ? document.documentElement : null);
-    this.scale = Math.max(1, 1 / window.devicePixelRatio);
+    this.getScale();
     if (element = this.current) { return element; }
     element = this.top;
     return this.current = element && (this.selectFirst(element) || element);
   },
+  getScale (): void { this.scale = Math.max(1, 1 / VDom.UI.getZoom(99)); },
   checkCurrent (el: Element | null): void {
     const cur = this.current;
-    if (cur !== el && cur && !VDom.NotVisible(cur)) { this.current = el; }
+    if (cur !== el && cur && VDom.NotVisible(cur)) { this.current = el; }
   },
   getDimension (el: Element | null, di: ScrollByY, index: 0 | 2): number {
     return el !== this.top || (index && el) ? ((el || this.top) as Element)[this.Properties[index + di]]
@@ -163,7 +162,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   },
   scrollDo (element: Element | null, di: ScrollByY, amount: number): boolean {
     amount = (amount > 0 ? 1 : -1) * this.scale;
-    return this.Core.performScroll(element, di, amount) && this.Core.performScroll(element, di, -amount);
+    return this.performScroll(element, di, amount) && this.performScroll(element, di, -amount);
   },
   selectFirst (element: Element): Element | null {
     if (this.scrollDo(element, 1, 1) || this.scrollDo(element, 1, 0)) {
@@ -173,46 +172,47 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     let children = [] as {area: number, el: Element}[], rect: VRect | null, _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
       element = _ref[_len];
+      if (element instanceof HTMLFormElement) { continue; }
       if (rect = VDom.getVisibleClientRect(element)) {
         children.push({ area: (rect[2] - rect[0]) * (rect[3] - rect[1]), el: element});
       }
     }
-    children.sort(this.sortBy0);
+    children.sort(this.sortByArea);
     for (_len = children.length; 0 < _len--; ) {
       if (element = this.selectFirst(children[_len].el) as Element) { return element; }
     }
     return null;
   },
   scrollIntoView (el: Element): void {
-    let rect = el.getClientRects()[0] as ClientRect | undefined, hasY, ref, oldSmooth;
+    let rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
     this.getActivatedElement();
     let height = window.innerHeight, width = window.innerWidth,
     amount = rect.bottom < 0 ? rect.bottom - Math.min(rect.height, height)
-      : height < rect.top ? rect.top + Math.min(rect.height - height, 0) : 0;
+      : height < rect.top ? rect.top + Math.min(rect.height - height, 0) : 0,
+    hasY = amount;
     if (hasY = amount) {
-      this.Core.scroll(this.findScrollable(el, 1, amount), 1, amount);
+      this.scroll(this.findScrollable(el, 1, amount), 1, amount);
     }
     amount = rect.right < 0 ? rect.right - Math.min(rect.width, width)
       : width < rect.left ? rect.left + Math.min(rect.width - width, 0) : 0;
     if (amount) {
-      ref = VSettings.cache;
-      oldSmooth = ref.smoothScroll;
+      const ref = VSettings.cache, oldSmooth = ref.smoothScroll;
       ref.smoothScroll = !hasY && oldSmooth;
-      this.Core.scroll(this.findScrollable(el, 0, amount), 0, amount);
+      this.scroll(this.findScrollable(el, 0, amount), 0, amount);
       ref.smoothScroll = oldSmooth;
     }
     VScroller.keyIsDown = 0; // it's safe to only clean keyIsDown here
     this.top = null;
   },
-  shouldScroll (element: Element, di: ScrollByY): boolean {
-    const st = window.getComputedStyle(element);
-    return (di ? st.overflowY : st.overflowX) !== "hidden" && st.display !== "none" && st.visibility === "visible";
+  shouldScroll (element: Element, di: ScrollByY, amount?: number): boolean {
+    if (this.scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft))) {
+      const st = window.getComputedStyle(element);
+      return (di ? st.overflowY : st.overflowX) !== "hidden" && st.display !== "none" && st.visibility === "visible";
+    }
+    return false;
   },
-  isScrollable (el: Element, di: ScrollByY): boolean {
-    return this.scrollDo(el, di, +!(di ? el.scrollTop : el.scrollLeft)) && this.shouldScroll(el, di);
-  },
-  sortBy0 (this: void, a: {area: number, el: Element}, b: {area: number, el: Element}): number {
+  sortByArea (this: void, a: {area: number, el: Element}, b: {area: number, el: Element}): number {
     return a.area - b.area;
   }
 };

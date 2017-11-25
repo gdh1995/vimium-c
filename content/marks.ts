@@ -2,7 +2,6 @@ var VMarks = {
   onKeypress: null as never as (event: HandlerNS.Event, keyChar: string) => void,
   prefix: true,
   activate (_0: number, options: FgOptions): void {
-    Object.setPrototypeOf(options = options || {} as FgOptions, null);
     const isGo = options.mode !== "create";
     this.onKeypress = isGo ? this._goto : this._create;
     this.prefix = options.prefix !== false;
@@ -13,7 +12,7 @@ var VMarks = {
     const keyCode = event.keyCode, cont = !VKeyboard.isEscape(event);
     let keyChar: string | undefined;
     if (cont && (keyCode > VKeyCodes.f1 && keyCode <= VKeyCodes.f12 || keyCode <= VKeyCodes.space
-        || !(keyChar = VKeyboard.getKeyChar(event)))) {
+        || !(keyChar = VKeyboard.getKeyChar(event)) || keyChar.length !== 1)) {
       return 1;
     }
     VUtils.remove(this);
@@ -63,12 +62,14 @@ var VMarks = {
     } else {
       try {
         let position = null, key = this.getLocationKey(keyChar), markString = localStorage.getItem(key);
-        markString && (position = JSON.parse(markString));
-        position = !position || typeof position !== "object" ? null
-          : Object.setPrototypeOf(position, null);
-        if (position && position.scrollX >= 0 && position.scrollY >= 0) {
-          (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).old = position;
-          localStorage.removeItem(key);
+        if (markString && (position = JSON.parse(markString)) && typeof position === "object") {
+          const { scrollX, scrollY } = VUtils.safer(position);
+          if (scrollX >= 0 && scrollY >= 0) {
+            (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).old = {
+              scrollX: scrollX | 0, scrollY: scrollY | 0
+            };
+            localStorage.removeItem(key);
+          }
         }
       } catch (e) {}
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).local = true;

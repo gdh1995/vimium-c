@@ -69,15 +69,14 @@ const enum FirstQuery {
 
 interface SuggestionConstructor {
   new (type: string, url: string, text: string, title: string,
-        computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data?: number) => number,
-        extraData?: number): Suggestion;
+      computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number,
+      extraData: number): Suggestion;
+  new (type: string, url: string, text: string, title: string,
+      computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion) => number
+      ): Suggestion;
 }
 
-const enum RegExpCacheIndex {
-  word = 0, start = 1, part = 2
-}
 type CachedRegExp = (RegExpOne | RegExpI) & RegExpSearchable<0>;
-type RegExpCacheDict = [SafeDict<CachedRegExp>, SafeDict<CachedRegExp>, SafeDict<CachedRegExp>];
 
 type HistoryCallback = (this: void, history: ReadonlyArray<Readonly<HistoryItem>>) => void;
 
@@ -119,51 +118,46 @@ SuggestionUtils = {
     sug.title = this.cutTitle(sug.title);
     const text = sug.text, str = this.shortenUrl(text);
     sug.text = text.length !== sug.url.length ? str : "";
-    sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
+    sug.textSplit = this.cutUrl(str, this.getRanges(str), text.length - str.length);
   },
   cutTitle (title: string): string {
-    title = title.length > 128 ? title.substring(0, 125) + "..." : title;
-    return this.highlight(title, this.getRanges(title));
+    let cut = title.length > maxChars + 40;
+    cut && (title = title.substring(0, maxChars + 37));
+    return this.highlight(cut ? title + "..." : title, this.getRanges(title));
   },
   highlight (this: void, string: string, ranges: number[]): string {
-    let out: string[], end: number;
     if (ranges.length === 0) { return Utils.escapeText(string); }
-    out = []; end = 0;
+    let out = "", end = 0;
     for(let _i = 0; _i < ranges.length; _i += 2) {
       const start = ranges[_i], end2 = ranges[_i + 1];
-      out.push(Utils.escapeText(string.substring(end, start)), '<match>',
-        Utils.escapeText(string.substring(start, end2)), "</match>");
+      out += Utils.escapeText(string.substring(end, start));
+      out += '<match>';
+      out += Utils.escapeText(string.substring(start, end2));
+      out += "</match>";
       end = end2;
     }
-    out.push(Utils.escapeText(string.substring(end)));
-    return out.join("");
+    return out + Utils.escapeText(string.substring(end));
   },
   shortenUrl (this: void, url: string): string {
     const i = Utils.IsURLHttp(url);
     return !i || i >= url.length ? url : url.substring(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
   },
-  pushMatchingRanges (this: void, string: string, term: string, ranges: MatchRange[]): void {
-    let index = 0, textPosition = 0, matchedEnd: number;
-    const splits = string.split(RegExpCache.item(term)), last = splits.length - 1, tl = term.length;
-    for (; index < last; index++, textPosition = matchedEnd) {
-      matchedEnd = (textPosition += splits[index].length) + tl;
-      ranges.push([textPosition, matchedEnd]);
-    }
-  },
   getRanges (string: string): number[] {
     const ranges: MatchRange[] = [];
-    for (const i of queryTerms) {
-      this.pushMatchingRanges(string, i, ranges);
+    for (let i = 0, len = queryTerms.length; i < len; i++) {
+      let index = 0, textPosition = 0, matchedEnd: number;
+      const splits = string.split(RegExpCache.parts[i]), last = splits.length - 1, tl = queryTerms[i].length;
+      for (; index < last; index++, textPosition = matchedEnd) {
+        matchedEnd = (textPosition += splits[index].length) + tl;
+        ranges.push([textPosition, matchedEnd]);
+      }
     }
     if (ranges.length === 0) { return ranges as never[]; }
-    ranges.sort(this.rsortBy0);
-    return this.mergeRanges(ranges);
-  },
-  rsortBy0 (this: void, a: MatchRange, b: MatchRange): number { return b[0] - a[0]; },
-  mergeRanges (this: void, ranges: MatchRange[]): number[] {
-    const mergedRanges: number[] = ranges.pop() as number[];
-    for (let i = 1, ind = ranges.length; 0 <= --ind; ) {
-      const range = ranges[ind];
+    const mergedRanges: number[] = ranges[0];
+    if (ranges.length === 1) { return mergedRanges; }
+    ranges.sort(this.sortBy0);
+    for (let i = 1, j = 1, len = ranges.length; j < len; j++) {
+      const range = ranges[j];
       if (mergedRanges[i] >= range[0]) {
         if (mergedRanges[i] < range[1]) {
           mergedRanges[i] = range[1];
@@ -175,34 +169,40 @@ SuggestionUtils = {
     }
     return mergedRanges;
   },
-  cutUrl (this: void, string: string, ranges: number[], strCoded: string): string {
-    const out: string[] = [];
+  sortBy0 (this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; },
+  // deltaLen may be: 0, 1, 7/8/9
+  cutUrl (this: void, string: string, ranges: number[], deltaLen: number): string {
+    let out = "";
     let cutStart = -1, end: number = 0, maxLen = maxChars;
-    if (string.length <= maxLen || (cutStart = strCoded.indexOf(":")) < 0) {}
-    else if (!Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) { cutStart += 8; }
-    else if ((cutStart = strCoded.indexOf("/", cutStart + 4)) >= 0) {
-      const temp = string.indexOf("://");
-      cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
+    if (string.length <= maxLen) {}
+    else if (deltaLen > 1) { cutStart = string.indexOf("/"); }
+    else if ((cutStart = string.indexOf(":")) < 0) {}
+    else if (Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) {
+      cutStart = string.indexOf("/", cutStart + 4);
+    } else {
+      cutStart += 32; // for data:text/javascript,var xxx; ...
     }
     cutStart = cutStart < 0 ? string.length : cutStart + 1;
     for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
       const start = ranges[i], temp = (end >= cutStart) ? end : cutStart;
       if (temp + 20 > start) {
-        out.push(Utils.escapeText(string.substring(end, start)));
+        out += Utils.escapeText(string.substring(end, start));
       } else {
-        out.push(Utils.escapeText(string.substring(end, temp + 10)), "...",
-          Utils.escapeText(string.substring(start - 6, start)));
+        out += Utils.escapeText(string.substring(end, temp + 10));
+        out += "..."
+        out += Utils.escapeText(string.substring(start - 6, start));
         maxLen += start - temp - 19;
       }
       end = ranges[i + 1];
-      out.push('<match>', Utils.escapeText(string.substring(start, end)), "</match>");
+      out += '<match>';
+      out += Utils.escapeText(string.substring(start, end));
+      out += "</match>";
     }
     if (string.length <= maxLen) {
-      out.push(Utils.escapeText(string.substring(end)));
+      return out + Utils.escapeText(string.substring(end));
     } else {
-      out.push(Utils.escapeText(string.substring(end, maxLen - 3 > end ? maxLen - 3 : end + 10)), "...");
+      return out + Utils.escapeText(string.substring(end, maxLen - 3 > end ? maxLen - 3 : end + 10)) + "...";
     }
-    return out.join("");
   },
   ComputeWordRelevancy (this: void, suggestion: CompletersNS.CoreSuggestion): number {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
@@ -312,9 +312,9 @@ bookmarks: {
       this.path = oldPath;
       return;
     }
-    const url = bookmark.url as string;
-    const bookm: Bookmark = url.startsWith("javascript:") ? {
-      url: "", text: "javascript:", path, title,
+    const url = bookmark.url as string, jsSchema = "javascript:",
+    bookm: Bookmark = url.startsWith(jsSchema) ? {
+      url: jsSchema, text: jsSchema, path, title,
       jsUrl: url, jsText: Utils.DecodeURLPart(url)
     } as JSBookmark : {
       url, text: url, path, title
@@ -363,7 +363,7 @@ history: {
       if (history) {
         return Completers.next(this.quickSearch(history));
       }
-      return HistoryCache.use(function(history: HistoryItem[]) {
+      return HistoryCache.use(function(history): void {
         if (query.isOff) { return; }
         return Completers.next(Completers.history.quickSearch(history));
       });
@@ -383,11 +383,11 @@ history: {
       return this.filterFill([], query, {}, 0);
     }
   },
-  quickSearch (history: HistoryItem[]): Suggestion[] {
+  quickSearch (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
     let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0);
-    const results = [0.0, 0], sugs: Suggestion[] = [];
+    const results = [0.0, 0], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2;
     let getRele: ((text: string, title: string, lastVisitTime: number) => number)
-      | ((sug: Suggestion, score: number) => number), i = 0, j: number;
+      | ((sug: CompletersNS.CoreSuggestion, score: number) => number), i = 0, j: number;
     getRele = SuggestionUtils.ComputeRelevancy;
     if (queryTerms.length === 1) {
       Utils.convertToUrl(queryTerms[0], null, Urls.WorkType.KeepAll);
@@ -397,13 +397,9 @@ history: {
     }
     for (j = maxNum; --j; ) { results.push(0.0, 0); }
     maxNum = maxNum * 2 - 2;
-    let regexps: CachedRegExp[] | null = queryTerms.map(RegExpCache.item, RegExpCache);
-    for (const len = history.length, len2 = regexps.length; i < len; i++) {
+    for (const len = history.length; i < len; i++) {
       const item = history[i];
-      for (j = 0; j < len2; j++) {
-        if (!(regexps[j].test(item.text) || regexps[j].test(item.title))) { break; }
-      }
-      if (j !== len2) { continue; }
+      if (!Match2(item.text, item.title)) { continue; }
       const score = getRele(item.text, item.title, item.visit);
       if (results[maxNum] >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
@@ -412,7 +408,6 @@ history: {
       results[j + 2] = score;
       results[j + 3] = i;
     }
-    regexps = null;
     getRele = this.getExtra;
     if (queryType === FirstQuery.history) {
       i = offset * 2;
@@ -480,7 +475,7 @@ history: {
     e.sessionId && (o.sessionId = e.sessionId);
     arr[i] = o;
   },
-  getExtra (_s: Suggestion, score: number): number { return score; },
+  getExtra (_s: CompletersNS.CoreSuggestion, score: number): number { return score; },
   urlNotIn (this: Dict<number>, i: UrlItem): boolean { return !(i.url in this); }
 },
 
@@ -502,8 +497,7 @@ domains: {
     return this.performSearch();
   } ,
   performSearch (): void {
-    const ref = Utils.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms,
-    word = q[0].toLowerCase();
+    const ref = Utils.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, word = queryTerms[0].toLowerCase();
     let sug: Suggestion | undefined, result = "", d: Domain = null as Domain | null as Domain, result_score = -1;
     if (offset > 0) {
       for (let domain in ref) {
@@ -511,7 +505,6 @@ domains: {
       }
       return Completers.next([]);
     }
-    queryTerms = [word];
     RankingUtils.maxScoreP = RankingUtils.maximumScore;
     for (let domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
@@ -523,11 +516,10 @@ domains: {
         let d2: Domain | undefined, r2 = "www." + result.substring(result.indexOf(".") + 1);
         if (d2 = ref[r2]) { result = r2; d = d2; }
       }
-      sug = new Suggestion("domain", (d.https ? "https://" : "http://") + result, "", "", this.compute2);
-      sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
+      result = (d.https ? "https://" : "http://") + result;
+      sug = new Suggestion("domain", result, result, "", this.compute2);
       --maxResults;
     }
-    queryTerms = q;
     RankingUtils.maxScoreP = p;
     return Completers.next(sug ? [sug] : []);
   },
@@ -584,12 +576,14 @@ tabs: {
     if (query.isOff) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
     const curTabId = TabRecency.last, noFilter = queryTerms.length <= 0;
-    let suggestions = [] as Suggestion[], tabs = [] as TextTab[];
+    let suggestions = [] as Suggestion[], tabs = [] as TextTab[], wndIds: number[] = [];
     for (const tab of tabs0) {
       if (tab.incognito && inNormal) { continue; }
       const u = tab.url, text = Decoder.decodeURL(u, tab.incognito ? false : u);
       if (noFilter || RankingUtils.Match2(text, tab.title)) {
         (tab as TextTab).text = text;
+        const wndId = tab.windowId;
+        wndIds.lastIndexOf(wndId) < 0 && wndIds.push(wndId);
         tabs.push(tab as TextTab);
       }
     }
@@ -601,9 +595,12 @@ tabs: {
       }
       return Completers.next(suggestions);
     }
+    wndIds = wndIds.sort(this.SortNumbers);
     const c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
     for (const tab of tabs) {
-      const tabId = tab.id, suggestion = new Suggestion("# " + (tab.index + 1), tab.url, tab.text, tab.title, c, tabId);
+      let id = (wndIds.length > 1 ? wndIds.indexOf(tab.windowId) + 1 : "") + "# " + (tab.index + 1);
+      if (tab.incognito) { id += "*"; }
+      const tabId = tab.id, suggestion = new Suggestion(id, tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       suggestions.push(suggestion);
@@ -627,7 +624,8 @@ tabs: {
     Decoder.continueToWork();
     return Completers.next(suggestions);
   },
-  computeRecency (_0: Suggestion, tabId: number): number {
+  SortNumbers (this: void, a: number, b: number): number { return a - b; },
+  computeRecency (_0: CompletersNS.CoreSuggestion, tabId: number): number {
     return TabRecency.tabs[tabId] || (1 - 1 / tabId);
   }
 },
@@ -636,9 +634,8 @@ searchEngines: {
   _nestedEvalCounter: 0,
   filter (): void {},
   preFilter (query: CompletersNS.QueryStatus, failIfNull?: true): void | true {
-    let obj: Search.Result, sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
-       pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined,
-       url: string, text: string;
+    let sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
+       pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined;
     if (q.length === 0) {}
     else if (failIfNull !== true && keyword[0] === "\\") {
       if (keyword.length > 1) {
@@ -669,8 +666,7 @@ searchEngines: {
     }
     q.length > 1 ? q.shift() : (q = []);
 
-    obj = Utils.createSearch(q, pattern.url, []);
-    url = text = obj.url;
+    let { url, indexes } = Utils.createSearch(q, pattern.url, []), text = url;
     if (keyword === "~") {}
     else if (url.startsWith("vimium://")) {
       const ret = Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
@@ -697,8 +693,8 @@ searchEngines: {
       , pattern.name + ": " + q.join(" "), this.compute9) as SearchSuggestion;
 
     if (q.length > 0) {
-      sug.text = this.makeText(text, obj.indexes);
-      sug.textSplit = SuggestionUtils.highlight(sug.text, obj.indexes);
+      sug.text = this.makeText(text, indexes);
+      sug.textSplit = SuggestionUtils.highlight(sug.text, indexes);
       sug.title = SuggestionUtils.highlight(sug.title
         , [pattern.name.length + 2, sug.title.length]);
     } else {
@@ -797,7 +793,6 @@ searchEngines: {
   mostRecentQuery: null as CompletersNS.QueryStatus | null,
   callback: null as CompletersNS.Callback | null,
   filter (completers: ReadonlyArray<Completer>): void {
-    RegExpCache.reset();
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     const query: CompletersNS.QueryStatus = this.mostRecentQuery = {
       isOff: false
@@ -818,6 +813,7 @@ searchEngines: {
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(this.protoRe, " __proto_").trimLeft().split(" ");
     }
+    RegExpCache.buildParts();
     for (l--; i < l; i++) {
       completers[i].filter(query, i);
     }
@@ -865,8 +861,13 @@ searchEngines: {
     } else if (suggestions.length > maxTotal) {
       suggestions.length = maxTotal;
     }
+    RegExpCache.words = RegExpCache.starts = null as never;
     if (queryTerms.length > 0) {
-      queryTerms[0] = SuggestionUtils.shortenUrl(queryTerms[0]);
+      let s0 = queryTerms[0], s1 = SuggestionUtils.shortenUrl(s0), cut = s0.length !== s1.length;
+      if (cut || s0.endsWith('/') && s0.length > 1) {
+        queryTerms[0] = cut ? s1 : s0.substring(0, s0.length - 1);
+        RegExpCache.fixParts();
+      }
     }
     suggestions.forEach(SuggestionUtils.prepareHtml, SuggestionUtils);
 
@@ -882,7 +883,7 @@ searchEngines: {
   cleanGlobals (): void {
     this.mostRecentQuery = this.callback = inNormal = null;
     queryTerms = [];
-    RegExpCache.reset();
+    RegExpCache.parts = null as never;
     RankingUtils.timeAgo = this.sugCounter = matchType =
     maxResults = maxTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
@@ -917,9 +918,9 @@ searchEngines: {
   filter(this: WindowEx["Completers"], query: string, options: CompletersNS.FullOptions
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
-    queryTerms = (query = query.trim()) ? query.split(Utils.spacesRe) : [];
+    queryTerms = (query = query.trim()) ? query.substring(0, 200).trimRight().split(Utils.spacesRe) : [];
     maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
-    maxTotal = maxResults = Math.min(Math.max((options.maxResults as number) | 0, 3), 25);
+    maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
     Completers.callback = callback;
     let arr: ReadonlyArray<Completer> | null = null, str: string;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
@@ -939,10 +940,9 @@ searchEngines: {
 
   const RankingUtils = {
     Match2 (s1: string, s2: string): boolean {
-      const cache = RegExpCache;
-      for (const i of queryTerms) {
-        const regexp = cache.item(i);
-        if (!(regexp.test(s1) || regexp.test(s2))) { return false; }
+      const { parts } = RegExpCache;
+      for (let i = 0, len = queryTerms.length; i < len; i++) {
+        if (!(parts[i].test(s1) || parts[i].test(s2))) { return false; }
       }
       return true;
     },
@@ -953,26 +953,26 @@ searchEngines: {
     maxScoreP: 3,
     recCalibrator: 2.0 / 3.0,
     _emptyScores: [0, 0] as [number, number],
-    scoreTerm (term: string, string: string): [number, number] {
+    scoreTerm (term: number, string: string): [number, number] {
       let count = 0, score = 0;
-      count = string.split(RegExpCache.item(term)).length;
+      count = string.split(RegExpCache.parts[term]).length;
       if (count < 1) { return this._emptyScores; }
       score = this.anywhere;
-      if (RegExpCache.get(term, RegExpCacheIndex.start).test(string)) {
+      if (RegExpCache.starts[term].test(string)) {
         score += this.startOfWord;
-        if (RegExpCache.get(term, RegExpCacheIndex.word).test(string)) {
+        if (RegExpCache.words[term].test(string)) {
           score += this.wholeWord;
         }
       }
-      return [score, (count - 1) * term.length];
+      return [score, (count - 1) * queryTerms[term].length];
     },
     wordRelevancy (url: string, title: string): number {
-      let titleCount = 0, titleScore = 0, urlCount = 0, urlScore = 0, _i = queryTerms.length;
-      while (0 <= --_i) {
-        let term = queryTerms[_i];
+      let titleCount = 0, titleScore = 0, urlCount = 0, urlScore = 0, useTitle = !!title;
+      RegExpCache.starts || RegExpCache.buildOthers();
+      for (let term = 0, len = queryTerms.length; term < len; term++) {
         let a = this.scoreTerm(term, url);
         urlScore += a[0]; urlCount += a[1];
-        if (title) {
+        if (useTitle) {
           a = this.scoreTerm(term, title);
           titleScore += a[0]; titleCount += a[1];
         }
@@ -996,27 +996,28 @@ searchEngines: {
   },
 
   RegExpCache = {
-    cache: null as SafeDict<CachedRegExp> | null,
-    _d: null as RegExpCacheDict | null,
-    reset (obj?: null): void {
-      if (obj === null) {
-        this.cache = this._d = null;
-        Utils.resetRe();
-        return;
+    parts: null as never as CachedRegExp[],
+    starts: null as never as CachedRegExp[],
+    words: null as never as CachedRegExp[],
+    buildParts (): void {
+      const d: CachedRegExp[] = this.parts = [] as never;
+      this.starts = this.words = null as never;
+      for (const s of queryTerms) {
+        d.push(new RegExp(s.replace(Utils.escapeAllRe, "\\$&"), Utils.hasUpperCase(s) ? "" : "i" as "") as CachedRegExp);
       }
-      this.cache = Object.create<CachedRegExp>(null);
-      this._d = [Object.create<CachedRegExp>(null), Object.create<CachedRegExp>(null), this.cache];
     },
-    escapeRe: Utils.escapeAllRe,
-    get (s: string, i: RegExpCacheIndex): CachedRegExp {
-      const d = (this._d as RegExpCacheDict)[i];
-      return d[s] || (d[s] = new RegExp((i < RegExpCacheIndex.part ? "\\b" : "")
-        + s.replace(this.escapeRe, "\\$&")
-        + (i === RegExpCacheIndex.start ? "\\b" : ""),
-        Utils.hasUpperCase(s) ? "" : "i" as "") as CachedRegExp);
+    buildOthers (): void {
+      const ss = this.starts = [] as CachedRegExp[], ws = this.words = [] as CachedRegExp[];
+      for (const s of queryTerms) {
+        const start = "\\b" + s.replace(Utils.escapeAllRe, "\\$&"), flags = Utils.hasUpperCase(s) ? "" : "i" as "";
+        ss.push(new RegExp(start, flags) as CachedRegExp);
+        ws.push(new RegExp(start + "\\b", flags) as CachedRegExp);
+      }
     },
-    item (s: string): CachedRegExp {
-      return (this.cache as SafeDict<CachedRegExp>)[s] || this.get(s, RegExpCacheIndex.part);
+    fixParts (): void {
+      if (!this.parts) { return; }
+      let s = queryTerms[0];
+      this.parts[0] = new RegExp(s.replace(Utils.escapeAllRe, "\\$&"), Utils.hasUpperCase(s) ? "" : "i" as "") as CachedRegExp;
     }
   },
 
@@ -1196,7 +1197,7 @@ searchEngines: {
       return this.continueToWork();
     },
     dict: Object.create<string>(null),
-    todos: [] as ItemToDecode[], // each item is {url: ..., text?: ...}
+    todos: [] as ItemToDecode[],
     _ind: -1,
     continueToWork (): void {
       if (this.todos.length === 0 || this._ind !== -1) { return; }

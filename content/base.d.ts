@@ -79,7 +79,7 @@ declare namespace HintsNS {
 declare namespace FindNS {
   interface ExecuteOptions {
     count?: number;
-    dir?: BOOL;
+    dir?: BOOL | -1;
     noColor?: boolean;
     caseSensitive?: boolean;
   }
@@ -103,7 +103,9 @@ declare namespace VomnibarNS {
   }
   interface BaseFgOptions {
     width: number;
+    height: number;
     search: "" | FgRes["parseSearchUrl"];
+    ptype: PageType;
   }
   interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
     url?: string | null;
@@ -160,19 +162,22 @@ interface Hint {
   length: number;
 }
 
-interface UIElementOptions {
-  adjust?: boolean;
-  before?: Element | null;
-  showing?: false;
+declare const enum AdjustType {
+  NotAdjust = 0,
+  Normal = 1,
+  MustAdjust = 2,
+  AdjustButNotShow = 3,
+  DEFAULT = Normal,
 }
 
 interface DomUI {
   box: HTMLElement | null;
   styleIn: HTMLStyleElement | string | null;
+  styleOut: HTMLStyleElement | null;
   root: ShadowRoot | null;
   callback: null | ((this: void) => void);
   flashLastingTime: number;
-  addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions): T;
+  addElement<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
   addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
   adjust (this: void, event?: Event): void;
   toggle (this: DomUI, enabled: boolean): void;
@@ -180,11 +185,13 @@ interface DomUI {
   ensureBorder (this: DomUI): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   css (this: DomUI, innerCSS: string): void;
+  getDocSelectable (this: DomUI): boolean;
+  toggleSelectStyle (this: DomUI, enable: boolean): void;
   getSelection (this: DomUI): Selection;
-  removeSelection (this: DomUI, root?: DocumentOrShadowRoot,): boolean;
+  removeSelection (this: DomUI, root?: DocumentOrShadowRoot): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
   simulateSelect (this: DomUI, element: Element, flash?: boolean, suppressRepeated?: boolean): void;
-  getZoom (this: void): number;
+  getZoom (this: void, min?: number): number;
   getVRect (this: void, clickEl: Element): VRect | null;
   flash (this: DomUI, el: null, rect: VRect): number;
   flash (this: DomUI, el: Element): number | void;

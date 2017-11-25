@@ -336,7 +336,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         chrome.windows.update(wnd.id, opt);
       } : callback || null);
     },
-    makeTempWindow (this: void, tabIdUrl: number | string, incognito: boolean, callback: (wnd?: Window) => void): void {
+    makeTempWindow (this: void, tabIdUrl: number | string, incognito: boolean, callback: (wnd: Window) => void): void {
       const isId = typeof tabIdUrl === "number", option: chrome.windows.CreateData = {
         type: "normal",
         focused: false,
@@ -410,8 +410,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     PostCompletions (this: Port, favIcon0: 0 | 1 | 2, list: Readonly<Suggestion>[]
         , autoSelect: boolean, matchType: CompletersNS.MatchType): void {
       let { url } = this.sender, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
-      if (favIcon0 == 1 && Settings.CONST.ChromeVersion >= BrowserVer.MinExtensionContentPageMayShowFavIcon
-           && url !== Settings.CONST.VomnibarScript_f && url.startsWith("chrome")) {
+      if (favIcon0 == 1 && Settings.CONST.ChromeVersion >= BrowserVer.MinExtensionContentPageMayShowFavIcon) {
         url = url.substring(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
         for (let tabId in framesForTab) {
           let frames = framesForTab[tabId] as Port[];
@@ -425,6 +424,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           if (favIcon) { break; }
         }
       }
+      Utils.resetRe();
       try {
       this.postMessage({ name: "omni", autoSelect, matchType, list, favIcon });
       } catch (e) {}
@@ -466,7 +466,7 @@ Are you sure you want to continue?`);
     },
 
     getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
-        , (result: [Tab] | never[]) => void, 1>(null, { active: true, currentWindow: true }),
+        , (result: [Tab]) => void, 1>(null, { active: true, currentWindow: true }),
     getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
     getId (this: void, tab: { readonly id: number }): number { return tab.id; },
 
@@ -611,7 +611,7 @@ Are you sure you want to continue?`);
     openUrlInNewTab: function(this: OpenInNewTabOptions, url: string, reuse: ReuseType, tabs: [Tab]): void {
       const tab = tabs[0];
       if (this.incognito) {
-        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, url, tab));
+        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this as OpenInNewTabOptions & {incognito: true}, url, tab));
         return;
       }
       tab.active = reuse !== ReuseType.newBg;
@@ -622,7 +622,7 @@ Are you sure you want to continue?`);
       const prefix = Settings.CONST.ShowPage;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
       if (!tab) {
-        funcDict.getCurTab(function(tabs): void {
+        funcDict.getCurTab(function(tabs: [Tab]): void {
           if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
           funcDict.openShowPage[0](url, reuse, tabs[0]);
         });
@@ -1007,6 +1007,9 @@ Are you sure you want to continue?`);
       }
       if (commandCount <= 1) {
         chrome.tabs.remove(tab.id, funcDict.onRuntimeError);
+        if (cOptions.left && tab.index > 0) {
+          chrome.tabs.update(tabs[tab.index - 1].id, { active: true });
+        }
         return;
       }
       const i = tab.index--;
@@ -1015,7 +1018,12 @@ Are you sure you want to continue?`);
       }
       funcDict.removeTabsRelative(tab, commandCount, tabs);
       if (startTabIndex < 0 && limited !== false || startTabIndex >= i || limited
-          || i > 0 && tabs[i - 1].pinned && !tab.pinned) { return; }
+          || i > 0 && tabs[i - 1].pinned && !tab.pinned) {
+        if (startTabIndex > i && i > 0 && cOptions.left) {
+          chrome.tabs.update(tabs[i - 1].id, { active: true });
+        }
+        return;
+      }
       ++tab.index;
       return funcDict.removeTabsRelative(tab, startTabIndex - i, tabs);
     },
@@ -1305,7 +1313,7 @@ Are you sure you want to continue?`);
         }
       }
       if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
-      cPort.postMessage<1, "goNext">({ name: "execute", count: 1, command: "goNext",
+      cPort.postMessage<1, "goNext">({ name: "execute", count: 1, command: "goNext", CSS: null,
         options: {
           dir,
           patterns: p2
@@ -1326,11 +1334,13 @@ Are you sure you want to continue?`);
       });
     },
     performFind (): void {
-      const query = cOptions.active ? null : (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito);
+      const leave = !cOptions.active,
+      query = leave || cOptions.last ? (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito) : "";
       cPort.postMessage<1, "Find.activate">({ name: "execute", count: 1, command: "Find.activate"
           , CSS: funcDict.ensureInnerCSS(cPort), options: {
         count: commandCount,
         dir: cOptions.dir <= 0 ? -1 : 1,
+        leave,
         query
       }});
     },
@@ -1351,13 +1361,13 @@ Are you sure you want to continue?`);
         vomnibar: choice ? inner : page,
         vomnibar2: choice ? null : inner,
         ptype: choice ? VomnibarNS.PageType.inner : web ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
-        script: Settings.CONST.VomnibarScript_f,
+        script: choice ? "" : Settings.CONST.VomnibarScript_f,
         secret: getSecret(),
+        CSS: funcDict.ensureInnerCSS(cPort)
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
       port.postMessage<1, "Vomnibar.activate">({
-        name: "execute", count: commandCount,
+        name: "execute", count: commandCount, CSS: null,
         command: "Vomnibar.activate",
-        CSS: funcDict.ensureInnerCSS(cPort),
         options
       });
       options.secret = -1;
@@ -1380,6 +1390,7 @@ Are you sure you want to continue?`);
         command: "showHelp",
         count: 1,
         options: null,
+        CSS: null
       });
     },
     toggleViewSource (this: void, tabs: [Tab]): void {
@@ -1499,7 +1510,7 @@ Are you sure you want to continue?`);
       if (port && request.execute) {
         const result = requestHandlers.parseUpperUrl(request);
         if (result.path != null) {
-          port.postMessage<1, "reload">({ name: "execute", command: "reload", count: 1, options: { url: result.url } });
+          port.postMessage<1, "reload">({ name: "execute", command: "reload", count: 1, options: { url: result.url }, CSS: null });
           return;
         }
         cPort = port;

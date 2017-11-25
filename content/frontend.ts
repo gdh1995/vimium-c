@@ -105,7 +105,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           }
         }
       }
-      else if (key >= VKeyCodes.space || key === VKeyCodes.backspace) {
+      else if (key >= VKeyCodes.space || key === VKeyCodes.backspace || key === VKeyCodes.tab || key === VKeyCodes.enter) {
         if (keyChar = VKeyboard.getKeyChar(event)) {
           action = checkValidKey(event, keyChar);
           if (action === HandlerResult.Nothing && InsertMode.suppressType && keyChar.length === 1) {
@@ -119,7 +119,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         action = HandlerResult.Prevent;
       } else if (VDom.UI.removeSelection()) {
         action = HandlerResult.Prevent;
-      } else if (document.activeElement === document.body) {
+      } else if (window.top !== window && document.activeElement === document.body) {
         action = InsertMode.focusUpper(key);
       } else if (event.repeat) {
         let c = document.activeElement; c && c.blur && c.blur();
@@ -442,8 +442,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       } else if (sel === 1) {
         return VDom.UI.simulateSelect(visibleInputs[0][0], true, true);
       }
+      for (let ind = 0; ind < sel; ind++) {
+        const hint = visibleInputs[ind], j = hint[0].tabIndex;
+        hint[2] = j > 0 ? ind / 8192 - j : ind;
+      }
       const arr = VDom.getViewBox(),
-      hints = visibleInputs.map(function(link) {
+      hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link) {
         const hint = VDom.createElement("span") as HintsNS.Marker,
         rect = VDom.fromClientRect(link[0].getBoundingClientRect());
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
@@ -464,19 +468,19 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VUtils.push(function(event) {
         const { keyCode } = event, oldSel = sel;
         if (keyCode === VKeyCodes.tab) {
-          if (event.shiftKey) {
-            if (--sel === -1) { sel = hints.length - 1; }
-          }
-          else if (++sel === hints.length) { sel = 0; }
+          sel = (sel + (event.shiftKey ? -1 : 1)) % hints.length;
           VDom.UI.simulateSelect(hints[sel].clickableItem);
           hints[oldSel].classList.remove("S");
           hints[sel].classList.add("S");
           return HandlerResult.Prevent;
         }
-        if (keyCode === VKeyCodes.shiftKey || keyCode === VKeyCodes.altKey) {}
+        if (keyCode === VKeyCodes.shiftKey || keep && (keyCode === VKeyCodes.altKey
+            || keyCode === VKeyCodes.ctrlKey || keyCode === VKeyCodes.metaKey)) {}
         else if (event.repeat) { return HandlerResult.Prevent; }
-        else if (keep ? !VKeyboard.isEscape(event) : keyCode === VKeyCodes.ime || keyCode === VKeyCodes.f12) {}
-        else {
+        else if (keep ? VKeyboard.isEscape(event) || (
+            keyCode === VKeyCodes.enter && !VKeyboard.getKeyStat(event) && hints[sel].clickableItem instanceof HTMLInputElement
+          ) : keyCode !== VKeyCodes.ime && keyCode !== VKeyCodes.f12
+        ) {
           this.remove();
           VUtils.remove(this);
           return !VKeyboard.isEscape(event) ? HandlerResult.Nothing : keep || !InsertMode.lock ? HandlerResult.Prevent
@@ -627,7 +631,7 @@ Pagination = {
   },
   findAndFollowRel (relName: string): boolean {
     const elements = document.querySelectorAll("[rel]"),
-    relTags = Object.setPrototypeOf({a: 1, area: 1, link: 1}, null);
+    relTags = VUtils.safer({a: 1, area: 1, link: 1});
     let s: string | null;
     for (let _i = 0, _len = elements.length; _i < _len; _i++) {
       const element = elements[_i];
@@ -662,15 +666,11 @@ Pagination = {
         _this.more = true;
       } else {
         dom1 = VDom.createElement("div");
-        dom1.setAttribute("style", "background:none;border:5px solid yellow;box-shadow:none;\
-box-sizing:border-box;display:block;float:none;height:100%;left:0;margin:0;\
-opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647;");
+        dom1.className = "R Frame" + (request.mask === FrameMaskType.OnlySelf ? " One" : "");
         _this.node = dom1;
         _this.timer = setInterval(_this.Remove, 200);
       }
-      dom1.style.borderColor = request.mask === FrameMaskType.OnlySelf ? "lightsalmon" : "yellow";
-      VDom.UI.root && isEnabledForUrl ? VDom.UI.addElement(dom1) :
-      VDom.append(document.webkitFullscreenElement || document.documentElement as HTMLElement, dom1);
+      VDom.UI.addElement(dom1);
     },
     Remove (this: void): void {
       const _this = FrameMask;
@@ -723,7 +723,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         st.visibility = "hidden";
         el.textContent = text;
         VDom.UI.root || VDom.UI.ensureBorder();
-        VDom.UI.addElement(this.box = el, {adjust: false});
+        VDom.UI.addElement(this.box = el, AdjustType.NotAdjust);
       }
       if (nowait) {
         (st as CSSStyleDeclaration).cssText = "";
@@ -803,7 +803,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     settingsUpdate (request): void {
       type Keys = keyof SettingsNS.FrontendSettings;
-      Object.setPrototypeOf(request, null);
+      VUtils.safer(request);
       delete request.name;
       for (let i in request) {
         VSettings.cache[i as Keys] = request[i as Keys] as SettingsNS.FrontendSettings[Keys];
@@ -890,7 +890,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     (box.querySelector("#HClose") as HTMLElement).onclick = Commands.showHelp = hide;
     shouldShowAdvanced && toggleAdvanced();
     VDom.UI.ensureBorder();
-    VDom.UI.addElement(box, Vomnibar.status ? {} as UIElementOptions : {before: Vomnibar.box});
+    VDom.UI.addElement(box, AdjustType.Normal, true);
     document.hasFocus() || VEventMode.focusAndListen();
     VScroller.current = box;
     VUtils.push(function(event) {
@@ -979,7 +979,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     OnScrolls: [function (event): void | 1 {
       if (event.repeat) {
         VUtils.prevent(event);
-        return (VScroller.keyIsDown = VScroller.Core.maxInterval) as 1;
+        return (VScroller.keyIsDown = VScroller.maxInterval) as 1;
       } else if (this !== VEventMode.OnScrolls) {
         return VEventMode.OnScrolls[3](this);
       } else {

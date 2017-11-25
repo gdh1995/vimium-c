@@ -2,7 +2,7 @@ var HelpDialog = {
   render: (function(this: void, request: FgReq["initHelp"]): string {
     Object.setPrototypeOf(request, null);
     const commandsToKey = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry,
-          showUnbound = !!request.unbound, showNames = !!request.names;
+          hideUnbound = !request.unbound, showNames = !!request.names;
     let command: string, key: string;
     for (key in ref) {
       command = (ref[key] as CommandsNS.Item).command;
@@ -12,57 +12,63 @@ var HelpDialog = {
       version: Settings.CONST.CurrentVersionName,
       title: request.title || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
-      lbPad: showNames ? '\n\t\t<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
+      lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;
     return (<string>Settings.cache.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
       let s = result[group];
       return s != null ? s
-        : HelpDialog.groupHtml(group, commandsToKey, showUnbound, showNames);
+        : HelpDialog.groupHtml(group, commandsToKey, hideUnbound, showNames);
     });
   } as BaseHelpDialog["render"]),
   groupHtml: (function(this: any, group: string, commandsToKey: SafeDict<string[]>
-      , showUnbound: boolean, showNames: boolean): string {
-    const _ref = (this as typeof HelpDialog).commandGroups[group], push = (this as typeof HelpDialog).commandHtml
-      , availableCommands = CommandsData.availableCommands as EnsuredSafeDict<CommandsNS.Description>
-      , html = [] as string[];
-    Utils.escapeText("");
-    let bindings: string, keys: string[] | undefined;
+      , hideUnbound: boolean, showNames: boolean): string {
+    const _ref = (this as typeof HelpDialog).commandGroups[group], renderItem = (this as typeof HelpDialog).commandHtml
+      , availableCommands = CommandsData.availableCommands as EnsuredSafeDict<CommandsNS.Description>;
+    let keys: string[] | undefined, html = "";
     for (let _i = 0, _len = _ref.length; _i < _len; _i++) {
       const command = _ref[_i];
-      if (!(keys = commandsToKey[command]) && !showUnbound) { continue; }
+      if (hideUnbound && !(keys = commandsToKey[command])) { continue; }
+      let klen = -2, bindings = '';
       if (keys && keys.length > 0) {
-        bindings = `\n\t\t<span class="HelpKey">${keys.map(Utils.escapeText
-          ).join('</span>, <span class="HelpKey">')}</span>\n\t`;
-      } else {
-        bindings = "";
+        bindings = '\n\t\t<span class="HelpKey">';
+        for (let key of keys) {
+          if (klen >= 0) {
+            bindings += '</span>, <span class="HelpKey">';
+          }
+          bindings += Utils.escapeText(key);
+          klen += key.length + 2;
+        }
+        bindings += '</span>\n\t';
       }
       const isAdvanced = command in (this as typeof HelpDialog).advancedCommands
         , description = availableCommands[command][0];
-      if (!bindings || (keys as string[]).join(", ").length <= 12) {
-        push(html, isAdvanced, bindings, description, showNames ? command: "");
+      if (klen <= 12) {
+        html += renderItem(isAdvanced, bindings, description, showNames ? command: "");
       } else {
-        push(html, isAdvanced, bindings, "", "");
-        push(html, isAdvanced, "", description, showNames ? command : "");
+        html += renderItem(isAdvanced, bindings, "", "");
+        html += renderItem(isAdvanced, "", description, showNames ? command : "");
       }
     }
-    return html.join("");
+    return html;
   }),
-  commandHtml: (function(this: void, html: string[], isAdvanced: boolean, bindings: string
-      , description: string, command: string): number {
-    html.push('<tr class="HelpTr', isAdvanced ? " HelpAdv" : "", '">\n\t');
+  commandHtml: (function(this: void, isAdvanced: boolean, bindings: string
+      , description: string, command: string): string {
+    let html = isAdvanced ? '<tr class="HelpAdv">\n\t' : "<tr>\n\t";
     if (description) {
-      html.push('<td class="HelpTd HelpKeys">'
-        , bindings, '</td>\n\t<td class="HelpTd HelpCommandInfo">'
-        , description);
+      html += '<td class="HelpTd HelpKeys">';
+      html += bindings;
+      html += '</td>\n\t<td class="HelpTd HelpCommandInfo">';
+      html += description;
       if (command) {
-        html.push('\n\t\t<span class="HelpCommandName" role="button">('
-          , command, ")</span>\n\t");
+        html += '\n\t\t<span class="HelpCommandName" role="button">(';
+        html += command;
+        html += ")</span>\n\t";
       }
     } else {
-      html.push('<td class="HelpTd HelpKeys HelpLongKeys" colspan="2">'
-        , bindings);
+      html += '<td class="HelpTd HelpKeys HelpLongKeys" colspan="2">';
+      html += bindings;
     }
-    return html.push("</td>\n</tr>\n");
+    return html + "</td>\n</tr>\n";
   }),
   commandGroups: { __proto__: null as never,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"

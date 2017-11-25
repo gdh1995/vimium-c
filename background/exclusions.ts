@@ -7,8 +7,8 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   getRe (this: ExcCls, pattern: string): ExclusionsNS.Tester {
     let func: ExclusionsNS.Tester | undefined = (this.testers as ExclusionsNS.TesterDict)[pattern], re: RegExp | null;
     if (func) { return func; }
-    if (pattern[0] === '^' && (re = Utils.makeRegexp(pattern, "", false))) {
-      func = re.test.bind(re);
+    if (pattern[0] === '^' && (re = Utils.makeRegexp(pattern, "", false) as RegExpOne | null)) {
+      func = re.test.bind(re as RegExpOne);
     } else {
       func = this._startsWith.bind(pattern.substring(1));
     }

@@ -5,6 +5,7 @@ type FindOptions = CmdOptions["Find.activate"] & {
 var VFindMode = {
   isActive: false,
   query: "",
+  query0: "",
   parsedQuery: "",
   historyIndex: 0,
   isRegex: false,
@@ -23,21 +24,20 @@ var VFindMode = {
   styleOut: null as never as HTMLStyleElement,
   A0Re: <RegExpG> /\xa0/g,
   tailRe: <RegExpOne> /\n$/,
-  cssSel: "::selection{background:#ff9632 !important;}",
-  cssOut: "body{-webkit-user-select:auto !important;user-select:auto !important;}\n",
+  cssSel: "::selection { background: #ff9632 !important; }",
   cssIFrame: `*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif !important;
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
 body *{all:inherit !important;display:inline !important;}
 html > count{float:right;}`,
-  activate (_0?: number, options?: Partial<FindOptions>): void {
+  activate (_0: number, options: Partial<FindOptions> & SafeObject): void {
     if (!VDom.isHTML()) { return; }
-    options = Object.setPrototypeOf(options || {}, null);
-    const query: string | undefined | null = options.query ? (options.query + "") : null;
-    this.isActive || query === this.query || VMarks.setPreviousPosition();
+    const query: string | undefined | null = (options.query || "") + "";
+    this.isActive || query === this.query && options.leave || VMarks.setPreviousPosition();
+    VDom.docSelectable = VDom.UI.getDocSelectable();
     VDom.UI.ensureBorder();
-    if (query != null) {
-      return this.findAndFocus(this.query || query, options);
+    if (options.leave) {
+      return this.findAndFocus(query || this.query, options);
     }
     this.getCurrentRange();
     if (options.returnToViewport) {
@@ -45,11 +45,7 @@ html > count{float:right;}`,
     }
     this.box && VDom.UI.adjust();
     if (this.isActive) {
-      const wnd = this.box.contentWindow;
-      wnd.focus();
-      this.input.focus();
-      wnd.document.execCommand("selectAll", false);
-      return;
+      return this.setFirstQuery(query);
     }
 
     const zoom = VDom.UI.getZoom();
@@ -63,9 +59,13 @@ html > count{float:right;}`,
     if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
     VUtils.push(VDom.UI.SuppressMost, this);
-    VDom.UI.addElement(el, {adjust: true, before: VHUD.box});
-    this.init && this.init();
-    this.styleIn.disabled = this.styleOut.disabled = true;
+    this.query || (this.query0 = query);
+    this.init && this.init(AdjustType.NotAdjust);
+    VDom.UI.addElement(el, AdjustType.MustAdjust, VHUD.box);
+    VDom.UI.toggleSelectStyle(true);
+    if (!query) {
+      this.styleIn.disabled = this.styleOut.disabled = true;
+    }
     this.isActive = true;
   },
   onLoad (box: HTMLIFrameElement, later?: 1): void {
@@ -76,14 +76,19 @@ html > count{float:right;}`,
     f("keydown", this.onKeydown.bind(this), t);
     f("input", this.onInput.bind(this), t);
     f("keypress", s, t); f("keyup", s, t); f("focus", s, t);
-    f("copy", s, t); f("cut", s, t); f("paste", s, t);
-    f("blur", function(): void {
+    f("copy", s, t); f("cut", s, t);
+    f("paste", this.OnPaste, t);
+    f("paste", s, t);
+    function onBlur(this: Window): void {
       if (VFindMode.isActive && Date.now() - now < 500) {
-        let a = wnd.document.body;
-        a && setTimeout(function(): void { (a as HTMLBodyElement).focus(); }, tick++ * 17);
+        let a = this.document.body;
+        a && setTimeout(function(): void { (a as HTMLElement).focus(); }, tick++ * 17);
+      } else {
+        this.removeEventListener("blur", onBlur, true);
       }
-    }, true);
-    box.onload = later ? null as never : function(): void { box.onload = null as never; VFindMode.onLoad2(wnd); };
+    }
+    f("blur", onBlur, t);
+    box.onload = later ? null as never : function(): void { this.onload = null as never; VFindMode.onLoad2(this.contentWindow); };
     if (later) { return this.onLoad2(wnd); }
   },
   onLoad2 (wnd: Window): void {
@@ -92,18 +97,14 @@ html > count{float:right;}`,
     zoom = wnd.devicePixelRatio;
     wnd.dispatchEvent(new Event("unload"));
     wnd.onunload = VFindMode.OnUnload;
+    let plain = true;
     try {
       el.contentEditable = "plaintext-only";
     } catch (e) {
+      plain = false;
       el.contentEditable = "true";
-      el.onpaste = function (this: HTMLElement, event: ClipboardEvent): void {
-        const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
-        event.preventDefault();
-        if (!text) { return; }
-        (event.target as HTMLElement).ownerDocument.execCommand("insertText", false, text);
-      };
     }
-    el.oninput = this.onInput.bind(this);
+    wnd.removeEventListener("paste", plain ? this.OnPaste : VUtils.Stop, true);
     const el2 = this.countEl = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
@@ -113,7 +114,7 @@ html > count{float:right;}`,
     function cb(): void {
       VUtils.remove(VFindMode);
       el.focus();
-      // wnd.onfocus = VEventMode.OnWndFocus;
+      return VFindMode.setFirstQuery(VFindMode.query0);
     }
     if ((VDom.UI.box as HTMLElement).style.display) {
       VDom.UI.callback = cb;
@@ -121,15 +122,26 @@ html > count{float:right;}`,
       return cb();
     }
   },
-  init (): HTMLStyleElement {
+  setFirstQuery (query: string): void {
+    const wnd = this.box.contentWindow;
+    wnd.focus();
+    this.query0 = "";
+    this.query || this.SetQuery(query);
+    this.input.focus();
+    this.query && wnd.document.execCommand("selectAll", false);
+  },
+  init (adjust: AdjustType): HTMLStyleElement {
     const ref = this.postMode, UI = VDom.UI,
-    sin = this.styleIn = UI.createStyle(this.cssSel), sout = this.styleOut = UI.createStyle(this.cssOut + this.cssSel);
+    css = this.cssSel, sin = this.styleIn = UI.createStyle(css), sout = this.styleOut = UI.createStyle(css);
     ref.exit = ref.exit.bind(ref);
-    UI.addElement(sin);
+    UI.addElement(sin, adjust, true);
     this.init = null as never;
     return (UI.box as HTMLElement).appendChild(sout);
   },
-  findAndFocus (query: string, options: Partial<FindOptions>): void {
+  findAndFocus (query: string, options: Partial<FindOptions> & SafeObject): void {
+    if (!query) {
+      return VHUD.showForDuration("No old queries");
+    }
     if (query !== this.query) {
       this.updateQuery(query);
       if (this.isActive) {
@@ -137,13 +149,17 @@ html > count{float:right;}`,
         this.showCount();
       }
     }
-    this.init && this.init();
+    this.init && this.init(AdjustType.MustAdjust);
     const style = this.isActive || VHUD.opacity !== 1 ? null : (VHUD.box as HTMLDivElement).style;
     style && (style.visibility = "hidden");
-    this.execute(null, options as FindNS.ExecuteOptions);
+    VDom.UI.toggleSelectStyle(true);
+    this.execute(null, options);
     style && (style.visibility = "");
     if (!this.hasResults) {
-      this.isActive || VHUD.showForDuration(`No matches for '${this.query}'`, 1000);
+      if (!this.isActive) {
+        VDom.UI.toggleSelectStyle(false);
+        VHUD.showForDuration(`No matches for '${this.query}'`);
+      }
       return;
     }
     this.focusFoundLink(window.getSelection().anchorNode as Element | null);
@@ -163,7 +179,7 @@ html > count{float:right;}`,
     if (this.box === VDom.lastHovered) { VDom.lastHovered = null; }
     this.box = this.input = this.countEl = null as never;
     this.styleIn.disabled = true;
-    this.parsedQuery = this.query = "";
+    this.parsedQuery = this.query = this.query0 = "";
     this.initialRange = this.regexMatches = this.coords = null;
     this.historyIndex = this.matchCount = 0;
     return el;
@@ -174,9 +190,15 @@ html > count{float:right;}`,
   },
   OnMousedown (this: void, event: MouseEvent): void {
     if (event.target !== VFindMode.input && event.isTrusted != false) {
-      event.preventDefault();
+      VUtils.prevent(event);
       VFindMode.input.focus();
     }
+  },
+  OnPaste (this: HTMLElement, event: ClipboardEvent): void {
+    const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
+    VUtils.prevent(event);
+    if (!text) { return; }
+    (event.target as HTMLElement).ownerDocument.execCommand("insertText", false, text + "");
   },
   onKeydown (event: KeyboardEvent): void {
     VUtils.Stop(event);
@@ -222,7 +244,8 @@ html > count{float:right;}`,
       this.toggleStyle(0);
       this.restoreSelection(true);
     }
-    if (VVisualMode.mode) { return VVisualMode.activate(); }
+    if (VVisualMode.mode) { return VVisualMode.activate(1, VUtils.safer()); }
+    VDom.UI.toggleSelectStyle(false);
     if (i < Result.MinComplicatedExit || !this.hasResults) { return; }
     if (!el || el !== VEventMode.lock()) {
       el = window.getSelection().anchorNode as Element | null;
@@ -254,9 +277,9 @@ html > count{float:right;}`,
   },
   SetQuery (this: void, query: string): void {
     let _this = VFindMode, doc: Document;
-    if (query === _this.query) { return; }
+    if (query === _this.query || !(doc = _this.box.contentDocument)) { return; }
     if (!query && _this.historyIndex > 0) { --_this.historyIndex; return; }
-    (doc = _this.box.contentDocument).execCommand("selectAll", false);
+    doc.execCommand("selectAll", false);
     doc.execCommand("insertText", false, query.replace(<RegExpOne> /^ /, '\xa0'));
     return _this.onInput();
   },
@@ -362,7 +385,7 @@ html > count{float:right;}`,
     return this.regexMatches[count];
   },
   execute (query?: string | null, options?: FindNS.ExecuteOptions): void {
-    Object.setPrototypeOf(options || (options = {}), null);
+    options = VUtils.safer(options);
     let el: Element | null, found: boolean, count = (options.count as number) | 0, back = (options.dir as number) <= 0
       , q: string, notSens = this.ignoreCase && !options.caseSensitive;
     options.noColor || this.toggleStyle(1);
@@ -385,6 +408,7 @@ html > count{float:right;}`,
   },
   toggleStyle (enabled: BOOL): void {
     document.removeEventListener("selectionchange", this.RestoreHighlight, true);
+    enabled || this.isActive || VDom.UI.toggleSelectStyle(false);
     this.styleOut.disabled = this.styleIn.disabled = !enabled;
   },
   getCurrentRange (): void {

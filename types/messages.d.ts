@@ -1,5 +1,5 @@
 interface BaseExecute<T> {
-  CSS?: string | null;
+  CSS: string | null;
   command: string;
   count: number;
   options: T | null;
@@ -84,6 +84,7 @@ interface CmdOptions {
     ptype: VomnibarNS.PageType;
     script: string;
     secret: number;
+    CSS: string | null;
   };
   goNext: {
     dir: string;
@@ -101,7 +102,8 @@ interface CmdOptions {
   "Find.activate": {
     count: number;
     dir: 1 | -1;
-    query: string | null;
+    leave: boolean,
+    query: string;
   };
   "Marks.goTo": {
     local?: boolean;

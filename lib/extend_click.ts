@@ -23,7 +23,8 @@
   script.type = "text/javascript";
   script.textContent = '"use strict";(' + func.toString() + ')();';
   d = (d as Document).documentElement || d;
-  d.insertBefore(script, d.firstChild).remove();
+  d.insertBefore(script, d.firstChild);
+  script.remove();
 
 })(function(this: void): void {
 const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],

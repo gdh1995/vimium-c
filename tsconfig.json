@@ -23,6 +23,7 @@
     "rootDir": ".",
     "skipDefaultLibCheck": false,
     "strict": true,
+    "strictFunctionTypes": false,
     "strictNullChecks": true,
     "target": "es5",
     "typeRoots": ["./types"],

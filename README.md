@@ -81,9 +81,12 @@ Known issues (Up to the master branch):
   Currently, no effective ways have been found (up to Chrome 59).
 
 1.62.1 (not released yet):
+* FindMode and VisualMode will ensure document is selectable when they are active
 * fix bugs and memory leaks on pages having ShadowDOM UI.
 * `passNextKey normal` will also exit if the page blurs
 * Vomnibar now prefers a domain starting with "www."
+* now custom CSS takes precedence over default styles like the help dialog's
+* limit max length of Vomnibar's query to 200 chars
 * fix some other bugs
 
 1.62.0:

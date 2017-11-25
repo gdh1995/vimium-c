@@ -113,6 +113,9 @@ var Settings = {
       return (this as typeof Settings).postUpdate("newTabUrl");
     },
     baseCSS (css): void {
+      if (this.CONST.ChromeVersion >= BrowserVer.MinCSS$All$Attr) {
+        css = ".R{" + css.substring(css.indexOf("all:"));
+      }
       if (this.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidth) {
         css += "*{border-width:1px !important;}\n";
       }
@@ -286,8 +289,9 @@ Settings.bufferToLoad.onMac = false;
 Settings.bufferToLoad.grabFocus = Settings.get("grabBackFocus");
 Settings.bufferToLoad.browserVer = Settings.CONST.ChromeVersion;
 chrome.runtime.getPlatformInfo(function(info): void {
-  Settings.CONST.Platform = info.os;
-  Settings.bufferToLoad.onMac = info.os === (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");
+  const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs;
+  Settings.CONST.Platform = os;
+  Settings.bufferToLoad.onMac = os === (types ? types.MAC : "mac");
 });
 
 (function() {

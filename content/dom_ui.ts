@@ -6,19 +6,22 @@ declare var browser: any;
 VDom.UI = {
   box: null,
   styleIn: null,
+  styleOut: null,
   root: null,
   callback: null,
   flashLastingTime: 400,
-  addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
-    options = Object.setPrototypeOf(options || {}, null);
-    let notShowAtOnce = options.showing === false, doAdd = options.adjust;
-    const box = this.box = VDom.createElement("div"), old = !box.attachShadow;
+  addElement<T extends HTMLElement> (this: DomUI, element: T, adjust?: AdjustType): T {
+    const box = this.box = VDom.createElement("div");
     box.style.display = "none";
-    this.root = old ? box.createShadowRoot() : (box as AttachShadow).attachShadow({mode: "closed"});
-    // listen "load" so that safer on Chrome < 53
-    old && this.root.addEventListener("load", function(e: Event): void {
+    this.root = typeof box.attachShadow === "function" ? box.attachShadow({mode: "closed"}) : box.createShadowRoot();
+    // listen "load" so that safer if shadowRoot is open
+    this.root.mode === "closed" || this.root.addEventListener("load", function(e: Event): void {
       const t = e.target as HTMLElement; t.onload && t.onload(e); VUtils.Stop(e);
     }, true);
+    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
+      adjust === AdjustType.NotAdjust || this.adjust();
+      return (this.root as ShadowRoot).insertBefore(element, before === true ? (this.root as ShadowRoot).firstElementChild : before || null);
+    };
     this.css = (innerCSS): void => {
       if (typeof browser !== "undefined" && browser.runtime) {
         const i = innerCSS.indexOf(":host"), cls = "vimium-ui-" + ((8 + Math.random()) * 100 | 0),
@@ -27,34 +30,29 @@ VDom.UI = {
         (this.box as HTMLElement).appendChild(this.createStyle("." + cls + outerCSS));
       }
       this.styleIn = this.createStyle(innerCSS);
-      (this.root as ShadowRoot).insertBefore(this.styleIn, (this.root as ShadowRoot).firstElementChild);
+      (this.root as ShadowRoot).appendChild(this.styleIn);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
-      if (notShowAtOnce) { return; }
-      this.styleIn.onload = function (): void {
+      adjust === AdjustType.AdjustButNotShow || (this.styleIn.onload = function (): void {
         this.onload = null as never;
         const a = VDom.UI;
         (a.box as HTMLElement).removeAttribute("style");
         a.callback && a.callback();
-      };
-      if (doAdd !== false) {
-        doAdd = false;
+      });
+      if (adjust !== AdjustType.NotAdjust) {
         return this.adjust();
       }
     };
-    let a = this.styleIn as string | null;
-    if (a) {
+    this.root.appendChild(element);
+    let a: string | null;
+    if (a = this.styleIn as string | null) {
       this.css(a);
     } else {
-      VPort.post({ handler: "css" });
+      a === "" || VPort.post({ handler: "css" });
+      if ((adjust as AdjustType) >= AdjustType.MustAdjust) {
+        this.adjust();
+      }
     }
-    options.adjust = doAdd === true;
-    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T {
-      options = Object.setPrototypeOf(options || {}, null);
-      options.adjust === false || this.adjust();
-      return options.before ? (this.root as ShadowRoot).insertBefore(element, options.before)
-        : (this.root as ShadowRoot).appendChild(element);
-    };
-    return this.addElement(element as T, options);
+    return element;
   },
   addElementList (els, offset): HTMLDivElement {
     const parent = VDom.createElement("div");
@@ -74,7 +72,7 @@ VDom.UI = {
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    el2 !== (ui.box as HTMLElement).parentElement && VDom.append(el2, ui.box as Element);
+    el2 !== (ui.box as HTMLElement).parentElement && (ui.box as Node).appendChild.call(el2, ui.box as Node);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
   toggle (enabled): void {
@@ -100,6 +98,26 @@ VDom.UI = {
     return css;
   },
   css (innerCSS): void { this.styleIn = innerCSS; },
+  getDocSelectable (): boolean {
+    let el: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut, st: CSSStyleDeclaration;
+    if (el && !el.disabled) { return false; }
+    if (el = document.body) {
+      st = getComputedStyle(el);
+      if ((st.userSelect || st.webkitUserSelect) === "none") {
+        return false;
+      }
+    }
+    st = getComputedStyle(document.documentElement as HTMLHtmlElement);
+    return (st.userSelect || st.webkitUserSelect) !== "none";
+  },
+  toggleSelectStyle (enable: boolean): void {
+    let el = this.styleOut;
+    if (enable ? VDom.docSelectable : !el || el.disabled) { return; }
+    el = el || (this.styleOut = (this.box as HTMLElement).appendChild(this.createStyle(
+      "html,body{-webkit-user-select:auto !important;user-select:auto !important;}"
+    )));
+    el.disabled = !enable;
+  },
   getSelection (): Selection {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;
     if (sel.focusNode === document.documentElement && (el = VScroller.current)) {
@@ -143,14 +161,14 @@ VDom.UI = {
     }
     if (suppressRepeated === true) { return this.suppressTail(true); }
   },
-  getZoom (this: void): number {
+  getZoom (this: void, min?: number): number {
     let docEl = document.documentElement as Element, el: Element | null, zoom = 1;
     el = document.webkitFullscreenElement || docEl;
     if (VDom.specialZoom) { zoom /= window.devicePixelRatio; }
     do {
       zoom *= +getComputedStyle(el).zoom || 1;
     } while (el = VDom.getParent(el));
-    return Math.round(zoom * 200) / 200 * Math.min(1, window.devicePixelRatio);
+    return Math.round(zoom * 200) / 200 * Math.min(min || 1, window.devicePixelRatio);
   },
   getVRect (this: void, clickEl: Element): VRect | null {
     const b = document.body;

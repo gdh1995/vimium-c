@@ -6,11 +6,14 @@ interface ImportBody {
   (id: "shownImage"): HTMLImageElement
   (id: "shownText"): HTMLDivElement
 }
+declare var VPort: Readonly<VPort>, VHUD: Readonly<VHUD>,
+  VKeyboard: { getKeyChar (event: KeyboardEvent): string; getKey (event: EventControlKeys, ch: string): string; },
+  Viewer: new (root: HTMLElement) => ViewerType;
 interface Window {
-  readonly VKeyboard?: { getKeyChar (event: KeyboardEvent): string };
-  readonly VPort?: Readonly<VPort>;
-  readonly VHUD?: Readonly<VHUD>;
-  readonly Viewer: new (root: HTMLElement) => ViewerType;
+  readonly VKeyboard?: typeof VKeyboard
+  readonly VPort?: typeof VPort;
+  readonly VHUD?: typeof VHUD;
+  readonly Viewer: typeof Viewer;
   viewer?: null | ViewerType;
 }
 interface VDomProto {
@@ -23,10 +26,8 @@ interface ViewerType {
   destroy(): any;
   show(): any;
   zoom(ratio: number, hasTooltip: boolean): ViewerType;
+  rotate(degree: number): any;
 }
-declare var VPort: Readonly<VPort>, VHUD: Readonly<VHUD>
-, VKeyboard: { getKeyChar (event: KeyboardEvent): string }
-, Viewer: Window["Viewer"];
 type ValidShowTypes = "image" | "url" | "";
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
 
@@ -242,22 +243,34 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
   if (!window.VKeyboard) {
     return false;
   }
+  let ch = VKeyboard.getKeyChar(event);
+  if (!ch) { return false; }
   let action: number = 0;
-  switch (VKeyboard.getKeyChar(event)) {
-  case "<c-=>": case "+": case "=": action = 1; // no break;
-  case "<c-->": case "-": action === 0 && (action = -1);
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    if (window.viewer && window.viewer.viewed) {
-      window.viewer.zoom(action / 10, true);
-    } else {
-      let p = loadViewer().then(showSlide);
-      p.then(function(viewer) {
-        viewer.zoom(action / 10, true);
-      }).catch(defaultOnError);
-    }
-    return true;
+  switch (VKeyboard.getKey(event, ch)) {
+  case "<c-=>": case "+": case "=": action = 1; break;
+  case "<left>": action = -2; break;
+  case "<right>": action = 2; break;
+  case "<c-->": case "-": action = -1; break;
   default: return false;
+  }
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (window.viewer && window.viewer.viewed) {
+    doImageAction(window.viewer, action);
+  } else {
+    let p = loadViewer().then(showSlide);
+    p.then(function(viewer) {
+      doImageAction(viewer, action);
+    }).catch(defaultOnError);
+  }
+  return true;
+}
+
+function doImageAction(viewer: ViewerType, action: number) {
+  if (action === 2 || action === -2) {
+    viewer.rotate(action * 45);
+  } else {
+    viewer.zoom(action / 10, true);
   }
 }
 

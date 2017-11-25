@@ -26,10 +26,10 @@ var VVisualMode = {
   currentSeconds: null as SafeDict<VisualModeNS.ValidActions> | null,
   retainSelection: false,
   selection: null as never as Selection,
-  activate (_0?: number, options?: FgOptions): void {
+  activate (_0: number, options: FgOptions): void {
     let sel: Selection, type: string, mode: VisualModeNS.Mode, str: string;
-    Object.setPrototypeOf(options = options || {} as FgOptions, null);
     this.init && this.init();
+    VDom.docSelectable = VDom.UI.getDocSelectable();
     this.movement.selection = this.selection = sel = VDom.UI.getSelection();
     VUtils.remove(this);
     VUtils.push(this.onKeydown, this);
@@ -37,7 +37,7 @@ var VVisualMode = {
     if (!this.mode) { this.retainSelection = type === "Range"; }
     str = typeof options.mode === "string" ? options.mode.toLowerCase() : "";
     this.mode = mode = str ? str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line
-      : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
+    : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
     if (mode !== VisualModeNS.Mode.Caret) {
       this.movement.alterMethod = "extend";
       const lock = VEventMode.lock();
@@ -59,12 +59,14 @@ var VVisualMode = {
       this.mode = mode;
       this.prompt("No usable selection, entering caret mode...", 1000);
     }
+    VDom.UI.toggleSelectStyle(true);
     if (mode !== VisualModeNS.Mode.Caret) { return mode === VisualModeNS.Mode.Line ? this.movement.extendToLine() : undefined; }
     this.movement.alterMethod = "move";
     if (type === "Range") {
       this.movement.collapseSelectionTo(0);
     } else if (type === "None" && this.establishInitialSelectionAnchor()) {
       this.deactivate();
+      VDom.UI.toggleSelectStyle(false);
       return VHUD.showForDuration("Create a selection before entering visual mode.");
     }
     this.movement.extend(1);
@@ -78,6 +80,7 @@ var VVisualMode = {
     }
     const el = VEventMode.lock();
     el && VDom.getEditableType(el) && el.blur && el.blur();
+    VDom.UI.toggleSelectStyle(false);
     this.mode = VisualModeNS.Mode.NotActive; this.hud = "";
     this.retainSelection = false;
     this.selection = this.movement.selection = null as never;
@@ -153,6 +156,7 @@ var VVisualMode = {
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         element = node.parentElement as Element;
+        if (element instanceof HTMLFormElement) { continue; }
         if (VDom.getVisibleClientRect(element) && !VDom.getEditableType(element)) {
           break;
         }
@@ -189,7 +193,10 @@ var VVisualMode = {
     const range = this.selection.getRangeAt(0);
     VFindMode.execute(null, { noColor: true, dir, count });
     if (VFindMode.hasResults) {
-      return this.mode === VisualModeNS.Mode.Caret && this.selection.toString().length > 0 ? this.activate() : undefined;
+      if (this.mode === VisualModeNS.Mode.Caret && this.selection.toString().length > 0) {
+        this.activate(1, VUtils.safer<FgOptions>());
+      }
+      return;
     }
     this.selection.removeAllRanges();
     this.selection.addRange(range);
@@ -267,10 +274,9 @@ movement: {
   },
   hashSelection (): string {
     const range = this.selection.getRangeAt(0);
-    return [this.selection.toString().length,
-      range.anchorOffset, range.focusOffset,
-      this.selection.extentOffset, this.selection.baseOffset
-    ].join("/");
+    return this.selection.toString().length + "/" +
+      range.anchorOffset + "/" + range.focusOffset + "/" +
+      this.selection.extentOffset + "/" +this.selection.baseOffset;
   },
   moveByChar (isMove: boolean): boolean {
     const before = isMove || this.hashSelection();
@@ -362,7 +368,7 @@ keyMap: {
   "/": function(): void | boolean {
     clearTimeout((this as typeof VVisualMode).hudTimer);
     VHUD.hide();
-    return VFindMode.activate(1, { returnToViewport: true });
+    return VFindMode.activate(1, VUtils.safer({ returnToViewport: true }));
   },
   y (): void { return (this as typeof VVisualMode).yank(); },
   Y (count): void { (this as typeof VVisualMode).movement.selectLine(count); return (this as typeof VVisualMode).yank(); },
@@ -382,7 +388,7 @@ keyMap: {
 
 init: function() {
   this.init = null as never;
-  var map = this.keyMap, func = Object.setPrototypeOf, str =
+  var map = this.keyMap, func = VUtils.safer, str =
 "[_0-9A-Za-z\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\
 \\u02EE\\u0370-\\u0374\\u0376\\u0377\\u037A-\\u037D\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u0\
 3F7-\\u0481\\u048A-\\u0527\\u0531-\\u0556\\u0559\\u0561-\\u0587\\u05D0-\\u05EA\\u05F0-\\u05F2\\u0620-\\u064A\\u066\
@@ -427,6 +433,6 @@ E2\\uAC00-\\uD7A3\\uD7B0-\\uD7C6\\uD7CB-\\uD7FB\\uF900-\\uFA6D\\uFA70-\\uFAD9\\u
 D50-\\uFD8F\\uFD92-\\uFDC7\\uFDF0-\\uFDFB\\uFE70-\\uFE74\\uFE76-\\uFEFC\\uFF21-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF\
 BE\\uFFC2-\\uFFC7\\uFFCA-\\uFFCF\\uFFD2-\\uFFD7\\uFFDA-\\uFFDC]";
   this.movement.wordRe = new RegExp(str);
-  func(map, null); func(map.a, null); func(map.g, null);
+  func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }
 };
