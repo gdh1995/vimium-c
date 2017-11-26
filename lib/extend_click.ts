@@ -20,6 +20,7 @@
     removeEventListener("VimiumReg", installer, true);
     removeEventListener("VimiumOnclick", onclick, true);
     box && box.removeEventListener("VimiumOnclick", onclick, true);
+    box = null as never;
   }
   window.VSettings.onDestroy = destroy;
   script.type = "text/javascript";
@@ -27,6 +28,7 @@
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();
+  VDom.documentReady(function() { box || destroy(); });
 
 })(function(this: void): void {
 const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
