@@ -1,5 +1,6 @@
 /// <reference path="../content/base.d.ts" />
 (function(this: void, func: (this: void) => void): void {
+  if (!window.VSettings) { return; }
   type Listener = (this: void, e: Event) => void;
   let d: Document | Document["documentElement"] = document
     , script = d.createElement("script") as HTMLScriptElement | Element
@@ -15,11 +16,12 @@
     (event.target as Element).vimiumHasOnclick = true;
     event.stopPropagation();
   }, true);
-  window.VSettings && (window.VSettings.onDestroy = function() {
+  function destroy() {
     removeEventListener("VimiumReg", installer, true);
     removeEventListener("VimiumOnclick", onclick, true);
     box && box.removeEventListener("VimiumOnclick", onclick, true);
-  });
+  }
+  window.VSettings.onDestroy = destroy;
   script.type = "text/javascript";
   script.textContent = '"use strict";(' + func.toString() + ')();';
   d = (d as Document).documentElement || d;
