@@ -441,3 +441,8 @@ interface Window {
     };
   }
 }
+
+declare const enum Consts {
+  MaxCharsInQuery = 200,
+  MaxLengthOfSearchKey = 50, MinInvalidLengthOfSearchKey = MaxLengthOfSearchKey + 1,
+}

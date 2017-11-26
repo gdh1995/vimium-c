@@ -477,7 +477,8 @@ var Utils = {
     a = str.replace(<RegExpSearchable<0>> /\\\n/g, '').split('\n'),
     encodedSearchWordRe = <RegExpG & RegExpSearchable<1>> /%24([sS])/g, re = this.searchWordRe,
     func = (function(key: string): boolean {
-      return (key = key.trim()) && key !== "__proto__" ? (map[key] = obj, true) : false;
+      return (key = key.trim()) && key !== "__proto__" && key.length < Consts.MinInvalidLengthOfSearchKey
+        ? (map[key] = obj, true) : false;
     });
     for (let _i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();

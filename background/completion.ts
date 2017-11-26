@@ -653,7 +653,7 @@ searchEngines: {
       } else {
         q.shift();
       }
-      keyword = q.join(" ");
+      keyword = rawQuery.substring(1).trimLeft();
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
       autoSelect = true;
       maxResults--;
@@ -674,7 +674,16 @@ searchEngines: {
       if (queryType === FirstQuery.waitFirst) { q.push(rawMore); offset = 0; }
       q.length > 1 ? (queryType = FirstQuery.searchEngines) : (matchType = MatchType.reset);
     }
-    q.length > 1 ? q.shift() : (q = []);
+    if (q.length > 1) {
+      q.shift();
+      if (rawQuery.length > Consts.MaxCharsInQuery) {
+        q = rawQuery.split(" ");
+        q.shift();
+      }
+    } else {
+      q = [];
+    }
+    
 
     let { url, indexes } = Utils.createSearch(q, pattern.url, []), text = url;
     if (keyword === "~") {}
@@ -932,7 +941,8 @@ searchEngines: {
     autoSelect = false;
     rawQuery = (query = query.trim()) && query.replace(Utils.spacesRe, " ");
     Completers.getOffset();
-    queryTerms = rawQuery ? rawQuery.split(" ") : [];
+    query = rawQuery as string;
+    queryTerms = query ? (query.length > Consts.MaxCharsInQuery ? query.substring(0, Consts.MaxCharsInQuery).trimRight() : query).split(" ") : [];
     maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
     maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
     Completers.callback = callback;
