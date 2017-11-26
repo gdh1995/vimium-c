@@ -626,7 +626,7 @@ var Vomnibar = {
         : this.matchType === CompletersNS.MatchType.searchWanted ? "search"
         : (newMatchType = this.matchType,
           (s2 = this.completions[0].type).indexOf("#") < 0 ? s2 as CompletersNS.ValidTypes : "tab");
-      mode.query = str.substring(0, 200);
+      mode.query = str;
       this.width();
       this.matchType = newMatchType;
     } else {

@@ -263,7 +263,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     return;
   }
   function onInput(this: void, key: string, suggest: OmniboxCallback): void {
-    key = key.trim().replace(Utils.spacesRe, " ").substring(0, 200).trimRight();
+    key = key.trim().replace(Utils.spacesRe, " ");
     if (key === last) { suggestions && suggest(suggestions as chrome.omnibox.SuggestResult[]); return; }
     lastSuggest && (lastSuggest.isOff = true);
     if (timeout) {
@@ -287,7 +287,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     return Completers.filter(key, { type, maxResults: 6, maxChars }, onComplete.bind(null, suggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
-    text = text.trim();
+    text = text.trim().replace(Utils.spacesRe, " ");
     if (tempRequest && tempRequest.key === text) {
       tempRequest.suggest = onEnter.bind(null, text, disposition) as OmniboxCallback;
       return onTimer();
