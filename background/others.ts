@@ -1,8 +1,7 @@
 import SettingsToSync = SettingsNS.PersistentSettings;
 declare const enum OmniboxData {
   DefaultMaxChars = 128,
-  // max of real scale is 0.869;
-  TotalWidth = 0.87,
+  MarginH = 160,
   MeanWidthOfChar = 7.72,
   PreservedTitle = 16,
 }
@@ -284,7 +283,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     matchType = newMatchType;
     last = key;
     lastSuggest = suggest;
-    return Completers.filter(key, { type, maxResults: 6, maxChars }, onComplete.bind(null, suggest));
+    return Completers.filter(key, { type, maxResults: 6, maxChars, singleLine: true }, onComplete.bind(null, suggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     text = text.trim().replace(Utils.spacesRe, " ");
@@ -306,8 +305,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   chrome.omnibox.onInputStarted.addListener(function(): void {
     chrome.windows.getCurrent(function(wnd?: chrome.windows.Window): void {
       const width = wnd && wnd.width;
-      maxChars = width ? Math.floor(width * OmniboxData.TotalWidth / OmniboxData.MeanWidthOfChar)
-        - OmniboxData.PreservedTitle : OmniboxData.DefaultMaxChars;
+      maxChars = width ? Math.floor((width - OmniboxData.MarginH / devicePixelRatio) / OmniboxData.MeanWidthOfChar)
+        : OmniboxData.DefaultMaxChars;
     });
   });
   chrome.omnibox.onInputChanged.addListener(onInput);

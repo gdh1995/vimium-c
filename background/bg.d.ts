@@ -443,6 +443,6 @@ interface Window {
 }
 
 declare const enum Consts {
-  MaxCharsInQuery = 200,
+  MaxCharsInQuery = 200, LowerBoundOfMaxChars = 50, UpperBoundOfMaxChars = 320,
   MaxLengthOfSearchKey = 50, MinInvalidLengthOfSearchKey = MaxLengthOfSearchKey + 1,
 }

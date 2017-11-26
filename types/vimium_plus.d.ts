@@ -26,6 +26,7 @@ declare namespace CompletersNS {
   interface Options {
     maxChars?: number;
     maxResults?: number;
+    singleLine?: boolean;
     type: ValidTypes;
   }
 

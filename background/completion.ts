@@ -93,7 +93,7 @@ interface WindowEx extends Window {
 type SearchSuggestion = CompletersNS.SearchSuggestion;
 
 
-let queryType: FirstQuery, offset: number, autoSelect: boolean, inNormal: boolean | null,
+let queryType: FirstQuery, offset: number, autoSelect: boolean, inNormal: boolean | null, singleLine: boolean,
     maxChars: number, maxResults: number, maxTotal: number, matchType: MatchType,
     queryTerms: QueryTerms, rawQuery: string, rawMore: string;
 
@@ -117,7 +117,8 @@ SuggestionUtils = {
     sug.title = this.cutTitle(sug.title);
     const text = sug.text, str = this.shortenUrl(text);
     sug.text = text.length !== sug.url.length ? str : "";
-    sug.textSplit = this.cutUrl(str, this.getRanges(str), text.length - str.length);
+    sug.textSplit = this.cutUrl(str, this.getRanges(str), text.length - str.length
+      , singleLine ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
   },
   cutTitle (title: string): string {
     let cut = title.length > maxChars + 40;
@@ -170,8 +171,8 @@ SuggestionUtils = {
   },
   sortBy0 (this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; },
   // deltaLen may be: 0, 1, 7/8/9
-  cutUrl (this: void, string: string, ranges: number[], deltaLen: number): string {
-    let out = "", end = string.length, cutStart = end, maxLen = maxChars;
+  cutUrl (this: void, string: string, ranges: number[], deltaLen: number, maxLen: number): string {
+    let out = "", end = string.length, cutStart = end;
     if (end <= maxLen) {}
     else if (deltaLen > 1) { cutStart = string.indexOf("/") + 1 || end; }
     else if ((cutStart = string.indexOf(":")) < 0) { cutStart = end; }
@@ -906,7 +907,7 @@ searchEngines: {
     RankingUtils.timeAgo = this.sugCounter = matchType =
     maxResults = maxTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
-    autoSelect = false;
+    autoSelect = singleLine = false;
   },
   getOffset (this: void): void {
     let str = rawQuery, ind: number, i: number;
@@ -943,7 +944,8 @@ searchEngines: {
     Completers.getOffset();
     query = rawQuery as string;
     queryTerms = query ? (query.length > Consts.MaxCharsInQuery ? query.substring(0, Consts.MaxCharsInQuery).trimRight() : query).split(" ") : [];
-    maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
+    maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number>options.maxChars | 0) || 128, Consts.UpperBoundOfMaxChars));
+    singleLine = !!options.singleLine;
     maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
     Completers.callback = callback;
     let arr: ReadonlyArray<Completer> | null = null, str: string;
