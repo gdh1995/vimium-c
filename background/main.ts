@@ -284,15 +284,17 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       return tabs[0] as ActiveTab;
     },
-    reopenTab (this: void, tab: ReopenOptions): void {
+    reopenTab (this: void, tab: Tab): void {
       tabsCreate({
         windowId: tab.windowId,
+        index: tab.index,
         url: tab.url,
-        openerTabId: tab.openerTabId,
         active: tab.active,
-        index: tab.index
+        pinned: tab.pinned,
+        openerTabId: tab.openerTabId,
       });
       chrome.tabs.remove(tab.id);
+      // not seems to need to restore muted status
     },
     refreshTab: [function(tabId) {
       chrome.tabs.remove(tabId, funcDict.onRuntimeError);
@@ -1037,10 +1039,10 @@ Are you sure you want to continue?`);
       chrome.tabs.remove(tabs[ind >= tabs.length ? tabs.length - 1 - commandCount : ind].id);
     },
     restoreTab (this: void): void {
-      let count = commandCount;
       if (!chrome.sessions) {
         return funcDict.complainNoSession();
       }
+      let count = commandCount;
       if (count === 1 && cPort.sender.incognito) {
         return requestHandlers.ShowHUD("Can not restore a tab in incognito mode!");
       }
@@ -1142,8 +1144,8 @@ Are you sure you want to continue?`);
       } while (len > ++i && (pin || tabs[i].pinned));
     },
     toggleMuteTab (): void {
-      if (Settings.CONST.ChromeVersion < BrowserVer.MinMutedInfo) {
-        return requestHandlers.ShowHUD(`Vimium++ can not control mute state before Chrome ${BrowserVer.MinMutedInfo}`);
+      if (Settings.CONST.ChromeVersion < BrowserVer.MinMuted) {
+        return requestHandlers.ShowHUD(`Vimium++ can not control mute state before Chrome ${BrowserVer.MinMuted}`);
       }
       if (cOptions.all || cOptions.other) {
         chrome.tabs.query({audible: true}, funcDict.toggleMuteTab[1]);
