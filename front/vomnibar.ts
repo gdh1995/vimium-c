@@ -59,6 +59,11 @@ var Vomnibar = {
     this.width(options.width * 0.8);
     this.mode.maxResults = Math.min(Math.max(3, Math.round((options.height - HeightData.AllNotList) / HeightData.Item)), this.maxResults);
     this.init && this.setFav(options.ptype);
+    if (this.mode.favIcon) {
+      let scale = devicePixelRatio;
+      scale = scale < 1.5 ? 1 : scale < 3 ? 2 : scale < 4 ? 3 : 4;
+      this.favPrefix = ' icon" style="background-image: url(&quot;chrome://favicon/size/16' + (scale > 1 ? "@" + scale + "x" : "") + "/";
+    }
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
     }
@@ -635,10 +640,11 @@ var Vomnibar = {
     return VPort.postMessage(mode);
   },
 
+  favPrefix: "",
   parse (item: SuggestionE): void {
     let str = this.showFavIcon ? item.url : "";
     item.favIcon = str
-      ? ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
+      ? this.favPrefix +
         ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)"
       : "";
     item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
