@@ -912,12 +912,14 @@ searchEngines: {
   getOffset (this: void): void {
     let str = rawQuery, ind: number, i: number;
     offset = 0; queryType = FirstQuery.nothing; rawMore = "";
-    if (str.length === 0 || (ind = (str = str.slice(-5)).lastIndexOf("+")) < 0) {
+    if (str.length === 0 || (ind = (str = str.slice(-5)).lastIndexOf("+")) < 0
+      || ind !== 0 && str.charCodeAt(ind - 1) !== KnownKey.space
+    ) {
       return;
     }
     str = str.substring(ind);
-    if ((i = parseInt(str, 10)) >= 0 && '+' + i === str
-        && i <= (ind > 0 ? 100 : 200)) {
+    ind = rawQuery.length - str.length;
+    if ((i = parseInt(str, 10)) >= 0 && '+' + i === str && i <= (ind > 0 ? 100 : 200)) {
       offset = i;
     } else if (str !== "+") {
       return;
