@@ -53,7 +53,6 @@ interface PreCompleter extends Completer {
   preFilter(query: CompletersNS.QueryStatus): void;
 }
 interface QueryTerms extends Array<string> {
-  more?: string;
 }
 
 const enum FirstQuery {
@@ -96,7 +95,7 @@ type SearchSuggestion = CompletersNS.SearchSuggestion;
 
 let queryType: FirstQuery, offset: number, autoSelect: boolean, inNormal: boolean | null,
     maxChars: number, maxResults: number, maxTotal: number, matchType: MatchType,
-    queryTerms: QueryTerms;
+    queryTerms: QueryTerms, rawQuery: string, rawMore: string;
 
 const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableCoreSuggestion,
     type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
@@ -182,15 +181,15 @@ SuggestionUtils = {
       cutStart += 22; // for data:text/javascript,var xxx; ...
     }
     if (cutStart < end) {
-      let i = ranges.length, start = end + 6;
-      for (; end > maxLen && (i -= 2) >= 0 && start >= cutStart; start = ranges[i]) {
+      for (let i = ranges.length, start = end + 6; (i -= 2) >= 0 && start >= cutStart; start = ranges[i]) {
         const lastEnd = ranges[i + 1], delta = start - 19 - (lastEnd >= cutStart ? lastEnd : cutStart);
         if (delta > 0) {
           end -= delta;
+          if (end <= maxLen) {
+            cutStart = ranges[i + 1] + (maxLen - end);
+            break;
+          }
         }
-      }
-      if (end <= maxLen) {
-        cutStart = ranges[i + 1] + (maxLen - end);
       }
     }
     end = 0;
@@ -672,7 +671,7 @@ searchEngines: {
     } else {
       maxResults--;
       autoSelect = true;
-      if (queryType === FirstQuery.waitFirst) { q.push(q.more as string); offset = 0; }
+      if (queryType === FirstQuery.waitFirst) { q.push(rawMore); offset = 0; }
       q.length > 1 ? (queryType = FirstQuery.searchEngines) : (matchType = MatchType.reset);
     }
     q.length > 1 ? q.shift() : (q = []);
@@ -810,13 +809,12 @@ searchEngines: {
     };
     let i = this.sugCounter = 0, l = this.counter = completers.length;
     this.suggestions = [];
-    this.getOffset();
     matchType = offset && MatchType.reset;
-    if ((completers[0] as PreCompleter).preFilter) {
+    if (completers[0] === Completers.searchEngines) {
       if (l < 2) {
-        return (completers[0] as PreCompleter).preFilter(query);
+        return (Completers.searchEngines as PreCompleter).preFilter(query);
       }
-      (completers[0] as PreCompleter).preFilter(query);
+      Completers.searchEngines.preFilter(query);
       i = 1;
     }
     RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
@@ -894,25 +892,28 @@ searchEngines: {
   cleanGlobals (): void {
     this.mostRecentQuery = this.callback = inNormal = null;
     queryTerms = [];
+    rawQuery = rawMore = "";
     RegExpCache.parts = null as never;
     RankingUtils.timeAgo = this.sugCounter = matchType =
     maxResults = maxTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
     autoSelect = false;
   },
-  getOffset (): void {
-    let str: string, i: number;
-    offset = 0; queryType = FirstQuery.nothing;
-    if ((i = queryTerms.length) === 0 || (str = queryTerms[i - 1])[0] !== "+") {
+  getOffset (this: void): void {
+    let str = rawQuery, ind: number, i: number;
+    offset = 0; queryType = FirstQuery.nothing; rawMore = "";
+    if (str.length === 0 || (ind = (str = str.slice(-5)).lastIndexOf("+")) < 0) {
       return;
     }
+    str = str.substring(ind);
     if ((i = parseInt(str, 10)) >= 0 && '+' + i === str
-        && i <= (queryTerms.length > 1 ? 100 : 200)) {
+        && i <= (ind > 0 ? 100 : 200)) {
       offset = i;
     } else if (str !== "+") {
       return;
     }
-    queryTerms.more = queryTerms.pop() as string;
+    rawQuery = rawQuery.substring(0, ind - 1);
+    rawMore = str;
     queryType = FirstQuery.waitFirst;
   },
   protoRe: <RegExpG & RegExpSearchable<0>> /(?:^|\s)__proto__(?=$|\s)/g,
@@ -929,7 +930,9 @@ searchEngines: {
   filter(this: WindowEx["Completers"], query: string, options: CompletersNS.FullOptions
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
-    queryTerms = (query = query.trim()) ? query.substring(0, 200).trimRight().split(Utils.spacesRe) : [];
+    rawQuery = (query = query.trim()) && query.replace(Utils.spacesRe, " ");
+    Completers.getOffset();
+    queryTerms = rawQuery ? rawQuery.split(" ") : [];
     maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
     maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
     Completers.callback = callback;
