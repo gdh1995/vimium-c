@@ -81,6 +81,9 @@ var Vomnibar = {
       options.search = "";
       return this.setOptions(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
+    if ((window as any).shownNode && !window.VimiumInjector) {
+      url = url.split("#", 1)[0] + window.name;
+    }
     const trail = options.trailing_slash;
     return VPort.send({
       handler: "parseSearchUrl",
