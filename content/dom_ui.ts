@@ -79,9 +79,8 @@ VDom.UI = {
     // Chrome has special zooms (BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)
     // and min width of border needs device ratio (BrowserVer.MinRoundedBorderWidth)
     if (!VDom.specialZoom) { return; }
-    const zoom = +getComputedStyle(document.documentElement as HTMLElement).zoom || 1;
     let ratio = window.devicePixelRatio, st = this._styleBorder, first = st === null;
-    Math.abs(zoom - ratio) > 0.001 && (ratio *= zoom);
+    ratio *= VDom.getDocElZoom(ratio);
     if (first ? ratio >= 1 : (st as any).zoom === ratio) { return; }
     st = st || (this._styleBorder = this.createStyle(""));
     st.zoom = ratio; st.textContent = "* { border-width: " + ("" + 0.51 / ratio).substring(0, 5) + "px !important; }";
@@ -156,15 +155,6 @@ VDom.UI = {
       } catch (e) {}
     }
     if (suppressRepeated === true) { return this.suppressTail(true); }
-  },
-  getZoom (this: void, min?: number): number {
-    let docEl = document.documentElement as Element, el: Element | null, zoom = 1;
-    el = document.webkitFullscreenElement || docEl;
-    if (VDom.specialZoom) { zoom /= window.devicePixelRatio; }
-    do {
-      zoom *= +getComputedStyle(el).zoom || 1;
-    } while (el = VDom.getParent(el));
-    return Math.round(zoom * 200) / 200 * Math.min(min || 1, window.devicePixelRatio);
   },
   getVRect (this: void, clickEl: Element): VRect | null {
     const b = document.body;

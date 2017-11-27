@@ -151,7 +151,10 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     element = this.top;
     return this.current = element && (this.selectFirst(element) || element);
   },
-  getScale (): void { this.scale = Math.max(1, 1 / VDom.UI.getZoom(99)); },
+  getScale (): void {
+    let outScale = VDom.getZoom(99), body = document.webkitIsFullScreen ? null : document.body;
+    this.scale = Math.max(1, 1 / outScale / (body && +getComputedStyle(body).zoom || 1));
+  },
   checkCurrent (el: Element | null): void {
     const cur = this.current;
     if (cur !== el && cur && VDom.NotVisible(cur)) { this.current = el; }

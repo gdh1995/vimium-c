@@ -35,7 +35,6 @@ var VDom = {
     arr && arr.length > 0 && (el = arr[arr.length - 1]);
     return el.parentElement || el.parentNode instanceof ShadowRoot && el.parentNode.host || null;
   },
-  bodyZoom: 1,
   prepareCrop (): void {
     let iw: number, ih: number, ihs: number;
     this.prepareCrop = function(): void {
@@ -125,6 +124,19 @@ var VDom = {
     return !!rect;
   },
   specialZoom: false,
+  getDocElZoom (ratio: number): number {
+    const zoom = +getComputedStyle(document.documentElement as HTMLElement).zoom || 1;
+    return Math.abs(zoom - ratio) < 0.001 && this.specialZoom ? 1 : zoom;
+  },
+  // return: ::min(min || 1, deviceRatio) * [ docEl.zoom * ... * ] curTopEl (fullscreen / docEl) .zoom
+  getZoom (min?: number): number {
+    let docEl = document.documentElement as Element, ratio = window.devicePixelRatio, zoom = this.getDocElZoom(ratio);
+    for (let el: Element | null = document.webkitFullscreenElement; el && el !== docEl; el = this.getParent(el)) {
+      zoom *= +getComputedStyle(el).zoom || 1;
+    };
+    return Math.round(zoom * Math.min(min || 1, ratio) * 1000) / 1000;
+  },
+  bodyZoom: 1,
   getViewBox (): ViewBox {
     let iw = window.innerWidth, ih = window.innerHeight;
     if (document.webkitIsFullScreen) {

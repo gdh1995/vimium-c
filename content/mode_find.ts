@@ -48,7 +48,7 @@ html > count{float:right;}`,
       return this.setFirstQuery(query);
     }
 
-    const zoom = VDom.UI.getZoom();
+    const zoom = VDom.getZoom();
     this.parsedQuery = this.query = "";
     this.regexMatches = null;
     this.activeRegexIndex = 0;

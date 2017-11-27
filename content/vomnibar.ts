@@ -17,6 +17,9 @@ declare namespace VomnibarNS {
     topUrl?: string;
     name: string;
   }
+  const enum Consts {
+    MarginTop = 62,
+  }
 }
 
 var Vomnibar = {
@@ -47,7 +50,7 @@ var Vomnibar = {
     if (this.status === VomnibarNS.Status.NotInited && VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
     this.options = null;
     options.width = window.innerWidth; options.height = window.innerHeight;
-    this.zoom = VDom.UI.getZoom();
+    this.zoom = VDom.getZoom();
     this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
     if (this.status === VomnibarNS.Status.NotInited) {
@@ -219,7 +222,7 @@ var Vomnibar = {
   onShown (): number {
     this.status = VomnibarNS.Status.Showing;
     let style = this.box.style;
-    style.top = this.zoom !== 1 ? ((62 / this.zoom) | 0) + "px" : this.defaultTop;
+    style.top = this.zoom !== 1 ? ((VomnibarNS.Consts.MarginTop / this.zoom) | 0) + "px" : this.defaultTop;
     if (style.visibility) {
       style.visibility = "";
       style = (VDom.UI.box as HTMLElement).style;
