@@ -647,8 +647,9 @@ Pagination = {
     more: false,
     node: null as HTMLDivElement | null,
     timer: 0,
-    Focus (this: void, request: BgReq["focusFrame"]): void {
-      if (request.mask !== FrameMaskType.NormalNext) {}
+    Focus (this: void, { mask, CSS, lastKey }: BgReq["focusFrame"]): void {
+      CSS && VDom.UI.css(CSS);
+      if (mask !== FrameMaskType.NormalNext) {}
       else if (window.innerWidth < 3 || window.innerHeight < 3
         || document.body instanceof HTMLFrameSetElement) {
         vPort.post({
@@ -658,14 +659,14 @@ Pagination = {
       }
       VEventMode.focusAndListen();
       esc();
-      VEventMode.suppress(request.lastKey);
-      if (request.mask < FrameMaskType.minWillMask || !VDom.isHTML()) { return; }
+      VEventMode.suppress(lastKey);
+      if (mask < FrameMaskType.minWillMask || !VDom.isHTML()) { return; }
       let _this = FrameMask, dom1: HTMLDivElement | null;
       if (dom1 = _this.node) {
         _this.more = true;
       } else {
         dom1 = VDom.createElement("div");
-        dom1.className = "R Frame" + (request.mask === FrameMaskType.OnlySelf ? " One" : "");
+        dom1.className = "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : "");
         _this.node = dom1;
         _this.timer = setInterval(_this.Remove, 200);
       }

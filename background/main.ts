@@ -867,8 +867,11 @@ Are you sure you want to continue?`);
         if (frames[i].frameId !== curId) { continue; }
         curId = frames[i].parentFrameId;
         const port = funcDict.indexFrame(this.tabId, curId);
-        port ? port.postMessage({ name: "focusFrame", mask: FrameMaskType.ForcedSelf })
-          : requestHandlers.ShowHUD("Fail to find its parent frame");
+        port ? port.postMessage({
+          name: "focusFrame",
+          CSS: funcDict.ensureInnerCSS(port),
+          mask: FrameMaskType.ForcedSelf
+        }) : requestHandlers.ShowHUD("Fail to find its parent frame");
         return;
       }
     },
@@ -1240,6 +1243,8 @@ Are you sure you want to continue?`);
       }
       port.postMessage({
         name: "focusFrame",
+        CSS: port.sender.frameId === 0 || !(port.sender.flags & Frames.Flags.hasCSS)
+          ? funcDict.ensureInnerCSS(port) : null,
         mask: port !== cPort ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
       });
     },
@@ -1248,6 +1253,7 @@ Are you sure you want to continue?`);
       if (!port) { return; }
       port.postMessage({
         name: "focusFrame",
+        CSS: funcDict.ensureInnerCSS(port),
         mask: (framesForTab[tabId] as Frames.Frames)[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
       });
     },
@@ -1262,7 +1268,7 @@ Are you sure you want to continue?`);
         return requestHandlers.ShowHUD(msg);
       }
       if (!sender.frameId) {
-        cPort.postMessage({ name: "focusFrame", mask: FrameMaskType.OnlySelf });
+        cPort.postMessage({ name: "focusFrame", CSS: funcDict.ensureInnerCSS(cPort), mask: FrameMaskType.OnlySelf });
         return;
       }
       chrome.webNavigation.getAllFrames({

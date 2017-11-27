@@ -26,6 +26,7 @@ interface BgReq {
   };
   focusFrame: {
     name: "focusFrame";
+    CSS?: string | null;
     mask: FrameMaskType;
     lastKey?: VKeyCodes;
   };
