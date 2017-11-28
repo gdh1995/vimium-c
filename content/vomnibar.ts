@@ -17,9 +17,6 @@ declare namespace VomnibarNS {
     topUrl?: string;
     name: string;
   }
-  const enum Consts {
-    MarginTop = 62,
-  }
 }
 
 var Vomnibar = {

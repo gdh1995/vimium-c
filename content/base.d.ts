@@ -149,6 +149,9 @@ declare namespace VomnibarNS {
     onmessage<K extends keyof CReq> (this: void, msg: { data: CReq[K] }): void | 1;
   }
   type FgOptionsToFront = CReq["activate"];
+  const enum Consts {
+    MarginTop = 62,
+  }
 }
 
 declare type ScrollByY = 0 | 1;

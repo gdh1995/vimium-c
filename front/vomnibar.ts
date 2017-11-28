@@ -35,8 +35,8 @@ declare const enum HeightData {
   MarginV = 20,
   InputBarAndMargin = InputBar + MarginV,
   InputBarWithLineAndMargin = InputBarWithLine + MarginV,
-  FrameMarginTop = 70, FrameMarginBottom = 8,
-  AllNotList = InputBarWithLineAndMargin + FrameMarginTop - FrameMarginBottom,
+  ShadowMarginV = 8,
+  AllNotList = InputBarWithLineAndMargin + VomnibarNS.Consts.MarginTop + ShadowMarginV * 2,
   // 22 is better than 21, because 74 is a result that has been cut (`floor(71 + 7.72 /2)`)
   MarginH = 22, AllNotUrl = 74, MeanWidthOfChar = 7.72,
 }
