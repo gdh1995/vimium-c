@@ -79,11 +79,12 @@ VDom.UI = {
     // Chrome has special zooms (BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)
     // and min width of border needs device ratio (BrowserVer.MinRoundedBorderWidth)
     if (!VDom.specialZoom) { return; }
-    let ratio = window.devicePixelRatio, st = this._styleBorder, first = st === null;
-    ratio *= VDom.getDocElZoom(ratio);
+    let ratio = VDom.getZoom(), st = this._styleBorder, first = st === null;
     if (first ? ratio >= 1 : (st as any).zoom === ratio) { return; }
     st = st || (this._styleBorder = this.createStyle(""));
-    st.zoom = ratio; st.textContent = "* { border-width: " + ("" + 0.51 / ratio).substring(0, 5) + "px !important; }";
+    let a = " { border-width: ", b = "px !important; }";
+    st.zoom = ratio; st.textContent = "*" + a + ("" + 1 / ratio).slice(0, 5) + b
+      + "\n.Frame" + a + ("" + 5 / ratio).slice(0, 5) + b;
     first && this.addElement(st);
   },
   createStyle (text, doc): HTMLStyleElement {
@@ -109,7 +110,7 @@ VDom.UI = {
     let el = this.styleOut;
     if (enable ? VDom.docSelectable : !el || el.disabled) { return; }
     el = el || (this.styleOut = (this.box as HTMLElement).appendChild(this.createStyle(
-      "html,body{-webkit-user-select:auto !important;user-select:auto !important;}"
+      "html, body { -webkit-user-select: auto !important; user-select: auto !important; }"
     )));
     el.disabled = !enable;
   },
