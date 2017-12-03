@@ -22,15 +22,16 @@ VDom.UI = {
       return (this.root as ShadowRoot).insertBefore(element, before === true ? (this.root as ShadowRoot).firstElementChild : before || null);
     };
     this.css = (innerCSS): void => {
-      this.styleIn = this.createStyle(innerCSS);
-      (this.root as ShadowRoot).appendChild(this.styleIn);
+      let el: HTMLStyleElement | null = this.styleIn = this.createStyle(innerCSS);
+      (this.root as ShadowRoot).appendChild(el);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
-      adjust === AdjustType.AdjustButNotShow || (this.styleIn.onload = function (): void {
+      adjust === AdjustType.AdjustButNotShow || (el.onload = function (): void {
         this.onload = null as never;
         const a = VDom.UI;
         (a.box as HTMLElement).removeAttribute("style");
         a.callback && a.callback();
       });
+      (el = this._styleBorder) && (this.root as ShadowRoot).appendChild(el);
       if (adjust !== AdjustType.NotAdjust) {
         return this.adjust();
       }
@@ -74,18 +75,13 @@ VDom.UI = {
     removeEventListener("webkitfullscreenchange", this.adjust, true);
   },
   _styleBorder: null as (HTMLStyleElement & {zoom?: number}) | null,
-  ensureBorder (): void {
-    // Note: here's a simplified check, because since 61,
-    // Chrome has special zooms (BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)
-    // and min width of border needs device ratio (BrowserVer.MinRoundedBorderWidth)
-    if (!VDom.specialZoom) { return; }
-    let ratio = VDom.getZoom(), st = this._styleBorder, first = st === null;
-    if (first ? ratio >= 1 : (st as any).zoom === ratio) { return; }
+  ensureBorder (zoom?: number): void {
+    let st = this._styleBorder, first = st === null;
+    zoom || (zoom = VDom.getZoom());
+    if (first ? zoom >= 0.999 : (st as any).zoom === zoom) { return; }
     st = st || (this._styleBorder = this.createStyle(""));
-    let a = " { border-width: ", b = "px !important; }";
-    st.zoom = ratio; st.textContent = "*" + a + ("" + 1 / ratio).slice(0, 5) + b
-      + "\n.Frame" + a + ("" + 5 / ratio).slice(0, 5) + b;
-    first && this.addElement(st);
+    st.zoom = zoom; st.textContent = ".HUD, .HelpKey, .IH, .LH { border-width: " + ("" + 0.51 / zoom).slice(0, 5) + "px; }";
+    first && this.root && this.addElement(st, AdjustType.NotAdjust);
   },
   createStyle (text, doc): HTMLStyleElement {
     const css = (doc || VDom).createElement("style");
@@ -142,7 +138,7 @@ VDom.UI = {
     const y = window.scrollY;
     this.click(element, null, true);
     VDom.ensureInView(element, y);
-    flash === true && this.flash(element);
+    flash && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
     type Moveable = HTMLInputElement | HTMLTextAreaElement;
     let len: number, val: string | undefined;

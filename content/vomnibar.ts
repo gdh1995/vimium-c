@@ -25,7 +25,7 @@ var Vomnibar = {
   status: VomnibarNS.Status.NotInited,
   options: null as VomnibarNS.FgOptionsToFront | null,
   onReset: null as (() => void) | null,
-  zoom: 0,
+  timer: 0,
   defaultTop: "",
   sameOrigin: false,
   activate (count: number, options: VomnibarNS.FullOptions): void {
@@ -34,12 +34,12 @@ var Vomnibar = {
     }
     if (!options || !options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
-      if (!this.zoom) {
-        this.zoom = setTimeout(this.activate.bind(this, count, options), 500);
+      if (!this.timer) {
+        this.timer = setTimeout(this.activate.bind(this, count, options), 500);
         return;
       }
     }
-    this.zoom = 0;
+    this.timer = 0;
     if (!VDom.isHTML()) { return; }
     if (options.url === true && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
       options.topUrl = window.location.href;
@@ -47,9 +47,9 @@ var Vomnibar = {
     if (this.status === VomnibarNS.Status.NotInited && VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
     this.options = null;
     options.width = window.innerWidth; options.height = window.innerHeight;
-    this.zoom = VDom.getZoom();
     this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
+    VDom.getZoom();
     if (this.status === VomnibarNS.Status.NotInited) {
       this.status = VomnibarNS.Status.Initing;
       this.init(options);
@@ -100,7 +100,7 @@ var Vomnibar = {
   },
   hide (fromInner?: 1): void {
     const active = this.status > VomnibarNS.Status.Inactive;
-    this.zoom = 0; this.status = VomnibarNS.Status.Inactive;
+    this.status = VomnibarNS.Status.Inactive;
     if (fromInner == null) {
       active && this.port.postMessage<"hide">("hide");
       return;
@@ -136,7 +136,6 @@ var Vomnibar = {
         a.reset();
         (VDom.UI.box as HTMLElement).style.display = "";
         window.focus();
-        a.zoom = 0;
         a.status = VomnibarNS.Status.KeepBroken;
         return (a as any).activate();
       }, 1000);
@@ -203,7 +202,7 @@ var Vomnibar = {
       if (opt) { this.options = null; return this.port.postMessage<"activate">(opt as VomnibarNS.FgOptionsToFront); }
       break;
     case "style":
-      this.box.style.height = (data as Req["style"]).height / this.zoom + "px";
+      this.box.style.height = (data as Req["style"]).height / VDom.docZoom + "px";
       if (this.status === VomnibarNS.Status.Initing || this.status === VomnibarNS.Status.ToShow) { this.onShown(); }
       break;
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).lastKey);
@@ -219,7 +218,7 @@ var Vomnibar = {
   onShown (): number {
     this.status = VomnibarNS.Status.Showing;
     let style = this.box.style;
-    style.top = this.zoom !== 1 ? ((VomnibarNS.Consts.MarginTop / this.zoom) | 0) + "px" : this.defaultTop;
+    style.top = VDom.docZoom !== 1 ? ((VomnibarNS.Consts.MarginTop / VDom.docZoom) | 0) + "px" : this.defaultTop;
     if (style.visibility) {
       style.visibility = "";
       style = (VDom.UI.box as HTMLElement).style;

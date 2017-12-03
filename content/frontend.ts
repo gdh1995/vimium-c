@@ -445,6 +445,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
         hint[2] = j > 0 ? ind / 8192 - j : ind;
       }
+      // note: addElementList need ViewBox.bodyZoom, so getViewBox cann't be replaced with getViewportTopLeft
       const arr = VDom.getViewBox(),
       hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link) {
         const hint = VDom.createElement("span") as HintsNS.Marker,
@@ -461,8 +462,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         sel = Math.min(count, sel) - 1;
       }
       hints[sel].classList.add("S");
-      VDom.UI.ensureBorder();
       VDom.UI.simulateSelect(visibleInputs[sel][0]);
+      VDom.UI.ensureBorder(VDom.docZoom);
       const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       VUtils.push(function(event) {
         const { keyCode } = event, oldSel = sel;

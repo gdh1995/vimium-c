@@ -185,7 +185,7 @@ interface DomUI {
   adjust (this: void, event?: Event): void;
   toggle (this: DomUI, enabled: boolean): void;
   _styleBorder: (HTMLStyleElement & {zoom?: number}) | null;
-  ensureBorder (this: DomUI): void;
+  ensureBorder (this: DomUI, zoom?: number): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   css (this: DomUI, innerCSS: string): void;
   getDocSelectable (this: DomUI): boolean;

@@ -102,6 +102,7 @@ var VHints = {
 
     let elements: Hint[] | undefined;
     const arr = VDom.getViewBox();
+    VScroller.getScale(VDom.bodyZoom);
     if (this.tooHigh !== null) {
       this.tooHigh = (document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
@@ -127,9 +128,10 @@ var VHints = {
     this.alphabetHints.initMarkers(this.hintMarkers, str);
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320;
-    VDom.UI.ensureBorder();
-    this.setMode(this.mode, false, this.hintMarkers.length > 100);
+    VDom.UI.ensureBorder(VDom.docZoom);
     this.box = VDom.UI.addElementList(this.hintMarkers, arr);
+    // note: delay it to avoid calling `ensureBorder` twice
+    this.setMode(this.mode, false, this.hintMarkers.length > 100);
 
     this.isActive = true;
     VUtils.push(this.onKeydown, this);
@@ -228,8 +230,9 @@ var VHints = {
     return marker;
   },
   adjustMarkers (elements: Hint[]): void {
-    const root = VDom.UI.root, z = "" + 1 / VDom.bodyZoom;
-    if (z === "1" || !root) { return; }
+    const root = VDom.UI.root, zi = VDom.bodyZoom;
+    if (zi === 1 || !root) { return; }
+    const z = ("" + 1 / zi).substring(0, 5);
     let arr = this.hintMarkers as HintsNS.Marker[], i = elements.length - 1;
     if (elements[i][0] === Vomnibar.box) { arr[i--].style.zoom = z; }
     if (!root.querySelector('#HelpDialog') || i < 0) { return; }
@@ -407,7 +410,6 @@ var VHints = {
     const output: Hint[] | Element[] = [], isTag = (<RegExpOne>/^\*$|^[a-z]+$/).test(query),
     wantClickable = (filter as Function) === (this as typeof VHints).GetClickable && key === "*",
     box = root || document.webkitFullscreenElement || document;
-    if (wantClickable) { VScroller.getScale(); }
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
     if (!root && (this as typeof VHints).tooHigh && box === document && list.length >= 15000) {
       list = (this as typeof VHints).getElementsInViewPort(list);

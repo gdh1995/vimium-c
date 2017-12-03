@@ -48,7 +48,6 @@ html > count{float:right;}`,
       return this.setFirstQuery(query);
     }
 
-    const zoom = VDom.getZoom();
     this.parsedQuery = this.query = "";
     this.regexMatches = null;
     this.activeRegexIndex = 0;
@@ -56,7 +55,7 @@ html > count{float:right;}`,
     const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
     el.style.width = "0px";
-    if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
+    if (VDom.docZoom !== 1) { el.style.zoom = "" + 1 / VDom.docZoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
     VUtils.push(VDom.UI.SuppressMost, this);
     this.query || (this.query0 = query);
