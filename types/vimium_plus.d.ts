@@ -328,4 +328,5 @@ declare const enum BrowserVer {
   // MinSelector$deep$DoesNothing = 63,
   MinRoundedBorderWidth = 61, // a border is only showing if `width * zoomed-ratio >= 0.5`
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
+  MinNotRunOnChromeNewTab = 61,
 }
