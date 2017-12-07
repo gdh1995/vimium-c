@@ -1125,7 +1125,7 @@ Are you sure you want to continue?`);
     },
     searchInAnother (this: void, tabs: [Tab]): void {
       let keyword = (cOptions.keyword || "") + "";
-      const query = requestHandlers.parseSearchUrl(tabs[0]);
+      const query = requestHandlers.parseSearchUrl({ url: tabs[0].url });
       if (!query || !keyword) {
         requestHandlers.ShowHUD(keyword ? "No search engine found!"
           : 'This key mapping lacks an arg "keyword"');
@@ -1675,10 +1675,10 @@ Are you sure you want to continue?`);
     } as BgReqHandlerNS.BgReqHandlers["gotoSession"],
     openUrl: function (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url}, port?: Port): void {
       Object.setPrototypeOf(request, null);
-      request.url_f = Utils.convertToUrl(request.url, request.keyword || null, Urls.WorkType.ActAnyway);
+      let ports: Frames.Frames | undefined, unsafe = !!port && funcDict.checkVomnibarPage(port, true);
+      request.url_f = Utils.convertToUrl(request.url, request.keyword || null, unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.ActAnyway);
       request.keyword = "";
-      let ports: Frames.Frames | undefined;
-      cPort = !port ? cPort : funcDict.checkVomnibarPage(port, true) ? port
+      cPort = !port ? cPort : unsafe ? port
         : (ports = framesForTab[port.sender.tabId]) ? ports[0] : cPort;
       if (Utils.lastUrlType === Urls.Type.Functional) {
         return funcDict.onEvalUrl(request.url_f as Urls.SpecialUrl);
