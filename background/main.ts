@@ -1,8 +1,7 @@
-var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
+var Backend: BackendHandlersNS.BackendHandlers;
 (function() {
   type Tab = chrome.tabs.Tab;
   type Window = chrome.windows.Window;
-  type CSTypes = chrome.contentSettings.ValidTypes;
   interface IncNormalWnd extends Window {
     incognito: true;
     type: "normal";
@@ -73,197 +72,6 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
 
   const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
   NoFrameId = Settings.CONST.ChromeVersion < BrowserVer.MinWithFrameId,
-  // all members are static
-  ContentSettings = {
-    makeKey (this: void, contentType: CSTypes, url?: string): string {
-      return "vimiumContent|" + contentType + (url ? "|" + url : "");
-    },
-    complain (this: void, contentType: CSTypes, url: string): boolean {
-      if (!chrome.contentSettings) {
-        requestHandlers.ShowHUD("This version of Vimium++ has no permissions to set CSs");
-        return true;
-      }
-      if (!chrome.contentSettings[contentType] || (<RegExpOne>/^[A-Z]/).test(contentType)) {
-        requestHandlers.ShowHUD("Unknown content settings type: " + contentType);
-        return true;
-      }
-      if (Utils.protocolRe.test(url) && !url.startsWith("chrome")) {
-        return false;
-      }
-      funcDict.complain("change its content settings");
-      return true;
-    },
-    parsePattern (this: void, pattern: string, level: number): string[] {
-      if (pattern.startsWith("file:")) {
-        const a = Settings.CONST.ChromeVersion >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
-        if (a) {
-          funcDict.complain(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set CS of file folders");
-          return [];
-        }
-        return [pattern.split(<RegExpOne>/[?#]/, 1)[0]];
-      }
-      if (pattern.startsWith("ftp:")) {
-        funcDict.complain("set FTP pages' content settings");
-        return [];
-      }
-      let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
-        , hosts = Utils.hostRe.exec(info[2]) as RegExpExecArray & string[4]
-        , result: string[], host = hosts[3] + (hosts[4] || "");
-      pattern = info[1];
-      result = [pattern + host + "/*"];
-      if (level < 2 || Utils.isIPHost(hosts[3])) { return result; }
-      hosts = null as never;
-      const arr = host.toLowerCase().split("."), i = arr.length,
-      minLen = Utils.isTld(arr[i - 1]) === Urls.TldType.NotTld ? 1
-        : i > 2 && arr[i - 1].length === 2 && Utils.isTld(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2,
-      end = Math.min(arr.length - minLen, level - 1);
-      for (let j = 0; j < end; j++) {
-        host = host.substring(arr[j].length + 1);
-        result.push(pattern + host + "/*");
-      }
-      result.push(pattern + "*." + host + "/*");
-      return result;
-    },
-    Clear (this: void, contentType: CSTypes, tab?: Readonly<{ incognito: boolean }> ): void {
-      if (!chrome.contentSettings) { return; }
-      const cs = chrome.contentSettings[contentType];
-      if (!cs || !cs.clear) { return; }
-      if (tab) {
-        cs.clear({ scope: (tab.incognito ? "incognito_session_only" : "regular") });
-        return;
-      }
-      cs.clear({ scope: "regular" });
-      cs.clear({ scope: "incognito_session_only" }, funcDict.onRuntimeError);
-      localStorage.removeItem(ContentSettings.makeKey(contentType));
-    },
-    toggleCurrent (this: void, contentType: CSTypes, tab: Tab): void {
-      const pattern = Utils.removeComposedScheme(tab.url);
-      if (ContentSettings.complain(contentType, pattern)) { return; }
-      chrome.contentSettings[contentType].get({
-        primaryUrl: pattern,
-        incognito: tab.incognito
-      }, function (opt): void {
-        ContentSettings.setAllLevels(contentType, pattern, commandCount, {
-          scope: tab.incognito ? "incognito_session_only" : "regular",
-          setting: (opt && opt.setting === "allow") ? "block" : "allow"
-        }, function(err): void {
-          if (err) { return; }
-          if (!tab.incognito) {
-            const key = ContentSettings.makeKey(contentType);
-            localStorage.getItem(key) !== "1" && localStorage.setItem(key, "1");
-          }
-          if (tab.incognito || cOptions.action === "reopen") {
-            ++tab.index;
-            return funcDict.reopenTab(tab);
-          } else if (tab.index > 0 && chrome.sessions) {
-            return funcDict.refreshTab[0](tab.id);
-          }
-          chrome.windows.getCurrent({populate: true}, function(wnd) {
-            !wnd || wnd.type !== "normal" ? chrome.tabs.reload(funcDict.onRuntimeError)
-            : wnd.tabs.length > 1 && chrome.sessions ? funcDict.refreshTab[0](tab.id)
-            : funcDict.reopenTab(tab);
-            return chrome.runtime.lastError;
-          });
-        });
-      });
-    },
-    ensureIncognito (this: void, contentType: CSTypes, tab: Tab): void {
-      if (Settings.CONST.DisallowIncognito) {
-        return funcDict.complain("change incognito settings");
-      }
-      const pattern = Utils.removeComposedScheme(tab.url);
-      if (ContentSettings.complain(contentType, pattern)) { return; }
-      chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt): void {
-        if (chrome.runtime.lastError) {
-          chrome.contentSettings[contentType].get({primaryUrl: pattern}, function (opt) {
-            if (opt && opt.setting === "allow") { return; }
-            const tabOpt: chrome.windows.CreateData = {type: "normal", incognito: true, focused: false, url: "about:blank"};
-            chrome.windows.create(tabOpt, function (wnd: Window): void {
-              const leftTabId = (wnd.tabs as Tab[])[0].id;
-              return ContentSettings.setAndUpdate(contentType, tab, pattern, wnd.id, true, function(): void {
-                chrome.tabs.remove(leftTabId);
-              });
-            });
-          });
-          return chrome.runtime.lastError;
-        }
-        if (opt && opt.setting === "allow" && tab.incognito) {
-          return ContentSettings.updateTab(tab);
-        }
-        chrome.windows.getAll(function(wnds): void {
-          wnds = wnds.filter(funcDict.isIncNor);
-          if (!wnds.length) {
-            console.log("%cContentSettings.ensure", "color:red"
-              , "get incognito content settings", opt, " but can not find an incognito window.");
-            return;
-          } else if (opt && opt.setting === "allow") {
-            return ContentSettings.updateTab(tab, wnds[wnds.length - 1].id);
-          }
-          const wndId = tab.windowId, isIncNor = tab.incognito && wnds.some(wnd => wnd.id === wndId);
-          return ContentSettings.setAndUpdate(contentType, tab, pattern, isIncNor ? undefined : wnds[wnds.length - 1].id);
-        });
-      });
-    },
-    // `callback` must be executed
-    setAndUpdate: function (this: void, contentType: CSTypes, tab: Tab, pattern: string
-        , wndId?: number, syncState?: boolean, callback?: (this: void) => void): void {
-      const cb = ContentSettings.updateTabAndWindow.bind(null, tab, wndId, callback);
-      return ContentSettings.setAllLevels(contentType, pattern, commandCount
-        , { scope: "incognito_session_only", setting: "allow" }
-        , syncState && (wndId as number) !== tab.windowId
-        ? function(err): void {
-          if (err) { return cb(err); }
-          chrome.windows.get(tab.windowId, cb);
-        } : cb);
-    } as {
-      (this: void, contentType: CSTypes, tab: Tab, pattern: string
-        , wndId: number, syncState: boolean, callback?: (this: void) => void): void;
-      (this: void, contentType: CSTypes, tab: Tab, pattern: string, wndId?: number): void;
-    },
-    setAllLevels (this: void, contentType: CSTypes, url: string, count: number
-        , settings: Readonly<Pick<chrome.contentSettings.SetDetails, "scope" | "setting">>
-        , callback: (this: void, has_err: boolean) => void): void {
-      let pattern: string, left: number, has_err = false;
-      const ref = chrome.contentSettings[contentType], func = function() {
-        const err = chrome.runtime.lastError;
-        err && console.log("[%o]", Date.now(), err);
-        if (has_err) { return err; }
-        --left; has_err = !!err;
-        if (has_err || left === 0) {
-          setTimeout(callback, 0, has_err);
-        }
-        return err;
-      }, arr = ContentSettings.parsePattern(url, count | 0);
-      left = arr.length;
-      if (left <= 0) { return callback(true); }
-      Object.setPrototypeOf(settings, null);
-      for (pattern of arr) {
-        const info = Utils.extendIf(Object.create(null) as chrome.contentSettings.SetDetails, settings);
-        info.primaryPattern = pattern;
-        ref.set(info, func);
-      }
-    },
-    updateTabAndWindow (this: void, tab: Tab, wndId: number | undefined, callback: ((this: void) => void) | undefined
-        , oldWnd: Window | boolean): void {
-      if (oldWnd !== true) { ContentSettings.updateTab(tab, wndId); }
-      callback && callback();
-      if (oldWnd === true) { return; }
-      wndId && chrome.windows.update(wndId, {
-        focused: true,
-        state: oldWnd ? oldWnd.state : undefined
-      });
-    },
-    updateTab (this: void, tab: Tab, newWindowId?: number): void {
-      tab.active = true;
-      if (!newWindowId || tab.windowId === newWindowId) {
-        ++tab.index;
-      } else {
-        (tab as chrome.tabs.CreateProperties).index = undefined;
-      }
-      newWindowId && (tab.windowId = newWindowId);
-      funcDict.reopenTab(tab);
-    }
-  },
   funcDict = {
     isExtIdAllowed(extId: string | null | undefined): boolean {
       if (extId == null) { extId = "unknown sender"; }
@@ -283,18 +91,6 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         }
       }
       return tabs[0] as ActiveTab;
-    },
-    reopenTab (this: void, tab: Tab): void {
-      tabsCreate({
-        windowId: tab.windowId,
-        index: tab.index,
-        url: tab.url,
-        active: tab.active,
-        pinned: tab.pinned,
-        openerTabId: tab.openerTabId,
-      });
-      chrome.tabs.remove(tab.id);
-      // not seems to need to restore muted status
     },
     refreshTab: [function(tabId) {
       chrome.tabs.remove(tabId, funcDict.onRuntimeError);
@@ -379,17 +175,14 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       Utils.resetRe();
       switch(arr[1]) {
       case "copy":
-        return requestHandlers.ShowHUD((arr as Urls.CopyEvalResult)[0], true);
+        return Backend.showHUD((arr as Urls.CopyEvalResult)[0], true);
       case "status":
-        return requestHandlers.ForceStatus((arr as Urls.StatusEvalResult)[0]);
+        return Backend.forceStatus((arr as Urls.StatusEvalResult)[0]);
       }
     },
-    complain (this: void, action: string): void {
-      return requestHandlers.ShowHUD("It's not allowed to " + action);
-    },
     complainNoSession(): void {
-      return Settings.CONST.ChromeVersion >= BrowserVer.MinSession ? funcDict.complain("control tab sessions")
-        : requestHandlers.ShowHUD(`Vimium++ can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
+      return Settings.CONST.ChromeVersion >= BrowserVer.MinSession ? Backend.complain("control tab sessions")
+        : Backend.showHUD(`Vimium++ can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
     },
     checkVomnibarPage: function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
@@ -675,7 +468,7 @@ Are you sure you want to continue?`);
       if (len <= 1 || commandCount === len && !limited) { return; } // not an exact filter
       const tab = funcDict.selectFrom(wnd.tabs), i = tab.index,
       count = Math.min(commandCount, limited === false || limited === null && commandCount <= len ? len : len - i);
-      if (count >= len) { return requestHandlers.ShowHUD("It does nothing to move all tabs of this window"); }
+      if (count >= len) { return Backend.showHUD("It does nothing to move all tabs of this window"); }
       if (count > 30 && !funcDict.confirm("moveTabToNewWindow", count)) { return; }
       return funcDict.makeWindow({
         type: "normal",
@@ -746,11 +539,11 @@ Are you sure you want to continue?`);
           return funcDict.moveTabToIncognito[3]();
         }
         if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito) {
-          return funcDict.complain("open this URL in incognito mode");
+          return Backend.complain("open this URL in incognito mode");
         }
       } else if (wnd.incognito) {
         ++tab.index;
-        return funcDict.reopenTab(tab);
+        return Backend.reopenTab(tab);
       } else {
         options.url = url;
       }
@@ -792,7 +585,7 @@ Are you sure you want to continue?`);
       return funcDict.makeTempWindow(options.tabId as number, true, //
       funcDict.moveTabToNextWindow[2].bind(null, options.tabId, tab2));
     }, function(): void {
-      return requestHandlers.ShowHUD("This tab has been in an incognito window");
+      return Backend.showHUD("This tab has been in an incognito window");
     }] as [
       (this: void, wnd: PopWindow) => void,
       (this: void, options: chrome.windows.CreateData, wnd: Window, wnds: Window[]) => void,
@@ -834,7 +627,7 @@ Are you sure you want to continue?`);
         item && chrome.sessions.restore(item.sessionId);
         return;
       }
-      return requestHandlers.ShowHUD("The session index provided is out of range.");
+      return Backend.showHUD("The session index provided is out of range.");
     },
     selectTab (this: void, tabId: number, alsoWnd?: boolean): void {
       chrome.tabs.update(tabId, {active: true}, alsoWnd ? funcDict.selectWnd : null);
@@ -871,7 +664,7 @@ Are you sure you want to continue?`);
           name: "focusFrame",
           CSS: funcDict.ensureInnerCSS(port),
           mask: FrameMaskType.ForcedSelf
-        }) : requestHandlers.ShowHUD("Fail to find its parent frame");
+        }) : Backend.showHUD("Fail to find its parent frame");
         return;
       }
     },
@@ -955,7 +748,7 @@ Are you sure you want to continue?`);
     duplicateTab (): void {
       const tabId = cPort.sender.tabId;
       if (tabId < 0) {
-        return funcDict.complain("duplicate such a tab");
+        return Backend.complain("duplicate such a tab");
       }
       chrome.tabs.duplicate(tabId);
       if (commandCount-- < 2) { return; }
@@ -977,15 +770,10 @@ Are you sure you want to continue?`);
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
     },
     toggleCS (this: void, tabs: [Tab]): void {
-      const ty = "" + cOptions.type as CSTypes, tab = tabs[0];
-      return cOptions.incognito ? ContentSettings.ensureIncognito(ty, tab) : ContentSettings.toggleCurrent(ty, tab);
+      return ContentSettings.toggleCS(commandCount, cOptions, tabs);
     },
     clearCS (this: void): void {
-      let ty = "" + cOptions.type as CSTypes;
-      if (!ContentSettings.complain(ty, "http://example.com/")) {
-        ContentSettings.Clear(ty, cPort.sender);
-        return requestHandlers.ShowHUD(ty + " content settings have been cleared.");
-      }
+      return ContentSettings.clearCS(cOptions, cPort);
     },
     goTab (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
@@ -1047,7 +835,7 @@ Are you sure you want to continue?`);
       }
       let count = commandCount;
       if (count === 1 && cPort.sender.incognito) {
-        return requestHandlers.ShowHUD("Can not restore a tab in incognito mode!");
+        return Backend.showHUD("Can not restore a tab in incognito mode!");
       }
       const limit = (chrome.sessions.MAX_SESSION_RESULTS as number) | 0;
       count > limit && limit > 0 && (count = limit);
@@ -1127,7 +915,7 @@ Are you sure you want to continue?`);
       let keyword = (cOptions.keyword || "") + "";
       const query = requestHandlers.parseSearchUrl({ url: tabs[0].url });
       if (!query || !keyword) {
-        requestHandlers.ShowHUD(keyword ? "No search engine found!"
+        Backend.showHUD(keyword ? "No search engine found!"
           : 'This key mapping lacks an arg "keyword"');
         return;
       }
@@ -1148,7 +936,7 @@ Are you sure you want to continue?`);
     },
     toggleMuteTab (): void {
       if (Settings.CONST.ChromeVersion < BrowserVer.MinMuted) {
-        return requestHandlers.ShowHUD(`Vimium++ can not control mute state before Chrome ${BrowserVer.MinMuted}`);
+        return Backend.showHUD(`Vimium++ can not control mute state before Chrome ${BrowserVer.MinMuted}`);
       }
       if (cOptions.all || cOptions.other) {
         chrome.tabs.query({audible: true}, funcDict.toggleMuteTab[1]);
@@ -1191,13 +979,13 @@ Are you sure you want to continue?`);
       ++tab.index;
       if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito
           || TabRecency.incognito === IncognitoType.ensuredFalse || !Utils.isRefusingIncognito(tab.url)) {
-        return funcDict.reopenTab(tab);
+        return Backend.reopenTab(tab);
       }
       chrome.windows.get(tab.windowId, function(wnd): void {
         if (wnd.incognito) {
           (tab as ReopenOptions).openerTabId = (tab as ReopenOptions).windowId = undefined;
         }
-        return funcDict.reopenTab(tab);
+        return Backend.reopenTab(tab);
       });
     },
     goToRoot (this: void, tabs: [Tab]): void {
@@ -1210,7 +998,7 @@ Are you sure you want to continue?`);
         chrome.tabs.update(tabs[0].id, {url});
         return;
       }
-      return requestHandlers.ShowHUD(url);
+      return Backend.showHUD(url);
     },
     goUp (this: void): void {
       const trail = cOptions.trailing_slash;
@@ -1265,7 +1053,7 @@ Are you sure you want to continue?`);
           ? "Vimium++ can not access frames in current tab"
         : null;
       if (msg) {
-        return requestHandlers.ShowHUD(msg);
+        return Backend.showHUD(msg);
       }
       if (!sender.frameId) {
         cPort.postMessage({ name: "focusFrame", CSS: funcDict.ensureInnerCSS(cPort), mask: FrameMaskType.OnlySelf });
@@ -1300,7 +1088,7 @@ Are you sure you want to continue?`);
       }
       decoded && (str = Utils.DecodeURLPart(str, decodeURI));
       Clipboard.copy(str);
-      return requestHandlers.ShowHUD(str, true);
+      return Backend.showHUD(str, true);
     },
     goNext (): void {
       let dir = (cOptions.dir ? cOptions.dir + "" : "") || "next", i: any, p2: string[] = []
@@ -1383,7 +1171,7 @@ Are you sure you want to continue?`);
     clearFindHistory (this: void): void {
       const { incognito } = cPort.sender;
       FindModeHistory.removeAll(incognito);
-      return requestHandlers.ShowHUD((incognito ? "incognito " : "") + "find history has been cleared.");
+      return Backend.showHUD((incognito ? "incognito " : "") + "find history has been cleared.");
     },
     showHelp (this: void): void {
       if (cPort.sender.frameId === 0 && !(window.HelpDialog && (cPort.sender.flags & Frames.Flags.onceHasDialog))) {
@@ -1403,7 +1191,7 @@ Are you sure you want to continue?`);
     toggleViewSource (this: void, tabs: [Tab]): void {
       let url = tabs[0].url;
       if (url.startsWith("chrome")) {
-        return funcDict.complain("visit HTML of an extension's page");
+        return Backend.complain("visit HTML of an extension's page");
       }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
       return openMultiTab(url, 1, tabs[0]);
@@ -1453,7 +1241,7 @@ Are you sure you want to continue?`);
       const key = request.key;
       if (!(key in Settings.frontUpdateAllowed)) {
         cPort = port;
-        return funcDict.complain(`modify ${key} setting`);
+        return Backend.complain(`modify ${key} setting`);
       }
       Settings.set(key, request.value);
       if (key in Settings.bufferToLoad) {
@@ -1521,7 +1309,7 @@ Are you sure you want to continue?`);
           return;
         }
         cPort = port;
-        return requestHandlers.ShowHUD(result.url);
+        return Backend.showHUD(result.url);
       }
       let { url } = request, url_l = url.toLowerCase();
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url_l))) {
@@ -1644,7 +1432,7 @@ Are you sure you want to continue?`);
       let search = requestHandlers.parseSearchUrl(request), query: string | null;
       if (!search || !search.keyword) {
         cPort = port;
-        return requestHandlers.ShowHUD("No search engine found!");
+        return Backend.showHUD("No search engine found!");
       }
       if (!(query = request.search.trim())) {
         query = Clipboard.paste();
@@ -1652,7 +1440,7 @@ Are you sure you want to continue?`);
           : (query = query.trim()) ? "" : "No selected or copied text found";
         if (err) {
           cPort = port;
-          return requestHandlers.ShowHUD(err);
+          return Backend.showHUD(err);
         }
       }
       query = Utils.createSearchUrl((query as string).split(Utils.spacesRe), search.keyword);
@@ -1672,7 +1460,7 @@ Are you sure you want to continue?`);
       let tabId = (port as Port).sender.tabId;
       tabId >= 0 || (tabId = TabRecency.last);
       if (tabId >= 0) { return funcDict.selectTab(tabId); }
-    } as BgReqHandlerNS.BgReqHandlers["gotoSession"],
+    } as BackendHandlersNS.BackendHandlers["gotoSession"],
     openUrl: function (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url}, port?: Port): void {
       Object.setPrototypeOf(request, null);
       let ports: Frames.Frames | undefined, unsafe = !!port && funcDict.checkVomnibarPage(port, true);
@@ -1689,16 +1477,16 @@ Are you sure you want to continue?`);
       commandCount = 1;
       cOptions = request as FgReq["openUrl"] & { url_f: string, keyword: ""} & SafeObject;
       return BackgroundCommands.openUrl();
-    } as BgReqHandlerNS.BgReqHandlers["openUrl"],
+    } as BackendHandlersNS.BackendHandlers["openUrl"],
     frameFocused (this: void, _0: FgReq["frameFocused"], port: Port): void {
       let tabId = port.sender.tabId, ref = framesForTab[tabId] as Frames.WritableFrames | undefined, status: Frames.ValidStatus;
       if (!ref) {
-        return needIcon ? requestHandlers.SetIcon(tabId, port.sender.status) : undefined;
+        return needIcon ? Backend.setIcon(tabId, port.sender.status) : undefined;
       }
       if (port === ref[0]) { return; }
       if (needIcon && (status = port.sender.status) !== ref[0].sender.status) {
         ref[0] = port;
-        return requestHandlers.SetIcon(tabId, status);
+        return Backend.setIcon(tabId, status);
       }
       ref[0] = port;
     },
@@ -1717,13 +1505,13 @@ Are you sure you want to continue?`);
         sender.status = status;
         let a: Frames.Frames | undefined;
         if (needIcon && (a = framesForTab[tabId]) && a[0] === port) {
-          requestHandlers.SetIcon(tabId, status);
+          Backend.setIcon(tabId, status);
         }
       } else if (!pattern || pattern === Settings.getExcluded(oldUrl)) {
         return;
       }
       port.postMessage({ name: "reset", passKeys: pattern });
-    } as BgReqHandlerNS.checkIfEnabled,
+    } as BackendHandlersNS.checkIfEnabled,
     nextFrame (this: void, _0: FgReq["nextFrame"], port: Port): void {
       cPort = port;
       return BackgroundCommands.nextFrame(1);
@@ -1826,9 +1614,9 @@ Are you sure you want to continue?`);
     openCopiedUrl: function (this: void, request: FgReq["openCopiedUrl"], port?: Port): Urls.Url | FgRes["openCopiedUrl"] {
       let url: Urls.Url | null = Clipboard.paste();
       cPort = port || cPort;
-      if (url === null) { return funcDict.complain("read clipboard"); }
+      if (url === null) { return Backend.complain("read clipboard"); }
       url = url.trim();
-      if (!url) { return requestHandlers.ShowHUD("No text copied!"); }
+      if (!url) { return Backend.showHUD("No text copied!"); }
       Utils.quotedStringRe.test(url) && (url = url.slice(1, -1));
       url = Utils.convertToUrl(url, request.keyword, port ? Urls.WorkType.Default : Urls.WorkType.ActAnyway);
       if (!port || (url as string).substring(0, 11).toLowerCase() === "javascript:") { return url; }
@@ -1882,54 +1670,6 @@ Are you sure you want to continue?`);
         url: request.prefix ? url + "*" : url
       }, callback.bind(request));
     },
-    SetIcon: function(): void {} as (tabId: number, type: Frames.ValidStatus) => void,
-    ShowHUD (message: string, isCopy?: boolean): void {
-      try {
-        cPort && cPort.postMessage({
-          name: "showHUD",
-          CSS: funcDict.ensureInnerCSS(cPort),
-          text: message,
-          isCopy: isCopy === true
-        });
-      } catch (e) {
-        cPort = null as never;
-      }
-    },
-    ForceStatus (act: Frames.ForcedStatusText, tabId?: number): void {
-      const ref = framesForTab[tabId || (tabId = TabRecency.last)];
-      if (!ref) { return; }
-      act = act.toLowerCase() as Frames.ForcedStatusText;
-      const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].sender.status,
-      stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
-        : act === "toggle" ? oldStatus === Frames.Status.disabled ? Frames.Status.enabled : Frames.Status.disabled
-        : null,
-      locked = stat !== null, unknown = !(locked || always_enabled),
-      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.Status.disabled ? null : "", forced: locked };
-      cPort = funcDict.indexFrame(tabId, 0) || ref[0];
-      if (stat == null && tabId < 0) {
-        oldStatus !== Frames.Status.disabled && requestHandlers.ShowHUD("Got an unknown action on status: " + act);
-        return;
-      }
-      let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.Status.enabled;
-      for (let i = ref.length; 1 <= --i; ) {
-        const port = ref[i], sender = port.sender;
-        sender.flags = locked ? sender.flags | Frames.Flags.locked : sender.flags & ~Frames.Flags.locked;
-        if (unknown) {
-          pattern = msg.passKeys = Settings.getExcluded(sender.url);
-          newStatus = pattern === null ? Frames.Status.enabled : pattern
-            ? Frames.Status.partial : Frames.Status.disabled;
-          if (newStatus !== Frames.Status.partial && sender.status === newStatus) { continue; }
-        }
-        // must send "reset" messages even if port keeps enabled by 'v.st enable' - frontend may need to reinstall listeners
-        sender.status = newStatus;
-        port.postMessage(msg);
-      }
-      newStatus !== Frames.Status.disabled && requestHandlers.ShowHUD("Now the page status is " + (
-        newStatus === Frames.Status.enabled ? "enabled" : "partially disabled" ));
-      if (needIcon && (newStatus = ref[0].sender.status) !== oldStatus) {
-        return requestHandlers.SetIcon(tabId, newStatus);
-      }
-    }
   },
   Connections = {
     state: 0,
@@ -1990,13 +1730,13 @@ Are you sure you want to continue?`);
         ref.push(port);
         if (type & PortType.hasFocus) {
           if (needIcon && ref[0].sender.status !== status) {
-            requestHandlers.SetIcon(tabId, status);
+            Backend.setIcon(tabId, status);
           }
           ref[0] = port;
         }
       } else {
         framesForTab[tabId] = [port, port];
-        status !== Frames.Status.enabled && needIcon && requestHandlers.SetIcon(tabId, status);
+        status !== Frames.Status.enabled && needIcon && Backend.setIcon(tabId, status);
       }
       if (NoFrameId) {
         (sender as any).frameId = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
@@ -2078,6 +1818,78 @@ Are you sure you want to continue?`);
       };
     }
   };
+  
+  Backend = {
+    parseSearchUrl: requestHandlers.parseSearchUrl,
+    gotoSession: requestHandlers.gotoSession,
+    openUrl: requestHandlers.openUrl,
+    checkIfEnabled: requestHandlers.checkIfEnabled,
+    focusOrLaunch: requestHandlers.focusOrLaunch,
+    setIcon (): void {},
+    complain (action: string): void {
+      return this.showHUD("It's not allowed to " + action);
+    },
+    reopenTab (this: void, tab: Tab, refresh?: boolean): void {
+      if (refresh) { return funcDict.refreshTab[0](tab.id); }
+      tabsCreate({
+        windowId: tab.windowId,
+        index: tab.index,
+        url: tab.url,
+        active: tab.active,
+        pinned: tab.pinned,
+        openerTabId: tab.openerTabId,
+      });
+      chrome.tabs.remove(tab.id);
+      // not seems to need to restore muted status
+    },
+    showHUD (message: string, isCopy?: boolean): void {
+      try {
+        cPort && cPort.postMessage({
+          name: "showHUD",
+          CSS: funcDict.ensureInnerCSS(cPort),
+          text: message,
+          isCopy: isCopy === true
+        });
+      } catch (e) {
+        cPort = null as never;
+      }
+    },
+    forceStatus (act: Frames.ForcedStatusText, tabId?: number): void {
+      const ref = framesForTab[tabId || (tabId = TabRecency.last)];
+      if (!ref) { return; }
+      act = act.toLowerCase() as Frames.ForcedStatusText;
+      const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].sender.status,
+      stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
+        : act === "toggle" ? oldStatus === Frames.Status.disabled ? Frames.Status.enabled : Frames.Status.disabled
+        : null,
+      locked = stat !== null, unknown = !(locked || always_enabled),
+      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.Status.disabled ? null : "", forced: locked };
+      cPort = funcDict.indexFrame(tabId, 0) || ref[0];
+      if (stat == null && tabId < 0) {
+        oldStatus !== Frames.Status.disabled && this.showHUD("Got an unknown action on status: " + act);
+        return;
+      }
+      let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.Status.enabled;
+      for (let i = ref.length; 1 <= --i; ) {
+        const port = ref[i], sender = port.sender;
+        sender.flags = locked ? sender.flags | Frames.Flags.locked : sender.flags & ~Frames.Flags.locked;
+        if (unknown) {
+          pattern = msg.passKeys = Settings.getExcluded(sender.url);
+          newStatus = pattern === null ? Frames.Status.enabled : pattern
+            ? Frames.Status.partial : Frames.Status.disabled;
+          if (newStatus !== Frames.Status.partial && sender.status === newStatus) { continue; }
+        }
+        // must send "reset" messages even if port keeps enabled by 'v.st enable' - frontend may need to reinstall listeners
+        sender.status = newStatus;
+        port.postMessage(msg);
+      }
+      newStatus !== Frames.Status.disabled && this.showHUD("Now the page status is " + (
+        newStatus === Frames.Status.enabled ? "enabled" : "partially disabled" ));
+      if (needIcon && (newStatus = ref[0].sender.status) !== oldStatus) {
+        return this.setIcon(tabId, newStatus);
+      }
+    }
+  };
 
   let cOptions: CommandsNS.Options, cPort: Frames.Port, commandCount: number, needIcon = false,
   getSecret = function(this: void): number {
@@ -2092,8 +1904,6 @@ Are you sure you want to continue?`);
     };
     return getSecret();
   };
-
-  g_requestHandlers = requestHandlers;
 
   Settings.Init = function(): void {
     if (3 !== ++Connections.state) { return; }
@@ -2199,12 +2009,6 @@ Are you sure you want to continue?`);
     Settings.fetchFile("baseCSS");
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
     Settings.postUpdate("vomnibarPage");
-
-    let arr: CSTypes[] = ["images", "plugins", "javascript", "cookies"], i: CSTypes;
-    for (i of arr) {
-      localStorage.getItem(ContentSettings.makeKey(i)) != null &&
-      setTimeout(ContentSettings.Clear, 100, i);
-    }
 
     (document.documentElement as HTMLHtmlElement).textContent = '';
     (document.firstChild as DocumentType).remove();

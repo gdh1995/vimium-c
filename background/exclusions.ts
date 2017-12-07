@@ -64,7 +64,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   },
   getOnURLChange (this: ExcCls): null | ExclusionsNS.Listener {
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
-      : Settings.CONST.ChromeVersion >= BrowserVer.MinWithFrameId ? g_requestHandlers.checkIfEnabled
+      : Settings.CONST.ChromeVersion >= BrowserVer.MinWithFrameId ? Backend.checkIfEnabled
       : function(details: chrome.webNavigation.WebNavigationCallbackDetails) {
         const ref = Settings.indexPorts(details.tabId),
         msg = { name: "url" as "url", handler: "checkIfEnabled" as "checkIfEnabled" };
@@ -127,7 +127,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
         port.sender.status = status;
       }
       if (needIcon && status0 !== (status = frames[0].sender.status)) {
-        g_requestHandlers.SetIcon((tabId as (string | number) as number) | 0, status);
+        Backend.setIcon((tabId as (string | number) as number) | 0, status);
       }
     }
   },

@@ -1,3 +1,5 @@
+type CSTypes = chrome.contentSettings.ValidTypes;
+type Tab = chrome.tabs.Tab;
 const Clipboard = {
   getTextArea (): HTMLTextAreaElement {
     const el = document.createElement("textarea");
@@ -44,6 +46,208 @@ const Clipboard = {
     return value;
   }
 },
+ContentSettings = {
+  makeKey (this: void, contentType: CSTypes, url?: string): string {
+    return "vimiumContent|" + contentType + (url ? "|" + url : "");
+  },
+  onRuntimeError (this: void): void { return chrome.runtime.lastError; },
+  complain (this: void, contentType: CSTypes, url: string): boolean {
+    if (!chrome.contentSettings) {
+      Backend.showHUD("This version of Vimium++ has no permissions to set CSs");
+      return true;
+    }
+    if (!chrome.contentSettings[contentType] || (<RegExpOne>/^[A-Z]/).test(contentType)) {
+      Backend.showHUD("Unknown content settings type: " + contentType);
+      return true;
+    }
+    if (Utils.protocolRe.test(url) && !url.startsWith("chrome")) {
+      return false;
+    }
+    Backend.complain("change its content settings");
+    return true;
+  },
+  parsePattern (this: void, pattern: string, level: number): string[] {
+    if (pattern.startsWith("file:")) {
+      const a = Settings.CONST.ChromeVersion >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
+      if (a) {
+        Backend.complain(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set CS of file folders");
+        return [];
+      }
+      return [pattern.split(<RegExpOne>/[?#]/, 1)[0]];
+    }
+    if (pattern.startsWith("ftp:")) {
+      Backend.complain("set FTP pages' content settings");
+      return [];
+    }
+    let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
+      , hosts = Utils.hostRe.exec(info[2]) as RegExpExecArray & string[4]
+      , result: string[], host = hosts[3] + (hosts[4] || "");
+    pattern = info[1];
+    result = [pattern + host + "/*"];
+    if (level < 2 || Utils.isIPHost(hosts[3])) { return result; }
+    hosts = null as never;
+    const arr = host.toLowerCase().split("."), i = arr.length,
+    minLen = Utils.isTld(arr[i - 1]) === Urls.TldType.NotTld ? 1
+      : i > 2 && arr[i - 1].length === 2 && Utils.isTld(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2,
+    end = Math.min(arr.length - minLen, level - 1);
+    for (let j = 0; j < end; j++) {
+      host = host.substring(arr[j].length + 1);
+      result.push(pattern + host + "/*");
+    }
+    result.push(pattern + "*." + host + "/*");
+    return result;
+  },
+  Clear (this: void, contentType: CSTypes, tab?: Readonly<{ incognito: boolean }> ): void {
+    if (!chrome.contentSettings) { return; }
+    const cs = chrome.contentSettings[contentType];
+    if (!cs || !cs.clear) { return; }
+    if (tab) {
+      cs.clear({ scope: (tab.incognito ? "incognito_session_only" : "regular") });
+      return;
+    }
+    cs.clear({ scope: "regular" });
+    cs.clear({ scope: "incognito_session_only" }, ContentSettings.onRuntimeError);
+    localStorage.removeItem(ContentSettings.makeKey(contentType));
+  },
+  clearCS (options: CommandsNS.Options, port: Port): void {
+    const ty = "" + options.type as CSTypes;
+    if (!this.complain(ty, "http://a.cc/")) {
+      this.Clear(ty, port.sender);
+      return Backend.showHUD(ty + " content settings have been cleared.");
+    }
+  },
+  toggleCS (count: number, options: CommandsNS.Options, tabs: [Tab]): void {
+    const ty = "" + options.type as CSTypes, tab = tabs[0];
+    return options.incognito ? this.ensureIncognito(count, ty, tab)
+      : this.toggleCurrent(count, ty, tab, options.action === "reopen");
+  },
+  toggleCurrent (this: void, count: number, contentType: CSTypes, tab: Tab, reopen: boolean): void {
+    const pattern = Utils.removeComposedScheme(tab.url);
+    if (ContentSettings.complain(contentType, pattern)) { return; }
+    chrome.contentSettings[contentType].get({
+      primaryUrl: pattern,
+      incognito: tab.incognito
+    }, function (opt): void {
+      ContentSettings.setAllLevels(contentType, pattern, count, {
+        scope: tab.incognito ? "incognito_session_only" : "regular",
+        setting: (opt && opt.setting === "allow") ? "block" : "allow"
+      }, function(err): void {
+        if (err) { return; }
+        if (!tab.incognito) {
+          const key = ContentSettings.makeKey(contentType);
+          localStorage.getItem(key) !== "1" && localStorage.setItem(key, "1");
+        }
+        if (tab.incognito || reopen) {
+          ++tab.index;
+          return Backend.reopenTab(tab);
+        } else if (tab.index > 0 && chrome.sessions) {
+          return Backend.reopenTab(tab, true);
+        }
+        chrome.windows.getCurrent({populate: true}, function(wnd) {
+          !wnd || wnd.type !== "normal" ? chrome.tabs.reload(ContentSettings.onRuntimeError)
+            : Backend.reopenTab(tab, wnd.tabs.length > 1 && !!chrome.sessions);
+          return chrome.runtime.lastError;
+        });
+      });
+    });
+  },
+  ensureIncognito (this: void, count: number, contentType: CSTypes, tab: Tab): void {
+    if (Settings.CONST.DisallowIncognito) {
+      return Backend.complain("change incognito settings");
+    }
+    const pattern = Utils.removeComposedScheme(tab.url);
+    if (ContentSettings.complain(contentType, pattern)) { return; }
+    chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt): void {
+      if (chrome.runtime.lastError) {
+        chrome.contentSettings[contentType].get({primaryUrl: pattern}, function (opt) {
+          if (opt && opt.setting === "allow") { return; }
+          const tabOpt: chrome.windows.CreateData = {type: "normal", incognito: true, focused: false, url: "about:blank"};
+          chrome.windows.create(tabOpt, function (wnd: chrome.windows.Window): void {
+            const leftTabId = (wnd.tabs as Tab[])[0].id;
+            return ContentSettings.setAndUpdate(count, contentType, tab, pattern, wnd.id, true, function(): void {
+              chrome.tabs.remove(leftTabId);
+            });
+          });
+        });
+        return chrome.runtime.lastError;
+      }
+      if (opt && opt.setting === "allow" && tab.incognito) {
+        return ContentSettings.updateTab(tab);
+      }
+      chrome.windows.getAll(function(wnds): void {
+        wnds = wnds.filter(wnd => wnd.incognito && wnd.type === "normal");
+        if (!wnds.length) {
+          console.log("%cContentSettings.ensure", "color:red"
+            , "get incognito content settings", opt, " but can not find an incognito window.");
+          return;
+        } else if (opt && opt.setting === "allow") {
+          return ContentSettings.updateTab(tab, wnds[wnds.length - 1].id);
+        }
+        const wndId = tab.windowId, isIncNor = tab.incognito && wnds.some(wnd => wnd.id === wndId);
+        return ContentSettings.setAndUpdate(count, contentType, tab, pattern, isIncNor ? undefined : wnds[wnds.length - 1].id);
+      });
+    });
+  },
+  // `callback` must be executed
+  setAndUpdate: function (this: void, count: number, contentType: CSTypes, tab: Tab, pattern: string
+      , wndId?: number, syncState?: boolean, callback?: (this: void) => void): void {
+    const cb = ContentSettings.updateTabAndWindow.bind(null, tab, wndId, callback);
+    return ContentSettings.setAllLevels(contentType, pattern, count
+      , { scope: "incognito_session_only", setting: "allow" }
+      , syncState && (wndId as number) !== tab.windowId
+      ? function(err): void {
+        if (err) { return cb(err); }
+        chrome.windows.get(tab.windowId, cb);
+      } : cb);
+  } as {
+    (this: void, count: number, contentType: CSTypes, tab: Tab, pattern: string
+      , wndId: number, syncState: boolean, callback?: (this: void) => void): void;
+    (this: void, count: number, contentType: CSTypes, tab: Tab, pattern: string, wndId?: number): void;
+  },
+  setAllLevels (this: void, contentType: CSTypes, url: string, count: number
+      , settings: Readonly<Pick<chrome.contentSettings.SetDetails, "scope" | "setting">>
+      , callback: (this: void, has_err: boolean) => void): void {
+    let pattern: string, left: number, has_err = false;
+    const ref = chrome.contentSettings[contentType], func = function() {
+      const err = chrome.runtime.lastError;
+      err && console.log("[%o]", Date.now(), err);
+      if (has_err) { return err; }
+      --left; has_err = !!err;
+      if (has_err || left === 0) {
+        setTimeout(callback, 0, has_err);
+      }
+      return err;
+    }, arr = ContentSettings.parsePattern(url, count | 0);
+    left = arr.length;
+    if (left <= 0) { return callback(true); }
+    Object.setPrototypeOf(settings, null);
+    for (pattern of arr) {
+      const info = Utils.extendIf(Object.create(null) as chrome.contentSettings.SetDetails, settings);
+      info.primaryPattern = pattern;
+      ref.set(info, func);
+    }
+  },
+  updateTabAndWindow (this: void, tab: Tab, wndId: number | undefined, callback: ((this: void) => void) | undefined
+      , oldWnd: chrome.windows.Window | boolean): void {
+    if (oldWnd !== true) { ContentSettings.updateTab(tab, wndId); }
+    callback && callback();
+    if (oldWnd === true) { return; }
+    wndId && chrome.windows.update(wndId, {
+      focused: true,
+      state: oldWnd ? oldWnd.state : undefined
+    });
+  },
+  updateTab (this: void, tab: Tab, newWindowId?: number): void {
+    tab.active = true;
+    if (!newWindowId || tab.windowId === newWindowId) {
+      ++tab.index;
+    } else {
+      (tab as chrome.tabs.CreateProperties).index = undefined;
+    }
+    newWindowId && (tab.windowId = newWindowId);
+    Backend.reopenTab(tab);
+  }
+},
 Marks = { // NOTE: all public members should be static
   _set ({ local, markName, url, scroll }: MarksNS.NewMark, tabId?: number): void {
     localStorage.setItem(this.getLocationKey(markName, local ? url : "")
@@ -80,7 +284,7 @@ Marks = { // NOTE: all public members should be static
       }
     }
     if (!str) {
-      return g_requestHandlers.ShowHUD(`${local ? "Local" : "Global"} mark not set : ' ${markName} '.`);
+      return Backend.showHUD(`${local ? "Local" : "Global"} mark not set : ' ${markName} '.`);
     }
     const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str);
     markInfo.markName = markName;
@@ -89,16 +293,16 @@ Marks = { // NOTE: all public members should be static
     if (Settings.indexPorts(markInfo.tabId)) {
       chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
     } else {
-      return g_requestHandlers.focusOrLaunch(markInfo);
+      return Backend.focusOrLaunch(markInfo);
     }
   },
   checkTab (this: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
     const url = tab.url.split("#", 1)[0];
     if (url === this.url || this.prefix && this.url.startsWith(url)) {
-      g_requestHandlers.gotoSession({ sessionId: tab.id });
+      Backend.gotoSession({ sessionId: tab.id });
       return Marks.scrollTab(this, tab);
     } else {
-      return g_requestHandlers.focusOrLaunch(this);
+      return Backend.focusOrLaunch(this);
     }
   },
   getLocationKey (markName: string, url: string | undefined): string {
@@ -122,7 +326,7 @@ Marks = { // NOTE: all public members should be static
         storage.removeItem(key);
       }
     }
-    return g_requestHandlers.ShowHUD(`${count} ${url ? "local" : "global"} mark${count !== 1 ? "s have" : " has"} been removed.`);
+    return Backend.showHUD(`${count} ${url ? "local" : "global"} mark${count !== 1 ? "s have" : " has"} been removed.`);
   }
 },
 FindModeHistory = {
@@ -249,6 +453,11 @@ setTimeout(function() {
   TabRecency.rCompare = function(a, b): number {
     return (cache[b.id] as number) - (cache[a.id] as number);
   };
+
+  for (let i of ["images", "plugins", "javascript", "cookies"] as CSTypes[]) {
+    localStorage.getItem(ContentSettings.makeKey(i)) != null &&
+    setTimeout(ContentSettings.Clear, 100, i);
+  }
 }, 120);
 
 chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {

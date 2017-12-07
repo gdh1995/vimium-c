@@ -116,7 +116,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
       const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
       for (w = 0, h = arr.length; w < h; w++) {
-        g_requestHandlers.SetIcon(arr[w], type);
+        Backend.setIcon(arr[w], type);
       }
     };
     Object.setPrototypeOf(path, null);
@@ -139,7 +139,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
     imageData = Object.create(null);
     tabIds = Object.create(null);
   } as IconNS.AccessIconBuffer;
-  g_requestHandlers.SetIcon = function(this: void, tabId: number, type: Frames.ValidStatus): void {
+  Backend.setIcon = function(this: void, tabId: number, type: Frames.ValidStatus): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
     if (data = (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type]) {
       chrome.browserAction.setIcon({
@@ -296,7 +296,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     if (firstResult && text === last) { text = firstResult.url; }
     const sessionId = sessionIds && sessionIds[text];
     clean();
-    return sessionId != null ? g_requestHandlers.gotoSession({ sessionId }) : g_requestHandlers.openUrl({
+    return sessionId != null ? Backend.gotoSession({ sessionId }) : Backend.openUrl({
       url: text,
       reuse: (disposition === "currentTab" ? ReuseType.current
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
@@ -366,7 +366,7 @@ setTimeout(function() {
     reason = notificationId || reason;
     popup.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }
-      return g_requestHandlers.focusOrLaunch({
+      return Backend.focusOrLaunch({
         url: "https://github.com/gdh1995/vimium-plus#release-notes"
       });
     });

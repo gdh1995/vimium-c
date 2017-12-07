@@ -522,7 +522,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
 $<HTMLAnchorElement>("#openExtensionPage").onclick = function(event): void {
   event.preventDefault();
-  return BG.g_requestHandlers.focusOrLaunch({ url: this.href, reuse: ReuseType.reuse });
+  return BG.Backend.focusOrLaunch({ url: this.href, reuse: ReuseType.reuse });
 }
 
 $("#importButton").onclick = function(): void {

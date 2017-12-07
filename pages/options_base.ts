@@ -420,7 +420,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
     a.url = this.href;
-    BG.g_requestHandlers.focusOrLaunch(a);
+    BG.Backend.focusOrLaunch(a);
     window.close();
   };
   interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
@@ -433,7 +433,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
 
   function forceState(tabId: number, act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();
-    BG.g_requestHandlers.ForceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
+    BG.Backend.forceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
     window.close();
   }
 })));

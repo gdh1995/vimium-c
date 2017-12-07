@@ -361,23 +361,25 @@ declare namespace SettingsNS {
 }
 import FullSettings = SettingsNS.FullSettings;
 
-declare namespace BgReqHandlerNS {
+declare namespace BackendHandlersNS {
   interface checkIfEnabled extends ExclusionsNS.Listener {
     (this: void, request: FgReq["checkIfEnabled"], port: Frames.Port): void;
   }
 
-  interface BgReqHandlers {
-    parseSearchUrl(this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"];
+  interface BackendHandlers {
+    parseSearchUrl (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"];
     gotoSession: {
       (this: void, request: { sessionId: string | number, active: true }, port: Port): void;
       (this: void, request: { sessionId: string | number, active?: false }): void;
     };
-    openUrl(this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
+    openUrl (this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
     checkIfEnabled: checkIfEnabled;
-    focusOrLaunch(this: void, request: MarksNS.FocusOrLaunch): void;
-    SetIcon(tabId: number, type: Frames.ValidStatus): void;
-    ShowHUD(message: string, isCopy?: boolean | undefined): void;
-    ForceStatus(this: void, act: Frames.ForcedStatusText, tabId?: number): void;
+    focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch): void;
+    reopenTab (tab: chrome.tabs.Tab, refresh?: boolean): void;
+    setIcon (tabId: number, type: Frames.ValidStatus): void;
+    complain (this: BackendHandlers, message: string): void;
+    showHUD (message: string, isCopy?: boolean | undefined): void;
+    forceStatus (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
   }
 }
 
@@ -400,7 +402,7 @@ interface Window {
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
 
-  readonly g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
+  readonly Backend: BackendHandlersNS.BackendHandlers;
   readonly Utils: {
     readonly spacesRe: RegExpG;
     readonly convertToUrl: Urls.Converter;

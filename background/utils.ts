@@ -330,7 +330,7 @@ var Utils = {
       path = (this as typeof Utils).decodeEscapedURL(path);
       arr = [path];
       path = this.convertToUrl(path);
-      if (this.lastUrlType !== Urls.Type.Search && (obj = g_requestHandlers.parseSearchUrl({ url: path }))) {
+      if (this.lastUrlType !== Urls.Type.Search && (obj = Backend.parseSearchUrl({ url: path }))) {
         if (obj.url === "") {
           arr = [cmd];
         } else {
