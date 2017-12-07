@@ -92,26 +92,20 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       return tabs[0] as ActiveTab;
     },
-    refreshTab: [function(tabId) {
-      chrome.tabs.remove(tabId, funcDict.onRuntimeError);
-      chrome.tabs.get(tabId, funcDict.refreshTab[1]);
-    }, function(tab, step) {
+    onRefreshTab (step: 1 | 2 | 3 | 4, tab?: Tab): void {
       if (chrome.runtime.lastError) {
         chrome.sessions.restore();
         return chrome.runtime.lastError;
       }
-      step = (((step as number) | 0) + 1) as 1 | 2 | 3 | 4;
+      step = ((step | 0) + 1) as 1 | 2 | 3 | 4;
       if (step > 3) { return; }
       const tabId = (tab as Tab).id;
       setTimeout(function(): void {
         chrome.tabs.get(tabId, function(tab): void {
-          funcDict.refreshTab[1](tab, ((step as number) + 1) as 1 | 2 | 3 | 4);
+          funcDict.onRefreshTab((step + 1) as 1 | 2 | 3 | 4, tab);
         });
       }, 50 * step * step);
-    }] as [
-      (this: void, tabId: number) => void,
-      (this: void, tab?: Tab, step?: 1 | 2 | 3 | 4) => void
-    ],
+    },
     makeWindow (this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
         , callback?: (wnd: Window) => void): void {
       if (option.focused === false) {
@@ -260,7 +254,7 @@ Are you sure you want to continue?`);
     },
 
     getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
-        , (result: [Tab]) => void, 1>(null, { active: true, currentWindow: true }),
+        , (result: [Tab], _ex: FakeArg) => void, 1>(null, { active: true, currentWindow: true }),
     getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
     getId (this: void, tab: { readonly id: number }): number { return tab.id; },
 
@@ -1830,7 +1824,11 @@ Are you sure you want to continue?`);
       return this.showHUD("It's not allowed to " + action);
     },
     reopenTab (this: void, tab: Tab, refresh?: boolean): void {
-      if (refresh) { return funcDict.refreshTab[0](tab.id); }
+      if (refresh) {
+        chrome.tabs.remove(tab.id, funcDict.onRuntimeError);
+        chrome.tabs.get(tab.id, funcDict.onRefreshTab.bind(null, 0));
+        return;
+      }
       tabsCreate({
         windowId: tab.windowId,
         index: tab.index,
