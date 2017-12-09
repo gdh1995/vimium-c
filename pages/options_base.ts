@@ -287,6 +287,14 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   OnInput (this: void, event: Event): void;
   generateDefaultPattern (this: PopExclusionRulesOption): string;
 }
+  let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
+  if (!ref && (tabs[0].url === "about:blank" || tabs[0].url.lastIndexOf("chrome:", 0) === 0)) {
+    (document.body as HTMLBodyElement).textContent = "";
+    (document.body as HTMLBodyElement).appendChild(blockedMsg);
+    return;
+  }
+  blockedMsg.remove();
+  blockedMsg = null as never;
 
 const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions, escapeRe = <RegExpG & RegExpSearchable<0>> /[&<>]/g,
 exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
@@ -398,7 +406,6 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       if (!saved) { return saveOptions(); }
     }
   });
-  let ref = BG.Backend.indexPorts(tabs[0].id);
   exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("#exclusionRules"), onUpdated, ref ? function (): void {
     let { sender } = (ref as Frames.Frames)[0], el: HTMLElement
       , newStat = sender.status !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
