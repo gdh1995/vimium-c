@@ -408,22 +408,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return HUD.showCopied(str);
     },
     autoOpen (_0: number, options: FgOptions): void {
-      let str: string, keyword = (options.keyword || "") + "";
-      if (str = VDom.getSelectionText()) {
-        VUtils.evalIfOK(str) || vPort.post({
-          handler: "openUrl",
-          keyword,
-          url: str
-        });
-        return;
-      }
-      return vPort.send({
-        handler: "openCopiedUrl",
-        keyword
-      }, function(str): void {
-        if (str) {
-          VUtils.evalIfOK(str);
-        }
+      let url = VDom.getSelectionText(), keyword = (options.keyword || "") + "";
+      url && VUtils.evalIfOK(url) || vPort.post({
+        handler: "openUrl",
+        copied: !url,
+        keyword, url
       });
     },
     searchAs (): void {
@@ -802,6 +791,7 @@ Pagination = {
       request.url = window.location.href;
       vPort.post(request);
     },
+    eval (options: BgReq["eval"]): void { VUtils.evalIfOK(options.url); },
     settingsUpdate (request): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer(request);

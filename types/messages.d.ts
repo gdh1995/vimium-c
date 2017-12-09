@@ -58,6 +58,9 @@ interface BgReq {
   url: {
     url?: string;
   } & Req.baseFg<keyof FgReq>;
+  eval: {
+    url: string; // a javascript: URL
+  };
 }
 
 interface BgVomnibarReq {
@@ -147,7 +150,8 @@ interface FgReq {
     active?: boolean;
   };
   openUrl: {
-    url: string;
+    url?: string;
+    copied?: boolean;
     keyword?: string | null;
     incognito?: boolean;
     https?: boolean | null;
@@ -217,7 +221,6 @@ interface FgRes {
     url: string;
     path: string | null;
   };
-  openCopiedUrl: string | void;
   execInChild: boolean;
 }
 

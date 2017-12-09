@@ -243,7 +243,7 @@ availableCommands: {
   __proto__: null as never,
   showHelp: [ "Show help", 1, true ],
   debugBackground: [ "Debug the background page", 1, true,
-    { reuse: 1, url: "chrome://extensions/?id=$id", id_marker: "$id" }, "openUrl" ],
+    { reuse: ReuseType.reuse, url: "chrome://extensions/?id=$id", id_mask: "$id" }, "openUrl" ],
   blank: [ "Do nothing", 1, true ],
   toggleLinkHintCharacters: [ "Toggle the other link hints (use value)", 1, false,
     { key: "linkHintCharacters" }, ".toggleSwitchTemp" ],
@@ -286,8 +286,8 @@ availableCommands: {
     { mode: HintMode.FOCUS_EDITABLE }, "Hints.activate" ],
   "LinkHints.activateModeToOpenVomnibar": [ "Edit a link text on Vomnibar (use url, force)", 1, false,
     { mode: HintMode.EDIT_TEXT }, "Hints.activate" ],
-  openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true ],
-  openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true ],
+  openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true, { reuse: ReuseType.current, copied: true }, "openUrl" ],
+  openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true, { copied: true }, "openUrl" ],
   enterInsertMode: [ "Enter insert mode (use code=27, stat=0)", 1, true ],
   passNextKey: [ "Pass the next key(s) to the page (use normal)", 0, false, null, "." ],
   enterVisualMode: [ "Enter visual mode", 1, false, null, "Visual.activate" ],
@@ -378,8 +378,8 @@ availableCommands: {
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, true, { local: true }, "clearMarks" ],
   "Marks.clearGlobal": [ "Remove all global marks", 1, true, null, "clearMarks" ],
   clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true, null, "clearMarks" ],
-  openUrl: [ "open URL (use url, urls:string[], reuse=[-2..1])", 20, true ],
-  focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true, { reuse: 1 }, "openUrl" ]
+  openUrl: [ "open URL (use url, urls:string[], reuse:[-2..1]=-1)", 20, true ],
+  focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true, { reuse: ReuseType.reuse }, "openUrl" ]
 } as SafeDict<CommandsNS.Description>
 };
 

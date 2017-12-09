@@ -81,6 +81,7 @@ declare namespace Urls {
     ActIfNoSideEffects = 1,
     ActAnyway = 2,
     ValidNormal = Default,
+    FakeType = 9,
   }
   type WorkEnsureString = WorkType.KeepAll | WorkType.ConvertKnown | WorkType.ValidNormal;
   type WorkAllowEval = WorkType.ActIfNoSideEffects | WorkType.ActAnyway;

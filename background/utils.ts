@@ -40,6 +40,7 @@ var Utils = {
     this.unescapeHTML = () => s.replace(escapedRe, unescapeCallback);
     return this.unescapeHTML(s);
   },
+  isJSUrl (s: string): boolean { return s.charCodeAt(10) === KnownKey.colon && s.substring(0, 11).toLowerCase() === "javascript:"; },
   // url: only accept real tab's
   isRefusingIncognito (url: string): boolean {
     url = url.toLowerCase();
@@ -76,7 +77,7 @@ var Utils = {
   convertToUrl: (function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     string = string.trim();
     this.lastUrlType = Urls.Type.Full;
-    if (string.charCodeAt(10) === KnownKey.colon && string.substring(0, 11).toLowerCase() === "javascript:") {
+    if (this.isJSUrl(string)) {
       if (Settings.CONST.ChromeVersion < BrowserVer.MinAutoDecodeJSURL && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
         string = this.DecodeURLPart(string);
