@@ -282,7 +282,7 @@ See the [MIT LICENSE](LICENSE.txt) for details.
   [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
 * [Viewer.js](https://github.com/fengyuanchen/viewerjs)
   ([Modified by gdh1995](https://github.com/gdh1995/viewerjs/tree/for-vimium-plus)):
-  Copyright (c) 2015-2017 Fengyuan Chen.
+  Copyright (c) 2015-2017 Chen Fengyuan.
   [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
 * [TypeScript](https://github.com/Microsoft/TypeScript):
     and modified `es.d.ts`, `es/*`, `dom.d.ts` and `chrome.d.ts` in `types/`:
