@@ -153,7 +153,7 @@ var Commands = {
       const tmp = ref[key] as 0 | 1 | ChildKeyMap;
       if (tmp !== 0 && tmp !== 1) { func(tmp); }
     }
-    if (Settings.Init) { return Settings.Init(); }
+    if (Backend.Init) { return Backend.Init(); }
   }),
   warnInactive (obj: ReadonlyChildKeyMap | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
@@ -388,7 +388,7 @@ if (document.readyState !== "complete") {
   Commands.defaultKeyMappings = null as never;
   Commands.populateCommandKeys();
   Commands = null as never;
-  chrome.commands && chrome.commands.onCommand.addListener(function (cmd) { return Settings.globalCommand(cmd); });
+  chrome.commands && chrome.commands.onCommand.addListener(function (cmd) { return Backend.execute(cmd); });
 } else
 Settings.updateHooks.keyMappings = function(value: string): void {
   Commands.parseKeyMappings(value);

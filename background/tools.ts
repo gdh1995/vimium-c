@@ -262,7 +262,7 @@ Marks = { // NOTE: all public members should be static
     if (request.scroll) {
       return Marks._set(request as MarksNS.NewMark, tabId);
     }
-    (port = Settings.indexPorts(tabId, 0) || port) && port.postMessage({
+    (port = Backend.indexPorts(tabId, 0) || port) && port.postMessage({
       name: "createMark",
       markName: request.markName,
     });
@@ -290,7 +290,7 @@ Marks = { // NOTE: all public members should be static
     markInfo.markName = markName;
     markInfo.prefix = request.prefix !== false && markInfo.scroll[1] === 0 && markInfo.scroll[0] === 0 &&
         !!Utils.IsURLHttp(markInfo.url);
-    if (Settings.indexPorts(markInfo.tabId)) {
+    if (Backend.indexPorts(markInfo.tabId)) {
       chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
     } else {
       return Backend.focusOrLaunch(markInfo);
@@ -310,7 +310,7 @@ Marks = { // NOTE: all public members should be static
       : "vimiumGlobalMark") + "|" + markName;
   },
   scrollTab (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
-    const tabId = tab.id, port = Settings.indexPorts(tabId, 0);
+    const tabId = tab.id, port = Backend.indexPorts(tabId, 0);
     port && Marks._goto(port, { markName: markInfo.markName, scroll: markInfo.scroll });
     if (markInfo.tabId !== tabId && markInfo.markName) {
       return Marks._set(markInfo as MarksNS.MarkToGo, tabId);
@@ -390,7 +390,7 @@ FindModeHistory = {
   TestIncognitoWnd (this: void): void {
     FindModeHistory.timer = 0;
     if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
-      let left = false, arr = Settings.indexPorts();
+      let left = false, arr = Backend.indexPorts();
       for (let i in arr) {
         if ((arr[i] as Frames.Frames)[0].sender.incognito) { left = true; break; }
       }

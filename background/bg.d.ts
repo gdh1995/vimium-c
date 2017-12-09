@@ -378,9 +378,18 @@ declare namespace BackendHandlersNS {
     focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch): void;
     reopenTab (tab: chrome.tabs.Tab, refresh?: boolean): void;
     setIcon (tabId: number, type: Frames.ValidStatus): void;
+    IconBuffer: IconNS.AccessIconBuffer | null,
     complain (this: BackendHandlers, message: string): void;
     showHUD (message: string, isCopy?: boolean | undefined): void;
+    getExcluded (this: void, url: string): string | null,
     forceStatus (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
+    indexPorts: {
+      (this: void, tabId: number, frameId: number): Port | null;
+      (this: void, tabId: number): Frames.Frames | null;
+      (this: void): Frames.FramesMap;
+    };
+    execute (command: string, options?: CommandsNS.RawOptions | null, count?: number): void;
+    Init: ((this: void) => void) | null;
   }
 }
 
@@ -426,11 +435,6 @@ interface Window {
     get<K extends keyof SettingsNS.SettingsWithDefaults> (key: K, forCache?: boolean
       ): SettingsNS.SettingsWithDefaults[K];
     set<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void;
-    indexPorts: {
-      (this: any, tabId: number, frameId: number): Port | null;
-      (this: any, tabId: number): Frames.Frames | null;
-      (this: any): Frames.FramesMap;
-    };
     fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null;
     readonly defaults: SettingsNS.SettingsWithDefaults & SafeObject;
     readonly CONST: {

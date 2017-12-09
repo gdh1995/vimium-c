@@ -398,7 +398,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       if (!saved) { return saveOptions(); }
     }
   });
-  let ref = bgSettings.indexPorts(tabs[0].id);
+  let ref = BG.Backend.indexPorts(tabs[0].id);
   exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("#exclusionRules"), onUpdated, ref ? function (): void {
     let { sender } = (ref as Frames.Frames)[0], el: HTMLElement
       , newStat = sender.status !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";

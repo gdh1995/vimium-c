@@ -1484,7 +1484,7 @@ Are you sure you want to continue?`);
         if (!port) { return; }
       }
       const { sender } = port, { url: oldUrl, tabId } = sender
-        , pattern = Settings.getExcluded(sender.url = request.url)
+        , pattern = Backend.getExcluded(sender.url = request.url)
         , status = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
       if (sender.status !== status) {
@@ -1494,7 +1494,7 @@ Are you sure you want to continue?`);
         if (needIcon && (a = framesForTab[tabId]) && a[0] === port) {
           Backend.setIcon(tabId, status);
         }
-      } else if (!pattern || pattern === Settings.getExcluded(oldUrl)) {
+      } else if (!pattern || pattern === Backend.getExcluded(oldUrl)) {
         return;
       }
       port.postMessage({ name: "reset", passKeys: pattern });
@@ -1681,7 +1681,7 @@ Are you sure you want to continue?`);
           status = ref[0].sender.status;
           pass = status !== Frames.Status.disabled ? null : "";
         } else {
-          pass = Settings.getExcluded(url);
+          pass = Backend.getExcluded(url);
           status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
         }
         port.postMessage({
@@ -1795,6 +1795,8 @@ Are you sure you want to continue?`);
     openUrl: requestHandlers.openUrl,
     checkIfEnabled: requestHandlers.checkIfEnabled,
     focusOrLaunch: requestHandlers.focusOrLaunch,
+    getExcluded: Utils.getNull,
+    IconBuffer: null,
     setIcon (): void {},
     complain (action: string): void {
       return this.showHUD("It's not allowed to " + action);
@@ -1848,7 +1850,7 @@ Are you sure you want to continue?`);
         const port = ref[i], sender = port.sender;
         sender.flags = locked ? sender.flags | Frames.Flags.locked : sender.flags & ~Frames.Flags.locked;
         if (unknown) {
-          pattern = msg.passKeys = Settings.getExcluded(sender.url);
+          pattern = msg.passKeys = this.getExcluded(sender.url);
           newStatus = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
           if (newStatus !== Frames.Status.partial && sender.status === newStatus) { continue; }
@@ -1862,7 +1864,33 @@ Are you sure you want to continue?`);
       if (needIcon && (newStatus = ref[0].sender.status) !== oldStatus) {
         return this.setIcon(tabId, newStatus);
       }
-    }
+    },
+    execute (this: void, command, options, count): void {
+      count = Math.max(1, (count as number) | 0);
+      options && typeof options === "object" ?
+          Object.setPrototypeOf(options, null) : (options = null);
+      return executeCommand(command, Utils.makeCommand(command, options), count, null as never as Port);
+    },
+    indexPorts: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
+      return tabId == null ? framesForTab : frameId == null ? (framesForTab[tabId] || null)
+        : funcDict.indexFrame(tabId, frameId);
+    } as BackendHandlersNS.BackendHandlers["indexPorts"],
+  Init(): void {
+    if (3 !== ++Connections.state) { return; }
+    Backend.Init = null;
+    Utils.resetRe();
+    chrome.runtime.onConnect.addListener(Connections.OnConnect);
+    if (!chrome.runtime.onConnectExternal) { return; }
+    Settings.extWhiteList || Settings.postUpdate("extWhiteList");
+    chrome.runtime.onConnectExternal.addListener(function(port): void {
+      if (port.sender && funcDict.isExtIdAllowed(port.sender.id)
+          && port.name.startsWith("vimium++")) {
+        return Connections.OnConnect(port as Frames.RawPort as Frames.Port);
+      } else {
+        port.disconnect();
+      }
+    });
+  }
   };
 
   let cOptions: CommandsNS.Options, cPort: Frames.Port, commandCount: number, needIcon = false,
@@ -1877,23 +1905,6 @@ Are you sure you want to continue?`);
       return secret;
     };
     return getSecret();
-  };
-
-  Settings.Init = function(): void {
-    if (3 !== ++Connections.state) { return; }
-    Settings.Init = null;
-    Utils.resetRe();
-    chrome.runtime.onConnect.addListener(Connections.OnConnect);
-    if (!chrome.runtime.onConnectExternal) { return; }
-    Settings.extWhiteList || Settings.postUpdate("extWhiteList");
-    chrome.runtime.onConnectExternal.addListener(function(port): void {
-      if (port.sender && funcDict.isExtIdAllowed(port.sender.id)
-          && port.name.startsWith("vimium++")) {
-        return Connections.OnConnect(port as Frames.RawPort as Frames.Port);
-      } else {
-        port.disconnect();
-      }
-    });
   };
 
   if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
@@ -1911,13 +1922,6 @@ Are you sure you want to continue?`);
     needIcon = value && chrome.browserAction ? true : false;
   };
 
-  Settings.globalCommand = function(this: void, command, options, count): void {
-    count = Math.max(1, (count as number) | 0);
-    options && typeof options === "object" ?
-        Object.setPrototypeOf(options, null) : (options = null);
-    return executeCommand(command, Utils.makeCommand(command, options), count, null as never as Port);
-  };
-
   chrome.runtime.onMessageExternal && (chrome.runtime.onMessageExternal.addListener(function(this: void, message, sender, sendResponse): void {
     let command: string | undefined;
     if (!funcDict.isExtIdAllowed(sender.id)) {
@@ -1927,7 +1931,7 @@ Are you sure you want to continue?`);
     if (typeof message === "string") {
       command = message;
       if (command && CommandsData.availableCommands[command]) {
-        return Settings.globalCommand(command);
+        return Backend.execute(command);
       }
       return;
     }
@@ -1936,7 +1940,7 @@ Are you sure you want to continue?`);
     case "command":
       command = message.command ? message.command + "" : "";
       if (!(command && CommandsData.availableCommands[command])) { return; }
-      return Settings.globalCommand(command, message.options, message.count);
+      return Backend.execute(command, message.options, message.count);
     case "content_scripts":
       sendResponse(Settings.CONST.ContentScripts);
       return;
@@ -1953,14 +1957,9 @@ Are you sure you want to continue?`);
     }
   });
 
-  Settings.indexPorts = function(tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
-    return tabId == null ? framesForTab : frameId == null ? (framesForTab[tabId] || null)
-      : funcDict.indexFrame(tabId, frameId);
-  } as (typeof window)["Settings"]["indexPorts"];
-
   setTimeout(function(): void {
     Settings.postUpdate("bufferToLoad", null);
-    return (Settings.Init as (this: void) => void)();
+    return (Backend.Init as (this: void) => void)();
   }, 0);
 
   (function(): void {

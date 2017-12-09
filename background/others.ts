@@ -126,7 +126,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
       img.src = path[i];
     }
   }
-  Settings.IconBuffer = function(this: void, enabled?: boolean): IconNS.StatusMap<IconNS.IconBuffer> | null | void {
+  Backend.IconBuffer = function(this: void, enabled?: boolean): IconNS.StatusMap<IconNS.IconBuffer> | null | void {
     if (enabled === undefined) { return imageData; }
     if (!enabled) {
       imageData && setTimeout(function() {
@@ -155,7 +155,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
   };
   Settings.updateHooks.showActionIcon = function(value): void {
     func(value);
-    (Settings.IconBuffer as IconNS.AccessIconBuffer)(value);
+    (Backend.IconBuffer as IconNS.AccessIconBuffer)(value);
     let title = "Vimium++";
     if (value) {
       chrome.browserAction.enable();
