@@ -403,6 +403,26 @@ Are you sure you want to continue?`);
       tab.active = reuse !== ReuseType.newBg;
       return openMultiTab(url, commandCount, tab);
     },
+    openJSUrl: [function(url: string): void {
+      if (!cPort) { // e.g.: use Chrome omnibox at once on starting
+        chrome.tabs.update({ url }, funcDict.onRuntimeError);
+        return;
+      }
+      const { sender } = cPort, notTop = sender.frameId > 0 || sender.tabId < 0, frameUrl = sender.url;
+      if (frameUrl.startsWith("chrome")) {
+        return Backend.complain("eval JavaScript on extension pages");
+      }
+      if (notTop || !Utils.protocolRe.test(frameUrl)) {
+        return funcDict.openJSUrl[1](url);
+      }
+      chrome.tabs.update(sender.tabId, { url }, function(): void {
+        let err = chrome.runtime.lastError;
+        err && funcDict.openJSUrl[1](url);
+        return err;
+      });
+    }, function(url: string): void {
+      try { cPort.postMessage({ name: "eval", url }); } catch (e) {}
+    }],
     openShowPage: [function(url, reuse, tab): boolean {
       const prefix = Settings.CONST.ShowPage;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
@@ -887,7 +907,7 @@ Are you sure you want to continue?`);
       Utils.resetRe();
       return typeof url !== "string" ? funcDict.onEvalUrl(url as Urls.SpecialUrl)
         : funcDict.openShowPage[0](url, reuse) ? void 0
-        : Utils.isJSUrl(url) ? void cPort.postMessage({ name: "eval", url })
+        : Utils.isJSUrl(url) ? funcDict.openJSUrl[0](url)
         : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
         : reuse === ReuseType.current ? funcDict.safeUpdate(url)
         : tabs ? funcDict.openUrlInNewTab(url, reuse, incognito, tabs as [Tab])
@@ -1893,7 +1913,7 @@ Are you sure you want to continue?`);
   }
   };
 
-  let cOptions: CommandsNS.Options, cPort: Frames.Port, commandCount: number, needIcon = false,
+  let cOptions: CommandsNS.Options, cPort: Frames.Port = null as never, commandCount: number, needIcon = false,
   getSecret = function(this: void): number {
     let secret = 0, time = 0;
     getSecret = function(this: void): number {
