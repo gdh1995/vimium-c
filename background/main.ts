@@ -12,8 +12,11 @@ var Backend: BackendHandlersNS.BackendHandlers;
   interface PopWindow extends Window {
     tabs: Tab[];
   }
-  interface InfoToCreateMultiTab extends chrome.tabs.CreateProperties {
+  interface InfoToCreateMultiTab {
+    windowId?: number;
+    index?: number;
     id?: number;
+    active: boolean;
   }
   const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2 }
   interface BgCmdNoTab {
@@ -33,6 +36,11 @@ var Backend: BackendHandlersNS.BackendHandlers;
     id: number;
     url: string;
   }
+  interface OpenUrlOptions {
+    incognito?: boolean;
+    opener?: boolean;
+    window?: boolean;
+  }
 
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
@@ -47,7 +55,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     return chrome.tabs.create(args, callback);
   }
   function openMultiTab(this: void, rawUrl: string, count: number, parentTab: InfoToCreateMultiTab): void {
-    if (!(count >= 1)) return;
+    if (count < 1) { return; }
     const wndId = parentTab.windowId, hasIndex = parentTab.index != null, option = {
       url: rawUrl,
       windowId: wndId,
@@ -56,9 +64,9 @@ var Backend: BackendHandlersNS.BackendHandlers;
       active: parentTab.active
     };
     tabsCreate(option, option.active ? function(tab) {
-      tab.windowId !== wndId && funcDict.selectWnd(tab);
+      wndId != null && tab.windowId !== wndId && funcDict.selectWnd(tab);
     } : null);
-    if (count < 2) return;
+    if (count < 2) { return; }
     option.active = false;
     do {
       hasIndex && ++(option as {index: number}).index;
@@ -266,25 +274,24 @@ Are you sure you want to continue?`);
         chrome.tabs.create(option);
       } while(--count > 1);
     },
-    openUrlInIncognito (this: void, url: string, reuse: ReuseType, tab: Tab, wnds: Window[]): void {
-      let oldWnd: Window | undefined, inCurWnd: boolean, active = reuse >= ReuseType.newFg;
+    openUrlInIncognito (this: void, url: string, active: boolean, opts: Readonly<OpenUrlOptions>, tab: Tab, wnds: Window[]): void {
+      let oldWnd: Window | undefined, inCurWnd: boolean;
       oldWnd = wnds.filter(wnd => wnd.id === tab.windowId)[0];
       inCurWnd = oldWnd != null && oldWnd.incognito;
-      inCurWnd || (wnds = wnds.filter(funcDict.isIncNor));
-      if (inCurWnd || wnds.length > 0) {
-        const options = {
-          url, active,
+      if (!opts.window && (inCurWnd || (wnds = wnds.filter(funcDict.isIncNor)).length > 0)) {
+        const options: InfoToCreateMultiTab & { windowId: number } = {
+          active,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
-        } as chrome.tabs.CreateProperties & { windowId: number };
+        };
         if (inCurWnd) {
-          options.index = tab.index + 1;
-          options.openerTabId = tab.id;
+          options.index = tab.index;
+          opts.opener && (options.id = tab.id);
         }
-        tabsCreate(options);
+        openMultiTab(url, commandCount, options);
         return !inCurWnd && active ? funcDict.selectWnd(options) : undefined;
       }
       return funcDict.makeWindow({
-        type: "normal", url,
+        url,
         incognito: true, focused: active
       }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "");
     },
@@ -394,13 +401,27 @@ Are you sure you want to continue?`);
       (tabId: number) => void,
       (tab: Tab) => void
     ],
-    openUrlInNewTab (this: void, url: string, reuse: ReuseType, incognito: boolean, tabs: [Tab]): void {
-      const tab = tabs[0];
-      if (incognito) {
-        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, url, reuse, tab));
+    openUrlInNewTab (this: void, url: string, reuse: ReuseType, options: Readonly<OpenUrlOptions>, tabs: [Tab]): void {
+      const tab = tabs[0], { incognito } = options, active = reuse !== ReuseType.newBg;
+      let window = options.window;
+      if (Utils.isRefusingIncognito(url)) {
+        if (tab.incognito || TabRecency.incognito === IncognitoType.true) {
+          window = true;
+        }
+      } else if (incognito && !tab.incognito) {
+        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, url, active, options, tab));
+        return;
+      } else if (incognito == null && tab.incognito) {
+        return funcDict.openUrlInIncognito(url, active, options, tab, [{ id: tab.windowId, incognito: true } as Window]);
+      }
+      if (window) {
+        chrome.windows.getCurrent(function(wnd): void {
+          return funcDict.makeWindow({ url, focused: active }, wnd.state);
+        })
         return;
       }
-      tab.active = reuse !== ReuseType.newBg;
+      tab.active = active;
+      options.opener || ((tab as InfoToCreateMultiTab).id = undefined);
       return openMultiTab(url, commandCount, tab);
     },
     openJSUrl: [function(url: string): void {
@@ -462,16 +483,16 @@ Are you sure you want to continue?`);
     ],
     // use Urls.WorkType.Default
     openUrls: function(tabs: [Tab]): void {
-      const tab = tabs[0], { windowId, id: openerTabId } = tab;
+      const tab = tabs[0], { windowId } = tab;
       let urls: string[] = cOptions.urls, repeat = commandCount;
       for (let i = 0; i < urls.length; i++) {
         urls[i] = Utils.convertToUrl(urls[i] + "");
       }
-      tab.active = !(cOptions.reuse <= ReuseType.newBg);
+      tab.active = !(cOptions.reuse < ReuseType.newFg);
       cOptions = null as never;
       do {
         for (let i = 0, index = tab.index + 1, { active } = tab; i < urls.length; i++, active = false, index++) {
-          tabsCreate({ url: urls[i], index, windowId, openerTabId, active });
+          tabsCreate({ url: urls[i], index, windowId, active });
         }
       } while (0 < --repeat);
     },
@@ -483,7 +504,6 @@ Are you sure you want to continue?`);
       if (count >= len) { return Backend.showHUD("It does nothing to move all tabs of this window"); }
       if (count > 30 && !funcDict.confirm("moveTabToNewWindow", count)) { return; }
       return funcDict.makeWindow({
-        type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
       }, wnd.type === "normal" ? wnd.state : "",
@@ -521,7 +541,6 @@ Are you sure you want to continue?`);
         wnds = wnds0.filter(wnd => wnd.id === index);
       }
       return funcDict.makeWindow({
-        type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
       }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "");
@@ -544,7 +563,7 @@ Are you sure you want to continue?`);
     moveTabToIncognito: [function(wnd): void {
       const tab = funcDict.selectFrom(wnd.tabs);
       if (wnd.incognito && tab.incognito) { return funcDict.moveTabToIncognito[3](); }
-      const options: chrome.windows.CreateData = {type: "normal", tabId: tab.id, incognito: true}, url = tab.url;
+      const options: chrome.windows.CreateData = {tabId: tab.id, incognito: true}, url = tab.url;
       if (tab.incognito) {
       } else if (Utils.isRefusingIncognito(url)) {
         if (wnd.incognito) {
@@ -869,7 +888,7 @@ Are you sure you want to continue?`);
       chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
     },
     blank (this: void): void {},
-    openUrl (this: void, tabs?: [Tab] | never[] | null): void {
+    openUrl (this: void, tabs?: [Tab] | never[]): void {
       if (cOptions.urls) {
         if (!(cOptions.urls instanceof Array)) { cOptions = null as never; return; }
         return tabs && tabs.length > 0 ? funcDict.openUrls(tabs as [Tab]) : void funcDict.getCurTab(funcDict.openUrls);
@@ -902,7 +921,7 @@ Are you sure you want to continue?`);
         }
       }
       const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
-      incognito = !!cOptions.incognito;
+      options = cOptions as OpenUrlOptions;
       cOptions = null as never;
       Utils.resetRe();
       return typeof url !== "string" ? funcDict.onEvalUrl(url as Urls.SpecialUrl)
@@ -910,8 +929,8 @@ Are you sure you want to continue?`);
         : Utils.isJSUrl(url) ? funcDict.openJSUrl[0](url)
         : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
         : reuse === ReuseType.current ? funcDict.safeUpdate(url)
-        : tabs ? funcDict.openUrlInNewTab(url, reuse, incognito, tabs as [Tab])
-        : void funcDict.getCurTab(funcDict.openUrlInNewTab.bind(null, url, reuse, incognito))
+        : tabs ? funcDict.openUrlInNewTab(url, reuse, options, tabs as [Tab])
+        : void funcDict.getCurTab(funcDict.openUrlInNewTab.bind(null, url, reuse, options));
         ;
     },
     searchInAnother (this: void, tabs: [Tab]): void {
@@ -1464,7 +1483,7 @@ Are you sure you want to continue?`);
       tabId >= 0 || (tabId = TabRecency.last);
       if (tabId >= 0) { return funcDict.selectTab(tabId); }
     } as BackendHandlersNS.BackendHandlers["gotoSession"],
-    openUrl (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url }, port?: Port): void {
+    openUrl (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url, opener?: boolean }, port?: Port): void {
       Object.setPrototypeOf(request, null);
       let ports: Frames.Frames | undefined, unsafe = !!port && funcDict.checkVomnibarPage(port, true);
       cPort = unsafe ? port as Port : (ports = framesForTab[port ? port.sender.tabId : TabRecency.last]) ? ports[0] : cPort;
@@ -1479,6 +1498,7 @@ Are you sure you want to continue?`);
         request.url = "";
         request.keyword = "";
         request.url_f = url;
+        request.opener = unsafe && type <= Urls.Type.MaxOfInputIsPlainUrl;
       }
       commandCount = 1;
       // { url_f: string, keyword: "", url: "", ... } | { copied: true, ... }
@@ -1913,7 +1933,8 @@ Are you sure you want to continue?`);
   }
   };
 
-  let cOptions: CommandsNS.Options, cPort: Frames.Port = null as never, commandCount: number, needIcon = false,
+  let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
+  needIcon = false,
   getSecret = function(this: void): number {
     let secret = 0, time = 0;
     getSecret = function(this: void): number {
