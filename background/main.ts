@@ -1753,13 +1753,15 @@ Are you sure you want to continue?`);
       }
     },
     OnDisconnect (this: void, port: Port): void {
-      let { tabId } = port.sender, i: number, ref: Frames.WritableFrames | undefined;
+      let { tabId } = port.sender, i: number, ref = framesForTab[tabId] as Frames.WritableFrames | undefined;
+      if (!ref) { return; }
+      i = ref.lastIndexOf(port);
       if (!port.sender.frameId) {
-        delete framesForTab[tabId];
+        if (i >= 0) {
+          delete framesForTab[tabId];
+        }
         return;
       }
-      if (!(ref = framesForTab[tabId] as typeof ref)) { return; }
-      i = ref.lastIndexOf(port);
       if (i === ref.length - 1) {
         --ref.length;
       } else if (i >= 1) {
