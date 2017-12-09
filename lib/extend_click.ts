@@ -76,7 +76,7 @@ function reg(this: void, element: Element): void {
 }
 EventTarget.prototype.addEventListener = function(this: EventTarget, type: string
     , listener: EventListenerOrEventListenerObject, useCapture?: boolean | object) {
-  if (type === "click" && !(this instanceof HA || this instanceof HF) && this instanceof E) {
+  if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
     register(this as Element);
     if (timer === 0) { timer = next(); }
   }

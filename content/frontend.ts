@@ -240,7 +240,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VScroller.keyIsDown = 0;
       const f = ELs.OnWndBlur2;
       f && f();
-      KeydownEvents = new Uint8Array(256);
+      KeydownEvents = Object.create(null);
       (<RegExpOne> /a?/).test("");
       esc(HandlerResult.Suppress);
     },
@@ -490,7 +490,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     init (): void {
       /** if `notBody` then `activeEl` is not null  */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
-      KeydownEvents = new Uint8Array(256);
+      KeydownEvents = Object.create(null)
       if (VSettings.cache.grabFocus && this.grabFocus) {
         if (notBody) {
           activeEl.blur && activeEl.blur();
@@ -891,6 +891,10 @@ Pagination = {
       }
       return HandlerResult.Nothing;
     }, box);
+    if (Vomnibar.status >= VomnibarNS.Status.Showing) {
+      VUtils.remove(Vomnibar);
+      VUtils.push(Vomnibar.onKeydown, Vomnibar);
+    }
   }
   };
 

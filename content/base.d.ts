@@ -34,7 +34,8 @@ declare namespace HandlerNS {
     (this: T, event: HandlerNS.Event): HandlerResult;
   }
 }
-interface KeydownCacheArray extends Uint8Array {
+interface KeydownCacheArray extends SafeObject {
+  [keyCode: number]: BOOL | undefined;
 }
 
 interface EventControlKeys {
@@ -51,9 +52,12 @@ interface VRect {
   [3]: number; // bottom
 }
 
-interface ViewBox {
+interface ViewOffset {
   [0]: number; // left
   [1]: number; // top
+}
+
+interface ViewBox extends ViewOffset {
   [2]: number; // width
   [3]: number; // height
   [4]: number; // max-left or 0
@@ -181,7 +185,7 @@ interface DomUI {
   callback: null | ((this: void) => void);
   flashLastingTime: number;
   addElement<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
-  addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
+  addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: ViewOffset): HTMLDivElement;
   adjust (this: void, event?: Event): void;
   toggle (this: DomUI, enabled: boolean): void;
   _styleBorder: (HTMLStyleElement & {zoom?: number}) | null;

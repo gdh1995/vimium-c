@@ -234,8 +234,7 @@ var VHints = {
     if (zi === 1 || !root) { return; }
     const z = ("" + 1 / zi).substring(0, 5);
     let arr = this.hintMarkers as HintsNS.Marker[], i = elements.length - 1;
-    if (elements[i][0] === Vomnibar.box) { arr[i--].style.zoom = z; }
-    if (!root.querySelector('#HelpDialog') || i < 0) { return; }
+    if (elements[i][0] !== Vomnibar.box && !root.querySelector('#HelpDialog')) { return; }
     while (0 <= i && root.contains(elements[i][0])) { arr[i--].style.zoom = z; }
   },
   btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,

@@ -8236,7 +8236,7 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
          searchInFrames: boolean, showDialog: boolean): boolean;
     focus(): void;
     getComputedStyle(elt: Element, pseudoElt?: string): CSSStyleDeclaration;
-    getMatchedCSSRules(elt: Element, pseudoElt?: string): CSSRuleList;
+    //getMatchedCSSRules(elt: Element, pseudoElt?: string): CSSRuleList;
     getSelection(): Selection;
     moveBy(x?: number, y?: number): void;
     moveTo(x?: number, y?: number): void;
@@ -9334,7 +9334,8 @@ declare function captureEvents(): void;
 declare function confirm(message?: string): boolean;
 // declare function focus(): void;
 declare function getComputedStyle(elt: Element, pseudoElt?: string): CSSStyleDeclaration;
-declare function getMatchedCSSRules(elt: Element, pseudoElt?: string): CSSRuleList;
+// removed since Chrome 64
+//declare function getMatchedCSSRules(elt: Element, pseudoElt?: string): CSSRuleList;
 declare function getSelection(): Selection;
 declare function matchMedia(mediaQuery: string): MediaQueryList;
 declare function moveBy(x?: number, y?: number): void;
