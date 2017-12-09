@@ -713,7 +713,7 @@ Pagination = {
         st.visibility = "hidden";
         el.textContent = text;
         VDom.UI.root || VDom.UI.ensureBorder();
-        VDom.UI.addElement(this.box = el, AdjustType.NotAdjust);
+        VDom.UI.addElement(this.box = el, AdjustType.NotAdjust, VHints.box);
       }
       if (nowait) {
         (st as CSSStyleDeclaration).cssText = "";

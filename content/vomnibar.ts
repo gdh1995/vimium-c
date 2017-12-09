@@ -167,7 +167,7 @@ var Vomnibar = {
     if (CSS) {
       UI.css("");
     }
-    UI.addElement(this.box = el, AdjustType.AdjustButNotShow);
+    UI.addElement(this.box = el, AdjustType.AdjustButNotShow, VHUD.box);
     if (CSS) {
       UI.css(CSS);
     }
