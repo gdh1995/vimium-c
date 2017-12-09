@@ -403,7 +403,11 @@ var Utils = {
     } else {
       url = query.join(" ");
     }
-    return keyword !== "~" ? this.convertToUrl(url, null, vimiumUrlWork) : url;
+    if (keyword !== "~") {
+      return this.convertToUrl(url, null, vimiumUrlWork);
+    }
+    this.lastUrlType = Urls.Type.Search;
+    return url;
   } as Urls.Searcher,
   createSearch: function(this: any, query: string[], url: string, indexes?: number[]): string | Search.Result {
     let q2: string[] | undefined, delta = 0;
