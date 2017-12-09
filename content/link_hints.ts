@@ -1020,7 +1020,7 @@ COPY_TEXT: {
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? VUtils.decodeURL(str) : str;
     VPort.post({
-      handler: "copyToClipboard",
+      handler: "copy",
       data: str
     });
     VHUD.showCopied(str);

@@ -329,7 +329,7 @@ function copyThing(event: Event): void {
   }
   if (!(str && window.VPort)) { return; }
   VPort.post({
-    handler: "copyToClipboard",
+    handler: "copy",
     data: str
   });
   return VHUD.showCopied(str);

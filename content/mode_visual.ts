@@ -212,7 +212,7 @@ var VVisualMode = {
       action != null || VHUD.showCopied(str);
     }
     VPort.post(action != null ? { handler: "openUrl", url: str, reuse: action }
-        : { handler: "copyToClipboard", data: str });
+        : { handler: "copy", data: str });
   },
 
 movement: {

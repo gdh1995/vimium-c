@@ -1598,7 +1598,7 @@ Are you sure you want to continue?`);
       return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port
         , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
     },
-    copyToClipboard (this: void, request: FgReq["copyToClipboard"]): void {
+    copy (this: void, request: FgReq["copy"]): void {
       return Clipboard.copy(request.data);
     },
     key (this: void, request: FgReq["key"], port: Port): void {

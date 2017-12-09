@@ -192,7 +192,7 @@ interface FgReq {
   openCopiedUrl: {
     keyword: string | null;
   };
-  copyToClipboard: {
+  copy: {
     data: string;
   };
   key: {

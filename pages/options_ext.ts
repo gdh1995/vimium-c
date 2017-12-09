@@ -43,7 +43,7 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
       if (target.classList.contains("HelpCommandName")) {
         str = target.innerText.slice(1, -1);
         VPort.post({
-          handler: "copyToClipboard",
+          handler: "copy",
           data: str
         });
         return VHUD.showCopied(str);
