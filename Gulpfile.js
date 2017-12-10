@@ -1,6 +1,7 @@
 "use strict";
 var fs = require("fs");
 var gulp = require("gulp");
+var gutil = require("gulp-util");
 var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
 var changed = require('gulp-changed');
@@ -558,7 +559,7 @@ function removeUnknownOptions() {
 }
 
 function print() {
-  return console.log.apply(console, arguments);
+  return gutil.log.apply(gutil, arguments);
 }
 
 function gulpIfNotEmpty() {
