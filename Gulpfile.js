@@ -377,7 +377,7 @@ function compareContentAndTouch(stream, sourceFile, targetPath) {
         }
       }
       fs.futimesSync(fd, parseInt(s.atime.getTime() / 1000, 10), parseInt(Date.now() / 1000, 10));
-      console.log("Touch an unchanged file:", sourceFile.relative);
+      print("Touch an unchanged file:", sourceFile.relative);
     } finally {
       fs.closeSync(fd);
       if (fd2 != null) {
@@ -526,7 +526,7 @@ function loadTypeScriptCompiler(path) {
         typescript = require(path);
       } catch (e) {}
     }
-    console.log('Load customized TypeScript compiler:', typescript != null ? "succeed" : "fail");
+    print('Load customized TypeScript compiler:', typescript != null ? "succeed" : "fail");
   }
   if (typescript == null) {
     typescript = require("typescript/lib/typescript");
@@ -551,9 +551,9 @@ function removeUnknownOptions() {
   if (tsOptionsLogged) { return; }
   tsOptionsLogged = true;
   if (toDelete.length > 1) {
-    console.log("Skip these TypeScript options:", toDelete.join(", "));
+    print("Skip these TypeScript options:", toDelete.join(", "));
   } else if (toDelete.length === 1) {
-    console.log("Skip the TypeScript option:", toDelete[0]);
+    print("Skip the TypeScript option:", toDelete[0]);
   }
 }
 
@@ -567,7 +567,6 @@ function gulpIfNotEmpty() {
   a._empty = true;
   a._transform = function(srcFile, encoding, done) {
     a._empty = false;
-    console.log('cond-trans:', ...srcFile.history);
     done();
   };
   a._flush = function(done) {
