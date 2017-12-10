@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "listFiles": true,
+    "listEmittedFiles": true,
+    "listFiles": false,
     "outDir": "./dist",
     "skipDefaultLibCheck": true,
     "sourceMap": true,

@@ -17,8 +17,9 @@ var osPath = require('path');
 var DEST, enableSourceMap, willListFiles, willListEmittedFiles, removeComments, JSDEST;
 var locally = false;
 var debugging = false;
+var compileInBatch = true;
 var typescript = null, tsOptionsLogged = false;
-var disableErrors = process.env.SHOW_ERRORS !== "1";
+var disableErrors = process.env.SHOW_ERRORS !== "1" && !compileInBatch;
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES === "1";
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", false);
@@ -243,6 +244,8 @@ function compile(pathOrStream, header_files, skipOutput) {
   var stream = pathOrStream instanceof Array ? gulp.src(pathOrStream, { base: "." }) : pathOrStream;
   var extra = ignoreHeaderChanges || header_files === false ? undefined
     : ["types/**/*.d.ts", "types/*.d.ts"].concat(header_files);
+  var ifNotEmpty = gulpIfNotEmpty();
+  stream = stream.pipe(ifNotEmpty.prepare);
   if (!debugging) {
     stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: extra }));
   }
@@ -250,6 +253,9 @@ function compile(pathOrStream, header_files, skipOutput) {
     var t = file.relative, s = ".d.ts", i = t.length - s.length;
     return i < 0 || t.indexOf(s, i) !== i;
   }));
+  if (compileInBatch) {
+    stream = stream.pipe(ifNotEmpty.cond);
+  }
   if (willListFiles) {
     stream = stream.pipe(gulpPrint());
   }
@@ -358,13 +364,25 @@ function compareContentAndTouch(stream, sourceFile, targetPath) {
   ).then(function() {
     sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
     if (!isSame) { return; }
-    var fd = fs.openSync(targetPath, "a");
+    var fd = fs.openSync(targetPath, "a"), len1 = targetPath.length, fd2 = null;
     try {
       var s = s = fs.fstatSync(fd);
+      if (s.mtime != null && len1 > 3 && targetPath.indexOf(".js", len1 - 3) > 0) {
+        var src = (sourceFile.history && sourceFile.history[0] || targetPath).substring(0, len1 - 3) + ".ts";
+        if (fs.existsSync(src)) {
+          var mtime = fs.fstatSync(fd2 = fs.openSync(src, "r")).mtime;
+          if (mtime != null && mtime < s.mtime) {
+            return;
+          }
+        }
+      }
       fs.futimesSync(fd, parseInt(s.atime.getTime() / 1000, 10), parseInt(Date.now() / 1000, 10));
       console.log("Touch an unchanged file:", sourceFile.relative);
     } finally {
       fs.closeSync(fd);
+      if (fd2 != null) {
+        fs.closeSync(fd2);
+      }
     }
   }).catch(function(e) {
     sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
@@ -541,6 +559,36 @@ function removeUnknownOptions() {
 
 function print() {
   return console.log.apply(console, arguments);
+}
+
+function gulpIfNotEmpty() {
+  var Transform = require('stream').Transform;
+  var a = new Transform({objectMode: true}), b = new Transform({objectMode: true});
+  a._empty = true;
+  a._transform = function(srcFile, encoding, done) {
+    a._empty = false;
+    console.log('cond-trans:', ...srcFile.history);
+    done();
+  };
+  a._flush = function(done) {
+    if (!a._empty) {
+      var arr = b.files;
+      for (var i = 0; i < arr.length; i++) {
+        this.push(arr[i]);
+      }
+    }
+    done();
+  };
+  b.files = [];
+  b._transform = function(srcFile, encoding, done) {
+    this.files.push(srcFile);
+    this.push(srcFile);
+    done();
+  };
+  return {
+    cond: a,
+    prepare: b,
+  };
 }
 
 var _uglifyjsConfig = null;
