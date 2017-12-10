@@ -447,7 +447,7 @@ interface String {
      * @param searchString search string
      * @param position If position is undefined, 0 is assumed, so as to search all of the String.
      */
-    includes(searchString: string, position?: number): boolean;
+    includes? (searchString: string, position?: number): boolean;
 
     /**
      * Returns the String value result of normalizing the string into the normalization form
@@ -470,7 +470,7 @@ interface String {
      * T is the empty String is returned.
      * @param count number of copies to append
      */
-    repeat(count: number): string;
+    repeat? (count: number): string;
 
     /**
      * Returns an <a> HTML anchor element and sets the name attribute to the text value

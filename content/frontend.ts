@@ -105,7 +105,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           }
         }
       }
-      else if (key >= VKeyCodes.space || key === VKeyCodes.backspace || key === VKeyCodes.tab || key === VKeyCodes.enter) {
+      else if (key > VKeyCodes.maxNotPrintable || key === VKeyCodes.backspace || key === VKeyCodes.tab || key === VKeyCodes.enter) {
         if (keyChar = VKeyboard.getKeyChar(event)) {
           action = checkValidKey(event, keyChar);
           if (action === HandlerResult.Nothing && InsertMode.suppressType && keyChar.length === 1) {
@@ -241,7 +241,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VScroller.keyIsDown = 0;
       const f = ELs.OnWndBlur2;
       f && f();
-      KeydownEvents = new Uint8Array(256);
+      KeydownEvents = Object.create(null);
       (<RegExpOne> /a?/).test("");
       esc(HandlerResult.Suppress);
     },
@@ -333,7 +333,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         keys[event.keyCode] = 1;
         return HandlerResult.PassKey;
       }, keys);
-      onKeyup2 = function(event): void {
+      onKeyup2 = function(event: Pick<KeyboardEvent, "keyCode">): void {
         if (keyCount === 0 || --keyCount || --count) {
           keys[event.keyCode] = 0;
           return HUD.show(`Pass next ${count > 1 ? count + " keys." : "key."}`);
@@ -346,7 +346,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         ELs.OnWndBlur2 = null;
         return HUD.hide();
       };
-      return onKeyup2({keyCode: 0} as KeyboardEvent);
+      return onKeyup2({keyCode: VKeyCodes.None} as KeyboardEvent);
     },
     goNext (_0: number, {dir, patterns}: CmdOptions["goNext"]): void {
       if (!VDom.isHTML() || Pagination.findAndFollowRel(dir)) { return; }
@@ -403,28 +403,17 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         (options.decoded || options.decode) && (str = VUtils.decodeURL(str));
       }
       (str.length >= 4 || str.trim()) && vPort.post({
-        handler: "copyToClipboard",
+        handler: "copy",
         data: str
       });
       return HUD.showCopied(str);
     },
     autoOpen (_0: number, options: FgOptions): void {
-      let str: string, keyword = (options.keyword || "") + "";
-      if (str = VDom.getSelectionText()) {
-        VUtils.evalIfOK(str) || vPort.post({
-          handler: "openUrl",
-          keyword,
-          url: str
-        });
-        return;
-      }
-      return vPort.send({
-        handler: "openCopiedUrl",
-        keyword
-      }, function(str): void {
-        if (str) {
-          VUtils.evalIfOK(str);
-        }
+      let url = VDom.getSelectionText(), keyword = (options.keyword || "") + "";
+      url && VUtils.evalIfOK(url) || vPort.post({
+        handler: "openUrl",
+        copied: !url,
+        keyword, url
       });
     },
     searchAs (): void {
@@ -446,6 +435,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
         hint[2] = j > 0 ? ind / 8192 - j : ind;
       }
+      // note: addElementList need ViewBox.bodyZoom, so getViewBox cann't be replaced with getViewportTopLeft
       const arr = VDom.getViewBox(),
       hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link) {
         const hint = VDom.createElement("span") as HintsNS.Marker,
@@ -462,8 +452,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         sel = Math.min(count, sel) - 1;
       }
       hints[sel].classList.add("S");
-      VDom.UI.ensureBorder();
       VDom.UI.simulateSelect(visibleInputs[sel][0]);
+      VDom.UI.ensureBorder(VDom.docZoom);
       const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       VUtils.push(function(event) {
         const { keyCode } = event, oldSel = sel;
@@ -501,7 +491,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     init (): void {
       /** if `notBody` then `activeEl` is not null  */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
-      KeydownEvents = new Uint8Array(256);
+      KeydownEvents = Object.create(null)
       if (VSettings.cache.grabFocus && this.grabFocus) {
         if (notBody) {
           activeEl.blur && activeEl.blur();
@@ -546,7 +536,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return false;
       }
     },
-    focusUpper (this: void, key: number): HandlerResult {
+    focusUpper (this: void, key: VKeyCodes): HandlerResult {
       let el = window.frameElement as HTMLElement;
       return el ? (window.parent as Window & { VEventMode: typeof VEventMode }
         ).VEventMode.focusUpperFrame(el, key) : HandlerResult.Nothing;
@@ -648,8 +638,9 @@ Pagination = {
     more: false,
     node: null as HTMLDivElement | null,
     timer: 0,
-    Focus (this: void, request: BgReq["focusFrame"]): void {
-      if (request.mask !== FrameMaskType.NormalNext) {}
+    Focus (this: void, { mask, CSS, lastKey }: BgReq["focusFrame"]): void {
+      CSS && VDom.UI.css(CSS);
+      if (mask !== FrameMaskType.NormalNext) {}
       else if (window.innerWidth < 3 || window.innerHeight < 3
         || document.body instanceof HTMLFrameSetElement) {
         vPort.post({
@@ -659,14 +650,14 @@ Pagination = {
       }
       VEventMode.focusAndListen();
       esc();
-      VEventMode.suppress(request.lastKey);
-      if (request.mask < FrameMaskType.minWillMask || !VDom.isHTML()) { return; }
+      VEventMode.suppress(lastKey);
+      if (mask < FrameMaskType.minWillMask || !VDom.isHTML()) { return; }
       let _this = FrameMask, dom1: HTMLDivElement | null;
       if (dom1 = _this.node) {
         _this.more = true;
       } else {
         dom1 = VDom.createElement("div");
-        dom1.className = "R Frame" + (request.mask === FrameMaskType.OnlySelf ? " One" : "");
+        dom1.className = "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : "");
         _this.node = dom1;
         _this.timer = setInterval(_this.Remove, 200);
       }
@@ -723,7 +714,7 @@ Pagination = {
         st.visibility = "hidden";
         el.textContent = text;
         VDom.UI.root || VDom.UI.ensureBorder();
-        VDom.UI.addElement(this.box = el, AdjustType.NotAdjust);
+        VDom.UI.addElement(this.box = el, AdjustType.NotAdjust, VHints.box);
       }
       if (nowait) {
         (st as CSSStyleDeclaration).cssText = "";
@@ -801,6 +792,7 @@ Pagination = {
       request.url = window.location.href;
       vPort.post(request);
     },
+    eval (options: BgReq["eval"]): void { VUtils.evalIfOK(options.url); },
     settingsUpdate (request): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer(request);
@@ -900,6 +892,10 @@ Pagination = {
       }
       return HandlerResult.Nothing;
     }, box);
+    if (Vomnibar.status >= VomnibarNS.Status.Showing) {
+      VUtils.remove(Vomnibar);
+      VUtils.push(Vomnibar.onKeydown, Vomnibar);
+    }
   }
   };
 
@@ -966,11 +962,11 @@ Pagination = {
     scroll (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
-      if (!(keyCode >= VKeyCodes.pageup && keyCode <= VKeyCodes.down)) { return; }
+      if (!(keyCode > VKeyCodes.maxNotPageUp && keyCode < VKeyCodes.minNotDown)) { return; }
       wnd && VSettings.cache.smoothScroll && VEventMode.OnScrolls[3](wnd, 1);
-      if (keyCode >= VKeyCodes.left) {
-        return VScroller.scrollBy((1 - c) as BOOL, keyCode < VKeyCodes.right ? -1 : 1, 0);
-      } else if (keyCode > VKeyCodes.pagedown) {
+      if (keyCode > VKeyCodes.maxNotLeft) {
+        return VScroller.scrollBy((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);
+      } else if (keyCode > VKeyCodes.maxNotEnd) {
         return VScroller.scrollTo(1, 0, c);
       } else if (!(event.ctrlKey || event.metaKey)) {
         return VScroller.scrollBy(1, 0.5 - c, "viewSize");
@@ -1006,7 +1002,7 @@ Pagination = {
       }
       if (f) { return f(); }
     },
-    suppress (this: void, key?: number): void { key && (KeydownEvents[key] = 1); },
+    suppress (this: void, key?: VKeyCodes): void { key && (KeydownEvents[key] = 1); },
     keydownEvents: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
       return !isEnabledForUrl || !(KeydownEvents = arr);

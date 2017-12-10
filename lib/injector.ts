@@ -71,7 +71,7 @@ if (_listen.vimiumHooked === true) { return; }
 const HA = HTMLAnchorElement, HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement;
 
 const newListen = cls.addEventListener = function(this: EventTarget, type, listener, useCapture) {
-  if (type === "click" && !(this instanceof HA || this instanceof HF) && this instanceof E) {
+  if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
     (this as Element).vimiumHasOnclick = true;
   }
   return _listen.call(this, type, listener, useCapture);

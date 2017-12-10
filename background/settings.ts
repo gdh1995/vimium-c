@@ -11,10 +11,6 @@ var Settings = {
   bufferToLoad: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,
   newTabs: Object.create(null) as SafeDict<Urls.NewTabType>,
   extWhiteList: null as never as SafeDict<boolean>,
-  Init: null as ((this: void) => void) | null,
-  IconBuffer: null as IconNS.AccessIconBuffer | null,
-  globalCommand: null as never as (command: string, options?: CommandsNS.RawOptions | null, count?: number) => void,
-  getExcluded: Utils.getNull as (this: void, url: string) => string | null,
   get<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
     if (key in this.cache) {
       return (this.cache as SettingsWithDefaults)[key];
@@ -54,7 +50,7 @@ var Settings = {
     <K extends keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
   },
   broadcast<K extends keyof BgReq> (request: Req.bg<K>): void {
-    let ref = this.indexPorts(), tabId: string, frames: Frames.Frames, i: number;
+    let ref = Backend.indexPorts(), tabId: string, frames: Frames.Frames, i: number;
     for (tabId in ref) {
       frames = ref[tabId] as Frames.Frames;
       for (i = frames.length; 0 < --i; ) {
@@ -132,7 +128,7 @@ var Settings = {
     userDefinedCss (css): void {
       css = this.cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength) + css;
       this.set("innerCSS", css);
-      const ref = this.indexPorts(), request = { name: "showHUD" as "showHUD", CSS: this.cache.innerCSS };
+      const ref = Backend.indexPorts(), request = { name: "showHUD" as "showHUD", CSS: this.cache.innerCSS };
       for (let tabId in ref) {
         const frames = ref[tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {
@@ -156,7 +152,6 @@ var Settings = {
       this.set("vomnibarPage_f", url);
     }
   } as SettingsNS.DeclaredUpdateHookMap & SettingsNS.SpecialUpdateHookMap as SettingsNS.UpdateHookMap,
-  indexPorts: null as never as Window["Settings"]["indexPorts"],
   fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
     if (callback && file in this.cache) { callback(); return null; }
     const url = this.CONST.XHRFiles[file];
@@ -300,7 +295,7 @@ chrome.runtime.getPlatformInfo(function(info): void {
   { CONST: obj } = Settings, ref3 = Settings.newTabs as SafeDict<Urls.NewTabType>;
   let newtab = urls && urls.newtab;
   function func(path: string): string {
-    return (path.charCodeAt(0) === 47 ? origin : path.startsWith(prefix) ? "" : prefix) + path;
+    return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
   Settings.defaults.vomnibarPage = obj.VomnibarPageInner;
   NotChrome && (obj.BrowserNewTab2 = obj.BrowserNewTab);

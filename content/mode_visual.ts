@@ -87,8 +87,8 @@ var VVisualMode = {
     return VHUD.hide();
   },
   onKeydown (event: KeyboardEvent): HandlerResult {
-    let i = event.keyCode, count = 0;
-    if (i >= VKeyCodes.f1 && i <= VKeyCodes.f12) { return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing; }
+    let i: VKeyCodes | KeyStat = event.keyCode, count = 0;
+    if (i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn) { return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing; }
     if (i === VKeyCodes.enter) {
       i = VKeyboard.getKeyStat(event);
       if ((i & KeyStat.shiftKey) && this.mode !== VisualModeNS.Mode.Caret) { this.retainSelection = true; }
@@ -212,7 +212,7 @@ var VVisualMode = {
       action != null || VHUD.showCopied(str);
     }
     VPort.post(action != null ? { handler: "openUrl", url: str, reuse: action }
-        : { handler: "copyToClipboard", data: str });
+        : { handler: "copy", data: str });
   },
 
 movement: {

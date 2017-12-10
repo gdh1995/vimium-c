@@ -194,7 +194,7 @@ document.addEventListener("keydown", function(this: void, event): void {
   }
   if (!(event.ctrlKey || event.metaKey) || event.altKey
     || event.shiftKey || event.repeat) { return; }
-  const str = String.fromCharCode(event.keyCode);
+  const str = String.fromCharCode(event.keyCode as VKeyCodes | KnownKey as KnownKey);
   if (str === 'S') {
     return clickLink({
       download: file
@@ -329,7 +329,7 @@ function copyThing(event: Event): void {
   }
   if (!(str && window.VPort)) { return; }
   VPort.post({
-    handler: "copyToClipboard",
+    handler: "copy",
     data: str
   });
   return VHUD.showCopied(str);

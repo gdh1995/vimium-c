@@ -25,7 +25,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     let onURLChange: null | ExclusionsNS.Listener;
     if (rules.length === 0) {
       this.rules = [];
-      Settings.getExcluded = Utils.getNull;
+      Backend.getExcluded = Utils.getNull;
       if (this._listening && (onURLChange = this.getOnURLChange())) {
         chrome.webNavigation.onHistoryStateUpdated.removeListener(onURLChange);
         if (this._listeningHash) {
@@ -40,7 +40,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     this.rules = this.format(rules);
     this.onlyFirstMatch = Settings.get("exclusionOnlyFirstMatch");
     this.testers = null;
-    Settings.getExcluded = this.GetPattern;
+    Backend.getExcluded = this.GetPattern;
     if (this._listening) { return; }
     this._listening = true;
     onURLChange = this.getOnURLChange();
@@ -64,9 +64,9 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   },
   getOnURLChange (this: ExcCls): null | ExclusionsNS.Listener {
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
-      : Settings.CONST.ChromeVersion >= BrowserVer.MinWithFrameId ? g_requestHandlers.checkIfEnabled
+      : Settings.CONST.ChromeVersion >= BrowserVer.MinWithFrameId ? Backend.checkIfEnabled
       : function(details: chrome.webNavigation.WebNavigationCallbackDetails) {
-        const ref = Settings.indexPorts(details.tabId),
+        const ref = Backend.indexPorts(details.tabId),
         msg = { name: "url" as "url", handler: "checkIfEnabled" as "checkIfEnabled" };
         // force the tab's ports to reconnect and refresh their pass keys
         for (let i = ref ? ref.length : 0; 0 < --i; ) {
@@ -103,8 +103,8 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       });
       return;
     }
-    const ref = Settings.indexPorts(),
-    needIcon = !!(Settings.IconBuffer && (Settings.IconBuffer() || Settings.get("showActionIcon")));
+    const ref = Backend.indexPorts(),
+    needIcon = !!(Backend.IconBuffer && (Backend.IconBuffer() || Settings.get("showActionIcon")));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (let tabId in ref) {
       const frames = ref[tabId] as Frames.Frames, status0 = frames[0].sender.status;
@@ -115,7 +115,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
             continue;
           }
         } else {
-          pass = Settings.getExcluded(port.sender.url);
+          pass = Backend.getExcluded(port.sender.url);
           status = pass === null ? Frames.Status.enabled : pass
             ? Frames.Status.partial : Frames.Status.disabled;
           if (!pass && port.sender.status === status) {
@@ -127,7 +127,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
         port.sender.status = status;
       }
       if (needIcon && status0 !== (status = frames[0].sender.status)) {
-        g_requestHandlers.SetIcon((tabId as (string | number) as number) | 0, status);
+        Backend.setIcon((tabId as (string | number) as number) | 0, status);
       }
     }
   },
@@ -161,4 +161,4 @@ Settings.updateHooks.exclusionListenHash = function(this: void, value: boolean):
   value ? e.addListener(l) : e.removeListener(l);
 };
 }
-Settings.Init && Settings.Init();
+Backend.Init && Backend.Init();

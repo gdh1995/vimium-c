@@ -1,5 +1,6 @@
 /// <reference path="../content/base.d.ts" />
 (function(this: void, func: (this: void) => void): void {
+  if (!window.VSettings) { return; }
   type Listener = (this: void, e: Event) => void;
   let d: Document | Document["documentElement"] = document
     , script = d.createElement("script") as HTMLScriptElement | Element
@@ -15,16 +16,19 @@
     (event.target as Element).vimiumHasOnclick = true;
     event.stopPropagation();
   }, true);
-  window.VSettings && (window.VSettings.onDestroy = function() {
+  function destroy() {
     removeEventListener("VimiumReg", installer, true);
     removeEventListener("VimiumOnclick", onclick, true);
     box && box.removeEventListener("VimiumOnclick", onclick, true);
-  });
+    box = null as never;
+  }
+  window.VSettings.onDestroy = destroy;
   script.type = "text/javascript";
   script.textContent = '"use strict";(' + func.toString() + ')();';
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();
+  VDom.documentReady(function() { box || destroy(); });
 
 })(function(this: void): void {
 const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
@@ -72,7 +76,7 @@ function reg(this: void, element: Element): void {
 }
 EventTarget.prototype.addEventListener = function(this: EventTarget, type: string
     , listener: EventListenerOrEventListenerObject, useCapture?: boolean | object) {
-  if (type === "click" && !(this instanceof HA || this instanceof HF) && this instanceof E) {
+  if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
     register(this as Element);
     if (timer === 0) { timer = next(); }
   }

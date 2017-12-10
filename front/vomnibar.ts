@@ -21,18 +21,24 @@ interface FgPort extends chrome.runtime.Port, Post<1> {
 type Options = VomnibarNS.FgOptions;
 type AllowedActions = "dismiss"|"focus"|"blurInput"|"backspace"|"blur"|"up"|"down"|"toggle"|"pageup"|"pagedown"|"enter" | "";
 
-interface Window {
+interface ConfigurableItems {
   ExtId?: string;
   VomnibarListLength?: number;
+  VomnibarRefreshInterval?: number;
+  VomnibarWheelInterval?: number;
 }
+interface Window extends ConfigurableItems {}
+
 declare const enum HeightData {
   InputBar = 54, InputBarWithLine = InputBar + 1,
   Item = 44, LastItemDelta = 3,
   MarginV = 20,
   InputBarAndMargin = InputBar + MarginV,
   InputBarWithLineAndMargin = InputBarWithLine + MarginV,
-  FrameMarginTop = 70, FrameMarginBottom = 8,
-  AllNotList = InputBarWithLineAndMargin + FrameMarginTop - FrameMarginBottom,
+  ShadowMarginV = 8,
+  AllNotList = InputBarWithLineAndMargin + VomnibarNS.Consts.MarginTop + ShadowMarginV * 2,
+  // 22 is better than 21, because 74 is a result that has been cut (`floor(71 + 7.72 /2)`)
+  MarginH = 22, AllNotUrl = 74, MeanWidthOfChar = 7.72,
 }
 
 declare var VSettings: undefined | null | {
@@ -53,6 +59,11 @@ var Vomnibar = {
     this.width(options.width * 0.8);
     this.mode.maxResults = Math.min(Math.max(3, Math.round((options.height - HeightData.AllNotList) / HeightData.Item)), this.maxResults);
     this.init && this.setFav(options.ptype);
+    if (this.mode.favIcon) {
+      let scale = devicePixelRatio;
+      scale = scale < 1.5 ? 1 : scale < 3 ? 2 : scale < 4 ? 3 : 4;
+      this.favPrefix = ' icon" style="background-image: url(&quot;chrome://favicon/size/16' + (scale > 1 ? "@" + scale + "x" : "") + "/";
+    }
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
     }
@@ -63,7 +74,7 @@ var Vomnibar = {
     } else if (search === null) {
       url = VUtils.decodeURL(url).replace(<RegExpG> /\s$/g, "%20");
       if (!keyword && (<RegExpI>/^https?:\/\//i).test(url)) {
-        this.isHttps = (url.charCodeAt(4) | 32) === KnownKey.s;
+        this.isHttps = (url.charCodeAt(4) | KnownKey.CASE_DELTA) === KnownKey.s;
         url = url.substring(this.isHttps ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? url.length - 1 : undefined);
       }
     } else {
@@ -101,13 +112,13 @@ var Vomnibar = {
   bodySt: null as never as CSSStyleDeclaration,
   barCls: null as never as DOMTokenList,
   isSelOriginal: true,
-  lastKey: 0,
+  lastKey: VKeyCodes.None,
   keyResult: HandlerResult.Nothing,
   list: null as never as HTMLDivElement,
   onUpdate: null as (() => void) | null,
   doEnter: null as ((this: void) => void) | null,
-  refreshInterval: 500,
-  wheelInterval: 100,
+  refreshInterval: Math.max(256, (<number>window.VomnibarRefreshInterval | 0) || 500),
+  wheelInterval: Math.max(33, (<number>window.VomnibarRefreshInterval | 0) || 100),
   renderItems: null as never as Render,
   selection: -1,
   timer: 0,
@@ -139,7 +150,8 @@ var Vomnibar = {
   },
   onHidden (): void {
     VPort.postToOwner({ name: "hide" });
-    this.lastKey = this.timer = this.height = this.heightList = this.matchType = 0;
+    this.timer = this.height = this.heightList = this.matchType = 0;
+    this.lastKey = VKeyCodes.None;
     this.completions = this.onUpdate = this.isHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = "";
     this.modeType = this.mode.type = "omni";
@@ -273,7 +285,7 @@ var Vomnibar = {
         return this.onAction(focused ? "blurInput" : "focus");
       }
       else if (!focused) {}
-      else if (n >= VKeyCodes.B && n <= VKeyCodes.F && n !== VKeyCodes.C || n === VKeyCodes.backspace) {
+      else if (n > VKeyCodes.A && n < VKeyCodes.G && n !== VKeyCodes.C || n === VKeyCodes.backspace) {
         return this.onBashAction(n - VKeyCodes.maxNotAlphabet);
       }
       if (event.altKey) { this.keyResult = HandlerResult.Nothing; return; }
@@ -409,7 +421,7 @@ var Vomnibar = {
   },
   OnEnterUp (this: void, event: KeyboardEvent): void {
     if (event.isTrusted != false && event instanceof KeyboardEvent && event.keyCode === VKeyCodes.enter) {
-      Vomnibar.lastKey = 0;
+      Vomnibar.lastKey = VKeyCodes.None;
       window.onkeyup = null as never;
       return Vomnibar.onEnter(event);
     }
@@ -421,7 +433,7 @@ var Vomnibar = {
     if (this.timer) { event.preventDefault(); return; }
     while (el && el.parentNode !== this.list) { el = el.parentNode; }
     if (!el) { return; }
-    this.lastKey = 0;
+    this.lastKey = VKeyCodes.None;
     return this.onEnter(event, [].indexOf.call(this.list.children, el));
   },
   OnMenu (this: void, event: Event): void {
@@ -436,7 +448,7 @@ var Vomnibar = {
     if (el.selectionStart !== 0 || el.selectionDirection !== "backward") { return; }
     let left = el.value,
     end = el.selectionEnd - 1;
-    if (left.charCodeAt(end) !== 32 || end === left.length - 1) { return; }
+    if (left.charCodeAt(end) !== KnownKey.space || end === left.length - 1) { return; }
     left = left.substring(0, end).trimRight();
     if (left.indexOf(" ") === -1) {
       el.setSelectionRange(0, left.length, 'backward');
@@ -566,7 +578,7 @@ var Vomnibar = {
     let fav = (2 - type) as 0 | 1 | 2, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
     if (type === VomnibarNS.PageType.ext && location.protocol.startsWith("chrome") && (f = chrome.runtime.getManifest) && (manifest = f())) {
       const arr = manifest.permissions || [];
-      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? 1 : 0;
+      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? this.sameOrigin && window.parent === window.top ? 2 : 1 : 0;
     }
     this.mode.favIcon = fav;
   },
@@ -593,8 +605,9 @@ var Vomnibar = {
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner as
         any, 0, { name: "focus", lastKey: request.lastKey });
   },
-  // 22 is better than 21, because 74 is a result that has been cut (`floor(71 + 7.72 /2)`)
-  width (w?: number): void { this.mode.maxChars = Math.ceil(((w || window.innerWidth - 22) - 74) / 7.72); },
+  width (w?: number): void {
+    this.mode.maxChars = Math.round(((w || window.innerWidth - HeightData.MarginH) - HeightData.AllNotUrl) / HeightData.MeanWidthOfChar);
+  },
   secret: null as never as (request: BgVomnibarReq["secret"]) => void,
 
   maxResults: (<number>window.VomnibarListLength | 0) || 10,
@@ -618,7 +631,7 @@ var Vomnibar = {
         : this.matchType === CompletersNS.MatchType.searchWanted ? "search"
         : (newMatchType = this.matchType,
           (s2 = this.completions[0].type).indexOf("#") < 0 ? s2 as CompletersNS.ValidTypes : "tab");
-      mode.query = str.substring(0, 200);
+      mode.query = str;
       this.width();
       this.matchType = newMatchType;
     } else {
@@ -627,10 +640,11 @@ var Vomnibar = {
     return VPort.postMessage(mode);
   },
 
+  favPrefix: "",
   parse (item: SuggestionE): void {
     let str = this.showFavIcon ? item.url : "";
     item.favIcon = str
-      ? ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
+      ? this.favPrefix +
         ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)"
       : "";
     item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
@@ -706,7 +720,8 @@ VUtils = {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
-      return i === 38 ? "&amp;" : i === 39 ? "&apos;" : i < 39 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
+      return i === KnownKey.and ? "&amp;" : i === KnownKey.quote1 ? "&apos;"
+        : i < KnownKey.quote1 ? "\\&quot;" : i === KnownKey.lt ? "&lt;" : "&gt;";
     }
     this.escapeCSSStringInAttr = function(s): string {
       return s.replace(escapeRe, escapeCallback);

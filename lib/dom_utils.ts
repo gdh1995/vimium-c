@@ -35,7 +35,6 @@ var VDom = {
     arr && arr.length > 0 && (el = arr[arr.length - 1]);
     return el.parentElement || el.parentNode instanceof ShadowRoot && el.parentNode.host || null;
   },
-  bodyZoom: 1,
   prepareCrop (): void {
     let iw: number, ih: number, ihs: number;
     this.prepareCrop = function(): void {
@@ -125,32 +124,48 @@ var VDom = {
     return !!rect;
   },
   specialZoom: false,
+  docZoom: 1,
+  // return: ::min(deviceRatio, 1) * [ docEl.zoom * ... * ] curTopEl (fullscreen / docEl) .zoom
+  getZoom (): number {
+    let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
+      , zoom = +getComputedStyle(docEl).zoom || 1;
+    Math.abs(zoom - ratio) < 0.001 && this.specialZoom && (zoom = 1);
+    for (let el: Element | null = document.webkitFullscreenElement; el && el !== docEl; el = this.getParent(el)) {
+      zoom *= +getComputedStyle(el).zoom || 1;
+    };
+    return this.docZoom = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
+  },
+  bodyZoom: 1,
   getViewBox (): ViewBox {
     let iw = window.innerWidth, ih = window.innerHeight;
     if (document.webkitIsFullScreen) {
-      // It's a whole mess of inherited "contain" stack and nothing can be ensured right
+      // It's a whole mess if there's nested "contain" styles and nothing can be ensured right
       VDom.bodyZoom = 1;
+      this.docZoom = this.getZoom();
       return [0, 0, iw, ih, 0];
     }
-    const box = document.documentElement as HTMLElement,
-    st = getComputedStyle(box),
-    box2 = document.body,
-    st2 = box2 && box2 !== box ? getComputedStyle(box2) : st;
-    // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
+    const box = document.documentElement as HTMLElement, st = getComputedStyle(box),
+    box2 = document.body, st2 = box2 && box2 !== box ? getComputedStyle(box2) : st,
+    ratio = window.devicePixelRatio, zoom2 = VDom.bodyZoom = st2 !== st && +st2.zoom || 1,
+    // NOTE: if doc.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
-    const rect = box.getBoundingClientRect();
-    let x = -rect.left, y = -rect.top, w2 = rect.width, h2 = rect.height;
-    const width  = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
+    rect = box.getBoundingClientRect(), w2 = rect.width, h2 = rect.height;
+    let x = -rect.left, y = -rect.top, zoom = +st.zoom || 1;
+    Math.abs(zoom - ratio) < 0.001 && this.specialZoom && (zoom = 1);
+    this.docZoom = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
+    const width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
       : box.scrollWidth  - Math.ceil(x) - <number><boolean | number>(w2 !== (w2 | 0)),
     height = st.overflowY === "hidden" || st2.overflowY === "hidden" ? 0
       : box.scrollHeight - Math.ceil(y) - <number><boolean | number>(h2 !== (h2 | 0));
     if (st.position !== "static" || (<RegExpOne>/content|paint|strict/).test(st.contain as string)) {
       x -= box.clientLeft, y -= box.clientTop;
     } else {
-      x += parseInt(st.marginLeft), y += parseInt(st.marginTop);
+      x += parseFloat(st.marginLeft), y += parseFloat(st.marginTop);
     }
-    const zoom = VDom.bodyZoom = st2 !== st && +st2.zoom || 1;
-    x /= zoom, y /= zoom;
+    // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
+    x = Math.abs(x) < 0.01 ? 0 : Math.round(x * 100) / 100;
+    y = Math.abs(y) < 0.01 ? 0 : Math.round(y * 100) / 100;
+    x /= zoom2, y /= zoom2;
     iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];

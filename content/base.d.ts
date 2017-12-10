@@ -34,7 +34,8 @@ declare namespace HandlerNS {
     (this: T, event: HandlerNS.Event): HandlerResult;
   }
 }
-interface KeydownCacheArray extends Uint8Array {
+interface KeydownCacheArray extends SafeObject {
+  [keyCode: number]: BOOL | undefined;
 }
 
 interface EventControlKeys {
@@ -51,9 +52,12 @@ interface VRect {
   [3]: number; // bottom
 }
 
-interface ViewBox {
+interface ViewOffset {
   [0]: number; // left
   [1]: number; // top
+}
+
+interface ViewBox extends ViewOffset {
   [2]: number; // width
   [3]: number; // height
   [4]: number; // max-left or 0
@@ -124,13 +128,13 @@ declare namespace VomnibarNS {
     hide: {
     };
     scroll: {
-      keyCode: number;
+      keyCode: VKeyCodes;
     };
     style: {
       height: number;
     };
     focus: {
-      lastKey: number;
+      lastKey: VKeyCodes;
     };
     evalJS: {
       url: string;
@@ -149,6 +153,9 @@ declare namespace VomnibarNS {
     onmessage<K extends keyof CReq> (this: void, msg: { data: CReq[K] }): void | 1;
   }
   type FgOptionsToFront = CReq["activate"];
+  const enum Consts {
+    MarginTop = 62,
+  }
 }
 
 declare type ScrollByY = 0 | 1;
@@ -178,11 +185,11 @@ interface DomUI {
   callback: null | ((this: void) => void);
   flashLastingTime: number;
   addElement<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
-  addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
+  addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: ViewOffset): HTMLDivElement;
   adjust (this: void, event?: Event): void;
   toggle (this: DomUI, enabled: boolean): void;
   _styleBorder: (HTMLStyleElement & {zoom?: number}) | null;
-  ensureBorder (this: DomUI): void;
+  ensureBorder (this: DomUI, zoom?: number): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   css (this: DomUI, innerCSS: string): void;
   getDocSelectable (this: DomUI): boolean;
@@ -191,7 +198,6 @@ interface DomUI {
   removeSelection (this: DomUI, root?: DocumentOrShadowRoot): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
   simulateSelect (this: DomUI, element: Element, flash?: boolean, suppressRepeated?: boolean): void;
-  getZoom (this: void, min?: number): number;
   getVRect (this: void, clickEl: Element): VRect | null;
   flash (this: DomUI, el: null, rect: VRect): number;
   flash (this: DomUI, el: Element): number | void;
@@ -219,14 +225,14 @@ interface FocusListenerWrapper {
 }
 interface VEventMode {
   lock(this: void): Element | null;
-  suppress(keyCode?: number): void;
+  suppress(keyCode?: VKeyCodes): void;
   OnWndFocus (this: void): void;
   focusAndListen (this: void, callback?: (() => void) | null, timedout?: 0): void;
-  focusUpperFrame (this: void, iframe: HTMLElement, keyCode: number): HandlerResult;
+  focusUpperFrame (this: void, iframe: HTMLElement, keyCode: VKeyCodes): HandlerResult;
   onWndBlur (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress (this: void, onExit?: (this: void) => void): void;
   mapKey (this: void, key: string): string;
-  scroll (this: void, event?: Partial<EventControlKeys & { keyCode: number }>, wnd?: Window): void;
+  scroll (this: void, event?: Partial<EventControlKeys & { keyCode: VKeyCodes }>, wnd?: Window): void;
   /** return has_error */
   keydownEvents (this: void, newArr: KeydownCacheArray): boolean;
   keydownEvents (this: void): KeydownCacheArray;

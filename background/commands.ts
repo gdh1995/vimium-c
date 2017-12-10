@@ -68,7 +68,7 @@ var Commands = {
           console.log("Lacking command when mapping %c" + key, "color:red");
         } else if (!(details = available[splitLine[2]])) {
           console.log("Command %c" + splitLine[2], "color:red", "doesn't exist!");
-        } else if ((ch = key.charCodeAt(0)) >= 48 && ch < 58) {
+        } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum) {
           console.log("Invalid key: %c" + key, "color:red", "(the first char can not be [0-9])");
         } else {
           registry[key] = Utils.makeCommand(splitLine[2], (this as typeof Commands).getOptions(splitLine), details);
@@ -153,7 +153,7 @@ var Commands = {
       const tmp = ref[key] as 0 | 1 | ChildKeyMap;
       if (tmp !== 0 && tmp !== 1) { func(tmp); }
     }
-    if (Settings.Init) { return Settings.Init(); }
+    if (Backend.Init) { return Backend.Init(); }
   }),
   warnInactive (obj: ReadonlyChildKeyMap | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
@@ -243,7 +243,7 @@ availableCommands: {
   __proto__: null as never,
   showHelp: [ "Show help", 1, true ],
   debugBackground: [ "Debug the background page", 1, true,
-    { reuse: 1, url: "chrome://extensions/?id=$id", id_marker: "$id" }, "openUrl" ],
+    { reuse: ReuseType.reuse, url: "chrome://extensions/?id=$id", id_mask: "$id" }, "openUrl" ],
   blank: [ "Do nothing", 1, true ],
   toggleLinkHintCharacters: [ "Toggle the other link hints (use value)", 1, false,
     { key: "linkHintCharacters" }, ".toggleSwitchTemp" ],
@@ -286,8 +286,8 @@ availableCommands: {
     { mode: HintMode.FOCUS_EDITABLE }, "Hints.activate" ],
   "LinkHints.activateModeToOpenVomnibar": [ "Edit a link text on Vomnibar (use url, force)", 1, false,
     { mode: HintMode.EDIT_TEXT }, "Hints.activate" ],
-  openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true ],
-  openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true ],
+  openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true, { reuse: ReuseType.current, copied: true }, "openUrl" ],
+  openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true, { copied: true }, "openUrl" ],
   enterInsertMode: [ "Enter insert mode (use code=27, stat=0)", 1, true ],
   passNextKey: [ "Pass the next key(s) to the page (use normal)", 0, false, null, "." ],
   enterVisualMode: [ "Enter visual mode", 1, false, null, "Visual.activate" ],
@@ -378,8 +378,8 @@ availableCommands: {
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, true, { local: true }, "clearMarks" ],
   "Marks.clearGlobal": [ "Remove all global marks", 1, true, null, "clearMarks" ],
   clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true, null, "clearMarks" ],
-  openUrl: [ "open URL (use url, urls:string[], reuse=[-2..1])", 20, true ],
-  focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true, { reuse: 1 }, "openUrl" ]
+  openUrl: [ "open URL (use url, urls:string[], reuse:[-2..1]=-1, incognito, window)", 20, true ],
+  focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true, { reuse: ReuseType.reuse }, "openUrl" ]
 } as SafeDict<CommandsNS.Description>
 };
 
@@ -388,7 +388,7 @@ if (document.readyState !== "complete") {
   Commands.defaultKeyMappings = null as never;
   Commands.populateCommandKeys();
   Commands = null as never;
-  chrome.commands && chrome.commands.onCommand.addListener(function (cmd) { return Settings.globalCommand(cmd); });
+  chrome.commands && chrome.commands.onCommand.addListener(function (cmd) { return Backend.execute(cmd); });
 } else
 Settings.updateHooks.keyMappings = function(value: string): void {
   Commands.parseKeyMappings(value);

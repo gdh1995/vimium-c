@@ -277,8 +277,8 @@ location.pathname.indexOf("/popup.html") !== -1 && BG.Utils.require("Exclusions"
   };
 })((function(tabs: [chrome.tabs.Tab] | never[]): void {
 interface PopExclusionRulesOption extends ExclusionRulesOption {
-  url: string;
-  init(this: PopExclusionRulesOption, url: string, element: HTMLElement
+  readonly url: string;
+  init(this: PopExclusionRulesOption, element: HTMLElement
     , onUpdated: (this: PopExclusionRulesOption) => void, onInit: (this: PopExclusionRulesOption) => void
     ): void;
   rebuildTesters (this: PopExclusionRulesOption): void;
@@ -287,14 +287,22 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   OnInput (this: void, event: Event): void;
   generateDefaultPattern (this: PopExclusionRulesOption): string;
 }
+  let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg")
+    , url0 = tabs[0].url, url = ref ? ref[0].sender.url : url0;
+  if (!ref && (url0.lastIndexOf("about:", 0) === 0 || url0.lastIndexOf("chrome:", 0) === 0)) {
+    (document.body as HTMLBodyElement).textContent = "";
+    (document.body as HTMLBodyElement).appendChild(blockedMsg);
+    return;
+  }
+  blockedMsg.remove();
+  blockedMsg = null as never;
 
 const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions, escapeRe = <RegExpG & RegExpSearchable<0>> /[&<>]/g,
 exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
-  url: "",
-  init (this: PopExclusionRulesOption, url: string, element: HTMLElement
+  url: url,
+  init (this: PopExclusionRulesOption, element: HTMLElement
       , onUpdated: (this: ExclusionRulesOption) => void, onInit: (this: ExclusionRulesOption) => void
       ): void {
-    this.url = url;
     this.rebuildTesters();
     this.onInit = onInit;
     (ExclusionRulesOption as any).call(this, element, onUpdated);
@@ -359,7 +367,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   let saved = true;
   function escapeCallback(c: string): string {
     const n = c.charCodeAt(0);
-    return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
+    return n === KnownKey.lt ? "&lt;" : n === KnownKey.gt ? "&gt;" : "&amp;";
   }
   function updateState(): void {
     const pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
@@ -393,13 +401,12 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   }
   $("#saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event): void {
-    if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
+    if ((event.ctrlKey || event.metaKey) && event.keyCode === VKeyCodes.enter) {
       setTimeout(window.close, 300);
       if (!saved) { return saveOptions(); }
     }
   });
-  let ref = bgSettings.indexPorts(tabs[0].id);
-  exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("#exclusionRules"), onUpdated, ref ? function (): void {
+  exclusions.init($("#exclusionRules"), onUpdated, ref ? function (): void {
     let { sender } = (ref as Frames.Frames)[0], el: HTMLElement
       , newStat = sender.status !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
     ref = null;
@@ -414,13 +421,14 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     }
     return updateState();
   } : updateState);
-  let element = $<HTMLAnchorElement>("#optionsLink"), url = bgSettings.CONST.OptionsPage;
+  let element = $<HTMLAnchorElement>("#optionsLink");
+  url = bgSettings.CONST.OptionsPage;
   element.href !== url && (element.href = url);
   element.onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
-    a.url = this.href;
-    BG.g_requestHandlers.focusOrLaunch(a);
+    a.url = url;
+    BG.Backend.focusOrLaunch(a);
     window.close();
   };
   interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
@@ -433,7 +441,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
 
   function forceState(tabId: number, act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();
-    BG.g_requestHandlers.ForceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
+    BG.Backend.forceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
     window.close();
   }
 })));

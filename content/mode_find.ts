@@ -48,7 +48,6 @@ html > count{float:right;}`,
       return this.setFirstQuery(query);
     }
 
-    const zoom = VDom.UI.getZoom();
     this.parsedQuery = this.query = "";
     this.regexMatches = null;
     this.activeRegexIndex = 0;
@@ -56,7 +55,7 @@ html > count{float:right;}`,
     const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
     el.style.width = "0px";
-    if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
+    if (VDom.docZoom !== 1) { el.style.zoom = "" + 1 / VDom.docZoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
     VUtils.push(VDom.UI.SuppressMost, this);
     this.query || (this.query0 = query);
@@ -211,14 +210,14 @@ html > count{float:right;}`,
       PassDirectly = -1,
     }
     const n = event.keyCode;
-    let i = event.altKey ? Result.DoNothing
+    let i: Result | KeyStat = event.altKey ? Result.DoNothing
       : n === VKeyCodes.enter ? event.shiftKey ? Result.PassDirectly : (this.saveQuery(), Result.ExitToPostMode)
       : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? Result.DoNothing
       : this.query || (n === VKeyCodes.deleteKey && !VSettings.cache.onMac) ? Result.PassDirectly : Result.Exit;
     if (!i) {
       if (VKeyboard.isEscape(event)) { i = Result.ExitAndReFocus; }
       else if (i = VKeyboard.getKeyStat(event)) {
-        if ((i & ~KeyStat.PrimaryModifier) !== 0) { return; }
+        if (i & ~KeyStat.PrimaryModifier) { return; }
         else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
           VEventMode.scroll(event, this.box.contentWindow);
         }

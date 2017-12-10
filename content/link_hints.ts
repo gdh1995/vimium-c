@@ -102,7 +102,7 @@ var VHints = {
 
     let elements: Hint[] | undefined;
     const arr = VDom.getViewBox();
-    VScroller.getScale();
+    VScroller.getScale(VDom.bodyZoom);
     if (this.tooHigh !== null) {
       this.tooHigh = (document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
@@ -128,9 +128,10 @@ var VHints = {
     this.alphabetHints.initMarkers(this.hintMarkers, str);
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320;
-    VDom.UI.ensureBorder();
-    this.setMode(this.mode, false, this.hintMarkers.length > 100);
+    VDom.UI.ensureBorder(VDom.docZoom);
     this.box = VDom.UI.addElementList(this.hintMarkers, arr);
+    // note: delay it to avoid calling `ensureBorder` twice
+    this.setMode(this.mode, false, this.hintMarkers.length > 100);
 
     this.isActive = true;
     VUtils.push(this.onKeydown, this);
@@ -229,11 +230,11 @@ var VHints = {
     return marker;
   },
   adjustMarkers (elements: Hint[]): void {
-    const root = VDom.UI.root, z = "" + 1 / VDom.bodyZoom;
-    if (z === "1" || !root) { return; }
+    const root = VDom.UI.root, zi = VDom.bodyZoom;
+    if (zi === 1 || !root) { return; }
+    const z = ("" + 1 / zi).substring(0, 5);
     let arr = this.hintMarkers as HintsNS.Marker[], i = elements.length - 1;
-    if (elements[i][0] === Vomnibar.box) { arr[i--].style.zoom = z; }
-    if (!root.querySelector('#HelpDialog') || i < 0) { return; }
+    if (elements[i][0] !== Vomnibar.box && !root.querySelector('#HelpDialog')) { return; }
     while (0 <= i && root.contains(elements[i][0])) { arr[i--].style.zoom = z; }
   },
   btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,
@@ -356,16 +357,15 @@ var VHints = {
   GetLinks (this: Hint[], element: Element): void {
     let a: string | null, arr: VRect | null;
     if (element instanceof HTMLAnchorElement && ((a = element.getAttribute("href")) && a !== "#"
-        && (a.charCodeAt(10) !== 58 || a.substring(0, 11).toLowerCase() !== "javascript:")
+        && !VUtils.isJSUrl(a)
         || element.hasAttribute("data-vim-url"))) {
       if (arr = VDom.getVisibleClientRect(element)) {
         this.push([element, arr, ClickType.click]);
       }
     }
   },
-  imageUrlRe: <RegExpI> /\.(?:bmp|gif|ico|jpe?g|png|svg|webp)\b/i,
   getImagesInImg (arr: Hint[], element: HTMLImageElement): void {
-    if (!element.src) { return; }
+    if (!element.src && !element.getAttribute("data-src")) { return; }
     let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
@@ -385,9 +385,9 @@ var VHints = {
   },
   GetImages (this: Hint[], element: Element): void {
     if (element instanceof HTMLImageElement) { return VHints.getImagesInImg(this, element); }
-    if (!(element instanceof HTMLAnchorElement)) { return; }
-    let str = element.getAttribute("href"), cr: VRect | null;
-    if (str && str.length > 4 && VHints.imageUrlRe.test(str)) {
+    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
+    let str = element.getAttribute("data-src") || element.getAttribute("href"), cr: VRect | null;
+    if (VUtils.isImageUrl(str)) {
       if (cr = VDom.getVisibleClientRect(element)) {
         this.push([element, cr, ClickType.Default]);
       }
@@ -407,6 +407,7 @@ var VHints = {
       if (uiRoot && uiRoot.mode !== "closed") { uiRoot = null; }
     }
     const output: Hint[] | Element[] = [], isTag = (<RegExpOne>/^\*$|^[a-z]+$/).test(query),
+    wantClickable = (filter as Function) === (this as typeof VHints).GetClickable && key === "*",
     box = root || document.webkitFullscreenElement || document;
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
     if (!root && (this as typeof VHints).tooHigh && box === document && list.length >= 15000) {
@@ -418,7 +419,6 @@ var VHints = {
     if (uiRoot) {
       (Array.prototype.forEach as any).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
     }
-    const wantClickable = (filter as Function) === (this as typeof VHints).GetClickable && key === "*";
     if (wantClickable) { (this as typeof VHints).deduplicate(output as Hint[]); }
     if ((this as typeof VHints).frameNested !== false) {}
     else if (wantClickable) {
@@ -520,7 +520,7 @@ var VHints = {
   getVisibleElements (): Hint[] {
     let _i: number = this.mode1;
     const isNormal = _i < HintMode.min_job, visibleElements = _i === HintMode.DOWNLOAD_IMAGE
-        || _i === HintMode.OPEN_IMAGE ? this.traverse("a[href],img[src]", this.GetImages)
+        || _i === HintMode.OPEN_IMAGE ? this.traverse("a[href],img[src],[data-src]", this.GetImages)
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? this.traverse("a", this.GetLinks)
       : this.traverse("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable);
     if (this.maxRight > 0) {
@@ -904,6 +904,14 @@ getUrlData (link: HTMLAnchorElement): string {
   }
   return link.href;
 },
+getImageUrl (img: HTMLElement): string | void {
+  let text: string = img instanceof HTMLAnchorElement ? img.href : img instanceof HTMLImageElement ? img.src : ""
+    , src = img.getAttribute("data-src") || "";
+  if (!text || text.startsWith("data:") || VUtils.isJSUrl(text) || src.length > text.length + 8 && VUtils.isImageUrl(src)) {
+    text = src;
+  }
+  return text || VHUD.showForDuration("Not an image", 1000);
+},
 
 highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   let err: boolean | null = true, child: HintsNS.VWindow = null as never;
@@ -1011,7 +1019,7 @@ COPY_TEXT: {
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? VUtils.decodeURL(str) : str;
     VPort.post({
-      handler: "copyToClipboard",
+      handler: "copy",
       data: str
     });
     VHUD.showCopied(str);
@@ -1035,11 +1043,9 @@ OPEN_INCOGNITO_LINK: {
 DOWNLOAD_IMAGE: {
   132: "Download image",
   196: "Download multiple images",
-  activator (img: HTMLAnchorElement | HTMLImageElement): void {
-    let text = img instanceof HTMLAnchorElement ? img.href : img.src;
-    if (!text) {
-      return VHUD.showForDuration("Not an image", 1000);
-    }
+  activator (img: HTMLElement): void {
+    let text = (this as typeof VHints).getImageUrl(img);
+    if (!text) { return; }
     const i = text.indexOf("://"), a = VDom.createElement("a");
     if (i > 0) {
       text = text.substring(text.indexOf('/', i + 4) + 1);
@@ -1056,11 +1062,9 @@ DOWNLOAD_IMAGE: {
 OPEN_IMAGE: {
   133: "Open image",
   197: "Open multiple image",
-  activator (img: HTMLAnchorElement | HTMLImageElement): void {
-    let text = img instanceof HTMLAnchorElement ? img.href : img.src, url: string, str: string | null;
-    if (!text) {
-      return VHUD.showForDuration("Not an image", 1000);
-    }
+  activator (img: HTMLElement): void {
+    let text = (this as typeof VHints).getImageUrl(img), url: string, str: string | null;
+    if (!text) { return; }
     url = "vimium://show image ";
     if (str = img.getAttribute("download")) {
       url += "download=" + encodeURIComponent(str) + "&";

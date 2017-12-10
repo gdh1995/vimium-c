@@ -29,15 +29,16 @@ VDom.UI = {
         (this.box as HTMLElement).className = cls;
         (this.box as HTMLElement).appendChild(this.createStyle("." + cls + outerCSS));
       }
-      this.styleIn = this.createStyle(innerCSS);
-      (this.root as ShadowRoot).appendChild(this.styleIn);
+      let el: HTMLStyleElement | null = this.styleIn = this.createStyle(innerCSS);
+      (this.root as ShadowRoot).appendChild(el);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
-      adjust === AdjustType.AdjustButNotShow || (this.styleIn.onload = function (): void {
+      adjust === AdjustType.AdjustButNotShow || (el.onload = function (): void {
         this.onload = null as never;
         const a = VDom.UI;
         (a.box as HTMLElement).removeAttribute("style");
         a.callback && a.callback();
       });
+      (el = this._styleBorder) && (this.root as ShadowRoot).appendChild(el);
       if (adjust !== AdjustType.NotAdjust) {
         return this.adjust();
       }
@@ -81,15 +82,13 @@ VDom.UI = {
     removeEventListener("webkitfullscreenchange", this.adjust, true);
   },
   _styleBorder: null as (HTMLStyleElement & {zoom?: number}) | null,
-  ensureBorder (): void {
-    if (!VDom.specialZoom) { return; }
-    const zoom = +getComputedStyle(document.documentElement as HTMLElement).zoom || 1;
-    let ratio = window.devicePixelRatio, st = this._styleBorder, st2: typeof st;
-    Math.abs(zoom - ratio) > 0.001 || (ratio *= zoom);
-    if (st === null ? ratio >= 1 : st.zoom === ratio) { return; }
-    st2 = st || (this._styleBorder = this.createStyle(""));
-    st2.zoom = ratio; st2.textContent = "*{border-width:" + ("" + 0.51 / ratio).substring(0, 5) + "px !important;}";
-    st || this.addElement(st2);
+  ensureBorder (zoom?: number): void {
+    let st = this._styleBorder, first = st === null;
+    zoom || (zoom = VDom.getZoom());
+    if (first ? zoom >= 0.999 : (st as any).zoom === zoom) { return; }
+    st = st || (this._styleBorder = this.createStyle(""));
+    st.zoom = zoom; st.textContent = ".HUD, .HelpKey, .IH, .LH { border-width: " + ("" + 0.51 / zoom).slice(0, 5) + "px; }";
+    first && this.root && this.addElement(st, AdjustType.NotAdjust);
   },
   createStyle (text, doc): HTMLStyleElement {
     const css = (doc || VDom).createElement("style");
@@ -114,7 +113,7 @@ VDom.UI = {
     let el = this.styleOut;
     if (enable ? VDom.docSelectable : !el || el.disabled) { return; }
     el = el || (this.styleOut = (this.box as HTMLElement).appendChild(this.createStyle(
-      "html,body{-webkit-user-select:auto !important;user-select:auto !important;}"
+      "html, body { -webkit-user-select: auto !important; user-select: auto !important; }"
     )));
     el.disabled = !enable;
   },
@@ -146,7 +145,7 @@ VDom.UI = {
     const y = window.scrollY;
     this.click(element, null, true);
     VDom.ensureInView(element, y);
-    flash === true && this.flash(element);
+    flash && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
     type Moveable = HTMLInputElement | HTMLTextAreaElement;
     let len: number, val: string | undefined;
@@ -160,15 +159,6 @@ VDom.UI = {
       } catch (e) {}
     }
     if (suppressRepeated === true) { return this.suppressTail(true); }
-  },
-  getZoom (this: void, min?: number): number {
-    let docEl = document.documentElement as Element, el: Element | null, zoom = 1;
-    el = document.webkitFullscreenElement || docEl;
-    if (VDom.specialZoom) { zoom /= window.devicePixelRatio; }
-    do {
-      zoom *= +getComputedStyle(el).zoom || 1;
-    } while (el = VDom.getParent(el));
-    return Math.round(zoom * 200) / 200 * Math.min(min || 1, window.devicePixelRatio);
   },
   getVRect (this: void, clickEl: Element): VRect | null {
     const b = document.body;
@@ -211,11 +201,9 @@ VDom.UI = {
     VUtils.push(func, func);
   },
   SuppressMost (event) {
+    VKeyboard.isEscape(event) && VUtils.remove(this);
     const key = event.keyCode;
-    if (VKeyboard.isEscape(event)) {
-      VUtils.remove(this);
-    }
-    return key > VKeyCodes.f1 + 9 && key <= VKeyCodes.f12 ?
+    return key > VKeyCodes.f10 && key < VKeyCodes.minNotFn ?
       HandlerResult.Suppress : HandlerResult.Prevent;
   }
 };

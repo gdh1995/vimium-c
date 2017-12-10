@@ -53,7 +53,6 @@ interface PreCompleter extends Completer {
   preFilter(query: CompletersNS.QueryStatus): void;
 }
 interface QueryTerms extends Array<string> {
-  more?: string;
 }
 
 const enum FirstQuery {
@@ -94,9 +93,9 @@ interface WindowEx extends Window {
 type SearchSuggestion = CompletersNS.SearchSuggestion;
 
 
-let queryType: FirstQuery, offset: number, autoSelect: boolean, inNormal: boolean | null,
+let queryType: FirstQuery, offset: number, autoSelect: boolean, inNormal: boolean | null, singleLine: boolean,
     maxChars: number, maxResults: number, maxTotal: number, matchType: MatchType,
-    queryTerms: QueryTerms;
+    queryTerms: QueryTerms, rawQuery: string, rawMore: string;
 
 const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableCoreSuggestion,
     type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
@@ -118,7 +117,8 @@ SuggestionUtils = {
     sug.title = this.cutTitle(sug.title);
     const text = sug.text, str = this.shortenUrl(text);
     sug.text = text.length !== sug.url.length ? str : "";
-    sug.textSplit = this.cutUrl(str, this.getRanges(str), text.length - str.length);
+    sug.textSplit = this.cutUrl(str, this.getRanges(str), text.length - str.length
+      , singleLine ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
   },
   cutTitle (title: string): string {
     let cut = title.length > maxChars + 40;
@@ -171,27 +171,38 @@ SuggestionUtils = {
   },
   sortBy0 (this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; },
   // deltaLen may be: 0, 1, 7/8/9
-  cutUrl (this: void, string: string, ranges: number[], deltaLen: number): string {
-    let out = "";
-    let cutStart = -1, end: number = 0, maxLen = maxChars;
-    if (string.length <= maxLen) {}
-    else if (deltaLen > 1) { cutStart = string.indexOf("/"); }
-    else if ((cutStart = string.indexOf(":")) < 0) {}
+  cutUrl (this: void, string: string, ranges: number[], deltaLen: number, maxLen: number): string {
+    let out = "", end = string.length, cutStart = end;
+    if (end <= maxLen) {}
+    else if (deltaLen > 1) { cutStart = string.indexOf("/") + 1 || end; }
+    else if ((cutStart = string.indexOf(":")) < 0) { cutStart = end; }
     else if (Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) {
-      cutStart = string.indexOf("/", cutStart + 4);
+      cutStart = string.indexOf("/", cutStart + 4) + 1 || end;
     } else {
-      cutStart += 32; // for data:text/javascript,var xxx; ...
+      cutStart += 22; // for data:text/javascript,var xxx; ...
     }
-    cutStart = cutStart < 0 ? string.length : cutStart + 1;
+    if (cutStart < end) {
+      for (let i = ranges.length, start = end + 6; (i -= 2) >= 0 && start >= cutStart; start = ranges[i]) {
+        const lastEnd = ranges[i + 1], delta = start - 19 - (lastEnd >= cutStart ? lastEnd : cutStart);
+        if (delta > 0) {
+          end -= delta;
+          if (end <= maxLen) {
+            cutStart = ranges[i + 1] + (maxLen - end);
+            break;
+          }
+        }
+      }
+    }
+    end = 0;
     for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
-      const start = ranges[i], temp = (end >= cutStart) ? end : cutStart;
-      if (temp + 20 > start) {
-        out += Utils.escapeText(string.substring(end, start));
-      } else {
+      const start = ranges[i], temp = (end >= cutStart) ? end : cutStart, delta = start - 19 - temp;
+      if (delta > 0) {
+        maxLen += delta;
         out += Utils.escapeText(string.substring(end, temp + 10));
         out += "..."
         out += Utils.escapeText(string.substring(start - 6, start));
-        maxLen += start - temp - 19;
+      } else if (end < start) {
+        out += Utils.escapeText(string.substring(end, start));
       }
       end = ranges[i + 1];
       out += '<match>';
@@ -236,7 +247,7 @@ bookmarks: {
     }
     if (this.status === BookmarkStatus.notInited) { return this.refresh(); }
   },
-  StartsWithSlash (str: string): boolean { return str.charCodeAt(0) === 47; },
+  StartsWithSlash (str: string): boolean { return str.charCodeAt(0) === KnownKey.slash; },
   performSearch (): void {
     const c = SuggestionUtils.ComputeWordRelevancy, isPath = queryTerms.some(this.StartsWithSlash);
     let results: Suggestion[] = [];
@@ -643,7 +654,7 @@ searchEngines: {
       } else {
         q.shift();
       }
-      keyword = q.join(" ");
+      keyword = rawQuery.substring(1).trimLeft();
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
       autoSelect = true;
       maxResults--;
@@ -661,10 +672,19 @@ searchEngines: {
     } else {
       maxResults--;
       autoSelect = true;
-      if (queryType === FirstQuery.waitFirst) { q.push(q.more as string); offset = 0; }
+      if (queryType === FirstQuery.waitFirst) { q.push(rawMore); offset = 0; }
       q.length > 1 ? (queryType = FirstQuery.searchEngines) : (matchType = MatchType.reset);
     }
-    q.length > 1 ? q.shift() : (q = []);
+    if (q.length > 1) {
+      q.shift();
+      if (rawQuery.length > Consts.MaxCharsInQuery) {
+        q = rawQuery.split(" ");
+        q.shift();
+      }
+    } else {
+      q = [];
+    }
+    
 
     let { url, indexes } = Utils.createSearch(q, pattern.url, []), text = url;
     if (keyword === "~") {}
@@ -799,13 +819,12 @@ searchEngines: {
     };
     let i = this.sugCounter = 0, l = this.counter = completers.length;
     this.suggestions = [];
-    this.getOffset();
     matchType = offset && MatchType.reset;
-    if ((completers[0] as PreCompleter).preFilter) {
+    if (completers[0] === Completers.searchEngines) {
       if (l < 2) {
-        return (completers[0] as PreCompleter).preFilter(query);
+        return (Completers.searchEngines as PreCompleter).preFilter(query);
       }
-      (completers[0] as PreCompleter).preFilter(query);
+      Completers.searchEngines.preFilter(query);
       i = 1;
     }
     RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
@@ -883,25 +902,30 @@ searchEngines: {
   cleanGlobals (): void {
     this.mostRecentQuery = this.callback = inNormal = null;
     queryTerms = [];
+    rawQuery = rawMore = "";
     RegExpCache.parts = null as never;
     RankingUtils.timeAgo = this.sugCounter = matchType =
     maxResults = maxTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
-    autoSelect = false;
+    autoSelect = singleLine = false;
   },
-  getOffset (): void {
-    let str: string, i: number;
-    offset = 0; queryType = FirstQuery.nothing;
-    if ((i = queryTerms.length) === 0 || (str = queryTerms[i - 1])[0] !== "+") {
+  getOffset (this: void): void {
+    let str = rawQuery, ind: number, i: number;
+    offset = 0; queryType = FirstQuery.nothing; rawMore = "";
+    if (str.length === 0 || (ind = (str = str.slice(-5)).lastIndexOf("+")) < 0
+      || ind !== 0 && str.charCodeAt(ind - 1) !== KnownKey.space
+    ) {
       return;
     }
-    if ((i = parseInt(str, 10)) >= 0 && '+' + i === str
-        && i <= (queryTerms.length > 1 ? 100 : 200)) {
+    str = str.substring(ind);
+    ind = rawQuery.length - str.length;
+    if ((i = parseInt(str, 10)) >= 0 && '+' + i === str && i <= (ind > 0 ? 100 : 200)) {
       offset = i;
     } else if (str !== "+") {
       return;
     }
-    queryTerms.more = queryTerms.pop() as string;
+    rawQuery = rawQuery.substring(0, ind - 1);
+    rawMore = str;
     queryType = FirstQuery.waitFirst;
   },
   protoRe: <RegExpG & RegExpSearchable<0>> /(?:^|\s)__proto__(?=$|\s)/g,
@@ -918,8 +942,12 @@ searchEngines: {
   filter(this: WindowEx["Completers"], query: string, options: CompletersNS.FullOptions
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
-    queryTerms = (query = query.trim()) ? query.substring(0, 200).trimRight().split(Utils.spacesRe) : [];
-    maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
+    rawQuery = (query = query.trim()) && query.replace(Utils.spacesRe, " ");
+    Completers.getOffset();
+    query = rawQuery as string;
+    queryTerms = query ? (query.length > Consts.MaxCharsInQuery ? query.substring(0, Consts.MaxCharsInQuery).trimRight() : query).split(" ") : [];
+    maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number>options.maxChars | 0) || 128, Consts.UpperBoundOfMaxChars));
+    singleLine = !!options.singleLine;
     maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
     Completers.callback = callback;
     let arr: ReadonlyArray<Completer> | null = null, str: string;

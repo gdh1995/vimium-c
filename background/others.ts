@@ -1,4 +1,10 @@
 import SettingsToSync = SettingsNS.PersistentSettings;
+declare const enum OmniboxData {
+  DefaultMaxChars = 128,
+  MarginH = 160,
+  MeanWidthOfChar = 7.72,
+  PreservedTitle = 16,
+}
 
 if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storage) { return; }
   type SettingsToUpdate = {
@@ -110,7 +116,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
       const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
       for (w = 0, h = arr.length; w < h; w++) {
-        g_requestHandlers.SetIcon(arr[w], type);
+        Backend.setIcon(arr[w], type);
       }
     };
     Object.setPrototypeOf(path, null);
@@ -120,7 +126,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
       img.src = path[i];
     }
   }
-  Settings.IconBuffer = function(this: void, enabled?: boolean): IconNS.StatusMap<IconNS.IconBuffer> | null | void {
+  Backend.IconBuffer = function(this: void, enabled?: boolean): IconNS.StatusMap<IconNS.IconBuffer> | null | void {
     if (enabled === undefined) { return imageData; }
     if (!enabled) {
       imageData && setTimeout(function() {
@@ -133,7 +139,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
     imageData = Object.create(null);
     tabIds = Object.create(null);
   } as IconNS.AccessIconBuffer;
-  g_requestHandlers.SetIcon = function(this: void, tabId: number, type: Frames.ValidStatus): void {
+  Backend.setIcon = function(this: void, tabId: number, type: Frames.ValidStatus): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
     if (data = (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type]) {
       chrome.browserAction.setIcon({
@@ -149,7 +155,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
   };
   Settings.updateHooks.showActionIcon = function(value): void {
     func(value);
-    (Settings.IconBuffer as IconNS.AccessIconBuffer)(value);
+    (Backend.IconBuffer as IconNS.AccessIconBuffer)(value);
     if (NotChrome) { return; }
     let title = "Vimium++";
     if (value) {
@@ -175,6 +181,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   let last: string = "", firstResult: Suggestion | null, lastSuggest: OmniboxCallback | null
     , tempRequest: { key: string, suggest: OmniboxCallback } | null
     , timeout = 0, sessionIds: SafeDict<string | number> | null
+    , maxChars = OmniboxData.DefaultMaxChars
     , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, outTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , firstType: CompletersNS.ValidTypes | "";
@@ -256,7 +263,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     return;
   }
   function onInput(this: void, key: string, suggest: OmniboxCallback): void {
-    key = key.trim().replace(Utils.spacesRe, " ").substring(0, 200).trimRight();
+    key = key.trim().replace(Utils.spacesRe, " ");
     if (key === last) { suggestions && suggest(suggestions as chrome.omnibox.SuggestResult[]); return; }
     lastSuggest && (lastSuggest.isOff = true);
     if (timeout) {
@@ -277,10 +284,10 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     matchType = newMatchType;
     last = key;
     lastSuggest = suggest;
-    return Completers.filter(key, { type, maxResults: 6 }, onComplete.bind(null, suggest));
+    return Completers.filter(key, { type, maxResults: 6, maxChars, singleLine: true }, onComplete.bind(null, suggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
-    text = text.trim();
+    text = text.trim().replace(Utils.spacesRe, " ");
     if (tempRequest && tempRequest.key === text) {
       tempRequest.suggest = onEnter.bind(null, text, disposition) as OmniboxCallback;
       return onTimer();
@@ -290,12 +297,19 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     if (firstResult && text === last) { text = firstResult.url; }
     const sessionId = sessionIds && sessionIds[text];
     clean();
-    return sessionId != null ? g_requestHandlers.gotoSession({ sessionId }) : g_requestHandlers.openUrl({
+    return sessionId != null ? Backend.gotoSession({ sessionId }) : Backend.openUrl({
       url: text,
       reuse: (disposition === "currentTab" ? ReuseType.current
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
     });
   }
+  chrome.omnibox.onInputStarted.addListener(function(): void {
+    chrome.windows.getCurrent(function(wnd?: chrome.windows.Window): void {
+      const width = wnd && wnd.width;
+      maxChars = width ? Math.floor((width - OmniboxData.MarginH / devicePixelRatio) / OmniboxData.MeanWidthOfChar)
+        : OmniboxData.DefaultMaxChars;
+    });
+  });
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
 }), 600);
@@ -354,7 +368,7 @@ setTimeout(function() {
     reason = notificationId || reason;
     popup.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }
-      return g_requestHandlers.focusOrLaunch({
+      return Backend.focusOrLaunch({
         url: "https://github.com/gdh1995/vimium-plus#release-notes"
       });
     });

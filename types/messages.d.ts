@@ -26,8 +26,9 @@ interface BgReq {
   };
   focusFrame: {
     name: "focusFrame";
+    CSS?: string | null;
     mask: FrameMaskType;
-    lastKey?: number;
+    lastKey?: VKeyCodes;
   };
   execute: BaseExecute<object> & {
     name: "execute";
@@ -57,6 +58,9 @@ interface BgReq {
   url: {
     url?: string;
   } & Req.baseFg<keyof FgReq>;
+  eval: {
+    url: string; // a javascript: URL
+  };
 }
 
 interface BgVomnibarReq {
@@ -67,7 +71,7 @@ interface BgVomnibarReq {
     favIcon: 0 | 1 | 2;
   };
   returnFocus: {
-    lastKey: number;
+    lastKey: VKeyCodes;
   };
   secret: {
     secret: number;
@@ -91,8 +95,8 @@ interface CmdOptions {
     patterns: string[];
   };
   enterInsertMode: {
-    code: number;
-    stat: number;
+    code: VKeyCodes;
+    stat: KeyStat;
     passExitKey: boolean;
     hud: boolean;
   };
@@ -146,7 +150,8 @@ interface FgReq {
     active?: boolean;
   };
   openUrl: {
-    url: string;
+    url?: string;
+    copied?: boolean;
     keyword?: string | null;
     incognito?: boolean;
     https?: boolean | null;
@@ -162,7 +167,7 @@ interface FgReq {
   nextFrame: Req.baseFg<"nextFrame">;
   exitGrab: Req.baseFg<"exitGrab">;
   refocusCurrent: {
-    lastKey: number;
+    lastKey: VKeyCodes;
   };
   initHelp: {
     unbound?: boolean;
@@ -187,7 +192,7 @@ interface FgReq {
   openCopiedUrl: {
     keyword: string | null;
   };
-  copyToClipboard: {
+  copy: {
     data: string;
   };
   key: {
@@ -216,7 +221,6 @@ interface FgRes {
     url: string;
     path: string | null;
   };
-  openCopiedUrl: string | void;
   execInChild: boolean;
 }
 

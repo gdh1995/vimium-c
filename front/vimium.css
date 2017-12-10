@@ -1,13 +1,8 @@
 /*
- * The z-indexes of Vimium++ elements are very large, because we always want them to show on top. Chrome may
- * support up to Number.MAX_VALUE, which is approximately 1.7976e+308. We're using 2^31, which is the max
- * value of a singed 32 bit int. Let's try larger valeus if 2**31 empirically isn't large enough.
- *
- *
  * R: Reset; S: Selected
  *
  * HM: HintMarkerContainer; LH: LinkHint; MC: MatchingCharacter; IH: InputHint;
- * HUD: HUD; O: vOmnibar; OI: vOmnibarItem
+ * HUD: HUD;
  *
  */
 .R {
@@ -38,6 +33,7 @@
 	pointer-events: none;
 	position: fixed;
 	text-align: left;
+	z-index: 2147483647;
 }
 
 :host {
@@ -63,7 +59,6 @@
 	-webkit-user-select: none;
 	user-select: none;
 	white-space: nowrap;
-	z-index: 2147483647;
 }
 .LH {
 	background: linear-gradient(#FFF785, #FFC542);
@@ -110,7 +105,6 @@
 	user-select: none;
 	white-space: nowrap;
 	/* less than hint markers', so link hints can be shown e.g. for the panel's close button. */
-	z-index: 2147483646;
 }
 
 /* Flash CSS */
@@ -118,7 +112,6 @@
 	box-shadow: 0 0 4px 2px #4183C4;
 	contain: strict;
 	padding: 1px;
-	z-index: 2147483647;
 }
 
 .Frame {
@@ -128,7 +121,6 @@
 	left: 0;
 	top: 0;
 	width: 100%;
-	z-index: 2147483647;
 }
 
 .One {
@@ -145,5 +137,4 @@
 	left: calc(10% - 10px);
 	top: 62px;
 	width: calc(80% + 22px);
-	z-index: 2147483645;
 }
