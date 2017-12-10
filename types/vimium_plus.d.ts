@@ -317,6 +317,7 @@ declare const enum BrowserVer {
   MinStickyPosition = 56,
   MinFailToToggleImageOnFileURL = 56,
   MinExtensionContentPageMayShowFavIcon = 56,
+  Min$KeyboardEvent$$isComposing = 56,
   MinNoKeygenElement = 57,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,

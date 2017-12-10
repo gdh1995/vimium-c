@@ -91,10 +91,12 @@ var Vomnibar = {
   isActive: false,
   inputText: "",
   lastQuery: "",
+  lastNormalInput: "",
   modeType: "omni" as CompletersNS.ValidTypes,
   useInput: true,
   completions: null as never as SuggestionE[],
   isEditing: false,
+  isInputComposing: false,
   isHttps: null as boolean | null,
   isSearchOnTop: false,
   actionType: ReuseType.Default,
@@ -134,7 +136,7 @@ var Vomnibar = {
     this.OnShown && setTimeout(this.OnShown, 100);
   },
   hide (data?: "hide"): void {
-    this.isActive = this.isEditing = this.blurWanted = false;
+    this.isActive = this.isEditing = this.isInputComposing = this.blurWanted = false;
     removeEventListener("wheel", this.onWheel, this.wheelOptions);
     this.timer > 0 && clearTimeout(this.timer);
     window.onkeyup = null as never;
@@ -153,7 +155,7 @@ var Vomnibar = {
     this.timer = this.height = this.heightList = this.matchType = 0;
     this.lastKey = VKeyCodes.None;
     this.completions = this.onUpdate = this.isHttps = null as never;
-    this.mode.query = this.lastQuery = this.inputText = "";
+    this.mode.query = this.lastQuery = this.inputText = this.lastNormalInput = "";
     this.modeType = this.mode.type = "omni";
     this.doEnter && setTimeout(this.doEnter, 0);
     this.doEnter = null;
@@ -162,7 +164,7 @@ var Vomnibar = {
   reset (input: string, start?: number, end?: number): void {
     this.inputText = input;
     this.useInput = false;
-    this.mode.query = this.lastQuery = input.trim().replace(this._spacesRe, " ");
+    this.mode.query = this.lastQuery = input && input.trim().replace(this._spacesRe, " ");
     // also clear @timer
     this.update(0, (start as number) <= (end as number) ? function(this: typeof Vomnibar): void {
       this.show();
@@ -171,13 +173,14 @@ var Vomnibar = {
     this.isActive ? (this.height = -1) : (this.isActive = true);
     if (this.init) { return this.init(); }
   },
-  update (updateDelay?: number, callback?: () => void): void {
+  update (updateDelay: number, callback?: () => void): void {
     this.onUpdate = callback || null;
-    if (typeof updateDelay === "number") {
+    if (updateDelay >= 0) {
+      this.isInputComposing = false;
       if (this.timer > 0) {
         clearTimeout(this.timer);
       }
-      if (updateDelay <= 0) {
+      if (updateDelay === 0) {
         return this.fetch();
       }
     } else if (this.timer > 0) {
@@ -391,7 +394,8 @@ var Vomnibar = {
     const oldDi = this.input.selectionDirection;
     this.input.value = str;
     this.input.setSelectionRange(sel, i, oldDi);
-    return this.update();
+    this.isInputComposing = false;
+    return this.update(-1);
   },
   onEnter (event?: MouseEvent | KeyboardEvent | true, newSel?: number): void {
     let sel = newSel != null ? newSel : this.selection;
@@ -466,13 +470,13 @@ var Vomnibar = {
     this.wheelTimer = Date.now();
     return this.goPage(event.deltaY > 0);
   },
-  onInput (): void {
+  onInput (event: KeyboardEvent): void {
     const s0 = this.lastQuery, s1 = this.input.value, str = s1.trim();
     this.blurWanted = false;
     if (str === (this.selection === -1 || this.isSelOriginal ? s0 : this.completions[this.selection].text)) {
       return;
     }
-    if (this.matchType === CompletersNS.MatchType.emptyResult && s1.startsWith(s0)) { return; }
+    if (this.matchType === CompletersNS.MatchType.emptyResult && str.startsWith(s0)) { return; }
     if (!str) { this.isHttps = null; }
     let i = this.input.selectionStart, arr: RegExpExecArray | null;
     if (this.isSearchOnTop) {}
@@ -487,7 +491,14 @@ var Vomnibar = {
         this.input.setSelectionRange(i, i);
       }
     }
-    return this.update();
+    const { isComposing } = event;
+    if (isComposing != null) {
+      if (isComposing && !this.isInputComposing) {
+        this.lastNormalInput = this.input.value.trim();
+      }
+      this.isInputComposing = isComposing;
+    }
+    return this.update(-1);
   },
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
@@ -569,8 +580,17 @@ var Vomnibar = {
     this.renderItems = VUtils.makeListRenderer((document.getElementById("template") as HTMLElement).innerHTML);
     if (this.browserVersion < BrowserVer.MinRoundedBorderWidth) {
       const css = document.createElement("style");
-      css.textContent = `body,.item,#input{border-width:${this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px;}`;
+      css.textContent = `body, .item, #input { border-width: ${this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px; }`;
       (document.head as HTMLHeadElement).appendChild(css);
+    }
+    if (this.browserVersion < BrowserVer.Min$KeyboardEvent$$isComposing) {
+      let func = function (this: void, event: CompositionEvent): void {
+        if (Vomnibar.isInputComposing = event.type === "compositionstart") {
+          Vomnibar.lastNormalInput = Vomnibar.input.value.trim();
+        }
+      };
+      this.input.addEventListener("compositionstart", func);
+      this.input.addEventListener("compositionend", func);
     }
     this.init = VUtils.makeListRenderer = null as never;
   },
@@ -620,11 +640,15 @@ var Vomnibar = {
     query: ""
   },
   _spacesRe: <RegExpG> /\s+/g,
+  _singleQuoteRe: <RegExpG> /'/g,
   fetch (): void {
-    let mode = this.mode, str: string, s2: string, newMatchType = CompletersNS.MatchType.Default;
+    let mode = this.mode, str: string, s2: string, last: string, newMatchType = CompletersNS.MatchType.Default;
     this.timer = -1;
     if (this.useInput) {
       this.lastQuery = str = this.input.value.trim();
+      if (this.isInputComposing && str.startsWith(last = this.lastNormalInput)) {
+        str = last + str.substring(last.length).replace(this._singleQuoteRe, "");
+      }
       str = str.replace(this._spacesRe, " ");
       if (str === mode.query) { return this.postUpdate(); }
       mode.type = this.matchType < CompletersNS.MatchType.singleMatch || !str.startsWith(mode.query) ? this.modeType

@@ -1011,6 +1011,7 @@ declare var Comment: {
 }
 
 interface CompositionEvent extends UIEvent {
+    readonly type: "compositionstart" | "compositionend";
     readonly data: string;
     readonly locale: string;
     initCompositionEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, dataArg: string, locale: string): void;
@@ -3744,6 +3745,9 @@ interface HTMLInputElement extends HTMLElement {
       * @param n Value to increment the value by.
       */
     stepUp(n?: number): void;
+    addEventListener<K extends CompositionEvent["type"]>(type: K
+        , listener: (this: HTMLInputElement, ev: CompositionEvent & { type: K }) => void
+        , useCapture?: EventListenerOptions): void;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K
         , listener: (this: HTMLInputElement, ev: HTMLElementEventMap[K]) => void
         , useCapture?: EventListenerOptions): void;
@@ -5115,6 +5119,7 @@ interface KeyboardEvent extends UIEvent {
     readonly DOM_KEY_LOCATION_NUMPAD: number;
     readonly DOM_KEY_LOCATION_RIGHT: number;
     readonly DOM_KEY_LOCATION_STANDARD: number;
+    readonly isComposing?: boolean;
 }
 interface OldKeyboardEvent extends KeyboardEvent {
     readonly keyIdentifier: string;
