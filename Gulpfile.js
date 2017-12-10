@@ -21,7 +21,7 @@ var debugging = false;
 var compileInBatch = true;
 var typescript = null, tsOptionsLogged = false;
 var disableErrors = process.env.SHOW_ERRORS !== "1" && !compileInBatch;
-var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES === "1";
+var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", false);
 
