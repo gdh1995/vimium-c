@@ -206,9 +206,10 @@ var Backend: BackendHandlersNS.BackendHandlers;
       let { url } = this.sender, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
       if (favIcon0 == 1 && Settings.CONST.ChromeVersion >= BrowserVer.MinExtensionContentPageMayShowFavIcon) {
         url = url.substring(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
-        for (let tabId in framesForTab) {
-          let frames = framesForTab[tabId] as Port[];
-          for (let i = 1; i < frames.length; i++) {
+        const map = framesForTab;
+        for (let tabId in map) {
+          let frames = map[tabId] as Frames.Frames;
+          for (let i = 1, len = frames.length; i < len; i++) {
             let { sender } = frames[i];
             if (sender.frameId === 0) {
               if (sender.url.startsWith(url)) { favIcon = 1; }
@@ -1505,7 +1506,7 @@ Are you sure you want to continue?`);
       cOptions = request as (typeof request) & SafeObject;
       return BackgroundCommands.openUrl();
     },
-    frameFocused (this: void, _0: FgReq["frameFocused"], port: Port): void {
+    focus (this: void, _0: FgReq["focus"], port: Port): void {
       let tabId = port.sender.tabId, ref = framesForTab[tabId] as Frames.WritableFrames | undefined, status: Frames.ValidStatus;
       if (!ref) {
         return needIcon ? Backend.setIcon(tabId, port.sender.status) : undefined;
@@ -1530,8 +1531,7 @@ Are you sure you want to continue?`);
       if (sender.status !== status) {
         if (sender.flags & Frames.Flags.locked) { return; }
         sender.status = status;
-        let a: Frames.Frames | undefined;
-        if (needIcon && (a = framesForTab[tabId]) && a[0] === port) {
+        if (needIcon && (framesForTab[tabId] as Frames.Frames)[0] === port) {
           Backend.setIcon(tabId, status);
         }
       } else if (!pattern || pattern === Backend.getExcluded(oldUrl)) {
@@ -1557,7 +1557,7 @@ Are you sure you want to continue?`);
       }
     },
     execInChild (this: void, request: FgReq["execInChild"], port: Port): FgRes["execInChild"] {
-      const tabId = port.sender.tabId, ports = framesForTab[tabId], url = request.url;
+      const ports = framesForTab[port.sender.tabId], url = request.url;
       if (!ports || ports.length < 3) { return false; }
       let iport: Port | null = null, i = ports.length;
       while (1 <= --i) {
@@ -1684,7 +1684,7 @@ Are you sure you want to continue?`);
   Connections = {
     state: 0,
     _fakeId: GlobalConsts.MaxImpossibleTabId,
-    framesForOmni: [] as Frames.WritableFrames,
+    framesForOmni: [null as never] as Frames.WritableFrames,
     OnMessage (this: void, request: Req.baseFg<string> | Req.baseFgWithRes<string>, port: Frames.Port): void {
       let id: number | undefined;
       if (id = (request as Req.baseFgWithRes<string>)._msgId) {
@@ -1701,8 +1701,7 @@ Are you sure you want to continue?`);
     OnConnect (this: void, port: Frames.Port): void {
       const type = (port.name.substring(9) as string | number as number) | 0,
       sender = Connections.format(port), { tabId, url } = sender;
-      let status: Frames.ValidStatus, ref: Frames.WritableFrames | undefined;
-      ref = framesForTab[tabId] as typeof ref;
+      let status: Frames.ValidStatus, ref = framesForTab[tabId] as Frames.WritableFrames | undefined;
       if (type >= PortType.omnibar || (url === Settings.cache.vomnibarPage_f)) {
         if (type < PortType.knownStatusBase) {
           if (Connections.onOmniConnect(port, tabId, type)) {
@@ -2036,8 +2035,9 @@ Are you sure you want to continue?`);
     let ref = framesForTab as Frames.FramesMapToDestroy, tabId: string;
     ref.omni = Connections.framesForOmni;
     for (tabId in ref) {
-      for (const port of ref[tabId]) {
-        port.disconnect();
+      let arr = ref[tabId], end = arr.length;
+      for (let i = 1; i < end; i++) {
+        arr[i].disconnect();
       }
     }
   };

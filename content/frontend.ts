@@ -247,7 +247,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     OnWndBlur2: null as ((this: void) => void) | null,
     OnReady (): void {
       HUD.enabled = true;
-      ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
+      ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "focus" });
     },
     wrapper: null as FocusListenerWrapper | null,
     wrap (this: void): FocusListenerWrapper["outer"] {

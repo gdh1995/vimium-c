@@ -160,7 +160,7 @@ interface FgReq {
   execInChild: {
     url: string;
   } & BaseExecute<object>;
-  frameFocused: Req.baseFg<"frameFocused">;
+  focus: Req.baseFg<"focus">;
   checkIfEnabled: {
     url: string;
   };
