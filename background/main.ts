@@ -434,7 +434,8 @@ Are you sure you want to continue?`);
       if (frameUrl.startsWith("chrome")) {
         return Backend.complain("eval JavaScript on extension pages");
       }
-      if (notTop || !Utils.protocolRe.test(frameUrl)) {
+      if (NotChrome
+          || notTop || !Utils.protocolRe.test(frameUrl)) {
         return funcDict.openJSUrl[1](url);
       }
       chrome.tabs.update(sender.tabId, { url }, function(): void {
