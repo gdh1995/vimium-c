@@ -905,9 +905,11 @@ getUrlData (link: HTMLAnchorElement): string {
   return link.href;
 },
 getImageUrl (img: HTMLElement): string | void {
-  let text: string = img instanceof HTMLAnchorElement ? img.href : img instanceof HTMLImageElement ? img.src : ""
+  let isImg = img instanceof HTMLImageElement
+    , text: string = isImg ? (img as HTMLImageElement).src : img instanceof HTMLAnchorElement ? img.href : ""
     , src = img.getAttribute("data-src") || "";
-  if (!text || text.startsWith("data:") || VUtils.jsRe.test(text) || src.length > text.length + 8 && VUtils.isImageUrl(src)) {
+  if (!text || text.startsWith("data:") || VUtils.jsRe.test(text)
+      || src.length > text.length + 7 && (isImg || VUtils.isImageUrl(src))) {
     text = src;
   }
   return text || VHUD.showForDuration("Not an image", 1000);
