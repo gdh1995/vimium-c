@@ -155,12 +155,11 @@
 	position: absolute;
 	top: -34px;
 }
-#HelpBottomLeft {
-	float: left;
-}
-#HelpBottomRight {
+#HelpVersion {
 	float: right;
-	text-align: right;
+}
+#HelpCredits {
+	clear: left;
 }
 #AdvancedCommands {
 	position: absolute;
@@ -250,16 +249,25 @@
 		<div id="HelpTip">{{tip}}</div>
 		<a class="L" id="AdvancedCommands" role="button" href="javascript:;">Show advanced commands</a>
 
-		<div id="HelpBottomLeft">
-			Enjoying Vimium++? <a class="L" target="_blank" href="https://github.com/gdh1995/vimium-plus">Star it on GitHub</a>.
-			<a class="L" target="_blank"
-				href="https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews"
-				>Review on Web Store</a>.
-			<br/> Found a bug? <a class="L" target="_blank" href="https://github.com/gdh1995/vimium-plus/issues">Report it here</a>.
+		<div id="HelpAbout">
+			<div id="HelpVersion">Version {{version}}</div>
+			<div>
+				Enjoying Vimium++?
+				<a class="L" target="_blank" href="https://github.com/gdh1995/vimium-plus">Star it on GitHub</a>;
+				<a class="L" target="_blank"
+					href="https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews"
+					>Review on Web Store</a>.
+				Found a bug? <a class="L" target="_blank" href="https://github.com/gdh1995/vimium-plus/issues">Report it here</a>.
+			</div>
 		</div>
-		<div id="HelpBottomRight">
-			<span>Version {{version}}</span><br/>
-			<span>Modified from <a class="L" target="_blank" href="https://github.com/philc/vimium">Vimium</a></span>
+		<div id="HelpCredits">
+			Credits:
+			<a class="L" target="_blank" href="https://github.com/philc/vimium">Vimium</a>
+				(the original extension),
+			<a class="L" target="_blank" href="https://github.com/fengyuanchen/viewerjs">Viewer.js</a>
+				by Chen Fengyuan,
+			<a class="L" target="_blank" href="https://github.com/silentmatt/expr-eval">JavaScript Expression Evaluator</a>
+				by Matthew Crumley.
 		</div>
 	</div>
 </div>
