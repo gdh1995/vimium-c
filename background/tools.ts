@@ -239,12 +239,12 @@ ContentSettings = {
   },
   updateTab (this: void, tab: Tab, newWindowId?: number): void {
     tab.active = true;
-    if (!newWindowId || tab.windowId === newWindowId) {
+    if (typeof newWindowId !== "number" || tab.windowId === newWindowId) {
       ++tab.index;
     } else {
       (tab as chrome.tabs.CreateProperties).index = undefined;
+      tab.windowId = newWindowId;
     }
-    newWindowId && (tab.windowId = newWindowId);
     Backend.reopenTab(tab);
   }
 },

@@ -613,7 +613,7 @@ tabs: {
       if (tab.incognito) { id += "*"; }
       const tabId = tab.id, suggestion = new Suggestion(id, tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
-      if (curTabId === tabId) { suggestion.relevancy = 0; }
+      if (curTabId === tabId) { suggestion.relevancy = 8; }
       suggestions.push(suggestion);
     }
     if (queryType !== FirstQuery.tabs && offset !== 0) {}
@@ -625,10 +625,9 @@ tabs: {
         suggestions.length = maxResults;
       }
     } else if (offset > 0) {
-      let len: number, tabId: number, i = maxResults + offset - suggestions.length;
-      suggestions = suggestions.slice(offset).concat(suggestions.slice(0, i));
-      for (i = 0, len = tabId = suggestions.length; i < len; i++) {
-        suggestions[i].relevancy = tabId--;
+      suggestions = suggestions.slice(offset).concat(suggestions.slice(0, maxResults + offset - suggestions.length));
+      for (let i = 0, len = suggestions.length, score = len; i < len; i++) {
+        suggestions[i].relevancy = score--;
       }
       offset = 0;
     }
@@ -637,7 +636,7 @@ tabs: {
   },
   SortNumbers (this: void, a: number, b: number): number { return a - b; },
   computeRecency (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    return TabRecency.tabs[tabId] || (1 - 1 / tabId);
+    return TabRecency.tabs[tabId] || (10 - 10 / (11 + tabId));
   }
 },
 

@@ -1683,7 +1683,7 @@ Are you sure you want to continue?`);
   },
   Connections = {
     state: 0,
-    _fakeId: GlobalConsts.MaxImpossibleTabId,
+    _fakeId: GlobalConsts.MaxImpossibleTabId as number,
     framesForOmni: [null as never] as Frames.WritableFrames,
     OnMessage (this: void, request: Req.baseFg<string> | Req.baseFgWithRes<string>, port: Frames.Port): void {
       let id: number | undefined;
