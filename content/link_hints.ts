@@ -357,7 +357,7 @@ var VHints = {
   GetLinks (this: Hint[], element: Element): void {
     let a: string | null, arr: VRect | null;
     if (element instanceof HTMLAnchorElement && ((a = element.getAttribute("href")) && a !== "#"
-        && !VUtils.isJSUrl(a)
+        && !VUtils.jsRe.test(a)
         || element.hasAttribute("data-vim-url"))) {
       if (arr = VDom.getVisibleClientRect(element)) {
         this.push([element, arr, ClickType.click]);
@@ -907,7 +907,7 @@ getUrlData (link: HTMLAnchorElement): string {
 getImageUrl (img: HTMLElement): string | void {
   let text: string = img instanceof HTMLAnchorElement ? img.href : img instanceof HTMLImageElement ? img.src : ""
     , src = img.getAttribute("data-src") || "";
-  if (!text || text.startsWith("data:") || VUtils.isJSUrl(text) || src.length > text.length + 8 && VUtils.isImageUrl(src)) {
+  if (!text || text.startsWith("data:") || VUtils.jsRe.test(text) || src.length > text.length + 8 && VUtils.isImageUrl(src)) {
     text = src;
   }
   return text || VHUD.showForDuration("Not an image", 1000);
