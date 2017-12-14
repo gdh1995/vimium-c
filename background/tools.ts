@@ -463,6 +463,6 @@ setTimeout(function() {
 chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
   const notAllowed = Settings.CONST.DisallowIncognito = isAllowedAccess === false;
   if (notAllowed) {
-    console.log("Sorry, but some commands of Vimium++ need the permission to run Vimium++ in incognito mode.");
+    console.log("Sorry, but some commands of Vimium++ need the permission to run in incognito mode.");
   }
 });
