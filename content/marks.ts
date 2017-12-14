@@ -1,10 +1,12 @@
 var VMarks = {
-  onKeypress: null as never as (event: HandlerNS.Event, keyChar: string) => void,
+  onKeyChar: null as never as (event: HandlerNS.Event, keyChar: string) => void,
   prefix: true,
+  swap: true,
   activate (_0: number, options: FgOptions): void {
     const isGo = options.mode !== "create";
-    this.onKeypress = isGo ? this._goto : this._create;
+    this.onKeyChar = isGo ? this._goto : this._create;
     this.prefix = options.prefix !== false;
+    this.swap = options.swap === true;
     VUtils.push(this.onKeydown, this);
     return VHUD.show(isGo ? "Go to mark..." : "Create mark...");
   },
@@ -16,9 +18,9 @@ var VMarks = {
       return 1;
     }
     VUtils.remove(this);
-    cont && keyCode > VKeyCodes.space ? this.onKeypress(event, keyChar as string) : VHUD.hide();
-    this.prefix = true;
-    this.onKeypress = null as never;
+    cont && keyCode > VKeyCodes.space ? this.onKeyChar(event, keyChar as string) : VHUD.hide();
+    this.prefix = this.swap = true;
+    this.onKeyChar = null as never;
     return 2;
   },
   getLocationKey (keyChar: string): string {
@@ -29,16 +31,16 @@ var VMarks = {
     this._previous = [ window.scrollX, window.scrollY ];
   },
   _create (event: HandlerNS.Event, keyChar: string): void {
-    if (event.shiftKey) {
+    if (keyChar === "`" || keyChar === "'") {
+      this.setPreviousPosition();
+      return VHUD.showForDuration("Created local mark [last].", 1000);
+    } else if (event.shiftKey !== this.swap) {
       if (window.top === window) {
         return this.createMark(keyChar);
       } else {
         VPort.post({handler: "marks", action: "create", markName: keyChar});
         return VHUD.hide();
       }
-    } else if (keyChar === "`" || keyChar === "'") {
-      this.setPreviousPosition();
-      return VHUD.showForDuration("Created local mark [last].", 1000);
     } else {
       return this.createMark(keyChar, "local");
     }
@@ -57,7 +59,7 @@ var VMarks = {
       prefix: this.prefix,
       markName: keyChar
     };
-    if (event.shiftKey) {
+    if (event.shiftKey !== this.swap) {
       VHUD.hide();
     } else {
       try {
