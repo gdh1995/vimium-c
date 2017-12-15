@@ -458,6 +458,11 @@ var Utils = {
   decodeEscapedURL (url: string): string {
     return url.indexOf("://") < 0 && this.escapedColonOrSlashRe.test(url) ? this.DecodeURLPart(url).trim() : url;
   },
+  imageFileRe: <RegExpI & RegExpOne> /\.(?:bmp|gif|ico|jpe?g|png|svg|tiff?|webp)$/i,
+  showFileUrl (url: string): string {
+    return this.imageFileRe.test(url) ? this.formatVimiumUrl("show image " + url, false, Urls.WorkType.Default)
+      : url;
+  },
   upperCaseAlphaRe: <RegExpOne> /[A-Z]/,
   reformatURL (url: string): string {
     let ind = url.indexOf(":");
