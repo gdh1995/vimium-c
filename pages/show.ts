@@ -247,10 +247,10 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
   if (!ch) { return false; }
   let action: number = 0;
   switch (VKeyboard.getKey(event, ch)) {
-  case "<c-=>": case "+": case "=": action = 1; break;
+  case "<c-=>": case "+": case "=": case "<up>": action = 1; break;
   case "<left>": action = -2; break;
   case "<right>": action = 2; break;
-  case "<c-->": case "-": action = -1; break;
+  case "<c-->": case "-": case "<down>": action = -1; break;
   default: return false;
   }
   event.preventDefault();
