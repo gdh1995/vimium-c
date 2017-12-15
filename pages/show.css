@@ -57,9 +57,10 @@ body.filled {
 }
 
 img.invert {
+  background: white;
+  outline: 4px solid #a06d0d;
   -webkit-filter: invert(100%);
   filter: invert(100%);
-  background: white;
 }
 
 img.invert::selection {
