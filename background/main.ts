@@ -687,18 +687,23 @@ Are you sure you want to continue?`);
         chrome.tabs.remove(tabs.map(funcDict.getId), funcDict.onRuntimeError);
       }
     },
-    focusParentFrame: function(this: Frames.Sender, frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
-      for (let i = 0, curId = this.frameId; i < frames.length; i++) {
-        if (frames[i].frameId !== curId) { continue; }
-        curId = frames[i].parentFrameId;
-        const port = funcDict.indexFrame(this.tabId, curId);
-        port ? port.postMessage({
-          name: "focusFrame",
-          CSS: funcDict.ensureInnerCSS(port),
-          mask: FrameMaskType.ForcedSelf
-        }) : Backend.showHUD("Fail to find its parent frame");
-        return;
+    focusParentFrame (this: Frames.Sender, frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
+      let frameId = this.frameId;
+      for (let i of frames) {
+        if (i.frameId === frameId) {
+          frameId = i.parentFrameId;
+          break;
+        }
       }
+      const port = funcDict.indexFrame(this.tabId, frameId);
+      if (!port) {
+        return BackgroundCommands.mainFrame();
+      }
+      port.postMessage({
+        name: "focusFrame",
+        CSS: funcDict.ensureInnerCSS(port),
+        mask: FrameMaskType.ForcedSelf
+      });
     },
     focusOrLaunch: [function(tabs): void {
       if (tabs && tabs.length > 0) {
@@ -1071,16 +1076,21 @@ Are you sure you want to continue?`);
     parentFrame (): void {
       const sender: Frames.Sender | undefined = cPort.sender,
       msg = NoFrameId ? `Vimium++ can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
-        : !chrome.webNavigation ? "Vimium++ is not permitted to access frames"
         : !(sender && sender.tabId >= 0 && framesForTab[sender.tabId])
           ? "Vimium++ can not access frames in current tab"
         : null;
       if (msg) {
+        if (NoFrameId) {
+          BackgroundCommands.mainFrame();
+        }
         return Backend.showHUD(msg);
       }
       if (!sender.frameId) {
         cPort.postMessage({ name: "focusFrame", CSS: funcDict.ensureInnerCSS(cPort), mask: FrameMaskType.OnlySelf });
         return;
+      }
+      if (!chrome.webNavigation) {
+        return BackgroundCommands.mainFrame();
       }
       chrome.webNavigation.getAllFrames({
         tabId: (sender as Frames.Sender).tabId

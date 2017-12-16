@@ -2782,7 +2782,7 @@ declare namespace chrome.webNavigation {
      * @param callback
      * Optional parameter details: A list of frames in the given tab, null if the specified tab ID is invalid.
      */
-    export function getAllFrames(details: GetAllFrameDetails, callback: (details: GetAllFrameResultDetails[] | null) => void): 1;
+    export function getAllFrames(details: GetAllFrameDetails, callback: (details: GetAllFrameResultDetails[] | null, exArg: FakeArg) => void): 1;
 
     /** Fired when the reference fragment of a frame was updated. All future events for that frame will use the updated URL. */
     var onReferenceFragmentUpdated: WebNavigationTransitionalEvent;
