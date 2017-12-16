@@ -643,7 +643,7 @@ var VHints = {
   },
   _getShadowV1Sign(): string {
     let node = VDom.UI.root || VDom.createElement('div'), sign = "* >>> ", v0 = "* /deep/ ";
-    if (VSettings.cache.browserVer < BrowserVer.Min$GtGtGt$IfExperimentalWebPlatformFeatures) {
+    if (VSettings.cache.browserVer < BrowserVer.MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled) {
       sign = v0;
     } else try {
       node.querySelector(sign + "div");
