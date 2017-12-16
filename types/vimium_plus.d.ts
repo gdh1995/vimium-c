@@ -318,7 +318,7 @@ declare const enum BrowserVer {
   MinFailToToggleImageOnFileURL = 56,
   MinExtensionContentPageMayShowFavIcon = 56,
   Min$KeyboardEvent$$isComposing = 56,
-  Min$GtGtGt$IfExperimentalWebPlatformFeatures = 56,
+  MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled = 56,
   MinNoKeygenElement = 57,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,
@@ -330,6 +330,6 @@ declare const enum BrowserVer {
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
-  // since MinSelector$deepInCSS$DoesNothing, Vimium's inner styles have been really safe
-  MinSelector$deepInCSS$DoesNothing = 63,
+  // since MinSelector$deep$InCSSDoesNothing, Vimium's inner styles have been really safe
+  MinSelector$deep$InCSSDoesNothing = 63,
 }
