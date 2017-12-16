@@ -1072,7 +1072,7 @@ Are you sure you want to continue?`);
       const sender: Frames.Sender | undefined = cPort.sender,
       msg = NoFrameId ? `Vimium++ can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
         : !chrome.webNavigation ? "Vimium++ is not permitted to access frames"
-        : !(sender && sender.tabId > 0 && framesForTab[sender.tabId])
+        : !(sender && sender.tabId >= 0 && framesForTab[sender.tabId])
           ? "Vimium++ can not access frames in current tab"
         : null;
       if (msg) {
