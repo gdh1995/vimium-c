@@ -393,6 +393,7 @@ var VHints = {
       }
     }
   },
+  _shadowSign: "* /deep/ ",
   traverse: function (this: any, key: string
       , filter: HintsNS.Filter<Hint | Element>, root?: Document | Element): Hint[] | Element[] {
     VDom.prepareCrop();
@@ -403,7 +404,7 @@ var VHints = {
     if (VSettings.cache.deepHints) {
       // `/deep/` is only applyed on Shadow DOM v0, and Shadow DOM v1 does not support it at all
       // ref: https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/HX5Y8Ykr5Ns
-      query = "* /deep/ " + key;
+      query = this._shadowSign + key;
       if (uiRoot && uiRoot.mode !== "closed") { uiRoot = null; }
     }
     const output: Hint[] | Element[] = [], isTag = (<RegExpOne>/^\*$|^[a-z]+$/).test(query),
@@ -584,6 +585,9 @@ var VHints = {
         this.isClickListened = !this.isClickListened;
       } else if (i === KeyStat.plain) {
         VSettings.cache.deepHints = !VSettings.cache.deepHints;
+      } else if (i === KeyStat.ctrlKey || i === KeyStat.metaKey) {
+        VSettings.cache.deepHints = true;
+        this._shadowSign = this._shadowSign.length === 9 ? this._getShadowV1Sign() : "* /deep/ ";
       }
       setTimeout(this.reinit.bind(this, null), 0);
     } else if (i === VKeyCodes.shiftKey) {
@@ -636,6 +640,18 @@ var VHints = {
       }
     }
     return HandlerResult.Prevent;
+  },
+  _getShadowV1Sign(): string {
+    let node = VDom.UI.root || VDom.createElement('div'), sign = "* >>> ", v0 = "* /deep/ ";
+    if (VSettings.cache.browserVer < BrowserVer.Min$GtGtGt$IfExperimentalWebPlatformFeatures) {
+      sign = v0;
+    } else try {
+      node.querySelector(sign + "div");
+    } catch (e) {
+      sign = v0 + " ";
+    }
+    this._getShadowV1Sign = function() { return sign; }
+    return sign;
   },
   ResetMode (): void {
     if (VHints.mode >= HintMode.min_disable_queue || VHints.lastMode === VHints.mode) { return; }

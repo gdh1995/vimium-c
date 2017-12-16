@@ -318,6 +318,7 @@ declare const enum BrowserVer {
   MinFailToToggleImageOnFileURL = 56,
   MinExtensionContentPageMayShowFavIcon = 56,
   Min$KeyboardEvent$$isComposing = 56,
+  Min$GtGtGt$IfExperimentalWebPlatformFeatures = 56,
   MinNoKeygenElement = 57,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,
@@ -325,10 +326,10 @@ declare const enum BrowserVer {
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
   MinNoBorderForBrokenImage = 60,
-  // https://www.chromestatus.com/features/4964279606312960 is not the truth
-  // MinSelector$deep$DoesNothing = 63,
   MinRoundedBorderWidth = 61, // a border is only showing if `width * zoomed-ratio >= 0.5`
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
+  // since MinSelector$deepInCSS$DoesNothing, Vimium's inner styles have been really safe
+  MinSelector$deepInCSS$DoesNothing = 63,
 }
