@@ -52,7 +52,7 @@ var Commands = {
       , mkReg = Object.create<string>(null);
     const available = CommandsData.availableCommands;
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
-    lines[0] !== "unmapAll" ? (this as typeof Commands).loadDefaults(registry) : ++_i;
+    lines[0] !== "unmapAll" && lines[0] !== "unmapall" ? (this as typeof Commands).loadDefaults(registry) : ++_i;
     for (_len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
       if (!(line.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
@@ -75,7 +75,7 @@ var Commands = {
           userDefinedKeys[key] = true;
           continue;
         }
-      } else if (key === "unmapAll") {
+      } else if (key === "unmapAll" || key === "unmapall") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
         userDefinedKeys = Object.create<true>(null);
         mkReg = Object.create<string>(null), mk = 0;
