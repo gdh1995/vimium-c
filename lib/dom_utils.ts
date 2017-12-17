@@ -124,7 +124,7 @@ var VDom = {
     return !!rect;
   },
   specialZoom: false,
-  docZoom: 1,
+  docZoom: 1, // related to physical pixels
   // return: ::min(deviceRatio, 1) * [ docEl.zoom * ... * ] curTopEl (fullscreen / docEl) .zoom
   getZoom (): number {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio

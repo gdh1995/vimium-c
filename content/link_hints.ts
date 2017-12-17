@@ -100,7 +100,7 @@ var VHints = {
       return VHUD.showForDuration("Characters for LinkHints are too few.", 1000);
     }
 
-    let elements: Hint[] | undefined;
+    let elements: Hint[] | undefined | null;
     const arr = VDom.getViewBox();
     VScroller.getScale(VDom.bodyZoom);
     if (this.tooHigh !== null) {
@@ -124,7 +124,7 @@ var VHints = {
     if (this.box) { this.box.remove(); this.box = null; }
     this.hintMarkers = (elements as Hint[]).map(this.createMarkerFor, this);
     this.adjustMarkers(elements as Hint[]);
-    elements = undefined;
+    elements = null;
     this.alphabetHints.initMarkers(this.hintMarkers, str);
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320;
@@ -218,7 +218,7 @@ var VHints = {
     marker.className = link[2] < ClickType.minBox ? "LH" : "LH BH";
     const st = marker.style;
     st.left = i + "px";
-    if (i > this.maxLeft) {
+    if (i > this.maxLeft && this.maxRight) {
       st.maxWidth = this.maxRight - i + "px";
     }
     i = link[1][1];
