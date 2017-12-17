@@ -144,12 +144,11 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     return element;
   },
   getActivatedElement (): Element | null {
-    let element: Element | null;
-    this.top = document.scrollingElement || document.body || (VDom.isHTML() ? document.documentElement : null);
+    let cur: Element | null, element =
+      this.top = document.scrollingElement || document.body || (VDom.isHTML() ? document.documentElement : null);
     VDom.getZoom();
     this.getScale();
-    if (element = this.current) { return element; }
-    element = this.top;
+    if (cur = this.current) { return cur; }
     return this.current = element && (this.selectFirst(element) || element);
   },
   getScale (bodyZoom?: number): void {
