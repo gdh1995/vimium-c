@@ -534,7 +534,7 @@ interface CSSStyleDeclaration {
     borderBottomLeftRadius: string | null;
     borderBottomRightRadius: string | null;
     borderBottomStyle: string | null;
-    borderBottomWidth: string | null;
+    borderBottomWidth: string;
     borderCollapse: string | null;
     borderColor: string | null;
     borderImage: string | null;
@@ -551,7 +551,7 @@ interface CSSStyleDeclaration {
     borderRight: string | null;
     borderRightColor: string | null;
     borderRightStyle: string | null;
-    borderRightWidth: string | null;
+    borderRightWidth: string;
     borderSpacing: string | null;
     borderStyle: string | null;
     borderTop: string | null;

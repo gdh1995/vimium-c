@@ -140,24 +140,31 @@ var VDom = {
     let iw = window.innerWidth, ih = window.innerHeight;
     if (document.webkitIsFullScreen) {
       // It's a whole mess if there's nested "contain" styles and nothing can be ensured right
-      VDom.bodyZoom = 1;
-      this.docZoom = this.getZoom();
-      return [0, 0, iw, ih, 0];
+      this.bodyZoom = 1;
+      const zoom = this.docZoom = this.getZoom();
+      return [0, 0, (iw / zoom) | 0, (ih / zoom) | 0, 0];
     }
     const box = document.documentElement as HTMLElement, st = getComputedStyle(box),
-    box2 = document.body, st2 = box2 && box2 !== box ? getComputedStyle(box2) : st,
-    ratio = window.devicePixelRatio, zoom2 = VDom.bodyZoom = st2 !== st && +st2.zoom || 1,
+    box2 = document.body, st2 = box2 ? getComputedStyle(box2) : st,
+    ratio = window.devicePixelRatio, zoom2 = this.bodyZoom = st2 !== st && +st2.zoom || 1,
     // NOTE: if doc.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
-    rect = box.getBoundingClientRect(), w2 = rect.width, h2 = rect.height;
+    rect = box.getBoundingClientRect();
     let x = -rect.left, y = -rect.top, zoom = +st.zoom || 1;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
     this.docZoom = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
-    const width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
-      : box.scrollWidth  - Math.ceil(x) - <number><boolean | number>(w2 !== (w2 | 0)),
+    // since BrowserVer.Min$Document$$ScrollingElement
+    // here rect.right is not suitable because <html> may be smaller than <body>
+    // todo: width: - right border width, / zoom
+    const scrolling = document.scrollingElement === box,
+    containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0,
+    width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
+      : box.scrollWidth  / zoom - Math.ceil((scrolling ? window.scrollX / zoom : x) + rect.width  % 1
+          + (containHasPaint && parseFloat(st.borderRightWidth))),
     height = st.overflowY === "hidden" || st2.overflowY === "hidden" ? 0
-      : box.scrollHeight - Math.ceil(y) - <number><boolean | number>(h2 !== (h2 | 0));
-    if (st.position !== "static" || (<RegExpOne>/content|paint|strict/).test(st.contain as string)) {
+      : box.scrollHeight / zoom - Math.ceil((scrolling ? window.scrollY / zoom : y) + rect.height % 1
+          + (containHasPaint && parseFloat(st.borderBottomWidth)));
+    if (st.position !== "static" || containHasPaint) {
       x -= box.clientLeft, y -= box.clientTop;
     } else {
       x += parseFloat(st.marginLeft), y += parseFloat(st.marginTop);
@@ -166,8 +173,8 @@ var VDom = {
     x = Math.abs(x) < 0.01 ? 0 : Math.round(x * 100) / 100;
     y = Math.abs(y) < 0.01 ? 0 : Math.round(y * 100) / 100;
     x /= zoom2, y /= zoom2;
-    iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
-    ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
+    iw = Math.min(Math.max(width,  box.clientWidth  / zoom, (iw - 24) / zoom), iw / zoom + 64);
+    ih = Math.min(Math.max(height, box.clientHeight / zoom, (ih - 24) / zoom), ih / zoom + 20);
     return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];
   },
   ensureInView (el: Element, oldY?: number): boolean {
