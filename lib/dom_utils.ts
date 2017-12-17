@@ -129,7 +129,7 @@ var VDom = {
   getZoom (): number {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
       , zoom = +getComputedStyle(docEl).zoom || 1;
-    Math.abs(zoom - ratio) < 0.001 && this.specialZoom && (zoom = 1);
+    Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
     for (let el: Element | null = document.webkitFullscreenElement; el && el !== docEl; el = this.getParent(el)) {
       zoom *= +getComputedStyle(el).zoom || 1;
     };
@@ -151,7 +151,7 @@ var VDom = {
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect(), w2 = rect.width, h2 = rect.height;
     let x = -rect.left, y = -rect.top, zoom = +st.zoom || 1;
-    Math.abs(zoom - ratio) < 0.001 && this.specialZoom && (zoom = 1);
+    Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
     this.docZoom = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
     const width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
       : box.scrollWidth  - Math.ceil(x) - <number><boolean | number>(w2 !== (w2 | 0)),
