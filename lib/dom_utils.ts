@@ -138,21 +138,23 @@ var VDom = {
   bodyZoom: 1,
   getViewBox (): ViewBox {
     let iw = window.innerWidth, ih = window.innerHeight;
+    const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1);
     if (document.webkitIsFullScreen) {
       // It's a whole mess if there's nested "contain" styles and nothing can be ensured right
       this.bodyZoom = 1;
-      const zoom = this.docZoom = this.getZoom();
+      this.docZoom = this.getZoom();
+      const zoom = this.docZoom / ratio2;
       return [0, 0, (iw / zoom) | 0, (ih / zoom) | 0, 0];
     }
     const box = document.documentElement as HTMLElement, st = getComputedStyle(box),
     box2 = document.body, st2 = box2 ? getComputedStyle(box2) : st,
-    ratio = window.devicePixelRatio, zoom2 = this.bodyZoom = st2 !== st && +st2.zoom || 1,
+    zoom2 = this.bodyZoom = st2 !== st && +st2.zoom || 1,
     // NOTE: if doc.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
     let x = -rect.left, y = -rect.top, zoom = +st.zoom || 1;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
-    this.docZoom = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
+    this.docZoom = Math.round(zoom * ratio2 * 1000) / 1000;
     // since BrowserVer.Min$Document$$ScrollingElement
     // here rect.right is not suitable because <html> may be smaller than <body>
     // todo: width: - right border width, / zoom
