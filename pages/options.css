@@ -99,7 +99,7 @@ pre, kbd, .code {
 pre {
   margin: 5px;
   /* keep 1px so it can be more conspicuous than 0.5px */
-  border-left: 1px solid #ccc;
+  border-left: 0.5px solid #ccc;
   padding-left: 5px;
 }
 td {
