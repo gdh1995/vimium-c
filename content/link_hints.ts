@@ -825,10 +825,8 @@ alphabetHints: {
   initMarkers (hintMarkers: HintsNS.Marker[], str: string): void {
     this.chars = str.toUpperCase();
     this.hintKeystroke = "";
-    for (let end = hintMarkers.length, hints = this.buildHintIndexes(end); 0 <= --end; ) {
-      const marker = hintMarkers[end],
-      hintString = this.numberToHintString(hints[end]);
-      marker.hintString = hintString;
+    for (let end = hintMarkers.length, hints = this.buildHintIndexes(end), h = 0; h < end; h++) {
+      const marker = hintMarkers[h], hintString = marker.hintString = this.numberToHintString(hints[h]);
       for (let i = 0, len = hintString.length; i < len; i++) {
         const node = document.createElement('span');
         node.textContent = hintString[i];
@@ -839,21 +837,16 @@ alphabetHints: {
     this.countLimit = 0;
   },
   buildHintIndexes (linkCount: number): number[] {
-    let hints: number[], i: number, end = this.chars.length;
-    const dn = Math.ceil(Math.log(linkCount) / Math.log(end));
-    end = ((Math.pow(end, dn) - linkCount) / (end - 1)) | 0;
-    this.countMax = dn; this.countLimit = end;
-    for (hints = [], i = 0; i < end; i++) {
+    const hints: number[] = [], result: number[] = [], len = this.chars.length, count = linkCount, start = count % len;
+    let i = this.countMax = Math.ceil(Math.log(count) / Math.log(len)), max = count - start + len
+      , end = this.countLimit = ((Math.pow(len, i) - count) / (len - 1)) | 0;
+    for (i = 0; i < end; i++) {
       hints.push(i);
     }
-    for (end *= this.chars.length - 1; i < linkCount; i++) {
+    for (end *= len - 1; i < count; i++) {
       hints.push(i + end);
     }
-    return this.shuffleHints(hints);
-  },
-  shuffleHints (hints: number[]): number[] {
-    const result: number[] = [], count = hints.length, len = this.chars.length, start = (count % len);
-    for (let max = count - start + len, i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
       if (i === start) { max -= len; }
       for (let j = i; j < max; j += len) {
         result.push(hints[j]);
