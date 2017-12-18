@@ -411,7 +411,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       , newStat = sender.status !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
     ref = null;
     el = $<HTMLElement>("#toggleOnce");
-    el.innerText = newStat + " for once";
+    el.textContent = newStat + " for once";
     el.onclick = forceState.bind(null, sender.tabId, newStat);
     if (sender.flags & Frames.Flags.locked) {
       el = el.nextElementSibling as HTMLElement;

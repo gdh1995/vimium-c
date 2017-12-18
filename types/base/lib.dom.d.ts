@@ -2960,7 +2960,7 @@ interface HTMLElement extends Element {
     ontimeupdate: (ev: Event) => any;
     onvolumechange: (ev: Event) => any;
     onwaiting: (ev: Event) => any;
-    outerText: string;
+    outerText?: string; // not exist on Firefox
     spellcheck: boolean;
     readonly style: CSSStyleDeclaration;
     tabIndex: number;

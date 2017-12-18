@@ -41,7 +41,7 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
     node.onclick = function(event: MouseEvent): void {
       let target = event.target as HTMLElement, str: string;
       if (target.classList.contains("HelpCommandName")) {
-        str = target.innerText.slice(1, -1);
+        str = target.textContent.slice(1, -1);
         VPort.post({
           handler: "copy",
           data: str
