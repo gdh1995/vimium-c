@@ -79,7 +79,7 @@ var HelpDialog = {
       , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simBackspace"
       , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
       , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
-      , "focusInput", "LinkHints.activate", "LinkHints.activateModeToOpenInNewTab"
+      , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
       , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
       , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
       , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
