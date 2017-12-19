@@ -88,6 +88,7 @@ Known issues (Up to the master branch):
 * fix bugs and memory leaks on pages having ShadowDOM UI.
 * `passNextKey normal` will also exit if the page blurs
 * rename command `LinkHints.activate` to `LinkHints.activateMode` (the old keeps supported)
+* `LinkHints.activateMode` supports option `action=hover/unhover/leave/text/url/image`
 * Vomnibar now prefers a domain starting with "www."
 * now custom CSS takes precedence over default styles like the help dialog's
 * limit max length of Vomnibar's query to 200 chars

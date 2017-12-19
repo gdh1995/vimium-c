@@ -12,6 +12,7 @@ declare namespace HintsNS {
     activator (this: any, linkEl: LinkEl, hintEl: HTMLSpanElement): void | false;
   }
   interface Options extends SafeObject {
+    action?: string;
     mode?: string | number;
     url?: boolean;
   }
@@ -57,6 +58,13 @@ var VHints = {
     DOWNLOAD_LINK: HintMode.DOWNLOAD_LINK,
     COPY_LINK_URL: HintMode.COPY_LINK_URL,
     OPEN_INCOGNITO_LINK: HintMode.OPEN_INCOGNITO_LINK,
+    hover: HintMode.HOVER,
+    leave: HintMode.LEAVE,
+    unhover: HintMode.LEAVE,
+    text: HintMode.COPY_TEXT,
+    url: HintMode.COPY_LINK_URL,
+    image: HintMode.OPEN_IMAGE,
+    // the below are gte `HintMode.min_disable_queue`
     FOCUS_EDITABLE: HintMode.FOCUS_EDITABLE,
     EDIT_LINK_URL: HintMode.EDIT_LINK_URL,
     EDIT_TEXT: HintMode.EDIT_TEXT
@@ -140,8 +148,8 @@ var VHints = {
   setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
     let ref = this.Modes, modeOpt: HintsNS.ModeOpt | undefined,
-    mode = (<number>options.mode >= 0 ? options.mode as number
-      : (this.CONST[options.mode as string]) as number | undefined | Function as number) | 0;
+    mode = (<number>options.mode > 0 ? options.mode as number
+      : this.CONST[options.action || options.mode as string] as number | undefined | Function as number) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
     }
