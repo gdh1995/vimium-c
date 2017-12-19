@@ -289,7 +289,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
 }
   let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg")
     , url0 = tabs[0].url, url = ref ? ref[0].sender.url : url0;
-  if (!ref && (url0.lastIndexOf("about:", 0) === 0 || url0.lastIndexOf("chrome:", 0) === 0)) {
+  if (!ref) {
     (document.body as HTMLBodyElement).textContent = "";
     (document.body as HTMLBodyElement).appendChild(blockedMsg);
     return;
