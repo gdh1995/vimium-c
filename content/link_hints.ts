@@ -799,7 +799,7 @@ var VHints = {
     stackForThisMarker || stacks.push([i]);
   },
   unhoverLast (): void {
-    VDom.unhoverLast(null);
+    VDom.hover(null);
     return VHUD.showForDuration("The last element is unhovered");
   },
 
@@ -953,7 +953,7 @@ HOVER: {
   192: "Hover over nodes continuously",
   activator (element): void {
     const type = VDom.getEditableType(element);
-    VDom.unhoverLast(element);
+    VDom.hover(element);
     VScroller.current = element;
     type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
       element instanceof HTMLFrameElement || element.focus();

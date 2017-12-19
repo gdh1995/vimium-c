@@ -264,7 +264,7 @@ var VDom = {
   } as VDomMouse,
   defaultMouseKeys: { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false } as EventControlKeys,
   lastHovered: null as Element | null,
-  unhoverLast (newEl: Element | null, modifiers?: EventControlKeys | null): void {
+  hover (newEl: Element | null, modifiers?: EventControlKeys | null): void {
     let last = this.lastHovered;
     if (last && this.isInDOM(last)) {
       this.mouse(last, "mouseout", modifiers, newEl !== last ? newEl : null);
