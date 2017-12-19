@@ -966,7 +966,9 @@ LEAVE: {
   129: "Simulate mouse leaving link",
   193: "Simulate mouse leaving continuously",
   activator (this: void, element: HintsNS.LinkEl): void {
-    VDom.mouse(element, "mouseout");
+    const same = VDom.lastHovered === element;
+    VDom.hover(null);
+    same || VDom.mouse(element, "mouseout");
     if (document.activeElement === element) { element.blur(); }
   }
 } as HintsNS.ModeOpt,
