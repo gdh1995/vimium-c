@@ -373,7 +373,7 @@ availableCommands: {
     { url: true, force: true }, "showVomnibar" ],
   nextFrame: [ "Cycle forward to the next frame on the page", 0, true ],
   mainFrame: [ "Select the tab's main/top frame", 1, true ],
-  parentFrame: [ "Focus parent frame of the current", 1, true ],
+  parentFrame: [ "Focus a parent frame", 0, true ],
   "Marks.activateCreateMode": [ "Create a new mark (use swap)", 1, false, { mode: "create" }, "Marks.activate" ],
   "Marks.activate": [ "Go to a mark (use prefix=true, swap)", 1, false, null, "Marks.activate" ],
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, true, { local: true }, "clearMarks" ],

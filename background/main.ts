@@ -688,14 +688,18 @@ Are you sure you want to continue?`);
       }
     },
     focusParentFrame (this: Frames.Sender, frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
-      let frameId = this.frameId;
-      for (let i of frames) {
-        if (i.frameId === frameId) {
-          frameId = i.parentFrameId;
-          break;
+      let frameId = this.frameId, found: boolean;
+      do {
+        found = false;
+        for (let i of frames) {
+          if (i.frameId === frameId) {
+            frameId = i.parentFrameId;
+            found = frameId > 0;
+            break;
+          }
         }
-      }
-      const port = funcDict.indexFrame(this.tabId, frameId);
+      } while (found && 0 < --commandCount);
+      const port = frameId > 0 ? funcDict.indexFrame(this.tabId, frameId) : null;
       if (!port) {
         return BackgroundCommands.mainFrame();
       }
@@ -1079,17 +1083,8 @@ Are you sure you want to continue?`);
         : !(sender && sender.tabId >= 0 && framesForTab[sender.tabId])
           ? "Vimium++ can not access frames in current tab"
         : null;
-      if (msg) {
-        if (NoFrameId) {
-          BackgroundCommands.mainFrame();
-        }
-        return Backend.showHUD(msg);
-      }
-      if (!sender.frameId) {
-        cPort.postMessage({ name: "focusFrame", CSS: funcDict.ensureInnerCSS(cPort), mask: FrameMaskType.OnlySelf });
-        return;
-      }
-      if (!chrome.webNavigation) {
+      msg && Backend.showHUD(msg);
+      if (!sender.frameId || NoFrameId || !chrome.webNavigation) {
         return BackgroundCommands.mainFrame();
       }
       chrome.webNavigation.getAllFrames({
