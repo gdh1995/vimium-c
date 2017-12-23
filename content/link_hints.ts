@@ -191,7 +191,10 @@ var VHints = {
     });
   },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
-    this.frameNested === false && this.checkNestedFrame();
+    if (this.frameNested === false) {
+      VDom.prepareCrop();
+      this.checkNestedFrame();
+    }
     let frame = this.frameNested, child: HintsNS.VWindow = null as never, err = true, done = false;
     if (!frame) { return false; }
     try {
@@ -506,7 +509,6 @@ var VHints = {
     if (output == null) {
       if (!VDom.isHTML()) { return false; }
       output = [];
-      VDom.prepareCrop();
       type Iter = HintsNS.ElementIterator<Hint>;
       (output.forEach as any as Iter).call(document.querySelectorAll("iframe,frame"), this.GetClickable, output);
     }
