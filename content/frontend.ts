@@ -927,7 +927,7 @@ Pagination = {
       if (j !== 0) { currentKeys = ""; }
     }
     if (j === 0) {
-      vPort.post({ handler: "key", key: currentKeys + key });
+      vPort.post({ handler: "key", key: currentKeys + key, lastKey: event.keyCode });
       return esc(HandlerResult.Prevent);
     } else {
       currentKeys += key; nextKeys = j !== 1 ? j : keyMap;

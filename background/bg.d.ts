@@ -388,7 +388,7 @@ declare namespace BackendHandlersNS {
       (this: void, tabId: number): Frames.Frames | null;
       (this: void): Frames.FramesMap;
     };
-    execute (command: string, options?: CommandsNS.RawOptions | null, count?: number): void;
+    execute (command: string, options?: CommandsNS.RawOptions | null, count?: number, lastKey?: VKeyCodes): void;
     Init: ((this: void) => void) | null;
   }
 }

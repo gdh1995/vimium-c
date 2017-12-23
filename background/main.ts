@@ -1231,7 +1231,7 @@ Are you sure you want to continue?`);
   },
   numHeadRe = <RegExpOne>/^\d+/,
   executeCommand = function(command: string, registryEntry: CommandsNS.Item
-      , count: number, port: Port): void {
+      , count: number, lastKey: VKeyCodes, port: Port): void {
     const { options, repeat, alias, background } = registryEntry;
     let scale: number;
     if (options && (scale = +options.count)) { count = Math.max(1, (count * scale) | 0); }
@@ -1248,6 +1248,7 @@ Are you sure you want to continue?`);
     cOptions = options || Object.create(null);
     cPort = port;
     commandCount = count;
+    cKey = lastKey;
     count = <UseTab>func.useTab;
     if (count < UseTab.ActiveTab) {
       return (func as BgCmdNoTab)();
@@ -1665,7 +1666,7 @@ Are you sure you want to continue?`);
       }
       const registryEntry = ref[key] as CommandsNS.Item;
       Utils.resetRe();
-      return executeCommand(registryEntry.command, registryEntry, count, port);
+      return executeCommand(registryEntry.command, registryEntry, count, request.lastKey, port);
     },
     marks (this: void, request: FgReq["marks"], port: Port): void {
       cPort = port;
@@ -1915,11 +1916,12 @@ Are you sure you want to continue?`);
         return this.setIcon(tabId, newStatus);
       }
     },
-    execute (this: void, command, options, count): void {
+    execute (this: void, command, options, count, lastKey): void {
       count = Math.max(1, (count as number) | 0);
       options && typeof options === "object" ?
           Object.setPrototypeOf(options, null) : (options = null);
-      return executeCommand(command, Utils.makeCommand(command, options), count, null as never as Port);
+      lastKey = (+<number>lastKey || VKeyCodes.None) as VKeyCodes;
+      return executeCommand(command, Utils.makeCommand(command, options), count, lastKey, null as never as Port);
     },
     indexPorts: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
       return tabId == null ? framesForTab : frameId == null ? (framesForTab[tabId] || null)
@@ -1991,7 +1993,7 @@ Are you sure you want to continue?`);
     case "command":
       command = message.command ? message.command + "" : "";
       if (!(command && CommandsData.availableCommands[command])) { return; }
-      return Backend.execute(command, message.options, message.count);
+      return Backend.execute(command, message.options, message.count, message.key);
     case "content_scripts":
       sendResponse(Settings.CONST.ContentScripts);
       return;

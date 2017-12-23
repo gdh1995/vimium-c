@@ -197,6 +197,7 @@ interface FgReq {
   key: {
     handler: "key";
     key: string;
+    lastKey: VKeyCodes;
   };
   blank: {},
   marks: ({ action: "create" } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
