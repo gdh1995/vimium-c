@@ -109,7 +109,6 @@ var VHints = {
     }
 
     const arr = VDom.getViewBox();
-    VScroller.getScale(VDom.bodyZoom);
     if (this.tooHigh !== null) {
       this.tooHigh = (document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
@@ -417,6 +416,7 @@ var VHints = {
     const output: Hint[] | Element[] = [], isTag = (<RegExpOne>/^\*$|^[a-z]+$/).test(query),
     wantClickable = (filter as Function) === (this as typeof VHints).GetClickable && key === "*",
     box = root || document.webkitFullscreenElement || document;
+    wantClickable && VScroller.getScale();
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
     if (!root && (this as typeof VHints).tooHigh && box === document && list.length >= 15000) {
       list = (this as typeof VHints).getElementsInViewPort(list);

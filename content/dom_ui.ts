@@ -155,8 +155,9 @@ VDom.UI = {
   },
   getVRect (this: void, clickEl: Element): VRect | null {
     const b = document.body;
-    VDom.prepareCrop();
     VDom.bodyZoom = b && VDom.isInDOM(clickEl, b) && +getComputedStyle(b).zoom || 1;
+    VDom.getZoom();
+    VDom.prepareCrop();
     const rect = VDom.getVisibleClientRect(clickEl),
     cr = clickEl.getBoundingClientRect(), bcr = VDom.fromClientRect(cr);
     return rect && !VDom.isContaining(bcr, rect) ? rect : VDom.NotVisible(null, cr) ? null : bcr;

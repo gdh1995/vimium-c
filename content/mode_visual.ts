@@ -37,12 +37,13 @@ var VVisualMode = {
     if (!this.mode) { this.retainSelection = type === "Range"; }
     str = typeof options.mode === "string" ? options.mode.toLowerCase() : "";
     this.mode = mode = str ? str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line
-    : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
+      : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
     if (mode !== VisualModeNS.Mode.Caret) {
       this.movement.alterMethod = "extend";
       const lock = VEventMode.lock();
       if (!lock && (type === "Caret" || type === "Range")) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
+        VDom.getZoom(1);
         VDom.prepareCrop();
         if (!VDom.cropRectToVisible(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
           sel.removeAllRanges();
@@ -151,6 +152,7 @@ var VVisualMode = {
   establishInitialSelectionAnchor (): boolean {
     let node: Text | null, element: Element, str: string | undefined, offset: number;
     if (!VDom.isHTML()) { return true; }
+    VDom.getZoom(1);
     VDom.prepareCrop();
     const nodes = document.createTreeWalker(document.body || document.documentElement as HTMLElement, NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {

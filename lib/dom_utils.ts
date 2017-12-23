@@ -131,11 +131,18 @@ var VDom = {
    * 
    * also update VDom.fullZoom
    */
-  getZoom (): number {
+  getZoom (alsoBody?: 1): number {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
-      , zoom = +getComputedStyle(docEl).zoom || 1;
+    , zoom = +getComputedStyle(docEl).zoom || 1
+    , el: Element | null = document.webkitFullscreenElement;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
-    for (let el: Element | null = document.webkitFullscreenElement; el && el !== docEl; el = this.getParent(el)) {
+    if (alsoBody) {
+      const body = el ? null : document.body;
+      // if fullscreen and there's nested "contain" styles,
+      // then it's a whole mess and nothing can be ensured to be right
+      this.bodyZoom = body && +getComputedStyle(body).zoom || 1;
+    }
+    for (; el && el !== docEl; el = this.getParent(el)) {
       zoom *= +getComputedStyle(el).zoom || 1;
     };
     this.fullZoom = this.bodyZoom * zoom;
@@ -146,9 +153,7 @@ var VDom = {
     let iw = window.innerWidth, ih = window.innerHeight;
     const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1);
     if (document.webkitIsFullScreen) {
-      // It's a whole mess if there's nested "contain" styles and nothing can be ensured right
-      this.bodyZoom = 1;
-      this.getZoom();
+      this.getZoom(1);
       const zoom = this.docZoom / ratio2;
       return [0, 0, (iw / zoom) | 0, (ih / zoom) | 0, 0];
     }
