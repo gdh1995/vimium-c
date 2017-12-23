@@ -950,7 +950,6 @@ Pagination = {
       }
     },
     focusUpperFrame (this: void, el: HTMLElement, key): HandlerResult {
-      if (document.activeElement !== el) { return HandlerResult.Nothing; }
       if (!isEnabledForUrl) { return InsertMode.focusUpper(key); }
       el.blur();
       window.focus();
