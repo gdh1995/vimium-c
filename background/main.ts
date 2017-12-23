@@ -1546,7 +1546,19 @@ Are you sure you want to continue?`);
       cPort = port;
       commandCount = 1;
       const type = request.type || Frames.NextType.Default;
-      return type === Frames.NextType.parent ? BackgroundCommands.parentFrame() : BackgroundCommands.nextFrame();
+      if (type !== Frames.NextType.current) {
+        return type === Frames.NextType.parent ? BackgroundCommands.parentFrame() : BackgroundCommands.nextFrame();
+      }
+      const ports = framesForTab[port.sender.tabId];
+      if (ports) {
+        ports[0].postMessage({
+          name: "focusFrame",
+          lastKey: request.lastKey,
+          mask: FrameMaskType.NoMask
+        });
+        return;
+      }
+      try { port.postMessage({ name: "returnFocus", lastKey: request.lastKey || VKeyCodes.None }); } catch (e) {}
     },
     exitGrab (this: void, _0: FgReq["exitGrab"], port: Port): void {
       const ports = framesForTab[port.sender.tabId];
@@ -1579,18 +1591,6 @@ Are you sure you want to continue?`);
         return true;
       }
       return false;
-    },
-    refocusCurrent (this: void, request: FgReq["refocusCurrent"], port: Port): void {
-      const ports = port.sender.tabId !== GlobalConsts.TabIdNone ? framesForTab[port.sender.tabId] : null;
-      if (ports) {
-        ports[0].postMessage({
-          name: "focusFrame",
-          lastKey: request.lastKey,
-          mask: FrameMaskType.NoMask
-        });
-        return;
-      }
-      try { port.postMessage({ name: "returnFocus", lastKey: request.lastKey }); } catch (e) {}
     },
     initHelp (this: void, request: FgReq["initHelp"], port: Port): void {
       Promise.all([

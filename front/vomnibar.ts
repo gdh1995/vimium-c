@@ -142,7 +142,7 @@ var Vomnibar = {
     window.onkeyup = null as never;
     const el = this.input;
     el.blur();
-    data || VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
+    data || VPort.postMessage({ handler: "nextFrame", type: Frames.NextType.current, lastKey: this.lastKey });
     this.bodySt.display = "none";
     this.list.textContent = el.value = "";
     this.list.style.height = "";
@@ -353,7 +353,7 @@ var Vomnibar = {
     case "blurInput": this.blurWanted = true; this.input.blur(); break;
     case "backspace": case "blur":
       !this.focused ? this.input.focus()
-      : action === "blur" ? VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey })
+      : action === "blur" ? VPort.postMessage({ handler: "nextFrame", type: Frames.NextType.current, lastKey: this.lastKey })
       : document.execCommand("delete");
       break;
     case "up": case "down":

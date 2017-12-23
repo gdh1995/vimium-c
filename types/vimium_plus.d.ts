@@ -148,6 +148,7 @@ declare namespace Frames {
   const enum NextType {
     next = 0, Default = next,
     parent = 1,
+    current = 2,
   }
 }
 
