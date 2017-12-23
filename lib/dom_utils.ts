@@ -35,16 +35,12 @@ var VDom = {
     arr && arr.length > 0 && (el = arr[arr.length - 1]);
     return el.parentElement || el.parentNode instanceof ShadowRoot && el.parentNode.host || null;
   },
-  prepareCrop (w?: number, h?: number): void {
+  prepareCrop (): void {
     let iw: number, ih: number, ihs: number;
-    this.prepareCrop = function(w?: number, h?: number): void {
-      if ((w as number) > 0) {
-        iw = w as number; ih = h as number; ihs = <number>h - 8;
-        return;
-      }
+    this.prepareCrop = function(): void {
       const doc = document.documentElement as Element;
-      iw = Math.max(window.innerWidth - 24, doc.clientWidth);
-      ih = Math.max(window.innerHeight - 24, doc.clientHeight);
+      iw = Math.max(window.innerWidth - 24, doc.clientWidth) / this.fullZoom;
+      ih = Math.max(window.innerHeight - 24, doc.clientHeight) / this.fullZoom;
       ihs = ih - 8;
     };
     VDom.cropRectToVisible = function(left, top, right, bottom): VRect | null {
@@ -59,7 +55,7 @@ var VDom = {
       ];
       return (cr[2] - cr[0] >= 3 && cr[3] - cr[1] >= 3) ? cr : null;
     };
-    return this.prepareCrop(w, h);
+    return this.prepareCrop();
   },
   getVisibleClientRect (element: Element, el_style?: CSSStyleDeclaration): VRect | null {
     const arr = element.getClientRects();
@@ -129,7 +125,12 @@ var VDom = {
   },
   specialZoom: false,
   docZoom: 1, // related to physical pixels
-  // return: ::min(deviceRatio, 1) * [ docEl.zoom * ... * ] curTopEl (fullscreen / docEl) .zoom
+  fullZoom: 1, // absolute zoom value of <html> * <body>
+  /**
+   * return: ::min(devRatio, 1) * docEl.zoom * ... * curTopEl.zoom
+   * 
+   * also update VDom.fullZoom
+   */
   getZoom (): number {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
       , zoom = +getComputedStyle(docEl).zoom || 1;
@@ -137,6 +138,7 @@ var VDom = {
     for (let el: Element | null = document.webkitFullscreenElement; el && el !== docEl; el = this.getParent(el)) {
       zoom *= +getComputedStyle(el).zoom || 1;
     };
+    this.fullZoom = this.bodyZoom * zoom;
     return this.docZoom = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
   },
   bodyZoom: 1,
@@ -146,7 +148,7 @@ var VDom = {
     if (document.webkitIsFullScreen) {
       // It's a whole mess if there's nested "contain" styles and nothing can be ensured right
       this.bodyZoom = 1;
-      this.docZoom = this.getZoom();
+      this.getZoom();
       const zoom = this.docZoom / ratio2;
       return [0, 0, (iw / zoom) | 0, (ih / zoom) | 0, 0];
     }
@@ -159,12 +161,13 @@ var VDom = {
     let x = -rect.left, y = -rect.top, zoom = +st.zoom || 1;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
     this.docZoom = Math.round(zoom * ratio2 * 1000) / 1000;
+    this.fullZoom = zoom * zoom2;
     // since BrowserVer.Min$Document$$ScrollingElement
     // here rect.right is not suitable because <html> may be smaller than <body>
     // todo: width: - right border width, / zoom
     const scrolling = document.scrollingElement === box,
-    containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0;
-    let width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
+    containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0,
+    width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
       : box.scrollWidth  / zoom - Math.ceil((scrolling ? window.scrollX / zoom : x) + rect.width  % 1
           + (containHasPaint && parseFloat(st.borderRightWidth))),
     height = st.overflowY === "hidden" || st2.overflowY === "hidden" ? 0
@@ -179,11 +182,8 @@ var VDom = {
     x = Math.abs(x) < 0.01 ? 0 : Math.round(x * 100) / 100;
     y = Math.abs(y) < 0.01 ? 0 : Math.round(y * 100) / 100;
     x /= zoom2, y /= zoom2;
-    width  = Math.max(width,  box.clientWidth  / zoom, (iw - 24) / zoom);
-    height = Math.max(height, box.clientHeight / zoom, (ih - 24) / zoom);
-    this.prepareCrop(width, height);
-    iw = Math.min(width,  iw / zoom + 64);
-    ih = Math.min(height, ih / zoom + 20);
+    iw = Math.min(Math.max(width,  box.clientWidth  / zoom, (iw - 24) / zoom), iw / zoom + 64);
+    ih = Math.min(Math.max(height, box.clientHeight / zoom, (ih - 24) / zoom), ih / zoom + 20);
     return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];
   },
   ensureInView (el: Element, oldY?: number): boolean {

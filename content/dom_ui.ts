@@ -78,7 +78,7 @@ VDom.UI = {
   ensureBorder (zoom?: number): void {
     let st = this._styleBorder, first = st === null;
     zoom || (zoom = VDom.getZoom());
-    if (first ? zoom >= 0.999 : (st as any).zoom === zoom) { return; }
+    if (first ? zoom >= 1 : (st as any).zoom === zoom) { return; }
     st = st || (this._styleBorder = this.createStyle(""));
     st.zoom = zoom; st.textContent = ".HUD, .HelpKey, .IH, .LH { border-width: " + ("" + 0.51 / zoom).slice(0, 5) + "px; }";
     first && this.root && this.addElement(st, AdjustType.NotAdjust);

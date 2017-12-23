@@ -146,7 +146,6 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   getActivatedElement (): Element | null {
     let cur: Element | null, element =
       this.top = document.scrollingElement || document.body || (VDom.isHTML() ? document.documentElement : null);
-    VDom.getZoom();
     this.getScale();
     if (cur = this.current) { return cur; }
     return this.current = element && (this.selectFirst(element) || element);
@@ -154,7 +153,8 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   getScale (bodyZoom?: number): void {
     if (!bodyZoom) {
       const body = document.webkitIsFullScreen ? null : document.body;
-      bodyZoom = body && +getComputedStyle(body).zoom || 1;
+      VDom.bodyZoom = bodyZoom = body && +getComputedStyle(body).zoom || 1;
+      VDom.getZoom();
     }
     this.scale = 1 / Math.min(1, VDom.docZoom) / Math.min(1, bodyZoom);
   },
@@ -170,11 +170,11 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     amount = (amount > 0 ? 1 : -1) * this.scale;
     return this.performScroll(element, di, amount) && this.performScroll(element, di, -amount);
   },
-  selectFirst (element: Element): Element | null {
+  selectFirst (element: Element, skipPrepare?: 1): Element | null {
     if (this.scrollDo(element, 1, 1) || this.scrollDo(element, 1, 0)) {
       return element;
     }
-    VDom.prepareCrop();
+    skipPrepare || VDom.prepareCrop();
     let children = [] as {area: number, el: Element}[], rect: VRect | null, _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
       element = _ref[_len];
@@ -185,7 +185,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     }
     children.sort(this.sortByArea);
     for (_len = children.length; 0 < _len--; ) {
-      if (element = this.selectFirst(children[_len].el) as Element) { return element; }
+      if (element = this.selectFirst(children[_len].el, 1) as Element) { return element; }
     }
     return null;
   },

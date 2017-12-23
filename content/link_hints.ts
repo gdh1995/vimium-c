@@ -188,7 +188,7 @@ var VHints = {
   },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
     if (this.frameNested !== null) {
-      command.startsWith("VScroller") && VDom.prepareCrop();
+      command.startsWith("VHints") || VDom.prepareCrop();
       this.checkNestedFrame();
     }
     let frame = this.frameNested, child: HintsNS.VWindow = null as never, err = true, done = false;
@@ -403,6 +403,7 @@ var VHints = {
   _shadowSign: "* /deep/ ",
   traverse: function (this: any, key: string
       , filter: HintsNS.Filter<Hint | Element>, root?: Document | Element): Hint[] | Element[] {
+    VDom.prepareCrop();
     if ((this as typeof VHints).ngEnabled === null && key === "*") {
       (this as typeof VHints).ngEnabled = document.querySelector('.ng-scope') != null;
     }

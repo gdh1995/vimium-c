@@ -46,10 +46,10 @@ var Vomnibar = {
     }
     this.options = null;
     options.width = window.innerWidth; options.height = window.innerHeight;
+    VDom.getZoom();
     // note: here require: that Inactive must be NotInited + 1
     this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
-    VDom.getZoom();
     if (this.status === VomnibarNS.Status.NotInited) {
       if (VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return VUtils.remove(this); }
       this.status = VomnibarNS.Status.Initing;
