@@ -706,6 +706,7 @@ Are you sure you want to continue?`);
       port.postMessage({
         name: "focusFrame",
         CSS: funcDict.ensureInnerCSS(port),
+        key: cKey,
         mask: FrameMaskType.ForcedSelf
       });
     },
@@ -1063,6 +1064,7 @@ Are you sure you want to continue?`);
         name: "focusFrame",
         CSS: port.sender.frameId === 0 || !(port.sender.flags & Frames.Flags.hasCSS)
           ? funcDict.ensureInnerCSS(port) : null,
+        key: cKey,
         mask: port !== cPort ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
       });
     },
@@ -1072,6 +1074,7 @@ Are you sure you want to continue?`);
       port.postMessage({
         name: "focusFrame",
         CSS: funcDict.ensureInnerCSS(port),
+        key: cKey,
         mask: (framesForTab[tabId] as Frames.Frames)[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
       });
     },
@@ -1545,6 +1548,7 @@ Are you sure you want to continue?`);
     nextFrame (this: void, request: FgReq["nextFrame"], port: Port): void {
       cPort = port;
       commandCount = 1;
+      cKey = request.key;
       const type = request.type || Frames.NextType.Default;
       if (type !== Frames.NextType.current) {
         return type === Frames.NextType.parent ? BackgroundCommands.parentFrame() : BackgroundCommands.nextFrame();
@@ -1553,12 +1557,12 @@ Are you sure you want to continue?`);
       if (ports) {
         ports[0].postMessage({
           name: "focusFrame",
-          key: request.key,
+          key: cKey,
           mask: FrameMaskType.NoMask
         });
         return;
       }
-      try { port.postMessage({ name: "returnFocus", key: request.key || VKeyCodes.None }); } catch (e) {}
+      try { port.postMessage({ name: "returnFocus", key: cKey }); } catch (e) {}
     },
     exitGrab (this: void, _0: FgReq["exitGrab"], port: Port): void {
       const ports = framesForTab[port.sender.tabId];
@@ -1940,7 +1944,7 @@ Are you sure you want to continue?`);
   };
 
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
-  needIcon = false,
+  needIcon = false, cKey: VKeyCodes = VKeyCodes.None,
   getSecret = function(this: void): number {
     let secret = 0, time = 0;
     getSecret = function(this: void): number {

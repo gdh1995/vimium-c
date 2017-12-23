@@ -27,7 +27,7 @@ interface BgReq {
   focusFrame: {
     CSS?: string | null;
     mask: FrameMaskType;
-    key?: VKeyCodes;
+    key: VKeyCodes;
   };
   execute: BaseExecute<object> & {
     name: "execute";
@@ -165,7 +165,7 @@ interface FgReq {
   };
   nextFrame: Req.baseFg<"nextFrame"> & {
     type?: Frames.NextType;
-    key?: VKeyCodes;
+    key: VKeyCodes;
   };
   exitGrab: Req.baseFg<"exitGrab">;
   initHelp: {
