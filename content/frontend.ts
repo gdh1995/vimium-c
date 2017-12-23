@@ -535,14 +535,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return false;
       }
     },
-    focusUpper (this: void, lastKey: VKeyCodes, force: boolean): HandlerResult {
+    focusUpper (this: void, key: VKeyCodes, force: boolean): HandlerResult {
       let el = window.frameElement as HTMLElement;
       if (el) {
         const parent = window.parent, a = (parent as Window & { VEventMode: typeof VEventMode }).VEventMode;
         el.blur();
-        a ? a.focus({ lastKey, mask: FrameMaskType.ForcedSelf }) : parent.focus();
+        a ? a.focus({ key, mask: FrameMaskType.ForcedSelf }) : parent.focus();
       } else if (force && window.top !== window) {
-        vPort.post({ handler: "nextFrame", type: Frames.NextType.parent, lastKey });
+        vPort.post({ handler: "nextFrame", type: Frames.NextType.parent, key });
       } else {
         return HandlerResult.Nothing;
       }
@@ -645,20 +645,20 @@ Pagination = {
     more: false,
     node: null as HTMLDivElement | null,
     timer: 0,
-    Focus (this: void, { mask, CSS, lastKey }: BgReq["focusFrame"]): void {
+    Focus (this: void, { mask, CSS, key }: BgReq["focusFrame"]): void {
       CSS && VDom.UI.css(CSS);
       if (mask !== FrameMaskType.NormalNext) {}
       else if (window.innerWidth < 3 || window.innerHeight < 3
         || document.body instanceof HTMLFrameSetElement) {
         vPort.post({
           handler: "nextFrame",
-          lastKey
+          key
         });
         return;
       }
       VEventMode.focusAndListen();
       esc();
-      VEventMode.suppress(lastKey);
+      VEventMode.suppress(key);
       if (mask < FrameMaskType.minWillMask || !VDom.isHTML()) { return; }
       let _this = FrameMask, dom1: HTMLDivElement | null;
       if (dom1 = _this.node) {

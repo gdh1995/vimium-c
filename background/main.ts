@@ -1553,12 +1553,12 @@ Are you sure you want to continue?`);
       if (ports) {
         ports[0].postMessage({
           name: "focusFrame",
-          lastKey: request.lastKey,
+          key: request.key,
           mask: FrameMaskType.NoMask
         });
         return;
       }
-      try { port.postMessage({ name: "returnFocus", lastKey: request.lastKey || VKeyCodes.None }); } catch (e) {}
+      try { port.postMessage({ name: "returnFocus", key: request.key || VKeyCodes.None }); } catch (e) {}
     },
     exitGrab (this: void, _0: FgReq["exitGrab"], port: Port): void {
       const ports = framesForTab[port.sender.tabId];

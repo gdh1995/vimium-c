@@ -205,7 +205,7 @@ var Vomnibar = {
       this.box.style.height = (data as Req["style"]).height / VDom.docZoom + "px";
       if (this.status === VomnibarNS.Status.Initing || this.status === VomnibarNS.Status.ToShow) { this.onShown(); }
       break;
-    case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).lastKey);
+    case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).key);
     case "hide": return this.hide(1);
     case "scroll": return VEventMode.scroll(data as Req["scroll"]);
     case "scrollGoing": VScroller.keyIsDown = VScroller.maxInterval; break;

@@ -347,7 +347,7 @@ interface ObjectConstructor {
      * @param o The object to change its prototype.
      * @param proto The value of the new prototype or null.
      */
-    setPrototypeOf<T>(o: T, proto: null): T & SafeObject;
+    setPrototypeOf<T extends object>(o: T, proto: null): T & SafeObject;
     setPrototypeOf(o: any, proto: object | null): any;
 
     /**

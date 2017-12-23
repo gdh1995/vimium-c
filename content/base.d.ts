@@ -134,7 +134,7 @@ declare namespace VomnibarNS {
       height: number;
     };
     focus: {
-      lastKey: VKeyCodes;
+      key: VKeyCodes;
     };
     evalJS: {
       url: string;
