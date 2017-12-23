@@ -91,10 +91,10 @@ var VMarks = {
     return VHUD.showForDuration(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },
   goTo (_0: number, options: CmdOptions["Marks.goTo"]): void {
-    const { scroll, local } = options, a = options.markName || "";
-    local || (document.body instanceof HTMLFrameSetElement) || VEventMode.focusAndListen();
+    const { scroll, local, markName: a } = options;
     a && this.setPreviousPosition();
     window.scrollTo(scroll[0], scroll[1]);
+    local || VEventMode.focusAndListen();
     if (a) {
       return VHUD.showForDuration(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
     }
