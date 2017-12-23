@@ -540,7 +540,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (el) {
         const parent = window.parent, a = (parent as Window & { VEventMode: typeof VEventMode }).VEventMode;
         el.blur();
-        a ? a.focus({ key, mask: FrameMaskType.ForcedSelf }) : parent.focus();
+        if (a) {
+          (parent as Window & { VDom: typeof VDom }).VDom.UI.suppressTail(true);
+          a.focus({ key, mask: FrameMaskType.ForcedSelf });
+        } else {
+          parent.focus();
+        }
       } else if (force && window.top !== window) {
         vPort.post({ handler: "nextFrame", type: Frames.NextType.parent, key });
       } else {
