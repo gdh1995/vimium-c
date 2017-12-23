@@ -108,21 +108,17 @@ var VHints = {
       return VHUD.showForDuration("Characters for LinkHints are too few.", 1000);
     }
 
-    let elements: Hint[] | undefined | null;
     const arr = VDom.getViewBox();
     VScroller.getScale(VDom.bodyZoom);
     if (this.tooHigh !== null) {
       this.tooHigh = (document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
     this.maxLeft = arr[2], this.maxTop = arr[3], this.maxRight = arr[4];
-    if (!this.frameNested) {
-      elements = this.getVisibleElements();
-    }
+    let elements: Hint[] | undefined | null = this.getVisibleElements();
     if (this.frameNested) {
       if (this.tryNestedFrame("VHints.activate", (count as number) | 0, this.options)) {
         return this.clean();
       }
-      elements || (elements = this.getVisibleElements());
     }
     if ((elements as Hint[]).length <= 0) {
       this.clean(true);
@@ -191,7 +187,7 @@ var VHints = {
     });
   },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
-    if (this.frameNested === false) {
+    if (this.frameNested !== null) {
       VDom.prepareCrop();
       this.checkNestedFrame();
     }
@@ -432,7 +428,7 @@ var VHints = {
       (Array.prototype.forEach as any).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
     }
     if (wantClickable) { (this as typeof VHints).deduplicate(output as Hint[]); }
-    if ((this as typeof VHints).frameNested !== false) {}
+    if ((this as typeof VHints).frameNested === null) {}
     else if (wantClickable) {
       (this as typeof VHints).checkNestedFrame(output as Hint[]);
     } else if (output.length > 0) {
@@ -510,7 +506,7 @@ var VHints = {
       if (!VDom.isHTML()) { return false; }
       output = [];
       type Iter = HintsNS.ElementIterator<Hint>;
-      (output.forEach as any as Iter).call(document.querySelectorAll("iframe,frame"), this.GetClickable, output);
+      (output.forEach as any as Iter).call(document.querySelectorAll("a,button,input,frame,iframe"), this.GetClickable, output);
     }
     if (output.length !== 1) {
       return output.length !== 0 && null;
