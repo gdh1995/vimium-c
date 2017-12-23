@@ -74,7 +74,7 @@ html > count{float:right;}`,
     f("mousedown", this.OnMousedown, t);
     f("keydown", this.onKeydown.bind(this), t);
     f("input", this.onInput.bind(this), t);
-    f("keypress", s, t); f("keyup", s, t); f("focus", s, t);
+    f("keypress", s, t); f("keyup", s, t);
     f("copy", s, t); f("cut", s, t);
     f("paste", this.OnPaste, t);
     f("paste", s, t);
@@ -86,6 +86,7 @@ html > count{float:right;}`,
         this.removeEventListener("blur", onBlur, true);
       }
     }
+    f("focus", this.OnFocus, t);
     f("blur", onBlur, t);
     box.onload = later ? null as never : function(): void { this.onload = null as never; VFindMode.onLoad2(this.contentWindow); };
     if (later) { return this.onLoad2(wnd); }
@@ -111,9 +112,10 @@ html > count{float:right;}`,
     docEl.insertBefore(doc.createTextNode("/"), el);
     docEl.appendChild(el2);
     function cb(): void {
-      VUtils.remove(VFindMode);
+      const a = VFindMode;
+      VUtils.remove(a);
       el.focus();
-      return VFindMode.setFirstQuery(VFindMode.query0);
+      return a.setFirstQuery(a.query0);
     }
     if ((VDom.UI.box as HTMLElement).style.display) {
       VDom.UI.callback = cb;
@@ -121,13 +123,22 @@ html > count{float:right;}`,
       return cb();
     }
   },
+  _actived: false,
+  OnFocus (this: Window, event: Event): void {
+    if (VFindMode._actived && event.target === this) {
+      VEventMode.OnWndFocus();
+    }
+    return VUtils.Stop(event);
+  },
   setFirstQuery (query: string): void {
     const wnd = this.box.contentWindow;
+    this._actived = false;
     wnd.focus();
     this.query0 = "";
     this.query || this.SetQuery(query);
     this.input.focus();
     this.query && wnd.document.execCommand("selectAll", false);
+    this._actived = true;
   },
   init (adjust: AdjustType): HTMLStyleElement {
     const ref = this.postMode, UI = VDom.UI,
@@ -167,7 +178,7 @@ html > count{float:right;}`,
   deactivate (unexpectly?: boolean): Element | null { // need keep @hasResults
     let el: Element | null = null;
     this.coords && window.scrollTo(this.coords[0], this.coords[1]);
-    this.isActive = this._small = false;
+    this.isActive = this._small = this._actived = false;
     if (unexpectly !== true) {
       window.focus();
       el = VDom.getSelectionFocusElement();
