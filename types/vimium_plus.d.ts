@@ -145,6 +145,10 @@ declare namespace Frames {
     InheritedFlags = locked | userActed,
     hasCSS = 4, onceHasDialog = 8,
   }
+  const enum NextType {
+    next = 0, Default = next,
+    parent = 1,
+  }
 }
 
 declare const enum PortType {

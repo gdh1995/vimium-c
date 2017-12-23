@@ -1049,15 +1049,13 @@ Are you sure you want to continue?`);
         chrome.tabs.move(tab.id, { index });
       }
     },
-    nextFrame (this: void, count?: number): void {
+    nextFrame (this: void): void {
       let port = cPort, ind = -1;
       const frames = framesForTab[port.sender.tabId];
       if (frames && frames.length > 2) {
-        count || (count = commandCount);
         ind = Math.max(0, frames.indexOf(port, 1));
-        while (0 < count) {
+        for (let count = commandCount; 0 <= --count; ) {
           if (++ind === frames.length) { ind = 1; }
-          --count;
         }
         port = frames[ind];
       }
@@ -1544,9 +1542,11 @@ Are you sure you want to continue?`);
       }
       port.postMessage({ name: "reset", passKeys: pattern });
     } as BackendHandlersNS.checkIfEnabled,
-    nextFrame (this: void, _0: FgReq["nextFrame"], port: Port): void {
+    nextFrame (this: void, request: FgReq["nextFrame"], port: Port): void {
       cPort = port;
-      return BackgroundCommands.nextFrame(1);
+      commandCount = 1;
+      const type = request.type || Frames.NextType.Default;
+      return type === Frames.NextType.parent ? BackgroundCommands.parentFrame() : BackgroundCommands.nextFrame();
     },
     exitGrab (this: void, _0: FgReq["exitGrab"], port: Port): void {
       const ports = framesForTab[port.sender.tabId];

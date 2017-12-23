@@ -25,7 +25,6 @@ interface BgReq {
     isCopy?: boolean;
   };
   focusFrame: {
-    name: "focusFrame";
     CSS?: string | null;
     mask: FrameMaskType;
     lastKey?: VKeyCodes;
@@ -164,11 +163,11 @@ interface FgReq {
   checkIfEnabled: {
     url: string;
   };
-  nextFrame: Req.baseFg<"nextFrame">;
-  exitGrab: Req.baseFg<"exitGrab">;
-  refocusCurrent: {
-    lastKey: VKeyCodes;
+  nextFrame: Req.baseFg<"nextFrame"> & {
+    type?: Frames.NextType;
+    lastKey?: VKeyCodes;
   };
+  exitGrab: Req.baseFg<"exitGrab">;
   initHelp: {
     unbound?: boolean;
     wantTop?: boolean;

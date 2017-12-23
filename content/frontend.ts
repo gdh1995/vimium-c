@@ -98,7 +98,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
                 (action = checkValidKey(event, keyChar)), false)
         ) {
           if (InsertMode.lock === document.body && InsertMode.lock) {
-            action = event.repeat ? InsertMode.focusUpper(key) : HandlerResult.Nothing;
+            action = event.repeat ? InsertMode.focusUpper(key, true) : HandlerResult.Nothing;
           } else {
             action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
             InsertMode.exit(event);
@@ -120,7 +120,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       } else if (VDom.UI.removeSelection()) {
         action = HandlerResult.Prevent;
       } else if (window.top !== window && document.activeElement === document.body) {
-        action = InsertMode.focusUpper(key);
+        action = InsertMode.focusUpper(key, event.repeat);
       } else if (event.repeat) {
         let c = document.activeElement; c && c.blur && c.blur();
       }
@@ -535,10 +535,18 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return false;
       }
     },
-    focusUpper (this: void, key: VKeyCodes): HandlerResult {
+    focusUpper (this: void, lastKey: VKeyCodes, force: boolean): HandlerResult {
       let el = window.frameElement as HTMLElement;
-      return el ? (window.parent as Window & { VEventMode: typeof VEventMode }
-        ).VEventMode.focusUpperFrame(el, key) : HandlerResult.Nothing;
+      if (el) {
+        const parent = window.parent, a = (parent as Window & { VEventMode: typeof VEventMode }).VEventMode;
+        el.blur();
+        a ? a.focus({ lastKey, mask: FrameMaskType.ForcedSelf }) : parent.focus();
+      } else if (force && window.top !== window) {
+        vPort.post({ handler: "nextFrame", type: Frames.NextType.parent, lastKey });
+      } else {
+        return HandlerResult.Nothing;
+      }
+      return HandlerResult.Prevent;
     },
     exit (event: KeyboardEvent): void {
       let target: Element | null = event.target as Element;
@@ -643,7 +651,8 @@ Pagination = {
       else if (window.innerWidth < 3 || window.innerHeight < 3
         || document.body instanceof HTMLFrameSetElement) {
         vPort.post({
-          handler: "nextFrame"
+          handler: "nextFrame",
+          lastKey
         });
         return;
       }
@@ -933,7 +942,7 @@ Pagination = {
     lock (this: void): Element | null { return InsertMode.lock; },
     onWndBlur (this: void, f): void { ELs.OnWndBlur2 = f; },
     OnWndFocus (this: void): void { return ELs.OnWndFocus(); },
-    focusAndListen (callback?: () => void, timedout?: 0 | 1): void {
+    focusAndListen (callback?: (() => void) | null, timedout?: 0 | 1): void {
       if (timedout !== 1) {
         setTimeout(VEventMode.focusAndListen, 0, callback, 1 as number as 0);
         return;
@@ -949,13 +958,7 @@ Pagination = {
         return callback();
       }
     },
-    focusUpperFrame (this: void, el: HTMLElement, key): HandlerResult {
-      if (!isEnabledForUrl) { return InsertMode.focusUpper(key); }
-      el.blur();
-      window.focus();
-      KeydownEvents[key] = 1;
-      return HandlerResult.Prevent;
-    },
+    focus: FrameMask.Focus,
     mapKey (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
     scroll (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
