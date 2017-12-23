@@ -423,7 +423,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       });
     },
     focusInput (count: number, options: FgOptions): void {
-      const visibleInputs = VHints.traverse("*", VHints.GetEditable);
+      const arr = VDom.getViewBox(), visibleInputs = VHints.traverse("*", VHints.GetEditable);
       let sel = visibleInputs.length;
       if (sel === 0) {
         return HUD.showForDuration("There are no inputs to focus.", 1000);
@@ -434,9 +434,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
         hint[2] = j > 0 ? ind / 8192 - j : ind;
       }
-      // note: addElementList need ViewBox.bodyZoom, so getViewBox cann't be replaced with getViewportTopLeft
-      const arr = VDom.getViewBox(),
-      hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link) {
+      const hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link) {
         const hint = VDom.createElement("span") as HintsNS.Marker,
         rect = VDom.fromClientRect(link[0].getBoundingClientRect());
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
@@ -594,7 +592,7 @@ Pagination = {
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
     const rect = element.getBoundingClientRect();
-    if (rect.width > 2 && rect.height > 2 && window.getComputedStyle(element).visibility === "visible") {
+    if (rect.width > 2 && rect.height > 2 && getComputedStyle(element).visibility === "visible") {
       this.push(element);
     }
   },

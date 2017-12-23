@@ -188,7 +188,7 @@ var VHints = {
   },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
     if (this.frameNested !== null) {
-      VDom.prepareCrop();
+      command.startsWith("VScroller") && VDom.prepareCrop();
       this.checkNestedFrame();
     }
     let frame = this.frameNested, child: HintsNS.VWindow = null as never, err = true, done = false;
@@ -386,7 +386,7 @@ var VHints = {
       h = rect.bottom + (rect.height < 3 ? 3 : 0);
       cr = VDom.cropRectToVisible(rect.left, rect.top, w, h);
     }
-    if (cr && window.getComputedStyle(element).visibility === "visible") {
+    if (cr && getComputedStyle(element).visibility === "visible") {
       arr.push([element, cr, ClickType.Default]);
     }
   },
@@ -403,7 +403,6 @@ var VHints = {
   _shadowSign: "* /deep/ ",
   traverse: function (this: any, key: string
       , filter: HintsNS.Filter<Hint | Element>, root?: Document | Element): Hint[] | Element[] {
-    VDom.prepareCrop();
     if ((this as typeof VHints).ngEnabled === null && key === "*") {
       (this as typeof VHints).ngEnabled = document.querySelector('.ng-scope') != null;
     }
@@ -555,7 +554,7 @@ var VHints = {
       if (r2.length > 0) {
         t = r2[0];
         t[1] > this.maxTop && t[1] > r[1] || t[0] > this.maxLeft && t[0] > r[0] ||
-          r2.length === 1 && !VDom.testCrop(t) || (visibleElement[1] = t);
+          r2.length === 1 && (t[3] - t[1] < 3 || t[2] - t[0] < 3) || (visibleElement[1] = t);
       } else if ((reason = visibleElement[2]) === ClickType.classname
             || (reason === ClickType.listener ? isNormal : reason === ClickType.tabindex)
           && visibleElement[0].contains(visibleElements[_i][0])) {
@@ -722,14 +721,13 @@ var VHints = {
     const _this = VHints;
     if (!_this) { return; }
     _this.timer = 0;
-    VDom.prepareCrop();
-    const r2 = VDom.getVisibleClientRect(el);
-    if (!r2 && VDom.lastHovered === el) {
+    const r2 = el.getBoundingClientRect(), hidden = r2.width < 1 && r2.height < 1 || getComputedStyle(el).visibility !== "visible";
+    if (hidden && VDom.lastHovered === el) {
       VDom.lastHovered = null;
     }
     if (r && _this.isActive && (_this.hintMarkers as HintsNS.Marker[]).length < 64
         && !_this.alphabetHints.hintKeystroke
-        && (!r2 || Math.abs(r2[0] - r[0]) > 100 || Math.abs(r2[1] - r[1]) > 60)) {
+        && (hidden || Math.abs(r2.left - r[0]) > 100 || Math.abs(r2.top - r[1]) > 60)) {
       return _this.reinit();
     }
   },

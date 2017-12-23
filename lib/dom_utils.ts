@@ -35,9 +35,13 @@ var VDom = {
     arr && arr.length > 0 && (el = arr[arr.length - 1]);
     return el.parentElement || el.parentNode instanceof ShadowRoot && el.parentNode.host || null;
   },
-  prepareCrop (): void {
+  prepareCrop (w?: number, h?: number): void {
     let iw: number, ih: number, ihs: number;
-    this.prepareCrop = function(): void {
+    this.prepareCrop = function(w?: number, h?: number): void {
+      if ((w as number) > 0) {
+        iw = w as number; ih = h as number; ihs = <number>h - 8;
+        return;
+      }
       const doc = document.documentElement as Element;
       iw = Math.max(window.innerWidth - 24, doc.clientWidth);
       ih = Math.max(window.innerHeight - 24, doc.clientHeight);
@@ -55,7 +59,7 @@ var VDom = {
       ];
       return (cr[2] - cr[0] >= 3 && cr[3] - cr[1] >= 3) ? cr : null;
     };
-    return this.prepareCrop();
+    return this.prepareCrop(w, h);
   },
   getVisibleClientRect (element: Element, el_style?: CSSStyleDeclaration): VRect | null {
     const arr = element.getClientRects();
@@ -159,8 +163,8 @@ var VDom = {
     // here rect.right is not suitable because <html> may be smaller than <body>
     // todo: width: - right border width, / zoom
     const scrolling = document.scrollingElement === box,
-    containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0,
-    width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
+    containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0;
+    let width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
       : box.scrollWidth  / zoom - Math.ceil((scrolling ? window.scrollX / zoom : x) + rect.width  % 1
           + (containHasPaint && parseFloat(st.borderRightWidth))),
     height = st.overflowY === "hidden" || st2.overflowY === "hidden" ? 0
@@ -175,8 +179,11 @@ var VDom = {
     x = Math.abs(x) < 0.01 ? 0 : Math.round(x * 100) / 100;
     y = Math.abs(y) < 0.01 ? 0 : Math.round(y * 100) / 100;
     x /= zoom2, y /= zoom2;
-    iw = Math.min(Math.max(width,  box.clientWidth  / zoom, (iw - 24) / zoom), iw / zoom + 64);
-    ih = Math.min(Math.max(height, box.clientHeight / zoom, (ih - 24) / zoom), ih / zoom + 20);
+    width  = Math.max(width,  box.clientWidth  / zoom, (iw - 24) / zoom);
+    height = Math.max(height, box.clientHeight / zoom, (ih - 24) / zoom);
+    this.prepareCrop(width, height);
+    iw = Math.min(width,  iw / zoom + 64);
+    ih = Math.min(height, ih / zoom + 20);
     return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];
   },
   ensureInView (el: Element, oldY?: number): boolean {
@@ -290,7 +297,6 @@ var VDom = {
     style.width = (r[2] - r[0]) + "px", style.height = (r[3] - r[1]) + "px";
   },
   cropRectToVisible: null as never as (left: number, top: number, right: number, bottom: number) => VRect | null,
-  testCrop (b: VRect): boolean { return b[2] - b[0] >= 3 && b[3] - b[1] >= 3; },
   SubtractSequence (this: [VRect[], VRect], rect1: VRect): void { // rect1 - rect2
     let rect2 = this[1], a = this[0], x1: number, x2: number
       , y1 = Math.max(rect1[1], rect2[1]), y2 = Math.min(rect1[3], rect2[3]);

@@ -44,13 +44,14 @@ var Vomnibar = {
     if (options.url === true && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
       options.topUrl = window.location.href;
     }
-    if (this.status === VomnibarNS.Status.NotInited && VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
     this.options = null;
     options.width = window.innerWidth; options.height = window.innerHeight;
+    // note: here require: that Inactive must be NotInited + 1
     this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
     VDom.getZoom();
     if (this.status === VomnibarNS.Status.NotInited) {
+      if (VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return VUtils.remove(this); }
       this.status = VomnibarNS.Status.Initing;
       this.init(options);
     } else if (this.isABlank()) {
