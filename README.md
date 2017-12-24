@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.62.0](https://img.shields.io/badge/release-1.62.0-orange.svg)
+![Version 1.63.0](https://img.shields.io/badge/release-1.63.0-orange.svg)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-plus)
 
@@ -83,15 +83,18 @@ Known issues (Up to the master branch):
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
 
-1.63 (not released yet):
+1.63:
 * FindMode and VisualMode will ensure document is selectable when they are active
+* always focus the parent frame and show a yellow border when touch & hold `<esc>`
 * fix bugs and memory leaks on pages having ShadowDOM UI.
 * `passNextKey normal` will also exit if the page blurs
 * rename command `LinkHints.activate` to `LinkHints.activateMode` (the old keeps supported)
 * `LinkHints.activateMode` supports option `action=hover/unhover/leave/text/url/image`
+* change behaviors of some commands like `parentFrame` and `focusInput`
 * Vomnibar now prefers a domain starting with "www."
 * now custom CSS takes precedence over default styles like the help dialog's
 * limit max length of Vomnibar's query to 200 chars
+* perfectly support pages which are zoomed by themselves: better `LinkHints` and `focusInput`
 * fix some other bugs
 
 1.62.0:
@@ -135,123 +138,6 @@ Known issues (Up to the master branch):
   * if the whole page is reopened, Vimium++ can not know it directly,
     so please eval the new `vimium://status enable` URL to enforce a new "enabled" status
 * improved performance: now Vimium++ UI shows faster for the first command on a page
-
-1.60.1:
-* work well with Chrome 59 where its password saver has changed the way to auto-fill fields.
-* fix that removeTab might keep the first Chrome window even if it's not needed
-* options page now shows the count of errors in custom key mappings
-* alert detailed errors if fail to import a setting file
-* show errors if a command will operator incognito windows but Vimium++ hasn't been allowed to do so on chrome://extension
-
-1.60:
-* `LinkHints` works much faster on some of very long pags, like https://w3c.github.io/html/,
-  though the change has no enough benefits on GitHub code file pages.
-  Use `tab` to reactivate LinkHints with this feature being disabled (only on that time).
-* fix two bugs about suggestions on the Chrome omnibox.
-* fix a bug breaking Vomnibar when it only uses one engine
-* fix some broken shortcuts on Vomnibar on Chrome 58 stable.
-* change and unify scrolling shortcuts and behaviors on `LinkHints` / `Find` / `Vomnibar` modes
-* fix a few edge cases that deleted history/bookmark urls are not cleaned
-* Vomnibar: not list incognito tabs on a normal window
-* better logic about URL handling
-* code is more roust in lots of edge cases
-
-1.59.4:
-* command `goNext` now detects `<button>`s, so that it supports more pages
-* enable auto-retrying-after-1s on a preferred Vomnibar page breaking
-* fix some UI problems caused by Chrome's various border width rules
-* some other bug fixes and improvements
-
-1.59.3:
-* fix a dead loop and breaking Vomnibar when using http page
-* only use inner Vomnibar page in incognito mode if the preferred belongs to other extensions
-* work around for a Chrome bug caused by the flag `#enable-embedded-extension-options` on high-DPI screen.
-  This flag occurs since Chrome 38, but the fix only works since Chrome 42 with API `chrome.tabs.getZoom`
-
-1.59.2:
-* **WARNING**: the global shortcut for "Go one tab right" needs to be re-installed
-* fix bugs about customized Vomnibar page
-* fix unexpected destroying of Vomnibar / find HUD on Chrome 58
-* `FindMode` supports `Shift+Enter` to input a line break and search it
-* `LinkHints`: auto hide HUD if the frame is too small
-* change usage of count in command `toggleCS` and `enableCSTemp` for better experiences
-* ensure command options are always used safely and fix many edge cases
-
-1.59.1:
-* **add an option "Vomnibar Page" to show user's preferred Vomnibar page**
-  * recommended: use `chrome-extension://ekohaelnhhdhbccgefjmjpdjoijhojgd/vomnibar.html`
-  * If set, Vimium will be away from a Chrome bug of extension memory leak.
-* **global keyboard shortcuts: remove suggested keys**, so that Vimium++ is cleaner
-  * those suggested mappings are added into the default list and the recommended settings
-* auto convert mapped keys containing `<s-`: e.g. `<s-a>` to `A`, `<c-s-a>` to `<c-A>`
-  * `<s-*>` is a grammar Vimium will support (https://github.com/philc/vimium/pull/2388)
-* add my 3 Chrome extensions into the extension white list by default
-  * Vomnibar Page for Vimium++, Modified X New Tab Page, PDF Viewer for Vimium++
-* add a checker to ensure `New tab URL` won't cause a dead loop
-* fix a performance issue of Vomnibar UI on an edge case
-* auto complete a domain in Vomnibar using
-    the protocol of the last opened page of the same domain
-  * complete `www.bing.com` using `https` once open `https://www.bing.com`
-* fix broken `<SPACE>` mapping since Chrome 51
-* move the PRIVACY-POLICY document to [`PRIVACY-POLICY.md`](PRIVACY-POLICY.md) and update it
-
-1.58.1:
-* fix detection for Mac system: fix `LinkHints.activateModeToOpenInNewTab`
-
-1.58.0:
-* temporarily disable the experimental feature of options_ui dialog
-* fix broken `Vomnibar` caused by the Chrome flag `#enable-site-per-process`
-  * this problem may occur since Chrome 57 even if this flag is off
-* use `closed` shadowDOM to show UI more safely
-* fix many small code bugs
-
-1.57.6:
-* fix bugs like single-completer searching and opening showPage in place
-
-1.57.5:
-* **WARNING**: "Custom outer CSS" will be definitely removed in the future
-* **WARNING**: revert semantics of `metaKey`: now the same as `ctrlKey`
-* support `mapKey` which works on both normal and insert modes
-* support zoomed pages better and handle malformed pages safely
-* the background process has smaller memory cost
-* lazy refresh when you update bookmarks
-* allow showing options page as a dialogue in Chrome's options page,
-  but Chrome 55 has bugs in option dialogue if `#enable-md-extensions` is enabled.
-
-1.57.3:
-* fix a bug that tab completer does not accept commands like "+10"
-* use different color to hint containers like iframes and scrollable boxes
-* fix some other small bugs
-
-1.57.2:
-* fix a serious performance regression which was imported in 1.57 and made
-  `LinkHints` slow down significantly if a page had some overlapped links.
-* rework logic of `toggleCS` and `enableCSTemp` about `commandCount`,
-  so when content on a base domain is enabled, the current sub-domain
-    will be ensured to enable the content, too.
-
-1.57.1:
-* fix broken `LinkHints.activateModeToOpenVomnibar`
-* change fonts in UI for better presentation: `Helvetica Neue` is preferred,
-  and for Chinese characters, now try to use `PingFang` and `YaHei`.
-* `removeTab` accepts an boolean option `allow_close` (default to `false`),
-  and Vimium++ will not retain the last tab if getting `allow_close=false`.
-* add back `Vomnibar.activateEditUrl` and `Vomnibar.activateEditUrlInNewTab`
-* `Vomnibar.activateEditUrl` now supports `count` to get an upper url
-* suggest using `Gg` to `openInNewTab` and `GG` to `searchInGoogle`
-
-1.57:
-* **WARNING**: revert modifier keys' orders into `a-c-m-`
-* **WARNING**: change semantics of `metaKey`: just the same as `altKey`
-* **WARNING**: The default of `grabBackFocus` becomes `false`,
-  although its recommended value is still `true`.
-* add `searchInAnother` to search current content using another search engine.
-* add `toggleMuteTab`.
-* add `parentFrame` which only works on Chrome 41+.
-* `Marks`: global marks search other tabs by url prefix by default,
-  and you may turn off this feature by `map Marks.activate prefix=false`.
-* fix a bug history titles may be wrong.
-* other bug fixes.
 
 # Building
 
