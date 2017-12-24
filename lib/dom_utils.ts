@@ -186,9 +186,11 @@ var VDom = {
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
     x = Math.abs(x) < 0.01 ? 0 : Math.round(x * 100) / 100;
     y = Math.abs(y) < 0.01 ? 0 : Math.round(y * 100) / 100;
-    x /= zoom2, y /= zoom2;
     iw = Math.min(Math.max(width,  box.clientWidth  / zoom, (iw - 24) / zoom), iw / zoom + 64);
     ih = Math.min(Math.max(height, box.clientHeight / zoom, (ih - 24) / zoom), ih / zoom + 20);
+    if (zoom2 !== 1) {
+      x /= zoom2, y /= zoom2, iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
+    }
     return [Math.ceil(x), Math.ceil(y), iw, ih - 18, iw];
   },
   ensureInView (el: Element, oldY?: number): boolean {
