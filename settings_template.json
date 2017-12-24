@@ -89,7 +89,7 @@
 		"map <c-v> openCopiedUrlInNewTab",
 		"",
 		"map u goUp",
-		"map i focusInput",
+		"map i focusInput keep",
 		"map n nextFrame",
 		"map UU goToRoot",
 		"map Uu goUp trailing_slash",
