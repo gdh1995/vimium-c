@@ -236,12 +236,18 @@ var VHints = {
     return marker;
   },
   adjustMarkers (elements: Hint[]): void {
-    const root = VDom.UI.root, zi = VDom.bodyZoom;
-    if (zi === 1 || !root) { return; }
-    const z = ("" + 1 / zi).substring(0, 5);
-    let arr = this.hintMarkers as HintsNS.Marker[], i = elements.length - 1;
-    if (elements[i][0] !== Vomnibar.box && !root.querySelector('#HelpDialog')) { return; }
-    while (0 <= i && root.contains(elements[i][0])) { arr[i--].style.zoom = z; }
+    const zi = VDom.bodyZoom;
+    if (zi === 1) { return; }
+    let root = VDom.UI.root, i = elements.length - 1;
+    if (!root || elements[i][0] !== Vomnibar.box && !root.querySelector('#HelpDialog')) { return; }
+    const z = ("" + 1 / zi).substring(0, 5), arr = this.hintMarkers as HintsNS.Marker[],
+    mr = this.maxRight * VDom.bodyZoom, mt = this.maxTop * VDom.bodyZoom;
+    while (0 <= i && root.contains(elements[i][0])) {
+      let st = arr[i--].style;
+      st.zoom = z;
+      st.maxWidth && (st.maxWidth = mr - elements[i][1][0] + "px");
+      st.maxHeight && (st.maxHeight = mt - elements[i][1][1] + 18 + "px");
+    }
   },
   btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,
   GetClickable (this: Hint[], element: Element): void {
