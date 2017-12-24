@@ -189,7 +189,7 @@ var VDom = {
     x /= zoom2, y /= zoom2;
     iw = Math.min(Math.max(width,  box.clientWidth  / zoom, (iw - 24) / zoom), iw / zoom + 64);
     ih = Math.min(Math.max(height, box.clientHeight / zoom, (ih - 24) / zoom), ih / zoom + 20);
-    return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];
+    return [Math.ceil(x), Math.ceil(y), iw, ih - 18, iw];
   },
   ensureInView (el: Element, oldY?: number): boolean {
     const rect = el.getBoundingClientRect(), ty = this.NotVisible(null, rect);

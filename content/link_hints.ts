@@ -230,7 +230,7 @@ var VHints = {
     i = link[1][1];
     st.top = i + "px";
     if (i > this.maxTop) {
-      st.maxHeight = this.maxTop - i + 15 + "px";
+      st.maxHeight = this.maxTop - i + 18 + "px";
     }
     link[3] && (marker.linkRect = link[3]);
     return marker;
