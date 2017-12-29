@@ -38,6 +38,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
   }
   interface OpenUrlOptions {
     incognito?: boolean;
+    end?: boolean;
     opener?: boolean;
     window?: boolean;
   }
@@ -285,7 +286,7 @@ Are you sure you want to continue?`);
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
         };
         if (inCurWnd) {
-          options.index = tab.index;
+          opts.end || (options.index = tab.index);
           opts.opener && (options.id = tab.id);
         }
         openMultiTab(url, commandCount, options);
@@ -426,6 +427,7 @@ Are you sure you want to continue?`);
       }
       tab.active = active;
       options.opener || ((tab as InfoToCreateMultiTab).id = undefined);
+      options.end && ((tab as InfoToCreateMultiTab).index = undefined);
       return openMultiTab(url, commandCount, tab);
     },
     openJSUrl: [function(url: string): void {
@@ -448,13 +450,13 @@ Are you sure you want to continue?`);
     }, function(url: string): void {
       try { cPort.postMessage({ name: "eval", url }); } catch (e) {}
     }],
-    openShowPage: [function(url, reuse, tab): boolean {
+    openShowPage: [function(url, reuse, end, tab): boolean {
       const prefix = Settings.CONST.ShowPage;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
       if (!tab) {
         funcDict.getCurTab(function(tabs: [Tab]): void {
           if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
-          funcDict.openShowPage[0](url, reuse, tabs[0]);
+          funcDict.openShowPage[0](url, reuse, end, tabs[0]);
         });
         return true;
       }
@@ -464,7 +466,7 @@ Are you sure you want to continue?`);
       } else
       chrome.tabs.create({
         active: reuse !== ReuseType.newBg,
-        index: tab.incognito ? undefined : tab.index + 1,
+        index: tab.incognito || end ? undefined : tab.index + 1,
         windowId: tab.incognito ? undefined : tab.windowId,
         url: prefix
       });
@@ -482,7 +484,7 @@ Are you sure you want to continue?`);
         arr[0] = "", arr[1] = null;
       }, 2000);
     }] as [
-      (url: string, reuse: ReuseType, tab?: Tab) => boolean,
+      (url: string, reuse: ReuseType, end?: boolean, tab?: Tab) => boolean,
       (arr: [string, ((this: void) => string) | null, number]) => void
     ],
     // use Urls.WorkType.Default
@@ -939,7 +941,7 @@ Are you sure you want to continue?`);
       cOptions = null as never;
       Utils.resetRe();
       return typeof url !== "string" ? funcDict.onEvalUrl(url as Urls.SpecialUrl)
-        : funcDict.openShowPage[0](url, reuse) ? void 0
+        : funcDict.openShowPage[0](url, reuse, options.end) ? void 0
         : Utils.isJSUrl(url) ? funcDict.openJSUrl[0](url)
         : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
         : reuse === ReuseType.current ? funcDict.safeUpdate(url)
