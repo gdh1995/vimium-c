@@ -379,7 +379,7 @@ availableCommands: {
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, true, { local: true }, "clearMarks" ],
   "Marks.clearGlobal": [ "Remove all global marks", 1, true, null, "clearMarks" ],
   clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true, null, "clearMarks" ],
-  openUrl: [ "open URL (use url, urls:string[], reuse:[-2..1]=-1, incognito, window, end)", 20, true ],
+  openUrl: [ "open URL (use url='', urls:string[], reuse=-1/0/1/-2, incognito, window, end)", 20, true ],
   focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true, { reuse: ReuseType.reuse }, "openUrl" ]
 } as SafeDict<CommandsNS.Description>
 };
