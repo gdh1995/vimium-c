@@ -409,11 +409,14 @@ Are you sure you want to continue?`);
         if (tab.incognito || TabRecency.incognito === IncognitoType.true) {
           window = true;
         }
-      } else if (incognito && !tab.incognito) {
+      } else if (tab.incognito) {
+        if (incognito !== false) {
+          return funcDict.openUrlInIncognito(url, active, options, tab, [{ id: tab.windowId, incognito: true } as Window]);
+        }
+        window = true;
+      } else if (incognito) {
         chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, url, active, options, tab));
         return;
-      } else if (incognito == null && tab.incognito) {
-        return funcDict.openUrlInIncognito(url, active, options, tab, [{ id: tab.windowId, incognito: true } as Window]);
       }
       if (window) {
         chrome.windows.getCurrent(function(wnd): void {
