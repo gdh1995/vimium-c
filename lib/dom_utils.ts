@@ -195,13 +195,12 @@ var VDom = {
   },
   ensureInView (el: Element, oldY?: number): boolean {
     const rect = el.getBoundingClientRect(), ty = this.NotVisible(null, rect);
-    if (!ty) { return true; }
     if (ty === VisibilityType.OutOfView) {
       const t = rect.top, ih = innerHeight, dir = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
       el.scrollIntoView(dir < 0);
       (dir || f) && window.scrollBy(0, f ? (oldY as number) - window.scrollY : dir * ih / 5);
     }
-    return false;
+    return ty === VisibilityType.Visible;
   },
   NotVisible: function (this: void, element: Element | null, rect?: ClientRect): VisibilityType {
     if (!rect) { rect = (element as Element).getBoundingClientRect(); }
