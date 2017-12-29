@@ -466,7 +466,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
             || keyCode === VKeyCodes.ctrlKey || keyCode === VKeyCodes.metaKey)) {}
         else if (event.repeat) { return HandlerResult.Prevent; }
         else if (keep ? VKeyboard.isEscape(event) || (
-            keyCode === VKeyCodes.enter && (keyStat =VKeyboard.getKeyStat(event),
+            keyCode === VKeyCodes.enter && (keyStat = VKeyboard.getKeyStat(event),
               keyStat !== KeyStat.shiftKey && (keyStat !== KeyStat.plain || hints[sel].clickableItem instanceof HTMLInputElement) )
           ) : keyCode !== VKeyCodes.ime && keyCode !== VKeyCodes.f12
         ) {

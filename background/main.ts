@@ -38,7 +38,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
   }
   interface OpenUrlOptions {
     incognito?: boolean;
-    end?: boolean;
+    position?: "start" | "end" | "before" | "after";
     opener?: boolean;
     window?: boolean;
   }
@@ -110,6 +110,10 @@ var Backend: BackendHandlersNS.BackendHandlers;
           funcDict.onRefreshTab((step + 1) as 1 | 2 | 3 | 4, tab);
         });
       }, 50 * step * step);
+    },
+    setNewTabIndex (this: void, opt: chrome.tabs.CreateProperties, tab: Tab, position: OpenUrlOptions["position"]): number | undefined {
+      return opt.index = position === "before" ? tab.index : position === "start" ? 0
+        : position !== "end" ? tab.index + 1 : undefined;
     },
     makeWindow (this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
         , callback?: (wnd: Window) => void): void {
@@ -284,9 +288,9 @@ Are you sure you want to continue?`);
         const options: InfoToCreateMultiTab & { windowId: number } = {
           active,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
-        };
+        }, { position } = opts;
         if (inCurWnd) {
-          opts.end || (options.index = tab.index);
+          opts.position && funcDict.setNewTabIndex(options, tab, opts.position);
           opts.opener && (options.id = tab.id);
         }
         openMultiTab(url, commandCount, options);
@@ -427,7 +431,7 @@ Are you sure you want to continue?`);
       }
       tab.active = active;
       options.opener || ((tab as InfoToCreateMultiTab).id = undefined);
-      options.end && ((tab as InfoToCreateMultiTab).index = undefined);
+      options.position && funcDict.setNewTabIndex(tab, tab, options.position);
       return openMultiTab(url, commandCount, tab);
     },
     openJSUrl: [function(url: string): void {
@@ -450,13 +454,13 @@ Are you sure you want to continue?`);
     }, function(url: string): void {
       try { cPort.postMessage({ name: "eval", url }); } catch (e) {}
     }],
-    openShowPage: [function(url, reuse, end, tab): boolean {
+    openShowPage: [function(url, reuse, position, tab): boolean {
       const prefix = Settings.CONST.ShowPage;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
       if (!tab) {
         funcDict.getCurTab(function(tabs: [Tab]): void {
           if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
-          funcDict.openShowPage[0](url, reuse, end, tabs[0]);
+          funcDict.openShowPage[0](url, reuse, position, tabs[0]);
         });
         return true;
       }
@@ -466,7 +470,7 @@ Are you sure you want to continue?`);
       } else
       chrome.tabs.create({
         active: reuse !== ReuseType.newBg,
-        index: tab.incognito || end ? undefined : tab.index + 1,
+        index: position == null || tab.incognito ? undefined : funcDict.setNewTabIndex({}, tab, position),
         windowId: tab.incognito ? undefined : tab.windowId,
         url: prefix
       });
@@ -484,7 +488,7 @@ Are you sure you want to continue?`);
         arr[0] = "", arr[1] = null;
       }, 2000);
     }] as [
-      (url: string, reuse: ReuseType, end?: boolean, tab?: Tab) => boolean,
+      (url: string, reuse: ReuseType, position?: OpenUrlOptions["position"], tab?: Tab) => boolean,
       (arr: [string, ((this: void) => string) | null, number]) => void
     ],
     // use Urls.WorkType.Default
@@ -941,7 +945,7 @@ Are you sure you want to continue?`);
       cOptions = null as never;
       Utils.resetRe();
       return typeof url !== "string" ? funcDict.onEvalUrl(url as Urls.SpecialUrl)
-        : funcDict.openShowPage[0](url, reuse, options.end) ? void 0
+        : funcDict.openShowPage[0](url, reuse, options.position) ? void 0
         : Utils.isJSUrl(url) ? funcDict.openJSUrl[0](url)
         : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
         : reuse === ReuseType.current ? funcDict.safeUpdate(url)
