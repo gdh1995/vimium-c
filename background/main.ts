@@ -288,7 +288,7 @@ Are you sure you want to continue?`);
         const options: InfoToCreateMultiTab & { windowId: number } = {
           active,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
-        }, { position } = opts;
+        };
         if (inCurWnd) {
           opts.position && funcDict.setNewTabIndex(options, tab, opts.position);
           opts.opener && (options.id = tab.id);
