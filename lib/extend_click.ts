@@ -1,5 +1,5 @@
 /// <reference path="../content/base.d.ts" />
-(function(this: void, func: (this: void) => void): void {
+(function(this: void): void {
   if (!window.VSettings) { return; }
   type Listener = (this: void, e: Event) => void;
   let d: Document | Document["documentElement"] = document
@@ -21,6 +21,7 @@
     removeEventListener("VimiumOnclick", onclick, true);
     box && box.removeEventListener("VimiumOnclick", onclick, true);
     box = null as never;
+    VSettings && (VSettings.onDestroy = null);
   }
   window.VSettings.onDestroy = destroy;
   script.type = "text/javascript";
@@ -30,12 +31,13 @@
   script.remove();
   VDom.documentReady(function() { box || destroy(); });
 
-})(function(this: void): void {
+function func(this: void): void {
 const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
 splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister),
 register = toRegister.push.bind<Element[], Element, number>(toRegister),
 rel = removeEventListener, ct = clearTimeout, CE = CustomEvent, HA = HTMLAnchorElement,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
+apply = _listen.apply.bind(_listen) as (self: EventTarget, args: any) => void,
 call = _listen.call.bind(_listen) as (self: EventTarget, ty: string, func?: null | ((e: Event) => void), opts?: boolean) => void
 ;
 
@@ -74,13 +76,16 @@ function reg(this: void, element: Element): void {
   element.dispatchEvent(event);
   e1.remove();
 }
-EventTarget.prototype.addEventListener = function(this: EventTarget, type: string
-    , listener: EventListenerOrEventListenerObject, useCapture?: boolean | object) {
+EventTarget.prototype.addEventListener = function addEventListener(this: EventTarget, type: string
+    , listener: EventListenerOrEventListenerObject) {
   if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
     register(this as Element);
     if (timer === 0) { timer = next(); }
   }
-  return call(this, type, listener, useCapture as boolean | undefined);
+  const len = arguments.length;
+  return len === 2 ? call(this, type, listener) : len === 3 ? call(this, type, listener, arguments[2])
+    : apply(this, arguments as any);
 };
 _listen("DOMContentLoaded", handler, true);
-});
+}
+})();

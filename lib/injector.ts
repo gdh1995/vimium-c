@@ -70,11 +70,13 @@ if (_listen.vimiumHooked === true) { return; }
 
 const HA = HTMLAnchorElement, HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement;
 
-const newListen = cls.addEventListener = function(this: EventTarget, type, listener, useCapture) {
+const newListen = cls.addEventListener = function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
   if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
     (this as Element).vimiumHasOnclick = true;
   }
-  return _listen.call(this, type, listener, useCapture);
+  const len = arguments.length;
+  return len === 2 ? _listen.call(this, type, listener) : len === 3 ? _listen.call(this, type, listener, arguments[2])
+    : _listen.apply(this, arguments as any);
 };
 (cls.addEventListener as ListenerEx).vimiumHooked = true;
 obj.vimiumRemoveHooks = function() {
