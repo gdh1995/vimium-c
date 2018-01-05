@@ -292,6 +292,8 @@ var Utils = {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
       return this.require<object>("MathParser").catch(() => null
       ).then<Urls.MathEvalResult>(function(MathParser): Urls.MathEvalResult {
+        Utils.quotedStringRe.test(path) && (path = path.slice(1, -1));
+        path = path.replace(/\uff0c/g as RegExpG, ' ');
         let result = Utils.tryEvalMath(path, MathParser) || "";
         return [result, "math", path];
       });
