@@ -646,8 +646,11 @@ var Vomnibar = {
     this.timer = -1;
     if (this.useInput) {
       this.lastQuery = str = this.input.value.trim();
-      if (this.isInputComposing && str.startsWith(last = this.lastNormalInput)) {
+      if (!this.isInputComposing) {}
+      else if (str.startsWith(last = this.lastNormalInput)) {
         str = last + str.substring(last.length).replace(this._singleQuoteRe, "");
+      } else {
+        str = str.replace(this._singleQuoteRe, " ");
       }
       str = str.replace(this._spacesRe, " ");
       if (str === mode.query) { return this.postUpdate(); }
