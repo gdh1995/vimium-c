@@ -289,6 +289,9 @@ var Utils = {
     path = path.substring(ind + 1).trimLeft();
     if (!path) { return null; }
     if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
+    case "sum":
+      path = path.replace(<RegExpG> /[\s,\uff0c]+/g, " + ");
+      // falls through
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
       return this.require<object>("MathParser").catch(() => null
       ).then<Urls.MathEvalResult>(function(MathParser): Urls.MathEvalResult {
