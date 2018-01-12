@@ -217,10 +217,10 @@ var VHints = {
   maxTop: 0,
   maxRight: 0,
   zIndexes: null as null | false | HintsNS.Stacks,
-  createMarkerFor (link: Hint) {
+  createMarkerFor (link: Hint): HintsNS.Marker {
     let marker = VDom.createElement("span") as HintsNS.Marker, i: number;
     marker.clickableItem = link[0];
-    i = link.length < 5 ? link[1][0] : (link[4] as [VRect, number])[0][0] + (link[4] as [VRect, number])[1];
+    i = link.length < 4 ? link[1][0] : (link as Hint4)[3][0][0] + (link as Hint4)[3][1];
     marker.className = link[2] < ClickType.minBox ? "LH" : "LH BH";
     const st = marker.style;
     st.left = i + "px";
@@ -232,7 +232,7 @@ var VHints = {
     if (i > this.maxTop) {
       st.maxHeight = this.maxTop - i + 18 + "px";
     }
-    link[3] && (marker.linkRect = link[3]);
+    link.length > 4 && (marker.linkRect = (link as Hint5)[4]);
     return marker;
   },
   adjustMarkers (elements: Hint[]): void {
@@ -567,12 +567,13 @@ var VHints = {
           && visibleElement[0].contains(visibleElements[_i][0])) {
         visibleElements.splice(_len, 1);
       } else {
-        const _ref = visibleElement[4] || [r, 0];
-        r = _ref[0];
+        visibleElement.length > 3 && (r = (visibleElement as Hint4)[3][0]);
         for (let _k = _len; _i <= --_k; ) {
           t = visibleElements[_k][1];
           if (r[0] >= t[0] && r[1] >= t[1] && r[0] < t[0] + 20 && r[1] < t[1] + 15) {
-            visibleElements[_k][4] = [r, _ref[1] + 13];
+            const offset: HintOffset = [r, visibleElement.length > 3 ? (visibleElement as Hint4)[3][1] + 13 : 13],
+            hint2 = visibleElements[_k] as Hint4;
+            hint2.length > 3 ? (hint2[3] = offset) : (hint2 as any).push(offset);
             break;
           }
         }

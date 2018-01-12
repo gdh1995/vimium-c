@@ -161,13 +161,22 @@ declare namespace VomnibarNS {
 
 declare type ScrollByY = 0 | 1;
 
+interface HintOffset {
+  [0]: VRect; // rect of the hint below this marker
+  [1]: number; // offset-x
+}
+
 interface Hint {
   [0]: HTMLElement | SVGElement; // element
   [1]: VRect; // bounding rect
   [2]: number; // priority (smaller is prior)
-  [3]?: VRect; // bottom
-  [4]?: [VRect, number]; // [rect of the hint below this marker, offset-x]
   length: number;
+}
+interface Hint4 extends Hint {
+  [3]: HintOffset;
+}
+interface Hint5 extends Hint4 {
+  [4]: VRect; // fixed rect
 }
 
 declare const enum AdjustType {

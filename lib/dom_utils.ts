@@ -118,7 +118,7 @@ var VDom = {
       }
       rect = VDom.cropRectToVisible(x1 + cr.left, y1 + cr.top, x2 + cr.left, y2 + cr.top);
       if (rect) {
-        output.push([area, rect, 0, rect]);
+        output.push([area, rect, 0, [rect, 0], rect]);
       }
     }
     return !!rect;
