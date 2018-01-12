@@ -45,22 +45,23 @@ interface EventControlKeys {
   shiftKey: boolean;
 }
 
-interface VRect {
+interface WritableVRect {
   [0]: number; // left
   [1]: number; // top
   [2]: number; // right
   [3]: number; // bottom
 }
+interface VRect extends Readonly<WritableVRect> {}
 
 interface ViewOffset {
-  [0]: number; // left
-  [1]: number; // top
+  readonly [0]: number; // left
+  readonly [1]: number; // top
 }
 
 interface ViewBox extends ViewOffset {
-  [2]: number; // width
-  [3]: number; // height
-  [4]: number; // max-left or 0
+  readonly [2]: number; // width
+  readonly [3]: number; // height
+  readonly [4]: number; // max-left or 0
 }
 
 declare const enum EditableType {

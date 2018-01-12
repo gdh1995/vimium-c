@@ -270,7 +270,7 @@ var VHints = {
     case "frame": case "iframe":
       if (element === Vomnibar.box) {
         if (arr = VDom.getVisibleClientRect(element)) {
-          arr[0] += 10.5; arr[1] += 8;
+          (arr as WritableVRect)[0] += 10.5; (arr as WritableVRect)[1] += 8;
           this.push([element, arr, ClickType.frame]);
         }
         return;

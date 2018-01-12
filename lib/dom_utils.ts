@@ -290,10 +290,10 @@ var VDom = {
   isContaining (a: VRect, b: VRect): boolean {
     return a[3] >= b[3] && a[2] >= b[2] && a[1] <= b[1] && a[0] <= b[0];
   },
-  fromClientRect (rect: ClientRect): VRect {
+  fromClientRect (rect: ClientRect): WritableVRect {
     return [rect.left | 0, rect.top | 0, rect.right | 0, rect.bottom | 0];
   },
-  setBoundary (style: CSSStyleDeclaration, r: VRect, allow_abs?: boolean): void {
+  setBoundary (style: CSSStyleDeclaration, r: WritableVRect, allow_abs?: boolean): void {
     if (allow_abs && (r[1] < 0 || r[0] < 0 || r[3] > window.innerHeight || r[2] > window.innerWidth)) {
       const arr = this.getViewBox();
       r[0] += arr[0], r[2] += arr[0], r[1] += arr[1], r[3] += arr[1];
