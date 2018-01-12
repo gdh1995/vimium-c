@@ -654,11 +654,11 @@ var VHints = {
     return HandlerResult.Prevent;
   },
   _getShadowV1Sign(): string {
-    let node = VDom.UI.root || VDom.createElement('div'), sign = "* >>> ", v0 = "* /deep/ ";
+    let sign = "* >>> ", v0 = "* /deep/ ";
     if (VSettings.cache.browserVer < BrowserVer.MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled) {
       sign = v0;
     } else try {
-      node.querySelector(sign + "div");
+      (VDom.UI.root || VDom.createElement('div')).querySelector(sign + "div");
     } catch (e) {
       sign = v0 + " ";
     }
