@@ -290,7 +290,7 @@ var Utils = {
     if (!path) { return null; }
     if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
     case "sum":
-      path = path.replace(<RegExpG> /[\s,\uff0c]+/g, " + ");
+      path = path.replace(<RegExpG> /[\s+,\uff0c]+/g, " + ");
       // falls through
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
       return this.require<object>("MathParser").catch(() => null
