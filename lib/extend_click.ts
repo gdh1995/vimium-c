@@ -25,7 +25,7 @@
   }
   window.VSettings.onDestroy = destroy;
   script.type = "text/javascript";
-  script.textContent = '"use strict";(' + func.toString() + ')();';
+  script.textContent = '(' + func.toString() + ')();';
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();
