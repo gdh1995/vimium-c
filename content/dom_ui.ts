@@ -80,7 +80,7 @@ VDom.UI = {
     zoom || (zoom = VDom.getZoom());
     if (first ? zoom >= 1 : (st as any).zoom === zoom) { return; }
     st = st || (this._styleBorder = this.createStyle(""));
-    st.zoom = zoom; st.textContent = ".HUD, .HelpKey, .IH, .LH { border-width: " + ("" + 0.51 / zoom).slice(0, 5) + "px; }";
+    st.zoom = zoom; st.textContent = ".HUD, .IH, .LH { border-width: " + ("" + 0.51 / zoom).slice(0, 5) + "px; }";
     first && this.root && this.addElement(st, AdjustType.NotAdjust);
   },
   createStyle (text, doc): HTMLStyleElement {
