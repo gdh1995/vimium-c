@@ -33,9 +33,13 @@
 
 function func(this: void): void {
 const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
+_dispatch = EventTarget.prototype.dispatchEvent, dispatch = _dispatch.call.bind(_dispatch),
+_append = document.appendChild, append = _append.call.bind(_append) as (parent: Node, node: Node) => Node,
+_removeNode = document.removeChild, removeNode = _removeNode.call.bind(_removeNode),
+contains = document.contains.bind(document),
 splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister),
 register = toRegister.push.bind<Element[], Element, number>(toRegister),
-rel = removeEventListener, ct = clearTimeout, CE = CustomEvent, HA = HTMLAnchorElement,
+CE = CustomEvent, HA = HTMLAnchorElement,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
 funcToString = Function.prototype.toString, toStringApply = funcToString.apply.bind(funcToString),
 newToString = (function() {
@@ -54,13 +58,15 @@ let handler = function(this: void): void {
   ct(loadTimeout);
   const docEl = document.documentElement as HTMLElement | SVGElement;
   if (!docEl) { return; }
-  box = document.createElement("div");
-  docEl.appendChild(box);
-  box.dispatchEvent(new CE("VimiumReg"));
-  box.remove();
-  handler = null as never;
+  box = createElement("div");
+  append(docEl, box);
+  dispatch(box, new CE("VimiumReg"));
+  removeNode(docEl, box);
+  handler = rel = ct = createElement = null as never;
   timer = toRegister.length > 0 ? next() : 0;
 },
+rel = removeEventListener, ct = clearTimeout,
+createElement = document.createElement.bind(document) as Document["createElement"],
 box: HTMLDivElement, loadTimeout = setTimeout(handler, 1000),
 timer = -1, next = setTimeout.bind(null as never, iter, 1);
 function iter(): void {
@@ -72,17 +78,19 @@ function iter(): void {
 }
 function reg(this: void, element: Element): void {
   const event = new CE("VimiumOnclick");
-  if (document.contains(element)) {
-    element.dispatchEvent(event);
+  if (contains(element)) {
+    dispatch(element, event);
     return;
   }
   let e1, e2;
-  for (e1 = element; (e2 = e1.parentElement) != null; e1 = e2) {}
+  for (e1 = element; (e2 = e1.parentElement) != null; e1 = e2) {
+    if (e2 instanceof HF) { return; }
+  }
   if (e1.parentNode != null) { return; }
   // NOTE: ignore nodes belonging to a shadowRoot
-  box.appendChild(e1);
-  element.dispatchEvent(event);
-  e1.remove();
+  append(box, e1);
+  dispatch(element, event);
+  removeNode(box, e1);
 }
 function addEventListener(this: EventTarget, type: string
     , listener: EventListenerOrEventListenerObject) {
