@@ -205,8 +205,16 @@ declare namespace CommandsNS {
     readonly [0]: string; // description
     readonly [1]: number; // count limit
     readonly [2]: boolean; // is background
-    readonly [3]?: Readonly<Dict<any>> | null; // default options
-    readonly [4]?: string; // alias
+    readonly length: number;
+  }
+  interface BaseDescriptionEx extends Description {
+    readonly [3]: Options | null; // default options
+  }
+  interface Description4 extends BaseDescriptionEx {
+    readonly [3]: Options; // default options
+  }
+  interface Description5 extends BaseDescriptionEx {
+    readonly [4]: string; // alias
   }
   interface Item {
     readonly alias: string;

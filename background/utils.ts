@@ -632,7 +632,7 @@ var Utils = {
   makeCommand: (function(command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description) : CommandsNS.Item {
     let opt: CommandsNS.Options | null;
     if (!details) { details = CommandsData.availableCommands[command] as CommandsNS.Description }
-    opt = (details[3] as CommandsNS.Options | null | undefined) || null;
+    opt = details.length < 4 ? null : (details as CommandsNS.BaseDescriptionEx)[3];
     if (options) {
       if (opt) {
         opt instanceof Object && Object.setPrototypeOf(opt, null);
@@ -646,7 +646,7 @@ var Utils = {
       options = opt;
     }
     return {
-      alias: details[4] || command,
+      alias: details.length < 5 ? command : (details as CommandsNS.Description5)[4],
       background: details[2],
       command,
       options,
