@@ -37,6 +37,14 @@ splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister
 register = toRegister.push.bind<Element[], Element, number>(toRegister),
 rel = removeEventListener, ct = clearTimeout, CE = CustomEvent, HA = HTMLAnchorElement,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
+funcToString = Function.prototype.toString, toStringApply = funcToString.apply.bind(funcToString),
+newToString = (function() {
+  "use strict";
+  return toString;
+  function toString(this: Function): string {
+    return toStringApply(this === addEventListener ? _listen : this === newToString ? funcToString : this, arguments as any);
+  }
+})(),
 apply = _listen.apply.bind(_listen) as (self: EventTarget, args: any) => void,
 call = _listen.call.bind(_listen) as (self: EventTarget, ty: string, func?: null | ((e: Event) => void), opts?: boolean) => void
 ;
@@ -76,7 +84,7 @@ function reg(this: void, element: Element): void {
   element.dispatchEvent(event);
   e1.remove();
 }
-EventTarget.prototype.addEventListener = function addEventListener(this: EventTarget, type: string
+function addEventListener(this: EventTarget, type: string
     , listener: EventListenerOrEventListenerObject) {
   if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
     register(this as Element);
@@ -85,7 +93,9 @@ EventTarget.prototype.addEventListener = function addEventListener(this: EventTa
   const len = arguments.length;
   return len === 2 ? call(this, type, listener) : len === 3 ? call(this, type, listener, arguments[2])
     : apply(this, arguments as any);
-};
+}
+EventTarget.prototype.addEventListener = addEventListener;
+Function.prototype.toString = newToString;
 _listen("DOMContentLoaded", handler, true);
 }
 })();

@@ -77,6 +77,10 @@ const newListen = cls.addEventListener = function addEventListener(this: EventTa
   const len = arguments.length;
   return len === 2 ? _listen.call(this, type, listener) : len === 3 ? _listen.call(this, type, listener, arguments[2])
     : _listen.apply(this, arguments as any);
+},
+funcToString = Function.prototype.toString,
+newToString = Function.prototype.toString = function toString(this: Function): string {
+  return funcToString.apply(this === newListen ? _listen : this === newToString ? funcToString : this, arguments as any);
 };
 (cls.addEventListener as ListenerEx).vimiumHooked = true;
 obj.vimiumRemoveHooks = function() {
