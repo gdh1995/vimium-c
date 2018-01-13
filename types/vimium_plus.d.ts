@@ -293,6 +293,7 @@ declare const enum BrowserVer {
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinNo$Promise$$defer = 49,
   MinNoExtScriptsIfSandboxed = 49,
+  Min$addEventListener$$length$Is2 = 49, // otherwise addEventListener.length is 0
   MinNo$Object$$Observe = 50,
   Min$tabs$$executeScript$hasFrameIdArg = 50,
   MinShowBlockForBrokenImage = 51,

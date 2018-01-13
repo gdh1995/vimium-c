@@ -92,6 +92,7 @@ function reg(this: void, element: Element): void {
   dispatch(element, event);
   removeNode(box, e1);
 }
+// Note: these arg names are correct only since BrowserVer.Min$addEventListener$$length$Is2
 function addEventListener(this: EventTarget, type: string
     , listener: EventListenerOrEventListenerObject) {
   if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
@@ -105,5 +106,6 @@ function addEventListener(this: EventTarget, type: string
 EventTarget.prototype.addEventListener = addEventListener;
 Function.prototype.toString = newToString;
 _listen("DOMContentLoaded", handler, true);
+addEventListener.prototype = newToString.prototype = void 0;
 }
 })();
