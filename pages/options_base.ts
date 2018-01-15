@@ -287,8 +287,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   OnInput (this: void, event: Event): void;
   generateDefaultPattern (this: PopExclusionRulesOption): string;
 }
-  let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg")
-    , url0 = tabs[0].url, url = ref ? ref[0].sender.url : url0;
+  let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
   if (!ref) {
     (document.body as HTMLBodyElement).textContent = "";
     (document.body as HTMLBodyElement).appendChild(blockedMsg);
@@ -299,7 +298,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
 
 const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions, escapeRe = <RegExpG & RegExpSearchable<0>> /[&<>]/g,
 exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
-  url: url,
+  url: ref[0].sender.url,
   init (this: PopExclusionRulesOption, element: HTMLElement
       , onUpdated: (this: ExclusionRulesOption) => void, onInit: (this: ExclusionRulesOption) => void
       ): void {
@@ -307,7 +306,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     this.onInit = onInit;
     (ExclusionRulesOption as any).call(this, element, onUpdated);
     this.element.addEventListener("input", this.OnInput);
-    this.init = null as never;
+    this.init = this.onInit = null as never;
   },
   rebuildTesters (this: PopExclusionRulesOption): void {
     const rules = bgSettings.get("exclusionRules")
@@ -406,7 +405,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       if (!saved) { return saveOptions(); }
     }
   });
-  exclusions.init($("#exclusionRules"), onUpdated, ref ? function (): void {
+  exclusions.init($("#exclusionRules"), onUpdated, function (): void {
     let { sender } = (ref as Frames.Frames)[0], el: HTMLElement
       , newStat = sender.status !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
     ref = null;
@@ -420,7 +419,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       el.onclick = forceState.bind(null, sender.tabId, "Reset");
     }
     return updateState();
-  } : updateState);
+  });
   let element = $<HTMLAnchorElement>("#optionsLink");
   url = bgSettings.CONST.OptionsPage;
   element.href !== url && (element.href = url);
