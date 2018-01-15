@@ -475,10 +475,12 @@ var Utils = {
     if (url.substring(ind, ind + 3) === "://") {
       ind = url.indexOf("/", ind + 3);
       if (ind < 0) { return url.toLowerCase() + "/"; }
-      if (ind === 7 && url.toLowerCase().startsWith("file:///")) {
+      if (ind === 7 && url.toLowerCase().startsWith("file")) {
+        // file:///*
         ind = url.charCodeAt(9) === KnownKey.colon ? 3 : 0;
         return "file:///" + (ind ? url[8].toUpperCase() + ":/" : "") + url.substring(ind + 8);
       }
+      // may be file://*/
     }
     return this.upperCaseAlphaRe.test(url) ? url.substring(0, ind).toLowerCase() + url.substring(ind) : url;
   },

@@ -143,6 +143,7 @@ var Settings = {
         url = (this as typeof Settings).CONST.VomnibarPageInner;
       } else {
         url = Utils.convertToUrl(url);
+        url = Utils.reformatURL(url);
         if (!url.startsWith("chrome") && this.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
           url = (this as typeof Settings).CONST.VomnibarPageInner;
         } else {

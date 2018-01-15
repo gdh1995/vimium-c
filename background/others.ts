@@ -296,7 +296,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     if (firstResult && text === last) { text = firstResult.url; }
     const sessionId = sessionIds && sessionIds[text];
     clean();
-    if (text.startsWith("file:///")) {
+    if (text.startsWith("file://")) {
       text = Utils.showFileUrl(text);
     }
     return sessionId != null ? Backend.gotoSession({ sessionId }) : Backend.openUrl({
