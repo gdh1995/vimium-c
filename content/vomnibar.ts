@@ -122,14 +122,15 @@ var Vomnibar = {
     }
     el.style.visibility = "hidden";
     el.onload = function(this: typeof el): void {
-      const _this = Vomnibar, i = page.indexOf("://"), wnd = this.contentWindow,
-      sec: VomnibarNS.MessageData = [secret, _this.options as VomnibarNS.FgOptionsToFront];
+      const _this = Vomnibar;
       if (_this.onReset) { return; }
       if (type !== VomnibarNS.PageType.inner && _this.isABlank()) {
         console.log("Vimium++: use built-in Vomnibar page because the preferred is too old.");
         return reload();
       }
-      page = page.substring(0, page.indexOf("/", i + 3));
+      const i = page.indexOf("://"), wnd = this.contentWindow,
+      sec: VomnibarNS.MessageData = [secret, _this.options as VomnibarNS.FgOptionsToFront];
+      page = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", i + 3));
       inner && setTimeout(function(): void {
         const a = Vomnibar, ok = !a || a.status !== VomnibarNS.Status.Initing;
         if (ok) { a && a.box && (a.box.onload = a.options = null as never); return; }
