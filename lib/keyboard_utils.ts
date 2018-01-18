@@ -14,7 +14,7 @@ var VKeyboard = {
           : i === VKeyCodes.tab ? "tab" : i === VKeyCodes.enter ? "enter" : ""
         , c ? s && s.toUpperCase() : s)
       : i < VKeyCodes.minNotDelete && i > VKeyCodes.maxNotInsert ? (i > VKeyCodes.insert ? "delete" : "insert")
-      : (s = event.key) ? this.funcKeyRe.test(s) ? c ? s : 'f' + s.toLowerCase() : ""
+      : (s = event.key) ? this.funcKeyRe.test(s) ? c ? s : s.toLowerCase() : ""
       : i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn ? "fF"[+c] + (i - VKeyCodes.maxNotFn) : "";
   },
   getKeyCharUsingKeyIdentifier (event: OldKeyboardEvent): string {

@@ -83,6 +83,9 @@ Known issues (Up to the master branch):
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
 
+1.63.1 (Not released yet):
+* fix a bug that a real '<f1>' was mistakenly translated into `<ff1>`
+
 1.63:
 * FindMode and VisualMode will ensure document is selectable when they are active
 * always focus the parent frame and show a yellow border when touch & hold `<esc>`
