@@ -271,6 +271,7 @@ var Vomnibar = {
     sel >= 0 && _ref[sel].classList.add("s");
   },
   ctrlMap: {
+    32: "toggle",
     66: "pageup", 74: "down", 75: "up", 219: "dismiss", 221: "toggle"
     , 78: "down", 80: "up"
   } as Dict<AllowedActions>,
