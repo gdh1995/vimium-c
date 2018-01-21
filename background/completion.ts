@@ -1087,7 +1087,7 @@ searchEngines: {
       setTimeout(function() {
         const _this = HistoryCache;
         setTimeout(() => Decoder.decodeList(HistoryCache.history as HistoryItem[]), 100);
-        (_this.history as HistoryItem[]).sort((a, b) => a.url < b.url ? -1 : 1);
+        (_this.history as HistoryItem[]).sort((a, b) => a.url > b.url ? 1 : -1);
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         chrome.history.onVisited.addListener(_this.OnPageVisited);
       }, 100);
