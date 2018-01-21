@@ -177,7 +177,11 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     Default = 0,
     defaultOpen = 1, search, plainOthers
   }
-  let last: string = "", firstResult: Suggestion | null, lastSuggest: OmniboxCallback | null
+  interface SuggestCallback {
+    suggest: OmniboxCallback;
+    isOff: boolean;
+  }
+  let last: string = "", firstResult: Suggestion | null, lastSuggest: SuggestCallback | null
     , tempRequest: { key: string, suggest: OmniboxCallback } | null
     , timeout = 0, sessionIds: SafeDict<string | number> | null
     , maxChars = OmniboxData.DefaultMaxChars
@@ -222,10 +226,13 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       return onInput(arr.key, arr.suggest);
     }
   }
-  function onComplete(this: null, suggest: OmniboxCallback, response: Suggestion[]
+  function onComplete(this: null, suggest: SuggestCallback, response: Suggestion[]
       , autoSelect: boolean, newMatchType: CompletersNS.MatchType): void {
+    // Note: in https://chromium.googlesource.com/chromium/src/+/master/chrome/browser/autocomplete/keyword_extensions_delegate_impl.cc#167 ,
+    // the block of `case extensions::NOTIFICATION_EXTENSION_OMNIBOX_SUGGESTIONS_READY:`
+    //   always refuses suggestions from old input_ids
     if (!lastSuggest || suggest.isOff) { return; }
-    if (suggest === lastSuggest) { lastSuggest = null; }
+    lastSuggest = null;
     let sug: Suggestion | undefined = response[0];
     if (sug && "sessionId" in sug) {
       sessionIds = Object.create(null);
@@ -258,18 +265,24 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     }
     outTimeout || setTimeout(outClean, 30000);
     Utils.resetRe();
-    suggest(suggestions);
+    suggest.suggest(suggestions);
     return;
   }
   function onInput(this: void, key: string, suggest: OmniboxCallback): void {
-    key = key.trim().replace(Utils.spacesRe, " ");
-    if (key === last) { suggestions && suggest(suggestions as chrome.omnibox.SuggestResult[]); return; }
-    lastSuggest && (lastSuggest.isOff = true);
+    if (lastSuggest) {
+      lastSuggest.isOff = true;
+      lastSuggest = null;
+    }
+    if (key) {
+      key = key.trim().replace(Utils.spacesRe, " ");
+      if (key === last || matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last)) {
+        // suggest([]);
+        tempRequest = null;
+        return;
+      }
+    }
     if (timeout) {
       tempRequest = {key, suggest};
-      return;
-    } else if (matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last)) {
-      suggest([]);
       return;
     }
     timeout = setTimeout(onTimer, 500);
@@ -282,8 +295,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       : (newMatchType = matchType, firstType || "omni");
     matchType = newMatchType;
     last = key;
-    lastSuggest = suggest;
-    return Completers.filter(key, { type, maxResults: 6, maxChars, singleLine: true }, onComplete.bind(null, suggest));
+    lastSuggest = { suggest, isOff: false };
+    return Completers.filter(key, { type, maxResults: 6, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     text = text.trim().replace(Utils.spacesRe, " ");
