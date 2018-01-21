@@ -4,8 +4,8 @@ declare namespace CompletersNS {
    * only those >= .Default can be used in content
    */
   const enum MatchType {
-    Default = 0,
-    plain = Default,
+    plain = 0,
+    Default = plain,
     emptyResult = 1, // require query is not empty
     singleMatch = 2,
     /**

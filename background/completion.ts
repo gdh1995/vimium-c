@@ -890,9 +890,9 @@ searchEngines: {
     suggestions.forEach(SuggestionUtils.prepareHtml, SuggestionUtils);
 
     newAutoSelect = autoSelect && suggestions.length > 0;
-    newMatchType = matchType < MatchType.Default ? (matchType === MatchType._searching
-        && suggestions.length <= 0 ? MatchType.searchWanted : MatchType.Default)
-      : suggestions.length <= 0 ? queryTerms.length && MatchType.emptyResult
+    newMatchType = matchType < MatchType.plain ? (matchType === MatchType._searching
+        && suggestions.length === 0 ? MatchType.searchWanted : MatchType.Default)
+      : suggestions.length === 0 ? queryTerms.length > 0 ? MatchType.emptyResult : MatchType.Default
       : this.sugCounter === 1 ? MatchType.singleMatch : MatchType.Default;
     func = this.callback as CompletersNS.Callback;
     this.cleanGlobals();

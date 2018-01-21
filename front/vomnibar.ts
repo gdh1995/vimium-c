@@ -78,7 +78,7 @@ var Vomnibar = {
         url = url.substring(this.isHttps ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? url.length - 1 : undefined);
       }
     } else {
-      url = VUtils.decodeURL(url, decodeURIComponent).trim().replace(<RegExpG> /\s+/g, " ");
+      url = VUtils.decodeURL(url, decodeURIComponent).trim().replace(this._spacesRe, " ");
     }
     if (keyword) {
       start = (start || 0) + keyword.length + 1;

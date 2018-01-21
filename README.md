@@ -84,7 +84,9 @@ Known issues (Up to the master branch):
   Currently, no effective ways have been found (up to Chrome 59).
 
 1.63.1 (Not released yet):
+* fix some crashes with other libraries including CKEditor 5 (1.0.0-alpha.2)
 * fix a bug that a real '<f1>' was mistakenly translated into `<ff1>`
+* For some IMEs like Chinese, Vomnibar cuts all single quotes if input is composing in the middle of text
 
 1.63:
 * FindMode and VisualMode will ensure document is selectable when they are active
