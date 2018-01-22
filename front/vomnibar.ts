@@ -740,7 +740,7 @@ VUtils = {
     if (!sug.text) {
       sug.text = i && i < url.length ? url.substring(i) : url;
     } else if (i && url.endsWith("/") && !url.endsWith("://") && !str.endsWith("/")) {
-      str += "/";
+      sug.text += "/";
     }
     return i;
   },
