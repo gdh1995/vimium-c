@@ -300,16 +300,15 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     text = text.trim().replace(Utils.spacesRe, " ");
-    if (tempRequest && tempRequest.key === text) {
-      tempRequest.suggest = onEnter.bind(null, text, disposition) as OmniboxCallback;
+    let tmpSug = tempRequest || lastSuggest;
+    if (tmpSug) {
+      tmpSug.suggest = onEnter.bind(null, text, disposition) as OmniboxCallback;
       return onTimer();
-    } else if (lastSuggest) {
-      return;
     }
     if (firstResult && text === last) { text = firstResult.url; }
     const sessionId = sessionIds && sessionIds[text];
     clean();
-    if (text.startsWith("file://")) {
+    if (text.substring(0, 7).toLowerCase() === "file://") {
       text = Utils.showFileUrl(text);
     }
     return sessionId != null ? Backend.gotoSession({ sessionId }) : Backend.openUrl({
