@@ -263,7 +263,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       defaultSuggestionType = FirstSugType.plainOthers;
       chrome.omnibox.setDefaultSuggestion({ description: format(sug).description });
     }
-    outTimeout || setTimeout(outClean, 30000);
+    outTimeout || (outTimeout = setTimeout(outClean, 30000));
     Utils.resetRe();
     suggest.suggest(suggestions);
     return;
