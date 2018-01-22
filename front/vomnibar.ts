@@ -230,10 +230,14 @@ var Vomnibar = {
       }
       return;
     }
+    const onlyUrl = !line.text;
     const ind = VUtils.ensureText(line);
     let str = line.text;
-    if (ind && str.lastIndexOf("://", 5) < 0) {
+    if (!onlyUrl && ind && str.lastIndexOf("://", 5) < 0) {
       str = (ind === 7 ? "http://" : "https://") + str;
+    }
+    if (onlyUrl || str === VUtils.decodeURL(line.url, decodeURIComponent)) {
+      str = line.url;
     }
     return VPort.sendMessage({
       handler: "parseSearchUrl",
@@ -734,10 +738,11 @@ VUtils = {
   },
   ensureText (sug: SuggestionEx): ProtocolType {
     let url = sug.url, str = url.substring(0, 8).toLowerCase();
-    const i = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https : ProtocolType.others;
+    let i = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https : ProtocolType.others;
+    i >= url.length && (i = ProtocolType.others);
     if (!sug.text) {
-      sug.text = i && i < url.length ? url.substring(i) : url;
-    } else if (i && url.endsWith("/") && !url.endsWith("://") && !str.endsWith("/")) {
+      sug.text = i ? url.substring(i) : url;
+    } else if (i && url.endsWith("/") && !str.endsWith("/")) {
       sug.text += "/";
     }
     return i;
