@@ -536,8 +536,6 @@ var Vomnibar = {
     list.style.height = (this.heightList + "").substring(0, 7) + "px";
     if (notEmpty) {
       if (this.selection === 0) {
-        const line = this.completions[0] as SuggestionEx;
-        VUtils.ensureText(line);
         (list.firstElementChild as HTMLElement).classList.add("s");
       }
       (list.lastElementChild as HTMLElement).classList.add("b");
