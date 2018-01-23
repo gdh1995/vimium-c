@@ -169,9 +169,8 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
 }), 150);
 
 setTimeout((function() { if (!chrome.omnibox) { return; }
-  interface OmniboxCallback extends Partial<CompletersNS.QueryStatus> {
-    (this: void, suggestResults: chrome.omnibox.SuggestResult[]): true;
-    (this: void): void;
+  interface OmniboxCallback {
+    (this: void, suggestResults: chrome.omnibox.SuggestResult[]): true | void;
   }
   const enum FirstSugType {
     Default = 0,
@@ -180,12 +179,12 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   interface SuggestCallback {
     suggest: OmniboxCallback;
     isOff: boolean;
+    key: string;
   }
-  let last: string = "", firstResult: Suggestion | null, lastSuggest: SuggestCallback | null
-    , tempRequest: { key: string, suggest: OmniboxCallback } | null
+  let last: string | null = null, firstResult: Suggestion | null, lastSuggest: SuggestCallback | null
     , timeout = 0, sessionIds: SafeDict<string | number> | null
     , maxChars = OmniboxData.DefaultMaxChars
-    , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, outTime: number
+    , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, inputTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , firstType: CompletersNS.ValidTypes | "";
   const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" };
@@ -204,14 +203,14 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   }
   function clean(): void {
     if (lastSuggest) { lastSuggest.isOff = true; }
-    sessionIds = tempRequest = suggestions = lastSuggest = firstResult = null;
+    sessionIds = suggestions = lastSuggest = firstResult = last = null;
     if (outTimeout) { clearTimeout(outTimeout); }
-    outTime = matchType = outTimeout = 0;
-    firstType = last = "";
+    inputTime = matchType = outTimeout = 0;
+    firstType = "";
     Utils.resetRe();
   }
   function outClean(): void {
-    if (Date.now() - outTime > 5000) {
+    if (Date.now() - inputTime > 5000) {
       outTimeout = 0;
       return clean();
     } else {
@@ -220,9 +219,9 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   }
   function onTimer(): void {
     timeout = 0;
-    let arr;
-    if (arr = tempRequest) {
-      tempRequest = null;
+    let arr: typeof lastSuggest;
+    if (arr = lastSuggest) {
+      lastSuggest = null;
       return onInput(arr.key, arr.suggest);
     }
   }
@@ -231,7 +230,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     // Note: in https://chromium.googlesource.com/chromium/src/+/master/chrome/browser/autocomplete/keyword_extensions_delegate_impl.cc#167 ,
     // the block of `case extensions::NOTIFICATION_EXTENSION_OMNIBOX_SUGGESTIONS_READY:`
     //   always refuses suggestions from old input_ids
-    if (!lastSuggest || suggest.isOff) { return; }
+    if (suggest.isOff) { return; }
     lastSuggest = null;
     let sug: Suggestion | undefined = response[0];
     if (sug && "sessionId" in sug) {
@@ -264,45 +263,43 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       chrome.omnibox.setDefaultSuggestion({ description: format(sug).description });
     }
     outTimeout || (outTimeout = setTimeout(outClean, 30000));
+    last = suggest.key;
     Utils.resetRe();
     suggest.suggest(suggestions);
     return;
   }
   function onInput(this: void, key: string, suggest: OmniboxCallback): void {
+    key = key.trim().replace(Utils.spacesRe, " ");
     if (lastSuggest) {
-      lastSuggest.isOff = true;
-      lastSuggest = null;
-    }
-    if (key) {
-      key = key.trim().replace(Utils.spacesRe, " ");
-      if (key === last || matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last)) {
-        // suggest([]);
-        tempRequest = null;
+      let same = key === lastSuggest.key;
+      lastSuggest.isOff = !same;
+      if (same) {
+        lastSuggest.suggest = suggest;
         return;
       }
     }
-    if (timeout) {
-      tempRequest = {key, suggest};
+    if (key === last || matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last as string)) {
       return;
     }
-    timeout = setTimeout(onTimer, 500);
-    outTime = Date.now();
+    lastSuggest = { suggest, key, isOff: false };
+    if (timeout) { return; }
+    const now = Date.now(), delta = 500 + inputTime - now;
+    if (delta > 50) {
+      timeout = setTimeout(onTimer, delta);
+      return;
+    }
+    inputTime = now;
     sessionIds = suggestions = firstResult = null;
-    let newMatchType: CompletersNS.MatchType = CompletersNS.MatchType.Default;
     const type: CompletersNS.ValidTypes = matchType < CompletersNS.MatchType.singleMatch
-        || !key.startsWith(last) ? "omni"
+        || !key.startsWith(last as string) ? "omni"
       : matchType === CompletersNS.MatchType.searchWanted ? "search"
-      : (newMatchType = matchType, firstType || "omni");
-    matchType = newMatchType;
-    last = key;
-    lastSuggest = { suggest, isOff: false };
+      : firstType || "omni";
     return Completers.filter(key, { type, maxResults: 6, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     text = text.trim().replace(Utils.spacesRe, " ");
-    let tmpSug = tempRequest || lastSuggest;
-    if (tmpSug) {
-      tmpSug.suggest = onEnter.bind(null, text, disposition) as OmniboxCallback;
+    if (lastSuggest && !lastSuggest.isOff) {
+      lastSuggest.suggest = onEnter.bind(null, text, disposition);
       return onTimer();
     }
     if (firstResult && text === last) { text = firstResult.url; }
