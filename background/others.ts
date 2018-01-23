@@ -323,6 +323,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       maxChars = width ? Math.floor((width - OmniboxData.MarginH / devicePixelRatio) / OmniboxData.MeanWidthOfChar)
         : OmniboxData.DefaultMaxChars;
     });
+    return clean();
   });
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
