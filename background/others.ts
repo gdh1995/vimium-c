@@ -184,7 +184,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   let last: string | null = null, firstResult: Suggestion | null, lastSuggest: SuggestCallback | null
     , timeout = 0, sessionIds: SafeDict<string | number> | null
     , maxChars = OmniboxData.DefaultMaxChars
-    , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, inputTime: number
+    , suggestions = null as chrome.omnibox.SuggestResult[] | null, cleanTimer = 0, inputTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , firstType: CompletersNS.ValidTypes | "";
   const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" };
@@ -204,18 +204,16 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   function clean(): void {
     if (lastSuggest) { lastSuggest.isOff = true; }
     sessionIds = suggestions = lastSuggest = firstResult = last = null;
-    if (outTimeout) { clearTimeout(outTimeout); }
-    inputTime = matchType = outTimeout = 0;
+    if (cleanTimer) { clearTimeout(cleanTimer); }
+    inputTime = matchType = cleanTimer = 0;
     firstType = "";
     Utils.resetRe();
   }
-  function outClean(): void {
+  function tryClean(): void {
     if (Date.now() - inputTime > 5000) {
-      outTimeout = 0;
       return clean();
-    } else {
-      outTimeout = setTimeout(outClean, 30000);
     }
+    cleanTimer = setTimeout(tryClean, 30000);
   }
   function onTimer(): void {
     timeout = 0;
@@ -262,7 +260,6 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       defaultSuggestionType = FirstSugType.plainOthers;
       chrome.omnibox.setDefaultSuggestion({ description: format(sug).description });
     }
-    outTimeout || (outTimeout = setTimeout(outClean, 30000));
     last = suggest.key;
     Utils.resetRe();
     suggest.suggest(suggestions);
@@ -288,6 +285,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       timeout = setTimeout(onTimer, delta);
       return;
     }
+    cleanTimer || (cleanTimer = setTimeout(tryClean, 30000));
     inputTime = now;
     sessionIds = suggestions = firstResult = null;
     const type: CompletersNS.ValidTypes = matchType < CompletersNS.MatchType.singleMatch
@@ -320,7 +318,9 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       maxChars = width ? Math.floor((width - OmniboxData.MarginH / devicePixelRatio) / OmniboxData.MeanWidthOfChar)
         : OmniboxData.DefaultMaxChars;
     });
-    return clean();
+    if (cleanTimer) {
+      return clean();
+    }
   });
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
