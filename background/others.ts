@@ -182,7 +182,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     key: string;
   }
   let last: string | null = null, firstResult: Suggestion | null, lastSuggest: SuggestCallback | null
-    , timeout = 0, sessionIds: SafeDict<string | number> | null
+    , timer = 0, sessionIds: SafeDict<string | number> | null
     , maxChars = OmniboxData.DefaultMaxChars
     , suggestions = null as chrome.omnibox.SuggestResult[] | null, cleanTimer = 0, inputTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
@@ -205,7 +205,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     if (lastSuggest) { lastSuggest.suggest = null; }
     sessionIds = suggestions = lastSuggest = firstResult = last = null;
     if (cleanTimer) { clearTimeout(cleanTimer); }
-    inputTime = matchType = cleanTimer = 0;
+    if (timer) { clearTimeout(timer); }
+    inputTime = matchType = cleanTimer = timer = 0;
     firstType = "";
     Utils.resetRe();
   }
@@ -216,7 +217,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     cleanTimer = setTimeout(tryClean, 30000);
   }
   function onTimer(): void {
-    timeout = 0;
+    timer = 0;
     const arr = lastSuggest;
     if (!arr || arr.sent) { return; }
     lastSuggest = null;
@@ -282,10 +283,10 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       return;
     }
     lastSuggest = { suggest, key, sent: false };
-    if (timeout) { return; }
+    if (timer) { return; }
     const now = Date.now(), delta = 600 + inputTime - now;
     if (delta > 50) {
-      timeout = setTimeout(onTimer, delta);
+      timer = setTimeout(onTimer, delta);
       return;
     }
     lastSuggest.sent = true;
@@ -300,9 +301,10 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     text = text.trim().replace(Utils.spacesRe, " ");
-    if (lastSuggest && lastSuggest.suggest) {
-      lastSuggest.suggest = onEnter.bind(null, text, disposition);
-      timeout && clearTimeout(timeout);
+    const arr = lastSuggest;
+    if (arr && arr.suggest) {
+      arr.suggest = onEnter.bind(null, text, disposition);
+      timer && clearTimeout(timer);
       return onTimer();
     }
     if (firstResult && text === last) { text = firstResult.url; }
