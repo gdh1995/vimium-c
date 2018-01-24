@@ -1099,7 +1099,7 @@ searchEngines: {
         for (let f of ref) {
           f(HistoryCache.history as HistoryItem[]);
         }
-      }, 17, _this._callbacks);
+      }, 1, _this._callbacks);
       _this._callbacks = null;
     } as ((arr: chrome.history.HistoryItem[]) => void) | null,
     OnPageVisited (this: void, newPage: chrome.history.HistoryItem): void {
