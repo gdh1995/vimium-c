@@ -217,9 +217,9 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   }
   function onTimer(): void {
     timeout = 0;
-    let arr: typeof lastSuggest;
-    if (arr = lastSuggest) {
-      lastSuggest = null;
+    let arr = lastSuggest;
+    lastSuggest = null;
+    if (arr && !arr.isOff) {
       return onInput(arr.key, arr.suggest);
     }
   }
@@ -228,7 +228,10 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     // Note: in https://chromium.googlesource.com/chromium/src/+/master/chrome/browser/autocomplete/keyword_extensions_delegate_impl.cc#167 ,
     // the block of `case extensions::NOTIFICATION_EXTENSION_OMNIBOX_SUGGESTIONS_READY:`
     //   always refuses suggestions from old input_ids
-    if (suggest.isOff) { return; }
+    if (suggest.isOff) {
+      lastSuggest === suggest && (lastSuggest = null);
+      return;
+    }
     lastSuggest = null;
     let sug: Suggestion | undefined = response[0];
     if (sug && "sessionId" in sug) {
