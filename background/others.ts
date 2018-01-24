@@ -304,6 +304,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     const arr = lastSuggest;
     if (arr && arr.suggest) {
       arr.suggest = onEnter.bind(null, text, disposition);
+      if (arr.sent) { return; }
       timer && clearTimeout(timer);
       return onTimer();
     }
