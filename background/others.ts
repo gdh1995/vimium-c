@@ -177,8 +177,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     defaultOpen = 1, search, plainOthers
   }
   interface SuggestCallback {
-    suggest: OmniboxCallback;
-    isOff: boolean;
+    suggest: OmniboxCallback | null;
+    sent: boolean;
     key: string;
   }
   let last: string | null = null, firstResult: Suggestion | null, lastSuggest: SuggestCallback | null
@@ -202,7 +202,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     };
   }
   function clean(): void {
-    if (lastSuggest) { lastSuggest.isOff = true; }
+    if (lastSuggest) { lastSuggest.suggest = null; }
     sessionIds = suggestions = lastSuggest = firstResult = last = null;
     if (cleanTimer) { clearTimeout(cleanTimer); }
     inputTime = matchType = cleanTimer = 0;
@@ -217,9 +217,10 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   }
   function onTimer(): void {
     timeout = 0;
-    let arr = lastSuggest;
+    const arr = lastSuggest;
+    if (!arr || arr.sent) { return; }
     lastSuggest = null;
-    if (arr && !arr.isOff) {
+    if (arr.suggest) {
       return onInput(arr.key, arr.suggest);
     }
   }
@@ -228,7 +229,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     // Note: in https://chromium.googlesource.com/chromium/src/+/master/chrome/browser/autocomplete/keyword_extensions_delegate_impl.cc#167 ,
     // the block of `case extensions::NOTIFICATION_EXTENSION_OMNIBOX_SUGGESTIONS_READY:`
     //   always refuses suggestions from old input_ids
-    if (suggest.isOff) {
+    if (!suggest.suggest) {
       lastSuggest === suggest && (lastSuggest = null);
       return;
     }
@@ -272,22 +273,22 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     key = key.trim().replace(Utils.spacesRe, " ");
     if (lastSuggest) {
       let same = key === lastSuggest.key;
-      lastSuggest.isOff = !same;
+      lastSuggest.suggest = same ? suggest : null;
       if (same) {
-        lastSuggest.suggest = suggest;
         return;
       }
     }
     if (key === last || matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last as string)) {
       return;
     }
-    lastSuggest = { suggest, key, isOff: false };
+    lastSuggest = { suggest, key, sent: false };
     if (timeout) { return; }
-    const now = Date.now(), delta = 500 + inputTime - now;
+    const now = Date.now(), delta = 600 + inputTime - now;
     if (delta > 50) {
       timeout = setTimeout(onTimer, delta);
       return;
     }
+    lastSuggest.sent = true;
     cleanTimer || (cleanTimer = setTimeout(tryClean, 30000));
     inputTime = now;
     sessionIds = suggestions = firstResult = null;
@@ -299,8 +300,9 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     text = text.trim().replace(Utils.spacesRe, " ");
-    if (lastSuggest && !lastSuggest.isOff) {
+    if (lastSuggest && lastSuggest.suggest) {
       lastSuggest.suggest = onEnter.bind(null, text, disposition);
+      timeout && clearTimeout(timeout);
       return onTimer();
     }
     if (firstResult && text === last) { text = firstResult.url; }
