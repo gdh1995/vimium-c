@@ -79,10 +79,7 @@ type CachedRegExp = (RegExpOne | RegExpI) & RegExpSearchable<0>;
 
 type HistoryCallback = (this: void, history: ReadonlyArray<Readonly<HistoryItem>>) => void;
 
-interface UrlToDecode extends String {
-  url?: void;
-}
-type ItemToDecode = UrlToDecode | DecodedItem;
+type ItemToDecode = string | DecodedItem;
 
 type CompletersMap = {
     [P in CompletersNS.ValidTypes]: ReadonlyArray<Completer>;
@@ -1068,7 +1065,7 @@ searchEngines: {
         maxResults: this.size,
         startTime: 0
       }, function(history: chrome.history.HistoryItem[]): void {
-        setTimeout(HistoryCache.Clean as (arr: chrome.history.HistoryItem[]) => void, 1, history);
+        setTimeout(HistoryCache.Clean as (arr: chrome.history.HistoryItem[]) => void, 0, history);
       });
     },
     Clean: function(this: void, arr: Array<chrome.history.HistoryItem | HistoryItem>): void {
@@ -1232,30 +1229,30 @@ searchEngines: {
       setTimeout(this.Work, 17, null);
     },
     Work (xhr: XMLHttpRequest | null): void {
-      let _this = Decoder, url: ItemToDecode, str: string, text: string | undefined;
-      xhr || (xhr = _this.init());
-      if (_this.todos.length <= _this._ind || !xhr) {
-        _this.todos.length = 0;
-        _this._ind = -1;
-        return;
-      }
-      for (; url = _this.todos[_this._ind]; _this._ind++) {
-        str = url.url || (url as string);
+      const _this = Decoder;
+      for (; _this._ind < _this.todos.length; _this._ind++) {
+        const url = _this.todos[_this._ind], isStr = typeof url === "string",
+        str = isStr ? url as string : (url as DecodedItem).url;
+        let text: string | undefined;
         if (text = _this.dict[str]) {
-          url.url && ((url as DecodedItem).text = text);
+          isStr || ((url as DecodedItem).text = text);
           continue;
+        }
+        if (!xhr && !(xhr = _this.init())) {
+          _this.todos.length = 0;
+          _this._ind = -1;
+          return;
         }
         xhr.open("GET", _this._dataUrl + str.replace("#", "%25"), true);
         return xhr.send();
       }
     },
     OnXHR (this: XMLHttpRequest): void {
-      let _this = Decoder, url: ItemToDecode, str: string, text = this.responseText;
-      url = _this.todos[_this._ind++];
-      if (str = url.url as string) {
-        _this.dict[str] = (url as DecodedItem).text = text;
+      const _this = Decoder, text = this.responseText, url = _this.todos[_this._ind++];
+      if (typeof url !== "string") {
+        _this.dict[url.url] = url.text = text;
       } else {
-        _this.dict[url as string] = text;
+        _this.dict[url] = text;
       }
       return _this.Work(this);
     },

@@ -19,8 +19,8 @@ interface String {
 (function (): void {
   "".startsWith || (
   String.prototype.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
-    const err = check(this, searchString, "startsWith");
-    if (err !== null) { throw new TypeError(err); }
+    const err = check(this, searchString);
+    if (err !== null) { throw new TypeError(err.replace("${func}", "startsWith")); }
     let a = "" + this, b = "" + searchString, c = +arguments[1];
     a = String(this), b = String(searchString);
     c = c > 0 ? Math.min(c | 0, a.length) : 0;
@@ -29,19 +29,19 @@ interface String {
 
   "".endsWith || (
   String.prototype.endsWith = function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
-    const err = check(this, searchString, "endsWith");
-    if (err !== null) { throw new TypeError(err); }
+    const err = check(this, searchString);
+    if (err !== null) { throw new TypeError(err.replace("${func}", "endsWith")); }
     let a = "" + this, b = "" + searchString, p: any = arguments[1], c = +p, u: undefined;
     a = String(this), b = String(searchString);
     c = (p === u ? a.length : c > 0 ? Math.min(c | 0, a.length) : 0) - b.length;
     return c >= 0 && a.indexOf(b, c) === c;
   });
 
-  function check(a: any, b: any, func: string): null | string {
-    if (a == null) { return `String.prototype.${func} called on null or undefined`; }
+  function check(a: any, b: any): null | string {
+    if (a == null) { return "String.prototype.${func} called on null or undefined"; }
     if (!b) { return null; }
     let i: any, f: any, u: undefined;
     i = typeof Symbol === "function" && Symbol.match && (f = b[Symbol.match]) !== u ? f : b instanceof RegExp;
-    return i ? `First argument to String.prototype.${func} must not be a regular expression` : null;
+    return i ? "First argument to String.prototype.${func} must not be a regular expression" : null;
   }
 })();
