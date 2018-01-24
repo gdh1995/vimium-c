@@ -42,6 +42,11 @@ var Backend: BackendHandlersNS.BackendHandlers;
     opener?: boolean;
     window?: boolean;
   }
+  const enum RefreshTabStep {
+    start = 0,
+    s1, s2, s3, s4,
+    end,
+  }
 
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
@@ -97,17 +102,18 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       return tabs[0] as ActiveTab;
     },
-    onRefreshTab (step: 1 | 2 | 3 | 4, tab?: Tab): void {
-      if (chrome.runtime.lastError) {
+    onRefreshTab (step: RefreshTabStep, tab?: Tab): void {
+      const err = chrome.runtime.lastError;
+      if (err) {
         chrome.sessions.restore();
-        return chrome.runtime.lastError;
+        return err;
       }
-      step = ((step | 0) + 1) as 1 | 2 | 3 | 4;
-      if (step > 3) { return; }
+      step = step + 1;
+      if (step >= RefreshTabStep.end) { return; }
       const tabId = (tab as Tab).id;
       setTimeout(function(): void {
         chrome.tabs.get(tabId, function(tab): void {
-          funcDict.onRefreshTab((step + 1) as 1 | 2 | 3 | 4, tab);
+          return funcDict.onRefreshTab(step + 1, tab);
         });
       }, 50 * step * step);
     },
@@ -1864,7 +1870,7 @@ Are you sure you want to continue?`);
     reopenTab (this: void, tab: Tab, refresh?: boolean): void {
       if (refresh) {
         chrome.tabs.remove(tab.id, funcDict.onRuntimeError);
-        chrome.tabs.get(tab.id, funcDict.onRefreshTab.bind(null, 0));
+        chrome.tabs.get(tab.id, funcDict.onRefreshTab.bind(null, RefreshTabStep.start));
         return;
       }
       tabsCreate({
