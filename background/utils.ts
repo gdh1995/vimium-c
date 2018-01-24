@@ -49,12 +49,21 @@ var Utils = {
     }
     return !url.startsWith(Settings.CONST.ChromeInnerNewTab) && url.startsWith("chrome");
   },
-  _nonENTlds: ".\u4e2d\u56fd.\u6211\u7231\u4f60.\u516c\u53f8.\u96c6\u56e2.\u7f51\u7edc.\u4e2d\u570b.",
+  _nonENTlds: ".\u4e2d\u56fd.\u4e2d\u6587\u7f51.\u6211\u7231\u4f60.\u7f51\u5740\
+.\u7f51\u5e97.\u516c\u53f8.\u7f51\u7edc.\u96c6\u56e2.\u4e2d\u4fe1.\u5546\u57ce\
+.\u4e2d\u570b.",
   _tlds: ["", "",
-    ".ac.ad.ae.af.ag.ai.al.am.an.ao.aq.ar.as.at.au.aw.az.ba.bb.bd.be.bf.bg.bh.bi.bj.bm.bn.bo.br.bs.bt.bv.bw.by.bz.ca.cc.cd.cf.cg.ch.ci.ck.cl.cm.cn.co.cr.cu.cv.cx.cy.cz.de.dj.dk.dm.do.dz.ec.ee.eg.eh.er.es.et.eu.fi.fj.fk.fm.fo.fr.ga.gd.ge.gf.gg.gh.gi.gl.gm.gn.gp.gq.gr.gs.gt.gu.gw.gy.hk.hm.hn.hr.ht.hu.id.ie.il.im.in.io.iq.ir.is.it.je.jm.jo.jp.ke.kg.kh.ki.km.kn.kp.kr.kw.ky.kz.la.lb.lc.li.lk.lr.ls.lt.lu.lv.ly.ma.mc.md.me.mg.mh.mk.ml.mm.mn.mo.mp.mq.mr.ms.mt.mu.mv.mw.mx.my.mz.na.nc.ne.nf.ng.ni.nl.no.np.nr.nu.nz.om.pa.pe.pf.pg.ph.pk.pl.pm.pn.pr.ps.pt.pw.py.qa.re.ro.ru.rw.sa.sb.sc.sd.se.sg.sh.si.sj.sk.sl.sm.sn.so.sr.ss.st.su.sv.sy.sz.tc.td.tf.tg.th.tj.tk.tl.tm.tn.to.tp.tr.tt.tv.tw.tz.ua.ug.uk.um.us.uy.uz.va.vc.ve.vg.vi.vn.vu.wf.ws.ye.yt.yu.za.zm.zw",
-    ".abc.bid.biz.cat.com.dev.edu.gov.int.mil.mtn.net.new.one.org.pro.pub.ren.run.tel.top.win.xin.xxx.xyz",
-    ".aero.arpa.asia.band.club.coop.date.gift.help.info.jobs.link.live.mobi.name.news.pics.post.site.tech.wang.wiki",
-    ".click.local.onion.party.photo.press.rocks.space.today.trade.video",
+    ".ac.ad.ae.af.ag.ai.al.am.an.ao.aq.ar.as.at.au.aw.az.ba.bb.bd.be.bf.bg.bh.bi.bj.bm.bn.bo.br.bs.bt.bv.bw.by.bz.ca.cc.cd.cf\
+.cg.ch.ci.ck.cl.cm.cn.co.cr.cu.cv.cx.cy.cz.de.dj.dk.dm.do.dz.ec.ee.eg.eh.er.es.et.eu.fi.fj.fk.fm.fo.fr.ga.gd.ge.gf.gg.gh.gi.gl\
+.gm.gn.gp.gq.gr.gs.gt.gu.gw.gy.hk.hm.hn.hr.ht.hu.id.ie.il.im.in.io.iq.ir.is.it.je.jm.jo.jp.ke.kg.kh.ki.km.kn.kp.kr.kw.ky.kz.la\
+.lb.lc.li.lk.lr.ls.lt.lu.lv.ly.ma.mc.md.me.mg.mh.mk.ml.mm.mn.mo.mp.mq.mr.ms.mt.mu.mv.mw.mx.my.mz.na.nc.ne.nf.ng.ni.nl.no.np.nr\
+.nu.nz.om.pa.pe.pf.pg.ph.pk.pl.pm.pn.pr.ps.pt.pw.py.qa.re.ro.ru.rw.sa.sb.sc.sd.se.sg.sh.si.sj.sk.sl.sm.sn.so.sr.ss.st.su.sv.sy\
+.sz.tc.td.tf.tg.th.tj.tk.tl.tm.tn.to.tp.tr.tt.tv.tw.tz.ua.ug.uk.um.us.uy.uz.va.vc.ve.vg.vi.vn.vu.wf.ws.ye.yt.yu.za.zm.zw",
+    ".abc.bid.biz.cat.com.dev.edu.fun.gov.ink.int.kim.lol.ltd.men.mil.mom.mtn.net\
+.new.one.org.pro.pub.red.ren.run.tel.top.vip.win.xin.xxx.xyz",
+    ".aero.arpa.asia.band.club.coop.date.game.gift.help.info.jobs.link.live.loan\
+.mobi.name.news.pics.post.shop.site.tech.wang.wiki.work",
+    ".citic.click.games.group.local.onion.party.photo.press.rocks.space.store.today.trade.video",
     ".design.lawyer.market.museum.online.social.studio.travel"
     , ".science.website"
     , ".engineer.software"
