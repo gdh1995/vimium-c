@@ -257,6 +257,8 @@ declare const enum KeyStat {
   PrimaryModifier = ctrlKey | metaKey,
 }
 
+declare const NDEBUG: undefined;
+
 declare const enum BrowserVer {
   MinShadowDOMV0 = 35,
   MinSupported = MinShadowDOMV0,
@@ -280,6 +282,7 @@ declare const enum BrowserVer {
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
   MinArrowFunction = 45,
+  MinEnsureMethodFunction = 45, // e.g.: `{ a() {} }`
   MinMuted = 45,
   MinMutedInfo = 46,
   MinAutoDecodeJSURL = 46,

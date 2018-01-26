@@ -25,7 +25,11 @@
   }
   window.VSettings.onDestroy = destroy;
   script.type = "text/javascript";
-  script.textContent = '"use strict";(' + func.toString() + ')();';
+  let str = func.toString(), appVer = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/);
+  if (!appVer || +appVer[1] >= BrowserVer.MinEnsureMethodFunction) {
+    str = str.replace(<any>(typeof NDEBUG === "undefined" ? /: ?function(?: \w+)?/g : /:function/g), "");
+  }
+  script.textContent = '"use strict";(' + str + ')();';
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();
@@ -42,11 +46,24 @@ register = toRegister.push.bind<Element[], Element, number>(toRegister),
 CE = CustomEvent, HA = HTMLAnchorElement,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
 funcToString = Function.prototype.toString, toStringApply = funcToString.apply.bind(funcToString),
-newToString = function toString(this: Function): string {
-  return toStringApply(this === addEventListener ? _listen : this === newToString ? funcToString : this, arguments as any);
-},
 apply = _listen.apply.bind(_listen) as (self: EventTarget, args: any) => void,
-call = _listen.call.bind(_listen) as (self: EventTarget, ty: string, func?: null | ((e: Event) => void), opts?: boolean) => void
+call = _listen.call.bind(_listen) as (self: EventTarget, ty: string, func?: null | ((e: Event) => void), opts?: boolean) => void,
+hooks = {
+  toString(this: Function): string {
+    const a = this;
+    return toStringApply(a === addEventListener ? _listen : a === toString ? funcToString : a, arguments as any);
+  },
+  addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
+    const a = this;
+    if (type === "click" && listener && !(a instanceof HA || a instanceof HF) && a instanceof E) {
+      register(a as Element);
+      if (timer === 0) { timer = next(); }
+    }
+    const len = arguments.length;
+    return len === 2 ? call(a, type, listener) : len === 3 ? call(a, type, listener, arguments[2]) : apply(a, arguments as any);
+  }
+},
+{ toString, addEventListener } = hooks
 ;
 
 let handler = function(this: void): void {
@@ -88,20 +105,8 @@ function reg(this: void, element: Element): void {
   dispatch(element, event);
   removeNode(box, e1);
 }
-// Note: these arg names are correct only since BrowserVer.Min$addEventListener$$length$Is2
-function addEventListener(this: EventTarget, type: string
-    , listener: EventListenerOrEventListenerObject) {
-  if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
-    register(this as Element);
-    if (timer === 0) { timer = next(); }
-  }
-  const len = arguments.length;
-  return len === 2 ? call(this, type, listener) : len === 3 ? call(this, type, listener, arguments[2])
-    : apply(this, arguments as any);
-}
 EventTarget.prototype.addEventListener = addEventListener;
-Function.prototype.toString = newToString;
+Function.prototype.toString = toString;
 _listen("DOMContentLoaded", handler, true);
-addEventListener.prototype = newToString.prototype = void 0;
 }
 })();
