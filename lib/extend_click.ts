@@ -26,6 +26,7 @@
     removeEventListener("VimiumOnclick", onclick, true);
     if (box) {
       box.removeEventListener("VimiumOnclick", onclick, true);
+      box.dispatchEvent(new CustomEvent("VimiumDestroy", {detail: secret}));
       box = null as never;
     }
     VSettings && (VSettings.onDestroy = null);
@@ -80,6 +81,13 @@ let handler = function(this: void): void {
   if (!docEl) { return; }
   box = createElement("div");
   box.setAttribute("data-secret", "" + sec);
+  call(box, "VimiumDestroy", function(e: CustomEvent): void {
+    if (e.detail === "" + sec) {
+      EventTarget.prototype.addEventListener === addEventListener && (EventTarget.prototype.addEventListener = _listen);
+      Function.prototype.toString === toString && (Function.prototype.toString = toString);
+      box = null as never;
+    }
+  });
   append(docEl, box);
   dispatch(box, new CE("VimiumReg"));
   removeNode(docEl, box);
