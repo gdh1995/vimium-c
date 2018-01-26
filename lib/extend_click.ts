@@ -4,23 +4,30 @@
   type Listener = (this: void, e: Event) => void;
   let d: Document | Document["documentElement"] = document
     , script = d.createElement("script") as HTMLScriptElement | Element
-    , installer: Listener | null, onclick: Listener | null, box: EventTarget;
+    , installer: Listener | null, box: EventTarget
+    , secret = "" + ((Math.random() * 1e6 + 1) | 0);
   if (!(script instanceof HTMLScriptElement)) { return; }
   addEventListener("VimiumReg", installer = function(event) {
+    const t = event.target;
+    if (!(t instanceof Element) || t.getAttribute("data-secret") !== secret) { return; }
     removeEventListener("VimiumReg", installer, true);
-    box = event.target;
-    box.addEventListener("VimiumOnclick", onclick, true);
+    t.removeAttribute("data-secret");
+    t.addEventListener("VimiumOnclick", onclick, true);
+    box = t;
     installer = null;
   }, true);
-  addEventListener("VimiumOnclick", onclick = function(event) {
+  function onclick(event: Event): void {
     (event.target as Element).vimiumHasOnclick = true;
     event.stopPropagation();
-  }, true);
+  }
+  addEventListener("VimiumOnclick", onclick, true);
   function destroy() {
     removeEventListener("VimiumReg", installer, true);
     removeEventListener("VimiumOnclick", onclick, true);
-    box && box.removeEventListener("VimiumOnclick", onclick, true);
-    box = null as never;
+    if (box) {
+      box.removeEventListener("VimiumOnclick", onclick, true);
+      box = null as never;
+    }
     VSettings && (VSettings.onDestroy = null);
   }
   window.VSettings.onDestroy = destroy;
@@ -29,13 +36,13 @@
   if (!appVer || +appVer[1] >= BrowserVer.MinEnsureMethodFunction) {
     str = str.replace(<any>(typeof NDEBUG === "undefined" ? /: ?function(?: \w+)?/g : /:function/g), "");
   }
-  script.textContent = '"use strict";(' + str + ')();';
+  script.textContent = '"use strict";(' + str + ')(' + secret + ');';
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();
   VDom.documentReady(function() { box || destroy(); });
 
-function func(this: void): void {
+function func(this: void, sec: number): void {
 const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
 _dispatch = EventTarget.prototype.dispatchEvent, dispatch = _dispatch.call.bind(_dispatch),
 _append = document.appendChild, append = _append.call.bind(_append) as (parent: Node, node: Node) => Node,
@@ -72,6 +79,7 @@ let handler = function(this: void): void {
   const docEl = document.documentElement as HTMLElement | SVGElement;
   if (!docEl) { return; }
   box = createElement("div");
+  box.setAttribute("data-secret", "" + sec);
   append(docEl, box);
   dispatch(box, new CE("VimiumReg"));
   removeNode(docEl, box);
