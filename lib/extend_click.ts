@@ -10,6 +10,7 @@
   addEventListener("VimiumReg", installer = function(event) {
     const t = event.target;
     if (!(t instanceof Element) || t.getAttribute("data-secret") !== secret) { return; }
+    event.stopImmediatePropagation();
     removeEventListener("VimiumReg", installer, true);
     t.removeAttribute("data-secret");
     t.addEventListener("VimiumOnclick", onclick, true);
@@ -45,17 +46,19 @@
 
 function func(this: void, sec: number): void {
 const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
-_dispatch = EventTarget.prototype.dispatchEvent, dispatch = _dispatch.call.bind(_dispatch),
-_append = document.appendChild, append = _append.call.bind(_append) as (parent: Node, node: Node) => Node,
-_removeNode = document.removeChild, removeNode = _removeNode.call.bind(_removeNode),
+_apply = _listen.apply, _call = _listen.call,
+call = _call.bind(_call) as <T, R, A, B, C>(func: (this: T, a?: A, b?: B, c?: C) => R, self: T, a?: A, b?: B, c?: C) => R,
+_dispatch = EventTarget.prototype.dispatchEvent, dispatch = _call.bind(_dispatch),
+_append = document.appendChild, append = _call.bind(_append) as (parent: Node, node: Node) => Node,
 contains = document.contains.bind(document),
 splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister),
-register = toRegister.push.bind<Element[], Element, number>(toRegister),
 CE = CustomEvent, HA = HTMLAnchorElement,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
-funcToString = Function.prototype.toString, toStringApply = funcToString.apply.bind(funcToString),
-apply = _listen.apply.bind(_listen) as (self: EventTarget, args: any) => void,
-call = _listen.call.bind(_listen) as (self: EventTarget, ty: string, func?: null | ((e: Event) => void), opts?: boolean) => void,
+funcToString = Function.prototype.toString, toStringApply = _apply.bind(funcToString),
+listenA = _apply.bind(_listen) as (self: EventTarget, args: any) => void,
+listen = _call.bind(_listen) as (self: EventTarget, ty: string, func?: null | ((e: Event) => void), opts?: boolean) => void,
+Stop = KeyboardEvent.prototype.stopImmediatePropagation,
+Attr = E.prototype.setAttribute, _remove = E.prototype.remove, remove = _call.bind(_remove),
 hooks = {
   toString(this: Function): string {
     const a = this;
@@ -68,7 +71,7 @@ hooks = {
       if (timer === 0) { timer = next(); }
     }
     const len = arguments.length;
-    return len === 2 ? call(a, type, listener) : len === 3 ? call(a, type, listener, arguments[2]) : apply(a, arguments as any);
+    return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, arguments[2]) : listenA(a, arguments as any);
   }
 },
 { toString, addEventListener } = hooks
@@ -76,28 +79,23 @@ hooks = {
 
 let handler = function(this: void): void {
   rel("DOMContentLoaded", handler, true);
-  ct(loadTimeout);
+  ct(timer);
   const docEl = document.documentElement as HTMLElement | SVGElement;
-  if (!docEl) { return; }
-  box = createElement("div");
-  box.setAttribute("data-secret", "" + sec);
-  call(box, "VimiumDestroy", function(e: CustomEvent): void {
-    if (e.detail === "" + sec) {
-      EventTarget.prototype.addEventListener === addEventListener && (EventTarget.prototype.addEventListener = _listen);
-      Function.prototype.toString === toString && (Function.prototype.toString = toString);
-      box = null as never;
-    }
-  });
+  if (!docEl) { return destroy(); }
+  box = call(Create, document, "div") as HTMLDivElement;
   append(docEl, box);
+  listen(box, "VimiumDestroy", destroy as (e: CustomEvent) => void, true);
+  call(Attr, box, "data-secret", "" + sec);
   dispatch(box, new CE("VimiumReg"));
-  removeNode(docEl, box);
-  handler = rel = ct = createElement = null as never;
+  remove(box);
+  handler = ct = Create = null as never;
   timer = toRegister.length > 0 ? next() : 0;
 },
+register = toRegister.push.bind<Element[], Element, number>(toRegister),
 rel = removeEventListener, ct = clearTimeout,
-createElement = document.createElement.bind(document) as Document["createElement"],
-box: HTMLDivElement, loadTimeout = setTimeout(handler, 1000),
-timer = -1, next = setTimeout.bind(null as never, iter, 1);
+Create = document.createElement as Document["createElement"],
+box: HTMLDivElement, timer = setTimeout(handler, 1000),
+next = setTimeout.bind(null as never, iter, 1);
 function iter(): void {
   const len = toRegister.length, delta = len > 9 ? 10 : len;
   if (len > 0) {
@@ -119,7 +117,19 @@ function reg(this: void, element: Element): void {
   // NOTE: ignore nodes belonging to a shadowRoot
   append(box, e1);
   dispatch(element, event);
-  removeNode(box, e1);
+  remove(e1);
+}
+function destroy(e?: CustomEvent): void {
+  if (e && e.detail !== "" + sec) { return; }
+  e && call(Stop, e);
+  EventTarget.prototype.addEventListener === addEventListener && (EventTarget.prototype.addEventListener = _listen);
+  Function.prototype.toString === toString && (Function.prototype.toString = toString);
+  next = register = function() { return 1; };
+  toRegister.length = 0;
+  timer = 1;
+  let a = box;
+  box = null as never;
+  a && call(rel as any, a, "VimiumDestroy", destroy, true);
 }
 EventTarget.prototype.addEventListener = addEventListener;
 Function.prototype.toString = toString;

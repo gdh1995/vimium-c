@@ -70,7 +70,8 @@ if (_listen.vimiumHooked === true) { return; }
 
 const HA = HTMLAnchorElement, HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement;
 
-const newListen = cls.addEventListener = function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
+const newListen: ListenerEx = cls.addEventListener =
+function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
   if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
     (this as Element).vimiumHasOnclick = true;
   }
@@ -82,7 +83,7 @@ funcCls = Function.prototype, funcToString = funcCls.toString,
 newToString = funcCls.toString = function toString(this: Function): string {
   return funcToString.apply(this === newListen ? _listen : this === newToString ? funcToString : this, arguments as any);
 };
-(cls.addEventListener as ListenerEx).vimiumHooked = true;
+newListen.vimiumHooked = true;
 obj.vimiumRemoveHooks = function() {
   delete obj.vimiumRemoveHooks;
   cls.addEventListener === newListen && (cls.addEventListener = _listen);
