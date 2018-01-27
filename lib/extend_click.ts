@@ -50,7 +50,7 @@ _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, R, A, B, C>(func: (this: T, a?: A, b?: B, c?: C) => R, self: T, a?: A, b?: B, c?: C) => R,
 _dispatch = EventTarget.prototype.dispatchEvent, dispatch = _call.bind(_dispatch),
 _append = document.appendChild, append = _call.bind(_append) as (parent: Node, node: Node) => Node,
-contains = document.contains.bind(document),
+Contains = document.contains, contains = Contains.bind(document),
 splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister),
 CE = CustomEvent, HA = HTMLAnchorElement,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
@@ -109,9 +109,13 @@ function reg(this: void, element: Element): void {
     dispatch(element, event);
     return;
   }
-  let e1, e2;
-  for (e1 = element; (e2 = e1.parentElement) != null; e1 = e2) {
-    if (e2 instanceof HF) { return; }
+  let e1: Element | null = element, e2: Node | null;
+  for (; e2 = e1.parentElement; e1 = e2 as Element) {
+    if (e2 instanceof HF && (e1 = e2.parentElement) && !call(Contains, e1, e2)) {
+      e1 = e2.parentNode as Element | null;
+      if (!e1 || !call(Contains, e1, e2)) { return; }
+      e2 = e1;
+    }
   }
   if (e1.parentNode != null) { return; }
   // NOTE: ignore nodes belonging to a shadowRoot
