@@ -51,8 +51,9 @@ call = _call.bind(_call) as <T, R, A, B, C>(func: (this: T, a?: A, b?: B, c?: C)
 _dispatch = EventTarget.prototype.dispatchEvent, dispatch = _call.bind(_dispatch),
 _append = document.appendChild, append = _call.bind(_append) as (parent: Node, node: Node) => Node,
 Contains = document.contains, contains = Contains.bind(document),
+Insert = document.insertBefore,
 splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister),
-CE = CustomEvent, HA = HTMLAnchorElement,
+CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
 funcToString = Function.prototype.toString, toStringApply = _apply.bind(funcToString),
 listenA = _apply.bind(_listen) as (self: EventTarget, args: any) => void,
@@ -117,11 +118,19 @@ function reg(this: void, element: Element): void {
       e2 = e1;
     }
   }
-  if (e1.parentNode != null) { return; }
-  // NOTE: ignore nodes belonging to a shadowRoot
-  append(box, e1);
-  dispatch(element, event);
-  remove(e1);
+  if ((e2 = e1.parentNode) == null) {
+    append(box, e1);
+    dispatch(element, event);
+    remove(e1);
+  } else if ((e2 instanceof DF) && !(e1 instanceof HF)) {
+    // NOTE: ignore nodes belonging to a shadowRoot,
+    // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
+    // because `<iframe>` will destroy if removed
+    const after = e1.nextSibling;
+    append(box, e1);
+    dispatch(element, event);
+    call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, after);
+  }
 }
 function destroy(e?: CustomEvent): void {
   if (e && e.detail !== "" + sec) { return; }
