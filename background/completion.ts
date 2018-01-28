@@ -1223,6 +1223,7 @@ searchEngines: {
     dict: Object.create<string>(null),
     todos: [] as ItemToDecode[],
     _ind: -1,
+    _enabled: true,
     continueToWork (): void {
       if (this.todos.length === 0 || this._ind !== -1) { return; }
       this._ind = 0;
@@ -1269,10 +1270,12 @@ searchEngines: {
     init (): XMLHttpRequest | null {
       this.init = this.xhr;
       Settings.updateHooks.localeEncoding = function(this: void, charset: string): void {
-        const _this = Decoder, enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false,
-        f: (item: ItemToDecode) => number | void = enabled ? Array.prototype.push : _this.blank;
+        const _this = Decoder, enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false;
         _this._dataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "";
-        _this.todos.push !== f && (_this.todos.push = f as (item: ItemToDecode) => number);
+        if (_this._enabled !== enabled) {
+          _this.todos = enabled ? [] as ItemToDecode[] : { length: 0, push: _this.blank } as any;
+          _this._enabled = enabled;
+        }
         _this.dict = Object.create<string>(null);
         enabled || (_this.todos.length = 0);
       };
