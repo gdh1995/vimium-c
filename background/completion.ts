@@ -1231,10 +1231,10 @@ searchEngines: {
     },
     Work (xhr: XMLHttpRequest | null): void {
       const _this = Decoder;
+      let text: string | undefined;
       for (; _this._ind < _this.todos.length; _this._ind++) {
         const url = _this.todos[_this._ind], isStr = typeof url === "string",
         str = isStr ? url as string : (url as DecodedItem).url;
-        let text: string | undefined;
         if (text = _this.dict[str]) {
           isStr || ((url as DecodedItem).text = text);
           continue;
@@ -1255,7 +1255,11 @@ searchEngines: {
       } else {
         _this.dict[url] = text;
       }
-      return _this.Work(this);
+      if (_this._ind < _this.todos.length) {
+        return _this.Work(this);
+      }
+      _this.todos.length = 0;
+      _this._ind = -1;
     },
     _dataUrl: "",
     blank (this: void): void {},
