@@ -53,7 +53,7 @@ _append = document.appendChild, append = _call.bind(_append) as (parent: Node, n
 Contains = document.contains, contains = Contains.bind(document),
 Insert = document.insertBefore,
 splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister),
-CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment,
+CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment, SR = ShadowRoot,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
 funcToString = Function.prototype.toString, toStringApply = _apply.bind(funcToString),
 listenA = _apply.bind(_listen) as (self: EventTarget, args: any) => void,
@@ -122,7 +122,7 @@ function reg(this: void, element: Element): void {
     append(box, e1);
     dispatch(element, event);
     remove(e1);
-  } else if ((e2 instanceof DF) && !(e1 instanceof HF)) {
+  } else if (!(e2 instanceof SR) && e2 instanceof DF && !(e1 instanceof HF)) {
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
