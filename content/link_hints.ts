@@ -134,7 +134,7 @@ var VHints = {
     VDom.UI.ensureBorder(VDom.docZoom);
     this.box = VDom.UI.addElementList(this.hintMarkers, arr);
     // note: delay it to avoid calling `ensureBorder` twice
-    this.setMode(this.mode, false, this.hintMarkers.length > 100);
+    this.setMode(this.mode, false, true);
 
     this.isActive = true;
     VUtils.push(this.onKeydown, this);
