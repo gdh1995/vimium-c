@@ -668,6 +668,11 @@ Pagination = {
       VEventMode.focusAndListen();
       esc();
       VEventMode.suppress(key);
+      const notTop = window.top !== window;
+      if (notTop) {
+        let docEl = document.documentElement;
+        docEl && (docEl.scrollIntoViewIfNeeded || docEl.scrollIntoView).call(docEl);
+      }
       if (mask < FrameMaskType.minWillMask || !VDom.isHTML()) { return; }
       let _this = FrameMask, dom1: HTMLDivElement | null;
       if (dom1 = _this.node) {
@@ -676,7 +681,7 @@ Pagination = {
         dom1 = VDom.createElement("div");
         dom1.className = "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : "");
         _this.node = dom1;
-        _this.timer = setInterval(_this.Remove, 200);
+        _this.timer = setInterval(_this.Remove, notTop ? 350 : 200);
       }
       VDom.UI.addElement(dom1);
     },
