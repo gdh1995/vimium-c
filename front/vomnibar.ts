@@ -41,9 +41,6 @@ declare const enum HeightData {
   MarginH = 22, AllNotUrl = 74, MeanWidthOfChar = 7.72,
 }
 
-declare var VSettings: undefined | null | {
-  destroy(silent: true, keepChrome: true): void;
-};
 if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
   VSettings.destroy(true, true);
   window.dispatchEvent(new Event("unload"));

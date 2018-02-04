@@ -271,4 +271,4 @@ interface VSettings {
   onDestroy: ((this: void) => any) | null;
   destroy (this: void, silent?: boolean, keepChrome?: boolean): void;
 }
-declare var VimiumInjector: VimiumInjector;
+declare var VimiumInjector: VimiumInjector, VSettings: VSettings;

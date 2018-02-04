@@ -32,7 +32,7 @@
     }
     VSettings && (VSettings.onDestroy = null);
   }
-  window.VSettings.onDestroy = destroy;
+  VSettings.onDestroy = destroy;
   script.type = "text/javascript";
   let str = func.toString(), appVer = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/);
   if (!appVer || +appVer[1] >= BrowserVer.MinEnsureMethodFunction) {
