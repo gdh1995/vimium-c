@@ -8,6 +8,7 @@ var VFindMode = {
   query0: "",
   parsedQuery: "",
   historyIndex: 0,
+  notEmpty: false,
   isRegex: false,
   ignoreCase: null as boolean | null,
   hasResults: false,
@@ -177,7 +178,7 @@ html > count{float:right;}`,
   deactivate (unexpectly?: boolean): Element | null { // need keep @hasResults
     let el: Element | null = null;
     this.coords && window.scrollTo(this.coords[0], this.coords[1]);
-    this.isActive = this._small = this._actived = false;
+    this.isActive = this._small = this._actived = this.notEmpty = false;
     if (unexpectly !== true) {
       window.focus();
       el = VDom.getSelectionFocusElement();
@@ -185,11 +186,11 @@ html > count{float:right;}`,
     }
     this.box.remove();
     if (this.box === VDom.lastHovered) { VDom.lastHovered = null; }
-    this.box = this.input = this.countEl = null as never;
-    this.styleIn.disabled = true;
     this.parsedQuery = this.query = this.query0 = "";
-    this.initialRange = this.regexMatches = this.coords = null;
     this.historyIndex = this.matchCount = 0;
+    this.box = this.input = this.countEl =
+    this.initialRange = this.regexMatches = this.coords = null as never;
+    this.styleIn.disabled = true;
     return el;
   },
   OnUnload (this: void, e: Event): void {
@@ -331,7 +332,7 @@ html > count{float:right;}`,
     }
     const query = this.input.innerText.replace(this.A0Re, " ").replace(this.tailRe, "");
     let s = this.query;
-    if (!this.hasResults && s && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
+    if (!this.hasResults && this.notEmpty && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
     s = "";
     this.coords && window.scrollTo(this.coords[0], this.coords[1]);
     this.updateQuery(query);
@@ -355,6 +356,7 @@ html > count{float:right;}`,
     this.isRegex = VSettings.cache.regexFindMode;
     this.ignoreCase = null as boolean | null;
     query = this.parsedQuery = query.replace(this._ctrlRe, this.FormatQuery);
+    this.notEmpty = !!query;
     this.ignoreCase !== null || (this.ignoreCase = !VUtils.hasUpperCase(query));
     this.isRegex || (query = this.isActive ? query.replace(this.escapeAllRe, "\\$&") : "");
 
