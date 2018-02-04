@@ -102,6 +102,7 @@ var Vomnibar = {
   actionType: ReuseType.Default,
   matchType: CompletersNS.MatchType.Default,
   focused: true,
+  focusByCode: false,
   blurWanted: false,
   forceNewTab: false,
   sameOrigin: false,
@@ -130,13 +131,13 @@ var Vomnibar = {
   show (): void {
     const zoom = 1 / window.devicePixelRatio;
     this.bodySt.zoom = zoom > 1 ? zoom + "" : "";
-    this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 34);
+    this.focused || setTimeout(Vomnibar.focus, 34);
     addEventListener("wheel", this.onWheel, this.wheelOptions);
     this.input.value = this.inputText;
     this.OnShown && setTimeout(this.OnShown, 100);
   },
   hide (data?: "hide"): void {
-    this.isActive = this.isEditing = this.isInputComposing = this.blurWanted = false;
+    this.isActive = this.isEditing = this.isInputComposing = this.blurWanted = this.focusByCode = false;
     removeEventListener("wheel", this.onWheel, this.wheelOptions);
     this.timer > 0 && clearTimeout(this.timer);
     window.onkeyup = null as never;
@@ -173,6 +174,10 @@ var Vomnibar = {
     this.isActive ? (this.height = -1) : (this.isActive = true);
     if (this.init) { return this.init(); }
   },
+  focus (this: void): void {
+    Vomnibar.focusByCode = true;
+    Vomnibar.input.focus();
+  },
   update (updateDelay: number, callback?: () => void): void {
     this.onUpdate = callback || null;
     if (updateDelay >= 0) {
@@ -201,7 +206,7 @@ var Vomnibar = {
         this.selection = 0; this.isSelOriginal = false;
         this.updateSelection(oldSel);
       }
-      this.focused || this.input.focus();
+      this.focused || this.focus();
     });
   },
   updateInput (sel: number): void {
@@ -210,7 +215,7 @@ var Vomnibar = {
     if (sel === -1) {
       this.isHttps = null; this.isEditing = false;
       this.input.value = this.inputText;
-      if (!focused) { this.input.focus(); this.blurWanted = blurred; }
+      if (!focused) { this.focus(); this.blurWanted = blurred; }
       return;
     }
     blurred && focused && this.input.blur();
@@ -354,10 +359,10 @@ var Vomnibar = {
         return this.hide();
       }
       break;
-    case "focus": this.input.focus(); break;
+    case "focus": this.focus(); break;
     case "blurInput": this.blurWanted = true; this.input.blur(); break;
     case "backspace": case "blur":
-      !this.focused ? this.input.focus()
+      !this.focused ? this.focus()
       : action === "blur" ? VPort.postMessage({ handler: "nextFrame", type: Frames.NextType.current, key: this.lastKey })
       : document.execCommand("delete");
       break;
@@ -438,7 +443,7 @@ var Vomnibar = {
   onClick (event: MouseEvent): void {
     let el: Node | null = event.target as Node;
     if (event.isTrusted == false || !(event instanceof MouseEvent) || el === this.input || window.getSelection().type === "Range") { return; }
-    if (el === this.input.parentElement) { return this.onAction("focus"); }
+    if (el === this.input.parentElement) { return this.focus(); }
     if (this.timer) { event.preventDefault(); return; }
     while (el && el.parentNode !== this.list) { el = el.parentNode; }
     if (!el) { return; }
@@ -571,11 +576,12 @@ var Vomnibar = {
     return wndFocus();
   } as ((this: void) => void) | null,
   OnWndFocus (this: void, event?: Event): void {
-    const a = Vomnibar;
+    const a = Vomnibar, byCode = a.focusByCode;
+    a.focusByCode = false;
     if (!a.isActive || event && (event.target !== window || event.isTrusted == false)) { return; }
     setTimeout(a.SetOpacity, 67);
-    if (event && event.type === "focus" && VPort) {
-       VPort.postMessage({ handler: "blank" });
+    if (event && event.type === "focus" && !byCode && VPort) {
+      VPort.postMessage({ handler: "blank" });
     }
   },
   SetOpacity (this: void): void {
@@ -804,7 +810,7 @@ VPort = {
   },
   OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
     let name = ((data as VomnibarNS.Msg<string>).name || data) as keyof VomnibarNS.CReq | "onAction";
-    if (name === "focus" || name === "backspace") { name = "onAction"; }
+    if (name === "backspace") { return Vomnibar.onAction(name); }
     return (Vomnibar as any)[name](data);
   },
   ClearPort (this: void): void { VPort.port = null; },

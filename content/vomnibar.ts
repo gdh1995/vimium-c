@@ -60,7 +60,7 @@ var Vomnibar = {
     } else if (this.status === VomnibarNS.Status.Inactive) {
       this.status = VomnibarNS.Status.ToShow;
     } else if (this.status > VomnibarNS.Status.ToShow) {
-      this.box.contentWindow.focus();
+      this.focus();
       this.onShown();
     }
     options.secret = 0; options.vomnibar = options.CSS = "";
