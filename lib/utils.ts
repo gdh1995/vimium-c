@@ -47,7 +47,7 @@ var VUtils = {
     try { url = decodeURI(url); } catch (e) {}
     return url;
   },
-  hasUpperCase (this: void, s: string) { return s.toLowerCase() !== s; },
+  hasUpperCase (this: void, s: string): boolean { return s.toLowerCase() !== s; },
   /**
    * Handler section
    */

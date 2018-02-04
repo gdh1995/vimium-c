@@ -9,8 +9,7 @@ var VFindMode = {
   parsedQuery: "",
   historyIndex: 0,
   isRegex: false,
-  ignoreCase: false,
-  hasNoIgnoreCaseFlag: false,
+  ignoreCase: null as boolean | null,
   hasResults: false,
   matchCount: 0,
   coords: null as null | MarksNS.ScrollInfo,
@@ -223,7 +222,8 @@ html > count{float:right;}`,
     let i: Result | KeyStat = event.altKey ? Result.DoNothing
       : n === VKeyCodes.enter ? event.shiftKey ? Result.PassDirectly : (this.saveQuery(), Result.ExitToPostMode)
       : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? Result.DoNothing
-      : this.query || (n === VKeyCodes.deleteKey && !VSettings.cache.onMac) ? Result.PassDirectly : Result.Exit;
+      : this.query || (n === VKeyCodes.deleteKey && !VSettings.cache.onMac || event.repeat) ? Result.PassDirectly
+      : Result.Exit;
     if (!i) {
       if (VKeyboard.isEscape(event)) { i = Result.ExitAndReFocus; }
       else if (i = VKeyboard.getKeyStat(event)) {
@@ -348,14 +348,14 @@ html > count{float:right;}`,
     if (this._small && count < 150) { return; }
     this.box.style.width = ((this._small = count < 150) ? 0 : count) + "px";
   },
-  _ctrlRe: <RegExpG & RegExpSearchable<2>> /(\\\\?)([rRI]?)/g,
+  _ctrlRe: <RegExpG & RegExpSearchable<0>> /\\[IR\\ir]/g,
   escapeAllRe: <RegExpG> /[$()*+.?\[\\\]\^{|}]/g,
   updateQuery (query: string): void {
     this.query = query;
     this.isRegex = VSettings.cache.regexFindMode;
-    this.hasNoIgnoreCaseFlag = false;
+    this.ignoreCase = null as boolean | null;
     query = this.parsedQuery = query.replace(this._ctrlRe, this.FormatQuery);
-    this.ignoreCase = !this.hasNoIgnoreCaseFlag && !VUtils.hasUpperCase(query);
+    this.ignoreCase !== null || (this.ignoreCase = !VUtils.hasUpperCase(query));
     this.isRegex || (query = this.isActive ? query.replace(this.escapeAllRe, "\\$&") : "");
 
     let re: RegExpG | undefined;
@@ -372,10 +372,11 @@ html > count{float:right;}`,
     this.activeRegexIndex = 0;
     this.matchCount = matches ? matches.length : 0;
   },
-  FormatQuery (this: void, match: string, slashes: string, flag: string): string {
-    if (!flag || slashes.length != 1) { return match; }
-    if (flag === 'I') { VFindMode.hasNoIgnoreCaseFlag = true; }
-    else { VFindMode.isRegex = flag === 'r'; }
+  FormatQuery (this: void, str: string): string {
+    const flag = str.charCodeAt(1), enabled = flag >= KnownKey.a;
+    if (flag === KnownKey.backslash) { return '\\'; }
+    if ((flag & KnownKey.AlphaMask) === KnownKey.I) { VFindMode.ignoreCase = enabled; }
+    else { VFindMode.isRegex = enabled; }
     return "";
   },
   restoreSelection (isCur?: boolean): void {
