@@ -96,14 +96,14 @@ register = toRegister.push.bind<Element[], Element, number>(toRegister),
 rel = removeEventListener, ct = clearTimeout,
 Create = document.createElement as Document["createElement"],
 box: HTMLDivElement, timer = setTimeout(handler, 1000),
-next = setTimeout.bind(null as never, iter, 1);
-function iter(): void {
-  const len = toRegister.length, delta = len > 9 ? 10 : len;
+next = setTimeout.bind(null as never, function(): void {
+  const len = toRegister.length, start = len > 9 ? len - 10 : 0, delta = len - start;
+  timer = start > 0 ? next() : 0;
   if (len > 0) {
-    for (let i of splice(len - delta, delta)) { reg(i); }
+    // skip some nodes if only crashing, so that there would be less crash logs in console
+    for (let i of splice(start, delta)) { reg(i); }
   }
-  timer = toRegister.length > 0 ? next() : 0;
-}
+}, 1);
 function reg(this: void, element: Element): void {
   const event = new CE("VimiumOnclick");
   if (contains(element)) {
@@ -126,11 +126,16 @@ function reg(this: void, element: Element): void {
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
+    regFragment(e2, e1, element, event);
+  }
+}
+function regFragment(root: DocumentFragment, e1: Element, element: Element, event: CustomEvent) {
+  try {
     const after = e1.nextSibling;
     append(box, e1);
     dispatch(element, event);
-    call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, after);
-  }
+    call<Node, Node, Node, Node | null, 1>(Insert, root, e1, after);
+  } catch (e) {}
 }
 function destroy(e?: CustomEvent): void {
   if (e && e.detail !== "" + sec) { return; }
