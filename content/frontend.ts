@@ -542,7 +542,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     focusUpper (this: void, key: VKeyCodes, force: boolean): HandlerResult {
       let el = window.frameElement as HTMLElement | null;
       if (el) {
-        const parent = window.parent, a = (parent as Window & { VEventMode: typeof VEventMode }).VEventMode;
+        const parent = el.ownerDocument.defaultView, a = (parent as Window & { VEventMode: typeof VEventMode }).VEventMode;
         el.blur();
         if (a) {
           (parent as Window & { VDom: typeof VDom }).VDom.UI.suppressTail(true);
@@ -1056,8 +1056,8 @@ Pagination = {
     vPort.connect(PortType.initing);
   } else (function() {
     try {
-      let a = (window.parent as Window & { VFindMode?: typeof VFindMode}).VFindMode;
-      if (a && a.box && a.box.contentWindow === window) {
+      let f = frameElement, a = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFindMode?: typeof VFindMode}).VFindMode;
+      if (a && a.box && a.box === f) {
         VSettings.destroy(true);
         a.onLoad(a.box);
         return; // not return a function's result so that logic is clearer for compiler

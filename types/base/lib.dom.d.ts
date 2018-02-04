@@ -8212,7 +8212,7 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
     readonly outerWidth: number;
     readonly pageXOffset: number;
     readonly pageYOffset: number;
-    readonly parent: Window;
+    readonly parent: Window | object | null | undefined;
     readonly personalbar: BarProp;
     readonly screen: Screen;
     readonly screenLeft: number;
@@ -9221,8 +9221,8 @@ declare var document: Document;
 /*
 declare var event: Event | undefined;
 declare var external: External;
-declare var frameElement: Element;
 */
+declare var frameElement: Element | null;
 declare var frames: Window[] | object | null | undefined;
 declare var history: History;
 declare var innerHeight: number;
