@@ -5,6 +5,11 @@ const enum ClickType {
   maxNotBox = 6, minBox = maxNotBox + 1,
   frame = minBox, scrollX, scrollY,
 }
+const enum ClickingType {
+  NotWantClickable = 0,
+  WantButNotFind = 1,
+  FindClickable = 2,
+}
 declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface ModeOpt {
@@ -74,6 +79,7 @@ var VHints = {
   mode: 0 as HintMode,
   mode1: 0 as HintMode,
   modeOpt: null as HintsNS.ModeOpt | null,
+  clicking: ClickingType.NotWantClickable,
   forHover: false,
   count: 0,
   lastMode: 0 as HintMode,
@@ -119,9 +125,12 @@ var VHints = {
         return this.clean();
       }
     }
-    if ((elements as Hint[]).length <= 0) {
-      this.clean(true);
-      return VHUD.showForDuration("No links to select.", 1000);
+    if ((elements as Hint[]).length === 0) {
+      elements = this.retryShadowDOM();
+      if (elements.length === 0) {
+        this.clean(true);
+        return VHUD.showForDuration("No links to select.", 1000);
+      }
     }
 
     if (this.box) { this.box.remove(); this.box = null; }
@@ -212,6 +221,20 @@ var VHints = {
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
     return true;
+  },
+  retryShadowDOM (): Hint[] {
+    let elements: Hint[] = [];
+    if (this.clicking === ClickingType.WantButNotFind && !this.tooHigh) {
+      const {cache} = VSettings;
+      if (!cache.deepHints) {
+        cache.deepHints = true;
+        elements = this.getVisibleElements();
+      }
+      if (elements.length === 0 && !this.switchShadowVer()) {
+        elements = this.getVisibleElements();
+      }
+    }
+    return elements;
   },
   maxLeft: 0,
   maxTop: 0,
@@ -328,7 +351,9 @@ var VHints = {
         : type > ClickType.tabindex ? type : (s = element.className) && VHints.btnRe.test(s) ? ClickType.classname
         : ClickType.Default;
     }
-    if ((isClickable || type > ClickType.Default) && (arr = VDom.getVisibleClientRect(element))
+    if (!isClickable && type === ClickType.Default) { return; }
+    VHints.clicking = ClickingType.FindClickable;
+    if ((arr = VDom.getVisibleClientRect(element))
         && (type < ClickType.scrollX || VScroller.shouldScroll(element, type - ClickType.scrollX as 0 | 1))
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
@@ -424,6 +449,7 @@ var VHints = {
     wantClickable = (filter as Function) === (this as typeof VHints).GetClickable && key === "*",
     box = root || document.webkitFullscreenElement || document;
     wantClickable && VScroller.getScale();
+    this.clicking = wantClickable ? ClickingType.WantButNotFind : ClickingType.NotWantClickable;
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
     if (!root && (this as typeof VHints).tooHigh && box === document && list.length >= 15000) {
       list = (this as typeof VHints).getElementsInViewPort(list);
