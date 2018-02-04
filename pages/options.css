@@ -9,6 +9,7 @@ a, a:visited {
   color: #15c;
   cursor: pointer;
   text-decoration: none;
+  text-decoration-skip-ink: none;
 }
 a[href], a:hover {
   text-decoration: underline;
