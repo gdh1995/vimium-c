@@ -401,10 +401,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         str = options.url ? window.location.href : document.title;
         (options.decoded || options.decode) && (str = VUtils.decodeURL(str));
       }
-      (str.length >= 4 || str.trim()) && vPort.post({
-        handler: "copy",
-        data: str
-      });
+      if (str.length < 4 && !str.trim() && str[0] === ' ') {
+        str = "";
+      } else {
+        vPort.post({
+          handler: "copy",
+          data: str
+        });
+      }
       return HUD.showCopied(str);
     },
     autoOpen (_0: number, options: FgOptions): void {
