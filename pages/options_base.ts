@@ -291,6 +291,9 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   if (!ref) {
     (document.body as HTMLBodyElement).textContent = "";
     (document.body as HTMLBodyElement).appendChild(blockedMsg);
+  }
+  $<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;
+  if (!ref) {
     return;
   }
   blockedMsg.remove();

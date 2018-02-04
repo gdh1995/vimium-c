@@ -22,6 +22,7 @@
 	height: 22px;
 	line-height: 22px;
 	margin: 0;
+	white-space: nowrap;
 	width: 495px;
 }
 
@@ -68,14 +69,15 @@
         <div id="helpSpan">These are the rules matching this page.</div>
         <a id="toggleOnce" href="vimium://status toggle" class="decorate-none" tabindex="1">Disable for once</a><span class="hidden">
           / <a id="resetStatus" href="vimium://status reset" class="decorate-none" tabindex="1">Reset status</a></span>.
-        <a id="optionsLink" href="options.html" target="_blank" tabindex="1">Open options page</a>.
+        <a id="optionsLink" href="options.html" target="_blank" tabindex="1">Options</a>.
+        Version <span class="version"></span>.
       </span>
       <button id="exclusionAddButton">Add Rule</button>
       <button id="saveOptions" disabled="disabled">No Changes</button>
     </div>
     <div id="blocked-msg" style="width: 400px; margin: 5px;">
       <h4 style="margin-bottom: 5px;">
-        Maybe <span class="Vim">Vim</span>ium++ is <span class="state-value">not running</span> on this page.
+        Maybe <span class="Vim">Vim</span>ium++ <span class="version"></span> is <span class="state-value">not running</span> on this page.
       </h4>
       <p style="margin-bottom: 5px;">
         Your browser does not run web extensions like Vimium / Vimium++ on certain pages,
