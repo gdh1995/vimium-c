@@ -1180,7 +1180,7 @@ DEFAULT: {
   67: "Activate link and hold on",
   activator (link, hint): void | false {
     if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
-      const ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)
+      const ret = link === Vomnibar.box ? (Vomnibar.focus(), false)
         : (this as typeof VHints).highlightChild(link);
       (this as typeof VHints).mode = HintMode.DEFAULT;
       return ret;

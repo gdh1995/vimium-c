@@ -234,14 +234,13 @@ var Vomnibar = {
     if (VKeyboard.isEscape(event)) { this.hide(); return HandlerResult.Prevent; }
     const key = event.keyCode - VKeyCodes.f1;
     if (key === 0 || key === 1) {
-      this.focus(key);
+      this.focus();
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
   },
-  focus (f2: BOOL): void | 1 {
+  focus (): void | 1 {
     if (this.status < VomnibarNS.Status.Showing) { return; }
-    this.box.contentWindow.focus();
-    return this.port.postMessage<"focus" | "backspace">(f2 ? "focus" : "backspace");
+    return this.port.postMessage("focus");
   }
 };
