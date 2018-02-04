@@ -35,8 +35,8 @@
   VSettings.onDestroy = destroy;
   script.type = "text/javascript";
   let str = func.toString(), appVer = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/);
-  if (!appVer || +appVer[1] >= BrowserVer.MinEnsureMethodFunction) {
-    str = str.replace(<any>(typeof NDEBUG === "undefined" ? /: ?function(?: \w+)?/g : /:function/g), "");
+  if (appVer && +appVer[1] >= BrowserVer.MinEnsureMethodFunction) {
+    str = str.replace(<RegExpG> /: ?function \w+/g, "");
   }
   script.textContent = '"use strict";(' + str + ')(' + secret + ');';
   d = (d as Document).documentElement || d;
@@ -61,11 +61,11 @@ listen = _call.bind(_listen) as (self: EventTarget, ty: string, func?: null | ((
 Stop = KeyboardEvent.prototype.stopImmediatePropagation,
 Attr = E.prototype.setAttribute, _remove = E.prototype.remove, remove = _call.bind(_remove),
 hooks = {
-  toString(this: Function): string {
+  toString: function toString(this: Function): string {
     const a = this;
     return toStringApply(a === addEventListener ? _listen : a === toString ? funcToString : a, arguments as any);
   },
-  addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
+  addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA || a instanceof HF) && a instanceof E) {
       register(a as Element);
