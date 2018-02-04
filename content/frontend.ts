@@ -518,7 +518,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       removeEventListener("mousedown", _this.ExitGrab, true);
       VUtils.remove(_this);
       // it's okay to not set the userActed flag if there's only the top frame,
-      !(event instanceof Event) || !window.frames.length && window === window.top ||
+      !(event instanceof Event) || !(window.frames && (frames as Window[]).length) && window === window.top ||
       vPort.safePost({ handler: "exitGrab" });
       if (event instanceof KeyboardEvent) { return HandlerResult.Nothing; }
     } as {
@@ -540,7 +540,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
     },
     focusUpper (this: void, key: VKeyCodes, force: boolean): HandlerResult {
-      let el = window.frameElement as HTMLElement;
+      let el = window.frameElement as HTMLElement | null;
       if (el) {
         const parent = window.parent, a = (parent as Window & { VEventMode: typeof VEventMode }).VEventMode;
         el.blur();

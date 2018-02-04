@@ -8123,7 +8123,7 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
     event: Event | undefined;
     readonly external: External;
     readonly frameElement: Element | null;
-    readonly frames: Window & Window[];
+    readonly frames: Window[] | object | null | undefined;
     readonly history: History;
     readonly innerHeight: number;
     readonly innerWidth: number;
@@ -9222,8 +9222,8 @@ declare var document: Document;
 declare var event: Event | undefined;
 declare var external: External;
 declare var frameElement: Element;
-declare var frames: Window;
 */
+declare var frames: Window[] | object | null | undefined;
 declare var history: History;
 declare var innerHeight: number;
 declare var innerWidth: number;

@@ -113,7 +113,7 @@ var VHints = {
       this.tooHigh = (document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
     this.maxLeft = arr[2], this.maxTop = arr[3], this.maxRight = arr[4];
-    let elements: Hint[] | undefined | null = this.getVisibleElements();
+    let elements: Hint[] | null = this.getVisibleElements();
     if (this.frameNested) {
       if (this.tryNestedFrame("VHints.activate", (count as number) | 0, this.options)) {
         return this.clean();
@@ -252,6 +252,7 @@ var VHints = {
   btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,
   GetClickable (this: Hint[], element: Element): void {
     let arr: VRect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
+    if (element === document.documentElement || element === document.body) { return; }
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) {
       if (element instanceof SVGElement) {
         type = element.vimiumHasOnclick || element.getAttribute("onclick")
@@ -431,7 +432,7 @@ var VHints = {
     if (root) { return output; }
     list = null;
     if (uiRoot) {
-      (Array.prototype.forEach as any).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
+      (output.forEach as any).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
     }
     if (wantClickable) { (this as typeof VHints).deduplicate(output as Hint[]); }
     if ((this as typeof VHints).frameNested === null) {}
@@ -485,9 +486,6 @@ var VHints = {
         list.splice(j, i - j);
       }
     }
-    i = list[0] ? +(list[0][0] === document.documentElement) : 0;
-    if (list[i] && list[i][0] === document.body) { ++i; }
-    if (i > 0) { i === 1 ? list.shift() : list.splice(0, i); }
   },
   isDescendant (d: Node, p: Element): boolean {
     let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null;
@@ -506,7 +504,7 @@ var VHints = {
     this.frameNested = res === false && document.readyState === "complete" ? null : res;
   },
   _getNestedFrame (output?: Hint[]): HintsNS.NestedFrame {
-    if (window.frames[0] == null) { return false; }
+    if (window.frames && !(frames as Window[]).length) { return false; }
     if (document.webkitIsFullScreen) { return 0; }
     if (output == null) {
       if (!VDom.isHTML()) { return false; }
@@ -594,13 +592,16 @@ var VHints = {
       this.ResetMode();
       if (i !== VKeyCodes.f2) { return HandlerResult.Nothing; }
       i = VKeyboard.getKeyStat(event);
+      const {cache} = VSettings, {deepHints} = cache;
       if (i === KeyStat.shiftKey) {
         this.isClickListened = !this.isClickListened;
       } else if (i === KeyStat.plain) {
-        VSettings.cache.deepHints = !VSettings.cache.deepHints;
+        cache.deepHints = !deepHints;
       } else if (i === KeyStat.ctrlKey || i === KeyStat.metaKey) {
-        VSettings.cache.deepHints = true;
-        this._shadowSign = this._shadowSign.length === 9 ? this._getShadowV1Sign() : "* /deep/ ";
+        if (this.switchShadowVer() && deepHints) {
+          return HandlerResult.Prevent;
+        }
+        cache.deepHints = true;
       }
       setTimeout(this.reinit.bind(this, null), 0);
     } else if (i === VKeyCodes.shiftKey) {
@@ -654,17 +655,19 @@ var VHints = {
     }
     return HandlerResult.Prevent;
   },
-  _getShadowV1Sign(): string {
-    let sign = "* >>> ", v0 = "* /deep/ ";
+  switchShadowVer(): boolean { // return true if fail
+    let v1 = "* >>> ", v0 = "* /deep/ ", sign = v0;
     if (VSettings.cache.browserVer < BrowserVer.MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled) {
-      sign = v0;
     } else try {
       (VDom.UI.root || VDom.createElement('div')).querySelector(sign + "div");
+      sign = v1;
     } catch (e) {
-      sign = v0 + " ";
     }
-    this._getShadowV1Sign = function() { return sign; }
-    return sign;
+    this.switchShadowVer = function(): boolean {
+      this._shadowSign = this._shadowSign !== sign ? sign : v0;
+      return sign === v0;
+    }
+    return this.switchShadowVer();
   },
   ResetMode (): void {
     if (VHints.mode >= HintMode.min_disable_queue || VHints.lastMode === VHints.mode) { return; }
