@@ -143,7 +143,7 @@ var Vomnibar = {
     const el = this.input;
     el.blur();
     data || VPort.postMessage({ handler: "nextFrame", type: Frames.NextType.current, key: this.lastKey });
-    this.bodySt.display = "none";
+    this.bodySt.cssText = "display: none;";
     this.list.textContent = el.value = "";
     this.list.style.height = "";
     this.barCls.remove("withList");
@@ -564,9 +564,23 @@ var Vomnibar = {
     const a = Vomnibar, i = a.input;
     i.onselect = a.OnSelect;
     i.onfocus = i.onblur = a.OnFocus;
-    addEventListener("focus", VPort.EnsurePort, true);
     a.OnShown = null;
+    const listen = addEventListener, wndFocus = Vomnibar.OnWndFocus;
+    listen("focus", wndFocus);
+    listen("blur", wndFocus);
+    return wndFocus();
   } as ((this: void) => void) | null,
+  OnWndFocus (this: void, event?: Event): void {
+    const a = Vomnibar;
+    if (!a.isActive || event && (event.target !== window || event.isTrusted == false)) { return; }
+    setTimeout(a.SetOpacity, 67);
+    if (event && event.type === "focus" && VPort) {
+       VPort.postMessage({ handler: "blank" });
+    }
+  },
+  SetOpacity (this: void): void {
+    Vomnibar.bodySt.opacity = document.hasFocus() ? "" : "0.75";
+  },
   init (): void {
     window.onclick = function(e) { return Vomnibar.onClick(e); };
     this.onWheel = this.onWheel.bind(this);
@@ -801,7 +815,6 @@ VPort = {
     port.onMessage.addListener(this.Listener as (message: object) => void);
     return port;
   },
-  EnsurePort (this: void, e: Event): void { if (e.isTrusted != false && VPort) { return VPort.postMessage({ handler: "blank" }); } },
   OnUnload (e: Event): void {
     if (!VPort || e.isTrusted == false) { return; }
     Vomnibar.isActive = false;
