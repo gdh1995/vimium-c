@@ -658,7 +658,8 @@ Pagination = {
       CSS && VDom.UI.css(CSS);
       if (mask !== FrameMaskType.NormalNext) {}
       else if (window.innerWidth < 3 || window.innerHeight < 3
-        || document.body instanceof HTMLFrameSetElement) {
+        || document.body instanceof HTMLFrameSetElement
+        || FrameMask.hidden()) {
         vPort.post({
           handler: "nextFrame",
           key
@@ -669,7 +670,7 @@ Pagination = {
       esc();
       VEventMode.suppress(key);
       const notTop = window.top !== window;
-      if (notTop) {
+      if (notTop && mask === FrameMaskType.NormalNext) {
         let docEl = document.documentElement;
         docEl && (docEl.scrollIntoViewIfNeeded || docEl.scrollIntoView).call(docEl);
       }
@@ -684,6 +685,12 @@ Pagination = {
         _this.timer = setInterval(_this.Remove, notTop ? 350 : 200);
       }
       VDom.UI.addElement(dom1);
+    },
+    hidden (): boolean {
+      let el = window.frameElement;
+      if (!el) { return false; }
+      let box = el.getBoundingClientRect();
+      return box.height < 1 || box.width < 1 || getComputedStyle(el).visibility === "hidden";
     },
     Remove (this: void): void {
       const _this = FrameMask;
