@@ -1240,7 +1240,7 @@ Are you sure you want to continue?`);
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
       tabsCreate({
         url, active: tab.active, windowId: tab.windowId,
-        index: tab.index + 1, openerTabId: tab.openerTabId
+        index: tab.index + 1, openerTabId: tab.id
       });
     },
     clearMarks (this: void): void {
