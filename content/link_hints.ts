@@ -1125,6 +1125,7 @@ OPEN_IMAGE: {
     }
     VPort.post({
       handler: "openUrl",
+      opened: true,
       reuse: this.mode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       url: url + text
     });

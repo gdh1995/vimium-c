@@ -41,6 +41,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     incognito?: boolean;
     position?: "start" | "end" | "before" | "after";
     opener?: boolean;
+    opened?: boolean;
     window?: boolean;
   }
   const enum RefreshTabStep {
@@ -460,13 +461,13 @@ Are you sure you want to continue?`);
     }, function(url: string): void {
       try { cPort.postMessage({ name: "eval", url }); } catch (e) {}
     }],
-    openShowPage: [function(url, reuse, position, tab): boolean {
+    openShowPage: [function(url, reuse, position, opened, tab): boolean {
       const prefix = Settings.CONST.ShowPage;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
       if (!tab) {
         funcDict.getCurTab(function(tabs: [Tab]): void {
           if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
-          funcDict.openShowPage[0](url, reuse, position, tabs[0]);
+          funcDict.openShowPage[0](url, reuse, position, opened, tabs[0]);
         });
         return true;
       }
@@ -478,6 +479,7 @@ Are you sure you want to continue?`);
         active: reuse !== ReuseType.newBg,
         index: tab.incognito ? undefined : funcDict.setNewTabIndex(tab, position),
         windowId: tab.incognito ? undefined : tab.windowId,
+        openerTabId: opened ? tab.id : undefined,
         url: prefix
       });
       const arr: [string, ((this: void) => string) | null, number] = [url, null, 0];
@@ -494,7 +496,7 @@ Are you sure you want to continue?`);
         arr[0] = "", arr[1] = null;
       }, 2000);
     }] as [
-      (url: string, reuse: ReuseType, position?: OpenUrlOptions["position"], tab?: Tab) => boolean,
+      (url: string, reuse: ReuseType, position?: OpenUrlOptions["position"], opened?: boolean, tab?: Tab) => boolean,
       (arr: [string, ((this: void) => string) | null, number]) => void
     ],
     // use Urls.WorkType.Default
@@ -951,7 +953,7 @@ Are you sure you want to continue?`);
       cOptions = null as never;
       Utils.resetRe();
       return typeof url !== "string" ? funcDict.onEvalUrl(url as Urls.SpecialUrl)
-        : funcDict.openShowPage[0](url, reuse, options.position) ? void 0
+        : funcDict.openShowPage[0](url, reuse, options.position, options.opened) ? void 0
         : Utils.isJSUrl(url) ? funcDict.openJSUrl[0](url)
         : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
         : reuse === ReuseType.current ? funcDict.safeUpdate(url)
