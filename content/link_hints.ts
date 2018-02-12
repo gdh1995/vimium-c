@@ -594,7 +594,7 @@ var VHints = {
         visibleElement.length > 3 && (r = (visibleElement as Hint4)[3][0]);
         for (let _k = _len; _i <= --_k; ) {
           t = visibleElements[_k][1];
-          if (r[0] >= t[0] && r[1] >= t[1] && r[0] < t[0] + 20 && r[1] < t[1] + 15) {
+          if (r[0] >= t[0] && r[1] >= t[1] && r[0] < t[0] + 10 && r[1] < t[1] + 8) {
             const offset: HintOffset = [r, visibleElement.length > 3 ? (visibleElement as Hint4)[3][1] + 13 : 13],
             hint2 = visibleElements[_k] as Hint4;
             hint2.length > 3 ? (hint2[3] = offset) : (hint2 as any).push(offset);
