@@ -13,10 +13,11 @@ var Backend: BackendHandlersNS.BackendHandlers;
     tabs: Tab[];
   }
   interface InfoToCreateMultiTab {
+    url: string;
+    active: boolean;
     windowId?: number;
     index?: number;
-    id?: number;
-    active: boolean;
+    openerTabId?: number;
   }
   const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2 }
   interface BgCmdNoTab {
@@ -60,15 +61,9 @@ var Backend: BackendHandlersNS.BackendHandlers;
     }
     return chrome.tabs.create(args, callback);
   }
-  function openMultiTab(this: void, rawUrl: string, count: number, parentTab: InfoToCreateMultiTab): void {
+  function openMultiTab(this: void, option: InfoToCreateMultiTab, count: number): void {
     if (count < 1) { return; }
-    const wndId = parentTab.windowId, hasIndex = parentTab.index != null, option = {
-      url: rawUrl,
-      windowId: wndId,
-      index: hasIndex ? (parentTab as {index: number}).index + 1 : undefined,
-      openerTabId: parentTab.id,
-      active: parentTab.active
-    };
+    const wndId = option.windowId, hasIndex = option.index != null;
     tabsCreate(option, option.active ? function(tab) {
       wndId != null && tab.windowId !== wndId && funcDict.selectWnd(tab);
     } : null);
@@ -83,7 +78,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
   const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
   NoFrameId = Settings.CONST.ChromeVersion < BrowserVer.MinWithFrameId,
   funcDict = {
-    isExtIdAllowed(extId: string | null | undefined): boolean {
+    isExtIdAllowed(this: void, extId: string | null | undefined): boolean {
       if (extId == null) { extId = "unknown sender"; }
       const stat = Settings.extWhiteList[extId];
       if (stat != null) { return stat; }
@@ -102,7 +97,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       return tabs[0] as ActiveTab;
     },
-    onRefreshTab (step: RefreshTabStep, tab?: Tab): void {
+    onRefreshTab (this: void, step: RefreshTabStep, tab?: Tab): void {
       const err = chrome.runtime.lastError;
       if (err) {
         chrome.sessions.restore();
@@ -117,8 +112,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
         });
       }, 50 * step * step);
     },
-    setNewTabIndex (this: void, opt: chrome.tabs.CreateProperties, tab: Tab, position: OpenUrlOptions["position"]): number | undefined {
-      return opt.index = position === "before" ? tab.index : position === "start" ? 0
+    setNewTabIndex (this: void, tab: Tab, position: OpenUrlOptions["position"]): number | undefined {
+      return position === "before" ? tab.index : position === "start" ? 0
         : position !== "end" ? tab.index + 1 : undefined;
     },
     makeWindow (this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
@@ -160,7 +155,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     onRuntimeError (this: void): void {
       return chrome.runtime.lastError;
     },
-    safeUpdate (url: string, secondTimes?: true, tabs1?: [Tab]): void {
+    safeUpdate (this: void, url: string, secondTimes?: true, tabs1?: [Tab]): void {
       if (!tabs1) {
         if (Utils.isRefusingIncognito(url) && secondTimes !== true) {
           funcDict.getCurTab(function(tabs1: [Tab]): void {
@@ -191,7 +186,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
         return Backend.forceStatus((arr as Urls.StatusEvalResult)[0]);
       }
     },
-    complainNoSession(): void {
+    complainNoSession(this: void): void {
       return Settings.CONST.ChromeVersion >= BrowserVer.MinSession ? Backend.complain("control tab sessions")
         : Backend.showHUD(`Vimium++ can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
     },
@@ -264,7 +259,7 @@ Are you sure you want to continue?`);
       request.url = cPort.sender.url;
       return requestHandlers[request.handler as "parseUpperUrl"](request as FgReq["parseUpperUrl"], cPort) as never;
     },
-    ensureInnerCSS (port: Frames.Port) {
+    ensureInnerCSS (this: void, port: Frames.Port): string | null {
       const { sender } = port;
       if (sender.flags & Frames.Flags.hasCSS) { return null; }
       sender.flags |= Frames.Flags.hasCSS;
@@ -292,14 +287,14 @@ Are you sure you want to continue?`);
       inCurWnd = oldWnd != null && oldWnd.incognito;
       if (!opts.window && (inCurWnd || (wnds = wnds.filter(funcDict.isIncNor)).length > 0)) {
         const options: InfoToCreateMultiTab & { windowId: number } = {
-          active,
+          url, active,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
         };
         if (inCurWnd) {
-          opts.position && funcDict.setNewTabIndex(options, tab, opts.position);
-          opts.opener && (options.id = tab.id);
+          options.index = funcDict.setNewTabIndex(tab, opts.position);
+          opts.opener && (options.openerTabId = tab.id);
         }
-        openMultiTab(url, commandCount, options);
+        openMultiTab(options, commandCount);
         return !inCurWnd && active ? funcDict.selectWnd(options) : undefined;
       }
       return funcDict.makeWindow({
@@ -308,26 +303,29 @@ Are you sure you want to continue?`);
       }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "");
     },
 
-    createTab: [function(onlyNormal, tabs) {
+    createTab: [function(url, onlyNormal, tabs): void {
       if (cOptions.url || cOptions.urls) {
         BackgroundCommands.openUrl(tabs as [Tab] | undefined);
         return chrome.runtime.lastError;
       }
-      let tab: (Partial<Tab> & InfoToCreateMultiTab) | null = null, url = this;
+      let tab: Tab | null = null;
       if (!tabs) {}
-      else if ((tabs as Tab[]).length > 0) { tab = (tabs as Tab[])[0]; }
-      else if ("id" in tabs) { tab = tabs as Tab; }
+      else if (tabs.length > 0) { tab = tabs[0]; }
       else if (TabRecency.last >= 0) {
-        chrome.tabs.get(TabRecency.last, funcDict.createTab[0].bind(url, onlyNormal));
-        return;
+        chrome.tabs.get(TabRecency.last, function(lastTab): void {
+          funcDict.createTab[0](url, onlyNormal, lastTab && [lastTab]);
+        });
+        return chrome.runtime.lastError;
       }
       if (!tab) {
-        openMultiTab(url, commandCount, {active: true});
+        openMultiTab({url, active: true}, commandCount);
         return chrome.runtime.lastError;
       }
       if (tab.incognito && onlyNormal) { url = ""; }
-      tab.id = undefined;
-      return openMultiTab(url, commandCount, tab);
+      return openMultiTab({
+        url, active: tab.active, windowId: tab.windowId,
+        index: funcDict.setNewTabIndex(tab, cOptions.position)
+      }, commandCount);
     }, function(wnd): void {
       if (cOptions.url || cOptions.urls) {
         return BackgroundCommands.openUrl([funcDict.selectFrom((wnd as PopWindow).tabs)]);
@@ -337,15 +335,15 @@ Are you sure you want to continue?`);
         return chrome.runtime.lastError;
       }
       const tab = funcDict.selectFrom(wnd.tabs);
-      if (wnd.type !== "normal") {
-        (tab as InfoToCreateMultiTab).windowId = undefined;
-      } else if (wnd.incognito) {
+      if (wnd.incognito && wnd.type !== "normal") {
         // url is disabled to be opened in a incognito window directly
         return funcDict.createTab[2](this, tab
           , (--commandCount > 0) ? funcDict.duplicateTab[1] : null, wnd.tabs);
       }
-      (tab as InfoToCreateMultiTab).id = undefined;
-      return openMultiTab(this, commandCount, tab);
+      return openMultiTab({
+        url: this, active: tab.active, windowId: wnd.type === "normal" ? tab.windowId : undefined,
+        index: funcDict.setNewTabIndex(tab, cOptions.position)
+      }, commandCount);
     }, function(url, tab, repeat, allTabs): void {
       const urlLower = url.toLowerCase().split('#', 1)[0];
       allTabs = allTabs.filter(function(tab1) {
@@ -389,7 +387,7 @@ Are you sure you want to continue?`);
         return funcDict.selectTab(newTab.id);
       });
     }] as [
-      (this: string, onlyNormal?: boolean, tabs?: Tab[] | Tab) => void,
+      (this: void, url: string, onlyNormal?: boolean, tabs?: Tab[]) => void,
       (this: string, wnd?: PopWindow) => void,
       (this: void, url: string, tab: Tab, repeat: ((this: void, tabId: number) => void) | null, allTabs: Tab[]) => void,
       (this: string, tab: Tab, repeat: ((this: void, tabId: number) => void) | null, wnds: Window[]) => void,
@@ -405,9 +403,10 @@ Are you sure you want to continue?`);
         chrome.tabs.duplicate(id);
       }
     }, function(tab) {
-      ++tab.index;
-      tab.active = false;
-      return openMultiTab(tab.url, commandCount, tab);
+      return openMultiTab({
+        url: tab.url, active: false, windowId: tab.windowId,
+        index: tab.index + 2 , openerTabId: tab.openerTabId
+      }, commandCount);
     }] as [
       (tabId: number, wnd: PopWindow) => void,
       (tabId: number) => void,
@@ -435,10 +434,11 @@ Are you sure you want to continue?`);
         })
         return;
       }
-      tab.active = active;
-      options.opener || ((tab as InfoToCreateMultiTab).id = undefined);
-      options.position && funcDict.setNewTabIndex(tab, tab, options.position);
-      return openMultiTab(url, commandCount, tab);
+      return openMultiTab({
+        url, active, windowId: tab.windowId,
+        openerTabId: options.opener ? tab.openerTabId : undefined,
+        index: funcDict.setNewTabIndex(tab, options.position)
+      }, commandCount);
     },
     openJSUrl: [function(url: string): void {
       if (!cPort) { // e.g.: use Chrome omnibox at once on starting
@@ -476,7 +476,7 @@ Are you sure you want to continue?`);
       } else
       chrome.tabs.create({
         active: reuse !== ReuseType.newBg,
-        index: position == null || tab.incognito ? undefined : funcDict.setNewTabIndex({}, tab, position),
+        index: tab.incognito ? undefined : funcDict.setNewTabIndex(tab, position),
         windowId: tab.incognito ? undefined : tab.windowId,
         url: prefix
       });
@@ -1233,12 +1233,15 @@ Are you sure you want to continue?`);
       });
     },
     toggleViewSource (this: void, tabs: [Tab]): void {
-      let url = tabs[0].url;
+      let tab = tabs[0], url = tab.url;
       if (url.startsWith("chrome")) {
         return Backend.complain("visit HTML of an extension's page");
       }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
-      return openMultiTab(url, 1, tabs[0]);
+      tabsCreate({
+        url, active: tab.active, windowId: tab.windowId,
+        index: tab.index + 1, openerTabId: tab.openerTabId
+      });
     },
     clearMarks (this: void): void {
       return cOptions.local ? funcDict.requireURL({ handler: "marks", action: "clear" }, true) : Marks.clear();
@@ -1976,13 +1979,13 @@ Are you sure you want to continue?`);
   };
 
   if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
-    funcDict.createTab = [funcDict.createTab[0]] as typeof funcDict.createTab;
+    funcDict.createTab.length = 1;
   }
   Settings.updateHooks.newTabUrl_f = function(url) {
     const onlyNormal = Utils.isRefusingIncognito(url), mayForceIncognito = funcDict.createTab.length > 1 && onlyNormal;
     BackgroundCommands.createTab = mayForceIncognito ? function(): void {
       chrome.windows.getCurrent({populate: true}, funcDict.createTab[1].bind(url));
-    } : funcDict.createTab[0].bind(url, onlyNormal);
+    } : funcDict.createTab[0].bind(null, url, onlyNormal);
     BackgroundCommands.createTab.useTab = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
   };
 
