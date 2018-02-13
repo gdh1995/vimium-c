@@ -65,7 +65,8 @@ declare namespace Urls {
     Functional = 5
   }
   const enum TempType {
-    Unspecified = -1
+    Unspecified = -1,
+    __mask = -2,
   }
 
   const enum TldType {

@@ -95,7 +95,7 @@ var Utils = {
       this.resetRe();
       return string;
     }
-    let type: Urls.Type | Urls.TempType | Urls.TldType = Urls.TempType.Unspecified
+    let type: Urls.Type | Urls.TempType.Unspecified | Urls.TldType = Urls.TempType.Unspecified
       , expected: Urls.Type.Full | Urls.Type.NoProtocolName | Urls.Type.NoSchema = Urls.Type.Full
       , hasPath = false, index: number, index2: number, oldString: string
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
@@ -105,6 +105,12 @@ var Utils = {
       string[1] === ":" && (string = string[0].toUpperCase() + ":/" + string.substring(3).replace(this._backSlashRe, "/"));
       this.resetRe();
       return "file://" + (string[0] === "/" ? string : "/" + string);
+    }
+    if (string.startsWith("\\\\") && string.length > 3) {
+      string = string.substring(2).replace(this._backSlashRe, "/");
+      string.lastIndexOf("/") <= 0 && (string += "/");
+      this.resetRe();
+      return "file://" + string;
     }
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
@@ -202,7 +208,7 @@ var Utils = {
       type = Urls.Type.NoSchema;
     }
     this.resetRe();
-    this.lastUrlType = type as Urls.Type;
+    (this as typeof Utils).lastUrlType = type;
     return type === Urls.Type.Full ? oldString
       : type === Urls.Type.Search ? (this as typeof Utils).createSearchUrl(oldString.split(this.spacesRe), keyword || "~", vimiumUrlWork)
       : type <= Urls.Type.MaxOfInputIsPlainUrl ?

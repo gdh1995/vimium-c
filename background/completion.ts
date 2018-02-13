@@ -644,7 +644,7 @@ searchEngines: {
     let sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
        pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined;
     if (q.length === 0) {}
-    else if (failIfNull !== true && keyword[0] === "\\") {
+    else if (failIfNull !== true && keyword[0] === "\\" && keyword[1] !== "\\") {
       if (keyword.length > 1) {
         q[0] = keyword.substring(1);
       } else {
