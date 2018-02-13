@@ -112,8 +112,8 @@ interface ReadonlyChildKeyMap {
 type KeyMap = ReadonlySafeDict<0 | 1 | ReadonlyChildKeyMap>;
 
 declare const enum ReuseType {
-  Default = 0,
-  current = Default,
+  current = 0,
+  Default = current,
   reuse = 1,
   newFg = -1,
   newBg = -2

@@ -20,6 +20,7 @@ declare namespace HintsNS {
     action?: string;
     mode?: string | number;
     url?: boolean;
+    keyword?: string;
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
   interface ElementIterator<T> {
@@ -965,6 +966,16 @@ getImageUrl (img: HTMLElement): string | void {
   return text || VHUD.showForDuration("Not an image", 1000);
 },
 
+openUrl (url: string, incognito?: boolean): void {
+  let kw = this.options.keyword, opt: Req.fg<"openUrl"> = {
+    handler: "openUrl",
+    reuse: this.mode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
+    url,
+    keyword: kw != null ? kw + "" : ""
+  };
+  incognito && (opt.incognito = incognito);
+  VPort.post(opt);
+},
 highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   let err: boolean | null = true, child: HintsNS.VWindow = null as never;
   try {
@@ -1061,12 +1072,7 @@ COPY_TEXT: {
       });
       return;
     } else if (this.mode1 === HintMode.SEARCH_TEXT) {
-      VPort.post({
-        handler: "openUrl",
-        reuse: this.mode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-        url: str,
-        keyword: (this.options.keyword || "") + ""
-      });
+      this.openUrl(str);
       return;
     }
     // NOTE: url should not be modified
@@ -1084,14 +1090,9 @@ OPEN_INCOGNITO_LINK: {
   202: "Open multi incognito tabs",
   activator (link): void {
     const url = this.getUrlData(link);
-    if (VUtils.evalIfOK(url)) { return; }
-    VPort.post({
-      handler: "openUrl",
-      incognito: true,
-      reuse: this.mode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      keyword: (this.options.keyword || "") + "",
-      url
-    });
+    if (!VUtils.evalIfOK(url)) {
+      return this.openUrl(url, true);
+    }
   }
 } as HintsNS.ModeOpt,
 DOWNLOAD_IMAGE: {
@@ -1123,12 +1124,7 @@ OPEN_IMAGE: {
     if (str = img.getAttribute("download")) {
       url += "download=" + encodeURIComponent(str) + "&";
     }
-    VPort.post({
-      handler: "openUrl",
-      inherit: true,
-      reuse: this.mode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      url: url + text
-    });
+    this.openUrl(url + text);
   }
 } as HintsNS.ModeOpt,
 DOWNLOAD_LINK: {
