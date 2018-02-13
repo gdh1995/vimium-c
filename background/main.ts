@@ -41,7 +41,6 @@ var Backend: BackendHandlersNS.BackendHandlers;
     incognito?: boolean;
     position?: "start" | "end" | "before" | "after";
     opener?: boolean;
-    opened?: boolean;
     window?: boolean;
   }
   const enum RefreshTabStep {
@@ -406,7 +405,7 @@ Are you sure you want to continue?`);
     }, function(tab) {
       return openMultiTab({
         url: tab.url, active: false, windowId: tab.windowId,
-        index: tab.index + 2 , openerTabId: tab.openerTabId
+        index: tab.index + 2 , openerTabId: tab.id
       }, commandCount);
     }] as [
       (tabId: number, wnd: PopWindow) => void,
@@ -437,7 +436,7 @@ Are you sure you want to continue?`);
       }
       return openMultiTab({
         url, active, windowId: tab.windowId,
-        openerTabId: options.opener ? tab.openerTabId : undefined,
+        openerTabId: options.opener ? tab.id : undefined,
         index: funcDict.setNewTabIndex(tab, options.position)
       }, commandCount);
     },
@@ -461,13 +460,13 @@ Are you sure you want to continue?`);
     }, function(url: string): void {
       try { cPort.postMessage({ name: "eval", url }); } catch (e) {}
     }],
-    openShowPage: [function(url, reuse, position, opened, tab): boolean {
+    openShowPage: [function(url, reuse, options, tab): boolean {
       const prefix = Settings.CONST.ShowPage;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
       if (!tab) {
         funcDict.getCurTab(function(tabs: [Tab]): void {
           if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
-          funcDict.openShowPage[0](url, reuse, position, opened, tabs[0]);
+          funcDict.openShowPage[0](url, reuse, options, tabs[0]);
         });
         return true;
       }
@@ -477,9 +476,9 @@ Are you sure you want to continue?`);
       } else
       chrome.tabs.create({
         active: reuse !== ReuseType.newBg,
-        index: tab.incognito ? undefined : funcDict.setNewTabIndex(tab, position),
+        index: tab.incognito ? undefined : funcDict.setNewTabIndex(tab, options.position),
         windowId: tab.incognito ? undefined : tab.windowId,
-        openerTabId: opened ? tab.id : undefined,
+        openerTabId: options.opener ? tab.id : undefined,
         url: prefix
       });
       const arr: [string, ((this: void) => string) | null, number] = [url, null, 0];
@@ -496,7 +495,7 @@ Are you sure you want to continue?`);
         arr[0] = "", arr[1] = null;
       }, 2000);
     }] as [
-      (url: string, reuse: ReuseType, position?: OpenUrlOptions["position"], opened?: boolean, tab?: Tab) => boolean,
+      (url: string, reuse: ReuseType, options: OpenUrlOptions, tab?: Tab) => boolean,
       (arr: [string, ((this: void) => string) | null, number]) => void
     ],
     // use Urls.WorkType.Default
@@ -953,7 +952,7 @@ Are you sure you want to continue?`);
       cOptions = null as never;
       Utils.resetRe();
       return typeof url !== "string" ? funcDict.onEvalUrl(url as Urls.SpecialUrl)
-        : funcDict.openShowPage[0](url, reuse, options.position, options.opened) ? void 0
+        : funcDict.openShowPage[0](url, reuse, options) ? void 0
         : Utils.isJSUrl(url) ? funcDict.openJSUrl[0](url)
         : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
         : reuse === ReuseType.current ? funcDict.safeUpdate(url)
@@ -972,6 +971,7 @@ Are you sure you want to continue?`);
       let url_f = Utils.createSearchUrl(query.url.split(" "), keyword, Urls.WorkType.ActAnyway);
       cOptions = Object.setPrototypeOf({
         reuse: cOptions.reuse | 0,
+        opener: true,
         url_f
       }, null);
       BackgroundCommands.openUrl(tabs);
@@ -1032,7 +1032,7 @@ Are you sure you want to continue?`);
         return Backend.reopenTab(tab);
       }
       chrome.windows.get(tab.windowId, function(wnd): void {
-        if (wnd.incognito) {
+        if (wnd.incognito && !tab.incognito) {
           (tab as ReopenOptions).openerTabId = (tab as ReopenOptions).windowId = undefined;
         }
         return Backend.reopenTab(tab);
@@ -1526,7 +1526,9 @@ Are you sure you want to continue?`);
         request.url = "";
         request.keyword = "";
         request.url_f = url;
-        request.opener = unsafe && type <= Urls.Type.MaxOfInputIsPlainUrl;
+        request.opener = unsafe;
+      } else {
+        request.opener = false;
       }
       commandCount = 1;
       // { url_f: string, keyword: "", url: "", ... } | { copied: true, ... }

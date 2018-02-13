@@ -153,7 +153,6 @@ interface FgReq {
     copied?: boolean;
     keyword?: string | null;
     incognito?: boolean;
-    opened?: boolean;
     https?: boolean | null;
     reuse?: ReuseType;
   };
