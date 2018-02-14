@@ -60,6 +60,7 @@ listenA = _apply.bind(_listen) as (self: EventTarget, args: any) => void,
 listen = _call.bind(_listen) as (self: EventTarget, ty: string, func?: null | ((e: Event) => void), opts?: boolean) => void,
 Stop = KeyboardEvent.prototype.stopImmediatePropagation,
 Attr = E.prototype.setAttribute, _remove = E.prototype.remove, remove = _call.bind(_remove),
+rel = removeEventListener, ct = clearTimeout,
 hooks = {
   toString: function toString(this: Function): string {
     const a = this;
@@ -89,11 +90,10 @@ let handler = function(this: void): void {
   call(Attr, box, "data-secret", "" + sec);
   dispatch(box, new CE("VimiumReg"));
   remove(box);
-  handler = ct = Create = null as never;
+  handler = Create = null as never;
   timer = toRegister.length > 0 ? next() : 0;
 },
 register = toRegister.push.bind<Element[], Element, number>(toRegister),
-rel = removeEventListener, ct = clearTimeout,
 Create = document.createElement as Document["createElement"],
 box: HTMLDivElement, timer = setTimeout(handler, 1000),
 next = setTimeout.bind(null as never, function(): void {
@@ -144,10 +144,15 @@ function destroy(e?: CustomEvent): void {
   Function.prototype.toString === toString && (Function.prototype.toString = toString);
   next = register = function() { return 1; };
   toRegister.length = 0;
+  ct(timer);
   timer = 1;
   let a = box;
   box = null as never;
   a && call(rel as any, a, "VimiumDestroy", destroy, true);
+}
+// only the below can affect outsides
+if (typeof E !== "function") {
+  return destroy();
 }
 EventTarget.prototype.addEventListener = addEventListener;
 Function.prototype.toString = toString;
