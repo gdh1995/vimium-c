@@ -87,9 +87,9 @@ Known issues (Up to the master branch):
 * fix that Vimium++ didn't work on some websites or with some libraries,
   like [Angular Material](https://material.angular.io/),
     [Zeplin](https://zeplin.io/) and CKEditor 5 (1.0.0-alpha.2).
-* fix that omnibox "v" mode may not work when meeting some types of input
+* fix that omnibox "v" mode might not work when meeting some types of input
 * Vomnibar is now translucent if blurred
-* fix a bug that a real '<f1>' was mistakenly translated into `<ff1>`
+* fix a bug that a real `<f1>` was mistakenly translated into `<ff1>`
 * For some IMEs like Chinese, Vomnibar cuts all single quotes if input is composing in the middle of text
 * add some new small features and fix found bugs
 
