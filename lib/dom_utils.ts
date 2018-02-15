@@ -282,15 +282,15 @@ var VDom = {
   } as VDomMouse,
   defaultMouseKeys: { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false } as EventControlKeys,
   lastHovered: null as Element | null,
-  hover (newEl: Element | null, modifiers?: EventControlKeys | null): void {
+  hover (newEl: Element | null): void {
     let last = this.lastHovered;
     if (last && this.isInDOM(last)) {
-      this.mouse(last, "mouseout", modifiers, newEl !== last ? newEl : null);
+      this.mouse(last, "mouseout", null, newEl !== last ? newEl : null);
     } else {
       last = null;
     }
     this.lastHovered = newEl;
-    newEl && this.mouse(newEl, "mouseover", modifiers, last);
+    newEl && this.mouse(newEl, "mouseover", null, last);
   },
   isContaining (a: VRect, b: VRect): boolean {
     return a[3] >= b[3] && a[2] >= b[2] && a[1] <= b[1] && a[0] <= b[0];
