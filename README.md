@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.63.0](https://img.shields.io/badge/release-1.63.0-orange.svg)
+![Version 1.64.0](https://img.shields.io/badge/release-1.64.0-orange.svg)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-plus)
 
@@ -83,10 +83,15 @@ Known issues (Up to the master branch):
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
 
-1.63.1 (Not released yet):
-* fix some crashes with other libraries including CKEditor 5 (1.0.0-alpha.2)
+1.64:
+* fix that Vimium++ didn't work on some websites or with some libraries,
+  like [Angular Material](https://material.angular.io/),
+    [Zeplin](https://zeplin.io/) and CKEditor 5 (1.0.0-alpha.2).
+* fix that omnibox "v" mode may not work when meeting some types of input
+* Vomnibar is now translucent if blurred
 * fix a bug that a real '<f1>' was mistakenly translated into `<ff1>`
 * For some IMEs like Chinese, Vomnibar cuts all single quotes if input is composing in the middle of text
+* add some new small features and fix found bugs
 
 1.63:
 * FindMode and VisualMode will ensure document is selectable when they are active
