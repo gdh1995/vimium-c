@@ -270,6 +270,11 @@ var VDom = {
   mouse: function (this: any, element, type, modifiers, related): boolean {
     const mouseEvent = document.createEvent("MouseEvents");
     modifiers || (modifiers = (this as typeof VDom).defaultMouseKeys);
+    // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
+    //  viewArg: Window, detailArg: number,
+    //  screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number,
+    //  ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean,
+    //  buttonArg: number, relatedTargetArg: EventTarget | null)
     mouseEvent.initMouseEvent(type, true, true, window, 1, 0, 0, 0, 0
       , modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey
       , 0, related || null);
