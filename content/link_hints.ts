@@ -1006,8 +1006,8 @@ HOVER: {
   192: "Hover over nodes continuously",
   activator (element): void {
     const type = VDom.getEditableType(element);
-    VDom.hover(element);
     VScroller.current = element;
+    VDom.hover(element);
     type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
       element instanceof HTMLFrameElement || element.focus();
     if ((this as typeof VHints).mode < HintMode.min_job) {
