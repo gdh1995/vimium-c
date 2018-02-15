@@ -279,7 +279,13 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
         return;
       }
     }
-    if (key === last || matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last as string)) {
+    if (key === last) {
+      suggestions && suggest(suggestions);
+      return;
+    }
+    if (matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last as string)) {
+      // avoid Chrome showing results from its inner search engine because of `suggest` being destroyed
+      suggest([]);
       return;
     }
     lastSuggest = { suggest, key, sent: false };
