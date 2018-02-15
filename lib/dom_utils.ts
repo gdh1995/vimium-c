@@ -276,9 +276,11 @@ var VDom = {
     //  screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number,
     //  ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean,
     //  buttonArg: number, relatedTargetArg: EventTarget | null)
+    let x = rect ? ((rect[0] + rect[2]) / 2) | 0 : 0
+      , y = rect ? ((rect[1] + rect[3]) / 2) | 0 : 0;
     mouseEvent.initMouseEvent(type, true, true
       , element.ownerDocument.defaultView, type.startsWith("mouseo") ? 0 : 1
-      , 0, 0, 0, 0
+      , x, y, x, y
       , modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey
       , 0, related || null);
     return element.dispatchEvent(mouseEvent);

@@ -127,7 +127,7 @@ VDom.UI = {
     return true;
   },
   click (element, rect, modifiers, addFocus): boolean {
-    rect || (rect = null);
+    rect || (rect = VDom.getVisibleClientRect(element));
     element === VDom.lastHovered || VDom.hover(element, rect);
     VDom.mouse(element, "mousedown", rect, modifiers);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
