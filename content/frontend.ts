@@ -813,6 +813,7 @@ Pagination = {
         // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
         Commands.reset();
+        VSettings.uninit && VSettings.uninit(1);
       }
       if (VDom.UI.box) { return VDom.UI.toggle(enabled); }
     },
@@ -1037,14 +1038,14 @@ Pagination = {
     checkIfEnabled (this: void): void {
       return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
     },
-    onDestroy: null,
+    uninit: null,
   destroy: function(silent, keepChrome): void {
     VSettings.enabled = isEnabledForUrl = false;
     ELs.hook(HookAction.Destroy);
 
     Commands.reset();
-    let f: typeof VSettings.onDestroy, ui = VDom.UI;
-    (f = VSettings.onDestroy) && f();
+    let f: typeof VSettings["uninit"], ui = VDom.UI;
+    (f = VSettings.uninit) && f(2);
 
     VUtils = VKeyboard = VDom = VDom = VUtils = //
     VHints = Vomnibar = VScroller = VMarks = VFindMode = //

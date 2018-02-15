@@ -273,7 +273,8 @@ interface VSettings {
   enabled: boolean;
   cache: SettingsNS.FrontendSettingCache;
   checkIfEnabled (this: void): void;
-  onDestroy: ((this: void) => any) | null;
+  // type: 1: disabled; 2: destroyed
+  uninit: ((this: void, type: 1 | 2) => any) | null;
   destroy (this: void, silent?: boolean, keepChrome?: boolean): void;
 }
 declare var VimiumInjector: VimiumInjector, VSettings: VSettings;

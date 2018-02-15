@@ -11,11 +11,13 @@ if (chrome.runtime.onMessageExternal) {
     , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9");
 }
 
-VSettings.onDestroy = function() {
-  removeEventListener("hashchange", VSettings.checkIfEnabled);
-  var injector = VimiumInjector;
-  injector.alive = 0;
-  injector.destroy = null;
+VSettings.uninit = function(type: number): void {
+  if (type > 1) {
+    removeEventListener("hashchange", VSettings.checkIfEnabled);
+    let injector = VimiumInjector;
+    injector.alive = 0;
+    injector.destroy = null;
+  }
   type ET2 = EventTargetEx;
   try {
     typeof (EventTarget as ET2).vimiumRemoveHooks === "function" && (EventTarget as ET2).vimiumRemoveHooks();

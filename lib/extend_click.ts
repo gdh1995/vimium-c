@@ -30,9 +30,9 @@
       box.dispatchEvent(new CustomEvent("VimiumDestroy", {detail: secret}));
       box = null as never;
     }
-    VSettings && (VSettings.onDestroy = null);
+    VSettings && (VSettings.uninit = null);
   }
-  VSettings.onDestroy = destroy;
+  VSettings.uninit = function() { VDom.documentReady(destroy); };
   script.type = "text/javascript";
   let str = func.toString(), appVer = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/);
   if (appVer && +appVer[1] >= BrowserVer.MinEnsureMethodFunction) {
