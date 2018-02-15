@@ -206,8 +206,8 @@ interface DomUI {
   toggleSelectStyle (this: DomUI, enable: boolean): void;
   getSelection (this: DomUI): Selection;
   removeSelection (this: DomUI, root?: DocumentOrShadowRoot): boolean;
-  click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
-  simulateSelect (this: DomUI, element: Element, flash?: boolean, suppressRepeated?: boolean): void;
+  click (this: DomUI, element: Element, rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
+  simulateSelect (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean, suppressRepeated?: boolean): void;
   getVRect (this: void, clickEl: Element): VRect | null;
   flash (this: DomUI, el: null, rect: VRect): number;
   flash (this: DomUI, el: Element): number | void;
@@ -216,8 +216,13 @@ interface DomUI {
 }
 
 interface VDomMouse {
-  (element: Element, type: "mouseover" | "mousedown" | "mouseup" | "click" | "mouseout"
+  (element: Element, type: "mousedown" | "mouseup" | "click"
+    , rect: VRect | null // rect must be not optional, so that human can understand program logic easily
     , modifiers?: EventControlKeys | null, related?: Element | null): boolean;
+  (element: Element, type: "mouseover", rect: VRect | null
+    , modifiers?: null, related?: Element | null): boolean;
+  (element: Element, type: "mouseout", rect?: null
+    , modifiers?: null, related?: Element | null): boolean;
 }
 interface VPort {
   post<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;

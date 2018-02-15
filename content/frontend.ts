@@ -380,7 +380,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       InsertMode.last = null;
       InsertMode.mutable = true;
-      return VDom.UI.simulateSelect(newEl, false, true);
+      return VDom.UI.simulateSelect(newEl, null, false, true);
     },
     goBack (count: number, options: FgOptions): void {
       const step = Math.min(count, history.length - 1);
@@ -432,7 +432,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (sel === 0) {
         return HUD.showForDuration("There are no inputs to focus.", 1000);
       } else if (sel === 1) {
-        return VDom.UI.simulateSelect(visibleInputs[0][0], true, true);
+        return VDom.UI.simulateSelect(visibleInputs[0][0], visibleInputs[0][1], true, true);
       }
       for (let ind = 0; ind < sel; ind++) {
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
@@ -453,7 +453,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         sel = Math.min(count, sel) - 1;
       }
       hints[sel].classList.add("S");
-      VDom.UI.simulateSelect(visibleInputs[sel][0]);
+      VDom.UI.simulateSelect(visibleInputs[sel][0], visibleInputs[sel][1]);
       VDom.UI.ensureBorder(VDom.docZoom);
       const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       VUtils.push(function(event) {

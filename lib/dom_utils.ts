@@ -267,7 +267,8 @@ var VDom = {
     for (o = el; o && o.nodeType !== /* Node.ELEMENT_NODE */ 1; o = o.previousSibling) {}
     return (o as Element | null) || (el && el.parentElement);
   },
-  mouse: function (this: any, element, type, modifiers, related): boolean {
+  mouse: function (this: any, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
+      , rect?: VRect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {
     const mouseEvent = document.createEvent("MouseEvents");
     modifiers || (modifiers = (this as typeof VDom).defaultMouseKeys);
     // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
@@ -282,15 +283,18 @@ var VDom = {
   } as VDomMouse,
   defaultMouseKeys: { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false } as EventControlKeys,
   lastHovered: null as Element | null,
-  hover (newEl: Element | null): void {
-    let last = this.lastHovered;
-    if (last && this.isInDOM(last)) {
-      this.mouse(last, "mouseout", null, newEl !== last ? newEl : null);
+  hover: function (this: any, newEl: Element | null, rect?: VRect | null): void {
+    let last = (this as typeof VDom).lastHovered;
+    if (last && (this as typeof VDom).isInDOM(last)) {
+      (this as typeof VDom).mouse(last, "mouseout", null, null, newEl !== last ? newEl : null);
     } else {
       last = null;
     }
-    this.lastHovered = newEl;
-    newEl && this.mouse(newEl, "mouseover", null, last);
+    (this as typeof VDom).lastHovered = newEl;
+    newEl && (this as typeof VDom).mouse(newEl, "mouseover", rect as VRect | null, null, last);
+  } as {
+    (newEl: Element, rect: VRect | null): void;
+    (newEl: null): void;
   },
   isContaining (a: VRect, b: VRect): boolean {
     return a[3] >= b[3] && a[2] >= b[2] && a[1] <= b[1] && a[0] <= b[0];

@@ -126,18 +126,20 @@ VDom.UI = {
     sel.collapseToStart();
     return true;
   },
-  click (element, modifiers, addFocus): boolean {
-    element === VDom.lastHovered || VDom.hover(element);
-    VDom.mouse(element, "mousedown", modifiers);
+  click (element, rect, modifiers, addFocus): boolean {
+    rect || (rect = null);
+    element === VDom.lastHovered || VDom.hover(element, rect);
+    VDom.mouse(element, "mousedown", rect, modifiers);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
     addFocus && element !== VEventMode.lock() && element !== document.activeElement && element.focus && element.focus();
-    VDom.mouse(element, "mouseup", modifiers);
-    return VDom.mouse(element, "click", modifiers);
+    VDom.mouse(element, "mouseup", rect, modifiers);
+    return VDom.mouse(element, "click", rect, modifiers);
   },
-  simulateSelect (element, flash, suppressRepeated): void {
+  simulateSelect (element, rect, flash, suppressRepeated): void {
     const y = window.scrollY;
-    this.click(element, null, true);
+    this.click(element, rect, null, true);
     VDom.ensureInView(element, y);
+    // re-compute rect of element, in case that an input is resized when focused
     flash && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
     type Moveable = HTMLInputElement | HTMLTextAreaElement;

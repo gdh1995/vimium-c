@@ -14,7 +14,7 @@ declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface ModeOpt {
     [mode: number]: string | undefined;
-    activator (this: any, linkEl: LinkEl, hintEl: HTMLSpanElement): void | false;
+    activator (this: any, linkEl: LinkEl, rect: VRect | null, hintEl: HTMLSpanElement): void | false;
   }
   interface Options extends SafeObject {
     action?: string;
@@ -717,7 +717,7 @@ var VHints = {
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
-      const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, hintEl);
+      const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hintEl);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect(clickEl)))) {
         setTimeout(function(force) {
           (force || document.hasFocus()) && VDom.UI.flash(null, rect as VRect);
@@ -1004,10 +1004,10 @@ Modes: {
 HOVER: {
   128: "Hover over node",
   192: "Hover over nodes continuously",
-  activator (element): void {
+  activator (element, rect): void {
     const type = VDom.getEditableType(element);
     VScroller.current = element;
-    VDom.hover(element);
+    VDom.hover(element, rect);
     type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
       element instanceof HTMLFrameElement || element.focus();
     if ((this as typeof VHints).mode < HintMode.min_job) {
@@ -1018,7 +1018,7 @@ HOVER: {
 LEAVE: {
   129: "Simulate mouse leaving link",
   193: "Simulate mouse leaving continuously",
-  activator (this: void, element: HintsNS.LinkEl): void {
+  activator (this: void, element): void {
     const same = VDom.lastHovered === element;
     VDom.hover(null);
     same || VDom.mouse(element, "mouseout");
@@ -1111,7 +1111,7 @@ DOWNLOAD_IMAGE: {
     }
     a.href = (img as HTMLImageElement).src;
     a.download = img.getAttribute("download") || "";
-    VDom.mouse(a, "click");
+    VDom.mouse(a, "click", null);
     return VHUD.showForDuration("Download: " + text, 2000);
   }
 } as HintsNS.ModeOpt,
@@ -1131,7 +1131,7 @@ OPEN_IMAGE: {
 DOWNLOAD_LINK: {
   136: "Download link",
   200: "Download multiple links",
-  activator (this: void, link: HTMLAnchorElement): void {
+  activator (this: void, link: HTMLAnchorElement, rect): void {
     let oldDownload: string | null, oldUrl: string | null, changed = false;
     oldUrl = link.getAttribute("href");
     if (!oldUrl || oldUrl === "#") {
@@ -1145,7 +1145,7 @@ DOWNLOAD_LINK: {
     if (oldDownload == null) {
       link.download = "";
     }
-    VDom.UI.click(link, {
+    VDom.UI.click(link, rect, {
       altKey: true,
       ctrlKey: false,
       metaKey: false,
@@ -1164,8 +1164,8 @@ DOWNLOAD_LINK: {
 } as HintsNS.ModeOpt,
 FOCUS_EDITABLE: {
   258: "Select an editable area",
-  activator (link): false {
-    VDom.UI.simulateSelect(link, true);
+  activator (link, rect): false {
+    VDom.UI.simulateSelect(link, rect, true);
     return false;
   }
 } as HintsNS.ModeOpt,
@@ -1176,7 +1176,7 @@ DEFAULT: {
   64: "Open multiple links in current tab",
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
-  activator (link, hint): void | false {
+  activator (link, rect, hint): void | false {
     if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
       const ret = link === Vomnibar.box ? (Vomnibar.focus(), false)
         : (this as typeof VHints).highlightChild(link);
@@ -1186,9 +1186,9 @@ DEFAULT: {
       link.open = !link.open;
       return;
     } else if (hint.classList.contains("BH")) {
-      return (this as typeof VHints).Modes.HOVER.activator.call(this, link, hint);
+      return (this as typeof VHints).Modes.HOVER.activator.call(this, link, rect, hint);
     } else if (VDom.getEditableType(link) >= EditableType.Editbox) {
-      VDom.UI.simulateSelect(link, true);
+      VDom.UI.simulateSelect(link, rect, true);
       return false;
     }
     const mode = this.mode & HintMode.mask_focus_new, onMac = VSettings.cache.onMac, newTab = mode >= HintMode.newTab;
@@ -1202,7 +1202,7 @@ DEFAULT: {
       }
     }
     // NOTE: not clear last hovered item, for that it may be a menu
-    VDom.UI.click(link, {
+    VDom.UI.click(link, rect, {
       altKey: false,
       ctrlKey: newTab && !onMac,
       metaKey: newTab &&  onMac,
