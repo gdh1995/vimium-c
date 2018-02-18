@@ -317,6 +317,7 @@ declare const enum BrowserVer {
   // this feature is from 53, and replaced by DOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since 56
   MinNoDOMActivateInClosedShadowRootPassedToDocument = 53,
   assumedVer = 53,
+  // also the first time unprefixed user-select is accepted
   MinWarningWebkitUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
   MinNo$KeyboardEvent$$keyIdentifier = 54,
@@ -327,10 +328,11 @@ declare const enum BrowserVer {
   MinNeedCSPForScriptsFromOtherExtensions = 56,
   MinStickyPosition = 56,
   MinFailToToggleImageOnFileURL = 56,
-  MinExtensionContentPageMayShowFavIcon = 56,
   Min$KeyboardEvent$$isComposing = 56,
   MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled = 56,
   MinNoKeygenElement = 57,
+  MinCSSPlaceholderPseudo = 57,
+  MinCSSGrid = 57,
   /*
    * Chrome before 58 does this if #enable-site-per-process or #enable-top-document-isolation;
    * Chrome since 58 always merge extension iframes even if the two flags are disabled
@@ -345,6 +347,7 @@ declare const enum BrowserVer {
    *   while Chrome before 56 can turn off them totally
    */
   MinExtIframesAlwaysInSharedProcess = 58,
+  MinExtensionContentPageAlwaysCanShowFavIcon = MinExtIframesAlwaysInSharedProcess,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem

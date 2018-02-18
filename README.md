@@ -37,7 +37,7 @@ __Vomnibar Page:__
 
 * [visit it on Chrome Web Store](https://chrome.google.com/webstore/detail/vomnibar-page-for-vimium%20/ekohaelnhhdhbccgefjmjpdjoijhojgd)
 * is an extension to replace Vimium++'s inner Vomnibar page.
-* With this, Vimium++'s memory cost will be smaller since Chrome 57.
+* With this, Vimium++'s memory cost will be smaller since Chrome 58.
 
 __微度新标签页修改版 (Modified X New Tab Page):__
 
@@ -131,7 +131,7 @@ Known issues (Up to the master branch):
   * in `Marks.activate`, old local marks are still supported
   * **WARNING**: but `Marks.clearLocal` won't clear old local marks
   * the stored data of local marks is not compatible with Vimium any more
-* completely fix Vomnibar flickering on showing and hiding since Chrome 57
+* completely fix Vomnibar flickering on showing and hiding
 * **WARNING**: add a version limit to the preferred Vomnibar page
   * please use `<html data-version="1.61">` to tell Vimium++ the page's version
   * if your custom page has no such a tag, it will be replaced with the inner one at run time

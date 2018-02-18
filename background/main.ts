@@ -210,7 +210,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     PostCompletions (this: Port, favIcon0: 0 | 1 | 2, list: Readonly<Suggestion>[]
         , autoSelect: boolean, matchType: CompletersNS.MatchType): void {
       let { url } = this.sender, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
-      if (favIcon0 == 1 && Settings.CONST.ChromeVersion >= BrowserVer.MinExtensionContentPageMayShowFavIcon) {
+      if (favIcon0 == 1 && Settings.CONST.ChromeVersion >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon) {
         url = url.substring(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
         const map = framesForTab;
         for (let tabId in map) {
