@@ -37,8 +37,8 @@ declare const enum HeightData {
   InputBarWithLineAndMargin = InputBarWithLine + MarginV,
   ShadowMarginV = 8,
   AllNotList = InputBarWithLineAndMargin + VomnibarNS.Consts.MarginTop + ShadowMarginV * 2,
-  // 22 is better than 21, because 74 is a result that has been cut (`floor(71 + 7.72 /2)`)
-  MarginH = 22, AllNotUrl = 74, MeanWidthOfChar = 7.72,
+  // 22 is better than 21, because borderWidth may be forced to be 1
+  MarginH = 22, AllHNotUrl = 20 + 51 + 3, MeanWidthOfChar = 7.72,
 }
 
 if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
@@ -53,7 +53,7 @@ var Vomnibar = {
     this.forceNewTab = !!options.force;
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
-    this.width(options.width * 0.8);
+    this.setWidth(options.width * 0.8);
     this.mode.maxResults = Math.min(Math.max(3, Math.round((options.height - HeightData.AllNotList) / HeightData.Item)), this.maxResults);
     this.init && this.setFav(options.ptype);
     if (this.mode.favIcon) {
@@ -195,7 +195,7 @@ var Vomnibar = {
   refresh (): void {
     let oldSel = this.selection, origin = this.isSelOriginal;
     this.useInput = false;
-    this.width();
+    this.setWidth();
     return this.update(17, function(this: typeof Vomnibar): void {
       const len = this.completions.length;
       if (!origin && oldSel >= 0 && len > 0) {
@@ -647,8 +647,9 @@ var Vomnibar = {
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner as
         any, 0, { name: "focus", key: request.key });
   },
-  width (w?: number): void {
-    this.mode.maxChars = Math.round(((w || window.innerWidth - HeightData.MarginH) - HeightData.AllNotUrl) / HeightData.MeanWidthOfChar);
+  setWidth (w?: number): void {
+    let contentWidth = w || window.innerWidth - HeightData.MarginH;
+    this.mode.maxChars = Math.round((contentWidth - HeightData.AllHNotUrl) / HeightData.MeanWidthOfChar);
   },
   secret: null as never as (request: BgVomnibarReq["secret"]) => void,
 
@@ -681,7 +682,7 @@ var Vomnibar = {
         : (newMatchType = this.matchType,
           (s2 = this.completions[0].type).indexOf("#") < 0 ? s2 as CompletersNS.ValidTypes : "tab");
       mode.query = str;
-      this.width();
+      this.setWidth();
       this.matchType = newMatchType;
     } else {
       this.useInput = true;
