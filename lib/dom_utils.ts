@@ -35,15 +35,16 @@ var VDom = {
     arr && arr.length > 0 && (el = arr[arr.length - 1]);
     return el.parentElement || el.parentNode instanceof ShadowRoot && el.parentNode.host || null;
   },
-  prepareCrop (): void {
+  prepareCrop (ret?: 1): void | [number, number] {
     let iw: number, ih: number, ihs: number;
-    this.prepareCrop = function(): void {
+    this.prepareCrop = function(ret?: 1): void | [number, number] {
       const doc = document.documentElement as Element;
       iw = Math.max(window.innerWidth - 24, doc.clientWidth) / this.fullZoom;
       ih = Math.max(window.innerHeight - 24, doc.clientHeight) / this.fullZoom;
       ihs = ih - 8;
+      if (ret) { return [iw, ih]; }
     };
-    VDom.cropRectToVisible = function(left, top, right, bottom): VRect | null {
+    this.cropRectToVisible = function(left, top, right, bottom): VRect | null {
       if (top > ihs || bottom < 3) {
         return null;
       }
@@ -55,7 +56,7 @@ var VDom = {
       ];
       return (cr[2] - cr[0] >= 3 && cr[3] - cr[1] >= 3) ? cr : null;
     };
-    return this.prepareCrop();
+    return this.prepareCrop(ret);
   },
   getVisibleClientRect (element: Element, el_style?: CSSStyleDeclaration): VRect | null {
     const arr = element.getClientRects();

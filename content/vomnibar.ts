@@ -45,7 +45,9 @@ var Vomnibar = {
       options.topUrl = window.location.href;
     }
     this.options = null;
-    options.width = window.innerWidth; options.height = window.innerHeight;
+    VDom.fullZoom = 1;
+    let area = VDom.prepareCrop(1) as [number, number];
+    options.width = area[0], options.height = area[1];
     VDom.getZoom();
     // note: here require: that Inactive must be NotInited + 1
     this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
