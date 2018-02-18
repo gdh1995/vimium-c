@@ -650,6 +650,9 @@ var Vomnibar = {
   setWidth (w?: number): void {
     let contentWidth = w || window.innerWidth - HeightData.MarginH;
     this.mode.maxChars = Math.round((contentWidth - HeightData.AllHNotUrl) / HeightData.MeanWidthOfChar);
+    if (this.browserVersion < BrowserVer.MinSeparateExtIframeHasCorrectWidthIfDeviceRationNot1 && devicePixelRatio !== 1) {
+      (document.documentElement as HTMLHtmlElement).style.width = contentWidth + HeightData.MarginH + "px";
+    }
   },
   secret: null as never as (request: BgVomnibarReq["secret"]) => void,
 

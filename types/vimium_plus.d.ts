@@ -317,6 +317,7 @@ declare const enum BrowserVer {
   // this feature is from 53, and replaced by DOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since 56
   MinNoDOMActivateInClosedShadowRootPassedToDocument = 53,
   assumedVer = 53,
+  MinSeparateExtIframeHasCorrectWidthIfDeviceRationNot1 = 54,
   // also the first time unprefixed user-select is accepted
   MinWarningWebkitUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
