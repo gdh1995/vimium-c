@@ -427,7 +427,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       });
     },
     focusInput (count: number, options: FgOptions): void {
-      const arr = VDom.getViewBox(), visibleInputs = VHints.traverse("*", VHints.GetEditable);
+      const arr = VDom.getViewBox(), visibleInputs = VHints.traverse("*", VHints.GetEditable, true);
       let sel = visibleInputs.length;
       if (sel === 0) {
         return HUD.showForDuration("There are no inputs to focus.", 1000);
@@ -604,7 +604,7 @@ Pagination = {
   },
   findAndFollowLink (names: string[], refusedStr: string): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: HTMLElement; }
-    const count = names.length, links = VHints.traverse("*", this.GetLinks, document);
+    const count = names.length, links = VHints.traverse("*", this.GetLinks, true, document);
     links.push(document.documentElement as HTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = 99, len: number;
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {

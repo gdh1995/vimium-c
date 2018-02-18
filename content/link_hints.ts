@@ -434,12 +434,13 @@ var VHints = {
   },
   _shadowSign: "* /deep/ ",
   traverse: function (this: any, key: string
-      , filter: HintsNS.Filter<Hint | Element>, root?: Document | Element): Hint[] | Element[] {
+      , filter: HintsNS.Filter<Hint | Element>, notWantVUI?: true
+      , root?: Document | Element): Hint[] | Element[] {
     VDom.prepareCrop();
     if ((this as typeof VHints).ngEnabled === null && key === "*") {
       (this as typeof VHints).ngEnabled = document.querySelector('.ng-scope') != null;
     }
-    let query: string = key, uiRoot = VDom.UI.root;
+    let query: string = key, uiRoot = notWantVUI ? null : VDom.UI.root;
     if (VSettings.cache.deepHints) {
       // `/deep/` is only applyed on Shadow DOM v0, and Shadow DOM v1 does not support it at all
       // ref: https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/HX5Y8Ykr5Ns
@@ -472,8 +473,8 @@ var VHints = {
     }
     return output as Hint[];
   } as {
-    (key: string, filter: HintsNS.Filter<HTMLElement>, root: Document | Element): HTMLElement[];
-    (key: string, filter: HintsNS.Filter<Hint>): Hint[];
+    (key: string, filter: HintsNS.Filter<HTMLElement>, notWantVUI?: true, root?: Document | Element): HTMLElement[];
+    (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: true): Hint[];
   },
   getElementsInViewPort (list: HintsNS.ElementList): HintsNS.ElementList {
     const result: Element[] = [], height = window.innerHeight;
