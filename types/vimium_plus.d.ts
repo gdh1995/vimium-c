@@ -324,8 +324,6 @@ declare const enum BrowserVer {
   Min$Event$$Path$IncludeNodesInShadowRoot = 55,
   MinSomeDocumentListenersArePassiveByDefault = 56,
   MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument = 56,
-  // With empty settings, Chrome only does this since not 56 but 57
-  MinExtIframesInSharedProcess = 56, // means enabled by default
   MinNeedCSPForScriptsFromOtherExtensions = 56,
   MinStickyPosition = 56,
   MinFailToToggleImageOnFileURL = 56,
@@ -333,6 +331,20 @@ declare const enum BrowserVer {
   Min$KeyboardEvent$$isComposing = 56,
   MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled = 56,
   MinNoKeygenElement = 57,
+  /*
+   * Chrome before 58 does this if #enable-site-per-process or #enable-top-document-isolation;
+   * Chrome since 58 always merge extension iframes even if the two flags are disabled
+   * 
+   * Special cases:
+   * Chrome 55 does this by default (unless turn one of the flags on and then off);
+   * if #enable-top-document-isolation, Chrome since 56 merge them,
+   *   while Chrome before 56 move extension iframes into different processes (not shared one)
+   *     if not #enable-site-per-process;
+   * since Chrome 56, if one flag is turned on and then off,
+   *   it will still take effects on extension iframes, so extension iframes are always merged,
+   *   while Chrome before 56 can turn off them totally
+   */
+  MinExtIframesAlwaysInSharedProcess = 58,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
