@@ -460,7 +460,13 @@ var VHints = {
     if (root) { return output; }
     list = null;
     if (uiRoot) {
+      const d = VDom, z = d.fullZoom;
+      if (box === document) {
+        d.fullZoom = d.docZoom;
+        d.prepareCrop();
+      }
       (output.forEach as any).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
+      d.fullZoom = z;
     }
     if (wantClickable) { (this as typeof VHints).deduplicate(output as Hint[]); }
     if ((this as typeof VHints).frameNested === null) {}

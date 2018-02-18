@@ -35,6 +35,9 @@ var VDom = {
     arr && arr.length > 0 && (el = arr[arr.length - 1]);
     return el.parentElement || el.parentNode instanceof ShadowRoot && el.parentNode.host || null;
   },
+  /**
+   * other parts of code require that prepareCrop only depends on @fullZoom
+   */
   prepareCrop (ret?: 1): void | [number, number] {
     let iw: number, ih: number, ihs: number;
     this.prepareCrop = function(ret?: 1): void | [number, number] {
