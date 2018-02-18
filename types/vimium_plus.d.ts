@@ -298,6 +298,10 @@ declare const enum BrowserVer {
   MinNoExtScriptsIfSandboxed = 49,
   Min$addEventListener$$length$Is2 = 49, // otherwise addEventListener.length is 0
   MinNo$Object$$Observe = 50,
+  // The real support for arg frameId of chrome.tabs.executeScript is since Chrome 50,
+  //   and is neither 41 (an older version) nor 39 (cur ver on 2018-02-18)
+  //   in https://developer.chrome.com/extensions/tabs#method-executeScript.
+  // And, all "Since Chrome 39" lines are totally wrong in the 2018-02-18 version of `tabs.executeScript`
   Min$tabs$$executeScript$hasFrameIdArg = 50,
   MinShowBlockForBrokenImage = 51,
   MinIFrameReferrerpolicy = 51,
