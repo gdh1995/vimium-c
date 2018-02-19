@@ -962,7 +962,7 @@ Are you sure you want to continue?`);
     },
     searchInAnother (this: void, tabs: [Tab]): void {
       let keyword = (cOptions.keyword || "") + "";
-      const query = requestHandlers.parseSearchUrl({ url: tabs[0].url });
+      const query = Backend.parseSearchUrl({ url: tabs[0].url });
       if (!query || !keyword) {
         Backend.showHUD(keyword ? "No search engine found!"
           : 'This key mapping lacks an arg "keyword"');
@@ -1302,54 +1302,9 @@ Are you sure you want to continue?`);
     findQuery (this: void, request: FgReq["findQuery"], port: Port): FgRes["findQuery"] | void {
       return FindModeHistory.query(port.sender.incognito, request.query, request.index);
     },
-    parseSearchUrl (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"] {
-      let s0 = request.url, url = s0.toLowerCase(), pattern: Search.Rule | undefined
-        , arr: string[] | null = null, _i: number, selectLast = false;
-      if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {
-        Utils.resetRe();
-        return null;
-      }
-      if (request.upper) {
-        const obj = requestHandlers.parseUpperUrl(request as FgReq["parseUpperUrl"]);
-        obj.path != null && (s0 = obj.url);
-        return { keyword: '', start: 0, url: s0 };
-      }
-      const decoders = Settings.cache.searchEngineRules;
-      if (_i = Utils.IsURLHttp(url)) {
-        url = url.substring(_i);
-        s0 = s0.substring(_i);
-      }
-      for (_i = decoders.length; 0 <= --_i; ) {
-        pattern = decoders[_i];
-        if (!url.startsWith(pattern.prefix)) { continue; }
-        arr = s0.substring(pattern.prefix.length).match(pattern.matcher);
-        if (arr) { break; }
-      }
-      if (!arr || !pattern) { Utils.resetRe(); return null; }
-      if (arr.length > 1 && !pattern.matcher.global) { arr.shift(); }
-      const re = pattern.delimiter;
-      if (arr.length > 1) {
-        selectLast = true;
-      } else if (re instanceof RegExp) {
-        url = arr[0];
-        if (arr = url.match(re)) {
-          arr.shift();
-          selectLast = true;
-        } else {
-          arr = [url];
-        }
-      } else {
-        arr = arr[0].split(re);
-      }
-      url = "";
-      for (_i = 0; _i < arr.length; _i++) { url += " " + Utils.DecodeURLPart(arr[_i]); }
-      url = url.trim().replace(Utils.spacesRe, " ");
-      Utils.resetRe();
-      return {
-        keyword: pattern.name,
-        url,
-        start: selectLast ? url.lastIndexOf(" ") + 1 : 0
-      };
+    parseSearchUrl (this: void, request: FgReq["parseSearchUrl"], port: Port): FgRes["parseSearchUrl"] | void {
+      let search = Backend.parseSearchUrl(request);
+        return search;
     },
     parseUpperUrl: function (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"] | void {
       if (port && request.execute) {
@@ -1479,7 +1434,7 @@ Are you sure you want to continue?`);
       (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"];
     },
     searchAs (this: void, request: FgReq["searchAs"], port: Port): void {
-      let search = requestHandlers.parseSearchUrl(request), query: string | null;
+      let search = Backend.parseSearchUrl(request), query: string | null;
       if (!search || !search.keyword) {
         cPort = port;
         return Backend.showHUD("No search engine found!");
@@ -1874,7 +1829,6 @@ Are you sure you want to continue?`);
   };
   
   Backend = {
-    parseSearchUrl: requestHandlers.parseSearchUrl,
     gotoSession: requestHandlers.gotoSession,
     openUrl: requestHandlers.openUrl,
     checkIfEnabled: requestHandlers.checkIfEnabled,
@@ -1884,6 +1838,55 @@ Are you sure you want to continue?`);
     setIcon (): void {},
     complain (action: string): void {
       return this.showHUD("It's not allowed to " + action);
+    },
+    parseSearchUrl (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"] {
+      let s0 = request.url, url = s0.toLowerCase(), pattern: Search.Rule | undefined
+        , arr: string[] | null = null, _i: number, selectLast = false;
+      if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {
+        Utils.resetRe();
+        return null;
+      }
+      if (request.upper) {
+        const obj = requestHandlers.parseUpperUrl(request as FgReq["parseUpperUrl"]);
+        obj.path != null && (s0 = obj.url);
+        return { keyword: '', start: 0, url: s0 };
+      }
+      const decoders = Settings.cache.searchEngineRules;
+      if (_i = Utils.IsURLHttp(url)) {
+        url = url.substring(_i);
+        s0 = s0.substring(_i);
+      }
+      for (_i = decoders.length; 0 <= --_i; ) {
+        pattern = decoders[_i];
+        if (!url.startsWith(pattern.prefix)) { continue; }
+        arr = s0.substring(pattern.prefix.length).match(pattern.matcher);
+        if (arr) { break; }
+      }
+      if (!arr || !pattern) { Utils.resetRe(); return null; }
+      if (arr.length > 1 && !pattern.matcher.global) { arr.shift(); }
+      const re = pattern.delimiter;
+      if (arr.length > 1) {
+        selectLast = true;
+      } else if (re instanceof RegExp) {
+        url = arr[0];
+        if (arr = url.match(re)) {
+          arr.shift();
+          selectLast = true;
+        } else {
+          arr = [url];
+        }
+      } else {
+        arr = arr[0].split(re);
+      }
+      url = "";
+      for (_i = 0; _i < arr.length; _i++) { url += " " + Utils.DecodeURLPart(arr[_i]); }
+      url = url.trim().replace(Utils.spacesRe, " ");
+      Utils.resetRe();
+      return {
+        keyword: pattern.name,
+        url,
+        start: selectLast ? url.lastIndexOf(" ") + 1 : 0
+      };
     },
     reopenTab (this: void, tab: Tab, refresh?: boolean): void {
       if (refresh) {

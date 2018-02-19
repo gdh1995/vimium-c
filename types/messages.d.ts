@@ -5,6 +5,20 @@ interface BaseExecute<T> {
   options: T | null;
 }
 
+interface FgRes {
+  findQuery: string;
+  parseSearchUrl: {
+    keyword: string;
+    start: number;
+    url: string;
+  } | null;
+  parseUpperUrl: {
+    url: string;
+    path: string | null;
+  };
+  execInChild: boolean;
+}
+
 interface BgReq {
   reset: {
     passKeys: string | null;
@@ -210,20 +224,6 @@ interface FgReq {
    */
   focusOrLaunch: MarksNS.FocusOrLaunch;
   blurTest: {};
-}
-
-interface FgRes {
-  findQuery: string;
-  parseSearchUrl: {
-    keyword: string;
-    start: number;
-    url: string;
-  } | null;
-  parseUpperUrl: {
-    url: string;
-    path: string | null;
-  };
-  execInChild: boolean;
 }
 
 declare namespace Req {
