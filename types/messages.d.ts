@@ -76,6 +76,7 @@ interface BgVomnibarReq {
     secret: number;
     browserVersion: BrowserVer;
   };
+  blurred: {};
 }
 interface FullBgReq extends BgReq, BgVomnibarReq {
 }
@@ -208,6 +209,7 @@ interface FgReq {
    * .url is guaranteed to be well formatted by frontend
    */
   focusOrLaunch: MarksNS.FocusOrLaunch;
+  blurTest: {};
 }
 
 interface FgRes {

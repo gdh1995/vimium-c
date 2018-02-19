@@ -576,12 +576,16 @@ var Vomnibar = {
     const a = Vomnibar, byCode = a.focusByCode;
     a.focusByCode = false;
     if (!a.isActive || event && (event.target !== window || event.isTrusted == false)) { return; }
-    setTimeout(a.SetOpacity, 67);
-    if (event && event.type === "focus" && !byCode && VPort) {
+    if (event && event.type === "blur") {
+      VPort.postMessage({ handler: "blurTest" });
+      return;
+    }
+    Vomnibar.bodySt.opacity = "";
+    if (!byCode && VPort) {
       VPort.postMessage({ handler: "blank" });
     }
   },
-  SetOpacity (this: void): void {
+  blurred (this: void): void {
     Vomnibar.bodySt.opacity = document.hasFocus() ? "" : "0.75";
   },
   init (): void {

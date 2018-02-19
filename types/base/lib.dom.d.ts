@@ -1919,6 +1919,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     getSelection(): Selection;
     /**
       * Gets a value indicating whether the object currently has focus.
+      * Not work well on Chrome 64.
       */
     hasFocus(): boolean;
     importNode<T extends Node>(importedNode: T, deep: true): T;

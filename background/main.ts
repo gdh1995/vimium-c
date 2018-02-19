@@ -1712,6 +1712,17 @@ Are you sure you want to continue?`);
         url: request.prefix ? url + "*" : url
       }, callback.bind(request));
     },
+    blurTest (this: void, _0: FgReq["blurTest"], port: Port): void {
+      if (port.sender.tabId < 0) {
+        port.postMessage({ name: "blurred" });
+        return;
+      }
+      setTimeout(function(): void {
+        if (port.sender.tabId === TabRecency.last && Connections.framesForOmni.indexOf(port) >= 0) {
+          port.postMessage({ name: "blurred" });
+        }
+      }, 50);
+    },
   },
   Connections = {
     state: 0,
