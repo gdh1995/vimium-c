@@ -42,6 +42,7 @@
 	display: unset;
 	height: 0 !important;
 	margin: 0 !important;
+	opacity: 1 !important;
 	outline: none !important;
 	padding: 0 !important;
 	position: static !important;
