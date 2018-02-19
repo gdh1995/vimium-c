@@ -575,15 +575,19 @@ var Vomnibar = {
     listen("blur", wndFocus);
     return wndFocus();
   } as ((this: void) => void) | null,
+  _focusTimer: 0,
   OnWndFocus (this: void, event?: Event): void {
     const a = Vomnibar, byCode = a.focusByCode;
     a.focusByCode = false;
     if (!a.isActive || event && (event.target !== window || event.isTrusted == false)) { return; }
     if (event && event.type === "blur") {
+      const t = a._focusTimer;
+      t && clearTimeout(t);
+      a._focusTimer = 0;
       VPort.postMessage({ handler: "blurTest" });
       return;
     }
-    Vomnibar.bodySt.opacity = "";
+    a._focusTimer = setTimeout(function(): void { Vomnibar.bodySt.opacity = ""; }, 50);
     if (!byCode && VPort) {
       VPort.postMessage({ handler: "blank" });
     }
