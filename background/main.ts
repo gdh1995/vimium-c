@@ -112,9 +112,9 @@ var Backend: BackendHandlersNS.BackendHandlers;
         });
       }, 50 * step * step);
     },
-    setNewTabIndex (this: void, tab: Tab, position: OpenUrlOptions["position"]): number | undefined {
-      return position === "before" ? tab.index : position === "start" ? 0
-        : position !== "end" ? tab.index + 1 : undefined;
+    setNewTabIndex (this: void, tab: Tab, pos: OpenUrlOptions["position"]): number | undefined {
+      return pos === "before" ? tab.index : pos === "start" ? 0
+        : pos !== "end" ? tab.index + 1 : undefined;
     },
     makeWindow (this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
         , callback?: (wnd: Window) => void): void {

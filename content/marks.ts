@@ -47,12 +47,12 @@ var VMarks = {
   },
   _goto (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {
-      const position = this._previous;
+      const pos = this._previous;
       this.setPreviousPosition();
-      if (position) {
-        window.scrollTo(position[0], position[1]);
+      if (pos) {
+        window.scrollTo(pos[0], pos[1]);
       }
-      return VHUD.showForDuration((position ? "Jumped to" : "Created") + " local mark [last]", 1000);
+      return VHUD.showForDuration((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
     }
     const req: Req.fg<"marks"> & { action: "goto" } = {
       handler: "marks", action: "goto",
@@ -63,9 +63,9 @@ var VMarks = {
       VHUD.hide();
     } else {
       try {
-        let position = null, key = this.getLocationKey(keyChar), markString = localStorage.getItem(key);
-        if (markString && (position = JSON.parse(markString)) && typeof position === "object") {
-          const { scrollX, scrollY } = VUtils.safer(position);
+        let pos = null, key = this.getLocationKey(keyChar), markString = localStorage.getItem(key);
+        if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
+          const { scrollX, scrollY } = VUtils.safer(pos);
           if (scrollX >= 0 && scrollY >= 0) {
             (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).old = {
               scrollX: scrollX | 0, scrollY: scrollY | 0

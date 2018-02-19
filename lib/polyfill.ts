@@ -10,10 +10,10 @@ type ObjectCoercible = primitiveObject | {
   };
 type anyNotSymbol = ObjectCoercible | null | undefined;
 interface String {
-  endsWith(this: string, searchString: string, position?: number | undefined): boolean;
-  endsWith(this: ObjectCoercible, searchString?: anyNotSymbol, position?: anyNotSymbol): boolean;
-  startsWith(this: string, searchString: string, position?: number | undefined): boolean;
-  startsWith(this: ObjectCoercible, searchString?: anyNotSymbol, position?: anyNotSymbol): boolean;
+  endsWith(this: string, searchString: string, pos?: number | undefined): boolean;
+  endsWith(this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
+  startsWith(this: string, searchString: string, pos?: number | undefined): boolean;
+  startsWith(this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
 }
 
 (function (): void {
