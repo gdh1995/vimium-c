@@ -434,7 +434,7 @@ var VHints = {
   },
   _shadowSign: "* /deep/ ",
   traverse: function (this: any, key: string
-      , filter: HintsNS.Filter<Hint | Element>, notWantVUI?: true
+      , filter: HintsNS.Filter<Hint | Element>, notWantVUI?: boolean
       , root?: Document | Element): Hint[] | Element[] {
     VDom.prepareCrop();
     if ((this as typeof VHints).ngEnabled === null && key === "*") {
@@ -442,16 +442,14 @@ var VHints = {
     }
     let query: string = key, uiRoot = notWantVUI ? null : VDom.UI.root;
     if (VSettings.cache.deepHints) {
-      // `/deep/` is only applyed on Shadow DOM v0, and Shadow DOM v1 does not support it at all
-      // ref: https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/HX5Y8Ykr5Ns
-      query = this._shadowSign + key;
+      query = (this as typeof VHints)._shadowSign + key;
       if (uiRoot && uiRoot.mode !== "closed") { uiRoot = null; }
     }
-    const output: Hint[] | Element[] = [], isTag = (<RegExpOne>/^\*$|^[a-z]+$/).test(query),
+    const output: Hint[] | Element[] = [], isTag = query === "*" || (<RegExpOne>/^[a-z]+$/).test(query),
     wantClickable = (filter as Function) === (this as typeof VHints).GetClickable && key === "*",
     box = root || document.webkitFullscreenElement || document;
     wantClickable && VScroller.getScale();
-    this.clicking = wantClickable ? ClickingType.WantButNotFind : ClickingType.NotWantClickable;
+    (this as typeof VHints).clicking = wantClickable ? ClickingType.WantButNotFind : ClickingType.NotWantClickable;
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
     if (!root && (this as typeof VHints).tooHigh && box === document && list.length >= 15000) {
       list = (this as typeof VHints).getElementsInViewPort(list);
@@ -480,7 +478,7 @@ var VHints = {
     return output as Hint[];
   } as {
     (key: string, filter: HintsNS.Filter<HTMLElement>, notWantVUI?: true, root?: Document | Element): HTMLElement[];
-    (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: true): Hint[];
+    (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: boolean): Hint[];
   },
   getElementsInViewPort (list: HintsNS.ElementList): HintsNS.ElementList {
     const result: Element[] = [], height = window.innerHeight;
@@ -565,9 +563,10 @@ var VHints = {
   getVisibleElements (): Hint[] {
     let _i: number = this.mode1;
     const isNormal = _i < HintMode.min_job, visibleElements = _i === HintMode.DOWNLOAD_IMAGE
-        || _i === HintMode.OPEN_IMAGE ? this.traverse("a[href],img[src],[data-src]", this.GetImages)
+        || _i === HintMode.OPEN_IMAGE ? this.traverse("a[href],img[src],[data-src]", this.GetImages, true)
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? this.traverse("a", this.GetLinks)
-      : this.traverse("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable);
+      : this.traverse("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable
+          , _i === HintMode.FOCUS_EDITABLE);
     if (this.maxRight > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(VSettings.cache.linkHintCharacters.length));
       this.maxLeft -= 16 * _i + 12;

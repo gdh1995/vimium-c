@@ -291,6 +291,7 @@ var VDom = {
   } as VDomMouse,
   defaultMouseKeys: { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false } as EventControlKeys,
   lastHovered: null as Element | null,
+  /** note: will NOT skip even if newEl == @lastHovered */
   hover: function (this: any, newEl: Element | null, rect?: VRect | null): void {
     let last = (this as typeof VDom).lastHovered;
     if (last && (this as typeof VDom).isInDOM(last)) {
