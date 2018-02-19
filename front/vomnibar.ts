@@ -241,15 +241,18 @@ var Vomnibar = {
     if (onlyUrl || str === VUtils.decodeURL(line.url, decodeURIComponent)) {
       str = line.url;
     }
-    return VPort.sendMessage({
+    return VPort.postMessage({
       handler: "parseSearchUrl",
+      id: sel,
       url: str
-    }, function(search): void {
-      line.parsed = search ? (Vomnibar.modeType !== "omni" ? ":o " : "") + search.keyword + " " + search.url : line.text;
-      if (sel === Vomnibar.selection) {
-        return Vomnibar._updateInput(line, line.parsed);
-      }
     });
+  },
+  parsed ({ id, search }: BgVomnibarReq["parsed"]): void {
+    const line: SuggestionEx = this.completions[id] as SuggestionEx;
+    line.parsed = search ? (this.modeType !== "omni" ? ":o " : "") + search.keyword + " " + search.url : line.text;
+    if (id === this.selection) {
+      return this._updateInput(line, line.parsed);
+    }
   },
   toggleInput (): void {
     if (this.selection < 0) { return; }
@@ -585,8 +588,8 @@ var Vomnibar = {
       VPort.postMessage({ handler: "blank" });
     }
   },
-  blurred (this: void): void {
-    Vomnibar.bodySt.opacity = document.hasFocus() ? "" : "0.75";
+  blurred (): void {
+    this.bodySt.opacity = document.hasFocus() ? "" : "0.75";
   },
   init (): void {
     window.onclick = function(e) { return Vomnibar.onClick(e); };
@@ -798,22 +801,8 @@ VPort = {
       this.postToOwner({ name: "broken", active: Vomnibar.isActive });
     }
   },
-  _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
-  _id: 1,
-  sendMessage<K extends keyof FgRes> (request: FgReq[K] & Req.baseFg<K> , callback: (this: void, res: FgRes[K]) => void): void {
-    const id = ++this._id;
-    this._callbacks[id] = callback;
-    return (this as Post<void>).postMessage({ _msgId: id, request });
-  },
-  Listener<K extends keyof FgRes, T extends keyof BgVomnibarReq> (this: void
-        , response: Req.res<K> | (BgVomnibarReq[T] & { name: T, _msgId?: undefined; })): void {
-    let id: number | undefined;
-    if (id = response._msgId) {
-      const handler = VPort._callbacks[id];
-      delete VPort._callbacks[id];
-      return handler((response as Req.res<K>).response);
-    }
-    return Vomnibar[(response as Req.bg<T>).name](response as BgVomnibarReq[T]);
+  Listener<T extends keyof BgVomnibarReq> (this: void, response: Req.bg<T>): void {
+    return Vomnibar[response.name](response);
   },
   OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
     let name = ((data as VomnibarNS.Msg<string>).name || data) as keyof VomnibarNS.CReq | "onAction";

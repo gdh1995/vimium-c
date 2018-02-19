@@ -91,6 +91,10 @@ interface BgVomnibarReq {
     browserVersion: BrowserVer;
   };
   blurred: {};
+  parsed: {
+    id: number;
+    search: FgRes["parseSearchUrl"];
+  }
 }
 interface FullBgReq extends BgReq, BgVomnibarReq {
 }
@@ -147,11 +151,13 @@ interface FgReq {
   parseUpperUrl: {
     url: string;
     upper: number;
+    id?: undefined;
     trailing_slash: boolean | null;
     execute?: true;
   };
   parseSearchUrl: {
     url: string;
+    id?: number;
     upper?: undefined;
   } | FgReq["parseUpperUrl"];
   searchAs: {

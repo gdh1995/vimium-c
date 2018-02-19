@@ -1304,7 +1304,11 @@ Are you sure you want to continue?`);
     },
     parseSearchUrl (this: void, request: FgReq["parseSearchUrl"], port: Port): FgRes["parseSearchUrl"] | void {
       let search = Backend.parseSearchUrl(request);
+      if ("id" in request) {
+        port.postMessage({ name: "parsed", id: request.id as number, search });
+      } else {
         return search;
+      }
     },
     parseUpperUrl: function (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"] | void {
       if (port && request.execute) {
