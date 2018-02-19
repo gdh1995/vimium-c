@@ -182,7 +182,7 @@ var VDom = {
     height = st.overflowY === "hidden" || st2.overflowY === "hidden" ? 0
       : box.scrollHeight / zoom - Math.ceil((scrolling ? window.scrollY / zoom : y) + rect.height % 1
           + (containHasPaint && parseFloat(st.borderBottomWidth)));
-    if (st.position !== "static" || containHasPaint) {
+    if (st.position !== "static" || containHasPaint || st.transform !== "none") {
       x -= box.clientLeft, y -= box.clientTop;
     } else {
       x += parseFloat(st.marginLeft), y += parseFloat(st.marginTop);
