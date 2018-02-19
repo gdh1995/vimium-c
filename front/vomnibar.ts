@@ -573,14 +573,14 @@ var Vomnibar = {
     const listen = addEventListener, wndFocus = Vomnibar.OnWndFocus;
     listen("focus", wndFocus);
     listen("blur", wndFocus);
-    return wndFocus();
+    return a.blurred();
   } as ((this: void) => void) | null,
   _focusTimer: 0,
-  OnWndFocus (this: void, event?: Event): void {
+  OnWndFocus (this: void, event: Event): void {
     const a = Vomnibar, byCode = a.focusByCode;
     a.focusByCode = false;
-    if (!a.isActive || event && (event.target !== window || event.isTrusted == false)) { return; }
-    if (event && event.type === "blur") {
+    if (!a.isActive || event.target !== window || event.isTrusted == false) { return; }
+    if (event.type === "blur") {
       const t = a._focusTimer;
       t && clearTimeout(t);
       a._focusTimer = 0;
