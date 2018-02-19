@@ -99,7 +99,7 @@ var Vomnibar = {
   actionType: ReuseType.Default,
   matchType: CompletersNS.MatchType.Default,
   focused: true,
-  focusByCode: false,
+  focusByCode: true,
   blurWanted: false,
   forceNewTab: false,
   sameOrigin: false,
