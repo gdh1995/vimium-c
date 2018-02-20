@@ -86,7 +86,7 @@ var VDom = {
         else if (rect.height === 0) {
           if (notInline == null) {
             el_style || (el_style = window.getComputedStyle(element));
-            notInline = el_style.fontSize !== "0px" || !el_style.display.startsWith("inline");
+            notInline = (el_style.fontSize !== "0px" && el_style.lineHeight !== "0px") || !el_style.display.startsWith("inline");
           }
           if (notInline || !style.display.startsWith("inline")) { continue; }
         } else { continue; }
