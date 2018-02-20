@@ -1963,6 +1963,9 @@ Are you sure you want to continue?`);
       lastKey = (+<number>lastKey || VKeyCodes.None) as VKeyCodes;
       return executeCommand(command, Utils.makeCommand(command, options), count, lastKey, null as never as Port);
     },
+    ExecuteGlobal (this: void, cmd: string): void {
+      return Backend.execute(cmd);
+    },
     indexPorts: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
       return tabId == null ? framesForTab : frameId == null ? (framesForTab[tabId] || null)
         : funcDict.indexFrame(tabId, frameId);

@@ -422,6 +422,7 @@ Utils.GC = function(): void {
       return wnd.location.pathname.startsWith("/pages/");
     }).length > 0;
     if (existing) { return; }
+    Settings.updateHooks.keyMappings = void 0 as never;
     Commands = null as never;
     if (Exclusions && !Settings.cache.exclusionRules.length) {
       Exclusions.destroy();

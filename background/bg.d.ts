@@ -398,6 +398,7 @@ declare namespace BackendHandlersNS {
       (this: void): Frames.FramesMap;
     };
     execute (command: string, options?: CommandsNS.RawOptions | null, count?: number, lastKey?: VKeyCodes): void;
+    ExecuteGlobal (this: void, command: string): void;
     Init: ((this: void) => void) | null;
   }
 }
