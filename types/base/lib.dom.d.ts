@@ -8113,7 +8113,7 @@ interface WindowEventMap extends GlobalEventHandlersEventMap {
     "waiting": Event;
 }
 
-interface Window extends EventTarget, WindowTimers, WindowSessionStorage, WindowLocalStorage, WindowConsole, GlobalEventHandlers, WindowBase64 {
+interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, WindowConsole, GlobalEventHandlers, WindowBase64 {
     readonly applicationCache: ApplicationCache;
     readonly clientInformation: Navigator;
     readonly closed: boolean;
@@ -8557,21 +8557,6 @@ interface WindowLocalStorage {
 
 interface WindowSessionStorage {
     readonly sessionStorage: Storage;
-}
-
-interface WindowTimers extends Object, WindowTimersExtension {
-    clearInterval(handle: number): void;
-    clearTimeout(handle: number): void;
-    setInterval(handler: (...args: any[]) => void, timeout: number): number;
-    setInterval(handler: any, timeout?: any, ...args: any[]): number;
-    setTimeout(handler: (...args: any[]) => void, timeout: number): number;
-    setTimeout(handler: any, timeout?: any, ...args: any[]): number;
-}
-
-interface WindowTimersExtension {
-    clearImmediate(handle: number): void;
-    setImmediate(handler: (...args: any[]) => void): number;
-    setImmediate(handler: any, ...args: any[]): number;
 }
 
 interface XMLHttpRequestEventTargetEventMap {

@@ -32,12 +32,13 @@
     }
     VSettings && (VSettings.uninit = null);
   }
-  VSettings.uninit = function() { VDom.documentReady(destroy); };
+  VSettings.uninit = function(): void { VSettings.uninit = null; VDom.documentReady(destroy); };
   script.type = "text/javascript";
   let str = func.toString(), appVer = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/);
   if (appVer && +appVer[1] >= BrowserVer.MinEnsureMethodFunction) {
     str = str.replace(<RegExpG> /: ?function \w+/g, "");
   }
+  script.async = false;
   script.textContent = '"use strict";(' + str + ')(' + secret + ');';
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
@@ -66,7 +67,7 @@ hooks = {
     const a = this;
     return toStringApply(a === addEventListener ? _listen : a === toString ? funcToString : a, arguments as any);
   },
-  addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
+  addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): any {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA || a instanceof HF) && a instanceof E) {
       register(a as Element);

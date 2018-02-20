@@ -725,9 +725,10 @@ var VHints = {
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
       const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hintEl);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect(clickEl)))) {
-        setTimeout(function(force) {
+        const force = clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement;
+        setTimeout(function(): void {
           (force || document.hasFocus()) && VDom.UI.flash(null, rect as VRect);
-        }, 17, clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement);
+        }, 17);
       }
     } else {
       clickEl = null;
@@ -760,7 +761,9 @@ var VHints = {
   },
   setupCheck (el?: HintsNS.LinkEl | null, r?: VRect | null, isClick?: boolean): void {
     this.timer && clearTimeout(this.timer);
-    this.timer = el && (isClick === true || this.mode < HintMode.min_job) ? setTimeout(this.CheckLast, 255, el, r) : 0;
+    this.timer = el && (isClick === true || this.mode < HintMode.min_job) ? setTimeout(function(): void {
+      VHints && VHints.CheckLast(el, r);
+    }, 255) : 0;
   },
   CheckLast (this: void, el: HintsNS.LinkEl, r?: VRect | null): void {
     const _this = VHints;
