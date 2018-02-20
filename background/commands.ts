@@ -3,8 +3,8 @@ var Commands = {
   setKeyRe (keyReSource: string): void {
     Utils.keyRe = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;
   },
-  getOptions (item: string[]): CommandsNS.Options | null {
-    let opt: CommandsNS.RawOptions, i = 3, len = item.length, ind: number, str: string | undefined, val: string;
+  getOptions (item: string[], start: number): CommandsNS.Options | null {
+    let opt: CommandsNS.RawOptions, i = start, len = item.length, ind: number, str: string | undefined, val: string;
     if (len <= i) { return null; }
     opt = Object.create(null) as CommandsNS.RawOptions;
     while (i < len) {
@@ -48,6 +48,7 @@ var Commands = {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i = 0
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
       , registry = CommandsData.keyToCommandRegistry = Object.create<CommandsNS.Item>(null)
+      , cmdMap = CommandsData.cmdMap = Object.create<CommandsNS.Options | null>(null)
       , userDefinedKeys = Object.create<true>(null)
       , mkReg = Object.create<string>(null);
     const available = CommandsData.availableCommands;
@@ -71,12 +72,13 @@ var Commands = {
         } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum) {
           console.log("Invalid key: %c" + key, "color:red", "(the first char can not be [0-9])");
         } else {
-          registry[key] = Utils.makeCommand(splitLine[2], (this as typeof Commands).getOptions(splitLine), details);
+          registry[key] = Utils.makeCommand(splitLine[2], (this as typeof Commands).getOptions(splitLine, 3), details);
           userDefinedKeys[key] = true;
           continue;
         }
       } else if (key === "unmapAll" || key === "unmapall") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
+        cmdMap = CommandsData.cmdMap = Object.create<CommandsNS.Options | null>(null);
         userDefinedKeys = Object.create<true>(null);
         mkReg = Object.create<string>(null), mk = 0;
         if (errors > 0) {
@@ -95,6 +97,19 @@ var Commands = {
         } else {
           mkReg[key] = splitLine[2];
           mk++;
+          continue;
+        }
+      } else if (key === "shortcut" || key === "commmand") {
+        key = splitLine[1];
+        if (splitLine.length < 3) {
+          console.log("Lacking command name and options in shortcut:", line);
+        } else if (Settings.CONST.GlobalCommands.indexOf(key)) {
+          console.log("Shortcut %c" + key, "color:red", "doesn't exist!");
+        } else if (key in cmdMap) {
+          console.log("Shortcut %c" + key, "color:red", "has been configured");
+        } else {
+          cmdMap[key] = Utils.makeCommand(key
+            , (this as typeof Commands).getOptions(splitLine, 2), available[key]).options;
           continue;
         }
       } else if (key !== "unmap") {
@@ -237,6 +252,7 @@ defaultKeyMappings: [
 CommandsData = (CommandsData as CommandsData) || {
   keyToCommandRegistry: null as never as SafeDict<CommandsNS.Item>,
   keyMap: null as never as KeyMap,
+  cmdMap: null as never as SafeDict<CommandsNS.Options | null>,
   mapKeyRegistry: null as SafeDict<string> | null,
   errors: 0,
 availableCommands: {

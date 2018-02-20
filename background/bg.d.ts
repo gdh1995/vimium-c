@@ -406,6 +406,7 @@ declare namespace BackendHandlersNS {
 interface CommandsData {
   keyToCommandRegistry: SafeDict<CommandsNS.Item>;
   keyMap: KeyMap;
+  cmdMap: SafeDict<CommandsNS.Options | null>;
   mapKeyRegistry: SafeDict<string> | null;
   availableCommands: SafeDict<CommandsNS.Description>;
   errors: number;

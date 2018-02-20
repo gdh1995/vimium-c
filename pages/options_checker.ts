@@ -20,6 +20,7 @@ let _a = {
     }
     this.normalizeKeys = keys => keys.replace(keyLeftRe, func);
     this.normalizeMap = this.normalizeMap.bind(this);
+    this.normalizeCmd = this.normalizeCmd.bind(this);
     this.normalizeOptions = this.normalizeOptions.bind(this);
     this.init = null as never;
   },
@@ -51,11 +52,17 @@ let _a = {
     const keys2 = this.normalizeKeys(keys);
     if (keys2 !== keys) {
       console.log("KeyMappings Checker:", keys, "is corrected into", keys2);
+      keys = keys2;
     }
     options = options ? options.replace(this.optionValueRe, this.normalizeOptions) : "";
-    return cmd + keys2 + options;
+    return cmd + keys + options;
+  },
+  normalizeCmd (_0: string, cmd: string, name: string, options: string) {
+    options = options ? options.replace(this.optionValueRe, this.normalizeOptions) : "";
+    return cmd + name + options;
   },
   mapKeyRe: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:un)?map\s+)(\S+)([^\n]*)/g,
+  cmdKeyRe: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
   wrapLineRe: <RegExpG & RegExpSearchable<0>> /\\\n/g,
   wrapLineRe2: <RegExpG & RegExpSearchable<0>> /\\\r/g,
   check (string: string): string {
@@ -67,6 +74,7 @@ let _a = {
     }
     string = "\n" + string.replace(this.wrapLineRe, '\\\r');
     string = string.replace(this.mapKeyRe, this.normalizeMap);
+    string = string.replace(this.cmdKeyRe, this.normalizeCmd);
     string = string.replace(this.wrapLineRe2, '\\\n').trim();
     return string;
   },

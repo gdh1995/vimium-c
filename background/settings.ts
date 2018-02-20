@@ -274,6 +274,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       settings: "options.html",
       __proto__: null as never
     } as SafeDict<string>,
+    GlobalCommands: null as never as string[],
     ShowPage: "pages/show.html",
     VomnibarPageInner: "front/vomnibar.html", VomnibarScript: "front/vomnibar.js", VomnibarScript_f: ""
   }
@@ -302,6 +303,7 @@ chrome.runtime.getPlatformInfo(function(info): void {
   Settings.defaults.newTabUrl = newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab;
   ref3[obj.BrowserNewTab] = ref3[obj.BrowserNewTab2] = Urls.NewTabType.browser;
   newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);
+  obj.GlobalCommands = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);

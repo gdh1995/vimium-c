@@ -1672,7 +1672,8 @@ Are you sure you want to continue?`);
       }, callback.bind(request));
     },
     cmd (this: void, request: FgReq["cmd"]): void {
-      Backend.execute(request.cmd, null, request.count);
+      const cmd = request.cmd;
+      Backend.execute(cmd, CommandsData.cmdMap[cmd] || null, request.count);
     },
     blurTest (this: void, _0: FgReq["blurTest"], port: Port): void {
       if (port.sender.tabId < 0) {
@@ -1968,11 +1969,11 @@ Are you sure you want to continue?`);
     },
     ExecuteGlobal (this: void, cmd: string): void {
       const tabId = TabRecency.last, ports = framesForTab[tabId];
-      if (ports != null) {
-        ports[0].postMessage({ name: "count", cmd });
-        return;
+      if (cmd === "quickNext") { cmd = "nextTab"; }
+      if (ports == null) {
+        return requestHandlers.cmd({ cmd, count: 1});
       }
-      return Backend.execute(cmd);
+      ports[0].postMessage({ name: "count", cmd });
     },
     indexPorts: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
       return tabId == null ? framesForTab : frameId == null ? (framesForTab[tabId] || null)
