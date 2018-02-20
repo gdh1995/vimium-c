@@ -316,6 +316,8 @@ declare const enum BrowserVer {
   MinUserSelectAll = 53,
   // this feature is from 53, and replaced by DOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since 56
   MinNoDOMActivateInClosedShadowRootPassedToDocument = 53,
+  // before Chrome 53, there may be window.VisualViewPort under flags, but not the instance
+  Min$visualViewPort$UnderFlags = 53, // window.visualViewPort occurs
   assumedVer = 53,
   MinSeparateExtIframeHasCorrectWidthIfDeviceRationNot1 = 54,
   // also the first time unprefixed user-select is accepted
@@ -360,6 +362,7 @@ declare const enum BrowserVer {
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
   MinCorrectBoxWidthForOptionUI = 61,
+  MinEnsured$visualViewPort$ = 61,
   // since MinSelector$deep$InCSSDoesNothing, Vimium's inner styles have been really safe
   MinSelector$deep$InCSSDoesNothing = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
