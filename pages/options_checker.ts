@@ -61,8 +61,8 @@ let _a = {
     options = options ? options.replace(this.optionValueRe, this.normalizeOptions) : "";
     return cmd + name + options;
   },
-  mapKeyRe: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:un)?map\s+)(\S+)([^\n]*)/g,
-  cmdKeyRe: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
+  mapKeyRe: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:un)?map\s+)(\S+)([^\n]*)/g,
+  cmdKeyRe: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
   wrapLineRe: <RegExpG & RegExpSearchable<0>> /\\\n/g,
   wrapLineRe2: <RegExpG & RegExpSearchable<0>> /\\\r/g,
   check (string: string): string {
