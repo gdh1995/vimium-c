@@ -359,6 +359,7 @@ declare const enum BrowserVer {
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
+  MinCorrectBoxWidthForOptionUI = 61,
   // since MinSelector$deep$InCSSDoesNothing, Vimium's inner styles have been really safe
   MinSelector$deep$InCSSDoesNothing = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
