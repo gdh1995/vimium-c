@@ -858,6 +858,10 @@ Pagination = {
       if (CSS) { VDom.UI.css(CSS); }
       return text ? isCopy ? HUD.showCopied(text) : HUD.showForDuration(text) : void 0;
     },
+    count (request): void {
+      const count = parseInt(currentKeys, 10) || 1;
+      vPort.post({ handler: "cmd", cmd: request.cmd, count});
+    },
   showHelpDialog ({ html, advanced: shouldShowAdvanced, optionUrl, CSS }: Req.bg<"showHelpDialog">): void {
     let box: HTMLElement, oldShowHelp: typeof Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void
       , node1: HTMLElement;

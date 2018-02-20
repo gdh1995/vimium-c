@@ -1671,6 +1671,9 @@ Are you sure you want to continue?`);
         url: request.prefix ? url + "*" : url
       }, callback.bind(request));
     },
+    cmd (this: void, request: FgReq["cmd"]): void {
+      Backend.execute(request.cmd, null, request.count);
+    },
     blurTest (this: void, _0: FgReq["blurTest"], port: Port): void {
       if (port.sender.tabId < 0) {
         port.postMessage({ name: "blurred" });
@@ -1681,7 +1684,7 @@ Are you sure you want to continue?`);
           port.postMessage({ name: "blurred" });
         }
       }, 50);
-    },
+    }
   },
   Connections = {
     state: 0,
@@ -1964,6 +1967,11 @@ Are you sure you want to continue?`);
       return executeCommand(command, Utils.makeCommand(command, options), count, lastKey, null as never as Port);
     },
     ExecuteGlobal (this: void, cmd: string): void {
+      const tabId = TabRecency.last, ports = framesForTab[tabId];
+      if (ports != null) {
+        ports[0].postMessage({ name: "count", cmd });
+        return;
+      }
       return Backend.execute(cmd);
     },
     indexPorts: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {

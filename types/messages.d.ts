@@ -74,6 +74,9 @@ interface BgReq {
   eval: {
     url: string; // a javascript: URL
   };
+  count: {
+    cmd: string;
+  }
 }
 
 interface BgVomnibarReq {
@@ -230,6 +233,10 @@ interface FgReq {
    */
   focusOrLaunch: MarksNS.FocusOrLaunch;
   blurTest: {};
+  cmd: {
+    cmd: string;
+    count: number;
+  }
 }
 
 declare namespace Req {
