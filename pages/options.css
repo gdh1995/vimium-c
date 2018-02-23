@@ -182,9 +182,6 @@ label:active {
 .Vim {
   color: #2f508e;
 }
-.info {
-  margin-left: 4px;
-}
 .caption {
   margin-right: 10px;
   min-width: 130px;
@@ -222,9 +219,13 @@ label:active {
   width: 165px;
   text-align: center;
 }
-.example {
+.info, .tip {
   font-size: 12px;
   line-height: 16px;
+  margin-left: 4px;
+}
+.tip {
+  color: darkred;
 }
 .help {
   padding-left: 20px;

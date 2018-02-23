@@ -131,7 +131,9 @@ static areJSONEqual (this: void, a: object, b: object): boolean {
 }
 static saveOptions: (this: void) => void;
 static needSaveOptions: (this: void) => boolean;
+showError: (msg: string, tag?: OptionErrorType | null, errors?: boolean) => void;
 }
+type OptionErrorType = "has-error" | "highlight";
 
 
 class ExclusionRulesOption extends Option<"exclusionRules"> {

@@ -82,6 +82,8 @@ Known issues (Up to the master branch):
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
+8. On sandboxed pages without an `allow-scripts` permission in their CSP,
+  HUD will always be visible in order to solve some issues on Chrome.
 
 1.64:
 * fix that Vimium++ didn't work on some websites or with some libraries,

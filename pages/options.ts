@@ -228,6 +228,25 @@ ExclusionRulesOption.prototype.onInit = function(this: ExclusionRulesOption): vo
   }
 };
 
+TextOption.prototype.showError = function<T extends keyof AllowedOptions>(this: TextOption<T>
+    , msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
+  errors != null || (errors = !!msg);
+  const { element: el } = this, { classList: cls } = el, par = el.parentElement as HTMLElement;
+  let errEl = par.querySelector(".tip") as HTMLElement | null;
+  if (errors) {
+    if (errEl == null) {
+      errEl = document.createElement("div");
+      errEl.className = "tip";
+      par.insertBefore(errEl, par.querySelector(".nonEmptyTip"));
+    }
+    errEl.textContent = msg;
+    cls.add(tag || "has-error");
+  } else {
+    cls.remove("has-error"), cls.remove("highlight");
+    errEl && errEl.remove();
+  }
+}
+
 interface SaveBtn extends HTMLButtonElement {
   onclick (this: SaveBtn, virtually?: MouseEvent | false): void;
 }
@@ -353,7 +372,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   _ref = document.getElementsByClassName("nonEmptyTip") as HTMLCollectionOf<HTMLElement>;
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
-    element.className += " example info";
+    element.className += " info";
     element.textContent = "Delete all to reset this option.";
   }
 
@@ -403,18 +422,6 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     _ref[_i].onclick = func;
   }
 
-  let url = Option.all.vomnibarPage.previous;
-  if (url.lastIndexOf("file://", 0) !== -1) {
-    element = Option.all.vomnibarPage.element;
-    element.title = "A file page of vomnibar is limited by Chrome to only work on file://* pages";
-    element.classList.add("highlight");
-  } else if (bgSettings.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
-    element = Option.all.vomnibarPage.element;
-    element.title = `Vimium++ can not use a HTTP page as Vomnibar before Chrome ${BrowserVer.MinWithFrameId}`;
-    if ("chrome /front/".indexOf(url.substring(0, 6)) === -1) {
-      element.style.textDecoration = "line-through";
-    }
-  }
   if (bgSettings.CONST.ChromeVersion < BrowserVer.MinUserSelectAll) {
     _ref = $$(".sel-all");
     func = function(this: HTMLElement, event: MouseEvent): void {
@@ -457,12 +464,33 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   });
   Option.all.keyMappings.onSave = function(): void {
-    const errors = BG.CommandsData.errors, el = this.element;
-    el.classList[errors ? "add" : "remove"]("has-error");
-    el.title = !errors ? "" : (errors === 1 ? "There's 1 error" : `There're ${errors} errors`
-      ) + " found.\nPlease see logs of background page for more details";
+    const { errors } = BG.CommandsData,
+    msg = !errors ? "" : (errors === 1 ? "There's 1 error." : `There're ${errors} errors`
+      ) + " found.\nPlease see logs of background page for more details.";
+    return this.showError(msg);
   };
-  BG.CommandsData.errors && Option.all.keyMappings.onSave();
+  Option.all.keyMappings.onSave();
+
+  Option.all.linkHintCharacters.onSave = function(): void {
+    const errors = this.previous.length < 3;
+    return this.showError(errors ? "Characters for LinkHints are too few." : "");
+  };
+  Option.all.linkHintCharacters.onSave();
+
+  Option.all.vomnibarPage.onSave = function(): void {
+    let {previous: url, element} = this;
+    if (url.lastIndexOf("file://", 0) !== -1) {
+      return this.showError("A file page of vomnibar is limited by Chrome to only work on file://* pages.", "highlight");
+    } else if (bgSettings.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
+      this.showError(`Vimium++ can not use a HTTP page as Vomnibar before Chrome ${BrowserVer.MinWithFrameId}.`, null, false);
+      if ("chrome /front/".indexOf(url.substring(0, 6)) === -1) {
+        element.style.textDecoration = "line-through";
+      }
+    } else {
+      return this.showError("");
+    }
+  };
+  Option.all.vomnibarPage.onSave();
 
   _ref = $$("[data-permission]");
   _ref.length > 0 && (function(this: void, els: NodeListOf<HTMLElement>): void {
