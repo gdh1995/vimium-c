@@ -692,12 +692,10 @@ Pagination = {
       let box = el.getBoundingClientRect();
       return box.height < 1 || box.width < 1 || getComputedStyle(el).visibility === "hidden";
     },
-    Remove (this: void): void {
-      const _this = FrameMask;
-      if (_this.more) {
-        _this.more = false;
-        return;
-      }
+    Remove (this: void, info?: TimerType): void {
+      const _this = FrameMask, { more } = _this;
+      _this.more = false;
+      if (more && info !== TimerType.fake) { return; }
       if (_this.node) { _this.node.remove(); _this.node = null; }
       clearInterval(_this.timer);
     }
@@ -750,10 +748,10 @@ Pagination = {
         el.textContent = text;
       }
     },
-    tween (this: void): void {
+    tween (this: void, info?: TimerType): void {
       if (!VHUD) { return; }
       const hud = HUD, el = hud.box as HTMLDivElement, st = el.style;
-      let opacity = +(st.opacity || 1);
+      let opacity = info === TimerType.fake ? hud.opacity : +(st.opacity || 1);
       if (opacity === hud.opacity) {}
       else if (opacity === 0) {
         (el.firstChild as Text).data = hud.text;

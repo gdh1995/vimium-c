@@ -44,6 +44,14 @@
   d.insertBefore(script, d.firstChild);
   script.remove();
   VDom.documentReady(function() { box || destroy(); });
+  if (script.hasAttribute("data-vimium-hook")) { return; } // It succeeded to hook.
+  console.info("Some functions of Vimium++ may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1"));
+  interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
+  (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
+  function (func: (info?: TimerType) => void, _timeout: number): number {
+    requestAnimationFrame(() => func(TimerType.fake));
+    return 1;
+  };
 
 function func(this: void, sec: number): void {
 const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
@@ -79,6 +87,7 @@ hooks = {
 },
 { toString, addEventListener } = hooks
 ;
+document.currentScript && call(Attr, document.currentScript, "data-vimium-hook", "");
 
 let handler = function(this: void): void {
   rel("DOMContentLoaded", handler, true);

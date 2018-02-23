@@ -187,6 +187,12 @@ declare const enum AdjustType {
   DEFAULT = Normal,
 }
 
+declare const enum TimerType {
+  _native = 0,
+  fake = -1,
+}
+declare function setInterval(this: void, handler: (this: void, info?: TimerType) => void, timeout: number): number;
+
 interface DomUI {
   box: HTMLElement | null;
   styleIn: HTMLStyleElement | string | null;

@@ -23,7 +23,6 @@ type MappedType<Type, NewValue> = {
 
 // type EmptyArray = never[];
 
-declare function setInterval(this: void, handler: (this: void) => void, timeout: number): number;
 declare function setTimeout (this: void, handler: (this: void) => void, timeout: number): number;
 
 interface String {
