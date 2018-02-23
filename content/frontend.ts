@@ -1057,13 +1057,14 @@ Pagination = {
     esc = null as never;
     ui.box && ui.toggle(false);
 
-    silent || console.log("%cVimium++%c in %c%s%c has been destroyed at %o."
-      , "color:red", "color:auto", "color:darkred"
+    silent || console.log("%cVimium++%c in %o has been destroyed at %o."
+      , "color:red", "color:auto"
       , window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1")
-      , "color:auto", Date.now());
+      , Date.now());
 
     if (vPort.port) { try { vPort.port.disconnect(); } catch (e) {} }
     isInjected || location.protocol.startsWith("chrome") || keepChrome || (window.chrome = null as never);
+    (<RegExpOne> /a?/).test("");
   }
   };
 
