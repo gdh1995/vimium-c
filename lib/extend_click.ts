@@ -7,11 +7,11 @@
     , installer: Listener | null, box: EventTarget
     , secret = "" + ((Math.random() * 1e6 + 1) | 0);
   if (!(script instanceof HTMLScriptElement)) { return; }
-  addEventListener("VimiumReg", installer = function(event) {
+  addEventListener("VimiumHook", installer = function(event) {
     const t = event.target;
     if (!(t instanceof Element) || t.getAttribute("data-secret") !== secret) { return; }
     event.stopImmediatePropagation();
-    removeEventListener("VimiumReg", installer, true);
+    removeEventListener("VimiumHook", installer, true);
     t.removeAttribute("data-secret");
     t.addEventListener("VimiumOnclick", onclick, true);
     box = t;
@@ -23,11 +23,11 @@
   }
   addEventListener("VimiumOnclick", onclick, true);
   function destroy() {
-    removeEventListener("VimiumReg", installer, true);
+    removeEventListener("VimiumHook", installer, true);
     removeEventListener("VimiumOnclick", onclick, true);
     if (box) {
       box.removeEventListener("VimiumOnclick", onclick, true);
-      box.dispatchEvent(new CustomEvent("VimiumDestroy", {detail: secret}));
+      box.dispatchEvent(new CustomEvent("VimiumUnhook", {detail: secret}));
       box = null as never;
     }
     VSettings && (VSettings.uninit = null);
@@ -96,9 +96,9 @@ let handler = function(this: void): void {
   if (!docEl) { return destroy(); }
   box = call(Create, document, "div") as HTMLDivElement;
   append(docEl, box);
-  listen(box, "VimiumDestroy", destroy as (e: CustomEvent) => void, true);
+  listen(box, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
   call(Attr, box, "data-secret", "" + sec);
-  dispatch(box, new CE("VimiumReg"));
+  dispatch(box, new CE("VimiumHook"));
   remove(box);
   handler = Create = null as never;
   timer = toRegister.length > 0 ? next() : 0;
@@ -158,7 +158,7 @@ function destroy(e?: CustomEvent): void {
   timer = 1;
   let a = box;
   box = null as never;
-  a && call(rel as any, a, "VimiumDestroy", destroy, true);
+  a && call(rel as any, a, "VimiumUnhook", destroy, true);
 }
 // only the below can affect outsides
 if (typeof E !== "function") {
