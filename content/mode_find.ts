@@ -401,7 +401,7 @@ html > count{float:right;}`,
     options.noColor || this.toggleStyle(1);
     do {
       q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(back ? -1 : 1) : this.parsedQuery;
-      found = window.find(q, !notSens, back, true, false, true, false);
+      found = window.find(q, !notSens, back, true, false, false, false);
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel, 0);
     (el = VEventMode.lock()) && !VDom.isSelected(document.activeElement as Element) && el.blur && el.blur();
