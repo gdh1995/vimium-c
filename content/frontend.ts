@@ -750,12 +750,12 @@ Pagination = {
     },
     tween (this: void, info?: TimerType): void {
       if (!VHUD) { return; }
-      const hud = HUD, el = hud.box as HTMLDivElement, st = el.style;
-      let opacity = info === TimerType.fake ? hud.opacity : +(st.opacity || 1);
+      const hud = HUD, el = hud.box as HTMLDivElement, st = el.style, fake = info === TimerType.fake;
+      let opacity = fake ? 0 : +(st.opacity || 1);
       if (opacity === hud.opacity) {}
       else if (opacity === 0) {
         (el.firstChild as Text).data = hud.text;
-        st.opacity = "0.25";
+        st.opacity = fake ? "" : "0.25";
         st.visibility = "";
         return VDom.UI.adjust();
       } else if (document.hasFocus()) {
