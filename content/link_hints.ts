@@ -334,7 +334,7 @@ var VHints = {
         isClickable = true;
       }
       break;
-    case "div": case "ul": case "pre": case "ol":
+    case "div": case "ul": case "pre": case "ol": case "code":
       type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? ClickType.scrollY
         : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default;
       break;

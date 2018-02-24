@@ -1401,8 +1401,9 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     alinkColor: string;
     /**
       * Returns a reference to the collection of elements contained by the object.
+      * Is a readonly HTMLAllCollection only since Chrome 65
       */
-    readonly all: HTMLAllCollection;
+    all: HTMLAllCollection | object | null | undefined;
     /**
       * Retrieves a collection of all a objects that have a name and/or id property. Objects in this collection are in HTML source order.
       */
