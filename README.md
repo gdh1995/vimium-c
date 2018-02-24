@@ -85,6 +85,14 @@ Known issues (Up to the master branch):
 8. On sandboxed pages without an `allow-scripts` permission in their CSP,
   HUD will always be visible in order to solve some issues on Chrome.
 
+1.64.1:
+* global shortcuts support count prefix and custom options
+* for some options, show possible errors when they're saved
+* unhook click listener to be more compatible with web pages if they're totally excluded
+* fix that Vomnibar flickered when switching tabs
+* avoid throwing tons of errors on console of a sandboxed page
+* fix some issues about Vomnibar before Chrome 58
+
 1.64:
 * fix that Vimium++ didn't work on some websites or with some libraries,
   like [Angular Material](https://material.angular.io/),
