@@ -308,7 +308,7 @@ availableCommands: {
   passNextKey: [ "Pass the next key(s) to the page (use normal)", 0, false, null, "." ],
   enterVisualMode: [ "Enter visual mode", 1, false, null, "Visual.activate" ],
   enterVisualLineMode: [ "Enter visual line mode", 1, false, { mode: "line" }, "Visual.activate" ],
-  focusInput: [ "Focus the N-th visible text box on the page and cycle using tab (use keep)", 0, false, null, "." ],
+  focusInput: [ 'Focus the N-th visible text box on the page and cycle using tab (use keep, select=""/all/all-input/start/end)', 0, false, null, "." ],
   "LinkHints.activate": [ "Open a link in the current tab (use characters=&lt;string&gt;)", 0, false, null, "Hints.activate" ],
   "LinkHints.activateMode": [ "Open a link in the current tab (use characters=&lt;string&gt;)", 0, false, null, "Hints.activate" ],
   "LinkHints.activateModeToOpenInNewTab": [ "Open a link in a new tab", 0, false,
@@ -368,7 +368,7 @@ availableCommands: {
   toggleCS: [ "turn on/off the site's CS (use type=images)", 0, true, { type: "images" } ],
   clearCS: [ "clear extension's content settings (use type=images)", 1, true, { type: "images" } ],
   "Vomnibar.activate": [
-    "Open URL, bookmark, or history entry<br/> (use keyword='', url=false/true/&lt;string&gt;)", 0, true,
+    'Open URL, bookmark, or history entry<br/> (use keyword="", url=false/true/&lt;string&gt;)', 0, true,
     null, "showVomnibar" ],
   "Vomnibar.activateInNewTab": [
     "Open URL, history, etc,<br/> in a new tab (use keyword, url)", 0, true,
@@ -395,7 +395,7 @@ availableCommands: {
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, true, { local: true }, "clearMarks" ],
   "Marks.clearGlobal": [ "Remove all global marks", 1, true, null, "clearMarks" ],
   clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true, null, "clearMarks" ],
-  openUrl: [ "open URL (use url='', urls:string[], reuse=-1/0/1/-2, incognito, window, end)", 20, true ],
+  openUrl: [ 'open URL (use url="", urls:string[], reuse=-1/0/1/-2, incognito, window, end)', 20, true ],
   focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true, { reuse: ReuseType.reuse }, "openUrl" ]
 } as SafeDict<CommandsNS.Description>
 };

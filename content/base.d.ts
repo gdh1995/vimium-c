@@ -71,6 +71,7 @@ declare const enum EditableType {
   Select = 2,
   Editbox = 3,
   _input = 4,
+  _rich = 5,
 }
 
 declare namespace HintsNS {
@@ -186,6 +187,7 @@ declare const enum AdjustType {
   AdjustButNotShow = 3,
   DEFAULT = Normal,
 }
+type SelectActions = "" | "all" | "all-input" | "start" | "end";
 
 declare const enum TimerType {
   _native = 0,
@@ -213,7 +215,9 @@ interface DomUI {
   getSelection (this: DomUI): Selection;
   removeSelection (this: DomUI, root?: DocumentOrShadowRoot): boolean;
   click (this: DomUI, element: Element, rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
-  simulateSelect (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean, suppressRepeated?: boolean): void;
+  simulateSelect (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean
+    , action?: SelectActions, suppressRepeated?: boolean): void;
+  moveSel (this: DomUI, element: Element, action: SelectActions | undefined): void;
   getVRect (this: void, clickEl: Element): VRect | null;
   flash (this: DomUI, el: null, rect: VRect): number;
   flash (this: DomUI, el: Element): number | void;

@@ -380,7 +380,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       InsertMode.last = null;
       InsertMode.mutable = true;
-      return VDom.UI.simulateSelect(newEl, null, false, true);
+      return VDom.UI.simulateSelect(newEl, null, false, "", true);
     },
     goBack (count: number, options: FgOptions): void {
       const step = Math.min(count, history.length - 1);
@@ -428,11 +428,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     focusInput (count: number, options: FgOptions): void {
       const arr = VDom.getViewBox(), visibleInputs = VHints.traverse("*", VHints.GetEditable, true);
+      const action = options.select as SelectActions | undefined;
       let sel = visibleInputs.length;
       if (sel === 0) {
         return HUD.showForDuration("There are no inputs to focus.", 1000);
       } else if (sel === 1) {
-        return VDom.UI.simulateSelect(visibleInputs[0][0], visibleInputs[0][1], true, true);
+        return VDom.UI.simulateSelect(visibleInputs[0][0], visibleInputs[0][1], true, action, true);
       }
       for (let ind = 0; ind < sel; ind++) {
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
@@ -453,14 +454,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         sel = Math.min(count, sel) - 1;
       }
       hints[sel].classList.add("S");
-      VDom.UI.simulateSelect(visibleInputs[sel][0], visibleInputs[sel][1]);
+      VDom.UI.simulateSelect(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
       VDom.UI.ensureBorder(VDom.docZoom);
       const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       VUtils.push(function(event) {
         const { keyCode } = event, oldSel = sel;
         if (keyCode === VKeyCodes.tab) {
           sel = (sel + (event.shiftKey ? -1 : 1)) % hints.length;
-          VDom.UI.simulateSelect(hints[sel].clickableItem);
+          VDom.UI.simulateSelect(hints[sel].clickableItem, null, false, action);
           hints[oldSel].classList.remove("S");
           hints[sel].classList.add("S");
           return HandlerResult.Prevent;

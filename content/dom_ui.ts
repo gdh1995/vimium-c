@@ -135,25 +135,44 @@ VDom.UI = {
     VDom.mouse(element, "mouseup", rect, modifiers);
     return VDom.mouse(element, "click", rect, modifiers);
   },
-  simulateSelect (element, rect, flash, suppressRepeated): void {
+  simulateSelect (element, rect, flash, action, suppressRepeated): void {
     const y = window.scrollY;
     this.click(element, rect, null, true);
     VDom.ensureInView(element, y);
     // re-compute rect of element, in case that an input is resized when focused
     flash && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
-    type Moveable = HTMLInputElement | HTMLTextAreaElement;
-    let len: number, val: string | undefined;
-    if (element instanceof HTMLTextAreaElement ? element.clientHeight + 12 >= element.scrollHeight
-        : element instanceof HTMLInputElement) {
-      try {
-        if (0 === (element as Moveable).selectionEnd && typeof (element as Moveable).setSelectionRange === "function"
-          && (len = (val = (element as Moveable).value) ? val.length : 0) > 0) {
-          (element as Moveable).setSelectionRange(len, len);
-        }
-      } catch (e) {}
-    }
+    this.moveSel(element, action);
     if (suppressRepeated === true) { return this.suppressTail(true); }
+  },
+  moveSel (element, action): void {
+    type TextElement = HTMLInputElement | HTMLTextAreaElement;
+    const type = element instanceof HTMLTextAreaElement ? EditableType.Editbox
+        : element instanceof HTMLInputElement ? EditableType._input
+        : (element as HTMLElement).isContentEditable ? EditableType._rich : EditableType.Default;
+    if (type === EditableType.Default) { return; }
+    let end = 0;
+    if (action ? type !== EditableType._input && action === "all-input"
+        : type === EditableType._rich || (end = (element as TextElement).value.length) <= 0
+          || type === EditableType.Editbox && element.clientHeight + 12 < element.scrollHeight) {
+      return;
+    }
+    const sel = window.getSelection();
+    try {
+      if (type === EditableType._rich) {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        sel.removeAllRanges()
+        sel.addRange(range);
+      } else {
+        (element as TextElement).select();
+      }
+      if (!action || action === "end") {
+        sel.collapseToEnd();
+      } else if (action === "start") {
+        sel.collapseToStart();
+      }
+    } catch (e) {}
   },
   getVRect (this: void, clickEl: Element): VRect | null {
     const b = document.body;
