@@ -413,7 +413,6 @@ interface CommandsData {
 }
 
 interface BaseHelpDialog {
-  render (this: void, request: FgReq["initHelp"]): string;
 }
 
 interface Window {

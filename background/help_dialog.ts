@@ -19,7 +19,7 @@ var HelpDialog = {
       return s != null ? s
         : HelpDialog.groupHtml(group, commandsToKey, hideUnbound, showNames);
     });
-  } as BaseHelpDialog["render"]),
+  }),
   groupHtml: (function(this: any, group: string, commandsToKey: SafeDict<string[]>
       , hideUnbound: boolean, showNames: boolean): string {
     const _ref = (this as typeof HelpDialog).commandGroups[group], renderItem = (this as typeof HelpDialog).commandHtml
@@ -122,3 +122,7 @@ var HelpDialog = {
     , "Vomnibar.activateEditUrl": 1, "Vomnibar.activateEditUrlInNewTab": 1
   } as SafeEnum
 };
+
+interface BaseHelpDialog {
+  render: typeof HelpDialog.render;
+}
