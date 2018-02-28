@@ -27,7 +27,8 @@ var HelpDialog = {
     let keys: string[] | undefined, html = "";
     for (let _i = 0, _len = _ref.length; _i < _len; _i++) {
       const command = _ref[_i];
-      if (hideUnbound && !(keys = commandsToKey[command])) { continue; }
+      keys = commandsToKey[command];
+      if (hideUnbound && !keys) { continue; }
       let klen = -2, bindings = '';
       if (keys && keys.length > 0) {
         bindings = '\n\t\t<span class="HelpKey">';
