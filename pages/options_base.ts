@@ -425,8 +425,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     }
     return updateState();
   });
-  let element = $<HTMLAnchorElement>("#optionsLink");
-  url = bgSettings.CONST.OptionsPage;
+  const element = $<HTMLAnchorElement>("#optionsLink"), url = bgSettings.CONST.OptionsPage;
   element.href !== url && (element.href = url);
   element.onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
