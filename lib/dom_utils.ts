@@ -27,8 +27,10 @@ var VDom = {
     };
     addEventListener("DOMContentLoaded", eventHandler, true);
   },
-  getSelectionText (): string {
-    return window.getSelection().toString().trim();
+  getSelectionText (notTrim?: 1): string {
+    let s = window.getSelection().toString();
+    notTrim || (s = s.trim());
+    return s;
   },
   getParent (el: Element): Element | null {
     const arr = el.getDestinationInsertionPoints ? el.getDestinationInsertionPoints() : null;

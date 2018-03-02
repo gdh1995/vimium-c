@@ -396,10 +396,13 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       vPort.post({ handler: "initHelp", wantTop });
     },
     autoCopy (_0: number, options: FgOptions): void {
-      let str = window.getSelection().toString();
+      let str = VDom.getSelectionText(1);
       if (!str) {
         str = options.url ? window.location.href : document.title;
         (options.decoded || options.decode) && (str = VUtils.decodeURL(str));
+        if (str.endsWith(" ") && options.url) {
+          str = str.slice(0, -1) + "%20";
+        }
       }
       if (str.length < 4 && !str.trim() && str[0] === ' ') {
         str = "";
