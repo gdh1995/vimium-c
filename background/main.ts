@@ -848,7 +848,9 @@ Are you sure you want to continue?`);
       const startTabIndex = tabs.length - commandCount, limited = cOptions.limited != null ? !!cOptions.limited : null;
       let tab = tabs[0];
       if (cOptions.allow_close === true) {} else
-      if (startTabIndex <= 0 && (startTabIndex === 0 && !limited && !tab.pinned || tab.active)) {
+      if (startTabIndex <= 0 && (tab.active
+            || startTabIndex === 0 && !limited && (!tab.pinned || funcDict.selectFrom(tabs).pinned))
+      ) {
         chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
         return;
       }
