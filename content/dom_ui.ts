@@ -80,7 +80,7 @@ VDom.UI = {
     zoom || (zoom = VDom.getZoom());
     if (first ? zoom >= 1 : (st as any).zoom === zoom) { return; }
     st = st || (this._styleBorder = this.createStyle(""));
-    st.zoom = zoom; st.textContent = ".HUD, .IH, .LH { border-width: " + ("" + 0.51 / zoom).slice(0, 5) + "px; }";
+    st.zoom = zoom; st.textContent = ".HUD, .IH, .LH { border-width: " + ("" + 0.51 / zoom).substring(0, 5) + "px; }";
     first && this.root && this.addElement(st, AdjustType.NotAdjust);
   },
   createStyle (text, doc): HTMLStyleElement {
@@ -152,7 +152,8 @@ VDom.UI = {
         : (element as HTMLElement).isContentEditable ? EditableType._rich : EditableType.Default;
     if (type === EditableType.Default) { return; }
     let end = 0;
-    if (action ? type !== EditableType._input && action === "all-input"
+    if (action ? action === "all-input" && (type === EditableType.Editbox
+            || type === EditableType._rich && element.textContent.indexOf("\n") >= 0)
         : type === EditableType._rich || (end = (element as TextElement).value.length) <= 0
           || type === EditableType.Editbox && element.clientHeight + 12 < element.scrollHeight) {
       return;
