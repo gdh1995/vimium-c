@@ -292,6 +292,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
   if (!ref) {
     (document.body as HTMLBodyElement).textContent = "";
+    blockedMsg.style.display = "";
     (document.body as HTMLBodyElement).appendChild(blockedMsg);
   }
   $<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;
