@@ -202,6 +202,7 @@ interface DomUI {
   root: ShadowRoot | null;
   callback: null | ((this: void) => void);
   flashLastingTime: number;
+  _lastFlash: HTMLElement | null;
   addElement<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
   addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: ViewOffset): HTMLDivElement;
   adjust (this: void, event?: Event): void;

@@ -58,7 +58,7 @@ VDom.UI = {
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
     VDom.bodyZoom !== 1 && (style.zoom = "" + VDom.bodyZoom);
     document.webkitIsFullScreen && (style.position = "fixed");
-    return this.addElement(parent);
+    return this.addElement(parent, AdjustType.DEFAULT, this._lastFlash);
   },
   adjust (event): void {
     const ui = VDom.UI, el = document.webkitFullscreenElement,
@@ -184,6 +184,7 @@ VDom.UI = {
     cr = clickEl.getBoundingClientRect(), bcr = VDom.fromClientRect(cr);
     return rect && !VDom.isContaining(bcr, rect) ? rect : VDom.NotVisible(null, cr) ? null : bcr;
   },
+  _lastFlash: null,
   flash: function (this: DomUI, el: Element | null, rect?: VRect | null): number | void {
     rect || (rect = this.getVRect(el as Element));
     if (!rect) { return; }
@@ -192,7 +193,9 @@ VDom.UI = {
     VDom.setBoundary(flashEl.style, rect, nfs);
     VDom.bodyZoom !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bodyZoom);
     this.addElement(flashEl);
-    return setTimeout(function() {
+    this._lastFlash = this._lastFlash || flashEl;
+    return setTimeout(() => {
+      this._lastFlash === flashEl && (this._lastFlash = flashEl.nextElementSibling as HTMLElement | null);
       flashEl.remove();
     }, this.flashLastingTime);
   } as DomUI["flash"],
