@@ -369,4 +369,7 @@ declare const enum BrowserVer {
   MinSelector$deep$InCSSDoesNothing = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
   MinCSS$textDecorationSkipInk = 64,
+  // a 3rd-party Vomnibar will trigger "navigation" and clear all logs in console on Chrome 64
+  // this still occurs on Chrome 65.0.3325.106 (Beta)
+  VomnibarMayClearLog = 64,
 }

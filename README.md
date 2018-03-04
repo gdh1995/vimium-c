@@ -84,6 +84,7 @@ Known issues (Up to the master branch):
   Currently, no effective ways have been found (up to Chrome 59).
 8. On sandboxed pages without an `allow-scripts` permission in their CSP,
   HUD will always be visible in order to solve some issues on Chrome.
+9. Chrome 64 will clean its console logs if only Vomnibar is opened, and there's nothing we can do for it.
 
 1.64.1:
 * global shortcuts support count prefix and custom options
