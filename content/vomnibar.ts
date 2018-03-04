@@ -115,7 +115,13 @@ var Vomnibar = {
   init ({secret, vomnibar: page, ptype: type, vomnibar2: inner, CSS}: VomnibarNS.FullOptions): void {
     const el = VDom.createElement("iframe") as typeof Vomnibar.box, UI = VDom.UI;
     el.className = "R UI Omnibar";
-    type === VomnibarNS.PageType.web && (el.referrerPolicy = "no-referrer");
+    if (type !== VomnibarNS.PageType.web) {}
+    else if (page.startsWith("http:") && location.origin.startsWith("https:")) {
+      // not allowed by Chrome; recheck because of `tryNestedFrame`
+      page = inner as string; inner = null; type = VomnibarNS.PageType.inner;
+    } else {
+      el.referrerPolicy = "no-referrer";
+    }
     el.src = page;
     function reload(): void {
       type = VomnibarNS.PageType.inner;

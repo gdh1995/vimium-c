@@ -478,9 +478,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   Option.all.linkHintCharacters.onSave();
 
   Option.all.vomnibarPage.onSave = function(): void {
-    let {previous: url, element} = this;
+    let {element} = this, url: string = bgSettings ? bgSettings.cache.vomnibarPage_f : this.previous;
     if (url.lastIndexOf("file://", 0) !== -1) {
       return this.showError("A file page of vomnibar is limited by Chrome to only work on file://* pages.", "highlight");
+    } else if (url.lastIndexOf("http://", 0) !== -1) {
+      return this.showError("A HTTP page of vomnibar is limited by Chrome and doesn't work on HTTPS pages.", "highlight");
     } else if (bgSettings.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
       this.showError(`Vimium++ can not use a HTTP page as Vomnibar before Chrome ${BrowserVer.MinWithFrameId}.`, null, false);
       if ("chrome /front/".indexOf(url.substring(0, 6)) === -1) {

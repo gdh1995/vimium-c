@@ -1199,6 +1199,8 @@ Are you sure you want to continue?`);
       const page = Settings.cache.vomnibarPage_f, { url } = port.sender, web = !page.startsWith("chrome"),
       inner = Settings.CONST.VomnibarPageInner;
       forceInner = (web ? url.startsWith("chrome") || page.startsWith("file:") && !url.startsWith("file:")
+          // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) that https refusing http iframes.
+          || page.startsWith("http:") && url.startsWith("https:")
         : port.sender.incognito) || url.startsWith(location.origin) || !!forceInner;
       const choice: boolean = forceInner || page === inner || port.sender.tabId < 0,
       options = Utils.extendIf(Object.setPrototypeOf({
