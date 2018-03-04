@@ -129,8 +129,10 @@ var Vomnibar = {
       el.src = page = inner as string;
     }
     el.style.visibility = "hidden";
+    let loaded = false;
     el.onload = function(this: typeof el): void {
       const _this = Vomnibar;
+      loaded = true;
       if (_this.onReset) { return; }
       if (type !== VomnibarNS.PageType.inner && _this.isABlank()) {
         console.log("Vimium++: use built-in Vomnibar page because the preferred is too old.");
@@ -181,6 +183,7 @@ var Vomnibar = {
     if (CSS) {
       UI.css(CSS);
     }
+    type !== VomnibarNS.PageType.inner && setTimeout(function(): void { loaded || Vomnibar.onReset || reload(); }, 2000);
   },
   reset (redo?: boolean): void | 1 {
     if (this.status === VomnibarNS.Status.NotInited) { return; }
