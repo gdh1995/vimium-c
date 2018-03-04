@@ -287,6 +287,8 @@ declare const enum BrowserVer {
   MinMutedInfo = 46,
   MinAutoDecodeJSURL = 46,
   Min$Event$$IsTrusted = 46,
+  // under the flag #enable-experimental-web-platform-features; enabled by default since 47
+  Min$requestIdleCallback = 46,
   Min$Tabs$$Query$RejectHash = 47,
   MinEnsuredBorderWidth = 48, // inc 0.0001px to the min "visible" width
   // if #disable-javascript-harmony-shipping is on, then arrow functions are accepted only since 48,

@@ -8253,6 +8253,7 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     prompt(message?: string, _default?: string): string | null;
     releaseEvents(): void;
     requestAnimationFrame(callback: FrameRequestCallback): number;
+    requestIdleCallback? (callback: (idleDeadline: { didTimeout: boolean }) => void, options?: { timeout?: number }): number;
     resizeBy(x?: number, y?: number): void;
     resizeTo(x?: number, y?: number): void;
     scroll(x?: number, y?: number): void;

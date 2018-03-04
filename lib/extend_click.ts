@@ -48,9 +48,9 @@
   console.info("Some functions of Vimium++ may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1"));
   interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
-  function (func: (info?: TimerType) => void, _timeout: number): number {
-    requestAnimationFrame(() => func(TimerType.fake));
-    return 1;
+  function (func: (info?: TimerType) => void, timeout: number): number {
+    let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
+    return f ? f(cb, { timeout }) : requestAnimationFrame(cb);
   };
 
 function func(this: void, sec: number): void {
