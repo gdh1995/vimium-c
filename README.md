@@ -77,6 +77,8 @@ Known issues (Up to the master branch):
 5. If a http/file/... Vomnibar page is preferred, then there're some cases where it breaks,
   such as on some websites with very strict Content Security Policies (CSP),
   so users may need to wait about 1 second to let Vimium++ retry the inner page.
+  And before Chrome 50, such vomnibar webpages won't work because of lacking some features,
+  so Vimium++ will use the inner page directly.
 6. Chrome 58 stable hides some necessary infomation of page's selection,
   so some commands on `VisualMode` cann't work as expected if editable text is being selected.
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.

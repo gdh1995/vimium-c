@@ -478,8 +478,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   Option.all.linkHintCharacters.onSave();
 
   Option.all.vomnibarPage.onSave = function(): void {
-    let {element} = this, url: string = bgSettings ? bgSettings.cache.vomnibarPage_f : this.previous;
-    if (url.lastIndexOf("file://", 0) !== -1) {
+    let {element} = this, raw = this.previous, url: string = bgSettings.cache.vomnibarPage_f;
+    if (raw.lastIndexOf("chrome", 0) && raw.lastIndexOf("front/", 0) && bgSettings.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+      return this.showError("Only extension vomnibar pages can work before Chrome " + BrowserVer.Min$tabs$$executeScript$hasFrameIdArg + ".", "highlight");
+    } else if (url.lastIndexOf("file://", 0) !== -1) {
       return this.showError("A file page of vomnibar is limited by Chrome to only work on file://* pages.", "highlight");
     } else if (url.lastIndexOf("http://", 0) !== -1) {
       return this.showError("A HTTP page of vomnibar is limited by Chrome and doesn't work on HTTPS pages.", "highlight");
