@@ -313,6 +313,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     passNextKey (count: number, options: FgOptions): void {
       const keys = Object.create<BOOL>(null);
+      count = Math.abs(count || 1);
       let keyCount = 0;
       if (options.normal) {
         const func = esc;
@@ -383,8 +384,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return VDom.UI.simulateSelect(newEl, null, false, "", true);
     },
     goBack (count: number, options: FgOptions): void {
-      const step = Math.min(count, history.length - 1);
-      step > 0 && history.go(step * (+options.dir || -1));
+      const step = Math.min(Math.abs(count || 1), history.length - 1);
+      step > 0 && history.go((count < 0 ? -step : step) * (+options.dir || -1));
     },
     showHelp (msg?: number | "exitHD"): void {
       if (msg === "exitHD") { return; }
@@ -451,10 +452,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         VDom.setBoundary(hint.style, rect);
         return hint;
       });
-      if (count === 1 && InsertMode.last) {
+      if (count < 2 && count > -2 && InsertMode.last) {
         sel = Math.max(0, visibleInputs.map(link => link[0]).indexOf(InsertMode.last));
       } else {
-        sel = Math.min(count, sel) - 1;
+        sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
       }
       hints[sel].classList.add("S");
       VDom.UI.simulateSelect(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
@@ -954,11 +955,12 @@ Pagination = {
       if (j == null) { return esc(HandlerResult.Nothing); }
       if (j !== 0) { currentKeys = ""; }
     }
+    currentKeys += key;
     if (j === 0) {
-      vPort.post({ handler: "key", key: currentKeys + key, lastKey: event.keyCode });
+      vPort.post({ handler: "key", key: currentKeys, lastKey: event.keyCode });
       return esc(HandlerResult.Prevent);
     } else {
-      currentKeys += key; nextKeys = j !== 1 ? j : keyMap;
+      nextKeys = j !== 1 ? j : keyMap;
       return HandlerResult.Prevent;
     }
   }
