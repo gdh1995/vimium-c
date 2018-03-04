@@ -365,6 +365,7 @@ declare const enum BrowserVer {
   MinNotRunOnChromeNewTab = 61,
   MinCorrectBoxWidthForOptionUI = 61,
   MinEnsured$visualViewPort$ = 61,
+  Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
   // since MinSelector$deep$InCSSDoesNothing, Vimium's inner styles have been really safe
   MinSelector$deep$InCSSDoesNothing = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
