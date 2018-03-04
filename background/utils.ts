@@ -49,9 +49,10 @@ var Utils = {
     }
     return !url.startsWith(Settings.CONST.ChromeInnerNewTab) && url.startsWith("chrome");
   },
-  _nonENTlds: ".\u4e2d\u56fd.\u4e2d\u6587\u7f51.\u6211\u7231\u4f60.\u7f51\u5740\
-.\u7f51\u5e97.\u516c\u53f8.\u7f51\u7edc.\u96c6\u56e2.\u4e2d\u4fe1.\u5546\u57ce\
-.\u4e2d\u570b.",
+  _nonENTlds: ".\u4e2d\u4fe1.\u4e2d\u56fd.\u4e2d\u570b.\u4e2d\u6587\u7f51.\u4f01\u4e1a.\u4f5b\u5c71.\u4fe1\u606f\
+.\u516c\u53f8.\u516c\u76ca.\u5546\u57ce.\u5546\u5e97.\u5546\u6807.\u5728\u7ebf.\u5a31\u4e50.\u5e7f\u4e1c\
+.\u6211\u7231\u4f60.\u624b\u673a.\u62db\u8058.\u653f\u52a1.\u6e38\u620f.\u7f51\u5740.\u7f51\u5e97.\u7f51\u5e97\
+.\u7f51\u7edc.\u8d2d\u7269.\u96c6\u56e2.\u9910\u5385",
   _tlds: ["", "",
     ".ac.ad.ae.af.ag.ai.al.am.an.ao.aq.ar.as.at.au.aw.az.ba.bb.bd.be.bf.bg.bh.bi.bj.bm.bn.bo.br.bs.bt.bv.bw.by.bz.ca.cc.cd.cf\
 .cg.ch.ci.ck.cl.cm.cn.co.cr.cu.cv.cx.cy.cz.de.dj.dk.dm.do.dz.ec.ee.eg.eh.er.es.et.eu.fi.fj.fk.fm.fo.fr.ga.gd.ge.gf.gg.gh.gi.gl\
@@ -59,13 +60,13 @@ var Utils = {
 .lb.lc.li.lk.lr.ls.lt.lu.lv.ly.ma.mc.md.me.mg.mh.mk.ml.mm.mn.mo.mp.mq.mr.ms.mt.mu.mv.mw.mx.my.mz.na.nc.ne.nf.ng.ni.nl.no.np.nr\
 .nu.nz.om.pa.pe.pf.pg.ph.pk.pl.pm.pn.pr.ps.pt.pw.py.qa.re.ro.ru.rw.sa.sb.sc.sd.se.sg.sh.si.sj.sk.sl.sm.sn.so.sr.ss.st.su.sv.sy\
 .sz.tc.td.tf.tg.th.tj.tk.tl.tm.tn.to.tp.tr.tt.tv.tw.tz.ua.ug.uk.um.us.uy.uz.va.vc.ve.vg.vi.vn.vu.wf.ws.ye.yt.yu.za.zm.zw",
-    ".abc.bid.biz.cat.com.dev.edu.fun.gov.ink.int.kim.lol.ltd.men.mil.mom.mtn.net\
-.new.one.org.pro.pub.red.ren.run.tel.top.vip.win.xin.xxx.xyz",
-    ".aero.arpa.asia.band.club.coop.date.game.gift.help.info.jobs.link.live.loan\
-.mobi.name.news.pics.post.shop.site.tech.wang.wiki.work",
-    ".citic.click.games.group.local.onion.party.photo.press.rocks.space.store.today.trade.video",
-    ".design.lawyer.market.museum.online.social.studio.travel"
-    , ".science.website"
+    ".abc.art.bid.biz.cat.com.dev.edu.fun.gov.ink.int.kim.law.lol.ltd.men.mil.mom.mtn.net\
+.new.one.org.pro.pub.red.ren.run.tel.top.vip.win.xin.xxx.xyz"
+    , ".aero.arpa.asia.auto.band.beer.chat.city.club.cool.coop.date.fund.game.gift.gold.guru.help.info.jobs.life.link.live.loan\
+.love.mobi.name.news.pics.plus.post.shop.show.site.sohu.team.tech.wang.wiki.work.zone"
+    , ".citic.click.email.games.group.local.onion.party.photo.press.rocks.space.store.today.trade.video.world"
+    , ".center.design.lawyer.market.museum.online.social.studio.travel"
+    , ".company.science.website"
     , ".engineer.software"
   ] as ReadonlyArray<string>,
   domains: Object.create<CompletersNS.Domain>(null),
