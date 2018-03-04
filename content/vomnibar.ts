@@ -65,7 +65,7 @@ var Vomnibar = {
       this.focus();
       this.onShown();
     }
-    options.secret = 0; options.vomnibar = options.CSS = "";
+    options.secret = 0; options.vomnibar = options.vomnibar2 = options.CSS = "";
     options.name = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
@@ -118,7 +118,7 @@ var Vomnibar = {
     if (type !== VomnibarNS.PageType.web) {}
     else if (page.startsWith("http:") && location.origin.startsWith("https:")) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
-      page = inner as string; inner = null; type = VomnibarNS.PageType.inner;
+      reload();
     } else {
       el.referrerPolicy = "no-referrer";
     }
@@ -126,7 +126,8 @@ var Vomnibar = {
     function reload(): void {
       type = VomnibarNS.PageType.inner;
       el.removeAttribute("referrerPolicy");
-      el.src = page = inner as string;
+      el.src = page = inner as string; inner = null;
+      let opts = Vomnibar.options; opts && (opts.ptype = type);
     }
     el.style.visibility = "hidden";
     let loaded = false;
