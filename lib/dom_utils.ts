@@ -70,7 +70,7 @@ var VDom = {
     for (let _i = 0, _len = arr.length; _i < _len; _i++) {
       const rect = arr[_i];
       if (rect.width > 0 && rect.height > 0) {
-        if (cr = VDom.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom)) {
+        if (cr = this.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom)) {
           if (isVisible == null) {
             el_style || (el_style = window.getComputedStyle(element));
             isVisible = el_style.visibility === 'visible';
@@ -98,7 +98,7 @@ var VDom = {
     }
     return null;
   },
-  getClientRectsForAreas (element: HTMLImageElement, output: Hint[]): boolean | void {
+  getClientRectsForAreas (element: HTMLImageElement, output: Hint[]): void {
     let diff: number, x1: number, x2: number, y1: number, y2: number, rect: VRect | null | undefined;
     const cr = element.getClientRects()[0] as ClientRect | undefined;
     if (!cr || cr.height < 3 || cr.width < 3) { return; }
@@ -108,26 +108,37 @@ var VDom = {
     if (!map) { return; }
     const areas = map.getElementsByTagName("area");
     const toInt = (a: string) => (a as string | number as number) | 0;
-    for (let _i = 0, _len = areas.length; _i < _len; _i++) {
+    for (let _i = areas.length; 0 <= --_i; ) {
       const area = areas[_i], coords = area.coords.split(",").map(toInt);
       switch (area.shape.toLowerCase()) {
-      case "circle": case "circ":
+      case "circle": case "circ": // note: "circ" is non-conforming
         x2 = coords[0]; y2 = coords[1]; diff = coords[2] / Math.sqrt(2);
         x1 = x2 - diff; x2 += diff; y1 = y2 - diff; y2 += diff;
+        diff = 3;
         break;
       case "default":
         x1 = 0; y1 = 0; x2 = cr.width; y2 = cr.height;
+        diff = 0;
         break;
+      case "poly": case "polygon": // note: "polygon" is non-conforming
+        y1 = coords[0], y2 = coords[2], diff = coords[4];
+        x1 = Math.min(y1, y2, diff); x2 = Math.max(y1, y2, diff);
+        y1 = coords[1], y2 = coords[3], diff = coords[5];
+        y1 = Math.min(y1, y2, diff); y2 = Math.max(coords[1], y2, diff);
+        diff = 6;
       default:
         x1 = coords[0]; y1 = coords[1]; x2 = coords[2]; y2 = coords[3];
+        x1 > x2 && (x1 = x2, x2 = coords[0]);
+        y1 > y2 && (y1 = y2, y2 = coords[1]);
+        diff = 4;
         break;
       }
-      rect = VDom.cropRectToVisible(x1 + cr.left, y1 + cr.top, x2 + cr.left, y2 + cr.top);
+      if (coords.length < diff) { continue; }
+      rect = this.cropRectToVisible(x1 + cr.left, y1 + cr.top, x2 + cr.left, y2 + cr.top);
       if (rect) {
         output.push([area, rect, 0, [rect, 0], rect]);
       }
     }
-    return !!rect;
   },
   specialZoom: false,
   docZoom: 1, // related to physical pixels

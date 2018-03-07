@@ -326,7 +326,9 @@ var VHints = {
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
       return;
     case "img":
-      if ((element as HTMLImageElement).useMap && VDom.getClientRectsForAreas(element as HTMLImageElement, this)) { return; }
+      if ((element as HTMLImageElement).useMap) {
+        VDom.getClientRectsForAreas(element as HTMLImageElement, this);
+      }
       if ((VHints.forHover && !(element.parentNode instanceof HTMLAnchorElement))
         || ((s = element.style.cursor as string) ? s !== "default"
           : (s = getComputedStyle(element).cursor as string) && (s.indexOf("zoom") >= 0 || s.startsWith("url"))
