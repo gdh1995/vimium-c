@@ -78,7 +78,7 @@ declare namespace HintsNS {
   interface Marker extends HTMLSpanElement {
     clickableItem: Hint[0];
     hintString: string;
-    linkRect?: VRect;
+    referenceItem?: HTMLImageElement;
   }
 }
 
@@ -171,13 +171,15 @@ interface Hint {
   [0]: HTMLElement | SVGElement; // element
   [1]: VRect; // bounding rect
   [2]: number; // priority (smaller is prior)
+  [3]?: HintOffset;
+  [4]?: HTMLImageElement;
   length: number;
 }
 interface Hint4 extends Hint {
   [3]: HintOffset;
 }
 interface Hint5 extends Hint4 {
-  [4]: VRect; // fixed rect
+  [4]: HTMLImageElement; // fixed rect
 }
 
 declare const enum AdjustType {

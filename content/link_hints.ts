@@ -256,7 +256,7 @@ var VHints = {
     if (i > this.maxTop) {
       st.maxHeight = this.maxTop - i + 18 + "px";
     }
-    link.length > 4 && (marker.linkRect = (link as Hint5)[4]);
+    link.length > 4 && (marker.referenceItem = (link as Hint5)[4]);
     return marker;
   },
   adjustMarkers (elements: Hint[]): void {
@@ -327,7 +327,7 @@ var VHints = {
       return;
     case "img":
       if ((element as HTMLImageElement).useMap) {
-        VDom.getClientRectsForAreas(element as HTMLImageElement, this);
+        VDom.getClientRectsForAreas(element as HTMLImageElement, this as Hint5[]);
       }
       if ((VHints.forHover && !(element.parentNode instanceof HTMLAnchorElement))
         || ((s = element.style.cursor as string) ? s !== "default"
@@ -724,7 +724,8 @@ var VHints = {
     VHUD.text = str; // in case pTimer > 0
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
-      rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
+      rect = hintEl.referenceItem ? VDom.getClientRectsForAreas(hintEl.referenceItem, [], [clickEl as HTMLAreaElement])
+        : VDom.UI.getVRect(clickEl);
       const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hintEl);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect(clickEl)))) {
         const force = clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement;

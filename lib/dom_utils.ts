@@ -98,15 +98,18 @@ var VDom = {
     }
     return null;
   },
-  getClientRectsForAreas (element: HTMLImageElement, output: Hint[]): void {
+  getClientRectsForAreas: function (this: any, element: HTMLImageElement, output: Hint5[]
+      , areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null | undefined | void {
     let diff: number, x1: number, x2: number, y1: number, y2: number, rect: VRect | null | undefined;
     const cr = element.getClientRects()[0] as ClientRect | undefined;
     if (!cr || cr.height < 3 || cr.width < 3) { return; }
     // replace is necessary: chrome allows "&quot;", and also allows no "#"
-    const map = document.querySelector('map[name="' +
-      element.useMap.replace(<RegExpOne>/^#/, "").replace(<RegExpG>/"/g, '\\"') + '"]') as HTMLMapElement | null;
-    if (!map) { return; }
-    const areas = map.getElementsByTagName("area");
+    if (!areas) {
+      const map = document.querySelector('map[name="' +
+        element.useMap.replace(<RegExpOne>/^#/, "").replace(<RegExpG>/"/g, '\\"') + '"]') as HTMLMapElement | null;
+      if (!map) { return; }
+      areas = map.getElementsByTagName("area");
+    }
     const toInt = (a: string) => (a as string | number as number) | 0;
     for (let _i = areas.length; 0 <= --_i; ) {
       const area = areas[_i], coords = area.coords.split(",").map(toInt);
@@ -134,11 +137,17 @@ var VDom = {
         break;
       }
       if (coords.length < diff) { continue; }
-      rect = this.cropRectToVisible(x1 + cr.left, y1 + cr.top, x2 + cr.left, y2 + cr.top);
+      rect = (this as typeof VDom).cropRectToVisible(x1 + cr.left, y1 + cr.top, x2 + cr.left, y2 + cr.top);
       if (rect) {
-        output.push([area, rect, 0, [rect, 0], rect]);
+        output.push([area, rect, 0, [rect, 0], element]);
       }
     }
+    if (arguments.length > 2) {
+      return output[0] && output[0][1];
+    }
+  } as {
+    (element: HTMLImageElement, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null | undefined;
+    (element: HTMLImageElement, output: Hint5[]): void;
   },
   specialZoom: false,
   docZoom: 1, // related to physical pixels
