@@ -11,6 +11,10 @@
 	padding: 0;
 }
 
+p {
+  margin-top: 5px;
+}
+
 #helpText, #state {
 	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
@@ -69,17 +73,17 @@
         <div id="helpSpan">These are the rules matching this page.</div>
         <a id="toggleOnce" href="vimium://status toggle" class="decorate-none" tabindex="1">Disable for once</a><span class="hidden">
           / <a id="resetStatus" href="vimium://status reset" class="decorate-none" tabindex="1">Reset status</a></span>.
-        <a id="optionsLink" href="options.html" target="_blank" tabindex="1">Options</a>.
+        <a class="options-link" href="options.html" target="_blank" tabindex="1">Options</a>.
         Version <span class="version"></span>.
       </span>
       <button id="exclusionAddButton">Add Rule</button>
       <button id="saveOptions" disabled="disabled">No Changes</button>
     </div>
     <div id="blocked-msg" style="width: 400px; margin: 5px; display: none;">
-      <h4 style="margin-bottom: 5px;">
-        Maybe <span class="Vim">Vim</span>ium++ <span class="version"></span> is <span class="state-value">not running</span> on this page.
+      <h4>
+        Maybe <span class="Vim">Vim</span>ium++ is <span class="state-value">not running</span> on this page.
       </h4>
-      <p style="margin-bottom: 5px;">
+      <p>
         Your browser does not run web extensions like Vimium / Vimium++ on certain pages,
         usually for security reasons.
       </p>
@@ -87,6 +91,10 @@
         Unless your browser's developers change their policy,
         then unfortunately it is not possible to make Vimium / Vimium++ <br/>
           (or any other web extension, for that matter) work on this page.
+      </p>
+      <p>
+        Configure more on <a class="options-link" href="options.html" target="_blank">Options Page</a>.
+        Version <span class="version"></span>.
       </p>
     </div>
   </body>

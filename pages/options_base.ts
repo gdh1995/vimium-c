@@ -295,6 +295,15 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
     blockedMsg.style.display = "";
     (document.body as HTMLBodyElement).appendChild(blockedMsg);
   }
+  const element = $<HTMLAnchorElement>(".options-link"), url = bgSettings.CONST.OptionsPage;
+  element.href !== url && (element.href = url);
+  element.onclick = function(this: HTMLAnchorElement, event: Event): void {
+    event.preventDefault();
+    const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
+    a.url = bgSettings.CONST.OptionsPage;
+    BG.Backend.focusOrLaunch(a);
+    window.close();
+  };
   $<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;
   if (!ref) {
     return;
@@ -426,15 +435,6 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     }
     return updateState();
   });
-  const element = $<HTMLAnchorElement>("#optionsLink"), url = bgSettings.CONST.OptionsPage;
-  element.href !== url && (element.href = url);
-  element.onclick = function(this: HTMLAnchorElement, event: Event): void {
-    event.preventDefault();
-    const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
-    a.url = url;
-    BG.Backend.focusOrLaunch(a);
-    window.close();
-  };
   interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
   (window as WindowEx).exclusions = exclusions;
   window.onunload = function(): void {
