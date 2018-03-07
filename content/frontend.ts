@@ -443,21 +443,20 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
         hint[2] = j > 0 ? ind / 8192 - j : ind;
       }
-      const hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link) {
-        const hint = VDom.createElement("span") as HintsNS.Marker,
+      const hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link): HintsNS.HintItem {
+        const marker = VDom.createElement("span") as HintsNS.HintItem["marker"],
         rect = VDom.fromClientRect(link[0].getBoundingClientRect());
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
-        hint.className = "IH";
-        hint.clickableItem = link[0];
-        VDom.setBoundary(hint.style, rect);
-        return hint;
+        marker.className = "IH";
+        VDom.setBoundary(marker.style, rect);
+        return {marker, target: link[0]};
       });
       if (count < 2 && count > -2 && InsertMode.last) {
         sel = Math.max(0, visibleInputs.map(link => link[0]).indexOf(InsertMode.last));
       } else {
         sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
       }
-      hints[sel].classList.add("S");
+      hints[sel].marker.classList.add("S");
       VDom.UI.simulateSelect(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
       VDom.UI.ensureBorder(VDom.docZoom);
       const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
@@ -465,9 +464,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         const { keyCode } = event, oldSel = sel;
         if (keyCode === VKeyCodes.tab) {
           sel = (sel + (event.shiftKey ? -1 : 1)) % hints.length;
-          VDom.UI.simulateSelect(hints[sel].clickableItem, null, false, action);
-          hints[oldSel].classList.remove("S");
-          hints[sel].classList.add("S");
+          VDom.UI.simulateSelect(hints[sel].target, null, false, action);
+          hints[oldSel].marker.classList.remove("S");
+          hints[sel].marker.classList.add("S");
           return HandlerResult.Prevent;
         }
         let keyStat: KeyStat;
@@ -476,7 +475,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         else if (event.repeat) { return HandlerResult.Prevent; }
         else if (keep ? VKeyboard.isEscape(event) || (
             keyCode === VKeyCodes.enter && (keyStat = VKeyboard.getKeyStat(event),
-              keyStat !== KeyStat.shiftKey && (keyStat !== KeyStat.plain || hints[sel].clickableItem instanceof HTMLInputElement) )
+              keyStat !== KeyStat.shiftKey && (keyStat !== KeyStat.plain || hints[sel].target instanceof HTMLInputElement) )
           ) : keyCode !== VKeyCodes.ime && keyCode !== VKeyCodes.f12
         ) {
           this.remove();

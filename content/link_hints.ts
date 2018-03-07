@@ -29,7 +29,7 @@ declare namespace HintsNS {
   interface Filter<T> {
     (this: T[], element: Element): void;
   }
-  type LinksMatched = false | null | Marker[];
+  type LinksMatched = false | null | HintItem[];
   type Stack = number[];
   type Stacks = Stack[];
   interface KeyStatus {
@@ -76,7 +76,7 @@ var VHints = {
     EDIT_TEXT: HintMode.EDIT_TEXT
   } as Dict<HintMode>,
   box: null as HTMLDivElement | null,
-  hintMarkers: null as HintsNS.Marker[] | null,
+  hints: null as HintsNS.HintItem[] | null,
   mode: 0 as HintMode,
   mode1: 0 as HintMode,
   modeOpt: null as HintsNS.ModeOpt | null,
@@ -135,14 +135,14 @@ var VHints = {
     }
 
     if (this.box) { this.box.remove(); this.box = null; }
-    this.hintMarkers = (elements as Hint[]).map(this.createMarkerFor, this);
+    this.hints = (elements as Hint[]).map(this.createMarkerFor, this);
     this.adjustMarkers(elements as Hint[]);
     elements = null;
-    this.alphabetHints.initMarkers(this.hintMarkers, str);
+    this.alphabetHints.initMarkers(this.hints, str);
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320;
     VDom.UI.ensureBorder(VDom.docZoom);
-    this.box = VDom.UI.addElementList(this.hintMarkers, arr);
+    this.box = VDom.UI.addElementList(this.hints, arr);
     // note: delay it to avoid calling `ensureBorder` twice
     this.setMode(this.mode, false, true);
 
@@ -241,9 +241,8 @@ var VHints = {
   maxTop: 0,
   maxRight: 0,
   zIndexes: null as null | false | HintsNS.Stacks,
-  createMarkerFor (link: Hint): HintsNS.Marker {
-    let marker = VDom.createElement("span") as HintsNS.Marker, i: number;
-    marker.clickableItem = link[0];
+  createMarkerFor (link: Hint): HintsNS.HintItem {
+    let marker = VDom.createElement("span") as HintsNS.HintItem["marker"], i: number;
     i = link.length < 4 ? link[1][0] : (link as Hint4)[3][0][0] + (link as Hint4)[3][1];
     marker.className = link[2] < ClickType.minBox ? "LH" : "LH BH";
     const st = marker.style;
@@ -256,18 +255,19 @@ var VHints = {
     if (i > this.maxTop) {
       st.maxHeight = this.maxTop - i + 18 + "px";
     }
-    link.length > 4 && (marker.referenceItem = (link as Hint5)[4]);
-    return marker;
+    const hint: HintsNS.HintItem = { marker, target: link[0] };
+    link.length > 4 && (hint.refer = (link as Hint5)[4]);
+    return hint;
   },
   adjustMarkers (elements: Hint[]): void {
     const zi = VDom.bodyZoom;
     if (zi === 1) { return; }
     let root = VDom.UI.root, i = elements.length - 1;
     if (!root || elements[i][0] !== Vomnibar.box && !root.querySelector('#HelpDialog')) { return; }
-    const z = ("" + 1 / zi).substring(0, 5), arr = this.hintMarkers as HintsNS.Marker[],
+    const z = ("" + 1 / zi).substring(0, 5), arr = this.hints as HintsNS.HintItem[],
     mr = this.maxRight * VDom.bodyZoom, mt = this.maxTop * VDom.bodyZoom;
     while (0 <= i && root.contains(elements[i][0])) {
-      let st = arr[i--].style;
+      let st = arr[i--].marker.style;
       st.zoom = z;
       st.maxWidth && (st.maxWidth = mr - elements[i][1][0] + "px");
       st.maxHeight && (st.maxHeight = mt - elements[i][1][1] + 18 + "px");
@@ -666,7 +666,7 @@ var VHints = {
     } else if (i === VKeyCodes.space) {
       this.zIndexes === false || this.rotateHints(event.shiftKey);
       event.shiftKey && this.ResetMode();
-    } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hintMarkers as HintsNS.Marker[], event, this.keyStatus))){
+    } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hints as HintsNS.HintItem[], event, this.keyStatus))){
       if (linksMatched === false) {
         this.tooHigh = null;
         setTimeout(this.reinit.bind(this, null), 0);
@@ -679,7 +679,7 @@ var VHints = {
     } else {
       const limit = this.keyStatus.tab ? 0 : this.keyStatus.newHintLength;
       for (i = linksMatched.length; 0 <= --i; ) {
-        let ref = linksMatched[i].childNodes as NodeListOf<HTMLSpanElement>, j = ref.length;
+        let ref = linksMatched[i].marker.childNodes as NodeListOf<HTMLSpanElement>, j = ref.length;
         while (limit <= --j) {
           ref[j].classList.remove("MC");
         }
@@ -712,21 +712,21 @@ var VHints = {
     }
   },
   resetHints (): void {
-    let ref = this.hintMarkers, i = 0, len = ref ? ref.length : 0;
-    this.hintMarkers = this.zIndexes = null;
+    let ref = this.hints, i = 0, len = ref ? ref.length : 0;
+    this.hints = this.zIndexes = null;
     this.pTimer > 0 && clearTimeout(this.pTimer);
-    while (i < len) { (ref as HintsNS.Marker[])[i++].clickableItem = null as never; }
+    while (i < len) { (ref as HintsNS.HintItem[])[i++].target = null as never; }
   },
-  activateLink (hintEl: HintsNS.Marker): void {
-    let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hintEl.clickableItem;
+  activateLink (hintEl: HintsNS.HintItem): void {
+    let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hintEl.target;
     this.resetHints();
     const str = (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string;
     VHUD.text = str; // in case pTimer > 0
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
-      rect = hintEl.referenceItem ? VDom.getClientRectsForAreas(hintEl.referenceItem, [], [clickEl as HTMLAreaElement])
+      rect = hintEl.refer ? VDom.getClientRectsForAreas(hintEl.refer, [], [clickEl as HTMLAreaElement])
         : VDom.UI.getVRect(clickEl);
-      const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hintEl);
+      const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hintEl.marker);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect(clickEl)))) {
         const force = clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement;
         setTimeout(function(): void {
@@ -776,7 +776,7 @@ var VHints = {
     if (hidden && VDom.lastHovered === el) {
       VDom.lastHovered = null;
     }
-    if (r && _this.isActive && (_this.hintMarkers as HintsNS.Marker[]).length < 64
+    if (r && _this.isActive && (_this.hints as HintsNS.HintItem[]).length < 64
         && !_this.alphabetHints.hintKeystroke
         && (hidden || Math.abs(r2.left - r[0]) > 100 || Math.abs(r2.top - r[1]) > 60)) {
       return _this.reinit();
@@ -784,7 +784,7 @@ var VHints = {
   },
   clean (keepHUD?: boolean): void {
     const ks = this.keyStatus, alpha = this.alphabetHints;
-    this.options = this.modeOpt = this.zIndexes = this.hintMarkers = null as never;
+    this.options = this.modeOpt = this.zIndexes = this.hints = null as never;
     this.pTimer > 0 && clearTimeout(this.pTimer);
     this.lastMode = this.mode = this.mode1 = this.count = this.pTimer =
     this.maxLeft = this.maxTop = this.maxRight = ks.tab = ks.newHintLength = alpha.countMax = 0;
@@ -803,7 +803,7 @@ var VHints = {
     return VDom.UI.suppressTail(suppressType);
   },
   rotateHints (reverse?: boolean): void {
-    let ref = this.hintMarkers as HintsNS.Marker[], stacks = this.zIndexes;
+    let ref = this.hints as HintsNS.HintItem[], stacks = this.zIndexes;
     if (!stacks) {
       stacks = [] as HintsNS.Stacks;
       ref.forEach(this.MakeStacks, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
@@ -817,19 +817,19 @@ var VHints = {
     for (const stack of stacks) {
       reverse && stack.reverse();
       const i = stack[stack.length - 1];
-      let oldI = ref[i].style.zIndex || i;
+      let oldI = ref[i].zIndex || i;
       for (const j of stack) {
-        const style = ref[j].style, newI = style.zIndex || j;
-        style.zIndex = oldI as string;
+        const hint = ref[j], {style} = hint.marker, newI = hint.zIndex || j;
+        style.zIndex = (hint.zIndex = oldI) as number | string as string;
         oldI = newI;
       }
       reverse && stack.reverse();
     }
   },
-  MakeStacks (this: [Array<ClientRect | null>, HintsNS.Stacks], marker: HintsNS.Marker, i: number) {
+  MakeStacks (this: [Array<ClientRect | null>, HintsNS.Stacks], hint: HintsNS.HintItem, i: number) {
     let rects = this[0];
-    if (marker.style.visibility === "hidden") { rects.push(null); return; }
-    const stacks = this[1], m = marker.getClientRects()[0];
+    if (hint.marker.style.visibility === "hidden") { rects.push(null); return; }
+    const stacks = this[1], m = hint.marker.getClientRects()[0];
     rects.push(m);
     let stackForThisMarker = null as HintsNS.Stack | null;
     for (let j = 0, len2 = stacks.length; j < len2; ) {
@@ -877,15 +877,15 @@ alphabetHints: {
     }
     return hintString;
   },
-  initMarkers (hintMarkers: HintsNS.Marker[], str: string): void {
+  initMarkers (hintItems: HintsNS.HintItem[], str: string): void {
     this.chars = str.toUpperCase();
     this.hintKeystroke = "";
-    for (let end = hintMarkers.length, hints = this.buildHintIndexes(end), h = 0; h < end; h++) {
-      const marker = hintMarkers[h], hintString = marker.hintString = this.numberToHintString(hints[h]);
+    for (let end = hintItems.length, hints = this.buildHintIndexes(end), h = 0; h < end; h++) {
+      const hint = hintItems[h], hintString = hint.key = this.numberToHintString(hints[h]);
       for (let i = 0, len = hintString.length; i < len; i++) {
         const node = document.createElement('span');
         node.textContent = hintString[i];
-        marker.appendChild(node);
+        hint.marker.appendChild(node);
       }
     }
     this.countMax -= (this.countLimit > 0) as boolean | number as number;
@@ -909,8 +909,8 @@ alphabetHints: {
     }
     return result;
   },
-  matchHintsByKey (hintMarkers: HintsNS.Marker[], event: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
-    let keyChar: string, key = event.keyCode, arr = null as HintsNS.Marker[] | null;
+  matchHintsByKey (hints: HintsNS.HintItem[], event: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
+    let keyChar: string, key = event.keyCode, arr = null as HintsNS.HintItem[] | null;
     if (key === VKeyCodes.tab) {
       if (!this.hintKeystroke) {
         return false;
@@ -942,14 +942,14 @@ alphabetHints: {
     VHints.zIndexes && (VHints.zIndexes = null);
     const wanted = !keyStatus.tab;
     if (arr !== null && keyChar.length >= this.countMax) {
-      hintMarkers.some(function(linkMarker): boolean {
-        return linkMarker.hintString === keyChar && ((arr as HintsNS.Marker[]).push(linkMarker), true);
+      hints.some(function(hint): boolean {
+        return hint.key === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
       });
       if (arr.length === 1) { return arr; }
     }
-    return hintMarkers.filter(function(linkMarker) {
-      const pass = linkMarker.hintString.startsWith(keyChar) === wanted;
-      linkMarker.style.visibility = pass ? "" : "hidden";
+    return hints.filter(function(hint) {
+      const pass = (hint.key as string).startsWith(keyChar) === wanted;
+      hint.marker.style.visibility = pass ? "" : "hidden";
       return pass;
     });
   },

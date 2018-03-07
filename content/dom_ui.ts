@@ -52,7 +52,7 @@ VDom.UI = {
     const parent = VDom.createElement("div");
     parent.className = "R HM";
     for (const el of els) {
-      parent.appendChild(el);
+      parent.appendChild(el.marker);
     }
     const style = parent.style;
     style.left = offset[0] + "px"; style.top = offset[1] + "px";

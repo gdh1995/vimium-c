@@ -75,10 +75,12 @@ declare const enum EditableType {
 }
 
 declare namespace HintsNS {
-  interface Marker extends HTMLSpanElement {
-    clickableItem: Hint[0];
-    hintString: string;
-    referenceItem?: HTMLImageElement;
+  interface HintItem {
+    marker: HTMLSpanElement;
+    target: Hint[0];
+    key?: string;
+    refer?: HTMLImageElement;
+    zIndex?: number;
   }
 }
 
@@ -206,7 +208,7 @@ interface DomUI {
   flashLastingTime: number;
   _lastFlash: HTMLElement | null;
   addElement<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
-  addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: ViewOffset): HTMLDivElement;
+  addElementList(this: DomUI, els: ReadonlyArray<HintsNS.HintItem>, offset: ViewOffset): HTMLDivElement;
   adjust (this: void, event?: Event): void;
   toggle (this: DomUI, enabled: boolean): void;
   _styleBorder: (HTMLStyleElement & {zoom?: number}) | null;
