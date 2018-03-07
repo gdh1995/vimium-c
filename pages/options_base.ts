@@ -290,7 +290,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   generateDefaultPattern (this: PopExclusionRulesOption): string;
 }
   let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
-  if (!ref) {
+  if (!ref && !(tabs[0] && tabs[0].status === "loading")) {
     (document.body as HTMLBodyElement).textContent = "";
     blockedMsg.style.display = "";
     (document.body as HTMLBodyElement).appendChild(blockedMsg);
