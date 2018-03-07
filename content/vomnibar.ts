@@ -235,9 +235,11 @@ var Vomnibar = {
     style.top = VDom.docZoom !== 1 ? ((VomnibarNS.Consts.MarginTop / VDom.docZoom) | 0) + "px" : this.defaultTop;
     if (style.visibility) {
       style.visibility = "";
-      style = (VDom.UI.box as HTMLElement).style;
+      const box = VDom.UI.box as HTMLElement;
+      box.hasAttribute("style") && box.removeAttribute("style");
+    } else {
+      style.display = "";
     }
-    style.display = "";
     VUtils.remove(this);
     return VUtils.push(this.onKeydown, this);
   },

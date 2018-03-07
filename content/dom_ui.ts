@@ -27,8 +27,9 @@ VDom.UI = {
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
       adjust === AdjustType.AdjustButNotShow || (el.onload = function (): void {
         this.onload = null as never;
-        const a = VDom.UI;
-        (a.box as HTMLElement).removeAttribute("style");
+        const a = VDom.UI, box = a.box as HTMLElement;
+        // enforce webkit to build the style attribute node, and then we can remove it totally
+        box.hasAttribute("style") && box.removeAttribute("style");
         a.callback && a.callback();
       });
       (el = this._styleBorder) && (this.root as ShadowRoot).appendChild(el);
