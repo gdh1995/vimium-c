@@ -22,8 +22,11 @@ type MappedType<Type, NewValue> = {
 };
 
 // type EmptyArray = never[];
-
-declare function setTimeout (this: void, handler: (this: void) => void, timeout: number): number;
+declare const enum TimerType {
+  _native = 0,
+  fake = -1,
+}
+declare function setTimeout (this: void, handler: (this: void, i: TimerType.fake | undefined) => void, timeout: number): number;
 
 interface String {
   endsWith(searchString: string): boolean;

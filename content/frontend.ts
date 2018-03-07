@@ -70,7 +70,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     TestAlive (): void { esc && !vPort.port && VSettings.destroy(); },
     ClearPort (this: void): void {
       vPort.port = null;
-      requestHandlers.init && setTimeout(function(): void {
+      requestHandlers.init && setTimeout(function(i): void {
+        if (i) { VSettings.destroy(); } else
         try { esc && vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); }
       }, 2000);
     },

@@ -767,8 +767,8 @@ var VHints = {
   },
   setupCheck (el?: HintsNS.LinkEl | null, r?: VRect | null, isClick?: boolean): void {
     this.timer && clearTimeout(this.timer);
-    this.timer = el && (isClick === true || this.mode < HintMode.min_job) ? setTimeout(function(): void {
-      VHints && VHints.CheckLast(el, r);
+    this.timer = el && (isClick === true || this.mode < HintMode.min_job) ? setTimeout(function(i): void {
+      !i && VHints && VHints.CheckLast(el, r);
     }, 255) : 0;
   },
   CheckLast (this: void, el: HintsNS.LinkEl, r?: VRect | null): void {

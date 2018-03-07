@@ -194,10 +194,6 @@ declare const enum AdjustType {
 }
 type SelectActions = "" | "all" | "all-input" | "start" | "end";
 
-declare const enum TimerType {
-  _native = 0,
-  fake = -1,
-}
 declare function setInterval(this: void, handler: (this: void, info?: TimerType) => void, timeout: number): number;
 
 interface DomUI {

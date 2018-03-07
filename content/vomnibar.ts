@@ -142,9 +142,9 @@ var Vomnibar = {
       const i = page.indexOf("://"), wnd = this.contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options as VomnibarNS.FgOptionsToFront];
       page = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", i + 3));
-      inner && setTimeout(function(): void {
+      inner && setTimeout(function(i): void {
         const a = Vomnibar, ok = !a || a.status !== VomnibarNS.Status.Initing;
-        if (ok) { a && a.box && (a.box.onload = a.options = null as never); return; }
+        if (ok || i) { a && a.box && (a.box.onload = a.options = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }
         a.reset();
         (VDom.UI.box as HTMLElement).style.display = "";
@@ -184,7 +184,7 @@ var Vomnibar = {
     if (CSS) {
       UI.css(CSS);
     }
-    type !== VomnibarNS.PageType.inner && setTimeout(function(): void { loaded || Vomnibar.onReset || reload(); }, 2000);
+    type !== VomnibarNS.PageType.inner && setTimeout(function(i): void { loaded || i || Vomnibar.onReset || reload(); }, 2000);
   },
   reset (redo?: boolean): void | 1 {
     if (this.status === VomnibarNS.Status.NotInited) { return; }

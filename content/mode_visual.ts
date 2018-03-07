@@ -174,9 +174,9 @@ var VVisualMode = {
     this.hudTimer = setTimeout(this.ResetHUD, duration);
     return VHUD.show(text);
   },
-  ResetHUD (): void {
+  ResetHUD (i?: TimerType.fake | undefined): void {
     const _this = VVisualMode;
-    if (!_this) { return; }
+    if (!_this || i) { return; }
     _this.hudTimer = 0;
     if (_this.hud) { return VHUD.show(_this.hud); }
   },
