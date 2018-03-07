@@ -70,7 +70,7 @@ var Commands = {
         } else if (!(details = available[splitLine[2]])) {
           console.log("Command %c" + splitLine[2], "color:red", "doesn't exist!");
         } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum) {
-          console.log("Invalid key: %c" + key, "color:red", "(the first char can not be [0-9])");
+          console.log("Invalid key: %c" + key, "color:red", "(the first char can not be '-' or number)");
         } else {
           registry[key] = Utils.makeCommand(splitLine[2], (this as typeof Commands).getOptions(splitLine, 3), details);
           userDefinedKeys[key] = true;
@@ -133,6 +133,7 @@ var Commands = {
     oldErrors = d.errors;
     if (oldErrors < 0) { d.errors = -1 - oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
+    ref['-'] = 1;
     for (const key in d.keyToCommandRegistry) {
       const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
       if (last === 0) {

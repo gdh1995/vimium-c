@@ -1254,7 +1254,7 @@ Are you sure you want to continue?`);
       return cOptions.local ? funcDict.requireURL({ handler: "marks", action: "clear" }, true) : Marks.clear();
     }
   },
-  numHeadRe = <RegExpOne>/^\d+/,
+  numHeadRe = <RegExpOne>/^-?\d+/,
   executeCommand = function(command: string, registryEntry: CommandsNS.Item
       , count: number, lastKey: VKeyCodes, port: Port): void {
     const { options, repeat, alias, background } = registryEntry;
@@ -1966,7 +1966,7 @@ Are you sure you want to continue?`);
       }
     },
     execute (this: void, command, options, count, lastKey): void {
-      count = Math.max(1, (count as number) | 0);
+      count = (count as number) | 0;
       options && typeof options === "object" ?
           Object.setPrototypeOf(options, null) : (options = null);
       lastKey = (+<number>lastKey || VKeyCodes.None) as VKeyCodes;
