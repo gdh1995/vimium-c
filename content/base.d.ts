@@ -79,7 +79,7 @@ declare namespace HintsNS {
     marker: HTMLSpanElement;
     target: Hint[0];
     key?: string;
-    refer?: HTMLImageElement;
+    refer?: HTMLElementUsingMap;
     zIndex?: number;
   }
 }
@@ -169,19 +169,20 @@ interface HintOffset {
   [1]: number; // offset-x
 }
 
+type HTMLElementUsingMap = HTMLImageElement | HTMLObjectElement;
 interface Hint {
   [0]: HTMLElement | SVGElement; // element
   [1]: VRect; // bounding rect
   [2]: number; // priority (smaller is prior)
   [3]?: HintOffset;
-  [4]?: HTMLImageElement;
+  [4]?: HTMLElementUsingMap;
   length: number;
 }
 interface Hint4 extends Hint {
   [3]: HintOffset;
 }
 interface Hint5 extends Hint4 {
-  [4]: HTMLImageElement; // fixed rect
+  [4]: HTMLElementUsingMap; // fixed rect
 }
 
 declare const enum AdjustType {

@@ -98,7 +98,7 @@ var VDom = {
     }
     return null;
   },
-  getClientRectsForAreas: function (this: any, element: HTMLImageElement, output: Hint5[]
+  getClientRectsForAreas: function (this: any, element: HTMLElementUsingMap, output: Hint5[]
       , areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null | undefined | void {
     let diff: number, x1: number, x2: number, y1: number, y2: number, rect: VRect | null | undefined;
     const cr = element.getClientRects()[0] as ClientRect | undefined;
@@ -146,8 +146,8 @@ var VDom = {
       return output[0] && output[0][1];
     }
   } as {
-    (element: HTMLImageElement, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null | undefined;
-    (element: HTMLImageElement, output: Hint5[]): void;
+    (element: HTMLElementUsingMap, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null | undefined;
+    (element: HTMLElementUsingMap, output: Hint5[]): void;
   },
   specialZoom: false,
   docZoom: 1, // related to physical pixels

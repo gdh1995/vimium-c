@@ -324,6 +324,9 @@ var VHints = {
     case "object": case "embed":
       s = (element as HTMLObjectElement | HTMLEmbedElement).type;
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
+      if (element instanceof HTMLObjectElement && element.useMap) {
+        VDom.getClientRectsForAreas(element as HTMLObjectElement, this as Hint5[]);
+      }
       return;
     case "img":
       if ((element as HTMLImageElement).useMap) {
