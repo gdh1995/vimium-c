@@ -642,11 +642,11 @@ Pagination = {
   },
   findAndFollowRel (relName: string): boolean {
     const elements = document.querySelectorAll("[rel]"),
-    relTags = VUtils.safer({a: 1, area: 1, link: 1});
+    relTags = VUtils.safer({A: 1, AREA: 1, LINK: 1});
     let s: string | null;
     for (let _i = 0, _len = elements.length; _i < _len; _i++) {
       const element = elements[_i];
-      if (!(element instanceof HTMLFormElement) && (element.tagName.toLowerCase() in relTags)
+      if (!(element instanceof HTMLFormElement) && (element.tagName.toUpperCase() in relTags)
           && element instanceof HTMLElement
           && (s = (element as HTMLAnchorElement).rel) && s.toLowerCase() === relName) {
         return this.followLink(element);

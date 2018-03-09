@@ -290,9 +290,9 @@ var VHints = {
       }
       return;
     }
-    switch (element.tagName.toLowerCase()) {
-    case "a": case "details": isClickable = true; break;
-    case "frame": case "iframe":
+    switch (element.tagName.toUpperCase()) {
+    case "A": case "DETAILS": isClickable = true; break;
+    case "FRAME": case "IFRAME":
       if (element === Vomnibar.box) {
         if (arr = VDom.getVisibleClientRect(element)) {
           (arr as WritableVRect)[0] += 10.5; (arr as WritableVRect)[1] += 8;
@@ -303,15 +303,15 @@ var VHints = {
       isClickable = element !== VFindMode.box;
       type = isClickable ? ClickType.frame : ClickType.Default;
       break;
-    case "input": if ((element as HTMLInputElement).type === "hidden") { return; } // no break;
-    case "textarea":
+    case "INPUT": if ((element as HTMLInputElement).type === "hidden") { return; } // no break;
+    case "TEXTAREA":
       if ((element as HTMLTextAreaElement | HTMLInputElement).disabled && VHints.mode1 <= HintMode.LEAVE) { return; }
       if (!(element as HTMLTextAreaElement | HTMLInputElement).readOnly || VHints.mode >= HintMode.min_job
         || element instanceof HTMLInputElement && (element.type in VDom.uneditableInputs)) {
         isClickable = true;
       }
       break;
-    case "label":
+    case "LABEL":
       if ((element as HTMLLabelElement).control) {
         let el2 = (element as HTMLLabelElement).control as HTMLElement, arr2: Hint[] = [];
         if (el2.getAttribute("disabled")) { return; }
@@ -319,16 +319,16 @@ var VHints = {
         isClickable = arr2.length === 0;
       }
       break;
-    case "button": case "select":
+    case "BUTTON": case "SELECT":
       isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled || VHints.mode1 > HintMode.LEAVE; break;
-    case "object": case "embed":
+    case "OBJECT": case "EMBED":
       s = (element as HTMLObjectElement | HTMLEmbedElement).type;
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
       if (element instanceof HTMLObjectElement && element.useMap) {
         VDom.getClientRectsForAreas(element as HTMLObjectElement, this as Hint5[]);
       }
       return;
-    case "img":
+    case "IMG":
       if ((element as HTMLImageElement).useMap) {
         VDom.getClientRectsForAreas(element as HTMLImageElement, this as Hint5[]);
       }
@@ -339,7 +339,7 @@ var VHints = {
         isClickable = true;
       }
       break;
-    case "div": case "ul": case "pre": case "ol": case "code":
+    case "DIV": case "UL": case "PRE": case "OL": case "CODE":
       type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? ClickType.scrollY
         : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default;
       break;
@@ -380,12 +380,12 @@ var VHints = {
   GetEditable (this: Hint[], element: Element): void {
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
     let arr: VRect | null, type = ClickType.Default, s: string;
-    switch (element.tagName.toLowerCase()) {
-    case "input":
+    switch (element.tagName.toUpperCase()) {
+    case "INPUT":
       if ((element as HTMLInputElement).type in VDom.uneditableInputs) {
         return;
       } // no break;
-    case "textarea":
+    case "TEXTAREA":
       if ((element as HTMLInputElement | HTMLTextAreaElement).disabled ||
           (element as HTMLInputElement | HTMLTextAreaElement).readOnly) { return; }
       break;
