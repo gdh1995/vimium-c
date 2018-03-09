@@ -373,4 +373,5 @@ declare const enum BrowserVer {
   // a 3rd-party Vomnibar will trigger "navigation" and clear all logs in console on Chrome 64
   // this still occurs on Chrome 65.0.3325.106 (Beta)
   VomnibarMayClearLog = 64,
+  MinChromeUrl$ExtensionShortcuts = 65,
 }

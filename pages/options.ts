@@ -551,6 +551,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 })();
 
+if (bgSettings.CONST.ChromeVersion < BrowserVer.MinChromeUrl$ExtensionShortcuts) {
+  $<HTMLAnchorElement>("#openExtensionPage").href = "chrome://extension/?id=footer-section";
+  $("#openExtensionPage").textContent = "chrome://extension";
+}
 $<HTMLAnchorElement>("#openExtensionPage").onclick = function(event): void {
   event.preventDefault();
   return BG.Backend.focusOrLaunch({ url: this.href, reuse: ReuseType.reuse, prefix: true });
