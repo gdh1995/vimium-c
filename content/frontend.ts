@@ -314,7 +314,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     passNextKey (count: number, options: FgOptions): void {
       const keys = Object.create<BOOL>(null);
-      count = Math.abs(count || 1);
+      count = Math.abs(count);
       let keyCount = 0;
       if (options.normal) {
         const func = esc;
@@ -385,7 +385,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return VDom.UI.simulateSelect(newEl, null, false, "", true);
     },
     goBack (count: number, options: FgOptions): void {
-      const step = Math.min(Math.abs(count || 1), history.length - 1);
+      const step = Math.min(Math.abs(count), history.length - 1);
       step > 0 && history.go((count < 0 ? -step : step) * (+options.dir || -1));
     },
     showHelp (msg?: number | "exitHD"): void {
@@ -452,7 +452,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         VDom.setBoundary(marker.style, rect);
         return {marker, target: link[0]};
       });
-      if (count < 2 && count > -2 && InsertMode.last) {
+      if (count === 1 && InsertMode.last) {
         sel = Math.max(0, visibleInputs.map(link => link[0]).indexOf(InsertMode.last));
       } else {
         sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);

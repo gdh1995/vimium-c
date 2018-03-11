@@ -1045,7 +1045,7 @@ Are you sure you want to continue?`);
       const trail = cOptions.trailing_slash,
       { path, url } = requestHandlers.parseUpperUrl({
         trailing_slash: trail != null ? !!trail : null,
-        url: tabs[0].url, upper: commandCount - 1
+        url: tabs[0].url, upper: commandCount
       });
       if (path != null) {
         chrome.tabs.update(tabs[0].id, {url});
@@ -1407,7 +1407,7 @@ Are you sure you want to continue?`);
         end = 0;
         decoded = false;
       }
-      i = request.upper | 0;
+      i = request.upper;
       startSlash = path.startsWith("/");
       if (!hash && url_l.startsWith("file:")) {
         if (path.length <= 1 || url.length === 11 && url.endsWith(":/")) {
@@ -1415,14 +1415,14 @@ Are you sure you want to continue?`);
           return { url: "This has been the root path", path: null };
         }
         endSlash = true;
-        i || (i = -1);
+        i === 1 && (i = -1);
       } else if (!hash && url_l.startsWith("ftp:")) {
         endSlash = true;
       } else {
         endSlash = request.trailing_slash != null ? !!request.trailing_slash
           : path.length > 1 && path.endsWith("/");
       }
-      if (!i) {
+      if (!i || i === 1) {
         path = "/";
       } else {
         const arr3 = path.substring(+startSlash, (path.length - +path.endsWith("/")) || +startSlash).split("/");

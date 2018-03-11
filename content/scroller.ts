@@ -107,7 +107,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"],
   ScBy (this: void, count: number, options: FgOptions): void {
     if (VHints.tryNestedFrame("VScroller.ScBy", count, options)) { return; }
-    return VScroller.scrollBy(options.axis === "x" ? 0 : 1, (+options.dir || 1) * (count || 1), options.view);
+    return VScroller.scrollBy(options.axis === "x" ? 0 : 1, (+options.dir || 1) * count, options.view);
   },
   /** amount: can not be 0 */
   scrollBy (di: ScrollByY, amount: number, factor: 0 | 1 | "max" | "viewSize"): void {
@@ -121,9 +121,11 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   },
   ScTo (this: void, count: number, options: FgOptions): void {
     if (VHints.tryNestedFrame("VScroller.ScTo", count, options)) { return; }
-    return VScroller.scrollTo(options.axis === "x" ? 0 : 1, count - 1, options.dest === "max" ? 1 : 0);
+    let fromMax: BOOL = options.dest === "max" ? 1 : 0;
+    if (count < 0) { fromMax = (1 - fromMax as BOOL); count = -count; }
+    return VScroller.scrollTo(options.axis === "x" ? 0 : 1, count - 1, fromMax);
   },
-  /** amount: may be 0 */
+  /** `amount`: default to be `0` */
   scrollTo (di: ScrollByY, amount: number, fromMax: BOOL): void {
     const element = this.findScrollable(this.getActivatedElement(), di, fromMax ? 1 : -1);
     amount = this.adjustAmount(di, amount, element);

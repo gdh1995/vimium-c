@@ -74,7 +74,7 @@ var Vomnibar = {
       } else {
         url = options.topUrl as string;
       }
-      upper = 1 - count;
+      upper = count > 1 ? 1 - count : count < 0 ? -count : 0;
       options.topUrl = "";
       options.url = url;
     } else if (url != null) {
