@@ -1253,15 +1253,15 @@ Are you sure you want to continue?`);
       return cOptions.local ? funcDict.requireURL({ handler: "marks", action: "clear" }, true) : Marks.clear();
     }
   },
-  numHeadRe = <RegExpOne>/^-?\d+/,
+  numHeadRe = <RegExpOne>/^-?\d+|^-/,
   executeCommand = function(command: string, registryEntry: CommandsNS.Item
       , count: number, lastKey: VKeyCodes, port: Port): void {
     const { options, repeat, alias, background } = registryEntry;
-    let scale: number;
-    if (options && (scale = +options.count)) { count = Math.max(1, (count * scale) | 0); }
+    let scale: number | undefined;
+    if (options && (scale = options.count)) { count = (count * scale || 1) | 0; }
     if (count === 1) {}
     else if (repeat === 1) { count = 1; }
-    else if (repeat > 0 && count > repeat && !funcDict.confirm(command, count)) { return; }
+    else if (repeat > 0 && (count > repeat || count < -repeat) && !funcDict.confirm(command, Math.abs(count))) { return; }
     if (!background) {
       const i = alias.indexOf(".");
       command = i === 0 ? alias.substring(1) || command : alias;
@@ -1640,8 +1640,9 @@ Are you sure you want to continue?`);
       let key: string = request.key, count = 1;
       let arr: null | string[] = numHeadRe.exec(key);
       if (arr != null) {
-        key = key.substring(arr[0].length);
-        count = parseInt(arr[0], 10) || 1;
+        let prefix = arr[0];
+        key = key.substring(prefix.length);
+        count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1;
       }
       const ref = CommandsData.keyToCommandRegistry;
       if (!(key in ref)) {

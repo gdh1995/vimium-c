@@ -652,13 +652,15 @@ var Utils = {
     if (!details) { details = CommandsData.availableCommands[command] as CommandsNS.Description }
     opt = details.length < 4 ? null : (details as CommandsNS.BaseDescriptionEx)[3];
     if (options) {
+      let rawCount = options.count;
       if (opt) {
         opt instanceof Object && Object.setPrototypeOf(opt, null);
         Utils.extendIf(options, opt);
       }
-      if (options.count == null) {}
-      else if (details[1] === 1 || (options.count |= 0) <= 0) {
-        options.count = 1;
+      if (rawCount != null) {
+        options.count = details[1] === 1 ? 1 : (parseInt(rawCount) || 1) * (opt && opt.count || 1);
+      } else if (opt && "count" in opt) {
+        options.count = opt.count;
       }
     } else {
       options = opt;
