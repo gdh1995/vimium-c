@@ -301,7 +301,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
     a.url = bgSettings.CONST.OptionsPage;
-    BG.Backend.focusOrLaunch(a);
+    BG.Backend.focus(a);
     window.close();
   };
   $<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;

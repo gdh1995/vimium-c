@@ -557,7 +557,7 @@ if (bgSettings.CONST.ChromeVersion < BrowserVer.MinChromeUrl$ExtensionShortcuts)
 }
 $<HTMLAnchorElement>("#openExtensionPage").onclick = function(event): void {
   event.preventDefault();
-  return BG.Backend.focusOrLaunch({ url: this.href, reuse: ReuseType.reuse, prefix: true });
+  return BG.Backend.focus({ url: this.href, reuse: ReuseType.reuse, prefix: true });
 }
 
 $("#importButton").onclick = function(): void {

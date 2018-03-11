@@ -964,7 +964,7 @@ Are you sure you want to continue?`);
     },
     searchInAnother (this: void, tabs: [Tab]): void {
       let keyword = (cOptions.keyword || "") + "";
-      const query = Backend.parseSearchUrl({ url: tabs[0].url });
+      const query = Backend.parse({ url: tabs[0].url });
       if (!query || !keyword) {
         Backend.showHUD(keyword ? "No search engine found!"
           : 'This key mapping lacks an arg "keyword"');
@@ -1307,7 +1307,7 @@ Are you sure you want to continue?`);
       return FindModeHistory.query(port.sender.incognito, request.query, request.index);
     },
     parseSearchUrl (this: void, request: FgReq["parseSearchUrl"], port: Port): FgRes["parseSearchUrl"] | void {
-      let search = Backend.parseSearchUrl(request);
+      let search = Backend.parse(request);
       if ("id" in request) {
         port.postMessage({ name: "parsed", id: request.id as number, search });
       } else {
@@ -1344,7 +1344,7 @@ Are you sure you want to continue?`);
           else if (!arr) { start = 0; }
           else if (!decoded) { start = arr.index + arr[1].length; }
           else {
-            str = "http://example.com/";
+            str = "https://example.com/";
             str = encodeURI(str + path).substring(str.length);
             i = hash.indexOf(str);
             if (i < 0) {
@@ -1442,7 +1442,7 @@ Are you sure you want to continue?`);
       (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"];
     },
     searchAs (this: void, request: FgReq["searchAs"], port: Port): void {
-      let search = Backend.parseSearchUrl(request), query: string | null;
+      let search = Backend.parse(request), query: string | null;
       if (!search || !search.keyword) {
         cPort = port;
         return Backend.showHUD("No search engine found!");
@@ -1844,14 +1844,14 @@ Are you sure you want to continue?`);
     gotoSession: requestHandlers.gotoSession,
     openUrl: requestHandlers.openUrl,
     checkIfEnabled: requestHandlers.checkIfEnabled,
-    focusOrLaunch: requestHandlers.focusOrLaunch,
+    focus: requestHandlers.focusOrLaunch,
     getExcluded: Utils.getNull,
     IconBuffer: null,
     setIcon (): void {},
     complain (action: string): void {
       return this.showHUD("It's not allowed to " + action);
     },
-    parseSearchUrl (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"] {
+    parse (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"] {
       let s0 = request.url, url = s0.toLowerCase(), pattern: Search.Rule | undefined
         , arr: string[] | null = null, _i: number, selectLast = false;
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {

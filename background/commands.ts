@@ -333,7 +333,7 @@ availableCommands: {
   "LinkHints.unhoverLast": [ "Stop hovering at last location", 1, false, null, "Hints.unhoverLast" ],
   enterFindMode: [ "Enter find mode (use last)", 1, true, {active: true}, "performFind" ],
   performFind: [ "Cycle forward to the next find match (use dir=1/-1)", 0, true ],
-  performBackwardsFind: [ "Cycle backward to the previous find match", 0, true, { dir: -1 }, "performFind" ],
+  performBackwardsFind: [ "Cycle backward to the previous find match", 0, true, { count: -1 }, "performFind" ],
   clearFindHistory: ["Clear find mode history", 1, true],
   switchFocus: [ "blur activeElement or refocus it", 1, false ],
   simBackspace: [ "simulate backspace for once if focused", 1, false, { act: "backspace" }, "switchFocus" ],

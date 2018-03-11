@@ -5,7 +5,7 @@
 (function(): void {
 const BG = chrome.extension.getBackgroundPage() as Window;
 if (BG && !BG.Settings.get("dialogMode")) {
-  BG.Backend.focusOrLaunch({
+  BG.Backend.focus({
     url: BG.Settings.CONST.OptionsPage,
     reuse: ReuseType.reuse
   });

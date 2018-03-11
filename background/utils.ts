@@ -352,7 +352,7 @@ var Utils = {
       path = (this as typeof Utils).decodeEscapedURL(path);
       arr = [path];
       path = this.convertToUrl(path);
-      if (this.lastUrlType !== Urls.Type.Search && (obj = Backend.parseSearchUrl({ url: path }))) {
+      if (this.lastUrlType !== Urls.Type.Search && (obj = Backend.parse({ url: path }))) {
         if (obj.url === "") {
           arr = [cmd];
         } else {

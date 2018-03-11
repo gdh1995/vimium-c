@@ -377,14 +377,14 @@ declare namespace BackendHandlersNS {
   }
 
   interface BackendHandlers {
-    parseSearchUrl (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"];
+    parse (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"];
     gotoSession: {
       (this: void, request: { sessionId: string | number, active: true }, port: Port): void;
       (this: void, request: { sessionId: string | number, active?: false }): void;
     };
     openUrl (this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
     checkIfEnabled: checkIfEnabled;
-    focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch): void;
+    focus (this: void, request: MarksNS.FocusOrLaunch): void;
     reopenTab (tab: chrome.tabs.Tab, refresh?: boolean): void;
     setIcon (tabId: number, type: Frames.ValidStatus): void;
     IconBuffer: IconNS.AccessIconBuffer | null,

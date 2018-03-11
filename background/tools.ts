@@ -111,7 +111,7 @@ ContentSettings = {
   },
   clearCS (options: CommandsNS.Options, port: Port): void {
     const ty = "" + options.type as CSTypes;
-    if (!this.complain(ty, "http://a.cc/")) {
+    if (!this.complain(ty, "https://a.cc/")) {
       this.Clear(ty, port.sender);
       return Backend.showHUD(ty + " content settings have been cleared.");
     }
@@ -293,7 +293,7 @@ Marks = { // NOTE: all public members should be static
     if (Backend.indexPorts(markInfo.tabId)) {
       chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
     } else {
-      return Backend.focusOrLaunch(markInfo);
+      return Backend.focus(markInfo);
     }
   },
   checkTab (this: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
@@ -302,7 +302,7 @@ Marks = { // NOTE: all public members should be static
       Backend.gotoSession({ sessionId: tab.id });
       return Marks.scrollTab(this, tab);
     } else {
-      return Backend.focusOrLaunch(this);
+      return Backend.focus(this);
     }
   },
   getLocationKey (markName: string, url: string | undefined): string {
