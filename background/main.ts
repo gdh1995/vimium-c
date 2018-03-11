@@ -338,7 +338,7 @@ Are you sure you want to continue?`);
       if (wnd.incognito && wnd.type !== "normal") {
         // url is disabled to be opened in a incognito window directly
         return funcDict.createTab[2](this, tab
-          , (--commandCount > 0) ? funcDict.duplicateTab[1] : null, wnd.tabs);
+          , commandCount > 1 ? funcDict.duplicateTab[1] : null, wnd.tabs);
       }
       return openMultiTab({
         url: this, active: tab.active, windowId: wnd.type === "normal" ? tab.windowId : undefined,
@@ -399,14 +399,14 @@ Are you sure you want to continue?`);
       const tab = wnd.tabs.filter(tab => tab.id === tabId)[0];
       return wnd.incognito && !tab.incognito ? funcDict.duplicateTab[1](tabId) : funcDict.duplicateTab[2](tab);
     }, function(id) {
-      for (let count = commandCount; --count >= 0; ) {
+      for (let count = commandCount; 0 < --count; ) {
         chrome.tabs.duplicate(id);
       }
     }, function(tab) {
       return openMultiTab({
         url: tab.url, active: false, windowId: tab.windowId,
         index: tab.index + 2 , openerTabId: tab.id
-      }, commandCount);
+      }, commandCount - 1);
     }] as [
       (tabId: number, wnd: PopWindow) => void,
       (tabId: number) => void,
@@ -514,26 +514,29 @@ Are you sure you want to continue?`);
       } while (0 < --repeat);
     },
     moveTabToNewWindow: [function(wnd): void {
-      const limited = cOptions.limited != null ? !!cOptions.limited : null, len = wnd.tabs.length;
-      if (len <= 1 || commandCount === len && !limited) { return; } // not an exact filter
-      const tab = funcDict.selectFrom(wnd.tabs), i = tab.index,
-      count = Math.min(commandCount, limited === false || limited === null && commandCount <= len ? len : len - i);
-      if (count >= len) { return Backend.showHUD("It does nothing to move all tabs of this window"); }
+      const total = wnd.tabs.length;
+      if (total <= 1) { return; } // not need to show a tip
+      const tab = funcDict.selectFrom(wnd.tabs), i = tab.index, rawCount = commandCount, absCount = Math.abs(rawCount),
+      limited = cOptions.limited != null ? !!cOptions.limited : absCount > total,
+      count = Math.min(absCount, limited ? rawCount < 0 ? i + 1 : total - i : total);
+      if (count >= total) { return Backend.showHUD("It does nothing to move all tabs of this window"); }
       if (count > 30 && !funcDict.confirm("moveTabToNewWindow", count)) { return; }
       return funcDict.makeWindow({
         tabId: tab.id,
         incognito: tab.incognito
       }, wnd.type === "normal" ? wnd.state : "",
-      commandCount > 1 ? funcDict.moveTabToNewWindow[1].bind(wnd, tab.index, count) : undefined);
+      absCount > 1 ? funcDict.moveTabToNewWindow[1].bind(wnd, tab.index, rawCount < 0 ? -count : count) : null);
     }, function(i, count, wnd2): void {
-        let tabs = this.tabs, curTab = tabs[i], startTabIndex = tabs.length - count;
-        if (startTabIndex >= i) {
-          tabs = tabs.slice(i + 1, i + count);
+        let tabs = this.tabs;
+        const curTab = tabs[i], len = tabs.length, end = i + count;
+        if (end <= len && end >= -1) {
+          tabs = count > 0 ? tabs.slice(i + 1, end) : tabs.slice(end + 1, i);
         } else {
-          curTab.id = tabs[startTabIndex].id;
-          tabs = tabs.slice(startTabIndex + 1);
+          const last = count > 0 ? len - count : -1 - count;
+          curTab.id = tabs[last].id;
+          tabs = count > 0 ? tabs.slice(last + 1) : tabs.slice(0, last);
         }
-        if (Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito && this.incognito) {
+        if (this.incognito && Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito) {
           tabs = tabs.filter(tab => tab.incognito === curTab.incognito);
         }
         const tabIds = tabs.map(funcDict.getId);
@@ -670,12 +673,11 @@ Are you sure you want to continue?`);
       }
     },
     restoreGivenTab (this: void, list: chrome.sessions.Session[]): void {
-      if (commandCount <= list.length) {
-        const session = list[commandCount - 1], item = session.tab || session.window;
-        item && chrome.sessions.restore(item.sessionId);
-        return;
+      if (commandCount > list.length) {
+        return Backend.showHUD("The session index provided is out of range.");
       }
-      return Backend.showHUD("The session index provided is out of range.");
+      const session = list[commandCount - 1], item = session.tab || session.window;
+      item && chrome.sessions.restore(item.sessionId);
     },
     selectTab (this: void, tabId: number, alsoWnd?: boolean): void {
       chrome.tabs.update(tabId, {active: true}, alsoWnd ? funcDict.selectWnd : null);
@@ -705,7 +707,7 @@ Are you sure you want to continue?`);
       }
     },
     focusParentFrame (this: Frames.Sender, frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
-      let frameId = this.frameId, found: boolean;
+      let frameId = this.frameId, found: boolean, count = commandCount;
       do {
         found = false;
         for (let i of frames) {
@@ -715,7 +717,7 @@ Are you sure you want to continue?`);
             break;
           }
         }
-      } while (found && 0 < --commandCount);
+      } while (found && 0 < --count);
       const port = frameId > 0 ? funcDict.indexFrame(this.tabId, frameId) : null;
       if (!port) {
         return BackgroundCommands.mainFrame();
@@ -810,7 +812,7 @@ Are you sure you want to continue?`);
         return Backend.complain("duplicate such a tab");
       }
       chrome.tabs.duplicate(tabId);
-      if (commandCount-- < 2) { return; }
+      if (commandCount < 2) { return; }
       if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito
           || TabRecency.incognito === IncognitoType.ensuredFalse) {
         chrome.tabs.get(tabId, funcDict.duplicateTab[2]);
@@ -839,18 +841,19 @@ Are you sure you want to continue?`);
       let count = ((cOptions.dir | 0) || 1) * commandCount, len = tabs.length, toSelect: Tab;
       count = cOptions.absolute
         ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
-        : commandCount > tabs.length * 2 ? (count > 0 ? -1 : 0)
+        : Math.abs(commandCount) > tabs.length * 2 ? (count > 0 ? -1 : 0)
         : funcDict.selectFrom(tabs).index + count;
       toSelect = tabs[(count >= 0 ? 0 : len) + (count % len)];
       if (!toSelect.active) { return funcDict.selectTab(toSelect.id); }
     },
     removeTab (this: void, tabs: Tab[]): void {
       if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
-      const startTabIndex = tabs.length - commandCount, limited = cOptions.limited != null ? !!cOptions.limited : null;
+      const total = tabs.length, rawCount = commandCount, absCount = Math.abs(rawCount),
+      limited = cOptions.limited != null ? !!cOptions.limited : absCount > total;
       let tab = tabs[0];
       if (cOptions.allow_close === true) {} else
-      if (startTabIndex <= 0 && (tab.active
-            || startTabIndex === 0 && !limited && (!tab.pinned || funcDict.selectFrom(tabs).pinned))
+      if (absCount >= total && (tab.active
+            || !limited && (!tab.pinned || funcDict.selectFrom(tabs).pinned))
       ) {
         chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
         return;
@@ -858,27 +861,29 @@ Are you sure you want to continue?`);
       if (!tab.active) {
         tab = funcDict.selectFrom(tabs);
       }
-      if (commandCount <= 1) {
-        chrome.tabs.remove(tab.id, funcDict.onRuntimeError);
-        if (cOptions.left && tab.index > 0) {
-          chrome.tabs.update(tabs[tab.index - 1].id, { active: true });
-        }
+      const i = tab.index, goLeft = cOptions.left, firstIsLeft = rawCount < 0, firstSide = firstIsLeft ? i + 1 : total - i,
+      count = Math.min(absCount, limited ? firstSide : total);
+      if (count > 20 && !funcDict.confirm("removeTab", count)) {
         return;
       }
-      const i = tab.index--;
-      if (commandCount > 20 && startTabIndex >= (limited ? i : 0) && !funcDict.confirm("removeTab", commandCount)) {
-        return;
-      }
-      funcDict.removeTabsRelative(tab, commandCount, tabs);
-      if (startTabIndex < 0 && limited !== false || startTabIndex >= i || limited
-          || i > 0 && tabs[i - 1].pinned && !tab.pinned) {
-        if (startTabIndex > i && i > 0 && cOptions.left) {
+      chrome.tabs.remove(tab.id, funcDict.onRuntimeError);
+      if (count <= 1) {
+        if (goLeft && i > 0) {
           chrome.tabs.update(tabs[i - 1].id, { active: true });
         }
         return;
       }
-      ++tab.index;
-      return funcDict.removeTabsRelative(tab, startTabIndex - i, tabs);
+      const isFirstNotPinned = i > 0 && tabs[i - 1].pinned && !tab.pinned, dir = firstIsLeft ? -1 : 1;
+      if (!firstIsLeft || !isFirstNotPinned) {
+        funcDict.removeTabsRelative(tab, dir * (count - 1), tabs);
+      }
+      if (count <= firstSide || !firstIsLeft && isFirstNotPinned) {
+        if (goLeft && count < firstSide && i > 0) {
+          chrome.tabs.update(tabs[i - 1].id, { active: true });
+        }
+        return;
+      }
+      return funcDict.removeTabsRelative(tab, dir * (firstSide - count), tabs);
     },
     removeTabsR (this: void, tabs: Tab[]): void {
       let dir = cOptions.dir | 0;
@@ -886,23 +891,24 @@ Are you sure you want to continue?`);
       return funcDict.removeTabsRelative(funcDict.selectFrom(tabs), dir * commandCount, tabs);
     },
     removeRightTab (this: void, tabs: Tab[]): void {
-      if (!tabs || commandCount > tabs.length - 1) { return; }
-      const ind = funcDict.selectFrom(tabs).index + commandCount;
-      chrome.tabs.remove(tabs[ind >= tabs.length ? tabs.length - 1 - commandCount : ind].id);
+      const last = tabs.length - 1, count = commandCount;
+      if (!tabs || count > last || count < -last) { return; }
+      const ind = funcDict.selectFrom(tabs).index + count;
+      chrome.tabs.remove(tabs[ind > last ? last - count : ind < 0 ? -count : ind].id);
     },
     restoreTab (this: void): void {
       if (!chrome.sessions) {
         return funcDict.complainNoSession();
       }
       let count = commandCount;
-      if (count === 1 && cPort.sender.incognito) {
+      if (count < 2 && count > -2 && cPort.sender.incognito) {
         return Backend.showHUD("Can not restore a tab in incognito mode!");
       }
       const limit = (chrome.sessions.MAX_SESSION_RESULTS as number) | 0;
       count > limit && limit > 0 && (count = limit);
-      while (--count >= 0) {
+      do {
         chrome.sessions.restore(null, funcDict.onRuntimeError);
-      }
+      } while (0 < --count);
     },
     restoreGivenTab (): void {
       if (!chrome.sessions) {
@@ -911,7 +917,7 @@ Are you sure you want to continue?`);
       if (commandCount > (chrome.sessions.MAX_SESSION_RESULTS || 25)) {
         return funcDict.restoreGivenTab([]);
       }
-      if (commandCount === 1) {
+      if (commandCount <= 1) {
         chrome.sessions.restore(null, funcDict.onRuntimeError);
         return;
       }
@@ -1009,21 +1015,28 @@ Are you sure you want to continue?`);
         return;
       }
       let reloadProperties = { bypassCache: (cOptions.hard || cOptions.bypassCache) === true }
-        , ind = funcDict.selectFrom(tabs).index, len = tabs.length
-        , end = ind + commandCount;
+        , ind = funcDict.selectFrom(tabs).index, len = tabs.length, tail = len - 1
+        , count = commandCount, dir = count > 0 ? 1 : -1, last = ind + count - dir;
       if (cOptions.single) {
-        ind = end <= len ? end - 1 : len >= commandCount ? len - commandCount : len - 1;
-        end = 0;
-      } else if (end > len) {
-        end = len;
-        len >= commandCount && (ind = len - commandCount);
+        ind = last > tail ? count > len ? 0 : len - count : last < 0 ? count < -len ? tail : dir - count : last;
+        last = ind + dir;
+      } else if (last > tail) {
+        last = len;
+        count <= len && (ind = len - count);
+      } else if (last < 0) {
+        last = dir;
+        count >= -len && (ind = dir - count);
+      } else {
+        last += dir;
       }
+      // now `last` is the real end of iteration
       do {
         chrome.tabs.reload(tabs[ind].id, reloadProperties);
-      } while (end > ++ind);
+        ind += dir;
+      } while (last != ind && ind < len && ind >= 0);
     },
     reloadGivenTab (): void {
-      if (commandCount === 1) {
+      if (commandCount < 2 && commandCount > -2) {
         chrome.tabs.reload();
         return;
       }
@@ -1078,8 +1091,10 @@ Are you sure you want to continue?`);
       const frames = framesForTab[port.sender.tabId];
       if (frames && frames.length > 2) {
         ind = Math.max(0, frames.indexOf(port, 1));
-        for (let count = commandCount; 0 <= --count; ) {
-          if (++ind === frames.length) { ind = 1; }
+        for (let count = Math.abs(commandCount), dir = commandCount > 0 ? 1 : -1; count > 0; count--) {
+          ind += dir;
+          if (ind === frames.length) { ind = 1; }
+          else if (ind < 1) { ind = frames.length - 1; }
         }
         port = frames[ind];
       }
@@ -1119,7 +1134,7 @@ Are you sure you want to continue?`);
       if (tabs.length < 2) { return; }
       tabs.splice(funcDict.selectFrom(tabs).index, 1);
       tabs.sort(TabRecency.rCompare);
-      const tabId = tabs[Math.min(commandCount, tabs.length) - 1].id;
+      const tabId = tabs[commandCount > 0 ? Math.min(commandCount, tabs.length) - 1 : Math.max(0, tabs.length + commandCount)].id;
       return funcDict.selectTab(tabId);
     },
     copyTabInfo (this: void, tabs: [Tab]): void {
@@ -1619,7 +1634,7 @@ Are you sure you want to continue?`);
       const { count, inner } = request;
       if (count != null) {
         delete request.count, delete request.handler, delete request.inner;
-        commandCount = Math.max(count | 0, 1);
+        commandCount = +count || 1;
         cOptions = Object.setPrototypeOf(request, null);
       } else if (request.redo !== true) {
         return;
