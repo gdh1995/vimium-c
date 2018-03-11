@@ -129,7 +129,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   scrollTo (di: ScrollByY, amount: number, fromMax: BOOL): void {
     const element = this.findScrollable(this.getActivatedElement(), di, fromMax ? 1 : -1);
     amount = this.adjustAmount(di, amount, element);
-    fromMax && (amount = this.getDimension(element, di, 2) - amount);
+    fromMax && (amount = this.getDimension(element, di, 2) - amount - this.getDimension(element, di, 0));
     amount -= element ? element[this.Properties[4 + di]] : di ? window.scrollY : window.scrollX;
     this.scroll(element, di, amount);
     this.top = null;
