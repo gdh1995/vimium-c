@@ -644,11 +644,12 @@ Pagination = {
     const elements = document.querySelectorAll("[rel]"),
     relTags = VUtils.safer({A: 1, AREA: 1, LINK: 1});
     let s: string | null;
-    for (let _i = 0, _len = elements.length; _i < _len; _i++) {
+    for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
       const element = elements[_i];
       if (!(element instanceof HTMLFormElement) && (element.tagName.toUpperCase() in relTags)
           && element instanceof HTMLElement
-          && (s = (element as HTMLAnchorElement).rel) && s.toLowerCase() === relName) {
+          && (s = (element as HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement).rel)
+          && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {
         return this.followLink(element);
       }
     }
