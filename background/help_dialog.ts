@@ -94,7 +94,7 @@ var HelpDialog = {
     vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
       , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
       , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
-      , "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
+      , "Vomnibar.activateUrl", "Vomnibar.activateUrlInNewTab"
       , "LinkHints.activateModeToOpenVomnibar"],
     historyNavigation: ["goBack", "goForward", "reopenTab"],
     findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "clearFindHistory"],
@@ -120,7 +120,7 @@ var HelpDialog = {
     , scrollPxDown: 1, scrollPxUp: 1, scrollPxLeft: 1, scrollPxRight: 1, debugBackground: 1, blank: 1
     , "LinkHints.activateModeToHover": 1, "LinkHints.unhoverLast": 1
     , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateModeToLeave": 1
-    , "Vomnibar.activateEditUrl": 1, "Vomnibar.activateEditUrlInNewTab": 1
+    , "Vomnibar.activateUrl": 1, "Vomnibar.activateUrlInNewTab": 1
   } as SafeEnum
 };
 
