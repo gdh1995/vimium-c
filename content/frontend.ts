@@ -349,11 +349,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       };
       return onKeyup2({keyCode: VKeyCodes.None} as KeyboardEvent);
     },
-    goNext (_0: number, {dir, patterns}: CmdOptions["goNext"]): void {
-      if (!VDom.isHTML() || Pagination.findAndFollowRel(dir)) { return; }
-      const isNext = dir === "next";
+    goNext (_0: number, {rel, patterns}: CmdOptions["goNext"]): void {
+      if (!VDom.isHTML() || Pagination.findAndFollowRel(rel)) { return; }
+      const isNext = rel === "next";
       if (patterns.length <= 0 || !Pagination.findAndFollowLink(patterns, isNext ? "<" : ">")) {
-        return VHUD.showForDuration("No links to go " + dir);
+        return VHUD.showForDuration("No links to go " + rel);
       }
     },
     reload (_0: number, {force, hard, url}: CmdOptions["reload"]): void {

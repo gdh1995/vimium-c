@@ -87,7 +87,6 @@ declare namespace HintsNS {
 declare namespace FindNS {
   interface ExecuteOptions {
     count?: number;
-    dir?: BOOL | -1;
     noColor?: boolean;
     caseSensitive?: boolean;
   }

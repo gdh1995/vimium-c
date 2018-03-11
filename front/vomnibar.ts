@@ -383,9 +383,9 @@ var Vomnibar = {
     }
   },
   _pageNumRe: <RegExpOne> /(?:^|\s)(\+\d{0,2})$/,
-  goPage (dir: boolean | number): void {
+  goPage (dirOrNum: boolean | number): void {
     const len = this.completions.length, n = this.mode.maxResults;
-    let str = len ? this.completions[0].type : "", sel = +dir || -1;
+    let str = len ? this.completions[0].type : "", sel = +dirOrNum || -1;
     if (this.isSearchOnTop) { return; }
     str = (this.isSelOriginal || this.selection < 0 ? this.input.value : this.inputText).trimRight();
     let arr = this._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;

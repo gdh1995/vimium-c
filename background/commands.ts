@@ -337,7 +337,7 @@ availableCommands: {
   clearFindHistory: ["Clear find mode history", 1, true],
   switchFocus: [ "blur activeElement or refocus it", 1, false ],
   simBackspace: [ "simulate backspace for once if focused", 1, false, { act: "backspace" }, "switchFocus" ],
-  goPrevious: [ "Follow the link labeled previous or &lt;", 1, true, { dir: "prev" }, "goNext" ],
+  goPrevious: [ "Follow the link labeled previous or &lt;", 1, true, { rel: "prev" }, "goNext" ],
   goNext: [ "Follow the link labeled next or &gt;", 1, true ],
   goBack: [ "Go back in history", 0, false ],
   goForward: [ "Go forward in history", 0, false, { dir: 1 }, "goBack" ],

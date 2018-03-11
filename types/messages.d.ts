@@ -112,7 +112,7 @@ interface CmdOptions {
     CSS: string | null;
   };
   goNext: {
-    dir: string;
+    rel: string;
     patterns: string[];
   };
   enterInsertMode: {
@@ -126,7 +126,6 @@ interface CmdOptions {
     } | { force?: boolean, hard?: boolean, url?: undefined };
   "Find.activate": {
     count: number;
-    dir: 1 | -1;
     leave: boolean,
     query: string;
   };

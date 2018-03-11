@@ -1139,8 +1139,9 @@ Are you sure you want to continue?`);
       return Backend.showHUD(str, true);
     },
     goNext (): void {
-      let dir = (cOptions.dir ? cOptions.dir + "" : "") || "next", i: any, p2: string[] = []
+      let rel: string | undefined = cOptions.rel || cOptions.dir, i: any, p2: string[] = []
         , patterns: string | string[] | boolean | number = cOptions.patterns;
+      rel = rel ? rel + "" : "next";
       if (patterns instanceof Array) {
         for (i of patterns) {
           i = i && (i + "").trim();
@@ -1148,7 +1149,7 @@ Are you sure you want to continue?`);
         }
       } else {
         typeof patterns === "string" || (patterns = "");
-        patterns = (patterns as string) || Settings.get(dir !== "next" ? "previousPatterns" : "nextPatterns", true);
+        patterns = (patterns as string) || Settings.get(rel !== "next" ? "previousPatterns" : "nextPatterns", true);
         patterns = patterns.trim().toLowerCase().split(",");
         for (i of patterns) {
           i = i.trim();
@@ -1158,7 +1159,7 @@ Are you sure you want to continue?`);
       if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
       cPort.postMessage<1, "goNext">({ name: "execute", count: 1, command: "goNext", CSS: null,
         options: {
-          dir,
+          rel,
           patterns: p2
         }
       });
@@ -1181,8 +1182,7 @@ Are you sure you want to continue?`);
       query = leave || cOptions.last ? (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito) : "";
       cPort.postMessage<1, "Find.activate">({ name: "execute", count: 1, command: "Find.activate"
           , CSS: funcDict.ensureInnerCSS(cPort), options: {
-        count: commandCount,
-        dir: cOptions.dir <= 0 ? -1 : 1,
+        count: cOptions.dir <= 0 ? -commandCount : commandCount,
         leave,
         query
       }});

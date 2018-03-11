@@ -233,14 +233,14 @@ html > count{float:right;}`,
           VEventMode.scroll(event, this.box.contentWindow);
         }
         else if (n === VKeyCodes.J || n === VKeyCodes.K) {
-          this.execute(null, { dir: (VKeyCodes.K - n) as BOOL });
+          this.execute(null, { count: (VKeyCodes.K - n) || -1 });
         }
         else { return; }
         i = Result.DoNothing;
       }
       else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
       else if (n === VKeyCodes.f2) { window.focus(); VEventMode.suppress(n); }
-      else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery(n === VKeyCodes.up ? 1 : -1); }
+      else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery(n !== VKeyCodes.up); }
       else { return; }
     } else if (i === Result.PassDirectly) {
       return;
@@ -273,11 +273,11 @@ html > count{float:right;}`,
     }
     return false;
   },
-  nextQuery (dir: 1 | -1): void {
-    const ind = this.historyIndex + dir;
+  nextQuery (back?: boolean): void {
+    const ind = this.historyIndex + (back ? -1 : 1);
     if (ind < 0) { return; }
     this.historyIndex = ind;
-    if (dir > 0) {
+    if (!back) {
       return VPort.send({ handler: "findQuery", index: ind }, this.SetQuery);
     }
     const wnd = this.box.contentWindow;
@@ -388,19 +388,20 @@ html > count{float:right;}`,
     sel.removeAllRanges();
     sel.addRange(range);
   },
-  getNextQueryFromRegexMatches (dir: 1 | -1): string {
+  getNextQueryFromRegexMatches (back?: boolean): string {
     if (!this.regexMatches) { return ""; }
     let count = this.matchCount;
-    this.activeRegexIndex = count = (this.activeRegexIndex + dir + count) % count;
+    this.activeRegexIndex = count = (this.activeRegexIndex + (back ? -1 : 1) + count) % count;
     return this.regexMatches[count];
   },
   execute (query?: string | null, options?: FindNS.ExecuteOptions): void {
     options = VUtils.safer(options);
-    let el: Element | null, found: boolean, count = (options.count as number) | 0, back = (options.dir as number) <= 0
+    let el: Element | null, found: boolean, count = (options.count as number) | 0, back = count < 0
       , q: string, notSens = this.ignoreCase && !options.caseSensitive;
     options.noColor || this.toggleStyle(1);
+    back && (count = -count);
     do {
-      q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(back ? -1 : 1) : this.parsedQuery;
+      q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(back) : this.parsedQuery;
       found = window.find(q, !notSens, back, true, false, false, false);
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel, 0);

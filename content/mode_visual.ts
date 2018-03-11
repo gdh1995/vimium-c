@@ -180,12 +180,12 @@ var VVisualMode = {
     _this.hudTimer = 0;
     if (_this.hud) { return VHUD.show(_this.hud); }
   },
-  find (count: number, dir?: VisualModeNS.ForwardDir): void {
+  find (count: number): void {
     if (!VFindMode.query) {
       VPort.send({ handler: "findQuery" }, function(query): void {
         if (query) {
           VFindMode.updateQuery(query);
-          return VVisualMode.find(count, dir);
+          return VVisualMode.find(count);
         } else {
           return VVisualMode.prompt("No history queries", 1000);
         }
@@ -193,7 +193,7 @@ var VVisualMode = {
       return;
     }
     const range = this.selection.getRangeAt(0);
-    VFindMode.execute(null, { noColor: true, dir, count });
+    VFindMode.execute(null, { noColor: true, count });
     if (VFindMode.hasResults) {
       if (this.mode === VisualModeNS.Mode.Caret && this.selection.toString().length > 0) {
         this.activate(1, VUtils.safer<FgOptions>());
@@ -365,8 +365,8 @@ keyMap: {
       return (this as typeof VVisualMode).movement.selectLexicalEntity(VisualModeNS.G.sentence, count);
     }
   },
-  n (count): void { return (this as typeof VVisualMode).find(count, 1); },
-  N (count): void { return (this as typeof VVisualMode).find(count, 0); },
+  n (count): void { return (this as typeof VVisualMode).find(count); },
+  N (count): void { return (this as typeof VVisualMode).find(-count); },
   "/": function(): void | boolean {
     clearTimeout((this as typeof VVisualMode).hudTimer);
     VHUD.hide();
