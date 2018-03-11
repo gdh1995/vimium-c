@@ -850,7 +850,6 @@ Are you sure you want to continue?`);
       if (cOptions.allow_close === true) {} else
       if (startTabIndex <= 0 && (tab.active
             || startTabIndex === 0 && !limited && (!tab.pinned || funcDict.selectFrom(tabs).pinned))
-          && Object.keys(framesForTab).length <= Math.min(tabs.length, commandCount) + 1 // +1 is for a popup window
       ) {
         chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
         return;
