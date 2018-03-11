@@ -61,8 +61,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
     }
     return chrome.tabs.create(args, callback);
   }
+  /** if count <= 1, only open once */
   function openMultiTab(this: void, option: InfoToCreateMultiTab, count: number): void {
-    if (count < 1) { return; }
     const wndId = option.windowId, hasIndex = option.index != null;
     tabsCreate(option, option.active ? function(tab) {
       wndId != null && tab.windowId !== wndId && funcDict.selectWnd(tab);
@@ -117,7 +117,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
         : pos !== "end" ? tab.index + 1 : undefined;
     },
     makeWindow (this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
-        , callback?: (wnd: Window) => void): void {
+        , callback?: ((wnd: Window) => void) | null): void {
       if (option.focused === false) {
         state !== "minimized" && (state = "normal");
       } else if (state === "minimized") {
@@ -684,6 +684,7 @@ Are you sure you want to continue?`);
       tab && chrome.windows.update(tab.windowId, { focused: true });
       return chrome.runtime.lastError;
     },
+    /** `direction` is treated as limited */
     removeTabsRelative (this: void, activeTab: {index: number, pinned: boolean}, direction: number, tabs: Tab[]): void {
       let i = activeTab.index, noPinned = false;
       if (direction > 0) {
@@ -1262,6 +1263,7 @@ Are you sure you want to continue?`);
     if (count === 1) {}
     else if (repeat === 1) { count = 1; }
     else if (repeat > 0 && (count > repeat || count < -repeat) && !funcDict.confirm(command, Math.abs(count))) { return; }
+    else { count = count || 1; }
     if (!background) {
       const i = alias.indexOf(".");
       command = i === 0 ? alias.substring(1) || command : alias;
@@ -2002,6 +2004,7 @@ Are you sure you want to continue?`);
   }
   };
 
+  /** any change to `commandCount` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
   needIcon = false, cKey: VKeyCodes = VKeyCodes.None,
   getSecret = function(this: void): number {
