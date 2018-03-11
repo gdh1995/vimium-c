@@ -982,10 +982,13 @@ Are you sure you want to continue?`);
     togglePinTab (this: void, tabs: Tab[]): void {
       const tab = funcDict.selectFrom(tabs);
       let i = tab.index;
-      const len = Math.min(tabs.length, i + commandCount), pin = !tab.pinned, action = {pinned: pin};
+      let len = Math.max(-1, Math.min(i + commandCount, tabs.length)), dir = i < len ? 1 : -1,
+      pin = !tab.pinned, action = {pinned: pin};
+      if ((i < len) !== pin) { i = len - dir; len = tab.index - dir; dir = -dir; }
       do {
         chrome.tabs.update(tabs[i].id, action);
-      } while (len > ++i && (pin || tabs[i].pinned));
+        i += dir;
+      } while (len != i && i < tabs.length && i >= 0 && (pin || tabs[i].pinned));
     },
     toggleMuteTab (): void {
       if (Settings.CONST.ChromeVersion < BrowserVer.MinMuted) {
