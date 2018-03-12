@@ -117,6 +117,9 @@ window.onhashchange = function(this: void): void {
       shownNode.onclick = defaultOnClick;
       shownNode.onload = function(this: HTMLImageElement): void {
         this.onerror = this.onload = null as never;
+        setTimeout(function() { // safe; because on C65, in some tests refreshing did not trigger replay
+          (shownNode as HTMLImageElement).src = (shownNode as HTMLImageElement).src; // trigger replay for gif
+        }, 0);
         showBgLink();
         shownNode.classList.remove("hidden");
         shownNode.classList.add("zoom-in");
