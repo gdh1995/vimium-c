@@ -529,20 +529,32 @@ Are you sure you want to continue?`);
       }, wnd.type === "normal" ? wnd.state : "",
       absCount > 1 ? funcDict.moveTabToNewWindow[1].bind(wnd, tab.index, rawCount < 0 ? -count : count) : null);
     }, function(i, count, wnd2): void {
-        let tabs = this.tabs;
+        let tabs: Tab[] | undefined = this.tabs, tabs2: Tab[] | undefined;
         const curTab = tabs[i], len = tabs.length, end = i + count;
-        if (end <= len && end >= -1) {
-          tabs = count > 0 ? tabs.slice(i + 1, end) : tabs.slice(end + 1, i);
-        } else {
-          const last = count > 0 ? len - count : -1 - count;
-          curTab.id = tabs[last].id;
-          tabs = count > 0 ? tabs.slice(last + 1) : tabs.slice(0, last);
+        if (end > len || end < -1) {
+          tabs2 = count > 0 ? tabs.slice(len - count, i) : tabs.slice(i + 1, -count);
         }
+        tabs = count > 0 ? tabs.slice(i + 1, end) : tabs.slice(Math.max(0, end + 1), i);
         if (this.incognito && Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito) {
-          tabs = tabs.filter(tab => tab.incognito === curTab.incognito);
+          let {incognito} = curTab, filter = (tab: Tab): boolean => tab.incognito === incognito;
+          tabs = tabs.filter(filter);
+          tabs2 && (tabs2 = tabs2.filter(filter));
         }
-        const tabIds = tabs.map(funcDict.getId);
-        chrome.tabs.move(tabIds, {index: 1, windowId: wnd2.id}, funcDict.onRuntimeError);
+        if (count < 0) {
+          let tmp = tabs2;
+          tabs2 = tabs; tabs = tmp;
+        }
+        let curInd = 0;
+        if (tabs2 && tabs2.length > 0) {
+          chrome.tabs.move(tabs2.map(funcDict.getId), {index: 0, windowId: wnd2.id}, funcDict.onRuntimeError);
+          curInd = tabs2.length;
+          if (curInd > 1) { // Chrome only accepts the first two tabs of tabs2
+            chrome.tabs.move(curTab.id, {index: curInd});
+          }
+        }
+        if (tabs && tabs.length > 0) {
+          chrome.tabs.move(tabs.map(funcDict.getId), {index: curInd + 1, windowId: wnd2.id}, funcDict.onRuntimeError);
+        }
     }] as [
       (this: void, wnd: PopWindow) => void,
       (this: PopWindow, i: number, count: number, wnd2: Window) => void
