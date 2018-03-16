@@ -18,6 +18,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     windowId?: number;
     index?: number;
     openerTabId?: number;
+    pinned?: boolean;
   }
   const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2 }
   interface BgCmdNoTab {
@@ -405,6 +406,7 @@ Are you sure you want to continue?`);
     }, function(tab) {
       return openMultiTab({
         url: tab.url, active: false, windowId: tab.windowId,
+        pinned: tab.pinned,
         index: tab.index + 2 , openerTabId: tab.id
       }, commandCount - 1);
     }] as [
