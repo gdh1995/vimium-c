@@ -356,7 +356,7 @@ availableCommands: {
   restoreTab: [ "Restore closed tab(s)", 25, true ],
   restoreGivenTab: [ "Restore the last N-th tab", 0, true ],
   moveTabToNewWindow: [ "Move N tab(s) to new window (use limited=null/&lt;boolean&gt;)", 0, true ],
-  moveTabToNextWindow: [ "Move tab to next window", 1, true ],
+  moveTabToNextWindow: [ "Move tab to next window", 0, true ],
   moveTabToIncognito: [ "Make tab in incognito window", 1, true, { incognito: true }, "moveTabToNewWindow" ],
   togglePinTab: [ "Pin or unpin N tab(s)", 50, true ],
   toggleMuteTab: [ "Mute or unmute current tab (use all, other)", 1, true ],

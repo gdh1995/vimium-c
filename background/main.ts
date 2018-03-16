@@ -560,18 +560,20 @@ Are you sure you want to continue?`);
       (this: PopWindow, i: number, count: number, wnd2: Window) => void
     ],
     moveTabToNextWindow: [function(tab, wnds0): void {
-      let wnds: Window[], ids: number[], index: number;
+      let wnds: Window[], ids: number[], index = tab.windowId;
       wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal");
       if (wnds.length > 0) {
         ids = wnds.map(funcDict.getId);
-        index = ids.indexOf(tab.windowId);
+        index = ids.indexOf(index);
         if (ids.length >= 2 || index === -1) {
-          chrome.tabs.query({windowId: ids[(index + 1) % ids.length], active: true},
+          let dest = (index + commandCount) % ids.length;
+          index === -1 && commandCount < 0 && dest++;
+          dest < 0 && (dest += ids.length);
+          chrome.tabs.query({windowId: ids[dest], active: true},
           funcDict.moveTabToNextWindow[1].bind(null, tab, index));
           return;
         }
       } else {
-        index = tab.windowId;
         wnds = wnds0.filter(wnd => wnd.id === index);
       }
       return funcDict.makeWindow({
