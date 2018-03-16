@@ -240,7 +240,7 @@ TextOption.prototype.showError = function<T extends keyof AllowedOptions>(this: 
       par.insertBefore(errEl, par.querySelector(".nonEmptyTip"));
     }
     errEl.textContent = msg;
-    cls.add(tag || "has-error");
+    tag !== null && cls.add(tag || "has-error");
   } else {
     cls.remove("has-error"), cls.remove("highlight");
     errEl && errEl.remove();
@@ -478,21 +478,19 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   Option.all.linkHintCharacters.onSave();
 
   Option.all.vomnibarPage.onSave = function(): void {
-    let {element} = this, raw = this.previous, url: string = bgSettings.cache.vomnibarPage_f || BG.Utils.convertToUrl(raw);
-    if (raw.lastIndexOf("chrome", 0) && raw.lastIndexOf("front/", 0) && bgSettings.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
-      return this.showError("Only extension vomnibar pages can work before Chrome " + BrowserVer.Min$tabs$$executeScript$hasFrameIdArg + ".", "highlight");
+    let {element} = this, url: string = this.previous, isExtPage = !url.lastIndexOf("chrome", 0) || !url.lastIndexOf("front/", 0);
+    if (bgSettings.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+      element.style.textDecoration = isExtPage ? "" : "line-through";
+      return this.showError(`Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`, null);
+    }
+    url = bgSettings.cache.vomnibarPage_f || url; // for the case Chrome is initing
+    if (isExtPage) {
     } else if (url.lastIndexOf("file://", 0) !== -1) {
       return this.showError("A file page of vomnibar is limited by Chrome to only work on file://* pages.", "highlight");
     } else if (url.lastIndexOf("http://", 0) !== -1) {
       return this.showError("A HTTP page of vomnibar is limited by Chrome and doesn't work on HTTPS pages.", "highlight");
-    } else if (bgSettings.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
-      this.showError(`Vimium++ can not use a HTTP page as Vomnibar before Chrome ${BrowserVer.MinWithFrameId}.`, null, false);
-      if ("chrome /front/".indexOf(url.substring(0, 6)) === -1) {
-        element.style.textDecoration = "line-through";
-      }
-    } else {
-      return this.showError("");
     }
+    return this.showError("");
   };
   Option.all.vomnibarPage.onSave();
 
