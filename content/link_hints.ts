@@ -135,7 +135,7 @@ var VHints = {
     }
 
     if (this.box) { this.box.remove(); this.box = null; }
-    this.hints = (elements as Hint[]).map(this.createMarkerFor, this);
+    this.hints = (elements as Hint[]).map(this.createHint, this);
     this.adjustMarkers(elements as Hint[]);
     elements = null;
     this.alphabetHints.initMarkers(this.hints, str);
@@ -242,7 +242,7 @@ var VHints = {
   maxTop: 0,
   maxRight: 0,
   zIndexes: null as null | false | HintsNS.Stacks,
-  createMarkerFor (link: Hint): HintsNS.HintItem {
+  createHint (link: Hint): HintsNS.HintItem {
     let marker = VDom.createElement("span") as HintsNS.HintItem["marker"], i: number;
     i = link.length < 4 ? link[1][0] : (link as Hint4)[3][0][0] + (link as Hint4)[3][1];
     marker.className = link[2] < ClickType.minBox ? "LH" : "LH BH";
@@ -256,7 +256,7 @@ var VHints = {
     if (i > this.maxTop) {
       st.maxHeight = this.maxTop - i + 18 + "px";
     }
-    const hint: HintsNS.HintItem = { marker, target: link[0] };
+    const hint: HintsNS.HintItem = { marker, target: link[0], key: "" };
     link.length > 4 && (hint.refer = (link as Hint5)[4]);
     return hint;
   },

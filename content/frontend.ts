@@ -234,7 +234,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return ELs.onBlur(event);
     },
     onActivate (event: UIEvent): void {
-      VScroller.current = (event.path as EventPath)[0] as Element;
+      if (event.isTrusted != false) {
+        VScroller.current = (event.path as EventPath)[0] as Element;
+      }
     },
     OnWndFocus (this: void): void {},
     OnWndBlur (this: void): void {
