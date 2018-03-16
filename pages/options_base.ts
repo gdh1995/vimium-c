@@ -265,6 +265,10 @@ sortRules: (el?: HTMLElement) => void;
 ExclusionRulesOption.prototype.reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
+if (bgSettings.CONST.ChromeVersion >= BrowserVer.MinSmartSpellCheck) {
+  (document.documentElement as HTMLElement).removeAttribute("spellcheck");
+}
+
 if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidth
   || window.devicePixelRatio < 1 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidth
 ) (function(): void {

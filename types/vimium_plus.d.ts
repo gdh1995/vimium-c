@@ -299,6 +299,7 @@ declare const enum BrowserVer {
   MinNo$Promise$$defer = 49,
   MinNoExtScriptsIfSandboxed = 49,
   Min$addEventListener$$length$Is2 = 49, // otherwise addEventListener.length is 0
+  MinLinkRelAcceptNoopener = 49,
   MinNo$Object$$Observe = 50,
   // The real support for arg frameId of chrome.tabs.executeScript is since Chrome 50,
   //   and is neither 41 (an older version) nor 39 (cur ver on 2018-02-18)
@@ -374,4 +375,5 @@ declare const enum BrowserVer {
   // this still occurs on Chrome 65.0.3325.106 (Beta)
   VomnibarMayClearLog = 64,
   MinChromeUrl$ExtensionShortcuts = 65,
+  MinSmartSpellCheck = 65,
 }
