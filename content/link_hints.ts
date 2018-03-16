@@ -1208,15 +1208,6 @@ DEFAULT: {
       return false;
     }
     const mode = this.mode & HintMode.mask_focus_new, onMac = VSettings.cache.onMac, newTab = mode >= HintMode.newTab;
-    let alterTarget: string | null | undefined;
-    if (newTab && link instanceof HTMLAnchorElement) {
-      alterTarget = link.getAttribute('target');
-      if (alterTarget !== "_top") {
-        link.target = "_top";
-      } else {
-        alterTarget = undefined;
-      }
-    }
     // NOTE: not clear last hovered item, for that it may be a menu
     VDom.UI.click(link, rect, {
       altKey: false,
@@ -1224,12 +1215,6 @@ DEFAULT: {
       metaKey: newTab &&  onMac,
       shiftKey: mode === HintMode.OPEN_IN_NEW_FG_TAB
     }, mode !== HintMode.empty || link.tabIndex >= 0);
-    if (alterTarget === undefined) {}
-    else if (alterTarget === null) {
-      link.removeAttribute("target");
-    } else {
-      link.setAttribute("target", alterTarget);
-    }
   }
 } as HintsNS.ModeOpt
 }
