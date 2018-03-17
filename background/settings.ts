@@ -113,7 +113,7 @@ var Settings = {
         css = ".R{" + css.substring(css.indexOf("all:"));
       }
       if (this.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidth) {
-        css += "*{border-width:1px !important;}\n";
+        css += ".HUD,.IH,.LH{border-width:1px}\n";
       }
       (this as typeof Settings).CONST.BaseCSSLength = css.length;
       css += this.get("userDefinedCss");

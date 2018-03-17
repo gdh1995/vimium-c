@@ -273,7 +273,7 @@ if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidth
   || window.devicePixelRatio < 1 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidth
 ) (function(): void {
   const css = document.createElement("style");
-  css.textContent = "*{border-width:1px !important;}";
+  css.textContent = "* { border-width: 1px !important; }";
   (document.head as HTMLHeadElement).appendChild(css);
 })();
 
