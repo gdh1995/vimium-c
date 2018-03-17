@@ -27,6 +27,13 @@ var VDom = {
     };
     addEventListener("DOMContentLoaded", eventHandler, true);
   },
+  parentFrame(): Element | null {
+    try {
+      return window.frameElement;
+    } catch (e) {
+      return null;
+    }
+  },
   getSelectionText (notTrim?: 1): string {
     let s = window.getSelection().toString();
     notTrim || (s = s.trim());

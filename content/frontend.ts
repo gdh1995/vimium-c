@@ -547,10 +547,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
     },
     focusUpper (this: void, key: VKeyCodes, force: boolean): HandlerResult {
-      let el = window.frameElement as HTMLElement | null;
+      let el = VDom.parentFrame();
       if (el) {
         const parent = el.ownerDocument.defaultView, a = (parent as Window & { VEventMode: typeof VEventMode }).VEventMode;
-        el.blur();
+        el.blur && el.blur();
         if (a) {
           (parent as Window & { VDom: typeof VDom }).VDom.UI.suppressTail(true);
           a.focus({ key, mask: FrameMaskType.ForcedSelf });
@@ -695,7 +695,7 @@ Pagination = {
       VDom.UI.addElement(dom1);
     },
     hidden (): boolean {
-      let el = window.frameElement;
+      let el = VDom.parentFrame();
       if (!el) { return false; }
       let box = el.getBoundingClientRect();
       return box.height < 1 || box.width < 1 || getComputedStyle(el).visibility === "hidden";
@@ -1081,7 +1081,8 @@ Pagination = {
     vPort.connect(PortType.initing);
   } else (function() {
     try {
-      let f = frameElement, a = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFindMode?: typeof VFindMode}).VFindMode;
+      let f = VDom.parentFrame(),
+      a = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFindMode?: typeof VFindMode}).VFindMode;
       if (a && a.box && a.box === f) {
         VSettings.destroy(true);
         a.onLoad(a.box);

@@ -296,6 +296,7 @@ declare const enum BrowserVer {
   // but this flag will break the Developer Tools (can not open the window) on Chrome 46/47/48,
   // so Chrome can only debug arrow functions since 49
   MinEnsuredArrowFunction = 48,
+  MinSafeGlobal$frameElement = 48,
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinNo$Promise$$defer = 49,
   MinNoExtScriptsIfSandboxed = 49,
