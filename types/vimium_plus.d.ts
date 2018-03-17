@@ -378,4 +378,5 @@ declare const enum BrowserVer {
   VomnibarMayClearLog = 64,
   MinChromeUrl$ExtensionShortcuts = 65,
   MinSmartSpellCheck = 65,
+  MinCanNotRevokeObjectURLAtOnce = 65,
 }

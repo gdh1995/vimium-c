@@ -1802,11 +1802,7 @@ var app = {
 					if (typeof self.apps[appId]['openRun'] == "function") {
 						targetUrl = self.apps[appId]['openRun'](targetUrl)
 					}
-					if (typeof event != "undefined" && event.button == 1) {
-						openTab(targetSwitch, targetUrl, true)
-					} else {
-						openTab(targetSwitch, targetUrl, event);
-					}
+					openTab(targetSwitch, targetUrl, typeof event != "undefined" && event.button == 1 ? true : event)
 				}
 			} else {
 				self.runedAppObjects[appId].show();
@@ -1821,11 +1817,7 @@ var app = {
 				removePermissions("management");
 			});
 		} else if (targetObj != "" && targetObj.attr('url') != null && targetObj.attr('url') != '') {
-			if (typeof event != "undefined" && event.button == 1) {
-				openTab(targetSwitch, eventObj.attr('url'), true)
-			} else {
-				openTab(targetSwitch, eventObj.attr('url'), event);
-			}
+			openTab(targetSwitch, eventObj.attr('url'), typeof event != "undefined" && event.button == 1 ? true : event)
 		} else if (appId.lastIndexOf("classification_", 0) === 0) {
 			if (self.loadedApps.indexOf("classification") == -1) {
 				self.loadAppContent(targetObj, "classification")
@@ -1842,11 +1834,7 @@ var app = {
 			};
 			var oUrl = oUrls[appId] || "";
 			if (oUrl != "") {
-				if (typeof event != "undefined" && event.button == 1) {
-					openTab(targetSwitch, oUrl, true)
-				} else {
-					openTab(targetSwitch, oUrl, event);
-				}
+				openTab(targetSwitch, oUrl, typeof event != "undefined" && event.button == 1 ? true : event)
 			}
 		}
 	}
@@ -3043,11 +3031,7 @@ DBOX = {
 						if (eventObj.attr('appId') != '' && eventObj.attr('appId') != null) {
 							app.runApp(eventObj, eventObj.attr('appId'), e)
 						} else if (eventObj.attr('url') != '' && eventObj.attr('url') != null) {
-							if (e.button == 1 || self.container.parent().hasClass('edit')) {
-								openTab(targetSwitch, eventObj.attr('url'), true)
-							} else {
-								openTab(targetSwitch, eventObj.attr('url'), e);
-							}
+							openTab(targetSwitch, eventObj.attr('url'), e.button == 1 || self.container.parent().hasClass('edit') ? true : e)
 						}
 					}
 					_down = false

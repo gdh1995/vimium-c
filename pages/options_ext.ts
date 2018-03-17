@@ -101,7 +101,16 @@ interface ExportedSettings {
   [key: string]: any;
 }
 
+let _lastBlobURL = "";
+function cleanRes() {
+  if (_lastBlobURL) {
+    URL.revokeObjectURL(_lastBlobURL);
+    _lastBlobURL = "";
+  }
+}
+
 $<ElementWithDelay>("#exportButton").onclick = function(event): void {
+  cleanRes();
   let exported_object: ExportedSettings | null;
   const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
   exported_object = Object.create(null) as ExportedSettings & SafeObject;
@@ -149,8 +158,9 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   const nodeA = document.createElement("a");
   nodeA.download = file_name;
   nodeA.href = URL.createObjectURL(new Blob([exported_data]));
+  _lastBlobURL = nodeA.href;
+  window.addEventListener("unload", cleanRes);
   click(nodeA);
-  URL.revokeObjectURL(nodeA.href);
   console.info("EXPORT settings to %c%s%c at %c%s%c."
     , "color:darkred", file_name, "color:auto", "color:darkblue", d_s, "color:auto");
 };
