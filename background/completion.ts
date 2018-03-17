@@ -521,8 +521,12 @@ domains: {
     }
     if (result) {
       if (result.length > word.length && !result.startsWith("www.") && !result.startsWith(word)) {
-        let d2: Domain | undefined, r2 = "www." + result.substring(result.indexOf(".") + 1);
-        if (d2 = ref[r2]) { result = r2; d = d2; }
+        let r2 = result.substring(result.indexOf(".") + 1);
+        if (r2.indexOf(word) !== -1) {
+          let d2: Domain | undefined;
+          r2 = "www." + r2;
+          if (d2 = ref[r2]) { result = r2; d = d2; }
+        }
       }
       result = (d.https ? "https://" : "http://") + result;
       sug = new Suggestion("domain", result, result, "", this.compute2);
