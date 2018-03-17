@@ -144,6 +144,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   }
   let exported_data = JSON.stringify(exported_object, null, '\t'), d_s = formatDate(d);
   if (exported_object.environment.platform === "win") {
+    // in case "endings" didn't work
     exported_data = exported_data.replace(<RegExpG>/\n/g, "\r\n");
   }
   exported_object = null;
@@ -157,9 +158,8 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
 
   const nodeA = document.createElement("a");
   nodeA.download = file_name;
-  nodeA.href = URL.createObjectURL(new Blob([exported_data]));
+  nodeA.href = URL.createObjectURL(new Blob([exported_data], {type: "application/json", "endings": "native"}));
   _lastBlobURL = nodeA.href;
-  window.addEventListener("unload", cleanRes);
   click(nodeA);
   console.info("EXPORT settings to %c%s%c at %c%s%c."
     , "color:darkred", file_name, "color:auto", "color:darkblue", d_s, "color:auto");

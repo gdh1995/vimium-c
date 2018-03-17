@@ -84,6 +84,7 @@ Known issues (Up to the master branch):
 
 1.65 (Not released yet):
 * Now most commands support negative count, and `'-'` is used to begin a negative count.
+* fix that settings cann't be exported on Chrome 65
 * fix that `LinkHints` couldn't click targets before Chrome 41
 * fix a regression that `nextFrame` broke before Chrome 48
 

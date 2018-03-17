@@ -244,9 +244,8 @@ var setup = {
 				}
 				hiddenA[0].download = ['weidu_', d.getFullYear(), force2(d.getMonth() + 1), force2(d.getDate()),
 					'_', force2(d.getHours()), force2(d.getMinutes()), force2(d.getSeconds()), '.json'].join('');
-				hiddenA[0].href = URL.createObjectURL(new Blob([data]));
+				hiddenA[0].href = URL.createObjectURL(new Blob([data], {type: "application/json", "endings": "native"}));
 				_lastBlobURL = hiddenA[0].href;
-				window.addEventListener("unload", cleanRes);
 				hiddenA[0].click();
 			}
 		});
