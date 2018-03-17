@@ -68,29 +68,29 @@ __Other extensions supporting Vimium++:__
 Known issues (Up to the master branch):
 1. Chrome before version 49 has bugs in `Window.postMessage` if the flag `#enable-site-per-process` is on,
   which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Options pages.
-2. `Preferred Vomnibar Page` can not support http/file URLs before Chrome 41.
-3. the Chrome flag `#enable-embedded-extension-options` has a bug about dialog width on high-DPI screen,
+2. the Chrome flag `#enable-embedded-extension-options` has a bug about dialog width on high-DPI screen,
   which can not be worked-around before Chrome 42.
-4. If an extension page is the preferred Vomnibar page, and the extension is disabled in incognito mode,
+3. If an extension page is the preferred Vomnibar page, and the extension is disabled in incognito mode,
   Vomnibar might break in such a situation, and there seems no way to detect it.
   So Vimium++ has disabled other extension Vomnibar pages in incognito mode.
-5. If a http/file/... Vomnibar page is preferred, then there're some cases where it breaks,
+4. If a http/file/... Vomnibar page is preferred, then there're some cases where it breaks,
   such as on some websites with very strict Content Security Policies (CSP),
   so users may need to wait about 1 second to let Vimium++ retry the inner page.
-  And before Chrome 50, such vomnibar webpages won't work because of lacking some features,
+  And before Chrome 50, such vomnibar webpages won't work because of Chrome lacking some features,
   so Vimium++ will use the inner page directly.
-6. Chrome 58 stable hides some necessary infomation of page's selection,
+5. Chrome 58 stable hides some necessary infomation of page's selection,
   so some commands on `VisualMode` cann't work as expected if editable text is being selected.
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
-7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
+6. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
-8. On sandboxed pages without an `allow-scripts` permission in their CSP,
+7. On sandboxed pages without an `allow-scripts` permission in their CSP,
   HUD will always be visible in order to solve some issues on Chrome.
-9. Chrome 64 will clean its console logs if only Vomnibar is opened, and there's nothing we can do for it.
+8. Chrome 64 and 65 always clean their console logs if only Vomnibar is opened, and there's nothing we can do for it.
 
 1.65 (Not released yet):
 * Now most commands support negative count, and `'-'` is used to begin a negative count.
 * fix that `LinkHints` couldn't click targets before Chrome 41
+* fix a regression that `nextFrame` broke before Chrome 48
 
 1.64.1:
 * global shortcuts support count prefix and custom options
