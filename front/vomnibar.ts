@@ -122,7 +122,8 @@ var Vomnibar = {
   renderItems: null as never as Render,
   selection: -1,
   timer: 0,
-  wheelTimer: 0,
+  timer2: 0,
+  wheelTime: 0,
   browserVersion: BrowserVer.assumedVer,
   wheelOptions: { passive: false, capture: true as true },
   show (): void {
@@ -146,7 +147,15 @@ var Vomnibar = {
     this.list.style.height = "";
     this.barCls.remove("withList");
     if (this.sameOrigin) { return this.onHidden(); }
-    requestAnimationFrame(() => Vomnibar.onHidden());
+    this.timer2 = requestAnimationFrame(this.AfterHide);
+    this.timer = setTimeout(this.AfterHide, 25);
+  },
+  AfterHide (this: void): void {
+    const a = Vomnibar;
+    cancelAnimationFrame(a.timer2);
+    clearTimeout(a.timer);
+    a.timer = a.timer2 = 0;
+    return a.onHidden();
   },
   onHidden (): void {
     VPort.postToOwner({ name: "hide" });
@@ -476,8 +485,8 @@ var Vomnibar = {
     if (event.ctrlKey || event.metaKey || event.isTrusted == false) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (event.deltaX || Date.now() - this.wheelTimer < this.wheelInterval || !Vomnibar.isActive) { return; }
-    this.wheelTimer = Date.now();
+    if (event.deltaX || Date.now() - this.wheelTime < this.wheelInterval || !Vomnibar.isActive) { return; }
+    this.wheelTime = Date.now();
     return this.goPage(event.deltaY > 0);
   },
   onInput (event: KeyboardEvent): void {
