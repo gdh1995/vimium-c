@@ -538,7 +538,7 @@ var Vomnibar = {
   populateUI (oldH: number): void {
     const { list, barCls: cl, height } = this, notEmpty = this.completions.length > 0, c = "withList",
     msg = { name: "style" as "style", height };
-    if (height > oldH) { VPort.postToOwner(msg); }
+    if (height > oldH || this.sameOrigin) { VPort.postToOwner(msg); }
     oldH || (this.bodySt.display = "");
     notEmpty ? this.barCls.add(c) : cl.remove(c);
     list.innerHTML = this.renderItems(this.completions);
@@ -549,7 +549,7 @@ var Vomnibar = {
       }
       (list.lastElementChild as HTMLElement).classList.add("b");
     }
-    if (height >= oldH) {
+    if (height >= oldH || this.sameOrigin) {
       return this.postUpdate();
     } else {
       requestAnimationFrame(() => { VPort.postToOwner(msg); return Vomnibar.postUpdate(); });
