@@ -1199,7 +1199,10 @@ DEFAULT: {
       (this as typeof VHints).mode = HintMode.DEFAULT;
       return ret;
     } else if (link instanceof HTMLDetailsElement) {
-      link.open = !link.open;
+      let old = link.open;
+      // although it does not work on Chrome 65 yet
+      VDom.UI.click(link, rect, null, true);
+      (link.open === old) && (link.open = !old);
       return;
     } else if (hint.classList.contains("BH")) {
       return (this as typeof VHints).Modes.HOVER.activator.call(this, link, rect, hint);
