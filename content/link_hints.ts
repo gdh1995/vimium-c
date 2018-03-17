@@ -1208,7 +1208,6 @@ DEFAULT: {
       return false;
     }
     const mode = this.mode & HintMode.mask_focus_new, onMac = VSettings.cache.onMac, newTab = mode >= HintMode.newTab;
-    // NOTE: not clear last hovered item, for that it may be a menu
     VDom.UI.click(link, rect, {
       altKey: false,
       ctrlKey: newTab && !onMac,
