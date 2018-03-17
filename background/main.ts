@@ -83,8 +83,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
       if (extId == null) { extId = "unknown sender"; }
       const stat = Settings.extWhiteList[extId];
       if (stat != null) { return stat; }
-      console.warn("Receive message from %an extension/sender not in the white list%c:",
-        "color:red", "color:auto", extId);
+      console.log("%cReceive message from an extension/sender not in the white list: %c%s",
+        "background-color: #fffbe5", "background-color:#fffbe5; color: red", extId);
       return Settings.extWhiteList[extId] = false;
     },
     isIncNor (this: void, wnd: Window): wnd is IncNormalWnd {
