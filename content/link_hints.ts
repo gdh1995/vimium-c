@@ -1198,11 +1198,11 @@ DEFAULT: {
         : (this as typeof VHints).highlightChild(link);
       (this as typeof VHints).mode = HintMode.DEFAULT;
       return ret;
-    } else if (link instanceof HTMLDetailsElement) {
-      let old = link.open;
+    } else if (typeof HTMLDetailsElement === "function" ? link instanceof HTMLDetailsElement : link.tagName.toUpperCase() === "DETAILS") {
+      let old = (link as HTMLDetailsElement).open;
       // although it does not work on Chrome 65 yet
       VDom.UI.click(link, rect, null, true);
-      (link.open === old) && (link.open = !old);
+      ((link as HTMLDetailsElement).open === old) && ((link as HTMLDetailsElement).open = !old);
       return;
     } else if (hint.classList.contains("BH")) {
       return (this as typeof VHints).Modes.HOVER.activator.call(this, link, rect, hint);

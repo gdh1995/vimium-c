@@ -88,6 +88,10 @@ Known issues (Up to the master branch):
   HUD will always be visible in order to solve some issues on Chrome.
 9. Chrome 64 will clean its console logs if only Vomnibar is opened, and there's nothing we can do for it.
 
+1.65 (Not released yet):
+* Now most commands support negative count, and `'-'` is used to begin a negative count.
+* fix that `LinkHints` couldn't click targets before Chrome 41
+
 1.64.1:
 * global shortcuts support count prefix and custom options
 * for some options, show possible errors when they're saved

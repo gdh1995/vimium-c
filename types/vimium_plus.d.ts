@@ -273,6 +273,7 @@ declare const enum BrowserVer {
   MinWithFrameId = 41,
   // just enabled by default
   Min$String$$StartsWith = 41,
+  MinGlobal$HTMLDetailsElement = 41,
   // before 42, event.path is a simple NodeList instance
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,
