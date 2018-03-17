@@ -422,16 +422,14 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     _ref[_i].onclick = func;
   }
 
-  if (bgSettings.CONST.ChromeVersion < BrowserVer.MinUserSelectAll) {
-    _ref = $$(".sel-all");
-    func = function(this: HTMLElement, event: MouseEvent): void {
-      if (event.target !== this) { return; }
-      window.getSelection().selectAllChildren(this);
-      event.preventDefault();
-    } as ElementWithDelay["onmousedown"];
-    for (let _i = _ref.length; 0 <= --_i; ) {
-      _ref[_i].onmousedown = func;
-    }
+  _ref = $$(".sel-all");
+  func = function(this: HTMLElement, event: MouseEvent): void {
+    if (event.target !== this) { return; }
+    window.getSelection().selectAllChildren(this);
+    event.preventDefault();
+  } as ElementWithDelay["onmousedown"];
+  for (let _i = _ref.length; 0 <= --_i; ) {
+    _ref[_i].onmousedown = func;
   }
 
   function setUI(curTabId: number | null): void {
