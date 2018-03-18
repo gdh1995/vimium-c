@@ -41,7 +41,7 @@ var Vomnibar = {
     }
     this.timer = 0;
     if (!VDom.isHTML()) { return; }
-    if (options.url === true && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
+    if ((options.url === true || count !== 1) && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
       options.topUrl = window.location.href;
     }
     this.options = null;
@@ -75,11 +75,14 @@ var Vomnibar = {
         url = options.topUrl as string;
       }
       upper = count > 1 ? 1 - count : count < 0 ? -count : 0;
-      options.topUrl = "";
       options.url = url;
     } else if (url != null) {
       url = options.url = typeof url === "string" ? url : null;
+    } else if (count !== 1) {
+      url = options.url = options.topUrl;
+      upper = count > 1 ? 1 - count : -count;
     }
+    options.topUrl = "";
     if (!url || url.indexOf("://") === -1) {
       options.search = "";
       return this.setOptions(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
