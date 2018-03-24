@@ -33,6 +33,8 @@
 	pointer-events: none;
 	position: fixed;
 	text-align: left;
+	-webkit-user-select: none;
+	user-select: none;
 	z-index: 2147483647;
 }
 
@@ -47,6 +49,7 @@
 	padding: 0 !important;
 	position: static !important;
 	transform: none !important;
+	user-select: auto !important;
 	width: 0 !important;
 }
 
@@ -58,9 +61,6 @@
 .HM {
 	font-weight: bold;
 	position: absolute;
-	/* text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6); */
-	-webkit-user-select: none;
-	user-select: none;
 	white-space: nowrap;
 }
 .LH {
@@ -70,7 +70,7 @@
 	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
 	box-sizing: border-box;
 	overflow: hidden;
-	padding: 1px 3px 0 3px;
+	padding: 1px 3px 0;
 	position: absolute;
 }
 .BH {
@@ -104,8 +104,6 @@
 	padding: 2px 3px;
 	right: 150px;
 	text-overflow: ellipsis;
-	-webkit-user-select: none;
-	user-select: none;
 	white-space: nowrap;
 	/* less than hint markers', so link hints can be shown e.g. for the panel's close button. */
 }
