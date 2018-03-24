@@ -628,12 +628,13 @@ var Vomnibar = {
     this.init = VUtils.makeListRenderer = null as never;
   },
   setFav (type: VomnibarNS.PageType): void {
-    let fav = (2 - type) as 0 | 1 | 2, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
-    if (this.browserVersion < BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon) {
-      fav = 0;
-    } else if (type === VomnibarNS.PageType.ext && location.protocol.startsWith("chrome") && (f = chrome.runtime.getManifest) && (manifest = f())) {
+    let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
+      , canShowOnOthers = this.browserVersion >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
+    if (type === VomnibarNS.PageType.inner) {
+      fav = canShowOnOthers || this.sameOrigin ? 2 : 0;
+    } else if (type === VomnibarNS.PageType.ext && (canShowOnOthers || this.sameOrigin) && (f = chrome.runtime.getManifest) && (manifest = f())) {
       const arr = manifest.permissions || [];
-      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? this.sameOrigin && window.parent === window.top ? 2 : 1 : 0;
+      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? this.sameOrigin ? 2 : 1 : 0;
     }
     this.mode.favIcon = fav;
   },

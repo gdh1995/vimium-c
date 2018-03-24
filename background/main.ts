@@ -1230,18 +1230,18 @@ Are you sure you want to continue?`);
       } else if (port.sender.frameId !== 0 && port.sender.tabId >= 0) {
         port = funcDict.indexFrame(port.sender.tabId, 0) || port;
       }
-      const page = Settings.cache.vomnibarPage_f, { url } = port.sender, web = !page.startsWith("chrome"),
+      const page = Settings.cache.vomnibarPage_f, { url } = port.sender, preferWeb = !page.startsWith("chrome"),
       inner = Settings.CONST.VomnibarPageInner;
-      forceInner = (web ? url.startsWith("chrome") || page.startsWith("file:") && !url.startsWith("file:")
+      forceInner = (preferWeb ? url.startsWith("chrome") || page.startsWith("file:") && !url.startsWith("file:")
           // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) that https refusing http iframes.
           || page.startsWith("http:") && url.startsWith("https:")
         : port.sender.incognito) || url.startsWith(location.origin) || !!forceInner;
-      const choice: boolean = forceInner || page === inner || port.sender.tabId < 0,
+      const useInner: boolean = forceInner || page === inner || port.sender.tabId < 0,
       options = Utils.extendIf(Object.setPrototypeOf({
-        vomnibar: choice ? inner : page,
-        vomnibar2: choice ? null : inner,
-        ptype: choice ? VomnibarNS.PageType.inner : web ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
-        script: choice ? "" : Settings.CONST.VomnibarScript_f,
+        vomnibar: useInner ? inner : page,
+        vomnibar2: useInner ? null : inner,
+        ptype: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
+        script: useInner ? "" : Settings.CONST.VomnibarScript_f,
         secret: getSecret(),
         CSS: funcDict.ensureInnerCSS(cPort)
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
