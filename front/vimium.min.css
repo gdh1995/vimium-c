@@ -15,5 +15,5 @@ box-sizing:border-box;overflow:hidden;padding:1px 3px 0;position:absolute}
 max-width:312px;min-width:150px;padding:2px 3px;right:150px;text-overflow:ellipsis;white-space:nowrap}
 .Flash{box-shadow:0 0 4px 2px #4183C4;contain:strict;padding:1px}
 .Frame{border:5px solid yellow;box-sizing:border-box;height:100%;left:0;top:0;width:100%}
-.Omnibar{left:calc(10% - 10px);top:62px;width:calc(80% + 22px)}
+.Omnibar{left:calc(10% - 12px);top:64px;width:calc(80% + 24px)}
 .BH{color:#902809}.MC{color:#D4AC3A}.One{border-color:lightsalmon}.UI{pointer-events:all}

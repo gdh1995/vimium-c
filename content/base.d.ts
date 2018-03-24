@@ -157,7 +157,7 @@ declare namespace VomnibarNS {
   }
   type FgOptionsToFront = CReq["activate"];
   const enum Consts {
-    MarginTop = 62,
+    MarginTop = 64,
   }
 }
 

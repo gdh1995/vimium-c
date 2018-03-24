@@ -135,7 +135,7 @@
 
 /* Vomnibar CSS */
 .Omnibar {
-	left: calc(10% - 10px);
-	top: 62px;
-	width: calc(80% + 22px);
+	left: calc(10% - 12px);
+	top: 64px;
+	width: calc(80% + 24px);
 }

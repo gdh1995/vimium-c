@@ -29,16 +29,14 @@ interface ConfigurableItems {
 }
 interface Window extends ConfigurableItems {}
 
-declare const enum HeightData {
+declare const enum PixelData {
   InputBar = 54, InputBarWithLine = InputBar + 1,
-  Item = 44, LastItemDelta = 3,
-  MarginV = 20,
-  InputBarAndMargin = InputBar + MarginV,
-  InputBarWithLineAndMargin = InputBarWithLine + MarginV,
-  ShadowMarginV = 8,
-  AllNotList = InputBarWithLineAndMargin + VomnibarNS.Consts.MarginTop + ShadowMarginV * 2,
-  // 22 is better than 21, because borderWidth may be forced to be 1
-  MarginH = 22, AllHNotUrl = 20 + 51 + 3, MeanWidthOfChar = 7.72,
+  Item = 44, LastItemDelta = 46 - Item,
+  MarginV1 = 8, MarginV2 = 10, MarginV = MarginV1 + MarginV2,
+  OthersIfEmpty = InputBar + MarginV,
+  OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
+  ListSpaceDelta = VomnibarNS.Consts.MarginTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
+  MarginH = 24, AllHNotUrl = 8 + 52 + 3, MeanWidthOfChar = 7.72,
 }
 
 if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
@@ -54,7 +52,7 @@ var Vomnibar = {
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
     this.setWidth(options.width * 0.8);
-    this.mode.maxResults = Math.min(Math.max(3, Math.round((options.height - HeightData.AllNotList) / HeightData.Item)), this.maxResults);
+    this.mode.maxResults = Math.min(Math.max(3, 0 | ((options.height - PixelData.ListSpaceDelta) / PixelData.Item)), this.maxResults);
     this.init && this.setFav(options.ptype);
     if (this.mode.favIcon) {
       let scale = devicePixelRatio;
@@ -107,7 +105,6 @@ var Vomnibar = {
   showRelevancy: false,
   lastScrolling: 0,
   height: 0,
-  heightList: 0,
   input: null as never as HTMLInputElement,
   bodySt: null as never as CSSStyleDeclaration,
   barCls: null as never as DOMTokenList,
@@ -159,7 +156,7 @@ var Vomnibar = {
   },
   onHidden (): void {
     VPort.postToOwner({ name: "hide" });
-    this.timer = this.height = this.heightList = this.matchType = 0;
+    this.timer = this.height = this.matchType = 0;
     this.lastKey = VKeyCodes.None;
     this.completions = this.onUpdate = this.isHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = this.lastNormalInput = "";
@@ -180,9 +177,14 @@ var Vomnibar = {
     this.isActive ? (this.height = -1) : (this.isActive = true);
     if (this.init) { return this.init(); }
   },
-  focus (this: void): void {
-    Vomnibar.focusByCode = true;
-    Vomnibar.input.focus();
+  focus (this: void, focus?: false | TimerType.fake): void {
+    const a = Vomnibar;
+    a.focusByCode = true;
+    if (focus !== false) {
+      a.input.focus();
+    } else {
+      VPort.postMessage({ handler: "nextFrame", type: Frames.NextType.current, key: a.lastKey });
+    }
   },
   update (updateDelay: number, callback?: () => void): void {
     this.onUpdate = callback || null;
@@ -372,7 +374,7 @@ var Vomnibar = {
     case "blurInput": this.blurWanted = true; this.input.blur(); break;
     case "backspace": case "blur":
       !this.focused ? this.focus()
-      : action === "blur" ? VPort.postMessage({ handler: "nextFrame", type: Frames.NextType.current, key: this.lastKey })
+      : action === "blur" ? this.focus(false)
       : document.execCommand("delete");
       break;
     case "up": case "down":
@@ -521,26 +523,14 @@ var Vomnibar = {
   },
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
-    const list = response.list, oldHeight = this.height, v = this.browserVersion;
-    let pixel = 0.5;
-    if (v < BrowserVer.MinRoundedBorderWidth) {
-      pixel = Math.max(1, window.devicePixelRatio);
-      pixel = v < BrowserVer.MinEnsuredBorderWidth ? (pixel | 0) / pixel : 1 / pixel;
-    }
-    let height = list.length, notEmpty = height > 0;
+    const list = response.list, oldHeight = this.height, height = list.length, notEmpty = height > 0;
     this.showFavIcon = response.favIcon;
     this.matchType = response.matchType;
     this.completions = list;
     this.selection = (response.autoSelect || this.modeType !== "omni") && notEmpty ?  0 : -1;
     this.isSelOriginal = true;
     this.isSearchOnTop = notEmpty && list[0].type === "search";
-    if (notEmpty) {
-      // avoid `number * (.Item + pixel)` so that output is more precise
-      height = height * HeightData.Item + HeightData.LastItemDelta + (height - 1) * pixel;
-    }
-    this.heightList = height;
-    height = notEmpty ? height + HeightData.InputBarWithLineAndMargin : HeightData.InputBarAndMargin;
-    this.height = height = Math.ceil(height + pixel + pixel);
+    this.height = Math.ceil(notEmpty ? height * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty);
     list.forEach(this.parse, this);
     return this.populateUI(oldHeight);
   },
@@ -551,7 +541,6 @@ var Vomnibar = {
     oldH || (this.bodySt.display = "");
     notEmpty ? this.barCls.add(c) : cl.remove(c);
     list.innerHTML = this.renderItems(this.completions);
-    list.style.height = (this.heightList + "").substring(0, 7) + "px";
     if (notEmpty) {
       if (this.selection === 0) {
         (list.firstElementChild as HTMLElement).classList.add("s");
@@ -589,20 +578,24 @@ var Vomnibar = {
     const a = Vomnibar, byCode = a.focusByCode;
     a.focusByCode = false;
     if (!a.isActive || event.target !== window || event.isTrusted == false) { return; }
-    if (event.type === "blur") {
+    const blurred = event.type === "blur";
+    if (blurred) {
       const t = a._focusTimer;
       t && clearTimeout(t);
       a._focusTimer = 0;
-      VPort.postMessage({ handler: "blurTest" });
-      return;
     }
-    a._focusTimer = setTimeout(function(): void { Vomnibar.bodySt.opacity = ""; }, 50);
-    if (!byCode && VPort) {
-      VPort.postMessage({ handler: "blank" });
+    if (byCode) {
+      a.blurred(blurred);
+    } else if (blurred) {
+      VPort.postMessage({ handler: "blurTest" });
+    } else {
+      a._focusTimer = setTimeout(a.blurred, 50, false);
+      VPort && VPort.postMessage({ handler: "blank" });
     }
   },
-  blurred (): void {
-    this.bodySt.opacity = document.hasFocus() ? "" : "0.75";
+  blurred (this: void, blurred?: boolean | object): void {
+    const a = (document.body as HTMLBodyElement).classList;
+    (typeof blurred === "boolean" ? !blurred : document.hasFocus()) ? a.remove("transparent") : a.add("transparent");
   },
   init (): void {
     window.onclick = function(e) { return Vomnibar.onClick(e); };
@@ -620,7 +613,7 @@ var Vomnibar = {
     this.renderItems = VUtils.makeListRenderer((document.getElementById("template") as HTMLElement).innerHTML);
     if (this.browserVersion < BrowserVer.MinRoundedBorderWidth) {
       const css = document.createElement("style");
-      css.textContent = `body, .item, #input { border-width: ${this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px; }`;
+      css.textContent = `.item, #input { border-width: ${this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px; }`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
     if (this.browserVersion < BrowserVer.Min$KeyboardEvent$$isComposing) {
@@ -667,11 +660,11 @@ var Vomnibar = {
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner as
         any, 0, { name: "focus", key: request.key });
   },
-  setWidth (w?: number): void {
-    let contentWidth = w || window.innerWidth - HeightData.MarginH;
-    this.mode.maxChars = Math.round((contentWidth - HeightData.AllHNotUrl) / HeightData.MeanWidthOfChar);
+  setWidth (w0?: number): void {
+    let w = w0 || window.innerWidth, contentWidth = w - PixelData.MarginH;
+    this.mode.maxChars = Math.round((contentWidth - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
     if (this.browserVersion < BrowserVer.MinSeparateExtIframeHasCorrectWidthIfDeviceRationNot1 && devicePixelRatio !== 1) {
-      (document.documentElement as HTMLHtmlElement).style.width = contentWidth + HeightData.MarginH + "px";
+      (document.documentElement as HTMLHtmlElement).style.width = w + "px";
     }
   },
   secret: null as never as (request: BgVomnibarReq["secret"]) => void,
@@ -845,8 +838,8 @@ VPort = {
   return i >= 0 && this.indexOf(s, i) === i;
 });
 (function(): void {
-  if (!(+<string>(document.documentElement as HTMLElement).getAttribute("data-version") >=
-        1.62)) {
+  const pageVersion = +<string>(document.documentElement as HTMLElement).getAttribute("data-version") || 0;
+  if (pageVersion < 1.63) {
     location.href = "about:blank";
     return;
   }
