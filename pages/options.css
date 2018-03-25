@@ -183,6 +183,7 @@ label:active {
   color: #2f508e;
 }
 .caption {
+  color: #333;
   margin-right: 10px;
   min-width: 130px;
   padding-top: 3px;
@@ -220,6 +221,7 @@ label:active {
   text-align: center;
 }
 .info, .tip {
+  color: #999;
   font-size: 12px;
   line-height: 16px;
   margin-left: 4px;
@@ -230,6 +232,10 @@ label:active {
 .help {
   padding-left: 20px;
   width: 300px;
+  color: #666;
+}
+#wrapper:hover .help {
+  color: black;
 }
 .help-inner {
   font-size: 12px;
@@ -271,7 +277,7 @@ label:active {
 /* Boolean options have a tighter form representation than text options. */
 .booleanOption.innerLine > .checkboxHint,
 .booleanOption:not(.innerLine) {
-  font-size: 12px;
+  font-size: 14px;
   padding-top: 1px;
 }
 .checkboxHint:active { outline: none; }
