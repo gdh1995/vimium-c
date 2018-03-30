@@ -332,7 +332,7 @@ html > count{float:right;}`,
     }
     const query = this.input.innerText.replace(this.A0Re, " ").replace(this.tailRe, "");
     let s = this.query;
-    if (!this.hasResults && this.notEmpty && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
+    if (!this.hasResults && !this.isRegex && this.notEmpty && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
     s = "";
     this.coords && window.scrollTo(this.coords[0], this.coords[1]);
     this.updateQuery(query);
