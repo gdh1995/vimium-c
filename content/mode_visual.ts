@@ -52,7 +52,9 @@ var VVisualMode = {
         }
         type = VDom.selType(sel);
       }
-      if (type !== "Range" && (!lock || sel.toString().length <= 0)) { mode = VisualModeNS.Mode.Caret; }
+      if (type !== "Range" && (!lock || sel.toString().length <= 0)) {
+        mode = VisualModeNS.Mode.Caret; str = "caret";
+      }
     }
     this.hudTimer && clearTimeout(this.hudTimer);
     VHUD.show(this.hud = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode");
