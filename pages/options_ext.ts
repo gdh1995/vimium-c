@@ -339,6 +339,7 @@ _el.onchange = function(this: HTMLInputElement): void {
 _el = $<HTMLSelectElement>("#importOptions");
 _el.onclick = null as never;
 _el.onchange = function(this: HTMLSelectElement): void {
+  $("#importButton").focus();
   if (this.value === "exported") {
     click($("#settingsFile"));
     return;

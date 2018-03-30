@@ -448,10 +448,10 @@ setTimeout(function() {
   });
   chrome.tabs.query({currentWindow: true, active: true}, function(tabs: CurrentTabs): void {
     time = Date.now();
-    let a = tabs[0];
-    if (chrome.runtime.lastError || !a) { return chrome.runtime.lastError; }
+    const a = tabs && tabs[0];
+    if (!a) { return chrome.runtime.lastError; }
     TabRecency.last = a.id;
-    TabRecency.incognito = +a.incognito;
+    TabRecency.incognito = a.incognito ? IncognitoType.true : IncognitoType.mayFalse;
   });
   TabRecency.rCompare = function(a, b): number {
     return (cache[b.id] as number) - (cache[a.id] as number);
