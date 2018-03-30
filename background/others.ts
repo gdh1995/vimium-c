@@ -240,7 +240,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       sessionIds = Object.create(null);
       response.forEach(formatSessionId);
     }
-    firstType = response.length > 0 ? response[0].type as CompletersNS.ValidTypes : "";
+    firstType = sug ? sug.type as CompletersNS.ValidTypes : "";
     matchType = newMatchType;
     if (autoSelect) {
       firstResult = response.shift() as Suggestion;

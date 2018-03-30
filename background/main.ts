@@ -263,7 +263,7 @@ Are you sure you want to continue?`);
     ensureInnerCSS (this: void, port: Frames.Port): string | null {
       const { sender } = port;
       if (sender.flags & Frames.Flags.hasCSS) { return null; }
-      sender.flags |= Frames.Flags.hasCSS;
+      sender.flags |= Frames.Flags.hasCSSAndActed;
       return Settings.cache.innerCSS;
     },
 
@@ -796,6 +796,12 @@ Are you sure you want to continue?`);
       (this: MarksNS.FocusOrLaunch, tabs: Tab[], wnd: Window) => void,
       (this: MarksNS.MarkToGo, tick: 0 | 1 | 2, tabs: Tab | undefined) => void
     ],
+    executeGlobal (cmd: string, ports: Frames.Frames | null | undefined): void {
+      if (!ports) {
+        return requestHandlers.cmd({ cmd, count: 1});
+      }
+      ports[0].postMessage({ name: "count", cmd });
+    },
     toggleMuteTab: [function(tabs) {
       const tab = tabs[0];
       chrome.tabs.update(tab.id, { muted: !tab.mutedInfo.muted });
@@ -2011,10 +2017,13 @@ Are you sure you want to continue?`);
     ExecuteGlobal (this: void, cmd: string): void {
       const tabId = TabRecency.last, ports = framesForTab[tabId];
       if (cmd === "quickNext") { cmd = "nextTab"; }
-      if (ports == null) {
-        return requestHandlers.cmd({ cmd, count: 1});
+      if (ports == null || (ports[0].sender.flags & Frames.Flags.userActed)) {
+        return funcDict.executeGlobal(cmd, ports);
       }
-      ports[0].postMessage({ name: "count", cmd });
+      chrome.tabs.get(tabId, function(tab): void {
+        funcDict.executeGlobal(cmd, tab && tab.status === "complete" ? framesForTab[tab.id] : null);
+        return chrome.runtime.lastError;
+      });
     },
     indexPorts: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
       return tabId == null ? framesForTab : frameId == null ? (framesForTab[tabId] || null)
