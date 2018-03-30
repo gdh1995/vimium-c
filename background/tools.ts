@@ -95,6 +95,9 @@ ContentSettings = {
       result.push(pattern + host + "/*");
     }
     result.push(pattern + "*." + host + "/*");
+    if (end === arr.length - minLen && pattern === "http://") {
+      result.push("https://*." + host + "/*");
+    }
     return result;
   },
   Clear (this: void, contentType: CSTypes, tab?: Readonly<{ incognito: boolean }> ): void {

@@ -786,7 +786,7 @@ Are you sure you want to continue?`);
       if (tab.windowId !== wndId) { return funcDict.selectWnd(tab); }
     }, function(this: MarksNS.MarkToGo, tick: 0 | 1 | 2, tab: Tab): void {
       if (!tab) { return chrome.runtime.lastError; }
-      if (tab.status == "complete" || tick >= 2) {
+      if (tab.status === "complete" || tick >= 2) {
         return Marks.scrollTab(this, tab);
       }
       setTimeout(() => { chrome.tabs.get(tab.id, funcDict.focusOrLaunch[3].bind(this, tick + 1)) }, 800);
