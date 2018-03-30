@@ -37,6 +37,7 @@ declare const enum PixelData {
   OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
   ListSpaceDelta = VomnibarNS.Consts.MarginTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
   MarginH = 24, AllHNotUrl = 8 + 52 + 3, MeanWidthOfChar = 7.72,
+  AllHNotInput = AllHNotUrl + MarginH, // just need an approximation
 }
 
 if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
@@ -277,7 +278,9 @@ var Vomnibar = {
     return this._updateInput(line, str);
   },
   _updateInput (line: SuggestionEx, str: string): void {
+    var maxW = str.length * 10, tooLong = maxW > innerWidth - PixelData.AllHNotInput;
     this.input.value = str;
+    tooLong && (this.input.scrollLeft = maxW);
     this.isHttps = line.https && str === line.text;
     this.isEditing = str !== line.parsed || line.parsed === line.text;
   },

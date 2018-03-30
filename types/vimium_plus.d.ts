@@ -359,6 +359,10 @@ declare const enum BrowserVer {
   MinExtensionContentPageAlwaysCanShowFavIcon = MinExtIframesAlwaysInSharedProcess,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,
+  // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange,
+  // `<input type=number>.selectionStart` throws on Chrome 33,
+  // but ChromeStatus says it has changed the behavior to match the new spec on C58
+  Min$selectionStart$MayBeNull = 58,
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
