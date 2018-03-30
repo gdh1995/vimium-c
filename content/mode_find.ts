@@ -175,11 +175,11 @@ html > count{float:right;}`,
     this.focusFoundLink(window.getSelection().anchorNode as Element | null);
     return this.postMode.activate();
   },
-  deactivate (unexpectly?: boolean): Element | null { // need keep @hasResults
+  clean (i: FindNS.Action): Element | null { // need keep @hasResults
     let el: Element | null = null;
     this.coords && window.scrollTo(this.coords[0], this.coords[1]);
     this.isActive = this._small = this._actived = this.notEmpty = false;
-    if (unexpectly !== true) {
+    if (i !== FindNS.Action.ExitUnexpectedly) {
       window.focus();
       el = VDom.getSelectionFocusElement();
       el && el.focus && el.focus();
@@ -195,7 +195,7 @@ html > count{float:right;}`,
   },
   OnUnload (this: void, e: Event): void {
     if (e.isTrusted == false) { return; }
-    const f = VFindMode; f && f.isActive && f.deactivate(true);
+    const f = VFindMode; f && f.isActive && f.deactivate(FindNS.Action.ExitUnexpectedly);
   },
   OnMousedown (this: void, event: MouseEvent): void {
     if (event.target !== VFindMode.input && event.isTrusted != false) {
@@ -213,20 +213,15 @@ html > count{float:right;}`,
     VUtils.Stop(event);
     if (event.isTrusted == false) { return; }
     if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
-    const enum Result {
-      DoNothing = 0,
-      Exit = 1, ExitToPostMode = 2, ExitAndReFocus = 3,
-      MinComplicatedExit = ExitToPostMode,
-      PassDirectly = -1,
-    }
     const n = event.keyCode;
-    let i: Result | KeyStat = event.altKey ? Result.DoNothing
-      : n === VKeyCodes.enter ? event.shiftKey ? Result.PassDirectly : (this.saveQuery(), Result.ExitToPostMode)
-      : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? Result.DoNothing
-      : this.query || (n === VKeyCodes.deleteKey && !VSettings.cache.onMac || event.repeat) ? Result.PassDirectly
-      : Result.Exit;
+    type Result = FindNS.Action;
+    let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
+      : n === VKeyCodes.enter ? event.shiftKey ? FindNS.Action.PassDirectly : (this.saveQuery(), FindNS.Action.ExitToPostMode)
+      : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? FindNS.Action.DoNothing
+      : this.query || (n === VKeyCodes.deleteKey && !VSettings.cache.onMac || event.repeat) ? FindNS.Action.PassDirectly
+      : FindNS.Action.Exit;
     if (!i) {
-      if (VKeyboard.isEscape(event)) { i = Result.ExitAndReFocus; }
+      if (VKeyboard.isEscape(event)) { i = FindNS.Action.ExitAndReFocus; }
       else if (i = VKeyboard.getKeyStat(event)) {
         if (i & ~KeyStat.PrimaryModifier) { return; }
         else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
@@ -236,33 +231,36 @@ html > count{float:right;}`,
           this.execute(null, { count: (VKeyCodes.K - n) || -1 });
         }
         else { return; }
-        i = Result.DoNothing;
+        i = FindNS.Action.DoNothing;
       }
       else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
       else if (n === VKeyCodes.f2) { window.focus(); VEventMode.suppress(n); }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery(n !== VKeyCodes.up); }
       else { return; }
-    } else if (i === Result.PassDirectly) {
+    } else if (i === FindNS.Action.PassDirectly) {
       return;
     }
     VUtils.prevent(event);
     if (!i) { return; }
-    let hasStyle = !this.styleIn.disabled, el = this.deactivate(), el2: Element | null;
     VEventMode.suppress(n);
-    if ((i === Result.ExitAndReFocus || !this.hasResults || VVisualMode.mode) && hasStyle) {
+    return this.deactivate(i as FindNS.Action);
+  },
+  deactivate(i: FindNS.Action): void {
+    let hasStyle = !this.styleIn.disabled, el = this.clean(i), el2: Element | null;
+    if ((i === FindNS.Action.ExitAndReFocus || !this.hasResults || VVisualMode.mode) && hasStyle) {
       this.toggleStyle(0);
       this.restoreSelection(true);
     }
     if (VVisualMode.mode) { return VVisualMode.activate(1, VUtils.safer()); }
     VDom.UI.toggleSelectStyle(false);
-    if (i < Result.MinComplicatedExit || !this.hasResults) { return; }
+    if (i < FindNS.Action.MinComplicatedExit || !this.hasResults) { return; }
     if (!el || el !== VEventMode.lock()) {
       el = window.getSelection().anchorNode as Element | null;
-      if (el && !this.focusFoundLink(el) && i === Result.ExitAndReFocus && (el2 = document.activeElement)) {
+      if (el && !this.focusFoundLink(el) && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)) {
         VDom.getEditableType(el2) >= EditableType.Editbox && el.contains(el2) && VDom.UI.simulateSelect(el2);
       }
     }
-    if (i === Result.ExitToPostMode) { return this.postMode.activate(); }
+    if (i === FindNS.Action.ExitToPostMode) { return this.postMode.activate(); }
   },
   focusFoundLink (el: Element | null): el is HTMLAnchorElement {
     for (; el && el !== document.body; el = el.parentElement) {
