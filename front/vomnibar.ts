@@ -37,7 +37,7 @@ declare const enum PixelData {
   OthersIfEmpty = InputBar + MarginV,
   OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
   ListSpaceDelta = VomnibarNS.Consts.MarginTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
-  MarginH = 24, AllHNotUrl = 8 + 52 + 3, MeanWidthOfChar = 7.72,
+  MarginH = 24, AllHNotUrl = 8 * 2 + 52 + 3, MeanWidthOfChar = 7.72,
   AllHNotInput = AllHNotUrl + MarginH, // just need an approximation
 }
 
@@ -668,11 +668,11 @@ var Vomnibar = {
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner as
         any, 0, { name: "focus", key: request.key });
   },
-  setWidth (w0?: number): void {
-    let w = w0 || window.innerWidth, contentWidth = w - PixelData.MarginH;
-    this.mode.maxChars = Math.round((contentWidth - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
+  setWidth (w?: number): void {
+    w || (w = window.innerWidth - PixelData.MarginH);
+    this.mode.maxChars = Math.round((w - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
     if (this.browserVersion < BrowserVer.MinSeparateExtIframeHasCorrectWidthIfDeviceRationNot1 && devicePixelRatio !== 1) {
-      (document.documentElement as HTMLHtmlElement).style.width = w + "px";
+      (document.documentElement as HTMLHtmlElement).style.width = w + PixelData.MarginH + "px";
     }
   },
   secret: null as never as (request: BgVomnibarReq["secret"]) => void,
