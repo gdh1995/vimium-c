@@ -68,11 +68,9 @@ select.right {
   -webkit-padding-start: 0;
   -webkit-padding-end: 17px;
   -webkit-appearance: button; 
-  background-color: #ddd;
+  background: #ddd 45% center no-repeat;
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6" fill="%23444"/></svg>'),
     linear-gradient(#ededed, #ededed 38%, #dedede);
-  background-position: 45% center;
-  background-repeat: no-repeat;
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
   width: 19px;
@@ -112,6 +110,7 @@ td {
 }
 
 input, textarea {
+  background-color: white;
   border: 0.5px solid #bfbfbf;
   border-radius: 2px;
   box-sizing: border-box;
