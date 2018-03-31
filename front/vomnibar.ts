@@ -467,11 +467,12 @@ var Vomnibar = {
     return this.onEnter(event, [].indexOf.call(this.list.children, el));
   },
   OnMenu (this: void, event: Event): void {
-    let el = event.target as Element | null;
+    let el = event.target as Element | null, item: Element | null;
     for (; el && !el.classList.contains("url"); el = el.parentElement) {}
     if (!el || (el as HTMLAnchorElement).href) { return; }
-    const _i = [].indexOf.call(Vomnibar.list.children, (el.parentNode as HTMLElement).parentNode);
-    (el as HTMLAnchorElement).href = Vomnibar.completions[_i].url;
+    for (item = el; item && item.parentElement !== Vomnibar.list; item = item.parentElement) {}
+    const _i = [].indexOf.call(Vomnibar.list.children, item);
+    _i >= 0 && ((el as HTMLAnchorElement).href = Vomnibar.completions[_i].url);
   },
   OnSelect (this: HTMLInputElement): void {
     let el = this;
