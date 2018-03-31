@@ -67,10 +67,10 @@ const enum FirstQuery {
 }
 
 interface SuggestionConstructor {
-  new (type: string, url: string, text: string, title: string,
+  new (type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
       computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number,
       extraData: number): Suggestion;
-  new (type: string, url: string, text: string, title: string,
+  new (type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
       computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion) => number
       ): Suggestion;
 }
@@ -610,11 +610,15 @@ tabs: {
     wndIds = wndIds.sort(this.SortNumbers);
     const c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
     for (const tab of tabs) {
-      let id = (wndIds.length > 1 ? wndIds.indexOf(tab.windowId) + 1 : "") + "# " + (tab.index + 1);
+      let id = "#";
+      wndIds.length > 1 && (id += `${wndIds.indexOf(tab.windowId) + 1}:`);
+      id += "" + (tab.index + 1);
       if (tab.incognito) { id += "*"; }
-      const tabId = tab.id, suggestion = new Suggestion(id, tab.url, tab.text, tab.title, c, tabId);
-      suggestion.sessionId = tabId;
+      const tabId = tab.id, suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
       if (curTabId === tabId) { suggestion.relevancy = 8; }
+      suggestion.sessionId = tabId;
+      suggestion.index = id;
+      //suggestion.textSplit = suggestion.textSplit + " " + id;
       suggestions.push(suggestion);
     }
     if (queryType !== FirstQuery.tabs && offset !== 0) {}

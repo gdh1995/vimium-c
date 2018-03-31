@@ -44,6 +44,7 @@ declare namespace CompletersNS {
     textSplit?: string;
     title: string;
     sessionId?: string | number;
+    index?: string;
   }
   interface Suggestion extends BaseSuggestion {
     relevancy: number;

@@ -1,32 +1,35 @@
 <!DOCTYPE html>
-<html data-version="1.63">
+<html data-version="1.64">
 <head>
 	<meta charset="utf-8">
 	<title>Vimium++ Vomnibar</title>
 	<script defer src="vomnibar.js"></script>
 	<style>
 body{border-radius:5px;box-shadow:0 2px 10px 0.5px rgba(0,0,0,0.8);
-contain:content;margin:8px 12px 10px;overflow:hidden;padding:0;position:relative;text-decoration-skip-ink:none;
-font:12px/1 "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;}
+contain:content;margin:8px 12px 10px;overflow:hidden;padding:0;position:relative;text-decoration-skip-ink:none;}
 .transparent{opacity:0.66;}
-#bar{background:#F1F1F1;border-radius:4px;contain:strict;font-size:0;height:34px;padding:10px 12px;}
+#bar{background:#F1F1F1;border-radius:4px;contain:strict;font-size:0;height:34px;padding:10px;}
 #bar.withList{border-bottom:1px dashed #ccc;border-radius:4px 4px 0 0;}
 #close{border-radius:10px;color:gray;contain:strict;cursor:default;font:bold 21px/19px Consolas,"Courier New",monospace;
 height:20px;opacity:0;position:absolute;right:17px;text-align:center;top:17px;-webkit-user-select:none;user-select:none;width:20px;}
 #close:hover{background-color:rgba(255,255,255,0.8);opacity:1;}
 #input{background:white;border:0.5px solid #E8E8E8;border-radius:3px;box-shadow:#444 0 0 1px;box-sizing:border-box;
-color:black;contain:strict;font-size:20px;height:34px;outline:none;padding:4px;width:100%;}
+color:black;contain:strict;font-size:20px;height:34px;outline:none;padding:4px 8px;width:100%;}
 #list{background:white;border-radius:0 0 4px 4px;contain:content;white-space:nowrap;}
 .item{border-bottom:0.5px solid #ddd;box-sizing:border-box;contain:strict;height:44px;padding:4px 8px 0;}
 .b{border-bottom-style:none;border-radius:0 0 4px 4px;height:46px;}
 .item:hover{background-color:#cddbef;}.item.s{background-color:#bbcee9;}
-.top{font-size:16px;height:20px;line-height:20px;overflow:hidden;}
-.type{color:#777;cursor:text;display:inline-block;width:52px;}
-.bottom{font:14px/18px Consolas,"Liberation Mono","Courier New",monospace;height:20px;margin-right:3px;overflow:hidden;}
-.icon{background:no-repeat 31px 0px;background-size:16px;}
-.url{box-sizing:border-box;color:#248;cursor:text;display:inline-block;margin-left:52px;max-width:100%;text-decoration:none;}
-.relevancy{margin-left:10px;position:absolute;}
-.dim{box-sizing:border-box;display:inline-block;max-width:100%;}match{color:black;font-weight:bold;}.dim > match{text-decoration:underline;}
+.top{background:11px 1.5px/16px no-repeat;height:20px;overflow:hidden;
+font:16px/20px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;}
+.history{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="%23777"><path d="M14,48a41,41 0 1 1 12,29l6.4-6.4 A32,32 1 1 0 23,48h13.5l-18,18L0.5,48zM50,30v23L70,64l3-5L57,50v-20"/></svg>');}
+.search{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="%23777"><path d="M46,41h-3l-1.1-1.1l-2,2l1.1,1.1v3L59,64l5,-5"></path><circle cx="24" cy="24" r="21" stroke="%23777" stroke-width="6" fill="none"/></svg>');}
+.bookm{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="%23777"><path d="M16,1l4,11h12L22,20l3,11L16,25L6,31L10,20L0,12h12"/></svg>');}
+.tab{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="%23777"><circle cx="8" cy="16" r="8"/><circle cx="8" cy="48" r="8"/><circle cx="8" cy="80" r="8"/><path d="M24,11h72v10h-72zM24,43h72v10h-72zM24,75h72v10h-72"/></svg>');}
+.icon{background:31px 1.5px/16px no-repeat;display:inline-block;width:52px;height:20px;vertical-align:top;}
+.no-favicon .top{background-position-x:31px;}.index{color:#999;font-size:14px;}
+.bottom{font:14px/18px Consolas,"Liberation Mono","Courier New",monospace;height:18px;margin-right:3px;overflow:hidden;}
+.url{box-sizing:border-box;color:#3b517d;cursor:text;display:inline-block;margin-left:52px;max-width:100%;text-decoration:none;}
+match{color:black;font-weight:bold;}.title>match{text-decoration:underline;}
 	</style>
 </head>
 <body>
@@ -37,10 +40,10 @@ color:black;contain:strict;font-size:20px;height:34px;outline:none;padding:4px;w
 <div id="list">
 	<script type="text/x-template" id="template">
 	<div class="item">
-		<div class="top">
-			<span class="type">{{type}}</span><span class="dim">{{title}}</span>
+		<div class="top {{type}}">
+			<span class="icon{{favIcon}}"></span><span class="title">{{title}}</span>{{index}}
 		</div>
-		<div class="bottom{{favIcon}}">
+		<div class="bottom">
 			<a class="url">{{textSplit}}</a>{{relevancy}}
 		</div>
 	</div></script>

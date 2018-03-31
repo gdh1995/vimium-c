@@ -2,6 +2,7 @@
 /// <reference path="../background/bg.d.ts" />
 interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
   favIcon?: string;
+  index?: string;
   relevancy: number | string;
 }
 interface SuggestionEx extends SuggestionE {
@@ -58,7 +59,7 @@ var Vomnibar = {
     if (this.mode.favIcon) {
       let scale = devicePixelRatio;
       scale = scale < 1.5 ? 1 : scale < 3 ? 2 : scale < 4 ? 3 : 4;
-      this.favPrefix = ' icon" style="background-image: url(&quot;chrome://favicon/size/16' + (scale > 1 ? "@" + scale + "x" : "") + "/";
+      this.favPrefix = '" style="background-image: url(&quot;chrome://favicon/size/16' + (scale > 1 ? "@" + scale + "x" : "") + "/";
     }
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
@@ -144,6 +145,7 @@ var Vomnibar = {
     this.list.textContent = el.value = "";
     this.list.style.height = "";
     this.barCls.remove("withList");
+    this.list.classList.remove("no-favicon");
     if (this.sameOrigin) { return this.onHidden(); }
     this.timer2 = requestAnimationFrame(this.AfterHide);
     this.timer = setTimeout(this.AfterHide, 25);
@@ -233,7 +235,7 @@ var Vomnibar = {
       return this._updateInput(line, line.parsed);
     }
     (line as Partial<SuggestionEx>).https == null && (line.https = line.url.startsWith("https://"));
-    if (line.type !== "history" && line.type.indexOf("#") < 0) {
+    if (line.type !== "history" && line.type !== "tab") {
       if (line.parsed == null) {
         VUtils.ensureText(line);
         line.parsed = "";
@@ -405,7 +407,7 @@ var Vomnibar = {
     let arr = this._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
     if (len >= n) { sel *= n; }
     else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
-    else if (len < (len && this.completions[0].type.indexOf("#") < 0 ? n : 3)) { return; }
+    else if (len < (len && this.completions[0].type !== "tab" ? n : 3)) { return; }
 
     sel += i;
     sel = sel < 0 ? 0 : sel > 90 ? 90 : sel;
@@ -534,16 +536,18 @@ var Vomnibar = {
     this.isSelOriginal = true;
     this.isSearchOnTop = notEmpty && list[0].type === "search";
     this.height = Math.ceil(notEmpty ? height * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty);
-    list.forEach(this.parse, this);
     return this.populateUI(oldHeight);
   },
   populateUI (oldH: number): void {
-    const { list, barCls: cl, height } = this, notEmpty = this.completions.length > 0, c = "withList",
-    msg = { name: "style" as "style", height };
+    const { list, height } = this, notEmpty = this.completions.length > 0, msg = { name: "style" as "style", height };
     if (height > oldH || this.sameOrigin) { VPort.postToOwner(msg); }
-    oldH || (this.bodySt.display = "");
-    notEmpty ? this.barCls.add(c) : cl.remove(c);
+    this.completions.forEach(this.parse, this);
     list.innerHTML = this.renderItems(this.completions);
+    oldH || (this.bodySt.display = "");
+    let cl = this.barCls, c = "withList";
+    notEmpty ? cl.add(c) : cl.remove(c);
+    cl = list.classList, c = "no-favicon";
+    this.showFavIcon ? cl.remove(c) :cl.add(c);
     if (notEmpty) {
       if (this.selection === 0) {
         (list.firstElementChild as HTMLElement).classList.add("s");
@@ -685,7 +689,7 @@ var Vomnibar = {
   _spacesRe: <RegExpG> /\s+/g,
   _singleQuoteRe: <RegExpG> /'/g,
   fetch (): void {
-    let mode = this.mode, str: string, s2: string, last: string, newMatchType = CompletersNS.MatchType.Default;
+    let mode = this.mode, str: string, last: string, newMatchType = CompletersNS.MatchType.Default;
     this.timer = -1;
     if (this.useInput) {
       this.lastQuery = str = this.input.value.trim();
@@ -699,8 +703,7 @@ var Vomnibar = {
       if (str === mode.query) { return this.postUpdate(); }
       mode.type = this.matchType < CompletersNS.MatchType.singleMatch || !str.startsWith(mode.query) ? this.modeType
         : this.matchType === CompletersNS.MatchType.searchWanted ? "search"
-        : (newMatchType = this.matchType,
-          (s2 = this.completions[0].type).indexOf("#") < 0 ? s2 as CompletersNS.ValidTypes : "tab");
+        : (newMatchType = this.matchType, this.completions[0].type as CompletersNS.ValidTypes);
       mode.query = str;
       this.setWidth();
       this.matchType = newMatchType;
@@ -712,12 +715,11 @@ var Vomnibar = {
 
   favPrefix: "",
   parse (item: SuggestionE): void {
-    let str = this.showFavIcon ? item.url : "";
-    item.favIcon = str
-      ? this.favPrefix +
-        ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)"
-      : "";
+    let str: string | undefined;
     item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
+    (str = item.index) && (item.index = ` <span class="index">${str}</span>`);
+    item.favIcon = (str = this.showFavIcon ? item.url : "") && this.favPrefix +
+        ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)"
   },
   parseFavIcon (item: SuggestionE, url: string): string {
     let str = url.substring(0, 11).toLowerCase();
@@ -747,7 +749,7 @@ var Vomnibar = {
     });
     if (this.actionType > ReuseType.newBg) { return; }
     window.getSelection().removeAllRanges();
-    if (item.type.indexOf("#") < 0) {
+    if (item.type !== "tab") {
       return this.refresh();
     }
     window.onfocus = function(e: Event): void {
@@ -764,7 +766,7 @@ VUtils = {
       let html = "", len = a.length;
       for (const o of objectArray) {
         for (let j = 0; j < len; j++) {
-          html += (j & 1) ? o[a[j] as keyof SuggestionE] : a[j];
+          html += (j & 1) ? o[a[j] as keyof SuggestionE] || "" : a[j];
         }
       }
       return html;
@@ -843,7 +845,7 @@ VPort = {
 });
 (function(): void {
   const pageVersion = +<string>(document.documentElement as HTMLElement).getAttribute("data-version") || 0;
-  if (pageVersion < 1.63) {
+  if (pageVersion < 1.64) {
     location.href = "about:blank";
     return;
   }
