@@ -33,7 +33,7 @@ interface Window extends ConfigurableItems {}
 declare const enum PixelData {
   InputBar = 54, InputBarWithLine = InputBar + 1,
   Item = 44, LastItemDelta = 46 - Item,
-  MarginV1 = 8, MarginV2 = 10, MarginV = MarginV1 + MarginV2,
+  MarginV1 = 9, MarginV2 = 10, MarginV = MarginV1 + MarginV2,
   OthersIfEmpty = InputBar + MarginV,
   OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
   ListSpaceDelta = VomnibarNS.Consts.MarginTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
