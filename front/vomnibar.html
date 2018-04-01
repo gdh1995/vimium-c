@@ -19,18 +19,14 @@ color:black;contain:strict;font-size:20px;height:34px;outline:none;padding:4px 8
 .item{border-bottom:0.5px solid #ddd;box-sizing:border-box;contain:strict;height:44px;padding:4px 8px 0;}
 .b{border-bottom-style:none;border-radius:0 0 4px 4px;height:46px;}
 .item:hover{background-color:#cddbef;}.item.s{background-color:#bbcee9;}
-.top{background:11px 1.5px/16px no-repeat;height:20px;overflow:hidden;
+.top{height:20px;overflow:hidden;
 font:16px/20px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;}
-.history{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="%23777"><path d="M14,48a41,41 0 1 1 12,29l6.4-6.4A32,32 1 1 0 23,48h13.5l-18,18L0.5,48zM50,30v23L70,64l3-5L57,50V30"/></svg>');}
-.search{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="%23777"><path d="M46,41h-3l-1-1a24,24 1 1 0 -2,2l1.1,1.1v3L59,64l5,-5zM36,37a18,18 0 1 1 1,-1"/></svg>');}
-.domain{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="%23777"><path d="M1,4v1h1l3,9h1l2,-6l2,6h1L14,5h1V4H12v1h1l-2.5,7l-2-6h-1l-2,6l-2,-7h1V4"/></svg>');}
-.bookm{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="%23777"><path d="M16,1l4,11h12L22,20l3,11L16,25L6,31L10,20L0,12h12"/></svg>');}
-.tab{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="%23777"><path d="M0,5V15h12V5zM1,6h10v8H1zM2,3h12v10h-2v-1h1V4H3v1H2zM4,1h12v10h-2v-1h1V2H5v1H4z"/></svg>');}
-.icon{background:31px 1.5px/16px no-repeat;display:inline-block;width:52px;height:20px;vertical-align:top;}
-.no-favicon .top{background-position-x:31px;}.index{color:#999;font-size:14px;}
+.icon{background:31px 1.5px/16px no-repeat;display:inline-block;fill:#777;height:16px;padding:1.5px 25px 0 11px;width:16px;vertical-align:top;}
+.no-favicon .icon{padding-left:31px;padding-right:5px;}.index{color:#999;font-size:14px;}
 .bottom{font:14px/18px Consolas,"Liberation Mono","Courier New",monospace;height:18px;margin-right:3px;overflow:hidden;padding-left:52px;}
 .url{color:#3b517d;cursor:text;text-decoration:none;}
 match{color:black;font-weight:bold;}.title>match{text-decoration:underline;}
+#svg-template{display:none;}
 	</style>
 </head>
 <body>
@@ -41,13 +37,23 @@ match{color:black;font-weight:bold;}.title>match{text-decoration:underline;}
 <div id="list">
 	<script type="text/x-template" id="template">
 	<div class="item">
-		<div class="top {{type}}">
-			<span class="icon{{favIcon}}"></span><span class="title">{{title}}</span>{{index}}
+		<div class="top">
+			<svg viewBox="0 0 64 64" class="icon{{favIcon}}"><use href="#{{type}}"/>
+			</svg><span class="title">{{title}}</span>{{index}}
 		</div>
 		<div class="bottom">
 			<a class="url">{{textSplit}}</a>{{relevancy}}
 		</div>
 	</div></script>
 </div>
+<svg id="svg-template">
+	<defs>
+		<path id="history" d="M9,32a27,27 0 1 1 8,19l4.3-4.3A21,21 1 1 0 15,32h9L12,44L0,32zM32,20v16l13,7l2.5-4L37,33V20"/>
+		<path id="domain" d="M4,16v4h4l12,36h4L32,32l8,24h4L56,20h4v-4H48v4h4L42,48L34,24h-4l-8,24L12,20h4v-4"/>
+		<path id="search" d="M46,41h-3l-1-1a24,24 1 1 0 -2,2l1.1,1.1v3L59,64l5,-5zM36,37a18,18 0 1 1 1,-1"/>
+		<path id="bookm" d="M32,2l8,22h24L44,40l6,22L32,50L12,61L20,40L0,24h24"/>
+		<path id="tab" d="M0,20V60h48V20zM4,24h40v32H4zM8,12h48v40h-8v-4h4V16H12v4H8zM16,4h48v40h-8v-4h4V8H20v4H16z"/>
+	</defs>
+</svg>
 </body>
 </html>
