@@ -144,7 +144,7 @@ var Vomnibar = {
     this.bodySt.cssText = "display: none;";
     this.list.textContent = el.value = "";
     this.list.style.height = "";
-    this.barCls.remove("withList");
+    this.barCls.remove("empty");
     this.list.classList.remove("no-favicon");
     if (this.sameOrigin) { return this.onHidden(); }
     this.timer2 = requestAnimationFrame(this.AfterHide);
@@ -545,8 +545,8 @@ var Vomnibar = {
     this.completions.forEach(this.parse, this);
     list.innerHTML = this.renderItems(this.completions);
     oldH || (this.bodySt.display = "");
-    let cl = this.barCls, c = "withList";
-    notEmpty ? cl.add(c) : cl.remove(c);
+    let cl = this.barCls, c = "empty";
+    notEmpty ? cl.remove(c) : cl.add(c);
     cl = list.classList, c = "no-favicon";
     this.showFavIcon ? cl.remove(c) :cl.add(c);
     if (notEmpty) {

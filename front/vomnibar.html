@@ -8,8 +8,8 @@
 body{border-radius:5px;box-shadow:0 2px 10px 0.5px rgba(0,0,0,0.8);
 contain:content;margin:8px 12px 10px;overflow:hidden;padding:0;position:relative;text-decoration-skip-ink:none;}
 .transparent{opacity:0.66;}
-#bar{background:#F1F1F1;border-radius:4px;contain:strict;font-size:0;height:34px;padding:10px;}
-#bar.withList{border-bottom:1px dashed #ccc;border-radius:4px 4px 0 0;}
+#bar{background:#F1F1F1;border-bottom:1px dashed #ccc;border-radius:4px 4px 0 0;contain:strict;font-size:0;height:34px;padding:10px;}
+#bar.empty{border-radius:4px;border:none;}
 #close{border-radius:10px;color:gray;contain:strict;cursor:default;font:bold 21px/19px Consolas,"Courier New",monospace;
 height:20px;opacity:0;position:absolute;right:17px;text-align:center;top:17px;-webkit-user-select:none;user-select:none;width:20px;}
 #close:hover{background-color:rgba(255,255,255,0.8);opacity:1;}
@@ -34,7 +34,7 @@ match{color:black;font-weight:bold;}.title>match{text-decoration:underline;}
 	</style>
 </head>
 <body>
-<div class="withList" id="bar">
+<div id="bar">
 	<input type="text" autofocus id="input" />
 	<span role="button" id="close">&#215;</span>
 </div>
