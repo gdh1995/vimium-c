@@ -846,7 +846,7 @@ VPort = {
 });
 (function(): void {
   const pageVersion = +<string>(document.documentElement as HTMLElement).getAttribute("data-version") || 0;
-  if (pageVersion < 1.64) {
+  if (Math.round(pageVersion * 100) != 164) {
     location.href = "about:blank";
     return;
   }
