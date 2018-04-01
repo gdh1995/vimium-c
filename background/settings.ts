@@ -141,6 +141,8 @@ var Settings = {
     vomnibarPage (url): void {
       if (url === this.defaults.vomnibarPage) {
         url = (this as typeof Settings).CONST.VomnibarPageInner;
+      } else if (url.startsWith("front/")) {
+        url = chrome.runtime.getURL(url);
       } else {
         url = Utils.convertToUrl(url);
         url = Utils.reformatURL(url);

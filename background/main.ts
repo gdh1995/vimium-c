@@ -1237,7 +1237,7 @@ Are you sure you want to continue?`);
         port = funcDict.indexFrame(port.sender.tabId, 0) || port;
       }
       const page = Settings.cache.vomnibarPage_f, { url } = port.sender, preferWeb = !page.startsWith("chrome"),
-      inner = Settings.CONST.VomnibarPageInner;
+      inner = forceInner || !page.startsWith(location.origin) ? Settings.CONST.VomnibarPageInner : page;
       forceInner = (preferWeb ? url.startsWith("chrome") || page.startsWith("file:") && !url.startsWith("file:")
           // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) that https refusing http iframes.
           || page.startsWith("http:") && url.startsWith("https:")

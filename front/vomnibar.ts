@@ -851,7 +851,7 @@ VPort = {
     return;
   }
   let curEl: HTMLScriptElement;
-  if (location.pathname === "/front/vomnibar.html" || location.protocol !== "chrome-extension:"
+  if (location.pathname.startsWith("/front/") || location.protocol !== "chrome-extension:"
    || !(curEl = document.currentScript as typeof curEl)) {}
   else if (curEl.src.endsWith("/front/vomnibar.js") && curEl.src.startsWith("chrome-extension:")) {
     window.ExtId = new URL(curEl.src).hostname;
