@@ -179,6 +179,7 @@ declare namespace SettingsNS {
     regexFindMode: boolean;
     scrollStepSize: number;
     smoothScroll: boolean;
+    useCyrillicFix: boolean;
   }
   interface FrontendSettingCache extends FrontendSettings {
     grabFocus: boolean;

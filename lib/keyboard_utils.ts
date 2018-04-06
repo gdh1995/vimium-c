@@ -34,8 +34,18 @@ var VKeyboard = {
       return (s = this.correctionMap[keyId - 186] || "") && s[+event.shiftKey];
     }
   },
+  isCyrillic (key: string): boolean{
+    const cyrillics = "йцукенгшщзхїфівапролджєячсмитьбюэъё";
+    return cyrillics.indexOf(key) > -1;
+  },
   getKeyChar (event: KeyboardEvent): string {
-    const key = event.key as string | undefined;
+    let useCyrillicFix = VSettings.cache.useCyrillicFix;
+    let key = event.key as string | undefined;
+    
+    if (useCyrillicFix && key && this.isCyrillic(key)) {
+      key = String.fromCharCode(event.keyCode).toLowerCase() as string | undefined;
+    }
+    
     if (key == null) {
       return event.keyCode && this.getKeyName(event) || this.getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     }

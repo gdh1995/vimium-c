@@ -218,7 +218,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     smoothScroll: true,
     userDefinedCss: "",
     vimSync: false,
-    vomnibarPage: ""
+    vomnibarPage: "",
+    useCyrillicFix: false,
   } as SettingsWithDefaults & SafeObject,
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
@@ -235,7 +236,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     { "19": "/icons/disabled_19.png", "38": "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
   valuesToLoad: ["deepHints", "keyboard", "linkHintCharacters" //
-    , "regexFindMode", "scrollStepSize", "smoothScroll" //
+    , "regexFindMode", "scrollStepSize", "smoothScroll", "useCyrillicFix" //
   ] as Array<keyof SettingsNS.FrontendSettings>,
   Sync: {
     set: function() {}
