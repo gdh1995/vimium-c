@@ -300,6 +300,7 @@ declare const enum BrowserVer {
   // so Chrome can only debug arrow functions since 49
   MinEnsuredArrowFunction = 48,
   MinSafeGlobal$frameElement = 48,
+  Min$KeyboardEvent$$Code = 48,
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinNo$Promise$$defer = 49,
   MinNoExtScriptsIfSandboxed = 49,

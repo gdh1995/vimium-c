@@ -336,7 +336,8 @@ var Vomnibar = {
         window.onkeyup = Vomnibar.HandleKeydown;
         return VPort.postToOwner({ name: "scroll", keyCode: n });
       }
-      else { action = this.ctrlMap[n] || AllowedActions.nothing; }
+      else { action = event.code === "BracketLeft" ? AllowedActions.dismiss : event.code === "BracketRight" ? AllowedActions.toggle
+                      : this.ctrlMap[n] || AllowedActions.nothing; }
     }
     else if (event.shiftKey) {
       action = n === VKeyCodes.up ? AllowedActions.pageup : n === VKeyCodes.down ? AllowedActions.pagedown : n === VKeyCodes.tab ? AllowedActions.up : AllowedActions.nothing;

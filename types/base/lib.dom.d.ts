@@ -5125,6 +5125,7 @@ interface KeyboardEvent extends UIEvent {
 }
 interface OldKeyboardEvent extends KeyboardEvent {
     readonly keyIdentifier: string;
+    readonly code: never;
     readonly key: never;
 }
 
