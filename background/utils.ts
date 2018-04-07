@@ -521,7 +521,7 @@ var Utils = {
         ind = val.indexOf(":", ind + 1);
       } while (val.charCodeAt(ind - 1) === KnownKey.backslash);
       if (ind <= 0 || !(key = val.substring(0, ind).trimRight())) continue;
-      ids = key.replace(rColon, ":").split('|');
+      ids = key.replace(rColon, ":").split("|");
       val = val.substring(ind + 1).trimLeft();
       if (!val) continue;
       key = val.replace(rEscapeSpace, "\\s");

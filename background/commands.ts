@@ -249,7 +249,7 @@ defaultKeyMappings: [
   ["<f2>", "switchFocus"],
   ["m", "Marks.activateCreateMode"],
   ["`", "Marks.activate"]
-] as [string, string][]
+] as ReadonlyArray<[string, string]>
 },
 CommandsData = (CommandsData as CommandsData) || {
   keyToCommandRegistry: null as never as SafeDict<CommandsNS.Item>,
@@ -403,7 +403,7 @@ availableCommands: {
   clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true, null, "clearMarks" ],
   openUrl: [ 'open URL (use url="", urls:string[], reuse=-1/0/1/-2, incognito, window, end)', 20, true ],
   focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true, { reuse: ReuseType.reuse }, "openUrl" ]
-} as SafeDict<CommandsNS.Description>
+} as ReadonlySafeDict<CommandsNS.Description>
 };
 
 if (document.readyState !== "complete") {

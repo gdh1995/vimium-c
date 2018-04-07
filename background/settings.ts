@@ -219,7 +219,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     userDefinedCss: "",
     vimSync: false,
     vomnibarPage: ""
-  } as SettingsWithDefaults & SafeObject,
+  } as Readonly<SettingsWithDefaults> & SafeObject,
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null as never,
@@ -236,7 +236,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
   valuesToLoad: ["deepHints", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
-  ] as Array<keyof SettingsNS.FrontendSettings>,
+  ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
   Sync: {
     set: function() {}
   } as SettingsNS.Sync,
@@ -293,7 +293,7 @@ chrome.runtime.getPlatformInfo(function(info): void {
   Settings.bufferToLoad.onMac = os === (types ? types.MAC : "mac");
 });
 
-(function() {
+(function(): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
   urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js,
   { CONST: obj } = Settings, ref3 = Settings.newTabs as SafeDict<Urls.NewTabType>;
@@ -301,8 +301,8 @@ chrome.runtime.getPlatformInfo(function(info): void {
   function func(path: string): string {
     return (path.charCodeAt(0) === KnownKey.slash ? origin : prefix) + path;
   }
-  Settings.defaults.vomnibarPage = obj.VomnibarPageInner;
-  Settings.defaults.newTabUrl = newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab;
+  (Settings.defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner;
+  (Settings.defaults as SettingsWithDefaults).newTabUrl = newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab;
   ref3[obj.BrowserNewTab] = ref3[obj.BrowserNewTab2] = Urls.NewTabType.browser;
   newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);
   obj.GlobalCommands = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);

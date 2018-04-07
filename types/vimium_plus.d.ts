@@ -237,7 +237,8 @@ declare const enum KnownKey {
   tab = 9, space = 32, minNotSpace, bang = 33, quote2 = 34, hash = 35,
   maxCommentHead = hash, and = 38, quote1 = 39, minNotInKeyNames = 41, slash = 47,
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62,
-  A = 65, minAlphabet = A, I = A + 8, minNotAlphabet = A + 26, a = 97, CASE_DELTA = a - A, AlphaMask = 0xff & ~CASE_DELTA,
+  A = 65, minAlphabet = A, I = A + 8, minLastAlphabet = A + 25, minNotAlphabet,
+  a = 97, CASE_DELTA = a - A, AlphaMask = 0xff & ~CASE_DELTA,
   backslash = 92, s = 115,
 }
 

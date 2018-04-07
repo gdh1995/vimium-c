@@ -16,7 +16,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
     doNotSync: Object.setPrototypeOf({
       findModeRawQueryList: 1, keyboard: 1, newTabUrl_f: 1
     }, null) as TypedSafeEnum<SettingsToSync>,
-    HandleStorageUpdate: function(changes, area) {
+    HandleStorageUpdate: function(changes, area): void {
       if (area !== "sync") { return; }
       Object.setPrototypeOf(changes, null);
       for (let key in changes) {
@@ -24,7 +24,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
         Sync.storeAndPropagate(key, change != null ? change.newValue : null);
       }
     } as SettingsNS.OnSyncUpdate,
-    storeAndPropagate (key: string, value: any) {
+    storeAndPropagate (key: string, value: any): void {
       if (!(key in Settings.defaults) || key in Settings.nonPersistent || !this.shouldSyncKey(key)) { return; }
       const defaultVal = Settings.defaults[key];
       if (value == null) {

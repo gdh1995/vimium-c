@@ -261,7 +261,7 @@ declare namespace IconNS {
     [size in ValidSizes]?: ImageData;
   }
   type PathBuffer = {
-    [size in ValidSizes]: string;
+    readonly [size in ValidSizes]: string;
   }
   interface AccessIconBuffer {
     (this: void, enabled: boolean): void;
@@ -408,7 +408,7 @@ interface CommandsData {
   keyMap: KeyMap;
   cmdMap: SafeDict<CommandsNS.Options | null>;
   mapKeyRegistry: SafeDict<string> | null;
-  availableCommands: SafeDict<CommandsNS.Description>;
+  availableCommands: ReadonlySafeDict<CommandsNS.Description>;
   errors: number;
 }
 

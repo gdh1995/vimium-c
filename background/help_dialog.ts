@@ -23,7 +23,7 @@ var HelpDialog = {
   groupHtml: (function(this: any, group: string, commandsToKey: SafeDict<string[]>
       , hideUnbound: boolean, showNames: boolean): string {
     const _ref = (this as typeof HelpDialog).commandGroups[group], renderItem = (this as typeof HelpDialog).commandHtml
-      , availableCommands = CommandsData.availableCommands as EnsuredSafeDict<CommandsNS.Description>;
+      , availableCommands = CommandsData.availableCommands as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
     let keys: string[] | undefined, html = "";
     for (let _i = 0, _len = _ref.length; _i < _len; _i++) {
       const command = _ref[_i];
@@ -105,7 +105,7 @@ var HelpDialog = {
       , "enableCSTemp", "toggleCS", "clearCS"],
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "toggleLinkHintCharacters"
       , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
-  } as EnsuredSafeDict<string[]>,
+  } as Readonly<EnsuredSafeDict<ReadonlyArray<string>>>,
   advancedCommands: { __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
     , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1

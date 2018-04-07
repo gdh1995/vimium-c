@@ -20,7 +20,11 @@ interface Post<R extends void | 1> {
 interface FgPort extends chrome.runtime.Port, Post<1> {
 }
 type Options = VomnibarNS.FgOptions;
-type AllowedActions = "dismiss"|"focus"|"blurInput"|"backspace"|"blur"|"up"|"down"|"toggle"|"pageup"|"pagedown"|"enter" | "";
+declare const enum AllowedActions {
+  Default = 0,
+  nothing = Default,
+  dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, enter
+}
 
 interface ConfigurableItems {
   ExtId?: string;
@@ -296,22 +300,23 @@ var Vomnibar = {
     sel >= 0 && _ref[sel].classList.add("s");
   },
   ctrlMap: {
-    32: "toggle",
-    66: "pageup", 74: "down", 75: "up", 219: "dismiss", 221: "toggle"
-    , 78: "down", 80: "up"
-  } as Dict<AllowedActions>,
+    32: AllowedActions.toggle, 66: AllowedActions.pageup
+    , 74: AllowedActions.down, 75: AllowedActions.up, 78: AllowedActions.down, 80: AllowedActions.up
+    , 219: AllowedActions.dismiss, 221: AllowedActions.toggle
+  } as Readonly<Dict<AllowedActions>>,
   normalMap: {
-    9: "down", 27: "dismiss", 33: "pageup", 34: "pagedown", 38: "up", 40: "down"
-    , 112: "backspace", 113: "blur"
-  } as Dict<AllowedActions>,
+    9: AllowedActions.down, 27: AllowedActions.dismiss
+    , 33: AllowedActions.pageup, 34: AllowedActions.pagedown, 38: AllowedActions.up, 40: AllowedActions.down
+    , 112: AllowedActions.backspace, 113: AllowedActions.blur
+  } as Readonly<Dict<AllowedActions>>,
   onKeydown (event: KeyboardEvent): any {
     if (!this.isActive) { return; }
-    let action: AllowedActions = "", n = event.keyCode, focused = this.focused;
+    let action: AllowedActions = AllowedActions.nothing, n = event.keyCode, focused = this.focused;
     this.lastKey = n;
     if (event.altKey || event.metaKey) {
       if (event.ctrlKey || event.shiftKey) {}
       else if (n === VKeyCodes.f2) {
-        return this.onAction(focused ? "blurInput" : "focus");
+        return this.onAction(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
       else if (!focused) {}
       else if (n > VKeyCodes.A && n < VKeyCodes.G && n !== VKeyCodes.C || n === VKeyCodes.backspace) {
@@ -324,19 +329,19 @@ var Vomnibar = {
       return;
     }
     else if (event.ctrlKey || event.metaKey) {
-      if (event.shiftKey) { action = n === VKeyCodes.F ? "pagedown" : n === VKeyCodes.B ? "pageup" : ""; }
+      if (event.shiftKey) { action = n === VKeyCodes.F ? AllowedActions.pagedown : n === VKeyCodes.B ? AllowedActions.pageup : AllowedActions.nothing; }
       else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
         event.preventDefault();
         this.lastScrolling = Date.now();
         window.onkeyup = Vomnibar.HandleKeydown;
         return VPort.postToOwner({ name: "scroll", keyCode: n });
       }
-      else { action = this.ctrlMap[n] || ""; }
+      else { action = this.ctrlMap[n] || AllowedActions.nothing; }
     }
     else if (event.shiftKey) {
-      action = n === VKeyCodes.up ? "pageup" : n === VKeyCodes.down ? "pagedown" : n === VKeyCodes.tab ? "up" : "";
+      action = n === VKeyCodes.up ? AllowedActions.pageup : n === VKeyCodes.down ? AllowedActions.pagedown : n === VKeyCodes.tab ? AllowedActions.up : AllowedActions.nothing;
     }
-    else if (action = this.normalMap[n] || "") {}
+    else if (action = this.normalMap[n] || AllowedActions.nothing) {}
     else if (n === VKeyCodes.ime || n > VKeyCodes.f1 && n < VKeyCodes.minNotFn) {
       this.keyResult = HandlerResult.Nothing;
       return;
@@ -346,10 +351,10 @@ var Vomnibar = {
       return;
     }
     else if (n !== VKeyCodes.space) {}
-    else if (!focused) { action = "focus"; }
+    else if (!focused) { action = AllowedActions.focus; }
     else if ((this.selection >= 0
         || this.completions.length <= 1) && this.input.value.endsWith("  ")) {
-      action = "enter";
+      action = AllowedActions.enter;
     }
     if (action) {
       return this.onAction(action);
@@ -364,7 +369,7 @@ var Vomnibar = {
   onAction (action: AllowedActions): void {
     let sel: number;
     switch(action) {
-    case "dismiss":
+    case AllowedActions.dismiss:
       const selection = window.getSelection();
       if (selection.type === "Range" && this.focused) {
         const el = this.input;
@@ -375,20 +380,20 @@ var Vomnibar = {
         return this.hide();
       }
       break;
-    case "focus": this.focus(); break;
-    case "blurInput": this.blurWanted = true; this.input.blur(); break;
-    case "backspace": case "blur":
+    case AllowedActions.focus: this.focus(); break;
+    case AllowedActions.blurInput: this.blurWanted = true; this.input.blur(); break;
+    case AllowedActions.backspace: case AllowedActions.blur:
       !this.focused ? this.focus()
-      : action === "blur" ? this.focus(false)
+      : action === AllowedActions.blur ? this.focus(false)
       : document.execCommand("delete");
       break;
-    case "up": case "down":
+    case AllowedActions.up: case AllowedActions.down:
       sel = this.completions.length + 1;
-      sel = (sel + this.selection + (action === "up" ? 0 : 2)) % sel - 1;
+      sel = (sel + this.selection + (action - AllowedActions.up)) % sel - 1;
       return this.updateSelection(sel);
-    case "toggle": return this.toggleInput();
-    case "pageup": case "pagedown": return this.goPage(action !== "pageup");
-    case "enter": return this.onEnter(true);
+    case AllowedActions.toggle: return this.toggleInput();
+    case AllowedActions.pageup: case AllowedActions.pagedown: return this.goPage(action !== AllowedActions.pageup);
+    case AllowedActions.enter: return this.onEnter(true);
     }
   },
   onBashAction (code: number): void | boolean {
@@ -819,7 +824,7 @@ VPort = {
   },
   OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
     let name = ((data as VomnibarNS.Msg<string>).name || data) as keyof VomnibarNS.CReq | "onAction";
-    if (name === "backspace") { return Vomnibar.onAction(name); }
+    if (name === "backspace") { return Vomnibar.onAction(AllowedActions.backspace); }
     return (Vomnibar as any)[name](data);
   },
   ClearPort (this: void): void { VPort.port = null; },

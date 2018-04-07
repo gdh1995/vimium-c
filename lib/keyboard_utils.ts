@@ -1,10 +1,10 @@
 var VKeyboard = {
-  keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down"],
+  keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down"] as ReadonlyArray<string>,
   correctionMap: {
     __proto__: null as never,
     0: ";:", 1: "=+", 2: ",<", 3: "-_", 4: ".>", 5: "/?", 6: "`~",
     33: "[{", 34: "\\|", 35: "]}", 36: "'\""
-  } as SafeDict<string>,
+  } as ReadonlySafeDict<string>,
   funcKeyRe: <RegExpOne> /^F\d\d?$/,
   getKeyName (event: KeyboardEvent): string {
     const {keyCode: i, shiftKey: c} = event;
@@ -18,7 +18,7 @@ var VKeyboard = {
       : i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn ? "fF"[+c] + (i - VKeyCodes.maxNotFn) : "";
   },
   getKeyCharUsingKeyIdentifier (event: OldKeyboardEvent): string {
-    let {keyIdentifier: s} = event;
+    let s: string | undefined = event.keyIdentifier;
     if (!s.startsWith("U+")) { return ""; }
     const keyId: KnownKey = parseInt(s.substring(2), 16);
     if (keyId < KnownKey.minAlphabet) {
@@ -28,10 +28,8 @@ var VKeyboard = {
       : String.fromCharCode(keyId);
     } else if (keyId < KnownKey.minNotAlphabet) {
       return String.fromCharCode(keyId + (event.shiftKey ? 0 : KnownKey.CASE_DELTA));
-    } else if (keyId < 186) {
-      return "";
     } else {
-      return (s = this.correctionMap[keyId - 186] || "") && s[+event.shiftKey];
+      return keyId > 185 && (s = this.correctionMap[keyId - 186]) && s[+event.shiftKey] || "";
     }
   },
   getKeyChar (event: KeyboardEvent): string {
