@@ -191,6 +191,7 @@ defaultKeyMappings: [
   ["d", "scrollPageDown"],
   ["u", "scrollPageUp"],
   ["r", "reload"],
+  ["gs", "toggleViewSource"],
   ["R", "reloadGivenTab"],
   ["<a-R>", "reopenTab"],
   ["<a-r>", "reloadTab"],
