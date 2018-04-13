@@ -312,6 +312,7 @@ declare const enum BrowserVer {
   //   in https://developer.chrome.com/extensions/tabs#method-executeScript.
   // And, all "Since Chrome 39" lines are totally wrong in the 2018-02-18 version of `tabs.executeScript`
   Min$tabs$$executeScript$hasFrameIdArg = 50,
+  MinSVG$Path$Has$Use$Attribute = 50, // <path path="..." />
   MinShowBlockForBrokenImage = 51,
   MinIFrameReferrerpolicy = 51,
   MinPassiveEventListener = 51,
@@ -320,6 +321,7 @@ declare const enum BrowserVer {
   MinNoCustomMessageOnBeforeUnload = 51,
   MinNoUnmatchedIncognito = 52,
   MinCSSEnableContain = 52,
+  MinSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); }
   MinScrollingHTMLHtmlElement = 53,
   MinShadowDOMV1 = 53,
   MinUserSelectAll = 53,
