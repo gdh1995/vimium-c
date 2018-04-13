@@ -41,8 +41,8 @@ declare const enum PixelData {
   OthersIfEmpty = InputBar + MarginV,
   OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
   ListSpaceDelta = VomnibarNS.Consts.MarginTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
-  MarginH = 24, AllHNotUrl = 8 * 2 + 52 + 3, MeanWidthOfChar = 7.72,
-  AllHNotInput = AllHNotUrl + MarginH, // just need an approximation
+  MarginH = 24, AllHNotUrl = 20 * 2 + 20 + 3, MeanWidthOfChar = 7.72,
+  AllHNotInput = AllHNotUrl + MarginH, // is just an approximation
 }
 
 if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
