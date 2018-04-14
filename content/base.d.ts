@@ -87,7 +87,7 @@ declare namespace HintsNS {
 declare namespace FindNS {
   const enum Action {
     PassDirectly = -1,
-    DoNothing = 0, Exit, ExitUnexpectedly, MinComplicatedExit,
+    DoNothing = 0, Exit, ExitNoFocus, ExitUnexpectedly, MinComplicatedExit,
     ExitToPostMode = MinComplicatedExit, ExitAndReFocus,
   }
   interface ExecuteOptions {

@@ -179,7 +179,7 @@ html > count{float:right;}`,
     let el: Element | null = null;
     this.coords && window.scrollTo(this.coords[0], this.coords[1]);
     this.isActive = this._small = this._actived = this.notEmpty = false;
-    if (i !== FindNS.Action.ExitUnexpectedly) {
+    if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
       window.focus();
       el = VDom.getSelectionFocusElement();
       el && el.focus && el.focus();

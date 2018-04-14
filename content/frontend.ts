@@ -121,7 +121,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       } else if (VDom.UI.removeSelection()) {
         action = HandlerResult.Prevent;
       } else if (VFindMode.isActive) {
-        return VFindMode.deactivate(FindNS.Action.Exit); // should exit
+        return VFindMode.deactivate(FindNS.Action.ExitNoFocus); // should exit
       } else if (window.top !== window && document.activeElement === document.body) {
         action = InsertMode.focusUpper(key, event.repeat);
       } else if (event.repeat) {
