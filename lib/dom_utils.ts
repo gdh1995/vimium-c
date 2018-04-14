@@ -1,8 +1,10 @@
 var VDom = {
   UI: null as never as DomUI,
   isHTML (this: void): boolean { return document.documentElement instanceof HTMLElement; },
+  isStandard: true,
   createElement: function (this: any, tagName: string): HTMLElement {
     const node = document.createElement(tagName), valid = node instanceof HTMLElement;
+    (this as typeof VDom).isStandard = valid;
     (this as typeof VDom).createElement = valid
       ? document.createElement.bind(document)
       : (document.createElementNS as (namespaceURI: "http://www.w3.org/1999/xhtml", qualifiedName: string) => HTMLElement

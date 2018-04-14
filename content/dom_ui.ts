@@ -25,13 +25,16 @@ VDom.UI = {
       let el: HTMLStyleElement | null = this.styleIn = this.createStyle(innerCSS);
       (this.root as ShadowRoot).appendChild(el);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
-      adjust === AdjustType.AdjustButNotShow || (el.onload = function (): void {
-        this.onload = null as never;
-        const a = VDom.UI, box = a.box as HTMLElement;
-        // enforce webkit to build the style attribute node, and then we can remove it totally
-        box.hasAttribute("style") && box.removeAttribute("style");
-        a.callback && a.callback();
-      });
+      if (adjust !== AdjustType.AdjustButNotShow) {
+        let f = function (this: HTMLElement, e: Event | 1): void {
+          e !== 1 && (this.onload = null as never);
+          const a = VDom.UI, box = a.box as HTMLElement;
+          // enforce webkit to build the style attribute node, and then we can remove it totally
+          box.hasAttribute("style") && box.removeAttribute("style");
+          a.callback && a.callback();
+        };
+        VDom.isStandard ? Promise.resolve(1 as 1).then(f) : (el.onload = f);
+      }
       (el = this._styleBorder) && (this.root as ShadowRoot).appendChild(el);
       if (adjust !== AdjustType.NotAdjust) {
         return this.adjust();
