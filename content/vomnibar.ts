@@ -124,11 +124,13 @@ var Vomnibar = {
       reload();
     } else {
       el.referrerPolicy = "no-referrer";
+      (el as any).sandbox = "allow-scripts";
     }
     el.src = page;
     function reload(): void {
       type = VomnibarNS.PageType.inner;
       el.removeAttribute("referrerPolicy");
+      el.removeAttribute("sandbox");
       el.src = page = inner as string; inner = null;
       let opts = Vomnibar.options; opts && (opts.ptype = type);
     }
@@ -142,9 +144,9 @@ var Vomnibar = {
         console.log("Vimium++: use built-in Vomnibar page because the preferred is too old.");
         return reload();
       }
-      const i = page.indexOf("://"), wnd = this.contentWindow,
+      const wnd = this.contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options as VomnibarNS.FgOptionsToFront];
-      page = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", i + 3));
+      page = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3));
       inner && setTimeout(function(i): void {
         const a = Vomnibar, ok = !a || a.status !== VomnibarNS.Status.Initing;
         if (ok || i) { a && a.box && (a.box.onload = a.options = null as never); return; }
@@ -159,7 +161,7 @@ var Vomnibar = {
         const channel = new MessageChannel();
         _this.port = channel.port1;
         channel.port1.onmessage = _this.onMessage.bind(_this);
-        wnd.postMessage(sec, page !== "file://" ? page : "*", [channel.port2]);
+        wnd.postMessage(sec, type !== VomnibarNS.PageType.web ? page : "*", [channel.port2]);
         return;
       }
       if (!(wnd.Vomnibar && wnd.onmessage)) { return reload(); }
