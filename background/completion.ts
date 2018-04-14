@@ -90,9 +90,10 @@ interface WindowEx extends Window {
 type SearchSuggestion = CompletersNS.SearchSuggestion;
 
 
-let queryType: FirstQuery, offset: number, autoSelect: boolean, inNormal: boolean | null, singleLine: boolean,
-    maxChars: number, maxResults: number, maxTotal: number, matchType: MatchType,
-    queryTerms: QueryTerms, rawQuery: string, rawMore: string;
+let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType.plain,
+    inNormal: boolean | null = null, autoSelect: boolean = false, singleLine: boolean = false,
+    maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, offset: number = 0,
+    queryTerms: QueryTerms = [""], rawQuery: string = "", rawMore: string = "";
 
 const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableCoreSuggestion,
     type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
@@ -848,12 +849,12 @@ searchEngines: {
       , func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
       , query: CompletersNS.QueryStatus): 1 {
     const cb = func.bind(that, query);
-    if (inNormal == null) {
+    if (inNormal === null) {
       inNormal = TabRecency.incognito !== IncognitoType.mayFalse ? TabRecency.incognito !== IncognitoType.true
         : Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito
           || null;
     }
-    if (inNormal != null) {
+    if (inNormal !== null) {
       return chrome.tabs.query({}, cb);
     }
     return chrome.windows.getCurrent(function(wnd): void {

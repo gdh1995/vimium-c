@@ -277,7 +277,7 @@ var Utils = {
         path = tempStr;
       } else if (path === "newtab") {
         return Settings.cache.newTabUrl_f;
-      } else if (path.charCodeAt(0) === KnownKey.slash || Settings.CONST.KnownPages.indexOf(path) >= 0) {
+      } else if (path[0] === "/" || Settings.CONST.KnownPages.indexOf(path) >= 0) {
         path += ".html";
       } else if (vimiumUrlWork === Urls.WorkType.ActIfNoSideEffects  || vimiumUrlWork === Urls.WorkType.ConvertKnown) {
         return "vimium://" + fullpath.trim();
@@ -286,7 +286,7 @@ var Utils = {
       }
     }
     if (!partly && (!tempStr || tempStr.indexOf("://") < 0)) {
-      path = location.origin + (path.charCodeAt(0) === KnownKey.slash ? "" : "/pages/") + path;
+      path = location.origin + (path[0] === "/" ? "" : "/pages/") + path;
     }
     return path + (query && (path.indexOf("#") > 0 ? " " : "#!") + query);
   },
@@ -484,21 +484,21 @@ var Utils = {
     return this.imageFileRe.test(url) ? this.formatVimiumUrl("show image " + url, false, Urls.WorkType.Default)
       : url;
   },
-  upperCaseAlphaRe: <RegExpOne> /[A-Z]/,
   reformatURL (url: string): string {
     let ind = url.indexOf(":");
     if (ind <= 0) { return url; }
     if (url.substring(ind, ind + 3) === "://") {
       ind = url.indexOf("/", ind + 3);
       if (ind < 0) { return url.toLowerCase() + "/"; }
-      if (ind === 7 && url.toLowerCase().startsWith("file")) {
+      if (ind === 7 && url.substring(0, 4).toLowerCase() === "file") {
         // file:///*
-        ind = url.charCodeAt(9) === KnownKey.colon ? 3 : 0;
+        ind = url[9] === ':' ? 3 : 0;
         return "file:///" + (ind ? url[8].toUpperCase() + ":/" : "") + url.substring(ind + 8);
       }
       // may be file://*/
     }
-    return this.upperCaseAlphaRe.test(url) ? url.substring(0, ind).toLowerCase() + url.substring(ind) : url;
+    const origin = url.substring(0, ind), o2 = origin.toLowerCase();
+    return origin !== o2 ? o2 + url.substring(ind) : url;
   },
   parseSearchEngines: (function(this: any, str: string, map: Search.EngineMap): Search.Rule[] {
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter"],
