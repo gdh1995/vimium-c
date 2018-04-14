@@ -531,6 +531,10 @@ domains: {
       }
       result = (d.https ? "https://" : "http://") + result;
       sug = new Suggestion("domain", result, result, "", this.compute2);
+      SuggestionUtils.prepareHtml(sug);
+      const cache = HistoryCache, his = cache.history as HistoryItem[],
+      ind = cache.binarySearch(result + "/", his);
+      ind < 0 || (sug.title = Utils.escapeText(his[ind].title));
       --maxResults;
     }
     RankingUtils.maxScoreP = p;
