@@ -4,6 +4,7 @@ interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
   favIcon?: string;
   index?: string;
   relevancy: number | string;
+  Ty?: string;
 }
 interface SuggestionEx extends SuggestionE {
   https: boolean;
@@ -726,7 +727,10 @@ var Vomnibar = {
     item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
     (str = item.index) && (item.index = ` <span class="index">${str}</span>`);
     item.favIcon = (str = this.showFavIcon ? item.url : "") && this.favPrefix +
-        ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)"
+        ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)";
+    if (this.browserVersion < BrowserVer.MinSVG$Path$Has$d$CSSAttribute) {
+      item.Ty = item.type[0].toUpperCase();
+    }
   },
   parseFavIcon (item: SuggestionE, url: string): string {
     let str = url.substring(0, 11).toLowerCase();
