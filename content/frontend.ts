@@ -979,7 +979,7 @@ Pagination = {
     OnWndFocus (this: void): void { return ELs.OnWndFocus(); },
     focusAndListen (callback?: (() => void) | null, timedout?: 0 | 1): void {
       if (timedout !== 1) {
-        setTimeout(function(): void { VEventMode.focusAndListen(callback, 1 as number as 0); }, 0);
+        setTimeout(function(): void { VEventMode.focusAndListen(callback, 1 as number as 0); }, 1);
         return;
       }
       InsertMode.ExitGrab();
