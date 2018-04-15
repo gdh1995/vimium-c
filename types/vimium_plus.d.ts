@@ -322,6 +322,7 @@ declare const enum BrowserVer {
   MinNoUnmatchedIncognito = 52,
   MinCSSEnableContain = 52,
   MinSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); }
+  MinForcedDirectWriteOnWindows = 52,
   MinScrollingHTMLHtmlElement = 53,
   MinShadowDOMV1 = 53,
   MinUserSelectAll = 53,
