@@ -280,6 +280,7 @@ declare const enum BrowserVer {
   // before 42, event.path is a simple NodeList instance
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,
+  Min$EnableSitePerProcess$Flag = 42,
   // even if chrome://flags/#disable-javascript-harmony-shipping
   MinEnsured$String$$StartsWith = 43,
   MinCreateWndWithState = 44,
@@ -331,6 +332,11 @@ declare const enum BrowserVer {
   // before Chrome 53, there may be window.VisualViewPort under flags, but not the instance
   Min$visualViewPort$UnderFlags = 53, // window.visualViewPort occurs
   assumedVer = 53,
+  // only if #enable-site-per-process or #enable-top-document-isolation
+  // the wrong innerWidth := realWidth * devicePixelRatio
+  // the devicePixelRatio means that of Windows, but not Chrome's zoom level
+  // even when [Windows]=1.5, [zoom]=0.667, the width is still wrong
+  ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1 = 53,
   MinSeparateExtIframeHasCorrectWidthIfDeviceRationNot1 = 54,
   // also the first time unprefixed user-select is accepted
   MinWarningWebkitUserSelect = 54,

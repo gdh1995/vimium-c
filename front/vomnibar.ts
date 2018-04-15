@@ -42,8 +42,8 @@ declare const enum PixelData {
   OthersIfEmpty = InputBar + MarginV,
   OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
   ListSpaceDelta = VomnibarNS.Consts.MarginTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
-  MarginH = 24, AllHNotUrl = 20 * 2 + 20 + 2, MeanWidthOfChar = 7.7,
-  AllHNotInput = AllHNotUrl + MarginH, // is just an approximation
+  MarginH = 24, AllHNotUrl = 20 * 2 + 20 + 2 + MarginH, MeanWidthOfChar = 7.7,
+  WindowSizeX = 0.8, AllHNotInput = AllHNotUrl,
 }
 
 if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
@@ -58,7 +58,7 @@ var Vomnibar = {
     this.forceNewTab = !!options.force;
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
-    this.setWidth(options.width * 0.8);
+    this.setWidth(options.width * PixelData.WindowSizeX + PixelData.MarginH);
     this.mode.maxResults = Math.min(Math.max(3, 0 | ((options.height - PixelData.ListSpaceDelta) / PixelData.Item)), this.maxResults);
     this.init && this.setFav(options.ptype);
     if (this.mode.favIcon) {
@@ -676,12 +676,38 @@ var Vomnibar = {
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner as
         any, 0, { name: "focus", key: request.key });
   },
+  _realDevRatio: 0,
   setWidth (w?: number): void {
-    w || (w = window.innerWidth - PixelData.MarginH);
-    this.mode.maxChars = Math.round((w - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
-    if (this.browserVersion < BrowserVer.MinSeparateExtIframeHasCorrectWidthIfDeviceRationNot1 && devicePixelRatio !== 1) {
-      (document.documentElement as HTMLHtmlElement).style.width = w + PixelData.MarginH + "px";
+    let mayHasWrongWidth = this.browserVersion === BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
+      , msg = "", r: number;
+    if (!mayHasWrongWidth) {}
+    else if (r = this._realDevRatio) {
+      // now we has real screen device pixel ratio (of not Chrome but Windows)
+      w = innerWidth / r;
+      msg = r > 1.01 || r < 0.99 ? Math.round(10000 / r) / 100 + "%" : "";
+    } else {
+      // the line below is just in case of wront usages of @setWidth
+      w = w || parseFloat(this.bodySt.width) || innerWidth;
+      msg = w + "px";
+      this.fixRatio(w as number);
     }
+    this.mode.maxChars = Math.round(((w || innerWidth) - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
+    if (mayHasWrongWidth) {
+      (document.documentElement as HTMLHtmlElement).style.width = msg;
+    }
+  },
+  fixRatio (w: number): void {
+    // this function is only for BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
+    let tick = 0, timer = setInterval(function(): void {
+      const iw = innerWidth, a = Vomnibar;
+      if (iw > 0 || tick++ > 15) {
+        clearInterval(timer);
+        if (a) {
+          a._realDevRatio = iw / w;
+          iw > 0 && a.setWidth();
+        }
+      }
+    }, 100);
   },
   secret: null as never as (request: BgVomnibarReq["secret"]) => void,
 
