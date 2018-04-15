@@ -145,9 +145,9 @@ var Vomnibar = {
         return reload();
       }
       const wnd = this.contentWindow,
-      sec: VomnibarNS.MessageData = [secret, _this.options as VomnibarNS.FgOptionsToFront];
-      page = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3));
-      inner && setTimeout(function(i): void {
+      sec: VomnibarNS.MessageData = [secret, _this.options as VomnibarNS.FgOptionsToFront],
+      origin = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3));
+      if (inner || (VSettings.cache.browserVer < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) setTimeout(function(i): void {
         const a = Vomnibar, ok = !a || a.status !== VomnibarNS.Status.Initing;
         if (ok || i) { a && a.box && (a.box.onload = a.options = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }
@@ -156,12 +156,14 @@ var Vomnibar = {
         window.focus();
         a.status = VomnibarNS.Status.KeepBroken;
         return (a as any).activate();
-      }, 1000);
-      if (location.origin !== page || !page.startsWith("chrome")) {
+      }, 1000); else {
+        this.onload = null as never;
+      }
+      if (location.origin !== origin || !origin.startsWith("chrome")) {
         const channel = new MessageChannel();
         _this.port = channel.port1;
         channel.port1.onmessage = _this.onMessage.bind(_this);
-        wnd.postMessage(sec, type !== VomnibarNS.PageType.web ? page : "*", [channel.port2]);
+        wnd.postMessage(sec, type !== VomnibarNS.PageType.web ? origin : "*", [channel.port2]);
         return;
       }
       if (!(wnd.Vomnibar && wnd.onmessage)) { return reload(); }
