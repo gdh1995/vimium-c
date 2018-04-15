@@ -60,7 +60,7 @@ var VVisualMode = {
     VHUD.show(this.hud = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode");
     if (mode !== this.mode) {
       this.mode = mode;
-      this.prompt("No usable selection, entering caret mode...", 1000);
+      this.prompt("No usable selection, entering caret mode…", 1000);
     }
     VDom.UI.toggleSelectStyle(true);
     if (mode !== VisualModeNS.Mode.Caret) { return mode === VisualModeNS.Mode.Line ? this.movement.extendToLine() : undefined; }

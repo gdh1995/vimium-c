@@ -1122,8 +1122,8 @@ DOWNLOAD_IMAGE: {
     if (i > 0) {
       text = text.substring(text.indexOf('/', i + 4) + 1);
     }
-    if (text.length > 39) {
-      text = text.substring(0, 36) + "...";
+    if (text.length > 40) {
+      text = text.substring(0, 39) + "…";
     }
     a.href = (img as HTMLImageElement).src;
     a.download = img.getAttribute("download") || "";

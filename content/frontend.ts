@@ -725,7 +725,7 @@ Pagination = {
       if (text.startsWith("chrome-")) {
         text = text.substring(text.indexOf('/', text.indexOf('/') + 2));
       }
-      text = `Copied: ${text.length > 41 ? text.substring(0, 39) + "..." : text + "."}`;
+      text = "Copied: " + (text.length > 41 ? text.substring(0, 41) + "…" : text + ".");
       if (virtual) { return text; }
       return this.showForDuration(text, 2000);
     } as VHUD["showCopied"],

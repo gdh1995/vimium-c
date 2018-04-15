@@ -120,8 +120,8 @@ SuggestionUtils = {
   },
   cutTitle (title: string): string {
     let cut = title.length > maxChars + 40;
-    cut && (title = title.substring(0, maxChars + 37));
-    return this.highlight(cut ? title + "..." : title, this.getRanges(title));
+    cut && (title = title.substring(0, maxChars + 39));
+    return this.highlight(cut ? title + "…" : title, this.getRanges(title));
   },
   highlight (this: void, string: string, ranges: number[]): string {
     if (ranges.length === 0) { return Utils.escapeText(string); }
@@ -181,7 +181,7 @@ SuggestionUtils = {
     }
     if (cutStart < end) {
       for (let i = ranges.length, start = end + 6; (i -= 2) >= 0 && start >= cutStart; start = ranges[i]) {
-        const lastEnd = ranges[i + 1], delta = start - 19 - (lastEnd >= cutStart ? lastEnd : cutStart);
+        const lastEnd = ranges[i + 1], delta = start - 20 - (lastEnd >= cutStart ? lastEnd : cutStart);
         if (delta > 0) {
           end -= delta;
           if (end <= maxLen) {
@@ -193,12 +193,12 @@ SuggestionUtils = {
     }
     end = 0;
     for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
-      const start = ranges[i], temp = (end >= cutStart) ? end : cutStart, delta = start - 19 - temp;
+      const start = ranges[i], temp = (end >= cutStart) ? end : cutStart, delta = start - 20 - temp;
       if (delta > 0) {
         maxLen += delta;
-        out += Utils.escapeText(string.substring(end, temp + 10));
-        out += "..."
-        out += Utils.escapeText(string.substring(start - 6, start));
+        out += Utils.escapeText(string.substring(end, temp + 11));
+        out += "…"
+        out += Utils.escapeText(string.substring(start - 8, start));
       } else if (end < start) {
         out += Utils.escapeText(string.substring(end, start));
       }
@@ -210,7 +210,7 @@ SuggestionUtils = {
     if (string.length <= maxLen) {
       return out + Utils.escapeText(string.substring(end));
     } else {
-      return out + Utils.escapeText(string.substring(end, maxLen - 3 > end ? maxLen - 3 : end + 10)) + "...";
+      return out + Utils.escapeText(string.substring(end, maxLen - 1 > end ? maxLen - 1 : end + 10)) + "…";
     }
   },
   ComputeWordRelevancy (this: void, suggestion: CompletersNS.CoreSuggestion): number {
@@ -257,7 +257,7 @@ bookmarks: {
       if ((i as JSBookmark).jsUrl == null) { continue; }
       (sug as CompletersNS.WritableCoreSuggestion).url = (i as JSBookmark).jsUrl;
       sug.title = SuggestionUtils.cutTitle(sug.title);
-      sug.textSplit = "javascript: ...";
+      sug.textSplit = "javascript: …";
       sug.text = (i as JSBookmark).jsText;
     }
     if (queryType === FirstQuery.waitFirst || offset === 0) {
