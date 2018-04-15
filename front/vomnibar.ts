@@ -58,11 +58,12 @@ var Vomnibar = {
     this.forceNewTab = !!options.force;
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
+    let scale = window.devicePixelRatio;
+    this.zoomLevel = scale < 0.98 ? 1 / scale : 1;
     this.setWidth(options.width * PixelData.WindowSizeX + PixelData.MarginH);
     this.mode.maxResults = Math.min(Math.max(3, 0 | ((options.height - PixelData.ListSpaceDelta) / PixelData.Item)), this.maxResults);
     this.init && this.setFav(options.ptype);
     if (this.mode.favIcon) {
-      let scale = devicePixelRatio;
       scale = scale < 1.5 ? 1 : scale < 3 ? 2 : scale < 4 ? 3 : 4;
       this.favPrefix = '" style="background-image: url(&quot;chrome://favicon/size/16' + (scale > 1 ? "@" + scale + "x" : "") + "/";
     }
@@ -110,6 +111,7 @@ var Vomnibar = {
   sameOrigin: false,
   showFavIcon: 0 as 0 | 1 | 2,
   showRelevancy: false,
+  zoomLevel: 1,
   lastScrolling: 0,
   height: 0,
   input: null as never as HTMLInputElement,
@@ -131,8 +133,7 @@ var Vomnibar = {
   browserVersion: BrowserVer.assumedVer,
   wheelOptions: { passive: false, capture: true as true },
   show (): void {
-    const zoom = 1 / window.devicePixelRatio;
-    this.bodySt.zoom = zoom > 1 ? zoom + "" : "";
+    this.bodySt.zoom = this.zoomLevel !== 1 ? this.zoomLevel + "" : "";
     this.focused || setTimeout(Vomnibar.focus, 34);
     addEventListener("wheel", this.onWheel, this.wheelOptions);
     this.input.value = this.inputText;
@@ -164,7 +165,8 @@ var Vomnibar = {
   },
   onHidden (): void {
     VPort.postToOwner({ name: "hide" });
-    this.timer = this.height = this.matchType = 0;
+    this.timer = this.height = this.matchType = this.wheelTime = 0;
+    this.zoomLevel = 1;
     this.lastKey = VKeyCodes.None;
     this.completions = this.onUpdate = this.isHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = this.lastNormalInput = "";
@@ -679,19 +681,19 @@ var Vomnibar = {
   _realDevRatio: 0,
   setWidth (w?: number): void {
     let mayHasWrongWidth = this.browserVersion === BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
-      , msg = "", r: number;
+      , msg = "", r: number, zoom = this.zoomLevel;
     if (!mayHasWrongWidth) {}
     else if (r = this._realDevRatio) {
       // now we has real screen device pixel ratio (of not Chrome but Windows)
       w = innerWidth / r;
-      msg = r > 1.01 || r < 0.99 ? Math.round(10000 / r) / 100 + "%" : "";
+      msg = r > 1.02 || r < 0.98 ? Math.round(10000 / r) / 100 + "%" : "";
     } else {
       // the line below is just in case of wront usages of @setWidth
       w = w || parseFloat(this.bodySt.width) || innerWidth;
-      msg = w + "px";
+      msg = w / zoom + "px";
       this.fixRatio(w as number);
     }
-    this.mode.maxChars = Math.round(((w || innerWidth) - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
+    this.mode.maxChars = Math.round(((w || innerWidth) / zoom - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
     if (mayHasWrongWidth) {
       (document.documentElement as HTMLHtmlElement).style.width = msg;
     }
