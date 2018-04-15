@@ -109,6 +109,7 @@ var Vomnibar = {
   blurWanted: false,
   forceNewTab: false,
   sameOrigin: false,
+  showTy: false,
   showFavIcon: 0 as 0 | 1 | 2,
   showRelevancy: false,
   zoomLevel: 1,
@@ -621,6 +622,7 @@ var Vomnibar = {
     Object.setPrototypeOf(this.normalMap, null);
     this.input = document.getElementById("input") as HTMLInputElement;
     const list = this.list = document.getElementById("list") as HTMLDivElement;
+    const { browserVersion: ver } = this;
     this.input.oninput = this.onInput.bind(this);
     this.bodySt = (document.documentElement as HTMLHtmlElement).style;
     this.barCls = (this.input.parentElement as HTMLElement).classList;
@@ -628,12 +630,12 @@ var Vomnibar = {
     (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar.hide(); };
     addEventListener("keydown", this.HandleKeydown, true);
     this.renderItems = VUtils.makeListRenderer((document.getElementById("template") as HTMLElement).innerHTML);
-    if (this.browserVersion < BrowserVer.MinRoundedBorderWidth) {
+    if (ver < BrowserVer.MinRoundedBorderWidth) {
       const css = document.createElement("style");
-      css.textContent = `.item, #input { border-width: ${this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px; }`;
+      css.textContent = `.item, #input { border-width: ${ver < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px; }`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
-    if (this.browserVersion < BrowserVer.Min$KeyboardEvent$$isComposing) {
+    if (ver < BrowserVer.Min$KeyboardEvent$$isComposing) {
       let func = function (this: void, event: CompositionEvent): void {
         if (Vomnibar.isInputComposing = event.type === "compositionstart") {
           Vomnibar.lastNormalInput = Vomnibar.input.value.trim();
@@ -641,6 +643,9 @@ var Vomnibar = {
       };
       this.input.addEventListener("compositionstart", func);
       this.input.addEventListener("compositionend", func);
+    }
+    if (ver < BrowserVer.MinSVG$Path$Has$d$CSSAttribute) {
+      this.showTy = ver < BrowserVer.MinSVG$Path$MayHave$d$CSSAttribute || this.bodySt.d == null;
     }
     this.init = VUtils.makeListRenderer = null as never;
   },
@@ -756,7 +761,7 @@ var Vomnibar = {
     (str = item.index) && (item.index = ` <span class="index">${str}</span>`);
     item.favIcon = (str = this.showFavIcon ? item.url : "") && this.favPrefix +
         ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)";
-    if (this.browserVersion < BrowserVer.MinSVG$Path$Has$d$CSSAttribute) {
+    if (this.showTy) {
       item.Ty = item.type[0].toUpperCase();
     }
   },

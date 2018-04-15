@@ -591,6 +591,7 @@ interface CSSStyleDeclaration {
     cssFloat: string | null;
     cssText: string;
     cursor: string | null;
+    d?: string;
     direction: string | null;
     display: string;
     dominantBaseline: string | null;

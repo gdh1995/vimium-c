@@ -307,6 +307,7 @@ declare const enum BrowserVer {
   MinNoExtScriptsIfSandboxed = 49,
   Min$addEventListener$$length$Is2 = 49, // otherwise addEventListener.length is 0
   MinLinkRelAcceptNoopener = 49,
+  MinSVG$Path$MayHave$d$CSSAttribute = 49, // if #enable-experimental-web-platform-features is on
   MinNo$Object$$Observe = 50,
   // The real support for arg frameId of chrome.tabs.executeScript is since Chrome 50,
   //   and is neither 41 (an older version) nor 39 (cur ver on 2018-02-18)
