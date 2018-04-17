@@ -1,6 +1,6 @@
 type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
-const Clipboard = {
+const VClipboard = {
   getTextArea (): HTMLTextAreaElement {
     const el = document.createElement("textarea");
     el.style.position = "absolute";

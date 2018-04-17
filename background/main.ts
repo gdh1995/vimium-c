@@ -959,7 +959,7 @@ Are you sure you want to continue?`);
         url = url + "";
         workType = Urls.WorkType.Default;
       } else if (cOptions.copied) {
-        url = Clipboard.paste();
+        url = VClipboard.paste();
         if (url === null) { return Backend.complain("read clipboard"); }
         if (!(url = url.trim())) { return Backend.showHUD("No text copied!"); }
         Utils.quotedStringRe.test(url) && (url = url.slice(1, -1));
@@ -1176,7 +1176,7 @@ Are you sure you want to continue?`);
       default: str = tabs[0].url; break;
       }
       decoded && (str = Utils.DecodeURLPart(str, decodeURI));
-      Clipboard.copy(str);
+      VClipboard.copy(str);
       return Backend.showHUD(str, true);
     },
     goNext (): void {
@@ -1490,7 +1490,7 @@ Are you sure you want to continue?`);
         return Backend.showHUD("No search engine found!");
       }
       if (!(query = request.search.trim())) {
-        query = Clipboard.paste();
+        query = VClipboard.paste();
         let err = query === null ? "It's not allowed to read clipboard"
           : (query = query.trim()) ? "" : "No selected or copied text found";
         if (err) {
@@ -1676,7 +1676,7 @@ Are you sure you want to continue?`);
         , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
     },
     copy (this: void, request: FgReq["copy"]): void {
-      return Clipboard.copy(request.data);
+      return VClipboard.copy(request.data);
     },
     key (this: void, request: FgReq["key"], port: Port): void {
       let key: string = request.key, count = 1;
