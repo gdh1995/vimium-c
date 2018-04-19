@@ -195,6 +195,9 @@ var Utils = {
       type = Urls.Type.Search;
     } else if (expected !== Urls.Type.NoSchema || hasPath) {
       type = expected;
+    } else if (string.endsWith(".so") && string.startsWith("lib") && string.indexOf(".") === string.length - 3) {
+      type = Urls.Type.Search;
+    // the below check the username field
     } else if (arr[2] || arr[4] || !arr[1] || string.startsWith("ftp")) {
       type = Urls.Type.NoSchema;
     // the below means string is like "(?<=abc@)(uvw.)*xyz.tld"
