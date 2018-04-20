@@ -377,6 +377,7 @@ declare const enum BrowserVer {
   // but ChromeStatus says it has changed the behavior to match the new spec on C58
   Min$selectionStart$MayBeNull = 58,
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
+  // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated) is confirmed on 66.0.3359.117
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
   MinNoBorderForBrokenImage = 60,
@@ -393,7 +394,8 @@ declare const enum BrowserVer {
   MinCSS$textDecorationSkipInk = 64,
   // a 3rd-party Vomnibar will trigger "navigation" and clear all logs in console on Chrome 64
   // this still occurs on Chrome 65.0.3325.106 (Beta)
-  VomnibarMayClearLog = 64,
+  VomnibarMayClearLog1 = 64,
+  VomnibarMayClearLog2 = 65,
   MinChromeUrl$ExtensionShortcuts = 65,
   MinSmartSpellCheck = 65,
   MinCanNotRevokeObjectURLAtOnce = 65,
