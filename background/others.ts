@@ -314,7 +314,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       timer && clearTimeout(timer);
       return onTimer();
     }
-    if (last === null) {
+    if (last === null && text) {
       // need a re-computation
       // * may has been cleaned, or
       // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
@@ -328,6 +328,9 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     return open(text, disposition, sessionId);
   }
   function open(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition, sessionId?: string | number | null): void {
+    if (!text) {
+      text = Utils.convertToUrl("");
+    }
     if (text.substring(0, 7).toLowerCase() === "file://") {
       text = Utils.showFileUrl(text);
     }
