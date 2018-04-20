@@ -314,9 +314,20 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       timer && clearTimeout(timer);
       return onTimer();
     }
+    if (last === null) {
+      // need a re-computation
+      // * may has been cleaned, or
+      // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
+      return Completers.filter(text, { type: "omni", maxResults: 3, maxChars, singleLine: true }, function(sugs, autoSelect): void {
+        return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) :  open(text, disposition);
+      });
+    }
     if (firstResult && text === last) { text = firstResult.url; }
     const sessionId = sessionIds && sessionIds[text];
     clean();
+    return open(text, disposition, sessionId);
+  }
+  function open(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition, sessionId?: string | number | null): void {
     if (text.substring(0, 7).toLowerCase() === "file://") {
       text = Utils.showFileUrl(text);
     }
