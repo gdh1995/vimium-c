@@ -262,6 +262,13 @@ declare const enum KeyStat {
 
 declare const NDEBUG: undefined;
 
+/**
+ * #define EXPERIMENTAL (#enable-experimental-web-platform-features \
+ *    && #enable-javascript-harmony \
+ *    && #enable-experimental-canvas-features \
+ * )
+ * #define LEAGCY (#disable-javascript-harmony-shipping)
+ */
 declare const enum BrowserVer {
   MinShadowDOMV0 = 35,
   MinSupported = MinShadowDOMV0,
@@ -295,6 +302,8 @@ declare const enum BrowserVer {
   // under the flag #enable-experimental-web-platform-features; enabled by default since 47
   Min$requestIdleCallback = 46,
   Min$Tabs$$Query$RejectHash = 47,
+  // if .key exists, it's "v" for `v`, but "" (empty) for `<c-v>` - doesn't support all cases
+  Min$KeyboardEvent$MayHas$$Key = 47, // if EXPERIMENTAL
   MinEnsuredBorderWidth = 48, // inc 0.0001px to the min "visible" width
   // if #disable-javascript-harmony-shipping is on, then arrow functions are accepted only since 48,
   // but this flag will break the Developer Tools (can not open the window) on Chrome 46/47/48,
@@ -317,9 +326,9 @@ declare const enum BrowserVer {
   MinSVG$Path$Has$Use$Attribute = 50, // <path path="..." />
   MinShowBlockForBrokenImage = 51,
   MinIFrameReferrerpolicy = 51,
+  MinEnsured$KeyboardEvent$$Key = 51,
   MinPassiveEventListener = 51,
   MinNotPassMouseWheelToParentIframe = 51,
-  Min$KeyboardEvent$$Key = 51,
   MinNoCustomMessageOnBeforeUnload = 51,
   MinNoUnmatchedIncognito = 52,
   MinCSSEnableContain = 52,

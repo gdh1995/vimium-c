@@ -18,7 +18,7 @@ var VKeyboard = {
       : i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn ? "fF"[+c] + (i - VKeyCodes.maxNotFn) : "";
   },
   getKeyCharUsingKeyIdentifier (event: OldKeyboardEvent): string {
-    let s: string | undefined = event.keyIdentifier;
+    let s: string | undefined = event.keyIdentifier || "";
     if (!s.startsWith("U+")) { return ""; }
     const keyId: KnownKey = parseInt(s.substring(2), 16);
     if (keyId < KnownKey.minAlphabet) {
@@ -34,7 +34,9 @@ var VKeyboard = {
   },
   getKeyChar (event: KeyboardEvent): string {
     const key = event.key as string | undefined;
-    if (key == null) {
+    if (!key) {
+      // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
+      // event.key may be an empty string if some modifier keys are held on
       return event.keyCode && this.getKeyName(event) || this.getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     }
     return key.length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName(event) : key;
