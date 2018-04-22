@@ -204,7 +204,6 @@ var VDom = {
     this.fullZoom = zoom * zoom2;
     // since BrowserVer.Min$Document$$ScrollingElement
     // here rect.right is not suitable because <html> may be smaller than <body>
-    // todo: width: - right border width, / zoom
     const scrolling = document.scrollingElement === box,
     containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0,
     width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
