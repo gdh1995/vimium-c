@@ -274,6 +274,7 @@ declare const enum BrowserVer {
   MinShadowDOMV0 = 35,
   MinSupported = MinShadowDOMV0,
   MinES6WeakMap = 36,
+  Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEAGCY
   MinSession = 37,
   // even if EXPERIMENTAL
   MinCSS$All$Attr = 37,

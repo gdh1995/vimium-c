@@ -286,7 +286,8 @@ function decodeURLPart(url: string): string {
 
 function importBody(id: string): HTMLElement {
   const templates = $<HTMLTemplateElement>('#bodyTemplate'),
-  node = document.importNode(templates.content.getElementById(id) as HTMLElement, true);
+  // note: content has no getElementById on Chrome before BrowserVer.Min$DocumentFragment$$getElementById
+  node = document.importNode(templates.content.querySelector("#" + id) as HTMLElement, true);
   (document.body as HTMLBodyElement).insertBefore(node, templates);
   return node;
 }

@@ -1990,7 +1990,7 @@ declare var Document: {
 }
 
 interface DocumentFragment extends Node, NodeSelector, ParentNode {
-    getElementById(elementId: string): Element | null;
+    getElementById?(elementId: string): Element | null;
 }
 
 declare var DocumentFragment: {
@@ -8704,6 +8704,7 @@ interface ShadowRoot extends DocumentOrShadowRoot, DocumentFragment {
     readonly mode?: 'open'|'closed';
     readonly host: Element;
     innerHTML: string;
+    getElementById(elementId: string): Element | null;
 }
 declare var ShadowRoot: {
     prototype: ShadowRoot;
