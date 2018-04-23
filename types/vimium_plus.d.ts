@@ -278,6 +278,17 @@ declare const enum BrowserVer {
   MinSession = 37,
   // even if EXPERIMENTAL
   MinCSS$All$Attr = 37,
+  /*
+   * an `all:initial` prevents position/z-index attrs in other matched rules from working
+   * this Chrome bug causes the help dialog may have `position: static;`
+   * * the initial "position" attr and rendered view are correct
+   * * but after a mousemove / wheel, the "position" attr becomes "static" and the view breaks
+   * * it recovers if modifying its position/z-index attr
+   * * if the Dev Tools is on, and visits styles of the box, then a mousemove won't break the UI
+   * 
+   * a work-around is set <div>.style.position
+   */
+  MinCSS$All$MayMistakenlyResetFixedPosition = 37,
   // includes for-of, Map, Set, Symbols
   MinES6ForAndSymbols = 38,
   MinWithFrameIdInArg = 39,
@@ -288,6 +299,7 @@ declare const enum BrowserVer {
   // just means it's enabled by default
   Min$String$$StartsWith = 41,
   MinGlobal$HTMLDetailsElement = 41,
+  MinFixedCSS$All$MayMistakenlyResetFixedPosition = 41,
   // before 42, event.path is a simple NodeList instance
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,

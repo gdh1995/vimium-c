@@ -923,6 +923,9 @@ Pagination = {
     };
     (box.querySelector("#HClose") as HTMLElement).onclick = Commands.showHelp = hide;
     shouldShowAdvanced && toggleAdvanced();
+    if (VSettings.cache.browserVer < BrowserVer.MinFixedCSS$All$MayMistakenlyResetFixedPosition) {
+      box.style.position = "fixed";
+    }
     VDom.UI.ensureBorder();
     VDom.UI.addElement(box, AdjustType.Normal, true);
     document.hasFocus() || VEventMode.focusAndListen();
