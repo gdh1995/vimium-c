@@ -1,4 +1,9 @@
 var HelpDialog = {
+  styles: Settings.CONST.ChromeVersion === BrowserVer.CSS$Contain$BreaksHelpDialogSize ? "contain: none;"
+    // here repeats the logic in frontend.ts, just for easier understanding
+    : Settings.CONST.ChromeVersion < BrowserVer.MinFixedCSS$All$MayMistakenlyResetFixedPosition
+      && Settings.CONST.ChromeVersion >= BrowserVer.MinCSS$All$MayMistakenlyResetFixedPosition ? "position: fixed;"
+    : "",
   render: (function(this: void, request: FgReq["initHelp"]): string {
     Object.setPrototypeOf(request, null);
     const commandsToKey = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry,
@@ -10,6 +15,7 @@ var HelpDialog = {
     }
     const result = Object.setPrototypeOf({
       version: Settings.CONST.CurrentVersionName,
+      styles: HelpDialog.styles,
       title: request.title || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""

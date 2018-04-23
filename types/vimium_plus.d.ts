@@ -361,12 +361,17 @@ declare const enum BrowserVer {
   // even if EXPERIMENTAL or LEAGCY
   MinPassiveEventListener = 51,
   // even if EXPERIMENTAL or LEAGCY
-  // before C51, if an iframe has not scrollable box, its parent frame scrolls and gets events
+  // before C51, if an iframe has no scrollable boxes, its parent frame scrolls and gets events
   // since C51, its parent still scrolls but gets no wheel events
   MinNotPassMouseWheelToParentFrameEvenIfSelfNotScrolled = 51,
+  // even if EXPERIMENTAL or LEAGCY
   MinNoCustomMessageOnBeforeUnload = 51,
+  // Chrome also began to put contain attr in use on 51 if EXPERIMENTAL
+  // but obviously there's some bugs about this feature
+  CSS$Contain$BreaksHelpDialogSize = 51,
   MinNoUnmatchedIncognito = 52,
   MinCSSEnableContain = 52,
+  // just means it's enabled even if LEAGCY
   MinSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); }
   MinForcedDirectWriteOnWindows = 52,
   MinScrollingHTMLHtmlElement = 53,
