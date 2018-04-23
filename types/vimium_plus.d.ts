@@ -270,65 +270,87 @@ declare const NDEBUG: undefined;
  * #define LEAGCY (#disable-javascript-harmony-shipping)
  */
 declare const enum BrowserVer {
+  // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
   MinShadowDOMV0 = 35,
   MinSupported = MinShadowDOMV0,
   MinES6WeakMap = 36,
   MinSession = 37,
+  // even if EXPERIMENTAL
   MinCSS$All$Attr = 37,
   // includes for-of, Map, Set, Symbols
   MinES6ForAndSymbols = 38,
   MinWithFrameIdInArg = 39,
   MinDisableMoveTabAcrossIncognito = 40,
+  // even if EXPERIMENTAL
   MinWarningSyncXHR = 40,
   MinWithFrameId = 41,
-  // just enabled by default
+  // just means it's enabled by default
   Min$String$$StartsWith = 41,
   MinGlobal$HTMLDetailsElement = 41,
   // before 42, event.path is a simple NodeList instance
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
-  // even if chrome://flags/#disable-javascript-harmony-shipping
-  MinEnsured$String$$StartsWith = 43,
+  MinEnsured$String$$StartsWithAndRepeat = 43, // even if LEAGCY
   MinCreateWndWithState = 44,
+  // the below 2 are correct even if EXPERIMENTAL
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
+  // even if EXPERIMENTAL
   MinArrowFunction = 45,
+  // even if LEAGCY
   MinEnsureMethodFunction = 45, // e.g.: `{ a() {} }`
   MinMuted = 45,
   MinMutedInfo = 46,
+  // even if EXPERIMENTAL or LEAGCY
   MinAutoDecodeJSURL = 46,
+  // even if EXPERIMENTAL or LEAGCY
   Min$Event$$IsTrusted = 46,
-  // under the flag #enable-experimental-web-platform-features; enabled by default since 47
+  // occur on 46 if EXPERIMENTAL; always enabled since 47 even if LEAGCY
   Min$requestIdleCallback = 46,
   Min$Tabs$$Query$RejectHash = 47,
   // if .key exists, it's "v" for `v`, but "" (empty) for `<c-v>` - doesn't support all cases
   Min$KeyboardEvent$MayHas$$Key = 47, // if EXPERIMENTAL
+  Min$IFrame$MayHas$$Referrerpolicy = 47, // if EXPERIMENTAL
+  // even if EXPERIMENTAL or LEAGCY
   MinEnsuredBorderWidth = 48, // inc 0.0001px to the min "visible" width
-  // if #disable-javascript-harmony-shipping is on, then arrow functions are accepted only since 48,
+  // if LEAGCY, arrow functions can only be accepted since Chrome 48,
   // but this flag will break the Developer Tools (can not open the window) on Chrome 46/47/48,
   // so Chrome can only debug arrow functions since 49
   MinEnsuredArrowFunction = 48,
+  // even if EXPERIMENTAL or LEAGCY
   MinSafeGlobal$frameElement = 48,
-  Min$KeyboardEvent$$Code = 48,
+  // just means it's enabled even if LEAGCY;
+  // if EXPERIMENTAL, .code is "" on Chrome 42/43, and works well since Chrome 44 
+  MinEnsured$KeyboardEvent$$Code = 48,
+  // the below 2 are correct even if EXPERIMENTAL or LEAGCY
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinNo$Promise$$defer = 49,
-  MinNoExtScriptsIfSandboxed = 49,
-  Min$addEventListener$$length$Is2 = 49, // otherwise addEventListener.length is 0
+  /* content scripts are always injected (tested on Chrome from 35 to 66), and can always be listed by the Dev Tools */
+  // even if EXPERIMENTAL or LEAGCY; length of an older addEventListener is 0
+  Min$addEventListener$$length$Is2 = 49,
+  // by default, `noreferrer` can also make `opener` null, and it still works on C35
+  // a single `noopener` only works since C49 even if EXPERIMENTAL or LEAGCY
   MinLinkRelAcceptNoopener = 49,
   MinSVG$Path$MayHave$d$CSSAttribute = 49, // if #enable-experimental-web-platform-features is on
+  // Object.observe is from C36 to C49 even if EXPERIMENTAL or LEAGCY
   MinNo$Object$$Observe = 50,
   // The real support for arg frameId of chrome.tabs.executeScript is since Chrome 50,
   //   and is neither 41 (an older version) nor 39 (cur ver on 2018-02-18)
   //   in https://developer.chrome.com/extensions/tabs#method-executeScript.
   // And, all "Since Chrome 39" lines are totally wrong in the 2018-02-18 version of `tabs.executeScript`
   Min$tabs$$executeScript$hasFrameIdArg = 50,
-  MinSVG$Path$Has$Use$Attribute = 50, // <path path="..." />
-  MinShowBlockForBrokenImage = 51,
+  MinSVG$Path$Has$Use$Attribute = 50, // <path use="..." />
+  // MinShowBlockForBrokenImage = 51, // not reproduced
+  // the below 2 just mean they're enabled even if LEAGCY
   MinIFrameReferrerpolicy = 51,
   MinEnsured$KeyboardEvent$$Key = 51,
+  // even if EXPERIMENTAL or LEAGCY
   MinPassiveEventListener = 51,
-  MinNotPassMouseWheelToParentIframe = 51,
+  // even if EXPERIMENTAL or LEAGCY
+  // before C51, if an iframe has not scrollable box, its parent frame scrolls and gets events
+  // since C51, its parent still scrolls but gets no wheel events
+  MinNotPassMouseWheelToParentFrameEvenIfSelfNotScrolled = 51,
   MinNoCustomMessageOnBeforeUnload = 51,
   MinNoUnmatchedIncognito = 52,
   MinCSSEnableContain = 52,
@@ -351,6 +373,7 @@ declare const enum BrowserVer {
   // also the first time unprefixed user-select is accepted
   MinWarningWebkitUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
+  // before C54, .keyIdentifier exists even if EXPERIMENTAL
   MinNo$KeyboardEvent$$keyIdentifier = 54,
   MinStricterArgsIn$Windows$$Create = 55,
   Min$Event$$Path$IncludeNodesInShadowRoot = 55,

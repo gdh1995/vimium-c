@@ -53,7 +53,7 @@ var VKeyboard = {
   isEscape (event: KeyboardEvent): boolean {
     if (event.keyCode !== VKeyCodes.esc && !event.ctrlKey) { return false; }
     const i = this.getKeyStat(event);
-    // we know that BrowserVer.Min$KeyboardEvent$$Code < BrowserVer.Min$KeyboardEvent$$Key
+    // we know that BrowserVer.MinEnsured$KeyboardEvent$$Code < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
     return i === KeyStat.plain || i === KeyStat.ctrlKey && (event.code === "BracketLeft" || this.getKeyChar(event) === '[');
   }
 };
