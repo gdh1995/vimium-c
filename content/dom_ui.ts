@@ -110,7 +110,7 @@ VDom.UI = {
     let el = this.styleOut;
     if (enable ? VDom.docSelectable : !el || el.disabled) { return; }
     el = el || (this.styleOut = (this.box as HTMLElement).appendChild(this.createStyle(
-      "html, body { -webkit-user-select: auto !important; user-select: auto !important; }"
+      "html, body, * { -webkit-user-select: auto; user-select: auto; }"
     )));
     el.disabled = !enable;
   },
