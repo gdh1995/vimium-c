@@ -460,7 +460,7 @@ var Vomnibar = {
     return this.hide();
   },
   OnEnterUp (this: void, event: KeyboardEvent): void {
-    if (event.isTrusted != false && event instanceof KeyboardEvent && event.keyCode === VKeyCodes.enter) {
+    if (event.isTrusted === true || (event.isTrusted == null && event instanceof KeyboardEvent) && event.keyCode === VKeyCodes.enter) {
       Vomnibar.lastKey = VKeyCodes.None;
       window.onkeyup = null as never;
       return Vomnibar.onEnter(event);
@@ -468,7 +468,7 @@ var Vomnibar = {
   },
   onClick (event: MouseEvent): void {
     let el: Node | null = event.target as Node;
-    if (event.isTrusted == false || !(event instanceof MouseEvent) || el === this.input || window.getSelection().type === "Range") { return; }
+    if (event.isTrusted === false || !(event instanceof MouseEvent) || el === this.input || window.getSelection().type === "Range") { return; }
     if (el === this.input.parentElement) { return this.focus(); }
     if (this.timer) { event.preventDefault(); return; }
     while (el && el.parentNode !== this.list) { el = el.parentNode; }
@@ -496,11 +496,11 @@ var Vomnibar = {
     }
   },
   OnFocus (this: void, event: Event): void {
-    event.isTrusted != false && (Vomnibar.focused = event.type !== "blur") && (Vomnibar.blurWanted = false);
+    event.isTrusted !== false && (Vomnibar.focused = event.type !== "blur") && (Vomnibar.blurWanted = false);
   },
   OnTimer (this: void): void { if (Vomnibar) { return Vomnibar.fetch(); } },
   onWheel (event: WheelEvent): void {
-    if (event.ctrlKey || event.metaKey || event.isTrusted == false) { return; }
+    if (event.ctrlKey || event.metaKey || event.isTrusted === false) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
     if (event.deltaX || Date.now() - this.wheelTime < this.wheelInterval || !Vomnibar.isActive) { return; }
@@ -595,7 +595,7 @@ var Vomnibar = {
   OnWndFocus (this: void, event: Event): void {
     const a = Vomnibar, byCode = a.focusByCode;
     a.focusByCode = false;
-    if (!a.isActive || event.target !== window || event.isTrusted == false) { return; }
+    if (!a.isActive || event.target !== window || event.isTrusted === false) { return; }
     const blurred = event.type === "blur";
     if (blurred) {
       const t = a._focusTimer;
@@ -661,7 +661,7 @@ var Vomnibar = {
     this.mode.favIcon = fav;
   },
   HandleKeydown (this: void, event: KeyboardEvent): void {
-    if (event.isTrusted == false || !(event instanceof KeyboardEvent)) { return; }
+    if (event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
     Vomnibar.keyResult = HandlerResult.Prevent as HandlerResult;
     if (window.onkeyup) {
       let stop = !event.repeat, now: number = 0;
@@ -798,7 +798,7 @@ var Vomnibar = {
     }
     window.onfocus = function(e: Event): void {
       window.onfocus = null as never;
-      if (e.isTrusted != false && VPort.port) { return Vomnibar.refresh(); }
+      if (e.isTrusted !== false && VPort.port) { return Vomnibar.refresh(); }
     };
   }
 },
@@ -874,7 +874,7 @@ VPort = {
     return port;
   },
   OnUnload (e: Event): void {
-    if (!VPort || e.isTrusted == false) { return; }
+    if (!VPort || e.isTrusted === false) { return; }
     Vomnibar.isActive = false;
     Vomnibar.timer > 0 && clearTimeout(Vomnibar.timer);
     VPort.postToOwner({ name: "unload" });

@@ -2146,7 +2146,7 @@ Are you sure you want to continue?`);
 
   // will run only on <F5>, not on runtime.reload
   window.onunload = function(event): void {
-    if (event && event.isTrusted == false) { return; }
+    if (event && event.isTrusted === false) { return; }
     let ref = framesForTab as Frames.FramesMapToDestroy, tabId: string;
     ref.omni = Connections.framesForOmni;
     for (tabId in ref) {

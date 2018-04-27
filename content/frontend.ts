@@ -86,7 +86,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
   ELs = { //
     onKeydown (event: KeyboardEvent): void {
-      if (!isEnabledForUrl || event.isTrusted == false || !(event instanceof KeyboardEvent)) { return; }
+      if (!isEnabledForUrl || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
       if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
       let keyChar: string, key = event.keyCode, action: HandlerResult;
       if (action = VUtils.bubbleEvent(event)) {}
@@ -135,7 +135,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       KeydownEvents[key] = 1;
     },
     onKeyup (event: KeyboardEvent): void {
-      if (!isEnabledForUrl || event.isTrusted == false || !(event instanceof KeyboardEvent)) { return; }
+      if (!isEnabledForUrl || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
       VScroller.keyIsDown = 0;
       if (InsertMode.suppressType && VDom.selType() !== InsertMode.suppressType) {
         VEventMode.setupSuppress();
@@ -149,7 +149,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
     },
     onFocus (this: void, event: Event | FocusEvent): void {
-      if (event.isTrusted == false) { return; }
+      if (event.isTrusted === false) { return; }
       // on Firefox, target may also be `document`
       let target = event.target as EventTarget | Element | (Document & { shadowRoot: undefined });
       if (target === window) {
@@ -204,7 +204,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
     },
     onBlur (this: void, event: Event | FocusEvent): void {
-      if (!isEnabledForUrl || event.isTrusted == false) { return; }
+      if (!isEnabledForUrl || event.isTrusted === false) { return; }
       const target = event.target as Window | Element | ShadowRootEx;
       if (target === window) { return ELs.OnWndBlur(); }
       let path = event.path as EventPath | undefined, top: EventTarget | undefined
@@ -227,7 +227,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
     },
     OnShadowBlur (this: void, event: Event): void {
-      if (event.isTrusted == false) { return; }
+      if (event.isTrusted === false) { return; }
       const cur = event.currentTarget as ShadowRootEx;
       if (cur.vimiumListened === ListenType.Blur) {
         cur.vimiumListened = ListenType.None;
@@ -236,7 +236,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return ELs.onBlur(event);
     },
     onActivate (event: UIEvent): void {
-      if (event.isTrusted != false) {
+      if (event.isTrusted !== false) {
         VScroller.current = (event.path as EventPath)[0] as Element;
       }
     },
@@ -1021,12 +1021,12 @@ Pagination = {
         VScroller.keyIsDown = 0;
       }
     }, function (event): void {
-      if (event.isTrusted != false) {
+      if (event.isTrusted !== false) {
         VUtils.prevent(event);
         return VEventMode.OnScrolls[3](this);
       }
     }, function (event): void {
-      if (event.target === this && event.isTrusted != false) { return VEventMode.OnScrolls[3](this); }
+      if (event.target === this && event.isTrusted !== false) { return VEventMode.OnScrolls[3](this); }
     }, function (this: VEventMode["OnScrolls"], wnd, interval): void {
       const f = interval ? addEventListener : removeEventListener;
       VScroller.keyIsDown = interval || 0;

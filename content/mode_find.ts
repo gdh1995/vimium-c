@@ -194,11 +194,11 @@ html > count{float:right;}`,
     return el;
   },
   OnUnload (this: void, e: Event): void {
-    if (e.isTrusted == false) { return; }
+    if (e.isTrusted === false) { return; }
     const f = VFindMode; f && f.isActive && f.deactivate(FindNS.Action.ExitUnexpectedly);
   },
   OnMousedown (this: void, event: MouseEvent): void {
-    if (event.target !== VFindMode.input && event.isTrusted != false) {
+    if (event.target !== VFindMode.input && event.isTrusted !== false) {
       VUtils.prevent(event);
       VFindMode.input.focus();
     }
@@ -211,7 +211,7 @@ html > count{float:right;}`,
   },
   onKeydown (event: KeyboardEvent): void {
     VUtils.Stop(event);
-    if (event.isTrusted == false) { return; }
+    if (event.isTrusted === false) { return; }
     if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
     const n = event.keyCode;
     type Result = FindNS.Action;
@@ -314,7 +314,7 @@ html > count{float:right;}`,
       return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
     },
     exit (skip?: boolean | Event): void {
-      if (skip instanceof MouseEvent && skip.isTrusted == false) { return; }
+      if (skip instanceof MouseEvent && skip.isTrusted === false) { return; }
       this.lock && this.lock.removeEventListener("blur", this.exit, true);
       if (!this.lock || skip === true) { return; }
       this.lock = null;
@@ -326,7 +326,7 @@ html > count{float:right;}`,
   onInput (e?: Event): void {
     if (e != null) {
       VUtils.Stop(e);
-      if (e.isTrusted == false) { return; }
+      if (e.isTrusted === false) { return; }
     }
     const query = this.input.innerText.replace(this.A0Re, " ").replace(this.tailRe, "");
     let s = this.query;
