@@ -268,6 +268,7 @@ declare const NDEBUG: undefined;
  *    && #enable-experimental-canvas-features \
  * )
  * #define LEAGCY (#disable-javascript-harmony-shipping)
+ * #define EMPTY ((a clean User Data)
  */
 declare const enum BrowserVer {
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
@@ -306,7 +307,7 @@ declare const enum BrowserVer {
   Min$EnableSitePerProcess$Flag = 42,
   MinEnsured$String$$StartsWithAndRepeat = 43, // even if LEAGCY
   MinCreateWndWithState = 44,
-  // the below 2 are correct even if EXPERIMENTAL
+  // the 2 below are correct even if EXPERIMENTAL
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
   // even if EXPERIMENTAL
@@ -336,7 +337,11 @@ declare const enum BrowserVer {
   // just means it's enabled even if LEAGCY;
   // if EXPERIMENTAL, .code is "" on Chrome 42/43, and works well since Chrome 44 
   MinEnsured$KeyboardEvent$$Code = 48,
-  // the below 2 are correct even if EXPERIMENTAL or LEAGCY
+  MinMaybeShadowDOMV1 = 48, // if EXPERIMENTAL
+  // a path of an older DOMActivate event has all nodes (windows -> nodes in shadow DOM)
+  // this feature is enabled by default on C53, 54, 55; and replaced by MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since 56
+  MinMayNoDOMActivateInClosedShadowRootPassedToDocument = 48, // if EXPERIMENTAL
+  // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinNo$Promise$$defer = 49,
   /* content scripts are always injected (tested on Chrome from 35 to 66), and can always be listed by the Dev Tools */
@@ -355,7 +360,7 @@ declare const enum BrowserVer {
   Min$tabs$$executeScript$hasFrameIdArg = 50,
   MinSVG$Path$Has$Use$Attribute = 50, // <path use="..." />
   // MinShowBlockForBrokenImage = 51, // not reproduced
-  // the below 2 just mean they're enabled even if LEAGCY
+  // the 2 below just mean they're enabled even if LEAGCY
   MinIFrameReferrerpolicy = 51,
   MinEnsured$KeyboardEvent$$Key = 51,
   // even if EXPERIMENTAL or LEAGCY
@@ -370,41 +375,44 @@ declare const enum BrowserVer {
   // but obviously there's some bugs about this feature
   CSS$Contain$BreaksHelpDialogSize = 51,
   MinNoUnmatchedIncognito = 52,
+  // the 4 below are correct even if LEAGCY
   MinCSSEnableContain = 52,
-  // just means it's enabled even if LEAGCY
   MinSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); }
   MinForcedDirectWriteOnWindows = 52,
-  MinScrollingHTMLHtmlElement = 53,
+  MinPositionMayBeSticky = 52, // if EXPERIMENTAL; enabled by default since Chrome 56 even if LEAGCY
   MinShadowDOMV1 = 53,
+  // MinScrollingHTMLHtmlElement = 53, // not reproduced
+  // wekitUserSelect still works on C35 if EXPERIMENTAL
   MinUserSelectAll = 53,
-  // this feature is from 53, and replaced by DOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since 56
-  MinNoDOMActivateInClosedShadowRootPassedToDocument = 53,
+  // even if EXPERIMENTAL or LEAGCY
+  MinUntrustedEventsDoNothing = 53, // fake click events won't show a <select>'s popup
   // before Chrome 53, there may be window.VisualViewPort under flags, but not the instance
-  Min$visualViewPort$UnderFlags = 53, // window.visualViewPort occurs
+  Min$visualViewPort$UnderFlags = 53, // window.visualViewPort occurs if EXPERIMENTAL
   assumedVer = 53,
   // only if #enable-site-per-process or #enable-top-document-isolation
   // the wrong innerWidth := realWidth * devicePixelRatio
   // the devicePixelRatio means that of Windows, but not Chrome's zoom level
   // even when [Windows]=1.5, [zoom]=0.667, the width is still wrong
   ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1 = 53,
-  MinSeparateExtIframeHasCorrectWidthIfDeviceRationNot1 = 54,
-  // also the first time unprefixed user-select is accepted
-  MinWarningWebkitUserSelect = 54,
+  MinUnprefixedUserSelect = 54, // even if EXPERIMENTAL or LEAGCY
+  // TODO: confirm the line below
   MinHighDPIOnRemoteDesktop = 54,
-  // before C54, .keyIdentifier exists even if EXPERIMENTAL
+  // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinNo$KeyboardEvent$$keyIdentifier = 54,
-  MinStricterArgsIn$Windows$$Create = 55,
-  Min$Event$$Path$IncludeNodesInShadowRoot = 55,
+  MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM = 55,
+  // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
   MinSomeDocumentListenersArePassiveByDefault = 56,
+  // not need if LEAGCY or EMPTY (even on Chrome 66)
+  MinMayNeedCSPForScriptsFromOtherExtensions = 56, // if EXPERIMENTAL
+  // the 3 below are even if EXPERIMENTAL or LEAGCY
   MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument = 56,
-  MinNeedCSPForScriptsFromOtherExtensions = 56,
-  MinStickyPosition = 56,
   MinFailToToggleImageOnFileURL = 56,
   Min$KeyboardEvent$$isComposing = 56,
   MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled = 56,
+  // the 2 below are even if EXPERIMENTAL or LEAGCY
   MinNoKeygenElement = 57,
   MinCSSPlaceholderPseudo = 57,
-  MinCSSGrid = 57,
+  MinEnsuredCSSGrid = 57, // even if LEAGCY; still (partly) works on C35 if EXPERIMENTAL
   /*
    * Chrome before 58 does this if #enable-site-per-process or #enable-top-document-isolation;
    * Chrome since 58 always merge extension iframes even if the two flags are disabled
@@ -436,7 +444,7 @@ declare const enum BrowserVer {
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
   MinCorrectBoxWidthForOptionUI = 61,
-  MinEnsured$visualViewPort$ = 61,
+  MinEnsured$visualViewPort$ = 61, // even if LEAGCY
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
   // since MinSelector$deep$InCSSDoesNothing, Vimium's inner styles have been really safe
   MinSelector$deep$InCSSDoesNothing = 63,

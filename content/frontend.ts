@@ -174,7 +174,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         let path = event.path, top: EventTarget | undefined
           /**
            * isNormalHost is true if one of:
-           * - Chrome is since BrowserVer.Min$Event$$Path$IncludeNodesInShadowRoot
+           * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
            * - `event.currentTarget` (`this`) is a shadowRoot
            */ 
           , isNormalHost = !!(top = path && path[0]) && top !== window && top !== target
@@ -883,7 +883,7 @@ Pagination = {
     hide = VUtils.Stop;
     box.onclick = hide;
     box.addEventListener("wheel", hide, {passive: true, capture: true});
-    VSettings.cache.browserVer < BrowserVer.MinNoDOMActivateInClosedShadowRootPassedToDocument ||
+    VSettings.cache.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToDocument ||
     box.addEventListener("DOMActivate", ELs.onActivate, true);
 
     hide = function(event): void {
