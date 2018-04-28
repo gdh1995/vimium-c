@@ -106,6 +106,7 @@ var Vomnibar = {
   matchType: CompletersNS.MatchType.Default,
   focused: true,
   showing: false,
+  firstShowing: true,
   focusByCode: true,
   blurWanted: false,
   forceNewTab: false,
@@ -137,7 +138,7 @@ var Vomnibar = {
   show (): void {
     this.showing = true;
     this.bodySt.zoom = this.zoomLevel !== 1 ? this.zoomLevel + "" : "";
-    this.focused || setTimeout(Vomnibar.focus, 34);
+    this.firstShowing ? setTimeout(Vomnibar.focus, 34) : (this.firstShowing = false);
     addEventListener("wheel", this.onWheel, this.wheelOptions);
     this.OnShown && setTimeout(this.OnShown, 100);
   },
