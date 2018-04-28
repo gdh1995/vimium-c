@@ -105,6 +105,7 @@ var Vomnibar = {
   actionType: ReuseType.Default,
   matchType: CompletersNS.MatchType.Default,
   focused: true,
+  showing: false,
   focusByCode: true,
   blurWanted: false,
   forceNewTab: false,
@@ -134,14 +135,14 @@ var Vomnibar = {
   browserVersion: BrowserVer.assumedVer,
   wheelOptions: { passive: false, capture: true as true },
   show (): void {
+    this.showing = true;
     this.bodySt.zoom = this.zoomLevel !== 1 ? this.zoomLevel + "" : "";
     this.focused || setTimeout(Vomnibar.focus, 34);
     addEventListener("wheel", this.onWheel, this.wheelOptions);
-    this.input.value = this.inputText;
     this.OnShown && setTimeout(this.OnShown, 100);
   },
   hide (data?: "hide"): void {
-    this.isActive = this.isEditing = this.isInputComposing = this.blurWanted = this.focusByCode = false;
+    this.isActive = this.showing = this.isEditing = this.isInputComposing = this.blurWanted = this.focusByCode = false;
     removeEventListener("wheel", this.onWheel, this.wheelOptions);
     this.timer > 0 && clearTimeout(this.timer);
     window.onkeyup = null as never;
@@ -182,11 +183,13 @@ var Vomnibar = {
     this.mode.query = this.lastQuery = input && input.trim().replace(this._spacesRe, " ");
     // also clear @timer
     this.update(0, (start as number) <= (end as number) ? function(this: typeof Vomnibar): void {
-      this.show();
-      this.input.setSelectionRange(start as number, end as number);
-    } : this.show);
+      if (this.input.value === this.inputText) {
+        this.input.setSelectionRange(start as number, end as number);
+      }
+    } : null);
     this.isActive ? (this.height = -1) : (this.isActive = true);
-    if (this.init) { return this.init(); }
+    if (this.init) { this.init(); }
+    this.input.value = this.inputText;
   },
   focus (this: void, focus?: false | TimerType.fake): void {
     const a = Vomnibar;
@@ -197,7 +200,7 @@ var Vomnibar = {
       VPort.postMessage({ handler: "nextFrame", type: Frames.NextType.current, key: a.lastKey });
     }
   },
-  update (updateDelay: number, callback?: () => void): void {
+  update (updateDelay: number, callback?: (() => void) | null): void {
     this.onUpdate = callback || null;
     if (updateDelay >= 0) {
       this.isInputComposing = false;
@@ -573,6 +576,7 @@ var Vomnibar = {
   },
   postUpdate (): void {
     let func: typeof Vomnibar.onUpdate;
+    if (!this.showing) { this.show(); }
     if (this.timer > 0) { return; }
     this.timer = 0;
     this.isEditing = false;
