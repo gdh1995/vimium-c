@@ -460,10 +460,11 @@ declare const enum BrowserVer {
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
-  // the 3 below are correct even if EXPERIMENTAL or LEAGCY
+  // the 4 below are correct even if EXPERIMENTAL or LEAGCY
   // since C63, Vimium's inner styles have been really safe; `/deep/` works on C35 even if LEAGCY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
   MinSelector$deep$InCSSMeansNothing = 63,
+  MinCSS$OverscrollBehavior = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
   MinCSS$textDecorationSkipInk = 64,
   // a 3rd-party Vomnibar will trigger "navigation" and clear all logs in console on Chrome 64
