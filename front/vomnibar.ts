@@ -56,7 +56,7 @@ var Vomnibar = {
     Object.setPrototypeOf(options, null);
     this.mode.type = this.modeType = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     this.forceNewTab = !!options.force;
-    this.isHttps = null;
+    this.baseHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
     let scale = window.devicePixelRatio;
     this.zoomLevel = scale < 0.98 ? 1 / scale : 1;
@@ -77,8 +77,8 @@ var Vomnibar = {
     } else if (search === null) {
       url = VUtils.decodeURL(url).replace(<RegExpG> /\s$/g, "%20");
       if (!keyword && (<RegExpI>/^https?:\/\//i).test(url)) {
-        this.isHttps = (url.charCodeAt(4) | KnownKey.CASE_DELTA) === KnownKey.s;
-        url = url.substring(this.isHttps ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? url.length - 1 : undefined);
+        this.baseHttps = (url.charCodeAt(4) | KnownKey.CASE_DELTA) === KnownKey.s;
+        url = url.substring(this.baseHttps ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? url.length - 1 : undefined);
       }
     } else {
       url = VUtils.decodeURL(url, decodeURIComponent).trim().replace(this._spacesRe, " ");
@@ -100,6 +100,7 @@ var Vomnibar = {
   completions: null as never as SuggestionE[],
   isEditing: false,
   isInputComposing: false,
+  baseHttps: null as boolean | null,
   isHttps: null as boolean | null,
   isSearchOnTop: false,
   actionType: ReuseType.Default,
@@ -170,7 +171,7 @@ var Vomnibar = {
     VPort.postToOwner({ name: "hide" });
     this.timer = this.height = this.matchType = this.wheelTime = this.actionType = this.lastKey = 0;
     this.zoomLevel = 1;
-    this.completions = this.onUpdate = this.isHttps = null as never;
+    this.completions = this.onUpdate = this.isHttps = this.baseHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = this.lastNormalInput = "";
     this.modeType = this.mode.type = "omni";
     this.doEnter && setTimeout(this.doEnter, 0);
@@ -180,6 +181,7 @@ var Vomnibar = {
   reset (input: string, start?: number, end?: number): void {
     this.inputText = input;
     this.useInput = false;
+    this.isHttps = this.baseHttps;
     this.mode.query = this.lastQuery = input && input.trim().replace(this._spacesRe, " ");
     // also clear @timer
     this.update(0, (start as number) <= (end as number) ? function(this: typeof Vomnibar): void {
@@ -235,7 +237,7 @@ var Vomnibar = {
     const focused = this.focused, blurred = this.blurWanted;
     this.isSelOriginal = false;
     if (sel === -1) {
-      this.isHttps = null; this.isEditing = false;
+      this.isHttps = this.baseHttps; this.isEditing = false;
       this.input.value = this.inputText;
       if (!focused) { this.focus(); this.blurWanted = blurred; }
       return;
@@ -518,7 +520,7 @@ var Vomnibar = {
       return;
     }
     if (this.matchType === CompletersNS.MatchType.emptyResult && str.startsWith(s0)) { return; }
-    if (!str) { this.isHttps = null; }
+    if (!str) { this.isHttps = this.baseHttps = null; }
     let i = this.input.selectionStart, arr: RegExpExecArray | null;
     if (this.isSearchOnTop) {}
     else if (i > s1.length - 2) {
