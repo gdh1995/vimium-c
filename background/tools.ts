@@ -21,7 +21,7 @@ const VClipboard = {
     }
     return data;
   },
-  copy (data: string): void {
+  copy (data: string): void | Promise<string> {
     data = this.format(data);
     const textArea = this.getTextArea();
     textArea.value = data;
@@ -32,7 +32,7 @@ const VClipboard = {
     textArea.value = "";
     Utils.resetRe();
   },
-  paste (): string | null {
+  paste (): string | null | Promise<string | null> {
     if (!Settings.CONST.AllowClipboardRead) { return null; }
     const textArea = this.getTextArea();
     (document.documentElement as HTMLHtmlElement).appendChild(textArea);

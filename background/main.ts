@@ -414,6 +414,38 @@ Are you sure you want to continue?`);
       (tabId: number) => void,
       (tab: Tab) => void
     ],
+    openUrl (url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | never[]): void {
+      if (typeof url === "string") {
+        let mask: string | undefined = cOptions.url_mask;
+        if (mask) {
+          url = url && url.replace(mask + "", (tabs as Tab[]).length > 0 ? (tabs as [Tab])[0].url : "");
+        }
+        if (mask = cOptions.id_mask || cOptions.id_mark || cOptions.id_marker) {
+          url = url && url.replace(mask + "", chrome.runtime.id);
+        }
+        if (workType !== Urls.WorkType.FakeType) {
+          url = Utils.convertToUrl(url + "", cOptions.keyword + "", workType);
+        }
+      }
+      const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
+      options = cOptions as OpenUrlOptions;
+      cOptions = null as never;
+      Utils.resetRe();
+      return typeof url !== "string" ? funcDict.onEvalUrl(url as Urls.SpecialUrl)
+        : funcDict.openShowPage[0](url, reuse, options) ? void 0
+        : Utils.isJSUrl(url) ? funcDict.openJSUrl[0](url)
+        : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
+        : reuse === ReuseType.current ? funcDict.safeUpdate(url)
+        : tabs ? funcDict.openUrlInNewTab(url, reuse, options, tabs as [Tab])
+        : void funcDict.getCurTab(funcDict.openUrlInNewTab.bind(null, url, reuse, options));
+        ;
+    },
+    openCopiedUrl (this: void, tabs: [Tab] | never[] | undefined, url: string | null): void {
+      if (url === null) { return Backend.complain("read clipboard"); }
+      if (!(url = url.trim())) { return Backend.showHUD("No text copied!"); }
+      Utils.quotedStringRe.test(url) && (url = url.slice(1, -1));
+      return funcDict.openUrl(url, Urls.WorkType.ActAnyway, tabs);
+    },
     openUrlInNewTab (this: void, url: string, reuse: ReuseType, options: Readonly<OpenUrlOptions>, tabs: [Tab]): void {
       const tab = tabs[0], { incognito } = options, active = reuse !== ReuseType.newBg;
       let window = options.window;
@@ -514,6 +546,16 @@ Are you sure you want to continue?`);
           tabsCreate({ url: urls[i], index, windowId, active });
         }
       } while (0 < --repeat);
+    },
+    searchAs (search: ParsedSearch, port: Port, query: string | null): void {
+      let err = query === null ? "It's not allowed to read clipboard"
+        : (query = (query as string).trim()) ? "" : "No selected or copied text found";
+      if (err) {
+        cPort = port;
+        return Backend.showHUD(err);
+      }
+      query = Utils.createSearchUrl((query as string).split(Utils.spacesRe), search.keyword);
+      return funcDict.safeUpdate(query);
     },
     moveTabToNewWindow: [function(wnd): void {
       const total = wnd.tabs.length;
@@ -954,42 +996,21 @@ Are you sure you want to continue?`);
       if (cOptions.url_mask && !tabs) {
         return chrome.runtime.lastError || void funcDict.getCurTab(BackgroundCommands.openUrl);
       }
-      let url: Urls.Url | undefined | null, mask: string | undefined, workType: Urls.WorkType = Urls.WorkType.FakeType;
+      let url: Urls.Url | Promise<string | null> | undefined | null, workType: Urls.WorkType = Urls.WorkType.FakeType;
       if (url = <string>cOptions.url) {
         url = url + "";
         workType = Urls.WorkType.Default;
       } else if (cOptions.copied) {
         url = VClipboard.paste();
-        if (url === null) { return Backend.complain("read clipboard"); }
-        if (!(url = url.trim())) { return Backend.showHUD("No text copied!"); }
-        Utils.quotedStringRe.test(url) && (url = url.slice(1, -1));
-        workType = Urls.WorkType.ActAnyway;
+        if (url instanceof Promise) {
+          url.then(funcDict.openCopiedUrl.bind(null, tabs), funcDict.openCopiedUrl.bind(null, null as never, null));
+          return;
+        }
+        return funcDict.openCopiedUrl(tabs, url);
       } else {
         url = cOptions.url_f as string || "";
       }
-      if (typeof url === "string") {
-        if (mask = cOptions.url_mask) {
-          url = url && url.replace(mask + "", (tabs as Tab[]).length > 0 ? (tabs as [Tab])[0].url : "");
-        }
-        if (mask = cOptions.id_mask || cOptions.id_mark || cOptions.id_marker) {
-          url = url && url.replace(mask + "", chrome.runtime.id);
-        }
-        if (workType !== Urls.WorkType.FakeType) {
-          url = Utils.convertToUrl(url + "", cOptions.keyword + "", workType);
-        }
-      }
-      const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
-      options = cOptions as OpenUrlOptions;
-      cOptions = null as never;
-      Utils.resetRe();
-      return typeof url !== "string" ? funcDict.onEvalUrl(url as Urls.SpecialUrl)
-        : funcDict.openShowPage[0](url, reuse, options) ? void 0
-        : Utils.isJSUrl(url) ? funcDict.openJSUrl[0](url)
-        : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
-        : reuse === ReuseType.current ? funcDict.safeUpdate(url)
-        : tabs ? funcDict.openUrlInNewTab(url, reuse, options, tabs as [Tab])
-        : void funcDict.getCurTab(funcDict.openUrlInNewTab.bind(null, url, reuse, options));
-        ;
+      return funcDict.openUrl(url, workType, tabs);
     },
     searchInAnother (this: void, tabs: [Tab]): void {
       let keyword = (cOptions.keyword || "") + "";
@@ -1484,22 +1505,20 @@ Are you sure you want to continue?`);
       (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"];
     },
     searchAs (this: void, request: FgReq["searchAs"], port: Port): void {
-      let search = Backend.parse(request), query: string | null;
+      let search = Backend.parse(request), query: string | null | Promise<string | null>;
       if (!search || !search.keyword) {
         cPort = port;
         return Backend.showHUD("No search engine found!");
       }
-      if (!(query = request.search.trim())) {
-        query = VClipboard.paste();
-        let err = query === null ? "It's not allowed to read clipboard"
-          : (query = query.trim()) ? "" : "No selected or copied text found";
-        if (err) {
-          cPort = port;
-          return Backend.showHUD(err);
-        }
+      query = request.search.trim() || VClipboard.paste();
+      if (query instanceof Promise) {
+        const cb = function(q: string | null | undefined): void {
+          funcDict.searchAs(search as ParsedSearch, port, q || null);
+        };
+        query.then(cb, cb.bind(null, null));
+        return;
       }
-      query = Utils.createSearchUrl((query as string).split(Utils.spacesRe), search.keyword);
-      return funcDict.safeUpdate(query);
+      return funcDict.searchAs(search, port, query);
     },
     gotoSession: function (this: void, request: FgReq["gotoSession"], port?: Port): void {
       const id = request.sessionId, active = request.active !== false;
@@ -1676,7 +1695,7 @@ Are you sure you want to continue?`);
         , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
     },
     copy (this: void, request: FgReq["copy"]): void {
-      return VClipboard.copy(request.data);
+      VClipboard.copy(request.data);
     },
     key (this: void, request: FgReq["key"], port: Port): void {
       let key: string = request.key, count = 1;

@@ -5,13 +5,14 @@ interface BaseExecute<T> {
   options: T | null;
 }
 
+interface ParsedSearch {
+  keyword: string;
+  start: number;
+  url: string;
+}
 interface FgRes {
   findQuery: string;
-  parseSearchUrl: {
-    keyword: string;
-    start: number;
-    url: string;
-  } | null;
+  parseSearchUrl: ParsedSearch | null;
   parseUpperUrl: {
     url: string;
     path: string | null;
