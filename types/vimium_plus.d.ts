@@ -269,6 +269,7 @@ declare const NDEBUG: undefined;
  * )
  * #define LEAGCY (#disable-javascript-harmony-shipping)
  * #define EMPTY ((a clean User Data)
+ * #define LATEST_TESTED 66.0.3359.139
  */
 declare const enum BrowserVer {
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
@@ -294,52 +295,57 @@ declare const enum BrowserVer {
   MinES6ForAndSymbols = 38,
   MinWithFrameIdInArg = 39,
   MinDisableMoveTabAcrossIncognito = 40,
-  // even if EXPERIMENTAL
+  // even if EXPERIMENTAL or LEAGCY
   MinWarningSyncXHR = 40,
   MinWithFrameId = 41,
   // just means it's enabled by default
   Min$String$$StartsWith = 41,
   MinGlobal$HTMLDetailsElement = 41,
   MinFixedCSS$All$MayMistakenlyResetFixedPosition = 41,
+  // MethodFunction is accepted since C42 if EMPTY
+  MinMayBeMethodFunction = 41, // if EXPERIMENTAL
   // before 42, event.path is a simple NodeList instance
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
   MinEnsured$String$$StartsWithAndRepeat = 43, // even if LEAGCY
   MinCreateWndWithState = 44,
-  // the 2 below are correct even if EXPERIMENTAL
+  // the 2 below are correct even if EXPERIMENTAL or LEAGCY
+  // #scroll-top-left-interop is also since C44
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
-  // even if EXPERIMENTAL
-  MinArrowFunction = 45,
+  // even if EXPERIMENTAL or EMPTY
+  MinMayBeArrowFunction = 45,
   // even if LEAGCY
-  MinEnsureMethodFunction = 45, // e.g.: `{ a() {} }`
+  MinEnsureMethodFunction = 45, // e.g.: `a = { b() {} }`
   MinMuted = 45,
   MinMutedInfo = 46,
   // even if EXPERIMENTAL or LEAGCY
   MinAutoDecodeJSURL = 46,
   // even if EXPERIMENTAL or LEAGCY
   Min$Event$$IsTrusted = 46,
-  // occur on 46 if EXPERIMENTAL; always enabled since 47 even if LEAGCY
+  // occur on Chrome 46 if EXPERIMENTAL; always enabled since C47 even if LEAGCY
   Min$requestIdleCallback = 46,
   Min$Tabs$$Query$RejectHash = 47,
   // if .key exists, it's "v" for `v`, but "" (empty) for `<c-v>` - doesn't support all cases
   Min$KeyboardEvent$MayHas$$Key = 47, // if EXPERIMENTAL
   Min$IFrame$MayHas$$Referrerpolicy = 47, // if EXPERIMENTAL
   // even if EXPERIMENTAL or LEAGCY
-  MinEnsuredBorderWidth = 48, // inc 0.0001px to the min "visible" width
-  // if LEAGCY, arrow functions can only be accepted since Chrome 48,
+  // before: real-width := Math.floor(width * zoom)
+  // after: real-width := Math.floor(width * zoom) || (width ? 1 : 0)
+  MinEnsuredBorderWidthWithoutDeviceInfo = 48, // inc 0.0001px to the min "visible" width
+  // if LEAGCY, arrow functions will be accepted only since C48,
   // but this flag will break the Developer Tools (can not open the window) on Chrome 46/47/48,
   // so Chrome can only debug arrow functions since 49
   MinEnsuredArrowFunction = 48,
   // even if EXPERIMENTAL or LEAGCY
   MinSafeGlobal$frameElement = 48,
   // just means it's enabled even if LEAGCY;
-  // if EXPERIMENTAL, .code is "" on Chrome 42/43, and works well since Chrome 44 
+  // if EXPERIMENTAL, .code is "" on Chrome 42/43, and works well since C44 
   MinEnsured$KeyboardEvent$$Code = 48,
-  MinMaybeShadowDOMV1 = 48, // if EXPERIMENTAL
+  MinMayBeShadowDOMV1 = 48, // if EXPERIMENTAL
   // a path of an older DOMActivate event has all nodes (windows -> nodes in shadow DOM)
-  // this feature is enabled by default on C53, 54, 55; and replaced by MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since 56
+  // this feature is enabled by default on C53, 54, 55; and replaced by MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since C56
   MinMayNoDOMActivateInClosedShadowRootPassedToDocument = 48, // if EXPERIMENTAL
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinSafeWndPostMessageAcrossProcesses = 49,
@@ -353,36 +359,35 @@ declare const enum BrowserVer {
   MinSVG$Path$MayHave$d$CSSAttribute = 49, // if #enable-experimental-web-platform-features is on
   // Object.observe is from C36 to C49 even if EXPERIMENTAL or LEAGCY
   MinNo$Object$$Observe = 50,
-  // The real support for arg frameId of chrome.tabs.executeScript is since Chrome 50,
+  // The real support for arg frameId of chrome.tabs.executeScript is since C50,
   //   and is neither 41 (an older version) nor 39 (cur ver on 2018-02-18)
   //   in https://developer.chrome.com/extensions/tabs#method-executeScript.
-  // And, all "Since Chrome 39" lines are totally wrong in the 2018-02-18 version of `tabs.executeScript`
+  // And, all "since C39" lines are totally wrong in the 2018-02-18 version of `tabs.executeScript`
   Min$tabs$$executeScript$hasFrameIdArg = 50,
   MinSVG$Path$Has$Use$Attribute = 50, // <path use="..." />
   // MinShowBlockForBrokenImage = 51, // not reproduced
   // the 2 below just mean they're enabled even if LEAGCY
   MinIFrameReferrerpolicy = 51,
   MinEnsured$KeyboardEvent$$Key = 51,
-  // even if EXPERIMENTAL or LEAGCY
+  // the 3 below are correct even if EXPERIMENTAL or LEAGCY
   MinPassiveEventListener = 51,
-  // even if EXPERIMENTAL or LEAGCY
   // before C51, if an iframe has no scrollable boxes, its parent frame scrolls and gets events
   // since C51, its parent still scrolls but gets no wheel events
   MinNotPassMouseWheelToParentFrameEvenIfSelfNotScrolled = 51,
-  // even if EXPERIMENTAL or LEAGCY
   MinNoCustomMessageOnBeforeUnload = 51,
+  MinShadowDOMV1HasMode = 51,
   // Chrome also began to put contain attr in use on 51 if EXPERIMENTAL
   // but obviously there's some bugs about this feature
   CSS$Contain$BreaksHelpDialogSize = 51,
+  // even if EXPERIMENTAL or LEAGCY
   MinNoUnmatchedIncognito = 52,
   // the 4 below are correct even if LEAGCY
   MinCSSEnableContain = 52,
   MinSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); }
   MinForcedDirectWriteOnWindows = 52,
-  MinPositionMayBeSticky = 52, // if EXPERIMENTAL; enabled by default since Chrome 56 even if LEAGCY
-  MinShadowDOMV1 = 53,
-  // MinScrollingHTMLHtmlElement = 53, // not reproduced
-  // wekitUserSelect still works on C35 if EXPERIMENTAL
+  MinPositionMayBeSticky = 52, // if EXPERIMENTAL; enabled by default since C56 even if LEAGCY
+  MinEnsuredShadowDOMV1 = 53,
+  // wekitUserSelect still works on C35
   MinUserSelectAll = 53,
   // even if EXPERIMENTAL or LEAGCY
   MinUntrustedEventsDoNothing = 53, // fake click events won't show a <select>'s popup
@@ -394,67 +399,80 @@ declare const enum BrowserVer {
   // the devicePixelRatio means that of Windows, but not Chrome's zoom level
   // even when [Windows]=1.5, [zoom]=0.667, the width is still wrong
   ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1 = 53,
-  MinUnprefixedUserSelect = 54, // even if EXPERIMENTAL or LEAGCY
-  // TODO: confirm the line below
+  // the 4 below are correct even if EXPERIMENTAL or LEAGCY
+  MinUnprefixedUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
-  // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinNo$KeyboardEvent$$keyIdentifier = 54,
   MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM = 55,
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
   MinSomeDocumentListenersArePassiveByDefault = 56,
   // not need if LEAGCY or EMPTY (even on Chrome 66)
   MinMayNeedCSPForScriptsFromOtherExtensions = 56, // if EXPERIMENTAL
-  // the 3 below are even if EXPERIMENTAL or LEAGCY
+  // the 3 below are correct even if EXPERIMENTAL or LEAGCY
   MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument = 56,
   MinFailToToggleImageOnFileURL = 56,
   Min$KeyboardEvent$$isComposing = 56,
   MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled = 56,
-  // the 2 below are even if EXPERIMENTAL or LEAGCY
+  // the static selector `>>>` is not supported on Chrome LATEST_TESTED if not EXPERIMENTAL
+  MinMayBeStaticSelectorGtGtGt = 56, // if EXPERIMENTAL
+  // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinNoKeygenElement = 57,
   MinCSSPlaceholderPseudo = 57,
-  MinEnsuredCSSGrid = 57, // even if LEAGCY; still (partly) works on C35 if EXPERIMENTAL
+  MinEnsuredCSSGrid = 57, // even if LEAGCY; still partly works on C35 if EXPERIMENTAL
   /*
    * Chrome before 58 does this if #enable-site-per-process or #enable-top-document-isolation;
-   * Chrome since 58 always merge extension iframes even if the two flags are disabled
+   * Chrome 56 / 57 always merge extension iframes if EXPERIMENTAL
+   * Chrome since 58 always merge extension iframes even if the two flags are disabled and LEAGCY
    * 
    * Special cases:
    * Chrome 55 does this by default (unless turn one of the flags on and then off);
    * if #enable-top-document-isolation, Chrome since 56 merge them,
    *   while Chrome before 56 move extension iframes into different processes (not shared one)
    *     if not #enable-site-per-process;
-   * since Chrome 56, if one flag is turned on and then off,
+   * since C56, if one flag is turned on and then off,
    *   it will still take effects on extension iframes, so extension iframes are always merged,
    *   while Chrome before 56 can turn off them totally
    */
   MinExtIframesAlwaysInSharedProcess = 58,
   MinExtensionContentPageAlwaysCanShowFavIcon = MinExtIframesAlwaysInSharedProcess,
+  // the 4 below are correct even if EXPERIMENTAL or LEAGCY
   MinCaseSensitiveUsemap = 58,
-  Min1pxIsNotEps = 58,
+  // tmp_width := (since 58 ? Math.round : Math.floor)(width * devicePixelRatio * zoom)
+  // real_width := tmp_width && Math.max(tmp_width, 1)
+  MinBorderWidthIsRounded = 58,
   // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange,
   // `<input type=number>.selectionStart` throws on Chrome 33,
   // but ChromeStatus says it has changed the behavior to match the new spec on C58
   Min$selectionStart$MayBeNull = 58,
+  // .type is always 'Caret'
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
-  // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated) is confirmed on 66.0.3359.117
+  // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated) is confirmed on Chrome LATEST_TESTED
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
+  // the 5 below are correct even if EXPERIMENTAL or LEAGCY
   MinNoBorderForBrokenImage = 60,
-  MinRoundedBorderWidth = 61, // a border is only showing if `width * zoomed-ratio >= 0.5`
+  MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
+  // DevicePixelRatioImplyZoomOfDocEl is confirmed on Chrome LATEST_TESTED
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
+  MinCorrectBoxWidthForOptionUI = 61,
+  Min$visualViewPort$ = 61,
+  // TODO: confirm th below
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
-  MinCorrectBoxWidthForOptionUI = 61,
-  MinEnsured$visualViewPort$ = 61, // even if LEAGCY
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
-  // since MinSelector$deep$InCSSDoesNothing, Vimium's inner styles have been really safe
-  MinSelector$deep$InCSSDoesNothing = 63,
+  // the 3 below are correct even if EXPERIMENTAL or LEAGCY
+  // since C63, Vimium's inner styles have been really safe; `/deep/` works on C35 even if LEAGCY
+  // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
+  MinSelector$deep$InCSSMeansNothing = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
   MinCSS$textDecorationSkipInk = 64,
   // a 3rd-party Vomnibar will trigger "navigation" and clear all logs in console on Chrome 64
-  // this still occurs on Chrome 65.0.3325.106 (Beta)
+  // this still occurs on Chrome 65.0.3325.181 (Stable, x64, Windows 10)
   VomnibarMayClearLog1 = 64,
   VomnibarMayClearLog2 = 65,
-  MinChromeUrl$ExtensionShortcuts = 65,
+  // if #enable-md-extensions, it's there since C60
+  MinEnsuredChromeUrl$ExtensionShortcuts = 65,
   MinSmartSpellCheck = 65,
+  // even if EXPERIMENTAL or LEAGCY
   MinCanNotRevokeObjectURLAtOnce = 65,
 }

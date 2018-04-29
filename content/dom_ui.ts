@@ -14,6 +14,7 @@ VDom.UI = {
     box.style.display = "none";
     this.root = typeof box.attachShadow === "function" ? box.attachShadow({mode: "closed"}) : box.createShadowRoot();
     // listen "load" so that safer if shadowRoot is open
+    // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     this.root.mode === "closed" || this.root.addEventListener("load", function(e: Event): void {
       const t = e.target as HTMLElement; VUtils.Stop(e); t.onload && t.onload(e);
     }, true);

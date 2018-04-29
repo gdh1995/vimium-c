@@ -269,8 +269,8 @@ if (bgSettings.CONST.ChromeVersion >= BrowserVer.MinSmartSpellCheck) {
   (document.documentElement as HTMLElement).removeAttribute("spellcheck");
 }
 
-if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidth
-  || window.devicePixelRatio < 1 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidth
+if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+  || window.devicePixelRatio < 1 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
 ) (function(): void {
   const css = document.createElement("style");
   css.textContent = "* { border-width: 1px !important; }";

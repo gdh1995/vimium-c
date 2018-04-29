@@ -547,7 +547,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 })();
 
-if (bgSettings.CONST.ChromeVersion < BrowserVer.MinChromeUrl$ExtensionShortcuts) {
+if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredChromeUrl$ExtensionShortcuts) {
   $<HTMLAnchorElement>("#openExtensionPage").href = "chrome://extension/?id=footer-section";
   $("#openExtensionPage").textContent = "chrome://extension";
 }

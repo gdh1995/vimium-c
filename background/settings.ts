@@ -112,7 +112,7 @@ var Settings = {
       if (this.CONST.ChromeVersion >= BrowserVer.MinCSS$All$Attr) {
         css = ".R{" + css.substring(css.indexOf("all:"));
       }
-      if (this.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidth) {
+      if (this.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css += ".HUD,.IH,.LH{border-width:1px}\n";
       }
       (this as typeof Settings).CONST.BaseCSSLength = css.length;

@@ -635,9 +635,9 @@ var Vomnibar = {
     (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar.hide(); };
     addEventListener("keydown", this.HandleKeydown, true);
     this.renderItems = VUtils.makeListRenderer((document.getElementById("template") as HTMLElement).innerHTML);
-    if (ver < BrowserVer.MinRoundedBorderWidth) {
+    if (ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured) {
       const css = document.createElement("style");
-      css.textContent = `.item, #input { border-width: ${ver < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px; }`;
+      css.textContent = `.item, #input { border-width: ${ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
     if (ver < BrowserVer.Min$KeyboardEvent$$isComposing) {
