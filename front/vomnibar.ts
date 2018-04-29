@@ -168,9 +168,8 @@ var Vomnibar = {
   },
   onHidden (): void {
     VPort.postToOwner({ name: "hide" });
-    this.timer = this.height = this.matchType = this.wheelTime = 0;
+    this.timer = this.height = this.matchType = this.wheelTime = this.actionType = this.lastKey = 0;
     this.zoomLevel = 1;
-    this.lastKey = VKeyCodes.None;
     this.completions = this.onUpdate = this.isHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = this.lastNormalInput = "";
     this.modeType = this.mode.type = "omni";
@@ -455,9 +454,10 @@ var Vomnibar = {
     }
     interface UrlInfo { url: string; sessionId?: undefined }
     const item: SuggestionE | UrlInfo = sel >= 0 ? this.completions[sel] : { url: this.input.value.trim() },
+    action = this.actionType, https = this.isHttps,
     func = function(this: void): void {
       return item.sessionId != null ? Vomnibar.gotoSession(item as SuggestionE & { sessionId: string | number })
-        : Vomnibar.navigateToUrl(item as UrlInfo);
+        : Vomnibar.navigateToUrl((item as UrlInfo).url, action, https);
     };
     if (this.actionType < ReuseType.newFg) { return func(); }
     this.doEnter = func;
@@ -778,17 +778,12 @@ var Vomnibar = {
         ? url.startsWith("http") ? url.substring(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || url.length) : ""
       : url;
   },
-  navigateToUrl (item: { url: string }): void {
-    if (item.url.substring(0, 11).toLowerCase() === "javascript:") {
-      VPort.postToOwner({ name: "evalJS", url: item.url });
+  navigateToUrl (url: string, reuse: ReuseType, https: boolean | null): void {
+    if (url.substring(0, 11).toLowerCase() === "javascript:") {
+      VPort.postToOwner({ name: "evalJS", url });
       return;
     }
-    return VPort.postMessage({
-      handler: "openUrl",
-      reuse: this.actionType,
-      https: this.isHttps,
-      url: item.url
-    });
+    return VPort.postMessage({ handler: "openUrl", reuse, https, url });
   },
   gotoSession (item: SuggestionE & { sessionId: string | number }): void {
     VPort.postMessage({
