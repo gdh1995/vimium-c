@@ -47,7 +47,7 @@
       <tr>
         <td class="caption">Custom key<br/>mappings</td>
         <td id="mappingsHelp">
-          <textarea id="keyMappings" class="code" data-model="Text" data-check="" tabindex="1"
+          <textarea id="keyMappings" class="code" inputmode="latin" data-model="Text" data-check="" tabindex="1"
             placeholder="# Insert your preferred key mappings here."></textarea>
         </td>
         <td class="help"><div class="help-inner">
@@ -69,7 +69,7 @@ shortcut createTab position="end"
       <tr>
         <td class="caption">New tab URL</td>
         <td>
-          <input id="newTabUrl" type="text" data-model="NonEmptyText" data-check="" />
+          <input id="newTabUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" />
           <div class="nonEmptyTip"></div>
         </td>
         <td class="help"><div class="help-inner">
@@ -83,7 +83,7 @@ shortcut createTab position="end"
       <tr>
         <td class="caption">Default search<br/>engine</td>
         <td>
-          <input id="searchUrl" type="text" data-model="NonEmptyText" data-check="" />
+          <input id="searchUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" />
           <div class="nonEmptyTip"></div>
         </td>
         <td class="help"><div class="help-inner">
@@ -270,7 +270,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
         <tr>
           <td class="caption">Custom CSS</td>
           <td>
-            <textarea id="userDefinedCss" class="code min-height-4" data-model="Text"></textarea>
+            <textarea id="userDefinedCss" class="code min-height-4" inputmode="latin" data-model="Text"></textarea>
           </td>
           <td class="help"><div class="help-inner">
             To style Vimium++ nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>".<br/>
@@ -283,7 +283,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
         <tr>
           <td class="caption">Preferred<br/> Vomnibar Page</td>
           <td>
-            <input id="vomnibarPage" type="text" data-model="NonEmptyText" />
+            <input id="vomnibarPage" type="text" inputmode="url" data-model="NonEmptyText" />
             <div class="nonEmptyTip"></div>
           </td>
           <td class="help"><div class="help-inner">
@@ -302,7 +302,7 @@ so only the default inner version will be used on them
         <tr>
           <td class="caption">Locale encoding</td>
           <td>
-            <input id="localeEncoding" type="text" data-model="Text" data-converter="lower" />
+            <input id="localeEncoding" type="text" inputmode="verbatim" data-model="Text" data-converter="lower" />
           </td>
           <td class="help"><div class="help-inner">
             In order to recognize URLs not encoded by <kbd>utf-8</kbd>.<br/>
@@ -312,7 +312,7 @@ so only the default inner version will be used on them
         <tr>
           <td class="caption">Keyboard settings</td>
           <td>
-            <input id="keyboard" type="text" data-model="JSON" />
+            <input id="keyboard" type="text" inputmode="numeric" data-model="JSON" />
             <div class="nonEmptyTip"></div>
           </td>
           <td class="help"><div class="help-inner">
