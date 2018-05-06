@@ -239,7 +239,7 @@ var Vomnibar = {
   onShown (): number {
     this.status = VomnibarNS.Status.Showing;
     let style = this.box.style;
-    style.top = VDom.docZoom !== 1 ? ((VomnibarNS.Consts.MarginTop / VDom.docZoom) | 0) + "px" : this.defaultTop;
+    style.top = VDom.docZoom !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.docZoom) | 0) + "px" : this.defaultTop;
     if (style.visibility) {
       style.visibility = "";
       const box = VDom.UI.box as HTMLElement;

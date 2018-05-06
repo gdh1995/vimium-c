@@ -166,8 +166,16 @@ declare namespace VomnibarNS {
     onmessage<K extends keyof CReq> (this: void, msg: { data: CReq[K] }): void | 1;
   }
   type FgOptionsToFront = CReq["activate"];
-  const enum Consts {
+  const enum PixelData {
     MarginTop = 64,
+    InputBar = 54, InputBarWithLine = InputBar + 1,
+    Item = 44, LastItemDelta = 46 - Item,
+    MarginV1 = 9, MarginV2 = 10, MarginV = MarginV1 + MarginV2,
+    OthersIfEmpty = InputBar + MarginV,
+    OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
+    ListSpaceDelta = MarginTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
+    MarginH = 24, AllHNotUrl = 20 * 2 + 20 + 2 + MarginH, MeanWidthOfChar = 7.7,
+    WindowSizeX = 0.8, AllHNotInput = AllHNotUrl,
   }
 }
 
