@@ -108,12 +108,15 @@ var VDom = {
     return null;
   },
   getClientRectsForAreas: function (this: any, element: HTMLElementUsingMap, output: Hint5[]
-      , areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null | undefined | void {
+      , areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null | void {
     let diff: number, x1: number, x2: number, y1: number, y2: number, rect: VRect | null | undefined;
     const cr = element.getClientRects()[0] as ClientRect | undefined;
     if (!cr || cr.height < 3 || cr.width < 3) { return; }
     // replace is necessary: chrome allows "&quot;", and also allows no "#"
-    if (!areas) {
+    let ret = false;
+    if (areas) {
+      ret = true;
+    } else {
       const map = document.querySelector('map[name="' +
         element.useMap.replace(<RegExpOne>/^#/, "").replace(<RegExpG>/"/g, '\\"') + '"]') as HTMLMapElement | null;
       if (!map) { return; }
@@ -151,11 +154,11 @@ var VDom = {
         output.push([area, rect, 0, [rect, 0], element]);
       }
     }
-    if (arguments.length > 2) {
-      return output[0] && output[0][1];
+    if (ret) {
+      return output.length > 0 ? output[0][1] : null;
     }
   } as {
-    (element: HTMLElementUsingMap, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null | undefined;
+    (element: HTMLElementUsingMap, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null;
     (element: HTMLElementUsingMap, output: Hint5[]): void;
   },
   specialZoom: false,

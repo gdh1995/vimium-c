@@ -224,7 +224,7 @@ interface DomUI {
   simulateSelect (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;
   moveSel (this: DomUI, element: Element, action: SelectActions | undefined): void;
-  getVRect (this: void, clickEl: Element): VRect | null;
+  getVRect (this: void, clickEl: Element, refer?: HTMLElementUsingMap): VRect | null;
   flash (this: DomUI, el: null, rect: VRect): number;
   flash (this: DomUI, el: Element): number | void;
   suppressTail (this: void, onlyRepeated: boolean): void;

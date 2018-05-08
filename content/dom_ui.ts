@@ -180,11 +180,14 @@ VDom.UI = {
       }
     } catch (e) {}
   },
-  getVRect (this: void, clickEl: Element): VRect | null {
+  getVRect (this: void, clickEl, refer): VRect | null {
     const b = document.body;
     VDom.bodyZoom = b && VDom.isInDOM(clickEl, b) && +getComputedStyle(b).zoom || 1;
     VDom.getZoom();
     VDom.prepareCrop();
+    if (refer) {
+      return VDom.getClientRectsForAreas(refer, [], [clickEl as HTMLAreaElement]);
+    }
     const rect = VDom.getVisibleClientRect(clickEl),
     cr = clickEl.getBoundingClientRect(), bcr = VDom.fromClientRect(cr);
     return rect && !VDom.isContaining(bcr, rect) ? rect : VDom.NotVisible(null, cr) ? null : bcr;

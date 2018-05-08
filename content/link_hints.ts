@@ -728,8 +728,8 @@ var VHints = {
     VHUD.text = str; // in case pTimer > 0
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
-      rect = hintEl.refer ? VDom.getClientRectsForAreas(hintEl.refer, [], [clickEl as HTMLAreaElement])
-        : VDom.UI.getVRect(clickEl);
+      // must use UI.getVRect, so that VDom.zooms are updated, and prepareCrop is called
+      rect = VDom.UI.getVRect(clickEl, hintEl.refer);
       const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hintEl.marker);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect(clickEl)))) {
         const force = clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement;
