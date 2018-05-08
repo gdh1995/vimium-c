@@ -538,12 +538,11 @@ var VHints = {
   },
   frameNested: false as HintsNS.NestedFrame,
   checkNestedFrame: function(output?: Hint[]): void {
-    const res = this._getNestedFrame(output);
+    const res = output && output.length > 1 ? null : window.frames && !(frames as Window[]).length ? false
+      : document.webkitIsFullScreen ? 0 : this._getNestedFrame(output);
     this.frameNested = res === false && document.readyState === "complete" ? null : res;
   },
   _getNestedFrame (output?: Hint[]): HintsNS.NestedFrame {
-    if (window.frames && !(frames as Window[]).length) { return false; }
-    if (document.webkitIsFullScreen) { return 0; }
     if (output == null) {
       if (!VDom.isHTML()) { return false; }
       output = [];

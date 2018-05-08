@@ -169,16 +169,16 @@ var VDom = {
    * 
    * also update VDom.fullZoom
    */
-  getZoom (alsoBody?: 1): number {
+  getZoom (target?: 1 | Element): number {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
     , zoom = +getComputedStyle(docEl).zoom || 1
     , el: Element | null = document.webkitFullscreenElement;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
-    if (alsoBody) {
+    if (target) {
       const body = el ? null : document.body;
       // if fullscreen and there's nested "contain" styles,
       // then it's a whole mess and nothing can be ensured to be right
-      this.bodyZoom = body && +getComputedStyle(body).zoom || 1;
+      this.bodyZoom = body && (target === 1 || this.isInDOM(target, body)) && +getComputedStyle(body).zoom || 1;
     }
     for (; el && el !== docEl; el = this.getParent(el)) {
       zoom *= +getComputedStyle(el).zoom || 1;
@@ -249,8 +249,8 @@ var VDom = {
     (element: null, rect: ClientRect): VisibilityType;
   },
   isInDOM (element: Node, root?: Node): boolean {
-    const d = document, f = d.getRootNode;
-    if (!root && typeof f === "function") {
+    let d = document, f: Document["getRootNode"];
+    if (!root && typeof (f = d.getRootNode) === "function") {
       return f.call(element, {composed: true}) === d;
     }
     root || (root = d);

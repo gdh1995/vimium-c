@@ -386,7 +386,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       InsertMode.last = null;
       InsertMode.mutable = true;
-      VDom.getZoom(1);
+      VDom.getZoom(newEl);
       VDom.prepareCrop();
       return VDom.UI.simulateSelect(newEl, null, false, "", true);
     },

@@ -181,9 +181,7 @@ VDom.UI = {
     } catch (e) {}
   },
   getVRect (this: void, clickEl, refer): VRect | null {
-    const b = document.body;
-    VDom.bodyZoom = b && VDom.isInDOM(clickEl, b) && +getComputedStyle(b).zoom || 1;
-    VDom.getZoom();
+    VDom.getZoom(clickEl);
     VDom.prepareCrop();
     if (refer) {
       return VDom.getClientRectsForAreas(refer, [], [clickEl as HTMLAreaElement]);
