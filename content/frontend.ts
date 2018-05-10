@@ -199,7 +199,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         }
         InsertMode.lock = target as HTMLElement;
         if (InsertMode.mutable) {
-          InsertMode.last = target as HTMLElement;
+          if (document.activeElement !== document.body) {
+            InsertMode.last = target as HTMLElement;
+          }
         }
       }
     },
@@ -508,6 +510,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       KeydownEvents = Object.create(null)
       if (VSettings.cache.grabFocus && this.grabFocus) {
         if (notBody) {
+          this.last = null;
           activeEl.blur && activeEl.blur();
           notBody = (activeEl = document.activeElement as Element) !== document.body;
         }
