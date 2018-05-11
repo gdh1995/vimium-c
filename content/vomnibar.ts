@@ -27,6 +27,7 @@ var Vomnibar = {
   onReset: null as (() => void) | null,
   timer: 0,
   defaultTop: "",
+  top: "",
   sameOrigin: false,
   activate (count: number, options: VomnibarNS.FullOptions): void {
     if (this.status === VomnibarNS.Status.KeepBroken) {
@@ -46,8 +47,9 @@ var Vomnibar = {
     }
     this.options = null;
     VDom.fullZoom = 1;
-    let area = VDom.prepareCrop(1) as [number, number];
-    options.width = area[0], options.height = area[1];
+    let [iw, ih] = VDom.prepareCrop(1) as [number, number];
+    options.width = iw, options.height = ih;
+    this.defaultTop = ih > VomnibarNS.PixelData.ScreenHeightThreshold ? ih / 2 - VomnibarNS.PixelData.NormalTopHalf + "px" : "";
     VDom.getZoom();
     // note: here require: that Inactive must be NotInited + 1
     this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
@@ -107,6 +109,7 @@ var Vomnibar = {
   hide (fromInner?: 1): void {
     const active = this.status > VomnibarNS.Status.Inactive;
     this.status = VomnibarNS.Status.Inactive;
+    this.defaultTop = "";
     if (fromInner == null) {
       active && this.port.postMessage<"hide">("hide");
       return;
@@ -181,7 +184,7 @@ var Vomnibar = {
         close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
-      if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }
+      if (location.hash === "#chrome-ui") { _this.top = "5px"; }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {
@@ -201,6 +204,7 @@ var Vomnibar = {
     this.box.remove();
     this.port = this.box = null as never;
     this.sameOrigin = false;
+    this.defaultTop = "";
     VUtils.remove(this);
     this.options = null;
     if (this.onReset) { return this.onReset(); }
@@ -239,7 +243,7 @@ var Vomnibar = {
   onShown (): number {
     this.status = VomnibarNS.Status.Showing;
     let style = this.box.style;
-    style.top = VDom.docZoom !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.docZoom) | 0) + "px" : this.defaultTop;
+    style.top = VDom.docZoom !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.docZoom) | 0) + "px" : this.top || this.defaultTop;
     if (style.visibility) {
       style.visibility = "";
       const box = VDom.UI.box as HTMLElement;
