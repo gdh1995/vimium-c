@@ -17,13 +17,14 @@ var osPath = require('path');
 
 var DEST, enableSourceMap, willListFiles, willListEmittedFiles, removeComments, JSDEST;
 var locally = false;
-var debugging = false;
+var debugging = process.env.DEBUG === "1";
 var compileInBatch = true;
 var typescript = null, tsOptionsLogged = false;
-var disableErrors = process.env.SHOW_ERRORS !== "1" && !compileInBatch;
+var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", false);
+gulpPrint = gulpPrint.default || gulpPrint;
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
