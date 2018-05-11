@@ -300,7 +300,7 @@ bookmarks: {
     tree.forEach(this.traverseBookmark, this);
     const query = this.currentSearch;
     this.currentSearch = null;
-    setTimeout(() => Decoder.decodeList(this.bookmarks), 50);
+    setTimeout(() => Decoder.decodeList(Completers.bookmarks.bookmarks), 50);
     if (this.Listen) {
       setTimeout(this.Listen, 0);
       this.Listen = null;

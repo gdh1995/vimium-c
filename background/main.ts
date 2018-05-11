@@ -50,6 +50,10 @@ var Backend: BackendHandlersNS.BackendHandlers;
     end,
   }
 
+  /** any change to `commandCount` should ensure it won't be `0` */
+  let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
+  needIcon = false, cKey: VKeyCodes = VKeyCodes.None;
+
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
     if (!url) {
@@ -1900,7 +1904,18 @@ Are you sure you want to continue?`);
         url: sender.url
       };
     }
-  };
+  },
+  getSecret = (function (this: void): (this: void) => number {
+    let secret = 0, time = 0;
+    return function(this: void): number {
+      const now = Date.now();
+      if (now - time > GlobalConsts.VomnibarSecretTimeout) {
+        secret = 1 + (0 | (Math.random() * 0x6fffffff));
+      }
+      time = now;
+      return secret;
+    };
+  })();
   
   Backend = {
     gotoSession: requestHandlers.gotoSession,
@@ -2064,22 +2079,6 @@ Are you sure you want to continue?`);
       }
     });
   }
-  };
-
-  /** any change to `commandCount` should ensure it won't be `0` */
-  let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
-  needIcon = false, cKey: VKeyCodes = VKeyCodes.None,
-  getSecret = function(this: void): number {
-    let secret = 0, time = 0;
-    getSecret = function(this: void): number {
-      const now = Date.now();
-      if (now - time > GlobalConsts.VomnibarSecretTimeout) {
-        secret = 1 + (0 | (Math.random() * 0x6fffffff));
-      }
-      time = now;
-      return secret;
-    };
-    return getSecret();
   };
 
   if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {

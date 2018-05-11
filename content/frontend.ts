@@ -24,7 +24,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     Destroy = 2,
   }
 
-  var KeydownEvents: KeydownCacheArray, keyMap: KeyMap
+  let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , currentKeys = "", isEnabledForUrl = false, isLocked = false
     , mapKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
     , esc = function(i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscF
