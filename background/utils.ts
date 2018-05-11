@@ -12,8 +12,8 @@ var Utils = {
    * both b and a must extend SafeObject
    */
   extendIf<T extends object, K extends keyof T> (b: T, a: Readonly<Pick<T, K>>): T {
-    for (let i in a) {
-      (i in b) || (b[i] = a[i]);
+    for (const i in a) {
+      (i in b) || ((b as any)[i as K] = a[i as K]);
     }
     return b;
   },

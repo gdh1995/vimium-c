@@ -221,7 +221,7 @@ function clickLink(this: void, options: { [key: string]: string; }, event: Mouse
   if (!url) { return; }
   const a = document.createElement('a');
   Object.setPrototypeOf(options, null);
-  for (let i in options) {
+  for (const i in options) {
     a.setAttribute(i, options[i]);
   }
   a.href = url;

@@ -8,9 +8,8 @@ var HelpDialog = {
     Object.setPrototypeOf(request, null);
     const commandsToKey = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry,
           hideUnbound = !request.unbound, showNames = !!request.names;
-    let command: string, key: string;
-    for (key in ref) {
-      command = (ref[key] as CommandsNS.Item).command;
+    for (const key in ref) {
+      const command = (ref[key] as CommandsNS.Item).command;
       (commandsToKey[command] || (commandsToKey[command] = [])).push(key);
     }
     const result = Object.setPrototypeOf({
@@ -38,7 +37,7 @@ var HelpDialog = {
       let klen = -2, bindings = '';
       if (keys && keys.length > 0) {
         bindings = '\n\t\t<span class="HelpKey">';
-        for (let key of keys) {
+        for (const key of keys) {
           if (klen >= 0) {
             bindings += '</span>, <span class="HelpKey">';
           }

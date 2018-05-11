@@ -364,7 +364,7 @@ bookmarks: {
 
 history: {
   filter (query: CompletersNS.QueryStatus, index: number): void {
-    const history: HistoryItem[] | null = HistoryCache.history;
+    const history = HistoryCache.history;
     if (queryType === FirstQuery.waitFirst) {
       queryType = queryTerms.length === 0 || index === 0 ? FirstQuery.history : FirstQuery.historyIncluded;
     }
@@ -509,13 +509,13 @@ domains: {
     const ref = Utils.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, word = queryTerms[0].toLowerCase();
     let sug: Suggestion | undefined, result = "", d: Domain = null as Domain | null as Domain, result_score = -1;
     if (offset > 0) {
-      for (let domain in ref) {
+      for (const domain in ref) {
         if (domain.indexOf(word) !== -1) { offset--; break; }
       }
       return Completers.next([]);
     }
     RankingUtils.maxScoreP = RankingUtils.maximumScore;
-    for (let domain in ref) {
+    for (const domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
       const score = SuggestionUtils.ComputeRelevancy(domain, "", (d = ref[domain]).time);
       if (score > result_score) { result_score = score; result = domain; }
@@ -1106,7 +1106,7 @@ searchEngines: {
         return callback ? callback(this.history as HistoryItem[]) : undefined;
       };
       _this._callbacks && _this._callbacks.length > 0 && setTimeout(function(ref: Array<HistoryCallback>): void {
-        for (let f of ref) {
+        for (const f of ref) {
           f(HistoryCache.history as HistoryItem[]);
         }
       }, 1, _this._callbacks);

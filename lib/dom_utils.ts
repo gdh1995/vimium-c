@@ -1,3 +1,4 @@
+/// <reference path="../content/base.d.ts" />
 var VDom = {
   UI: null as never as DomUI,
   isHTML (this: void): boolean { return document.documentElement instanceof HTMLElement; },

@@ -41,7 +41,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     send: function<K extends keyof FgRes> (this: void, request: FgReq[K] & Req.baseFg<K>
         , callback: (this: void, res: FgRes[K]) => void): void {
       let id = ++vPort._id;
-      (vPort.port as Port).postMessage({_msgId: id, request: request});
+      (vPort.port as Port as any).postMessage({_msgId: id, request: request});
       vPort._callbacks[id] = callback;
     } as VPort["send"],
     safePost<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
@@ -64,7 +64,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         delete arr[id];
         return handler((response as Req.res<K>).response);
       } else {
-        return requestHandlers[(response as Req.bg<T>).name as T](response as Req.bg<T>);
+        return (requestHandlers as any)[(response as Req.bg<T>).name as T](response as Req.bg<T>);
       }
     },
     TestAlive (): void { esc && !vPort.port && VSettings.destroy(); },
@@ -642,7 +642,7 @@ Pagination = {
     for (let re2 = <RegExpOne> /\b/, i = candidates[0][0] >>> 23; i < count; ) {
       s = names[i++];
       const re = new RegExp(re2.test(s[0]) || re2.test(s.slice(-1)) ? `\\b${s}\\b` : s, ""), j = i << 23;
-      for (let cand of candidates) {
+      for (const cand of candidates) {
         if (cand[0] > j) { break; }
         if (re.test(cand[1])) { return this.followLink(cand[2]); }
       }
@@ -840,7 +840,7 @@ Pagination = {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer(request);
       delete request.name;
-      for (let i in request) {
+      for (const i in request) {
         VSettings.cache[i as Keys] = request[i as Keys] as SettingsNS.FrontendSettings[Keys];
       }
     },
@@ -851,12 +851,12 @@ Pagination = {
       func(map, null);
       function iter(obj: ReadonlyChildKeyMap): void {
         func(obj, null);
-        for (let key in obj) { if (obj[key] !== 0) {
+        for (const key in obj) { if (obj[key] !== 0) {
           iter(obj[key] as ReadonlyChildKeyMap);
         } }
       }
-      for (let key in map) {
-        let sec = map[key];
+      for (const key in map) {
+        const sec = map[key];
         if (sec === 0 || sec === 1) { continue; }
         iter(sec as ReadonlyChildKeyMap);
       }

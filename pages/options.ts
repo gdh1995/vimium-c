@@ -23,14 +23,14 @@ Option.prototype._onCacheUpdated = function<T extends keyof SettingsNS.FrontendS
 
 Option.saveOptions = function(): void {
   const arr = Option.all;
-  for (let i in arr) {
+  for (const i in arr) {
     arr[i as keyof AllowedOptions].saved || arr[i as keyof AllowedOptions].save();
   }
 };
 
 Option.needSaveOptions = function(): boolean {
   const arr = Option.all;
-  for (let i in arr) {
+  for (const i in arr) {
     if (!arr[i as keyof AllowedOptions].saved) {
       return true;
     }
@@ -294,8 +294,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   };
   function doSyncToFrontend (toSync: typeof Option.syncToFrontend): void {
     const ref = bgSettings.bufferToLoad, obj: BgReq["settingsUpdate"] = {name: "settingsUpdate"};
-    let key: keyof SettingsNS.FrontendSettings;
-    for (key of toSync) {
+    for (const key of toSync) {
       obj[key] = ref[key] = bgSettings.get(key);
     }
     bgSettings.broadcast(obj);
@@ -495,13 +494,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   _ref = $$("[data-permission]");
   _ref.length > 0 && (function(this: void, els: NodeListOf<HTMLElement>): void {
     const manifest = chrome.runtime.getManifest(), permissions = manifest.permissions || [];
-    let key: string;
-    for (key of permissions) {
+    for (const key of permissions) {
       manifest[key] = true;
     }
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
-      key = el.getAttribute("data-permission") as string;
+      let key = el.getAttribute("data-permission") as string;
       if (key in manifest) continue;
       (el as HTMLInputElement | HTMLTextAreaElement).disabled = true;
       key = `This option is disabled for lacking permission${key ? ":\n* " + key : ""}`;

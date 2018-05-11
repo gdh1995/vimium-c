@@ -158,9 +158,8 @@ var Commands = {
     }
 
     const func = function(obj: ChildKeyMap): void {
-      let key, val: 0 | ChildKeyMap;
-      for (key in obj) {
-        val = obj[key] as 0 | ChildKeyMap;
+      for (const key in obj) {
+        const val = obj[key] as 0 | ChildKeyMap;
         if (val !== 0) { func(val); }
         else if (ref[key] === 0) { delete obj[key]; }
       }

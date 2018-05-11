@@ -51,7 +51,12 @@ interface WritableVRect {
   [2]: number; // right
   [3]: number; // bottom
 }
-interface VRect extends Readonly<WritableVRect> {}
+interface VRect extends WritableVRect {
+  readonly [0]: number; // left
+  readonly [1]: number; // top
+  readonly [2]: number; // right
+  readonly [3]: number; // bottom
+}
 
 interface ViewOffset {
   readonly [0]: number; // left

@@ -860,7 +860,7 @@ VPort = {
     }
   },
   Listener<T extends keyof BgVomnibarReq> (this: void, response: Req.bg<T>): void {
-    return Vomnibar[response.name](response);
+    return (Vomnibar as any)[response.name](response);
   },
   OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
     let name = ((data as VomnibarNS.Msg<string>).name || data) as keyof VomnibarNS.CReq | "onAction";
@@ -943,7 +943,7 @@ VPort = {
     const { secret } = request, msgs = unsafeMsg;
     _sec = secret;
     unsafeMsg = null as never;
-    for (let i of msgs) {
+    for (const i of msgs) {
       if (i[0] == secret) {
         return handler(i[0], i[1], i[2]);
       }

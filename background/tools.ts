@@ -210,7 +210,7 @@ ContentSettings = {
   setAllLevels (this: void, contentType: CSTypes, url: string, count: number
       , settings: Readonly<Pick<chrome.contentSettings.SetDetails, "scope" | "setting">>
       , callback: (this: void, has_err: boolean) => void): void {
-    let pattern: string, left: number, has_err = false;
+    let left: number, has_err = false;
     const ref = chrome.contentSettings[contentType], func = function() {
       const err = chrome.runtime.lastError;
       err && console.log("[%o]", Date.now(), err);
@@ -224,7 +224,7 @@ ContentSettings = {
     left = arr.length;
     if (left <= 0) { return callback(true); }
     Object.setPrototypeOf(settings, null);
-    for (pattern of arr) {
+    for (const pattern of arr) {
       const info = Utils.extendIf(Object.create(null) as chrome.contentSettings.SetDetails, settings);
       info.primaryPattern = pattern;
       ref.set(info, func);
@@ -394,7 +394,7 @@ FindModeHistory = {
     FindModeHistory.timer = 0;
     if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
       let left = false, arr = Backend.indexPorts();
-      for (let i in arr) {
+      for (const i in arr) {
         if ((arr[i] as Frames.Frames)[0].sender.incognito) { left = true; break; }
       }
       if (left) { return; }
@@ -420,7 +420,7 @@ setTimeout(function() {
   let stamp = 1, time = 0;
   function clean(): void {
     const ref = cache;
-    for (let i in ref) {
+    for (const i in ref) {
       if ((ref[i] as number) <= 896) { delete ref[i]; }
       else { (ref as EnsuredSafeDict<number>)[i] -= 895; }
     }
@@ -457,7 +457,7 @@ setTimeout(function() {
     return (cache[b.id] as number) - (cache[a.id] as number);
   };
 
-  for (let i of ["images", "plugins", "javascript", "cookies"] as CSTypes[]) {
+  for (const i of ["images", "plugins", "javascript", "cookies"] as CSTypes[]) {
     localStorage.getItem(ContentSettings.makeKey(i)) != null &&
     setTimeout(ContentSettings.Clear, 100, i);
   }

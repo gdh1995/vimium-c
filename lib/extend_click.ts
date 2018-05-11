@@ -54,19 +54,25 @@
   };
 
 function func(this: void, sec: number): void {
+type ApplyArgs<T, ArgParent, R> = (this: (this: T, ...a: ArgParent[]) => R, thisArg: T, a: ArgParent[]) => R;
+type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
+type Call3o<T, A, B, C, R> = (this: (this: T, a: A, b: B, c?: C) => R, thisArg: T, a: A, b: B, c?: C) => R;
+
 const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, R, A, B, C>(func: (this: T, a?: A, b?: B, c?: C) => R, self: T, a?: A, b?: B, c?: C) => R,
-dispatch = _call.bind(EventTarget.prototype.dispatchEvent),
-append = _call.bind(document.appendChild) as (parent: Node, node: Node) => Node,
+dispatch = (_call as Call1<EventTarget, Event, boolean>).bind(EventTarget.prototype.dispatchEvent),
+append = (_call as Call1<Node, Node, Node>).bind(document.appendChild),
 Contains = document.contains, contains = Contains.bind(document),
 Insert = document.insertBefore,
 splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister),
 CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment, SR = ShadowRoot,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
-funcToString = Function.prototype.toString, toStringApply = _apply.bind(funcToString),
-listenA = _apply.bind(_listen) as (self: EventTarget, args: any) => void,
-listen = _call.bind(_listen) as (self: EventTarget, ty: string, func?: null | ((e: Event) => void), opts?: boolean) => void,
+funcToString = Function.prototype.toString,
+toStringApply = (_apply as ApplyArgs<Function, any, string>).bind(funcToString),
+listenA = (_apply as ApplyArgs<EventTarget, any, void>).bind(_listen),
+listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
+  , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
 Stop = KeyboardEvent.prototype.stopImmediatePropagation,
 Attr = E.prototype.setAttribute, _remove = E.prototype.remove, remove = _call.bind(_remove),
 rel = removeEventListener, ct = clearTimeout,
@@ -111,7 +117,7 @@ next = setTimeout.bind(null as never, function(): void {
   timer = start > 0 ? next() : 0;
   if (len > 0) {
     // skip some nodes if only crashing, so that there would be less crash logs in console
-    for (let i of splice(start, delta)) { reg(i); }
+    for (const i of splice(start, delta)) { reg(i); }
   }
 }, 1);
 function reg(this: void, element: Element): void {

@@ -218,7 +218,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       if (favIcon0 == 1 && Settings.CONST.ChromeVersion >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon) {
         url = url.substring(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
         const map = framesForTab;
-        for (let tabId in map) {
+        for (const tabId in map) {
           let frames = map[tabId] as Frames.Frames;
           for (let i = 1, len = frames.length; i < len; i++) {
             let { sender } = frames[i];
@@ -772,7 +772,7 @@ Are you sure you want to continue?`);
       let frameId = this.frameId, found: boolean, count = commandCount;
       do {
         found = false;
-        for (let i of frames) {
+        for (const i of frames) {
           if (i.frameId === frameId) {
             frameId = i.parentFrameId;
             found = frameId > 0;
@@ -1205,11 +1205,11 @@ Are you sure you want to continue?`);
       return Backend.showHUD(str, true);
     },
     goNext (): void {
-      let rel: string | undefined = cOptions.rel || cOptions.dir, i: any, p2: string[] = []
+      let rel: string | undefined = cOptions.rel || cOptions.dir, p2: string[] = []
         , patterns: string | string[] | boolean | number = cOptions.patterns;
       rel = rel ? rel + "" : "next";
       if (patterns instanceof Array) {
-        for (i of patterns) {
+        for (let i of patterns) {
           i = i && (i + "").trim();
           i && p2.push(i.toLowerCase());
         }
@@ -1217,7 +1217,7 @@ Are you sure you want to continue?`);
         typeof patterns === "string" || (patterns = "");
         patterns = (patterns as string) || Settings.get(rel !== "next" ? "previousPatterns" : "nextPatterns", true);
         patterns = patterns.trim().toLowerCase().split(",");
-        for (i of patterns) {
+        for (let i of patterns) {
           i = i.trim();
           i && p2.push(i);
         }
@@ -2082,7 +2082,7 @@ Are you sure you want to continue?`);
   };
 
   if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
-    funcDict.createTab.length = 1;
+    (funcDict.createTab as Array<Function>).length = 1;
   }
   Settings.updateHooks.newTabUrl_f = function(url) {
     const onlyNormal = Utils.isRefusingIncognito(url), mayForceIncognito = funcDict.createTab.length > 1 && onlyNormal;
@@ -2138,18 +2138,18 @@ Are you sure you want to continue?`);
 
   (function(): void {
     type Keys = keyof typeof BackgroundCommands;
-    let ref: Keys[], i: Keys, ref2 = BackgroundCommands, key: Keys;
-    for (key in ref2) { (ref2[key] as BgCmd).useTab = UseTab.NoTab; }
+    let ref: Keys[], ref2 = BackgroundCommands;
+    for (const key in ref2) { (ref2[key as Keys] as BgCmd).useTab = UseTab.NoTab; }
 
     ref = ["goTab", "moveTab", "reloadTab", "removeRightTab" //
       , "removeTab", "removeTabsR", "togglePinTab", "visitPreviousTab" //
     ];
-    for (i of ref) { (ref2[i] as BgCmdCurWndTabs).useTab = UseTab.CurWndTabs; }
+    for (const i of ref) { (ref2[i] as BgCmdCurWndTabs).useTab = UseTab.CurWndTabs; }
     ref = ["copyTabInfo", "goToRoot", "moveTabToNextWindow"//
       , "reopenTab", "toggleCS", "toggleViewSource" //
       , "searchInAnother" //
     ];
-    for (i of ref) { (ref2[i] as BgCmdActiveTab).useTab = UseTab.ActiveTab; }
+    for (const i of ref) { (ref2[i] as BgCmdActiveTab).useTab = UseTab.ActiveTab; }
   })();
 
   setTimeout(function(): void {
@@ -2165,10 +2165,10 @@ Are you sure you want to continue?`);
   // will run only on <F5>, not on runtime.reload
   window.onunload = function(event): void {
     if (event && event.isTrusted === false) { return; }
-    let ref = framesForTab as Frames.FramesMapToDestroy, tabId: string;
+    let ref = framesForTab as Frames.FramesMapToDestroy;
     ref.omni = Connections.framesForOmni;
-    for (tabId in ref) {
-      let arr = ref[tabId], end = arr.length;
+    for (const tabId in ref) {
+      const arr = ref[tabId], end = arr.length;
       for (let i = 1; i < end; i++) {
         arr[i].disconnect();
       }

@@ -59,8 +59,8 @@ ExclusionRulesOption.prototype.sortRules = function(this: ExclusionRulesOption
   }
   if (element && element.timer) { return; }
   const rules = this.readValueFromElement() as Rule[], hostRe = <RegExpOne> /^([:^]?[a-z\-?*]+:\/\/)?([^\/]+)(\/.*)?/;
-  let rule: Rule, key, arr;
-  for (rule of rules) {
+  let key: Rule["pattern"], arr: string[] | null;
+  for (const rule of rules) {
     if ((arr = hostRe.exec(key = rule.pattern)) && arr[1] && arr[2]) {
       key = arr[3] || "";
       arr = arr[2].split(".");
@@ -216,7 +216,7 @@ Are you sure you want to continue?`
   delete new_data.findModeRawQuery;
   delete new_data.findModeRawQueryList;
   delete new_data.newTabUrl_f;
-  for (let _key in _ref) {
+  for (const _key in _ref) {
     const item: Option<any> = _ref[_key as keyof AllowedOptions];
     let key: keyof AllowedOptions = item.field, new_value: any = new_data[key];
     delete new_data[key];
@@ -243,7 +243,7 @@ Are you sure you want to continue?`
     }
     item.fetch();
   }
-  for (let key in new_data) {
+  for (const key in new_data) {
     let new_value = new_data[key];
     type SettingKeys = keyof SettingsNS.SettingsWithDefaults;
     if (new_value == null) {

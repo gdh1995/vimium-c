@@ -50,10 +50,10 @@ var Settings = {
     <K extends keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
   },
   broadcast<K extends keyof BgReq> (request: Req.bg<K>): void {
-    let ref = Backend.indexPorts(), tabId: string, frames: Frames.Frames, i: number;
-    for (tabId in ref) {
-      frames = ref[tabId] as Frames.Frames;
-      for (i = frames.length; 0 < --i; ) {
+    const ref = Backend.indexPorts();
+    for (const tabId in ref) {
+      const frames = ref[tabId] as Frames.Frames;
+      for (let i = frames.length; 0 < --i; ) {
         frames[i].postMessage(request);
       }
     }
@@ -74,7 +74,7 @@ var Settings = {
       const old = (this as typeof Settings).extWhiteList;
       const map = (this as typeof Settings).extWhiteList = Object.create<boolean>(null);
       if (old) {
-        for (let key in old) { if (old[key] === false) { map[key] = false; } }
+        for (const key in old) { if (old[key] === false) { map[key] = false; } }
       }
       if (!val) { return; }
       for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\dA-Za-z]/ as RegExpOne; 0 <= --i; ) {
@@ -129,7 +129,7 @@ var Settings = {
       css = this.cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength) + css;
       this.set("innerCSS", css);
       const ref = Backend.indexPorts(), request = { name: "showHUD" as "showHUD", CSS: this.cache.innerCSS };
-      for (let tabId in ref) {
+      for (const tabId in ref) {
         const frames = ref[tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {
           if (frames[i].sender.flags & Frames.Flags.hasCSS) {

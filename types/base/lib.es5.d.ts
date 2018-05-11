@@ -419,15 +419,15 @@ interface String {
       */
     replace(searchValue: RegExpSearchable<0>, replacer: (substring: string, index: number, source: string) => string): string;
     replace(searchValue: RegExpSearchable<1>, replacer: (this: void, substring: string,
-        a: string | undefined, index: number, source: string) => string): string;
+        a: string, index: number, source: string) => string): string;
     replace(searchValue: RegExpSearchable<2>, replacer: (this: void, substring: string,
-        a: string | undefined, b: string | undefined,
+        a: string, b: string,
         index: number, source: string) => string): string;
     replace(searchValue: RegExpSearchable<3>, replacer: (this: void, substring: string,
-        a: string | undefined, b: string | undefined, c: string | undefined,
+        a: string, b: string, c: string,
         index: number, source: string) => string): string;
     replace(searchValue: RegExpSearchable<4>, replacer: (this: void, substring: string,
-        a: string | undefined, b: string | undefined, c: string | undefined, d: string | undefined,
+        a: string, b: string, c: string, d: string,
         index: number, source: string) => string): string;
 
     /**

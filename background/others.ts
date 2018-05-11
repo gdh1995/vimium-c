@@ -19,8 +19,8 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
     HandleStorageUpdate: function(changes, area): void {
       if (area !== "sync") { return; }
       Object.setPrototypeOf(changes, null);
-      for (let key in changes) {
-        let change = changes[key];
+      for (const key in changes) {
+        const change = changes[key];
         Sync.storeAndPropagate(key, change != null ? change.newValue : null);
       }
     } as SettingsNS.OnSyncUpdate,
@@ -58,14 +58,14 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
       items[key] = value;
     },
     DoUpdate (this: void): void {
-      let items = Sync.to_update, removed = [] as string[], key: keyof SettingsToUpdate, left = 0;
+      let items = Sync.to_update, removed = [] as string[], left = 0;
       Sync.to_update = null;
       if (!items || Settings.Sync !== Sync) { return; }
-      for (key in items) {
-        if (items[key] != null) {
+      for (const key in items) {
+        if (items[key as keyof SettingsToUpdate] != null) {
           ++left;
         } else {
-          delete items[key];
+          delete items[key as keyof SettingsToUpdate];
           removed.push(key);
         }
       }
@@ -88,7 +88,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
       return chrome.runtime.lastError;
     }
     Object.setPrototypeOf(items, null);
-    for (let key in items) {
+    for (const key in items) {
       Sync.storeAndPropagate(key, items[key]);
     }
   });
@@ -98,7 +98,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
   const func = Settings.updateHooks.showActionIcon;
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
-    let img: HTMLImageElement, i: IconNS.ValidSizes, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
+    let img: HTMLImageElement, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
     onerror = function(this: HTMLImageElement): void {
       console.error("Could not load action icon: " + this.getAttribute("src"));
     },
@@ -120,10 +120,10 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
       }
     };
     Object.setPrototypeOf(path, null);
-    for (i in path) {
+    for (const i in path) {
       img = new Image();
       img.onload = onload, img.onerror = onerror;
-      img.src = path[i];
+      img.src = path[i as IconNS.ValidSizes];
     }
   }
   Backend.IconBuffer = function(this: void, enabled?: boolean): IconNS.StatusMap<IconNS.IconBuffer> | null | void {
