@@ -983,6 +983,7 @@ Pagination = {
 
   VEventMode = {
     lock (this: void): Element | null { return InsertMode.lock; },
+    commandCount (this: void): number { return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1; },
     onWndBlur (this: void, f): void { ELs.OnWndBlur2 = f; },
     OnWndFocus (this: void): void { return ELs.OnWndFocus(); },
     focusAndListen (callback?: (() => void) | null, timedout?: 0 | 1): void {

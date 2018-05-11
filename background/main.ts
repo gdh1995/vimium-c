@@ -2027,7 +2027,7 @@ Are you sure you want to continue?`);
       }
     },
     execute (this: void, command, options, count, lastKey): void {
-      count = (count as number) | 0;
+      count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
       options && typeof options === "object" ?
           Object.setPrototypeOf(options, null) : (options = null);
       lastKey = (+<number>lastKey || VKeyCodes.None) as VKeyCodes;

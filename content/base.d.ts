@@ -256,6 +256,7 @@ interface FocusListenerWrapper {
 }
 interface VEventMode {
   lock(this: void): Element | null;
+  commandCount (this: void): number;
   suppress(keyCode?: VKeyCodes): void;
   OnWndFocus (this: void): void;
   focusAndListen (this: void, callback?: (() => void) | null, timedout?: 0): void;
