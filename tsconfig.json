@@ -3,6 +3,7 @@
     "allowJs": false,
     "alwaysStrict": true,
     "forceConsistentCasingInFileNames": false,
+    "keyofStringsOnly": true,
     // "lib": [ "dom", "es6" ],
     "listEmittedFiles": true,
     "module": "system",
@@ -25,6 +26,7 @@
     "strict": true,
     "strictFunctionTypes": false,
     "strictNullChecks": true,
+    "strictPropertyInitialization": false,
     "target": "es5",
     "typeRoots": ["./types"],
     "types": ["lib", "base"]
