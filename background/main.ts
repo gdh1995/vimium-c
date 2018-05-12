@@ -458,19 +458,20 @@ Are you sure you want to continue?`);
       return funcDict.openUrl(url, Urls.WorkType.ActAnyway, tabs);
     },
     openUrlInNewTab (this: void, url: string, reuse: ReuseType, options: Readonly<OpenUrlOptions>, tabs: [Tab]): void {
-      const tab = tabs[0], { incognito } = options, active = reuse !== ReuseType.newBg;
+      const tab = tabs[0] as Tab | undefined, tabIncognito = tab ? tab.incognito : false,
+      { incognito } = options, active = reuse !== ReuseType.newBg;
       let window = options.window;
       if (Utils.isRefusingIncognito(url)) {
-        if (tab.incognito || TabRecency.incognito === IncognitoType.true) {
+        if (tabIncognito || TabRecency.incognito === IncognitoType.true) {
           window = true;
         }
-      } else if (tab.incognito) {
+      } else if (tabIncognito) {
         if (incognito !== false) {
-          return funcDict.openUrlInIncognito(url, active, options, tab, [{ id: tab.windowId, incognito: true } as Window]);
+          return funcDict.openUrlInIncognito(url, active, options, tab as Tab, [{ id: (tab as Tab).windowId, incognito: true } as Window]);
         }
         window = true;
       } else if (incognito) {
-        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, url, active, options, tab));
+        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, url, active, options, tab as Tab));
         return;
       }
       if (window) {
@@ -480,9 +481,9 @@ Are you sure you want to continue?`);
         return;
       }
       return openMultiTab({
-        url, active, windowId: tab.windowId,
-        openerTabId: options.opener ? tab.id : undefined,
-        index: funcDict.setNewTabIndex(tab, options.position)
+        url, active, windowId: tab ? tab.windowId : undefined,
+        openerTabId: options.opener && tab ? tab.id : undefined,
+        index: tab ? funcDict.setNewTabIndex(tab, options.position) : undefined
       }, commandCount);
     },
     openJSUrl: [function(url: string): void {
