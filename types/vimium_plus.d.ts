@@ -299,7 +299,7 @@ declare const enum BrowserVer {
   MinWarningSyncXHR = 40,
   MinWithFrameId = 41,
   // just means it's enabled by default
-  Min$String$$StartsWith = 41,
+  Min$String$$StartsWithAndIncludes = 41,
   MinGlobal$HTMLDetailsElement = 41,
   MinFixedCSS$All$MayMistakenlyResetFixedPosition = 41,
   // MethodFunction is accepted since C42 if EMPTY
@@ -308,7 +308,7 @@ declare const enum BrowserVer {
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
-  MinEnsured$String$$StartsWithAndRepeat = 43, // even if LEAGCY
+  MinEnsured$String$$StartsWithAndRepeatAndIncludes = 43, // even if LEAGCY
   MinCreateWndWithState = 44,
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   // #scroll-top-left-interop is also since C44

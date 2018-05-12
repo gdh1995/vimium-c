@@ -258,6 +258,17 @@ var Utils = {
     const i = url.startsWith("filesystem:") ? 11 : url.startsWith("view-source:") ? 12 : 0;
     return i ? url.substring(i) : url;
   },
+  detectLinkDeclaration (str: string): string {
+    let i = str.indexOf("\uff1a") + 1 || str.indexOf(":") + 1;
+    if (!i || str[i] === "/") { return str; }
+    let s = str.substring(0, i - 1).trim().toLowerCase();
+    if (s !== "link" && s !== "\u94fe\u63a5") { return str; }
+    let url = str.substring(i).trim();
+    (i = url.indexOf(' ')) > 0 && (url = url.substring(0, i));
+    ".;,\uff1b\uff0c\u3002".indexOf(url[url.length - 1]) >= 0 && (url = url.slice(0, -1));
+    url = this.convertToUrl(url, null, Urls.WorkType.KeepAll);
+    return Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
+  },
   isTld (tld: string, onlyEN?: boolean): Urls.TldType {
     return !onlyEN && this._nonENTldRe.test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1
         ? Urls.TldType.NonENTld : Urls.TldType.NotTld)

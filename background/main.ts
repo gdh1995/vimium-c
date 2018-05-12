@@ -447,7 +447,14 @@ Are you sure you want to continue?`);
     openCopiedUrl (this: void, tabs: [Tab] | never[] | undefined, url: string | null): void {
       if (url === null) { return Backend.complain("read clipboard"); }
       if (!(url = url.trim())) { return Backend.showHUD("No text copied!"); }
-      Utils.quotedStringRe.test(url) && (url = url.slice(1, -1));
+      if (Utils.quotedStringRe.test(url)) {
+        url = url.slice(1, -1);
+      } else {
+        const kw: any = cOptions.keyword;
+        if (!kw || kw === "~") {
+          url = Utils.detectLinkDeclaration(url);
+        }
+      }
       return funcDict.openUrl(url, Urls.WorkType.ActAnyway, tabs);
     },
     openUrlInNewTab (this: void, url: string, reuse: ReuseType, options: Readonly<OpenUrlOptions>, tabs: [Tab]): void {
