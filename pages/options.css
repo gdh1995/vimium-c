@@ -274,10 +274,12 @@ label:active {
 }
 
 /* Boolean options have a tighter form representation than text options. */
-.booleanOption.innerLine > .checkboxHint,
-.booleanOption:not(.innerLine) {
+.booleanOption {
   font-size: 14px;
   padding-top: 1px;
+}
+.booleanOption.innerLine {
+  padding-top: 0;
 }
 .checkboxHint:active { outline: none; }
 /* Ids and classes for rendering exclusionRules */
@@ -385,6 +387,11 @@ label:active {
   }
   #footerButtons {
     width: calc(100% - 590px);
+  }
+}
+@media (max-width: 999.99px) {
+  .booleanOption.innerLine > .checkboxHint {
+    font-size: 12px;
   }
 }
 @media (max-width: 879.99px) and (min-width: 550px) {
