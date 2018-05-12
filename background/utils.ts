@@ -392,10 +392,13 @@ var Utils = {
     return <Urls.Url>res;
   } as Urls.Executor,
   tryEvalMath (expr: string, mathParser: any): string | null {
-    let result: string | null = null;
+    let result: any = null;
     if ((mathParser = mathParser || window.MathParser || {}).evaluate) {
       try {
-        result = "" + mathParser.evaluate(expr);
+        result = mathParser.evaluate(expr);
+        if (typeof result === "function") {
+          result = null;
+        }
       } catch (e) {}
       mathParser.expression = "";
     }
