@@ -270,10 +270,11 @@ if (bgSettings.CONST.ChromeVersion >= BrowserVer.MinSmartSpellCheck) {
 }
 
 if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-  || window.devicePixelRatio < 1 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+  || window.devicePixelRatio < 2 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
 ) (function(): void {
   const css = document.createElement("style");
-  css.textContent = "* { border-width: 1px !important; }";
+  const onlyInputs = bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured && window.devicePixelRatio >= 1;
+  css.textContent = onlyInputs ? "input, textarea { border-width: 1px; }" : "* { border-width: 1px !important; }";
   (document.head as HTMLHeadElement).appendChild(css);
 })();
 
