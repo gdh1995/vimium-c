@@ -296,6 +296,7 @@ var Utils = {
   _nestedEvalCounter: 0,
   _vimiumCmdRe: <RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
   _vimiumFileExtRe: <RegExpI> /\.(?:css|html|js)$/i,
+  _mathSpaceRe: <RegExpG> /[\s+,\uff0c]+/g,
   evalVimiumUrl: function(this: Window["Utils"], path: string, workType?: Urls.WorkType
       , onlyOnce?: boolean): Urls.Url | null {
     let ind: number, cmd: string, arr: string[], obj: { url: string } | null, res: Urls.Url | string[];
@@ -309,8 +310,14 @@ var Utils = {
     if (!path) { return null; }
     if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
     case "sum": case "mul":
-      path = path.replace(<RegExpG> /[\s+,\uff0c]+/g, cmd === "sum" ? " + " : " * ");
-      // falls through
+      path = path.replace((this as typeof Utils)._mathSpaceRe, cmd === "sum" ? " + " : " * ");
+      cmd = "e"; break;
+    case "avg": case "average":
+      arr = path.split((this as typeof Utils)._mathSpaceRe);
+      path = "(" + arr.join(" + ") + ") / " + arr.length;
+      cmd = "e"; break;
+    }
+    if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
       return this.require<object>("MathParser").catch(() => null
       ).then<Urls.MathEvalResult>(function(MathParser): Urls.MathEvalResult {
