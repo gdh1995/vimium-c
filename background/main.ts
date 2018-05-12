@@ -52,7 +52,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
 
   /** any change to `commandCount` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
-  needIcon = false, cKey: VKeyCodes = VKeyCodes.None;
+  needIcon = false, cKey: VKeyCodes = VKeyCodes.None, gCmdTimer = 0;
 
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
@@ -846,6 +846,7 @@ Are you sure you want to continue?`);
       if (!ports) {
         return requestHandlers.cmd({ cmd, count: 1});
       }
+      gCmdTimer = setTimeout(funcDict.executeGlobal, 100, cmd, null);
       ports[0].postMessage({ name: "count", cmd });
     },
     toggleMuteTab: [function(tabs) {
@@ -1743,6 +1744,10 @@ Are you sure you want to continue?`);
     },
     cmd (this: void, request: FgReq["cmd"]): void {
       const cmd = request.cmd;
+      if (gCmdTimer) {
+        clearTimeout(gCmdTimer);
+        gCmdTimer = 0;
+      }
       Backend.execute(cmd, CommandsData.cmdMap[cmd] || null, request.count);
     },
     blurTest (this: void, _0: FgReq["blurTest"], port: Port): void {
