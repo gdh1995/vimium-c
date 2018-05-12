@@ -438,7 +438,7 @@ declare const enum BrowserVer {
   // the 4 below are correct even if EXPERIMENTAL or LEAGCY
   MinCaseSensitiveUsemap = 58,
   // tmp_width := (since 58 ? Math.round : Math.floor)(width * devicePixelRatio * zoom)
-  // real_width := tmp_width && Math.max(tmp_width, 1)
+  // real_width := width && Math.max(tmp_width, 1)
   MinBorderWidthIsRounded = 58,
   // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange,
   // `<input type=number>.selectionStart` throws on Chrome 33,

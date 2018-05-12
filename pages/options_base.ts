@@ -272,9 +272,10 @@ if (bgSettings.CONST.ChromeVersion >= BrowserVer.MinSmartSpellCheck) {
 if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
   || window.devicePixelRatio < 2 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
 ) (function(): void {
-  const css = document.createElement("style");
-  const onlyInputs = bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured && window.devicePixelRatio >= 1;
-  css.textContent = onlyInputs ? "input, textarea { border-width: 1px; }" : "* { border-width: 1px !important; }";
+  const css = document.createElement("style"), ratio = window.devicePixelRatio, version = bgSettings.CONST.ChromeVersion;
+  const onlyInputs = version >= BrowserVer.MinRoundedBorderWidthIsNotEnsured && ratio >= 1;
+  css.textContent = onlyInputs ? `input, textarea { border-width: ${1.1 / ratio}px; }`
+    : `* { border-width: ${version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.1 / ratio : 1}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
 })();
 
