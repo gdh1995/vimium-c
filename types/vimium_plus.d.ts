@@ -273,8 +273,8 @@ declare const NDEBUG: undefined;
  */
 declare const enum BrowserVer {
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
-  MinShadowDOMV0 = 35,
-  MinSupported = MinShadowDOMV0,
+  MinShadowDOMV0 = 33,
+  MinSupported = 35,
   MinES6WeakMap = 36,
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEAGCY
   MinSession = 37,
