@@ -79,7 +79,7 @@ var VUtils = {
   remove (env: object): void {
     for (let ref = this._stack, i = ref.length; 0 <= --i; ) {
       if (ref[i].env === env) {
-        ref.splice(i, 1);
+        i === ref.length - 1 ? ref.length-- : ref.splice(i, 1);
         break;
       }
     }
