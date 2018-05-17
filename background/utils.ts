@@ -409,6 +409,8 @@ var Utils = {
         result = mathParser.evaluate(expr);
         if (typeof result === "function") {
           result = null;
+        } else {
+          result = "" + result;
         }
       } catch (e) {}
       mathParser.expression = "";
