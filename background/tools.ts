@@ -343,14 +343,10 @@ FindModeHistory = {
     this.list = str ? str.split("\n") : [];
     this.init = null as never;
   },
-  initI (): string[] {
-    const list = this.listI = (this.list as string[]).slice(0);
-    chrome.windows.onRemoved.addListener(this.OnWndRemvoed);
-    return list;
-  },
   query (incognito: boolean, query?: string, index?: number): string | void {
     this.init && this.init();
-    const list = incognito ? this.listI || this.initI() : (this.list as string[]);
+    const list = incognito ? this.listI || (IncognitoWatcher.watch(),
+                            this.listI = (this.list as string[]).slice(0)) : (this.list as string[]);
     if (!query) {
       return list[list.length - (index || 1)] || "";
     }
@@ -384,14 +380,23 @@ FindModeHistory = {
     this.init = null as never;
     this.list = [];
     Settings.set(this.key, "");
+  }
+},
+IncognitoWatcher = {
+  watching: false,
+  timer: 0,
+  watch (): void {
+    if (this.watching) { return; }
+    chrome.windows.onRemoved.addListener(this.OnWndRemvoed);
+    this.watching = true;
   },
   OnWndRemvoed (this: void): void {
-    const _this = FindModeHistory;
-    if (!_this.listI) { return; }
+    const _this = IncognitoWatcher;
+    if (!_this.watching) { return; }
     _this.timer = _this.timer || setTimeout(_this.TestIncognitoWnd, 34);
   },
   TestIncognitoWnd (this: void): void {
-    FindModeHistory.timer = 0;
+    IncognitoWatcher.timer = 0;
     if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
       let left = false, arr = Backend.indexPorts();
       for (const i in arr) {
@@ -400,12 +405,13 @@ FindModeHistory = {
       if (left) { return; }
     }
     chrome.windows.getAll(function(wnds): void {
-      wnds.some(wnd => wnd.incognito) || FindModeHistory.cleanI();
+      wnds.some(wnd => wnd.incognito) || IncognitoWatcher.cleanI();
     });
   },
   cleanI (): void {
-    this.listI = null;
+    FindModeHistory.listI = null;
     chrome.windows.onRemoved.removeListener(this.OnWndRemvoed);
+    this.watching = false;
   }
 },
 TabRecency = {
