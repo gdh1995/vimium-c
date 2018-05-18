@@ -800,6 +800,9 @@ Are you sure you want to continue?`);
       });
     },
     focusOrLaunch: [function(tabs): void {
+      if (TabRecency.incognito !== IncognitoType.true) {
+        tabs && (tabs = tabs.filter(tab => !tab.incognito));
+      }
       if (tabs && tabs.length > 0) {
         chrome.windows.getCurrent(funcDict.focusOrLaunch[2].bind(this, tabs));
         return;
@@ -809,7 +812,7 @@ Are you sure you want to continue?`);
     }, function(tabs) {
       // if `@scroll`, then `typeof @` is `MarksNS.MarkToGo`
       const callback = this.scroll ? funcDict.focusOrLaunch[3].bind(this, 0) : null;
-      if (tabs.length <= 0) {
+      if (tabs.length <= 0 || TabRecency.incognito === IncognitoType.true && !tabs[0].incognito) {
         chrome.windows.create({url: this.url}, callback && function(wnd: Window): void {
           if (wnd.tabs && wnd.tabs.length > 0) { return callback(wnd.tabs[0]); }
         });
@@ -824,7 +827,7 @@ Are you sure you want to continue?`);
       const wndId = wnd.id, url = this.url;
       let tabs2 = tabs.filter(tab => tab.windowId === wndId);
       if (tabs2.length <= 0) {
-        tabs2 = tabs.filter(tab => tab.incognito === wnd.incognito);
+        tabs2 = wnd.incognito ? tabs : tabs.filter(tab => !tab.incognito);
         if (tabs2.length <= 0) {
           funcDict.getCurTab(funcDict.focusOrLaunch[1].bind(this));
           return;
@@ -1744,15 +1747,17 @@ Are you sure you want to continue?`);
     focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true): void {
       // * do not limit windowId or windowType
       let url = Utils.reformatURL(request.url.split("#", 1)[0]), callback = funcDict.focusOrLaunch[0];
+      let cb2: (result: Tab[], exArg: FakeArg) => void;
       if (url.startsWith("file:") && !notFolder && url.substring(url.lastIndexOf("/") + 1).indexOf(".") < 0) {
-        chrome.tabs.query({ url: url + "/" }, function(tabs): void {
+        url += "/";
+        cb2 = function(tabs): void {
           return tabs && tabs.length > 0 ? callback.call(request, tabs) : requestHandlers.focusOrLaunch(request, null, true);
-        });
-        return;
+        };
+      } else {
+        request.prefix && (url += "*");
+        cb2 = callback.bind(request);
       }
-      chrome.tabs.query({
-        url: request.prefix ? url + "*" : url
-      }, callback.bind(request));
+      chrome.tabs.query({ url, windowType: "normal" }, cb2);
     },
     cmd (this: void, request: FgReq["cmd"]): void {
       const cmd = request.cmd;
