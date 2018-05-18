@@ -771,11 +771,11 @@ var Vomnibar = {
       : url;
   },
   navigateToUrl (url: string, reuse: ReuseType, https: boolean | null): void {
-    if (url.substring(0, 11).toLowerCase() === "javascript:") {
+    if (url.charCodeAt(10) === KnownKey.colon && url.substring(0, 11).toLowerCase() === "javascript:") {
       VPort.postToOwner({ name: "evalJS", url });
       return;
     }
-    return VPort.postMessage({ handler: "openUrl", reuse, https, url });
+    return VPort.postMessage({ handler: "openUrl", reuse, https, url, omni: true });
   },
   gotoSession (item: SuggestionE & { sessionId: string | number }): void {
     VPort.postMessage({

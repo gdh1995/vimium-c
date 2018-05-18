@@ -1552,8 +1552,12 @@ Are you sure you want to continue?`);
       Object.setPrototypeOf(request, null);
       let ports: Frames.Frames | undefined, unsafe = !!port && funcDict.checkVomnibarPage(port, true);
       cPort = unsafe ? port as Port : (ports = framesForTab[port ? port.sender.tabId : TabRecency.last]) ? ports[0] : cPort;
-      if (request.url) {
-        let url = Utils.convertToUrl(request.url, request.keyword || null, unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.ActAnyway);
+      let url: Urls.Url | undefined = request.url;
+      if (url) {
+        if (url[0] === ":" && request.omni && (<RegExpOne>/^:[bdhost]\s/).test(url)) {
+          url = url.substring(2).trim();
+        }
+        url = Utils.convertToUrl(url, request.keyword || null, unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.ActAnyway);
         const type = Utils.lastUrlType;
         if (request.https != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
           url = (request.https ? "https" : "http") + (url as string).substring(4);

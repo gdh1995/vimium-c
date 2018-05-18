@@ -179,6 +179,7 @@ interface FgReq {
     incognito?: boolean;
     https?: boolean | null;
     reuse?: ReuseType;
+    omni?: boolean;
   };
   execInChild: {
     url: string;

@@ -336,6 +336,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     }
     return sessionId != null ? Backend.gotoSession({ sessionId }) : Backend.openUrl({
       url: text,
+      omni: true,
       reuse: (disposition === "currentTab" ? ReuseType.current
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
     });
