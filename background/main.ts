@@ -834,8 +834,8 @@ Are you sure you want to continue?`);
         }
       }
       this.prefix && tabs2.sort((a, b) => a.url.length - b.url.length);
-      let tab = tabs2[0];
-      tab.active && (tab = tabs2[1] || tab);
+      let tab: Tab = funcDict.selectFrom(tabs2);
+      if (tab.url.length > tabs2[0].url.length) { tab = tabs2[0]; }
       chrome.tabs.update(tab.id, {
         url: tab.url === url || tab.url.startsWith(url) ? undefined : url,
         active: true
