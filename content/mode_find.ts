@@ -44,6 +44,7 @@ html > count{float:right;}`,
       this.coords = [window.scrollX, window.scrollY];
     }
     this.box && VDom.UI.adjust();
+    VHUD.hide(TimerType.notTimer);
     if (this.isActive) {
       return this.setFirstQuery(query);
     }
@@ -251,7 +252,7 @@ html > count{float:right;}`,
       this.toggleStyle(0);
       this.restoreSelection(true);
     }
-    if (VVisualMode.mode) { return VVisualMode.activate(1, VUtils.safer()); }
+    if (VVisualMode.mode) { return VVisualMode.activate(1, VUtils.safer({from_find: true})); }
     VDom.UI.toggleSelectStyle(false);
     if (i < FindNS.Action.MinComplicatedExit || !this.hasResults) { return; }
     if (!el || el !== VEventMode.lock()) {

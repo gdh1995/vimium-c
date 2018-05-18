@@ -299,7 +299,7 @@ interface VHUD {
   showForDuration (text: string, duration?: number): void;
   showCopied (text: string, type: string, virtual: true): string;
   showCopied (text: string, type?: string): void;
-  hide (this: void): void;
+  hide (this: void, info?: TimerType): void;
 }
 interface VSettings {
   enabled: boolean;

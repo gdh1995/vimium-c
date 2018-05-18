@@ -787,11 +787,18 @@ Pagination = {
       clearInterval(hud.tweenId);
       hud.tweenId = 0;
     },
-    hide (this: void): void {
+    hide (this: void, info?: TimerType): void {
       let hud = HUD, i: number;
       if (i = hud.timer) { clearTimeout(i); hud.timer = 0; }
       hud.opacity = 0; hud.text = "";
-      if (hud.box && !hud.tweenId && VHUD) {
+      if (!hud.box) {}
+      else if (info === TimerType.notTimer) {
+        const box = hud.box, st = box.style;
+        st.opacity = "0";
+        st.visibility = "hidden";
+        (box.firstChild as Text).data = "";
+      }
+      else if (!hud.tweenId && VHUD) {
         hud.tweenId = setInterval(hud.tween, 40);
       }
     }

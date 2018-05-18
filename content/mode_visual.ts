@@ -57,7 +57,7 @@ var VVisualMode = {
       }
     }
     this.hudTimer && clearTimeout(this.hudTimer);
-    VHUD.show(this.hud = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode");
+    VHUD.show(this.hud = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode", !!options.from_find);
     if (mode !== this.mode) {
       this.mode = mode;
       this.prompt("No usable selection, entering caret mode…", 1000);
@@ -371,7 +371,6 @@ keyMap: {
   N (count): void { return (this as typeof VVisualMode).find(-count); },
   "/": function(): void | boolean {
     clearTimeout((this as typeof VVisualMode).hudTimer);
-    VHUD.hide();
     return VFindMode.activate(1, VUtils.safer({ returnToViewport: true }));
   },
   y (): void { return (this as typeof VVisualMode).yank(); },
