@@ -1,5 +1,6 @@
 type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
+type MarkStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 const VClipboard = {
   getTextArea (): HTMLTextAreaElement {
     const el = document.createElement("textarea");
@@ -252,8 +253,18 @@ ContentSettings = {
   }
 },
 Marks = { // NOTE: all public members should be static
-  _set ({ local, markName, url, scroll }: MarksNS.NewMark, tabId?: number): void {
-    localStorage.setItem(this.getLocationKey(markName, local ? url : "")
+  cache: localStorage,
+  cacheI: null as MarkStorage | null,
+  _storage (): MarkStorage {
+    return {
+      getItem (k: string): string | null { return this[k] || null; },
+      setItem (k: string, v: string): void { this[k] = v; },
+      removeItem (k: string): void { delete this[k]; },
+    } as MarkStorage & { [k: string]: string | undefined };
+  },
+  _set ({ local, markName, url, scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number): void {
+    const storage = incognito ? this.cacheI || (IncognitoWatcher.watch(), this.cacheI = this._storage()) : this.cache;
+    storage.setItem(this.getLocationKey(markName, local ? url : "")
       , JSON.stringify<MarksNS.StoredMark | MarksNS.ScrollInfo>(local ? scroll
         : { tabId: tabId as number, url, scroll }));
   },
@@ -263,7 +274,7 @@ Marks = { // NOTE: all public members should be static
   createMark (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.sender.tabId;
     if (request.scroll) {
-      return Marks._set(request as MarksNS.NewMark, tabId);
+      return Marks._set(request as MarksNS.NewMark, port.sender.incognito, tabId);
     }
     (port = Backend.indexPorts(tabId, 0) || port) && port.postMessage({
       name: "createMark",
@@ -271,15 +282,15 @@ Marks = { // NOTE: all public members should be static
     });
   },
   gotoMark (this: void, request: MarksNS.FgQuery, port: Port): void {
-    const { local, markName } = request,
-    str = localStorage.getItem(Marks.getLocationKey(markName, local ? request.url : ""));
+    const { local, markName } = request, key = Marks.getLocationKey(markName, local ? request.url : "");
+    const str = Marks.cacheI && port.sender.incognito && Marks.cacheI.getItem(key) || Marks.cache.getItem(key);
     if (local) {
       let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
       if (!scroll) {
         let oldPos = (request as MarksNS.FgLocalQuery).old, x: number, y: number;
         if (oldPos && (x = +oldPos.scrollX) >= 0 && (y = +oldPos.scrollY) >= 0) {
           (request as MarksNS.NewMark).scroll = scroll = [x, y];
-          Marks._set(request as MarksNS.NewMark);
+          Marks._set(request as MarksNS.NewMark, port.sender.incognito);
         }
       }
       if (scroll) {
@@ -316,17 +327,26 @@ Marks = { // NOTE: all public members should be static
     const tabId = tab.id, port = Backend.indexPorts(tabId, 0);
     port && Marks._goto(port, { markName: markInfo.markName, scroll: markInfo.scroll });
     if (markInfo.tabId !== tabId && markInfo.markName) {
-      return Marks._set(markInfo as MarksNS.MarkToGo, tabId);
+      return Marks._set(markInfo as MarksNS.MarkToGo, TabRecency.incognito === IncognitoType.true, tabId);
     }
   },
   clear (this: void, url?: string): void {
-    const key_start = Marks.getLocationKey("", url), storage = localStorage;
-    let key: string, i: number, count = 0;
-    for (i = storage.length; 0 <= --i; ) {
-      key = storage.key(i) as string;
+    const key_start = Marks.getLocationKey("", url);
+    let count = 0;
+    for (let storage = Marks.cache, i = storage.length; 0 <= --i; ) {
+      const key = storage.key(i) as string;
       if (key.startsWith(key_start)) {
         count++;
         storage.removeItem(key);
+      }
+    }
+    if (Marks.cacheI) {
+      const storage = Marks.cacheI;
+      for (const key in storage) {
+        if (key.startsWith(key_start)) {
+          count++;
+          storage.removeItem(key);
+        }
       }
     }
     return Backend.showHUD(`${count} ${url ? "local" : "global"} mark${count !== 1 ? "s have" : " has"} been removed.`);
@@ -410,6 +430,7 @@ IncognitoWatcher = {
   },
   cleanI (): void {
     FindModeHistory.listI = null;
+    Marks.cacheI = null;
     chrome.windows.onRemoved.removeListener(this.OnWndRemvoed);
     this.watching = false;
   }
