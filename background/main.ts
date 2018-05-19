@@ -1718,6 +1718,7 @@ Are you sure you want to continue?`);
       VClipboard.copy(request.data);
     },
     key (this: void, request: FgReq["key"], port: Port): void {
+      (port.sender as Frames.RawSender).flags |= Frames.Flags.userActed;
       let key: string = request.key, count = 1;
       let arr: null | string[] = numHeadRe.exec(key);
       if (arr != null) {
