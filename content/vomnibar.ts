@@ -71,7 +71,7 @@ var Vomnibar = {
     options.name = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
-      if (url = VDom.getSelectionText()) {
+      if (url = VDom.UI.getSelectionText()) {
         options.force = true;
       } else {
         url = options.topUrl as string;

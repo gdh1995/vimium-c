@@ -123,6 +123,17 @@ VDom.UI = {
     }
     return sel;
   },
+  getSelectionText (notTrim?: 1): string {
+    let sel = window.getSelection(), s = sel.toString(), r: Range, cr: ClientRect;
+    if (s && !VEventMode.lock() && (r = sel.getRangeAt(0))) {
+      cr = r.getBoundingClientRect();
+      if (cr.width <= 0 || cr.height <= 0) {
+        s = "";
+      }
+    }
+    notTrim || (s = s.trim());
+    return s;
+  },
   removeSelection (root): boolean {
     const sel = (root && root.getSelection ? root as ShadowRootWithSelection : window).getSelection();
     if (!sel || VDom.selType(sel) !== "Range" || !sel.anchorNode) {

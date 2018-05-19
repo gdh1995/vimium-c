@@ -406,7 +406,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       vPort.post({ handler: "initHelp", wantTop });
     },
     autoCopy (_0: number, options: FgOptions): void {
-      let str = VDom.getSelectionText(1);
+      let str = VDom.UI.getSelectionText(1);
       if (!str) {
         str = options.url ? window.location.href : document.title;
         (options.decoded || options.decode) && (str = VUtils.decodeURL(str));
@@ -425,7 +425,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return HUD.showCopied(str);
     },
     autoOpen (_0: number, options: FgOptions): void {
-      let url = VDom.getSelectionText(), keyword = (options.keyword || "") + "";
+      let url = VDom.UI.getSelectionText(), keyword = (options.keyword || "") + "";
       url && VUtils.evalIfOK(url) || vPort.post({
         handler: "openUrl",
         copied: !url,
@@ -436,7 +436,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       vPort.post({
         handler: "searchAs",
         url: window.location.href,
-        search: VDom.getSelectionText()
+        search: VDom.UI.getSelectionText()
       });
     },
     focusInput (count: number, options: FgOptions): void {

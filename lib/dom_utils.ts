@@ -37,11 +37,6 @@ var VDom = {
       return null;
     }
   },
-  getSelectionText (notTrim?: 1): string {
-    let s = window.getSelection().toString();
-    notTrim || (s = s.trim());
-    return s;
-  },
   getParent (el: Element): Element | null {
     const arr = el.getDestinationInsertionPoints ? el.getDestinationInsertionPoints() : null;
     arr && arr.length > 0 && (el = arr[arr.length - 1]);

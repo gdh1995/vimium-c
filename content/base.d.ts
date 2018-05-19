@@ -234,6 +234,7 @@ interface DomUI {
   getDocSelectable (this: DomUI): boolean;
   toggleSelectStyle (this: DomUI, enable: boolean): void;
   getSelection (this: DomUI): Selection;
+  getSelectionText (notTrim?: 1): string;
   removeSelection (this: DomUI, root?: DocumentOrShadowRoot): boolean;
   click (this: DomUI, element: Element, rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
   simulateSelect (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean
