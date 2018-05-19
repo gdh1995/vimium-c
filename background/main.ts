@@ -2077,6 +2077,7 @@ Are you sure you want to continue?`);
       if (ports == null || (ports[0].sender.flags & Frames.Flags.userActed)) {
         return funcDict.executeGlobal(cmd, ports);
       }
+      ports && (ports[0].sender.flags |= Frames.Flags.userActed);
       chrome.tabs.get(tabId, function(tab): void {
         funcDict.executeGlobal(cmd, tab && tab.status === "complete" ? framesForTab[tab.id] : null);
         return chrome.runtime.lastError;
