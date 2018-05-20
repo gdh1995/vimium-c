@@ -49,7 +49,7 @@ var Vomnibar = {
     VDom.fullZoom = 1;
     let [iw, ih] = VDom.prepareCrop(1) as [number, number];
     options.width = iw, options.height = ih;
-    this.defaultTop = ih > VomnibarNS.PixelData.ScreenHeightThreshold ? ih / 2 - VomnibarNS.PixelData.NormalTopHalf + "px" : "";
+    this.defaultTop = ih > VomnibarNS.PixelData.ScreenHeightThreshold ? (50 - VomnibarNS.PixelData.NormalTopHalf / ih * 100) + "%" : "";
     VDom.getZoom();
     // note: here require: that Inactive must be NotInited + 1
     this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
@@ -184,7 +184,7 @@ var Vomnibar = {
         close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
-      if (location.hash === "#chrome-ui") { _this.top = "5px"; }
+      if (location.hash === "#chrome-ui") { _this.top = "8px"; }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {
