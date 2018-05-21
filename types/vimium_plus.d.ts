@@ -477,5 +477,6 @@ declare const enum BrowserVer {
   MinSmartSpellCheck = 65,
   // even if EXPERIMENTAL or LEAGCY
   MinCanNotRevokeObjectURLAtOnce = 65,
+  MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65, // even if EXPERIMENTAL or LEAGCY
   MinInputMode = 66, // even if LEAGCY; still works on C35 if EXPERIMENTAL
 }
