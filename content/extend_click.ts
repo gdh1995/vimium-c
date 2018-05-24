@@ -1,4 +1,3 @@
-/// <reference path="../content/base.d.ts" />
 (function(this: void): void {
   if (!window.VSettings) { return; }
   type Listener = (this: void, e: Event) => void;

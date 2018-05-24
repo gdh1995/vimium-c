@@ -29,7 +29,7 @@ gulpPrint = gulpPrint.default || gulpPrint;
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
   content: [["content/*.ts", "lib/*.ts", "!lib/polyfill.ts"], "content/*.d.ts"],
-  lib: [["lib/*.ts", "!lib/extend_click.ts"]],
+  lib: ["lib/*.ts"],
   front: [["front/*.ts", "lib/polyfill.ts", "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]
           , ["background/bg.d.ts", "content/*.d.ts"]],
   vomnibar: ["front/*.ts", ["background/bg.d.ts", "content/*.d.ts"]],

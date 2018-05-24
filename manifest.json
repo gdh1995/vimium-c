@@ -52,7 +52,7 @@
       "content/mode_visual.js",
       "content/dom_ui.js",
       "content/frontend.js",
-      "lib/extend_click.js"
+      "content/extend_click.js"
     ],
     "match_about_blank": true,
     "matches": [ "<all_urls>" ],
