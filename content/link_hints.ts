@@ -277,7 +277,6 @@ var VHints = {
   btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,
   GetClickable (this: Hint[], element: Element): void {
     let arr: VRect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
-    if (element === document.documentElement || element === document.body) { return; }
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) {
       if (element instanceof SVGElement) {
         type = element.vimiumHasOnclick || element.getAttribute("onclick")
@@ -360,6 +359,7 @@ var VHints = {
     }
     if (!isClickable && type === ClickType.Default) { return; }
     VHints.clicking = ClickingType.FindClickable;
+    if (element === document.documentElement || element === document.body) { return; }
     if ((arr = VDom.getVisibleClientRect(element))
         && (type < ClickType.scrollX || VScroller.shouldScroll(element, type - ClickType.scrollX as 0 | 1))
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
