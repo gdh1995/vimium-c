@@ -147,7 +147,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   },
   getActivatedElement (): Element | null {
     let cur: Element | null, element =
-      this.top = document.scrollingElement || document.body || (VDom.isHTML() ? document.documentElement : null);
+      this.top = VDom.scrollingEl() || (VDom.isHTML() ? document.documentElement : null);
     if (element) {
       VDom.getZoom(1);
       this.getScale();

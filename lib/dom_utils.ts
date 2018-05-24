@@ -42,17 +42,29 @@ var VDom = {
     arr && arr.length > 0 && (el = arr[arr.length - 1]);
     return el.parentElement || el.parentNode instanceof ShadowRoot && el.parentNode.host || null;
   },
+  scrollingEl (): Element | null {
+    return document.scrollingElement || (document.compatMode === "BackCompat" ? document.body : document.documentElement);
+  },
   /**
    * other parts of code require that prepareCrop only depends on @fullZoom
    */
-  prepareCrop (ret?: 1): void | [number, number] {
+  prepareCrop (): number {
     let iw: number, ih: number, ihs: number;
-    this.prepareCrop = function(ret?: 1): void | [number, number] {
-      const doc = document.documentElement as Element;
-      iw = Math.max(window.innerWidth - 24, doc.clientWidth) / this.fullZoom;
-      ih = Math.max(window.innerHeight - 24, doc.clientHeight) / this.fullZoom;
-      ihs = ih - 8;
-      if (ret) { return [iw, ih]; }
+    this.prepareCrop = function(): number {
+      let fz = this.fullZoom, el = this.scrollingEl(), i: number, j: number;
+      if (el) {
+        i = el.clientWidth, j = el.clientHeight;
+      } else {
+        i = window.innerWidth, j = window.innerHeight;
+        const doc = document.documentElement as Element, dz = this.docZoom;
+        if (!doc) { return ih = j, ihs = j - 8, iw = i; }
+        // 24 is supposed to be the max of scrollbar width values
+        i = Math.min(Math.max(i - 24, (doc.clientWidth * dz) | 0), i);
+        j = Math.min(Math.max(j - 24, (doc.clientHeight * dz) | 0), j);
+      }
+      iw = i / fz, ih = j / fz;
+      ihs = ih - ((8 / this.bodyZoom) | 0);
+      return iw;
     };
     this.cropRectToVisible = function(left, top, right, bottom): VRect | null {
       if (top > ihs || bottom < 3) {
@@ -66,7 +78,7 @@ var VDom = {
       ];
       return (cr[2] - cr[0] >= 3 && cr[3] - cr[1] >= 3) ? cr : null;
     };
-    return this.prepareCrop(ret);
+    return this.prepareCrop();
   },
   getVisibleClientRect (element: Element, el_style?: CSSStyleDeclaration): VRect | null {
     const arr = element.getClientRects();
@@ -201,9 +213,8 @@ var VDom = {
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
     this.docZoom = Math.round(zoom * ratio2 * 1000) / 1000;
     this.fullZoom = zoom * zoom2;
-    // since BrowserVer.Min$Document$$ScrollingElement
     // here rect.right is not suitable because <html> may be smaller than <body>
-    const scrolling = document.scrollingElement === box,
+    const scrolling = document.compatMode !== "BackCompat",
     containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0,
     width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
       : box.scrollWidth  / zoom - Math.ceil((scrolling ? window.scrollX / zoom : x) + rect.width  % 1

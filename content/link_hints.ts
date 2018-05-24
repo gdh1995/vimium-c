@@ -117,7 +117,7 @@ var VHints = {
 
     const arr = VDom.getViewBox();
     if (this.tooHigh !== null) {
-      this.tooHigh = (document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
+      this.tooHigh = (VDom.scrollingEl() || document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
     this.maxLeft = arr[2], this.maxTop = arr[3], this.maxRight = arr[4];
     let elements: Hint[] | null = this.getVisibleElements();

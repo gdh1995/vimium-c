@@ -47,7 +47,7 @@ var Vomnibar = {
     }
     this.options = null;
     VDom.fullZoom = 1;
-    let iw = (VDom.prepareCrop(1) as [number, number])[0], ih = window.innerHeight;
+    const iw = VDom.prepareCrop(), ih = window.innerHeight;
     options.width = iw, options.height = ih;
     this.defaultTop = ih > VomnibarNS.PixelData.ScreenHeightThreshold ? (50 - VomnibarNS.PixelData.NormalTopHalf / ih * 100) + "%" : "";
     VDom.getZoom();
