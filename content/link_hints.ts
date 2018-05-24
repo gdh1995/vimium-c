@@ -115,7 +115,7 @@ var VHints = {
       return VHUD.showForDuration("Characters for LinkHints are too few.", 1000);
     }
 
-    const arr = VDom.getViewBox();
+    const arr: ViewBox = VDom.getViewBox();
     if (this.tooHigh !== null) {
       this.tooHigh = (VDom.scrollingEl() || document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }

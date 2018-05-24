@@ -440,7 +440,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       });
     },
     focusInput (count: number, options: FgOptions): void {
-      const arr = VDom.getViewBox(), visibleInputs = VHints.traverse("*", VHints.GetEditable, true);
+      const arr: ViewOffset = VDom.getViewBox(), visibleInputs = VHints.traverse("*", VHints.GetEditable, true);
       const action = options.select as SelectActions | undefined;
       let sel = visibleInputs.length;
       if (sel === 0) {

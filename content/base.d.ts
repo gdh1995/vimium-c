@@ -79,6 +79,10 @@ declare const enum EditableType {
   _rich = 5,
 }
 
+declare const enum PixelConsts {
+  MaxScrollbarWidth = 24,
+}
+
 declare namespace HintsNS {
   interface HintItem {
     marker: HTMLSpanElement;

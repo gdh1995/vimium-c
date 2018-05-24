@@ -58,9 +58,8 @@ var VDom = {
         i = window.innerWidth, j = window.innerHeight;
         const doc = document.documentElement as Element, dz = this.docZoom;
         if (!doc) { return ih = j, ihs = j - 8, iw = i; }
-        // 24 is supposed to be the max of scrollbar width values
-        i = Math.min(Math.max(i - 24, (doc.clientWidth * dz) | 0), i);
-        j = Math.min(Math.max(j - 24, (doc.clientHeight * dz) | 0), j);
+        i = Math.min(Math.max(i - PixelConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
+        j = Math.min(Math.max(j - PixelConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
       }
       iw = i / fz, ih = j / fz;
       ihs = ih - ((8 / this.bodyZoom) | 0);
@@ -205,7 +204,7 @@ var VDom = {
     }
     const box = document.documentElement as HTMLElement, st = getComputedStyle(box),
     box2 = document.body, st2 = box2 ? getComputedStyle(box2) : st,
-    zoom2 = this.bodyZoom = st2 !== st && +st2.zoom || 1,
+    zoom2 = this.bodyZoom = box2 && +st2.zoom || 1,
     // NOTE: if doc.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
@@ -228,14 +227,14 @@ var VDom = {
       x += parseFloat(st.marginLeft), y += parseFloat(st.marginTop);
     }
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
-    x = Math.abs(x) < 0.01 ? 0 : Math.round(x * 100) / 100;
-    y = Math.abs(y) < 0.01 ? 0 : Math.round(y * 100) / 100;
+    x = Math.abs(x) < 0.01 ? 0 : Math.ceil(Math.round(x / zoom2 * 100) / 100);
+    y = Math.abs(y) < 0.01 ? 0 : Math.ceil(Math.round(y / zoom2 * 100) / 100);
     iw = Math.min(Math.max(width,  box.clientWidth  / zoom, (iw - 24) / zoom), iw / zoom + 64);
     ih = Math.min(Math.max(height, box.clientHeight / zoom, (ih - 24) / zoom), ih / zoom + 20);
     if (zoom2 !== 1) {
-      x /= zoom2, y /= zoom2, iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
+      iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
     }
-    return [Math.ceil(x), Math.ceil(y), iw, ih - 18, iw];
+    return [x, y, iw, ih - 18, iw];
   },
   ensureInView (el: Element, oldY?: number): boolean {
     const rect = el.getBoundingClientRect(), ty = this.NotVisible(null, rect);
@@ -353,7 +352,7 @@ var VDom = {
   },
   setBoundary (style: CSSStyleDeclaration, r: WritableVRect, allow_abs?: boolean): void {
     if (allow_abs && (r[1] < 0 || r[0] < 0 || r[3] > window.innerHeight || r[2] > window.innerWidth)) {
-      const arr = this.getViewBox();
+      const arr: ViewOffset = this.getViewBox();
       r[0] += arr[0], r[2] += arr[0], r[1] += arr[1], r[3] += arr[1];
       style.position = "absolute";
     }

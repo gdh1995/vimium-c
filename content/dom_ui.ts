@@ -53,7 +53,7 @@ VDom.UI = {
     }
     return element;
   },
-  addElementList (els, offset): HTMLDivElement {
+  addElementList (els, offset: ViewOffset): HTMLDivElement {
     const parent = VDom.createElement("div");
     parent.className = "R HM";
     for (const el of els) {
