@@ -1559,6 +1559,7 @@ Are you sure you want to continue?`);
       if (url) {
         if (url[0] === ":" && request.omni && (<RegExpOne>/^:[bdhost]\s/).test(url)) {
           url = url.substring(2).trim();
+          url || (unsafe = false);
         }
         url = Utils.convertToUrl(url, request.keyword || null, unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.ActAnyway);
         const type = Utils.lastUrlType;

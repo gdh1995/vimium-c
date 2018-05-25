@@ -507,7 +507,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     init (): void {
       /** if `notBody` then `activeEl` is not null  */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
-      KeydownEvents = Object.create(null)
+      KeydownEvents = Object.create(null);
       if (VSettings.cache.grabFocus && this.grabFocus) {
         if (notBody) {
           this.last = null;

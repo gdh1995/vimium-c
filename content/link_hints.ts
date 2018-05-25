@@ -119,15 +119,14 @@ var VHints = {
     if (this.tooHigh !== null) {
       this.tooHigh = (VDom.scrollingEl() || document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
-    this.maxLeft = arr[2], this.maxTop = arr[3], this.maxRight = arr[4];
-    let elements: Hint[] | null = this.getVisibleElements();
+    let elements: Hint[] | null = this.getVisibleElements(arr);
     if (this.frameNested) {
       if (this.tryNestedFrame("VHints.activate", (count as number) | 0, this.options)) {
         return this.clean();
       }
     }
     if ((elements as Hint[]).length === 0) {
-      elements = this.retryShadowDOM();
+      elements = this.retryShadowDOM(arr);
       if (elements.length === 0) {
         this.clean(true);
         return VHUD.showForDuration("No links to select.", 1000);
@@ -224,16 +223,16 @@ var VHints = {
     if (document.readyState !== "complete") { this.frameNested = false; }
     return true;
   },
-  retryShadowDOM (): Hint[] {
+  retryShadowDOM (view: ViewBox): Hint[] {
     let elements: Hint[] = [];
     if (this.clicking === ClickingType.WantButNotFind && !this.tooHigh) {
       const {cache} = VSettings;
       if (!cache.deepHints) {
         cache.deepHints = true;
-        elements = this.getVisibleElements();
+        elements = this.getVisibleElements(view);
       }
       if (elements.length === 0 && !this.switchShadowVer()) {
-        elements = this.getVisibleElements();
+        elements = this.getVisibleElements(view);
       }
     }
     return elements;
@@ -565,13 +564,14 @@ var VHints = {
     }
     return null;
   },
-  getVisibleElements (): Hint[] {
+  getVisibleElements (view: ViewBox): Hint[] {
     let _i: number = this.mode1;
     const isNormal = _i < HintMode.min_job, visibleElements = _i === HintMode.DOWNLOAD_IMAGE
         || _i === HintMode.OPEN_IMAGE ? this.traverse("a[href],img[src],[data-src]", this.GetImages, true)
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? this.traverse("a", this.GetLinks)
       : this.traverse("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable
           , _i === HintMode.FOCUS_EDITABLE);
+    this.maxLeft = view[2], this.maxTop = view[3], this.maxRight = view[4];
     if (this.maxRight > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(VSettings.cache.linkHintCharacters.length));
       this.maxLeft -= 16 * _i + 12;

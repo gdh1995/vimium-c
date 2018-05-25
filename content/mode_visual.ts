@@ -198,7 +198,7 @@ var VVisualMode = {
     VFindMode.execute(null, { noColor: true, count });
     if (VFindMode.hasResults) {
       if (this.mode === VisualModeNS.Mode.Caret && this.selection.toString().length > 0) {
-        this.activate(1, VUtils.safer<FgOptions>());
+        this.activate(1, VUtils.safer({}) as FgOptions);
       }
       return;
     }
