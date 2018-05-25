@@ -225,39 +225,26 @@ var VDom = {
     if (!needBox) { return [x, y]; }
     // here rect.right is not exact because <html> may be smaller than <body>
     const sEl = this.scrollingEl();
-    if (containHasPaint) {
-      let sw = (rect.right - parseFloat(st.borderRightWidth)) * zoom;
-      if (st.overflowX !== "hidden" && st2.overflowX !== "hidden") {
-        iw = Math.min(sw, iw + 64 * zoom);
-      } else {
-        iw = Math.min(sw, iw);
-      }
-      let sh = (rect.bottom- parseFloat(st.borderBottomWidth)) * zoom;
-      if (st.overflowY !== "hidden" && st2.overflowY !== "hidden") {
-        ih = Math.min(sh, ih + 20 * zoom);
-      } else {
-        ih = Math.min(sh, ih);
-      }
-    } else if (sEl) { // exactly correct
-      if (st.overflowX !== "hidden" && st2.overflowX !== "hidden") {
-        iw = Math.min(sEl.scrollWidth - window.scrollX, iw + 64 * zoom);
-      }
-      if (st.overflowY !== "hidden" && st2.overflowY !== "hidden") {
-        ih = Math.min(sEl.scrollHeight - window.scrollY, ih + 20 * zoom);
-      }
-    } else {
-      // rect.right of right-border-line of docEl
-      if (st.overflowX !== "hidden" && st2.overflowX !== "hidden") {
-        // not very reliable
-        iw = Math.min(Math.max(iw - PixelConsts.MaxScrollbarWidth, rect.right * zoom), iw + 64 * zoom);
-      }
-      if (st.overflowY !== "hidden" && st2.overflowY !== "hidden") {
-        ih = Math.min(Math.max(ih - PixelConsts.MaxScrollbarWidth, rect.bottom * zoom), ih + 20 * zoom);
+    iw /= zoom, ih /= zoom;
+    let mw = iw, mh = ih;
+    if (st.overflowX !== "hidden" && st2.overflowX !== "hidden") {
+      mw += 64;
+      if (!containHasPaint) {
+        iw = sEl ? (sEl.scrollWidth - window.scrollX) / zoom : Math.max(iw - PixelConsts.MaxScrollbarWidth / zoom, rect.right);
       }
     }
-    zoom *= zoom2;
-    if (zoom !== 1) { iw /= zoom; ih /= zoom; }
-    iw |= 0, ih |= 0;
+    if (st.overflowY !== "hidden" && st2.overflowY !== "hidden") {
+      mh += 20;
+      if (!containHasPaint) {
+        ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max(ih - PixelConsts.MaxScrollbarWidth / zoom, rect.bottom);
+      }
+    }
+    if (containHasPaint) {
+      iw = rect.right  - parseFloat(st.borderRightWidth );
+      ih = rect.bottom - parseFloat(st.borderBottomWidth);
+    }
+    iw = Math.min(iw, mw), ih = Math.min(ih, mh);
+    iw = (iw / zoom2) | 0, ih = (iw / zoom2) | 0;
     return [x, y, iw, ih - PixelConsts.MaxHeightOfLinkHintMarker / zoom2, iw];
   },
   ensureInView (el: Element, oldY?: number): boolean {
