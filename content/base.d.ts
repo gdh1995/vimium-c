@@ -81,6 +81,7 @@ declare const enum EditableType {
 
 declare const enum PixelConsts {
   MaxScrollbarWidth = 24,
+  MaxHeightOfLinkHintMarker = 18,
 }
 
 declare namespace HintsNS {

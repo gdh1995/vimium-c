@@ -58,6 +58,7 @@ var VDom = {
         i = window.innerWidth, j = window.innerHeight;
         const doc = document.documentElement as Element, dz = this.docZoom;
         if (!doc) { return ih = j, ihs = j - 8, iw = i; }
+        // not reliable
         i = Math.min(Math.max(i - PixelConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
         j = Math.min(Math.max(j - PixelConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
       }
@@ -194,7 +195,7 @@ var VDom = {
     return this.docZoom = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
   },
   bodyZoom: 1,
-  getViewBox (): ViewBox {
+  getViewBox (needBox?: 1): ViewBox | ViewOffset {
     let iw = window.innerWidth, ih = window.innerHeight;
     const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1);
     if (document.webkitIsFullScreen) {
@@ -205,22 +206,14 @@ var VDom = {
     const box = document.documentElement as HTMLElement, st = getComputedStyle(box),
     box2 = document.body, st2 = box2 ? getComputedStyle(box2) : st,
     zoom2 = this.bodyZoom = box2 && +st2.zoom || 1,
-    // NOTE: if doc.zoom > 1, although document.documentElement.scrollHeight is integer,
+    containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0,
+    // NOTE: if box.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
     let x = -rect.left, y = -rect.top, zoom = +st.zoom || 1;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
     this.docZoom = Math.round(zoom * ratio2 * 1000) / 1000;
     this.fullZoom = zoom * zoom2;
-    // here rect.right is not suitable because <html> may be smaller than <body>
-    const scrolling = document.compatMode !== "BackCompat",
-    containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0,
-    width = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
-      : box.scrollWidth  / zoom - Math.ceil((scrolling ? window.scrollX / zoom : x) + rect.width  % 1
-          + (containHasPaint && parseFloat(st.borderRightWidth))),
-    height = st.overflowY === "hidden" || st2.overflowY === "hidden" ? 0
-      : box.scrollHeight / zoom - Math.ceil((scrolling ? window.scrollY / zoom : y) + rect.height % 1
-          + (containHasPaint && parseFloat(st.borderBottomWidth)));
     if (st.position !== "static" || containHasPaint || st.transform !== "none") {
       x -= box.clientLeft, y -= box.clientTop;
     } else {
@@ -229,12 +222,43 @@ var VDom = {
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
     x = Math.abs(x) < 0.01 ? 0 : Math.ceil(Math.round(x / zoom2 * 100) / 100);
     y = Math.abs(y) < 0.01 ? 0 : Math.ceil(Math.round(y / zoom2 * 100) / 100);
-    iw = Math.min(Math.max(width,  box.clientWidth  / zoom, (iw - 24) / zoom), iw / zoom + 64);
-    ih = Math.min(Math.max(height, box.clientHeight / zoom, (ih - 24) / zoom), ih / zoom + 20);
-    if (zoom2 !== 1) {
-      iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
+    if (!needBox) { return [x, y]; }
+    // here rect.right is not exact because <html> may be smaller than <body>
+    const sEl = this.scrollingEl();
+    if (containHasPaint) {
+      let sw = (rect.right - parseFloat(st.borderRightWidth)) * zoom;
+      if (st.overflowX !== "hidden" && st2.overflowX !== "hidden") {
+        iw = Math.min(sw, iw + 64 * zoom);
+      } else {
+        iw = Math.min(sw, iw);
+      }
+      let sh = (rect.bottom- parseFloat(st.borderBottomWidth)) * zoom;
+      if (st.overflowY !== "hidden" && st2.overflowY !== "hidden") {
+        ih = Math.min(sh, ih + 20 * zoom);
+      } else {
+        ih = Math.min(sh, ih);
+      }
+    } else if (sEl) { // exactly correct
+      if (st.overflowX !== "hidden" && st2.overflowX !== "hidden") {
+        iw = Math.min(sEl.scrollWidth - window.scrollX, iw + 64 * zoom);
+      }
+      if (st.overflowY !== "hidden" && st2.overflowY !== "hidden") {
+        ih = Math.min(sEl.scrollHeight - window.scrollY, ih + 20 * zoom);
+      }
+    } else {
+      // rect.right of right-border-line of docEl
+      if (st.overflowX !== "hidden" && st2.overflowX !== "hidden") {
+        // not very reliable
+        iw = Math.min(Math.max(iw - PixelConsts.MaxScrollbarWidth, rect.right * zoom), iw + 64 * zoom);
+      }
+      if (st.overflowY !== "hidden" && st2.overflowY !== "hidden") {
+        ih = Math.min(Math.max(ih - PixelConsts.MaxScrollbarWidth, rect.bottom * zoom), ih + 20 * zoom);
+      }
     }
-    return [x, y, iw, ih - 18, iw];
+    zoom *= zoom2;
+    if (zoom !== 1) { iw /= zoom; ih /= zoom; }
+    iw |= 0, ih |= 0;
+    return [x, y, iw, ih - PixelConsts.MaxHeightOfLinkHintMarker / zoom2, iw];
   },
   ensureInView (el: Element, oldY?: number): boolean {
     const rect = el.getBoundingClientRect(), ty = this.NotVisible(null, rect);

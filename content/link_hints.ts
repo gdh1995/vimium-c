@@ -115,7 +115,7 @@ var VHints = {
       return VHUD.showForDuration("Characters for LinkHints are too few.", 1000);
     }
 
-    const arr: ViewBox = VDom.getViewBox();
+    const arr: ViewBox = VDom.getViewBox(1) as ViewBox;
     if (this.tooHigh !== null) {
       this.tooHigh = (VDom.scrollingEl() || document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
@@ -253,7 +253,7 @@ var VHints = {
     i = link[1][1];
     st.top = i + "px";
     if (i > this.maxTop) {
-      st.maxHeight = this.maxTop - i + 18 + "px";
+      st.maxHeight = this.maxTop - i + PixelConsts.MaxHeightOfLinkHintMarker + "px";
     }
     const hint: HintsNS.HintItem = { marker, target: link[0], key: "" };
     link.length > 4 && (hint.refer = (link as Hint5)[4]);
