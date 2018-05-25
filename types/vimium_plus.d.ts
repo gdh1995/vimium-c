@@ -252,7 +252,7 @@ declare const enum VKeyCodes {
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum,
   maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K,
   metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2,
-  f10 = f1 + 9, f12 = f1 + 11, minNotFn, ime = 229,
+  f10 = f1 + 9, f12 = f1 + 11, f20 = f1 + 19, minNotFn, ime = 229,
 }
 declare const enum KeyStat {
   Default = 0, plain = Default,
