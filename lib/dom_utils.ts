@@ -229,13 +229,13 @@ var VDom = {
     iw /= zoom, ih /= zoom;
     let mw = iw, mh = ih;
     if (st.overflowX !== "hidden" && st2.overflowX !== "hidden") {
-      mw += 64;
+      mw += 64 * zoom2;
       if (!containHasPaint) {
         iw = sEl ? (sEl.scrollWidth - window.scrollX) / zoom : Math.max((iw - PixelConsts.MaxScrollbarWidth) / zoom, rect.right);
       }
     }
     if (st.overflowY !== "hidden" && st2.overflowY !== "hidden") {
-      mh += 20;
+      mh += 20 * zoom2;
       if (!containHasPaint) {
         ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max((ih - PixelConsts.MaxScrollbarWidth) / zoom, rect.bottom);
       }
@@ -246,7 +246,7 @@ var VDom = {
     }
     iw = Math.min(iw, mw), ih = Math.min(ih, mh);
     iw = (iw / zoom2) | 0, ih = (iw / zoom2) | 0;
-    return [x, y, iw, ih - PixelConsts.MaxHeightOfLinkHintMarker / zoom2, iw];
+    return [x, y, iw, ih - PixelConsts.MaxHeightOfLinkHintMarker, containHasPaint ? 0 : iw];
   },
   ensureInView (el: Element, oldY?: number): boolean {
     const rect = el.getBoundingClientRect(), ty = this.NotVisible(null, rect);

@@ -135,7 +135,7 @@ var VHints = {
 
     if (this.box) { this.box.remove(); this.box = null; }
     this.hints = (elements as Hint[]).map(this.createHint, this);
-    this.adjustMarkers(elements as Hint[]);
+    VDom.bZoom !== 1 && this.adjustMarkers(elements as Hint[]);
     elements = null;
     this.alphabetHints.initMarkers(this.hints, str);
 
@@ -260,12 +260,11 @@ var VHints = {
     return hint;
   },
   adjustMarkers (elements: Hint[]): void {
-    const zi = VDom.bZoom;
-    if (zi === 1) { return; }
-    let root = VDom.UI.root, i = elements.length - 1;
+    const zi = VDom.bZoom, root = VDom.UI.root;
+    let i = elements.length - 1;
     if (!root || elements[i][0] !== Vomnibar.box && !root.querySelector('#HelpDialog')) { return; }
     const z = ("" + 1 / zi).substring(0, 5), arr = this.hints as HintsNS.HintItem[],
-    mr = this.maxRight * VDom.bZoom, mt = this.maxTop * VDom.bZoom;
+    mr = this.maxRight * zi, mt = this.maxTop * zi;
     while (0 <= i && root.contains(elements[i][0])) {
       let st = arr[i--].marker.style;
       st.zoom = z;
