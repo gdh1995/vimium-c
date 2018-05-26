@@ -62,6 +62,10 @@ var VDom = {
         i = Math.min(Math.max(i - PixelConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
         j = Math.min(Math.max(j - PixelConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
       }
+      if (this.paintBox) {
+        const b = this.paintBox, dz = fz / this.bZoom;
+        i = Math.min(i, b[0] * dz); j = Math.min(j, b[1] * dz);
+      }
       iw = i / fz, ih = j / fz;
       ihs = ih - ((8 / fz) | 0);
       return iw;
@@ -169,6 +173,7 @@ var VDom = {
     (element: HTMLElementUsingMap, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null;
     (element: HTMLElementUsingMap, output: Hint5[]): void;
   },
+  paintBox: null as [number, number] | null, // it may need to use `paintBox[] / <body>.zoom`
   specialZoom: false,
   wdZoom: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
   dbZoom: 1, // absolute zoom value of <html> * <body>
@@ -181,7 +186,7 @@ var VDom = {
    */
   getZoom (target?: 1 | Element): number {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
-    , zoom = +getComputedStyle(docEl).zoom || 1
+      , st = getComputedStyle(docEl), zoom = +st.zoom || 1
     , el: Element | null = document.webkitFullscreenElement;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
     if (target) {
@@ -193,6 +198,7 @@ var VDom = {
     for (; el && el !== docEl; el = this.getParent(el)) {
       zoom *= +getComputedStyle(el).zoom || 1;
     };
+    this.paintBox = null; // it's not so necessary to get a new paintBox here
     this.dbZoom = this.bZoom * zoom;
     return this.wdZoom = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
   },
@@ -223,13 +229,18 @@ var VDom = {
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
     x = Math.abs(x) < 0.01 ? 0 : Math.ceil(Math.round(x / zoom2 * 100) / 100);
     y = Math.abs(y) < 0.01 ? 0 : Math.ceil(Math.round(y / zoom2 * 100) / 100);
+    iw /= zoom, ih /= zoom;
+    let mw = iw, mh = ih;
+    if (containHasPaint) { // ignore the area on the block's left
+      iw = rect.right  - parseFloat(st.borderRightWidth );
+      ih = rect.bottom - parseFloat(st.borderBottomWidth);
+    }
+    this.paintBox = containHasPaint ? [iw, ih] : null;
     if (!needBox) { return [x, y]; }
     // here rect.right is not exact because <html> may be smaller than <body>
     const sEl = this.scrollingEl(),
     xScrollable = st.overflowX !== "hidden" && st2.overflowX !== "hidden",
     yScrollable = st.overflowY !== "hidden" && st2.overflowY !== "hidden";
-    iw /= zoom, ih /= zoom;
-    let mw = iw, mh = ih;
     if (xScrollable) {
       mw += 64 * zoom2;
       if (!containHasPaint) {
@@ -241,10 +252,6 @@ var VDom = {
       if (!containHasPaint) {
         ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max((ih - PixelConsts.MaxScrollbarWidth) / zoom, rect.bottom);
       }
-    }
-    if (containHasPaint) { // ignore the area on the block's left 
-      iw = rect.right  - parseFloat(st.borderRightWidth );
-      ih = rect.bottom - parseFloat(st.borderBottomWidth);
     }
     iw = Math.min(iw, mw), ih = Math.min(ih, mh);
     iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
