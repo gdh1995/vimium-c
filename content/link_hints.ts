@@ -463,9 +463,9 @@ var VHints = {
     if (root) { return output; }
     list = null;
     if (uiRoot) {
-      const d = VDom, z = d.dbZoom;
-      if (box === document) {
-        d.dbZoom = d.wdZoom;
+      const d = VDom, z = d.dbZoom, bz = d.bZoom;
+      if (bz !== 1 && box === document) {
+        d.dbZoom = z / bz;
         d.prepareCrop();
       }
       (output.forEach as any).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);

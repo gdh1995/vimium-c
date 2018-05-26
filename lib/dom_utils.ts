@@ -56,7 +56,7 @@ var VDom = {
         i = el.clientWidth, j = el.clientHeight;
       } else {
         i = window.innerWidth, j = window.innerHeight;
-        const doc = document.documentElement as Element, dz = this.wdZoom;
+        const doc = document.documentElement as Element | null, dz = fz / this.bZoom;
         if (!doc) { return ih = j, ihs = j - 8, iw = i; }
         // not reliable
         i = Math.min(Math.max(i - PixelConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
