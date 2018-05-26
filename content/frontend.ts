@@ -467,7 +467,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       hints[sel].marker.classList.add("S");
       VDom.UI.simulateSelect(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
-      VDom.UI.ensureBorder(VDom.docZoom);
+      VDom.UI.ensureBorder(VDom.wdZoom);
       const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       VUtils.push(function(event) {
         const { keyCode } = event, oldSel = sel;

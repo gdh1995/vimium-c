@@ -61,7 +61,7 @@ VDom.UI = {
     }
     const style = parent.style;
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
-    VDom.bodyZoom !== 1 && (style.zoom = "" + VDom.bodyZoom);
+    VDom.bZoom !== 1 && (style.zoom = "" + VDom.bZoom);
     document.webkitIsFullScreen && (style.position = "fixed");
     return this.addElement(parent, AdjustType.DEFAULT, this._lastFlash);
   },
@@ -79,13 +79,13 @@ VDom.UI = {
     (this.box as HTMLElement).remove();
     removeEventListener("webkitfullscreenchange", this.adjust, true);
   },
-  _styleBorder: null as (HTMLStyleElement & {zoom?: number}) | null,
+  _styleBorder: null as (HTMLStyleElement & {vZoom?: number}) | null,
   ensureBorder (zoom?: number): void {
-    let st = this._styleBorder, first = st === null;
+    let st = this._styleBorder, first = !st;
     zoom || (zoom = VDom.getZoom());
-    if (first ? zoom >= 1 : (st as any).zoom === zoom) { return; }
+    if (first ? zoom >= 1 : (st as HTMLStyleElement & {vZoom?: number}).vZoom === zoom) { return; }
     st = st || (this._styleBorder = this.createStyle(""));
-    st.zoom = zoom; st.textContent = ".HUD, .IH, .LH { border-width: " + ("" + 0.51 / zoom).substring(0, 5) + "px; }";
+    st.vZoom = zoom; st.textContent = ".HUD, .IH, .LH { border-width: " + ("" + 0.51 / zoom).substring(0, 5) + "px; }";
     first && this.root && this.addElement(st, AdjustType.NotAdjust);
   },
   createStyle (text, doc): HTMLStyleElement {
@@ -208,7 +208,7 @@ VDom.UI = {
     const flashEl = VDom.createElement("div"), nfs = !document.webkitIsFullScreen;
     flashEl.className = "R Flash";
     VDom.setBoundary(flashEl.style, rect, nfs);
-    VDom.bodyZoom !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bodyZoom);
+    VDom.bZoom !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom);
     this.addElement(flashEl);
     this._lastFlash = this._lastFlash || flashEl;
     return setTimeout(() => {

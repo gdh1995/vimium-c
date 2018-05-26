@@ -140,7 +140,7 @@ var VHints = {
     this.alphabetHints.initMarkers(this.hints, str);
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320;
-    VDom.UI.ensureBorder(VDom.docZoom);
+    VDom.UI.ensureBorder(VDom.wdZoom);
     this.box = VDom.UI.addElementList(this.hints, arr);
     // note: delay it to avoid calling `ensureBorder` twice
     this.setMode(this.mode, false, true);
@@ -260,12 +260,12 @@ var VHints = {
     return hint;
   },
   adjustMarkers (elements: Hint[]): void {
-    const zi = VDom.bodyZoom;
+    const zi = VDom.bZoom;
     if (zi === 1) { return; }
     let root = VDom.UI.root, i = elements.length - 1;
     if (!root || elements[i][0] !== Vomnibar.box && !root.querySelector('#HelpDialog')) { return; }
     const z = ("" + 1 / zi).substring(0, 5), arr = this.hints as HintsNS.HintItem[],
-    mr = this.maxRight * VDom.bodyZoom, mt = this.maxTop * VDom.bodyZoom;
+    mr = this.maxRight * VDom.bZoom, mt = this.maxTop * VDom.bZoom;
     while (0 <= i && root.contains(elements[i][0])) {
       let st = arr[i--].marker.style;
       st.zoom = z;
@@ -463,13 +463,13 @@ var VHints = {
     if (root) { return output; }
     list = null;
     if (uiRoot) {
-      const d = VDom, z = d.fullZoom;
+      const d = VDom, z = d.dbZoom;
       if (box === document) {
-        d.fullZoom = d.docZoom;
+        d.dbZoom = d.wdZoom;
         d.prepareCrop();
       }
       (output.forEach as any).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
-      d.fullZoom = z;
+      d.dbZoom = z;
     }
     if (wantClickable) { (this as typeof VHints).deduplicate(output as Hint[]); }
     if ((this as typeof VHints).frameNested === null) {}

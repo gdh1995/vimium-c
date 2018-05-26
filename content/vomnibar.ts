@@ -46,7 +46,7 @@ var Vomnibar = {
       options.topUrl = window.location.href;
     }
     this.options = null;
-    VDom.fullZoom = 1;
+    VDom.dbZoom = 1;
     const iw = VDom.prepareCrop(), ih = window.innerHeight;
     options.width = iw, options.height = ih;
     this.defaultTop = ih > VomnibarNS.PixelData.ScreenHeightThreshold ? (50 - VomnibarNS.PixelData.NormalTopHalf / ih * 100) + "%" : "";
@@ -227,7 +227,7 @@ var Vomnibar = {
       if (opt) { this.options = null; return this.port.postMessage<"activate">(opt as VomnibarNS.FgOptionsToFront); }
       break;
     case "style":
-      this.box.style.height = (data as Req["style"]).height / VDom.docZoom + "px";
+      this.box.style.height = (data as Req["style"]).height / VDom.wdZoom + "px";
       if (this.status === VomnibarNS.Status.Initing || this.status === VomnibarNS.Status.ToShow) { this.onShown(); }
       break;
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).key);
@@ -243,7 +243,7 @@ var Vomnibar = {
   onShown (): number {
     this.status = VomnibarNS.Status.Showing;
     let style = this.box.style;
-    style.top = VDom.docZoom !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.docZoom) | 0) + "px" : this.top || this.defaultTop;
+    style.top = VDom.wdZoom !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.wdZoom) | 0) + "px" : this.top || this.defaultTop;
     if (style.visibility) {
       style.visibility = "";
       const box = VDom.UI.box as HTMLElement;

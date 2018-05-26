@@ -46,24 +46,24 @@ var VDom = {
     return document.scrollingElement || (document.compatMode === "BackCompat" ? document.body : document.documentElement);
   },
   /**
-   * other parts of code require that prepareCrop only depends on @fullZoom
+   * other parts of code require that prepareCrop only depends on @dbZoom
    */
   prepareCrop (): number {
     let iw: number, ih: number, ihs: number;
     this.prepareCrop = function(): number {
-      let fz = this.fullZoom, el = this.scrollingEl(), i: number, j: number;
+      let fz = this.dbZoom, el = this.scrollingEl(), i: number, j: number;
       if (el) {
         i = el.clientWidth, j = el.clientHeight;
       } else {
         i = window.innerWidth, j = window.innerHeight;
-        const doc = document.documentElement as Element, dz = this.docZoom;
+        const doc = document.documentElement as Element, dz = this.wdZoom;
         if (!doc) { return ih = j, ihs = j - 8, iw = i; }
         // not reliable
         i = Math.min(Math.max(i - PixelConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
         j = Math.min(Math.max(j - PixelConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
       }
       iw = i / fz, ih = j / fz;
-      ihs = ih - ((8 / this.bodyZoom) | 0);
+      ihs = ih - ((8 / this.bZoom) | 0);
       return iw;
     };
     this.cropRectToVisible = function(left, top, right, bottom): VRect | null {
@@ -170,12 +170,14 @@ var VDom = {
     (element: HTMLElementUsingMap, output: Hint5[]): void;
   },
   specialZoom: false,
-  docZoom: 1, // related to physical pixels
-  fullZoom: 1, // absolute zoom value of <html> * <body>
+  wdZoom: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
+  dbZoom: 1, // absolute zoom value of <html> * <body>
+  bZoom: 1, // the total zoom of <body> .. fullScreenEl
   /**
-   * return: ::min(devRatio, 1) * docEl.zoom * ... * curTopEl.zoom
+   * return: VDom.wdZoom := min(devRatio, 1) * docEl.zoom
    * 
-   * also update VDom.fullZoom
+   * also update VDom.dbZoom
+   * update VDom.bZoom if target
    */
   getZoom (target?: 1 | Element): number {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
@@ -186,34 +188,33 @@ var VDom = {
       const body = el ? null : document.body;
       // if fullscreen and there's nested "contain" styles,
       // then it's a whole mess and nothing can be ensured to be right
-      this.bodyZoom = body && (target === 1 || this.isInDOM(target, body)) && +getComputedStyle(body).zoom || 1;
+      this.bZoom = body && (target === 1 || this.isInDOM(target, body)) && +getComputedStyle(body).zoom || 1;
     }
     for (; el && el !== docEl; el = this.getParent(el)) {
       zoom *= +getComputedStyle(el).zoom || 1;
     };
-    this.fullZoom = this.bodyZoom * zoom;
-    return this.docZoom = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
+    this.dbZoom = this.bZoom * zoom;
+    return this.wdZoom = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
   },
-  bodyZoom: 1,
   getViewBox (needBox?: 1): ViewBox | ViewOffset {
     let iw = window.innerWidth, ih = window.innerHeight;
     const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1);
     if (document.webkitIsFullScreen) {
       this.getZoom(1);
-      const zoom = this.docZoom / ratio2;
+      const zoom = this.wdZoom / ratio2;
       return [0, 0, (iw / zoom) | 0, (ih / zoom) | 0, 0];
     }
     const box = document.documentElement as HTMLElement, st = getComputedStyle(box),
     box2 = document.body, st2 = box2 ? getComputedStyle(box2) : st,
-    zoom2 = this.bodyZoom = box2 && +st2.zoom || 1,
+    zoom2 = this.bZoom = box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0,
     // NOTE: if box.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
     let x = -rect.left, y = -rect.top, zoom = +st.zoom || 1;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
-    this.docZoom = Math.round(zoom * ratio2 * 1000) / 1000;
-    this.fullZoom = zoom * zoom2;
+    this.wdZoom = Math.round(zoom * ratio2 * 1000) / 1000;
+    this.dbZoom = zoom * zoom2;
     if (st.position !== "static" || containHasPaint || st.transform !== "none") {
       x -= box.clientLeft, y -= box.clientTop;
     } else {

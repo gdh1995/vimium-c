@@ -56,7 +56,7 @@ html > count{float:right;}`,
     const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
     el.style.width = "0px";
-    if (VDom.docZoom !== 1) { el.style.zoom = "" + 1 / VDom.docZoom; }
+    if (VDom.wdZoom !== 1) { el.style.zoom = "" + 1 / VDom.wdZoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
     VUtils.push(VDom.UI.SuppressMost, this);
     this.query || (this.query0 = query);

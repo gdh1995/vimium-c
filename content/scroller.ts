@@ -156,7 +156,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     return this.current = element && (this.selectFirst(element) || element);
   },
   getScale (): void {
-    this.scale = 1 / Math.min(1, VDom.docZoom) / Math.min(1, VDom.bodyZoom);
+    this.scale = 1 / Math.min(1, VDom.wdZoom) / Math.min(1, VDom.bZoom);
   },
   checkCurrent (el: Element | null): void {
     const cur = this.current;
