@@ -397,7 +397,7 @@ html > count{float:right;}`,
     return this.regexMatches[count];
   },
   execute (query?: string | null, options?: FindNS.ExecuteOptions): void {
-    options = VUtils.safer(options);
+    options = options ? VUtils.safer(options) : Object.create(null) as FindNS.ExecuteOptions;
     let el: Element | null, found: boolean, count = (options.count as number) | 0, back = count < 0
       , q: string, notSens = this.ignoreCase && !options.caseSensitive;
     options.noColor || this.toggleStyle(1);

@@ -39,7 +39,7 @@ var VUtils = {
     for (i = 0, len = keys.length - 1; i < len; i++) {
       parent = (parent as any)[keys[i]];
     }
-    return (parent as any)[keys[i]](a, this.safer(b));
+    return (parent as any)[keys[i]](a, b ? this.safer(b) : Object.create(null));
   },
   decodeURL (this: void, url: string): string {
     try { url = decodeURI(url); } catch (e) {}
