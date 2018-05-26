@@ -116,6 +116,7 @@ var VHints = {
     }
 
     const arr: ViewBox = VDom.getViewBox(1) as ViewBox;
+    VDom.prepareCrop();
     if (this.tooHigh !== null) {
       this.tooHigh = (VDom.scrollingEl() || document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
@@ -440,7 +441,6 @@ var VHints = {
   traverse: function (this: any, key: string
       , filter: HintsNS.Filter<Hint | Element>, notWantVUI?: boolean
       , root?: Document | Element): Hint[] | Element[] {
-    VDom.prepareCrop();
     if ((this as typeof VHints).ngEnabled === null && key === "*") {
       (this as typeof VHints).ngEnabled = document.querySelector('.ng-scope') != null;
     }

@@ -440,8 +440,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       });
     },
     focusInput (count: number, options: FgOptions): void {
-      const arr: ViewOffset = VDom.getViewBox(), visibleInputs = VHints.traverse("*", VHints.GetEditable, true);
-      const action = options.select as SelectActions | undefined;
+      const arr: ViewOffset = VDom.getViewBox();
+      VDom.prepareCrop();
+      const visibleInputs = VHints.traverse("*", VHints.GetEditable, true),
+      action = options.select as SelectActions | undefined;
       let sel = visibleInputs.length;
       if (sel === 0) {
         return HUD.showForDuration("There are no inputs to focus.", 1000);
@@ -618,6 +620,7 @@ Pagination = {
   },
   findAndFollowLink (names: string[], refusedStr: string): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: HTMLElement; }
+    // Note: this traverser should not need a prepareCrop
     const count = names.length, links = VHints.traverse("*", this.GetLinks, true, document);
     links.push(document.documentElement as HTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = 99, len: number;
