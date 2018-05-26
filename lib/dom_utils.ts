@@ -231,16 +231,16 @@ var VDom = {
     if (st.overflowX !== "hidden" && st2.overflowX !== "hidden") {
       mw += 64;
       if (!containHasPaint) {
-        iw = sEl ? (sEl.scrollWidth - window.scrollX) / zoom : Math.max(iw - PixelConsts.MaxScrollbarWidth / zoom, rect.right);
+        iw = sEl ? (sEl.scrollWidth - window.scrollX) / zoom : Math.max((iw - PixelConsts.MaxScrollbarWidth) / zoom, rect.right);
       }
     }
     if (st.overflowY !== "hidden" && st2.overflowY !== "hidden") {
       mh += 20;
       if (!containHasPaint) {
-        ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max(ih - PixelConsts.MaxScrollbarWidth / zoom, rect.bottom);
+        ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max((ih - PixelConsts.MaxScrollbarWidth) / zoom, rect.bottom);
       }
     }
-    if (containHasPaint) {
+    if (containHasPaint) { // ignore the area on the block's left 
       iw = rect.right  - parseFloat(st.borderRightWidth );
       ih = rect.bottom - parseFloat(st.borderBottomWidth);
     }
