@@ -63,7 +63,7 @@ var VDom = {
         j = Math.min(Math.max(j - PixelConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
       }
       iw = i / fz, ih = j / fz;
-      ihs = ih - ((8 / this.bZoom) | 0);
+      ihs = ih - ((8 / fz) | 0);
       return iw;
     };
     this.cropRectToVisible = function(left, top, right, bottom): VRect | null {
@@ -225,16 +225,18 @@ var VDom = {
     y = Math.abs(y) < 0.01 ? 0 : Math.ceil(Math.round(y / zoom2 * 100) / 100);
     if (!needBox) { return [x, y]; }
     // here rect.right is not exact because <html> may be smaller than <body>
-    const sEl = this.scrollingEl();
+    const sEl = this.scrollingEl(),
+    xScrollable = st.overflowX !== "hidden" && st2.overflowX !== "hidden",
+    yScrollable = st.overflowY !== "hidden" && st2.overflowY !== "hidden";
     iw /= zoom, ih /= zoom;
     let mw = iw, mh = ih;
-    if (st.overflowX !== "hidden" && st2.overflowX !== "hidden") {
+    if (xScrollable) {
       mw += 64 * zoom2;
       if (!containHasPaint) {
         iw = sEl ? (sEl.scrollWidth - window.scrollX) / zoom : Math.max((iw - PixelConsts.MaxScrollbarWidth) / zoom, rect.right);
       }
     }
-    if (st.overflowY !== "hidden" && st2.overflowY !== "hidden") {
+    if (yScrollable) {
       mh += 20 * zoom2;
       if (!containHasPaint) {
         ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max((ih - PixelConsts.MaxScrollbarWidth) / zoom, rect.bottom);
@@ -245,8 +247,8 @@ var VDom = {
       ih = rect.bottom - parseFloat(st.borderBottomWidth);
     }
     iw = Math.min(iw, mw), ih = Math.min(ih, mh);
-    iw = (iw / zoom2) | 0, ih = (iw / zoom2) | 0;
-    return [x, y, iw, ih - PixelConsts.MaxHeightOfLinkHintMarker, containHasPaint ? 0 : iw];
+    iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
+    return [x, y, iw, yScrollable ? ih - PixelConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
   },
   ensureInView (el: Element, oldY?: number): boolean {
     const rect = el.getBoundingClientRect(), ty = this.NotVisible(null, rect);
