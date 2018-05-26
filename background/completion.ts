@@ -675,7 +675,7 @@ searchEngines: {
       if (!pattern) { return true; }
     } else if (!pattern) {
       if (matchType === MatchType.plain && q.length <= 1) {
-        matchType = q.length < 1 ? MatchType.reset : this.calcNextMatchType();
+        matchType = q.length ? this.calcNextMatchType() : MatchType.reset;
       }
       return Completers.next([]);
     } else {
@@ -806,12 +806,13 @@ searchEngines: {
   binaryInsert (u: string, a: string[]): number {
     let e = "", h = a.length - 1, l = 0, m = 0;
     while (l <= h) {
-      m = Math.floor((l + h) / 2);
+      m = (l + h) >>> 1;
       e = a[m];
       if (e > u) { h = m - 1; }
       else { l = m + 1; }
     }
-    return m + (e < u ? 1 : 0);
+    // m + (e < u ? 1 : 0) = (e < u ? m + 1 : m) = (e < u ? l : l) = l
+    return l;
   },
   compute9 (this: void): number { return 9; }
 },
@@ -1142,7 +1143,7 @@ searchEngines: {
         url
       };
       j.text = Decoder.decodeURL(url, j);
-      (_this.history as HistoryItem[]).splice(-1 - i, 0, j);
+      (_this.history as HistoryItem[]).splice(~i, 0, j);
     },
     OnVisitRemoved (this: void, toRemove: chrome.history.RemovedResult): void {
       Decoder.todos.length = 0;
@@ -1198,13 +1199,17 @@ searchEngines: {
     binarySearch (this: void, u: string, a: HistoryItem[]): number {
       let e = "", h = a.length - 1, l = 0, m = 0;
       while (l <= h) {
-        m = Math.floor((l + h) / 2);
+        m = (l + h) >>> 1;
         e = a[m].url;
         if (e > u) { h = m - 1; }
         else if (e !== u) { l = m + 1; }
         else { return m; }
       }
-      return (e < u ? -2 : -1) - m;
+      // if e > u, then l == h + 1 && l == m
+      // else if e < u, then l == h + 1 && l == m + 1
+      // (e < u ? -2 : -1) - m = (e < u ? -1 - 1 - m : -1 - m) = (e < u ? -1 - l : -1 - l)
+      // = -1 - l = ~l
+      return ~l;
     }
   },
 

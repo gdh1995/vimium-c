@@ -126,12 +126,12 @@ var Commands = {
       ++errors;
     }
     CommandsData.mapKeyRegistry = mk > 0 ? mkReg : null;
-    CommandsData.errors = CommandsData.errors > 0 ? -1 - errors : errors;
+    CommandsData.errors = CommandsData.errors > 0 ? ~errors : errors;
   }),
   populateCommandKeys: (function(this: void): void {
     const d = CommandsData, ref = d.keyMap = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe,
     oldErrors = d.errors;
-    if (oldErrors < 0) { d.errors = -1 - oldErrors; }
+    if (oldErrors < 0) { d.errors = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
     ref['-'] = 1;
     for (const key in d.keyToCommandRegistry) {
