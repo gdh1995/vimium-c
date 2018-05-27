@@ -59,9 +59,9 @@ VDom.UI = {
     for (const el of els) {
       parent.appendChild(el.marker);
     }
-    const style = parent.style;
+    const style = parent.style, zoom = VDom.bZoom / VDom.dScale;
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
-    VDom.bZoom !== 1 && (style.zoom = "" + VDom.bZoom);
+    zoom !== 1 && (style.zoom = "" + zoom);
     document.webkitIsFullScreen && (style.position = "fixed");
     return this.addElement(parent, AdjustType.DEFAULT, this._lastFlash);
   },

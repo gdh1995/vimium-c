@@ -177,6 +177,7 @@ var VDom = {
   specialZoom: false,
   wdZoom: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
   dbZoom: 1, // absolute zoom value of <html> * <body>
+  dScale: 1, // <html>.transform:scale (ignore the case of sx != sy)
   bZoom: 1, // the total zoom of <body> .. fullScreenEl
   /**
    * return: VDom.wdZoom := min(devRatio, 1) * docEl.zoom
@@ -207,25 +208,27 @@ var VDom = {
     const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1);
     if (document.webkitIsFullScreen) {
       this.getZoom(1);
+      this.dScale = 1;
       const zoom = this.wdZoom / ratio2;
       return [0, 0, (iw / zoom) | 0, (ih / zoom) | 0, 0];
     }
     const box = document.documentElement as HTMLElement, st = getComputedStyle(box),
     box2 = document.body, st2 = box2 ? getComputedStyle(box2) : st,
     zoom2 = this.bZoom = box2 && +st2.zoom || 1,
-    containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string) ? 1 : 0,
+    containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string),
+    stacking = st.position !== "static" || containHasPaint || st.transform !== "none",
+    // ignore the case that x != y in "transform: scale(x, y)""
+    _tf = st.transform, scale = this.dScale = _tf && !_tf.startsWith("matrix(1,") && parseFloat(_tf.slice(7)) || 1,
     // NOTE: if box.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
-    let x = -rect.left, y = -rect.top, zoom = +st.zoom || 1;
+    let zoom = +st.zoom || 1;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
     this.wdZoom = Math.round(zoom * ratio2 * 1000) / 1000;
     this.dbZoom = zoom * zoom2;
-    if (st.position !== "static" || containHasPaint || st.transform !== "none") {
-      x -= box.clientLeft, y -= box.clientTop;
-    } else {
-      x += parseFloat(st.marginLeft), y += parseFloat(st.marginTop);
-    }
+    let x = stacking ? -box.clientLeft : parseFloat(st.marginLeft)
+      , y = stacking ? -box.clientTop  : parseFloat(st.marginTop );
+    x = x * scale - rect.left, y = y * scale - rect.top;
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
     x = Math.abs(x) < 0.01 ? 0 : Math.ceil(Math.round(x / zoom2 * 100) / 100);
     y = Math.abs(y) < 0.01 ? 0 : Math.ceil(Math.round(y / zoom2 * 100) / 100);
