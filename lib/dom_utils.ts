@@ -232,10 +232,9 @@ var VDom = {
     iw /= zoom, ih /= zoom;
     let mw = iw, mh = ih;
     if (containHasPaint) { // ignore the area on the block's left
-      iw = rect.right  - parseFloat(st.borderRightWidth );
-      ih = rect.bottom - parseFloat(st.borderBottomWidth);
+      iw = rect.right, ih = rect.bottom;
     }
-    this.paintBox = containHasPaint ? [iw, ih] : null;
+    this.paintBox = containHasPaint ? [iw - parseFloat(st.borderRightWidth), ih - parseFloat(st.borderBottomWidth)] : null;
     if (!needBox) { return [x, y]; }
     // here rect.right is not exact because <html> may be smaller than <body>
     const sEl = this.scrollingEl(),
