@@ -212,7 +212,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       let path = event.path as EventPath | undefined, top: EventTarget | undefined
         , same = !(top = path && path[0]) || top === window || top === target
         , sr = (target as Element).shadowRoot;
-      if (InsertMode.lock === (same ? target : top)) { InsertMode.lock = null; }
+      if (InsertMode.lock === (same ? target : top)) {
+        InsertMode.lock = null;
+        InsertMode.exitInputHint();
+      }
       if (!(sr !== null && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
       let wrapper = ELs.wrap();
       if (same) {
