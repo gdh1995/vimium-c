@@ -2,6 +2,7 @@
   "name": "vimium-plus",
   "version": "1.64.0",
   "description": "optimized Vimium supporting Chinese, global commands and injection into other extensions",
+  "private": true,
   "dependencies": {
     "typescript": "next"
   },
