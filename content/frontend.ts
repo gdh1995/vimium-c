@@ -214,7 +214,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         , sr = (target as Element).shadowRoot;
       if (InsertMode.lock === (same ? target : top)) {
         InsertMode.lock = null;
-        InsertMode.exitInputHint();
+        InsertMode.inputHint && !InsertMode.hinting && InsertMode.exitInputHint();
       }
       if (!(sr !== null && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
       let wrapper = ELs.wrap();
@@ -484,9 +484,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         const { keyCode } = event, oldSel = sel;
         if (keyCode === VKeyCodes.tab) {
           sel = (sel + (event.shiftKey ? -1 : 1)) % hints.length;
+          InsertMode.hinting = true;
           VDom.UI.simulateSelect(hints[sel].target, null, false, action);
           hints[oldSel].marker.classList.remove("S");
           hints[sel].marker.classList.add("S");
+          InsertMode.hinting = false;
           return HandlerResult.Prevent;
         }
         let keyStat: KeyStat;
@@ -510,6 +512,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   InsertMode = {
     grabFocus: document.readyState !== "complete",
     global: null as CmdOptions["enterInsertMode"] | null,
+    hinting: false,
     inputHint: null as HTMLDivElement | null,
     suppressType: null as string | null,
     last: null as LockableElement | null,
