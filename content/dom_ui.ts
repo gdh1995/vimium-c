@@ -210,9 +210,9 @@ VDom.UI = {
     VDom.setBoundary(flashEl.style, rect, nfs);
     VDom.bZoom !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom);
     this.addElement(flashEl);
-    this._lastFlash = this._lastFlash || flashEl;
+    this._lastFlash = flashEl;
     return setTimeout(() => {
-      this._lastFlash === flashEl && (this._lastFlash = flashEl.nextElementSibling as HTMLElement | null);
+      this._lastFlash === flashEl && (this._lastFlash = null);
       flashEl.remove();
     }, this.flashLastingTime);
   } as DomUI["flash"],
