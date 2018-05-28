@@ -446,8 +446,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       action = options.select as SelectActions | undefined;
       let sel = visibleInputs.length;
       if (sel === 0) {
+        InsertMode.exitInputHint();
         return HUD.showForDuration("There are no inputs to focus.", 1000);
       } else if (sel === 1) {
+        InsertMode.exitInputHint();
         return VDom.UI.simulateSelect(visibleInputs[0][0], visibleInputs[0][1], true, action, true);
       }
       for (let ind = 0; ind < sel; ind++) {
@@ -471,6 +473,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VDom.UI.simulateSelect(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
       VDom.UI.ensureBorder(VDom.wdZoom);
       const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
+      // delay exiting the old to avoid some layout actions
+      // although old elements can not be GC-ed before this line, it has little influence
+      InsertMode.exitInputHint();
+      InsertMode.inputHint = box;
       VUtils.push(function(event) {
         const { keyCode } = event, oldSel = sel;
         if (keyCode === VKeyCodes.tab) {
@@ -489,8 +495,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
               keyStat !== KeyStat.shiftKey && (keyStat !== KeyStat.plain || hints[sel].target instanceof HTMLInputElement) )
           ) : keyCode !== VKeyCodes.ime && keyCode !== VKeyCodes.f12
         ) {
-          this.remove();
-          VUtils.remove(this);
+          InsertMode.exitInputHint();
           return !VKeyboard.isEscape(event) ? HandlerResult.Nothing : keep || !InsertMode.lock ? HandlerResult.Prevent
             : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
         }
@@ -502,6 +507,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   InsertMode = {
     grabFocus: document.readyState !== "complete",
     global: null as CmdOptions["enterInsertMode"] | null,
+    inputHint: null as HTMLDivElement | null,
     suppressType: null as string | null,
     last: null as LockableElement | null,
     lock: null as LockableElement | null,
@@ -588,7 +594,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return HUD.hide();
       }
     },
-    onExitSuppress: null as ((this: void) => void) | null
+    onExitSuppress: null as ((this: void) => void) | null,
+    exitInputHint (): void {
+      let box = this.inputHint;
+      if (!box) { return; }
+      this.inputHint = null;
+      box.remove();
+      VUtils.remove(box);
+    }
   },
 
 Pagination = {
