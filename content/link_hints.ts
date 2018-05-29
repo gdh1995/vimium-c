@@ -634,7 +634,7 @@ var VHints = {
         this.isClickListened = !this.isClickListened;
       } else if (i === KeyStat.plain) {
         cache.deepHints = !deepHints;
-      } else if (i === KeyStat.ctrlKey || i === KeyStat.metaKey) {
+      } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
         if (this.switchShadowVer() && deepHints) {
           return HandlerResult.Prevent;
         }
@@ -648,7 +648,7 @@ var VHints = {
         }
         this.setMode((this.mode | HintMode.focused) ^ HintMode.mask_focus_new);
       }
-    } else if (i === VKeyCodes.ctrlKey || i === VKeyCodes.metaKey) {
+    } else if (i === VKeyCodes.ctrlKey || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
       if (this.mode < HintMode.min_job) {
         if (!(event.shiftKey || event.altKey)) {
           this.lastMode = this.mode;
