@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.64.0](https://img.shields.io/badge/release-1.64.0-orange.svg)
+![Version 1.67.0](https://img.shields.io/badge/release-1.67.0-orange.svg)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-plus)
 
@@ -82,11 +82,17 @@ Known issues (Up to the master branch):
   HUD will always be visible in order to solve some issues on Chrome.
 8. Chrome 64 and 65 always clean their console logs if only Vomnibar is opened, and there's nothing we can do for it.
 
-1.65 (Not released yet):
+1.67:
 * Now most commands support negative count, and `'-'` is used to begin a negative count.
-* fix that settings cann't be exported on Chrome 65
+* 4 global shortcuts: support count again; support maps like `shortcut createTab position=end`
+* redesign the Vomnibar: new type icons, translucent on blur, clear on high DPI, and smarter
+* Now `focusInput` can select text, and auto exit when a current input loses its focus
+* rewrite Marks: all changes made in incognito are invisible to normal pages and not persistent
+* rewrite `LinkHints` to support much more strange pages
+* parse url-in-text shared from Baidu Net Disk; add vimium://avg to compute math average quickly
+* fix tons of bugs, including that settings can't be exported on Chrome 65
 * fix that `LinkHints` couldn't click targets before Chrome 41
-* fix a regression that `nextFrame` broke before Chrome 48
+* fix many crashes on old versions and uncommon flags of Chrome
 
 1.64.1:
 * global shortcuts support count prefix and custom options
