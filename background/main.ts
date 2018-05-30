@@ -270,6 +270,16 @@ Are you sure you want to continue?`);
       sender.flags |= Frames.Flags.hasCSSAndActed;
       return Settings.cache.innerCSS;
     },
+    retryCSS (port: Frames.Port, tick: number): void {
+      let frames = framesForTab[port.sender.tabId];
+      if (!frames || frames.indexOf(port) < 0) { return; }
+      let CSS = Settings.cache.innerCSS;
+      if (CSS) {
+        port.postMessage({ name: "showHUD", CSS });
+      } else if (tick < 10) {
+        setTimeout(funcDict.retryCSS, 34 * tick, port, tick + 1);
+      }
+    },
 
     getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
         , (result: [Tab], _ex: FakeArg) => void, 1>(null, { active: true, currentWindow: true }),
@@ -1690,6 +1700,8 @@ Are you sure you want to continue?`);
       const CSS = funcDict.ensureInnerCSS(port);
       if (CSS) {
         port.postMessage({ name: "showHUD", CSS });
+      } else if (!Settings.cache.innerCSS) {
+        setTimeout(funcDict.retryCSS, 34, port, 1);
       }
     },
     activateVomnibar (this: void, request: FgReq["activateVomnibar"] & Req.baseFg<string>, port: Port): void {
