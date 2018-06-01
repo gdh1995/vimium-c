@@ -117,7 +117,6 @@ var Settings = {
       }
       (this as typeof Settings).CONST.BaseCSSLength = css.length;
       css += this.get("userDefinedCss");
-      this.cache.baseCSS = "";
       return this.set("innerCSS", css);
     },
     vimSync (value): void {
@@ -159,8 +158,12 @@ var Settings = {
     if (callback && file in this.cache) { callback(); return null; }
     const url = this.CONST.XHRFiles[file];
     if (!url) { throw Error("unknown file: " + file); } // just for debugging
-    return Utils.fetchHttpContents(url, function() {
-      Settings.set(file, this.responseText);
+    return Utils.fetchHttpContents(url, function(): void {
+      if (file === "baseCSS") {
+        Settings.postUpdate(file, this.responseText);
+      } else {
+        Settings.set(file, this.responseText);
+      }
       callback && callback();
       return;
     });
