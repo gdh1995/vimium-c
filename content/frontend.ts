@@ -99,7 +99,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
                 (action = checkValidKey(event, keyChar)), false)
         ) {
           if (InsertMode.lock === document.body && InsertMode.lock) {
-            action = event.repeat ? InsertMode.focusUpper(key, true) : HandlerResult.Nothing;
+            event.repeat && InsertMode.focusUpper(key, true, event);
           } else {
             action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
             InsertMode.exit(event);
@@ -118,14 +118,16 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       else if (nextKeys !== null) {
         esc(HandlerResult.Suppress);
         action = HandlerResult.Prevent;
-      } else if (VDom.UI.removeSelection()) {
+      } else if (!event.repeat && VDom.UI.removeSelection()) {
         action = HandlerResult.Prevent;
       } else if (VFindMode.isActive) {
-        return VFindMode.deactivate(FindNS.Action.ExitNoFocus); // should exit
-      } else if (window.top !== window && document.activeElement === document.body) {
-        action = InsertMode.focusUpper(key, event.repeat);
-      } else if (event.repeat) {
+        VUtils.prevent(event); // safer
+        VFindMode.deactivate(FindNS.Action.ExitNoFocus); // should exit
+        action = HandlerResult.Prevent;
+      } else if (event.repeat && !KeydownEvents[VKeyCodes.esc] && document.activeElement !== document.body) {
         let c = document.activeElement; c && c.blur && c.blur();
+      } else if (window.top !== window && document.activeElement === document.body) {
+        InsertMode.focusUpper(key, event.repeat, event);
       }
       if (action < HandlerResult.MinStopOrPreventEvents) { return; }
       if (action > HandlerResult.MaxNotPrevent) {
@@ -567,9 +569,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return false;
       }
     },
-    focusUpper (this: void, key: VKeyCodes, force: boolean): HandlerResult {
+    focusUpper (this: void, key: VKeyCodes, force: boolean, event: Event): void {
       let el = VDom.parentFrame();
+      if (!el && (!force || window.top === window)) { return; }
+      VUtils.prevent(event); // safer
       if (el) {
+        KeydownEvents[key] = 1;
         const parent = el.ownerDocument.defaultView, a = (parent as Window & { VEventMode: typeof VEventMode }).VEventMode;
         el.blur && el.blur();
         if (a) {
@@ -578,12 +583,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         } else {
           parent.focus();
         }
-      } else if (force && window.top !== window) {
+      } else if (KeydownEvents[key] !== 2) { // avoid sending too many messages
         vPort.post({ handler: "nextFrame", type: Frames.NextType.parent, key });
-      } else {
-        return HandlerResult.Nothing;
+        KeydownEvents[key] = 2;
       }
-      return HandlerResult.Prevent;
     },
     exit (event: KeyboardEvent): void {
       let target: Element | null = event.target as Element;

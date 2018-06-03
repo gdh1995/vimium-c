@@ -35,7 +35,7 @@ declare namespace HandlerNS {
   }
 }
 interface KeydownCacheArray extends SafeObject {
-  [keyCode: number]: BOOL | undefined;
+  [keyCode: number]: BOOL | 2 | undefined;
 }
 
 interface EventControlKeys {
