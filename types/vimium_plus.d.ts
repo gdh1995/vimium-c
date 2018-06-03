@@ -272,9 +272,9 @@ declare const NDEBUG: undefined;
  * #define LATEST_TESTED 66.0.3359.139
  */
 declare const enum BrowserVer {
+  MinShadowDOMV0 = 35, // ensured
+  MinSupported = MinShadowDOMV0,
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
-  MinShadowDOMV0 = 33,
-  MinSupported = 35,
   MinES6WeakMap = 36,
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEAGCY
   MinSession = 37,
