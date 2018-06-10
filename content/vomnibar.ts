@@ -26,6 +26,8 @@ var Vomnibar = {
   options: null as VomnibarNS.FgOptionsToFront | null,
   onReset: null as (() => void) | null,
   timer: 0,
+  screenHeight: 0,
+  maxBoxHeight: 0,
   defaultTop: "",
   top: "",
   sameOrigin: false,
@@ -47,9 +49,8 @@ var Vomnibar = {
     }
     this.options = null;
     VDom.dbZoom = 1;
-    const iw = VDom.prepareCrop(), ih = window.innerHeight;
+    const iw = VDom.prepareCrop(), ih = this.screenHeight = window.innerHeight;
     options.width = iw, options.height = ih;
-    this.defaultTop = ih > VomnibarNS.PixelData.ScreenHeightThreshold ? (50 - VomnibarNS.PixelData.NormalTopHalf / ih * 100) + "%" : "";
     VDom.getZoom();
     // note: here require: that Inactive must be NotInited + 1
     this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
@@ -184,7 +185,7 @@ var Vomnibar = {
         close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
-      if (location.hash === "#chrome-ui") { _this.top = "8px"; }
+      if (location.hash === "#chrome-ui" && !window.VimiumInjector) { _this.top = "8px"; }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {
@@ -228,7 +229,10 @@ var Vomnibar = {
       break;
     case "style":
       this.box.style.height = (data as Req["style"]).height / VDom.wdZoom + "px";
-      if (this.status === VomnibarNS.Status.Initing || this.status === VomnibarNS.Status.ToShow) { this.onShown(); }
+      if (this.status === VomnibarNS.Status.Initing || this.status === VomnibarNS.Status.ToShow) {
+        this.maxBoxHeight = (data as Req["style"]).max as number;
+        this.onShown();
+      }
       break;
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).key);
     case "hide": return this.hide(1);
@@ -242,7 +246,12 @@ var Vomnibar = {
   },
   onShown (): number {
     this.status = VomnibarNS.Status.Showing;
-    let style = this.box.style;
+    let style = this.box.style, bh = this.maxBoxHeight;
+    if (bh > 0) {
+      const sh = this.screenHeight,
+      NormalTopHalf = (bh * 0.6) | 0, ScreenHeightThreshold = (VomnibarNS.PixelData.MarginTop + NormalTopHalf) * 2;
+      this.defaultTop = sh > ScreenHeightThreshold ? (50 - NormalTopHalf / sh * 100) + "%" : "";
+    }
     style.top = VDom.wdZoom !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.wdZoom) | 0) + "px" : this.top || this.defaultTop;
     if (style.visibility) {
       style.visibility = "";

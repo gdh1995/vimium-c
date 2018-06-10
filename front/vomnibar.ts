@@ -108,6 +108,7 @@ var Vomnibar = {
   zoomLevel: 1,
   lastScrolling: 0,
   height: 0,
+  maxHeight: 0,
   input: null as never as HTMLInputElement,
   bodySt: null as never as CSSStyleDeclaration,
   barCls: null as never as DOMTokenList,
@@ -405,9 +406,9 @@ var Vomnibar = {
   },
   _pageNumRe: <RegExpOne> /(?:^|\s)(\+\d{0,2})$/,
   goPage (dirOrNum: boolean | number): void {
+    if (this.isSearchOnTop) { return; }
     const len = this.completions.length, n = this.mode.maxResults;
     let str = len ? this.completions[0].type : "", sel = +dirOrNum || -1;
-    if (this.isSearchOnTop) { return; }
     str = (this.isSelOriginal || this.selection < 0 ? this.input.value : this.inputText).trimRight();
     let arr = this._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
     if (len >= n) { sel *= n; }
@@ -416,7 +417,7 @@ var Vomnibar = {
 
     sel += i;
     sel = sel < 0 ? 0 : sel > 90 ? 90 : sel;
-    if (sel == i) { return; }
+    if (sel === i) { return; }
     if (arr) { str = str.substring(0, str.length - arr[0].length); }
     str = str.trimRight();
     i = Math.min(this.input.selectionEnd, str.length);
@@ -535,18 +536,20 @@ var Vomnibar = {
   },
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
-    const list = response.list, oldHeight = this.height, height = list.length, notEmpty = height > 0;
+    const list = response.list, height = list.length, notEmpty = height > 0;
     this.showFavIcon = response.favIcon;
     this.matchType = response.matchType;
     this.completions = list;
     this.selection = (response.autoSelect || this.modeType !== "omni") && notEmpty ?  0 : -1;
     this.isSelOriginal = true;
     this.isSearchOnTop = notEmpty && list[0].type === "search";
-    this.height = Math.ceil(notEmpty ? height * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty);
-    return this.populateUI(oldHeight);
+    return this.populateUI();
   },
-  populateUI (oldH: number): void {
-    const { list, height } = this, notEmpty = this.completions.length > 0, msg = { name: "style" as "style", height };
+  populateUI (): void {
+    const len = this.completions.length, notEmpty = len > 0, oldH = this.height, list = this.list;
+    const height = this.height = Math.ceil(notEmpty ? len * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty),
+    msg: VomnibarNS.FReq["style"] & VomnibarNS.Msg<"style"> = { name: "style", height };
+    oldH || (msg.max = this.maxHeight);
     if (height > oldH || this.sameOrigin) { VPort.postToOwner(msg); }
     this.completions.forEach(this.parse, this);
     list.innerHTML = this.renderItems(this.completions);
@@ -644,6 +647,7 @@ var Vomnibar = {
     if (ver < BrowserVer.MinSVG$Path$Has$d$CSSAttribute) {
       this.showTy = ver < BrowserVer.MinSVG$Path$MayHave$d$CSSAttribute || this.bodySt.d == null;
     }
+    this.maxHeight = Math.ceil(this.maxResults * PixelData.Item + PixelData.OthersIfNotEmpty);
     this.init = VUtils.makeListRenderer = null as never;
   },
   setFav (type: VomnibarNS.PageType): void {
