@@ -700,7 +700,7 @@ var Utils = {
     };
   }),
   getNull (this: void): null { return null; },
-  GC (): void {},
+  GC (this: void): void {},
   hasUpperCase (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
 

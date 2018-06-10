@@ -29,7 +29,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
       const defaultVal = Settings.defaults[key];
       if (value == null) {
         if (localStorage.getItem(key) != null) {
-          Settings.set(key, defaultVal);
+          this.doSet(key, defaultVal);
         }
         return;
       }
@@ -46,7 +46,16 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
       if (jsonVal === curVal) {
         value = defaultVal;
       }
-      Settings.set(key, value);
+      this.doSet(key, value);
+    },
+    doSet(key: keyof SettingsWithDefaults, value: any): void {
+      const wanted: SettingsNS.DynamicFiles | "" = key === "keyMappings" ? "Commands"
+          : key.startsWith("exclusion") ? "Exclusions" : "";
+      if (!wanted) {
+        return Settings.set(key, value);
+      }
+      Utils.require(wanted).then(() => Settings.set(key, value));
+      Utils.GC();
     },
     set<K extends keyof SettingsToSync> (key: K, value: SettingsToSync[K] | null): void {
       if (!this.shouldSyncKey(key)) { return; }
@@ -446,7 +455,7 @@ Utils.GC = function(): void {
   }
 };
 
-setTimeout((function() {
+setTimeout((function(): void {
   if (a) {
     a.removeListener(cb);
     chrome.runtime.onInstalled = a = null as never;
