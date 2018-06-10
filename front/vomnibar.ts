@@ -548,9 +548,10 @@ var Vomnibar = {
   populateUI (): void {
     const len = this.completions.length, notEmpty = len > 0, oldH = this.height, list = this.list;
     const height = this.height = Math.ceil(notEmpty ? len * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty),
+    needMsg = height !== oldH, earlyPost = height > oldH || this.sameOrigin,
     msg: VomnibarNS.FReq["style"] & VomnibarNS.Msg<"style"> = { name: "style", height };
     oldH || (msg.max = this.maxHeight);
-    if (height > oldH || this.sameOrigin) { VPort.postToOwner(msg); }
+    if (needMsg && earlyPost) { VPort.postToOwner(msg); }
     this.completions.forEach(this.parse, this);
     list.innerHTML = this.renderItems(this.completions);
     oldH || (this.bodySt.display = "");
@@ -564,10 +565,10 @@ var Vomnibar = {
       }
       (list.lastElementChild as HTMLElement).classList.add("b");
     }
-    if (height >= oldH || this.sameOrigin) {
+    if (earlyPost) {
       return this.postUpdate();
     } else {
-      requestAnimationFrame(() => { VPort.postToOwner(msg); return Vomnibar.postUpdate(); });
+      requestAnimationFrame(() => { needMsg && VPort.postToOwner(msg); return Vomnibar.postUpdate(); });
     }
   },
   postUpdate (): void {
