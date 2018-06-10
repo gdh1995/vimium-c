@@ -439,7 +439,7 @@ Utils.GC = function(): void {
     if (existing) { return; }
     Settings.updateHooks.keyMappings = void 0 as never;
     Commands = null as never;
-    if (Exclusions && !Settings.cache.exclusionRules.length) {
+    if (Exclusions && !Settings.get("exclusionRules").length) {
       Exclusions.destroy();
       Exclusions = null as never;
     }

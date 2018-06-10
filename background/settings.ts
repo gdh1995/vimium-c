@@ -1,7 +1,7 @@
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 
 var Settings = {
-  cache: Object.create(null) as SettingsNS.FullCache,
+  cache: Object.create(null) as Readonly<SettingsNS.FullCache>,
   temp: {
     shownHash: null as null | ((this: void) => string)
   } as {
@@ -19,11 +19,11 @@ var Settings = {
     const value = str == null ? initial : typeof initial === "string" ? str
         : initial === false || initial === true ? str === "true"
         : JSON.parse<typeof initial>(str);
-    forCache && (this.cache[key] = value);
+    forCache && ((this.cache as SettingsNS.FullCache)[key] = value);
     return value;
   },
   set<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void {
-    this.cache[key] = value;
+    (this.cache as SettingsNS.FullCache)[key] = value;
     if (!(key in this.nonPersistent)) {
       const initial = this.defaults[key as keyof SettingsNS.PersistentSettings];
       if (value === initial) {
@@ -92,7 +92,7 @@ var Settings = {
       return this.set("searchEngineMap", Object.create<Search.Engine>(null));
     },
     searchEngineMap (value: FullSettings["searchEngineMap"]): void {
-      this.set("searchKeywords", null);
+      "searchKeywords" in this.cache && this.set("searchKeywords", null);
       Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);
       const rules = Utils.parseSearchEngines(this.get("searchEngines"), value);
       return this.set("searchEngineRules", rules);
@@ -116,7 +116,9 @@ var Settings = {
         css += ".HUD,.IH,.LH{border-width:1px}\n";
       }
       (this as typeof Settings).CONST.BaseCSSLength = css.length;
-      css += this.get("userDefinedCss");
+      let css2 = this.get("userDefinedCss");
+      css2 && (css += css2);
+      css = css + "";
       return this.set("innerCSS", css);
     },
     vimSync (value): void {
@@ -124,9 +126,9 @@ var Settings = {
       chrome.storage.onChanged.removeListener(Settings.Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);
       Settings.Sync = { set () {} };
     },
-    userDefinedCss (css): void {
-      css = this.cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength) + css;
-      this.set("innerCSS", css);
+    userDefinedCss (css2): void {
+      const css = this.cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength);
+      this.set("innerCSS", css2 ? css + css2 : css);
       const ref = Backend.indexPorts(), request = { name: "showHUD" as "showHUD", CSS: this.cache.innerCSS };
       for (const tabId in ref) {
         const frames = ref[tabId] as Frames.Frames;

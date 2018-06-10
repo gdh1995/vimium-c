@@ -435,7 +435,7 @@ interface Window {
     GC (): void;
   };
   readonly Settings: {
-    readonly cache: SettingsNS.FullCache;
+    readonly cache: Readonly<SettingsNS.FullCache>;
     readonly temp: {
       readonly shownHash: ((this: void) => string) | null;
     };
