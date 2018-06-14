@@ -123,10 +123,6 @@ input, textarea {
 input[type=text], textarea {
   outline: none;
 }
-input[type=button] {
-  border: none;
-  background: none;
-}
 input[type=number] {
   outline: none;
   text-align: center;
@@ -306,7 +302,7 @@ label:active {
 }
 .exclusionRemoveButton {
   border: none;
-  background-color: #fff;
+  background: none;
   color: #979ca0;
   cursor: default;
   font-size: small;
@@ -318,10 +314,10 @@ label:active {
 }
 .exclusionRemoveButton:hover {
   color: #444;
-  text-decoration: none;
 }
-.exclusionRemoveButton:active {
+.exclusionRemoveButton:active,.exclusionRemoveButton:focus {
   color: #4d90fe;
+  outline: none;
 }
 .exclusionHeaderText {
   padding-left: 3px;
