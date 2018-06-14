@@ -210,11 +210,11 @@ var Vomnibar = {
     }
     this.timer = setTimeout(this.OnTimer, updateDelay);
   },
-  refresh (): void {
+  refresh (wait: number): void {
     let oldSel = this.selection, origin = this.isSelOriginal;
     this.useInput = false;
     this.setWidth();
-    return this.update(17, function(this: typeof Vomnibar): void {
+    return this.update(wait, function(this: typeof Vomnibar): void {
       const len = this.completions.length;
       if (!origin && oldSel >= 0 && len > 0) {
         oldSel = Math.min(oldSel, len - 1);
@@ -791,11 +791,11 @@ var Vomnibar = {
     if (this.actionType > ReuseType.newBg) { return; }
     window.getSelection().removeAllRanges();
     if (item.type !== "tab") {
-      return this.refresh();
+      return this.refresh(150);
     }
     window.onfocus = function(e: Event): void {
       window.onfocus = null as never;
-      if (e.isTrusted !== false && VPort.port) { return Vomnibar.refresh(); }
+      if (e.isTrusted !== false && VPort.port) { return Vomnibar.refresh(17); }
     };
   }
 },
