@@ -205,6 +205,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
             InsertMode.last = target as HTMLElement;
           }
         }
+        if (VHints.isActive && VHints.hints) {
+          return VHints.listenIME(true);
+        }
       }
     },
     onBlur (this: void, event: Event | FocusEvent): void {

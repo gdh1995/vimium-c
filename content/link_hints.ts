@@ -82,6 +82,7 @@ var VHints = {
   modeOpt: null as HintsNS.ModeOpt | null,
   clicking: ClickingType.NotWantClickable,
   forHover: false,
+  imeListened: false,
   count: 0,
   lastMode: 0 as HintMode,
   tooHigh: false as null | boolean,
@@ -692,6 +693,12 @@ var VHints = {
     }
     return HandlerResult.Prevent;
   },
+  OnIME(this: void): void {
+    if (VHints.isActive) {
+      VHints.clean(true);
+      VHUD.showForDuration("LinkHints exits because you're inputing");
+    }
+  },
   switchShadowVer(): boolean { // return true if fail
     let v1 = "* >>> ", v0 = "* /deep/ ", sign = v0;
     if (VSettings.cache.browserVer < BrowserVer.MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled) {
@@ -718,6 +725,12 @@ var VHints = {
     this.hints = this.zIndexes = null;
     this.pTimer > 0 && clearTimeout(this.pTimer);
     while (i < len) { (ref as HintsNS.HintItem[])[i++].target = null as never; }
+  },
+  listenIME (listen: boolean): void {
+    if (this.imeListened !== listen) {
+      (listen ? addEventListener : removeEventListener)("compositionstart", this.OnIME, true);
+      this.imeListened = listen;
+    }
   },
   activateLink (hintEl: HintsNS.HintItem): void {
     let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hintEl.target;
@@ -792,17 +805,18 @@ var VHints = {
     this.maxLeft = this.maxTop = this.maxRight = ks.tab = ks.newHintLength = alpha.countMax = 0;
     alpha.hintKeystroke = alpha.chars = "";
     this.isActive = this.noHUD = this.tooHigh = ks.known = false;
+    this.listenIME(false);
+    VUtils.remove(this);
+    VEventMode.onWndBlur(null);
     if (this.box) {
       this.box.remove();
       this.box = null;
     }
     keepHUD || VHUD.hide();
-    VEventMode.onWndBlur(null);
-    return VUtils.remove(this);
   },
-  deactivate (suppressType: boolean): void {
+  deactivate (onlySuppressRepeated: boolean): void {
     this.clean(this.pTimer < 0);
-    return VDom.UI.suppressTail(suppressType);
+    return VDom.UI.suppressTail(onlySuppressRepeated);
   },
   rotateHints (reverse?: boolean): void {
     let ref = this.hints as HintsNS.HintItem[], stacks = this.zIndexes;
