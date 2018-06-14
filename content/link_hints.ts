@@ -149,6 +149,7 @@ var VHints = {
 
     this.isActive = true;
     VUtils.push(this.onKeydown, this);
+    VEventMode.lock() && this.listenIME(true);
     return VEventMode.onWndBlur(this.ResetMode);
   },
   setModeOpt (count: number, options: HintsNS.Options): void {
