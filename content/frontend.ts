@@ -922,7 +922,10 @@ Pagination = {
     box.innerHTML = html;
     hide = VUtils.Stop;
     box.onclick = hide;
-    box.addEventListener("wheel", hide, {passive: true, capture: true});
+    for (let i of ["mousedown", "mouseup", "wheel", "contextmenu"]) {
+      // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
+      box.addEventListener(i, hide, {passive: true, capture: true});
+    }
     VSettings.cache.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToDocument ||
     box.addEventListener("DOMActivate", ELs.onActivate, true);
 
