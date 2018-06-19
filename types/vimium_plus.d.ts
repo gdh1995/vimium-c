@@ -451,6 +451,7 @@ declare const enum BrowserVer {
   MinWarningWebkitGradient = 60, // only happened on a Canary version
   // the 5 below are correct even if EXPERIMENTAL or LEAGCY
   MinNoBorderForBrokenImage = 60,
+  MinOmniboxUIMaxAutocompleteMatchesMayBe12 = 60, // #omnibox-ui-max-autocomplete-matches,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
   // DevicePixelRatioImplyZoomOfDocEl is confirmed on Chrome LATEST_TESTED
   MinDevicePixelRatioImplyZoomOfDocEl = 61,

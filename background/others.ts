@@ -196,7 +196,9 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     , suggestions = null as chrome.omnibox.SuggestResult[] | null, cleanTimer = 0, inputTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , firstType: CompletersNS.ValidTypes | "";
-  const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" };
+  const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
+  maxResults = Settings.CONST.ChromeVersion < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
+  ;
   function formatSessionId(sug: Suggestion) {
     if (sug.sessionId != null) {
       (sessionIds as SafeDict<string | number>)[sug.url] = sug.sessionId;
@@ -312,7 +314,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
         || !key.startsWith(last as string) ? "omni"
       : matchType === CompletersNS.MatchType.searchWanted ? "search"
       : firstType || "omni";
-    return Completers.filter(key, { type, maxResults: 6, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
+    return Completers.filter(key, { type, maxResults, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     text = text.trim().replace(Utils.spacesRe, " ");
