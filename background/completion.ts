@@ -1,5 +1,18 @@
 import Domain = CompletersNS.Domain;
 import MatchType = CompletersNS.MatchType;
+declare namespace CompletersNS {
+  const enum RankingEnums {
+    timeCalibrator = 1814400000, // 21 days
+    recCalibrator = 2 / 3,
+    anywhere = 1,
+    startOfWord = 1,
+    wholeWord = 1,
+    maximumScore = 3,
+  }
+  const enum InnerConsts {
+    bookmarkBasicDelay = 60000, bookmarkFurtherDelay = bookmarkBasicDelay * 2,
+  }
+}
 
 setTimeout((function (): void {
 
@@ -21,6 +34,8 @@ interface Bookmark extends DecodedItem {
   readonly text: string;
   readonly path: string;
   readonly title: string;
+  readonly jsUrl: string | null;
+  readonly jsText: string | null;
 }
 interface JSBookmark extends Bookmark {
   readonly jsUrl: string;
@@ -216,9 +231,6 @@ SuggestionUtils = {
   ComputeWordRelevancy (this: void, suggestion: CompletersNS.CoreSuggestion): number {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
   },
-  ComputeTimeRelevancy (this: void, _0: string, _1: string, lastVisitTime: number): number {
-    return RankingUtils.recencyScore(lastVisitTime);
-  },
   ComputeRelevancy (this: void, text: string, title: string, lastVisitTime: number): number {
     const recencyScore = RankingUtils.recencyScore(lastVisitTime),
       wordRelevancy = RankingUtils.wordRelevancy(text, title);
@@ -254,7 +266,7 @@ bookmarks: {
       if (!RankingUtils.Match2(i.text, title)) { continue; }
       const sug = new Suggestion("bookm", i.url, i.text, title, c);
       results.push(sug);
-      if ((i as JSBookmark).jsUrl == null) { continue; }
+      if (i.jsUrl === null) { continue; }
       (sug as CompletersNS.WritableCoreSuggestion).url = (i as JSBookmark).jsUrl;
       sug.title = SuggestionUtils.cutTitle(sug.title);
       sug.textSplit = "javascript: …";
@@ -321,26 +333,24 @@ bookmarks: {
       this.path = oldPath;
       return;
     }
-    const url = bookmark.url as string, jsSchema = "javascript:",
-    bookm: Bookmark = url.startsWith(jsSchema) ? {
+    const url = bookmark.url as string, jsSchema = "javascript:";
+    this.bookmarks.push(url.startsWith(jsSchema) ? {
       url: jsSchema, text: jsSchema, path, title,
       jsUrl: url, jsText: Utils.DecodeURLPart(url)
-    } as JSBookmark : {
-      url, text: url, path, title
-    };
-    this.bookmarks.push(bookm);
+    } : {
+      url, text: url, path, title, jsUrl: null, jsText: null
+    });
   },
   _timer: 0,
   _stamp: 0,
-  _wait: 60000,
   Later (): void {
     const _this = Completers.bookmarks, last = Date.now() - _this._stamp;
     if (this.status !== BookmarkStatus.notInited) { return; }
-    if (last >= _this._wait || last < 0) {
+    if (last >= CompletersNS.InnerConsts.bookmarkBasicDelay || last < 0) {
       this._timer = 0;
       _this.refresh();
     } else {
-      _this._timer = setTimeout(_this.Later, _this._wait);
+      _this._timer = setTimeout(_this.Later, CompletersNS.InnerConsts.bookmarkBasicDelay);
     }
   },
   Delay (): void {
@@ -348,7 +358,7 @@ bookmarks: {
     _this._stamp = Date.now();
     if (_this.status < BookmarkStatus.inited) { return; }
     _this.reset();
-    _this._timer = setTimeout(_this.Later, _this._wait * 2);
+    _this._timer = setTimeout(_this.Later, CompletersNS.InnerConsts.bookmarkFurtherDelay);
   },
   reset (): void {
     const dict = Decoder.dict, ref = HistoryCache.history || [], bs = HistoryCache.binarySearch;
@@ -389,27 +399,23 @@ history: {
     } else if (chrome.sessions) {
       chrome.sessions.getRecentlyClosed(this.loadSessions.bind(this, query));
     } else {
-      return this.filterFill([], query, {}, 0);
+      return this.filterFill([], query, {}, 0, 0);
     }
   },
   quickSearch (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
-    let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0);
-    const results = [0.0, 0], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2;
-    let getRele: ((text: string, title: string, lastVisitTime: number) => number)
-      | ((sug: CompletersNS.CoreSuggestion, score: number) => number), i = 0, j: number;
-    getRele = SuggestionUtils.ComputeRelevancy;
-    if (queryTerms.length === 1) {
-      Utils.convertToUrl(queryTerms[0], null, Urls.WorkType.KeepAll);
-      if (Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl) {
-        getRele = SuggestionUtils.ComputeTimeRelevancy;
-      }
-    }
-    for (j = maxNum; --j; ) { results.push(0.0, 0); }
+    const onlyUseTime = queryTerms.length == 1 && (
+      (Utils.convertToUrl(queryTerms[0], null, Urls.WorkType.KeepAll), Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl)
+    ),
+    results = [0.0, 0.0], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2,
+    parts0 = RegExpCache.parts[0], getRele = SuggestionUtils.ComputeRelevancy;
+    let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0)
+      , i = 0, j = 0;
+    for (j = maxNum; --j; ) { results.push(0.0, 0.0); }
     maxNum = maxNum * 2 - 2;
     for (const len = history.length; i < len; i++) {
       const item = history[i];
-      if (!Match2(item.text, item.title)) { continue; }
-      const score = getRele(item.text, item.title, item.visit);
+      if (onlyUseTime ? !parts0.test(item.text) : !Match2(item.text, item.title)) { continue; }
+      const score = onlyUseTime ? RankingUtils.recencyScore(item.visit) : getRele(item.text, item.title, item.visit);
       if (results[maxNum] >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
         results[j + 2] = results[j], results[j + 3] = results[j + 1];
@@ -417,7 +423,7 @@ history: {
       results[j + 2] = score;
       results[j + 3] = i;
     }
-    getRele = this.getExtra;
+    const getExtra = this.getExtra;
     if (queryType === FirstQuery.history) {
       i = offset * 2;
       offset = 0;
@@ -428,14 +434,14 @@ history: {
       const score = results[i];
       if (score <= 0) { break; }
       const item = history[results[i + 1]];
-      sugs.push(new Suggestion("history", item.url, item.text, item.title, getRele, score));
+      sugs.push(new Suggestion("history", item.url, item.text, item.title, getExtra, score));
     }
     Decoder.continueToWork();
     return sugs;
   },
   loadTabs (query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
-    const arr: Dict<number> = {};
+    const arr: SafeDict<number> = Object.create(null);
     let count = 0;
     for (const { url, incognito } of tabs) {
       if ((incognito && inNormal) || (url in arr)) { continue; }
@@ -453,13 +459,13 @@ history: {
       arr[entry.url] = 1;
       ++i > 0 && historys.push(entry);
       return historys.length >= maxResults;
-    }) ? this.filterFinish(historys) : this.filterFill(historys as UrlItem[], query, arr, -i);
+    }) ? this.filterFinish(historys) : this.filterFill(historys as UrlItem[], query, arr, -i, 0);
   },
   filterFill (historys: UrlItem[], query: CompletersNS.QueryStatus, arr: Dict<number>,
-      cut: number, neededMore?: number): void {
+      cut: number, neededMore: number): void {
     chrome.history.search({
       text: "",
-      maxResults: offset + maxResults + ((neededMore as number) | 0)
+      maxResults: offset + maxResults + neededMore
     }, function(historys2: chrome.history.HistoryItem[] | UrlItem[]): void {
       if (query.isOff) { return; }
       historys2 = (historys2 as UrlItem[]).filter(Completers.history.urlNotIn, arr);
@@ -514,7 +520,7 @@ domains: {
       }
       return Completers.next([]);
     }
-    RankingUtils.maxScoreP = RankingUtils.maximumScore;
+    RankingUtils.maxScoreP = CompletersNS.RankingEnums.maximumScore;
     for (const domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
       const score = SuggestionUtils.ComputeRelevancy(domain, "", (d = ref[domain]).time);
@@ -580,7 +586,7 @@ domains: {
     else if (url.startsWith("ftp://")) { d = Urls.SchemaId.FTP; }
     else { return null; }
     url = url.substring(d, url.indexOf('/', d));
-    return { domain: url !== "__proto__" ? url : ".__proto__", schema: d};
+    return { domain: url !== "__proto__" ? url : ".__proto__", schema: d };
   },
   compute2 (): number { return 2; }
 },
@@ -679,8 +685,8 @@ searchEngines: {
       }
       return Completers.next([]);
     } else {
-      maxResults--;
       autoSelect = true;
+      maxResults--;
       if (queryType === FirstQuery.waitFirst) { q.push(rawMore); offset = 0; }
       q.length > 1 ? (queryType = FirstQuery.searchEngines) : (matchType = MatchType.reset);
     }
@@ -693,7 +699,6 @@ searchEngines: {
     } else {
       q = [];
     }
-    
 
     let { url, indexes } = Utils.createSearch(q, pattern.url, []), text = url;
     if (keyword === "~") {}
@@ -736,20 +741,20 @@ searchEngines: {
     if (!promise) {
       return Completers.next([sug]);
     }
-    promise.then(this.onPrimose.bind(this, query, [sug]))
+    promise.then(this.onPrimose.bind(this, query, sug));
   },
-  onPrimose (query: CompletersNS.QueryStatus, output: Suggestion[], arr: Urls.MathEvalResult): void {
+  onPrimose (query: CompletersNS.QueryStatus, output: Suggestion, arr: Urls.MathEvalResult): void {
     if (query.isOff) { return; }
     const result = arr[0];
     if (!result) {
-      return Completers.next(output);
+      return Completers.next([output]);
     }
     const sug = new Suggestion("math", "vimium://copy " + result, result, result, this.compute9);
-    output.push(sug);
     --sug.relevancy;
     sug.title = "<match style=\"text-decoration: none;\">" + Utils.escapeText(sug.title) + "<match>";
     sug.textSplit = Utils.escapeText(arr[2]);
-    return Completers.next(output);
+    maxResults--;
+    return Completers.next([output, sug]);
   },
   searchKeywordMaxLength: 0,
   timer: 0,
@@ -837,8 +842,8 @@ searchEngines: {
       Completers.searchEngines.preFilter(query);
       i = 1;
     }
-    RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
-    RankingUtils.maxScoreP = RankingUtils.maximumScore * queryTerms.length || 0.01;
+    RankingUtils.timeAgo = Date.now() - CompletersNS.RankingEnums.timeCalibrator;
+    RankingUtils.maxScoreP = CompletersNS.RankingEnums.maximumScore * queryTerms.length || 0.01;
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(this.protoRe, " __proto_").trimLeft().split(" ");
     }
@@ -881,7 +886,7 @@ searchEngines: {
     }
   },
   finish (): void {
-    let suggestions = this.suggestions as Suggestion[], func, newAutoSelect, newMatchType;
+    let suggestions = this.suggestions as Suggestion[];
     this.suggestions = null;
     suggestions.sort(this.rsortByRelevancy);
     if (offset > 0) {
@@ -900,11 +905,11 @@ searchEngines: {
     }
     suggestions.forEach(SuggestionUtils.prepareHtml, SuggestionUtils);
 
-    newAutoSelect = autoSelect && suggestions.length > 0;
+    const newAutoSelect = autoSelect && suggestions.length > 0,
     newMatchType = matchType < MatchType.plain ? (matchType === MatchType._searching
         && suggestions.length === 0 ? MatchType.searchWanted : MatchType.Default)
       : suggestions.length === 0 ? queryTerms.length > 0 ? MatchType.emptyResult : MatchType.Default
-      : this.sugCounter === 1 ? MatchType.singleMatch : MatchType.Default;
+      : this.sugCounter === 1 ? MatchType.singleMatch : MatchType.Default,
     func = this.callback as CompletersNS.Callback;
     this.cleanGlobals();
     return func(suggestions, newAutoSelect, newMatchType);
@@ -914,6 +919,7 @@ searchEngines: {
     queryTerms = [];
     rawQuery = rawMore = "";
     RegExpCache.parts = null as never;
+    RankingUtils.maxScoreP = CompletersNS.RankingEnums.maximumScore;
     RankingUtils.timeAgo = this.sugCounter = matchType =
     maxResults = maxTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
@@ -984,22 +990,17 @@ searchEngines: {
       }
       return true;
     },
-    anywhere: 1,
-    startOfWord: 1,
-    wholeWord: 1,
-    maximumScore: 3,
-    maxScoreP: 3,
-    recCalibrator: 2.0 / 3.0,
+    maxScoreP: CompletersNS.RankingEnums.maximumScore,
     _emptyScores: [0, 0] as [number, number],
     scoreTerm (term: number, string: string): [number, number] {
       let count = 0, score = 0;
       count = string.split(RegExpCache.parts[term]).length;
       if (count < 1) { return this._emptyScores; }
-      score = this.anywhere;
+      score = CompletersNS.RankingEnums.anywhere;
       if (RegExpCache.starts[term].test(string)) {
-        score += this.startOfWord;
+        score += CompletersNS.RankingEnums.startOfWord;
         if (RegExpCache.words[term].test(string)) {
-          score += this.wholeWord;
+          score += CompletersNS.RankingEnums.wholeWord;
         }
       }
       return [score, (count - 1) * queryTerms[term].length];
@@ -1022,11 +1023,10 @@ searchEngines: {
       titleScore = titleScore / this.maxScoreP * this.normalizeDifference(titleCount, title.length);
       return (urlScore < titleScore) ? titleScore : ((urlScore + titleScore) / 2);
     },
-    timeCalibrator: 1814400000, // 21 days
     timeAgo: 0,
     recencyScore (lastAccessedTime: number): number {
-      const score = Math.max(0, lastAccessedTime - this.timeAgo) / this.timeCalibrator;
-      return score * score * this.recCalibrator;
+      const score = Math.max(0, lastAccessedTime - this.timeAgo) / CompletersNS.RankingEnums.timeCalibrator;
+      return score * score * CompletersNS.RankingEnums.recCalibrator;
     },
     normalizeDifference (a: number, b: number): number {
       return a < b ? a / b : b / a;

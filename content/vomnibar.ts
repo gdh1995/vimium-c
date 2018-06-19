@@ -110,6 +110,7 @@ var Vomnibar = {
   hide (fromInner?: 1): void {
     const active = this.status > VomnibarNS.Status.Inactive;
     this.status = VomnibarNS.Status.Inactive;
+    this.screenHeight = 0;
     this.defaultTop = "";
     if (fromInner == null) {
       active && this.port.postMessage<"hide">("hide");

@@ -111,8 +111,7 @@ declare namespace VomnibarNS {
   const enum Status {
     NeedRedo = -3,
     KeepBroken = -2,
-    Default = -1,
-    NotInited = Default,
+    NotInited = -1,
     Inactive = 0,
     Initing = 1,
     ToShow = 2,

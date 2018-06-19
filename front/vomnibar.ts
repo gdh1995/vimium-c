@@ -164,6 +164,7 @@ var Vomnibar = {
     this.zoomLevel = 1;
     this.completions = this.onUpdate = this.isHttps = this.baseHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = this.lastNormalInput = "";
+    this.isSearchOnTop = false;
     this.modeType = this.mode.type = "omni";
     this.doEnter && setTimeout(this.doEnter, 0);
     this.doEnter = null;

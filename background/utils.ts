@@ -276,7 +276,7 @@ var Utils = {
       : Urls.TldType.NotTld;
   },
   isIPHost (hostname: string): boolean { return this._ipRe.test(hostname) || this._ipv6Re.test(hostname); },
-  _fileExtRe: <RegExpOne> /\.\w+$/,
+  commonFileExtRe: <RegExpOne>/\.[0-9A-Za-z]+$/,
   formatVimiumUrl (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, query = "", tempStr: string | undefined, path = fullpath.trim();
     if (!path) { return partly ? "" : location.origin + "/pages/"; }
@@ -285,7 +285,7 @@ var Utils = {
       query = path.substring(ind + 1).trim();
       path = path.substring(0, ind);
     }
-    if (!(this._fileExtRe.test(path) || this._queryRe.test(path))) {
+    if (!(this.commonFileExtRe.test(path) || this._queryRe.test(path))) {
       path = path.toLowerCase();
       if (tempStr = Settings.CONST.RedirectedUrls[path]) {
         path = tempStr;
