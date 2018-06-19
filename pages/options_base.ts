@@ -268,6 +268,7 @@ ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;
 if (bgSettings.CONST.ChromeVersion >= BrowserVer.MinSmartSpellCheck) {
   (document.documentElement as HTMLElement).removeAttribute("spellcheck");
 }
+$<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;
 
 if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
   || window.devicePixelRatio < 2 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
@@ -310,7 +311,6 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
     BG.Backend.focus(a);
     window.close();
   };
-  $<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;
   if (!ref) {
     return;
   }

@@ -559,6 +559,10 @@ $("#importButton").onclick = function(): void {
   opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
 };
 
+$("#browser").textContent = (navigator.appVersion.indexOf(" Edge/") > 0 ? "MS Edge"
+  : ((<RegExpOne>/\bChrom(e|ium)|\bFirefox\//).exec(navigator.appVersion) || ["Chrome"])[0]
+  ) + " " + bgSettings.CONST.ChromeVersion;
+
 function loadJS(file: string): HTMLScriptElement {
   const script = document.createElement("script");
   script.src = file;
