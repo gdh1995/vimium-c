@@ -403,7 +403,7 @@ history: {
     }
   },
   quickSearch (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
-    const onlyUseTime = queryTerms.length == 1 && (
+    const onlyUseTime = queryTerms.length == 1 && (queryTerms[0][0] === "." ? Utils.commonFileExtRe.test(queryTerms[0]) :
       (Utils.convertToUrl(queryTerms[0], null, Urls.WorkType.KeepAll), Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl)
     ),
     results = [0.0, 0.0], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2,
