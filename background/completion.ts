@@ -30,6 +30,7 @@ interface DecodedItem {
 }
 
 interface Bookmark extends DecodedItem {
+  readonly id: string;
   readonly url: string;
   readonly text: string;
   readonly path: string;
@@ -284,10 +285,10 @@ bookmarks: {
     return Completers.next(results);
   },
   Listen: function (): void {
-    const bookmarks = chrome.bookmarks, listener = Completers.bookmarks.Delay;
+    const bookmarks = chrome.bookmarks, listener = Completers.bookmarks.Delay, expire = Completers.bookmarks.Expire;
     bookmarks.onCreated.addListener(listener);
-    bookmarks.onRemoved.addListener(listener);
-    bookmarks.onChanged.addListener(listener);
+    bookmarks.onRemoved.addListener(expire);
+    bookmarks.onChanged.addListener(expire);
     bookmarks.onMoved.addListener(listener);
     bookmarks.onImportBegan.addListener(function(): void {
       chrome.bookmarks.onCreated.removeListener(Completers.bookmarks.Delay);
@@ -322,7 +323,7 @@ bookmarks: {
     }
   },
   traverseBookmark (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
-    const title = bookmark.title,  path = this.path + '/' + (title || bookmark.id);
+    const title = bookmark.title, id = bookmark.id, path = this.path + '/' + (title || id);
     if (bookmark.children) {
       const oldPath = this.path;
       if (2 < ++this.depth) {
@@ -333,16 +334,16 @@ bookmarks: {
       this.path = oldPath;
       return;
     }
-    const url = bookmark.url as string, jsSchema = "javascript:";
-    this.bookmarks.push(url.startsWith(jsSchema) ? {
-      url: jsSchema, text: jsSchema, path, title,
-      jsUrl: url, jsText: Utils.DecodeURLPart(url)
-    } : {
-      url, text: url, path, title, jsUrl: null, jsText: null
+    const url = bookmark.url as string, jsSchema = "javascript:", isJS = url.startsWith(jsSchema);
+    this.bookmarks.push({
+      id, path, title,
+      url: isJS ? jsSchema : url, text: isJS ? jsSchema : url,
+      jsUrl: isJS ? url : null, jsText: isJS ? Utils.DecodeURLPart(url) : null
     });
   },
   _timer: 0,
   _stamp: 0,
+  _expiredUrls: false,
   Later (): void {
     const _this = Completers.bookmarks, last = Date.now() - _this._stamp;
     if (this.status !== BookmarkStatus.notInited) { return; }
@@ -360,12 +361,45 @@ bookmarks: {
     _this.reset();
     _this._timer = setTimeout(_this.Later, CompletersNS.InnerConsts.bookmarkFurtherDelay);
   },
-  reset (): void {
-    const dict = Decoder.dict, ref = HistoryCache.history || [], bs = HistoryCache.binarySearch;
-    for (const { url } of this.bookmarks) {
-      if ((url in dict) && bs(url, ref) < 0) {
-        delete dict[url];
+  Expire (id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
+    const _this = Completers.bookmarks;
+    let node: {id: string, url?: string | void, title: string, text?: string, children?: any[] | void} | undefined;
+    if (info && (!(node = (info as chrome.bookmarks.BookmarkRemoveInfo).node) || node.url)) {
+      const arr = _this.bookmarks, len = arr.length, isRemoved = (info as chrome.bookmarks.BookmarkChangeInfo).title == null;
+      let i = 0, cur: Bookmark | null = null; for (; i < len; i++) { if (arr[i].id === id) { cur = arr[i]; break; } }
+      const url = cur ? cur.url : null, url2 = (info as any).url as string | undefined;
+      if (url && (isRemoved ? url !== (cur as any).text : url2 != null && url !== url2)) {
+        url in Decoder.dict && HistoryCache.binarySearch(url) < 0 && delete Decoder.dict[url];
+        if (!isRemoved) {
+          (cur as any).url = url2;
+          (cur as any).text = Decoder.decodeURL(url, a);
+          Decoder.continueToWork();
+        }
       }
+      if (isRemoved) {
+        cur && this.bookmarks.splice(i, 1);
+        return;
+      } else if (cur) {
+        const { title } = info as chrome.bookmarks.BookmarkChangeInfo;
+        if (cur.title !== title) {
+          (cur as any).title = title;
+          (cur as any).path = cur.path.substring(0, cur.path.lastIndexOf('/') + 1) + (title || cur.id);
+        }
+        return;
+      }
+    }
+    Completers.bookmarks._expiredUrls = true;
+    Completers.bookmarks.Delay();
+  },
+  reset (): void {
+    const dict = Decoder.dict, bs = HistoryCache.binarySearch;
+    if (this._expiredUrls) {
+      for (const { url } of this.bookmarks) {
+        if ((url in dict) && bs(url) < 0) {
+          delete dict[url];
+        }
+      }
+      this._expiredUrls = false;
     }
     this.bookmarks = [];
     this.status = BookmarkStatus.notInited;
@@ -538,9 +572,8 @@ domains: {
       result = (d.https ? "https://" : "http://") + result;
       sug = new Suggestion("domain", result, result, "", this.compute2);
       SuggestionUtils.prepareHtml(sug);
-      const cache = HistoryCache, his = cache.history as HistoryItem[],
-      ind = cache.binarySearch(result + "/", his);
-      ind < 0 || (sug.title = Utils.escapeText(his[ind].title));
+      const ind = HistoryCache.binarySearch(result + "/");
+      ind < 0 || (sug.title = Utils.escapeText((HistoryCache.history as HistoryItem[])[ind].title));
       --maxResults;
     }
     RankingUtils.maxScoreP = p;
@@ -1115,7 +1148,7 @@ searchEngines: {
     } as ((arr: chrome.history.HistoryItem[]) => void) | null,
     OnPageVisited (this: void, newPage: chrome.history.HistoryItem): void {
       const _this = HistoryCache, url = newPage.url, time = newPage.lastVisitTime,
-      d = _this.domains, i = _this.binarySearch(url, _this.history as HistoryItem[]);
+      d = _this.domains, i = _this.binarySearch(url);
       let j: HistoryItem;
       if (i < 0) { _this.toRefreshCount++; }
       if (_this.updateCount++ > 99) { _this.refreshInfo(); }
@@ -1147,9 +1180,10 @@ searchEngines: {
     },
     OnVisitRemoved (this: void, toRemove: chrome.history.RemovedResult): void {
       Decoder.todos.length = 0;
+      const d = Decoder.dict;
       if (toRemove.allHistory) {
         HistoryCache.history = [];
-        const d = Decoder.dict, d2 = Object.create<string>(null);
+        const d2 = Object.create<string>(null);
         for (const i of Completers.bookmarks.bookmarks) {
           const t = d[i.url]; t && (d2[i.url] = t);
         }
@@ -1160,10 +1194,10 @@ searchEngines: {
         binarySearch: typeof HistoryCache["binarySearch"], history: HistoryItem[]
       };
       for (const j of toRemove.urls) {
-        const i = bs(j, h);
+        const i = bs(j);
         if (i >= 0) {
           h.splice(i, 1);
-          delete Decoder.dict[j];
+          delete d[j];
         }
       }
     },
@@ -1187,7 +1221,7 @@ searchEngines: {
       const arr = HistoryCache.history as HistoryItem[], bs = HistoryCache.binarySearch;
       if (arr.length <= 0) { return; }
       for (const info of history) {
-        const j = bs(info.url, arr);
+        const j = bs(info.url);
         if (j < 0) {
           HistoryCache.OnPageVisited(info);
           continue;
@@ -1196,8 +1230,8 @@ searchEngines: {
         item.title !== info.title && info.title && (item.title = info.title);
       }
     },
-    binarySearch (this: void, u: string, a: HistoryItem[]): number {
-      let e = "", h = a.length - 1, l = 0, m = 0;
+    binarySearch (this: void, u: string): number {
+      let e = "", a = HistoryCache.history as HistoryItem[], h = a.length - 1, l = 0, m = 0;
       while (l <= h) {
         m = (l + h) >>> 1;
         e = a[m].url;

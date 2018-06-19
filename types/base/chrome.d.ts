@@ -67,6 +67,7 @@ declare namespace chrome.bookmarks {
     interface BookmarkRemoveInfo {
         index: number;
         parentId: string;
+        node?: BookmarkTreeNode;
     }
 
     interface BookmarkMoveInfo {
