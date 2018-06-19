@@ -82,7 +82,6 @@ var VHints = {
   modeOpt: null as HintsNS.ModeOpt | null,
   clicking: ClickingType.NotWantClickable,
   forHover: false,
-  imeListened: false,
   count: 0,
   lastMode: 0 as HintMode,
   tooHigh: false as null | boolean,
@@ -149,7 +148,6 @@ var VHints = {
 
     this.isActive = true;
     VUtils.push(this.onKeydown, this);
-    VEventMode.lock() && this.listenIME(true);
     return VEventMode.onWndBlur(this.ResetMode);
   },
   setModeOpt (count: number, options: HintsNS.Options): void {
@@ -627,6 +625,10 @@ var VHints = {
       this.clean();
     } else if ((i = event.keyCode) === VKeyCodes.esc) {
       return HandlerResult.Suppress;
+    } else if (i === VKeyCodes.ime) {
+      VHints.clean(true);
+      VHUD.showForDuration("LinkHints exits because you're inputing");
+      return HandlerResult.Nothing;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       this.ResetMode();
       if (i !== VKeyCodes.f2) { return HandlerResult.Nothing; }
@@ -694,12 +696,6 @@ var VHints = {
     }
     return HandlerResult.Prevent;
   },
-  OnIME(this: void): void {
-    if (VHints.isActive) {
-      VHints.clean(true);
-      VHUD.showForDuration("LinkHints exits because you're inputing");
-    }
-  },
   switchShadowVer(): boolean { // return true if fail
     let v1 = "* >>> ", v0 = "* /deep/ ", sign = v0;
     if (VSettings.cache.browserVer < BrowserVer.MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled) {
@@ -726,12 +722,6 @@ var VHints = {
     this.hints = this.zIndexes = null;
     this.pTimer > 0 && clearTimeout(this.pTimer);
     while (i < len) { (ref as HintsNS.HintItem[])[i++].target = null as never; }
-  },
-  listenIME (listen: boolean): void {
-    if (this.imeListened !== listen) {
-      (listen ? addEventListener : removeEventListener)("compositionstart", this.OnIME, true);
-      this.imeListened = listen;
-    }
   },
   activateLink (hintEl: HintsNS.HintItem): void {
     let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hintEl.target;
@@ -806,7 +796,6 @@ var VHints = {
     this.maxLeft = this.maxTop = this.maxRight = ks.tab = ks.newHintLength = alpha.countMax = 0;
     alpha.hintKeystroke = alpha.chars = "";
     this.isActive = this.noHUD = this.tooHigh = ks.known = false;
-    this.listenIME(false);
     VUtils.remove(this);
     VEventMode.onWndBlur(null);
     if (this.box) {
