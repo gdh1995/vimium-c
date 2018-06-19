@@ -213,7 +213,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       (this: void, port: Frames.Port, nolog?: false): boolean
     },
     PostCompletions (this: Port, favIcon0: 0 | 1 | 2, list: Readonly<Suggestion>[]
-        , autoSelect: boolean, matchType: CompletersNS.MatchType): void {
+        , autoSelect: boolean, matchType: CompletersNS.MatchType, total: number): void {
       let { url } = this.sender, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
       if (favIcon0 == 1 && Settings.CONST.ChromeVersion >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon) {
         url = url.substring(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
@@ -232,7 +232,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       Utils.resetRe();
       try {
-      this.postMessage({ name: "omni", autoSelect, matchType, list, favIcon });
+      this.postMessage({ name: "omni", autoSelect, matchType, list, favIcon, total });
       } catch (e) {}
     },
     indexFrame (this: void, tabId: number, frameId: number): Port | null {
@@ -1724,7 +1724,8 @@ Are you sure you want to continue?`);
     },
     omni (this: void, request: FgReq["omni"], port: Port): void {
       if (funcDict.checkVomnibarPage(port)) { return; }
-      return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port
+      return Completers.filter(request.query, request,
+      funcDict.PostCompletions.bind<Port, 0 | 1 | 2, Readonly<CompletersNS.Suggestion>[], boolean, CompletersNS.MatchType, number, void>(port
         , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
     },
     copy (this: void, request: FgReq["copy"]): void {

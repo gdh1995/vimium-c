@@ -86,6 +86,7 @@ interface BgVomnibarReq {
     autoSelect: boolean;
     matchType: CompletersNS.MatchType;
     favIcon: 0 | 1 | 2;
+    total: number;
   };
   returnFocus: {
     key: VKeyCodes;

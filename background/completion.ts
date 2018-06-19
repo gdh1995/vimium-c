@@ -108,7 +108,7 @@ type SearchSuggestion = CompletersNS.SearchSuggestion;
 
 let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType.plain,
     inNormal: boolean | null = null, autoSelect: boolean = false, singleLine: boolean = false,
-    maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, offset: number = 0,
+    maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
     queryTerms: QueryTerms = [""], rawQuery: string = "", rawMore: string = "";
 
 const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableCoreSuggestion,
@@ -273,6 +273,7 @@ bookmarks: {
       sug.textSplit = "javascript: …";
       sug.text = (i as JSBookmark).jsText;
     }
+    matchedTotal += results.length;
     if (queryType === FirstQuery.waitFirst || offset === 0) {
       results.sort(Completers.rsortByRelevancy);
       if (offset > 0) {
@@ -443,13 +444,14 @@ history: {
     results = [0.0, 0.0], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2,
     parts0 = RegExpCache.parts[0], getRele = SuggestionUtils.ComputeRelevancy;
     let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0)
-      , i = 0, j = 0;
+      , i = 0, j = 0, matched = 0;
     for (j = maxNum; --j; ) { results.push(0.0, 0.0); }
     maxNum = maxNum * 2 - 2;
     for (const len = history.length; i < len; i++) {
       const item = history[i];
       if (onlyUseTime ? !parts0.test(item.text) : !Match2(item.text, item.title)) { continue; }
       const score = onlyUseTime ? RankingUtils.recencyScore(item.visit) : getRele(item.text, item.title, item.visit);
+      matched++;
       if (results[maxNum] >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
         results[j + 2] = results[j], results[j + 3] = results[j + 1];
@@ -457,6 +459,7 @@ history: {
       results[j + 2] = score;
       results[j + 3] = i;
     }
+    matchedTotal += matched;
     const getExtra = this.getExtra;
     if (queryType === FirstQuery.history) {
       i = offset * 2;
@@ -550,7 +553,7 @@ domains: {
     let sug: Suggestion | undefined, result = "", d: Domain = null as Domain | null as Domain, result_score = -1;
     if (offset > 0) {
       for (const domain in ref) {
-        if (domain.indexOf(word) !== -1) { offset--; break; }
+        if (domain.indexOf(word) !== -1) { offset--; matchedTotal++; break; }
       }
       return Completers.next([]);
     }
@@ -561,6 +564,7 @@ domains: {
       if (score > result_score) { result_score = score; result = domain; }
     }
     if (result) {
+      matchedTotal++;
       if (result.length > word.length && !result.startsWith("www.") && !result.startsWith(word)) {
         let r2 = result.substring(result.indexOf(".") + 1);
         if (r2.indexOf(word) !== -1) {
@@ -643,6 +647,7 @@ tabs: {
         tabs.push(tab as TextTab);
       }
     }
+    matchedTotal += tabs.length;
     if (offset >= tabs.length) {
       if (queryType === FirstQuery.tabs) {
         offset = 0;
@@ -706,6 +711,7 @@ searchEngines: {
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
       autoSelect = true;
       maxResults--;
+      matchedTotal++;
       return Completers.next([sug]);
     } else {
       pattern = Settings.cache.searchEngineMap[keyword];
@@ -720,6 +726,7 @@ searchEngines: {
     } else {
       autoSelect = true;
       maxResults--;
+      matchedTotal++;
       if (queryType === FirstQuery.waitFirst) { q.push(rawMore); offset = 0; }
       q.length > 1 ? (queryType = FirstQuery.searchEngines) : (matchType = MatchType.reset);
     }
@@ -787,6 +794,7 @@ searchEngines: {
     sug.title = "<match style=\"text-decoration: none;\">" + Utils.escapeText(sug.title) + "<match>";
     sug.textSplit = Utils.escapeText(arr[2]);
     maxResults--;
+    matchedTotal++;
     return Completers.next([output, sug]);
   },
   searchKeywordMaxLength: 0,
@@ -938,14 +946,14 @@ searchEngines: {
     }
     suggestions.forEach(SuggestionUtils.prepareHtml, SuggestionUtils);
 
-    const newAutoSelect = autoSelect && suggestions.length > 0,
+    const newAutoSelect = autoSelect && suggestions.length > 0, matched = matchedTotal,
     newMatchType = matchType < MatchType.plain ? (matchType === MatchType._searching
         && suggestions.length === 0 ? MatchType.searchWanted : MatchType.Default)
       : suggestions.length === 0 ? queryTerms.length > 0 ? MatchType.emptyResult : MatchType.Default
       : this.sugCounter === 1 ? MatchType.singleMatch : MatchType.Default,
     func = this.callback as CompletersNS.Callback;
     this.cleanGlobals();
-    return func(suggestions, newAutoSelect, newMatchType);
+    return func(suggestions, newAutoSelect, newMatchType, matched);
   },
   cleanGlobals (): void {
     this.mostRecentQuery = this.callback = inNormal = null;
@@ -954,7 +962,7 @@ searchEngines: {
     RegExpCache.parts = null as never;
     RankingUtils.maxScoreP = CompletersNS.RankingEnums.maximumScore;
     RankingUtils.timeAgo = this.sugCounter = matchType =
-    maxResults = maxTotal = maxChars = 0;
+    maxResults = maxTotal = matchedTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
     autoSelect = singleLine = false;
   },
@@ -998,6 +1006,7 @@ searchEngines: {
     maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number>options.maxChars | 0) || 128, Consts.UpperBoundOfMaxChars));
     singleLine = !!options.singleLine;
     maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
+    matchedTotal = 0;
     Completers.callback = callback;
     let arr: ReadonlyArray<Completer> | null = null, str: string;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
