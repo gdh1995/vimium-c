@@ -75,10 +75,10 @@ html > count{float:right;}`,
     f("mousedown", this.OnMousedown, t);
     f("keydown", this.onKeydown.bind(this), t);
     f("input", this.onInput.bind(this), t);
-    f("keypress", s, t); f("keyup", s, t);
-    f("copy", s, t); f("cut", s, t);
     f("paste", this.OnPaste, t);
-    f("paste", s, t);
+    f("keypress", s, t); f("keyup", s, t);
+    f("mouseup", s, t); f("click", s, t); f("contextmenu", s, t);
+    f("copy", s, t); f("cut", s, t); f("paste", s, t);
     function onBlur(this: Window): void {
       if (VFindMode.isActive && Date.now() - now < 500) {
         let a = this.document.body;

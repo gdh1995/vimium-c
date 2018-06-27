@@ -798,6 +798,12 @@ var Vomnibar = {
       window.onfocus = null as never;
       if (e.isTrusted !== false && VPort.port) { return Vomnibar.refresh(17); }
     };
+  },
+  OnUnload (e: Event): void {
+    if (!VPort || e.isTrusted === false) { return; }
+    Vomnibar.isActive = false;
+    Vomnibar.timer > 0 && clearTimeout(Vomnibar.timer);
+    VPort.postToOwner({ name: "unload" });
   }
 },
 VUtils = {
@@ -870,12 +876,6 @@ VPort = {
     port.onDisconnect.addListener(this.ClearPort);
     port.onMessage.addListener(this.Listener as (message: object) => void);
     return port;
-  },
-  OnUnload (e: Event): void {
-    if (!VPort || e.isTrusted === false) { return; }
-    Vomnibar.isActive = false;
-    Vomnibar.timer > 0 && clearTimeout(Vomnibar.timer);
-    VPort.postToOwner({ name: "unload" });
   }
 };
 "".startsWith || (String.prototype.startsWith = function(this: string, s: string): boolean {
@@ -925,7 +925,7 @@ VPort = {
     Vomnibar.sameOrigin = !!port.sameOrigin;
     VPort.postToOwner = port.postMessage.bind(port);
     port.onmessage = VPort.OnOwnerMessage;
-    window.onunload = VPort.OnUnload;
+    window.onunload = Vomnibar.OnUnload;
     if (options) {
       return Vomnibar.activate(options);
     } else {
