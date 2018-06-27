@@ -317,7 +317,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   blockedMsg.remove();
   blockedMsg = null as never;
 
-const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions, escapeRe = <RegExpG & RegExpSearchable<0>> /[&<>]/g,
+const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions,
 exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   url: ref[0].sender.url,
   init (this: PopExclusionRulesOption, element: HTMLElement
@@ -385,21 +385,31 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
 }, ExclusionRulesOption.prototype);
 
   let saved = true;
-  function escapeCallback(c: string): string {
-    const n = c.charCodeAt(0);
-    return n === KnownKey.lt ? "&lt;" : n === KnownKey.gt ? "&gt;" : "&amp;";
+  function collectPass(pass: string): string {
+    pass = pass.trim();
+    const dict = Object.create<1>(null);
+    for (let i of pass.split(" ")) {
+      const n = i.charCodeAt(0);
+      i = n === KnownKey.lt ? "&lt;" : n === KnownKey.gt ? "&gt;" : n === KnownKey.and ? "&amp;" : i;
+      dict[i] = 1;
+    }
+    return Object.keys(dict).join(" ");
   }
   function updateState(): void {
     const pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
     $("#state").innerHTML = '<span class="Vim">Vim</span>ium++ will ' + (pass
-      ? `exclude: <span class="state-value code">${pass.trim().replace(escapeRe, escapeCallback)}</span>`
+      ? `exclude: <span class="state-value code">${collectPass(pass)}</span>`
       : `be:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
   }
   function onUpdated(this: void): void {
     if (saved) {
       saved = false;
       const btn = $("#saveOptions");
-      $("#helpSpan").innerHTML = "Type <strong><kbd>Ctrl-Enter</kbd></strong> to save and close.";
+      let el = $("#helpSpan");
+      if (el) {
+        (el.nextElementSibling as HTMLElement).style.display = "";
+        el.remove();
+      }
       btn.removeAttribute("disabled");
       (btn.firstChild as Text).data = "Save Changes";
     }
