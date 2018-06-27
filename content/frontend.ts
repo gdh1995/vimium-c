@@ -445,6 +445,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       });
     },
     focusInput (count: number, options: FgOptions): void {
+      InsertMode.inputHint && (InsertMode.inputHint.hints = null as never);
       const arr: ViewOffset = VDom.getViewBox();
       VDom.prepareCrop();
       const visibleInputs = VHints.traverse("*", VHints.GetEditable, true),
@@ -481,11 +482,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       // delay exiting the old to avoid some layout actions
       // although old elements can not be GC-ed before this line, it has little influence
       InsertMode.exitInputHint();
-      InsertMode.inputHint = box;
+      InsertMode.inputHint = { box, hints };
       VUtils.push(function(event) {
-        const { keyCode } = event, oldSel = sel;
+        const { keyCode } = event;
         if (keyCode === VKeyCodes.tab) {
-          sel = (sel + (event.shiftKey ? -1 : 1)) % hints.length;
+          const hints = this.hints, oldSel = sel;
+          sel = (oldSel + (event.shiftKey ? -1 : 1)) % hints.length;
           InsertMode.hinting = true;
           VDom.UI.simulateSelect(hints[sel].target, null, false, action);
           hints[oldSel].marker.classList.remove("S");
@@ -499,7 +501,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         else if (event.repeat) { return HandlerResult.Prevent; }
         else if (keep ? VKeyboard.isEscape(event) || (
             keyCode === VKeyCodes.enter && (keyStat = VKeyboard.getKeyStat(event),
-              keyStat !== KeyStat.shiftKey && (keyStat !== KeyStat.plain || hints[sel].target instanceof HTMLInputElement) )
+              keyStat !== KeyStat.shiftKey && (keyStat !== KeyStat.plain || this.hints[sel].target instanceof HTMLInputElement) )
           ) : keyCode !== VKeyCodes.ime && keyCode !== VKeyCodes.f12
         ) {
           InsertMode.exitInputHint();
@@ -507,7 +509,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
             : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
         }
         return HandlerResult.Nothing;
-      }, box);
+      }, InsertMode.inputHint);
     }
   },
 
@@ -515,7 +517,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     grabFocus: document.readyState !== "complete",
     global: null as CmdOptions["enterInsertMode"] | null,
     hinting: false,
-    inputHint: null as HTMLDivElement | null,
+    inputHint: null as { box: HTMLDivElement, hints: HintsNS.HintItem[] } | null,
     suppressType: null as string | null,
     last: null as LockableElement | null,
     lock: null as LockableElement | null,
@@ -605,11 +607,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     onExitSuppress: null as ((this: void) => void) | null,
     exitInputHint (): void {
-      let box = this.inputHint;
-      if (!box) { return; }
+      let hint = this.inputHint;
+      if (!hint) { return; }
       this.inputHint = null;
-      box.remove();
-      VUtils.remove(box);
+      hint.box.remove();
+      VUtils.remove(hint);
     }
   },
 
