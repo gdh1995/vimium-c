@@ -216,7 +216,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         , sr = (target as Element).shadowRoot;
       if (InsertMode.lock === (same ? target : top)) {
         InsertMode.lock = null;
-        InsertMode.inputHint && !InsertMode.hinting && InsertMode.exitInputHint();
+        InsertMode.inputHint && !InsertMode.hinting && document.hasFocus() && InsertMode.exitInputHint();
       }
       if (!(sr !== null && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
       let wrapper = ELs.wrap();
