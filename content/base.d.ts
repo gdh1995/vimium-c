@@ -246,7 +246,7 @@ interface DomUI {
   moveSel (this: DomUI, element: Element, action: SelectActions | undefined): void;
   getVRect (this: void, clickEl: Element, refer?: HTMLElementUsingMap): VRect | null;
   flash (this: DomUI, el: null, rect: VRect): number;
-  flash (this: DomUI, el: Element): number | void;
+  flash (this: DomUI, el: Element): HTMLElement | void;
   suppressTail (this: void, onlyRepeated: boolean): void;
   SuppressMost: HandlerNS.Handler<object>;
 }

@@ -202,7 +202,7 @@ VDom.UI = {
     return rect && !VDom.isContaining(bcr, rect) ? rect : VDom.NotVisible(null, cr) ? null : bcr;
   },
   _lastFlash: null,
-  flash: function (this: DomUI, el: Element | null, rect?: VRect | null): number | void {
+  flash: function (this: DomUI, el: Element | null, rect?: VRect | null): HTMLElement | void {
     rect || (rect = this.getVRect(el as Element));
     if (!rect) { return; }
     const flashEl = VDom.createElement("div"), nfs = !document.webkitIsFullScreen;
@@ -211,10 +211,11 @@ VDom.UI = {
     VDom.bZoom !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom);
     this.addElement(flashEl);
     this._lastFlash = flashEl;
-    return setTimeout(() => {
+    setTimeout(() => {
       this._lastFlash === flashEl && (this._lastFlash = null);
       flashEl.remove();
     }, this.flashLastingTime);
+    return flashEl;
   } as DomUI["flash"],
   suppressTail (this: void, onlyRepeated: boolean): void {
     let func: HandlerNS.Handler<Function>, tick: number, timer: number;

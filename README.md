@@ -63,9 +63,9 @@ __Other extensions supporting Vimium++:__
 Known issues (Up to the master branch):
 1. Chrome before version 49 has bugs in `Window.postMessage` if the flag `#enable-site-per-process` is on,
   which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Options pages.
-2. the Chrome flag `#enable-embedded-extension-options` has a bug about dialog width on high-DPI screen,
+2. the Chrome flag `#enable-embedded-extension-options` has a bug about dialog width on high-DPI screens,
   which can not be worked-around before Chrome 42.
-3. If an extension page is the preferred Vomnibar page, and the extension is disabled in incognito mode,
+3. If a page in another extension is the preferred Vomnibar page, and the extension is disabled in incognito mode,
   Vomnibar might break in such a situation, and there seems no way to detect it.
   So Vimium++ has disabled other extension Vomnibar pages in incognito mode.
 4. If a http/file/... Vomnibar page is preferred, then there're some cases where it breaks,
@@ -81,6 +81,10 @@ Known issues (Up to the master branch):
 7. On sandboxed pages without an `allow-scripts` permission in their CSP,
   HUD will always be visible in order to solve some issues on Chrome.
 8. Chrome 64 and 65 always clean their console logs if only Vomnibar is opened, and there's nothing we can do for it.
+  Chrome 66 fixes it.
+
+1.69:
+* fix the broken sync feature, which didn't work if only key mappings / exclusion rules were changed
 
 1.67:
 * Now most commands support negative count, and `'-'` is used to begin a negative count.
@@ -92,7 +96,7 @@ Known issues (Up to the master branch):
 * parse url-in-text shared from Baidu Net Disk; add vimium://avg to compute math average quickly
 * fix tons of bugs, including that settings can't be exported on Chrome 65
 * fix that `LinkHints` couldn't click targets before Chrome 41
-* fix many crashes on old versions and uncommon flags of Chrome
+* fix many crashes on old versions and rarely-used flags of Chrome
 
 1.64.1:
 * global shortcuts support count prefix and custom options
