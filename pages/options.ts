@@ -543,16 +543,18 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   function onBeforeUnload(): string {
     return "You have unsaved changes to options.";
   }
+
+  element = $<HTMLAnchorElement>("#openExtensionPage");
+  if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredChromeUrl$ExtensionShortcuts) {
+    (element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
+    (element.parentElement as HTMLElement).insertBefore(document.createTextNode('"Keyboard shortcuts" of '), element);
+  }
+  (element as HTMLAnchorElement).onclick = function(event): void {
+    event.preventDefault();
+    return BG.Backend.focus({ url: this.href, reuse: ReuseType.reuse, prefix: true });
+  }
 })();
 
-if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredChromeUrl$ExtensionShortcuts) {
-  $<HTMLAnchorElement>("#openExtensionPage").href = "chrome://extension/?id=footer-section";
-  $("#openExtensionPage").textContent = "chrome://extension";
-}
-$<HTMLAnchorElement>("#openExtensionPage").onclick = function(event): void {
-  event.preventDefault();
-  return BG.Backend.focus({ url: this.href, reuse: ReuseType.reuse, prefix: true });
-}
 
 $("#importButton").onclick = function(): void {
   const opt = $<HTMLSelectElement>("#importOptions");
