@@ -602,9 +602,9 @@ domains: {
       if (slot) {
         if (slot.time < time) { slot.time = time; }
         ++slot.count;
-        if (schema >= Urls.SchemaId.HTTP) { slot.https = schema === Urls.SchemaId.HTTPS; }
+        if (schema >= Urls.SchemaId.HTTP) { slot.https = schema === Urls.SchemaId.HTTPS ? 1 : 0; }
       } else {
-        d[domain] = {time, count: 1, https: schema === Urls.SchemaId.HTTPS};
+        d[domain] = {time, count: 1, https: schema === Urls.SchemaId.HTTPS ? 1 : 0};
       }
     }
     chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);
@@ -1176,9 +1176,9 @@ searchEngines: {
         else if (slot = d[domain.domain]) {
           slot.time = time;
           if (i < 0) { ++slot.count; }
-          if (domain.schema >= Urls.SchemaId.HTTP) { slot.https = domain.schema === Urls.SchemaId.HTTPS; }
+          if (domain.schema >= Urls.SchemaId.HTTP) { slot.https = domain.schema === Urls.SchemaId.HTTPS ? 1 : 0; }
         } else {
-          d[domain.domain] = { time, count: 1, https: domain.schema === Urls.SchemaId.HTTPS };
+          d[domain.domain] = { time, count: 1, https: domain.schema === Urls.SchemaId.HTTPS ? 1 : 0 };
         }
       }
       if (i >= 0) {

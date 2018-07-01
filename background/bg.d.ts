@@ -233,7 +233,7 @@ declare namespace CompletersNS {
   interface Domain {
     time: number;
     count: number;
-    https: boolean;
+    https: BOOL;
   }
 
   type Callback = (this: void, sugs: Readonly<Suggestion>[],
