@@ -6,10 +6,12 @@ declare const enum OmniboxData {
   PreservedTitle = 16,
 }
 
-if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storage) { return; }
+if (Settings.get("vimSync")) setTimeout(function() {
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
+  Utils.GC();
+  if (!chrome.storage) { return; }
   const Sync = {
     storage: chrome.storage.sync,
     to_update: null as SettingsToUpdate | null,
@@ -427,7 +429,6 @@ setTimeout(function() {
 }, 500);
 });
 
-if (chrome.extension.getViews)
 Utils.GC = function(): void {
   let timestamp = 0, timeout = 0;
   Utils.GC = function(): void {
@@ -444,13 +445,14 @@ Utils.GC = function(): void {
       return;
     }
     timeout = 0;
-    const existing = chrome.extension.getViews().filter(function (wnd): boolean {
+    const existing = chrome.extension.getViews
+    ? chrome.extension.getViews().filter(function (wnd): boolean {
       return wnd.location.pathname.startsWith("/pages/");
-    }).length > 0;
+    }).length > 0 : false;
     if (existing) { return; }
     Settings.updateHooks.keyMappings = void 0 as never;
     Commands = null as never;
-    if (Exclusions && !Settings.get("exclusionRules").length) {
+    if (Exclusions && Exclusions.rules.length === 0) {
       Exclusions.destroy();
       Exclusions = null as never;
     }

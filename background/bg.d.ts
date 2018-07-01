@@ -349,11 +349,9 @@ declare namespace SettingsNS {
   interface FullCache extends Partial<FullSettings>, SafeObject {
     innerCSS: FullSettings["innerCSS"];
     newTabUrl_f: FullSettings["newTabUrl_f"];
-    searchKeywords: FullSettings["searchKeywords"];
     searchEngineMap: FullSettings["searchEngineMap"];
     searchEngineRules: FullSettings["searchEngineRules"];
     vomnibarPage_f: FullSettings["vomnibarPage_f"];
-    exclusionRules: FullSettings["exclusionRules"];
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |

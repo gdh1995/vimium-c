@@ -409,9 +409,12 @@ if (document.readyState !== "complete") {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   Commands.defaultKeyMappings = null as never;
   Commands.populateCommandKeys();
-  Commands = null as never;
+  if (!Settings.get("vimSync")) {
+    Commands = null as never;
+  }
   chrome.commands && chrome.commands.onCommand.addListener(Backend.ExecuteGlobal);
-} else
+}
+if (Commands)
 Settings.updateHooks.keyMappings = function(value: string): void {
   Commands.parseKeyMappings(value);
   Commands.populateCommandKeys();
