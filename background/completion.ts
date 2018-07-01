@@ -261,22 +261,18 @@ bookmarks: {
   },
   StartsWithSlash (str: string): boolean { return str.charCodeAt(0) === KnownKey.slash; },
   performSearch (): void {
-    const c = SuggestionUtils.ComputeWordRelevancy, isPath = queryTerms.some(this.StartsWithSlash);
-    let results: Suggestion[] = [];
-    for (const i of this.bookmarks) {
+    const isPath = queryTerms.some(this.StartsWithSlash);
+    const arr = this.bookmarks, len = arr.length;
+    let results: [number, number][] = [];
+    for (let ind = 0; ind < len; ind++) {
+      const i = arr[ind];
       const title = isPath ? i.path : i.title;
       if (!RankingUtils.Match2(i.text, title)) { continue; }
-      const sug = new Suggestion("bookm", i.url, i.text, title, c);
-      results.push(sug);
-      if (i.jsUrl === null) { continue; }
-      (sug as CompletersNS.WritableCoreSuggestion).url = (i as JSBookmark).jsUrl;
-      sug.title = SuggestionUtils.cutTitle(sug.title);
-      sug.textSplit = "javascript: \u2026";
-      sug.text = (i as JSBookmark).jsText;
+      results.push([-RankingUtils.wordRelevancy(i.text, i.title), ind]);
     }
     matchedTotal += results.length;
     if (queryType === FirstQuery.waitFirst || offset === 0) {
-      results.sort(Completers.rsortByRelevancy);
+      results.sort(SuggestionUtils.sortBy0);
       if (offset > 0) {
         results = results.slice(offset, offset + maxResults);
         offset = 0;
@@ -284,7 +280,19 @@ bookmarks: {
         results.length = maxResults;
       }
     }
-    return Completers.next(results);
+    let score = 0, c = function() { return score }, results2: Suggestion[] = [];
+    for (const ind of results) {
+      const i = arr[ind[1]];
+      score = -ind[0];
+      const sug = new Suggestion("bookm", i.url, i.text, isPath ? i.path : i.title, c);
+      results2.push(sug);
+      if (i.jsUrl === null) { continue; }
+      (sug as CompletersNS.WritableCoreSuggestion).url = (i as JSBookmark).jsUrl;
+      sug.title = SuggestionUtils.cutTitle(sug.title);
+      sug.textSplit = "javascript: \u2026";
+      sug.text = (i as JSBookmark).jsText;
+    }
+    return Completers.next(results2);
   },
   Listen: function (): void {
     const bookmarks = chrome.bookmarks, listener = Completers.bookmarks.Delay, expire = Completers.bookmarks.Expire;
