@@ -10,7 +10,7 @@ declare namespace CompletersNS {
     maximumScore = 3,
   }
   const enum InnerConsts {
-    bookmarkBasicDelay = 60000, bookmarkFurtherDelay = bookmarkBasicDelay * 2,
+    bookmarkBasicDelay = 1000 * 60, bookmarkFurtherDelay = bookmarkBasicDelay / 2,
   }
 }
 
@@ -243,6 +243,7 @@ SuggestionUtils = {
 Completers = {
 bookmarks: {
   bookmarks: [] as Bookmark[],
+  dirs: [] as string[],
   currentSearch: null as CompletersNS.QueryStatus | null,
   path: "",
   depth: 0,
@@ -311,6 +312,7 @@ bookmarks: {
   readTree (tree: chrome.bookmarks.BookmarkTreeNode[]): void {
     this.status = BookmarkStatus.inited;
     this.bookmarks = [];
+    this.dirs = [];
     tree.forEach(this.traverseBookmark, this);
     const query = this.currentSearch;
     this.currentSearch = null;
@@ -326,6 +328,7 @@ bookmarks: {
   traverseBookmark (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
     const title = bookmark.title, id = bookmark.id, path = this.path + '/' + (title || id);
     if (bookmark.children) {
+      this.dirs.push(id);
       const oldPath = this.path;
       if (2 < ++this.depth) {
         this.path = path;
@@ -345,65 +348,63 @@ bookmarks: {
   _timer: 0,
   _stamp: 0,
   _expiredUrls: false,
-  Later (): void {
+  Later (this: void): void {
     const _this = Completers.bookmarks, last = Date.now() - _this._stamp;
-    if (this.status !== BookmarkStatus.notInited) { return; }
+    if (_this.status !== BookmarkStatus.notInited) { return; }
     if (last >= CompletersNS.InnerConsts.bookmarkBasicDelay || last < 0) {
-      this._timer = 0;
+      _this._timer = _this._stamp = 0;
+      _this._expiredUrls = false;
       _this.refresh();
     } else {
-      _this._timer = setTimeout(_this.Later, CompletersNS.InnerConsts.bookmarkBasicDelay);
+      _this.bookmarks = [];
+      _this.dirs = [];
+      _this._timer = setTimeout(_this.Later, CompletersNS.InnerConsts.bookmarkFurtherDelay);
     }
   },
-  Delay (): void {
+  Delay (this: void): void {
     const _this = Completers.bookmarks;
     _this._stamp = Date.now();
     if (_this.status < BookmarkStatus.inited) { return; }
-    _this.reset();
-    _this._timer = setTimeout(_this.Later, CompletersNS.InnerConsts.bookmarkFurtherDelay);
+    _this._timer = setTimeout(_this.Later, CompletersNS.InnerConsts.bookmarkBasicDelay);
+    _this.status = BookmarkStatus.notInited;
   },
-  Expire (id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
-    const _this = Completers.bookmarks;
-    let node: {id: string, url?: string | void, title: string, text?: string, children?: any[] | void} | undefined;
-    if (info && (!(node = (info as chrome.bookmarks.BookmarkRemoveInfo).node) || node.url)) {
-      const arr = _this.bookmarks, len = arr.length, isRemoved = (info as chrome.bookmarks.BookmarkChangeInfo).title == null;
-      let i = 0, cur: Bookmark | null = null; for (; i < len; i++) { if (arr[i].id === id) { cur = arr[i]; break; } }
-      const url = cur ? cur.url : null, url2 = (info as any).url as string | undefined;
-      if (url && (isRemoved ? url !== (cur as any).text : url2 != null && url !== url2)) {
+  Expire (this: void, id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
+    const _this = Completers.bookmarks, arr = _this.bookmarks, len = arr.length,
+    title = info && (info as chrome.bookmarks.BookmarkChangeInfo).title;
+    let i = 0; for (; i < len && arr[i].id !== id; i++) {}
+    if (i < len) {
+      const cur: Bookmark = arr[i], url = cur.url,
+      url2 = info && (info as chrome.bookmarks.BookmarkChangeInfo).url;
+      if (Decoder.enabled && (title == null ? url !== cur.text || !info : url2 != null && url !== url2)) {
         url in Decoder.dict && HistoryCache.binarySearch(url) < 0 && delete Decoder.dict[url];
-        if (!isRemoved) {
+      }
+      if (title != null) {
+        (cur as any).path = cur.path.substring(0, cur.path.length - cur.title.length) + (title || cur.id);
+        (cur as any).title = title || cur.id;
+        if (url2) {
           (cur as any).url = url2;
-          (cur as any).text = Decoder.decodeURL(url, a);
+          (cur as any).text = Decoder.decodeURL(url2, a);
           Decoder.continueToWork();
         }
+      } else {
+        arr.splice(i, 1);
+        info || _this.Delay(); // may need to re-add it in case of lacking info
       }
-      if (isRemoved) {
-        cur && this.bookmarks.splice(i, 1);
-        return;
-      } else if (cur) {
-        const { title } = info as chrome.bookmarks.BookmarkChangeInfo;
-        if (cur.title !== title) {
-          (cur as any).title = title;
-          (cur as any).path = cur.path.substring(0, cur.path.lastIndexOf('/') + 1) + (title || cur.id);
-        }
-        return;
-      }
+      return;
     }
-    Completers.bookmarks._expiredUrls = true;
-    Completers.bookmarks.Delay();
-  },
-  reset (): void {
-    const dict = Decoder.dict, bs = HistoryCache.binarySearch;
-    if (this._expiredUrls) {
-      for (const { url } of this.bookmarks) {
+    if (_this.dirs.indexOf(id) < 0) { return; } // some "new" items which haven't been read are changed
+    if (title != null) { /* a folder is renamed */ return _this.Delay(); }
+    // a folder is removed
+    if (!_this._expiredUrls && Decoder.enabled) {
+      const dict = Decoder.dict, bs = HistoryCache.binarySearch;
+      for (const { url } of arr) {
         if ((url in dict) && bs(url) < 0) {
           delete dict[url];
         }
       }
-      this._expiredUrls = false;
+      _this._expiredUrls = false;
     }
-    this.bookmarks = [];
-    this.status = BookmarkStatus.notInited;
+    return _this.Delay();
   }
 },
 
@@ -1284,7 +1285,7 @@ searchEngines: {
     dict: Object.create<string>(null),
     todos: [] as ItemToDecode[],
     _ind: -1,
-    _enabled: true,
+    enabled: true,
     continueToWork (): void {
       if (this.todos.length === 0 || this._ind !== -1) { return; }
       this._ind = 0;
@@ -1337,12 +1338,11 @@ searchEngines: {
       Settings.updateHooks.localeEncoding = function(this: void, charset: string): void {
         const _this = Decoder, enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false;
         _this._dataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "";
-        if (_this._enabled !== enabled) {
-          _this.todos = enabled ? [] as ItemToDecode[] : { length: 0, push: _this.blank } as any;
-          _this._enabled = enabled;
-        }
         _this.dict = Object.create<string>(null);
         enabled || (_this.todos.length = 0);
+        if (_this.enabled === enabled) { return; }
+        _this.todos = enabled ? [] as ItemToDecode[] : { length: 0, push: _this.blank } as any;
+        _this.enabled = enabled;
       };
       Settings.postUpdate("localeEncoding");
       return this.xhr();
