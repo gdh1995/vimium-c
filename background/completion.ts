@@ -1285,7 +1285,6 @@ searchEngines: {
     dict: Object.create<string>(null),
     todos: [] as ItemToDecode[],
     _ind: -1,
-    enabled: true,
     continueToWork (): void {
       if (this.todos.length === 0 || this._ind !== -1) { return; }
       this._ind = 0;
@@ -1311,7 +1310,9 @@ searchEngines: {
       }
     },
     OnXHR (this: XMLHttpRequest): void {
-      const _this = Decoder, text = this.responseText, url = _this.todos[_this._ind++];
+      const _this = Decoder;
+      if (_this._ind < 0) { return; } // disabled by the outsides
+      const text = this.responseText, url = _this.todos[_this._ind++];
       if (typeof url !== "string") {
         _this.dict[url.url] = url.text = text;
       } else {
@@ -1323,7 +1324,8 @@ searchEngines: {
       _this.todos.length = 0;
       _this._ind = -1;
     },
-    _dataUrl: "",
+    enabled: true,
+    _dataUrl: "wait",
     blank (this: void): void {},
     xhr (): XMLHttpRequest | null {
       if (!this._dataUrl) { return null; }
@@ -1333,18 +1335,33 @@ searchEngines: {
       xhr.onerror = this.OnXHR;
       return xhr;
     },
+    onUpdate(charset: string): void {
+      const enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false,
+      newDataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "",
+      isSame = newDataUrl === this._dataUrl;
+      if (isSame) { return; }
+      this._dataUrl = newDataUrl;
+      if (enabled) {
+        this.init === this.xhr && /* inited */
+        setTimeout(function(): void {
+          if (HistoryCache.history) {
+            Decoder.decodeList(HistoryCache.history);
+          }
+          return Decoder.decodeList(Completers.bookmarks.bookmarks);
+        }, 100);
+      } else {
+        this.dict = Object.create<string>(null);
+        this.todos.length = 0;
+      }
+      if (this.enabled === enabled) { return; }
+      this.todos = enabled ? [] as ItemToDecode[] : { length: 0, push: this.blank } as any;
+      this.enabled = enabled;
+      this._ind = -1;
+    },
     init (): XMLHttpRequest | null {
+      Settings.updateHooks.localeEncoding = Decoder.onUpdate.bind(Decoder);
+      Decoder.onUpdate(Settings.get("localeEncoding"));
       this.init = this.xhr;
-      Settings.updateHooks.localeEncoding = function(this: void, charset: string): void {
-        const _this = Decoder, enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false;
-        _this._dataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "";
-        _this.dict = Object.create<string>(null);
-        enabled || (_this.todos.length = 0);
-        if (_this.enabled === enabled) { return; }
-        _this.todos = enabled ? [] as ItemToDecode[] : { length: 0, push: _this.blank } as any;
-        _this.enabled = enabled;
-      };
-      Settings.postUpdate("localeEncoding");
       return this.xhr();
     }
   };
