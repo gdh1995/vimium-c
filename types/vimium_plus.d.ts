@@ -236,7 +236,7 @@ declare const enum GlobalConsts {
 declare const enum KnownKey {
   tab = 9, space = 32, minNotSpace, bang = 33, quote2 = 34, hash = 35,
   maxCommentHead = hash, and = 38, quote1 = 39, minNotInKeyNames = 41, slash = 47,
-  maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62,
+  maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62, question = 63,
   A = 65, minAlphabet = A, I = A + 8, minLastAlphabet = A + 25, minNotAlphabet,
   a = 97, CASE_DELTA = a - A, AlphaMask = 0xff & ~CASE_DELTA,
   backslash = 92, s = 115,
@@ -253,6 +253,7 @@ declare const enum VKeyCodes {
   maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K,
   metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2,
   f10 = f1 + 9, f12 = f1 + 11, f20 = f1 + 19, minNotFn, ime = 229,
+  questionWin = 191, questionMac = KnownKey.question,
 }
 declare const enum KeyStat {
   Default = 0, plain = Default,
