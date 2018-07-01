@@ -2,7 +2,7 @@ import ExcCls = ExclusionsNS.ExclusionsCls;
 declare var Exclusions: ExcCls;
 
 if (Settings.get("vimSync")
-    || ((localStorage.getItem("exclusionRules") !== "[]" || document.readyState === "complete")
+    || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend.Init)
         && !Settings.updateHooks.exclusionRules)) {
 var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
   testers: null as SafeDict<ExclusionsNS.Tester> | null,
@@ -162,5 +162,7 @@ Settings.updateHooks.exclusionListenHash = function(this: void, value: boolean):
   const e = chrome.webNavigation.onReferenceFragmentUpdated;
   value ? e.addListener(l) : e.removeListener(l);
 };
+} else {
+  var Exclusions: ExcCls = null as never;
 }
 Backend.Init && Backend.Init();

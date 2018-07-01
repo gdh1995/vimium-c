@@ -262,6 +262,10 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     HelpDialog: "/background/help_dialog.js",
     Commands: "/background/commands.js",
     Exclusions: "/background/exclusions.js",
+    TabRecency: "/background/tools.js",
+    Completers: "/background/completion.js",
+    TailDev: "/background/others.js",
+    TailRel: "/background/tail.js",
     XHRFiles: {
       baseCSS: "/front/vimium.min.css",
       exclusionTemplate: "/front/exclusions.html",

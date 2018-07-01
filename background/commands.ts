@@ -168,7 +168,6 @@ var Commands = {
       const tmp = ref[key] as 0 | 1 | ChildKeyMap;
       if (tmp !== 0 && tmp !== 1) { func(tmp); }
     }
-    if (Backend.Init) { return Backend.Init(); }
   }),
   warnInactive (obj: ReadonlyChildKeyMap | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
@@ -405,10 +404,11 @@ availableCommands: {
 } as ReadonlySafeDict<CommandsNS.Description>
 };
 
-if (document.readyState !== "complete") {
+if (Backend.Init) {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   Commands.defaultKeyMappings = null as never;
   Commands.populateCommandKeys();
+  Backend.Init();
   if (!Settings.get("vimSync")) {
     Commands = null as never;
   }

@@ -355,6 +355,7 @@ declare namespace SettingsNS {
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
+    "TabRecency" | "Completers" |
     "MathParser";
 
   interface OnSyncUpdate {
@@ -419,6 +420,8 @@ interface Window {
   readonly CommandsData: CommandsData;
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
+  readonly TabRecency?: any;
+  readonly Completers?: any;
 
   readonly Backend: BackendHandlersNS.BackendHandlers;
   readonly Utils: {

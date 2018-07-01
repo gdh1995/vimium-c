@@ -459,6 +459,8 @@ Utils.GC = function(): void {
   }
 };
 
+Backend.Init && Backend.Init();
+
 setTimeout((function(): void {
   if (a) {
     a.removeListener(cb);
