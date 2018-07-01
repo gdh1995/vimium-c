@@ -1675,6 +1675,10 @@ Are you sure you want to continue?`);
       return false;
     },
     initHelp (this: void, request: FgReq["initHelp"], port: Port): void {
+      if (port.sender.url.startsWith(Settings.CONST.OptionsPage)) {
+        request.unbound = true;
+        request.names = true;
+      }
       Promise.all([
         Utils.require<BaseHelpDialog>('HelpDialog'),
         request, port,

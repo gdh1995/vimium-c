@@ -653,6 +653,22 @@ function OnBgUnload(): void {
 }
 BG.addEventListener("unload", OnBgUnload);
 
+document.addEventListener("click", function onClickOnce(e1): void {
+  if (!VDom || VDom.UI.box !== e1.target) { return; }
+  document.removeEventListener("click", onClickOnce, true);
+  (VDom.UI.root as ShadowRoot).addEventListener("click", function(event): void {
+    let target = event.target as HTMLElement, str: string;
+    if (VPort && target.classList.contains("HelpCommandName")) {
+      str = target.textContent.slice(1, -1);
+      VPort.post({
+        handler: "copy",
+        data: str
+      });
+      return VHUD.showCopied(str);
+    }
+  }, true);
+}, true);
+
 function click(a: Element): boolean {
   const mouseEvent = document.createEvent("MouseEvents");
   mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0

@@ -29,26 +29,13 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
     names: true,
     title: "Command Listing"
   });
-  const isIniting = !event;
+  if (event) { return; }
   setTimeout(function(): void {
     const node = VDom.UI.root && VDom.UI.root.getElementById("HelpDialog") as HTMLElement;
     if (!node) { return; }
-    if (isIniting) {
-      (node.querySelector("#HClose") as HTMLElement).addEventListener("click", function(): void {
-        window.location.hash = "";
-      });
-    }
-    node.onclick = function(event: MouseEvent): void {
-      let target = event.target as HTMLElement, str: string;
-      if (target.classList.contains("HelpCommandName")) {
-        str = target.textContent.slice(1, -1);
-        VPort.post({
-          handler: "copy",
-          data: str
-        });
-        return VHUD.showCopied(str);
-      }
-    };
+    (node.querySelector("#HClose") as HTMLElement).addEventListener("click", function(): void {
+      window.location.hash = "";
+    });
   }, 100);
 };
 
