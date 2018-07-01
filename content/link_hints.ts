@@ -1125,7 +1125,7 @@ DOWNLOAD_IMAGE: {
       text = text.substring(text.indexOf('/', i + 4) + 1);
     }
     if (text.length > 40) {
-      text = text.substring(0, 39) + "…";
+      text = text.substring(0, 39) + "\u2026";
     }
     a.href = (img as HTMLImageElement).src;
     a.download = img.getAttribute("download") || "";

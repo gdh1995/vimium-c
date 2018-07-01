@@ -207,8 +207,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 
 # More examples.
 #
-# (Vimium++ supports search completion Google, Wikipedia,
-# and so on, as above, and for these.)
+# (Vimium++ supports search completion Google, Wikipedia,
+# and so on, as above, and for these.)
 #
 # l: https://www.google.com/search?q=%s&btnI I'm feeling lucky
 # y: https://www.youtube.com/results?search_query=%s Youtube

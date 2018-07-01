@@ -185,7 +185,7 @@ Are you sure you want to continue?`
   const logUpdate = function(method: string, key: string, ...args: any[]): any {
     let val = args.pop();
     val = typeof val !== "string" || val.length <= 72 ? val
-      : val.substring(0, 71).trimRight() + "…";
+      : val.substring(0, 71).trimRight() + "\u2026";
     return console.log("%s %c%s", method, "color:darkred", key, ...args, val);
   } as {
     (method: string, key: string, val: any): any;

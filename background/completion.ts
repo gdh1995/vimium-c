@@ -137,7 +137,7 @@ SuggestionUtils = {
   cutTitle (title: string): string {
     let cut = title.length > maxChars + 40;
     cut && (title = title.substring(0, maxChars + 39));
-    return this.highlight(cut ? title + "…" : title, this.getRanges(title));
+    return this.highlight(cut ? title + "\u2026" : title, this.getRanges(title));
   },
   highlight (this: void, string: string, ranges: number[]): string {
     if (ranges.length === 0) { return Utils.escapeText(string); }
@@ -213,7 +213,7 @@ SuggestionUtils = {
       if (delta > 0) {
         maxLen += delta;
         out += Utils.escapeText(string.substring(end, temp + 11));
-        out += "…"
+        out += "\u2026"
         out += Utils.escapeText(string.substring(start - 8, start));
       } else if (end < start) {
         out += Utils.escapeText(string.substring(end, start));
@@ -226,7 +226,7 @@ SuggestionUtils = {
     if (string.length <= maxLen) {
       return out + Utils.escapeText(string.substring(end));
     } else {
-      return out + Utils.escapeText(string.substring(end, maxLen - 1 > end ? maxLen - 1 : end + 10)) + "…";
+      return out + Utils.escapeText(string.substring(end, maxLen - 1 > end ? maxLen - 1 : end + 10)) + "\u2026";
     }
   },
   ComputeWordRelevancy (this: void, suggestion: CompletersNS.CoreSuggestion): number {
@@ -271,7 +271,7 @@ bookmarks: {
       if (i.jsUrl === null) { continue; }
       (sug as CompletersNS.WritableCoreSuggestion).url = (i as JSBookmark).jsUrl;
       sug.title = SuggestionUtils.cutTitle(sug.title);
-      sug.textSplit = "javascript: …";
+      sug.textSplit = "javascript: \u2026";
       sug.text = (i as JSBookmark).jsText;
     }
     matchedTotal += results.length;

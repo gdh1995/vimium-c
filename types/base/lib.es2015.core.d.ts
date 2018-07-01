@@ -93,11 +93,11 @@ interface ArrayConstructor {
      * Returns a new array from a set of elements.
      * @param items A set of elements to include in the new array object.
      */
-    of<T>(...items: T[]): Array<T>;
+    of<T>(...items: T[]): T[];
 }
 
 interface DateConstructor {
-    new (value: Date): Date;
+    new (value: number | string | Date): Date;
 }
 
 interface Function {
@@ -146,8 +146,9 @@ interface Math {
     log1p(x: number): number;
 
     /**
-     * Returns the result of (e^x - 1) of x (e raised to the power of x, where e is the base of
-     * the natural logarithms).
+     * Returns the result of (e^x - 1), which is an implementation-dependent approximation to
+     * subtracting 1 from the exponential function of x (e raised to the power of x, where e
+     * is the base of the natural logarithms).
      * @param x A numeric expression.
      */
     expm1(x: number): number;
@@ -195,9 +196,9 @@ interface Math {
      *     If there is only one argument, the result is the absolute value.
      *     If any argument is +Infinity or -Infinity, the result is +Infinity.
      *     If any argument is NaN, the result is NaN.
-     *     If all arguments are either +0 or −0, the result is +0.
+     *     If all arguments are either +0 or -0, the result is +0.
      */
-    hypot(...values: number[] ): number;
+    hypot(...values: number[]): number;
 
     /**
      * Returns the integral part of the a numeric expression, x, removing any fractional digits.
@@ -223,7 +224,7 @@ interface NumberConstructor {
     /**
      * The value of Number.EPSILON is the difference between 1 and the smallest value greater than 1
      * that is representable as a Number value, which is approximately:
-     * 2.2204460492503130808472633361816 x 10‍−‍16.
+     * 2.2204460492503130808472633361816 x 10-16.
      */
     readonly EPSILON: number;
 
@@ -258,14 +259,14 @@ interface NumberConstructor {
     /**
      * The value of the largest integer n such that n and n + 1 are both exactly representable as
      * a Number value.
-     * The value of Number.MAX_SAFE_INTEGER is 9007199254740991 2^53 − 1.
+     * The value of Number.MAX_SAFE_INTEGER is 9007199254740991 2^53 - 1.
      */
     readonly MAX_SAFE_INTEGER: number;
 
     /**
-     * The value of the smallest integer n such that n and n − 1 are both exactly representable as
+     * The value of the smallest integer n such that n and n - 1 are both exactly representable as
      * a Number value.
-     * The value of Number.MIN_SAFE_INTEGER is −9007199254740991 (−(2^53 − 1)).
+     * The value of Number.MIN_SAFE_INTEGER is -9007199254740991 (-(2^53 - 1)).
      */
     readonly MIN_SAFE_INTEGER: number;
 
@@ -467,7 +468,7 @@ interface String {
 
     /**
      * Returns a String value that is made from count copies appended together. If count is 0,
-     * T is the empty String is returned.
+     * the empty string is returned.
      * @param count number of copies to append
      */
     repeat? (count: number): string;
