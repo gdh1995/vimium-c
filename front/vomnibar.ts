@@ -827,14 +827,27 @@ VUtils = {
     return url;
   },
   ensureText (sug: SuggestionEx): ProtocolType {
-    let url = sug.url, str = url.substring(0, 8).toLowerCase();
+    let { url, text } = sug, str = url.substring(0, 8).toLowerCase();
     let i = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https : ProtocolType.others;
     i >= url.length && (i = ProtocolType.others);
-    if (!sug.text) {
-      sug.text = i ? url.substring(i) : url;
-    } else if (i && url.endsWith("/") && !str.endsWith("/")) {
-      sug.text += "/";
+    let wantSchema = !i;
+    if (i === ProtocolType.https) {
+      let j = url.indexOf('/', i);
+      if (j > 0 ? j < url.length : /* domain has port */ (<RegExpOne>/:\d+\/?$/).test(url)) {
+        wantSchema = true;
+      }
     }
+    if (!text) {
+      text = !wantSchema && i ? url.substring(i) : url;
+    } else if (i) {
+      if (wantSchema && !text.startsWith(str)) {
+        text = str + text;
+      }
+      if (url.endsWith('/') && !str.endsWith('/') && str.indexOf('/') > 0) {
+        text += '/';
+      }
+    }
+    sug.text = text;
     return i;
   },
   escapeCSSStringInAttr (s: string): string {
