@@ -251,14 +251,20 @@ var Vomnibar = {
       }
       return;
     }
-    const onlyUrl = !line.text;
+    const onlyUrl = !line.text, url = line.url;
     const ind = VUtils.ensureText(line);
-    let str = line.text;
-    if (!onlyUrl && ind && str.lastIndexOf("://", 5) < 0) {
-      str = (ind === 7 ? "http://" : "https://") + str;
-    }
-    if (onlyUrl || str === VUtils.decodeURL(line.url, decodeURIComponent)) {
-      str = line.url;
+    let str = onlyUrl ? url : VUtils.decodeURL(url, decodeURIComponent);
+    if (!onlyUrl && str.length === url.length && url.indexOf('%') >= 0) {
+      // has error during decoding
+      str = line.text;
+      if (ind) {
+        if (str.lastIndexOf("://", 5) < 0) {
+          str = (ind === ProtocolType.http ? "http://" : "https://") + str;
+        }
+        if (url.endsWith('/') || !str.endsWith('/')) {
+          str += '/';
+        }
+      }
     }
     return VPort.postMessage({
       handler: "parseSearchUrl",
