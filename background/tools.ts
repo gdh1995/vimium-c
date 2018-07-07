@@ -264,6 +264,14 @@ Marks = { // NOTE: all public members should be static
   },
   _set ({ local, markName, url, scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number): void {
     const storage = incognito ? this.cacheI || (IncognitoWatcher.watch(), this.cacheI = this._storage()) : this.cache;
+    if (local && scroll[0] === 0 && scroll[1] === 0) {
+      if (scroll.length === 2) {
+        const i = url.indexOf('#');
+        i > 0 && i < url.length - 1 && scroll.push(url.substring(i));
+      } else if ((scroll[2] || "").length < 2) { // '#' or (wrongly) ''
+        scroll.pop();
+      }
+    }
     storage.setItem(this.getLocationKey(markName, local ? url : "")
       , JSON.stringify<MarksNS.StoredMark | MarksNS.ScrollInfo>(local ? scroll
         : { tabId: tabId as number, url, scroll }));
@@ -289,7 +297,7 @@ Marks = { // NOTE: all public members should be static
       if (!scroll) {
         let oldPos = (request as MarksNS.FgLocalQuery).old, x: number, y: number;
         if (oldPos && (x = +oldPos.scrollX) >= 0 && (y = +oldPos.scrollY) >= 0) {
-          (request as MarksNS.NewMark).scroll = scroll = [x, y];
+          (request as MarksNS.NewMark).scroll = scroll = [x, y, oldPos.hash];
           Marks._set(request as MarksNS.NewMark, port.sender.incognito);
         }
       }

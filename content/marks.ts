@@ -28,7 +28,7 @@ var VMarks = {
   },
   _previous: null as MarksNS.FgMark | null,
   setPreviousPosition (): void {
-    this._previous = [ window.scrollX, window.scrollY ];
+    this._previous = [ window.scrollX, window.scrollY, location.hash ];
   },
   _create (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {
@@ -50,7 +50,7 @@ var VMarks = {
       const pos = this._previous;
       this.setPreviousPosition();
       if (pos) {
-        window.scrollTo(pos[0], pos[1]);
+        this._scroll(pos);
       }
       return VHUD.showForDuration((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
     }
@@ -65,10 +65,10 @@ var VMarks = {
       try {
         let pos = null, key = this.getLocationKey(keyChar), markString = localStorage.getItem(key);
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
-          const { scrollX, scrollY } = VUtils.safer(pos);
+          const { scrollX, scrollY, hash } = VUtils.safer(pos);
           if (scrollX >= 0 && scrollY >= 0) {
             (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).old = {
-              scrollX: scrollX | 0, scrollY: scrollY | 0
+              scrollX: scrollX | 0, scrollY: scrollY | 0, hash: "" + (hash || "")
             };
             localStorage.removeItem(key);
           }
@@ -78,6 +78,13 @@ var VMarks = {
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).url = location.href;
     }
     VPort.post(req);
+  },
+  _scroll(scroll: MarksNS.FgMark) {
+    if (scroll[1] === 0 && scroll[2] && scroll[0] === 0) {
+      location.hash = scroll[2] as string;
+    } else {
+      window.scrollTo(scroll[0], scroll[1]);
+    }
   },
   createMark (markName: string, local?: "local"): void {
     VPort.post({
@@ -93,7 +100,7 @@ var VMarks = {
   goTo (_0: number, options: CmdOptions["Marks.goTo"]): void {
     const { scroll, local, markName: a } = options;
     a && this.setPreviousPosition();
-    window.scrollTo(scroll[0], scroll[1]);
+    this._scroll(scroll);
     local || VEventMode.focusAndListen();
     if (a) {
       return VHUD.showForDuration(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);

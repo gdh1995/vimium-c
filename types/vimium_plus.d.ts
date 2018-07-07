@@ -56,7 +56,10 @@ declare namespace CompletersNS {
 }
 
 declare namespace MarksNS {
-  type ScrollInfo = [number, number];
+  interface ScrollInfo extends Array<any> {
+    [0]: number;
+    [1]: number;
+  }
   interface ScrollableMark {
     scroll: ScrollInfo;
   }
@@ -88,11 +91,16 @@ declare namespace MarksNS {
     prefix?: undefined;
     url: string;
     local: true;
-    old?: any;
+    old?: {
+      scrollX: number,
+      scrollY: number,
+      hash: string,
+    };
   }
   type FgQuery = FgGlobalQuery | FgLocalQuery;
 
   interface FgMark extends ScrollInfo {
+    [2]?: string;
   }
 
   interface FocusOrLaunch {

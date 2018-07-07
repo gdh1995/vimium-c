@@ -134,7 +134,7 @@ interface CmdOptions {
   "Marks.goTo": {
     local?: boolean;
     markName?: string | undefined;
-    scroll: MarksNS.ScrollInfo;
+    scroll: MarksNS.FgMark;
   };
   autoCopy: {
     url: boolean; decoded: boolean;
