@@ -339,7 +339,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   document.addEventListener("keydown", function(this: void, event): void {
     if (event.keyCode !== VKeyCodes.space) {
-      if (!VKeyboard) { return; }
+      if (!window.VKeyboard) { return; }
       let wanted = event.keyCode === VKeyCodes.questionWin || event.keyCode === VKeyCodes.questionMac ? "?" : "";
       if (wanted && VKeyboard.getKeyChar(event) === wanted && VKeyboard.getKey(event, wanted) === wanted) {
         $("#showCommands").click();

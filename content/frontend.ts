@@ -910,7 +910,7 @@ Pagination = {
       vPort.post({ handler: "cmd", cmd: request.cmd, count});
     },
   showHelpDialog ({ html, advanced: shouldShowAdvanced, optionUrl, CSS }: Req.bg<"showHelpDialog">): void {
-    let box: HTMLElement, oldShowHelp: typeof Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void
+    let box: HTMLElement, oldShowHelp = Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void
       , node1: HTMLElement;
     if (CSS) { VDom.UI.css(CSS); }
     if (!VDom.isHTML()) { return; }
@@ -928,8 +928,15 @@ Pagination = {
     VSettings.cache.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToDocument ||
     box.addEventListener("DOMActivate", ELs.onActivate, true);
 
+    const closeBtn = box.querySelector("#HClose") as HTMLElement;
     hide = function(event): void {
-      event instanceof Event && event.preventDefault();
+      if (event instanceof Event) {
+        VUtils.prevent(event);
+      } else {
+        closeBtn.onclick = null as never;
+        closeBtn.removeAttribute("href");
+        closeBtn.click();
+      }
       let i = VDom.lastHovered;
       i && box.contains(i) && (VDom.lastHovered = null);
       (i = VScroller.current) && box.contains(i) && (VScroller.current = null);
@@ -937,6 +944,7 @@ Pagination = {
       box.remove();
       Commands.showHelp = oldShowHelp;
     };
+    closeBtn.onclick = Commands.showHelp = hide;
     node1 = box.querySelector("#OptionsPage") as HTMLAnchorElement;
     if (! window.location.href.startsWith(optionUrl)) {
       (node1 as HTMLAnchorElement).href = optionUrl;
@@ -952,7 +960,6 @@ Pagination = {
       (node1.firstChild as Text).data = (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";
       box.classList.toggle("HelpAdvanced");
     }
-    oldShowHelp = Commands.showHelp;
     node1.onclick = function(event) {
       event.preventDefault();
       shouldShowAdvanced = !shouldShowAdvanced;
@@ -963,7 +970,6 @@ Pagination = {
         value: shouldShowAdvanced
       } as SetSettingReq<"showAdvancedCommands">);
     };
-    (box.querySelector("#HClose") as HTMLElement).onclick = Commands.showHelp = hide;
     shouldShowAdvanced && toggleAdvanced();
     if (VSettings.cache.browserVer < BrowserVer.MinFixedCSS$All$MayMistakenlyResetFixedPosition) {
       box.style.position = "fixed";
