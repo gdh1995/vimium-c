@@ -417,9 +417,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       loadJS("options_ext.js");
       return;
     }
-    window.onload = function(): void {
-      window.onload = null as never;
-      loadJS("options_ext.js");
+    window.onload = function(event): void {
+      if (event.target === window) {
+        window.onload = null as never;
+        loadJS("options_ext.js");
+      }
     };
   } as ElementWithDelay["onclick"];
   _ref = $$("[data-delay]");
@@ -596,7 +598,8 @@ window.onhashchange = function(this: void): void {
     if (node.getAttribute("data-model")) {
       node.classList.add("highlight");
     }
-    const callback = function(): void {
+    const callback = function(event?: Event): void {
+      if (event && event.target !== window) { return; }
       if (window.onload) {
         window.onload = null as never;
         window.scrollTo(0, 0);
