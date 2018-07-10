@@ -256,9 +256,7 @@ var VHints = {
     if (i > this.maxTop) {
       st.maxHeight = this.maxTop - i + PixelConsts.MaxHeightOfLinkHintMarker + "px";
     }
-    const hint: HintsNS.HintItem = { marker, target: link[0], key: "" };
-    link.length > 4 && (hint.refer = (link as Hint5)[4]);
-    return hint;
+    return { marker, target: link[0], key: "", refer: link.length > 4 ? (link as Hint5)[4] : null };
   },
   adjustMarkers (elements: Hint[]): void {
     const zi = VDom.bZoom, root = VDom.UI.root;
@@ -723,16 +721,16 @@ var VHints = {
     this.pTimer > 0 && clearTimeout(this.pTimer);
     while (i < len) { (ref as HintsNS.HintItem[])[i++].target = null as never; }
   },
-  activateLink (hintEl: HintsNS.HintItem): void {
-    let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hintEl.target;
+  activateLink (hint: HintsNS.HintItem): void {
+    let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
     this.resetHints();
     const str = (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string;
     VHUD.text = str; // in case pTimer > 0
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getVRect, so that VDom.zooms are updated, and prepareCrop is called
-      rect = VDom.UI.getVRect(clickEl, hintEl.refer);
-      const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hintEl.marker);
+      rect = VDom.UI.getVRect(clickEl, hint.refer);
+      const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hint.marker);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect(clickEl)))) {
         const force = clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement;
         setTimeout(function(): void {

@@ -32,10 +32,11 @@ body *{all:inherit !important;display:inline !important;}
 html > count{float:right;}`,
   activate (_0: number, options: Partial<FindOptions> & SafeObject): void {
     if (!VDom.isHTML()) { return; }
-    const query: string | undefined | null = (options.query || "") + "";
+    const query: string | undefined | null = (options.query || "") + "",
+    ui = VDom.UI, first = !ui.root;
     this.isActive || query === this.query && options.leave || VMarks.setPreviousPosition();
-    VDom.docSelectable = VDom.UI.getDocSelectable();
-    VDom.UI.ensureBorder();
+    VDom.docSelectable = ui.getDocSelectable();
+    ui.ensureBorder();
     if (options.leave) {
       return this.findAndFocus(query || this.query, options);
     }
@@ -43,7 +44,7 @@ html > count{float:right;}`,
     if (options.returnToViewport) {
       this.coords = [window.scrollX, window.scrollY];
     }
-    this.box && VDom.UI.adjust();
+    this.box && ui.adjust();
     VHUD.hide(TimerType.notTimer);
     if (this.isActive) {
       return this.setFirstQuery(query);
@@ -58,14 +59,15 @@ html > count{float:right;}`,
     el.style.width = "0px";
     if (VDom.wdZoom !== 1) { el.style.zoom = "" + 1 / VDom.wdZoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
-    VUtils.push(VDom.UI.SuppressMost, this);
+    VUtils.push(ui.SuppressMost, this);
     this.query || (this.query0 = query);
     this.init && this.init(AdjustType.NotAdjust);
-    VDom.UI.addElement(el, AdjustType.MustAdjust, VHUD.box);
-    VDom.UI.toggleSelectStyle(true);
     if (!query) {
       this.styleIn.disabled = this.styleOut.disabled = true;
     }
+    ui.toggleSelectStyle(true);
+    ui.addElement(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box);
+    first && ui.adjust();
     this.isActive = true;
   },
   onLoad (box: HTMLIFrameElement, later?: 1): void {
@@ -195,8 +197,9 @@ html > count{float:right;}`,
     return el;
   },
   OnUnload (this: void, e: Event): void {
-    if (e.isTrusted === false) { return; }
-    const f = VFindMode; f && f.isActive && f.deactivate(FindNS.Action.ExitUnexpectedly);
+    const f = VFindMode;
+    if (e.isTrusted === false || !f || !f.box || e.target !== f.box.contentWindow) { return; }
+    f.isActive && f.deactivate(FindNS.Action.ExitUnexpectedly);
   },
   OnMousedown (this: void, event: MouseEvent): void {
     if (event.target !== VFindMode.input && event.isTrusted !== false) {

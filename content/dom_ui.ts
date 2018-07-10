@@ -22,10 +22,11 @@ VDom.UI = {
       adjust === AdjustType.NotAdjust || this.adjust();
       return (this.root as ShadowRoot).insertBefore(element, before === true ? (this.root as ShadowRoot).firstElementChild : before || null);
     };
-    this.css = (innerCSS): void => {
-      let el: HTMLStyleElement | null = this.styleIn = this.createStyle(innerCSS);
+    this.css = (function (innerCSS): void {
+      let el: HTMLStyleElement | null = this.styleIn = this.createStyle(innerCSS), el2: HTMLStyleElement | null;
       (this.root as ShadowRoot).appendChild(el);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
+      (el2 = this._styleBorder) && (this.root as ShadowRoot).appendChild(el2);
       if (adjust !== AdjustType.AdjustButNotShow) {
         let f = function (this: HTMLElement, e: Event | 1): void {
           e !== 1 && (this.onload = null as never);
@@ -36,11 +37,10 @@ VDom.UI = {
         };
         VDom.isStandard ? Promise.resolve(1 as 1).then(f) : (el.onload = f);
       }
-      (el = this._styleBorder) && (this.root as ShadowRoot).appendChild(el);
       if (adjust !== AdjustType.NotAdjust) {
         return this.adjust();
       }
-    };
+    });
     this.root.appendChild(element);
     let a: string | null;
     if (a = this.styleIn as string | null) {

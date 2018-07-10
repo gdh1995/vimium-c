@@ -769,29 +769,27 @@ Pagination = {
       if (!this.enabled || !VDom.isHTML()) { return; }
       this.opacity = 1; this.text = text;
       if (this.timer) { clearTimeout(this.timer); this.timer = 0; }
-      let el = this.box, st = el ? el.style : null, i = st ? +(st.opacity || 1) : 0;
-      if (i > 0) {
-        ((el as HTMLDivElement).firstChild as Text).data = text;
+      let el = this.box;
+      if (el && (nowait || el.style.opacity === "")) {
+        el.style.cssText = "";
+        (el.firstChild as Text).data = text;
         return;
       }
       nowait || this.tweenId || (this.tweenId = setInterval(this.tween, 40));
-      if (!el) {
-        el = VDom.createElement("div");
-        el.className = "R HUD";
-        st = el.style;
+      if (el) { return; }
+      el = VDom.createElement("div");
+      el.className = "R HUD";
+      if (!nowait) {
+        const st = el.style;
         st.opacity = "0";
         st.visibility = "hidden";
-        el.textContent = text;
-        VDom.UI.root || VDom.UI.ensureBorder();
-        VDom.UI.addElement(this.box = el, AdjustType.NotAdjust, VHints.box);
       }
-      if (nowait) {
-        (st as CSSStyleDeclaration).cssText = "";
-        el.textContent = text;
-      }
+      el.textContent = text;
+      VDom.UI.root || VDom.UI.ensureBorder();
+      VDom.UI.addElement(this.box = el, AdjustType.NotAdjust, VHints.box);
     },
     tween (this: void, info?: TimerType): void {
-      if (!VHUD) { return; }
+      if (!VPort) { return; }
       const hud = HUD, el = hud.box as HTMLDivElement, st = el.style, fake = info === TimerType.fake;
       let opacity = fake ? 0 : +(st.opacity || 1);
       if (opacity === hud.opacity) {}
