@@ -1552,8 +1552,7 @@ Are you sure you want to continue?`);
         return funcDict.selectTab(id, true);
       }
       if (!chrome.sessions) {
-        console.log("Session feature is not allowed by Chrome:", request);
-        return;
+        return funcDict.complainNoSession();
       }
       chrome.sessions.restore(id, funcDict.onRuntimeError);
       if (active) { return; }
@@ -2108,7 +2107,12 @@ Are you sure you want to continue?`);
   Init(): void {
     if (3 !== ++Connections.state) { return; }
     Backend.Init = null;
-    window.onload ? (window.onload = null as never) : console.log("[%d] Recovered", Date.now());
+    if (window.onload) {
+      window.onload = null as never;
+    } else {
+      const now = Date.now();
+      console.log("[%d] Recovered", now);
+    }
     Utils.resetRe();
     chrome.runtime.onConnect.addListener(Connections.OnConnect);
     if (!chrome.runtime.onConnectExternal) { return; }
