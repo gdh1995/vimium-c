@@ -2112,6 +2112,7 @@ Are you sure you want to continue?`);
     } else {
       const now = Date.now();
       console.log("[%d] Recovered", now);
+      localStorage.setItem("log|lastPartlyLoad", "" + now);
     }
     Utils.resetRe();
     chrome.runtime.onConnect.addListener(Connections.OnConnect);
