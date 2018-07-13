@@ -273,8 +273,9 @@ var createWebsite = {
 			}));
 		logoC.append('<div class="logoItemTitle">' + getI18nMsg('webSiteLogoOutside') + '</div>');
 		logoC.append($('<div class="logoLine"></div><div class="logoItem" style="background-image:url(' + urlImg + 'cloudapp/images/' + _langPre + '_outSideLogo.png)"></div>').bind("click", function () {
-				var logoUrl = prompt(getI18nMsg('webSiteLogoOutsideUrl'), "");
-				if (logoUrl != null && logoUrl != "") {
+				var old = self.container.find('#webSiteLogo').val()
+				var logoUrl = prompt(getI18nMsg('webSiteLogoOutsideUrl'), old);
+				if (logoUrl != null && logoUrl != "" && logoUrl != old) {
 					self.container.find('#webSiteLogo').val(logoUrl);
 					self.loadLogo(logoUrl);
 					self.container.find('.logoBox').removeClass("selected");
