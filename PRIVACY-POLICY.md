@@ -39,7 +39,7 @@ Vimium++ overrides the "newtab" chrome url in order to provide better user exper
 
 Vimium++ also registers a search key `v` for Chrome omni box, which makes the box work just like Vomnibar on omni mode.
 
-Such permissions can be removed safely and won't break Vimium++:
-* `notifications`, `storage` and `webNavigation`
+Such permissions can be removed safely and won't break Vimium++, while some commands might then fail:
+* `webNavigation`, `contentSettings`, `notifications`, `sessions` and `storage`
 * before Chrome 37, there's no `sessions` functionality, so a few commands of Vimium++ won't work,
     but most others are not influenced.
