@@ -461,13 +461,13 @@ setTimeout(function() {
     }
     stamp = 128;
   }
-  function listener({ tabId }: { tabId: number }): void {
+  function listener(info: { tabId: number }): void {
     const now = Date.now();
     if (now - time > 500) {
       cache[TabRecency.last] = ++stamp;
       if (stamp === 1023) { clean(); }
     }
-    TabRecency.last = tabId; time = now;
+    TabRecency.last = info.tabId; time = now;
   }
   function onWndFocus(tabs: [chrome.tabs.Tab] | never[]) {
     let a = tabs[0];
