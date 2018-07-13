@@ -765,27 +765,27 @@ Pagination = {
       this.show(text);
       this.text && ((this as typeof HUD).timer = setTimeout(this.hide, duration || 1500));
     },
-    show (text: string, nowait?: boolean): void {
+    show (text: string, embed?: boolean): void {
       if (!this.enabled || !VDom.isHTML()) { return; }
       this.opacity = 1; this.text = text;
       if (this.timer) { clearTimeout(this.timer); this.timer = 0; }
       let el = this.box;
-      if (el && (nowait || el.style.opacity === "")) {
+      if (el && (embed || el.style.opacity === "")) {
         el.style.cssText = "";
         (el.firstChild as Text).data = text;
         return;
       }
-      nowait || this.tweenId || (this.tweenId = setInterval(this.tween, 40));
+      embed || this.tweenId || (this.tweenId = setInterval(this.tween, 40));
       if (el) { return; }
       el = VDom.createElement("div");
       el.className = "R HUD";
-      if (!nowait) {
+      el.textContent = text;
+      if (!embed) {
         const st = el.style;
         st.opacity = "0";
         st.visibility = "hidden";
+        VDom.UI.root || VDom.UI.ensureBorder();
       }
-      el.textContent = text;
-      VDom.UI.root || VDom.UI.ensureBorder();
       VDom.UI.addElement(this.box = el, AdjustType.NotAdjust, VHints.box);
     },
     tween (this: void, info?: TimerType): void {

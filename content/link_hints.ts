@@ -142,9 +142,8 @@ var VHints = {
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320;
     VDom.UI.ensureBorder(VDom.wdZoom);
+    this.setMode(this.mode, false);
     this.box = VDom.UI.addElementList(this.hints, arr);
-    // note: delay it to avoid calling `ensureBorder` twice
-    this.setMode(this.mode, false, true);
 
     this.isActive = true;
     VUtils.push(this.onKeydown, this);
@@ -175,7 +174,7 @@ var VHints = {
     this.count = count;
     return this.setMode(mode, true);
   },
-  setMode (mode: HintMode, slient?: boolean, nowait?: boolean): void {
+  setMode (mode: HintMode, slient?: boolean): void {
     this.mode = mode;
     this.mode1 = mode = mode & ~HintMode.queue;
     this.forHover = mode >= HintMode.HOVER && mode <= HintMode.LEAVE;
@@ -184,7 +183,7 @@ var VHints = {
       this.pTimer = setTimeout(this.SetHUDLater, 1000);
       return;
     }
-    return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[this.mode] as string, nowait);
+    return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[this.mode] as string, true);
   },
   SetHUDLater (this: void): void {
     const a = VHints;
