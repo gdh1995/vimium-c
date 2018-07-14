@@ -446,6 +446,7 @@ IncognitoWatcher = {
 TabRecency = {
   tabs: Object.create<number>(null) as SafeDict<number>,
   last: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
+  lastWnd: (chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone) as number,
   incognito: IncognitoType.mayFalse,
   rCompare: null as never as (a: {id: number}, b: {id: number}) => number,
 };
@@ -470,7 +471,9 @@ setTimeout(function() {
     TabRecency.last = info.tabId; time = now;
   }
   function onWndFocus(tabs: [chrome.tabs.Tab] | never[]) {
+    if (!tabs) { return chrome.runtime.lastError; }
     let a = tabs[0];
+    TabRecency.lastWnd = a.windowId;
     if (a) {
       TabRecency.incognito = +a.incognito;
       return listener({ tabId: a.id });
@@ -479,6 +482,7 @@ setTimeout(function() {
   chrome.tabs.onActivated.addListener(listener);
   chrome.windows.onFocusChanged.addListener(function(windowId): void {
     if (windowId === noneWnd) { return; }
+    // here windowId may pointer to a devtools window on C45 - see BrowserVer.Min$windows$APIsFilterOutDevToolsByDefault
     chrome.tabs.query({windowId, active: true}, onWndFocus);
   });
   chrome.tabs.query({currentWindow: true, active: true}, function(tabs: CurrentTabs): void {
@@ -486,6 +490,7 @@ setTimeout(function() {
     const a = tabs && tabs[0];
     if (!a) { return chrome.runtime.lastError; }
     TabRecency.last = a.id;
+    TabRecency.lastWnd = a.windowId;
     TabRecency.incognito = a.incognito ? IncognitoType.true : IncognitoType.mayFalse;
   });
   TabRecency.rCompare = function(a, b): number {

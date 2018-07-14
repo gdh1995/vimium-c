@@ -335,6 +335,7 @@ declare const enum BrowserVer {
   Min$Event$$IsTrusted = 46,
   // occur on Chrome 46 if EXPERIMENTAL; always enabled since C47 even if LEAGCY
   Min$requestIdleCallback = 46,
+  Min$windows$APIsFilterOutDevToolsByDefault = 46,
   Min$Tabs$$Query$RejectHash = 47,
   // if .key exists, it's "v" for `v`, but "" (empty) for `<c-v>` - doesn't support all cases
   Min$KeyboardEvent$MayHas$$Key = 47, // if EXPERIMENTAL

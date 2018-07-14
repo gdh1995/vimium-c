@@ -285,6 +285,15 @@ Are you sure you want to continue?`);
         , (result: [Tab], _ex: FakeArg) => void, 1>(null, { active: true, currentWindow: true }),
     getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
     getId (this: void, tab: { readonly id: number }): number { return tab.id; },
+    getCurWnd: function (populate: boolean, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1 {
+      const wndId = TabRecency.lastWnd;
+      return wndId >= 0 ? chrome.windows.get(wndId, { populate }, callback)
+        : chrome.windows.getCurrent({ populate }, callback);
+    } as {
+      (populate: true, callback: (window: (chrome.windows.Window & { tabs: chrome.tabs.Tab[] }) | null | undefined
+        , exArg: FakeArg) => void): 1;
+      (populate: false, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1;
+    },
 
     createTabs (this: void, rawUrl: string, count: number, active: boolean): void {
       if (!(count >= 1)) return;
@@ -485,8 +494,9 @@ Are you sure you want to continue?`);
         return;
       }
       if (window) {
-        chrome.windows.getCurrent(function(wnd): void {
-          return funcDict.makeWindow({ url, focused: active }, wnd.state);
+        funcDict.getCurWnd(false, function({ state }): void {
+          return funcDict.makeWindow({ url, focused: active },
+            state !== "minimized" && state !== "docked" ? state : "");
         })
         return;
       }
@@ -814,7 +824,7 @@ Are you sure you want to continue?`);
         tabs && (tabs = tabs.filter(tab => !tab.incognito));
       }
       if (tabs && tabs.length > 0) {
-        chrome.windows.getCurrent(funcDict.focusOrLaunch[2].bind(this, tabs));
+        funcDict.getCurWnd(false, funcDict.focusOrLaunch[2].bind(this, tabs));
         return;
       }
       funcDict.getCurTab(funcDict.focusOrLaunch[1].bind(this));
@@ -1077,7 +1087,7 @@ Are you sure you want to continue?`);
     },
     reloadTab (this: void, tabs: Tab[] | never[]): void {
       if (tabs.length <= 0) {
-        chrome.windows.getCurrent({populate: true}, function(wnd) {
+        funcDict.getCurWnd(true, function(wnd) {
           if (!wnd) { return chrome.runtime.lastError; }
           wnd.tabs.length > 0 && BackgroundCommands.reloadTab(wnd.tabs);
         });
@@ -2150,7 +2160,7 @@ Are you sure you want to continue?`);
   Settings.updateHooks.newTabUrl_f = function(url) {
     const onlyNormal = Utils.isRefusingIncognito(url), mayForceIncognito = funcDict.createTab.length > 1 && onlyNormal;
     BackgroundCommands.createTab = mayForceIncognito ? function(): void {
-      chrome.windows.getCurrent({populate: true}, funcDict.createTab[1].bind(url));
+      funcDict.getCurWnd(true, funcDict.createTab[1].bind(url));
     } : funcDict.createTab[0].bind(null, url, onlyNormal);
     BackgroundCommands.createTab.useTab = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
   };
