@@ -475,6 +475,7 @@ declare const enum BrowserVer {
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
   MinSelector$deep$InCSSMeansNothing = 63,
   MinCSS$OverscrollBehavior = 63,
+  MinOmniboxSupportDeletable = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
   MinCSS$textDecorationSkipInk = 64,
   MinNoMultipleShadowRootsOfV0 = 64,

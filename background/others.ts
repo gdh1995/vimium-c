@@ -192,35 +192,29 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     sent: boolean;
     key: string;
   }
-  let last: string | null = null, firstResult: Suggestion | null, lastSuggest: SuggestCallback | null
-    , timer = 0, sessionIds: SafeDict<string | number> | null
+  interface SubInfo {
+    type?: "history" | "tab";
+    sessionId?: number | string;
+  }
+  type SubInfoMap = SafeDict<SubInfo>;
+  let last: string | null = null, firstResultUrl: string = "", lastSuggest: SuggestCallback | null = null
+    , timer = 0, subInfoMap: SubInfoMap | null = null
     , maxChars = OmniboxData.DefaultMaxChars
-    , suggestions = null as chrome.omnibox.SuggestResult[] | null, cleanTimer = 0, inputTime: number
+    , suggestions: chrome.omnibox.SuggestResult[] | null = null, cleanTimer = 0, inputTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
+    // since BrowserVer.MinOmniboxSupportDeletable
+    , wantDeletable = chrome.omnibox.onDeleteSuggestion != null && typeof chrome.omnibox.onDeleteSuggestion.addListener === "function"
     , firstType: CompletersNS.ValidTypes | "";
   const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
   maxResults = Settings.CONST.ChromeVersion < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
   ;
-  function formatSessionId(sug: Suggestion) {
-    if (sug.sessionId != null) {
-      (sessionIds as SafeDict<string | number>)[sug.url] = sug.sessionId;
-    }
-  }
-  function format(this: void, sug: Readonly<Suggestion>): chrome.omnibox.SuggestResult {
-    let str = "<url>" + sug.textSplit;
-    str += sug.title ? "</url><dim> - " + sug.title + "</dim>" : "</url>";
-    return {
-      content: sug.url,
-      description: str
-    };
-  }
   function clean(): void {
     if (lastSuggest) { lastSuggest.suggest = null; }
-    sessionIds = suggestions = lastSuggest = firstResult = last = null;
+    subInfoMap = suggestions = lastSuggest = last = null;
     if (cleanTimer) { clearTimeout(cleanTimer); }
     if (timer) { clearTimeout(timer); }
     inputTime = matchType = cleanTimer = timer = 0;
-    firstType = "";
+    firstType = firstResultUrl = "";
     Utils.resetRe();
   }
   function tryClean(): void {
@@ -248,17 +242,33 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       return;
     }
     lastSuggest = null;
-    let sug: Suggestion | undefined = response[0];
-    if (sug && "sessionId" in sug) {
-      sessionIds = Object.create(null);
-      response.forEach(formatSessionId);
-    }
-    firstType = sug ? sug.type as CompletersNS.ValidTypes : "";
+    let notEmpty = response.length > 0, sug: Suggestion = notEmpty ? response[0] : null as never
+      , info: SubInfo = {};
+    firstType = notEmpty ? sug.type as CompletersNS.ValidTypes : "";
     matchType = newMatchType;
-    if (autoSelect) {
-      firstResult = response.shift() as Suggestion;
+    if (notEmpty && (wantDeletable || "sessionId" in response[0])) {
+      subInfoMap = Object.create<SubInfo>(null);
     }
-    suggestions = response.map(format);
+    suggestions = [];
+    for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
+      let sug = response[i], { title, url, type } = sug, tail = "", hasSessionId = sug.sessionId != null
+        , deletable = wantDeletable && !(autoSelect && i === 0) && (
+          type === "tab" ? sug.sessionId !== TabRecency.last : type === "history" && !hasSessionId
+        );
+      if (deletable) {
+        info.type = <SubInfo["type"]>type;
+        tail = ` ~${i + di}~`;
+      }
+      tail = title ? `</url><dim> - ${title}${tail}</dim>` : tail ? `</url><dim>${tail}</dim>` : "</url>";
+      const msg: chrome.omnibox.SuggestResult = { content: url, description: "<url>" + sug.textSplit + tail };
+      deletable && (msg.deletable = true);
+      hasSessionId && (info.sessionId = sug.sessionId as string | number);
+      if (deletable || hasSessionId) {
+        (subInfoMap as SubInfoMap)[url] = info;
+        info = {};
+      }
+      suggestions.push(msg);
+    }
     if (!autoSelect) {
       if (defaultSuggestionType !== FirstSugType.defaultOpen) {
         chrome.omnibox.setDefaultSuggestion(defaultSug);
@@ -269,14 +279,18 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       text = (text && `<dim>${Utils.escapeText(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
       defaultSuggestionType = FirstSugType.search;
       chrome.omnibox.setDefaultSuggestion({ description: text });
-      if (sug = response[0]) switch (sug.type) {
+      if (sug = response[1]) switch (sug.type) {
       case "math":
-        suggestions[0].description = `<dim>${sug.textSplit} = </dim><url><match>${sug.text}</match></url>`;
+        suggestions[1].description = `<dim>${sug.textSplit} = </dim><url><match>${sug.text}</match></url>`;
         break;
       }
     } else {
       defaultSuggestionType = FirstSugType.plainOthers;
-      chrome.omnibox.setDefaultSuggestion({ description: format(sug).description });
+      chrome.omnibox.setDefaultSuggestion({ description: suggestions[0].description });
+    }
+    if (autoSelect) {
+      firstResultUrl = response[0].url;
+      suggestions.shift();
     }
     last = suggest.key;
     Utils.resetRe();
@@ -311,7 +325,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     lastSuggest.sent = true;
     cleanTimer || (cleanTimer = setTimeout(tryClean, 30000));
     inputTime = now;
-    sessionIds = suggestions = firstResult = null;
+    subInfoMap = suggestions = null; firstResultUrl = "";
     const type: CompletersNS.ValidTypes = matchType < CompletersNS.MatchType.singleMatch
         || !key.startsWith(last as string) ? "omni"
       : matchType === CompletersNS.MatchType.searchWanted ? "search"
@@ -319,7 +333,6 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     return Completers.filter(key, { type, maxResults, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
-    text = text.trim().replace(Utils.spacesRe, " ");
     const arr = lastSuggest;
     if (arr && arr.suggest) {
       arr.suggest = onEnter.bind(null, text, disposition);
@@ -327,6 +340,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       timer && clearTimeout(timer);
       return onTimer();
     }
+    text = text.trim().replace(Utils.spacesRe, " ");
     if (last === null && text) {
       // need a re-computation
       // * may has been cleaned, or
@@ -335,8 +349,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
         return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) :  open(text, disposition);
       });
     }
-    if (firstResult && text === last) { text = firstResult.url; }
-    const sessionId = sessionIds && sessionIds[text];
+    if (firstResultUrl && text === last) { text = firstResultUrl; }
+    const sessionId = subInfoMap && subInfoMap[text] && (subInfoMap[text] as SubInfo).sessionId;
     clean();
     return open(text, disposition, sessionId);
   }
@@ -366,6 +380,16 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   });
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
+  wantDeletable && (chrome.omnibox.onDeleteSuggestion as chrome.omnibox.OmniboxDeleteSuggestionEvent).addListener(function(text): void {
+    const ind = parseInt(text.substring(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
+    let url = suggestions && suggestions[ind].content, info = url && subInfoMap && subInfoMap[url],
+    type = info && info.type;
+    if (!type) {
+      console.log("Error: want to delete a suggestion but no related info found (may spend too long before deleting).");
+      return;
+    }
+    return Backend.removeSug({ type, url: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
+  });
 }), 600);
 
 var a: any, cb: (i: any) => void;

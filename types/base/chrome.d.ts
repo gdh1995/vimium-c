@@ -1131,6 +1131,11 @@ declare namespace chrome.omnibox {
         content: string;
         /** The text that is displayed in the URL dropdown. Can contain XML-style markup for styling. The supported tags are 'url' (for a literal URL), 'match' (for highlighting text that matched what the user's query), and 'dim' (for dim helper text). The styles can be nested, eg. dimmed match. You must escape the five predefined entities to display them as text: stackoverflow.com/a/1091953/89484 */
         description: string;
+        /**
+         * Whether the suggest result can be deleted by the user.
+         * @since Chrome 63
+         */
+        deletable?: boolean;
     }
 
     interface Suggestion {
@@ -1149,6 +1154,8 @@ declare namespace chrome.omnibox {
 
     interface OmniboxInputCancelledEvent extends chrome.events.Event<(exArg: FakeArg) => void> {}
 
+    interface OmniboxDeleteSuggestionEvent extends chrome.events.Event<(text: string, exArg: FakeArg) => void> {}
+
     /**
      * Sets the description and styling for the default suggestion. The default suggestion is the text that is displayed in the first suggestion row underneath the URL bar.
      * @param suggestion A partial SuggestResult object, without the 'content' parameter.
@@ -1163,6 +1170,11 @@ declare namespace chrome.omnibox {
     var onInputStarted: OmniboxInputStartedEvent;
     /** User has ended the keyword input session without accepting the input. */
     var onInputCancelled: OmniboxInputCancelledEvent;
+    /**
+     * User has deleted a suggested result.
+     * @since Chrome 63
+     */
+    var onDeleteSuggestion: OmniboxDeleteSuggestionEvent | undefined;
 }
 
 ////////////////////
