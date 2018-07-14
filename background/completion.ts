@@ -196,12 +196,12 @@ SuggestionUtils = {
       cutStart += 22; // for data:text/javascript,var xxx; ...
     }
     if (cutStart < end) {
-      for (let i = ranges.length, start = end + 6; (i -= 2) >= 0 && start >= cutStart; start = ranges[i]) {
-        const lastEnd = ranges[i + 1], delta = start - 20 - (lastEnd >= cutStart ? lastEnd : cutStart);
+      for (let i = ranges.length, start = end + 8; (i -= 2) >= 0 && start >= cutStart; start = ranges[i]) {
+        const subEndInLeft = ranges[i + 1], delta = start - 20 - Math.max(subEndInLeft, cutStart);
         if (delta > 0) {
           end -= delta;
           if (end <= maxLen) {
-            cutStart = ranges[i + 1] + (maxLen - end);
+            cutStart = subEndInLeft + (maxLen - end);
             break;
           }
         }
@@ -209,7 +209,7 @@ SuggestionUtils = {
     }
     end = 0;
     for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
-      const start = ranges[i], temp = (end >= cutStart) ? end : cutStart, delta = start - 20 - temp;
+      const start = ranges[i], temp = Math.max(end, cutStart), delta = start - 20 - temp;
       if (delta > 0) {
         maxLen += delta;
         out += Utils.escapeText(string.substring(end, temp + 11));
