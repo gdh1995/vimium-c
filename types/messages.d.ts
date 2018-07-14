@@ -238,7 +238,11 @@ interface FgReq {
   cmd: {
     cmd: string;
     count: number;
-  }
+  };
+  removeSug: {
+    type: "tab" | "history";
+    url: string;
+  };
 }
 
 declare namespace Req {

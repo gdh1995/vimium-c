@@ -1030,6 +1030,24 @@ searchEngines: {
     }
     const a = this[options.type];
     return Completers.filter(a instanceof Array ? a : this.omni);
+  },
+  removeSug (url, type, callback): void {
+    switch (type) {
+    case "tab":
+      chrome.tabs.remove(<number><string | number>url | 0, function(): void {
+        const err = chrome.runtime.lastError;
+        callback(!err);
+        return err;
+      });
+      break;
+    case "history":
+      {
+        const found = !HistoryCache.history || HistoryCache.binarySearch(url) >= 0;
+        chrome.history.deleteUrl({ url });
+        callback(found);
+      }
+      break;
+    }
   }
 };
 
@@ -1384,4 +1402,4 @@ var Completers = { filter: function(a: string, b: CompletersNS.FullOptions, c: C
   setTimeout(function() {
     return Completers.filter(a, b, c);
   }, 210);
-} };
+}, removeSug (): void {} } as CompletersNS.GlobalCompletersConstructor;

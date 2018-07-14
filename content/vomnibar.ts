@@ -222,7 +222,7 @@ var Vomnibar = {
   },
   onMessage<K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }): void | 1 {
     type Req = VomnibarNS.FReq;
-    switch (data.name as keyof Req) {
+    switch (data.name) {
     case "uiComponentIsReady":
       this.status = VomnibarNS.Status.ToShow;
       let opt = this.options;
@@ -243,6 +243,8 @@ var Vomnibar = {
     case "evalJS": VUtils.evalIfOK((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
     case "unload": return Vomnibar ? this.reset(data.name === "broken") : undefined;
+    case "hud": VHUD.showForDuration((data as Req["hud"]).text); return;
+    default: console.log("[%d] Vimium++: unknown message \"%s\" from Vomnibar page", Date.now(), data.name);
     }
   },
   onShown (): number {

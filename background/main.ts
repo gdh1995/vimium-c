@@ -1795,6 +1795,9 @@ Are you sure you want to continue?`);
           port.postMessage({ name: "blurred" });
         }
       }, 50);
+    },
+    removeSug (this: void, req: FgReq["removeSug"], port?: Port): void {
+      return Backend.removeSug(req, port);
     }
   },
   Connections = {
@@ -1964,6 +1967,18 @@ Are you sure you want to continue?`);
     focus: requestHandlers.focusOrLaunch,
     getExcluded: Utils.getNull,
     IconBuffer: null,
+    removeSug (this: void, { type, url }: FgReq["removeSug"], port?: Port): void {
+      const tabId = port ? port.sender.tabId : TabRecency.last,
+      name = type === "tab" ? type : type + " item",
+      ports = tabId >= 0 && framesForTab[tabId] || null;
+      cPort = (ports && ports[0]) as never;
+      if (type === "tab" && (<number><string | number>url | 0) === tabId) {
+        return Backend.showHUD("The current tab should be kept.");
+      }
+      return Completers.removeSug(url, type, function(succeed): void {
+        return Backend.showHUD(succeed ? `Succeed to delete a ${name}` : `The ${name} is not found!`);
+      });
+    },
     setIcon (): void {},
     complain (action: string): void {
       return this.showHUD("It's not allowed to " + action);

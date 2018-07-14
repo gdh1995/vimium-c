@@ -193,7 +193,7 @@ declare namespace chrome.bookmarks {
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function() {...};
      */
-    // export function remove(id: string, callback?: Function): 1;
+    export function remove(id: string, callback?: Function): 1;
     /**
      * Retrieves the children of the specified BookmarkTreeNode id.
      * @param callback The callback parameter should be a function that looks like this:
@@ -923,7 +923,7 @@ declare namespace chrome.history {
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function() {...};
      */
-    // export function deleteUrl(details: Url, callback?: () => void): 1;
+    export function deleteUrl(details: Url, callback?: () => void): 1;
 
     /** Fired when a URL is visited, providing the HistoryItem data for that URL. This event fires before the page has loaded. */
     var onVisited: HistoryVisitedEvent;

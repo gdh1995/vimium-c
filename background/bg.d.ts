@@ -244,6 +244,7 @@ declare namespace CompletersNS {
 
   interface GlobalCompletersConstructor {
     filter (this: GlobalCompletersConstructor, query: string, options: FullOptions, callback: Callback): void;
+    removeSug (url: string, type: FgReq["removeSug"]["type"], callback: (succeed: boolean) => void): void;
   }
 }
 declare var Completers: CompletersNS.GlobalCompletersConstructor;
@@ -387,6 +388,7 @@ declare namespace BackendHandlersNS {
     reopenTab (tab: chrome.tabs.Tab, refresh?: boolean): void;
     setIcon (tabId: number, type: Frames.ValidStatus): void;
     IconBuffer: IconNS.AccessIconBuffer | null,
+    removeSug (this: void, req: FgReq["removeSug"], port?: Port): void;
     complain (this: BackendHandlers, message: string): void;
     showHUD (message: string, isCopy?: boolean | undefined): void;
     getExcluded (this: void, url: string): string | null,

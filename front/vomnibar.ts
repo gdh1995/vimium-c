@@ -24,7 +24,7 @@ type Options = VomnibarNS.FgOptions;
 declare const enum AllowedActions {
   Default = 0,
   nothing = Default,
-  dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, enter
+  dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, enter, remove
 }
 
 interface ConfigurableItems {
@@ -274,7 +274,7 @@ var Vomnibar = {
   },
   parsed ({ id, search }: BgVomnibarReq["parsed"]): void {
     const line: SuggestionEx = this.completions[id] as SuggestionEx;
-    line.parsed = search ? (this.modeType !== "omni" ? ":o " : "") + search.keyword + " " + search.url : line.text;
+    line.parsed = search ? (this.modeType !== "omni" ? ":o " : "") + search.keyword + " " + search.url + " " : line.text;
     if (id === this.selection) {
       return this._updateInput(line, line.parsed);
     }
@@ -347,7 +347,9 @@ var Vomnibar = {
                       : this.ctrlMap[n] || AllowedActions.nothing; }
     }
     else if (event.shiftKey) {
-      action = n === VKeyCodes.up ? AllowedActions.pageup : n === VKeyCodes.down ? AllowedActions.pagedown : n === VKeyCodes.tab ? AllowedActions.up : AllowedActions.nothing;
+      action = n === VKeyCodes.up ? AllowedActions.pageup : n === VKeyCodes.down ? AllowedActions.pagedown
+        : n === VKeyCodes.tab ? AllowedActions.up : n === VKeyCodes.deleteKey ? AllowedActions.remove
+        : AllowedActions.nothing;
     }
     else if (action = this.normalMap[n] || AllowedActions.nothing) {}
     else if (n === VKeyCodes.ime || n > VKeyCodes.f1 && n < VKeyCodes.minNotFn) {
@@ -402,6 +404,7 @@ var Vomnibar = {
     case AllowedActions.toggle: return this.toggleInput();
     case AllowedActions.pageup: case AllowedActions.pagedown: return this.goPage(action !== AllowedActions.pageup);
     case AllowedActions.enter: return this.onEnter(true);
+    case AllowedActions.remove: return this.removeCur();
     }
   },
   onBashAction (code: number): void | boolean {
@@ -469,6 +472,21 @@ var Vomnibar = {
       window.onkeyup = null as never;
       return Vomnibar.onEnter(event);
     }
+  },
+  removeCur (): void {
+    if (this.selection < 0) { return; }
+    const completion = this.completions[this.selection], type = completion.type;
+    if (type !== "tab" && (type !== "history" || completion.sessionId != null)) {
+      VPort.postToOwner({ name: "hud", text: "This item can not be deleted." });
+      return;
+    }
+    VPort.postMessage({
+      handler: "removeSug",
+      type,
+      url: type === "tab" ? completion.sessionId + "" : completion.url
+    });
+    window.getSelection().removeAllRanges();
+    return this.refresh(150);
   },
   onClick (event: MouseEvent): void {
     let el: Node | null = event.target as Node;

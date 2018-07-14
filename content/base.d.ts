@@ -151,6 +151,7 @@ declare namespace VomnibarNS {
       height: number;
       max?: number;
     };
+    hud: { text: string; };
     focus: {
       key: VKeyCodes;
     };
