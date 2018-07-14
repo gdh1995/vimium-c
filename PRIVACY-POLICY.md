@@ -28,8 +28,11 @@ This extension Vimium++ requires such types of information and permissions:
 * **`storage`**: not in use by default; if you enable `vimSync` manually,
     Vimium++ will need it to sync settings to Google servers
 
-Note: the "**browsing activity**" listed above actually includes many permissions:
+Note:
+* the "**browsing activity**" listed above actually includes many permissions:
     `tabs`, `<all_urls>` and `webNavigation`.
+* Vimium++ will never delete any browser history item,
+     unless there's an explicit user operation like Shift+Enter.
 
 
 Other Explanations
