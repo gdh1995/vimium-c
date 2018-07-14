@@ -250,11 +250,17 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       subInfoMap = Object.create<SubInfo>(null);
     }
     suggestions = [];
+    const urlDict = Object.create<number>(null);
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       let sug = response[i], { title, url, type } = sug, tail = "", hasSessionId = sug.sessionId != null
         , deletable = wantDeletable && !(autoSelect && i === 0) && (
           type === "tab" ? sug.sessionId !== TabRecency.last : type === "history" && !hasSessionId
         );
+      if (url in urlDict) {
+        url = `:${i + di} ` + url;
+      } else {
+        urlDict[url] = 1;
+      }
       if (deletable) {
         info.type = <SubInfo["type"]>type;
         tail = ` ~${i + di}~`;
@@ -357,6 +363,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   function open(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition, sessionId?: string | number | null): void {
     if (!text) {
       text = Utils.convertToUrl("");
+    } else if (text[0] === ":") {
+      text = text.substring(text.indexOf(" ") + 1);
     }
     if (text.substring(0, 7).toLowerCase() === "file://") {
       text = Utils.showFileUrl(text);
@@ -387,6 +395,9 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     if (!type) {
       console.log("Error: want to delete a suggestion but no related info found (may spend too long before deleting).");
       return;
+    }
+    if ((url as string)[0] === ":") {
+      url = (url as string).substring((url as string).indexOf(" ") + 1);
     }
     return Backend.removeSug({ type, url: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
   });
