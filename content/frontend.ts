@@ -905,7 +905,7 @@ Pagination = {
     },
     count (request): void {
       const count = parseInt(currentKeys, 10) || 1;
-      vPort.post({ handler: "cmd", cmd: request.cmd, count});
+      vPort.post({ handler: "cmd", cmd: request.cmd, count, id: request.id});
     },
   showHelpDialog ({ html, advanced: shouldShowAdvanced, optionUrl, CSS }: Req.bg<"showHelpDialog">): void {
     let box: HTMLElement, oldShowHelp = Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void

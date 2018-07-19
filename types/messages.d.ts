@@ -77,6 +77,7 @@ interface BgReq {
   };
   count: {
     cmd: string;
+    id: number;
   }
 }
 
@@ -238,6 +239,7 @@ interface FgReq {
   cmd: {
     cmd: string;
     count: number;
+    id: number;
   };
   removeSug: {
     type: "tab" | "history";

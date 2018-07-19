@@ -874,11 +874,15 @@ Are you sure you want to continue?`);
       (this: MarksNS.MarkToGo, tick: 0 | 1 | 2, tabs: Tab | undefined) => void
     ],
     executeGlobal (cmd: string, ports: Frames.Frames | null | undefined): void {
+      if (gCmdTimer) {
+        clearTimeout(gCmdTimer);
+        gCmdTimer = 0;
+      }
       if (!ports) {
-        return requestHandlers.cmd({ cmd, count: 1});
+        return Backend.execute(cmd, CommandsData.cmdMap[cmd] || null, 1);
       }
       gCmdTimer = setTimeout(funcDict.executeGlobal, 100, cmd, null);
-      ports[0].postMessage({ name: "count", cmd });
+      ports[0].postMessage({ name: "count", cmd, id: gCmdTimer });
     },
     toggleMuteTab: [function(tabs) {
       const tab = tabs[0];
@@ -1788,7 +1792,8 @@ Are you sure you want to continue?`);
       chrome.tabs.query({ url, windowType: "normal" }, cb2);
     },
     cmd (this: void, request: FgReq["cmd"]): void {
-      const cmd = request.cmd;
+      const cmd = request.cmd, id = request.id;
+      if (id && gCmdTimer !== id) { return; } // an old / aborted message
       if (gCmdTimer) {
         clearTimeout(gCmdTimer);
         gCmdTimer = 0;
