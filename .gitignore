@@ -27,3 +27,4 @@ todo*
 !/lib/viewer.min.js
 !/pages/newtab.js
 !/weidu/*/*.js
+scripts/*public_suffix*
