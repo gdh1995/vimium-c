@@ -12,16 +12,13 @@ declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
 
 $<ElementWithDelay>("#showCommands").onclick = function(event): void {
   if (!window.VDom) { return; }
-  let node: HTMLElement, root = VDom.UI.root;
+  let node: HTMLElement | null, root = VDom.UI.root;
   event && event.preventDefault();
   if (!root) {}
-  else if (root.querySelector('.HelpCommandName')) {
-    node = root.getElementById("HelpDialog") as HTMLElement;
-    VDom.UI.addElement(node);
-    (window as any).VScroller.current = node;
-    return;
-  } else if (node = root.getElementById("HClose") as HTMLElement) {
+  else if (node = root.getElementById("HClose") as HTMLElement | null) {
+    const isCommand = root.querySelector('.HelpCommandName') != null;
     click(node);
+    if (isCommand) { return; }
   }
   VPort.post({
     handler: "initHelp",
