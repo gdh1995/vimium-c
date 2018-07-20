@@ -879,7 +879,7 @@ VUtils = {
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
       return i === KnownKey.and ? "&amp;" : i === KnownKey.quote1 ? "&apos;"
-        : i < KnownKey.quote1 ? "\\&quot;" : i === KnownKey.lt ? "&lt;" : "&gt;";
+        : i < KnownKey.quote1 ? "%22" : i === KnownKey.lt ? "%3C" : "%3E";
     }
     this.escapeCSSStringInAttr = function(s): string {
       return s.replace(escapeRe, escapeCallback);
