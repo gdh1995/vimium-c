@@ -4,16 +4,19 @@
 	border: 1px solid #b3b3b3;
 	border-radius: 8px;
 	box-shadow: rgba(0, 0, 0, 0.4) 0 0 6px;
+	box-sizing: border-box;
 	contain: content;
 	left: calc(50% - 419px);
 	line-height: 130%;
 	max-height: calc(100% - 108px);
 	min-height: 25px;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	padding: 8px 18px 0 18px;
 	top: 50px;
 	-webkit-user-select: auto;
 	user-select: auto;
+	width: 838px;
 	{{styles}}
 }
 #HelpContent {
@@ -177,10 +180,6 @@
 }
 
 /* Scrollbar */
-#HelpDialog.Scroll {
-	overscroll-behavior: contain;
-	padding-right: 6px;
-}
 .Scroll::-webkit-scrollbar,
 .Scroll::-webkit-scrollbar-track,
 .Scroll::-webkit-scrollbar-thumb {

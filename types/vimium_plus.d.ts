@@ -285,6 +285,7 @@ declare const enum BrowserVer {
   MinSupported = MinShadowDOMV0,
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
   MinES6WeakMap = 36,
+  // but shadowRoot.getElementById still exists on C35
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEAGCY
   MinSession = 37,
   // even if EXPERIMENTAL
@@ -391,11 +392,12 @@ declare const enum BrowserVer {
   CSS$Contain$BreaksHelpDialogSize = 51,
   // even if EXPERIMENTAL or LEAGCY
   MinNoUnmatchedIncognito = 52,
-  // the 4 below are correct even if LEAGCY
+  // the 3 below are correct even if LEAGCY
   MinCSSEnableContain = 52,
   MinSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); }
   MinForcedDirectWriteOnWindows = 52,
   MinPositionMayBeSticky = 52, // if EXPERIMENTAL; enabled by default since C56 even if LEAGCY
+  MinAutoScrollerAllocNewSpace = 53, // even if EXPERIMENTAL or LEAGCY; if box-sizing is content-box
   MinEnsuredShadowDOMV1 = 53,
   // wekitUserSelect still works on C35
   MinUserSelectAll = 53,
