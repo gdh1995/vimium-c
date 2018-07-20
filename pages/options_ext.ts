@@ -270,6 +270,11 @@ Are you sure you want to continue?`
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
+  const node = VDom.UI.root && VDom.UI.root.getElementById("HClose") as HTMLElement;
+  if (node) { // reload help dialog
+    node.click();
+    $("#showCommands").click();
+  }
   if (window.VHUD) { return VHUD.showForDuration("Import settings data: OK!", 1000); }
 }
 
