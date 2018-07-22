@@ -315,7 +315,7 @@ label:active {
 .exclusionRemoveButton:hover {
   color: #444;
 }
-.exclusionRemoveButton:active,.exclusionRemoveButton:focus {
+.exclusionRemoveButton:active {
   color: #4d90fe;
   outline: none;
 }
