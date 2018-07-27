@@ -124,8 +124,9 @@ VDom.UI = {
     return sel;
   },
   getSelectionText (notTrim?: 1): string {
-    let s = window.getSelection().toString(), el: Element | null;
-    if (s && !VEventMode.lock() && (el = VScroller.current) && VDom.getEditableType(el) === EditableType.Editbox) {
+    let sel = window.getSelection(), s = sel.toString(), el: Element | null, rect: ClientRect;
+    if (s && !VEventMode.lock() && (el = VScroller.current) && VDom.getEditableType(el) === EditableType.Editbox
+        && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
       s = "";
     }
     return notTrim ? s : s.trim();
