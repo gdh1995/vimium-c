@@ -165,7 +165,7 @@
 		"b.i|b.image|image: http://image.baidu.com/search/index?tn=baiduimage&ie=utf-8&word=$s \\",
 		"  百度图片",
 		"b.t|t.b|tieba|贴吧|贴: http://tieba.baidu.com/f?kw=$s 百度贴吧",
-		"g|gg|ggg|Google|google|go|个: https://www.google.com.hk/search?ie=utf-8&q=$s \\",
+		"g|gg|ggg|Google|google|个: https://www.google.com.hk/search?ie=utf-8&q=$s \\",
 		"  www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i Google",
 		"g.i|g.image: https://www.google.com.hk/search?newwindow=1&tbm=isch&q=$s \\",
 		"  www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]tbm=isch\\b.*?[#&]q=([^#&]*)/i",

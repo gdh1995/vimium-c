@@ -14,10 +14,10 @@
 	font-size-adjust: none;
 	letter-spacing: normal;
 	line-height-step: 0;
-	padding: 0;
 	margin: 0;
 	opacity: 1;
 	outline: none;
+	padding: 0;
 	text-align-last: auto;
 	text-indent: 0;
 	text-shadow: none;
@@ -49,7 +49,6 @@
 	padding: 0 !important;
 	position: static !important;
 	transform: none !important;
-	user-select: auto !important;
 	width: 0 !important;
 }
 
