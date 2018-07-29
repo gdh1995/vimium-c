@@ -1615,7 +1615,7 @@ Are you sure you want to continue?`);
     },
     checkIfEnabled: function (this: void, request: ExclusionsNS.Details | FgReq["checkIfEnabled"]
         , port?: Frames.Port | null): void {
-      if (!port) {
+      if (!port || !port.postMessage) {
         port = funcDict.indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId);
         if (!port) { return; }
       }
