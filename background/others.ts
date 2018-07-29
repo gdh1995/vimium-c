@@ -363,8 +363,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   function open(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition, sessionId?: string | number | null): void {
     if (!text) {
       text = Utils.convertToUrl("");
-    } else if (text[0] === ":") {
-      text = text.substring(text.indexOf(" ") + 1);
+    } else if (text[0] === ":" && (<RegExpOne>/^:([1-9]|1[0-2]) /).test(text)) {
+      text = text.substring(text[2] === " " ? 3 : 4);
     }
     if (text.substring(0, 7).toLowerCase() === "file://") {
       text = Utils.showFileUrl(text);
