@@ -424,21 +424,24 @@ var Utils = {
       return Promise.resolve(p);
     }
     return (window as any)[name] = new Promise<T>(function(resolve, reject) {
-      const script = document.createElement("script");
-      script.src = Settings.CONST[name];
-      script.async = false;
-      script.onerror = function(): void {
+      Utils.loadJS(Settings.CONST[name], function(): void {
         reject("ImportError: " + name);
-      };
-      script.onload = function(): void {
+      }, function(): void {
         if (window[name] instanceof Promise) {
           reject("ImportError: " + name);
         } else {
           resolve(window[name]);
         }
-      };
-      (document.documentElement as HTMLHtmlElement).appendChild(script).remove();
+      });
     });
+  },
+  loadJS (src: string, onerror?: any, onload?: any): void {
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = false;
+    script.onerror = onerror;
+    script.onload = onload;
+    (document.documentElement as HTMLHtmlElement).appendChild(script).remove();
   },
   searchWordRe: <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g,
   searchWordRe2: <RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g,
@@ -714,3 +717,17 @@ String.prototype.startsWith = (function(this: string, s: string): boolean {
   return i >= 0 && this.indexOf(s, i) === i;
 }));
 }
+
+window.onload = function(): void {
+  window.onload = null as never;
+  console.log("Vimium++ is only loaded partly because the system is too slow.\n[%d] Now auto recovering...", Date.now());
+  const scripts = chrome.runtime.getManifest().background.scripts as string[],
+  isDev = scripts.join("\n").indexOf("/tail.js") < 0;
+  let d = !isDev || ("Completers" in window) ? 1 : "TabRecency" in window ? 2 : 3;
+  if (!("Exclusions" in window)) {
+    d += "Commands" in window ? 1 : !isDev || ("Backend" in window) ? 2 : "Settings" in window ? 3 : 4;
+  }
+  for (let len = scripts.length, i = len - d; i < len; i++) {
+    Utils.loadJS(scripts[i]);
+  }
+};

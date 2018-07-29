@@ -356,7 +356,6 @@ declare namespace SettingsNS {
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
-    "TabRecency" | "Completers" |
     "MathParser";
 
   interface OnSyncUpdate {

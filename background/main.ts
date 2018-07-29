@@ -2237,20 +2237,6 @@ Are you sure you want to continue?`);
     Utils.resetRe();
   }, 34);
 
-  window.onload = function(): void {
-    window.onload = null as never;
-    console.log("Vimium++ is only loaded partly because the system is too slow.\n[%d] Now auto recovering...", Date.now());
-    "Commands" in window || Utils.require("Commands");
-    "Exclusions" in window || Utils.require("Exclusions");
-    const isDev = (chrome.runtime.getManifest().background.scripts as string[]).join("\n").indexOf("/tail.js") < 0;
-    if (isDev) {
-      "TabRecency" in window || Utils.require("TabRecency");
-      "Completers" in window || Utils.require("Completers");
-    }
-    const script = document.createElement("script");
-    script.src = isDev ? Settings.CONST.TailDev : Settings.CONST.TailRel;
-    (document.documentElement as HTMLHtmlElement).appendChild(script).remove();
-  };
   // will run only on <F5>, not on runtime.reload
   window.onunload = function(event): void {
     if (event && event.isTrusted === false) { return; }
