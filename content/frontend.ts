@@ -1027,12 +1027,14 @@ Pagination = {
         return false;
       }
       if (";".indexOf(url.substring(11).trim()) >= 0) {
-      } else setTimeout(function(): void {
+      } else if (VDom.allowScripts) setTimeout(function(): void {
         const script = VDom.createElement("script");
         script.type = "text/javascript";
         script.textContent = VUtils.decodeURL(url).substring(11).trim();
         (document.documentElement as HTMLElement).appendChild(script).remove();
-      }, 0);
+      }, 0); else {
+        HUD.showForDuration("Here's not allowed to eval scripts");
+      }
       return true;
     }
   };

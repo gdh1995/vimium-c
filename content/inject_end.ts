@@ -2,6 +2,7 @@ VDom.documentReady(function() {
   if (!VSettings) { return; }
   addEventListener("hashchange", VSettings.checkIfEnabled);
 });
+VDom.allowScripts = false;
 
 if (chrome.runtime.onMessageExternal) {
   VimiumInjector.alive = 1;

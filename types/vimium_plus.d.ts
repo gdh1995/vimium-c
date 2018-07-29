@@ -493,4 +493,6 @@ declare const enum BrowserVer {
   MinCanNotRevokeObjectURLAtOnce = 65,
   MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65,
   MinInputMode = 66, // even if LEAGCY; still works on C35 if EXPERIMENTAL
+  // even if EXPERIMENTAL or LEAGCY
+  MinScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
 }

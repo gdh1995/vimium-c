@@ -14,4 +14,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
     loader = scriptElement;
   }
   loader.remove();
+  setTimeout(function() {
+    (window as any).VDom && ((window as any).VDom.allowScripts = false);
+  }, 400);
 })();

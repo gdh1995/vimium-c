@@ -456,7 +456,7 @@ Are you sure you want to continue?`);
       Utils.resetRe();
       return typeof url !== "string" ? funcDict.onEvalUrl(url as Urls.SpecialUrl)
         : funcDict.openShowPage[0](url, reuse, options) ? void 0
-        : Utils.isJSUrl(url) ? funcDict.openJSUrl[0](url)
+        : Utils.isJSUrl(url) ? funcDict.openJSUrl(url)
         : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
         : reuse === ReuseType.current ? funcDict.safeUpdate(url)
         : tabs ? funcDict.openUrlInNewTab(url, reuse, options, tabs as [Tab])
@@ -506,26 +506,13 @@ Are you sure you want to continue?`);
         index: tab ? funcDict.setNewTabIndex(tab, options.position) : undefined
       }, commandCount);
     },
-    openJSUrl: [function(url: string): void {
-      if (!cPort) { // e.g.: use Chrome omnibox at once on starting
+    openJSUrl (url: string): void {
+      if (cPort) { // e.g.: use Chrome omnibox at once on starting
+        try { cPort.postMessage({ name: "eval", url }); } catch (e) {}
+      } else {
         chrome.tabs.update({ url }, funcDict.onRuntimeError);
-        return;
       }
-      const { sender } = cPort, notTop = sender.frameId > 0 || sender.tabId < 0, frameUrl = sender.url;
-      if (frameUrl.startsWith("chrome")) {
-        return Backend.complain("eval JavaScript on extension pages");
-      }
-      if (notTop || !Utils.protocolRe.test(frameUrl)) {
-        return funcDict.openJSUrl[1](url);
-      }
-      chrome.tabs.update(sender.tabId, { url }, function(): void {
-        let err = chrome.runtime.lastError;
-        err && funcDict.openJSUrl[1](url);
-        return err;
-      });
-    }, function(url: string): void {
-      try { cPort.postMessage({ name: "eval", url }); } catch (e) {}
-    }],
+    },
     openShowPage: [function(url, reuse, options, tab): boolean {
       const prefix = Settings.CONST.ShowPage;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }

@@ -50,7 +50,8 @@
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
     return f ? f(cb, { timeout }) : requestAnimationFrame(cb);
-  };
+  } as any;
+  VDom.allowScripts = false;
 
 function func(this: void, sec: number): void {
 type ApplyArgs<T, ArgParent, R> = (this: (this: T, ...a: ArgParent[]) => R, thisArg: T, a: ArgParent[]) => R;

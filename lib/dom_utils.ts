@@ -1,6 +1,7 @@
 /// <reference path="../content/base.d.ts" />
 var VDom = {
   UI: null as never as DomUI,
+  allowScripts: true,
   isHTML (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   isStandard: true,
   createElement: function (this: any, tagName: string): HTMLElement {
