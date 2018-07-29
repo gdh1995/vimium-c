@@ -26,7 +26,7 @@ FILE = FILE and FILE[0]
 if FILE:
     fp = open(FILE, "rb")
 else:
-    import urllib
+    import urllib.request
     fp = urllib.request.urlopen(URL)
 with fp:
     lines = [line.strip().decode("utf-8") for line in fp]
