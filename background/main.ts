@@ -209,6 +209,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       return true;
     } as {
+      /** `true` means `port` is NOT vomnibar port */
       (this: void, port: Port, nolog: true): boolean
       (this: void, port: Frames.Port, nolog?: false): boolean
     },
@@ -771,6 +772,7 @@ Are you sure you want to continue?`);
       const session = list[commandCount - 1], item = session.tab || session.window;
       item && chrome.sessions.restore(item.sessionId);
     },
+    /** if `alsoWnd`, then it's safe when tab does not exist */
     selectTab (this: void, tabId: number, alsoWnd?: boolean): void {
       chrome.tabs.update(tabId, {active: true}, alsoWnd ? funcDict.selectWnd : null);
     },
@@ -821,6 +823,7 @@ Are you sure you want to continue?`);
         mask: FrameMaskType.ForcedSelf
       });
     },
+    /** safe when cPort is null */
     focusOrLaunch: [function(tabs): void {
       if (TabRecency.incognito !== IncognitoType.true) {
         tabs && (tabs = tabs.filter(tab => !tab.incognito));
@@ -1568,6 +1571,7 @@ Are you sure you want to continue?`);
         return funcDict.selectTab(id, true);
       }
       if (!chrome.sessions) {
+        cPort = funcDict.findCPort(port) as Port;
         return funcDict.complainNoSession();
       }
       chrome.sessions.restore(id, funcDict.onRuntimeError);
@@ -1778,6 +1782,7 @@ Are you sure you want to continue?`);
       default: return;
       }
     },
+    /** safe when cPort is null */
     focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true): void {
       // * do not limit windowId or windowType
       let url = Utils.reformatURL(request.url.split("#", 1)[0]), callback = funcDict.focusOrLaunch[0];
