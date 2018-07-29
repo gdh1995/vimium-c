@@ -109,7 +109,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   };
   for (let storage = localStorage, all = bgSettings.defaults, i = 0, len = storage.length, j: string[]; i < len; i++) {
     const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
-    if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList") {
+    if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList" || key === "innerCSS") {
       continue;
     }
     const storedVal = storage.getItem(key) as string;
@@ -199,6 +199,7 @@ Are you sure you want to continue?`
   }
   delete new_data.findModeRawQuery;
   delete new_data.findModeRawQueryList;
+  delete new_data.innerCSS;
   delete new_data.newTabUrl_f;
   for (const _key in _ref) {
     const item: Option<any> = _ref[_key as keyof AllowedOptions];

@@ -280,6 +280,7 @@ declare namespace SettingsNS {
     findModeRawQueryList: string;
     grabBackFocus: boolean;
     hideHud: boolean;
+    innerCSS: string;
     keyMappings: string;
     localeEncoding: string;
     newTabUrl: string;
@@ -304,7 +305,6 @@ declare namespace SettingsNS {
     searchEngineMap: SafeDict<Search.Engine>;
   }
   interface BaseNonPersistentSettings {
-    innerCSS: string;
     searchEngineRules: Search.Rule[];
     searchKeywords: string[] | null;
     vomnibarPage_f: string;
@@ -337,7 +337,7 @@ declare namespace SettingsNS {
   }
   type DeclaredUpdateHookMap = NullableUpdateHookMap
       & Pick<BaseUpdateHookMap, "extWhiteList" | "grabBackFocus" | "newTabUrl" | "baseCSS" | "vimSync"
-        | "userDefinedCss" | "vomnibarPage">;
+        | "userDefinedCss" | "vomnibarPage" | "innerCSS">;
   type EnsuredUpdateHookMaps = DeclaredUpdateHookMap
       & Pick<BaseUpdateHookMap, "showActionIcon" | "newTabUrl_f">;
   type BaseUpdateHookMap2 = {

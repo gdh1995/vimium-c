@@ -2231,11 +2231,9 @@ Are you sure you want to continue?`);
   })();
 
   setTimeout(function(): void {
-    Settings.fetchFile("baseCSS");
-    Settings.postUpdate("searchUrl", null); // will also update newTabUrl
-
     (document.documentElement as HTMLHtmlElement).textContent = '';
     (document.firstChild as DocumentType).remove();
+    Settings.postUpdate("searchUrl", null); // will also update newTabUrl
     Utils.resetRe();
   }, 34);
 

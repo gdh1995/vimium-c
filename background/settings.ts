@@ -115,10 +115,10 @@ var Settings = {
       if (this.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css += ".HUD,.IH,.LH{border-width:1px}\n";
       }
-      (this as typeof Settings).CONST.BaseCSSLength = css.length;
+      const cacheId = Settings.CONST.CurrentVersion + "," + Settings.CONST.ChromeVersion + ",";
+      css = cacheId + css.length + "\n" + css;
       let css2 = this.get("userDefinedCss");
-      css2 && (css += css2);
-      css = css + "";
+      css2 && (css += "\n" + css2);
       return this.set("innerCSS", css);
     },
     vimSync (value): void {
@@ -127,8 +127,9 @@ var Settings = {
       Settings.Sync = { set () {} };
     },
     userDefinedCss (css2): void {
-      const css = this.cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength);
-      this.set("innerCSS", css2 ? css + css2 : css);
+      let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
+      css = css.substring(0, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
+      this.set("innerCSS", css2 ? css + "\n" + css2 : css);
       const ref = Backend.indexPorts(), request = { name: "showHUD" as "showHUD", CSS: this.cache.innerCSS };
       for (const tabId in ref) {
         const frames = ref[tabId] as Frames.Frames;
@@ -138,6 +139,10 @@ var Settings = {
           }
         }
       }
+    },
+    innerCSS (css): void {
+      // Note: The line below is allowed as a special use case
+      (this.cache as SettingsNS.FullCache).innerCSS = css.substring(css.indexOf("\n") + 1);
     },
     vomnibarPage (url): void {
       if (url === this.defaults.vomnibarPage) {
@@ -186,6 +191,7 @@ nacjakoppgmdcpemlfnfegmlhipddanj`,
     findModeRawQueryList: "",
     grabBackFocus: false,
     hideHud: false,
+    innerCSS: "",
     keyboard: [500, 33],
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
@@ -228,7 +234,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null as never,
-    baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, innerCSS: 1,
+    baseCSS: 1, exclusionTemplate: 1, helpDialog: 1,
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1, vomnibarPage_f: 1
   } as TypedSafeEnum<SettingsNS.NonPersistentSettings>,
   frontUpdateAllowed: { __proto__: null as never,
@@ -327,4 +333,14 @@ chrome.runtime.getPlatformInfo(function(info): void {
     ref2.unshift(obj.PolyFill);
   }
   obj.ContentScripts = ref2.map(func);
+
+  const innerCSS = localStorage.getItem("innerCSS");
+  if (innerCSS) {
+    const cacheId = obj.CurrentVersion + "," + Settings.CONST.ChromeVersion + ",";
+    if (innerCSS.startsWith(cacheId)) {
+      Settings.postUpdate("innerCSS", innerCSS);
+      return;
+    }
+  }
+  Settings.fetchFile("baseCSS");
 })();
