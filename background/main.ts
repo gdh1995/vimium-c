@@ -195,7 +195,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       return Settings.CONST.ChromeVersion >= BrowserVer.MinSession ? Backend.complain("control tab sessions")
         : Backend.showHUD(`Vimium++ can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
     },
-    checkVomnibarPage: function (this: void, port: Frames.Port, nolog?: boolean): boolean {
+    isNotVomnibarPage: function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
       const info = port.sender as SenderEx;
       if (info.isVomnibar == null) {
@@ -304,6 +304,10 @@ Are you sure you want to continue?`);
     getSenderPort (sender: chrome.runtime.MessageSender): Port | null {
       const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null;
       return frames ? funcDict.indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
+    },
+    findCPort (port: Port | null | undefined): Port | null {
+      const frames = framesForTab[port ? port.sender.tabId : TabRecency.last];
+      return frames ? frames[0] : null as never as Port;
     },
 
     createTabs (this: void, rawUrl: string, count: number, active: boolean): void {
@@ -1574,8 +1578,8 @@ Are you sure you want to continue?`);
     } as BackendHandlersNS.BackendHandlers["gotoSession"],
     openUrl (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url, opener?: boolean }, port?: Port): void {
       Object.setPrototypeOf(request, null);
-      let ports: Frames.Frames | undefined, unsafe = !!port && funcDict.checkVomnibarPage(port, true);
-      cPort = unsafe ? port as Port : (ports = framesForTab[port ? port.sender.tabId : TabRecency.last]) ? ports[0] : cPort;
+      let unsafe = port != null && funcDict.isNotVomnibarPage(port, true);
+      cPort = unsafe ? port as Port : funcDict.findCPort(port) || cPort;
       let url: Urls.Url | undefined = request.url;
       if (url) {
         if (url[0] === ":" && request.omni && (<RegExpOne>/^:[bdhost]\s/).test(url)) {
@@ -1738,7 +1742,7 @@ Are you sure you want to continue?`);
       return BackgroundCommands.showVomnibar(inner);
     },
     omni (this: void, request: FgReq["omni"], port: Port): void {
-      if (funcDict.checkVomnibarPage(port)) { return; }
+      if (funcDict.isNotVomnibarPage(port)) { return; }
       return Completers.filter(request.query, request,
       funcDict.PostCompletions.bind<Port, 0 | 1 | 2, Readonly<CompletersNS.Suggestion>[], boolean, CompletersNS.MatchType, number, void>(port
         , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
@@ -1908,7 +1912,7 @@ Are you sure you want to continue?`);
     },
     onOmniConnect (port: Frames.Port, tabId: number, type: PortType): boolean {
       if (type >= PortType.omnibar) {
-        if (!funcDict.checkVomnibarPage(port)) {
+        if (!funcDict.isNotVomnibarPage(port)) {
           this.framesForOmni.push(port);
           if (tabId < 0) {
             (port.sender as Frames.RawSender).tabId = type !== PortType.omnibar ? this._fakeId--
@@ -1972,7 +1976,7 @@ Are you sure you want to continue?`);
       return secret;
     };
   })();
-  
+
   Backend = {
     gotoSession: requestHandlers.gotoSession,
     openUrl: requestHandlers.openUrl,
@@ -1980,12 +1984,10 @@ Are you sure you want to continue?`);
     focus: requestHandlers.focusOrLaunch,
     getExcluded: Utils.getNull,
     IconBuffer: null,
-    removeSug (this: void, { type, url }: FgReq["removeSug"], port?: Port): void {
-      const tabId = port ? port.sender.tabId : TabRecency.last,
-      name = type === "tab" ? type : type + " item",
-      ports = tabId >= 0 && framesForTab[tabId] || null;
-      cPort = (ports && ports[0]) as never;
-      if (type === "tab" && (<number><string | number>url | 0) === tabId) {
+    removeSug (this: void, { type, url }: FgReq["removeSug"], port?: Port | null): void {
+      const name = type === "tab" ? type : type + " item";
+      cPort = funcDict.findCPort(port) as Port;
+      if (type === "tab" && (<number><string | number>url | 0) === TabRecency.last) {
         return Backend.showHUD("The current tab should be kept.");
       }
       return Completers.removeSug(url, type, function(succeed): void {
