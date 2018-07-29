@@ -80,6 +80,7 @@ Known issues (Up to the master branch):
   Currently, no effective ways have been found (up to Chrome 59).
 7. On sandboxed pages without an `allow-scripts` permission in their CSP,
   HUD will always be visible in order to solve some issues on Chrome.
+  This issue is fixed in Chrome 68, although Vomnibar keeps broken on those pages.
 8. Chrome 64 and 65 always clean their console logs if only Vomnibar is opened, and there's nothing we can do for it.
   Chrome 66 fixes it.
 

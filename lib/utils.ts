@@ -21,18 +21,6 @@ var VUtils = {
     str = str.substring(str.lastIndexOf("/", str.lastIndexOf('?') + 1 || end), end);
     return this._imageUrlRe.test(str);
   },
-  evalIfOK (url: string): boolean {
-    if (!this.jsRe.test(url)) {
-      return false;
-    }
-    ";".indexOf(url.substring(11).trim()) < 0 && setTimeout(function(): void {
-      const script = document.createElementNS("http://www.w3.org/1999/xhtml", "script") as HTMLScriptElement;
-      script.type = "text/javascript";
-      script.textContent = VUtils.decodeURL(url).substring(11).trim();
-      (document.documentElement as HTMLElement).appendChild(script).remove();
-    }, 0);
-    return true;
-  },
   safer<T extends object> (this: void, opt: T): T & SafeObject { return Object.setPrototypeOf(opt, null); },
   execCommand (parent: object, command: string, a: number, b: object | null): void {
     let keys = command.split('.'), i: number, len: number;

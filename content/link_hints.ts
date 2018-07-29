@@ -1106,7 +1106,7 @@ OPEN_INCOGNITO_LINK: {
   202: "Open multi incognito tabs",
   activator (link): void {
     const url = this.getUrlData(link);
-    if (!VUtils.evalIfOK(url)) {
+    if (!VPort.evalIfOK(url)) {
       return this.openUrl(url, true);
     }
   }

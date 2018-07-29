@@ -278,7 +278,7 @@ declare const NDEBUG: undefined;
  * )
  * #define LEAGCY (#disable-javascript-harmony-shipping)
  * #define EMPTY ((a clean User Data)
- * #define LATEST_TESTED 66.0.3359.139
+ * #define LATEST_TESTED 68.0.3440.75
  */
 declare const enum BrowserVer {
   MinShadowDOMV0 = 35, // ensured
@@ -473,7 +473,7 @@ declare const enum BrowserVer {
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
-  // the 5 below are correct even if EXPERIMENTAL or LEAGCY
+  // the 6 below are correct even if EXPERIMENTAL or LEAGCY
   // since C63, Vimium's inner styles have been really safe; `/deep/` works on C35 even if LEAGCY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
   MinSelector$deep$InCSSMeansNothing = 63,
@@ -489,8 +489,8 @@ declare const enum BrowserVer {
   // if #enable-md-extensions, it's there since C60
   MinEnsuredChromeUrl$ExtensionShortcuts = 65,
   MinSmartSpellCheck = 65,
-  // even if EXPERIMENTAL or LEAGCY
+  // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinCanNotRevokeObjectURLAtOnce = 65,
-  MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65, // even if EXPERIMENTAL or LEAGCY
+  MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65,
   MinInputMode = 66, // even if LEAGCY; still works on C35 if EXPERIMENTAL
 }

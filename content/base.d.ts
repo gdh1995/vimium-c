@@ -266,6 +266,7 @@ interface VPort {
   post<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
   send<K extends keyof FgRes>(this: void, req: FgReq[K] & Req.baseFg<K>
     , callback: (this: void, res: FgRes[K]) => void): void;
+  evalIfOK (url: string): boolean;
 }
 interface ComplicatedVPort extends VPort {
   post<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;

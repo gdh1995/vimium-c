@@ -431,7 +431,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     autoOpen (_0: number, options: FgOptions): void {
       let url = VDom.UI.getSelectionText(), keyword = (options.keyword || "") + "";
-      url && VUtils.evalIfOK(url) || vPort.post({
+      url && VPort.evalIfOK(url) || vPort.post({
         handler: "openUrl",
         copied: !url,
         keyword, url
@@ -867,7 +867,7 @@ Pagination = {
       request.url = window.location.href;
       vPort.post(request);
     },
-    eval (options: BgReq["eval"]): void { VUtils.evalIfOK(options.url); },
+    eval (options: BgReq["eval"]): void { VPort.evalIfOK(options.url); },
     settingsUpdate (request): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer(request);
@@ -1019,7 +1019,23 @@ Pagination = {
     }
   }
 
-  VPort = { post: vPort.post, send: vPort.send };
+  VPort = {
+    post: vPort.post,
+    send: vPort.send,
+    evalIfOK (url: string): boolean {
+      if (!VUtils.jsRe.test(url)) {
+        return false;
+      }
+      if (";".indexOf(url.substring(11).trim()) >= 0) {
+      } else setTimeout(function(): void {
+        const script = VDom.createElement("script");
+        script.type = "text/javascript";
+        script.textContent = VUtils.decodeURL(url).substring(11).trim();
+        (document.documentElement as HTMLElement).appendChild(script).remove();
+      }, 0);
+      return true;
+    }
+  };
   VHUD = HUD;
 
   VEventMode = {

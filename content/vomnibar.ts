@@ -240,7 +240,7 @@ var Vomnibar = {
     case "scroll": return VEventMode.scroll(data as Req["scroll"]);
     case "scrollGoing": VScroller.keyIsDown = VScroller.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
-    case "evalJS": VUtils.evalIfOK((data as Req["evalJS"]).url); break;
+    case "evalJS": VPort.evalIfOK((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
     case "unload": return Vomnibar ? this.reset(data.name === "broken") : undefined;
     case "hud": VHUD.showForDuration((data as Req["hud"]).text); return;
