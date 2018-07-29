@@ -379,8 +379,8 @@ declare namespace BackendHandlersNS {
   interface BackendHandlers {
     parse (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"];
     gotoSession: {
-      (this: void, request: { sessionId: string | number, active: true }, port: Port): void;
-      (this: void, request: { sessionId: string | number, active?: false }): void;
+      (this: void, request: { sessionId: string | number, active: false }, port: Port): void;
+      (this: void, request: { sessionId: string | number, active?: true }): void;
     };
     openUrl (this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
     checkIfEnabled: checkIfEnabled;
