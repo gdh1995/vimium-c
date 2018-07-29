@@ -280,6 +280,13 @@ Are you sure you want to continue?`);
         setTimeout(funcDict.retryCSS, 34 * tick, port, tick + 1);
       }
     },
+    execute (command: string, options: CommandsNS.RawOptions | null, count: number | string, port: Port | null, lastKey?: VKeyCodes): void {
+      count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
+      options && typeof options === "object" ?
+          Object.setPrototypeOf(options, null) : (options = null);
+      lastKey = (+<number>lastKey || VKeyCodes.None) as VKeyCodes;
+      return executeCommand(command, Utils.makeCommand(command, options), count, lastKey, port as Port);
+    },
 
     getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
         , (result: [Tab], _ex: FakeArg) => void, 1>(null, { active: true, currentWindow: true }),
@@ -293,6 +300,10 @@ Are you sure you want to continue?`);
       (populate: true, callback: (window: (chrome.windows.Window & { tabs: chrome.tabs.Tab[] }) | null | undefined
         , exArg: FakeArg) => void): 1;
       (populate: false, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1;
+    },
+    getSenderPort (sender: chrome.runtime.MessageSender): Port | null {
+      const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null;
+      return frames ? funcDict.indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
     },
 
     createTabs (this: void, rawUrl: string, count: number, active: boolean): void {
@@ -866,7 +877,7 @@ Are you sure you want to continue?`);
         gCmdTimer = 0;
       }
       if (!ports) {
-        return Backend.execute(cmd, CommandsData.cmdMap[cmd] || null, 1);
+        return funcDict.execute(cmd, CommandsData.cmdMap[cmd] || null, 1, null);
       }
       gCmdTimer = setTimeout(funcDict.executeGlobal, 100, cmd, null);
       ports[0].postMessage({ name: "count", cmd, id: gCmdTimer });
@@ -1778,14 +1789,14 @@ Are you sure you want to continue?`);
       }
       chrome.tabs.query({ url, windowType: "normal" }, cb2);
     },
-    cmd (this: void, request: FgReq["cmd"]): void {
+    cmd (this: void, request: FgReq["cmd"], port: Port): void {
       const cmd = request.cmd, id = request.id;
       if (id && gCmdTimer !== id) { return; } // an old / aborted message
       if (gCmdTimer) {
         clearTimeout(gCmdTimer);
         gCmdTimer = 0;
       }
-      Backend.execute(cmd, CommandsData.cmdMap[cmd] || null, request.count);
+      funcDict.execute(cmd, CommandsData.cmdMap[cmd] || null, request.count, port);
     },
     blurTest (this: void, _0: FgReq["blurTest"], port: Port): void {
       if (port.sender.tabId < 0) {
@@ -2098,13 +2109,6 @@ Are you sure you want to continue?`);
         return this.setIcon(tabId, newStatus);
       }
     },
-    execute (this: void, command, options, count, lastKey): void {
-      count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
-      options && typeof options === "object" ?
-          Object.setPrototypeOf(options, null) : (options = null);
-      lastKey = (+<number>lastKey || VKeyCodes.None) as VKeyCodes;
-      return executeCommand(command, Utils.makeCommand(command, options), count, lastKey, null as never as Port);
-    },
     ExecuteGlobal (this: void, cmd: string): void {
       const tabId = TabRecency.last, ports = framesForTab[tabId];
       if (cmd === "quickNext") { cmd = "nextTab"; }
@@ -2170,7 +2174,7 @@ Are you sure you want to continue?`);
     if (typeof message === "string") {
       command = message;
       if (command && CommandsData.availableCommands[command]) {
-        return Backend.execute(command);
+        return funcDict.execute(command, null, 1, funcDict.getSenderPort(sender));
       }
       return;
     }
@@ -2179,7 +2183,7 @@ Are you sure you want to continue?`);
     case "command":
       command = message.command ? message.command + "" : "";
       if (!(command && CommandsData.availableCommands[command])) { return; }
-      return Backend.execute(command, message.options, message.count, message.key);
+      return funcDict.execute(command, message.options, message.count, funcDict.getSenderPort(sender), message.key);
     case "content_scripts":
       sendResponse(Settings.CONST.ContentScripts);
       return;
