@@ -237,7 +237,7 @@ VDom.UI = {
   SuppressMost (event) {
     VKeyboard.isEscape(event) && VUtils.remove(this);
     const key = event.keyCode;
-    return key > VKeyCodes.f10 && key < VKeyCodes.minNotFn ?
+    return key > VKeyCodes.f10 && key < VKeyCodes.minNotFn || key === VKeyCodes.f5 ?
       HandlerResult.Suppress : HandlerResult.Prevent;
   }
 };

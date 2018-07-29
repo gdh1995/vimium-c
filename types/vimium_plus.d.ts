@@ -259,7 +259,7 @@ declare const enum VKeyCodes {
   maxNotInsert = 45 - 1, insert, deleteKey, minNotDelete,
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum,
   maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K,
-  metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2,
+  metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f5 = f1 + 4,
   f10 = f1 + 9, f12 = f1 + 11, f20 = f1 + 19, minNotFn, ime = 229,
   questionWin = 191, questionMac = KnownKey.question,
 }
