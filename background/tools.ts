@@ -503,6 +503,8 @@ setTimeout(function() {
   }
 }, 120);
 
+Backend.Init && Backend.Init();
+
 chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
   const notAllowed = Settings.CONST.DisallowIncognito = isAllowedAccess === false;
   if (notAllowed) {

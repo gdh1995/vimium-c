@@ -408,7 +408,6 @@ if (Backend.Init) {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   Commands.defaultKeyMappings = null as never;
   Commands.populateCommandKeys();
-  Backend.Init();
   if (!Settings.get("vimSync")) {
     Commands = null as never;
   }

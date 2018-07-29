@@ -165,4 +165,3 @@ Settings.updateHooks.exclusionListenHash = function(this: void, value: boolean):
 } else {
   var Exclusions: ExcCls = null as never;
 }
-Backend.Init && Backend.Init();

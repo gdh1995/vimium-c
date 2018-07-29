@@ -2133,7 +2133,8 @@ Are you sure you want to continue?`);
         : funcDict.indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts"],
   Init(): void {
-    if (3 !== ++Connections.state) { return; }
+    if (1 !== ++Connections.state) {
+    if (2 === Connections.state) {
     Backend.Init = null;
     if (window.onload) {
       window.onload = null as never;
@@ -2141,6 +2142,9 @@ Are you sure you want to continue?`);
       const now = Date.now();
       console.log("[%d] Recovered", now);
       localStorage.setItem("log|lastPartlyLoad", "" + now);
+    }
+    }
+    return;
     }
     Utils.resetRe();
     chrome.runtime.onConnect.addListener(Connections.OnConnect);
