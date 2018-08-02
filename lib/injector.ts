@@ -5,10 +5,9 @@ interface EventTargetEx extends _EventTargetEx {
 
 (function() {
   const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i = scriptSrc.indexOf("://") + 3,
-  extId = scriptSrc.substring(i, scriptSrc.indexOf("/", i));
-  let tick = 1, handler: (this: void, res: ExternalMsgs["content_scripts"]["res"] | null | undefined | false) => void;
-chrome.runtime.sendMessage(extId, { handler: "content_scripts" } as ExternalMsgs["content_scripts"]["req"],
-handler = function(content_scripts) {
+  extId = scriptSrc.substring(i, scriptSrc.indexOf("/", i)), onIdle = window.requestIdleCallback;
+  let tick = 1;
+function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["res"] | null | undefined | false): void {
   let str: string | undefined, noBackend: boolean;
   if (!content_scripts) {
     type LastError = chrome.runtime.LastError;
@@ -24,9 +23,7 @@ handler = function(content_scripts) {
       str = msg ? `:\n\t${msg}` : `: retried but failed (${content_scripts}).`;
       noBackend = false;
     } else {
-      setTimeout(function() {
-        chrome.runtime.sendMessage(extId, { handler: "content_scripts" }, handler);
-      }, 200 * tick);
+      setTimeout(call, 200 * tick);
       tick++;
       noBackend = true;
     }
@@ -59,7 +56,21 @@ handler = function(content_scripts) {
     scriptElement.src = i;
     parentElement.insertBefore(scriptElement, insertLocation).remove();
   }
-});
+}
+function call() {
+  chrome.runtime.sendMessage(extId, { handler: "content_scripts" }, handler);
+}
+function start() {
+  window.removeEventListener("load", start);
+  onIdle ? onIdle(function() {
+    onIdle(function() { setTimeout(call, 0); }, {timeout: 67});
+  }, {timeout: 330}) : setTimeout(call, 67);
+}
+if (document.readyState === "complete") {
+  start();
+} else {
+  window.addEventListener("load", start);
+}
 })();
 
 (function(): void {
