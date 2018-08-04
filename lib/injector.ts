@@ -1,3 +1,5 @@
+/// <reference no-default-lib="true"/>
+/// <reference path="../types/base/index.d.ts" />
 type _EventTargetEx = typeof EventTarget;
 interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;

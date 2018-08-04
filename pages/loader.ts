@@ -1,7 +1,7 @@
+/// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
-/// <reference path="../types/lib/index.d.ts" />
 window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
-  let loader = document.currentScript as HTMLScriptElement;
+  let loader = (document as any).currentScript as HTMLScriptElement;
   const head = loader.parentElement as HTMLElement
     , arr = chrome.runtime.getManifest().content_scripts[0].js;
   arr.pop();
