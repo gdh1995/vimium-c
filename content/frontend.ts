@@ -76,9 +76,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }, 2000);
     },
     connect (status: PortType): void {
-      const data = { name: "vimium++." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
-      port = this.port = isInjected ? chrome.runtime.connect(VimiumInjector.id, data) as Port
-        : chrome.runtime.connect(data) as Port;
+      const runtime: typeof chrome.runtime = typeof browser !== "undefined" && browser && (browser as any).runtime || chrome.runtime,
+      data = { name: "vimium++." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
+      port = this.port = isInjected ? runtime.connect(VimiumInjector.id, data) as Port : runtime.connect(data) as Port;
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
     }

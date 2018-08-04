@@ -4,8 +4,11 @@ type _EventTargetEx = typeof EventTarget;
 interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;
 }
+declare var browser: never;
 
 (function() {
+  let runtime: typeof chrome.runtime;
+  runtime = typeof browser !== "undefined" && browser && (browser as any).runtime || chrome.runtime;
   const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i = scriptSrc.indexOf("://") + 3,
   extId = scriptSrc.substring(i, scriptSrc.indexOf("/", i)), onIdle = window.requestIdleCallback;
   let tick = 1;
@@ -13,13 +16,13 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
   let str: string | undefined, noBackend: boolean;
   if (!content_scripts) {
     type LastError = chrome.runtime.LastError;
-    const msg: string | void = (chrome.runtime.lastError as void | LastError) &&
-      (chrome.runtime.lastError as void | LastError as LastError).message,
-    host = chrome.runtime.id || location.host || location.protocol;
-    noBackend = !!(msg && msg.lastIndexOf("not exist") >= 0 && chrome.runtime.id);
+    const msg: string | void = (runtime.lastError as void | LastError) &&
+      (runtime.lastError as void | LastError as LastError).message,
+    host = runtime.id || location.host || location.protocol;
+    noBackend = !!(msg && msg.lastIndexOf("not exist") >= 0 && runtime.id);
     if (content_scripts === false) { // disabled
       str = ": not in the white list.";
-    } else if (!noBackend && chrome.runtime.lastError) {
+    } else if (!noBackend && runtime.lastError) {
       str = msg ? `:\n\t${msg}` : ": no backend found.";
     } else if (tick > 3) {
       str = msg ? `:\n\t${msg}` : `: retried but failed (${content_scripts}).`;
@@ -46,7 +49,7 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
     destroy: null
   };
   if (!content_scripts) {
-    return chrome.runtime.lastError;
+    return runtime.lastError;
   }
   const insertLocation = document.contains(curEl) ? curEl
       : (document.documentElement as HTMLHtmlElement).firstChild as Node
@@ -60,7 +63,7 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
   }
 }
 function call() {
-  chrome.runtime.sendMessage(extId, { handler: "content_scripts" }, handler);
+  runtime.sendMessage(extId, { handler: "content_scripts" }, handler);
 }
 function start() {
   window.removeEventListener("load", start);

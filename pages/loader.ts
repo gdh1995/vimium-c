@@ -1,5 +1,9 @@
 /// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
+declare var browser: never;
+if (typeof browser !== "undefined" && browser && (browser as any).runtime) {
+  window.chrome = browser;
+}
 window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
   let loader = (document as any).currentScript as HTMLScriptElement;
   const head = loader.parentElement as HTMLElement

@@ -31,6 +31,10 @@ interface ViewerType {
 type ValidShowTypes = "image" | "url" | "";
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
 
+declare var browser: never;
+if (typeof browser !== "undefined" && (browser && (browser as any).runtime) != null) {
+  window.chrome = browser;
+}
 var _idRegex = <RegExpOne> /^#[0-9A-Z_a-z]+$/,
 $ = function<T extends HTMLElement>(selector: string): T {
   if (_idRegex.test(selector)) {

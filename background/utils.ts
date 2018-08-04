@@ -718,6 +718,13 @@ String.prototype.startsWith = (function(this: string, s: string): boolean {
 }));
 }
 
+declare var browser: never;
+const NotChrome: boolean = typeof browser !== "undefined" && (browser && (browser as any).runtime) != null
+  && !location.protocol.startsWith("chrome"); // in case Chrome also supports `browser` in the future
+if (NotChrome) {
+  window.chrome = browser;
+}
+
 window.onload = function(): void {
   window.onload = null as never;
   console.log("Vimium++ is only loaded partly because the system is too slow.\n[%d] Now auto recovering...", Date.now());

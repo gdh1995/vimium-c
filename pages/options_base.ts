@@ -7,6 +7,10 @@ interface Checker<T extends keyof AllowedOptions> {
   check (value: AllowedOptions[T]): AllowedOptions[T];
 }
 
+declare var browser: never;
+if (typeof browser !== "undefined" && (browser && (browser as any).runtime) != null) {
+  window.chrome = browser;
+}
 const KeyRe = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
 __extends = function(child: Function, parent: Function): void {
   function __(this: { constructor: Function } ) { this.constructor = child; }
