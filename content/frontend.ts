@@ -755,8 +755,8 @@ Pagination = {
         if (virtual) { return text; }
         return this.showForDuration(`No ${e || "text"} found!`, 1000);
       }
-      if (text.startsWith("chrome-")) {
-        text = text.substring(text.indexOf('/', text.indexOf('/') + 2));
+      if (text.startsWith("chrome-") && text.indexOf("://") > 0) {
+        text = text.substring(text.indexOf('/', text.indexOf('/') + 2)) || text;
       }
       text = "Copied: " + (text.length > 41 ? text.substring(0, 41) + "\u2026" : text + ".");
       if (virtual) { return text; }
