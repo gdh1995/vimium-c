@@ -405,7 +405,6 @@ declare const enum BrowserVer {
   MinUntrustedEventsDoNothing = 53, // fake click events won't show a <select>'s popup
   // before Chrome 53, there may be window.VisualViewPort under flags, but not the instance
   Min$visualViewPort$UnderFlags = 53, // window.visualViewPort occurs if EXPERIMENTAL
-  assumedVer = 53,
   // only if #enable-site-per-process or #enable-top-document-isolation
   // the wrong innerWidth := realWidth * devicePixelRatio
   // the devicePixelRatio means that of Windows, but not Chrome's zoom level
@@ -495,4 +494,5 @@ declare const enum BrowserVer {
   MinInputMode = 66, // even if LEAGCY; still works on C35 if EXPERIMENTAL
   // even if EXPERIMENTAL or LEAGCY
   MinScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
+  assumedVer = 99,
 }
