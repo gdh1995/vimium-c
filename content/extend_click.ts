@@ -8,10 +8,10 @@
   if (!(script instanceof HTMLScriptElement)) { return; }
   addEventListener("VimiumHook", installer = function(event) {
     const t = event.target;
-    if (!(t instanceof Element) || t.getAttribute("data-secret") !== secret) { return; }
+    if (!(t instanceof Element) || t.getAttribute("data-vimium-secret") !== secret) { return; }
     event.stopImmediatePropagation();
     removeEventListener("VimiumHook", installer, true);
-    t.removeAttribute("data-secret");
+    t.removeAttribute("data-vimium-secret");
     t.addEventListener("VimiumOnclick", onclick, true);
     box = t;
     installer = null;
@@ -103,7 +103,7 @@ let handler = function(this: void): void {
   box = call(Create, document, "div") as HTMLDivElement;
   append(docEl, box);
   listen(box, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
-  call(Attr, box, "data-secret", "" + sec);
+  call(Attr, box, "data-vimium-secret", "" + sec);
   dispatch(box, new CE("VimiumHook"));
   remove(box);
   handler = Create = null as never;
