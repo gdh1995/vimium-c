@@ -403,9 +403,9 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   });
 }, 600);
 
-var a: any, cb: (i: any) => void;
+var a: any = null, cb: (i: any) => void;
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-(a = chrome.runtime.onInstalled) && (a as typeof chrome.runtime.onInstalled).addListener(cb =
+chrome.runtime.onInstalled && chrome.runtime.onInstalled.addListener(cb =
 function(details: chrome.runtime.InstalledDetails) {
   let reason = details.reason;
   if (reason === "install") { reason = ""; }
@@ -497,10 +497,7 @@ Utils.GC = function(): void {
 Backend.Init && Backend.Init();
 
 setTimeout(function(): void {
-  if (a) {
-    a.removeListener(cb);
-    chrome.runtime.onInstalled = a = null as never;
-  }
+  chrome.runtime.onInstalled.removeListener(cb);
   cb = function(b) { a = b; console.log(b); };
   Utils.resetRe();
 }, 1200);
