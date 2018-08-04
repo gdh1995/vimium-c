@@ -109,7 +109,7 @@ var Settings = {
       return (this as typeof Settings).postUpdate("newTabUrl");
     },
     baseCSS (css): void {
-      if (this.CONST.ChromeVersion >= BrowserVer.MinCSS$All$Attr) {
+      if ("all" in (document.documentElement as HTMLElement).style) {
         css = ".R{" + css.substring(css.indexOf("all:"));
       }
       if (this.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
