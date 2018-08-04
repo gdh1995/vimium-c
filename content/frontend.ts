@@ -475,7 +475,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       } else {
         sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
       }
-      hints[sel].marker.classList.add("S");
+      hints[sel].marker.classList.add("IHS", "S");
       VDom.UI.simulateSelect(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
       VDom.UI.ensureBorder(VDom.wdZoom);
       const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
@@ -490,8 +490,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           sel = (oldSel + (event.shiftKey ? -1 : 1)) % hints.length;
           InsertMode.hinting = true;
           VDom.UI.simulateSelect(hints[sel].target, null, false, action);
-          hints[oldSel].marker.classList.remove("S");
-          hints[sel].marker.classList.add("S");
+          hints[oldSel].marker.classList.remove("IHS", "S");
+          hints[sel].marker.classList.add("IHS", "S");
           InsertMode.hinting = false;
           return HandlerResult.Prevent;
         }

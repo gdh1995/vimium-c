@@ -7,10 +7,10 @@ pointer-events:none;position:fixed;text-align:left;-webkit-user-select:none;user
 opacity:1 !important;outline:none !important;padding:0 !important;position:static !important;
 transform:none !important;width:0 !important}:host:before,:host:after{display:none !important}
 .HM{font-weight:bold;position:absolute;white-space:nowrap;}
-.LH{background:linear-gradient(#FFF785,#FFC542);border:0.5px solid #E3BE23;border-radius:3px;box-shadow:0 3px 7px 0 rgba(0,0,0,0.3);
-box-sizing:border-box;overflow:hidden;padding:1px 3px 0;position:absolute}
+.LH{background:linear-gradient(#FFF785,#FFC542);border:0.5px solid #E3BE23;border-radius:3px;
+box-shadow:0 3px 7px 0 rgba(0,0,0,0.3);box-sizing:border-box;overflow:hidden;padding:1px 3px 0;position:absolute}
 .IH{background-color:rgba(255,247,133,0.3);border:0.5px solid #C38A22;position:absolute}
-.IH.S{background-color:rgba(255,102,102,0.3);border-color:#933}
+.IHS{background-color:rgba(255,102,102,0.3);border-color:#933}
 .HUD{background-color:#EEE;border:0.5px solid #B3B3B3;border-radius:4px 4px 0 0;bottom:0;height:14px;line-height:14px;
 max-width:312px;min-width:150px;padding:2px 3px;right:150px;text-overflow:ellipsis;white-space:nowrap}
 .Flash{box-shadow:0 0 4px 2px #4183C4;contain:strict;padding:1px}
