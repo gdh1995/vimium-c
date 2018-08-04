@@ -105,7 +105,7 @@ if (Settings.get("vimSync")) setTimeout(function() {
   });
 }, 400);
 
-setTimeout((function() { if (!chrome.browserAction) { return; }
+setTimeout(function() { if (!chrome.browserAction) { return; }
   const func = Settings.updateHooks.showActionIcon;
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
@@ -177,9 +177,9 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
     chrome.browserAction.setTitle({ title });
   };
   Settings.postUpdate("showActionIcon");
-}), 150);
+}, 150);
 
-setTimeout((function() { if (!chrome.omnibox) { return; }
+setTimeout(function() { if (!chrome.omnibox) { return; }
   interface OmniboxCallback {
     (this: void, suggestResults: chrome.omnibox.SuggestResult[]): true | void;
   }
@@ -401,7 +401,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     }
     return Backend.removeSug({ type, url: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
   });
-}), 600);
+}, 600);
 
 var a: any, cb: (i: any) => void;
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
@@ -496,11 +496,11 @@ Utils.GC = function(): void {
 
 Backend.Init && Backend.Init();
 
-setTimeout((function(): void {
+setTimeout(function(): void {
   if (a) {
     a.removeListener(cb);
     chrome.runtime.onInstalled = a = null as never;
   }
   cb = function(b) { a = b; console.log(b); };
   Utils.resetRe();
-}), 1200);
+}, 1200);

@@ -91,9 +91,6 @@ var Backend: BackendHandlersNS.BackendHandlers;
         "background-color: #fffbe5", "background-color:#fffbe5; color: red", extId);
       return Settings.extWhiteList[extId] = false;
     },
-    isIncNor (this: void, wnd: Window): wnd is IncNormalWnd {
-      return wnd.incognito && wnd.type === "normal";
-    },
     selectFrom (this: void, tabs: Tab[]): ActiveTab {
       for (let i = tabs.length; 0 < --i; ) {
         if (tabs[i].active) {
@@ -101,21 +98,6 @@ var Backend: BackendHandlersNS.BackendHandlers;
         }
       }
       return tabs[0] as ActiveTab;
-    },
-    onRefreshTab (this: void, step: RefreshTabStep, tab?: Tab): void {
-      const err = chrome.runtime.lastError;
-      if (err) {
-        chrome.sessions.restore();
-        return err;
-      }
-      step = step + 1;
-      if (step >= RefreshTabStep.end) { return; }
-      const tabId = (tab as Tab).id;
-      setTimeout(function(): void {
-        chrome.tabs.get(tabId, function(tab): void {
-          return funcDict.onRefreshTab(step + 1, tab);
-        });
-      }, 50 * step * step);
     },
     setNewTabIndex (this: void, tab: Tab, pos: OpenUrlOptions["position"]): number | undefined {
       return pos === "before" ? tab.index : pos === "start" ? 0
@@ -292,7 +274,6 @@ Are you sure you want to continue?`);
     getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
         , (result: [Tab], _ex: FakeArg) => void, 1>(null, { active: true, currentWindow: true }),
     getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
-    getId (this: void, tab: { readonly id: number }): number { return tab.id; },
     getCurWnd: function (populate: boolean, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1 {
       const wndId = TabRecency.lastWnd;
       return wndId >= 0 ? chrome.windows.get(wndId, { populate }, callback)
@@ -302,30 +283,18 @@ Are you sure you want to continue?`);
         , exArg: FakeArg) => void): 1;
       (populate: false, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1;
     },
-    getSenderPort (sender: chrome.runtime.MessageSender): Port | null {
-      const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null;
-      return frames ? funcDict.indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
-    },
     findCPort (port: Port | null | undefined): Port | null {
       const frames = framesForTab[port ? port.sender.tabId : TabRecency.last];
       return frames ? frames[0] : null as never as Port;
     },
 
-    createTabs (this: void, rawUrl: string, count: number, active: boolean): void {
-      if (!(count >= 1)) return;
-      const option: chrome.tabs.CreateProperties = {url: rawUrl, active};
-      tabsCreate(option);
-      if (count < 2) return;
-      option.active = false;
-      do {
-        chrome.tabs.create(option);
-      } while(--count > 1);
-    },
     openUrlInIncognito (this: void, url: string, active: boolean, opts: Readonly<OpenUrlOptions>, tab: Tab, wnds: Window[]): void {
       let oldWnd: Window | undefined, inCurWnd: boolean;
       oldWnd = wnds.filter(wnd => wnd.id === tab.windowId)[0];
       inCurWnd = oldWnd != null && oldWnd.incognito;
-      if (!opts.window && (inCurWnd || (wnds = wnds.filter(funcDict.isIncNor)).length > 0)) {
+      if (!opts.window && (inCurWnd || (wnds = wnds.filter((wnd: Window): wnd is IncNormalWnd => {
+        return wnd.incognito && wnd.type === "normal";
+      })).length > 0)) {
         const options: InfoToCreateMultiTab & { windowId: number } = {
           url, active,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
@@ -377,8 +346,11 @@ Are you sure you want to continue?`);
       const tab = funcDict.selectFrom(wnd.tabs);
       if (wnd.incognito && wnd.type !== "normal") {
         // url is disabled to be opened in a incognito window directly
-        return funcDict.createTab[2](this, tab
-          , commandCount > 1 ? funcDict.duplicateTab[1] : null, wnd.tabs);
+        return funcDict.createTab[2](this, tab, commandCount > 1 ? (id: number): void => {
+          for (let count = commandCount; 0 < --count; ) {
+            chrome.tabs.duplicate(id);
+          }
+        } : null, wnd.tabs);
       }
       return openMultiTab({
         url: this, active: tab.active, windowId: wnd.type === "normal" ? tab.windowId : undefined,
@@ -434,24 +406,6 @@ Are you sure you want to continue?`);
       (this: void, url: string, tab: Tab
         , callback: ((this: void, tabId: number, wndId: number) => void) | null, wnd: Window) => void,
       (this: Tab, callback: ((this: void, tabId: number, wndId: number) => void) | null, newTab: Tab) => void
-    ],
-    duplicateTab: [function(tabId, wnd): void {
-      const tab = wnd.tabs.filter(tab => tab.id === tabId)[0];
-      return wnd.incognito && !tab.incognito ? funcDict.duplicateTab[1](tabId) : funcDict.duplicateTab[2](tab);
-    }, function(id) {
-      for (let count = commandCount; 0 < --count; ) {
-        chrome.tabs.duplicate(id);
-      }
-    }, function(tab) {
-      return openMultiTab({
-        url: tab.url, active: false, windowId: tab.windowId,
-        pinned: tab.pinned,
-        index: tab.index + 2 , openerTabId: tab.id
-      }, commandCount - 1);
-    }] as [
-      (tabId: number, wnd: PopWindow) => void,
-      (tabId: number) => void,
-      (tab: Tab) => void
     ],
     openUrl (url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | never[]): void {
       if (typeof url === "string") {
@@ -523,9 +477,9 @@ Are you sure you want to continue?`);
       }, commandCount);
     },
     openJSUrl (url: string): void {
-      if (cPort) { // e.g.: use Chrome omnibox at once on starting
+      if (cPort) {
         try { cPort.postMessage({ name: "eval", url }); } catch (e) {}
-      } else {
+      } else { // e.g.: use Chrome omnibox at once on starting
         chrome.tabs.update({ url }, funcDict.onRuntimeError);
       }
     },
@@ -582,160 +536,6 @@ Are you sure you want to continue?`);
         }
       } while (0 < --repeat);
     },
-    searchAs (search: ParsedSearch, port: Port, query: string | null): void {
-      let err = query === null ? "It's not allowed to read clipboard"
-        : (query = (query as string).trim()) ? "" : "No selected or copied text found";
-      if (err) {
-        cPort = port;
-        return Backend.showHUD(err);
-      }
-      query = Utils.createSearchUrl((query as string).split(Utils.spacesRe), search.keyword);
-      return funcDict.safeUpdate(query);
-    },
-    moveTabToNewWindow: [function(wnd): void {
-      const total = wnd.tabs.length;
-      if (total <= 1) { return; } // not need to show a tip
-      const tab = funcDict.selectFrom(wnd.tabs), i = tab.index, rawCount = commandCount, absCount = Math.abs(rawCount),
-      limited = cOptions.limited != null ? !!cOptions.limited : absCount > total,
-      count = Math.min(absCount, limited ? rawCount < 0 ? i + 1 : total - i : total);
-      if (count >= total) { return Backend.showHUD("It does nothing to move all tabs of this window"); }
-      if (count > 30 && !funcDict.confirm("moveTabToNewWindow", count)) { return; }
-      return funcDict.makeWindow({
-        tabId: tab.id,
-        incognito: tab.incognito
-      }, wnd.type === "normal" ? wnd.state : "",
-      absCount > 1 ? funcDict.moveTabToNewWindow[1].bind(wnd, tab.index, rawCount < 0 ? -count : count) : null);
-    }, function(i, count, wnd2): void {
-        let tabs: Tab[] | undefined = this.tabs, tabs2: Tab[] | undefined;
-        const curTab = tabs[i], len = tabs.length, end = i + count;
-        if (end > len || end < -1) {
-          tabs2 = count > 0 ? tabs.slice(len - count, i) : tabs.slice(i + 1, -count);
-        }
-        tabs = count > 0 ? tabs.slice(i + 1, end) : tabs.slice(Math.max(0, end + 1), i);
-        if (this.incognito && Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito) {
-          let {incognito} = curTab, filter = (tab: Tab): boolean => tab.incognito === incognito;
-          tabs = tabs.filter(filter);
-          tabs2 && (tabs2 = tabs2.filter(filter));
-        }
-        if (count < 0) {
-          let tmp = tabs2;
-          tabs2 = tabs; tabs = tmp;
-        }
-        let curInd = 0;
-        if (tabs2 && tabs2.length > 0) {
-          chrome.tabs.move(tabs2.map(funcDict.getId), {index: 0, windowId: wnd2.id}, funcDict.onRuntimeError);
-          curInd = tabs2.length;
-          if (curInd > 1) { // Chrome only accepts the first two tabs of tabs2
-            chrome.tabs.move(curTab.id, {index: curInd});
-          }
-        }
-        if (tabs && tabs.length > 0) {
-          chrome.tabs.move(tabs.map(funcDict.getId), {index: curInd + 1, windowId: wnd2.id}, funcDict.onRuntimeError);
-        }
-    }] as [
-      (this: void, wnd: PopWindow) => void,
-      (this: PopWindow, i: number, count: number, wnd2: Window) => void
-    ],
-    moveTabToNextWindow: [function(tab, wnds0): void {
-      let wnds: Window[], ids: number[], index = tab.windowId;
-      wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal");
-      if (wnds.length > 0) {
-        ids = wnds.map(funcDict.getId);
-        index = ids.indexOf(index);
-        if (ids.length >= 2 || index === -1) {
-          let dest = (index + commandCount) % ids.length;
-          index === -1 && commandCount < 0 && dest++;
-          dest < 0 && (dest += ids.length);
-          chrome.tabs.query({windowId: ids[dest], active: true},
-          funcDict.moveTabToNextWindow[1].bind(null, tab, index));
-          return;
-        }
-      } else {
-        wnds = wnds0.filter(wnd => wnd.id === index);
-      }
-      return funcDict.makeWindow({
-        tabId: tab.id,
-        incognito: tab.incognito
-      }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "");
-    }, function(tab, oldIndex, tabs2): void {
-      const tab2 = tabs2[0];
-      if (oldIndex >= 0) {
-        funcDict.moveTabToNextWindow[2](tab.id, tab2);
-        return;
-      }
-      return funcDict.makeTempWindow(tab.id, tab.incognito, funcDict.moveTabToNextWindow[2].bind(null, tab.id, tab2));
-    }, function(tabId, tab2) {
-      chrome.tabs.move(tabId, {index: tab2.index + 1, windowId: tab2.windowId}, function(): void {
-        return funcDict.selectTab(tabId, true);
-      });
-    }] as [
-      (this: void, tab: Tab, wnds0: Window[]) => void,
-      (tab: Tab, oldIndex: number, tabs2: [Tab]) => void,
-      (tabId: number, tab2: Tab) => void
-    ],
-    moveTabToIncognito: [function(wnd): void {
-      const tab = funcDict.selectFrom(wnd.tabs);
-      if (wnd.incognito && tab.incognito) { return funcDict.moveTabToIncognito[3](); }
-      const options: chrome.windows.CreateData = {tabId: tab.id, incognito: true}, url = tab.url;
-      if (tab.incognito) {
-      } else if (Utils.isRefusingIncognito(url)) {
-        if (wnd.incognito) {
-          return funcDict.moveTabToIncognito[3]();
-        }
-        if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito) {
-          return Backend.complain("open this URL in incognito mode");
-        }
-      } else if (wnd.incognito) {
-        ++tab.index;
-        return Backend.reopenTab(tab);
-      } else {
-        options.url = url;
-      }
-      (wnd as Window).tabs = undefined;
-      chrome.windows.getAll(funcDict.moveTabToIncognito[1].bind(null, options, wnd));
-    }, function(options, wnd, wnds): void {
-      let tabId: number | undefined;
-      wnds = wnds.filter(funcDict.isIncNor);
-      if (wnds.length) {
-        chrome.tabs.query({
-          windowId: wnds[wnds.length - 1].id,
-          active: true
-        }, funcDict.moveTabToIncognito[2].bind(null, options));
-        return;
-      }
-      let state: chrome.windows.ValidStates | "" = wnd.type === "normal" ? wnd.state : "";
-      if (options.url) {
-        tabId = options.tabId;
-        options.tabId = undefined;
-        if (Settings.CONST.DisallowIncognito) {
-          options.focused = true;
-          state = "";
-        }
-      }
-      // in tests on Chrome 46/51, Chrome hangs at once after creating a new normal window from an incognito tab
-      // so there's no need to worry about stranger edge cases like "normal window + incognito tab + not allowed"
-      funcDict.makeWindow(options, state);
-      if (tabId != null) {
-        chrome.tabs.remove(tabId);
-      }
-    }, function(options, tabs2): void {
-      const tab2 = tabs2[0];
-      if (options.url) {
-        chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
-        funcDict.selectWnd(tab2);
-        chrome.tabs.remove(options.tabId as number);
-        return;
-      }
-      return funcDict.makeTempWindow(options.tabId as number, true, //
-      funcDict.moveTabToNextWindow[2].bind(null, options.tabId, tab2));
-    }, function(): void {
-      return Backend.showHUD("This tab has been in an incognito window");
-    }] as [
-      (this: void, wnd: PopWindow) => void,
-      (this: void, options: chrome.windows.CreateData, wnd: Window, wnds: Window[]) => void,
-      (this: void, options: chrome.windows.CreateData, tabs2: [Tab]) => void,
-      (this: void, ) => void
-    ],
     removeTab (this: void, tab: Tab, curTabs: Tab[], wnds: Window[]): void {
       let url = false, windowId: number | undefined, wnd: Window;
       wnds = wnds.filter(wnd => wnd.type === "normal");
@@ -758,19 +558,12 @@ Are you sure you want to continue?`);
         }
       }
       if (url) {
-        const tabIds = (curTabs.length > 1) ? curTabs.map(funcDict.getId) : [tab.id];
+        const tabIds = (curTabs.length > 1) ? curTabs.map(tab => tab.id) : [tab.id];
         tabsCreate({ index: tabIds.length, url: Settings.cache.newTabUrl_f, windowId });
         chrome.tabs.remove(tabIds);
       } else {
         chrome.windows.remove(tab.windowId);
       }
-    },
-    restoreGivenTab (this: void, list: chrome.sessions.Session[]): void {
-      if (commandCount > list.length) {
-        return Backend.showHUD("The session index provided is out of range.");
-      }
-      const session = list[commandCount - 1], item = session.tab || session.window;
-      item && chrome.sessions.restore(item.sessionId);
     },
     /** if `alsoWnd`, then it's safe when tab does not exist */
     selectTab (this: void, tabId: number, alsoWnd?: boolean): void {
@@ -797,31 +590,8 @@ Are you sure you want to continue?`);
         tabs = tabs.filter(tab => !tab.pinned);
       }
       if (tabs.length > 0) {
-        chrome.tabs.remove(tabs.map(funcDict.getId), funcDict.onRuntimeError);
+        chrome.tabs.remove(tabs.map(tab => tab.id), funcDict.onRuntimeError);
       }
-    },
-    focusParentFrame (this: Frames.Sender, frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
-      let frameId = this.frameId, found: boolean, count = commandCount;
-      do {
-        found = false;
-        for (const i of frames) {
-          if (i.frameId === frameId) {
-            frameId = i.parentFrameId;
-            found = frameId > 0;
-            break;
-          }
-        }
-      } while (found && 0 < --count);
-      const port = frameId > 0 ? funcDict.indexFrame(this.tabId, frameId) : null;
-      if (!port) {
-        return BackgroundCommands.mainFrame();
-      }
-      port.postMessage({
-        name: "focusFrame",
-        CSS: funcDict.ensureInnerCSS(port),
-        key: cKey,
-        mask: FrameMaskType.ForcedSelf
-      });
     },
     /** safe when cPort is null */
     focusOrLaunch: [function(tabs): void {
@@ -888,30 +658,7 @@ Are you sure you want to continue?`);
       }
       gCmdTimer = setTimeout(funcDict.executeGlobal, 100, cmd, null);
       ports[0].postMessage({ name: "count", cmd, id: gCmdTimer });
-    },
-    toggleMuteTab: [function(tabs) {
-      const tab = tabs[0];
-      chrome.tabs.update(tab.id, { muted: !tab.mutedInfo.muted });
-    }, function(tabs) {
-      let curId = cOptions.other ? cPort.sender.tabId : GlobalConsts.TabIdNone
-        , muted = false, action = { muted: true };
-      for (let i = tabs.length; 0 <= --i; ) {
-        const tab = tabs[i];
-        if (tab.id !== curId && !tab.mutedInfo.muted) {
-          muted = true;
-          chrome.tabs.update(tab.id, action);
-        }
-      }
-      if (muted) { return; }
-      action.muted = false;
-      for (let i = tabs.length; 0 <= --i; ) {
-        const j = tabs[i].id;
-        j !== curId && chrome.tabs.update(j, action);
-      }
-    }] as [
-      (this: void, tabs: [Tab]) => void,
-      (this: void, tabs: Tab[]) => void
-    ]
+    }
   },
   BackgroundCommands = {
     createTab: (function (): void {}) as BgCmd,
@@ -924,20 +671,166 @@ Are you sure you want to continue?`);
       if (commandCount < 2) { return; }
       if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito
           || TabRecency.incognito === IncognitoType.ensuredFalse) {
-        chrome.tabs.get(tabId, funcDict.duplicateTab[2]);
+        chrome.tabs.get(tabId, fallback);
       } else {
-        chrome.windows.getCurrent({populate: true}, funcDict.duplicateTab[0].bind(null, tabId));
+        chrome.windows.getCurrent({populate: true}, function(wnd: PopWindow): void {
+          const tab = wnd.tabs.filter(tab => tab.id === tabId)[0];
+          if (!wnd.incognito || tab.incognito) {
+            return fallback(tab);
+          }
+          for (let count = commandCount; 0 < --count; ) {
+            chrome.tabs.duplicate(tabId);
+          }
+        });
+      }
+      function fallback(tab: Tab): void {
+        return openMultiTab({
+          url: tab.url, active: false, windowId: tab.windowId,
+          pinned: tab.pinned,
+          index: tab.index + 2 , openerTabId: tab.id
+        }, commandCount - 1);
       }
     },
     moveTabToNewWindow (): void {
-      const incognito = !!cOptions.incognito, arr = incognito ? funcDict.moveTabToIncognito : funcDict.moveTabToNewWindow;
+      const incognito = !!cOptions.incognito;
       if (incognito && (cPort ? cPort.sender.incognito : TabRecency.incognito === IncognitoType.true)) {
-        return (arr as typeof funcDict.moveTabToIncognito)[3]();
+        return reportNoop();
       }
-      chrome.windows.getCurrent({populate: true}, arr[0]);
+      chrome.windows.getCurrent({populate: true}, incognito ? moveTabToIncognito : moveTabToNewWindow0);
+      function moveTabToNewWindow0(this: void, wnd: PopWindow): void {
+        const total = wnd.tabs.length;
+        if (total <= 1) { return; } // not need to show a tip
+        const tab = funcDict.selectFrom(wnd.tabs), i = tab.index, rawCount = commandCount, absCount = Math.abs(rawCount),
+        limited = cOptions.limited != null ? !!cOptions.limited : absCount > total;
+        let count = Math.min(absCount, limited ? rawCount < 0 ? i + 1 : total - i : total);
+        if (count >= total) { return Backend.showHUD("It does nothing to move all tabs of this window"); }
+        if (count > 30 && !funcDict.confirm("moveTabToNewWindow", count)) { return; }
+        rawCount < 0 && (count = -count);
+        return funcDict.makeWindow({
+          tabId: tab.id,
+          incognito: tab.incognito
+        }, wnd.type === "normal" ? wnd.state : "", absCount > 1 ?
+        function(wnd2: Window): void {
+          let tabs: Tab[] | undefined = wnd.tabs, tabs2: Tab[] | undefined;
+          const curTab = tabs[i], len = tabs.length, end = i + count;
+          if (end > len || end < -1) {
+            tabs2 = count > 0 ? tabs.slice(len - count, i) : tabs.slice(i + 1, -count);
+          }
+          tabs = count > 0 ? tabs.slice(i + 1, end) : tabs.slice(Math.max(0, end + 1), i);
+          if (wnd.incognito && Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito) {
+            let {incognito} = curTab, filter = (tab: Tab): boolean => tab.incognito === incognito;
+            tabs = tabs.filter(filter);
+            tabs2 && (tabs2 = tabs2.filter(filter));
+          }
+          if (count < 0) {
+            let tmp = tabs2;
+            tabs2 = tabs; tabs = tmp;
+          }
+          let curInd = 0;
+          const getId = (tab: Tab): number => tab.id;
+          if (tabs2 && tabs2.length > 0) {
+            chrome.tabs.move(tabs2.map(getId), {index: 0, windowId: wnd2.id}, funcDict.onRuntimeError);
+            curInd = tabs2.length;
+            if (curInd > 1) { // Chrome only accepts the first two tabs of tabs2
+              chrome.tabs.move(curTab.id, {index: curInd});
+            }
+          }
+          if (tabs && tabs.length > 0) {
+            chrome.tabs.move(tabs.map(getId), {index: curInd + 1, windowId: wnd2.id}, funcDict.onRuntimeError);
+          }
+        } : null);
+      }
+      function reportNoop(): void {
+        return Backend.showHUD("This tab has been in an incognito window");
+      }
+      function moveTabToIncognito(wnd: PopWindow): void {
+        const tab = funcDict.selectFrom(wnd.tabs);
+        if (wnd.incognito && tab.incognito) { return reportNoop(); }
+        const options: chrome.windows.CreateData = {tabId: tab.id, incognito: true}, url = tab.url;
+        if (tab.incognito) {
+        } else if (Utils.isRefusingIncognito(url)) {
+          if (wnd.incognito) {
+            return reportNoop();
+          }
+          if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito) {
+            return Backend.complain("open this URL in incognito mode");
+          }
+        } else if (wnd.incognito) {
+          ++tab.index;
+          return Backend.reopenTab(tab);
+        } else {
+          options.url = url;
+        }
+        (wnd as Window).tabs = undefined;
+        chrome.windows.getAll(function(wnds): void {
+          let tabId: number | undefined;
+          wnds = wnds.filter((wnd: Window): wnd is IncNormalWnd => {
+            return wnd.incognito && wnd.type === "normal";
+          });
+          if (wnds.length) {
+            chrome.tabs.query({ windowId: wnds[wnds.length - 1].id, active: true }, function([tab2]): void {
+              const tabId = options.tabId as number;
+              if (options.url) {
+                chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
+                funcDict.selectWnd(tab2);
+                chrome.tabs.remove(tabId);
+                return;
+              }
+              return funcDict.makeTempWindow(tabId, true, function(): void {
+                chrome.tabs.move(tabId, {index: tab2.index + 1, windowId: tab2.windowId}, function(): void {
+                  return funcDict.selectTab(tabId, true);
+                });
+              });
+            });
+            return;
+          }
+          let state: chrome.windows.ValidStates | "" = wnd.type === "normal" ? wnd.state : "";
+          if (options.url) {
+            tabId = options.tabId;
+            options.tabId = undefined;
+            if (Settings.CONST.DisallowIncognito) {
+              options.focused = true;
+              state = "";
+            }
+          }
+          // in tests on Chrome 46/51, Chrome hangs at once after creating a new normal window from an incognito tab
+          // so there's no need to worry about stranger edge cases like "normal window + incognito tab + not allowed"
+          funcDict.makeWindow(options, state);
+          if (tabId != null) {
+            chrome.tabs.remove(tabId);
+          }
+        });
+      }
     },
-    moveTabToNextWindow (this: void, tabs: [Tab]): void {
-      chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
+    moveTabToNextWindow (this: void, [tab]: [Tab]): void {
+      chrome.windows.getAll(function (wnds0: Window[]): void {
+        let wnds: Window[], ids: number[], index = tab.windowId;
+        wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal");
+        if (wnds.length > 0) {
+          ids = wnds.map(wnd => wnd.id);
+          index = ids.indexOf(index);
+          if (ids.length >= 2 || index === -1) {
+            let dest = (index + commandCount) % ids.length;
+            index === -1 && commandCount < 0 && dest++;
+            dest < 0 && (dest += ids.length);
+            chrome.tabs.query({windowId: ids[dest], active: true}, function([tab2]): void {
+              return index >= 0 ? callback() : funcDict.makeTempWindow(tab.id, tab.incognito, callback);
+              function callback(): void {
+                chrome.tabs.move(tab.id, {index: tab2.index + 1, windowId: tab2.windowId}, function(): void {
+                  return funcDict.selectTab(tab.id, true);
+                });
+              }
+            });
+            return;
+          }
+        } else {
+          wnds = wnds0.filter(wnd => wnd.id === index);
+        }
+        return funcDict.makeWindow({
+          tabId: tab.id,
+          incognito: tab.incognito
+        }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "");
+      });
     },
     toggleCS (this: void, tabs: [Tab]): void {
       return ContentSettings.toggleCS(commandCount, cOptions, tabs);
@@ -1023,14 +916,21 @@ Are you sure you want to continue?`);
       if (!chrome.sessions) {
         return funcDict.complainNoSession();
       }
+      function doRestore (this: void, list: chrome.sessions.Session[]): void {
+        if (commandCount > list.length) {
+          return Backend.showHUD("The session index provided is out of range.");
+        }
+        const session = list[commandCount - 1], item = session.tab || session.window;
+        item && chrome.sessions.restore(item.sessionId);
+      }
       if (commandCount > (chrome.sessions.MAX_SESSION_RESULTS || 25)) {
-        return funcDict.restoreGivenTab([]);
+        return doRestore([]);
       }
       if (commandCount <= 1) {
         chrome.sessions.restore(null, funcDict.onRuntimeError);
         return;
       }
-      chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
+      chrome.sessions.getRecentlyClosed(doRestore);
     },
     blank (this: void): void {},
     openUrl (this: void, tabs?: [Tab] | never[]): void {
@@ -1088,11 +988,29 @@ Are you sure you want to continue?`);
       if (Settings.CONST.ChromeVersion < BrowserVer.MinMuted) {
         return Backend.showHUD(`Vimium++ can not control mute state before Chrome ${BrowserVer.MinMuted}`);
       }
-      if (cOptions.all || cOptions.other) {
-        chrome.tabs.query({audible: true}, funcDict.toggleMuteTab[1]);
+      if (!(cOptions.all || cOptions.other)) {
+        funcDict.getCurTab(function([tab]: [Tab]): void {
+          chrome.tabs.update(tab.id, { muted: !tab.mutedInfo.muted });
+        })
         return;
       }
-      funcDict.getCurTab(funcDict.toggleMuteTab[0]);
+      chrome.tabs.query({audible: true}, function(tabs: Tab[]): void {
+        let curId = cOptions.other ? cPort.sender.tabId : GlobalConsts.TabIdNone
+          , muted = false, action = { muted: true };
+        for (let i = tabs.length; 0 <= --i; ) {
+          const tab = tabs[i];
+          if (tab.id !== curId && !tab.mutedInfo.muted) {
+            muted = true;
+            chrome.tabs.update(tab.id, action);
+          }
+        }
+        if (muted) { return; }
+        action.muted = false;
+        for (let i = tabs.length; 0 <= --i; ) {
+          const j = tabs[i].id;
+          j !== curId && chrome.tabs.update(j, action);
+        }
+      });
     },
     reloadTab (this: void, tabs: Tab[] | never[]): void {
       if (tabs.length <= 0) {
@@ -1205,18 +1123,40 @@ Are you sure you want to continue?`);
       });
     },
     parentFrame (): void {
-      const sender: Frames.Sender | undefined = cPort.sender,
+      const sender = cPort.sender as Frames.Sender | undefined,
       msg = NoFrameId ? `Vimium++ can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
         : !(sender && sender.tabId >= 0 && framesForTab[sender.tabId])
           ? "Vimium++ can not access frames in current tab"
         : null;
       msg && Backend.showHUD(msg);
-      if (!sender.frameId || NoFrameId || !chrome.webNavigation) {
+      if (!sender || !sender.frameId || NoFrameId || !chrome.webNavigation) {
         return BackgroundCommands.mainFrame();
       }
       chrome.webNavigation.getAllFrames({
-        tabId: (sender as Frames.Sender).tabId
-      }, funcDict.focusParentFrame.bind(sender as Frames.Sender));
+        tabId: sender.tabId
+      }, function (frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
+        let frameId = sender.frameId, found: boolean, count = commandCount;
+        do {
+          found = false;
+          for (const i of frames) {
+            if (i.frameId === frameId) {
+              frameId = i.parentFrameId;
+              found = frameId > 0;
+              break;
+            }
+          }
+        } while (found && 0 < --count);
+        const port = frameId > 0 ? funcDict.indexFrame(sender.tabId, frameId) : null;
+        if (!port) {
+          return BackgroundCommands.mainFrame();
+        }
+        port.postMessage({
+          name: "focusFrame",
+          CSS: funcDict.ensureInnerCSS(port),
+          key: cKey,
+          mask: FrameMaskType.ForcedSelf
+        });
+      });
     },
     visitPreviousTab (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
@@ -1557,13 +1497,20 @@ Are you sure you want to continue?`);
       }
       query = request.search.trim() || VClipboard.paste();
       if (query instanceof Promise) {
-        const cb = function(q: string | null | undefined): void {
-          funcDict.searchAs(search as ParsedSearch, port, q || null);
-        };
-        query.then(cb, cb.bind(null, null));
+        query.then(doSearch, () => doSearch(null));
         return;
       }
-      return funcDict.searchAs(search, port, query);
+      return doSearch(query);
+      function doSearch(this: void, query: string | null): void {
+        let err = query === null ? "It's not allowed to read clipboard"
+          : (query = (query as string).trim()) ? "" : "No selected or copied text found";
+        if (err) {
+          cPort = port;
+          return Backend.showHUD(err);
+        }
+        query = Utils.createSearchUrl((query as string).split(Utils.spacesRe), (search as ParsedSearch).keyword);
+        return funcDict.safeUpdate(query);
+      }
     },
     gotoSession: function (this: void, request: FgReq["gotoSession"], port?: Port): void {
       const id = request.sessionId, active = request.active !== false;
@@ -2055,7 +2002,20 @@ Are you sure you want to continue?`);
     reopenTab (this: void, tab: Tab, refresh?: boolean): void {
       if (refresh) {
         chrome.tabs.remove(tab.id, funcDict.onRuntimeError);
-        chrome.tabs.get(tab.id, funcDict.onRefreshTab.bind(null, RefreshTabStep.start));
+        let step = RefreshTabStep.start;
+        const tabId = tab.id, onRefresh = function(this: void): void {
+          const err = chrome.runtime.lastError;
+          if (err) {
+            chrome.sessions.restore();
+            return err;
+          }
+          step = step + 1;
+          if (step >= RefreshTabStep.end) { return; }
+          setTimeout(function(): void {
+            chrome.tabs.get(tabId, onRefresh);
+          }, 50 * step * step);
+        }
+        chrome.tabs.get(tabId, onRefresh);
         return;
       }
       tabsCreate({
@@ -2185,7 +2145,9 @@ Are you sure you want to continue?`);
     if (typeof message === "string") {
       command = message;
       if (command && CommandsData.availableCommands[command]) {
-        return funcDict.execute(command, null, 1, funcDict.getSenderPort(sender));
+        const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
+        port = frames ? funcDict.indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
+        return funcDict.execute(command, null, 1, port);
       }
       return;
     }
@@ -2193,8 +2155,12 @@ Are you sure you want to continue?`);
     switch (message.handler) {
     case "command":
       command = message.command ? message.command + "" : "";
-      if (!(command && CommandsData.availableCommands[command])) { return; }
-      return funcDict.execute(command, message.options, message.count, funcDict.getSenderPort(sender), message.key);
+      if (command && CommandsData.availableCommands[command]) {
+        const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
+        port = frames ? funcDict.indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
+        return funcDict.execute(command, message.options, message.count, port, message.key);
+      }
+      return;
     case "content_scripts":
       sendResponse(Settings.CONST.ContentScripts);
       return;

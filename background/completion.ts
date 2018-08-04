@@ -14,7 +14,7 @@ declare namespace CompletersNS {
   }
 }
 
-setTimeout((function (): void {
+setTimeout(function (): void {
 
 type MatchRange = [number, number];
 
@@ -1398,7 +1398,7 @@ searchEngines: {
     }
   };
 
-}), 200);
+}, 200);
 
 setTimeout(function() {
   Settings.postUpdate("searchEngines", null);
