@@ -244,6 +244,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     onActivate (event: UIEvent): void {
       if (event.isTrusted !== false) {
+        // todo: check event.path on FF/Edge
         VScroller.current = (event.path as EventPath)[0] as Element;
       }
     },

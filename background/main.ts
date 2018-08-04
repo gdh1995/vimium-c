@@ -64,6 +64,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     } else if (type === Urls.NewTabType.vimium) {
       args.url = Settings.cache.newTabUrl_f;
     }
+    IsFirefox && (delete args.openerTabId); // todo: test latest Firefox
     return chrome.tabs.create(args, callback);
   }
   /** if count <= 1, only open once */

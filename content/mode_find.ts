@@ -183,6 +183,7 @@ html > count{float:right;}`,
     this.coords && window.scrollTo(this.coords[0], this.coords[1]);
     this.isActive = this._small = this._actived = this.notEmpty = false;
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
+      // todo: check `this.box.contentWindow.blur();` on FF/Edge
       window.focus();
       el = VDom.getSelectionFocusElement();
       el && el.focus && el.focus();
@@ -407,12 +408,17 @@ html > count{float:right;}`,
     back && (count = -count);
     do {
       q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(back) : this.parsedQuery;
-      found = window.find(q, !notSens, back, true, false, false, false);
+      found = this.find(q, !notSens, back, true, false, false, false);
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel, 0);
     (el = VEventMode.lock()) && !VDom.isSelected(document.activeElement as Element) && el.blur && el.blur();
     this.hasResults = found;
   },
+  find: function (): boolean {
+    try {
+      return (window.find as any).apply(window, arguments);
+    } catch (e) { return false; }
+  } as (...args: any[]) => boolean,
   RestoreHighlight (this: void): void { return VFindMode.toggleStyle(0); },
   HookSel (): void {
     document.addEventListener("selectionchange", VFindMode && VFindMode.RestoreHighlight, true);

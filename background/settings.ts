@@ -293,7 +293,10 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   }
 };
 
-Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
+const IsEdge = NotChrome && !!(window as any).StyleMedia,
+IsFirefox = NotChrome && !IsEdge && (<RegExpOne>/\bFirefox\//).test(navigator.appVersion);
+
+Settings.CONST.ChromeVersion = 0 | (!NotChrome && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number;
 Settings.bufferToLoad.onMac = false;
 Settings.bufferToLoad.grabFocus = Settings.get("grabBackFocus");
@@ -310,9 +313,10 @@ chrome.runtime.getPlatformInfo(function(info): void {
   { CONST: obj } = Settings, ref3 = Settings.newTabs as SafeDict<Urls.NewTabType>;
   let newtab = urls && urls.newtab;
   function func(path: string): string {
-    return (path.charCodeAt(0) === KnownKey.slash ? origin : prefix) + path;
+    return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
   (Settings.defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner;
+  NotChrome && (obj.BrowserNewTab2 = obj.BrowserNewTab);
   (Settings.defaults as SettingsWithDefaults).newTabUrl = newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab;
   ref3[obj.BrowserNewTab] = ref3[obj.BrowserNewTab2] = Urls.NewTabType.browser;
   newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);

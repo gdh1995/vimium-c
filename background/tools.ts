@@ -7,6 +7,7 @@ const VClipboard = {
     el.style.position = "absolute";
     el.style.left = "-99px";
     el.style.width = "0";
+    IsFirefox && (el.contentEditable = "true");
     this.getTextArea = () => el;
     return el;
   },
