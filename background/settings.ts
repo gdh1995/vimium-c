@@ -109,13 +109,14 @@ var Settings = {
       return (this as typeof Settings).postUpdate("newTabUrl");
     },
     baseCSS (css): void {
-      if ("all" in (document.documentElement as HTMLElement).style) {
+      const cacheId = (this as typeof Settings).CONST.StyleCacheId,
+      browserInfo = cacheId.substring(cacheId.indexOf(",") + 1);
+      if (browserInfo.lastIndexOf("a") > 0) {
         css = ".R{" + css.substring(css.indexOf("all:"));
       }
       if (this.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
-        css += ".HUD,.IH,.LH{border-width:1px}\n";
+        css += "\n.HUD,.IH,.LH{border-width:1px}";
       }
-      const cacheId = Settings.CONST.CurrentVersion + "," + Settings.CONST.ChromeVersion + ",";
       css = cacheId + css.length + "\n" + css;
       let css2 = this.get("userDefinedCss");
       css2 && (css += "\n" + css2);
@@ -263,6 +264,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     ChromeVersion: BrowserVer.MinSupported,
     ContentScripts: null as never as string[],
     CurrentVersion: "", CurrentVersionName: "",
+    StyleCacheId: "",
     KnownPages: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
@@ -334,13 +336,13 @@ chrome.runtime.getPlatformInfo(function(info): void {
   }
   obj.ContentScripts = ref2.map(func);
 
+  const hasAll = "all" in (document.documentElement as HTMLElement).style;
+  obj.StyleCacheId = obj.CurrentVersion + "," + Settings.CONST.ChromeVersion
+  + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
   const innerCSS = localStorage.getItem("innerCSS");
-  if (innerCSS) {
-    const cacheId = obj.CurrentVersion + "," + Settings.CONST.ChromeVersion + ",";
-    if (innerCSS.startsWith(cacheId)) {
-      Settings.postUpdate("innerCSS", innerCSS);
-      return;
-    }
+  if (innerCSS && innerCSS.startsWith(obj.StyleCacheId)) {
+    Settings.postUpdate("innerCSS", innerCSS);
+    return;
   }
   Settings.fetchFile("baseCSS");
 })();

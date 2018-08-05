@@ -8235,6 +8235,7 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     readonly window: Window;
     URL: typeof URL;
     Blob: typeof Blob;
+    ShadowRoot?: Function;
     alert(message?: any): void;
     blur(): void;
     cancelAnimationFrame(handle: number): void;
