@@ -194,7 +194,6 @@ html > count{float:right;}`,
     this.historyIndex = this.matchCount = 0;
     this.box = this.input = this.countEl =
     this.initialRange = this.regexMatches = this.coords = null as never;
-    this.styleIn.disabled = true;
     return el;
   },
   OnUnload (this: void, e: Event): void {
