@@ -18,8 +18,13 @@ VDom.UI = {
       : shadowVer === 1 ? (box as any).createShadowRoot() as ShadowRoot : box;
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
-    this.root.mode === "closed" || (this.root as Node).addEventListener("load", function(e: Event): void {
-      const t = e.target as HTMLElement; VUtils.Stop(e); t.onload && t.onload(e);
+    this.root.mode === "closed" || (this.root !== box ? this.root as Node : window).addEventListener("load", function Onload(e: Event): void {
+      const t = e.target as HTMLElement;
+      if (!Vomnibar) { window.removeEventListener("load", Onload, true); }
+      // here ignore `UI.styleIn.onload`, which should be okay
+      else if (t === Vomnibar.box || t === VFindMode.box) {
+        VUtils.Stop(e); t.onload && t.onload(e);
+      }
     }, true);
     this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
       adjust === AdjustType.NotAdjust || this.adjust();
