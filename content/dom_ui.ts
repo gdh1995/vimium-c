@@ -27,10 +27,7 @@ VDom.UI = {
     };
     this.css = (function (innerCSS): void {
       if (this.box === this.root) {
-        const i = innerCSS.indexOf(":host"), cls = "vimium-ui-" + ((8 + Math.random()) * 100 | 0),
-        outerCSS = innerCSS.substring(i + 5, innerCSS.indexOf("}", i) + 1);
-        (this.box as HTMLElement).className = cls;
-        (this.box as HTMLElement).appendChild(this.createStyle("." + cls + outerCSS));
+        (this.box as HTMLElement).id = "VimiumUI";
       }
       let el: HTMLStyleElement | null = this.styleIn = this.createStyle(innerCSS), el2: HTMLStyleElement | null;
       this.root.appendChild(el);
@@ -94,7 +91,8 @@ VDom.UI = {
     zoom || (zoom = VDom.getZoom());
     if (first ? zoom >= 1 : (st as HTMLStyleElement & {vZoom?: number}).vZoom === zoom) { return; }
     st = st || (this._styleBorder = this.createStyle(""));
-    st.vZoom = zoom; st.textContent = ".HUD, .IH, .LH { border-width: " + ("" + 0.51 / zoom).substring(0, 5) + "px; }";
+    const p = this.box === this.root ? "#VimiumUI " : "";
+    st.vZoom = zoom; st.textContent = `${p}.HUD, ${p}.IH, ${p}.LH { border-width: ${("" + 0.51 / zoom).substring(0, 5)}px; }`;
     first && this.box && this.addElement(st, AdjustType.NotAdjust);
   },
   createStyle (text, doc): HTMLStyleElement {

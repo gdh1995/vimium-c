@@ -112,10 +112,18 @@ var Settings = {
       const cacheId = (this as typeof Settings).CONST.StyleCacheId,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1);
       if (browserInfo.lastIndexOf("a") > 0) {
-        css = ".R{" + css.substring(css.indexOf("all:"));
+        const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2);
+        css = css.substring(0, ind1 + 1) + css.substring(ind2);
       }
       if (this.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css += "\n.HUD,.IH,.LH{border-width:1px}";
+      }
+      if (browserInfo.lastIndexOf("s") < 0) {
+        // Note: &vimium.min.css: this requires `:host{` is at the beginning
+        const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1;
+        css = "div#VimiumUI" + css.substring(5, hostEnd) +
+          // Note: &vimium.min.css: this requires no ID/attr selectors in base styles
+          css.substring(secondEnd).replace(<RegExpG> /\.[A-Z]/g, "#VimiumUI $&");
       }
       css = cacheId + css.length + "\n" + css;
       let css2 = this.get("userDefinedCss");

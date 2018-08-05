@@ -1,10 +1,19 @@
 var HelpDialog = {
+  inited: false,
   styles: Settings.CONST.ChromeVersion === BrowserVer.CSS$Contain$BreaksHelpDialogSize ? "contain: none;"
     // here repeats the logic in frontend.ts, just for easier understanding
     : Settings.CONST.ChromeVersion < BrowserVer.MinFixedCSS$All$MayMistakenlyResetFixedPosition
       && Settings.CONST.ChromeVersion >= BrowserVer.MinCSS$All$MayMistakenlyResetFixedPosition ? "position: fixed;"
     : "",
   render: (function(this: void, request: FgReq["initHelp"]): string {
+    if (!HelpDialog.inited) {
+      if (Settings.CONST.StyleCacheId.indexOf("s") < 0) {
+        let template = Settings.cache.helpDialog as string, styleEnd = template.indexOf("</style>");
+        template = template.substring(0, styleEnd).replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&") + template.substring(styleEnd);
+        Settings.set("helpDialog", template);
+      }
+      HelpDialog.inited = true;
+    }
     Object.setPrototypeOf(request, null);
     const commandsToKey = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry,
           hideUnbound = !request.unbound, showNames = !!request.names;

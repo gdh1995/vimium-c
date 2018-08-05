@@ -143,13 +143,13 @@ html > count{float:right;}`,
     this.query && wnd.document.execCommand("selectAll", false);
     this._actived = true;
   },
-  init (adjust: AdjustType): HTMLStyleElement {
+  init (adjust: AdjustType): void {
     const ref = this.postMode, UI = VDom.UI,
-    css = this.cssSel, sin = this.styleIn = UI.createStyle(css), sout = this.styleOut = UI.createStyle(css);
+    css = this.cssSel, sin = this.styleIn = UI.createStyle(css);
     ref.exit = ref.exit.bind(ref);
     UI.addElement(sin, adjust, true);
+    this.styleOut = UI.box !== UI.root ? (UI.box as HTMLElement).appendChild(UI.createStyle(css)) : sin;
     this.init = null as never;
-    return (UI.box as HTMLElement).appendChild(sout);
   },
   findAndFocus (query: string, options: Partial<FindOptions> & SafeObject): void {
     if (!query) {
