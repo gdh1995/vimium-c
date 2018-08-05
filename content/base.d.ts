@@ -220,7 +220,7 @@ type SelectActions = "" | "all" | "all-input" | "start" | "end";
 
 declare function setInterval(this: void, handler: (this: void, info?: TimerType) => void, timeout: number): number;
 
-type VUIRoot = ShadowRoot;
+type VUIRoot = ShadowRoot | (HTMLElement & { mode?: undefined });
 interface DomUI {
   box: HTMLElement | null;
   styleIn: HTMLStyleElement | string | null;

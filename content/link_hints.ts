@@ -441,7 +441,7 @@ var VHints = {
     if ((this as typeof VHints).ngEnabled === null && key === "*") {
       (this as typeof VHints).ngEnabled = document.querySelector('.ng-scope') != null;
     }
-    let query: string = key, uiRoot = notWantVUI ? null : VDom.UI.root;
+    let query: string = key, uiRoot = VDom.UI.box === VDom.UI.root || notWantVUI ? null : VDom.UI.root;
     if (VSettings.cache.deepHints) {
       query = (this as typeof VHints)._shadowSign + key;
       if (uiRoot && uiRoot.mode !== "closed") { uiRoot = null; }

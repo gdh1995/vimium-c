@@ -7,16 +7,18 @@ VDom.UI = {
   box: null,
   styleIn: null,
   styleOut: null,
-  root: null,
+  root: null as never,
   callback: null,
   flashLastingTime: 400,
   addElement<T extends HTMLElement> (this: DomUI, element: T, adjust?: AdjustType): T {
-    const box = this.box = VDom.createElement("div");
+    const box = this.box = VDom.createElement("div"),
+    shadowVer = typeof box.attachShadow === "function" ? 2 : typeof box.createShadowRoot === "function" ? 1 : 0;
     box.style.display = "none";
-    this.root = typeof box.attachShadow === "function" ? box.attachShadow({mode: "closed"}) : box.createShadowRoot();
+    this.root = shadowVer === 2 ? (box as AttachShadow).attachShadow({mode: "closed"})
+      : shadowVer === 1 ? (box as any).createShadowRoot() as ShadowRoot : box;
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
-    this.root.mode === "closed" || this.root.addEventListener("load", function(e: Event): void {
+    this.root.mode === "closed" || (this.root as Node).addEventListener("load", function(e: Event): void {
       const t = e.target as HTMLElement; VUtils.Stop(e); t.onload && t.onload(e);
     }, true);
     this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
@@ -24,7 +26,7 @@ VDom.UI = {
       return this.root.insertBefore(element, before === true ? this.root.firstElementChild : before || null);
     };
     this.css = (function (innerCSS): void {
-      if (typeof browser !== "undefined" && (browser as any).runtime) { // todo: rework this block
+      if (this.box === this.root) {
         const i = innerCSS.indexOf(":host"), cls = "vimium-ui-" + ((8 + Math.random()) * 100 | 0),
         outerCSS = innerCSS.substring(i + 5, innerCSS.indexOf("}", i) + 1);
         (this.box as HTMLElement).className = cls;
@@ -139,7 +141,7 @@ VDom.UI = {
     return notTrim ? s : s.trim();
   },
   removeSelection (root): boolean {
-    const sel = (root && root.getSelection ? root as ShadowRootWithSelection : window).getSelection();
+    const sel = (root && (root as any).getSelection ? root as ShadowRootWithSelection : window).getSelection();
     if (!sel || VDom.selType(sel) !== "Range" || !sel.anchorNode) {
       return false;
     }
