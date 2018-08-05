@@ -33,7 +33,7 @@ html > count{float:right;}`,
   activate (_0: number, options: Partial<FindOptions> & SafeObject): void {
     if (!VDom.isHTML()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
-    ui = VDom.UI, first = !ui.root;
+    ui = VDom.UI, first = !ui.box;
     this.isActive || query === this.query && options.leave || VMarks.setPreviousPosition();
     VDom.docSelectable = ui.getDocSelectable();
     ui.ensureBorder();

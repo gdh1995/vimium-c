@@ -21,7 +21,7 @@ VDom.UI = {
     }, true);
     this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
       adjust === AdjustType.NotAdjust || this.adjust();
-      return (this.root as ShadowRoot).insertBefore(element, before === true ? (this.root as ShadowRoot).firstElementChild : before || null);
+      return this.root.insertBefore(element, before === true ? this.root.firstElementChild : before || null);
     };
     this.css = (function (innerCSS): void {
       if (typeof browser !== "undefined" && (browser as any).runtime) { // todo: rework this block
@@ -31,9 +31,9 @@ VDom.UI = {
         (this.box as HTMLElement).appendChild(this.createStyle("." + cls + outerCSS));
       }
       let el: HTMLStyleElement | null = this.styleIn = this.createStyle(innerCSS), el2: HTMLStyleElement | null;
-      (this.root as ShadowRoot).appendChild(el);
+      this.root.appendChild(el);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
-      (el2 = this._styleBorder) && (this.root as ShadowRoot).appendChild(el2);
+      (el2 = this._styleBorder) && this.root.appendChild(el2);
       if (adjust !== AdjustType.AdjustButNotShow) {
         let f = function (this: HTMLElement, e: Event | 1): void {
           e !== 1 && (this.onload = null as never);
@@ -93,7 +93,7 @@ VDom.UI = {
     if (first ? zoom >= 1 : (st as HTMLStyleElement & {vZoom?: number}).vZoom === zoom) { return; }
     st = st || (this._styleBorder = this.createStyle(""));
     st.vZoom = zoom; st.textContent = ".HUD, .IH, .LH { border-width: " + ("" + 0.51 / zoom).substring(0, 5) + "px; }";
-    first && this.root && this.addElement(st, AdjustType.NotAdjust);
+    first && this.box && this.addElement(st, AdjustType.NotAdjust);
   },
   createStyle (text, doc): HTMLStyleElement {
     const css = (doc || VDom).createElement("style");

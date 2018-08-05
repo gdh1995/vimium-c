@@ -785,7 +785,7 @@ Pagination = {
         const st = el.style;
         st.opacity = "0";
         st.visibility = "hidden";
-        VDom.UI.root || VDom.UI.ensureBorder();
+        VDom.UI.box || VDom.UI.ensureBorder();
       }
       VDom.UI.addElement(this.box = el, AdjustType.NotAdjust, VHints.box);
     },
@@ -979,7 +979,7 @@ Pagination = {
     VScroller.current = box;
     VUtils.push(function(event) {
       if (!InsertMode.lock && VKeyboard.isEscape(event)) {
-        VDom.UI.removeSelection(VDom.UI.root as ShadowRoot) || hide();
+        VDom.UI.removeSelection(VDom.UI.root) || hide();
         return HandlerResult.Prevent;
       }
       return HandlerResult.Nothing;

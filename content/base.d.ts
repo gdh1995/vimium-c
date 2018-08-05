@@ -220,11 +220,12 @@ type SelectActions = "" | "all" | "all-input" | "start" | "end";
 
 declare function setInterval(this: void, handler: (this: void, info?: TimerType) => void, timeout: number): number;
 
+type VUIRoot = ShadowRoot;
 interface DomUI {
   box: HTMLElement | null;
   styleIn: HTMLStyleElement | string | null;
   styleOut: HTMLStyleElement | null;
-  root: ShadowRoot | null;
+  /** `!!@root` must keep the same as `!!@box`*/ root: VUIRoot;
   callback: null | ((this: void) => void);
   flashLastingTime: number;
   _lastFlash: HTMLElement | null;
@@ -240,7 +241,7 @@ interface DomUI {
   toggleSelectStyle (this: DomUI, enable: boolean): void;
   getSelection (this: DomUI): Selection;
   getSelectionText (notTrim?: 1): string;
-  removeSelection (this: DomUI, root?: DocumentOrShadowRoot): boolean;
+  removeSelection (this: DomUI, root?: DocumentOrShadowRoot | VUIRoot): boolean;
   click (this: DomUI, element: Element, rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
   simulateSelect (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;

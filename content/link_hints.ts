@@ -697,7 +697,7 @@ var VHints = {
     let v1 = "* >>> ", v0 = "* /deep/ ", sign = v0;
     if (VSettings.cache.browserVer < BrowserVer.MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled) {
     } else try {
-      (VDom.UI.root || VDom.createElement('div')).querySelector(v1 + "div");
+      (VDom.UI.box || VDom.createElement('div')).querySelector(v1 + "div");
       sign = v1;
     } catch (e) {
     }
