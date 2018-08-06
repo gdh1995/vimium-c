@@ -218,7 +218,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         InsertMode.lock = null;
         InsertMode.inputHint && !InsertMode.hinting && document.hasFocus() && InsertMode.exitInputHint();
       }
-      if (!(sr !== null && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
+      if (!(sr != null && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
       let wrapper = ELs.wrap();
       if (same) {
         (sr as ShadowRootEx).vimiumListened = ListenType.Blur;
@@ -593,7 +593,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     exit (event: KeyboardEvent): void {
       let target: Element | null = event.target as Element;
-      if ((target as HTMLElement).shadowRoot instanceof ShadowRoot) {
+      if ((target as HTMLElement).shadowRoot != null && (target as HTMLElement).shadowRoot instanceof ShadowRoot) {
         if (target = this.lock) {
           this.lock = null;
           (target as HTMLElement).blur();
