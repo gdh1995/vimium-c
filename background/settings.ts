@@ -311,11 +311,11 @@ Settings.CONST.ChromeVersion = 0 | (!NotChrome && navigator.appVersion.match(/\b
 Settings.bufferToLoad.onMac = false;
 Settings.bufferToLoad.grabFocus = Settings.get("grabBackFocus");
 Settings.bufferToLoad.browserVer = Settings.CONST.ChromeVersion;
-chrome.runtime.getPlatformInfo(function(info): void {
+chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): void {
   const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs;
   Settings.CONST.Platform = os;
   Settings.bufferToLoad.onMac = os === (types ? types.MAC : "mac");
-});
+}) : (Settings.CONST.Platform = IsEdge ? "win" : "unknown");
 
 (function(): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",

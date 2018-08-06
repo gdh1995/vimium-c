@@ -1904,6 +1904,7 @@ Are you sure you want to continue?`);
     format (port: Frames.RawPort): Frames.Sender {
       const sender = port.sender, tab = sender.tab || {
         id: this._fakeId--,
+        url: "",
         incognito: false
       };
       return port.sender = {
@@ -1912,7 +1913,7 @@ Are you sure you want to continue?`);
         status: Frames.Status.enabled,
         flags: Frames.Flags.blank,
         tabId: tab.id,
-        url: sender.url
+        url: sender.url || (tab as any).url || ""
       };
     }
   },

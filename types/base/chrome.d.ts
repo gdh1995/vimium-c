@@ -1244,7 +1244,7 @@ declare namespace chrome.runtime {
          * The URL of the page or frame that opened the connection. If the sender is in an iframe, it will be iframe's URL not the URL of the page which hosts it.
          * @since Chrome 28.
          */
-        url: string;
+        url?: string;
         /**
          * The TLS channel ID of the page or frame that opened the connection, if requested by the extension or app, and if available.
          * @since Chrome 32.
