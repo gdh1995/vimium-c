@@ -460,14 +460,15 @@ declare const enum BrowserVer {
   // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated) is confirmed on Chrome LATEST_TESTED
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
+  MinOmniboxUIMaxAutocompleteMatchesMayBe12 = 60, // #omnibox-ui-max-autocomplete-matches
   // the 5 below are correct even if EXPERIMENTAL or LEAGCY
   MinNoBorderForBrokenImage = 60,
-  MinOmniboxUIMaxAutocompleteMatchesMayBe12 = 60, // #omnibox-ui-max-autocomplete-matches,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
   // DevicePixelRatioImplyZoomOfDocEl is confirmed on Chrome LATEST_TESTED
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   MinCorrectBoxWidthForOptionUI = 61,
   Min$visualViewPort$ = 61,
+  MinEnsuredCSS$ScrollBehavior = 61, // still exists on C35 if EXPERIMENTAL
   // TODO: confirm th below
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,

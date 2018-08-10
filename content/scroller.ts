@@ -92,7 +92,8 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
   },
   scroll (element: Element | null, di: ScrollByY, amount: number): void | number {
     if (!amount) { return; }
-    if (VSettings.cache.smoothScroll) {
+    if (VSettings.cache.smoothScroll && (!element
+        || getComputedStyle(element).scrollBehavior !== "smooth")) {
       return this.animate(element, di, amount);
     }
     this.performScroll(element, di, amount);

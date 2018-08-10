@@ -686,6 +686,7 @@ interface CSSStyleDeclaration {
     rubyOverhang: string | null;
     rubyPosition: string | null;
     scale: string | null;
+    scrollBehavior?: "smooth" | "auto" | "inherit" | "initial" | "unset" | "";
     stopColor: string | null;
     stopOpacity: string | null;
     stroke: string | null;
