@@ -13,11 +13,11 @@ declare namespace ScrollerNS {
   }
 }
 var VScroller = {
-animate (a: number, d: ScrollByY, e: Element | null): void | number {
+animate (e: Element | null, d: ScrollByY, a: number): void | number {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: Element | null = null, //
   sign = 0, timestamp = ScrollerNS.Consts.invalidTime, totalDelta = 0.0, totalElapsed = 0.0, //
-  last = 0 as BOOL,
-  animate = function(newTimestamp: number): void {
+  last = 0 as BOOL;
+  function animate(newTimestamp: number): void {
     let int1 = timestamp, elapsed: number, continuous: boolean;
     timestamp = newTimestamp;
     if (int1 === ScrollerNS.Consts.invalidTime) {
@@ -50,7 +50,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     element = null;
     last = 0;
   };
-  this.animate = function(this: typeof VScroller, newAmount, newDi, newEl): void | number {
+  this.animate = function(this: typeof VScroller, newEl, newDi, newAmount): void | number {
     amount = Math.abs(newAmount); calibration = 1.0; di = newDi;
     duration = Math.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * Math.log(amount));
     element = newEl;
@@ -64,7 +64,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     last = 1;
     return requestAnimationFrame(animate);
   };
-  return this.animate(a, d, e);
+  return this.animate(e, d, a);
 },
   maxInterval: ScrollerNS.Consts.DefaultMaxIntervalF,
   minDelay: ScrollerNS.Consts.DefaultMinDelayMs,
@@ -93,7 +93,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   scroll (element: Element | null, di: ScrollByY, amount: number): void | number {
     if (!amount) { return; }
     if (VSettings.cache.smoothScroll) {
-      return this.animate(amount, di, element);
+      return this.animate(element, di, amount);
     }
     this.performScroll(element, di, amount);
     return VScroller.checkCurrent(element);
@@ -213,7 +213,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   },
   shouldScroll (element: Element, di: ScrollByY, amount?: number): boolean {
     if (this.scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft))) {
-      const st = window.getComputedStyle(element);
+      const st = getComputedStyle(element);
       return (di ? st.overflowY : st.overflowX) !== "hidden" && st.display !== "none" && st.visibility === "visible";
     }
     return false;
