@@ -167,9 +167,14 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     return el !== this.top || (index && el) ? ((el || this.top) as Element)[this.Properties[index + di]]
       : di ? window.innerHeight : window.innerWidth;
   },
-  scrollDo (element: Element | null, di: ScrollByY, amount: number): boolean {
-    amount = (amount > 0 ? 1 : -1) * this.scale;
-    return this.performScroll(element, di, amount) && this.performScroll(element, di, -amount);
+  scrollDo (el: Element, di: ScrollByY, amount: number): boolean {
+    let key = this.Properties[4 + di] as "scrollLeft" | "scrollTop", before = el[key];
+    el[key] += (amount > 0 ? 1 : -1) * this.scale;
+    let changed = el[key] !== before;
+    if (changed) {
+      el[key] = before;
+    }
+    return changed;
   },
   selectFirst (element: Element, skipPrepare?: 1): Element | null {
     if (this.scrollDo(element, 1, 1) || this.scrollDo(element, 1, 0)) {
