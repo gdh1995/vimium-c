@@ -67,7 +67,6 @@
 	border: 0.5px solid #E3BE23;
 	border-radius: 3px;
 	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
-	box-sizing: border-box;
 	overflow: hidden;
 	padding: 1px 3px 0;
 	position: absolute;
