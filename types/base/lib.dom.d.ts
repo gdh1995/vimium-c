@@ -2034,6 +2034,11 @@ interface ElementEventMap extends GlobalEventHandlersEventMap {
     "webkitfullscreenerror": Event;
 }
 
+interface ScrollToOptions extends ScrollOptions {
+    left?: number;
+    top?: number;
+}
+
 interface AttachShadow {
     attachShadow(shadowRootInitDict: ShadowRootInit): ShadowRoot;
 }
@@ -2103,7 +2108,9 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     scrollIntoView(alignToTop?: boolean): void;
     scrollIntoViewIfNeeded(alignToTop?: boolean): void;
     scroll(x: number, y: number): void;
+    scrollTo(options?: ScrollToOptions): void;
     scrollTo(x: number, y: number): void;
+    scrollBy(options?: ScrollToOptions): void;
     scrollBy(x: number, y: number): void;
     insertAdjacentElement(position: string, insertedElement: Element): Element | null;
     insertAdjacentHTML(where: string, html: string): void;

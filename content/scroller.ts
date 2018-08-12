@@ -93,7 +93,9 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
   scroll (element: Element | null, di: ScrollByY, amount: number): void | number {
     if (!amount) { return; }
     if (VSettings.cache.smoothScroll && (!element
-        || getComputedStyle(element).scrollBehavior !== "smooth")) {
+        || getComputedStyle(element).scrollBehavior !== "smooth"
+        || VSettings.cache.browserVer < BrowserVer.MinCSS$ScrollBehavior$$Smooth$Work
+      )) {
       return this.animate(element, di, amount);
     }
     this.performScroll(element, di, amount);
@@ -168,11 +170,13 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
       : di ? window.innerHeight : window.innerWidth;
   },
   scrollDo (el: Element, di: ScrollByY, amount: number): boolean {
-    let key = this.Properties[4 + di] as "scrollLeft" | "scrollTop", before = el[key];
-    el[key] += (amount > 0 ? 1 : -1) * this.scale;
+    const key = this.Properties[4 + di as 4 | 5], before = el[key], k2: "top" | "left" = di ? "top": "left"
+      , arg: ScrollToOptions = { behavior: "instant" };
+    arg[k2] = (amount > 0 ? 1 : -1) * this.scale;
+    el.scrollBy ? el.scrollBy(arg) : (el[key] += arg[k2] as number);
     let changed = el[key] !== before;
     if (changed) {
-      el[key] = before;
+      el.scrollTo ? (arg[k2] = before, el.scrollTo(arg)) : (el[key] = before);
     }
     return changed;
   },

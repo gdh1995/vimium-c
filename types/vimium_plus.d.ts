@@ -312,6 +312,9 @@ declare const enum BrowserVer {
   Min$String$$StartsWithAndIncludes = 41,
   MinGlobal$HTMLDetailsElement = 41,
   MinFixedCSS$All$MayMistakenlyResetFixedPosition = 41,
+  // (if EXPERIMENTAL, then it exists but) has no effects before C41;
+  // if EXPERIMENTAL, there's Element::scrollTo and Element::scrollBy only since C41
+  MinCSS$ScrollBehavior$$Smooth$Work = 41,
   // MethodFunction is accepted since C42 if EMPTY
   MinMayBeMethodFunction = 41, // if EXPERIMENTAL
   // before 42, event.path is a simple NodeList instance
@@ -468,7 +471,7 @@ declare const enum BrowserVer {
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   MinCorrectBoxWidthForOptionUI = 61,
   Min$visualViewPort$ = 61,
-  MinEnsuredCSS$ScrollBehavior = 61, // still exists on C35 if EXPERIMENTAL
+  MinEnsuredCSS$ScrollBehavior = 61, // still exists on C35 (although has no effects before C41) if EXPERIMENTAL
   // TODO: confirm th below
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
