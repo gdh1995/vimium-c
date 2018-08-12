@@ -73,7 +73,7 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     if (di) {
       if (el) {
         before = el.scrollTop;
-        el.scrollTop += amount;
+        el.scrollBy ? el.scrollBy({behavior: "instant", top: amount}) : (el.scrollTop += amount);
         return el.scrollTop !== before;
       } else {
         before = window.scrollY;
@@ -82,7 +82,7 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
       }
     } else if (el) {
       before = el.scrollLeft;
-      el.scrollLeft += amount;
+      el.scrollBy ? el.scrollBy({behavior: "instant", left: amount}) : (el.scrollLeft += amount);
       return el.scrollLeft !== before;
     } else {
       before = window.scrollX;
@@ -92,10 +92,7 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
   },
   scroll (element: Element | null, di: ScrollByY, amount: number): void | number {
     if (!amount) { return; }
-    if (VSettings.cache.smoothScroll && (!element
-        || getComputedStyle(element).scrollBehavior !== "smooth"
-        || VSettings.cache.browserVer < BrowserVer.MinCSS$ScrollBehavior$$Smooth$Work
-      )) {
+    if (VSettings.cache.smoothScroll) {
       return this.animate(element, di, amount);
     }
     this.performScroll(element, di, amount);
