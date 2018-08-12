@@ -474,8 +474,8 @@ setTimeout(function() {
   function onWndFocus(tabs: [chrome.tabs.Tab] | never[]) {
     if (!tabs) { return chrome.runtime.lastError; }
     let a = tabs[0];
-    TabRecency.lastWnd = a.windowId;
     if (a) {
+      TabRecency.lastWnd = a.windowId;
       TabRecency.incognito = +a.incognito;
       return listener({ tabId: a.id });
     }
