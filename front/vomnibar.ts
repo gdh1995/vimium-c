@@ -211,7 +211,7 @@ var Vomnibar = {
     }
     this.timer = setTimeout(this.OnTimer, updateDelay);
   },
-  refresh (wait: number): void {
+  doRefresh (wait: number): void {
     let oldSel = this.selection, origin = this.isSelOriginal;
     this.useInput = false;
     this.setWidth();
@@ -485,8 +485,7 @@ var Vomnibar = {
       type,
       url: type === "tab" ? completion.sessionId + "" : completion.url
     });
-    window.getSelection().removeAllRanges();
-    return this.refresh(150);
+    return this.refresh();
   },
   onClick (event: MouseEvent): void {
     let el: Node | null = event.target as Node;
@@ -805,7 +804,10 @@ var Vomnibar = {
       VPort.postToOwner({ name: "evalJS", url });
       return;
     }
-    return VPort.postMessage({ handler: "openUrl", reuse, https, url, omni: true });
+    VPort.postMessage({ handler: "openUrl", reuse, https, url, omni: true });
+    if (reuse === ReuseType.newBg && (!this.lastQuery || (<RegExpOne>/^\+\d{0,2}$/).exec(this.lastQuery))) {
+      return this.refresh();
+    }
   },
   gotoSession (item: SuggestionE & { sessionId: string | number }): void {
     VPort.postMessage({
@@ -813,14 +815,18 @@ var Vomnibar = {
       active: this.actionType > ReuseType.newBg,
       sessionId: item.sessionId
     });
-    if (this.actionType > ReuseType.newBg) { return; }
+    if (this.actionType === ReuseType.newBg) {
+      return this.refresh(item.type === "tab");
+    }
+  },
+  refresh (waitFocus?: boolean): void {
     window.getSelection().removeAllRanges();
-    if (item.type !== "tab") {
-      return this.refresh(150);
+    if (!waitFocus) {
+      return this.doRefresh(150);
     }
     window.onfocus = function(e: Event): void {
       window.onfocus = null as never;
-      if (e.isTrusted !== false && VPort.port) { return Vomnibar.refresh(17); }
+      if (e.isTrusted !== false && VPort.port) { return Vomnibar.doRefresh(17); }
     };
   },
   OnUnload (e: Event): void {
