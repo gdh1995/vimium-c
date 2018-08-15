@@ -11,6 +11,8 @@ interface Window {
 interface VimiumInjector {
   id: string;
   alive: 0 | 0.5 | 1;
+  getCommandCount: (this: void) => number;
+  checkIfEnabled: (this: void) => void;
   destroy: ((this: void, silent?: boolean) => void) | null;
 }
 declare const enum HandlerResult {
@@ -279,7 +281,6 @@ interface FocusListenerWrapper {
 }
 interface VEventMode {
   lock(this: void): Element | null;
-  commandCount (this: void): number;
   suppress(keyCode?: VKeyCodes): void;
   OnWndFocus (this: void): void;
   focusAndListen (this: void, callback?: (() => void) | null, timedout?: 0): void;
@@ -312,7 +313,6 @@ interface VHUD {
 interface VSettings {
   enabled: boolean;
   cache: SettingsNS.FrontendSettingCache;
-  checkIfEnabled (this: void): void;
   // type: 1: disabled; 2: destroyed
   uninit: ((this: void, type: 1 | 2) => any) | null;
   destroy (this: void, silent?: boolean, keepChrome?: boolean): void;

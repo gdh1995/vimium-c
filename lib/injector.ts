@@ -46,6 +46,8 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
   window.VimiumInjector = {
     id: extId,
     alive: 0,
+    checkIfEnabled: null as never,
+    getCommandCount: null as never,
     destroy: null
   };
   if (!content_scripts) {

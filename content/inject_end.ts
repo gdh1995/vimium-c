@@ -1,6 +1,6 @@
 VDom.documentReady(function() {
-  if (!VSettings) { return; }
-  addEventListener("hashchange", VSettings.checkIfEnabled);
+  if (!VimiumInjector) { return; }
+  addEventListener("hashchange", VimiumInjector.checkIfEnabled);
 });
 VDom.allowScripts = false;
 
@@ -14,10 +14,10 @@ if (chrome.runtime.onMessageExternal) {
 
 VSettings.uninit = function(type: number): void {
   if (type > 1) {
-    removeEventListener("hashchange", VSettings.checkIfEnabled);
     let injector = VimiumInjector;
+    removeEventListener("hashchange", injector.checkIfEnabled);
     injector.alive = 0;
-    injector.destroy = null;
+    injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;
   }
   type ET2 = EventTargetEx;
   try {

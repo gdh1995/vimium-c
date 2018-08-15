@@ -258,10 +258,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       esc(HandlerResult.Suppress);
     },
     OnWndBlur2: null as ((this: void) => void) | null,
-    OnReady (): void {
-      HUD.enabled = true;
-      ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "focus" });
-    },
     wrapper: null as FocusListenerWrapper | null,
     wrap (this: void): FocusListenerWrapper["outer"] {
       const a = ELs;
@@ -841,7 +837,10 @@ Pagination = {
       }
       (r as { reset (request: BgReq["reset"], initing?: 1): void }).reset(request, 1);
       r.init = null as never;
-      return VDom.documentReady(ELs.OnReady);
+      return VDom.documentReady(function (): void {
+        HUD.enabled = true;
+        ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "focus" });
+      });
     },
     reset (request: BgReq["reset"], initing?: 1): void {
       const newPassKeys = request.passKeys, enabled = newPassKeys !== "", old = VSettings.enabled;
@@ -1043,7 +1042,6 @@ Pagination = {
 
   VEventMode = {
     lock (this: void): Element | null { return InsertMode.lock; },
-    commandCount (this: void): number { return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1; },
     onWndBlur (this: void, f): void { ELs.OnWndBlur2 = f; },
     OnWndFocus (this: void): void { return ELs.OnWndFocus(); },
     focusAndListen (callback?: (() => void) | null, timedout?: 0 | 1): void {
@@ -1117,9 +1115,6 @@ Pagination = {
   VSettings = {
     enabled: false,
     cache: null as never as VSettings["cache"],
-    checkIfEnabled (this: void): void {
-      return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
-    },
     uninit: null,
   destroy: function(silent, keepChrome): void {
     VSettings.enabled = isEnabledForUrl = false;
@@ -1145,6 +1140,12 @@ Pagination = {
     (<RegExpOne> /a?/).test("");
   }
   };
+  if (isInjected) {
+    VimiumInjector.checkIfEnabled = function (this: void): void {
+      return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
+    };
+    VimiumInjector.getCommandCount = function (this: void): number { return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1; };
+  }
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
   ELs.hook(HookAction.Install);
