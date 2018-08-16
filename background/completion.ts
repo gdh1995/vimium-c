@@ -537,7 +537,7 @@ history: {
   MakeSuggestion (e: UrlItem, i: number, arr: Array<UrlItem | Suggestion>): void {
     const u = e.url, o = new Suggestion("history", u, Decoder.decodeURL(u, u), e.title || "",
       Completers.history.getExtra, (99 - i) / 100);
-    e.sessionId && (o.sessionId = e.sessionId);
+    e.sessionId && (o.sessionId = e.sessionId, o.label = "&#8617;");
     arr[i] = o;
   },
   getExtra (_s: CompletersNS.CoreSuggestion, score: number): number { return score; },
