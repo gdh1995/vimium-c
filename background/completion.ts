@@ -489,11 +489,10 @@ history: {
     if (query.isOff) { return; }
     const arr: SafeDict<number> = Object.create(null);
     let count = 0;
-    for (const { url, title, incognito } of tabs) {
+    for (const { url, incognito } of tabs) {
       if (incognito && inNormal) { continue; }
-      const key = url + "\n" + title;
-      if (key in arr) { continue; }
-      arr[key] = 1; count++;
+      if (url in arr) { continue; }
+      arr[url] = 1; count++;
     }
     return this.filterFill([], query, arr, offset, count);
   },
@@ -506,7 +505,7 @@ history: {
       if (!entry) { return false; }
       const key = entry.url + "\n" + entry.title;
       if (key in arr) { return false; }
-      arr[key] = 1;
+      arr[key] = 1; arr[entry.url] = 1;
       ++i > 0 && historys.push(entry);
       return historys.length >= maxResults;
     }) ? this.filterFinish(historys) : this.filterFill(historys as UrlItem[], query, arr, -i, 0);
@@ -518,7 +517,7 @@ history: {
       maxResults: offset + maxResults + neededMore
     }, function(historys2: chrome.history.HistoryItem[] | UrlItem[]): void {
       if (query.isOff) { return; }
-      historys2 = (historys2 as UrlItem[]).filter(Completers.history.urlAndTitleNotIn, arr);
+      historys2 = (historys2 as UrlItem[]).filter(Completers.history.urlNotIn, arr);
       if (cut < 0) {
         historys2.length = Math.min(historys2.length, maxResults - historys.length);
         historys2 = (historys as UrlItem[]).concat(historys2);
@@ -541,8 +540,8 @@ history: {
     arr[i] = o;
   },
   getExtra (_s: CompletersNS.CoreSuggestion, score: number): number { return score; },
-  urlAndTitleNotIn (this: Dict<number>, i: UrlItem): boolean {
-    return !((i.url + "\n" + i.title) in this);
+  urlNotIn (this: Dict<number>, i: UrlItem): boolean {
+    return !(i.url in this);
   }
 },
 
