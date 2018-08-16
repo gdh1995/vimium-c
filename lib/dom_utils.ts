@@ -19,13 +19,16 @@ var VDom = {
       this.documentReady = f;
       return callback();
     }
-    const listeners = [callback], eventHandler = function(): void {
+    const listeners = [callback];
+    function eventHandler(): void {
       // not need to check event.isTrusted
       removeEventListener("DOMContentLoaded", eventHandler, true);
-      if (!VDom) { return; }
-      VDom.documentReady = f;
-      for (const i of listeners) { i(); }
-    };
+      if (VDom) {
+        VDom.documentReady = f;
+        for (const i of listeners) { i(); }
+      }
+      listeners.length = 0; // in case VDom.documentReady is kept by other extensions
+    }
     this.documentReady = function(callback): void {
       listeners.push(callback);
     };
