@@ -90,7 +90,7 @@ var Vomnibar = {
       options.search = "";
       return this.setOptions(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
-    if ((window as any).shownNode && !("VimiumInjector" in window)) {
+    if ((window as any).shownNode && !window.VimiumInjector) {
       url = url.split("#", 1)[0] + window.name;
     }
     const trail = options.trailing_slash;
@@ -186,7 +186,7 @@ var Vomnibar = {
         close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
-      if (location.hash === "#chrome-ui" && !("VimiumInjector" in window)) { _this.top = "8px"; }
+      if (location.hash === "#chrome-ui" && !window.VimiumInjector) { _this.top = "8px"; }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {

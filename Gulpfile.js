@@ -77,11 +77,10 @@ var Tasks = {
   },
   "min/content": function() {
     var cs = manifest.content_scripts[0], sources = cs.js;
-    if (sources.length <= 2) {
+    if (sources.length <= 1) {
       return;
     }
-    var lastFile = sources.pop();
-    cs.js = ["content/body.js", lastFile];
+    cs.js = ["content/body.js"];
     return uglifyJSFiles(sources, cs.js[0]);
   },
   "min/others": function() {
@@ -90,7 +89,7 @@ var Tasks = {
     for (var arr = oriManifest.background.scripts, i = 0, len = arr.length; i < len; i++) {
       res.push("!" + arr[i]);
     }
-    for (var arr = oriManifest.content_scripts[0].js, i = 0, len = arr.length - 1; i < len; i++) {
+    for (var arr = oriManifest.content_scripts[0].js, i = 0, len = arr.length; i < len; i++) {
       res.push("!" + arr[i]);
     }
     return uglifyJSFiles(res, ".", "");

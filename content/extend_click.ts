@@ -1,4 +1,4 @@
-(function(this: void): void {
+"VimiumInjector" in window || (function(this: void): void {
   if (!window.VSettings) { return; }
   type Listener = (this: void, e: Event) => void;
   let d: Document | Document["documentElement"] = document

@@ -338,7 +338,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   obj.ShowPage = func(obj.ShowPage);
   obj.VomnibarPageInner = func(obj.VomnibarPageInner);
   obj.VomnibarScript_f = func(obj.VomnibarScript);
-  ref2[ref2.length - 1] = obj.InjectEnd;
+  ref2.push(obj.InjectEnd);
   if ("".startsWith.name !== "startsWith") {
     ref2.unshift(obj.PolyFill);
   }

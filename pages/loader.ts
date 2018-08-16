@@ -1,6 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
 declare var browser: never;
+var VimiumInjector = null as never as VimiumInjector;
 if (typeof browser !== "undefined" && browser && (browser as any).runtime) {
   window.chrome = browser;
 }
@@ -9,7 +10,6 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
   const head = loader.parentElement as HTMLElement
     , prefix = chrome.runtime.getURL("")
     , arr = chrome.runtime.getManifest().content_scripts[0].js;
-  arr.pop();
   for (const src of arr) {
     const scriptElement = document.createElement("script");
     scriptElement.async = false;

@@ -418,9 +418,7 @@ setTimeout(function() {
     status: "complete"
   }, function(tabs) {
     const t = chrome.tabs, callback = () => chrome.runtime.lastError,
-      contentScripts = chrome.runtime.getManifest().content_scripts[0],
-      ref = {file: "", allFrames: contentScripts.all_frames},
-      js = contentScripts.js;
+    ref = {file: "", allFrames: true}, js = Settings.CONST.ContentScripts;
     for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
       let url = tabs[_i].url;
       if (url.startsWith("chrome") || url.indexOf("://") === -1) { continue; }
