@@ -681,7 +681,7 @@ tabs: {
       const tabId = tab.id, suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
       if (curTabId === tabId) { suggestion.relevancy = 8; }
       suggestion.sessionId = tabId;
-      suggestion.index = id;
+      suggestion.label = id;
       //suggestion.textSplit = suggestion.textSplit + " " + id;
       suggestions.push(suggestion);
     }

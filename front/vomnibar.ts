@@ -2,7 +2,7 @@
 /// <reference path="../background/bg.d.ts" />
 interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
   favIcon?: string;
-  index?: string;
+  label?: string;
   relevancy: number | string;
   Ty?: string;
 }
@@ -784,7 +784,7 @@ var Vomnibar = {
   parse (item: SuggestionE): void {
     let str: string | undefined;
     item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
-    (str = item.index) && (item.index = ` <span class="index">${str}</span>`);
+    (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
     item.favIcon = (str = this.showFavIcon ? item.url : "") && this.favPrefix +
         ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)";
     if (this.showTy) {
@@ -930,7 +930,7 @@ VPort = {
 });
 (function(): void {
   const pageVersion = +<string>(document.documentElement as HTMLElement).getAttribute("data-version") || 0;
-  if (Math.round(pageVersion * 100) != 164) {
+  if (pageVersion != 1.68) {
     location.href = "about:blank";
     return;
   }
