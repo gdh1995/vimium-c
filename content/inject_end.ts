@@ -16,8 +16,8 @@ if (chrome.runtime.onMessageExternal) {
 }
 
 VSettings.uninit = function(type: number): void {
-  if (type > 1) {
-    let injector = VimiumInjector;
+  let injector = VimiumInjector;
+  if (type > 1 && injector) {
     removeEventListener("hashchange", injector.checkIfEnabled);
     injector.alive = 0;
     injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;

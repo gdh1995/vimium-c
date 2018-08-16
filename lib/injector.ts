@@ -5,7 +5,7 @@ interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;
 }
 declare var browser: never;
-
+var VimiumInjector: VimiumInjector;
 (function() {
   let runtime: typeof chrome.runtime;
   runtime = typeof browser !== "undefined" && browser && (browser as any).runtime || chrome.runtime;
@@ -39,11 +39,11 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
         , host, "color:auto", str ? str : ` (${tick} retries).`);
     }
   }
-  if (window.VimiumInjector && typeof VimiumInjector.destroy === "function") {
+  if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
     VimiumInjector.destroy(true);
   }
 
-  window.VimiumInjector = {
+  VimiumInjector = {
     id: extId,
     alive: 0,
     checkIfEnabled: null as never,
