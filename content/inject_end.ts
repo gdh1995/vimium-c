@@ -1,8 +1,11 @@
+VDom.allowScripts = false;
+VimiumInjector.checkIfEnabled = (function (this: null, func: any): void {
+  return func({ handler: "checkIfEnabled", url: window.location.href });
+}).bind(null, VimiumInjector.checkIfEnabled);
 VDom.documentReady(function() {
   if (!VimiumInjector) { return; }
   addEventListener("hashchange", VimiumInjector.checkIfEnabled);
 });
-VDom.allowScripts = false;
 
 if (chrome.runtime.onMessageExternal) {
   VimiumInjector.alive = 1;

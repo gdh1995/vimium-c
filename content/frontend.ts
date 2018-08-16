@@ -44,14 +44,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       (vPort.port as Port as any).postMessage({_msgId: id, request: request});
       vPort._callbacks[id] = callback;
     } as VPort["send"],
-    safePost<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
+    safePost<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>): void {
       try {
-        if (!this.port) {
-          this.connect((isEnabledForUrl ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
+        if (!vPort.port) {
+          vPort.connect((isEnabledForUrl ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
             + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn ? PortType.hasCSS : 0));
-          isInjected && setTimeout(this.TestAlive, 50);
+          isInjected && setTimeout(vPort.TestAlive, 50);
         }
-        (this.port as Port).postMessage(request);
+        (vPort.port as Port).postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
         VSettings.destroy();
       }
@@ -1141,9 +1141,7 @@ Pagination = {
   }
   };
   if (isInjected) {
-    VimiumInjector.checkIfEnabled = function (this: void): void {
-      return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
-    };
+    VimiumInjector.checkIfEnabled = vPort.safePost as any;
     VimiumInjector.getCommandCount = function (this: void): number { return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1; };
   }
 
