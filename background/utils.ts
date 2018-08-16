@@ -71,7 +71,7 @@ var Utils = {
   ] as ReadonlyArray<string>,
   domains: Object.create<CompletersNS.Domain>(null),
   hostRe: <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
-  _ipRe: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,
+  _ipv4Re: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,
   _ipv6Re: <RegExpOne> /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/,
   _lfSpacesRe: <RegExpG> /[\r\n]+[\t \xa0]*/g,
   spacesRe: <RegExpG> /\s+/g,
@@ -174,13 +174,13 @@ var Utils = {
     if (type !== Urls.TempType.Unspecified) {
     } else if (!(arr = this.hostRe.exec(string) as typeof arr)) {
       type = Urls.Type.Search;
-      if (string.length === oldString.length && this._ipv6Re.test(string = "[" + string + "]")) {
+      if (string.length === oldString.length && (this as typeof Utils).isIPHost(string = "[" + string + "]", 6)) {
         oldString = string;
         type = Urls.Type.NoSchema;
       }
     } else if ((string = arr[3]).endsWith(']')) {
-      type = this._ipv6Re.test(string) ? expected : Urls.Type.Search;
-    } else if (string.endsWith("localhost") || this._ipRe.test(string) || arr[4] && hasPath) {
+      type = (this as typeof Utils).isIPHost(string, 6) ? expected : Urls.Type.Search;
+    } else if (string.endsWith("localhost") || (this as typeof Utils).isIPHost(string, 4) || arr[4] && hasPath) {
       type = expected;
     } else if ((index = string.lastIndexOf('.')) < 0
         || (type = this.isTld(string.substring(index + 1))) === Urls.TldType.NotTld) {
@@ -275,7 +275,16 @@ var Utils = {
       : tld.length < this._tlds.length && this._tlds[tld.length].indexOf(tld) > 0 ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
   },
-  isIPHost (hostname: string): boolean { return this._ipRe.test(hostname) || this._ipv6Re.test(hostname); },
+  /** type: 0=all */
+  isIPHost (hostname: string, type: 0 | 4 | 6): boolean {
+     if (type !== 6 && this._ipv4Re.test(hostname) || type !== 4 && this._ipv6Re.test(hostname)) {
+       try {
+         new URL("http://" + hostname);
+         return true;
+       } catch (e) {}
+     }
+     return false;
+  },
   commonFileExtRe: <RegExpOne>/\.[0-9A-Za-z]+$/,
   formatVimiumUrl (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, query = "", tempStr: string | undefined, path = fullpath.trim();

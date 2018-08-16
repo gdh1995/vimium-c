@@ -86,7 +86,7 @@ ContentSettings = {
       , result: string[], host = hosts[3] + (hosts[4] || "");
     pattern = info[1];
     result = [pattern + host + "/*"];
-    if (level < 2 || Utils.isIPHost(hosts[3])) { return result; }
+    if (level < 2 || Utils.isIPHost(hosts[3], 0)) { return result; }
     hosts = null as never;
     const arr = host.toLowerCase().split("."), i = arr.length,
     minLen = Utils.isTld(arr[i - 1]) === Urls.TldType.NotTld ? 1
