@@ -728,8 +728,7 @@ searchEngines: {
       matchedTotal++;
       return Completers.next([sug]);
     } else {
-      const map = Settings.cache.searchEngineMap;
-      pattern = map && map[keyword];
+      pattern = Settings.cache.searchEngineMap[keyword];
     }
     if (failIfNull === true) {
       if (!pattern) { return true; }

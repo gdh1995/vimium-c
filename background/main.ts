@@ -2196,12 +2196,13 @@ Are you sure you want to continue?`);
     for (const i of ref) { (ref2[i] as BgCmdActiveTab).useTab = UseTab.ActiveTab; }
   })();
 
+  Settings.postUpdate("searchUrl", null); // will also update newTabUrl
+
   setTimeout(function(): void {
     (document.documentElement as HTMLHtmlElement).textContent = '';
     (document.firstChild as DocumentType).remove();
-    Settings.postUpdate("searchUrl", null); // will also update newTabUrl
     Utils.resetRe();
-  }, 34);
+  }, 1000);
 
   // will run only on <F5>, not on runtime.reload
   window.onunload = function(event): void {
