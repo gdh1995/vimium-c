@@ -84,8 +84,16 @@ Known issues (Up to the master branch):
 8. Chrome 64 and 65 always clean their console logs if only Vomnibar is opened, and there's nothing we can do for it.
   Chrome 66 fixes it.
 
-1.69:
+1.68:
+* tons of small fixes and updates making it easier to use
 * fix the broken sync feature, which didn't work if only key mappings / exclusion rules were changed
+* now LinkHints auto exits if typing in an text box when IME is enabled
+* Vomnibar: sort only by last visit time if a query is just like `.pdf` or `.html`
+* Vomnibar now shows the `https://` prefix of such URLs on its input box
+* Vomnibar now supports `Shift+Enter` to delete history and tab items, just like what Chrome supports on omnibox
+* local marks: now remember a url's hash part and recover it if nothing to scroll
+* fix that Scroller might fail to scroll some areas
+* detect IPv6 hosts in URLs correctly
 
 1.67:
 * Now most commands support negative count, and `'-'` is used to begin a negative count.
