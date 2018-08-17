@@ -305,7 +305,6 @@ function importSettings(time: number | string | Date
   const promisedChecker = Option.all.keyMappings.checker ? 1 : new Promise<1>(function(resolve): void {
     const element = loadJS("options_checker.js");
     element.onload = function(): void { resolve(1); };
-    element.remove();
   });
   Promise.all([BG.Utils.require("Commands"), BG.Utils.require("Exclusions"), promisedChecker]).then(function() {
     setTimeout(_importSettings, 17, time, new_data, is_recommended);

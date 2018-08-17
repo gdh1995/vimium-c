@@ -951,7 +951,6 @@ window.browser && (browser as any).runtime && (window.chrome = browser);
         return window.onmessage(event);
       };
       (document.head || document.documentElement as HTMLElement).appendChild(script);
-      script.remove();
     };
     return;
   }

@@ -367,7 +367,7 @@ function requireJS(name: string, src: string): Promise<any> {
       const obj = (window as any)[name];
       obj ? resolve(obj) : (this.onerror as () => void)();
     };
-    (document.head as HTMLHeadElement).appendChild(script).remove();
+    (document.head as HTMLHeadElement).appendChild(script);
   });
 }
 
