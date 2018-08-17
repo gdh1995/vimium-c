@@ -272,7 +272,6 @@ ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;
 if (bgSettings.CONST.ChromeVersion >= BrowserVer.MinSmartSpellCheck) {
   (document.documentElement as HTMLElement).removeAttribute("spellcheck");
 }
-$<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;
 
 if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
   || window.devicePixelRatio < 2 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
@@ -301,7 +300,8 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   generateDefaultPattern (this: PopExclusionRulesOption): string;
 }
   let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
-  if (!ref && !(tabs[0] && tabs[0].status === "loading")) {
+  const notRunnable = !ref && !(tabs[0] && tabs[0].status === "loading");
+  if (notRunnable) {
     const body = document.body as HTMLBodyElement;
     body.textContent = "";
     body.style.width = "auto";
@@ -318,15 +318,17 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
     BG.Backend.focus(a);
     window.close();
   };
-  if (!ref) {
+  $<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;
+  if (notRunnable) {
     return;
   }
   blockedMsg.remove();
   blockedMsg = null as never;
 
 const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions,
+tabId = ref ? ref[0].sender.tabId : tabs[0].id,
 exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
-  url: ref[0].sender.url,
+  url: ref ? ref[0].sender.url : tabs[0].url,
   init (this: PopExclusionRulesOption, element: HTMLElement
       , onUpdated: (this: ExclusionRulesOption) => void, onInit: (this: ExclusionRulesOption) => void
       ): void {
@@ -338,10 +340,10 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   },
   rebuildTesters (this: PopExclusionRulesOption): void {
     const rules = bgSettings.get("exclusionRules")
-      , ref = bgExclusions.testers = BG.Object.create(null)
+      , ref1 = bgExclusions.testers = BG.Object.create(null)
       , ref2 = bgExclusions.rules;
     for (let _i = 0, _len = rules.length; _i < _len; _i++) {
-      ref[rules[_i].pattern] = ref2[_i * 2];
+      ref1[rules[_i].pattern] = ref2[_i * 2];
     }
     this.rebuildTesters = null as never;
   },
@@ -444,17 +446,17 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     }
   });
   exclusions.init($("#exclusionRules"), onUpdated, function (): void {
-    let { sender } = (ref as Frames.Frames)[0], el: HTMLElement
+    let sender = ref ? ref[0].sender : { status: Frames.Status.enabled, flags: Frames.Flags.Default }, el: HTMLElement
       , newStat = sender.status !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
     ref = null;
     el = $<HTMLElement>("#toggleOnce");
     el.textContent = newStat + " for once";
-    el.onclick = forceState.bind(null, sender.tabId, newStat);
+    el.onclick = forceState.bind(null, newStat);
     if (sender.flags & Frames.Flags.locked) {
       el = el.nextElementSibling as HTMLElement;
       el.classList.remove("hidden");
       el = el.firstElementChild as HTMLElement;
-      el.onclick = forceState.bind(null, sender.tabId, "Reset");
+      el.onclick = forceState.bind(null, "Reset");
     }
     setTimeout(function(): void {
       (document.documentElement as HTMLHtmlElement).style.height = "";
@@ -469,7 +471,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   };
   BG.Utils.GC();
 
-  function forceState(tabId: number, act: "Reset" | "Enable" | "Disable", event?: Event): void {
+  function forceState(act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();
     BG.Backend.forceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
     window.close();

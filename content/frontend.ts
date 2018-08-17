@@ -243,9 +243,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return ELs.onBlur(event);
     },
     onActivate (event: UIEvent): void {
-      if (event.isTrusted !== false) {
-        // todo: check event.path on FF/Edge
-        VScroller.current = (event.path as EventPath)[0] as Element;
+      const { path } = event;
+      if (path && event.isTrusted !== false) {
+        VScroller.current = path[0] as Element;
       }
     },
     OnWndFocus (this: void): void {},
