@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html spellcheck="false">
+<html spellcheck="false" style="height: 200px;">
   <head>
     <meta charset="utf-8">
     <title>Vimium++ Popup Menu</title>
@@ -10,8 +10,7 @@
 	margin: 0;
 	padding: 0;
 }
-html {
-	height: 200px;
+body {
 	width: 495px;
 }
 
@@ -26,13 +25,16 @@ p {
 #state {
 	background: #f3f3f3;
 	border-bottom: 0.5px solid #979ca0;
+	box-sizing: border-box;
 	margin: 0;
 	padding: 3px 5px 2.5px 32px;
 	text-indent: -27px;
+	width: 100%;
 }
 
 .state-value {
 	color: #15c;
+	line-height: 15px;
 }
 .fixed-width {
 	display: inline-block;
@@ -47,6 +49,7 @@ p {
 	height: 34px;
 	padding: 5px 8px 2px 3px;
 	text-align: right;
+	width: 100%;
 }
 #helpText {
 	margin-top: -2px;

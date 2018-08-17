@@ -279,8 +279,8 @@ if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDevi
 ) (function(): void {
   const css = document.createElement("style"), ratio = window.devicePixelRatio, version = bgSettings.CONST.ChromeVersion;
   const onlyInputs = version >= BrowserVer.MinRoundedBorderWidthIsNotEnsured && ratio >= 1;
-  css.textContent = onlyInputs ? `input, textarea { border-width: ${1.1 / ratio}px; }`
-    : `* { border-width: ${version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.1 / ratio : 1}px !important; }`;
+  css.textContent = onlyInputs ? `input, textarea { border-width: ${1.12 / ratio}px; }`
+    : `* { border-width: ${version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.12 / ratio : 1}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
 })();
 
@@ -302,9 +302,12 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
 }
   let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
   if (!ref && !(tabs[0] && tabs[0].status === "loading")) {
-    (document.body as HTMLBodyElement).textContent = "";
+    const body = document.body as HTMLBodyElement;
+    body.textContent = "";
+    body.style.width = "auto";
     blockedMsg.style.display = "";
-    (document.body as HTMLBodyElement).appendChild(blockedMsg);
+    body.appendChild(blockedMsg);
+    (document.documentElement as HTMLHtmlElement).style.height = "";
   }
   const element = $<HTMLAnchorElement>(".options-link"), url = bgSettings.CONST.OptionsPage;
   element.href !== url && (element.href = url);
@@ -453,6 +456,9 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       el = el.firstElementChild as HTMLElement;
       el.onclick = forceState.bind(null, sender.tabId, "Reset");
     }
+    setTimeout(function(): void {
+      (document.documentElement as HTMLHtmlElement).style.height = "";
+    }, 17);
     return updateState();
   });
   interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }

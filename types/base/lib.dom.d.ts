@@ -1379,7 +1379,7 @@ interface DocumentAttrsToBeDetected {
     /**
       * Gets a reference to the root node of the document. 
       */
-    readonly documentElement: HTMLElement | SVGElement | null; // | Element | null;
+    readonly documentElement: HTMLHtmlElement | SVGSVGElement | null; // | Element | null;
     readonly head: HTMLHeadElement | null;
     readonly currentScript: HTMLScriptElement | SVGScriptElement | null;
 }
