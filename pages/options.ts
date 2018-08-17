@@ -657,7 +657,7 @@ function OnBgUnload(): void {
 BG.addEventListener("unload", OnBgUnload);
 
 document.addEventListener("click", function onClickOnce(e1): void {
-  if (!VDom || VDom.UI.box !== e1.target) { return; }
+  if (!window.VDom || VDom.UI.box !== e1.target) { return; }
   document.removeEventListener("click", onClickOnce, true);
   (VDom.UI.root as Node).addEventListener("click", function(event): void {
     let target = event.target as HTMLElement, str: string;
