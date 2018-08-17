@@ -1,0 +1,13 @@
+/background/
+/content/
+/dist/
+/front/
+/lib/
+/node_modules/
+/pages/
+/scripts/
+/test*
+/weidu/
+*log.*
+*.log
+.*/
