@@ -304,7 +304,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 };
 
 const IsEdge = NotChrome && !!(window as any).StyleMedia,
-IsFirefox = NotChrome && !IsEdge && (<RegExpOne>/\bFirefox\//).test(navigator.appVersion);
+IsFirefox = NotChrome && !IsEdge && (<RegExpOne>/\bFirefox\//).test(navigator.userAgent);
 
 Settings.CONST.ChromeVersion = 0 | (!NotChrome && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number;

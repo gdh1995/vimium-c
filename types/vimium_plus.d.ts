@@ -498,5 +498,5 @@ declare const enum BrowserVer {
   MinInputMode = 66, // even if LEAGCY; still works on C35 if EXPERIMENTAL
   // even if EXPERIMENTAL or LEAGCY
   MinScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
-  assumedVer = 99,
+  assumedVer = 999,
 }

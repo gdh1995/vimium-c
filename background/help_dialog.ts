@@ -9,7 +9,9 @@ var HelpDialog = {
     if (!HelpDialog.inited) {
       if (Settings.CONST.StyleCacheId.indexOf("s") < 0) {
         let template = Settings.cache.helpDialog as string, styleEnd = template.indexOf("</style>");
-        template = template.substring(0, styleEnd).replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&") + template.substring(styleEnd);
+        template = template.substring(0, styleEnd).replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
+          ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv"
+          ) + template.substring(styleEnd);
         Settings.set("helpDialog", template);
       }
       HelpDialog.inited = true;

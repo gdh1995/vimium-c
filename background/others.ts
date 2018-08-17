@@ -167,7 +167,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
   Settings.updateHooks.showActionIcon = function(value): void {
     func(value);
     (Backend.IconBuffer as IconNS.AccessIconBuffer)(value);
-    if (NotChrome) { return; } // todo: test Edge
+    if (IsFirefox) { return; } // Firefox has no "Options" button
     let title = "Vimium++";
     if (value) {
       chrome.browserAction.enable();

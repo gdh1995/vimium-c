@@ -669,7 +669,7 @@ var Vomnibar = {
       this.input.addEventListener("compositionstart", func);
       this.input.addEventListener("compositionend", func);
     }
-    if (ver < BrowserVer.MinSVG$Path$Has$d$CSSAttribute) {
+    if (ver < BrowserVer.MinSVG$Path$Has$d$CSSAttribute || ver === BrowserVer.assumedVer) {
       this.showTy = ver < BrowserVer.MinSVG$Path$MayHave$d$CSSAttribute || this.bodySt.d == null;
     }
     this.maxHeight = Math.ceil(this.maxResults * PixelData.Item + PixelData.OthersIfNotEmpty);
@@ -928,6 +928,7 @@ VPort = {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
+window.browser && (browser as any).runtime && (window.chrome = browser);
 (function(): void {
   const pageVersion = +<string>(document.documentElement as HTMLElement).getAttribute("data-version") || 0;
   if (pageVersion != 1.68) {
