@@ -620,7 +620,7 @@ Pagination = {
     } else {
       VDom.ensureInView(linkElement);
       VDom.UI.flash(linkElement);
-      setTimeout(function() { VDom.UI.click(linkElement); }, 0);
+      setTimeout(function() { VDom.UI.click(linkElement); }, 100);
     }
     return true;
   },
