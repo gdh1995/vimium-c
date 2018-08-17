@@ -300,7 +300,8 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   generateDefaultPattern (this: PopExclusionRulesOption): string;
 }
   let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
-  const notRunnable = !ref && !(tabs[0] && tabs[0].status === "loading");
+  const notRunnable = !ref && !(tabs[0] && tabs[0].status === "loading"
+    && (tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0));
   if (notRunnable) {
     const body = document.body as HTMLBodyElement;
     body.textContent = "";
@@ -308,6 +309,9 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
     blockedMsg.style.display = "";
     body.appendChild(blockedMsg);
     (document.documentElement as HTMLHtmlElement).style.height = "";
+    if (!tabs[0] || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
+      (blockedMsg.querySelector("#refresh-after-install") as HTMLElement).remove();
+    }
   }
   const element = $<HTMLAnchorElement>(".options-link"), url = bgSettings.CONST.OptionsPage;
   element.href !== url && (element.href = url);
