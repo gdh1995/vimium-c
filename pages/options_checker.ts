@@ -119,6 +119,15 @@ Option.all.vimSync.checker = {
   }
 };
 
+Option.all.keyboard.checker = {
+  check (data: AllowedOptions["keyboard"]): AllowedOptions["keyboard"] {
+    if (data == null || data.length !== 2 || !(data[0] > 0 && data[0] < 4000) || !(data[1] > 0 && data[1] < 1000)) {
+      return bgSettings.defaults.keyboard;
+    }
+    return [+data[0], data[1]];
+  }
+};
+
 (function(): void {
   const func = loadChecker, info = (loadChecker as CheckerLoader).info;
   (loadChecker as CheckerLoader).info = "";
