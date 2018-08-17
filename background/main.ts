@@ -177,7 +177,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       return Settings.CONST.ChromeVersion >= BrowserVer.MinSession ? Backend.complain("control tab sessions")
         : Backend.showHUD(`Vimium++ can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
     },
-    isNotVomnibarPage = function (this: void, port: Frames.Port, nolog?: boolean): boolean {
+    isNotVomnibarPage = IsEdge ? function() { return false; } : function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
       const info = port.sender as SenderEx;
       if (info.isVomnibar == null) {

@@ -296,6 +296,7 @@ bookmarks: {
   },
   Listen: function (): void {
     const bookmarks = chrome.bookmarks, listener = Completers.bookmarks.Delay, expire = Completers.bookmarks.Expire;
+    if (!bookmarks.onCreated) { return; }
     bookmarks.onCreated.addListener(listener);
     bookmarks.onRemoved.addListener(expire);
     bookmarks.onChanged.addListener(expire);
@@ -418,6 +419,7 @@ bookmarks: {
 
 history: {
   filter (query: CompletersNS.QueryStatus, index: number): void {
+    if (!chrome.history) { return Completers.next([]); }
     const history = HistoryCache.history;
     if (queryType === FirstQuery.waitFirst) {
       queryType = queryTerms.length === 0 || index === 0 ? FirstQuery.history : FirstQuery.historyIncluded;
