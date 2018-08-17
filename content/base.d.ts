@@ -8,13 +8,6 @@ interface Window {
   VimiumInjector?: VimiumInjector;
   VSettings: VSettings | null;
 }
-interface VimiumInjector {
-  id: string;
-  alive: 0 | 0.5 | 1;
-  getCommandCount: (this: void) => number;
-  checkIfEnabled: (this: void) => void;
-  destroy: ((this: void, silent?: boolean) => void) | null;
-}
 declare const enum HandlerResult {
   PassKey = -1,
   Nothing = 0,
