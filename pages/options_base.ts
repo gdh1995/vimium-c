@@ -96,8 +96,8 @@ normalize (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOpti
   return checker ? checker.check(value) : value;
 }
 save (): void {
-  let value = this.readValueFromElement(), notJSON = typeof value !== "object"
-    , previous = notJSON ? JSON.stringify(this.previous) : this.previous, str: string;
+  let value = this.readValueFromElement(), isJSON = typeof value === "object"
+    , previous = isJSON ? JSON.stringify(this.previous) : this.previous, str: string;
   if (typeof value === "object") {
     str = JSON.stringify(value);
     if (str === previous) { return; }
@@ -116,7 +116,7 @@ save (): void {
   bgSettings.set(this.field, value);
   this.previous = value = bgSettings.get(this.field);
   this.saved = true;
-  if (previous !== (notJSON ? value : JSON.stringify(value))) {
+  if (previous !== (isJSON ? JSON.stringify(value) : value)) {
     this.populateElement(value);
   }
   if (this.field in bgSettings.bufferToLoad) {
