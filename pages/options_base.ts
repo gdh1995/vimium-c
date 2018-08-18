@@ -292,6 +292,7 @@ location.pathname.indexOf("/popup.html") !== -1 && BG.Utils.require("Exclusions"
 })((function(tabs: [chrome.tabs.Tab] | never[]): void {
 interface PopExclusionRulesOption extends ExclusionRulesOption {
   readonly url: string;
+  inited: 0 | 1 /* no initial matches */ | 2 /* some matched */;
   init(this: PopExclusionRulesOption, element: HTMLElement
     , onUpdated: (this: PopExclusionRulesOption) => void, onInit: (this: PopExclusionRulesOption) => void
     ): void;
@@ -336,6 +337,7 @@ const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions,
 tabId = ref ? ref[0].sender.tabId : tabs[0].id,
 exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   url: ref ? ref[0].sender.url : tabs[0].url,
+  inited: 0,
   init (this: PopExclusionRulesOption, element: HTMLElement
       , onUpdated: (this: ExclusionRulesOption) => void, onInit: (this: ExclusionRulesOption) => void
       ): void {
@@ -370,10 +372,13 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
         element.style.display = "none";
       }
     }
-    if (haveMatch >= 0) {
-      this.getPassKeys(elements[haveMatch]).focus();
-    } else {
-      this.addRule();
+    if (this.inited === 0) {
+      if (haveMatch >= 0) {
+        this.getPassKeys(elements[haveMatch]).focus();
+      } else {
+        this.addRule();
+      }
+      this.inited = haveMatch >= 0 ? 2 : 1;
     }
     this.populateElement = null as never;
   },
@@ -400,7 +405,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   }
 }, ExclusionRulesOption.prototype);
 
-  let saved = true;
+  let saved = true, oldPass: string | null = null;
   function collectPass(pass: string): string {
     pass = pass.trim();
     const dict = Object.create<1>(null);
@@ -411,10 +416,14 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     }
     return Object.keys(dict).join(" ");
   }
-  function updateState(): void {
-    const pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
-    $("#state").innerHTML = '<span class="Vim">Vim</span>ium++ will ' + (pass
-      ? `exclude: <span class="state-value code">${collectPass(pass)}</span>`
+  function updateState(initing: boolean): void {
+    let pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
+    pass && (pass = collectPass(pass));
+    if (initing) {
+      oldPass = exclusions.inited === 2 ? pass : null;
+    }
+    $("#state").innerHTML = `<span class="Vim">Vim</span>ium++ ${pass === oldPass ? "keep to" : "will"} ` + (pass
+      ? `exclude: <span class="state-value code">${pass}</span>`
       : `be:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
   }
   function onUpdated(this: void): void {
@@ -430,7 +439,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       (btn.firstChild as Text).data = "Save Changes";
     }
     if (!exclusions.init) {
-      updateState();
+      updateState(false);
     }
   }
   function saveOptions(this: void): void {
@@ -468,7 +477,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     setTimeout(function(): void {
       (document.documentElement as HTMLHtmlElement).style.height = "";
     }, 17);
-    return updateState();
+    return updateState(true);
   });
   interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
   (window as WindowEx).exclusions = exclusions;
