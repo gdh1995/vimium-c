@@ -899,6 +899,8 @@ interface RegExp {
       */
     exec(this: RegExpOne | RegExpI, string: string): RegExpExecArray | null;
 
+    exec<N extends number>(this: RegExpG & RegExpSearchable<N>, string: string): RegExpExecArray | null;
+
     /**
       * Returns a Boolean value that indicates whether or not a pattern exists in a searched string.
       * @param string String on which to perform the search.

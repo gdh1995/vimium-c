@@ -4,7 +4,6 @@ interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
   favIcon?: string;
   label?: string;
   relevancy: number | string;
-  Ty?: string;
 }
 interface SuggestionEx extends SuggestionE {
   https: boolean;
@@ -102,7 +101,6 @@ var Vomnibar = {
   blurWanted: false,
   forceNewTab: false,
   sameOrigin: false,
-  showTy: false,
   showFavIcon: 0 as 0 | 1 | 2,
   showRelevancy: false,
   zoomLevel: 1,
@@ -669,12 +667,20 @@ var Vomnibar = {
       this.input.addEventListener("compositionstart", func);
       this.input.addEventListener("compositionend", func);
     }
-    if (ver < BrowserVer.MinSVG$Path$Has$d$CSSAttribute || ver === BrowserVer.assumedVer) {
-      this.showTy = ver < BrowserVer.MinSVG$Path$MayHave$d$CSSAttribute || this.bodySt.d == null;
-    }
     this.maxHeight = Math.ceil(this.maxResults * PixelData.Item + PixelData.OthersIfNotEmpty);
     this.init = VUtils.makeListRenderer = null as never;
+    if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && ver !== BrowserVer.assumedVer || this.bodySt.d != null) { return; }
+    const styles = (document.querySelector("style") as HTMLStyleElement).textContent,
+    re = <RegExpG & RegExpSearchable<2>> /\.([a-z]+)\s?\{(?:[^}]+;)?\s*d\s?:\s*path\s?\(\s?['"](.+?)['"]\s?\)/g,
+    pathMap = Object.create<string>(null);
+    let arr: RegExpExecArray | null;
+    while (arr = re.exec(styles)) { pathMap[arr[1]] = arr[2]; }
+    this.getTypeIcon = function(sug: Readonly<SuggestionE>): string {
+      const type = sug.type, path = pathMap[type];
+      return path ? `${type}" d="${path}` : type;
+    }
   },
+  getTypeIcon (sug: Readonly<SuggestionE>): string { return sug.type; },
   setFav (type: VomnibarNS.PageType): void {
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
       , canShowOnOthers = this.browserVersion >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
@@ -750,7 +756,7 @@ var Vomnibar = {
     type: "omni" as CompletersNS.ValidTypes,
     maxChars: 0,
     maxResults: 0,
-    favIcon: 1 as 0 | 1 | 2,
+    favIcon: 0 as 0 | 1 | 2,
     query: ""
   },
   _spacesRe: <RegExpG> /\s+/g,
@@ -786,10 +792,7 @@ var Vomnibar = {
     item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
     (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
     item.favIcon = (str = this.showFavIcon ? item.url : "") && this.favPrefix +
-        ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)";
-    if (this.showTy) {
-      item.Ty = item.type[0].toUpperCase();
-    }
+        ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;);";
   },
   parseFavIcon (item: SuggestionE, url: string): string {
     let str = url.substring(0, 11).toLowerCase();
@@ -839,13 +842,16 @@ var Vomnibar = {
 VUtils = {
   makeListRenderer (this: void, template: string): Render {
     const a = template.split(/\{\{(\w+)}}/g);
-    (<RegExpOne> /a?/).test("");
     return function(objectArray): string {
-      let html = "", len = a.length;
+      let html = "", len = a.length - 1;
       for (const o of objectArray) {
-        for (let j = 0; j < len; j++) {
-          html += (j & 1) ? o[a[j] as keyof SuggestionE] || "" : a[j];
+        let j = 0;
+        for (; j < len; j += 2) {
+          html += a[j];
+          const key = a[j + 1];
+          html += key === "typeIcon" ? Vomnibar.getTypeIcon(o) : o[key as keyof SuggestionE] || ""
         }
+        html += a[len];
       }
       return html;
     };
