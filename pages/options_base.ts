@@ -283,6 +283,8 @@ if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDevi
   (document.head as HTMLHeadElement).appendChild(css);
 })();
 
+$<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;
+
 location.pathname.indexOf("/popup.html") !== -1 && BG.Utils.require("Exclusions").then((function(callback) {
   return function() {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
@@ -305,13 +307,17 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   if (notRunnable) {
     const body = document.body as HTMLBodyElement;
     body.textContent = "";
-    body.style.width = "auto";
     blockedMsg.style.display = "";
-    body.appendChild(blockedMsg);
-    (document.documentElement as HTMLHtmlElement).style.height = "";
+    (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings.CONST.CurrentVersion;
     if (!tabs[0] || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
       (blockedMsg.querySelector("#refresh-after-install") as HTMLElement).remove();
     }
+    body.style.width = "auto";
+    body.appendChild(blockedMsg);
+    (document.documentElement as HTMLHtmlElement).style.height = "";
+  } else {
+    blockedMsg.remove();
+    blockedMsg = null as never;
   }
   const element = $<HTMLAnchorElement>(".options-link"), url = bgSettings.CONST.OptionsPage;
   element.href !== url && (element.href = url);
@@ -322,12 +328,9 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
     BG.Backend.focus(a);
     window.close();
   };
-  $<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;
   if (notRunnable) {
     return;
   }
-  blockedMsg.remove();
-  blockedMsg = null as never;
 
 const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions,
 tabId = ref ? ref[0].sender.tabId : tabs[0].id,
