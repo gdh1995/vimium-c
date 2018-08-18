@@ -100,11 +100,13 @@ var Settings = {
     searchUrl (str): void {
       if (str) {
         Utils.parseSearchEngines("~:" + str, this.cache.searchEngineMap);
-      } else if (str = this.get("newTabUrl_f", true)) {
-        return ((this as typeof Settings).updateHooks.newTabUrl_f as (this: void, url_f: string) => void)(str);
       } else {
         str = this.get("searchUrl").split(" ", 1)[0];
-        this.get("searchEngineMap", true)["~"] = { name: "~", url: str };
+        (this.cache as any).searchEngineMap = { "~": { name: "~", url: str } };
+        (this.cache as any).searchEngineRules = [];
+        if (str = this.get("newTabUrl_f", true)) {
+          return ((this as typeof Settings).updateHooks.newTabUrl_f as (this: void, url_f: string) => void)(str);
+        }
       }
       return (this as typeof Settings).postUpdate("newTabUrl");
     },
@@ -231,7 +233,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 # d: https://duckduckgo.com/?q=%s DuckDuckGo
 # az: https://www.amazon.com/s/?field-keywords=%s Amazon
 # qw: https://www.qwant.com/?q=%s Qwant`,
-    searchEngineMap: {}, // may be modified, but this action is safe
+    searchEngineMap: {},
     showActionIcon: true,
     showAdvancedCommands: false,
     showAdvancedOptions: false,
