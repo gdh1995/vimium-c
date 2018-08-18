@@ -31,6 +31,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     , onKeyup2 = null as ((this: void, event: KeyboardEvent) => void) | null, passKeys = null as SafeDict<true> | null;
 
   const isInjected = window.VimiumInjector ? true : null,
+  notChrome = typeof browser !== "undefined" && !!(browser && (browser as any).runtime),
   vPort = {
     port: null as Port | null,
     _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
@@ -76,7 +77,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }, 2000);
     },
     connect (status: PortType): void {
-      const runtime: typeof chrome.runtime = typeof browser !== "undefined" && browser && (browser as any).runtime || chrome.runtime,
+      const runtime: typeof chrome.runtime = (notChrome ? browser : chrome).runtime,
       data = { name: "vimium++." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
       port = this.port = isInjected ? runtime.connect(VimiumInjector.id, data) as Port : runtime.connect(data) as Port;
       port.onDisconnect.addListener(this.ClearPort);
@@ -243,9 +244,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return ELs.onBlur(event);
     },
     onActivate (event: UIEvent): void {
-      const { path } = event;
-      if (path && event.isTrusted !== false) {
-        VScroller.current = path[0] as Element;
+      if (event.isTrusted !== false) {
+        VScroller.current = event.path ? event.path[0] as Element : event.target as Element;
       }
     },
     OnWndFocus (this: void): void {},
@@ -269,6 +269,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       f("keyup", this.onKeyup, true);
       action !== HookAction.Suppress && f("focus", this.onFocus, true);
       f("blur", this.onBlur, true);
+      notChrome ? f("click", ELs.onActivate, true) :
       f.call(document, "DOMActivate", ELs.onActivate, true);
     }
   },
@@ -829,7 +830,7 @@ Pagination = {
     init (request): void {
       const r = requestHandlers, flags = request.flags;
       (VSettings.cache = request.load).onMac && (VKeyboard.correctionMap = Object.create<string>(null));
-      VDom.specialZoom = VSettings.cache.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
+      VDom.specialZoom = !notChrome && VSettings.cache.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
       r.keyMap(request);
       if (flags) {
         InsertMode.grabFocus = !(flags & Frames.Flags.userActed);
@@ -924,7 +925,7 @@ Pagination = {
       box.addEventListener(i, hide, {passive: true, capture: true});
     }
     VSettings.cache.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToDocument ||
-    box.addEventListener("DOMActivate", ELs.onActivate, true);
+    box.addEventListener(notChrome ? "click" : "DOMActivate", ELs.onActivate, true);
 
     const closeBtn = box.querySelector("#HClose") as HTMLElement;
     hide = function(event): void {

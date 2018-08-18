@@ -190,7 +190,7 @@ declare namespace SettingsNS {
   }
   interface FrontendSettingCache extends FrontendSettings {
     grabFocus: boolean;
-    browserVer: number;
+    browserVer: BrowserVer;
     onMac: boolean;
   }
 }
@@ -277,7 +277,11 @@ declare const enum KeyStat {
   PrimaryModifier = ctrlKey | metaKey,
 }
 
-declare const NDEBUG: undefined;
+declare const enum BrowserType {
+  Chrome = 0,
+  Firefox = 2,
+  Edge = 4,
+}
 
 /**
  * #define EXPERIMENTAL (#enable-experimental-web-platform-features \
