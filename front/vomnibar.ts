@@ -684,9 +684,10 @@ var Vomnibar = {
   setFav (type: VomnibarNS.PageType): void {
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
       , canShowOnOthers = this.browserVersion >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
-    if (type === VomnibarNS.PageType.inner) {
+    if (type === VomnibarNS.PageType.web || location.origin.lastIndexOf("chrome", 0)) {}
+    else if (type === VomnibarNS.PageType.inner) {
       fav = canShowOnOthers || this.sameOrigin ? 2 : 0;
-    } else if (type === VomnibarNS.PageType.ext && (canShowOnOthers || this.sameOrigin) && (f = chrome.runtime.getManifest) && (manifest = f())) {
+    } else if ((canShowOnOthers || this.sameOrigin) && (f = chrome.runtime.getManifest) && (manifest = f())) {
       const arr = manifest.permissions || [];
       fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? this.sameOrigin ? 2 : 1 : 0;
     }
