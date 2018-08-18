@@ -335,6 +335,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
 
 const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions,
 tabId = ref ? ref[0].sender.tabId : tabs[0].id,
+stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
 exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   url: ref ? ref[0].sender.url : tabs[0].url,
   inited: 0,
@@ -422,39 +423,40 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     if (initing) {
       oldPass = exclusions.inited === 2 ? pass : null;
     }
-    $("#state").innerHTML = `<span class="Vim">Vim</span>ium++ ${pass === oldPass ? "keep to" : "will"} ` + (pass
+    const same = pass === oldPass;
+    stateLine.innerHTML = `<span class="Vim">Vim</span>ium++ ${same ? "keep to" : "will"} ` + (pass
       ? `exclude: <span class="state-value code">${pass}</span>`
       : `be:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
+    saveBtn.disabled = same;
+    (saveBtn.firstChild as Text).data = same ? "No Changes" : "Save Changes";
   }
   function onUpdated(this: void): void {
     if (saved) {
       saved = false;
-      const btn = $("#saveOptions");
       let el = $("#helpSpan");
       if (el) {
         (el.nextElementSibling as HTMLElement).style.display = "";
         el.remove();
       }
-      btn.removeAttribute("disabled");
-      (btn.firstChild as Text).data = "Save Changes";
+      saveBtn.removeAttribute("disabled");
+      (saveBtn.firstChild as Text).data = "Save Changes";
     }
     if (!exclusions.init) {
       updateState(false);
     }
   }
   function saveOptions(this: void): void {
-    const btn = $<HTMLButtonElement>("#saveOptions");
-    if (btn.disabled) {
+    if (saveBtn.disabled) {
       return;
     }
     const testers = bgExclusions.testers;
     exclusions.save();
     bgExclusions.testers = testers;
-    (btn.firstChild as Text).data = "Saved";
-    btn.disabled = true;
+    (saveBtn.firstChild as Text).data = "Saved";
+    saveBtn.disabled = true;
     saved = true;
   }
-  $("#saveOptions").onclick = saveOptions;
+  saveBtn.onclick = saveOptions;
   document.addEventListener("keyup", function(event): void {
     if ((event.ctrlKey || event.metaKey) && event.keyCode === VKeyCodes.enter) {
       setTimeout(window.close, 300);

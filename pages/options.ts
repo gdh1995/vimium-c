@@ -285,7 +285,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     const toSync = Option.syncToFrontend;
     Option.syncToFrontend = [];
     this.disabled = true;
-    (this.firstChild as Text).data = "No Changes";
+    (this.firstChild as Text).data = "Saved";
     exportBtn.disabled = false;
     status = false;
     window.onbeforeunload = null as never;
