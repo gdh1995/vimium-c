@@ -1539,7 +1539,7 @@ Are you sure you want to continue?`);
         url = Utils.convertToUrl(url, request.keyword || null, unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.ActAnyway);
         const type = Utils.lastUrlType;
         if (request.https != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
-          url = (request.https ? "https" : "http") + (url as string).substring(4);
+          url = (request.https ? "https" : "http") + (url as string).substring((url as string)[4] === "s" ? 5 : 4);
         } else if (unsafe && type === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")) {
           url = Utils.convertToUrl(url as string);
         }
