@@ -344,6 +344,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       if (wanted && VKeyboard.getKeyChar(event) === wanted && VKeyboard.getKey(event, wanted) === wanted) {
         $("#showCommands").click();
       }
+      return;
     }
     const el = event.target as Element;
     if (el.parentElement instanceof HTMLLabelElement) {
