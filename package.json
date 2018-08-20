@@ -1,6 +1,6 @@
 {
   "name": "vimium-plus",
-  "version": "1.68.0",
+  "version": "1.68.1",
   "description": "optimized Vimium supporting Chinese, global commands and injection into other extensions",
   "private": true,
   "dependencies": {
@@ -32,7 +32,7 @@
     "p": "node scripts/tsc.js pages",
     "build": "gulp build",
     "rebuild": "gulp rebuild",
-    "zip": "bash -c 'IN_DIST=1 WITH_MAP=0 ./scripts/make.sh'",
+    "zip": "gulp dist && bash -c 'IN_DIST=1 WITH_MAP=0 ./scripts/make.sh'",
     "clean": "gulp clean",
     "local": "gulp local",
     "test": "gulp test"

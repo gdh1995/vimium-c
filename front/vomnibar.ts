@@ -937,8 +937,7 @@ VPort = {
 });
 window.browser && (browser as any).runtime && (window.chrome = browser);
 (function(): void {
-  const pageVersion = +<string>(document.documentElement as HTMLElement).getAttribute("data-version") || 0;
-  if (pageVersion != 1.68) {
+  if ((document.documentElement as HTMLElement).getAttribute("data-version") != "1.68.1") {
     location.href = "about:blank";
     return;
   }
