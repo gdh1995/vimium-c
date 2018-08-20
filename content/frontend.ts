@@ -914,6 +914,7 @@ Pagination = {
     if (CSS) { VDom.UI.css(CSS); }
     if (!VDom.isHTML()) { return; }
     Commands.showHelp("exitHD");
+    if (oldShowHelp !== Commands.showHelp) { return; } // an old dialog exits
     box = VDom.createElement("div");
     box.className = "R Scroll UI";
     box.id = "HelpDialog";
