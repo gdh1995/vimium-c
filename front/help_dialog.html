@@ -51,17 +51,24 @@
 .Vim {
 	color: #2f508e;
 }
+.HelpTables {
+	border-spacing: 0;
+	table-layout: fixed;
+	width: 800px;
+}
+.HTablesTop {
+	vertical-align: top;
+}
 .HelpTable {
 	border-collapse: separate;
 	border-spacing: 5.5px 3px;
 	contain: content;
-	float: left;
 	line-height: 130%;
 	width: 396px;
 	/* XML pages have a different default value of "word-break" */
 	word-break: normal;
 }
-.Column {
+.HColumn {
 	white-space: normal;
 	font: 12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
@@ -226,14 +233,14 @@
 		</span>
 	</div>
 	<div class="HDivider"></div>
-	<table class="HelpTable">
-		<tbody class="Column">
+	<table class="HelpTables"><tbody><tr>
+	<td class="HTablesTop"><table class="HelpTable">
+		<tbody class="HColumn">
 			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating the page</td></tr>
 {{pageNavigation}}{{lbPad}}
 		</tbody>
-	</table>
-	<table class="HelpTable">
-		<tbody class="Column">
+	</table></td><td class="HTablesTop"><table class="HelpTable">
+		<tbody class="HColumn">
 			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Using the Vomnibar</td></tr>
 {{vomnibarCommands}}
 			<tr><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Using find</td></tr>
@@ -247,6 +254,7 @@
 			<tr><td class="HelpTd TdBottom">&#160;</td></tr>
 		</tbody>
 	</table>
+	</td></tr></tbody></table>
 
 	<div class="HDivider"></div>
 
