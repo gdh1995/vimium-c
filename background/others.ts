@@ -94,7 +94,7 @@ if (Settings.get("vimSync")) setTimeout(function() {
   Settings.Sync = Sync;
   chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
   Sync.storage.get(null, function(items): void {
-    if (chrome.runtime.lastError) {
+    if (chrome.runtime.lastError as any) {
       Settings.postUpdate("vimSync", false);
       return chrome.runtime.lastError;
     }
@@ -445,13 +445,13 @@ setTimeout(function() {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
-    message: "Vimium C has been upgraded to version " + Settings.CONST.CurrentVersionName
+    message: "Vimium C (renamed from Vimium++) has been upgraded to version " + Settings.CONST.CurrentVersionName
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId): void {
     const popup = chrome.notifications, e: void = chrome.runtime.lastError;
     chrome.notifications = null as never;
-    if (e) { return e; }
+    if (e as any) { return e; }
     reason = notificationId || reason;
     popup.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }

@@ -1043,7 +1043,7 @@ searchEngines: {
     case "tab":
       chrome.tabs.remove(<number><string | number>url | 0, function(): void {
         const err = chrome.runtime.lastError;
-        callback(!err);
+        callback(!<any>err);
         return err;
       });
       break;

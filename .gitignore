@@ -28,3 +28,4 @@ todo*
 !/pages/newtab.js
 !/weidu/*/*.js
 scripts/*public_suffix*
+package-lock.json

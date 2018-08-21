@@ -938,7 +938,7 @@ Are you sure you want to continue?`);
         return tabs && tabs.length > 0 ? openUrls(tabs as [Tab]) : void getCurTab(openUrls);
       }
       if (cOptions.url_mask && !tabs) {
-        return chrome.runtime.lastError || void getCurTab(BackgroundCommands.openUrl);
+        return <any>chrome.runtime.lastError || <any>void getCurTab(BackgroundCommands.openUrl);
       }
       let url: Urls.Url | Promise<string | null> | undefined | null, workType: Urls.WorkType = Urls.WorkType.FakeType;
       if (url = <string>cOptions.url) {
@@ -2005,7 +2005,7 @@ Are you sure you want to continue?`);
         let step = RefreshTabStep.start;
         const tabId = tab.id, onRefresh = function(this: void): void {
           const err = chrome.runtime.lastError;
-          if (err) {
+          if (err as any) {
             chrome.sessions.restore();
             return err;
           }

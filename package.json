@@ -3,6 +3,9 @@
   "version": "1.68.2",
   "description": "customized Vimium in C-Style code, supporting Chinese, global commands and injection into some other extensions",
   "private": true,
+  "config": {
+    "package-lock": false
+  },
   "dependencies": {
     "typescript": "next"
   },

@@ -163,7 +163,7 @@ ContentSettings = {
     const pattern = Utils.removeComposedScheme(tab.url);
     if (ContentSettings.complain(contentType, pattern)) { return; }
     chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt): void {
-      if (chrome.runtime.lastError) {
+      if (chrome.runtime.lastError as any) {
         chrome.contentSettings[contentType].get({primaryUrl: pattern}, function (opt) {
           if (opt && opt.setting === "allow") { return; }
           const tabOpt: chrome.windows.CreateData = {type: "normal", incognito: true, focused: false, url: "about:blank"};
@@ -215,9 +215,9 @@ ContentSettings = {
     let left: number, has_err = false;
     const ref = chrome.contentSettings[contentType], func = function() {
       const err = chrome.runtime.lastError;
-      err && console.log("[%o]", Date.now(), err);
+      <any>err && console.log("[%o]", Date.now(), err);
       if (has_err) { return err; }
-      --left; has_err = !!err;
+      --left; has_err = !!<any>err;
       if (has_err || left === 0) {
         setTimeout(callback, 0, has_err);
       }
