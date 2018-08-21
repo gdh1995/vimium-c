@@ -7,19 +7,22 @@ function bool() {
 }
 
 input=
-[ -z "$ZIP_BASE" -a -f "make.sh" ] && [ "${PWD##*/}" = scripts ] && ZIP_BASE=$(dirname $PWD)
+[ -z "$ZIP_BASE" -a -f "make.sh" ] && [ "${PWD##*/}" = scripts ] && ZIP_BASE=$(exec dirname "$PWD")
 [ -n "$ZIP_BASE" -a "${ZIP_BASE%/}" = "$ZIP_BASE" ] && ZIP_BASE=$ZIP_BASE/
 if bool "$IN_DIST" && [ -d "${ZIP_BASE}dist" -a -f "${ZIP_BASE}dist/manifest.json" ]; then
   ZIP_BASE=${ZIP_BASE}dist/
 elif [ -n "$ZIP_INPUT" ]; then
-  input=$ZIP_INPUT
+  input=($ZIP_INPUT)
 fi
 if [ -n "$input" ]; then :
-elif [ -n "$ZIP_BASE" ] && pushd $ZIP_BASE >/dev/null 2>&1 ; then
-  input=$(echo *)
-  popd >/dev/null 2>&1
 else
-  input=$(echo *)
+  NEED_POP=0
+  [ -n "$ZIP_BASE" ] && pushd $ZIP_BASE >/dev/null 2>&1 && NEED_POP=1
+  OLD_IFS="$IFS"
+  IFS=$'\n'
+  input=($(GLOBIGNORE=node_modules; echo *))
+  IFS="$OLD_IFS"
+  test $NEED_POP -eq 1 && popd >/dev/null 2>&1
 fi
 set -o noglob
 
@@ -88,7 +91,7 @@ fi
 if ! bool "$NOT_IGNORE_FRONT"; then
   ZIP_IGNORE=$ZIP_IGNORE' front/manifest* front/*.png'
 fi
-zip -rX -MM $args "$output_for_zip" $input -x 'weidu*' 'test*' 'git*' \
+zip -rX -MM $args "$output_for_zip" ${input[@]} -x 'weidu*' 'test*' 'git*' \
   'dist*' 'front/vimium.css' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
   'pages/chrome_ui*' 'GUD*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
   '*.coffee' '*.crx' '*.enc' '*.log' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
