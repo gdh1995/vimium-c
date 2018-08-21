@@ -14,7 +14,7 @@
       "NDEBUG": true
     },
     // `true` will remove `/a?/.test("")` and modify polyfill's `String(this)`
-    // so "unsafe" is not what Vimium++ needs
+    // so "unsafe" is not what Vimium C needs
     "unsafe": false,
     "unsafe_comps": false,
     "unsafe_math": true,

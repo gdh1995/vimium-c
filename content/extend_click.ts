@@ -44,7 +44,7 @@
   script.remove();
   VDom.documentReady(function() { box || destroy(); });
   if (script.hasAttribute("data-vimium-hook")) { return; } // It succeeded to hook.
-  console.info("Some functions of Vimium++ may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1"));
+  console.info("Some functions of Vimium C may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1"));
   interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {

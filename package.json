@@ -1,7 +1,7 @@
 {
-  "name": "vimium-plus",
-  "version": "1.68.1",
-  "description": "optimized Vimium supporting Chinese, global commands and injection into other extensions",
+  "name": "vimium-c",
+  "version": "1.68.2",
+  "description": "customized Vimium in C-Style code, supporting Chinese, global commands and injection into some other extensions",
   "private": true,
   "dependencies": {
     "typescript": "next"
@@ -39,10 +39,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gdh1995/vimium-plus.git"
+    "url": "https://github.com/gdh1995/vimium-c.git"
   },
   "keywords": [
-    "vimium-plus",
+    "vimium-c",
     "vimium",
     "webextension",
     "chrome-extension",
@@ -53,7 +53,7 @@
   "author": "gdh1995",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/gdh1995/vimium-plus/issues"
+    "url": "https://github.com/gdh1995/vimium-c/issues"
   },
-  "homepage": "https://github.com/gdh1995/vimium-plus#readme"
+  "homepage": "https://github.com/gdh1995/vimium-c#readme"
 }

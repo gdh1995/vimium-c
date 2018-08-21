@@ -78,7 +78,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     connect (status: PortType): void {
       const runtime: typeof chrome.runtime = (notChrome ? browser : chrome).runtime,
-      data = { name: "vimium++." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
+      data = { name: "vimium-c." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
       port = this.port = isInjected ? runtime.connect(VimiumInjector.id, data) as Port : runtime.connect(data) as Port;
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
@@ -1132,7 +1132,7 @@ Pagination = {
     esc = null as never;
     ui.box && ui.toggle(false);
 
-    silent || console.log("%cVimium++%c in %o has been destroyed at %o."
+    silent || console.log("%cVimium C%c in %o has been destroyed at %o."
       , "color:red", "color:auto"
       , window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1")
       , Date.now());

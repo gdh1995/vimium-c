@@ -146,7 +146,7 @@ var Vomnibar = {
       loaded = true;
       if (_this.onReset) { return; }
       if (type !== VomnibarNS.PageType.inner && _this.isABlank()) {
-        console.log("Vimium++: use built-in Vomnibar page because the preferred is too old.");
+        console.log("Vimium C: use built-in Vomnibar page because the preferred is too old.");
         return reload();
       }
       const wnd = this.contentWindow,
@@ -244,7 +244,7 @@ var Vomnibar = {
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
     case "unload": return Vomnibar ? this.reset(data.name === "broken") : undefined;
     case "hud": VHUD.showForDuration((data as Req["hud"]).text); return;
-    default: console.log("[%d] Vimium++: unknown message \"%s\" from Vomnibar page", Date.now(), data.name);
+    default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.name);
     }
   },
   onShown (): number {

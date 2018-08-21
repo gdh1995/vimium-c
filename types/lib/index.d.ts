@@ -1,2 +1,2 @@
-/// <reference path="../vimium_plus.d.ts" />
+/// <reference path="../vimium_c.d.ts" />
 /// <reference path="../messages.d.ts" />

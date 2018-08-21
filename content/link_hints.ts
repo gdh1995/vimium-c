@@ -211,7 +211,7 @@ var VHints = {
       }
     } catch (e) {}
     if (err) {
-      // It's cross-site, or Vimium++ on the child is wholly disabled
+      // It's cross-site, or Vimium C on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
       this.frameNested = null;
       return false;
@@ -1056,7 +1056,7 @@ COPY_TEXT: {
     else if (link instanceof HTMLInputElement) {
       str = link.type;
       if (str === "password") {
-        return VHUD.showForDuration("Sorry, Vimium++ won't copy a password.", 2000);
+        return VHUD.showForDuration("Sorry, Vimium C won't copy a password.", 2000);
       } else if (!(str in VDom.uneditableInputs)) {
         str = (link.value || link.placeholder).trim();
       } else if (str === "file") {

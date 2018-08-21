@@ -39,7 +39,7 @@ Lang["zh_CN"] = {
 	"calendarTue" : "周二",
 	"calendarWed" : "周三",
 	"cancel" : "取消",
-	"chrome_extension_description" : "微度新标签页扩展 - 优化版, 兼容Vimium++",
+	"chrome_extension_description" : "微度新标签页扩展 - 修改版, 支持Vimium C",
 	"chrome_extension_name" : "Weidu New Tab",
 	"classificationAdd" : "添加分类",
 	"classificationAppTitle" : "分类",

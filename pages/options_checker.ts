@@ -112,7 +112,7 @@ Option.all.searchUrl.checker = {
 Option.all.vimSync.checker = {
   check (willSync: boolean): boolean {
     if (willSync) {
-      setTimeout(alert, 100, "Warning: the current settings will be OVERRIDDEN the next time Vimium++ starts!\n"
+      setTimeout(alert, 100, "Warning: the current settings will be OVERRIDDEN the next time Vimium C starts!\n"
         + 'Please back up your settings using the "Export Settings" button RIGHT NOW!');
     }
     return willSync;

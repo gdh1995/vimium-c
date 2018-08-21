@@ -224,7 +224,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 
 # More examples.
 #
-# (Vimium++ supports search completion Google, Wikipedia,
+# (Vimium C supports search completion Google, Wikipedia,
 # and so on, as above, and for these.)
 #
 # l: https://www.google.com/search?q=%s&btnI I'm feeling lucky
@@ -288,14 +288,14 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     InjectEnd: "content/inject_end.js",
     OptionsPage: "pages/options.html", Platform: "", PolyFill: "lib/polyfill.js",
     RedirectedUrls: {
-      about: "https://github.com/gdh1995/vimium-plus",
+      about: "https://github.com/gdh1995/vimium-c",
       help: "https://github.com/philc/vimium/wiki",
-      license: "https://raw.githubusercontent.com/gdh1995/vimium-plus/master/LICENSE.txt",
-      permissions: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.md#permissions-required",
-      policy: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.md",
+      license: "https://raw.githubusercontent.com/gdh1995/vimium-c/master/LICENSE.txt",
+      permissions: "https://github.com/gdh1995/vimium-c/blob/master/PRIVACY-POLICY.md#permissions-required",
+      policy: "https://github.com/gdh1995/vimium-c/blob/master/PRIVACY-POLICY.md",
       popup: "options.html",
-      privacy: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.md#privacy-policy",
-      readme: "https://github.com/gdh1995/vimium-plus#readme",
+      privacy: "https://github.com/gdh1995/vimium-c/blob/master/PRIVACY-POLICY.md#privacy-policy",
+      readme: "https://github.com/gdh1995/vimium-c#readme",
       settings: "options.html",
       __proto__: null as never
     } as SafeDict<string>,

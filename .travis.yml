@@ -8,12 +8,12 @@ install:
   - npm install -g gulp
 before_script:
   - rm -f *.zip *.crx $pem 2>/dev/null
-  - pem=scripts/vimium_plus.pem ; key=aa42231ca000
+  - pem=scripts/vimium_c.pem ; key=aa42231ca000
   - eval openssl aes-256-cbc -K \$encrypted_${key}_key -iv \$encrypted_${key}_iv -in $pem.enc -out $pem -d
 script:
   - gulp dist
-  - IN_DIST=1 WITH_MAP=0 ./scripts/make.sh ./vimium-plus_\$VERSION.zip $pem
-  - IN_DIST=1 WITH_MAP=1 ./scripts/make.sh ./vimium-plus_\$VERSION_with-map.zip $pem
+  - IN_DIST=1 WITH_MAP=0 ./scripts/make.sh ./vimium-c_\$VERSION.zip $pem
+  - IN_DIST=1 WITH_MAP=1 ./scripts/make.sh ./vimium-c_\$VERSION_with-map.zip $pem
   - rm -rf $pem
 cache:
   directories:

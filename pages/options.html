@@ -2,7 +2,7 @@
 <html spellcheck="false">
   <head>
     <meta charset="utf-8">
-    <title>Vimium++ Options</title>
+    <title>Vimium C Options</title>
     <link rel="stylesheet" href="options.css">
     <script defer src="options_base.js"></script>
     <script defer src="options.js"></script>
@@ -12,7 +12,7 @@
   <body>
     <table id="wrapper">
       <thead><tr><td colspan="2">
-        <header id="mainHeader"><span class="Vim">Vim</span>ium++ Options</header>
+        <header id="mainHeader"><span class="Vim">Vim</span>ium C Options</header>
       </td><td></td></tr></thead>
       <tbody>
       <tr>
@@ -35,12 +35,12 @@
           </div>
         </td>
         <td class="help"><div class="help-inner">
-          Wholly or partially disable Vimium++.  A "<var>Pattern</var>"
+          Wholly or partially disable Vimium C.  A "<var>Pattern</var>"
           is a <br/> JS regular expression if it starts with "<kbd class="wrap-space">^</kbd>",
           or "<kbd class="wrap-space">:</kbd>" + the header of a URL.
           Otherwise it will be converted.
           <br/><br/>
-          If "<var class="wrap-space">Keys</var>" is left empty, then Vimium++ will be wholly disabled.
+          If "<var class="wrap-space">Keys</var>" is left empty, then Vimium C will be wholly disabled.
           Otherwise, just the listed keys are disabled (they are passed through).
         </div></td>
       </tr>
@@ -75,7 +75,7 @@ shortcut createTab position="end"
         <td class="help"><div class="help-inner">
           "<kbd class="sel-all" role="button">pages/blank.html</kbd>" for a blank page. <br/>
           <a target="_blank" rel="noopener noreferrer"
-              href="https://github.com/gdh1995/vimium-plus/wiki/Use-another-extension-as-the-New-Tab">
+              href="https://github.com/gdh1995/vimium-c/wiki/Use-another-extension-as-the-New-Tab">
             How to redirect to another extension's newtab?
           </a>
         </div></td>
@@ -143,7 +143,7 @@ MainKey|c|c\:|MainName: \
           <td colspan="2">
             <label class="booleanOption">
               <input id="smoothScroll" type="checkbox" data-model="Boolean" />
-              <span>Use Vimium++'s smooth scrolling</span>
+              <span>Use Vimium C's smooth scrolling</span>
             </label>
           </td>
         </tr>
@@ -202,7 +202,7 @@ MainKey|c|c\:|MainName: \
           </td>
           <td class="help"><div class="help-inner">
             Make the browser icon show current page status.<br/>
-            If it's disabled, Vimium++ will be faster.
+            If it's disabled, Vimium C will be faster.
           </div></td>
         </tr>
         <tr style="display: none;" title="
@@ -230,7 +230,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
             </label>
           </td>
           <td class="help"><div class="help-inner line-2x">
-            Need to reload Vimium++ manually.
+            Need to reload Vimium C manually.
           </div></td>
         </tr>
         <tr>
@@ -261,13 +261,13 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
             <div class="nonEmptyTip"></div>
           </td>
           <td class="help"><div class="help-inner">
-            Only browser extensions in this list are allowed to request Vimium++'s support
+            Only browser extensions in this list are allowed to request Vimium C's support
             (one extension id per line).<br/>
             Any line the first char of which is neither a letter nor a number will be ignored.
             <a class="wrap-left-space" data-auto-resize="extWhiteList"></a>.<br/>
             <a target="_blank" rel="noopener noreferrer"
-              href="https://github.com/gdh1995/vimium-plus/wiki/Inject-into-other-extensions">
-              How to inject Vimium++ into other extensions?</a>
+              href="https://github.com/gdh1995/vimium-c/wiki/Inject-into-other-extensions">
+              How to inject Vimium C into other extensions?</a>
           </div></td>
         </tr>
         <tr>
@@ -276,9 +276,9 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
             <textarea id="userDefinedCss" class="code min-height-4" inputmode="latin" data-model="Text"></textarea>
           </td>
           <td class="help"><div class="help-inner">
-            To style Vimium++ nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>".<br/>
+            To style Vimium C nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>".<br/>
             <br/>
-            These styles work in addition to and take precedence over Vimium++'s
+            These styles work in addition to and take precedence over Vimium C's
             default styles.
             <a class="wrap-left-space" data-auto-resize="userDefinedCss"></a>.
           </div></td>
@@ -299,7 +299,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
             <kbd class="sel-all break-all" role="button" title="
 Note: Web pages are no usable on extension pages,
 so only the default inner version will be used on them
-            ">https://gdh1995.github.io/vimium-plus/vomnibar.html</kbd>
+            ">https://gdh1995.github.io/vimium-c/vomnibar.html</kbd>
           </div></td>
         </tr>
         <tr>
@@ -330,7 +330,7 @@ so only the default inner version will be used on them
       <div id="footerWrapper">
         <span id="helpText">
           <a id="openInTab" href="" target="_blank" style="display: none;">Open this options page in a new tab.</a>
-          <span class="Vim">Vim</span>ium++ <span class="version"></span> on <span id="browser"></span>.<br/>
+          <span class="Vim">Vim</span>ium C <span class="version"></span> on <span id="browser"></span>.<br/>
           <strong><kbd>&lt;c-enter&gt;</kbd></strong> to save <i>all</i> options,
           <strong>?</strong> to show help dialog.
         </span>

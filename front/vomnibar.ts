@@ -921,7 +921,7 @@ VPort = {
   },
   ClearPort (this: void): void { VPort.port = null; },
   connect (type: PortType): FgPort {
-    const data = { name: "vimium++." + type }, port = this.port = (window.ExtId ?
+    const data = { name: "vimium-c." + type }, port = this.port = (window.ExtId ?
       chrome.runtime.connect(window.ExtId, data) : chrome.runtime.connect(data)) as FgPort;
     port.onDisconnect.addListener(this.ClearPort);
     port.onMessage.addListener(this.Listener as (message: object) => void);

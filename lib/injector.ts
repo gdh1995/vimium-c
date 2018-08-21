@@ -1,6 +1,6 @@
 /// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
-/// <reference path="../types/vimium_plus.d.ts" />
+/// <reference path="../types/vimium_c.d.ts" />
 type _EventTargetEx = typeof EventTarget;
 interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;
@@ -35,7 +35,7 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
     }
     if (!noBackend) {
       (EventTarget as EventTargetEx).vimiumRemoveHooks && (EventTarget as EventTargetEx).vimiumRemoveHooks();
-      console.log("%cVimium++%c: %cfail%c to inject into %c%s%c %s"
+      console.log("%cVimium C%c: %cfail%c to inject into %c%s%c %s"
         , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9"
         , host, "color:auto", str ? str : ` (${tick} retries).`);
     }

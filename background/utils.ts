@@ -740,7 +740,7 @@ window.onload = function(): void {
 setTimeout(function() {
   if (!window.onload) { return; }
   window.onload = null as never;
-  console.log("Vimium++ is only loaded partly because the system is too slow.\n[%d] Now auto recovering...", Date.now());
+  console.log("Vimium C is only loaded partly because the system is too slow.\n[%d] Now auto recovering...", Date.now());
   const scripts = chrome.runtime.getManifest().background.scripts as string[],
   isDev = scripts.join("\n").indexOf("/tail.js") < 0;
   let d = !isDev || ("Completers" in window) ? 1 : "TabRecency" in window ? 2 : 3;

@@ -1,44 +1,47 @@
-Vimium++
+Vimium C
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
 ![Version 1.67.0](https://img.shields.io/badge/release-1.67.0-orange.svg)
-[![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
-  ](https://travis-ci.org/gdh1995/vimium-plus)
+[![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master)
+  ](https://travis-ci.org/gdh1995/vimium-c)
 
-**[Visit Vimium++ in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
+**[Visit Vimium C in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium-c/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
 
 A customized [Vimium](https://github.com/philc/vimium)
-  licensed under the [MIT license](LICENSE.txt)
-  by [gdh1995](https://github.com/gdh1995),
-  supporting Chrome with the session functionalities (ver >= 37).
-  For older version, it would try to work ^_^
+  having Chinese support, global commands and injection functionality,
+  in a C-style code for better speed and less resource cost.
+It supports Chrome and Chromium whose version is >= 35, and partly supports latest Firefox.
 
-The branch [`basic-on-edge`](https://github.com/gdh1995/vimium-plus/tree/basic-on-edge)
+This project is developed by [gdh1995](https://github.com/gdh1995)
+  and licensed under the [MIT license](LICENSE.txt).
+
+An old name of this project is "Vimium++", which has been given up on 2018-08-21.
+
+The branch [`basic-on-edge`](https://github.com/gdh1995/vimium-c/tree/basic-on-edge)
   is able to run on lastest Microsoft Edge,
-  though some function are broken because Edge lacks some features.
-The branch [`firefox`](https://github.com/gdh1995/vimium-plus/tree/firefox)
-  is able to run on lastest Firefox, but only tests for `LinkHints` have been done.
+  though some function are broken because Edge always lacks many features.
+This extension can also work on lastest Firefox, but there're still some errors.
 
-In the *weidu* directory is 微度新标签页.
+In the *weidu* directory is another project - a customized 微度新标签页.
 
 
 # Project Introduction
 
-__Vimium++:__
+__Vimium C:__
 
 * a Chrome extension that provides keyboard-based navigation and control
     of the web in the spirit of the Vim editor.
 * forked from [philc/vimium:master](https://github.com/philc/vimium).
-* optimized after translating it from CoffeeScript into JavaScript.
-* more functions, more powerful, and more convenient (for me, at least).
+* customized after translating it from CoffeeScript into JavaScript.
+* add some powerful functions and provide more convenience (for me, at least ^_^).
 * here is its [license](LICENSE.txt) and [privacy policy](PRIVACY-POLICY.md)
 
 __微度新标签页修改版 (Modified X New Tab Page):__
 
 * [visit it on Chrome Web Store](https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
-* in folder [*weidu*](https://github.com/gdh1995/vimium-plus/tree/master/weidu)
-* support Vimium++ and provide a vomnibar page: chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html
-  * using this vomnibar page, Vimium++'s memory cost will be smaller since Chrome 58.
+* in folder [*weidu*](https://github.com/gdh1995/vimium-c/tree/master/weidu)
+* support Vimium C and provide a vomnibar page: chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html
+  * using this vomnibar page, Vimium C's memory cost will be smaller since Chrome 58.
 * 一款基于Html5的Chrome浏览器扩展程序。
   它提供了网站快速拨号、网站云添加、数据云备份等功能来增强 Chrome
     原生新标签页（New Tab）；
@@ -52,9 +55,9 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 * some is customized.
 * the official settings file is OK for it, but not the other way around.
 
-__Other extensions supporting Vimium++:__
+__Other extensions supporting Vimium C:__
 
-* [PDF Viewer for Vimium++](https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium%20%20/nacjakoppgmdcpemlfnfegmlhipddanj)
+* [PDF Viewer for Vimium C](https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium%20%20/nacjakoppgmdcpemlfnfegmlhipddanj)
   a modified version of [PDF Viewer](https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
     from [PDF.js](https://github.com/mozilla/pdf.js/)
 
@@ -62,20 +65,20 @@ __Other extensions supporting Vimium++:__
 
 Known issues (Up to the master branch):
 1. Chrome before version 49 has bugs in `Window.postMessage` if the flag `#enable-site-per-process` is on,
-  which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Options pages.
+  which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium C Options pages.
 2. the Chrome flag `#enable-embedded-extension-options` has a bug about dialog width on high-DPI screens,
   which can not be worked-around before Chrome 42.
 3. If a page in another extension is the preferred Vomnibar page, and the extension is disabled in incognito mode,
   Vomnibar might break in such a situation, and there seems no way to detect it.
-  So Vimium++ has disabled other extension Vomnibar pages in incognito mode.
+  So Vimium C has disabled other extension Vomnibar pages in incognito mode.
 4. If a http/file/... Vomnibar page is preferred, then there're some cases where it breaks,
   such as on some websites with very strict Content Security Policies (CSP),
-  so users may need to wait about 1 second to let Vimium++ retry the inner page.
+  so users may need to wait about 1 second to let Vimium C retry the inner page.
   And before Chrome 50, such vomnibar webpages won't work because of Chrome lacking some features,
-  so Vimium++ will use the inner page directly.
+  so Vimium C will use the inner page directly.
 5. Chrome 58 stable hides some necessary infomation of page's selection,
   so some commands on `VisualMode` cann't work as expected if editable text is being selected.
-  This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
+  This Chrome feature/bug has been removed since version 59, so Vimium C works well again.
 6. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
 7. On sandboxed pages without an `allow-scripts` permission in their CSP,
@@ -83,6 +86,9 @@ Known issues (Up to the master branch):
   This issue is fixed in Chrome 68, although Vomnibar keeps broken on those pages.
 8. Chrome 64 and 65 always clean their console logs if only Vomnibar is opened, and there's nothing we can do for it.
   Chrome 66 fixes it.
+
+1.68.2:
+* rename this project into "Vimium C"
 
 1.68.1:
 * Vomnibar: fix a broken feature of editing HTTPS URLs
@@ -122,7 +128,7 @@ Known issues (Up to the master branch):
 * fix some issues about Vomnibar before Chrome 58
 
 1.64:
-* fix that Vimium++ didn't work on some websites or with some libraries,
+* fix that Vimium C didn't work on some websites or with some libraries,
   like [Angular Material](https://material.angular.io/),
     [Zeplin](https://zeplin.io/) and CKEditor 5 (1.0.0-alpha.2).
 * fix that omnibox "v" mode might not work when meeting some types of input
@@ -149,7 +155,7 @@ Known issues (Up to the master branch):
 * on an editable rich text iframe box: `<Esc>` will not focus the upper frame unless it's held on
 * image viewer: support `<c-+>` (also `<c-=>`) and `<c-->` to zoom in/out images
 * fix vomnibar may shake on the list's length changing
-* fix a rare case that some web page may break because Vimium++'s code throws errors
+* fix a rare case that some web page may break because Vimium C's code throws errors
 * fix a regression that some tips on HUD were missing
 * fix a long-term bug that history cache may not be cleaned out when some history items are removed
 
@@ -171,21 +177,21 @@ Known issues (Up to the master branch):
   * the stored data of local marks is not compatible with Vimium any more
 * completely fix Vomnibar flickering on showing and hiding
 * **WARNING**: add a version limit to the preferred Vomnibar page
-  * please use `<html data-version="1.61">` to tell Vimium++ the page's version
+  * please use `<html data-version="1.61">` to tell Vimium C the page's version
   * if your custom page has no such a tag, it will be replaced with the inner one at run time
   * its styles have changed a lot, so old pages need comparison and updates before adding version attribute
 * loosen limits on URL format validation: accept unknown 3-char TLDs in more cases
   * now "http://example.aab" is valid, although "example.aab" is usually not (unless it has occurred in history)
-* allow "custom key mappings" to override Vimium++'s default mappings without an error message
+* allow "custom key mappings" to override Vimium C's default mappings without an error message
 * LinkHints supports a new mode "Open multiple links in current tab" and `f-<Alt>-<Shift>` will activate it
 * add a new shortcut `vimium://status <toggle | enable | disable | reset>`
     to enforce a new status on the current tab
   * you may use it on Vomnibar / Chrome Omnibox
   * the popup page has an improved UI and you may also use new buttons on it to do so
-* Vimium++ now tries its best to re-enable key mappings on some special child iframes using `document.open`
-  * if the whole page is reopened, Vimium++ can not know it directly,
+* Vimium C now tries its best to re-enable key mappings on some special child iframes using `document.open`
+  * if the whole page is reopened, Vimium C can not know it directly,
     so please eval the new `vimium://status enable` URL to enforce a new "enabled" status
-* improved performance: now Vimium++ UI shows faster for the first command on a page
+* improved performance: now Vimium C UI shows faster for the first command on a page
 
 # Building
 
@@ -204,7 +210,7 @@ The option `narrowFormat` are for another version of [TypeScript](https://github
 
 # Thanks & License
 
-Vimium++: Copyright (c) Dahan Gong, Phil Crosby, Ilya Sukhar.
+Vimium C: Copyright (c) Dahan Gong, Phil Crosby, Ilya Sukhar.
 See the [MIT LICENSE](LICENSE.txt) for details.
 
 * [Vimium](https://github.com/philc/vimium):
@@ -217,8 +223,8 @@ See the [MIT LICENSE](LICENSE.txt) for details.
   Copyright (c) 2015 Matthew Crumley.
   [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
 * [Viewer.js](https://github.com/fengyuanchen/viewerjs)
-  ([Modified by gdh1995](https://github.com/gdh1995/viewerjs/tree/for-vimium-plus)):
-  Copyright (c) 2015-2017 Chen Fengyuan.
+  ([Modified by gdh1995](https://github.com/gdh1995/viewerjs/tree/for-vimium-c)):
+  Copyright (c) 2015-present Chen Fengyuan.
   [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
 * [TypeScript](https://github.com/Microsoft/TypeScript):
     and modified `es.d.ts`, `es/*`, `dom.d.ts` and `chrome.d.ts` in `types/`:

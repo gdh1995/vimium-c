@@ -1,6 +1,6 @@
 /// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
-/// <reference path="../types/vimium_plus.d.ts" />
+/// <reference path="../types/vimium_c.d.ts" />
 declare var browser: never;
 var VimiumInjector = null as never as VimiumInjector;
 if (typeof browser !== "undefined" && browser && (browser as any).runtime) {

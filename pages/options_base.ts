@@ -424,7 +424,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       oldPass = exclusions.inited === 2 ? pass : null;
     }
     const same = pass === oldPass;
-    stateLine.innerHTML = `<span class="Vim">Vim</span>ium++ ${same ? "keep to" : "will"} ` + (pass
+    stateLine.innerHTML = `<span class="Vim">Vim</span>ium C ${same ? "keep to" : "will"} ` + (pass
       ? `exclude: <span class="state-value code">${pass}</span>`
       : `be:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
     saveBtn.disabled = same;

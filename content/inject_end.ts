@@ -11,7 +11,7 @@ if ((window.browser && (browser as typeof chrome).runtime || chrome.runtime).onM
   VimiumInjector.alive = 1;
 } else {
   VimiumInjector.alive = 0.5;
-  console.log("%cVimium++%c: injected %cpartly%c into %c" + (window.browser && (browser as typeof chrome).runtime || chrome.runtime).id
+  console.log("%cVimium C%c: injected %cpartly%c into %c" + (window.browser && (browser as typeof chrome).runtime || chrome.runtime).id
     , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9");
 }
 

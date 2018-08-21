@@ -55,7 +55,7 @@ ContentSettings = {
   onRuntimeError (this: void): void { return chrome.runtime.lastError; },
   complain (this: void, contentType: CSTypes, url: string): boolean {
     if (!chrome.contentSettings) {
-      Backend.showHUD("This version of Vimium++ has no permissions to set CSs");
+      Backend.showHUD("This version of Vimium C has no permissions to set CSs");
       return true;
     }
     if (!chrome.contentSettings[contentType] || (<RegExpOne>/^[A-Z]/).test(contentType)) {
@@ -509,6 +509,6 @@ Backend.Init && Backend.Init();
 chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
   const notAllowed = Settings.CONST.DisallowIncognito = isAllowedAccess === false;
   if (notAllowed) {
-    console.log("Sorry, but some commands of Vimium++ need the permission to run in incognito mode.");
+    console.log("Sorry, but some commands of Vimium C need the permission to run in incognito mode.");
   }
 });

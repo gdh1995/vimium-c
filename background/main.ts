@@ -175,7 +175,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     },
     complainNoSession = function (this: void): void {
       return Settings.CONST.ChromeVersion >= BrowserVer.MinSession ? Backend.complain("control tab sessions")
-        : Backend.showHUD(`Vimium++ can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
+        : Backend.showHUD(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
     },
     isNotVomnibarPage = IsEdge ? function() { return false; } : function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
@@ -232,7 +232,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       let msg = (CommandsData.availableCommands[command] as CommandsNS.Description)[0];
       msg = msg.replace(<RegExpOne>/ \(use .*|&nbsp\(.*|<br\/>/, "");
       return window.confirm(
-`You have asked Vimium++ to perform ${count} repeats of the command:
+`You have asked Vimium C to perform ${count} repeats of the command:
         ${Utils.unescapeHTML(msg)}
 
 Are you sure you want to continue?`);
@@ -985,7 +985,7 @@ Are you sure you want to continue?`);
     },
     toggleMuteTab (): void {
       if (Settings.CONST.ChromeVersion < BrowserVer.MinMuted) {
-        return Backend.showHUD(`Vimium++ can not control mute state before Chrome ${BrowserVer.MinMuted}`);
+        return Backend.showHUD(`Vimium C can not control mute state before Chrome ${BrowserVer.MinMuted}`);
       }
       if (!(cOptions.all || cOptions.other)) {
         getCurTab(function([tab]: [Tab]): void {
@@ -1123,9 +1123,9 @@ Are you sure you want to continue?`);
     },
     parentFrame (): void {
       const sender = cPort.sender as Frames.Sender | undefined,
-      msg = NoFrameId ? `Vimium++ can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
+      msg = NoFrameId ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
         : !(sender && sender.tabId >= 0 && framesForTab[sender.tabId])
-          ? "Vimium++ can not access frames in current tab"
+          ? "Vimium C can not access frames in current tab"
         : null;
       msg && Backend.showHUD(msg);
       if (!sender || !sender.frameId || NoFrameId || !chrome.webNavigation) {
@@ -2112,7 +2112,7 @@ Are you sure you want to continue?`);
     Settings.extWhiteList || Settings.postUpdate("extWhiteList");
     chrome.runtime.onConnectExternal.addListener(function(port): void {
       if (port.sender && isExtIdAllowed(port.sender.id)
-          && port.name.startsWith("vimium++")) {
+          && (port.name.startsWith("vimium-c") || port.name.startsWith("vimium++"))) {
         return Connections.OnConnect(port as Frames.RawPort as Frames.Port);
       } else {
         port.disconnect();

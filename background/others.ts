@@ -168,7 +168,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
     func(value);
     (Backend.IconBuffer as IconNS.AccessIconBuffer)(value);
     if (IsFirefox) { return; } // Firefox has no "Options" button
-    let title = "Vimium++";
+    let title = "Vimium C";
     if (value) {
       chrome.browserAction.enable();
     } else {
@@ -432,7 +432,7 @@ setTimeout(function() {
       return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60
         ).toJSON().substring(0, 19).replace('T', ' ');
     }
-    console.log("%cVimium++%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
+    console.log("%cVimium C%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
       , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");
   });
 
@@ -440,12 +440,12 @@ setTimeout(function() {
 
   if (parseFloat(Settings.CONST.CurrentVersion) <= parseFloat(reason)) { return; }
 
-  reason = "vimium++_upgradeNotification";
+  reason = "vimium-c_upgradeNotification";
   chrome.notifications && chrome.notifications.create(reason, {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
-    title: "Vimium++ Upgrade",
-    message: "Vimium++ has been upgraded to version " + Settings.CONST.CurrentVersionName
+    title: "Vimium C Upgrade",
+    message: "Vimium C has been upgraded to version " + Settings.CONST.CurrentVersionName
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId): void {
@@ -456,7 +456,7 @@ setTimeout(function() {
     popup.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }
       return Backend.focus({
-        url: "https://github.com/gdh1995/vimium-plus#release-notes"
+        url: "https://github.com/gdh1995/vimium-c#release-notes"
       });
     });
   });

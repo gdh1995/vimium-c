@@ -72,7 +72,7 @@ function formatDate(time: number | Date): string {
 }
 
 interface ExportedSettings {
-  name: "Vimium++";
+  name: "Vimium C";
   author?: string;
   description?: string;
   time?: number;
@@ -98,7 +98,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   let exported_object: ExportedSettings | null;
   const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
   exported_object = Object.create(null) as ExportedSettings & SafeObject;
-  exported_object.name = "Vimium++";
+  exported_object.name = "Vimium C";
   if (!all_static) {
     exported_object.time = 0;
   }
@@ -132,7 +132,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     exported_data = exported_data.replace(<RegExpG>/\n/g, "\r\n");
   }
   exported_object = null;
-  let file_name = 'vimium++_';
+  let file_name = 'vimium-c_';
   if (all_static) {
     file_name += "settings";
   } else {
@@ -156,7 +156,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   plat && (plat = ("" + plat).substring(0, 10));
   if (!confirm(
 `You are loading ${is_recommended !== true ? "a settings copy" : "the recommended settings:"}
-      * from ${ext_ver > 1 ? `version ${ext_ver} of ` : "" }Vimium++${newer ? " (newer)" : ""}
+      * from ${ext_ver > 1 ? `version ${ext_ver} of ` : "" }Vimium C${newer ? " (newer)" : ""}
       * for ${plat ? `the ${plat[0].toUpperCase() + plat.substring(1)} platform` : "common platforms" }
       * exported ${time ? "at " + formatDate(time) : "before"}
 
@@ -289,13 +289,13 @@ function importSettings(time: number | string | Date
     err_msg = e ? e.message + "" : "Error: " + (e !== "" ? e : "(unknown)");
     let arr = (<RegExpSearchable<2> & RegExpOne> /^(\d+):(\d+)$/).exec(err_msg);
     err_msg = !arr ? err_msg :
-`Sorry, Vimium++ can not parse the JSON file:
+`Sorry, Vimium C can not parse the JSON file:
   an unexpect character at line ${arr[1]}, column ${arr[2]}`
   }
   if (new_data) {
     time = +new Date(new_data && new_data.time || (typeof time === "object" ? +time : time)) || 0;
-    if (new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
-      err_msg = "Sorry, no Vimium++ settings data found!";
+    if ((new_data.name !== "Vimium C" && new_data.name !== "Vimium++") || (time < 10000 && time > 0)) {
+      err_msg = "Sorry, no Vimium C settings data found!";
       new_data = null;
     }
   }
