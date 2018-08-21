@@ -141,7 +141,9 @@ var Utils = {
     else if (string.startsWith("vimium:")) {
       type = Urls.Type.PlainVimium;
       vimiumUrlWork = (vimiumUrlWork as number) | 0;
-      if (vimiumUrlWork < Urls.WorkType.ConvertKnown || !(string = oldString.substring(9))) {}
+      if (vimiumUrlWork < Urls.WorkType.ConvertKnown || !(string = oldString.substring(9))) {
+        oldString = "vimium://" + oldString.substring(9);
+      }
       else if (vimiumUrlWork === Urls.WorkType.ConvertKnown
           || !(oldString = (this as typeof Utils).evalVimiumUrl(string, vimiumUrlWork) as string)) {
         oldString = (this as typeof Utils).formatVimiumUrl(string, false, vimiumUrlWork);
