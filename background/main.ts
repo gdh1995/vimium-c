@@ -1769,7 +1769,6 @@ Are you sure you want to continue?`);
     }
   },
   Connections = {
-    state: 0,
     _fakeId: GlobalConsts.MaxImpossibleTabId as number,
     framesForOmni: [null as never] as Frames.WritableFrames,
     OnMessage (this: void, request: Req.baseFg<string> | Req.baseFgWithRes<string>, port: Frames.Port): void {
@@ -2092,21 +2091,7 @@ Are you sure you want to continue?`);
       return tabId == null ? framesForTab : frameId == null ? (framesForTab[tabId] || null)
         : indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts"],
-  Init(): void {
-    if (1 !== ++Connections.state) {
-    if (2 === Connections.state) {
-    Backend.Init = null;
-    if (window.onload) {
-      window.onload = null as never;
-    } else {
-      const now = Date.now();
-      console.log("[%d] Recovered", now);
-      localStorage.setItem("log|lastPartlyLoad", "" + now);
-    }
-    }
-    return;
-    }
-    Utils.resetRe();
+    onInit(): void {
     chrome.runtime.onConnect.addListener(Connections.OnConnect);
     if (!chrome.runtime.onConnectExternal) { return; }
     Settings.extWhiteList || Settings.postUpdate("extWhiteList");
@@ -2199,11 +2184,12 @@ Are you sure you want to continue?`);
 
   Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
-  setTimeout(function(): void {
+  window.onload = function() {
+    window.onload = null as never;
+    Backend.onInit = null; // so that .onInit is null even if others.ts is removed in manifest.json
     (document.documentElement as HTMLHtmlElement).textContent = '';
     (document.firstChild as DocumentType).remove();
-    Utils.resetRe();
-  }, 1000);
+  };
 
   // will run only on <F5>, not on runtime.reload
   window.onunload = function(event): void {

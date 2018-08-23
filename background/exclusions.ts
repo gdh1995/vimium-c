@@ -2,7 +2,7 @@ import ExcCls = ExclusionsNS.ExclusionsCls;
 declare var Exclusions: ExcCls;
 
 if (Settings.get("vimSync")
-    || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend.Init)
+    || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend.onInit)
         && !Settings.updateHooks.exclusionRules)) {
 var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
   testers: null as SafeDict<ExclusionsNS.Tester> | null,

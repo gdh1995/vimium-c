@@ -404,7 +404,7 @@ availableCommands: {
 } as ReadonlySafeDict<CommandsNS.Description>
 };
 
-if (Backend.Init) {
+if (Backend.onInit) {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   Commands.defaultKeyMappings = null as never;
   Commands.populateCommandKeys();

@@ -398,7 +398,7 @@ declare namespace BackendHandlersNS {
       (this: void): Frames.FramesMap;
     };
     ExecuteGlobal (this: void, command: string): void;
-    Init: ((this: void) => void) | null;
+    onInit: ((this: void) => void) | null;
   }
 }
 

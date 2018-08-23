@@ -494,11 +494,15 @@ Utils.GC = function(): void {
   }
 };
 
-Backend.Init && Backend.Init();
+Backend.onInit = null;
 
 setTimeout(function(): void {
   chrome.runtime.onInstalled.removeListener(cb);
   cb = function(b) { a = b; console.log(b); };
+  // TODO: remove the 3 lines below on 2019/01/01
+  if (localStorage.getItem("log|lastPartlyLoad") != null) {
+    localStorage.removeItem("log|lastPartlyLoad");
+  }
   Utils.resetRe();
 }, 1200);
 // setTimeout(() => console.log("RegExp.input:", (RegExp as any).input, "."), 3600);

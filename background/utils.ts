@@ -735,20 +735,3 @@ const NotChrome: boolean = typeof browser !== "undefined" && (browser && (browse
 if (NotChrome) {
   window.chrome = browser;
 }
-
-window.onload = function(): void {
-setTimeout(function() {
-  if (!window.onload) { return; }
-  window.onload = null as never;
-  console.log("Vimium C is only loaded partly because the system is too slow.\n[%d] Now auto recovering...", Date.now());
-  const scripts = chrome.runtime.getManifest().background.scripts as string[],
-  isDev = scripts.join("\n").indexOf("/tail.js") < 0;
-  let d = !isDev || ("Completers" in window) ? 1 : "TabRecency" in window ? 2 : 3;
-  if (!("Exclusions" in window)) {
-    d += "Commands" in window ? 1 : !isDev || ("Backend" in window) ? 2 : "Settings" in window ? 3 : 4;
-  }
-  for (let len = scripts.length, i = len - d; i < len; i++) {
-    Utils.loadJS(scripts[i]);
-  }
-}, 1500);
-};
