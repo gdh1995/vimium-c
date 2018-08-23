@@ -445,6 +445,7 @@ setTimeout(function() {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
+    // TODO: remove the old name on v1.72
     message: "Vimium C (renamed from Vimium++) has been upgraded to version " + Settings.CONST.CurrentVersionName
       + ". Click here for more information.",
     isClickable: true
@@ -500,3 +501,4 @@ setTimeout(function(): void {
   cb = function(b) { a = b; console.log(b); };
   Utils.resetRe();
 }, 1200);
+// setTimeout(() => console.log("RegExp.input:", (RegExp as any).input, "."), 3600);

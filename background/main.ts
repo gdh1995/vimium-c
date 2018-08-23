@@ -2112,6 +2112,7 @@ Are you sure you want to continue?`);
     Settings.extWhiteList || Settings.postUpdate("extWhiteList");
     chrome.runtime.onConnectExternal.addListener(function(port): void {
       if (port.sender && isExtIdAllowed(port.sender.id)
+          // TODO: remove the old name on v1.69
           && (port.name.startsWith("vimium-c") || port.name.startsWith("vimium++"))) {
         return Connections.OnConnect(port as Frames.RawPort as Frames.Port);
       } else {
