@@ -10,7 +10,7 @@
     "typescript": "next"
   },
   "devDependencies": {
-    "gulp": "*",
+    "gulp": ">=4",
     "gulp-changed": "*",
     "gulp-clean": "*",
     "gulp-concat": "*",

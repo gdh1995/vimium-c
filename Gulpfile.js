@@ -1,7 +1,7 @@
 "use strict";
 var fs = require("fs");
 var gulp = require("gulp");
-var gutil = require("gulp-util");
+var logger = require("fancy-log");
 var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
 var changed = require('gulp-changed');
@@ -12,7 +12,6 @@ var rename = require('gulp-rename');
 var clean = require('gulp-clean');
 var gulpPrint = require('gulp-print');
 var gulpSome = require('gulp-some');
-var runSequence = require('run-sequence');
 var osPath = require('path');
 
 var DEST, enableSourceMap, willListFiles, willListEmittedFiles, removeComments, JSDEST;
@@ -73,7 +72,7 @@ var Tasks = {
       return uglifyJSFiles(sources.slice(1, index), "background/", "");
     });
     manifest.background.scripts = sources;
-    runSequence(["min/bg/_1", "min/bg/_2", "min/bg/_3"], cb);
+    gulp.parallel("min/bg/_1", "min/bg/_2", "min/bg/_3")(cb);
   },
   "min/content": function() {
     var cs = manifest.content_scripts[0], sources = cs.js;
@@ -124,15 +123,6 @@ var Tasks = {
     return cleanByPath(DEST + "/*");
   }],
 
-  locally: function() {
-    if (locally) { return; }
-    compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
-    removeUnknownOptions();
-    JSDEST = compilerOptions.outDir = ".";
-    enableSourceMap = false;
-    willListEmittedFiles = true;
-    locally = true;
-  },
   scripts: ["background", "content", "front"],
   pages: ["main_pages", "others"],
   "pages/": ["pages"],
@@ -148,15 +138,17 @@ var Tasks = {
   local: ["scripts", "main_pages"],
   tsc: ["local"],
   "default": ["tsc"],
-  watch: ["locally", function() {
+  watch: ["locally", function(done) {
     ignoreHeaderChanges = willListFiles = true;
     willListEmittedFiles = false;
     ["background", "content", "front", "options", "show"].forEach(makeWatchTask);
+    done();
   }],
-  debug: ["locally", function() {
+  debug: ["locally", function(done) {
     ignoreHeaderChanges = disableErrors = willListFiles = false;
     willListEmittedFiles = debugging = true;
     ["background", "content", "vomnibar", "polyfill", "options", "show", "others"].forEach(makeWatchTask);
+    done();
   }],
   test: ["local"]
 }
@@ -164,6 +156,16 @@ var Tasks = {
 
 typescript = compilerOptions.typescript = loadTypeScriptCompiler();
 removeUnknownOptions();
+gulp.task("locally", function(done) {
+  if (locally) { return done(); }
+  compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
+  removeUnknownOptions();
+  JSDEST = compilerOptions.outDir = ".";
+  enableSourceMap = false;
+  willListEmittedFiles = true;
+  locally = true;
+  done();
+});
 makeCompileTasks();
 makeTasks();
 
@@ -179,10 +181,10 @@ function makeCompileTasks() {
   for (var key in CompileTasks) {
     if (!hasOwn.call(CompileTasks, key)) { continue; }
     var config = CompileTasks[key], task = makeCompileTask(config[0], config[1]);
-    gulp.task(key, ["locally"], task);
+    gulp.task(key, gulp.series("locally", task));
     gulp.task("build/" + key, task);
     if (fs.existsSync(key) && fs.statSync(key).isDirectory()) {
-      gulp.task(key + "/", [key]);
+      gulp.task(key + "/", gulp.series(key));
     }
   }
 }
@@ -199,7 +201,7 @@ function makeWatchTask(taskName) {
     if (_todoTimer > 0) { clearTimeout(_todoTimer); }
     _todoTimer = setTimeout(function() {
       _todoTimer = 0;
-      runSequence(_todoTasks.slice(0));
+      gulp.parallel(..._todoTasks.slice(0))();
       _todoTasks.length = 0;
     }, 100);
   });
@@ -207,26 +209,35 @@ function makeWatchTask(taskName) {
 
 function makeTasks() {
   var hasOwn = Object.prototype.hasOwnProperty;
-  for (var key in Tasks) {
+  var todo = [];
+  for (let key in Tasks) {
     if (!hasOwn.call(Tasks, key)) { continue; }
-    var task = Tasks[key];
+    todo.push([key, Tasks[key]]);
+  }
+  while (todo.length > 0) {
+    let [ key, task ] = todo.shift();
     if (typeof task === "function") {
       gulp.task(key, task);
-    } else if (typeof task[1] === "function") {
-      gulp.task(key, task[0] instanceof Array ? task[0] : [task[0]], task[1]);
-    } else if (task[0] instanceof Array) {
-      gulp.task(key, Tasks[key] = willStart(task));
-    } else if (!/\.ts\b/i.test(task[0])) {
-      gulp.task(key, task);
+      continue;
+    }
+    const knownTasks = gulp.tree().nodes, toTest = task[0] instanceof Array ? task[0] : task;
+    let notFound = false;
+    for (const i of toTest) {
+      if (typeof i === "string" && knownTasks.indexOf(i) < 0) {
+        notFound = true;
+        break;
+      }
+    }
+    if (notFound) {
+      todo.push([key, task]);
+      continue;
+    }
+    if (typeof task[1] === "function" || task[0] instanceof Array) {
+      gulp.task(key, Tasks[key] = gulp.series(task[0] instanceof Array ? gulp.parallel(...task[0]) : task[0], task[1]));
+    } else {
+      gulp.task(key, task.length === 1 && typeof Tasks[task[0]] === "function" ? Tasks[task[0]] : gulp.parallel(...task));
     }
   }
-}
-
-function willStart(taskSeq) {
-  return function(cb) {
-    taskSeq.push(cb);
-    runSequence.apply(null, taskSeq);
-  };
 }
 
 function tsProject() {
@@ -559,7 +570,7 @@ function removeUnknownOptions() {
 }
 
 function print() {
-  return gutil.log.apply(gutil, arguments);
+  return logger.apply(null, arguments);
 }
 
 function gulpIfNotEmpty() {
