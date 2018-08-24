@@ -494,10 +494,10 @@ Utils.GC = function(): void {
   }
 };
 
-Backend.onInit = null;
-
 setTimeout(function(): void {
   chrome.runtime.onInstalled.removeListener(cb);
+  (document.documentElement as HTMLHtmlElement).textContent = '';
+  (document.firstChild as DocumentType).remove();
   cb = function(b) { a = b; console.log(b); };
   // TODO: remove the 3 lines below on 2019/01/01
   if (localStorage.getItem("log|lastPartlyLoad") != null) {

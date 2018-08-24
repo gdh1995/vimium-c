@@ -2092,6 +2092,8 @@ Are you sure you want to continue?`);
         : indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts"],
     onInit(): void {
+      // the line below requires all necessary have inited when calling this
+      Backend.onInit = null;
     chrome.runtime.onConnect.addListener(Connections.OnConnect);
     if (!chrome.runtime.onConnectExternal) { return; }
     Settings.extWhiteList || Settings.postUpdate("extWhiteList");
@@ -2183,13 +2185,6 @@ Are you sure you want to continue?`);
   })();
 
   Settings.postUpdate("searchUrl", null); // will also update newTabUrl
-
-  window.onload = function() {
-    window.onload = null as never;
-    Backend.onInit = null; // so that .onInit is null even if others.ts is removed in manifest.json
-    (document.documentElement as HTMLHtmlElement).textContent = '';
-    (document.firstChild as DocumentType).remove();
-  };
 
   // will run only on <F5>, not on runtime.reload
   window.onunload = function(event): void {
