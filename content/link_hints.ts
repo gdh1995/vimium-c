@@ -49,31 +49,12 @@ declare namespace HintsNS {
 
 var VHints = {
   CONST: {
-    OPEN_IN_CURRENT_TAB: HintMode.OPEN_IN_CURRENT_TAB,
-    OPEN_IN_NEW_BG_TAB: HintMode.OPEN_IN_NEW_BG_TAB,
-    OPEN_IN_NEW_FG_TAB: HintMode.OPEN_IN_NEW_FG_TAB,
-    OPEN_CURRENT_WITH_QUEUE: HintMode.OPEN_CURRENT_WITH_QUEUE,
-    OPEN_WITH_QUEUE: HintMode.OPEN_WITH_QUEUE,
-    OPEN_FG_WITH_QUEUE: HintMode.OPEN_FG_WITH_QUEUE,
-    HOVER: HintMode.HOVER,
-    LEAVE: HintMode.LEAVE,
-    COPY_TEXT: HintMode.COPY_TEXT,
-    SEARCH_TEXT: HintMode.SEARCH_TEXT,
-    DOWNLOAD_IMAGE: HintMode.DOWNLOAD_IMAGE,
-    OPEN_IMAGE: HintMode.OPEN_IMAGE,
-    DOWNLOAD_LINK: HintMode.DOWNLOAD_LINK,
-    COPY_LINK_URL: HintMode.COPY_LINK_URL,
-    OPEN_INCOGNITO_LINK: HintMode.OPEN_INCOGNITO_LINK,
     hover: HintMode.HOVER,
     leave: HintMode.LEAVE,
     unhover: HintMode.LEAVE,
     text: HintMode.COPY_TEXT,
     url: HintMode.COPY_LINK_URL,
-    image: HintMode.OPEN_IMAGE,
-    // the below are gte `HintMode.min_disable_queue`
-    FOCUS_EDITABLE: HintMode.FOCUS_EDITABLE,
-    EDIT_LINK_URL: HintMode.EDIT_LINK_URL,
-    EDIT_TEXT: HintMode.EDIT_TEXT
+    image: HintMode.OPEN_IMAGE
   } as Dict<HintMode>,
   box: null as HTMLDivElement | null,
   hints: null as HintsNS.HintItem[] | null,
