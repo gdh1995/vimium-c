@@ -178,7 +178,7 @@ var Vomnibar = {
         sameOrigin: true,
         onmessage: null as never as VomnibarNS.IframePort["onmessage"],
         postMessage<K extends keyof FReq> (data: FReq[K] & VomnibarNS.Msg<K>): void | 1 {
-          return Vomnibar.onMessage<K>({ data });
+          return Vomnibar && Vomnibar.onMessage<K>({ data });
         }
       };
       _this.sameOrigin = true;
