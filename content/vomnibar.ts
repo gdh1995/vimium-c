@@ -237,6 +237,7 @@ var Vomnibar = {
       break;
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).key);
     case "hide": return this.hide(1);
+    case "test": return VEventMode.OnWndFocus();
     case "scroll": return VEventMode.scroll(data as Req["scroll"]);
     case "scrollGoing": VScroller.keyIsDown = VScroller.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;

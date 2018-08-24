@@ -159,6 +159,7 @@ declare namespace VomnibarNS {
     scrollEnd: {},
     scrollGoing: {},
     unload: {},
+    test: {},
     uiComponentIsReady: {};
   }
   interface IframePort {

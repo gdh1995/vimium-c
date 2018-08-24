@@ -41,6 +41,7 @@ if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "
 }
 
 var Vomnibar = {
+  pageType: VomnibarNS.PageType.Default,
   activate (options: Options): void {
     Object.setPrototypeOf(options, null);
     this.mode.type = this.modeType = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
@@ -51,7 +52,7 @@ var Vomnibar = {
     this.zoomLevel = scale < 0.98 ? 1 / scale : 1;
     this.setWidth(options.width * PixelData.WindowSizeX + PixelData.MarginH);
     this.mode.maxResults = Math.min(Math.max(3, 0 | ((options.height - PixelData.ListSpaceDelta) / PixelData.Item)), this.maxResults);
-    this.init && this.setFav(options.ptype);
+    this.init && this.setPType(options.ptype);
     if (this.mode.favIcon) {
       scale = scale < 1.5 ? 1 : scale < 3 ? 2 : scale < 4 ? 3 : 4;
       this.favPrefix = '" style="background-image: url(&quot;chrome://favicon/size/16' + (scale > 1 ? "@" + scale + "x" : "") + "/";
@@ -632,6 +633,9 @@ var Vomnibar = {
     } else {
       a._focusTimer = setTimeout(a.blurred, 50, false);
       VPort && VPort.postMessage({ handler: "blank" });
+      if (a.pageType === VomnibarNS.PageType.ext && VPort) {
+        VPort.postToOwner({name: "test"});
+      }
     }
   },
   blurred (this: void, blurred?: boolean | object): void {
@@ -681,7 +685,8 @@ var Vomnibar = {
     }
   },
   getTypeIcon (sug: Readonly<SuggestionE>): string { return sug.type; },
-  setFav (type: VomnibarNS.PageType): void {
+  setPType (type: VomnibarNS.PageType): void {
+    this.pageType = type;
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
       , canShowOnOthers = this.browserVersion >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
     if (type === VomnibarNS.PageType.web || location.origin.lastIndexOf("chrome", 0)) {}
