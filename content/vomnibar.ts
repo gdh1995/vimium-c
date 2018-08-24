@@ -30,7 +30,6 @@ var Vomnibar = {
   maxBoxHeight: 0,
   defaultTop: "",
   top: "",
-  sameOrigin: false,
   activate (count: number, options: VomnibarNS.FullOptions): void {
     if (this.status === VomnibarNS.Status.KeepBroken) {
       return VHUD.showForDuration("Sorry, Vomnibar page seems to fail to load.", 2000);
@@ -181,7 +180,6 @@ var Vomnibar = {
           return Vomnibar && Vomnibar.onMessage<K>({ data });
         }
       };
-      _this.sameOrigin = true;
       _this.port = {
         close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
@@ -205,7 +203,6 @@ var Vomnibar = {
     this.port.close();
     this.box.remove();
     this.port = this.box = null as never;
-    this.sameOrigin = false;
     this.defaultTop = "";
     VUtils.remove(this);
     this.options = null;
