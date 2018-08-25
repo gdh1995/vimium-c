@@ -167,9 +167,9 @@ SuggestionUtils = {
       }
     }
     if (ranges.length === 0) { return ranges as never[]; }
-    const mergedRanges: number[] = ranges[0];
-    if (ranges.length === 1) { return mergedRanges; }
+    if (ranges.length === 1) { return ranges[0]; }
     ranges.sort(this.sortBy0);
+    const mergedRanges: number[] = ranges[0];
     for (let i = 1, j = 1, len = ranges.length; j < len; j++) {
       const range = ranges[j];
       if (mergedRanges[i] >= range[0]) {
