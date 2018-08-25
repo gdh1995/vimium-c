@@ -31,6 +31,7 @@ interface ConfigurableItems {
   VomnibarListLength?: number;
   VomnibarRefreshInterval?: number;
   VomnibarWheelInterval?: number;
+  VomnibarMaxPageNum?: number;
 }
 interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
@@ -89,6 +90,7 @@ var Vomnibar = {
   useInput: true,
   completions: null as never as SuggestionE[],
   total: 0,
+  maxPageNum: Math.min(Math.max(3, (<number>window.VomnibarMaxPageNum | 0) || 10), 100),
   isEditing: false,
   isInputComposing: false,
   baseHttps: null as boolean | null,
@@ -119,7 +121,7 @@ var Vomnibar = {
   onUpdate: null as (() => void) | null,
   doEnter: null as ((this: void) => void) | null,
   refreshInterval: Math.max(256, (<number>window.VomnibarRefreshInterval | 0) || 500),
-  wheelInterval: Math.max(33, (<number>window.VomnibarRefreshInterval | 0) || 100),
+  wheelInterval: Math.max(33, (<number>window.VomnibarWheelInterval | 0) || 100),
   renderItems: null as never as Render,
   selection: -1,
   timer: 0,
@@ -426,7 +428,7 @@ var Vomnibar = {
     else if (i > 0 && delta < 0) { delta *= i >= n ? n : 1; }
     else if (len < (len && this.completions[0].type !== "tab" ? n : 3)) { return; }
 
-    const dest = Math.min(Math.max(0, i + delta), 90);
+    const dest = Math.min(Math.max(0, i + delta), this.maxPageNum * n - n);
     if (delta > 0 && (dest === i || dest >= this.total && this.total > 0)) { return; }
     if (arr) { str = str.substring(0, str.length - arr[0].length); }
     str = str.trimRight();
