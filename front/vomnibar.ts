@@ -88,6 +88,7 @@ var Vomnibar = {
   modeType: "omni" as CompletersNS.ValidTypes,
   useInput: true,
   completions: null as never as SuggestionE[],
+  total: 0,
   isEditing: false,
   isInputComposing: false,
   baseHttps: null as boolean | null,
@@ -159,7 +160,8 @@ var Vomnibar = {
   },
   onHidden (): void {
     VPort.postToOwner({ name: "hide" });
-    this.timer = this.height = this.matchType = this.wheelTime = this.actionType = this.lastKey = 0;
+    this.timer = this.height = this.matchType = this.wheelTime = this.actionType =
+    this.total = this.lastKey = 0;
     this.zoomLevel = 1;
     this.completions = this.onUpdate = this.isHttps = this.baseHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = this.lastNormalInput = "";
@@ -425,7 +427,7 @@ var Vomnibar = {
     else if (len < (len && this.completions[0].type !== "tab" ? n : 3)) { return; }
 
     const dest = Math.min(Math.max(0, i + delta), 90);
-    if (dest === i) { return; }
+    if (delta > 0 && (dest === i || dest >= this.total && this.total > 0)) { return; }
     if (arr) { str = str.substring(0, str.length - arr[0].length); }
     str = str.trimRight();
     i = Math.min(this.input.selectionEnd, str.length);
@@ -521,7 +523,7 @@ var Vomnibar = {
     if (event.ctrlKey || event.metaKey || event.isTrusted === false) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (event.deltaX || Date.now() - this.wheelTime < this.wheelInterval || !Vomnibar.isActive) { return; }
+    if (event.deltaX || !event.deltaY || Date.now() - this.wheelTime < this.wheelInterval || !Vomnibar.isActive) { return; }
     this.wheelTime = Date.now();
     return this.goPage(event.deltaY > 0);
   },
@@ -558,6 +560,7 @@ var Vomnibar = {
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
     const list = response.list, height = list.length, notEmpty = height > 0;
+    this.total = response.total;
     this.showFavIcon = response.favIcon;
     this.matchType = response.matchType;
     this.completions = list;
