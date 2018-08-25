@@ -21,8 +21,7 @@
     "gulp-sourcemaps": "*",
     "gulp-typescript": "*",
     "gulp-uglify": ">=3",
-    "uglify-js": ">=3",
-    "run-sequence": "*"
+    "uglify-js": ">=3"
   },
   "scripts": {
     "tsc": "node scripts/tsc.js",

@@ -7,8 +7,8 @@ install:
   - npm install --dev
   - npm install -g gulp
 before_script:
-  - rm -f *.zip *.crx $pem 2>/dev/null
   - pem=scripts/vimium_c.pem ; key=aa42231ca000
+  - rm -f *.zip *.crx $pem 2>/dev/null
   - eval openssl aes-256-cbc -K \$encrypted_${key}_key -iv \$encrypted_${key}_iv -in $pem.enc -out $pem -d
 script:
   - gulp dist
