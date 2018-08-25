@@ -159,7 +159,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return ELs.OnWndFocus();
       }
       if (!isEnabledForUrl) { return; }
-      if (target === VDom.UI.box) { return event.stopImmediatePropagation(); }
       /**
        * Notes:
        * according to test, Chrome Password Saver won't fill fields inside a shadow DOM
@@ -173,6 +172,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
        */
       let a = InsertMode.lock;
       if (a !== null && a === document.activeElement) { return; }
+      if (target === VDom.UI.box) { return event.stopImmediatePropagation(); }
       if ((target as Element).shadowRoot != null) {
         let path = event.path, top: EventTarget | undefined
           /**

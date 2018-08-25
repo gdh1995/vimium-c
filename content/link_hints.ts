@@ -14,7 +14,7 @@ declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface ModeOpt {
     [mode: number]: string | undefined;
-    activator (this: any, linkEl: LinkEl, rect: VRect | null, hintEl: HTMLSpanElement): void | false;
+    activator (this: any, linkEl: LinkEl, rect: VRect | null, hintEl: HintsNS.HintItem): void | false;
   }
   interface Options extends SafeObject {
     action?: string;
@@ -225,7 +225,13 @@ var VHints = {
   createHint (link: Hint): HintsNS.HintItem {
     let marker = VDom.createElement("span") as HintsNS.HintItem["marker"], i: number;
     i = link.length < 4 ? link[1][0] : (link as Hint4)[3][0][0] + (link as Hint4)[3][1];
-    marker.className = link[2] < ClickType.minBox ? "LH" : "LH BH";
+    const hint: HintsNS.HintItem = { marker, target: link[0], key: "", refer: link.length > 4 ? (link as Hint5)[4] : null };
+    if (link[2] < ClickType.minBox) {
+      marker.className = "LH";
+    } else {
+      marker.className = "LH BH";
+      hint.scroll = true;
+    }
     const st = marker.style;
     st.left = i + "px";
     if (i > this.maxLeft && this.maxRight) {
@@ -236,7 +242,7 @@ var VHints = {
     if (i > this.maxTop) {
       st.maxHeight = this.maxTop - i + PixelConsts.MaxHeightOfLinkHintMarker + "px";
     }
-    return { marker, target: link[0], key: "", refer: link.length > 4 ? (link as Hint5)[4] : null };
+    return hint;
   },
   adjustMarkers (elements: Hint[]): void {
     const zi = VDom.bZoom, root = VDom.UI.root;
@@ -623,26 +629,17 @@ var VHints = {
         cache.deepHints = true;
       }
       setTimeout(this.reinit.bind(this, null), 0);
-    } else if (i === VKeyCodes.shiftKey) {
-      if (this.mode < HintMode.min_job) {
-        if (VKeyboard.getKeyStat(event) === KeyStat.shiftKey) {
-          this.lastMode = this.mode;
-        }
-        this.setMode((this.mode | HintMode.focused) ^ HintMode.mask_focus_new);
-      }
-    } else if (i === VKeyCodes.ctrlKey || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
-      if (this.mode < HintMode.min_job) {
-        if (!(event.shiftKey || event.altKey)) {
-          this.lastMode = this.mode;
-        }
-        this.setMode((this.mode | HintMode.newTab) ^ HintMode.focused);
-      }
-    } else if (i === VKeyCodes.altKey) {
-      if (this.mode < HintMode.min_disable_queue) {
-        if (VKeyboard.getKeyStat(event) === KeyStat.altKey) {
-          this.lastMode = this.mode;
-        }
-        this.setMode(((this.mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | this.mode) ^ HintMode.queue);
+    } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
+        || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
+      const mode = this.mode,
+      mode2 = i === VKeyCodes.altKey
+        ? mode < HintMode.min_disable_queue ? ((mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | mode) ^ HintMode.queue : mode
+        : mode < HintMode.min_job ? i === VKeyCodes.shiftKey ? (mode | HintMode.focused) ^ HintMode.mask_focus_new : (mode | HintMode.newTab) ^ HintMode.focused
+        : mode;
+      if (mode2 !== mode) {
+        this.setMode(mode2);
+        i = VKeyboard.getKeyStat(event);
+        (i & (i - 1)) || (this.lastMode = mode);
       }
     } else if (i <= VKeyCodes.down && i >= VKeyCodes.pageup) {
       VEventMode.scroll(event);
@@ -710,7 +707,7 @@ var VHints = {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getVRect, so that VDom.zooms are updated, and prepareCrop is called
       rect = VDom.UI.getVRect(clickEl, hint.refer);
-      const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hint.marker);
+      const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect(clickEl)))) {
         const force = clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement;
         setTimeout(function(): void {
@@ -1184,7 +1181,7 @@ DEFAULT: {
       VDom.UI.click(link, rect, null, true);
       ((link as HTMLDetailsElement).open === old) && ((link as HTMLDetailsElement).open = !old);
       return;
-    } else if (hint.classList.contains("BH")) {
+    } else if (hint.scroll) {
       return (this as typeof VHints).Modes.HOVER.activator.call(this, link, rect, hint);
     } else if (VDom.getEditableType(link) >= EditableType.Editbox) {
       VDom.UI.simulateSelect(link, rect, true);

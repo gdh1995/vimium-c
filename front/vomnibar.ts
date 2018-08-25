@@ -417,24 +417,22 @@ var Vomnibar = {
   goPage (dirOrNum: boolean | number): void {
     if (this.isSearchOnTop) { return; }
     const len = this.completions.length, n = this.mode.maxResults;
-    let str = len ? this.completions[0].type : "", sel = +dirOrNum || -1;
+    let str = len ? this.completions[0].type : "", delta = +dirOrNum || -1;
     str = (this.isSelOriginal || this.selection < 0 ? this.input.value : this.inputText).trimRight();
     let arr = this._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
-    if (len >= n) { sel *= n; }
-    else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
+    if (len >= n) { delta *= n; }
+    else if (i > 0 && delta < 0) { delta *= i >= n ? n : 1; }
     else if (len < (len && this.completions[0].type !== "tab" ? n : 3)) { return; }
 
-    sel += i;
-    sel = sel < 0 ? 0 : sel > 90 ? 90 : sel;
-    if (sel === i) { return; }
+    const dest = Math.min(Math.max(0, i + delta), 90);
+    if (dest === i) { return; }
     if (arr) { str = str.substring(0, str.length - arr[0].length); }
     str = str.trimRight();
     i = Math.min(this.input.selectionEnd, str.length);
-    if (sel > 0) { str += " +" + sel; }
-    sel = this.input.selectionStart;
-    const oldDi = this.input.selectionDirection;
+    if (dest > 0) { str += " +" + dest; }
+    const oldStart = this.input.selectionStart, oldDi = this.input.selectionDirection;
     this.input.value = str;
-    this.input.setSelectionRange(sel, i, oldDi);
+    this.input.setSelectionRange(oldStart, i, oldDi);
     this.isInputComposing = false;
     return this.update(-1);
   },

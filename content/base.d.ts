@@ -83,6 +83,7 @@ declare namespace HintsNS {
   interface HintItem {
     marker: HTMLSpanElement;
     target: Hint[0];
+    scroll?: boolean;
     key?: string;
     refer?: HTMLElementUsingMap | null;
     zIndex?: number;
