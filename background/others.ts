@@ -207,6 +207,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     , wantDeletable = chrome.omnibox.onDeleteSuggestion != null && typeof chrome.omnibox.onDeleteSuggestion.addListener === "function"
     , firstType: CompletersNS.ValidTypes | "";
   const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
+  matchTagRe = IsFirefox ? <RegExpG>/<\/?match>/g : null as never,
   maxResults = Settings.CONST.ChromeVersion < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
   ;
   function clean(): void {
@@ -266,8 +267,13 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
         info.type = <SubInfo["type"]>type;
         tail = ` ~${i + di}~`;
       }
-      tail = title ? `</url><dim> - ${title}${tail}</dim>` : tail ? `</url><dim>${tail}</dim>` : "</url>";
-      const msg: chrome.omnibox.SuggestResult = { content: url, description: "<url>" + sug.textSplit + tail };
+      if (IsFirefox) {
+        tail = (sug.textSplit as string).replace(matchTagRe, "") + (title && " - " + title.replace(matchTagRe, "")) + tail;
+      } else {
+        tail = title ? `</url><dim> - ${title}${tail}</dim>` : tail ? `</url><dim>${tail}</dim>` : "</url>";
+        tail = "<url>" + (sug.textSplit as string) + tail;
+      }
+      const msg: chrome.omnibox.SuggestResult = { content: url, description: tail };
       deletable && (msg.deletable = true);
       hasSessionId && (info.sessionId = sug.sessionId as string | number);
       if (deletable || hasSessionId) {
