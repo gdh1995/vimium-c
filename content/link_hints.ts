@@ -156,7 +156,7 @@ var VHints = {
     return this.setMode(mode, true);
   },
   setMode (mode: HintMode, slient?: boolean): void {
-    this.mode = mode;
+    this.lastMode = this.mode = mode;
     this.mode1 = mode = mode & ~HintMode.queue;
     this.forHover = mode >= HintMode.HOVER && mode <= HintMode.LEAVE;
     if (slient || this.noHUD) { return; }
