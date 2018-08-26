@@ -49,10 +49,12 @@ declare namespace HintsNS {
 
 var VHints = {
   CONST: {
+    focus: HintMode.FOCUS,
     hover: HintMode.HOVER,
     leave: HintMode.LEAVE,
     unhover: HintMode.LEAVE,
     text: HintMode.COPY_TEXT,
+    "copy-text": HintMode.COPY_TEXT,
     url: HintMode.COPY_LINK_URL,
     image: HintMode.OPEN_IMAGE
   } as Dict<HintMode>,
@@ -347,7 +349,7 @@ var VHints = {
         && (type < ClickType.scrollX || VScroller.shouldScroll(element, type - ClickType.scrollX as 0 | 1))
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
-          || VHints.mode >= HintMode.min_job)
+          || VHints.mode >= HintMode.min_job) // note: might need to apply aria-disable on FOCUS/HOVER/LEAVE mode?
     ) { this.push([element, arr, type]); }
   },
   noneActionRe: <RegExpOne> /\._\b(?![\$\.])/,
@@ -1156,9 +1158,17 @@ DOWNLOAD_LINK: {
   }
 } as HintsNS.ModeOpt,
 FOCUS_EDITABLE: {
+  134: "Focus node",
+  198: "Focus nodes continuously",
   258: "Select an editable area",
-  activator (link, rect): false {
-    VDom.UI.simulateSelect(link, rect, true);
+  activator (link, rect): void | false {
+    if ((this as typeof VHints).mode < HintMode.min_disable_queue) {
+      VDom.ensureInView(link);
+      link.focus();
+      VDom.UI.flash(link);
+    } else {
+      VDom.UI.simulateSelect(link, rect, true);
+    }
     return false;
   }
 } as HintsNS.ModeOpt,
