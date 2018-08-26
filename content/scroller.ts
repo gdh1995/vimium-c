@@ -219,11 +219,9 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     this.top = null;
   },
   shouldScroll (element: Element, di: ScrollByY, amount?: number): boolean {
-    if (this.scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft))) {
-      const st = getComputedStyle(element);
-      return (di ? st.overflowY : st.overflowX) !== "hidden" && st.display !== "none" && st.visibility === "visible";
-    }
-    return false;
+    const st = getComputedStyle(element);
+    return (di ? st.overflowY : st.overflowX) !== "hidden" && st.display !== "none" && st.visibility === "visible" &&
+      this.scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
   },
   sortByArea (this: void, a: {area: number, el: Element}, b: {area: number, el: Element}): number {
     return a.area - b.area;
