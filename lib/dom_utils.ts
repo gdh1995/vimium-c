@@ -94,7 +94,7 @@ var VDom = {
       , isVisible: boolean | undefined, notInline: boolean | undefined, str: string;
     for (let _i = 0, _len = arr.length; _i < _len; _i++) {
       const rect = arr[_i];
-      if (rect.width > 0 && rect.height > 0) {
+      if (rect.height > 0 && rect.width > 0) {
         if (cr = this.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom)) {
           if (isVisible == null) {
             el_style || (el_style = window.getComputedStyle(element));
