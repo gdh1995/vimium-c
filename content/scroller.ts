@@ -28,9 +28,9 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     elapsed = elapsed > 0 ? elapsed : ScrollerNS.Consts.tickForUnexpectedTime;
     int1 = (totalElapsed += elapsed);
     const _this = VScroller;
-    if (continuous = VScroller.keyIsDown > 0) {
+    if (continuous = _this.keyIsDown > 0) {
       if (int1 >= ScrollerNS.Consts.delayToChangeSpeed) {
-        if (int1 > _this.minDelay) { --VScroller.keyIsDown; }
+        if (int1 > _this.minDelay) { --_this.keyIsDown; }
         int1 = calibration;
         if (ScrollerNS.Consts.minCalibration <= int1 && int1 <= ScrollerNS.Consts.maxCalibration) {
           int1 = ScrollerNS.Consts.calibrationBoundary / amount / int1;
@@ -46,7 +46,7 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
       requestAnimationFrame(animate);
       return;
     }
-    VScroller.checkCurrent(element);
+    _this.checkCurrent(element);
     element = null;
     last = 0;
   };
@@ -59,7 +59,7 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     const keyboard = VSettings.cache.keyboard;
     this.maxInterval = Math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
     this.minDelay = (((keyboard[0] - keyboard[1]) / ScrollerNS.Consts.DelayUnitMs) | 0) * ScrollerNS.Consts.DelayUnitMs;
-    VScroller.keyIsDown = this.maxInterval;
+    this.keyIsDown = this.maxInterval;
     if (last) { return; }
     last = 1;
     return requestAnimationFrame(animate);
@@ -91,13 +91,13 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
       return window.scrollX !== before;
     }
   },
-  scroll (element: Element | null, di: ScrollByY, amount: number): void | number {
+  scroll (element: Element | null, di: ScrollByY, amount: number): void | number | boolean {
     if (!amount) { return; }
     if (VSettings.cache.smoothScroll) {
       return this.animate(element, di, amount);
     }
     this.performScroll(element, di, amount);
-    return VScroller.checkCurrent(element);
+    return this.checkCurrent(element);
   },
 
   current: null as Element | null,
@@ -198,25 +198,21 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     return null;
   },
   scrollIntoView (el: Element): void {
-    let rect = el.getClientRects()[0] as ClientRect | undefined;
+    const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
+    this.current = el; // so that the below @getActivatedElement won't call @selectFirst
     this.getActivatedElement();
-    let height = window.innerHeight, width = window.innerWidth,
-    amount = rect.bottom < 0 ? rect.bottom - Math.min(rect.height, height)
-      : height < rect.top ? rect.top + Math.min(rect.height - height, 0) : 0,
-    hasY = amount;
-    if (hasY = amount) {
-      this.scroll(this.findScrollable(el, 1, amount), 1, amount);
+    const { innerWidth: iw, innerHeight: ih} = window,
+    { bottom: b, height: h2, top: t, right: r, width: w2, left: l } = rect,
+    hasY = b < 0 ? b - Math.min(h2, ih) : ih < t ? t + Math.min(h2 - ih, 0) : 0,
+    hasX = r < 0 ? r - Math.min(w2, iw) : iw < l ? l + Math.min(w2 - iw, 0) : 0;
+    if (hasX) {
+      (hasY ? this.performScroll : this.scroll).call(this, this.findScrollable(el, 0, hasX), 0, hasX);
     }
-    amount = rect.right < 0 ? rect.right - Math.min(rect.width, width)
-      : width < rect.left ? rect.left + Math.min(rect.width - width, 0) : 0;
-    if (amount) {
-      const ref = VSettings.cache, oldSmooth = ref.smoothScroll;
-      ref.smoothScroll = !hasY && oldSmooth;
-      this.scroll(this.findScrollable(el, 0, amount), 0, amount);
-      ref.smoothScroll = oldSmooth;
+    if (hasY) {
+      this.scroll(this.findScrollable(el, 1, hasY), 1, hasY);
     }
-    VScroller.keyIsDown = 0; // it's safe to only clean keyIsDown here
+    this.keyIsDown = 0; // it's safe to only clean keyIsDown here
     this.top = null;
   },
   shouldScroll (element: Element, di: ScrollByY, amount?: number): boolean {

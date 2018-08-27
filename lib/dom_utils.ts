@@ -269,8 +269,7 @@ var VDom = {
     if (ty === VisibilityType.OutOfView) {
       const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
       el.scrollIntoView(delta < 0);
-      // can not use @scrollAtOnce because of `scrollAtOnce`
-      (delta || f) && window.scrollBy(0, f ? (oldY as number) - window.scrollY : delta * ih / 5);
+      (delta || f) && this.scrollWndBy(0, f ? (oldY as number) - window.scrollY : delta * ih / 5);
     }
     return ty === VisibilityType.Visible;
   },
