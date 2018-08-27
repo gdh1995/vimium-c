@@ -9355,6 +9355,7 @@ declare function resizeBy(x?: number, y?: number): void;
 declare function resizeTo(x?: number, y?: number): void;
 declare function scroll(x?: number, y?: number): void;
 declare function scrollBy(x?: number, y?: number): void;
+declare function scrollBy(options?: ScrollToOptions): void;
 declare function scrollTo(x?: number, y?: number): void;
 declare function webkitCancelAnimationFrame(handle: number): void;
 declare function webkitConvertPointFromNodeToPage(node: Node, pt: WebKitPoint): WebKitPoint;

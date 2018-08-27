@@ -77,7 +77,8 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
         return el.scrollTop !== before;
       } else {
         before = window.scrollY;
-        window.scrollBy(0, amount);
+        // avoid using `Element`, so that users may override it
+        VDom.scrollWndBy(0, amount);
         return window.scrollY !== before;
       }
     } else if (el) {
@@ -86,7 +87,7 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
       return el.scrollLeft !== before;
     } else {
       before = window.scrollX;
-      window.scrollBy(amount, 0);
+      VDom.scrollWndBy(amount, 0);
       return window.scrollX !== before;
     }
   },
