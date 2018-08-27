@@ -113,7 +113,8 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
   /** amount: can not be 0 */
   scrollBy (di: ScrollByY, amount: number, factor: 0 | 1 | "max" | "viewSize"): void {
     VMarks.setPreviousPosition();
-    const element = this.findScrollable(this.getActivatedElement(), di, amount);
+    this.prepareTop();
+    const element = this.findScrollable(di, amount);
     amount = !factor ? this.adjustAmount(di, amount, element)
       : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
       : amount * this.getDimension(element, di, factor === "max" ? 2 : 0);
@@ -128,7 +129,8 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
   },
   /** `amount`: default to be `0` */
   scrollTo (di: ScrollByY, amount: number, fromMax: BOOL): void {
-    const element = this.findScrollable(this.getActivatedElement(), di, fromMax ? 1 : -1);
+    this.prepareTop();
+    const element = this.findScrollable(di, fromMax ? 1 : -1);
     amount = this.adjustAmount(di, amount, element);
     fromMax && (amount = this.getDimension(element, di, 2) - amount - this.getDimension(element, di, 0));
     amount -= element ? element[this.Properties[4 + di]] : di ? window.scrollY : window.scrollX;
@@ -140,21 +142,23 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     return !di && amount && element && element.scrollWidth <= element.scrollHeight * 2
       ? Math.ceil(amount * 0.6) : amount;
   },
-  findScrollable (element: Element | null, di: ScrollByY, amount: number): Element | null {
+  findScrollable (di: ScrollByY, amount: number): Element | null {
+    let element: Element | null = this.current;
+    if (!element) {
+      element = this.top;
+      return this.current = element && (this.selectFirst(element) || element);
+    }
     while (element !== this.top && !this.shouldScroll(element as Element, di, amount)) {
       element = VDom.getParent(element as Element) || this.top;
     }
     return element;
   },
-  getActivatedElement (): Element | null {
-    let cur: Element | null, element =
-      this.top = VDom.scrollingEl() || (VDom.isHTML() ? document.documentElement : null);
-    if (element) {
+  prepareTop (): void {
+    this.top = VDom.scrollingEl() || (VDom.isHTML() ? document.documentElement : null);
+    if (this.top) {
       VDom.getZoom(1);
       this.getScale();
     }
-    if (cur = this.current) { return cur; }
-    return this.current = element && (this.selectFirst(element) || element);
   },
   getScale (): void {
     this.scale = 1 / Math.min(1, VDom.wdZoom) / Math.min(1, VDom.bZoom);
@@ -203,17 +207,17 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
   scrollIntoView (el: Element): void {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
-    this.current = el; // so that the below @getActivatedElement won't call @selectFirst
-    this.getActivatedElement();
+    this.prepareTop();
+    this.current = el;
     const { innerWidth: iw, innerHeight: ih} = window,
     { bottom: b, height: h2, top: t, right: r, width: w2, left: l } = rect,
     hasY = b < 0 ? b - Math.min(h2, ih) : ih < t ? t + Math.min(h2 - ih, 0) : 0,
     hasX = r < 0 ? r - Math.min(w2, iw) : iw < l ? l + Math.min(w2 - iw, 0) : 0;
     if (hasX) {
-      (hasY ? this.performScroll : this.scroll).call(this, this.findScrollable(el, 0, hasX), 0, hasX);
+      (hasY ? this.performScroll : this.scroll).call(this, this.findScrollable(0, hasX), 0, hasX);
     }
     if (hasY) {
-      this.scroll(this.findScrollable(el, 1, hasY), 1, hasY);
+      this.scroll(this.findScrollable(1, hasY), 1, hasY);
     }
     this.keyIsDown = 0; // it's safe to only clean keyIsDown here
     this.top = null;
