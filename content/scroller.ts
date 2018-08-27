@@ -179,21 +179,24 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     return changed;
   },
   selectFirst (element: Element, skipPrepare?: 1): Element | null {
-    if (this.scrollDo(element, 1, 1) || this.scrollDo(element, 1, 0)) {
+    if (element.clientHeight + 3 < element.scrollHeight &&
+       (this.scrollDo(element, 1, 1) || element.scrollTop > 0 && this.scrollDo(element, 1, 0))) {
       return element;
     }
     skipPrepare || VDom.prepareCrop();
-    let children = [] as {area: number, el: Element}[], rect: VRect | null, _ref = element.children, _len = _ref.length;
+    let children = [] as {area: number, el: Element}[], _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
       element = _ref[_len];
       if (element instanceof HTMLFormElement) { continue; }
-      if (rect = VDom.getVisibleClientRect(element)) {
-        children.push({ area: (rect[2] - rect[0]) * (rect[3] - rect[1]), el: element});
+      const rect = element.getBoundingClientRect(),
+      visible = rect.width > 0 ? VDom.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom) : null;
+      if (visible) {
+        children.push({ area: (visible[2] - visible[0]) * visible[3] - visible[1], el: element});
       }
     }
     children.sort(this.sortByArea);
     for (_len = children.length; 0 < _len--; ) {
-      if (element = this.selectFirst(children[_len].el, 1) as Element) { return element; }
+      if (element = this.selectFirst(children[_len].el, 1) as any) { return element; }
     }
     return null;
   },
