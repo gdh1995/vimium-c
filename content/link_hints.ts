@@ -260,6 +260,9 @@ var VHints = {
     }
   },
   btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,
+  /**
+   * Must ensure only call `VScroller.shouldScroll` during `@getVisibleElements`
+   */
   GetClickable (this: Hint[], element: Element): void {
     let arr: VRect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) {
@@ -436,9 +439,10 @@ var VHints = {
       if (uiRoot && uiRoot.mode !== "closed") { uiRoot = null; }
     }
     const output: Hint[] | Element[] = [], isTag = query === "*" || (<RegExpOne>/^[a-z]+$/).test(query),
+    Sc = VScroller,
     wantClickable = (filter as Function) === (this as typeof VHints).GetClickable && key === "*",
     box = root || document.webkitFullscreenElement || document;
-    wantClickable && VScroller.getScale();
+    wantClickable && Sc.getScale();
     (this as typeof VHints).clicking = wantClickable ? ClickingType.WantButNotFind : ClickingType.NotWantClickable;
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
     if (!root && (this as typeof VHints).tooHigh && box === document && list.length >= 15000) {
@@ -448,14 +452,18 @@ var VHints = {
     if (root) { return output; }
     list = null;
     if (uiRoot) {
-      const d = VDom, z = d.dbZoom, bz = d.bZoom;
+      const d = VDom, z = d.dbZoom, bz = d.bZoom, notHookScroll = Sc.scrolled === 0 && uiRoot !== d.UI.box;
       if (bz !== 1 && box === document) {
         d.dbZoom = z / bz;
         d.prepareCrop();
       }
       (output.forEach as any).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
       d.dbZoom = z;
+      if (notHookScroll) {
+        Sc.scrolled = 0;
+      }
     }
+    Sc.scrolled === 1 && Sc.supressScroll();
     if (wantClickable) { (this as typeof VHints).deduplicate(output as Hint[]); }
     if ((this as typeof VHints).frameNested === null) {}
     else if (wantClickable) {

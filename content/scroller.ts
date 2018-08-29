@@ -179,12 +179,14 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     let changed = el[key] !== before;
     if (changed) {
       el.scrollTo ? (arg[k2] = before, el.scrollTo(arg)) : (el[key] = before);
+      this.scrolled === 0 && (this.scrolled = 1);
     }
     return changed;
   },
   selectFirst (element: Element, skipPrepare?: 1): Element | null {
     if (element.clientHeight + 3 < element.scrollHeight &&
-       (this.scrollDo(element, 1, 1) || element.scrollTop > 0 && this.scrollDo(element, 1, 0))) {
+        (this.scrollDo(element, 1, 1) || element.scrollTop > 0 && this.scrollDo(element, 1, 0))) {
+      this.scrolled = 0;
       return element;
     }
     skipPrepare || VDom.prepareCrop();
@@ -222,10 +224,19 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     this.keyIsDown = 0; // it's safe to only clean keyIsDown here
     this.top = null;
   },
+  scrolled: 0,
   shouldScroll (element: Element, di: ScrollByY, amount?: number): boolean {
     const st = getComputedStyle(element);
     return (di ? st.overflowY : st.overflowX) !== "hidden" && st.display !== "none" && st.visibility === "visible" &&
       this.scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
+  },
+  supressScroll (): void {
+    this.scrolled = 2;
+    VUtils.suppressAll(window, "scroll");
+    requestAnimationFrame(function(): void {
+      VScroller.scrolled = 0;
+      VUtils.suppressAll(window, "scroll", true);
+    });
   },
   sortByArea (this: void, a: {area: number, el: Element}, b: {area: number, el: Element}): number {
     return a.area - b.area;

@@ -47,7 +47,10 @@ var VUtils = {
     return { inner: d, outer: f, set (this: void, obj: FocusListenerWrapper["inner"]): void { d = obj; } };
   },
   Stop (this: void, event: Event): void { event.stopImmediatePropagation(); },
-  prevent (event: Event): void { event.preventDefault(); return this.Stop(event); },
+  prevent (event: Event): void { event.preventDefault(); this.Stop(event); },
+  suppressAll (target: EventTarget, name: string, disable?: boolean): void {
+    (disable ? removeEventListener : addEventListener).call(target, name, this.Stop, {passive: true, capture: true} as any);
+  },
   _stack: [] as { func: (event: HandlerNS.Event) => HandlerResult, env: any}[],
   push<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
     return this._stack.push({ func, env });

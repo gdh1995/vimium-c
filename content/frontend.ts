@@ -919,11 +919,10 @@ Pagination = {
     box.className = "R Scroll UI";
     box.id = "HelpDialog";
     box.innerHTML = html;
-    hide = VUtils.Stop;
-    box.onclick = hide;
+    box.onclick = VUtils.Stop;
     for (let i of ["mousedown", "mouseup", "wheel", "contextmenu"]) {
       // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
-      box.addEventListener(i, hide, {passive: true, capture: true});
+      VUtils.suppressAll(box, i);
     }
     VSettings.cache.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToDocument ||
     box.addEventListener(notChrome ? "click" : "DOMActivate", ELs.onActivate, true);
