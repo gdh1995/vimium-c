@@ -52,7 +52,8 @@ var Vomnibar = {
     let scale = window.devicePixelRatio;
     this.zoomLevel = scale < 0.98 ? 1 / scale : 1;
     this.setWidth(options.width * PixelData.WindowSizeX + PixelData.MarginH);
-    this.mode.maxResults = Math.min(Math.max(3, 0 | ((options.height - PixelData.ListSpaceDelta) / PixelData.Item)), this.maxResults);
+    const max = Math.max(3, Math.min(0 | ((options.height - PixelData.ListSpaceDelta) / PixelData.Item), this.maxResults));
+    this.maxHeight = Math.ceil((this.mode.maxResults = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
     this.init && this.setPType(options.ptype);
     if (this.mode.favIcon) {
       scale = scale < 1.5 ? 1 : scale < 3 ? 2 : scale < 4 ? 3 : 4;
@@ -178,13 +179,14 @@ var Vomnibar = {
     this.useInput = false;
     this.isHttps = this.baseHttps;
     this.mode.query = this.lastQuery = input && input.trim().replace(this._spacesRe, " ");
+    this.height = 0;
+    this.isActive = true;
     // also clear @timer
     this.update(0, (start as number) <= (end as number) ? function(this: typeof Vomnibar): void {
       if (this.input.value === this.inputText) {
         this.input.setSelectionRange(start as number, end as number);
       }
     } : null);
-    this.isActive ? (this.height = -1) : (this.isActive = true);
     if (this.init) { this.init(); }
     this.input.value = this.inputText;
   },
@@ -674,7 +676,6 @@ var Vomnibar = {
       this.input.addEventListener("compositionstart", func);
       this.input.addEventListener("compositionend", func);
     }
-    this.maxHeight = Math.ceil(this.maxResults * PixelData.Item + PixelData.OthersIfNotEmpty);
     this.init = VUtils.makeListRenderer = null as never;
     if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && ver !== BrowserVer.assumedVer || this.bodySt.d != null) { return; }
     const styles = (document.querySelector("style") as HTMLStyleElement).textContent,

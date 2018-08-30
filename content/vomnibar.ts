@@ -65,7 +65,7 @@ var Vomnibar = {
       this.status = VomnibarNS.Status.ToShow;
     } else if (this.status > VomnibarNS.Status.ToShow) {
       this.focus();
-      this.onShown();
+      this.status = VomnibarNS.Status.ToShow;
     }
     options.secret = 0; options.vomnibar = options.vomnibar2 = options.CSS = "";
     options.name = "activate";
