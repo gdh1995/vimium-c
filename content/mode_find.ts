@@ -9,8 +9,9 @@ var VFindMode = {
   parsedQuery: "",
   historyIndex: 0,
   notEmpty: false,
-  isRegex: false,
+  isRegex: null as boolean | null,
   ignoreCase: null as boolean | null,
+  wholeWord: false,
   hasResults: false,
   matchCount: 0,
   coords: null as null | MarksNS.ScrollInfo,
@@ -354,36 +355,55 @@ html > count{float:right;}`,
     if (this._small && count < 150) { return; }
     this.box.style.width = ((this._small = count < 150) ? 0 : count) + "px";
   },
-  _ctrlRe: <RegExpG & RegExpSearchable<0>> /\\[IR\\ir]/g,
+  _ctrlRe: <RegExpG & RegExpSearchable<0>> /\\[CIRW\\cirw]/g,
+  _bslashRe: <RegExpG & RegExpSearchable<0>> /\\\\/g,
   escapeAllRe: <RegExpG> /[$()*+.?\[\\\]\^{|}]/g,
   updateQuery (query: string): void {
-    this.query = query;
-    this.isRegex = VSettings.cache.regexFindMode;
-    this.ignoreCase = null as boolean | null;
-    query = this.parsedQuery = query.replace(this._ctrlRe, this.FormatQuery);
-    this.notEmpty = !!query;
-    this.ignoreCase !== null || (this.ignoreCase = !VUtils.hasUpperCase(query));
-    this.isRegex || (query = this.isActive ? query.replace(this.escapeAllRe, "\\$&") : "");
+    const a = this;
+    a.query = query;
+    a.wholeWord = false;
+    a.isRegex = a.ignoreCase = null as boolean | null;
+    query = query.replace(a._ctrlRe, a.FormatQuery);
+    let isRe = a.isRegex, B = "\\b";
+    if (a.wholeWord && !isRe) {
+      query = B + query.replace(a._bslashRe, "\\").replace(a.escapeAllRe, "\\$&") + B;
+      isRe = true;
+    }
+    else if (isRe === null) {
+      isRe = query.startsWith(B) || query.endsWith(B) || VSettings.cache.regexFindMode;
+    }
+    isRe = isRe || false;
+    query = isRe ? query !== "\\b\\b" && query !== B ? query : "" : query.replace(a._bslashRe, "\\");
+    a.parsedQuery = query;
+    a.isRegex = isRe;
+    a.notEmpty = !!query;
+    a.ignoreCase !== null || (a.ignoreCase = !VUtils.hasUpperCase(query));
+    isRe || (query = a.isActive ? query.replace(a.escapeAllRe, "\\$&") : "");
 
     let re: RegExpG | undefined;
     if (query) {
-      try { re = new RegExp(query, this.ignoreCase ? "gi" as "g" : "g"); } catch (e) {}
+      try { re = new RegExp(query, a.ignoreCase ? "gi" as "g" : "g"); } catch (e) {}
     }
     let matches: RegExpMatchArray | null = null;
     if (re) {
       query = ((document.webkitFullscreenElement || document.documentElement) as HTMLElement).innerText;
-      matches = query.match(re) || query.replace(this.A0Re, " ").match(re);
+      matches = query.match(re) || query.replace(a.A0Re, " ").match(re);
       query = "";
     }
-    this.regexMatches = this.isRegex ? matches : null;
-    this.activeRegexIndex = 0;
-    this.matchCount = matches ? matches.length : 0;
+    a.regexMatches = a.isRegex ? matches : null;
+    a.activeRegexIndex = 0;
+    a.matchCount = matches ? matches.length : 0;
   },
   FormatQuery (this: void, str: string): string {
-    const flag = str.charCodeAt(1), enabled = flag >= KnownKey.a;
-    if (flag === KnownKey.backslash) { return '\\'; }
-    if ((flag & KnownKey.AlphaMask) === KnownKey.I) { VFindMode.ignoreCase = enabled; }
-    else { VFindMode.isRegex = enabled; }
+    let flag = str.charCodeAt(1), enabled = flag >= KnownKey.a, a = VFindMode;
+    if (flag === KnownKey.backslash) { return str; }
+    flag &= KnownKey.AlphaMask;
+    if (flag === KnownKey.I || flag === KnownKey.C) { a.ignoreCase = enabled === (flag === KnownKey.I); }
+    else if (flag === KnownKey.W) {
+      if (a.isRegex) { return str; }
+      a.wholeWord = enabled;
+    }
+    else { a.isRegex = enabled; }
     return "";
   },
   restoreSelection (isCur?: boolean): void {
