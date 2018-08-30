@@ -1693,7 +1693,7 @@ Are you sure you want to continue?`);
     },
     omni (this: void, request: FgReq["omni"], port: Port): void {
       if (isNotVomnibarPage(port)) { return; }
-      return Completers.filter(request.query, request,
+      return Completion.filter(request.query, request,
       PostCompletions.bind<Port, 0 | 1 | 2, Readonly<CompletersNS.Suggestion>[], boolean, CompletersNS.MatchType, number, void>(port
         , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
     },
@@ -1941,7 +1941,7 @@ Are you sure you want to continue?`);
       if (type === "tab" && (<number><string | number>url | 0) === TabRecency.last) {
         return Backend.showHUD("The current tab should be kept.");
       }
-      return Completers.removeSug(url, type, function(succeed): void {
+      return Completion.removeSug(url, type, function(succeed): void {
         return Backend.showHUD(succeed ? `Succeed to delete a ${name}` : `The ${name} is not found!`);
       });
     },

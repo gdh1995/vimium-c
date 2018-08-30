@@ -101,7 +101,7 @@ type CompletersMap = {
     [P in CompletersNS.ValidTypes]: ReadonlyArray<Completer>;
 };
 interface WindowEx extends Window {
-  Completers: CompletersMap & CompletersNS.GlobalCompletersConstructor;
+  Completion: CompletersNS.GlobalCompletersConstructor;
 }
 type SearchSuggestion = CompletersNS.SearchSuggestion;
 
@@ -1003,16 +1003,19 @@ searchEngines: {
   },
   protoRe: <RegExpG & RegExpSearchable<0>> /(?:^|\s)__proto__(?=$|\s)/g,
   rsortByRelevancy (a: Suggestion, b: Suggestion): number { return b.relevancy - a.relevancy; }
-};
-
-(window as WindowEx).Completers = {
+},
+knownCs: CompletersMap & SafeObject = {
+  __proto__: null as never,
   bookm: [Completers.bookmarks],
   domain: [Completers.domains],
   history: [Completers.history],
   omni: [Completers.searchEngines, Completers.domains, Completers.history, Completers.bookmarks],
   search: [Completers.searchEngines],
-  tab: [Completers.tabs],
-  filter(this: WindowEx["Completers"], query: string, options: CompletersNS.FullOptions
+  tab: [Completers.tabs]
+};
+
+(window as WindowEx).Completion = {
+  filter(this: void, query: string, options: CompletersNS.FullOptions
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
     rawQuery = (query = query.trim()) && query.replace(Utils.spacesRe, " ");
@@ -1027,16 +1030,16 @@ searchEngines: {
     let arr: ReadonlyArray<Completer> | null = null, str: string;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
       str = queryTerms[0][1];
-      arr = str === "b" ? this.bookm : str === "h" ? this.history : str === "t" ? this.tab
-        : str === "d" ? this.domain : str === "s" ? this.search : str === "o" ? this.omni : null;
+      arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history : str === "t" ? knownCs.tab
+        : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (arr) {
         queryTerms.shift();
-        autoSelect = arr !== this.omni;
+        autoSelect = arr !== knownCs.omni;
         return Completers.filter(arr);
       }
     }
-    const a = this[options.type];
-    return Completers.filter(a instanceof Array ? a : this.omni);
+    const a = knownCs[options.type];
+    return Completers.filter(a || knownCs.omni);
   },
   removeSug (url, type, callback): void {
     switch (type) {
@@ -1405,7 +1408,7 @@ setTimeout(function() {
   Settings.postUpdate("searchEngines", null);
 }, 300);
 
-var Completers = { filter: function(a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
+var Completion = { filter: function(a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
   setTimeout(function() {
     return Completers.filter(a, b, c);
   }, 210);

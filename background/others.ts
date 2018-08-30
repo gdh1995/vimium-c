@@ -343,7 +343,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
         || !key.startsWith(last as string) ? "omni"
       : matchType === CompletersNS.MatchType.searchWanted ? "search"
       : firstType || "omni";
-    return Completers.filter(key, { type, maxResults, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
+    return Completion.filter(key, { type, maxResults, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     const arr = lastSuggest;
@@ -358,7 +358,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       // need a re-computation
       // * may has been cleaned, or
       // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
-      return Completers.filter(text, { type: "omni", maxResults: 3, maxChars, singleLine: true }, function(sugs, autoSelect): void {
+      return Completion.filter(text, { type: "omni", maxResults: 3, maxChars, singleLine: true }, function(sugs, autoSelect): void {
         return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) :  open(text, disposition);
       });
     }
