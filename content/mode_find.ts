@@ -393,7 +393,7 @@ html > count{float:right;}`,
 
     let re: RegExpG | null = null;
     if (query) {
-      try { re = new RegExp(query, a.ignoreCase ? "gi" as "g" : "g"); } catch (e) {}
+      try { re = new RegExp(ww ? B + query + B : query, a.ignoreCase ? "gi" as "g" : "g"); } catch (e) {}
     }
     let matches: RegExpMatchArray | null = null;
     if (re) {
