@@ -1236,7 +1236,7 @@ Are you sure you want to continue?`);
     showVomnibar (this: void, forceInner?: boolean): void {
       let port = cPort as Port | null;
       if (!port) {
-        port = indexFrame(TabRecency.last, 0);
+        port = cPort = indexFrame(TabRecency.last, 0);
         if (!port) { return; }
       } else if (port.sender.frameId !== 0 && port.sender.tabId >= 0) {
         port = indexFrame(port.sender.tabId, 0) || port;
@@ -1254,7 +1254,7 @@ Are you sure you want to continue?`);
         ptype: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         script: useInner ? "" : Settings.CONST.VomnibarScript_f,
         secret: getSecret(),
-        CSS: ensureInnerCSS(cPort)
+        CSS: ensureInnerCSS(port)
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
       port.postMessage<1, "Vomnibar.activate">({
         name: "execute", count: commandCount, CSS: null,
