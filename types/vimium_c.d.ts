@@ -191,6 +191,7 @@ declare namespace SettingsNS {
   interface FrontendSettingCache extends FrontendSettings {
     grabFocus: boolean;
     browserVer: BrowserVer;
+    browser: BrowserType;
     onMac: boolean;
   }
 }

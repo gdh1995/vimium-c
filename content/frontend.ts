@@ -828,9 +828,10 @@ Pagination = {
   },
   requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = {
     init (request): void {
-      const r = requestHandlers, flags = request.flags;
-      (VSettings.cache = request.load).onMac && (VKeyboard.correctionMap = Object.create<string>(null));
-      VDom.specialZoom = !notChrome && VSettings.cache.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
+      const r = requestHandlers, {load, flags} = request;
+      load.browser = notChrome ? (window as any).StyleMedia ? BrowserType.Edge : BrowserType.Firefox : BrowserType.Chrome;
+      (VSettings.cache = load).onMac && (VKeyboard.correctionMap = Object.create<string>(null));
+      VDom.specialZoom = !notChrome && load.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
       r.keyMap(request);
       if (flags) {
         InsertMode.grabFocus = !(flags & Frames.Flags.userActed);

@@ -365,18 +365,28 @@ html > count{float:right;}`,
     a.wholeWord = false;
     a.isRegex = a.ignoreCase = null as boolean | null;
     query = query.replace(a._ctrlRe, a.FormatQuery);
-    let isRe = a.isRegex, B = "\\b";
-    if (a.wholeWord && !isRe) {
-      query = B + query.replace(a._bslashRe, "\\").replace(a.escapeAllRe, "\\$&") + B;
-      isRe = true;
-    }
-    else if (isRe === null) {
-      isRe = query.startsWith(B) || query.endsWith(B) || VSettings.cache.regexFindMode;
+    const supportWholeWord = VSettings.cache.browser === BrowserType.Chrome;
+    let isRe = a.isRegex, ww = a.wholeWord, B = "\\b";
+    if (isRe === null && !ww) {
+      isRe = VSettings.cache.regexFindMode;
+      const info = 2 * +query.startsWith(B) + +query.endsWith(B);
+      if (info === 3 && !isRe && query.length > 3) {
+        query = query.slice(2, -2);
+        ww = true;
+      } else if (info && info < 3) {
+        isRe = true;
+      }
     }
     isRe = isRe || false;
+    if (ww && (isRe || !supportWholeWord)) {
+      query = B + query.replace(a._bslashRe, "\\").replace(a.escapeAllRe, "\\$&") + B;
+      ww = false;
+      isRe = true;
+    }
     query = isRe ? query !== "\\b\\b" && query !== B ? query : "" : query.replace(a._bslashRe, "\\");
     a.parsedQuery = query;
     a.isRegex = isRe;
+    a.wholeWord = ww;
     a.notEmpty = !!query;
     a.ignoreCase !== null || (a.ignoreCase = !VUtils.hasUpperCase(query));
     isRe || (query = a.isActive ? query.replace(a.escapeAllRe, "\\$&") : "");
@@ -430,7 +440,7 @@ html > count{float:right;}`,
     const isRe = this.isRegex, pR = this.parsedRegexp;
     do {
       q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches(back) : this.parsedQuery;
-      found = this.find(q, !notSens, back, true, false, false, false);
+      found = this.find(q, !notSens, back, true, this.wholeWord, false, false);
       if (found && pR && (par = VDom.findSelectionParent(3))) {
         pR.lastIndex = 0;
         const text = (par as HTMLElement).innerText;
