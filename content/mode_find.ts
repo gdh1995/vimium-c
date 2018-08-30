@@ -7,6 +7,7 @@ var VFindMode = {
   query: "",
   query0: "",
   parsedQuery: "",
+  parsedRegexp: null as RegExpG | null,
   historyIndex: 0,
   notEmpty: false,
   isRegex: null as boolean | null,
@@ -52,7 +53,7 @@ html > count{float:right;}`,
     }
 
     this.parsedQuery = this.query = "";
-    this.regexMatches = null;
+    this.parsedRegexp = this.regexMatches = null;
     this.activeRegexIndex = 0;
 
     const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
@@ -193,7 +194,7 @@ html > count{float:right;}`,
     if (this.box === VDom.lastHovered) { VDom.lastHovered = null; }
     this.parsedQuery = this.query = this.query0 = "";
     this.historyIndex = this.matchCount = 0;
-    this.box = this.input = this.countEl =
+    this.box = this.input = this.countEl = this.parsedRegexp =
     this.initialRange = this.regexMatches = this.coords = null as never;
     return el;
   },
@@ -380,7 +381,7 @@ html > count{float:right;}`,
     a.ignoreCase !== null || (a.ignoreCase = !VUtils.hasUpperCase(query));
     isRe || (query = a.isActive ? query.replace(a.escapeAllRe, "\\$&") : "");
 
-    let re: RegExpG | undefined;
+    let re: RegExpG | null = null;
     if (query) {
       try { re = new RegExp(query, a.ignoreCase ? "gi" as "g" : "g"); } catch (e) {}
     }
@@ -388,9 +389,9 @@ html > count{float:right;}`,
     if (re) {
       query = ((document.webkitFullscreenElement || document.documentElement) as HTMLElement).innerText;
       matches = query.match(re) || query.replace(a.A0Re, " ").match(re);
-      query = "";
     }
-    a.regexMatches = a.isRegex ? matches : null;
+    a.regexMatches = isRe ? matches : null;
+    a.parsedRegexp = isRe ? re : null;
     a.activeRegexIndex = 0;
     a.matchCount = matches ? matches.length : 0;
   },
@@ -421,13 +422,23 @@ html > count{float:right;}`,
   },
   execute (query?: string | null, options?: FindNS.ExecuteOptions): void {
     options = options ? VUtils.safer(options) : Object.create(null) as FindNS.ExecuteOptions;
-    let el: Element | null, found: boolean, count = (options.count as number) | 0, back = count < 0
+    let el: Element | null, found: boolean, count = ((options.count as number) | 0) || 1, back = count < 0
+      , par: Element | null = null, timesRegExpNotMatch = 0
       , q: string, notSens = this.ignoreCase && !options.caseSensitive;
     options.noColor || this.toggleStyle(1);
     back && (count = -count);
+    const isRe = this.isRegex, pR = this.parsedRegexp;
     do {
-      q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(back) : this.parsedQuery;
+      q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches(back) : this.parsedQuery;
       found = this.find(q, !notSens, back, true, false, false, false);
+      if (found && pR && (par = VDom.findSelectionParent(3))) {
+        pR.lastIndex = 0;
+        const text = (par as HTMLElement).innerText;
+        if (typeof text === "string" && !(pR as RegExpG & RegExpSearchable<0>).exec(text)
+            && timesRegExpNotMatch++ < 9) {
+          count++;
+        }
+      }
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel, 0);
     (el = VEventMode.lock()) && !VDom.isSelected(document.activeElement as Element) && el.blur && el.blur();

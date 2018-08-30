@@ -333,6 +333,11 @@ var VDom = {
     node && node === sel.anchorNode && i === sel.anchorOffset && (node = node.childNodes[i]);
     return node && node.nodeType !== /* Node.ELEMENT_NODE */ 1 ? node.parentElement : node as (Element | null);
   },
+  findSelectionParent (maxNested: number): Element | null {
+    let focus = this.getSelectionFocusElement(), anc = window.getSelection().anchorNode as Node, i = 0;
+    for (; focus && i < maxNested && !focus.contains(anc); i++) { focus = focus.parentElement; }
+    return i < maxNested ? focus : null;
+  },
   getElementWithFocus: function(sel: Selection, di: BOOL): Element | null {
     let r = sel.getRangeAt(0);
     this.selType(sel) === "Range" && (r = r.cloneRange()).collapse(!di);
