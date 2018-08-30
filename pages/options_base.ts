@@ -278,8 +278,10 @@ if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDevi
 ) (function(): void {
   const css = document.createElement("style"), ratio = window.devicePixelRatio, version = bgSettings.CONST.ChromeVersion;
   const onlyInputs = version >= BrowserVer.MinRoundedBorderWidthIsNotEnsured && ratio >= 1;
-  css.textContent = onlyInputs ? `input, textarea { border-width: ${1.12 / ratio}px; }`
-    : `* { border-width: ${version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.12 / ratio : 1}px !important; }`;
+  let scale: string | number = onlyInputs || version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.12 / ratio : 1;
+  scale = ("" + scale).substring(0, 7);
+  css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
+    : `* { border-width: ${scale}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
 })();
 

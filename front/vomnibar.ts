@@ -126,7 +126,6 @@ var Vomnibar = {
   renderItems: null as never as Render,
   selection: -1,
   timer: 0,
-  timer2: 0,
   wheelTime: 0,
   browserVersion: BrowserVer.assumedVer,
   wheelOptions: { passive: false, capture: true as true },
@@ -151,14 +150,12 @@ var Vomnibar = {
     this.barCls.remove("empty");
     this.list.classList.remove("no-favicon");
     if (this.sameOrigin) { return this.onHidden(); }
-    this.timer2 = requestAnimationFrame(this.AfterHide);
+    requestAnimationFrame(this.AfterHide);
     this.timer = setTimeout(this.AfterHide, 25);
   },
   AfterHide (this: void): void {
     const a = Vomnibar;
-    cancelAnimationFrame(a.timer2);
-    clearTimeout(a.timer);
-    a.timer = a.timer2 = 0;
+    if (!a.height) { return; }
     return a.onHidden();
   },
   onHidden (): void {
@@ -170,9 +167,8 @@ var Vomnibar = {
     this.mode.query = this.lastQuery = this.inputText = this.lastNormalInput = "";
     this.isSearchOnTop = false;
     this.modeType = this.mode.type = "omni";
-    this.doEnter && setTimeout(this.doEnter, 0);
+    this.doEnter ? setTimeout(this.doEnter, 0) : (<RegExpOne> /a?/).test("");
     this.doEnter = null;
-    (<RegExpOne> /a?/).test("");
   },
   reset (input: string, start?: number, end?: number): void {
     this.inputText = input;
@@ -462,8 +458,9 @@ var Vomnibar = {
     const item: SuggestionE | UrlInfo = sel >= 0 ? this.completions[sel] : { url: this.input.value.trim() },
     action = this.actionType, https = this.isHttps,
     func = function(this: void): void {
-      return item.sessionId != null ? Vomnibar.gotoSession(item as SuggestionE & { sessionId: string | number })
+      item.sessionId != null ? Vomnibar.gotoSession(item as SuggestionE & { sessionId: string | number })
         : Vomnibar.navigateToUrl((item as UrlInfo).url, action, https);
+      (<RegExpOne> /a?/).test("");
     };
     if (this.actionType < ReuseType.newFg) { return func(); }
     this.doEnter = func;
