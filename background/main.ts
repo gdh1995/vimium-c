@@ -1236,7 +1236,7 @@ Are you sure you want to continue?`);
     showVomnibar (this: void, forceInner?: boolean): void {
       let port = cPort as Port | null;
       if (!port) {
-        port = cPort = indexFrame(TabRecency.last, 0);
+        port = cPort = indexFrame(TabRecency.last, 0) as Port;
         if (!port) { return; }
       } else if (port.sender.frameId !== 0 && port.sender.tabId >= 0) {
         port = indexFrame(port.sender.tabId, 0) || port;
