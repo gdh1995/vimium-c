@@ -17,6 +17,8 @@ interface String {
 }
 
 (function (): void {
+  const symMatch = typeof Symbol === "function" && Symbol.match || null;
+
   "".startsWith || (
   String.prototype.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString);
@@ -38,10 +40,10 @@ interface String {
   });
 
   function check(a: any, b: any): null | string {
+    /** note: should never call `valueOf` or `toString` on a / b */
     if (a == null) { return "String.prototype.${func} called on null or undefined"; }
     if (!b) { return null; }
-    let i: any, f: any, u: undefined;
-    i = typeof Symbol === "function" && Symbol.match && (f = b[Symbol.match]) !== u ? f : b instanceof RegExp;
+    let f: any, u: undefined, i = symMatch && (f = b[symMatch]) !== u ? f : b instanceof RegExp;
     return i ? "First argument to String.prototype.${func} must not be a regular expression" : null;
   }
 })();
