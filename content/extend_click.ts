@@ -6,7 +6,7 @@
     , installer: Listener | null, box: EventTarget
     , secret = "" + ((Math.random() * 1e6 + 1) | 0);
   if (!(script instanceof HTMLScriptElement)) { return; }
-  addEventListener("VimiumHook", installer = function(event) {
+  addEventListener("VimiumHook", installer = function(event: Event): void {
     const t = event.target;
     if (!(t instanceof Element) || t.getAttribute("data-vimium-secret") !== secret) { return; }
     event.stopImmediatePropagation();
@@ -58,22 +58,22 @@ type ApplyArgs<T, ArgParent, R> = (this: (this: T, ...a: ArgParent[]) => R, this
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
 type Call3o<T, A, B, C, R> = (this: (this: T, a: A, b: B, c?: C) => R, thisArg: T, a: A, b: B, c?: C) => R;
 
-const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
+const ETP = EventTarget.prototype, _listen = ETP.addEventListener, toRegister: Element[] = [],
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, R, A, B, C>(func: (this: T, a?: A, b?: B, c?: C) => R, self: T, a?: A, b?: B, c?: C) => R,
-dispatch = (_call as Call1<EventTarget, Event, boolean>).bind(EventTarget.prototype.dispatchEvent),
+dispatch = (_call as Call1<EventTarget, Event, boolean>).bind(ETP.dispatchEvent),
 append = (_call as Call1<Node, Node, Node>).bind(document.appendChild),
 Contains = document.contains, contains = Contains.bind(document),
 Insert = document.insertBefore,
-splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister),
-CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment, SR = (window.ShadowRoot || CE) as any as typeof ShadowRoot,
+CE: typeof Event = typeof CustomEvent === "function" ? CustomEvent as any : Event,
+HA = HTMLAnchorElement, DF = DocumentFragment, SR = (window.ShadowRoot || CE) as any as typeof ShadowRoot,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
-funcToString = Function.prototype.toString,
+FP = Function.prototype, funcToString = FP.toString,
 toStringApply = (_apply as ApplyArgs<Function, any, string>).bind(funcToString),
 listenA = (_apply as ApplyArgs<EventTarget, any, void>).bind(_listen),
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
-Stop = KeyboardEvent.prototype.stopImmediatePropagation,
+Stop = CE.prototype.stopImmediatePropagation,
 Attr = E.prototype.setAttribute, _remove = E.prototype.remove, remove = _call.bind(_remove),
 rel = removeEventListener, ct = clearTimeout,
 hooks = {
@@ -84,7 +84,7 @@ hooks = {
   addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): any {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA || a instanceof HF) && a instanceof E) {
-      register(a as Element);
+      toRegister.push(a as Element);
       if (timer === 0) { timer = next(); }
     }
     const len = arguments.length;
@@ -93,6 +93,7 @@ hooks = {
 },
 { toString, addEventListener } = hooks
 ;
+toRegister.push = [].push, toRegister.splice = [].splice;
 document.currentScript && call(Attr, document.currentScript, "data-vimium-hook", "");
 
 let handler = function(this: void): void {
@@ -109,7 +110,6 @@ let handler = function(this: void): void {
   handler = Create = null as never;
   timer = toRegister.length > 0 ? next() : 0;
 },
-register = toRegister.push.bind<Element[], Element, number>(toRegister),
 Create = document.createElement as Document["createElement"],
 box: HTMLDivElement, timer = setTimeout(handler, 1000),
 next = setTimeout.bind(null as never, function(): void {
@@ -117,7 +117,7 @@ next = setTimeout.bind(null as never, function(): void {
   timer = start > 0 ? next() : 0;
   if (len > 0) {
     // skip some nodes if only crashing, so that there would be less crash logs in console
-    for (const i of splice(start, delta)) { reg(i); }
+    for (const i of toRegister.splice(start, delta)) { reg(i); }
   }
 }, 1);
 function reg(this: void, element: Element): void {
@@ -134,6 +134,8 @@ function reg(this: void, element: Element): void {
       e2 = e1;
     }
   }
+  // note: the below changes DOM trees,
+  // so `dispatch` MUST NEVER throw. Otherwises a page might break
   if ((e2 = e1.parentNode) == null) {
     append(box, e1);
     dispatch(element, event);
@@ -142,23 +144,18 @@ function reg(this: void, element: Element): void {
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
-    regFragment(e2, e1, element, event);
-  }
-}
-function regFragment(root: DocumentFragment, e1: Element, element: Element, event: CustomEvent) {
-  try {
     const after = e1.nextSibling;
     append(box, e1);
     dispatch(element, event);
-    call<Node, Node, Node, Node | null, 1>(Insert, root, e1, after);
-  } catch (e) {}
+    call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, after);
+  }
 }
 function destroy(e?: CustomEvent): void {
   if (e && e.detail !== "" + sec) { return; }
   e && call(Stop, e);
-  EventTarget.prototype.addEventListener === addEventListener && (EventTarget.prototype.addEventListener = _listen);
-  Function.prototype.toString === toString && (Function.prototype.toString = toString);
-  next = register = function() { return 1; };
+  ETP.addEventListener === addEventListener && (ETP.addEventListener = _listen);
+  FP.toString === toString && (FP.toString = toString);
+  next = toRegister.push = function() { return 1; };
   toRegister.length = 0;
   ct(timer);
   timer = 1;
@@ -170,8 +167,8 @@ function destroy(e?: CustomEvent): void {
 if (typeof E !== "function") {
   return destroy();
 }
-EventTarget.prototype.addEventListener = addEventListener;
-Function.prototype.toString = toString;
+ETP.addEventListener = addEventListener;
+FP.toString = toString;
 _listen("DOMContentLoaded", handler, true);
 }
 })();
