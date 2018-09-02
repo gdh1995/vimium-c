@@ -75,7 +75,8 @@ listenA = (_apply as ApplyArgs<EventTarget, any, void>).bind(_listen),
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
 Stop = CE.prototype.stopImmediatePropagation,
-Attr = E.prototype.setAttribute, _remove = E.prototype.remove, remove = _call.bind(_remove),
+Create = document.createElement as Document["createElement"],
+Attr = E.prototype.setAttribute, GetAttr = E.prototype.getAttribute, remove = _call.bind(E.prototype.remove),
 rel = removeEventListener, ct = clearTimeout,
 hooks = {
   toString: function toString(this: Function): string {
@@ -105,13 +106,16 @@ let handler = function(this: void): void {
   box = call(Create, document, "div") as HTMLDivElement;
   append(docEl, box);
   listen(box, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
-  call(Attr, box, "data-vimium-secret", "" + sec);
+  const key = "data-vimium-secret";
+  call(Attr, box, key, "" + sec);
   dispatch(box, new CE("VimiumHook"));
   remove(box);
-  handler = Create = null as never;
+  handler = null as never;
   timer = toRegister.length > 0 ? next() : 0;
+  if (call(GetAttr, box, key) != null) {
+    destroy();
+  }
 },
-Create = document.createElement as Document["createElement"],
 box: HTMLDivElement, timer = setTimeout(handler, 1000),
 next = setTimeout.bind(null as never, function(): void {
   const len = toRegister.length, start = len > 9 ? len - 10 : 0, delta = len - start;
