@@ -157,16 +157,10 @@ function reg(this: void, element: Element): void {
 }
 function destroy(e?: CustomEvent): void {
   if (e && e.detail !== "" + sec) { return; }
-  e && call(Stop, e);
-  ETP.addEventListener === addEventListener && (ETP.addEventListener = _listen);
-  FP.toString === toString && (FP.toString = funcToString);
   next = toRegister.push = function() { return 1; };
   toRegister.length = 0;
   ct(timer);
-  timer = 1;
-  let a = box;
   box = null as never;
-  a && call(rel as any, a, "VimiumUnhook", destroy, true);
 }
 // only the below can affect outsides
 if (typeof E !== "function") {
