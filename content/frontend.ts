@@ -18,11 +18,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     vimiumListened?: ListenType;
   }
   type LockableElement = HTMLElement;
-  const enum HookAction {
-    Install = 0,
-    Suppress = 1,
-    Destroy = 2,
-  }
 
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , currentKeys = "", isEnabledForUrl = false, isLocked = false

@@ -3,7 +3,7 @@ VimiumInjector.checkIfEnabled = (function (this: null, func: any): void {
   return func({ handler: "checkIfEnabled", url: window.location.href });
 }).bind(null, VimiumInjector.checkIfEnabled);
 VDom.documentReady(function() {
-  if (!VimiumInjector) { return; }
+  VimiumInjector &&
   addEventListener("hashchange", VimiumInjector.checkIfEnabled);
 });
 
@@ -17,7 +17,7 @@ if ((window.browser && (browser as typeof chrome).runtime || chrome.runtime).onM
 
 VSettings.uninit = function(type: number): void {
   let injector = VimiumInjector;
-  if (type > 1 && injector) {
+  if (type >= HookAction.Destroy && injector) {
     removeEventListener("hashchange", injector.checkIfEnabled);
     injector.alive = 0;
     injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;

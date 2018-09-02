@@ -22,6 +22,7 @@
   }
   addEventListener("VimiumOnclick", onclick, true);
   function destroy() {
+    /** this function should keep idempotent */
     removeEventListener("VimiumHook", installer, true);
     removeEventListener("VimiumOnclick", onclick, true);
     if (box) {
@@ -31,7 +32,7 @@
     }
     VSettings && (VSettings.uninit = null);
   }
-  VSettings.uninit = function(): void { VSettings.uninit = null; VDom.documentReady(destroy); };
+  VSettings.uninit = function(): void { VDom.documentReady(destroy); };
   script.type = "text/javascript";
   let str = func.toString(), appVer = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/);
   if (appVer && +appVer[1] >= BrowserVer.MinEnsureMethodFunction) {
@@ -42,7 +43,7 @@
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();
-  VDom.documentReady(function() { box || destroy(); });
+  VDom.documentReady(function() { box || setTimeout(function() { box || destroy(); }, 17); });
   if (script.hasAttribute("data-vimium-hook")) { return; } // It succeeded to hook.
   console.info("Some functions of Vimium C may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1"));
   interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }

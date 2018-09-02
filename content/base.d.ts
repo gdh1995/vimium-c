@@ -64,6 +64,12 @@ interface ViewBox extends ViewOffset {
   readonly [4]: number; // max-left or 0
 }
 
+declare const enum HookAction {
+  Install = 0,
+  Suppress = 1,
+  Destroy = 2,
+}
+
 declare const enum EditableType {
   Default = 0,
   NotEditable = Default,
@@ -308,8 +314,7 @@ interface VHUD {
 interface VSettings {
   enabled: boolean;
   cache: SettingsNS.FrontendSettingCache;
-  // type: 1: disabled; 2: destroyed
-  uninit: ((this: void, type: 1 | 2) => any) | null;
+  uninit: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => any) | null;
   destroy (this: void, silent?: boolean, keepChrome?: boolean): void;
 }
 declare var VimiumInjector: VimiumInjector, VSettings: VSettings;
