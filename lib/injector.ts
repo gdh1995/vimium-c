@@ -80,6 +80,7 @@ if (document.readyState === "complete") {
 }
 })();
 
+(!document.currentScript || ((document.currentScript as HTMLScriptElement).getAttribute("data-vimium-hooks") || "").toLowerCase() != "false") &&
 (function(): void {
 type ListenerEx = EventTarget["addEventListener"] & { vimiumHooked?: boolean; }
 
