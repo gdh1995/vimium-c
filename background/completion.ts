@@ -1362,7 +1362,6 @@ knownCs: CompletersMap & SafeObject = {
     },
     enabled: true,
     _dataUrl: "wait",
-    blank (this: void): void {},
     xhr (): XMLHttpRequest | null {
       if (!this._dataUrl) { return null; }
       const xhr = new XMLHttpRequest();
@@ -1390,7 +1389,7 @@ knownCs: CompletersMap & SafeObject = {
         this.todos.length = 0;
       }
       if (this.enabled === enabled) { return; }
-      this.todos = enabled ? [] as ItemToDecode[] : { length: 0, push: this.blank } as any;
+      this.todos = enabled ? [] as ItemToDecode[] : { length: 0, push() {} } as any;
       this.enabled = enabled;
       this._ind = -1;
     },

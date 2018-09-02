@@ -155,7 +155,7 @@ function destroy(e?: CustomEvent): void {
   if (e && e.detail !== "" + sec) { return; }
   e && call(Stop, e);
   ETP.addEventListener === addEventListener && (ETP.addEventListener = _listen);
-  FP.toString === toString && (FP.toString = toString);
+  FP.toString === toString && (FP.toString = funcToString);
   next = toRegister.push = function() { return 1; };
   toRegister.length = 0;
   ct(timer);
