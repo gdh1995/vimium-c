@@ -22,10 +22,6 @@ VSettings.uninit = function(type: number): void {
     injector.alive = 0;
     injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;
   }
-  type ET2 = EventTargetEx;
-  try {
-    typeof (EventTarget as ET2).vimiumRemoveHooks === "function" && (EventTarget as ET2).vimiumRemoveHooks();
-  } catch (e) {}
 };
 
 VimiumInjector.destroy = VSettings.destroy;
