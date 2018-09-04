@@ -16,8 +16,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
     scriptElement.async = false;
     scriptElement.defer = true;
     scriptElement.src = src[0] === "/" || src.lastIndexOf(prefix, 0) === 0 ? src : "/" + src;
-    head.replaceChild(scriptElement, loader);
-    loader = scriptElement;
+    head.insertBefore(scriptElement, loader).remove();
   }
   loader.remove();
   setTimeout(function() {
