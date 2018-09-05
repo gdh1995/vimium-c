@@ -291,7 +291,7 @@ location.pathname.indexOf("/popup.html") !== -1 && BG.Utils.require("Exclusions"
   return function() {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
-})((function(tabs: [chrome.tabs.Tab] | never[]): void {
+})(function(tabs: [chrome.tabs.Tab] | never[]): void {
 interface PopExclusionRulesOption extends ExclusionRulesOption {
   readonly url: string;
   inited: 0 | 1 /* no initial matches */ | 2 /* some matched */;
@@ -305,14 +305,14 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   generateDefaultPattern (this: PopExclusionRulesOption): string;
 }
   let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
-  const notRunnable = !ref && !(tabs[0] && tabs[0].status === "loading"
+  const notRunnable = !ref && !(tabs[0] && tabs[0].url && tabs[0].status === "loading"
     && (tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0));
   if (notRunnable) {
     const body = document.body as HTMLBodyElement;
     body.textContent = "";
     blockedMsg.style.display = "";
     (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings.CONST.CurrentVersion;
-    if (!tabs[0] || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
+    if (!tabs[0] || !tabs[0].url || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
       (blockedMsg.querySelector("#refresh-after-install") as HTMLElement).remove();
     }
     body.style.width = "auto";
@@ -496,4 +496,4 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     BG.Backend.forceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
     window.close();
   }
-})));
+}));
