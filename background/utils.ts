@@ -435,24 +435,23 @@ var Utils = {
       return Promise.resolve(p);
     }
     return (window as any)[name] = new Promise<T>(function(resolve, reject) {
-      Utils.loadJS(Settings.CONST[name], function(): void {
+      const script = document.createElement("script");
+      script.async = false;
+      script.src = Settings.CONST[name];
+      script.onerror = function(): void {
+        this.remove();
         reject("ImportError: " + name);
-      }, function(): void {
+      };
+      script.onload = function(): void {
+        this.remove();
         if (window[name] instanceof Promise) {
           reject("ImportError: " + name);
         } else {
           resolve(window[name]);
         }
-      });
+      };
+      (document.documentElement as HTMLHtmlElement).appendChild(script);
     });
-  },
-  loadJS (src: string, onerror?: any, onload?: any): void {
-    const script = document.createElement("script");
-    script.src = src;
-    script.async = false;
-    script.onerror = onerror;
-    script.onload = onload;
-    (document.documentElement as HTMLHtmlElement).appendChild(script).remove();
   },
   searchWordRe: <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g,
   searchWordRe2: <RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g,

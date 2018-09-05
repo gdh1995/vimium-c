@@ -9,6 +9,7 @@ if (typeof browser !== "undefined" && browser && (browser as any).runtime) {
 window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
   let loader = (document as any).currentScript as HTMLScriptElement;
   const head = loader.parentElement as HTMLElement
+    , scripts: HTMLScriptElement[] = [loader]
     , prefix = chrome.runtime.getURL("")
     , arr = chrome.runtime.getManifest().content_scripts[0].js;
   for (const src of arr) {
@@ -16,10 +17,11 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
     scriptElement.async = false;
     scriptElement.defer = true;
     scriptElement.src = src[0] === "/" || src.lastIndexOf(prefix, 0) === 0 ? src : "/" + src;
-    head.insertBefore(scriptElement, loader).remove();
+    head.appendChild(scriptElement);
+    scripts.push(scriptElement);
   }
-  loader.remove();
-  setTimeout(function() {
+  scripts[scripts.length - 1].onload = function(): void {
+    for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
     (window as any).VDom && ((window as any).VDom.allowScripts = false);
-  }, 400);
+  };
 })();

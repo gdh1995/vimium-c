@@ -50,19 +50,26 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
     getCommandCount: null as never,
     destroy: null
   };
-  if (!content_scripts) {
+  const docEl = document.documentElement;
+  if (!content_scripts || !docEl) {
     return runtime.lastError;
   }
-  const insertLocation = document.contains(curEl) ? curEl
-      : (document.documentElement as HTMLHtmlElement).firstChild as Node
-    , parentElement = insertLocation.parentElement as Element;
+  const inserAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild as Node
+    , insertBefore = inserAfter.nextSibling
+    , parentElement = inserAfter.parentElement as Element;
+  let scripts: HTMLScriptElement[] = [];
   for (const i of content_scripts) {
     const scriptElement = document.createElement("script");
     scriptElement.async = false;
     scriptElement.defer = true;
     scriptElement.src = i;
-    parentElement.insertBefore(scriptElement, insertLocation).remove();
+    parentElement.insertBefore(scriptElement, insertBefore);
+    scripts.push(scriptElement);
   }
+  scripts.length > 0 && (scripts[scripts.length - 1].onload = function(): void {
+    this.onload = null as never;
+    for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
+  });
 }
 function call() {
   runtime.sendMessage(extId, { handler: "content_scripts" }, handler);
