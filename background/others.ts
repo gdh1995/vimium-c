@@ -167,7 +167,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
   Settings.updateHooks.showActionIcon = function(value): void {
     func(value);
     (Backend.IconBuffer as IconNS.AccessIconBuffer)(value);
-    if (IsFirefox) { return; } // Firefox has no "Options" button
+    if (IsFirefox || IsEdge) { return; } // Firefox has no "Options" button
     let title = "Vimium C";
     if (value) {
       chrome.browserAction.enable();
