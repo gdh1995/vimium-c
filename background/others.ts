@@ -204,7 +204,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     , suggestions: chrome.omnibox.SuggestResult[] | null = null, cleanTimer = 0, inputTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     // since BrowserVer.MinOmniboxSupportDeletable
-    , wantDeletable = chrome.omnibox.onDeleteSuggestion != null && typeof chrome.omnibox.onDeleteSuggestion.addListener === "function"
+    , wantDeletable = chrome.omnibox.onDeleteSuggestion && typeof chrome.omnibox.onDeleteSuggestion.addListener === "function"
     , firstType: CompletersNS.ValidTypes | "";
   const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
   matchTagRe = IsFirefox ? <RegExpG>/<\/?match>/g : null as never,
