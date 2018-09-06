@@ -1039,7 +1039,10 @@ COPY_TEXT: {
   257: "Edit link text on Vomnibar",
   activator (link): void {
     let isUrl = this.mode1 >= HintMode.min_link_job && this.mode1 <= HintMode.max_link_job, str: string | null;
-    if (isUrl) { str = this.getUrlData(link); }
+    if (isUrl) {
+      str = this.getUrlData(link);
+      str && str.startsWith("mailto:") && str.length > 7 && (str = str.substring(7).trimLeft());
+    }
     else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) {}
     else if (link instanceof HTMLInputElement) {
       str = link.type;
@@ -1057,7 +1060,8 @@ COPY_TEXT: {
     } else {
       str = link instanceof HTMLTextAreaElement ? link.value
         : link instanceof HTMLSelectElement ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
-        : link instanceof HTMLElement && link.innerText.trim()
+        : link instanceof HTMLElement && (str = link.innerText.trim(),
+            str.startsWith("mailto:") && str.length > 7 ? str.substring(7).trimLeft() : str)
           || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
         ;
       str = str.trim() || (link instanceof HTMLElement ? link.title.trim() : "");
