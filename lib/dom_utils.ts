@@ -1,6 +1,7 @@
 /// <reference path="../content/base.d.ts" />
 var VDom = {
   UI: null as never as DomUI,
+  // note: allowScripts is equal with allowTimers, vPort.ClearPort requires this assumption
   allowScripts: true,
   isHTML (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   isStandard: true,
