@@ -105,7 +105,7 @@ var VHints = {
     }
     let elements: Hint[] | null = this.getVisibleElements(arr);
     if (this.frameNested) {
-      if (this.tryNestedFrame("VHints.activate", (count as number) | 0, this.options)) {
+      if (this.tryNestedFrame("VHints.activate", (count as number) | 0, options)) {
         return this.clean();
       }
     }
@@ -123,7 +123,7 @@ var VHints = {
     elements = null;
     this.alphabetHints.initMarkers(this.hints, str);
 
-    this.noHUD = arr[3] <= 40 || arr[2] <= 320;
+    this.noHUD = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
     VDom.UI.ensureBorder(VDom.wdZoom);
     this.setMode(this.mode, false);
     this.box = VDom.UI.addElementList(this.hints, arr);
