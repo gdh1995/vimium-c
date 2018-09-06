@@ -93,7 +93,7 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
   },
   scroll (element: Element | null, di: ScrollByY, amount: number): void | number | boolean {
     if (!amount) { return; }
-    if (VSettings.cache.smoothScroll) {
+    if (VSettings.cache.smoothScroll && VDom.allowWait) {
       return this.animate(element, di, amount);
     }
     this.performScroll(element, di, amount);
@@ -231,6 +231,7 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
       this.scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
   },
   supressScroll (): void {
+    if (!VDom.allowWait) { this.scrolled = 0; return; }
     this.scrolled = 2;
     VUtils.suppressAll(window, "scroll");
     requestAnimationFrame(function(): void {

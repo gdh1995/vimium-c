@@ -511,6 +511,10 @@ declare const enum BrowserVer {
   MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65,
   MinInputMode = 66, // even if LEAGCY; still works on C35 if EXPERIMENTAL
   // even if EXPERIMENTAL or LEAGCY
+  // but not on pages whose JS is disabled in chrome://settings/content/siteDetails?site=<origin>
   MinScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
+  // even if EXPERIMENTAL or LEAGCY
+  // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>
+  MinNoRAForRICOnSandboxedPage = 69,
   assumedVer = 999,
 }

@@ -34,8 +34,9 @@
   }
   VSettings.uninit = function(): void { VDom.documentReady(destroy); };
   script.type = "text/javascript";
-  let str = func.toString(), appVer = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/);
-  if (appVer && +appVer[1] >= BrowserVer.MinEnsureMethodFunction) {
+  let str = func.toString(), appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
+    , appVer = appInfo && +appInfo[1] || 0;
+  if (appVer && appVer >= BrowserVer.MinEnsureMethodFunction) {
     str = str.replace(<RegExpG> /: ?function \w+/g, "");
   }
   script.async = false;
@@ -46,11 +47,14 @@
   VDom.documentReady(function() { box || setTimeout(function() { box || destroy(); }, 17); });
   if (script.hasAttribute("data-vimium-hook")) { return; } // It succeeded to hook.
   console.info("Some functions of Vimium C may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1"));
+  if (appVer && appVer >= BrowserVer.MinNoRAForRICOnSandboxedPage) {
+    VDom.allowWait = false;
+  }
   interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
-    return f ? f(cb, { timeout }) : requestAnimationFrame(cb);
+    return VDom.allowWait ? f ? f(cb, { timeout }) : requestAnimationFrame(cb) : (Promise.resolve(1).then(cb), 1);
   } as any;
   VDom.allowScripts = false;
 
