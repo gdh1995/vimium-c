@@ -230,7 +230,7 @@ label:active {
 .help {
   padding-left: 20px;
   width: 300px;
-  color: #666;
+  color: #777;
 }
 #wrapper:hover .help {
   color: black;

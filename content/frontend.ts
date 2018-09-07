@@ -1129,7 +1129,7 @@ Pagination = {
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
       , "color:red", "color:auto"
-      , window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1")
+      , window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
       , Date.now());
 
     if (vPort.port) { try { vPort.port.disconnect(); } catch (e) {} }

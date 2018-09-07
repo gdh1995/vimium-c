@@ -46,7 +46,7 @@
   script.remove();
   VDom.documentReady(function() { box || setTimeout(function() { box || destroy(); }, 17); });
   if (script.hasAttribute("data-vimium-hook")) { return; } // It succeeded to hook.
-  console.info("Some functions of Vimium C may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1"));
+  console.info("Some functions of Vimium C may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
   if (appVer && appVer >= BrowserVer.MinNoRAForRICOnSandboxedPage) {
     VDom.allowWait = false;
   }
