@@ -45,11 +45,13 @@
   d.insertBefore(script, d.firstChild);
   script.remove();
   VDom.documentReady(function() { box || setTimeout(function() { box || destroy(); }, 17); });
-  if (script.hasAttribute("data-vimium-hook")) { return; } // It succeeded to hook.
+  const safeRAF = appVer !== BrowserVer.NoRAForRICOnSandboxedPage;
+  VDom.allowRAF = safeRAF;
+  if (script.hasAttribute("data-vimium-hook")) {
+    safeRAF || requestAnimationFrame(() => { VDom.allowRAF = true; });
+    return;
+  } // It succeeded to hook.
   console.info("Some functions of Vimium C may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
-  if (appVer && appVer === BrowserVer.NoRAForRICOnSandboxedPage) {
-    VDom.allowRAF = false;
-  }
   VDom.allowScripts = false;
   interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
