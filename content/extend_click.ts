@@ -47,14 +47,14 @@
   VDom.documentReady(function() { box || setTimeout(function() { box || destroy(); }, 17); });
   if (script.hasAttribute("data-vimium-hook")) { return; } // It succeeded to hook.
   console.info("Some functions of Vimium C may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
-  if (appVer && appVer >= BrowserVer.MinNoRAForRICOnSandboxedPage) {
-    VDom.allowWait = false;
+  if (appVer && appVer === BrowserVer.NoRAForRICOnSandboxedPage) {
+    VDom.allowRAF = false;
   }
   interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
-    return VDom.allowWait ? f ? f(cb, { timeout }) : requestAnimationFrame(cb) : (Promise.resolve(1).then(cb), 1);
+    return VDom.allowRAF ? f ? f(cb, { timeout }) : requestAnimationFrame(cb) : (Promise.resolve(1).then(cb), 1);
   } as any;
   VDom.allowScripts = false;
 

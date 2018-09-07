@@ -3,7 +3,7 @@ var VDom = {
   UI: null as never as DomUI,
   // note: allowScripts is equal with allowTimers, vPort.ClearPort requires this assumption
   allowScripts: true,
-  allowWait: true,
+  allowRAF: true,
   isHTML (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   isStandard: true,
   createElement: function (this: any, tagName: string): HTMLElement {

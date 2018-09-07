@@ -515,6 +515,6 @@ declare const enum BrowserVer {
   MinScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
   // even if EXPERIMENTAL or LEAGCY
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>
-  MinNoRAForRICOnSandboxedPage = 69,
+  NoRAForRICOnSandboxedPage = 69,
   assumedVer = 999,
 }
