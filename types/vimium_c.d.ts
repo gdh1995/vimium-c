@@ -516,5 +516,6 @@ declare const enum BrowserVer {
   // even if EXPERIMENTAL or LEAGCY
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>
   NoRAForRICOnSandboxedPage = 69,
+  MinTabIdMayBeMuchLarger = 69,
   assumedVer = 999,
 }

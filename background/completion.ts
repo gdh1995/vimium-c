@@ -1044,7 +1044,7 @@ knownCs: CompletersMap & SafeObject = {
   removeSug (url, type, callback): void {
     switch (type) {
     case "tab":
-      chrome.tabs.remove(<number><string | number>url | 0, function(): void {
+      chrome.tabs.remove(+url, function(): void {
         const err = chrome.runtime.lastError;
         callback(!<any>err);
         return err;

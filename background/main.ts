@@ -1938,7 +1938,7 @@ Are you sure you want to continue?`);
     removeSug (this: void, { type, url }: FgReq["removeSug"], port?: Port | null): void {
       const name = type === "tab" ? type : type + " item";
       cPort = findCPort(port) as Port;
-      if (type === "tab" && (<number><string | number>url | 0) === TabRecency.last) {
+      if (type === "tab" && TabRecency.last === +url) {
         return Backend.showHUD("The current tab should be kept.");
       }
       return Completion.removeSug(url, type, function(succeed): void {
