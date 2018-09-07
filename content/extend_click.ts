@@ -50,13 +50,13 @@
   if (appVer && appVer === BrowserVer.NoRAForRICOnSandboxedPage) {
     VDom.allowRAF = false;
   }
+  VDom.allowScripts = false;
   interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
     return VDom.allowRAF ? f ? f(cb, { timeout }) : requestAnimationFrame(cb) : (Promise.resolve(1).then(cb), 1);
   } as any;
-  VDom.allowScripts = false;
 
 function func(this: void, sec: number): void {
 type ApplyArgs<T, ArgParent, R> = (this: (this: T, ...a: ArgParent[]) => R, thisArg: T, a: ArgParent[]) => R;

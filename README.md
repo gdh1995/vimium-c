@@ -86,6 +86,8 @@ Known issues (Up to the master branch):
   This issue is fixed in Chrome 68, although Vomnibar keeps broken on those pages.
 8. Chrome 64 and 65 always clean their console logs if only Vomnibar is opened, and there's nothing we can do for it.
   Chrome 66 fixes it.
+9. Chrome 69 disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
+  This issue has been fixed since Chrome Dev 70 (up to 2018-09-07).
 
 1.68.2:
 * rename this project into "Vimium C"
