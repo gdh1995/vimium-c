@@ -1160,9 +1160,9 @@ Are you sure you want to continue?`);
     visitPreviousTab (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
       tabs.splice(selectFrom(tabs).index, 1);
-      tabs.sort(TabRecency.rCompare);
-      const tabId = tabs[commandCount > 0 ? Math.min(commandCount, tabs.length) - 1 : Math.max(0, tabs.length + commandCount)].id;
-      return selectTab(tabId);
+      tabs = tabs.filter(i => i.id in TabRecency.tabs).sort(TabRecency.rCompare);
+      const tab = tabs[commandCount > 0 ? Math.min(commandCount, tabs.length) - 1 : Math.max(0, tabs.length + commandCount)];
+      tab && selectTab(tab.id);
     },
     copyTabInfo (this: void, tabs: [Tab]): void {
       let str: string, decoded = !!(cOptions.decoded || cOptions.decode);

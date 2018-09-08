@@ -680,10 +680,9 @@ tabs: {
       id += "" + (tab.index + 1);
       if (tab.incognito) { id += "*"; }
       const tabId = tab.id, suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
-      if (curTabId === tabId) { suggestion.relevancy = 8; }
+      if (curTabId === tabId) { suggestion.relevancy = 1; }
       suggestion.sessionId = tabId;
       suggestion.label = id;
-      //suggestion.textSplit = suggestion.textSplit + " " + id;
       suggestions.push(suggestion);
     }
     if (queryType !== FirstQuery.tabs && offset !== 0) {}
@@ -706,7 +705,7 @@ tabs: {
   },
   SortNumbers (this: void, a: number, b: number): number { return a - b; },
   computeRecency (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    return TabRecency.tabs[tabId] || (10 - 10 / (11 + tabId));
+    return TabRecency.tabs[tabId] || -tabId;
   }
 },
 
@@ -905,11 +904,8 @@ searchEngines: {
       queryTerms = queryTerms.join(" ").replace(this.protoRe, " __proto_").trimLeft().split(" ");
     }
     RegExpCache.buildParts();
-    for (l--; i < l; i++) {
+    for (l--; i <= l; i++) {
       completers[i].filter(query, i);
-    }
-    if (i === l) {
-      return completers[i].filter(query, i);
     }
   },
   requireNormalOrIncognito<T> (that: T
