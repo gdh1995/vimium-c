@@ -22,11 +22,12 @@
   }
   addEventListener("VimiumOnclick", onclick, true);
   function destroy() {
+    const r = removeEventListener;
     /** this function should keep idempotent */
-    removeEventListener("VimiumHook", installer, true);
-    removeEventListener("VimiumOnclick", onclick, true);
+    r("VimiumHook", installer, true);
+    r("VimiumOnclick", onclick, true);
     if (box) {
-      box.removeEventListener("VimiumOnclick", onclick, true);
+      r.call(box, "VimiumOnclick", onclick, true);
       box.dispatchEvent(new CustomEvent("VimiumUnhook", {detail: secret}));
       box = null as never;
     }
@@ -36,11 +37,12 @@
   script.type = "text/javascript";
   let str = func.toString(), appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0;
+  // the block below is also correct on Edge
   if (appVer && appVer >= BrowserVer.MinEnsureMethodFunction) {
     str = str.replace(<RegExpG> /: ?function \w+/g, "");
   }
   script.async = false;
-  script.textContent = '"use strict";(' + str + ')(' + secret + ');';
+  script.textContent = `"use strict";(${str})(${secret});`;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();

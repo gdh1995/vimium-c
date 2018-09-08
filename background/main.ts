@@ -2122,7 +2122,7 @@ Are you sure you want to continue?`);
   };
 
   Settings.updateHooks.showActionIcon = function (value) {
-    needIcon = value && chrome.browserAction ? true : false;
+    needIcon = value && !!chrome.browserAction;
   };
 
   chrome.runtime.onMessageExternal && (chrome.runtime.onMessageExternal.addListener(function(this: void, message, sender, sendResponse): void {

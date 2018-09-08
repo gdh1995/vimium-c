@@ -20,12 +20,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   type LockableElement = HTMLElement;
 
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
-    , currentKeys = "", isEnabledForUrl = false, isLocked = false
+    , currentKeys = "", isEnabled = false, isLocked = false
     , mapKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
     , esc = function(i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscF
     , onKeyup2 = null as ((this: void, event: KeyboardEvent) => void) | null, passKeys = null as SafeDict<true> | null;
 
-  const isInjected = window.VimiumInjector ? true : null,
+  const isInjected = !!window.VimiumInjector,
   notChrome = typeof browser !== "undefined" && !!(browser && (browser as any).runtime),
   vPort = {
     port: null as Port | null,
@@ -43,7 +43,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     safePost<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>): void {
       try {
         if (!vPort.port) {
-          vPort.connect((isEnabledForUrl ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
+          vPort.connect((isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
             + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn ? PortType.hasCSS : 0));
           isInjected && setTimeout(vPort.TestAlive, 50);
         }
@@ -82,7 +82,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
   ELs = { //
     onKeydown (event: KeyboardEvent): void {
-      if (!isEnabledForUrl || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
+      if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
       if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
       let keyChar: string, key = event.keyCode, action: HandlerResult;
       if (action = VUtils.bubbleEvent(event)) {}
@@ -133,7 +133,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       KeydownEvents[key] = 1;
     },
     onKeyup (event: KeyboardEvent): void {
-      if (!isEnabledForUrl || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
+      if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
       VScroller.keyIsDown = 0;
       if (InsertMode.suppressType && VDom.selType() !== InsertMode.suppressType) {
         VEventMode.setupSuppress();
@@ -153,7 +153,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (target === window) {
         return ELs.OnWndFocus();
       }
-      if (!isEnabledForUrl) { return; }
+      if (!isEnabled) { return; }
       /**
        * Notes:
        * according to test, Chrome Password Saver won't fill fields inside a shadow DOM
@@ -204,7 +204,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
     },
     onBlur (this: void, event: Event | FocusEvent): void {
-      if (!isEnabledForUrl || event.isTrusted === false) { return; }
+      if (!isEnabled || event.isTrusted === false) { return; }
       const target = event.target as Window | Element | ShadowRootEx;
       if (target === window) { return ELs.OnWndBlur(); }
       let path = event.path as EventPath | undefined, top: EventTarget | undefined
@@ -833,7 +833,7 @@ Pagination = {
         isLocked = !!(flags & Frames.Flags.locked);
       }
       (r as { reset (request: BgReq["reset"], initing?: 1): void }).reset(request, 1);
-      if (isEnabledForUrl) {
+      if (isEnabled) {
         InsertMode.init();
       } else {
         InsertMode.grabFocus = false;
@@ -849,7 +849,7 @@ Pagination = {
     reset (request: BgReq["reset"], initing?: 1): void {
       const newPassKeys = request.passKeys, enabled = newPassKeys !== "", old = VSettings.enabled;
       passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
-      VSettings.enabled = isEnabledForUrl = enabled;
+      VSettings.enabled = isEnabled = enabled;
       if (initing) {
         return;
       }
@@ -1035,7 +1035,8 @@ Pagination = {
         const script = VDom.createElement("script");
         script.type = "text/javascript";
         script.textContent = VUtils.decodeURL(url).substring(11).trim();
-        (document.documentElement as HTMLElement).appendChild(script).remove();
+        (document.documentElement as HTMLElement).appendChild(script);
+        script.remove();
       }, 0); else {
         HUD.showForDuration("Here's not allowed to eval scripts");
       }
@@ -1057,7 +1058,7 @@ Pagination = {
       let old = ELs.OnWndFocus, failed = true;
       ELs.OnWndFocus = function(): void { failed = false; };
       window.focus();
-      failed && isEnabledForUrl && ELs.hook(HookAction.Install);
+      failed && isEnabled && ELs.hook(HookAction.Install);
       // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
       (ELs.OnWndFocus = old)();
       if (callback && esc) {
@@ -1112,7 +1113,7 @@ Pagination = {
     suppress (this: void, key?: VKeyCodes): void { key && (KeydownEvents[key] = 1); },
     keydownEvents: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
-      return !isEnabledForUrl || !(KeydownEvents = arr);
+      return !isEnabled || !(KeydownEvents = arr);
     } as VEventMode["keydownEvents"]
   };
 
@@ -1121,7 +1122,7 @@ Pagination = {
     cache: null as never as VSettings["cache"],
     uninit: null,
   destroy: function(silent, keepChrome): void {
-    VSettings.enabled = isEnabledForUrl = false;
+    VSettings.enabled = isEnabled = false;
     ELs.hook(HookAction.Destroy);
 
     Commands.reset();
