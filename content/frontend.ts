@@ -282,7 +282,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       const a = InsertMode;
       VScroller.current = VDom.lastHovered = a.last = a.lock = a.global = null;
       a.mutable = true;
-      ELs.listenShadow = false; // so that listeners on shadow roots will be removed on next blur events
       a.ExitGrab(); VEventMode.setupSuppress();
       VHints.isActive && VHints.clean(); VVisualMode.deactivate();
       VFindMode.init || VFindMode.toggleStyle(0);
@@ -848,8 +847,10 @@ Pagination = {
         return enabled ? InsertMode.init() : (InsertMode.grabFocus = false, ELs.hook(HookAction.Suppress));
       }
       isLocked = !!request.forced;
+      // if true, recover listeners on shadow roots;
+      // otherwise listeners on shadow roots will be removed on next blur events
+      ELs.listenShadow = enabled;
       if (enabled) {
-        ELs.listenShadow = true; // recover listeners on shadow roots
         old || InsertMode.init();
         (old && !isLocked) || ELs.hook(HookAction.Install);
         // here should not return even if old - a url change may mean the fullscreen mode is changed
