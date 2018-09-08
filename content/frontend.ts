@@ -833,6 +833,13 @@ Pagination = {
         isLocked = !!(flags & Frames.Flags.locked);
       }
       (r as { reset (request: BgReq["reset"], initing?: 1): void }).reset(request, 1);
+      if (isEnabledForUrl) {
+        InsertMode.init();
+      } else {
+        InsertMode.grabFocus = false;
+        ELs.hook(HookAction.Suppress);
+        VSettings.uninit && VSettings.uninit(HookAction.Suppress);
+      }
       r.init = null as never;
       return VDom.documentReady(function (): void {
         HUD.enabled = true;
@@ -844,7 +851,7 @@ Pagination = {
       passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
       VSettings.enabled = isEnabledForUrl = enabled;
       if (initing) {
-        return enabled ? InsertMode.init() : (InsertMode.grabFocus = false, ELs.hook(HookAction.Suppress));
+        return;
       }
       isLocked = !!request.forced;
       // if true, recover listeners on shadow roots;
@@ -856,7 +863,6 @@ Pagination = {
         // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
         Commands.reset();
-        VSettings.uninit && VSettings.uninit(1);
       }
       if (VDom.UI.box) { return VDom.UI.toggle(enabled); }
     },
@@ -1119,8 +1125,8 @@ Pagination = {
     ELs.hook(HookAction.Destroy);
 
     Commands.reset();
-    let f: typeof VSettings["uninit"], ui = VDom.UI;
-    (f = VSettings.uninit) && f(2);
+    let f = VSettings.uninit, ui = VDom.UI;
+    f && f(HookAction.Destroy);
 
     VUtils = VKeyboard = VDom = VDom = VUtils = //
     VHints = Vomnibar = VScroller = VMarks = VFindMode = //
