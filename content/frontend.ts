@@ -178,7 +178,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           , isNormalHost = !!(top = path && path[0]) && top !== window && top !== target
           , len = isNormalHost ? [].indexOf.call(path as EventPath, target) : 1;
         isNormalHost ? (target = top as Element) : (path = [(target as Element).shadowRoot as ShadowRoot]);
-        const wrapper = ELs.wrap();
+        const wrapper = ELs.onShadow;
         while (0 <= --len) {
           const root = (path as EventPath)[len];
           if (!(root instanceof ShadowRoot) || (root as ShadowRootEx).vimiumListened === ListenType.Full) { continue; }
@@ -215,10 +215,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         InsertMode.inputHint && !InsertMode.hinting && document.hasFocus() && InsertMode.exitInputHint();
       }
       if (!(sr != null && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
-      let wrapper = ELs.wrap();
+      let wrapper = ELs.onShadow;
       if (same) {
         (sr as ShadowRootEx).vimiumListened = ListenType.Blur;
-        sr.removeEventListener("focus", wrapper, true);
         return;
       }
       for (let len = [].indexOf.call(path as EventPath, target); 0 <= --len; ) {
@@ -228,15 +227,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         root.removeEventListener("blur", wrapper, true);
         (root as ShadowRootEx).vimiumListened = ListenType.None;
       }
-    },
-    OnShadowBlur (this: void, event: Event): void {
-      if (event.isTrusted === false) { return; }
-      const cur = event.currentTarget as ShadowRootEx;
-      if (cur.vimiumListened === ListenType.Blur) {
-        cur.vimiumListened = ListenType.None;
-        cur.removeEventListener("blur", ELs.wrap(), true);
-      }
-      return ELs.onBlur(event);
     },
     onActivate (event: UIEvent): void {
       if (event.isTrusted !== false) {
@@ -253,10 +243,21 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       esc(HandlerResult.Suppress);
     },
     OnWndBlur2: null as ((this: void) => void) | null,
-    wrapper: null as FocusListenerWrapper | null,
-    wrap (this: void): FocusListenerWrapper["outer"] {
-      const a = ELs;
-      return (a.wrapper || (a.wrapper = VUtils.wrap(a.onFocus, a.OnShadowBlur))).outer;
+    listenShadow: true,
+    onShadow (this: ShadowRootEx, event: FocusEvent): void {
+      if (event.isTrusted === false) { return; }
+      const a = ELs, listen = a.listenShadow;
+      if (listen && event.type === "focus") {
+        return a.onFocus(event);
+      }
+      if (!listen || this.vimiumListened === ListenType.Blur) {
+        const r = this.removeEventListener.bind(this) as Element["removeEventListener"], f = a.onShadow;
+        r("focus", f, true); r("blur", f, true);
+        this.vimiumListened = ListenType.None;
+      }
+      if (listen) {
+        a.onBlur(event);
+      }
     },
     hook (action: HookAction): void {
       let f = action ? removeEventListener : addEventListener;
@@ -278,10 +279,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     Visual: VVisualMode,
     Vomnibar,
     reset (): void {
-      const a = InsertMode, b = ELs.wrapper;
+      const a = InsertMode;
       VScroller.current = VDom.lastHovered = a.last = a.lock = a.global = null;
       a.mutable = true;
-      b && b.set(null); // so that listeners on shadow roots will be removed on next blur events
+      ELs.listenShadow = false; // so that listeners on shadow roots will be removed on next blur events
       a.ExitGrab(); VEventMode.setupSuppress();
       VHints.isActive && VHints.clean(); VVisualMode.deactivate();
       VFindMode.init || VFindMode.toggleStyle(0);
@@ -848,8 +849,7 @@ Pagination = {
       }
       isLocked = !!request.forced;
       if (enabled) {
-        let b = ELs.wrapper;
-        b && b.set(b.inner); // recover listeners on shadow roots
+        ELs.listenShadow = true; // recover listeners on shadow roots
         old || InsertMode.init();
         (old && !isLocked) || ELs.hook(HookAction.Install);
         // here should not return even if old - a url change may mean the fullscreen mode is changed
