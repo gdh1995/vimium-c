@@ -1,21 +1,23 @@
 "VimiumInjector" in window || (function(this: void): void {
   if (!window.VSettings) { return; }
-  type Listener = (this: void, e: Event) => void;
   let d: Document | Document["documentElement"] = document
     , script = d.createElement("script") as HTMLScriptElement | Element
-    , installer: Listener | null, box: EventTarget
+    , box: EventTarget | null | false = null
     , secret = "" + ((Math.random() * 1e6 + 1) | 0);
   if (!(script instanceof HTMLScriptElement)) { return; }
-  addEventListener("VimiumHook", installer = function(event: Event): void {
+
+  function installer(event: Event): void {
     const t = event.target;
     if (!(t instanceof Element) || t.getAttribute("data-vimium-secret") !== secret) { return; }
     event.stopImmediatePropagation();
     removeEventListener("VimiumHook", installer, true);
-    t.removeAttribute("data-vimium-secret");
-    t.addEventListener("VimiumOnclick", onclick, true);
-    box = t;
-    installer = null;
-  }, true);
+    if (box === null) {
+      t.removeAttribute("data-vimium-secret");
+      t.addEventListener("VimiumOnclick", onclick, true);
+      box = t;
+    }
+  }
+  addEventListener("VimiumHook", installer, true);
   function onclick(event: Event): void {
     (event.target as Element).vimiumHasOnclick = true;
     event.stopPropagation();
@@ -24,16 +26,19 @@
   function destroy() {
     const r = removeEventListener;
     /** this function should keep idempotent */
-    r("VimiumHook", installer, true);
     r("VimiumOnclick", onclick, true);
     if (box) {
       r.call(box, "VimiumOnclick", onclick, true);
       box.dispatchEvent(new CustomEvent("VimiumUnhook", {detail: secret}));
-      box = null as never;
     }
+    if (box === null) {
+      setTimeout(function(): void { r("VimiumHook", installer, true); }, 1000);
+    }
+    box = false;
     VSettings && (VSettings.uninit = null);
   }
-  VSettings.uninit = function(): void { VDom.documentReady(destroy); };
+  VSettings.uninit = destroy;
+
   script.type = "text/javascript";
   let str = func.toString(), appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0;
@@ -46,7 +51,7 @@
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();
-  VDom.documentReady(function() { box || setTimeout(function() { box || destroy(); }, 17); });
+  VDom.documentReady(function() { box === null && setTimeout(function() { box || destroy(); }, 17); });
   const safeRAF = appVer !== BrowserVer.NoRAForRICOnSandboxedPage;
   VDom.allowRAF = safeRAF;
   if (script.hasAttribute("data-vimium-hook")) {
@@ -108,19 +113,18 @@ document.currentScript && call(Attr, document.currentScript, "data-vimium-hook",
 let handler = function(this: void): void {
   rel("DOMContentLoaded", handler, true);
   ct(timer);
+  handler = null as never;
   const docEl = document.documentElement as HTMLElement | SVGElement;
   if (!docEl) { return destroy(); }
-  box = call(Create, document, "div") as HTMLDivElement;
-  append(docEl, box);
-  listen(box, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
-  const key = "data-vimium-secret";
-  call(Attr, box, key, "" + sec);
-  dispatch(box, new CE("VimiumHook"));
-  remove(box);
-  handler = null as never;
-  timer = toRegister.length > 0 ? next() : 0;
-  if (call(GetAttr, box, key) != null) {
+  const el = call(Create, document, "div") as HTMLDivElement, key = "data-vimium-secret";
+  call(Attr, el, key, "" + sec);
+  listen(el, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
+  append(docEl, el), dispatch(el, new CE("VimiumHook")), remove(el);
+  if (call(GetAttr, el, key) != null) {
     destroy();
+  } else {
+    box = el;
+    timer = toRegister.length > 0 ? next() : 0;
   }
 },
 box: HTMLDivElement, timer = setTimeout(handler, 1000),
