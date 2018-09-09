@@ -195,7 +195,7 @@ var VDom = {
   getZoom (target?: 1 | Element): number {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
       , st = getComputedStyle(docEl), zoom = +st.zoom || 1
-    , el: Element | null = document.webkitFullscreenElement;
+      , el: Element | null = document.webkitFullscreenElement;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom && (zoom = 1);
     if (target) {
       const body = el ? null : document.body;
@@ -358,8 +358,8 @@ var VDom = {
     //  screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number,
     //  ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean,
     //  buttonArg: number, relatedTargetArg: EventTarget | null)
-    let x = rect ? ((rect[0] + rect[2]) / 2) | 0 : 0
-      , y = rect ? ((rect[1] + rect[3]) / 2) | 0 : 0;
+    let x = rect ? ((rect[0] + rect[2]) * this.dbZoom / 2) | 0 : 0
+      , y = rect ? ((rect[1] + rect[3]) * this.dbZoom / 2) | 0 : 0;
     mouseEvent.initMouseEvent(type, true, true
       , element.ownerDocument.defaultView, type.startsWith("mouseo") ? 0 : 1
       , x, y, x, y
