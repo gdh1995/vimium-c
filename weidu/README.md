@@ -15,11 +15,11 @@ __微度新标签页 (X New Tab Page):__
 
 __修改__
 * 删除了多国语言和多浏览器支持，只保留中文、Chrome支持
-* 完美支持在此扩展程序的页面中使用Vimium C的快捷键
+* 完美支持在此扩展程序的页面中使用<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>的快捷键
 * 提供了
     [chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html](chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html)
     来供Vimium C使用，
-  设置为`Preferred Vomnibar Page`即可让Vimium C的Vomnibar显示网页图标
+  设置为Vimium C的`Preferred Vomnibar Page`即可减少Vimium C自身的内存占用
 * 尽量减少访问网络的次数，不登录且不开天气模块的话，加载页面时不会发ajax
 * 修复在不同Chrome版本下的兼容性问题，比如最新的chrome默认滚动事件是passive的，不改的话会报错，而且影响使用
 * 删除了一些个人觉得没什么用的功能模块

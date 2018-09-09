@@ -1,16 +1,20 @@
-Vimium C
+<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.67.0](https://img.shields.io/badge/release-1.67.0-orange.svg)
+![Version 1.69.0](https://img.shields.io/badge/release-1.69.0-orange.svg)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-c)
 
 **[Visit Vimium C in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium-c/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
 
-A customized [Vimium](https://github.com/philc/vimium)
-  having Chinese support, global commands and injection functionality,
-  in a C-style code for better speed and less resource cost.
-It supports Chrome and Chromium whose version is >= 35, and partly supports latest Firefox.
+A <span style="color: #8e5e2f;">C</span>ustomized
+  [<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)
+  having <span style="color: #8e5e2f;">C</span>hinese support,
+    global <span style="color: #8e5e2f;">C</span>ommands
+    and injection functionality,
+  in a <span style="color: #8e5e2f;">C</span>-style code for better speed and less resource cost.
+It supports Chrome and other Chromium-based browsers whose core versions are >= 35,
+  and partly supports latest Firefox.
 
 This project is developed by [gdh1995](https://github.com/gdh1995)
   and licensed under the [MIT license](LICENSE.txt).
@@ -27,7 +31,7 @@ In the *weidu* directory is another project - a customized 微度新标签页.
 
 # Project Introduction
 
-__Vimium C:__
+__<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>:__
 
 * a Chrome extension that provides keyboard-based navigation and control
     of the web in the spirit of the Vim editor.
@@ -80,7 +84,7 @@ Known issues (Up to the master branch):
   so some commands on `VisualMode` cann't work as expected if editable text is being selected.
   This Chrome feature/bug has been removed since version 59, so Vimium C works well again.
 6. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
-  Currently, no effective ways have been found (up to Chrome 59).
+  Currently, no effective ways have been found (up to Chrome 69).
 7. On sandboxed pages without an `allow-scripts` permission in their CSP,
   HUD will always be visible in order to solve some issues on Chrome.
   This issue is fixed in Chrome 68, although Vomnibar keeps broken on those pages.
@@ -88,6 +92,18 @@ Known issues (Up to the master branch):
   Chrome 66 fixes it.
 9. Chrome 69 disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
   This issue has been fixed since Chrome Dev 70 (up to 2018-09-07).
+
+1.69.0:
+* FindMode: `\w` means to enable whole-word searching
+  * now it ensures search results to match regexp queries, so `\bword\b` will work well
+* fix that Vimium C could not scroll on some pages
+  * some of scrolling failures are because of a bug of Chrome 69, which will be fixed on Chrome 70
+* LinkHints: fix that the drawer menu hides unexpectedly on google docs
+* fix that `visitPreviousTab` breaks if some new tabs are not visited yet
+* LinkHints: add `focus` mode and `hideHUD` switch
+* limit command count: must between `-9999` and `9999`
+* fix that it might break some pages in case Vimium C got disabled suddenly
+* fix many edge cases
 
 1.68.2:
 * rename this project into "Vimium C"
