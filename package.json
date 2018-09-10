@@ -34,7 +34,7 @@
     "p": "node scripts/tsc.js pages",
     "build": "gulp build",
     "rebuild": "gulp rebuild",
-    "zip": "gulp dist && bash -c 'IN_DIST=1 WITH_MAP=0 ./scripts/make.sh'",
+    "zip": "bash -c \"ENABLE_SOURCE_MAP=0 gulp dist && IN_DIST=1 WITH_MAP=0 ./scripts/make.sh\"",
     "clean": "gulp clean",
     "local": "gulp local",
     "test": "gulp test"

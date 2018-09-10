@@ -19,6 +19,7 @@ var locally = false;
 var debugging = process.env.DEBUG === "1";
 var compileInBatch = true;
 var typescript = null, tsOptionsLogged = false;
+var envSourceMap = process.env.ENABLE_SOURCE_MAP !== "0";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
 var manifest = readJSON("manifest.json", true);
@@ -513,7 +514,7 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
     DEST = compilerOptions.outDir = "dist";
   }
   JSDEST = osPath.join(DEST, ".build");
-  enableSourceMap = !!compilerOptions.sourceMap;
+  enableSourceMap = !!compilerOptions.sourceMap && envSourceMap;
   willListFiles   = !!compilerOptions.listFiles;
   willListEmittedFiles = !!compilerOptions.listEmittedFiles;
   removeComments  = !!compilerOptions.removeComments;
