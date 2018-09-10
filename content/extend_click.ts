@@ -93,7 +93,7 @@ rel = removeEventListener, ct = clearTimeout,
 hooks = {
   toString: function toString(this: Function): string {
     const a = this;
-    return toStringApply(a === addEventListener ? _listen : a === toString ? funcToString : a, arguments as any);
+    return toStringApply(a === hooks.addEventListener ? _listen : a === hooks.toString ? funcToString : a, arguments as any);
   },
   addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): any {
     const a = this;
@@ -104,8 +104,7 @@ hooks = {
     const len = arguments.length;
     return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, arguments[2]) : listenA(a, arguments as any);
   }
-},
-{ toString, addEventListener } = hooks
+}
 ;
 toRegister.push = [].push, toRegister.splice = [].splice;
 document.currentScript && call(Attr, document.currentScript, "data-vimium-hook", "");
@@ -177,8 +176,8 @@ function destroy(e?: CustomEvent): void {
 if (typeof E !== "function") {
   return destroy();
 }
-ETP.addEventListener = addEventListener;
-FP.toString = toString;
+ETP.addEventListener = hooks.addEventListener;
+FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
 }
 })();
