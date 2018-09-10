@@ -43,7 +43,7 @@
   let str = func.toString(), appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0;
   // the block below is also correct on Edge
-  if (appVer && appVer >= BrowserVer.MinEnsureMethodFunction) {
+  if (appVer && appVer >= BrowserVer.Min$addEventListener$IsInStrictMode) {
     str = str.replace(<RegExpG> /: ?function \w+/g, "");
   }
   script.async = false;
