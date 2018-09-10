@@ -20,35 +20,34 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
   function animate(newTimestamp: number): void {
     let int1 = timestamp, elapsed: number, continuous: boolean;
     timestamp = newTimestamp;
-    if (int1 === ScrollerNS.Consts.invalidTime) {
-      requestAnimationFrame(animate);
-      return;
-    }
-    elapsed = newTimestamp - int1;
-    elapsed = elapsed > 0 ? elapsed : ScrollerNS.Consts.tickForUnexpectedTime;
-    int1 = (totalElapsed += elapsed);
-    const _this = VScroller;
-    if (continuous = _this.keyIsDown > 0) {
-      if (int1 >= ScrollerNS.Consts.delayToChangeSpeed) {
-        if (int1 > _this.minDelay) { --_this.keyIsDown; }
-        int1 = calibration;
-        if (ScrollerNS.Consts.minCalibration <= int1 && int1 <= ScrollerNS.Consts.maxCalibration) {
-          int1 = ScrollerNS.Consts.calibrationBoundary / amount / int1;
-          calibration *= (int1 > ScrollerNS.Consts.maxS) ? ScrollerNS.Consts.maxS
-            : (int1 < ScrollerNS.Consts.minS) ? ScrollerNS.Consts.minS : 1.0;
+    if (int1 !== ScrollerNS.Consts.invalidTime) {
+      elapsed = newTimestamp - int1;
+      elapsed = elapsed > 0 ? elapsed : ScrollerNS.Consts.tickForUnexpectedTime;
+      int1 = (totalElapsed += elapsed);
+      const _this = VScroller;
+      if (continuous = _this.keyIsDown > 0) {
+        if (int1 >= ScrollerNS.Consts.delayToChangeSpeed) {
+          if (int1 > _this.minDelay) { --_this.keyIsDown; }
+          int1 = calibration;
+          if (ScrollerNS.Consts.minCalibration <= int1 && int1 <= ScrollerNS.Consts.maxCalibration) {
+            int1 = ScrollerNS.Consts.calibrationBoundary / amount / int1;
+            calibration *= (int1 > ScrollerNS.Consts.maxS) ? ScrollerNS.Consts.maxS
+              : (int1 < ScrollerNS.Consts.minS) ? ScrollerNS.Consts.minS : 1.0;
+          }
         }
       }
+      int1 = Math.ceil(amount * (elapsed / duration) * calibration);
+      continuous || (int1 = Math.min(int1, amount - totalDelta));
+      if (int1 > 0 && _this.performScroll(element, di, sign * int1)) {
+        totalDelta += int1;
+      } else {
+        _this.checkCurrent(element);
+        element = null;
+        last = 0;
+        return;
+      }
     }
-    int1 = Math.ceil(amount * (elapsed / duration) * calibration);
-    continuous || (int1 = Math.min(int1, amount - totalDelta));
-    if (int1 > 0 && _this.performScroll(element, di, sign * int1)) {
-      totalDelta += int1;
-      requestAnimationFrame(animate);
-      return;
-    }
-    _this.checkCurrent(element);
-    element = null;
-    last = 0;
+    requestAnimationFrame(animate);
   };
   this.animate = function(this: typeof VScroller, newEl, newDi, newAmount): void | number {
     amount = Math.abs(newAmount); calibration = 1.0; di = newDi;
