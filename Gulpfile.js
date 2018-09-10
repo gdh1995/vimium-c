@@ -19,6 +19,7 @@ var locally = false;
 var debugging = process.env.DEBUG === "1";
 var compileInBatch = true;
 var typescript = null, tsOptionsLogged = false;
+var envLegacy = process.env.SUPPORT_LEGACY === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP !== "0";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
@@ -284,6 +285,13 @@ function compile(pathOrStream, header_files, skipOutput) {
 }
 
 function outputJSResult(stream, concatedFile) {
+  if (locally) {
+    stream = stream.pipe(gulpMap(function(file) {
+      if (file.history.join("|").indexOf("extend_click") >= 0) {
+        file.contents = new Buffer(patchExtendClick(String(file.contents)));
+      }
+    }));
+  }
   if (concatedFile) {
     stream = stream.pipe(concat(concatedFile));
   }
@@ -321,8 +329,15 @@ function uglifyJSFiles(path, output, new_suffix) {
     dest: DEST,
     ext: new_suffix + ".js"
   }));
+  let mayPatch = false;
   if (enableSourceMap) {
     stream = stream.pipe(sourcemaps.init({ loadMaps: true }));
+  } else {
+    stream = stream.pipe(gulpMap(function(file) {
+      if (file.history.join("|").indexOf("extend_click") >= 0) {
+        mayPatch = true;
+      }
+    }));
   }
   if (is_file) {
      stream = stream.pipe(concat(output));
@@ -331,6 +346,12 @@ function uglifyJSFiles(path, output, new_suffix) {
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(rename({ suffix: new_suffix }));
   }
+  stream = stream.pipe(gulpMap(function(file) {
+    if (!mayPatch) { return; }
+    if (is_file || file.history.join("|").indexOf("extend_click") >= 0) {
+      file.contents = new Buffer(patchExtendClick(String(file.contents)));
+    }
+  }));
   if (willListEmittedFiles) {
     stream = stream.pipe(gulpPrint());
   }
@@ -601,6 +622,34 @@ function gulpIfNotEmpty() {
     cond: a,
     prepare: b,
   };
+}
+
+function gulpMap(map) {
+  var Transform = require('stream').Transform;
+  var transformer = new Transform({objectMode: true});
+  transformer._transform = function(srcFile, encoding, done) {
+    var dest = map(srcFile);
+    this.push(dest || srcFile);
+    done();
+  };
+  transformer._flush = function(done) { done(); };
+  return transformer;
+}
+
+function patchExtendClick(source) {
+  if (!locally) { return source; }
+  if (locally && envLegacy) { return source; }
+  print('patch the extend_click module');
+  source = source.replace(/(addEventListener|toString) ?: ?function \1/g, "$1 "); // es6 member function
+  const match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
+  if (match) {
+    const start = Math.max(0, match.index - 64), end = match.index;
+    let prefix = source.substring(0, start), suffix = source.substring(end);
+    source = source.substring(start, end).replace(/>= ?64/, "< 64").replace(/64 ?<=/, "64 >");
+    suffix = '/(addEventListener|toString) \\(/g, "$1: function $1("' + suffix.substring(match[0].length);
+    source = prefix + source + suffix;
+  }
+  return source;
 }
 
 var _uglifyjsConfig = null;
