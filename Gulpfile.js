@@ -645,7 +645,7 @@ function patchExtendClick(source) {
   if (match) {
     const start = Math.max(0, match.index - 64), end = match.index;
     let prefix = source.substring(0, start), suffix = source.substring(end);
-    source = source.substring(start, end).replace(/>= ?64/, "< 64").replace(/64 ?<=/, "64 >");
+    source = source.substring(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
     suffix = '/(addEventListener|toString) \\(/g, "$1: function $1("' + suffix.substring(match[0].length);
     source = prefix + source + suffix;
   }
