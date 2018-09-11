@@ -152,6 +152,11 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
   } as IconNS.AccessIconBuffer;
   Backend.setIcon = function(this: void, tabId: number, type: Frames.ValidStatus): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
+    if (IsEdge) {
+      path = Settings.icons[type];
+      chrome.browserAction.setIcon({ tabId, path });
+      return;
+    }
     if (data = (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type]) {
       chrome.browserAction.setIcon({
         tabId,

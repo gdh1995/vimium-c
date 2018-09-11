@@ -312,8 +312,11 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
     body.textContent = "";
     blockedMsg.style.display = "";
     (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings.CONST.CurrentVersion;
+    const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
     if (!tabs[0] || !tabs[0].url || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
-      (blockedMsg.querySelector("#refresh-after-install") as HTMLElement).remove();
+      refreshTip.remove();
+    } else if (BG.IsEdge) {
+      (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page";
     }
     body.style.width = "auto";
     body.appendChild(blockedMsg);

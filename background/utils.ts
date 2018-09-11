@@ -436,7 +436,6 @@ var Utils = {
     }
     return (window as any)[name] = new Promise<T>(function(resolve, reject) {
       const script = document.createElement("script");
-      script.async = false;
       script.src = Settings.CONST[name];
       script.onerror = function(): void {
         this.remove();
