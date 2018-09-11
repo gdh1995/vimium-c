@@ -637,16 +637,30 @@ function gulpMap(map) {
 }
 
 function patchExtendClick(source) {
-  if (!locally) { return source; }
   if (locally && envLegacy) { return source; }
   print('patch the extend_click module');
   source = source.replace(/(addEventListener|toString) ?: ?function \1/g, "$1 "); // es6 member function
-  const match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
+  let match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
   if (match) {
     const start = Math.max(0, match.index - 64), end = match.index;
     let prefix = source.substring(0, start), suffix = source.substring(end);
     source = source.substring(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
-    suffix = '/(addEventListener|toString) \\(/g, "$1: function $1("' + suffix.substring(match[0].length);
+    suffix = '/\\b(addEventListener|toString) \\(/g, "$1:function $1("' + suffix.substring(match[0].length);
+    source = prefix + source + suffix;
+  }
+  match = /\bfunction CH ?\(/.exec(source);
+  if (match) {
+    let start = match.index, end = source.indexOf('CH.toString()', start);
+    end = source.lastIndexOf("}", end) + 1;
+    let prefix = source.substring(0, start), suffix = source.substring(end);
+    source = source.substring(start + match[0].length, end).replace(/ \/\/.*?$/g, "").replace(/'/g, '"');
+    if (locally) {
+      source = source.replace(/([\r\n]) {4,8}/g, "$1").replace(/\r/g, "\\r").replace(/\n/g, "\\n");
+    } else {
+      source = source.replace(/[\r\n]\s*/g, "");
+    }
+    source = "'function(" + source + "'";
+    suffix = suffix.replace(/\bCH ?= ?CH\.toString\(\)[,;]?\s*/, "").replace(/;\s*var /, ",");
     source = prefix + source + suffix;
   }
   return source;
