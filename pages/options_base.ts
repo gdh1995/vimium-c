@@ -294,7 +294,7 @@ location.pathname.indexOf("/popup.html") !== -1 && BG.Utils.require("Exclusions"
 })(function(tabs: [chrome.tabs.Tab] | never[]): void {
 interface PopExclusionRulesOption extends ExclusionRulesOption {
   readonly url: string;
-  inited: 0 | 1 /* no initial matches */ | 2 /* some matched */;
+  inited: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */;
   init(this: PopExclusionRulesOption, element: HTMLElement
     , onUpdated: (this: PopExclusionRulesOption) => void, onInit: (this: PopExclusionRulesOption) => void
     ): void;
@@ -351,7 +351,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     this.onInit = onInit;
     (ExclusionRulesOption as any).call(this, element, onUpdated);
     this.element.addEventListener("input", this.OnInput);
-    this.init = this.onInit = null as never;
+    this.init = null as never;
   },
   rebuildTesters (this: PopExclusionRulesOption): void {
     const rules = bgSettings.get("exclusionRules")
@@ -426,10 +426,13 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     let pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
     pass && (pass = collectPass(pass));
     if (initing) {
-      oldPass = exclusions.inited === 2 ? pass : null;
+      oldPass = exclusions.inited >= 2 ? pass : null;
     }
+    const isSaving = exclusions.inited === 3;
+    exclusions.inited = 2;
     const same = pass === oldPass;
-    stateLine.innerHTML = '<span class="Vim">Vim</span>ium <span class="C">C</span> ' + (same ? "keeps to " : "will ")
+    stateLine.innerHTML = '<span class="Vim">Vim</span>ium <span class="C">C</span> '
+      + (isSaving ? "becomes to " : same ? "keeps to " : "will ")
       + (pass
       ? `exclude: <span class="state-value code">${pass}</span>`
       : `be:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
@@ -457,7 +460,11 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     }
     const testers = bgExclusions.testers;
     exclusions.save();
-    bgExclusions.testers = testers;
+    setTimeout(function() {
+      bgExclusions.testers = testers;
+    }, 50);
+    exclusions.inited = 3;
+    updateState(true);
     (saveBtn.firstChild as Text).data = "Saved";
     saveBtn.disabled = true;
     saved = true;
@@ -485,6 +492,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     setTimeout(function(): void {
       (document.documentElement as HTMLHtmlElement).style.height = "";
     }, 17);
+    this.onInit = null as never;
     return updateState(true);
   });
   interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
