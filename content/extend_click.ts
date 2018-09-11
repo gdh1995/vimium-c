@@ -40,7 +40,7 @@
   }
   VSettings.uninit = destroy;
 
-let CH: Function | string = function CH(this: void, sec: number): void {
+  let VC: Function | string = (function VC(this: void, sec: number): void {
 type ApplyArgs<T, ArgParent, R> = (this: (this: T, ...a: ArgParent[]) => R, thisArg: T, a: ArgParent[]) => R;
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
 type Call3o<T, A, B, C, R> = (this: (this: T, a: A, b: B, c?: C) => R, thisArg: T, a: A, b: B, c?: C) => R;
@@ -152,16 +152,15 @@ if (typeof E !== "function") {
 ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
-};
-  CH = CH.toString();
-  let appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
+  }).toString()
+    , appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0;
   // the block below is also correct on Edge
   if (appVer && appVer >= BrowserVer.MinEnsureMethodFunction) {
-    CH = CH.replace(<RegExpG> /: ?function \w+/g, "");
+    VC = VC.replace(<RegExpG> /: ?function \w+/g, "");
   }
   script.async = false;
-  script.textContent = `"use strict";(${CH})(${secret});`;
+  script.textContent = `"use strict";(${VC})(${secret});`;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();

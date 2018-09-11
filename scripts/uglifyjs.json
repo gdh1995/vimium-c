@@ -46,7 +46,7 @@
     "properties": false,
     "reserved": [
       "startsWith", "endsWith", "addEventListener", "toString",
-      "Suggestion", "CH"
+      "Suggestion", "VC"
     ], // for polyfills and backend Suggestion
     "toplevel": false
   }
