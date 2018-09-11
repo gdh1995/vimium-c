@@ -5,6 +5,7 @@
     , box: EventTarget | null | false = null
     , secret = "" + ((Math.random() * 1e6 + 1) | 0);
   if (!(script instanceof HTMLScriptElement)) { return; }
+  script.type = "text/javascript";
 
   function installer(event: Event): void {
     const t = event.target;
@@ -39,35 +40,7 @@
   }
   VSettings.uninit = destroy;
 
-  script.type = "text/javascript";
-  let str = func.toString(), appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
-    , appVer = appInfo && +appInfo[1] || 0;
-  // the block below is also correct on Edge
-  if (appVer && appVer >= BrowserVer.MinEnsureMethodFunction) {
-    str = str.replace(<RegExpG> /: ?function \w+/g, "");
-  }
-  script.async = false;
-  script.textContent = `"use strict";(${str})(${secret});`;
-  d = (d as Document).documentElement || d;
-  d.insertBefore(script, d.firstChild);
-  script.remove();
-  VDom.documentReady(function() { box === null && setTimeout(function() { box || destroy(); }, 17); });
-  const safeRAF = appVer !== BrowserVer.NoRAForRICOnSandboxedPage;
-  VDom.allowRAF = safeRAF;
-  if (script.hasAttribute("data-vimium-hook")) {
-    safeRAF || requestAnimationFrame(() => { VDom.allowRAF = true; });
-    return;
-  } // It succeeded to hook.
-  console.info("Some functions of Vimium C may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
-  VDom.allowScripts = false;
-  interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
-  (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
-  function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
-    let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
-    return VDom.allowRAF ? f ? f(cb, { timeout }) : requestAnimationFrame(cb) : (Promise.resolve(1).then(cb), 1);
-  } as any;
-
-function func(this: void, sec: number): void {
+let CH: Function | string = function CH(this: void, sec: number): void {
 type ApplyArgs<T, ArgParent, R> = (this: (this: T, ...a: ArgParent[]) => R, thisArg: T, a: ArgParent[]) => R;
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
 type Call3o<T, A, B, C, R> = (this: (this: T, a: A, b: B, c?: C) => R, thisArg: T, a: A, b: B, c?: C) => R;
@@ -179,5 +152,32 @@ if (typeof E !== "function") {
 ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
-}
+};
+  CH = CH.toString();
+  let appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
+    , appVer = appInfo && +appInfo[1] || 0;
+  // the block below is also correct on Edge
+  if (appVer && appVer >= BrowserVer.MinEnsureMethodFunction) {
+    CH = CH.replace(<RegExpG> /: ?function \w+/g, "");
+  }
+  script.async = false;
+  script.textContent = `"use strict";(${CH})(${secret});`;
+  d = (d as Document).documentElement || d;
+  d.insertBefore(script, d.firstChild);
+  script.remove();
+  VDom.documentReady(function() { box === null && setTimeout(function() { box || destroy(); }, 17); });
+  const safeRAF = appVer !== BrowserVer.NoRAForRICOnSandboxedPage;
+  VDom.allowRAF = safeRAF;
+  if (script.hasAttribute("data-vimium-hook")) {
+    safeRAF || requestAnimationFrame(() => { VDom.allowRAF = true; });
+    return;
+  } // It succeeded to hook.
+  console.info("Some functions of Vimium C may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
+  VDom.allowScripts = false;
+  interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
+  (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
+  function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
+    let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
+    return VDom.allowRAF ? f ? f(cb, { timeout }) : requestAnimationFrame(cb) : (Promise.resolve(1).then(cb), 1);
+  } as any;
 })();

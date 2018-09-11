@@ -44,7 +44,10 @@
   },
   "mangle": {
     "properties": false,
-    "reserved": ["startsWith", "endsWith", "Suggestion", "addEventListener", "toString"], // for polyfills and backend Suggestion
+    "reserved": [
+      "startsWith", "endsWith", "addEventListener", "toString",
+      "Suggestion", "CH"
+    ], // for polyfills and backend Suggestion
     "toplevel": false
   }
 }
