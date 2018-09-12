@@ -633,6 +633,7 @@ function OnBgUnload(): void {
       return;
     }
     bgSettings = BG.Settings;
+    if (!bgSettings) { BG = null as never; return; }
     BG.addEventListener("unload", OnBgUnload);
     if (BG.document.readyState !== "loading") { return callback(); }
     BG.addEventListener("DOMContentLoaded", function load(): void {
