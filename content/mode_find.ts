@@ -27,11 +27,10 @@ var VFindMode = {
   A0Re: <RegExpG> /\xa0/g,
   tailRe: <RegExpOne> /\n$/,
   cssSel: "::selection { background: #ff9632 !important; }",
-  cssIFrame: `*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  cssIFrame: `*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif!important;
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
-body *{all:inherit !important;display:inline !important;}
-html > count{float:right;}`,
+body *{all:inherit!important;display:inline!important;}html>count{float:right;}`,
   activate (_0: number, options: Partial<FindOptions> & SafeObject): void {
     if (!VDom.isHTML()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
