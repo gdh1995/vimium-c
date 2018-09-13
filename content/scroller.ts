@@ -194,7 +194,8 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
       element = _ref[_len];
       if (element instanceof HTMLFormElement) { continue; }
       const rect = element.getBoundingClientRect(),
-      visible = rect.height > 0 ? VDom.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom) : null;
+      visible = rect.height > 0 ? VDom.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom)
+        : VDom.getVisibleClientRect(element);
       if (visible) {
         children.push({ area: (visible[2] - visible[0]) * (visible[3] - visible[1]), el: element});
       }
