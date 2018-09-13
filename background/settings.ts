@@ -126,12 +126,14 @@ var Settings = {
       if (browserInfo.lastIndexOf("s") < 0) {
         // Note: &vimium.min.css: this requires `:host{` is at the beginning
         const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1;
+        let body = css.substring(secondEnd);
+        if (hasAll) {
+          body = body.replace(<RegExpG> /\b[IL]H\s?\{/g, "$&all:inherit;");
+        }
+        body += "\n.R:before,.R:after{display:none!important}";
         css = "div#VimiumUI" + css.substring(5, hostEnd) +
           // Note: &vimium.min.css: this requires no ID/attr selectors in base styles
-          css.substring(secondEnd).replace(<RegExpG> /\.[A-Z]/g, "#VimiumUI $&");
-        if (hasAll) {
-          css = css.replace(<RegExpG> /\b[IL]H\s?\{/g, "$&all:inherit;");
-        }
+          body.replace(<RegExpG> /\.[A-Z]/g, "#VimiumUI $&");
       }
       css = cacheId + css.length + "\n" + css;
       let css2 = this.get("userDefinedCss");
