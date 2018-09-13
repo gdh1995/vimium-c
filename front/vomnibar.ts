@@ -125,6 +125,7 @@ var Vomnibar = {
   wheelInterval: Math.max(33, (<number>window.VomnibarWheelInterval | 0) || 100),
   renderItems: null as never as Render,
   selection: -1,
+  atimer: 0,
   timer: 0,
   wheelTime: 0,
   browserVersion: BrowserVer.assumedVer,
@@ -150,13 +151,16 @@ var Vomnibar = {
     this.barCls.remove("empty");
     this.list.classList.remove("no-favicon");
     if (this.sameOrigin) { return this.onHidden(); }
-    requestAnimationFrame(this.AfterHide);
+    this.atimer = requestAnimationFrame(this.AfterHide);
     this.timer = setTimeout(this.AfterHide, 25);
   },
   AfterHide (this: void): void {
     const a = Vomnibar;
-    if (!a.height) { return; }
-    return a.onHidden();
+    cancelAnimationFrame(a.atimer);
+    clearTimeout(a.timer);
+    if (a.height) {
+      a.onHidden();
+    }
   },
   onHidden (): void {
     VPort.postToOwner({ name: "hide" });
