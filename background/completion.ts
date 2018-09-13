@@ -1031,11 +1031,11 @@ knownCs: CompletersMap & SafeObject = {
       if (arr) {
         queryTerms.shift();
         autoSelect = arr !== knownCs.omni;
-        return Completers.filter(arr);
+        Completers.filter(arr);
+        return;
       }
     }
-    const a = knownCs[options.type];
-    return Completers.filter(a || knownCs.omni);
+    Completers.filter(knownCs[options.type] || knownCs.omni);
   },
   removeSug (url, type, callback): void {
     switch (type) {
