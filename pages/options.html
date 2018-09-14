@@ -101,13 +101,13 @@ shortcut createTab position="end"
           Add search engine shortcuts to the Vomnibar. Format:
           <code>
           <pre>
-a: https://a.com/?q=%s
+a: https://a.com/?q=<span title="%s is equal with $s">%s</span>
 js\:|JS: javascript:\ $S; Run JavaScript
 MainKey|c|c\:|MainName: \
-  https://c.com/?q=%s&amp;space=\s\ space_end
+  https://c.com/?q=$s&amp;space=\s\ space_end
 # this is a comment</pre>
           </code>
-          <var>$s</var> will be replaced with your search terms.
+          <kbd title="%s is equal with $s">$s</kbd> will be replaced with real search terms.
           <a data-auto-resize="searchEngines"></a>.
         </div></td>
       </tr>
@@ -321,8 +321,10 @@ so only the default inner version will be used on them
             <div class="nonEmptyTip"></div>
           </td>
           <td class="help"><div class="help-inner">
-            Your keyboard delay settings on this computer. Format:<br/>
-            <kbd>[ &lt;delay&gt;, &lt;repeat period&gt; ]</kbd> (unit: ms).
+            <span title="This option won't be synced.">
+              Your keyboard delay settings on this computer.
+            </span><br/>
+            Format: <kbd>[ &lt;delay&gt;, &lt;repeat period&gt; ]</kbd> (unit: ms).
           </div></td>
         </tr>
       </tbody>
