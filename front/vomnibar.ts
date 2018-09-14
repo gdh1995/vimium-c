@@ -152,7 +152,7 @@ var Vomnibar = {
     this.list.classList.remove("no-favicon");
     if (this.sameOrigin) { return this.onHidden(); }
     this.atimer = requestAnimationFrame(this.AfterHide);
-    this.timer = setTimeout(this.AfterHide, 25);
+    this.timer = setTimeout(this.AfterHide, 35);
   },
   AfterHide (this: void): void {
     const a = Vomnibar;
