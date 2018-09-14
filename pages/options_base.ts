@@ -111,6 +111,7 @@ save (): void {
   } else if (value === previous) {
     return;
   } else {
+    previous = value;
     value = this.normalize(value, false);
   }
   bgSettings.set(this.field, value);
