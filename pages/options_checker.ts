@@ -100,11 +100,14 @@ Option.all.searchUrl.checker = {
     }
     let str2 = BG.Utils.convertToUrl(obj.url, null, Urls.WorkType.KeepAll);
     if (BG.Utils.lastUrlType > Urls.Type.MaxOfInputIsPlainUrl) {
-      console.log(`searchUrl checker: "${obj.url}" is not a valid plain url.`);
+      const err = `The value "${obj.url}" is not a valid plain URL.`;
+      console.log("searchUrl checker:", err);
+      Option.all.searchUrl.showError(err);
       return bgSettings.get("searchUrl", true);
     }
     str2 = str2.replace(BG.Utils.spacesRe, "%20");
     if (obj.name) { str2 += " " + obj.name; }
+    Option.all.searchUrl.showError("");
     return str2;
   }
 };
