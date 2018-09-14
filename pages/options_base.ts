@@ -97,28 +97,22 @@ normalize (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOpti
 }
 save (): void {
   let value = this.readValueFromElement(), isJSON = typeof value === "object"
-    , previous = isJSON ? JSON.stringify(this.previous) : this.previous, str: string;
-  if (typeof value === "object") {
-    str = JSON.stringify(value);
-    if (str === previous) { return; }
-    previous = str;
-    if (str === JSON.stringify(bgSettings.defaults[this.field])) {
+    , previous = isJSON ? JSON.stringify(this.previous) : this.previous
+    , pod = isJSON ? JSON.stringify(value) : value;
+  if (pod === previous) { return; }
+  previous = pod;
+  value = this.normalize(value, isJSON, isJSON ? pod as string : "");
+  if (isJSON) {
+    pod = JSON.stringify(value);
+    if (pod === JSON.stringify(bgSettings.defaults[this.field])) {
       value = bgSettings.defaults[this.field];
-    } else {
-      value = this.normalize(value, true, str);
-      str = "";
     }
-  } else if (value === previous) {
-    return;
-  } else {
-    previous = value;
-    value = this.normalize(value, false);
   }
   bgSettings.set(this.field, value);
   this.previous = value = bgSettings.get(this.field);
   this.saved = true;
   if (previous !== (isJSON ? JSON.stringify(value) : value)) {
-    this.populateElement(value);
+    this.populateElement(value, true);
   }
   if (this.field in bgSettings.bufferToLoad) {
     Option.syncToFrontend.push(this.field as keyof SettingsNS.FrontendSettings);
@@ -126,7 +120,7 @@ save (): void {
   this.onSave && this.onSave();
 }
 abstract readValueFromElement (): AllowedOptions[T];
-abstract populateElement (value: AllowedOptions[T]): void;
+abstract populateElement (value: AllowedOptions[T], enableUndo?: boolean): void;
 _onCacheUpdated: (this: Option<T>, onUpdated: (this: Option<T>) => void) => void;
 areEqual: (this: Option<T>, a: AllowedOptions[T], b: AllowedOptions[T]) => boolean;
 atomicUpdate: (this: Option<T> & {element: TextElement}, value: string, undo: boolean, locked: boolean) => void;
