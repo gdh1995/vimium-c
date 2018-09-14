@@ -93,8 +93,8 @@ bgSettings.CONST.VimiumNewTab && (Option.all.newTabUrl.checker = {
 Option.all.searchUrl.checker = {
   check (str: string): string {
     const map = Object.create<Search.RawEngine>(null);
-    BG.Utils.parseSearchEngines("k:" + str, map);
-    const obj = map.k;
+    BG.Utils.parseSearchEngines("__k:" + str, map);
+    const obj = map.__k;
     if (obj == null) {
       return bgSettings.get("searchUrl", true);
     }
@@ -106,7 +106,7 @@ Option.all.searchUrl.checker = {
       return bgSettings.get("searchUrl", true);
     }
     str2 = str2.replace(BG.Utils.spacesRe, "%20");
-    if (obj.name) { str2 += " " + obj.name; }
+    if (obj.name && obj.name !== "__k") { str2 += " " + obj.name; }
     Option.all.searchUrl.showError("");
     return str2;
   }
