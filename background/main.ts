@@ -1213,7 +1213,8 @@ Are you sure you want to continue?`);
     enterInsertMode (): void {
       let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0, hud: boolean;
       code = stat !== KeyStat.plain ? code || VKeyCodes.esc : code === VKeyCodes.esc ? 0 : code;
-      hud = cOptions.hideHud != null ? !cOptions.hideHud : !Settings.get("hideHud", true);
+      hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
+        : !Settings.get("hideHud", true);
       cPort.postMessage<1, "enterInsertMode">({ name: "execute", count: 1, command: "enterInsertMode",
         CSS: hud ? ensureInnerCSS(cPort) : null,
         options: {
