@@ -93,16 +93,15 @@ var Settings = {
     },
     searchEngineMap (value: FullSettings["searchEngineMap"]): void {
       "searchKeywords" in this.cache && this.set("searchKeywords", null);
-      Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);
-      const rules = Utils.parseSearchEngines(this.get("searchEngines"), value);
+      // Note: this requires `searchUrl` must be a valid URL
+      const rules = Utils.parseSearchEngines("~:" + this.get("searchUrl") + "\n" + this.get("searchEngines"), value);
       return this.set("searchEngineRules", rules);
     },
     searchUrl (str): void {
       if (str) {
         Utils.parseSearchEngines("~:" + str, this.cache.searchEngineMap);
       } else {
-        str = this.get("searchUrl").split(" ", 1)[0];
-        (this.cache as any).searchEngineMap = { "~": { name: "~", url: str } };
+        (this.cache as any).searchEngineMap = { "~": { name: "~", url: this.get("searchUrl").split(" ", 1)[0] } };
         (this.cache as any).searchEngineRules = [];
         if (str = this.get("newTabUrl_f", true)) {
           return ((this as typeof Settings).updateHooks.newTabUrl_f as (this: void, url_f: string) => void)(str);

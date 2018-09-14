@@ -539,21 +539,20 @@ var Utils = {
     const origin = url.substring(0, ind), o2 = origin.toLowerCase();
     return origin !== o2 ? o2 + url.substring(ind) : url;
   },
-  parseSearchEngines: (function(this: any, str: string, map: Search.EngineMap): Search.Rule[] {
+  parseSearchEngines: function(this: any, str: string, map: Search.EngineMap): Search.Rule[] {
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter"],
-    key: string, val: string, obj: Search.RawEngine,
+    key: string, obj: Search.RawEngine,
     ind: number, rSlash = <RegExpOne> /[^\\]\//, rules = [] as Search.Rule[],
     rEscapeSpace = <RegExpG & RegExpSearchable<0>> /\\\s/g, rSpace = <RegExpOne> /\s/,
     rEscapeS = <RegExpG & RegExpSearchable<0>> /\\s/g, rColon = <RegExpG & RegExpSearchable<0>> /\\:/g,
     rPercent = <RegExpG & RegExpSearchable<0>> /\\%/g, rRe = <RegExpI> /\sre=/i,
-    a = str.replace(<RegExpSearchable<0>> /\\\n/g, '').split('\n'),
     encodedSearchWordRe = <RegExpG & RegExpSearchable<1>> /%24([sS])/g, re = this.searchWordRe,
     func = (function(key: string): boolean {
       return (key = key.trim()) && key !== "__proto__" && key.length < Consts.MinInvalidLengthOfSearchKey
         ? (map[key] = obj, true) : false;
     });
-    for (let _i = 0, _len = a.length; _i < _len; _i++) {
-      val = a[_i].trim();
+    for (let val of str.replace(<RegExpG> /\\\n/g, '').split('\n')) {
+      val = val.trim();
       if (!(val.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
       ind = 0;
       do {
@@ -629,12 +628,12 @@ var Utils = {
       obj.name = str ? this.DecodeURLPart(str) : ids[ids.length - 1].trimLeft();
     }
     return rules;
-  }),
+  },
   escapeAllRe: <RegExpG & RegExpSearchable<0>> /[$()*+.?\[\\\]\^{|}]/g,
   _spaceOrPlusRe: <RegExpG> /\\\+|%20| /g,
   _queryRe: <RegExpOne> /[#?]/,
   alphaRe: <RegExpI> /[a-z]/i,
-  reparseSearchUrl: (function (this: any, url: string, ind: number): Search.TmpRule | null {
+  reparseSearchUrl: function (this: any, url: string, ind: number): Search.TmpRule | null {
     if (!this.protocolRe.test(url)) { return null; }
     let prefix: string, str: string, str2: string, ind2: number;
     prefix = url.substring(0, ind - 1);
@@ -663,7 +662,7 @@ var Utils = {
     str2 = str2 && str2.replace(this.escapeAllRe, "\\$&").replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
     prefix = this.prepareReparsingPrefix(prefix);
     return {prefix, matcher: new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne};
-  }),
+  },
   IsURLHttp (this: void, url: string): ProtocolType {
     url = url.substring(0, 8).toLowerCase();
     return url.startsWith("http://") ? ProtocolType.http : url === "https://" ? ProtocolType.https : ProtocolType.others;
