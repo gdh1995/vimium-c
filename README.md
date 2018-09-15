@@ -20,7 +20,7 @@ It supports Chrome and other Chromium-based browsers whose core versions are >= 
 This project is developed by [gdh1995](https://github.com/gdh1995)
   and licensed under the [MIT license](LICENSE.txt).
 
-![UI Demo of Vimium C](https://gdh1995.github.io/vimium-c/demo.jpg)
+![Usage Demo of Vimium C](https://gdh1995.github.io/vimium-c/demo.gif)
 
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
