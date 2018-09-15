@@ -13,7 +13,7 @@ A <span style="color: #8e5e2f;">C</span>ustomized
   having <span style="color: #8e5e2f;">C</span>hinese support,
     global <span style="color: #8e5e2f;">C</span>ommands
     and injection functionality,
-  with <span style="color: #8e5e2f;">C</span>-style code for better speed and less resource cost.
+  in <span style="color: #8e5e2f;">C</span>-style code for better speed and less resource cost.
 It supports Chrome and other Chromium-based browsers whose core versions are >= 35,
   and partly supports latest Firefox.
 
