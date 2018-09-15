@@ -246,7 +246,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     showAdvancedOptions: false,
     smoothScroll: true,
     userDefinedCss: "",
-    vimSync: false,
+    vimSync: null,
     vomnibarPage: ""
   } as Readonly<SettingsWithDefaults> & SafeObject,
   // not set localStorage, neither sync, if key in @nonPersistent

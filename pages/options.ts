@@ -195,16 +195,19 @@ JSONOption.prototype.areEqual = Option.areJSONEqual;
 
 class BooleanOption<T extends keyof AllowedOptions> extends Option<T> {
 readonly element: HTMLInputElement;
-previous: boolean;
+previous: boolean | null;
 constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption<T>) => void) {
   super(element, onUpdated);
   this.element.onchange = this.onUpdated;
 }
-populateElement (value: boolean): void {
-  this.element.checked = value;
+populateElement (value: boolean | null): void {
+  this.element.checked = value || false;
+  if (value === null) {
+    this.element.indeterminate = true;
+  }
 }
-readValueFromElement (): boolean {
-  return this.element.checked;
+readValueFromElement (): boolean | null {
+  return this.element.indeterminate ? null : this.element.checked;
 }
 }
 

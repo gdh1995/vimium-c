@@ -293,7 +293,7 @@ declare namespace SettingsNS {
     showAdvancedCommands: boolean;
     showAdvancedOptions: boolean;
     userDefinedCss: string;
-    vimSync: boolean;
+    vimSync: boolean | null;
     vomnibarPage: string;
   }
   interface CachedFiles {
