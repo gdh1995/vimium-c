@@ -23,6 +23,7 @@ Option.prototype._onCacheUpdated = function<T extends keyof SettingsNS.FrontendS
 
 Option.saveOptions = function(): void {
   const arr = Option.all;
+  arr.vimSync.saved || arr.vimSync.save();
   for (const i in arr) {
     arr[i as keyof AllowedOptions].saved || arr[i as keyof AllowedOptions].save();
   }
