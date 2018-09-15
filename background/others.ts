@@ -8,7 +8,6 @@ declare const enum OmniboxData {
 
 // Note: if localStorage is cleaned (considering newTabUrl_f, innerCSS),
 //       try to get vimSync from storage.sync
-if (Settings.get("vimSync") !== false && (Settings.get("vimSync") || localStorage.length <= 2))
 setTimeout(function() {
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
@@ -104,32 +103,37 @@ setTimeout(function() {
       return !(key in this.doNotSync);
     }
   };
+  Settings.updateHooks.vimSync = function (value): void {
+    const event = chrome.storage.onChanged, listener = Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate;
+    if (!value) {
+      event.removeListener(listener);
+      Settings.sync = () => {};
+    } else if (Settings.sync !== Sync.TrySet) {
+      event.addListener(listener);
+      Settings.sync = Sync.TrySet;
+    }
+  };
+  const sync1 = Settings.get("vimSync");
+  if (sync1 === false || (!sync1 && localStorage.length > 2)) {
+    return;
+  }
   Sync.storage.get(null, function(items): void {
     if (chrome.runtime.lastError as any) {
-      console.log("Error:", "failed to get storage:", chrome.runtime.lastError
+      console.log(new Date().toLocaleString(), "Error: failed to get storage:", chrome.runtime.lastError
         , "\n\tSo disable syncing temporarily.");
+      Sync.HandleStorageUpdate = Sync.TrySet = function (): void {};
       return chrome.runtime.lastError;
     }
     Object.setPrototypeOf(items, null);
     const vimSync = items.vimSync || Settings.get("vimSync");
     if (!vimSync) {
-      return;
+      return; // no settings have been modified
     } else if (!items.vimSync) {
-      // storage may be empty, but the local computer wants to sync, so enable it
-      items.vimSync = vimSync;
+      // cloud may be empty, but the local computer wants to sync, so enable it
       console.log("sync.cloud: enable vimSync");
+      items.vimSync = vimSync;
       Sync.storage.set({ vimSync });
     }
-    Settings.updateHooks.vimSync = function (value): void {
-      const event = chrome.storage.onChanged, listener = Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate;
-      if (!value) {
-        event.removeListener(listener);
-        Settings.sync = () => {};
-      } else if (Settings.sync !== Sync.TrySet) {
-        event.addListener(listener);
-        Settings.sync = Sync.TrySet;
-      }
-    };
     const toReset: string[] = [];
     for (let i = 0, end = localStorage.length; i < end; i++) {
       const key = localStorage.key(i) as string;
