@@ -336,7 +336,7 @@ declare namespace SettingsNS {
     bufferToLoad (this: Window["Settings"], value: null): void;
   }
   type DeclaredUpdateHookMap = NullableUpdateHookMap
-      & Pick<BaseUpdateHookMap, "extWhiteList" | "grabBackFocus" | "newTabUrl" | "baseCSS" | "vimSync"
+      & Pick<BaseUpdateHookMap, "extWhiteList" | "grabBackFocus" | "newTabUrl" | "baseCSS"
         | "userDefinedCss" | "vomnibarPage" | "innerCSS">;
   type EnsuredUpdateHookMaps = DeclaredUpdateHookMap
       & Pick<BaseUpdateHookMap, "showActionIcon" | "newTabUrl_f">;

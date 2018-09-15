@@ -59,6 +59,9 @@ if (Settings.get("vimSync")) setTimeout(function() {
       Utils.require(wanted).then(() => Settings.set(key, value));
       Utils.GC();
     },
+    TrySet<K extends keyof SettingsToSync> (this: void, key: K, value: SettingsToSync[K] | null) {
+      Sync.set(key, value);
+    },
     set<K extends keyof SettingsToSync> (key: K, value: SettingsToSync[K] | null): void {
       if (!this.shouldSyncKey(key)) { return; }
       let items = this.to_update;
@@ -71,7 +74,7 @@ if (Settings.get("vimSync")) setTimeout(function() {
     DoUpdate (this: void): void {
       let items = Sync.to_update, removed = [] as string[], left = 0;
       Sync.to_update = null;
-      if (!items || Settings.Sync !== Sync) { return; }
+      if (!items || Settings.sync !== Sync.TrySet) { return; }
       for (const key in items) {
         if (items[key as keyof SettingsToUpdate] != null) {
           ++left;
@@ -91,7 +94,7 @@ if (Settings.get("vimSync")) setTimeout(function() {
       return !(key in this.doNotSync);
     }
   };
-  Settings.Sync = Sync;
+  Settings.sync = Sync.TrySet;
   chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
   Sync.storage.get(null, function(items): void {
     if (chrome.runtime.lastError as any) {
@@ -99,6 +102,11 @@ if (Settings.get("vimSync")) setTimeout(function() {
       return chrome.runtime.lastError;
     }
     Object.setPrototypeOf(items, null);
+    Settings.updateHooks.vimSync = function (value): void {
+      if (value) { return; }
+      chrome.storage.onChanged.removeListener(Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);
+      Settings.sync = () => {};
+    },
     for (const key in items) {
       Sync.storeAndPropagate(key, items[key]);
     }

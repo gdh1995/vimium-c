@@ -28,10 +28,10 @@ var Settings = {
       const initial = this.defaults[key as keyof SettingsNS.PersistentSettings];
       if (value === initial) {
         localStorage.removeItem(key);
-        this.Sync.set(key as keyof SettingsNS.PersistentSettings, null);
+        this.sync(key as keyof SettingsNS.PersistentSettings, null);
       } else {
         localStorage.setItem(key, typeof initial === "string" ? value as string : JSON.stringify(value));
-        this.Sync.set(key as keyof SettingsNS.PersistentSettings, value as
+        this.sync(key as keyof SettingsNS.PersistentSettings, value as
           FullSettings[keyof SettingsNS.PersistentSettings]);
       }
     }
@@ -138,11 +138,6 @@ var Settings = {
       let css2 = this.get("userDefinedCss");
       css2 && (css += "\n" + css2);
       return this.set("innerCSS", css);
-    },
-    vimSync (value): void {
-      if (value || !(this as typeof Settings).Sync.HandleStorageUpdate) { return; }
-      chrome.storage.onChanged.removeListener(Settings.Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);
-      Settings.Sync = { set () {} };
     },
     userDefinedCss (css2): void {
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
@@ -266,9 +261,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   valuesToLoad: ["deepHints", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
-  Sync: {
-    set: function() {}
-  } as SettingsNS.Sync,
+  sync: (() => {}) as SettingsNS.Sync["set"],
   CONST: {
     AllowClipboardRead: true,
     BaseCSSLength: 0,
