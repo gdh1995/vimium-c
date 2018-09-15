@@ -34,6 +34,7 @@ setTimeout(function() {
       const defaultVal = Settings.defaults[key];
       if (value == null) {
         if (localStorage.getItem(key) != null) {
+          console.log(new Date().toLocaleString(), "sync.local: reset", key);
           this.doSet(key, defaultVal);
         }
         return;
@@ -51,6 +52,10 @@ setTimeout(function() {
       if (jsonVal === curVal) {
         value = defaultVal;
       }
+      console.log(new Date().toLocaleString(), "sync.local: update", key,
+        typeof value === "string"
+        ? (value.length > 32 ? value.substring(0, 30) + "..." : value).replace(<RegExpG>/\n/g, "\\n")
+        : value);
       this.doSet(key, value);
     },
     doSet(key: keyof SettingsWithDefaults, value: any): void {
@@ -87,9 +92,11 @@ setTimeout(function() {
         }
       }
       if (removed.length > 0) {
+        console.log(new Date().toLocaleString(), "sync.cloud: reset", removed.join(" "));
         Sync.storage.remove(removed);
       }
       if (left > 0) {
+        console.log(new Date().toLocaleString(), "sync.cloud: update", Object.keys(items).join(" "));
         Sync.storage.set(items);
       }
     },
@@ -104,21 +111,39 @@ setTimeout(function() {
       return chrome.runtime.lastError;
     }
     Object.setPrototypeOf(items, null);
-    if (!Settings.get("vimSync") && !items.vimSync) {
+    const vimSync = items.vimSync || Settings.get("vimSync");
+    if (!vimSync) {
       return;
+    } else if (!items.vimSync) {
+      // storage may be empty, but the local computer wants to sync, so enable it
+      items.vimSync = vimSync;
+      console.log("sync.cloud: enable vimSync");
+      Sync.storage.set({ vimSync });
     }
     Settings.updateHooks.vimSync = function (value): void {
       if (value) { return; }
       chrome.storage.onChanged.removeListener(Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);
       Settings.sync = () => {};
-    },
-    Settings.sync = Sync.TrySet;
-    chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
+    };
+    const toReset: string[] = [];
+    for (let i = 0, end = localStorage.length; i < end; i++) {
+      const key = localStorage.key(i) as string;
+      // although storeAndPropagate indeed checks @shouldSyncKey(key)
+      // here check it for easier debugging
+      if (!(key in items) && key in Settings.defaults && Sync.shouldSyncKey(key)) {
+        toReset.push(key);
+      }
+    }
+    for (let key of toReset) {
+      Sync.storeAndPropagate(key, null);
+    }
     for (const key in items) {
       Sync.storeAndPropagate(key, items[key]);
     }
+    Settings.sync = Sync.TrySet;
+    chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
   });
-}, 400);
+}, 1000);
 
 setTimeout(function() { if (!chrome.browserAction) { return; }
   const func = Settings.updateHooks.showActionIcon;
