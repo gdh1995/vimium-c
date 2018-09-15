@@ -6,7 +6,10 @@ declare const enum OmniboxData {
   PreservedTitle = 16,
 }
 
-if (Settings.get("vimSync")) setTimeout(function() {
+// Note: if localStorage is cleaned (considering newTabUrl_f, innerCSS),
+//       try to get vimSync from storage.sync
+if (Settings.get("vimSync") !== false && (Settings.get("vimSync") || localStorage.length <= 2))
+setTimeout(function() {
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
@@ -94,19 +97,23 @@ if (Settings.get("vimSync")) setTimeout(function() {
       return !(key in this.doNotSync);
     }
   };
-  Settings.sync = Sync.TrySet;
-  chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
   Sync.storage.get(null, function(items): void {
     if (chrome.runtime.lastError as any) {
-      Settings.postUpdate("vimSync", false);
+      console.log("Error:", "failed to get storage:", chrome.runtime.lastError
+        , "\n\tSo disable syncing temporarily.");
       return chrome.runtime.lastError;
     }
     Object.setPrototypeOf(items, null);
+    if (!Settings.get("vimSync") && !items.vimSync) {
+      return;
+    }
     Settings.updateHooks.vimSync = function (value): void {
       if (value) { return; }
       chrome.storage.onChanged.removeListener(Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);
       Settings.sync = () => {};
     },
+    Settings.sync = Sync.TrySet;
+    chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
     for (const key in items) {
       Sync.storeAndPropagate(key, items[key]);
     }
