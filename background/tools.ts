@@ -1,6 +1,6 @@
 type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
-type MarkStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+type MarkStorage = Pick<Storage, "setItem"> & SafeDict<string>;
 const VClipboard = {
   getTextArea (): HTMLTextAreaElement {
     const el = document.createElement("textarea");
@@ -257,11 +257,9 @@ Marks = { // NOTE: all public members should be static
   cache: localStorage,
   cacheI: null as MarkStorage | null,
   _storage (): MarkStorage {
-    return {
-      getItem (k: string): string | null { return this[k] || null; },
-      setItem (k: string, v: string): void { this[k] = v; },
-      removeItem (k: string): void { delete this[k]; },
-    } as MarkStorage & { [k: string]: string | undefined };
+    const map: MarkStorage = Object.create(null);
+    map.setItem = function (k: string, v: string): void { this[k] = v; }
+    return map;
   },
   _set ({ local, markName, url, scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number): void {
     const storage = incognito ? this.cacheI || (IncognitoWatcher.watch(), this.cacheI = this._storage()) : this.cache;
@@ -292,7 +290,7 @@ Marks = { // NOTE: all public members should be static
   },
   gotoMark (this: void, request: MarksNS.FgQuery, port: Port): void {
     const { local, markName } = request, key = Marks.getLocationKey(markName, local ? request.url : "");
-    const str = Marks.cacheI && port.sender.incognito && Marks.cacheI.getItem(key) || Marks.cache.getItem(key);
+    const str = Marks.cacheI && port.sender.incognito && Marks.cacheI[key] || Marks.cache.getItem(key);
     if (local) {
       let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
       if (!scroll) {
@@ -341,20 +339,21 @@ Marks = { // NOTE: all public members should be static
   },
   clear (this: void, url?: string): void {
     const key_start = Marks.getLocationKey("", url);
-    let count = 0;
-    for (let storage = Marks.cache, i = storage.length; 0 <= --i; ) {
+    let toRemove: string[] = [], storage = Marks.cache;
+    for (let i = 0, end = storage.length; i < end; i++) {
       const key = storage.key(i) as string;
       if (key.startsWith(key_start)) {
-        count++;
-        storage.removeItem(key);
+        toRemove.push(key);
       }
     }
+    for (const key of toRemove) { storage.removeItem(key); }
+    let count = toRemove.length;
     if (Marks.cacheI) {
-      const storage = Marks.cacheI;
-      for (const key in storage) {
+      const storage2 = Marks.cacheI;
+      for (const key in storage2) {
         if (key.startsWith(key_start)) {
           count++;
-          storage.removeItem(key);
+          delete storage2[key];
         }
       }
     }
