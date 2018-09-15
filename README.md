@@ -1,23 +1,26 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.69.0](https://img.shields.io/badge/release-1.69.0-orange.svg)
+[![Version 1.69.1](https://img.shields.io/badge/release-1.69.1-orange.svg)
+  ](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-c)
-
-**[Visit Vimium C in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium-c/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
+**[Visit Vimium C on Chrome Web Store
+  ](https://chrome.google.com/webstore/detail/vimium-c/hfjbmagddngcpeloejdejnfgbamkjaeg)**
 
 A <span style="color: #8e5e2f;">C</span>ustomized
   [<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)
   having <span style="color: #8e5e2f;">C</span>hinese support,
     global <span style="color: #8e5e2f;">C</span>ommands
     and injection functionality,
-  in a <span style="color: #8e5e2f;">C</span>-style code for better speed and less resource cost.
+  with <span style="color: #8e5e2f;">C</span>-style code for better speed and less resource cost.
 It supports Chrome and other Chromium-based browsers whose core versions are >= 35,
   and partly supports latest Firefox.
 
 This project is developed by [gdh1995](https://github.com/gdh1995)
   and licensed under the [MIT license](LICENSE.txt).
+
+![UI Demo of Vimium C](https://gdh1995.github.io/vimium-c/demo.jpg)
 
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
@@ -87,11 +90,17 @@ Known issues (Up to the master branch):
   Currently, no effective ways have been found (up to Chrome 69).
 7. On sandboxed pages without an `allow-scripts` permission in their CSP,
   HUD will always be visible in order to solve some issues on Chrome.
-  This issue is fixed in Chrome 68, although Vomnibar keeps broken on those pages.
+  This issue has been fixed since Chrome 68.
 8. Chrome 64 and 65 always clean their console logs if only Vomnibar is opened, and there's nothing we can do for it.
   Chrome 66 fixes it.
 9. Chrome 69 disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
   This issue has been fixed since Chrome Dev 70 (up to 2018-09-07).
+
+1.69.1:
+* fix that Vomnibar often shows and disappears on reopening
+* fix that some web pages can not be scrolled without a click
+* fix the functionality of syncing with the cloud which is broken for a long time
+* fix some old bugs of the options page
 
 1.69.0:
 * FindMode: `\w` means to enable whole-word searching
@@ -183,7 +192,7 @@ Known issues (Up to the master branch):
 1.61.1:
 * fix new UI bugs on Chrome 61
 * fix that content settings commands didn't work on some special URLs containing port or username info
-* in most pages, it will focus a parent frame to press `<Esc>`,
+* on most pages, it will focus a parent frame to press `<Esc>`,
   if the current is an iframe and nothing is focused or selected
 * re-enable supports on about:blank iframes
 * FindMode has a safer HUD
@@ -217,12 +226,9 @@ If you want to compile this project manually, please run:
 
 ``` bash
 npm install typescript@next
-# remove options "narrowFormat" in `tsconfig.json`
 node scripts/tsc all
 #./scripts/make.sh output-file.zip
 ```
-
-The option `narrowFormat` are for another version of [TypeScript](https://github.com/gdh1995/TypeScript).
 
 `gulp local` can also compile files in place, while `gulp dist` compiles and minimizes files into `dist/`.
 
@@ -248,7 +254,7 @@ See the [MIT LICENSE](LICENSE.txt) for details.
     and modified `es.d.ts`, `es/*`, `dom.d.ts` and `chrome.d.ts` in `types/`:
   Copyright (c) Microsoft Corporation (All rights reserved).
   Licensed under the Apache License, Version 2.0.
-  See more in [www.typescriptlang.org](http://www.typescriptlang.org/).
+  See more on [www.typescriptlang.org](http://www.typescriptlang.org/).
 * [PDF.js](https://github.com/mozilla/pdf.js/):
   Copyright (c) Mozilla and individual contributors.
   Licensed under the Apache License, Version 2.0.
