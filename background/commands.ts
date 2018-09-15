@@ -406,7 +406,6 @@ availableCommands: {
 
 if (Backend.onInit) {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
-  Commands.defaultKeyMappings = null as never;
   Commands.populateCommandKeys();
   if (!Settings.get("vimSync")) {
     Commands = null as never;
