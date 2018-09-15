@@ -114,7 +114,7 @@ Option.all.searchUrl.checker = {
 
 Option.all.vimSync.checker = {
   check (willSync: FullSettings["vimSync"]): FullSettings["vimSync"] {
-    if (willSync) {
+    if (willSync && !Option.all.vimSync.previous) {
       setTimeout(alert, 100, "Warning: the current settings will be OVERRIDDEN the next time Vimium C starts!\n"
         + 'Please back up your settings using the "Export Settings" button RIGHT NOW!');
     }

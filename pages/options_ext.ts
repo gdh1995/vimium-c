@@ -165,6 +165,15 @@ Are you sure you want to continue?`
     window.VHUD && VHUD.showForDuration("You cancelled importing.", 1000);
     return;
   }
+  Object.setPrototypeOf(new_data, null);
+  if (new_data.vimSync == null && bgSettings.get("vimSync")) {
+    if (confirm(
+      'Do you want to keep settings synchronized with your current Google account?'
+    )) {
+      new_data.vimSync = bgSettings.get("vimSync");
+      console.log("You chose to keep settings synced.");
+    }
+  }
 
   const logUpdate = function(method: string, key: string, ...args: any[]): any {
     let val = args.pop();
@@ -181,7 +190,6 @@ Are you sure you want to continue?`
     console.info("IMPORT settings:", is_recommended ? "recommended" : "saved before");
   }
 
-  Object.setPrototypeOf(new_data, null);
   delete new_data.name;
   delete new_data.time;
   delete new_data.environment;
@@ -201,6 +209,11 @@ Are you sure you want to continue?`
   delete new_data.findModeRawQueryList;
   delete new_data.innerCSS;
   delete new_data.newTabUrl_f;
+  if (new_data.vimSync !== null && new_data.vimSync !== bgSettings.get("vimSync")) {
+    logUpdate("import", "vimSync", new_data.vimSync);
+    bgSettings.set("vimSync", new_data.vimSync);
+    _ref.vimSync.fetch();
+  }
   for (const _key in _ref) {
     const item: Option<any> = _ref[_key as keyof AllowedOptions];
     let key: keyof AllowedOptions = item.field, new_value: any = new_data[key];

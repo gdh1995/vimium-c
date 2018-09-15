@@ -74,7 +74,7 @@ setTimeout(function() {
       if (!this.shouldSyncKey(key)) { return; }
       let items = this.to_update;
       if (!items) {
-        setTimeout(this.DoUpdate, 60000);
+        setTimeout(this.DoUpdate, 800);
         items = this.to_update = Object.create(null) as SettingsToUpdate;
       }
       items[key] = value;
@@ -121,9 +121,14 @@ setTimeout(function() {
       Sync.storage.set({ vimSync });
     }
     Settings.updateHooks.vimSync = function (value): void {
-      if (value) { return; }
-      chrome.storage.onChanged.removeListener(Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);
-      Settings.sync = () => {};
+      const event = chrome.storage.onChanged, listener = Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate;
+      if (!value) {
+        event.removeListener(listener);
+        Settings.sync = () => {};
+      } else if (Settings.sync !== Sync.TrySet) {
+        event.addListener(listener);
+        Settings.sync = Sync.TrySet;
+      }
     };
     const toReset: string[] = [];
     for (let i = 0, end = localStorage.length; i < end; i++) {
@@ -140,8 +145,7 @@ setTimeout(function() {
     for (const key in items) {
       Sync.storeAndPropagate(key, items[key]);
     }
-    Settings.sync = Sync.TrySet;
-    chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
+    Settings.postUpdate("vimSync");
   });
 }, 1000);
 
