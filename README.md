@@ -1,7 +1,7 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.69.1](https://img.shields.io/badge/release-1.69.1-orange.svg)
+[![Version 1.69.2](https://img.shields.io/badge/release-1.69.2-orange.svg)
   ](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-c)
@@ -96,7 +96,7 @@ Known issues (Up to the master branch):
 9. Chrome 69 disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
   This issue has been fixed since Chrome Dev 70 (up to 2018-09-07).
 
-1.69.1:
+1.69.2:
 * fix that Vomnibar often shows and disappears on reopening
 * fix that some web pages can not be scrolled without a click
 * fix the functionality of syncing with the cloud which is broken for a long time
