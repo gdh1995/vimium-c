@@ -13,9 +13,8 @@ setTimeout(function() {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
   Utils.GC();
-  if (!chrome.storage) { return; }
   const Sync = {
-    storage: chrome.storage.sync,
+    storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; },
     to_update: null as SettingsToUpdate | null,
     doNotSync: Object.setPrototypeOf({
       findModeRawQueryList: 1, innerCSS: 1, keyboard: 1, newTabUrl_f: 1
@@ -92,11 +91,11 @@ setTimeout(function() {
       }
       if (removed.length > 0) {
         console.log(new Date().toLocaleString(), "sync.cloud: reset", removed.join(" "));
-        Sync.storage.remove(removed);
+        Sync.storage().remove(removed);
       }
       if (left > 0) {
         console.log(new Date().toLocaleString(), "sync.cloud: update", Object.keys(items).join(" "));
-        Sync.storage.set(items);
+        Sync.storage().set(items);
       }
     },
     shouldSyncKey (key: string): key is keyof SettingsToSync {
@@ -104,6 +103,8 @@ setTimeout(function() {
     }
   };
   Settings.updateHooks.vimSync = function (value): void {
+    const storage = Sync.storage();
+    if (!storage) { return; }
     const event = chrome.storage.onChanged, listener = Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate;
     if (!value) {
       event.removeListener(listener);
@@ -117,7 +118,8 @@ setTimeout(function() {
   if (sync1 === false || (!sync1 && localStorage.length > 2)) {
     return;
   }
-  Sync.storage.get(null, function(items): void {
+  if (!Sync.storage()) { return; }
+  Sync.storage().get(null, function(items): void {
     if (chrome.runtime.lastError as any) {
       console.log(new Date().toLocaleString(), "Error: failed to get storage:", chrome.runtime.lastError
         , "\n\tSo disable syncing temporarily.");
@@ -132,7 +134,7 @@ setTimeout(function() {
       // cloud may be empty, but the local computer wants to sync, so enable it
       console.log("sync.cloud: enable vimSync");
       items.vimSync = vimSync;
-      Sync.storage.set({ vimSync });
+      Sync.storage().set({ vimSync });
     }
     const toReset: string[] = [];
     for (let i = 0, end = localStorage.length; i < end; i++) {
