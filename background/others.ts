@@ -511,11 +511,10 @@ setTimeout(function() {
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId): void {
-    const popup = chrome.notifications, e: void = chrome.runtime.lastError;
-    chrome.notifications = null as never;
+    const e: void = chrome.runtime.lastError;
     if (e as any) { return e; }
     reason = notificationId || reason;
-    popup.onClicked.addListener(function(id): void {
+    chrome.notifications.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }
       return Backend.focus({
         url: "https://github.com/gdh1995/vimium-c#release-notes"
