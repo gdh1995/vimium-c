@@ -435,10 +435,6 @@ history: {
     }
     if (history) {
       HistoryCache.refreshInfo();
-    } else {
-      setTimeout(function() {
-        return HistoryCache.use();
-      }, 50);
     }
     if (index === 0) {
       Completers.requireNormalOrIncognito(this, this.loadTabs, query);
@@ -907,6 +903,7 @@ searchEngines: {
     for (l--; i <= l; i++) {
       completers[i].filter(query, i);
     }
+    HistoryCache.lastRefresh || setTimeout(function() { return HistoryCache.use(); }, 50);
   },
   requireNormalOrIncognito<T> (that: T
       , func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
@@ -1172,7 +1169,13 @@ knownCs: CompletersMap & SafeObject = {
       j = null;
       setTimeout(function() {
         const _this = HistoryCache;
-        setTimeout(() => Decoder.decodeList(HistoryCache.history as HistoryItem[]), 100);
+        setTimeout(function () {
+          Decoder.decodeList(HistoryCache.history as HistoryItem[]);
+          HistoryCache.domains || setTimeout(function () {
+            const d = Completers.domains;
+            d.refresh && d.refresh(HistoryCache.history as HistoryItem[]);
+          }, 200);
+        }, 100);
         (_this.history as HistoryItem[]).sort((a, b) => a.url > b.url ? 1 : -1);
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         chrome.history.onVisited.addListener(_this.OnPageVisited);
