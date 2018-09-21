@@ -491,7 +491,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         let keyStat: KeyStat;
         if (keyCode === VKeyCodes.shiftKey || keep && (keyCode === VKeyCodes.altKey
             || keyCode === VKeyCodes.ctrlKey || keyCode === VKeyCodes.metaKey)) {}
-        else if (event.repeat) { return HandlerResult.Prevent; }
+        else if (event.repeat) { return HandlerResult.Nothing; }
         else if (keep ? VKeyboard.isEscape(event) || (
             keyCode === VKeyCodes.enter && (keyStat = VKeyboard.getKeyStat(event),
               keyStat !== KeyStat.shiftKey && (keyStat !== KeyStat.plain || this.hints[sel].target instanceof HTMLInputElement) )
