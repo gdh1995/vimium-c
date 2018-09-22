@@ -134,7 +134,6 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   setFirstQuery (query: string): void {
     const wnd = this.box.contentWindow;
     this._actived = false;
-    this.styleIn.disabled = this.styleOut.disabled = true;
     wnd.focus();
     this.query0 = "";
     this.query || this.SetQuery(query);
@@ -147,7 +146,8 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     css = this.cssSel, sin = this.styleIn = UI.createStyle(css);
     ref.exit = ref.exit.bind(ref);
     UI.addElement(sin, adjust, true);
-    this.styleOut = UI.box !== UI.root ? (UI.box as HTMLElement).appendChild(UI.createStyle(css)) : sin;
+    sin.remove();
+    this.styleOut = UI.box !== UI.root ? UI.createStyle(css) : sin;
     this.init = null as never;
   },
   findAndFocus (query: string, options: Partial<FindOptions> & SafeObject): void {
@@ -249,8 +249,8 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     return this.deactivate(i as FindNS.Action);
   },
   deactivate(i: FindNS.Action): void {
-    let hasStyle = !this.styleIn.disabled, el = this.clean(i), el2: Element | null;
-    if ((i === FindNS.Action.ExitAndReFocus || !this.hasResults || VVisualMode.mode) && hasStyle) {
+    let sin = this.styleIn, noStyle = !sin || !sin.parentNode, el = this.clean(i), el2: Element | null;
+    if ((i === FindNS.Action.ExitAndReFocus || !this.hasResults || VVisualMode.mode) && !noStyle) {
       this.toggleStyle(0);
       this.restoreSelection(true);
     }
@@ -462,8 +462,14 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   },
   toggleStyle (enabled: BOOL): void {
     document.removeEventListener("selectionchange", this.RestoreHighlight, true);
-    enabled || this.isActive || VDom.UI.toggleSelectStyle(false);
-    this.styleOut.disabled = this.styleIn.disabled = !enabled;
+    const sout = this.styleOut, sin = this.styleIn, ui = VDom.UI;
+    enabled || this.isActive || ui.toggleSelectStyle(false);
+    if (enabled === (sout.parentNode ? 1 : 0)) { return; }
+    if (enabled) {
+      (ui.box as HTMLElement).appendChild(sout); (ui.root as ShadowRoot).insertBefore(sin, this.box);
+    } else {
+      sout.remove(); sin.remove();
+    }
   },
   getCurrentRange (): void {
     let sel = window.getSelection(), range: Range;

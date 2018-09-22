@@ -109,7 +109,7 @@ VDom.UI = {
   css (innerCSS): void { this.styleIn = innerCSS; },
   getDocSelectable (): boolean {
     let el: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut, st: CSSStyleDeclaration;
-    if (el && !el.disabled) { return false; }
+    if (el && el.parentNode) { return false; }
     if (el = document.body) {
       st = getComputedStyle(el);
       if ((st.userSelect || st.webkitUserSelect) === "none") {
@@ -121,11 +121,11 @@ VDom.UI = {
   },
   toggleSelectStyle (enable: boolean): void {
     let el = this.styleOut;
-    if (enable ? VDom.docSelectable : !el || el.disabled) { return; }
-    el = el || (this.styleOut = (this.box as HTMLElement).appendChild(this.createStyle(
+    if (enable ? VDom.docSelectable : !el || !el.parentNode) { return; }
+    el || (this.styleOut = el = this.createStyle(
       "html, body, * { -webkit-user-select: auto; user-select: auto; }"
-    )));
-    el.disabled = !enable;
+    ));
+    enable ? (this.box as HTMLElement).appendChild(el) : el.remove();
   },
   getSelection (): Selection {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;

@@ -4526,7 +4526,11 @@ declare var HTMLSpanElement: {
 }
 
 interface HTMLStyleElement extends HTMLElement, LinkStyle {
-    disabled: boolean;
+    /**
+     * not exist in https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
+     */
+    disabled?: never;
+
     /**
       * Sets or retrieves the media type.
       */
@@ -8490,7 +8494,10 @@ interface HTMLTableAlignment {
 }
 
 interface LinkStyle {
-    readonly sheet: StyleSheet;
+    /**
+     * Note: `sheet` may be null if the element is not connected
+     */
+    readonly sheet: StyleSheet | null;
 }
 
 interface NavigatorContentUtils {
