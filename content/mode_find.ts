@@ -197,7 +197,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   },
   OnUnload (this: void, e: Event): void {
     const f = VFindMode;
-    if (e.isTrusted === false || !f || !f.box || e.target !== f.box.contentWindow) { return; }
+    if (e.isTrusted === false || !f || !f.box) { return; }
     f.isActive && f.deactivate(FindNS.Action.ExitUnexpectedly);
   },
   OnMousedown (this: void, event: MouseEvent): void {
