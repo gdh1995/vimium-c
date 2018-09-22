@@ -18,11 +18,11 @@ VDom.UI = {
       : shadowVer === 1 ? (box as any).createShadowRoot() as ShadowRoot : box;
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
-    this.root.mode === "closed" || (this.root !== box ? this.root as Node : window).addEventListener("load", function Onload(e: Event): void {
+    this.root.mode === "closed" || (this.root !== box ? this.root as ShadowRoot : window).addEventListener("load",
+    function Onload(this: ShadowRoot | Window, e: Event): void {
+      if (!VDom) { return window.removeEventListener("load", Onload, true); }
       const t = e.target as HTMLElement;
-      if (!Vomnibar) { window.removeEventListener("load", Onload, true); }
-      // here ignore `UI.styleIn.onload`, which should be okay
-      else if (t === Vomnibar.box || t === VFindMode.box) {
+      if (t.parentNode === VDom.UI.root) {
         VUtils.Stop(e); t.onload && t.onload(e);
       }
     }, true);
