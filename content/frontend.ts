@@ -810,7 +810,7 @@ Pagination = {
       if (i = hud.timer) { clearTimeout(i); hud.timer = 0; }
       hud.opacity = 0; hud.text = "";
       if (!hud.box) {}
-      else if (info === TimerType.notTimer) {
+      else if (info === TimerType.noTimer) {
         const box = hud.box, st = box.style;
         st.opacity = "0";
         st.visibility = "hidden";

@@ -58,7 +58,7 @@ var VVisualMode = {
     }
     this.hudTimer && clearTimeout(this.hudTimer);
     VHUD.show(this.hud = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode", !!options.from_find);
-    if (mode !== this.mode) {
+    if (this.mode !== mode) {
       this.mode = mode;
       this.prompt("No usable selection, entering caret mode\u2026", 1000);
     }
@@ -69,7 +69,6 @@ var VVisualMode = {
       this.movement.collapseSelectionTo(0);
     } else if (type === "None" && this.establishInitialSelectionAnchor()) {
       this.deactivate();
-      VDom.UI.toggleSelectStyle(false);
       return VHUD.showForDuration("Create a selection before entering visual mode.");
     }
     this.movement.extend(1);

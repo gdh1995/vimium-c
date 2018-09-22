@@ -964,6 +964,7 @@ window.browser && (browser as any).runtime && (window.chrome = browser);
       src = script.src = (data[1] as VomnibarNS.FgOptions).script;
       window.ExtId = new URL(src).hostname;
       script.onload = function(): void {
+        script.onload = null as never;
         return window.onmessage(event);
       };
       (document.head || document.documentElement as HTMLElement).appendChild(script);

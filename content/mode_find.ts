@@ -46,7 +46,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       this.coords = [window.scrollX, window.scrollY];
     }
     this.box && ui.adjust();
-    VHUD.hide(TimerType.notTimer);
+    VHUD.hide(TimerType.noTimer);
     if (this.isActive) {
       return this.setFirstQuery(query);
     }

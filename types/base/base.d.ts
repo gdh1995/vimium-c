@@ -25,7 +25,7 @@ type MappedType<Type, NewValue> = {
 declare const enum TimerType {
   _native = 0,
   fake = -1,
-  notTimer = -2,
+  noTimer = -2,
 }
 declare function setTimeout (this: void, handler: (this: void, i: TimerType.fake | undefined) => void, timeout: number): number;
 
