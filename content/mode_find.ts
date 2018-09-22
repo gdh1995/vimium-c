@@ -63,9 +63,6 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     VUtils.push(ui.SuppressMost, this);
     this.query || (this.query0 = query);
     this.init && this.init(AdjustType.NotAdjust);
-    if (!query) {
-      this.styleIn.disabled = this.styleOut.disabled = true;
-    }
     ui.toggleSelectStyle(true);
     ui.addElement(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box);
     first && ui.adjust();
@@ -137,6 +134,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   setFirstQuery (query: string): void {
     const wnd = this.box.contentWindow;
     this._actived = false;
+    this.styleIn.disabled = this.styleOut.disabled = true;
     wnd.focus();
     this.query0 = "";
     this.query || this.SetQuery(query);
