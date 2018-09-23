@@ -222,14 +222,15 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
   Settings.updateHooks.showActionIcon = function(value): void {
     func(value);
     (Backend.IconBuffer as IconNS.AccessIconBuffer)(value);
-    if (IsFirefox || IsEdge) { return; } // Firefox has no "Options" button
     let title = "Vimium C";
-    if (value) {
+    if (NotChrome) {} // Firefox has no "Options" button
+    else if (value) {
       chrome.browserAction.enable();
     } else {
       chrome.browserAction.disable();
-      title += "\n\nThis icon is disabled by your settings."
     }
+    title += NotChrome ? "\n\nAs configured, here's no\nVimium C's active status."
+      : "\n\nThis icon is disabled by your settings."
     chrome.browserAction.setTitle({ title });
   };
   Settings.postUpdate("showActionIcon");
