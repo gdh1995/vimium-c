@@ -73,8 +73,8 @@ var VDom = {
         const b = this.paintBox, dz = fz / this.bZoom;
         i = Math.min(i, b[0] * dz); j = Math.min(j, b[1] * dz);
       }
-      iw = i / fz, ih = j / fz;
-      ihs = ih - ((8 / fz) | 0);
+      iw = (i / fz) | 0, ih = (j / fz) | 0;
+      ihs = ((j - 8) / fz) | 0;
       return iw;
     };
     this.cropRectToVisible = function(left, top, right, bottom): VRect | null {
@@ -87,7 +87,7 @@ var VDom = {
         right  < iw ? (right  | 0) : iw, //
         bottom < ih ? (bottom | 0) : ih  //
       ];
-      return (cr[2] - cr[0] >= 3 && cr[3] - cr[1] >= 3) ? cr : null;
+      return cr[2] - cr[0] >= 3 && cr[3] - cr[1] >= 3 ? cr : null;
     };
     return this.prepareCrop();
   },
