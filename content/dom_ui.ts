@@ -82,8 +82,9 @@ VDom.UI = {
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    ui.styleIn && (((ui.styleIn as HTMLStyleElement).sheet as StyleSheet).disabled = false);
     el2 !== (ui.box as HTMLElement).parentNode && (ui.box as Node).appendChild.call(el2, ui.box as Node);
+    let sin = ui.styleIn, s = sin && (sin as HTMLStyleElement).sheet;
+    s && (s.disabled = false);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
   toggle (enabled): void {
