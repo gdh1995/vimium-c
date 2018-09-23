@@ -122,7 +122,7 @@ var VHints = {
     this.hints = (elements as Hint[]).map(this.createHint, this);
     VDom.bZoom !== 1 && this.adjustMarkers(elements as Hint[]);
     elements = null;
-    this.alphabetHints.initMarkers(this.hints, str);
+    this.alphabetHints.initMarkers(this.hints);
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
     VDom.UI.ensureBorder(VDom.wdZoom);
