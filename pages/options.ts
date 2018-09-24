@@ -297,11 +297,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     setTimeout(doSyncToFrontend, 100, toSync);
   };
   function doSyncToFrontend (toSync: typeof Option.syncToFrontend): void {
-    const ref = bgSettings.bufferToLoad, obj: BgReq["settingsUpdate"] = {name: "settingsUpdate"};
+    const ref = bgSettings.bufferToLoad, delta: BgReq["settingsUpdate"]["delta"] = {},
+    req: BgReq["settingsUpdate"] = { name: "settingsUpdate", delta };
     for (const key of toSync) {
-      obj[key] = ref[key] = bgSettings.get(key);
+      delta[key] = ref[key] = bgSettings.get(key);
     }
-    bgSettings.broadcast(obj);
+    bgSettings.broadcast(req);
   }
 
   let _ref: NodeListOf<HTMLElement> = $$("[data-model]"), element: HTMLElement;

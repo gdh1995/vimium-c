@@ -32,12 +32,12 @@ VDom.UI = {
     };
     this.css = (function (innerCSS): void {
       if (this.box === this.root) {
-        (this.box as HTMLElement).id = "VimiumUI";
+        this.box.id = "VimiumUI";
       }
-      let el: HTMLStyleElement | null = this.styleIn = this.createStyle(innerCSS), el2: HTMLStyleElement | null;
+      let el: HTMLStyleElement | null = this.styleIn = this.createStyle(innerCSS), stBorder: { el: HTMLStyleElement } | null;
       this.root.appendChild(el);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
-      (el2 = this._styleBorder) && this.root.appendChild(el2);
+      (stBorder = this._styleBorder) && this.root.appendChild(stBorder.el);
       if (adjust !== AdjustType.AdjustButNotShow) {
         let f = function (this: HTMLElement, e: Event | 1): void {
           e !== 1 && (this.onload = null as never);
@@ -92,15 +92,15 @@ VDom.UI = {
     (this.box as HTMLElement).remove();
     removeEventListener("webkitfullscreenchange", this.adjust, true);
   },
-  _styleBorder: null as (HTMLStyleElement & {vZoom?: number}) | null,
+  _styleBorder: null as { el: HTMLStyleElement, zoom: number } | null,
   ensureBorder (zoom?: number): void {
-    let st = this._styleBorder, first = !st;
+    let st = this._styleBorder;
     zoom || (zoom = VDom.getZoom());
-    if (first ? zoom >= 1 : (st as HTMLStyleElement & {vZoom?: number}).vZoom === zoom) { return; }
-    st = st || (this._styleBorder = this.createStyle(""));
-    const p = this.box === this.root ? "#VimiumUI " : "";
-    st.vZoom = zoom; st.textContent = `${p}.HUD, ${p}.IH, ${p}.LH { border-width: ${("" + 0.51 / zoom).substring(0, 5)}px; }`;
-    first && this.box && this.addElement(st, AdjustType.NotAdjust);
+    if (st ? st.zoom === zoom : zoom >= 1) { return; }
+    const p = this.box === this.root ? "#VimiumUI " : "", first = !st;
+    st || (st = this._styleBorder = { el: this.createStyle(""), zoom: 0 });
+    st.zoom = zoom; st.el.textContent = `${p}.HUD, ${p}.IH, ${p}.LH { border-width: ${("" + 0.51 / zoom).substring(0, 5)}px; }`;
+    first && this.box && this.addElement(st.el, AdjustType.NotAdjust);
   },
   createStyle (text, doc): HTMLStyleElement {
     const css = (doc || VDom).createElement("style");
@@ -133,7 +133,9 @@ VDom.UI = {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;
     if (sel.focusNode === document.documentElement && (el = VScroller.current)) {
       for (; el2 = el.parentNode; el = el2) {}
-      if ((el as ShadowRoot).getSelection) { sel = (el as ShadowRootWithSelection).getSelection() || sel; }
+      if (typeof (el as ShadowRoot).getSelection === "function") {
+        sel = (el as ShadowRootWithSelection).getSelection() || sel;
+      }
     }
     return sel;
   },

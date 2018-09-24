@@ -872,12 +872,11 @@ Pagination = {
       vPort.post(request);
     },
     eval (options: BgReq["eval"]): void { VPort.evalIfOK(options.url); },
-    settingsUpdate (request): void {
+    settingsUpdate ({ delta }): void {
       type Keys = keyof SettingsNS.FrontendSettings;
-      VUtils.safer(request);
-      delete request.name;
-      for (const i in request) {
-        VSettings.cache[i as Keys] = request[i as Keys] as SettingsNS.FrontendSettings[Keys];
+      VUtils.safer(delta);
+      for (const i in delta) {
+        VSettings.cache[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
       }
     },
     focusFrame: FrameMask.Focus,

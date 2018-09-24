@@ -37,11 +37,11 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
 };
 
 ExclusionRulesOption.prototype.sortRules = function(this: ExclusionRulesOption
-    , element?: HTMLElement & { timer?: number }): void {
+    , element?: HTMLElement): void {
   interface Rule extends ExclusionsNS.StoredRule {
     key: string;
   }
-  if (element && element.timer) { return; }
+  if (element && this.timer) { return; }
   const rules = this.readValueFromElement() as Rule[], hostRe = <RegExpOne> /^([:^]?[a-z\-?*]+:\/\/)?([^\/]+)(\/.*)?/;
   let key: Rule["pattern"], arr: string[] | null;
   for (const rule of rules) {
@@ -56,8 +56,9 @@ ExclusionRulesOption.prototype.sortRules = function(this: ExclusionRulesOption
   rules.sort((a, b) => a.key < b.key ? -1 : a.key === b.key ? 0 : 1);
   this.populateElement(rules);
   if (!element) { return; }
-  element.timer = setTimeout(function(el, text) {
-    (el.firstChild as Text).data = text, el.timer = 0;
+  let self = this;
+  this.timer = setTimeout(function(el, text) {
+    (el.firstChild as Text).data = text, self.timer = 0;
   }, 1000, element, (element.firstChild as Text).data);
   (element.firstChild as Text).data = "(Sorted)";
 };

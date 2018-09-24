@@ -66,8 +66,9 @@ interface BgReq {
   };
   settingsUpdate: {
     name: "settingsUpdate",
-  } & {
-    [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
+    delta: {
+      [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
+    }
   };
   url: {
     url?: string;

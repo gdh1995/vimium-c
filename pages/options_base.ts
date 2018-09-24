@@ -260,6 +260,7 @@ getPassKeys (element: HTMLTableRowElement): HTMLInputElement {
 }
 onInit (): void {}
 sortRules: (el?: HTMLElement) => void;
+timer?: number;
 }
 ExclusionRulesOption.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;
