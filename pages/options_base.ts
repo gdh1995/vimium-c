@@ -289,7 +289,6 @@ location.pathname.indexOf("/popup.html") !== -1 && BG.Utils.require("Exclusions"
   };
 })(function(tabs: [chrome.tabs.Tab] | never[]): void {
 interface PopExclusionRulesOption extends ExclusionRulesOption {
-  readonly url: string;
   inited: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */;
   init(this: PopExclusionRulesOption, element: HTMLElement
     , onUpdated: (this: PopExclusionRulesOption) => void, onInit: (this: PopExclusionRulesOption) => void
@@ -321,8 +320,8 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
     blockedMsg.remove();
     blockedMsg = null as never;
   }
-  const element = $<HTMLAnchorElement>(".options-link"), url = bgSettings.CONST.OptionsPage;
-  element.href !== url && (element.href = url);
+  const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings.CONST.OptionsPage;
+  element.href !== optionsUrl && (element.href = optionsUrl);
   element.onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
@@ -337,8 +336,8 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
 const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions,
 tabId = ref ? ref[0].sender.tabId : tabs[0].id,
 stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
+url = ref ? ref[0].sender.url : tabs[0].url,
 exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
-  url: ref ? ref[0].sender.url : tabs[0].url,
   inited: 0,
   init (this: PopExclusionRulesOption, element: HTMLElement
       , onUpdated: (this: ExclusionRulesOption) => void, onInit: (this: ExclusionRulesOption) => void
@@ -368,7 +367,8 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     for (let _i = 0, _len = elements.length; _i < _len; _i++) {
       const element = elements[_i];
       const pattern = this.getPattern(element).value.trim();
-      if ((bgExclusions.testers as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern](this.url)) {
+      const rule = (bgExclusions.testers as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
+      if (typeof rule === "string" ? url.startsWith(rule) : rule.test(url)) {
         haveMatch = _i;
       } else {
         element.style.display = "none";
@@ -389,7 +389,8 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     if (!patternElement.classList.contains("pattern")) {
       return;
     }
-    if (bgExclusions.getRe(patternElement.value)(exclusions.url)) {
+    const rule = bgExclusions.getRe(patternElement.value);
+    if (typeof rule === "string" ? url.startsWith(rule) : rule.test(url)) {
       patternElement.title = patternElement.style.color = "";
     } else {
       patternElement.style.color = "red";
@@ -397,13 +398,13 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     }
   },
   generateDefaultPattern (this: PopExclusionRulesOption): string {
-    const url = this.url.lastIndexOf("https:", 0) === 0
-      ? "^https?://" + this.url.split("/", 3)[2].replace(<RegExpG>/[.[\]]/g, "\\$&") + "/"
-      : (<RegExpOne>/^[^:]+:\/\/./).test(this.url) && this.url.lastIndexOf("file:", 0) < 0
-      ? ":" + (this.url.split("/", 3).join("/") + "/")
-      : ":" + this.url;
-    this.generateDefaultPattern = () => url;
-    return url;
+    const url2 = url.lastIndexOf("https:", 0) === 0
+      ? "^https?://" + url.split("/", 3)[2].replace(<RegExpG>/[.[\]]/g, "\\$&") + "/"
+      : (<RegExpOne>/^[^:]+:\/\/./).test(url) && url.lastIndexOf("file:", 0) < 0
+      ? ":" + (url.split("/", 3).join("/") + "/")
+      : ":" + url;
+    this.generateDefaultPattern = () => url2;
+    return url2;
   }
 }, ExclusionRulesOption.prototype);
 
@@ -419,7 +420,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     return Object.keys(dict).join(" ");
   }
   function updateState(initing: boolean): void {
-    let pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
+    let pass = bgExclusions.getTemp(url, exclusions.readValueFromElement(true));
     pass && (pass = collectPass(pass));
     if (initing) {
       oldPass = exclusions.inited >= 2 ? pass : null;

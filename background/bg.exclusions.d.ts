@@ -1,16 +1,13 @@
 /// <reference path="../background/bg.d.ts" />
 
 declare namespace ExclusionsNS {
-  interface Tester {
-    (this: void, url: string): boolean;
-  }
+  type Tester = RegExpOne | string;
   type TesterDict = SafeDict<ExclusionsNS.Tester>;
   type Rules = Array<Tester | string>;
 
   interface ExclusionsCls {
     testers: SafeDict<Tester> | null;
     getRe (pattern: string): Tester;
-    _startsWith(this: string, url: string): boolean;
     _listening: boolean;
     _listeningHash: boolean;
     onlyFirstMatch: boolean;

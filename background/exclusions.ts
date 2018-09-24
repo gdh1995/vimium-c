@@ -9,15 +9,12 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   getRe (this: ExcCls, pattern: string): ExclusionsNS.Tester {
     let func: ExclusionsNS.Tester | undefined = (this.testers as ExclusionsNS.TesterDict)[pattern], re: RegExp | null;
     if (func) { return func; }
-    if (pattern[0] === '^' && (re = Utils.makeRegexp(pattern, "", false) as RegExpOne | null)) {
-      func = re.test.bind(re as RegExpOne);
+    if (pattern[0] === '^' && (re = Utils.makeRegexp(pattern, "", false))) {
+      func = re as RegExpOne;
     } else {
-      func = this._startsWith.bind(pattern.substring(1));
+      func = pattern.substring(1);
     }
     return (this.testers as ExclusionsNS.TesterDict)[pattern] = func;
-  },
-  _startsWith: function(this: string, url: string): boolean {
-    return url.startsWith(this);
   },
   _listening: false,
   _listeningHash: false,
@@ -56,7 +53,8 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   GetPattern (this: void, url: string): string | null {
     let rules = Exclusions.rules, matchedKeys = "";
     for (let _i = 0, _len = rules.length; _i < _len; _i += 2) {
-      if ((rules[_i] as ExclusionsNS.Tester)(url)) {
+      const rule = rules[_i] as ExclusionsNS.Tester;
+      if (typeof rule === "string" ? url.startsWith(rule) : rule.test(url)) {
         const str = rules[_i + 1] as string;
         if (str.length === 0 || Exclusions.onlyFirstMatch) { return str; }
         matchedKeys += str;
