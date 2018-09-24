@@ -82,7 +82,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
   ELs = { //
     onKeydown (event: KeyboardEvent): void {
-      if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
+      if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
+        || !event.keyCode) { return; }
       if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
       let keyChar: string, key = event.keyCode, action: HandlerResult;
       if (action = VUtils.bubbleEvent(event)) {}
@@ -133,7 +134,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       KeydownEvents[key] = 1;
     },
     onKeyup (event: KeyboardEvent): void {
-      if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
+      if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
+        || !event.keyCode) { return; }
       VScroller.keyIsDown = 0;
       if (InsertMode.suppressType && VDom.selType() !== InsertMode.suppressType) {
         VEventMode.setupSuppress();

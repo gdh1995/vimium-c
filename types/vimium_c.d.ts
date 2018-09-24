@@ -475,6 +475,8 @@ declare const enum BrowserVer {
   // .type is always 'Caret'
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
   // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated) is confirmed on Chrome LATEST_TESTED
+  // See `WebFormControlElement::SetAutofillValue` on
+  // https://chromium.googlesource.com/chromium/src.git/+/master/third_party/blink/renderer/core/exported/web_form_control_element.cc#130
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
   MinOmniboxUIMaxAutocompleteMatchesMayBe12 = 60, // #omnibox-ui-max-autocomplete-matches
