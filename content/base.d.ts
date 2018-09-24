@@ -76,8 +76,8 @@ declare const enum EditableType {
   Embed = 1,
   Select = 2,
   Editbox = 3,
-  _input = 4,
-  _rich = 5,
+  input_ = 4,
+  rich_ = 5,
 }
 
 declare const enum PixelConsts {

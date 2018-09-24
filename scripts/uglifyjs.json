@@ -43,7 +43,13 @@
     "side_effects": true
   },
   "mangle": {
-    "properties": false,
+    "properties": {
+      "regex": "/^_/",
+      "reserved": [
+        "_msgId",
+        "_delayed", "__k", "_onCacheUpdated"
+      ]
+    },
     "reserved": [
       "startsWith", "endsWith", "addEventListener", "toString",
       "Suggestion", "VC"

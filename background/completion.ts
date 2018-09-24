@@ -814,11 +814,11 @@ searchEngines: {
     const key = queryTerms[0], arr = Settings.cache.searchKeywords;
     if (!arr) {
       this.timer = this.timer || setTimeout(this.BuildSearchKeywords, 67);
-      return MatchType._searching;
+      return MatchType.searching_;
     }
     if (key.length >= this.searchKeywordMaxLength) { return MatchType.plain; }
     const next = this.binaryInsert(key, arr);
-    return next < arr.length && arr[next].startsWith(key) ? MatchType._searching
+    return next < arr.length && arr[next].startsWith(key) ? MatchType.searching_
       : MatchType.plain;
   },
   makeText (url: string, arr: number[]): string {
@@ -956,7 +956,7 @@ searchEngines: {
     suggestions.forEach(SuggestionUtils.prepareHtml, SuggestionUtils);
 
     const newAutoSelect = autoSelect && suggestions.length > 0, matched = matchedTotal,
-    newMatchType = matchType < MatchType.plain ? (matchType === MatchType._searching
+    newMatchType = matchType < MatchType.plain ? (matchType === MatchType.searching_
         && suggestions.length === 0 ? MatchType.searchWanted : MatchType.Default)
       : suggestions.length === 0 ? queryTerms.length > 0 ? MatchType.emptyResult : MatchType.Default
       : this.sugCounter === 1 ? MatchType.singleMatch : MatchType.Default,

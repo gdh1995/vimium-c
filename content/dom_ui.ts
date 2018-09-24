@@ -175,18 +175,18 @@ VDom.UI = {
   moveSel (element, action): void {
     type TextElement = HTMLInputElement | HTMLTextAreaElement;
     const type = element instanceof HTMLTextAreaElement ? EditableType.Editbox
-        : element instanceof HTMLInputElement ? EditableType._input
-        : (element as HTMLElement).isContentEditable ? EditableType._rich : EditableType.Default;
+        : element instanceof HTMLInputElement ? EditableType.input_
+        : (element as HTMLElement).isContentEditable ? EditableType.rich_ : EditableType.Default;
     if (type === EditableType.Default) { return; }
     if (action ? action === "all-input" && (type === EditableType.Editbox
-            || type === EditableType._rich && element.textContent.indexOf("\n") >= 0)
-        : type === EditableType._rich || (element as TextElement).value.length <= 0
+            || type === EditableType.rich_ && element.textContent.indexOf("\n") >= 0)
+        : type === EditableType.rich_ || (element as TextElement).value.length <= 0
           || type === EditableType.Editbox && element.clientHeight + 12 < element.scrollHeight) {
       return;
     }
     const sel = window.getSelection();
     try {
-      if (type === EditableType._rich) {
+      if (type === EditableType.rich_) {
         const range = document.createRange();
         range.selectNodeContents(element);
         sel.removeAllRanges()

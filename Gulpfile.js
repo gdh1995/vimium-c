@@ -667,10 +667,15 @@ function patchExtendClick(source) {
 
 var _uglifyjsConfig = null;
 function loadUglifyConfig() {
-  if (_uglifyjsConfig == null) {
-    _uglifyjsConfig = readJSON("scripts/uglifyjs.json");
-    _uglifyjsConfig.output || (_uglifyjsConfig.output = {});
+  let a = _uglifyjsConfig;
+  if (a == null) {
+    a = _uglifyjsConfig = readJSON("scripts/uglifyjs.json");
+    a.output || (a.output = {});
+    if (a.mangle && a.mangle.properties && typeof a.mangle.properties.regex === "string") {
+      let re = a.mangle.properties.regex.match(/^\/(.*)\/([a-z]*)$/);
+      a.mangle.properties.regex = new RegExp(re[1], re[2]);
+    }
   }
-  _uglifyjsConfig.output.comments = removeComments ? false : "all";
-  return _uglifyjsConfig;
+  a.output.comments = removeComments ? false : "all";
+  return a;
 }

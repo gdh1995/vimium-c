@@ -214,7 +214,7 @@ onRemoveRow (event: Event): void {
   }
 }
 
-reChar: RegExpOne;
+_reChar: RegExpOne;
 _escapeRe: RegExpG;
 readValueFromElement (part?: boolean): AllowedOptions["exclusionRules"] {
   const rules: ExclusionsNS.StoredRule[] = [],
@@ -230,7 +230,7 @@ readValueFromElement (part?: boolean): AllowedOptions["exclusionRules"] {
       continue;
     }
     if (pattern[0] === ":" || element.style.display === "none") {}
-    else if (this.reChar.test(pattern)) {
+    else if (this._reChar.test(pattern)) {
       pattern = pattern[0] === "^" ? pattern
         : (pattern.indexOf("://") === -1 ? "^http://" : "^") +
           (pattern[0] === "*" ? "." + pattern : pattern);
@@ -261,7 +261,7 @@ getPassKeys (element: HTMLTableRowElement): HTMLInputElement {
 onInit (): void {}
 sortRules: (el?: HTMLElement) => void;
 }
-ExclusionRulesOption.prototype.reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
+ExclusionRulesOption.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
 if (bgSettings.CONST.ChromeVersion >= BrowserVer.MinSmartSpellCheck) {

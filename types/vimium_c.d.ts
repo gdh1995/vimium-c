@@ -16,7 +16,7 @@ declare namespace CompletersNS {
     /**
      * is the same as searchWanted
      */
-    _searching = -2,
+    searching_ = -2,
   }
   type ValidTypes = "bookm" | "domain" | "history" | "omni" | "search" | "tab";
   /**

@@ -307,7 +307,7 @@ var VDom = {
     image: 1, radio: 1, range: 1, reset: 1, submit: 1
   },
   editableTypes: <SafeDict<EditableType>> { __proto__: null as never,
-    input: EditableType._input, textarea: EditableType.Editbox,
+    input: EditableType.input_, textarea: EditableType.Editbox,
     keygen: EditableType.Select, select: EditableType.Select,
     embed: EditableType.Embed, object: EditableType.Embed
   },
@@ -317,7 +317,7 @@ var VDom = {
   getEditableType (element: EventTarget): EditableType {
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return EditableType.NotEditable; }
     const ty = this.editableTypes[element.nodeName.toLowerCase()];
-    return ty !== EditableType._input ? (ty
+    return ty !== EditableType.input_ ? (ty
         || (element.isContentEditable ? EditableType.Editbox : EditableType.NotEditable))
       : ((element as HTMLInputElement).type in this.uneditableInputs) ? EditableType.NotEditable : EditableType.Editbox;
   },
