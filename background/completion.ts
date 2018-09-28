@@ -1361,19 +1361,18 @@ knownCs: CompletersMap & SafeObject = {
       maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
       matchedTotal = 0;
       Completers.callback = callback;
-      let arr: ReadonlyArray<Completer> | null = null, str = queryTerms.length >= 1 ? queryTerms[0] : "";
+      let arr: ReadonlyArray<Completer> | null = knownCs[options.type], str = queryTerms.length >= 1 ? queryTerms[0] : "";
       if (str.length === 2 && str[0] === ":") {
         str = str[1];
         arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history : str === "t" ? knownCs.tab
           : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
         if (arr) {
           queryTerms.shift();
+          rawQuery = query.substring(3);
           autoSelect = arr !== knownCs.omni;
-          Completers.filter(arr);
-          return;
         }
       }
-      Completers.filter(knownCs[options.type] || knownCs.omni);
+      Completers.filter(arr || knownCs.omni);
     },
     removeSug (url, type, callback): void {
       switch (type) {
