@@ -518,9 +518,23 @@ var Utils = {
   decodeEscapedURL (url: string): string {
     return url.indexOf("://") < 0 && this.escapedColonOrSlashRe.test(url) ? this.DecodeURLPart(url).trim() : url;
   },
+  unicodeDotRe: <RegExpG>/\u3002/g,
   fixCharsInUrl (url: string): string {
-    if (url.indexOf("\u3002") < 0) { return url; }
-    return url;
+    let type = (url.indexOf("\u3002") < 0 ? 0 : 1) + (url.indexOf("\uff1a") < 0 ? 0 : 2);
+    if (type === 0) { return url; }
+    let i = url.indexOf("//");
+    i = url.indexOf("/", i >= 0 ? i + 2 : 0);
+    if (i >= 0 && i < 4) { return url; }
+    let str = url.substring(0, i > 0 ? i : url.length);
+    if (type & 1) {
+      str = str.replace(this.unicodeDotRe, ".");
+    }
+    if (type & 2) {
+      str = str.replace("\uff1a", ":").replace("\uff1a", ":");
+    }
+    i > 0 && (str += url.substring(i));
+    this.convertToUrl(str, null, Urls.WorkType.KeepAll);
+    return this.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl ? str : url;
   },
   imageFileRe: <RegExpI & RegExpOne> /\.(?:bmp|gif|ico|jpe?g|png|tiff?|webp)$/i, // SVG is not blocked by images CS
   showFileUrl (url: string): string {
