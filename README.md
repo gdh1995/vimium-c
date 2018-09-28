@@ -65,7 +65,7 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 __Other extensions supporting Vimium C:__
 
 * [PDF Viewer for Vimium C](https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium%20%20/nacjakoppgmdcpemlfnfegmlhipddanj)
-  a modified version of [PDF Viewer](https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
+  : a modified version of [PDF Viewer](https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
     from [PDF.js](https://github.com/mozilla/pdf.js/)
 
 # Release Notes

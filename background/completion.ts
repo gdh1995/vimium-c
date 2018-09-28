@@ -100,9 +100,6 @@ type ItemToDecode = string | DecodedItem;
 type CompletersMap = {
     [P in CompletersNS.ValidTypes]: ReadonlyArray<Completer>;
 };
-interface WindowEx extends Window {
-  Completion: CompletersNS.GlobalCompletersConstructor;
-}
 type SearchSuggestion = CompletersNS.SearchSuggestion;
 
 
@@ -111,7 +108,7 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
     queryTerms: QueryTerms = [""], rawQuery: string = "", rawMore: string = "";
 
-const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableCoreSuggestion,
+const Suggestion: SuggestionConstructor = function Suggestion (this: CompletersNS.WritableCoreSuggestion,
     type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
     computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data?: number) => number, extraData?: number
     ) {
@@ -120,26 +117,25 @@ const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableC
   this.text = text;
   this.title = title;
   (this as Suggestion).relevancy = computeRelevancy(this, extraData);
-} as any,
+} as any;
 
-SuggestionUtils = {
-  prepareHtml (sug: Suggestion): void {
+  function prepareHtml (sug: Suggestion): void {
     if (sug.textSplit != null) {
       if (sug.text === sug.url) { sug.text = ""; }
       return;
     }
-    sug.title = this.cutTitle(sug.title);
-    const text = sug.text, str = this.shortenUrl(text);
+    sug.title = cutTitle(sug.title);
+    const text = sug.text, str = shortenUrl(text);
     sug.text = text.length !== sug.url.length ? str : "";
-    sug.textSplit = this.cutUrl(str, this.getRanges(str), text.length - str.length
+    sug.textSplit = cutUrl(str, getMatchRanges(str), text.length - str.length
       , singleLine ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
-  },
-  cutTitle (title: string): string {
+  }
+  function cutTitle (title: string): string {
     let cut = title.length > maxChars + 40;
     cut && (title = title.substring(0, maxChars + 39));
-    return this.highlight(cut ? title + "\u2026" : title, this.getRanges(title));
-  },
-  highlight (this: void, string: string, ranges: number[]): string {
+    return highlight(cut ? title + "\u2026" : title, getMatchRanges(title));
+  }
+  function highlight (this: void, string: string, ranges: number[]): string {
     if (ranges.length === 0) { return Utils.escapeText(string); }
     let out = "", end = 0;
     for(let _i = 0; _i < ranges.length; _i += 2) {
@@ -151,12 +147,12 @@ SuggestionUtils = {
       end = end2;
     }
     return out + Utils.escapeText(string.substring(end));
-  },
-  shortenUrl (this: void, url: string): string {
+  }
+  function shortenUrl (this: void, url: string): string {
     const i = Utils.IsURLHttp(url);
     return !i || i >= url.length ? url : url.substring(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
-  },
-  getRanges (string: string): number[] {
+  }
+  function getMatchRanges (string: string): number[] {
     const ranges: MatchRange[] = [];
     for (let i = 0, len = queryTerms.length; i < len; i++) {
       let index = 0, textPosition = 0, matchedEnd: number;
@@ -168,7 +164,7 @@ SuggestionUtils = {
     }
     if (ranges.length === 0) { return ranges as never[]; }
     if (ranges.length === 1) { return ranges[0]; }
-    ranges.sort(this.sortBy0);
+    ranges.sort(sortBy0);
     const mergedRanges: number[] = ranges[0];
     for (let i = 1, j = 1, len = ranges.length; j < len; j++) {
       const range = ranges[j];
@@ -182,10 +178,10 @@ SuggestionUtils = {
       }
     }
     return mergedRanges;
-  },
-  sortBy0 (this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; },
+  }
+  function sortBy0 (this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; }
   // deltaLen may be: 0, 1, 7/8/9
-  cutUrl (this: void, string: string, ranges: number[], deltaLen: number, maxLen: number): string {
+  function cutUrl (this: void, string: string, ranges: number[], deltaLen: number, maxLen: number): string {
     let out = "", end = string.length, cutStart = end;
     if (end <= maxLen) {}
     else if (deltaLen > 1) { cutStart = string.indexOf("/") + 1 || end; }
@@ -228,20 +224,17 @@ SuggestionUtils = {
     } else {
       return out + Utils.escapeText(string.substring(end, maxLen - 1 > end ? maxLen - 1 : end + 10)) + "\u2026";
     }
-  },
-  ComputeWordRelevancy (this: void, suggestion: CompletersNS.CoreSuggestion): number {
+  }
+  function ComputeWordRelevancy (this: void, suggestion: CompletersNS.CoreSuggestion): number {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
-  },
-  ComputeRelevancy (this: void, text: string, title: string, lastVisitTime: number): number {
+  }
+  function ComputeRelevancy (this: void, text: string, title: string, lastVisitTime: number): number {
     const recencyScore = RankingUtils.recencyScore(lastVisitTime),
       wordRelevancy = RankingUtils.wordRelevancy(text, title);
     return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
   }
-},
 
-
-Completers = {
-bookmarks: {
+const bookmarkEngine = {
   bookmarks: [] as Bookmark[],
   dirs: [] as string[],
   currentSearch: null as CompletersNS.QueryStatus | null,
@@ -272,7 +265,7 @@ bookmarks: {
     }
     matchedTotal += results.length;
     if (queryType === FirstQuery.waitFirst || offset === 0) {
-      results.sort(SuggestionUtils.sortBy0);
+      results.sort(sortBy0);
       if (offset > 0) {
         results = results.slice(offset, offset + maxResults);
         offset = 0;
@@ -288,24 +281,24 @@ bookmarks: {
       results2.push(sug);
       if (i.jsUrl === null) { continue; }
       (sug as CompletersNS.WritableCoreSuggestion).url = (i as JSBookmark).jsUrl;
-      sug.title = SuggestionUtils.cutTitle(sug.title);
+      sug.title = cutTitle(sug.title);
       sug.textSplit = "javascript: \u2026";
       sug.text = (i as JSBookmark).jsText;
     }
     return Completers.next(results2);
   },
   Listen: function (): void {
-    const bookmarks = chrome.bookmarks, listener = Completers.bookmarks.Delay, expire = Completers.bookmarks.Expire;
-    if (!bookmarks.onCreated) { return; }
-    bookmarks.onCreated.addListener(listener);
-    bookmarks.onRemoved.addListener(expire);
-    bookmarks.onChanged.addListener(expire);
-    bookmarks.onMoved.addListener(listener);
-    bookmarks.onImportBegan.addListener(function(): void {
-      chrome.bookmarks.onCreated.removeListener(Completers.bookmarks.Delay);
+    const bBm = chrome.bookmarks, { Delay: listener, Expire } = bookmarkEngine;
+    if (!bBm.onCreated) { return; }
+    bBm.onCreated.addListener(listener);
+    bBm.onRemoved.addListener(Expire);
+    bBm.onChanged.addListener(Expire);
+    bBm.onMoved.addListener(listener);
+    bBm.onImportBegan.addListener(function(): void {
+      chrome.bookmarks.onCreated.removeListener(bookmarkEngine.Delay);
     });
-    bookmarks.onImportEnded.addListener(function(): void {
-      const f = Completers.bookmarks.Delay;
+    bBm.onImportEnded.addListener(function(): void {
+      const f = bookmarkEngine.Delay;
       chrome.bookmarks.onCreated.addListener(f);
       f();
     });
@@ -325,7 +318,7 @@ bookmarks: {
     tree.forEach(this.traverseBookmark, this);
     const query = this.currentSearch;
     this.currentSearch = null;
-    setTimeout(() => Decoder.decodeList(Completers.bookmarks.bookmarks), 50);
+    setTimeout(() => Decoder.decodeList(bookmarkEngine.bookmarks), 50);
     if (this.Listen) {
       setTimeout(this.Listen, 0);
       this.Listen = null;
@@ -358,7 +351,7 @@ bookmarks: {
   _stamp: 0,
   _expiredUrls: false,
   Later (this: void): void {
-    const _this = Completers.bookmarks, last = Date.now() - _this._stamp;
+    const _this = bookmarkEngine, last = Date.now() - _this._stamp;
     if (_this.status !== BookmarkStatus.notInited) { return; }
     if (last >= CompletersNS.InnerConsts.bookmarkBasicDelay || last < 0) {
       _this._timer = _this._stamp = 0;
@@ -371,14 +364,14 @@ bookmarks: {
     }
   },
   Delay (this: void): void {
-    const _this = Completers.bookmarks;
+    const _this = bookmarkEngine;
     _this._stamp = Date.now();
     if (_this.status < BookmarkStatus.inited) { return; }
     _this._timer = setTimeout(_this.Later, CompletersNS.InnerConsts.bookmarkBasicDelay);
     _this.status = BookmarkStatus.notInited;
   },
   Expire (this: void, id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
-    const _this = Completers.bookmarks, arr = _this.bookmarks, len = arr.length,
+    const _this = bookmarkEngine, arr = _this.bookmarks, len = arr.length,
     title = info && (info as chrome.bookmarks.BookmarkChangeInfo).title;
     let i = 0; for (; i < len && arr[i].id !== id; i++) {}
     if (i < len) {
@@ -417,7 +410,7 @@ bookmarks: {
   }
 },
 
-history: {
+historyEngine = {
   filter (query: CompletersNS.QueryStatus, index: number): void {
     if (!chrome.history) { return Completers.next([]); }
     const history = HistoryCache.history;
@@ -430,7 +423,7 @@ history: {
       }
       return HistoryCache.use(function(history): void {
         if (query.isOff) { return; }
-        return Completers.next(Completers.history.quickSearch(history));
+        return Completers.next(historyEngine.quickSearch(history));
       });
     }
     if (history) {
@@ -449,7 +442,7 @@ history: {
       (Utils.convertToUrl(queryTerms[0], null, Urls.WorkType.KeepAll), Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl)
     ),
     results = [0.0, 0.0], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2,
-    parts0 = RegExpCache.parts[0], getRele = SuggestionUtils.ComputeRelevancy;
+    parts0 = RegExpCache.parts[0], getRele = ComputeRelevancy;
     let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0)
       , i = 0, j = 0, matched = 0;
     for (j = maxNum; --j; ) { results.push(0.0, 0.0); }
@@ -515,25 +508,25 @@ history: {
       maxResults: offset + maxResults + neededMore
     }, function(historys2: chrome.history.HistoryItem[] | UrlItem[]): void {
       if (query.isOff) { return; }
-      historys2 = (historys2 as UrlItem[]).filter(Completers.history.urlNotIn, arr);
+      historys2 = (historys2 as UrlItem[]).filter(historyEngine.urlNotIn, arr);
       if (cut < 0) {
         historys2.length = Math.min(historys2.length, maxResults - historys.length);
         historys2 = (historys as UrlItem[]).concat(historys2);
       } else if (cut > 0) {
         historys2 = historys2.slice(cut, cut + maxResults);
       }
-      return Completers.history.filterFinish(historys2);
+      return historyEngine.filterFinish(historys2);
     });
   },
   filterFinish: function (this: any, historys: Array<UrlItem | Suggestion>): void {
-    historys.forEach((this as typeof Completers.history).MakeSuggestion);
+    historys.forEach((this as typeof historyEngine).MakeSuggestion);
     offset = 0;
     Decoder.continueToWork();
     return Completers.next(historys as Suggestion[]);
   } as (historys: UrlItem[]) => void,
   MakeSuggestion (e: UrlItem, i: number, arr: Array<UrlItem | Suggestion>): void {
     const u = e.url, o = new Suggestion("history", u, Decoder.decodeURL(u, u), e.title || "",
-      Completers.history.getExtra, (99 - i) / 100);
+      historyEngine.getExtra, (99 - i) / 100);
     e.sessionId && (o.sessionId = e.sessionId, o.label = "&#8617;");
     arr[i] = o;
   },
@@ -543,7 +536,7 @@ history: {
   }
 },
 
-domains: {
+domainEngine = {
   filter (query: CompletersNS.QueryStatus, index: number): void {
     if (queryTerms.length !== 1 || queryType === FirstQuery.searchEngines || queryTerms[0].indexOf("/") !== -1) {
       return Completers.next([]);
@@ -555,7 +548,7 @@ domains: {
     } else {
       return index > 0 ? Completers.next([]) : cache.use(function() {
         if (query.isOff) { return; }
-        return Completers.domains.filter(query, 0);
+        return domainEngine.filter(query, 0);
       });
     }
     return this.performSearch();
@@ -572,7 +565,7 @@ domains: {
     RankingUtils.maxScoreP = CompletersNS.RankingEnums.maximumScore;
     for (const domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
-      const score = SuggestionUtils.ComputeRelevancy(domain, "", (d = ref[domain]).time);
+      const score = ComputeRelevancy(domain, "", (d = ref[domain]).time);
       if (score > result_score) { result_score = score; result = domain; }
     }
     if (result) {
@@ -587,7 +580,7 @@ domains: {
       }
       result = (d.https ? "https://" : "http://") + result;
       sug = new Suggestion("domain", result, result, "", this.compute2);
-      SuggestionUtils.prepareHtml(sug);
+      prepareHtml(sug);
       const ind = HistoryCache.binarySearch(result + "/");
       ind < 0 || (sug.title = Utils.escapeText((HistoryCache.history as HistoryItem[])[ind].title));
       --maxResults;
@@ -613,7 +606,7 @@ domains: {
     chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);
   },
   OnVisitRemoved (toRemove: chrome.history.RemovedResult): void {
-    const _this = Completers.domains;
+    const _this = domainEngine;
     if (toRemove.allHistory) {
       Utils.domains = Object.create<Domain>(null);
       HistoryCache.domains = Utils.domains;
@@ -640,7 +633,7 @@ domains: {
   compute2 (): number { return 2; }
 },
 
-tabs: {
+tabEngine = {
   filter (query: CompletersNS.QueryStatus): void {
     Completers.requireNormalOrIncognito(this, this.performSearch, query);
   },
@@ -669,7 +662,7 @@ tabs: {
       return Completers.next(suggestions);
     }
     wndIds = wndIds.sort(this.SortNumbers);
-    const c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
+    const c = noFilter ? this.computeRecency : ComputeWordRelevancy;
     for (const tab of tabs) {
       let id = "#";
       wndIds.length > 1 && (id += `${wndIds.indexOf(tab.windowId) + 1}:`);
@@ -705,7 +698,7 @@ tabs: {
   }
 },
 
-searchEngines: {
+searchEngine = {
   _nestedEvalCounter: 0,
   filter (): void {},
   preFilter (query: CompletersNS.QueryStatus, failIfNull?: true): void | true {
@@ -779,11 +772,11 @@ searchEngines: {
 
     if (q.length > 0) {
       sug.text = this.makeText(text, indexes);
-      sug.textSplit = SuggestionUtils.highlight(sug.text, indexes);
-      sug.title = SuggestionUtils.highlight(sug.title
+      sug.textSplit = highlight(sug.text, indexes);
+      sug.title = highlight(sug.title
         , [pattern.name.length + 2, sug.title.length]);
     } else {
-      sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(text));
+      sug.text = Utils.DecodeURLPart(shortenUrl(text));
       sug.textSplit = Utils.escapeText(sug.text);
       sug.title = Utils.escapeText(sug.title);
     }
@@ -842,10 +835,10 @@ searchEngines: {
   makeUrlSuggestion (keyword: string, text?: string): SearchSuggestion {
     const url = Utils.convertToUrl(keyword, null, Urls.WorkType.KeepAll),
     isSearch = Utils.lastUrlType === Urls.Type.Search,
-    sug = new Suggestion("search", url, text || Utils.DecodeURLPart(SuggestionUtils.shortenUrl(url))
+    sug = new Suggestion("search", url, text || Utils.DecodeURLPart(shortenUrl(url))
       , "", this.compute9) as SearchSuggestion;
     sug.textSplit = Utils.escapeText(sug.text);
-    sug.title = isSearch ? "~: " + SuggestionUtils.highlight(keyword, [0, keyword.length]) : Utils.escapeText(keyword);
+    sug.title = isSearch ? "~: " + highlight(keyword, [0, keyword.length]) : Utils.escapeText(keyword);
     sug.pattern = isSearch ? "~" : "";
     return sug;
   },
@@ -857,8 +850,8 @@ searchEngines: {
       max < j && (max = j);
     }
     Settings.set("searchKeywords", arr);
-    Completers.searchEngines.searchKeywordMaxLength = max;
-    Completers.searchEngines.timer = 0;
+    searchEngine.searchKeywordMaxLength = max;
+    searchEngine.timer = 0;
   },
   binaryInsert (u: string, a: string[]): number {
     let e = "", h = a.length - 1, l = 0, m = 0;
@@ -874,6 +867,7 @@ searchEngines: {
   compute9 (this: void): number { return 9; }
 },
 
+Completers = {
   counter: 0,
   sugCounter: 0,
   suggestions: null as ReadonlyArray<Suggestion> | null,
@@ -887,11 +881,11 @@ searchEngines: {
     let i = this.sugCounter = 0, l = this.counter = completers.length;
     this.suggestions = [];
     matchType = offset && MatchType.reset;
-    if (completers[0] === Completers.searchEngines) {
+    if (completers[0] === searchEngine) {
       if (l < 2) {
-        return (Completers.searchEngines as PreCompleter).preFilter(query);
+        return (searchEngine as PreCompleter).preFilter(query);
       }
-      Completers.searchEngines.preFilter(query);
+      searchEngine.preFilter(query);
       i = 1;
     }
     RankingUtils.timeAgo = Date.now() - CompletersNS.RankingEnums.timeCalibrator;
@@ -947,13 +941,13 @@ searchEngines: {
     }
     RegExpCache.words = RegExpCache.starts = null as never;
     if (queryTerms.length > 0) {
-      let s0 = queryTerms[0], s1 = SuggestionUtils.shortenUrl(s0), cut = s0.length !== s1.length;
+      let s0 = queryTerms[0], s1 = shortenUrl(s0), cut = s0.length !== s1.length;
       if (cut || s0.endsWith('/') && s0.length > 1) {
         queryTerms[0] = cut ? s1 : s0.substring(0, s0.length - 1);
         RegExpCache.fixParts();
       }
     }
-    suggestions.forEach(SuggestionUtils.prepareHtml, SuggestionUtils);
+    suggestions.forEach(prepareHtml);
 
     const newAutoSelect = autoSelect && suggestions.length > 0, matched = matchedTotal,
     newMatchType = matchType < MatchType.plain ? (matchType === MatchType.searching_
@@ -999,62 +993,15 @@ searchEngines: {
 },
 knownCs: CompletersMap & SafeObject = {
   __proto__: null as never,
-  bookm: [Completers.bookmarks],
-  domain: [Completers.domains],
-  history: [Completers.history],
-  omni: [Completers.searchEngines, Completers.domains, Completers.history, Completers.bookmarks],
-  search: [Completers.searchEngines],
-  tab: [Completers.tabs]
-};
+  bookm: [bookmarkEngine],
+  domain: [domainEngine],
+  history: [historyEngine],
+  omni: [searchEngine, domainEngine, historyEngine, bookmarkEngine],
+  search: [searchEngine],
+  tab: [tabEngine]
+},
 
-(window as WindowEx).Completion = {
-  filter(this: void, query: string, options: CompletersNS.FullOptions
-      , callback: CompletersNS.Callback): void {
-    autoSelect = false;
-    rawQuery = (query = query.trim()) && query.replace(Utils.spacesRe, " ");
-    Completers.getOffset();
-    query = rawQuery as string;
-    queryTerms = query ? (query.length > Consts.MaxCharsInQuery ? query.substring(0, Consts.MaxCharsInQuery).trimRight() : query).split(" ") : [];
-    maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number>options.maxChars | 0) || 128, Consts.UpperBoundOfMaxChars));
-    singleLine = !!options.singleLine;
-    maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
-    matchedTotal = 0;
-    Completers.callback = callback;
-    let arr: ReadonlyArray<Completer> | null = null, str: string;
-    if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
-      str = queryTerms[0][1];
-      arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history : str === "t" ? knownCs.tab
-        : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
-      if (arr) {
-        queryTerms.shift();
-        autoSelect = arr !== knownCs.omni;
-        Completers.filter(arr);
-        return;
-      }
-    }
-    Completers.filter(knownCs[options.type] || knownCs.omni);
-  },
-  removeSug (url, type, callback): void {
-    switch (type) {
-    case "tab":
-      chrome.tabs.remove(+url, function(): void {
-        const err = chrome.runtime.lastError;
-        callback(!<any>err);
-        return err;
-      });
-      break;
-    case "history":
-      {
-        const found = !HistoryCache.history || HistoryCache.binarySearch(url) >= 0;
-        chrome.history.deleteUrl({ url });
-        callback(found);
-      }
-      break;
-    }
-  }
-};
-
-  const RankingUtils = {
+  RankingUtils = {
     Match2 (s1: string, s2: string): boolean {
       const { parts } = RegExpCache;
       for (let i = 0, len = queryTerms.length; i < len; i++) {
@@ -1172,7 +1119,7 @@ knownCs: CompletersMap & SafeObject = {
         setTimeout(function () {
           Decoder.decodeList(HistoryCache.history as HistoryItem[]);
           HistoryCache.domains || setTimeout(function () {
-            const d = Completers.domains;
+            const d = domainEngine;
             d.refresh && d.refresh(HistoryCache.history as HistoryItem[]);
           }, 200);
         }, 100);
@@ -1198,7 +1145,7 @@ knownCs: CompletersMap & SafeObject = {
       if (i < 0) { _this.toRefreshCount++; }
       if (_this.updateCount++ > 99) { _this.refreshInfo(); }
       if (d) {
-        let domain = Completers.domains.ParseDomainAndScheme(url), slot: Domain | undefined;
+        let domain = domainEngine.ParseDomainAndScheme(url), slot: Domain | undefined;
         if (!domain) {}
         else if (slot = d[domain.domain]) {
           slot.time = time;
@@ -1229,7 +1176,7 @@ knownCs: CompletersMap & SafeObject = {
       if (toRemove.allHistory) {
         HistoryCache.history = [];
         const d2 = Object.create<string>(null);
-        for (const i of Completers.bookmarks.bookmarks) {
+        for (const i of bookmarkEngine.bookmarks) {
           const t = d[i.url]; t && (d2[i.url] = t);
         }
         Decoder.dict = d2;
@@ -1381,7 +1328,7 @@ knownCs: CompletersMap & SafeObject = {
           if (HistoryCache.history) {
             Decoder.decodeList(HistoryCache.history);
           }
-          return Decoder.decodeList(Completers.bookmarks.bookmarks);
+          return Decoder.decodeList(bookmarkEngine.bookmarks);
         }, 100);
       } else {
         this.dict = Object.create<string>(null);
@@ -1400,11 +1347,58 @@ knownCs: CompletersMap & SafeObject = {
     }
   };
 
-}, 200);
 
-setTimeout(function() {
-  Settings.postUpdate("searchEngines", null);
-}, 300);
+  Completion = {
+    filter(this: void, query: string, options: CompletersNS.FullOptions
+        , callback: CompletersNS.Callback): void {
+      autoSelect = false;
+      rawQuery = (query = query.trim()) && query.replace(Utils.spacesRe, " ");
+      Completers.getOffset();
+      query = rawQuery;
+      queryTerms = query ? (query.length > Consts.MaxCharsInQuery ? query.substring(0, Consts.MaxCharsInQuery).trimRight() : query).split(" ") : [];
+      maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number>options.maxChars | 0) || 128, Consts.UpperBoundOfMaxChars));
+      singleLine = !!options.singleLine;
+      maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
+      matchedTotal = 0;
+      Completers.callback = callback;
+      let arr: ReadonlyArray<Completer> | null = null, str = queryTerms.length >= 1 ? queryTerms[0] : "";
+      if (str.length === 2 && str[0] === ":") {
+        str = str[1];
+        arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history : str === "t" ? knownCs.tab
+          : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
+        if (arr) {
+          queryTerms.shift();
+          autoSelect = arr !== knownCs.omni;
+          Completers.filter(arr);
+          return;
+        }
+      }
+      Completers.filter(knownCs[options.type] || knownCs.omni);
+    },
+    removeSug (url, type, callback): void {
+      switch (type) {
+      case "tab":
+        chrome.tabs.remove(+url, function(): void {
+          const err = chrome.runtime.lastError;
+          callback(!<any>err);
+          return err;
+        });
+        break;
+      case "history":
+        {
+          const found = !HistoryCache.history || HistoryCache.binarySearch(url) >= 0;
+          chrome.history.deleteUrl({ url });
+          callback(found);
+        }
+        break;
+      }
+    }
+  };
+
+  setTimeout(function() {
+    Settings.postUpdate("searchEngines", null);
+  }, 80);
+}, 200);
 
 var Completion = { filter: function(a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
   setTimeout(function() {

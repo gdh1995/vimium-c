@@ -84,7 +84,7 @@ var Utils = {
   filePathRe: <RegExpOne> /^[A-Za-z]:(?:[\\/][^:*?"<>|]*)?$|^\/(?:Users|home|root)\/[^:*?"<>|]+$/,
   _backSlashRe: <RegExpG>/\\/g,
   lastUrlType: Urls.Type.Default,
-  convertToUrl: (function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
+  convertToUrl: function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     string = string.trim();
     this.lastUrlType = Urls.Type.Full;
     if (this.isJSUrl(string)) {
@@ -221,7 +221,7 @@ var Utils = {
         ((this as typeof Utils).checkInDomain(string, arr && arr[4]) === 2 ? "https:" : "http:")
         + (type === Urls.Type.NoSchema ? "//" : "") + oldString
       : oldString;
-  }) as Urls.Converter,
+  } as Urls.Converter,
   checkInDomain (host: string, port?: string | null): 0 | 1 | 2 {
     const domain = port && this.domains[host + port] || this.domains[host];
     return domain ? domain.https ? 2 : 1 : 0;
@@ -267,7 +267,7 @@ var Utils = {
     if (s !== "link" && s !== "\u94fe\u63a5") { return str; }
     let url = str.substring(i).trim();
     (i = url.indexOf(' ')) > 0 && (url = url.substring(0, i));
-    ".;,\uff1b\uff0c\u3002".indexOf(url[url.length - 1]) >= 0 && (url = url.slice(0, -1));
+    ",.;\u3002\uff0c\uff1b".indexOf(url[url.length - 1]) >= 0 && (url = url.slice(0, -1));
     url = this.convertToUrl(url, null, Urls.WorkType.KeepAll);
     return Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
   },
