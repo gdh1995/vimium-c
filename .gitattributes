@@ -8,6 +8,7 @@
 *.jpg binary
 *.png binary
 *.sh linguist-language=Text
+*.py linguist-language=Text
 tsc.js linguist-language=Text
 Gulpfile.js linguist-language=Text
 lib/math_parser.js linguist-vendored
