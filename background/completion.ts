@@ -1372,6 +1372,9 @@ knownCs: CompletersMap & SafeObject = {
           autoSelect = arr !== knownCs.omni;
         }
       }
+      if (queryTerms.length >= 1) {
+        queryTerms[0] = Utils.fixCharsInUrl(queryTerms[0]);
+      }
       Completers.filter(arr || knownCs.omni);
     },
     removeSug (url, type, callback): void {

@@ -1538,6 +1538,7 @@ Are you sure you want to continue?`);
           url = url.substring(2).trim();
           url || (unsafe = false);
         }
+        url = Utils.fixCharsInUrl(url);
         url = Utils.convertToUrl(url, request.keyword || null, unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.ActAnyway);
         const type = Utils.lastUrlType;
         if (request.https != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
