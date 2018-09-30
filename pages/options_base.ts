@@ -408,7 +408,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   }
 }, ExclusionRulesOption.prototype);
 
-  let saved = true, oldPass: string | null = null;
+  let saved = true, oldPass: string | null = null, curLockedStatus = Frames.Status.__fake;
   function collectPass(pass: string): string {
     pass = pass.trim();
     const dict = Object.create<1>(null);
@@ -428,12 +428,16 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     const isSaving = exclusions.inited === 3;
     exclusions.inited = 2;
     const same = pass === oldPass;
-    stateLine.innerHTML = '<span class="Vim">Vim</span>ium <span class="C">C</span> '
+    let html = '<span class="Vim">Vim</span>ium <span class="C">C</span> '
       + (isSaving ? pass ? "becomes to exclude" : "becomes"
         : (same ? "keeps to " : "will ") + (pass ? "exclude" : "be"))
       + (pass
       ? `: <span class="state-value code">${pass}</span>`
       : `:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
+    if (curLockedStatus !== Frames.Status.__fake && !isSaving && same) {
+      html += ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`;
+    }
+    stateLine.innerHTML = html;
     saveBtn.disabled = same;
     (saveBtn.firstChild as Text).data = same ? "No Changes" : "Save Changes";
   }
@@ -478,6 +482,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   exclusions.init($("#exclusionRules"), onUpdated, function (): void {
     let sender = ref ? ref[0].sender : { status: Frames.Status.enabled, flags: Frames.Flags.Default }, el: HTMLElement
       , newStat = sender.status !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
+    curLockedStatus = sender.flags & Frames.Flags.locked ? sender.status : Frames.Status.__fake;
     ref = null;
     el = $<HTMLElement>("#toggleOnce");
     el.textContent = newStat + " for once";
