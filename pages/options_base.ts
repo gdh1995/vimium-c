@@ -457,6 +457,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       return;
     }
     const testers = bgExclusions.testers;
+    BG.Backend.forceStatus("reset", tabId);
     exclusions.save();
     setTimeout(function() {
       bgExclusions.testers = testers;

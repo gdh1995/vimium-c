@@ -2054,7 +2054,7 @@ Are you sure you want to continue?`);
       locked = stat !== null, unknown = !(locked || always_enabled),
       msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.Status.disabled ? null : "", forced: locked };
       cPort = indexFrame(tabId, 0) || ref[0];
-      if (stat == null && tabId < 0) {
+      if (stat === null && tabId < 0) {
         oldStatus !== Frames.Status.disabled && this.showHUD("Got an unknown action on status: " + act);
         return;
       }
