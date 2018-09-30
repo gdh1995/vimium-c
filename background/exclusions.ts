@@ -127,7 +127,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
         port.sender.status = status;
       }
       if (needIcon && status0 !== (status = frames[0].sender.status)) {
-        Backend.setIcon((tabId as (string | number) as number) | 0, status);
+        Backend.setIcon(+tabId, status);
       }
     }
   },

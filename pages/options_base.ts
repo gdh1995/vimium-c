@@ -429,10 +429,11 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     exclusions.inited = 2;
     const same = pass === oldPass;
     stateLine.innerHTML = '<span class="Vim">Vim</span>ium <span class="C">C</span> '
-      + (isSaving ? "becomes to " : same ? "keeps to " : "will ")
+      + (isSaving ? pass ? "becomes to exclude" : "becomes"
+        : (same ? "keeps to " : "will ") + (pass ? "exclude" : "be"))
       + (pass
-      ? `exclude: <span class="state-value code">${pass}</span>`
-      : `be:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
+      ? `: <span class="state-value code">${pass}</span>`
+      : `:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
     saveBtn.disabled = same;
     (saveBtn.firstChild as Text).data = same ? "No Changes" : "Save Changes";
   }
