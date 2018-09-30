@@ -160,19 +160,23 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
     let img: HTMLImageElement, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
-    onerror = function(this: HTMLImageElement): void {
+    ctx: CanvasRenderingContext2D | null = null;
+    function onerror(this: HTMLImageElement): void {
       console.error("Could not load action icon: " + this.getAttribute("src"));
-    },
-    onload = function(this: HTMLImageElement): void {
-      let canvas: HTMLCanvasElement | null = document.createElement("canvas")
-        , w: number, h: number, ctx: CanvasRenderingContext2D | null;
-      canvas.width = w = this.width, canvas.height = h = this.height;
-      ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    }
+    function onload(this: HTMLImageElement): void {
+      if (!ctx) {
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = IconNS.PixelConsts.MaxSize;
+        ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+      }
+      let w = this.width, h = this.height;
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(this, 0, 0, w, h);
-      cache[w as 19 | 38] = ctx.getImageData(0, 0, w, h);
-      if (count++) { return; }
-      canvas = ctx = null;
+      cache[w as number | string as string as IconNS.ValidSizes] = ctx.getImageData(0, 0, w, h);
+      if (count++) {
+        ctx = null; return;
+      }
       (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type] = cache;
       const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
