@@ -229,7 +229,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
     } else {
       chrome.browserAction.disable();
     }
-    title += NotChrome ? "\n\nAs configured, here's no\nVimium C's active status."
+    title += value ? "" : NotChrome ? "\n\nAs configured, here's no\nVimium C's active status."
       : "\n\nThis icon is disabled by your settings."
     chrome.browserAction.setTitle({ title });
   };
