@@ -98,16 +98,20 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   cleanRes();
   let exported_object: ExportedSettings | null;
   const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
+  const d = new Date(), bVer = bgSettings.CONST.ChromeVersion;
   exported_object = Object.create(null) as ExportedSettings & SafeObject;
   exported_object.name = "Vimium C";
   if (!all_static) {
-    exported_object.time = 0;
+    exported_object["@time"] = d.toLocaleString();
+    exported_object.time = d.getTime();
   }
   exported_object.environment = {
-    chrome: bgSettings.CONST.ChromeVersion,
     extension: bgSettings.CONST.CurrentVersion,
     platform: bgSettings.CONST.Platform
   };
+  if (bVer != BrowserVer.assumedVer) {
+    exported_object.environment.chrome = bVer;
+  }
   for (let storage = localStorage, all = bgSettings.defaults, i = 0, len = storage.length, j: string[]; i < len; i++) {
     const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
     if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList" || key === "innerCSS") {
@@ -123,10 +127,6 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
       exported_object[key] = storedVal;
     }
   }
-  const d = new Date();
-  if (!all_static) {
-    exported_object.time = d.getTime();
-  }
   let exported_data = JSON.stringify(exported_object, null, '\t'), d_s = formatDate(d);
   if (exported_object.environment.platform === "win") {
     // in case "endings" didn't work
@@ -140,12 +140,19 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     file_name += d_s.replace(<RegExpG> /[\-:]/g, "").replace(" ", "_");
   }
   file_name += '.json';
+  const blob = new Blob([exported_data], {type: "application/json", "endings": "native"});
 
-  const nodeA = document.createElement("a");
-  nodeA.download = file_name;
-  nodeA.href = URL.createObjectURL(new Blob([exported_data], {type: "application/json", "endings": "native"}));
-  _lastBlobURL = nodeA.href;
-  click(nodeA);
+  interface BlobSaver { (blobData: Blob, fileName: string): any; }
+  interface NavigatorEx extends Navigator { msSaveOrOpenBlob?: BlobSaver; }
+  if ((navigator as NavigatorEx).msSaveOrOpenBlob) {
+    (navigator as NavigatorEx & {msSaveOrOpenBlob: BlobSaver}).msSaveOrOpenBlob(blob, file_name);
+  } else {
+    const nodeA = document.createElement("a");
+    nodeA.download = file_name;
+    nodeA.href = URL.createObjectURL(blob);
+    _lastBlobURL = nodeA.href;
+    click(nodeA);
+  }
   console.info("EXPORT settings to %c%s%c at %c%s%c."
     , "color:darkred", file_name, "color:auto", "color:darkblue", d_s, "color:auto");
 };
@@ -196,6 +203,11 @@ Are you sure you want to continue?`
   delete new_data.environment;
   delete new_data.author;
   delete new_data.description;
+  for (let key in new_data) {
+    if (key[0] === "@") {
+      delete new_data[key];
+    }
+  }
 
   const storage = localStorage, all = bgSettings.defaults, _ref = Option.all,
   otherLineEndRe = <RegExpG>/\r\n?/g;
