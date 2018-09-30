@@ -493,7 +493,8 @@ var Vomnibar = {
   },
   onClick (event: MouseEvent): void {
     let el: Node | null = event.target as Node;
-    if (event.isTrusted === false || !(event instanceof MouseEvent) || el === this.input || window.getSelection().type === "Range") { return; }
+    if (event.isTrusted === false || !(event instanceof MouseEvent) || event.button
+      || el === this.input || window.getSelection().type === "Range") { return; }
     if (el === this.input.parentElement) { return this.focus(); }
     if (this.timer) { event.preventDefault(); return; }
     while (el && el.parentNode !== this.list) { el = el.parentNode; }
