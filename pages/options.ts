@@ -537,6 +537,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       el.placeholder = `lacking permission${key ? ` "${key}"` : ""}`;
     }
   })(_ref);
+  if (BG.Settings.CONST.GlobalCommands.length === 0) {
+    _ref = $$(".require-shortcuts");
+    for (let _i = _ref.length; 0 <= --_i; ) {
+      _ref[_i].remove();
+    }
+  }
 
   function toggleHide(element: HTMLElement): void | 1 {
     element.tabIndex = -1;

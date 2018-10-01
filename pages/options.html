@@ -51,15 +51,15 @@
             placeholder="# Insert your preferred key mappings here."></textarea>
         </td>
         <td class="help"><div class="help-inner">
-          Enter commands to remap your keys,
-          and 4 <i>global</i> shortcuts can be configured
-          on <a id="openExtensionPage" href="chrome://extensions/shortcuts">chrome://extensions</a>.
+          Enter commands to remap your keys.
+          <span class="require-shortcuts">And 4 <i>global</i> shortcuts can be configured
+          on <a id="openExtensionPage" href="chrome://extensions/shortcuts">chrome://extensions</a>.</span>
           Some examples:
           <code>
           <pre>
 map f LinkHints.activate
 unmap &lt;f2&gt;
-shortcut createTab position="end"
+<span class="require-shortcuts">shortcut createTab position="end"</span>
 # "unmapAll" to unmap all above and default</pre>
           </code>
           <a id="showCommands" href="#commands" data-hash="commands" data-delay="">Show available commands</a>.

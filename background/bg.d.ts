@@ -460,6 +460,7 @@ interface Window {
     fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null;
     readonly defaults: SettingsNS.SettingsWithDefaults & SafeObject;
     readonly CONST: {
+      readonly GlobalCommands: string[];
       readonly OptionsPage: string;
       readonly CurrentVersion: string;
       readonly ChromeVersion: BrowserVer;
