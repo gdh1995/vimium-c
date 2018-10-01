@@ -43,10 +43,9 @@ var Utils = {
   isJSUrl (s: string): boolean { return s.charCodeAt(10) === KnownKey.colon && s.substring(0, 11).toLowerCase() === "javascript:"; },
   isRefusingIncognito (url: string): boolean {
     url = url.toLowerCase();
-    if (url.startsWith("chrome://")) {
-      return !url.startsWith("chrome://downloads");
-    }
-    return !url.startsWith(Settings.CONST.InnerNewTab) && url.startsWith("chrome");
+    return url.startsWith("about:") ? url !== "about:blank"
+      : url.startsWith("chrome://") ? !url.startsWith("chrome://downloads")
+      : !url.startsWith(Settings.CONST.NtpNewTab) && url.startsWith(BrowserProtocol);
   },
   _nonENTlds: ".\u4e2d\u4fe1.\u4e2d\u56fd.\u4e2d\u570b.\u4e2d\u6587\u7f51.\u4f01\u4e1a.\u4f5b\u5c71.\u4fe1\u606f\
 .\u516c\u53f8.\u516c\u76ca.\u5546\u57ce.\u5546\u5e97.\u5546\u6807.\u5728\u7ebf.\u5a31\u4e50.\u5e7f\u4e1c\
@@ -748,6 +747,7 @@ const NotChrome: boolean = typeof browser !== "undefined" && (browser && (browse
   && !location.protocol.startsWith("chrome") // in case Chrome also supports `browser` in the future
 , IsEdge = NotChrome && !!(window as any).StyleMedia
 , IsFirefox = NotChrome && !IsEdge && (<RegExpOne>/\bFirefox\//).test(navigator.userAgent)
+, BrowserProtocol = NotChrome ? IsFirefox ? "moz" : IsEdge ? "ms-browser" : "about" : "chrome"
 ;
 if (NotChrome) {
   window.chrome = browser;

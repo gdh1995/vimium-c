@@ -259,7 +259,11 @@ availableCommands: {
   __proto__: null as never,
   showHelp: [ "Show help", 1, true ],
   debugBackground: [ "Debug the background page", 1, true,
-    { reuse: ReuseType.reuse, url: "chrome://extensions/?id=$id", id_mask: "$id" }, "openUrl" ],
+    {
+      reuse: ReuseType.reuse,
+      url: IsFirefox ? "about:debugging#addons" : IsEdge ? Settings.CONST.OptionsPage : "chrome://extensions/?id=$id",
+      id_mask: "$id"
+    }, "openUrl" ],
   blank: [ "Do nothing", 1, true ],
   toggleLinkHintCharacters: [ "Toggle the other link hints (use value)", 1, false,
     { key: "linkHintCharacters" }, ".toggleSwitchTemp" ],

@@ -62,7 +62,7 @@ ContentSettings = {
       Backend.showHUD("Unknown content settings type: " + contentType);
       return true;
     }
-    if (Utils.protocolRe.test(url) && !url.startsWith("chrome")) {
+    if (Utils.protocolRe.test(url) && !url.startsWith(BrowserProtocol)) {
       return false;
     }
     Backend.complain("change its content settings");

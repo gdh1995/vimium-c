@@ -163,7 +163,7 @@ var Vomnibar = {
       }, 1000); else {
         this.onload = null as never;
       }
-      if (location.origin !== origin || !origin.startsWith("chrome")) {
+      if (location.origin !== origin || origin.indexOf("-") < 0) {
         const channel = new MessageChannel();
         _this.port = channel.port1;
         channel.port1.onmessage = _this.onMessage.bind(_this);

@@ -487,7 +487,7 @@ setTimeout(function() {
     ref = {file: "", allFrames: true}, js = Settings.CONST.ContentScripts;
     for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
       let url = tabs[_i].url;
-      if (url.startsWith("chrome") || url.indexOf("://") === -1) { continue; }
+      if (url.startsWith(BrowserProtocol) || url.indexOf("://") === -1) { continue; }
       let tabId = tabs[_i].id;
       for (let _j = 0; _j < _len; ++_j) {
         ref.file = js[_j];

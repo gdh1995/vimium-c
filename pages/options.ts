@@ -470,8 +470,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   } else if (chrome.tabs.query)
   chrome.tabs.query({ active: true, currentWindow: true }, function(tabs): void {
     let url: string;
-    if (document.hasFocus() && tabs[0] && (url = tabs[0].url).lastIndexOf("chrome", 0) === 0
-            && url.lastIndexOf("chrome-extension:", 0) < 0) {
+    if (document.hasFocus() && tabs[0] && (url = tabs[0].url).indexOf("-") > 0
+            && url.lastIndexOf(location.protocol, 0) < 0) {
       setUI(tabs[0].id);
     }
   });
@@ -490,7 +490,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   Option.all.linkHintCharacters.onSave();
 
   Option.all.vomnibarPage.onSave = function(): void {
-    let {element} = this, url: string = this.previous, isExtPage = !url.lastIndexOf("chrome", 0) || !url.lastIndexOf("front/", 0);
+    let {element} = this, url: string = this.previous
+      , isExtPage = !url.lastIndexOf(location.protocol, 0) || !url.lastIndexOf("front/", 0);
     if (bgSettings.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
       element.style.textDecoration = isExtPage ? "" : "line-through";
       return this.showError(`Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`, null);

@@ -695,7 +695,7 @@ var Vomnibar = {
     this.pageType = type;
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
       , canShowOnOthers = this.browserVersion >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
-    if (type === VomnibarNS.PageType.web || location.origin.lastIndexOf("chrome", 0)) {}
+    if (type === VomnibarNS.PageType.web || location.origin.indexOf("-") < 0) {}
     else if (type === VomnibarNS.PageType.inner) {
       fav = canShowOnOthers || this.sameOrigin ? 2 : 0;
     } else if ((canShowOnOthers || this.sameOrigin) && (f = chrome.runtime.getManifest) && (manifest = f())) {
@@ -953,9 +953,9 @@ window.browser && (browser as any).runtime && (window.chrome = browser);
     return;
   }
   let curEl: HTMLScriptElement;
-  if (location.pathname.startsWith("/front/") || location.protocol !== "chrome-extension:"
+  if (location.pathname.startsWith("/front/") || location.protocol.indexOf("-") < 0
    || !(curEl = document.currentScript as typeof curEl)) {}
-  else if (curEl.src.endsWith("/front/vomnibar.js") && curEl.src.startsWith("chrome-extension:")) {
+  else if (curEl.src.endsWith("/front/vomnibar.js") && curEl.src.indexOf("-") >= 0) {
     window.ExtId = new URL(curEl.src).hostname;
   } else {
     curEl.remove();

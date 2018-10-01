@@ -165,7 +165,7 @@ var Settings = {
       } else {
         url = Utils.convertToUrl(url);
         url = Utils.reformatURL(url);
-        if (!url.startsWith("chrome") && this.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+        if (!url.startsWith(BrowserProtocol) && this.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
           url = (this as typeof Settings).CONST.VomnibarPageInner;
         } else {
           url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST.CurrentVersion));
@@ -265,8 +265,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   CONST: {
     AllowClipboardRead: true,
     BaseCSSLength: 0,
-    // note: if changed, ../pages/newtab.js also needs change.
-    InnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
+    // should keep lower case
+    NtpNewTab: "chrome-search://local-ntp/local-ntp.html",
     DisallowIncognito: false,
     VimiumNewTab: "",
     ChromeVersion: BrowserVer.MinSupported,
@@ -317,16 +317,20 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
 (function(): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
   urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js,
-  { CONST: obj } = Settings, ref3 = Settings.newTabs as SafeDict<Urls.NewTabType>;
+  { CONST: obj, defaults } = Settings, newtab = urls && urls.newtab,
+  // on Edge, https://www.msn.cn/spartan/ntp also works with some complicated search parameters
+  // on Firefox, both "about:newtab" and "about:home" work,
+  //   but "about:newtab" skips extension hooks and uses last configured URL, so it's better.
+  CommonNewTab = IsEdge ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
+  ref3 = Settings.newTabs as SafeDict<Urls.NewTabType>;
   function func(path: string): string {
     return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
-  (Settings.defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner;
-  let newtab = urls && urls.newtab, BrowserNewTab = "chrome://newtab", BrowserNewTab2 = "about:newtab";
-  NotChrome && (BrowserNewTab = BrowserNewTab2);
-  (Settings.defaults as SettingsWithDefaults).newTabUrl = newtab ? obj.InnerNewTab : BrowserNewTab;
-  ref3[BrowserNewTab] = ref3[BrowserNewTab2] = Urls.NewTabType.browser;
+  (defaults as SettingsWithDefaults).newTabUrl = NotChrome ? CommonNewTab : newtab ? obj.NtpNewTab : ChromeNewTab;
+  ref3[CommonNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
+  NotChrome || (ref3[ChromeNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
   newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);
+  (defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner;
   obj.GlobalCommands = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;

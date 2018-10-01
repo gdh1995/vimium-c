@@ -1242,9 +1242,9 @@ Are you sure you want to continue?`);
       } else if (port.sender.frameId !== 0 && port.sender.tabId >= 0) {
         port = indexFrame(port.sender.tabId, 0) || port;
       }
-      const page = Settings.cache.vomnibarPage_f, { url } = port.sender, preferWeb = !page.startsWith("chrome"),
+      const page = Settings.cache.vomnibarPage_f, { url } = port.sender, preferWeb = !page.startsWith(BrowserProtocol),
       inner = forceInner || !page.startsWith(location.origin) ? Settings.CONST.VomnibarPageInner : page;
-      forceInner = (preferWeb ? url.startsWith("chrome") || page.startsWith("file:") && !url.startsWith("file:")
+      forceInner = (preferWeb ? url.startsWith(BrowserProtocol) || page.startsWith("file:") && !url.startsWith("file:")
           // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) that https refusing http iframes.
           || page.startsWith("http:") && url.startsWith("https:")
         : port.sender.incognito) || url.startsWith(location.origin) || !!forceInner;
@@ -1287,7 +1287,7 @@ Are you sure you want to continue?`);
     },
     toggleViewSource (this: void, tabs: [Tab]): void {
       let tab = tabs[0], url = tab.url;
-      if (url.startsWith("chrome")) {
+      if (url.startsWith(BrowserProtocol)) {
         return Backend.complain("visit HTML of an extension's page");
       }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
@@ -1439,7 +1439,7 @@ Are you sure you want to continue?`);
         }
       }
       if (!path) {
-        if (url_l.startsWith("chrome")) {
+        if (url_l.startsWith(BrowserProtocol)) {
           Utils.resetRe();
           return { url: "An extension has no upper-level pages", path: null };
         }
