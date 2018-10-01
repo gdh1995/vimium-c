@@ -184,7 +184,7 @@ var Vomnibar = {
         close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
-      if (location.hash === "#chrome-ui" && !window.VimiumInjector) { _this.top = "8px"; }
+      if (location.hash === "#dialog-ui" && !window.VimiumInjector) { _this.top = "8px"; }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {

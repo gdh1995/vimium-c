@@ -447,7 +447,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   function setUI(curTabId: number | null): void {
     const ratio = BG.devicePixelRatio, element = document.getElementById("openInTab") as HTMLAnchorElement;
-    (document.body as HTMLBodyElement).classList.add("chrome-ui");
+    (document.body as HTMLBodyElement).classList.add("dialog-ui");
     (document.getElementById("mainHeader") as HTMLElement).remove();
     element.onclick = function(this: HTMLAnchorElement): void {
       setTimeout(window.close, 17);
@@ -465,7 +465,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 910 / ratio + "px" : "";
     });
   }
-  if (window.location.hash === "#chrome-ui") {
+  if (window.location.hash === "#dialog-ui") {
     setUI(null);
   } else if (chrome.tabs.query)
   chrome.tabs.query({ active: true, currentWindow: true }, function(tabs): void {

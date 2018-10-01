@@ -2,7 +2,7 @@ body {
   font: 14px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;
   margin: 0;
 }
-body.chrome-ui {
+body.dialog-ui {
   margin-right: 25px;
 }
 a, a:visited {
@@ -25,7 +25,7 @@ header {
   border-bottom: 1px solid #ddd;
   padding: 20px 0 15px 0;
 }
-.chrome-ui header {
+.dialog-ui header {
   padding: 0 0 5px 0;
 }
 button, select {
@@ -42,7 +42,7 @@ button, select {
   text-align: center;
   text-shadow: 0 1px 0 #f0f0f0;
 }
-.chrome-ui button {
+.dialog-ui button {
   margin-right: 0;
 }
 button:hover, select:hover {
@@ -417,20 +417,20 @@ label:active {
     float: none;
   }
 }
-.chrome-ui #wrapper {
+.dialog-ui #wrapper {
   margin: -23px 0 37px 35px;
   width: 890px;
 }
-.chrome-ui #footer {
+.dialog-ui #footer {
   position: fixed;
   width: unset;
 }
-.chrome-ui #footerWrapper {
+.dialog-ui #footerWrapper {
   float: none;
   margin-left: 35px;
   margin-right: 0;
   width: 890px;
 }
-.chrome-ui #footerButtons {
+.dialog-ui #footerButtons {
   width: 300px;
 }
