@@ -86,7 +86,7 @@ bgSettings.CONST.VimiumNewTab && (Option.all.newTabUrl.checker = {
   check (value: string): string {
     const url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(value)
         ? chrome.runtime.getURL(value) : BG.Utils.convertToUrl(value.toLowerCase());
-    return url.lastIndexOf("http", 0) < 0 && (url in bgSettings.newTabs) ? bgSettings.CONST.ChromeInnerNewTab : value;
+    return url.lastIndexOf("http", 0) < 0 && (url in bgSettings.newTabs) ? bgSettings.defaults.newTabUrl : value;
   }
 });
 

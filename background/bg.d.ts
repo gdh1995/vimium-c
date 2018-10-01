@@ -462,8 +462,6 @@ interface Window {
       readonly OptionsPage: string;
       readonly CurrentVersion: string;
       readonly ChromeVersion: BrowserVer;
-      readonly BrowserNewTab: string;
-      readonly ChromeInnerNewTab: string;
       readonly VimiumNewTab: string;
       readonly Platform: string;
     };

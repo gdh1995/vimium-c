@@ -455,6 +455,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     element.style.display = "";
     (element.nextElementSibling as Element).remove();
     if (bgSettings.CONST.ChromeVersion >= BrowserVer.MinCorrectBoxWidthForOptionUI
+        // not reset body width if not on Chrome
         || location.protocol !== "chrome-extension:") { return; }
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
     chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function(zoom): void {

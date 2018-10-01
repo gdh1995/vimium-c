@@ -368,7 +368,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       const element = elements[_i];
       const pattern = this.getPattern(element).value.trim();
       const rule = (bgExclusions.testers as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
-      if (typeof rule === "string" ? url.startsWith(rule) : rule.test(url)) {
+      if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
         haveMatch = _i;
       } else {
         element.style.display = "none";
@@ -390,7 +390,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       return;
     }
     const rule = bgExclusions.getRe(patternElement.value);
-    if (typeof rule === "string" ? url.startsWith(rule) : rule.test(url)) {
+    if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
       patternElement.title = patternElement.style.color = "";
     } else {
       patternElement.style.color = "red";

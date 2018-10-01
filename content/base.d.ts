@@ -310,7 +310,7 @@ interface VSettings {
   enabled: boolean;
   cache: SettingsNS.FrontendSettingCache;
   uninit: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => any) | null;
-  destroy (this: void, silent?: boolean, keepChrome?: boolean): void;
+  destroy (this: void, silent?: boolean): void;
 }
 declare var VimiumInjector: VimiumInjector, VSettings: VSettings;
 declare var browser: never;

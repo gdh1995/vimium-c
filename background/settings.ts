@@ -265,10 +265,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   CONST: {
     AllowClipboardRead: true,
     BaseCSSLength: 0,
-    BrowserNewTab: "about:newtab",
-    BrowserNewTab2: "chrome://newtab",
     // note: if changed, ../pages/newtab.js also needs change.
-    ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
+    InnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     DisallowIncognito: false,
     VimiumNewTab: "",
     ChromeVersion: BrowserVer.MinSupported,
@@ -305,9 +303,6 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   }
 };
 
-const IsEdge = NotChrome && !!(window as any).StyleMedia,
-IsFirefox = NotChrome && !IsEdge && (<RegExpOne>/\bFirefox\//).test(navigator.userAgent);
-
 Settings.CONST.ChromeVersion = 0 | (!NotChrome && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number;
 Settings.bufferToLoad.onMac = false;
@@ -323,14 +318,14 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
   urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js,
   { CONST: obj } = Settings, ref3 = Settings.newTabs as SafeDict<Urls.NewTabType>;
-  let newtab = urls && urls.newtab;
   function func(path: string): string {
     return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
   (Settings.defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner;
-  NotChrome && (obj.BrowserNewTab2 = obj.BrowserNewTab);
-  (Settings.defaults as SettingsWithDefaults).newTabUrl = newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab;
-  ref3[obj.BrowserNewTab] = ref3[obj.BrowserNewTab2] = Urls.NewTabType.browser;
+  let newtab = urls && urls.newtab, BrowserNewTab = "chrome://newtab", BrowserNewTab2 = "about:newtab";
+  NotChrome && (BrowserNewTab = BrowserNewTab2);
+  (Settings.defaults as SettingsWithDefaults).newTabUrl = newtab ? obj.InnerNewTab : BrowserNewTab;
+  ref3[BrowserNewTab] = ref3[BrowserNewTab2] = Urls.NewTabType.browser;
   newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);
   obj.GlobalCommands = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
   obj.CurrentVersion = ref.version;

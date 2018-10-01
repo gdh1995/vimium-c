@@ -1122,7 +1122,7 @@ Pagination = {
     enabled: false,
     cache: null as never as VSettings["cache"],
     uninit: null,
-  destroy: function(silent, keepChrome): void {
+  destroy: function(silent): void {
     VSettings.enabled = isEnabled = false;
     ELs.hook(HookAction.Destroy);
 
@@ -1142,7 +1142,6 @@ Pagination = {
       , Date.now());
 
     if (vPort.port) { try { vPort.port.disconnect(); } catch (e) {} }
-    isInjected || location.protocol.startsWith("chrome") || keepChrome || (window.chrome = null as never);
     (<RegExpOne> /a?/).test("");
   }
   };
