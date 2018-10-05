@@ -267,6 +267,7 @@ interface Function {
     apply<T, A, B, R>(this: (this: T, a: A, b: B) => R, thisArg: T, arr: [A, B]): R;
     apply<T, A, R>(this: (this: T, a: A) => R, thisArg: T, arr: [A]): R;
     apply<T, A, R>(this: (this: T, ...args: A[]) => R, thisArg: T, arr: A[]): R;
+    apply<T, R>(this: (this: T, ...args: any[]) => R, thisArg: T, arr: IArguments): R;
 
     /**
       * Calls a method of an object, substituting another object for the current object.
@@ -336,7 +337,7 @@ declare const Function: FunctionConstructor;
 interface IArguments {
     [index: number]: any;
     length: number;
-    callee: Function;
+    callee: never;
 }
 
 interface String {

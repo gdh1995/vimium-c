@@ -33,7 +33,7 @@
       box.dispatchEvent(new CustomEvent("VimiumUnhook", {detail: secret}));
     }
     if (box === null) {
-      setTimeout(function(): void { r("VimiumHook", installer, true); }, 1000);
+      setTimeout(function(): void { r("VimiumHook", installer, true); }, 1100);
     }
     box = false;
     VSettings && (VSettings.uninit = null);
@@ -41,7 +41,6 @@
   VSettings.uninit = destroy;
 
   let VC: Function | string = (function VC(this: void, sec: number): void {
-type ApplyArgs<T, ArgParent, R> = (this: (this: T, ...a: ArgParent[]) => R, thisArg: T, a: ArgParent[]) => R;
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
 type Call3o<T, A, B, C, R> = (this: (this: T, a: A, b: B, c?: C) => R, thisArg: T, a: A, b: B, c?: C) => R;
 
@@ -49,24 +48,24 @@ const ETP = EventTarget.prototype, _listen = ETP.addEventListener, toRegister: E
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, R, A, B, C>(func: (this: T, a?: A, b?: B, c?: C) => R, self: T, a?: A, b?: B, c?: C) => R,
 dispatch = (_call as Call1<EventTarget, Event, boolean>).bind(ETP.dispatchEvent),
-append = (_call as Call1<Node, Node, Node>).bind(document.appendChild),
+Append = document.appendChild,
 Contains = document.contains, contains = Contains.bind(document),
 Insert = document.insertBefore,
 CE: typeof Event = typeof CustomEvent === "function" ? CustomEvent as any : Event,
 HA = HTMLAnchorElement, DF = DocumentFragment, SR = (window.ShadowRoot || CE as any) as typeof ShadowRoot,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
 FP = Function.prototype, funcToString = FP.toString,
-toStringApply = (_apply as ApplyArgs<Function, any, string>).bind(funcToString),
-listenA = (_apply as ApplyArgs<EventTarget, any, void>).bind(_listen),
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
 Create = document.createElement as Document["createElement"],
-Attr = E.prototype.setAttribute, GetAttr = E.prototype.getAttribute, remove = _call.bind(E.prototype.remove),
+Attr = E.prototype.setAttribute, HasAttr = E.prototype.hasAttribute, Remove = E.prototype.remove,
 rel = removeEventListener, ct = clearTimeout,
 hooks = {
   toString: function toString(this: Function): string {
     const a = this;
-    return toStringApply(a === hooks.addEventListener ? _listen : a === hooks.toString ? funcToString : a, arguments as any);
+    return call(_apply as (this: (this: Function, ...args: any[]) => string, self: Function, args: IArguments) => string,
+                funcToString,
+                a === hooks.addEventListener ? _listen : a === hooks.toString ? funcToString : a, arguments);
   },
   addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): any {
     const a = this;
@@ -75,7 +74,9 @@ hooks = {
       if (timer === 0) { timer = next(); }
     }
     const len = arguments.length;
-    return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, arguments[2]) : listenA(a, arguments as any);
+    return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, arguments[2])
+      : call(_apply as (this: (this: EventTarget, ...args: any[]) => void, self: EventTarget, args: IArguments) => void,
+             _listen as (this: EventTarget, ...args: any[]) => void, a, arguments);
   }
 }
 ;
@@ -91,8 +92,8 @@ let handler = function(this: void): void {
   const el = call(Create, document, "div") as HTMLDivElement, key = "data-vimium-secret";
   call(Attr, el, key, "" + sec);
   listen(el, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
-  append(docEl, el), dispatch(el, new CE("VimiumHook")), remove(el);
-  if (call(GetAttr, el, key) != null) {
+  call(Append, docEl, el), dispatch(el, new CE("VimiumHook")), call(Remove, el);
+  if (!call(HasAttr, el, key)) {
     destroy();
   } else {
     box = el;
@@ -125,25 +126,25 @@ function reg(this: void, element: Element): void {
   // note: the below changes DOM trees,
   // so `dispatch` MUST NEVER throw. Otherwises a page might break
   if ((e2 = e1.parentNode) == null) {
-    append(box, e1);
+    call(Append, box, e1);
     dispatch(element, event);
-    remove(e1);
+    call(Remove, e1);
   } else if (!(e2 instanceof SR) && e2 instanceof DF && !(e1 instanceof HF)) {
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
     const after = e1.nextSibling;
-    append(box, e1);
+    call(Append, box, e1);
     dispatch(element, event);
     call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, after);
   }
 }
 function destroy(e?: CustomEvent): void {
   if (e && e.detail !== "" + sec) { return; }
-  next = toRegister.push = function() { return 1; };
   toRegister.length = 0;
-  ct(timer);
+  next = toRegister.push = function() { return 1; };
   box = null as never;
+  ct(timer);
 }
 // only the below can affect outsides
 if (typeof E !== "function") {
