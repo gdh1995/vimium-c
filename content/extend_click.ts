@@ -40,7 +40,7 @@
   }
   VSettings.uninit = destroy;
 
-  let VC: Function | string = (function VC(this: void, sec: number): void {
+  let injected: Function | string = '"use strict";(' + (function VC(this: void): void {
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
 type Call3o<T, A, B, C, R> = (this: (this: T, a: A, b: B, c?: C) => R, thisArg: T, a: A, b: B, c?: C) => R;
 
@@ -81,7 +81,6 @@ hooks = {
 }
 ;
 toRegister.push = [].push, toRegister.splice = [].splice;
-document.currentScript && call(Attr, document.currentScript, "data-vimium-hook", "");
 
 let handler = function(this: void): void {
   rel("DOMContentLoaded", handler, true);
@@ -147,28 +146,29 @@ function destroy(e?: CustomEvent): void {
   ct(timer);
 }
 // only the below can affect outsides
+(document.currentScript as HTMLScriptElement).setAttribute("data-vimium", "");
 if (typeof E !== "function") {
   return destroy();
 }
 ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
-  }).toString()
+  }).toString() + ')(' + secret + ');'
     , appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0;
   // the block below is also correct on Edge
   if (appVer && appVer >= BrowserVer.MinEnsureMethodFunction) {
-    VC = VC.replace(<RegExpG> /: ?function \w+/g, "");
+    injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
   }
   script.async = false;
-  script.textContent = `"use strict";(${VC})(${secret});`;
+  script.textContent = injected;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();
   VDom.documentReady(function() { box === null && setTimeout(function() { box || destroy(); }, 17); });
   const safeRAF = appVer !== BrowserVer.NoRAForRICOnSandboxedPage;
   VDom.allowRAF = safeRAF;
-  if (script.hasAttribute("data-vimium-hook")) {
+  if (script.hasAttribute("data-vimium")) {
     safeRAF || requestAnimationFrame(() => { VDom.allowRAF = true; });
     return;
   } // It succeeded to hook.

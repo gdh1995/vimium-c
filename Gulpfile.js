@@ -648,18 +648,18 @@ function patchExtendClick(source) {
     suffix = '/\\b(addEventListener|toString) \\(/g, "$1:function $1("' + suffix.substring(match[0].length);
     source = prefix + source + suffix;
   }
-  match = /\bfunction VC ?\(/.exec(source);
+  match = /' ?\+ ?\(function VC ?\(/.exec(source);
   if (match) {
     let start = match.index, end = source.indexOf('}).toString()', start) + 1 || source.indexOf('}.toString()', start) + 1;
-    let prefix = source.substring(0, source[start - 1] === "(" ? start - 1 : start)
-      , suffix = source.substring(source.indexOf(")", end + 2) + 1);
+    let prefix = source.substring(0, start)
+      , suffix = source.substring(source.indexOf("'", end + 2) + 1);
     source = source.substring(start + match[0].length, end).replace(/ \/\/.*?$/g, "").replace(/'/g, '"');
     if (locally) {
       source = source.replace(/([\r\n]) {4,8}/g, "$1").replace(/\r/g, "\\r").replace(/\n/g, "\\n");
     } else {
       source = source.replace(/[\r\n]\s*/g, "");
     }
-    source = "'function(" + source + "'";
+    source = "function(" + source;
     source = prefix + source + suffix;
   }
   return source;
