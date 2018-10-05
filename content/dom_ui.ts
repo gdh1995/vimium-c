@@ -83,7 +83,7 @@ VDom.UI = {
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
     el2 !== (ui.box as HTMLElement).parentNode && (ui.box as Node).appendChild.call(el2, ui.box as Node);
-    let sin = ui.styleIn, s = sin && (sin as HTMLStyleElement).sheet;
+    const sin = ui.styleIn, s = sin && (sin as HTMLStyleElement).sheet;
     s && (s.disabled = false);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },

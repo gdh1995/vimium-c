@@ -318,6 +318,7 @@ declare const enum BrowserVer {
   // includes for-of, Map, Set, Symbols
   MinES6ForAndSymbols = 38,
   MinWithFrameIdInArg = 39,
+  MinOptionsUI = 40,
   MinDisableMoveTabAcrossIncognito = 40,
   // even if EXPERIMENTAL or LEAGCY
   MinWarningSyncXHR = 40,
