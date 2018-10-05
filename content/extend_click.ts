@@ -60,6 +60,7 @@ listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), bool
 Create = document.createElement as Document["createElement"],
 Attr = E.prototype.setAttribute, HasAttr = E.prototype.hasAttribute, Remove = E.prototype.remove,
 rel = removeEventListener, ct = clearTimeout,
+sec = +<string>(document.currentScript as HTMLScriptElement).getAttribute("data-vimium"),
 hooks = {
   toString: function toString(this: Function): string {
     const a = this;
@@ -146,11 +147,11 @@ function destroy(e?: CustomEvent): void {
   ct(timer);
 }
 // only the below can affect outsides
-(document.currentScript as HTMLScriptElement).setAttribute("data-vimium", "");
+(document.currentScript as HTMLScriptElement).removeAttribute("data-vimium");
 ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
-  }).toString() + ')(' + secret + ');'
+  }).toString() + ')();'
     , appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0;
   // the block below is also correct on Edge
@@ -159,13 +160,14 @@ _listen("DOMContentLoaded", handler, true);
   }
   script.async = false;
   script.textContent = injected;
+  script.setAttribute("data-vimium", secret);
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
   script.remove();
   VDom.documentReady(function() { box === null && setTimeout(function() { box || destroy(); }, 17); });
   const safeRAF = appVer !== BrowserVer.NoRAForRICOnSandboxedPage;
   VDom.allowRAF = safeRAF;
-  if (script.hasAttribute("data-vimium")) {
+  if (!script.hasAttribute("data-vimium")) {
     safeRAF || requestAnimationFrame(() => { VDom.allowRAF = true; });
     return;
   } // It succeeded to hook.
