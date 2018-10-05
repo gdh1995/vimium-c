@@ -7,13 +7,13 @@
   if (!(script instanceof HTMLScriptElement)) { return; }
   script.type = "text/javascript";
 
-  function installer(event: Event): void {
+  function installer(event: CustomEvent): void {
     const t = event.target;
-    if (!(t instanceof Element) || t.getAttribute("data-vimium-secret") !== secret) { return; }
+    if (!(t instanceof Element) || event.detail !== secret) { return; }
     event.stopImmediatePropagation();
     removeEventListener("VimiumHook", installer, true);
     if (box === null) {
-      t.removeAttribute("data-vimium-secret");
+      t.removeAttribute("data-vimium");
       t.addEventListener("VimiumOnclick", onclick, true);
       box = t;
     }
@@ -51,7 +51,7 @@ dispatch = (_call as Call1<EventTarget, Event, boolean>).bind(ETP.dispatchEvent)
 Append = document.appendChild,
 Contains = document.contains, contains = Contains.bind(document),
 Insert = document.insertBefore,
-CE: typeof Event = typeof CustomEvent === "function" ? CustomEvent as any : Event,
+CE = CustomEvent,
 HA = HTMLAnchorElement, DF = DocumentFragment, SR = (window.ShadowRoot || CE as any) as typeof ShadowRoot,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
 FP = Function.prototype, funcToString = FP.toString,
@@ -89,10 +89,10 @@ let handler = function(this: void): void {
   handler = null as never;
   const docEl = document.documentElement as HTMLElement | SVGElement;
   if (!docEl) { return destroy(); }
-  const el = call(Create, document, "div") as HTMLDivElement, key = "data-vimium-secret";
-  call(Attr, el, key, "" + sec);
+  const el = call(Create, document, "div") as HTMLDivElement, key = "data-vimium";
+  call(Attr, el, key, "");
   listen(el, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
-  call(Append, docEl, el), dispatch(el, new CE("VimiumHook")), call(Remove, el);
+  call(Append, docEl, el), dispatch(el, new CE("VimiumHook", {detail: sec})), call(Remove, el);
   if (!call(HasAttr, el, key)) {
     destroy();
   } else {
