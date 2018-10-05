@@ -147,9 +147,6 @@ function destroy(e?: CustomEvent): void {
 }
 // only the below can affect outsides
 (document.currentScript as HTMLScriptElement).setAttribute("data-vimium", "");
-if (typeof E !== "function") {
-  return destroy();
-}
 ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
