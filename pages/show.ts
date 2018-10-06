@@ -188,7 +188,7 @@ window.onhashchange = function(this: void): void {
   document.title = str;
 };
 
-if (!String.prototype.startsWith) {
+if (!"".startsWith) {
 String.prototype.startsWith = function(this: string, s: string): boolean {
   return this.lastIndexOf(s, 0) === 0;
 };

@@ -15,7 +15,6 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
   for (const src of arr) {
     const scriptElement = document.createElement("script");
     scriptElement.async = false;
-    scriptElement.defer = true;
     scriptElement.src = src[0] === "/" || src.lastIndexOf(prefix, 0) === 0 ? src : "/" + src;
     head.appendChild(scriptElement);
     scripts.push(scriptElement);

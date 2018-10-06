@@ -158,7 +158,6 @@ _listen("DOMContentLoaded", handler, true);
   if (appVer && appVer >= BrowserVer.MinEnsureMethodFunction) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
   }
-  script.async = false;
   script.textContent = injected;
   script.setAttribute("data-vimium", secret);
   d = (d as Document).documentElement || d;

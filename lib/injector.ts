@@ -61,7 +61,6 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
   for (const i of content_scripts) {
     const scriptElement = document.createElement("script");
     scriptElement.async = false;
-    scriptElement.defer = true;
     scriptElement.src = i;
     parentElement.insertBefore(scriptElement, insertBefore);
     scripts.push(scriptElement);
