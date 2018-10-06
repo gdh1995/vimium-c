@@ -408,8 +408,9 @@ declare const enum BrowserVer {
   // Chrome also began to put contain attr in use on 51 if EXPERIMENTAL
   // but obviously there's some bugs about this feature
   CSS$Contain$BreaksHelpDialogSize = 51,
-  // even if EXPERIMENTAL or LEAGCY
+  // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinNoUnmatchedIncognito = 52,
+  MinEventListenersFromExtensionOnSandboxedPage = 52,
   // the 3 below are correct even if LEAGCY
   MinCSSEnableContain = 52,
   MinSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); }
@@ -515,7 +516,10 @@ declare const enum BrowserVer {
   MinInputMode = 66, // even if LEAGCY; still works on C35 if EXPERIMENTAL
   // even if EXPERIMENTAL or LEAGCY
   // but not on pages whose JS is disabled in chrome://settings/content/siteDetails?site=<origin>
-  MinScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
+  // issue: https://bugs.chromium.org/p/chromium/issues/detail?id=811528
+  // the commit is firstly applied to C68:
+  // https://github.com/chromium/chromium/commit/5a5267ab58dd0310fc2b427db30de60c0eea4457
+  MinNewScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
   // even if EXPERIMENTAL or LEAGCY
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>
   NoRAForRICOnSandboxedPage = 69,

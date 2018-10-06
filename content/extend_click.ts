@@ -155,7 +155,7 @@ _listen("DOMContentLoaded", handler, true);
     , appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0;
   // the block below is also correct on Edge
-  if (appVer && appVer >= BrowserVer.MinEnsureMethodFunction) {
+  if (appVer >= BrowserVer.MinEnsureMethodFunction && appVer) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
   }
   script.textContent = injected;
@@ -170,7 +170,15 @@ _listen("DOMContentLoaded", handler, true);
     safeRAF || requestAnimationFrame(() => { VDom.allowRAF = true; });
     return;
   } // It succeeded to hook.
-  console.info("Some functions of Vimium C may not work because %o is sandboxed.", window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
+  // else: sandboxed or JS-disabled
+  const breakTotally = appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && appVer;
+  console.info((breakTotally ? "Vimium C can" : "Some functions of Vimium C may")
+      + " not work because %o is sandboxed.",
+    window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
+  if (breakTotally) {
+    VSettings.destroy(true);
+    return;
+  }
   VDom.allowScripts = false;
   interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =

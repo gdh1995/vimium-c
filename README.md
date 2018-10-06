@@ -89,8 +89,9 @@ Known issues (Up to the master branch):
 6. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 69).
 7. On sandboxed pages without an `allow-scripts` permission in their CSP,
-  HUD will always be visible in order to solve some issues on Chrome.
+  HUD will always be visible in order to solve some issues from Chrome 52 to 67.
   This issue has been fixed since Chrome 68.
+  But before Chrome 52, all functions of Vimium C will be broken.
 8. Chrome 64 and 65 always clean their console logs if only Vomnibar is opened, and there's nothing we can do for it.
   Chrome 66 fixes it.
 9. Chrome 69 disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
