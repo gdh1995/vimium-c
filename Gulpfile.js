@@ -651,9 +651,12 @@ function patchExtendClick(source) {
   match = /' ?\+ ?\(?function VC ?\(/.exec(source);
   if (match) {
     let start = match.index, end = source.indexOf('}).toString()', start) + 1 || source.indexOf('}.toString()', start) + 1;
-    let end2 = source.indexOf("'", end + 2), isSingle = end2 > 0;
-    let prefix = source.substring(0, start)
-      , suffix = source.substring((end2 > 0 ? end2 : source.indexOf('"', end + 2)) + 1);
+    let end2 = source.indexOf("')();'", end + 2) + 1, isSingle = end2 > 0;
+    end2 = isSingle ? end2 : source.indexOf('"();"', end + 2) + 1;
+    if (end2 <= 0) {
+      throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');
+    }
+    let prefix = source.substring(0, start), suffix = source.substring(end2);
     source = source.substring(start + match[0].length, end).replace(/ \/\/.*?$/g, "").replace(/'/g, '"');
     if (locally) {
       source = source.replace(/([\r\n]) {4,8}/g, "$1").replace(/\r/g, "\\r").replace(/\n/g, "\\n");
