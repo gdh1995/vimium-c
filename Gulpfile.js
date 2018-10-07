@@ -81,7 +81,7 @@ var Tasks = {
     if (sources.length <= 1) {
       return;
     }
-    cs.js = ["content/body.js"];
+    cs.js = ["content/vimium-c.js"];
     return uglifyJSFiles(sources, cs.js[0]);
   },
   "min/others": function() {
@@ -340,7 +340,10 @@ function uglifyJSFiles(path, output, new_suffix) {
     }));
   }
   if (is_file) {
-     stream = stream.pipe(concat(output));
+    if (willListEmittedFiles) {
+      stream = stream.pipe(gulpPrint());
+    }
+    stream = stream.pipe(concat(output));
   }
   stream = stream.pipe(uglify(loadUglifyConfig()));
   if (!is_file && new_suffix !== "") {
@@ -352,7 +355,7 @@ function uglifyJSFiles(path, output, new_suffix) {
       file.contents = new Buffer(patchExtendClick(String(file.contents)));
     }
   }));
-  if (willListEmittedFiles) {
+  if (willListEmittedFiles && !is_file) {
     stream = stream.pipe(gulpPrint());
   }
   if (enableSourceMap) {
