@@ -104,13 +104,13 @@ var VHints = {
     if (this.tooHigh !== null) {
       this.tooHigh = (VDom.scrollingEl() || document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
-    let elements: Hint[] | null = this.getVisibleElements(arr);
+    let elements = this.getVisibleElements(arr);
     if (this.frameNested) {
       if (this.tryNestedFrame("VHints.activate", (count as number) | 0, options)) {
         return this.clean();
       }
     }
-    if ((elements as Hint[]).length === 0) {
+    if (elements.length === 0) {
       elements = this.retryShadowDOM(arr);
       if (elements.length === 0) {
         this.clean(true);
@@ -119,9 +119,9 @@ var VHints = {
     }
 
     if (this.box) { this.box.remove(); this.box = null; }
-    this.hints = (elements as Hint[]).map(this.createHint, this);
-    VDom.bZoom !== 1 && this.adjustMarkers(elements as Hint[]);
-    elements = null;
+    this.hints = elements.map(this.createHint, this);
+    VDom.bZoom !== 1 && this.adjustMarkers(elements);
+    elements = null as never;
     this.alphabetHints.initMarkers(this.hints);
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
@@ -228,12 +228,16 @@ var VHints = {
   createHint (link: Hint): HintsNS.HintItem {
     let marker = VDom.createElement("span") as HintsNS.HintItem["marker"], i: number;
     i = link.length < 4 ? link[1][0] : (link as Hint4)[3][0][0] + (link as Hint4)[3][1];
-    const hint: HintsNS.HintItem = { marker, target: link[0], key: "", refer: link.length > 4 ? (link as Hint5)[4] : null };
+    const hint: HintsNS.HintItem = {
+      marker, target: link[0],
+      key: "",
+      refer: link.length > 4 ? (link as Hint5)[4] : null,
+    };
     if (link[2] < ClickType.minBox) {
       marker.className = "LH";
     } else {
       marker.className = "LH BH";
-      hint.scroll = true;
+      hint.refer = link[0];
     }
     const st = marker.style;
     st.left = i + "px";
@@ -718,7 +722,7 @@ var VHints = {
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getVRect, so that VDom.zooms are updated, and prepareCrop is called
-      rect = VDom.UI.getVRect(clickEl, hint.refer);
+      rect = VDom.UI.getVRect(clickEl, hint.refer !== hint.target ? hint.refer as HTMLElementUsingMap | null : null);
       const showRect = (this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect(clickEl)))) {
         const force = clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement;
@@ -1204,7 +1208,7 @@ DEFAULT: {
       VDom.UI.click(link, rect, null, true);
       ((link as HTMLDetailsElement).open === old) && ((link as HTMLDetailsElement).open = !old);
       return;
-    } else if (hint.scroll) {
+    } else if (hint.refer && hint.refer === hint.target) {
       return (this as typeof VHints).Modes.HOVER.activator.call(this, link, rect, hint);
     } else if (VDom.getEditableType(link) >= EditableType.Editbox) {
       VDom.UI.simulateSelect(link, rect, true);
