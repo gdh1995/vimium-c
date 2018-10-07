@@ -183,11 +183,6 @@ declare namespace MarksNS {
   type MarkToGo = InfoToGo & BaseMark;
 }
 
-interface FindModeQuery {
-  (incognito: boolean, query?: undefined | "", index?: number): string;
-  (incognito: boolean, query: string, index?: number): void;
-}
-
 declare namespace ExclusionsNS {
   interface StoredRule {
     pattern: string;

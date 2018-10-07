@@ -51,7 +51,7 @@ Append = document.appendChild,
 Contains = document.contains, contains = Contains.bind(document),
 Insert = document.insertBefore,
 CE = CustomEvent,
-HA = HTMLAnchorElement, DF = DocumentFragment, SR = (window.ShadowRoot || CE as any) as typeof ShadowRoot,
+HA = HTMLAnchorElement, DF = DocumentFragment, SR = (window.ShadowRoot || CE as never) as typeof ShadowRoot,
 HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
 FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
@@ -63,20 +63,20 @@ sec = <string>(document.currentScript as HTMLScriptElement).getAttribute("data-v
 hooks = {
   toString: function toString(this: Function): string {
     const a = this;
-    return call(_apply as (this: (this: Function, ...args: any[]) => string, self: Function, args: IArguments) => string,
+    return call(_apply as (this: (this: Function, ...args: {}[]) => string, self: Function, args: IArguments) => string,
                 funcToString,
                 a === hooks.addEventListener ? _listen : a === hooks.toString ? funcToString : a, arguments);
   },
-  addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): any {
+  addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): void {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA || a instanceof HF) && a instanceof E) {
       toRegister.push(a as Element);
       if (timer === 0) { timer = next(); }
     }
-    const len = arguments.length;
-    return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, arguments[2])
-      : call(_apply as (this: (this: EventTarget, ...args: any[]) => void, self: EventTarget, args: IArguments) => void,
-             _listen as (this: EventTarget, ...args: any[]) => void, a, arguments);
+    const args = arguments, len = args.length;
+    return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
+      : call(_apply as (this: (this: EventTarget, ...args: {}[]) => void, self: EventTarget, args: IArguments) => void,
+             _listen as (this: EventTarget, ...args: {}[]) => void, a, args);
   }
 }
 ;
@@ -128,7 +128,7 @@ function reg(this: void, element: Element): void {
     call(Append, box, e1);
     dispatch(element, event);
     call(Remove, e1);
-  } else if (!(e2 instanceof SR) && e2 instanceof DF && !(e1 instanceof HF)) {
+  } else if (e2 instanceof DF && !(e2 instanceof SR) && !(e1 instanceof HF)) {
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
@@ -194,5 +194,5 @@ _listen("DOMContentLoaded", handler, true);
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
     return VDom.allowRAF_ ? f ? f(cb, { timeout }) : requestAnimationFrame(cb) : (Promise.resolve(1).then(cb), 1);
-  } as any;
+  };
 })();

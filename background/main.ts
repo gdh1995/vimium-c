@@ -1238,7 +1238,7 @@ Are you sure you want to continue?`);
     },
     performFind (): void {
       const leave = !cOptions.active,
-      query = leave || cOptions.last ? (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito) : "";
+      query = leave || cOptions.last ? FindModeHistory.query(cPort.sender.incognito) : "";
       cPort.postMessage<1, "findMode">({ name: "execute", count: 1, command: "findMode"
           , CSS: ensureInnerCSS(cPort), options: {
         count: cOptions.dir <= 0 ? -commandCount : commandCount,

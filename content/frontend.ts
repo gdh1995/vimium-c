@@ -6,8 +6,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     (this: void): void;
   }
   interface Port extends chrome.runtime.Port {
-    postMessage<K extends keyof FgReq>(request: Req.fg<K>): 1;
     postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): 1;
+    postMessage<K extends keyof FgReq>(request: Req.fg<K>): 1;
   }
   const enum ListenType {
     None = 0,
@@ -28,7 +28,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     ;
 
   const isInjected = !!window.VimiumInjector,
-  notChrome = typeof browser !== "undefined" && !!(browser && (browser as any).runtime),
+  notChrome = typeof browser !== "undefined" && !!(browser && (browser as typeof chrome).runtime),
   vPort = {
     _port: null as Port | null,
     _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
@@ -53,7 +53,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         delete arr[id];
         handler((response as Req.res<K>).response);
       } else {
-        (requestHandlers as any)[(response as Req.bg<T>).name as T](response as Req.bg<T>);
+        type TypeToCheck = { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void };
+        type TypeChecked = { [K in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
+        (requestHandlers as TypeToCheck as TypeChecked)[(response as Req.bg<T>).name as T](response as Req.bg<T>);
       }
     },
     TestAlive_ (): void { esc && !vPort._port && VSettings.destroy_(); },
@@ -78,7 +80,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   function send<K extends keyof FgRes> (this: void, request: FgReq[K] & Req.baseFg<K>
       , callback: (this: void, res: FgRes[K]) => void): void {
     let id = ++vPort._id;
-    (vPort._port as Port as any).postMessage({_msgId: id, request: request});
+    (vPort._port as Port).postMessage<K>({_msgId: id, request: request});
     vPort._callbacks[id] = callback;
   }
 
@@ -268,9 +270,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       notChrome ? f("click", onActivate, true) :
       f.call(document, "DOMActivate", onActivate, true);
     }),
-  Commands: {
-    [key in keyof CmdOptions]: (this: void, count: number, options: CmdOptions[key]) => void;
-  } = {
+  Commands = {
     findMode: VFindMode.activate_,
     linkHints: VHints.activate,
     focusAndHint: VHints.ActivateAndFocus_,
@@ -291,26 +291,28 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       onWndBlur();
     },
 
-    toggleSwitchTemp (_0: number, options): void {
-      const key = (options.key || "") + "" as keyof SettingsNS.FrontendSettingCache,
-      cache = VSettings.cache, old = cache[key], Key = '"' + key + '"', last = "old" + key;
+    toggleSwitchTemp (_0: number, options: CmdOptions["toggleSwitchTemp"]): void {
+      // TODO: move checks to backend
+      type Keys = keyof SettingsNS.FrontendSettingCache;
+      const key: Keys = (options.key || "") + "" as Keys, last: Keys = "old" + key as Keys,
+      cache = VSettings.cache, old = cache[key], keyRepr = '"' + key + '"';
       let val = options.value, isBool = typeof val === "boolean", msg: string | undefined, u: undefined;
       if (!(key in cache)) {
         msg = 'unknown setting' + key;
       } else if (typeof old === "boolean") {
         isBool || (val = !old);
       } else if (isBool) {
-        msg = Key + 'is not a boolean switch';
-      } else if ((cache as Dict<any>)[last] === u) {
-        (cache as Dict<any>)[last] = old;
+        msg = keyRepr + 'is not a boolean switch';
+      } else if (cache[last] === u) {
+        cache[last] = old;
       } else if (old === val) {
-        val = (cache as Dict<any>)[last];
-        (cache as Dict<any>)[last] = u;
+        val = cache[last];
+        cache[last] = u as never;
       }
       if (!msg) {
         cache[key] = val;
-        msg = val === false ? Key + " has been turned off"
-          : "Now " + Key + (val === true ? " is on" : " use " + JSON.stringify(val));
+        msg = val === false ? keyRepr + " has been turned off"
+          : "Now " + keyRepr + (val === true ? " is on" : " use " + JSON.stringify(val));
       }
       return VHUD.showForDuration(msg, 1000);
     },
@@ -319,7 +321,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       InsertMode.global_ = opt;
       if (opt.hud) { return HUD.show_(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
-    passNextKey (count: number, options): void {
+    passNextKey (count: number, options: CmdOptions["passNextKey"]): void {
       const keys = Object.create<BOOL>(null);
       count = Math.abs(count);
       let keyCount = 0;
@@ -368,7 +370,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         url ? (window.location.href = url) : window.location.reload(hard || force);
       }, 17);
     },
-    switchFocus (_0: number, options): void {
+    switchFocus (_0: number, options: CmdOptions["switchFocus"]): void {
       let newEl = InsertMode.lock_;
       if (newEl) {
         if ((options.act || options.action) === "backspace") {
@@ -393,7 +395,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VDom.prepareCrop_();
       return VDom.UI.simulateSelect_(newEl, null, false, "", true);
     },
-    goBack (count: number, options): void {
+    goBack (count: number, options: CmdOptions["goBack"]): void {
       const step = Math.min(Math.abs(count), history.length - 1);
       step > 0 && history.go((count < 0 ? -step : step) * (+options.dir || -1));
     },
@@ -406,7 +408,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       post({ handler: "initHelp", wantTop });
     },
-    autoCopy (_0: number, options): void {
+    autoCopy (_0: number, options: CmdOptions["autoCopy"]): void {
       let str = VDom.UI.getSelectionText_(1);
       if (!str) {
         str = options.url ? window.location.href : document.title;
@@ -425,7 +427,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       return HUD.showCopied(str);
     },
-    autoOpen (_0: number, options): void {
+    autoOpen (_0: number, options: CmdOptions["autoOpen"]): void {
       let url = VDom.UI.getSelectionText_(), keyword = (options.keyword || "") + "";
       url && VPort.evalIfOK_(url) || post({
         handler: "openUrl",
@@ -440,7 +442,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         search: VDom.UI.getSelectionText_()
       });
     },
-    focusInput (count: number, options): void {
+    focusInput (count: number, options: CmdOptions["focusInput"]): void {
       InsertMode.inputHint_ && (InsertMode.inputHint_.hints = null as never);
       const arr: ViewOffset = VDom.getViewBox_();
       VDom.prepareCrop_();
@@ -824,10 +826,13 @@ Pagination = {
       }
     }
   },
-  requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = {
-    init (request): void {
+  requestHandlers = {
+    init (request: BgReq["init"]): void {
       const r = requestHandlers, {load, flags} = request;
-      load.browser = notChrome ? (window as any).StyleMedia ? BrowserType.Edge : BrowserType.Firefox : BrowserType.Chrome;
+      interface WindowMayOnMSEdge extends Window {
+        StyleMedia?: object;
+      }
+      load.browser = notChrome ? (window as WindowMayOnMSEdge).StyleMedia ? BrowserType.Edge : BrowserType.Firefox : BrowserType.Chrome;
       (VSettings.cache = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
       VDom.specialZoom_ = !notChrome && load.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
       r.keyMap(request);
@@ -835,7 +840,7 @@ Pagination = {
         InsertMode.grabFocus_ = !(flags & Frames.Flags.userActed);
         isLocked = !!(flags & Frames.Flags.locked);
       }
-      (r as { reset (request: BgReq["reset"], initing?: 1): void }).reset(request, 1);
+      r.reset(request, 1);
       if (isEnabled) {
         InsertMode.init_();
       } else {
@@ -864,7 +869,7 @@ Pagination = {
         (old && !isLocked) || hook(HookAction.Install);
         // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
-        (Commands.reset as () => void)();
+        Commands.reset();
       }
       if (VDom.UI.box_) { return VDom.UI.toggle_(enabled); }
     },
@@ -874,7 +879,7 @@ Pagination = {
       post(request);
     },
     eval (options: BgReq["eval"]): void { VPort.evalIfOK_(options.url); },
-    settingsUpdate ({ delta }): void {
+    settingsUpdate ({ delta }: BgReq["settingsUpdate"]): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer_(delta);
       for (const i in delta) {
@@ -883,7 +888,7 @@ Pagination = {
     },
     focusFrame: FrameMask.Focus_,
     exitGrab: InsertMode.ExitGrab_ as (this: void, request: Req.bg<"exitGrab">) => void,
-    keyMap (request): void {
+    keyMap (request: BgReq["keyMap"]): void {
       const map = keyMap = request.keyMap, func = Object.setPrototypeOf;
       func(map, null);
       function iter(obj: ReadonlyChildKeyMap): void {
@@ -902,15 +907,21 @@ Pagination = {
     execute<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
       if (request.CSS) { VDom.UI.css_(request.CSS); }
       const options: CmdOptions[O] | null = request.options;
-      (Commands[request.command] as (c: number, o: CmdOptions[O]) => void
-        )(request.count, (options ? VUtils.safer_(options) : Object.create(null)) as CmdOptions[O]);
+      type Keys = keyof CmdOptions;
+      type TypeToCheck = {
+        [key in Keys]: (this: void, count: number, options: CmdOptions[key]) => void;
+      };
+      type TypeChecked = {
+        [key in Keys]: <T2 extends Keys>(this: void, count: number, options: CmdOptions[T2]) => void;
+      };
+      (Commands as TypeToCheck as TypeChecked)[request.command](request.count, (options ? VUtils.safer_(options) : Object.create(null)) as CmdOptions[O]);
     },
-    createMark (request): void { return VMarks.createMark_(request.markName); },
+    createMark (request: BgReq["createMark"]): void { return VMarks.createMark_(request.markName); },
     showHUD ({ text, CSS, isCopy }: Req.bg<"showHUD">): void {
       if (CSS) { VDom.UI.css_(CSS); }
       return text ? isCopy ? HUD.showCopied(text) : HUD.showForDuration(text) : void 0;
     },
-    count (request): void {
+    count (request: BgReq["count"]): void {
       const count = parseInt(currentKeys, 10) || 1;
       post({ handler: "cmd", cmd: request.cmd, count, id: request.id});
     },
@@ -919,7 +930,7 @@ Pagination = {
       , node1: HTMLElement;
     if (CSS) { VDom.UI.css_(CSS); }
     if (!VDom.isHTML_()) { return; }
-    (Commands.showHelp as (msg?: number | "exitHD") => void)("exitHD");
+    Commands.showHelp("exitHD");
     if (oldShowHelp !== Commands.showHelp) { return; } // an old dialog exits
     box = VDom.createElement_("div");
     box.className = "R Scroll UI";
@@ -1123,7 +1134,7 @@ Pagination = {
     VSettings.enabled_ = isEnabled = false;
     hook(HookAction.Destroy);
     
-    (Commands.reset as () => void)();
+    Commands.reset();
     let f = VSettings.uninit_, ui = VDom.UI;
     f && f(HookAction.Destroy);
 
@@ -1143,7 +1154,7 @@ Pagination = {
   }
   };
   if (isInjected) {
-    VimiumInjector.checkIfEnabled = vPort.SafePost_ as any;
+    VimiumInjector.checkIfEnabled = vPort.SafePost_ as Function as () => void;
     VimiumInjector.getCommandCount = function (this: void): number { return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1; };
   }
 

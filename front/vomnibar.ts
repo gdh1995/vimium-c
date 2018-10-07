@@ -190,7 +190,7 @@ var Vomnibar = {
     if (this.init) { this.init(); }
     this.input.value = this.inputText;
   },
-  focus (this: void, focus?: false | TimerType.fake): void {
+  focus (this: void, focus?: false | TimerType.fake | "focus"): void {
     const a = Vomnibar;
     a.focusByCode = true;
     if (focus !== false) {
@@ -321,7 +321,7 @@ var Vomnibar = {
     , 33: AllowedActions.pageup, 34: AllowedActions.pagedown, 38: AllowedActions.up, 40: AllowedActions.down
     , 112: AllowedActions.backspace, 113: AllowedActions.blur
   } as Readonly<Dict<AllowedActions>>,
-  onKeydown (event: KeyboardEvent): any {
+  onKeydown (event: KeyboardEvent): void {
     if (!this.isActive) { return; }
     let action: AllowedActions = AllowedActions.nothing, n = event.keyCode, focused = this.focused;
     this.lastKey = n;
@@ -346,7 +346,8 @@ var Vomnibar = {
         event.preventDefault();
         this.lastScrolling = Date.now();
         window.onkeyup = Vomnibar.HandleKeydown;
-        return VPort.postToOwner({ name: "scroll", keyCode: n });
+        VPort.postToOwner({ name: "scroll", keyCode: n });
+        return;
       }
       else { action = event.code === "BracketLeft" ? AllowedActions.dismiss : event.code === "BracketRight" ? AllowedActions.toggle
                       : this.ctrlMap[n] || AllowedActions.nothing; }
@@ -412,11 +413,11 @@ var Vomnibar = {
     case AllowedActions.remove: return this.removeCur();
     }
   },
-  onBashAction (code: number): void | boolean {
+  onBashAction (code: number): void {
     const sel = window.getSelection(), isExtend = code === 4 || code < 0;
     sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
     if (isExtend && this.input.selectionStart < this.input.selectionEnd) {
-      return document.execCommand("delete");
+      document.execCommand("delete");
     }
   },
   _pageNumRe: <RegExpOne> /(?:^|\s)(\+\d{0,2})$/,
@@ -724,8 +725,9 @@ var Vomnibar = {
     event.stopImmediatePropagation();
   },
   returnFocus (this: void, request: BgVomnibarReq["returnFocus"]): void {
+    type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner as
-        any, 0, { name: "focus", key: request.key });
+      VoidPost, 0, { name: "focus", key: request.key });
   },
   _realDevRatio: 0,
   setWidth (w?: number): void {
@@ -923,12 +925,19 @@ VPort = {
     }
   },
   Listener<T extends keyof BgVomnibarReq> (this: void, response: Req.bg<T>): void {
-    return (Vomnibar as any)[response.name](response);
+    type Keys = keyof BgVomnibarReq;
+    (Vomnibar as { [K in Keys]: (res: Req.bg<K>) => void
+      } as { [K in Keys]: <T2 extends Keys>(res: Req.bg<T2>) => void
+      })[response.name](response);
   },
   OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
-    let name = ((data as VomnibarNS.Msg<string>).name || data) as keyof VomnibarNS.CReq | "onAction";
+    type Res = VomnibarNS.CReq;
+    let name = ((data as VomnibarNS.Msg<string>).name || data) as keyof Res;
     if (name === "backspace") { return Vomnibar.onAction(AllowedActions.backspace); }
-    return (Vomnibar as any)[name](data);
+    type Keys = typeof name;
+    (Vomnibar as { [K in Keys]: (data: Res[K]) => void
+      } as { [K in Keys]: <T2 extends Keys>(data: Res[T2]) => void
+      })[name](data as Res[typeof name]);
   },
   ClearPort (this: void): void { VPort.port = null; },
   connect (type: PortType): FgPort {
@@ -946,7 +955,7 @@ VPort = {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
-window.browser && (browser as any).runtime && (window.chrome = browser);
+window.browser && (browser as typeof chrome).runtime && (window.chrome = browser);
 (function(): void {
   if ((document.documentElement as HTMLElement).getAttribute("data-version") != "1.68.1") {
     location.href = "about:blank";

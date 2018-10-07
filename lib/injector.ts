@@ -9,7 +9,7 @@ declare var browser: never;
 var VimiumInjector: VimiumInjector;
 (function() {
   let runtime: typeof chrome.runtime;
-  runtime = typeof browser !== "undefined" && browser && (browser as any).runtime || chrome.runtime;
+  runtime = typeof browser !== "undefined" && browser && (browser as typeof chrome).runtime || chrome.runtime;
   const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i = scriptSrc.indexOf("://") + 3,
   extId = scriptSrc.substring(i, scriptSrc.indexOf("/", i)), onIdle = window.requestIdleCallback;
   let tick = 1;
@@ -100,13 +100,13 @@ function addEventListener(this: EventTarget, type: string, listener: EventListen
   if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
     (this as Element).vimiumHasOnclick = true;
   }
-  const len = arguments.length;
-  return len === 2 ? _listen.call(this, type, listener) : len === 3 ? _listen.call(this, type, listener, arguments[2])
-    : _listen.apply(this, arguments as any);
+  const args = arguments, len = args.length;
+  return len === 2 ? _listen.call(this, type, listener) : len === 3 ? _listen.call(this, type, listener, args[2])
+    : _listen.apply(this, args);
 },
 funcCls = Function.prototype, funcToString = funcCls.toString,
 newToString = funcCls.toString = function toString(this: Function): string {
-  return funcToString.apply(this === newListen ? _listen : this === newToString ? funcToString : this, arguments as any);
+  return funcToString.apply(this === newListen ? _listen : this === newToString ? funcToString : this, arguments);
 };
 newListen.vimiumHooked = true;
 obj.vimiumRemoveHooks = function() {

@@ -17,7 +17,7 @@ interface String {
 }
 
 (function (): void {
-  const symMatch = typeof Symbol === "function" && Symbol.match || null,
+  const symMatch = typeof Symbol === "function" && Symbol.match as symbol | string as "Symbol(Symbol.match)" || null,
   S = String, RE = RegExp, TE = TypeError;
 
   "".startsWith || (
@@ -36,19 +36,22 @@ interface String {
     const err = check(this, searchString), a = this != null && err !== 1 ? S(this) : "";
     if (err === 1 || err === 2) { return !((err === 1 ? this : searchString) + ""); }
     if (err !== null) { throw new TE(err.replace("${func}", "endsWith")); }
-    let b = S(searchString), p: any = arguments[1], l = a.length, u: undefined, c: number;
-    c = (p === u ? l : (c = +p) > 0 ? c | 0 : 0) - b.length;
+    let b = S(searchString), p: primitive | object = arguments[1], l = a.length, u: undefined, c: number;
+    c = (p === u ? l : (c = +<number | string>p) > 0 ? c | 0 : 0) - b.length;
     c > l && (c = l);
     return c >= 0 && a.indexOf(b, c) === c;
   });
 
-  function check(a: any, b: any): null | string | 1 | 2 {
+  function check(a: primitive | object, b: primitive | object): null | string | 1 | 2 {
     /** note: should never call `valueOf` or `toString` on a / b */
     if (a == null) { return "String.prototype.${func} called on null or undefined"; }
     if (!b) { return null; }
     let t: 0 | 1 | 2 = typeof a === "symbol" ? 1 : typeof b === "symbol" ? 2 : 0;
     if (t) { return t; }
-    let f: any, u: undefined, i = symMatch && (f = b[symMatch]) !== u ? f : b instanceof RE;
+    interface PossibleTypeOfB {
+      [key: string]: Function | primitive;
+    }
+    let f: Function | primitive, u: undefined, i = symMatch && (f = (b as PossibleTypeOfB)[symMatch]) !== u ? f : b instanceof RE;
     return i ? "First argument to String.prototype.${func} must not be a regular expression" : null;
   }
 })();

@@ -371,19 +371,23 @@ FindModeHistory = {
     this.list = str ? str.split("\n") : [];
     this.init = null as never;
   },
-  query (incognito: boolean, query?: string, index?: number): string | void {
-    this.init && this.init();
-    const list = incognito ? this.listI || (IncognitoWatcher.watch(),
-                            this.listI = (this.list as string[]).slice(0)) : (this.list as string[]);
+  query: function (incognito: boolean, query?: string, index?: number): string | void {
+    const a = FindModeHistory;
+    a.init && a.init();
+    const list = incognito ? a.listI || (IncognitoWatcher.watch(),
+                            a.listI = (a.list as string[]).slice(0)) : (a.list as string[]);
     if (!query) {
       return list[list.length - (index || 1)] || "";
     }
     if (incognito) {
-      return this.refreshIn(query, list, true);
+      return a.refreshIn(query, list, true);
     }
-    const str = this.refreshIn(query, list);
-    str && Settings.set(this.key, str);
-    if (this.listI) { return this.refreshIn(query, this.listI, true); }
+    const str = a.refreshIn(query, list);
+    str && Settings.set(a.key, str);
+    if (a.listI) { return a.refreshIn(query, a.listI, true); }
+  } as {
+    (incognito: boolean, query?: undefined | "", index?: number): string;
+    (incognito: boolean, query: string, index?: number): void;
   },
   refreshIn: function (this: any, query: string, list: string[], skipResult?: boolean): string | void {
     const ind = list.lastIndexOf(query);
