@@ -1786,17 +1786,17 @@ Are you sure you want to continue?`);
   Connections = {
     _fakeId: GlobalConsts.MaxImpossibleTabId as number,
     framesForOmni: [null as never] as Frames.WritableFrames,
-    OnMessage (this: void, request: Req.baseFg<string> | Req.baseFgWithRes<string>, port: Frames.Port): void {
+    OnMessage <Key extends keyof FgRes> (this: void, request: Req.fg<Key> | Req.fgWithRes<Key>, port: Frames.Port): void {
       let id: number | undefined;
-      if (id = (request as Req.baseFgWithRes<string>)._msgId) {
-        request = (request as Req.baseFgWithRes<string>).request;
+      if (id = (request as Req.fgWithRes<Key>)._msgId) {
+        request = (request as Req.fgWithRes<Key>).request;
         port.postMessage<"findQuery">({
           _msgId: id,
           response: requestHandlers[(request as Req.baseFg<string>).handler as
             "findQuery"](request as Req.fg<"findQuery">, port) as FgRes["findQuery"]
         });
       } else {
-        return requestHandlers[(request as Req.baseFg<string>).handler as "key"](request as Req.fg<"key">, port);
+        return requestHandlers[(request as Req.fg<Key>).handler as keyof FgReq as "key"](request as Req.fg<keyof FgReq> as Req.fg<"key">, port);
       }
     },
     OnConnect (this: void, port: Frames.Port): void {

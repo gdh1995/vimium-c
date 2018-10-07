@@ -314,7 +314,6 @@ declare namespace Req {
   }
 
   interface fgWithRes<K extends keyof FgRes> extends baseFgWithRes<K> {
-    readonly _msgId: number;
     readonly request: fg<K>;
   }
   interface res<K extends keyof FgRes> {

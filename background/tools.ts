@@ -386,8 +386,9 @@ FindModeHistory = {
     str && Settings.set(a.key, str);
     if (a.listI) { return a.refreshIn(query, a.listI, true); }
   } as {
+    (incognito: boolean, query: string, index?: undefined): void;
     (incognito: boolean, query?: undefined | "", index?: number): string;
-    (incognito: boolean, query: string, index?: number): void;
+    (incognito: boolean, query: string | undefined, index: number | undefined): void | string;
   },
   refreshIn: function (this: any, query: string, list: string[], skipResult?: boolean): string | void {
     const ind = list.lastIndexOf(query);
