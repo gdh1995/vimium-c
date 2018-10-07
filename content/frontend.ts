@@ -1127,6 +1127,7 @@ Pagination = {
     VSettings.enabled = isEnabled = false;
     ELs.hook(HookAction.Destroy);
 
+    ELs.listenShadow = false;
     Commands.reset();
     let f = VSettings.uninit, ui = VDom.UI;
     f && f(HookAction.Destroy);
