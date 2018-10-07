@@ -468,13 +468,13 @@ var Vomnibar = {
     };
     if (this.actionType < ReuseType.newFg) { return func(); }
     this.doEnter = func;
-    return this.hide();
+    this.hide();
   },
   OnEnterUp (this: void, event: KeyboardEvent): void {
     if (event.isTrusted === true || (event.isTrusted == null && event instanceof KeyboardEvent) && event.keyCode === VKeyCodes.enter) {
       Vomnibar.lastKey = VKeyCodes.None;
       window.onkeyup = null as never;
-      return Vomnibar.onEnter(event);
+      Vomnibar.onEnter(event);
     }
   },
   removeCur (): void {
@@ -500,7 +500,7 @@ var Vomnibar = {
     while (el && el.parentNode !== this.list) { el = el.parentNode; }
     if (!el) { return; }
     this.lastKey = VKeyCodes.None;
-    return this.onEnter(event, [].indexOf.call(this.list.children, el));
+    this.onEnter(event, [].indexOf.call(this.list.children, el));
   },
   OnMenu (this: void, event: Event): void {
     let el = event.target as Element | null, item: Element | null;
@@ -531,7 +531,7 @@ var Vomnibar = {
     event.stopImmediatePropagation();
     if (event.deltaX || !event.deltaY || Date.now() - this.wheelTime < this.wheelInterval || !Vomnibar.isActive) { return; }
     this.wheelTime = Date.now();
-    return this.goPage(event.deltaY > 0);
+    this.goPage(event.deltaY > 0);
   },
   onInput (event: KeyboardEvent): void {
     const s0 = this.lastQuery, s1 = this.input.value, str = s1.trim();
@@ -561,7 +561,7 @@ var Vomnibar = {
       }
       this.isInputComposing = isComposing;
     }
-    return this.update(-1);
+    this.update(-1);
   },
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
@@ -620,7 +620,7 @@ var Vomnibar = {
     const listen = addEventListener, wndFocus = Vomnibar.OnWndFocus;
     listen("focus", wndFocus);
     listen("blur", wndFocus);
-    return a.blurred();
+    a.blurred();
   } as ((this: void) => void) | null,
   _focusTimer: 0,
   OnWndFocus (this: void, event: Event): void {
@@ -650,7 +650,7 @@ var Vomnibar = {
     (typeof blurred === "boolean" ? !blurred : document.hasFocus()) ? a.remove("transparent") : a.add("transparent");
   },
   init (): void {
-    window.onclick = function(e) { return Vomnibar.onClick(e); };
+    window.onclick = function(e) { Vomnibar.onClick(e); };
     this.onWheel = this.onWheel.bind(this);
     Object.setPrototypeOf(this.ctrlMap, null);
     Object.setPrototypeOf(this.normalMap, null);
@@ -841,7 +841,7 @@ var Vomnibar = {
     }
     window.onfocus = function(e: Event): void {
       window.onfocus = null as never;
-      if (e.isTrusted !== false && VPort.port) { return Vomnibar.doRefresh(17); }
+      if (e.isTrusted !== false && VPort.port) { Vomnibar.doRefresh(17); }
     };
   },
   OnUnload (e: Event): void {
@@ -966,7 +966,7 @@ window.browser && (browser as any).runtime && (window.chrome = browser);
       window.ExtId = new URL(src).hostname;
       script.onload = function(): void {
         script.onload = null as never;
-        return window.onmessage(event);
+        window.onmessage(event);
       };
       (document.head || document.documentElement as HTMLElement).appendChild(script);
     };
@@ -988,7 +988,7 @@ window.browser && (browser as any).runtime && (window.chrome = browser);
     port.onmessage = VPort.OnOwnerMessage;
     window.onunload = Vomnibar.OnUnload;
     if (options) {
-      return Vomnibar.activate(options);
+      Vomnibar.activate(options);
     } else {
       port.postMessage({ name: "uiComponentIsReady" });
     }
@@ -1009,7 +1009,7 @@ window.browser && (browser as any).runtime && (window.chrome = browser);
   window.onmessage = function(event): void {
     if (event.source === window.parent) {
       const data: VomnibarNS.MessageData = event.data;
-      return handler(data[0], event.ports[0], data[1]);
+      handler(data[0], event.ports[0], data[1]);
     }
   };
 VPort.connect(PortType.omnibar);

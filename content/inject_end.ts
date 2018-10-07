@@ -1,6 +1,6 @@
 VDom.allowScripts = false;
 VimiumInjector.checkIfEnabled = (function (this: null, func: any): void {
-  return func({ handler: "checkIfEnabled", url: window.location.href });
+  func({ handler: "checkIfEnabled", url: window.location.href });
 }).bind(null, VimiumInjector.checkIfEnabled);
 VDom.documentReady(function() {
   VimiumInjector &&

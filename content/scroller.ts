@@ -1,7 +1,7 @@
 declare namespace ScrollerNS {
   const enum Consts {
     calibrationBoundary = 150, maxCalibration = 1.6, minCalibration = 0.5,
-    invalidTime = -1.0, minDuration = 100, durationScaleForAmount = 20,
+    invalidTime = 0, minDuration = 100, durationScaleForAmount = 20,
     maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17,
 
     DelayUnitMs = 30, FrameIntervalMs = 16.67, MaxSkippedF = 4,
@@ -15,7 +15,7 @@ declare namespace ScrollerNS {
 var VScroller = {
 animate (e: Element | null, d: ScrollByY, a: number): void | number {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: Element | null = null, //
-  sign = 0, timestamp = ScrollerNS.Consts.invalidTime, totalDelta = 0.0, totalElapsed = 0.0, //
+  sign = 0, timestamp = ScrollerNS.Consts.invalidTime as number, totalDelta = 0.0, totalElapsed = 0.0, //
   last = 0 as BOOL;
   function animate(newTimestamp: number): void {
     let int1 = timestamp, elapsed: number, continuous: boolean;
@@ -65,8 +65,8 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
   };
   return this.animate(e, d, a);
 },
-  maxInterval: ScrollerNS.Consts.DefaultMaxIntervalF,
-  minDelay: ScrollerNS.Consts.DefaultMinDelayMs,
+  maxInterval: ScrollerNS.Consts.DefaultMaxIntervalF as number,
+  minDelay: ScrollerNS.Consts.DefaultMinDelayMs as number,
   performScroll (el: Element | null, di: ScrollByY, amount: number): boolean {
     let before: number;
     if (di) {

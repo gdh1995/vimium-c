@@ -288,7 +288,7 @@ interface VEventMode {
   keydownEvents (this: void, newArr: KeydownCacheArray): boolean;
   keydownEvents (this: void): KeydownCacheArray;
   OnScrolls: {
-    0: (this: any, event: KeyboardEvent) => void | 1;
+    0: (this: any, event: KeyboardEvent) => BOOL | 28;
     1: (this: Window, event: KeyboardEvent) => void;
     2: (this: Window, event: Event) => void;
     3: (wnd: Window, interval?: number) => void;

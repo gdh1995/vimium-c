@@ -232,8 +232,9 @@ interface WheelEventInit extends MouseEventInit {
     deltaMode?: number;
 }
 
+type ELRet = void;
 interface EventListener {
-    (evt: Event): void;
+    (evt: Event): ELRet;
 }
 
 interface ANGLE_instanced_arrays {
@@ -2116,7 +2117,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     insertAdjacentHTML(where: string, html: string): void;
     insertAdjacentText(where: string, text: string): void;
     createShadowRoot?(): ShadowRoot;
-    addEventListener<K extends keyof ElementEventMap>(type: K, listener: (this: Element, ev: ElementEventMap[K]) => void, useCapture?: boolean): void;
+    addEventListener<K extends keyof ElementEventMap>(type: K, listener: (this: Element, ev: ElementEventMap[K]) => ELRet, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
@@ -2982,10 +2983,10 @@ interface HTMLElement extends Element {
     focus(): void;
     setActive(): void;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K
-        , listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => void
+        , listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => ELRet
         , useCapture?: EventListenerOptions): void;
     removeEventListener<K extends keyof HTMLElementEventMap>(type: K
-        , listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => void
+        , listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => ELRet
         , useCapture?: EventListenerOptions): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject
         , useCapture?: EventListenerOptions): void;
@@ -3757,13 +3758,13 @@ interface HTMLInputElement extends HTMLElement {
       */
     stepUp(n?: number): void;
     addEventListener<K extends CompositionEvent["type"]>(type: K
-        , listener: (this: HTMLInputElement, ev: CompositionEvent & { type: K }) => void
+        , listener: (this: HTMLInputElement, ev: CompositionEvent & { type: K }) => ELRet
         , useCapture?: EventListenerOptions): void;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K
-        , listener: (this: HTMLInputElement, ev: HTMLElementEventMap[K]) => void
+        , listener: (this: HTMLInputElement, ev: HTMLElementEventMap[K]) => ELRet
         , useCapture?: EventListenerOptions): void;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K
-        , listener: ((this: HTMLInputElement, ev: HTMLElementEventMap[K]) => void) | null
+        , listener: ((this: HTMLInputElement, ev: HTMLElementEventMap[K]) => ELRet) | null
         , useCapture?: EventListenerOptions): void;
 }
 
@@ -9371,7 +9372,7 @@ declare function webkitRequestAnimationFrame(callback: FrameRequestCallback): nu
 // declare function toString(): string;
 declare function dispatchEvent(evt: Event): boolean;
 declare function removeEventListener<K extends keyof WindowEventMap>(type: K,
-  listener: (this: Window, ev: WindowEventMap[K]) => void,
+  listener: (this: Window, ev: WindowEventMap[K]) => ELRet,
   useCapture?: EventListenerOptions
   ): void;
 declare function removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -9392,7 +9393,7 @@ declare function clearTimeout(handle: number): void;
 declare function atob(encodedString: string): string;
 declare function btoa(rawString: string): string;
 declare function addEventListener<K extends keyof WindowEventMap>(type: K,
-  listener: (this: Window, ev: WindowEventMap[K]) => void,
+  listener: (this: Window, ev: WindowEventMap[K]) => ELRet,
   useCapture?: EventListenerOptions
   ): void;
 declare function addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;

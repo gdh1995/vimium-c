@@ -152,7 +152,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   },
   findAndFocus (query: string, options: Partial<FindOptions> & SafeObject): void {
     if (!query) {
-      return VHUD.showForDuration("No old queries");
+      return VHUD.showForDuration("No old queries to find.");
     }
     if (query !== this.query) {
       this.updateQuery(query);
@@ -246,7 +246,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     VUtils.prevent(event);
     if (!i) { return; }
     VEventMode.suppress(n);
-    return this.deactivate(i as FindNS.Action);
+    this.deactivate(i as FindNS.Action);
   },
   deactivate(i: FindNS.Action): void {
     let sin = this.styleIn, noStyle = !sin || !sin.parentNode, el = this.clean(i), el2: Element | null;
@@ -326,7 +326,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       this.lock = null;
       removeEventListener("click", this.exit, true);
       VUtils.remove(this);
-      return VEventMode.setupSuppress();
+      VEventMode.setupSuppress();
     }
   },
   onInput (e?: Event): void {
@@ -456,7 +456,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       return (window.find as any).apply(window, arguments);
     } catch (e) { return false; }
   } as (...args: any[]) => boolean,
-  RestoreHighlight (this: void): void { return VFindMode.toggleStyle(0); },
+  RestoreHighlight (this: void): void { VFindMode.toggleStyle(0); },
   HookSel (): void {
     document.addEventListener("selectionchange", VFindMode && VFindMode.RestoreHighlight, true);
   },

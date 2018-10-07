@@ -145,7 +145,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         event.preventDefault();
         event.stopImmediatePropagation();
       } else if (onKeyup2) {
-        return onKeyup2(event);
+        onKeyup2(event);
       }
     },
     onFocus (this: void, event: Event | FocusEvent): void {
@@ -287,7 +287,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       a.ExitGrab(); VEventMode.setupSuppress();
       VHints.isActive && VHints.clean(); VVisualMode.deactivate();
       VFindMode.init || VFindMode.toggleStyle(0);
-      return ELs.OnWndBlur();
+      ELs.OnWndBlur();
     },
 
     toggleSwitchTemp (_0: number, options: FgOptions): void {
@@ -597,7 +597,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       if (this.global) {
         this.lock = null; this.global = null;
-        return HUD.hide();
+        HUD.hide();
       }
     },
     onExitSuppress: null as ((this: void) => void) | null,
@@ -953,7 +953,7 @@ Pagination = {
       (node1 as HTMLAnchorElement).href = optionUrl;
       node1.onclick = function(event) {
         vPort.post({ handler: "focusOrLaunch", url: optionUrl });
-        return hide(event);
+        hide(event);
       };
     } else {
       node1.remove();
@@ -1081,22 +1081,23 @@ Pagination = {
         return VScroller.scrollBy(1, 0.5 - c, "viewSize");
       }
     },
-    OnScrolls: [function (event): void | 1 {
+    OnScrolls: [function (event): BOOL | 28 {
       if (event.repeat) {
         VUtils.prevent(event);
-        return (VScroller.keyIsDown = VScroller.maxInterval) as 1;
+        return (VScroller.keyIsDown = VScroller.maxInterval) as 1 | 28;
       } else if (this !== VEventMode.OnScrolls) {
-        return VEventMode.OnScrolls[3](this);
+        VEventMode.OnScrolls[3](this);
       } else {
         VScroller.keyIsDown = 0;
       }
+      return 0;
     }, function (event): void {
       if (event.isTrusted !== false) {
         VUtils.prevent(event);
-        return VEventMode.OnScrolls[3](this);
+        VEventMode.OnScrolls[3](this);
       }
     }, function (event): void {
-      if (event.target === this && event.isTrusted !== false) { return VEventMode.OnScrolls[3](this); }
+      if (event.target === this && event.isTrusted !== false) { VEventMode.OnScrolls[3](this); }
     }, function (this: VEventMode["OnScrolls"], wnd, interval): void {
       const f = interval ? addEventListener : removeEventListener;
       VScroller.keyIsDown = interval || 0;
