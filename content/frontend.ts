@@ -1083,15 +1083,7 @@ Pagination = {
       }
     },
     OnScrolls_: [function (event): BOOL | 28 {
-      if (event.repeat) {
-        VUtils.prevent_(event);
-        return (VScroller.keyIsDown_ = VScroller.maxInterval_) as 1 | 28;
-      } else if (this !== VEventMode.OnScrolls_) {
-        VEventMode.OnScrolls_[1](this);
-      } else {
-        VScroller.keyIsDown_ = 0;
-      }
-      return 0;
+      return VScroller.keyIsDown_ = event.repeat ? (VUtils.prevent_(event), VScroller.maxInterval_ as 1 | 28) : 0;
     }, function (this: VEventMode["OnScrolls_"], wnd, interval): void {
       const f = interval ? addEventListener : removeEventListener,
       listener = this[2];

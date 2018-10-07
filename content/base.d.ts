@@ -287,7 +287,7 @@ interface VEventMode {
     (this: void): KeydownCacheArray;
   };
   OnScrolls_: {
-    0: (this: {}, event: KeyboardEvent) => BOOL | 28;
+    0: (this: void, event: KeyboardEvent) => BOOL | 28;
     1: (wnd: Window, interval?: number) => void;
     2: (this: Window, event: KeyboardEvent & {type: "keyup"} | Event & {type: "blur"}) => void;
   } 
