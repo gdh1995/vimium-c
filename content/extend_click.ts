@@ -5,7 +5,6 @@
     , box: EventTarget | null | false = null
     , secret = "" + ((Math.random() * 1e6 + 1) | 0);
   if (!(script instanceof HTMLScriptElement)) { return; }
-  script.type = "text/javascript";
 
   function installer(event: CustomEvent): void {
     const t = event.target;
@@ -81,7 +80,6 @@ hooks = {
   }
 }
 ;
-toRegister.push = [].push, toRegister.splice = [].splice;
 
 let handler = function(this: void): void {
   rel("DOMContentLoaded", handler, true);
@@ -100,7 +98,6 @@ let handler = function(this: void): void {
     timer = toRegister.length > 0 ? next() : 0;
   }
 },
-box: HTMLDivElement, timer = setTimeout(handler, 1000),
 next = setTimeout.bind(null as never, function(): void {
   const len = toRegister.length, start = len > 9 ? len - 10 : 0, delta = len - start;
   timer = start > 0 ? next() : 0;
@@ -108,7 +105,9 @@ next = setTimeout.bind(null as never, function(): void {
     // skip some nodes if only crashing, so that there would be less crash logs in console
     for (const i of toRegister.splice(start, delta)) { reg(i); }
   }
-}, 1);
+}, 1)
+, box: HTMLDivElement, timer = setTimeout(handler, 1000)
+;
 function reg(this: void, element: Element): void {
   const event = new CE("VimiumOnclick");
   if (contains(element)) {
@@ -142,35 +141,45 @@ function reg(this: void, element: Element): void {
 function destroy(e?: CustomEvent): void {
   if (e && e.detail !== "" + sec) { return; }
   toRegister.length = 0;
-  next = toRegister.push = function() { return 1; };
+  toRegister.push = next = function() { return 1; };
   box = null as never;
   ct(timer);
 }
+toRegister.push = toRegister.push, toRegister.splice = toRegister.splice;
 // only the below can affect outsides
-(document.currentScript as HTMLScriptElement).removeAttribute("data-vimium");
+(document.currentScript as HTMLScriptElement).remove();
 ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
   }).toString() + ')();'
     , appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
-    , appVer = appInfo && +appInfo[1] || 0;
+    , appVer = appInfo && +appInfo[1] || 0
+    , safeRAF = VDom.allowRAF = appVer !== BrowserVer.NoRAForRICOnSandboxedPage
+    ;
   // the block below is also correct on Edge
   if (appVer >= BrowserVer.MinEnsureMethodFunction && appVer) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
   }
-  script.textContent = injected;
+  /**
+   * According to `V8CodeCache::ProduceCache` and `V8CodeCache::GetCompileOptions`
+   *     in third_party/blink/renderer/bindings/core/v8/v8_code_cache.cc,
+   *   and ScriptController::ExecuteScriptAndReturnValue
+   *     in third_party/blink/renderer/bindings/core/v8/script_controller.cc,
+   * inlined script are not cached for `v8::ScriptCompiler::kNoCacheBecauseInlineScript`.
+   * But here it still uses the same script, just for my personal preference.
+   */
+  script.type = "text/javascript";
   script.setAttribute("data-vimium", secret);
+  script.textContent = injected;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
-  script.remove();
   VDom.documentReady(function() { box === null && setTimeout(function() { box || destroy(); }, 17); });
-  const safeRAF = appVer !== BrowserVer.NoRAForRICOnSandboxedPage;
-  VDom.allowRAF = safeRAF;
-  if (!script.hasAttribute("data-vimium")) {
+  if (!script.parentNode) { // It succeeded to hook.
     safeRAF || requestAnimationFrame(() => { VDom.allowRAF = true; });
     return;
-  } // It succeeded to hook.
+  }
   // else: sandboxed or JS-disabled
+  script.remove();
   const breakTotally = appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && appVer;
   console.info((breakTotally ? "Vimium C can" : "Some functions of Vimium C may")
       + " not work because %o is sandboxed.",
