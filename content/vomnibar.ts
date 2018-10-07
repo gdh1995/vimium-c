@@ -93,7 +93,7 @@ var Vomnibar = {
       url = url.split("#", 1)[0] + window.name;
     }
     const trail = options.trailing_slash;
-    return VPort.send({
+    return VPort.send_({
       handler: "parseSearchUrl",
       trailing_slash: trail != null ? !!trail : null,
       upper, url
@@ -190,7 +190,7 @@ var Vomnibar = {
     if (CSS) {
       UI.css("");
     }
-    UI.addElement(this.box = el, AdjustType.AdjustButNotShow, VHUD.box);
+    UI.addElement(this.box = el, AdjustType.AdjustButNotShow, VHUD.box_);
     if (CSS) {
       UI.css(CSS);
     }
@@ -232,13 +232,13 @@ var Vomnibar = {
         this.onShown();
       }
       break;
-    case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).key);
+    case "focus": window.focus(); return VEventMode.suppress_((data as Req["focus"]).key);
     case "hide": return this.hide(1);
-    case "test": return VEventMode.OnWndFocus();
-    case "scroll": return VEventMode.scroll(data as Req["scroll"]);
+    case "test": return VEventMode.OnWndFocus_();
+    case "scroll": return VEventMode.scroll_(data as Req["scroll"]);
     case "scrollGoing": VScroller.keyIsDown = VScroller.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
-    case "evalJS": VPort.evalIfOK((data as Req["evalJS"]).url); break;
+    case "evalJS": VPort.evalIfOK_((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
     case "unload": return Vomnibar ? this.reset(data.name === "broken") : undefined;
     case "hud": VHUD.showForDuration((data as Req["hud"]).text); return;
@@ -265,7 +265,7 @@ var Vomnibar = {
     return VUtils.push(this.onKeydown, this);
   },
   onKeydown (event: KeyboardEvent): HandlerResult {
-    if (VEventMode.lock()) { return HandlerResult.Nothing; }
+    if (VEventMode.lock_()) { return HandlerResult.Nothing; }
     if (VKeyboard.isEscape(event)) { this.hide(); return HandlerResult.Prevent; }
     const key = event.keyCode - VKeyCodes.f1;
     if (key === 0 || key === 1) {

@@ -15,7 +15,7 @@ if ((window.browser && (browser as typeof chrome).runtime || chrome.runtime).onM
     , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9");
 }
 
-VSettings.uninit = function(type: number): void {
+VSettings.uninit_ = function(type: number): void {
   let injector = VimiumInjector;
   if (type >= HookAction.Destroy && injector) {
     removeEventListener("hashchange", injector.checkIfEnabled);
@@ -24,7 +24,7 @@ VSettings.uninit = function(type: number): void {
   }
 };
 
-VimiumInjector.destroy = VSettings.destroy;
+VimiumInjector.destroy = VSettings.destroy_;
 
 [VDom, VHints, VKeyboard, Vomnibar, VScroller, VMarks,
   VFindMode, VSettings, VHUD, VVisualMode,

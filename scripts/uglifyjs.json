@@ -44,7 +44,7 @@
   },
   "mangle": {
     "properties": {
-      "regex": "/^_/",
+      "regex": "/^_|_$/",
       "reserved": [
         "_msgId",
         "_delayed", "__k", "_onCacheUpdated"

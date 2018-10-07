@@ -8,7 +8,7 @@ var VMarks = {
     this.prefix = options.prefix !== false;
     this.swap = options.swap === true;
     VUtils.push(this.onKeydown, this);
-    return VHUD.show(isGo ? "Go to mark\u2026" : "Create mark\u2026");
+    return VHUD.show_(isGo ? "Go to mark\u2026" : "Create mark\u2026");
   },
   onKeydown (event: HandlerNS.Event): HandlerResult {
     const keyCode = event.keyCode, cont = !VKeyboard.isEscape(event);
@@ -18,7 +18,7 @@ var VMarks = {
       return 1;
     }
     VUtils.remove(this);
-    cont && keyCode > VKeyCodes.space ? this.onKeyChar(event, keyChar as string) : VHUD.hide();
+    cont && keyCode > VKeyCodes.space ? this.onKeyChar(event, keyChar as string) : VHUD.hide_();
     this.prefix = this.swap = true;
     this.onKeyChar = null as never;
     return 2;
@@ -39,7 +39,7 @@ var VMarks = {
         return this.createMark(keyChar);
       } else {
         VPort.post({handler: "marks", action: "create", markName: keyChar});
-        return VHUD.hide();
+        return VHUD.hide_();
       }
     } else {
       return this.createMark(keyChar, "local");
@@ -60,7 +60,7 @@ var VMarks = {
       markName: keyChar
     };
     if (event.shiftKey !== this.swap) {
-      VHUD.hide();
+      VHUD.hide_();
     } else {
       try {
         let pos = null, key = this.getLocationKey(keyChar), markString = localStorage.getItem(key);

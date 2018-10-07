@@ -267,27 +267,29 @@ interface VDomMouse {
 interface VPort {
   post<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
   post<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
-  send<K extends keyof FgRes>(this: void, req: FgReq[K] & Req.baseFg<K>
+  send_<K extends keyof FgRes>(this: void, req: FgReq[K] & Req.baseFg<K>
     , callback: (this: void, res: FgRes[K]) => void): void;
-  evalIfOK (url: string): boolean;
+  evalIfOK_ (url: string): boolean;
 }
 interface ComplicatedVPort extends VPort {
   post<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
 interface VEventMode {
-  lock(this: void): Element | null;
-  suppress(keyCode?: VKeyCodes): void;
-  OnWndFocus (this: void): void;
+  lock_(this: void): Element | null;
+  suppress_(keyCode?: VKeyCodes): void;
+  OnWndFocus_ (this: void): void;
   focusAndListen (this: void, callback?: (() => void) | null, timedout?: 0): void;
   focus (this: void, request: BgReq["focusFrame"]): void;
-  onWndBlur (this: void, onWndBlur: ((this: void) => void) | null): void;
-  setupSuppress (this: void, onExit?: (this: void) => void): void;
-  mapKey (this: void, key: string): string;
-  scroll (this: void, event?: Partial<EventControlKeys & { keyCode: VKeyCodes }>, wnd?: Window): void;
+  onWndBlur_ (this: void, onWndBlur: ((this: void) => void) | null): void;
+  setupSuppress_ (this: void, onExit?: (this: void) => void): void;
+  mapKey_ (this: void, key: string): string;
+  scroll_ (this: void, event?: Partial<EventControlKeys & { keyCode: VKeyCodes }>, wnd?: Window): void;
   /** return has_error */
-  keydownEvents (this: void, newArr: KeydownCacheArray): boolean;
-  keydownEvents (this: void): KeydownCacheArray;
-  OnScrolls: {
+  keydownEvents: {
+    (this: void, newArr: KeydownCacheArray): boolean;
+    (this: void): KeydownCacheArray;
+  };
+  OnScrolls_: {
     0: (this: any, event: KeyboardEvent) => BOOL | 28;
     1: (this: Window, event: KeyboardEvent) => void;
     2: (this: Window, event: Event) => void;
@@ -295,21 +297,21 @@ interface VEventMode {
   } 
 }
 interface VHUD {
-  box: HTMLDivElement | null;
-  text: string;
-  opacity: 0 | 0.25 | 0.5 | 0.75 | 1;
-  show (text: string, embed?: boolean): void;
+  box_: HTMLDivElement | null;
+  text_: string;
+  opacity_: 0 | 0.25 | 0.5 | 0.75 | 1;
+  show_ (text: string, embed?: boolean): void;
   /** duration is default to 1500 */
   showForDuration (text: string, duration?: number): void;
   showCopied (text: string, type: string, virtual: true): string;
   showCopied (text: string, type?: string): void;
-  hide (this: void, info?: TimerType): void;
+  hide_ (this: void, info?: TimerType): void;
 }
 interface VSettings {
-  enabled: boolean;
+  enabled_: boolean;
   cache: SettingsNS.FrontendSettingCache;
-  uninit: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => any) | null;
-  destroy (this: void, silent?: boolean): void;
+  uninit_: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => any) | null;
+  destroy_ (this: void, silent?: boolean): void;
 }
 declare var VimiumInjector: VimiumInjector, VSettings: VSettings;
 declare var browser: never;

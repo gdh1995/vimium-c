@@ -46,7 +46,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       this.coords = [window.scrollX, window.scrollY];
     }
     this.box && ui.adjust();
-    VHUD.hide(TimerType.noTimer);
+    VHUD.hide_(TimerType.noTimer);
     if (this.isActive) {
       return this.setFirstQuery(query);
     }
@@ -64,7 +64,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     this.query || (this.query0 = query);
     this.init && this.init(AdjustType.NotAdjust);
     ui.toggleSelectStyle(true);
-    ui.addElement(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box);
+    ui.addElement(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box_);
     first && ui.adjust();
     this.isActive = true;
   },
@@ -127,7 +127,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   _actived: false,
   OnFocus (this: Window, event: Event): void {
     if (VFindMode._actived && event.target === this) {
-      VEventMode.OnWndFocus();
+      VEventMode.OnWndFocus_();
     }
     return VUtils.Stop(event);
   },
@@ -162,7 +162,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       }
     }
     this.init && this.init(AdjustType.MustAdjust);
-    const style = this.isActive || VHUD.opacity !== 1 ? null : (VHUD.box as HTMLDivElement).style;
+    const style = this.isActive || VHUD.opacity_ !== 1 ? null : (VHUD.box_ as HTMLDivElement).style;
     style && (style.visibility = "hidden");
     VDom.UI.toggleSelectStyle(true);
     this.execute(null, options);
@@ -215,7 +215,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   onKeydown (event: KeyboardEvent): void {
     VUtils.Stop(event);
     if (event.isTrusted === false) { return; }
-    if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
+    if (VScroller.keyIsDown && VEventMode.OnScrolls_[0](event)) { return; }
     const n = event.keyCode;
     type Result = FindNS.Action;
     let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
@@ -228,7 +228,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       else if (i = VKeyboard.getKeyStat(event)) {
         if (i & ~KeyStat.PrimaryModifier) { return; }
         else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
-          VEventMode.scroll(event, this.box.contentWindow);
+          VEventMode.scroll_(event, this.box.contentWindow);
         }
         else if (n === VKeyCodes.J || n === VKeyCodes.K) {
           this.execute(null, { count: (VKeyCodes.K - n) || -1 });
@@ -237,7 +237,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
         i = FindNS.Action.DoNothing;
       }
       else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
-      else if (n === VKeyCodes.f2) { window.focus(); VEventMode.suppress(n); }
+      else if (n === VKeyCodes.f2) { window.focus(); VEventMode.suppress_(n); }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery(n !== VKeyCodes.up); }
       else { return; }
     } else if (i === FindNS.Action.PassDirectly) {
@@ -245,7 +245,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     }
     VUtils.prevent(event);
     if (!i) { return; }
-    VEventMode.suppress(n);
+    VEventMode.suppress_(n);
     this.deactivate(i as FindNS.Action);
   },
   deactivate(i: FindNS.Action): void {
@@ -257,7 +257,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     if (VVisualMode.mode) { return VVisualMode.activate(1, VUtils.safer({from_find: true})); }
     VDom.UI.toggleSelectStyle(false);
     if (i < FindNS.Action.MinComplicatedExit || !this.hasResults) { return; }
-    if (!el || el !== VEventMode.lock()) {
+    if (!el || el !== VEventMode.lock_()) {
       el = window.getSelection().anchorNode as Element | null;
       if (el && !this.focusFoundLink(el) && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)) {
         if (VDom.getEditableType(el2) >= EditableType.Editbox && el.contains(el2)) {
@@ -282,7 +282,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     if (ind < 0) { return; }
     this.historyIndex = ind;
     if (!back) {
-      return VPort.send({ handler: "findQuery", index: ind }, this.SetQuery);
+      return VPort.send_({ handler: "findQuery", index: ind }, this.SetQuery);
     }
     const wnd = this.box.contentWindow;
     wnd.document.execCommand("undo", false);
@@ -302,13 +302,13 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   postMode: {
     lock: null as Element | null,
     activate: function() {
-      const el = VEventMode.lock(), Exit = this.exit as (this: void, a?: boolean | Event) => void;
+      const el = VEventMode.lock_(), Exit = this.exit as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
       VUtils.push(this.onKeydown, this);
       if (el === this.lock) { return; }
       if (!this.lock) {
         addEventListener("click", Exit, true);
-        VEventMode.setupSuppress(Exit);
+        VEventMode.setupSuppress_(Exit);
       }
       Exit(true);
       this.lock = el;
@@ -326,7 +326,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       this.lock = null;
       removeEventListener("click", this.exit, true);
       VUtils.remove(this);
-      VEventMode.setupSuppress();
+      VEventMode.setupSuppress_();
     }
   },
   onInput (e?: Event): void {
@@ -448,7 +448,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       }
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel, 0);
-    (el = VEventMode.lock()) && !VDom.isSelected(document.activeElement as Element) && el.blur && el.blur();
+    (el = VEventMode.lock_()) && !VDom.isSelected(document.activeElement as Element) && el.blur && el.blur();
     this.hasResults = found;
   },
   find: function (): boolean {

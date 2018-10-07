@@ -40,7 +40,7 @@ var VVisualMode = {
       : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
     if (mode !== VisualModeNS.Mode.Caret) {
       this.movement.alterMethod = "extend";
-      const lock = VEventMode.lock();
+      const lock = VEventMode.lock_();
       if (!lock && (type === "Caret" || type === "Range")) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
         VDom.getZoom(1);
@@ -57,7 +57,7 @@ var VVisualMode = {
       }
     }
     this.hudTimer && clearTimeout(this.hudTimer);
-    VHUD.show(this.hud = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode", !!options.from_find);
+    VHUD.show_(this.hud = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode", !!options.from_find);
     if (this.mode !== mode) {
       this.mode = mode;
       this.prompt("No usable selection, entering caret mode\u2026", 1000);
@@ -80,13 +80,13 @@ var VVisualMode = {
     if (!this.retainSelection) {
       this.movement.collapseSelectionTo(isEsc && this.mode !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
-    const el = VEventMode.lock();
+    const el = VEventMode.lock_();
     el && VDom.getEditableType(el) && el.blur && el.blur();
     VDom.UI.toggleSelectStyle(false);
     this.mode = VisualModeNS.Mode.NotActive; this.hud = "";
     this.retainSelection = false;
     this.selection = this.movement.selection = null as never;
-    return VHUD.hide();
+    return VHUD.hide_();
   },
   onKeydown (event: KeyboardEvent): HandlerResult {
     let i: VKeyCodes | KeyStat = event.keyCode, count = 0;
@@ -104,7 +104,7 @@ var VVisualMode = {
     const ch = VKeyboard.getKeyChar(event);
     if (!ch) { this.resetKeys(); return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress; }
     let key = VKeyboard.getKey(event, ch), obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
-    key = VEventMode.mapKey(key);
+    key = VEventMode.mapKey_(key);
     if (obj = this.currentSeconds) {
       obj = obj[key];
       count = this.currentCount;
@@ -173,17 +173,17 @@ var VVisualMode = {
   prompt (text: string, duration: number): void {
     this.hudTimer && clearTimeout(this.hudTimer);
     this.hudTimer = setTimeout(this.ResetHUD, duration);
-    return VHUD.show(text);
+    return VHUD.show_(text);
   },
   ResetHUD (i?: TimerType.fake | undefined): void {
     const _this = VVisualMode;
     if (!_this || i) { return; }
     _this.hudTimer = 0;
-    if (_this.hud) { return VHUD.show(_this.hud); }
+    if (_this.hud) { return VHUD.show_(_this.hud); }
   },
   find (count: number): void {
     if (!VFindMode.query) {
-      VPort.send({ handler: "findQuery" }, function(query): void {
+      VPort.send_({ handler: "findQuery" }, function(query): void {
         if (query) {
           VFindMode.updateQuery(query);
           return VVisualMode.find(count);
@@ -287,7 +287,7 @@ movement: {
     return isMove ? false : this.hashSelection() === before;
   },
   reverseSelection (): void {
-    const el = VEventMode.lock(), direction = this.getDirection(true);
+    const el = VEventMode.lock_(), direction = this.getDirection(true);
     if (el && !(el instanceof HTMLFormElement)
         && (VDom.editableTypes[el.nodeName.toLowerCase()] as EditableType) > EditableType.Embed) {
       let length = this.selection.toString().length;

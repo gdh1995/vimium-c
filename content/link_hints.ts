@@ -131,7 +131,7 @@ var VHints = {
 
     this.isActive = true;
     VUtils.push(this.onKeydown, this);
-    return VEventMode.onWndBlur(this.ResetMode);
+    return VEventMode.onWndBlur_(this.ResetMode);
   },
   setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
@@ -167,7 +167,7 @@ var VHints = {
       this.pTimer = setTimeout(this.SetHUDLater, 1000);
       return;
     }
-    return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[this.mode] as string, true);
+    return VHUD.show_((this.modeOpt as HintsNS.ModeOpt)[this.mode] as string, true);
   },
   SetHUDLater (this: void): void {
     const a = VHints;
@@ -658,7 +658,7 @@ var VHints = {
         (i & (i - 1)) || (this.lastMode = mode);
       }
     } else if (i <= VKeyCodes.down && i >= VKeyCodes.pageup) {
-      VEventMode.scroll(event);
+      VEventMode.scroll_(event);
       this.ResetMode();
     } else if (i === VKeyCodes.space) {
       this.zIndexes === false || this.rotateHints(event.shiftKey);
@@ -718,7 +718,7 @@ var VHints = {
     let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
     this.resetHints();
     const str = (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string;
-    VHUD.text = str; // in case pTimer > 0
+    VHUD.text_ = str; // in case pTimer > 0
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getVRect, so that VDom.zooms are updated, and prepareCrop is called
@@ -734,7 +734,7 @@ var VHints = {
       clickEl = null;
       VHUD.showForDuration("The link has been removed from page", 2000);
     }
-    this.pTimer = -(VHUD.text !== str);
+    this.pTimer = -(VHUD.text_ !== str);
     if (!(this.mode & HintMode.queue)) {
       this.setupCheck(clickEl, null);
       return this.deactivate(true);
@@ -750,7 +750,7 @@ var VHints = {
     }, 18);
   },
   reinit (lastEl?: HintsNS.LinkEl | null, rect?: VRect | null): void {
-    if (!VSettings.enabled) { return this.clean(); }
+    if (!VSettings.enabled_) { return this.clean(); }
     this.isActive = false;
     this.keyStatus.tab = 0;
     this.zIndexes = null;
@@ -788,12 +788,12 @@ var VHints = {
     alpha.hintKeystroke = alpha.chars = "";
     this.isActive = this.noHUD = this.tooHigh = ks.known = false;
     VUtils.remove(this);
-    VEventMode.onWndBlur(null);
+    VEventMode.onWndBlur_(null);
     if (this.box) {
       this.box.remove();
       this.box = null;
     }
-    keepHUD || VHUD.hide();
+    keepHUD || VHUD.hide_();
   },
   deactivate (onlySuppressRepeated: boolean): void {
     this.clean(this.pTimer < 0);
@@ -995,7 +995,7 @@ highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   options.mode = this.mode;
   el.focus();
   if (err) {
-    VPort.send({ handler: "execInChild", url: el.src, CSS: "1",
+    VPort.send_({ handler: "execInChild", url: el.src, CSS: "1",
       command: "Hints.activateAndFocus", count, options
     }, function(res): void {
       if (!res) {
@@ -1103,7 +1103,7 @@ OPEN_INCOGNITO_LINK: {
   202: "Open multi incognito tabs",
   activator (link): void {
     const url = this.getUrlData(link);
-    if (!VPort.evalIfOK(url)) {
+    if (!VPort.evalIfOK_(url)) {
       return this.openUrl(url, true);
     }
   }

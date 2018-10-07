@@ -35,9 +35,9 @@
       setTimeout(function(): void { r("VimiumHook", installer, true); }, 1100);
     }
     box = false;
-    VSettings && (VSettings.uninit = null);
+    VSettings && (VSettings.uninit_ = null);
   }
-  VSettings.uninit = destroy;
+  VSettings.uninit_ = destroy;
 
   let injected: Function | string = '"use strict";(' + (function VC(this: void): void {
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
@@ -185,7 +185,7 @@ _listen("DOMContentLoaded", handler, true);
       + " not work because %o is sandboxed.",
     window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
   if (breakTotally) {
-    VSettings.destroy(true);
+    VSettings.destroy_(true);
     return;
   }
   VDom.allowScripts = false;
