@@ -57,7 +57,7 @@ var VDom = {
    */
   prepareCrop (): number {
     let iw: number, ih: number, ihs: number;
-    this.prepareCrop = function(): number {
+    this.prepareCrop = (function(this: typeof VDom): number {
       let fz = this.dbZoom, el = this.scrollingEl(), i: number, j: number;
       if (el) {
         i = el.clientWidth, j = el.clientHeight;
@@ -76,8 +76,8 @@ var VDom = {
       iw = (i / fz) | 0, ih = (j / fz) | 0;
       ihs = ((j - 8) / fz) | 0;
       return iw;
-    };
-    this.cropRectToVisible = function(left, top, right, bottom): VRect | null {
+    });
+    this.cropRectToVisible = (function(left, top, right, bottom): VRect | null {
       if (top > ihs || bottom < 3) {
         return null;
       }
@@ -88,7 +88,7 @@ var VDom = {
         bottom < ih ? (bottom | 0) : ih  //
       ];
       return cr[2] - cr[0] >= 3 && cr[3] - cr[1] >= 3 ? cr : null;
-    };
+    });
     return this.prepareCrop();
   },
   getVisibleClientRect (element: Element, el_style?: CSSStyleDeclaration): VRect | null {

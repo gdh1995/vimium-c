@@ -49,7 +49,7 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     }
     requestAnimationFrame(animate);
   };
-  this.animate = function(this: typeof VScroller, newEl, newDi, newAmount): void | number {
+  this.animate = (function(this: typeof VScroller, newEl, newDi, newAmount): void | number {
     amount = Math.abs(newAmount); calibration = 1.0; di = newDi;
     duration = Math.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * Math.log(amount));
     element = newEl;
@@ -62,7 +62,7 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     if (last) { return; }
     last = 1;
     return requestAnimationFrame(animate);
-  };
+  });
   return this.animate(e, d, a);
 },
   maxInterval: ScrollerNS.Consts.DefaultMaxIntervalF as number,
@@ -105,12 +105,12 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
   scale: 1,
   Properties: ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"] as
     ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"],
-  ScBy (this: void, count: number, options: FgOptions): void {
-    if (VHints.tryNestedFrame("VScroller.ScBy", count, options)) { return; }
-    return VScroller.scrollBy(options.axis === "x" ? 0 : 1, (+options.dir || 1) * count, options.view);
+  ScBy (this: void, count: number, options: CmdOptions["scBy"] & SafeObject): void {
+    if (VHints.tryNestedFrame("VScroller", "ScBy", count, options)) { return; }
+    return VScroller.scrollBy(options.axis === "x" ? 0 : 1, (+<number>options.dir || 1) * count, options.view);
   },
   /** amount: can not be 0 */
-  scrollBy (di: ScrollByY, amount: number, factor: 0 | 1 | "max" | "viewSize"): void {
+  scrollBy (di: ScrollByY, amount: number, factor: CmdOptions["scBy"]["view"]): void {
     VMarks.setPreviousPosition();
     this.prepareTop();
     const element = this.findScrollable(di, amount);
@@ -120,8 +120,8 @@ animate (e: Element | null, d: ScrollByY, a: number): void | number {
     this.scroll(element, di, amount);
     this.top = null;
   },
-  ScTo (this: void, count: number, options: FgOptions): void {
-    if (VHints.tryNestedFrame("VScroller.ScTo", count, options)) { return; }
+  ScTo (this: void, count: number, options: CmdOptions["scTo"] & SafeObject): void {
+    if (VHints.tryNestedFrame("VScroller", "ScTo", count, options)) { return; }
     let fromMax: BOOL = options.dest === "max" ? 1 : 0;
     if (count < 0) { fromMax = (1 - fromMax as BOOL); count = -count; }
     return VScroller.scrollTo(options.axis === "x" ? 0 : 1, count - 1, fromMax);

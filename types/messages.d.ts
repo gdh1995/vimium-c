@@ -106,8 +106,43 @@ interface BgVomnibarReq {
 interface FullBgReq extends BgReq, BgVomnibarReq {
 }
 
+interface FgOptions extends SafeDict<any> {}
+type SelectActions = "" | "all" | "all-input" | "start" | "end";
+
 interface CmdOptions {
-  "Vomnibar.activate": {
+  linkHints: FgOptions;
+  focusAndHint: FgOptions;
+  unhoverLast: FgOptions;
+  marks: {
+    mode?: "goto" | "goTo" | "create";
+    prefix?: true | false;
+    swap?: false | true;
+  };
+  scBy: {
+    axis?: "y" | "x";
+    dir?: 1 | -1;
+    view?: 0 | 1 | "max" | "viewSize";
+  };
+  scTo: {
+    dest?: "" | "max";
+    axis?: "y" | "x";
+  };
+  reset: FgOptions;
+  toggleSwitchTemp: {
+    key: string;
+    value: any;
+  };
+  passNextKey: {
+    normal?: false | true;
+  };
+  switchFocus: {
+    act?: "" | "backspace";
+    action?: "" | "backspace";
+  };
+  goBack: {
+    dir: -1 | 1;
+  };
+  vomnibar: {
     vomnibar: string;
     vomnibar2: string | null;
     ptype: VomnibarNS.PageType;
@@ -119,28 +154,44 @@ interface CmdOptions {
     rel: string;
     patterns: string[];
   };
-  enterInsertMode: {
+  insertMode: {
     code: VKeyCodes;
     stat: KeyStat;
     passExitKey: boolean;
     hud: boolean;
   };
+  visualMode: {
+    mode?: string;
+    from_find?: true;
+    words?: string;
+  };
   showHelp: {};
   reload: { url: string, force?: undefined, hard?: undefined
     } | { force?: boolean, hard?: boolean, url?: undefined };
-  "Find.activate": {
-    count: number;
-    leave: boolean,
-    query: string;
+  findMode: {
+    count?: number;
+    leave?: boolean,
+    query?: string;
+    returnToViewport?: boolean;
   };
-  "Marks.goTo": {
+  goToMarks: {
     local?: boolean;
     markName?: string | undefined;
     scroll: MarksNS.FgMark;
   };
   autoCopy: {
     url: boolean; decoded: boolean;
+    decode?: boolean;
   };
+  autoOpen: {
+    keyword?: string;
+  };
+  searchAs: FgOptions;
+  focusInput: {
+    select?: SelectActions;
+    keep?: boolean;
+    passExitKey?: boolean;
+  }
 }
 
 interface FgReq {
@@ -203,7 +254,7 @@ interface FgReq {
     title?: string;
   };
   css: Req.baseFg<"css">;
-  activateVomnibar: ({
+  vomnibar: ({
     count: number;
     redo?: undefined;
   } | {
@@ -271,7 +322,7 @@ declare namespace Req {
     readonly response: FgRes[K];
   }
 
-  type FgCmd<O extends keyof CmdOptions> = BaseExecute<CmdOptions[O]> & Req.bg<"execute">;
+  type FgCmd<O extends keyof CmdOptions> = BaseExecute<CmdOptions[O]> & { command: O; } & Req.bg<"execute">;
 }
 
 interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> {

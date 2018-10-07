@@ -39,6 +39,13 @@ declare namespace HintsNS {
   }
   interface VWindow extends Window {
     VHints: typeof VHints,
+    VScroller: {
+      ScBy: typeof VScroller["ScBy"];
+      ScTo: typeof VScroller["ScTo"];
+    };
+    Vomnibar: {
+      activate: typeof Vomnibar["activate"];
+    }
     VEventMode: VEventMode,
     VDom: {
       isHTML (): boolean;
@@ -80,58 +87,59 @@ var VHints = {
   noHUD: false,
   options: null as never as HintsNS.Options,
   timer: 0,
-  activate (count: number, options: FgOptions): void {
-    if (this.isActive) { return; }
+  activate (this: void, count: number, options: FgOptions): void {
+    const a = VHints;
+    if (a.isActive) { return; }
     if (document.body == null) {
-      this.clean();
-      if (!this.timer && document.readyState === "loading") {
-        this.timer = setTimeout(this.activate.bind(this, count, options), 300);
+      a.clean();
+      if (!a.timer && document.readyState === "loading") {
+        a.timer = setTimeout(a.activate.bind(a, count, options), 300);
         return;
       }
       if (!VDom.isHTML()) { return; }
     }
-    VUtils.remove(this);
-    this.setModeOpt((count as number) | 0, options);
+    VUtils.remove(a);
+    a.setModeOpt((count as number) | 0, options);
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
     if (str.length < 3) {
-      this.clean(true);
+      a.clean(true);
       return VHUD.showForDuration("Characters for LinkHints are too few.", 1000);
     }
-    this.alphabetHints.chars = str.toUpperCase();
+    a.alphabetHints.chars = str.toUpperCase();
 
     const arr: ViewBox = VDom.getViewBox(1) as ViewBox;
     VDom.prepareCrop();
-    if (this.tooHigh !== null) {
-      this.tooHigh = (VDom.scrollingEl() || document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
+    if (a.tooHigh !== null) {
+      a.tooHigh = (VDom.scrollingEl() || document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }
-    let elements = this.getVisibleElements(arr);
-    if (this.frameNested) {
-      if (this.tryNestedFrame("VHints.activate", (count as number) | 0, options)) {
-        return this.clean();
+    let elements = a.getVisibleElements(arr);
+    if (a.frameNested) {
+      if (a.tryNestedFrame("VHints", "activate", (count as number) | 0, options)) {
+        return a.clean();
       }
     }
     if (elements.length === 0) {
-      elements = this.retryShadowDOM(arr);
+      elements = a.retryShadowDOM(arr);
       if (elements.length === 0) {
-        this.clean(true);
+        a.clean(true);
         return VHUD.showForDuration("No links to select.", 1000);
       }
     }
 
-    if (this.box) { this.box.remove(); this.box = null; }
-    this.hints = elements.map(this.createHint, this);
-    VDom.bZoom !== 1 && this.adjustMarkers(elements);
+    if (a.box) { a.box.remove(); a.box = null; }
+    a.hints = elements.map(a.createHint, a);
+    VDom.bZoom !== 1 && a.adjustMarkers(elements);
     elements = null as never;
-    this.alphabetHints.initMarkers(this.hints);
+    a.alphabetHints.initMarkers(a.hints);
 
-    this.noHUD = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
+    a.noHUD = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
     VDom.UI.ensureBorder(VDom.wdZoom);
-    this.setMode(this.mode, false);
-    this.box = VDom.UI.addElementList(this.hints, arr);
+    a.setMode(a.mode, false);
+    a.box = VDom.UI.addElementList(a.hints, arr);
 
-    this.isActive = true;
-    VUtils.push(this.onKeydown, this);
-    return VEventMode.onWndBlur_(this.ResetMode);
+    a.isActive = true;
+    VUtils.push(a.onKeydown, a);
+    VEventMode.onWndBlur_(a.ResetMode);
   },
   setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
@@ -173,22 +181,22 @@ var VHints = {
     const a = VHints;
     if (a && a.isActive) { a.pTimer = 0; return a.setMode(a.mode); }
   },
-  activateAndFocus (a: number, b: FgOptions): void {
+  ActivateAndFocus (this: void, a: number, b: FgOptions): void {
     return VEventMode.focusAndListen(() => {
       VHints.isActive = false;
       VHints.activate(a, b);
     });
   },
-  tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
+  tryNestedFrame (mode: "VHints" | "VScroller" | "Vomnibar", action: string, a: number, b: SafeObject): boolean {
     if (this.frameNested !== null) {
-      command.startsWith("VHints") || VDom.prepareCrop();
+      mode !== "VHints" && VDom.prepareCrop();
       this.checkNestedFrame();
     }
     let frame = this.frameNested, child: HintsNS.VWindow = null as never, err = true, done = false;
     if (!frame) { return false; }
     try {
       if (frame.contentDocument && (child = frame.contentWindow as HintsNS.VWindow).VDom.isHTML()) {
-        if (command === "VHints.activate") {
+        if (mode === "VHints") {
           (done = child.VHints.isActive) && child.VHints.deactivate(true);
         }
         err = child.VEventMode.keydownEvents(VEventMode.keydownEvents());
@@ -201,7 +209,7 @@ var VHints = {
       return false;
     }
     child.VEventMode.focusAndListen(done ? null : function(): void {
-      return VUtils.execCommand(child, command, a, b);
+      return (child[mode] as any)[action](a, b);
     });
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
@@ -850,9 +858,9 @@ var VHints = {
     }
     stackForThisMarker || stacks.push([i]);
   },
-  unhoverLast (): void {
+  UnhoverLast (this: void): void {
     VDom.hover(null);
-    return VHUD.showForDuration("The last element is unhovered");
+    VHUD.showForDuration("The last element is unhovered");
   },
 
 alphabetHints: {
@@ -996,7 +1004,7 @@ highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   el.focus();
   if (err) {
     VPort.send_({ handler: "execInChild", url: el.src, CSS: "1",
-      command: "Hints.activateAndFocus", count, options
+      command: "focusAndHint", count, options
     }, function(res): void {
       if (!res) {
         el.contentWindow.focus();
@@ -1004,7 +1012,7 @@ highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
     });
     return;
   }
-  child.VHints.activateAndFocus(count, options);
+  child.VHints.ActivateAndFocus(count, options);
   return false;
 },
 
@@ -1076,8 +1084,8 @@ COPY_TEXT: {
     }
     if (this.mode >= HintMode.min_edit && this.mode <= HintMode.max_edit) {
       const force = this.options.force;
-      (VPort as ComplicatedVPort).post<"activateVomnibar", { count: number } & Partial<VomnibarNS.ContentOptions>>({
-        handler: "activateVomnibar",
+      (VPort as ComplicatedVPort).post<"vomnibar", { count: number } & Partial<VomnibarNS.ContentOptions>>({
+        handler: "vomnibar",
         count: 1,
         force: force != null ? !!force : !isUrl,
         url: str,

@@ -152,8 +152,9 @@ declare namespace Frames {
     userActed = 2,
     lockedAndUserActed = locked | userActed,
     InheritedFlags = locked | userActed,
-    hasCSS = 4, onceHasDialog = 8,
+    hasCSS = 4,
     hasCSSAndActed = hasCSS | userActed,
+    hadHelpDialog = 8,
   }
   const enum NextType {
     next = 0, Default = next,

@@ -1,7 +1,3 @@
-type FindOptions = CmdOptions["Find.activate"] & {
-  returnToViewport: boolean;
-};
-
 var VFindMode = {
   isActive: false,
   query: "",
@@ -31,51 +27,53 @@ var VFindMode = {
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
 body *{all:inherit!important;display:inline!important;}html>count{float:right;}`,
-  activate (_0: number, options: Partial<FindOptions> & SafeObject): void {
+  activate (this: void, _0: number, options: CmdOptions["findMode"]): void {
     if (!VDom.isHTML()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
     ui = VDom.UI, first = !ui.box;
-    this.isActive || query === this.query && options.leave || VMarks.setPreviousPosition();
+    const a = VFindMode;
+    a.isActive || query === a.query && options.leave || VMarks.setPreviousPosition();
     VDom.docSelectable = ui.getDocSelectable();
     ui.ensureBorder();
     if (options.leave) {
-      return this.findAndFocus(query || this.query, options);
+      return a.findAndFocus(query || a.query, options);
     }
-    this.getCurrentRange();
+    a.getCurrentRange();
     if (options.returnToViewport) {
-      this.coords = [window.scrollX, window.scrollY];
+      a.coords = [window.scrollX, window.scrollY];
     }
-    this.box && ui.adjust();
+    a.box && ui.adjust();
     VHUD.hide_(TimerType.noTimer);
-    if (this.isActive) {
-      return this.setFirstQuery(query);
+    if (a.isActive) {
+      return a.setFirstQuery(query);
     }
 
-    this.parsedQuery = this.query = "";
-    this.parsedRegexp = this.regexMatches = null;
-    this.activeRegexIndex = 0;
+    a.parsedQuery = a.query = "";
+    a.parsedRegexp = a.regexMatches = null;
+    a.activeRegexIndex = 0;
 
-    const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
+    const el = a.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
     el.style.width = "0px";
     if (VDom.wdZoom !== 1) { el.style.zoom = "" + 1 / VDom.wdZoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
-    VUtils.push(ui.SuppressMost, this);
-    this.query || (this.query0 = query);
-    this.init && this.init(AdjustType.NotAdjust);
+    VUtils.push(ui.SuppressMost, a);
+    a.query || (a.query0 = query);
+    a.init && a.init(AdjustType.NotAdjust);
     ui.toggleSelectStyle(true);
     ui.addElement(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box_);
     first && ui.adjust();
-    this.isActive = true;
+    a.isActive = true;
   },
   onLoad (box: HTMLIFrameElement, later?: 1): void {
+    const a = this;
     const wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
     now = Date.now(), s = VUtils.Stop, t = true;
     let tick = 0;
-    f("mousedown", this.OnMousedown, t);
-    f("keydown", this.onKeydown.bind(this), t);
-    f("input", this.onInput.bind(this), t);
-    f("paste", this.OnPaste, t);
+    f("mousedown", a.OnMousedown, t);
+    f("keydown", a.onKeydown.bind(a), t);
+    f("input", a.onInput.bind(a), t);
+    f("paste", a.OnPaste, t);
     f("keypress", s, t); f("keyup", s, t);
     f("mouseup", s, t); f("click", s, t); f("contextmenu", s, t);
     f("copy", s, t); f("cut", s, t); f("paste", s, t);
@@ -87,10 +85,10 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
         this.removeEventListener("blur", onBlur, true);
       }
     }
-    f("focus", this.OnFocus, t);
+    f("focus", a.OnFocus, t);
     f("blur", onBlur, t);
     box.onload = later ? null as never : function(): void { this.onload = null as never; VFindMode.onLoad2(this.contentWindow); };
-    if (later) { return this.onLoad2(wnd); }
+    if (later) { a.onLoad2(wnd); }
   },
   onLoad2 (wnd: Window): void {
     const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
@@ -150,7 +148,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     this.styleOut = UI.box !== UI.root ? UI.createStyle(css) : sin;
     this.init = null as never;
   },
-  findAndFocus (query: string, options: Partial<FindOptions> & SafeObject): void {
+  findAndFocus (query: string, options: CmdOptions["findMode"]): void {
     if (!query) {
       return VHUD.showForDuration("No old queries to find.");
     }
@@ -254,7 +252,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       this.toggleStyle(0);
       this.restoreSelection(true);
     }
-    if (VVisualMode.mode) { return VVisualMode.activate(1, VUtils.safer({from_find: true})); }
+    if (VVisualMode.mode) { return VVisualMode.activate(1, VUtils.safer({from_find: true as true})); }
     VDom.UI.toggleSelectStyle(false);
     if (i < FindNS.Action.MinComplicatedExit || !this.hasResults) { return; }
     if (!el || el !== VEventMode.lock_()) {

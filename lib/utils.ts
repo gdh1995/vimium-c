@@ -22,13 +22,6 @@ var VUtils = {
     return this._imageUrlRe.test(str);
   },
   safer<T extends object> (this: void, opt: T): T & SafeObject { return Object.setPrototypeOf(opt, null); },
-  execCommand (parent: object, command: string, a: number, b: object | null): void {
-    let keys = command.split('.'), i: number, len: number;
-    for (i = 0, len = keys.length - 1; i < len; i++) {
-      parent = (parent as any)[keys[i]];
-    }
-    return (parent as any)[keys[i]](a, b ? this.safer(b) : Object.create(null));
-  },
   decodeURL (this: void, url: string): string {
     try { url = decodeURI(url); } catch (e) {}
     return url;

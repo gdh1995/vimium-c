@@ -2,12 +2,13 @@ var VMarks = {
   onKeyChar: null as never as (event: HandlerNS.Event, keyChar: string) => void,
   prefix: true,
   swap: true,
-  activate (_0: number, options: FgOptions): void {
+  activate (this: void, _0: number, options: CmdOptions["marks"]): void {
+    const a = VMarks;
     const isGo = options.mode !== "create";
-    this.onKeyChar = isGo ? this._goto : this._create;
-    this.prefix = options.prefix !== false;
-    this.swap = options.swap === true;
-    VUtils.push(this.onKeydown, this);
+    a.onKeyChar = isGo ? a._goto : a._create;
+    a.prefix = options.prefix !== false;
+    a.swap = options.swap === true;
+    VUtils.push(a.onKeydown, a);
     return VHUD.show_(isGo ? "Go to mark\u2026" : "Create mark\u2026");
   },
   onKeydown (event: HandlerNS.Event): HandlerResult {
@@ -97,10 +98,10 @@ var VMarks = {
     });
     return VHUD.showForDuration(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },
-  goTo (_0: number, options: CmdOptions["Marks.goTo"]): void {
+  GoTo (this: void, _0: number, options: CmdOptions["goToMarks"]): void {
     const { scroll, local, markName: a } = options;
-    a && this.setPreviousPosition();
-    this._scroll(scroll);
+    a && VMarks.setPreviousPosition();
+    VMarks._scroll(scroll);
     local || VEventMode.focusAndListen();
     if (a) {
       return VHUD.showForDuration(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);

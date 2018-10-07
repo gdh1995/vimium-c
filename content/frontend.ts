@@ -268,14 +268,19 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       notChrome ? f("click", onActivate, true) :
       f.call(document, "DOMActivate", onActivate, true);
     }),
-  const Commands = {
-    Find: VFindMode,
-    Hints: VHints,
-    Marks: VMarks,
+  Commands: {
+    [key in keyof CmdOptions]: (this: void, count: number, options: CmdOptions[key]) => void;
+  } = {
+    findMode: VFindMode.activate,
+    linkHints: VHints.activate,
+    focusAndHint: VHints.ActivateAndFocus,
+    unhoverLast: VHints.UnhoverLast,
+    marks: VMarks.activate,
+    goToMarks: VMarks.GoTo,
     scBy: VScroller.ScBy,
     scTo: VScroller.ScTo,
-    Visual: VVisualMode,
-    Vomnibar,
+    visualMode: VVisualMode.activate,
+    vomnibar: Vomnibar.activate,
     reset (): void {
       const a = InsertMode;
       VScroller.current = VDom.lastHovered = a.last_ = a.lock_ = a.global_ = null;
@@ -286,7 +291,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       onWndBlur();
     },
 
-    toggleSwitchTemp (_0: number, options: FgOptions): void {
+    toggleSwitchTemp (_0: number, options): void {
       const key = (options.key || "") + "" as keyof SettingsNS.FrontendSettingCache,
       cache = VSettings.cache, old = cache[key], Key = '"' + key + '"', last = "old" + key;
       let val = options.value, isBool = typeof val === "boolean", msg: string | undefined, u: undefined;
@@ -309,12 +314,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       return VHUD.showForDuration(msg, 1000);
     },
-    enterInsertMode (_0: number, opt: CmdOptions["enterInsertMode"]): void {
+    insertMode (_0: number, opt: CmdOptions["insertMode"]): void {
       let { code, stat } = opt;
       InsertMode.global_ = opt;
       if (opt.hud) { return HUD.show_(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
-    passNextKey (count: number, options: FgOptions): void {
+    passNextKey (count: number, options): void {
       const keys = Object.create<BOOL>(null);
       count = Math.abs(count);
       let keyCount = 0;
@@ -363,10 +368,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         url ? (window.location.href = url) : window.location.reload(hard || force);
       }, 17);
     },
-    switchFocus (_0: number, options: FgOptions): void {
+    switchFocus (_0: number, options): void {
       let newEl = InsertMode.lock_;
       if (newEl) {
-        if (options.act === "backspace") {
+        if ((options.act || options.action) === "backspace") {
           if (VDom.ensureInView(newEl)) { document.execCommand("delete"); }
         } else {
           InsertMode.last_ = newEl;
@@ -388,7 +393,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VDom.prepareCrop();
       return VDom.UI.simulateSelect(newEl, null, false, "", true);
     },
-    goBack (count: number, options: FgOptions): void {
+    goBack (count: number, options): void {
       const step = Math.min(Math.abs(count), history.length - 1);
       step > 0 && history.go((count < 0 ? -step : step) * (+options.dir || -1));
     },
@@ -401,7 +406,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       post({ handler: "initHelp", wantTop });
     },
-    autoCopy (_0: number, options: FgOptions): void {
+    autoCopy (_0: number, options): void {
       let str = VDom.UI.getSelectionText(1);
       if (!str) {
         str = options.url ? window.location.href : document.title;
@@ -420,7 +425,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       return HUD.showCopied(str);
     },
-    autoOpen (_0: number, options: FgOptions): void {
+    autoOpen (_0: number, options): void {
       let url = VDom.UI.getSelectionText(), keyword = (options.keyword || "") + "";
       url && VPort.evalIfOK_(url) || post({
         handler: "openUrl",
@@ -435,12 +440,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         search: VDom.UI.getSelectionText()
       });
     },
-    focusInput (count: number, options: FgOptions): void {
+    focusInput (count: number, options): void {
       InsertMode.inputHint_ && (InsertMode.inputHint_.hints = null as never);
       const arr: ViewOffset = VDom.getViewBox();
       VDom.prepareCrop();
       const visibleInputs = VHints.traverse("*", VHints.GetEditable, true),
-      action = options.select as SelectActions | undefined;
+      action = options.select;
       let sel = visibleInputs.length;
       if (sel === 0) {
         InsertMode.exitInputHint_();
@@ -506,7 +511,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
   InsertMode = {
     grabFocus_: document.readyState !== "complete",
-    global_: null as CmdOptions["enterInsertMode"] | null,
+    global_: null as CmdOptions["insertMode"] | null,
     hinting_: false,
     inputHint_: null as { box: HTMLDivElement, hints: HintsNS.HintItem[] } | null,
     suppressType_: null as string | null,
@@ -859,7 +864,7 @@ Pagination = {
         (old && !isLocked) || hook(HookAction.Install);
         // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
-        Commands.reset();
+        (Commands.reset as () => void)();
       }
       if (VDom.UI.box) { return VDom.UI.toggle(enabled); }
     },
@@ -894,9 +899,11 @@ Pagination = {
       }
       (mapKeys = request.mapKeys) && func(mapKeys, null);
     },
-    execute (request: Req.bg<"execute">): void {
+    execute<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
       if (request.CSS) { VDom.UI.css(request.CSS); }
-      return VUtils.execCommand(Commands, request.command, request.count, request.options);
+      const options: CmdOptions[O] | null = request.options;
+      (Commands[request.command] as (c: number, o: CmdOptions[O]) => void
+        )(request.count, (options ? VUtils.safer(options) : Object.create(null)) as CmdOptions[O]);
     },
     createMark (request): void { return VMarks.createMark(request.markName); },
     showHUD ({ text, CSS, isCopy }: Req.bg<"showHUD">): void {
@@ -912,7 +919,7 @@ Pagination = {
       , node1: HTMLElement;
     if (CSS) { VDom.UI.css(CSS); }
     if (!VDom.isHTML()) { return; }
-    Commands.showHelp("exitHD");
+    (Commands.showHelp as (msg?: number | "exitHD") => void)("exitHD");
     if (oldShowHelp !== Commands.showHelp) { return; } // an old dialog exits
     box = VDom.createElement("div");
     box.className = "R Scroll UI";
@@ -1121,7 +1128,7 @@ Pagination = {
     VSettings.enabled_ = isEnabled = false;
     hook(HookAction.Destroy);
     
-    Commands.reset();
+    (Commands.reset as () => void)();
     let f = VSettings.uninit_, ui = VDom.UI;
     f && f(HookAction.Destroy);
 

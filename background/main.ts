@@ -1211,11 +1211,12 @@ Are you sure you want to continue?`);
       });
     },
     enterInsertMode (): void {
-      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0, hud: boolean;
+      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0;
       code = stat !== KeyStat.plain ? code || VKeyCodes.esc : code === VKeyCodes.esc ? 0 : code;
+      let
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
         : !Settings.get("hideHud", true);
-      cPort.postMessage<1, "enterInsertMode">({ name: "execute", count: 1, command: "enterInsertMode",
+      cPort.postMessage<1, "insertMode">({ name: "execute", count: 1, command: "insertMode",
         CSS: hud ? ensureInnerCSS(cPort) : null,
         options: {
           code, stat,
@@ -1227,7 +1228,7 @@ Are you sure you want to continue?`);
     performFind (): void {
       const leave = !cOptions.active,
       query = leave || cOptions.last ? (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito) : "";
-      cPort.postMessage<1, "Find.activate">({ name: "execute", count: 1, command: "Find.activate"
+      cPort.postMessage<1, "findMode">({ name: "execute", count: 1, command: "findMode"
           , CSS: ensureInnerCSS(cPort), options: {
         count: cOptions.dir <= 0 ? -commandCount : commandCount,
         leave,
@@ -1256,10 +1257,10 @@ Are you sure you want to continue?`);
         script: useInner ? "" : Settings.CONST.VomnibarScript_f,
         secret: getSecret(),
         CSS: ensureInnerCSS(port)
-      } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
-      port.postMessage<1, "Vomnibar.activate">({
+      } as CmdOptions["vomnibar"], null), cOptions as any);
+      port.postMessage<1, "vomnibar">({
         name: "execute", count: commandCount, CSS: null,
-        command: "Vomnibar.activate",
+        command: "vomnibar",
         options
       });
       options.secret = -1;
@@ -1271,7 +1272,7 @@ Are you sure you want to continue?`);
       return Backend.showHUD((incognito ? "incognito " : "") + "find history has been cleared.");
     },
     showHelp (this: void): void {
-      if (cPort.sender.frameId === 0 && !(window.HelpDialog && (cPort.sender.flags & Frames.Flags.onceHasDialog))) {
+      if (cPort.sender.frameId === 0 && !(window.HelpDialog && (cPort.sender.flags & Frames.Flags.hadHelpDialog))) {
         return requestHandlers.initHelp({}, cPort);
       }
       if (!window.HelpDialog) {
@@ -1656,7 +1657,7 @@ Are you sure you want to continue?`);
         })
       ]).then(function(args): void {
         const port = args[1].wantTop && indexFrame(args[2].sender.tabId, 0) || args[2];
-        (port.sender as Frames.Sender).flags |= Frames.Flags.onceHasDialog;
+        (port.sender as Frames.Sender).flags |= Frames.Flags.hadHelpDialog;
         port.postMessage({
           name: "showHelpDialog",
           CSS: ensureInnerCSS(port),
@@ -1676,7 +1677,7 @@ Are you sure you want to continue?`);
         setTimeout(retryCSS, 34, port, 1);
       }
     },
-    activateVomnibar (this: void, request: FgReq["activateVomnibar"] & Req.baseFg<string>, port: Port): void {
+    vomnibar (this: void, request: FgReq["vomnibar"] & Req.baseFg<string>, port: Port): void {
       const { count, inner } = request;
       if (count != null) {
         delete request.count, delete request.handler, delete request.inner;
@@ -1688,7 +1689,7 @@ Are you sure you want to continue?`);
         if (inner) { return; }
         cOptions = Object.create(null);
         commandCount = 1;
-      } else if (inner && (cOptions as any as CmdOptions["Vomnibar.activate"]).vomnibar === Settings.CONST.VomnibarPageInner) {
+      } else if (inner && (cOptions as any as CmdOptions["vomnibar"]).vomnibar === Settings.CONST.VomnibarPageInner) {
         return;
       }
       cPort = port;

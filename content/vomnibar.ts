@@ -12,7 +12,7 @@ declare namespace VomnibarNS {
     VPort?: object;
     onmessage: (this: void, ev: { source: Window, data: VomnibarNS.MessageData, ports: IframePort[] }) => void | 1;
   }
-  type BaseFullOptions = CmdOptions["Vomnibar.activate"] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
+  type BaseFullOptions = CmdOptions["vomnibar"] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
   interface FullOptions extends BaseFullOptions {
     topUrl?: string;
     name: string;
@@ -30,42 +30,43 @@ var Vomnibar = {
   maxBoxHeight: 0,
   defaultTop: "",
   top: "",
-  activate (count: number, options: VomnibarNS.FullOptions): void {
-    if (this.status === VomnibarNS.Status.KeepBroken) {
+  activate (this: void, count: number, options: VomnibarNS.FullOptions): void {
+    const a = Vomnibar;
+    if (a.status === VomnibarNS.Status.KeepBroken) {
       return VHUD.showForDuration("Sorry, Vomnibar page seems to fail to load.", 2000);
     }
     if (!options || !options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
-      if (!this.timer) {
-        this.timer = setTimeout(this.activate.bind(this, count, options), 500);
+      if (!a.timer) {
+        a.timer = setTimeout(a.activate.bind(a, count, options), 500);
         return;
       }
     }
-    this.timer = 0;
+    a.timer = 0;
     if (!VDom.isHTML()) { return; }
     if ((options.url === true || count !== 1) && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
       options.topUrl = window.location.href;
     }
-    this.options = null;
+    a.options = null;
     VDom.dbZoom = 1;
-    const iw = VDom.prepareCrop(), ih = this.screenHeight = window.innerHeight;
+    const iw = VDom.prepareCrop(), ih = a.screenHeight = window.innerHeight;
     options.width = iw, options.height = ih;
     VDom.getZoom();
     // note: here require: that Inactive must be NotInited + 1
-    this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
-    this.box && VDom.UI.adjust();
-    if (this.status === VomnibarNS.Status.NotInited) {
-      if (VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return VUtils.remove(this); }
-      this.status = VomnibarNS.Status.Initing;
-      this.init(options);
-    } else if (this.isABlank()) {
-      this.onReset = function(this: typeof Vomnibar): void { this.onReset = null; return this.activate(count, options); };
+    a.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, a);
+    a.box && VDom.UI.adjust();
+    if (a.status === VomnibarNS.Status.NotInited) {
+      if (VHints.tryNestedFrame("Vomnibar", "activate", count, options)) { return VUtils.remove(a); }
+      a.status = VomnibarNS.Status.Initing;
+      a.init(options);
+    } else if (a.isABlank()) {
+      a.onReset = function(this: typeof Vomnibar): void { this.onReset = null; return this.activate(count, options); };
       return;
-    } else if (this.status === VomnibarNS.Status.Inactive) {
-      this.status = VomnibarNS.Status.ToShow;
-    } else if (this.status > VomnibarNS.Status.ToShow) {
-      this.focus();
-      this.status = VomnibarNS.Status.ToShow;
+    } else if (a.status === VomnibarNS.Status.Inactive) {
+      a.status = VomnibarNS.Status.ToShow;
+    } else if (a.status > VomnibarNS.Status.ToShow) {
+      a.focus();
+      a.status = VomnibarNS.Status.ToShow;
     }
     options.secret = 0; options.vomnibar = options.vomnibar2 = options.CSS = "";
     options.name = "activate";
@@ -87,13 +88,13 @@ var Vomnibar = {
     options.topUrl = "";
     if (!url || url.indexOf("://") === -1) {
       options.search = "";
-      return this.setOptions(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
+      return a.setOptions(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
     if ((window as any).shownNode && !window.VimiumInjector) {
       url = url.split("#", 1)[0] + window.name;
     }
     const trail = options.trailing_slash;
-    return VPort.send_({
+    VPort.send_({
       handler: "parseSearchUrl",
       trailing_slash: trail != null ? !!trail : null,
       upper, url
@@ -208,7 +209,7 @@ var Vomnibar = {
     this.options = null;
     if (this.onReset) { return this.onReset(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
-    return VPort.post({ handler: "activateVomnibar", redo: true, inner: true });
+    return VPort.post({ handler: "vomnibar", redo: true, inner: true });
   },
   isABlank (): boolean {
     try {

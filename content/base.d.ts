@@ -2,8 +2,6 @@ interface Element {
   vimiumHasOnclick?: boolean;
 }
 
-interface FgOptions extends SafeDict<any> {}
-
 interface Window {
   VimiumInjector?: VimiumInjector;
   VSettings: VSettings | null;
@@ -218,7 +216,6 @@ declare const enum AdjustType {
   AdjustButNotShow = 3,
   DEFAULT = Normal,
 }
-type SelectActions = "" | "all" | "all-input" | "start" | "end";
 
 declare function setInterval(this: void, handler: (this: void, info?: TimerType) => void, timeout: number): number;
 
