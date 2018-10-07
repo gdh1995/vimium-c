@@ -59,7 +59,7 @@ listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), bool
 Create = document.createElement as Document["createElement"],
 Attr = E.prototype.setAttribute, HasAttr = E.prototype.hasAttribute, Remove = E.prototype.remove,
 rel = removeEventListener, ct = clearTimeout,
-sec = +<string>(document.currentScript as HTMLScriptElement).getAttribute("data-vimium"),
+sec = <string>(document.currentScript as HTMLScriptElement).getAttribute("data-vimium"),
 hooks = {
   toString: function toString(this: Function): string {
     const a = this;
@@ -91,7 +91,7 @@ let handler = function(this: void): void {
   call(Attr, el, key, "");
   listen(el, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
   call(Append, docEl, el), dispatch(el, new CE("VimiumHook", {detail: sec})), call(Remove, el);
-  if (!call(HasAttr, el, key)) {
+  if (call(HasAttr, el, key)) {
     destroy();
   } else {
     box = el;
@@ -139,7 +139,7 @@ function reg(this: void, element: Element): void {
   }
 }
 function destroy(e?: CustomEvent): void {
-  if (e && e.detail !== "" + sec) { return; }
+  if (e && e.detail !== sec) { return; }
   toRegister.length = 0;
   toRegister.push = next = function() { return 1; };
   box = null as never;
