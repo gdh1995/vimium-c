@@ -1225,6 +1225,17 @@ Are you sure you want to continue?`);
         }
       });
     },
+    enterVisualMode (): void {
+      const { sender } = cPort, { flags } = sender;
+      sender.flags |= Frames.Flags.hadVisualMode;
+      if (!(flags & Frames.Flags.hadVisualMode)) {
+        (cOptions as CmdOptions["visualMode"]).words = CommandsData.wordsRe;
+      }
+      cPort.postMessage<1, "visualMode">({ name: "execute", count: 1, command: "visualMode",
+        CSS: ensureInnerCSS(cPort),
+        options: cOptions as CmdOptions["visualMode"]
+      });
+    },
     performFind (): void {
       const leave = !cOptions.active,
       query = leave || cOptions.last ? (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito) : "";

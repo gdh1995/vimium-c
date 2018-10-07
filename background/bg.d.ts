@@ -417,6 +417,7 @@ interface CommandsData {
   mapKeyRegistry: SafeDict<string> | null;
   availableCommands: ReadonlySafeDict<CommandsNS.Description>;
   errors: number;
+  wordsRe: string;
 }
 
 interface BaseHelpDialog {

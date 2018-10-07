@@ -155,6 +155,7 @@ declare namespace Frames {
     hasCSS = 4,
     hasCSSAndActed = hasCSS | userActed,
     hadHelpDialog = 8,
+    hadVisualMode = 16,
   }
   const enum NextType {
     next = 0, Default = next,
