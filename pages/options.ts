@@ -346,7 +346,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     if (event.keyCode !== VKeyCodes.space) {
       if (!window.VKeyboard) { return; }
       let wanted = event.keyCode === VKeyCodes.questionWin || event.keyCode === VKeyCodes.questionMac ? "?" : "";
-      if (wanted && VKeyboard.getKeyChar(event) === wanted && VKeyboard.getKey(event, wanted) === wanted) {
+      if (wanted && VKeyboard.char(event) === wanted && VKeyboard.key(event, wanted) === wanted) {
         $("#showCommands").click();
       }
       return;
@@ -619,7 +619,7 @@ window.onhashchange = function(this: void): void {
         window.onload = null as never;
         window.scrollTo(0, 0);
       }
-      window.VDom ? VDom.ensureInView(node as Element)
+      window.VDom ? VDom.view(node as Element)
         : (node as HTMLElement).scrollIntoViewIfNeeded ? (node as any).scrollIntoViewIfNeeded()
         : (node as HTMLElement).scrollIntoView();
     }
@@ -672,10 +672,10 @@ function OnBgUnload(): void {
 }
 BG.addEventListener("unload", OnBgUnload);
 
-document.addEventListener("click", function onClickOnce(e1): void {
-  if (!window.VDom || VDom.UI.box !== e1.target) { return; }
+document.addEventListener("click", function onClickOnce(): void {
+  if (!window.VDom || !VDom.UI.R) { return; }
   document.removeEventListener("click", onClickOnce, true);
-  (VDom.UI.root as Node).addEventListener("click", function(event): void {
+  (VDom.UI.R as Node).addEventListener("click", function(event): void {
     let target = event.target as HTMLElement, str: string;
     if (VPort && target.classList.contains("HelpCommandName")) {
       str = target.textContent.slice(1, -1);

@@ -4,113 +4,114 @@ interface ShadowRootWithSelection extends ShadowRoot {
 declare var browser: never;
 
 VDom.UI = {
-  box: null,
-  styleIn: null,
-  styleOut: null,
-  root: null as never,
-  callback: null,
-  flashLastingTime: 400,
-  addElement<T extends HTMLElement> (this: DomUI, element: T, adjust?: AdjustType): T {
-    const box = this.box = VDom.createElement("div"),
+  box_: null,
+  styleIn_: null,
+  styleOut_: null,
+  R: null as never,
+  callback_: null,
+  flashLastingTime_: 400,
+  addElement_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): T {
+    const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
     shadowVer = typeof box.attachShadow === "function" ? 2 : typeof box.createShadowRoot === "function" ? 1 : 0;
     box.style.display = "none";
-    this.root = shadowVer === 2 ? (box as AttachShadow).attachShadow({mode: "closed"})
-      : shadowVer === 1 ? (box as any).createShadowRoot() as ShadowRoot : box;
+    a.R = shadowVer === 2 ? (box as AttachShadow).attachShadow({mode: "closed"})
+      : shadowVer === 1 ? (box as DomUI["box_"] & {createShadowRoot(): ShadowRoot}).createShadowRoot() : box;
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
-    this.root.mode === "closed" || (this.root !== box ? this.root as ShadowRoot : window).addEventListener("load",
+    a.R.mode === "closed" || (a.R !== box ? a.R as ShadowRoot : window).addEventListener("load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { return window.removeEventListener("load", Onload, true); }
       const t = e.target as HTMLElement;
-      if (t.parentNode === VDom.UI.root) {
-        VUtils.Stop(e); t.onload && t.onload(e);
+      if (t.parentNode === VDom.UI.R) {
+        VUtils.Stop_(e); t.onload && t.onload(e);
       }
     }, true);
-    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
-      adjust === AdjustType.NotAdjust || this.adjust();
-      return this.root.insertBefore(element, before === true ? this.root.firstElementChild : before || null);
+    a.addElement_ = function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
+      adjust === AdjustType.NotAdjust || this.adjust_();
+      return this.R.insertBefore(element, before === true ? this.R.firstElementChild : before || null);
     };
-    this.css = (function (innerCSS): void {
-      if (this.box === this.root) {
-        this.box.id = "VimiumUI";
+    a.css_ = (function (innerCSS): void {
+      const a = VDom.UI;
+      if (a.box_ === a.R) {
+        a.box_.id = "VimiumUI";
       }
-      let el: HTMLStyleElement | null = this.styleIn = this.createStyle(innerCSS), stBorder: { el: HTMLStyleElement } | null;
-      this.root.appendChild(el);
-      this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
-      (stBorder = this._styleBorder) && this.root.appendChild(stBorder.el);
+      let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_(innerCSS), stBorder: { el: HTMLStyleElement } | null;
+      a.R.appendChild(el);
+      a.css_ = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = css; };
+      (stBorder = a._styleBorder) && a.R.appendChild(stBorder.el);
       if (adjust !== AdjustType.AdjustButNotShow) {
         let f = function (this: HTMLElement, e: Event | 1): void {
           e !== 1 && (this.onload = null as never);
-          const a = VDom.UI, box = a.box as HTMLElement;
+          const a = VDom.UI, box = a.box_ as HTMLElement;
           // enforce webkit to build the style attribute node, and then we can remove it totally
           box.hasAttribute("style") && box.removeAttribute("style");
-          a.callback && a.callback();
+          a.callback_ && a.callback_();
         };
-        VDom.isStandard ? Promise.resolve(1 as 1).then(f) : (el.onload = f);
+        VDom.isStandard_ ? Promise.resolve(1 as 1).then(f) : (el.onload = f);
       }
       if (adjust !== AdjustType.NotAdjust) {
-        return this.adjust();
+        a.adjust_();
       }
     });
-    this.root.appendChild(element);
-    let a: string | null;
-    if (a = this.styleIn as string | null) {
-      this.css(a);
+    a.R.appendChild(element);
+    let b: string | null;
+    if (b = a.styleIn_ as string | null) {
+      a.css_(b);
     } else {
-      a === "" || VPort.post({ handler: "css" });
+      b === "" || VPort.post({ handler: "css" });
       if ((adjust as AdjustType) >= AdjustType.MustAdjust) {
-        this.adjust();
+        a.adjust_();
       }
     }
     return element;
   },
-  addElementList (els, offset: ViewOffset): HTMLDivElement {
-    const parent = VDom.createElement("div");
+  addElementList_ (els, offset: ViewOffset): HTMLDivElement {
+    const parent = VDom.createElement_("div");
     parent.className = "R HM";
     for (const el of els) {
       parent.appendChild(el.marker);
     }
-    const style = parent.style, zoom = VDom.bZoom / VDom.dScale;
+    const style = parent.style, zoom = VDom.bZoom_ / VDom.dScale_;
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
     zoom !== 1 && (style.zoom = "" + zoom);
     document.webkitIsFullScreen && (style.position = "fixed");
-    return this.addElement(parent, AdjustType.DEFAULT, this._lastFlash);
+    return this.addElement_(parent, AdjustType.DEFAULT, this._lastFlash);
   },
-  adjust (event): void {
+  adjust_ (event): void {
     const ui = VDom.UI, el = document.webkitFullscreenElement,
-    el2 = el && !(ui.root as Node).contains(el) ? el : document.documentElement as HTMLElement;
+    el2 = el && !(ui.R as Node).contains(el) ? el : document.documentElement as HTMLElement;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    el2 !== (ui.box as HTMLElement).parentNode && (ui.box as Node).appendChild.call(el2, ui.box as Node);
-    const sin = ui.styleIn, s = sin && (sin as HTMLStyleElement).sheet;
+    el2 !== (ui.box_ as HTMLElement).parentNode && (ui.box_ as Node).appendChild.call(el2, ui.box_ as Node);
+    const sin = ui.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
     s && (s.disabled = false);
-    (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
+    (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust_, true);
   },
-  toggle (enabled): void {
-    if (enabled) { return this.adjust(); }
-    (this.box as HTMLElement).remove();
-    removeEventListener("webkitfullscreenchange", this.adjust, true);
+  toggle_ (enabled): void {
+    if (enabled) { return this.adjust_(); }
+    (this.box_ as HTMLElement).remove();
+    removeEventListener("webkitfullscreenchange", this.adjust_, true);
   },
   _styleBorder: null as { el: HTMLStyleElement, zoom: number } | null,
-  ensureBorder (zoom?: number): void {
+  ensureBorder_ (zoom?: number): void {
     let st = this._styleBorder;
-    zoom || (zoom = VDom.getZoom());
+    zoom || (zoom = VDom.getZoom_());
     if (st ? st.zoom === zoom : zoom >= 1) { return; }
-    const p = this.box === this.root ? "#VimiumUI " : "", first = !st;
-    st || (st = this._styleBorder = { el: this.createStyle(""), zoom: 0 });
+    const p = this.box_ === this.R ? "#VimiumUI " : "", first = !st;
+    st || (st = this._styleBorder = { el: this.createStyle_(""), zoom: 0 });
     st.zoom = zoom; st.el.textContent = `${p}.HUD, ${p}.IH, ${p}.LH { border-width: ${("" + 0.51 / zoom).substring(0, 5)}px; }`;
-    first && this.box && this.addElement(st.el, AdjustType.NotAdjust);
+    first && this.box_ && this.addElement_(st.el, AdjustType.NotAdjust);
   },
-  createStyle (text, doc): HTMLStyleElement {
-    const css = (doc || VDom).createElement("style");
+  createStyle_ (text, doc): HTMLStyleElement {
+    const css = doc ? doc.createElement("style") : VDom.createElement_("style");
     css.type = "text/css";
     css.textContent = text;
     return css;
   },
-  css (innerCSS): void { this.styleIn = innerCSS; },
-  getDocSelectable (): boolean {
-    let el: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut, st: CSSStyleDeclaration;
+  css_ (innerCSS): void { this.styleIn_ = innerCSS; },
+  getDocSelectable_ (): boolean {
+    let el: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_, st: CSSStyleDeclaration;
     if (el && el.parentNode) { return false; }
     if (el = document.body) {
       st = getComputedStyle(el);
@@ -121,17 +122,17 @@ VDom.UI = {
     st = getComputedStyle(document.documentElement as HTMLHtmlElement);
     return (st.userSelect || st.webkitUserSelect) !== "none";
   },
-  toggleSelectStyle (enable: boolean): void {
-    let el = this.styleOut;
-    if (enable ? VDom.docSelectable : !el || !el.parentNode) { return; }
-    el || (this.styleOut = el = this.createStyle(
+  toggleSelectStyle_ (enable: boolean): void {
+    let el = this.styleOut_;
+    if (enable ? VDom.docSelectable_ : !el || !el.parentNode) { return; }
+    el || (this.styleOut_ = el = this.createStyle_(
       "html, body, * { -webkit-user-select: auto; user-select: auto; }"
     ));
-    enable ? (this.box as HTMLElement).appendChild(el) : el.remove();
+    enable ? (this.box_ as HTMLElement).appendChild(el) : el.remove();
   },
-  getSelection (): Selection {
+  getSelection_ (): Selection {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;
-    if (sel.focusNode === document.documentElement && (el = VScroller.current)) {
+    if (sel.focusNode === document.documentElement && (el = VScroller.current_)) {
       for (; el2 = el.parentNode; el = el2) {}
       if (typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRootWithSelection).getSelection() || sel;
@@ -139,42 +140,42 @@ VDom.UI = {
     }
     return sel;
   },
-  getSelectionText (notTrim?: 1): string {
+  getSelectionText_ (notTrim?: 1): string {
     let sel = window.getSelection(), s = sel.toString(), el: Element | null, rect: ClientRect;
-    if (s && !VEventMode.lock_() && (el = VScroller.current) && VDom.getEditableType(el) === EditableType.Editbox
+    if (s && !VEventMode.lock_() && (el = VScroller.current_) && VDom.getEditableType_(el) === EditableType.Editbox
         && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
       s = "";
     }
     return notTrim ? s : s.trim();
   },
-  removeSelection (root): boolean {
-    const sel = (root && (root as any).getSelection ? root as ShadowRootWithSelection : window).getSelection();
-    if (!sel || VDom.selType(sel) !== "Range" || !sel.anchorNode) {
+  removeSelection_ (root: VUIRoot & {getSelection?: ShadowRootWithSelection["getSelection"]}): boolean {
+    const sel = (root && root.getSelection ? root as ShadowRootWithSelection : window).getSelection();
+    if (!sel || VDom.selType_(sel) !== "Range" || !sel.anchorNode) {
       return false;
     }
     sel.collapseToStart();
     return true;
   },
-  click (element, rect, modifiers, addFocus): boolean {
-    rect || (rect = VDom.getVisibleClientRect(element));
-    element === VDom.lastHovered || VDom.hover(element, rect);
-    VDom.mouse(element, "mousedown", rect, modifiers);
+  click_ (element, rect, modifiers, addFocus): boolean {
+    rect || (rect = VDom.getVisibleClientRect_(element));
+    element === VDom.lastHovered_ || VDom.hover_(element, rect);
+    VDom.mouse_(element, "mousedown", rect, modifiers);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
     addFocus && element !== VEventMode.lock_() && element !== document.activeElement && element.focus && element.focus();
-    VDom.mouse(element, "mouseup", rect, modifiers);
-    return VDom.mouse(element, "click", rect, modifiers);
+    VDom.mouse_(element, "mouseup", rect, modifiers);
+    return VDom.mouse_(element, "click", rect, modifiers);
   },
-  simulateSelect (element, rect, flash, action, suppressRepeated): void {
+  simulateSelect_ (element, rect, flash, action, suppressRepeated): void {
     const y = window.scrollY;
-    this.click(element, rect, null, true);
-    VDom.ensureInView(element, y);
+    this.click_(element, rect, null, true);
+    VDom.view(element, y);
     // re-compute rect of element, in case that an input is resized when focused
-    flash && this.flash(element);
+    flash && this.flash_(element);
     if (element !== VEventMode.lock_()) { return; }
-    this.moveSel(element, action);
-    if (suppressRepeated === true) { return this.suppressTail(true); }
+    this.moveSel_(element, action);
+    if (suppressRepeated === true) { return this.suppressTail_(true); }
   },
-  moveSel (element, action): void {
+  moveSel_ (element, action): void {
     type TextElement = HTMLInputElement | HTMLTextAreaElement;
     const type = element instanceof HTMLTextAreaElement ? EditableType.Editbox
         : element instanceof HTMLInputElement ? EditableType.input_
@@ -203,38 +204,38 @@ VDom.UI = {
       }
     } catch (e) {}
   },
-  getVRect (this: void, clickEl, refer): VRect | null {
-    VDom.getZoom(clickEl);
-    VDom.prepareCrop();
+  getVRect_ (this: void, clickEl, refer): VRect | null {
+    VDom.getZoom_(clickEl);
+    VDom.prepareCrop_();
     if (refer) {
-      return VDom.getClientRectsForAreas(refer, [], [clickEl as HTMLAreaElement]);
+      return VDom.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
-    const rect = VDom.getVisibleClientRect(clickEl),
-    cr = clickEl.getBoundingClientRect(), bcr = VDom.fromClientRect(cr);
-    return rect && !VDom.isContaining(bcr, rect) ? rect : VDom.NotVisible(null, cr) ? null : bcr;
+    const rect = VDom.getVisibleClientRect_(clickEl),
+    cr = clickEl.getBoundingClientRect(), bcr = VDom.fromClientRect_(cr);
+    return rect && !VDom.isContaining_(bcr, rect) ? rect : VDom.NotVisible_(null, cr) ? null : bcr;
   },
   _lastFlash: null,
-  flash: function (this: DomUI, el: Element | null, rect?: VRect | null): HTMLElement | void {
-    rect || (rect = this.getVRect(el as Element));
+  flash_: function (this: DomUI, el: Element | null, rect?: VRect | null): HTMLElement | void {
+    rect || (rect = this.getVRect_(el as Element));
     if (!rect) { return; }
-    const flashEl = VDom.createElement("div"), nfs = !document.webkitIsFullScreen;
+    const flashEl = VDom.createElement_("div"), nfs = !document.webkitIsFullScreen;
     flashEl.className = "R Flash";
-    VDom.setBoundary(flashEl.style, rect, nfs);
-    VDom.bZoom !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom);
-    this.addElement(flashEl);
+    VDom.setBoundary_(flashEl.style, rect, nfs);
+    VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
+    this.addElement_(flashEl);
     this._lastFlash = flashEl;
     setTimeout(() => {
       this._lastFlash === flashEl && (this._lastFlash = null);
       flashEl.remove();
-    }, this.flashLastingTime);
+    }, this.flashLastingTime_);
     return flashEl;
-  } as DomUI["flash"],
-  suppressTail (this: void, onlyRepeated: boolean): void {
+  } as DomUI["flash_"],
+  suppressTail_ (this: void, onlyRepeated: boolean): void {
     let func: HandlerNS.Handler<Function>, tick: number, timer: number;
     if (onlyRepeated) {
       func = function(event) {
         if (event.repeat) { return HandlerResult.Prevent; }
-        VUtils.remove(this);
+        VUtils.remove_(this);
         return HandlerResult.Nothing;
       };
     } else {
@@ -243,14 +244,14 @@ VDom.UI = {
       timer = setInterval(function(info?: TimerType) {
         if (Date.now() - tick > 150 || info === TimerType.fake) {
           clearInterval(timer);
-          VUtils && VUtils.remove(func);
+          VUtils && VUtils.remove_(func);
         }
       }, 75);
     }
-    VUtils.push(func, func);
+    VUtils.push_(func, func);
   },
-  SuppressMost (event) {
-    VKeyboard.isEscape(event) && VUtils.remove(this);
+  SuppressMost_ (event) {
+    VKeyboard.isEscape_(event) && VUtils.remove_(this);
     const key = event.keyCode;
     return key > VKeyCodes.f10 && key < VKeyCodes.minNotFn || key === VKeyCodes.f5 ?
       HandlerResult.Suppress : HandlerResult.Prevent;

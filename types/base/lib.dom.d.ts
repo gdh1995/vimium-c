@@ -3451,7 +3451,7 @@ interface HTMLIFrameElement extends HTMLElement, GetSVGDocument {
       */
     onload: (this: HTMLIFrameElement, ev: Event) => any;
     referrerPolicy?: string;
-    readonly sandbox: DOMSettableTokenList;
+    sandbox: DOMSettableTokenList | string;
     /**
       * Sets or retrieves whether the frame can be scrolled.
       */

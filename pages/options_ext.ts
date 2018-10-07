@@ -5,14 +5,13 @@ interface Window {
 }
 interface VDomProto {
   readonly UI: Readonly<DomUI>;
-  readonly mouse: VDomMouse;
-  ensureInView(el: Element, oldY?: number | undefined): boolean;
+  view(el: Element, oldY?: number | undefined): boolean;
 }
 declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
 
 $<ElementWithDelay>("#showCommands").onclick = function(event): void {
   if (!window.VDom) { return; }
-  let node: HTMLElement | null, root = VDom.UI.root;
+  let node: HTMLElement | null, root = VDom.UI.R;
   event && event.preventDefault();
   if (!root) {}
   else if (node = root.querySelector("#HClose") as HTMLElement | null) {
@@ -28,7 +27,7 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
   });
   if (event) { return; }
   setTimeout(function(): void {
-    const node = VDom.UI.root && VDom.UI.root.querySelector("#HelpDialog") as HTMLElement;
+    const node = VDom.UI.R && VDom.UI.R.querySelector("#HelpDialog") as HTMLElement;
     if (!node) { return; }
     (node.querySelector("#HClose") as HTMLElement).addEventListener("click", function(): void {
       window.location.hash = "";
@@ -294,7 +293,7 @@ Are you sure you want to continue?`
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
-  const node = VDom.UI.root && VDom.UI.root.querySelector("#HClose") as HTMLElement;
+  const node = VDom.UI.R && VDom.UI.R.querySelector("#HClose") as HTMLElement;
   if (node) { // reload help dialog
     node.click();
     $("#showCommands").click();

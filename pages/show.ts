@@ -7,7 +7,7 @@ interface ImportBody {
   (id: "shownText"): HTMLDivElement
 }
 declare var VPort: Readonly<VPort>, VHUD: Readonly<VHUD>,
-  VKeyboard: { getKeyChar (event: KeyboardEvent): string; getKey (event: EventControlKeys, ch: string): string; },
+  VKeyboard: { char (event: KeyboardEvent): string; key (event: EventControlKeys, ch: string): string; },
   Viewer: new (root: HTMLElement) => ViewerType;
 interface Window {
   readonly VKeyboard?: typeof VKeyboard
@@ -18,7 +18,6 @@ interface Window {
 }
 interface VDomProto {
   readonly UI: Readonly<DomUI>;
-  readonly mouse: VDomMouse;
 }
 interface ViewerType {
   readonly visible: boolean;
@@ -250,10 +249,10 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
   if (!window.VKeyboard) {
     return false;
   }
-  let ch = VKeyboard.getKeyChar(event);
+  let ch = VKeyboard.char(event);
   if (!ch) { return false; }
   let action: number = 0;
-  switch (VKeyboard.getKey(event, ch)) {
+  switch (VKeyboard.key(event, ch)) {
   case "<c-=>": case "+": case "=": case "<up>": action = 1; break;
   case "<left>": action = -2; break;
   case "<right>": action = 2; break;

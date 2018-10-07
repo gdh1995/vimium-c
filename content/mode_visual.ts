@@ -2,7 +2,7 @@ declare namespace VisualModeNS {
   const enum Action {
 
   }
-  type ValidActions = VisualModeNS.Action | ((this: any, count: number) => any);
+  type ValidActions = VisualModeNS.Action | ((this: {}, count: number) => void);
   type ForwardDir = 0 | 1;
   const enum G {
     character = 0, line = 1, lineboundary = 2, paragraph = 3, sentence = 4, word = 6, documentboundary = 7,
@@ -19,368 +19,368 @@ declare namespace VisualModeNS {
   }
 }
 var VVisualMode = {
-  mode: VisualModeNS.Mode.NotActive,
-  hud: "",
-  hudTimer: 0,
-  currentCount: 0,
-  currentSeconds: null as SafeDict<VisualModeNS.ValidActions> | null,
-  retainSelection: false,
-  selection: null as never as Selection,
-  activate (this: void, _0: number, options: CmdOptions["visualMode"]): void {
+  mode_: VisualModeNS.Mode.NotActive,
+  hud_: "",
+  hudTimer_: 0,
+  currentCount_: 0,
+  currentSeconds_: null as SafeDict<VisualModeNS.ValidActions> | null,
+  retainSelection_: false,
+  selection_: null as never as Selection,
+  activate_ (this: void, _0: number, options: CmdOptions["visualMode"]): void {
     const a = VVisualMode;
     let sel: Selection, type: string, mode: VisualModeNS.Mode, str: string;
-    a.init && a.init(options.words as string);
-    VDom.docSelectable = VDom.UI.getDocSelectable();
-    a.movement.selection = a.selection = sel = VDom.UI.getSelection();
-    VUtils.remove(a);
-    VUtils.push(a.onKeydown, a);
-    type = VDom.selType(sel);
-    if (!a.mode) { a.retainSelection = type === "Range"; }
+    a.init_ && a.init_(options.words as string);
+    VDom.docSelectable_ = VDom.UI.getDocSelectable_();
+    a.movement_.selection_ = a.selection_ = sel = VDom.UI.getSelection_();
+    VUtils.remove_(a);
+    VUtils.push_(a.onKeydown_, a);
+    type = VDom.selType_(sel);
+    if (!a.mode_) { a.retainSelection_ = type === "Range"; }
     str = typeof options.mode === "string" ? options.mode.toLowerCase() : "";
-    a.mode = mode = str ? str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line
+    a.mode_ = mode = str ? str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line
       : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
     if (mode !== VisualModeNS.Mode.Caret) {
-      a.movement.alterMethod = "extend";
+      a.movement_.alterMethod_ = "extend";
       const lock = VEventMode.lock_();
       if (!lock && (type === "Caret" || type === "Range")) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
-        VDom.getZoom(1);
-        VDom.prepareCrop();
-        if (!VDom.cropRectToVisible(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
+        VDom.getZoom_(1);
+        VDom.prepareCrop_();
+        if (!VDom.cropRectToVisible_(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
           sel.removeAllRanges();
         } else if (type === "Caret") {
-          a.movement.extendByOneCharacter(1) || a.movement.extend(0);
+          a.movement_.extendByOneCharacter_(1) || a.movement_.extend_(0);
         }
-        type = VDom.selType(sel);
+        type = VDom.selType_(sel);
       }
       if (type !== "Range" && (!lock || sel.toString().length <= 0)) {
         mode = VisualModeNS.Mode.Caret; str = "caret";
       }
     }
-    a.hudTimer && clearTimeout(a.hudTimer);
-    VHUD.show_(a.hud = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode", !!options.from_find);
-    if (a.mode !== mode) {
-      a.mode = mode;
-      a.prompt("No usable selection, entering caret mode\u2026", 1000);
+    a.hudTimer_ && clearTimeout(a.hudTimer_);
+    VHUD.show_(a.hud_ = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode", !!options.from_find);
+    if (a.mode_ !== mode) {
+      a.mode_ = mode;
+      a.prompt_("No usable selection, entering caret mode\u2026", 1000);
     }
-    VDom.UI.toggleSelectStyle(true);
-    if (mode !== VisualModeNS.Mode.Caret) { return mode === VisualModeNS.Mode.Line ? a.movement.extendToLine() : undefined; }
-    a.movement.alterMethod = "move";
+    VDom.UI.toggleSelectStyle_(true);
+    if (mode !== VisualModeNS.Mode.Caret) { return mode === VisualModeNS.Mode.Line ? a.movement_.extendToLine_() : undefined; }
+    a.movement_.alterMethod_ = "move";
     if (type === "Range") {
-      a.movement.collapseSelectionTo(0);
-    } else if (type === "None" && a.establishInitialSelectionAnchor()) {
-      a.deactivate();
+      a.movement_.collapseSelectionTo_(0);
+    } else if (type === "None" && a.establishInitialSelectionAnchor_()) {
+      a.deactivate_();
       return VHUD.showForDuration("Create a selection before entering visual mode.");
     }
-    a.movement.extend(1);
-    a.movement.scrollIntoView();
+    a.movement_.extend_(1);
+    a.movement_.scrollIntoView_();
   },
-  deactivate (isEsc?: 1): void {
-    if (!this.mode) { return; }
-    VUtils.remove(this);
-    if (!this.retainSelection) {
-      this.movement.collapseSelectionTo(isEsc && this.mode !== VisualModeNS.Mode.Caret ? 1 : 0);
+  deactivate_ (isEsc?: 1): void {
+    if (!this.mode_) { return; }
+    VUtils.remove_(this);
+    if (!this.retainSelection_) {
+      this.movement_.collapseSelectionTo_(isEsc && this.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
     const el = VEventMode.lock_();
-    el && VDom.getEditableType(el) && el.blur && el.blur();
-    VDom.UI.toggleSelectStyle(false);
-    this.mode = VisualModeNS.Mode.NotActive; this.hud = "";
-    this.retainSelection = false;
-    this.selection = this.movement.selection = null as never;
+    el && VDom.getEditableType_(el) && el.blur && el.blur();
+    VDom.UI.toggleSelectStyle_(false);
+    this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
+    this.retainSelection_ = false;
+    this.selection_ = this.movement_.selection_ = null as never;
     return VHUD.hide_();
   },
-  onKeydown (event: KeyboardEvent): HandlerResult {
+  onKeydown_ (event: KeyboardEvent): HandlerResult {
     let i: VKeyCodes | KeyStat = event.keyCode, count = 0;
     if (i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn) { return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing; }
     if (i === VKeyCodes.enter) {
-      i = VKeyboard.getKeyStat(event);
-      if ((i & KeyStat.shiftKey) && this.mode !== VisualModeNS.Mode.Caret) { this.retainSelection = true; }
-      (i & KeyStat.PrimaryModifier) ? this.deactivate() : this.yank(i === KeyStat.altKey || null);
+      i = VKeyboard.getKeyStat_(event);
+      if ((i & KeyStat.shiftKey) && this.mode_ !== VisualModeNS.Mode.Caret) { this.retainSelection_ = true; }
+      (i & KeyStat.PrimaryModifier) ? this.deactivate_() : this.yank_(i === KeyStat.altKey || null);
       return HandlerResult.Prevent;
     }
-    if (VKeyboard.isEscape(event)) {
-      this.currentCount || this.currentSeconds ? this.resetKeys() : this.deactivate(1);
+    if (VKeyboard.isEscape_(event)) {
+      this.currentCount_ || this.currentSeconds_ ? this.resetKeys_() : this.deactivate_(1);
       return HandlerResult.Prevent;
     }
-    const ch = VKeyboard.getKeyChar(event);
-    if (!ch) { this.resetKeys(); return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress; }
-    let key = VKeyboard.getKey(event, ch), obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
+    const ch = VKeyboard.char(event);
+    if (!ch) { this.resetKeys_(); return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress; }
+    let key = VKeyboard.key(event, ch), obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
     key = VEventMode.mapKey_(key);
-    if (obj = this.currentSeconds) {
+    if (obj = this.currentSeconds_) {
       obj = obj[key];
-      count = this.currentCount;
-      this.resetKeys();
+      count = this.currentCount_;
+      this.resetKeys_();
     }
     if (obj != null) {}
-    else if (key.length === 1 && (i = +key[0]) < 10 && (i || this.currentCount)) {
-      this.currentCount = this.currentCount * 10 + i;
-      this.currentSeconds = null;
-    } else if ((obj = this.keyMap[key]) == null) {
-      this.currentCount = 0;
+    else if (key.length === 1 && (i = +key[0]) < 10 && (i || this.currentCount_)) {
+      this.currentCount_ = this.currentCount_ * 10 + i;
+      this.currentSeconds_ = null;
+    } else if ((obj = this.keyMap_[key]) == null) {
+      this.currentCount_ = 0;
     } else if (typeof obj === "object") {
-      this.currentSeconds = obj;
+      this.currentSeconds_ = obj;
       obj = null;
     } else {
-      count = this.currentCount;
-      this.currentCount = 0;
+      count = this.currentCount_;
+      this.currentCount_ = 0;
     }
     if (obj == null) { return ch.length === 1 && ch === key ? HandlerResult.Prevent : HandlerResult.Suppress; }
-    this.commandHandler(obj, count || 1);
+    this.commandHandler_(obj, count || 1);
     return HandlerResult.Prevent;
   },
-  resetKeys (): void {
-    this.currentCount = 0; this.currentSeconds = null;
+  resetKeys_ (): void {
+    this.currentCount_ = 0; this.currentSeconds_ = null;
   },
-  commandHandler (command: VisualModeNS.ValidActions, count: number): any {
+  commandHandler_ (command: VisualModeNS.ValidActions, count: number): void {
     if (command > 50) {
       if (command > 60) {
-        return VScroller.scrollBy(1, (command === 61 ? 1 : -1) * count, 0);
+        return VScroller.scrollBy_(1, (command === 61 ? 1 : -1) * count, 0);
       }
-      if (command === 53 && this.mode !== VisualModeNS.Mode.Caret) {
-        const flag = this.selection.toString().length > 1;
-        this.movement.collapseSelectionTo(+flag as 0 | 1);
+      if (command === 53 && this.mode_ !== VisualModeNS.Mode.Caret) {
+        const flag = this.selection_.toString().length > 1;
+        this.movement_.collapseSelectionTo_(+flag as 0 | 1);
       }
-      return this.activate(1, VUtils.safer({ mode: ["visual", "line", "caret"][(command as number - 51) as 0 | 1 | 2] }));
+      return this.activate_(1, VUtils.safer_({ mode: ["visual", "line", "caret"][(command as number - 51) as 0 | 1 | 2] }));
     }
-    this.mode === VisualModeNS.Mode.Caret && this.movement.collapseSelectionTo(0);
+    this.mode_ === VisualModeNS.Mode.Caret && this.movement_.collapseSelectionTo_(0);
     if (command >= 0) {
-      this.movement.runMovements(((command as number) & 1) as 0 | 1, (command as number) >>> 1, count);
+      this.movement_.runMovements_(((command as number) & 1) as 0 | 1, (command as number) >>> 1, count);
     } else {
-      (command as (count: number) => any).call(this, count);
+      (command as (count: number) => void).call(this, count);
     }
-    return this.mode === VisualModeNS.Mode.Caret ? this.movement.extend(1)
-    : this.mode === VisualModeNS.Mode.Line ? this.movement.extendToLine() : 0;
+    this.mode_ === VisualModeNS.Mode.Caret ? this.movement_.extend_(1)
+    : this.mode_ === VisualModeNS.Mode.Line ? this.movement_.extendToLine_() : 0;
   },
-  establishInitialSelectionAnchor (): boolean {
+  establishInitialSelectionAnchor_ (): boolean {
     let node: Text | null, element: Element, str: string | undefined, offset: number;
-    if (!VDom.isHTML()) { return true; }
-    VDom.getZoom(1);
-    VDom.prepareCrop();
+    if (!VDom.isHTML_()) { return true; }
+    VDom.getZoom_(1);
+    VDom.prepareCrop_();
     const nodes = document.createTreeWalker(document.body || document.documentElement as HTMLElement, NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         element = node.parentElement as Element;
         if (element instanceof HTMLFormElement) { continue; }
-        if (VDom.getVisibleClientRect(element) && !VDom.getEditableType(element)) {
+        if (VDom.getVisibleClientRect_(element) && !VDom.getEditableType_(element)) {
           break;
         }
       }
     }
     if (!node) { return true; }
     offset = ((str as string).match(<RegExpOne>/^\s*/) as RegExpMatchArray)[0].length;
-    this.selection.collapse(node, offset);
-    return !this.selection.rangeCount;
+    this.selection_.collapse(node, offset);
+    return !this.selection_.rangeCount;
   },
-  prompt (text: string, duration: number): void {
-    this.hudTimer && clearTimeout(this.hudTimer);
-    this.hudTimer = setTimeout(this.ResetHUD, duration);
+  prompt_ (text: string, duration: number): void {
+    this.hudTimer_ && clearTimeout(this.hudTimer_);
+    this.hudTimer_ = setTimeout(this.ResetHUD_, duration);
     return VHUD.show_(text);
   },
-  ResetHUD (i?: TimerType.fake | undefined): void {
+  ResetHUD_ (i?: TimerType.fake | undefined): void {
     const _this = VVisualMode;
     if (!_this || i) { return; }
-    _this.hudTimer = 0;
-    if (_this.hud) { return VHUD.show_(_this.hud); }
+    _this.hudTimer_ = 0;
+    if (_this.hud_) { return VHUD.show_(_this.hud_); }
   },
-  find (count: number): void {
-    if (!VFindMode.query) {
+  find_ (count: number): void {
+    if (!VFindMode.query_) {
       VPort.send_({ handler: "findQuery" }, function(query): void {
         if (query) {
-          VFindMode.updateQuery(query);
-          return VVisualMode.find(count);
+          VFindMode.updateQuery_(query);
+          return VVisualMode.find_(count);
         } else {
-          return VVisualMode.prompt("No history queries", 1000);
+          return VVisualMode.prompt_("No history queries", 1000);
         }
       });
       return;
     }
-    const range = this.selection.getRangeAt(0);
-    VFindMode.execute(null, { noColor: true, count });
-    if (VFindMode.hasResults) {
-      if (this.mode === VisualModeNS.Mode.Caret && this.selection.toString().length > 0) {
-        this.activate(1, Object.create(null) as SafeObject & CmdOptions["visualMode"]);
+    const range = this.selection_.getRangeAt(0);
+    VFindMode.execute_(null, { noColor: true, count });
+    if (VFindMode.hasResults_) {
+      if (this.mode_ === VisualModeNS.Mode.Caret && this.selection_.toString().length > 0) {
+        this.activate_(1, Object.create(null) as SafeObject & CmdOptions["visualMode"]);
       }
       return;
     }
-    this.selection.removeAllRanges();
-    this.selection.addRange(range);
-    return this.prompt("No matches for " + VFindMode.query, 1000);
+    this.selection_.removeAllRanges();
+    this.selection_.addRange(range);
+    return this.prompt_("No matches for " + VFindMode.query_, 1000);
   },
-  yank (action?: true | ReuseType.current | ReuseType.newFg | null): void {
-    const str = this.selection.toString();
+  yank_ (action?: true | ReuseType.current | ReuseType.newFg | null): void {
+    const str = this.selection_.toString();
     if (action === true) {
-      this.prompt(VHUD.showCopied(str, "", true), 2000);
+      this.prompt_(VHUD.showCopied(str, "", true), 2000);
       action = null;
     } else {
-      this.deactivate();
+      this.deactivate_();
       action != null || VHUD.showCopied(str);
     }
     VPort.post(action != null ? { handler: "openUrl", url: str, reuse: action }
         : { handler: "copy", data: str });
   },
 
-movement: {
+movement_: {
   D: ["backward", "forward"] as ["backward", "forward"],
   G: ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
       "documentboundary"] as
      ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
       "documentboundary"],
-  alterMethod: "" as "move" | "extend",
-  diOld: 0 as VisualModeNS.ForwardDir,
-  diNew: 0 as VisualModeNS.ForwardDir,
-  noExtend: false,
-  selection: null as never as Selection,
-  wordRe: null as never as RegExpOne,
-  extend (d: VisualModeNS.ForwardDir): void | 1 {
-    return this.selection.modify("extend", this.D[d], "character");
+  alterMethod_: "" as "move" | "extend",
+  diOld_: 0 as VisualModeNS.ForwardDir,
+  diNew_: 0 as VisualModeNS.ForwardDir,
+  noExtend_: false,
+  selection_: null as never as Selection,
+  wordRe_: null as never as RegExpOne,
+  extend_ (d: VisualModeNS.ForwardDir): void | 1 {
+    return this.selection_.modify("extend", this.D[d], "character");
   },
-  modify (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
-    return this.selection.modify(this.alterMethod, this.D[d], this.G[g as 0 | 1 | 2]);
+  modify_ (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
+    return this.selection_.modify(this.alterMethod_, this.D[d], this.G[g as 0 | 1 | 2]);
   },
-  setDi (): VisualModeNS.ForwardDir { return this.diNew = this.getDirection(); },
-  getNextForwardCharacter (isMove: boolean): string | null {
-    const beforeText = this.selection.toString();
-    if (beforeText.length > 0 && !this.getDirection(true)) {
-      this.noExtend = true;
+  setDi_ (): VisualModeNS.ForwardDir { return this.diNew_ = this.getDirection_(); },
+  getNextForwardCharacter_ (isMove: boolean): string | null {
+    const beforeText = this.selection_.toString();
+    if (beforeText.length > 0 && !this.getDirection_(true)) {
+      this.noExtend_ = true;
       return beforeText[0];
     }
-    this.extend(1);
-    const afterText = this.selection.toString();
+    this.extend_(1);
+    const afterText = this.selection_.toString();
     if (afterText.length !== beforeText.length || beforeText !== afterText) {
-      this.noExtend = isMove;
-      isMove && this.extend(0);
+      this.noExtend_ = isMove;
+      isMove && this.extend_(0);
       return afterText[afterText.length - 1];
     }
-    this.noExtend = false;
+    this.noExtend_ = false;
     return null;
   },
-  runMovements (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG, count: number): void {
+  runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG, count: number): void {
     if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
-      if (direction) { return this.moveForwardByWord(granularity === VisualModeNS.VimG.vimword, count); }
+      if (direction) { return this.moveForwardByWord_(granularity === VisualModeNS.VimG.vimword, count); }
       granularity = VisualModeNS.G.word;
     }
-    let sel = this.selection, m = this.alterMethod, d = this.D[direction], g = this.G[granularity as 0 | 1 | 2];
+    let sel = this.selection_, m = this.alterMethod_, d = this.D[direction], g = this.G[granularity as 0 | 1 | 2];
     while (0 < count--) { sel.modify(m, d, g); }
   },
-  moveForwardByWord (vimLike: boolean, count: number): void {
-    let ch: string | null = null, isMove = this.alterMethod !== "extend";
-    this.getDirection(); this.diNew = 1; this.noExtend = false;
+  moveForwardByWord_ (vimLike: boolean, count: number): void {
+    let ch: string | null = null, isMove = this.alterMethod_ !== "extend";
+    this.getDirection_(); this.diNew_ = 1; this.noExtend_ = false;
     while (0 < count--) {
       do {
-        if (this.noExtend && this.moveByChar(isMove)) { return; }
-      } while ((ch = this.getNextForwardCharacter(isMove)) && vimLike === this.wordRe.test(ch));
+        if (this.noExtend_ && this.moveByChar_(isMove)) { return; }
+      } while ((ch = this.getNextForwardCharacter_(isMove)) && vimLike === this.wordRe_.test(ch));
       do {
-        if (this.noExtend && this.moveByChar(isMove)) { return; }
-      } while ((ch = this.getNextForwardCharacter(isMove)) && vimLike !== this.wordRe.test(ch));
+        if (this.noExtend_ && this.moveByChar_(isMove)) { return; }
+      } while ((ch = this.getNextForwardCharacter_(isMove)) && vimLike !== this.wordRe_.test(ch));
     }
     // `ch &&` is needed according to tests for command `w`
-    ch && !this.noExtend && this.extend(0);
+    ch && !this.noExtend_ && this.extend_(0);
   },
-  hashSelection (): string {
-    const range = this.selection.getRangeAt(0);
-    return this.selection.toString().length + "/" +
+  hashSelection_ (): string {
+    const range = this.selection_.getRangeAt(0);
+    return this.selection_.toString().length + "/" +
       range.anchorOffset + "/" + range.focusOffset + "/" +
-      this.selection.extentOffset + "/" +this.selection.baseOffset;
+      this.selection_.extentOffset + "/" +this.selection_.baseOffset;
   },
-  moveByChar (isMove: boolean): boolean {
-    const before = isMove || this.hashSelection();
-    this.modify(1, VisualModeNS.G.character);
-    return isMove ? false : this.hashSelection() === before;
+  moveByChar_ (isMove: boolean): boolean {
+    const before = isMove || this.hashSelection_();
+    this.modify_(1, VisualModeNS.G.character);
+    return isMove ? false : this.hashSelection_() === before;
   },
-  reverseSelection (): void {
-    const el = VEventMode.lock_(), direction = this.getDirection(true);
+  reverseSelection_ (): void {
+    const el = VEventMode.lock_(), direction = this.getDirection_(true);
     if (el && !(el instanceof HTMLFormElement)
-        && (VDom.editableTypes[el.nodeName.toLowerCase()] as EditableType) > EditableType.Embed) {
-      let length = this.selection.toString().length;
-      this.collapseSelectionTo(1);
-      this.diNew = this.diOld = (1 - direction) as VisualModeNS.ForwardDir;
-      while (0 < length--) { this.modify(this.diOld, 0); }
+        && (VDom.editableTypes_[el.nodeName.toLowerCase()] as EditableType) > EditableType.Embed) {
+      let length = this.selection_.toString().length;
+      this.collapseSelectionTo_(1);
+      this.diNew_ = this.diOld_ = (1 - direction) as VisualModeNS.ForwardDir;
+      while (0 < length--) { this.modify_(this.diOld_, 0); }
       return;
     }
-    const original = this.selection.getRangeAt(0),
+    const original = this.selection_.getRangeAt(0),
     str = direction ? "start" : "end";
-    this.diNew = this.diOld = (1 - direction) as VisualModeNS.ForwardDir;
-    this.collapse(this.diNew);
-    this.selection.extend(original[(str + "Container") as "endContainer"], original[(str + "Offset") as "endOffset"]);
+    this.diNew_ = this.diOld_ = (1 - direction) as VisualModeNS.ForwardDir;
+    this.collapse_(this.diNew_);
+    this.selection_.extend(original[(str + "Container") as "endContainer"], original[(str + "Offset") as "endOffset"]);
   },
-  extendByOneCharacter (direction: VisualModeNS.ForwardDir): number {
-    const length = this.selection.toString().length;
-    this.extend(direction);
-    return this.selection.toString().length - length;
+  extendByOneCharacter_ (direction: VisualModeNS.ForwardDir): number {
+    const length = this.selection_.toString().length;
+    this.extend_(direction);
+    return this.selection_.toString().length - length;
   },
-  getDirection (cache?: boolean): VisualModeNS.ForwardDir {
+  getDirection_ (cache?: boolean): VisualModeNS.ForwardDir {
     let di: VisualModeNS.ForwardDir = 1, change: number;
-    if (cache && this.diOld === this.diNew) { return this.diOld; }
-    if (change = this.extendByOneCharacter(di) || this.extendByOneCharacter(di = 0)) {
-      this.extend((1 - di) as VisualModeNS.ForwardDir);
+    if (cache && this.diOld_ === this.diNew_) { return this.diOld_; }
+    if (change = this.extendByOneCharacter_(di) || this.extendByOneCharacter_(di = 0)) {
+      this.extend_((1 - di) as VisualModeNS.ForwardDir);
     }
-    return this.diOld = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
+    return this.diOld_ = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
   },
-  collapseSelectionTo (direction: VisualModeNS.ForwardDir) {
-    this.selection.toString().length > 0 && this.collapse(this.getDirection() - direction);
+  collapseSelectionTo_ (direction: VisualModeNS.ForwardDir) {
+    this.selection_.toString().length > 0 && this.collapse_(this.getDirection_() - direction);
   },
-  collapse (toStart: number): void | 1 {
-    return toStart ? this.selection.collapseToStart() : this.selection.collapseToEnd();
+  collapse_ (toStart: number): void | 1 {
+    return toStart ? this.selection_.collapseToStart() : this.selection_.collapseToEnd();
   },
-  selectLexicalEntity (entity: VisualModeNS.G, count: number): void {
-    this.collapseSelectionTo(1);
-    entity === VisualModeNS.G.word && this.modify(1, VisualModeNS.G.character);
-    this.modify(0, entity);
-    this.collapseSelectionTo(1);
-    return this.runMovements(1, entity, count);
+  selectLexicalEntity_ (entity: VisualModeNS.G, count: number): void {
+    this.collapseSelectionTo_(1);
+    entity === VisualModeNS.G.word && this.modify_(1, VisualModeNS.G.character);
+    this.modify_(0, entity);
+    this.collapseSelectionTo_(1);
+    return this.runMovements_(1, entity, count);
   },
-  selectLine (count: number): void | 1 {
-    this.alterMethod = "extend";
-    this.setDi() && this.reverseSelection();
-    this.modify(0, VisualModeNS.G.lineboundary);
-    this.reverseSelection();
-    while (0 < --count) { this.modify(1, VisualModeNS.G.line); }
-    this.modify(1, VisualModeNS.G.lineboundary);
-    const ch = this.getNextForwardCharacter(false);
-    if (ch && !this.noExtend && ch !== "\n") {
-      return this.extend(0);
+  selectLine_ (count: number): void | 1 {
+    this.alterMethod_ = "extend";
+    this.setDi_() && this.reverseSelection_();
+    this.modify_(0, VisualModeNS.G.lineboundary);
+    this.reverseSelection_();
+    while (0 < --count) { this.modify_(1, VisualModeNS.G.line); }
+    this.modify_(1, VisualModeNS.G.lineboundary);
+    const ch = this.getNextForwardCharacter_(false);
+    if (ch && !this.noExtend_ && ch !== "\n") {
+      return this.extend_(0);
     }
   },
-  extendToLine (): void {
-    this.setDi();
+  extendToLine_ (): void {
+    this.setDi_();
     for (let i = 2; 0 < i--; ) {
-      this.modify(this.diOld, VisualModeNS.G.lineboundary);
-      this.reverseSelection();
+      this.modify_(this.diOld_, VisualModeNS.G.lineboundary);
+      this.reverseSelection_();
     }
   },
-  scrollIntoView (): void {
-    if (!this.selection.rangeCount) { return; }
-    const focused = VDom.getElementWithFocus(this.selection, this.getDirection());
-    if (focused) { return VScroller.scrollIntoView(focused); }
+  scrollIntoView_ (): void {
+    if (!this.selection_.rangeCount) { return; }
+    const focused = VDom.getElementWithFocus_(this.selection_, this.getDirection_());
+    if (focused) { return VScroller.scrollIntoView_(focused); }
   },
 },
 
-keyMap: {
+keyMap_: {
   l: 1, h: 0, j: 3, k: 2, e: 13, b: 12, w: 11, ")": 9, "(": 8, "}": 7, "{": 6,
   0: 4, $: 5, G: 15, g: { g: 14 }, B: 12, W: 11,
   v: 51, V: 52, c: 53,
   a: {
     w (count): void {
-      return (this as typeof VVisualMode).movement.selectLexicalEntity(VisualModeNS.G.word, count);
+      return (this as typeof VVisualMode).movement_.selectLexicalEntity_(VisualModeNS.G.word, count);
     },
     s (count): void {
-      return (this as typeof VVisualMode).movement.selectLexicalEntity(VisualModeNS.G.sentence, count);
+      return (this as typeof VVisualMode).movement_.selectLexicalEntity_(VisualModeNS.G.sentence, count);
     }
   },
-  n (count): void { return (this as typeof VVisualMode).find(count); },
-  N (count): void { return (this as typeof VVisualMode).find(-count); },
+  n (count): void { return (this as typeof VVisualMode).find_(count); },
+  N (count): void { return (this as typeof VVisualMode).find_(-count); },
   "/": function(): void | boolean {
-    clearTimeout((this as typeof VVisualMode).hudTimer);
-    return VFindMode.activate(1, VUtils.safer({ returnToViewport: true }));
+    clearTimeout((this as typeof VVisualMode).hudTimer_);
+    return VFindMode.activate_(1, VUtils.safer_({ returnToViewport: true }));
   },
-  y (): void { return (this as typeof VVisualMode).yank(); },
-  Y (count): void { (this as typeof VVisualMode).movement.selectLine(count); return (this as typeof VVisualMode).yank(); },
-  C (): void { return (this as typeof VVisualMode).yank(true); },
-  p (): void { return (this as typeof VVisualMode).yank(0); },
-  P (): void { return (this as typeof VVisualMode).yank(-1); },
+  y (): void { return (this as typeof VVisualMode).yank_(); },
+  Y (count): void { (this as typeof VVisualMode).movement_.selectLine_(count); return (this as typeof VVisualMode).yank_(); },
+  C (): void { return (this as typeof VVisualMode).yank_(true); },
+  p (): void { return (this as typeof VVisualMode).yank_(0); },
+  P (): void { return (this as typeof VVisualMode).yank_(-1); },
   o (): void {
-    (this as typeof VVisualMode).movement.setDi();
-    return (this as typeof VVisualMode).movement.reverseSelection();
+    (this as typeof VVisualMode).movement_.setDi_();
+    return (this as typeof VVisualMode).movement_.reverseSelection_();
   },
   "<c-e>": 61, "<c-y>": 62, "<c-down>": 61, "<c-up>": 62
 } as {
@@ -389,10 +389,10 @@ keyMap: {
   };
 } as SafeDict<VisualModeNS.ValidActions | SafeDict<VisualModeNS.ValidActions>>,
 
-init: function(words: string) {
-  this.init = null as never;
-  var map = this.keyMap, func = VUtils.safer;
-  this.movement.wordRe = new RegExp(words);
+init_ (words: string) {
+  this.init_ = null as never;
+  var map = this.keyMap_, func = VUtils.safer_;
+  this.movement_.wordRe_ = new RegExp(words);
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }
 };

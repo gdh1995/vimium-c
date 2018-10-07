@@ -221,35 +221,35 @@ declare function setInterval(this: void, handler: (this: void, info?: TimerType)
 
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 interface DomUI {
-  box: HTMLDivElement | null;
-  styleIn: HTMLStyleElement | string | null;
-  styleOut: HTMLStyleElement | null;
-  /** `!!@root` must keep the same as `!!@box`*/ root: VUIRoot;
-  callback: null | ((this: void) => void);
-  flashLastingTime: number;
+  box_: HTMLDivElement | null;
+  styleIn_: HTMLStyleElement | string | null;
+  styleOut_: HTMLStyleElement | null;
+  /** `!!@R` must keep the same as `!!@box_`*/ R: VUIRoot;
+  callback_: null | ((this: void) => void);
+  flashLastingTime_: number;
   _lastFlash: HTMLElement | null;
-  addElement<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
-  addElementList(this: DomUI, els: ReadonlyArray<HintsNS.HintItem>, offset: ViewOffset): HTMLDivElement;
-  adjust (this: void, event?: Event): void;
-  toggle (this: DomUI, enabled: boolean): void;
+  addElement_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
+  addElementList_(this: DomUI, els: ReadonlyArray<HintsNS.HintItem>, offset: ViewOffset): HTMLDivElement;
+  adjust_ (this: void, event?: Event): void;
+  toggle_ (this: DomUI, enabled: boolean): void;
   _styleBorder: { el: HTMLStyleElement, zoom: number } | null;
-  ensureBorder (this: DomUI, zoom?: number): void;
-  createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
-  css (this: DomUI, innerCSS: string): void;
-  getDocSelectable (this: DomUI): boolean;
-  toggleSelectStyle (this: DomUI, enable: boolean): void;
-  getSelection (this: DomUI): Selection;
-  getSelectionText (notTrim?: 1): string;
-  removeSelection (this: DomUI, root?: DocumentOrShadowRoot | VUIRoot): boolean;
-  click (this: DomUI, element: Element, rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
-  simulateSelect (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean
+  ensureBorder_ (this: DomUI, zoom?: number): void;
+  createStyle_ (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
+  css_ (this: DomUI, innerCSS: string): void;
+  getDocSelectable_ (this: DomUI): boolean;
+  toggleSelectStyle_ (this: DomUI, enable: boolean): void;
+  getSelection_ (this: DomUI): Selection;
+  getSelectionText_ (notTrim?: 1): string;
+  removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
+  click_ (this: DomUI, element: Element, rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
+  simulateSelect_ (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;
-  moveSel (this: DomUI, element: Element, action: SelectActions | undefined): void;
-  getVRect (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): VRect | null;
-  flash (this: DomUI, el: null, rect: VRect): number;
-  flash (this: DomUI, el: Element): HTMLElement | void;
-  suppressTail (this: void, onlyRepeated: boolean): void;
-  SuppressMost: HandlerNS.Handler<object>;
+  moveSel_ (this: DomUI, element: Element, action: SelectActions | undefined): void;
+  getVRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): VRect | null;
+  flash_ (this: DomUI, el: null, rect: VRect): number;
+  flash_ (this: DomUI, el: Element): HTMLElement | void;
+  suppressTail_ (this: void, onlyRepeated: boolean): void;
+  SuppressMost_: HandlerNS.Handler<{}>;
 }
 
 interface VDomMouse {
@@ -275,8 +275,8 @@ interface VEventMode {
   lock_(this: void): Element | null;
   suppress_(keyCode?: VKeyCodes): void;
   OnWndFocus_ (this: void): void;
-  focusAndListen (this: void, callback?: (() => void) | null, timedout?: 0): void;
-  focus (this: void, request: BgReq["focusFrame"]): void;
+  focusAndListen_ (this: void, callback?: (() => void) | null, timedout?: 0): void;
+  focus_ (this: void, request: BgReq["focusFrame"]): void;
   onWndBlur_ (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
   mapKey_ (this: void, key: string): string;
@@ -287,10 +287,9 @@ interface VEventMode {
     (this: void): KeydownCacheArray;
   };
   OnScrolls_: {
-    0: (this: any, event: KeyboardEvent) => BOOL | 28;
-    1: (this: Window, event: KeyboardEvent) => void;
-    2: (this: Window, event: Event) => void;
-    3: (wnd: Window, interval?: number) => void;
+    0: (this: {}, event: KeyboardEvent) => BOOL | 28;
+    1: (wnd: Window, interval?: number) => void;
+    2: (this: Window, event: KeyboardEvent & {type: "keyup"} | Event & {type: "blur"}) => void;
   } 
 }
 interface VHUD {
@@ -307,7 +306,7 @@ interface VHUD {
 interface VSettings {
   enabled_: boolean;
   cache: SettingsNS.FrontendSettingCache;
-  uninit_: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => any) | null;
+  uninit_: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => void) | null;
   destroy_ (this: void, silent?: boolean): void;
 }
 declare var VimiumInjector: VimiumInjector, VSettings: VSettings;

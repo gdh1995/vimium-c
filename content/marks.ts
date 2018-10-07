@@ -1,55 +1,55 @@
 var VMarks = {
-  onKeyChar: null as never as (event: HandlerNS.Event, keyChar: string) => void,
-  prefix: true,
-  swap: true,
-  activate (this: void, _0: number, options: CmdOptions["marks"]): void {
+  onKeyChar_: null as never as (event: HandlerNS.Event, keyChar: string) => void,
+  prefix_: true,
+  swap_: true,
+  activate_ (this: void, _0: number, options: CmdOptions["marks"]): void {
     const a = VMarks;
     const isGo = options.mode !== "create";
-    a.onKeyChar = isGo ? a._goto : a._create;
-    a.prefix = options.prefix !== false;
-    a.swap = options.swap === true;
-    VUtils.push(a.onKeydown, a);
+    a.onKeyChar_ = isGo ? a._goto : a._create;
+    a.prefix_ = options.prefix !== false;
+    a.swap_ = options.swap === true;
+    VUtils.push_(a.onKeydown_, a);
     return VHUD.show_(isGo ? "Go to mark\u2026" : "Create mark\u2026");
   },
-  onKeydown (event: HandlerNS.Event): HandlerResult {
-    const keyCode = event.keyCode, cont = !VKeyboard.isEscape(event);
+  onKeydown_ (event: HandlerNS.Event): HandlerResult {
+    const keyCode = event.keyCode, cont = !VKeyboard.isEscape_(event);
     let keyChar: string | undefined;
     if (cont && (keyCode > VKeyCodes.f1 && keyCode < VKeyCodes.minNotFn || keyCode < VKeyCodes.minNotSpace
-        || !(keyChar = VKeyboard.getKeyChar(event)) || keyChar.length !== 1)) {
+        || !(keyChar = VKeyboard.char(event)) || keyChar.length !== 1)) {
       return 1;
     }
-    VUtils.remove(this);
-    cont && keyCode > VKeyCodes.space ? this.onKeyChar(event, keyChar as string) : VHUD.hide_();
-    this.prefix = this.swap = true;
-    this.onKeyChar = null as never;
+    VUtils.remove_(this);
+    cont && keyCode > VKeyCodes.space ? this.onKeyChar_(event, keyChar as string) : VHUD.hide_();
+    this.prefix_ = this.swap_ = true;
+    this.onKeyChar_ = null as never;
     return 2;
   },
-  getLocationKey (keyChar: string): string {
+  getLocationKey_ (keyChar: string): string {
     return `vimiumMark|${location.href.split('#', 1)[0]}|${keyChar}`;
   },
   _previous: null as MarksNS.FgMark | null,
-  setPreviousPosition (): void {
+  setPreviousPosition_ (): void {
     this._previous = [ window.scrollX, window.scrollY, location.hash ];
   },
   _create (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {
-      this.setPreviousPosition();
+      this.setPreviousPosition_();
       return VHUD.showForDuration("Created local mark [last].", 1000);
-    } else if (event.shiftKey !== this.swap) {
+    } else if (event.shiftKey !== this.swap_) {
       if (window.top === window) {
-        return this.createMark(keyChar);
+        return this.createMark_(keyChar);
       } else {
         VPort.post({handler: "marks", action: "create", markName: keyChar});
         return VHUD.hide_();
       }
     } else {
-      return this.createMark(keyChar, "local");
+      return this.createMark_(keyChar, "local");
     }
   },
   _goto (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {
       const pos = this._previous;
-      this.setPreviousPosition();
+      this.setPreviousPosition_();
       if (pos) {
         this._scroll(pos);
       }
@@ -57,16 +57,16 @@ var VMarks = {
     }
     const req: Req.fg<"marks"> & { action: "goto" } = {
       handler: "marks", action: "goto",
-      prefix: this.prefix,
+      prefix: this.prefix_,
       markName: keyChar
     };
-    if (event.shiftKey !== this.swap) {
+    if (event.shiftKey !== this.swap_) {
       VHUD.hide_();
     } else {
       try {
-        let pos = null, key = this.getLocationKey(keyChar), markString = localStorage.getItem(key);
+        let pos = null, key = this.getLocationKey_(keyChar), markString = localStorage.getItem(key);
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
-          const { scrollX, scrollY, hash } = VUtils.safer(pos);
+          const { scrollX, scrollY, hash } = VUtils.safer_(pos);
           if (scrollX >= 0 && scrollY >= 0) {
             (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).old = {
               scrollX: scrollX | 0, scrollY: scrollY | 0, hash: "" + (hash || "")
@@ -87,7 +87,7 @@ var VMarks = {
       window.scrollTo(scroll[0], scroll[1]);
     }
   },
-  createMark (markName: string, local?: "local"): void {
+  createMark_ (markName: string, local?: "local"): void {
     VPort.post({
       handler: "marks",
       action: "create",
@@ -98,11 +98,11 @@ var VMarks = {
     });
     return VHUD.showForDuration(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },
-  GoTo (this: void, _0: number, options: CmdOptions["goToMarks"]): void {
+  GoTo_ (this: void, _0: number, options: CmdOptions["goToMarks"]): void {
     const { scroll, local, markName: a } = options;
-    a && VMarks.setPreviousPosition();
+    a && VMarks.setPreviousPosition_();
     VMarks._scroll(scroll);
-    local || VEventMode.focusAndListen();
+    local || VEventMode.focusAndListen_();
     if (a) {
       return VHUD.showForDuration(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
     }
