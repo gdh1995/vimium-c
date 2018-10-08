@@ -265,9 +265,9 @@ availableCommands: {
       id_mask: "$id"
     }, "openUrl" ],
   blank: [ "Do nothing", 1, true ],
-  toggleLinkHintCharacters: [ "Toggle the other link hints (use value)", 1, false,
-    { key: "linkHintCharacters" }, ".toggleSwitchTemp" ],
-  toggleSwitchTemp: [ "Toggle switch only in currnet page (use key[, value])", 1, false, null, "." ],
+  toggleLinkHintCharacters: [ "Toggle the other link hints (use value)", 1, true,
+    { key: "linkHintCharacters" }, "toggle" ],
+  toggleSwitchTemp: [ "Toggle switch only in currnet page (use key[, value])", 1, true, null, "toggle" ],
   scrollDown: [ "Scroll down", 0, false, null, "scBy" ],
   scrollUp: [ "Scroll up", 0, false, { count: -1 }, "scBy" ],
   scrollLeft: [ "Scroll left", 0, false, { count: -1, axis: "x" }, "scBy" ],

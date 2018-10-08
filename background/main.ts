@@ -1310,6 +1310,33 @@ Are you sure you want to continue?`);
     },
     clearMarks (this: void): void {
       return cOptions.local ? requireURL({ handler: "marks", action: "clear" }, true) : Marks.clear();
+    },
+    toggle (this: void): void {
+      type Keys = CmdOptions["toggle"]["key"];
+      const all = Settings.bufferToLoad, key: Keys = (cOptions.key || "") + "" as Keys,
+      old = all[key], keyRepr = '"' + key + '"';
+      let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
+      if (Settings.valuesToLoad.indexOf(key) < 0) {
+        msg = 'unknown option ' + keyRepr;
+      } else if (typeof old === "boolean") {
+        isBool || (value = null);
+      } else if (value === undefined) {
+        msg = 'need value=... for option ' + keyRepr;
+      } else if (isBool) {
+        msg = keyRepr + ' is not a boolean switch';
+      } else if (typeof value !== typeof old) {
+        msg = JSON.stringify(old);
+        msg = 'value of ' + keyRepr + ' should be like ' +
+          (msg.length > 10 ? msg.substring(0, 9) + "\u2026" : msg);
+      }
+      if (msg) {
+        Backend.showHUD(msg);
+      } else {
+        cPort.postMessage<1, "toggle">({
+          name: "execute", count: 1, command: "toggle", CSS: ensureInnerCSS(cPort),
+          options: { key, value }
+        });
+      }
     }
   },
   numHeadRe = <RegExpOne>/^-?\d+|^-/,

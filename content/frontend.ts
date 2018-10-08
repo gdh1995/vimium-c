@@ -274,7 +274,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     findMode: VFindMode.activate_,
     linkHints: VHints.activate,
     focusAndHint: VHints.ActivateAndFocus_,
-    unhoverLast: VHints.UnhoverLast_,
+    unhoverLast (this: void): void {
+      VDom.hover_(null);
+      VHUD.showForDuration("The last element is unhovered");
+    },
     marks: VMarks.activate_,
     goToMarks: VMarks.GoTo_,
     scBy: VScroller.ScBy,
@@ -291,29 +294,22 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       onWndBlur();
     },
 
-    toggleSwitchTemp (_0: number, options: CmdOptions["toggleSwitchTemp"]): void {
-      // TODO: move checks to backend
-      type Keys = keyof SettingsNS.FrontendSettingCache;
-      const key: Keys = (options.key || "") + "" as Keys, last: Keys = "old" + key as Keys,
-      cache = VSettings.cache, old = cache[key], keyRepr = '"' + key + '"';
-      let val = options.value, isBool = typeof val === "boolean", msg: string | undefined, u: undefined;
-      if (!(key in cache)) {
-        msg = 'unknown setting' + key;
-      } else if (typeof old === "boolean") {
-        isBool || (val = !old);
-      } else if (isBool) {
-        msg = keyRepr + 'is not a boolean switch';
-      } else if (cache[last] === u) {
-        cache[last] = old;
-      } else if (old === val) {
-        val = cache[last];
-        cache[last] = u as never;
+    toggle (_0: number, options: CmdOptions["toggle"]): void {
+      const key = options.key, backupKey = "_" + key as string as typeof key,
+      cache = VSettings.cache, cur = cache[key];
+      let val = options.value, u: undefined;
+      if (typeof cur === "boolean") {
+        val === null && (val = !cur);
       }
-      if (!msg) {
-        cache[key] = val;
-        msg = val === false ? keyRepr + " has been turned off"
-          : "Now " + keyRepr + (val === true ? " is on" : " use " + JSON.stringify(val));
+      if (cache[backupKey] === u) {
+        cache[backupKey] = cur;
+      } else if (cur === val) {
+        val = cache[backupKey];
+        cache[backupKey] = u as never;
       }
+      cache[key] = val as typeof cur;
+      let msg = val === false ? '"' + key + '" has been turned off'
+        : 'Now "' + key + (val === true ? '" is on' : '" use ' + JSON.stringify(val));
       return VHUD.showForDuration(msg, 1000);
     },
     insertMode (_0: number, opt: CmdOptions["insertMode"]): void {

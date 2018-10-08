@@ -128,9 +128,9 @@ interface CmdOptions {
     axis?: "y" | "x";
   };
   reset: FgOptions;
-  toggleSwitchTemp: {
-    key: string;
-    value: any;
+  toggle: {
+    key: keyof SettingsNS.FrontendSettings;
+    value: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
   };
   passNextKey: {
     normal?: false | true;
