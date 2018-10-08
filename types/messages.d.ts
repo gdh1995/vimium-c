@@ -107,7 +107,7 @@ interface FullBgReq extends BgReq, BgVomnibarReq {
 }
 
 interface FgOptions extends SafeDict<any> {}
-type SelectActions = "" | "all" | "all-input" | "start" | "end";
+type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
 interface CmdOptions {
   linkHints: FgOptions;

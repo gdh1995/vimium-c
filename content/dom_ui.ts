@@ -181,7 +181,7 @@ VDom.UI = {
         : element instanceof HTMLInputElement ? EditableType.input_
         : (element as HTMLElement).isContentEditable ? EditableType.rich_ : EditableType.Default;
     if (type === EditableType.Default) { return; }
-    if (action ? action === "all-input" && (type === EditableType.Editbox
+    if (action ? (action === "all-input" || action === "all-line") && (type === EditableType.Editbox
             || type === EditableType.rich_ && element.textContent.indexOf("\n") >= 0)
         : type === EditableType.rich_ || (element as TextElement).value.length <= 0
           || type === EditableType.Editbox && element.clientHeight + 12 < element.scrollHeight) {
