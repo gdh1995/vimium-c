@@ -1351,9 +1351,9 @@ Are you sure you want to continue?`);
     else if (repeat > 0 && (count > repeat || count < -repeat) && !confirm(command, Math.abs(count))) { return; }
     else { count = count || 1; }
     if (!background) {
-      const i = alias.indexOf(".");
-      command = i === 0 ? alias.substring(1) || command : alias;
-      port.postMessage({ name: "execute", command, CSS: i >= 0 ? ensureInnerCSS(port) : null, count, options });
+      const dot = alias.charCodeAt(0) === KnownKey.dot;
+      command = dot ? alias.substring(1) || command : alias;
+      port.postMessage({ name: "execute", command, CSS: dot || command === "linkHints" ? ensureInnerCSS(port) : null, count, options });
       return;
     }
     const func: BgCmd = BackgroundCommands[alias as keyof typeof BackgroundCommands];
