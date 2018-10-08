@@ -227,7 +227,8 @@ ContentSettings = {
     if (left <= 0) { return callback(true); }
     Object.setPrototypeOf(settings, null);
     for (const pattern of arr) {
-      const info: chrome.contentSettings.SetDetails = Object.setPrototypeOf({ primaryPattern: pattern }, settings);
+      const info = Utils.extendIf(Object.create(null) as chrome.contentSettings.SetDetails, settings);
+      info.primaryPattern = pattern;
       ref.set(info, func);
     }
   },
