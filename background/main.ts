@@ -1261,14 +1261,14 @@ Are you sure you want to continue?`);
           || page.startsWith("http:") && url.startsWith("https:")
         : port.sender.incognito) || url.startsWith(location.origin) || !!forceInner;
       const useInner: boolean = forceInner || page === inner || port.sender.tabId < 0,
-      options = Utils.extendIf(Object.setPrototypeOf({
+      options = Object.setPrototypeOf({
         vomnibar: useInner ? inner : page,
         vomnibar2: useInner ? null : inner,
         ptype: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         script: useInner ? "" : Settings.CONST.VomnibarScript_f,
         secret: getSecret(),
         CSS: ensureInnerCSS(port)
-      } as CmdOptions["vomnibar"], null), cOptions as any);
+      } as CmdOptions["vomnibar"], cOptions as any);
       port.postMessage<1, "vomnibar">({
         name: "execute", count: commandCount, CSS: null,
         command: "vomnibar",

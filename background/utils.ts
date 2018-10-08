@@ -708,7 +708,7 @@ var Utils = {
     if (options) {
       let rawCount = options.count;
       if (opt) {
-        opt instanceof Object && Object.setPrototypeOf(opt, null);
+        Object.setPrototypeOf(opt, null);
         Utils.extendIf(options, opt);
       }
       if (rawCount != null) {
