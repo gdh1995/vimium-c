@@ -267,9 +267,6 @@ interface FgReq {
     query: string;
     favIcon?: 0 | 1 | 2;
   } & CompletersNS.Options;
-  openCopiedUrl: {
-    keyword: string | null;
-  };
   copy: {
     data: string;
   };
