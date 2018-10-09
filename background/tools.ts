@@ -37,12 +37,14 @@ const VClipboard = {
   paste (): string | null | Promise<string | null> {
     if (!Settings.CONST.AllowClipboardRead) { return null; }
     const textArea = this.getTextArea();
+    textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
     (document.documentElement as HTMLHtmlElement).appendChild(textArea);
     textArea.focus();
     document.execCommand("paste");
-    let value = textArea.value;
+    let value = textArea.value.substring(0, GlobalConsts.MaxBufferLengthForPasting);
     textArea.remove();
     textArea.value = "";
+    textArea.removeAttribute('maxlength');
     value = value.replace(Utils.A0Re, " ");
     Utils.resetRe();
     return value;

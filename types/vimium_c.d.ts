@@ -250,6 +250,7 @@ declare const enum GlobalConsts {
   WndIdNone = -1,
   VomnibarSecretTimeout = 3000,
   MaxNumberOfNextPatterns = 200,
+  MaxBufferLengthForPasting = 8192,
   TimeoutToReleaseBackendModules = 1000 * 60,
 }
 
