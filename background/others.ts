@@ -484,14 +484,13 @@ setTimeout(function() {
     status: "complete"
   }, function(tabs) {
     const t = chrome.tabs, callback = () => chrome.runtime.lastError,
-    ref = {file: "", allFrames: true}, js = Settings.CONST.ContentScripts;
+    offset = location.origin.length + 1, js = Settings.CONST.ContentScripts;
     for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
       let url = tabs[_i].url;
       if (url.startsWith(BrowserProtocol) || url.indexOf("://") === -1) { continue; }
       let tabId = tabs[_i].id;
       for (let _j = 0; _j < _len; ++_j) {
-        ref.file = js[_j];
-        t.executeScript(tabId, ref, callback);
+        t.executeScript(tabId, {file: js[_j].substring(offset), allFrames: true}, callback);
       }
     }
     function now() {
