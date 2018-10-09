@@ -107,7 +107,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     needIcon = !!(Backend.IconBuffer && (Backend.IconBuffer() || Settings.get("showActionIcon")));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (const tabId in ref) {
-      const frames = ref[tabId] as Frames.Frames, status0 = frames[0].sender.status;
+      const frames = ref[+tabId] as Frames.Frames, status0 = frames[0].sender.status;
       for (let i = frames.length; 0 < --i; ) {
         const port = frames[i];
         if (always_enabled) {

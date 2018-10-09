@@ -52,7 +52,7 @@ var Settings = {
   broadcast<K extends keyof BgReq> (request: Req.bg<K>): void {
     const ref = Backend.indexPorts();
     for (const tabId in ref) {
-      const frames = ref[tabId] as Frames.Frames;
+      const frames = ref[+tabId] as Frames.Frames;
       for (let i = frames.length; 0 < --i; ) {
         frames[i].postMessage(request);
       }
@@ -145,7 +145,7 @@ var Settings = {
       this.set("innerCSS", css2 ? css + "\n" + css2 : css);
       const ref = Backend.indexPorts(), request = { name: "showHUD" as "showHUD", CSS: this.cache.innerCSS };
       for (const tabId in ref) {
-        const frames = ref[tabId] as Frames.Frames;
+        const frames = ref[+tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {
           if (frames[i].sender.flags & Frames.Flags.hasCSS) {
             frames[i].postMessage(request);

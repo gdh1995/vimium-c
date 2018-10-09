@@ -307,12 +307,12 @@ Marks = { // NOTE: all public members should be static
     if (!str) {
       return Backend.showHUD(`${local ? "Local" : "Global"} mark not set : ' ${markName} '.`);
     }
-    const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str);
+    const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str), tabId = +markInfo.tabId;
     markInfo.markName = markName;
     markInfo.prefix = request.prefix !== false && markInfo.scroll[1] === 0 && markInfo.scroll[0] === 0 &&
         !!Utils.IsURLHttp(markInfo.url);
-    if (Backend.indexPorts(markInfo.tabId)) {
-      chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
+    if (tabId >= 0 && Backend.indexPorts(tabId)) {
+      chrome.tabs.get(tabId, Marks.checkTab.bind(markInfo));
     } else {
       return Backend.focus(markInfo);
     }
@@ -433,7 +433,7 @@ IncognitoWatcher = {
     if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
       let left = false, arr = Backend.indexPorts();
       for (const i in arr) {
-        if ((arr[i] as Frames.Frames)[0].sender.incognito) { left = true; break; }
+        if ((arr[+i] as Frames.Frames)[0].sender.incognito) { left = true; break; }
       }
       if (left) { return; }
     }
