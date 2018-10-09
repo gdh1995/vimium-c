@@ -21,12 +21,19 @@ Option.prototype._onCacheUpdated = function<T extends keyof SettingsNS.FrontendS
   }
 };
 
-Option.saveOptions = function(): void {
+Option.saveOptions = function(): boolean {
   const arr = Option.all;
+  for (const i in arr) {
+    const opt = arr[i as keyof AllowedOptions];
+    if (!opt.saved && !opt.allowToSave()) {
+      return false;
+    }
+  }
   arr.vimSync.saved || arr.vimSync.save();
   for (const i in arr) {
     arr[i as keyof AllowedOptions].saved || arr[i as keyof AllowedOptions].save();
   }
+  return true;
 };
 
 Option.needSaveOptions = function(): boolean {
@@ -282,10 +289,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   saveBtn.onclick = function(virtually): void {
     if (virtually !== false) {
-      if (Option.allowToSave && !Option.allowToSave()) {
+      if (!Option.saveOptions()) {
         return;
       }
-      Option.saveOptions();
     }
     const toSync = Option.syncToFrontend;
     Option.syncToFrontend = [];

@@ -112,27 +112,29 @@ Option.all.searchUrl.checker = {
   }
 };
 
-Option.allowToSave = function(): boolean {
-  const arr = Option.all, { vimSync } = arr;
-  const newlyEnableSyncing = !vimSync.saved && vimSync.readValueFromElement() === true;
+Option.all.vimSync.allowToSave = function(): boolean {
+  const newlyEnableSyncing = !this.saved && this.readValueFromElement() === true;
   if (newlyEnableSyncing) {
+    const arr = Option.all;
     let delta = 0;
     for (const i in arr) {
       arr[i as keyof AllowedOptions].saved || ++delta;
     }
-    if (delta > 1) {
-      alert(
+    let tooMany = delta > 1;
+    setTimeout(alert, 100, tooMany ?
 `        Error:
 Sorry, but you're enabling the "Sync settings" option
     while some other options are also modified.
-Please only perform one action at a time!`);
-      return false;
-    }
-    setTimeout(alert, 100,
+Please only perform one action at a time!`
+      :
 `        Warning:
 the current settings will be OVERRIDDEN the next time Vimium C starts!
 Please back up your settings using the "Export Settings" button
-!!!        RIGHT NOW        !!!`);
+!!!        RIGHT NOW        !!!`
+    );
+    if (tooMany) {
+      return false;
+    }
   }
   return true;
 };
