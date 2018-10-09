@@ -47,15 +47,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     Listener_<K extends keyof FgRes, T extends keyof BgReq> (this: void
         , response: Req.res<K> | Req.bg<T>): void {
-      if (response.name === "msg") {
-        const arr = vPort._callbacks, id = (response as Req.res<K>).mid, handler = arr[id];
-        delete arr[id];
-        handler((response as Req.res<K>).response);
-      } else {
-        type TypeToCheck = { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void };
-        type TypeChecked = { [K in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
-        (requestHandlers as TypeToCheck as TypeChecked)[(response as Req.bg<T>).name as T](response as Req.bg<T>);
-      }
+      type TypeToCheck = { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void };
+      type TypeChecked = { [K in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
+      (requestHandlers as TypeToCheck as TypeChecked)[(response as Req.bg<T>).name as T](response as Req.bg<T>);
     },
     TestAlive_ (): void { esc && !vPort._port && VSettings.destroy_(); },
     ClearPort_ (this: void): void {
@@ -873,6 +867,11 @@ Pagination = {
       delete (request as Req.bg<"url">).name;
       request.url = window.location.href;
       post<T>(request);
+    },
+    msg<K extends keyof FgRes> (response: Req.res<K>): void {
+      const arr = vPort._callbacks, id = response.mid, handler = arr[id];
+      delete arr[id];
+      handler(response.response);
     },
     eval (options: BgReq["eval"]): void { VPort.evalIfOK_(options.url); },
     settingsUpdate ({ delta }: BgReq["settingsUpdate"]): void {
