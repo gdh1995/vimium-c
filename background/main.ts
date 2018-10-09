@@ -52,7 +52,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
 
   /** any change to `commandCount` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
-  needIcon = false, cKey: VKeyCodes = VKeyCodes.None, gCmdTimer = 0;
+  needIcon = false, cKey: VKeyCodes = VKeyCodes.None, gCmdTimer = 0, gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone;
 
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
@@ -201,12 +201,24 @@ var Backend: BackendHandlersNS.BackendHandlers;
       if (favIcon0 == 1 && Settings.CONST.ChromeVersion >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon) {
         url = url.substring(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
         const map = framesForTab;
+        let frame1 = gTabIdOfExtWithVomnibar >= 0 ? indexFrame(gTabIdOfExtWithVomnibar, 0) : null;
+        if (frame1 != null) {
+          if (frame1.sender.url.startsWith(url)) {
+            favIcon = 1;
+          } else {
+            gTabIdOfExtWithVomnibar = GlobalConsts.TabIdNone;
+          }
+        }
+        if (!favIcon)
         for (const tabId in map) {
-          let frames = map[tabId] as Frames.Frames;
+          let frames = map[+tabId] as Frames.Frames;
           for (let i = 1, len = frames.length; i < len; i++) {
             let { sender } = frames[i];
             if (sender.frameId === 0) {
-              if (sender.url.startsWith(url)) { favIcon = 1; }
+              if (sender.url.startsWith(url)) {
+                favIcon = 1;
+                gTabIdOfExtWithVomnibar = +tabId;
+              }
               break;
             }
           }
@@ -2154,7 +2166,8 @@ Are you sure you want to continue?`);
     if (!chrome.runtime.onConnectExternal) { return; }
     Settings.extWhiteList || Settings.postUpdate("extWhiteList");
     chrome.runtime.onConnectExternal.addListener(function(port): void {
-      if (port.sender && isExtIdAllowed(port.sender.id)
+      const { sender } = port;
+      if (sender && isExtIdAllowed(sender.id)
           // TODO: remove the old name on v1.69
           && (port.name.startsWith("vimium-c") || port.name.startsWith("vimium++"))) {
         return Connections.OnConnect(port as Frames.RawPort as Frames.Port);
