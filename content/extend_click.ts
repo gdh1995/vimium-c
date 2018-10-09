@@ -4,6 +4,10 @@
     , script = d.createElement("script") as HTMLScriptElement | Element
     , box: EventTarget | null | false = null
     , secret = "" + ((Math.random() * 1e6 + 1) | 0);
+  /**
+   * As said in https://github.com/philc/vimium/pull/1797#issuecomment-135761835
+   * it's safe enough if only no `document.createElementNS` on scripts initing
+   */
   if (!(script instanceof HTMLScriptElement)) { return; }
 
   function installer(event: CustomEvent): void {
