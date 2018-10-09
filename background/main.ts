@@ -1226,14 +1226,16 @@ Are you sure you want to continue?`);
       });
     },
     enterVisualMode (): void {
-      const { sender } = cPort, { flags } = sender;
-      sender.flags |= Frames.Flags.hadVisualMode;
-      if (!(flags & Frames.Flags.hadVisualMode)) {
-        (cOptions as CmdOptions["visualMode"]).words = CommandsData.wordsRe;
+      const { sender } = cPort;
+      let options = cOptions as CmdOptions["visualMode"];
+      if (!(sender.flags & Frames.Flags.hadVisualMode)) {
+        sender.flags |= Frames.Flags.hadVisualMode;
+        options = Utils.extendIf(Object.create(null) as CmdOptions["visualMode"], options);
+        options.words = CommandsData.wordsRe;
       }
       cPort.postMessage<1, "visualMode">({ name: "execute", count: 1, command: "visualMode",
         CSS: ensureInnerCSS(cPort),
-        options: cOptions as CmdOptions["visualMode"]
+        options
       });
     },
     performFind (): void {
