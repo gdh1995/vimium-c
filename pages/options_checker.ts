@@ -112,14 +112,29 @@ Option.all.searchUrl.checker = {
   }
 };
 
-Option.all.vimSync.checker = {
-  check (willSync: FullSettings["vimSync"]): FullSettings["vimSync"] {
-    if (willSync && !Option.all.vimSync.previous) {
-      setTimeout(alert, 100, "Warning: the current settings will be OVERRIDDEN the next time Vimium C starts!\n"
-        + 'Please back up your settings using the "Export Settings" button RIGHT NOW!');
+Option.allowToSave = function(): boolean {
+  const arr = Option.all, { vimSync } = arr;
+  const newlyEnableSyncing = !vimSync.saved && vimSync.readValueFromElement() === true;
+  if (newlyEnableSyncing) {
+    let delta = 0;
+    for (const i in arr) {
+      arr[i as keyof AllowedOptions].saved || ++delta;
     }
-    return willSync;
+    if (delta > 1) {
+      alert(
+`        Error:
+Sorry, but you're enabling the "Sync settings" option
+    while some other options are also modified.
+Please only perform one action at a time!`);
+      return false;
+    }
+    setTimeout(alert, 100,
+`        Warning:
+the current settings will be OVERRIDDEN the next time Vimium C starts!
+Please back up your settings using the "Export Settings" button
+!!!        RIGHT NOW        !!!`);
   }
+  return true;
 };
 
 Option.all.keyboard.checker = {

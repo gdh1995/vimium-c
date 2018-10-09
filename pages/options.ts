@@ -282,6 +282,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   saveBtn.onclick = function(virtually): void {
     if (virtually !== false) {
+      if (Option.allowToSave && !Option.allowToSave()) {
+        return;
+      }
       Option.saveOptions();
     }
     const toSync = Option.syncToFrontend;

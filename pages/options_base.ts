@@ -128,6 +128,7 @@ atomicUpdate: (this: Option<T> & {element: TextElement}, value: string, undo: bo
 static areJSONEqual (this: void, a: object, b: object): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
+static allowToSave?: (this: void) => boolean;
 static saveOptions: (this: void) => void;
 static needSaveOptions: (this: void) => boolean;
 showError: (msg: string, tag?: OptionErrorType | null, errors?: boolean) => void;
