@@ -173,13 +173,16 @@ Are you sure you want to continue?`
     return;
   }
   Object.setPrototypeOf(new_data, null);
-  if (new_data.vimSync == null && bgSettings.get("vimSync")) {
-    if (confirm(
+  if (new_data.vimSync == null) {
+    const now = bgSettings.get("vimSync"), keep = now && confirm(
       'Do you want to keep settings synchronized with your current Google account?'
-    )) {
-      new_data.vimSync = bgSettings.get("vimSync");
-      console.log("You chose to keep settings synced.");
+    );
+    new_data.vimSync = keep || null;
+    if (now) {
+      console.log("Before importing: You chose to " + (keep ? "keep settings synced." : "stop syncing settings."));
     }
+    // if `new_data.vimSync` was undefined, then now it's null
+    // this is useful, in case the below itering localStorage and setting-null was changed
   }
 
   const logUpdate = function(method: string, key: string, ...args: any[]): any {
@@ -221,7 +224,7 @@ Are you sure you want to continue?`
   delete new_data.findModeRawQueryList;
   delete new_data.innerCSS;
   delete new_data.newTabUrl_f;
-  if (new_data.vimSync !== null && new_data.vimSync !== bgSettings.get("vimSync")) {
+  if (new_data.vimSync !== bgSettings.get("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);
     bgSettings.set("vimSync", new_data.vimSync);
     _ref.vimSync.fetch();

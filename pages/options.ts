@@ -203,10 +203,8 @@ constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption<T>) => v
 }
 populateElement (value: boolean | null): void {
   this.element.checked = value || false;
-  if (value === null) {
-    this.element.indeterminate = true;
+  this.element.indeterminate = value === null;
   }
-}
 readValueFromElement (): boolean | null {
   return this.element.indeterminate ? null : this.element.checked;
 }
