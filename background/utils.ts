@@ -705,16 +705,13 @@ var Utils = {
     let opt: CommandsNS.Options | null;
     if (!details) { details = CommandsData.availableCommands[command] as CommandsNS.Description }
     opt = details.length < 4 ? null : (details as CommandsNS.BaseDescriptionEx)[3];
+    opt && Object.setPrototypeOf(opt, null);
     if (options) {
-      let rawCount = options.count;
-      if (opt) {
-        Object.setPrototypeOf(opt, null);
-        Utils.extendIf(options, opt);
+      if ("count" in options) {
+        options.count = details[1] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
       }
-      if (rawCount != null) {
-        options.count = details[1] === 1 ? 1 : (parseInt(rawCount) || 1) * (opt && opt.count || 1);
-      } else if (opt && "count" in opt) {
-        options.count = opt.count;
+      if (opt) {
+        Utils.extendIf(options, opt);
       }
     } else {
       options = opt;

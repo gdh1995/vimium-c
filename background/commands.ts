@@ -6,7 +6,7 @@ var Commands = {
   getOptions (item: string[], start: number): CommandsNS.Options | null {
     let opt: CommandsNS.RawOptions, i = start, len = item.length, ind: number, str: string | undefined, val: string;
     if (len <= i) { return null; }
-    opt = Object.create(null) as CommandsNS.RawOptions;
+    opt = Object.create(null);
     while (i < len) {
       str = item[i++];
       ind = str.indexOf("=");
