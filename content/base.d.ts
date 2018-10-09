@@ -264,7 +264,7 @@ interface VDomMouse {
 interface VPort {
   post<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
   post<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
-  send_<K extends keyof FgRes>(this: void, req: FgReq[K] & Req.baseFg<K>
+  send_<K extends keyof FgRes>(this: void, req: FgReqWithRes[K] & { msg: K; }
     , callback: (this: void, res: FgRes[K]) => void): void;
   evalIfOK_ (url: string): boolean;
 }

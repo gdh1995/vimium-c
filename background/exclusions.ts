@@ -100,7 +100,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       always_enabled || Settings.broadcast({
         name: "url",
         handler: "checkIfEnabled"
-      });
+      } as Req.fg<"checkIfEnabled"> & Req.bg<"url">);
       return;
     }
     const ref = Backend.indexPorts(),

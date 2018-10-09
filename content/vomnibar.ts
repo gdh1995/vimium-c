@@ -95,7 +95,7 @@ var Vomnibar = {
     }
     const trail = options.trailing_slash;
     VPort.send_({
-      handler: "parseSearchUrl",
+      msg: "parseSearchUrl",
       trailing_slash: trail != null ? !!trail : null,
       upper, url
     }, function(search): void {

@@ -271,7 +271,7 @@ var Vomnibar = {
         }
       }
     }
-    return VPort.postMessage({
+    VPort.postMessage({
       handler: "parseSearchUrl",
       id: sel,
       url: str

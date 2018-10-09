@@ -280,7 +280,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     if (ind < 0) { return; }
     this.historyIndex_ = ind;
     if (!back) {
-      return VPort.send_({ handler: "findQuery", index: ind }, this.SetQuery_);
+      return VPort.send_({ msg: "findQuery", index: ind }, this.SetQuery_);
     }
     const wnd = this.box_.contentWindow;
     wnd.document.execCommand("undo", false);

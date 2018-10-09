@@ -46,10 +46,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
     },
     Listener_<K extends keyof FgRes, T extends keyof BgReq> (this: void
-        , response: Req.res<K> | (Req.bg<T> & { _msgId?: undefined; })): void {
-      let id: number | undefined;
-      if (id = response._msgId) {
-        const arr = vPort._callbacks, handler = arr[id];
+        , response: Req.res<K> | Req.bg<T>): void {
+      if (response.name === "msg") {
+        const arr = vPort._callbacks, id = (response as Req.res<K>).mid, handler = arr[id];
         delete arr[id];
         handler((response as Req.res<K>).response);
       } else {
@@ -77,10 +76,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   function post<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>): 1 {
     return (vPort._port as Port).postMessage(request);
   } 
-  function send<K extends keyof FgRes> (this: void, request: FgReq[K] & Req.baseFg<K>
+  function send<K extends keyof FgRes> (this: void, request: Req.fgWithRes<K>
       , callback: (this: void, res: FgRes[K]) => void): void {
     let id = ++vPort._id;
-    (vPort._port as Port).postMessage<K>({_msgId: id, request: request});
+    request.handler = "msg"; request.mid = id;
+    (vPort._port as Port).postMessage<K>(request);
     vPort._callbacks[id] = callback;
   }
 
@@ -869,10 +869,10 @@ Pagination = {
       }
       if (VDom.UI.box_) { return VDom.UI.toggle_(enabled); }
     },
-    url (this: void, request: BgReq["url"]): void {
+    url<T extends keyof FgReq> (this: void, request: BgReq["url"] & Req.fg<T>): void {
       delete (request as Req.bg<"url">).name;
       request.url = window.location.href;
-      post(request);
+      post<T>(request);
     },
     eval (options: BgReq["eval"]): void { VPort.evalIfOK_(options.url); },
     settingsUpdate ({ delta }: BgReq["settingsUpdate"]): void {

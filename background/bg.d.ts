@@ -137,11 +137,8 @@ declare namespace Frames {
   interface Port extends chrome.runtime.Port {
     sender: Sender;
     postMessage<K extends 1, O extends keyof CmdOptions>(request: Req.FgCmd<O>): K;
+    postMessage<K extends keyof FgRes>(response: Req.res<K>): 1;
     postMessage<K extends keyof FullBgReq>(request: Req.bg<K>): 1;
-    postMessage<K extends keyof FgRes>(request: {
-      _msgId: number;
-      response: FgRes[K];
-    }): 1;
   }
 
   interface Frames extends ReadonlyArray<Port> {
@@ -379,7 +376,7 @@ declare namespace BackendHandlersNS {
   }
 
   interface BackendHandlers {
-    parse (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"];
+    parse (this: void, request: FgReqWithRes["parseSearchUrl"]): FgRes["parseSearchUrl"];
     gotoSession: {
       (this: void, request: { sessionId: string | number, active: false }, port: Port): void;
       (this: void, request: { sessionId: string | number, active?: true }): void;

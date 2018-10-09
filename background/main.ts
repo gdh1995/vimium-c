@@ -237,15 +237,18 @@ var Backend: BackendHandlersNS.BackendHandlers;
 
 Are you sure you want to continue?`);
     },
-    requireURL= function <T extends keyof FgReq> (this: void, request: FgReq[T] & BgReq["url"], ignoreHash?: true): void {
+    requireURL = function <K extends keyof FgReq> (request: Req.fg<K> & BgReq["url"], ignoreHash?: true): void {
       if (Exclusions == null || Exclusions.rules.length <= 0
           || !(ignoreHash || Settings.get("exclusionListenHash", true))) {
-        (request as Req.bg<"url">).name = "url";
-        cPort.postMessage(request as Req.bg<"url">);
+        request.name = "url";
+        cPort.postMessage<"url">(request as Req.bg<"url">);
         return;
       }
       request.url = cPort.sender.url;
-      return requestHandlers[request.handler as "parseUpperUrl"](request as FgReq["parseUpperUrl"], cPort) as never;
+      type T1 = keyof FgReq;
+      (requestHandlers as { [K in T1]: (req: FgReq[K], port: Frames.Port) => void; } as {
+        [K in T1]: <K extends T1>(req: FgReq[K], port: Frames.Port) => void;
+      })[request.handler](request, cPort);
     },
     ensureInnerCSS = function (this: void, port: Frames.Port): string | null {
       const { sender } = port;
@@ -1076,8 +1079,9 @@ Are you sure you want to continue?`);
     },
     goUp (this: void): void {
       const trail = cOptions.trailing_slash;
-      return requireURL({
+      requireURL<"parseUpperUrl">({
         handler: "parseUpperUrl",
+        url: "", // just a hack to make TypeScript compiler happy
         upper: -commandCount,
         trailing_slash: trail != null ? !!trail : null,
         execute: true
@@ -1311,7 +1315,7 @@ Are you sure you want to continue?`);
       });
     },
     clearMarks (this: void): void {
-      return cOptions.local ? requireURL({ handler: "marks", action: "clear" }, true) : Marks.clear();
+      cOptions.local ? requireURL<"marks">({ handler: "marks", url:"", action: "clear" }, true) : Marks.clear();
     },
     toggle (this: void): void {
       type Keys = CmdOptions["toggle"]["key"];
@@ -1393,10 +1397,10 @@ Are you sure you want to continue?`);
         (Settings.bufferToLoad as SafeDict<CacheValue>)[key] = Settings.cache[key];
       }
     },
-    findQuery (this: void, request: FgReq["findQuery"], port: Port): FgRes["findQuery"] | void {
+    findQuery (this: void, request: FgReq["findQuery"] | FgReqWithRes["findQuery"], port: Port): FgRes["findQuery"] | void {
       return FindModeHistory.query(port.sender.incognito, request.query, request.index);
     },
-    parseSearchUrl (this: void, request: FgReq["parseSearchUrl"], port: Port): FgRes["parseSearchUrl"] | void {
+    parseSearchUrl (this: void, request: FgReqWithRes["parseSearchUrl"], port: Port): FgRes["parseSearchUrl"] | void {
       let search = Backend.parse(request);
       if ("id" in request) {
         port.postMessage({ name: "parsed", id: request.id as number, search });
@@ -1404,15 +1408,16 @@ Are you sure you want to continue?`);
         return search;
       }
     },
-    parseUpperUrl: function (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"] | void {
-      if (port && request.execute) {
+    parseUpperUrl: function (this: void, request: FgReqWithRes["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"] | void {
+      if (port && (request as FgReq["parseUpperUrl"]).execute) {
         const result = requestHandlers.parseUpperUrl(request);
         if (result.path != null) {
           port.postMessage<1, "reload">({ name: "execute", command: "reload", count: 1, options: { url: result.url }, CSS: null });
           return;
         }
         cPort = port;
-        return Backend.showHUD(result.url);
+        Backend.showHUD(result.url);
+        return;
       }
       let { url } = request, url_l = url.toLowerCase();
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url_l))) {
@@ -1528,8 +1533,8 @@ Are you sure you want to continue?`);
       Utils.resetRe();
       return { url, path };
     } as {
-      (this: void, request: FgReq["parseUpperUrl"] & { execute: true }, port: Port): void;
-      (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"];
+      (this: void, request: FgReqWithRes["parseUpperUrl"] & { execute: true }, port: Port): void;
+      (this: void, request: FgReqWithRes["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"];
     },
     searchAs (this: void, request: FgReq["searchAs"], port: Port): void {
       let search = Backend.parse(request), query: string | null | Promise<string | null>;
@@ -1664,7 +1669,7 @@ Are you sure you want to continue?`);
         }
       }
     },
-    execInChild (this: void, request: FgReq["execInChild"], port: Port): FgRes["execInChild"] {
+    execInChild (this: void, request: FgReqWithRes["execInChild"], port: Port): FgRes["execInChild"] {
       const ports = framesForTab[port.sender.tabId], url = request.url;
       if (!ports || ports.length < 3) { return false; }
       let iport: Port | null = null, i = ports.length;
@@ -1815,18 +1820,25 @@ Are you sure you want to continue?`);
   Connections = {
     _fakeId: GlobalConsts.MaxImpossibleTabId as number,
     framesForOmni: [null as never] as Frames.WritableFrames,
-    OnMessage <Key extends keyof FgRes> (this: void, request: Req.fg<Key> | Req.fgWithRes<Key>, port: Frames.Port): void {
-      let id: number | undefined;
-      if (id = (request as Req.fgWithRes<Key>)._msgId) {
-        request = (request as Req.fgWithRes<Key>).request;
-        port.postMessage<"findQuery">({
-          _msgId: id,
-          response: requestHandlers[(request as Req.baseFg<string>).handler as
-            "findQuery"](request as Req.fg<"findQuery">, port) as FgRes["findQuery"]
-        });
-      } else {
-        return requestHandlers[(request as Req.fg<Key>).handler as keyof FgReq as "key"](request as Req.fg<keyof FgReq> as Req.fg<"key">, port);
+    OnMessage <K extends keyof FgReq, T extends keyof FgRes> (this: void, request: Req.fg<K> | Req.fgWithRes<T>, port: Frames.Port): void {
+      type ReqK = keyof FgReq;
+      type ResK = keyof FgRes;
+      if (request.handler !== "msg") {
+        return (requestHandlers as {
+          [T2 in ReqK]: (req: Req.fg<T2>, port: Frames.Port) => void;
+        } as {
+          [T2 in ReqK]: <T3 extends ReqK>(req: Req.fg<T3>, port: Frames.Port) => void;
+        })[request.handler](request as Req.fg<K>, port);
       }
+      port.postMessage<T>({
+        name: "msg",
+        mid: (request as Req.fgWithRes<T>).mid,
+        response: (requestHandlers as {
+          [T2 in ResK]: (req: Req.fgWithRes<T2>, port: Frames.Port) => FgRes[T2];
+        } as {
+          [T2 in ResK]: <T3 extends ResK>(req: Req.fgWithRes<T3>, port: Frames.Port) => FgRes[T3];
+        })[(request as Req.fgWithRes<T>).msg](request as Req.fgWithRes<T>, port)
+      });
     },
     OnConnect (this: void, port: Frames.Port): void {
       const type = (port.name.substring(9) as string | number as number) | 0,
@@ -1993,7 +2005,7 @@ Are you sure you want to continue?`);
     complain (action: string): void {
       return this.showHUD("It's not allowed to " + action);
     },
-    parse (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"] {
+    parse (this: void, request: FgReqWithRes["parseSearchUrl"]): FgRes["parseSearchUrl"] {
       let s0 = request.url, url = s0.toLowerCase(), pattern: Search.Rule | undefined
         , arr: string[] | null = null, _i: number, selectLast = false;
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {
@@ -2001,7 +2013,7 @@ Are you sure you want to continue?`);
         return null;
       }
       if (request.upper) {
-        const obj = requestHandlers.parseUpperUrl(request as FgReq["parseUpperUrl"]);
+        const obj = requestHandlers.parseUpperUrl(request as FgReqWithRes["parseUpperUrl"]);
         obj.path != null && (s0 = obj.url);
         return { keyword: '', start: 0, url: s0 };
       }

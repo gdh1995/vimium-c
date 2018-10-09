@@ -184,7 +184,7 @@ var VVisualMode = {
   },
   find_ (count: number): void {
     if (!VFindMode.query_) {
-      VPort.send_({ handler: "findQuery" }, function(query): void {
+      VPort.send_({ msg: "findQuery" }, function(query): void {
         if (query) {
           VFindMode.updateQuery_(query);
           return VVisualMode.find_(count);

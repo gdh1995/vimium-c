@@ -95,6 +95,7 @@ normalize (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOpti
   }
   return checker ? checker.check(value) : value;
 }
+allowToSave (): boolean { return true; }
 save (): void {
   let value = this.readValueFromElement(), isJSON = typeof value === "object"
     , previous = isJSON ? JSON.stringify(this.previous) : this.previous
@@ -128,7 +129,6 @@ atomicUpdate: (this: Option<T> & {element: TextElement}, value: string, undo: bo
 static areJSONEqual (this: void, a: object, b: object): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
-allowToSave?: (this: void) => boolean;
 static saveOptions: (this: void) => boolean;
 static needSaveOptions: (this: void) => boolean;
 showError: (msg: string, tag?: OptionErrorType | null, errors?: boolean) => void;

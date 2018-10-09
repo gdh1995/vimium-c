@@ -10,20 +10,15 @@ interface ParsedSearch {
   start: number;
   url: string;
 }
-interface FgRes {
-  findQuery: string;
-  parseSearchUrl: ParsedSearch | null;
-  parseUpperUrl: {
-    url: string;
-    path: string | null;
-  };
-  execInChild: boolean;
-}
 
 interface BgReq {
   reset: {
     passKeys: string | null;
     forced?: boolean;
+  };
+  msg: {
+    mid: number;
+    response: FgRes[keyof FgRes];
   };
   createMark: {
     name: "createMark";
@@ -64,6 +59,10 @@ interface BgReq {
     mapKeys: SafeDict<string> | null,
     keyMap: KeyMap
   };
+  response: {
+    name: "response",
+    response: FgRes[keyof FgRes],
+  };
   settingsUpdate: {
     name: "settingsUpdate",
     delta: {
@@ -71,8 +70,10 @@ interface BgReq {
     }
   };
   url: {
+    name?: "url";
+    handler: keyof FgReq;
     url?: string;
-  } & Req.baseFg<keyof FgReq>;
+  };
   eval: {
     url: string; // a javascript: URL
   };
@@ -194,11 +195,17 @@ interface CmdOptions {
   }
 }
 
-interface FgReq {
+interface FgRes {
+  findQuery: string;
+  parseSearchUrl: ParsedSearch | null;
+  parseUpperUrl: {
+    url: string;
+    path: string | null;
+  };
+  execInChild: boolean;
+}
+interface FgReqWithRes {
   findQuery: {
-    query: string;
-    index?: undefined;
-  } | {
     query?: undefined;
     index: number;
   } | {
@@ -210,13 +217,29 @@ interface FgReq {
     upper: number;
     id?: undefined;
     trailing_slash: boolean | null;
-    execute?: true;
   };
   parseSearchUrl: {
     url: string;
     id?: number;
     upper?: undefined;
-  } | FgReq["parseUpperUrl"];
+  } | FgReqWithRes["parseUpperUrl"];
+  execInChild: {
+    url: string;
+  } & BaseExecute<object>;
+}
+
+interface FgReq {
+  parseSearchUrl: {
+    id: number;
+    url: string;
+  };
+  parseUpperUrl: FgReqWithRes["parseUpperUrl"] & {
+    execute: true;
+  };
+  findQuery: {
+    query: string;
+    index?: undefined;
+  };
   searchAs: {
     url: string;
     search: string;
@@ -235,25 +258,22 @@ interface FgReq {
     reuse?: ReuseType;
     omni?: boolean;
   };
-  execInChild: {
-    url: string;
-  } & BaseExecute<object>;
-  focus: Req.baseFg<"focus">;
+  focus: {};
   checkIfEnabled: {
     url: string;
   };
-  nextFrame: Req.baseFg<"nextFrame"> & {
+  nextFrame: {
     type?: Frames.NextType;
     key: VKeyCodes;
   };
-  exitGrab: Req.baseFg<"exitGrab">;
+  exitGrab: {};
   initHelp: {
     unbound?: boolean;
     wantTop?: boolean;
     names?: boolean;
     title?: string;
   };
-  css: Req.baseFg<"css">;
+  css: {};
   vomnibar: ({
     count: number;
     redo?: undefined;
@@ -271,7 +291,6 @@ interface FgReq {
     data: string;
   };
   key: {
-    handler: "key";
     key: string;
     lastKey: VKeyCodes;
   };
@@ -305,16 +324,11 @@ declare namespace Req {
   }
   type fg<K extends keyof FgReq> = FgReq[K] & baseFg<K>;
 
-  type baseFgWithRes<K extends string> = {
-    readonly _msgId: number;
-    readonly request: baseFg<K>;
+  type fgWithRes<K extends keyof FgRes> = FgReqWithRes[K] & baseFg<"msg"> & {
+    mid: number;
+    readonly msg: K;
   }
-
-  interface fgWithRes<K extends keyof FgRes> extends baseFgWithRes<K> {
-    readonly request: fg<K>;
-  }
-  interface res<K extends keyof FgRes> {
-    readonly _msgId: number;
+  type res<K extends keyof FgRes> = bg<"msg"> & {
     readonly response: FgRes[K];
   }
 
