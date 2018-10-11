@@ -476,9 +476,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       VUtils.push_(function(event) {
         const { keyCode } = event;
         if (keyCode === VKeyCodes.tab) {
-          const hints = this.hints, oldSel = sel;
-          sel = (oldSel + (event.shiftKey ? -1 : 1)) % hints.length;
+          const hints = this.hints, oldSel = sel, len = hints.length;
+          sel = (oldSel + (event.shiftKey ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
+          VUtils.prevent_(event); // in case that selecting is too slow
           VDom.UI.simulateSelect_(hints[sel].target, null, false, action);
           hints[oldSel].marker.classList.remove("S", "IHS");
           hints[sel].marker.classList.add("S", "IHS");
@@ -977,7 +978,7 @@ Pagination = {
       box.classList.toggle("HelpAdvanced");
     }
     node1.onclick = function(event) {
-      event.preventDefault();
+      VUtils.prevent_(event);
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
       (post as <K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>) => 1)({
