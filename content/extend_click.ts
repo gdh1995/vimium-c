@@ -1,4 +1,4 @@
-window.VimiumInjector ||
+window.VimiumInjector === undefined &&
 VSettings && document.readyState !== "complete" &&
 (function(this: void): void {
   let d: Document | Document["documentElement"] = document
