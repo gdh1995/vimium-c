@@ -724,7 +724,7 @@ var VHints = {
     if (VDom.isInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getVRect, so that VDom.zooms are updated, and prepareCrop is called
-      rect = VDom.UI.getVRect_(clickEl, hint.refer !== hint.target ? hint.refer as HTMLElementUsingMap | null : null);
+      rect = VDom.UI.getVRect_(clickEl, hint.refer !== clickEl ? hint.refer as HTMLElementUsingMap | null : null);
       const showRect = (this.modeOpt_ as HintsNS.ModeOpt).activator_.call(this, clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
         const force = clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement;
@@ -1210,7 +1210,7 @@ DEFAULT_: {
       VDom.UI.click_(link, rect, null, true);
       ((link as HTMLDetailsElement).open === old) && ((link as HTMLDetailsElement).open = !old);
       return;
-    } else if (hint.refer && hint.refer === hint.target) {
+    } else if (hint.refer && hint.refer === link) {
       return (this as typeof VHints).Modes_.HOVER_.activator_.call(this, link, rect, hint);
     } else if (VDom.getEditableType_(link) >= EditableType.Editbox) {
       VDom.UI.simulateSelect_(link, rect, true);
