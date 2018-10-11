@@ -8,8 +8,8 @@ interface EventTargetEx extends _EventTargetEx {
 declare var browser: never;
 var VimiumInjector: VimiumInjector;
 (function() {
-  let runtime: typeof chrome.runtime;
-  runtime = typeof browser !== "undefined" && browser && (browser as typeof chrome).runtime || chrome.runtime;
+  let runtime = (typeof browser !== "undefined" && browser &&
+    !((browser as typeof chrome | HTMLHtmlElement) instanceof Element) ? browser as typeof chrome : chrome).runtime;
   const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i = scriptSrc.indexOf("://") + 3,
   extId = scriptSrc.substring(i, scriptSrc.indexOf("/", i)), onIdle = window.requestIdleCallback;
   let tick = 1;
@@ -75,7 +75,7 @@ function call() {
 }
 function start() {
   removeEventListener("load", start);
-  onIdle ? onIdle(function() {
+  onIdle && !(onIdle instanceof Element) ? onIdle(function() {
     onIdle(function() { setTimeout(call, 0); }, {timeout: 67});
   }, {timeout: 330}) : setTimeout(call, 67);
 }
@@ -93,7 +93,7 @@ type ListenerEx = EventTarget["addEventListener"] & { vimiumHooked?: boolean; }
 const obj = EventTarget as EventTargetEx, cls = obj.prototype, _listen = cls.addEventListener as ListenerEx;
 if (_listen.vimiumHooked === true) { return; }
 
-const HA = HTMLAnchorElement, HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement;
+const HA = HTMLAnchorElement, HF = HTMLFormElement, E = Element;
 
 const newListen: ListenerEx = cls.addEventListener =
 function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {

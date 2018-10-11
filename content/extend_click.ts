@@ -1,4 +1,4 @@
-"VimiumInjector" in window ||
+window.VimiumInjector ||
 VSettings && document.readyState !== "complete" &&
 (function(this: void): void {
   let d: Document | Document["documentElement"] = document
@@ -56,8 +56,8 @@ Append = document.appendChild,
 Contains = document.contains, contains = Contains.bind(document),
 Insert = document.insertBefore,
 CE = CustomEvent,
-HA = HTMLAnchorElement, DF = DocumentFragment, SR = (window.ShadowRoot || CE as never) as typeof ShadowRoot,
-HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
+HA = HTMLAnchorElement, DF = DocumentFragment,
+HF = HTMLFormElement, E = Element,
 FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
@@ -112,6 +112,7 @@ next = setTimeout.bind(null as never, function(): void {
   }
 }, 1)
 , box: HTMLDivElement, timer = setTimeout(handler, 1000)
+, SR: typeof ShadowRoot = window.ShadowRoot as typeof ShadowRoot
 ;
 function reg(this: void, element: Element): void {
   const event = new CE("VimiumOnclick");
@@ -151,6 +152,7 @@ function destroy(e?: CustomEvent): void {
   ct(timer);
 }
 toRegister.push = toRegister.push, toRegister.splice = toRegister.splice;
+(!SR || SR instanceof E) && (SR = CE as never);
 // only the below can affect outsides
 (document.currentScript as HTMLScriptElement).remove();
 ETP.addEventListener = hooks.addEventListener;
@@ -198,6 +200,7 @@ _listen("DOMContentLoaded", handler, true);
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
-    return VDom.allowRAF_ ? f ? f(cb, { timeout }) : requestAnimationFrame(cb) : (Promise.resolve(1).then(cb), 1);
+    // in case there's `$("#requestIdleCallback")`
+    return VDom.allowRAF_ ? f && !(f instanceof Element) ? f(cb, { timeout }) : requestAnimationFrame(cb) : (Promise.resolve(1).then(cb), 1);
   };
 })();

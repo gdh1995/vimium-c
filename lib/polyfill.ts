@@ -17,7 +17,7 @@ interface String {
 }
 
 (function (): void {
-  const symMatch = typeof Symbol === "function" && Symbol.match as symbol | string as "Symbol(Symbol.match)" || null,
+  const symMatch = typeof Symbol === "function" && !(Symbol instanceof Element) && Symbol.match as symbol | string as "Symbol(Symbol.match)" || null,
   S = String, RE = RegExp, TE = TypeError;
 
   "".startsWith || (

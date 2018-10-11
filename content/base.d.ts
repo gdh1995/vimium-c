@@ -3,7 +3,7 @@ interface Element {
 }
 
 interface Window {
-  VimiumInjector?: VimiumInjector;
+  VimiumInjector?: VimiumInjector | null;
   VSettings: VSettings | null;
 }
 declare const enum HandlerResult {

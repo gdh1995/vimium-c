@@ -8,13 +8,19 @@ VDom.DocReady(function() {
   addEventListener("hashchange", VimiumInjector.checkIfEnabled);
 });
 
-if ((window.browser && (browser as typeof chrome).runtime || chrome.runtime).onMessageExternal) {
-  VimiumInjector.alive = 1;
-} else {
-  VimiumInjector.alive = 0.5;
-  console.log("%cVimium C%c: injected %cpartly%c into %c" + (window.browser && (browser as typeof chrome).runtime || chrome.runtime).id
-    , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9");
-}
+(function() {
+  // Note: should keep the same with frontend.ts
+  const notChrome = typeof browser !== "undefined" && !(
+    browser && (browser as typeof chrome).runtime || ((browser as typeof chrome | HTMLHtmlElement) instanceof Element)),
+  runtime: typeof chrome.runtime = (notChrome ? browser : chrome).runtime;
+  if (runtime.onMessageExternal) {
+    VimiumInjector.alive = 1;
+  } else {
+    VimiumInjector.alive = 0.5;
+    console.log("%cVimium C%c: injected %cpartly%c into %c" + runtime.id
+      , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9");
+  }
+})();
 
 VSettings.uninit_ = function(type: number): void {
   let injector = VimiumInjector;

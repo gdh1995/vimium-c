@@ -47,7 +47,9 @@ var VDom = {
   getParent_ (el: Element): Element | null {
     const arr = el.getDestinationInsertionPoints ? el.getDestinationInsertionPoints() : null;
     arr && arr.length > 0 && (el = arr[arr.length - 1]);
-    return el.parentElement || window.ShadowRoot && el.parentNode instanceof ShadowRoot && el.parentNode.host || null;
+    return el.parentElement ||
+      window.ShadowRoot && !(ShadowRoot instanceof Element) && el.parentNode instanceof ShadowRoot &&
+      el.parentNode.host || null;
   },
   scrollingEl_ (): Element | null {
     return document.scrollingElement || (document.compatMode === "BackCompat" ? document.body : document.documentElement);
@@ -296,9 +298,10 @@ var VDom = {
     root || (root = d);
     if (root.contains(element)) { return true; }
     if (element instanceof HTMLFormElement) { return false; }
-    let parent: Node | null, SR = window.ShadowRoot || function() {};
+    let parent: Node | null, SR = window.ShadowRoot;
+    (!SR || SR instanceof Element) && (SR = function() {} as never as typeof ShadowRoot);
     while (element !== root && (parent = element.parentNode)) {
-      element = parent instanceof SR ? (parent as ShadowRoot).host : parent;
+      element = parent instanceof SR ? parent.host : parent;
     }
     return element === root;
   },

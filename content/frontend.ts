@@ -1,4 +1,5 @@
-var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
+var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
+  , VimiumInjector: VimiumInjector;
 
 (function() {
   interface EscF {
@@ -27,8 +28,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     , onWndFocus = function(this: void): void {}, onWndBlur2: ((this: void) => void) | null = null
     ;
 
-  const isInjected = !!window.VimiumInjector,
-  notChrome = typeof browser !== "undefined" && !!(browser && (browser as typeof chrome).runtime),
+  const isInjected = !!VimiumInjector,
+  notChrome = typeof browser !== "undefined" && !(
+    browser && (browser as typeof chrome).runtime || ((browser as typeof chrome | HTMLHtmlElement) instanceof Element)),
   vPort = {
     _port: null as Port | null,
     _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
@@ -822,7 +824,10 @@ Pagination = {
       interface WindowMayOnMSEdge extends Window {
         StyleMedia?: object;
       }
-      load.browser = notChrome ? (window as WindowMayOnMSEdge).StyleMedia ? BrowserType.Edge : BrowserType.Firefox : BrowserType.Chrome;
+      load.browser = notChrome ? !(window as WindowMayOnMSEdge).StyleMedia || StyleMedia instanceof Element
+          ? BrowserType.Firefox
+          : BrowserType.Edge
+        : BrowserType.Chrome;
       (VSettings.cache = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
       VDom.specialZoom_ = !notChrome && load.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
       r.keyMap(request);

@@ -8248,7 +8248,6 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     readonly window: Window;
     URL: typeof URL;
     Blob: typeof Blob;
-    ShadowRoot?: Function;
     alert(message?: any): void;
     blur(): void;
     cancelAnimationFrame(handle: number): void;
@@ -8269,7 +8268,6 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     prompt(message?: string, _default?: string): string | null;
     releaseEvents(): void;
     requestAnimationFrame(callback: FrameRequestCallback): number;
-    requestIdleCallback? (callback: (idleDeadline: { didTimeout: boolean }) => void, options?: { timeout?: number }): number;
     resizeBy(x?: number, y?: number): void;
     resizeTo(x?: number, y?: number): void;
     scroll(x?: number, y?: number): void;
@@ -8281,6 +8279,10 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     webkitRequestAnimationFrame(callback: FrameRequestCallback): number;
     addEventListener<K extends keyof WindowEventMap>(type: K, listener: (this: Window, ev: WindowEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+    // the below are what may not exist (so may be overriden by element with such a id)
+    ShadowRoot?: typeof ShadowRoot | Element;
+    requestIdleCallback?: ((callback: (idleDeadline: { didTimeout: boolean }) => void, options?: { timeout?: number }) => number
+        ) | Element;
 }
 
 // declare var Window: {
