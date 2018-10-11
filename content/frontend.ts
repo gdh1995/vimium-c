@@ -452,8 +452,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
         hint[2] = j > 0 ? ind / 8192 - j : ind;
       }
-      const hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link): HintsNS.HintItem {
-        const marker = VDom.createElement_("span") as HintsNS.HintItem["marker"],
+      const hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link): HintsNS.BaseHintItem {
+        const marker = VDom.createElement_("span") as HintsNS.BaseHintItem["marker"],
         rect = VDom.fromClientRect_(link[0].getBoundingClientRect());
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
         marker.className = "IH";
@@ -507,7 +507,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     grabFocus_: document.readyState !== "complete",
     global_: null as CmdOptions["insertMode"] | null,
     hinting_: false,
-    inputHint_: null as { box: HTMLDivElement, hints: HintsNS.HintItem[] } | null,
+    inputHint_: null as { box: HTMLDivElement, hints: HintsNS.BaseHintItem[] } | null,
     suppressType_: null as string | null,
     last_: null as LockableElement | null,
     lock_: null as LockableElement | null,

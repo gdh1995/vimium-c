@@ -84,11 +84,14 @@ declare const enum PixelConsts {
 }
 
 declare namespace HintsNS {
-  interface HintItem {
+  interface BaseHintItem {
     marker: HTMLSpanElement;
     target: Hint[0];
-    key?: string;
-    refer?: HTMLElementUsingMap | Hint[0] | null;
+  }
+
+  interface HintItem extends BaseHintItem {
+    key: string;
+    refer: HTMLElementUsingMap | Hint[0] | null;
     zIndex?: number;
   }
 }
@@ -229,7 +232,7 @@ interface DomUI {
   flashLastingTime_: number;
   _lastFlash: HTMLElement | null;
   addElement_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
-  addElementList_(this: DomUI, els: ReadonlyArray<HintsNS.HintItem>, offset: ViewOffset): HTMLDivElement;
+  addElementList_(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset): HTMLDivElement;
   adjust_ (this: void, event?: Event): void;
   toggle_ (this: DomUI, enabled: boolean): void;
   _styleBorder: { el: HTMLStyleElement, zoom: number } | null;

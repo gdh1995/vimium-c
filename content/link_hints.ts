@@ -14,7 +14,7 @@ declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface ModeOpt {
     [mode: number]: string | undefined;
-    activator_ (this: {}, linkEl: LinkEl, rect: VRect | null, hintEl: HintsNS.HintItem): void | false;
+    activator_ (this: {}, linkEl: LinkEl, rect: VRect | null, hintEl: Pick<HintsNS.HintItem, "refer">): void | false;
   }
   interface Options extends SafeObject {
     action?: string;
