@@ -97,7 +97,7 @@ var VHints = {
     const arr: ViewBox = VDom.getViewBox_(1) as ViewBox;
     VDom.prepareCrop_();
     if (a.tooHigh_ !== null) {
-      a.tooHigh_ = (VDom.scrollingEl_() || document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
+      a.tooHigh_ = (VDom.scrollingEl_() || document.documentElement as HTMLElement).scrollHeight / innerHeight > 20;
     }
     let elements = a.getVisibleElements_(arr);
     if (a.frameNested_) {
@@ -487,7 +487,7 @@ var VHints = {
     (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: boolean): Hint[];
   },
   getElementsInViewPort_ (list: HintsNS.ElementList): HintsNS.ElementList {
-    const result: Element[] = [], height = window.innerHeight;
+    const result: Element[] = [], height = innerHeight;
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
       const el = list[i];
       if (el instanceof HTMLFormElement) { continue; }

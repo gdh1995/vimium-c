@@ -1,7 +1,6 @@
 interface ShadowRootWithSelection extends ShadowRoot {
   getSelection(): Selection | null;
 }
-declare var browser: never;
 
 VDom.UI = {
   box_: null,
@@ -20,7 +19,7 @@ VDom.UI = {
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     a.R.mode === "closed" || (a.R !== box ? a.R as ShadowRoot : window).addEventListener("load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
-      if (!VDom) { return window.removeEventListener("load", Onload, true); }
+      if (!VDom) { return removeEventListener("load", Onload, true); }
       const t = e.target as HTMLElement;
       if (t.parentNode === VDom.UI.R) {
         VUtils.Stop_(e); t.onload && t.onload(e);

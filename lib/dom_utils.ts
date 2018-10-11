@@ -62,7 +62,7 @@ var VDom = {
       if (el) {
         i = el.clientWidth, j = el.clientHeight;
       } else {
-        i = window.innerWidth, j = window.innerHeight;
+        i = innerWidth, j = innerHeight;
         const doc = document.documentElement as Element | null, dz = fz / this.bZoom_;
         if (!doc) { return ih = j, ihs = j - 8, iw = i; }
         // not reliable
@@ -100,7 +100,7 @@ var VDom = {
       if (rect.height > 0 && rect.width > 0) {
         if (cr = this.cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)) {
           if (isVisible == null) {
-            el_style || (el_style = window.getComputedStyle(element));
+            el_style || (el_style = getComputedStyle(element));
             isVisible = el_style.visibility === 'visible';
           }
           if (isVisible) { return cr; }
@@ -110,12 +110,12 @@ var VDom = {
       if (_ref) { continue; }
       _ref = element.children;
       for (let _j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-        style = window.getComputedStyle(_ref[_j]);
+        style = getComputedStyle(_ref[_j]);
         if (style.float !== 'none' ||
             ((str = style.position) !== 'static' && str !== 'relative')) {}
         else if (rect.height === 0) {
           if (notInline == null) {
-            el_style || (el_style = window.getComputedStyle(element));
+            el_style || (el_style = getComputedStyle(element));
             notInline = (el_style.fontSize !== "0px" && el_style.lineHeight !== "0px") || !el_style.display.startsWith("inline");
           }
           if (notInline || !style.display.startsWith("inline")) { continue; }
@@ -211,7 +211,7 @@ var VDom = {
     return this.wdZoom_ = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
   },
   getViewBox_ (needBox?: 1): ViewBox | ViewOffset {
-    let iw = window.innerWidth, ih = window.innerHeight;
+    let iw = innerWidth, ih = innerHeight;
     const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1);
     if (document.webkitIsFullScreen) {
       this.getZoom_(1);
@@ -282,7 +282,7 @@ var VDom = {
   NotVisible_: function (this: void, element: Element | null, rect?: ClientRect): VisibilityType {
     if (!rect) { rect = (element as Element).getBoundingClientRect(); }
     return rect.height < 0.5 || rect.width < 0.5 ? VisibilityType.NoSpace
-      : rect.bottom <= 0 || rect.top >= window.innerHeight || rect.right <= 0 || rect.left >= window.innerWidth
+      : rect.bottom <= 0 || rect.top >= innerHeight || rect.right <= 0 || rect.left >= innerWidth
         ? VisibilityType.OutOfView : VisibilityType.Visible;
   } as {
     (element: Element): VisibilityType;
@@ -390,7 +390,7 @@ var VDom = {
     return [rect.left | 0, rect.top | 0, rect.right | 0, rect.bottom | 0];
   },
   setBoundary_ (style: CSSStyleDeclaration, r: WritableVRect, allow_abs?: boolean): void {
-    if (allow_abs && (r[1] < 0 || r[0] < 0 || r[3] > window.innerHeight || r[2] > window.innerWidth)) {
+    if (allow_abs && (r[1] < 0 || r[0] < 0 || r[3] > innerHeight || r[2] > innerWidth)) {
       const arr: ViewOffset = this.getViewBox_();
       r[0] += arr[0], r[2] += arr[0], r[1] += arr[1], r[3] += arr[1];
       style.position = "absolute";

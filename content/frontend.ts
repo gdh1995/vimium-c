@@ -357,7 +357,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     reload (_0: number, {force, hard, url}: CmdOptions["reload"]): void {
       setTimeout(function() {
-        url ? (window.location.href = url) : window.location.reload(hard || force);
+        url ? (location.href = url) : location.reload(hard || force);
       }, 17);
     },
     switchFocus (_0: number, options: CmdOptions["switchFocus"]): void {
@@ -391,7 +391,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     showHelp (msg?: number | "exitHD"): void {
       if (msg === "exitHD") { return; }
-      let wantTop = window.innerWidth < 400 || window.innerHeight < 320;
+      let wantTop = innerWidth < 400 || innerHeight < 320;
       if (!VDom.isHTML_()) {
         if (window === window.top) { return; }
         wantTop = true;
@@ -401,7 +401,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     autoCopy (_0: number, options: CmdOptions["autoCopy"]): void {
       let str = VDom.UI.getSelectionText_(1);
       if (!str) {
-        str = options.url ? window.location.href : document.title;
+        str = options.url ? location.href : document.title;
         (options.decoded || options.decode) && (str = VUtils.decodeURL_(str));
         if (str.endsWith(" ") && options.url) {
           str = str.slice(0, -1) + "%20";
@@ -428,7 +428,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     searchAs (): void {
       post({
         handler: "searchAs",
-        url: window.location.href,
+        url: location.href,
         search: VDom.UI.getSelectionText_()
       });
     },
@@ -687,7 +687,7 @@ Pagination = {
     Focus_ (this: void, { mask, CSS, key }: BgReq["focusFrame"]): void {
       CSS && VDom.UI.css_(CSS);
       if (mask !== FrameMaskType.NormalNext) {}
-      else if (window.innerWidth < 3 || window.innerHeight < 3
+      else if (innerWidth < 3 || innerHeight < 3
         || document.body instanceof HTMLFrameSetElement
         || FrameMask.hidden_()) {
         post({
@@ -865,7 +865,7 @@ Pagination = {
     },
     url<T extends keyof FgReq> (this: void, request: BgReq["url"] & Req.fg<T>): void {
       delete (request as Req.bg<"url">).name;
-      request.url = window.location.href;
+      request.url = location.href;
       post<T>(request);
     },
     msg<K extends keyof FgRes> (response: Req.res<K>): void {
@@ -957,7 +957,7 @@ Pagination = {
     };
     closeBtn.onclick = Commands.showHelp = hide;
     node1 = box.querySelector("#OptionsPage") as HTMLAnchorElement;
-    if (! window.location.href.startsWith(optionUrl)) {
+    if (! location.href.startsWith(optionUrl)) {
       (node1 as HTMLAnchorElement).href = optionUrl;
       node1.onclick = function(event) {
         post({ handler: "focusOrLaunch", url: optionUrl });
@@ -1141,7 +1141,7 @@ Pagination = {
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
       , "color:red", "color:auto"
-      , window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
+      , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
       , Date.now());
 
     if (vPort._port) { try { vPort._port.disconnect(); } catch (e) {} }

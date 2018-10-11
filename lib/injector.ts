@@ -74,7 +74,7 @@ function call() {
   runtime.sendMessage(extId, { handler: "content_scripts" }, handler);
 }
 function start() {
-  window.removeEventListener("load", start);
+  removeEventListener("load", start);
   onIdle ? onIdle(function() {
     onIdle(function() { setTimeout(call, 0); }, {timeout: 67});
   }, {timeout: 330}) : setTimeout(call, 67);
@@ -82,7 +82,7 @@ function start() {
 if (document.readyState === "complete") {
   start();
 } else {
-  window.addEventListener("load", start);
+  addEventListener("load", start);
 }
 })();
 

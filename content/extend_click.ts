@@ -188,7 +188,7 @@ _listen("DOMContentLoaded", handler, true);
   const breakTotally = appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && appVer;
   console.info((breakTotally ? "Vimium C can" : "Some functions of Vimium C may")
       + " not work because %o is sandboxed.",
-    window.location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
+    location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
   if (breakTotally) {
     VSettings.destroy_(true);
     return;

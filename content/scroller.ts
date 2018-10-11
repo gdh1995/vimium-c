@@ -168,7 +168,7 @@ animate_ (e: Element | null, d: ScrollByY, a: number): void | number {
   },
   getDimension_ (el: Element | null, di: ScrollByY, index: 0 | 2): number {
     return el !== this.top_ || (index && el) ? ((el || this.top_) as Element)[this.Properties_[index + di]]
-      : di ? window.innerHeight : window.innerWidth;
+      : di ? innerHeight : innerWidth;
   },
   scrollDo_ (el: Element, di: ScrollByY, amount: number): boolean {
     const key = this.Properties_[4 + di as 4 | 5], before = el[key], k2: "top" | "left" = di ? "top": "left"

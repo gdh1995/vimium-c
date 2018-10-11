@@ -45,11 +45,11 @@ var Vomnibar = {
     a._timer = 0;
     if (!VDom.isHTML_()) { return; }
     if ((options.url === true || count !== 1) && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
-      options.topUrl = window.location.href;
+      options.topUrl = location.href;
     }
     a.options_ = null;
     VDom.dbZoom_ = 1;
-    const iw = VDom.prepareCrop_(), ih = a.screenHeight_ = window.innerHeight;
+    const iw = VDom.prepareCrop_(), ih = a.screenHeight_ = innerHeight;
     options.width = iw, options.height = ih;
     VDom.getZoom_();
     // note: here require: that Inactive must be NotInited + 1
