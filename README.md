@@ -1,12 +1,13 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.69.2](https://img.shields.io/badge/release-1.69.2-orange.svg)
-  ](https://github.com/gdh1995/vimium-c/releases)
-[![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master)
-  ](https://travis-ci.org/gdh1995/vimium-c)
-**[Visit Vimium C on Chrome Web Store
-  ](https://chrome.google.com/webstore/detail/vimium-c/hfjbmagddngcpeloejdejnfgbamkjaeg)**
+[![Version 1.69.2](https://img.shields.io/badge/release-1.69.2-orange.svg
+  )](https://github.com/gdh1995/vimium-c/releases)
+[![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
+  )](https://travis-ci.org/gdh1995/vimium-c)
+**[Visit Vimium C on Chrome Web Store](
+  https://chrome.google.com/webstore/detail/vimium-c/hfjbmagddngcpeloejdejnfgbamkjaeg
+  )**
 
 A <span style="color: #8e5e2f;">C</span>ustomized
   [<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)
