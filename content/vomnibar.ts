@@ -90,7 +90,7 @@ var Vomnibar = {
       options.search = "";
       return a.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
-    if ((window as Window & {shownNode?: HTMLElement}).shownNode && !window.VimiumInjector) {
+    if ((window as Window & {shownNode?: Element}).shownNode && window.VimiumInjector === null) {
       url = url.split("#", 1)[0] + window.name;
     }
     const trail = options.trailing_slash;
@@ -185,7 +185,7 @@ var Vomnibar = {
         close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
-      if (location.hash === "#dialog-ui" && !window.VimiumInjector) { _this.top_ = "8px"; }
+      if (location.hash === "#dialog-ui" && window.VimiumInjector === null) { _this.top_ = "8px"; }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {
