@@ -111,6 +111,15 @@ declare namespace MarksNS {
   }
 }
 
+declare namespace VisualModeNS {
+  const enum Mode {
+    NotActive = 0, Default = NotActive,
+    Visual = 1,
+    Line = 2,
+    Caret = 3,
+  }
+}
+
 interface ChildKeyMap {
   [index: string]: 0 | ChildKeyMap | undefined;
   readonly __proto__: never;

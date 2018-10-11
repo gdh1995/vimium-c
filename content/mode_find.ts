@@ -252,7 +252,12 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       this.toggleStyle_(0);
       this.restoreSelection_(true);
     }
-    if (VVisualMode.mode_) { return VVisualMode.activate_(1, VUtils.safer_({from_find: true as true})); }
+    if (VVisualMode.mode_) {
+      return VVisualMode.activate_(1, VUtils.safer_({
+        mode: VisualModeNS.Mode.Visual as VisualModeNS.Mode.Visual,
+        from_find: true as true
+      }));
+    }
     VDom.UI.toggleSelectStyle_(false);
     if (i < FindNS.Action.MinComplicatedExit || !this.hasResults_) { return; }
     if (!el || el !== VEventMode.lock_()) {

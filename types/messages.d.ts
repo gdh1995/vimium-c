@@ -162,7 +162,7 @@ interface CmdOptions {
     hud: boolean;
   };
   visualMode: {
-    mode?: string;
+    mode: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
     from_find?: true;
     words?: string;
   };

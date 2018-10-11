@@ -1243,12 +1243,14 @@ Are you sure you want to continue?`);
     },
     enterVisualMode (): void {
       const { sender } = cPort;
-      let options = cOptions as CmdOptions["visualMode"];
+      let options: CmdOptions["visualMode"] = cOptions as Partial<CmdOptions["visualMode"]> as CmdOptions["visualMode"];
       if (!(sender.flags & Frames.Flags.hadVisualMode)) {
         sender.flags |= Frames.Flags.hadVisualMode;
-        options = Utils.extendIf(Object.create(null) as CmdOptions["visualMode"], options);
+        options = Utils.extendIf(Object.create(null) as typeof options, options);
         options.words = CommandsData.wordsRe;
       }
+      const str = typeof options.mode === "string" ? (options.mode as string).toLowerCase() : "";
+      options.mode = str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual;
       cPort.postMessage<1, "visualMode">({ name: "execute", count: 1, command: "visualMode",
         CSS: ensureInnerCSS(cPort),
         options

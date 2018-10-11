@@ -11,12 +11,6 @@ declare namespace VisualModeNS {
     vimword = 5,
   }
 
-  const enum Mode {
-    NotActive = 0, Default = NotActive,
-    Visual = 1,
-    Caret = 2,
-    Line = 3,
-  }
 }
 var VVisualMode = {
   mode_: VisualModeNS.Mode.NotActive,
@@ -28,7 +22,7 @@ var VVisualMode = {
   selection_: null as never as Selection,
   activate_ (this: void, _0: number, options: CmdOptions["visualMode"]): void {
     const a = VVisualMode;
-    let sel: Selection, type: string, mode: VisualModeNS.Mode, str: string;
+    let sel: Selection, type: string, mode: CmdOptions["visualMode"]["mode"] = options.mode;
     a.init_ && a.init_(options.words as string);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
     a.movement_.selection_ = a.selection_ = sel = VDom.UI.getSelection_();
@@ -36,9 +30,7 @@ var VVisualMode = {
     VUtils.push_(a.onKeydown_, a);
     type = VDom.selType_(sel);
     if (!a.mode_) { a.retainSelection_ = type === "Range"; }
-    str = typeof options.mode === "string" ? options.mode.toLowerCase() : "";
-    a.mode_ = mode = str ? str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line
-      : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
+    a.mode_ = mode;
     if (mode !== VisualModeNS.Mode.Caret) {
       a.movement_.alterMethod_ = "extend";
       const lock = VEventMode.lock_();
@@ -54,11 +46,11 @@ var VVisualMode = {
         type = VDom.selType_(sel);
       }
       if (type !== "Range" && (!lock || sel.toString().length <= 0)) {
-        mode = VisualModeNS.Mode.Caret; str = "caret";
+        mode = VisualModeNS.Mode.Caret;
       }
     }
     a.hudTimer_ && clearTimeout(a.hudTimer_);
-    VHUD.show_(a.hud_ = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode", !!options.from_find);
+    VHUD.show_(a.hud_ = (mode === VisualModeNS.Mode.Caret ? "Caret" : mode === VisualModeNS.Mode.Line ? "Line" : "Visual") + " mode", !!options.from_find);
     if (a.mode_ !== mode) {
       a.mode_ = mode;
       a.prompt_("No usable selection, entering caret mode\u2026", 1000);
@@ -140,7 +132,11 @@ var VVisualMode = {
         const flag = this.selection_.toString().length > 1;
         this.movement_.collapseSelectionTo_(+flag as 0 | 1);
       }
-      return this.activate_(1, VUtils.safer_({ mode: ["visual", "line", "caret"][(command as number - 51) as 0 | 1 | 2] }));
+      ;
+      return this.activate_(1, VUtils.safer_({
+        // command === 1 ? VisualModeNS.Mode.Visual : command === 2 : VisualModeNS.Mode.Line : VisualModeNS.Mode.Caret
+        mode: <number>command - 50
+      }));
     }
     this.mode_ === VisualModeNS.Mode.Caret && this.movement_.collapseSelectionTo_(0);
     if (command >= 0) {
