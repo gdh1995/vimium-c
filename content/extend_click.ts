@@ -1,5 +1,6 @@
-"VimiumInjector" in window || (function(this: void): void {
-  if (!window.VSettings) { return; }
+"VimiumInjector" in window ||
+VSettings && document.readyState !== "complete" &&
+(function(this: void): void {
   let d: Document | Document["documentElement"] = document
     , script = d.createElement("script") as HTMLScriptElement | Element
     , box: EventTarget | null | false = null
