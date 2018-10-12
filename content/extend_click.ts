@@ -52,19 +52,16 @@ const ETP = EventTarget.prototype, _listen = ETP.addEventListener, toRegister: E
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, R, A, B, C>(func: (this: T, a?: A, b?: B, c?: C) => R, self: T, a?: A, b?: B, c?: C) => R,
 dispatch = (_call as Call1<EventTarget, Event, boolean>).bind(ETP.dispatchEvent),
-Append = document.appendChild,
-Contains = document.contains, contains = Contains.bind(document),
-Insert = document.insertBefore,
-CE = CustomEvent,
-HA = HTMLAnchorElement, DF = DocumentFragment,
-HF = HTMLFormElement, E = Element,
+d = document, cs = d.currentScript as HTMLScriptElement, Create = d.createElement as Document["createElement"],
+E = Element, EP = E.prototype, Append = EP.appendChild, Contains = EP.contains, Insert = EP.insertBefore,
+Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
+contains = Contains.bind(d),
+CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment, HF = HTMLFormElement,
 FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
-Create = document.createElement as Document["createElement"],
-Attr = E.prototype.setAttribute, HasAttr = E.prototype.hasAttribute, Remove = E.prototype.remove,
 rel = removeEventListener, ct = clearTimeout,
-sec = <string>(document.currentScript as HTMLScriptElement).getAttribute("data-vimium"),
+sec = <string>cs.getAttribute("data-vimium"),
 hooks = {
   toString: function toString(this: Function): string {
     const a = this;
@@ -75,7 +72,7 @@ hooks = {
   addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): void {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA || a instanceof HF) && a instanceof E) {
-      toRegister.push(a as Element);
+      toRegister.push(a);
       if (timer === 0) { timer = next(); }
     }
     const args = arguments, len = args.length;
@@ -90,9 +87,9 @@ let handler = function(this: void): void {
   rel("DOMContentLoaded", handler, true);
   ct(timer);
   handler = null as never;
-  const docEl = document.documentElement as HTMLElement | SVGElement;
+  const d = document, docEl = d.documentElement as HTMLElement | SVGElement;
   if (!docEl) { return destroy(); }
-  const el = call(Create, document, "div") as HTMLDivElement, key = "data-vimium";
+  const el = call(Create, d, "div") as HTMLDivElement, key = "data-vimium";
   call(Attr, el, key, "");
   listen(el, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
   call(Append, docEl, el), dispatch(el, new CE("VimiumHook", {detail: sec})), call(Remove, el);
@@ -154,7 +151,7 @@ function destroy(e?: CustomEvent): void {
 toRegister.push = toRegister.push, toRegister.splice = toRegister.splice;
 (!SR || SR instanceof E) && (SR = CE as never);
 // only the below can affect outsides
-(document.currentScript as HTMLScriptElement).remove();
+cs.remove();
 ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
