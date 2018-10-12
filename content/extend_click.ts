@@ -86,8 +86,9 @@ hooks = {
 let handler = function(this: void): void {
   rel("DOMContentLoaded", handler, true);
   ct(timer);
-  handler = null as never;
-  const d = document, docEl = d.documentElement as HTMLElement | SVGElement;
+  const d = document, docEl = docChildren[0] as HTMLElement | SVGElement | null;
+  handler = docChildren = null as never;
+  console.log('get docEl:', docEl);
   if (!docEl) { return destroy(); }
   const el = call(Create, d, "div") as HTMLDivElement, key = "data-vimium";
   call(Attr, el, key, "");
@@ -100,6 +101,7 @@ let handler = function(this: void): void {
     timer = toRegister.length > 0 ? next() : 0;
   }
 },
+docChildren = d.children,
 next = setTimeout.bind(null as never, function(): void {
   const len = toRegister.length, start = len > 9 ? len - 10 : 0, delta = len - start;
   timer = start > 0 ? next() : 0;
