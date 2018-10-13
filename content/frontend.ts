@@ -541,7 +541,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       removeEventListener("mousedown", _this.ExitGrab_, true);
       VUtils.remove_(_this);
       // it's okay to not set the userActed flag if there's only the top frame,
-      !(event instanceof Event) || !(window.frames && (frames as Window[]).length) && window === window.top ||
+      !(event instanceof Event) || !frames.length && window === window.top ||
       vPort.SafePost_({ handler: "exitGrab" });
       if (event instanceof KeyboardEvent) { return HandlerResult.Nothing; }
     } as {

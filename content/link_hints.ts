@@ -538,7 +538,7 @@ var VHints = {
   },
   frameNested_: false as HintsNS.NestedFrame,
   checkNestedFrame_: function(output?: Hint[]): void {
-    const res = output && output.length > 1 ? null : window.frames && !(frames as Window[]).length ? false
+    const res = output && output.length > 1 ? null : !frames.length ? false
       : document.webkitIsFullScreen ? 0 : this._getNestedFrame(output);
     this.frameNested_ = res === false && document.readyState === "complete" ? null : res;
   },

@@ -9233,7 +9233,7 @@ declare var event: Event | undefined;
 declare var external: External;
 */
 declare var frameElement: Element | null;
-declare var frames: Window[] | object | null | undefined;
+declare var frames: Window[];
 declare var history: History;
 declare var innerHeight: number;
 declare var innerWidth: number;
