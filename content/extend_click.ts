@@ -120,6 +120,7 @@ function reg(this: void, element: Element): void {
   }
   let e1: Element | null = element, e2: Node | null;
   for (; e2 = e1.parentElement; e1 = e2 as Element) {
+    // todo: frameset?
     if (e2 instanceof HF && (e1 = e2.parentElement) && !call(Contains, e1, e2)) {
       e1 = e2.parentNode as Element | null;
       if (!e1 || !call(Contains, e1, e2)) { return; }
@@ -136,6 +137,7 @@ function reg(this: void, element: Element): void {
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
+    // todo: frameset?
     const after = e1.nextSibling;
     call(Append, box, e1);
     dispatch(element, event);

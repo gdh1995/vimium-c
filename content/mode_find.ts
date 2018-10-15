@@ -273,6 +273,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   },
   focusFoundLink_ (el: Element | null): el is HTMLAnchorElement {
     for (; el && el !== document.body; el = el.parentElement) {
+      // todo: check <form> and <frameset>
       if (el instanceof HTMLAnchorElement) {
         el.focus();
         return true;

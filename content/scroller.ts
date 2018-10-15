@@ -189,6 +189,7 @@ animate_ (e: Element | null, d: ScrollByY, a: number): void | number {
       return element;
     }
     skipPrepare || VDom.prepareCrop_();
+    // todo: check form and frameset
     let children = [] as {area: number, el: Element}[], _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
       element = _ref[_len];

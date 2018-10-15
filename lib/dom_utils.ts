@@ -44,6 +44,7 @@ var VDom = {
       return null;
     }
   },
+  /** todo: check form and frameset */
   getParent_ (el: Element): Element | null {
     const arr = el.getDestinationInsertionPoints ? el.getDestinationInsertionPoints() : null;
     arr && arr.length > 0 && (el = arr[arr.length - 1]);
@@ -339,16 +340,19 @@ var VDom = {
     return (element as HTMLElement).isContentEditable === true ? node ? node.contains(element) : false
       : this.selType_(sel) === "Range" && sel.isCollapsed && element === (node as Node).childNodes[sel.anchorOffset];
   },
+  /** todo: check form and frameset */
   getSelectionFocusElement_ (): Element | null {
     let sel = window.getSelection(), node = sel.focusNode, i = sel.focusOffset;
     node && node === sel.anchorNode && i === sel.anchorOffset && (node = node.childNodes[i]);
     return node && node.nodeType !== /* Node.ELEMENT_NODE */ 1 ? node.parentElement : node as (Element | null);
   },
+  /** todo: check form and frameset */
   findSelectionParent_ (maxNested: number): Element | null {
     let focus = this.getSelectionFocusElement_(), anc = window.getSelection().anchorNode as Node, i = 0;
     for (; focus && i < maxNested && !focus.contains(anc); i++) { focus = focus.parentElement; }
     return i < maxNested ? focus : null;
   },
+  /** todo: check form and frameset */
   getElementWithFocus_: function(sel: Selection, di: BOOL): Element | null {
     let r = sel.getRangeAt(0);
     this.selType_(sel) === "Range" && (r = r.cloneRange()).collapse(!di);
