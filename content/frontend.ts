@@ -150,8 +150,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     function onFocus(this: void, event: Event | FocusEvent): void {
       if (event.isTrusted === false) { return; }
       // on Firefox, target may also be `document`
-      let target = event.target as EventTarget | Element | (Document & { shadowRoot: undefined });
-      if (target === window) {
+      let target = event.target as EventTarget | Element | Document;
+      if (target === window || target === document) {
         return onWndFocus();
       }
       if (!isEnabled) { return; }
@@ -188,7 +188,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
           (root as ShadowRootEx).vimiumListened = ListenType.Full;
         }
       }
-      if (VDom.getEditableType_(target)) {
+      if (VDom.getEditableType_(target as Element)) {
         if (InsertMode.grabFocus_) {
           if (document.activeElement === target) {
             event.stopImmediatePropagation();
@@ -206,8 +206,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     }
     function onBlur(this: void, event: Event | FocusEvent): void {
       if (!isEnabled || event.isTrusted === false) { return; }
-      const target = event.target as Window | Element | ShadowRootEx;
-      if (target === window) { return onWndBlur(); }
+      const target = event.target as Window | Element | ShadowRootEx | Document;
+      if (target === window || target === document) { return onWndBlur(); }
       let path = event.path as EventPath | undefined, top: EventTarget | undefined
         , same = !(top = path && path[0]) || top === window || top === target
         , sr = (target as Element).shadowRoot;
