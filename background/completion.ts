@@ -1171,7 +1171,7 @@ knownCs: CompletersMap & SafeObject = {
       (_this.history as HistoryItem[]).splice(~i, 0, j);
     },
     OnVisitRemoved (this: void, toRemove: chrome.history.RemovedResult): void {
-      Decoder.todos.length = 0;
+      Decoder._jobs.length = 0;
       const d = Decoder.dict;
       if (toRemove.allHistory) {
         HistoryCache.history = [];
@@ -1246,10 +1246,10 @@ knownCs: CompletersMap & SafeObject = {
       try {
         return this._f(a);
       } catch (e) {}
-      return this.dict[a] || (o !== false && this.todos.push(o), a);
+      return this.dict[a] || (o !== false && this._jobs.push(o), a);
     },
     decodeList (a: DecodedItem[]): void {
-      const { _f: f, dict: m, todos: w } = this;
+      const { _f: f, dict: m, _jobs: w } = this;
       let i = -1, j: DecodedItem | undefined, l = a.length, s: string | undefined;
       for (; ; ) {
         try {
@@ -1265,25 +1265,25 @@ knownCs: CompletersMap & SafeObject = {
       return this.continueToWork();
     },
     dict: Object.create<string>(null),
-    todos: [] as ItemToDecode[],
+    _jobs: [] as ItemToDecode[],
     _ind: -1,
     continueToWork (): void {
-      if (this.todos.length === 0 || this._ind !== -1) { return; }
+      if (this._jobs.length === 0 || this._ind !== -1) { return; }
       this._ind = 0;
       setTimeout(this.Work, 17, null);
     },
     Work (xhr: XMLHttpRequest | null): void {
       const _this = Decoder;
       let text: string | undefined;
-      for (; _this._ind < _this.todos.length; _this._ind++) {
-        const url = _this.todos[_this._ind], isStr = typeof url === "string",
+      for (; _this._ind < _this._jobs.length; _this._ind++) {
+        const url = _this._jobs[_this._ind], isStr = typeof url === "string",
         str = isStr ? url as string : (url as DecodedItem).url;
         if (text = _this.dict[str]) {
           isStr || ((url as DecodedItem).text = text);
           continue;
         }
         if (!xhr && !(xhr = _this.init())) {
-          _this.todos.length = 0;
+          _this._jobs.length = 0;
           _this._ind = -1;
           return;
         }
@@ -1294,16 +1294,16 @@ knownCs: CompletersMap & SafeObject = {
     OnXHR (this: XMLHttpRequest): void {
       const _this = Decoder;
       if (_this._ind < 0) { return; } // disabled by the outsides
-      const text = this.responseText, url = _this.todos[_this._ind++];
+      const text = this.responseText, url = _this._jobs[_this._ind++];
       if (typeof url !== "string") {
         _this.dict[url.url] = url.text = text;
       } else {
         _this.dict[url] = text;
       }
-      if (_this._ind < _this.todos.length) {
+      if (_this._ind < _this._jobs.length) {
         return _this.Work(this);
       }
-      _this.todos.length = 0;
+      _this._jobs.length = 0;
       _this._ind = -1;
     },
     enabled: true,
@@ -1332,10 +1332,10 @@ knownCs: CompletersMap & SafeObject = {
         }, 100);
       } else {
         this.dict = Object.create<string>(null);
-        this.todos.length = 0;
+        this._jobs.length = 0;
       }
       if (this.enabled === enabled) { return; }
-      this.todos = enabled ? [] as ItemToDecode[] : { length: 0, push() {} } as any;
+      this._jobs = enabled ? [] as ItemToDecode[] : { length: 0, push() {} } as any;
       this.enabled = enabled;
       this._ind = -1;
     },

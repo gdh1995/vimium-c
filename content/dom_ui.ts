@@ -134,7 +134,9 @@ VDom.UI = {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;
     if (sel.focusNode === document.documentElement && (el = VScroller.current_)) {
       // todo: check <form> and frameset
+      // todo: why el2?
       for (; el2 = el.parentNode; el = el2) {}
+      // todo: check embed
       if (typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRootWithSelection).getSelection() || sel;
       }
