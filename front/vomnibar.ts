@@ -176,7 +176,7 @@ var Vomnibar = {
   },
   reset (input: string, start?: number, end?: number): void {
     this.inputText = input;
-    this.useInput = false;
+    this.useInput = this.showing = false;
     this.isHttps = this.baseHttps;
     this.mode.query = this.lastQuery = input && input.trim().replace(this._spacesRe, " ");
     this.height = 0;
