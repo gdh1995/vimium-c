@@ -77,12 +77,12 @@ VDom.UI = {
     return this.addElement_(parent, AdjustType.DEFAULT, this._lastFlash);
   },
   adjust_ (event): void {
-    const ui = VDom.UI, el = document.webkitFullscreenElement,
+    const ui = VDom.UI, el = document.webkitFullscreenElement, box = ui.box_ as HTMLDivElement,
     el2 = el && !(ui.R as Node).contains(el) ? el : document.documentElement as HTMLElement;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    el2 !== (ui.box_ as HTMLElement).parentNode && (ui.box_ as Node).appendChild.call(el2, ui.box_ as Node);
+    el2 !== box.parentNode && box.appendChild.call(el2, box);
     const sin = ui.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
     s && (s.disabled = false);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust_, true);
@@ -110,15 +110,16 @@ VDom.UI = {
   },
   css_ (innerCSS): void { this.styleIn_ = innerCSS; },
   getDocSelectable_ (): boolean {
-    let el: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_, st: CSSStyleDeclaration;
-    if (el && el.parentNode) { return false; }
-    if (el = document.body) {
-      st = getComputedStyle(el);
+    let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_;
+    if (sout && sout.parentNode) { return false; }
+    let gcs = getComputedStyle, st: CSSStyleDeclaration;
+    if (sout = document.body) {
+      st = gcs(sout);
       if ((st.userSelect || st.webkitUserSelect) === "none") {
         return false;
       }
     }
-    st = getComputedStyle(document.documentElement as HTMLHtmlElement);
+    st = gcs(document.documentElement as HTMLHtmlElement);
     return (st.userSelect || st.webkitUserSelect) !== "none";
   },
   toggleSelectStyle_ (enable: boolean): void {

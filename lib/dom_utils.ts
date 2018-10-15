@@ -197,17 +197,17 @@ var VDom = {
    */
   getZoom_ (target?: 1 | Element): number {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
-      , st = getComputedStyle(docEl), zoom = +st.zoom || 1
+      , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = document.webkitFullscreenElement;
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom_ && (zoom = 1);
     if (target) {
       const body = el ? null : document.body;
       // if fullscreen and there's nested "contain" styles,
       // then it's a whole mess and nothing can be ensured to be right
-      this.bZoom_ = body && (target === 1 || this.isInDOM_(target, body)) && +getComputedStyle(body).zoom || 1;
+      this.bZoom_ = body && (target === 1 || this.isInDOM_(target, body)) && +gcs(body).zoom || 1;
     }
     for (; el && el !== docEl; el = this.getParent_(el)) {
-      zoom *= +getComputedStyle(el).zoom || 1;
+      zoom *= +gcs(el).zoom || 1;
     };
     this.paintBox_ = null; // it's not so necessary to get a new paintBox here
     this.dbZoom_ = this.bZoom_ * zoom;
@@ -222,13 +222,14 @@ var VDom = {
       const zoom = this.wdZoom_ / ratio2;
       return [0, 0, (iw / zoom) | 0, (ih / zoom) | 0, 0];
     }
-    const box = document.documentElement as HTMLElement, st = getComputedStyle(box),
-    box2 = document.body, st2 = box2 ? getComputedStyle(box2) : st,
+    const gcs = getComputedStyle, float = parseFloat,
+    box = document.documentElement as HTMLElement, st = gcs(box),
+    box2 = document.body, st2 = box2 ? gcs(box2) : st,
     zoom2 = this.bZoom_ = box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string),
     stacking = st.position !== "static" || containHasPaint || st.transform !== "none",
     // ignore the case that x != y in "transform: scale(x, y)""
-    _tf = st.transform, scale = this.dScale_ = _tf && !_tf.startsWith("matrix(1,") && parseFloat(_tf.slice(7)) || 1,
+    _tf = st.transform, scale = this.dScale_ = _tf && !_tf.startsWith("matrix(1,") && float(_tf.slice(7)) || 1,
     // NOTE: if box.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
@@ -236,8 +237,8 @@ var VDom = {
     Math.abs(zoom - ratio) < 1e-5 && this.specialZoom_ && (zoom = 1);
     this.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
     this.dbZoom_ = zoom * zoom2;
-    let x = stacking ? -box.clientLeft : parseFloat(st.marginLeft)
-      , y = stacking ? -box.clientTop  : parseFloat(st.marginTop );
+    let x = stacking ? -box.clientLeft : float(st.marginLeft)
+      , y = stacking ? -box.clientTop  : float(st.marginTop );
     x = x * scale - rect.left, y = y * scale - rect.top;
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
     x = Math.abs(x) < 0.01 ? 0 : Math.ceil(Math.round(x / zoom2 * 100) / 100);
@@ -247,8 +248,8 @@ var VDom = {
     if (containHasPaint) { // ignore the area on the block's left
       iw = rect.right, ih = rect.bottom;
     }
-    this.paintBox_ = containHasPaint ? [iw - parseFloat(st.borderRightWidth ) * scale,
-                                       ih - parseFloat(st.borderBottomWidth) * scale] : null;
+    this.paintBox_ = containHasPaint ? [iw - float(st.borderRightWidth ) * scale,
+                                       ih - float(st.borderBottomWidth) * scale] : null;
     if (!needBox) { return [x, y]; }
     // here rect.right is not exact because <html> may be smaller than <body>
     const sEl = this.scrollingEl_(),

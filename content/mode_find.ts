@@ -469,7 +469,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     enabled || this.isActive_ || ui.toggleSelectStyle_(false);
     if (enabled === (sout.parentNode ? 1 : 0)) { return; }
     if (enabled) {
-      (ui.box_ as HTMLElement).appendChild(sout); (ui.R as ShadowRoot).insertBefore(sin, this.box_);
+      (ui.box_ as HTMLDivElement).appendChild(sout); (ui.R as ShadowRoot).insertBefore(sin, this.box_);
     } else {
       sout.remove(); sin.remove();
     }
