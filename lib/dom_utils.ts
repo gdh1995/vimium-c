@@ -111,13 +111,14 @@ var VDom = {
       }
       if (_ref) { continue; }
       _ref = element.children;
-      for (let _j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-        style = getComputedStyle(_ref[_j]);
+      for (let _j = 0, _len1 = _ref.length, gCS = getComputedStyle; _j < _len1; _j++) {
+        // todo: check `instanceof` on _ref[j]
+        style = gCS(_ref[_j]);
         if (style.float !== 'none' ||
             ((str = style.position) !== 'static' && str !== 'relative')) {}
         else if (rect.height === 0) {
           if (notInline == null) {
-            el_style || (el_style = getComputedStyle(element));
+            el_style || (el_style = gCS(element));
             notInline = (el_style.fontSize !== "0px" && el_style.lineHeight !== "0px") || !el_style.display.startsWith("inline");
           }
           if (notInline || !style.display.startsWith("inline")) { continue; }
@@ -301,6 +302,8 @@ var VDom = {
     let parent: Node | null, SR = window.ShadowRoot;
     (!SR || SR instanceof Element) && (SR = function() {} as never as typeof ShadowRoot);
     while (element !== root && (parent = element.parentNode)) {
+      // todo: check `instanceof` on _ref[j]
+      // note: should return true if the element is not safe
       element = parent instanceof SR ? parent.host : parent;
     }
     return element === root;
@@ -317,11 +320,12 @@ var VDom = {
   /**
    * if true, then `element` is `HTMLElement`
    */
-  getEditableType_ (element: EventTarget): EditableType {
-    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return EditableType.NotEditable; }
-    const ty = this.editableTypes_[element.nodeName.toLowerCase()];
+  getEditableType_ (element: Element): EditableType {
+    const name = element.tagName;
+    if (!(element instanceof HTMLElement) || typeof name !== "string") { return EditableType.NotEditable; }
+    const ty = this.editableTypes_[name.toLowerCase()];
     return ty !== EditableType.input_ ? (ty
-        || (element.isContentEditable ? EditableType.Editbox : EditableType.NotEditable))
+        || (element.isContentEditable === true ? EditableType.Editbox : EditableType.NotEditable))
       : ((element as HTMLInputElement).type in this.uneditableInputs_) ? EditableType.NotEditable : EditableType.Editbox;
   },
   docSelectable_: true,

@@ -405,7 +405,7 @@ var VHints = {
       }
     }
   },
-  getImagesInImg_ (arr: Hint[], element: HTMLImageElement): void {
+  _getImagesInImg (arr: Hint[], element: HTMLImageElement): void {
     if (!element.src && !element.getAttribute("data-src")) { return; }
     let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
@@ -425,7 +425,7 @@ var VHints = {
     }
   },
   GetImages_ (this: Hint[], element: Element): void {
-    if (element instanceof HTMLImageElement) { return VHints.getImagesInImg_(this, element); }
+    if (element instanceof HTMLImageElement) { return VHints._getImagesInImg(this, element); }
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
     let str = element.getAttribute("data-src") || element.getAttribute("href"), cr: VRect | null;
     if (VUtils.isImageUrl_(str)) {
