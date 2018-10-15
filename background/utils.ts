@@ -37,7 +37,7 @@ var Utils = {
     const escapedRe = <RegExpG & RegExpSearchable<1>> /\&(amp|gt|lt|nbsp);/g,
     map = Object.setPrototypeOf({ amp: "&", gt: ">", lt: "<", nbsp: " " }, null) as EnsuredSafeDict<string>,
     unescapeCallback = (_0: string, s: string) => map[s];
-    this.unescapeHTML = () => s.replace(escapedRe, unescapeCallback);
+    this.unescapeHTML = s => s.replace(escapedRe, unescapeCallback);
     return this.unescapeHTML(s);
   },
   isJSUrl (s: string): boolean { return s.charCodeAt(10) === KnownKey.colon && s.substring(0, 11).toLowerCase() === "javascript:"; },
