@@ -88,7 +88,6 @@ let handler = function(this: void): void {
   ct(timer);
   const d = document, docEl = docChildren[0] as HTMLElement | SVGElement | null;
   handler = docChildren = null as never;
-  console.log('get docEl:', docEl);
   if (!docEl) { return destroy(); }
   const el = call(Create, d, "div") as HTMLDivElement, key = "data-vimium";
   call(Attr, el, key, "");
