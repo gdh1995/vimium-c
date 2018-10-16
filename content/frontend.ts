@@ -56,9 +56,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     TestAlive_ (): void { esc && !vPort._port && VSettings.destroy(); },
     ClearPort_ (this: void): void {
       vPort._port = null;
-      requestHandlers.init && VDom.Scripts && setTimeout(function(i): void {
-        if (i) { VSettings.destroy(); } else
-        try { esc && vPort.Connect_(PortType.initing); } catch(e) { VSettings.destroy(); }
+      requestHandlers.init && setTimeout(function(i): void {
+        if (!i)
+          try { esc && vPort.Connect_(PortType.initing); return; } catch(e) {}
+        VSettings.destroy();
       }, 2000);
     },
     Connect_: (function (this: void, status: PortType): void {
