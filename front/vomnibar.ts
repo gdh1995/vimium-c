@@ -36,8 +36,8 @@ interface ConfigurableItems {
 interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
 
-if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy_ === "function") {
-  VSettings.destroy_(true);
+if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
+  VSettings.destroy(true);
   window.dispatchEvent(new Event("unload"));
 }
 

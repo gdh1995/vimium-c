@@ -44,7 +44,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         }
         (vPort._port as Port).postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
-        VSettings.destroy_();
+        VSettings.destroy();
       }
     },
     Listener_<K extends keyof FgRes, T extends keyof BgReq> (this: void
@@ -53,12 +53,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       type TypeChecked = { [K in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
       (requestHandlers as TypeToCheck as TypeChecked)[(response as Req.bg<T>).name as T](response as Req.bg<T>);
     },
-    TestAlive_ (): void { esc && !vPort._port && VSettings.destroy_(); },
+    TestAlive_ (): void { esc && !vPort._port && VSettings.destroy(); },
     ClearPort_ (this: void): void {
       vPort._port = null;
       requestHandlers.init && VDom.Scripts && setTimeout(function(i): void {
-        if (i) { VSettings.destroy_(); } else
-        try { esc && vPort.Connect_(PortType.initing); } catch(e) { VSettings.destroy_(); }
+        if (i) { VSettings.destroy(); } else
+        try { esc && vPort.Connect_(PortType.initing); } catch(e) { VSettings.destroy(); }
       }, 2000);
     },
     Connect_: (function (this: void, status: PortType): void {
@@ -1131,7 +1131,7 @@ Pagination = {
     enabled_: false,
     cache: null as never as VSettings["cache"],
     uninit_: null,
-  destroy_: function(silent): void {
+  destroy: function(silent): void {
     VSettings.enabled_ = isEnabled = false;
     hook(HookAction.Destroy);
     
@@ -1168,7 +1168,7 @@ Pagination = {
       let f = VDom.parentFrame_(),
       a = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFindMode?: typeof VFindMode}).VFindMode;
       if (a && a.box_ && a.box_ === f) {
-        VSettings.destroy_(true);
+        VSettings.destroy(true);
         a.onLoad_(a.box_);
         return; // not return a function's result so that logic is clearer for compiler
       }

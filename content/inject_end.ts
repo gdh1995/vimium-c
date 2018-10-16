@@ -31,7 +31,7 @@ VSettings.uninit_ = function(type: number): void {
   }
 };
 
-VimiumInjector.destroy = VSettings.destroy_;
+VimiumInjector.destroy = VSettings.destroy;
 
 [VDom, VHints, VKeyboard, Vomnibar, VScroller, VMarks,
   VFindMode, VSettings, VHUD, VVisualMode,
