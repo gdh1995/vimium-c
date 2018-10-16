@@ -662,7 +662,7 @@ function patchExtendClick(source) {
     let prefix = source.substring(0, start), suffix = source.substring(end2);
     source = source.substring(start + match[0].length, end).replace(/ \/\/.*?$/g, "").replace(/'/g, '"');
     if (locally) {
-      source = source.replace(/([\r\n]) {4,8}/g, "$1").replace(/\r/g, "\\r").replace(/\n/g, "\\n");
+      source = source.replace(/([\r\n]) {4,8}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");
     } else {
       source = source.replace(/[\r\n]\s*/g, "");
     }

@@ -150,7 +150,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   },
   findAndFocus_ (query: string, options: CmdOptions["findMode"]): void {
     if (!query) {
-      return VHUD.showForDuration("No old queries to find.");
+      return VHUD.tip("No old queries to find.");
     }
     if (query !== this.query_) {
       this.updateQuery_(query);
@@ -168,7 +168,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     if (!this.hasResults_) {
       if (!this.isActive_) {
         VDom.UI.toggleSelectStyle_(false);
-        VHUD.showForDuration(`No matches for '${this.query_}'`);
+        VHUD.tip(`No matches for '${this.query_}'`);
       }
       return;
     }

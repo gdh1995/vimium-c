@@ -690,7 +690,7 @@ document.addEventListener("click", function onClickOnce(): void {
         handler: "copy",
         data: str
       });
-      return VHUD.showCopied(str);
+      return VHUD.copied(str);
     }
   }, true);
 }, true);

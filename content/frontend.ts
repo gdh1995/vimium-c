@@ -273,7 +273,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     focusAndHint: VHints.ActivateAndFocus_,
     unhoverLast (this: void): void {
       VDom.hover_(null);
-      VHUD.showForDuration("The last element is unhovered");
+      VHUD.tip("The last element is unhovered");
     },
     marks: VMarks.activate_,
     goToMarks: VMarks.GoTo_,
@@ -307,7 +307,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       cache[key] = val as typeof cur;
       let msg = val === false ? '"' + key + '" has been turned off'
         : 'Now "' + key + (val === true ? '" is on' : '" use ' + JSON.stringify(val));
-      return VHUD.showForDuration(msg, 1000);
+      return VHUD.tip(msg, 1000);
     },
     insertMode (_0: number, opt: CmdOptions["insertMode"]): void {
       let { code, stat } = opt;
@@ -355,7 +355,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       if (!VDom.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }
       const isNext = rel === "next";
       if (patterns.length <= 0 || !Pagination.findAndFollowLink_(patterns, isNext ? "<" : ">")) {
-        return VHUD.showForDuration("No links to go " + rel);
+        return VHUD.tip("No links to go " + rel);
       }
     },
     reload (_0: number, {force, hard, url}: CmdOptions["reload"]): void {
@@ -377,10 +377,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }
       newEl = InsertMode.last_;
       if (!newEl) {
-        return HUD.showForDuration("Nothing was focused", 1200);
+        return HUD.tip("Nothing was focused", 1200);
       }
       if (!VDom.view(newEl) && VDom.NotVisible_(newEl)) {
-        return HUD.showForDuration("The last focused is hidden", 2000);
+        return HUD.tip("The last focused is hidden", 2000);
       }
       InsertMode.last_ = null;
       InsertMode.mutable_ = true;
@@ -418,7 +418,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
           data: str
         });
       }
-      return HUD.showCopied(str);
+      return HUD.copied(str);
     },
     autoOpen (_0: number, options: CmdOptions["autoOpen"]): void {
       let url = VDom.UI.getSelectionText_(), keyword = (options.keyword || "") + "";
@@ -444,7 +444,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       let sel = visibleInputs.length;
       if (sel === 0) {
         InsertMode.exitInputHint_();
-        return HUD.showForDuration("There are no inputs to focus.", 1000);
+        return HUD.tip("There are no inputs to focus.", 1000);
       } else if (sel === 1) {
         InsertMode.exitInputHint_();
         return VDom.UI.simulateSelect_(visibleInputs[0][0], visibleInputs[0][1], true, action, true);
@@ -741,19 +741,19 @@ Pagination = {
     opacity_: 0 as 0 | 0.25 | 0.5 | 0.75 | 1,
     enabled_: false,
     _timer: 0,
-    showCopied: function (this: VHUD, text: string, e?: string, virtual?: true): string | void {
+    copied: function (this: VHUD, text: string, e?: string, virtual?: true): string | void {
       if (!text) {
         if (virtual) { return text; }
-        return this.showForDuration(`No ${e || "text"} found!`, 1000);
+        return this.tip(`No ${e || "text"} found!`, 1000);
       }
       if (text.startsWith("chrome-") && text.indexOf("://") > 0) {
         text = text.substring(text.indexOf('/', text.indexOf('/') + 2)) || text;
       }
       text = "Copied: " + (text.length > 41 ? text.substring(0, 41) + "\u2026" : text + ".");
       if (virtual) { return text; }
-      return this.showForDuration(text, 2000);
-    } as VHUD["showCopied"],
-    showForDuration (text: string, duration?: number): void {
+      return this.tip(text, 2000);
+    } as VHUD["copied"],
+    tip (text: string, duration?: number): void {
       this.show_(text);
       this.text_ && ((this as typeof HUD)._timer = setTimeout(this.hide_, duration || 1500));
     },
@@ -921,7 +921,7 @@ Pagination = {
     createMark (request: BgReq["createMark"]): void { return VMarks.createMark_(request.markName); },
     showHUD ({ text, CSS, isCopy }: Req.bg<"showHUD">): void {
       if (CSS) { VDom.UI.css_(CSS); }
-      return text ? isCopy ? HUD.showCopied(text) : HUD.showForDuration(text) : void 0;
+      return text ? isCopy ? HUD.copied(text) : HUD.tip(text) : void 0;
     },
     count (request: BgReq["count"]): void {
       const count = parseInt(currentKeys, 10) || 1;
@@ -1053,7 +1053,7 @@ Pagination = {
         (document.documentElement as HTMLElement).appendChild(script);
         script.remove();
       }, 0); else {
-        HUD.showForDuration("Here's not allowed to eval scripts");
+        HUD.tip("Here's not allowed to eval scripts");
       }
       return true;
     }

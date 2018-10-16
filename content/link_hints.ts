@@ -90,7 +90,7 @@ var VHints = {
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
     if (str.length < 3) {
       a.clean_(true);
-      return VHUD.showForDuration("Characters for LinkHints are too few.", 1000);
+      return VHUD.tip("Characters for LinkHints are too few.", 1000);
     }
     a.alphabetHints_.chars_ = str.toUpperCase();
 
@@ -109,7 +109,7 @@ var VHints = {
       elements = a.retryShadowDOM_(arr);
       if (elements.length === 0) {
         a.clean_(true);
-        return VHUD.showForDuration("No links to select.", 1000);
+        return VHUD.tip("No links to select.", 1000);
       }
     }
 
@@ -290,7 +290,7 @@ var VHints = {
     case "frame": case "iframe":
       if (element === Vomnibar.box_) {
         if (arr = VDom.getVisibleClientRect_(element)) {
-          (arr as WritableVRect)[0] += 10.5; (arr as WritableVRect)[1] += 8;
+          (arr as WritableVRect)[0] += 12; (arr as WritableVRect)[1] += 9;
           this.push([element, arr, ClickType.frame]);
         }
         return;
@@ -629,7 +629,7 @@ var VHints = {
       return HandlerResult.Suppress;
     } else if (i === VKeyCodes.ime) {
       VHints.clean_(true);
-      VHUD.showForDuration("LinkHints exits because you're inputing");
+      VHUD.tip("LinkHints exits because you're inputing");
       return HandlerResult.Nothing;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       this.ResetMode_();
@@ -734,7 +734,7 @@ var VHints = {
       }
     } else {
       clickEl = null;
-      VHUD.showForDuration("The link has been removed from page", 2000);
+      VHUD.tip("The link has been removed from page", 2000);
     }
     this.pTimer_ = -(VHUD.text_ !== str);
     if (!(this.mode_ & HintMode.queue)) {
@@ -970,7 +970,7 @@ getImageUrl_ (img: HTMLElement): string | void {
       || src.length > text.length + 7 && (isImg || VUtils.isImageUrl_(src))) {
     text = src;
   }
-  return text || VHUD.showForDuration("Not an image", 1000);
+  return text || VHUD.tip("Not an image", 1000);
 },
 
 openUrl_ (url: string, incognito?: boolean): void {
@@ -1021,7 +1021,7 @@ HOVER_: {
     type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
       element instanceof HTMLFrameElement || element.focus();
     if ((this as typeof VHints).mode_ < HintMode.min_job) {
-      return VHUD.showForDuration("Hover for scrolling", 1000);
+      return VHUD.tip("Hover for scrolling", 1000);
     }
   }
 } as HintsNS.ModeOpt,
@@ -1054,7 +1054,7 @@ COPY_TEXT_: {
     else if (link instanceof HTMLInputElement) {
       str = link.type;
       if (str === "password") {
-        return VHUD.showForDuration("Sorry, Vimium C won't copy a password.", 2000);
+        return VHUD.tip("Sorry, Vimium C won't copy a password.", 2000);
       } else if (!(str in VDom.uneditableInputs_)) {
         str = (link.value || link.placeholder).trim();
       } else if (str === "file") {
@@ -1074,7 +1074,7 @@ COPY_TEXT_: {
       str = str.trim() || (link instanceof HTMLElement ? link.title.trim() : "");
     }
     if (!str) {
-      return VHUD.showCopied("", isUrl ? "url" : "");
+      return VHUD.copied("", isUrl ? "url" : "");
     }
     if ((this as typeof VHints).mode_ >= HintMode.min_edit && (this as typeof VHints).mode_ <= HintMode.max_edit) {
       const force = (this as typeof VHints).options_.force;
@@ -1097,7 +1097,7 @@ COPY_TEXT_: {
       handler: "copy",
       data: str
     });
-    VHUD.showCopied(str);
+    VHUD.copied(str);
   }
 } as HintsNS.ModeOpt,
 OPEN_INCOGNITO_LINK_: {
@@ -1126,7 +1126,7 @@ DOWNLOAD_IMAGE_: {
     a.href = (img as HTMLImageElement).src;
     a.download = img.getAttribute("download") || "";
     VDom.mouse_(a, "click", null);
-    return VHUD.showForDuration("Download: " + text, 2000);
+    return VHUD.tip("Download: " + text, 2000);
   }
 } as HintsNS.ModeOpt,
 OPEN_IMAGE_: {

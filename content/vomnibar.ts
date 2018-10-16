@@ -8,8 +8,6 @@ declare namespace VomnibarNS {
     close (this: Port): void | 1;
   }
   interface IFrameWindow extends Window {
-    Vomnibar: object;
-    VPort?: object;
     onmessage: (this: void, ev: { source: Window, data: VomnibarNS.MessageData, ports: IframePort[] }) => void | 1;
   }
   type BaseFullOptions = CmdOptions["vomnibar"] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
@@ -33,7 +31,7 @@ var Vomnibar = {
   activate (this: void, count: number, options: VomnibarNS.FullOptions): void {
     const a = Vomnibar;
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
-      return VHUD.showForDuration("Sorry, Vomnibar page seems to fail to load.", 2000);
+      return VHUD.tip("Sorry, Vomnibar page seems to fail to load.", 2000);
     }
     if (!options || !options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
@@ -90,7 +88,7 @@ var Vomnibar = {
       options.search = "";
       return a.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
-    if ((window as Window & {shownNode?: Element}).shownNode && window.VimiumInjector === null) {
+    if ((window as Window & {shownNode?: Element}).shownNode && VimiumInjector === null) {
       url = url.split("#", 1)[0] + window.name;
     }
     const trail = options.trailing_slash;
@@ -171,7 +169,7 @@ var Vomnibar = {
         wnd.postMessage(sec, type !== VomnibarNS.PageType.web ? origin : "*", [channel.port2]);
         return;
       }
-      if (!(wnd.Vomnibar && wnd.onmessage)) { return reload(); }
+      if (!wnd.onmessage) { return reload(); }
       type FReq = VomnibarNS.FReq;
       type CReq = VomnibarNS.CReq;
       const port: VomnibarNS.IframePort = {
@@ -185,7 +183,7 @@ var Vomnibar = {
         close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
-      if (location.hash === "#dialog-ui" && window.VimiumInjector === null) { _this.top_ = "8px"; }
+      if (location.hash === "#dialog-ui" && VimiumInjector === null) { _this.top_ = "8px"; }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {
@@ -242,7 +240,7 @@ var Vomnibar = {
     case "evalJS": VPort.evalIfOK_((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
     case "unload": return Vomnibar ? this.reset_(data.name === "broken") : undefined;
-    case "hud": VHUD.showForDuration((data as Req["hud"]).text); return;
+    case "hud": VHUD.tip((data as Req["hud"]).text); return;
     default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.name);
     }
   },

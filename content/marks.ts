@@ -34,7 +34,7 @@ var VMarks = {
   _create (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {
       this.setPreviousPosition_();
-      return VHUD.showForDuration("Created local mark [last].", 1000);
+      return VHUD.tip("Created local mark [last].", 1000);
     } else if (event.shiftKey !== this.swap_) {
       if (window.top === window) {
         return this.createMark_(keyChar);
@@ -53,7 +53,7 @@ var VMarks = {
       if (pos) {
         this._scroll(pos);
       }
-      return VHUD.showForDuration((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
+      return VHUD.tip((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
     }
     const req: Req.fg<"marks"> & { action: "goto" } = {
       handler: "marks", action: "goto",
@@ -96,7 +96,7 @@ var VMarks = {
       url: location.href,
       scroll: [window.scrollX | 0, window.scrollY | 0]
     });
-    return VHUD.showForDuration(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
+    return VHUD.tip(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },
   GoTo_ (this: void, _0: number, options: CmdOptions["goToMarks"]): void {
     const { scroll, local, markName: a } = options;
@@ -104,7 +104,7 @@ var VMarks = {
     VMarks._scroll(scroll);
     local || VEventMode.focusAndListen_();
     if (a) {
-      return VHUD.showForDuration(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
+      return VHUD.tip(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
     }
   }
 };

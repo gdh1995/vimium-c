@@ -62,7 +62,7 @@ var VVisualMode = {
       a.movement_.collapseSelectionTo_(0);
     } else if (type === "None" && a.establishInitialSelectionAnchor_()) {
       a.deactivate_();
-      return VHUD.showForDuration("Create a selection before entering visual mode.");
+      return VHUD.tip("Create a selection before entering visual mode.");
     }
     a.movement_.extend_(1);
     a.movement_.scrollIntoView_();
@@ -206,11 +206,11 @@ var VVisualMode = {
   yank_ (action?: true | ReuseType.current | ReuseType.newFg | null): void {
     const str = this.selection_.toString();
     if (action === true) {
-      this.prompt_(VHUD.showCopied(str, "", true), 2000);
+      this.prompt_(VHUD.copied(str, "", true), 2000);
       action = null;
     } else {
       this.deactivate_();
-      action != null || VHUD.showCopied(str);
+      action != null || VHUD.copied(str);
     }
     VPort.post(action != null ? { handler: "openUrl", url: str, reuse: action }
         : { handler: "copy", data: str });

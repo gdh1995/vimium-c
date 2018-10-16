@@ -301,9 +301,9 @@ interface VHUD {
   opacity_: 0 | 0.25 | 0.5 | 0.75 | 1;
   show_ (text: string, embed?: boolean): void;
   /** duration is default to 1500 */
-  showForDuration (text: string, duration?: number): void;
-  showCopied (text: string, type: string, virtual: true): string;
-  showCopied (text: string, type?: string): void;
+  tip (text: string, duration?: number): void;
+  copied (text: string, type: string, virtual: true): string;
+  copied (text: string, type?: string): void;
   hide_ (this: void, info?: TimerType): void;
 }
 interface VSettings {

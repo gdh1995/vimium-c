@@ -1,5 +1,5 @@
 if (VSettings && document.readyState !== "complete" &&
-window.VimiumInjector === undefined)
+VimiumInjector === undefined)
 (function(this: void): void {
   let d: Document | Document["documentElement"] = document
     , script = d.createElement("script") as HTMLScriptElement | Element

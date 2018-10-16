@@ -339,7 +339,7 @@ function copyThing(event: Event): void {
     handler: "copy",
     data: str
   });
-  return VHUD.showCopied(str);
+  return VHUD.copied(str);
 }
 
 function toggleInvert(event: Event): void {
