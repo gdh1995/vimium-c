@@ -4,7 +4,6 @@
     "alwaysStrict": true,
     "forceConsistentCasingInFileNames": false,
     "keyofStringsOnly": true,
-    // "lib": [ "dom", "es6" ],
     "listEmittedFiles": true,
     "module": "system",
     "newLine": "lf",
