@@ -224,6 +224,9 @@ label:active {
   line-height: 16px;
   margin-left: 4px;
 }
+.nonEmptyTip {
+  height: 16px;
+}
 .tip {
   color: darkred;
 }
