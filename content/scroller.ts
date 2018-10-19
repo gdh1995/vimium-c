@@ -142,13 +142,14 @@ animate_ (e: Element | null, d: ScrollByY, a: number): void | number {
       ? Math.ceil(amount * 0.6) : amount;
   },
   findScrollable_ (di: ScrollByY, amount: number): Element | null {
-    let element: Element | null = this.current_;
+    let element: Element | null = this.current_, top = this.top_;
     if (!element) {
-      element = this.top_;
+      element = top;
       return this.current_ = element && (this.selectFirst_(element) || element);
     }
-    while (element !== this.top_ && !this.shouldScroll_(element as Element, di, amount)) {
-      element = VDom.getParent_(element as Element) || this.top_;
+    const getInsertion = Element.prototype.getDestinationInsertionPoints;
+    while (element !== top && !this.shouldScroll_(element as Element, di, amount)) {
+      element = VDom.GetParent_(element as Element, getInsertion) || top;
     }
     return element;
   },

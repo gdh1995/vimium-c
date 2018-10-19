@@ -44,13 +44,44 @@ var VDom = {
       return null;
     }
   },
-  /** todo: check form and frameset */
-  getParent_ (el: Element): Element | null {
-    const arr = el.getDestinationInsertionPoints ? el.getDestinationInsertionPoints() : null;
-    arr && arr.length > 0 && (el = arr[arr.length - 1]);
-    return el.parentElement ||
-      window.ShadowRoot && !(ShadowRoot instanceof Element) && el.parentNode instanceof ShadowRoot &&
-      el.parentNode.host || null;
+  PN_ (el: Element): Node | null {
+    let f = Object.getOwnPropertyDescriptor;
+    let desp = f(Node.prototype, 'parentNode');
+    type PN = (this: void, el: Element) => Node | null;
+    let f2 = this.PN_ = desp
+      ? f.call.bind<PN, Element, Node | null>(desp.get as PN)
+      : (e: Element, k?: PropertyDescriptor | undefined): Node | null => (k = f(e, "parentNode")) && k.value || null
+      ;
+    return f2(el);
+  },
+  _PN: null as ((this: void, el: Node) => Node | null) | null,
+  GetParent_: function (this: void, el: Node, getInsertion?: Element["getDestinationInsertionPoints"]): Element | null {
+    if (getInsertion) {
+      const arr = getInsertion.call(el as Element);
+      arr.length > 0 && (el = arr[arr.length - 1]);
+    }
+    let pe = el.parentElement, pn = el.parentNode;
+    if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn && pe; }
+    // par exists but not in normal tree
+    if (!pn.contains(el)) { // pn is overridden
+      type PNFunc = (this: void, el: Node) => Node | null;
+      let PN = VDom._PN, isPeOK = pe && pe.contains(el);
+      if (!isPeOK && !PN) {
+        const f = Object.getOwnPropertyDescriptor, desp = f(Node.prototype, 'parentNode');
+        PN = VDom.PN_ = desp && desp.get
+          ? f.call.bind<PNFunc, Node, Node | null>(desp.get as PNFunc)
+          : (e: Node, k?: PropertyDescriptor | undefined): Node | null => (k = f(e, "parentNode")) && k.value || null
+          ;
+      }
+      pn = isPeOK ? pe : (PN as PNFunc)(el as Node);
+    }
+    const SR = window.ShadowRoot, E = Element;
+    // pn is real or null
+    return SR && !(SR instanceof E) && pn instanceof SR ? pn.host // shadow root
+      : pn instanceof E ? pn /* in doc but overridden */ : null /* pn is null, DocFrag, or ... */;
+  } as {
+    (this: void, el: Element, getInsertion: Element["getDestinationInsertionPoints"]): Element | null;
+    (this: void, el: Node): Element | null;
   },
   scrollingEl_ (): Element | null {
     return document.scrollingElement || (document.compatMode === "BackCompat" ? document.body : document.documentElement);
@@ -207,7 +238,7 @@ var VDom = {
       // then it's a whole mess and nothing can be ensured to be right
       this.bZoom_ = body && (target === 1 || this.isInDOM_(target, body)) && +gcs(body).zoom || 1;
     }
-    for (; el && el !== docEl; el = this.getParent_(el)) {
+    for (; el && el !== docEl; el = this.GetParent_(el)) {
       zoom *= +gcs(el).zoom || 1;
     };
     this.paintBox_ = null; // it's not so necessary to get a new paintBox here

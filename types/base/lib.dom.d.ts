@@ -5397,7 +5397,7 @@ interface Node extends EventTarget {
     readonly nodeType: number;
     nodeValue: string | null;
     readonly ownerDocument: Document;
-    readonly parentElement: HTMLElement | null;
+    readonly parentElement: Element | null;
     readonly parentNode: Node | null;
     readonly previousSibling: Node | null;
     textContent: string | null;
