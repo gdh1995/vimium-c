@@ -125,8 +125,9 @@ var VDom = {
     });
     return this.prepareCrop_();
   },
+  /* safe-when-form */
   getVisibleClientRect_ (element: Element, el_style?: CSSStyleDeclaration): VRect | null {
-    const arr = element.getClientRects();
+    const arr = typeof element.getClientRects === "function" ? element.getClientRects() : [];
     let cr: VRect | null, style: CSSStyleDeclaration | null, _ref: HTMLCollection | undefined
       , isVisible: boolean | undefined, notInline: boolean | undefined, str: string;
     for (let _i = 0, _len = arr.length; _i < _len; _i++) {
@@ -141,10 +142,8 @@ var VDom = {
         }
         continue;
       }
-      if (_ref) { continue; }
-      _ref = element.children;
+      if (_ref || (_ref = element.children) instanceof Element) { continue; }
       for (let _j = 0, _len1 = _ref.length, gCS = getComputedStyle; _j < _len1; _j++) {
-        // todo: check `instanceof` on _ref[j]
         style = gCS(_ref[_j]);
         if (style.float !== 'none' ||
             ((str = style.position) !== 'static' && str !== 'relative')) {}
@@ -325,21 +324,18 @@ var VDom = {
     (element: null, rect: ClientRect): VisibilityType;
   },
   isInDOM_ (element: Node, root?: Node): boolean {
-    let d = document, f: Document["getRootNode"];
-    if (!root && typeof (f = d.getRootNode) === "function") {
+    let d = document, f: Node["getRootNode"];
+    if (!root && typeof (f = Node.prototype.getRootNode) === "function") {
       return f.call(element, {composed: true}) === d;
     }
     root || (root = d);
     if (root.contains(element)) { return true; }
-    if (element instanceof HTMLFormElement) { return false; }
-    let parent: Node | null, SR = window.ShadowRoot;
-    (!SR || SR instanceof Element) && (SR = function() {} as never as typeof ShadowRoot);
-    while (element !== root && (parent = element.parentNode)) {
-      // todo: check `instanceof` on _ref[j]
-      // note: should return true if the element is not safe
-      element = parent instanceof SR ? parent.host : parent;
-    }
+    while ((element = VDom.GetParent_(element) as Element | never) && element !== root) {}
     return element === root;
+  },
+  SafeEl (this: void, el: Element | null): Element | null {
+    return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement
+      ? VDom.GetParent_(el) : el
   },
   uneditableInputs_: <SafeEnum> { __proto__: null as never,
     button: 1, checkbox: 1, color: 1, file: 1, hidden: 1, //
@@ -363,34 +359,33 @@ var VDom = {
   },
   docSelectable_: true,
   selType_ (sel?: Selection): SelectionType {
-    sel || (sel = window.getSelection());
-    return sel.type as SelectionType;
+    return (sel || getSelection()).type as SelectionType;
   },
   isSelected_ (element: Element): boolean {
-    const sel = window.getSelection(), node = sel.anchorNode;
+    const sel = getSelection(), node = sel.anchorNode;
     return (element as HTMLElement).isContentEditable === true ? node ? node.contains(element) : false
       : this.selType_(sel) === "Range" && sel.isCollapsed && element === (node as Node).childNodes[sel.anchorOffset];
   },
-  /** todo: check form and frameset */
   getSelectionFocusElement_ (): Element | null {
-    let sel = window.getSelection(), node = sel.focusNode, i = sel.focusOffset;
-    node && node === sel.anchorNode && i === sel.anchorOffset && (node = node.childNodes[i]);
-    return node && node.nodeType !== /* Node.ELEMENT_NODE */ 1 ? node.parentElement : node as (Element | null);
+    let sel = getSelection(), node = sel.focusNode, i = sel.focusOffset, cn: Node["childNodes"];
+    node && node === sel.anchorNode && i === sel.anchorOffset &&
+      !((cn = node.childNodes) instanceof Element) && (node = cn[i]);
+    return VDom.SafeEl(node && node.nodeType !== /* Node.ELEMENT_NODE */ 1 ? VDom.GetParent_(node) : node as Element);
   },
-  /** todo: check form and frameset */
   findSelectionParent_ (maxNested: number): Element | null {
-    let focus = this.getSelectionFocusElement_(), anc = window.getSelection().anchorNode as Node, i = 0;
-    for (; focus && i < maxNested && !focus.contains(anc); i++) { focus = focus.parentElement; }
+    let focus = this.getSelectionFocusElement_(), anc = getSelection().anchorNode as Node, i = 0;
+    for (; focus && i < maxNested && !focus.contains(anc); i++) { focus = VDom.GetParent_(focus); }
     return i < maxNested ? focus : null;
   },
-  /** todo: check form and frameset */
   getElementWithFocus_: function(sel: Selection, di: BOOL): Element | null {
     let r = sel.getRangeAt(0);
     this.selType_(sel) === "Range" && (r = r.cloneRange()).collapse(!di);
-    let el: Node | null = r.startContainer, o: Node | null;
-    el.nodeType === /* Node.ELEMENT_NODE */ 1 && (el = (el.childNodes[r.startOffset] || null) as Node | null);
-    for (o = el; o && o.nodeType !== /* Node.ELEMENT_NODE */ 1; o = o.previousSibling) {}
-    return (o as Element | null) || (el && el.parentElement);
+    let el: Node | null = r.startContainer, o: Node | null, cn: Node["childNodes"], E = Element;
+    if (el.nodeType === /* Node.ELEMENT_NODE */ 1) {
+      el = !((cn = el.childNodes) instanceof E) && cn[r.startOffset] || null;
+    }
+    for (o = el; o && !(o instanceof E); o = o.previousSibling) {}
+    return this.SafeEl((o as Element | null) || (/* el is not Element */ el && el.parentElement));
   },
   mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
       , rect?: VRect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {
