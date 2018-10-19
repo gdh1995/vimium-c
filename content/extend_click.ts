@@ -56,7 +56,7 @@ d = document, cs = d.currentScript as HTMLScriptElement, Create = d.createElemen
 E = Element, EP = E.prototype, Append = EP.appendChild, Contains = EP.contains, Insert = EP.insertBefore,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 contains = Contains.bind(d),
-CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment, HF = HTMLFormElement,
+CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment,
 FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
@@ -71,7 +71,7 @@ hooks = {
   },
   addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): void {
     const a = this;
-    if (type === "click" && listener && !(a instanceof HA || a instanceof HF) && a instanceof E) {
+    if (type === "click" && listener && !(a instanceof HA) && a instanceof E) {
       toRegister.push(a);
       if (timer === 0) { timer = next(); }
     }
@@ -118,13 +118,11 @@ function reg(this: void, element: Element): void {
     dispatch(element, event);
     return;
   }
-  let e1: Element | null = element, e2: Node | null;
+  let e1: Element | null = element, e2: Node | null, e3: Node | null;
   for (; e2 = e1.parentElement; e1 = e2 as Element) {
-    // todo: frameset?
-    if (e2 instanceof HF && (e1 = e2.parentElement) && !call(Contains, e1, e2)) {
-      e1 = e2.parentNode as Element | null;
-      if (!e1 || !call(Contains, e1, e2)) { return; }
-      e2 = e1;
+    if (e2 !== (e3 = e1.parentNode as Element)) {
+      e2 = call(Contains, e2, e1) ? e2 as Element : call(Contains, e3, e1) ? e3 as Element : null;
+      if (!e2) { return; }
     }
   }
   // note: the below changes DOM trees,
@@ -133,15 +131,13 @@ function reg(this: void, element: Element): void {
     call(Append, box, e1);
     dispatch(element, event);
     call(Remove, e1);
-  } else if (e2 instanceof DF && !(e2 instanceof SR) && !(e1 instanceof HF)) {
+  } else if (e2 instanceof DF && !(e2 instanceof SR || ((e3 = e1.nextSibling) && e3.parentElement))) {
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
-    // todo: frameset?
-    const after = e1.nextSibling;
     call(Append, box, e1);
     dispatch(element, event);
-    call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, after);
+    call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, e3);
   }
 }
 function destroy(e?: CustomEvent): void {
