@@ -445,7 +445,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   _ref = $$(".sel-all");
   func = function(this: HTMLElement, event: MouseEvent): void {
     if (event.target !== this) { return; }
-    window.getSelection().selectAllChildren(this);
+    getSelection().selectAllChildren(this);
     event.preventDefault();
   } as ElementWithDelay["onmousedown"];
   for (let _i = _ref.length; 0 <= --_i; ) {

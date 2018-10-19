@@ -131,7 +131,7 @@ VDom.UI = {
     enable ? (this.box_ as HTMLElement).appendChild(el) : el.remove();
   },
   getSelection_ (): Selection {
-    let sel = window.getSelection(), el: Node | null, el2: Node | null;
+    let sel = getSelection(), el: Node | null, el2: Node | null;
     if (sel.focusNode === document.documentElement && (el = VScroller.current_)) {
       // todo: check <form> and frameset
       // todo: why el2?
@@ -144,7 +144,7 @@ VDom.UI = {
     return sel;
   },
   getSelectionText_ (notTrim?: 1): string {
-    let sel = window.getSelection(), s = sel.toString(), el: Element | null, rect: ClientRect;
+    let sel = getSelection(), s = sel.toString(), el: Element | null, rect: ClientRect;
     if (s && !VEventMode.lock_() && (el = VScroller.current_) && VDom.getEditableType_(el) === EditableType.Editbox
         && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
       s = "";
@@ -190,7 +190,7 @@ VDom.UI = {
           || type === EditableType.Editbox && element.clientHeight + 12 < element.scrollHeight) {
       return;
     }
-    const sel = window.getSelection();
+    const sel = getSelection();
     try {
       if (type === EditableType.rich_) {
         const range = document.createRange();

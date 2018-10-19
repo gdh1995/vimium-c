@@ -386,7 +386,7 @@ var Vomnibar_ = {
     let sel: number;
     switch(action) {
     case AllowedActions.dismiss:
-      const selection = window.getSelection();
+      const selection = getSelection();
       if (selection.type === "Range" && this.focused_) {
         const el = this.input_;
         sel = el.selectionDirection !== "backward" &&
@@ -414,7 +414,7 @@ var Vomnibar_ = {
     }
   },
   onBashAction_ (code: number): void {
-    const sel = window.getSelection(), isExtend = code === 4 || code < 0;
+    const sel = getSelection(), isExtend = code === 4 || code < 0;
     sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
     if (isExtend && this.input_.selectionStart < this.input_.selectionEnd) {
       document.execCommand("delete");
@@ -495,7 +495,7 @@ var Vomnibar_ = {
   onClick_ (event: MouseEvent): void {
     let el: Node | null = event.target as Node;
     if (event.isTrusted === false || !(event instanceof MouseEvent) || event.button
-      || el === this.input_ || window.getSelection().type === "Range") { return; }
+      || el === this.input_ || getSelection().type === "Range") { return; }
     if (el === this.input_.parentElement) { return this.focus(); }
     if (this.timer_) { event.preventDefault(); return; }
     while (el && el.parentNode !== this.list_) { el = el.parentNode; }
@@ -836,7 +836,7 @@ var Vomnibar_ = {
     }
   },
   refresh_ (waitFocus?: boolean): void {
-    window.getSelection().removeAllRanges();
+    getSelection().removeAllRanges();
     if (!waitFocus) {
       return this.doRefresh_(150);
     }

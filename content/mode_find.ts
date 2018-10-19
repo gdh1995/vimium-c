@@ -172,7 +172,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       }
       return;
     }
-    this.focusFoundLink_(window.getSelection().anchorNode as Element | null);
+    this.focusFoundLink_(getSelection().anchorNode as Element | null);
     return this.postMode_.activate_();
   },
   clean_ (i: FindNS.Action): Element | null { // need keep @hasResults
@@ -183,7 +183,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       // todo: check `this.box.contentWindow.blur();` on FF/Edge
       window.focus();
       el = VDom.getSelectionFocusElement_();
-      el && el.focus && el.focus();
+      el && typeof el.focus === "function" && el.focus();
     }
     this.box_.remove();
     if (this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
@@ -261,7 +261,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     VDom.UI.toggleSelectStyle_(false);
     if (i < FindNS.Action.MinComplicatedExit || !this.hasResults_) { return; }
     if (!el || el !== VEventMode.lock_()) {
-      el = window.getSelection().anchorNode as Element | null;
+      el = getSelection().anchorNode as Element | null;
       if (el && !this.focusFoundLink_(el) && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)) {
         if (VDom.getEditableType_(el2) >= EditableType.Editbox && el.contains(el2)) {
           VDom.prepareCrop_();
@@ -419,7 +419,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     return "";
   },
   restoreSelection_ (isCur?: boolean): void {
-    const sel = window.getSelection(),
+    const sel = getSelection(),
     range = !isCur ? this.initialRange_ : sel.isCollapsed ? null : sel.getRangeAt(0);
     if (!range) { return; }
     sel.removeAllRanges();
@@ -476,7 +476,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     }
   },
   getCurrentRange_ (): void {
-    let sel = window.getSelection(), range: Range;
+    let sel = getSelection(), range: Range;
     if (!sel.rangeCount) {
       range = document.createRange();
       range.setStart(document.body || document.documentElement as Element, 0);

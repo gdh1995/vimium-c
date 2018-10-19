@@ -206,7 +206,7 @@ document.addEventListener("keydown", function(this: void, event): void {
       download: file
     }, event);
   } else if (str === "C") {
-    return window.getSelection().toString() ? copyThing(event) : undefined;
+    return getSelection().toString() ? copyThing(event) : undefined;
   } else if (str === "A") {
     return toggleInvert(event);
   }
@@ -406,7 +406,7 @@ function loadViewer(): Promise<Window["Viewer"]> {
 }
 
 function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
-  const sel = window.getSelection();
+  const sel = getSelection();
   sel.type == "Range" && sel.collapseToStart();
   const v = window.viewer = window.viewer || new Viewer(shownNode);
   v.visible || v.show();
