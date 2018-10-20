@@ -137,7 +137,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
         || !event.keyCode) { return; }
       VScroller.keyIsDown_ = 0;
-      if (InsertMode.suppressType_ && VDom.selType_() !== InsertMode.suppressType_) {
+      if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
         VEventMode.setupSuppress_();
       }
       if (KeydownEvents[event.keyCode]) {
@@ -1116,7 +1116,7 @@ Pagination = {
       const mode = InsertMode, f = mode.onExitSuppress_;
       mode.onExitSuppress_ = mode.suppressType_ = null;
       if (onExit) {
-        mode.suppressType_ = VDom.selType_();
+        mode.suppressType_ = getSelection().type;
         mode.onExitSuppress_ = onExit;
       }
       if (f) { return f(); }

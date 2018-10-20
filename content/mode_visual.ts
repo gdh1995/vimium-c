@@ -28,7 +28,7 @@ var VVisualMode = {
     a.movement_.selection_ = a.selection_ = sel = VDom.UI.getSelection_();
     VUtils.remove_(a);
     VUtils.push_(a.onKeydown_, a);
-    type = VDom.selType_(sel);
+    type = sel.type;
     if (!a.mode_) { a.retainSelection_ = type === "Range"; }
     a.mode_ = mode;
     if (mode !== VisualModeNS.Mode.Caret) {
@@ -43,7 +43,7 @@ var VVisualMode = {
         } else if (type === "Caret") {
           a.movement_.extendByOneCharacter_(1) || a.movement_.extend_(0);
         }
-        type = VDom.selType_(sel);
+        type = sel.type;
       }
       if (type !== "Range" && (!lock || sel.toString().length <= 0)) {
         mode = VisualModeNS.Mode.Caret;

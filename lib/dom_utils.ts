@@ -348,13 +348,10 @@ var VDom = {
       : ((element as HTMLInputElement).type in this.uneditableInputs_) ? EditableType.NotEditable : EditableType.Editbox;
   },
   docSelectable_: true,
-  selType_ (sel?: Selection): SelectionType {
-    return (sel || getSelection()).type as SelectionType;
-  },
   isSelected_ (element: Element): boolean {
     const sel = getSelection(), node = sel.anchorNode;
     return (element as HTMLElement).isContentEditable === true ? node ? node.contains(element) : false
-      : this.selType_(sel) === "Range" && sel.isCollapsed && element === (node as Node).childNodes[sel.anchorOffset];
+      : sel.type === "Range" && sel.isCollapsed && element === (node as Node).childNodes[sel.anchorOffset];
   },
   getSelectionFocusElement_ (): Element | null {
     let sel = getSelection(), node = sel.focusNode, i = sel.focusOffset, cn: Node["childNodes"];
@@ -369,7 +366,7 @@ var VDom = {
   },
   getElementWithFocus_: function(sel: Selection, di: BOOL): Element | null {
     let r = sel.getRangeAt(0);
-    this.selType_(sel) === "Range" && (r = r.cloneRange()).collapse(!di);
+    sel.type === "Range" && (r = r.cloneRange()).collapse(!di);
     let el: Node | null = r.startContainer, o: Node | null, cn: Node["childNodes"], E = Element;
     if (el.nodeType === /* Node.ELEMENT_NODE */ 1) {
       el = !((cn = el.childNodes) instanceof E) && cn[r.startOffset] || null;

@@ -153,7 +153,7 @@ VDom.UI = {
   },
   removeSelection_ (root: VUIRoot & {getSelection?: ShadowRootWithSelection["getSelection"]}): boolean {
     const sel = (root && root.getSelection ? root as ShadowRootWithSelection : window).getSelection();
-    if (!sel || VDom.selType_(sel) !== "Range" || !sel.anchorNode) {
+    if (!sel || sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }
     sel.collapseToStart();
