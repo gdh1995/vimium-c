@@ -161,8 +161,8 @@ var VDom = {
       ret = true;
     } else {
       const map = document.querySelector('map[name="' +
-        element.useMap.replace(<RegExpOne>/^#/, "").replace(<RegExpG>/"/g, '\\"') + '"]') as HTMLMapElement | null;
-      if (!map) { return; }
+        element.useMap.replace(<RegExpOne>/^#/, "").replace(<RegExpG>/"/g, '\\"') + '"]');
+      if (!map || !(map instanceof HTMLMapElement)) { return; }
       areas = map.getElementsByTagName("area");
     }
     const toInt = (a: string) => (a as string | number as number) | 0;
