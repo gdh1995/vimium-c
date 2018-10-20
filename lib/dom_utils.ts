@@ -1,4 +1,5 @@
 /// <reference path="../content/base.d.ts" />
+type FrontendRootElementType = "div" | "span" | "style" | "iframe" | "a" | "script";
 var VDom = {
   UI: null as never as DomUI,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
@@ -6,15 +7,15 @@ var VDom = {
   allowRAF_: true,
   isHTML_ (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   isStandard_: true,
-  createElement_: function (this: {}, tagName: string): HTMLElement {
-    const node = document.createElement(tagName), valid = node instanceof HTMLElement;
-    (this as typeof VDom).isStandard_ = valid;
-    (this as typeof VDom).createElement_ = valid
-      ? document.createElement.bind(document)
-      : (document.createElementNS as (namespaceURI: "http://www.w3.org/1999/xhtml", qualifiedName: string) => HTMLElement
-        ).bind(document, "http://www.w3.org/1999/xhtml");
-    return valid ? node : (this as typeof VDom).createElement_(tagName);
-  } as Document["createElement"],
+  createElement_<K extends FrontendRootElementType> (tagName: K): HTMLElementTagNameMap[K] {
+    const d = document, a = this,
+    node = document.createElement(tagName), valid = node instanceof HTMLElement;
+    a.isStandard_ = valid;
+    a.createElement_ = valid ? d.createElement.bind(d)
+      : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", FrontendRootElementType
+        , HTMLElement>(d, "http://www.w3.org/1999/xhtml");
+    return valid ? node : a.createElement_(tagName);
+  },
   /** Note: won't call functions if Vimium is destroyed */
   DocReady (callback: (this: void) => void): void {
     const f = function(callback: (this: void) => void): void { return callback(); };
@@ -45,6 +46,11 @@ var VDom = {
     }
   },
   _PN: null as ((this: void, el: Node) => Node | null) | null,
+  /**
+   * Try its best to find a real parent
+   * @safe_even_if_any_overridden_property
+   * @UNSAFE_RETURNED
+   */
   GetParent_: function (this: void, el: Node, getInsertion?: Element["getDestinationInsertionPoints"]): Element | null {
     if (getInsertion) {
       const arr = getInsertion.call(el as Element);
@@ -75,7 +81,7 @@ var VDom = {
   },
   scrollingEl_ (): Element | null {
     const d = document;
-    return d.scrollingElement || (d.compatMode === "BackCompat" ? this.SafeEl(d.body) : d.documentElement);
+    return d.scrollingElement || (d.compatMode === "BackCompat" ? this.SafeEl_(d.body) : d.documentElement);
   },
   /**
    * other parts of code require that prepareCrop only depends on @dbZoom
@@ -116,7 +122,6 @@ var VDom = {
     });
     return this.prepareCrop_();
   },
-  /* safe-when-form */
   getVisibleClientRect_ (element: Element, el_style?: CSSStyleDeclaration): VRect | null {
     const arr = typeof element.getClientRects === "function" ? element.getClientRects() : [];
     let cr: VRect | null, style: CSSStyleDeclaration | null, _ref: HTMLCollection | undefined
@@ -237,16 +242,16 @@ var VDom = {
   },
   getViewBox_ (needBox?: 1): ViewBox | ViewOffset {
     let iw = innerWidth, ih = innerHeight;
-    const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1);
-    if (document.webkitIsFullScreen) {
+    const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1), doc = document;
+    if (doc.webkitIsFullScreen) {
       this.getZoom_(1);
       this.dScale_ = 1;
       const zoom = this.wdZoom_ / ratio2;
       return [0, 0, (iw / zoom) | 0, (ih / zoom) | 0, 0];
     }
     const gcs = getComputedStyle, float = parseFloat,
-    box = document.documentElement as HTMLElement, st = gcs(box),
-    box2 = document.body, st2 = box2 ? gcs(box2) : st,
+    box = doc.documentElement as HTMLElement, st = gcs(box),
+    box2 = doc.body, st2 = box2 ? gcs(box2) : st,
     zoom2 = this.bZoom_ = box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string),
     stacking = st.position !== "static" || containHasPaint || st.transform !== "none",
@@ -294,10 +299,10 @@ var VDom = {
     return [x, y, iw, yScrollable ? ih - PixelConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
   },
   view (el: Element, oldY?: number): boolean {
-    const rect = el.getBoundingClientRect(), ty = this.NotVisible_(null, rect);
+    const P = Element.prototype, rect = P.getBoundingClientRect.call(el), ty = this.NotVisible_(null, rect);
     if (ty === VisibilityType.OutOfView) {
       const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
-      el.scrollIntoView(delta < 0);
+      P.scrollIntoView.call(el, delta < 0);
       (delta || f) && this.scrollWndBy_(0, f ? (oldY as number) - window.scrollY : delta * ih / 5);
     }
     return ty === VisibilityType.Visible;
@@ -306,7 +311,7 @@ var VDom = {
     HTMLElement.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
   },
   NotVisible_: function (this: void, element: Element | null, rect?: ClientRect): VisibilityType {
-    if (!rect) { rect = (element as Element).getBoundingClientRect(); }
+    if (!rect) { rect = Element.prototype.getBoundingClientRect.call(element as Element); }
     return rect.height < 0.5 || rect.width < 0.5 ? VisibilityType.NoSpace
       : rect.bottom <= 0 || rect.top >= innerHeight || rect.right <= 0 || rect.left >= innerWidth
         ? VisibilityType.OutOfView : VisibilityType.Visible;
@@ -324,7 +329,8 @@ var VDom = {
     while ((element = VDom.GetParent_(element) as Element | never) && element !== root) {}
     return element === root;
   },
-  SafeEl (this: void, el: Element | null): Element | null {
+  /** @safe_even_if_any_overridden_property */
+  SafeEl_ (this: void, el: Element | null): Element | null {
     return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement
       ? VDom.GetParent_(el) : el
   },
@@ -349,31 +355,34 @@ var VDom = {
       : ((element as HTMLInputElement).type in this.uneditableInputs_) ? EditableType.NotEditable : EditableType.Editbox;
   },
   docSelectable_: true,
-  isSelected_ (element: Element): boolean {
+  isSelected_ (): boolean {
+    const element = document.activeElement as Element;
     const sel = getSelection(), node = sel.anchorNode;
-    return (element as HTMLElement).isContentEditable === true ? node ? node.contains(element) : false
+    // only <form>, <select>, Window has index getter, so `=== node.childNodes[i]` is safe
+    return (element as HTMLElement).isContentEditable === true ? node ? document.contains.call(node, element) : false
       : sel.type === "Range" && sel.isCollapsed && element === (node as Node).childNodes[sel.anchorOffset];
   },
   getSelectionFocusElement_ (): Element | null {
     let sel = getSelection(), node = sel.focusNode, i = sel.focusOffset, cn: Node["childNodes"];
     node && node === sel.anchorNode && i === sel.anchorOffset &&
       !((cn = node.childNodes) instanceof Element) && (node = cn[i]);
-    return VDom.SafeEl(node && node.nodeType !== /* Node.ELEMENT_NODE */ 1 ? VDom.GetParent_(node) : node as Element);
+    return node && VDom.SafeEl_(node instanceof Element ? node : node.parentElement);
   },
   findSelectionParent_ (maxNested: number): Element | null {
+    const contains = document.contains;
     let focus = this.getSelectionFocusElement_(), anc = getSelection().anchorNode as Node, i = 0;
-    for (; focus && i < maxNested && !focus.contains(anc); i++) { focus = VDom.GetParent_(focus); }
-    return i < maxNested ? focus : null;
+    for (; focus && i < maxNested && !contains.call(focus, anc); i++) { focus = VDom.GetParent_(focus); }
+    return i < maxNested ? VDom.SafeEl_(focus) : null;
   },
-  getElementWithFocus_: function(sel: Selection, di: BOOL): Element | null {
+  getElementWithFocus_ (sel: Selection, di: BOOL): Element | null {
     let r = sel.getRangeAt(0);
     sel.type === "Range" && (r = r.cloneRange()).collapse(!di);
     let el: Node | null = r.startContainer, o: Node | null, cn: Node["childNodes"], E = Element;
-    if (el.nodeType === /* Node.ELEMENT_NODE */ 1) {
+    if (el instanceof E) {
       el = !((cn = el.childNodes) instanceof E) && cn[r.startOffset] || null;
     }
     for (o = el; o && !(o instanceof E); o = o.previousSibling) {}
-    return this.SafeEl((o as Element | null) || (/* el is not Element */ el && el.parentElement));
+    return this.SafeEl_((o as Element | null) || (/* el is not Element */ el && el.parentElement));
   },
   mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
       , rect?: VRect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {

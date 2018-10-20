@@ -148,17 +148,16 @@ var VVisualMode = {
     : this.mode_ === VisualModeNS.Mode.Line ? this.movement_.extendToLine_() : 0;
   },
   establishInitialSelectionAnchor_ (): boolean {
-    let node: Text | null, element: Element, str: string | undefined, offset: number;
+    let node: Text | null, str: string | undefined, offset: number;
     if (!VDom.isHTML_()) { return true; }
     VDom.getZoom_(1);
     VDom.prepareCrop_();
     const nodes = document.createTreeWalker(document.body || document.documentElement as HTMLElement, NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
-        element = node.parentElement as Element;
-        // todo: check <frameset>
-        if (element instanceof HTMLFormElement) { continue; }
-        if (VDom.getVisibleClientRect_(element) && !VDom.getEditableType_(element)) {
+        const element = node.parentElement;
+        // Note(gdh1995): I'm not sure whether element might be null
+        if (element && VDom.getVisibleClientRect_(element) && !VDom.getEditableType_(element)) {
           break;
         }
       }

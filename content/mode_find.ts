@@ -452,7 +452,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       }
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel_, 0);
-    (el = VEventMode.lock_()) && !VDom.isSelected_(document.activeElement as Element) && el.blur && el.blur();
+    (el = VEventMode.lock_()) && !VDom.isSelected_() && el.blur && el.blur();
     this.hasResults_ = found;
   },
   find_: function (this: void): boolean {

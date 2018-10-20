@@ -1204,8 +1204,10 @@ DEFAULT_: {
         : (this as typeof VHints).highlightChild_(link);
       (this as typeof VHints).mode_ = HintMode.DEFAULT;
       return ret;
-    } else if (typeof HTMLDetailsElement === "function" && !(HTMLDetailsElement instanceof Element)
-        ? link instanceof HTMLDetailsElement : link.tagName.toLowerCase() === "details") {
+    }
+    const D = window.HTMLDetailsElement;
+    if (typeof D === "function" && !(D instanceof Element)
+        ? link instanceof D : link.tagName.toLowerCase() === "details") {
       let old = (link as HTMLDetailsElement).open;
       // although it does not work on Chrome 65 yet
       VDom.UI.click_(link, rect, null, true);

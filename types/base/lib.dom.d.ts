@@ -2783,6 +2783,9 @@ declare var HTMLDetailsElement: {
     prototype: HTMLDetailsElement;
     new(): HTMLDetailsElement;
 }
+interface Window {
+    HTMLDetailsElement?: typeof HTMLDetailsElement | Element;
+}
 
 interface HTMLDirectoryElement extends HTMLElement {
     compact: boolean;
