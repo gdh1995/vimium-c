@@ -166,7 +166,7 @@ var VDom = {
       areas = map.getElementsByTagName("area");
     }
     const toInt = (a: string) => (a as string | number as number) | 0;
-    for (let _i = areas.length; 0 <= --_i; ) {
+    for (let _i = 0, _len = areas.length; _i < _len; _i++) {
       const area = areas[_i], coords = area.coords.split(",").map(toInt);
       switch (area.shape.toLowerCase()) {
       case "circle": case "circ": // note: "circ" is non-conforming
