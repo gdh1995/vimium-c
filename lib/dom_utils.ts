@@ -387,11 +387,11 @@ var VDom = {
     let x = rect ? ((rect[0] + rect[2]) * (this as typeof VDom).dbZoom_ / 2) | 0 : 0
       , y = rect ? ((rect[1] + rect[3]) * (this as typeof VDom).dbZoom_ / 2) | 0 : 0;
     mouseEvent.initMouseEvent(type, true, true
-      , element.ownerDocument.defaultView, type.startsWith("mouseo") ? 0 : 1
+      , window, type.startsWith("mouseo") ? 0 : 1
       , x, y, x, y
       , modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey
       , 0, related || null);
-    return element.dispatchEvent(mouseEvent);
+    return dispatchEvent.call(element, mouseEvent);
   } as VDomMouse,
   defaultMouseKeys_: { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false } as EventControlKeys,
   lastHovered_: null as Element | null,
