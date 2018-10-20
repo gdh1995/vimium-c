@@ -285,7 +285,7 @@ movement_: {
   },
   reverseSelection_ (): void {
     const el = VEventMode.lock_(), direction = this.getDirection_(true);
-    if (el && !(el instanceof HTMLFormElement)
+    if (el && !(VDom.notSafe_(el))
         && (VDom.editableTypes_[el.nodeName.toLowerCase()] as EditableType) > EditableType.Embed) {
       let length = this.selection_.toString().length;
       this.collapseSelectionTo_(1);

@@ -332,10 +332,12 @@ var VDom = {
     while ((element = VDom.GetParent_(element) as Element | never) && element !== root) {}
     return element === root;
   },
+  notSafe_ (el: Node | null): el is HTMLFormElement | HTMLFrameSetElement {
+    return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
+  },
   /** @safe_even_if_any_overridden_property */
   SafeEl_: function (this: void, el: Node | null): Node | null {
-    return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement
-      ? VDom.GetParent_(el) : el
+    return VDom.notSafe_(el) ? VDom.GetParent_(el) : el
   } as {
     (this: void, el: Element | null): Element | null;
     (this: void, el: Node | null): Node | null;

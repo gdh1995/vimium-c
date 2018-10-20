@@ -194,7 +194,7 @@ animate_ (e: Element | null, d: ScrollByY, a: number): void | number {
     let children = [] as {area: number, el: Element}[], _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
       element = _ref[_len];
-      if (element instanceof HTMLFormElement) { continue; }
+      if (VDom.notSafe_(element)) { continue; }
       const rect = element.getBoundingClientRect(),
       visible = rect.height > 0 ? VDom.cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)
         : VDom.getVisibleClientRect_(element);

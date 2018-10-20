@@ -272,7 +272,7 @@ var VHints = {
    */
   GetClickable_ (this: Hint[], element: Element): void {
     let arr: VRect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
-    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) {
+    if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) {
       if (element instanceof SVGElement) {
         type = element.vimiumHasOnclick || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
@@ -375,7 +375,7 @@ var VHints = {
     return false;
   },
   GetEditable_ (this: Hint[], element: Element): void {
-    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
+    if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
     let arr: VRect | null, type = ClickType.Default, s: string;
     switch (element.tagName.toLowerCase()) {
     case "input":
@@ -426,7 +426,7 @@ var VHints = {
   },
   GetImages_ (this: Hint[], element: Element): void {
     if (element instanceof HTMLImageElement) { return VHints._getImagesInImg(this, element); }
-    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
+    if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
     let str = element.getAttribute("data-src") || element.getAttribute("href"), cr: VRect | null;
     if (VUtils.isImageUrl_(str)) {
       if (cr = VDom.getVisibleClientRect_(element)) {
@@ -490,7 +490,7 @@ var VHints = {
     const result: Element[] = [], height = innerHeight;
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
       const el = list[i];
-      if (el instanceof HTMLFormElement) { continue; }
+      if (VDom.notSafe_(el)) { continue; }
       const cr = el.getBoundingClientRect();
       if (cr.bottom > 0 && cr.top < height) {
         result.push(el);

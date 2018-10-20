@@ -620,7 +620,7 @@ Pagination = {
     return true;
   },
   GetLinks_ (this: HTMLElement[], element: Element): void {
-    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
+    if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
     let s: string | null;
     const isClickable = element instanceof HTMLAnchorElement || (
       element instanceof HTMLButtonElement ? !element.disabled
@@ -832,6 +832,9 @@ Pagination = {
         : BrowserType.Chrome;
       (VSettings.cache = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
       VDom.specialZoom_ = !notChrome && load.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
+      if (!notChrome && load.browserVer >= BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
+        VDom.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement;
+      }
       r.keyMap(request);
       if (flags) {
         InsertMode.grabFocus_ = !(flags & Frames.Flags.userActed);

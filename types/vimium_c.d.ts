@@ -537,5 +537,6 @@ declare const enum BrowserVer {
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>
   NoRAForRICOnSandboxedPage = 69,
   MinTabIdMayBeMuchLarger = 69,
+  MinNamedGetterOnFramesetNotOverrideBulitin = 70,
   assumedVer = 999,
 }
