@@ -183,7 +183,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       // todo: check `this.box.contentWindow.blur();` on FF/Edge
       window.focus();
       el = VDom.getSelectionFocusElement_();
-      el && typeof el.focus === "function" && el.focus();
+      el && el.focus && el.focus();
     }
     this.box_.remove();
     if (this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
