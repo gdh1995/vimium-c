@@ -123,21 +123,18 @@ VDom.UI = {
     return (st.userSelect || st.webkitUserSelect) !== "none";
   },
   toggleSelectStyle_ (enable: boolean): void {
-    let el = this.styleOut_;
-    if (enable ? VDom.docSelectable_ : !el || !el.parentNode) { return; }
-    el || (this.styleOut_ = el = this.createStyle_(
+    let sout = this.styleOut_;
+    if (enable ? VDom.docSelectable_ : !sout || !sout.parentNode) { return; }
+    sout || (this.styleOut_ = sout = this.createStyle_(
       "html, body, * { -webkit-user-select: auto; user-select: auto; }"
     ));
-    enable ? (this.box_ as HTMLElement).appendChild(el) : el.remove();
+    enable ? (this.box_ as HTMLElement).appendChild(sout) : sout.remove();
   },
   getSelection_ (): Selection {
-    let sel = getSelection(), el: Node | null, el2: Node | null;
-    if (sel.focusNode === document.documentElement && (el = VScroller.current_)) {
-      // todo: check <form> and frameset
-      // todo: why el2?
-      for (; el2 = el.parentNode; el = el2) {}
-      // todo: check embed
-      if (typeof (el as ShadowRoot).getSelection === "function") {
+    let sel = getSelection(), el: Node | null, d = document;
+    if (sel.focusNode === d.documentElement && (el = VScroller.current_)) {
+      for (let pn: Node | null; pn = VDom.GetParent_(el, false); el = pn) { }
+      if (el !== d && typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRootWithSelection).getSelection() || sel;
       }
     }

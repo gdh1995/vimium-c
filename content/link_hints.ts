@@ -527,7 +527,7 @@ var VHints = {
   },
   isDescendant_ (d: Node, p: Element): boolean {
     let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null;
-    for (; 0 < i-- && (c = d.parentNode as EnsuredMountedElement | null) !== p && c; d = c) {}
+    for (; 0 < i-- && (c = VDom.GetParent_(d) as EnsuredMountedElement | null) !== p && c; d = c) {}
     if (c !== p) { return false; }
     for (; ; ) {
       if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }

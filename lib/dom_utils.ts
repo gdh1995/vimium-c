@@ -51,7 +51,7 @@ var VDom = {
    * @safe_even_if_any_overridden_property
    * @UNSAFE_RETURNED
    */
-  GetParent_: function (this: void, el: Node, getInsertion?: Element["getDestinationInsertionPoints"]): Element | null {
+  GetParent_: function (this: void, el: Node, getInsertion?: false | Element["getDestinationInsertionPoints"]): Node | null {
     if (getInsertion) {
       const arr = getInsertion.call(el as Element);
       arr.length > 0 && (el = arr[arr.length - 1]);
@@ -73,10 +73,12 @@ var VDom = {
     }
     const SR = window.ShadowRoot, E = Element;
     // pn is real or null
-    return SR && !(SR instanceof E) && pn instanceof SR ? pn.host // shadow root
+    return getInsertion /* composed */ === false ? pn // not take composed tree into consideration
+      : SR && !(SR instanceof E) && pn instanceof SR ? pn.host // shadow root
       : pn instanceof E ? pn /* in doc but overridden */ : null /* pn is null, DocFrag, or ... */;
   } as {
     (this: void, el: Element, getInsertion: Element["getDestinationInsertionPoints"]): Element | null;
+    (this: void, el: Node, composed: false): Node | null;
     (this: void, el: Node): Element | null;
   },
   scrollingEl_ (): Element | null {
@@ -233,6 +235,7 @@ var VDom = {
       // then it's a whole mess and nothing can be ensured to be right
       this.bZoom_ = body && (target === 1 || this.isInDOM_(target, body)) && +gcs(body).zoom || 1;
     }
+    // todo: check whether zoom follows insertion
     for (; el && el !== docEl; el = this.GetParent_(el)) {
       zoom *= +gcs(el).zoom || 1;
     };
@@ -330,9 +333,12 @@ var VDom = {
     return element === root;
   },
   /** @safe_even_if_any_overridden_property */
-  SafeEl_ (this: void, el: Element | null): Element | null {
+  SafeEl_: function (this: void, el: Node | null): Node | null {
     return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement
       ? VDom.GetParent_(el) : el
+  } as {
+    (this: void, el: Element | null): Element | null;
+    (this: void, el: Node | null): Node | null;
   },
   uneditableInputs_: <SafeEnum> { __proto__: null as never,
     button: 1, checkbox: 1, color: 1, file: 1, hidden: 1, //

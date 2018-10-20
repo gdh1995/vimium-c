@@ -272,7 +272,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     if (i === FindNS.Action.ExitToPostMode) { return this.postMode_.activate_(); }
   },
   focusFoundLink_ (el: Element | null): el is HTMLAnchorElement {
-    for (; el && el !== document.body; el = el.parentElement) {
+    for (; el && el !== document.body; el = VDom.GetParent_(el)) {
       // todo: check <form> and <frameset>
       if (el instanceof HTMLAnchorElement) {
         el.focus();
@@ -468,7 +468,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     document.removeEventListener("selectionchange", this.RestoreHighlight_, true);
     const sout = this.styleOut_, sin = this.styleIn_, ui = VDom.UI;
     enabled || this.isActive_ || ui.toggleSelectStyle_(false);
-    if (enabled === (sout.parentNode ? 1 : 0)) { return; }
+    if (enabled - +!sout.parentNode) { return; }
     if (enabled) {
       (ui.box_ as HTMLDivElement).appendChild(sout); (ui.R as ShadowRoot).insertBefore(sin, this.box_);
     } else {
