@@ -44,16 +44,6 @@ var VDom = {
       return null;
     }
   },
-  PN_ (el: Element): Node | null {
-    let f = Object.getOwnPropertyDescriptor;
-    let desp = f(Node.prototype, 'parentNode');
-    type PN = (this: void, el: Element) => Node | null;
-    let f2 = this.PN_ = desp
-      ? f.call.bind<PN, Element, Node | null>(desp.get as PN)
-      : (e: Element, k?: PropertyDescriptor | undefined): Node | null => (k = f(e, "parentNode")) && k.value || null
-      ;
-    return f2(el);
-  },
   _PN: null as ((this: void, el: Node) => Node | null) | null,
   GetParent_: function (this: void, el: Node, getInsertion?: Element["getDestinationInsertionPoints"]): Element | null {
     if (getInsertion) {
@@ -68,7 +58,7 @@ var VDom = {
       let PN = VDom._PN, isPeOK = pe && pe.contains(el);
       if (!isPeOK && !PN) {
         const f = Object.getOwnPropertyDescriptor, desp = f(Node.prototype, 'parentNode');
-        PN = VDom.PN_ = desp && desp.get
+        PN = VDom._PN = desp && desp.get
           ? f.call.bind<PNFunc, Node, Node | null>(desp.get as PNFunc)
           : (e: Node, k?: PropertyDescriptor | undefined): Node | null => (k = f(e, "parentNode")) && k.value || null
           ;
