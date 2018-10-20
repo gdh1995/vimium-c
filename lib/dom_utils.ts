@@ -74,7 +74,8 @@ var VDom = {
     (this: void, el: Node): Element | null;
   },
   scrollingEl_ (): Element | null {
-    return document.scrollingElement || (document.compatMode === "BackCompat" ? document.body : document.documentElement);
+    const d = document;
+    return d.scrollingElement || (d.compatMode === "BackCompat" ? this.SafeEl(d.body) : d.documentElement);
   },
   /**
    * other parts of code require that prepareCrop only depends on @dbZoom
