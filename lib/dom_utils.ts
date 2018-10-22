@@ -45,7 +45,6 @@ var VDom = {
       return null;
     }
   },
-  _PN: null as ((this: void, el: Node) => Node | null) | null,
   /**
    * Try its best to find a real parent
    * @safe_even_if_any_overridden_property
@@ -60,16 +59,10 @@ var VDom = {
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn && pe; }
     // par exists but not in normal tree
     if (!pn.contains(el)) { // pn is overridden
-      type PNFunc = (this: void, el: Node) => Node | null;
-      let PN = VDom._PN, isPeOK = pe && pe.contains(el);
-      if (!isPeOK && !PN) {
-        const f = Object.getOwnPropertyDescriptor, desp = f(Node.prototype, 'parentNode');
-        PN = VDom._PN = desp && desp.get
-          ? f.call.bind<PNFunc, Node, Node | null>(desp.get as PNFunc)
-          : (_e: Node): Node | null => null
-          ;
-      }
-      pn = isPeOK ? pe : (PN as PNFunc)(el as Node);
+      let desp: PropertyDescriptor | undefined;
+      pn = pe && pe.contains(el) ? pe
+        : (desp = Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode')) && desp.get ? desp.get.call(el)
+        : null;
     }
     const SR = window.ShadowRoot, E = Element;
     // pn is real or null
