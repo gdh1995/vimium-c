@@ -66,12 +66,13 @@ var VDom = {
     }
     const SR = window.ShadowRoot, E = Element;
     // pn is real or null
-    return getInsertion /* composed */ === false ? pn // not take composed tree into consideration
+    return getInsertion /* composedElement */ === false ? pn
+        // not take composed tree into consideration; but allow Node to be returned
       : SR && !(SR instanceof E) && pn instanceof SR ? pn.host // shadow root
       : pn instanceof E ? pn /* in doc but overridden */ : null /* pn is null, DocFrag, or ... */;
   } as {
     (this: void, el: Element, getInsertion: Element["getDestinationInsertionPoints"]): Element | null;
-    (this: void, el: Node, composed: false): Node | null;
+    (this: void, el: Node, composedElement: false): Node | null;
     (this: void, el: Node): Element | null;
   },
   scrollingEl_ (): Element | null {
@@ -315,16 +316,17 @@ var VDom = {
     (element: Element): VisibilityType;
     (element: null, rect: ClientRect): VisibilityType;
   },
-  isInDOM_ (element: Element, root?: Node): boolean {
+  isInDOM_ (element: Element, root?: Element | Document): boolean {
     let d = document, f: Node["getRootNode"];
     if (!root && typeof (f = Node.prototype.getRootNode) === "function") {
       return f.call(element, {composed: true}) === d;
     }
     root || (root = d);
     if (root.contains(element)) { return true; }
-    let pn: Node | null;
-    while ((pn = VDom.GetParent_(element) as Element | null) && pn !== root) { element = pn as Element; }
-    return element.parentNode === root;
+    let pe: Node | null;
+    while ((pe = VDom.GetParent_(element) as Element | null) && pe !== root) { element = pe as Element; }
+    // `pe === null` is much more likely
+    return VDom.GetParent_(element, false) === root;
   },
   notSafe_ (el: Node | null): el is HTMLFormElement | HTMLFrameSetElement {
     return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
