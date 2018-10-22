@@ -317,16 +317,17 @@ var VDom = {
     (element: null, rect: ClientRect): VisibilityType;
   },
   isInDOM_ (element: Element, root?: Element | Document): boolean {
-    let d = document, f: Node["getRootNode"];
+    let safeEl = VDom.SafeEl_(element);
+    let d = root || (safeEl ? safeEl.ownerDocument : document), f: Node["getRootNode"];
     if (!root && typeof (f = Node.prototype.getRootNode) === "function") {
       return f.call(element, {composed: true}) === d;
     }
-    root || (root = d);
-    if (root.contains(element)) { return true; }
+    // `!safeEl` requires that further jobs are safe enough even when isInDOM returns true
+    if (d.contains(element) || !root && !safeEl) { return true; }
     let pe: Node | null;
-    while ((pe = VDom.GetParent_(element) as Element | null) && pe !== root) { element = pe as Element; }
+    while ((pe = VDom.GetParent_(element) as Element | null) && pe !== d) { element = pe as Element; }
     // `pe === null` is much more likely
-    return VDom.GetParent_(element, false) === root;
+    return VDom.GetParent_(element, false) === d;
   },
   notSafe_ (el: Node | null): el is HTMLFormElement | HTMLFrameSetElement {
     return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
