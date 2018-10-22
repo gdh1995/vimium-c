@@ -66,7 +66,7 @@ var VDom = {
         const f = Object.getOwnPropertyDescriptor, desp = f(Node.prototype, 'parentNode');
         PN = VDom._PN = desp && desp.get
           ? f.call.bind<PNFunc, Node, Node | null>(desp.get as PNFunc)
-          : (e: Node, k?: PropertyDescriptor | undefined): Node | null => (k = f(e, "parentNode")) && k.value || null
+          : (_e: Node): Node | null => null
           ;
       }
       pn = isPeOK ? pe : (PN as PNFunc)(el as Node);

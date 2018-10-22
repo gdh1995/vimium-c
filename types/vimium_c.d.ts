@@ -348,6 +348,7 @@ declare const enum BrowserVer {
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
+  MinParentNodeInNodePrototype = 42, // even if even if EXPERIMENTAL or LEAGCY
   MinEnsured$String$$StartsWithAndRepeatAndIncludes = 43, // even if LEAGCY
   MinCreateWndWithState = 44,
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
