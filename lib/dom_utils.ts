@@ -315,15 +315,16 @@ var VDom = {
     (element: Element): VisibilityType;
     (element: null, rect: ClientRect): VisibilityType;
   },
-  isInDOM_ (element: Node, root?: Node): boolean {
+  isInDOM_ (element: Element, root?: Node): boolean {
     let d = document, f: Node["getRootNode"];
     if (!root && typeof (f = Node.prototype.getRootNode) === "function") {
       return f.call(element, {composed: true}) === d;
     }
     root || (root = d);
     if (root.contains(element)) { return true; }
-    while ((element = VDom.GetParent_(element) as Element | never) && element !== root) {}
-    return element === root;
+    let pn: Node | null;
+    while ((pn = VDom.GetParent_(element) as Element | null) && pn !== root) { element = pn as Element; }
+    return element.parentNode === root;
   },
   notSafe_ (el: Node | null): el is HTMLFormElement | HTMLFrameSetElement {
     return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
