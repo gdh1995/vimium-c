@@ -402,7 +402,7 @@ var VDom = {
     let x = rect ? ((rect[0] + rect[2]) * VDom.dbZoom_ / 2) | 0 : 0
       , y = rect ? ((rect[1] + rect[3]) * VDom.dbZoom_ / 2) | 0 : 0;
     mouseEvent.initMouseEvent(type, true, true
-      , doc.defaultView, type.startsWith("mouseo") ? 0 : 1
+      , doc.defaultView || window, type.startsWith("mouseo") ? 0 : 1
       , x, y, x, y
       , modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey
       , 0, related || null);
