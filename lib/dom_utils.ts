@@ -391,23 +391,23 @@ var VDom = {
   },
   mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
       , rect?: VRect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {
-    const mouseEvent = document.createEvent("MouseEvents");
-    modifiers || (modifiers = (this as typeof VDom).defaultMouseKeys_);
+    modifiers || (modifiers = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false });
+    const safeEl = VDom.SafeEl_(element), doc = (safeEl ? safeEl.ownerDocument : document),
+    mouseEvent = doc.createEvent("MouseEvents");
     // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
     //  viewArg: Window, detailArg: number,
     //  screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number,
     //  ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean,
     //  buttonArg: number, relatedTargetArg: EventTarget | null)
-    let x = rect ? ((rect[0] + rect[2]) * (this as typeof VDom).dbZoom_ / 2) | 0 : 0
-      , y = rect ? ((rect[1] + rect[3]) * (this as typeof VDom).dbZoom_ / 2) | 0 : 0;
+    let x = rect ? ((rect[0] + rect[2]) * VDom.dbZoom_ / 2) | 0 : 0
+      , y = rect ? ((rect[1] + rect[3]) * VDom.dbZoom_ / 2) | 0 : 0;
     mouseEvent.initMouseEvent(type, true, true
-      , window, type.startsWith("mouseo") ? 0 : 1
+      , doc.defaultView, type.startsWith("mouseo") ? 0 : 1
       , x, y, x, y
       , modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey
       , 0, related || null);
-    return dispatchEvent.call(element, mouseEvent);
+    return doc.dispatchEvent.call(element, mouseEvent);
   } as VDomMouse,
-  defaultMouseKeys_: { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false } as EventControlKeys,
   lastHovered_: null as Element | null,
   /** note: will NOT skip even if newEl == @lastHovered */
   hover_: function (this: {}, newEl: Element | null, rect?: VRect | null): void {
