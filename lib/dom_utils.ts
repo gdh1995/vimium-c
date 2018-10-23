@@ -316,18 +316,21 @@ var VDom = {
     (element: Element): VisibilityType;
     (element: null, rect: ClientRect): VisibilityType;
   },
-  isInDOM_ (element: Element, root?: Element | Document): boolean {
-    let safeEl = VDom.SafeEl_(element);
-    let d = root || (safeEl ? safeEl.ownerDocument : document), f: Node["getRootNode"];
-    if (!root && typeof (f = Node.prototype.getRootNode) === "function") {
-      return f.call(element, {composed: true}) === d;
+  isInDOM_ (element: Element, root?: HTMLBodyElement | HTMLFrameSetElement | SVGElement): boolean {
+    // if an element is in another frame, it's ignored that element may have named property getters
+    let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
+      , NP = Node.prototype, pe: Element | null;
+    root || doc.nodeType !== 9 /* Node.DOCUMENT_NODE */ && (doc = document);
+    if (!root && typeof (f = NP.getRootNode) === "function") {
+      return f.call(element, {composed: true}) === doc;
     }
-    // `!safeEl` requires that further jobs are safe enough even when isInDOM returns true
-    if (d.contains(element) || !root && !safeEl) { return true; }
-    let pe: Node | null;
-    while ((pe = VDom.GetParent_(element) as Element | null) && pe !== d) { element = pe as Element; }
-    // `pe === null` is much more likely
-    return VDom.GetParent_(element, false) === d;
+    if (NP.contains.call(doc, element)) { return true; }
+    while ((pe = VDom.GetParent_(element)) && pe !== doc) { element = pe; }
+    const pn = VDom.GetParent_(element, false);
+    // Note: `pn instanceof Element` means `element.parentNode` is overridden,
+    // so return a "potentially correct" result `true`.
+    // This requires that further jobs are safe enough even when isInDOM returns true
+    return pn === doc || pn instanceof Element;
   },
   notSafe_ (el: Node | null): el is HTMLFormElement | HTMLFrameSetElement {
     return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
@@ -392,8 +395,9 @@ var VDom = {
   mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
       , rect?: VRect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {
     modifiers || (modifiers = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false });
-    const safeEl = VDom.SafeEl_(element), doc = (safeEl ? safeEl.ownerDocument : document),
-    mouseEvent = doc.createEvent("MouseEvents");
+    let doc = element.ownerDocument;
+    doc.nodeType !== 9 /* Node.DOCUMENT_NODE */ && (doc = document);
+    const mouseEvent = doc.createEvent("MouseEvents");
     // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
     //  viewArg: Window, detailArg: number,
     //  screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number,
