@@ -1,8 +1,7 @@
 declare namespace VisualModeNS {
-  const enum Action {
+  const enum ValidActions {
 
   }
-  type ValidActions = VisualModeNS.Action | ((this: {}, count: number) => void);
   type ForwardDir = 0 | 1;
   const enum G {
     character = 0, line = 1, lineboundary = 2, paragraph = 3, sentence = 4, word = 6, documentboundary = 7,
@@ -125,28 +124,41 @@ var VVisualMode = {
     this.currentCount_ = 0; this.currentSeconds_ = null;
   },
   commandHandler_ (command: VisualModeNS.ValidActions, count: number): void {
+    const movement = this.movement_, mode = this.mode_;
     if (command > 50) {
       if (command > 60) {
         return VScroller.scrollBy_(1, (command === 61 ? 1 : -1) * count, 0);
       }
-      if (command === 53 && this.mode_ !== VisualModeNS.Mode.Caret) {
-        const flag = this.selection_.toString().length > 1;
-        this.movement_.collapseSelectionTo_(+flag as 0 | 1);
+      if (command === 55) {
+        clearTimeout(this.hudTimer_);
+        return VFindMode.activate_(1, VUtils.safer_({ returnToViewport: true }));
       }
-      ;
+      if (command === 53 && mode !== VisualModeNS.Mode.Caret) {
+        const flag = movement.selection_.toString().length > 1;
+        movement.collapseSelectionTo_(+flag as 0 | 1);
+      }
       return this.activate_(1, VUtils.safer_({
         // command === 1 ? VisualModeNS.Mode.Visual : command === 2 : VisualModeNS.Mode.Line : VisualModeNS.Mode.Caret
-        mode: <number>command - 50
+        mode: command - 50
       }));
     }
-    this.mode_ === VisualModeNS.Mode.Caret && this.movement_.collapseSelectionTo_(0);
-    if (command >= 0) {
-      this.movement_.runMovements_(((command as number) & 1) as 0 | 1, (command as number) >>> 1, count);
+    mode === VisualModeNS.Mode.Caret && movement.collapseSelectionTo_(0);
+    if (command > 35) {
+      this.find_(command - 36 ? -count : count);
+    } else if (command > 30) {
+      // 31 : y, Y, C, p, P : 35
+      this.yank_([null, (movement.selectLine_(count), null), true as true,
+          ReuseType.current as ReuseType.current, ReuseType.newFg as ReuseType.newFg][command - 31]);
+    } else if (command > 20) {
+      movement.selectLexicalEntity_((command - 20) as VisualModeNS.G.sentence | VisualModeNS.G.word, count);
+    } else if (command === 20) {
+      movement.setDi_();
+      movement.reverseSelection_();
     } else {
-      (command as (count: number) => void).call(this, count);
+      movement.runMovements_((command & 1) as 0 | 1, command >>> 1, count);
     }
-    this.mode_ === VisualModeNS.Mode.Caret ? this.movement_.extend_(1)
-    : this.mode_ === VisualModeNS.Mode.Line ? this.movement_.extendToLine_() : 0;
+    mode === VisualModeNS.Mode.Caret ? movement.extend_(1)
+    : mode === VisualModeNS.Mode.Line ? movement.extendToLine_() : 0;
   },
   establishInitialSelectionAnchor_ (): boolean {
     let node: Text | null, str: string | undefined, offset: number;
@@ -355,31 +367,15 @@ movement_: {
 keyMap_: {
   l: 1, h: 0, j: 3, k: 2, e: 13, b: 12, w: 11, ")": 9, "(": 8, "}": 7, "{": 6,
   0: 4, $: 5, G: 15, g: { g: 14 }, B: 12, W: 11,
-  v: 51, V: 52, c: 53,
+  o: 20,
   a: {
-    w (count): void {
-      return (this as typeof VVisualMode).movement_.selectLexicalEntity_(VisualModeNS.G.word, count);
-    },
-    s (count): void {
-      return (this as typeof VVisualMode).movement_.selectLexicalEntity_(VisualModeNS.G.sentence, count);
-    }
+    w: 26, s: 24
   },
-  n (count): void { return (this as typeof VVisualMode).find_(count); },
-  N (count): void { return (this as typeof VVisualMode).find_(-count); },
-  "/": function(): void | boolean {
-    clearTimeout((this as typeof VVisualMode).hudTimer_);
-    return VFindMode.activate_(1, VUtils.safer_({ returnToViewport: true }));
-  },
-  y (): void { return (this as typeof VVisualMode).yank_(); },
-  Y (count): void { (this as typeof VVisualMode).movement_.selectLine_(count); return (this as typeof VVisualMode).yank_(); },
-  C (): void { return (this as typeof VVisualMode).yank_(true); },
-  p (): void { return (this as typeof VVisualMode).yank_(0); },
-  P (): void { return (this as typeof VVisualMode).yank_(-1); },
-  o (): void {
-    (this as typeof VVisualMode).movement_.setDi_();
-    return (this as typeof VVisualMode).movement_.reverseSelection_();
-  },
-  "<c-e>": 61, "<c-y>": 62, "<c-down>": 61, "<c-up>": 62
+  y: 31, Y: 32, C: 33, p: 34, P: 35,
+  n: 36, N: 37,
+  v: 51, V: 52, c: 53,
+  "/": 55,
+  "<c-e>": 61, "<c-y>": 62, "<c-down>": 61, "<c-up>": 62,
 } as {
   [key: string]: VisualModeNS.ValidActions | {
     [key: string]: VisualModeNS.ValidActions;
