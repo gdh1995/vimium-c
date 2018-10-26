@@ -1866,6 +1866,9 @@ Are you sure you want to continue?`);
           }
           status = Frames.Status.enabled;
           sender.flags = Frames.Flags.userActed;
+        } else if (type === PortType.CloseSelf) {
+          chrome.tabs.remove(tabId);
+          return;
         } else {
           status = ((type >>> PortType.BitOffsetOfKnownStatus) & PortType.MaskOfKnownStatus) - 1;
           sender.flags = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed

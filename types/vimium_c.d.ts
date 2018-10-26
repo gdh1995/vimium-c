@@ -185,6 +185,7 @@ declare const enum PortType {
   knownPartial = knownStatusBase + (1 << BitOffsetOfKnownStatus),
   knownDisabled = knownStatusBase + (2 << BitOffsetOfKnownStatus),
   hasCSS = flagsBase, isLocked = flagsBase * 2,
+  CloseSelf = 999,
 }
 
 declare namespace SettingsNS {
