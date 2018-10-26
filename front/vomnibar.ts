@@ -41,7 +41,7 @@ if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "
   window.dispatchEvent(new Event("unload"));
 }
 
-var Vomnibar_ = {
+var O = {
   pageType_: VomnibarNS.PageType.Default,
   activate (options: Options): void {
     Object.setPrototypeOf(options, null);
@@ -67,13 +67,13 @@ var Vomnibar_ = {
       url = search.url;
       keyword || (keyword = search.keyword);
     } else if (search === null) {
-      url = VUtils_.decodeURL_(url).replace(<RegExpG> /\s$/g, "%20");
+      url = U.decodeURL_(url).replace(<RegExpG> /\s$/g, "%20");
       if (!keyword && (<RegExpI>/^https?:\/\//i).test(url)) {
         this.baseHttps_ = (url.charCodeAt(4) | KnownKey.CASE_DELTA) === KnownKey.s;
         url = url.substring(this.baseHttps_ ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? url.length - 1 : undefined);
       }
     } else {
-      url = VUtils_.decodeURL_(url, decodeURIComponent).trim().replace(this._spacesRe, " ");
+      url = U.decodeURL_(url, decodeURIComponent).trim().replace(this._spacesRe, " ");
     }
     if (keyword) {
       start = (start || 0) + keyword.length + 1;
@@ -133,7 +133,7 @@ var Vomnibar_ = {
   show_ (): void {
     this.showing_ = true;
     this.bodySt_.zoom = this.zoomLevel_ !== 1 ? this.zoomLevel_ + "" : "";
-    this.firstShowing_ ? setTimeout(Vomnibar_.focus, 34) : (this.firstShowing_ = false);
+    this.firstShowing_ ? setTimeout(O.focus, 34) : (this.firstShowing_ = false);
     addEventListener("wheel", this.onWheel_, this.wheelOptions_);
     this.OnShown_ && setTimeout(this.OnShown_, 100);
   },
@@ -144,7 +144,7 @@ var Vomnibar_ = {
     window.onkeyup = null as never;
     const el = this.input_;
     el.blur();
-    data || VPort_.postMessage_({ handler: "nextFrame", type: Frames.NextType.current, key: this.lastKey_ });
+    data || P.postMessage_({ handler: "nextFrame", type: Frames.NextType.current, key: this.lastKey_ });
     this.bodySt_.cssText = "display: none;";
     this.list_.textContent = el.value = "";
     this.list_.style.height = "";
@@ -155,7 +155,7 @@ var Vomnibar_ = {
     this.timer_ = setTimeout(this.AfterHide_, 35);
   },
   AfterHide_ (this: void): void {
-    const a = Vomnibar_;
+    const a = O;
     cancelAnimationFrame(a.atimer_);
     clearTimeout(a.timer_);
     if (a.height_) {
@@ -163,7 +163,7 @@ var Vomnibar_ = {
     }
   },
   onHidden_ (): void {
-    VPort_.postToOwner_({ name: "hide" });
+    P.postToOwner_({ name: "hide" });
     this.timer_ = this.height_ = this.matchType_ = this.wheelTime_ = this.actionType_ =
     this.total_ = this.lastKey_ = 0;
     this.zoomLevel_ = 1;
@@ -182,7 +182,7 @@ var Vomnibar_ = {
     this.height_ = 0;
     this.isActive_ = true;
     // also clear @timer
-    this.update_(0, (start as number) <= (end as number) ? function(this: typeof Vomnibar_): void {
+    this.update_(0, (start as number) <= (end as number) ? function(this: typeof O): void {
       if (this.input_.value === this.inputText_) {
         this.input_.setSelectionRange(start as number, end as number);
       }
@@ -191,12 +191,12 @@ var Vomnibar_ = {
     this.input_.value = this.inputText_;
   },
   focus (this: void, focus?: false | TimerType.fake | "focus"): void {
-    const a = Vomnibar_;
+    const a = O;
     a.focusByCode_ = true;
     if (focus !== false) {
       a.input_.focus();
     } else {
-      VPort_.postMessage_({ handler: "nextFrame", type: Frames.NextType.current, key: a.lastKey_ });
+      P.postMessage_({ handler: "nextFrame", type: Frames.NextType.current, key: a.lastKey_ });
     }
   },
   update_ (updateDelay: number, callback?: (() => void) | null): void {
@@ -220,7 +220,7 @@ var Vomnibar_ = {
     let oldSel = this.selection_, origin = this.isSelOriginal_;
     this.useInput_ = false;
     this.setWidth_();
-    return this.update_(wait, function(this: typeof Vomnibar_): void {
+    return this.update_(wait, function(this: typeof O): void {
       const len = this.completions_.length;
       if (!origin && oldSel >= 0 && len > 0) {
         oldSel = Math.min(oldSel, len - 1);
@@ -247,7 +247,7 @@ var Vomnibar_ = {
     (line as Partial<SuggestionEx>).https == null && (line.https = line.url.startsWith("https://"));
     if (line.type !== "history" && line.type !== "tab") {
       if (line.parsed == null) {
-        VUtils_.ensureText_(line);
+        U.ensureText_(line);
         line.parsed = "";
       }
       this._updateInput(line, line.text);
@@ -257,8 +257,8 @@ var Vomnibar_ = {
       return;
     }
     const onlyUrl = !line.text, url = line.url;
-    const ind = VUtils_.ensureText_(line);
-    let str = onlyUrl ? url : VUtils_.decodeURL_(url, decodeURIComponent);
+    const ind = U.ensureText_(line);
+    let str = onlyUrl ? url : U.decodeURL_(url, decodeURIComponent);
     if (!onlyUrl && str.length === url.length && url.indexOf('%') >= 0) {
       // has error during decoding
       str = line.text;
@@ -271,7 +271,7 @@ var Vomnibar_ = {
         }
       }
     }
-    VPort_.postMessage_({
+    P.postMessage_({
       handler: "parseSearchUrl",
       id: sel,
       url: str
@@ -345,8 +345,8 @@ var Vomnibar_ = {
       else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
         event.preventDefault();
         this.lastScrolling_ = Date.now();
-        window.onkeyup = Vomnibar_.HandleKeydown_;
-        VPort_.postToOwner_({ name: "scroll", keyCode: n });
+        window.onkeyup = O.HandleKeydown_;
+        P.postToOwner_({ name: "scroll", keyCode: n });
         return;
       }
       else { action = event.code === "BracketLeft" ? AllowedActions.dismiss : event.code === "BracketRight" ? AllowedActions.toggle
@@ -463,8 +463,8 @@ var Vomnibar_ = {
     const item: SuggestionE | UrlInfo = sel >= 0 ? this.completions_[sel] : { url: this.input_.value.trim() },
     action = this.actionType_, https = this.isHttps_,
     func = function(this: void): void {
-      item.sessionId != null ? Vomnibar_.gotoSession_(item as SuggestionE & { sessionId: string | number })
-        : Vomnibar_.navigateToUrl_((item as UrlInfo).url, action, https);
+      item.sessionId != null ? O.gotoSession_(item as SuggestionE & { sessionId: string | number })
+        : O.navigateToUrl_((item as UrlInfo).url, action, https);
       (<RegExpOne> /a?/).test("");
     };
     if (this.actionType_ < ReuseType.newFg) { return func(); }
@@ -473,19 +473,19 @@ var Vomnibar_ = {
   },
   OnEnterUp_ (this: void, event: KeyboardEvent): void {
     if (event.isTrusted === true || (event.isTrusted == null && event instanceof KeyboardEvent) && event.keyCode === VKeyCodes.enter) {
-      Vomnibar_.lastKey_ = VKeyCodes.None;
+      O.lastKey_ = VKeyCodes.None;
       window.onkeyup = null as never;
-      Vomnibar_.onEnter_(event);
+      O.onEnter_(event);
     }
   },
   removeCur_ (): void {
     if (this.selection_ < 0) { return; }
     const completion = this.completions_[this.selection_], type = completion.type;
     if (type !== "tab" && (type !== "history" || completion.sessionId != null)) {
-      VPort_.postToOwner_({ name: "hud", text: "This item can not be deleted." });
+      P.postToOwner_({ name: "hud", text: "This item can not be deleted." });
       return;
     }
-    VPort_.postMessage_({
+    P.postMessage_({
       handler: "removeSug",
       type,
       url: type === "tab" ? completion.sessionId + "" : completion.url
@@ -507,9 +507,9 @@ var Vomnibar_ = {
     let el = event.target as Element | null, item: Element | null;
     for (; el && !el.classList.contains("url"); el = el.parentElement) {}
     if (!el || (el as HTMLAnchorElement).href) { return; }
-    for (item = el; item && item.parentElement !== Vomnibar_.list_; item = item.parentElement) {}
-    const _i = [].indexOf.call(Vomnibar_.list_.children, item);
-    _i >= 0 && ((el as HTMLAnchorElement).href = Vomnibar_.completions_[_i].url);
+    for (item = el; item && item.parentElement !== O.list_; item = item.parentElement) {}
+    const _i = [].indexOf.call(O.list_.children, item);
+    _i >= 0 && ((el as HTMLAnchorElement).href = O.completions_[_i].url);
   },
   OnSelect_ (this: HTMLInputElement): void {
     let el = this;
@@ -523,14 +523,14 @@ var Vomnibar_ = {
     }
   },
   OnFocus_ (this: void, event: Event): void {
-    event.isTrusted !== false && (Vomnibar_.focused_ = event.type !== "blur") && (Vomnibar_.blurWanted_ = false);
+    event.isTrusted !== false && (O.focused_ = event.type !== "blur") && (O.blurWanted_ = false);
   },
-  OnTimer_ (this: void): void { if (Vomnibar_) { return Vomnibar_.fetch_(); } },
+  OnTimer_ (this: void): void { if (O) { return O.fetch_(); } },
   onWheel_ (event: WheelEvent): void {
     if (event.ctrlKey || event.metaKey || event.isTrusted === false) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (event.deltaX || !event.deltaY || Date.now() - this.wheelTime_ < this.wheelInterval_ || !Vomnibar_.isActive_) { return; }
+    if (event.deltaX || !event.deltaY || Date.now() - this.wheelTime_ < this.wheelInterval_ || !O.isActive_) { return; }
     this.wheelTime_ = Date.now();
     this.goPage_(event.deltaY > 0);
   },
@@ -582,7 +582,7 @@ var Vomnibar_ = {
     needMsg = height !== oldH, earlyPost = height > oldH || this.sameOrigin_,
     msg: VomnibarNS.FReq["style"] & VomnibarNS.Msg<"style"> = { name: "style", height };
     oldH || (msg.max = this.maxHeight_);
-    if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
+    if (needMsg && earlyPost) { P.postToOwner_(msg); }
     this.completions_.forEach(this.parse_, this);
     list.innerHTML = this.renderItems_(this.completions_);
     oldH || (this.bodySt_.display = "");
@@ -599,11 +599,11 @@ var Vomnibar_ = {
     if (earlyPost) {
       return this.postUpdate_();
     } else {
-      requestAnimationFrame(() => { needMsg && VPort_.postToOwner_(msg); return Vomnibar_.postUpdate_(); });
+      requestAnimationFrame(() => { needMsg && P.postToOwner_(msg); return O.postUpdate_(); });
     }
   },
   postUpdate_ (): void {
-    let func: typeof Vomnibar_.onUpdate_;
+    let func: typeof O.onUpdate_;
     if (!this.showing_) { this.show_(); }
     if (this.timer_ > 0) { return; }
     this.timer_ = 0;
@@ -614,7 +614,7 @@ var Vomnibar_ = {
     }
   },
   OnShown_: function (this: void): void {
-    const a = Vomnibar_, i = a.input_, listen = addEventListener, wndFocus = Vomnibar_.OnWndFocus_;
+    const a = O, i = a.input_, listen = addEventListener, wndFocus = O.OnWndFocus_;
     i.onselect = a.OnSelect_;
     i.onfocus = i.onblur = a.OnFocus_;
     a.OnShown_ = null;
@@ -624,7 +624,7 @@ var Vomnibar_ = {
   } as ((this: void) => void) | null,
   _focusTimer: 0,
   OnWndFocus_ (this: void, event: Event): void {
-    const a = Vomnibar_, byCode = a.focusByCode_;
+    const a = O, byCode = a.focusByCode_;
     a.focusByCode_ = false;
     if (!a.isActive_ || event.target !== window || event.isTrusted === false) { return; }
     const blurred = event.type === "blur";
@@ -636,12 +636,12 @@ var Vomnibar_ = {
     if (byCode) {
       a.blurred(blurred);
     } else if (blurred) {
-      VPort_.postMessage_({ handler: "blurTest" });
+      P.postMessage_({ handler: "blurTest" });
     } else {
       a._focusTimer = setTimeout(a.blurred, 50, false);
-      VPort_ && VPort_.postMessage_({ handler: "blank" });
-      if (a.pageType_ === VomnibarNS.PageType.ext && VPort_) {
-        VPort_.postToOwner_({name: "test"});
+      P && P.postMessage_({ handler: "blank" });
+      if (a.pageType_ === VomnibarNS.PageType.ext && P) {
+        P.postToOwner_({name: "test"});
       }
     }
   },
@@ -650,7 +650,7 @@ var Vomnibar_ = {
     (typeof blurred === "boolean" ? !blurred : document.hasFocus()) ? a.remove("transparent") : a.add("transparent");
   },
   init_ (): void {
-    window.onclick = function(e) { Vomnibar_.onClick_(e); };
+    window.onclick = function(e) { O.onClick_(e); };
     this.onWheel_ = this.onWheel_.bind(this);
     Object.setPrototypeOf(this.ctrlMap_, null);
     Object.setPrototypeOf(this.normalMap_, null);
@@ -661,9 +661,9 @@ var Vomnibar_ = {
     this.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
     this.barCls_ = (this.input_.parentElement as HTMLElement).classList;
     list.oncontextmenu = this.OnMenu_;
-    (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar_.hide(); };
+    (document.getElementById("close") as HTMLElement).onclick = function(): void { return O.hide(); };
     addEventListener("keydown", this.HandleKeydown_, true);
-    this.renderItems_ = VUtils_.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
+    this.renderItems_ = U.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
     if (ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured) {
       const css = document.createElement("style");
       css.textContent = `.item, #input { border-width: ${ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`;
@@ -671,14 +671,14 @@ var Vomnibar_ = {
     }
     if (ver < BrowserVer.Min$KeyboardEvent$$isComposing) {
       let func = function (this: void, event: CompositionEvent): void {
-        if (Vomnibar_.isInputComposing_ = event.type === "compositionstart") {
-          Vomnibar_.lastNormalInput_ = Vomnibar_.input_.value.trim();
+        if (O.isInputComposing_ = event.type === "compositionstart") {
+          O.lastNormalInput_ = O.input_.value.trim();
         }
       };
       this.input_.addEventListener("compositionstart", func);
       this.input_.addEventListener("compositionend", func);
     }
-    this.init_ = VUtils_.makeListRenderer_ = null as never;
+    this.init_ = U.makeListRenderer_ = null as never;
     if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && ver !== BrowserVer.assumedVer || this.bodySt_.d != null) { return; }
     const styles = (document.querySelector("style") as HTMLStyleElement).textContent,
     re = <RegExpG & RegExpSearchable<2>> /\.([a-z]+)\s?\{(?:[^}]+;)?\s*d\s?:\s*path\s?\(\s?['"](.+?)['"]\s?\)/g,
@@ -706,26 +706,26 @@ var Vomnibar_ = {
   },
   HandleKeydown_ (this: void, event: KeyboardEvent): void {
     if (event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
-    Vomnibar_.keyResult_ = HandlerResult.Prevent as HandlerResult;
+    O.keyResult_ = HandlerResult.Prevent as HandlerResult;
     if (window.onkeyup) {
       let stop = !event.repeat, now: number = 0;
-      if (!Vomnibar_.lastScrolling_) {
+      if (!O.lastScrolling_) {
         stop = event.keyCode > VKeyCodes.ctrlKey || event.keyCode < VKeyCodes.shiftKey;
-      } else if (stop || (now = Date.now()) - Vomnibar_.lastScrolling_ > 40) {
-        VPort_.postToOwner_({ name: stop ? "scrollEnd" : "scrollGoing" });
-        Vomnibar_.lastScrolling_ = now;
+      } else if (stop || (now = Date.now()) - O.lastScrolling_ > 40) {
+        P.postToOwner_({ name: stop ? "scrollEnd" : "scrollGoing" });
+        O.lastScrolling_ = now;
       }
       if (stop) { window.onkeyup = null as never; }
     } else {
-      Vomnibar_.onKeydown_(event);
+      O.onKeydown_(event);
     }
-    if (Vomnibar_.keyResult_ === HandlerResult.Nothing) { return; }
-    if (Vomnibar_.keyResult_ === HandlerResult.Prevent) { event.preventDefault(); }
+    if (O.keyResult_ === HandlerResult.Nothing) { return; }
+    if (O.keyResult_ === HandlerResult.Prevent) { event.preventDefault(); }
     event.stopImmediatePropagation();
   },
   returnFocus (this: void, request: BgVomnibarReq["returnFocus"]): void {
     type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
-    setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort_.postToOwner_ as
+    setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(P.postToOwner_ as
       VoidPost, 0, { name: "focus", key: request.key });
   },
   _realDevRatio: 0,
@@ -751,7 +751,7 @@ var Vomnibar_ = {
   fixRatio_ (w: number): void {
     // this function is only for BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
     let tick = 0, timer = setInterval(function(): void {
-      const iw = innerWidth, a = Vomnibar_;
+      const iw = innerWidth, a = O;
       if (iw > 0 || tick++ > 15) {
         clearInterval(timer);
         if (a) {
@@ -796,7 +796,7 @@ var Vomnibar_ = {
     } else {
       this.useInput_ = true;
     }
-    return VPort_.postMessage_(mode);
+    return P.postMessage_(mode);
   },
 
   _favPrefix: "",
@@ -805,7 +805,7 @@ var Vomnibar_ = {
     item.relevancy = this.showRelevancy_ ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
     (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
     item.favIcon = (str = this.showFavIcon_ ? item.url : "") && this._favPrefix +
-        ((str = this._parseFavIcon(item, str)) ? VUtils_.escapeCSSStringInAttr_(str) : "about:blank") + "&quot;);";
+        ((str = this._parseFavIcon(item, str)) ? U.escapeCSSStringInAttr_(str) : "about:blank") + "&quot;);";
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
     let str = url.substring(0, 11).toLowerCase();
@@ -817,16 +817,16 @@ var Vomnibar_ = {
   },
   navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null): void {
     if (url.charCodeAt(10) === KnownKey.colon && url.substring(0, 11).toLowerCase() === "javascript:") {
-      VPort_.postToOwner_({ name: "evalJS", url });
+      P.postToOwner_({ name: "evalJS", url });
       return;
     }
-    VPort_.postMessage_({ handler: "openUrl", reuse, https, url, omni: true });
+    P.postMessage_({ handler: "openUrl", reuse, https, url, omni: true });
     if (reuse === ReuseType.newBg && (!this.lastQuery_ || (<RegExpOne>/^\+\d{0,2}$/).exec(this.lastQuery_))) {
       return this.refresh_();
     }
   },
   gotoSession_ (item: SuggestionE & { sessionId: string | number }): void {
-    VPort_.postMessage_({
+    P.postMessage_({
       handler: "gotoSession",
       active: this.actionType_ > ReuseType.newBg,
       sessionId: item.sessionId
@@ -842,17 +842,17 @@ var Vomnibar_ = {
     }
     window.onfocus = function(e: Event): void {
       window.onfocus = null as never;
-      if (e.isTrusted !== false && VPort_._port) { Vomnibar_.doRefresh_(17); }
+      if (e.isTrusted !== false && P._port) { O.doRefresh_(17); }
     };
   },
   OnUnload_ (e: Event): void {
-    if (!VPort_ || e.isTrusted === false) { return; }
-    Vomnibar_.isActive_ = false;
-    Vomnibar_.timer_ > 0 && clearTimeout(Vomnibar_.timer_);
-    VPort_.postToOwner_({ name: "unload" });
+    if (!P || e.isTrusted === false) { return; }
+    O.isActive_ = false;
+    O.timer_ > 0 && clearTimeout(O.timer_);
+    P.postToOwner_({ name: "unload" });
   }
 },
-VUtils_ = {
+U = {
   makeListRenderer_ (this: void, template: string): Render {
     const a = template.split(/\{\{(\w+)}}/g);
     return function(objectArray): string {
@@ -862,7 +862,7 @@ VUtils_ = {
         for (; j < len; j += 2) {
           html += a[j];
           const key = a[j + 1];
-          html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(o) : o[key as keyof SuggestionE] || ""
+          html += key === "typeIcon" ? O.getTypeIcon_(o) : o[key as keyof SuggestionE] || ""
         }
         html += a[len];
       }
@@ -912,33 +912,33 @@ VUtils_ = {
     return this.escapeCSSStringInAttr_(s);
   }
 },
-VPort_ = {
+P = {
   _port: null as FgPort | null,
   postToOwner_: null as never as VomnibarNS.IframePort["postMessage"],
   postMessage_<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
     try {
       (this._port || this.connect_(PortType.omnibarRe)).postMessage<K>(request);
     } catch (e) {
-      VPort_ = null as never;
-      this.postToOwner_({ name: "broken", active: Vomnibar_.isActive_ });
+      P = null as never;
+      this.postToOwner_({ name: "broken", active: O.isActive_ });
     }
   },
   _Listener<T extends keyof BgVomnibarReq> (this: void, response: Req.bg<T>): void {
     type Keys = keyof BgVomnibarReq;
-    (Vomnibar_ as { [K in Keys]: (res: Req.bg<K>) => void
+    (O as { [K in Keys]: (res: Req.bg<K>) => void
       } as { [K in Keys]: <T2 extends Keys>(res: Req.bg<T2>) => void
       })[response.name](response);
   },
   _OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
     type Res = VomnibarNS.CReq;
     let name = ((data as VomnibarNS.Msg<string>).name || data) as keyof Res;
-    if (name === "backspace") { return Vomnibar_.onAction_(AllowedActions.backspace); }
+    if (name === "backspace") { return O.onAction_(AllowedActions.backspace); }
     type Keys = typeof name;
-    (Vomnibar_ as { [K in Keys]: (data: Res[K]) => void
+    (O as { [K in Keys]: (data: Res[K]) => void
       } as { [K in Keys]: <T2 extends Keys>(data: Res[T2]) => void
       })[name](data as Res[typeof name]);
   },
-  _ClearPort (this: void): void { VPort_._port = null; },
+  _ClearPort (this: void): void { P._port = null; },
   connect_ (type: PortType): FgPort {
     const data = { name: "vimium-c." + type }, port = this._port = (window.ExtId ?
       chrome.runtime.connect(window.ExtId, data) : chrome.runtime.connect(data)) as FgPort;
@@ -991,20 +991,20 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     _sec = -1;
     clearTimeout(timer);
     window.onmessage = null as never;
-    Vomnibar_.sameOrigin_ = !!port.sameOrigin;
-    VPort_.postToOwner_ = port.postMessage.bind(port);
-    port.onmessage = VPort_._OnOwnerMessage;
-    window.onunload = Vomnibar_.OnUnload_;
+    O.sameOrigin_ = !!port.sameOrigin;
+    P.postToOwner_ = port.postMessage.bind(port);
+    port.onmessage = P._OnOwnerMessage;
+    window.onunload = O.OnUnload_;
     if (options) {
-      Vomnibar_.activate(options);
+      O.activate(options);
     } else {
       port.postMessage({ name: "uiComponentIsReady" });
     }
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);
-  Vomnibar_.secret = function(this: typeof Vomnibar_, request): void {
+  O.secret = function(this: typeof O, request): void {
     this.secret = function() {};
-    Vomnibar_.browserVersion_ = request.browserVersion;
+    O.browserVersion_ = request.browserVersion;
     const { secret } = request, msgs = unsafeMsg;
     _sec = secret;
     unsafeMsg = null as never;
@@ -1020,5 +1020,5 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
       handler(data[0], event.ports[0], data[1]);
     }
   };
-VPort_.connect_(PortType.omnibar);
+P.connect_(PortType.omnibar);
 })();
