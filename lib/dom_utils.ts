@@ -211,7 +211,8 @@ var VDom = {
   wdZoom_: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
   dbZoom_: 1, // absolute zoom value of <html> * <body>
   dScale_: 1, // <html>.transform:scale (ignore the case of sx != sy)
-  bZoom_: 1, // the total zoom of <body> .. fullScreenEl
+  /** zoom of <body> (if not fullscreen else 1) */
+  bZoom_: 1,
   /**
    * return: VDom.wdZoom_ := min(devRatio, 1) * docEl.zoom
    * 
