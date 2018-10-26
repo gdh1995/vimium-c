@@ -187,14 +187,19 @@ VDom.UI = {
           || type === EditableType.Editbox && element.clientHeight + 12 < element.scrollHeight) {
       return;
     }
-    const sel = getSelection();
+    // not need `this.getSelection_()`
     try {
+      const sel = getSelection();
       if (type === EditableType.rich_) {
         const range = document.createRange();
         range.selectNodeContents(element);
         sel.removeAllRanges()
         sel.addRange(range);
       } else {
+        const end = (element as TextElement).selectionEnd;
+        if (end < (element as TextElement).value.length && end > 0 || end !== (element as TextElement).selectionStart) {
+          return;
+        }
         (element as TextElement).select();
       }
       if (!action || action === "end") {
