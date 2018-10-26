@@ -227,14 +227,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
     func(value);
     (Backend.IconBuffer as IconNS.AccessIconBuffer)(value);
     let title = "Vimium C";
-    if (NotChrome) {} // Firefox has no "Options" button
-    else if (value) {
-      chrome.browserAction.enable();
-    } else {
-      chrome.browserAction.disable();
-    }
-    title += value ? "" : NotChrome ? "\n\nAs configured, here's no\nVimium C's active status."
-      : "\n\nThis icon is disabled by your settings."
+    value || (title += "\n\nAs configured, here's no active state.");
     chrome.browserAction.setTitle({ title });
   };
   Settings.postUpdate("showActionIcon");
