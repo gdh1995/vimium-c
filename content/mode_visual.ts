@@ -25,6 +25,7 @@ var VVisualMode = {
     a.init_ && a.init_(options.words as string);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
     a.movement_.selection_ = a.selection_ = sel = VDom.UI.getSelection_();
+    VScroller.prepareTop_();
     VUtils.remove_(a);
     VUtils.push_(a.onKeydown_, a);
     type = sel.type;
@@ -75,6 +76,7 @@ var VVisualMode = {
     const el = VEventMode.lock_();
     el && el.blur && el.blur();
     VDom.UI.toggleSelectStyle_(false);
+    VScroller.top_ = null;
     this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
     this.retainSelection_ = false;
     this.selection_ = this.movement_.selection_ = null as never;
@@ -159,6 +161,7 @@ var VVisualMode = {
     }
     mode === VisualModeNS.Mode.Caret ? movement.extend_(1)
     : mode === VisualModeNS.Mode.Line ? movement.extendToLine_() : 0;
+    movement.scrollIntoView_();
   },
   establishInitialSelectionAnchor_ (): boolean {
     let node: Text | null, str: string | undefined, offset: number;

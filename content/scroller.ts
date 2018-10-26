@@ -208,10 +208,9 @@ animate_ (e: Element | null, d: ScrollByY, a: number): void | number {
     }
     return null;
   },
-  scrollIntoView_ (el: Element): void {
+  _scrollIntoView (el: Element): void {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
-    this.prepareTop_();
     this.current_ = el;
     const { innerWidth: iw, innerHeight: ih} = window,
     { bottom: b, height: h2, top: t, right: r, width: w2, left: l } = rect,
@@ -224,7 +223,6 @@ animate_ (e: Element | null, d: ScrollByY, a: number): void | number {
       this.scroll_(this.findScrollable_(1, hasY), 1, hasY);
     }
     this.keyIsDown_ = 0; // it's safe to only clean keyIsDown here
-    this.top_ = null;
   },
   scrolled_: 0,
   shouldScroll_ (element: Element, di: ScrollByY, amount?: number): boolean {
