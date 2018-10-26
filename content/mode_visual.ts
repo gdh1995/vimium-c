@@ -117,6 +117,7 @@ var VVisualMode = {
       this.currentCount_ = 0;
     }
     if (obj == null) { return ch.length === 1 && ch === key ? HandlerResult.Prevent : HandlerResult.Suppress; }
+    VUtils.prevent_(event);
     this.commandHandler_(obj, count || 1);
     return HandlerResult.Prevent;
   },
