@@ -27,20 +27,20 @@ VDom.UI = {
     }, true);
     a.addElement_ = function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
       adjust === AdjustType.NotAdjust || this.adjust_();
-      return this.R.insertBefore(element, before === true ? this.R.firstElementChild : before || null);
+      return this.R.insertBefore(element, before === true ? this.R.firstChild : before || null);
     };
     a.css_ = (function (innerCSS): void {
       const a = VDom.UI;
       if (a.box_ === a.R) {
         a.box_.id = "VimiumUI";
       }
-      let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_(innerCSS), stBorder: { el: HTMLStyleElement } | null;
+      let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_(innerCSS);
       a.R.appendChild(el);
       a.css_ = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = css; };
-      (stBorder = a._styleBorder) && a.R.appendChild(stBorder.el);
+      a._styleBorder && a.R.appendChild(a._styleBorder.el);
       if (adjust !== AdjustType.AdjustButNotShow) {
-        let f = function (this: HTMLElement, e: Event | 1): void {
-          e !== 1 && (this.onload = null as never);
+        let f = function (this: HTMLElement | void, e: Event | 1): void {
+          e !== 1 && ((this as HTMLElement).onload = null as never);
           const a = VDom.UI, box = a.box_ as HTMLElement;
           // enforce webkit to build the style attribute node, and then we can remove it totally
           box.hasAttribute("style") && box.removeAttribute("style");
@@ -161,7 +161,8 @@ VDom.UI = {
     element === VDom.lastHovered_ || VDom.hover_(element, rect);
     VDom.mouse_(element, "mousedown", rect, modifiers);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    addFocus && element !== VEventMode.lock_() && element !== document.activeElement && element.focus && element.focus();
+    addFocus && element !== VEventMode.lock_() && element !== document.activeElement &&
+      typeof element.focus === "function" && element.focus();
     VDom.mouse_(element, "mouseup", rect, modifiers);
     return VDom.mouse_(element, "click", rect, modifiers);
   },
@@ -179,7 +180,8 @@ VDom.UI = {
     type TextElement = HTMLInputElement | HTMLTextAreaElement;
     const type = element instanceof HTMLTextAreaElement ? EditableType.Editbox
         : element instanceof HTMLInputElement ? EditableType.input_
-        : (element as HTMLElement).isContentEditable ? EditableType.rich_ : EditableType.Default;
+        : (element as HTMLElement).isContentEditable && !VDom.notSafe_(element) ? EditableType.rich_
+        : EditableType.Default;
     if (type === EditableType.Default) { return; }
     if (action ? (action === "all-input" || action === "all-line") && (type === EditableType.Editbox
             || type === EditableType.rich_ && element.textContent.indexOf("\n") >= 0)
@@ -216,7 +218,7 @@ VDom.UI = {
       return VDom.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
     const rect = VDom.getVisibleClientRect_(clickEl),
-    cr = clickEl.getBoundingClientRect(), bcr = VDom.fromClientRect_(cr);
+    cr = Element.prototype.getBoundingClientRect.call(clickEl), bcr = VDom.fromClientRect_(cr);
     return rect && !VDom.isContaining_(bcr, rect) ? rect : VDom.NotVisible_(null, cr) ? null : bcr;
   },
   _lastFlash: null,
