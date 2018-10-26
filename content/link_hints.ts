@@ -5,10 +5,10 @@ const enum ClickType {
   maxNotBox = 6, minBox = maxNotBox + 1,
   frame = minBox, scrollX, scrollY,
 }
-const enum ClickingType {
-  NotWantClickable = 0,
-  WantButNotFind = 1,
-  FindClickable = 2,
+const enum DeepQueryType {
+  NotDeep = 0,
+  NotAvailable = 1,
+  InDeep = 2,
 }
 declare namespace HintsNS {
   type LinkEl = Hint[0];
@@ -57,7 +57,8 @@ var VHints = {
   mode_: 0 as HintMode,
   mode1_: 0 as HintMode,
   modeOpt_: null as HintsNS.ModeOpt | null,
-  clicking_: ClickingType.NotWantClickable,
+  queryInDeep_: DeepQueryType.NotDeep,
+  anyClicking_: false,
   forHover_: false,
   count_: 0,
   lastMode_: 0 as HintMode,
@@ -106,7 +107,10 @@ var VHints = {
       }
     }
     if (elements.length === 0) {
-      elements = a.retryShadowDOM_(arr);
+      if (!a.anyClicking_ && !a.tooHigh_ && a.queryInDeep_ === DeepQueryType.NotDeep) {
+        a.queryInDeep_ = DeepQueryType.InDeep;
+        elements = a.getVisibleElements_(arr);
+      }
       if (elements.length === 0) {
         a.clean_(true);
         return VHUD.tip("No links to select.", 1000);
@@ -208,20 +212,6 @@ var VHints = {
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested_ = false; }
     return true;
-  },
-  retryShadowDOM_ (view: ViewBox): Hint[] {
-    let elements: Hint[] = [];
-    if (this.clicking_ === ClickingType.WantButNotFind && !this.tooHigh_) {
-      const {cache} = VSettings;
-      if (!cache.deepHints) {
-        cache.deepHints = true;
-        elements = this.getVisibleElements_(view);
-      }
-      if (elements.length === 0 && !this.switchShadowVer_()) {
-        elements = this.getVisibleElements_(view);
-      }
-    }
-    return elements;
   },
   maxLeft_: 0,
   maxTop_: 0,
@@ -338,7 +328,13 @@ var VHints = {
     case "div": case "ul": case "pre": case "ol": case "code":
       type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? ClickType.scrollY
         : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default;
-      break;
+      // no break;
+    default:
+      if (element.shadowRoot) {
+        VHints.queryInDeep_ !== DeepQueryType.InDeep && ([].forEach as any as HintsNS.ElementIterator<Hint>).call(
+          element.shadowRoot.querySelectorAll("*"), VHints.GetClickable_, this);
+        return;
+      }
     }
     if (isClickable === null) {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
@@ -354,7 +350,7 @@ var VHints = {
         : ClickType.Default;
     }
     if (!isClickable && type === ClickType.Default) { return; }
-    VHints.clicking_ = ClickingType.FindClickable;
+    VHints.anyClicking_ = true;
     if (element === document.documentElement || element === document.body) { return; }
     if ((arr = VDom.getVisibleClientRect_(element))
         && (type < ClickType.scrollX || VScroller.shouldScroll_(element, type - ClickType.scrollX as 0 | 1))
@@ -387,7 +383,13 @@ var VHints = {
           (element as HTMLInputElement | HTMLTextAreaElement).readOnly) { return; }
       break;
     default:
-      if ((s = element.contentEditable) === "inherit" || !s || s === "false") { return; }
+      if ((s = element.contentEditable) === "inherit" || !s || s === "false") {
+        if (element.shadowRoot && VHints.queryInDeep_ !== DeepQueryType.InDeep) {
+          ([].forEach as any as HintsNS.ElementIterator<Hint>).call(
+            element.shadowRoot.querySelectorAll("*"), VHints.GetEditable_, this);
+        }
+        return;
+      }
       type = ClickType.edit;
       break;
     }
@@ -434,33 +436,30 @@ var VHints = {
       }
     }
   },
-  _shadowSign: "* /deep/ ",
   traverse_: function (this: {}, key: string
       , filter: HintsNS.Filter<Hint | Element>, notWantVUI?: boolean
       , root?: Document | Element): Hint[] | Element[] {
+    const a = VHints;
     if ((this as typeof VHints).ngEnabled_ === null && key === "*") {
       (this as typeof VHints).ngEnabled_ = document.querySelector('.ng-scope') != null;
     }
-    let query: string = key, uiRoot = VDom.UI.box_ === VDom.UI.R || notWantVUI ? null : VDom.UI.R;
-    if (VSettings.cache.deepHints) {
-      query = (this as typeof VHints)._shadowSign + key;
-      if (uiRoot && uiRoot.mode !== "closed") { uiRoot = null; }
-    }
-    const output: Hint[] | Element[] = [], isTag = query === "*" || (<RegExpOne>/^[a-z]+$/).test(query),
+    const output: Hint[] | Element[] = [],
+    query = a.queryInDeep_ === DeepQueryType.InDeep ? a.getDeepDescendantCombinator_() + key : key,
+    isTag = query === "*" || (<RegExpOne>/^[a-z]+$/).test(query),
     Sc = VScroller,
     wantClickable = (filter as Function) === (this as typeof VHints).GetClickable_ && key === "*",
     box = root || document.webkitFullscreenElement || document;
     wantClickable && Sc.getScale_();
-    (this as typeof VHints).clicking_ = wantClickable ? ClickingType.WantButNotFind : ClickingType.NotWantClickable;
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
     if (!root && (this as typeof VHints).tooHigh_ && box === document && list.length >= 15000) {
       list = (this as typeof VHints).getElementsInViewPort_(list);
     }
     (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(list, filter, output);
-    if (root) { return output; }
+    if (root) { /* this requires not detecting scrollable elements if root */ return output; }
     list = null;
-    if (uiRoot) {
-      const d = VDom, z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0 && uiRoot !== d.UI.box_;
+    const uiRoot = VDom.UI.R;
+    if (uiRoot && !notWantVUI && (uiRoot.mode === "closed" || key !== "*")) {
+      const d = VDom, z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
       if (bz !== 1 && box === document) {
         d.dbZoom_ = z / bz;
         d.prepareCrop_();
@@ -571,7 +570,7 @@ var VHints = {
         || _i === HintMode.OPEN_IMAGE ? this.traverse_("a[href],img[src],[data-src]", this.GetImages_, true)
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? this.traverse_("a", this.GetLinks_)
       : this.traverse_("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable_ : this.GetClickable_
-          , _i === HintMode.FOCUS_EDITABLE);
+          );
     this.maxLeft_ = view[2], this.maxTop_ = view[3], this.maxRight_ = view[4];
     if (this.maxRight_ > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(this.alphabetHints_.chars_.length));
@@ -628,23 +627,23 @@ var VHints = {
     } else if ((i = event.keyCode) === VKeyCodes.esc) {
       return HandlerResult.Suppress;
     } else if (i === VKeyCodes.ime) {
-      VHints.clean_(true);
+      this.clean_(true);
       VHUD.tip("LinkHints exits because you're inputing");
       return HandlerResult.Nothing;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       this.ResetMode_();
       if (i !== VKeyCodes.f2) { return HandlerResult.Nothing; }
       i = VKeyboard.getKeyStat_(event);
-      const {cache} = VSettings, {deepHints} = cache;
+      const deep = this.queryInDeep_;
       if (i === KeyStat.shiftKey) {
         this.isClickListened_ = !this.isClickListened_;
       } else if (i === KeyStat.plain) {
-        cache.deepHints = !deepHints;
+        this.queryInDeep_ = 2 - deep;
       } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
-        if (this.switchShadowVer_() && deepHints) {
+        if (deep !== DeepQueryType.NotDeep) {
           return HandlerResult.Prevent;
         }
-        cache.deepHints = true;
+        this.queryInDeep_ = DeepQueryType.InDeep;
       }
       setTimeout(this.reinit_.bind(this, null), 0);
     } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
@@ -689,19 +688,16 @@ var VHints = {
     }
     return HandlerResult.Prevent;
   },
-  switchShadowVer_(): boolean { // return true if fail
-    let v1 = "* >>> ", v0 = "* /deep/ ", sign = v0;
-    if (VSettings.cache.browserVer < BrowserVer.MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled) {
-    } else try {
-      (VDom.UI.box_ || VDom.createElement_('div')).querySelector(v1 + "div");
-      sign = v1;
+  getDeepDescendantCombinator_(): string {
+    let v0 = "* /deep/ ";
+    try {
+      (VDom.UI.box_ || document.head || VDom.createElement_('div')).querySelector(v0 + "html");
     } catch (e) {
+      this.queryInDeep_ = DeepQueryType.NotAvailable;
+      v0 = "";
     }
-    this.switchShadowVer_ = function(): boolean {
-      this._shadowSign = this._shadowSign !== sign ? sign : v0;
-      return sign === v0;
-    }
-    return this.switchShadowVer_();
+    this.getDeepDescendantCombinator_ = () => v0;
+    return v0;
   },
   ResetMode_ (): void {
     if (VHints.mode_ >= HintMode.min_disable_queue || VHints.lastMode_ === VHints.mode_) { return; }
@@ -788,7 +784,7 @@ var VHints = {
     this.lastMode_ = this.mode_ = this.mode1_ = this.count_ = this.pTimer_ =
     this.maxLeft_ = this.maxTop_ = this.maxRight_ = ks.tab = ks.newHintLength = alpha.countMax_ = 0;
     alpha.hintKeystroke_ = alpha.chars_ = "";
-    this.isActive_ = this.noHUD_ = this.tooHigh_ = ks.known = false;
+    this.isActive_ = this.noHUD_ = this.tooHigh_ = ks.known = this.anyClicking_ = false;
     VUtils.remove_(this);
     VEventMode.onWndBlur_(null);
     if (this.box_) {

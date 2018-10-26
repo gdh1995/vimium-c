@@ -439,7 +439,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       InsertMode.inputHint_ && (InsertMode.inputHint_.hints = null as never);
       const arr: ViewOffset = VDom.getViewBox_();
       VDom.prepareCrop_();
-      const visibleInputs = VHints.traverse_("*", VHints.GetEditable_, true),
+      // here always detect editable inside UI root, in case of user-modified DOM
+      const visibleInputs = VHints.traverse_("*", VHints.GetEditable_),
       action = options.select;
       let sel = visibleInputs.length;
       if (sel === 0) {
@@ -822,7 +823,7 @@ Pagination = {
   },
   requestHandlers = {
     init (request: BgReq["init"]): void {
-      const r = requestHandlers, {load, flags} = request;
+      const r = requestHandlers, {load, flags} = request, D = VDom;
       interface WindowMayOnMSEdge extends Window {
         StyleMedia?: object;
       }
@@ -831,10 +832,11 @@ Pagination = {
           : BrowserType.Edge
         : BrowserType.Chrome;
       (VSettings.cache = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
-      VDom.specialZoom_ = !notChrome && load.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
+      D.specialZoom_ = !notChrome && load.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
       if (!notChrome && load.browserVer >= BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
-        VDom.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement;
+        D.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement;
       }
+      load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
       r.keyMap(request);
       if (flags) {
         InsertMode.grabFocus_ = !(flags & Frames.Flags.userActed);
@@ -849,7 +851,7 @@ Pagination = {
         VSettings.uninit_ && VSettings.uninit_(HookAction.Suppress);
       }
       r.init = null as never;
-      return VDom.DocReady(function (): void {
+      return D.DocReady(function (): void {
         HUD.enabled_ = true;
         onWndFocus = vPort.SafePost_.bind(vPort, { handler: "focus" });
       });
@@ -887,9 +889,12 @@ Pagination = {
     settingsUpdate ({ delta }: BgReq["settingsUpdate"]): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer_(delta);
+      const cache = VSettings.cache;
       for (const i in delta) {
-        VSettings.cache[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
+        cache[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
       }
+      VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
+      (VHints.queryInDeep_ = cache.deepHints ? DeepQueryType.InDeep : DeepQueryType.NotDeep);
     },
     focusFrame: FrameMask.Focus_,
     exitGrab: InsertMode.ExitGrab_ as (this: void, request: Req.bg<"exitGrab">) => void,

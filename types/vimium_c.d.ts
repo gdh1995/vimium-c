@@ -540,6 +540,11 @@ declare const enum BrowserVer {
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>
   NoRAForRICOnSandboxedPage = 69,
   MinTabIdMayBeMuchLarger = 69,
+  // `>>>` only works if EXPERIMENTAL before C69 and since C56
+  // (MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled)
+  // https://github.com/chromium/chromium/commit/c81707c532183d4e6b878041964e85b0441b9f50
+  MinNoSelector$GtGtGt = 69,
+  // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
   MinNamedGetterOnFramesetNotOverrideBulitin = 70,
   assumedVer = 999,
 }
