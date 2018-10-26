@@ -64,7 +64,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     } else if (type === Urls.NewTabType.vimium) {
       args.url = Settings.cache.newTabUrl_f;
     }
-    NotChrome && (delete args.openerTabId); // todo: test latest Firefox
+    IsEdge && (delete args.openerTabId);
     return chrome.tabs.create(args, callback);
   }
   /** if count <= 1, only open once */
