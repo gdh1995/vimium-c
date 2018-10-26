@@ -436,23 +436,23 @@ var VHints = {
       }
     }
   },
-  traverse_: function (this: {}, key: string
+  traverse_: function (key: string
       , filter: HintsNS.Filter<Hint | Element>, notWantVUI?: boolean
       , root?: Document | Element): Hint[] | Element[] {
     const a = VHints;
-    if ((this as typeof VHints).ngEnabled_ === null && key === "*") {
-      (this as typeof VHints).ngEnabled_ = document.querySelector('.ng-scope') != null;
+    if (a.ngEnabled_ === null && key === "*") {
+      a.ngEnabled_ = document.querySelector('.ng-scope') != null;
     }
     const output: Hint[] | Element[] = [],
     query = a.queryInDeep_ === DeepQueryType.InDeep ? a.getDeepDescendantCombinator_() + key : key,
     isTag = query === "*" || (<RegExpOne>/^[a-z]+$/).test(query),
     Sc = VScroller,
-    wantClickable = (filter as Function) === (this as typeof VHints).GetClickable_ && key === "*",
+    wantClickable = (filter as Function) === a.GetClickable_ && key === "*",
     box = root || document.webkitFullscreenElement || document;
     wantClickable && Sc.getScale_();
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
-    if (!root && (this as typeof VHints).tooHigh_ && box === document && list.length >= 15000) {
-      list = (this as typeof VHints).getElementsInViewPort_(list);
+    if (!root && a.tooHigh_ && box === document && list.length >= 15000) {
+      list = a.getElementsInViewPort_(list);
     }
     (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(list, filter, output);
     if (root) { /* this requires not detecting scrollable elements if root */ return output; }
@@ -471,14 +471,14 @@ var VHints = {
       }
     }
     Sc.scrolled_ === 1 && Sc.supressScroll_();
-    if (wantClickable) { (this as typeof VHints).deduplicate_(output as Hint[]); }
-    if ((this as typeof VHints).frameNested_ === null) {}
+    if (wantClickable) { a.deduplicate_(output as Hint[]); }
+    if (a.frameNested_ === null) {}
     else if (wantClickable) {
-      (this as typeof VHints).checkNestedFrame_(output as Hint[]);
+      a.checkNestedFrame_(output as Hint[]);
     } else if (output.length > 0) {
-      (this as typeof VHints).frameNested_ = null;
+      a.frameNested_ = null;
     } else {
-      (this as typeof VHints).checkNestedFrame_();
+      a.checkNestedFrame_();
     }
     return output as Hint[];
   } as {
