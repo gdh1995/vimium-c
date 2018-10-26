@@ -119,7 +119,7 @@ var VDom = {
     return this.prepareCrop_();
   },
   getVisibleClientRect_ (element: Element, el_style?: CSSStyleDeclaration): VRect | null {
-    const arr = typeof element.getClientRects === "function" ? element.getClientRects() : [];
+    const arr = Element.prototype.getClientRects.call(element);
     let cr: VRect | null, style: CSSStyleDeclaration | null, _ref: HTMLCollection | undefined
       , isVisible: boolean | undefined, notInline: boolean | undefined, str: string;
     for (let _i = 0, _len = arr.length; _i < _len; _i++) {
@@ -322,7 +322,7 @@ var VDom = {
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;
     root || doc.nodeType !== 9 /* Node.DOCUMENT_NODE */ && (doc = document);
-    if (!root && typeof (f = NP.getRootNode) === "function") {
+    if (!root && (f = NP.getRootNode)) {
       return f.call(element, {composed: true}) === doc;
     }
     if (NP.contains.call(doc, element)) { return true; }
@@ -353,7 +353,7 @@ var VDom = {
     embed: EditableType.Embed, object: EditableType.Embed
   },
   /**
-   * if true, then `element` is `HTMLElement`
+   * if true, then `element` is `HTMLElement` and safe
    */
   getEditableType_ (element: Element): EditableType {
     const name = element.tagName;
@@ -416,14 +416,14 @@ var VDom = {
   lastHovered_: null as Element | null,
   /** note: will NOT skip even if newEl == @lastHovered */
   hover_: function (this: {}, newEl: Element | null, rect?: VRect | null): void {
-    let last = (this as typeof VDom).lastHovered_;
-    if (last && (this as typeof VDom).isInDOM_(last)) {
-      (this as typeof VDom).mouse_(last, "mouseout", null, null, newEl !== last ? newEl : null);
+    let a = VDom as typeof VDom, last = a.lastHovered_;
+    if (last && a.isInDOM_(last)) {
+      a.mouse_(last, "mouseout", null, null, newEl !== last ? newEl : null);
     } else {
       last = null;
     }
-    (this as typeof VDom).lastHovered_ = newEl;
-    newEl && (this as typeof VDom).mouse_(newEl, "mouseover", rect as VRect | null, null, last);
+    a.lastHovered_ = newEl;
+    newEl && a.mouse_(newEl, "mouseover", rect as VRect | null, null, last);
   } as {
     (newEl: Element, rect: VRect | null): void;
     (newEl: null): void;

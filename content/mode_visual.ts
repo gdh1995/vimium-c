@@ -74,7 +74,7 @@ var VVisualMode = {
       this.movement_.collapseSelectionTo_(isEsc && this.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
     const el = VEventMode.lock_();
-    el && VDom.getEditableType_(el) && el.blur && el.blur();
+    el && el.blur && el.blur();
     VDom.UI.toggleSelectStyle_(false);
     this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
     this.retainSelection_ = false;

@@ -273,7 +273,6 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   },
   focusFoundLink_ (el: Element | null): el is HTMLAnchorElement {
     for (; el && el !== document.body; el = VDom.GetParent_(el)) {
-      // todo: check <form> and <frameset>
       if (el instanceof HTMLAnchorElement) {
         el.focus();
         return true;
@@ -470,7 +469,8 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     enabled || this.isActive_ || ui.toggleSelectStyle_(false);
     if (enabled - +!sout.parentNode) { return; }
     if (enabled) {
-      (ui.box_ as HTMLDivElement).appendChild(sout); (ui.R as ShadowRoot).insertBefore(sin, this.box_);
+      (ui.box_ as HTMLDivElement).appendChild(sout);
+      sin !== sout && (ui.R as ShadowRoot).insertBefore(sin, this.box_);
     } else {
       sout.remove(); sin.remove();
     }

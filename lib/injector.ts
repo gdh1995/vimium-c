@@ -93,11 +93,11 @@ type ListenerEx = EventTarget["addEventListener"] & { vimiumHooked?: boolean; }
 const obj = EventTarget as EventTargetEx, cls = obj.prototype, _listen = cls.addEventListener as ListenerEx;
 if (_listen.vimiumHooked === true) { return; }
 
-const HA = HTMLAnchorElement, HF = HTMLFormElement, E = Element;
+const HA = HTMLAnchorElement, E = Element;
 
 const newListen: ListenerEx = cls.addEventListener =
 function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
-  if (type === "click" && listener && !(this instanceof HA || this instanceof HF) && this instanceof E) {
+  if (type === "click" && !(this instanceof HA) && listener && this instanceof E) {
     (this as Element).vimiumHasOnclick = true;
   }
   const args = arguments, len = args.length;
