@@ -99,7 +99,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       return tabs[0] as ActiveTab;
     },
-    setNewTabIndex = function (this: void, tab: Tab, pos: OpenUrlOptions["position"]): number | undefined {
+    newTabIndex = function (this: void, tab: Readonly<Tab>, pos: OpenUrlOptions["position"]): number | undefined {
       return pos === "before" ? tab.index : pos === "start" ? 0
         : pos !== "end" ? tab.index + 1 : undefined;
     },
@@ -315,7 +315,7 @@ Are you sure you want to continue?`);
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
         };
         if (inCurWnd) {
-          options.index = setNewTabIndex(tab, opts.position);
+          options.index = newTabIndex(tab, opts.position);
           opts.opener && (options.openerTabId = tab.id);
         }
         openMultiTab(options, commandCount);
@@ -348,7 +348,7 @@ Are you sure you want to continue?`);
       if (tab.incognito && onlyNormal) { url = ""; }
       return openMultiTab({
         url, active: tab.active, windowId: tab.windowId,
-        index: setNewTabIndex(tab, cOptions.position)
+        index: newTabIndex(tab, cOptions.position)
       }, commandCount);
     }, function(wnd): void {
       if (cOptions.url || cOptions.urls) {
@@ -369,7 +369,7 @@ Are you sure you want to continue?`);
       }
       return openMultiTab({
         url: this, active: tab.active, windowId: wnd.type === "normal" ? tab.windowId : undefined,
-        index: setNewTabIndex(tab, cOptions.position)
+        index: newTabIndex(tab, cOptions.position)
       }, commandCount);
     }, function(url, tab, repeat, allTabs): void {
       const urlLower = url.toLowerCase().split('#', 1)[0];
@@ -488,7 +488,7 @@ Are you sure you want to continue?`);
       return openMultiTab({
         url, active, windowId: tab ? tab.windowId : undefined,
         openerTabId: options.opener && tab ? tab.id : undefined,
-        index: tab ? setNewTabIndex(tab, options.position) : undefined
+        index: tab ? newTabIndex(tab, options.position) : undefined
       }, commandCount);
     },
     openJSUrl = function (url: string): void {
@@ -508,15 +508,16 @@ Are you sure you want to continue?`);
         });
         return true;
       }
+      const { incognito } = tab;
       url = url.substring(prefix.length);
-      if (reuse === ReuseType.current && !tab.incognito) {
+      if (reuse === ReuseType.current && !incognito) {
         chrome.tabs.update(tab.id, { url: prefix });
       } else
-      chrome.tabs.create({
+      tabsCreate({
         active: reuse !== ReuseType.newBg,
-        index: tab.incognito ? undefined : setNewTabIndex(tab, options.position),
-        windowId: tab.incognito ? undefined : tab.windowId,
-        openerTabId: options.opener ? tab.id : undefined,
+        index: incognito ? undefined : newTabIndex(tab, options.position),
+        windowId: incognito ? undefined : tab.windowId,
+        openerTabId: !incognito && options.opener ? tab.id : undefined,
         url: prefix
       });
       const arr: [string, ((this: void) => string) | null, number] = [url, null, 0];

@@ -496,8 +496,9 @@ declare const enum BrowserVer {
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
   MinOmniboxUIMaxAutocompleteMatchesMayBe12 = 60, // #omnibox-ui-max-autocomplete-matches
-  // the 5 below are correct even if EXPERIMENTAL or LEAGCY
+  // the 6 below are correct even if EXPERIMENTAL or LEAGCY
   MinNoBorderForBrokenImage = 60,
+  MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
   // DevicePixelRatioImplyZoomOfDocEl is confirmed on Chrome LATEST_TESTED
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
