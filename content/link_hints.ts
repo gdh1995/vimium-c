@@ -14,7 +14,7 @@ declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface ModeOpt {
     [mode: number]: string | undefined;
-    activator_ (this: {}, linkEl: LinkEl, rect: VRect | null, hintEl: Pick<HintsNS.HintItem, "refer">): void | false;
+    activator_ (this: {}, linkEl: LinkEl, rect: VRect | null, hintEl: Pick<HintsNS.HintItem, "refer">): void | boolean;
   }
   interface Options extends SafeObject {
     action?: string;
@@ -723,9 +723,8 @@ var VHints = {
       rect = VDom.UI.getVRect_(clickEl, hint.refer !== clickEl ? hint.refer as HTMLElementUsingMap | null : null);
       const showRect = (this.modeOpt_ as HintsNS.ModeOpt).activator_.call(this, clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
-        const force = clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement;
         setTimeout(function(): void {
-          (force || document.hasFocus()) && VDom.UI.flash_(null, rect as VRect);
+          (showRect || document.hasFocus()) && VDom.UI.flash_(null, rect as VRect);
         }, 17);
       }
     } else {
@@ -1194,14 +1193,15 @@ DEFAULT_: {
   64: "Open multiple links in current tab",
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
-  activator_ (link, rect, hint): void | false {
-    const tag = link instanceof HTMLElement ? (link.tagName as string).toLowerCase() : "";
+  activator_ (link, rect, hint): void | boolean {
+    const a = this as typeof VHints, tag = link instanceof HTMLElement ? (link.tagName as string).toLowerCase() : "";
     if (tag === "iframe" || tag === "frame") {
-      const ret = link === Vomnibar.box_ ? (Vomnibar.focus_(), false)
-        : (this as typeof VHints).highlightChild_(link as HTMLIFrameElement | HTMLFrameElement);
-      (this as typeof VHints).mode_ = HintMode.DEFAULT;
-      return ret;
+      const highlight = link !== Vomnibar.box_;
+      highlight ? a.highlightChild_(link as HTMLIFrameElement | HTMLFrameElement) : Vomnibar.focus_();
+      a.mode_ = HintMode.DEFAULT;
+      return highlight;
     }
+    const Dom = VDom, UI = Dom.UI;
     if (tag === "details") {
       let old = (link as HTMLDetailsElement).open;
       // although it does not work on Chrome 65 yet
@@ -1209,13 +1209,13 @@ DEFAULT_: {
       ((link as HTMLDetailsElement).open === old) && ((link as HTMLDetailsElement).open = !old);
       return;
     } else if (hint.refer && hint.refer === link) {
-      return (this as typeof VHints).Modes_.HOVER_.activator_.call(this, link, rect, hint);
-    } else if (VDom.getEditableType_(link) >= EditableType.Editbox) {
-      VDom.UI.simulateSelect_(link, rect, true);
+      return a.Modes_.HOVER_.activator_.call(a, link, rect, hint);
+    } else if (Dom.getEditableType_(link) >= EditableType.Editbox) {
+      UI.simulateSelect_(link, rect, true);
       return false;
     }
-    const mode = (this as typeof VHints).mode_ & HintMode.mask_focus_new, onMac = VSettings.cache.onMac, newTab = mode >= HintMode.newTab;
-    VDom.UI.click_(link, rect, {
+    const mode = a.mode_ & HintMode.mask_focus_new, onMac = VSettings.cache.onMac, newTab = mode >= HintMode.newTab;
+    UI.click_(link, rect, {
       altKey: false,
       ctrlKey: newTab && !onMac,
       metaKey: newTab &&  onMac,
