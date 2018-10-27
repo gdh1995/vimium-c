@@ -609,7 +609,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
   },
 
 Pagination = {
-  followLink_ (linkElement: Element): boolean {
+  followLink_ (linkElement: HTMLElement): boolean {
     let url = linkElement instanceof HTMLLinkElement && linkElement.href;
     if (url) {
       Commands.reload(1, { url });
@@ -622,9 +622,9 @@ Pagination = {
   },
   GetLinks_ (this: HTMLElement[], element: Element): void {
     if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
-    let s: string | null;
-    const isClickable = element instanceof HTMLAnchorElement || (
-      element instanceof HTMLButtonElement ? !element.disabled
+    let s: string | null = (element.tagName + "").toLowerCase();
+    const isClickable = s === "a" || (
+      s === "button" ? !(element as HTMLButtonElement).disabled
       : element.vimiumHasOnclick || element.getAttribute("onclick") || (
         (s = element.getAttribute("role")) ? (s = s.toLowerCase(), s === "link" || s === "button")
         : VHints.ngEnabled_ && element.getAttribute("ng-click")));
@@ -671,11 +671,11 @@ Pagination = {
   },
   findAndFollowRel_ (relName: string): boolean {
     const elements = document.querySelectorAll("[rel]"),
-    relTags = VUtils.safer_({a: 1, area: 1, link: 1});
+    relTags: SafeEnum = VUtils.safer_({a: 1, area: 1, link: 1});
     let s: string | null;
     for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
-      const element = elements[_i], name = element.tagName;
-      if (typeof name === "string" && (name.toLowerCase() in relTags)
+      const element = elements[_i], name = element.tagName as string | Element | Window;
+      if (relTags[(name + "").toLowerCase()]
           && element instanceof HTMLElement
           && (s = (element as HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement).rel)
           && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {

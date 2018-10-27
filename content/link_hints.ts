@@ -275,7 +275,7 @@ var VHints = {
       }
       return;
     }
-    switch (element.tagName.toLowerCase()) {
+    switch ((element.tagName as string).toLowerCase()) {
     case "a": case "details": isClickable = true; break;
     case "frame": case "iframe":
       if (element === Vomnibar.box_) {
@@ -293,7 +293,7 @@ var VHints = {
     case "textarea":
       if ((element as HTMLTextAreaElement | HTMLInputElement).disabled && VHints.mode1_ <= HintMode.LEAVE) { return; }
       if (!(element as HTMLTextAreaElement | HTMLInputElement).readOnly || VHints.mode_ >= HintMode.min_job
-        || element instanceof HTMLInputElement && (element.type in VDom.uneditableInputs_)) {
+        || element instanceof HTMLInputElement && VDom.uneditableInputs_[element.type]) {
         isClickable = true;
       }
       break;
@@ -373,9 +373,9 @@ var VHints = {
   GetEditable_ (this: Hint[], element: Element): void {
     if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
     let arr: VRect | null, type = ClickType.Default, s: string;
-    switch (element.tagName.toLowerCase()) {
+    switch ((element.tagName as string).toLowerCase()) {
     case "input":
-      if ((element as HTMLInputElement).type in VDom.uneditableInputs_) {
+      if (VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
         return;
       } // no break;
     case "textarea":
@@ -1051,7 +1051,7 @@ COPY_TEXT_: {
       str = link.type;
       if (str === "password") {
         return VHUD.tip("Sorry, Vimium C won't copy a password.", 2000);
-      } else if (!(str in VDom.uneditableInputs_)) {
+      } else if (!VDom.uneditableInputs_[str]) {
         str = (link.value || link.placeholder).trim();
       } else if (str === "file") {
         str = link.files && link.files.length > 0 ? link.files[0].name : "";
@@ -1195,15 +1195,14 @@ DEFAULT_: {
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
   activator_ (link, rect, hint): void | false {
-    if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
+    const tag = link instanceof HTMLElement ? (link.tagName as string).toLowerCase() : "";
+    if (tag === "iframe" || tag === "frame") {
       const ret = link === Vomnibar.box_ ? (Vomnibar.focus_(), false)
-        : (this as typeof VHints).highlightChild_(link);
+        : (this as typeof VHints).highlightChild_(link as HTMLIFrameElement | HTMLFrameElement);
       (this as typeof VHints).mode_ = HintMode.DEFAULT;
       return ret;
     }
-    const D = window.HTMLDetailsElement;
-    if (typeof D === "function" && !(D instanceof Element)
-        ? link instanceof D : link.tagName.toLowerCase() === "details") {
+    if (tag === "details") {
       let old = (link as HTMLDetailsElement).open;
       // although it does not work on Chrome 65 yet
       VDom.UI.click_(link, rect, null, true);

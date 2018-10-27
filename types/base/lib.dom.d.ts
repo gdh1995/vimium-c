@@ -2068,7 +2068,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     scrollLeft: number;
     scrollTop: number;
     readonly scrollWidth: number;
-    readonly tagName: string;
+    readonly tagName: string | Element | Window;
     readonly assignedSlot: HTMLSlotElement | null;
     slot: string;
     readonly shadowRoot: ShadowRoot | null;
@@ -5396,7 +5396,7 @@ interface Node extends EventTarget {
     readonly localName: string | null;
     readonly namespaceURI: string | null;
     readonly nextSibling: Node | null;
-    readonly nodeName: string;
+    //readonly nodeName: string;
     readonly nodeType: number;
     nodeValue: string | null;
     readonly ownerDocument: Document;
