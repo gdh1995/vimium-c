@@ -1203,10 +1203,21 @@ DEFAULT_: {
     }
     const Dom = VDom, UI = Dom.UI;
     if (tag === "details") {
-      let old = (link as HTMLDetailsElement).open;
-      // although it does not work on Chrome 65 yet
-      VDom.UI.click_(link, rect, null, true);
-      ((link as HTMLDetailsElement).open === old) && ((link as HTMLDetailsElement).open = !old);
+      // `HTMLDetailsElement::FindMainSummary()` in
+      // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
+      for (let summaries = link.children, i = 0, len = summaries.length; i < len; i++) {
+        const summary = summaries[i];
+        // there's no window.HTMLSummaryElement on C70
+        if ((summary.tagName + "").toLowerCase() === "summary" && summary instanceof HTMLElement) {
+          // `HTMLSummaryElement::DefaultEventHandler(event)` in
+          // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
+          rect = (link as HTMLDetailsElement).open || !rect ? Dom.getVisibleClientRect_(summary) : rect;
+          UI.click_(summary, rect, null, true);
+          rect && UI.flash_(null, rect);
+          return false;
+        }
+      }
+      (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
       return;
     } else if (hint.refer && hint.refer === link) {
       return a.Modes_.HOVER_.activator_.call(a, link, rect, hint);
