@@ -444,10 +444,12 @@ declare const enum BrowserVer {
   // the devicePixelRatio means that of Windows, but not Chrome's zoom level
   // even when [Windows]=1.5, [zoom]=0.667, the width is still wrong
   ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1 = 53,
-  // the 4 below are correct even if EXPERIMENTAL or LEAGCY
+  // the 5 below are correct even if EXPERIMENTAL or LEAGCY
   MinUnprefixedUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
   MinNo$KeyboardEvent$$keyIdentifier = 54,
+  // https://chromium.googlesource.com/chromium/src/+/9520623861da283533e71d6b7a8babd02675cb0b
+  Min$Node$$getRootNode = 54,
   MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM = 55,
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
   MinSomeDocumentListenersArePassiveByDefault = 56,

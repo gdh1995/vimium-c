@@ -283,7 +283,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       exclusionTemplate: "/front/exclusions.html",
       helpDialog: "/front/help_dialog.html"
     },
-    InjectEnd: "content/inject_end.js",
+    InjectEnd: "content/injected_end.js",
     OptionsPage: "pages/options.html", Platform: "", PolyFill: "lib/polyfill.js",
     RedirectedUrls: {
       about: "https://github.com/gdh1995/vimium-c",
