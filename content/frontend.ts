@@ -293,7 +293,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
 
     toggle (_0: number, options: CmdOptions["toggle"]): void {
       const key = options.key, backupKey = "_" + key as string as typeof key,
-      cache = VSettings.cache, cur = cache[key];
+      cache = VUtils.safer_(VSettings.cache), cur = cache[key];
       let val = options.value, u: undefined;
       if (typeof cur === "boolean") {
         val === null && (val = !cur);
@@ -892,8 +892,10 @@ Pagination = {
       const cache = VSettings.cache;
       for (const i in delta) {
         cache[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
+        const i2 = "_" + i as Keys;
+        (i2 in cache) && (VUtils.safer_(cache)[i2] = undefined as never);
       }
-      VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
+      "deepHints" in delta && VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
       (VHints.queryInDeep_ = cache.deepHints ? DeepQueryType.InDeep : DeepQueryType.NotDeep);
     },
     focusFrame: FrameMask.Focus_,

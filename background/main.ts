@@ -1874,6 +1874,10 @@ Are you sure you want to continue?`);
           sender.flags = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
             ) + ((type & PortType.hasCSS) && Frames.Flags.hasCSS);
         }
+        port.postMessage({
+          name: "settingsUpdate",
+          delta: Settings.bufferToLoad
+        });
       } else {
         let pass: null | string, flags: Frames.Flags = Frames.Flags.blank;
         if (ref && ((flags = sender.flags = ref[0].sender.flags & Frames.Flags.InheritedFlags) & Frames.Flags.locked)) {
