@@ -24,19 +24,19 @@ VDom.UI = {
         VUtils.Stop_(e); t.onload && t.onload(e);
       }
     }, true);
-    a.addElement_ = function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
+    a.addElement_ = (function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
       adjust === AdjustType.NotAdjust || this.adjust_();
       return this.R.insertBefore(element, before === true ? this.R.firstChild : before || null);
-    };
+    });
     a.css_ = (function (innerCSS): void {
       const a = VDom.UI;
       if (a.box_ === a.R) {
         a.box_.id = "VimiumUI";
       }
-      let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_(innerCSS);
+      let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_(innerCSS), border = a._styleBorder;
       a.R.appendChild(el);
       a.css_ = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = css; };
-      a._styleBorder && a.R.appendChild(a._styleBorder.el);
+      border && border.zoom_ < 0 && a.ensureBorder_(-border.zoom_);
       if (adjust !== AdjustType.AdjustButNotShow) {
         let f = function (this: HTMLElement | void, e: Event | 1): void {
           e !== 1 && ((this as HTMLElement).onload = null as never);
@@ -91,15 +91,17 @@ VDom.UI = {
     (this.box_ as HTMLElement).remove();
     removeEventListener("webkitfullscreenchange", this.adjust_, true);
   },
-  _styleBorder: null as { el: HTMLStyleElement, zoom: number } | null,
+  _styleBorder: null as DomUI["_styleBorder"],
   ensureBorder_ (zoom?: number): void {
     let st = this._styleBorder;
     zoom || (zoom = VDom.getZoom_());
-    if (st ? st.zoom === zoom : zoom >= 1) { return; }
-    const p = this.box_ === this.R ? "#VimiumUI " : "", first = !st;
-    st || (st = this._styleBorder = { el: this.createStyle_(""), zoom: 0 });
-    st.zoom = zoom; st.el.textContent = `${p}.HUD, ${p}.IH, ${p}.LH { border-width: ${("" + 0.51 / zoom).substring(0, 5)}px; }`;
-    first && this.box_ && this.addElement_(st.el, AdjustType.NotAdjust);
+    if (st ? st.zoom_ === zoom : zoom >= 1) { return; }
+    st || (st = this._styleBorder = { el_: this.createStyle_(""), zoom_: 0 });
+    if (!this.box_) { st.zoom_ = -zoom; return; }
+    const p = this.box_ === this.R ? "#VimiumUI " : "", el = st.el_;
+    st.zoom_ = zoom;
+    el.textContent = `${p}.HUD, ${p}.IH, ${p}.LH { border-width: ${("" + 0.51 / zoom).substring(0, 5)}px; }`;
+    el.parentNode || this.addElement_(el, AdjustType.NotAdjust);
   },
   createStyle_ (text, doc): HTMLStyleElement {
     const css = doc ? doc.createElement("style") : VDom.createElement_("style");

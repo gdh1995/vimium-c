@@ -237,7 +237,7 @@ interface DomUI {
   addElementList_(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset): HTMLDivElement;
   adjust_ (this: void, event?: Event): void;
   toggle_ (this: DomUI, enabled: boolean): void;
-  _styleBorder: { el: HTMLStyleElement, zoom: number } | null;
+  _styleBorder: { el_: HTMLStyleElement, zoom_: number } | null;
   ensureBorder_ (this: DomUI, zoom?: number): void;
   createStyle_ (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   css_ (this: DomUI, innerCSS: string): void;
