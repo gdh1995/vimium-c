@@ -275,6 +275,8 @@ var VHints = {
       }
       return;
     }
+    // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
+    // elements of the types below should refuse `attachShadow`
     switch ((element.tagName as string).toLowerCase()) {
     case "a": case "details": isClickable = true; break;
     case "frame": case "iframe":
@@ -325,6 +327,7 @@ var VHints = {
         isClickable = true;
       }
       break;
+    // elements of the types above should refuse `attachShadow`
     case "div": case "ul": case "pre": case "ol": case "code":
       type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? ClickType.scrollY
         : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default;
@@ -439,15 +442,15 @@ var VHints = {
   traverse_: function (key: string
       , filter: HintsNS.Filter<Hint | Element>, notWantVUI?: boolean
       , root?: Document | Element): Hint[] | Element[] {
-    const a = VHints;
-    if (a.ngEnabled_ === null && key === "*") {
+    const a = VHints, matchAll = key === "*";
+    if (a.ngEnabled_ === null && matchAll) {
       a.ngEnabled_ = document.querySelector('.ng-scope') != null;
     }
     const output: Hint[] | Element[] = [],
     query = a.queryInDeep_ === DeepQueryType.InDeep ? a.getDeepDescendantCombinator_() + key : key,
     isTag = query === "*" || (<RegExpOne>/^[a-z]+$/).test(query),
     Sc = VScroller,
-    wantClickable = (filter as Function) === a.GetClickable_ && key === "*",
+    wantClickable = matchAll && (filter as Function) === a.GetClickable_,
     box = root || document.webkitFullscreenElement || document;
     wantClickable && Sc.getScale_();
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
@@ -458,7 +461,7 @@ var VHints = {
     if (root) { /* this requires not detecting scrollable elements if root */ return output; }
     list = null;
     const uiRoot = VDom.UI.R;
-    if (uiRoot && !notWantVUI && (uiRoot.mode === "closed" || key !== "*")) {
+    if (uiRoot && !notWantVUI && (uiRoot.mode === "closed" || !matchAll)) {
       const d = VDom, z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
       if (bz !== 1 && box === document) {
         d.dbZoom_ = z / bz;
