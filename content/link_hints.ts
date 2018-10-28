@@ -334,7 +334,7 @@ var VHints = {
       // no break;
     default:
       if (element.shadowRoot) {
-        VHints.queryInDeep_ !== DeepQueryType.InDeep && ([].forEach as any as HintsNS.ElementIterator<Hint>).call(
+        ([].forEach as any as HintsNS.ElementIterator<Hint>).call(
           element.shadowRoot.querySelectorAll("*"), VHints.GetClickable_, this);
         return;
       }
@@ -387,7 +387,7 @@ var VHints = {
       break;
     default:
       if ((s = element.contentEditable) === "inherit" || !s || s === "false") {
-        if (element.shadowRoot && VHints.queryInDeep_ !== DeepQueryType.InDeep) {
+        if (element.shadowRoot) {
           ([].forEach as any as HintsNS.ElementIterator<Hint>).call(
             element.shadowRoot.querySelectorAll("*"), VHints.GetEditable_, this);
         }
@@ -447,13 +447,13 @@ var VHints = {
       a.ngEnabled_ = document.querySelector('.ng-scope') != null;
     }
     const output: Hint[] | Element[] = [],
-    query = a.queryInDeep_ === DeepQueryType.InDeep ? a.getDeepDescendantCombinator_() + key : key,
-    isTag = query === "*" || (<RegExpOne>/^[a-z]+$/).test(query),
+    query = matchAll || a.queryInDeep_ !== DeepQueryType.InDeep ? key : a.getDeepDescendantCombinator_() + key,
     Sc = VScroller,
     wantClickable = matchAll && (filter as Function) === a.GetClickable_,
     box = root || document.webkitFullscreenElement || document;
     wantClickable && Sc.getScale_();
-    let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
+    let list: HintsNS.ElementList | null = matchAll || (<RegExpOne>/^[a-z]+$/).test(query) ?
+          box.getElementsByTagName(query) : box.querySelectorAll(query);
     if (!root && a.tooHigh_ && box === document && list.length >= 15000) {
       list = a.getElementsInViewPort_(list);
     }
