@@ -296,7 +296,7 @@ Are you sure you want to continue?`
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
-  const node = VDom.UI.R && VDom.UI.R.querySelector("#HClose") as HTMLElement;
+  const node = window.VDom && VDom.UI.R && VDom.UI.R.querySelector("#HClose") as HTMLElement;
   if (node) { // reload help dialog
     node.click();
     $("#showCommands").click();
