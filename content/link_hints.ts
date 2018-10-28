@@ -58,7 +58,6 @@ var VHints = {
   mode1_: 0 as HintMode,
   modeOpt_: null as HintsNS.ModeOpt | null,
   queryInDeep_: DeepQueryType.NotDeep,
-  anyClicking_: false,
   forHover_: false,
   count_: 0,
   lastMode_: 0 as HintMode,
@@ -107,14 +106,8 @@ var VHints = {
       }
     }
     if (elements.length === 0) {
-      if (!a.anyClicking_ && !a.tooHigh_ && a.queryInDeep_ === DeepQueryType.NotDeep) {
-        a.queryInDeep_ = DeepQueryType.InDeep;
-        elements = a.getVisibleElements_(arr);
-      }
-      if (elements.length === 0) {
-        a.clean_(true);
-        return VHUD.tip("No links to select.", 1000);
-      }
+      a.clean_(true);
+      return VHUD.tip("No links to select.", 1000);
     }
 
     if (a.box_) { a.box_.remove(); a.box_ = null; }
@@ -353,7 +346,6 @@ var VHints = {
         : ClickType.Default;
     }
     if (!isClickable && type === ClickType.Default) { return; }
-    VHints.anyClicking_ = true;
     if (element === document.documentElement || element === document.body) { return; }
     if ((arr = VDom.getVisibleClientRect_(element))
         && (type < ClickType.scrollX || VScroller.shouldScroll_(element, type - ClickType.scrollX as 0 | 1))
@@ -459,6 +451,13 @@ var VHints = {
     }
     (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(list, filter, output);
     if (root) { /* this requires not detecting scrollable elements if root */ return output; }
+    if (output.length === 0 && !matchAll && a.queryInDeep_ === DeepQueryType.NotDeep && !a.tooHigh_) {
+      a.queryInDeep_ = DeepQueryType.InDeep;
+      if (a.getDeepDescendantCombinator_()) {
+        (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(
+          box.querySelectorAll(a.getDeepDescendantCombinator_() + key), filter, output);
+      }
+    }
     list = null;
     const uiRoot = VDom.UI.R;
     if (uiRoot && !notWantVUI && (uiRoot.mode === "closed" || !matchAll)) {
@@ -786,7 +785,7 @@ var VHints = {
     this.lastMode_ = this.mode_ = this.mode1_ = this.count_ = this.pTimer_ =
     this.maxLeft_ = this.maxTop_ = this.maxRight_ = ks.tab = ks.newHintLength = alpha.countMax_ = 0;
     alpha.hintKeystroke_ = alpha.chars_ = "";
-    this.isActive_ = this.noHUD_ = this.tooHigh_ = ks.known = this.anyClicking_ = false;
+    this.isActive_ = this.noHUD_ = this.tooHigh_ = ks.known = false;
     VUtils.remove_(this);
     VEventMode.onWndBlur_(null);
     if (this.box_) {
