@@ -11,13 +11,12 @@ VDom.UI = {
   flashLastingTime_: 400,
   addElement_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): T {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
-    shadowVer = typeof box.attachShadow === "function" ? 2 : typeof box.createShadowRoot === "function" ? 1 : 0;
+    r: VUIRoot = a.R = box.attachShadow ? box.attachShadow({mode: "closed"})
+      : box.createShadowRoot ? box.createShadowRoot() : box;
     box.style.display = "none";
-    a.R = shadowVer === 2 ? (box as AttachShadow).attachShadow({mode: "closed"})
-      : shadowVer === 1 ? (box as DomUI["box_"] & {createShadowRoot(): ShadowRoot}).createShadowRoot() : box;
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
-    a.R.mode === "closed" || (a.R !== box ? a.R as ShadowRoot : window).addEventListener("load",
+    r.mode === "closed" || (r !== box ? r as ShadowRoot : window).addEventListener("load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { return removeEventListener("load", Onload, true); }
       const t = e.target as HTMLElement;
@@ -52,7 +51,7 @@ VDom.UI = {
         a.adjust_();
       }
     });
-    a.R.appendChild(element);
+    r.appendChild(element);
     let b: string | null;
     if (b = a.styleIn_ as string | null) {
       a.css_(b);

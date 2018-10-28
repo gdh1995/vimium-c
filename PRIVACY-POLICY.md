@@ -40,7 +40,7 @@ Other Explanations
 
 Vimium C overrides the "newtab" chrome url in order to provide better user experience on the `chrome://newtab` page.
 
-Vimium C also registers a search key `v` for Chrome omni box, which makes the box work just like Vomnibar on omni mode.
+Vimium C also registers a search key `v` for Chrome omni box,which makes the box work just like Vomnibar in omni mode.
 
 Such permissions can be removed safely and won't break Vimium C, while some commands might then fail:
 * `webNavigation`, `contentSettings`, `notifications`, `sessions` and `storage`
