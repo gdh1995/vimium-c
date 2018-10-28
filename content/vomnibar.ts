@@ -71,7 +71,7 @@ var Vomnibar = {
     let url = options.url, upper = 0;
     if (url === true) {
       if (url = VDom.UI.getSelectionText_()) {
-        options.force = true;
+        options.newtab = true;
       } else {
         url = options.topUrl as string;
       }

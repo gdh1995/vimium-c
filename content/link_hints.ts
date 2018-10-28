@@ -21,6 +21,8 @@ declare namespace HintsNS {
     mode?: string | number;
     url?: boolean;
     keyword?: string;
+    newtab?: boolean;
+    /** @deprecated */
     force?: boolean;
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
@@ -1043,9 +1045,10 @@ COPY_TEXT_: {
   256: "Edit link URL on Vomnibar",
   257: "Edit link text on Vomnibar",
   activator_ (link): void {
-    let isUrl = (this as typeof VHints).mode1_ >= HintMode.min_link_job && (this as typeof VHints).mode1_ <= HintMode.max_link_job, str: string | null;
+    const a = this as typeof VHints;
+    let isUrl = a.mode1_ >= HintMode.min_link_job && a.mode1_ <= HintMode.max_link_job, str: string | null;
     if (isUrl) {
-      str = (this as typeof VHints).getUrlData_(link as HTMLAnchorElement);
+      str = a.getUrlData_(link as HTMLAnchorElement);
       str && str.startsWith("mailto:") && str.length > 7 && (str = str.substring(7).trimLeft());
     }
     else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) {}
@@ -1074,18 +1077,19 @@ COPY_TEXT_: {
     if (!str) {
       return VHUD.copied("", isUrl ? "url" : "");
     }
-    if ((this as typeof VHints).mode_ >= HintMode.min_edit && (this as typeof VHints).mode_ <= HintMode.max_edit) {
-      const force = (this as typeof VHints).options_.force;
+    if (a.mode_ >= HintMode.min_edit && a.mode_ <= HintMode.max_edit) {
+      let newtab = a.options_.newtab;
+      newtab == null && (newtab = a.options_.force);
       (VPort as ComplicatedVPort).post<"vomnibar", { count: number } & Partial<VomnibarNS.ContentOptions>>({
         handler: "vomnibar",
         count: 1,
-        force: force != null ? !!force : !isUrl,
+        newtab: newtab != null ? !!newtab : !isUrl,
         url: str,
-        keyword: ((this as typeof VHints).options_.keyword || "") + ""
+        keyword: (a.options_.keyword || "") + ""
       });
       return;
-    } else if ((this as typeof VHints).mode1_ === HintMode.SEARCH_TEXT) {
-      (this as typeof VHints).openUrl_(str);
+    } else if (a.mode1_ === HintMode.SEARCH_TEXT) {
+      a.openUrl_(str);
       return;
     }
     // NOTE: url should not be modified

@@ -46,7 +46,7 @@ var O = {
   activate (options: Options): void {
     Object.setPrototypeOf(options, null);
     this.mode_.type = this.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
-    this.forceNewTab_ = !!options.force;
+    this.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     this.baseHttps_ = null;
     let { url, keyword, search } = options, start: number | undefined;
     let scale = window.devicePixelRatio;

@@ -358,9 +358,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         return VHUD.tip("No links to go " + rel);
       }
     },
-    reload (_0: number, {force, hard, url}: CmdOptions["reload"]): void {
+    reload (_0: number, options: CmdOptions["reload"]): void {
       setTimeout(function() {
-        url ? (location.href = url) : location.reload(hard || force);
+        options.url ? (location.href = options.url) : location.reload(!!(options.hard || options.force));
       }, 17);
     },
     switchFocus (_0: number, options: CmdOptions["switchFocus"]): void {

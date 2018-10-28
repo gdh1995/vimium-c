@@ -167,8 +167,8 @@ interface CmdOptions {
     words?: string;
   };
   showHelp: {};
-  reload: { url: string, force?: undefined, hard?: undefined
-    } | { force?: boolean, hard?: boolean, url?: undefined };
+  reload: { url: string, /** @deprecated */ force?: undefined, hard?: undefined
+    } | { /** @deprecated */ force?: boolean, hard?: boolean, url?: undefined };
   findMode: {
     count?: number;
     leave?: boolean,

@@ -121,6 +121,8 @@ declare namespace VomnibarNS {
   }
   interface GlobalOptions {
     mode: string;
+    newtab: boolean;
+    /** @deprecated */
     force: boolean;
     keyword: string;
   }
