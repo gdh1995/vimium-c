@@ -213,9 +213,10 @@ animate_ (e: Element | null, d: ScrollByY, a: number): void | number {
     if (!rect) { return; }
     this.current_ = el;
     const { innerWidth: iw, innerHeight: ih} = window,
-    { min, max } = Math, ihm = min(96, ih / 2), { bottom: b, top: t, right: r, left: l } = rect,
+    { min, max } = Math, ihm = min(96, ih / 2), iwm = min(64, iw / 2),
+    { bottom: b, top: t, right: r, left: l } = rect,
     hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,
-    hasX = r < 0 ? max(l - 64, r - iw + 99) : iw < l ? min(r - iw + 64, l - 99) : 0;
+    hasX = r < 0 ? max(l - iwm, r - iw + iwm) : iw < l ? min(r - iw + iwm, l - iwm) : 0;
     if (hasX) {
       (hasY ? this.performScroll_ : this.scroll_).call(this, this.findScrollable_(0, hasX), 0, hasX);
     }
