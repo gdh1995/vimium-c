@@ -460,7 +460,8 @@ var VHints = {
     }
     list = null;
     const uiRoot = VDom.UI.R;
-    if (uiRoot && !notWantVUI && (uiRoot.mode === "closed" || !matchAll)) {
+    if (uiRoot && uiRoot !== VDom.UI.box_ && !notWantVUI
+        && (uiRoot.mode === "closed" || !matchAll && a.queryInDeep_ !== DeepQueryType.InDeep)) {
       const d = VDom, z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
       if (bz !== 1 && box === document) {
         d.dbZoom_ = z / bz;
