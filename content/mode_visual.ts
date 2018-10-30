@@ -41,7 +41,9 @@ var VVisualMode = {
         if (!VDom.cropRectToVisible_(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
           sel.removeAllRanges();
         } else if (type === "Caret") {
-          a.movement_.extendByOneCharacter_(1) || a.movement_.extend_(0);
+          const length = sel.toString().length;
+          a.movement_.extend_(1);
+          sel.toString().length - length || a.movement_.extend_(0);
         }
         type = sel.type;
       }
@@ -315,18 +317,22 @@ movement_: {
     this.collapse_(this.diNew_);
     this.selection_.extend(original[(str + "Container") as "endContainer"], original[(str + "Offset") as "endOffset"]);
   },
-  extendByOneCharacter_ (direction: VisualModeNS.ForwardDir): number {
-    const length = this.selection_.toString().length;
-    this.extend_(direction);
-    return this.selection_.toString().length - length;
-  },
   getDirection_ (cache?: boolean): VisualModeNS.ForwardDir {
-    let di: VisualModeNS.ForwardDir = 1, change: number;
-    if (cache && this.diOld_ === this.diNew_) { return this.diOld_; }
-    if (change = this.extendByOneCharacter_(di) || this.extendByOneCharacter_(di = 0)) {
-      this.extend_((1 - di) as VisualModeNS.ForwardDir);
-    }
-    return this.diOld_ = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
+    let a = this;
+    if (cache && a.diOld_ === a.diNew_) { return a.diOld_; }
+    let initial = a.selection_.toString().length;
+    a.extend_(1);
+    let change = a.selection_.toString().length - initial, di: VisualModeNS.ForwardDir = change ? 1 : 0;
+    a.extend_(0);
+    /**
+     * Note (tested on C70):
+     * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
+     * so a detection and the third `extend` may be necessary
+     */
+    let change2 = change >= 0 ? a.selection_.toString().length - initial : 0;
+    change2 < 0 && a.extend_(1);
+    change = change || change2;
+    return a.diOld_ = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
   },
   collapseSelectionTo_ (direction: VisualModeNS.ForwardDir) {
     this.selection_.toString().length > 0 && this.collapse_(this.getDirection_() - direction);
