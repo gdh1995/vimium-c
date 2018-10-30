@@ -377,11 +377,14 @@ var VDom = {
       !((cn = node.childNodes) instanceof Element) && (node = cn[i]);
     return node && VDom.SafeEl_(node instanceof Element ? node : node.parentElement);
   },
-  findSelectionParent_ (maxNested: number): Element | null {
-    const contains = document.contains;
-    let focus = this.getSelectionFocusElement_(), anc = getSelection().anchorNode as Node, i = 0;
-    for (; focus && i < maxNested && !contains.call(focus, anc); i++) { focus = VDom.GetParent_(focus); }
-    return i < maxNested ? VDom.SafeEl_(focus) : null;
+  getSelectionParent_ (): HTMLElement | null {
+    let range = getSelection().getRangeAt(0), par: Node | null = range.commonAncestorContainer;
+    // no named getters on SVG* elements
+    while (par && !(par instanceof HTMLElement)) { par = par.parentNode as Element; }
+    if (par && !range.startOffset && (range + "").length === par.innerText.length) {
+      par = par.parentElement as HTMLElement;
+    }
+    return par !== document.documentElement ? par as HTMLElement : null;
   },
   getElementWithFocus_ (sel: Selection, di: BOOL): Element | null {
     let r = sel.getRangeAt(0);

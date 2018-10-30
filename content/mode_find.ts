@@ -441,7 +441,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     do {
       q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches_(back) : this.parsedQuery_;
       found = this.find_(q, !notSens, back, true, this.wholeWord_, false, false);
-      if (found && pR && (par = VDom.findSelectionParent_(3))) {
+      if (found && pR && (par = VDom.getSelectionParent_())) {
         pR.lastIndex = 0;
         const text = (par as HTMLElement).innerText;
         if (typeof text === "string" && !(pR as RegExpG & RegExpSearchable<0>).exec(text)
