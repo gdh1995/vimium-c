@@ -366,7 +366,7 @@ movement_: {
   },
   scrollIntoView_ (): void {
     if (!this.selection_.rangeCount) { return; }
-    const focused = VDom.getElementWithFocus_(this.selection_, this.getDirection_());
+    const focused = VDom.getSelectionEdgeElement_(this.selection_, this.getDirection_());
     if (focused) { return VScroller._scrollIntoView(focused); }
   },
 },

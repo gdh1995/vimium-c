@@ -365,17 +365,10 @@ var VDom = {
   },
   docSelectable_: true,
   isSelected_ (): boolean {
-    const element = document.activeElement as Element;
-    const sel = getSelection(), node = sel.anchorNode;
+    const element = document.activeElement as Element, sel = getSelection(), node = sel.anchorNode;
     // only <form>, <select>, Window has index getter, so `=== node.childNodes[i]` is safe
     return (element as HTMLElement).isContentEditable === true ? !!node && document.contains.call(element, node)
       : sel.type === "Range" && sel.isCollapsed && element === (node as Node).childNodes[sel.anchorOffset];
-  },
-  getSelectionFocusElement_ (): Element | null {
-    let sel = getSelection(), node = sel.focusNode, i = sel.focusOffset, cn: Node["childNodes"];
-    node && node === sel.anchorNode && i === sel.anchorOffset &&
-      !((cn = node.childNodes) instanceof Element) && (node = cn[i]);
-    return node && VDom.SafeEl_(node instanceof Element ? node : node.parentElement);
   },
   getSelectionParent_ (): HTMLElement | null {
     let range = getSelection().getRangeAt(0), par: Node | null = range.commonAncestorContainer;
@@ -386,7 +379,7 @@ var VDom = {
     }
     return par !== document.documentElement ? par as HTMLElement : null;
   },
-  getElementWithFocus_ (sel: Selection, di: BOOL): Element | null {
+  getSelectionEdgeElement_ (sel: Selection, di: BOOL): Element | null {
     const r = sel.getRangeAt(0), type = di ? "end" as "end" : "start" as "start", E = Element;
     let el: Node | null = r[(type + "Container") as "startContainer" | "endContainer"]
       , o: Node | null, cn: Node["childNodes"];
