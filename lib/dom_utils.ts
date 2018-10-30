@@ -321,7 +321,7 @@ var VDom = {
     // if an element is in another frame, it's ignored that element may have named property getters
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;
-    root || doc.nodeType !== 9 /* Node.DOCUMENT_NODE */ && (doc = document);
+    root || doc.nodeType !== Node.DOCUMENT_NODE && (doc = document);
     if (!root && (f = NP.getRootNode)) {
       return f.call(element, {composed: true}) === doc;
     }
@@ -391,13 +391,13 @@ var VDom = {
       el = !((cn = el.childNodes) instanceof E) && cn[r.startOffset] || null;
     }
     for (o = el; o && !(o instanceof E); o = o.previousSibling) {}
-    return this.SafeEl_((o as Element | null) || (/* el is not Element */ el && el.parentElement));
+    return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement));
   },
   mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
       , rect?: VRect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {
     modifiers || (modifiers = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false });
     let doc = element.ownerDocument;
-    doc.nodeType !== 9 /* Node.DOCUMENT_NODE */ && (doc = document);
+    doc.nodeType !== Node.DOCUMENT_NODE && (doc = document);
     const mouseEvent = doc.createEvent("MouseEvents");
     // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
     //  viewArg: Window, detailArg: number,

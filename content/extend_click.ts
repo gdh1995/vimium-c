@@ -86,10 +86,10 @@ hooks = {
 let handler = function(this: void): void {
   rel("DOMContentLoaded", handler, true);
   ct(timer);
-  const d = document, docEl = docChildren[0] as HTMLElement | SVGElement | null;
+  const docEl = docChildren[0] as HTMLElement | SVGElement | null;
   handler = docChildren = null as never;
   if (!docEl) { return destroy(); }
-  const el = call(Create, d, "div") as HTMLDivElement, key = "data-vimium";
+  const el = call(Create, document, "div") as HTMLDivElement, key = "data-vimium";
   call(Attr, el, key, "");
   listen(el, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
   call(Append, docEl, el), dispatch(el, new CE("VimiumHook", {detail: sec})), call(Remove, el);

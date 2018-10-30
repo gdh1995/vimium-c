@@ -335,9 +335,9 @@ movement_: {
     return a.diOld_ = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
   },
   collapseSelectionTo_ (direction: VisualModeNS.ForwardDir) {
-    this.selection_.toString().length > 0 && this.collapse_(this.getDirection_() - direction);
+    this.selection_.toString().length > 0 && this.collapse_(this.getDirection_() - direction as BOOL);
   },
-  collapse_ (toStart: number): void | 1 {
+  collapse_ (toStart: BOOL): void | 1 {
     return toStart ? this.selection_.collapseToStart() : this.selection_.collapseToEnd();
   },
   selectLexicalEntity_ (entity: VisualModeNS.G, count: number): void {
