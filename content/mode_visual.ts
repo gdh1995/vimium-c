@@ -291,10 +291,8 @@ movement_: {
     ch && !this.noExtend_ && this.extend_(0);
   },
   hashSelection_ (): string {
-    const range = this.selection_.getRangeAt(0);
-    return this.selection_.toString().length + "/" +
-      range.anchorOffset + "/" + range.focusOffset + "/" +
-      this.selection_.extentOffset + "/" +this.selection_.baseOffset;
+    const sel = this.selection_;
+    return sel.toString().length + "/" + sel.anchorOffset + "/" + sel.focusOffset;
   },
   moveByChar_ (isMove: boolean): boolean {
     const before = isMove || this.hashSelection_();

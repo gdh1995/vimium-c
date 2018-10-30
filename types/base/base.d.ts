@@ -43,18 +43,10 @@ interface Window {
   readonly Object: ObjectConstructor;
 }
 
-type SelectionType = "Range" | "Caret" | "None";
 interface Selection {
   modify(alert: "extend" | "move", direction: "forward" | "backward",
          granularity: "character" | "word" | "sentence" | "line" | "paragraph" | "lineboundary" | "documentboundary" |
            "sentenceboundary" | "paragraphboundary"): void | 1;
-  extentOffset: number;
-  baseOffset: number;
-}
-
-interface Range {
-  anchorOffset: number;
-  focusOffset: number;
 }
 
 interface EnsuredMountedElement extends Element {
