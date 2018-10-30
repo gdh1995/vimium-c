@@ -368,7 +368,7 @@ var VDom = {
     const element = document.activeElement as Element;
     const sel = getSelection(), node = sel.anchorNode;
     // only <form>, <select>, Window has index getter, so `=== node.childNodes[i]` is safe
-    return (element as HTMLElement).isContentEditable === true ? node ? document.contains.call(node, element) : false
+    return (element as HTMLElement).isContentEditable === true ? !!node && document.contains.call(element, node)
       : sel.type === "Range" && sel.isCollapsed && element === (node as Node).childNodes[sel.anchorOffset];
   },
   getSelectionFocusElement_ (): Element | null {
