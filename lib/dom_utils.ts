@@ -387,11 +387,11 @@ var VDom = {
     return par !== document.documentElement ? par as HTMLElement : null;
   },
   getElementWithFocus_ (sel: Selection, di: BOOL): Element | null {
-    let r = sel.getRangeAt(0);
-    sel.type === "Range" && (r = r.cloneRange()).collapse(!di);
-    let el: Node | null = r.startContainer, o: Node | null, cn: Node["childNodes"], E = Element;
+    const r = sel.getRangeAt(0), type = di ? "end" as "end" : "start" as "start", E = Element;
+    let el: Node | null = r[(type + "Container") as "startContainer" | "endContainer"]
+      , o: Node | null, cn: Node["childNodes"];
     if (el instanceof E) {
-      el = !((cn = el.childNodes) instanceof E) && cn[r.startOffset] || null;
+      el = !((cn = el.childNodes) instanceof E) && cn[r[(type + "Offset") as "startOffset" | "endOffset"]] || null;
     }
     for (o = el; o && !(o instanceof E); o = o.previousSibling) {}
     return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement));

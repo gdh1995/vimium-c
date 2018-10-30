@@ -483,7 +483,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     } else {
       range = sel.getRangeAt(0);
     }
-    range.setEnd(range.startContainer, range.startOffset);
+    range.collapse(true);
     this.initialRange_ = range;
   }
 };

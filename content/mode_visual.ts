@@ -310,7 +310,7 @@ movement_: {
       return;
     }
     const original = this.selection_.getRangeAt(0),
-    str = direction ? "start" : "end";
+    str = direction ? "start" as "start" : "end" as "end";
     this.diNew_ = this.diOld_ = (1 - direction) as VisualModeNS.ForwardDir;
     this.collapse_(this.diNew_);
     this.selection_.extend(original[(str + "Container") as "endContainer"], original[(str + "Offset") as "endOffset"]);
