@@ -77,7 +77,10 @@ var VDom = {
   },
   scrollingEl_ (): Element | null {
     const d = document;
-    return d.scrollingElement || (d.compatMode === "BackCompat" ? this.SafeEl_(d.body) : d.documentElement);
+    // according to https://github.com/w3ctag/design-reviews/issues/51#issuecomment-96759374 ,
+    // on test page: http://www.w3school.com.cn/tiy/loadtext.asp?f=html_frame_cols
+    // `scrollingElement` can still be <frameset>
+    return this.SafeEl_(d.scrollingElement || <Element | null>(d.compatMode === "BackCompat" ? d.body : d.documentElement));
   },
   /**
    * other parts of code require that prepareCrop only depends on @dbZoom
@@ -338,7 +341,7 @@ var VDom = {
   },
   /** @safe_even_if_any_overridden_property */
   SafeEl_: function (this: void, el: Node | null): Node | null {
-    return VDom.notSafe_(el) ? VDom.GetParent_(el) : el
+    return VDom.notSafe_(el) ? VDom.GetParent_(el) : el;
   } as {
     (this: void, el: Element | null): Element | null;
     (this: void, el: Node | null): Node | null;
