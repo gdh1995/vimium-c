@@ -77,9 +77,6 @@ var VDom = {
   },
   scrollingEl_ (): Element | null {
     const d = document;
-    // according to https://github.com/w3ctag/design-reviews/issues/51#issuecomment-96759374 ,
-    // on test page: http://www.w3school.com.cn/tiy/loadtext.asp?f=html_frame_cols
-    // `scrollingElement` can still be <frameset>
     return this.SafeEl_(d.scrollingElement || <Element | null>(d.compatMode === "BackCompat" ? d.body : d.documentElement));
   },
   /**

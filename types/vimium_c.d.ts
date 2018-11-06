@@ -354,6 +354,7 @@ declare const enum BrowserVer {
   MinCreateWndWithState = 44,
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   // #scroll-top-left-interop is also since C44
+  // `scrollingElement` is added in (commit 8df26a52e71e5b239c3749ec6f4180441ee4fc7e)
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
   // even if EXPERIMENTAL or EMPTY
@@ -511,6 +512,11 @@ declare const enum BrowserVer {
   // TODO: confirm th below
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
+    // according to https://github.com/w3ctag/design-reviews/issues/51#issuecomment-96759374 ,
+    // `scrollingElement` can be <frameset> on C44
+    // which has been fixed commit 0cf160e2ff055fb12c562cabc2da9e62db14cc8d (if #scroll-top-left-interop is enabled),
+    // and it's always fixed since C61
+  MinEnsured$ScrollingElement$CannotBeFrameset = 61,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
   // the 6 below are correct even if EXPERIMENTAL or LEAGCY
   // since C63, Vimium's inner styles have been really safe; `/deep/` works on C35 even if LEAGCY
