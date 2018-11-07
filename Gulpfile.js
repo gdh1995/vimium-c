@@ -654,23 +654,20 @@ function patchExtendClick(source) {
   match = /' ?\+ ?\(?function VC ?\(/.exec(source);
   if (match) {
     let start = match.index, end = source.indexOf('}).toString()', start) + 1 || source.indexOf('}.toString()', start) + 1;
-    let end2 = source.indexOf("')();'", end + 2) + 1, isSingle = end2 > 0;
-    end2 = isSingle ? end2 : source.indexOf('")();"', end + 2) + 1;
+    let end2 = source.indexOf("')();'", end + 2) + 1 || source.indexOf('")();"', end + 2) + 1;
     if (end2 <= 0) {
       throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');
     }
-    let prefix = source.substring(0, start), suffix = source.substring(end2);
+    let prefix = source.substring(0, start), suffix = source.substring(end2 + ")();'".length);
     source = source.substring(start + match[0].length, end).replace(/ \/\/.*?$/g, "").replace(/'/g, '"');
+    source = source.replace(/\\/g, "\\\\");
     if (locally) {
       source = source.replace(/([\r\n]) {4,8}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");
     } else {
       source = source.replace(/[\r\n]\s*/g, "");
     }
     source = "function(" + source;
-    if (!isSingle) {
-      suffix = suffix.replace('"', "'");
-    }
-    source = prefix + source + suffix;
+    source = prefix + source + ")();'" + suffix;
   } else {
     print("Error: can not wrap extend_click scripts!!!");
   }
