@@ -75,10 +75,11 @@ var VDom = {
     (this: void, el: Node, composedElement: false): Node | null;
     (this: void, el: Node): Element | null;
   },
-  scrollingEl_ (): HTMLBodyElement | HTMLHtmlElement | SVGSVGElement | null {
-    let d = document, el = d.scrollingElement;
-    el === undefined && d.compatMode === "BackCompat" && (el = d.body);
-    return el === d.body && !this.notSafe_(el) && el || d.documentElement;
+  scrollingEl_ (fallback?: 1): HTMLBodyElement | HTMLHtmlElement | SVGSVGElement | null {
+    let d = document, el = d.scrollingElement, docEl = d.documentElement;
+    el === undefined && (el = d.compatMode === "BackCompat" ? d.body : docEl);
+    el = el === d.body && this.notSafe_(el) ? null : el as HTMLHtmlElement | SVGSVGElement | HTMLBodyElement | null;
+    return fallback ? el || docEl : el;
   },
   /**
    * other parts of code require that prepareCrop only depends on @dbZoom

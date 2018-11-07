@@ -99,7 +99,7 @@ var VHints = {
     const arr: ViewBox = VDom.getViewBox_(1) as ViewBox;
     VDom.prepareCrop_();
     if (a.tooHigh_ !== null) {
-      a.tooHigh_ = (VDom.scrollingEl_() || document.documentElement as HTMLElement).scrollHeight / innerHeight > 20;
+      a.tooHigh_ = (VDom.scrollingEl_(1) as HTMLElement).scrollHeight / innerHeight > 20;
     }
     let elements = a.getVisibleElements_(arr);
     if (a.frameNested_) {

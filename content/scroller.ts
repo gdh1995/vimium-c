@@ -154,7 +154,7 @@ animate_ (e: Element | null, d: ScrollByY, a: number): void | number {
     return element;
   },
   prepareTop_ (): void {
-    this.top_ = VDom.scrollingEl_() || (VDom.isHTML_() ? document.documentElement : null);
+    this.top_ = VDom.scrollingEl_(1);
     if (this.top_) {
       VDom.getZoom_(1);
       this.getScale_();
