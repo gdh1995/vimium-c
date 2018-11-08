@@ -132,11 +132,31 @@ VDom.UI = {
     enable ? (this.box_ as HTMLElement).appendChild(sout) : sout.remove();
   },
   getSelection_ (): Selection {
-    let sel = getSelection(), el: Node | null, d = document;
-    if (sel.focusNode === d.documentElement && (el = VScroller.current_)) {
+    let d = document, el: Node | null, sel: Selection | null;
+    if (el = VScroller.current_) {
       for (let pn: Node | null; pn = VDom.GetParent_(el, false); el = pn) { }
       if (el !== d && typeof (el as ShadowRoot).getSelection === "function") {
-        sel = (el as ShadowRootWithSelection).getSelection() || sel;
+        sel = (el as ShadowRootWithSelection).getSelection();
+        if (sel) {
+          return sel;
+        }
+      }
+    }
+    sel = getSelection();
+    if (typeof ShadowRoot !== "function") { return sel; }
+    let E = Element, offset: number, sr: ShadowRoot | null, sel2: Selection | null = sel;
+    while (sel2) {
+      sel2 = null;
+      el = sel.anchorNode;
+      if (el && el === sel.focusNode && (offset = sel.anchorOffset) === sel.focusOffset) {
+        if (el instanceof E && !(el.childNodes instanceof E)) {
+          el = el.childNodes[offset];
+          if (el instanceof E && (sr = el.shadowRoot) && !(sr instanceof E)) {
+            if (sr.getSelection && (sel2 = sr.getSelection())) {
+              sel = sel2;
+            }
+          }
+        }
       }
     }
     return sel;
