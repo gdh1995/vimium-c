@@ -232,7 +232,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     }
     function onActivate(event: UIEvent): void {
       if (event.isTrusted !== false) {
-        VScroller.current_ = event.path ? event.path[0] as Element : event.target as Element;
+        VScroller.current_ = VDom.SafeEl_(event.path ? event.path[0] as Element : event.target as Element);
       }
     }
     function onWndBlur(this: void): void {
