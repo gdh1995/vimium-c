@@ -405,7 +405,7 @@ var VHints = {
     }
   },
   _getImagesInImg (arr: Hint[], element: HTMLImageElement): void {
-    if (!element.src && !element.getAttribute("data-src")) { return; }
+    if (!element.getAttribute("src") && !element.getAttribute("data-src")) { return; }
     let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
@@ -961,12 +961,14 @@ getUrlData_ (link: HTMLAnchorElement): string {
     link = VDom.createElement_("a");
     link.href = str.trim();
   }
+  // $1.href is ensured well-formed by @GetLinks_
   return link.href;
 },
 /** return: img is HTMLImageElement | HTMLAnchorElement */
 _getImageUrl (img: HTMLElement): string | void {
   let isImg = img instanceof HTMLImageElement
-    , text: string = isImg ? (img as HTMLImageElement).src : img instanceof HTMLAnchorElement ? img.href : ""
+    , text = isImg ? img.getAttribute("src") && (img as HTMLImageElement).src
+      : img instanceof HTMLAnchorElement && img.getAttribute("href") && img.href
     , src = img.getAttribute("data-src") || "";
   if (!text || text.startsWith("data:") || VUtils.jsRe_.test(text)
       || src.length > text.length + 7 && (isImg || VUtils.isImageUrl_(src))) {
