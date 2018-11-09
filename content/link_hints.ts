@@ -651,7 +651,7 @@ var VHints = {
         }
         this.queryInDeep_ = DeepQueryType.InDeep;
       }
-      setTimeout(this.reinit_.bind(this, null), 0);
+      setTimeout(this.reinit_.bind(this, null, null), 0);
     } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
         || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
       const mode = this.mode_,
@@ -673,7 +673,7 @@ var VHints = {
     } else if (!(linksMatched = this.alphabetHints_.matchHintsByKey_(this.hints_ as HintsNS.HintItem[], event, this.keyStatus_))){
       if (linksMatched === false) {
         this.tooHigh_ = null;
-        setTimeout(this.reinit_.bind(this, null), 0);
+        setTimeout(this.reinit_.bind(this, null, null), 0);
       }
     } else if (linksMatched.length === 0) {
       this.deactivate_(this.keyStatus_.known);
