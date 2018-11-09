@@ -137,14 +137,14 @@ var VHints = {
     }
     count = Math.abs(count);
     if (count > 1) { mode < HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
-    for (const i in ref) {
-      if (ref.hasOwnProperty(i) && ((ref as Dict<HintsNS.ModeOpt>)[i] as HintsNS.ModeOpt).hasOwnProperty(mode)) {
-        modeOpt = (ref as Dict<HintsNS.ModeOpt>)[i] as HintsNS.ModeOpt;
+    for (const i of ref) {
+      if (i.hasOwnProperty(mode)) {
+        modeOpt = i;
         break;
       }
     }
     if (!modeOpt) {
-      modeOpt = ref.DEFAULT_;
+      modeOpt = ref[8];
       mode = count > 1 ? HintMode.OPEN_WITH_QUEUE : HintMode.OPEN_IN_CURRENT_TAB;
     }
     this.modeOpt_ = modeOpt;
@@ -1014,8 +1014,8 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   return false;
 },
 
-Modes_: {
-HOVER_: {
+Modes_: [
+{
   128: "Hover over node",
   192: "Hover over nodes continuously",
   activator_ (element, rect): void {
@@ -1029,7 +1029,7 @@ HOVER_: {
     }
   }
 } as HintsNS.ModeOpt,
-LEAVE_: {
+{
   129: "Simulate mouse leaving link",
   193: "Simulate mouse leaving continuously",
   activator_ (this: void, element): void {
@@ -1039,7 +1039,7 @@ LEAVE_: {
     if (document.activeElement === element) { element.blur(); }
   }
 } as HintsNS.ModeOpt,
-COPY_TEXT_: {
+{
   130: "Copy link text to Clipboard",
   131: "Search selected text",
   137: "Copy link URL to Clipboard",
@@ -1106,7 +1106,7 @@ COPY_TEXT_: {
     VHUD.copied(str);
   }
 } as HintsNS.ModeOpt,
-OPEN_INCOGNITO_LINK_: {
+{
   138: "Open link in incognito window",
   202: "Open multi incognito tabs",
   activator_ (link: HTMLAnchorElement): void {
@@ -1116,7 +1116,7 @@ OPEN_INCOGNITO_LINK_: {
     }
   }
 } as HintsNS.ModeOpt,
-DOWNLOAD_IMAGE_: {
+{
   132: "Download image",
   196: "Download multiple images",
   activator_ (img: HTMLElement): void {
@@ -1136,7 +1136,7 @@ DOWNLOAD_IMAGE_: {
     return VHUD.tip("Download: " + text, 2000);
   }
 } as HintsNS.ModeOpt,
-OPEN_IMAGE_: {
+{
   133: "Open image",
   197: "Open multiple image",
   activator_ (img: HTMLElement): void {
@@ -1149,7 +1149,7 @@ OPEN_IMAGE_: {
     (this as typeof VHints).openUrl_(url + text);
   }
 } as HintsNS.ModeOpt,
-DOWNLOAD_LINK_: {
+{
   136: "Download link",
   200: "Download multiple links",
   activator_ (this: void, link: HTMLAnchorElement, rect): void {
@@ -1183,7 +1183,7 @@ DOWNLOAD_LINK_: {
     }
   }
 } as HintsNS.ModeOpt,
-FOCUS_EDITABLE_: {
+{
   134: "Focus node",
   198: "Focus nodes continuously",
   258: "Select an editable area",
@@ -1198,7 +1198,7 @@ FOCUS_EDITABLE_: {
     return false;
   }
 } as HintsNS.ModeOpt,
-DEFAULT_: {
+{
   0: "Open link in current tab",
   2: "Open link in new tab",
   3: "Open link in new active tab",
@@ -1232,7 +1232,7 @@ DEFAULT_: {
       (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
       return;
     } else if (hint.refer && hint.refer === link) {
-      return a.Modes_.HOVER_.activator_.call(a, link, rect, hint);
+      return a.Modes_[0].activator_.call(a, link, rect, hint);
     } else if (VDom.getEditableType_(link) >= EditableType.Editbox) {
       UI.simulateSelect_(link, rect, true);
       return false;
@@ -1246,5 +1246,5 @@ DEFAULT_: {
     }, mode !== HintMode.empty || link.tabIndex >= 0);
   }
 } as HintsNS.ModeOpt
-}
+]
 };
