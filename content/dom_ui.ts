@@ -134,7 +134,11 @@ VDom.UI = {
   getSelection_ (): Selection {
     let d = document, el: Node | null, sel: Selection | null;
     if (el = VScroller.current_) {
-      for (let pn: Node | null; pn = VDom.GetParent_(el, false); el = pn) { }
+      if (el.getRootNode) {
+        el = el.getRootNode();
+      } else {
+        for (let pn: Node | null; pn = VDom.GetParent_(el, false); el = pn) { }
+      }
       if (el !== d && typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRootWithSelection).getSelection();
         if (sel) {
