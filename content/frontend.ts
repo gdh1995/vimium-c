@@ -638,7 +638,7 @@ Pagination = {
   findAndFollowLink_ (names: string[], refusedStr: string): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: HTMLElement; }
     // Note: this traverser should not need a prepareCrop
-    const count = names.length, links = VHints.traverse_("*", this.GetLinks_, true, document);
+    const count = names.length, links = VHints.traverse_("*", this.GetLinks_, true, true);
     links.push(document.documentElement as HTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = 99, len: number;
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {

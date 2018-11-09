@@ -79,7 +79,7 @@ var VHints = {
   activate (this: void, count: number, options: FgOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
-    if (document.body == null) {
+    if (document.body === null) {
       a.clean_();
       if (!a.timer_ && document.readyState === "loading") {
         a.timer_ = setTimeout(a.activate.bind(a as never, count, options), 300);
@@ -433,32 +433,32 @@ var VHints = {
       }
     }
   },
+  /** @safe_even_if_any_overridden_property */
   traverse_: function (key: string
       , filter: HintsNS.Filter<Hint | Element>, notWantVUI?: boolean
-      , root?: Document): Hint[] | Element[] {
-    const a = VHints, matchAll = key === "*";
+      , wholeDoc?: true): Hint[] | Element[] {
+    const a = VHints, matchAll = key === "*", D = document;
     if (a.ngEnabled_ === null && matchAll) {
-      a.ngEnabled_ = document.querySelector('.ng-scope') != null;
+      a.ngEnabled_ = D.querySelector('.ng-scope') != null;
     }
     const output: Hint[] | Element[] = [],
     query = matchAll || a.queryInDeep_ !== DeepQueryType.InDeep ? key : a.getDeepDescendantCombinator_() + key,
     Sc = VScroller,
     wantClickable = matchAll && (filter as Function) === a.GetClickable_,
-    // todo: safe box
-    box = root || document.webkitFullscreenElement || document;
+    box = !wholeDoc && D.webkitFullscreenElement || D, isD = box === D;
     wantClickable && Sc.getScale_();
-    let list: HintsNS.ElementList | null = matchAll || (<RegExpOne>/^[a-z]+$/).test(query) ?
-          box.getElementsByTagName(query) : box.querySelectorAll(query);
-    if (!root && a.tooHigh_ && box === document && list.length >= 15000) {
+    let list: HintsNS.ElementList | null = (matchAll || (<RegExpOne>/^[a-z]+$/).test(query)) && isD ?
+          box.getElementsByTagName(query) : D.querySelectorAll.call(box, query);
+    if (!wholeDoc && a.tooHigh_ && isD && list.length >= 15000) {
       list = a.getElementsInViewPort_(list);
     }
     (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(list, filter, output);
-    if (root) { /* this requires not detecting scrollable elements if root */ return output; }
+    if (wholeDoc) { /* this requires not detecting scrollable elements if wholeDoc */ return output; }
     if (output.length === 0 && !matchAll && a.queryInDeep_ === DeepQueryType.NotDeep && !a.tooHigh_) {
       a.queryInDeep_ = DeepQueryType.InDeep;
       if (a.getDeepDescendantCombinator_()) {
         (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(
-          box.querySelectorAll(a.getDeepDescendantCombinator_() + key), filter, output);
+          D.querySelectorAll.call(box, a.getDeepDescendantCombinator_() + key), filter, output);
       }
     }
     list = null;
@@ -466,7 +466,7 @@ var VHints = {
     if (uiRoot && uiRoot !== VDom.UI.box_ && !notWantVUI
         && (uiRoot.mode === "closed" || !matchAll && a.queryInDeep_ !== DeepQueryType.InDeep)) {
       const d = VDom, z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
-      if (bz !== 1 && box === document) {
+      if (bz !== 1 && isD) {
         d.dbZoom_ = z / bz;
         d.prepareCrop_();
       }
@@ -488,7 +488,7 @@ var VHints = {
     }
     return output as Hint[];
   } as {
-    (key: string, filter: HintsNS.Filter<HTMLElement>, notWantVUI?: true, root?: Document): HTMLElement[];
+    (key: string, filter: HintsNS.Filter<HTMLElement>, notWantVUI?: true, wholeDoc?: true): HTMLElement[];
     (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: boolean): Hint[];
   },
   getElementsInViewPort_ (list: HintsNS.ElementList): HintsNS.ElementList {
@@ -512,7 +512,7 @@ var VHints = {
     let j = list.length, i: number, k: ClickType;
     while (0 < --j) {
       if (list[i = j][2] !== ClickType.classname) {
-      } else if ((k = list[--j][2]) > ClickType.frame || !this.isDescendant_(list[i][0], list[j][0])) {
+      } else if ((k = list[--j][2]) > ClickType.frame || !this._isDescendant(list[i][0], list[j][0])) {
         continue;
       } else if (VDom.isContaining_(list[j][1], list[i][1])) {
         list.splice(i, 1);
@@ -521,7 +521,7 @@ var VHints = {
         continue;
       }
       while (0 < j && (k = list[j - 1][2]) >= ClickType.listener && k <= ClickType.tabindex
-          && this.isDescendant_(list[j][0], list[j - 1][0])) {
+          && this._isDescendant(list[j][0], list[j - 1][0])) {
         j--;
         if (j === i - 3) { break; }
       }
@@ -530,7 +530,7 @@ var VHints = {
       }
     }
   },
-  isDescendant_ (d: Node, p: Element): boolean {
+  _isDescendant (d: Element, p: Element): boolean {
     let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null;
     for (; 0 < i-- && (c = VDom.GetParent_(d) as EnsuredMountedElement | null) !== p && c; d = c) {}
     if (c !== p) { return false; }
@@ -651,7 +651,7 @@ var VHints = {
         }
         this.queryInDeep_ = DeepQueryType.InDeep;
       }
-      setTimeout(this.reinit_.bind(this, null, null), 0);
+      setTimeout(this._reinit.bind(this, null, null), 0);
     } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
         || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
       const mode = this.mode_,
@@ -673,13 +673,13 @@ var VHints = {
     } else if (!(linksMatched = this.alphabetHints_.matchHintsByKey_(this.hints_ as HintsNS.HintItem[], event, this.keyStatus_))){
       if (linksMatched === false) {
         this.tooHigh_ = null;
-        setTimeout(this.reinit_.bind(this, null, null), 0);
+        setTimeout(this._reinit.bind(this, null, null), 0);
       }
     } else if (linksMatched.length === 0) {
       this.deactivate_(this.keyStatus_.known);
     } else if (linksMatched.length === 1) {
       VUtils.prevent_(event);
-      this.activateLink_(linksMatched[0]);
+      this._activateLink(linksMatched[0]);
     } else {
       const limit = this.keyStatus_.tab ? 0 : this.keyStatus_.newHintLength;
       for (i = linksMatched.length; 0 <= --i; ) {
@@ -718,7 +718,7 @@ var VHints = {
     this.pTimer_ > 0 && clearTimeout(this.pTimer_);
     while (i < len) { (ref as HintsNS.HintItem[])[i++].target = null as never; }
   },
-  activateLink_ (hint: HintsNS.HintItem): void {
+  _activateLink (hint: HintsNS.HintItem): void {
     let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
     this.resetHints_();
     const str = (this.modeOpt_ as HintsNS.ModeOpt)[this.mode_] as string;
@@ -739,20 +739,20 @@ var VHints = {
     }
     this.pTimer_ = -(VHUD.text_ !== str);
     if (!(this.mode_ & HintMode.queue)) {
-      this.setupCheck_(clickEl, null);
+      this._setupCheck(clickEl, null);
       return this.deactivate_(true);
     }
     this.isActive_ = false;
-    this.setupCheck_();
+    this._setupCheck();
     setTimeout(function(): void {
       const _this = VHints;
-      _this.reinit_(clickEl, rect);
+      _this._reinit(clickEl, rect);
       if (1 === --_this.count_ && _this.isActive_) {
         return _this.setMode_(_this.mode1_);
       }
     }, 18);
   },
-  reinit_ (lastEl?: HintsNS.LinkEl | null, rect?: VRect | null): void {
+  _reinit (lastEl?: HintsNS.LinkEl | null, rect?: VRect | null): void {
     if (!VSettings.enabled_) { return this.clean_(); }
     this.isActive_ = false;
     this.keyStatus_.tab = 0;
@@ -760,15 +760,15 @@ var VHints = {
     this.resetHints_();
     const isClick = this.mode_ < HintMode.min_job;
     this.activate(0, this.options_);
-    return this.setupCheck_(lastEl, rect, isClick);
+    return this._setupCheck(lastEl, rect, isClick);
   },
-  setupCheck_ (el?: HintsNS.LinkEl | null, r?: VRect | null, isClick?: boolean): void {
+  _setupCheck (el?: HintsNS.LinkEl | null, r?: VRect | null, isClick?: boolean): void {
     this.timer_ && clearTimeout(this.timer_);
     this.timer_ = el && (isClick === true || this.mode_ < HintMode.min_job) ? setTimeout(function(i): void {
-      !i && VHints && VHints.CheckLast_(el, r);
+      !i && VHints && VHints._CheckLast(el, r);
     }, 255) : 0;
   },
-  CheckLast_ (this: void, el: HintsNS.LinkEl, r?: VRect | null): void {
+  _CheckLast (this: void, el: HintsNS.LinkEl, r?: VRect | null): void {
     const _this = VHints;
     if (!_this) { return; }
     _this.timer_ = 0;
@@ -779,7 +779,7 @@ var VHints = {
     if (r && _this.isActive_ && (_this.hints_ as HintsNS.HintItem[]).length < 64
         && !_this.alphabetHints_.hintKeystroke_
         && (hidden || Math.abs(r2.left - r[0]) > 100 || Math.abs(r2.top - r[1]) > 60)) {
-      return _this.reinit_();
+      return _this._reinit();
     }
   },
   clean_ (keepHUD?: boolean): void {
@@ -963,7 +963,8 @@ getUrlData_ (link: HTMLAnchorElement): string {
   }
   return link.href;
 },
-getImageUrl_ (img: HTMLElement): string | void {
+/** return: img is HTMLImageElement | HTMLAnchorElement */
+_getImageUrl (img: HTMLElement): string | void {
   let isImg = img instanceof HTMLImageElement
     , text: string = isImg ? (img as HTMLImageElement).src : img instanceof HTMLAnchorElement ? img.href : ""
     , src = img.getAttribute("data-src") || "";
@@ -1050,7 +1051,7 @@ COPY_TEXT_: {
     let isUrl = a.mode1_ >= HintMode.min_link_job && a.mode1_ <= HintMode.max_link_job, str: string | null;
     if (isUrl) {
       str = a.getUrlData_(link as HTMLAnchorElement);
-      str && str.startsWith("mailto:") && str.length > 7 && (str = str.substring(7).trimLeft());
+      str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.substring(7).trimLeft());
     }
     else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) {}
     else if (link instanceof HTMLInputElement) {
@@ -1070,7 +1071,7 @@ COPY_TEXT_: {
       str = link instanceof HTMLTextAreaElement ? link.value
         : link instanceof HTMLSelectElement ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
         : link instanceof HTMLElement && (str = link.innerText.trim(),
-            str.startsWith("mailto:") && str.length > 7 ? str.substring(7).trimLeft() : str)
+            str.length > 7 && str.substring(0, 7).toLowerCase() === "mailto:" ? str.substring(7).trimLeft() : str)
           || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
         ;
       str = str.trim() || (link instanceof HTMLElement ? link.title.trim() : "");
@@ -1117,7 +1118,7 @@ DOWNLOAD_IMAGE_: {
   132: "Download image",
   196: "Download multiple images",
   activator_ (img: HTMLElement): void {
-    let text = (this as typeof VHints).getImageUrl_(img);
+    let text = (this as typeof VHints)._getImageUrl(img);
     if (!text) { return; }
     const url = text, i = text.indexOf("://"), a = VDom.createElement_("a");
     if (i > 0) {
@@ -1128,6 +1129,7 @@ DOWNLOAD_IMAGE_: {
     }
     a.href = url;
     a.download = img.getAttribute("download") || "";
+    // todo: how to trigger download
     VDom.mouse_(a, "click", null);
     return VHUD.tip("Download: " + text, 2000);
   }
@@ -1136,7 +1138,7 @@ OPEN_IMAGE_: {
   133: "Open image",
   197: "Open multiple image",
   activator_ (img: HTMLElement): void {
-    let text = (this as typeof VHints).getImageUrl_(img), url: string, str: string | null;
+    let text = (this as typeof VHints)._getImageUrl(img), url: string, str: string | null;
     if (!text) { return; }
     url = "vimium://show image ";
     if (str = img.getAttribute("download")) {
@@ -1209,7 +1211,7 @@ DEFAULT_: {
       a.mode_ = HintMode.DEFAULT;
       return highlight;
     }
-    const Dom = VDom, UI = Dom.UI;
+    const { UI } = VDom;
     if (tag === "details") {
       // `HTMLDetailsElement::FindMainSummary()` in
       // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
@@ -1219,7 +1221,7 @@ DEFAULT_: {
         if ((summary.tagName + "").toLowerCase() === "summary" && summary instanceof HTMLElement) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
-          rect = (link as HTMLDetailsElement).open || !rect ? Dom.getVisibleClientRect_(summary) : rect;
+          rect = (link as HTMLDetailsElement).open || !rect ? VDom.getVisibleClientRect_(summary) : rect;
           UI.click_(summary, rect, null, true);
           rect && UI.flash_(null, rect);
           return false;
@@ -1229,7 +1231,7 @@ DEFAULT_: {
       return;
     } else if (hint.refer && hint.refer === link) {
       return a.Modes_.HOVER_.activator_.call(a, link, rect, hint);
-    } else if (Dom.getEditableType_(link) >= EditableType.Editbox) {
+    } else if (VDom.getEditableType_(link) >= EditableType.Editbox) {
       UI.simulateSelect_(link, rect, true);
       return false;
     }

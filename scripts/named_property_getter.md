@@ -15,7 +15,7 @@ Comment: on C35 and C70, `iframe` and `frame` have no named property getters
     - VDom, VUtils, VKeyboard, polyfill
     - VMarks, VFindMode, VVisualMode, VScroller, Vomnibar
     - VDom.UI, extend_click, inject_end
-  - todo: frontend, link_hints
+  - todo: frontend
 
 ## plugins
 
