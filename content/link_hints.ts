@@ -1119,14 +1119,14 @@ DOWNLOAD_IMAGE_: {
   activator_ (img: HTMLElement): void {
     let text = (this as typeof VHints).getImageUrl_(img);
     if (!text) { return; }
-    const i = text.indexOf("://"), a = VDom.createElement_("a");
+    const url = text, i = text.indexOf("://"), a = VDom.createElement_("a");
     if (i > 0) {
       text = text.substring(text.indexOf('/', i + 4) + 1);
     }
     if (text.length > 40) {
       text = text.substring(0, 39) + "\u2026";
     }
-    a.href = (img as HTMLImageElement).src;
+    a.href = url;
     a.download = img.getAttribute("download") || "";
     VDom.mouse_(a, "click", null);
     return VHUD.tip("Download: " + text, 2000);
