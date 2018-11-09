@@ -153,13 +153,13 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
   findScrollable_ (di: ScrollByY, amount: number): Element | null {
     let element: Element | null = this.current_, top = this.top_;
     if (!element) {
-      element = top;
-      return this.current_ = element && (this._selectFirst(element) || element);
+      return this.current_ = top && this._selectFirst(top) || top;
     }
     const getInsertion = Element.prototype.getDestinationInsertionPoints;
     while (element !== top && !this.shouldScroll_(element as Element, di, amount)) {
       element = VDom.SafeEl_(VDom.GetParent_(element as Element, getInsertion)) || top;
     }
+    this.scrolled_ = 0;
     return element;
   },
   prepareTop_ (): void {
