@@ -79,8 +79,8 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     f("copy", s, t); f("cut", s, t); f("paste", s, t);
     function onBlur(this: Window): void {
       if (VFindMode.isActive_ && Date.now() - now < 500) {
-        let a = this.document.body;
-        a && setTimeout(function(): void { (a as HTMLElement).focus(); }, tick++ * 17);
+        let a = this.document.body as HTMLBodyElement | null;
+        a && setTimeout(function(): void { (a as HTMLBodyElement).focus(); }, tick++ * 17);
       } else {
         this.removeEventListener("blur", onBlur, true);
       }
@@ -397,7 +397,10 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     }
     let matches: RegExpMatchArray | null = null;
     if (re) {
-      query = ((document.webkitFullscreenElement || document.documentElement) as HTMLElement).innerText;
+      type FullScreenElement = Element & { innerText?: string | Element };
+      let el = document.webkitFullscreenElement as FullScreenElement | null, text = el && el.innerText;
+      el && typeof text !== "string" && (el = VDom.GetParent_(el), text = el && el.innerText as string | undefined);
+      query = <string | undefined | null>text || (document.documentElement as HTMLElement).innerText;
       matches = query.match(re) || query.replace(a.A0Re_, " ").match(re);
     }
     a.regexMatches_ = isRe ? matches : null;
@@ -433,7 +436,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   execute_ (query?: string | null, options?: FindNS.ExecuteOptions): void {
     options = options ? VUtils.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
     let el: Element | null, found: boolean, count = ((options.count as number) | 0) || 1, back = count < 0
-      , par: Element | null = null, timesRegExpNotMatch = 0
+      , par: HTMLElement | null = null, timesRegExpNotMatch = 0
       , q: string, notSens = this.ignoreCase_ && !options.caseSensitive;
     options.noColor || this.toggleStyle_(1);
     back && (count = -count);
@@ -441,10 +444,14 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     do {
       q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches_(back) : this.parsedQuery_;
       found = this.find_(q, !notSens, back, true, this.wholeWord_, false, false);
-      if (found && pR && (par = VDom.getSelectionParent_())) {
+      if (found && pR && (par = VDom.GetSelectionParent_unsafe_())) {
         pR.lastIndex = 0;
-        const text = (par as HTMLElement).innerText;
-        if (typeof text === "string" && !(pR as RegExpG & RegExpSearchable<0>).exec(text)
+        let text = par.innerText as string | HTMLElement;
+        if (typeof text !== "string") {
+          par = VDom.GetParent_(par);
+          text = par ? par.innerText as string : "";
+        }
+        if (text && !(pR as RegExpG & RegExpSearchable<0>).exec(text)
             && timesRegExpNotMatch++ < 9) {
           count++;
         }

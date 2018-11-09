@@ -72,6 +72,7 @@ var VDom = {
       : pn instanceof E ? pn /* in doc but overridden */ : null /* pn is null, DocFrag, or ... */;
   } as {
     (this: void, el: Element, getInsertion: Element["getDestinationInsertionPoints"]): Element | null;
+    (this: void, el: HTMLElement): HTMLElement | null;
     (this: void, el: Node, composedElement: false): Node | null;
     (this: void, el: Node): Element | null;
   },
@@ -320,7 +321,6 @@ var VDom = {
     (element: null, rect: ClientRect): VisibilityType;
   },
   isInDOM_ (element: Element, root?: HTMLBodyElement | HTMLFrameSetElement | SVGElement): boolean {
-    // if an element is in another frame, it's ignored that element may have named property getters
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;
     root || doc.nodeType !== Node.DOCUMENT_NODE && (doc = document);
@@ -342,6 +342,7 @@ var VDom = {
   SafeEl_: function (this: void, el: Node | null): Node | null {
     return VDom.notSafe_(el) ? VDom.GetParent_(el) : el;
   } as {
+    (this: void, el: HTMLElement | null): HTMLElement | null;
     (this: void, el: Element | null): Element | null;
     (this: void, el: Node | null): Node | null;
   },
@@ -372,14 +373,16 @@ var VDom = {
     return (element as HTMLElement).isContentEditable === true ? !!node && document.contains.call(element, node)
       : element === node || node instanceof Element && element === node.childNodes[sel.anchorOffset];
   },
-  getSelectionParent_ (): HTMLElement | null {
+  /** @UNSAFE_RETURNED */
+  GetSelectionParent_unsafe_ (): HTMLElement | null {
     let range = getSelection().getRangeAt(0), par: Node | null = range.commonAncestorContainer;
     // no named getters on SVG* elements
     while (par && !(par instanceof HTMLElement)) { par = par.parentNode as Element; }
-    if (par && !range.startOffset && (range + "").length === par.innerText.length) {
-      par = par.parentElement as HTMLElement;
+    let text: string;
+    if (par && !range.startOffset && typeof (text = par.innerText) === "string" && (range + "").length === text.length) {
+      par = VDom.GetParent_(par);
     }
-    return par !== document.documentElement ? par as HTMLElement : null;
+    return par !== document.documentElement ? par as HTMLElement | null : null;
   },
   getSelectionEdgeElement_ (sel: Selection, di: BOOL): Element | null {
     const r = sel.getRangeAt(0), type = di ? "end" as "end" : "start" as "start", E = Element;
