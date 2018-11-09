@@ -150,14 +150,24 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
     return !di && amount && element && element.scrollWidth <= element.scrollHeight * 2
       ? Math.ceil(amount * 0.6) : amount;
   },
+  /**
+   * @param amount should not be 0
+   */
   findScrollable_ (di: ScrollByY, amount: number): Element | null {
-    let element: Element | null = this.current_, top = this.top_;
-    if (!element) {
+    const cur: Element | null = this.current_, top = this.top_;
+    if (!cur) {
       return this.current_ = top && this._selectFirst(top) || top;
     }
     const getInsertion = Element.prototype.getDestinationInsertionPoints;
-    while (element !== top && !this.shouldScroll_(element as Element, di, amount)) {
+    let element: Element | null = cur, reason, isCurVerticallyScrollable = di - 1 /** X => -1, Y => 0 */;
+    while (element !== top && (reason = this.shouldScroll_(element as Element, di, amount)) < 1) {
+      if (!reason) {
+        isCurVerticallyScrollable = isCurVerticallyScrollable || +this._scrollDo(element as Element, 1, -amount);
+      }
       element = VDom.SafeEl_(VDom.GetParent_(element as Element, getInsertion)) || top;
+    }
+    if (element === top && top && !isCurVerticallyScrollable) {
+      element = this._selectFirst(top) || top;
     }
     this.scrolled_ = 0;
     return element;
@@ -188,7 +198,7 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
     let changed = el[key] !== before;
     if (changed) {
       el.scrollTo ? (arg[k2] = before, el.scrollTo(arg)) : (el[key] = before);
-      this.scrolled_ === 0 && (this.scrolled_ = 1);
+      this.scrolled_ || (this.scrolled_ = 1);
     }
     return changed;
   },
@@ -238,10 +248,10 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
   },
   scrolled_: 0,
   /** @NEED_SAFE_ELEMENTS */
-  shouldScroll_ (element: Element, di: ScrollByY, amount?: number): boolean {
+  shouldScroll_ (element: Element, di: ScrollByY, amount?: number): -1 | 0 | 1 {
     const st = getComputedStyle(element);
-    return (di ? st.overflowY : st.overflowX) !== "hidden" && st.display !== "none" && st.visibility === "visible" &&
-      this._scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
+    return (di ? st.overflowY : st.overflowX) === "hidden" || st.display === "none" || st.visibility !== "visible" ? -1
+      : <BOOL> +this._scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
   },
   supressScroll_ (): void {
     if (!VDom.allowRAF_) { this.scrolled_ = 0; return; }

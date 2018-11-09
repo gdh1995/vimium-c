@@ -280,9 +280,9 @@ var VDom = {
                                        ih - float(st.borderBottomWidth) * scale] : null;
     if (!needBox) { return [x, y]; }
     // here rect.right is not exact because <html> may be smaller than <body>
-    const sEl = this.scrollingEl_(),
-    xScrollable = st.overflowX !== "hidden" && st2.overflowX !== "hidden",
-    yScrollable = st.overflowY !== "hidden" && st2.overflowY !== "hidden";
+    const sEl = this.scrollingEl_(), H = "hidden" as "hidden",
+    xScrollable = st.overflowX !== H && st2.overflowX !== H,
+    yScrollable = st.overflowY !== H && st2.overflowY !== H;
     if (xScrollable) {
       mw += 64 * zoom2;
       if (!containHasPaint) {

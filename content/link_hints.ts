@@ -350,7 +350,7 @@ var VHints = {
     if (!isClickable && type === ClickType.Default) { return; }
     if (element === document.documentElement || element === document.body) { return; }
     if ((arr = VDom.getVisibleClientRect_(element))
-        && (type < ClickType.scrollX || VScroller.shouldScroll_(element, type - ClickType.scrollX as 0 | 1))
+        && (type < ClickType.scrollX || VScroller.shouldScroll_(element, type - ClickType.scrollX as 0 | 1) > 0)
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
           || VHints.mode_ >= HintMode.min_job) // note: might need to apply aria-disable on FOCUS/HOVER/LEAVE mode?
