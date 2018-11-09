@@ -264,7 +264,7 @@ var Vomnibar = {
     return VUtils.push_(this.onKeydown_, this);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
-    if (VEventMode.lock_()) { return HandlerResult.Nothing; }
+    if (VEventMode.lock()) { return HandlerResult.Nothing; }
     if (VKeyboard.isEscape_(event)) { this.hide_(); return HandlerResult.Prevent; }
     const key = event.keyCode - VKeyCodes.f1;
     if (key === 0 || key === 1) {

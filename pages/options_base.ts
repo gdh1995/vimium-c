@@ -475,7 +475,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   }
   saveBtn.onclick = saveOptions;
   document.addEventListener("keyup", function(event): void {
-    if ((event.ctrlKey || event.metaKey) && event.keyCode === VKeyCodes.enter) {
+    if (event.keyCode === VKeyCodes.enter && (event.ctrlKey || event.metaKey)) {
       setTimeout(window.close, 300);
       if (!saved) { return saveOptions(); }
     }

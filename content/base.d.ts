@@ -224,6 +224,7 @@ declare const enum AdjustType {
 
 declare function setInterval(this: void, handler: (this: void, info?: TimerType) => void, timeout: number): number;
 
+/** ShadowRoot | HTMLDivElement */
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 interface DomUI {
   box_: HTMLDivElement | null;
@@ -277,7 +278,7 @@ interface ComplicatedVPort extends VPort {
   post<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
 interface VEventMode {
-  lock_(this: void): Element | null;
+  lock(this: void): Element | null;
   suppress_(keyCode?: VKeyCodes): void;
   OnWndFocus_ (this: void): void;
   focusAndListen_ (this: void, callback?: (() => void) | null, timedout?: 0): void;

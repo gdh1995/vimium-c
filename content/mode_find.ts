@@ -260,7 +260,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     }
     VDom.UI.toggleSelectStyle_(false);
     if (i < FindNS.Action.MinComplicatedExit || !this.hasResults_) { return; }
-    if (!el || el !== VEventMode.lock_()) {
+    if (!el || el !== VEventMode.lock()) {
       el = getSelection().anchorNode as Element | null;
       if (el && !this.focusFoundLink_(el) && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)) {
         if (VDom.getEditableType_(el2) >= EditableType.Editbox && el.contains(el2)) {
@@ -305,7 +305,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   postMode_: {
     lock_: null as Element | null,
     activate_: function() {
-      const el = VEventMode.lock_(), Exit = this.exit_ as (this: void, a?: boolean | Event) => void;
+      const el = VEventMode.lock(), Exit = this.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
       VUtils.push_(this.onKeydown_, this);
       if (el === this.lock_) { return; }
@@ -451,7 +451,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       }
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel_, 0);
-    (el = VEventMode.lock_()) && !VDom.isSelected_() && el.blur && el.blur();
+    (el = VEventMode.lock()) && !VDom.isSelected_() && el.blur && el.blur();
     this.hasResults_ = found;
   },
   find_: function (this: void): boolean {

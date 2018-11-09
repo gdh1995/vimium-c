@@ -33,7 +33,7 @@ var VVisualMode = {
     a.mode_ = mode;
     if (mode !== VisualModeNS.Mode.Caret) {
       a.movement_.alterMethod_ = "extend";
-      const notEditing = !VEventMode.lock_();
+      const notEditing = !VEventMode.lock();
       if (notEditing && (type === "Caret" || type === "Range")) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
         VDom.getZoom_(1);
@@ -75,7 +75,7 @@ var VVisualMode = {
     if (!this.retainSelection_) {
       this.movement_.collapseSelectionTo_(isEsc && this.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
-    const el = VEventMode.lock_();
+    const el = VEventMode.lock();
     el && el.blur && el.blur();
     VDom.UI.toggleSelectStyle_(false);
     VScroller.top_ = null;
@@ -300,7 +300,7 @@ movement_: {
     return isMove ? false : this.hashSelection_() === before;
   },
   reverseSelection_ (): void {
-    const el = VEventMode.lock_(), direction = this.getDirection_(true);
+    const el = VEventMode.lock(), direction = this.getDirection_(true);
     if (el
         && (VDom.editableTypes_[(el.tagName as string).toLowerCase()] as EditableType) > EditableType.Embed) {
       let length = this.selection_.toString().length;

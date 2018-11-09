@@ -1071,7 +1071,7 @@ Pagination = {
   VHUD = HUD;
 
   VEventMode = {
-    lock_ (this: void): Element | null { return InsertMode.lock_; },
+    lock (this: void): Element | null { return InsertMode.lock_; },
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { return onWndFocus(); },
     focusAndListen_ (callback?: (() => void) | null, timedout?: 0 | 1): void {

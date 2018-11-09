@@ -7,7 +7,7 @@ interface VDomProto {
   readonly UI: Readonly<DomUI>;
   view(el: Element, oldY?: number | undefined): boolean;
 }
-declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
+declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>, VEventMode: Pick<VEventMode, "lock">;
 
 $<ElementWithDelay>("#showCommands").onclick = function(event): void {
   if (!window.VDom) { return; }

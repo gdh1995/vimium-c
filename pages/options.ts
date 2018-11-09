@@ -354,12 +354,14 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       if (!window.VKeyboard) { return; }
       let wanted = event.keyCode === VKeyCodes.questionWin || event.keyCode === VKeyCodes.questionMac ? "?" : "";
       if (wanted && VKeyboard.char(event) === wanted && VKeyboard.key(event, wanted) === wanted) {
-        $("#showCommands").click();
+        if (!VEventMode.lock()) {
+          $("#showCommands").click();
+        }
       }
       return;
     }
     const el = event.target as Element;
-    if (el.parentElement instanceof HTMLLabelElement) {
+    if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
       event.preventDefault();
     }
   });
@@ -368,7 +370,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     const el = event.target as Element, i = event.keyCode;
     if (i !== VKeyCodes.enter) {
       if (i !== VKeyCodes.space) { return; }
-      if (el.parentElement instanceof HTMLLabelElement) {
+      if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
         event.preventDefault();
         click(el.parentElement.control as HTMLElement);
       }

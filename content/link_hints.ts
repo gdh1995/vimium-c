@@ -435,7 +435,7 @@ var VHints = {
   },
   traverse_: function (key: string
       , filter: HintsNS.Filter<Hint | Element>, notWantVUI?: boolean
-      , root?: Document | Element): Hint[] | Element[] {
+      , root?: Document): Hint[] | Element[] {
     const a = VHints, matchAll = key === "*";
     if (a.ngEnabled_ === null && matchAll) {
       a.ngEnabled_ = document.querySelector('.ng-scope') != null;
@@ -444,6 +444,7 @@ var VHints = {
     query = matchAll || a.queryInDeep_ !== DeepQueryType.InDeep ? key : a.getDeepDescendantCombinator_() + key,
     Sc = VScroller,
     wantClickable = matchAll && (filter as Function) === a.GetClickable_,
+    // todo: safe box
     box = root || document.webkitFullscreenElement || document;
     wantClickable && Sc.getScale_();
     let list: HintsNS.ElementList | null = matchAll || (<RegExpOne>/^[a-z]+$/).test(query) ?
@@ -487,7 +488,7 @@ var VHints = {
     }
     return output as Hint[];
   } as {
-    (key: string, filter: HintsNS.Filter<HTMLElement>, notWantVUI?: true, root?: Document | Element): HTMLElement[];
+    (key: string, filter: HintsNS.Filter<HTMLElement>, notWantVUI?: true, root?: Document): HTMLElement[];
     (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: boolean): Hint[];
   },
   getElementsInViewPort_ (list: HintsNS.ElementList): HintsNS.ElementList {

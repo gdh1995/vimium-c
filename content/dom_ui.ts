@@ -163,7 +163,7 @@ VDom.UI = {
   },
   getSelectionText_ (notTrim?: 1): string {
     let sel = getSelection(), s = sel.toString(), el: Element | null, rect: ClientRect;
-    if (s && !VEventMode.lock_() && (el = VScroller.current_) && VDom.getEditableType_(el) === EditableType.Editbox
+    if (s && !VEventMode.lock() && (el = VScroller.current_) && VDom.getEditableType_(el) === EditableType.Editbox
         && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
       s = "";
     }
@@ -182,7 +182,7 @@ VDom.UI = {
     element === VDom.lastHovered_ || VDom.hover_(element, rect);
     VDom.mouse_(element, "mousedown", rect, modifiers);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    addFocus && element !== VEventMode.lock_() && element !== document.activeElement &&
+    addFocus && element !== VEventMode.lock() && element !== document.activeElement &&
       typeof element.focus === "function" && element.focus();
     VDom.mouse_(element, "mouseup", rect, modifiers);
     return VDom.mouse_(element, "click", rect, modifiers);
@@ -193,7 +193,7 @@ VDom.UI = {
     VDom.view(element, y);
     // re-compute rect of element, in case that an input is resized when focused
     flash && this.flash_(element);
-    if (element !== VEventMode.lock_()) { return; }
+    if (element !== VEventMode.lock()) { return; }
     this.moveSel_(element, action);
     if (suppressRepeated === true) { return this.suppressTail_(true); }
   },
