@@ -41,7 +41,7 @@ $ = function<T extends HTMLElement>(selector: string): T {
   }
   return document.querySelector(selector) as T;
 },
-BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window;
+BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };
 if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
   BG = null as never;
 }

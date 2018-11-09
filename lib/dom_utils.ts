@@ -12,7 +12,7 @@ var VDom = {
     node = document.createElement(tagName), valid = node instanceof HTMLElement;
     a.isStandard_ = valid;
     a.createElement_ = valid ? d.createElement.bind(d)
-      : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", FrontendRootElementType
+      : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", [FrontendRootElementType]
         , HTMLElement>(d, "http://www.w3.org/1999/xhtml");
     return valid ? node : a.createElement_(tagName);
   },

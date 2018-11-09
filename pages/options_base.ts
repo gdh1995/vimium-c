@@ -53,7 +53,7 @@ $ = function<T extends HTMLElement>(selector: string): T {
   }
   return document.querySelector(selector) as T;
 },
-BG = chrome.extension.getBackgroundPage() as Window, bgSettings = BG.Settings;
+BG = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl }, bgSettings = BG.Settings;
 
 abstract class Option<T extends keyof AllowedOptions> {
   readonly element: HTMLElement;

@@ -914,7 +914,7 @@ U = {
 },
 P = {
   _port: null as FgPort | null,
-  postToOwner_: null as never as VomnibarNS.IframePort["postMessage"],
+  postToOwner_: null as never as <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void | 1,
   postMessage_<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
     try {
       (this._port || this.connect_(PortType.omnibarRe)).postMessage<K>(request);

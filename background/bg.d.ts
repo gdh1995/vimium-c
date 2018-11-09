@@ -316,10 +316,11 @@ declare namespace SettingsNS {
   interface FullSettings extends PersistentSettings, NonPersistentSettings, FrontUpdateAllowedSettings {}
 
   interface UpdateHook<K extends keyof FullSettings> {
-    (this: Window["Settings"], value: FullSettings[K], key: K): void;
+    // because of unknown reasons, the `this` here can not be SettingsTmpl
+    (this: {}, value: FullSettings[K], key: K): void;
   }
   interface NullableUpdateHook<K extends keyof FullSettings> {
-    (this: Window["Settings"], value: FullSettings[K] | null, key: K): void;
+    (this: SettingsTmpl, value: FullSettings[K] | null, key: K): void;
   }
   interface UpdateHookWoThis<K extends keyof FullSettings> {
     (this: void, value: FullSettings[K]): void;
@@ -333,7 +334,7 @@ declare namespace SettingsNS {
     searchUrl: NullableUpdateHook<"searchUrl">;
   }
   interface SpecialUpdateHookMap {
-    bufferToLoad (this: Window["Settings"], value: null): void;
+    bufferToLoad (this: SettingsTmpl, value: null): void;
   }
   type DeclaredUpdateHookMap = NullableUpdateHookMap
       & Pick<BaseUpdateHookMap, "extWhiteList" | "grabBackFocus" | "newTabUrl" | "baseCSS"
@@ -439,7 +440,9 @@ interface Window {
     require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
     GC (): void;
   };
-  readonly Settings: {
+}
+
+  interface SettingsTmpl {
     readonly cache: Readonly<SettingsNS.FullCache>;
     readonly temp: {
       readonly shownHash: ((this: void) => string) | null;
@@ -461,7 +464,6 @@ interface Window {
       readonly Platform: string;
     };
   }
-}
 
 declare const enum Consts {
   MaxCharsInQuery = 200, LowerBoundOfMaxChars = 50, UpperBoundOfMaxChars = 320,

@@ -40,7 +40,7 @@ var Settings = {
       return ref.call(this, value, key);
     }
   },
-  postUpdate: function<K extends keyof SettingsWithDefaults> (this: Window["Settings"], key: K, value?: FullSettings[K]): void {
+  postUpdate: function<K extends keyof SettingsWithDefaults> (this: SettingsTmpl, key: K, value?: FullSettings[K]): void {
     return ((this as typeof Settings).updateHooks[key] as SettingsNS.UpdateHook<K>).call(this,
       value !== undefined ? value : this.get(key), key);
   } as {
@@ -83,7 +83,7 @@ var Settings = {
         }
       }
     },
-    newTabUrl (url): void {
+    newTabUrl (this: SettingsTmpl, url): void {
       url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(url)
         ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
       return this.set('newTabUrl_f', url);
@@ -109,7 +109,7 @@ var Settings = {
       }
       return (this as typeof Settings).postUpdate("newTabUrl");
     },
-    baseCSS (css): void {
+    baseCSS (this: SettingsTmpl, css): void {
       const cacheId = (this as typeof Settings).CONST.StyleCacheId,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
       hasAll = browserInfo.lastIndexOf("a") >= 0;
@@ -139,7 +139,7 @@ var Settings = {
       css2 && (css += "\n" + css2);
       return this.set("innerCSS", css);
     },
-    userDefinedCss (css2): void {
+    userDefinedCss (this: SettingsTmpl, css2): void {
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(0, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
       this.set("innerCSS", css2 ? css + "\n" + css2 : css);
@@ -153,11 +153,11 @@ var Settings = {
         }
       }
     },
-    innerCSS (css): void {
+    innerCSS (this: SettingsTmpl, css): void {
       // Note: The line below is allowed as a special use case
       (this.cache as SettingsNS.FullCache).innerCSS = css.substring(css.indexOf("\n") + 1);
     },
-    vomnibarPage (url): void {
+    vomnibarPage (this: SettingsTmpl, url): void {
       if (url === this.defaults.vomnibarPage) {
         url = (this as typeof Settings).CONST.VomnibarPageInner;
       } else if (url.startsWith("front/")) {

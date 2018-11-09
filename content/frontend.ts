@@ -853,7 +853,7 @@ Pagination = {
       r.init = null as never;
       return D.DocReady(function (): void {
         HUD.enabled_ = true;
-        onWndFocus = vPort.SafePost_.bind(vPort, { handler: "focus" });
+        onWndFocus = vPort.SafePost_.bind(vPort as never, { handler: "focus" });
       });
     },
     reset (request: BgReq["reset"], initing?: 1): void {

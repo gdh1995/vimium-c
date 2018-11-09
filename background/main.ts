@@ -287,7 +287,7 @@ Are you sure you want to continue?`);
     },
 
     getCurTab = chrome.tabs.query.bind<null, { active: true, currentWindow: true }
-        , (result: [Tab], _ex: FakeArg) => void, 1>(null, { active: true, currentWindow: true }),
+        , [(result: [Tab], _ex: FakeArg) => void], 1>(null, { active: true, currentWindow: true }),
     getCurTabs = chrome.tabs.query.bind(null, {currentWindow: true}),
     getCurWnd = function (populate: boolean, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1 {
       const wndId = TabRecency.lastWnd;
@@ -1758,7 +1758,7 @@ Are you sure you want to continue?`);
     omni (this: void, request: FgReq["omni"], port: Port): void {
       if (isNotVomnibarPage(port)) { return; }
       return Completion.filter(request.query, request,
-      PostCompletions.bind<Port, 0 | 1 | 2, Readonly<CompletersNS.Suggestion>[], boolean, CompletersNS.MatchType, number, void>(port
+      PostCompletions.bind<Port, 0 | 1 | 2, [Readonly<CompletersNS.Suggestion>[], boolean, CompletersNS.MatchType, number], void>(port
         , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
     },
     copy (this: void, request: FgReq["copy"]): void {

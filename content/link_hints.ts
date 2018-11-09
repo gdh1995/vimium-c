@@ -82,7 +82,7 @@ var VHints = {
     if (document.body == null) {
       a.clean_();
       if (!a.timer_ && document.readyState === "loading") {
-        a.timer_ = setTimeout(a.activate.bind(a, count, options), 300);
+        a.timer_ = setTimeout(a.activate.bind(a as never, count, options), 300);
         return;
       }
       if (!VDom.isHTML_()) { return; }

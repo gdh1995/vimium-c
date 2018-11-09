@@ -3,7 +3,7 @@
 /// <reference path="../background/bg.d.ts" />
 
 (function(): void {
-const BG = chrome.extension.getBackgroundPage() as Window;
+const BG = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };
 if (BG && !BG.Settings.get("dialogMode")) {
   BG.Backend.focus({
     url: BG.Settings.CONST.OptionsPage,

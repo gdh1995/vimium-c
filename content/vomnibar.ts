@@ -36,7 +36,7 @@ var Vomnibar = {
     if (!options || !options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
       if (!a._timer) {
-        a._timer = setTimeout(a.activate.bind(a, count, options), 500);
+        a._timer = setTimeout(a.activate.bind(a as never, count, options), 500);
         return;
       }
     }
