@@ -201,13 +201,14 @@ VDom.UI = {
     type TextElement = HTMLInputElement | HTMLTextAreaElement;
     const type = element instanceof HTMLTextAreaElement ? EditableType.Editbox
         : element instanceof HTMLInputElement ? EditableType.input_
-        : (element as HTMLElement).isContentEditable && !VDom.notSafe_(element) ? EditableType.rich_
+        : !VDom.notSafe_(element) && (element as HTMLElement).isContentEditable ? EditableType.rich_
         : EditableType.Default;
     if (type === EditableType.Default) { return; }
-    if (action ? (action === "all-input" || action === "all-line") && (type === EditableType.Editbox
-            || type === EditableType.rich_ && element.textContent.indexOf("\n") >= 0)
-        : type === EditableType.rich_ || (element as TextElement).value.length <= 0
-          || type === EditableType.Editbox && element.clientHeight + 12 < element.scrollHeight) {
+    const isBox = type === EditableType.Editbox || type === EditableType.rich_ && element.textContent.indexOf("\n") >= 0,
+    lineAllAndBoxEnd = action === "all-input" || action === "all-line",
+    gotoStart = action === "start",
+    gotoEnd = !action || action === "end" || isBox && lineAllAndBoxEnd;
+    if (isBox && gotoEnd && element.clientHeight + 12 < element.scrollHeight) {
       return;
     }
     // not need `this.getSelection_()`
@@ -219,15 +220,15 @@ VDom.UI = {
         sel.removeAllRanges()
         sel.addRange(range);
       } else {
-        const end = (element as TextElement).selectionEnd;
-        if (end < (element as TextElement).value.length && end > 0 || end !== (element as TextElement).selectionStart) {
+        let len = (element as TextElement).value.length, { selectionStart: start, selectionEnd: end } = element as TextElement;
+        if (!len || (gotoEnd ? start === len : gotoStart && !end) || end < len && end || end !== start) {
           return;
         }
         (element as TextElement).select();
       }
-      if (!action || action === "end") {
+      if (gotoEnd) {
         sel.collapseToEnd();
-      } else if (action === "start") {
+      } else if (gotoStart) {
         sel.collapseToStart();
       }
     } catch (e) {}
