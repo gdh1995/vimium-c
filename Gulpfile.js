@@ -7,7 +7,6 @@ var concat = require('gulp-concat');
 var changed = require('gulp-changed');
 var ts = require("gulp-typescript");
 var newer = require('gulp-newer');
-var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
 var clean = require('gulp-clean');
 var gulpPrint = require('gulp-print');
@@ -59,19 +58,20 @@ var Tasks = {
   "build/ts": ["build/scripts", "build/main_pages"],
 
   "min/bg": function(cb) {
+    var nameCache = { vars: {}, props: {} };
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").split("\n");
     var body = sources.splice(0, sources.indexOf("background/main.js") + 1, "background/body.js");
     gulp.task("min/bg/_1", function() {
-      return uglifyJSFiles(body, sources[0]);
+      return uglifyJSFiles(body, sources[0], null, nameCache);
     });
     var index = sources.indexOf("background/tools.js");
     var tail = sources.splice(index, sources.length - index, "background/tail.js");
     gulp.task("min/bg/_2", function() {
-      return uglifyJSFiles(tail, sources[index]);
+      return uglifyJSFiles(tail, sources[index], null, nameCache);
     });
     gulp.task("min/bg/_3", function() {
-      return uglifyJSFiles(sources.slice(1, index), "background/", "");
+      return uglifyJSFiles(sources.slice(1, index), "background/", "", nameCache);
     });
     manifest.background.scripts = sources;
     gulp.parallel("min/bg/_1", "min/bg/_2", "min/bg/_3")(cb);
@@ -309,7 +309,7 @@ function outputJSResult(stream, concatedFile) {
   return stream.pipe(gulp.dest(JSDEST));
 }
 
-function uglifyJSFiles(path, output, new_suffix) {
+function uglifyJSFiles(path, output, new_suffix, nameCache) {
   if (typeof path === "string") {
     path = [path];
   }
@@ -345,7 +345,13 @@ function uglifyJSFiles(path, output, new_suffix) {
     }
     stream = stream.pipe(concat(output));
   }
-  stream = stream.pipe(uglify(loadUglifyConfig()));
+  var config = loadUglifyConfig(!!nameCache);
+  if (nameCache) {
+    config.nameCache = nameCache;
+    patchGulpUglify();
+  }
+  var uglify = require('gulp-uglify');
+  stream = stream.pipe(uglify(config));
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(rename({ suffix: new_suffix }));
   }
@@ -669,16 +675,37 @@ function patchExtendClick(source) {
     source = "function(" + source;
     source = prefix + source + ")();'" + suffix;
   } else {
-    print("Error: can not wrap extend_click scripts!!!");
+    logger.error("Error: can not wrap extend_click scripts!!!");
   }
   return source;
 }
 
+var _gulpUglifyPatched = false;
+function patchGulpUglify() {
+  if (_gulpUglifyPatched) { return; }
+  var path = "node_modules/gulp-uglify/lib/minify.js";
+  var info = {};
+  try {
+    var minify_tmpl = readFile(path, info);
+    if (! /nameCache\s*=/.test(minify_tmpl)) {
+      minify_tmpl = minify_tmpl.replace(/\b(\w+)\s?=\s?setup\(([^)]+)\)(.*?);/, "$1 = setup($2)$3;\n      $1.nameCache = ($2).nameCache || null;");
+      fs.writeFileSync(path, minify_tmpl);
+      print("Patch gulp-uglify: succeed");
+    }
+  } catch (e) {
+    logger.error("Error: Failed to patch gulp-uglify: " + e);
+  }
+  _gulpUglifyPatched = true;
+}
+
 var _uglifyjsConfig = null;
-function loadUglifyConfig() {
+function loadUglifyConfig(reload) {
   let a = _uglifyjsConfig;
-  if (a == null) {
-    a = _uglifyjsConfig = readJSON("scripts/uglifyjs.json");
+  if (a == null || reload) {
+    a = readJSON("scripts/uglifyjs.json");
+    if (!reload) {
+      _uglifyjsConfig = a;
+    }
     a.output || (a.output = {});
     if (a.mangle && a.mangle.properties && typeof a.mangle.properties.regex === "string") {
       let re = a.mangle.properties.regex.match(/^\/(.*)\/([a-z]*)$/);
