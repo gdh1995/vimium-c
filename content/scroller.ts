@@ -167,7 +167,7 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
       element = VDom.SafeEl_(VDom.GetParent_(element as Element, getInsertion)) || top;
     }
     if (element === top && top && !isCurVerticallyScrollable) {
-      element = this._selectFirst(top) || top;
+      element = this.current_ = this._selectFirst(top) || top;
     }
     this.scrolled_ = 0;
     return element;
