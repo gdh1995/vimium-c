@@ -192,7 +192,10 @@ _listen("DOMContentLoaded", handler, true);
     return;
   }
   VDom.Scripts = false;
-  interface TimerLib extends Window { setInterval: typeof setInterval; setTimeout: typeof setTimeout; }
+  interface TimerLib extends Window {
+    setInterval: typeof setInterval;
+    setTimeout: typeof setTimeout | ((this: void, handler: (this: void, i: TimerType.fake | undefined) => void, timeout: number) => number);
+  }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
