@@ -61,7 +61,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }, 2000);
     },
     Connect_: (function (this: void, status: PortType): void {
-      const runtime: typeof chrome.runtime = (notChrome ? browser : chrome).runtime,
+      const runtime: typeof chrome.runtime = (notChrome ? browser as typeof chrome : chrome).runtime,
       data = { name: "vimium-c." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
       port = vPort._port = isInjected ? runtime.connect(VimiumInjector.id, data) as Port : runtime.connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);

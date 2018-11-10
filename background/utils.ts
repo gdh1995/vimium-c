@@ -729,7 +729,7 @@ var Utils = {
   hasUpperCase (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
 
-declare var browser: never;
+declare var browser: unknown;
 const NotChrome: boolean = typeof browser !== "undefined" && (browser && (browser as any).runtime) != null
   && location.protocol.lastIndexOf("chrome", 0) < 0 // in case Chrome also supports `browser` in the future
 , IsEdge = NotChrome && !!(window as any).StyleMedia
@@ -747,5 +747,5 @@ String.prototype.startsWith = function(this: string, s: string): boolean {
 });
 }
 if (NotChrome) {
-  window.chrome = browser;
+  window.chrome = browser as typeof chrome;
 }

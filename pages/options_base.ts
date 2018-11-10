@@ -7,9 +7,9 @@ interface Checker<T extends keyof AllowedOptions> {
   check (value: AllowedOptions[T]): AllowedOptions[T];
 }
 
-declare var browser: never;
-if (typeof browser !== "undefined" && (browser && (browser as any).runtime) != null) {
-  window.chrome = browser;
+declare var browser: unknown;
+if (typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
+  window.chrome = browser as typeof chrome;
 }
 const KeyRe = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
 __extends = function(child: Function, parent: Function): void {

@@ -1,10 +1,10 @@
 /// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
 /// <reference path="../types/vimium_c.d.ts" />
-declare var browser: never;
+declare var browser: unknown;
 var VimiumInjector = null as never as VimiumInjector;
 if (typeof browser !== "undefined" && browser && (browser as any).runtime) {
-  window.chrome = browser;
+  window.chrome = browser as typeof chrome;
 }
 window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
   let loader = (document as any).currentScript as HTMLScriptElement;

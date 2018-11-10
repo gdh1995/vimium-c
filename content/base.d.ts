@@ -316,4 +316,4 @@ interface VSettings {
   destroy (this: void, silent?: boolean): void;
 }
 declare var VimiumInjector: VimiumInjector, VSettings: VSettings;
-declare var browser: never;
+declare var browser: unknown;

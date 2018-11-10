@@ -12,7 +12,7 @@ VDom.DocReady(function() {
   // Note: should keep the same with frontend.ts
   const notChrome = typeof browser !== "undefined" && !(
     browser && (browser as typeof chrome).runtime || ((browser as typeof chrome | HTMLHtmlElement) instanceof Element)),
-  runtime: typeof chrome.runtime = (notChrome ? browser : chrome).runtime;
+  runtime: typeof chrome.runtime = (notChrome ? browser as typeof chrome : chrome).runtime;
   if (runtime.onMessageExternal) {
     VimiumInjector.alive = 1;
   } else {

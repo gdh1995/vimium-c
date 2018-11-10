@@ -957,7 +957,7 @@ P = {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
-window.browser && (browser as typeof chrome).runtime && (window.chrome = browser);
+window.browser && (browser as typeof chrome).runtime && (window.chrome = browser as typeof chrome);
 (function(): void {
   if ((document.documentElement as HTMLElement).getAttribute("data-version") != "1.68.1") {
     location.href = "about:blank";
