@@ -464,7 +464,7 @@ Settings.updateHooks.keyMappings = function(value: string): void {
   Commands.parseKeyMappings(value);
   Commands.populateCommandKeys();
   return (this as typeof Settings).broadcast({
-    name: "keyMap",
+    name: kBgReq.keyMap,
     mapKeys: CommandsData.mapKeyRegistry,
     keyMap: CommandsData.keyMap
   });

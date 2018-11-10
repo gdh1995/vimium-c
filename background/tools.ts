@@ -278,7 +278,7 @@ Marks = { // NOTE: all public members should be static
         : { tabId: tabId as number, url, scroll }));
   },
   _goto (port: Port, options: CmdOptions["goToMarks"]) {
-    port.postMessage<1, "goToMarks">({ name: "execute", command: "goToMarks", count: 1, options, CSS: null});
+    port.postMessage<1, "goToMarks">({ name: kBgReq.execute, command: "goToMarks", count: 1, options, CSS: null});
   },
   createMark (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.sender.tabId;
@@ -286,7 +286,7 @@ Marks = { // NOTE: all public members should be static
       return Marks._set(request as MarksNS.NewMark, port.sender.incognito, tabId);
     }
     (port = Backend.indexPorts(tabId, 0) || port) && port.postMessage({
-      name: "createMark",
+      name: kBgReq.createMark,
       markName: request.markName,
     });
   },

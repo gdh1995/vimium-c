@@ -304,8 +304,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     setTimeout(doSyncToFrontend, 100, toSync);
   };
   function doSyncToFrontend (toSync: typeof Option.syncToFrontend): void {
-    const ref = bgSettings.bufferToLoad, delta: BgReq["settingsUpdate"]["delta"] = {},
-    req: BgReq["settingsUpdate"] = { name: "settingsUpdate", delta };
+    const ref = bgSettings.bufferToLoad, delta: BgReq[kBgReq.settingsUpdate]["delta"] = {},
+    req: Req.bg<kBgReq.settingsUpdate> = { name: kBgReq.settingsUpdate, delta };
     for (const key of toSync) {
       delta[key] = ref[key] = bgSettings.get(key);
     }

@@ -282,7 +282,7 @@ interface VEventMode {
   suppress_(keyCode?: VKeyCodes): void;
   OnWndFocus_ (this: void): void;
   focusAndListen_ (this: void, callback?: (() => void) | null, timedout?: 0): void;
-  focus_ (this: void, request: BgReq["focusFrame"]): void;
+  focus_ (this: void, request: BgReq[kBgReq.focusFrame]): void;
   onWndBlur_ (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
   mapKey_ (this: void, key: string): string;

@@ -11,101 +11,102 @@ interface ParsedSearch {
   url: string;
 }
 
+
+declare const enum kBgReq {
+  init, reset, url, msg, eval,
+  settingsUpdate, focusFrame, exitGrab, keyMap, execute,
+  createMark, showHUD, count, showHelpDialog,
+  OMNI_MIN = 42,
+  omni_secret = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus, omni_blurred,
+  END = "END", // without it, TypeScript will report errors for number indexes
+}
+
 interface BgReq {
-  reset: {
-    passKeys: string | null;
-    forced?: boolean;
-  };
-  msg: {
-    mid: number;
-    response: FgRes[keyof FgRes];
-  };
-  createMark: {
-    name: "createMark";
-    markName: string;
-  };
-  keyMap: {
-    mapKeys: SafeDict<string> | null;
-    keyMap: KeyMap;
-  };
-  showHUD: {
-    name: "showHUD";
-    CSS?: string | null;
-    text?: string;
-    isCopy?: boolean;
-  };
-  focusFrame: {
-    CSS?: string | null;
-    mask: FrameMaskType;
-    key: VKeyCodes;
-  };
-  execute: BaseExecute<object> & {
-    name: "execute";
-  };
-  exitGrab: {
-    name: "exitGrab";
-  };
-  showHelpDialog: {
-    CSS?: string | null;
-    html: string;
-    optionUrl: string;
-    advanced: boolean;
-  };
-  init: {
-    name: "init",
+  [kBgReq.init]: {
     flags: Frames.Flags;
     load: SettingsNS.FrontendSettingCache,
     passKeys: string | null;
     mapKeys: SafeDict<string> | null,
     keyMap: KeyMap
   };
-  response: {
-    name: "response",
-    response: FgRes[keyof FgRes],
+  [kBgReq.reset]: {
+    passKeys: string | null;
+    forced?: boolean;
   };
-  settingsUpdate: {
-    name: "settingsUpdate",
+  [kBgReq.msg]: {
+    mid: number;
+    response: FgRes[keyof FgRes];
+  };
+  [kBgReq.createMark]: {
+    markName: string;
+  };
+  [kBgReq.keyMap]: {
+    mapKeys: SafeDict<string> | null;
+    keyMap: KeyMap;
+  };
+  [kBgReq.showHUD]: {
+    CSS?: string | null;
+    text?: string;
+    isCopy?: boolean;
+  };
+  [kBgReq.focusFrame]: {
+    CSS?: string | null;
+    mask: FrameMaskType;
+    key: VKeyCodes;
+  };
+  [kBgReq.execute]: BaseExecute<object> & {
+    name: kBgReq.execute;
+  };
+  [kBgReq.exitGrab]: {
+    name: kBgReq.exitGrab;
+  };
+  [kBgReq.showHelpDialog]: {
+    CSS?: string | null;
+    html: string;
+    optionUrl: string;
+    advanced: boolean;
+  };
+  [kBgReq.settingsUpdate]: {
     delta: {
       [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
     }
   };
-  url: {
-    name?: "url";
+  [kBgReq.url]: {
+    name?: kBgReq.url;
     handler: keyof FgReq;
     url?: string;
   };
-  eval: {
+  [kBgReq.eval]: {
     url: string; // a javascript: URL
   };
-  count: {
+  [kBgReq.count]: {
     cmd: string;
     id: number;
   }
 }
 
 interface BgVomnibarReq {
-  omni: {
+  [kBgReq.omni_omni]: {
     list: CompletersNS.Suggestion[];
     autoSelect: boolean;
     matchType: CompletersNS.MatchType;
     favIcon: 0 | 1 | 2;
     total: number;
   };
-  returnFocus: {
+  [kBgReq.omni_returnFocus]: {
     key: VKeyCodes;
   };
-  secret: {
+  [kBgReq.omni_secret]: {
     secret: number;
     browserVersion: BrowserVer;
   };
-  blurred: {};
-  parsed: {
+  [kBgReq.omni_blurred]: {};
+  [kBgReq.omni_parsed]: {
     id: number;
     search: FgRes["parseSearchUrl"];
   }
 }
-interface FullBgReq extends BgReq, BgVomnibarReq {
-}
+interface FullBgReq extends BgReq, BgVomnibarReq {}
 
 interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
@@ -316,9 +317,10 @@ interface FgReq {
 }
 
 declare namespace Req {
-  type bg<K extends keyof FullBgReq> = FullBgReq[K] & {
-    name: K;
-  };
+  type bg<K extends kBgReq> =
+    K extends keyof BgReq ? BgReq[K] & { name: K; } :
+    K extends keyof BgVomnibarReq ? BgVomnibarReq[K] & { name: K; } :
+    never;
   type baseFg<K extends string> = {
     handler: K;
   }
@@ -328,11 +330,11 @@ declare namespace Req {
     mid: number;
     readonly msg: K;
   }
-  type res<K extends keyof FgRes> = bg<"msg"> & {
+  type res<K extends keyof FgRes> = bg<kBgReq.msg> & {
     readonly response: FgRes[K];
   }
 
-  type FgCmd<O extends keyof CmdOptions> = BaseExecute<CmdOptions[O]> & { command: O; } & Req.bg<"execute">;
+  type FgCmd<O extends keyof CmdOptions> = BaseExecute<CmdOptions[O]> & { command: O; } & Req.bg<kBgReq.execute>;
 }
 
 interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> {

@@ -138,7 +138,7 @@ declare namespace Frames {
     sender: Sender;
     postMessage<K extends 1, O extends keyof CmdOptions>(request: Req.FgCmd<O>): K;
     postMessage<K extends keyof FgRes>(response: Req.res<K>): 1;
-    postMessage<K extends keyof FullBgReq>(request: Req.bg<K>): 1;
+    postMessage<K extends kBgReq>(request: Req.bg<K>): 1;
   }
 
   interface Frames extends ReadonlyArray<Port> {

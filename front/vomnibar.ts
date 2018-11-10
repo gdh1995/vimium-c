@@ -277,7 +277,7 @@ var O = {
       url: str
     });
   },
-  parsed ({ id, search }: BgVomnibarReq["parsed"]): void {
+  parsed_ ({ id, search }: BgVomnibarReq[kBgReq.omni_parsed]): void {
     const line: SuggestionEx = this.completions_[id] as SuggestionEx;
     line.parsed = search ? (this.modeType_ !== "omni" ? ":o " : "") + search.keyword + " " + search.url + " " : line.text;
     if (id === this.selection_) {
@@ -564,7 +564,7 @@ var O = {
     }
     this.update_(-1);
   },
-  omni (response: BgVomnibarReq["omni"]): void {
+  omni_ (response: BgVomnibarReq[kBgReq.omni_omni]): void {
     if (!this.isActive_) { return; }
     const list = response.list, height = list.length, notEmpty = height > 0;
     this.total_ = response.total;
@@ -620,7 +620,7 @@ var O = {
     a.OnShown_ = null;
     listen("focus", wndFocus);
     listen("blur", wndFocus);
-    a.blurred();
+    a.blurred_();
   } as ((this: void) => void) | null,
   _focusTimer: 0,
   OnWndFocus_ (this: void, event: Event): void {
@@ -634,18 +634,18 @@ var O = {
       a._focusTimer = 0;
     }
     if (byCode) {
-      a.blurred(blurred);
+      a.blurred_(blurred);
     } else if (blurred) {
       P.postMessage_({ handler: "blurTest" });
     } else {
-      a._focusTimer = setTimeout(a.blurred, 50, false);
+      a._focusTimer = setTimeout(a.blurred_, 50, false);
       P && P.postMessage_({ handler: "blank" });
       if (a.pageType_ === VomnibarNS.PageType.ext && P) {
         P.postToOwner_({name: "test"});
       }
     }
   },
-  blurred (this: void, blurred?: boolean | object): void {
+  blurred_ (this: void, blurred?: boolean | object): void {
     const a = (document.body as HTMLBodyElement).classList;
     (typeof blurred === "boolean" ? !blurred : document.hasFocus()) ? a.remove("transparent") : a.add("transparent");
   },
@@ -723,7 +723,7 @@ var O = {
     if (O.keyResult_ === HandlerResult.Prevent) { event.preventDefault(); }
     event.stopImmediatePropagation();
   },
-  returnFocus (this: void, request: BgVomnibarReq["returnFocus"]): void {
+  returnFocus_ (this: void, request: BgVomnibarReq[kBgReq.omni_returnFocus]): void {
     type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(P.postToOwner_ as
       VoidPost, 0, { name: "focus", key: request.key });
@@ -761,7 +761,7 @@ var O = {
       }
     }, 100);
   },
-  secret: null as never as (request: BgVomnibarReq["secret"]) => void,
+  secret_: null as never as (request: BgVomnibarReq[kBgReq.omni_secret]) => void,
 
   maxResults_: (<number>window.VomnibarListLength | 0) || 10,
   mode_: {
@@ -924,10 +924,13 @@ P = {
     }
   },
   _Listener<T extends keyof BgVomnibarReq> (this: void, response: Req.bg<T>): void {
-    type Keys = keyof BgVomnibarReq;
-    (O as { [K in Keys]: (res: Req.bg<K>) => void
-      } as { [K in Keys]: <T2 extends Keys>(res: Req.bg<T2>) => void
-      })[response.name](response);
+    const name = response.name;
+    name === kBgReq.omni_secret ? O.secret_(response as Req.bg<kBgReq.omni_secret>) :
+    name === kBgReq.omni_omni ? O.omni_(response as Req.bg<kBgReq.omni_omni>) :
+    name === kBgReq.omni_parsed ? O.parsed_(response as Req.bg<kBgReq.omni_parsed>) :
+    name === kBgReq.omni_returnFocus ? O.returnFocus_(response as Req.bg<kBgReq.omni_returnFocus>) :
+    name === kBgReq.omni_blurred ? O.blurred_(response as Req.bg<kBgReq.omni_blurred>) :
+    0;
   },
   _OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
     type Res = VomnibarNS.CReq;
@@ -1002,8 +1005,8 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     }
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);
-  O.secret = function(this: typeof O, request): void {
-    this.secret = function() {};
+  O.secret_ = function(this: typeof O, request): void {
+    this.secret_ = function() {};
     O.browserVersion_ = request.browserVersion;
     const { secret } = request, msgs = unsafeMsg;
     _sec = secret;

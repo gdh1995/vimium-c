@@ -47,16 +47,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         VSettings.destroy();
       }
     },
-    Listener_<K extends keyof FgRes, T extends keyof BgReq> (this: void
-        , response: Req.res<K> | Req.bg<T>): void {
-      type TypeToCheck = { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void };
+    Listener_<T extends keyof BgReq> (this: void, response: Req.bg<T>): void {
       type TypeChecked = { [K in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
-      (requestHandlers as TypeToCheck as TypeChecked)[(response as Req.bg<T>).name as T](response as Req.bg<T>);
+      (requestHandlers as TypeChecked)[response.name](response);
     },
     TestAlive_ (): void { esc && !vPort._port && VSettings.destroy(); },
     ClearPort_ (this: void): void {
       vPort._port = null;
-      requestHandlers.init && setTimeout(function(i): void {
+      requestHandlers[kBgReq.init] && setTimeout(function(i): void {
         if (!i)
           try { esc && vPort.Connect_(PortType.initing); return; } catch(e) {}
         VSettings.destroy();
@@ -548,7 +546,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       if (event instanceof KeyboardEvent) { return HandlerResult.Nothing; }
     } as {
       (this: void, event: KeyboardEvent): HandlerResult.Nothing;
-      (this: void, request: Req.bg<"exitGrab">): void;
+      (this: void, request: Req.bg<kBgReq.exitGrab>): void;
       (this: void, event?: MouseEvent): void;
     },
     isActive_ (): boolean {
@@ -689,7 +687,7 @@ Pagination = {
     more_: false,
     node_: null as HTMLDivElement | null,
     timer_: 0,
-    Focus_ (this: void, { mask, CSS, key }: BgReq["focusFrame"]): void {
+    Focus_ (this: void, { mask, CSS, key }: BgReq[kBgReq.focusFrame]): void {
       CSS && VDom.UI.css_(CSS);
       if (mask !== FrameMaskType.NormalNext) {}
       else if (innerWidth < 3 || innerHeight < 3
@@ -821,8 +819,8 @@ Pagination = {
       }
     }
   },
-  requestHandlers = {
-    init (request: BgReq["init"]): void {
+  requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = [
+    function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {load, flags} = request, D = VDom;
       interface WindowMayOnMSEdge extends Window {
         StyleMedia?: object;
@@ -837,12 +835,12 @@ Pagination = {
         D.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement;
       }
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
-      r.keyMap(request);
+      r[kBgReq.keyMap](request);
       if (flags) {
         InsertMode.grabFocus_ = !(flags & Frames.Flags.userActed);
         isLocked = !!(flags & Frames.Flags.locked);
       }
-      r.reset(request, 1);
+      (r[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
       if (isEnabled) {
         InsertMode.init_();
       } else {
@@ -850,13 +848,13 @@ Pagination = {
         hook(HookAction.Suppress);
         VSettings.uninit_ && VSettings.uninit_(HookAction.Suppress);
       }
-      r.init = null as never;
+      r[kBgReq.init] = null as never;
       return D.DocReady(function (): void {
         HUD.enabled_ = true;
         onWndFocus = vPort.SafePost_.bind(vPort as never, { handler: "focus" });
       });
     },
-    reset (request: BgReq["reset"], initing?: 1): void {
+    function (request: BgReq[kBgReq.reset], initing?: 1): void {
       const newPassKeys = request.passKeys, enabled = newPassKeys !== "", old = VSettings.enabled_;
       passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
       VSettings.enabled_ = isEnabled = enabled;
@@ -875,18 +873,18 @@ Pagination = {
       }
       if (VDom.UI.box_) { return VDom.UI.toggle_(enabled); }
     },
-    url<T extends keyof FgReq> (this: void, request: BgReq["url"] & Req.fg<T>): void {
-      delete (request as Req.bg<"url">).name;
+    function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
+      delete (request as Req.bg<kBgReq.url>).name;
       request.url = location.href;
       post<T>(request);
     },
-    msg<K extends keyof FgRes> (response: Req.res<K>): void {
+    function<K extends keyof FgRes> (response: Req.res<K>): void {
       const arr = vPort._callbacks, id = response.mid, handler = arr[id];
       delete arr[id];
       handler(response.response);
     },
-    eval (options: BgReq["eval"]): void { VPort.evalIfOK_(options.url); },
-    settingsUpdate ({ delta }: BgReq["settingsUpdate"]): void {
+    function (options: BgReq[kBgReq.eval]): void { VPort.evalIfOK_(options.url); },
+    function ({ delta }: BgReq[kBgReq.settingsUpdate]): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer_(delta);
       const cache = VSettings.cache;
@@ -898,9 +896,9 @@ Pagination = {
       "deepHints" in delta && VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
       (VHints.queryInDeep_ = cache.deepHints ? DeepQueryType.InDeep : DeepQueryType.NotDeep);
     },
-    focusFrame: FrameMask.Focus_,
-    exitGrab: InsertMode.ExitGrab_ as (this: void, request: Req.bg<"exitGrab">) => void,
-    keyMap (request: BgReq["keyMap"]): void {
+    FrameMask.Focus_,
+    InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
+    function (request: BgReq[kBgReq.keyMap]): void {
       const map = keyMap = request.keyMap, func = Object.setPrototypeOf;
       func(map, null);
       function iter(obj: ReadonlyChildKeyMap): void {
@@ -916,7 +914,7 @@ Pagination = {
       }
       (mapKeys = request.mapKeys) && func(mapKeys, null);
     },
-    execute<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
+    function<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
       if (request.CSS) { VDom.UI.css_(request.CSS); }
       const options: CmdOptions[O] | null = request.options;
       type Keys = keyof CmdOptions;
@@ -928,16 +926,16 @@ Pagination = {
       };
       (Commands as TypeToCheck as TypeChecked)[request.command](request.count, (options ? VUtils.safer_(options) : Object.create(null)) as CmdOptions[O]);
     },
-    createMark (request: BgReq["createMark"]): void { return VMarks.createMark_(request.markName); },
-    showHUD ({ text, CSS, isCopy }: Req.bg<"showHUD">): void {
+    function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.markName); },
+    function ({ text, CSS, isCopy }: Req.bg<kBgReq.showHUD>): void {
       if (CSS) { VDom.UI.css_(CSS); }
       return text ? isCopy ? HUD.copied(text) : HUD.tip(text) : void 0;
     },
-    count (request: BgReq["count"]): void {
+    function (request: BgReq[kBgReq.count]): void {
       const count = parseInt(currentKeys, 10) || 1;
       post({ handler: "cmd", cmd: request.cmd, count, id: request.id});
     },
-  showHelpDialog ({ html, advanced: shouldShowAdvanced, optionUrl, CSS }: Req.bg<"showHelpDialog">): void {
+  function ({ html, advanced: shouldShowAdvanced, optionUrl, CSS }: Req.bg<kBgReq.showHelpDialog>): void {
     let box: HTMLElement, oldShowHelp = Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void
       , node1: HTMLElement;
     if (CSS) { VDom.UI.css_(CSS); }
@@ -1018,7 +1016,7 @@ Pagination = {
       VUtils.push_(Vomnibar.onKeydown_, Vomnibar);
     }
   }
-  };
+  ];
 
   function parsePassKeys(newPassKeys: string): SafeDict<true> {
     const pass = Object.create<true>(null);

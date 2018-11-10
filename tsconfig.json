@@ -3,7 +3,7 @@
     "allowJs": false,
     "alwaysStrict": true,
     "forceConsistentCasingInFileNames": false,
-    "keyofStringsOnly": true,
+    "keyofStringsOnly": false,
     "listEmittedFiles": true,
     "module": "system",
     "newLine": "lf",
