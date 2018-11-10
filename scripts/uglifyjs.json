@@ -28,7 +28,7 @@
     "unused": false,
     "toplevel": false,
     "hoist_funs": true,
-    "hoist_vars": false,
+    "hoist_vars": true,
     "if_return": true,
     "inline": false,
     "join_vars": true,

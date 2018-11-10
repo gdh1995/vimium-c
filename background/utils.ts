@@ -729,6 +729,14 @@ var Utils = {
   hasUpperCase (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
 
+declare var browser: never;
+const NotChrome: boolean = typeof browser !== "undefined" && (browser && (browser as any).runtime) != null
+  && location.protocol.lastIndexOf("chrome", 0) < 0 // in case Chrome also supports `browser` in the future
+, IsEdge = NotChrome && !!(window as any).StyleMedia
+, IsFirefox = NotChrome && !IsEdge && (<RegExpOne>/\bFirefox\//).test(navigator.userAgent)
+, BrowserProtocol = NotChrome ? IsFirefox ? "moz" : IsEdge ? "ms-browser" : "about" : "chrome"
+;
+
 if (!"".startsWith) {
 String.prototype.startsWith = function(this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
@@ -738,14 +746,6 @@ String.prototype.startsWith = function(this: string, s: string): boolean {
   return i >= 0 && this.indexOf(s, i) === i;
 });
 }
-
-declare var browser: never;
-const NotChrome: boolean = typeof browser !== "undefined" && (browser && (browser as any).runtime) != null
-  && !location.protocol.startsWith("chrome") // in case Chrome also supports `browser` in the future
-, IsEdge = NotChrome && !!(window as any).StyleMedia
-, IsFirefox = NotChrome && !IsEdge && (<RegExpOne>/\bFirefox\//).test(navigator.userAgent)
-, BrowserProtocol = NotChrome ? IsFirefox ? "moz" : IsEdge ? "ms-browser" : "about" : "chrome"
-;
 if (NotChrome) {
   window.chrome = browser;
 }
