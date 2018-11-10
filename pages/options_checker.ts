@@ -27,7 +27,8 @@ let _a = {
   quoteRe: <RegExpG & RegExpSearchable<0>> /"/g,
   normalizeOptions (str: string, value: string, s2: string | undefined, tail: string): string {
     if (s2) {
-      s2 = s2.replace(BG.Commands.hexCharRe, BG.Commands.onHex);
+      s2 = s2.replace((BG.Commands as NonNullable<Window["Commands"]>).hexCharRe
+        , (BG.Commands as NonNullable<Window["Commands"]>).onHex);
       value = `"${s2}"`;
     }
     try {
@@ -69,7 +70,7 @@ let _a = {
     if (!string) { return string; }
     this.init && this.init();
     if (!this.isKeyReInstalled) {
-      BG.Commands.setKeyRe(KeyRe.source);
+      (BG.Commands as NonNullable<Window["Commands"]>).SetKeyRe(KeyRe.source);
       this.isKeyReInstalled = true;
     }
     string = "\n" + string.replace(this.wrapLineRe, '\\\r');

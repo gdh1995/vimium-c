@@ -86,11 +86,11 @@ var Backend: BackendHandlersNS.BackendHandlers;
   NoFrameId = Settings.CONST.ChromeVersion < BrowserVer.MinWithFrameId;
     function isExtIdAllowed (this: void, extId: string | null | undefined): boolean {
       if (extId == null) { extId = "unknown sender"; }
-      const stat = Settings.extWhiteList[extId];
+      const stat = Settings.extWhiteList_[extId];
       if (stat != null) { return stat; }
       console.log("%cReceive message from an extension/sender not in the white list: %c%s",
         "background-color: #fffbe5", "background-color:#fffbe5; color: red", extId);
-      return Settings.extWhiteList[extId] = false;
+      return Settings.extWhiteList_[extId] = false;
     }
     function selectFrom (this: void, tabs: Tab[]): ActiveTab {
       for (let i = tabs.length; 0 < --i; ) {
@@ -145,15 +145,15 @@ var Backend: BackendHandlersNS.BackendHandlers;
     }
     function safeUpdate (this: void, url: string, secondTimes?: true, tabs1?: [Tab]): void {
       if (!tabs1) {
-        if (Utils.isRefusingIncognito(url) && secondTimes !== true) {
+        if (Utils.isRefusingIncognito_(url) && secondTimes !== true) {
           getCurTab(function(tabs1: [Tab]): void {
             return safeUpdate(url, true, tabs1);
           });
           return;
         }
-      } else if (tabs1.length > 0 && tabs1[0].incognito && Utils.isRefusingIncognito(url)) {
+      } else if (tabs1.length > 0 && tabs1[0].incognito && Utils.isRefusingIncognito_(url)) {
         tabsCreate({ url });
-        Utils.resetRe();
+        Utils.resetRe_();
         return;
       }
       const arg = { url }, cb = onRuntimeError;
@@ -162,27 +162,27 @@ var Backend: BackendHandlersNS.BackendHandlers;
       } else {
         chrome.tabs.update(arg, cb);
       }
-      Utils.resetRe();
+      Utils.resetRe_();
     }
     function onEvalUrl (this: void, arr: Urls.SpecialUrl): void {
       if (arr instanceof Promise) { arr.then(onEvalUrl); return; }
-      Utils.resetRe();
+      Utils.resetRe_();
       switch(arr[1]) {
       case "copy":
-        return Backend.showHUD((arr as Urls.CopyEvalResult)[0], true);
+        return Backend.showHUD_((arr as Urls.CopyEvalResult)[0], true);
       case "status":
         return Backend.forceStatus((arr as Urls.StatusEvalResult)[0]);
       }
     }
     function complainNoSession (this: void): void {
-      return Settings.CONST.ChromeVersion >= BrowserVer.MinSession ? Backend.complain("control tab sessions")
-        : Backend.showHUD(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
+      return Settings.CONST.ChromeVersion >= BrowserVer.MinSession ? Backend.complain_("control tab sessions")
+        : Backend.showHUD_(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
     }
     const isNotVomnibarPage = IsEdge ? function() { return false; } : function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
       const info = port.sender as SenderEx;
       if (info.isVomnibar == null) {
-        info.isVomnibar = info.url === Settings.cache.vomnibarPage_f || info.url === Settings.CONST.VomnibarPageInner;
+        info.isVomnibar = info.url === Settings.cache.vomnibarPage_f || info.url === Settings.CONST.VomnibarPageInner_;
       }
       if (info.isVomnibar) { return false; }
       if (!nolog && !info.warned) {
@@ -226,7 +226,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
           if (favIcon) { break; }
         }
       }
-      Utils.resetRe();
+      Utils.resetRe_();
       try {
       this.postMessage({ name: kBgReq.omni_omni, autoSelect, matchType, list, favIcon, total });
       } catch (e) {}
@@ -242,11 +242,11 @@ var Backend: BackendHandlersNS.BackendHandlers;
       return null;
     }
     function confirm (this: void, command: string, count: number): boolean {
-      let msg = (CommandsData.availableCommands[command] as CommandsNS.Description)[0];
+      let msg = (CommandsData.availableCommands_[command] as CommandsNS.Description)[0];
       msg = msg.replace(<RegExpOne>/ \(use .*|&nbsp\(.*|<br\/>/, "");
       return window.confirm(
 `You have asked Vimium C to perform ${count} repeats of the command:
-        ${Utils.unescapeHTML(msg)}
+        ${Utils.unescapeHTML_(msg)}
 
 Are you sure you want to continue?`);
     }
@@ -284,7 +284,7 @@ Are you sure you want to continue?`);
       options && typeof options === "object" ?
           Object.setPrototypeOf(options, null) : (options = null);
       lastKey = (+<number>lastKey || VKeyCodes.None) as VKeyCodes;
-      return executeCommand(command, Utils.makeCommand(command, options), count, lastKey, port as Port);
+      return executeCommand(command, Utils.makeCommand_(command, options), count, lastKey, port as Port);
     }
 
     const
@@ -441,10 +441,10 @@ Are you sure you want to continue?`);
       const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
       options = cOptions as OpenUrlOptions;
       cOptions = null as never;
-      Utils.resetRe();
+      Utils.resetRe_();
       return typeof url !== "string" ? onEvalUrl(url as Urls.SpecialUrl)
         : openShowPage[0](url, reuse, options) ? void 0
-        : Utils.isJSUrl(url) ? openJSUrl(url)
+        : Utils.isJSUrl_(url) ? openJSUrl(url)
         : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
         : reuse === ReuseType.current ? safeUpdate(url)
         : tabs ? openUrlInNewTab(url, reuse, options, tabs as [Tab])
@@ -452,14 +452,14 @@ Are you sure you want to continue?`);
         ;
     }
     function openCopiedUrl (this: void, tabs: [Tab] | never[] | undefined, url: string | null): void {
-      if (url === null) { return Backend.complain("read clipboard"); }
-      if (!(url = url.trim())) { return Backend.showHUD("No text copied!"); }
-      if (Utils.quotedStringRe.test(url)) {
+      if (url === null) { return Backend.complain_("read clipboard"); }
+      if (!(url = url.trim())) { return Backend.showHUD_("No text copied!"); }
+      if (Utils.quotedStringRe_.test(url)) {
         url = url.slice(1, -1);
       } else {
         const kw: any = cOptions.keyword;
         if (!kw || kw === "~") {
-          url = Utils.detectLinkDeclaration(url);
+          url = Utils.detectLinkDeclaration_(url);
         }
       }
       return openUrl(url, Urls.WorkType.ActAnyway, tabs);
@@ -468,7 +468,7 @@ Are you sure you want to continue?`);
       const tab = tabs[0] as Tab | undefined, tabIncognito = tab ? tab.incognito : false,
       { incognito } = options, active = reuse !== ReuseType.newBg;
       let window = options.window;
-      if (Utils.isRefusingIncognito(url)) {
+      if (Utils.isRefusingIncognito_(url)) {
         if (tabIncognito || TabRecency.incognito === IncognitoType.true) {
           window = true;
         }
@@ -503,7 +503,7 @@ Are you sure you want to continue?`);
     }
     const
     openShowPage = [function(url, reuse, options, tab): boolean {
-      const prefix = Settings.CONST.ShowPage;
+      const prefix = Settings.CONST.ShowPage_;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
       if (!tab) {
         getCurTab(function(tabs: [Tab]): void {
@@ -564,7 +564,7 @@ Are you sure you want to continue?`);
         url = true;
         if (!(wnd = wnds[0])) {}
         else if (wnd.id !== tab.windowId) { url = false; } // the tab may be in a popup window
-        else if (wnd.incognito && !Utils.isRefusingIncognito(Settings.cache.newTabUrl_f)) {
+        else if (wnd.incognito && !Utils.isRefusingIncognito_(Settings.cache.newTabUrl_f)) {
           windowId = wnd.id;
         }
         // other urls will be disabled if incognito else auto in current window
@@ -675,7 +675,7 @@ Are you sure you want to continue?`);
         gCmdTimer = 0;
       }
       if (!ports) {
-        return execute(cmd, CommandsData.cmdMap[cmd] || null, 1, null);
+        return execute(cmd, CommandsData.cmdMap_[cmd] || null, 1, null);
       }
       gCmdTimer = setTimeout(executeGlobal, 100, cmd, null);
       ports[0].postMessage({ name: kBgReq.count, cmd, id: gCmdTimer });
@@ -686,7 +686,7 @@ Are you sure you want to continue?`);
     duplicateTab (): void {
       const tabId = cPort.sender.tabId;
       if (tabId < 0) {
-        return Backend.complain("duplicate such a tab");
+        return Backend.complain_("duplicate such a tab");
       }
       chrome.tabs.duplicate(tabId);
       if (commandCount < 2) { return; }
@@ -724,7 +724,7 @@ Are you sure you want to continue?`);
         const tab = selectFrom(wnd.tabs), i = tab.index, rawCount = commandCount, absCount = Math.abs(rawCount),
         limited = cOptions.limited != null ? !!cOptions.limited : absCount > total;
         let count = Math.min(absCount, limited ? rawCount < 0 ? i + 1 : total - i : total);
-        if (count >= total) { return Backend.showHUD("It does nothing to move all tabs of this window"); }
+        if (count >= total) { return Backend.showHUD_("It does nothing to move all tabs of this window"); }
         if (count > 30 && !confirm("moveTabToNewWindow", count)) { return; }
         rawCount < 0 && (count = -count);
         return makeWindow({
@@ -762,23 +762,23 @@ Are you sure you want to continue?`);
         } : null);
       }
       function reportNoop(): void {
-        return Backend.showHUD("This tab has been in an incognito window");
+        return Backend.showHUD_("This tab has been in an incognito window");
       }
       function moveTabToIncognito(wnd: PopWindow): void {
         const tab = selectFrom(wnd.tabs);
         if (wnd.incognito && tab.incognito) { return reportNoop(); }
         const options: chrome.windows.CreateData = {tabId: tab.id, incognito: true}, url = tab.url;
         if (tab.incognito) {
-        } else if (Utils.isRefusingIncognito(url)) {
+        } else if (Utils.isRefusingIncognito_(url)) {
           if (wnd.incognito) {
             return reportNoop();
           }
-          if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito) {
-            return Backend.complain("open this URL in incognito mode");
+          if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito_) {
+            return Backend.complain_("open this URL in incognito mode");
           }
         } else if (wnd.incognito) {
           ++tab.index;
-          return Backend.reopenTab(tab);
+          return Backend.reopenTab_(tab);
         } else {
           options.url = url;
         }
@@ -809,7 +809,7 @@ Are you sure you want to continue?`);
           if (options.url) {
             tabId = options.tabId;
             options.tabId = undefined;
-            if (Settings.CONST.DisallowIncognito) {
+            if (Settings.CONST.DisallowIncognito_) {
               options.focused = true;
               state = "";
             }
@@ -925,7 +925,7 @@ Are you sure you want to continue?`);
       }
       let count = commandCount;
       if (count < 2 && count > -2 && cPort.sender.incognito) {
-        return Backend.showHUD("Can not restore a tab in incognito mode!");
+        return Backend.showHUD_("Can not restore a tab in incognito mode!");
       }
       const limit = (chrome.sessions.MAX_SESSION_RESULTS as number) | 0;
       count > limit && limit > 0 && (count = limit);
@@ -939,7 +939,7 @@ Are you sure you want to continue?`);
       }
       function doRestore (this: void, list: chrome.sessions.Session[]): void {
         if (commandCount > list.length) {
-          return Backend.showHUD("The session index provided is out of range.");
+          return Backend.showHUD_("The session index provided is out of range.");
         }
         const session = list[commandCount - 1], item = session.tab || session.window;
         item && chrome.sessions.restore(item.sessionId);
@@ -980,13 +980,13 @@ Are you sure you want to continue?`);
     },
     searchInAnother (this: void, tabs: [Tab]): void {
       let keyword = (cOptions.keyword || "") + "";
-      const query = Backend.parse({ url: tabs[0].url });
+      const query = Backend.parse_({ url: tabs[0].url });
       if (!query || !keyword) {
-        Backend.showHUD(keyword ? "No search engine found!"
+        Backend.showHUD_(keyword ? "No search engine found!"
           : 'This key mapping lacks an arg "keyword"');
         return;
       }
-      let url_f = Utils.createSearchUrl(query.url.split(" "), keyword, Urls.WorkType.ActAnyway);
+      let url_f = Utils.createSearchUrl_(query.url.split(" "), keyword, Urls.WorkType.ActAnyway);
       cOptions = Object.setPrototypeOf({
         reuse: cOptions.reuse | 0,
         opener: true,
@@ -1007,7 +1007,7 @@ Are you sure you want to continue?`);
     },
     toggleMuteTab (): void {
       if (Settings.CONST.ChromeVersion < BrowserVer.MinMuted) {
-        return Backend.showHUD(`Vimium C can not control mute state before Chrome ${BrowserVer.MinMuted}`);
+        return Backend.showHUD_(`Vimium C can not control mute state before Chrome ${BrowserVer.MinMuted}`);
       }
       if (!(cOptions.all || cOptions.other)) {
         getCurTab(function([tab]: [Tab]): void {
@@ -1073,15 +1073,15 @@ Are you sure you want to continue?`);
       if (tabs.length <= 0) { return; }
       const tab = tabs[0];
       ++tab.index;
-      if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito
-          || TabRecency.incognito === IncognitoType.ensuredFalse || !Utils.isRefusingIncognito(tab.url)) {
-        return Backend.reopenTab(tab);
+      if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito_
+          || TabRecency.incognito === IncognitoType.ensuredFalse || !Utils.isRefusingIncognito_(tab.url)) {
+        return Backend.reopenTab_(tab);
       }
       chrome.windows.get(tab.windowId, function(wnd): void {
         if (wnd.incognito && !tab.incognito) {
           (tab as ReopenOptions).openerTabId = (tab as ReopenOptions).windowId = undefined;
         }
-        return Backend.reopenTab(tab);
+        return Backend.reopenTab_(tab);
       });
     },
     goToRoot (this: void, tabs: [Tab]): void {
@@ -1094,7 +1094,7 @@ Are you sure you want to continue?`);
         chrome.tabs.update(tabs[0].id, {url});
         return;
       }
-      return Backend.showHUD(url);
+      return Backend.showHUD_(url);
     },
     goUp (this: void): void {
       const trail = cOptions.trailing_slash;
@@ -1150,7 +1150,7 @@ Are you sure you want to continue?`);
         : !(sender && sender.tabId >= 0 && framesForTab[sender.tabId])
           ? "Vimium C can not access frames in current tab"
         : null;
-      msg && Backend.showHUD(msg);
+      msg && Backend.showHUD_(msg);
       if (!sender || !sender.frameId || NoFrameId || !chrome.webNavigation) {
         return BackgroundCommands.mainFrame();
       }
@@ -1203,9 +1203,9 @@ Are you sure you want to continue?`);
         return;
       default: str = tabs[0].url; break;
       }
-      decoded && (str = Utils.DecodeURLPart(str, decodeURI));
+      decoded && (str = Utils.DecodeURLPart_(str, decodeURI));
       VClipboard.copy(str);
-      return Backend.showHUD(str, true);
+      return Backend.showHUD_(str, true);
     },
     goNext (): void {
       let rel: string | undefined = cOptions.rel || cOptions.dir, p2: string[] = []
@@ -1253,8 +1253,8 @@ Are you sure you want to continue?`);
       let options: CmdOptions["visualMode"] = cOptions as Partial<CmdOptions["visualMode"]> as CmdOptions["visualMode"];
       if (!(sender.flags & Frames.Flags.hadVisualMode)) {
         sender.flags |= Frames.Flags.hadVisualMode;
-        options = Utils.extendIf(Object.create(null) as typeof options, options);
-        options.words = CommandsData.wordsRe;
+        options = Utils.extendIf_(Object.create(null) as typeof options, options);
+        options.words = CommandsData.wordsRe_;
       }
       const str = typeof options.mode === "string" ? (options.mode as string).toLowerCase() : "";
       options.mode = str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual;
@@ -1282,17 +1282,17 @@ Are you sure you want to continue?`);
         port = indexFrame(port.sender.tabId, 0) || port;
       }
       const page = Settings.cache.vomnibarPage_f, { url } = port.sender, preferWeb = !page.startsWith(BrowserProtocol),
-      inner = forceInner || !page.startsWith(location.origin) ? Settings.CONST.VomnibarPageInner : page;
+      inner = forceInner || !page.startsWith(location.origin) ? Settings.CONST.VomnibarPageInner_ : page;
       forceInner = (preferWeb ? url.startsWith(BrowserProtocol) || page.startsWith("file:") && !url.startsWith("file:")
           // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) that https refusing http iframes.
           || page.startsWith("http:") && url.startsWith("https:")
         : port.sender.incognito) || url.startsWith(location.origin) || !!forceInner;
       const useInner: boolean = forceInner || page === inner || port.sender.tabId < 0,
-      options: CmdOptions["vomnibar"] & SafeObject = Utils.extendIf(Object.setPrototypeOf<CmdOptions["vomnibar"]>({
+      options: CmdOptions["vomnibar"] & SafeObject = Utils.extendIf_(Object.setPrototypeOf<CmdOptions["vomnibar"]>({
         vomnibar: useInner ? inner : page,
         vomnibar2: useInner ? null : inner,
         ptype: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
-        script: useInner ? "" : Settings.CONST.VomnibarScript_f,
+        script: useInner ? "" : Settings.CONST.VomnibarScript_f_,
         secret: getSecret(),
         CSS: ensureInnerCSS(port)
       }, null), cOptions as {} as CmdOptions["vomnibar"]);
@@ -1307,7 +1307,7 @@ Are you sure you want to continue?`);
     clearFindHistory (this: void): void {
       const { incognito } = cPort.sender;
       FindModeHistory.removeAll(incognito);
-      return Backend.showHUD((incognito ? "incognito " : "") + "find history has been cleared.");
+      return Backend.showHUD_((incognito ? "incognito " : "") + "find history has been cleared.");
     },
     showHelp (this: void): void {
       if (cPort.sender.frameId === 0 && !(window.HelpDialog && (cPort.sender.flags & Frames.Flags.hadHelpDialog))) {
@@ -1327,7 +1327,7 @@ Are you sure you want to continue?`);
     toggleViewSource (this: void, tabs: [Tab]): void {
       let tab = tabs[0], url = tab.url;
       if (url.startsWith(BrowserProtocol)) {
-        return Backend.complain("visit HTML of an extension's page");
+        return Backend.complain_("visit HTML of an extension's page");
       }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
       tabsCreate({
@@ -1340,10 +1340,10 @@ Are you sure you want to continue?`);
     },
     toggle (this: void): void {
       type Keys = CmdOptions["toggle"]["key"];
-      const all = Settings.bufferToLoad, key: Keys = (cOptions.key || "") + "" as Keys,
+      const all = Settings.payload, key: Keys = (cOptions.key || "") + "" as Keys,
       old = all[key], keyRepr = '"' + key + '"';
       let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
-      if (Settings.valuesToLoad.indexOf(key) < 0) {
+      if (Settings.valuesToLoad_.indexOf(key) < 0) {
         msg = 'unknown option ' + keyRepr;
       } else if (typeof old === "boolean") {
         isBool || (value = null);
@@ -1357,7 +1357,7 @@ Are you sure you want to continue?`);
           (msg.length > 10 ? msg.substring(0, 9) + "\u2026" : msg);
       }
       if (msg) {
-        Backend.showHUD(msg);
+        Backend.showHUD_(msg);
       } else {
         cPort.postMessage<1, "toggle">({
           name: kBgReq.execute, count: 1, command: "toggle", CSS: ensureInnerCSS(cPort),
@@ -1409,21 +1409,21 @@ Are you sure you want to continue?`);
     blank (this: void): void {},
     setSetting (this: void, request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port): void {
       const key = request.key;
-      if (!(key in Settings.frontUpdateAllowed)) {
+      if (!(key in Settings.frontUpdateAllowed_)) {
         cPort = port;
-        return Backend.complain(`modify ${key} setting`);
+        return Backend.complain_(`modify ${key} setting`);
       }
       Settings.set(key, request.value);
-      if (key in Settings.bufferToLoad) {
+      if (key in Settings.payload) {
         type CacheValue = SettingsNS.FullCache[keyof SettingsNS.FrontUpdateAllowedSettings];
-        (Settings.bufferToLoad as SafeDict<CacheValue>)[key] = Settings.cache[key];
+        (Settings.payload as SafeDict<CacheValue>)[key] = Settings.cache[key];
       }
     },
     findQuery (this: void, request: FgReq["findQuery"] | FgReqWithRes["findQuery"], port: Port): FgRes["findQuery"] | void {
       return FindModeHistory.query(port.sender.incognito, request.query, request.index);
     },
     parseSearchUrl (this: void, request: FgReqWithRes["parseSearchUrl"], port: Port): FgRes["parseSearchUrl"] | void {
-      let search = Backend.parse(request);
+      let search = Backend.parse_(request);
       if ("id" in request) {
         port.postMessage({ name: kBgReq.omni_parsed, id: request.id as number, search });
       } else {
@@ -1438,19 +1438,19 @@ Are you sure you want to continue?`);
           return;
         }
         cPort = port;
-        Backend.showHUD(result.url);
+        Backend.showHUD_(result.url);
         return;
       }
       let { url } = request, url_l = url.toLowerCase();
-      if (!Utils.protocolRe.test(Utils.removeComposedScheme(url_l))) {
-        Utils.resetRe();
+      if (!Utils.protocolRe_.test(Utils.removeComposedScheme_(url_l))) {
+        Utils.resetRe_();
         return { url: "This url has no upper paths", path: null };
       }
       let hash = "", str: string, arr: RegExpExecArray | null, startSlash = false, endSlash = false
         , path: string | null = null, i: number, start = 0, end = 0, decoded = false, arr2: RegExpExecArray | null;
       if (i = url.lastIndexOf("#") + 1) {
         hash = url.substring(i + +(url[i] === "!"));
-        str = Utils.DecodeURLPart(hash);
+        str = Utils.DecodeURLPart_(hash);
         i = str.lastIndexOf("/");
         if (i > 0 || (i === 0 && str.length > 1)) {
           decoded = str !== hash;
@@ -1488,7 +1488,7 @@ Are you sure you want to continue?`);
             if (i >= 0) {
               start = i;
             } else if (arr2 = argRe.exec(hash)) {
-              path = Utils.DecodeURLPart(arr2[2]);
+              path = Utils.DecodeURLPart_(arr2[2]);
               start = arr2.index + arr2[1].length;
               end = start + arr2[2].length;
             } else if ((str = arr[1]) !== "&") {
@@ -1508,7 +1508,7 @@ Are you sure you want to continue?`);
       }
       if (!path) {
         if (url_l.startsWith(BrowserProtocol)) {
-          Utils.resetRe();
+          Utils.resetRe_();
           return { url: "An extension has no upper-level pages", path: null };
         }
         hash = "";
@@ -1526,7 +1526,7 @@ Are you sure you want to continue?`);
       startSlash = path.startsWith("/");
       if (!hash && url_l.startsWith("file:")) {
         if (path.length <= 1 || url.length === 11 && url.endsWith(":/")) {
-          Utils.resetRe();
+          Utils.resetRe_();
           return { url: "This has been the root path", path: null };
         }
         endSlash = true;
@@ -1552,17 +1552,17 @@ Are you sure you want to continue?`);
       }
       str = decoded ? encodeURIComponent(path) : path;
       url = url.substring(0, start) + (end ? str + url.substring(end) : str);
-      Utils.resetRe();
+      Utils.resetRe_();
       return { url, path };
     } as {
       (this: void, request: FgReqWithRes["parseUpperUrl"] & { execute: true }, port: Port): void;
       (this: void, request: FgReqWithRes["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"];
     },
     searchAs (this: void, request: FgReq["searchAs"], port: Port): void {
-      let search = Backend.parse(request), query: string | null | Promise<string | null>;
+      let search = Backend.parse_(request), query: string | null | Promise<string | null>;
       if (!search || !search.keyword) {
         cPort = port;
-        return Backend.showHUD("No search engine found!");
+        return Backend.showHUD_("No search engine found!");
       }
       query = request.search.trim() || VClipboard.paste();
       if (query instanceof Promise) {
@@ -1575,9 +1575,9 @@ Are you sure you want to continue?`);
           : (query = (query as string).trim()) ? "" : "No selected or copied text found";
         if (err) {
           cPort = port;
-          return Backend.showHUD(err);
+          return Backend.showHUD_(err);
         }
-        query = Utils.createSearchUrl((query as string).split(Utils.spacesRe), (search as ParsedSearch).keyword);
+        query = Utils.createSearchUrl_((query as string).split(Utils.spacesRe), (search as ParsedSearch).keyword);
         return safeUpdate(query);
       }
     },
@@ -1595,7 +1595,7 @@ Are you sure you want to continue?`);
       let tabId = (port as Port).sender.tabId;
       tabId >= 0 || (tabId = TabRecency.last);
       if (tabId >= 0) { return selectTab(tabId); }
-    } as BackendHandlersNS.BackendHandlers["gotoSession"],
+    } as BackendHandlersNS.BackendHandlers["gotoSession_"],
     openUrl (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url, opener?: boolean }, port?: Port): void {
       Object.setPrototypeOf(request, null);
       let unsafe = port != null && isNotVomnibarPage(port, true);
@@ -1606,7 +1606,7 @@ Are you sure you want to continue?`);
           url = url.substring(2).trim();
           url || (unsafe = false);
         }
-        url = Utils.fixCharsInUrl(url);
+        url = Utils.fixCharsInUrl_(url);
         url = Utils.convertToUrl(url, request.keyword || null, unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.ActAnyway);
         const type = Utils.lastUrlType;
         if (request.https != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
@@ -1629,12 +1629,12 @@ Are you sure you want to continue?`);
     focus (this: void, _0: FgReq["focus"], port: Port): void {
       let tabId = port.sender.tabId, ref = framesForTab[tabId] as Frames.WritableFrames | undefined, status: Frames.ValidStatus;
       if (!ref) {
-        return needIcon ? Backend.setIcon(tabId, port.sender.status) : undefined;
+        return needIcon ? Backend.setIcon_(tabId, port.sender.status) : undefined;
       }
       if (port === ref[0]) { return; }
       if (needIcon && (status = port.sender.status) !== ref[0].sender.status) {
         ref[0] = port;
-        return Backend.setIcon(tabId, status);
+        return Backend.setIcon_(tabId, status);
       }
       ref[0] = port;
     },
@@ -1645,16 +1645,16 @@ Are you sure you want to continue?`);
         if (!port) { return; }
       }
       const { sender } = port, { url: oldUrl, tabId } = sender
-        , pattern = Backend.getExcluded(sender.url = request.url)
+        , pattern = Backend.getExcluded_(sender.url = request.url)
         , status = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
       if (sender.status !== status) {
         if (sender.flags & Frames.Flags.locked) { return; }
         sender.status = status;
         if (needIcon && (framesForTab[tabId] as Frames.Frames)[0] === port) {
-          Backend.setIcon(tabId, status);
+          Backend.setIcon_(tabId, status);
         }
-      } else if (!pattern || pattern === Backend.getExcluded(oldUrl)) {
+      } else if (!pattern || pattern === Backend.getExcluded_(oldUrl)) {
         return;
       }
       port.postMessage({ name: kBgReq.reset, passKeys: pattern });
@@ -1728,7 +1728,7 @@ Are you sure you want to continue?`);
         port.postMessage({
           name: kBgReq.showHelpDialog,
           CSS: ensureInnerCSS(port),
-          html: args[0].render(args[1]),
+          html: args[0].render_(args[1]),
           optionUrl: Settings.CONST.OptionsPage,
           advanced: Settings.get("showAdvancedCommands", true)
         });
@@ -1756,7 +1756,7 @@ Are you sure you want to continue?`);
         if (inner) { return; }
         cOptions = Object.create(null);
         commandCount = 1;
-      } else if (inner && (cOptions as any as CmdOptions["vomnibar"]).vomnibar === Settings.CONST.VomnibarPageInner) {
+      } else if (inner && (cOptions as any as CmdOptions["vomnibar"]).vomnibar === Settings.CONST.VomnibarPageInner_) {
         return;
       }
       cPort = port;
@@ -1764,7 +1764,7 @@ Are you sure you want to continue?`);
     },
     omni (this: void, request: FgReq["omni"], port: Port): void {
       if (isNotVomnibarPage(port)) { return; }
-      return Completion.filter(request.query, request,
+      return Completion.filter_(request.query, request,
       PostCompletions.bind<Port, 0 | 1 | 2, [Readonly<CompletersNS.Suggestion>[], boolean, CompletersNS.MatchType, number], void>(port
         , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
     },
@@ -1780,14 +1780,14 @@ Are you sure you want to continue?`);
         key = key.substring(prefix.length);
         count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1;
       }
-      const ref = CommandsData.keyToCommandRegistry;
+      const ref = CommandsData.keyToCommandRegistry_;
       if (!(key in ref)) {
-        arr = key.match(Utils.keyRe) as string[];
+        arr = key.match(Utils.keyRe_) as string[];
         key = arr[arr.length - 1];
         count = 1;
       }
       const registryEntry = ref[key] as CommandsNS.Item;
-      Utils.resetRe();
+      Utils.resetRe_();
       return executeCommand(registryEntry.command, registryEntry, count, request.lastKey, port);
     },
     marks (this: void, request: FgReq["marks"], port: Port): void {
@@ -1802,7 +1802,7 @@ Are you sure you want to continue?`);
     /** safe when cPort is null */
     focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true): void {
       // * do not limit windowId or windowType
-      let url = Utils.reformatURL(request.url.split("#", 1)[0]), callback = focusOrLaunch[0];
+      let url = Utils.reformatURL_(request.url.split("#", 1)[0]), callback = focusOrLaunch[0];
       let cb2: (result: Tab[], exArg: FakeArg) => void;
       if (url.startsWith("file:") && !notFolder && url.substring(url.lastIndexOf("/") + 1).indexOf(".") < 0) {
         url += "/";
@@ -1822,7 +1822,7 @@ Are you sure you want to continue?`);
         clearTimeout(gCmdTimer);
         gCmdTimer = 0;
       }
-      execute(cmd, CommandsData.cmdMap[cmd] || null, request.count, port);
+      execute(cmd, CommandsData.cmdMap_[cmd] || null, request.count, port);
     },
     blurTest (this: void, _0: FgReq["blurTest"], port: Port): void {
       if (port.sender.tabId < 0) {
@@ -1836,7 +1836,7 @@ Are you sure you want to continue?`);
       }, 50);
     },
     removeSug (this: void, req: FgReq["removeSug"], port?: Port): void {
-      return Backend.removeSug(req, port);
+      return Backend.removeSug_(req, port);
     }
   },
     framesForOmni: Frames.WritableFrames = [null as never];
@@ -1881,7 +1881,7 @@ Are you sure you want to continue?`);
         }
         port.postMessage({
           name: kBgReq.settingsUpdate,
-          delta: Settings.bufferToLoad
+          delta: Settings.payload
         });
       } else {
         let pass: null | string, flags: Frames.Flags = Frames.Flags.blank;
@@ -1889,16 +1889,16 @@ Are you sure you want to continue?`);
           status = ref[0].sender.status;
           pass = status !== Frames.Status.disabled ? null : "";
         } else {
-          pass = Backend.getExcluded(url);
+          pass = Backend.getExcluded_(url);
           status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
         }
         port.postMessage({
           name: kBgReq.init,
           flags,
-          load: Settings.bufferToLoad,
+          load: Settings.payload,
           passKeys: pass,
-          mapKeys: CommandsData.mapKeyRegistry,
-          keyMap: CommandsData.keyMap
+          mapKeys: CommandsData.mapKeyRegistry_,
+          keyMap: CommandsData.keyMap_
         });
       }
       sender.status = status;
@@ -1908,13 +1908,13 @@ Are you sure you want to continue?`);
         ref.push(port);
         if (type & PortType.hasFocus) {
           if (needIcon && ref[0].sender.status !== status) {
-            Backend.setIcon(tabId, status);
+            Backend.setIcon_(tabId, status);
           }
           ref[0] = port;
         }
       } else {
         framesForTab[tabId] = [port, port];
-        status !== Frames.Status.enabled && needIcon && Backend.setIcon(tabId, status);
+        status !== Frames.Status.enabled && needIcon && Backend.setIcon_(tabId, status);
       }
       if (NoFrameId) {
         (sender as any).frameId = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
@@ -1966,7 +1966,7 @@ Are you sure you want to continue?`);
         ) {
       } else {
         chrome.tabs.executeScript(tabId, {
-          file: Settings.CONST.VomnibarScript,
+          file: Settings.CONST.VomnibarScript_,
           frameId: port.sender.frameId,
           runAt: "document_start"
         });
@@ -2012,31 +2012,31 @@ Are you sure you want to continue?`);
   })();
 
   Backend = {
-    gotoSession: requestHandlers.gotoSession,
-    openUrl: requestHandlers.openUrl,
-    checkIfEnabled: requestHandlers.checkIfEnabled,
+    gotoSession_: requestHandlers.gotoSession,
+    openUrl_: requestHandlers.openUrl,
+    checkIfEnabled_: requestHandlers.checkIfEnabled,
     focus: requestHandlers.focusOrLaunch,
-    getExcluded: Utils.getNull,
-    IconBuffer: null,
-    removeSug (this: void, { type, url }: FgReq["removeSug"], port?: Port | null): void {
+    getExcluded_: Utils.getNull_,
+    IconBuffer_: null,
+    removeSug_ (this: void, { type, url }: FgReq["removeSug"], port?: Port | null): void {
       const name = type === "tab" ? type : type + " item";
       cPort = findCPort(port) as Port;
       if (type === "tab" && TabRecency.last === +url) {
-        return Backend.showHUD("The current tab should be kept.");
+        return Backend.showHUD_("The current tab should be kept.");
       }
-      return Completion.removeSug(url, type, function(succeed): void {
-        return Backend.showHUD(succeed ? `Succeed to delete a ${name}` : `The ${name} is not found!`);
+      return Completion.removeSug_(url, type, function(succeed): void {
+        return Backend.showHUD_(succeed ? `Succeed to delete a ${name}` : `The ${name} is not found!`);
       });
     },
-    setIcon (): void {},
-    complain (action: string): void {
-      return this.showHUD("It's not allowed to " + action);
+    setIcon_ (): void {},
+    complain_ (action: string): void {
+      return this.showHUD_("It's not allowed to " + action);
     },
-    parse (this: void, request: FgReqWithRes["parseSearchUrl"]): FgRes["parseSearchUrl"] {
+    parse_ (this: void, request: FgReqWithRes["parseSearchUrl"]): FgRes["parseSearchUrl"] {
       let s0 = request.url, url = s0.toLowerCase(), pattern: Search.Rule | undefined
         , arr: string[] | null = null, _i: number, selectLast = false;
-      if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {
-        Utils.resetRe();
+      if (!Utils.protocolRe_.test(Utils.removeComposedScheme_(url))) {
+        Utils.resetRe_();
         return null;
       }
       if (request.upper) {
@@ -2045,7 +2045,7 @@ Are you sure you want to continue?`);
         return { keyword: '', start: 0, url: s0 };
       }
       const decoders = Settings.cache.searchEngineRules;
-      if (_i = Utils.IsURLHttp(url)) {
+      if (_i = Utils.IsURLHttp_(url)) {
         url = url.substring(_i);
         s0 = s0.substring(_i);
       }
@@ -2055,7 +2055,7 @@ Are you sure you want to continue?`);
         arr = s0.substring(pattern.prefix.length).match(pattern.matcher);
         if (arr) { break; }
       }
-      if (!arr || !pattern) { Utils.resetRe(); return null; }
+      if (!arr || !pattern) { Utils.resetRe_(); return null; }
       if (arr.length > 1 && !pattern.matcher.global) { arr.shift(); }
       const re = pattern.delimiter;
       if (arr.length > 1) {
@@ -2072,16 +2072,16 @@ Are you sure you want to continue?`);
         arr = arr[0].split(re);
       }
       url = "";
-      for (_i = 0; _i < arr.length; _i++) { url += " " + Utils.DecodeURLPart(arr[_i]); }
+      for (_i = 0; _i < arr.length; _i++) { url += " " + Utils.DecodeURLPart_(arr[_i]); }
       url = url.trim().replace(Utils.spacesRe, " ");
-      Utils.resetRe();
+      Utils.resetRe_();
       return {
         keyword: pattern.name,
         url,
         start: selectLast ? url.lastIndexOf(" ") + 1 : 0
       };
     },
-    reopenTab (this: void, tab: Tab, refresh?: boolean): void {
+    reopenTab_ (this: void, tab: Tab, refresh?: boolean): void {
       if (refresh) {
         chrome.tabs.remove(tab.id, onRuntimeError);
         let step = RefreshTabStep.start;
@@ -2111,7 +2111,7 @@ Are you sure you want to continue?`);
       chrome.tabs.remove(tab.id);
       // not seems to need to restore muted status
     },
-    showHUD (message: string, isCopy?: boolean): void {
+    showHUD_ (message: string, isCopy?: boolean): void {
       try {
         cPort && cPort.postMessage({
           name: kBgReq.showHUD,
@@ -2135,7 +2135,7 @@ Are you sure you want to continue?`);
       msg: Req.bg<kBgReq.reset> = { name: kBgReq.reset, passKeys: stat !== Frames.Status.disabled ? null : "", forced: locked };
       cPort = indexFrame(tabId, 0) || ref[0];
       if (stat === null && tabId < 0) {
-        oldStatus !== Frames.Status.disabled && this.showHUD("Got an unknown action on status: " + act);
+        oldStatus !== Frames.Status.disabled && this.showHUD_("Got an unknown action on status: " + act);
         return;
       }
       let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.Status.enabled;
@@ -2143,7 +2143,7 @@ Are you sure you want to continue?`);
         const port = ref[i], sender = port.sender;
         sender.flags = locked ? sender.flags | Frames.Flags.locked : sender.flags & ~Frames.Flags.locked;
         if (unknown) {
-          pattern = msg.passKeys = this.getExcluded(sender.url);
+          pattern = msg.passKeys = this.getExcluded_(sender.url);
           newStatus = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
           if (newStatus !== Frames.Status.partial && sender.status === newStatus) { continue; }
@@ -2152,13 +2152,13 @@ Are you sure you want to continue?`);
         sender.status = newStatus;
         port.postMessage(msg);
       }
-      newStatus !== Frames.Status.disabled && this.showHUD("Now the page status is " + (
+      newStatus !== Frames.Status.disabled && this.showHUD_("Now the page status is " + (
         newStatus === Frames.Status.enabled ? "enabled" : "partially disabled" ));
       if (needIcon && (newStatus = ref[0].sender.status) !== oldStatus) {
-        return this.setIcon(tabId, newStatus);
+        return this.setIcon_(tabId, newStatus);
       }
     },
-    ExecuteGlobal (this: void, cmd: string): void {
+    ExecuteGlobal_ (this: void, cmd: string): void {
       const tabId = TabRecency.last, ports = framesForTab[tabId];
       if (cmd === "quickNext") { cmd = "nextTab"; }
       if (ports == null || (ports[0].sender.flags & Frames.Flags.userActed)) {
@@ -2174,12 +2174,12 @@ Are you sure you want to continue?`);
       return tabId == null ? framesForTab : frameId == null ? (framesForTab[tabId] || null)
         : indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts"],
-    onInit(): void {
+    onInit_(): void {
       // the line below requires all necessary have inited when calling this
-      Backend.onInit = null;
+      Backend.onInit_ = null;
     chrome.runtime.onConnect.addListener(OnConnect);
     if (!chrome.runtime.onConnectExternal) { return; }
-    Settings.extWhiteList || Settings.postUpdate("extWhiteList");
+    Settings.extWhiteList_ || Settings.postUpdate_("extWhiteList");
     chrome.runtime.onConnectExternal.addListener(function(port): void {
       const { sender } = port;
       if (sender && isExtIdAllowed(sender.id)
@@ -2196,15 +2196,15 @@ Are you sure you want to continue?`);
   if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
     (createTab as Array<Function>).length = 1;
   }
-  Settings.updateHooks.newTabUrl_f = function(url) {
-    const onlyNormal = Utils.isRefusingIncognito(url), mayForceIncognito = createTab.length > 1 && onlyNormal;
+  Settings.updateHooks_.newTabUrl_f = function(url) {
+    const onlyNormal = Utils.isRefusingIncognito_(url), mayForceIncognito = createTab.length > 1 && onlyNormal;
     BackgroundCommands.createTab = mayForceIncognito ? function(): void {
       getCurWnd(true, createTab[1].bind(url));
     } : createTab[0].bind(null, url, onlyNormal);
     BackgroundCommands.createTab.useTab = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
   };
 
-  Settings.updateHooks.showActionIcon = function (value) {
+  Settings.updateHooks_.showActionIcon = function (value) {
     needIcon = value && !!chrome.browserAction;
   };
 
@@ -2216,7 +2216,7 @@ Are you sure you want to continue?`);
     }
     if (typeof message === "string") {
       command = message;
-      if (command && CommandsData.availableCommands[command]) {
+      if (command && CommandsData.availableCommands_[command]) {
         const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
         port = frames ? indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
         return execute(command, null, 1, port);
@@ -2227,17 +2227,17 @@ Are you sure you want to continue?`);
     switch (message.handler) {
     case "command":
       command = message.command ? message.command + "" : "";
-      if (command && CommandsData.availableCommands[command]) {
+      if (command && CommandsData.availableCommands_[command]) {
         const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
         port = frames ? indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
         return execute(command, message.options, message.count, port, message.key);
       }
       return;
     case "content_scripts":
-      sendResponse(Settings.CONST.ContentScripts);
+      sendResponse(Settings.CONST.ContentScripts_);
       return;
     }
-  }), Settings.postUpdate("extWhiteList"));
+  }), Settings.postUpdate_("extWhiteList"));
 
   chrome.tabs.onReplaced && chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
     const ref = framesForTab, frames = ref[removedTabId];
@@ -2249,8 +2249,8 @@ Are you sure you want to continue?`);
     }
   });
 
-  Settings.postUpdate("bufferToLoad", null);
-  Settings.postUpdate("vomnibarPage"); // not wait 34ms in case that Vomnibar is wanted at once
+  Settings.postUpdate_("payload", null);
+  Settings.postUpdate_("vomnibarPage"); // not wait 34ms in case that Vomnibar is wanted at once
 
   (function(): void {
     type Keys = keyof typeof BackgroundCommands;
@@ -2268,7 +2268,7 @@ Are you sure you want to continue?`);
     for (const i of ref) { (ref2[i] as BgCmdActiveTab).useTab = UseTab.ActiveTab; }
   })();
 
-  Settings.postUpdate("searchUrl", null); // will also update newTabUrl
+  Settings.postUpdate_("searchUrl", null); // will also update newTabUrl
 
   // will run only on <F5>, not on runtime.reload
   window.onunload = function(event): void {

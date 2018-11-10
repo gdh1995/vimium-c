@@ -1,9 +1,9 @@
 declare var CommandsData: CommandsData;
 var Commands = {
-  setKeyRe (keyReSource: string): void {
-    Utils.keyRe = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;
+  SetKeyRe (this: void, keyReSource: string): void {
+    Utils.keyRe_ = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;
   },
-  getOptions (item: string[], start: number): CommandsNS.Options | null {
+  getOptions_ (item: string[], start: number): CommandsNS.Options | null {
     let opt: CommandsNS.RawOptions, i = start, len = item.length, ind: number, str: string | undefined, val: string;
     if (len <= i) { return null; }
     opt = Object.create(null);
@@ -17,43 +17,44 @@ var Commands = {
       } else {
         val = str.substring(ind + 1);
         str = str.substring(0, ind);
-        opt[str] = val && this.parseVal(val);
+        opt[str] = val && this.parseVal_(val);
       }
     }
     return str ? opt : null;
   },
   hexCharRe: <RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi,
-  parseVal (val: string): any {
+  parseVal_ (val: string): any {
     try {
       return JSON.parse(val);
     } catch(e) {}
     if (!val.startsWith('"')) { return val; }
-    val = val.replace(this.hexCharRe, this.onHex);
+    val = val.replace(this.hexCharRe, this.onHex_);
     try {
       return JSON.parse(val);
     } catch(e) {}
     return val;
   },
-  onHex (_s: string, hex: string): string {
+  onHex_ (this: void, _s: string, hex: string): string {
     return hex ? "\\u00" + hex : '\\\\';
   },
-  loadDefaults (registry: SafeDict<CommandsNS.Item>): void {
-    const defaultMap = this.defaultKeyMappings;
-    for (let i = defaultMap.length; 0 <= --i; ) {
-      const pair = defaultMap[i];
-      registry[pair[0]] = Utils.makeCommand(pair[1]);
-    }
-  },
-  parseKeyMappings: (function(this: any, line: string): void {
-    let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i = 0
+  parseKeyMappings_: (function(this: {}, line: string): void {
+    let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i: number
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
-      , registry = CommandsData.keyToCommandRegistry = Object.create<CommandsNS.Item>(null)
-      , cmdMap = CommandsData.cmdMap = Object.create<CommandsNS.Options | null>(null)
+      , registry = CommandsData.keyToCommandRegistry_ = Object.create<CommandsNS.Item>(null)
+      , cmdMap = CommandsData.cmdMap_ = Object.create<CommandsNS.Options | null>(null)
       , userDefinedKeys = Object.create<true>(null)
       , mkReg = Object.create<string>(null);
-    const available = CommandsData.availableCommands;
+    const available = CommandsData.availableCommands_;
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
-    lines[0] !== "unmapAll" && lines[0] !== "unmapall" ? (this as typeof Commands).loadDefaults(registry) : ++_i;
+    if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
+      const defaultMap = (this as typeof Commands).defaultKeyMappings_;
+      for (_i = defaultMap.length; 0 < _i; ) {
+        _i -= 2;
+        registry[defaultMap[_i]] = Utils.makeCommand_(defaultMap[_i + 1]);
+      }
+    } else {
+      _i = 1;
+    }
     for (_len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
       if (!(line.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
@@ -72,13 +73,13 @@ var Commands = {
         } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum) {
           console.log("Invalid key: %c" + key, "color:red", "(the first char can not be '-' or number)");
         } else {
-          registry[key] = Utils.makeCommand(splitLine[2], (this as typeof Commands).getOptions(splitLine, 3), details);
+          registry[key] = Utils.makeCommand_(splitLine[2], (this as typeof Commands).getOptions_(splitLine, 3), details);
           userDefinedKeys[key] = true;
           continue;
         }
       } else if (key === "unmapAll" || key === "unmapall") {
-        registry = CommandsData.keyToCommandRegistry = Object.create(null);
-        cmdMap = CommandsData.cmdMap = Object.create<CommandsNS.Options | null>(null);
+        registry = CommandsData.keyToCommandRegistry_ = Object.create(null);
+        cmdMap = CommandsData.cmdMap_ = Object.create<CommandsNS.Options | null>(null);
         userDefinedKeys = Object.create<true>(null);
         mkReg = Object.create<string>(null), mk = 0;
         if (errors > 0) {
@@ -89,8 +90,8 @@ var Commands = {
       } else if (key === "mapkey" || key === "mapKey") {
         if (splitLine.length !== 3) {
           console.log("MapKey needs both source and target keys:", line);
-        } else if ((key = splitLine[1]).length > 1 && (key.match(Utils.keyRe) as RegExpMatchArray).length > 1
-          || splitLine[2].length > 1 && (splitLine[2].match(Utils.keyRe) as RegExpMatchArray).length > 1) {
+        } else if ((key = splitLine[1]).length > 1 && (key.match(Utils.keyRe_) as RegExpMatchArray).length > 1
+          || splitLine[2].length > 1 && (splitLine[2].match(Utils.keyRe_) as RegExpMatchArray).length > 1) {
           console.log("MapKey: a source / target key should be a single key:", line);
         } else if (key in mkReg) {
           console.log("This key %c" + key, "color:red", "has been mapped to another key:", mkReg[key]);
@@ -108,8 +109,8 @@ var Commands = {
         } else if (key in cmdMap) {
           console.log("Shortcut %c" + key, "color:red", "has been configured");
         } else {
-          cmdMap[key] = Utils.makeCommand(key
-            , (this as typeof Commands).getOptions(splitLine, 2), available[key]).options;
+          cmdMap[key] = Utils.makeCommand_(key
+            , (this as typeof Commands).getOptions_(splitLine, 2), available[key]).options;
           continue;
         }
       } else if (key !== "unmap") {
@@ -125,29 +126,29 @@ var Commands = {
       }
       ++errors;
     }
-    CommandsData.mapKeyRegistry = mk > 0 ? mkReg : null;
+    CommandsData.mapKeyRegistry_ = mk > 0 ? mkReg : null;
     CommandsData.errors = CommandsData.errors > 0 ? ~errors : errors;
   }),
-  populateCommandKeys: (function(this: void): void {
-    const d = CommandsData, ref = d.keyMap = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe,
+  populateCommandKeys_: (function(this: void): void {
+    const d = CommandsData, ref = d.keyMap_ = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe_,
     oldErrors = d.errors;
     if (oldErrors < 0) { d.errors = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
     ref['-'] = 1;
-    for (const key in d.keyToCommandRegistry) {
+    for (const key in d.keyToCommandRegistry_) {
       const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
       if (last === 0) {
-        (key in ref) && Commands.warnInactive(ref[key] as ReadonlyChildKeyMap, key);
+        (key in ref) && Commands.warnInactive_(ref[key] as ReadonlyChildKeyMap, key);
         ref[key] = 0;
         continue;
       }
       let ref2 = ref as ChildKeyMap, tmp: ChildKeyMap | 0 | 1 | undefined = ref2, j = 0;
       while ((tmp = ref2[arr[j]]) && j < last) { j++; ref2 = tmp; }
       if (tmp === 0) {
-        Commands.warnInactive(key, arr.slice(0, j + 1).join(""));
+        Commands.warnInactive_(key, arr.slice(0, j + 1).join(""));
         continue;
       }
-      tmp != null && Commands.warnInactive(tmp, key);
+      tmp != null && Commands.warnInactive_(tmp, key);
       while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null) as ChildKeyMap; }
       ref2[arr[last]] = 0;
     }
@@ -169,93 +170,93 @@ var Commands = {
       if (tmp !== 0 && tmp !== 1) { func(tmp); }
     }
   }),
-  warnInactive (obj: ReadonlyChildKeyMap | string, newKey: string): void {
+  warnInactive_ (obj: ReadonlyChildKeyMap | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
     ++CommandsData.errors;
   },
 
-defaultKeyMappings: [
-  ["?", "showHelp"],
-  ["j", "scrollDown"],
-  ["k", "scrollUp"],
-  ["h", "scrollLeft"],
-  ["l", "scrollRight"],
-  ["gg", "scrollToTop"],
-  ["G", "scrollToBottom"],
-  ["zH", "scrollToLeft"],
-  ["zL", "scrollToRight"],
-  ["<c-e>", "scrollDown"],
-  ["<c-y>", "scrollUp"],
-  ["d", "scrollPageDown"],
-  ["u", "scrollPageUp"],
-  ["r", "reload"],
-  ["gs", "toggleViewSource"],
-  ["R", "reloadGivenTab"],
-  ["<a-R>", "reopenTab"],
-  ["<a-r>", "reloadTab"],
-  ["<a-t>", "previousTab"],
-  ["<a-c>", "reloadTab"],
-  ["<a-v>", "nextTab"],
-  ["i", "enterInsertMode"],
-  ["v", "enterVisualMode"],
-  ["V", "enterVisualLineMode"],
-  ["<f8>", "enterVisualMode"],
-  ["H", "goBack"],
-  ["L", "goForward"],
-  ["gu", "goUp"],
-  ["gU", "goToRoot"],
-  ["gi", "focusInput"],
-  ["f", "LinkHints.activate"],
-  ["F", "LinkHints.activateModeToOpenInNewTab"],
-  ["<a-f>", "LinkHints.activateModeWithQueue"],
-  ["/", "enterFindMode"],
-  ["n", "performFind"],
-  ["N", "performBackwardsFind"],
-  ["[[", "goPrevious"],
-  ["]]", "goNext"],
-  ["yy", "copyCurrentUrl"],
-  ["yf", "LinkHints.activateModeToCopyLinkUrl"],
-  ["p", "openCopiedUrlInCurrentTab"],
-  ["P", "openCopiedUrlInNewTab"],
-  ["K", "nextTab"],
-  ["J", "previousTab"],
-  ["gt", "nextTab"],
-  ["gT", "previousTab"],
-  ["^", "visitPreviousTab"],
-  ["<<", "moveTabLeft"],
-  [">>", "moveTabRight"],
-  ["g0", "firstTab"],
-  ["g$", "lastTab"],
-  ["W", "moveTabToNextWindow"],
-  ["t", "createTab"],
-  ["yt", "duplicateTab"],
-  ["x", "removeTab"],
-  ["X", "restoreTab"],
-  ["<a-p>", "togglePinTab"],
-  ["<a-m>", "toggleMuteTab"],
-  ["o", "Vomnibar.activate"],
-  ["O", "Vomnibar.activateInNewTab"],
-  ["T", "Vomnibar.activateTabSelection"],
-  ["b", "Vomnibar.activateBookmarks"],
-  ["B", "Vomnibar.activateBookmarksInNewTab"],
-  ["ge", "Vomnibar.activateUrl"],
-  ["gE", "Vomnibar.activateUrlInNewTab"],
-  ["gf", "nextFrame"],
-  ["gF", "mainFrame"],
-  ["<f1>", "simBackspace"],
-  ["<F1>", "switchFocus"],
-  ["<f2>", "switchFocus"],
-  ["m", "Marks.activateCreateMode"],
-  ["`", "Marks.activate"]
-] as ReadonlyArray<[string, string]>
+defaultKeyMappings_: [
+  "?", "showHelp",
+  "j", "scrollDown",
+  "k", "scrollUp",
+  "h", "scrollLeft",
+  "l", "scrollRight",
+  "gg", "scrollToTop",
+  "G", "scrollToBottom",
+  "zH", "scrollToLeft",
+  "zL", "scrollToRight",
+  "<c-e>", "scrollDown",
+  "<c-y>", "scrollUp",
+  "d", "scrollPageDown",
+  "u", "scrollPageUp",
+  "r", "reload",
+  "gs", "toggleViewSource",
+  "R", "reloadGivenTab",
+  "<a-R>", "reopenTab",
+  "<a-r>", "reloadTab",
+  "<a-t>", "previousTab",
+  "<a-c>", "reloadTab",
+  "<a-v>", "nextTab",
+  "i", "enterInsertMode",
+  "v", "enterVisualMode",
+  "V", "enterVisualLineMode",
+  "<f8>", "enterVisualMode",
+  "H", "goBack",
+  "L", "goForward",
+  "gu", "goUp",
+  "gU", "goToRoot",
+  "gi", "focusInput",
+  "f", "LinkHints.activate",
+  "F", "LinkHints.activateModeToOpenInNewTab",
+  "<a-f>", "LinkHints.activateModeWithQueue",
+  "/", "enterFindMode",
+  "n", "performFind",
+  "N", "performBackwardsFind",
+  "", "goPrevious",
+  "", "goNext",
+  "yy", "copyCurrentUrl",
+  "yf", "LinkHints.activateModeToCopyLinkUrl",
+  "p", "openCopiedUrlInCurrentTab",
+  "P", "openCopiedUrlInNewTab",
+  "K", "nextTab",
+  "J", "previousTab",
+  "gt", "nextTab",
+  "gT", "previousTab",
+  "^", "visitPreviousTab",
+  "<<", "moveTabLeft",
+  ">>", "moveTabRight",
+  "g0", "firstTab",
+  "g$", "lastTab",
+  "W", "moveTabToNextWindow",
+  "t", "createTab",
+  "yt", "duplicateTab",
+  "x", "removeTab",
+  "X", "restoreTab",
+  "<a-p>", "togglePinTab",
+  "<a-m>", "toggleMuteTab",
+  "o", "Vomnibar.activate",
+  "O", "Vomnibar.activateInNewTab",
+  "T", "Vomnibar.activateTabSelection",
+  "b", "Vomnibar.activateBookmarks",
+  "B", "Vomnibar.activateBookmarksInNewTab",
+  "ge", "Vomnibar.activateUrl",
+  "gE", "Vomnibar.activateUrlInNewTab",
+  "gf", "nextFrame",
+  "gF", "mainFrame",
+  "<f1>", "simBackspace",
+  "<F1>", "switchFocus",
+  "<f2>", "switchFocus",
+  "m", "Marks.activateCreateMode",
+  "`", "Marks.activate"
+]
 },
 CommandsData = (CommandsData as CommandsData) || {
-  keyToCommandRegistry: null as never as SafeDict<CommandsNS.Item>,
-  keyMap: null as never as KeyMap,
-  cmdMap: null as never as SafeDict<CommandsNS.Options | null>,
-  mapKeyRegistry: null as SafeDict<string> | null,
+  keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
+  keyMap_: null as never as KeyMap,
+  cmdMap_: null as never as SafeDict<CommandsNS.Options | null>,
+  mapKeyRegistry_: null as SafeDict<string> | null,
   errors: 0,
-availableCommands: {
+availableCommands_: {
   __proto__: null as never,
   showHelp: [ "Show help", 1, true ],
   debugBackground: [ "Debug the background page", 1, true,
@@ -406,7 +407,7 @@ availableCommands: {
   openUrl: [ 'open URL (use url="", urls:string[], reuse=-1/0/1/-2, incognito, window, end)', 20, true ],
   focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true, { reuse: ReuseType.reuse }, "openUrl" ]
 } as ReadonlySafeDict<CommandsNS.Description>,
-  wordsRe: "[_0-9A-Za-z\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\
+  wordsRe_: "[_0-9A-Za-z\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\
 \\u02EE\\u0370-\\u0374\\u0376\\u0377\\u037A-\\u037D\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u0\
 3F7-\\u0481\\u048A-\\u0527\\u0531-\\u0556\\u0559\\u0561-\\u0587\\u05D0-\\u05EA\\u05F0-\\u05F2\\u0620-\\u064A\\u066\
 E\\u066F\\u0671-\\u06D3\\u06D5\\u06E5\\u06E6\\u06EE\\u06EF\\u06FA-\\u06FC\\u06FF\\u0710\\u0712-\\u072F\\u074D-\\u0\
@@ -451,21 +452,21 @@ D50-\\uFD8F\\uFD92-\\uFDC7\\uFDF0-\\uFDFB\\uFE70-\\uFE74\\uFE76-\\uFEFC\\uFF21-\
 BE\\uFFC2-\\uFFC7\\uFFCA-\\uFFCF\\uFFD2-\\uFFD7\\uFFDA-\\uFFDC]"
 };
 
-if (Backend.onInit) {
-  Commands.parseKeyMappings(Settings.get("keyMappings"));
-  Commands.populateCommandKeys();
+if (Backend.onInit_) {
+  Commands.parseKeyMappings_(Settings.get("keyMappings"));
+  Commands.populateCommandKeys_();
   if (!Settings.get("vimSync")) {
     Commands = null as never;
   }
-  chrome.commands && chrome.commands.onCommand.addListener(Backend.ExecuteGlobal);
+  chrome.commands && chrome.commands.onCommand.addListener(Backend.ExecuteGlobal_);
 }
 if (Commands)
-Settings.updateHooks.keyMappings = function(value: string): void {
-  Commands.parseKeyMappings(value);
-  Commands.populateCommandKeys();
+Settings.updateHooks_.keyMappings = function(value: string): void {
+  Commands.parseKeyMappings_(value);
+  Commands.populateCommandKeys_();
   return (this as typeof Settings).broadcast({
     name: kBgReq.keyMap,
-    mapKeys: CommandsData.mapKeyRegistry,
-    keyMap: CommandsData.keyMap
+    mapKeys: CommandsData.mapKeyRegistry_,
+    keyMap: CommandsData.keyMap_
   });
 };

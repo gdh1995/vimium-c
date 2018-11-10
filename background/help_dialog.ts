@@ -1,31 +1,31 @@
 var HelpDialog = {
-  inited: false,
-  styles: Settings.CONST.ChromeVersion === BrowserVer.CSS$Contain$BreaksHelpDialogSize ? "contain: none;"
+  inited_: false,
+  styles_: Settings.CONST.ChromeVersion === BrowserVer.CSS$Contain$BreaksHelpDialogSize ? "contain: none;"
     // here repeats the logic in frontend.ts, just for easier understanding
     : Settings.CONST.ChromeVersion < BrowserVer.MinFixedCSS$All$MayMistakenlyResetFixedPosition
       && Settings.CONST.ChromeVersion >= BrowserVer.MinCSS$All$MayMistakenlyResetFixedPosition ? "position: fixed;"
     : "",
-  render: (function(this: void, request: FgReq["initHelp"]): string {
-    if (!HelpDialog.inited) {
-      if (Settings.CONST.StyleCacheId.indexOf("s") < 0) {
+  render_: (function(this: void, request: FgReq["initHelp"]): string {
+    if (!HelpDialog.inited_) {
+      if (Settings.CONST.StyleCacheId_.indexOf("s") < 0) {
         let template = Settings.cache.helpDialog as string, styleEnd = template.indexOf("</style>");
         template = template.substring(0, styleEnd).replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
           ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv"
           ) + template.substring(styleEnd);
         Settings.set("helpDialog", template);
       }
-      HelpDialog.inited = true;
+      HelpDialog.inited_ = true;
     }
     Object.setPrototypeOf(request, null);
-    const commandsToKey = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry,
+    const commandsToKey = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry_,
           hideUnbound = !request.unbound, showNames = !!request.names;
     for (const key in ref) {
       const command = (ref[key] as CommandsNS.Item).command;
       (commandsToKey[command] || (commandsToKey[command] = [])).push(key);
     }
     const result = Object.setPrototypeOf({
-      version: Settings.CONST.CurrentVersionName,
-      styles: HelpDialog.styles,
+      version: Settings.CONST.CurrentVersionName_,
+      styles: HelpDialog.styles_,
       title: request.title || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
@@ -33,13 +33,13 @@ var HelpDialog = {
     return (<string>Settings.cache.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
       let s = result[group];
       return s != null ? s
-        : HelpDialog.groupHtml(group, commandsToKey, hideUnbound, showNames);
+        : HelpDialog.groupHtml_(group, commandsToKey, hideUnbound, showNames);
     });
   }),
-  groupHtml: (function(this: any, group: string, commandsToKey: SafeDict<string[]>
+  groupHtml_: (function(this: any, group: string, commandsToKey: SafeDict<string[]>
       , hideUnbound: boolean, showNames: boolean): string {
-    const _ref = (this as typeof HelpDialog).commandGroups[group], renderItem = (this as typeof HelpDialog).commandHtml
-      , availableCommands = CommandsData.availableCommands as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
+    const _ref = (this as typeof HelpDialog).commandGroups_[group], renderItem = (this as typeof HelpDialog).commandHtml_
+      , availableCommands = CommandsData.availableCommands_ as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
     let keys: string[] | undefined, html = "";
     for (let _i = 0, _len = _ref.length; _i < _len; _i++) {
       const command = _ref[_i];
@@ -52,12 +52,12 @@ var HelpDialog = {
           if (klen >= 0) {
             bindings += '</span>, <span class="HelpKey">';
           }
-          bindings += Utils.escapeText(key);
+          bindings += Utils.escapeText_(key);
           klen += key.length + 2;
         }
         bindings += '</span>\n\t';
       }
-      const isAdvanced = command in (this as typeof HelpDialog).advancedCommands
+      const isAdvanced = command in (this as typeof HelpDialog).advancedCommands_
         , description = availableCommands[command][0];
       if (klen <= 12) {
         html += renderItem(isAdvanced, bindings, description, showNames ? command: "");
@@ -68,7 +68,7 @@ var HelpDialog = {
     }
     return html;
   }),
-  commandHtml: (function(this: void, isAdvanced: boolean, bindings: string
+  commandHtml_: (function(this: void, isAdvanced: boolean, bindings: string
       , description: string, command: string): string {
     let html = isAdvanced ? '<tr class="HelpAdv">\n\t' : "<tr>\n\t";
     if (description) {
@@ -87,7 +87,7 @@ var HelpDialog = {
     }
     return html + "</td>\n</tr>\n";
   }),
-  commandGroups: { __proto__: null as never,
+  commandGroups_: { __proto__: null as never,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
       , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
       , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
@@ -122,7 +122,7 @@ var HelpDialog = {
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "toggleLinkHintCharacters"
       , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
   } as Readonly<EnsuredSafeDict<ReadonlyArray<string>>>,
-  advancedCommands: { __proto__: null as never,
+  advancedCommands_: { __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
     , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
     , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1, focusOrLaunch: 1
@@ -141,5 +141,5 @@ var HelpDialog = {
 };
 
 interface BaseHelpDialog {
-  render: typeof HelpDialog.render;
+  render_: typeof HelpDialog.render_;
 }

@@ -248,7 +248,7 @@ Are you sure you want to continue?`
     if (!item.areEqual(bgSettings.get(key), new_value)) {
       logUpdate("import", key, new_value);
       bgSettings.set(key, new_value);
-      if (key in bgSettings.bufferToLoad) {
+      if (key in bgSettings.payload) {
         Option.syncToFrontend.push(key as keyof SettingsNS.FrontendSettings);
       }
     } else if (item.saved) {

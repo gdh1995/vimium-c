@@ -28,7 +28,7 @@ setTimeout(function() {
       }
     } as SettingsNS.OnSyncUpdate,
     storeAndPropagate (key: string, value: any): void {
-      if (!(key in Settings.defaults) || key in Settings.nonPersistent || !this.shouldSyncKey(key)) { return; }
+      if (!(key in Settings.defaults) || key in Settings.nonPersistent_ || !this.shouldSyncKey(key)) { return; }
       const defaultVal = Settings.defaults[key];
       if (value == null) {
         if (localStorage.getItem(key) != null) {
@@ -80,7 +80,7 @@ setTimeout(function() {
     DoUpdate (this: void): void {
       let items = Sync.to_update, removed = [] as string[], left = 0;
       Sync.to_update = null;
-      if (!items || Settings.sync !== Sync.TrySet) { return; }
+      if (!items || Settings.sync_ !== Sync.TrySet) { return; }
       for (const key in items) {
         if (items[key as keyof SettingsToUpdate] != null) {
           ++left;
@@ -102,16 +102,16 @@ setTimeout(function() {
       return !(key in this.doNotSync);
     }
   };
-  Settings.updateHooks.vimSync = function (value): void {
+  Settings.updateHooks_.vimSync = function (value): void {
     const storage = Sync.storage();
     if (!storage) { return; }
     const event = chrome.storage.onChanged, listener = Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate;
     if (!value) {
       event.removeListener(listener);
-      Settings.sync = () => {};
-    } else if (Settings.sync !== Sync.TrySet) {
+      Settings.sync_ = () => {};
+    } else if (Settings.sync_ !== Sync.TrySet) {
       event.addListener(listener);
-      Settings.sync = Sync.TrySet;
+      Settings.sync_ = Sync.TrySet;
     }
   };
   const sync1 = Settings.get("vimSync");
@@ -151,12 +151,12 @@ setTimeout(function() {
     for (const key in items) {
       Sync.storeAndPropagate(key, items[key]);
     }
-    Settings.postUpdate("vimSync");
+    Settings.postUpdate_("vimSync");
   });
 }, 1000);
 
 setTimeout(function() { if (!chrome.browserAction) { return; }
-  const func = Settings.updateHooks.showActionIcon;
+  const func = Settings.updateHooks_.showActionIcon;
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
     let img: HTMLImageElement, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
@@ -181,7 +181,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
       for (w = 0, h = arr.length; w < h; w++) {
-        Backend.setIcon(arr[w], type);
+        Backend.setIcon_(arr[w], type);
       }
     };
     Object.setPrototypeOf(path, null);
@@ -191,7 +191,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       img.src = path[i as IconNS.ValidSizes];
     }
   }
-  Backend.IconBuffer = function(this: void, enabled?: boolean): IconNS.StatusMap<IconNS.IconBuffer> | null | void {
+  Backend.IconBuffer_ = function(this: void, enabled?: boolean): IconNS.StatusMap<IconNS.IconBuffer> | null | void {
     if (enabled === undefined) { return imageData; }
     if (!enabled) {
       imageData && setTimeout(function() {
@@ -204,10 +204,10 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
     imageData = Object.create(null);
     tabIds = Object.create(null);
   } as IconNS.AccessIconBuffer;
-  Backend.setIcon = function(this: void, tabId: number, type: Frames.ValidStatus): void {
+  Backend.setIcon_ = function(this: void, tabId: number, type: Frames.ValidStatus): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
     if (IsEdge) {
-      path = Settings.icons[type];
+      path = Settings.icons_[type];
       chrome.browserAction.setIcon({ tabId, path });
       return;
     }
@@ -218,19 +218,19 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       });
     } else if ((tabIds as IconNS.StatusMap<number[]>)[type]) {
       ((tabIds as IconNS.StatusMap<number[]>)[type] as number[]).push(tabId);
-    } else if (path = Settings.icons[type]) {
+    } else if (path = Settings.icons_[type]) {
       setTimeout(loadImageAndSetIcon, 0, type, path);
       (tabIds as IconNS.StatusMap<number[]>)[type] = [tabId];
     }
   };
-  Settings.updateHooks.showActionIcon = function(value): void {
+  Settings.updateHooks_.showActionIcon = function(value): void {
     func(value);
-    (Backend.IconBuffer as IconNS.AccessIconBuffer)(value);
+    (Backend.IconBuffer_ as IconNS.AccessIconBuffer)(value);
     let title = "Vimium C";
     value || (title += "\n\nAs configured, here's no active state.");
     chrome.browserAction.setTitle({ title });
   };
-  Settings.postUpdate("showActionIcon");
+  Settings.postUpdate_("showActionIcon");
 }, 150);
 
 setTimeout(function() { if (!chrome.omnibox) { return; }
@@ -270,7 +270,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     if (timer) { clearTimeout(timer); }
     inputTime = matchType = cleanTimer = timer = 0;
     firstType = firstResultUrl = "";
-    Utils.resetRe();
+    Utils.resetRe_();
   }
   function tryClean(): void {
     if (Date.now() - inputTime > 5000) {
@@ -342,7 +342,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       }
     } else if (sug.type === "search") {
       let text = (sug as CompletersNS.SearchSuggestion).pattern;
-      text = (text && `<dim>${Utils.escapeText(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
+      text = (text && `<dim>${Utils.escapeText_(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
       defaultSuggestionType = FirstSugType.search;
       chrome.omnibox.setDefaultSuggestion({ description: text });
       if (sug = response[1]) switch (sug.type) {
@@ -359,7 +359,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       suggestions.shift();
     }
     last = suggest.key;
-    Utils.resetRe();
+    Utils.resetRe_();
     suggest.suggest(suggestions);
     return;
   }
@@ -396,7 +396,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
         || !key.startsWith(last as string) ? "omni"
       : matchType === CompletersNS.MatchType.searchWanted ? "search"
       : firstType || "omni";
-    return Completion.filter(key, { type, maxResults, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
+    return Completion.filter_(key, { type, maxResults, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     const arr = lastSuggest;
@@ -411,7 +411,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       // need a re-computation
       // * may has been cleaned, or
       // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
-      return Completion.filter(text, { type: "omni", maxResults: 3, maxChars, singleLine: true }, function(sugs, autoSelect): void {
+      return Completion.filter_(text, { type: "omni", maxResults: 3, maxChars, singleLine: true }, function(sugs, autoSelect): void {
         return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) :  open(text, disposition);
       });
     }
@@ -427,9 +427,9 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       text = text.substring(text[2] === " " ? 3 : 4);
     }
     if (text.substring(0, 7).toLowerCase() === "file://") {
-      text = Utils.showFileUrl(text);
+      text = Utils.showFileUrl_(text);
     }
-    return sessionId != null ? Backend.gotoSession({ sessionId }) : Backend.openUrl({
+    return sessionId != null ? Backend.gotoSession_({ sessionId }) : Backend.openUrl_({
       url: text,
       omni: true,
       reuse: (disposition === "currentTab" ? ReuseType.current
@@ -459,7 +459,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     if ((url as string)[0] === ":") {
       url = (url as string).substring((url as string).indexOf(" ") + 1);
     }
-    return Backend.removeSug({ type, url: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
+    return Backend.removeSug_({ type, url: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
   });
 }, 600);
 
@@ -477,7 +477,7 @@ setTimeout(function() {
     status: "complete"
   }, function(tabs) {
     const t = chrome.tabs, callback = () => chrome.runtime.lastError,
-    offset = location.origin.length + 1, js = Settings.CONST.ContentScripts;
+    offset = location.origin.length + 1, js = Settings.CONST.ContentScripts_;
     for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
       let url = tabs[_i].url;
       if (url.startsWith(BrowserProtocol) || url.indexOf("://") === -1) { continue; }
@@ -504,7 +504,7 @@ setTimeout(function() {
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
     // TODO: remove the old name on v1.72
-    message: "Vimium C (renamed from Vimium++) has been upgraded to version " + Settings.CONST.CurrentVersionName
+    message: "Vimium C (renamed from Vimium++) has been upgraded to version " + Settings.CONST.CurrentVersionName_
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId): void {
@@ -542,10 +542,10 @@ Utils.GC = function(): void {
       return wnd.location.pathname.startsWith("/pages/");
     }).length > 0 : false;
     if (existing) { return; }
-    Settings.updateHooks.keyMappings = void 0 as never;
+    Settings.updateHooks_.keyMappings = void 0 as never;
     Commands = null as never;
     if (Exclusions && Exclusions.rules.length === 0) {
-      Exclusions.destroy();
+      Exclusions.destroy_();
       Exclusions = null as never;
     }
   }
@@ -559,6 +559,6 @@ setTimeout(function(): void {
   if (localStorage.getItem("log|lastPartlyLoad") != null) {
     localStorage.removeItem("log|lastPartlyLoad");
   }
-  Utils.resetRe();
+  Utils.resetRe_();
 }, 1200);
 // setTimeout(() => console.log("RegExp.input:", (RegExp as any).input, "."), 3600);

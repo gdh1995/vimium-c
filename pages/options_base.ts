@@ -75,7 +75,7 @@ constructor (element: HTMLElement, onUpdated: (this: Option<T>) => void) {
   this.field = element.id as T;
   this.previous = this.onUpdated = null as never;
   this.saved = true;
-  if (this.field in bgSettings.bufferToLoad) {
+  if (this.field in bgSettings.payload) {
     onUpdated = this._onCacheUpdated.bind(this, onUpdated);
   }
   this.fetch();
@@ -115,7 +115,7 @@ save (): void {
   if (previous !== (isJSON ? JSON.stringify(value) : value)) {
     this.populateElement(value, true);
   }
-  if (this.field in bgSettings.bufferToLoad) {
+  if (this.field in bgSettings.payload) {
     Option.syncToFrontend.push(this.field as keyof SettingsNS.FrontendSettings);
   }
   this.onSave && this.onSave();

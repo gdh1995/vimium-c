@@ -2,14 +2,14 @@ import ExcCls = ExclusionsNS.ExclusionsCls;
 declare var Exclusions: ExcCls;
 
 if (Settings.get("vimSync")
-    || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend.onInit)
-        && !Settings.updateHooks.exclusionRules)) {
+    || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend.onInit_)
+        && !Settings.updateHooks_.exclusionRules)) {
 var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
   testers: null as SafeDict<ExclusionsNS.Tester> | null,
   getRe (this: ExcCls, pattern: string): ExclusionsNS.Tester {
     let func: ExclusionsNS.Tester | undefined = (this.testers as ExclusionsNS.TesterDict)[pattern], re: RegExp | null;
     if (func) { return func; }
-    if (pattern[0] === '^' && (re = Utils.makeRegexp(pattern, "", false))) {
+    if (pattern[0] === '^' && (re = Utils.makeRegexp_(pattern, "", false))) {
       func = re as RegExpOne;
     } else {
       func = pattern.substring(1);
@@ -18,14 +18,14 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   },
   _listening: false,
   _listeningHash: false,
-  onlyFirstMatch: false,
+  onlyFirstMatch_: false,
   rules: [],
-  setRules (this: ExcCls, rules: ExclusionsNS.StoredRule[]): void {
+  setRules_ (this: ExcCls, rules: ExclusionsNS.StoredRule[]): void {
     let onURLChange: null | ExclusionsNS.Listener;
     if (rules.length === 0) {
       this.rules = [];
-      Backend.getExcluded = Utils.getNull;
-      if (this._listening && (onURLChange = this.getOnURLChange())) {
+      Backend.getExcluded_ = Utils.getNull_;
+      if (this._listening && (onURLChange = this.getOnURLChange_())) {
         chrome.webNavigation.onHistoryStateUpdated.removeListener(onURLChange);
         if (this._listeningHash) {
           this._listeningHash = false;
@@ -36,13 +36,13 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       return;
     }
     this.testers || (this.testers = Object.create<ExclusionsNS.Tester>(null));
-    this.rules = this.format(rules);
-    this.onlyFirstMatch = Settings.get("exclusionOnlyFirstMatch");
+    this.rules = this.format_(rules);
+    this.onlyFirstMatch_ = Settings.get("exclusionOnlyFirstMatch");
     this.testers = null;
-    Backend.getExcluded = this.GetPattern;
+    Backend.getExcluded_ = this.GetPattern_;
     if (this._listening) { return; }
     this._listening = true;
-    onURLChange = this.getOnURLChange();
+    onURLChange = this.getOnURLChange_();
     if (!onURLChange) { return; }
     chrome.webNavigation.onHistoryStateUpdated.addListener(onURLChange);
     if (Settings.get("exclusionListenHash") && !this._listeningHash) {
@@ -50,21 +50,21 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(onURLChange);
     }
   },
-  GetPattern (this: void, url: string): string | null {
+  GetPattern_ (this: void, url: string): string | null {
     let rules = Exclusions.rules, matchedKeys = "";
     for (let _i = 0, _len = rules.length; _i < _len; _i += 2) {
       const rule = rules[_i] as ExclusionsNS.Tester;
       if (typeof rule === "string" ? url.startsWith(rule) : rule.test(url)) {
         const str = rules[_i + 1] as string;
-        if (str.length === 0 || Exclusions.onlyFirstMatch) { return str; }
+        if (str.length === 0 || Exclusions.onlyFirstMatch_) { return str; }
         matchedKeys += str;
       }
     }
     return matchedKeys || null;
   },
-  getOnURLChange (this: ExcCls): null | ExclusionsNS.Listener {
+  getOnURLChange_ (this: ExcCls): null | ExclusionsNS.Listener {
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
-      : Settings.CONST.ChromeVersion >= BrowserVer.MinWithFrameId ? Backend.checkIfEnabled
+      : Settings.CONST.ChromeVersion >= BrowserVer.MinWithFrameId ? Backend.checkIfEnabled_
       : function(details: chrome.webNavigation.WebNavigationCallbackDetails) {
         const ref = Backend.indexPorts(details.tabId),
         msg = { name: kBgReq.url as kBgReq.url, handler: "checkIfEnabled" as "checkIfEnabled" };
@@ -73,10 +73,10 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
           (ref as Frames.Frames)[i].postMessage(msg);
         }
       };
-    this.getOnURLChange = () => onURLChange;
+    this.getOnURLChange_ = () => onURLChange;
     return onURLChange;
   },
-  format (this: ExcCls, rules: ExclusionsNS.StoredRule[]): ExclusionsNS.Rules {
+  format_ (this: ExcCls, rules: ExclusionsNS.StoredRule[]): ExclusionsNS.Rules {
     const out = [] as ExclusionsNS.Rules;
     for (let _i = 0, _len = rules.length; _i < _len; _i++) {
       const rule = rules[_i];
@@ -86,12 +86,12 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   },
   getTemp (this: ExcCls, url: string, rules: ExclusionsNS.StoredRule[]): string | null {
     const old = this.rules;
-    this.rules = this.format(rules);
-    const ret = this.GetPattern(url);
+    this.rules = this.format_(rules);
+    const ret = this.GetPattern_(url);
     this.rules = old;
     return ret;
   },
-  RefreshStatus (old_is_empty: boolean): void {
+  RefreshStatus_ (old_is_empty: boolean): void {
     const always_enabled = Exclusions.rules.length > 0 ? null : {
       name: kBgReq.reset as kBgReq.reset,
       passKeys: null
@@ -104,7 +104,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       return;
     }
     const ref = Backend.indexPorts(),
-    needIcon = !!(Backend.IconBuffer && (Backend.IconBuffer() || Settings.get("showActionIcon")));
+    needIcon = !!(Backend.IconBuffer_ && (Backend.IconBuffer_() || Settings.get("showActionIcon")));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (const tabId in ref) {
       const frames = ref[+tabId] as Frames.Frames, status0 = frames[0].sender.status;
@@ -115,7 +115,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
             continue;
           }
         } else {
-          pass = Backend.getExcluded(port.sender.url);
+          pass = Backend.getExcluded_(port.sender.url);
           status = pass === null ? Frames.Status.enabled : pass
             ? Frames.Status.partial : Frames.Status.disabled;
           if (!pass && port.sender.status === status) {
@@ -127,34 +127,34 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
         port.sender.status = status;
       }
       if (needIcon && status0 !== (status = frames[0].sender.status)) {
-        Backend.setIcon(+tabId, status);
+        Backend.setIcon_(+tabId, status);
       }
     }
   },
-  destroy (): void {
-    Settings.updateHooks.exclusionRules = Settings.updateHooks.exclusionOnlyFirstMatch =
-    Settings.updateHooks.exclusionListenHash = void 0 as never;
+  destroy_ (): void {
+    Settings.updateHooks_.exclusionRules = Settings.updateHooks_.exclusionOnlyFirstMatch =
+    Settings.updateHooks_.exclusionListenHash = void 0 as never;
   }
 };
 
-Exclusions.setRules(Settings.get("exclusionRules"));
+Exclusions.setRules_(Settings.get("exclusionRules"));
 
-Settings.updateHooks.exclusionRules = function(this: void, rules: ExclusionsNS.StoredRule[]): void {
+Settings.updateHooks_.exclusionRules = function(this: void, rules: ExclusionsNS.StoredRule[]): void {
   setTimeout(function() {
     const is_empty = Exclusions.rules.length <= 0;
-    Exclusions.setRules(rules);
-    setTimeout(Exclusions.RefreshStatus, 17, is_empty);
+    Exclusions.setRules_(rules);
+    setTimeout(Exclusions.RefreshStatus_, 17, is_empty);
   }, 17);
 };
 
-Settings.updateHooks.exclusionOnlyFirstMatch = function(this: void, value: boolean): void {
-  Exclusions.onlyFirstMatch = value;
+Settings.updateHooks_.exclusionOnlyFirstMatch = function(this: void, value: boolean): void {
+  Exclusions.onlyFirstMatch_ = value;
 };
 
-Settings.updateHooks.exclusionListenHash = function(this: void, value: boolean): void {
+Settings.updateHooks_.exclusionListenHash = function(this: void, value: boolean): void {
   const _this = Exclusions;
   if (!_this._listening) { return; }
-  const l = _this.getOnURLChange();
+  const l = _this.getOnURLChange_();
   if (!l) { return; }
   _this._listeningHash = value;
   const e = chrome.webNavigation.onReferenceFragmentUpdated;

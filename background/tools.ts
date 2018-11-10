@@ -13,7 +13,7 @@ const VClipboard = {
   },
   tailSpacesRe: <RegExpG & RegExpSearchable<0>> /[ \t]+\n/g,
   format (data: string): string {
-    data = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
+    data = data.replace(Utils.A0Re_, " ").replace(this.tailSpacesRe, "\n");
     let i = data.charCodeAt(data.length - 1);
     if (i !== KnownKey.space && i !== KnownKey.tab) {
     } else if (i = data.lastIndexOf('\n') + 1) {
@@ -32,10 +32,10 @@ const VClipboard = {
     document.execCommand("copy");
     textArea.remove();
     textArea.value = "";
-    Utils.resetRe();
+    Utils.resetRe_();
   },
   paste (): string | null | Promise<string | null> {
-    if (!Settings.CONST.AllowClipboardRead) { return null; }
+    if (!Settings.CONST.AllowClipboardRead_) { return null; }
     const textArea = this.getTextArea();
     textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
     (document.documentElement as HTMLHtmlElement).appendChild(textArea);
@@ -45,8 +45,8 @@ const VClipboard = {
     textArea.remove();
     textArea.value = "";
     textArea.removeAttribute('maxlength');
-    value = value.replace(Utils.A0Re, " ");
-    Utils.resetRe();
+    value = value.replace(Utils.A0Re_, " ");
+    Utils.resetRe_();
     return value;
   }
 },
@@ -57,42 +57,42 @@ ContentSettings = {
   onRuntimeError (this: void): void { return chrome.runtime.lastError; },
   complain (this: void, contentType: CSTypes, url: string): boolean {
     if (!chrome.contentSettings) {
-      Backend.showHUD("This version of Vimium C has no permissions to set CSs");
+      Backend.showHUD_("This version of Vimium C has no permissions to set CSs");
       return true;
     }
     if (!chrome.contentSettings[contentType] || (<RegExpOne>/^[A-Z]/).test(contentType)) {
-      Backend.showHUD("Unknown content settings type: " + contentType);
+      Backend.showHUD_("Unknown content settings type: " + contentType);
       return true;
     }
-    if (Utils.protocolRe.test(url) && !url.startsWith(BrowserProtocol)) {
+    if (Utils.protocolRe_.test(url) && !url.startsWith(BrowserProtocol)) {
       return false;
     }
-    Backend.complain("change its content settings");
+    Backend.complain_("change its content settings");
     return true;
   },
   parsePattern (this: void, pattern: string, level: number): string[] {
     if (pattern.startsWith("file:")) {
       const a = Settings.CONST.ChromeVersion >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
       if (a) {
-        Backend.complain(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set CS of file folders");
+        Backend.complain_(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set CS of file folders");
         return [];
       }
       return [pattern.split(<RegExpOne>/[?#]/, 1)[0]];
     }
     if (pattern.startsWith("ftp:")) {
-      Backend.complain("set FTP pages' content settings");
+      Backend.complain_("set FTP pages' content settings");
       return [];
     }
     let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
-      , hosts = Utils.hostRe.exec(info[2]) as RegExpExecArray & string[4]
+      , hosts = Utils.hostRe_.exec(info[2]) as RegExpExecArray & string[4]
       , result: string[], host = hosts[3] + (hosts[4] || "");
     pattern = info[1];
     result = [pattern + host + "/*"];
-    if (level < 2 || Utils.isIPHost(hosts[3], 0)) { return result; }
+    if (level < 2 || Utils.isIPHost_(hosts[3], 0)) { return result; }
     hosts = null as never;
     const arr = host.toLowerCase().split("."), i = arr.length,
-    minLen = Utils.isTld(arr[i - 1]) === Urls.TldType.NotTld ? 1
-      : i > 2 && arr[i - 1].length === 2 && Utils.isTld(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2,
+    minLen = Utils.isTld_(arr[i - 1]) === Urls.TldType.NotTld ? 1
+      : i > 2 && arr[i - 1].length === 2 && Utils.isTld_(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2,
     end = Math.min(arr.length - minLen, level - 1);
     for (let j = 0; j < end; j++) {
       host = host.substring(arr[j].length + 1);
@@ -120,7 +120,7 @@ ContentSettings = {
     const ty = "" + options.type as CSTypes;
     if (!this.complain(ty, "https://a.cc/")) {
       this.Clear(ty, port.sender);
-      return Backend.showHUD(ty + " content settings have been cleared.");
+      return Backend.showHUD_(ty + " content settings have been cleared.");
     }
   },
   toggleCS (count: number, options: CommandsNS.Options, tabs: [Tab]): void {
@@ -129,7 +129,7 @@ ContentSettings = {
       : this.toggleCurrent(count, ty, tab, options.action === "reopen");
   },
   toggleCurrent (this: void, count: number, contentType: CSTypes, tab: Tab, reopen: boolean): void {
-    const pattern = Utils.removeComposedScheme(tab.url);
+    const pattern = Utils.removeComposedScheme_(tab.url);
     if (ContentSettings.complain(contentType, pattern)) { return; }
     chrome.contentSettings[contentType].get({
       primaryUrl: pattern,
@@ -146,23 +146,23 @@ ContentSettings = {
         }
         if (tab.incognito || reopen) {
           ++tab.index;
-          return Backend.reopenTab(tab);
+          return Backend.reopenTab_(tab);
         } else if (tab.index > 0 && chrome.sessions) {
-          return Backend.reopenTab(tab, true);
+          return Backend.reopenTab_(tab, true);
         }
         chrome.windows.getCurrent({populate: true}, function(wnd) {
           !wnd || wnd.type !== "normal" ? chrome.tabs.reload(ContentSettings.onRuntimeError)
-            : Backend.reopenTab(tab, wnd.tabs.length > 1 && !!chrome.sessions);
+            : Backend.reopenTab_(tab, wnd.tabs.length > 1 && !!chrome.sessions);
           return chrome.runtime.lastError;
         });
       });
     });
   },
   ensureIncognito (this: void, count: number, contentType: CSTypes, tab: Tab): void {
-    if (Settings.CONST.DisallowIncognito) {
-      return Backend.complain("change incognito settings");
+    if (Settings.CONST.DisallowIncognito_) {
+      return Backend.complain_("change incognito settings");
     }
-    const pattern = Utils.removeComposedScheme(tab.url);
+    const pattern = Utils.removeComposedScheme_(tab.url);
     if (ContentSettings.complain(contentType, pattern)) { return; }
     chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt): void {
       if (chrome.runtime.lastError as any) {
@@ -229,7 +229,7 @@ ContentSettings = {
     if (left <= 0) { return callback(true); }
     Object.setPrototypeOf(settings, null);
     for (const pattern of arr) {
-      const info = Utils.extendIf(Object.create(null) as chrome.contentSettings.SetDetails, settings);
+      const info = Utils.extendIf_(Object.create(null) as chrome.contentSettings.SetDetails, settings);
       info.primaryPattern = pattern;
       ref.set(info, func);
     }
@@ -252,7 +252,7 @@ ContentSettings = {
       (tab as chrome.tabs.CreateProperties).index = undefined;
       tab.windowId = newWindowId;
     }
-    Backend.reopenTab(tab);
+    Backend.reopenTab_(tab);
   }
 },
 Marks = { // NOTE: all public members should be static
@@ -307,12 +307,12 @@ Marks = { // NOTE: all public members should be static
       }
     }
     if (!str) {
-      return Backend.showHUD(`${local ? "Local" : "Global"} mark not set : ' ${markName} '.`);
+      return Backend.showHUD_(`${local ? "Local" : "Global"} mark not set : ' ${markName} '.`);
     }
     const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str), tabId = +markInfo.tabId;
     markInfo.markName = markName;
     markInfo.prefix = request.prefix !== false && markInfo.scroll[1] === 0 && markInfo.scroll[0] === 0 &&
-        !!Utils.IsURLHttp(markInfo.url);
+        !!Utils.IsURLHttp_(markInfo.url);
     if (tabId >= 0 && Backend.indexPorts(tabId)) {
       chrome.tabs.get(tabId, Marks.checkTab.bind(markInfo));
     } else {
@@ -322,14 +322,14 @@ Marks = { // NOTE: all public members should be static
   checkTab (this: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
     const url = tab.url.split("#", 1)[0];
     if (url === this.url || this.prefix && this.url.startsWith(url)) {
-      Backend.gotoSession({ sessionId: tab.id });
+      Backend.gotoSession_({ sessionId: tab.id });
       return Marks.scrollTab(this, tab);
     } else {
       return Backend.focus(this);
     }
   },
   getLocationKey (markName: string, url: string | undefined): string {
-    return (url ? "vimiumMark|" + Utils.prepareReparsingPrefix(url.split('#', 1)[0])
+    return (url ? "vimiumMark|" + Utils.prepareReparsingPrefix_(url.split('#', 1)[0])
       : "vimiumGlobalMark") + "|" + markName;
   },
   scrollTab (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
@@ -359,7 +359,7 @@ Marks = { // NOTE: all public members should be static
         }
       }
     }
-    return Backend.showHUD(`${count} ${url ? "local" : "global"} mark${count !== 1 ? "s have" : " has"} been removed.`);
+    return Backend.showHUD_(`${count} ${url ? "local" : "global"} mark${count !== 1 ? "s have" : " has"} been removed.`);
   }
 },
 FindModeHistory = {
@@ -510,10 +510,10 @@ setTimeout(function() {
   }
 }, 120);
 
-(Backend as any).onInit();
+(Backend.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
 
 chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
-  const notAllowed = Settings.CONST.DisallowIncognito = isAllowedAccess === false;
+  const notAllowed = Settings.CONST.DisallowIncognito_ = isAllowedAccess === false;
   if (notAllowed) {
     console.log("Sorry, but some commands of Vimium C require the permission to run in incognito mode.");
   }

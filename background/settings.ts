@@ -8,9 +8,9 @@ var Settings = {
     shownHash: null | ((this: void) => string);
     [key: string]: ((this: void) => any) | undefined | null;
   },
-  bufferToLoad: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,
+  payload: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,
   newTabs: Object.create(null) as SafeDict<Urls.NewTabType>,
-  extWhiteList: null as never as SafeDict<boolean>,
+  extWhiteList_: null as never as SafeDict<boolean>,
   get<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
     if (key in this.cache) {
       return (this.cache as SettingsWithDefaults)[key];
@@ -24,24 +24,24 @@ var Settings = {
   },
   set<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void {
     (this.cache as SettingsNS.FullCache)[key] = value;
-    if (!(key in this.nonPersistent)) {
+    if (!(key in this.nonPersistent_)) {
       const initial = this.defaults[key as keyof SettingsNS.PersistentSettings];
       if (value === initial) {
         localStorage.removeItem(key);
-        this.sync(key as keyof SettingsNS.PersistentSettings, null);
+        this.sync_(key as keyof SettingsNS.PersistentSettings, null);
       } else {
         localStorage.setItem(key, typeof initial === "string" ? value as string : JSON.stringify(value));
-        this.sync(key as keyof SettingsNS.PersistentSettings, value as
+        this.sync_(key as keyof SettingsNS.PersistentSettings, value as
           FullSettings[keyof SettingsNS.PersistentSettings]);
       }
     }
     let ref: SettingsNS.UpdateHook<K> | undefined;
-    if (ref = this.updateHooks[key as keyof SettingsWithDefaults] as (SettingsNS.UpdateHook<K> | undefined)) {
+    if (ref = this.updateHooks_[key as keyof SettingsWithDefaults] as (SettingsNS.UpdateHook<K> | undefined)) {
       return ref.call(this, value, key);
     }
   },
-  postUpdate: function<K extends keyof SettingsWithDefaults> (this: SettingsTmpl, key: K, value?: FullSettings[K]): void {
-    return ((this as typeof Settings).updateHooks[key] as SettingsNS.UpdateHook<K>).call(this,
+  postUpdate_: function<K extends keyof SettingsWithDefaults> (this: SettingsTmpl, key: K, value?: FullSettings[K]): void {
+    return ((this as typeof Settings).updateHooks_[key] as SettingsNS.UpdateHook<K>).call(this,
       value !== undefined ? value : this.get(key), key);
   } as {
     <K extends keyof SettingsNS.NullableUpdateHookMap>(key: K, value?: FullSettings[K] | null): void;
@@ -58,21 +58,21 @@ var Settings = {
       }
     }
   },
-  updateHooks: {
+  updateHooks_: {
     __proto__: null as never,
-    bufferToLoad (): void {
-      const ref = (this as typeof Settings).valuesToLoad, ref2 = this.bufferToLoad;
+    payload (): void {
+      const ref = (this as typeof Settings).valuesToLoad_, ref2 = this.payload;
       for (let _i = ref.length; 0 <= --_i;) {
         let key = ref[_i];
         ref2[key] = this.get(key);
       }
     },
     grabBackFocus (value: FullSettings["grabBackFocus"]): void {
-      (this as typeof Settings).bufferToLoad.grabFocus = value;
+      (this as typeof Settings).payload.grabFocus = value;
     },
     extWhiteList (val): void {
-      const old = (this as typeof Settings).extWhiteList;
-      const map = (this as typeof Settings).extWhiteList = Object.create<boolean>(null);
+      const old = (this as typeof Settings).extWhiteList_;
+      const map = (this as typeof Settings).extWhiteList_ = Object.create<boolean>(null);
       if (old) {
         for (const key in old) { if (old[key] === false) { map[key] = false; } }
       }
@@ -104,13 +104,13 @@ var Settings = {
         (this.cache as any).searchEngineMap = { "~": { name: "~", url: this.get("searchUrl").split(" ", 1)[0] } };
         (this.cache as any).searchEngineRules = [];
         if (str = this.get("newTabUrl_f", true)) {
-          return ((this as typeof Settings).updateHooks.newTabUrl_f as (this: void, url_f: string) => void)(str);
+          return ((this as typeof Settings).updateHooks_.newTabUrl_f as (this: void, url_f: string) => void)(str);
         }
       }
-      return (this as typeof Settings).postUpdate("newTabUrl");
+      return (this as typeof Settings).postUpdate_("newTabUrl");
     },
     baseCSS (this: SettingsTmpl, css): void {
-      const cacheId = (this as typeof Settings).CONST.StyleCacheId,
+      const cacheId = (this as typeof Settings).CONST.StyleCacheId_,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
       hasAll = browserInfo.lastIndexOf("a") >= 0;
       if (hasAll) {
@@ -159,14 +159,14 @@ var Settings = {
     },
     vomnibarPage (this: SettingsTmpl, url): void {
       if (url === this.defaults.vomnibarPage) {
-        url = (this as typeof Settings).CONST.VomnibarPageInner;
+        url = (this as typeof Settings).CONST.VomnibarPageInner_;
       } else if (url.startsWith("front/")) {
         url = chrome.runtime.getURL(url);
       } else {
         url = Utils.convertToUrl(url);
-        url = Utils.reformatURL(url);
+        url = Utils.reformatURL_(url);
         if (!url.startsWith(BrowserProtocol) && this.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
-          url = (this as typeof Settings).CONST.VomnibarPageInner;
+          url = (this as typeof Settings).CONST.VomnibarPageInner_;
         } else {
           url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST.CurrentVersion));
         }
@@ -176,11 +176,11 @@ var Settings = {
   } as SettingsNS.DeclaredUpdateHookMap & SettingsNS.SpecialUpdateHookMap as SettingsNS.UpdateHookMap,
   fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
     if (callback && file in this.cache) { callback(); return null; }
-    const url = this.CONST.XHRFiles[file];
+    const url = this.CONST.XHRFiles_[file];
     if (!url) { throw Error("unknown file: " + file); } // just for debugging
-    return Utils.fetchHttpContents(url, function(): void {
+    return Utils.fetchHttpContents_(url, function(): void {
       if (file === "baseCSS") {
-        Settings.postUpdate(file, this.responseText);
+        Settings.postUpdate_(file, this.responseText);
       } else {
         Settings.set(file, this.responseText);
       }
@@ -246,46 +246,46 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   } as Readonly<SettingsWithDefaults> & SafeObject,
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
-  nonPersistent: { __proto__: null as never,
+  nonPersistent_: { __proto__: null as never,
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1,
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1, vomnibarPage_f: 1
   } as TypedSafeEnum<SettingsNS.NonPersistentSettings>,
-  frontUpdateAllowed: { __proto__: null as never,
+  frontUpdateAllowed_: { __proto__: null as never,
     showAdvancedCommands: 1
   } as TypedSafeEnum<SettingsNS.FrontUpdateAllowedSettings>,
-  icons: [
+  icons_: [
     { "19": "/icons/enabled_19.png", "38": "/icons/enabled_38.png" },
     { "19": "/icons/partial_19.png", "38": "/icons/partial_38.png" },
     { "19": "/icons/disabled_19.png", "38": "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
-  valuesToLoad: ["deepHints", "keyboard", "linkHintCharacters" //
+  valuesToLoad_: ["deepHints", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
-  sync: function (): void {} as SettingsNS.Sync["set"],
+  sync_: function (): void {} as SettingsNS.Sync["set"],
   CONST: {
-    AllowClipboardRead: true,
-    BaseCSSLength: 0,
+    AllowClipboardRead_: true,
+    BaseCSSLength_: 0,
     // should keep lower case
-    NtpNewTab: "chrome-search://local-ntp/local-ntp.html",
-    DisallowIncognito: false,
+    NtpNewTab_: "chrome-search://local-ntp/local-ntp.html",
+    DisallowIncognito_: false,
     VimiumNewTab: "",
     ChromeVersion: BrowserVer.MinSupported,
-    ContentScripts: null as never as string[],
-    CurrentVersion: "", CurrentVersionName: "",
-    StyleCacheId: "",
-    KnownPages: ["blank", "newtab", "options", "show"],
+    ContentScripts_: null as never as string[],
+    CurrentVersion: "", CurrentVersionName_: "",
+    StyleCacheId_: "",
+    KnownPages_: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
     Commands: "/background/commands.js",
     Exclusions: "/background/exclusions.js",
-    XHRFiles: {
+    XHRFiles_: {
       baseCSS: "/front/vimium.min.css",
       exclusionTemplate: "/front/exclusions.html",
       helpDialog: "/front/help_dialog.html"
     },
-    InjectEnd: "content/injected_end.js",
-    OptionsPage: "pages/options.html", Platform: "", PolyFill: "lib/polyfill.js",
-    RedirectedUrls: {
+    InjectEnd_: "content/injected_end.js",
+    OptionsPage: "pages/options.html", Platform: "", PolyFill_: "lib/polyfill.js",
+    RedirectedUrls_: {
       about: "https://github.com/gdh1995/vimium-c",
       help: "https://github.com/philc/vimium/wiki",
       license: "https://raw.githubusercontent.com/gdh1995/vimium-c/master/LICENSE.txt",
@@ -298,20 +298,20 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       __proto__: null as never
     } as SafeDict<string>,
     GlobalCommands: null as never as string[],
-    ShowPage: "pages/show.html",
-    VomnibarPageInner: "front/vomnibar.html", VomnibarScript: "front/vomnibar.js", VomnibarScript_f: ""
+    ShowPage_: "pages/show.html",
+    VomnibarPageInner_: "front/vomnibar.html", VomnibarScript_: "front/vomnibar.js", VomnibarScript_f_: ""
   }
 };
 
 Settings.CONST.ChromeVersion = 0 | (!NotChrome && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number;
-Settings.bufferToLoad.onMac = false;
-Settings.bufferToLoad.grabFocus = Settings.get("grabBackFocus");
-Settings.bufferToLoad.browserVer = Settings.CONST.ChromeVersion;
+Settings.payload.onMac = false;
+Settings.payload.grabFocus = Settings.get("grabBackFocus");
+Settings.payload.browserVer = Settings.CONST.ChromeVersion;
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): void {
   const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs;
   Settings.CONST.Platform = os;
-  Settings.bufferToLoad.onMac = os === (types ? types.MAC : "mac");
+  Settings.payload.onMac = os === (types ? types.MAC : "mac");
 }) : (Settings.CONST.Platform = IsEdge ? "win" : "unknown");
 
 (function(): void {
@@ -326,31 +326,31 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   function func(path: string): string {
     return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
-  (defaults as SettingsWithDefaults).newTabUrl = NotChrome ? CommonNewTab : newtab ? obj.NtpNewTab : ChromeNewTab;
+  (defaults as SettingsWithDefaults).newTabUrl = NotChrome ? CommonNewTab : newtab ? obj.NtpNewTab_ : ChromeNewTab;
   ref3[CommonNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
   NotChrome || (ref3[ChromeNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
   newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);
-  (defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner;
+  (defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner_;
   obj.GlobalCommands = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
   obj.CurrentVersion = ref.version;
-  obj.CurrentVersionName = ref.version_name || ref.version;
+  obj.CurrentVersionName_ = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
-  obj.AllowClipboardRead = ref.permissions != null && ref.permissions.indexOf("clipboardRead") >= 0;
-  obj.ShowPage = func(obj.ShowPage);
-  obj.VomnibarPageInner = func(obj.VomnibarPageInner);
-  obj.VomnibarScript_f = func(obj.VomnibarScript);
-  ref2.push(obj.InjectEnd);
+  obj.AllowClipboardRead_ = ref.permissions != null && ref.permissions.indexOf("clipboardRead") >= 0;
+  obj.ShowPage_ = func(obj.ShowPage_);
+  obj.VomnibarPageInner_ = func(obj.VomnibarPageInner_);
+  obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
+  ref2.push(obj.InjectEnd_);
   if ("".startsWith.name !== "startsWith") {
-    ref2.unshift(obj.PolyFill);
+    ref2.unshift(obj.PolyFill_);
   }
-  obj.ContentScripts = ref2.map(func);
+  obj.ContentScripts_ = ref2.map(func);
 
   const hasAll = "all" in (document.documentElement as HTMLElement).style;
-  obj.StyleCacheId = obj.CurrentVersion + "," + Settings.CONST.ChromeVersion
+  obj.StyleCacheId_ = obj.CurrentVersion + "," + Settings.CONST.ChromeVersion
   + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
   const innerCSS = localStorage.getItem("innerCSS");
-  if (innerCSS && innerCSS.startsWith(obj.StyleCacheId)) {
-    Settings.postUpdate("innerCSS", innerCSS);
+  if (innerCSS && innerCSS.startsWith(obj.StyleCacheId_)) {
+    Settings.postUpdate_("innerCSS", innerCSS);
     return;
   }
   Settings.fetchFile("baseCSS");

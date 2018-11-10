@@ -196,6 +196,10 @@ interface CmdOptions {
   }
 }
 
+declare const enum kFgReq {
+  findQuery, 
+}
+
 interface FgRes {
   findQuery: string;
   parseSearchUrl: ParsedSearch | null;

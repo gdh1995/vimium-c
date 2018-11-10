@@ -235,8 +235,8 @@ declare namespace CompletersNS {
   };
 
   interface GlobalCompletersConstructor {
-    filter (this: GlobalCompletersConstructor, query: string, options: FullOptions, callback: Callback): void;
-    removeSug (url: string, type: FgReq["removeSug"]["type"], callback: (succeed: boolean) => void): void;
+    filter_ (this: GlobalCompletersConstructor, query: string, options: FullOptions, callback: Callback): void;
+    removeSug_ (url: string, type: FgReq["removeSug"]["type"], callback: (succeed: boolean) => void): void;
   }
 }
 declare var Completers: CompletersNS.GlobalCompletersConstructor;
@@ -334,7 +334,7 @@ declare namespace SettingsNS {
     searchUrl: NullableUpdateHook<"searchUrl">;
   }
   interface SpecialUpdateHookMap {
-    bufferToLoad (this: SettingsTmpl, value: null): void;
+    payload (this: SettingsTmpl, value: null): void;
   }
   type DeclaredUpdateHookMap = NullableUpdateHookMap
       & Pick<BaseUpdateHookMap, "extWhiteList" | "grabBackFocus" | "newTabUrl" | "baseCSS"
@@ -377,40 +377,40 @@ declare namespace BackendHandlersNS {
   }
 
   interface BackendHandlers {
-    parse (this: void, request: FgReqWithRes["parseSearchUrl"]): FgRes["parseSearchUrl"];
-    gotoSession: {
+    parse_ (this: void, request: FgReqWithRes["parseSearchUrl"]): FgRes["parseSearchUrl"];
+    gotoSession_: {
       (this: void, request: { sessionId: string | number, active: false }, port: Port): void;
       (this: void, request: { sessionId: string | number, active?: true }): void;
     };
-    openUrl (this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
-    checkIfEnabled: checkIfEnabled;
+    openUrl_ (this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
+    checkIfEnabled_: checkIfEnabled;
     focus (this: void, request: MarksNS.FocusOrLaunch): void;
-    reopenTab (tab: chrome.tabs.Tab, refresh?: boolean): void;
-    setIcon (tabId: number, type: Frames.ValidStatus): void;
-    IconBuffer: IconNS.AccessIconBuffer | null,
-    removeSug (this: void, req: FgReq["removeSug"], port?: Port): void;
-    complain (this: BackendHandlers, message: string): void;
-    showHUD (message: string, isCopy?: boolean | undefined): void;
-    getExcluded (this: void, url: string): string | null,
+    reopenTab_ (tab: chrome.tabs.Tab, refresh?: boolean): void;
+    setIcon_ (tabId: number, type: Frames.ValidStatus): void;
+    IconBuffer_: IconNS.AccessIconBuffer | null,
+    removeSug_ (this: void, req: FgReq["removeSug"], port?: Port): void;
+    complain_ (this: BackendHandlers, message: string): void;
+    showHUD_ (message: string, isCopy?: boolean | undefined): void;
+    getExcluded_ (this: void, url: string): string | null,
     forceStatus (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
     indexPorts: {
       (this: void, tabId: number, frameId: number): Port | null;
       (this: void, tabId: number): Frames.Frames | null;
       (this: void): Frames.FramesMap;
     };
-    ExecuteGlobal (this: void, command: string): void;
-    onInit: ((this: void) => void) | null;
+    ExecuteGlobal_ (this: void, command: string): void;
+    onInit_: ((this: void) => void) | null;
   }
 }
 
 interface CommandsData {
-  keyToCommandRegistry: SafeDict<CommandsNS.Item>;
-  keyMap: KeyMap;
-  cmdMap: SafeDict<CommandsNS.Options | null>;
-  mapKeyRegistry: SafeDict<string> | null;
-  availableCommands: ReadonlySafeDict<CommandsNS.Description>;
+  keyToCommandRegistry_: SafeDict<CommandsNS.Item>;
+  keyMap_: KeyMap;
+  cmdMap_: SafeDict<CommandsNS.Options | null>;
+  mapKeyRegistry_: SafeDict<string> | null;
+  availableCommands_: ReadonlySafeDict<CommandsNS.Description>;
   errors: number;
-  wordsRe: string;
+  wordsRe_: string;
 }
 
 interface BaseHelpDialog {
@@ -418,7 +418,11 @@ interface BaseHelpDialog {
 
 interface Window {
   readonly MathParser?: any;
-  readonly Commands?: any;
+  readonly Commands?: {
+    hexCharRe: RegExpG & RegExpSearchable<1>;
+    onHex (this: void, _s: string, hex: string): string;
+    SetKeyRe (this: void, keyReSource: string): void;
+  };
   readonly CommandsData: CommandsData;
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
@@ -434,7 +438,6 @@ interface Window {
     readonly convertToUrl: Urls.Converter;
     lastUrlType: Urls.Type;
     readonly createSearch: Search.Executor;
-    readonly createSearchUrl: Urls.Searcher;
     readonly evalVimiumUrl: Urls.Executor;
     parseSearchEngines (this: any, str: string, map: Search.EngineMap): Search.Rule[];
     require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
@@ -449,7 +452,7 @@ interface Window {
     };
     readonly newTabs: SafeDict<Urls.NewTabType>,
     broadcast<K extends keyof BgReq> (request: Req.bg<K>): void;
-    readonly bufferToLoad: SettingsNS.FrontendSettingCache & SafeObject;
+    readonly payload: SettingsNS.FrontendSettingCache & SafeObject;
     get<K extends keyof SettingsNS.SettingsWithDefaults> (key: K, forCache?: boolean
       ): SettingsNS.SettingsWithDefaults[K];
     set<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void;

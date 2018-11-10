@@ -10,14 +10,14 @@ declare namespace ExclusionsNS {
     getRe (pattern: string): Tester;
     _listening: boolean;
     _listeningHash: boolean;
-    onlyFirstMatch: boolean;
+    onlyFirstMatch_: boolean;
     rules: Rules;
-    setRules (newRules: StoredRule[]): void;
-    GetPattern (this: void, url: string): string | null;
-    getOnURLChange (): null | Listener;
-    format (rules: StoredRule[]): Rules;
+    setRules_ (newRules: StoredRule[]): void;
+    GetPattern_ (this: void, url: string): string | null;
+    getOnURLChange_ (): null | Listener;
+    format_ (rules: StoredRule[]): Rules;
     getTemp (this: ExclusionsNS.ExclusionsCls, url: string, rules: StoredRule[]): string | null;
-    RefreshStatus (this: void, old_is_empty: boolean): void;
-    destroy (): void;
+    RefreshStatus_ (this: void, old_is_empty: boolean): void;
+    destroy_ (): void;
   }
 }
