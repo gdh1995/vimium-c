@@ -312,7 +312,7 @@ interface VHUD {
 interface VSettings {
   enabled_: boolean;
   cache: SettingsNS.FrontendSettingCache;
-  uninit_: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => void) | null;
+  stop: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => void) | null;
   destroy (this: void, silent?: boolean): void;
 }
 declare var VimiumInjector: VimiumInjector, VSettings: VSettings;

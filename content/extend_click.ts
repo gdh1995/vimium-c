@@ -40,9 +40,9 @@ VimiumInjector === undefined)
       setTimeout(function(): void { r("VimiumHook", installer, true); }, 1100);
     }
     box = false;
-    VSettings && (VSettings.uninit_ = null);
+    VSettings && (VSettings.stop = null);
   }
-  VSettings.uninit_ = destroy;
+  VSettings.stop = destroy;
 
   let injected: Function | string = '"use strict";(' + (function VC(this: void): void {
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;

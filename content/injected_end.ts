@@ -22,7 +22,7 @@ VDom.DocReady(function() {
   }
 })();
 
-VSettings.uninit_ = function(type: number): void {
+VSettings.stop = function(type: number): void {
   let injector = VimiumInjector;
   if (type >= HookAction.Destroy && injector) {
     removeEventListener("hashchange", injector.checkIfEnabled);
