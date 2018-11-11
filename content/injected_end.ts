@@ -1,3 +1,8 @@
+[VDom, VHints, VKeyboard, Vomnibar, VScroller, VMarks,
+  VFindMode, VSettings, VHUD, VVisualMode,
+  ].forEach(Object.seal);
+[VUtils, VEventMode, VPort].forEach(Object.freeze);
+
 VDom.Scripts = false;
 VimiumInjector.checkIfEnabled = (function (this: null
     , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
@@ -32,8 +37,3 @@ VSettings.stop_ = function(type: number): void {
 };
 
 VimiumInjector.destroy = VSettings.destroy;
-
-[VDom, VHints, VKeyboard, Vomnibar, VScroller, VMarks,
-  VFindMode, VSettings, VHUD, VVisualMode,
-  VimiumInjector].forEach(Object.seal);
-[VUtils, VEventMode, VPort].forEach(Object.freeze);
