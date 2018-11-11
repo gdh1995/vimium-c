@@ -846,7 +846,7 @@ Pagination = {
       } else {
         InsertMode.grabFocus_ = false;
         hook(HookAction.Suppress);
-        VSettings.stop && VSettings.stop(HookAction.Suppress);
+        VSettings.stop_ && VSettings.stop_(HookAction.Suppress);
       }
       r[kBgReq.init] = null as never;
       return D.DocReady(function (): void {
@@ -1139,13 +1139,13 @@ Pagination = {
   VSettings = {
     enabled_: false,
     cache: null as never as VSettings["cache"],
-    stop: null,
+    stop_: null,
   destroy: function(silent): void {
     VSettings.enabled_ = isEnabled = false;
     hook(HookAction.Destroy);
     
     Commands.reset();
-    let f = VSettings.stop, ui = VDom.UI;
+    let f = VSettings.stop_, ui = VDom.UI;
     f && f(HookAction.Destroy);
 
     VUtils = VKeyboard = VDom = VDom = VUtils = //

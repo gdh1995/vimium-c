@@ -61,6 +61,7 @@ var Tasks = {
     var nameCache = { vars: {}, props: {} };
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").split("\n");
+    var ori_sources = sources.slice(0);
     var body = sources.splice(0, sources.indexOf("background/main.js") + 1, "background/body.js");
     gulp.task("min/bg/_1", function() {
       return uglifyJSFiles(body, sources[0], null, nameCache);
@@ -73,20 +74,38 @@ var Tasks = {
     gulp.task("min/bg/_3", function() {
       return uglifyJSFiles(sources.slice(1, index), "background/", "", nameCache);
     });
+    gulp.task("min/bg/_4", function() {
+      var res = ["background/*.js"];
+      for (var arr = ori_sources, i = 0, len = arr.length; i < len; i++) {
+        res.push("!" + arr[i]);
+      }
+      return uglifyJSFiles(res, ".", "", nameCache);
+    });
     manifest.background.scripts = sources;
-    gulp.parallel("min/bg/_1", "min/bg/_2", "min/bg/_3")(cb);
+    gulp.parallel("min/bg/_1", "min/bg/_2", "min/bg/_3", "min/bg/_4")(cb);
   },
-  "min/content": function() {
+  "min/content": function(cb) {
     var cs = manifest.content_scripts[0], sources = cs.js;
     if (sources.length <= 1) {
-      return;
+      return cb();
     }
     cs.js = ["content/vimium-c.js"];
-    return uglifyJSFiles(sources, cs.js[0]);
+    var nameCache = { vars: {}, props: {} };
+    gulp.task("min/content/_1", function() {
+      return uglifyJSFiles(sources, cs.js[0], null, nameCache);
+    });
+    gulp.task("min/content/_2", function() {
+      var res = ["content/*.js"];
+      for (var arr = sources, i = 0, len = arr.length; i < len; i++) {
+        res.push("!" + arr[i]);
+      }
+      return uglifyJSFiles(res, ".", "", nameCache);
+    });
+    gulp.parallel("min/content/_1", "min/content/_2")(cb);
   },
   "min/others": function() {
     var oriManifest = readJSON("manifest.json", true);
-    var res = ["**/*.js"];
+    var res = ["**/*.js", "!background/*.js", "!content/*.js"];
     for (var arr = oriManifest.background.scripts, i = 0, len = arr.length; i < len; i++) {
       res.push("!" + arr[i]);
     }
