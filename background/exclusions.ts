@@ -67,7 +67,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       : Settings.CONST.ChromeVersion >= BrowserVer.MinWithFrameId ? Backend.checkIfEnabled_
       : function(details: chrome.webNavigation.WebNavigationCallbackDetails) {
         const ref = Backend.indexPorts(details.tabId),
-        msg = { name: kBgReq.url as kBgReq.url, handler: "checkIfEnabled" as "checkIfEnabled" };
+        msg = { name: kBgReq.url as kBgReq.url, handler: kFgReq.checkIfEnabled as kFgReq.checkIfEnabled };
         // force the tab's ports to reconnect and refresh their pass keys
         for (let i = ref ? ref.length : 0; 0 < --i; ) {
           (ref as Frames.Frames)[i].postMessage(msg);
@@ -99,8 +99,8 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     if (old_is_empty) {
       always_enabled || Settings.broadcast({
         name: kBgReq.url,
-        handler: "checkIfEnabled"
-      } as Req.fg<"checkIfEnabled"> & Req.bg<kBgReq.url>);
+        handler: kFgReq.checkIfEnabled
+      } as Req.fg<kFgReq.checkIfEnabled> & Req.bg<kBgReq.url>);
       return;
     }
     const ref = Backend.indexPorts(),

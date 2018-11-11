@@ -74,7 +74,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
   function send<K extends keyof FgRes> (this: void, request: Req.fgWithRes<K>
       , callback: (this: void, res: FgRes[K]) => void): void {
     let id = ++vPort._id;
-    request.handler = "msg"; request.mid = id;
+    request.handler = kFgReq.msg; request.mid = id;
     (vPort._port as Port).postMessage<K>(request);
     vPort._callbacks[id] = callback;
   }
@@ -397,7 +397,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         if (window === window.top) { return; }
         wantTop = true;
       }
-      post({ handler: "initHelp", wantTop });
+      post({ handler: kFgReq.initHelp, wantTop });
     },
     autoCopy (_0: number, options: CmdOptions["autoCopy"]): void {
       let str = VDom.UI.getSelectionText_(1);
@@ -412,7 +412,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         str = "";
       } else {
         post({
-          handler: "copy",
+          handler: kFgReq.copy,
           data: str
         });
       }
@@ -421,14 +421,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     autoOpen (_0: number, options: CmdOptions["autoOpen"]): void {
       let url = VDom.UI.getSelectionText_(), keyword = (options.keyword || "") + "";
       url && VPort.evalIfOK_(url) || post({
-        handler: "openUrl",
+        handler: kFgReq.openUrl,
         copied: !url,
         keyword, url
       });
     },
     searchAs (): void {
       post({
-        handler: "searchAs",
+        handler: kFgReq.searchAs,
         url: location.href,
         search: VDom.UI.getSelectionText_()
       });
@@ -534,7 +534,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         this.lock_ = activeEl as HTMLElement;
       }
     },
-    ExitGrab_: function (this: void, event?: Req.fg<"exitGrab"> | MouseEvent | KeyboardEvent): HandlerResult.Nothing | void {
+    ExitGrab_: function (this: void, event?: Req.fg<kFgReq.exitGrab> | MouseEvent | KeyboardEvent): HandlerResult.Nothing | void {
       const _this = InsertMode;
       if (!_this.grabFocus_) { return; }
       _this.grabFocus_ = false;
@@ -542,7 +542,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       VUtils.remove_(_this);
       // it's okay to not set the userActed flag if there's only the top frame,
       !(event instanceof Event) || !frames.length && window === window.top ||
-      vPort.SafePost_({ handler: "exitGrab" });
+      vPort.SafePost_({ handler: kFgReq.exitGrab });
       if (event instanceof KeyboardEvent) { return HandlerResult.Nothing; }
     } as {
       (this: void, event: KeyboardEvent): HandlerResult.Nothing;
@@ -577,7 +577,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
           parent.focus();
         }
       } else if (KeydownEvents[key] !== 2) { // avoid sending too many messages
-        post({ handler: "nextFrame", type: Frames.NextType.parent, key });
+        post({ handler: kFgReq.nextFrame, type: Frames.NextType.parent, key });
         KeydownEvents[key] = 2;
       }
     },
@@ -694,7 +694,7 @@ Pagination = {
         || document.body instanceof HTMLFrameSetElement
         || FrameMask.hidden_()) {
         post({
-          handler: "nextFrame",
+          handler: kFgReq.nextFrame,
           key
         });
         return;
@@ -851,7 +851,7 @@ Pagination = {
       r[kBgReq.init] = null as never;
       return D.DocReady(function (): void {
         HUD.enabled_ = true;
-        onWndFocus = vPort.SafePost_.bind(vPort as never, { handler: "focus" });
+        onWndFocus = vPort.SafePost_.bind(vPort as never, { handler: kFgReq.focus });
       });
     },
     function (request: BgReq[kBgReq.reset], initing?: 1): void {
@@ -933,7 +933,7 @@ Pagination = {
     },
     function (request: BgReq[kBgReq.count]): void {
       const count = parseInt(currentKeys, 10) || 1;
-      post({ handler: "cmd", cmd: request.cmd, count, id: request.id});
+      post({ handler: kFgReq.cmd, cmd: request.cmd, count, id: request.id});
     },
   function ({ html, advanced: shouldShowAdvanced, optionUrl, CSS }: Req.bg<kBgReq.showHelpDialog>): void {
     let box: HTMLElement, oldShowHelp = Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void
@@ -975,7 +975,7 @@ Pagination = {
     if (! location.href.startsWith(optionUrl)) {
       (node1 as HTMLAnchorElement).href = optionUrl;
       node1.onclick = function(event) {
-        post({ handler: "focusOrLaunch", url: optionUrl });
+        post({ handler: kFgReq.focusOrLaunch, url: optionUrl });
         hide(event);
       };
     } else {
@@ -991,7 +991,7 @@ Pagination = {
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
       (post as <K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>) => 1)({
-        handler: "setSetting",
+        handler: kFgReq.setSetting,
         key: "showAdvancedCommands",
         value: shouldShowAdvanced
       });
@@ -1039,7 +1039,7 @@ Pagination = {
     }
     currentKeys += key;
     if (j === 0) {
-      post({ handler: "key", key: currentKeys, lastKey: event.keyCode });
+      post({ handler: kFgReq.key, key: currentKeys, lastKey: event.keyCode });
       return esc(HandlerResult.Prevent);
     } else {
       nextKeys = j !== 1 ? j : keyMap;

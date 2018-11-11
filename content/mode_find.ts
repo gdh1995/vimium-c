@@ -285,7 +285,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     if (ind < 0) { return; }
     this.historyIndex_ = ind;
     if (!back) {
-      return VPort.send_({ msg: "findQuery", index: ind }, this.SetQuery_);
+      return VPort.send_({ msg: kFgReq.findQuery, index: ind }, this.SetQuery_);
     }
     const wnd = this.box_.contentWindow;
     wnd.document.execCommand("undo", false);
@@ -300,7 +300,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     return _this.onInput_();
   },
   saveQuery_ (): string | void | 1 {
-    return this.query_ && VPort.post({ handler: "findQuery", query: this.query_ });
+    return this.query_ && VPort.post({ handler: kFgReq.findQuery, query: this.query_ });
   },
   postMode_: {
     lock_: null as Element | null,

@@ -198,7 +198,7 @@ var VVisualMode = {
   },
   find_ (count: number): void {
     if (!VFindMode.query_) {
-      VPort.send_({ msg: "findQuery" }, function(query): void {
+      VPort.send_({ msg: kFgReq.findQuery }, function(query): void {
         if (query) {
           VFindMode.updateQuery_(query);
           return VVisualMode.find_(count);
@@ -229,8 +229,8 @@ var VVisualMode = {
       this.deactivate_();
       action != null || VHUD.copied(str);
     }
-    VPort.post(action != null ? { handler: "openUrl", url: str, reuse: action }
-        : { handler: "copy", data: str });
+    VPort.post(action != null ? { handler: kFgReq.openUrl, url: str, reuse: action }
+        : { handler: kFgReq.copy, data: str });
   },
 
 movement_: {

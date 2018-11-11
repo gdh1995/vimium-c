@@ -5,7 +5,7 @@ var HelpDialog = {
     : Settings.CONST.ChromeVersion < BrowserVer.MinFixedCSS$All$MayMistakenlyResetFixedPosition
       && Settings.CONST.ChromeVersion >= BrowserVer.MinCSS$All$MayMistakenlyResetFixedPosition ? "position: fixed;"
     : "",
-  render_: (function(this: void, request: FgReq["initHelp"]): string {
+  render_: (function(this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
       if (Settings.CONST.StyleCacheId_.indexOf("s") < 0) {
         let template = Settings.cache.helpDialog as string, styleEnd = template.indexOf("</style>");

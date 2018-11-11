@@ -336,7 +336,7 @@ function copyThing(event: Event): void {
   }
   if (!(str && window.VPort)) { return; }
   VPort.post({
-    handler: "copy",
+    handler: kFgReq.copy,
     data: str
   });
   return VHUD.copied(str);

@@ -93,7 +93,7 @@ var Vomnibar = {
     }
     const trail = options.trailing_slash;
     VPort.send_({
-      msg: "parseSearchUrl",
+      msg: kFgReq.parseSearchUrl,
       trailing_slash: trail != null ? !!trail : null,
       upper, url
     }, function(search): void {
@@ -207,7 +207,7 @@ var Vomnibar = {
     this.options_ = null;
     if (this.onReset_) { return this.onReset_(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
-    return VPort.post({ handler: "vomnibar", redo: true, inner: true });
+    return VPort.post({ handler: kFgReq.vomnibar, redo: true, inner: true });
   },
   isABlank_ (): boolean {
     try {

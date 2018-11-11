@@ -1,6 +1,6 @@
 /// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
-/// <reference path="../types/vimium_c.d.ts" />
+/// <reference path="../types/lib/index.d.ts" />
 type _EventTargetEx = typeof EventTarget;
 interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;
@@ -71,7 +71,7 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
   });
 }
 function call() {
-  runtime.sendMessage(extId, { handler: "content_scripts" }, handler);
+  runtime.sendMessage(extId, { handler: kFgReq.content_scripts }, handler);
 }
 function start() {
   removeEventListener("load", start);

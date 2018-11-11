@@ -689,7 +689,7 @@ document.addEventListener("click", function onClickOnce(): void {
     if (VPort && target.classList.contains("HelpCommandName")) {
       str = target.textContent.slice(1, -1);
       VPort.post({
-        handler: "copy",
+        handler: kFgReq.copy,
         data: str
       });
       return VHUD.copied(str);

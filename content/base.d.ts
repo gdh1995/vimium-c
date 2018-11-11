@@ -129,7 +129,7 @@ declare namespace VomnibarNS {
   interface BaseFgOptions {
     width: number;
     height: number;
-    search: "" | FgRes["parseSearchUrl"];
+    search: "" | FgRes[kFgReq.parseSearchUrl];
     ptype: PageType;
   }
   interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {

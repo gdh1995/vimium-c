@@ -236,7 +236,7 @@ declare namespace CompletersNS {
 
   interface GlobalCompletersConstructor {
     filter_ (this: GlobalCompletersConstructor, query: string, options: FullOptions, callback: Callback): void;
-    removeSug_ (url: string, type: FgReq["removeSug"]["type"], callback: (succeed: boolean) => void): void;
+    removeSug_ (url: string, type: FgReq[kFgReq.removeSug]["type"], callback: (succeed: boolean) => void): void;
   }
 }
 declare var Completers: CompletersNS.GlobalCompletersConstructor;
@@ -373,22 +373,22 @@ import FullSettings = SettingsNS.FullSettings;
 
 declare namespace BackendHandlersNS {
   interface checkIfEnabled extends ExclusionsNS.Listener {
-    (this: void, request: FgReq["checkIfEnabled"], port: Frames.Port): void;
+    (this: void, request: FgReq[kFgReq.checkIfEnabled], port: Frames.Port): void;
   }
 
   interface BackendHandlers {
-    parse_ (this: void, request: FgReqWithRes["parseSearchUrl"]): FgRes["parseSearchUrl"];
+    parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl];
     gotoSession_: {
       (this: void, request: { sessionId: string | number, active: false }, port: Port): void;
       (this: void, request: { sessionId: string | number, active?: true }): void;
     };
-    openUrl_ (this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
+    openUrl_ (this: void, request: FgReq[kFgReq.openUrl], port?: Port | undefined): void;
     checkIfEnabled_: checkIfEnabled;
     focus (this: void, request: MarksNS.FocusOrLaunch): void;
     reopenTab_ (tab: chrome.tabs.Tab, refresh?: boolean): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus): void;
     IconBuffer_: IconNS.AccessIconBuffer | null,
-    removeSug_ (this: void, req: FgReq["removeSug"], port?: Port): void;
+    removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
     showHUD_ (message: string, isCopy?: boolean | undefined): void;
     getExcluded_ (this: void, url: string): string | null,

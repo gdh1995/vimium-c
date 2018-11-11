@@ -144,7 +144,7 @@ var O = {
     window.onkeyup = null as never;
     const el = this.input_;
     el.blur();
-    data || P.postMessage_({ handler: "nextFrame", type: Frames.NextType.current, key: this.lastKey_ });
+    data || P.postMessage_({ handler: kFgReq.nextFrame, type: Frames.NextType.current, key: this.lastKey_ });
     this.bodySt_.cssText = "display: none;";
     this.list_.textContent = el.value = "";
     this.list_.style.height = "";
@@ -196,7 +196,7 @@ var O = {
     if (focus !== false) {
       a.input_.focus();
     } else {
-      P.postMessage_({ handler: "nextFrame", type: Frames.NextType.current, key: a.lastKey_ });
+      P.postMessage_({ handler: kFgReq.nextFrame, type: Frames.NextType.current, key: a.lastKey_ });
     }
   },
   update_ (updateDelay: number, callback?: (() => void) | null): void {
@@ -272,7 +272,7 @@ var O = {
       }
     }
     P.postMessage_({
-      handler: "parseSearchUrl",
+      handler: kFgReq.parseSearchUrl,
       id: sel,
       url: str
     });
@@ -486,7 +486,7 @@ var O = {
       return;
     }
     P.postMessage_({
-      handler: "removeSug",
+      handler: kFgReq.removeSug,
       type,
       url: type === "tab" ? completion.sessionId + "" : completion.url
     });
@@ -636,10 +636,10 @@ var O = {
     if (byCode) {
       a.blurred_(blurred);
     } else if (blurred) {
-      P.postMessage_({ handler: "blurTest" });
+      P.postMessage_({ handler: kFgReq.blurTest });
     } else {
       a._focusTimer = setTimeout(a.blurred_, 50, false);
-      P && P.postMessage_({ handler: "blank" });
+      P && P.postMessage_({ handler: kFgReq.blank });
       if (a.pageType_ === VomnibarNS.PageType.ext && P) {
         P.postToOwner_({name: "test"});
       }
@@ -765,7 +765,7 @@ var O = {
 
   maxResults_: (<number>window.VomnibarListLength | 0) || 10,
   mode_: {
-    handler: "omni" as "omni",
+    handler: kFgReq.omni as kFgReq.omni,
     type: "omni" as CompletersNS.ValidTypes,
     maxChars: 0,
     maxResults: 0,
@@ -820,14 +820,14 @@ var O = {
       P.postToOwner_({ name: "evalJS", url });
       return;
     }
-    P.postMessage_({ handler: "openUrl", reuse, https, url, omni: true });
+    P.postMessage_({ handler: kFgReq.openUrl, reuse, https, url, omni: true });
     if (reuse === ReuseType.newBg && (!this.lastQuery_ || (<RegExpOne>/^\+\d{0,2}$/).exec(this.lastQuery_))) {
       return this.refresh_();
     }
   },
   gotoSession_ (item: SuggestionE & { sessionId: string | number }): void {
     P.postMessage_({
-      handler: "gotoSession",
+      handler: kFgReq.gotoSession,
       active: this.actionType_ > ReuseType.newBg,
       sessionId: item.sessionId
     });

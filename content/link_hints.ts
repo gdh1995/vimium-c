@@ -137,9 +137,9 @@ var VHints = {
     }
     count = Math.abs(count);
     if (count > 1) { mode < HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
-    for (const i of ref) {
-      if (i.hasOwnProperty(mode)) {
-        modeOpt = i;
+    for (let _i = ref.length; 0 <= --_i; ) {
+      if (ref[_i].hasOwnProperty(mode)) {
+        modeOpt = ref[_i];
         break;
       }
     }
@@ -978,8 +978,8 @@ _getImageUrl (img: HTMLElement): string | void {
 },
 
 openUrl_ (url: string, incognito?: boolean): void {
-  let kw = this.options_.keyword, opt: Req.fg<"openUrl"> = {
-    handler: "openUrl",
+  let kw = this.options_.keyword, opt: Req.fg<kFgReq.openUrl> = {
+    handler: kFgReq.openUrl,
     reuse: this.mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
     url,
     keyword: kw != null ? kw + "" : ""
@@ -1001,7 +1001,7 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   options.mode = this.mode_;
   el.focus();
   if (err) {
-    VPort.send_({ msg: "execInChild", url: el.src, CSS: "1",
+    VPort.send_({ msg: kFgReq.execInChild, url: el.src, CSS: "1",
       command: "focusAndHint", count, options
     }, function(res): void {
       if (!res) {
@@ -1084,8 +1084,8 @@ Modes_: [
     if (a.mode_ >= HintMode.min_edit && a.mode_ <= HintMode.max_edit) {
       let newtab = a.options_.newtab;
       newtab == null && (newtab = a.options_.force);
-      (VPort as ComplicatedVPort).post<"vomnibar", { count: number } & Partial<VomnibarNS.ContentOptions>>({
-        handler: "vomnibar",
+      (VPort as ComplicatedVPort).post<kFgReq.vomnibar, { count: number } & Partial<VomnibarNS.ContentOptions>>({
+        handler: kFgReq.vomnibar,
         count: 1,
         newtab: newtab != null ? !!newtab : !isUrl,
         url: str,
@@ -1100,7 +1100,7 @@ Modes_: [
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? VUtils.decodeURL_(str) : str;
     VPort.post({
-      handler: "copy",
+      handler: kFgReq.copy,
       data: str
     });
     VHUD.copied(str);

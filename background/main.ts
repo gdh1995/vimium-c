@@ -49,6 +49,16 @@ var Backend: BackendHandlersNS.BackendHandlers;
     s1, s2, s3, s4,
     end,
   }
+  interface SpecialHandlers {
+    [kFgReq.setSetting]: (this: void, request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port) => void;
+    [kFgReq.gotoSession]: BackendHandlersNS.BackendHandlers["gotoSession_"];
+    [kFgReq.checkIfEnabled]: BackendHandlersNS.checkIfEnabled;
+    [kFgReq.parseUpperUrl]: {
+      (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl] & { execute: true }, port: Port): void;
+      (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl];
+    };
+    [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
+  }
 
   /** any change to `commandCount` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
@@ -445,7 +455,7 @@ Are you sure you want to continue?`);
       return typeof url !== "string" ? onEvalUrl(url as Urls.SpecialUrl)
         : openShowPage[0](url, reuse, options) ? void 0
         : Utils.isJSUrl_(url) ? openJSUrl(url)
-        : reuse === ReuseType.reuse ? requestHandlers.focusOrLaunch({ url })
+        : reuse === ReuseType.reuse ? requestHandlers[kFgReq.focusOrLaunch]({ url })
         : reuse === ReuseType.current ? safeUpdate(url)
         : tabs ? openUrlInNewTab(url, reuse, options, tabs as [Tab])
         : void getCurTab(openUrlInNewTab.bind(null, url, reuse, options));
@@ -1086,7 +1096,7 @@ Are you sure you want to continue?`);
     },
     goToRoot (this: void, tabs: [Tab]): void {
       const trail = cOptions.trailing_slash,
-      { path, url } = requestHandlers.parseUpperUrl({
+      { path, url } = requestHandlers[kFgReq.parseUpperUrl]({
         trailing_slash: trail != null ? !!trail : null,
         url: tabs[0].url, upper: commandCount
       });
@@ -1098,8 +1108,8 @@ Are you sure you want to continue?`);
     },
     goUp (this: void): void {
       const trail = cOptions.trailing_slash;
-      requireURL<"parseUpperUrl">({
-        handler: "parseUpperUrl",
+      requireURL({
+        handler: kFgReq.parseUpperUrl,
         url: "", // just a hack to make TypeScript compiler happy
         upper: -commandCount,
         trailing_slash: trail != null ? !!trail : null,
@@ -1311,7 +1321,7 @@ Are you sure you want to continue?`);
     },
     showHelp (this: void): void {
       if (cPort.sender.frameId === 0 && !(window.HelpDialog && (cPort.sender.flags & Frames.Flags.hadHelpDialog))) {
-        return requestHandlers.initHelp({}, cPort);
+        return requestHandlers[kFgReq.initHelp]({}, cPort);
       }
       if (!window.HelpDialog) {
         Utils.require<BaseHelpDialog>('HelpDialog');
@@ -1336,7 +1346,7 @@ Are you sure you want to continue?`);
       });
     },
     clearMarks (this: void): void {
-      cOptions.local ? requireURL<"marks">({ handler: "marks", url:"", action: "clear" }, true) : Marks.clear();
+      cOptions.local ? requireURL({ handler: kFgReq.marks, url:"", action: "clear" }, true) : Marks.clear();
     },
     toggle (this: void): void {
       type Keys = CmdOptions["toggle"]["key"];
@@ -1405,9 +1415,16 @@ Are you sure you want to continue?`);
    *  [ /^A-Z/ ]: (this: void, ...args: any[]) => void;
    * }
    */
-  requestHandlers = {
-    blank (this: void): void {},
-    setSetting (this: void, request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port): void {
+  requestHandlers: {
+    [K in keyof FgReqWithRes | keyof FgReq]:
+      K extends keyof SpecialHandlers ? SpecialHandlers[K] :
+      K extends keyof FgReqWithRes ? (((this: void, request: FgReqWithRes[K], port: Port) => FgRes[K])
+        | (K extends keyof FgReq ? (this: void, request: FgReq[K], port: Port) => void : never)) :
+      K extends keyof FgReq ? ((this: void, request: FgReq[K], port: Port) => void) :
+      never;
+  } = [
+    /** blank: */ function (this: void): void {},
+    /** setSetting: */ function (this: void, request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port): void {
       const key = request.key;
       if (!(key in Settings.frontUpdateAllowed_)) {
         cPort = port;
@@ -1419,10 +1436,10 @@ Are you sure you want to continue?`);
         (Settings.payload as SafeDict<CacheValue>)[key] = Settings.cache[key];
       }
     },
-    findQuery (this: void, request: FgReq["findQuery"] | FgReqWithRes["findQuery"], port: Port): FgRes["findQuery"] | void {
+    /** findQuery: */ function (this: void, request: FgReq[kFgReq.findQuery] | FgReqWithRes[kFgReq.findQuery], port: Port): FgRes[kFgReq.findQuery] | void {
       return FindModeHistory.query(port.sender.incognito, request.query, request.index);
     },
-    parseSearchUrl (this: void, request: FgReqWithRes["parseSearchUrl"], port: Port): FgRes["parseSearchUrl"] | void {
+    /** parseSearchUrl: */ function (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl], port: Port): FgRes[kFgReq.parseSearchUrl] | void {
       let search = Backend.parse_(request);
       if ("id" in request) {
         port.postMessage({ name: kBgReq.omni_parsed, id: request.id as number, search });
@@ -1430,9 +1447,9 @@ Are you sure you want to continue?`);
         return search;
       }
     },
-    parseUpperUrl: function (this: void, request: FgReqWithRes["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"] | void {
-      if (port && (request as FgReq["parseUpperUrl"]).execute) {
-        const result = requestHandlers.parseUpperUrl(request);
+    /** parseUpperUrl: */ function (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl] | void {
+      if (port && (request as FgReq[kFgReq.parseUpperUrl]).execute) {
+        const result = requestHandlers[kFgReq.parseUpperUrl](request);
         if (result.path != null) {
           port.postMessage<1, "reload">({ name: kBgReq.execute, command: "reload", count: 1, options: { url: result.url }, CSS: null });
           return;
@@ -1554,11 +1571,8 @@ Are you sure you want to continue?`);
       url = url.substring(0, start) + (end ? str + url.substring(end) : str);
       Utils.resetRe_();
       return { url, path };
-    } as {
-      (this: void, request: FgReqWithRes["parseUpperUrl"] & { execute: true }, port: Port): void;
-      (this: void, request: FgReqWithRes["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"];
-    },
-    searchAs (this: void, request: FgReq["searchAs"], port: Port): void {
+    } as SpecialHandlers[kFgReq.parseUpperUrl],
+    /** searchAs: */ function (this: void, request: FgReq[kFgReq.searchAs], port: Port): void {
       let search = Backend.parse_(request), query: string | null | Promise<string | null>;
       if (!search || !search.keyword) {
         cPort = port;
@@ -1581,7 +1595,7 @@ Are you sure you want to continue?`);
         return safeUpdate(query);
       }
     },
-    gotoSession: function (this: void, request: FgReq["gotoSession"], port?: Port): void {
+    /** gotoSession: */ function (this: void, request: FgReq[kFgReq.gotoSession], port?: Port): void {
       const id = request.sessionId, active = request.active !== false;
       if (typeof id === "number") {
         return selectTab(id, true);
@@ -1595,8 +1609,8 @@ Are you sure you want to continue?`);
       let tabId = (port as Port).sender.tabId;
       tabId >= 0 || (tabId = TabRecency.last);
       if (tabId >= 0) { return selectTab(tabId); }
-    } as BackendHandlersNS.BackendHandlers["gotoSession_"],
-    openUrl (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url, opener?: boolean }, port?: Port): void {
+    },
+    /** openUrl: */ function (this: void, request: FgReq[kFgReq.openUrl] & { url_f?: Urls.Url, opener?: boolean }, port?: Port): void {
       Object.setPrototypeOf(request, null);
       let unsafe = port != null && isNotVomnibarPage(port, true);
       cPort = unsafe ? port as Port : findCPort(port) || cPort;
@@ -1626,7 +1640,7 @@ Are you sure you want to continue?`);
       cOptions = request as (typeof request) & SafeObject;
       return BackgroundCommands.openUrl();
     },
-    focus (this: void, _0: FgReq["focus"], port: Port): void {
+    /** focus: */ function (this: void, _0: FgReq[kFgReq.focus], port: Port): void {
       let tabId = port.sender.tabId, ref = framesForTab[tabId] as Frames.WritableFrames | undefined, status: Frames.ValidStatus;
       if (!ref) {
         return needIcon ? Backend.setIcon_(tabId, port.sender.status) : undefined;
@@ -1638,7 +1652,7 @@ Are you sure you want to continue?`);
       }
       ref[0] = port;
     },
-    checkIfEnabled: function (this: void, request: ExclusionsNS.Details | FgReq["checkIfEnabled"]
+    /** checkIfEnabled: */ function (this: void, request: ExclusionsNS.Details | FgReq[kFgReq.checkIfEnabled]
         , port?: Frames.Port | null): void {
       if (!port || !port.postMessage) {
         port = indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId);
@@ -1658,8 +1672,8 @@ Are you sure you want to continue?`);
         return;
       }
       port.postMessage({ name: kBgReq.reset, passKeys: pattern });
-    } as BackendHandlersNS.checkIfEnabled,
-    nextFrame (this: void, request: FgReq["nextFrame"], port: Port): void {
+    },
+    /** nextFrame: */ function (this: void, request: FgReq[kFgReq.nextFrame], port: Port): void {
       cPort = port;
       commandCount = 1;
       cKey = request.key;
@@ -1678,7 +1692,7 @@ Are you sure you want to continue?`);
       }
       try { port.postMessage({ name: kBgReq.omni_returnFocus, key: cKey }); } catch (e) {}
     },
-    exitGrab (this: void, _0: FgReq["exitGrab"], port: Port): void {
+    /** exitGrab: */ function (this: void, _0: FgReq[kFgReq.exitGrab], port: Port): void {
       const ports = framesForTab[port.sender.tabId];
       if (!ports) { return; }
       ports[0].sender.flags |= Frames.Flags.userActed;
@@ -1691,7 +1705,7 @@ Are you sure you want to continue?`);
         }
       }
     },
-    execInChild (this: void, request: FgReqWithRes["execInChild"], port: Port): FgRes["execInChild"] {
+    /** execInChild: */ function (this: void, request: FgReqWithRes[kFgReq.execInChild], port: Port): FgRes[kFgReq.execInChild] {
       const ports = framesForTab[port.sender.tabId], url = request.url;
       if (!ports || ports.length < 3) { return false; }
       let iport: Port | null = null, i = ports.length;
@@ -1710,7 +1724,7 @@ Are you sure you want to continue?`);
       }
       return false;
     },
-    initHelp (this: void, request: FgReq["initHelp"], port: Port): void {
+    /** initHelp: */ function (this: void, request: FgReq[kFgReq.initHelp], port: Port): void {
       if (port.sender.url.startsWith(Settings.CONST.OptionsPage)) {
         request.unbound = true;
         request.names = true;
@@ -1736,7 +1750,7 @@ Are you sure you want to continue?`);
         console.error("Promises for initHelp failed:", args[0], ';', args[3]);
       });
     },
-    css (this: void, _0: {}, port: Port): void {
+    /** css: */ function (this: void, _0: {}, port: Port): void {
       const CSS = ensureInnerCSS(port);
       if (CSS) {
         port.postMessage({ name: kBgReq.showHUD, CSS });
@@ -1744,7 +1758,7 @@ Are you sure you want to continue?`);
         setTimeout(retryCSS, 34, port, 1);
       }
     },
-    vomnibar (this: void, request: FgReq["vomnibar"] & Req.baseFg<string>, port: Port): void {
+    /** vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar] & Req.baseFg<kFgReq.vomnibar>, port: Port): void {
       const { count, inner } = request;
       if (count != null) {
         delete request.count, delete request.handler, delete request.inner;
@@ -1762,16 +1776,16 @@ Are you sure you want to continue?`);
       cPort = port;
       return BackgroundCommands.showVomnibar(inner);
     },
-    omni (this: void, request: FgReq["omni"], port: Port): void {
+    /** omni: */ function (this: void, request: FgReq[kFgReq.omni], port: Port): void {
       if (isNotVomnibarPage(port)) { return; }
       return Completion.filter_(request.query, request,
       PostCompletions.bind<Port, 0 | 1 | 2, [Readonly<CompletersNS.Suggestion>[], boolean, CompletersNS.MatchType, number], void>(port
         , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
     },
-    copy (this: void, request: FgReq["copy"]): void {
+    /** copy: */ function (this: void, request: FgReq[kFgReq.copy]): void {
       VClipboard.copy(request.data);
     },
-    key (this: void, request: FgReq["key"], port: Port): void {
+    /** key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {
       (port.sender as Frames.RawSender).flags |= Frames.Flags.userActed;
       let key: string = request.key, count = 1;
       let arr: null | string[] = numHeadRe.exec(key);
@@ -1790,7 +1804,7 @@ Are you sure you want to continue?`);
       Utils.resetRe_();
       return executeCommand(registryEntry.command, registryEntry, count, request.lastKey, port);
     },
-    marks (this: void, request: FgReq["marks"], port: Port): void {
+    /** marks: */ function (this: void, request: FgReq[kFgReq.marks], port: Port): void {
       cPort = port;
       switch (request.action) {
       case "create": return Marks.createMark(request, port);
@@ -1800,14 +1814,14 @@ Are you sure you want to continue?`);
       }
     },
     /** safe when cPort is null */
-    focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true): void {
+    /** focusOrLaunch: */ function (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true): void {
       // * do not limit windowId or windowType
       let url = Utils.reformatURL_(request.url.split("#", 1)[0]), callback = focusOrLaunch[0];
       let cb2: (result: Tab[], exArg: FakeArg) => void;
       if (url.startsWith("file:") && !notFolder && url.substring(url.lastIndexOf("/") + 1).indexOf(".") < 0) {
         url += "/";
         cb2 = function(tabs): void {
-          return tabs && tabs.length > 0 ? callback.call(request, tabs) : requestHandlers.focusOrLaunch(request, null, true);
+          return tabs && tabs.length > 0 ? callback.call(request, tabs) : requestHandlers[kFgReq.focusOrLaunch](request, null, true);
         };
       } else {
         request.prefix && (url += "*");
@@ -1815,7 +1829,7 @@ Are you sure you want to continue?`);
       }
       chrome.tabs.query({ url, windowType: "normal" }, cb2);
     },
-    cmd (this: void, request: FgReq["cmd"], port: Port): void {
+    /** cmd: */ function (this: void, request: FgReq[kFgReq.cmd], port: Port): void {
       const cmd = request.cmd, id = request.id;
       if (id && gCmdTimer !== id) { return; } // an old / aborted message
       if (gCmdTimer) {
@@ -1824,7 +1838,7 @@ Are you sure you want to continue?`);
       }
       execute(cmd, CommandsData.cmdMap_[cmd] || null, request.count, port);
     },
-    blurTest (this: void, _0: FgReq["blurTest"], port: Port): void {
+    /** blurTest: */ function (this: void, _0: FgReq[kFgReq.blurTest], port: Port): void {
       if (port.sender.tabId < 0) {
         port.postMessage({ name: kBgReq.omni_blurred });
         return;
@@ -1835,18 +1849,16 @@ Are you sure you want to continue?`);
         }
       }, 50);
     },
-    removeSug (this: void, req: FgReq["removeSug"], port?: Port): void {
+    /** removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
       return Backend.removeSug_(req, port);
     }
-  },
+  ],
     framesForOmni: Frames.WritableFrames = [null as never];
     function OnMessage <K extends keyof FgReq, T extends keyof FgRes> (this: void, request: Req.fg<K> | Req.fgWithRes<T>, port: Frames.Port): void {
       type ReqK = keyof FgReq;
       type ResK = keyof FgRes;
-      if (request.handler !== "msg") {
+      if (request.handler !== kFgReq.msg) {
         return (requestHandlers as {
-          [T2 in ReqK]: (req: Req.fg<T2>, port: Frames.Port) => void;
-        } as {
           [T2 in ReqK]: <T3 extends ReqK>(req: Req.fg<T3>, port: Frames.Port) => void;
         })[request.handler](request as Req.fg<K>, port);
       }
@@ -2012,13 +2024,13 @@ Are you sure you want to continue?`);
   })();
 
   Backend = {
-    gotoSession_: requestHandlers.gotoSession,
-    openUrl_: requestHandlers.openUrl,
-    checkIfEnabled_: requestHandlers.checkIfEnabled,
-    focus: requestHandlers.focusOrLaunch,
+    gotoSession_: requestHandlers[kFgReq.gotoSession],
+    openUrl_: requestHandlers[kFgReq.openUrl],
+    checkIfEnabled_: requestHandlers[kFgReq.checkIfEnabled],
+    focus: requestHandlers[kFgReq.focusOrLaunch],
     getExcluded_: Utils.getNull_,
     IconBuffer_: null,
-    removeSug_ (this: void, { type, url }: FgReq["removeSug"], port?: Port | null): void {
+    removeSug_ (this: void, { type, url }: FgReq[kFgReq.removeSug], port?: Port | null): void {
       const name = type === "tab" ? type : type + " item";
       cPort = findCPort(port) as Port;
       if (type === "tab" && TabRecency.last === +url) {
@@ -2032,7 +2044,7 @@ Are you sure you want to continue?`);
     complain_ (action: string): void {
       return this.showHUD_("It's not allowed to " + action);
     },
-    parse_ (this: void, request: FgReqWithRes["parseSearchUrl"]): FgRes["parseSearchUrl"] {
+    parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl] {
       let s0 = request.url, url = s0.toLowerCase(), pattern: Search.Rule | undefined
         , arr: string[] | null = null, _i: number, selectLast = false;
       if (!Utils.protocolRe_.test(Utils.removeComposedScheme_(url))) {
@@ -2040,7 +2052,7 @@ Are you sure you want to continue?`);
         return null;
       }
       if (request.upper) {
-        const obj = requestHandlers.parseUpperUrl(request as FgReqWithRes["parseUpperUrl"]);
+        const obj = requestHandlers[kFgReq.parseUpperUrl](request as FgReqWithRes[kFgReq.parseUpperUrl]);
         obj.path != null && (s0 = obj.url);
         return { keyword: '', start: 0, url: s0 };
       }
@@ -2224,7 +2236,7 @@ Are you sure you want to continue?`);
       return;
     }
     if (typeof message !== "object") { return; }
-    switch (message.handler) {
+    switch (message.handler as kFgReq) {
     case "command":
       command = message.command ? message.command + "" : "";
       if (command && CommandsData.availableCommands_[command]) {
@@ -2233,7 +2245,7 @@ Are you sure you want to continue?`);
         return execute(command, message.options, message.count, port, message.key);
       }
       return;
-    case "content_scripts":
+    case kFgReq.content_scripts:
       sendResponse(Settings.CONST.ContentScripts_);
       return;
     }
