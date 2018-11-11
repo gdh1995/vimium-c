@@ -3,7 +3,7 @@
     "listEmittedFiles": true,
     "listFiles": false,
     "outDir": "./dist",
-    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
     "sourceMap": true,
     "typescript": "typescript/lib/typescript"
   },
