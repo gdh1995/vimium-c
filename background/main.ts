@@ -21,19 +21,32 @@ var Backend: BackendHandlersNS.BackendHandlers;
     pinned?: boolean;
   }
   const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2 }
-  interface BgCmdNoTab {
-    useTab?: UseTab.NoTab;
-    (this: void): void;
+  type BgCmdNoTab = (this: void, _fakeArg?: undefined) => void;
+  type BgCmdActiveTab = (this: void, tabs1: [Tab] | never[]) => void;
+  type BgCmdActiveTabOrNoTab = (this: void, tabs1?: [Tab] | never[]) => void;
+  type BgCmdCurWndTabs = (this: void, tabs1: Tab[]) => void;
+  interface BgCmdInfoNS {
+    [kBgCmd.createTab]: UseTab.ActiveTab | UseTab.NoTab;
+    [kBgCmd.openUrl]: UseTab.ActiveTab | UseTab.NoTab;
+
+    [kBgCmd.goTab]: UseTab.CurWndTabs;
+    [kBgCmd.removeTab]: UseTab.CurWndTabs;
+    [kBgCmd.removeTabsR]: UseTab.CurWndTabs;
+    [kBgCmd.removeRightTab]: UseTab.CurWndTabs;
+    [kBgCmd.togglePinTab]: UseTab.CurWndTabs;
+    [kBgCmd.reloadTab]: UseTab.CurWndTabs;
+    [kBgCmd.moveTab]: UseTab.CurWndTabs;
+    [kBgCmd.visitPreviousTab]: UseTab.CurWndTabs;
+
+    [kBgCmd.moveTabToNextWindow]: UseTab.ActiveTab;
+    [kBgCmd.toggleCS]: UseTab.ActiveTab;
+    [kBgCmd.searchInAnother]: UseTab.ActiveTab;
+    [kBgCmd.reopenTab]: UseTab.ActiveTab;
+    [kBgCmd.goToRoot]: UseTab.ActiveTab;
+    [kBgCmd.copyTabInfo]: UseTab.ActiveTab;
+    [kBgCmd.toggleViewSource]: UseTab.ActiveTab;
   }
-  interface BgCmdActiveTab {
-    useTab?: UseTab.ActiveTab;
-    (this: void, tabs1: [Tab] | never[]): void;
-  }
-  interface BgCmdCurWndTabs {
-    useTab?: UseTab.CurWndTabs;
-    (this: void, tabs1: Tab[]): void;
-  }
-  type BgCmd = BgCmdNoTab | BgCmdActiveTab | BgCmdCurWndTabs;
+
   interface ReopenOptions extends chrome.tabs.CreateProperties {
     id: number;
     url: string;
@@ -342,7 +355,7 @@ Are you sure you want to continue?`);
     const
     createTab = [function(url, onlyNormal, tabs): void {
       if (cOptions.url || cOptions.urls) {
-        BackgroundCommands.openUrl(tabs as [Tab] | undefined);
+        BackgroundCommands[kBgCmd.openUrl](tabs as [Tab] | undefined);
         return chrome.runtime.lastError;
       }
       let tab: Tab | null = null;
@@ -365,7 +378,7 @@ Are you sure you want to continue?`);
       }, commandCount);
     }, function(wnd): void {
       if (cOptions.url || cOptions.urls) {
-        return BackgroundCommands.openUrl([selectFrom((wnd as PopWindow).tabs)]);
+        return BackgroundCommands[kBgCmd.openUrl]([selectFrom((wnd as PopWindow).tabs)]);
       }
       if (!wnd) {
         tabsCreate({url: this});
@@ -691,9 +704,27 @@ Are you sure you want to continue?`);
       ports[0].postMessage({ name: kBgReq.count, cmd, id: gCmdTimer });
     };
   const
-  BackgroundCommands = {
-    createTab: (function (): void {}) as BgCmd,
-    duplicateTab (): void {
+  BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
+    UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
+    UseTab.NoTab, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
+    UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab,
+    UseTab.CurWndTabs, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
+    UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
+    UseTab.NoTab, UseTab.CurWndTabs, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab,
+    UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
+    UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab,
+  ],
+  BackgroundCommands: {
+    [K in kBgCmd & number]:
+      K extends keyof BgCmdInfoNS ?
+        BgCmdInfoNS[K] extends UseTab.ActiveTab ? BgCmdActiveTab :
+        BgCmdInfoNS[K] extends UseTab.CurWndTabs ? BgCmdCurWndTabs :
+        BgCmdInfoNS[K] extends UseTab.ActiveTab | UseTab.NoTab ? BgCmdActiveTabOrNoTab :
+        never :
+      BgCmdNoTab;
+  } = [
+    /* createTab: */ function (): void {},
+    /* duplicateTab: */ function (): void {
       const tabId = cPort.sender.tabId;
       if (tabId < 0) {
         return Backend.complain_("duplicate such a tab");
@@ -722,7 +753,7 @@ Are you sure you want to continue?`);
         }, commandCount - 1);
       }
     },
-    moveTabToNewWindow (): void {
+    /* moveTabToNewWindow: */ function (): void {
       const incognito = !!cOptions.incognito;
       if (incognito && (cPort ? cPort.sender.incognito : TabRecency.incognito === IncognitoType.true)) {
         return reportNoop();
@@ -833,7 +864,7 @@ Are you sure you want to continue?`);
         });
       }
     },
-    moveTabToNextWindow (this: void, [tab]: [Tab]): void {
+    /* moveTabToNextWindow: */ function (this: void, [tab]: [Tab]): void {
       chrome.windows.getAll(function (wnds0: Window[]): void {
         let wnds: Window[], ids: number[], index = tab.windowId;
         wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal");
@@ -863,13 +894,13 @@ Are you sure you want to continue?`);
         }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "");
       });
     },
-    toggleCS (this: void, tabs: [Tab]): void {
+    /* toggleCS: */ function (this: void, tabs: [Tab]): void {
       return ContentSettings.toggleCS(commandCount, cOptions, tabs);
     },
-    clearCS (this: void): void {
+    /* clearCS: */ function (this: void): void {
       return ContentSettings.clearCS(cOptions, cPort);
     },
-    goTab (this: void, tabs: Tab[]): void {
+    /* goTab: */ function (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
       let count = ((cOptions.dir | 0) || 1) * commandCount, len = tabs.length, toSelect: Tab;
       count = cOptions.absolute
@@ -879,7 +910,7 @@ Are you sure you want to continue?`);
       toSelect = tabs[(count >= 0 ? 0 : len) + (count % len)];
       if (!toSelect.active) { return selectTab(toSelect.id); }
     },
-    removeTab (this: void, tabs: Tab[]): void {
+    /* removeTab: */ function (this: void, tabs: Tab[]): void {
       if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
       const total = tabs.length, rawCount = commandCount, absCount = Math.abs(rawCount),
       limited = cOptions.limited != null ? !!cOptions.limited : absCount > total;
@@ -918,18 +949,18 @@ Are you sure you want to continue?`);
       }
       return removeTabsRelative(tab, dir * (firstSide - count), tabs);
     },
-    removeTabsR (this: void, tabs: Tab[]): void {
+    /* removeTabsR: */ function (this: void, tabs: Tab[]): void {
       let dir = cOptions.dir | 0;
       dir = dir > 0 ? 1 : dir < 0 ? -1 : 0;
       return removeTabsRelative(selectFrom(tabs), dir * commandCount, tabs);
     },
-    removeRightTab (this: void, tabs: Tab[]): void {
+    /* removeRightTab: */ function (this: void, tabs: Tab[]): void {
       const last = tabs.length - 1, count = commandCount;
       if (!tabs || count > last || count < -last) { return; }
       const ind = selectFrom(tabs).index + count;
       chrome.tabs.remove(tabs[ind > last ? last - count : ind < 0 ? -count : ind].id);
     },
-    restoreTab (this: void): void {
+    /* restoreTab: */ function (this: void): void {
       if (!chrome.sessions) {
         return complainNoSession();
       }
@@ -943,7 +974,7 @@ Are you sure you want to continue?`);
         chrome.sessions.restore(null, onRuntimeError);
       } while (0 < --count);
     },
-    restoreGivenTab (): void {
+    /* restoreGivenTab: */ function (): void {
       if (!chrome.sessions) {
         return complainNoSession();
       }
@@ -963,14 +994,14 @@ Are you sure you want to continue?`);
       }
       chrome.sessions.getRecentlyClosed(doRestore);
     },
-    blank (this: void): void {},
-    openUrl (this: void, tabs?: [Tab] | never[]): void {
+    /* blank: */ function (this: void): void {},
+    /* openUrl: */ function (this: void, tabs?: [Tab] | never[]): void {
       if (cOptions.urls) {
         if (!(cOptions.urls instanceof Array)) { cOptions = null as never; return; }
         return tabs && tabs.length > 0 ? openUrls(tabs as [Tab]) : void getCurTab(openUrls);
       }
       if (cOptions.url_mask && !tabs) {
-        return <any>chrome.runtime.lastError || <any>void getCurTab(BackgroundCommands.openUrl);
+        return <any>chrome.runtime.lastError || <any>void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
       }
       let url: Urls.Url | Promise<string | null> | undefined | null, workType: Urls.WorkType = Urls.WorkType.FakeType;
       if (url = <string>cOptions.url) {
@@ -988,7 +1019,7 @@ Are you sure you want to continue?`);
       }
       return openUrl(url, workType, tabs);
     },
-    searchInAnother (this: void, tabs: [Tab]): void {
+    /* searchInAnother: */ function (this: void, tabs: [Tab]): void {
       let keyword = (cOptions.keyword || "") + "";
       const query = Backend.parse_({ url: tabs[0].url });
       if (!query || !keyword) {
@@ -1002,9 +1033,9 @@ Are you sure you want to continue?`);
         opener: true,
         url_f
       }, null);
-      BackgroundCommands.openUrl(tabs);
+      BackgroundCommands[kBgCmd.openUrl](tabs);
     },
-    togglePinTab (this: void, tabs: Tab[]): void {
+    /* togglePinTab: */ function (this: void, tabs: Tab[]): void {
       const tab = selectFrom(tabs);
       let i = tab.index;
       let len = Math.max(-1, Math.min(i + commandCount, tabs.length)), dir = i < len ? 1 : -1,
@@ -1015,7 +1046,7 @@ Are you sure you want to continue?`);
         i += dir;
       } while (len != i && i < tabs.length && i >= 0 && (pin || tabs[i].pinned));
     },
-    toggleMuteTab (): void {
+    /* toggleMuteTab: */ function (): void {
       if (Settings.CONST.ChromeVersion < BrowserVer.MinMuted) {
         return Backend.showHUD_(`Vimium C can not control mute state before Chrome ${BrowserVer.MinMuted}`);
       }
@@ -1043,11 +1074,11 @@ Are you sure you want to continue?`);
         }
       });
     },
-    reloadTab (this: void, tabs: Tab[] | never[]): void {
+    /* reloadTab: */ function (this: void, tabs: Tab[] | never[]): void {
       if (tabs.length <= 0) {
         getCurWnd(true, function(wnd) {
           if (!wnd) { return chrome.runtime.lastError; }
-          wnd.tabs.length > 0 && BackgroundCommands.reloadTab(wnd.tabs);
+          wnd.tabs.length > 0 && BackgroundCommands[kBgCmd.reloadTab](wnd.tabs);
         });
         return;
       }
@@ -1072,14 +1103,14 @@ Are you sure you want to continue?`);
         ind += dir;
       } while (last != ind && ind < len && ind >= 0);
     },
-    reloadGivenTab (): void {
+    /* reloadGivenTab: */ function (): void {
       if (commandCount < 2 && commandCount > -2) {
         chrome.tabs.reload();
         return;
       }
-      getCurTabs(BackgroundCommands.reloadTab);
+      getCurTabs(BackgroundCommands[kBgCmd.reloadTab]);
     },
-    reopenTab (this: void, tabs: [Tab] | never[]): void {
+    /* reopenTab: */ function (this: void, tabs: [Tab] | never[]): void {
       if (tabs.length <= 0) { return; }
       const tab = tabs[0];
       ++tab.index;
@@ -1094,7 +1125,7 @@ Are you sure you want to continue?`);
         return Backend.reopenTab_(tab);
       });
     },
-    goToRoot (this: void, tabs: [Tab]): void {
+    /* goToRoot: */ function (this: void, tabs: [Tab]): void {
       const trail = cOptions.trailing_slash,
       { path, url } = requestHandlers[kFgReq.parseUpperUrl]({
         trailing_slash: trail != null ? !!trail : null,
@@ -1106,7 +1137,7 @@ Are you sure you want to continue?`);
       }
       return Backend.showHUD_(url);
     },
-    goUp (this: void): void {
+    /* goUp: */ function (this: void): void {
       const trail = cOptions.trailing_slash;
       requireURL({
         handler: kFgReq.parseUpperUrl,
@@ -1116,7 +1147,7 @@ Are you sure you want to continue?`);
         execute: true
       });
     },
-    moveTab (this: void, tabs: Tab[]): void {
+    /* moveTab: */ function (this: void, tabs: Tab[]): void {
       const tab = selectFrom(tabs), dir = cOptions.dir > 0 ? 1 : -1, pinned = tab.pinned;
       let index = Math.max(0, Math.min(tabs.length - 1, tab.index + dir * commandCount));
       while (pinned !== tabs[index].pinned) { index -= dir; }
@@ -1124,7 +1155,7 @@ Are you sure you want to continue?`);
         chrome.tabs.move(tab.id, { index });
       }
     },
-    nextFrame (this: void): void {
+    /* nextFrame: */ function (this: void): void {
       let port = cPort, ind = -1;
       const frames = framesForTab[port.sender.tabId];
       if (frames && frames.length > 2) {
@@ -1144,7 +1175,7 @@ Are you sure you want to continue?`);
         mask: port !== cPort ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
       });
     },
-    mainFrame (): void {
+    /* mainFrame: */ function (): void {
       const tabId = cPort ? cPort.sender.tabId : TabRecency.last, port = indexFrame(tabId, 0);
       if (!port) { return; }
       port.postMessage({
@@ -1154,7 +1185,7 @@ Are you sure you want to continue?`);
         mask: (framesForTab[tabId] as Frames.Frames)[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
       });
     },
-    parentFrame (): void {
+    /* parentFrame: */ function (): void {
       const sender = cPort.sender as Frames.Sender | undefined,
       msg = NoFrameId ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
         : !(sender && sender.tabId >= 0 && framesForTab[sender.tabId])
@@ -1162,7 +1193,7 @@ Are you sure you want to continue?`);
         : null;
       msg && Backend.showHUD_(msg);
       if (!sender || !sender.frameId || NoFrameId || !chrome.webNavigation) {
-        return BackgroundCommands.mainFrame();
+        return BackgroundCommands[kBgCmd.mainFrame]();
       }
       chrome.webNavigation.getAllFrames({
         tabId: sender.tabId
@@ -1180,7 +1211,7 @@ Are you sure you want to continue?`);
         } while (found && 0 < --count);
         const port = frameId > 0 ? indexFrame(sender.tabId, frameId) : null;
         if (!port) {
-          return BackgroundCommands.mainFrame();
+          return BackgroundCommands[kBgCmd.mainFrame]();
         }
         port.postMessage({
           name: kBgReq.focusFrame,
@@ -1190,23 +1221,23 @@ Are you sure you want to continue?`);
         });
       });
     },
-    visitPreviousTab (this: void, tabs: Tab[]): void {
+    /* visitPreviousTab: */ function (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
       tabs.splice(selectFrom(tabs).index, 1);
       tabs = tabs.filter(i => i.id in TabRecency.tabs).sort(TabRecency.rCompare);
       const tab = tabs[commandCount > 0 ? Math.min(commandCount, tabs.length) - 1 : Math.max(0, tabs.length + commandCount)];
       tab && selectTab(tab.id);
     },
-    copyTabInfo (this: void, tabs: [Tab]): void {
+    /* copyTabInfo: */ function (this: void, tabs: [Tab]): void {
       let str: string, decoded = !!(cOptions.decoded || cOptions.decode);
       switch (cOptions.type) {
       case "title": str = tabs[0].title; break;
       case "frame":
         if (needIcon && (str = cPort.sender.url)) { break; }
-        cPort.postMessage<1, "autoCopy">({
+        cPort.postMessage<1, kFgCmd.autoCopy>({
           name: kBgReq.execute,
           CSS: ensureInnerCSS(cPort),
-          command: "autoCopy",
+          command: kFgCmd.autoCopy,
           count: 1,
           options: { url: true, decoded }
         });
@@ -1217,7 +1248,7 @@ Are you sure you want to continue?`);
       VClipboard.copy(str);
       return Backend.showHUD_(str, true);
     },
-    goNext (): void {
+    /* goNext: */ function (): void {
       let rel: string | undefined = cOptions.rel || cOptions.dir, p2: string[] = []
         , patterns: string | string[] | boolean | number = cOptions.patterns;
       rel = rel ? rel + "" : "next";
@@ -1236,20 +1267,20 @@ Are you sure you want to continue?`);
         }
       }
       if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
-      cPort.postMessage<1, "goNext">({ name: kBgReq.execute, count: 1, command: "goNext", CSS: null,
+      cPort.postMessage<1, kFgCmd.goNext>({ name: kBgReq.execute, count: 1, command: kFgCmd.goNext, CSS: null,
         options: {
           rel,
           patterns: p2
         }
       });
     },
-    enterInsertMode (): void {
+    /* enterInsertMode: */ function (): void {
       let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0;
       code = stat !== KeyStat.plain ? code || VKeyCodes.esc : code === VKeyCodes.esc ? 0 : code;
       let
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
         : !Settings.get("hideHud", true);
-      cPort.postMessage<1, "insertMode">({ name: kBgReq.execute, count: 1, command: "insertMode",
+      cPort.postMessage<1, kFgCmd.insertMode>({ name: kBgReq.execute, count: 1, command: kFgCmd.insertMode,
         CSS: hud ? ensureInnerCSS(cPort) : null,
         options: {
           code, stat,
@@ -1258,9 +1289,9 @@ Are you sure you want to continue?`);
         }
       });
     },
-    enterVisualMode (): void {
+    /* enterVisualMode: */ function (): void {
       const { sender } = cPort;
-      let options: CmdOptions["visualMode"] = cOptions as Partial<CmdOptions["visualMode"]> as CmdOptions["visualMode"];
+      let options: CmdOptions[kFgCmd.visualMode] = cOptions as Partial<CmdOptions[kFgCmd.visualMode]> as CmdOptions[kFgCmd.visualMode];
       if (!(sender.flags & Frames.Flags.hadVisualMode)) {
         sender.flags |= Frames.Flags.hadVisualMode;
         options = Utils.extendIf_(Object.create(null) as typeof options, options);
@@ -1268,22 +1299,22 @@ Are you sure you want to continue?`);
       }
       const str = typeof options.mode === "string" ? (options.mode as string).toLowerCase() : "";
       options.mode = str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual;
-      cPort.postMessage<1, "visualMode">({ name: kBgReq.execute, count: 1, command: "visualMode",
+      cPort.postMessage<1, kFgCmd.visualMode>({ name: kBgReq.execute, count: 1, command: kFgCmd.visualMode,
         CSS: ensureInnerCSS(cPort),
         options
       });
     },
-    performFind (): void {
+    /* performFind: */ function (): void {
       const leave = !cOptions.active,
       query = leave || cOptions.last ? FindModeHistory.query(cPort.sender.incognito) : "";
-      cPort.postMessage<1, "findMode">({ name: kBgReq.execute, count: 1, command: "findMode"
+      cPort.postMessage<1, kFgCmd.findMode>({ name: kBgReq.execute, count: 1, command: kFgCmd.findMode
           , CSS: ensureInnerCSS(cPort), options: {
         count: cOptions.dir <= 0 ? -commandCount : commandCount,
         leave,
         query
       }});
     },
-    showVomnibar (this: void, forceInner?: boolean): void {
+    /* showVomnibar: */ function (this: void, forceInner?: boolean): void {
       let port = cPort as Port | null;
       if (!port) {
         port = cPort = indexFrame(TabRecency.last, 0) as Port;
@@ -1298,43 +1329,43 @@ Are you sure you want to continue?`);
           || page.startsWith("http:") && url.startsWith("https:")
         : port.sender.incognito) || url.startsWith(location.origin) || !!forceInner;
       const useInner: boolean = forceInner || page === inner || port.sender.tabId < 0,
-      options: CmdOptions["vomnibar"] & SafeObject = Utils.extendIf_(Object.setPrototypeOf<CmdOptions["vomnibar"]>({
+      options: CmdOptions[kFgCmd.vomnibar] & SafeObject = Utils.extendIf_(Object.setPrototypeOf<CmdOptions[kFgCmd.vomnibar]>({
         vomnibar: useInner ? inner : page,
         vomnibar2: useInner ? null : inner,
         ptype: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         script: useInner ? "" : Settings.CONST.VomnibarScript_f_,
         secret: getSecret(),
         CSS: ensureInnerCSS(port)
-      }, null), cOptions as {} as CmdOptions["vomnibar"]);
-      port.postMessage<1, "vomnibar">({
+      }, null), cOptions as {} as CmdOptions[kFgCmd.vomnibar]);
+      port.postMessage<1, kFgCmd.vomnibar>({
         name: kBgReq.execute, count: commandCount, CSS: null,
-        command: "vomnibar",
+        command: kFgCmd.vomnibar,
         options
       });
       options.secret = -1;
       cOptions = options;
     },
-    clearFindHistory (this: void): void {
+    /* clearFindHistory: */ function (this: void): void {
       const { incognito } = cPort.sender;
       FindModeHistory.removeAll(incognito);
       return Backend.showHUD_((incognito ? "incognito " : "") + "find history has been cleared.");
     },
-    showHelp (this: void): void {
+    /* showHelp: */ function (this: void): void {
       if (cPort.sender.frameId === 0 && !(window.HelpDialog && (cPort.sender.flags & Frames.Flags.hadHelpDialog))) {
         return requestHandlers[kFgReq.initHelp]({}, cPort);
       }
       if (!window.HelpDialog) {
         Utils.require<BaseHelpDialog>('HelpDialog');
       }
-      cPort.postMessage<1, "showHelp">({
+      cPort.postMessage<1, kFgCmd.showHelp>({
         name: kBgReq.execute,
-        command: "showHelp",
+        command: kFgCmd.showHelp,
         count: 1,
         options: null,
         CSS: null
       });
     },
-    toggleViewSource (this: void, tabs: [Tab]): void {
+    /* toggleViewSource: */ function (this: void, tabs: [Tab]): void {
       let tab = tabs[0], url = tab.url;
       if (url.startsWith(BrowserProtocol)) {
         return Backend.complain_("visit HTML of an extension's page");
@@ -1345,11 +1376,11 @@ Are you sure you want to continue?`);
         index: tab.index + 1, openerTabId: tab.id
       });
     },
-    clearMarks (this: void): void {
+    /* clearMarks: */ function (this: void): void {
       cOptions.local ? requireURL({ handler: kFgReq.marks, url:"", action: "clear" }, true) : Marks.clear();
     },
-    toggle (this: void): void {
-      type Keys = CmdOptions["toggle"]["key"];
+    /* toggle: */ function (this: void): void {
+      type Keys = CmdOptions[kFgCmd.toggle]["key"];
       const all = Settings.payload, key: Keys = (cOptions.key || "") + "" as Keys,
       old = all[key], keyRepr = '"' + key + '"';
       let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
@@ -1369,17 +1400,17 @@ Are you sure you want to continue?`);
       if (msg) {
         Backend.showHUD_(msg);
       } else {
-        cPort.postMessage<1, "toggle">({
-          name: kBgReq.execute, count: 1, command: "toggle", CSS: ensureInnerCSS(cPort),
+        cPort.postMessage<1, kFgCmd.toggle>({
+          name: kBgReq.execute, count: 1, command: kFgCmd.toggle, CSS: ensureInnerCSS(cPort),
           options: { key, value }
         });
       }
     }
-  },
-  numHeadRe = <RegExpOne>/^-?\d+|^-/
+  ],
+  numHeadRe = <RegExpOne>/^-?\d+|^-/;
   function executeCommand (command: string, registryEntry: CommandsNS.Item
       , count: number, lastKey: VKeyCodes, port: Port): void {
-    const { options, repeat, alias, background } = registryEntry;
+    const { options, repeat } = registryEntry;
     let scale: number | undefined;
     if (options && (scale = options.count)) { count = count * scale; }
     count = count >= 1e4 ? 9999 : count <= -1e4 ? 9999 : (count | 0) || 1;
@@ -1387,18 +1418,18 @@ Are you sure you want to continue?`);
     else if (repeat === 1) { count = 1; }
     else if (repeat > 0 && (count > repeat || count < -repeat) && !confirm(command, Math.abs(count))) { return; }
     else { count = count || 1; }
-    if (!background) {
-      const dot = alias.charCodeAt(0) === KnownKey.dot;
-      command = dot ? alias.substring(1) || command : alias;
-      port.postMessage({ name: kBgReq.execute, command, CSS: dot || command === "linkHints" ? ensureInnerCSS(port) : null, count, options });
+    if (!registryEntry.background) {
+      const { alias } = registryEntry,
+      dot = alias === kFgCmd.linkHints;
+      port.postMessage({ name: kBgReq.execute, command: alias, CSS: dot ? ensureInnerCSS(port) : null, count, options });
       return;
     }
-    const func: BgCmd = BackgroundCommands[alias as keyof typeof BackgroundCommands];
+    const { alias } = registryEntry, func = BackgroundCommands[alias];
     cOptions = options || Object.create(null);
     cPort = port;
     commandCount = count;
     cKey = lastKey;
-    count = <UseTab>func.useTab;
+    count = BgCmdInfo[alias];
     if (count < UseTab.ActiveTab) {
       return (func as BgCmdNoTab)();
     } else if (count === UseTab.ActiveTab) {
@@ -1444,7 +1475,7 @@ Are you sure you want to continue?`);
       if (port && (request as FgReq[kFgReq.parseUpperUrl]).execute) {
         const result = requestHandlers[kFgReq.parseUpperUrl](request);
         if (result.path != null) {
-          port.postMessage<1, "reload">({ name: kBgReq.execute, command: "reload", count: 1, options: { url: result.url }, CSS: null });
+          port.postMessage<1, kFgCmd.reload>({ name: kBgReq.execute, command: kFgCmd.reload, count: 1, options: { url: result.url }, CSS: null });
           return;
         }
         cPort = port;
@@ -1631,7 +1662,7 @@ Are you sure you want to continue?`);
       commandCount = 1;
       // { url_f: string, keyword: "", url: "", ... } | { copied: true, ... }
       cOptions = request as (typeof request) & SafeObject;
-      return BackgroundCommands.openUrl();
+      return BackgroundCommands[kBgCmd.openUrl]();
     },
     /** focus: */ function (this: void, _0: FgReq[kFgReq.focus], port: Port): void {
       let tabId = port.sender.tabId, ref = framesForTab[tabId] as Frames.WritableFrames | undefined, status: Frames.ValidStatus;
@@ -1672,7 +1703,7 @@ Are you sure you want to continue?`);
       cKey = request.key;
       const type = request.type || Frames.NextType.Default;
       if (type !== Frames.NextType.current) {
-        return type === Frames.NextType.parent ? BackgroundCommands.parentFrame() : BackgroundCommands.nextFrame();
+        return BackgroundCommands[type === Frames.NextType.parent ? kBgCmd.parentFrame : kBgCmd.nextFrame]();
       }
       const ports = framesForTab[port.sender.tabId];
       if (ports) {
@@ -1763,11 +1794,11 @@ Are you sure you want to continue?`);
         if (inner) { return; }
         cOptions = Object.create(null);
         commandCount = 1;
-      } else if (inner && (cOptions as any as CmdOptions["vomnibar"]).vomnibar === Settings.CONST.VomnibarPageInner_) {
+      } else if (inner && (cOptions as any as CmdOptions[kFgCmd.vomnibar]).vomnibar === Settings.CONST.VomnibarPageInner_) {
         return;
       }
       cPort = port;
-      return BackgroundCommands.showVomnibar(inner);
+      return (BackgroundCommands[kBgCmd.showVomnibar] as (this: void, forceInner?: boolean) => void)(inner);
     },
     /** omni: */ function (this: void, request: FgReq[kFgReq.omni], port: Port): void {
       if (isNotVomnibarPage(port)) { return; }
@@ -2204,10 +2235,10 @@ Are you sure you want to continue?`);
   }
   Settings.updateHooks_.newTabUrl_f = function(url) {
     const onlyNormal = Utils.isRefusingIncognito_(url), mayForceIncognito = createTab.length > 1 && onlyNormal;
-    BackgroundCommands.createTab = mayForceIncognito ? function(): void {
+    BackgroundCommands[kBgCmd.createTab] = mayForceIncognito ? function(): void {
       getCurWnd(true, createTab[1].bind(url));
     } : createTab[0].bind(null, url, onlyNormal);
-    BackgroundCommands.createTab.useTab = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
+    BgCmdInfo[kBgCmd.createTab] = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
   };
 
   Settings.updateHooks_.showActionIcon = function (value) {
@@ -2257,23 +2288,6 @@ Are you sure you want to continue?`);
 
   Settings.postUpdate_("payload", null);
   Settings.postUpdate_("vomnibarPage"); // not wait 34ms in case that Vomnibar is wanted at once
-
-  (function(): void {
-    type Keys = keyof typeof BackgroundCommands;
-    let ref: Keys[], ref2 = BackgroundCommands;
-    for (const key in ref2) { (ref2[key as Keys] as BgCmd).useTab = UseTab.NoTab; }
-
-    ref = ["goTab", "moveTab", "reloadTab", "removeRightTab" //
-      , "removeTab", "removeTabsR", "togglePinTab", "visitPreviousTab" //
-    ];
-    for (const i of ref) { (ref2[i] as BgCmdCurWndTabs).useTab = UseTab.CurWndTabs; }
-    ref = ["copyTabInfo", "goToRoot", "moveTabToNextWindow"//
-      , "reopenTab", "toggleCS", "toggleViewSource" //
-      , "searchInAnother" //
-    ];
-    for (const i of ref) { (ref2[i] as BgCmdActiveTab).useTab = UseTab.ActiveTab; }
-  })();
-
   Settings.postUpdate_("searchUrl", null); // will also update newTabUrl
 
   // will run only on <F5>, not on runtime.reload

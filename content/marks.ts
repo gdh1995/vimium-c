@@ -2,7 +2,7 @@ var VMarks = {
   onKeyChar_: null as never as (event: HandlerNS.Event, keyChar: string) => void,
   prefix_: true,
   swap_: true,
-  activate_ (this: void, _0: number, options: CmdOptions["marks"]): void {
+  activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.marks]): void {
     const a = VMarks;
     const isGo = options.mode !== "create";
     a.onKeyChar_ = isGo ? a._goto : a._create;
@@ -98,7 +98,7 @@ var VMarks = {
     });
     return VHUD.tip(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },
-  GoTo_ (this: void, _0: number, options: CmdOptions["goToMarks"]): void {
+  GoTo_ (this: void, _0: number, options: CmdOptions[kFgCmd.goToMarks]): void {
     const { scroll, local, markName: a } = options;
     a && VMarks.setPreviousPosition_();
     VMarks._scroll(scroll);

@@ -703,8 +703,7 @@ var Utils = {
   makeCommand_: (function(command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description) : CommandsNS.Item {
     let opt: CommandsNS.Options | null;
     if (!details) { details = CommandsData.availableCommands_[command] as CommandsNS.Description }
-    opt = details.length < 4 ? null : (details as CommandsNS.BaseDescriptionEx)[3];
-    opt && Object.setPrototypeOf(opt, null);
+    opt = details.length < 5 ? null : Object.setPrototypeOf(details[4] as NonNullable<CommandsNS.Description[4]>, null);
     if (options) {
       if ("count" in options) {
         options.count = details[1] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
@@ -716,8 +715,8 @@ var Utils = {
       options = opt;
     }
     return {
-      alias: details.length < 5 ? command : (details as CommandsNS.Description5)[4],
-      background: details[2],
+      alias: details[3] as kBgCmd & number,
+      background: details[2] as true,
       command,
       options,
       repeat: details[1]

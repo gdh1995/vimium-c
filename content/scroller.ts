@@ -114,12 +114,12 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
   scale_: 1,
   Properties_: ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"] as
     ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"],
-  ScBy (this: void, count: number, options: CmdOptions["scBy"] & SafeObject): void {
+  ScBy (this: void, count: number, options: CmdOptions[kFgCmd.scBy] & SafeObject): void {
     if (VHints.tryNestedFrame_("VScroller", "ScBy", count, options)) { return; }
     return VScroller.scrollBy_(options.axis === "x" ? 0 : 1, (+<number>options.dir || 1) * count, options.view);
   },
   /** amount: can not be 0 */
-  scrollBy_ (di: ScrollByY, amount: number, factor: CmdOptions["scBy"]["view"]): void {
+  scrollBy_ (di: ScrollByY, amount: number, factor: CmdOptions[kFgCmd.scBy]["view"]): void {
     VMarks.setPreviousPosition_();
     this.prepareTop_();
     const element = this.findScrollable_(di, amount);
@@ -129,7 +129,7 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
     this._scroll(element, di, amount);
     this.top_ = null;
   },
-  ScTo (this: void, count: number, options: CmdOptions["scTo"] & SafeObject): void {
+  ScTo (this: void, count: number, options: CmdOptions[kFgCmd.scTo] & SafeObject): void {
     if (VHints.tryNestedFrame_("VScroller", "ScTo", count, options)) { return; }
     let fromMax: BOOL = options.dest === "max" ? 1 : 0;
     if (count < 0) { fromMax = (1 - fromMax as BOOL); count = -count; }

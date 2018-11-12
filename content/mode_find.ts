@@ -27,7 +27,7 @@ var VFindMode = {
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
 body *{all:inherit!important;display:inline!important;}html>count{float:right;}`,
-  activate_ (this: void, _0: number, options: CmdOptions["findMode"]): void {
+  activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
     if (!VDom.isHTML_()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
     ui = VDom.UI, first = !ui.box_;
@@ -148,7 +148,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     this.styleOut_ = UI.box_ !== UI.R ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
-  findAndFocus_ (query: string, options: CmdOptions["findMode"]): void {
+  findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
     if (!query) {
       return VHUD.tip("No old queries to find.");
     }

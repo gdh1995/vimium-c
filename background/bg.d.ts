@@ -194,29 +194,22 @@ declare namespace ExclusionsNS {
 declare namespace CommandsNS {
   interface RawOptions extends SafeDict<any> {}
   interface Options extends ReadonlySafeDict<any> {}
-  interface Description {
-    readonly [0]: string; // description
-    readonly [1]: number; // count limit
-    readonly [2]: boolean; // is background
-    readonly length: number;
-  }
-  interface BaseDescriptionEx extends Description {
-    readonly [3]: Options | null; // default options
-  }
-  interface Description4 extends BaseDescriptionEx {
-    readonly [3]: Options; // default options
-  }
-  interface Description5 extends BaseDescriptionEx {
-    readonly [4]: string; // alias
-  }
-  interface Item {
-    readonly alias: string;
-    readonly background: boolean;
+  type BgDescription = [ string, number, true, kBgCmd & number, {}? ];
+  type FgDescription = [ string, number, false, kFgCmd & number, {}? ];
+  /** [ description, count limit, is background, enum, default options ] */
+  type Description = BgDescription | FgDescription;
+  interface BaseItem {
     readonly command: string;
     readonly options: Options | null;
     readonly repeat: number;
   }
-
+  type Item = (BaseItem & {
+    readonly alias: kBgCmd & number;
+    readonly background: true;
+  }) | (BaseItem & {
+    readonly alias: kFgCmd & number;
+    readonly background: false;
+  });
 }
 
 declare namespace CompletersNS {

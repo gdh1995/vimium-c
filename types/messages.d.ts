@@ -1,6 +1,6 @@
 interface BaseExecute<T> {
   CSS: string | null;
-  command: string;
+  command: kFgCmd;
   count: number;
   options: T | null;
 }
@@ -109,43 +109,65 @@ interface BgVomnibarReq {
 }
 interface FullBgReq extends BgReq, BgVomnibarReq {}
 
+
+declare const enum kBgCmd {
+  createTab, duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
+  clearCS, goTab, removeTab, removeTabsR, removeRightTab,
+  restoreTab, restoreGivenTab, blank, openUrl, searchInAnother,
+  togglePinTab, toggleMuteTab, reloadTab, reloadGivenTab, reopenTab,
+  goToRoot, goUp, moveTab, nextFrame, mainFrame,
+  parentFrame, visitPreviousTab, copyTabInfo, goNext, enterInsertMode,
+  enterVisualMode, performFind, showVomnibar, clearFindHistory, showHelp,
+  toggleViewSource, clearMarks, toggle,
+  END = "END",
+}
+
+declare const enum kFgCmd {
+  findMode, linkHints, focusAndHint, unhoverLast, marks,
+  goToMarks, scBy, scTo, visualMode, vomnibar,
+  reset, toggle, insertMode, passNextKey, goNext,
+  reload, switchFocus, goBack, showHelp, autoCopy,
+  autoOpen, searchAs, focusInput,
+  END = "END",
+}
+
 interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
 interface CmdOptions {
-  linkHints: FgOptions;
-  focusAndHint: FgOptions;
-  unhoverLast: FgOptions;
-  marks: {
+  [kFgCmd.linkHints]: FgOptions;
+  [kFgCmd.focusAndHint]: FgOptions;
+  [kFgCmd.unhoverLast]: FgOptions;
+  [kFgCmd.marks]: {
     mode?: "goto" | "goTo" | "create";
     prefix?: true | false;
     swap?: false | true;
   };
-  scBy: {
+  [kFgCmd.scBy]: {
     axis?: "y" | "x";
     dir?: 1 | -1;
     view?: 0 | 1 | "max" | "viewSize";
   };
-  scTo: {
+  [kFgCmd.scTo]: {
     dest?: "" | "max";
     axis?: "y" | "x";
   };
-  reset: FgOptions;
-  toggle: {
+  [kFgCmd.reset]: FgOptions;
+  [kFgCmd.toggle]: {
     key: keyof SettingsNS.FrontendSettings;
     value: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
   };
-  passNextKey: {
+  [kFgCmd.passNextKey]: {
     normal?: false | true;
   };
-  switchFocus: {
+  [kFgCmd.switchFocus]: {
     act?: "" | "backspace";
     action?: "" | "backspace";
   };
-  goBack: {
+  [kFgCmd.goBack]: {
     dir: -1 | 1;
   };
-  vomnibar: {
+  [kFgCmd.vomnibar]: {
     vomnibar: string;
     vomnibar2: string | null;
     ptype: VomnibarNS.PageType;
@@ -153,44 +175,44 @@ interface CmdOptions {
     secret: number;
     CSS: string | null;
   };
-  goNext: {
+  [kFgCmd.goNext]: {
     rel: string;
     patterns: string[];
   };
-  insertMode: {
+  [kFgCmd.insertMode]: {
     code: VKeyCodes;
     stat: KeyStat;
     passExitKey: boolean;
     hud: boolean;
   };
-  visualMode: {
+  [kFgCmd.visualMode]: {
     mode: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
     from_find?: true;
     words?: string;
   };
-  showHelp: {};
-  reload: { url: string, /** @deprecated */ force?: undefined, hard?: undefined
+  [kFgCmd.showHelp]: {};
+  [kFgCmd.reload]: { url: string, /** @deprecated */ force?: undefined, hard?: undefined
     } | { /** @deprecated */ force?: boolean, hard?: boolean, url?: undefined };
-  findMode: {
+  [kFgCmd.findMode]: {
     count?: number;
     leave?: boolean,
     query?: string;
     returnToViewport?: boolean;
   };
-  goToMarks: {
+  [kFgCmd.goToMarks]: {
     local?: boolean;
     markName?: string | undefined;
     scroll: MarksNS.FgMark;
   };
-  autoCopy: {
+  [kFgCmd.autoCopy]: {
     url: boolean; decoded: boolean;
     decode?: boolean;
   };
-  autoOpen: {
+  [kFgCmd.autoOpen]: {
     keyword?: string;
   };
-  searchAs: FgOptions;
-  focusInput: {
+  [kFgCmd.searchAs]: FgOptions;
+  [kFgCmd.focusInput]: {
     select?: SelectActions;
     keep?: boolean;
     passExitKey?: boolean;

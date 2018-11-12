@@ -19,6 +19,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     vimiumListened?: ListenType;
   }
   type LockableElement = HTMLElement;
+  interface SpecialCommands {
+    [kFgCmd.reset] (this: void): void;
+    [kFgCmd.showHelp] (msg?: number | "exitHD"): void;
+  }
 
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , currentKeys = "", isEnabled = false, isLocked = false
@@ -266,21 +270,25 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       notChrome ? f("click", onActivate, true) :
       f.call(document, "DOMActivate", onActivate, true);
     }),
-  Commands = {
-    findMode: VFindMode.activate_,
-    linkHints: VHints.activate,
-    focusAndHint: VHints.ActivateAndFocus_,
-    unhoverLast (this: void): void {
+  Commands: {
+    [K in kFgCmd & number]:
+      K extends keyof SpecialCommands ? SpecialCommands[K] :
+      (this: void, count: number, options: CmdOptions[K]) => void;
+  } = [
+    VFindMode.activate_,
+    VHints.activate,
+    VHints.ActivateAndFocus_,
+    /* unhoverLast: */ function (this: void): void {
       VDom.hover_(null);
       VHUD.tip("The last element is unhovered");
     },
-    marks: VMarks.activate_,
-    goToMarks: VMarks.GoTo_,
-    scBy: VScroller.ScBy,
-    scTo: VScroller.ScTo,
-    visualMode: VVisualMode.activate_,
-    vomnibar: Vomnibar.activate,
-    reset (): void {
+    VMarks.activate_,
+    VMarks.GoTo_,
+    VScroller.ScBy,
+    VScroller.ScTo,
+    VVisualMode.activate_,
+    Vomnibar.activate,
+    /* reset: */ function (): void {
       const a = InsertMode;
       VScroller.current_ = VDom.lastHovered_ = a.last_ = a.lock_ = a.global_ = null;
       a.mutable_ = true;
@@ -290,7 +298,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       onWndBlur();
     },
 
-    toggle (_0: number, options: CmdOptions["toggle"]): void {
+    /* toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
       const key = options.key, backupKey = "_" + key as string as typeof key,
       cache = VUtils.safer_(VSettings.cache), cur = cache[key];
       let val = options.value, u: undefined;
@@ -308,12 +316,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         : 'Now "' + key + (val === true ? '" is on' : '" use ' + JSON.stringify(val));
       return VHUD.tip(msg, 1000);
     },
-    insertMode (_0: number, opt: CmdOptions["insertMode"]): void {
+    /* insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {
       let { code, stat } = opt;
       InsertMode.global_ = opt;
       if (opt.hud) { return HUD.show_(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
-    passNextKey (count: number, options: CmdOptions["passNextKey"]): void {
+    /* passNextKey: */ function (count: number, options: CmdOptions[kFgCmd.passNextKey]): void {
       const keys = Object.create<BOOL>(null);
       count = Math.abs(count);
       let keyCount = 0;
@@ -350,19 +358,19 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       };
       return onKeyup2({keyCode: VKeyCodes.None} as KeyboardEvent);
     },
-    goNext (_0: number, {rel, patterns}: CmdOptions["goNext"]): void {
+    /* goNext: */ function (_0: number, {rel, patterns}: CmdOptions[kFgCmd.goNext]): void {
       if (!VDom.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }
       const isNext = rel === "next";
       if (patterns.length <= 0 || !Pagination.findAndFollowLink_(patterns, isNext ? "<" : ">")) {
         return VHUD.tip("No links to go " + rel);
       }
     },
-    reload (_0: number, options: CmdOptions["reload"]): void {
+    /* reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
       setTimeout(function() {
         options.url ? (location.href = options.url) : location.reload(!!(options.hard || options.force));
       }, 17);
     },
-    switchFocus (_0: number, options: CmdOptions["switchFocus"]): void {
+    /* switchFocus: */ function (_0: number, options: CmdOptions[kFgCmd.switchFocus]): void {
       let newEl = InsertMode.lock_;
       if (newEl) {
         if ((options.act || options.action) === "backspace") {
@@ -387,11 +395,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       VDom.prepareCrop_();
       return VDom.UI.simulateSelect_(newEl, null, false, "", true);
     },
-    goBack (count: number, options: CmdOptions["goBack"]): void {
+    /* goBack: */ function (count: number, options: CmdOptions[kFgCmd.goBack]): void {
       const step = Math.min(Math.abs(count), history.length - 1);
       step > 0 && history.go((count < 0 ? -step : step) * (+options.dir || -1));
     },
-    showHelp (msg?: number | "exitHD"): void {
+    /* showHelp: */ function (msg?: number | "exitHD"): void {
       if (msg === "exitHD") { return; }
       let wantTop = innerWidth < 400 || innerHeight < 320;
       if (!VDom.isHTML_()) {
@@ -400,7 +408,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }
       post({ handler: kFgReq.initHelp, wantTop });
     },
-    autoCopy (_0: number, options: CmdOptions["autoCopy"]): void {
+    /* autoCopy: */ function (_0: number, options: CmdOptions[kFgCmd.autoCopy]): void {
       let str = VDom.UI.getSelectionText_(1);
       if (!str) {
         str = options.url ? location.href : document.title;
@@ -419,7 +427,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }
       return HUD.copied(str);
     },
-    autoOpen (_0: number, options: CmdOptions["autoOpen"]): void {
+    /* autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
       let url = VDom.UI.getSelectionText_(), keyword = (options.keyword || "") + "";
       url && VPort.evalIfOK_(url) || post({
         handler: kFgReq.openUrl,
@@ -427,14 +435,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         keyword, url
       });
     },
-    searchAs (): void {
+    /* searchAs: */ function (): void {
       post({
         handler: kFgReq.searchAs,
         url: location.href,
         search: VDom.UI.getSelectionText_()
       });
     },
-    focusInput (count: number, options: CmdOptions["focusInput"]): void {
+    /* focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {
       InsertMode.inputHint_ && (InsertMode.inputHint_.hints = null as never);
       const arr: ViewOffset = VDom.getViewBox_();
       VDom.prepareCrop_();
@@ -503,11 +511,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         return HandlerResult.Nothing;
       }, InsertMode.inputHint_);
     }
-  },
+  ],
 
   InsertMode = {
     grabFocus_: document.readyState !== "complete",
-    global_: null as CmdOptions["insertMode"] | null,
+    global_: null as CmdOptions[kFgCmd.insertMode] | null,
     hinting_: false,
     inputHint_: null as { box: HTMLDivElement, hints: HintsNS.BaseHintItem[] } | null,
     suppressType_: null as string | null,
@@ -611,7 +619,7 @@ Pagination = {
   followLink_ (linkElement: HTMLElement): boolean {
     let url = linkElement instanceof HTMLLinkElement && linkElement.href;
     if (url) {
-      Commands.reload(1, { url });
+      Commands[kFgCmd.reload](1, { url });
     } else {
       VDom.view(linkElement);
       VDom.UI.flash_(linkElement);
@@ -870,7 +878,7 @@ Pagination = {
         (old && !isLocked) || hook(HookAction.Install);
         // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
-        Commands.reset();
+        Commands[kFgCmd.reset]();
       }
       if (VDom.UI.box_) { return VDom.UI.toggle_(enabled); }
     },
@@ -937,12 +945,12 @@ Pagination = {
       post({ handler: kFgReq.cmd, cmd: request.cmd, count, id: request.id});
     },
   function ({ html, advanced: shouldShowAdvanced, optionUrl, CSS }: Req.bg<kBgReq.showHelpDialog>): void {
-    let box: HTMLElement, oldShowHelp = Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void
+    let box: HTMLElement, oldShowHelp = Commands[kFgCmd.showHelp], hide: (this: void, e?: Event | number | "exitHD") => void
       , node1: HTMLElement;
     if (CSS) { VDom.UI.css_(CSS); }
     if (!VDom.isHTML_()) { return; }
-    Commands.showHelp("exitHD");
-    if (oldShowHelp !== Commands.showHelp) { return; } // an old dialog exits
+    Commands[kFgCmd.showHelp]("exitHD");
+    if (oldShowHelp !== Commands[kFgCmd.showHelp]) { return; } // an old dialog exits
     box = VDom.createElement_("div");
     box.className = "R Scroll UI";
     box.id = "HelpDialog";
@@ -969,9 +977,9 @@ Pagination = {
       (i = VScroller.current_) && box.contains(i) && (VScroller.current_ = null);
       VUtils.remove_(box);
       box.remove();
-      Commands.showHelp = oldShowHelp;
+      Commands[kFgCmd.showHelp] = oldShowHelp;
     };
-    closeBtn.onclick = Commands.showHelp = hide;
+    closeBtn.onclick = Commands[kFgCmd.showHelp] = hide;
     node1 = box.querySelector("#OptionsPage") as HTMLAnchorElement;
     if (! location.href.startsWith(optionUrl)) {
       (node1 as HTMLAnchorElement).href = optionUrl;
@@ -1145,7 +1153,7 @@ Pagination = {
     VSettings.enabled_ = isEnabled = false;
     hook(HookAction.Destroy);
     
-    Commands.reset();
+    Commands[kFgCmd.reset]();
     let f = VSettings.stop_, ui = VDom.UI;
     f && f(HookAction.Destroy);
 

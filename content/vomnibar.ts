@@ -10,7 +10,7 @@ declare namespace VomnibarNS {
   interface IFrameWindow extends Window {
     onmessage: (this: void, ev: { source: Window, data: VomnibarNS.MessageData, ports: IframePort[] }) => void | 1;
   }
-  type BaseFullOptions = CmdOptions["vomnibar"] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
+  type BaseFullOptions = CmdOptions[kFgCmd.vomnibar] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
   interface FullOptions extends BaseFullOptions {
     topUrl?: string;
     name: string;

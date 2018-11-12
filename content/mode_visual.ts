@@ -19,9 +19,9 @@ var VVisualMode = {
   currentSeconds_: null as SafeDict<VisualModeNS.ValidActions> | null,
   retainSelection_: false,
   selection_: null as never as Selection,
-  activate_ (this: void, _0: number, options: CmdOptions["visualMode"]): void {
+  activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
     const a = VVisualMode;
-    let sel: Selection, type: string, mode: CmdOptions["visualMode"]["mode"] = options.mode;
+    let sel: Selection, type: string, mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
     a.init_ && a.init_(options.words as string);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
     a.movement_.selection_ = a.selection_ = sel = VDom.UI.getSelection_();
@@ -212,7 +212,7 @@ var VVisualMode = {
     VFindMode.execute_(null, { noColor: true, count });
     if (VFindMode.hasResults_) {
       if (this.mode_ === VisualModeNS.Mode.Caret && this.selection_.toString().length > 0) {
-        this.activate_(1, Object.create(null) as SafeObject & CmdOptions["visualMode"]);
+        this.activate_(1, Object.create(null) as SafeObject & CmdOptions[kFgCmd.visualMode]);
       }
       return;
     }
