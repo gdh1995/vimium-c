@@ -278,7 +278,7 @@ Marks = { // NOTE: all public members should be static
         : { tabId: tabId as number, url, scroll }));
   },
   _goto (port: Port, options: CmdOptions[kFgCmd.goToMarks]) {
-    port.postMessage<1, kFgCmd.goToMarks>({ name: kBgReq.execute, command: kFgCmd.goToMarks, count: 1, options, CSS: null});
+    port.postMessage<1, kFgCmd.goToMarks>({ name: kBgReq.execute, CSS: null, command: kFgCmd.goToMarks, count: 1, options});
   },
   createMark (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.sender.tabId;

@@ -1237,8 +1237,7 @@ Are you sure you want to continue?`);
         cPort.postMessage<1, kFgCmd.autoCopy>({
           name: kBgReq.execute,
           CSS: ensureInnerCSS(cPort),
-          command: kFgCmd.autoCopy,
-          count: 1,
+          command: kFgCmd.autoCopy, count: 1,
           options: { url: true, decoded }
         });
         return;
@@ -1267,7 +1266,8 @@ Are you sure you want to continue?`);
         }
       }
       if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
-      cPort.postMessage<1, kFgCmd.goNext>({ name: kBgReq.execute, count: 1, command: kFgCmd.goNext, CSS: null,
+      cPort.postMessage<1, kFgCmd.goNext>({ name: kBgReq.execute,
+        CSS: null, command: kFgCmd.goNext, count: 1,
         options: {
           rel,
           patterns: p2
@@ -1280,8 +1280,10 @@ Are you sure you want to continue?`);
       let
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
         : !Settings.get("hideHud", true);
-      cPort.postMessage<1, kFgCmd.insertMode>({ name: kBgReq.execute, count: 1, command: kFgCmd.insertMode,
+      cPort.postMessage<1, kFgCmd.insertMode>({ name: kBgReq.execute,
         CSS: hud ? ensureInnerCSS(cPort) : null,
+        command: kFgCmd.insertMode,
+        count: 1,
         options: {
           code, stat,
           passExitKey: !!cOptions.passExitKey,
@@ -1299,16 +1301,17 @@ Are you sure you want to continue?`);
       }
       const str = typeof options.mode === "string" ? (options.mode as string).toLowerCase() : "";
       options.mode = str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual;
-      cPort.postMessage<1, kFgCmd.visualMode>({ name: kBgReq.execute, count: 1, command: kFgCmd.visualMode,
-        CSS: ensureInnerCSS(cPort),
+      cPort.postMessage<1, kFgCmd.visualMode>({ name: kBgReq.execute,
+        CSS: ensureInnerCSS(cPort), command: kFgCmd.visualMode, count: 1,
         options
       });
     },
     /* performFind: */ function (): void {
       const leave = !cOptions.active,
       query = leave || cOptions.last ? FindModeHistory.query(cPort.sender.incognito) : "";
-      cPort.postMessage<1, kFgCmd.findMode>({ name: kBgReq.execute, count: 1, command: kFgCmd.findMode
-          , CSS: ensureInnerCSS(cPort), options: {
+      cPort.postMessage<1, kFgCmd.findMode>({ name: kBgReq.execute
+          , CSS: ensureInnerCSS(cPort), command: kFgCmd.findMode, count: 1
+          , options: {
         count: cOptions.dir <= 0 ? -commandCount : commandCount,
         leave,
         query
@@ -1338,8 +1341,8 @@ Are you sure you want to continue?`);
         CSS: ensureInnerCSS(port)
       }, null), cOptions as {} as CmdOptions[kFgCmd.vomnibar]);
       port.postMessage<1, kFgCmd.vomnibar>({
-        name: kBgReq.execute, count: commandCount, CSS: null,
-        command: kFgCmd.vomnibar,
+        name: kBgReq.execute, CSS: null,
+        command: kFgCmd.vomnibar, count: commandCount,
         options
       });
       options.secret = -1;
@@ -1359,10 +1362,10 @@ Are you sure you want to continue?`);
       }
       cPort.postMessage<1, kFgCmd.showHelp>({
         name: kBgReq.execute,
+        CSS: null,
         command: kFgCmd.showHelp,
         count: 1,
-        options: null,
-        CSS: null
+        options: null
       });
     },
     /* toggleViewSource: */ function (this: void, tabs: [Tab]): void {
@@ -1401,7 +1404,9 @@ Are you sure you want to continue?`);
         Backend.showHUD_(msg);
       } else {
         cPort.postMessage<1, kFgCmd.toggle>({
-          name: kBgReq.execute, count: 1, command: kFgCmd.toggle, CSS: ensureInnerCSS(cPort),
+          name: kBgReq.execute,
+          CSS: ensureInnerCSS(cPort),
+          command: kFgCmd.toggle, count: 1,
           options: { key, value }
         });
       }
@@ -1420,8 +1425,11 @@ Are you sure you want to continue?`);
     else { count = count || 1; }
     if (!registryEntry.background) {
       const { alias } = registryEntry,
-      dot = alias === kFgCmd.linkHints;
-      port.postMessage({ name: kBgReq.execute, command: alias, CSS: dot ? ensureInnerCSS(port) : null, count, options });
+      dot = ((
+        (1 << kFgCmd.linkHints) | (1 << kFgCmd.unhoverLast) | (1 << kFgCmd.marks) |
+        (1 << kFgCmd.passNextKey) | (1 << kFgCmd.autoCopy) | (1 << kFgCmd.focusInput)
+      ) >> alias) & 1;
+      port.postMessage({ name: kBgReq.execute, CSS: dot ? ensureInnerCSS(port) : null, command: alias, count, options });
       return;
     }
     const { alias } = registryEntry, func = BackgroundCommands[alias];
@@ -1475,7 +1483,9 @@ Are you sure you want to continue?`);
       if (port && (request as FgReq[kFgReq.parseUpperUrl]).execute) {
         const result = requestHandlers[kFgReq.parseUpperUrl](request);
         if (result.path != null) {
-          port.postMessage<1, kFgCmd.reload>({ name: kBgReq.execute, command: kFgCmd.reload, count: 1, options: { url: result.url }, CSS: null });
+          port.postMessage<1, kFgCmd.reload>({ name: kBgReq.execute,
+            CSS: null, command: kFgCmd.reload, count: 1,
+            options: { url: result.url } });
           return;
         }
         cPort = port;
@@ -1741,8 +1751,9 @@ Are you sure you want to continue?`);
       }
       if (iport) {
         iport.postMessage({
+          name: kBgReq.execute,
           CSS: request.CSS ? ensureInnerCSS(iport) : null,
-          name: kBgReq.execute, command: request.command, count: request.count || 1, options: request.options
+          command: request.command, count: request.count || 1, options: request.options
         });
         return true;
       }
