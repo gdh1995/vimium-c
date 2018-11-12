@@ -1408,13 +1408,6 @@ Are you sure you want to continue?`);
     }
   }
   const
-  /**
-   * type: {
-   *  <K in keyof FgRes>(this: void, request: FgReq[K], port: Port): FgRes[K];
-   *  <K in keyof FgReq>(this: void, request: FgReq[K], port: Port): void;
-   *  [ /^A-Z/ ]: (this: void, ...args: any[]) => void;
-   * }
-   */
   requestHandlers: {
     [K in keyof FgReqWithRes | keyof FgReq]:
       K extends keyof SpecialHandlers ? SpecialHandlers[K] :
@@ -1859,6 +1852,8 @@ Are you sure you want to continue?`);
       type ResK = keyof FgRes;
       if (request.handler !== kFgReq.msg) {
         return (requestHandlers as {
+          [T2 in ReqK]: (req: Req.fg<T2>, port: Frames.Port) => void;
+        } as {
           [T2 in ReqK]: <T3 extends ReqK>(req: Req.fg<T3>, port: Frames.Port) => void;
         })[request.handler](request as Req.fg<K>, port);
       }

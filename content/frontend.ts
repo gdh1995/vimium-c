@@ -48,8 +48,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }
     },
     Listener_<T extends keyof BgReq> (this: void, response: Req.bg<T>): void {
+      type TypeToCheck = { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void };
       type TypeChecked = { [K in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
-      (requestHandlers as TypeChecked)[response.name](response);
+      (requestHandlers as TypeToCheck as TypeChecked)[response.name](response);
     },
     TestAlive_ (): void { esc && !vPort._port && VSettings.destroy(); },
     ClearPort_ (this: void): void {
