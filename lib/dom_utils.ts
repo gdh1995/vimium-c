@@ -363,7 +363,7 @@ var VDom = {
     if (!(element instanceof HTMLElement) || typeof name !== "string") { return EditableType.NotEditable; }
     const ty = this.editableTypes_[name.toLowerCase()];
     return ty !== EditableType.input_ ? (ty
-        || (element.isContentEditable === true ? EditableType.Editbox : EditableType.NotEditable))
+        || (element.isContentEditable !== true || this.notSafe_(element) ? EditableType.NotEditable : EditableType.Editbox))
       : this.uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.Editbox;
   },
   docSelectable_: true,
