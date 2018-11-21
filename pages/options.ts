@@ -592,7 +592,7 @@ $("#importButton").onclick = function(): void {
   opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
 };
 
-$("#browser").textContent = (BG.IsEdge ? "MS Edge"
+$("#browserName").textContent = (BG.IsEdge ? "MS Edge"
   : BG.IsFirefox ? "Firefox" : ((<RegExpOne>/\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
   ) + (!BG.NotChrome ? " " + bgSettings.CONST.ChromeVersion : ""
   ) + (", " + bgSettings.CONST.Platform[0].toUpperCase() + bgSettings.CONST.Platform.substring(1));
