@@ -20,7 +20,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     , mapKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
     , esc = function(i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscF
     , onKeyup2 = null as ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null
-    , passKeys = null as SafeDict<true> | null
+    , passKeys = null as SafeDict<true> | null | ""
     , onWndFocus = function(this: void): void {}, onWndBlur2: ((this: void) => void) | null = null
     ;
 
@@ -649,8 +649,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       for (let i = 0; i < count; i++) {
         if (s.indexOf(names[i]) !== -1) {
           if (s.indexOf(refusedStr) === -1 && (len = s.split(re1).length) <= maxLen) {
-            len < maxLen && (maxLen = len + 1);
-            candidates.push([(i << 23) + (len << 16) + candidates.length, s, link]);
+            maxLen > len && (maxLen = len + 1);
+            // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
+            candidates.push([(i << 23) | (len << 16) | (candidates.length & 0xffff), s, link]);
           }
           break;
         }
@@ -852,7 +853,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     },
     function (request: BgReq[kBgReq.reset], initing?: 1): void {
       const newPassKeys = request.passKeys, enabled = newPassKeys !== "", old = VSettings.enabled_;
-      passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
+      passKeys = newPassKeys && Object.create<true>(null);
+      if (newPassKeys) {
+        for (const ch of newPassKeys.split(' ')) { (passKeys as SafeDict<true>)[ch] = true; }
+      }
       VSettings.enabled_ = isEnabled = enabled;
       if (initing) {
         return;
@@ -1015,20 +1019,13 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
   }
   ];
 
-  function parsePassKeys(newPassKeys: string): SafeDict<true> {
-    const pass = Object.create<true>(null);
-    for (const ch of newPassKeys.split(' ')) {
-      pass[ch] = true;
-    }
-    return pass;
-  }
-
   function checkValidKey(event: KeyboardEvent, key: string): HandlerResult.Nothing | HandlerResult.Prevent {
     key = VKeyboard.key(event, key);
     mapKeys !== null && (key = mapKeys[key] || key);
     let j = (nextKeys || keyMap)[key];
     if (nextKeys === null) {
-      if (j == null || passKeys !== null && key in passKeys) { return HandlerResult.Nothing; }
+      // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
+      if (j == null || passKeys !== null && key in <SafeDict<true>>passKeys) { return HandlerResult.Nothing; }
     } else if (j == null) {
       j = keyMap[key];
       if (j == null) { return esc(HandlerResult.Nothing); }
