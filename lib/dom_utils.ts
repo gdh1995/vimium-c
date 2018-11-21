@@ -7,20 +7,20 @@ var VDom = {
   allowRAF_: true,
   isHTML_ (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   isStandard_: true,
-  createElement_<K extends FrontendRootElementType> (tagName: K): HTMLElementTagNameMap[K] {
+  createElement_<K extends FrontendRootElementType> (tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement {
     const d = document, a = this,
     node = document.createElement(tagName), valid = node instanceof HTMLElement;
     a.isStandard_ = valid;
-    a.createElement_ = valid ? d.createElement.bind(d)
+    a.createElement_ = valid ? d.createElement.bind(d) as typeof VDom.createElement_
       : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", [FrontendRootElementType]
-        , HTMLElement>(d, "http://www.w3.org/1999/xhtml");
-    return valid ? node : a.createElement_(tagName);
+        , HTMLElement>(d, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
+    return valid ? node as HTMLElementTagNameMap[K] & SafeHTMLElement : a.createElement_(tagName);
   },
   /** Note: won't call functions if Vimium is destroyed */
-  DocReady (callback: (this: void) => void): void {
+  DocReady_ (callback: (this: void) => void): void {
     const f = function(callback: (this: void) => void): void { return callback(); };
     if (document.readyState !== "loading") {
-      this.DocReady = f;
+      this.DocReady_ = f;
       return callback();
     }
     const listeners = [callback];
@@ -28,19 +28,19 @@ var VDom = {
       // not need to check event.isTrusted
       removeEventListener("DOMContentLoaded", eventHandler, true);
       if (VDom) {
-        VDom.DocReady = f;
+        VDom.DocReady_ = f;
         for (const i of listeners) { i(); }
       }
-      listeners.length = 0; // in case VDom.DocReady is kept by other extensions
+      listeners.length = 0; // in case VDom.DocReady_ is kept by other extensions
     }
-    this.DocReady = function(callback): void {
+    this.DocReady_ = function(callback): void {
       listeners.push(callback);
     };
     addEventListener("DOMContentLoaded", eventHandler, true);
   },
-  parentFrame_(): Element | null {
+  parentFrame_(): SafeElement | null {
     try {
-      return window.frameElement;
+      return window.frameElement as SafeElement | null;
     } catch (e) {
       return null;
     }
@@ -76,7 +76,7 @@ var VDom = {
     (this: void, el: Node, composedElement: false): Node | null;
     (this: void, el: Node): Element | null;
   },
-  scrollingEl_ (fallback?: 1): HTMLBodyElement | HTMLHtmlElement | SVGSVGElement | null {
+  scrollingEl_ (fallback?: 1): ((HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement) | null {
     let d = document, el = d.scrollingElement, docEl = d.documentElement;
     el === undefined && (el = d.compatMode === "BackCompat" ? d.body : docEl);
     el = el === d.body && this.notSafe_(el) ? null : el as HTMLHtmlElement | SVGSVGElement | HTMLBodyElement | null;
@@ -342,8 +342,8 @@ var VDom = {
   SafeEl_: function (this: void, el: Node | null): Node | null {
     return VDom.notSafe_(el) ? VDom.GetParent_(el) : el;
   } as {
-    (this: void, el: HTMLElement | null): HTMLElement | null;
-    (this: void, el: Element | null): Element | null;
+    (this: void, el: HTMLElement | null): SafeHTMLElement | null;
+    (this: void, el: Element | null): SafeElement | null;
     (this: void, el: Node | null): Node | null;
   },
   uneditableInputs_: <SafeEnum> { __proto__: null as never,
@@ -356,15 +356,19 @@ var VDom = {
     embed: EditableType.Embed, object: EditableType.Embed
   },
   /**
-   * if true, then `element` is `HTMLElement` and safe
+   * if true, then `element` is `LockableElement`
    */
-  getEditableType_ (element: Element): EditableType {
+  getEditableType_: function (element: Element): EditableType {
     const name = element.tagName;
     if (!(element instanceof HTMLElement) || typeof name !== "string") { return EditableType.NotEditable; }
-    const ty = this.editableTypes_[name.toLowerCase()];
+    const ty = VDom.editableTypes_[name.toLowerCase()];
     return ty !== EditableType.input_ ? (ty
-        || (element.isContentEditable !== true || this.notSafe_(element) ? EditableType.NotEditable : EditableType.Editbox))
-      : this.uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.Editbox;
+        || (element.isContentEditable !== true || VDom.notSafe_(element) ? EditableType.NotEditable : EditableType.Editbox))
+      : VDom.uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.Editbox;
+  } as {
+    <Ty extends 0>(element: Element): EditableType;
+    <Ty extends 1>(element: Element): element is LockableElement;
+    <Ty extends LockableElement>(element: EventTarget): element is Ty;
   },
   docSelectable_: true,
   isSelected_ (): boolean {
@@ -384,7 +388,7 @@ var VDom = {
     }
     return par !== document.documentElement ? par as HTMLElement | null : null;
   },
-  getSelectionEdgeElement_ (sel: Selection, di: BOOL): Element | null {
+  getSelectionEdgeElement_ (sel: Selection, di: BOOL): SafeElement | null {
     const r = sel.getRangeAt(0), type = di ? "end" as "end" : "start" as "start", E = Element;
     let el: Node | null = r[(type + "Container") as "startContainer" | "endContainer"]
       , o: Node | null, cn: Node["childNodes"];

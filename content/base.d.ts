@@ -1,6 +1,14 @@
 interface Element {
   vimiumHasOnclick?: boolean;
 }
+declare const enum ShadowRootListenType {
+  None = 0,
+  Blur = 1,
+  Full = 2,
+}
+interface ShadowRoot {
+  vimiumListened?: ShadowRootListenType;
+}
 
 interface Window {
   VimiumInjector?: VimiumInjector | null;
@@ -30,6 +38,15 @@ declare namespace HandlerNS {
 interface KeydownCacheArray extends SafeObject {
   [keyCode: number]: BOOL | 2 | undefined;
 }
+
+interface SafeElement extends Element {
+  tagName: string;
+}
+type BaseLockableElement = HTMLElement & SafeElement;
+/** must extend `SafeElement` */
+interface LockableElement extends BaseLockableElement {
+}
+type SafeHTMLElement = HTMLElement & SafeElement;
 
 interface EventControlKeys {
   altKey: boolean;
@@ -200,7 +217,7 @@ interface HintOffset {
 
 type HTMLElementUsingMap = HTMLImageElement | HTMLObjectElement;
 interface Hint {
-  [0]: HTMLElement | SVGElement; // element
+  [0]: SafeHTMLElement | SVGElement; // element
   [1]: VRect; // bounding rect
   [2]: number; // priority (smaller is prior)
   [3]?: HintOffset;
@@ -250,7 +267,8 @@ interface DomUI {
   click_ (this: DomUI, element: Element, rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
   simulateSelect_ (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;
-  moveSel_ (this: DomUI, element: Element, action: SelectActions | undefined): void;
+  /** @NEED_SAFE_ELEMENTS */
+  _moveSel_unsafe_ (this: DomUI, element: LockableElement, action: SelectActions | undefined): void;
   getVRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): VRect | null;
   flash_ (this: DomUI, el: null, rect: VRect): number;
   flash_ (this: DomUI, el: Element): HTMLElement | void;
@@ -278,7 +296,7 @@ interface ComplicatedVPort extends VPort {
   post<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
 interface VEventMode {
-  lock(this: void): Element | null;
+  lock(this: void): LockableElement | null;
   suppress_(keyCode?: VKeyCodes): void;
   OnWndFocus_ (this: void): void;
   focusAndListen_ (this: void, callback?: (() => void) | null, timedout?: 0): void;

@@ -2074,7 +2074,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     readonly tagName: string | Element | Window;
     readonly assignedSlot: HTMLSlotElement | null;
     slot: string;
-    readonly shadowRoot: ShadowRoot | null;
+    readonly shadowRoot?: ShadowRoot | null;
     textContent: string;
     focus?(): void;
     blur?(): void;
@@ -2272,6 +2272,7 @@ declare var HTMLAllCollection: {
 }
 
 interface HTMLAnchorElement extends HTMLElement {
+    readonly tagName: "A" | "a";
     Methods: string;
     /**
       * Sets or retrieves the character set used to encode the object.
@@ -2435,6 +2436,7 @@ declare var HTMLAppletElement: {
 }
 
 interface HTMLAreaElement extends HTMLElement {
+    readonly tagName: "area" | "AREA";
     /**
       * Sets or retrieves a text alternative to the graphic.
       */
@@ -2593,6 +2595,7 @@ interface HTMLBodyElementEventMap extends HTMLElementEventMap {
 }
 
 interface HTMLBodyElement extends HTMLElement {
+    readonly tagName: "body" | "BODY";
     aLink: any;
     background: string;
     bgColor: any;
@@ -3381,6 +3384,7 @@ declare var HTMLHeadingElement: {
 }
 
 interface HTMLHtmlElement extends HTMLElement {
+    readonly tagName: "html" | "HTML";
     /**
       * Sets or retrieves the DTD version that governs the current document.
       */
@@ -3484,6 +3488,7 @@ declare var HTMLIFrameElement: {
 }
 
 interface HTMLImageElement extends HTMLElement {
+    readonly tagName: "img" | "IMG";
     /**
       * Sets or retrieves how the object is aligned with adjacent text.
       */
@@ -5959,6 +5964,7 @@ interface SVGElementEventMap extends ElementEventMap {
 }
 
 interface SVGElement extends Element {
+    readonly tagName: string;
     className: any;
     focus(): void;
     blur(): void;
@@ -7171,6 +7177,7 @@ interface SVGSVGElementEventMap extends SVGElementEventMap {
 }
 
 interface SVGSVGElement extends SVGGraphicsElement, DocumentEvent, SVGFitToViewBox, SVGZoomAndPan {
+    readonly tagName: "svg" | "SVG";
     contentScriptType: string;
     contentStyleType: string;
     currentScale: number;

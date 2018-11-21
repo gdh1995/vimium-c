@@ -278,7 +278,7 @@ var VHints = {
       if (element === Vomnibar.box_) {
         if (arr = VDom.getVisibleClientRect_(element)) {
           (arr as WritableVRect)[0] += 12; (arr as WritableVRect)[1] += 9;
-          this.push([element, arr, ClickType.frame]);
+          this.push([element as SafeHTMLElement, arr, ClickType.frame]);
         }
         return;
       }
@@ -350,11 +350,12 @@ var VHints = {
     if (!isClickable && type === ClickType.Default) { return; }
     if (element === document.documentElement || element === document.body) { return; }
     if ((arr = VDom.getVisibleClientRect_(element))
-        && (type < ClickType.scrollX || VScroller.shouldScroll_(element, type - ClickType.scrollX as 0 | 1) > 0)
+        && (type < ClickType.scrollX
+          || VScroller.shouldScroll_(element as SafeHTMLElement, type - ClickType.scrollX as 0 | 1) > 0)
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
           || VHints.mode_ >= HintMode.min_job) // note: might need to apply aria-disable on FOCUS/HOVER/LEAVE mode?
-    ) { this.push([element, arr, type]); }
+    ) { this.push([element as SafeHTMLElement, arr, type]); }
   },
   noneActionRe_: <RegExpOne> /\._\b(?![\$\.])/,
   checkJSAction_ (str: string): boolean {
@@ -391,7 +392,7 @@ var VHints = {
       break;
     }
     if (arr = VDom.getVisibleClientRect_(element)) {
-      this.push([element, arr, type]);
+      this.push([element as SafeHTMLElement, arr, type]);
     }
   },
   GetLinks_ (this: Hint[], element: Element): void {
@@ -429,7 +430,7 @@ var VHints = {
     let str = element.getAttribute("data-src") || element.getAttribute("href"), cr: VRect | null;
     if (VUtils.isImageUrl_(str)) {
       if (cr = VDom.getVisibleClientRect_(element)) {
-        this.push([element, cr, ClickType.Default]);
+        this.push([element as SafeHTMLElement, cr, ClickType.Default]);
       }
     }
   },
@@ -1019,7 +1020,7 @@ Modes_: [
   128: "Hover over node",
   192: "Hover over nodes continuously",
   activator_ (element, rect): void {
-    const type = VDom.getEditableType_(element);
+    const type = VDom.getEditableType_<0>(element);
     VScroller.current_ = element;
     VDom.hover_(element, rect);
     type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
@@ -1233,7 +1234,7 @@ Modes_: [
       return;
     } else if (hint.refer && hint.refer === link) {
       return a.Modes_[0].activator_.call(a, link, rect, hint);
-    } else if (VDom.getEditableType_(link) >= EditableType.Editbox) {
+    } else if (VDom.getEditableType_<0>(link) >= EditableType.Editbox) {
       UI.simulateSelect_(link, rect, true);
       return false;
     }

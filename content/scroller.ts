@@ -18,8 +18,8 @@ declare namespace ScrollerNS {
   }
 }
 var VScroller = {
-_animate (e: Element | null, d: ScrollByY, a: number): void | number {
-  let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: Element | null = null, //
+_animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
+  let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
   sign = 0, timestamp = ScrollerNS.Consts.invalidTime as number, totalDelta = 0.0, totalElapsed = 0.0, //
   last = 0 as BOOL;
   function animate(newTimestamp: number): void {
@@ -74,7 +74,7 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
 },
   maxInterval_: ScrollerNS.Consts.DefaultMaxIntervalF as number,
   minDelay_: ScrollerNS.Consts.DefaultMinDelayMs as number,
-  _performScroll (el: Element | null, di: ScrollByY, amount: number): boolean {
+  _performScroll (el: SafeElement | null, di: ScrollByY, amount: number): boolean {
     let before: number;
     if (di) {
       if (el) {
@@ -97,7 +97,7 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
       return window.scrollX !== before;
     }
   },
-  _scroll (element: Element | null, di: ScrollByY, amount: number): void | number | boolean {
+  _scroll (element: SafeElement | null, di: ScrollByY, amount: number): void | number | boolean {
     if (!amount) { return; }
     if (VSettings.cache.smoothScroll && VDom.allowRAF_) {
       return this._animate(element, di, amount);
@@ -107,9 +107,9 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
   },
 
   /** @NEED_SAFE_ELEMENTS */
-  current_: null as Element | null,
+  current_: null as SafeElement | null,
   /** @NEED_SAFE_ELEMENTS */
-  top_: null as Element | null,
+  top_: null as SafeElement | null,
   keyIsDown_: 0,
   scale_: 1,
   Properties_: ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"] as
@@ -145,7 +145,7 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
     this._scroll(element, di, amount);
     this.top_ = null;
   },
-  _adjustAmount (di: ScrollByY, amount: number, element: Element | null): number {
+  _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
     amount *= VSettings.cache.scrollStepSize;
     return !di && amount && element && element.scrollWidth <= element.scrollHeight * 2
       ? Math.ceil(amount * 0.6) : amount;
@@ -153,16 +153,16 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
   /**
    * @param amount should not be 0
    */
-  findScrollable_ (di: ScrollByY, amount: number): Element | null {
-    const cur: Element | null = this.current_, top = this.top_;
+  findScrollable_ (di: ScrollByY, amount: number): SafeElement | null {
+    const cur: SafeElement | null = this.current_, top = this.top_;
     if (!cur) {
       return this.current_ = top && this._selectFirst(top) || top;
     }
     const getInsertion = Element.prototype.getDestinationInsertionPoints;
-    let element: Element | null = cur, reason, isCurVerticallyScrollable = di - 1 /** X => -1, Y => 0 */;
-    while (element !== top && (reason = this.shouldScroll_(element as Element, di, amount)) < 1) {
+    let element: SafeElement | null = cur, reason, isCurVerticallyScrollable = di - 1 /** X => -1, Y => 0 */;
+    while (element !== top && (reason = this.shouldScroll_(element as NonNullable<typeof element>, di, amount)) < 1) {
       if (!reason) {
-        isCurVerticallyScrollable = isCurVerticallyScrollable || +this._scrollDo(element as Element, 1, -amount);
+        isCurVerticallyScrollable = isCurVerticallyScrollable || +this._scrollDo(element as NonNullable<typeof element>, 1, -amount);
       }
       element = VDom.SafeEl_(VDom.GetParent_(element as Element, getInsertion)) || top;
     }
@@ -182,15 +182,15 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
   getScale_ (): void {
     this.scale_ = 1 / Math.min(1, VDom.wdZoom_) / Math.min(1, VDom.bZoom_);
   },
-  _checkCurrent (el: Element | null): void {
+  _checkCurrent (el: SafeElement | null): void {
     const cur = this.current_;
     if (cur !== el && cur && VDom.NotVisible_(cur)) { this.current_ = el; }
   },
-  _getDimension (el: Element | null, di: ScrollByY, index: 0 | 2): number {
+  _getDimension (el: SafeElement | null, di: ScrollByY, index: 0 | 2): number {
     return el !== this.top_ || (index && el) ? ((el || this.top_) as Element)[this.Properties_[index + di]]
       : di ? innerHeight : innerWidth;
   },
-  _scrollDo (el: Element, di: ScrollByY, amount: number): boolean {
+  _scrollDo (el: SafeElement, di: ScrollByY, amount: number): boolean {
     const key = this.Properties_[4 + di as 4 | 5], before = el[key], k2: "top" | "left" = di ? "top": "left"
       , arg: ScrollToOptions = { behavior: "instant" };
     arg[k2] = (amount > 0 ? 1 : -1) * this.scale_;
@@ -202,17 +202,17 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
     }
     return changed;
   },
-  _selectFirst (element: Element, skipPrepare?: 1): Element | null {
+  _selectFirst (element: SafeElement, skipPrepare?: 1): SafeElement | null {
     if (element.clientHeight + 3 < element.scrollHeight &&
         (this._scrollDo(element, 1, 1) || element.scrollTop > 0 && this._scrollDo(element, 1, 0))) {
       this.scrolled_ = 0;
-      return element;
+      return element as SafeElement;
     }
     skipPrepare || VDom.prepareCrop_();
     // todo: check form and frameset
     let children = [] as {area: number, el: Element}[], _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
-      element = _ref[_len];
+      element = _ref[_len] as Element as /** fake `as` */ SafeElement;
       // here assumes that a <form> won't be a main scrollable area
       if (VDom.notSafe_(element)) { continue; }
       const rect = element.getBoundingClientRect(),
@@ -224,12 +224,12 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
     }
     children.sort(this.sortByArea_);
     for (_len = children.length; 0 < _len--; ) {
-      if (element = this._selectFirst(children[_len].el, 1) as Element | null as Element) { return element; }
+      if (element = this._selectFirst(children[_len].el as Element as SafeElement, 1) as SafeElement) { return element; }
     }
     return null;
   },
   /** @NEED_SAFE_ELEMENTS */
-  scrollIntoView_ (el: Element): void {
+  scrollIntoView_ (el: SafeElement): void {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
     this.current_ = el;
@@ -248,7 +248,7 @@ _animate (e: Element | null, d: ScrollByY, a: number): void | number {
   },
   scrolled_: 0,
   /** @NEED_SAFE_ELEMENTS */
-  shouldScroll_ (element: Element, di: ScrollByY, amount?: number): -1 | 0 | 1 {
+  shouldScroll_ (element: SafeElement, di: ScrollByY, amount?: number): -1 | 0 | 1 {
     const st = getComputedStyle(element);
     return (di ? st.overflowY : st.overflowX) === "hidden" || st.display === "none" || st.visibility !== "visible" ? -1
       : <BOOL> +this._scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));

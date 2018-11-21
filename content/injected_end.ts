@@ -8,7 +8,7 @@ VimiumInjector.checkIfEnabled = (function (this: null
     , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
   func({ handler: kFgReq.checkIfEnabled, url: window.location.href });
 }).bind(null, VimiumInjector.checkIfEnabled);
-VDom.DocReady(function() {
+VDom.DocReady_(function() {
   VimiumInjector &&
   addEventListener("hashchange", VimiumInjector.checkIfEnabled);
 });

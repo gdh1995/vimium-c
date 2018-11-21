@@ -176,7 +176,7 @@ _listen("DOMContentLoaded", handler, true);
   script.textContent = injected;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
-  VDom.DocReady(function() { box === null && setTimeout(function() { box || destroy(); }, 17); });
+  VDom.DocReady_(function() { box === null && setTimeout(function() { box || destroy(); }, 17); });
   if (!script.parentNode) { // It succeeded to hook.
     safeRAF || requestAnimationFrame(() => { VDom.allowRAF_ = true; });
     return;

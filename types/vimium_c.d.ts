@@ -259,6 +259,7 @@ declare const enum GlobalConsts {
   MaxImpossibleTabId = -2,
   WndIdNone = -1,
   VomnibarSecretTimeout = 3000,
+  // limited by Pagination.findAndFollowLink_
   MaxNumberOfNextPatterns = 200,
   MaxBufferLengthForPasting = 8192,
   TimeoutToReleaseBackendModules = 1000 * 60,

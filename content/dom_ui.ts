@@ -148,7 +148,7 @@ VDom.UI = {
     }
     sel = getSelection();
     if (typeof ShadowRoot !== "function") { return sel; }
-    let E = Element, offset: number, sr: ShadowRoot | null, sel2: Selection | null = sel;
+    let E = Element, offset: number, sr: ShadowRoot | null | undefined, sel2: Selection | null = sel;
     while (sel2) {
       sel2 = null;
       el = sel.anchorNode;
@@ -198,14 +198,16 @@ VDom.UI = {
     // re-compute rect of element, in case that an input is resized when focused
     flash && this.flash_(element);
     if (element !== VEventMode.lock()) { return; }
-    this.moveSel_(element, action);
+    // then `element` is always safe
+    this._moveSel_unsafe_(element as LockableElement, action);
     if (suppressRepeated === true) { return this.suppressTail_(true); }
   },
-  moveSel_ (element, action): void {
+  /** @NEED_SAFE_ELEMENTS */
+  _moveSel_unsafe_ (element, action): void {
     type TextElement = HTMLInputElement | HTMLTextAreaElement;
-    const type = element instanceof HTMLTextAreaElement ? EditableType.Editbox
-        : element instanceof HTMLInputElement ? EditableType.input_
-        : !VDom.notSafe_(element) && (element as HTMLElement).isContentEditable ? EditableType.rich_
+    const tag = (element.tagName as string).toLowerCase()
+    const type = tag === "textarea" ? EditableType.Editbox : tag === "input" ? EditableType.input_
+        : element.isContentEditable ? EditableType.rich_
         : EditableType.Default;
     if (type === EditableType.Default) { return; }
     const isBox = type === EditableType.Editbox || type === EditableType.rich_ && element.textContent.indexOf("\n") >= 0,
@@ -248,7 +250,7 @@ VDom.UI = {
     return rect && !VDom.isContaining_(bcr, rect) ? rect : VDom.NotVisible_(null, cr) ? null : bcr;
   },
   _lastFlash: null,
-  flash_: function (this: DomUI, el: Element | null, rect?: VRect | null): HTMLElement | void {
+  flash_: function (this: DomUI, el: Element | null, rect?: VRect | null): HTMLDivElement | void {
     rect || (rect = this.getVRect_(el as Element));
     if (!rect) { return; }
     const flashEl = VDom.createElement_("div"), nfs = !document.webkitIsFullScreen;
