@@ -165,7 +165,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       let a = InsertMode.lock_;
       if (a !== null && a === document.activeElement) { return; }
       if (target === VDom.UI.box_) { return event.stopImmediatePropagation(); }
-      if ((target as Element).shadowRoot != null) {
+      const sr = (target as Element).shadowRoot;
+      if (sr != null && !(sr instanceof Element)) {
         let path = event.path, top: EventTarget | undefined, SR = ShadowRoot
           /**
            * isNormalHost is true if one of:
@@ -174,7 +175,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
            */ 
           , isNormalHost = !!(top = path && path[0]) && top !== window && top !== target
           , len = isNormalHost ? [].indexOf.call(path as EventPath, target) : 1;
-        isNormalHost ? (target = top as Element) : (path = [(target as Element).shadowRoot as ShadowRoot]);
+        isNormalHost ? (target = top as Element) : (path = [sr]);
         while (0 <= --len) {
           const root = (path as EventPath)[len];
           if (!(root instanceof SR) || root.vimiumListened === ShadowRootListenType.Full) { continue; }
@@ -210,7 +211,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         InsertMode.lock_ = null;
         InsertMode.inputHint_ && !InsertMode.hinting_ && document.hasFocus() && InsertMode.exitInputHint_();
       }
-      if (!(sr != null && sr instanceof ShadowRoot) || target === VDom.UI.box_) { return; }
+      if (sr == null || sr instanceof Element || target === VDom.UI.box_) { return; }
       let wrapper = onShadow;
       if (same) {
         sr.vimiumListened = ShadowRootListenType.Blur;
@@ -555,7 +556,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         return true;
       }
       let el = document.activeElement;
-      if (el && (el as HTMLElement).isContentEditable === true && el instanceof HTMLElement) {
+      if (el && (el as HTMLElement).isContentEditable === true && !VDom.notSafe_(el) && el instanceof HTMLElement) {
         this.lock_ = el as LockableElement;
         return true;
       } else {
@@ -620,7 +621,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
   },
   GetLinks_ (this: HTMLElement[], element: Element): void {
     if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
-    let s: string | null = (element.tagName + "").toLowerCase();
+    let s: string | null = (element.tagName as string).toLowerCase();
     const isClickable = s === "a" || (
       s === "button" ? !(element as HTMLButtonElement).disabled
       : element.vimiumHasOnclick || element.getAttribute("onclick") || (
