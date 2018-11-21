@@ -165,8 +165,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       let a = InsertMode.lock_;
       if (a !== null && a === document.activeElement) { return; }
       if (target === VDom.UI.box_) { return event.stopImmediatePropagation(); }
-      const sr = (target as Element).shadowRoot;
-      if (sr != null && !(sr instanceof Element)) {
+      let sr = (target as Element).shadowRoot;
+      sr instanceof Element && (sr = VDom.Getter_(Element, target as Element, 'shadowRoot'));
+      if (sr != null) {
         let path = event.path, top: EventTarget | undefined, SR = ShadowRoot
           /**
            * isNormalHost is true if one of:
@@ -211,7 +212,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         InsertMode.lock_ = null;
         InsertMode.inputHint_ && !InsertMode.hinting_ && document.hasFocus() && InsertMode.exitInputHint_();
       }
-      if (sr == null || sr instanceof Element || target === VDom.UI.box_) { return; }
+      sr instanceof Element && (sr = VDom.Getter_(Element, target as Element, 'shadowRoot'));
+      if (sr == null || target === VDom.UI.box_) { return; }
       let wrapper = onShadow;
       if (same) {
         sr.vimiumListened = ShadowRootListenType.Blur;

@@ -45,6 +45,12 @@ var VDom = {
       return null;
     }
   },
+  Getter_ <Ty extends Node, Key extends keyof Ty> (this: void
+      , Cls: { prototype: Ty, new(): Ty; }, instance: Ty, property: Key & string
+      ): NonNullable<Ty[Key]> | null {
+    const desp = Object.getOwnPropertyDescriptor(Cls.prototype, property);
+    return desp && desp.get ? desp.get.call(instance) : null;
+  },
   /**
    * Try its best to find a real parent
    * @safe_even_if_any_overridden_property
@@ -59,10 +65,7 @@ var VDom = {
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn && pe; }
     // par exists but not in normal tree
     if (!pn.contains(el)) { // pn is overridden
-      let desp: PropertyDescriptor | undefined;
-      pn = pe && pe.contains(el) ? pe
-        : (desp = Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode')) && desp.get ? desp.get.call(el)
-        : null;
+      pn = pe && pe.contains(el) ? pe : VDom.Getter_(Node, el, 'parentNode');
     }
     const SR = window.ShadowRoot, E = Element;
     // pn is real or null
