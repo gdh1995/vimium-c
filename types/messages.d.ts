@@ -46,6 +46,7 @@ interface BgReq {
     keyMap: KeyMap;
   };
   [kBgReq.showHUD]: {
+    name: kBgReq.showHUD;
     CSS?: string | null;
     text?: string;
     isCopy?: boolean;
@@ -78,6 +79,7 @@ interface BgReq {
     url?: string;
   };
   [kBgReq.eval]: {
+    name: kBgReq.eval;
     url: string; // a javascript: URL
   };
   [kBgReq.count]: {
@@ -95,13 +97,16 @@ interface BgVomnibarReq {
     total: number;
   };
   [kBgReq.omni_returnFocus]: {
+    name: kBgReq.omni_returnFocus;
     key: VKeyCodes;
   };
   [kBgReq.omni_secret]: {
     secret: number;
     browserVersion: BrowserVer;
   };
-  [kBgReq.omni_blurred]: {};
+  [kBgReq.omni_blurred]: {
+    name: kBgReq.omni_blurred;
+  };
   [kBgReq.omni_parsed]: {
     id: number;
     search: FgRes[kFgReq.parseSearchUrl];

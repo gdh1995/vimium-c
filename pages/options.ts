@@ -432,12 +432,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       loadJS("options_ext.js");
       return;
     }
-    window.onload = function(event): void {
+    window.addEventListener("load", function onLoad(event): void {
       if (event.target === window) {
-        window.onload = null as never;
+        window.removeEventListener("load", onLoad);
         loadJS("options_ext.js");
       }
-    };
+    });
   } as ElementWithDelay["onclick"];
   _ref = $$("[data-delay]");
   for (let _i = _ref.length; 0 <= --_i; ) {
