@@ -623,7 +623,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
   },
   GetLinks_ (this: HTMLElement[], element: Element): void {
     if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
-    let s: string | null = (element.tagName as string).toLowerCase();
+    let s: string | null = (element.tagName as string).toLowerCase(), sr = element.shadowRoot;
+    if (sr) {
+      ([].forEach as HintsNS.ElementIterator<Element>).call(
+        sr.querySelectorAll("*"), Pagination.GetLinks_, this);
+    }
     const isClickable = s === "a" || (
       s === "button" ? !(element as HTMLButtonElement).disabled
       : element.vimiumHasOnclick || element.getAttribute("onclick") || (
@@ -635,7 +639,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     if (rect.width > 2 && rect.height > 2 && getComputedStyle(element).visibility === "visible") {
       this.push(element);
     }
-    // todo: search shadow DOM
   },
   findAndFollowLink_ (names: string[], refusedStr: string): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: HTMLElement; }

@@ -329,7 +329,7 @@ var VHints = {
       // no break;
     default:
       if (element.shadowRoot) {
-        ([].forEach as any as HintsNS.ElementIterator<Hint>).call(
+        ([].forEach as HintsNS.ElementIterator<Hint>).call(
           element.shadowRoot.querySelectorAll("*"), VHints.GetClickable_, this);
         return;
       }
@@ -383,7 +383,7 @@ var VHints = {
     default:
       if ((s = element.contentEditable) === "inherit" || !s || s === "false") {
         if (element.shadowRoot) {
-          ([].forEach as any as HintsNS.ElementIterator<Hint>).call(
+          ([].forEach as HintsNS.ElementIterator<Hint>).call(
             element.shadowRoot.querySelectorAll("*"), VHints.GetEditable_, this);
         }
         return;
