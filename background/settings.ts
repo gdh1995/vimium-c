@@ -111,6 +111,7 @@ var Settings = {
     },
     baseCSS (this: SettingsTmpl, css): void {
       const cacheId = (this as typeof Settings).CONST.StyleCacheId_,
+      browserVer = this.CONST.ChromeVersion,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
       hasAll = browserInfo.lastIndexOf("a") >= 0;
       if (hasAll) {
@@ -119,8 +120,11 @@ var Settings = {
       } else {
         css = css.replace(<RegExpOne> /all:\s?initial;?/, "");
       }
-      if (this.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
+      if (browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css += "\n.HUD,.IH,.LH{border-width:1px}";
+      }
+      if (browserVer < BrowserVer.MinUnprefixedUserSelect) {
+        css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
       }
       if (browserInfo.lastIndexOf("s") < 0) {
         // Note: &vimium.min.css: this requires `:host{` is at the beginning
