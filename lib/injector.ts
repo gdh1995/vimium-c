@@ -9,7 +9,7 @@ declare var browser: unknown;
 var VimiumInjector: VimiumInjector;
 (function() {
   let runtime = (typeof browser !== "undefined" && browser &&
-    !((browser as typeof chrome | HTMLHtmlElement) instanceof Element) ? browser as typeof chrome : chrome).runtime;
+    !((browser as typeof chrome | Element) instanceof Element) ? browser as typeof chrome : chrome).runtime;
   const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i = scriptSrc.indexOf("://") + 3,
   extId = scriptSrc.substring(i, scriptSrc.indexOf("/", i)), onIdle = window.requestIdleCallback;
   let tick = 1;

@@ -33,8 +33,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     ;
 
   const isInjected = !!VimiumInjector,
-  notChrome = typeof browser !== "undefined" && !(
-    browser && (browser as typeof chrome).runtime || ((browser as typeof chrome | HTMLHtmlElement) instanceof Element)),
+  useBrowser = typeof browser !== "undefined" && !!(
+    browser && (browser as typeof chrome).runtime) && !((browser as typeof chrome | Element) instanceof Element),
   vPort = {
     _port: null as Port | null,
     _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
@@ -66,7 +66,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }, 2000);
     },
     Connect_: (function (this: void, status: PortType): void {
-      const runtime: typeof chrome.runtime = (notChrome ? browser as typeof chrome : chrome).runtime,
+      const runtime: typeof chrome.runtime = (useBrowser ? browser as typeof chrome : chrome).runtime,
       data = { name: "vimium-c." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
       port = vPort._port = isInjected ? runtime.connect(VimiumInjector.id, data) as Port : runtime.connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);
@@ -267,7 +267,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       f("keyup", onKeyup, true);
       action !== HookAction.Suppress && f("focus", onFocus, true);
       f("blur", onBlur, true);
-      notChrome ? f("click", onActivate, true) :
+      useBrowser ? f("click", onActivate, true) :
       f.call(document, "DOMActivate", onActivate, true);
     }),
   Commands: {
@@ -955,7 +955,7 @@ Pagination = {
       VUtils.suppressAll_(box, i);
     }
     VSettings.cache.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToDocument ||
-    box.addEventListener(notChrome ? "click" : "DOMActivate", onActivate, true);
+    box.addEventListener(useBrowser ? "click" : "DOMActivate", onActivate, true);
 
     const closeBtn = box.querySelector("#HClose") as HTMLElement;
     hide = function(event): void {
