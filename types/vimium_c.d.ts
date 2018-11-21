@@ -292,6 +292,7 @@ declare const enum KeyStat {
   PrimaryModifier = ctrlKey | metaKey,
 }
 
+/** `fg::reqH.init` requires .Chrome must be 0 */
 declare const enum BrowserType {
   Chrome = 0,
   Firefox = 2,

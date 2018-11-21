@@ -307,6 +307,7 @@ Settings.CONST.ChromeVersion = 0 | (!NotChrome && navigator.appVersion.match(/\b
   || [0, BrowserVer.assumedVer])[1] as number;
 Settings.payload.onMac = false;
 Settings.payload.grabFocus = Settings.get("grabBackFocus");
+Settings.payload.browser = NotChrome ? IsEdge ? BrowserType.Edge : BrowserType.Firefox : BrowserType.Chrome;
 Settings.payload.browserVer = Settings.CONST.ChromeVersion;
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): void {
   const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs;

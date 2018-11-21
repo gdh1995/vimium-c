@@ -831,16 +831,10 @@ Pagination = {
   requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = [
     function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {load, flags} = request, D = VDom;
-      interface WindowMayOnMSEdge extends Window {
-        StyleMedia?: object;
-      }
-      load.browser = notChrome ? !(window as WindowMayOnMSEdge).StyleMedia || StyleMedia instanceof Element
-          ? BrowserType.Firefox
-          : BrowserType.Edge
-        : BrowserType.Chrome;
+      const isChrome = !load.browser, browserVer = load.browserVer;
       (VSettings.cache = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
-      D.specialZoom_ = !notChrome && load.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
-      if (!notChrome && load.browserVer >= BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
+      D.specialZoom_ = isChrome && browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
+      if (isChrome && browserVer >= BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
         D.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement;
       }
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
