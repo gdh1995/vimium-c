@@ -4,10 +4,10 @@
 [VUtils, VEventMode, VPort].forEach(Object.freeze);
 
 VDom.Scripts = false;
-VimiumInjector.checkIfEnabled = (function (this: null
+(VimiumInjector as VimiumInjector).checkIfEnabled = (function (this: null
     , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
   func({ handler: kFgReq.checkIfEnabled, url: window.location.href });
-}).bind(null, VimiumInjector.checkIfEnabled);
+}).bind(null, (VimiumInjector as VimiumInjector).checkIfEnabled);
 VDom.DocReady_(function() {
   VimiumInjector &&
   addEventListener("hashchange", VimiumInjector.checkIfEnabled);
@@ -19,9 +19,9 @@ VDom.DocReady_(function() {
     browser && (browser as typeof chrome).runtime && !((browser as typeof chrome | Element) instanceof Element),
   runtime: typeof chrome.runtime = (useBrowser ? browser as typeof chrome : chrome).runtime;
   if (runtime.onMessageExternal) {
-    VimiumInjector.alive = 1;
+    (VimiumInjector as VimiumInjector).alive = 1;
   } else {
-    VimiumInjector.alive = 0.5;
+    (VimiumInjector as VimiumInjector).alive = 0.5;
     console.log("%cVimium C%c: injected %cpartly%c into %c" + (runtime.id || location.host)
       , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9");
   }
@@ -36,4 +36,4 @@ VSettings.stop_ = function(type: number): void {
   }
 };
 
-VimiumInjector.destroy = VSettings.destroy;
+(VimiumInjector as VimiumInjector).destroy = VSettings.destroy;

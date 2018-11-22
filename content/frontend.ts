@@ -1,5 +1,5 @@
 var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
-  , VimiumInjector: VimiumInjector;
+  , VimiumInjector: VimiumInjector | undefined | null;
 
 (function() {
   interface EscF {
@@ -60,7 +60,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     Connect_: (function (this: void, status: PortType): void {
       const runtime: typeof chrome.runtime = (useBrowser ? browser as typeof chrome : chrome).runtime,
       data = { name: "vimium-c." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
-      port = vPort._port = isInjected ? runtime.connect(VimiumInjector.id, data) as Port : runtime.connect(data) as Port;
+      port = vPort._port = isInjected ? runtime.connect((VimiumInjector as VimiumInjector).id, data) as Port
+        : runtime.connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);
       port.onMessage.addListener(vPort.Listener_);
     })
@@ -1163,8 +1164,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
   }
   };
   if (isInjected) {
-    VimiumInjector.checkIfEnabled = vPort.SafePost_ as Function as () => void;
-    VimiumInjector.getCommandCount = function (this: void): number { return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1; };
+    (VimiumInjector as VimiumInjector).checkIfEnabled = vPort.SafePost_ as Function as () => void;
+    (VimiumInjector as VimiumInjector).getCommandCount = function (this: void): number { return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1; };
   }
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync

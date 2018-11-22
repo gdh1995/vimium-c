@@ -333,5 +333,5 @@ interface VSettings {
   stop_: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => void) | null;
   destroy (this: void, silent?: boolean): void;
 }
-declare var VimiumInjector: VimiumInjector, VSettings: VSettings;
+declare var VimiumInjector: VimiumInjector | undefined | null, VSettings: VSettings;
 declare var browser: unknown;

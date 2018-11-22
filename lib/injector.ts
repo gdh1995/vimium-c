@@ -6,7 +6,7 @@ interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;
 }
 declare var browser: unknown;
-var VimiumInjector: VimiumInjector;
+var VimiumInjector: VimiumInjector | undefined | null;
 (function() {
   let runtime = (typeof browser !== "undefined" && browser &&
     !((browser as typeof chrome | Element) instanceof Element) ? browser as typeof chrome : chrome).runtime;

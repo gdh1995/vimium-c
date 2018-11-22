@@ -2,7 +2,7 @@
 /// <reference path="../types/base/index.d.ts" />
 /// <reference path="../types/vimium_c.d.ts" />
 declare var browser: unknown;
-var VimiumInjector = null as never as VimiumInjector;
+var VimiumInjector: VimiumInjector | undefined | null = null;
 if (typeof browser !== "undefined" && browser && (browser as any).runtime) {
   window.chrome = browser as typeof chrome;
 }
