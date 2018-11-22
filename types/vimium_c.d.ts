@@ -247,6 +247,7 @@ declare namespace VomnibarNS {
 interface VimiumInjector {
   id: string;
   alive: 0 | 0.5 | 1;
+  version: string;
   getCommandCount: (this: void) => number;
   checkIfEnabled: (this: void) => void;
   destroy: ((this: void, silent?: boolean) => void) | null;

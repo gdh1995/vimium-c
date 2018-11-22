@@ -13,20 +13,20 @@ var VimiumInjector: VimiumInjector;
   const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i = scriptSrc.indexOf("://") + 3,
   extId = scriptSrc.substring(i, scriptSrc.indexOf("/", i)), onIdle = window.requestIdleCallback;
   let tick = 1;
-function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["res"] | null | undefined | false): void {
+function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
   let str: string | undefined, noBackend: boolean;
-  if (!content_scripts) {
+  if (!res) {
     type LastError = chrome.runtime.LastError;
     const msg: string | void = (runtime.lastError as void | LastError) &&
       (runtime.lastError as void | LastError as LastError).message,
     host = runtime.id || location.host || location.protocol;
     noBackend = !!(msg && msg.lastIndexOf("not exist") >= 0 && runtime.id);
-    if (content_scripts === false) { // disabled
+    if (res === false) { // disabled
       str = ": not in the white list.";
     } else if (!noBackend && runtime.lastError) {
       str = msg ? `:\n\t${msg}` : ": no backend found.";
     } else if (tick > 3) {
-      str = msg ? `:\n\t${msg}` : `: retried but failed (${content_scripts}).`;
+      str = msg ? `:\n\t${msg}` : `: retried but failed (${res}).`;
       noBackend = false;
     } else {
       setTimeout(call, 200 * tick);
@@ -46,19 +46,20 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
   VimiumInjector = {
     id: extId,
     alive: 0,
+    version: res ? res.version : "",
     checkIfEnabled: null as never,
     getCommandCount: null as never,
     destroy: null
   };
   const docEl = document.documentElement;
-  if (!content_scripts || !docEl) {
+  if (!res || !docEl) {
     return runtime.lastError;
   }
   const inserAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild as Node
     , insertBefore = inserAfter.nextSibling
     , parentElement = inserAfter.parentElement as Element;
   let scripts: HTMLScriptElement[] = [];
-  for (const i of content_scripts) {
+  for (const i of res.scripts) {
     const scriptElement = document.createElement("script");
     scriptElement.async = false;
     scriptElement.src = i;
@@ -71,7 +72,7 @@ function handler(this: void, content_scripts: ExternalMsgs["content_scripts"]["r
   });
 }
 function call() {
-  runtime.sendMessage(extId, { handler: kFgReq.content_scripts }, handler);
+  runtime.sendMessage(extId, <Req.baseFg<kFgReq.inject>> { handler: kFgReq.inject }, handler);
 }
 function start() {
   removeEventListener("load", start);

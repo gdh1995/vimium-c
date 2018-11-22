@@ -2273,7 +2273,7 @@ Are you sure you want to continue?`);
     }
     if (typeof message !== "object") { return; }
     switch (message.handler as kFgReq) {
-    case "command":
+    case kFgReq.command:
       command = message.command ? message.command + "" : "";
       if (command && CommandsData.availableCommands_[command]) {
         const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
@@ -2281,8 +2281,10 @@ Are you sure you want to continue?`);
         return execute(command, message.options, message.count, port, message.key);
       }
       return;
-    case kFgReq.content_scripts:
-      sendResponse(Settings.CONST.ContentScripts_);
+    case kFgReq.inject:
+      (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
+        scripts: Settings.CONST.ContentScripts_, version: Settings.CONST.CurrentVersion
+      });
       return;
     }
   }), Settings.postUpdate_("extWhiteList"));

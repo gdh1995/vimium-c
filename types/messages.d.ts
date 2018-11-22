@@ -231,7 +231,7 @@ declare const enum kFgReq {
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
   focusOrLaunch, cmd, blurTest, removeSug, msg,
-  content_scripts,
+  inject,
   command = "command",
 }
 
@@ -383,13 +383,16 @@ interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> {
 }
 
 interface ExternalMsgs {
-  content_scripts: {
+  [kFgReq.inject]: {
     req: {
-      handler: kFgReq.content_scripts;
+      handler: kFgReq.inject;
     };
-    res: string[];
+    res: {
+      version: string;
+      scripts: string[];
+    }
   };
-  command: {
+  [kFgReq.command]: {
     req: {
       handler: kFgReq.command;
       command: string;
