@@ -59,7 +59,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     },
     Connect_: (function (this: void, status: PortType): void {
       const runtime: typeof chrome.runtime = (useBrowser ? browser as typeof chrome : chrome).runtime,
-      data = { name: "vimium-c." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
+      name = "vimium-c." + (
+        PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status),
+      data = { name: isInjected ? name + "@" + (VimiumInjector as VimiumInjector).version : name },
       port = vPort._port = isInjected ? runtime.connect((VimiumInjector as VimiumInjector).id, data) as Port
         : runtime.connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);
@@ -544,7 +546,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       _this.grabFocus_ = false;
       removeEventListener("mousedown", _this.ExitGrab_, true);
       VUtils.remove_(_this);
-      // it's okay to not set the userActed flag if there's only the top frame,
+      // it's acceptable to not set the userActed flag if there's only the top frame;
+      // when an iframe gets clicked, the events are mousedown and then focus, so SafePost_ is needed
       !(event instanceof Event) || !frames.length && window === window.top ||
       vPort.SafePost_({ handler: kFgReq.exitGrab });
       if (event instanceof KeyboardEvent) { return HandlerResult.Nothing; }
@@ -879,6 +882,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }
       if (VDom.UI.box_) { return VDom.UI.toggle_(enabled); }
     },
+    isInjected && (VimiumInjector as VimiumInjector).reload || function (_req: BgReq[kBgReq.reInject]): void {},
     function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
       delete (request as Req.bg<kBgReq.url>).name;
       request.url = location.href;

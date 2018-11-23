@@ -14,7 +14,7 @@ interface ParsedSearch {
 
 declare const enum kBgReq {
   START = 0,
-  init = START, reset, url, msg, eval,
+  init = START, reset, reInject, url, msg, eval,
   settingsUpdate, focusFrame, exitGrab, keyMap, execute,
   createMark, showHUD, count, showHelpDialog,
   OMNI_MIN = 42,
@@ -29,6 +29,9 @@ interface BgReq {
     passKeys: string | null;
     mapKeys: SafeDict<string> | null,
     keyMap: KeyMap
+  };
+  [kBgReq.reInject]: {
+    name: kBgReq.reInject;
   };
   [kBgReq.reset]: {
     passKeys: string | null;

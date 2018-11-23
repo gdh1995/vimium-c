@@ -2230,9 +2230,15 @@ Are you sure you want to continue?`);
     if (!chrome.runtime.onConnectExternal) { return; }
     Settings.extWhiteList_ || Settings.postUpdate_("extWhiteList");
     chrome.runtime.onConnectExternal.addListener(function(port): void {
-      const { sender } = port;
+      let { sender, name } = port, arr: string[];
       if (sender && isExtIdAllowed(sender.id)
-          && port.name.startsWith("vimium-c")) {
+          && name.startsWith("vimium-c") && (arr = name.split('@')).length > 1) {
+        if (arr[1] !== Settings.CONST.CurrentVersion) {
+          (port as Port).postMessage({ name: kBgReq.reInject });
+          port.disconnect();
+          return;
+        }
+        port.name = arr[0];
         return OnConnect(port as Frames.RawPort as Frames.Port);
       } else {
         port.disconnect();

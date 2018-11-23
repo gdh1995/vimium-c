@@ -11,7 +11,7 @@ var VimiumInjector: VimiumInjector | undefined | null;
   let runtime = (typeof browser !== "undefined" && browser &&
     !((browser as typeof chrome | Element) instanceof Element) ? browser as typeof chrome : chrome).runtime;
   const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i = scriptSrc.indexOf("://") + 3,
-  extId = scriptSrc.substring(i, scriptSrc.indexOf("/", i)), onIdle = window.requestIdleCallback;
+  extHost = scriptSrc.substring(i, scriptSrc.indexOf("/", i)), onIdle = window.requestIdleCallback;
   let tick = 1;
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
   let str: string | undefined, noBackend: boolean;
@@ -44,9 +44,25 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   }
 
   VimiumInjector = {
-    id: extId,
+    id: extHost,
     alive: 0,
     version: res ? res.version : "",
+    reload: (function(scriptSrc): VimiumInjector["reload"] {
+      return function(req): void {
+        function inject(): void {
+          if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
+            VimiumInjector.destroy(true);
+          }
+          const docEl = document.documentElement as HTMLHtmlElement | null;
+          if (!docEl) { return; }
+          const script = document.createElement('script');
+          script.type = "text/javascript";
+          script.src = scriptSrc;
+          (document.head || document.body || docEl).appendChild(script);
+        }
+        req !== false ? setTimeout(inject, 200) : inject();
+      };
+    })(scriptSrc),
     checkIfEnabled: null as never,
     getCommandCount: null as never,
     destroy: null
@@ -72,7 +88,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   });
 }
 function call() {
-  runtime.sendMessage(extId, <Req.baseFg<kFgReq.inject>> { handler: kFgReq.inject }, handler);
+  runtime.sendMessage(extHost, <Req.baseFg<kFgReq.inject>> { handler: kFgReq.inject }, handler);
 }
 function start() {
   removeEventListener("load", start);

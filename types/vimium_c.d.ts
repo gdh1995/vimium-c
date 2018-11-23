@@ -250,6 +250,7 @@ interface VimiumInjector {
   version: string;
   getCommandCount: (this: void) => number;
   checkIfEnabled: (this: void) => void;
+  reload (req?: Req.bg<kBgReq.reInject> | false): void;
   destroy: ((this: void, silent?: boolean) => void) | null;
 }
 
