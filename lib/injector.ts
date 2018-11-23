@@ -7,7 +7,7 @@ interface EventTargetEx extends _EventTargetEx {
 }
 declare var browser: unknown;
 var VimiumInjector: VimiumInjector | undefined | null;
-(function() {
+(function(injectorBuilder: (scriptSrc: string) => VimiumInjector["reload"]) {
   let runtime = (typeof browser !== "undefined" && browser &&
     !((browser as typeof chrome | Element) instanceof Element) ? browser as typeof chrome : chrome).runtime;
   const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i = scriptSrc.indexOf("://") + 3,
@@ -47,22 +47,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     id: extHost,
     alive: 0,
     version: res ? res.version : "",
-    reload: (function(scriptSrc): VimiumInjector["reload"] {
-      return function(req): void {
-        function inject(): void {
-          if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
-            VimiumInjector.destroy(true);
-          }
-          const docEl = document.documentElement as HTMLHtmlElement | null;
-          if (!docEl) { return; }
-          const script = document.createElement('script');
-          script.type = "text/javascript";
-          script.src = scriptSrc;
-          (document.head || document.body || docEl).appendChild(script);
-        }
-        req !== false ? setTimeout(inject, 200) : inject();
-      };
-    })(scriptSrc),
+    reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
     getCommandCount: null as never,
     destroy: null
@@ -101,7 +86,22 @@ if (document.readyState === "complete") {
 } else {
   addEventListener("load", start);
 }
-})();
+})(function(scriptSrc): VimiumInjector["reload"] {
+  return function(async): void {
+    function inject(): void {
+      if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
+        VimiumInjector.destroy(true);
+      }
+      const docEl = document.documentElement as HTMLHtmlElement | null;
+      if (!docEl) { return; }
+      const script = document.createElement('script');
+      script.type = "text/javascript";
+      script.src = scriptSrc;
+      (document.head || document.body || docEl).appendChild(script);
+    }
+    async !== false ? setTimeout(inject, 200) : inject();
+  };
+});
 
 (!document.currentScript || ((document.currentScript as HTMLScriptElement).getAttribute("data-vimium-hooks") || "").toLowerCase() != "false") &&
 (function(): void {
