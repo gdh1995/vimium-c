@@ -57,7 +57,7 @@ var VFindMode = {
     VUtils.push_(ui.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
-    ui.toggleSelectStyle_(true);
+    ui.toggleSelectStyle_(1);
     ui.addElement_(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box_);
     first && ui.adjust_();
     a.isActive_ = true;
@@ -158,12 +158,12 @@ var VFindMode = {
     this.init_ && this.init_(AdjustType.MustAdjust);
     const style = this.isActive_ || VHUD.opacity_ !== 1 ? null : (VHUD.box_ as HTMLDivElement).style;
     style && (style.visibility = "hidden");
-    VDom.UI.toggleSelectStyle_(true);
+    VDom.UI.toggleSelectStyle_(0);
     this.execute_(null, options);
     style && (style.visibility = "");
     if (!this.hasResults_) {
       if (!this.isActive_) {
-        VDom.UI.toggleSelectStyle_(false);
+        VDom.UI.toggleSelectStyle_(0);
         VHUD.tip(`No matches for '${this.query_}'`);
       }
       return;
@@ -245,7 +245,7 @@ var VFindMode = {
   deactivate_(i: FindNS.Action): void {
     let sin = this.styleIn_, noStyle = !sin || !sin.parentNode, el = this.clean_(i), el2: Element | null;
     if ((i === FindNS.Action.ExitAndReFocus || !this.hasResults_ || VVisualMode.mode_) && !noStyle) {
-      this.toggleStyle_(0);
+      this.DisableStyle_(1);
       this.restoreSelection_(true);
     }
     if (VVisualMode.mode_) {
@@ -254,7 +254,7 @@ var VFindMode = {
         from_find: true as true
       }));
     }
-    VDom.UI.toggleSelectStyle_(false);
+    VDom.UI.toggleSelectStyle_(0);
     if (i < FindNS.Action.MinComplicatedExit || !this.hasResults_) { return; }
     if (!el || el !== VEventMode.lock()) {
       el = getSelection().anchorNode as Element | null;
@@ -434,7 +434,7 @@ var VFindMode = {
     let el: Element | null, found: boolean, count = ((options.count as number) | 0) || 1, back = count < 0
       , par: HTMLElement | null = null, timesRegExpNotMatch = 0
       , q: string, notSens = this.ignoreCase_ && !options.caseSensitive;
-    options.noColor || this.toggleStyle_(1);
+    options.noColor || this.DisableStyle_(0);
     back && (count = -count);
     const isRe = this.isRegex_, pR = this.parsedRegexp_;
     do {
@@ -462,21 +462,23 @@ var VFindMode = {
       return window.find.apply(window, arguments);
     } catch (e) { return false; }
   } as Window["find"],
-  RestoreHighlight_ (this: void): void { VFindMode.toggleStyle_(0); },
   HookSel_ (): void {
-    document.addEventListener("selectionchange", VFindMode && VFindMode.RestoreHighlight_, true);
+    document.addEventListener("selectionchange", VFindMode && VFindMode.DisableStyle_, true);
   },
-  toggleStyle_ (enabled: BOOL): void {
-    document.removeEventListener("selectionchange", this.RestoreHighlight_, true);
-    const sout = this.styleOut_, sin = this.styleIn_, ui = VDom.UI;
-    enabled || this.isActive_ || ui.toggleSelectStyle_(false);
-    if (enabled - +!sout.parentNode) { return; }
-    if (enabled) {
-      (ui.box_ as HTMLDivElement).appendChild(sout);
-      sin !== sout && (ui.R as ShadowRoot).insertBefore(sin, this.box_);
-    } else {
+  /** must be called after initing */
+  DisableStyle_ (this: void, disable: BOOL | boolean | Event): void {
+    const a = VFindMode, sout = a.styleOut_, sin = a.styleIn_, UI = VDom.UI, active = a.isActive_;
+    document.removeEventListener("selectionchange", a.DisableStyle_, true);
+    disable = !!disable;
+    if (!active && disable) {
+      UI.toggleSelectStyle_(0);
       sout.remove(); sin.remove();
+      return;
     }
+    sout.parentNode || (UI.box_ as HTMLDivElement).appendChild(sout);
+    sin === sout || sout.parentNode || (UI.R as ShadowRoot).insertBefore(sin, a.box_);
+    sout.sheet && (sout.sheet.disabled = disable);
+    sin.sheet && (sin.sheet.disabled = disable);
   },
   getCurrentRange_ (): void {
     let sel = getSelection(), range: Range;

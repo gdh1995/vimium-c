@@ -123,7 +123,7 @@ VDom.UI = {
     st = gcs(document.documentElement as HTMLHtmlElement);
     return (st.userSelect || st.webkitUserSelect) !== "none";
   },
-  toggleSelectStyle_ (enable: boolean): void {
+  toggleSelectStyle_ (enable: BOOL): void {
     let sout = this.styleOut_;
     if (enable ? VDom.docSelectable_ : !sout || !sout.parentNode) { return; }
     sout || (this.styleOut_ = sout = this.createStyle_(

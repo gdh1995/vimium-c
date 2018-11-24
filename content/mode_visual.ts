@@ -58,7 +58,7 @@ var VVisualMode = {
       a.mode_ = mode;
       a.prompt_("No usable selection, entering caret mode\u2026", 1000);
     }
-    VDom.UI.toggleSelectStyle_(true);
+    VDom.UI.toggleSelectStyle_(1);
     if (mode !== VisualModeNS.Mode.Caret) { return mode === VisualModeNS.Mode.Line ? a.movement_.extendToLine_() : undefined; }
     a.movement_.alterMethod_ = "move";
     if (type === "Range") {
@@ -78,7 +78,7 @@ var VVisualMode = {
     }
     const el = VEventMode.lock();
     el && el.blur && el.blur();
-    VDom.UI.toggleSelectStyle_(false);
+    VDom.UI.toggleSelectStyle_(0);
     VScroller.top_ = null;
     this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
     this.retainSelection_ = false;

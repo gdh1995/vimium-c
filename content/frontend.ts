@@ -289,7 +289,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       a.mutable_ = true;
       a.ExitGrab_(); VEventMode.setupSuppress_();
       VHints.isActive_ && VHints.clean_(); VVisualMode.deactivate_();
-      VFindMode.init_ || VFindMode.toggleStyle_(0);
+      VFindMode.styleOut_ || VFindMode.DisableStyle_(1);
       onWndBlur();
     },
 

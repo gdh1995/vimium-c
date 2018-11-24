@@ -260,7 +260,7 @@ interface DomUI {
   createStyle_ (this: DomUI, text: string, css?: HTMLStyleElement): HTMLStyleElement;
   css_ (this: DomUI, innerCSS: string): void;
   getDocSelectable_ (this: DomUI): boolean;
-  toggleSelectStyle_ (this: DomUI, enable: boolean): void;
+  toggleSelectStyle_ (this: DomUI, enable: BOOL): void;
   getSelection_ (this: DomUI): Selection;
   getSelectionText_ (notTrim?: 1): string;
   removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
