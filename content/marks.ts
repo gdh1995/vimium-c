@@ -39,7 +39,7 @@ var VMarks = {
       if (window.top === window) {
         return this.createMark_(keyChar);
       } else {
-        VPort.post({handler: kFgReq.marks, action: "create", markName: keyChar});
+        VPort.post({H: kFgReq.marks, action: "create", markName: keyChar});
         return VHUD.hide_();
       }
     } else {
@@ -56,7 +56,7 @@ var VMarks = {
       return VHUD.tip((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
     }
     const req: Req.fg<kFgReq.marks> & { action: "goto" } = {
-      handler: kFgReq.marks, action: "goto",
+      H: kFgReq.marks, action: "goto",
       prefix: this.prefix_,
       markName: keyChar
     };
@@ -89,7 +89,7 @@ var VMarks = {
   },
   createMark_ (markName: string, local?: "local"): void {
     VPort.post({
-      handler: kFgReq.marks,
+      H: kFgReq.marks,
       action: "create",
       local: !!local,
       markName,

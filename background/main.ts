@@ -251,7 +251,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       Utils.resetRe_();
       try {
-      this.postMessage({ name: kBgReq.omni_omni, autoSelect, matchType, list, favIcon, total });
+      this.postMessage({ N: kBgReq.omni_omni, autoSelect, matchType, list, favIcon, total });
       } catch (e) {}
     }
     function indexFrame (this: void, tabId: number, frameId: number): Port | null {
@@ -276,7 +276,7 @@ Are you sure you want to continue?`);
     function requireURL <K extends keyof FgReq> (request: Req.fg<K> & BgReq[kBgReq.url], ignoreHash?: true): void {
       if (Exclusions == null || Exclusions.rules.length <= 0
           || !(ignoreHash || Settings.get("exclusionListenHash", true))) {
-        request.name = kBgReq.url;
+        request.N = kBgReq.url;
         cPort.postMessage(request as Req.bg<kBgReq.url>);
         return;
       }
@@ -284,7 +284,7 @@ Are you sure you want to continue?`);
       type T1 = keyof FgReq;
       (requestHandlers as { [K in T1]: (req: FgReq[K], port: Frames.Port) => void; } as {
         [K in T1]: <K extends T1>(req: FgReq[K], port: Frames.Port) => void;
-      })[request.handler](request, cPort);
+      })[request.H](request, cPort);
     }
     function ensureInnerCSS (this: void, port: Frames.Port): string | null {
       const { sender } = port;
@@ -297,7 +297,7 @@ Are you sure you want to continue?`);
       if (!frames || frames.indexOf(port) < 0) { return; }
       let CSS = Settings.cache.innerCSS;
       if (CSS) {
-        port.postMessage({ name: kBgReq.showHUD, CSS });
+        port.postMessage({ N: kBgReq.showHUD, S: CSS });
       } else if (tick < 10) {
         setTimeout(retryCSS, 34 * tick, port, tick + 1);
       }
@@ -519,7 +519,7 @@ Are you sure you want to continue?`);
     }
     function openJSUrl (url: string): void {
       if (cPort) {
-        try { cPort.postMessage({ name: kBgReq.eval, url }); } catch (e) {}
+        try { cPort.postMessage({ N: kBgReq.eval, url }); } catch (e) {}
       } else { // e.g.: use Chrome omnibox at once on starting
         chrome.tabs.update({ url }, onRuntimeError);
       }
@@ -701,7 +701,7 @@ Are you sure you want to continue?`);
         return execute(cmd, CommandsData.cmdMap_[cmd] || null, 1, null);
       }
       gCmdTimer = setTimeout(executeGlobal, 100, cmd, null);
-      ports[0].postMessage({ name: kBgReq.count, cmd, id: gCmdTimer });
+      ports[0].postMessage({ N: kBgReq.count, cmd, id: gCmdTimer });
     };
   const
   BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
@@ -1140,7 +1140,7 @@ Are you sure you want to continue?`);
     /* goUp: */ function (this: void): void {
       const trail = cOptions.trailing_slash;
       requireURL({
-        handler: kFgReq.parseUpperUrl,
+        H: kFgReq.parseUpperUrl,
         url: "", // just a hack to make TypeScript compiler happy
         upper: -commandCount,
         trailing_slash: trail != null ? !!trail : null,
@@ -1168,8 +1168,8 @@ Are you sure you want to continue?`);
         port = frames[ind];
       }
       port.postMessage({
-        name: kBgReq.focusFrame,
-        CSS: port.sender.frameId === 0 || !(port.sender.flags & Frames.Flags.hasCSS)
+        N: kBgReq.focusFrame,
+        S: port.sender.frameId === 0 || !(port.sender.flags & Frames.Flags.hasCSS)
           ? ensureInnerCSS(port) : null,
         key: cKey,
         mask: port !== cPort ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
@@ -1179,8 +1179,8 @@ Are you sure you want to continue?`);
       const tabId = cPort ? cPort.sender.tabId : TabRecency.last, port = indexFrame(tabId, 0);
       if (!port) { return; }
       port.postMessage({
-        name: kBgReq.focusFrame,
-        CSS: ensureInnerCSS(port),
+        N: kBgReq.focusFrame,
+        S: ensureInnerCSS(port),
         key: cKey,
         mask: (framesForTab[tabId] as Frames.Frames)[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
       });
@@ -1214,8 +1214,8 @@ Are you sure you want to continue?`);
           return BackgroundCommands[kBgCmd.mainFrame]();
         }
         port.postMessage({
-          name: kBgReq.focusFrame,
-          CSS: ensureInnerCSS(port),
+          N: kBgReq.focusFrame,
+          S: ensureInnerCSS(port),
           key: cKey,
           mask: FrameMaskType.ForcedSelf
         });
@@ -1235,10 +1235,10 @@ Are you sure you want to continue?`);
       case "frame":
         if (needIcon && (str = cPort.sender.url)) { break; }
         cPort.postMessage<1, kFgCmd.autoCopy>({
-          name: kBgReq.execute,
-          CSS: ensureInnerCSS(cPort),
-          command: kFgCmd.autoCopy, count: 1,
-          options: { url: true, decoded }
+          N: kBgReq.execute,
+          S: ensureInnerCSS(cPort),
+          c: kFgCmd.autoCopy, n: 1,
+          a: { url: true, decoded }
         });
         return;
       default: str = tabs[0].url; break;
@@ -1266,9 +1266,9 @@ Are you sure you want to continue?`);
         }
       }
       if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
-      cPort.postMessage<1, kFgCmd.goNext>({ name: kBgReq.execute,
-        CSS: null, command: kFgCmd.goNext, count: 1,
-        options: {
+      cPort.postMessage<1, kFgCmd.goNext>({ N: kBgReq.execute,
+        S: null, c: kFgCmd.goNext, n: 1,
+        a: {
           rel,
           patterns: p2
         }
@@ -1280,11 +1280,11 @@ Are you sure you want to continue?`);
       let
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
         : !Settings.get("hideHud", true);
-      cPort.postMessage<1, kFgCmd.insertMode>({ name: kBgReq.execute,
-        CSS: hud ? ensureInnerCSS(cPort) : null,
-        command: kFgCmd.insertMode,
-        count: 1,
-        options: {
+      cPort.postMessage<1, kFgCmd.insertMode>({ N: kBgReq.execute,
+        S: hud ? ensureInnerCSS(cPort) : null,
+        c: kFgCmd.insertMode,
+        n: 1,
+        a: {
           code, stat,
           passExitKey: !!cOptions.passExitKey,
           hud
@@ -1301,17 +1301,17 @@ Are you sure you want to continue?`);
       }
       const str = typeof options.mode === "string" ? (options.mode as string).toLowerCase() : "";
       options.mode = str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual;
-      cPort.postMessage<1, kFgCmd.visualMode>({ name: kBgReq.execute,
-        CSS: ensureInnerCSS(cPort), command: kFgCmd.visualMode, count: 1,
-        options
+      cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
+        S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
+        a: options
       });
     },
     /* performFind: */ function (): void {
       const leave = !cOptions.active,
       query = leave || cOptions.last ? FindModeHistory.query(cPort.sender.incognito) : "";
-      cPort.postMessage<1, kFgCmd.findMode>({ name: kBgReq.execute
-          , CSS: ensureInnerCSS(cPort), command: kFgCmd.findMode, count: 1
-          , options: {
+      cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
+          , S: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
+          , a: {
         count: cOptions.dir <= 0 ? -commandCount : commandCount,
         leave,
         query
@@ -1338,12 +1338,12 @@ Are you sure you want to continue?`);
         ptype: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         script: useInner ? "" : Settings.CONST.VomnibarScript_f_,
         secret: getSecret(),
-        CSS: ensureInnerCSS(port)
+        S: ensureInnerCSS(port)
       }, null), cOptions as {} as CmdOptions[kFgCmd.vomnibar]);
       port.postMessage<1, kFgCmd.vomnibar>({
-        name: kBgReq.execute, CSS: null,
-        command: kFgCmd.vomnibar, count: commandCount,
-        options
+        N: kBgReq.execute, S: null,
+        c: kFgCmd.vomnibar, n: commandCount,
+        a: options
       });
       options.secret = -1;
       cOptions = options;
@@ -1361,11 +1361,11 @@ Are you sure you want to continue?`);
         Utils.require<BaseHelpDialog>('HelpDialog');
       }
       cPort.postMessage<1, kFgCmd.showHelp>({
-        name: kBgReq.execute,
-        CSS: null,
-        command: kFgCmd.showHelp,
-        count: 1,
-        options: null
+        N: kBgReq.execute,
+        S: null,
+        c: kFgCmd.showHelp,
+        n: 1,
+        a: null
       });
     },
     /* toggleViewSource: */ function (this: void, tabs: [Tab]): void {
@@ -1380,7 +1380,7 @@ Are you sure you want to continue?`);
       });
     },
     /* clearMarks: */ function (this: void): void {
-      cOptions.local ? requireURL({ handler: kFgReq.marks, url:"", action: "clear" }, true) : Marks.clear();
+      cOptions.local ? requireURL({ H: kFgReq.marks, url:"", action: "clear" }, true) : Marks.clear();
     },
     /* toggle: */ function (this: void): void {
       type Keys = CmdOptions[kFgCmd.toggle]["key"];
@@ -1404,10 +1404,10 @@ Are you sure you want to continue?`);
         Backend.showHUD_(msg);
       } else {
         cPort.postMessage<1, kFgCmd.toggle>({
-          name: kBgReq.execute,
-          CSS: ensureInnerCSS(cPort),
-          command: kFgCmd.toggle, count: 1,
-          options: { key, value }
+          N: kBgReq.execute,
+          S: ensureInnerCSS(cPort),
+          c: kFgCmd.toggle, n: 1,
+          a: { key, value }
         });
       }
     }
@@ -1429,7 +1429,7 @@ Are you sure you want to continue?`);
         (1 << kFgCmd.linkHints) | (1 << kFgCmd.unhoverLast) | (1 << kFgCmd.marks) |
         (1 << kFgCmd.passNextKey) | (1 << kFgCmd.autoCopy) | (1 << kFgCmd.focusInput)
       ) >> alias) & 1;
-      port.postMessage({ name: kBgReq.execute, CSS: dot ? ensureInnerCSS(port) : null, command: alias, count, options });
+      port.postMessage({ N: kBgReq.execute, S: dot ? ensureInnerCSS(port) : null, c: alias, n: count, a: options });
       return;
     }
     const { alias } = registryEntry, func = BackgroundCommands[alias];
@@ -1474,7 +1474,7 @@ Are you sure you want to continue?`);
     /** parseSearchUrl: */ function (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl], port: Port): FgRes[kFgReq.parseSearchUrl] | void {
       let search = Backend.parse_(request);
       if ("id" in request) {
-        port.postMessage({ name: kBgReq.omni_parsed, id: request.id as number, search });
+        port.postMessage({ N: kBgReq.omni_parsed, id: request.id as number, search });
       } else {
         return search;
       }
@@ -1483,9 +1483,9 @@ Are you sure you want to continue?`);
       if (port && (request as FgReq[kFgReq.parseUpperUrl]).execute) {
         const result = requestHandlers[kFgReq.parseUpperUrl](request);
         if (result.path != null) {
-          port.postMessage<1, kFgCmd.reload>({ name: kBgReq.execute,
-            CSS: null, command: kFgCmd.reload, count: 1,
-            options: { url: result.url } });
+          port.postMessage<1, kFgCmd.reload>({ N: kBgReq.execute,
+            S: null, c: kFgCmd.reload, n: 1,
+            a: { url: result.url } });
           return;
         }
         cPort = port;
@@ -1705,7 +1705,7 @@ Are you sure you want to continue?`);
       } else if (!pattern || pattern === Backend.getExcluded_(oldUrl)) {
         return;
       }
-      port.postMessage({ name: kBgReq.reset, passKeys: pattern });
+      port.postMessage({ N: kBgReq.reset, p: pattern });
     },
     /** nextFrame: */ function (this: void, request: FgReq[kFgReq.nextFrame], port: Port): void {
       cPort = port;
@@ -1718,20 +1718,20 @@ Are you sure you want to continue?`);
       const ports = framesForTab[port.sender.tabId];
       if (ports) {
         ports[0].postMessage({
-          name: kBgReq.focusFrame,
+          N: kBgReq.focusFrame,
           key: cKey,
           mask: FrameMaskType.NoMask
         });
         return;
       }
-      try { port.postMessage({ name: kBgReq.omni_returnFocus, key: cKey }); } catch (e) {}
+      try { port.postMessage({ N: kBgReq.omni_returnFocus, key: cKey }); } catch (e) {}
     },
     /** exitGrab: */ function (this: void, _0: FgReq[kFgReq.exitGrab], port: Port): void {
       const ports = framesForTab[port.sender.tabId];
       if (!ports) { return; }
       ports[0].sender.flags |= Frames.Flags.userActed;
       if (ports.length < 3) { return; }
-      for (let msg = { name: kBgReq.exitGrab as kBgReq.exitGrab }, i = ports.length; 0 < --i; ) {
+      for (let msg: Req.bg<kBgReq.exitGrab> = { N: kBgReq.exitGrab }, i = ports.length; 0 < --i; ) {
         const p = ports[i];
         if (p !== port) {
           p.postMessage(msg);
@@ -1751,9 +1751,9 @@ Are you sure you want to continue?`);
       }
       if (iport) {
         iport.postMessage({
-          name: kBgReq.execute,
-          CSS: request.CSS ? ensureInnerCSS(iport) : null,
-          command: request.command, count: request.count || 1, options: request.options
+          N: kBgReq.execute,
+          S: request.S ? ensureInnerCSS(iport) : null,
+          c: request.c, n: request.n || 1, a: request.a
         });
         return true;
       }
@@ -1775,8 +1775,8 @@ Are you sure you want to continue?`);
         const port = args[1].wantTop && indexFrame(args[2].sender.tabId, 0) || args[2];
         (port.sender as Frames.Sender).flags |= Frames.Flags.hadHelpDialog;
         port.postMessage({
-          name: kBgReq.showHelpDialog,
-          CSS: ensureInnerCSS(port),
+          N: kBgReq.showHelpDialog,
+          S: ensureInnerCSS(port),
           html: args[0].render_(args[1]),
           optionUrl: Settings.CONST.OptionsPage,
           advanced: Settings.get("showAdvancedCommands", true)
@@ -1788,7 +1788,7 @@ Are you sure you want to continue?`);
     /** css: */ function (this: void, _0: {}, port: Port): void {
       const CSS = ensureInnerCSS(port);
       if (CSS) {
-        port.postMessage({ name: kBgReq.showHUD, CSS });
+        port.postMessage({ N: kBgReq.showHUD, S: CSS });
       } else if (!Settings.cache.innerCSS) {
         setTimeout(retryCSS, 34, port, 1);
       }
@@ -1796,7 +1796,7 @@ Are you sure you want to continue?`);
     /** vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar] & Req.baseFg<kFgReq.vomnibar>, port: Port): void {
       const { count, inner } = request;
       if (count != null) {
-        delete request.count, delete request.handler, delete request.inner;
+        delete request.count, delete request.H, delete request.inner;
         commandCount = +count || 1;
         cOptions = Object.setPrototypeOf(request, null);
       } else if (request.redo !== true) {
@@ -1822,7 +1822,7 @@ Are you sure you want to continue?`);
     },
     /** key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {
       (port.sender as Frames.RawSender).flags |= Frames.Flags.userActed;
-      let key: string = request.key, count = 1;
+      let key: string = request.k, count = 1;
       let arr: null | string[] = numHeadRe.exec(key);
       if (arr != null) {
         let prefix = arr[0];
@@ -1837,7 +1837,7 @@ Are you sure you want to continue?`);
       }
       const registryEntry = ref[key] as CommandsNS.Item;
       Utils.resetRe_();
-      return executeCommand(registryEntry.command, registryEntry, count, request.lastKey, port);
+      return executeCommand(registryEntry.command, registryEntry, count, request.l, port);
     },
     /** marks: */ function (this: void, request: FgReq[kFgReq.marks], port: Port): void {
       cPort = port;
@@ -1875,12 +1875,12 @@ Are you sure you want to continue?`);
     },
     /** blurTest: */ function (this: void, _0: FgReq[kFgReq.blurTest], port: Port): void {
       if (port.sender.tabId < 0) {
-        port.postMessage({ name: kBgReq.omni_blurred });
+        port.postMessage({ N: kBgReq.omni_blurred });
         return;
       }
       setTimeout(function(): void {
         if (port.sender.tabId === TabRecency.last && framesForOmni.indexOf(port) >= 0) {
-          port.postMessage({ name: kBgReq.omni_blurred });
+          port.postMessage({ N: kBgReq.omni_blurred });
         }
       }, 50);
     },
@@ -1892,15 +1892,15 @@ Are you sure you want to continue?`);
     function OnMessage <K extends keyof FgReq, T extends keyof FgRes> (this: void, request: Req.fg<K> | Req.fgWithRes<T>, port: Frames.Port): void {
       type ReqK = keyof FgReq;
       type ResK = keyof FgRes;
-      if (request.handler !== kFgReq.msg) {
+      if (request.H !== kFgReq.msg) {
         return (requestHandlers as {
           [T2 in ReqK]: (req: Req.fg<T2>, port: Frames.Port) => void;
         } as {
           [T2 in ReqK]: <T3 extends ReqK>(req: Req.fg<T3>, port: Frames.Port) => void;
-        })[request.handler](request as Req.fg<K>, port);
+        })[request.H](request as Req.fg<K>, port);
       }
       port.postMessage<T>({
-        name: kBgReq.msg,
+        N: kBgReq.msg,
         mid: (request as Req.fgWithRes<T>).mid,
         response: (requestHandlers as {
           [T2 in ResK]: (req: Req.fgWithRes<T2>, port: Frames.Port) => FgRes[T2];
@@ -1929,7 +1929,7 @@ Are you sure you want to continue?`);
             ) + ((type & PortType.hasCSS) && Frames.Flags.hasCSS);
         }
         port.postMessage({
-          name: kBgReq.settingsUpdate,
+          N: kBgReq.settingsUpdate,
           delta: Settings.payload
         });
       } else {
@@ -1942,12 +1942,12 @@ Are you sure you want to continue?`);
           status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
         }
         port.postMessage({
-          name: kBgReq.init,
-          flags,
-          load: Settings.payload,
-          passKeys: pass,
-          mapKeys: CommandsData.mapKeyRegistry_,
-          keyMap: CommandsData.keyMap_
+          N: kBgReq.init,
+          s: flags,
+          c: Settings.payload,
+          p: pass,
+          m: CommandsData.mapKeyRegistry_,
+          k: CommandsData.keyMap_
         });
       }
       sender.status = status;
@@ -2003,7 +2003,7 @@ Are you sure you want to continue?`);
           port.onDisconnect.addListener(OnOmniDisconnect);
           port.onMessage.addListener(OnMessage);
           port.postMessage({
-            name: kBgReq.omni_secret,
+            N: kBgReq.omni_secret,
             browserVersion: Settings.CONST.ChromeVersion,
             secret: getSecret()
           });
@@ -2163,8 +2163,8 @@ Are you sure you want to continue?`);
     showHUD_ (message: string, isCopy?: boolean): void {
       try {
         cPort && cPort.postMessage({
-          name: kBgReq.showHUD,
-          CSS: ensureInnerCSS(cPort),
+          N: kBgReq.showHUD,
+          S: ensureInnerCSS(cPort),
           text: message,
           isCopy: isCopy === true
         });
@@ -2181,7 +2181,7 @@ Are you sure you want to continue?`);
         : act === "toggle" ? oldStatus === Frames.Status.disabled ? Frames.Status.enabled : Frames.Status.disabled
         : null,
       locked = stat !== null, unknown = !(locked || always_enabled),
-      msg: Req.bg<kBgReq.reset> = { name: kBgReq.reset, passKeys: stat !== Frames.Status.disabled ? null : "", forced: locked };
+      msg: Req.bg<kBgReq.reset> = { N: kBgReq.reset, p: stat !== Frames.Status.disabled ? null : "", f: locked };
       cPort = indexFrame(tabId, 0) || ref[0];
       if (stat === null && tabId < 0) {
         oldStatus !== Frames.Status.disabled && this.showHUD_("Got an unknown action on status: " + act);
@@ -2192,7 +2192,7 @@ Are you sure you want to continue?`);
         const port = ref[i], sender = port.sender;
         sender.flags = locked ? sender.flags | Frames.Flags.locked : sender.flags & ~Frames.Flags.locked;
         if (unknown) {
-          pattern = msg.passKeys = this.getExcluded_(sender.url);
+          pattern = msg.p = this.getExcluded_(sender.url);
           newStatus = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
           if (newStatus !== Frames.Status.partial && sender.status === newStatus) { continue; }
@@ -2234,7 +2234,7 @@ Are you sure you want to continue?`);
       if (sender && isExtIdAllowed(sender.id)
           && name.startsWith("vimium-c") && (arr = name.split('@')).length > 1) {
         if (arr[1] !== Settings.CONST.CurrentVersion) {
-          (port as Port).postMessage({ name: kBgReq.reInject });
+          (port as Port).postMessage({ N: kBgReq.reInject });
           port.disconnect();
           return;
         }

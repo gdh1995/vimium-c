@@ -17,7 +17,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
 
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , currentKeys = "", isEnabled = false, isLocked = false
-    , mapKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
+    , mappedKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
     , esc = function(i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscF
     , onKeyup2 = null as ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null
     , passKeys = null as SafeDict<true> | null | ""
@@ -46,7 +46,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     Listener_<T extends keyof BgReq> (this: void, response: Req.bg<T>): void {
       type TypeToCheck = { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void };
       type TypeChecked = { [K in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
-      (requestHandlers as TypeToCheck as TypeChecked)[response.name](response);
+      (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
     },
     TestAlive_ (): void { esc && !vPort._port && VSettings.destroy(); },
     ClearPort_ (this: void): void {
@@ -74,7 +74,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
   function send<K extends keyof FgRes> (this: void, request: Req.fgWithRes<K>
       , callback: (this: void, res: FgRes[K]) => void): void {
     let id = ++vPort._id;
-    request.handler = kFgReq.msg; request.mid = id;
+    request.H = kFgReq.msg; request.mid = id;
     (vPort._port as Port).postMessage<K>(request);
     vPort._callbacks[id] = callback;
   }
@@ -403,7 +403,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         if (window === window.top) { return; }
         wantTop = true;
       }
-      post({ handler: kFgReq.initHelp, wantTop });
+      post({ H: kFgReq.initHelp, wantTop });
     },
     /* autoCopy: */ function (_0: number, options: CmdOptions[kFgCmd.autoCopy]): void {
       let str = VDom.UI.getSelectionText_(1);
@@ -418,7 +418,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         str = "";
       } else {
         post({
-          handler: kFgReq.copy,
+          H: kFgReq.copy,
           data: str
         });
       }
@@ -427,14 +427,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     /* autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
       let url = VDom.UI.getSelectionText_(), keyword = (options.keyword || "") + "";
       url && VPort.evalIfOK_(url) || post({
-        handler: kFgReq.openUrl,
+        H: kFgReq.openUrl,
         copied: !url,
         keyword, url
       });
     },
     /* searchAs: */ function (): void {
       post({
-        handler: kFgReq.searchAs,
+        H: kFgReq.searchAs,
         url: location.href,
         search: VDom.UI.getSelectionText_()
       });
@@ -549,7 +549,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       // it's acceptable to not set the userActed flag if there's only the top frame;
       // when an iframe gets clicked, the events are mousedown and then focus, so SafePost_ is needed
       !(event instanceof Event) || !frames.length && window === window.top ||
-      vPort.SafePost_({ handler: kFgReq.exitGrab });
+      vPort.SafePost_({ H: kFgReq.exitGrab });
       if (event instanceof KeyboardEvent) { return HandlerResult.Nothing; }
     } as {
       (this: void, event: KeyboardEvent): HandlerResult.Nothing;
@@ -584,7 +584,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
           parent.focus();
         }
       } else if (KeydownEvents[key] !== 2) { // avoid sending too many messages
-        post({ handler: kFgReq.nextFrame, type: Frames.NextType.parent, key });
+        post({ H: kFgReq.nextFrame, type: Frames.NextType.parent, key });
         KeydownEvents[key] = 2;
       }
     },
@@ -699,14 +699,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     more_: false,
     node_: null as HTMLDivElement | null,
     timer_: 0,
-    Focus_ (this: void, { mask, CSS, key }: BgReq[kBgReq.focusFrame]): void {
+    Focus_ (this: void, { mask, S: CSS, key }: BgReq[kBgReq.focusFrame]): void {
       CSS && VDom.UI.css_(CSS);
       if (mask !== FrameMaskType.NormalNext) {}
       else if (innerWidth < 3 || innerHeight < 3
         || document.body instanceof HTMLFrameSetElement
         || FrameMask.hidden_()) {
         post({
-          handler: kFgReq.nextFrame,
+          H: kFgReq.nextFrame,
           key
         });
         return;
@@ -833,7 +833,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
   },
   requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = [
     function (request: BgReq[kBgReq.init]): void {
-      const r = requestHandlers, {load, flags} = request, D = VDom;
+      const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
       const isChrome = !load.browser, browserVer = load.browserVer;
       (VSettings.cache = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
       D.specialZoom_ = isChrome && browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
@@ -857,11 +857,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       r[kBgReq.init] = null as never;
       D.DocReady_(function (): void {
         HUD.enabled_ = true;
-        onWndFocus = vPort.SafePost_.bind(vPort as never, { handler: kFgReq.focus });
+        onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>>{ H: kFgReq.focus });
       });
     },
     function (request: BgReq[kBgReq.reset], initing?: 1): void {
-      const newPassKeys = request.passKeys, enabled = newPassKeys !== "", old = VSettings.enabled_;
+      const newPassKeys = request.p, enabled = newPassKeys !== "", old = VSettings.enabled_;
       passKeys = newPassKeys && Object.create<true>(null);
       if (newPassKeys) {
         for (const ch of newPassKeys.split(' ')) { (passKeys as SafeDict<true>)[ch] = true; }
@@ -870,7 +870,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       if (initing) {
         return;
       }
-      isLocked = !!request.forced;
+      isLocked = !!request.f;
       // if true, recover listeners on shadow roots;
       // otherwise listeners on shadow roots will be removed on next blur events
       if (enabled) {
@@ -884,7 +884,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     },
     isInjected && (VimiumInjector as VimiumInjector).reload || function (_req: BgReq[kBgReq.reInject]): void {},
     function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
-      delete (request as Req.bg<kBgReq.url>).name;
+      delete (request as Req.bg<kBgReq.url>).N;
       request.url = location.href;
       post<T>(request);
     },
@@ -909,7 +909,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     FrameMask.Focus_,
     InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
     function (request: BgReq[kBgReq.keyMap]): void {
-      const map = keyMap = request.keyMap, func = Object.setPrototypeOf;
+      const map = keyMap = request.k, func = Object.setPrototypeOf;
       func(map, null);
       function iter(obj: ReadonlyChildKeyMap): void {
         func(obj, null);
@@ -922,11 +922,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         if (sec === 0 || sec === 1) { continue; }
         iter(sec as ReadonlyChildKeyMap);
       }
-      (mapKeys = request.mapKeys) && func(mapKeys, null);
+      (mappedKeys = request.m) && func(mappedKeys, null);
     },
     function<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
-      if (request.CSS) { VDom.UI.css_(request.CSS); }
-      const options: CmdOptions[O] | null = request.options;
+      if (request.S) { VDom.UI.css_(request.S); }
+      const options: CmdOptions[O] | null = request.a;
       type Keys = keyof CmdOptions;
       type TypeToCheck = {
         [key in Keys]: (this: void, count: number, options: CmdOptions[key]) => void;
@@ -934,18 +934,18 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       type TypeChecked = {
         [key in Keys]: <T2 extends Keys>(this: void, count: number, options: CmdOptions[T2]) => void;
       };
-      (Commands as TypeToCheck as TypeChecked)[request.command](request.count, (options ? VUtils.safer_(options) : Object.create(null)) as CmdOptions[O]);
+      (Commands as TypeToCheck as TypeChecked)[request.c](request.n, (options ? VUtils.safer_(options) : Object.create(null)) as CmdOptions[O]);
     },
     function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.markName); },
-    function ({ text, CSS, isCopy }: Req.bg<kBgReq.showHUD>): void {
+    function ({ text, S: CSS, isCopy }: Req.bg<kBgReq.showHUD>): void {
       if (CSS) { VDom.UI.css_(CSS); }
       return text ? isCopy ? HUD.copied(text) : HUD.tip(text) : void 0;
     },
     function (request: BgReq[kBgReq.count]): void {
       const count = parseInt(currentKeys, 10) || 1;
-      post({ handler: kFgReq.cmd, cmd: request.cmd, count, id: request.id});
+      post({ H: kFgReq.cmd, cmd: request.cmd, count, id: request.id});
     },
-  function ({ html, advanced: shouldShowAdvanced, optionUrl, CSS }: Req.bg<kBgReq.showHelpDialog>): void {
+  function ({ html, advanced: shouldShowAdvanced, optionUrl, S: CSS }: Req.bg<kBgReq.showHelpDialog>): void {
     let box: HTMLDivElement & SafeHTMLElement
       , oldShowHelp = Commands[kFgCmd.showHelp], hide: (this: void, e?: Event | number | "exitHD") => void
       , node1: HTMLElement;
@@ -986,7 +986,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     if (! location.href.startsWith(optionUrl)) {
       (node1 as HTMLAnchorElement).href = optionUrl;
       node1.onclick = function(event) {
-        post({ handler: kFgReq.focusOrLaunch, url: optionUrl });
+        post({ H: kFgReq.focusOrLaunch, url: optionUrl });
         hide(event);
       };
     } else {
@@ -1002,7 +1002,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
       (post as <K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>) => 1)({
-        handler: kFgReq.setSetting,
+        H: kFgReq.setSetting,
         key: "showAdvancedCommands",
         value: shouldShowAdvanced
       });
@@ -1031,7 +1031,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
 
   function checkValidKey(event: KeyboardEvent, key: string): HandlerResult.Nothing | HandlerResult.Prevent {
     key = VKeyboard.key(event, key);
-    mapKeys !== null && (key = mapKeys[key] || key);
+    mappedKeys !== null && (key = mappedKeys[key] || key);
     let j = (nextKeys || keyMap)[key];
     if (nextKeys === null) {
       // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
@@ -1043,7 +1043,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     }
     currentKeys += key;
     if (j === 0) {
-      post({ handler: kFgReq.key, key: currentKeys, lastKey: event.keyCode });
+      post({ H: kFgReq.key, k: currentKeys, l: event.keyCode });
       return esc(HandlerResult.Prevent);
     } else {
       nextKeys = j !== 1 ? j : keyMap;
@@ -1093,7 +1093,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }
     },
     focus_: FrameMask.Focus_,
-    mapKey_ (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
+    mapKey_ (this: void, key): string { return mappedKeys !== null && mappedKeys[key] || key; },
     scroll_ (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;

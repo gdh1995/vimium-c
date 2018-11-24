@@ -66,7 +66,7 @@ var Vomnibar = {
       a.focus_();
       a.status_ = VomnibarNS.Status.ToShow;
     }
-    options.secret = 0; options.vomnibar = options.vomnibar2 = options.CSS = "";
+    options.secret = 0; options.vomnibar = options.vomnibar2 = options.S = "";
     options.name = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
@@ -118,7 +118,7 @@ var Vomnibar = {
     active || window.focus();
     this.box_.style.cssText = "display: none;";
   },
-  init_ ({secret, vomnibar: page, ptype: type, vomnibar2: inner, CSS}: VomnibarNS.FullOptions): void {
+  init_ ({secret, vomnibar: page, ptype: type, vomnibar2: inner, S: CSS}: VomnibarNS.FullOptions): void {
     const el = VDom.createElement_("iframe") as typeof Vomnibar.box_, UI = VDom.UI;
     el.className = "R UI Omnibar";
     if (type !== VomnibarNS.PageType.web) {}
@@ -207,7 +207,7 @@ var Vomnibar = {
     this.options_ = null;
     if (this.onReset_) { return this.onReset_(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
-    return VPort.post({ handler: kFgReq.vomnibar, redo: true, inner: true });
+    return VPort.post({ H: kFgReq.vomnibar, redo: true, inner: true });
   },
   isABlank_ (): boolean {
     try {

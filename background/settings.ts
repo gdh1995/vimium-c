@@ -147,7 +147,7 @@ var Settings = {
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(0, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
       this.set("innerCSS", css2 ? css + "\n" + css2 : css);
-      const ref = Backend.indexPorts(), request = { name: kBgReq.showHUD as kBgReq.showHUD, CSS: this.cache.innerCSS };
+      const ref = Backend.indexPorts(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: this.cache.innerCSS };
       for (const tabId in ref) {
         const frames = ref[+tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {

@@ -305,7 +305,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   };
   function doSyncToFrontend (toSync: typeof Option.syncToFrontend): void {
     const ref = bgSettings.payload, delta: BgReq[kBgReq.settingsUpdate]["delta"] = {},
-    req: Req.bg<kBgReq.settingsUpdate> = { name: kBgReq.settingsUpdate, delta };
+    req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, delta };
     for (const key of toSync) {
       delta[key] = ref[key] = bgSettings.get(key);
     }
@@ -689,7 +689,7 @@ document.addEventListener("click", function onClickOnce(): void {
     if (VPort && target.classList.contains("HelpCommandName")) {
       str = target.textContent.slice(1, -1);
       VPort.post({
-        handler: kFgReq.copy,
+        H: kFgReq.copy,
         data: str
       });
       return VHUD.copied(str);

@@ -56,7 +56,7 @@ VDom.UI = {
     if (b = a.styleIn_ as string | null) {
       a.css_(b);
     } else {
-      b === "" || VPort.post({ handler: kFgReq.css });
+      b === "" || VPort.post({ H: kFgReq.css });
       if ((adjust as AdjustType) >= AdjustType.MustAdjust) {
         a.adjust_();
       }

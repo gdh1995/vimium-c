@@ -300,7 +300,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     return _this.onInput_();
   },
   saveQuery_ (): string | void | 1 {
-    return this.query_ && VPort.post({ handler: kFgReq.findQuery, query: this.query_ });
+    return this.query_ && VPort.post({ H: kFgReq.findQuery, query: this.query_ });
   },
   postMode_: {
     lock_: null as Element | null,

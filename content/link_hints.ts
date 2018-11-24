@@ -980,7 +980,7 @@ _getImageUrl (img: HTMLElement): string | void {
 
 openUrl_ (url: string, incognito?: boolean): void {
   let kw = this.options_.keyword, opt: Req.fg<kFgReq.openUrl> = {
-    handler: kFgReq.openUrl,
+    H: kFgReq.openUrl,
     reuse: this.mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
     url,
     keyword: kw != null ? kw + "" : ""
@@ -1002,8 +1002,8 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   options.mode = this.mode_;
   el.focus();
   if (err) {
-    VPort.send_({ msg: kFgReq.execInChild, url: el.src, CSS: "1",
-      command: kFgCmd.focusAndHint, count, options
+    VPort.send_({ msg: kFgReq.execInChild, url: el.src, S: "1",
+      c: kFgCmd.focusAndHint, n: count, a: options
     }, function(res): void {
       if (!res) {
         el.contentWindow.focus();
@@ -1086,7 +1086,7 @@ Modes_: [
       let newtab = a.options_.newtab;
       newtab == null && (newtab = a.options_.force);
       (VPort as ComplicatedVPort).post<kFgReq.vomnibar, { count: number } & Partial<VomnibarNS.ContentOptions>>({
-        handler: kFgReq.vomnibar,
+        H: kFgReq.vomnibar,
         count: 1,
         newtab: newtab != null ? !!newtab : !isUrl,
         url: str,
@@ -1101,7 +1101,7 @@ Modes_: [
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? VUtils.decodeURL_(str) : str;
     VPort.post({
-      handler: kFgReq.copy,
+      H: kFgReq.copy,
       data: str
     });
     VHUD.copied(str);

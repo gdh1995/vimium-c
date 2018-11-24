@@ -20,7 +20,7 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
     if (isCommand) { return; }
   }
   VPort.post({
-    handler: kFgReq.initHelp,
+    H: kFgReq.initHelp,
     unbound: true,
     names: true,
     title: "Command Listing"

@@ -470,8 +470,8 @@ Settings.updateHooks_.keyMappings = function(value: string): void {
   Commands.parseKeyMappings_(value);
   Commands.populateCommandKeys_();
   return (this as typeof Settings).broadcast({
-    name: kBgReq.keyMap,
-    mapKeys: CommandsData.mapKeyRegistry_,
-    keyMap: CommandsData.keyMap_
+    N: kBgReq.keyMap,
+    m: CommandsData.mapKeyRegistry_,
+    k: CommandsData.keyMap_
   });
 };

@@ -229,8 +229,8 @@ var VVisualMode = {
       this.deactivate_();
       action != null || VHUD.copied(str);
     }
-    VPort.post(action != null ? { handler: kFgReq.openUrl, url: str, reuse: action }
-        : { handler: kFgReq.copy, data: str });
+    VPort.post(action != null ? { H: kFgReq.openUrl, url: str, reuse: action }
+        : { H: kFgReq.copy, data: str });
   },
 
 movement_: {
