@@ -289,7 +289,7 @@ availableCommands_: {
   scrollFullPageUp: [ "Scroll a full page up", 0, false, kFgCmd.scBy, { count: -1, view: "viewSize" } ],
   reload: [ "Reload current frame (use hard)", 1, false, kFgCmd.reload ],
   reloadTab: [ "Reload N tab(s) (use hard/bypassCache)", 20, true, kBgCmd.reloadTab ],
-  reloadGivenTab: [ "Reload N-th tab", 0, true, kBgCmd.reloadGivenTab, { single: true } ],
+  reloadGivenTab: [ "Reload N-th tab (use hard)", 0, true, kBgCmd.reloadGivenTab, { single: true } ],
   reopenTab: [ "Reopen current page", 1, true, kBgCmd.reopenTab ],
   toggleViewSource: [ "View page source", 1, true, kBgCmd.toggleViewSource ],
   copyCurrentTitle: [ "Copy current tab's title", 1, true, kBgCmd.copyTabInfo, { type: "title" } ],

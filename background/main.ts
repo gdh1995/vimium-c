@@ -1104,7 +1104,8 @@ Are you sure you want to continue?`);
     },
     /* reloadGivenTab: */ function (): void {
       if (commandCount < 2 && commandCount > -2) {
-        chrome.tabs.reload();
+        let reloadProperties = { bypassCache: (cOptions.hard || cOptions.bypassCache) === true };
+        chrome.tabs.reload(reloadProperties);
         return;
       }
       getCurTabs(BackgroundCommands[kBgCmd.reloadTab]);
