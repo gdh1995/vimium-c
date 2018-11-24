@@ -2242,7 +2242,7 @@ Are you sure you want to continue?`);
       let { sender, name } = port, arr: string[];
       if (sender && isExtIdAllowed(sender.id)
           && name.startsWith("vimium-c") && (arr = name.split('@')).length > 1) {
-        if (arr[1] !== Settings.CONST.CurrentVersion) {
+        if (arr[1] !== Settings.CONST.CurrentVersion && arr[1] !== "omni") {
           (port as Port).postMessage({ N: kBgReq.reInject });
           port.disconnect();
           return;

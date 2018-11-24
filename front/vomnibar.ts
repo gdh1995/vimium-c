@@ -27,7 +27,7 @@ declare const enum AllowedActions {
 }
 
 interface ConfigurableItems {
-  ExtId?: string;
+  /** @deprecated */ ExtId?: string;
   VomnibarListLength?: number;
   VomnibarRefreshInterval?: number;
   VomnibarWheelInterval?: number;
@@ -40,7 +40,7 @@ if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "
   VSettings.destroy(true);
 }
 
-var O = {
+var VCID: string | undefined = window.ExtId, O = {
   pageType_: VomnibarNS.PageType.Default,
   activate (options: Options): void {
     Object.setPrototypeOf(options, null);
@@ -808,7 +808,7 @@ var O = {
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
     let str = url.substring(0, 11).toLowerCase();
-    return str.startsWith("vimium://") ? "chrome-extension://" + (window.ExtId || chrome.runtime.id) + "/pages/options.html"
+    return str.startsWith("vimium://") ? "chrome-extension://" + (VCID || chrome.runtime.id) + "/pages/options.html"
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
       : item.type === "search"
         ? url.startsWith("http") ? url.substring(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || url.length) : ""
@@ -942,8 +942,8 @@ P = {
   },
   _ClearPort (this: void): void { P._port = null; },
   connect_ (type: PortType): FgPort {
-    const data = { name: "vimium-c." + type }, port = this._port = (window.ExtId ?
-      chrome.runtime.connect(window.ExtId, data) : chrome.runtime.connect(data)) as FgPort;
+    const data = { name: "vimium-c." + type + (VCID ? "@omni" : "") }, port = this._port = (VCID ?
+      chrome.runtime.connect(VCID, data) : chrome.runtime.connect(data)) as FgPort;
     port.onDisconnect.addListener(this._ClearPort);
     port.onMessage.addListener(this._Listener as (message: object) => void);
     return port;
@@ -966,14 +966,14 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
   if (location.pathname.startsWith("/front/") || location.protocol.indexOf("-") < 0
    || !(curEl = document.currentScript as typeof curEl)) {}
   else if (curEl.src.endsWith("/front/vomnibar.js") && curEl.src.indexOf("-") >= 0) {
-    window.ExtId = new URL(curEl.src).hostname;
+    VCID = new URL(curEl.src).hostname;
   } else {
     curEl.remove();
     window.onmessage = function(event): void {
       if (event.source !== window.parent) { return; }
       const data: VomnibarNS.MessageData = event.data, script = document.createElement("script"),
       src = script.src = (data[1] as VomnibarNS.FgOptions).script;
-      window.ExtId = new URL(src).hostname;
+      VCID = new URL(src).hostname;
       script.onload = function(): void {
         script.onload = null as never;
         window.onmessage(event);
