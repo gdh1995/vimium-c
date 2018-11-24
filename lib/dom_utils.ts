@@ -385,7 +385,10 @@ var VDom = {
     return (element as HTMLElement).isContentEditable === true ? !!node && document.contains.call(element, node)
       : element === node || node instanceof Element && element === node.childNodes[sel.anchorOffset];
   },
-  /** @UNSAFE_RETURNED */
+  /**
+   * need selection.rangeCount > 0
+   * @UNSAFE_RETURNED
+   */
   GetSelectionParent_unsafe_ (): HTMLElement | null {
     let range = getSelection().getRangeAt(0), par: Node | null = range.commonAncestorContainer;
     // no named getters on SVG* elements
@@ -397,6 +400,7 @@ var VDom = {
     return par !== document.documentElement ? par as HTMLElement | null : null;
   },
   getSelectionEdgeElement_ (sel: Selection, di: BOOL): SafeElement | null {
+    if (!sel.rangeCount) { return null; }
     const r = sel.getRangeAt(0), type = di ? "end" as "end" : "start" as "start", E = Element;
     let el: Node | null = r[(type + "Container") as "startContainer" | "endContainer"]
       , o: Node | null, cn: Node["childNodes"];
