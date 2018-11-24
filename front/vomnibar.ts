@@ -963,9 +963,8 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     return;
   }
   let curEl: HTMLScriptElement;
-  if (location.pathname.startsWith("/front/") || location.protocol.indexOf("-") < 0
-   || !(curEl = document.currentScript as typeof curEl)) {}
-  else if (curEl.src.endsWith("/front/vomnibar.js") && curEl.src.indexOf("-") >= 0) {
+  if (location.pathname.startsWith("/front/") || !(curEl = document.currentScript as typeof curEl)) {}
+  else if (curEl.src.endsWith("/front/vomnibar.js") && !curEl.src.startsWith("http") && !curEl.src.startsWith("ftp")) {
     VCID = new URL(curEl.src).hostname;
   } else {
     curEl.remove();
