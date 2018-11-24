@@ -58,15 +58,15 @@ var Settings = {
       }
     }
   },
+  buildPayload_ (): void {
+    const ref = (this as typeof Settings).valuesToLoad_, ref2 = this.payload;
+    for (let _i = ref.length; 0 <= --_i;) {
+      let key = ref[_i];
+      ref2[key] = this.get(key);
+    }
+  },
   updateHooks_: {
     __proto__: null as never,
-    payload (): void {
-      const ref = (this as typeof Settings).valuesToLoad_, ref2 = this.payload;
-      for (let _i = ref.length; 0 <= --_i;) {
-        let key = ref[_i];
-        ref2[key] = this.get(key);
-      }
-    },
     grabBackFocus (value: FullSettings["grabBackFocus"]): void {
       (this as typeof Settings).payload.grabFocus = value;
     },
@@ -113,12 +113,15 @@ var Settings = {
       const cacheId = (this as typeof Settings).CONST.StyleCacheId_,
       browserVer = this.CONST.ChromeVersion,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
+      findOffset = css.lastIndexOf("/*Find*/"),
+      findCSS = css.substring(findOffset + /* '/*Find*\/\n' */ 9),
       hasAll = browserInfo.lastIndexOf("a") >= 0;
+      css = css.substring(0, findOffset - /* `\n` */ 1);
       if (hasAll) {
         const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2);
         css = css.substring(0, ind1 + 1) + css.substring(ind2);
       } else {
-        css = css.replace(<RegExpOne> /all:\s?initial;?/, "");
+        css = css.replace(<RegExpOne> /all:\s?initial;?\n?/, "");
       }
       if (browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css += "\n.HUD,.IH,.LH{border-width:1px}";
@@ -141,6 +144,7 @@ var Settings = {
       css = cacheId + css.length + "\n" + css;
       let css2 = this.get("userDefinedCss");
       css2 && (css += "\n" + css2);
+      localStorage.setItem("findCSS", findCSS);
       return this.set("innerCSS", css);
     },
     userDefinedCss (this: SettingsTmpl, css2): void {
@@ -158,8 +162,12 @@ var Settings = {
       }
     },
     innerCSS (this: SettingsTmpl, css): void {
-      // Note: The line below is allowed as a special use case
+      const findCSS = localStorage.getItem("findCSS");
+      if (!findCSS) { Settings.fetchFile("baseCSS"); return; }
+      const index = findCSS.indexOf('\n');
+      // Note: The lines below are allowed as a special use case
       (this.cache as SettingsNS.FullCache).innerCSS = css.substring(css.indexOf("\n") + 1);
+      (this.cache as SettingsNS.FullCache).findCSS = [findCSS.substring(0, index), findCSS.substring(index + 1)];
     },
     vomnibarPage (this: SettingsTmpl, url): void {
       if (url === this.defaults.vomnibarPage) {
@@ -209,6 +217,7 @@ nacjakoppgmdcpemlfnfegmlhipddanj`,
     grabBackFocus: false,
     hideHud: false,
     innerCSS: "",
+    findCSS: null as never as FullSettings["findCSS"],
     keyboard: [500, 33],
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
@@ -352,7 +361,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
 
   const hasAll = "all" in (document.documentElement as HTMLElement).style;
   obj.StyleCacheId_ = obj.CurrentVersion + "," + Settings.CONST.ChromeVersion
-  + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
+    + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
   const innerCSS = localStorage.getItem("innerCSS");
   if (innerCSS && innerCSS.startsWith(obj.StyleCacheId_)) {
     Settings.postUpdate_("innerCSS", innerCSS);

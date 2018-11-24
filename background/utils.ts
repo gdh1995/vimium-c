@@ -21,6 +21,7 @@ var Utils = {
   resetRe_ (): true {
     return this._reToReset.test("") as true;
   },
+  runtimeError_ (this: void): any { return chrome.runtime.lastError; },
   escapeText_ (s: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
@@ -358,7 +359,7 @@ var Utils = {
         return res.then(function(arr): Urls.CopyEvalResult {
           let path = arr[0] || (arr[2] || "");
           path = path instanceof Array ? path.join(" ") : path;
-          VClipboard.copy(path);
+          VClipboard.copy_(path);
           return [path, "copy"];
         });
       } else {
@@ -368,7 +369,7 @@ var Utils = {
       }
       // no break;
     case "c": case "cp": case "copy": // here `typeof path` must be `string`
-      VClipboard.copy(path);
+      VClipboard.copy_(path);
       return [path, "copy"];
     }
     switch (cmd) {

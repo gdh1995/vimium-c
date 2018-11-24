@@ -38,7 +38,6 @@ import PixelData = VomnibarNS.PixelData;
 
 if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
   VSettings.destroy(true);
-  window.dispatchEvent(new Event("unload"));
 }
 
 var O = {

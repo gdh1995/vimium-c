@@ -14,16 +14,15 @@ var VimiumInjector: VimiumInjector | undefined | null;
   extHost = scriptSrc.substring(i, scriptSrc.indexOf("/", i)), onIdle = window.requestIdleCallback;
   let tick = 1;
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
-  let str: string | undefined, noBackend: boolean;
+  type LastError = chrome.runtime.LastError;
+  let str: string | undefined, noBackend: boolean, err = runtime.lastError as void | LastError;
   if (!res) {
-    type LastError = chrome.runtime.LastError;
-    const msg: string | void = (runtime.lastError as void | LastError) &&
-      (runtime.lastError as void | LastError as LastError).message,
+    const msg: string | void = err && err.message,
     host = runtime.id || location.host || location.protocol;
     noBackend = !!(msg && msg.lastIndexOf("not exist") >= 0 && runtime.id);
     if (res === false) { // disabled
       str = ": not in the white list.";
-    } else if (!noBackend && runtime.lastError) {
+    } else if (!noBackend && err) {
       str = msg ? `:\n\t${msg}` : ": no backend found.";
     } else if (tick > 3) {
       str = msg ? `:\n\t${msg}` : `: retried but failed (${res}).`;
@@ -54,7 +53,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   };
   const docEl = document.documentElement;
   if (!res || !docEl) {
-    return runtime.lastError;
+    return err as void;
   }
   const inserAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild as Node
     , insertBefore = inserAfter.nextSibling

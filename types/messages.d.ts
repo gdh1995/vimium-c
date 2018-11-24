@@ -183,6 +183,7 @@ interface CmdOptions {
     mode: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
     from_find?: true;
     words?: string;
+    findCSS?: [string, string] | null;
   };
   [kFgCmd.showHelp]: {};
   [kFgCmd.reload]: { url: string, /** @deprecated */ force?: undefined, hard?: undefined
@@ -192,6 +193,7 @@ interface CmdOptions {
     leave?: boolean,
     query?: string;
     returnToViewport?: boolean;
+    findCSS?: [string, string] | null;
   };
   [kFgCmd.goToMarks]: {
     local?: boolean;

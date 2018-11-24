@@ -641,7 +641,7 @@ tabEngine = {
   performSearch_ (query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
-    const curTabId = TabRecency.last, noFilter = queryTerms.length <= 0;
+    const curTabId = TabRecency.last_, noFilter = queryTerms.length <= 0;
     let suggestions = [] as Suggestion[], tabs = [] as TextTab[], wndIds: number[] = [];
     for (const tab of tabs0) {
       if (tab.incognito && inNormal) { continue; }
@@ -695,7 +695,7 @@ tabEngine = {
   },
   SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
   computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    return TabRecency.tabs[tabId] || -tabId;
+    return TabRecency.tabs_[tabId] || -tabId;
   }
 },
 
@@ -905,7 +905,7 @@ Completers = {
       , query: CompletersNS.QueryStatus): 1 {
     const cb = func.bind(that, query);
     if (inNormal === null) {
-      inNormal = TabRecency.incognito !== IncognitoType.mayFalse ? TabRecency.incognito !== IncognitoType.true
+      inNormal = TabRecency.incognito_ !== IncognitoType.mayFalse ? TabRecency.incognito_ !== IncognitoType.true
         : Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito_
           || null;
     }
@@ -915,7 +915,7 @@ Completers = {
     return chrome.windows.getCurrent(function(wnd): void {
       if (query.isOff) { return; }
       inNormal = wnd ? !wnd.incognito : true;
-      TabRecency.incognito = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
+      TabRecency.incognito_ = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
       chrome.tabs.query({}, cb);
     });
   },
@@ -1381,7 +1381,7 @@ knownCs: CompletersMap & SafeObject = {
       switch (type) {
       case "tab":
         chrome.tabs.remove(+url, function(): void {
-          const err = chrome.runtime.lastError;
+          const err = Utils.runtimeError_();
           callback(!<any>err);
           return err;
         });

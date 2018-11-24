@@ -7,7 +7,7 @@ var HelpDialog = {
     : "",
   render_: (function(this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
-      if (Settings.CONST.StyleCacheId_.indexOf("s") < 0) {
+      if (Settings.CONST.StyleCacheId_.split(',', 2)[1].indexOf("s") < 0) {
         let template = Settings.cache.helpDialog as string, styleEnd = template.indexOf("</style>");
         template = template.substring(0, styleEnd).replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
           ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv"

@@ -6,7 +6,7 @@ declare const enum OmniboxData {
   PreservedTitle = 16,
 }
 
-// Note: if localStorage is cleaned (considering newTabUrl_f, innerCSS),
+// Note: if localStorage is cleaned (considering newTabUrl_f, innerCSS, findCSS),
 //       try to get vimSync from storage.sync
 setTimeout(function() {
   type SettingsToUpdate = {
@@ -17,7 +17,7 @@ setTimeout(function() {
     storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; },
     to_update: null as SettingsToUpdate | null,
     doNotSync: Object.setPrototypeOf({
-      findModeRawQueryList: 1, innerCSS: 1, keyboard: 1, newTabUrl_f: 1
+      findModeRawQueryList: 1, innerCSS: 1, findCSS: 1, keyboard: 1, newTabUrl_f: 1
     }, null) as TypedSafeEnum<SettingsToSync>,
     HandleStorageUpdate: function(changes, area): void {
       if (area !== "sync") { return; }
@@ -115,16 +115,17 @@ setTimeout(function() {
     }
   };
   const sync1 = Settings.get("vimSync");
-  if (sync1 === false || (!sync1 && localStorage.length > 2)) {
+  if (sync1 === false || (!sync1 && localStorage.length > 3)) {
     return;
   }
   if (!Sync.storage()) { return; }
   Sync.storage().get(null, function(items): void {
-    if (chrome.runtime.lastError as any) {
-      console.log(new Date().toLocaleString(), "Error: failed to get storage:", chrome.runtime.lastError
+    const err = Utils.runtimeError_();
+    if (err) {
+      console.log(new Date().toLocaleString(), "Error: failed to get storage:", err
         , "\n\tSo disable syncing temporarily.");
       Sync.HandleStorageUpdate = Sync.TrySet = function (): void {};
-      return chrome.runtime.lastError;
+      return err;
     }
     Object.setPrototypeOf(items, null);
     const vimSync = items.vimSync || Settings.get("vimSync");
@@ -309,7 +310,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       let sug = response[i], { title, url, type } = sug, tail = "", hasSessionId = sug.sessionId != null
         , deletable = wantDeletable && !(autoSelect && i === 0) && (
-          type === "tab" ? sug.sessionId !== TabRecency.last : type === "history" && !hasSessionId
+          type === "tab" ? sug.sessionId !== TabRecency.last_ : type === "history" && !hasSessionId
         );
       if (url in urlDict) {
         url = `:${i + di} ` + url;
@@ -476,7 +477,7 @@ setTimeout(function() {
   chrome.tabs.query({
     status: "complete"
   }, function(tabs) {
-    const t = chrome.tabs, callback = () => chrome.runtime.lastError,
+    const t = chrome.tabs, callback = Utils.runtimeError_,
     offset = location.origin.length + 1, js = Settings.CONST.ContentScripts_;
     for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
       let url = tabs[_i].url;
@@ -508,8 +509,8 @@ setTimeout(function() {
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId): void {
-    const e: void = chrome.runtime.lastError;
-    if (e as any) { return e; }
+    let err: any;
+    if (err = Utils.runtimeError_()) { return err; }
     reason = notificationId || reason;
     chrome.notifications.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }

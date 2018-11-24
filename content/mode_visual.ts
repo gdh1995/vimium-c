@@ -20,11 +20,12 @@ var VVisualMode = {
   retainSelection_: false,
   selection_: null as never as Selection,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
-    const a = VVisualMode;
+    const a = VVisualMode, F = VFindMode;
     let sel: Selection, type: string, mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
     a.init_ && a.init_(options.words as string);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
     a.movement_.selection_ = a.selection_ = sel = VDom.UI.getSelection_();
+    F.css_ = options.findCSS || F.css_;
     VScroller.prepareTop_();
     VUtils.remove_(a);
     VUtils.push_(a.onKeydown_, a);

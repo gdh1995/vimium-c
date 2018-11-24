@@ -24,7 +24,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     , onWndFocus = function(this: void): void {}, onWndBlur2: ((this: void) => void) | null = null
     ;
 
-  const isInjected = !!VimiumInjector,
+  const injector = VimiumInjector,
   useBrowser = typeof browser !== "undefined" && !!(
     browser && (browser as typeof chrome).runtime) && !((browser as typeof chrome | Element) instanceof Element),
   vPort = {
@@ -36,7 +36,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         if (!vPort._port) {
           vPort.Connect_((isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
             + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn_ ? PortType.hasCSS : 0));
-          isInjected && setTimeout(vPort.TestAlive_, 50);
+          injector && setTimeout(vPort.TestAlive_, 50);
         }
         (vPort._port as Port).postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
@@ -61,8 +61,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       const runtime: typeof chrome.runtime = (useBrowser ? browser as typeof chrome : chrome).runtime,
       name = "vimium-c." + (
         PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status),
-      data = { name: isInjected ? name + "@" + (VimiumInjector as VimiumInjector).version : name },
-      port = vPort._port = isInjected ? runtime.connect((VimiumInjector as VimiumInjector).id, data) as Port
+      data = { name: injector ? name + "@" + injector.version : name },
+      port = vPort._port = injector ? runtime.connect(injector.id, data) as Port
         : runtime.connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);
       port.onMessage.addListener(vPort.Listener_);
@@ -880,7 +880,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }
       if (VDom.UI.box_) { return VDom.UI.toggle_(enabled); }
     },
-    isInjected && (VimiumInjector as VimiumInjector).reload || function (_req: BgReq[kBgReq.reInject]): void {},
+    injector ? injector.reload : function (_req: BgReq[kBgReq.reInject]): void {},
     function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
       delete (request as Req.bg<kBgReq.url>).N;
       request.url = location.href;
@@ -1165,19 +1165,19 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     (<RegExpOne> /a?/).test("");
   }
   };
-  if (isInjected) {
-    (VimiumInjector as VimiumInjector).checkIfEnabled = vPort.SafePost_ as Function as () => void;
-    (VimiumInjector as VimiumInjector).getCommandCount = function (this: void): number { return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1; };
+  if (injector) {
+    injector.checkIfEnabled = vPort.SafePost_ as Function as () => void;
+    injector.getCommandCount = function (this: void): number { return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1; };
   }
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
-  if (location.href !== "about:blank" || isInjected || !function(): 1 | void {
+  if (location.href !== "about:blank" || injector || !function(): 1 | void {
     try {
       let f = VDom.parentFrame_(),
       a = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFindMode?: typeof VFindMode}).VFindMode;
       if (a && a.box_ && a.box_ === f) {
         VSettings.destroy(true);
-        a.onLoad_(a.box_);
+        a.onLoad_();
         return 1; // not return a function's result so that logic is clearer for compiler
       }
     } catch (e) {}

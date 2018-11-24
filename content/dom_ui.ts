@@ -103,8 +103,8 @@ VDom.UI = {
     el.textContent = `${p}.HUD, ${p}.IH, ${p}.LH { border-width: ${("" + 0.51 / zoom).substring(0, 5)}px; }`;
     el.parentNode || this.addElement_(el, AdjustType.NotAdjust);
   },
-  createStyle_ (text, doc): HTMLStyleElement {
-    const css = doc ? doc.createElement("style") : VDom.createElement_("style");
+  createStyle_ (text, css): HTMLStyleElement {
+    css = css || VDom.createElement_("style");
     css.type = "text/css";
     css.textContent = text;
     return css;

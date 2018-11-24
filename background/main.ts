@@ -106,6 +106,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
   }
 
   const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
+  onRuntimeError = Utils.runtimeError_,
   NoFrameId = Settings.CONST.ChromeVersion < BrowserVer.MinWithFrameId;
     function isExtIdAllowed (this: void, extId: string | null | undefined): boolean {
       if (extId == null) { extId = "unknown sender"; }
@@ -162,9 +163,6 @@ var Backend: BackendHandlersNS.BackendHandlers;
         option.left = option.top = 0; option.width = option.height = 50;
       }
       chrome.windows.create(option, callback);
-    }
-    function onRuntimeError (this: void): void {
-      return chrome.runtime.lastError;
     }
     function safeUpdate (this: void, url: string, secondTimes?: true, tabs1?: [Tab]): void {
       if (!tabs1) {
@@ -316,7 +314,7 @@ Are you sure you want to continue?`);
         , [(result: [Tab], _ex: FakeArg) => void], 1>(null, { active: true, currentWindow: true }),
     getCurTabs = chrome.tabs.query.bind(null, {currentWindow: true}),
     getCurWnd = function (populate: boolean, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1 {
-      const wndId = TabRecency.lastWnd;
+      const wndId = TabRecency.lastWnd_;
       return wndId >= 0 ? chrome.windows.get(wndId, { populate }, callback)
         : chrome.windows.getCurrent({ populate }, callback);
     } as {
@@ -325,7 +323,7 @@ Are you sure you want to continue?`);
       (populate: false, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1;
     };
     function findCPort (port: Port | null | undefined): Port | null {
-      const frames = framesForTab[port ? port.sender.tabId : TabRecency.last];
+      const frames = framesForTab[port ? port.sender.tabId : TabRecency.last_];
       return frames ? frames[0] : null as never as Port;
     }
 
@@ -357,20 +355,20 @@ Are you sure you want to continue?`);
     createTab = [function(url, onlyNormal, tabs): void {
       if (cOptions.url || cOptions.urls) {
         BackgroundCommands[kBgCmd.openUrl](tabs as [Tab] | undefined);
-        return chrome.runtime.lastError;
+        return onRuntimeError();
       }
       let tab: Tab | null = null;
       if (!tabs) {}
       else if (tabs.length > 0) { tab = tabs[0]; }
-      else if (TabRecency.last >= 0) {
-        chrome.tabs.get(TabRecency.last, function(lastTab): void {
+      else if (TabRecency.last_ >= 0) {
+        chrome.tabs.get(TabRecency.last_, function(lastTab): void {
           createTab[0](url, onlyNormal, lastTab && [lastTab]);
         });
-        return chrome.runtime.lastError;
+        return onRuntimeError();
       }
       if (!tab) {
         openMultiTab({url, active: true}, commandCount);
-        return chrome.runtime.lastError;
+        return onRuntimeError();
       }
       if (tab.incognito && onlyNormal) { url = ""; }
       return openMultiTab({
@@ -383,7 +381,7 @@ Are you sure you want to continue?`);
       }
       if (!wnd) {
         tabsCreate({url: this});
-        return chrome.runtime.lastError;
+        return onRuntimeError();
       }
       const tab = selectFrom(wnd.tabs);
       if (wnd.incognito && wnd.type !== "normal") {
@@ -493,7 +491,7 @@ Are you sure you want to continue?`);
       { incognito } = options, active = reuse !== ReuseType.newBg;
       let window = options.window;
       if (Utils.isRefusingIncognito_(url)) {
-        if (tabIncognito || TabRecency.incognito === IncognitoType.true) {
+        if (tabIncognito || TabRecency.incognito_ === IncognitoType.true) {
           window = true;
         }
       } else if (tabIncognito) {
@@ -531,7 +529,7 @@ Are you sure you want to continue?`);
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
       if (!tab) {
         getCurTab(function(tabs: [Tab]): void {
-          if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
+          if (!tabs || tabs.length <= 0) { return onRuntimeError(); }
           openShowPage[0](url, reuse, options, tabs[0]);
         });
         return true;
@@ -615,7 +613,7 @@ Are you sure you want to continue?`);
     }
     function selectWnd (this: void, tab?: { windowId: number }): void {
       tab && chrome.windows.update(tab.windowId, { focused: true });
-      return chrome.runtime.lastError;
+      return onRuntimeError();
     }
     /** `direction` is treated as limited */
     function removeTabsRelative (this: void, activeTab: {index: number, pinned: boolean}, direction: number, tabs: Tab[]): void {
@@ -640,7 +638,7 @@ Are you sure you want to continue?`);
     /** safe when cPort is null */
     const
     focusOrLaunch = [function(tabs): void {
-      if (TabRecency.incognito !== IncognitoType.true) {
+      if (TabRecency.incognito_ !== IncognitoType.true) {
         tabs && (tabs = tabs.filter(tab => !tab.incognito));
       }
       if (tabs && tabs.length > 0) {
@@ -648,11 +646,11 @@ Are you sure you want to continue?`);
         return;
       }
       getCurTab(focusOrLaunch[1].bind(this));
-      return chrome.runtime.lastError;
+      return onRuntimeError();
     }, function(tabs) {
       // if `@scroll`, then `typeof @` is `MarksNS.MarkToGo`
       const callback = this.scroll ? focusOrLaunch[3].bind(this, 0) : null;
-      if (tabs.length <= 0 || TabRecency.incognito === IncognitoType.true && !tabs[0].incognito) {
+      if (tabs.length <= 0 || TabRecency.incognito_ === IncognitoType.true && !tabs[0].incognito) {
         chrome.windows.create({url: this.url}, callback && function(wnd: Window): void {
           if (wnd.tabs && wnd.tabs.length > 0) { return callback(wnd.tabs[0]); }
         });
@@ -682,7 +680,7 @@ Are you sure you want to continue?`);
       }, this.scroll ? focusOrLaunch[3].bind(this, 0) : null);
       if (tab.windowId !== wndId) { return selectWnd(tab); }
     }, function(this: MarksNS.MarkToGo, tick: 0 | 1 | 2, tab: Tab): void {
-      if (!tab) { return chrome.runtime.lastError; }
+      if (!tab) { return onRuntimeError(); }
       if (tab.status === "complete" || tick >= 2) {
         return Marks.scrollTab(this, tab);
       }
@@ -733,7 +731,7 @@ Are you sure you want to continue?`);
       chrome.tabs.duplicate(tabId);
       if (commandCount < 2) { return; }
       if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito
-          || TabRecency.incognito === IncognitoType.ensuredFalse) {
+          || TabRecency.incognito_ === IncognitoType.ensuredFalse) {
         chrome.tabs.get(tabId, fallback);
       } else {
         chrome.windows.getCurrent({populate: true}, function(wnd: PopWindow): void {
@@ -756,7 +754,7 @@ Are you sure you want to continue?`);
     },
     /* moveTabToNewWindow: */ function (): void {
       const incognito = !!cOptions.incognito;
-      if (incognito && (cPort ? cPort.sender.incognito : TabRecency.incognito === IncognitoType.true)) {
+      if (incognito && (cPort ? cPort.sender.incognito : TabRecency.incognito_ === IncognitoType.true)) {
         return reportNoop();
       }
       chrome.windows.getCurrent({populate: true}, incognito ? moveTabToIncognito : moveTabToNewWindow0);
@@ -896,10 +894,10 @@ Are you sure you want to continue?`);
       });
     },
     /* toggleCS: */ function (this: void, tabs: [Tab]): void {
-      return ContentSettings.toggleCS(commandCount, cOptions, tabs);
+      return ContentSettings.toggleCS_(commandCount, cOptions, tabs);
     },
     /* clearCS: */ function (this: void): void {
-      return ContentSettings.clearCS(cOptions, cPort);
+      return ContentSettings.clearCS_(cOptions, cPort);
     },
     /* goTab: */ function (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
@@ -912,7 +910,7 @@ Are you sure you want to continue?`);
       if (!toSelect.active) { return selectTab(toSelect.id); }
     },
     /* removeTab: */ function (this: void, tabs: Tab[]): void {
-      if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
+      if (!tabs || tabs.length <= 0) { return onRuntimeError(); }
       const total = tabs.length, rawCount = commandCount, absCount = Math.abs(rawCount),
       limited = cOptions.limited != null ? !!cOptions.limited : absCount > total;
       let tab = tabs[0];
@@ -1002,14 +1000,14 @@ Are you sure you want to continue?`);
         return tabs && tabs.length > 0 ? openUrls(tabs as [Tab]) : void getCurTab(openUrls);
       }
       if (cOptions.url_mask && !tabs) {
-        return <any>chrome.runtime.lastError || <any>void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
+        return onRuntimeError() || <any>void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
       }
       let url: Urls.Url | Promise<string | null> | undefined | null, workType: Urls.WorkType = Urls.WorkType.FakeType;
       if (url = <string>cOptions.url) {
         url = url + "";
         workType = Urls.WorkType.Default;
       } else if (cOptions.copied) {
-        url = VClipboard.paste();
+        url = VClipboard.paste_();
         if (url instanceof Promise) {
           url.then(openCopiedUrl.bind(null, tabs), openCopiedUrl.bind(null, null as never, null));
           return;
@@ -1078,7 +1076,7 @@ Are you sure you want to continue?`);
     /* reloadTab: */ function (this: void, tabs: Tab[] | never[]): void {
       if (tabs.length <= 0) {
         getCurWnd(true, function(wnd) {
-          if (!wnd) { return chrome.runtime.lastError; }
+          if (!wnd) { return onRuntimeError(); }
           wnd.tabs.length > 0 && BackgroundCommands[kBgCmd.reloadTab](wnd.tabs);
         });
         return;
@@ -1116,7 +1114,7 @@ Are you sure you want to continue?`);
       const tab = tabs[0];
       ++tab.index;
       if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito_
-          || TabRecency.incognito === IncognitoType.ensuredFalse || !Utils.isRefusingIncognito_(tab.url)) {
+          || TabRecency.incognito_ === IncognitoType.ensuredFalse || !Utils.isRefusingIncognito_(tab.url)) {
         return Backend.reopenTab_(tab);
       }
       chrome.windows.get(tab.windowId, function(wnd): void {
@@ -1177,7 +1175,7 @@ Are you sure you want to continue?`);
       });
     },
     /* mainFrame: */ function (): void {
-      const tabId = cPort ? cPort.sender.tabId : TabRecency.last, port = indexFrame(tabId, 0);
+      const tabId = cPort ? cPort.sender.tabId : TabRecency.last_, port = indexFrame(tabId, 0);
       if (!port) { return; }
       port.postMessage({
         N: kBgReq.focusFrame,
@@ -1225,7 +1223,7 @@ Are you sure you want to continue?`);
     /* visitPreviousTab: */ function (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
       tabs.splice(selectFrom(tabs).index, 1);
-      tabs = tabs.filter(i => i.id in TabRecency.tabs).sort(TabRecency.rCompare);
+      tabs = tabs.filter(i => i.id in TabRecency.tabs_).sort(TabRecency.rCompare_);
       const tab = tabs[commandCount > 0 ? Math.min(commandCount, tabs.length) - 1 : Math.max(0, tabs.length + commandCount)];
       tab && selectTab(tab.id);
     },
@@ -1245,7 +1243,7 @@ Are you sure you want to continue?`);
       default: str = tabs[0].url; break;
       }
       decoded && (str = Utils.DecodeURLPart_(str, decodeURI));
-      VClipboard.copy(str);
+      VClipboard.copy_(str);
       return Backend.showHUD_(str, true);
     },
     /* goNext: */ function (): void {
@@ -1293,35 +1291,43 @@ Are you sure you want to continue?`);
       });
     },
     /* enterVisualMode: */ function (): void {
-      const { sender } = cPort;
-      let options: CmdOptions[kFgCmd.visualMode] = cOptions as Partial<CmdOptions[kFgCmd.visualMode]> as CmdOptions[kFgCmd.visualMode];
-      if (!(sender.flags & Frames.Flags.hadVisualMode)) {
-        sender.flags |= Frames.Flags.hadVisualMode;
-        options = Utils.extendIf_(Object.create(null) as typeof options, options);
-        options.words = CommandsData.wordsRe_;
-      }
+      let options: CmdOptions[kFgCmd.visualMode] = Utils.extendIf_(<CmdOptions[kFgCmd.visualMode]>Object.create(null), cOptions as {})
+        , flags = cPort.sender.flags;
       const str = typeof options.mode === "string" ? (options.mode as string).toLowerCase() : "";
       options.mode = str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual;
+      if (~flags & Frames.Flags.hadVisualMode) {
+        options.words = CommandsData.wordsRe_;
+        if (~flags & Frames.Flags.hadFindMode) {
+          options.findCSS = Settings.cache.findCSS;
+        }
+        cPort.sender.flags = Frames.Flags.hadVisualMode | Frames.Flags.hadFindMode | flags;
+      }
       cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
         S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
         a: options
       });
     },
     /* performFind: */ function (): void {
-      const leave = !cOptions.active,
-      query = leave || cOptions.last ? FindModeHistory.query(cPort.sender.incognito) : "";
+      const leave = !cOptions.active, sender = cPort.sender,
+      query = leave || cOptions.last ? FindModeHistory.query_(sender.incognito) : "";
+      let findCSS: CmdOptions[kFgCmd.findMode]["findCSS"] = null;
+      if (!leave && !(sender.flags & Frames.Flags.hadFindMode)) {
+        sender.flags |= Frames.Flags.hadFindMode;
+        findCSS = Settings.cache.findCSS;
+      }
       cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
           , S: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
           , a: {
         count: cOptions.dir <= 0 ? -commandCount : commandCount,
         leave,
+        findCSS,
         query
       }});
     },
     /* showVomnibar: */ function (this: void, forceInner?: boolean): void {
       let port = cPort as Port | null;
       if (!port) {
-        port = cPort = indexFrame(TabRecency.last, 0) as Port;
+        port = cPort = indexFrame(TabRecency.last_, 0) as Port;
         if (!port) { return; }
       } else if (port.sender.frameId !== 0 && port.sender.tabId >= 0) {
         port = indexFrame(port.sender.tabId, 0) || port;
@@ -1351,7 +1357,7 @@ Are you sure you want to continue?`);
     },
     /* clearFindHistory: */ function (this: void): void {
       const { incognito } = cPort.sender;
-      FindModeHistory.removeAll(incognito);
+      FindModeHistory.removeAll_(incognito);
       return Backend.showHUD_((incognito ? "incognito " : "") + "find history has been cleared.");
     },
     /* showHelp: */ function (this: void): void {
@@ -1470,7 +1476,7 @@ Are you sure you want to continue?`);
       }
     },
     /** findQuery: */ function (this: void, request: FgReq[kFgReq.findQuery] | FgReqWithRes[kFgReq.findQuery], port: Port): FgRes[kFgReq.findQuery] | void {
-      return FindModeHistory.query(port.sender.incognito, request.query, request.index);
+      return FindModeHistory.query_(port.sender.incognito, request.query, request.index);
     },
     /** parseSearchUrl: */ function (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl], port: Port): FgRes[kFgReq.parseSearchUrl] | void {
       let search = Backend.parse_(request);
@@ -1613,7 +1619,7 @@ Are you sure you want to continue?`);
         cPort = port;
         return Backend.showHUD_("No search engine found!");
       }
-      query = request.search.trim() || VClipboard.paste();
+      query = request.search.trim() || VClipboard.paste_();
       if (query instanceof Promise) {
         query.then(doSearch, () => doSearch(null));
         return;
@@ -1642,7 +1648,7 @@ Are you sure you want to continue?`);
       chrome.sessions.restore(id, onRuntimeError);
       if (active) { return; }
       let tabId = (port as Port).sender.tabId;
-      tabId >= 0 || (tabId = TabRecency.last);
+      tabId >= 0 || (tabId = TabRecency.last_);
       if (tabId >= 0) { return selectTab(tabId); }
     },
     /** openUrl: */ function (this: void, request: FgReq[kFgReq.openUrl] & { url_f?: Urls.Url, opener?: boolean }, port?: Port): void {
@@ -1819,7 +1825,7 @@ Are you sure you want to continue?`);
         , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
     },
     /** copy: */ function (this: void, request: FgReq[kFgReq.copy]): void {
-      VClipboard.copy(request.data);
+      VClipboard.copy_(request.data);
     },
     /** key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {
       (port.sender as Frames.RawSender).flags |= Frames.Flags.userActed;
@@ -1880,7 +1886,7 @@ Are you sure you want to continue?`);
         return;
       }
       setTimeout(function(): void {
-        if (port.sender.tabId === TabRecency.last && framesForOmni.indexOf(port) >= 0) {
+        if (port.sender.tabId === TabRecency.last_ && framesForOmni.indexOf(port) >= 0) {
           port.postMessage({ N: kBgReq.omni_blurred });
         }
       }, 50);
@@ -1999,7 +2005,7 @@ Are you sure you want to continue?`);
           framesForOmni.push(port);
           if (tabId < 0) {
             (port.sender as Frames.RawSender).tabId = type !== PortType.omnibar ? _fakeTabId--
-               : cPort ? cPort.sender.tabId : TabRecency.last;
+               : cPort ? cPort.sender.tabId : TabRecency.last_;
           }
           port.onDisconnect.addListener(OnOmniDisconnect);
           port.onMessage.addListener(OnMessage);
@@ -2071,7 +2077,7 @@ Are you sure you want to continue?`);
     removeSug_ (this: void, { type, url }: FgReq[kFgReq.removeSug], port?: Port | null): void {
       const name = type === "tab" ? type : type + " item";
       cPort = findCPort(port) as Port;
-      if (type === "tab" && TabRecency.last === +url) {
+      if (type === "tab" && TabRecency.last_ === +url) {
         return Backend.showHUD_("The current tab should be kept.");
       }
       return Completion.removeSug_(url, type, function(succeed): void {
@@ -2136,8 +2142,8 @@ Are you sure you want to continue?`);
         chrome.tabs.remove(tab.id, onRuntimeError);
         let step = RefreshTabStep.start;
         const tabId = tab.id, onRefresh = function(this: void): void {
-          const err = chrome.runtime.lastError;
-          if (err as any) {
+          const err = onRuntimeError();
+          if (err) {
             chrome.sessions.restore();
             return err;
           }
@@ -2174,7 +2180,7 @@ Are you sure you want to continue?`);
       }
     },
     forceStatus (act: Frames.ForcedStatusText, tabId?: number): void {
-      const ref = framesForTab[tabId || (tabId = TabRecency.last)];
+      const ref = framesForTab[tabId || (tabId = TabRecency.last_)];
       if (!ref) { return; }
       act = act.toLowerCase() as Frames.ForcedStatusText;
       const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].sender.status,
@@ -2209,7 +2215,7 @@ Are you sure you want to continue?`);
       }
     },
     ExecuteGlobal_ (this: void, cmd: string): void {
-      const tabId = TabRecency.last, ports = framesForTab[tabId];
+      const tabId = TabRecency.last_, ports = framesForTab[tabId];
       if (cmd === "quickNext") { cmd = "nextTab"; }
       if (ports == null || (ports[0].sender.flags & Frames.Flags.userActed)) {
         return executeGlobal(cmd, ports);
@@ -2217,7 +2223,7 @@ Are you sure you want to continue?`);
       ports && (ports[0].sender.flags |= Frames.Flags.userActed);
       chrome.tabs.get(tabId, function(tab): void {
         executeGlobal(cmd, tab && tab.status === "complete" ? framesForTab[tab.id] : null);
-        return chrome.runtime.lastError;
+        return onRuntimeError();
       });
     },
     indexPorts: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
@@ -2305,7 +2311,7 @@ Are you sure you want to continue?`);
     }
   });
 
-  Settings.postUpdate_("payload", null);
+  Settings.buildPayload_();
   Settings.postUpdate_("vomnibarPage"); // not wait 34ms in case that Vomnibar is wanted at once
   Settings.postUpdate_("searchUrl", null); // will also update newTabUrl
 

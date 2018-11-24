@@ -22,11 +22,7 @@ var VFindMode = {
   styleOut_: null as never as HTMLStyleElement,
   A0Re_: <RegExpG> /\xa0/g,
   tailRe_: <RegExpOne> /\n$/,
-  cssSel_: "::selection { background: #ff9632 !important; }",
-  cssIFrame_: `*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif!important;
-height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}
-body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
-body *{all:inherit!important;display:inline!important;}html>count{float:right;}`,
+  css_: null as never as [string, string],
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
     if (!VDom.isHTML_()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
@@ -53,10 +49,11 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     a.activeRegexIndex_ = 0;
 
     const el = a.box_ = VDom.createElement_("iframe") as typeof VFindMode.box_;
+    a.css_ = options.findCSS || a.css_;
     el.className = "R HUD UI";
     el.style.width = "0px";
     if (VDom.wdZoom_ !== 1) { el.style.zoom = "" + 1 / VDom.wdZoom_; }
-    el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad_(this, 1); };
+    el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad_(1); };
     VUtils.push_(ui.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
@@ -65,37 +62,36 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     first && ui.adjust_();
     a.isActive_ = true;
   },
-  onLoad_ (box: HTMLIFrameElement, later?: 1): void {
-    const a = this;
-    const wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
+  onLoad_ (later?: 1): void {
+    const a = this, box: HTMLIFrameElement = a.box_,
+    wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
     now = Date.now(), s = VUtils.Stop_, t = true;
     let tick = 0;
     f("mousedown", a.OnMousedown_, t);
     f("keydown", a.onKeydown_.bind(a), t);
-    f("input", a.onInput_.bind(a), t);
+    f("input", a.OnInput_, t);
     f("paste", a.OnPaste_, t);
-    f("keypress", s, t); f("keyup", s, t);
-    f("mouseup", s, t); f("click", s, t); f("contextmenu", s, t);
-    f("copy", s, t); f("cut", s, t); f("paste", s, t);
-    function onBlur(this: Window): void {
+    f("unload", a.OnUnload_, t);
+    for (const i of ["keypress", "keyup", "mouseup", "click", "contextmenu", "copy", "cut", "paste"]) {
+      f(i, s, t);
+    }
+    f("blur", function onBlur(this: Window): void {
       if (VFindMode.isActive_ && Date.now() - now < 500) {
         let a = this.document.body as HTMLBodyElement | null;
         a && setTimeout(function(): void { (a as HTMLBodyElement).focus(); }, tick++ * 17);
       } else {
         this.removeEventListener("blur", onBlur, true);
       }
-    }
+    }, t);
     f("focus", a.OnFocus_, t);
-    f("blur", onBlur, t);
     box.onload = later ? null as never : function(): void { this.onload = null as never; VFindMode.onLoad2_(this.contentWindow); };
     if (later) { a.onLoad2_(wnd); }
   },
   onLoad2_ (wnd: Window): void {
     const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
-    el: HTMLElement = this.input_ = doc.body as HTMLBodyElement,
+    a = VFindMode,
+    el: HTMLElement = a.input_ = doc.body as HTMLBodyElement,
     zoom = wnd.devicePixelRatio;
-    wnd.dispatchEvent(new Event("unload"));
-    wnd.onunload = VFindMode.OnUnload_;
     let plain = true;
     try {
       el.contentEditable = "plaintext-only";
@@ -103,11 +99,11 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       plain = false;
       el.contentEditable = "true";
     }
-    wnd.removeEventListener("paste", plain ? this.OnPaste_ : VUtils.Stop_, true);
-    const el2 = this.countEl_ = doc.createElement("count");
+    wnd.removeEventListener("paste", plain ? a.OnPaste_ : VUtils.Stop_, true);
+    const el2 = a.countEl_ = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
-    (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle_(VFindMode.cssIFrame_, doc));
+    (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle_(a.css_[1], doc.createElement("style")));
     docEl.insertBefore(doc.createTextNode("/"), el);
     docEl.appendChild(el2);
     function cb(): void {
@@ -141,7 +137,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
   },
   init_ (adjust: AdjustType): void {
     const ref = this.postMode_, UI = VDom.UI,
-    css = this.cssSel_, sin = this.styleIn_ = UI.createStyle_(css);
+    css = this.css_[0], sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
     UI.addElement_(sin, adjust, true);
     sin.remove();
@@ -176,26 +172,26 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     return this.postMode_.activate_();
   },
   clean_ (i: FindNS.Action): Element | null { // need keep @hasResults
-    let el: Element | null = null;
-    this.coords_ && window.scrollTo(this.coords_[0], this.coords_[1]);
-    this.isActive_ = this._small = this._actived = this.notEmpty_ = false;
+    let el: Element | null = null, _this = VFindMode;
+    _this.coords_ && window.scrollTo(_this.coords_[0], _this.coords_[1]);
+    _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
-      // todo: check `this.box.contentWindow.blur();` on FF/Edge
+      // todo: check `VFindMode.box.contentWindow.blur();` on FF/Edge
       window.focus();
       el = VDom.getSelectionEdgeElement_(getSelection(), 1);
       el && el.focus && el.focus();
     }
-    this.box_.remove();
-    if (this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
-    this.parsedQuery_ = this.query_ = this.query0_ = "";
-    this.historyIndex_ = this.matchCount_ = 0;
-    this.box_ = this.input_ = this.countEl_ = this.parsedRegexp_ =
-    this.initialRange_ = this.regexMatches_ = this.coords_ = null as never;
+    _this.box_.remove();
+    if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
+    _this.parsedQuery_ = _this.query_ = _this.query0_ = "";
+    _this.historyIndex_ = _this.matchCount_ = 0;
+    _this.box_ = _this.input_ = _this.countEl_ = _this.parsedRegexp_ =
+    _this.initialRange_ = _this.regexMatches_ = _this.coords_ = null as never;
     return el;
   },
   OnUnload_ (this: void, e: Event): void {
     const f = VFindMode;
-    if (e.isTrusted === false || !f || !f.box_) { return; }
+    if (!f || e.isTrusted === false) { return; }
     f.isActive_ && f.deactivate_(FindNS.Action.ExitUnexpectedly);
   },
   OnMousedown_ (this: void, event: MouseEvent): void {
@@ -297,7 +293,7 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
     if (!query && _this.historyIndex_ > 0) { --_this.historyIndex_; return; }
     doc.execCommand("selectAll", false);
     doc.execCommand("insertText", false, query.replace(<RegExpOne> /^ /, '\xa0'));
-    return _this.onInput_();
+    return _this.OnInput_();
   },
   saveQuery_ (): string | void | 1 {
     return this.query_ && VPort.post({ H: kFgReq.findQuery, query: this.query_ });
@@ -332,20 +328,20 @@ body *{all:inherit!important;display:inline!important;}html>count{float:right;}`
       VEventMode.setupSuppress_();
     }
   },
-  onInput_ (e?: Event): void {
+  OnInput_ (this: void, e?: Event): void {
     if (e != null) {
       VUtils.Stop_(e);
       if (e.isTrusted === false) { return; }
     }
-    const query = this.input_.innerText.replace(this.A0Re_, " ").replace(this.tailRe_, "");
-    let s = this.query_;
-    if (!this.hasResults_ && !this.isRegex_ && this.notEmpty_ && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
+    const _this = VFindMode, query = _this.input_.innerText.replace(_this.A0Re_, " ").replace(_this.tailRe_, "");
+    let s = _this.query_;
+    if (!_this.hasResults_ && !_this.isRegex_ && _this.notEmpty_ && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
     s = "";
-    this.coords_ && window.scrollTo(this.coords_[0], this.coords_[1]);
-    this.updateQuery_(query);
-    this.restoreSelection_();
-    this.execute_(!this.isRegex_ ? this.parsedQuery_ : this.regexMatches_ ? this.regexMatches_[0] : "");
-    return this.showCount_();
+    _this.coords_ && window.scrollTo(_this.coords_[0], _this.coords_[1]);
+    _this.updateQuery_(query);
+    _this.restoreSelection_();
+    _this.execute_(!_this.isRegex_ ? _this.parsedQuery_ : _this.regexMatches_ ? _this.regexMatches_[0] : "");
+    return _this.showCount_();
   },
   _small: false,
   showCount_ (): void {

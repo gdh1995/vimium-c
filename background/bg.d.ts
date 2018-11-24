@@ -273,6 +273,7 @@ declare namespace SettingsNS {
     grabBackFocus: boolean;
     hideHud: boolean;
     innerCSS: string;
+    findCSS: NonNullable<CmdOptions[kFgCmd.findMode]["findCSS"]>;
     keyMappings: string;
     localeEncoding: string;
     /** Note: if changed, /pages/newtab.js also needs a change. */
@@ -327,7 +328,6 @@ declare namespace SettingsNS {
     searchUrl: NullableUpdateHook<"searchUrl">;
   }
   interface SpecialUpdateHookMap {
-    payload (this: SettingsTmpl, value: null): void;
   }
   type DeclaredUpdateHookMap = NullableUpdateHookMap
       & Pick<BaseUpdateHookMap, "extWhiteList" | "grabBackFocus" | "newTabUrl" | "baseCSS"
@@ -343,6 +343,7 @@ declare namespace SettingsNS {
 
   interface FullCache extends Partial<FullSettings>, SafeObject {
     innerCSS: FullSettings["innerCSS"];
+    findCSS: FullSettings["findCSS"];
     newTabUrl_f: FullSettings["newTabUrl_f"];
     searchEngineMap: FullSettings["searchEngineMap"];
     searchEngineRules: FullSettings["searchEngineRules"];
