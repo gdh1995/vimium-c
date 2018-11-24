@@ -13,7 +13,7 @@ declare namespace VomnibarNS {
   type BaseFullOptions = CmdOptions[kFgCmd.vomnibar] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
   interface FullOptions extends BaseFullOptions {
     topUrl?: string;
-    name: string;
+    N: string;
   }
 }
 
@@ -67,7 +67,7 @@ var VOmni = {
       a.status_ = VomnibarNS.Status.ToShow;
     }
     options.secret = 0; options.vomnibar = options.vomnibar2 = options.S = "";
-    options.name = "activate";
+    options.N = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
       if (url = VDom.UI.getSelectionText_()) {
@@ -218,7 +218,7 @@ var VOmni = {
   },
   onMessage_<K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }): void | 1 {
     type Req = VomnibarNS.FReq;
-    switch (data.name) {
+    switch (data.N) {
     case "uiComponentIsReady":
       this.status_ = VomnibarNS.Status.ToShow;
       let opt = this.options_;
@@ -239,9 +239,9 @@ var VOmni = {
     case "scrollEnd": VScroller.keyIsDown_ = 0; break;
     case "evalJS": VPort.evalIfOK_((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
-    case "unload": return VOmni ? this.reset_(data.name === "broken") : undefined;
+    case "unload": return VOmni ? this.reset_(data.N === "broken") : undefined;
     case "hud": VHUD.tip((data as Req["hud"]).text); return;
-    default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.name);
+    default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.N);
     }
   },
   onShown_ (): number {

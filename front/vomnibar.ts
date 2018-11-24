@@ -162,7 +162,7 @@ var O = {
     }
   },
   onHidden_ (): void {
-    P.postToOwner_({ name: "hide" });
+    P.postToOwner_({ N: "hide" });
     this.timer_ = this.height_ = this.matchType_ = this.wheelTime_ = this.actionType_ =
     this.total_ = this.lastKey_ = 0;
     this.zoomLevel_ = 1;
@@ -345,7 +345,7 @@ var O = {
         event.preventDefault();
         this.lastScrolling_ = Date.now();
         window.onkeyup = O.HandleKeydown_;
-        P.postToOwner_({ name: "scroll", keyCode: n });
+        P.postToOwner_({ N: "scroll", keyCode: n });
         return;
       }
       else { action = event.code === "BracketLeft" ? AllowedActions.dismiss : event.code === "BracketRight" ? AllowedActions.toggle
@@ -481,7 +481,7 @@ var O = {
     if (this.selection_ < 0) { return; }
     const completion = this.completions_[this.selection_], type = completion.type;
     if (type !== "tab" && (type !== "history" || completion.sessionId != null)) {
-      P.postToOwner_({ name: "hud", text: "This item can not be deleted." });
+      P.postToOwner_({ N: "hud", text: "This item can not be deleted." });
       return;
     }
     P.postMessage_({
@@ -579,7 +579,7 @@ var O = {
     const len = this.completions_.length, notEmpty = len > 0, oldH = this.height_, list = this.list_;
     const height = this.height_ = Math.ceil(notEmpty ? len * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty),
     needMsg = height !== oldH, earlyPost = height > oldH || this.sameOrigin_,
-    msg: VomnibarNS.FReq["style"] & VomnibarNS.Msg<"style"> = { name: "style", height };
+    msg: VomnibarNS.FReq["style"] & VomnibarNS.Msg<"style"> = { N: "style", height };
     oldH || (msg.max = this.maxHeight_);
     if (needMsg && earlyPost) { P.postToOwner_(msg); }
     this.completions_.forEach(this.parse_, this);
@@ -640,7 +640,7 @@ var O = {
       a._focusTimer = setTimeout(a.blurred_, 50, false);
       P && P.postMessage_({ H: kFgReq.blank });
       if (a.pageType_ === VomnibarNS.PageType.ext && P) {
-        P.postToOwner_({name: "test"});
+        P.postToOwner_({N: "test"});
       }
     }
   },
@@ -711,7 +711,7 @@ var O = {
       if (!O.lastScrolling_) {
         stop = event.keyCode > VKeyCodes.ctrlKey || event.keyCode < VKeyCodes.shiftKey;
       } else if (stop || (now = Date.now()) - O.lastScrolling_ > 40) {
-        P.postToOwner_({ name: stop ? "scrollEnd" : "scrollGoing" });
+        P.postToOwner_({ N: stop ? "scrollEnd" : "scrollGoing" });
         O.lastScrolling_ = now;
       }
       if (stop) { window.onkeyup = null as never; }
@@ -725,7 +725,7 @@ var O = {
   returnFocus_ (this: void, request: BgVomnibarReq[kBgReq.omni_returnFocus]): void {
     type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(P.postToOwner_ as
-      VoidPost, 0, { name: "focus", key: request.key });
+      VoidPost, 0, { N: "focus", key: request.key });
   },
   _realDevRatio: 0,
   setWidth_ (w?: number): void {
@@ -816,7 +816,7 @@ var O = {
   },
   navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null): void {
     if (url.charCodeAt(10) === KnownKey.colon && url.substring(0, 11).toLowerCase() === "javascript:") {
-      P.postToOwner_({ name: "evalJS", url });
+      P.postToOwner_({ N: "evalJS", url });
       return;
     }
     P.postMessage_({ H: kFgReq.openUrl, reuse, https, url, omni: true });
@@ -848,7 +848,7 @@ var O = {
     if (!P || e.isTrusted === false) { return; }
     O.isActive_ = false;
     O.timer_ > 0 && clearTimeout(O.timer_);
-    P.postToOwner_({ name: "unload" });
+    P.postToOwner_({ N: "unload" });
   }
 },
 U = {
@@ -919,7 +919,7 @@ P = {
       (this._port || this.connect_(PortType.omnibarRe)).postMessage<K>(request);
     } catch (e) {
       P = null as never;
-      this.postToOwner_({ name: "broken", active: O.isActive_ });
+      this.postToOwner_({ N: "broken", active: O.isActive_ });
     }
   },
   _Listener<T extends keyof BgVomnibarReq> (this: void, response: Req.bg<T>): void {
@@ -933,7 +933,7 @@ P = {
   },
   _OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
     type Res = VomnibarNS.CReq;
-    let name = ((data as VomnibarNS.Msg<string>).name || data) as keyof Res;
+    let name = ((data as VomnibarNS.Msg<string>).N || data) as keyof Res;
     if (name === "backspace") { return O.onAction_(AllowedActions.backspace); }
     type Keys = typeof name;
     (O as { [K in Keys]: (data: Res[K]) => void
@@ -1000,7 +1000,7 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     if (options) {
       O.activate(options);
     } else {
-      port.postMessage({ name: "uiComponentIsReady" });
+      port.postMessage({ N: "uiComponentIsReady" });
     }
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);

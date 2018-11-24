@@ -154,7 +154,7 @@ declare namespace VomnibarNS {
     script: string;
   }
   type MessageData = [number, FgOptions | null];
-  type Msg<T extends string> = { name: T };
+  type Msg<T extends string> = { N: T };
 
   interface CReq {
     activate: FgOptions & Msg<"activate">;
