@@ -302,6 +302,7 @@ Are you sure you want to continue?`);
         setTimeout(retryCSS, 34 * tick, port, tick + 1);
       }
     }
+    /** in face, this functions needs to accept any types of arguments and normalize them */
     function execute (command: string, options: CommandsNS.RawOptions | null, count: number | string, port: Port | null, lastKey?: VKeyCodes): void {
       count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
       options && typeof options === "object" ?
@@ -2262,7 +2263,9 @@ Are you sure you want to continue?`);
     needIcon = value && !!chrome.browserAction;
   };
 
-  chrome.runtime.onMessageExternal && (chrome.runtime.onMessageExternal.addListener(function(this: void, message, sender, sendResponse): void {
+  chrome.runtime.onMessageExternal && (chrome.runtime.onMessageExternal.addListener(function(this: void
+      , message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
+      , sender, sendResponse): void {
     let command: string | undefined;
     if (!isExtIdAllowed(sender.id)) {
       sendResponse(false);
@@ -2277,21 +2280,18 @@ Are you sure you want to continue?`);
       }
       return;
     }
-    if (typeof message !== "object") { return; }
-    switch (message.handler as kFgReq) {
-    case kFgReq.command:
+    if (typeof message !== "object" || !message) { return; }
+    if (message.handler === kFgReq.inject) {
+      (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
+        scripts: Settings.CONST.ContentScripts_, version: Settings.CONST.CurrentVersion
+      });
+    } else if (message.handler === kFgReq.command) {
       command = message.command ? message.command + "" : "";
       if (command && CommandsData.availableCommands_[command]) {
         const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
         port = frames ? indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
-        return execute(command, message.options, message.count, port, message.key);
+        execute(command, message.options as CommandsNS.RawOptions | null, message.count as number | string, port, message.key);
       }
-      return;
-    case kFgReq.inject:
-      (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
-        scripts: Settings.CONST.ContentScripts_, version: Settings.CONST.CurrentVersion
-      });
-      return;
     }
   }), Settings.postUpdate_("extWhiteList"));
 

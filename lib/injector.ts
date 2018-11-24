@@ -73,7 +73,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   });
 }
 function call() {
-  runtime.sendMessage(extHost, <Req.baseFg<kFgReq.inject>> { H: kFgReq.inject }, handler);
+  runtime.sendMessage(extHost, <ExternalMsgs[kFgReq.inject]["req"]> { handler: kFgReq.inject }, handler);
 }
 function start() {
   removeEventListener("load", start);

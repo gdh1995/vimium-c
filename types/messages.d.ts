@@ -375,7 +375,7 @@ interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> e
 
 interface ExternalMsgs {
   [kFgReq.inject]: {
-    req: Req.baseFg<kFgReq.inject>;
+    req: { handler: kFgReq.inject};
     res: {
       version: string;
       scripts: string[];
@@ -387,6 +387,7 @@ interface ExternalMsgs {
       command: string;
       options?: object | null;
       count?: number;
+      key?: VKeyCodes;
     };
     res: void;
   };
