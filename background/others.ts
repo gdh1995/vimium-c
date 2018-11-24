@@ -182,7 +182,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
       for (w = 0, h = arr.length; w < h; w++) {
-        Backend.setIcon_(arr[w], type);
+        Backend.setIcon_(arr[w], type, true);
       }
     };
     Object.setPrototypeOf(path, null);
@@ -205,7 +205,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
     imageData = Object.create(null);
     tabIds = Object.create(null);
   } as IconNS.AccessIconBuffer;
-  Backend.setIcon_ = function(this: void, tabId: number, type: Frames.ValidStatus): void {
+  Backend.setIcon_ = function(this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
     if (IsEdge) {
       path = Settings.icons_[type];
@@ -213,10 +213,11 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       return;
     }
     if (data = (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type]) {
-      chrome.browserAction.setIcon({
+      const f = chrome.browserAction.setIcon, args: chrome.browserAction.TabIconDetails = {
         tabId,
         imageData: data
-      });
+      };
+      isLater ? f(args, Utils.runtimeError_) : f(args);
     } else if ((tabIds as IconNS.StatusMap<number[]>)[type]) {
       ((tabIds as IconNS.StatusMap<number[]>)[type] as number[]).push(tabId);
     } else if (path = Settings.icons_[type]) {

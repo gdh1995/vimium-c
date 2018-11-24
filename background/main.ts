@@ -1928,7 +1928,7 @@ Are you sure you want to continue?`);
           status = Frames.Status.enabled;
           sender.flags = Frames.Flags.userActed;
         } else if (type === PortType.CloseSelf) {
-          sender.frameId || chrome.tabs.remove(tabId);
+          sender.frameId || tabId < 0 || chrome.tabs.remove(tabId);
           return;
         } else {
           status = ((type >>> PortType.BitOffsetOfKnownStatus) & PortType.MaskOfKnownStatus) - 1;
@@ -2138,10 +2138,11 @@ Are you sure you want to continue?`);
       };
     },
     reopenTab_ (this: void, tab: Tab, refresh?: boolean): void {
+      const tabId = tab.id;
       if (refresh) {
-        chrome.tabs.remove(tab.id, onRuntimeError);
-        let step = RefreshTabStep.start;
-        const tabId = tab.id, onRefresh = function(this: void): void {
+        chrome.tabs.remove(tabId, onRuntimeError);
+        let step = RefreshTabStep.start,
+        onRefresh = function (this: void): void {
           const err = onRuntimeError();
           if (err) {
             chrome.sessions.restore();
@@ -2164,7 +2165,7 @@ Are you sure you want to continue?`);
         pinned: tab.pinned,
         openerTabId: tab.openerTabId,
       });
-      chrome.tabs.remove(tab.id);
+      chrome.tabs.remove(tabId);
       // not seems to need to restore muted status
     },
     showHUD_ (message: string, isCopy?: boolean): void {
@@ -2217,7 +2218,7 @@ Are you sure you want to continue?`);
     ExecuteGlobal_ (this: void, cmd: string): void {
       const tabId = TabRecency.last_, ports = framesForTab[tabId];
       if (cmd === "quickNext") { cmd = "nextTab"; }
-      if (ports == null || (ports[0].sender.flags & Frames.Flags.userActed)) {
+      if (ports == null || (ports[0].sender.flags & Frames.Flags.userActed) || tabId < 0) {
         return executeGlobal(cmd, ports);
       }
       ports && (ports[0].sender.flags |= Frames.Flags.userActed);

@@ -380,7 +380,7 @@ declare namespace BackendHandlersNS {
     checkIfEnabled_: checkIfEnabled;
     focus (this: void, request: MarksNS.FocusOrLaunch): void;
     reopenTab_ (tab: chrome.tabs.Tab, refresh?: boolean): void;
-    setIcon_ (tabId: number, type: Frames.ValidStatus): void;
+    setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
     IconBuffer_: IconNS.AccessIconBuffer | null,
     removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
