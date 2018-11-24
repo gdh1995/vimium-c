@@ -51,6 +51,11 @@ var VDom = {
     const desp = Object.getOwnPropertyDescriptor(Cls.prototype, property);
     return desp && desp.get ? desp.get.call(instance) : null;
   },
+  GetShadowRoot_ (el: Element | Node): ShadowRoot | null | undefined {
+    const sr = (el as Element).shadowRoot, E = Element;
+    // check el's type to avoid exceptions
+    return sr instanceof E ? el instanceof E ? VDom.Getter_(E, el, 'shadowRoot') : null : sr;
+  },
   /**
    * Try its best to find a real parent
    * @safe_even_if_any_overridden_property

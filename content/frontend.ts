@@ -161,16 +161,15 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
        *   and .shadowRoot should not block this check
        * DO NOT stop propagation
        * check `InsertMode.lock !== null` first, so that it needs less cost for common (plain) cases
-       * use `a === doc.active`, because:
-       *   `a !== target` ignores the case a blur event is missing or not captured;
-       *   `target !== doc.active` lets pass the case `target === lock === doc.active`
+       * use `lock === doc.active`, because:
+       *   `lock !== target` ignores the case a blur event is missing or not captured;
+       *   `target !== doc.active` lets it pass the case `target === lock === doc.active`
        */
-      let a = InsertMode.lock_;
-      if (a !== null && a === document.activeElement) { return; }
+      const lock = InsertMode.lock_;
+      if (lock !== null && lock === document.activeElement) { return; }
       if (target === VDom.UI.box_) { return event.stopImmediatePropagation(); }
-      let sr = (target as Element).shadowRoot;
-      sr instanceof Element && (sr = VDom.Getter_(Element, target as Element, 'shadowRoot'));
-      if (sr != null) {
+      const sr = VDom.GetShadowRoot_(target as Element);
+      if (sr) {
         let path = event.path, top: EventTarget | undefined, SR = ShadowRoot
           /**
            * isNormalHost is true if one of:
@@ -210,13 +209,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       if (target === window || target === document) { return onWndBlur(); }
       let path = event.path as EventPath | undefined, top: EventTarget | undefined
         , same = !(top = path && path[0]) || top === window || top === target
-        , sr = (target as Element).shadowRoot;
+        , sr = VDom.GetShadowRoot_(target as Element);
       if (InsertMode.lock_ === (same ? target : top)) {
         InsertMode.lock_ = null;
         InsertMode.inputHint_ && !InsertMode.hinting_ && document.hasFocus() && InsertMode.exitInputHint_();
       }
-      sr instanceof Element && (sr = VDom.Getter_(Element, target as Element, 'shadowRoot'));
-      if (sr == null || target === VDom.UI.box_) { return; }
+      if (!sr || target === VDom.UI.box_) { return; }
       let wrapper = onShadow;
       if (same) {
         sr.vimiumListened = ShadowRootListenType.Blur;
@@ -589,11 +587,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }
     },
     exit_ (event: KeyboardEvent): void {
-      let target: Element | null = event.target as Element, sr = (target as HTMLElement).shadowRoot;
+      let target: Element | null = event.target as Element, sr = VDom.GetShadowRoot_(target);
       if (sr != null && sr instanceof ShadowRoot) {
         if (target = this.lock_) {
           this.lock_ = null;
-          target.blur && target.blur();
+          (target as LockableElement).blur();
         }
       } else if (target === this.lock_ ? (this.lock_ = null, 1) : VDom.getEditableType_<1>(target)) {
         (target as LockableElement).blur();
