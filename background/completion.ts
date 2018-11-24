@@ -1404,6 +1404,6 @@ knownCs: CompletersMap & SafeObject = {
 
 var Completion = { filter_: function(a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
   setTimeout(function() {
-    return Completers.filter_(a, b, c);
+    return Completion.filter_(a, b, c);
   }, 210);
 }, removeSug_ (): void {} } as CompletersNS.GlobalCompletersConstructor;

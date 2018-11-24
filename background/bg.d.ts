@@ -232,7 +232,6 @@ declare namespace CompletersNS {
     removeSug_ (url: string, type: FgReq[kFgReq.removeSug]["type"], callback: (succeed: boolean) => void): void;
   }
 }
-declare var Completers: CompletersNS.GlobalCompletersConstructor;
 type Suggestion = CompletersNS.Suggestion;
 
 declare namespace IconNS {
