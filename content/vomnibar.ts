@@ -17,7 +17,7 @@ declare namespace VomnibarNS {
   }
 }
 
-var Vomnibar = {
+var VOmni = {
   box_: null as never as HTMLIFrameElement & { contentWindow: VomnibarNS.IFrameWindow },
   port_: null as never as VomnibarNS.Port,
   status_: VomnibarNS.Status.NotInited,
@@ -29,7 +29,7 @@ var Vomnibar = {
   defaultTop_: "",
   top_: "",
   activate (this: void, count: number, options: VomnibarNS.FullOptions): void {
-    const a = Vomnibar;
+    const a = VOmni;
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
       return VHUD.tip("Sorry, Vomnibar page seems to fail to load.", 2000);
     }
@@ -54,11 +54,11 @@ var Vomnibar = {
     a.status_ > VomnibarNS.Status.Inactive || VUtils.push_(VDom.UI.SuppressMost_, a);
     a.box_ && VDom.UI.adjust_();
     if (a.status_ === VomnibarNS.Status.NotInited) {
-      if (VHints.tryNestedFrame_("Vomnibar", "activate", count, options)) { return VUtils.remove_(a); }
+      if (VHints.tryNestedFrame_("VOmni", "activate", count, options)) { return VUtils.remove_(a); }
       a.status_ = VomnibarNS.Status.Initing;
       a.init_(options);
     } else if (a.isABlank_()) {
-      a.onReset_ = function(this: typeof Vomnibar): void { this.onReset_ = null; return this.activate(count, options); };
+      a.onReset_ = function(this: typeof VOmni): void { this.onReset_ = null; return this.activate(count, options); };
       return;
     } else if (a.status_ === VomnibarNS.Status.Inactive) {
       a.status_ = VomnibarNS.Status.ToShow;
@@ -99,7 +99,7 @@ var Vomnibar = {
     }, function(search): void {
       options.search = search;
       if (search != null) { options.url = ""; }
-      return Vomnibar.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
+      return VOmni.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     });
   },
   setOptions_ (options: VomnibarNS.FgOptionsToFront): void {
@@ -119,7 +119,7 @@ var Vomnibar = {
     this.box_.style.cssText = "display: none;";
   },
   init_ ({secret, vomnibar: page, ptype: type, vomnibar2: inner, S: CSS}: VomnibarNS.FullOptions): void {
-    const el = VDom.createElement_("iframe") as typeof Vomnibar.box_, UI = VDom.UI;
+    const el = VDom.createElement_("iframe") as typeof VOmni.box_, UI = VDom.UI;
     el.className = "R UI Omnibar";
     if (type !== VomnibarNS.PageType.web) {}
     else if (page.startsWith("http:") && location.origin.startsWith("https:")) {
@@ -135,12 +135,12 @@ var Vomnibar = {
       el.removeAttribute("referrerPolicy");
       el.removeAttribute("sandbox");
       el.src = page = inner as string; inner = null;
-      let opts = Vomnibar.options_; opts && (opts.ptype = type);
+      let opts = VOmni.options_; opts && (opts.ptype = type);
     }
     el.style.visibility = "hidden";
     let loaded = false;
     el.onload = function(this: typeof el): void {
-      const _this = Vomnibar;
+      const _this = VOmni;
       loaded = true;
       if (_this.onReset_) { return; }
       if (type !== VomnibarNS.PageType.inner && _this.isABlank_()) {
@@ -151,14 +151,14 @@ var Vomnibar = {
       sec: VomnibarNS.MessageData = [secret, _this.options_ as VomnibarNS.FgOptionsToFront],
       origin = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3));
       if (inner || (VSettings.cache.browserVer < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) setTimeout(function(i): void {
-        const a = Vomnibar, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
+        const a = VOmni, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
         if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }
         a.reset_();
         (VDom.UI.box_ as HTMLElement).style.display = "";
         window.focus();
         a.status_ = VomnibarNS.Status.KeepBroken;
-        (a as typeof Vomnibar & {activate (): void}).activate();
+        (a as typeof VOmni & {activate (): void}).activate();
       }, 1000); else {
         this.onload = null as never;
       }
@@ -176,7 +176,7 @@ var Vomnibar = {
         sameOrigin: true,
         onmessage: null as never as VomnibarNS.IframePort["onmessage"],
         postMessage<K extends keyof FReq> (data: FReq[K] & VomnibarNS.Msg<K>): void | 1 {
-          return Vomnibar && Vomnibar.onMessage_<K>({ data });
+          return VOmni && VOmni.onMessage_<K>({ data });
         }
       };
       _this.port_ = {
@@ -193,7 +193,7 @@ var Vomnibar = {
     if (CSS) {
       UI.css_(CSS);
     }
-    type !== VomnibarNS.PageType.inner && setTimeout(function(i): void { loaded || i || Vomnibar.onReset_ || reload(); }, 2000);
+    type !== VomnibarNS.PageType.inner && setTimeout(function(i): void { loaded || i || VOmni.onReset_ || reload(); }, 2000);
   },
   reset_ (redo?: boolean): void | 1 {
     if (this.status_ === VomnibarNS.Status.NotInited) { return; }
@@ -231,15 +231,15 @@ var Vomnibar = {
         this.onShown_();
       }
       break;
-    case "focus": window.focus(); return VEventMode.suppress_((data as Req["focus"]).key);
+    case "focus": window.focus(); return VEvent.suppress_((data as Req["focus"]).key);
     case "hide": return this.hide_(1);
-    case "test": return VEventMode.OnWndFocus_();
-    case "scroll": return VEventMode.scroll_(data as Req["scroll"]);
+    case "test": return VEvent.OnWndFocus_();
+    case "scroll": return VEvent.scroll_(data as Req["scroll"]);
     case "scrollGoing": VScroller.keyIsDown_ = VScroller.maxInterval_; break;
     case "scrollEnd": VScroller.keyIsDown_ = 0; break;
     case "evalJS": VPort.evalIfOK_((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
-    case "unload": return Vomnibar ? this.reset_(data.name === "broken") : undefined;
+    case "unload": return VOmni ? this.reset_(data.name === "broken") : undefined;
     case "hud": VHUD.tip((data as Req["hud"]).text); return;
     default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.name);
     }
@@ -264,7 +264,7 @@ var Vomnibar = {
     return VUtils.push_(this.onKeydown_, this);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
-    if (VEventMode.lock()) { return HandlerResult.Nothing; }
+    if (VEvent.lock()) { return HandlerResult.Nothing; }
     if (VKeyboard.isEscape_(event)) { this.hide_(); return HandlerResult.Prevent; }
     const key = event.keyCode - VKeyCodes.f1;
     if (key === 0 || key === 1) {

@@ -1,4 +1,4 @@
-var VFindMode = {
+var VFind = {
   isActive_: false,
   query_: "",
   query0_: "",
@@ -27,7 +27,7 @@ var VFindMode = {
     if (!VDom.isHTML_()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
     ui = VDom.UI, first = !ui.box_;
-    const a = VFindMode;
+    const a = VFind;
     a.isActive_ || query === a.query_ && options.leave || VMarks.setPreviousPosition_();
     VDom.docSelectable_ = ui.getDocSelectable_();
     ui.ensureBorder_();
@@ -48,12 +48,12 @@ var VFindMode = {
     a.parsedRegexp_ = a.regexMatches_ = null;
     a.activeRegexIndex_ = 0;
 
-    const el = a.box_ = VDom.createElement_("iframe") as typeof VFindMode.box_;
+    const el = a.box_ = VDom.createElement_("iframe") as typeof VFind.box_;
     a.css_ = options.findCSS || a.css_;
     el.className = "R HUD UI";
     el.style.width = "0px";
     if (VDom.wdZoom_ !== 1) { el.style.zoom = "" + 1 / VDom.wdZoom_; }
-    el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad_(1); };
+    el.onload = function(this: HTMLIFrameElement): void { return VFind.onLoad_(1); };
     VUtils.push_(ui.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
@@ -76,7 +76,7 @@ var VFindMode = {
       f(i, s, t);
     }
     f("blur", function onBlur(this: Window): void {
-      if (VFindMode.isActive_ && Date.now() - now < 500) {
+      if (VFind.isActive_ && Date.now() - now < 500) {
         let a = this.document.body as HTMLBodyElement | null;
         a && setTimeout(function(): void { (a as HTMLBodyElement).focus(); }, tick++ * 17);
       } else {
@@ -84,12 +84,12 @@ var VFindMode = {
       }
     }, t);
     f("focus", a.OnFocus_, t);
-    box.onload = later ? null as never : function(): void { this.onload = null as never; VFindMode.onLoad2_(this.contentWindow); };
+    box.onload = later ? null as never : function(): void { this.onload = null as never; VFind.onLoad2_(this.contentWindow); };
     if (later) { a.onLoad2_(wnd); }
   },
   onLoad2_ (wnd: Window): void {
     const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
-    a = VFindMode,
+    a = VFind,
     el: HTMLElement = a.input_ = doc.body as HTMLBodyElement,
     zoom = wnd.devicePixelRatio;
     let plain = true;
@@ -107,7 +107,7 @@ var VFindMode = {
     docEl.insertBefore(doc.createTextNode("/"), el);
     docEl.appendChild(el2);
     function cb(): void {
-      const a = VFindMode;
+      const a = VFind;
       VUtils.remove_(a);
       el.focus();
       return a.setFirstQuery_(a.query0_);
@@ -120,8 +120,8 @@ var VFindMode = {
   },
   _actived: false,
   OnFocus_ (this: Window, event: Event): void {
-    if (VFindMode._actived && event.target === this) {
-      VEventMode.OnWndFocus_();
+    if (VFind._actived && event.target === this) {
+      VEvent.OnWndFocus_();
     }
     return VUtils.Stop_(event);
   },
@@ -172,11 +172,11 @@ var VFindMode = {
     return this.postMode_.activate_();
   },
   clean_ (i: FindNS.Action): Element | null { // need keep @hasResults
-    let el: Element | null = null, _this = VFindMode;
+    let el: Element | null = null, _this = VFind;
     _this.coords_ && window.scrollTo(_this.coords_[0], _this.coords_[1]);
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
-      // todo: check `VFindMode.box.contentWindow.blur();` on FF/Edge
+      // todo: check `VFind.box.contentWindow.blur();` on FF/Edge
       window.focus();
       el = VDom.getSelectionEdgeElement_(getSelection(), 1);
       el && el.focus && el.focus();
@@ -190,14 +190,14 @@ var VFindMode = {
     return el;
   },
   OnUnload_ (this: void, e: Event): void {
-    const f = VFindMode;
+    const f = VFind;
     if (!f || e.isTrusted === false) { return; }
     f.isActive_ && f.deactivate_(FindNS.Action.ExitUnexpectedly);
   },
   OnMousedown_ (this: void, event: MouseEvent): void {
-    if (event.target !== VFindMode.input_ && event.isTrusted !== false) {
+    if (event.target !== VFind.input_ && event.isTrusted !== false) {
       VUtils.prevent_(event);
-      VFindMode.input_.focus();
+      VFind.input_.focus();
     }
   },
   OnPaste_ (this: HTMLElement, event: ClipboardEvent): void {
@@ -209,7 +209,7 @@ var VFindMode = {
   onKeydown_ (event: KeyboardEvent): void {
     VUtils.Stop_(event);
     if (event.isTrusted === false) { return; }
-    if (VScroller.keyIsDown_ && VEventMode.OnScrolls_[0](event)) { return; }
+    if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
     const n = event.keyCode;
     type Result = FindNS.Action;
     let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
@@ -222,7 +222,7 @@ var VFindMode = {
       else if (i = VKeyboard.getKeyStat_(event)) {
         if (i & ~KeyStat.PrimaryModifier) { return; }
         else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
-          VEventMode.scroll_(event, this.box_.contentWindow);
+          VEvent.scroll_(event, this.box_.contentWindow);
         }
         else if (n === VKeyCodes.J || n === VKeyCodes.K) {
           this.execute_(null, { count: (VKeyCodes.K - n) || -1 });
@@ -231,7 +231,7 @@ var VFindMode = {
         i = FindNS.Action.DoNothing;
       }
       else if (n === VKeyCodes.f1) { this.box_.contentDocument.execCommand("delete"); }
-      else if (n === VKeyCodes.f2) { window.focus(); VEventMode.suppress_(n); }
+      else if (n === VKeyCodes.f2) { window.focus(); VEvent.suppress_(n); }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery_(n !== VKeyCodes.up); }
       else { return; }
     } else if (i === FindNS.Action.PassDirectly) {
@@ -239,24 +239,24 @@ var VFindMode = {
     }
     VUtils.prevent_(event);
     if (!i) { return; }
-    VEventMode.suppress_(n);
+    VEvent.suppress_(n);
     this.deactivate_(i as FindNS.Action);
   },
   deactivate_(i: FindNS.Action): void {
     let sin = this.styleIn_, noStyle = !sin || !sin.parentNode, el = this.clean_(i), el2: Element | null;
-    if ((i === FindNS.Action.ExitAndReFocus || !this.hasResults_ || VVisualMode.mode_) && !noStyle) {
+    if ((i === FindNS.Action.ExitAndReFocus || !this.hasResults_ || VVisual.mode_) && !noStyle) {
       this.DisableStyle_(1);
       this.restoreSelection_(true);
     }
-    if (VVisualMode.mode_) {
-      return VVisualMode.activate_(1, VUtils.safer_({
+    if (VVisual.mode_) {
+      return VVisual.activate_(1, VUtils.safer_({
         mode: VisualModeNS.Mode.Visual as VisualModeNS.Mode.Visual,
         from_find: true as true
       }));
     }
     VDom.UI.toggleSelectStyle_(0);
     if (i < FindNS.Action.MinComplicatedExit || !this.hasResults_) { return; }
-    if (!el || el !== VEventMode.lock()) {
+    if (!el || el !== VEvent.lock()) {
       el = getSelection().anchorNode as Element | null;
       if (el && !this.focusFoundLink_(el) && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)) {
         if (VDom.getEditableType_(el2) >= EditableType.Editbox && el.contains(el2)) {
@@ -288,7 +288,7 @@ var VFindMode = {
     wnd.getSelection().collapseToEnd();
   },
   SetQuery_ (this: void, query: string): void {
-    let _this = VFindMode, doc: Document;
+    let _this = VFind, doc: Document;
     if (query === _this.query_ || !(doc = _this.box_.contentDocument)) { return; }
     if (!query && _this.historyIndex_ > 0) { --_this.historyIndex_; return; }
     doc.execCommand("selectAll", false);
@@ -301,13 +301,13 @@ var VFindMode = {
   postMode_: {
     lock_: null as Element | null,
     activate_: function() {
-      const el = VEventMode.lock(), Exit = this.exit_ as (this: void, a?: boolean | Event) => void;
+      const el = VEvent.lock(), Exit = this.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
       VUtils.push_(this.onKeydown_, this);
       if (el === this.lock_) { return; }
       if (!this.lock_) {
         addEventListener("click", Exit, true);
-        VEventMode.setupSuppress_(Exit);
+        VEvent.setupSuppress_(Exit);
       }
       Exit(true);
       this.lock_ = el;
@@ -325,7 +325,7 @@ var VFindMode = {
       this.lock_ = null;
       removeEventListener("click", this.exit_, true);
       VUtils.remove_(this);
-      VEventMode.setupSuppress_();
+      VEvent.setupSuppress_();
     }
   },
   OnInput_ (this: void, e?: Event): void {
@@ -333,7 +333,7 @@ var VFindMode = {
       VUtils.Stop_(e);
       if (e.isTrusted === false) { return; }
     }
-    const _this = VFindMode, query = _this.input_.innerText.replace(_this.A0Re_, " ").replace(_this.tailRe_, "");
+    const _this = VFind, query = _this.input_.innerText.replace(_this.A0Re_, " ").replace(_this.tailRe_, "");
     let s = _this.query_;
     if (!_this.hasResults_ && !_this.isRegex_ && _this.notEmpty_ && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
     s = "";
@@ -405,7 +405,7 @@ var VFindMode = {
     a.matchCount_ = matches ? matches.length : 0;
   },
   FormatQuery_ (this: void, str: string): string {
-    let flag = str.charCodeAt(1), enabled = flag >= KnownKey.a, a = VFindMode;
+    let flag = str.charCodeAt(1), enabled = flag >= KnownKey.a, a = VFind;
     if (flag === KnownKey.backslash) { return str; }
     flag &= KnownKey.AlphaMask;
     if (flag === KnownKey.I || flag === KnownKey.C) { a.ignoreCase_ = enabled === (flag === KnownKey.I); }
@@ -454,7 +454,7 @@ var VFindMode = {
       }
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel_, 0);
-    (el = VEventMode.lock()) && !VDom.isSelected_() && el.blur && el.blur();
+    (el = VEvent.lock()) && !VDom.isSelected_() && el.blur && el.blur();
     this.hasResults_ = found;
   },
   find_: function (this: void): boolean {
@@ -463,11 +463,11 @@ var VFindMode = {
     } catch (e) { return false; }
   } as Window["find"],
   HookSel_ (): void {
-    document.addEventListener("selectionchange", VFindMode && VFindMode.DisableStyle_, true);
+    document.addEventListener("selectionchange", VFind && VFind.DisableStyle_, true);
   },
   /** must be called after initing */
   DisableStyle_ (this: void, disable: BOOL | boolean | Event): void {
-    const a = VFindMode, sout = a.styleOut_, sin = a.styleIn_, UI = VDom.UI, active = a.isActive_;
+    const a = VFind, sout = a.styleOut_, sin = a.styleIn_, UI = VDom.UI, active = a.isActive_;
     document.removeEventListener("selectionchange", a.DisableStyle_, true);
     disable = !!disable;
     if (!active && disable) {

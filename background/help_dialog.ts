@@ -36,7 +36,7 @@ var HelpDialog = {
         : HelpDialog.groupHtml_(group, commandsToKey, hideUnbound, showNames);
     });
   }),
-  groupHtml_: (function(this: any, group: string, commandsToKey: SafeDict<string[]>
+  groupHtml_: (function(this: {}, group: string, commandsToKey: SafeDict<string[]>
       , hideUnbound: boolean, showNames: boolean): string {
     const _ref = (this as typeof HelpDialog).commandGroups_[group], renderItem = (this as typeof HelpDialog).commandHtml_
       , availableCommands = CommandsData.availableCommands_ as Readonly<EnsuredSafeDict<CommandsNS.Description>>;

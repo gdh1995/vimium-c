@@ -1,4 +1,4 @@
-var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
+var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
   , VimiumInjector: VimiumInjector | undefined | null;
 
 (function() {
@@ -82,7 +82,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     function onKeydown(event: KeyboardEvent): void {
       if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
         || !event.keyCode) { return; }
-      if (VScroller.keyIsDown_ && VEventMode.OnScrolls_[0](event)) { return; }
+      if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
       let keyChar: string, key = event.keyCode, action: HandlerResult;
       if (action = VUtils.bubbleEvent_(event)) {}
       else if (InsertMode.isActive_()) {
@@ -115,9 +115,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         action = HandlerResult.Prevent;
       } else if (!event.repeat && VDom.UI.removeSelection_()) {
         action = HandlerResult.Prevent;
-      } else if (VFindMode.isActive_) {
+      } else if (VFind.isActive_) {
         VUtils.prevent_(event); // safer
-        VFindMode.deactivate_(FindNS.Action.ExitNoFocus); // should exit
+        VFind.deactivate_(FindNS.Action.ExitNoFocus); // should exit
         action = HandlerResult.Prevent;
       } else if (event.repeat && !KeydownEvents[VKeyCodes.esc] && document.activeElement !== document.body) {
         let c = document.activeElement; c && c.blur && c.blur();
@@ -136,7 +136,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         || !event.keyCode) { return; }
       VScroller.keyIsDown_ = 0;
       if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
-        VEventMode.setupSuppress_();
+        VEvent.setupSuppress_();
       }
       if (KeydownEvents[event.keyCode]) {
         KeydownEvents[event.keyCode] = 0;
@@ -270,7 +270,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       K extends keyof SpecialCommands ? SpecialCommands[K] :
       (this: void, count: number, options: CmdOptions[K]) => void;
   } = [
-    VFindMode.activate_,
+    VFind.activate_,
     VHints.activate,
     VHints.ActivateAndFocus_,
     /* unhoverLast: */ function (this: void): void {
@@ -281,15 +281,15 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     VMarks.GoTo_,
     VScroller.ScBy,
     VScroller.ScTo,
-    VVisualMode.activate_,
-    Vomnibar.activate,
+    VVisual.activate_,
+    VOmni.activate,
     /* reset: */ function (): void {
       const a = InsertMode;
       VScroller.current_ = VDom.lastHovered_ = a.last_ = a.lock_ = a.global_ = null;
       a.mutable_ = true;
-      a.ExitGrab_(); VEventMode.setupSuppress_();
-      VHints.isActive_ && VHints.clean_(); VVisualMode.deactivate_();
-      VFindMode.styleOut_ || VFindMode.DisableStyle_(1);
+      a.ExitGrab_(); VEvent.setupSuppress_();
+      VHints.isActive_ && VHints.clean_(); VVisual.deactivate_();
+      VFind.styleOut_ || VFind.DisableStyle_(1);
       onWndBlur();
     },
 
@@ -573,7 +573,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       VUtils.prevent_(event); // safer
       if (el) {
         KeydownEvents[key] = 1;
-        const parent = el.ownerDocument.defaultView, a = (parent as Window & { VEventMode: typeof VEventMode }).VEventMode;
+        const parent = el.ownerDocument.defaultView, a = (parent as Window & { VEvent: typeof VEvent }).VEvent;
         el.blur && el.blur();
         if (a) {
           (parent as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(true);
@@ -709,9 +709,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         });
         return;
       }
-      VEventMode.focusAndListen_();
+      VEvent.focusAndListen_();
       esc();
-      VEventMode.suppress_(key);
+      VEvent.suppress_(key);
       const notTop = window.top !== window;
       if (notTop && mask === FrameMaskType.NormalNext) {
         let docEl = document.documentElement;
@@ -1011,7 +1011,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     }
     VDom.UI.ensureBorder_();
     VDom.UI.addElement_(box, AdjustType.Normal, true);
-    document.hasFocus() || VEventMode.focusAndListen_();
+    document.hasFocus() || VEvent.focusAndListen_();
     VScroller.current_ = box;
     VUtils.push_(function(event) {
       if (!InsertMode.lock_ && VKeyboard.isEscape_(event)) {
@@ -1020,9 +1020,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       }
       return HandlerResult.Nothing;
     }, box);
-    if (Vomnibar.status_ >= VomnibarNS.Status.Showing) {
-      VUtils.remove_(Vomnibar);
-      VUtils.push_(Vomnibar.onKeydown_, Vomnibar);
+    if (VOmni.status_ >= VomnibarNS.Status.Showing) {
+      VUtils.remove_(VOmni);
+      VUtils.push_(VOmni.onKeydown_, VOmni);
     }
   }
   ];
@@ -1070,13 +1070,13 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
   };
   VHUD = HUD;
 
-  VEventMode = {
+  VEvent = {
     lock (this: void): LockableElement | null { return InsertMode.lock_; },
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { return onWndFocus(); },
     focusAndListen_ (callback?: (() => void) | null, timedout?: 0 | 1): void {
       if (timedout !== 1) {
-        setTimeout(function(): void { VEventMode.focusAndListen_(callback, 1 as number as 0); }, 1);
+        setTimeout(function(): void { VEvent.focusAndListen_(callback, 1 as number as 0); }, 1);
         return;
       }
       InsertMode.ExitGrab_();
@@ -1096,7 +1096,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
       if (!(keyCode > VKeyCodes.maxNotPageUp && keyCode < VKeyCodes.minNotDown)) { return; }
-      wnd && VSettings.cache.smoothScroll && VEventMode.OnScrolls_[1](wnd, 1);
+      wnd && VSettings.cache.smoothScroll && VEvent.OnScrolls_[1](wnd, 1);
       if (keyCode > VKeyCodes.maxNotLeft) {
         return VScroller.scrollBy_((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);
       } else if (keyCode > VKeyCodes.maxNotEnd) {
@@ -1107,7 +1107,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     },
     OnScrolls_: [function (event): BOOL | 28 {
       return VScroller.keyIsDown_ = event.repeat ? (VUtils.prevent_(event), VScroller.maxInterval_ as 1 | 28) : 0;
-    }, function (this: VEventMode["OnScrolls_"], wnd, interval): void {
+    }, function (this: VEventModeTy["OnScrolls_"], wnd, interval): void {
       const f = interval ? addEventListener : removeEventListener,
       listener = this[2];
       VScroller.keyIsDown_ = interval || 0;
@@ -1119,7 +1119,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
         } else if (event.target !== this) {
           return;
         }
-        VEventMode.OnScrolls_[1](this);
+        VEvent.OnScrolls_[1](this);
       }
     }],
     setupSuppress_ (this: void, onExit): void {
@@ -1135,7 +1135,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     keydownEvents: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
       return !isEnabled || !(KeydownEvents = arr);
-    } as VEventMode["keydownEvents"]
+    } as VEventModeTy["keydownEvents"]
   };
 
   VSettings = {
@@ -1151,8 +1151,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
     f && f(HookAction.Destroy);
 
     VUtils = VKeyboard = VDom = VDom = VUtils = //
-    VHints = Vomnibar = VScroller = VMarks = VFindMode = //
-    VSettings = VHUD = VPort = VEventMode = VVisualMode = //
+    VHints = VOmni = VScroller = VMarks = VFind = //
+    VSettings = VHUD = VPort = VEvent = VVisual = //
     esc = null as never;
     ui.box_ && ui.toggle_(false);
 
@@ -1174,7 +1174,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode
   if (location.href !== "about:blank" || injector || !function(): 1 | void {
     try {
       let f = VDom.parentFrame_(),
-      a = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFindMode?: typeof VFindMode}).VFindMode;
+      a = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFind?: typeof VFind}).VFind;
       if (a && a.box_ && a.box_ === f) {
         VSettings.destroy(true);
         a.onLoad_();

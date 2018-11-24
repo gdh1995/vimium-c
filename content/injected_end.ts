@@ -1,7 +1,7 @@
-[VDom, VHints, VKeyboard, Vomnibar, VScroller, VMarks,
-  VFindMode, VSettings, VHUD, VVisualMode,
+[VDom, VHints, VKeyboard, VOmni, VScroller, VMarks,
+  VFind, VSettings, VHUD, VVisual,
   ].forEach(Object.seal);
-[VUtils, VEventMode, VPort].forEach(Object.freeze);
+[VUtils, VEvent, VPort].forEach(Object.freeze);
 
 VDom.Scripts = false;
 (VimiumInjector as VimiumInjector).checkIfEnabled = (function (this: null

@@ -311,7 +311,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       let sug = response[i], { title, url, type } = sug, tail = "", hasSessionId = sug.sessionId != null
         , deletable = wantDeletable && !(autoSelect && i === 0) && (
-          type === "tab" ? sug.sessionId !== TabRecency.last_ : type === "history" && !hasSessionId
+          type === "tab" ? sug.sessionId !== TabRecency_.last_ : type === "history" && !hasSessionId
         );
       if (url in urlDict) {
         url = `:${i + di} ` + url;
@@ -398,7 +398,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
         || !key.startsWith(last as string) ? "omni"
       : matchType === CompletersNS.MatchType.searchWanted ? "search"
       : firstType || "omni";
-    return Completion.filter_(key, { type, maxResults, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
+    return Completion_.filter_(key, { type, maxResults, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     const arr = lastSuggest;
@@ -413,7 +413,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       // need a re-computation
       // * may has been cleaned, or
       // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
-      return Completion.filter_(text, { type: "omni", maxResults: 3, maxChars, singleLine: true }, function(sugs, autoSelect): void {
+      return Completion_.filter_(text, { type: "omni", maxResults: 3, maxChars, singleLine: true }, function(sugs, autoSelect): void {
         return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) :  open(text, disposition);
       });
     }

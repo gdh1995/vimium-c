@@ -295,7 +295,7 @@ interface VPort {
 interface ComplicatedVPort extends VPort {
   post<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
-interface VEventMode {
+interface VEventModeTy {
   lock(this: void): LockableElement | null;
   suppress_(keyCode?: VKeyCodes): void;
   OnWndFocus_ (this: void): void;

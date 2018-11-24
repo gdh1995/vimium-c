@@ -641,7 +641,7 @@ tabEngine = {
   performSearch_ (query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
-    const curTabId = TabRecency.last_, noFilter = queryTerms.length <= 0;
+    const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0;
     let suggestions = [] as Suggestion[], tabs = [] as TextTab[], wndIds: number[] = [];
     for (const tab of tabs0) {
       if (tab.incognito && inNormal) { continue; }
@@ -695,7 +695,7 @@ tabEngine = {
   },
   SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
   computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    return TabRecency.tabs_[tabId] || -tabId;
+    return TabRecency_.tabs_[tabId] || -tabId;
   }
 },
 
@@ -905,7 +905,7 @@ Completers = {
       , query: CompletersNS.QueryStatus): 1 {
     const cb = func.bind(that, query);
     if (inNormal === null) {
-      inNormal = TabRecency.incognito_ !== IncognitoType.mayFalse ? TabRecency.incognito_ !== IncognitoType.true
+      inNormal = TabRecency_.incognito_ !== IncognitoType.mayFalse ? TabRecency_.incognito_ !== IncognitoType.true
         : Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito_
           || null;
     }
@@ -915,7 +915,7 @@ Completers = {
     return chrome.windows.getCurrent(function(wnd): void {
       if (query.isOff) { return; }
       inNormal = wnd ? !wnd.incognito : true;
-      TabRecency.incognito_ = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
+      TabRecency_.incognito_ = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
       chrome.tabs.query({}, cb);
     });
   },
@@ -1348,7 +1348,7 @@ knownCs: CompletersMap & SafeObject = {
   };
 
 
-  Completion = {
+  Completion_ = {
     filter_(this: void, query: string, options: CompletersNS.FullOptions
         , callback: CompletersNS.Callback): void {
       autoSelect = false;
@@ -1402,8 +1402,8 @@ knownCs: CompletersMap & SafeObject = {
   }, 80);
 }, 200);
 
-var Completion = { filter_: function(a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
+var Completion_ = { filter_: function(a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
   setTimeout(function() {
-    return Completion.filter_(a, b, c);
+    return Completion_.filter_(a, b, c);
   }, 210);
 }, removeSug_ (): void {} } as CompletersNS.GlobalCompletersConstructor;

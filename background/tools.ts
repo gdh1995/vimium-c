@@ -1,7 +1,7 @@
 type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
 type MarkStorage = Pick<Storage, "setItem"> & SafeDict<string>;
-const VClipboard = {
+const VClipboard_ = {
   getTextArea_ (): HTMLTextAreaElement {
     const el = document.createElement("textarea");
     el.style.position = "absolute";
@@ -50,7 +50,7 @@ const VClipboard = {
     return value;
   }
 },
-ContentSettings = {
+ContentSettings_ = {
   makeKey_ (this: void, contentType: CSTypes, url?: string): string {
     return "vimiumContent|" + contentType + (url ? "|" + url : "");
   },
@@ -113,7 +113,7 @@ ContentSettings = {
     }
     cs.clear({ scope: "regular" });
     cs.clear({ scope: "incognito_session_only" }, Utils.runtimeError_);
-    localStorage.removeItem(ContentSettings.makeKey_(contentType));
+    localStorage.removeItem(ContentSettings_.makeKey_(contentType));
   },
   clearCS_ (options: CommandsNS.Options, port: Port): void {
     const ty = "" + options.type as CSTypes;
@@ -129,18 +129,18 @@ ContentSettings = {
   },
   toggleCurrent_ (this: void, count: number, contentType: CSTypes, tab: Tab, reopen: boolean): void {
     const pattern = Utils.removeComposedScheme_(tab.url);
-    if (ContentSettings.complain_(contentType, pattern)) { return; }
+    if (ContentSettings_.complain_(contentType, pattern)) { return; }
     chrome.contentSettings[contentType].get({
       primaryUrl: pattern,
       incognito: tab.incognito
     }, function (opt): void {
-      ContentSettings.setAllLevels_(contentType, pattern, count, {
+      ContentSettings_.setAllLevels_(contentType, pattern, count, {
         scope: tab.incognito ? "incognito_session_only" : "regular",
         setting: (opt && opt.setting === "allow") ? "block" : "allow"
       }, function(err): void {
         if (err) { return; }
         if (!tab.incognito) {
-          const key = ContentSettings.makeKey_(contentType);
+          const key = ContentSettings_.makeKey_(contentType);
           localStorage.getItem(key) !== "1" && localStorage.setItem(key, "1");
         }
         if (tab.incognito || reopen) {
@@ -162,7 +162,7 @@ ContentSettings = {
       return Backend.complain_("change incognito settings");
     }
     const pattern = Utils.removeComposedScheme_(tab.url);
-    if (ContentSettings.complain_(contentType, pattern)) { return; }
+    if (ContentSettings_.complain_(contentType, pattern)) { return; }
     chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt): void {
       if (Utils.runtimeError_()) {
         chrome.contentSettings[contentType].get({primaryUrl: pattern}, function (opt) {
@@ -170,7 +170,7 @@ ContentSettings = {
           const tabOpt: chrome.windows.CreateData = {type: "normal", incognito: true, focused: false, url: "about:blank"};
           chrome.windows.create(tabOpt, function (wnd: chrome.windows.Window): void {
             const leftTabId = (wnd.tabs as Tab[])[0].id;
-            return ContentSettings.setAndUpdate_(count, contentType, tab, pattern, wnd.id, true, function(): void {
+            return ContentSettings_.setAndUpdate_(count, contentType, tab, pattern, wnd.id, true, function(): void {
               chrome.tabs.remove(leftTabId);
             });
           });
@@ -178,7 +178,7 @@ ContentSettings = {
         return Utils.runtimeError_();
       }
       if (opt && opt.setting === "allow" && tab.incognito) {
-        return ContentSettings.updateTab_(tab);
+        return ContentSettings_.updateTab_(tab);
       }
       chrome.windows.getAll(function(wnds): void {
         wnds = wnds.filter(wnd => wnd.incognito && wnd.type === "normal");
@@ -187,18 +187,18 @@ ContentSettings = {
             , "get incognito content settings", opt, " but can not find an incognito window.");
           return;
         } else if (opt && opt.setting === "allow") {
-          return ContentSettings.updateTab_(tab, wnds[wnds.length - 1].id);
+          return ContentSettings_.updateTab_(tab, wnds[wnds.length - 1].id);
         }
         const wndId = tab.windowId, isIncNor = tab.incognito && wnds.some(wnd => wnd.id === wndId);
-        return ContentSettings.setAndUpdate_(count, contentType, tab, pattern, isIncNor ? undefined : wnds[wnds.length - 1].id);
+        return ContentSettings_.setAndUpdate_(count, contentType, tab, pattern, isIncNor ? undefined : wnds[wnds.length - 1].id);
       });
     });
   },
   // `callback` must be executed
   setAndUpdate_: function (this: void, count: number, contentType: CSTypes, tab: Tab, pattern: string
       , wndId?: number, syncState?: boolean, callback?: (this: void) => void): void {
-    const cb = ContentSettings.updateTabAndWindow_.bind(null, tab, wndId, callback);
-    return ContentSettings.setAllLevels_(contentType, pattern, count
+    const cb = ContentSettings_.updateTabAndWindow_.bind(null, tab, wndId, callback);
+    return ContentSettings_.setAllLevels_(contentType, pattern, count
       , { scope: "incognito_session_only", setting: "allow" }
       , syncState && (wndId as number) !== tab.windowId
       ? function(err): void {
@@ -223,7 +223,7 @@ ContentSettings = {
         setTimeout(callback, 0, has_err);
       }
       return err;
-    }, arr = ContentSettings.parsePattern_(url, count | 0);
+    }, arr = ContentSettings_.parsePattern_(url, count | 0);
     left = arr.length;
     if (left <= 0) { return callback(true); }
     Object.setPrototypeOf(settings, null);
@@ -235,7 +235,7 @@ ContentSettings = {
   },
   updateTabAndWindow_ (this: void, tab: Tab, wndId: number | undefined, callback: ((this: void) => void) | undefined
       , oldWnd: chrome.windows.Window | boolean): void {
-    if (oldWnd !== true) { ContentSettings.updateTab_(tab, wndId); }
+    if (oldWnd !== true) { ContentSettings_.updateTab_(tab, wndId); }
     callback && callback();
     if (oldWnd === true) { return; }
     wndId && chrome.windows.update(wndId, {
@@ -254,7 +254,7 @@ ContentSettings = {
     Backend.reopenTab_(tab);
   }
 },
-Marks = { // NOTE: all public members should be static
+Marks_ = { // NOTE: all public members should be static
   cache: localStorage,
   cacheI: null as MarkStorage | null,
   _storage (): MarkStorage {
@@ -263,7 +263,7 @@ Marks = { // NOTE: all public members should be static
     return map;
   },
   _set ({ local, markName, url, scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number): void {
-    const storage = incognito ? this.cacheI || (IncognitoWatcher.watch_(), this.cacheI = this._storage()) : this.cache;
+    const storage = incognito ? this.cacheI || (IncognitoWatcher_.watch_(), this.cacheI = this._storage()) : this.cache;
     if (local && scroll[0] === 0 && scroll[1] === 0) {
       if (scroll.length === 2) {
         const i = url.indexOf('#');
@@ -282,7 +282,7 @@ Marks = { // NOTE: all public members should be static
   createMark (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.sender.tabId;
     if (request.scroll) {
-      return Marks._set(request as MarksNS.NewMark, port.sender.incognito, tabId);
+      return Marks_._set(request as MarksNS.NewMark, port.sender.incognito, tabId);
     }
     (port = Backend.indexPorts(tabId, 0) || port) && port.postMessage({
       N: kBgReq.createMark,
@@ -290,19 +290,19 @@ Marks = { // NOTE: all public members should be static
     });
   },
   gotoMark (this: void, request: MarksNS.FgQuery, port: Port): void {
-    const { local, markName } = request, key = Marks.getLocationKey(markName, local ? request.url : "");
-    const str = Marks.cacheI && port.sender.incognito && Marks.cacheI[key] || Marks.cache.getItem(key);
+    const { local, markName } = request, key = Marks_.getLocationKey(markName, local ? request.url : "");
+    const str = Marks_.cacheI && port.sender.incognito && Marks_.cacheI[key] || Marks_.cache.getItem(key);
     if (local) {
       let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
       if (!scroll) {
         let oldPos = (request as MarksNS.FgLocalQuery).old, x: number, y: number;
         if (oldPos && (x = +oldPos.scrollX) >= 0 && (y = +oldPos.scrollY) >= 0) {
           (request as MarksNS.NewMark).scroll = scroll = [x, y, oldPos.hash];
-          Marks._set(request as MarksNS.NewMark, port.sender.incognito);
+          Marks_._set(request as MarksNS.NewMark, port.sender.incognito);
         }
       }
       if (scroll) {
-        return Marks._goto(port, { markName, scroll, local: true });
+        return Marks_._goto(port, { markName, scroll, local: true });
       }
     }
     if (!str) {
@@ -313,7 +313,7 @@ Marks = { // NOTE: all public members should be static
     markInfo.prefix = request.prefix !== false && markInfo.scroll[1] === 0 && markInfo.scroll[0] === 0 &&
         !!Utils.IsURLHttp_(markInfo.url);
     if (tabId >= 0 && Backend.indexPorts(tabId)) {
-      chrome.tabs.get(tabId, Marks.checkTab.bind(markInfo));
+      chrome.tabs.get(tabId, Marks_.checkTab.bind(markInfo));
     } else {
       return Backend.focus(markInfo);
     }
@@ -322,7 +322,7 @@ Marks = { // NOTE: all public members should be static
     const url = tab.url.split("#", 1)[0];
     if (url === this.url || this.prefix && this.url.startsWith(url)) {
       Backend.gotoSession_({ sessionId: tab.id });
-      return Marks.scrollTab(this, tab);
+      return Marks_.scrollTab(this, tab);
     } else {
       return Backend.focus(this);
     }
@@ -333,14 +333,14 @@ Marks = { // NOTE: all public members should be static
   },
   scrollTab (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Backend.indexPorts(tabId, 0);
-    port && Marks._goto(port, { markName: markInfo.markName, scroll: markInfo.scroll });
+    port && Marks_._goto(port, { markName: markInfo.markName, scroll: markInfo.scroll });
     if (markInfo.tabId !== tabId && markInfo.markName) {
-      return Marks._set(markInfo as MarksNS.MarkToGo, TabRecency.incognito_ === IncognitoType.true, tabId);
+      return Marks_._set(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
     }
   },
   clear (this: void, url?: string): void {
-    const key_start = Marks.getLocationKey("", url);
-    let toRemove: string[] = [], storage = Marks.cache;
+    const key_start = Marks_.getLocationKey("", url);
+    let toRemove: string[] = [], storage = Marks_.cache;
     for (let i = 0, end = storage.length; i < end; i++) {
       const key = storage.key(i) as string;
       if (key.startsWith(key_start)) {
@@ -349,8 +349,8 @@ Marks = { // NOTE: all public members should be static
     }
     for (const key of toRemove) { storage.removeItem(key); }
     let count = toRemove.length;
-    if (Marks.cacheI) {
-      const storage2 = Marks.cacheI;
+    if (Marks_.cacheI) {
+      const storage2 = Marks_.cacheI;
       for (const key in storage2) {
         if (key.startsWith(key_start)) {
           count++;
@@ -361,7 +361,7 @@ Marks = { // NOTE: all public members should be static
     return Backend.showHUD_(`${count} ${url ? "local" : "global"} mark${count !== 1 ? "s have" : " has"} been removed.`);
   }
 },
-FindModeHistory = {
+FindModeHistory_ = {
   key_: "findModeRawQueryList" as "findModeRawQueryList",
   max_: 50,
   list_: null as string[] | null,
@@ -373,9 +373,9 @@ FindModeHistory = {
     this.init_ = null as never;
   },
   query_: function (incognito: boolean, query?: string, index?: number): string | void {
-    const a = FindModeHistory;
+    const a = FindModeHistory_;
     a.init_ && a.init_();
-    const list = incognito ? a.listI_ || (IncognitoWatcher.watch_(),
+    const list = incognito ? a.listI_ || (IncognitoWatcher_.watch_(),
                             a.listI_ = (a.list_ as string[]).slice(0)) : (a.list_ as string[]);
     if (!query) {
       return list[list.length - (index || 1)] || "";
@@ -397,7 +397,7 @@ FindModeHistory = {
       if (ind === list.length - 1) { return; }
       list.splice(ind, 1);
     }
-    else if (list.length >= (this as typeof FindModeHistory).max_) { list.shift(); }
+    else if (list.length >= (this as typeof FindModeHistory_).max_) { list.shift(); }
     list.push(query);
     if (!skipResult) {
       return list.join("\n");
@@ -416,7 +416,7 @@ FindModeHistory = {
     Settings.set(this.key_, "");
   }
 },
-IncognitoWatcher = {
+IncognitoWatcher_ = {
   watching_: false,
   timer_: 0,
   watch_ (): void {
@@ -425,12 +425,12 @@ IncognitoWatcher = {
     this.watching_ = true;
   },
   OnWndRemoved_ (this: void): void {
-    const _this = IncognitoWatcher;
+    const _this = IncognitoWatcher_;
     if (!_this.watching_) { return; }
     _this.timer_ = _this.timer_ || setTimeout(_this.TestIncognitoWnd_, 34);
   },
   TestIncognitoWnd_ (this: void): void {
-    IncognitoWatcher.timer_ = 0;
+    IncognitoWatcher_.timer_ = 0;
     if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
       let left = false, arr = Backend.indexPorts();
       for (const i in arr) {
@@ -439,17 +439,17 @@ IncognitoWatcher = {
       if (left) { return; }
     }
     chrome.windows.getAll(function(wnds): void {
-      wnds.some(wnd => wnd.incognito) || IncognitoWatcher.cleanI_();
+      wnds.some(wnd => wnd.incognito) || IncognitoWatcher_.cleanI_();
     });
   },
   cleanI_ (): void {
-    FindModeHistory.listI_ = null;
-    Marks.cacheI = null;
+    FindModeHistory_.listI_ = null;
+    Marks_.cacheI = null;
     chrome.windows.onRemoved.removeListener(this.OnWndRemoved_);
     this.watching_ = false;
   }
 },
-TabRecency = {
+TabRecency_ = {
   tabs_: Object.create<number>(null) as SafeDict<number>,
   last_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
   lastWnd_: (chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone) as number,
@@ -458,7 +458,7 @@ TabRecency = {
 };
 
 setTimeout(function() {
-  const cache = TabRecency.tabs_, noneWnd = chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone;
+  const cache = TabRecency_.tabs_, noneWnd = chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone;
   let stamp = 1, time = 0;
   function clean(): void {
     const ref = cache;
@@ -471,17 +471,17 @@ setTimeout(function() {
   function listener(info: { tabId: number }): void {
     const now = Date.now();
     if (now - time > 500) {
-      cache[TabRecency.last_] = ++stamp;
+      cache[TabRecency_.last_] = ++stamp;
       if (stamp === 1023) { clean(); }
     }
-    TabRecency.last_ = info.tabId; time = now;
+    TabRecency_.last_ = info.tabId; time = now;
   }
   function onWndFocus(tabs: [chrome.tabs.Tab] | never[]) {
     if (!tabs) { return Utils.runtimeError_(); }
     let a = tabs[0];
     if (a) {
-      TabRecency.lastWnd_ = a.windowId;
-      TabRecency.incognito_ = +a.incognito;
+      TabRecency_.lastWnd_ = a.windowId;
+      TabRecency_.incognito_ = +a.incognito;
       return listener({ tabId: a.id });
     }
   }
@@ -495,17 +495,17 @@ setTimeout(function() {
     time = Date.now();
     const a = tabs && tabs[0];
     if (!a) { return Utils.runtimeError_(); }
-    TabRecency.last_ = a.id;
-    TabRecency.lastWnd_ = a.windowId;
-    TabRecency.incognito_ = a.incognito ? IncognitoType.true : IncognitoType.mayFalse;
+    TabRecency_.last_ = a.id;
+    TabRecency_.lastWnd_ = a.windowId;
+    TabRecency_.incognito_ = a.incognito ? IncognitoType.true : IncognitoType.mayFalse;
   });
-  TabRecency.rCompare_ = function(a, b): number {
+  TabRecency_.rCompare_ = function(a, b): number {
     return (cache[b.id] as number) - (cache[a.id] as number);
   };
 
   for (const i of ["images", "plugins", "javascript", "cookies"] as CSTypes[]) {
-    localStorage.getItem(ContentSettings.makeKey_(i)) != null &&
-    setTimeout(ContentSettings.Clear_, 100, i);
+    localStorage.getItem(ContentSettings_.makeKey_(i)) != null &&
+    setTimeout(ContentSettings_.Clear_, 100, i);
   }
 }, 120);
 

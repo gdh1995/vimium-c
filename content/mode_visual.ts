@@ -11,7 +11,7 @@ declare namespace VisualModeNS {
   }
 
 }
-var VVisualMode = {
+var VVisual = {
   mode_: VisualModeNS.Mode.NotActive,
   hud_: "",
   hudTimer_: 0,
@@ -20,7 +20,7 @@ var VVisualMode = {
   retainSelection_: false,
   selection_: null as never as Selection,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
-    const a = VVisualMode, F = VFindMode;
+    const a = VVisual, F = VFind;
     let sel: Selection, type: string, mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
     a.init_ && a.init_(options.words as string);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
@@ -34,7 +34,7 @@ var VVisualMode = {
     a.mode_ = mode;
     if (mode !== VisualModeNS.Mode.Caret) {
       a.movement_.alterMethod_ = "extend";
-      const notEditing = !VEventMode.lock();
+      const notEditing = !VEvent.lock();
       if (notEditing && (type === "Caret" || type === "Range")) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
         VDom.getZoom_(1);
@@ -76,7 +76,7 @@ var VVisualMode = {
     if (!this.retainSelection_) {
       this.movement_.collapseSelectionTo_(isEsc && this.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
-    const el = VEventMode.lock();
+    const el = VEvent.lock();
     el && el.blur && el.blur();
     VDom.UI.toggleSelectStyle_(0);
     VScroller.top_ = null;
@@ -101,7 +101,7 @@ var VVisualMode = {
     const ch = VKeyboard.char(event);
     if (!ch) { this.resetKeys_(); return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress; }
     let key = VKeyboard.key(event, ch), obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
-    key = VEventMode.mapKey_(key);
+    key = VEvent.mapKey_(key);
     if (obj = this.currentSeconds_) {
       obj = obj[key];
       count = this.currentCount_;
@@ -136,7 +136,7 @@ var VVisualMode = {
       }
       if (command === 55) {
         clearTimeout(this.hudTimer_);
-        return VFindMode.activate_(1, VUtils.safer_({ returnToViewport: true }));
+        return VFind.activate_(1, VUtils.safer_({ returnToViewport: true }));
       }
       if (command === 53 && mode !== VisualModeNS.Mode.Caret) {
         const flag = movement.selection_.toString().length > 1;
@@ -192,26 +192,26 @@ var VVisualMode = {
     return VHUD.show_(text);
   },
   ResetHUD_ (i?: TimerType.fake | undefined): void {
-    const _this = VVisualMode;
+    const _this = VVisual;
     if (!_this || i) { return; }
     _this.hudTimer_ = 0;
     if (_this.hud_) { return VHUD.show_(_this.hud_); }
   },
   find_ (count: number): void {
-    if (!VFindMode.query_) {
+    if (!VFind.query_) {
       VPort.send_({ msg: kFgReq.findQuery }, function(query): void {
         if (query) {
-          VFindMode.updateQuery_(query);
-          return VVisualMode.find_(count);
+          VFind.updateQuery_(query);
+          return VVisual.find_(count);
         } else {
-          return VVisualMode.prompt_("No history queries", 1000);
+          return VVisual.prompt_("No history queries", 1000);
         }
       });
       return;
     }
     const range = this.selection_.getRangeAt(0);
-    VFindMode.execute_(null, { noColor: true, count });
-    if (VFindMode.hasResults_) {
+    VFind.execute_(null, { noColor: true, count });
+    if (VFind.hasResults_) {
       if (this.mode_ === VisualModeNS.Mode.Caret && this.selection_.toString().length > 0) {
         this.activate_(1, Object.create(null) as SafeObject & CmdOptions[kFgCmd.visualMode]);
       }
@@ -219,7 +219,7 @@ var VVisualMode = {
     }
     this.selection_.removeAllRanges();
     this.selection_.addRange(range);
-    return this.prompt_("No matches for " + VFindMode.query_, 1000);
+    return this.prompt_("No matches for " + VFind.query_, 1000);
   },
   yank_ (action?: true | ReuseType.current | ReuseType.newFg | null): void {
     const str = this.selection_.toString();
@@ -301,7 +301,7 @@ movement_: {
     return isMove ? false : this.hashSelection_() === before;
   },
   reverseSelection_ (): void {
-    const el = VEventMode.lock(), direction = this.getDirection_(true);
+    const el = VEvent.lock(), direction = this.getDirection_(true);
     if (el
         && (VDom.editableTypes_[(el.tagName as string).toLowerCase()] as EditableType) > EditableType.Embed) {
       let length = this.selection_.toString().length;

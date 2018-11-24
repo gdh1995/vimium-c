@@ -359,7 +359,7 @@ var Utils = {
         return res.then(function(arr): Urls.CopyEvalResult {
           let path = arr[0] || (arr[2] || "");
           path = path instanceof Array ? path.join(" ") : path;
-          VClipboard.copy_(path);
+          VClipboard_.copy_(path);
           return [path, "copy"];
         });
       } else {
@@ -369,7 +369,7 @@ var Utils = {
       }
       // no break;
     case "c": case "cp": case "copy": // here `typeof path` must be `string`
-      VClipboard.copy_(path);
+      VClipboard_.copy_(path);
       return [path, "copy"];
     }
     switch (cmd) {

@@ -419,8 +419,6 @@ interface Window {
   readonly CommandsData: CommandsData;
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
-  readonly TabRecency?: any;
-  readonly Completers?: any;
   readonly NotChrome: boolean;
   readonly IsEdge: boolean;
   readonly IsFirefox: boolean;

@@ -46,11 +46,7 @@ debounce = function<T> (this: void, func: (this: T) => void
           , wait: number, bound_context: T, also_immediate: BOOL
           ) => (this: void) => void;
 
-var _idRegex = <RegExpOne> /^#[0-9A-Z_a-z]+$/,
-$ = function<T extends HTMLElement>(selector: string): T {
-  if (selector[0] === "#") {
-    return document.getElementById(selector.substring(1)) as T;
-  }
+var $ = function<T extends HTMLElement>(selector: string): T {
   return document.querySelector(selector) as T;
 },
 BG = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl }, bgSettings = BG.Settings;

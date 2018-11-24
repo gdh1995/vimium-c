@@ -125,7 +125,7 @@ var VHints = {
 
     a.isActive_ = true;
     VUtils.push_(a.onKeydown_, a);
-    VEventMode.onWndBlur_(a.ResetMode_);
+    VEvent.onWndBlur_(a.ResetMode_);
   },
   setModeOpt_ (count: number, options: HintsNS.Options): void {
     if (this.options_ === options) { return; }
@@ -168,12 +168,12 @@ var VHints = {
     if (a && a.isActive_) { a.pTimer_ = 0; return a.setMode_(a.mode_); }
   },
   ActivateAndFocus_ (this: void, a: number, b: FgOptions): void {
-    return VEventMode.focusAndListen_(() => {
+    return VEvent.focusAndListen_(() => {
       VHints.isActive_ = false;
       VHints.activate(a, b);
     });
   },
-  tryNestedFrame_ (mode: "VHints" | "VScroller" | "Vomnibar", action: string, a: number, b: SafeObject): boolean {
+  tryNestedFrame_ (mode: "VHints" | "VScroller" | "VOmni", action: string, a: number, b: SafeObject): boolean {
     if (this.frameNested_ !== null) {
       mode !== "VHints" && VDom.prepareCrop_();
       this.checkNestedFrame_();
@@ -181,8 +181,8 @@ var VHints = {
     interface VWindow extends Window {
       VHints: typeof VHints,
       VScroller: typeof VScroller;
-      Vomnibar: typeof Vomnibar;
-      VEventMode: VEventMode,
+      VOmni: typeof VOmni;
+      VEvent: VEventModeTy,
       VDom: typeof VDom;
     }
     let frame = this.frameNested_, child: VWindow = null as never, err = true, done = false;
@@ -192,7 +192,7 @@ var VHints = {
         if (mode === "VHints") {
           (done = child.VHints.isActive_) && child.VHints.deactivate_(true);
         }
-        err = child.VEventMode.keydownEvents(VEventMode.keydownEvents());
+        err = child.VEvent.keydownEvents(VEvent.keydownEvents());
       }
     } catch (e) {}
     if (err) {
@@ -201,7 +201,7 @@ var VHints = {
       this.frameNested_ = null;
       return false;
     }
-    child.VEventMode.focusAndListen_(done ? null : function(): void {
+    child.VEvent.focusAndListen_(done ? null : function(): void {
       return (child[mode as "VHints"])[action as "activate"](a, b);
     });
     if (done) { return true; }
@@ -241,7 +241,7 @@ var VHints = {
   adjustMarkers_ (elements: Hint[]): void {
     const zi = VDom.bZoom_, root = VDom.UI.R;
     let i = elements.length - 1;
-    if (!root || elements[i][0] !== Vomnibar.box_ && !root.querySelector('#HelpDialog')) { return; }
+    if (!root || elements[i][0] !== VOmni.box_ && !root.querySelector('#HelpDialog')) { return; }
     const z = ("" + 1 / zi).substring(0, 5), arr = this.hints_ as HintsNS.HintItem[],
     mr = this.maxRight_ * zi, mt = this.maxTop_ * zi;
     while (0 <= i && root.contains(elements[i][0])) {
@@ -275,14 +275,14 @@ var VHints = {
     switch ((element.tagName as string).toLowerCase()) {
     case "a": case "details": isClickable = true; break;
     case "frame": case "iframe":
-      if (element === Vomnibar.box_) {
+      if (element === VOmni.box_) {
         if (arr = VDom.getVisibleClientRect_(element)) {
           (arr as WritableVRect)[0] += 12; (arr as WritableVRect)[1] += 9;
           this.push([element as SafeHTMLElement, arr, ClickType.frame]);
         }
         return;
       }
-      isClickable = element !== VFindMode.box_;
+      isClickable = element !== VFind.box_;
       type = isClickable ? ClickType.frame : ClickType.Default;
       break;
     case "input":
@@ -666,7 +666,7 @@ var VHints = {
         (i & (i - 1)) || (this.lastMode_ = mode);
       }
     } else if (i <= VKeyCodes.down && i >= VKeyCodes.pageup) {
-      VEventMode.scroll_(event);
+      VEvent.scroll_(event);
       this.ResetMode_();
     } else if (i === VKeyCodes.space) {
       this.zIndexes_ === false || this.rotateHints_(event.shiftKey);
@@ -708,7 +708,7 @@ var VHints = {
   },
   ResetMode_ (): void {
     if (VHints.mode_ >= HintMode.min_disable_queue || VHints.lastMode_ === VHints.mode_) { return; }
-    const d = VEventMode.keydownEvents();
+    const d = VEvent.keydownEvents();
     if (d[VKeyCodes.ctrlKey] || d[VKeyCodes.metaKey] || d[VKeyCodes.shiftKey] || d[VKeyCodes.altKey]) {
       return VHints.setMode_(VHints.lastMode_);
     }
@@ -792,7 +792,7 @@ var VHints = {
     alpha.hintKeystroke_ = alpha.chars_ = "";
     this.isActive_ = this.noHUD_ = this.tooHigh_ = ks.known = false;
     VUtils.remove_(this);
-    VEventMode.onWndBlur_(null);
+    VEvent.onWndBlur_(null);
     if (this.box_) {
       this.box_.remove();
       this.box_ = null;
@@ -990,13 +990,13 @@ openUrl_ (url: string, incognito?: boolean): void {
 },
 highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   interface VWindow extends Window {
-    VEventMode: VEventMode;
+    VEvent: VEventModeTy;
     VHints: typeof VHints;
   }
   let err: boolean | null = true, child: VWindow = null as never;
   try {
     err = !el.contentDocument ||
-      (child = el.contentWindow as VWindow).VEventMode.keydownEvents(VEventMode.keydownEvents());
+      (child = el.contentWindow as VWindow).VEvent.keydownEvents(VEvent.keydownEvents());
   } catch (e) {}
   const { count_: count, options_: options } = this;
   options.mode = this.mode_;
@@ -1209,8 +1209,8 @@ Modes_: [
   activator_ (link, rect, hint): void | boolean {
     const a = this as typeof VHints, tag = link instanceof HTMLElement ? (link.tagName as string).toLowerCase() : "";
     if (tag === "iframe" || tag === "frame") {
-      const highlight = link !== Vomnibar.box_;
-      highlight ? a.highlightChild_(link as HTMLIFrameElement | HTMLFrameElement) : Vomnibar.focus_();
+      const highlight = link !== VOmni.box_;
+      highlight ? a.highlightChild_(link as HTMLIFrameElement | HTMLFrameElement) : VOmni.focus_();
       a.mode_ = HintMode.DEFAULT;
       return highlight;
     }

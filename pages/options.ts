@@ -354,7 +354,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       if (!window.VKeyboard) { return; }
       let wanted = event.keyCode === VKeyCodes.questionWin || event.keyCode === VKeyCodes.questionMac ? "?" : "";
       if (wanted && VKeyboard.char(event) === wanted && VKeyboard.key(event, wanted) === wanted) {
-        if (!VEventMode.lock()) {
+        if (!VEvent.lock()) {
           $("#showCommands").click();
         }
       }

@@ -34,11 +34,7 @@ declare var browser: unknown;
 if (typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
 }
-var _idRegex = <RegExpOne> /^#[0-9A-Z_a-z]+$/,
-$ = function<T extends HTMLElement>(selector: string): T {
-  if (_idRegex.test(selector)) {
-    return document.getElementById(selector.substring(1)) as T;
-  }
+var $ = function<T extends HTMLElement>(selector: string): T {
   return document.querySelector(selector) as T;
 },
 BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };

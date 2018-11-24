@@ -13,7 +13,7 @@ Comment: on C35 and C70, `iframe` and `frame` have no named property getters
 - **form**: CrossContext, OverrideBuiltins
   - ***fixed***
     - VDom, VUtils, VKeyboard, polyfill
-    - VMarks, VFindMode, VVisualMode, VScroller, Vomnibar
+    - VMarks, VFind, VVisual, VScroller, VOmni
     - VDom.UI, extend_click, inject_end
     - frontend
 
