@@ -44,11 +44,7 @@
   },
   "mangle": {
     "properties": {
-      "regex": "/^_|_$/",
-      "reserved": [
-        "_msgId",
-        "_delayed", "__k", "_onCacheUpdated"
-      ]
+      "regex": "/^_|_$/"
     },
     "reserved": [
       "startsWith", "endsWith", "addEventListener", "toString",
