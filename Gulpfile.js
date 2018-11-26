@@ -58,31 +58,21 @@ var Tasks = {
   "build/ts": ["build/scripts", "build/main_pages"],
 
   "min/bg": function(cb) {
-    var nameCache = { vars: {}, props: {} };
+    var exArgs = { nameCache: { vars: {}, props: {} }, passAll: true };
     var sources = manifest.background.scripts;
-    sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").split("\n");
+    sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");
     var ori_sources = sources.slice(0);
     var body = sources.splice(0, sources.indexOf("background/main.js") + 1, "background/body.js");
-    gulp.task("min/bg/_1", function() {
-      return uglifyJSFiles(body, sources[0], null, nameCache);
-    });
     var index = sources.indexOf("background/tools.js");
     var tail = sources.splice(index, sources.length - index, "background/tail.js");
-    gulp.task("min/bg/_2", function() {
-      return uglifyJSFiles(tail, sources[index], null, nameCache);
-    });
-    gulp.task("min/bg/_3", function() {
-      return uglifyJSFiles(sources.slice(1, index), "background/", "", nameCache);
-    });
-    gulp.task("min/bg/_4", function() {
-      var res = ["background/*.js"];
-      for (var arr = ori_sources, i = 0, len = arr.length; i < len; i++) {
-        res.push("!" + arr[i]);
-      }
-      return uglifyJSFiles(res, ".", "", nameCache);
-    });
+    var rest = ["background/*.js"];
+    for (var arr = ori_sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
+    var maps = [
+      [body, sources[0], null], [tail, sources[index], null],
+      [sources.slice(1, index), ".", ""], [rest, ".", ""]
+    ];
     manifest.background.scripts = sources;
-    gulp.parallel("min/bg/_1", "min/bg/_2", "min/bg/_3", "min/bg/_4")(cb);
+    checkJSAndUglifyAll(maps, "min/bg", exArgs, cb);
   },
   "min/content": function(cb) {
     var cs = manifest.content_scripts[0], sources = cs.js;
@@ -90,29 +80,33 @@ var Tasks = {
       return cb();
     }
     cs.js = ["content/vimium-c.js"];
-    var nameCache = { vars: {}, props: {} };
-    gulp.task("min/content/_1", function() {
-      return uglifyJSFiles(sources.slice(0), cs.js[0], null, nameCache);
-    });
-    gulp.task("min/content/_2", function() {
-      var res = ["content/*.js"];
-      for (var arr = sources, i = 0, len = arr.length; i < len; i++) {
-        res.push("!" + arr[i]);
-      }
-      return uglifyJSFiles(res, ".", "", nameCache);
-    });
-    gulp.parallel("min/content/_1", "min/content/_2")(cb);
+    var exArgs = { nameCache: { vars: {}, props: {} }, passAll: true };
+    var rest = ["content/*.js"];
+    for (var arr = sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
+    var maps = [
+      [sources.slice(0), cs.js[0], null], [rest, ".", ""]
+    ];
+    checkJSAndUglifyAll(maps, "min/content", exArgs, cb);
   },
-  "min/others": function() {
-    var oriManifest = readJSON("manifest.json", true);
-    var res = ["**/*.js", "!background/*.js", "!content/*.js"];
-    for (var arr = oriManifest.background.scripts, i = 0, len = arr.length; i < len; i++) {
-      res.push("!" + arr[i]);
-    }
-    for (var arr = oriManifest.content_scripts[0].js, i = 0, len = arr.length; i < len; i++) {
-      res.push("!" + arr[i]);
-    }
-    return uglifyJSFiles(res, ".", "");
+  "min/others": function(cb) {
+    gulp.task("min/others/_1", function() {
+      return uglifyJSFiles(["front/*.js"], ".", "");
+    });
+    gulp.task("min/others/_2", function() {
+      var exArgs = { nameCache: { vars: {}, props: {} } };
+      return uglifyJSFiles(["pages/options_base.js", "pages/options*.js"], ".", "", exArgs);
+    });
+    gulp.task("min/others/_3", function() {
+      var oriManifest = readJSON("manifest.json", true);
+      var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/*", "!pages/options*"];
+      for (var arr = oriManifest.content_scripts[0].js, i = 0, len = arr.length; i < len; i++) {
+        if (arr[i].lastIndexOf("lib/", 0) === 0) {
+          res.push("!" + arr[i]);
+        }
+      }
+      return uglifyJSFiles(res, ".", "");
+    });
+    gulp.parallel("min/others/_1", "min/others/_2", "min/others/_3")(cb);
   },
   "min/js": ["min/bg", "min/content", "min/others"],
   manifest: [["min/bg", "min/content"], function(cb) {
@@ -172,7 +166,7 @@ var Tasks = {
     done();
   }],
   test: ["local"]
-}
+};
 
 
 typescript = compilerOptions.typescript = loadTypeScriptCompiler();
@@ -277,8 +271,8 @@ function compile(pathOrStream, header_files, skipOutput) {
   var stream = pathOrStream instanceof Array ? gulp.src(pathOrStream, { base: "." }) : pathOrStream;
   var extra = ignoreHeaderChanges || header_files === false ? undefined
     : ["types/**/*.d.ts", "types/*.d.ts"].concat(header_files);
-  var ifNotEmpty = gulpIfNotEmpty();
-  stream = stream.pipe(ifNotEmpty.prepare);
+  var allIfNotEmpty = gulpAllIfNotEmpty();
+  stream = stream.pipe(allIfNotEmpty.prepare);
   if (!debugging) {
     stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: extra }));
   }
@@ -287,7 +281,7 @@ function compile(pathOrStream, header_files, skipOutput) {
     return i < 0 || t.indexOf(s, i) !== i;
   }));
   if (compileInBatch) {
-    stream = stream.pipe(ifNotEmpty.cond);
+    stream = stream.pipe(allIfNotEmpty.cond);
   }
   if (willListFiles) {
     stream = stream.pipe(gulpPrint());
@@ -328,26 +322,53 @@ function outputJSResult(stream, concatedFile) {
   return stream.pipe(gulp.dest(JSDEST));
 }
 
-function uglifyJSFiles(path, output, new_suffix, nameCache) {
-  if (typeof path === "string") {
-    path = [path];
-  }
-  for (var i = 0; i < path.length; i++) {
-    var p = path[i];
-    path[i] = p[0] !== "!" ? osPath.join(JSDEST, p) : "!" + osPath.join(JSDEST, p.substring(1));
-  }
+function checkJSAndUglifyAll(maps, key, exArgs, cb) {
+  Promise.all(maps.map(function(i) {
+    var is_file = i[1] && i[1] !== ".";
+    return checkAnyNewer(i[0], JSDEST, is_file ? osPath.join(DEST, i[1]) : DEST, is_file ? "" : ".js");
+  })).then(function(all) {
+    var isNewer = false;
+    for (var i = 0; i < all.length; i++) {
+      if (all[i]) {
+        isNewer = true; break;
+      }
+    }
+    if (!isNewer) { return cb(); }
+    var tasks = [];
+    for (var i = 0; i < maps.length; i++) {
+      var name = key + "/_" + (i + 1);
+      tasks.push(name);
+      gulp.task(name, (function(map) {
+        return function() {
+          return uglifyJSFiles(map[0], map[1], map[2], exArgs);
+        }
+      })(maps[i]));
+    }
+    gulp.parallel.apply(gulp, tasks)(cb);
+  });
+}
+
+function uglifyJSFiles(path, output, new_suffix, exArgs) {
+  path = formatPath(path, JSDEST);
   path.push("!**/*.min.js");
   output = output || ".";
   new_suffix = new_suffix !== "" ? (new_suffix || ".min") : "";
+  exArgs || (exArgs = {});
 
   var stream = gulp.src(path, { base: JSDEST });
   var is_file = output.indexOf(".js", Math.max(0, output.length - 3)) > 0;
-  stream = stream.pipe(newer(is_file ? {
-    dest: osPath.join(DEST, output)
-  } : {
-    dest: DEST,
-    ext: new_suffix + ".js"
-  }));
+  if (!exArgs.passAll) {
+    stream = stream.pipe(newer(is_file ? {
+      dest: osPath.join(DEST, output)
+    } : exArgs.nameCache ? {
+      dest: DEST,
+      ext: new_suffix + ".js",
+      extra: path
+    } : {
+      dest: DEST,
+      ext: new_suffix + ".js"
+    }));
+  }
   let mayPatch = false;
   if (enableSourceMap) {
     stream = stream.pipe(sourcemaps.init({ loadMaps: true }));
@@ -364,9 +385,9 @@ function uglifyJSFiles(path, output, new_suffix, nameCache) {
     }
     stream = stream.pipe(concat(output));
   }
-  var config = loadUglifyConfig(!!nameCache);
-  if (nameCache) {
-    config.nameCache = nameCache;
+  var config = loadUglifyConfig(!!exArgs.nameCache);
+  if (exArgs.nameCache) {
+    config.nameCache = exArgs.nameCache;
     patchGulpUglify();
   }
   var uglify = require('gulp-uglify');
@@ -405,6 +426,21 @@ function copyByPath(path) {
 
 function cleanByPath(path) {
   return gulp.src(path, {read: false}).pipe(clean());
+}
+
+function formatPath(path, base) {
+  if (typeof path === "string") {
+    path = [path];
+  } else {
+    path = path.slice(0);
+  }
+  if (base && base !== ".") {
+    for (var i = 0; i < path.length; i++) {
+      var p = path[i];
+      path[i] = p[0] !== "!" ? osPath.join(base, p) : "!" + osPath.join(base, p.substring(1));
+    }
+  }
+  return path;
 }
 
 function convertToStream(pathOrStream) {
@@ -623,33 +659,53 @@ function print() {
   return logger.apply(null, arguments);
 }
 
-function gulpIfNotEmpty() {
+function checkAnyNewer(path, pathBase, dest, ext) {
+  path = formatPath(path, pathBase);
+  return new Promise(function(resolve, reject) {
+    gulp.src(path, { base: pathBase })
+      .pipe(newer(ext ? { dest: dest, ext: ext, } : { dest: dest, }))
+      .pipe(gulpCheckEmpty(function(isEmpty) {
+        resolve(!isEmpty);
+      }))
+    ;
+  });
+}
+
+function gulpAllIfNotEmpty() {
   var Transform = require('stream').Transform;
-  var a = new Transform({objectMode: true}), b = new Transform({objectMode: true});
-  a._empty = true;
-  a._transform = function(srcFile, encoding, done) {
-    a._empty = false;
-    done();
-  };
-  a._flush = function(done) {
-    if (!a._empty) {
+  var b = new Transform({objectMode: true});
+  var a = gulpCheckEmpty(function(isEmpty) {
+    if (!isEmpty) {
       var arr = b.files;
       for (var i = 0; i < arr.length; i++) {
         this.push(arr[i]);
       }
     }
-    done();
-  };
+  });
   b.files = [];
   b._transform = function(srcFile, encoding, done) {
     this.files.push(srcFile);
-    this.push(srcFile);
     done();
   };
   return {
     cond: a,
     prepare: b,
   };
+}
+
+function gulpCheckEmpty(callback, log) {
+  var Transform = require('stream').Transform;
+  var a = new Transform({objectMode: true});
+  a._empty = true;
+  a._transform = function(srcFile, encoding, done) {
+    a._empty = false;
+    done();
+  };
+  a._flush = function(done) {
+    callback(a._empty);
+    done();
+  };
+  return a;
 }
 
 function gulpMap(map) {
