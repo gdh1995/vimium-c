@@ -732,5 +732,6 @@ function loadUglifyConfig(reload) {
     }
   }
   a.output.comments = removeComments ? false : "all";
+  a.mangle && (a.mangle.toplevel = false); // uglifyJS has a bug about toplevel mangling
   return a;
 }
