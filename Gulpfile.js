@@ -92,7 +92,7 @@ var Tasks = {
     cs.js = ["content/vimium-c.js"];
     var nameCache = { vars: {}, props: {} };
     gulp.task("min/content/_1", function() {
-      return uglifyJSFiles(sources, cs.js[0], null, nameCache);
+      return uglifyJSFiles(sources.slice(0), cs.js[0], null, nameCache);
     });
     gulp.task("min/content/_2", function() {
       var res = ["content/*.js"];
