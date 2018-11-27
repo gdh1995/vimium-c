@@ -685,6 +685,7 @@ function gulpAllIfNotEmpty() {
   b.files = [];
   b._transform = function(srcFile, encoding, done) {
     this.files.push(srcFile);
+    this.push(srcFile);
     done();
   };
   return {
@@ -702,7 +703,7 @@ function gulpCheckEmpty(callback, log) {
     done();
   };
   a._flush = function(done) {
-    callback(a._empty);
+    callback.call(a, a._empty);
     done();
   };
   return a;
