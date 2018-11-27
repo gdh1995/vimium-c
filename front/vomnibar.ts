@@ -40,7 +40,7 @@ if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "
   VSettings.destroy(true);
 }
 
-var VCID: string | undefined = window.ExtId, O = {
+var VCID: string | undefined = VCID || window.ExtId, O = {
   pageType_: VomnibarNS.PageType.Default,
   activate (options: Options): void {
     Object.setPrototypeOf(options, null);

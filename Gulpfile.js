@@ -724,7 +724,7 @@ function gulpMap(map) {
 function patchExtendClick(source) {
   if (locally && envLegacy) { return source; }
   print('patch the extend_click module');
-  source = source.replace(/(addEventListener|toString) ?: ?function \1/g, "$1 "); // es6 member function
+  source = source.replace(/(addEventListener|toString) ?: ?function \w+/g, "$1 "); // es6 member function
   let match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
   if (match) {
     const start = Math.max(0, match.index - 64), end = match.index;
