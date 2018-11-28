@@ -1059,7 +1059,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       } else if (VDom.Scripts) setTimeout(function(): void {
         const script = VDom.createElement_("script");
         script.type = "text/javascript";
-        script.textContent = VUtils.decodeURL_(url).substring(11).trim();
+        script.textContent = VUtils.decodeURL_(url, decodeURIComponent).substring(11).trim();
         (document.documentElement as HTMLElement).appendChild(script);
         script.remove();
       }, 0); else {

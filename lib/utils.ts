@@ -22,8 +22,8 @@ var VUtils = {
     return this._imageUrlRe.test(str);
   },
   safer_<T extends object> (this: void, opt: T): T & SafeObject { return Object.setPrototypeOf(opt, null); },
-  decodeURL_ (this: void, url: string): string {
-    try { url = decodeURI(url); } catch (e) {}
+  decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => string): string {
+    try { url = (decode || decodeURI)(url); } catch (e) {}
     return url;
   },
   hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; },
