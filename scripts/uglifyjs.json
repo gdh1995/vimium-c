@@ -37,7 +37,7 @@
     "warnings": true,
     "negate_iife": false,
     "pure_getters": true,
-    "keep_fargs": false,
+    "keep_fargs": true, // typescript will check unused arguments
     "keep_fnames": false,
     "keep_infinity": false,
     "side_effects": true
