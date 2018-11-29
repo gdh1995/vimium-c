@@ -390,8 +390,13 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     config.nameCache = exArgs.nameCache;
     patchGulpUglify();
   }
-  var uglify = require('gulp-uglify');
-  stream = stream.pipe(uglify(config));
+  var compose = require('gulp-uglify/composer');
+  var logger = require('gulp-uglify/lib/log');
+  var uglify = require('terser');
+  stream = stream.pipe(compose(
+    uglify,
+    logger
+  )(config));
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(rename({ suffix: new_suffix }));
   }
