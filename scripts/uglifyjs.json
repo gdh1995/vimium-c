@@ -55,6 +55,8 @@
       "VSettings", "VHUD", "VPort", "VEvent",
       // # front/vomnibar
       "VCID",
+      // # pages/
+      "VShown",
       // # inner names:
       "startsWith", "endsWith", "addEventListener", "toString",
       "Suggestion", "VC"

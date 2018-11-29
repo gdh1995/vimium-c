@@ -41,17 +41,17 @@ if (!(BG_ && BG_.Utils && BG_.Utils.convertToUrl)) {
   BG_ = null as never;
 }
 
-let shownNode: ValidNodeTypes, bgLink = $<HTMLAnchorElement>('#bgLink'), url: string, type: ValidShowTypes, file: string;
+let VShown: ValidNodeTypes, bgLink = $<HTMLAnchorElement>('#bgLink'), url: string, type: ValidShowTypes, file: string;
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer: ViewerType | null = null;
 
 window.onhashchange = function(this: void): void {
   let str: Urls.Url | null, ind: number;
-  if (shownNode) {
+  if (VShown) {
     clean();
     bgLink.style.display = "none";
-    shownNode.remove();
-    shownNode = null as never;
+    VShown.remove();
+    VShown = null as never;
   }
   type = file = "";
 
@@ -96,49 +96,49 @@ window.onhashchange = function(this: void): void {
 
   switch (type) {
   case "image":
-    shownNode = (importBody as ImportBody)("shownImage");
-    shownNode.classList.add("hidden");
-    shownNode.onerror = function(): void {
+    VShown = (importBody as ImportBody)("shownImage");
+    VShown.classList.add("hidden");
+    VShown.onerror = function(): void {
       this.onerror = this.onload = null as never;
-      (shownNode as HTMLImageElement).alt = "\xa0(fail to load)\xa0";
+      (VShown as HTMLImageElement).alt = "\xa0(fail to load)\xa0";
       if (BG_ && BG_.Settings && BG_.Settings.CONST.ChromeVersion >= BrowserVer.MinNoBorderForBrokenImage) {
-        shownNode.classList.add("broken");
+        VShown.classList.add("broken");
       }
-      shownNode.classList.remove("hidden");
+      VShown.classList.remove("hidden");
       setTimeout(showBgLink, 34);
-      shownNode.onclick = function(e) {
+      VShown.onclick = function(e) {
         chrome.tabs && chrome.tabs.update ? chrome.tabs.update({ url })
         : clickLink({ target: "_top" }, e);
       };
     };
     if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
-      shownNode.src = url;
-      shownNode.onclick = defaultOnClick;
-      shownNode.onload = function(this: HTMLImageElement): void {
+      VShown.src = url;
+      VShown.onclick = defaultOnClick;
+      VShown.onload = function(this: HTMLImageElement): void {
         this.onerror = this.onload = null as never;
         setTimeout(function() { // safe; because on C65, in some tests refreshing did not trigger replay
-          (shownNode as HTMLImageElement).src = (shownNode as HTMLImageElement).src; // trigger replay for gif
+          (VShown as HTMLImageElement).src = (VShown as HTMLImageElement).src; // trigger replay for gif
         }, 0);
         showBgLink();
-        shownNode.classList.remove("hidden");
-        shownNode.classList.add("zoom-in");
+        VShown.classList.remove("hidden");
+        VShown.classList.add("zoom-in");
         if (this.width >= window.innerWidth * 0.9) {
           (document.body as HTMLBodyElement).classList.add("filled");
         }
       };
     } else {
       url = "";
-      (shownNode as any).onerror();
-      (shownNode as HTMLImageElement).alt = "\xa0(null)\xa0";
+      (VShown as any).onerror();
+      (VShown as HTMLImageElement).alt = "\xa0(null)\xa0";
     }
     if (file) {
-      shownNode.setAttribute("download", file);
-      shownNode.alt = file;
-      shownNode.title = file;
+      VShown.setAttribute("download", file);
+      VShown.alt = file;
+      VShown.title = file;
     }
     break;
   case "url":
-    shownNode = (importBody as ImportBody)("shownText");
+    VShown = (importBody as ImportBody)("shownText");
     if (url && BG_) {
       str = null;
       if (url.startsWith("vimium://")) {
@@ -161,8 +161,8 @@ window.onhashchange = function(this: void): void {
     break;
   default:
     url = "";
-    shownNode = (importBody as ImportBody)("shownImage");
-    shownNode.src = "../icons/vimium.png";
+    VShown = (importBody as ImportBody)("shownImage");
+    VShown.src = "../icons/vimium.png";
     bgLink.style.display = "none";
     break;
   }
@@ -175,7 +175,7 @@ window.onhashchange = function(this: void): void {
     bgLink.removeAttribute("data-vim-text");
     bgLink.removeAttribute("download");
   }
-  bgLink.onclick = shownNode ? clickShownNode : defaultOnClick;
+  bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 
   str = $<HTMLTitleElement>('title').getAttribute('data-title') as string;
   str = BG_ ? BG_.Utils.createSearch(file ? file.split(/\s+/) : [], str)
@@ -209,7 +209,7 @@ document.addEventListener("keydown", function(this: void, event): void {
 });
 
 function showBgLink(this: void): void {
-  const height = shownNode.scrollHeight, width = shownNode.scrollWidth;
+  const height = VShown.scrollHeight, width = VShown.scrollWidth;
   bgLink.style.height = height + "px";
   bgLink.style.width = width + "px";
   bgLink.style.display = "";
@@ -236,10 +236,10 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
 
 function imgOnKeydown(event: KeyboardEvent): boolean {
   const { keyCode } = event;
-  if ((shownNode as HTMLImageElement).alt) { return false; }
+  if ((VShown as HTMLImageElement).alt) { return false; }
   if (keyCode === VKeyCodes.space || keyCode === VKeyCodes.enter) {
     event.preventDefault();
-    simulateClick(shownNode, event);
+    simulateClick(VShown, event);
     return true;
   }
   if (!window.VKeyboard) {
@@ -298,7 +298,7 @@ function defaultOnClick(event: MouseEvent): void {
   } else switch (type) {
   case "url": clickLink({ target: "_blank" }, event); break;
   case "image":
-    if ((shownNode as HTMLImageElement).alt) { return; }
+    if ((VShown as HTMLImageElement).alt) { return; }
     loadViewer().then(showSlide).catch(defaultOnError);
     break;
   default: break;
@@ -307,8 +307,8 @@ function defaultOnClick(event: MouseEvent): void {
 
 function clickShownNode(event: MouseEvent): void {
   event.preventDefault();
-  if (shownNode.onclick) {
-    shownNode.onclick(event);
+  if (VShown.onclick) {
+    VShown.onclick(event);
   }
 }
 
@@ -317,7 +317,7 @@ function showText(tip: string, body: string | string[]): void {
   const textBody = $("#textBody");
   if (body) {
     textBody.textContent = typeof body !== "string" ? body.join(" ") : body;
-    shownNode.onclick = copyThing;
+    VShown.onclick = copyThing;
   } else {
     textBody.classList.add("null");
   }
@@ -340,10 +340,10 @@ function copyThing(event: Event): void {
 
 function toggleInvert(event: Event): void {
   if (type === "image") {
-    if ((shownNode as HTMLImageElement).alt || viewer && viewer.visible) {
+    if ((VShown as HTMLImageElement).alt || viewer && viewer.visible) {
       event.preventDefault();
     } else {
-      shownNode.classList.toggle("invert");
+      VShown.classList.toggle("invert");
     }
   }
 }
@@ -404,7 +404,7 @@ function loadViewer(): Promise<Window["Viewer"]> {
 function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
   const sel = getSelection();
   sel.type == "Range" && sel.collapseToStart();
-  const v = viewer = viewer || new Viewer(shownNode);
+  const v = viewer = viewer || new Viewer(VShown);
   v.visible || v.show();
   if (v.viewed) { return v; }
   return new Promise<ViewerType>(function(resolve, reject): void {
