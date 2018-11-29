@@ -54,7 +54,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       requestHandlers[kBgReq.init] && setTimeout(function(i): void {
         if (!i)
           try { esc && vPort.Connect_(PortType.initing); return; } catch(e) {}
-        VSettings.destroy();
+        esc && VSettings.destroy();
       }, 2000);
     },
     Connect_: (function (this: void, status: PortType): void {
