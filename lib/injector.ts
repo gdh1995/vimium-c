@@ -86,7 +86,7 @@ if (document.readyState === "complete") {
   addEventListener("load", start);
 }
 })(function(scriptSrc): VimiumInjector["reload"] {
-  return function(sync): void {
+  return function(async): void {
     function inject(): void {
       if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
         VimiumInjector.destroy(true);
@@ -98,7 +98,7 @@ if (document.readyState === "complete") {
       script.src = scriptSrc;
       (document.head || document.body || docEl).appendChild(script);
     }
-    sync === true ? inject() : setTimeout(inject, 200);
+    async === true ? setTimeout(inject, 200) : inject();
   };
 });
 
