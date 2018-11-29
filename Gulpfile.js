@@ -344,7 +344,7 @@ function checkJSAndUglifyAll(maps, key, exArgs, cb) {
         }
       })(maps[i]));
     }
-    gulp.parallel.apply(gulp, tasks)(cb);
+    gulp.series(...tasks)(cb);
   });
 }
 
