@@ -21,7 +21,7 @@
     "gulp-sourcemaps": "*",
     "gulp-typescript": "*",
     "gulp-uglify": ">=3",
-    "terser": "*",
+    "terser": "*"
   },
   "scripts": {
     "tsc": "node scripts/tsc.js",
