@@ -35,13 +35,13 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
   }, 100);
 };
 
-ExclusionRulesOption.prototype.sortRules = function(this: ExclusionRulesOption
+ExclusionRulesOption_.prototype.sortRules_ = function(this: ExclusionRulesOption_
     , element?: HTMLElement): void {
   interface Rule extends ExclusionsNS.StoredRule {
     key: string;
   }
-  if (element && this.timer) { return; }
-  const rules = this.readValueFromElement() as Rule[], hostRe = <RegExpOne> /^([:^]?[a-z\-?*]+:\/\/)?([^\/]+)(\/.*)?/;
+  if (element && this.timer_) { return; }
+  const rules = this.readValueFromElement_() as Rule[], hostRe = <RegExpOne> /^([:^]?[a-z\-?*]+:\/\/)?([^\/]+)(\/.*)?/;
   let key: Rule["pattern"], arr: string[] | null;
   for (const rule of rules) {
     if ((arr = hostRe.exec(key = rule.pattern)) && arr[1] && arr[2]) {
@@ -53,17 +53,17 @@ ExclusionRulesOption.prototype.sortRules = function(this: ExclusionRulesOption
     rule.key = key;
   }
   rules.sort((a, b) => a.key < b.key ? -1 : a.key === b.key ? 0 : 1);
-  this.populateElement(rules);
+  this.populateElement_(rules);
   if (!element) { return; }
   let self = this;
-  this.timer = setTimeout(function(el, text) {
-    (el.firstChild as Text).data = text, self.timer = 0;
+  this.timer_ = setTimeout(function(el, text) {
+    (el.firstChild as Text).data = text, self.timer_ = 0;
   }, 1000, element, (element.firstChild as Text).data);
   (element.firstChild as Text).data = "(Sorted)";
 };
 
 $("#exclusionSortButton").onclick = function(): void {
-  return (Option.all.exclusionRules as ExclusionRulesOption).sortRules(this);
+  return (Option_.all_.exclusionRules as ExclusionRulesOption_).sortRules_(this);
 };
 
 function formatDate(time: number | Date): string {
@@ -97,7 +97,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   cleanRes();
   let exported_object: ExportedSettings | null;
   const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
-  const d = new Date(), bVer = bgSettings.CONST.ChromeVersion;
+  const d = new Date(), bVer = bgSettings_.CONST.ChromeVersion;
   exported_object = Object.create(null) as ExportedSettings & SafeObject;
   exported_object.name = "Vimium C";
   if (!all_static) {
@@ -105,20 +105,20 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     exported_object.time = d.getTime();
   }
   exported_object.environment = {
-    extension: bgSettings.CONST.CurrentVersion,
-    platform: bgSettings.CONST.Platform
+    extension: bgSettings_.CONST.CurrentVersion,
+    platform: bgSettings_.CONST.Platform
   };
   if (bVer != BrowserVer.assumedVer) {
     exported_object.environment.chrome = bVer;
   }
-  for (let storage = localStorage, all = bgSettings.defaults, i = 0, len = storage.length, j: string[]; i < len; i++) {
+  for (let storage = localStorage, all = bgSettings_.defaults, i = 0, len = storage.length, j: string[]; i < len; i++) {
     const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
     if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList" || key === "innerCSS") {
       continue;
     }
     const storedVal = storage.getItem(key) as string;
     if (typeof all[key] !== "string") {
-      exported_object[key] = (key in all) ? bgSettings.get(key) : storedVal;
+      exported_object[key] = (key in all) ? bgSettings_.get(key) : storedVal;
     } else if (storedVal.indexOf("\n") > 0) {
       exported_object[key] = j = storedVal.split("\n");
       j.push("");
@@ -159,7 +159,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
 function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
   let env = new_data.environment, plat = env && env.platform || ""
     , ext_ver = env && parseFloat(env.extension || 0) || 0
-    , newer = ext_ver > parseFloat(bgSettings.CONST.CurrentVersion);
+    , newer = ext_ver > parseFloat(bgSettings_.CONST.CurrentVersion);
   plat && (plat = ("" + plat).substring(0, 10));
   if (!confirm(
 `You are loading ${is_recommended !== true ? "a settings copy" : "the recommended settings:"}
@@ -174,7 +174,7 @@ Are you sure you want to continue?`
   }
   Object.setPrototypeOf(new_data, null);
   if (new_data.vimSync == null) {
-    const now = bgSettings.get("vimSync"), keep = now && confirm(
+    const now = bgSettings_.get("vimSync"), keep = now && confirm(
       'Do you want to keep settings synchronized with your current Google account?'
     );
     new_data.vimSync = keep || null;
@@ -211,7 +211,7 @@ Are you sure you want to continue?`
     }
   }
 
-  const storage = localStorage, all = bgSettings.defaults, _ref = Option.all,
+  const storage = localStorage, all = bgSettings_.defaults, _ref = Option_.all_,
   otherLineEndRe = <RegExpG>/\r\n?/g;
   for (let i = storage.length; 0 <= --i; ) {
     const key = storage.key(i) as string;
@@ -224,14 +224,14 @@ Are you sure you want to continue?`
   delete new_data.findModeRawQueryList;
   delete new_data.innerCSS;
   delete new_data.newTabUrl_f;
-  if (new_data.vimSync !== bgSettings.get("vimSync")) {
+  if (new_data.vimSync !== bgSettings_.get("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);
-    bgSettings.set("vimSync", new_data.vimSync);
-    _ref.vimSync.fetch();
+    bgSettings_.set("vimSync", new_data.vimSync);
+    _ref.vimSync.fetch_();
   }
   for (const _key in _ref) {
-    const item: Option<any> = _ref[_key as keyof AllowedOptions];
-    let key: keyof AllowedOptions = item.field, new_value: any = new_data[key];
+    const item: Option_<any> = _ref[_key as keyof AllowedOptions];
+    let key: keyof AllowedOptions = item.field_, new_value: any = new_data[key];
     delete new_data[key];
     if (new_value == null) {
       // NOTE: we assume all nullable settings have the same default value: null
@@ -243,18 +243,18 @@ Are you sure you want to continue?`
         }
         new_value = new_value.replace(otherLineEndRe, "\n");
       }
-      new_value = item.normalize(new_value, typeof all[key] === "object");
+      new_value = item.normalize_(new_value, typeof all[key] === "object");
     }
-    if (!item.areEqual(bgSettings.get(key), new_value)) {
+    if (!item.areEqual_(bgSettings_.get(key), new_value)) {
       logUpdate("import", key, new_value);
-      bgSettings.set(key, new_value);
-      if (key in bgSettings.payload) {
-        Option.syncToFrontend.push(key as keyof SettingsNS.FrontendSettings);
+      bgSettings_.set(key, new_value);
+      if (key in bgSettings_.payload) {
+        Option_.syncToFrontend_.push(key as keyof SettingsNS.FrontendSettings);
       }
-    } else if (item.saved) {
+    } else if (item.saved_) {
       continue;
     }
-    item.fetch();
+    item.fetch_();
   }
   for (const key in new_data) {
     let new_value = new_data[key];
@@ -262,12 +262,12 @@ Are you sure you want to continue?`
     if (new_value == null) {
       if (key in all) {
         new_value = all[key as SettingKeys];
-        if (bgSettings.get(key as SettingKeys) !== new_value) {
-          bgSettings.set(key as SettingKeys, new_value);
+        if (bgSettings_.get(key as SettingKeys) !== new_value) {
+          bgSettings_.set(key as SettingKeys, new_value);
           logUpdate("reset", key, new_value);
           continue;
         }
-        new_value = bgSettings.get(key as SettingKeys);
+        new_value = bgSettings_.get(key as SettingKeys);
       } else {
         new_value = storage.getItem(key as SettingKeys);
       }
@@ -282,8 +282,8 @@ Are you sure you want to continue?`
       new_value = new_value.replace(otherLineEndRe, "\n");
     }
     if (key in all) {
-      if (bgSettings.get(key as SettingKeys) !== new_value) {
-        bgSettings.set(key as SettingKeys, new_value);
+      if (bgSettings_.get(key as SettingKeys) !== new_value) {
+        bgSettings_.set(key as SettingKeys, new_value);
         logUpdate("update", key, new_value);
       }
     } else {
@@ -292,7 +292,7 @@ Are you sure you want to continue?`
     }
   }
   $<SaveBtn>("#saveOptions").onclick(false);
-  if ($("#advancedOptionsButton").getAttribute("aria-checked") != '' + bgSettings.get("showAdvancedOptions")) {
+  if ($("#advancedOptionsButton").getAttribute("aria-checked") != '' + bgSettings_.get("showAdvancedOptions")) {
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
@@ -330,11 +330,11 @@ function importSettings(time: number | string | Date
   if (err_msg) {
     return alert(err_msg);
   }
-  const promisedChecker = Option.all.keyMappings.checker ? 1 : new Promise<1>(function(resolve): void {
+  const promisedChecker = Option_.all_.keyMappings.checker_ ? 1 : new Promise<1>(function(resolve): void {
     const element = loadJS("options_checker.js");
     element.onload = function(): void { resolve(1); };
   });
-  Promise.all([BG.Utils.require("Commands"), BG.Utils.require("Exclusions"), promisedChecker]).then(function() {
+  Promise.all([BG_.Utils.require("Commands"), BG_.Utils.require("Exclusions"), promisedChecker]).then(function() {
     setTimeout(_importSettings, 17, time, new_data, is_recommended);
   });
 }
@@ -376,7 +376,7 @@ _el = null;
   delete (window as OptionWindow)._delayed;
   const node = $<ElementWithDelay>(arr[0]), event = arr[1];
   node.onclick && node.onclick(event);
-  BG.Utils.GC();
+  BG_.Utils.GC();
 })();
 
 function parseJSON(text: string): any {

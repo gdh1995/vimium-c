@@ -11,93 +11,93 @@ interface OptionWindow extends Window {
 
 const $$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(selector: string) => NodeListOf<T>;
 
-Option.syncToFrontend = [];
+Option_.syncToFrontend_ = [];
 
-Option.prototype._onCacheUpdated = function<T extends keyof SettingsNS.FrontendSettings
-    > (this: Option<T>, func: (this: Option<T>) => void): void {
+Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.FrontendSettings
+    > (this: Option_<T>, func: (this: Option_<T>) => void): void {
   func.call(this);
   if (window.VSettings) {
-    window.VSettings.cache[this.field] = this.readValueFromElement();
+    window.VSettings.cache[this.field_] = this.readValueFromElement_();
   }
 };
 
-Option.saveOptions = function(): boolean {
-  const arr = Option.all;
+Option_.saveOptions_ = function(): boolean {
+  const arr = Option_.all_;
   for (const i in arr) {
     const opt = arr[i as keyof AllowedOptions];
-    if (!opt.saved && !opt.allowToSave()) {
+    if (!opt.saved_ && !opt.allowToSave_()) {
       return false;
     }
   }
-  arr.vimSync.saved || arr.vimSync.save();
+  arr.vimSync.saved_ || arr.vimSync.save_();
   for (const i in arr) {
-    arr[i as keyof AllowedOptions].saved || arr[i as keyof AllowedOptions].save();
+    arr[i as keyof AllowedOptions].saved_ || arr[i as keyof AllowedOptions].save_();
   }
   return true;
 };
 
-Option.needSaveOptions = function(): boolean {
-  const arr = Option.all;
+Option_.needSaveOptions_ = function(): boolean {
+  const arr = Option_.all_;
   for (const i in arr) {
-    if (!arr[i as keyof AllowedOptions].saved) {
+    if (!arr[i as keyof AllowedOptions].saved_) {
       return true;
     }
   }
   return false;
 };
 
-Option.prototype.areEqual = function<T extends keyof AllowedOptions
+Option_.prototype.areEqual_ = function<T extends keyof AllowedOptions
     >(a: AllowedOptions[T], b: AllowedOptions[T]): boolean {
   return a === b;
 };
 
-interface NumberChecker {
+interface NumberChecker extends Checker<"scrollStepSize"> {
   min: number | null;
   max: number | null;
   default: number;
-  check (value: number): number;
+  check_ (value: number): number;
 }
 
-class NumberOption<T extends keyof AllowedOptions> extends Option<T> {
-readonly element: HTMLInputElement;
-previous: number;
-wheelTime: number;
-checker: NumberChecker;
-constructor (element: HTMLInputElement, onUpdated: (this: NumberOption<T>) => void) {
+class NumberOption_<T extends keyof AllowedOptions> extends Option_<T> {
+readonly element_: HTMLInputElement;
+previous_: number;
+wheelTime_: number;
+checker_: NumberChecker;
+constructor (element: HTMLInputElement, onUpdated: (this: NumberOption_<T>) => void) {
   super(element, onUpdated);
   let s: string, i: number;
-  this.checker = {
+  this.checker_ = {
     min: (s = element.min) && !isNaN(i = parseFloat(s)) ? i : null,
     max: (s = element.max) && !isNaN(i = parseFloat(s)) ? i : null,
-    default: bgSettings.defaults[this.field] as number,
-    check: NumberOption.Check
+    default: bgSettings_.defaults[this.field_] as number,
+    check_: NumberOption_.Check_
   };
-  this.element.oninput = this.onUpdated;
-  this.element.onfocus = this.addWheelListener.bind(this);
+  this.element_.oninput = this.onUpdated_;
+  this.element_.onfocus = this.addWheelListener_.bind(this);
 }
-populateElement (value: number): void {
-  this.element.value = "" + value;
+populateElement_ (value: number): void {
+  this.element_.value = "" + value;
 }
-readValueFromElement (): number {
-  return parseFloat(this.element.value);
+readValueFromElement_ (): number {
+  return parseFloat(this.element_.value);
 }
-addWheelListener (): void {
-  const el = this.element, func = (e: WheelEvent): void => this.onWheel(e), onBlur = (): void => {
+addWheelListener_ (): void {
+  const el = this.element_, func = (e: WheelEvent): void => this.onWheel_(e), onBlur = (): void => {
     el.removeEventListener("wheel", func, {passive: false});
     el.removeEventListener("blur", onBlur);
-    this.wheelTime = 0;
+    this.wheelTime_ = 0;
   };
-  this.wheelTime = 0;
+  this.wheelTime_ = 0;
   el.addEventListener("wheel", func, {passive: false});
   el.addEventListener("blur", onBlur);
 }
-onWheel (event: WheelEvent): void {
+onWheel_ (event: WheelEvent): void {
   event.preventDefault();
-  const oldTime = this.wheelTime;
+  const oldTime = this.wheelTime_;
   let i = Date.now();
   if (i - oldTime < 100 && oldTime > 0) { return; }
-  this.wheelTime = i;
-  const el = this.element, inc = event.wheelDelta > 0, val0 = el.value;
+  this.wheelTime_ = i;
+  const el = this.element_, inc = event.wheelDelta > 0, val0 = el.value;
   let val: string, func: undefined | ((n: string) => number) | (
         (this: HTMLInputElement, n?: number) => void) = inc ? el.stepUp : el.stepDown;
   if (typeof func === "function") {
@@ -112,135 +112,135 @@ onWheel (event: WheelEvent): void {
     isNaN(step = func(el.min)) || (i = Math.max(i, step));
     val = "" + i;
   }
-  return this.atomicUpdate(val, oldTime > 0, false);
+  return this.atomicUpdate_(val, oldTime > 0, false);
 }
-static Check (this: NumberChecker, value: number): number {
+static Check_ (this: NumberChecker, value: number): number {
   if (isNaN(value)) { value = this.default; }
   value = this.min != null ? Math.max(this.min, value) : value;
   return this.max != null ? Math.min(this.max, value) : value;
 }
 }
 
-class TextOption<T extends keyof AllowedOptions> extends Option<T> {
-readonly element: TextElement;
-readonly converter: string;
-previous: string;
-constructor (element: TextElement, onUpdated: (this: TextOption<T>) => void) {
+class TextOption_<T extends keyof AllowedOptions> extends Option_<T> {
+readonly element_: TextElement;
+readonly converter_: string;
+previous_: string;
+constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
   super(element, onUpdated);
-  this.element.oninput = this.onUpdated;
-  this.converter = this.element.getAttribute("data-converter") || "";
+  this.element_.oninput = this.onUpdated_;
+  this.converter_ = this.element_.getAttribute("data-converter") || "";
 }
-whiteRe: RegExpG;
-whiteMaskRe: RegExpG;
-populateElement (value: AllowedOptions[T], enableUndo?: boolean): void {
-  value = (value as string).replace(this.whiteRe, '\xa0');
+whiteRe_: RegExpG;
+whiteMaskRe_: RegExpG;
+populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
+  value = (value as string).replace(this.whiteRe_, '\xa0');
   if (enableUndo !== true) {
-    this.element.value = value as string;
+    this.element_.value = value as string;
     return;
   }
-  return this.atomicUpdate(value as string, true, true);
+  return this.atomicUpdate_(value as string, true, true);
 }
-readValueFromElement (): AllowedOptions[T] {
-  let value = this.element.value.trim().replace(this.whiteMaskRe, ' ');
-  if (value && this.converter) {
-    value = this.converter === "lower" ? value.toLowerCase()
-      : this.converter === "upper" ? value.toUpperCase()
+readValueFromElement_ (): AllowedOptions[T] {
+  let value = this.element_.value.trim().replace(this.whiteMaskRe_, ' ');
+  if (value && this.converter_) {
+    value = this.converter_ === "lower" ? value.toLowerCase()
+      : this.converter_ === "upper" ? value.toUpperCase()
       : value;
   }
   return value;
 }
 }
-TextOption.prototype.whiteRe = <RegExpG> / /g;
-TextOption.prototype.whiteMaskRe = <RegExpG> /\xa0/g;
+TextOption_.prototype.whiteRe_ = <RegExpG> / /g;
+TextOption_.prototype.whiteMaskRe_ = <RegExpG> /\xa0/g;
 
-class NonEmptyTextOption<T extends keyof AllowedOptions> extends TextOption<T> {
-readValueFromElement (): string {
-  let value = super.readValueFromElement() as string;
+class NonEmptyTextOption_<T extends keyof AllowedOptions> extends TextOption_<T> {
+readValueFromElement_ (): string {
+  let value = super.readValueFromElement_() as string;
   if (!value) {
-    value = bgSettings.defaults[this.field] as string;
-    this.populateElement(value, true);
+    value = bgSettings_.defaults[this.field_] as string;
+    this.populateElement_(value, true);
   }
   return value;
 }
 }
 
-TextOption.prototype.atomicUpdate = NumberOption.prototype.atomicUpdate = function<T extends keyof AllowedOptions
-    >(this: Option<T> & {element: TextElement}, value: string
+TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = function<T extends keyof AllowedOptions
+    >(this: Option_<T> & {element_: TextElement}, value: string
       , undo: boolean, locked: boolean): void {
   if (undo) {
-    this.locked = true;
-    document.activeElement !== this.element && this.element.focus();
+    this.locked_ = true;
+    document.activeElement !== this.element_ && this.element_.focus();
     document.execCommand("undo");
   }
-  this.locked = locked;
-  this.element.select();
+  this.locked_ = locked;
+  this.element_.select();
   document.execCommand("insertText", false, value);
-  this.locked = false;
+  this.locked_ = false;
 };
 
-class JSONOption<T extends keyof AllowedOptions> extends TextOption<T> {
-populateElement (obj: AllowedOptions[T], enableUndo?: boolean): void {
-  const one = this.element instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2),
+class JSONOption_<T extends keyof AllowedOptions> extends TextOption_<T> {
+populateElement_ (obj: AllowedOptions[T], enableUndo?: boolean): void {
+  const one = this.element_ instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2),
   s1 = one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, (_, s) => s ? ", " : "") : s0;
-  super.populateElement(s1, enableUndo);
+  super.populateElement_(s1, enableUndo);
 }
-readValueFromElement (): AllowedOptions[T] {
-  let value = super.readValueFromElement(), obj: AllowedOptions[T] = null as never;
+readValueFromElement_ (): AllowedOptions[T] {
+  let value = super.readValueFromElement_(), obj: AllowedOptions[T] = null as never;
   if (value) {
     try {
       obj = JSON.parse<AllowedOptions[T]>(value as string);
     } catch (e) {
     }
   } else {
-    obj = bgSettings.defaults[this.field];
-    this.populateElement(obj, true);
+    obj = bgSettings_.defaults[this.field_];
+    this.populateElement_(obj, true);
   }
   return obj;
 }
 }
 
-JSONOption.prototype.areEqual = Option.areJSONEqual;
+JSONOption_.prototype.areEqual_ = Option_.areJSONEqual_;
 
-class BooleanOption<T extends keyof AllowedOptions> extends Option<T> {
-readonly element: HTMLInputElement;
-previous: boolean | null;
-constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption<T>) => void) {
+class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
+readonly element_: HTMLInputElement;
+previous_: boolean | null;
+constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption_<T>) => void) {
   super(element, onUpdated);
-  this.element.onchange = this.onUpdated;
+  this.element_.onchange = this.onUpdated_;
 }
-populateElement (value: boolean | null): void {
-  this.element.checked = value || false;
-  this.element.indeterminate = value === null;
+populateElement_ (value: boolean | null): void {
+  this.element_.checked = value || false;
+  this.element_.indeterminate = value === null;
   }
-readValueFromElement (): boolean | null {
-  return this.element.indeterminate ? null : this.element.checked;
+readValueFromElement_ (): boolean | null {
+  return this.element_.indeterminate ? null : this.element_.checked;
 }
 }
 
-ExclusionRulesOption.prototype.onRowChange = function(this: ExclusionRulesOption, isAdd: number): void {
-  const count = this.list.childElementCount;
+ExclusionRulesOption_.prototype.onRowChange_ = function(this: ExclusionRulesOption_, isAdd: number): void {
+  const count = this.list_.childElementCount;
   if (count - isAdd !== 0) { return; }
-  isAdd && (BG.Exclusions || BG.Utils.require("Exclusions"));
+  isAdd && (BG_.Exclusions || BG_.Utils.require("Exclusions"));
   const el = $("#exclusionToolbar"), options = el.querySelectorAll('[data-model]');
   el.style.visibility = count > 0 ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {
-    const opt = Option.all[options[i].id as keyof AllowedOptions],
-    style = (opt.element.parentNode as HTMLElement).style;
-    style.visibility = isAdd || opt.saved ? "" : "visible";
-    style.display = !isAdd && opt.saved ? "none" : "";
+    const opt = Option_.all_[options[i].id as keyof AllowedOptions],
+    style = (opt.element_.parentNode as HTMLElement).style;
+    style.visibility = isAdd || opt.saved_ ? "" : "visible";
+    style.display = !isAdd && opt.saved_ ? "none" : "";
   }
 };
 
-ExclusionRulesOption.prototype.onInit = function(this: ExclusionRulesOption): void {
-  if (this.previous.length > 0) {
+ExclusionRulesOption_.prototype.onInit_ = function(this: ExclusionRulesOption_): void {
+  if (this.previous_.length > 0) {
     $("#exclusionToolbar").style.visibility = "";
   }
 };
 
-TextOption.prototype.showError = function<T extends keyof AllowedOptions>(this: TextOption<T>
+TextOption_.prototype.showError_ = function<T extends keyof AllowedOptions>(this: TextOption_<T>
     , msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
   errors != null || (errors = !!msg);
-  const { element: el } = this, { classList: cls } = el, par = el.parentElement as HTMLElement;
+  const { element_: el } = this, { classList: cls } = el, par = el.parentElement as HTMLElement;
   let errEl = par.querySelector(".tip") as HTMLElement | null;
   if (errors) {
     if (errEl == null) {
@@ -266,10 +266,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   const saveBtn = $<SaveBtn>("#saveOptions"), exportBtn = $<HTMLButtonElement>("#exportButton");
   let status = false;
 
-  function onUpdated<T extends keyof AllowedOptions> (this: Option<T>): void {
-    if (this.locked) { return; }
-    if (this.saved = this.areEqual(this.readValueFromElement(), this.previous)) {
-      if (status && !Option.needSaveOptions()) {
+  function onUpdated<T extends keyof AllowedOptions> (this: Option_<T>): void {
+    if (this.locked_) { return; }
+    if (this.saved_ = this.areEqual_(this.readValueFromElement_(), this.previous_)) {
+      if (status && !Option_.needSaveOptions_()) {
         saveBtn.disabled = true;
         (saveBtn.firstChild as Text).data = "No Changes";
         exportBtn.disabled = false;
@@ -289,12 +289,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   saveBtn.onclick = function(virtually): void {
     if (virtually !== false) {
-      if (!Option.saveOptions()) {
+      if (!Option_.saveOptions_()) {
         return;
       }
     }
-    const toSync = Option.syncToFrontend;
-    Option.syncToFrontend = [];
+    const toSync = Option_.syncToFrontend_;
+    Option_.syncToFrontend_ = [];
     this.disabled = true;
     (this.firstChild as Text).data = "Saved";
     exportBtn.disabled = false;
@@ -303,23 +303,23 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     if (toSync.length === 0) { return; }
     setTimeout(doSyncToFrontend, 100, toSync);
   };
-  function doSyncToFrontend (toSync: typeof Option.syncToFrontend): void {
-    const ref = bgSettings.payload, delta: BgReq[kBgReq.settingsUpdate]["delta"] = {},
+  function doSyncToFrontend (toSync: typeof Option_.syncToFrontend_): void {
+    const ref = bgSettings_.payload, delta: BgReq[kBgReq.settingsUpdate]["delta"] = {},
     req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, delta };
     for (const key of toSync) {
-      delta[key] = ref[key] = bgSettings.get(key);
+      delta[key] = ref[key] = bgSettings_.get(key);
     }
-    bgSettings.broadcast(req);
+    bgSettings_.broadcast(req);
   }
 
   let _ref: NodeListOf<HTMLElement> = $$("[data-model]"), element: HTMLElement;
   const types = {
-    Number: NumberOption,
-    Text: TextOption,
-    NonEmptyText: NonEmptyTextOption,
-    JSON: JSONOption,
-    Boolean: BooleanOption,
-    ExclusionRules: ExclusionRulesOption,
+    Number: NumberOption_,
+    Text: TextOption_,
+    NonEmptyText: NonEmptyTextOption_,
+    JSON: JSONOption_,
+    Boolean: BooleanOption_,
+    ExclusionRules: ExclusionRulesOption_,
   };
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
@@ -336,11 +336,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   let advancedMode = false;
   element = $<AdvancedOptBtn>("#advancedOptionsButton");
   (element as AdvancedOptBtn).onclick = function(this: AdvancedOptBtn, _0, init): void {
-    if (init == null || (init === "hash" && bgSettings.get("showAdvancedOptions") === false)) {
+    if (init == null || (init === "hash" && bgSettings_.get("showAdvancedOptions") === false)) {
       advancedMode = !advancedMode;
-      bgSettings.set("showAdvancedOptions", advancedMode);
+      bgSettings_.set("showAdvancedOptions", advancedMode);
     } else {
-      advancedMode = bgSettings.get("showAdvancedOptions");
+      advancedMode = bgSettings_.get("showAdvancedOptions");
     }
     const el = $("#advancedOptions");
     (el.previousElementSibling as HTMLElement).style.display = el.style.display = advancedMode ? "" : "none";
@@ -455,7 +455,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   function setUI(curTabId: number | null): void {
-    const ratio = BG.devicePixelRatio, element = document.getElementById("openInTab") as HTMLAnchorElement;
+    const ratio = BG_.devicePixelRatio, element = document.getElementById("openInTab") as HTMLAnchorElement;
     (document.body as HTMLBodyElement).classList.add("dialog-ui");
     (document.getElementById("mainHeader") as HTMLElement).remove();
     element.onclick = function(this: HTMLAnchorElement): void {
@@ -463,7 +463,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     };
     element.style.display = "";
     (element.nextElementSibling as Element).remove();
-    if (bgSettings.CONST.ChromeVersion >= BrowserVer.MinCorrectBoxWidthForOptionUI
+    if (bgSettings_.CONST.ChromeVersion >= BrowserVer.MinCorrectBoxWidthForOptionUI
         // not reset body width if not on Chrome
         || location.protocol !== "chrome-extension:") { return; }
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
@@ -484,37 +484,37 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       setUI(tabs[0].id);
     }
   });
-  Option.all.keyMappings.onSave = function(): void {
-    const { errors } = BG.CommandsData,
+  Option_.all_.keyMappings.onSave_ = function(): void {
+    const { errors } = BG_.CommandsData,
     msg = !errors ? "" : (errors === 1 ? "There's 1 error." : `There're ${errors} errors`
       ) + " found.\nPlease see logs of background page for more details.";
-    return this.showError(msg);
+    return this.showError_(msg);
   };
-  Option.all.keyMappings.onSave();
+  Option_.all_.keyMappings.onSave_();
 
-  Option.all.linkHintCharacters.onSave = function(): void {
-    const errors = this.previous.length < 3;
-    return this.showError(errors ? "Characters for LinkHints are too few." : "");
+  Option_.all_.linkHintCharacters.onSave_ = function(): void {
+    const errors = this.previous_.length < 3;
+    return this.showError_(errors ? "Characters for LinkHints are too few." : "");
   };
-  Option.all.linkHintCharacters.onSave();
+  Option_.all_.linkHintCharacters.onSave_();
 
-  Option.all.vomnibarPage.onSave = function(): void {
-    let {element} = this, url: string = this.previous
+  Option_.all_.vomnibarPage.onSave_ = function(): void {
+    let {element_: element} = this, url: string = this.previous_
       , isExtPage = !url.lastIndexOf(location.protocol, 0) || !url.lastIndexOf("front/", 0);
-    if (bgSettings.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+    if (bgSettings_.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
       element.style.textDecoration = isExtPage ? "" : "line-through";
-      return this.showError(`Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`, null);
+      return this.showError_(`Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`, null);
     }
-    url = bgSettings.cache.vomnibarPage_f || url; // for the case Chrome is initing
+    url = bgSettings_.cache.vomnibarPage_f || url; // for the case Chrome is initing
     if (isExtPage) {
     } else if (url.lastIndexOf("file://", 0) !== -1) {
-      return this.showError("A file page of vomnibar is limited by Chrome to only work on file://* pages.", "highlight");
+      return this.showError_("A file page of vomnibar is limited by Chrome to only work on file://* pages.", "highlight");
     } else if (url.lastIndexOf("http://", 0) !== -1) {
-      return this.showError("A HTTP page of vomnibar is limited by Chrome and doesn't work on HTTPS pages.", "highlight");
+      return this.showError_("A HTTP page of vomnibar is limited by Chrome and doesn't work on HTTPS pages.", "highlight");
     }
-    return this.showError("");
+    return this.showError_("");
   };
-  Option.all.vomnibarPage.onSave();
+  Option_.all_.vomnibarPage.onSave_();
 
   _ref = $$("[data-permission]");
   _ref.length > 0 && (function(this: void, els: NodeListOf<HTMLElement>): void {
@@ -546,7 +546,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       el.placeholder = `lacking permission${key ? ` "${key}"` : ""}`;
     }
   })(_ref);
-  if (BG.Settings.CONST.GlobalCommands.length === 0) {
+  if (BG_.Settings.CONST.GlobalCommands.length === 0) {
     _ref = $$(".require-shortcuts");
     for (let _i = _ref.length; 0 <= --_i; ) {
       _ref[_i].remove();
@@ -576,13 +576,13 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   element = $<HTMLAnchorElement>("#openExtensionPage");
-  if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredChromeUrl$ExtensionShortcuts) {
+  if (bgSettings_.CONST.ChromeVersion < BrowserVer.MinEnsuredChromeUrl$ExtensionShortcuts) {
     (element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
     (element.parentElement as HTMLElement).insertBefore(document.createTextNode('"Keyboard shortcuts" of '), element);
   }
   (element as HTMLAnchorElement).onclick = function(event): void {
     event.preventDefault();
-    return BG.Backend.focus({ url: this.href, reuse: ReuseType.reuse, prefix: true });
+    return BG_.Backend.focus({ url: this.href, reuse: ReuseType.reuse, prefix: true });
   }
 })();
 
@@ -592,10 +592,10 @@ $("#importButton").onclick = function(): void {
   opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
 };
 
-$("#browserName").textContent = (BG.IsEdge ? "MS Edge"
-  : BG.IsFirefox ? "Firefox" : ((<RegExpOne>/\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
-  ) + (!BG.NotChrome ? " " + bgSettings.CONST.ChromeVersion : ""
-  ) + (", " + bgSettings.CONST.Platform[0].toUpperCase() + bgSettings.CONST.Platform.substring(1));
+$("#browserName").textContent = (BG_.IsEdge ? "MS Edge"
+  : BG_.IsFirefox ? "Firefox" : ((<RegExpOne>/\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
+  ) + (!BG_.NotChrome ? " " + bgSettings_.CONST.ChromeVersion : ""
+  ) + (", " + bgSettings_.CONST.Platform[0].toUpperCase() + bgSettings_.CONST.Platform.substring(1));
 
 function loadJS(file: string): HTMLScriptElement {
   const script = document.createElement("script");
@@ -641,45 +641,45 @@ window.location.hash.length > 4 && (window as any).onhashchange();
 
 // below is for programmer debugging
 window.onunload = function(): void {
-  BG.removeEventListener("unload", OnBgUnload);
-  BG.Utils.GC();
+  BG_.removeEventListener("unload", OnBgUnload);
+  BG_.Utils.GC();
 };
 
 function OnBgUnload(): void {
-  BG.removeEventListener("unload", OnBgUnload);
+  BG_.removeEventListener("unload", OnBgUnload);
   setTimeout(function(): void {
-    BG = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };
-    if (!BG) { // a user may call `close()` in the console panel
+    BG_ = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };
+    if (!BG_) { // a user may call `close()` in the console panel
       window.onbeforeunload = null as any;
       window.close();
       return;
     }
-    bgSettings = BG.Settings;
-    if (!bgSettings) { BG = null as never; return; }
-    BG.addEventListener("unload", OnBgUnload);
-    if (BG.document.readyState !== "loading") { return callback(); }
-    BG.addEventListener("DOMContentLoaded", function load(): void {
-      BG.removeEventListener("DOMContentLoaded", load, true);
+    bgSettings_ = BG_.Settings;
+    if (!bgSettings_) { BG_ = null as never; return; }
+    BG_.addEventListener("unload", OnBgUnload);
+    if (BG_.document.readyState !== "loading") { return callback(); }
+    BG_.addEventListener("DOMContentLoaded", function load(): void {
+      BG_.removeEventListener("DOMContentLoaded", load, true);
       return callback();
     }, true);
   }, 100);
   function callback() {
-    const ref = Option.all;
+    const ref = Option_.all_;
     for (const key in ref) {
-      const opt = ref[key as keyof AllowedOptions], { previous } = opt;
+      const opt = ref[key as keyof AllowedOptions], { previous_: previous } = opt;
       if (typeof previous === "object" && previous) {
-        opt.previous = bgSettings.get(opt.field);
+        opt.previous_ = bgSettings_.get(opt.field_);
       }
     }
-    if (!Option.all.keyMappings.saved) {
-      BG.Commands || BG.Utils.require("Commands");
+    if (!Option_.all_.keyMappings.saved_) {
+      BG_.Commands || BG_.Utils.require("Commands");
     }
-    if ((Option.all.exclusionRules as ExclusionRulesOption).list.childElementCount > 0) {
-      BG.Exclusions || BG.Utils.require("Exclusions");
+    if ((Option_.all_.exclusionRules as ExclusionRulesOption_).list_.childElementCount > 0) {
+      BG_.Exclusions || BG_.Utils.require("Exclusions");
     }
   }
 }
-BG.addEventListener("unload", OnBgUnload);
+BG_.addEventListener("unload", OnBgUnload);
 
 document.addEventListener("click", function onClickOnce(): void {
   if (!window.VDom || !VDom.UI.R) { return; }

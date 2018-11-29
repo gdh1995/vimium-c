@@ -14,7 +14,6 @@ interface Window {
   readonly VPort?: typeof VPort;
   readonly VHUD?: typeof VHUD;
   readonly Viewer: typeof Viewer;
-  viewer?: null | ViewerType;
 }
 interface VDomProto {
   readonly UI: Readonly<DomUI>;
@@ -37,13 +36,14 @@ if (typeof browser !== "undefined" && (browser && (browser as typeof chrome).run
 var $ = function<T extends HTMLElement>(selector: string): T {
   return document.querySelector(selector) as T;
 },
-BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };
-if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
-  BG = null as never;
+BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };
+if (!(BG_ && BG_.Utils && BG_.Utils.convertToUrl)) {
+  BG_ = null as never;
 }
 
 let shownNode: ValidNodeTypes, bgLink = $<HTMLAnchorElement>('#bgLink'), url: string, type: ValidShowTypes, file: string;
 let tempEmit: ((succeed: boolean) => void) | null = null;
+let viewer: ViewerType | null = null;
 
 window.onhashchange = function(this: void): void {
   let str: Urls.Url | null, ind: number;
@@ -56,8 +56,8 @@ window.onhashchange = function(this: void): void {
   type = file = "";
 
   url = location.hash;
-  if (!location.hash && BG && BG.Settings && BG.Settings.temp.shownHash) {
-    url = BG.Settings.temp.shownHash() || "";
+  if (!location.hash && BG_ && BG_.Settings && BG_.Settings.temp.shownHash) {
+    url = BG_.Settings.temp.shownHash() || "";
     window.name = url;
   } else if (!url) {
     url = window.name;
@@ -83,9 +83,9 @@ window.onhashchange = function(this: void): void {
     type == "image" && (type = "");
   } else if (url.toLowerCase().startsWith("javascript:")) {
     type = url = file = "";
-  } else if (BG) {
-    str = BG.Utils.convertToUrl(url, null, Urls.WorkType.KeepAll);
-    if (BG.Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl) {
+  } else if (BG_) {
+    str = BG_.Utils.convertToUrl(url, null, Urls.WorkType.KeepAll);
+    if (BG_.Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl) {
       url = str;
     }
   } else if (url.startsWith("//")) {
@@ -101,7 +101,7 @@ window.onhashchange = function(this: void): void {
     shownNode.onerror = function(): void {
       this.onerror = this.onload = null as never;
       (shownNode as HTMLImageElement).alt = "\xa0(fail to load)\xa0";
-      if (BG && BG.Settings && BG.Settings.CONST.ChromeVersion >= BrowserVer.MinNoBorderForBrokenImage) {
+      if (BG_ && BG_.Settings && BG_.Settings.CONST.ChromeVersion >= BrowserVer.MinNoBorderForBrokenImage) {
         shownNode.classList.add("broken");
       }
       shownNode.classList.remove("hidden");
@@ -139,19 +139,19 @@ window.onhashchange = function(this: void): void {
     break;
   case "url":
     shownNode = (importBody as ImportBody)("shownText");
-    if (url && BG) {
+    if (url && BG_) {
       str = null;
       if (url.startsWith("vimium://")) {
-        str = BG.Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
+        str = BG_.Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
       }
-      str = str !== null ? str : BG.Utils.convertToUrl(url, null, Urls.WorkType.ConvertKnown);
+      str = str !== null ? str : BG_.Utils.convertToUrl(url, null, Urls.WorkType.ConvertKnown);
       if (typeof str === "string") {}
-      else if (str instanceof BG.Promise) {
+      else if (str instanceof BG_.Promise) {
         str.then(function(arr) {
           showText(arr[1], arr[0] || (arr[2] || ""));
         });
         break;
-      } else if (str instanceof BG.Array) {
+      } else if (str instanceof BG_.Array) {
         showText(str[1], str[0]);
         break;
       }
@@ -178,7 +178,7 @@ window.onhashchange = function(this: void): void {
   bgLink.onclick = shownNode ? clickShownNode : defaultOnClick;
 
   str = $<HTMLTitleElement>('title').getAttribute('data-title') as string;
-  str = BG ? BG.Utils.createSearch(file ? file.split(/\s+/) : [], str)
+  str = BG_ ? BG_.Utils.createSearch(file ? file.split(/\s+/) : [], str)
     : str.replace(<RegExpOne>/\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
 };
@@ -257,8 +257,8 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
   }
   event.preventDefault();
   event.stopImmediatePropagation();
-  if (window.viewer && window.viewer.viewed) {
-    doImageAction(window.viewer, action);
+  if (viewer && viewer.viewed) {
+    doImageAction(viewer, action);
   } else {
     let p = loadViewer().then(showSlide);
     p.then(function(viewer) {
@@ -340,7 +340,7 @@ function copyThing(event: Event): void {
 
 function toggleInvert(event: Event): void {
   if (type === "image") {
-    if ((shownNode as HTMLImageElement).alt || window.viewer && window.viewer.visible) {
+    if ((shownNode as HTMLImageElement).alt || viewer && viewer.visible) {
       event.preventDefault();
     } else {
       shownNode.classList.toggle("invert");
@@ -404,7 +404,7 @@ function loadViewer(): Promise<Window["Viewer"]> {
 function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
   const sel = getSelection();
   sel.type == "Range" && sel.collapseToStart();
-  const v = window.viewer = window.viewer || new Viewer(shownNode);
+  const v = viewer = viewer || new Viewer(shownNode);
   v.visible || v.show();
   if (v.viewed) { return v; }
   return new Promise<ViewerType>(function(resolve, reject): void {
@@ -418,9 +418,9 @@ function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
 function clean() {
   if (type === "image") {
     (document.body as HTMLBodyElement).classList.remove("filled");
-    if (window.viewer) {
-      window.viewer.destroy();
-      window.viewer = null;
+    if (viewer) {
+      viewer.destroy();
+      viewer = null;
     }
   }
 }

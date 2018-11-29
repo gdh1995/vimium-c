@@ -3,21 +3,21 @@
 /// <reference path="../background/bg.exclusions.d.ts" />
 type AllowedOptions = SettingsNS.PersistentSettings;
 interface Checker<T extends keyof AllowedOptions> {
-  init? (): any;
-  check (value: AllowedOptions[T]): AllowedOptions[T];
+  init_? (): any;
+  check_ (value: AllowedOptions[T]): AllowedOptions[T];
 }
 
 declare var browser: unknown;
 if (typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
 }
-const KeyRe = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
+const KeyRe_ = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
 __extends = function(child: Function, parent: Function): void {
   function __(this: { constructor: Function } ) { this.constructor = child; }
   __.prototype = parent.prototype;
   child.prototype = new (__ as any)();
 },
-debounce = function<T> (this: void, func: (this: T) => void
+debounce_ = function<T> (this: void, func: (this: T) => void
     , wait: number, bound_context: T, also_immediate: number
     ): (this: void) => void {
   let timeout = 0, timestamp: number;
@@ -49,134 +49,134 @@ debounce = function<T> (this: void, func: (this: T) => void
 var $ = function<T extends HTMLElement>(selector: string): T {
   return document.querySelector(selector) as T;
 },
-BG = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl }, bgSettings = BG.Settings;
+BG_ = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl }, bgSettings_ = BG_.Settings;
 
-abstract class Option<T extends keyof AllowedOptions> {
-  readonly element: HTMLElement;
-  readonly field: T;
-  previous: AllowedOptions[T];
-  saved: boolean;
-  locked?: boolean;
-  readonly onUpdated: (this: void) => void;
-  onSave?(): void;
-  checker?: Checker<T>;
+abstract class Option_<T extends keyof AllowedOptions> {
+  readonly element_: HTMLElement;
+  readonly field_: T;
+  previous_: AllowedOptions[T];
+  saved_: boolean;
+  locked_?: boolean;
+  readonly onUpdated_: (this: void) => void;
+  onSave_?(): void;
+  checker_?: Checker<T>;
 
-  static all = Object.create(null) as {
-    [T in keyof AllowedOptions]: Option<T>;
+  static all_ = Object.create(null) as {
+    [T in keyof AllowedOptions]: Option_<T>;
   } & SafeObject;
-  static syncToFrontend: Array<keyof SettingsNS.FrontendSettings>;
+  static syncToFrontend_: Array<keyof SettingsNS.FrontendSettings>;
 
-constructor (element: HTMLElement, onUpdated: (this: Option<T>) => void) {
-  this.element = element;
-  this.field = element.id as T;
-  this.previous = this.onUpdated = null as never;
-  this.saved = true;
-  if (this.field in bgSettings.payload) {
+constructor (element: HTMLElement, onUpdated: (this: Option_<T>) => void) {
+  this.element_ = element;
+  this.field_ = element.id as T;
+  this.previous_ = this.onUpdated_ = null as never;
+  this.saved_ = true;
+  if (this.field_ in bgSettings_.payload) {
     onUpdated = this._onCacheUpdated.bind(this, onUpdated);
   }
-  this.fetch();
-  (Option.all as SafeDict<Option<keyof AllowedOptions>>)[this.field] = this;
-  this.onUpdated = debounce(onUpdated, 330, this, 1);
+  this.fetch_();
+  (Option_.all_ as SafeDict<Option_<keyof AllowedOptions>>)[this.field_] = this;
+  this.onUpdated_ = debounce_(onUpdated, 330, this, 1);
 }
 
-fetch (): void {
-  this.saved = true;
-  return this.populateElement(this.previous = bgSettings.get(this.field));
+fetch_ (): void {
+  this.saved_ = true;
+  return this.populateElement_(this.previous_ = bgSettings_.get(this.field_));
 }
-normalize (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOptions[T] {
-  const checker = this.checker;
+normalize_ (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOptions[T] {
+  const checker = this.checker_;
   if (isJSON) {
-    str = checker || !str ? JSON.stringify(checker ? checker.check(value) : value) : str;
-    return BG.JSON.parse(str);
+    str = checker || !str ? JSON.stringify(checker ? checker.check_(value) : value) : str;
+    return BG_.JSON.parse(str);
   }
-  return checker ? checker.check(value) : value;
+  return checker ? checker.check_(value) : value;
 }
-allowToSave (): boolean { return true; }
-save (): void {
-  let value = this.readValueFromElement(), isJSON = typeof value === "object"
-    , previous = isJSON ? JSON.stringify(this.previous) : this.previous
+allowToSave_ (): boolean { return true; }
+save_ (): void {
+  let value = this.readValueFromElement_(), isJSON = typeof value === "object"
+    , previous = isJSON ? JSON.stringify(this.previous_) : this.previous_
     , pod = isJSON ? JSON.stringify(value) : value;
   if (pod === previous) { return; }
   previous = pod;
-  value = this.normalize(value, isJSON, isJSON ? pod as string : "");
+  value = this.normalize_(value, isJSON, isJSON ? pod as string : "");
   if (isJSON) {
     pod = JSON.stringify(value);
-    if (pod === JSON.stringify(bgSettings.defaults[this.field])) {
-      value = bgSettings.defaults[this.field];
+    if (pod === JSON.stringify(bgSettings_.defaults[this.field_])) {
+      value = bgSettings_.defaults[this.field_];
     }
   }
-  bgSettings.set(this.field, value);
-  this.previous = value = bgSettings.get(this.field);
-  this.saved = true;
+  bgSettings_.set(this.field_, value);
+  this.previous_ = value = bgSettings_.get(this.field_);
+  this.saved_ = true;
   if (previous !== (isJSON ? JSON.stringify(value) : value)) {
-    this.populateElement(value, true);
+    this.populateElement_(value, true);
   }
-  if (this.field in bgSettings.payload) {
-    Option.syncToFrontend.push(this.field as keyof SettingsNS.FrontendSettings);
+  if (this.field_ in bgSettings_.payload) {
+    Option_.syncToFrontend_.push(this.field_ as keyof SettingsNS.FrontendSettings);
   }
-  this.onSave && this.onSave();
+  this.onSave_ && this.onSave_();
 }
-abstract readValueFromElement (): AllowedOptions[T];
-abstract populateElement (value: AllowedOptions[T], enableUndo?: boolean): void;
-_onCacheUpdated: (this: Option<T>, onUpdated: (this: Option<T>) => void) => void;
-areEqual: (this: Option<T>, a: AllowedOptions[T], b: AllowedOptions[T]) => boolean;
-atomicUpdate: (this: Option<T> & {element: TextElement}, value: string, undo: boolean, locked: boolean) => void;
+abstract readValueFromElement_ (): AllowedOptions[T];
+abstract populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void;
+_onCacheUpdated: (this: Option_<T>, onUpdated: (this: Option_<T>) => void) => void;
+areEqual_: (this: Option_<T>, a: AllowedOptions[T], b: AllowedOptions[T]) => boolean;
+atomicUpdate_: (this: Option_<T> & {element_: TextElement}, value: string, undo: boolean, locked: boolean) => void;
 
-static areJSONEqual (this: void, a: object, b: object): boolean {
+static areJSONEqual_ (this: void, a: object, b: object): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
-static saveOptions: (this: void) => boolean;
-static needSaveOptions: (this: void) => boolean;
-showError: (msg: string, tag?: OptionErrorType | null, errors?: boolean) => void;
+static saveOptions_: (this: void) => boolean;
+static needSaveOptions_: (this: void) => boolean;
+showError_: (msg: string, tag?: OptionErrorType | null, errors?: boolean) => void;
 }
 type OptionErrorType = "has-error" | "highlight";
 
 
-class ExclusionRulesOption extends Option<"exclusionRules"> {
-  template: HTMLTableRowElement;
-  list: HTMLTableSectionElement;
-constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption) => void) {
+class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
+  template_: HTMLTableRowElement;
+  list_: HTMLTableSectionElement;
+constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => void) {
   super(element, onUpdated);
-  bgSettings.fetchFile("exclusionTemplate", (): void => {
-    this.element.innerHTML = bgSettings.cache.exclusionTemplate as string;
-    this.template = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
-    this.list = this.element.getElementsByTagName('tbody')[0] as HTMLTableSectionElement;
-    this.fetch = super.fetch;
-    this.fetch();
-    this.list.addEventListener("input", this.onUpdated);
-    this.list.addEventListener("click", e => this.onRemoveRow(e));
-    $("#exclusionAddButton").onclick = () => this.addRule("");
-    return this.onInit();
+  bgSettings_.fetchFile("exclusionTemplate", (): void => {
+    this.element_.innerHTML = bgSettings_.cache.exclusionTemplate as string;
+    this.template_ = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
+    this.list_ = this.element_.getElementsByTagName('tbody')[0] as HTMLTableSectionElement;
+    this.fetch_ = super.fetch_;
+    this.fetch_();
+    this.list_.addEventListener("input", this.onUpdated_);
+    this.list_.addEventListener("click", e => this.onRemoveRow_(e));
+    $("#exclusionAddButton").onclick = () => this.addRule_("");
+    return this.onInit_();
   });
 }
-fetch(): void {}
-onRowChange (_isInc: number): void {}
-addRule (pattern: string): HTMLTableRowElement {
-  const element = this.appendRule(this.list, {
+fetch_(): void {}
+onRowChange_ (_isInc: number): void {}
+addRule_ (pattern: string): HTMLTableRowElement {
+  const element = this.appendRule_(this.list_, {
     pattern: pattern,
     passKeys: ""
   });
-  this.getPattern(element).focus();
+  ExclusionRulesOption_.getPattern_(element).focus();
   if (pattern) {
-    this.onUpdated();
+    this.onUpdated_();
   }
-  this.onRowChange(1);
+  this.onRowChange_(1);
   return element;
 }
-populateElement (rules: ExclusionsNS.StoredRule[]): void {
-  this.list.textContent = "";
+populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
+  this.list_.textContent = "";
   if (rules.length <= 0) {}
   else if (rules.length === 1) {
-    this.appendRule(this.list, rules[0]);
+    this.appendRule_(this.list_, rules[0]);
   } else {
     const frag = document.createDocumentFragment();
-    rules.forEach(this.appendRule.bind(this, frag));
-    this.list.appendChild(frag);
+    rules.forEach(this.appendRule_.bind(this, frag));
+    this.list_.appendChild(frag);
   }
-  return this.onRowChange(rules.length);
+  return this.onRowChange_(rules.length);
 }
-appendRule (list: HTMLTableSectionElement | DocumentFragment, rule: ExclusionsNS.StoredRule): HTMLTableRowElement {
-  const row = document.importNode(this.template, true);
+appendRule_ (list: HTMLTableSectionElement | DocumentFragment, rule: ExclusionsNS.StoredRule): HTMLTableRowElement {
+  const row = document.importNode(this.template_, true);
   let el = row.querySelector('.pattern') as HTMLInputElement, value: string;
   el.value = value = rule.pattern;
   if (value) {
@@ -187,17 +187,17 @@ appendRule (list: HTMLTableSectionElement | DocumentFragment, rule: ExclusionsNS
   if (value) {
     el.placeholder = "";
   } else {
-    el.addEventListener("input", ExclusionRulesOption.OnNewPassKeyInput);
+    el.addEventListener("input", ExclusionRulesOption_.OnNewPassKeyInput_);
   }
   list.appendChild(row);
   return row;
 }
-static OnNewPassKeyInput (this: HTMLInputElement): void {
-  this.removeEventListener("input", ExclusionRulesOption.OnNewPassKeyInput);
+static OnNewPassKeyInput_ (this: HTMLInputElement): void {
+  this.removeEventListener("input", ExclusionRulesOption_.OnNewPassKeyInput_);
   this.title = "Example: " + this.placeholder;
   this.placeholder = "";
 }
-onRemoveRow (event: Event): void {
+onRemoveRow_ (event: Event): void {
   let element = event.target as HTMLElement;
   for (let i = 0; i < 2; i++) {
     if (element.classList.contains("exclusionRemoveButton")) { break; }
@@ -206,23 +206,23 @@ onRemoveRow (event: Event): void {
   element = (element.parentNode as Node).parentNode as HTMLElement;
   if (element.classList.contains("exclusionRuleInstance")) {
     element.remove();
-    this.onUpdated();
-    return this.onRowChange(0);
+    this.onUpdated_();
+    return this.onRowChange_(0);
   }
 }
 
 _reChar: RegExpOne;
 _escapeRe: RegExpG;
-readValueFromElement (part?: boolean): AllowedOptions["exclusionRules"] {
+readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
   const rules: ExclusionsNS.StoredRule[] = [],
-  _ref = this.element.getElementsByClassName<HTMLTableRowElement>("exclusionRuleInstance");
+  _ref = this.element_.getElementsByClassName<HTMLTableRowElement>("exclusionRuleInstance");
   part = (part === true);
   for (let _i = 0, _len = _ref.length; _i < _len; _i++) {
     const element = _ref[_i];
     if (part && element.style.display === "none") {
       continue;
     }
-    let pattern = this.getPattern(element).value.trim();
+    let pattern = ExclusionRulesOption_.getPattern_(element).value.trim();
     if (!pattern) {
       continue;
     }
@@ -235,9 +235,9 @@ readValueFromElement (part?: boolean): AllowedOptions["exclusionRules"] {
       pattern = pattern.replace(this._escapeRe, "$1");
       pattern = (pattern.indexOf("://") === -1 ? ":http://" : ":") + pattern;
     }
-    let passKeys = this.getPassKeys(element).value;
+    let passKeys = ExclusionRulesOption_.getPassKeys_(element).value;
     if (passKeys) {
-      const passArr = passKeys.match(KeyRe);
+      const passArr = passKeys.match(KeyRe_);
       passKeys = passArr ? (passArr.sort().join(" ") + " ") : "";
     }
     rules.push({
@@ -248,28 +248,28 @@ readValueFromElement (part?: boolean): AllowedOptions["exclusionRules"] {
   return rules;
 }
 
-readonly areEqual = Option.areJSONEqual;
-getPattern (element: HTMLTableRowElement): HTMLInputElement {
+readonly areEqual_ = Option_.areJSONEqual_;
+static getPattern_ (element: HTMLTableRowElement): HTMLInputElement {
   return element.getElementsByClassName<HTMLInputElement>("pattern")[0];
 }
-getPassKeys (element: HTMLTableRowElement): HTMLInputElement {
+static getPassKeys_ (element: HTMLTableRowElement): HTMLInputElement {
   return element.getElementsByClassName<HTMLInputElement>("passKeys")[0];
 }
-onInit (): void {}
-sortRules: (el?: HTMLElement) => void;
-timer?: number;
+onInit_ (): void {}
+sortRules_: (el?: HTMLElement) => void;
+timer_?: number;
 }
-ExclusionRulesOption.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
-ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;
+ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
+ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
-if (bgSettings.CONST.ChromeVersion >= BrowserVer.MinSmartSpellCheck) {
+if (bgSettings_.CONST.ChromeVersion >= BrowserVer.MinSmartSpellCheck) {
   (document.documentElement as HTMLElement).removeAttribute("spellcheck");
 }
 
-if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-  || window.devicePixelRatio < 2 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+if (bgSettings_.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+  || window.devicePixelRatio < 2 && bgSettings_.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
 ) (function(): void {
-  const css = document.createElement("style"), ratio = window.devicePixelRatio, version = bgSettings.CONST.ChromeVersion;
+  const css = document.createElement("style"), ratio = window.devicePixelRatio, version = bgSettings_.CONST.ChromeVersion;
   const onlyInputs = version >= BrowserVer.MinRoundedBorderWidthIsNotEnsured && ratio >= 1;
   let scale: string | number = onlyInputs || version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.12 / ratio : 1;
   scale = ("" + scale).substring(0, 7);
@@ -278,36 +278,36 @@ if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDevi
   (document.head as HTMLHeadElement).appendChild(css);
 })();
 
-$<HTMLElement>(".version").textContent = bgSettings.CONST.CurrentVersion;
+$<HTMLElement>(".version").textContent = bgSettings_.CONST.CurrentVersion;
 
-location.pathname.indexOf("/popup.html") !== -1 && BG.Utils.require("Exclusions").then((function(callback) {
+location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require("Exclusions").then((function(callback) {
   return function() {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
 })(function(tabs: [chrome.tabs.Tab] | never[]): void {
-interface PopExclusionRulesOption extends ExclusionRulesOption {
-  inited: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */;
-  init(this: PopExclusionRulesOption, element: HTMLElement
+interface PopExclusionRulesOption extends ExclusionRulesOption_ {
+  inited_: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */;
+  init_(this: PopExclusionRulesOption, element: HTMLElement
     , onUpdated: (this: PopExclusionRulesOption) => void, onInit: (this: PopExclusionRulesOption) => void
     ): void;
-  rebuildTesters (this: PopExclusionRulesOption): void;
-  addRule (): HTMLTableRowElement;
-  populateElement (rules: ExclusionsNS.StoredRule[]): void;
-  OnInput (this: void, event: Event): void;
-  generateDefaultPattern (this: PopExclusionRulesOption): string;
+  rebuildTesters_ (this: PopExclusionRulesOption): void;
+  addRule_ (): HTMLTableRowElement;
+  populateElement_ (rules: ExclusionsNS.StoredRule[]): void;
+  OnInput_ (this: void, event: Event): void;
+  generateDefaultPattern_ (this: PopExclusionRulesOption): string;
 }
-  let ref = BG.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
+  let ref = BG_.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
   const notRunnable = !ref && !(tabs[0] && tabs[0].url && tabs[0].status === "loading"
     && (tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0));
   if (notRunnable) {
     const body = document.body as HTMLBodyElement;
     body.textContent = "";
     blockedMsg.style.display = "";
-    (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings.CONST.CurrentVersion;
+    (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST.CurrentVersion;
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
     if (!tabs[0] || !tabs[0].url || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
       refreshTip.remove();
-    } else if (BG.IsEdge) {
+    } else if (BG_.IsEdge) {
       (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page";
     }
     body.style.width = "auto";
@@ -317,53 +317,53 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
     blockedMsg.remove();
     blockedMsg = null as never;
   }
-  const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings.CONST.OptionsPage;
+  const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST.OptionsPage;
   element.href !== optionsUrl && (element.href = optionsUrl);
   element.onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
-    const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
-    a.url = bgSettings.CONST.OptionsPage;
-    BG.Backend.focus(a);
+    const a: MarksNS.FocusOrLaunch = BG_.Object.create(null);
+    a.url = bgSettings_.CONST.OptionsPage;
+    BG_.Backend.focus(a);
     window.close();
   };
   if (notRunnable) {
     return;
   }
 
-const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions,
+const bgExclusions: ExclusionsNS.ExclusionsCls = BG_.Exclusions,
 tabId = ref ? ref[0].sender.tabId : tabs[0].id,
 stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
 url = ref ? ref[0].sender.url : tabs[0].url,
-exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
-  inited: 0,
-  init (this: PopExclusionRulesOption, element: HTMLElement
-      , onUpdated: (this: ExclusionRulesOption) => void, onInit: (this: ExclusionRulesOption) => void
+exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOption>{
+  inited_: 0,
+  init_ (this: PopExclusionRulesOption, element: HTMLElement
+      , onUpdated: (this: ExclusionRulesOption_) => void, onInit: (this: ExclusionRulesOption_) => void
       ): void {
-    this.rebuildTesters();
-    this.onInit = onInit;
-    (ExclusionRulesOption as any).call(this, element, onUpdated);
-    this.element.addEventListener("input", this.OnInput);
-    this.init = null as never;
+    this.rebuildTesters_();
+    this.onInit_ = onInit;
+    (ExclusionRulesOption_ as any).call(this, element, onUpdated);
+    this.element_.addEventListener("input", this.OnInput_);
+    this.init_ = null as never;
   },
-  rebuildTesters (this: PopExclusionRulesOption): void {
-    const rules = bgSettings.get("exclusionRules")
-      , ref1 = bgExclusions.testers = BG.Object.create(null)
+  rebuildTesters_ (this: PopExclusionRulesOption): void {
+    const rules = bgSettings_.get("exclusionRules")
+      , ref1 = bgExclusions.testers = BG_.Object.create(null)
       , ref2 = bgExclusions.rules;
     for (let _i = 0, _len = rules.length; _i < _len; _i++) {
       ref1[rules[_i].pattern] = ref2[_i * 2];
     }
-    this.rebuildTesters = null as never;
+    this.rebuildTesters_ = null as never;
   },
-  addRule (this: PopExclusionRulesOption): HTMLTableRowElement {
-    return ExclusionRulesOption.prototype.addRule.call(this, this.generateDefaultPattern());
+  addRule_ (this: PopExclusionRulesOption): HTMLTableRowElement {
+    return ExclusionRulesOption_.prototype.addRule_.call(this, this.generateDefaultPattern_());
   },
-  populateElement (this: PopExclusionRulesOption, rules: ExclusionsNS.StoredRule[]): void {
-    ExclusionRulesOption.prototype.populateElement.call(this, rules);
-    const elements = this.element.getElementsByClassName<HTMLTableRowElement>("exclusionRuleInstance");
+  populateElement_ (this: PopExclusionRulesOption, rules: ExclusionsNS.StoredRule[]): void {
+    ExclusionRulesOption_.prototype.populateElement_.call(this, rules);
+    const elements = this.element_.getElementsByClassName<HTMLTableRowElement>("exclusionRuleInstance");
     let haveMatch = -1;
     for (let _i = 0, _len = elements.length; _i < _len; _i++) {
       const element = elements[_i];
-      const pattern = this.getPattern(element).value.trim();
+      const pattern = ExclusionRulesOption_.getPattern_(element).value.trim();
       const rule = (bgExclusions.testers as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
       if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
         haveMatch = _i;
@@ -371,17 +371,17 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
         element.style.display = "none";
       }
     }
-    if (this.inited === 0) {
+    if (this.inited_ === 0) {
       if (haveMatch >= 0) {
-        this.getPassKeys(elements[haveMatch]).focus();
+        ExclusionRulesOption_.getPassKeys_(elements[haveMatch]).focus();
       } else {
-        this.addRule();
+        this.addRule_();
       }
-      this.inited = haveMatch >= 0 ? 2 : 1;
+      this.inited_ = haveMatch >= 0 ? 2 : 1;
     }
-    this.populateElement = null as never;
+    this.populateElement_ = null as never;
   },
-  OnInput (this: void, event: Event): void {
+  OnInput_ (this: void, event: Event): void {
     const patternElement = event.target as HTMLInputElement;
     if (!patternElement.classList.contains("pattern")) {
       return;
@@ -394,16 +394,16 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       patternElement.title = "Red text means that the pattern does not\nmatch the current URL.";
     }
   },
-  generateDefaultPattern (this: PopExclusionRulesOption): string {
+  generateDefaultPattern_ (this: PopExclusionRulesOption): string {
     const url2 = url.lastIndexOf("https:", 0) === 0
       ? "^https?://" + url.split("/", 3)[2].replace(<RegExpG>/[.[\]]/g, "\\$&") + "/"
       : (<RegExpOne>/^[^:]+:\/\/./).test(url) && url.lastIndexOf("file:", 0) < 0
       ? ":" + (url.split("/", 3).join("/") + "/")
       : ":" + url;
-    this.generateDefaultPattern = () => url2;
+    this.generateDefaultPattern_ = () => url2;
     return url2;
   }
-}, ExclusionRulesOption.prototype);
+}, ExclusionRulesOption_.prototype);
 
   let saved = true, oldPass: string | null = null, curLockedStatus = Frames.Status.__fake;
   function collectPass(pass: string): string {
@@ -417,13 +417,13 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     return Object.keys(dict).join(" ");
   }
   function updateState(initing: boolean): void {
-    let pass = bgExclusions.getTemp(url, exclusions.readValueFromElement(true));
+    let pass = bgExclusions.getTemp(url, exclusions.readValueFromElement_(true));
     pass && (pass = collectPass(pass));
     if (initing) {
-      oldPass = exclusions.inited >= 2 ? pass : null;
+      oldPass = exclusions.inited_ >= 2 ? pass : null;
     }
-    const isSaving = exclusions.inited === 3;
-    exclusions.inited = 2;
+    const isSaving = exclusions.inited_ === 3;
+    exclusions.inited_ = 2;
     const same = pass === oldPass;
     let html = '<span class="Vim">Vim</span>ium <span class="C">C</span> '
       + (isSaving ? pass ? "becomes to exclude" : "becomes"
@@ -449,7 +449,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       saveBtn.removeAttribute("disabled");
       (saveBtn.firstChild as Text).data = "Save Changes";
     }
-    if (!exclusions.init) {
+    if (!exclusions.init_) {
       updateState(false);
     }
   }
@@ -458,12 +458,12 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       return;
     }
     const testers = bgExclusions.testers;
-    BG.Backend.forceStatus("reset", tabId);
-    exclusions.save();
+    BG_.Backend.forceStatus("reset", tabId);
+    exclusions.save_();
     setTimeout(function() {
       bgExclusions.testers = testers;
     }, 50);
-    exclusions.inited = 3;
+    exclusions.inited_ = 3;
     updateState(true);
     (saveBtn.firstChild as Text).data = "Saved";
     saveBtn.disabled = true;
@@ -476,7 +476,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       if (!saved) { return saveOptions(); }
     }
   });
-  exclusions.init($("#exclusionRules"), onUpdated, function (): void {
+  exclusions.init_($("#exclusionRules"), onUpdated, function (): void {
     let sender = ref ? ref[0].sender : { status: Frames.Status.enabled, flags: Frames.Flags.Default }, el: HTMLElement
       , newStat = sender.status !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
     curLockedStatus = sender.flags & Frames.Flags.locked ? sender.status : Frames.Status.__fake;
@@ -493,19 +493,19 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     setTimeout(function(): void {
       (document.documentElement as HTMLHtmlElement).style.height = "";
     }, 17);
-    this.onInit = null as never;
+    this.onInit_ = null as never;
     return updateState(true);
   });
   interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
   (window as WindowEx).exclusions = exclusions;
   window.onunload = function(): void {
     bgExclusions.testers = null;
-    BG.Utils.GC();
+    BG_.Utils.GC();
   };
 
   function forceState(act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();
-    BG.Backend.forceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
+    BG_.Backend.forceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
     window.close();
   }
 }));
