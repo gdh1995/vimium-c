@@ -468,6 +468,7 @@ var VFind = {
   /** must be called after initing */
   DisableStyle_ (this: void, disable: BOOL | boolean | Event): void {
     const a = VFind, sout = a.styleOut_, sin = a.styleIn_, UI = VDom.UI, active = a.isActive_;
+    if (!sout) { return; }
     document.removeEventListener("selectionchange", a.DisableStyle_, true);
     disable = !!disable;
     if (!active && disable) {
