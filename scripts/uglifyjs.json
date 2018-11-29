@@ -32,7 +32,6 @@
     "if_return": true,
     "inline": false,
     "join_vars": true,
-    // "cascade": true,
     "collapse_vars": true,
     "warnings": true,
     "negate_iife": false,

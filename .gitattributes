@@ -18,3 +18,4 @@ types/*.d.ts linguist-vendored=false
 types/base/* linguist-vendored
 types/base/base.d.ts linguist-vendored=false
 weidu/* linguist-vendored
+scripts/*.json linguist-language=jsonc
