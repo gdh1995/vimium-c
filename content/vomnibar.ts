@@ -88,7 +88,7 @@ var VOmni = {
       options.search = "";
       return a.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
-    if ((window as Window & {VShownNode?: Element}).VShownNode && VimiumInjector === null) {
+    if ((window as Window & {VShown?: Element}).VShown && VimiumInjector === null) {
       url = url.split("#", 1)[0] + window.name;
     }
     const trail = options.trailing_slash;
