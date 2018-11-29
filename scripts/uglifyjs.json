@@ -46,9 +46,19 @@
       "regex": "/^_|_$/"
     },
     "reserved": [
+      // # background global names:
+      "Utils", "NotChrome", "IsEdge", "IsFirefox", "Settings", "Backend",
+      "Commands", "CommandsData", "Exclusions", "HelpDialog",
+      // # content global names:
+      "VimiumInjector", "VUtils", "VKeyboard", "VDom",
+      "VHints", "VOmni", "VScroller", "VMarks", "VFind", "VVisual",
+      "VSettings", "VHUD", "VPort", "VEvent",
+      // # front/vomnibar
+      "VCID",
+      // # inner names:
       "startsWith", "endsWith", "addEventListener", "toString",
       "Suggestion", "VC"
     ], // for polyfills and backend Suggestion
-    "toplevel": false
+    "toplevel": true
   }
 }

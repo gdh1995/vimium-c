@@ -68,8 +68,10 @@ var Tasks = {
     var rest = ["background/*.js"];
     for (var arr = ori_sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
     var maps = [
-      [body, sources[0], null], [tail, sources[index], null],
-      [sources.slice(1, index), ".", ""], [rest, ".", ""]
+      [tail, sources[index], null],
+      [body, sources[0], null],
+      [sources.slice(1, index), ".", ""],
+      [rest, ".", ""]
     ];
     manifest.background.scripts = sources;
     checkJSAndUglifyAll(maps, "min/bg", exArgs, cb);
@@ -794,6 +796,5 @@ function loadUglifyConfig(reload) {
     }
   }
   a.output.comments = removeComments ? false : "all";
-  a.mangle && (a.mangle.toplevel = false); // uglifyJS has a bug about toplevel mangling
   return a;
 }
