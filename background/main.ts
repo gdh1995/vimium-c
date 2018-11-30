@@ -1051,12 +1051,15 @@ Are you sure you want to continue?`);
       }
       if (!(cOptions.all || cOptions.other)) {
         getCurTab(function([tab]: [Tab]): void {
-          chrome.tabs.update(tab.id, { muted: !tab.mutedInfo.muted });
+          const wanted = !tab.mutedInfo.muted;
+          chrome.tabs.update(tab.id, { muted: wanted });
+          Backend.showHUD_(wanted ? "Muted." : "Unmuted.");
         })
         return;
       }
       chrome.tabs.query({audible: true}, function(tabs: Tab[]): void {
         let curId = cOptions.other ? cPort.sender.tabId : GlobalConsts.TabIdNone
+          , prefix = curId === GlobalConsts.TabIdNone ? "All" : "Other"
           , muted = false, action = { muted: true };
         for (let i = tabs.length; 0 <= --i; ) {
           const tab = tabs[i];
@@ -1065,12 +1068,13 @@ Are you sure you want to continue?`);
             chrome.tabs.update(tab.id, action);
           }
         }
-        if (muted) { return; }
+        if (muted) { return Backend.showHUD_(prefix + " tabs get muted."); }
         action.muted = false;
         for (let i = tabs.length; 0 <= --i; ) {
           const j = tabs[i].id;
           j !== curId && chrome.tabs.update(j, action);
         }
+        Backend.showHUD_(prefix + " tabs are unmuted.");
       });
     },
     /* reloadTab: */ function (this: void, tabs: Tab[] | never[]): void {
