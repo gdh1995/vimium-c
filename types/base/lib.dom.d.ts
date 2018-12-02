@@ -7549,7 +7549,7 @@ interface Selection {
     collapse(parentNode: Node, offset: number): void;
     collapseToEnd(): void;
     collapseToStart(): void;
-    containsNode(node: Node, partlyContained: boolean): boolean;
+    containsNode(node: Node, partlyContained?: boolean): boolean;
     deleteFromDocument(): void;
     empty(): void;
     extend(newNode: Node, offset: number): void;

@@ -139,8 +139,8 @@ var VVisual = {
         return VFind.activate_(1, VUtils.safer_({ returnToViewport: true }));
       }
       if (command === 53 && mode !== VisualModeNS.Mode.Caret) {
-        const flag = movement.selection_.toString().length > 1;
-        movement.collapseSelectionTo_(+flag as 0 | 1);
+        const len = movement.selection_.toString().length;
+        len && movement.collapse_(+(movement.getDirection_() <= +(len <= 1)) as BOOL);
       }
       return this.activate_(1, VUtils.safer_({
         // command === 1 ? VisualModeNS.Mode.Visual : command === 2 : VisualModeNS.Mode.Line : VisualModeNS.Mode.Caret
@@ -336,7 +336,7 @@ movement_: {
   collapseSelectionTo_ (direction: VisualModeNS.ForwardDir) {
     this.selection_.toString().length > 0 && this.collapse_(this.getDirection_() - direction as BOOL);
   },
-  collapse_ (toStart: BOOL): void | 1 {
+  collapse_ (/** to-left if text is left-to-right */ toStart: BOOL): void | 1 {
     return toStart ? this.selection_.collapseToStart() : this.selection_.collapseToEnd();
   },
   selectLexicalEntity_ (entity: VisualModeNS.G, count: number): void {
