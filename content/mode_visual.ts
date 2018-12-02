@@ -303,9 +303,9 @@ movement_: {
   reverseSelection_ (): void {
     const el = VEvent.lock(), direction = this.getDirection_(true);
     if (el
-        && (VDom.editableTypes_[(el.tagName as string).toLowerCase()] as EditableType) > EditableType.Embed) {
+        && (VDom.editableTypes_[el.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
       let length = this.selection_.toString().length;
-      this.collapseSelectionTo_(1);
+      this.collapse_((direction ^ 1) as BOOL);
       this.diNew_ = this.diOld_ = (1 - direction) as VisualModeNS.ForwardDir;
       while (0 < length--) { this.modify_(this.diOld_, 0); }
       return;
@@ -316,19 +316,33 @@ movement_: {
     this.collapse_(this.diNew_);
     this.selection_.extend(original[(str + "Container") as "endContainer"], original[(str + "Offset") as "endOffset"]);
   },
+  _compare: null as never as Node["compareDocumentPosition"],
   getDirection_ (cache?: boolean): VisualModeNS.ForwardDir {
-    let a = this;
+    const a = this;
     if (cache && a.diOld_ === a.diNew_) { return a.diOld_; }
-    let initial = a.selection_.toString().length;
+    // common HTML nodes
+    const sel = a.selection_, {anchorNode, focusNode} = sel;
+    if (anchorNode != focusNode) {
+      return a.diOld_ = (a._compare.call(anchorNode as Node, focusNode as Node) & /** DOCUMENT_POSITION_FOLLOWING */ 4) ? 1 : 0;
+    }
+    const { anchorOffset, focusOffset } = sel;
+    if (anchorOffset !== focusOffset) {
+      return a.diOld_ = anchorOffset < focusOffset ? 1 : 0;
+    }
+    if (anchorNode instanceof Text) {
+      return a.diOld_ = 1;
+    }
+    // nodes under shadow DOM
+    const initial = sel.toString().length;
     a.extend_(1);
-    let change = a.selection_.toString().length - initial, di: VisualModeNS.ForwardDir = change ? 1 : 0;
+    let change = sel.toString().length - initial, di: VisualModeNS.ForwardDir = change ? 1 : 0;
     a.extend_(0);
     /**
      * Note (tested on C70):
      * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
      * so a detection and the third `extend` may be necessary
      */
-    let change2 = change >= 0 ? a.selection_.toString().length - initial : 0;
+    let change2 = change >= 0 ? sel.toString().length - initial : 0;
     change2 < 0 && a.extend_(1);
     change = change || change2;
     return a.diOld_ = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
@@ -391,6 +405,7 @@ keyMap_: {
 init_ (words: string) {
   this.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
+  this.movement_._compare = Node.prototype.compareDocumentPosition;
   this.realType_ = VSettings.cache.browserVer === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function(sel: Selection): SelType {
     let type = typeIdx[sel.type];
