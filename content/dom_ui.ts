@@ -155,7 +155,7 @@ VDom.UI = {
       if (el && el === sel.focusNode && (offset = sel.anchorOffset) === sel.focusOffset) {
         if (el instanceof E && !(el.childNodes instanceof E)) {
           el = el.childNodes[offset];
-          if (sr = VDom.GetShadowRoot_(el)) {
+          if (el && (sr = VDom.GetShadowRoot_(el))) {
             if (sr.getSelection && (sel2 = sr.getSelection())) {
               sel = sel2;
             }
@@ -205,7 +205,7 @@ VDom.UI = {
   /** @NEED_SAFE_ELEMENTS */
   _moveSel_unsafe_ (element, action): void {
     type TextElement = HTMLInputElement | HTMLTextAreaElement;
-    const tag = (element.tagName as string).toLowerCase()
+    const tag = (element.tagName as string).toLowerCase();
     const type = tag === "textarea" ? EditableType.Editbox : tag === "input" ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
         : EditableType.Default;
