@@ -279,13 +279,11 @@ var Utils = {
   /** type: 0=all */
   isIPHost_ (hostname: string, type: 0 | 4 | 6): boolean {
      if (type !== 6 && this._ipv4Re.test(hostname) || type !== 4 && this._ipv6Re.test(hostname)) {
-       try {
-         new URL("http://" + hostname);
-         return true;
-       } catch (e) {}
+       return this.safeParseURL("http://" + hostname) != null;
      }
      return false;
   },
+  safeParseURL(url: string): URL | null { try { return new URL(url); } catch (e) {} return null; },
   commonFileExtRe_: <RegExpOne>/\.[0-9A-Za-z]+$/,
   formatVimiumUrl_ (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, query = "", tempStr: string | undefined, path = fullpath.trim();

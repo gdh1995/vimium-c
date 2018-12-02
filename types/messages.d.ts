@@ -221,8 +221,9 @@ declare const enum kFgReq {
   searchAs, gotoSession, openUrl, focus, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
-  focusOrLaunch, cmd, blurTest, removeSug, msg,
-  inject,
+  focusOrLaunch, cmd, blurTest, removeSug,
+  END,
+  msg = 90, inject = 91,
   command = "command",
 }
 
