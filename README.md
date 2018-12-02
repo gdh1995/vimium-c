@@ -98,6 +98,10 @@ Known issues (Up to the master branch):
 9. Chrome 69 disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
   This issue has been fixed since Chrome Dev 70 (up to 2018-09-07).
 
+1.71 (Not released yet):
+* LinkHints.activateModeToOpenImage: add an "auto" mode to auto parse higher-res image urls
+* inject Vimium C into other extensions: auto reload content scripts when Vimium C updates to a new version
+
 1.69.2:
 * fix that Vomnibar often shows and disappears on reopening
 * fix that some web pages can not be scrolled without a click

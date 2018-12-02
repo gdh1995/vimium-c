@@ -22,6 +22,7 @@ declare namespace HintsNS {
     url?: boolean;
     keyword?: string;
     newtab?: boolean;
+    auto?: boolean;
     /** @deprecated */
     force?: boolean;
   }
@@ -1141,13 +1142,15 @@ Modes_: [
   133: "Open image",
   197: "Open multiple image",
   activator_ (img: HTMLElement): void {
-    let text = (this as typeof VHints)._getImageUrl(img), url: string, str: string | null;
+    let text = (this as typeof VHints)._getImageUrl(img);
     if (!text) { return; }
-    url = "vimium://show image ";
-    if (str = img.getAttribute("download")) {
-      url += "download=" + encodeURIComponent(str) + "&";
-    }
-    (this as typeof VHints).openUrl_(url + text);
+    VPort.post({
+      H: kFgReq.openImage,
+      reuse: (this as typeof VHints).mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
+      file: img.getAttribute("download"),
+      url: text,
+      auto: !!(this as typeof VHints).options_.auto
+    });
   }
 } as HintsNS.ModeOpt,
 {

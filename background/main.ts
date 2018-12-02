@@ -560,7 +560,7 @@ Are you sure you want to continue?`);
         arr[0] = "", arr[1] = null;
       }, 2000);
     }] as [
-      (url: string, reuse: ReuseType, options: OpenUrlOptions, tab?: Tab) => boolean,
+      (url: string, reuse: ReuseType, options: Pick<OpenUrlOptions, "position" | "opener">, tab?: Tab) => boolean,
       (arr: [string, ((this: void) => string) | null, number]) => void
     ]
     // use Urls.WorkType.Default
@@ -1898,6 +1898,38 @@ Are you sure you want to continue?`);
     },
     /** removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
       return Backend.removeSug_(req, port);
+    },
+    /** openImage: */ function (this: void, req: FgReq[kFgReq.openImage], port: Port) {
+      let url = req.url, parsed = Utils.safeParseURL(url);
+      if (!parsed) {
+        cPort = port;
+        Backend.showHUD_("The link has not a valid image URL");
+        return;
+      }
+      let prefix = Settings.CONST.ShowPage_ + "#!image ";
+      if (req.file) {
+        prefix += "download=" + encodeURIComponent(req.file) + "&";
+      }
+      if (req.auto) {
+        let search = parsed.search, arr: RegExpExecArray | null, ok = false;
+        if (search.length > 10 && (arr = (<RegExpOne>/[&?]src=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
+          search = search.lastIndexOf('&') > 0 ? Utils.DecodeURLPart_(search.split('&', 1)[0]) : Utils.decodeEscapedURL_(search);
+          ok = Utils.safeParseURL(search) != null;
+        }
+        if (!ok) {
+          search = parsed.pathname;
+          let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('/') + 1;
+          if (index > 2) {
+            let last = search.substring(index), arr2 = last.match(<RegExpG>/\d\d+/g);
+            if (arr2 && arr2.length >= 2 && (<RegExpOne>/[whx_]/).test(last)) {
+              search = parsed.origin + search.substring(0, index - 1);
+              ok = true;
+            }
+          }
+        }
+        url = ok ? search : url;
+      }
+      openShowPage[0](prefix + url, req.reuse, { opener: true });
     }
   ],
     framesForOmni: Frames.WritableFrames = [null as never];
