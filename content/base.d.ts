@@ -95,6 +95,12 @@ declare const enum EditableType {
   rich_ = 5,
 }
 
+declare const enum SelType {
+  None = 0,
+  Caret = 1,
+  Range = 2,
+}
+
 declare const enum PixelConsts {
   MaxScrollbarWidth = 24,
   MaxHeightOfLinkHintMarker = 18,

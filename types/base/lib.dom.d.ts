@@ -4919,6 +4919,7 @@ interface HTMLTextAreaElement extends HTMLElement {
       * Gets or sets the starting position or offset of a text selection.
       */
     selectionStart: number;
+    selectionDirection: string;
     /**
       * Sets or retrieves the value indicating whether the control is selected.
       */
@@ -7544,7 +7545,7 @@ interface Selection {
     readonly focusOffset: number;
     readonly isCollapsed: boolean;
     readonly rangeCount: number;
-    readonly type: string;
+    readonly type: "Range" | "Caret" | "None";
     addRange(range: Range): void;
     collapse(parentNode: Node, offset: number): void;
     collapseToEnd(): void;

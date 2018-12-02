@@ -2,6 +2,7 @@ declare namespace VisualModeNS {
   const enum ValidActions {
 
   }
+  /** 1 means right; 0 means left */
   type ForwardDir = 0 | 1;
   const enum G {
     character = 0, line = 1, lineboundary = 2, paragraph = 3, sentence = 4, word = 6, documentboundary = 7,
@@ -20,35 +21,33 @@ var VVisual = {
   retainSelection_: false,
   selection_: null as never as Selection,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
-    const a = VVisual, F = VFind;
-    let sel: Selection, type: string, mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
+    const a = VVisual, F = VFind, m = a.movement_;
+    let sel: Selection, type: SelType, mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
     a.init_ && a.init_(options.words as string);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
-    a.movement_.selection_ = a.selection_ = sel = VDom.UI.getSelection_();
+    m.selection_ = a.selection_ = sel = VDom.UI.getSelection_();
     F.css_ = options.findCSS || F.css_;
     VScroller.prepareTop_();
     VUtils.remove_(a);
     VUtils.push_(a.onKeydown_, a);
-    type = sel.type;
-    if (!a.mode_) { a.retainSelection_ = type === "Range"; }
+    type = a.realType_(sel);
+    if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
     a.mode_ = mode;
     if (mode !== VisualModeNS.Mode.Caret) {
-      a.movement_.alterMethod_ = "extend";
-      const notEditing = !VEvent.lock();
-      if (notEditing && (type === "Caret" || type === "Range")) {
+      m.alterMethod_ = "extend";
+      if (!VEvent.lock() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
         VDom.getZoom_(1);
         VDom.prepareCrop_();
         if (!VDom.cropRectToVisible_(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
           sel.removeAllRanges();
-        } else if (type === "Caret") {
-          const length = sel.toString().length;
-          a.movement_.extend_(1);
-          sel.toString().length - length || a.movement_.extend_(0);
+        } else if (type === SelType.Caret) {
+          m.extend_(1);
+          a.realType_(sel) === SelType.Range || m.extend_(0);
         }
-        type = sel.type;
+        type = a.realType_(sel);
       }
-      if (type !== "Range" && (notEditing || sel.toString().length <= 0)) {
+      if (type !== SelType.Range) {
         mode = VisualModeNS.Mode.Caret;
       }
     }
@@ -59,16 +58,16 @@ var VVisual = {
       a.prompt_("No usable selection, entering caret mode\u2026", 1000);
     }
     VDom.UI.toggleSelectStyle_(1);
-    if (mode !== VisualModeNS.Mode.Caret) { return mode === VisualModeNS.Mode.Line ? a.movement_.extendToLine_() : undefined; }
-    a.movement_.alterMethod_ = "move";
-    if (type === "Range") {
-      a.movement_.collapseSelectionTo_(0);
-    } else if (type === "None" && a.establishInitialSelectionAnchor_()) {
+    if (mode !== VisualModeNS.Mode.Caret) { return mode === VisualModeNS.Mode.Line ? m.extendToLine_() : undefined; }
+    m.alterMethod_ = "move";
+    if (type === SelType.Range) {
+      m.collapse_(m.getDirection_());
+    } else if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_()) {
       a.deactivate_();
       return VHUD.tip("Create a selection before entering visual mode.");
     }
-    a.movement_.extend_(1);
-    a.movement_.scrollIntoView_();
+    m.extend_(1);
+    m.scrollIntoView_();
   },
   deactivate_ (isEsc?: 1): void {
     if (!this.mode_) { return; }
@@ -85,6 +84,7 @@ var VVisual = {
     this.selection_ = this.movement_.selection_ = null as never;
     return VHUD.hide_();
   },
+  realType_: null as never as (sel: Selection) => SelType,
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     let i: VKeyCodes | KeyStat = event.keyCode, count = 0;
     if (i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn) { return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing; }
@@ -209,16 +209,16 @@ var VVisual = {
       });
       return;
     }
-    const range = this.selection_.getRangeAt(0);
+    const sel = this.selection_, range = sel.getRangeAt(0);
     VFind.execute_(null, { noColor: true, count });
     if (VFind.hasResults_) {
-      if (this.mode_ === VisualModeNS.Mode.Caret && this.selection_.toString().length > 0) {
+      if (this.mode_ === VisualModeNS.Mode.Caret && this.realType_(sel) === SelType.Range) {
         this.activate_(1, Object.create(null) as SafeObject & CmdOptions[kFgCmd.visualMode]);
       }
       return;
     }
-    this.selection_.removeAllRanges();
-    this.selection_.addRange(range);
+    sel.removeAllRanges();
+    sel.addRange(range);
     return this.prompt_("No matches for " + VFind.query_, 1000);
   },
   yank_ (action?: true | ReuseType.current | ReuseType.newFg | null): void {
@@ -333,8 +333,8 @@ movement_: {
     change = change || change2;
     return a.diOld_ = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
   },
-  collapseSelectionTo_ (direction: VisualModeNS.ForwardDir) {
-    this.selection_.toString().length > 0 && this.collapse_(this.getDirection_() - direction as BOOL);
+  collapseSelectionTo_ (toFocus: VisualModeNS.ForwardDir) {
+    VVisual.realType_(this.selection_) === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus) as BOOL);
   },
   collapse_ (/** to-left if text is left-to-right */ toStart: BOOL): void | 1 {
     return toStart ? this.selection_.collapseToStart() : this.selection_.collapseToEnd();
@@ -388,9 +388,16 @@ keyMap_: {
     [key: string]: VisualModeNS.ValidActions;
   };
 } as SafeDict<VisualModeNS.ValidActions | SafeDict<VisualModeNS.ValidActions>>,
-
 init_ (words: string) {
   this.init_ = null as never;
+  const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
+  this.realType_ = VSettings.cache.browserVer === BrowserVer.$Selection$NotShowStatusInTextBox
+  ? function(sel: Selection): SelType {
+    let type = typeIdx[sel.type];
+    return type === SelType.Caret && sel.toString().length ? SelType.Range : type;
+  } : function(sel: Selection): SelType {
+    return typeIdx[sel.type];
+  };
   var map = this.keyMap_, func = VUtils.safer_;
   this.movement_.wordRe_ = new RegExp(words);
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
