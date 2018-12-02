@@ -10,7 +10,11 @@ declare namespace VisualModeNS {
   const enum VimG {
     vimword = 5,
   }
-
+  const enum DiType {
+    Normal = 0,
+    TextBox = 1,
+    ShadowDOM = 2,
+  }
 }
 var VVisual = {
   mode_: VisualModeNS.Mode.NotActive,
@@ -243,6 +247,7 @@ movement_: {
   alterMethod_: "" as "move" | "extend",
   diOld_: 0 as VisualModeNS.ForwardDir,
   diNew_: 0 as VisualModeNS.ForwardDir,
+  diType: VisualModeNS.DiType.Normal,
   noExtend_: false,
   selection_: null as never as Selection,
   wordRe_: null as never as RegExpOne,
@@ -301,25 +306,27 @@ movement_: {
     return isMove ? false : this.hashSelection_() === before;
   },
   reverseSelection_ (): void {
-    const el = VEvent.lock(), direction = this.getDirection_(true);
-    if (el
-        && (VDom.editableTypes_[el.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
-      let length = this.selection_.toString().length;
-      this.collapse_((direction ^ 1) as BOOL);
-      this.diNew_ = this.diOld_ = (1 - direction) as VisualModeNS.ForwardDir;
-      while (0 < length--) { this.modify_(this.diOld_, 0); }
+    const a = this, direction = a.getDirection_(true), newDi = (1 - direction) as VisualModeNS.ForwardDir,
+    sel = a.selection_;
+    if (VVisual.realType_(sel) !== SelType.Range) {
       return;
     }
-    const original = this.selection_.getRangeAt(0),
-    str = direction ? "start" as "start" : "end" as "end";
-    this.diNew_ = this.diOld_ = (1 - direction) as VisualModeNS.ForwardDir;
-    this.collapse_(this.diNew_);
-    this.selection_.extend(original[(str + "Container") as "endContainer"], original[(str + "Offset") as "endOffset"]);
+    if (a.diType === VisualModeNS.DiType.TextBox) {
+      let length = sel.toString().length;
+      a.collapse_(newDi);
+      for (let i = 0; i < length; i++) { a.extend_(newDi); }
+    } else {
+      const { anchorNode, anchorOffset } = sel;
+      a.collapse_(newDi);
+      sel.extend(anchorNode as Node, anchorOffset);
+    }
+    a.diNew_ = a.diOld_ = newDi;
   },
   _compare: null as never as Node["compareDocumentPosition"],
   getDirection_ (cache?: boolean): VisualModeNS.ForwardDir {
     const a = this;
     if (cache && a.diOld_ === a.diNew_) { return a.diOld_; }
+    a.diType = VisualModeNS.DiType.Normal;
     // common HTML nodes
     const sel = a.selection_, {anchorNode, focusNode} = sel;
     if (anchorNode != focusNode) {
@@ -355,6 +362,7 @@ movement_: {
     let change2 = change >= 0 ? sel.toString().length - initial : 0;
     change2 < 0 && a.extend_(1);
     change = change || change2;
+    this.diType = VisualModeNS.DiType.ShadowDOM;
     return a.diOld_ = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
   },
   _touchTextBox (el: HTMLInputElement | HTMLTextAreaElement): VisualModeNS.ForwardDir {
@@ -366,6 +374,7 @@ movement_: {
       this.extend_(testDi);
       focusOffset !== (di ? el.selectionEnd : el.selectionStart) && this.extend_((1 - testDi) as BOOL);
     }
+    this.diType = VisualModeNS.DiType.TextBox;
     return this.diOld_ = di;
   },
   collapseSelectionTo_ (toFocus: VisualModeNS.ForwardDir) {
