@@ -329,6 +329,16 @@ movement_: {
     if (anchorOffset !== focusOffset) {
       return a.diOld_ = anchorOffset < focusOffset ? 1 : 0;
     }
+    // editable text elements
+    const lock = VEvent.lock();
+    if (lock && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select
+        && lock.parentElement === anchorNode) {
+      const childNodes = VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes,
+      child = childNodes[anchorOffset];
+      if (!child || lock === child) {
+        return a._touchTextBox(lock as HTMLInputElement | HTMLTextAreaElement);
+      }
+    }
     if (anchorNode instanceof Text) {
       return a.diOld_ = 1;
     }
@@ -346,6 +356,17 @@ movement_: {
     change2 < 0 && a.extend_(1);
     change = change || change2;
     return a.diOld_ = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
+  },
+  _touchTextBox (el: HTMLInputElement | HTMLTextAreaElement): VisualModeNS.ForwardDir {
+    let di: BOOL = el.selectionDirection === "backward" ? 0 : 1,
+    focusOffset = di ? el.selectionEnd : el.selectionStart,
+    testDi: BOOL = di || focusOffset ? 0 : 1;
+    // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
+    if (focusOffset || !di) {
+      this.extend_(testDi);
+      focusOffset !== (di ? el.selectionEnd : el.selectionStart) && this.extend_((1 - testDi) as BOOL);
+    }
+    return this.diOld_ = di;
   },
   collapseSelectionTo_ (toFocus: VisualModeNS.ForwardDir) {
     VVisual.realType_(this.selection_) === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus) as BOOL);
