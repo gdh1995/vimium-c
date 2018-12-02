@@ -226,14 +226,23 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
     if (!pattern) {
       continue;
     }
+    let fixTail = false;
     if (pattern[0] === ":" || element.style.display === "none") {}
-    else if (this._reChar.test(pattern)) {
-      pattern = pattern[0] === "^" ? pattern
-        : (pattern.indexOf("://") === -1 ? "^http://" : "^") +
-          (pattern[0] === "*" ? "." + pattern : pattern);
-    } else {
+    else if (!this._reChar.test(pattern)) {
+      fixTail = pattern.indexOf('/', pattern.indexOf("://") + 3) < 0;
       pattern = pattern.replace(this._escapeRe, "$1");
       pattern = (pattern.indexOf("://") === -1 ? ":http://" : ":") + pattern;
+    } else if (pattern[0] !== "^") {
+      fixTail = pattern.indexOf('/', pattern.indexOf("://") + 3) < 0;
+      pattern = (pattern.indexOf("://") === -1 ? "^https?://" : "^") +
+          (pattern[0] !== "*" || pattern[1] === "."
+            ? ((pattern = pattern.replace(<RegExpG>/\./g, "\\.")),
+              pattern[0] !== "*" ? pattern.replace("://*\\.", "://(?:[^./]+\\.)*?")
+                : pattern.replace("*\\.", "(?:[^./]+\\.)*?"))
+            : "[^/]" + pattern);
+    }
+    if (fixTail) {
+      pattern += "/";
     }
     let passKeys = ExclusionRulesOption_.getPassKeys_(element).value;
     if (passKeys) {

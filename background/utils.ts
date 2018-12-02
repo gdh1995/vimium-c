@@ -698,7 +698,7 @@ var Utils = {
     }
     return null;
   },
-  keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,3}..*?>|./g,
+  keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,3}.\w*?>|./g, /* need to support "<<left>" */
   makeCommand_: (function(command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description) : CommandsNS.Item {
     let opt: CommandsNS.Options | null;
     if (!details) { details = CommandsData.availableCommands_[command] as CommandsNS.Description }
