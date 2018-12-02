@@ -311,10 +311,15 @@ movement_: {
     if (VVisual.realType_(sel) !== SelType.Range) {
       return;
     }
-    if (a.diType === VisualModeNS.DiType.TextBox) {
+    if (a.diType === VisualModeNS.DiType.TextBox || a.diType === VisualModeNS.DiType.ShadowDOM) {
       let length = sel.toString().length;
       a.collapse_(newDi);
       for (let i = 0; i < length; i++) { a.extend_(newDi); }
+      if (a.diType === VisualModeNS.DiType.ShadowDOM) {
+        for (let delta, tick = 0; tick < 16 && (delta = sel.toString().length - length); tick++) {
+          a.extend_(delta < 0 ? newDi : direction);
+        }
+      }
     } else {
       const { anchorNode, anchorOffset } = sel;
       a.collapse_(newDi);
