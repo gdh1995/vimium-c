@@ -417,7 +417,7 @@ movement_: {
   },
   scrollIntoView_ (): void {
     const focused = VDom.getSelectionEdgeElement_(this.selection_, this.getDirection_());
-    if (focused) { return VScroller.scrollIntoView_(focused); }
+    if (focused) { return VScroller.scrollIntoView_unsafe_(focused); }
   },
 },
 

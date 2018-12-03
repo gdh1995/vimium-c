@@ -160,7 +160,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     }
     const getInsertion = Element.prototype.getDestinationInsertionPoints;
     let element: SafeElement | null = cur, reason, isCurVerticallyScrollable = di - 1 /** X => -1, Y => 0 */;
-    while (element !== top && (reason = this.shouldScroll_(element as NonNullable<typeof element>, di, amount)) < 1) {
+    while (element !== top && (reason = this.shouldScroll_unsafe_(element as NonNullable<typeof element>, di, amount)) < 1) {
       if (!reason) {
         isCurVerticallyScrollable = isCurVerticallyScrollable || +this._scrollDo(element as NonNullable<typeof element>, 1, -amount);
       }
@@ -228,7 +228,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     return null;
   },
   /** @NEED_SAFE_ELEMENTS */
-  scrollIntoView_ (el: SafeElement): void {
+  scrollIntoView_unsafe_ (el: SafeElement): void {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
     this.current_ = el;
@@ -247,7 +247,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   },
   scrolled_: 0,
   /** @NEED_SAFE_ELEMENTS */
-  shouldScroll_ (element: SafeElement, di: ScrollByY, amount?: number): -1 | 0 | 1 {
+  shouldScroll_unsafe_ (element: SafeElement, di: ScrollByY, amount?: number): -1 | 0 | 1 {
     const st = getComputedStyle(element);
     return (di ? st.overflowY : st.overflowX) === "hidden" || st.display === "none" || st.visibility !== "visible" ? -1
       : <BOOL> +this._scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
