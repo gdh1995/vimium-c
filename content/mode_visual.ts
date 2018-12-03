@@ -372,10 +372,11 @@ movement_: {
   },
   _touchTextBox (el: HTMLInputElement | HTMLTextAreaElement): VisualModeNS.ForwardDir {
     let di: BOOL = el.selectionDirection === "backward" ? 0 : 1,
-    focusOffset = di ? el.selectionEnd : el.selectionStart,
-    testDi: BOOL = di || focusOffset ? 0 : 1;
+    start = el.selectionStart,
+    focusOffset = di ? el.selectionEnd : start;
     // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
-    if (focusOffset || !di) {
+    if (!di || focusOffset && (start !== focusOffset)) {
+      let testDi: BOOL = di || focusOffset ? 0 : 1
       this.extend_(testDi);
       focusOffset !== (di ? el.selectionEnd : el.selectionStart) && this.extend_((1 - testDi) as BOOL);
     }
