@@ -157,7 +157,8 @@ var VVisual = {
       this.find_(command - 36 ? -count : count);
     } else if (command > 30) {
       // 31 : y, Y, C, p, P : 35
-      this.yank_([null, (movement.selectLine_(count), null), true as true,
+      command === 32 && movement.selectLine_(count);
+      this.yank_([null, null, true as true,
           ReuseType.current as ReuseType.current, ReuseType.newFg as ReuseType.newFg][command - 31]);
     } else if (command > 20) {
       movement.selectLexicalEntity_((command - 20) as VisualModeNS.G.sentence | VisualModeNS.G.word, count);
