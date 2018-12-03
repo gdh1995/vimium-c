@@ -85,6 +85,7 @@ var VVisual = {
     VScroller.top_ = null;
     this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
     this.retainSelection_ = false;
+    this.resetKeys_();
     this.selection_ = this.movement_.selection_ = null as never;
     return VHUD.hide_();
   },
