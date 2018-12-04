@@ -2,8 +2,8 @@
  * Note(gdh1995):
  * - @unknown_di_result: means it does not guarantee anything about @di
  * - @safe_di: means it accepts any @di and will force @di to be correct on return
- * - @need_safe_and_return_safe_di: means it needs a correct @di, and also means it will force @di to be correct on return
  * - @not_related_to_di: means it has no knowledge or influence on @di
+ * - all others: need a correct @di, and will force @di to be correct on return
  */
 declare namespace VisualModeNS {
   const enum ValidActions {
@@ -45,7 +45,7 @@ var VVisual = {
     type = a.realType_(sel);
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
     a.mode_ = mode;
-    m.di_ = 2;
+    m.di_ = type === SelType.Range ? 2 : 1;
     if (mode !== VisualModeNS.Mode.Caret) {
       m.alterMethod_ = "extend";
       if (!VEvent.lock() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
@@ -62,6 +62,7 @@ var VVisual = {
       }
       if (type !== SelType.Range) {
         mode = VisualModeNS.Mode.Caret;
+        m.di_ = 1;
       }
     }
     a.hudTimer_ && clearTimeout(a.hudTimer_);
@@ -149,7 +150,7 @@ var VVisual = {
   /** @unknown_di_result */
   commandHandler_ (command: VisualModeNS.ValidActions, count: number): void {
     this.movement_.di_ = 2; // make @di safe even when a user modifies the selection
-    const movement = this.movement_, mode = this.mode_;
+    let movement = this.movement_, mode = this.mode_;
     if (command > 50) {
       if (command > 60) {
         return VScroller.scrollBy_(1, (command === 61 ? 1 : -1) * count, 0);
@@ -175,6 +176,7 @@ var VVisual = {
       command === 32 && movement.selectLine_(count);
       this.yank_([null, null, true as true,
           ReuseType.current as ReuseType.current, ReuseType.newFg as ReuseType.newFg][command - 31]);
+      mode = this.mode_;
     } else if (command > 20) {
       movement.selectLexicalEntity_((command - 20) as VisualModeNS.G.sentence | VisualModeNS.G.word, count);
     } else if (command === 20) {
@@ -184,7 +186,7 @@ var VVisual = {
     }
     mode === VisualModeNS.Mode.Caret ? movement.extend_(1)
     : mode === VisualModeNS.Mode.Line ? movement.extendToLine_() : 0;
-    movement.scrollIntoView_();
+    mode && movement.scrollIntoView_();
   },
   /** @safe_di requires selection is None on called */
   establishInitialSelectionAnchor_ (): boolean {
@@ -221,7 +223,6 @@ var VVisual = {
     _this.hudTimer_ = 0;
     if (_this.hud_) { return VHUD.show_(_this.hud_); }
   },
-  /** @need_safe_and_return_safe_di */
   find_ (count: number): void {
     if (!VFind.query_) {
       VPort.send_({ msg: kFgReq.findQuery }, function(query): void {
@@ -285,7 +286,6 @@ movement_: {
   modify_ (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
     return this.selection_.modify(this.alterMethod_, this.D[d], this.G[g as 0 | 1 | 2]);
   },
-  /** @need_safe_and_return_safe_di */
   getNextRightCharacter_ (isMove: boolean): string | null {
     // todo: faster code
     const beforeText = this.selection_.toString();
@@ -308,23 +308,17 @@ movement_: {
     this.noExtend_ = false;
     return null;
   },
-  /**
-   * @need_safe_and_return_safe_di
-   */
   runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG, count: number): void {
     if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
-      if (direction) { return this.moveRightByWord(granularity === VisualModeNS.VimG.vimword, count); }
+      if (direction) { return this.moveRightByWord_(granularity === VisualModeNS.VimG.vimword, count); }
       granularity = VisualModeNS.G.word;
     }
-    // Note(gdh1995): here @di won't be 0 (up to 2018/12/03)
     let oldDi = this.di_;
     let sel = this.selection_, m = this.alterMethod_, d = this.D[direction], g = this.G[granularity as 0 | 1 | 2];
     while (0 < count--) { sel.modify(m, d, g); }
-    // keep @di if oldDi is 1 and arg$direction is 1
-    this.di_ = direction && oldDi || 2;
+    this.di_ = direction === oldDi ? direction : 2;
   },
-  /** @need_safe_and_return_safe_di */
-  moveRightByWord (vimLike: boolean, count: number): void {
+  moveRightByWord_ (vimLike: boolean, count: number): void {
     let ch: string | null = null, isMove = this.alterMethod_ !== "extend";
     this.noExtend_ = false;
     while (0 < count--) {
@@ -342,16 +336,12 @@ movement_: {
     const sel = this.selection_;
     return sel.toString().length + "/" + sel.anchorOffset + "/" + sel.focusOffset;
   },
-  /**
-   * @need_safe_and_return_safe_di
-   */
   moveRightByChar_ (isMove: boolean): boolean {
     const before = isMove || this.hashSelection_();
     this.modify_(1, VisualModeNS.G.character);
     this.di_ = this.di_ || 2; // 1 / 2 are kept, 0 is replaced with 2, so that keep @di safe
     return isMove ? false : this.hashSelection_() === before;
   },
-  /** @need_safe_and_return_safe_di */
   reverseSelection_ (): void {
     const a = this, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir,
     sel = a.selection_;
@@ -401,6 +391,7 @@ movement_: {
     if (anchorNode instanceof Text) {
       return a.di_ = 1;
     }
+    // not need to check `@realType_(sel) === Caret`: @di_ will have been set 1 by @collapse_ in most cases
     // nodes under shadow DOM
     const initial = sel.toString().length;
     a.extend_(1);
@@ -431,7 +422,7 @@ movement_: {
     this.diType_ = VisualModeNS.DiType.TextBox;
     return this.di_ = di;
   },
-  /** @need_safe_and_return_safe_di di will be 1 */
+  /** di will be 1 */
   collapseSelectionTo_ (toFocus: VisualModeNS.ForwardDir) {
     VVisual.realType_(this.selection_) === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus) as BOOL);
   },
@@ -440,20 +431,20 @@ movement_: {
     toStart ? this.selection_.collapseToStart() : this.selection_.collapseToEnd();
     this.di_ = 1;
   },
-  /** @need_safe_and_return_safe_di */
-  selectLexicalEntity_ (entity: VisualModeNS.G, count: number): void {
+  selectLexicalEntity_ (entity: VisualModeNS.G.sentence | VisualModeNS.G.word, count: number): void {
     this.collapseSelectionTo_(1);
     entity === VisualModeNS.G.word && this.modify_(1, VisualModeNS.G.character);
     this.modify_(0, entity);
+    this.di_ = 0; // safe
     this.collapseSelectionTo_(1);
-    // here @di is 1, and then the `1` below keeps @di correct
     return this.runMovements_(1, entity, count);
   },
-  /** @need_safe_and_return_safe_di */
+  /** after called, VVisual must exit at once */
   selectLine_ (count: number): void | 1 {
     this.alterMethod_ = "extend";
     this.getDirection_() && this.reverseSelection_();
     this.modify_(0, VisualModeNS.G.lineboundary);
+    this.di_ = 0; // safe
     this.reverseSelection_();
     while (0 < --count) { this.modify_(1, VisualModeNS.G.line); }
     this.modify_(1, VisualModeNS.G.lineboundary);
@@ -462,14 +453,12 @@ movement_: {
       return this.extend_(0);
     }
   },
-  /** @need_safe_and_return_safe_di */
   extendToLine_ (): void {
     for (let i = 2; 0 < i--; ) {
       this.modify_(this.getDirection_(), VisualModeNS.G.lineboundary);
       this.reverseSelection_();
     }
   },
-  /** @need_safe_and_return_safe_di */
   scrollIntoView_ (): void {
     const focused = VDom.getSelectionFocusEdge_(this.selection_, this.di_);
     if (focused) { return VScroller.scrollIntoView_unsafe_(focused); }
@@ -493,6 +482,7 @@ keyMap_: {
     [key: string]: VisualModeNS.ValidActions;
   };
 } as SafeDict<VisualModeNS.ValidActions | SafeDict<VisualModeNS.ValidActions>>,
+/** @not_related_to_di */
 init_ (words: string) {
   this.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
