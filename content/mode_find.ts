@@ -178,7 +178,7 @@ var VFind = {
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
       // todo: check `VFind.box.contentWindow.blur();` on FF/Edge
       window.focus();
-      el = VDom.getSelectionEdgeElement_(getSelection(), 1);
+      el = VDom.getSelectionFocusEdge_(getSelection(), 2);
       el && el.focus && el.focus();
     }
     _this.box_.remove();

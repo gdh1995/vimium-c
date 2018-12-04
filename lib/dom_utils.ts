@@ -399,15 +399,17 @@ var VDom = {
     }
     return par !== document.documentElement ? par as HTMLElement | null : null;
   },
-  getSelectionEdgeElement_ (sel: Selection, di: BOOL): SafeElement | null {
+  getSelectionFocusEdge_ (sel: Selection, knownDi: BOOL | 2): SafeElement | null {
     if (!sel.rangeCount) { return null; }
-    const r = sel.getRangeAt(0), type = di ? "end" as "end" : "start" as "start", E = Element;
-    let el: Node | null = r[(type + "Container") as "startContainer" | "endContainer"]
+    let { anchorNode, focusNode: el } = sel, E = Element
+      , goRight = knownDi < 2 ? !knownDi :
+          anchorNode === el || !(Node.prototype.compareDocumentPosition.call(anchorNode as Node, el as Node)
+            & /** DOCUMENT_POSITION_FOLLOWING */ 4)
       , o: Node | null, cn: Node["childNodes"];
     if (el instanceof E) {
-      el = !((cn = el.childNodes) instanceof E) && cn[r[(type + "Offset") as "startOffset" | "endOffset"]] || null;
+      el = !((cn = this.Getter_(Node, el, "childNodes") || el.childNodes) instanceof E) && cn[sel.focusOffset] || el;
     }
-    for (o = el; o && !(o instanceof E); o = o.previousSibling) {}
+    for (o = el; o && !(o instanceof E); o = goRight ? o.nextSibling : o.previousSibling) {}
     return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement));
   },
   mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
