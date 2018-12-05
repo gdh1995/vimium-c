@@ -349,6 +349,7 @@ interface FgReq {
     file: string | null;
     url: string;
     reuse: ReuseType;
+    /** default to true */
     auto?: boolean;
   }
 }

@@ -1910,7 +1910,7 @@ Are you sure you want to continue?`);
       if (req.file) {
         prefix += "download=" + encodeURIComponent(req.file) + "&";
       }
-      if (req.auto) {
+      if (req.auto !== false) {
         let search = parsed.search, arr: RegExpExecArray | null, ok = false;
         if (search.length > 10 && (arr = (<RegExpOne>/[&?]src=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
           search = search.lastIndexOf('&') > 0 ? Utils.DecodeURLPart_(search.split('&', 1)[0]) : Utils.decodeEscapedURL_(search);

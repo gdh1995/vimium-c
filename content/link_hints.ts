@@ -1149,7 +1149,7 @@ Modes_: [
       reuse: (this as typeof VHints).mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       file: img.getAttribute("download"),
       url: text,
-      auto: !!(this as typeof VHints).options_.auto
+      auto: (this as typeof VHints).options_.auto
     });
   }
 } as HintsNS.ModeOpt,
