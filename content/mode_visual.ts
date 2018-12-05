@@ -277,7 +277,7 @@ movement_: {
   alterMethod_: "" as "move" | "extend",
   di_: 2 as VisualModeNS.ForwardDir | 2,
   diType_: VisualModeNS.DiType.Normal,
-  noExtend_: false,
+  hasNotExtend_: false,
   selection_: null as never as Selection,
   wordRe_: null as never as RegExpOne,
   /** @unknown_di_result */
@@ -288,40 +288,38 @@ movement_: {
   modify_ (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
     return this.selection_.modify(this.alterMethod_, this.D[d], this.G[g as 0 | 1 | 2]);
   },
-  getNextRightCharacter_ (isMove: boolean): string | null | undefined {
+  getNextRightCharacter_ (isMove: boolean): string {
     const a = this, diType = a.diType_;
+    a.hasNotExtend_ = true;
     if (diType === VisualModeNS.DiType.TextBox) {
       const el = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement;
-      return el.value[el.selectionDirection === "backward" ? el.selectionStart : el.selectionEnd];
+      return el.value[el.selectionDirection === "backward" ? el.selectionStart : el.selectionEnd] || '';
     }
-    else if (diType === VisualModeNS.DiType.Normal) {
-      const sel = this.selection_, { focusNode } = sel;
-      if (focusNode instanceof Text) {
-        const ch = focusNode.data[sel.focusOffset];
-        if (ch) {
-          return ch;
-        }
+    const sel = a.selection_;
+    if (diType === VisualModeNS.DiType.Normal) {
+      let { focusNode } = sel, ch: string | undefined;
+      if (focusNode instanceof Text && (ch = focusNode.data[sel.focusOffset])) {
+        return ch;
       }
     }
-    const beforeText = this.selection_.toString();
-    if (beforeText.length > 0 && !this.getDirection_()) {
-      this.noExtend_ = true;
+    const beforeText = sel.toString();
+    if (beforeText && !this.getDirection_()) {
       return beforeText[0];
     }
     // here, the real di must be 1 (caret also means 1)
     this.extend_(1);
-    const afterText = this.selection_.toString();
+    const afterText = sel.toString();
     if (afterText.length !== beforeText.length) {
-      this.noExtend_ = isMove;
-      // todo: if isMove, does it need to extend back twice on [sel-all] nodes ?
+      // todo: check this `then` branch
+      this.hasNotExtend_ = isMove;
       if (isMove) {
         this.extend_(0);
-        this.di_ = 2;
+        // fix some issues about `select:all`
+        VVisual.realType_(a.selection_) === SelType.Range && this.extend_(1);
       }
       return afterText[afterText.length - 1];
     }
-    this.noExtend_ = false;
-    return null;
+    return '';
   },
   runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG, count: number): void {
     if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
@@ -335,13 +333,13 @@ movement_: {
   },
   moveRightByWord_ (vimLike: boolean, count: number): void {
     const a = this, isMove = VVisual.mode_ === VisualModeNS.Mode.Caret;
-    let ch: string | null | undefined;
+    let ch: string = '1' /** a fake value */;
     a.getDirection_(1);
-    a.noExtend_ = false;
+    a.hasNotExtend_ = false;
     count *= 2;
-    while (0 < count--) {
+    while (0 < count-- && ch) {
       do {
-        if (a.noExtend_) {
+        if (a.hasNotExtend_) {
           const before = isMove || a.selection_.toString().length;
           a.modify_(1, VisualModeNS.G.character);
           a.di_ = a.di_ || 2; // 1 / 2 are kept, 0 is replaced with 2, so that keep @di safe
@@ -353,7 +351,7 @@ movement_: {
       } while (ch && ((count & 1) - +(vimLike !== a.wordRe_.test(ch))));
     }
     // `ch &&` is needed according to tests for command `w`
-    ch && !a.noExtend_ && a.extend_(0);
+    ch && !a.hasNotExtend_ && a.extend_(0);
   },
   reverseSelection_ (): void {
     const a = this, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir,
@@ -460,7 +458,7 @@ movement_: {
     while (0 < --count) { this.modify_(1, VisualModeNS.G.line); }
     this.modify_(1, VisualModeNS.G.lineboundary);
     const ch = this.getNextRightCharacter_(false);
-    if (ch && !this.noExtend_ && ch !== "\n") {
+    if (ch && !this.hasNotExtend_ && ch !== "\n") {
       this.extend_(0);
     }
   }
