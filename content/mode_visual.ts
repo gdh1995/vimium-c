@@ -413,23 +413,23 @@ movement_: {
     if (anchorNode instanceof Text) {
       return a.di_ = 1;
     }
-    // nodes under shadow DOM
+    // nodes under shadow DOM or in other unknown edge cases
     this.diType_ = VisualModeNS.DiType.Unknown;
     if (onlyType) { return 1; }
     // not need to check `@realType_(sel) === Caret`: @di_ will have been set 1 by @collapse_ in most cases
     const initial = sel.toString().length;
     a.extend_(1);
-    let change = sel.toString().length - initial, di: VisualModeNS.ForwardDir = change ? 1 : 0;
-    a.extend_(0);
+    const change = sel.toString().length - initial;
     /**
      * Note (tested on C70):
      * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
      * so a detection and the third `extend` may be necessary
      */
-    let change2 = change >= 0 ? sel.toString().length - initial : 0;
-    change2 < 0 && a.extend_(1);
-    change = change || change2;
-    return a.di_ = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
+    if (change != 0) {
+      a.extend_(0);
+      sel.toString().length !== initial && a.extend_(1);
+    }
+    return a.di_ = change >= 0 ? 1 : 0;
   },
   /** di will be 1 */
   collapseSelectionTo_ (toFocus: VisualModeNS.ForwardDir) {
