@@ -288,8 +288,21 @@ movement_: {
   modify_ (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
     return this.selection_.modify(this.alterMethod_, this.D[d], this.G[g as 0 | 1 | 2]);
   },
-  getNextRightCharacter_ (isMove: boolean): string | null {
-    // todo: faster code
+  getNextRightCharacter_ (isMove: boolean): string | null | undefined {
+    const a = this, diType = a.diType_;
+    if (diType === VisualModeNS.DiType.TextBox) {
+      const el = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement;
+      return el.value[el.selectionDirection === "backward" ? el.selectionStart : el.selectionEnd];
+    }
+    else if (diType === VisualModeNS.DiType.Normal) {
+      const sel = this.selection_, { focusNode } = sel;
+      if (focusNode instanceof Text) {
+        const ch = focusNode.data[sel.focusOffset];
+        if (ch) {
+          return ch;
+        }
+      }
+    }
     const beforeText = this.selection_.toString();
     if (beforeText.length > 0 && !this.getDirection_()) {
       this.noExtend_ = true;
@@ -298,7 +311,7 @@ movement_: {
     // here, the real di must be 1 (caret also means 1)
     this.extend_(1);
     const afterText = this.selection_.toString();
-    if (afterText.length !== beforeText.length || beforeText !== afterText) {
+    if (afterText.length !== beforeText.length) {
       this.noExtend_ = isMove;
       // todo: if isMove, does it need to extend back twice on [sel-all] nodes ?
       if (isMove) {
@@ -322,7 +335,8 @@ movement_: {
   },
   moveRightByWord_ (vimLike: boolean, count: number): void {
     const a = this, isMove = VVisual.mode_ === VisualModeNS.Mode.Caret;
-    let ch: string | null = null;
+    let ch: string | null | undefined;
+    a.getDirection_(1);
     a.noExtend_ = false;
     count *= 2;
     while (0 < count--) {
@@ -363,8 +377,8 @@ movement_: {
   },
   /** @not_related_to_di */
   _compare: null as never as Node["compareDocumentPosition"],
-  /** @safe_di */
-  getDirection_ (): VisualModeNS.ForwardDir {
+  /** @safe_di if not `onlyType` */
+  getDirection_ (onlyType?: 1): VisualModeNS.ForwardDir {
     const a = this;
     if (a.di_ !== 2) { return a.di_; }
     a.diType_ = VisualModeNS.DiType.Normal;
@@ -388,7 +402,7 @@ movement_: {
         start = (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart,
         focusOffset = di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : start;
         // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
-        if (!di || focusOffset && (start !== focusOffset)) {
+        if ((!di || focusOffset && (start !== focusOffset) && !onlyType)) {
           let testDi: BOOL = di || focusOffset ? 0 : 1
           a.extend_(testDi);
           focusOffset !== (di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart
@@ -403,6 +417,7 @@ movement_: {
     }
     // nodes under shadow DOM
     this.diType_ = VisualModeNS.DiType.Unknown;
+    if (onlyType) { return 1; }
     // not need to check `@realType_(sel) === Caret`: @di_ will have been set 1 by @collapse_ in most cases
     const initial = sel.toString().length;
     a.extend_(1);
