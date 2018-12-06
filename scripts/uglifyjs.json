@@ -60,7 +60,7 @@
       // # inner names:
       "startsWith", "endsWith", "addEventListener", "toString",
       "Suggestion", "VC"
-    ], // for polyfills and backend Suggestion
+    ],
     "toplevel": true
   }
 }

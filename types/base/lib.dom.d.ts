@@ -3681,7 +3681,7 @@ interface HTMLInputElement extends HTMLElement {
       * When present, marks an element that can't be submitted without a value.
       */
     required: boolean;
-    selectionDirection: string;
+    selectionDirection: "backward" | "forward" | "none";
     /**
       * Gets or sets the end position or offset of a text selection.
       */
@@ -4919,7 +4919,7 @@ interface HTMLTextAreaElement extends HTMLElement {
       * Gets or sets the starting position or offset of a text selection.
       */
     selectionStart: number;
-    selectionDirection: string;
+    selectionDirection: "backward" | "forward" | "none";
     /**
       * Sets or retrieves the value indicating whether the control is selected.
       */

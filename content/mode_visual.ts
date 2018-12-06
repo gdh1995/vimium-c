@@ -279,7 +279,7 @@ movement_: {
   alterMethod_: "" as "move" | "extend",
   di_: 2 as VisualModeNS.ForwardDir | 2,
   diType_: VisualModeNS.DiType.Normal,
-  hasNotExtend_: false,
+  hasModified_: 0 as BOOL,
   selection_: null as never as Selection,
   wordRe_: null as never as RegExpOne,
   /** @unknown_di_result */
@@ -290,9 +290,14 @@ movement_: {
   modify_ (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
     return this.selection_.modify(this.alterMethod_, this.D[d], this.G[g as 0 | 1 | 2]);
   },
-  getNextRightCharacter_ (isMove: boolean): string {
+  /**
+   * if `isMove`, then must has collapsed;
+   *
+   * if return `''`, then `@hasModified_` is not defined
+   */
+  getNextRightCharacter_ (isMove: BOOL): string {
     const a = this, diType = a.diType_;
-    a.hasNotExtend_ = true;
+    a.hasModified_ = 0;
     if (diType === VisualModeNS.DiType.TextBox) {
       const el = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement;
       return el.value[el.selectionDirection === "backward" ? el.selectionStart : el.selectionEnd] || '';
@@ -313,7 +318,7 @@ movement_: {
     const afterText = sel.toString();
     if (afterText.length !== beforeText.length) {
       // todo: check this `then` branch
-      this.hasNotExtend_ = isMove;
+      this.hasModified_ = <BOOL>(1 - isMove);
       if (isMove) {
         this.extend_(0);
         // fix some issues about `select:all`
@@ -334,14 +339,14 @@ movement_: {
     this.di_ = direction === oldDi ? direction : 2;
   },
   moveRightByWord_ (vimLike: boolean, count: number): void {
-    const a = this, isMove = VVisual.mode_ === VisualModeNS.Mode.Caret;
+    const a = this, isMove = VVisual.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
     let ch: string = '1' /** a fake value */;
-    a.getDirection_(1);
-    a.hasNotExtend_ = false;
+    a.getDirection_(-1);
+    a.hasModified_ = 1;
     count *= 2;
     while (0 < count-- && ch) {
       do {
-        if (a.hasNotExtend_) {
+        if (!a.hasModified_) {
           const before = isMove || a.selection_.toString().length;
           a.modify_(1, VisualModeNS.G.character);
           a.di_ = a.di_ || 2; // 1 / 2 are kept, 0 is replaced with 2, so that keep @di safe
@@ -353,7 +358,7 @@ movement_: {
       } while (ch && ((count & 1) - +(vimLike !== a.wordRe_.test(ch))));
     }
     // `ch &&` is needed according to tests for command `w`
-    ch && !a.hasNotExtend_ && a.extend_(0);
+    ch && a.hasModified_ && a.extend_(0);
   },
   /** @tolerate_di_if_caret */
   reverseSelection_ (): void {
@@ -379,8 +384,12 @@ movement_: {
   },
   /** @not_related_to_di */
   _compare: null as never as Node["compareDocumentPosition"],
-  /** @safe_di if not `onlyType` */
-  getDirection_ (onlyType?: 1): VisualModeNS.ForwardDir {
+  /**
+   * @safe_di if not `magic`
+   * 
+   * @argument magic -1 means only checking type, and may not detect di_;
+   */
+  getDirection_ (magic?: -1 | 2 | 3): VisualModeNS.ForwardDir {
     const a = this;
     if (a.di_ !== 2) { return a.di_; }
     a.diType_ = VisualModeNS.DiType.Normal;
@@ -404,7 +413,7 @@ movement_: {
         start = (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart,
         focusOffset = di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : start;
         // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
-        if ((!di || focusOffset && (start !== focusOffset) && !onlyType)) {
+        if ((!di || focusOffset && (start !== focusOffset) && !magic)) {
           let testDi: BOOL = di || focusOffset ? 0 : 1
           a.extend_(testDi);
           focusOffset !== (di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart
@@ -419,7 +428,7 @@ movement_: {
     }
     // nodes under shadow DOM or in other unknown edge cases
     this.diType_ = VisualModeNS.DiType.Unknown;
-    if (onlyType) { return 1; }
+    if (magic === -1) { return 1; }
     // not need to check `@realType_(sel) === Caret`: @di_ will have been set 1 by @collapse_ in most cases
     const initial = sel.toString().length;
     a.extend_(1);
@@ -447,7 +456,7 @@ movement_: {
   },
   selectLexicalEntity_ (entity: VisualModeNS.G.sentence | VisualModeNS.G.word, count: number): void {
     this.collapseSelectionTo_(1);
-    entity === VisualModeNS.G.word && this.modify_(1, VisualModeNS.G.character);
+    entity - VisualModeNS.G.word || this.modify_(1, VisualModeNS.G.character);
     this.modify_(0, entity);
     this.di_ = 0; // safe
     this.collapseSelectionTo_(1);
@@ -462,8 +471,8 @@ movement_: {
     this.reverseSelection_();
     while (0 < --count) { this.modify_(1, VisualModeNS.G.line); }
     this.modify_(1, VisualModeNS.G.lineboundary);
-    const ch = this.getNextRightCharacter_(false);
-    if (ch && !this.hasNotExtend_ && ch !== "\n") {
+    const ch = this.getNextRightCharacter_(0);
+    if (ch && this.hasModified_ && ch !== "\n") {
       // todo: enough for sel-all?
       this.extend_(0);
     }
