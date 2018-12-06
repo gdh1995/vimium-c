@@ -304,27 +304,27 @@ movement_: {
     }
     const sel = a.selection_;
     if (diType === VisualModeNS.DiType.Normal) {
-      let { focusNode } = sel, ch: string | undefined;
-      if (focusNode instanceof Text && (ch = focusNode.data[sel.focusOffset])) {
-        return ch;
+      let { focusNode } = sel, str: string | undefined;
+      if (focusNode instanceof Text && (str = focusNode.data.substring(sel.focusOffset)).trimLeft()) {
+        return str[0];
       }
     }
-    const beforeText = sel.toString();
-    if (beforeText && !this.getDirection_()) {
-      return beforeText[0];
+    let oldLen = 0;
+    if (!isMove) {
+      const beforeText = sel.toString();
+      oldLen = beforeText.length;
+      if (oldLen && !a.getDirection_(oldLen as 2 | 3)) {
+        // todo: @di_ should be the di after extend
+        return beforeText[0];
+      }
     }
     // here, the real di must be 1 (caret also means 1)
-    this.extend_(1);
-    const afterText = sel.toString();
-    if (afterText.length !== beforeText.length) {
-      // todo: check this `then` branch
-      this.hasModified_ = <BOOL>(1 - isMove);
-      if (isMove) {
-        this.extend_(0);
-        // fix some issues about `select:all`
-        VVisual.realType_(a.selection_) === SelType.Range && this.extend_(1);
-      }
-      return afterText[afterText.length - 1];
+    a.hasModified_ || a.extend_(1);
+    const afterText = sel.toString(), newLen = afterText.length;
+    if (newLen !== oldLen) {
+      isMove && a.collapse_(newLen === 1 ? 0 : 1);
+      a.hasModified_ = newLen === 1 ? 1 : <BOOL>(1 - isMove);
+      return afterText[newLen - 1];
     }
     return '';
   },
@@ -347,18 +347,16 @@ movement_: {
     while (0 < count-- && ch) {
       do {
         if (!a.hasModified_) {
-          const before = isMove || a.selection_.toString().length;
           a.modify_(1, VisualModeNS.G.character);
           a.di_ = a.di_ || 2; // 1 / 2 are kept, 0 is replaced with 2, so that keep @di safe
-          if (!isMove && a.selection_.toString().length === before) {
-            return;
-          }
         }
         ch = a.getNextRightCharacter_(isMove);
       } while (ch && ((count & 1) - +(vimLike !== a.wordRe_.test(ch))));
     }
     // `ch &&` is needed according to tests for command `w`
-    ch && a.hasModified_ && a.extend_(0);
+    // `move` is safe even when `select:all` on C71
+    ch && a.hasModified_ && a.modify_(0, VisualModeNS.G.character);
+    // todo: fix di_
   },
   /** @tolerate_di_if_caret */
   reverseSelection_ (): void {
@@ -388,6 +386,7 @@ movement_: {
    * @safe_di if not `magic`
    * 
    * @argument magic -1 means only checking type, and may not detect di_;
+   *                 >0 means initial selection length and not extending back on DiType::Unknown
    */
   getDirection_ (magic?: -1 | 2 | 3): VisualModeNS.ForwardDir {
     const a = this;
@@ -426,10 +425,10 @@ movement_: {
       return a.di_ = 1;
     }
     // nodes under shadow DOM or in other unknown edge cases
-    this.diType_ = VisualModeNS.DiType.Unknown;
+    a.diType_ = VisualModeNS.DiType.Unknown;
     if (magic === -1) { return 1; }
     // not need to check `@realType_(sel) === Caret`: @di_ will have been set 1 by @collapse_ in most cases
-    const initial = sel.toString().length;
+    const initial = magic || sel.toString().length;
     a.extend_(1);
     const change = sel.toString().length - initial;
     /**
@@ -437,9 +436,12 @@ movement_: {
      * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
      * so a detection and the third `extend` may be necessary
      */
-    if (change != 0) {
+    if (change && !magic) {
       a.extend_(0);
       sel.toString().length !== initial && a.extend_(1);
+    } else {
+      a.hasModified_ = 1;
+      // todo: di
     }
     return a.di_ = change >= 0 ? 1 : 0;
   },
