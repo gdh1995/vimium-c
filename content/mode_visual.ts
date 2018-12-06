@@ -2,6 +2,7 @@
  * Note(gdh1995):
  * - @unknown_di_result: means it does not guarantee anything about @di
  * - @safe_di: means it accepts any @di and will force @di to be correct on return
+ * - @tolerate_di_if_caret: means it only allows a mistaken di in caret mode, and always returns with a correct di
  * - @not_related_to_di: means it has no knowledge or influence on @di
  * - all others: need a correct @di, and will force @di to be correct on return
  */
@@ -161,6 +162,7 @@ var VVisual = {
         mode: command - 50
       }));
     }
+    // todo: if Mode::Caret, then does it need to getDi for DiType::Caret ?
     mode === VisualModeNS.Mode.Caret && movement.collapseSelectionTo_(0);
     if (command > 35) {
       this.find_(command - 36 ? -count : count);
@@ -353,12 +355,14 @@ movement_: {
     // `ch &&` is needed according to tests for command `w`
     ch && !a.hasNotExtend_ && a.extend_(0);
   },
+  /** @tolerate_di_if_caret */
   reverseSelection_ (): void {
-    const a = this, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir,
-    sel = a.selection_;
+    const a = this, sel = a.selection_;
     if (VVisual.realType_(sel) !== SelType.Range) {
+      a.di_ = 1;
       return;
     }
+    const direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
     if (a.diType_ === VisualModeNS.DiType.TextBox || a.diType_ === VisualModeNS.DiType.Unknown) {
       let length = sel.toString().length, i = 0;
       a.collapse_(newDi);
@@ -431,9 +435,10 @@ movement_: {
     }
     return a.di_ = change >= 0 ? 1 : 0;
   },
-  /** di will be 1 */
+  /** @tolerate_di_if_caret di will be 1 */
   collapseSelectionTo_ (toFocus: VisualModeNS.ForwardDir) {
     VVisual.realType_(this.selection_) === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus) as BOOL);
+    this.di_ = 1;
   },
   /** @safe_di di will be 1 */
   collapse_ (/** to-left if text is left-to-right */ toStart: BOOL): void {
@@ -459,6 +464,7 @@ movement_: {
     this.modify_(1, VisualModeNS.G.lineboundary);
     const ch = this.getNextRightCharacter_(false);
     if (ch && !this.hasNotExtend_ && ch !== "\n") {
+      // todo: enough for sel-all?
       this.extend_(0);
     }
   }
