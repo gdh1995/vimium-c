@@ -267,7 +267,7 @@ interface DomUI {
   css_ (this: DomUI, innerCSS: string): void;
   getDocSelectable_ (this: DomUI): boolean;
   toggleSelectStyle_ (this: DomUI, enable: BOOL): void;
-  getSelection_ (this: DomUI): Selection;
+  getSelected_ (this: DomUI): [Selection, ShadowRoot | null];
   getSelectionText_ (notTrim?: 1): string;
   removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
   click_ (this: DomUI, element: Element, rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;

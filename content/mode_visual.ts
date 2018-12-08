@@ -39,7 +39,8 @@ var VVisual = {
     VUtils.remove_(a);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
     VScroller.prepareTop_();
-    let sel: Selection = m.selection_ = a.selection_ = VDom.UI.getSelection_(),
+    let theSelected = VDom.UI.getSelected_(),
+    sel: Selection = m.selection_ = a.selection_ = theSelected[0],
     type: SelType = a.realType_(sel), mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
     F.css_ = options.findCSS || F.css_;
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
@@ -68,11 +69,12 @@ var VVisual = {
     m.di_ = isRange ? 2 : 1;
     a.mode_ = newMode;
     m.alterMethod_ = isCaret ? "move" : "extend";
-    if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_()) {
+    if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_(theSelected[1])) {
       a.deactivate_();
       return VHUD.tip("Create a selection before entering visual mode.");
     }
     if (isCaret && isRange) {
+      // `sel` is not changed by @establish... , since `isRange`
       mode = sel.toString().length;
       m.collapse_(+(m.getDirection_() <= +(mode <= 1)) as BOOL);
     }
@@ -192,13 +194,17 @@ var VVisual = {
       VScroller.scrollIntoView_unsafe_(focused);
     }
   },
-  /** @safe_di requires selection is None on called */
-  establishInitialSelectionAnchor_ (): boolean {
+  /**
+   * @safe_di requires selection is None on called
+   *
+   * Note: may change `selection_`
+   */
+  establishInitialSelectionAnchor_ (sr?: ShadowRoot | null): boolean {
     let node: Text | null, str: string | undefined, offset: number;
     if (!VDom.isHTML_()) { return true; }
     VDom.getZoom_(1);
     VDom.prepareCrop_();
-    const nodes = document.createTreeWalker(document.body || document.documentElement as HTMLElement, NodeFilter.SHOW_TEXT);
+    const nodes = document.createTreeWalker(sr || document.body || document.documentElement as HTMLElement, NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         const element = node.parentElement;
@@ -208,7 +214,13 @@ var VVisual = {
         }
       }
     }
-    if (!node) { return true; }
+    if (!node) {
+      if (sr) {
+        this.selection_ = this.movement_.selection_ = getSelection();
+        return this.establishInitialSelectionAnchor_();
+      }
+      return true;
+    }
     offset = ((str as string).match(<RegExpOne>/^\s*/) as RegExpMatchArray)[0].length;
     this.selection_.collapse(node, offset);
     this.movement_.di_ = 1;

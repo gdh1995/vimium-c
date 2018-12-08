@@ -131,7 +131,7 @@ VDom.UI = {
     ));
     enable ? (this.box_ as HTMLElement).appendChild(sout) : sout.remove();
   },
-  getSelection_ (): Selection {
+  getSelected_ (): [Selection, ShadowRoot | null] {
     let d = document, el: Node | null, sel: Selection | null;
     if (el = VScroller.current_) {
       if (el.getRootNode) {
@@ -142,13 +142,13 @@ VDom.UI = {
       if (el !== d && typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRootWithSelection).getSelection();
         if (sel) {
-          return sel;
+          return [sel, el as ShadowRoot];
         }
       }
     }
     sel = getSelection();
-    if (typeof ShadowRoot !== "function") { return sel; }
-    let E = Element, offset: number, sr: ShadowRoot | null | undefined, sel2: Selection | null = sel;
+    if (typeof ShadowRoot !== "function") { return [sel, null]; }
+    let E = Element, offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel;
     while (sel2) {
       sel2 = null;
       el = sel.anchorNode;
@@ -158,12 +158,14 @@ VDom.UI = {
           if (el && (sr = VDom.GetShadowRoot_(el))) {
             if (sr.getSelection && (sel2 = sr.getSelection())) {
               sel = sel2;
+            } else {
+              sr = null;
             }
           }
         }
       }
     }
-    return sel;
+    return [sel, sr];
   },
   getSelectionText_ (notTrim?: 1): string {
     let sel = getSelection(), s = sel.toString(), el: Element | null, rect: ClientRect;
