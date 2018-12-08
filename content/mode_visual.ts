@@ -394,27 +394,28 @@ movement_: {
     a.diType_ = VisualModeNS.DiType.Normal;
     // common HTML nodes
     const sel = a.selection_, {anchorNode, focusNode} = sel;
+    let num1, num2;
     if (anchorNode != focusNode) {
       return a.di_ = (a._compare.call(anchorNode as Node, focusNode as Node) & /** DOCUMENT_POSITION_FOLLOWING */ 4) ? 1 : 0;
     }
-    const { anchorOffset, focusOffset } = sel;
-    if (anchorOffset !== focusOffset) {
-      return a.di_ = anchorOffset < focusOffset ? 1 : 0;
+    num1 = sel.anchorOffset;
+    if (num2 = sel.focusOffset - num1) {
+      return a.di_ = num2 > 0 ? 1 : 0;
     }
     // editable text elements
     const lock = VEvent.lock();
     if (lock && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select
         && lock.parentElement === anchorNode) {
-      const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes)[sel.anchorOffset] as Node | undefined;
+      const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes)[num1] as Node | undefined;
       if (!child || lock === child) {
-        let di: BOOL = (lock as HTMLInputElement | HTMLTextAreaElement).selectionDirection === "backward" ? 0 : 1,
-        start = (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart,
-        focusOffset = di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : start;
+        let di: BOOL = (lock as HTMLInputElement | HTMLTextAreaElement).selectionDirection === "backward" ? 0 : 1;
+        num1 = (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart;
+        num2 = di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : num1;
         // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
-        if ((!di || focusOffset && (start !== focusOffset)) && !magic) {
-          let testDi: BOOL = di || focusOffset ? 0 : 1
+        if ((!di || num2 && (num1 !== num2)) && !magic) {
+          let testDi: BOOL = di || num2 ? 0 : 1;
           a.extend_(testDi);
-          focusOffset !== (di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart
+          num2 !== (di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart
             ) && a.extend_((1 - testDi) as BOOL);
         }
         a.diType_ = VisualModeNS.DiType.TextBox;
@@ -428,22 +429,22 @@ movement_: {
     a.diType_ = VisualModeNS.DiType.Unknown;
     if (magic === -1) { return 1; }
     // not need to check `@realType_(sel) === Caret`: @di_ will have been set 1 by @collapse_ in most cases
-    const initial = magic || sel.toString().length;
+    num1 = magic || sel.toString().length;
     a.extend_(1);
-    const change = sel.toString().length - initial;
+    num2 = sel.toString().length - num1;
     /**
      * Note (tested on C70):
      * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
      * so a detection and the third `extend` may be necessary
      */
-    if (change && !magic) {
+    if (num2 && !magic) {
       a.extend_(0);
-      sel.toString().length !== initial && a.extend_(1);
+      sel.toString().length !== num1 && a.extend_(1);
     } else {
       a.hasModified_ = 1;
       // todo: di
     }
-    return a.di_ = change >= 0 ? 1 : 0;
+    return a.di_ = num2 >= 0 ? 1 : 0;
   },
   /** @tolerate_di_if_caret di will be 1 */
   collapseSelectionTo_ (toFocus: VisualModeNS.ForwardDir) {
