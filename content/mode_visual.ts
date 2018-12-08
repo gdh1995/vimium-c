@@ -67,6 +67,7 @@ var VVisual = {
     }
     VDom.UI.toggleSelectStyle_(1);
     m.di_ = isRange ? 2 : 1;
+    m.diType_ = VisualModeNS.DiType.Unknown;
     a.mode_ = newMode;
     m.alterMethod_ = isCaret ? "move" : "extend";
     if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_(theSelected[1])) {
@@ -85,6 +86,7 @@ var VVisual = {
   deactivate_ (isEsc?: 1): void {
     if (!this.mode_) { return; }
     this.movement_.di_ = 2;
+    this.movement_.diType_ = VisualModeNS.DiType.Unknown;
     VUtils.remove_(this);
     if (!this.retainSelection_) {
       this.movement_.collapseSelectionTo_(isEsc && this.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
@@ -139,6 +141,7 @@ var VVisual = {
     if (obj == null) { return ch.length === 1 && ch === key ? HandlerResult.Prevent : HandlerResult.Suppress; }
     VUtils.prevent_(event);
     this.movement_.di_ = 2; // make @di safe even when a user modifies the selection
+    this.movement_.diType_ = VisualModeNS.DiType.Unknown;
     this.commandHandler_(obj, count || 1);
     return HandlerResult.Prevent;
   },
@@ -289,7 +292,7 @@ movement_: {
      ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
       "documentboundary"],
   alterMethod_: "" as "move" | "extend",
-  di_: 2 as VisualModeNS.ForwardDir | 2,
+  di_: 2 as VisualModeNS.ForwardDir | /** unkown type */ 2,
   diType_: VisualModeNS.DiType.Normal,
   hasModified_: 0 as BOOL,
   selection_: null as never as Selection,
@@ -421,21 +424,28 @@ movement_: {
     }
     // editable text elements
     const lock = VEvent.lock();
-    if (lock && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select
-        && lock.parentElement === anchorNode) {
-      const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes)[num1] as Node | undefined;
-      if (!child || lock === child) {
-        let di: BOOL = (lock as HTMLInputElement | HTMLTextAreaElement).selectionDirection === "backward" ? 0 : 1;
-        num1 = (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart;
-        num2 = di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : num1;
-        // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
-        if ((!di || num2 && (num1 !== num2)) && !magic) {
-          let testDi: BOOL = di || num2 ? 0 : 1;
-          a.extend_(testDi);
-          num2 !== (di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart
-            ) && a.extend_((1 - testDi) as BOOL);
+    if (lock && lock.parentElement === anchorNode) {
+      num2 = oldDiType === VisualModeNS.DiType.TextBox ? 1 : 0;
+      if (!num2 && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
+        const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes)[num1] as Node | undefined;
+        if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
+          num2 = 2;
+          a.diType_ = VisualModeNS.DiType.TextBox;
         }
-        a.diType_ = VisualModeNS.DiType.TextBox;
+      }
+      if (num2) {
+        let di: BOOL = (lock as HTMLInputElement | HTMLTextAreaElement).selectionDirection === "backward" ? 0 : 1;
+        if (magic == null && num2 === 2) {
+          num1 = (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart;
+          num2 = di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : num1;
+          // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
+          if (!di || num2 && (num1 !== num2)) {
+            let testDi: BOOL = di || num2 ? 0 : 1;
+            a.extend_(testDi);
+            num2 !== (di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart
+              ) && a.extend_((1 - testDi) as BOOL);
+          }
+        }
         return a.di_ = di;
       }
     }
