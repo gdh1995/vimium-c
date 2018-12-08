@@ -406,14 +406,13 @@ movement_: {
     const lock = VEvent.lock();
     if (lock && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select
         && lock.parentElement === anchorNode) {
-      const childNodes = VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes,
-      child = childNodes[anchorOffset];
+      const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes)[sel.anchorOffset] as Node | undefined;
       if (!child || lock === child) {
         let di: BOOL = (lock as HTMLInputElement | HTMLTextAreaElement).selectionDirection === "backward" ? 0 : 1,
         start = (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart,
         focusOffset = di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : start;
         // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
-        if ((!di || focusOffset && (start !== focusOffset) && !magic)) {
+        if ((!di || focusOffset && (start !== focusOffset)) && !magic) {
           let testDi: BOOL = di || focusOffset ? 0 : 1
           a.extend_(testDi);
           focusOffset !== (di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart
