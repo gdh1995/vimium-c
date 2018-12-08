@@ -408,7 +408,12 @@ movement_: {
     const sel = a.selection_, {anchorNode, focusNode} = sel;
     let num1, num2;
     if (anchorNode != focusNode) {
-      return a.di_ = (a._compare.call(anchorNode as Node, focusNode as Node) & /** DOCUMENT_POSITION_FOLLOWING */ 4) ? 1 : 0;
+      num1 = a._compare.call(anchorNode as Node, focusNode as Node);
+      return a.di_ = (
+          num1 & (/** Node.DOCUMENT_POSITION_CONTAINS */ 8 | /** Node.DOCUMENT_POSITION_CONTAINED_BY */ 16)
+          ? sel.getRangeAt(0).endContainer === anchorNode
+          : (num1 & /** Node.DOCUMENT_POSITION_PRECEDING */ 2)
+        ) ? 0 : 1; // return 1 in case unknown cases
     }
     num1 = sel.anchorOffset;
     if (num2 = sel.focusOffset - num1) {
