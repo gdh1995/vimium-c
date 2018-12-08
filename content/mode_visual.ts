@@ -440,8 +440,8 @@ movement_: {
     // nodes under shadow DOM or in other unknown edge cases
     a.diType_ = VisualModeNS.DiType.Unknown;
     if (magic === -1) { return 1; }
-    // not need to check `@realType_(sel) === Caret`: @di_ will have been set 1 by @collapse_ in most cases
     num1 = magic || sel.toString().length;
+    if (!num1) { return a.di_ = 1; }
     a.extend_(1);
     num2 = sel.toString().length - num1;
     /**
