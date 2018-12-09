@@ -469,9 +469,8 @@ movement_: {
       sel.toString() !== initial && a.extend_(1);
     } else {
       a.hasModified_ = 1;
-      // todo: di
     }
-    return a.di_ = num2 >= 0 ? 1 : 0;
+    return a.di_ = num2 >= 0 || magic && num2 === -initial.length ? 1 : 0;
   },
   /** @tolerate_di_if_caret di will be 1 */
   collapseSelectionTo_ (toFocus: VisualModeNS.ForwardDir) {
