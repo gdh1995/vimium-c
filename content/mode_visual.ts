@@ -10,8 +10,12 @@ declare namespace VisualModeNS {
   const enum ValidActions {
 
   }
+  const enum kDir {
+    left = 0, right = 1, unknown = 2,
+    __mask = -1,
+  }
   /** 1 means right; 0 means left */
-  type ForwardDir = 0 | 1;
+  type ForwardDir = kDir.left | kDir.right;
   const enum G {
     character = 0, line = 1, lineboundary = 2, paragraph = 3, sentence = 4, word = 6, documentboundary = 7,
   }
@@ -59,25 +63,25 @@ var VVisual = {
       }
     }
     const isRange = type === SelType.Range, newMode = isRange ? mode : VisualModeNS.Mode.Caret,
-    isCaret = newMode === VisualModeNS.Mode.Caret;
+    toCaret = newMode === VisualModeNS.Mode.Caret;
     a.hudTimer_ && clearTimeout(a.hudTimer_);
-    VHUD.show_(a.hud_ = (isCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual") + " mode", !!options.from_find);
+    VHUD.show_(a.hud_ = (toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual") + " mode", !!options.from_find);
     if (newMode !== mode) {
       a.prompt_("No usable selection, entering caret mode\u2026", 1000);
     }
     VDom.UI.toggleSelectStyle_(1);
-    m.di_ = isRange ? 2 : 1;
+    m.di_ = isRange ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right;
     m.diType_ = VisualModeNS.DiType.Unknown;
     a.mode_ = newMode;
-    m.alterMethod_ = isCaret ? "move" : "extend";
+    m.alterMethod_ = toCaret ? "move" : "extend";
     if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_(theSelected[1])) {
       a.deactivate_();
       return VHUD.tip("Create a selection before entering visual mode.");
     }
-    if (isCaret && isRange) {
+    if (toCaret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
       mode = sel.toString().length;
-      m.collapse_(+(m.getDirection_() <= +(mode <= 1)) as BOOL);
+      m.collapse_((m.getDirection_() & +(mode > 1)) as BOOL);
     }
     a.commandHandler_(-1, 1);
     VUtils.push_(a.onKeydown_, a);
@@ -85,7 +89,7 @@ var VVisual = {
   /** @safe_di */
   deactivate_ (isEsc?: 1): void {
     if (!this.mode_) { return; }
-    this.movement_.di_ = 2;
+    this.movement_.di_ = VisualModeNS.kDir.unknown;
     this.movement_.diType_ = VisualModeNS.DiType.Unknown;
     VUtils.remove_(this);
     if (!this.retainSelection_) {
@@ -140,7 +144,7 @@ var VVisual = {
     }
     if (obj == null) { return ch.length === 1 && ch === key ? HandlerResult.Prevent : HandlerResult.Suppress; }
     VUtils.prevent_(event);
-    this.movement_.di_ = 2; // make @di safe even when a user modifies the selection
+    this.movement_.di_ = VisualModeNS.kDir.unknown; // make @di safe even when a user modifies the selection
     this.movement_.diType_ = VisualModeNS.DiType.Unknown;
     this.commandHandler_(obj, count || 1);
     return HandlerResult.Prevent;
@@ -226,7 +230,7 @@ var VVisual = {
     }
     offset = ((str as string).match(<RegExpOne>/^\s*/) as RegExpMatchArray)[0].length;
     this.selection_.collapse(node, offset);
-    this.movement_.di_ = 1;
+    this.movement_.di_ = VisualModeNS.kDir.right;
     return !this.selection_.rangeCount;
   },
   /** @not_related_to_di */
@@ -255,7 +259,7 @@ var VVisual = {
       return;
     }
     // todo: how to keep direction / how to work if TextBox / ShadowDOM
-    this.movement_.di_ = 2;
+    this.movement_.di_ = VisualModeNS.kDir.unknown;
     const sel = this.selection_, range = sel.getRangeAt(0);
     VFind.execute_(null, { noColor: true, count });
     if (VFind.hasResults_) {
@@ -292,7 +296,7 @@ movement_: {
      ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
       "documentboundary"],
   alterMethod_: "" as "move" | "extend",
-  di_: 2 as VisualModeNS.ForwardDir | /** unkown type */ 2,
+  di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
   diType_: VisualModeNS.DiType.Normal,
   hasModified_: 0 as BOOL,
   selection_: null as never as Selection,
@@ -337,7 +341,7 @@ movement_: {
     a.hasModified_ || a.extend_(1);
     const afterText = sel.toString(), newLen = afterText.length;
     if (newLen !== oldLen) {
-      isMove && a.collapse_(newLen === 1 ? 0 : 1);
+      isMove && a.collapse_(newLen === 1 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left);
       a.hasModified_ = newLen === 1 ? 1 : <BOOL>(1 - isMove);
       return afterText[newLen - 1];
     }
@@ -351,7 +355,7 @@ movement_: {
     let oldDi = this.di_;
     let sel = this.selection_, m = this.alterMethod_, d = this.D[direction], g = this.G[granularity as 0 | 1 | 2];
     while (0 < count--) { sel.modify(m, d, g); }
-    this.di_ = direction === oldDi ? direction : 2;
+    this.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
   },
   moveRightByWord_ (vimLike: boolean, count: number): void {
     const a = this, isMove = VVisual.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
@@ -363,7 +367,7 @@ movement_: {
       do {
         if (!a.hasModified_) {
           a.modify_(1, VisualModeNS.G.character);
-          a.di_ = a.di_ || 2; // 1 / 2 are kept, 0 is replaced with 2, so that keep @di safe
+          a.di_ = a.di_ || VisualModeNS.kDir.unknown; // right / unknown are kept, left is replaced with right, so that keep @di safe
         }
         ch = a.getNextRightCharacter_(isMove);
       } while (ch && ((count & 1) - +(vimLike !== a.wordRe_.test(ch))));
@@ -377,20 +381,20 @@ movement_: {
   reverseSelection_ (): void {
     const a = this, sel = a.selection_;
     if (VVisual.realType_(sel) !== SelType.Range) {
-      a.di_ = 1;
+      a.di_ = VisualModeNS.kDir.right;
       return;
     }
     const direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
     if (a.diType_ === VisualModeNS.DiType.TextBox || a.diType_ === VisualModeNS.DiType.Unknown) {
       let length = sel.toString().length, i = 0;
-      a.collapse_(newDi);
+      a.collapse_(direction);
       for (; i < length; i++) { a.extend_(newDi); }
       for (let tick = 0; tick < 16 && (i = sel.toString().length - length); tick++) {
         a.extend_(i < 0 ? newDi : direction);
       }
     } else {
       const { anchorNode, anchorOffset } = sel;
-      a.collapse_(newDi);
+      a.collapse_(direction);
       sel.extend(anchorNode as Node, anchorOffset);
     }
     a.di_ = newDi;
@@ -405,7 +409,7 @@ movement_: {
    */
   getDirection_ (magic?: string): VisualModeNS.ForwardDir {
     const a = this;
-    if (a.di_ !== 2) { return a.di_; }
+    if (a.di_ !== VisualModeNS.kDir.unknown) { return a.di_; }
     const oldDiType = a.diType_, sel = a.selection_, {anchorNode, focusNode} = sel;
     // common HTML nodes
     a.diType_ = VisualModeNS.DiType.Normal;
@@ -416,11 +420,11 @@ movement_: {
           num1 & (/** Node.DOCUMENT_POSITION_CONTAINS */ 8 | /** Node.DOCUMENT_POSITION_CONTAINED_BY */ 16)
           ? sel.getRangeAt(0).endContainer === anchorNode
           : (num1 & /** Node.DOCUMENT_POSITION_PRECEDING */ 2)
-        ) ? 0 : 1; // return 1 in case unknown cases
+        ) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right; // return `right` in case unknown cases
     }
     num1 = sel.anchorOffset;
     if (num2 = sel.focusOffset - num1) {
-      return a.di_ = num2 > 0 ? 1 : 0;
+      return a.di_ = num2 > 0 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
     }
     // editable text elements
     const lock = VEvent.lock();
@@ -450,13 +454,13 @@ movement_: {
       }
     }
     if (anchorNode instanceof Text) {
-      return a.di_ = 1;
+      return a.di_ = VisualModeNS.kDir.right;
     }
     // nodes under shadow DOM or in other unknown edge cases
     a.diType_ = VisualModeNS.DiType.Unknown;
-    if (magic === "") { return 1; }
+    if (magic === "") { return VisualModeNS.kDir.right; }
     const initial = magic || sel.toString();
-    if (!initial) { return a.di_ = 1; }
+    if (!initial) { return a.di_ = VisualModeNS.kDir.right; }
     a.extend_(1);
     num2 = sel.toString().length - initial.length;
     /**
@@ -470,23 +474,23 @@ movement_: {
     } else {
       a.hasModified_ = 1;
     }
-    return a.di_ = num2 >= 0 || magic && num2 === -initial.length ? 1 : 0;
+    return a.di_ = num2 >= 0 || magic && num2 === -initial.length ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
   },
   /** @tolerate_di_if_caret di will be 1 */
-  collapseSelectionTo_ (toFocus: VisualModeNS.ForwardDir) {
-    VVisual.realType_(this.selection_) === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus) as BOOL);
-    this.di_ = 1;
+  collapseSelectionTo_ (toFocus: BOOL) {
+    VVisual.realType_(this.selection_) === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus ^ 1) as BOOL);
+    this.di_ = VisualModeNS.kDir.right;
   },
   /** @safe_di di will be 1 */
-  collapse_ (/** to-left if text is left-to-right */ toStart: BOOL): void {
-    toStart ? this.selection_.collapseToStart() : this.selection_.collapseToEnd();
-    this.di_ = 1;
+  collapse_ (/** to-left if text is left-to-right */ toRight: VisualModeNS.ForwardDir): void {
+    toRight ? this.selection_.collapseToEnd() : this.selection_.collapseToStart();
+    this.di_ = VisualModeNS.kDir.right;
   },
   selectLexicalEntity_ (entity: VisualModeNS.G.sentence | VisualModeNS.G.word, count: number): void {
     this.collapseSelectionTo_(1);
     entity - VisualModeNS.G.word || this.modify_(1, VisualModeNS.G.character);
     this.modify_(0, entity);
-    this.di_ = 0; // safe
+    this.di_ = VisualModeNS.kDir.left; // safe
     this.collapseSelectionTo_(1);
     this.runMovements_(1, entity, count);
   },
@@ -495,7 +499,7 @@ movement_: {
     this.alterMethod_ = "extend";
     this.getDirection_() && this.reverseSelection_();
     this.modify_(0, VisualModeNS.G.lineboundary);
-    this.di_ = 0; // safe
+    this.di_ = VisualModeNS.kDir.left; // safe
     this.reverseSelection_();
     while (0 < --count) { this.modify_(1, VisualModeNS.G.line); }
     this.modify_(1, VisualModeNS.G.lineboundary);
