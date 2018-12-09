@@ -328,7 +328,7 @@ movement_: {
     if (!isMove) {
       const beforeText = sel.toString();
       oldLen = beforeText.length;
-      if (oldLen && !a.getDirection_(oldLen as 2 | 3)) {
+      if (oldLen && !a.getDirection_(beforeText)) {
         // todo: @di_ should be the di after extend
         return beforeText[0];
       }
@@ -356,7 +356,7 @@ movement_: {
   moveRightByWord_ (vimLike: boolean, count: number): void {
     const a = this, isMove = VVisual.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
     let ch: string = '1' /** a fake value */;
-    a.getDirection_(-1);
+    a.getDirection_("");
     a.hasModified_ = 1;
     count *= 2;
     while (0 < count-- && ch) {
@@ -400,15 +400,15 @@ movement_: {
   /**
    * @safe_di if not `magic`
    * 
-   * @argument magic -1 means only checking type, and may not detect di_;
-   *                 >0 means initial selection length and not extending back on DiType::Unknown
+   * @argument magic "" means only checking type, and may not detect di_;
+   *                 char[1..] means initial selection length and not extending back on DiType::Unknown
    */
-  getDirection_ (magic?: -1 | 2 | 3): VisualModeNS.ForwardDir {
+  getDirection_ (magic?: string): VisualModeNS.ForwardDir {
     const a = this;
     if (a.di_ !== 2) { return a.di_; }
-    a.diType_ = VisualModeNS.DiType.Normal;
+    const oldDiType = a.diType_, sel = a.selection_, {anchorNode, focusNode} = sel;
     // common HTML nodes
-    const sel = a.selection_, {anchorNode, focusNode} = sel;
+    a.diType_ = VisualModeNS.DiType.Normal;
     let num1, num2;
     if (anchorNode != focusNode) {
       num1 = a._compare.call(anchorNode as Node, focusNode as Node);
@@ -454,11 +454,11 @@ movement_: {
     }
     // nodes under shadow DOM or in other unknown edge cases
     a.diType_ = VisualModeNS.DiType.Unknown;
-    if (magic === -1) { return 1; }
-    num1 = magic || sel.toString().length;
-    if (!num1) { return a.di_ = 1; }
+    if (magic === "") { return 1; }
+    const initial = magic || sel.toString();
+    if (!initial) { return a.di_ = 1; }
     a.extend_(1);
-    num2 = sel.toString().length - num1;
+    num2 = sel.toString().length - initial.length;
     /**
      * Note (tested on C70):
      * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
@@ -466,7 +466,7 @@ movement_: {
      */
     if (num2 && !magic) {
       a.extend_(0);
-      sel.toString().length !== num1 && a.extend_(1);
+      sel.toString() !== initial && a.extend_(1);
     } else {
       a.hasModified_ = 1;
       // todo: di
