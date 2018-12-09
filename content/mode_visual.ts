@@ -503,10 +503,11 @@ movement_: {
     this.reverseSelection_();
     while (0 < --count) { this.modify_(1, VisualModeNS.G.line); }
     this.modify_(1, VisualModeNS.G.lineboundary);
+    const num1 = this.selection_.toString().length;
     const ch = this.getNextRightCharacter_(0);
     if (ch && this.hasModified_ && ch !== "\n") {
-      // todo: enough for sel-all?
       this.extend_(0);
+      this.selection_.toString().length - num1 && this.extend_(1);
     }
   }
 },
