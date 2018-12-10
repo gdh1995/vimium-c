@@ -26,6 +26,7 @@ declare namespace VisualModeNS {
     Normal = 0,
     TextBox = 1,
     Unknown = 2,
+    __mask = -1,
   }
 }
 var VVisual = {
@@ -297,8 +298,8 @@ movement_: {
       "documentboundary"],
   alterMethod_: "" as "move" | "extend",
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
-  diType_: VisualModeNS.DiType.Normal,
-  hasModified_: 0 as BOOL,
+  diType_: VisualModeNS.DiType.Normal as VisualModeNS.DiType.Normal | VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Unknown,
+  /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
   selection_: null as never as Selection,
   wordRe_: null as never as RegExpOne,
   /** @unknown_di_result */
@@ -316,7 +317,7 @@ movement_: {
    */
   getNextRightCharacter_ (isMove: BOOL): string {
     const a = this, diType = a.diType_;
-    a.hasModified_ = 0;
+    a.oldLen_ = 0;
     if (diType === VisualModeNS.DiType.TextBox) {
       const el = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement;
       return el.value[el.selectionDirection === "backward" ? el.selectionStart : el.selectionEnd] || '';
@@ -331,18 +332,18 @@ movement_: {
     let oldLen = 0;
     if (!isMove) {
       const beforeText = sel.toString();
-      oldLen = beforeText.length;
-      if (oldLen && !a.getDirection_(beforeText)) {
+      if (beforeText && !a.getDirection_(beforeText)) {
         // todo: @di_ should be the di after extend
         return beforeText[0];
       }
+      oldLen = beforeText.length;
     }
     // here, the real di must be 1 (caret also means 1)
-    a.hasModified_ || a.extend_(1);
+    a.oldLen_ || a.extend_(1);
     const afterText = sel.toString(), newLen = afterText.length;
     if (newLen !== oldLen) {
       isMove && a.collapse_(newLen === 1 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left);
-      a.hasModified_ = newLen === 1 ? 1 : <BOOL>(1 - isMove);
+      a.oldLen_ = isMove && newLen !== 1 ? 0 : 2 + oldLen;
       return afterText[newLen - 1];
     }
     return '';
@@ -361,21 +362,29 @@ movement_: {
     const a = this, isMove = VVisual.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
     let ch: string = '1' /** a fake value */;
     a.getDirection_("");
-    a.hasModified_ = 1;
+    a.oldLen_ = 1;
     count *= 2;
     while (0 < count-- && ch) {
       do {
-        if (!a.hasModified_) {
+        if (!a.oldLen_) {
           a.modify_(1, VisualModeNS.G.character);
           a.di_ = a.di_ || VisualModeNS.kDir.unknown; // right / unknown are kept, left is replaced with right, so that keep @di safe
         }
         ch = a.getNextRightCharacter_(isMove);
       } while (ch && ((count & 1) - +(vimLike !== a.wordRe_.test(ch))));
     }
-    // `ch &&` is needed according to tests for command `w`
-    // `move` is safe even when `select:all` on C71
-    ch && a.hasModified_ && a.modify_(0, VisualModeNS.G.character);
-    // todo: fix di_
+    if (ch && a.oldLen_) {
+      const num1 = a.oldLen_ - 2, num2 = isMove || a.selection_.toString().length;
+      a.modify_(0, VisualModeNS.G.character);
+      if (!isMove) {
+        // in most cases, initial selection won't be a caret at the middle of sel-all
+        // - so correct selection won't be from the middle to the end
+        // if in the case, selection can not be kept during @getDi,
+        // so it's okay to ignore the case
+        a.selection_.toString().length - num1 && a.extend_(1);
+        a.di_ = num2 < num1 ? VisualModeNS.kDir.left : VisualModeNS.kDir.right;
+      }
+    }
   },
   /** @tolerate_di_if_caret */
   reverseSelection_ (): void {
@@ -460,9 +469,10 @@ movement_: {
     a.diType_ = VisualModeNS.DiType.Unknown;
     if (magic === "") { return VisualModeNS.kDir.right; }
     const initial = magic || sel.toString();
-    if (!initial) { return a.di_ = VisualModeNS.kDir.right; }
+    num1 = initial.length;
+    if (!num1) { return a.di_ = VisualModeNS.kDir.right; }
     a.extend_(1);
-    num2 = sel.toString().length - initial.length;
+    num2 = sel.toString().length - num1;
     /**
      * Note (tested on C70):
      * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
@@ -472,9 +482,9 @@ movement_: {
       a.extend_(0);
       sel.toString() !== initial && a.extend_(1);
     } else {
-      a.hasModified_ = 1;
+      a.oldLen_ = 2 + num1;
     }
-    return a.di_ = num2 >= 0 || magic && num2 === -initial.length ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
+    return a.di_ = num2 >= 0 || magic && num2 === -num1 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
   },
   /** @tolerate_di_if_caret di will be 1 */
   collapseSelectionTo_ (toFocus: BOOL) {
@@ -503,11 +513,11 @@ movement_: {
     this.reverseSelection_();
     while (0 < --count) { this.modify_(1, VisualModeNS.G.line); }
     this.modify_(1, VisualModeNS.G.lineboundary);
-    const num1 = this.selection_.toString().length;
     const ch = this.getNextRightCharacter_(0);
-    if (ch && this.hasModified_ && ch !== "\n") {
+    const num1 = this.oldLen_;
+    if (ch && num1 && ch !== "\n") {
       this.extend_(0);
-      this.selection_.toString().length - num1 && this.extend_(1);
+      this.selection_.toString().length + 2 - num1 && this.extend_(1);
     }
   }
 },
