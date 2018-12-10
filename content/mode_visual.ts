@@ -36,6 +36,7 @@ var VVisual = {
   currentCount_: 0,
   currentSeconds_: null as SafeDict<VisualModeNS.ValidActions> | null,
   retainSelection_: false,
+  scope_: null as ShadowRoot | null,
   selection_: null as never as Selection,
   /** @safe_di */
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
@@ -47,6 +48,7 @@ var VVisual = {
     let theSelected = VDom.UI.getSelected_(),
     sel: Selection = m.selection_ = a.selection_ = theSelected[0],
     type: SelType = a.realType_(sel), mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
+    a.scope_ = theSelected[1];
     F.css_ = options.findCSS || F.css_;
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
     if (mode !== VisualModeNS.Mode.Caret) {
@@ -172,6 +174,14 @@ var VVisual = {
         mode: command - 50
       }));
     }
+    if (this.scope_ && !movement.selection_.rangeCount) {
+      this.scope_ = null;
+      this.selection_ = movement.selection_ = getSelection();
+      if (!movement.selection_.rangeCount) {
+        this.deactivate_();
+        return VHUD.tip("Selection is lost.");
+      }
+    }
     // todo: if Mode::Caret, then does it need to getDi for DiType::Caret ?
     mode === VisualModeNS.Mode.Caret && movement.collapseSelectionTo_(0);
     if (command > 35) {
@@ -225,6 +235,7 @@ var VVisual = {
     if (!node) {
       if (sr) {
         this.selection_ = this.movement_.selection_ = getSelection();
+        this.scope_ = null;
         return this.establishInitialSelectionAnchor_();
       }
       return true;
@@ -261,7 +272,7 @@ var VVisual = {
     }
     // todo: how to keep direction / how to work if TextBox / ShadowDOM
     this.movement_.di_ = VisualModeNS.kDir.unknown;
-    const sel = this.selection_, range = sel.getRangeAt(0);
+    const sel = this.selection_, range = sel.rangeCount && sel.getRangeAt(0);
     VFind.execute_(null, { noColor: true, count });
     if (VFind.hasResults_) {
       if (this.mode_ === VisualModeNS.Mode.Caret && this.realType_(sel) === SelType.Range) {
@@ -270,7 +281,7 @@ var VVisual = {
       return;
     }
     sel.removeAllRanges();
-    sel.addRange(range);
+    range && sel.addRange(range);
     return this.prompt_("No matches for " + VFind.query_, 1000);
   },
   /**
