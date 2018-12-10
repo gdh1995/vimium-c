@@ -1920,8 +1920,8 @@ Are you sure you want to continue?`);
           search = parsed.pathname;
           let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('/') + 1;
           if (index > 2) {
-            let last = search.substring(index), arr2 = last.match(<RegExpG>/\d\d+/g);
-            if (arr2 && arr2.length >= 2 && (<RegExpOne>/[whx_]/).test(last)) {
+            let last = search.substring(index), arr2 = last.match(<RegExpG>/\d\d+/g) || last.match(/\d+[a-z]{1,2}\b/g);
+            if (arr2 && arr2.length >= 2 && (<RegExpOne>/[whx_]/).test(last) || (<RegExpOne>/^\d+$/).test(last) && +last <= 640) {
               search = parsed.origin + search.substring(0, index - 1);
               ok = true;
             }
