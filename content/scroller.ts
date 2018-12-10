@@ -147,7 +147,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   },
   _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
     amount *= VSettings.cache.scrollStepSize;
-    return !di && amount && element && element.scrollWidth <= element.scrollHeight * 2
+    return !di && amount && element && element.scrollWidth <= element.scrollHeight * (element.scrollWidth < 720 ? 2 : 1)
       ? Math.ceil(amount * 0.6) : amount;
   },
   /**
