@@ -167,8 +167,6 @@ var VVisual = {
         clearTimeout(this.hudTimer_);
         return VFind.activate_(1, VUtils.safer_({ returnToViewport: true }));
       }
-      if (command === 53 && mode !== VisualModeNS.Mode.Caret) {
-      }
       return this.activate_(1, VUtils.safer_({
         // command === 1 ? VisualModeNS.Mode.Visual : command === 2 : VisualModeNS.Mode.Line : VisualModeNS.Mode.Caret
         mode: command - 50
@@ -473,15 +471,15 @@ movement_: {
         return a.di_ = di;
       }
     }
-    if (anchorNode instanceof Text) {
-      return a.di_ = VisualModeNS.kDir.right;
-    }
     // nodes under shadow DOM or in other unknown edge cases
-    a.diType_ = VisualModeNS.DiType.Unknown;
-    if (magic === "") { return VisualModeNS.kDir.right; }
     const initial = magic || sel.toString();
     num1 = initial.length;
-    if (!num1) { return a.di_ = VisualModeNS.kDir.right; }
+    if (!num1) {
+      a.diType_ = anchorNode instanceof Text ? VisualModeNS.DiType.Normal : VisualModeNS.DiType.Unknown;
+      return a.di_ = VisualModeNS.kDir.right;
+    }
+    a.diType_ = VisualModeNS.DiType.Unknown;
+    if (magic === "") { return VisualModeNS.kDir.right; }
     a.extend_(1);
     num2 = sel.toString().length - num1;
     /**
