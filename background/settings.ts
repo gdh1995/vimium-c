@@ -230,7 +230,8 @@ nacjakoppgmdcpemlfnfegmlhipddanj`,
 ,prev,previous,back,older,<,\u2039,\u2190,\xab,\u226a,<<",
     regexFindMode: false,
     scrollStepSize: 100,
-    searchUrl: "https://www.baidu.com/s?ie=utf-8&wd=%s Baidu",
+    searchUrl: navigator.language.startsWith("zh") ? "https://www.baidu.com/s?ie=utf-8&wd=%s Baidu"
+      : "https://www.google.com/search?q=%s Google",
     searchEngines: `b|ba|baidu: https://www.baidu.com/s?ie=utf-8&wd=%s Baidu
 bi|bing: https://www.bing.com/search?q=%s Bing
 g|go|gg|google: https://www.google.com/search?q=%s Google
