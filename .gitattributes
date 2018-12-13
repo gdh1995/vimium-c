@@ -7,8 +7,8 @@
 *.jpeg binary
 *.jpg binary
 *.png binary
-*.sh linguist-language=Text
-*.py linguist-language=Text
+*.sh linguist-detectable=false
+*.py linguist-detectable=false
 tsc.js linguist-language=TypeScript
 Gulpfile.js linguist-language=TypeScript
 lib/math_parser.js linguist-vendored
