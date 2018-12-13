@@ -7,7 +7,7 @@
 *.jpeg binary
 *.jpg binary
 *.png binary
-*.sh linguist-detectable=false linguist-language=bash
+*.sh linguist-detectable=false linguist-language=Shell
 *.py linguist-detectable=false linguist-language=Python
 tsc.js linguist-language=TypeScript
 Gulpfile.js linguist-language=TypeScript
