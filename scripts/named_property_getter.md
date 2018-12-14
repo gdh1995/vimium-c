@@ -3,7 +3,7 @@
 ## frames
 
 - **framset**: CrossContext, OverrideBuiltins
-  - **TODO**
+  - ***fixed***
   - OverrideBuiltins: removed since C70, commit 6a866d29f4314b990981119285da46540a50742c
 
 Comment: on C35 and C70, `iframe` and `frame` have no named property getters
