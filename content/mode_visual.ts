@@ -106,6 +106,7 @@ var VVisual = {
     this.retainSelection_ = false;
     this.resetKeys_();
     this.selection_ = null as never;
+    this.scope_ =  null;
     VHUD.hide_();
   },
   realType_: null as never as (sel: Selection) => SelType,
@@ -306,7 +307,7 @@ var VVisual = {
       "documentboundary"],
   alterMethod_: "" as "move" | "extend",
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
-  diType_: VisualModeNS.DiType.Normal as VisualModeNS.DiType.Normal | VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Unknown,
+  diType_: VisualModeNS.DiType.Unknown as VisualModeNS.DiType.Normal | VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Unknown,
   /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
   wordRe_: null as never as RegExpOne,
   /** @unknown_di_result */
@@ -369,7 +370,7 @@ var VVisual = {
     this.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
   },
   moveRightByWord_ (vimLike: boolean, count: number): void {
-    const a = this, isMove = VVisual.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
+    const a = this, isMove = a.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
     let ch: string = '1' /** a fake value */;
     a.getDirection_("");
     a.oldLen_ = 1;
@@ -399,7 +400,7 @@ var VVisual = {
   /** @tolerate_di_if_caret */
   reverseSelection_ (): void {
     const a = this, sel = a.selection_;
-    if (VVisual.realType_(sel) !== SelType.Range) {
+    if (a.realType_(sel) !== SelType.Range) {
       a.di_ = VisualModeNS.kDir.right;
       return;
     }
@@ -498,7 +499,7 @@ var VVisual = {
   },
   /** @tolerate_di_if_caret di will be 1 */
   collapseSelectionTo_ (toFocus: BOOL) {
-    VVisual.realType_(this.selection_) === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus ^ 1) as BOOL);
+    this.realType_(this.selection_) === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus ^ 1) as BOOL);
     this.di_ = VisualModeNS.kDir.right;
   },
   /** @safe_di di will be 1 */
