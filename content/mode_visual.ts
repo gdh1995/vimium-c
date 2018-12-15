@@ -83,7 +83,7 @@ var VVisual = {
     }
     if (toCaret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
-      mode = sel.toString().length;
+      mode = ("" + sel).length;
       a.collapse_((a.getDirection_() & +(mode > 1)) as BOOL);
     }
     a.commandHandler_(-1, 1);
@@ -287,7 +287,7 @@ var VVisual = {
    * @not_related_to_di otherwise
    */
   yank_ (action?: true | ReuseType.current | ReuseType.newFg | null): void {
-    const str = this.selection_.toString();
+    const str = "" + this.selection_;
     if (action === true) {
       this.prompt_(VHUD.copied(str, "", true), 2000);
       action = null;
@@ -338,7 +338,7 @@ var VVisual = {
     }
     let oldLen = 0;
     if (!isMove) {
-      const beforeText = sel.toString();
+      const beforeText = "" + sel;
       if (beforeText && !a.getDirection_(beforeText)) {
         // todo: @di_ should be the di after extend
         return beforeText[0];
@@ -347,7 +347,7 @@ var VVisual = {
     }
     // here, the real di must be 1 (caret also means 1)
     a.oldLen_ || a.extend_(1);
-    const afterText = sel.toString(), newLen = afterText.length;
+    const afterText = "" + sel, newLen = afterText.length;
     if (newLen !== oldLen) {
       isMove && a.collapse_(newLen === 1 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left);
       a.oldLen_ = isMove && newLen !== 1 ? 0 : 2 + oldLen;
@@ -381,14 +381,14 @@ var VVisual = {
       } while (ch && ((count & 1) - +(vimLike !== a.wordRe_.test(ch))));
     }
     if (ch && a.oldLen_) {
-      const num1 = a.oldLen_ - 2, num2 = isMove || a.selection_.toString().length;
+      const num1 = a.oldLen_ - 2, num2 = isMove || ("" + a.selection_).length;
       a.modify_(0, VisualModeNS.G.character);
       if (!isMove) {
         // in most cases, initial selection won't be a caret at the middle of sel-all
         // - so correct selection won't be from the middle to the end
         // if in the case, selection can not be kept during @getDi,
         // so it's okay to ignore the case
-        a.selection_.toString().length - num1 && a.extend_(1);
+        ("" + a.selection_).length - num1 && a.extend_(1);
         a.di_ = num2 < num1 ? VisualModeNS.kDir.left : VisualModeNS.kDir.right;
       }
     }
@@ -402,10 +402,10 @@ var VVisual = {
     }
     const direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
     if (a.diType_ === VisualModeNS.DiType.TextBox || a.diType_ === VisualModeNS.DiType.Unknown) {
-      let length = sel.toString().length, i = 0;
+      let length = ("" + sel).length, i = 0;
       a.collapse_(direction);
       for (; i < length; i++) { a.extend_(newDi); }
-      for (let tick = 0; tick < 16 && (i = sel.toString().length - length); tick++) {
+      for (let tick = 0; tick < 16 && (i = ("" + sel).length - length); tick++) {
         a.extend_(i < 0 ? newDi : direction);
       }
     } else {
@@ -470,7 +470,7 @@ var VVisual = {
       }
     }
     // nodes under shadow DOM or in other unknown edge cases
-    const initial = magic || sel.toString();
+    const initial = magic || "" + sel;
     num1 = initial.length;
     if (!num1) {
       a.diType_ = anchorNode instanceof Text ? VisualModeNS.DiType.Normal : VisualModeNS.DiType.Unknown;
@@ -479,7 +479,7 @@ var VVisual = {
     a.diType_ = VisualModeNS.DiType.Unknown;
     if (magic === "") { return VisualModeNS.kDir.right; }
     a.extend_(1);
-    num2 = sel.toString().length - num1;
+    num2 = ("" + sel).length - num1;
     /**
      * Note (tested on C70):
      * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
@@ -487,7 +487,7 @@ var VVisual = {
      */
     if (num2 && !magic) {
       a.extend_(0);
-      sel.toString() !== initial && a.extend_(1);
+      "" + sel !== initial && a.extend_(1);
     } else {
       a.oldLen_ = 2 + num1;
     }
@@ -524,7 +524,7 @@ var VVisual = {
     const num1 = this.oldLen_;
     if (ch && num1 && ch !== "\n") {
       this.extend_(0);
-      this.selection_.toString().length + 2 - num1 && this.extend_(1);
+      ("" + this.selection_).length + 2 - num1 && this.extend_(1);
     }
   },
 
@@ -553,7 +553,7 @@ init_ (words: string) {
   this.realType_ = VSettings.cache.browserVer === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function(sel: Selection): SelType {
     let type = typeIdx[sel.type];
-    return type === SelType.Caret && sel.toString().length ? SelType.Range : type;
+    return type === SelType.Caret && ("" + sel).length ? SelType.Range : type;
   } : function(sel: Selection): SelType {
     return typeIdx[sel.type];
   };

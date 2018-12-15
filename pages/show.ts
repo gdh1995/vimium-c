@@ -202,7 +202,8 @@ document.addEventListener("keydown", function(this: void, event): void {
       download: file
     }, event);
   } else if (str === "C") {
-    return getSelection().toString() ? copyThing(event) : undefined;
+    "" + getSelection() && copyThing(event);
+    return;
   } else if (str === "A") {
     return toggleInvert(event);
   }

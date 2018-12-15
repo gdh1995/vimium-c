@@ -168,7 +168,7 @@ VDom.UI = {
     return [sel, sr];
   },
   getSelectionText_ (notTrim?: 1): string {
-    let sel = getSelection(), s = sel.toString(), el: Element | null, rect: ClientRect;
+    let sel = getSelection(), s = "" + sel, el: Element | null, rect: ClientRect;
     if (s && !VEvent.lock() && (el = VScroller.current_) && VDom.getEditableType_(el) === EditableType.Editbox
         && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
       s = "";
