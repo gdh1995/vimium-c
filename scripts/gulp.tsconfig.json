@@ -5,6 +5,7 @@
     "outDir": "./dist",
     "skipLibCheck": true,
     "sourceMap": true,
+    "target": "es6",
     "typescript": "typescript/lib/typescript"
   },
   "extends": "../tsconfig"

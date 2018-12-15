@@ -21,6 +21,7 @@ var typescript = null, tsOptionsLogged = false;
 var envLegacy = process.env.SUPPORT_LEGACY === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
+var forcedESTarget = (process.env.TARGET || "").toLowerCase();
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", false);
@@ -187,12 +188,12 @@ if (!has_dialog_ui) {
 }
 gulp.task("locally", function(done) {
   if (locally) { return done(); }
+  locally = true;
   compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
   removeUnknownOptions();
   JSDEST = compilerOptions.outDir = ".";
   enableSourceMap = false;
   willListEmittedFiles = true;
-  locally = true;
   done();
 });
 makeCompileTasks();
@@ -586,43 +587,44 @@ function readCompilerOptions(tsConfigFile, throwError) {
     tsConfigFile += ".json";
   }
   var config = readJSON(tsConfigFile);
-  var compilerOptions = config ? config.compilerOptions || {} : null;
-  if (compilerOptions && config.extends) {
+  var opts = config ? config.compilerOptions || {} : null;
+  if (opts && config.extends) {
     var baseFile = osPath.join(osPath.dirname(tsConfigFile), config.extends);
     var baseOptions = readCompilerOptions(baseFile, throwError);
     if (baseOptions) {
       for (var key in baseOptions) {
-        if (baseOptions.hasOwnProperty(key) && !(key in compilerOptions)) {
-          compilerOptions[key] = baseOptions[key];
+        if (baseOptions.hasOwnProperty(key) && !(key in opts)) {
+          opts[key] = baseOptions[key];
         }
       }
     }
   }
-  return compilerOptions;
+  return opts;
 }
 
 function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
-  var compilerOptions = readCompilerOptions(tsConfigFile, true);
-  if (!keepCustomOptions && (keepCustomOptions === false || !compilerOptions.typescript)) {
-    delete compilerOptions.inferThisForObjectLiterals;
-    delete compilerOptions.narrowFormat;
+  var opts = readCompilerOptions(tsConfigFile, true);
+  if (!keepCustomOptions && (keepCustomOptions === false || !opts.typescript)) {
+    delete opts.inferThisForObjectLiterals;
+    delete opts.narrowFormat;
   }
-  if (typescript && !compilerOptions.typescript) {
-    compilerOptions.typescript = typescript;
+  if (opts.noImplicitUseStrict) {
+    opts.alwaysStrict = false;
   }
-  if (compilerOptions.noImplicitUseStrict) {
-    compilerOptions.alwaysStrict = false;
+  opts.target = forcedESTarget || (locally ? "es5" : opts.target || "es5");
+  if (typescript && !opts.typescript) {
+    opts.typescript = typescript;
   }
-  DEST = compilerOptions.outDir;
+  DEST = opts.outDir;
   if (!DEST || DEST === ".") {
-    DEST = compilerOptions.outDir = "dist";
+    DEST = opts.outDir = "dist";
   }
   JSDEST = osPath.join(DEST, ".build");
-  enableSourceMap = !!compilerOptions.sourceMap && envSourceMap;
-  willListFiles   = !!compilerOptions.listFiles;
-  willListEmittedFiles = !!compilerOptions.listEmittedFiles;
-  removeComments  = !!compilerOptions.removeComments;
-  return compilerOptions;
+  enableSourceMap = !!opts.sourceMap && envSourceMap;
+  willListFiles   = !!opts.listFiles;
+  willListEmittedFiles = !!opts.listEmittedFiles;
+  removeComments  = !!opts.removeComments;
+  return opts;
 }
 
 function loadTypeScriptCompiler(path) {
