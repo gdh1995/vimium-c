@@ -399,17 +399,14 @@ var VDom = {
     }
     return par !== document.documentElement ? par as HTMLElement | null : null;
   },
-  getSelectionFocusEdge_ (sel: Selection, knownDi: BOOL | 2): SafeElement | null {
+  getSelectionFocusEdge_ (sel: Selection, knownDi: VisualModeNS.ForwardDir): SafeElement | null {
     if (!sel.rangeCount) { return null; }
-    let { anchorNode, focusNode: el } = sel, E = Element
-      , goRight = knownDi < 2 ? !knownDi :
-          anchorNode === el || !(Node.prototype.compareDocumentPosition.call(anchorNode as Node, el as Node)
-            & /** DOCUMENT_POSITION_FOLLOWING */ 4)
+    let el = sel.focusNode, E = Element
       , o: Node | null, cn: Node["childNodes"];
     if (el instanceof E) {
       el = !((cn = this.Getter_(Node, el, "childNodes") || el.childNodes) instanceof E) && cn[sel.focusOffset] || el;
     }
-    for (o = el; o && !(o instanceof E); o = goRight ? o.nextSibling : o.previousSibling) {}
+    for (o = el; o && !(o instanceof E); o = knownDi ? o.previousSibling : o.nextSibling) {}
     return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement));
   },
   mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"

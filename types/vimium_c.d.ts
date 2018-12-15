@@ -118,6 +118,12 @@ declare namespace VisualModeNS {
     Line = 2,
     Caret = 3,
   }
+  const enum kDir {
+    left = 0, right = 1, unknown = 2,
+    __mask = -1,
+  }
+  /** 1 means right; 0 means left */
+  type ForwardDir = kDir.left | kDir.right;
 }
 
 interface ChildKeyMap {

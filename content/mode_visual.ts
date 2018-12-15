@@ -10,12 +10,6 @@ declare namespace VisualModeNS {
   const enum ValidActions {
 
   }
-  const enum kDir {
-    left = 0, right = 1, unknown = 2,
-    __mask = -1,
-  }
-  /** 1 means right; 0 means left */
-  type ForwardDir = kDir.left | kDir.right;
   const enum G {
     character = 0, line = 1, lineboundary = 2, paragraph = 3, sentence = 4, word = 6, documentboundary = 7,
   }
@@ -206,7 +200,9 @@ var VVisual = {
         movement.reverseSelection_();
       }
     }
-    const focused = VDom.getSelectionFocusEdge_(movement.selection_, movement.di_);
+    movement.getDirection_("");
+    if (movement.diType_ === VisualModeNS.DiType.Unknown) { return; }
+    const focused = VDom.getSelectionFocusEdge_(movement.selection_, movement.di_ as VisualModeNS.ForwardDir);
     if (focused) {
       VScroller.scrollIntoView_unsafe_(focused);
     }
