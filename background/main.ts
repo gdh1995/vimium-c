@@ -77,6 +77,17 @@ var Backend: BackendHandlersNS.BackendHandlers;
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: VKeyCodes = VKeyCodes.None, gCmdTimer = 0, gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone;
+  const getSecret = (function (this: void): (this: void) => number {
+    let secret = 0, time = 0;
+    return function(this: void): number {
+      const now = Date.now();
+      if (now - time > GlobalConsts.VomnibarSecretTimeout) {
+        secret = 1 + (0 | (Math.random() * 0x6fffffff));
+      }
+      time = now;
+      return secret;
+    };
+  })();
 
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
@@ -2091,18 +2102,6 @@ Are you sure you want to continue?`);
         url: sender.url || (tab as any).url || ""
       };
     }
-  const
-  getSecret = (function (this: void): (this: void) => number {
-    let secret = 0, time = 0;
-    return function(this: void): number {
-      const now = Date.now();
-      if (now - time > GlobalConsts.VomnibarSecretTimeout) {
-        secret = 1 + (0 | (Math.random() * 0x6fffffff));
-      }
-      time = now;
-      return secret;
-    };
-  })();
 
   Backend = {
     gotoSession_: requestHandlers[kFgReq.gotoSession],

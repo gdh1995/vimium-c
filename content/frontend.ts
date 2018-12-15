@@ -880,7 +880,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       }
       if (VDom.UI.box_) { return VDom.UI.toggle_(enabled); }
     },
-    injector ? injector.reload : function (_req: BgReq[kBgReq.reInject]): void {},
+    injector ? injector.reload : function (): void {},
     function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
       delete (request as Req.bg<kBgReq.url>).N;
       request.url = location.href;

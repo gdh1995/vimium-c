@@ -790,9 +790,22 @@ function loadUglifyConfig(reload) {
       _uglifyjsConfig = a;
     }
     a.output || (a.output = {});
-    if (a.mangle && a.mangle.properties && typeof a.mangle.properties.regex === "string") {
-      let re = a.mangle.properties.regex.match(/^\/(.*)\/([a-z]*)$/);
-      a.mangle.properties.regex = new RegExp(re[1], re[2]);
+    var c = a.compress || (a.compress = {}), gd = c.global_defs || (c.global_defs = {});
+    if (typeof c.keep_fnames === "string") {
+      let re = c.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
+      c.keep_fnames = new RegExp(re[1], re[2]);
+    }
+    var m = a.mangle, p = m && m.properties;
+    if (p && typeof p.regex === "string") {
+      let re = p.regex.match(/^\/(.*)\/([a-z]*)$/);
+      p.regex = new RegExp(re[1], re[2]);
+    }
+    if (m && typeof m.keep_fnames === "string") {
+      let re = m.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
+      m.keep_fnames = new RegExp(re[1], re[2]);
+    }
+    else if (m && !typeof m.keep_fnames) {
+      m.keep_fnames = c.keep_fnames;
     }
   }
   a.output.comments = removeComments ? false : "all";
