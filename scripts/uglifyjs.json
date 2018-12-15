@@ -11,6 +11,7 @@
     "dead_code": true,
     "drop_debugger": true,
     "global_defs": {
+      "NO_DIALOG_UI": false,
       "NDEBUG": true
     },
     // `true` will remove `/a?/.test("")` and modify polyfill's `String(this)`

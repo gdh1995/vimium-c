@@ -255,6 +255,8 @@ interface VimiumInjector {
   destroy: ((this: void, silent?: boolean) => void) | null;
 }
 
+declare var NO_DIALOG_UI: boolean | undefined, NDEBUG: boolean | undefined;
+
 interface Document extends DocumentAttrsToBeDetected {}
 
 declare const enum GlobalConsts {

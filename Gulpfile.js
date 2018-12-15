@@ -24,6 +24,7 @@ var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS 
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", false);
+var has_dialog_ui = manifest.options_ui != null && manifest.options_ui.open_in_tab !== true;
 gulpPrint = gulpPrint.default || gulpPrint;
 
 var CompileTasks = {
@@ -46,12 +47,16 @@ var Tasks = {
     return copyByPath(["pages/newtab.js", "lib/math_parser*", "lib/*.min.js"]);
   },
   static: ["static/special", function() {
-    return copyByPath(["front/*", "pages/*", "icons/*", "lib/*.css"
-        , "settings_template.json", "*.txt", "*.md"
-        , "!**/manifest.json"
-        , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
-        , "!front/vimium.css", "!test*", "!todo*"
-      ]);
+    var arr = ["front/*", "pages/*", "icons/*", "lib/*.css"
+      , "settings_template.json", "*.txt", "*.md"
+      , "!**/manifest.json"
+      , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
+      , "!front/vimium.css", "!test*", "!todo*"
+    ];
+    if (!has_dialog_ui) {
+      arr.push("!*/dialog_ui.*");
+    }
+    return copyByPath(arr);
   }],
 
   "build/scripts": ["build/background", "build/content", "build/front"],
@@ -101,6 +106,9 @@ var Tasks = {
     gulp.task("min/others/_3", function() {
       var oriManifest = readJSON("manifest.json", true);
       var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/*", "!pages/options*"];
+      if (!has_dialog_ui) {
+        res.push("!*/dialog_ui.*");
+      }
       for (var arr = oriManifest.content_scripts[0].js, i = 0, len = arr.length; i < len; i++) {
         if (arr[i].lastIndexOf("lib/", 0) === 0) {
           res.push("!" + arr[i]);
@@ -173,6 +181,10 @@ var Tasks = {
 
 typescript = compilerOptions.typescript = loadTypeScriptCompiler();
 removeUnknownOptions();
+if (!has_dialog_ui) {
+  CompileTasks.front[0].push("!*/dialog_ui.*");
+  CompileTasks.others[0].push("!*/dialog_ui.*");
+}
 gulp.task("locally", function(done) {
   if (locally) { return done(); }
   compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
@@ -791,6 +803,7 @@ function loadUglifyConfig(reload) {
     }
     a.output || (a.output = {});
     var c = a.compress || (a.compress = {}), gd = c.global_defs || (c.global_defs = {});
+    gd.NO_DIALOG_UI = !has_dialog_ui;
     if (typeof c.keep_fnames === "string") {
       let re = c.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
       c.keep_fnames = new RegExp(re[1], re[2]);

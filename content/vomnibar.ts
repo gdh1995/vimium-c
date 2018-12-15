@@ -183,7 +183,7 @@ var VOmni = {
         close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
-      if (location.hash === "#dialog-ui" && VimiumInjector === null) { _this.top_ = "8px"; }
+      if ((typeof NO_DIALOG_UI === "undefined" || !NO_DIALOG_UI) && location.hash === "#dialog-ui" && VimiumInjector === null) { _this.top_ = "8px"; }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {

@@ -474,7 +474,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 910 / ratio + "px" : "";
     });
   }
-  if (window.location.hash === "#dialog-ui") {
+  if (typeof NO_DIALOG_UI !== "undefined" && NO_DIALOG_UI) {}
+  else if (window.location.hash === "#dialog-ui") {
     setUI(null);
   } else if (chrome.tabs.query)
   chrome.tabs.query({ active: true, currentWindow: true }, function(tabs): void {
