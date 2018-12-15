@@ -331,9 +331,12 @@ var VVisual = {
     }
     const sel = a.selection_;
     if (diType === VisualModeNS.DiType.Normal) {
-      let { focusNode } = sel, str: string | undefined;
-      if (focusNode instanceof Text && (str = focusNode.data.substring(sel.focusOffset)).trimLeft()) {
-        return str[0];
+      let { focusNode } = sel;
+      if (focusNode instanceof Text) {
+        const i = sel.focusOffset, str = focusNode.data;
+        if ((str[i] || "").trim() || i && str[i - 1].trim() && str.substring(i).trimLeft()) {
+          return str[i];
+        }
       }
     }
     let oldLen = 0;
