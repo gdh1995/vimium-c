@@ -194,8 +194,11 @@ var VVisual = {
     }
     if (mode === VisualModeNS.Mode.Caret) {
       movement.extend_(1);
-    } else if (mode === VisualModeNS.Mode.Line) {
-      for (let i = 2; 0 < i--; ) {
+    } else if (mode !== VisualModeNS.Mode.Line) {
+    } else if (movement.isPointLineFeedAndInTextBox_(movement.getDirection_(""))) {
+      movement.modify_(movement.di_ as VisualModeNS.ForwardDir, VisualModeNS.G.lineboundary);
+    } else {
+      for (mode = 2; 0 < mode--; ) {
         movement.modify_(movement.getDirection_(), VisualModeNS.G.lineboundary);
         movement.reverseSelection_();
       }
@@ -324,14 +327,14 @@ var VVisual = {
     a.oldLen_ = 0;
     if (diType === VisualModeNS.DiType.TextBox) {
       const el = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement;
-      return el.value[el.selectionDirection === "backward" ? el.selectionStart : el.selectionEnd] || '';
+      return el.value.charAt(a.TextOffset_(el, a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== "backward"));
     }
     const sel = a.selection_;
     if (diType === VisualModeNS.DiType.Normal) {
       let { focusNode } = sel;
       if (focusNode instanceof Text) {
         const i = sel.focusOffset, str = focusNode.data;
-        if ((str[i] || "").trim() || i && str[i - 1].trim() && str.substring(i).trimLeft()) {
+        if (str.charAt(i).trim() || i && str[i - 1].trim() && str.substring(i).trimLeft()) {
           return str[i];
         }
       }
@@ -456,14 +459,13 @@ var VVisual = {
       if (num2) {
         let di: BOOL = (lock as HTMLInputElement | HTMLTextAreaElement).selectionDirection === "backward" ? 0 : 1;
         if (magic == null && num2 === 2) {
-          num1 = (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart;
-          num2 = di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : num1;
+          num1 = a.TextOffset_(lock as HTMLInputElement | HTMLTextAreaElement, VisualModeNS.kDir.left);
+          num2 = di ? a.TextOffset_(lock as HTMLInputElement | HTMLTextAreaElement, VisualModeNS.kDir.right) : num1;
           // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
           if (!di || num2 && (num1 !== num2)) {
-            let testDi: BOOL = di || num2 ? 0 : 1;
-            a.extend_(testDi);
-            num2 !== (di ? (lock as HTMLInputElement | HTMLTextAreaElement).selectionEnd : (lock as HTMLInputElement | HTMLTextAreaElement).selectionStart
-              ) && a.extend_((1 - testDi) as BOOL);
+            num1 = (di || num2 ? 0 : 1) as BOOL;
+            a.extend_(num1);
+            num2 !== a.TextOffset_(lock as HTMLInputElement | HTMLTextAreaElement, di) && a.extend_((1 - num1) as BOOL);
           }
         }
         return a.di_ = di;
@@ -513,18 +515,32 @@ var VVisual = {
   },
   /** after called, VVisual must exit at once */
   selectLine_ (count: number): void {
-    this.alterMethod_ = "extend";
-    this.getDirection_() && this.reverseSelection_();
-    this.modify_(0, VisualModeNS.G.lineboundary);
-    this.di_ = VisualModeNS.kDir.left; // safe
-    this.reverseSelection_();
-    while (0 < --count) { this.modify_(1, VisualModeNS.G.line); }
-    this.modify_(1, VisualModeNS.G.lineboundary);
-    const ch = this.getNextRightCharacter_(0);
-    const num1 = this.oldLen_;
+    const a = this, oldDi = a.getDirection_();
+    a.alterMethod_ = "extend";
+    if (!a.isPointLineFeedAndInTextBox_(0)) {
+      oldDi && a.reverseSelection_();
+      a.modify_(0, VisualModeNS.G.lineboundary);
+      a.di_ = VisualModeNS.kDir.left; // safe
+      a.reverseSelection_();
+    }
+    while (0 < --count) { a.modify_(1, VisualModeNS.G.line); }
+    a.modify_(1, VisualModeNS.G.lineboundary);
+    const ch = a.getNextRightCharacter_(0);
+    const num1 = a.oldLen_;
     if (ch && num1 && ch !== "\n") {
-      this.extend_(0);
-      ("" + this.selection_).length + 2 - num1 && this.extend_(1);
+      a.extend_(0);
+      ("" + a.selection_).length + 2 - num1 && a.extend_(1);
+    }
+  },
+  TextOffset_ (this: void, el: HTMLInputElement | HTMLTextAreaElement, di: VisualModeNS.ForwardDir | boolean): number {
+    return di ? el.selectionEnd : el.selectionStart;
+  },
+  /** need a correct `diType_`; will use di if only `diType_` is `TextBox` */
+  isPointLineFeedAndInTextBox_(di: VisualModeNS.ForwardDir): boolean | void {
+    if (this.diType_ === VisualModeNS.DiType.TextBox) {
+      const lock = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement,
+      ch = lock.value.charAt(this.TextOffset_(lock, di) + di - 1);
+      return ch === '\n' || !ch;
     }
   },
 
