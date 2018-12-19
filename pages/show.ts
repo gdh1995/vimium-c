@@ -41,7 +41,8 @@ if (!(BG_ && BG_.Utils && BG_.Utils.convertToUrl)) {
   BG_ = null as never;
 }
 
-let VShown: ValidNodeTypes, bgLink = $<HTMLAnchorElement>('#bgLink'), url: string, type: ValidShowTypes, file: string;
+var VShown: ValidNodeTypes;
+let bgLink = $<HTMLAnchorElement>('#bgLink'), url: string, type: ValidShowTypes, file: string;
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer: ViewerType | null = null;
 
