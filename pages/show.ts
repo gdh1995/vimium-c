@@ -45,7 +45,7 @@ var VShown: ValidNodeTypes;
 let bgLink = $<HTMLAnchorElement>('#bgLink'), url: string, type: ValidShowTypes, file: string;
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer: ViewerType | null = null;
-let imgData: {
+let objData: {
   originUrl?: string;
   auto?: boolean;
   file?: string;
@@ -65,7 +65,7 @@ window.onhashchange = function(this: void): void {
   if (!location.hash && BG_ && BG_.Settings && BG_.Settings.temp.shownHash) {
     const data = BG_.Settings.temp.shownHash();
     url = data.url || "";
-    imgData = (JSON.parse(JSON.stringify(data.options)) || {}) as typeof imgData;
+    objData = (JSON.parse(JSON.stringify(data.options)) || {}) as typeof objData;
     window.name = url;
   } else if (!url) {
     url = window.name;
@@ -78,10 +78,17 @@ window.onhashchange = function(this: void): void {
     url = url.substring(6);
     type = "url";
   }
-  if (ind = url.indexOf("&") + 1) {
+  while (ind = url.indexOf("&") + 1) {
     if (url.startsWith("download=")) {
       file = decodeURLPart(url.substring(9, ind - 1));
       url = url.substring(ind);
+    } else if (url.startsWith("auto=")) {
+      objData || (objData = {});
+      let i = url.substring(5, 12).toLowerCase();
+      objData.auto = i.startsWith("true&") ? true : i.startsWith("false&") ? false : parseInt(url) > 0;
+      url = url.substring(ind);
+    } else {
+      break;
     }
   }
   if (url.indexOf(":") <= 0 && url.indexOf("/") < 0) {
@@ -105,7 +112,7 @@ window.onhashchange = function(this: void): void {
   switch (type) {
   case "image":
     if (file) {
-      imgData && (imgData.file = imgData.file || file);
+      objData && (objData.file = objData.file || file);
     }
     parseSmartImageUrl(url);
     VShown = (importBody as ImportBody)("shownImage");
@@ -128,10 +135,10 @@ window.onhashchange = function(this: void): void {
       VShown.onclick = defaultOnClick;
       VShown.onload = function(this: HTMLImageElement): void {
         if (this.naturalWidth < 12 && this.naturalHeight < 12) {
-          if (imgData && imgData.originUrl && imgData.originUrl !== url) {
+          if (objData && objData.originUrl && objData.originUrl !== url) {
             console.log("Failed to parse a clearer version of the target image, so go back to the original version");
-            imgData.auto = false;
-            url = imgData.originUrl;
+            objData.auto = false;
+            url = objData.originUrl;
             recoverHash();
             (window.onhashchange as () => void)();
           } else if (this.naturalWidth < 2 && this.naturalHeight < 2) {
@@ -443,7 +450,7 @@ function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
 
 function clean() {
   if (type === "image") {
-    imgData = null;
+    objData = null;
     (document.body as HTMLBodyElement).classList.remove("filled");
     if (viewer) {
       viewer.destroy();
@@ -453,7 +460,7 @@ function clean() {
 }
 
 function parseSmartImageUrl(originUrl: string): void {
-  if (!imgData || !imgData.auto) {
+  if (!objData || !objData.auto) {
     return;
   }
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch (e) {} return null; }
@@ -501,7 +508,7 @@ function parseSmartImageUrl(originUrl: string): void {
     }
   }
   if (ok) {
-    imgData.originUrl = imgData.originUrl || originUrl;
+    objData.originUrl = objData.originUrl || originUrl;
     url = search;
     recoverHash();
   }
