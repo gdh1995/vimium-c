@@ -127,6 +127,19 @@ window.onhashchange = function(this: void): void {
       VShown.src = url;
       VShown.onclick = defaultOnClick;
       VShown.onload = function(this: HTMLImageElement): void {
+        if (this.naturalWidth < 12 && this.naturalHeight < 12) {
+          if (imgData && imgData.originUrl && imgData.originUrl !== url) {
+            console.log("Failed to parse a clearer version of the target image, so go back to the original version");
+            imgData.auto = false;
+            url = imgData.originUrl;
+            recoverHash();
+            (window.onhashchange as () => void)();
+          } else if (this.naturalWidth < 2 && this.naturalHeight < 2) {
+            console.log("The image is too small to see");
+            this.onerror(null as never);
+          }
+          return;
+        }
         this.onerror = this.onload = null as never;
         setTimeout(function() { // safe; because on C65, in some tests refreshing did not trigger replay
           (VShown as HTMLImageElement).src = (VShown as HTMLImageElement).src; // trigger replay for gif
