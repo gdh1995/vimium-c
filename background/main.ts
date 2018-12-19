@@ -56,7 +56,12 @@ var Backend: BackendHandlersNS.BackendHandlers;
     position?: "start" | "end" | "before" | "after";
     opener?: boolean;
     window?: boolean;
+    autoShow?: boolean;
   }
+  type ShowPageData = [string, SettingsTmpl["temp"]["shownHash"], number, {
+    auto?: boolean
+  }];
+
   const enum RefreshTabStep {
     start = 0,
     s1, s2, s3, s4,
@@ -557,10 +562,11 @@ Are you sure you want to continue?`);
         openerTabId: !incognito && options.opener ? tab.id : undefined,
         url: prefix
       });
-      const arr: [string, ((this: void) => string) | null, number] = [url, null, 0];
-      Settings.temp.shownHash = arr[1] = function(this: void): string {
+      const arr: ShowPageData = [url, null, 0, { auto: options.autoShow }];
+      Settings.temp.shownHash = arr[1] = function(this: void) {
         clearTimeout(arr[2]);
-        Settings.temp.shownHash = null; return arr[0];
+        Settings.temp.shownHash = null;
+        return { url: arr[0], options: arr[3] };
       };
       arr[2] = setTimeout(openShowPage[1], 1200, arr);
       return true;
@@ -571,8 +577,8 @@ Are you sure you want to continue?`);
         arr[0] = "", arr[1] = null;
       }, 2000);
     }] as [
-      (url: string, reuse: ReuseType, options: Pick<OpenUrlOptions, "position" | "opener">, tab?: Tab) => boolean,
-      (arr: [string, ((this: void) => string) | null, number]) => void
+      (url: string, reuse: ReuseType, options: Pick<OpenUrlOptions, "position" | "opener" | "autoShow">, tab?: Tab) => boolean,
+      (arr: ShowPageData) => void
     ]
     // use Urls.WorkType.Default
     function openUrls (tabs: [Tab]): void {
@@ -1911,36 +1917,17 @@ Are you sure you want to continue?`);
       return Backend.removeSug_(req, port);
     },
     /** openImage: */ function (this: void, req: FgReq[kFgReq.openImage], port: Port) {
-      let url = req.url, parsed = Utils.safeParseURL(url);
+      let url = req.url, parsed = Utils.safeParseURL_(url);
       if (!parsed) {
         cPort = port;
-        Backend.showHUD_("The link has not a valid image URL");
+        Backend.showHUD_("The selected image URL is invalid");
         return;
       }
       let prefix = Settings.CONST.ShowPage_ + "#!image ";
       if (req.file) {
         prefix += "download=" + encodeURIComponent(req.file) + "&";
       }
-      if (req.auto !== false) {
-        let search = parsed.search, arr: RegExpExecArray | null, ok = false;
-        if (search.length > 10 && (arr = (<RegExpOne>/[&?]src=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
-          search = search.lastIndexOf('&') > 0 ? Utils.DecodeURLPart_(search.split('&', 1)[0]) : Utils.decodeEscapedURL_(search);
-          ok = Utils.safeParseURL(search) != null;
-        }
-        if (!ok) {
-          search = parsed.pathname;
-          let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('/') + 1;
-          if (index > 2) {
-            let last = search.substring(index), arr2 = last.match(<RegExpG>/\d\d+/g) || last.match(/\d+[a-z]{1,2}\b/g);
-            if (arr2 && arr2.length >= 2 && (<RegExpOne>/[whx_]/).test(last) || (<RegExpOne>/^\d+$/).test(last) && +last <= 640) {
-              search = parsed.origin + search.substring(0, index - 1);
-              ok = true;
-            }
-          }
-        }
-        url = ok ? search : url;
-      }
-      openShowPage[0](prefix + url, req.reuse, { opener: true });
+      openShowPage[0](prefix + url, req.reuse, { opener: true, autoShow: req.auto !== false });
     }
   ],
     framesForOmni: Frames.WritableFrames = [null as never];

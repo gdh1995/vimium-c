@@ -3,11 +3,8 @@ import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 var Settings = {
   cache: Object.create(null) as Readonly<SettingsNS.FullCache>,
   temp: {
-    shownHash: null as null | ((this: void) => string)
-  } as {
-    shownHash: null | ((this: void) => string);
-    [key: string]: ((this: void) => any) | undefined | null;
-  },
+    shownHash: null
+  } as Writeable<SettingsTmpl["temp"]>,
   payload: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,
   newTabs: Object.create(null) as SafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,

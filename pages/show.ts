@@ -45,6 +45,11 @@ var VShown: ValidNodeTypes;
 let bgLink = $<HTMLAnchorElement>('#bgLink'), url: string, type: ValidShowTypes, file: string;
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer: ViewerType | null = null;
+let imgData: {
+  originUrl?: string;
+  auto?: boolean;
+  file?: string;
+} | null = null;
 
 window.onhashchange = function(this: void): void {
   let str: Urls.Url | null, ind: number;
@@ -58,7 +63,9 @@ window.onhashchange = function(this: void): void {
 
   url = location.hash;
   if (!location.hash && BG_ && BG_.Settings && BG_.Settings.temp.shownHash) {
-    url = BG_.Settings.temp.shownHash() || "";
+    const data = BG_.Settings.temp.shownHash();
+    url = data.url || "";
+    imgData = (JSON.parse(JSON.stringify(data.options)) || {}) as typeof imgData;
     window.name = url;
   } else if (!url) {
     url = window.name;
@@ -97,6 +104,10 @@ window.onhashchange = function(this: void): void {
 
   switch (type) {
   case "image":
+    if (file) {
+      imgData && (imgData.file = imgData.file || file);
+    }
+    parseSmartImageUrl(url);
     VShown = (importBody as ImportBody)("shownImage");
     VShown.classList.add("hidden");
     VShown.onerror = function(): void {
@@ -419,10 +430,58 @@ function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
 
 function clean() {
   if (type === "image") {
+    imgData = null;
     (document.body as HTMLBodyElement).classList.remove("filled");
     if (viewer) {
       viewer.destroy();
       viewer = null;
     }
+  }
+}
+
+function parseSmartImageUrl(originUrl: string): void {
+  if (!imgData || !imgData.auto) {
+    return;
+  }
+  function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch (e) {} return null; }
+  const parsed = safeParseURL(originUrl);
+  if (!parsed) { return; }
+  let search = parsed.search, arr: RegExpExecArray | null, ok = false;
+  if (search.length > 10 && (arr = (<RegExpOne>/[&?]src=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
+    const DecodeURLPart = function(this: void, url1: string | undefined, func?: (this: void, url1: string) => string): string {
+      if (!url1) { return ""; }
+      try {
+        url1 = (func || decodeURIComponent)(url1);
+      } catch (e) {}
+      return url1;
+    };
+    search = search.lastIndexOf('&') > 0 ? DecodeURLPart(search.split('&', 1)[0])
+      : search.indexOf("://") < 0 && (<RegExpOne>/%(?:3[aA]|2[fF])/).test(search) ? DecodeURLPart(search).trim()
+      : search;
+    ok = safeParseURL(search) != null;
+  }
+  if (!ok) {
+    search = parsed.pathname;
+    let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('/') + 1;
+    if (index > 2) {
+      let last = search.substring(index), arr2 = last.match(<RegExpG>/\d\d+/g) || last.match(/\d+[a-z]{1,2}\b/g);
+      if (arr2 && arr2.length >= 2 && (<RegExpOne>/[whx_]/).test(last) || (<RegExpOne>/^\d+$/).test(last) && +last <= 640) {
+        search = parsed.origin + search.substring(0, index - 1);
+        ok = true;
+      }
+    }
+  }
+  if (ok) {
+    imgData.originUrl = imgData.originUrl || originUrl;
+    url = search;
+    recoverHash();
+  }
+}
+
+function recoverHash() {
+  var str = type === "image" ? "#!image " + (file ? "download=" + encodeURIComponent(file) + "&" : "") + url
+    : "";
+  if (str) {
+    window.name = str;
   }
 }
