@@ -429,7 +429,12 @@ var VHints = {
     if (element instanceof HTMLImageElement) { return VHints._getImagesInImg(this, element); }
     if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
     let str = element.getAttribute("data-src") || element.getAttribute("href"), cr: VRect | null;
-    if (VUtils.isImageUrl_(str)) {
+    if (!VUtils.isImageUrl_(str)) {
+      str = element.style.backgroundImage as string;
+      // skip "data:" URLs, becase they are not likely to be big images
+      str = (str.startsWith("url") || str.startsWith("URL")) && str.lastIndexOf("data:", 9) < 0 ? str : "";
+    }
+    if (str) {
       if (cr = VDom.getVisibleClientRect_(element)) {
         this.push([element as SafeHTMLElement, cr, ClickType.Default]);
       }
@@ -575,7 +580,7 @@ var VHints = {
   getVisibleElements_ (view: ViewBox): Hint[] {
     let _i: number = this.mode1_;
     const isNormal = _i < HintMode.min_job, visibleElements = _i === HintMode.DOWNLOAD_IMAGE
-        || _i === HintMode.OPEN_IMAGE ? this.traverse_("a[href],img[src],[data-src]", this.GetImages_, true)
+        || _i === HintMode.OPEN_IMAGE ? this.traverse_("a[href],img[src],[data-src],div[style],span[style]", this.GetImages_, true)
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? this.traverse_("a", this.GetLinks_)
       : this.traverse_("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable_ : this.GetClickable_
           );
@@ -968,12 +973,22 @@ getUrlData_ (link: HTMLAnchorElement): string {
 },
 /** return: img is HTMLImageElement | HTMLAnchorElement */
 _getImageUrl (img: HTMLElement): string | void {
-  let isImg = img instanceof HTMLImageElement
-    , text = isImg ? img.getAttribute("src") && (img as HTMLImageElement).src
-      : img instanceof HTMLAnchorElement && img.getAttribute("href") && img.href
-    , src = img.getAttribute("data-src") || "";
+  let text: string | null, src = img.getAttribute("data-src") || "";
+  if (img instanceof HTMLImageElement) {
+    text = img.getAttribute("src") && (img as HTMLImageElement).src;
+  } else {
+    text = img instanceof HTMLAnchorElement ? img.getAttribute("href") && img.href : "";
+    if (!VUtils.isImageUrl_(text)) {
+      let arr = (<RegExpI>/^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(img.style.backgroundImage as string);
+      if (arr && arr[1]) {
+        const a = document.createElement('a');
+        a.href = arr[1].replace(<RegExpG>/\\(['"])/g, "$1");
+        text = a.href;
+      }
+    }
+  }
   if (!text || text.startsWith("data:") || VUtils.jsRe_.test(text)
-      || src.length > text.length + 7 && (isImg || VUtils.isImageUrl_(src))) {
+      || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
   return text || VHUD.tip("Not an image", 1000);
