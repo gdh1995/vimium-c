@@ -475,13 +475,29 @@ function parseSmartImageUrl(originUrl: string): void {
   }
   if (!ok) {
     search = parsed.pathname;
-    let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('/') + 1;
+    let offset = search.lastIndexOf('/') + 1;
+    search = search.substring(offset);
+    let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('!') + 1;
     if (index > 2) {
-      let last = search.substring(index), arr2 = last.match(<RegExpG>/\d\d+/g) || last.match(/\d+[a-z]{1,2}\b/g);
-      if (arr2 && arr2.length >= 2 && (<RegExpOne>/[whx_]/).test(last) || (<RegExpOne>/^\d+$/).test(last) && +last <= 640) {
-        search = parsed.origin + search.substring(0, index - 1);
+      offset += index;
+      search = search.substring(index);
+      let re = <RegExpG & RegExpI>/(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
+      let arr1: RegExpExecArray | null = null, arr2: RegExpExecArray | null;
+      for (; arr2 = re.exec(search); arr1 = arr2) {}
+      if (arr1 && (<RegExpI>/.[_\-].|\d\dx\d/i).test(arr1[0])) {
+        let next = arr1.index + arr1[0].length;
+        arr2 = (<RegExpI>/\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i).exec(search.substring(next));
+        offset += arr1.index;
+        let len = arr1[0].length;
+        if (arr2 && arr2.index === 0) {
+          len += arr2[0].length;
+        }
+        search = parsed.origin + parsed.pathname.substring(0, offset) + parsed.pathname.substring(offset + len);
         ok = true;
       }
+    } else if ((<RegExpOne>/^[1-9]\d+$/).test(search) && +search > 0 && +search < 640) {
+      search = parsed.origin + parsed.pathname.substring(0, offset - 1);
+      ok = true;
     }
   }
   if (ok) {
