@@ -611,7 +611,7 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
   if (opts.noImplicitUseStrict) {
     opts.alwaysStrict = false;
   }
-  opts.target = forcedESTarget || (locally ? "es5" : opts.target || "es5");
+  opts.target = forcedESTarget || locally && opts.target || "es5";
   if (typescript && !opts.typescript) {
     opts.typescript = typescript;
   }
