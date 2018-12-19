@@ -334,7 +334,7 @@ var VVisual = {
       let { focusNode } = sel;
       if (focusNode instanceof Text) {
         const i = sel.focusOffset, str = focusNode.data;
-        if (str.charAt(i).trim() || i && str[i - 1].trim() && str.substring(i).trimLeft()) {
+        if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.substring(i).trimLeft()) {
           return str[i];
         }
       }
