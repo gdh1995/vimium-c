@@ -12,7 +12,7 @@ var VUtils = {
    * tool function section
    */
   jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
-  _imageUrlRe: <RegExpI & RegExpOne> /\.(?:bmp|gif|ico|jpe?g|png|svg|tiff?|webp)\b/i,
+  _imageUrlRe: <RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|png|svg|tiff?|webp)\b/i,
   isImageUrl_ (str: string | null): boolean {
     if (!str || str[0] === "#" || str.length < 5 || str.startsWith("data:") || this.jsRe_.test(str)) {
       return false;
