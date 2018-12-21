@@ -500,6 +500,9 @@ function parseSmartImageUrl(originUrl: string): void {
           len += arr2[0].length;
         }
         search = parsed.origin + parsed.pathname.substring(0, offset) + parsed.pathname.substring(offset + len);
+        if ((<RegExpOne>/[@!]$/).test(search)) {
+          search = search.substring(0, search.length - 1);
+        }
         ok = true;
       }
     } else if ((<RegExpOne>/^[1-9]\d+$/).test(search) && +search > 0 && +search < 640) {
