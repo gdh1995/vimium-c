@@ -59,7 +59,7 @@
       // # front/vomnibar
       "VCID",
       // # pages/
-      "VShown",
+      "VData", "VShown",
       // # inner names:
       "startsWith", "endsWith", "addEventListener", "toString",
       "Suggestion", "VC"

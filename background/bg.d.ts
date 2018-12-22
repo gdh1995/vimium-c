@@ -439,7 +439,7 @@ interface Window {
   interface SettingsTmpl {
     readonly cache: Readonly<SettingsNS.FullCache>;
     readonly temp: {
-      readonly shownHash: ((this: void) => {url: string, options?: {}}) | null;
+      readonly shownHash: ((this: void) => string) | null;
     };
     readonly newTabs: SafeDict<Urls.NewTabType>,
     broadcast<K extends keyof BgReq> (request: Req.bg<K>): void;

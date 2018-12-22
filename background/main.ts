@@ -56,11 +56,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
     position?: "start" | "end" | "before" | "after";
     opener?: boolean;
     window?: boolean;
-    autoShow?: boolean;
   }
-  type ShowPageData = [string, SettingsTmpl["temp"]["shownHash"], number, {
-    auto?: boolean
-  }];
+  type ShowPageData = [string, SettingsTmpl["temp"]["shownHash"], number];
 
   const enum RefreshTabStep {
     start = 0,
@@ -562,11 +559,11 @@ Are you sure you want to continue?`);
         openerTabId: !incognito && options.opener ? tab.id : undefined,
         url: prefix
       });
-      const arr: ShowPageData = [url, null, 0, { auto: options.autoShow }];
+      const arr: ShowPageData = [url, null, 0];
       Settings.temp.shownHash = arr[1] = function(this: void) {
         clearTimeout(arr[2]);
         Settings.temp.shownHash = null;
-        return { url: arr[0], options: arr[3] };
+        return arr[0];
       };
       arr[2] = setTimeout(openShowPage[1], 1200, arr);
       return true;
@@ -577,7 +574,7 @@ Are you sure you want to continue?`);
         arr[0] = "", arr[1] = null;
       }, 2000);
     }] as [
-      (url: string, reuse: ReuseType, options: Pick<OpenUrlOptions, "position" | "opener" | "autoShow">, tab?: Tab) => boolean,
+      (url: string, reuse: ReuseType, options: Pick<OpenUrlOptions, "position" | "opener">, tab?: Tab) => boolean,
       (arr: ShowPageData) => void
     ]
     // use Urls.WorkType.Default
@@ -1927,7 +1924,10 @@ Are you sure you want to continue?`);
       if (req.file) {
         prefix += "download=" + encodeURIComponent(req.file) + "&";
       }
-      openShowPage[0](prefix + url, req.reuse, { opener: true, autoShow: req.auto !== false });
+      if (req.auto !== false) {
+        prefix += "auto=1&";
+      }
+      openShowPage[0](prefix + url, req.reuse, { opener: true });
     }
   ],
     framesForOmni: Frames.WritableFrames = [null as never];

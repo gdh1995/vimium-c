@@ -41,31 +41,30 @@ if (!(BG_ && BG_.Utils && BG_.Utils.convertToUrl)) {
   BG_ = null as never;
 }
 
-var VShown: ValidNodeTypes;
-let bgLink = $<HTMLAnchorElement>('#bgLink'), url: string, type: ValidShowTypes, file: string;
+var VShown: ValidNodeTypes | null = null;
+let bgLink = $<HTMLAnchorElement>('#bgLink');
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer: ViewerType | null = null;
-let objData: {
-  originUrl?: string;
-  auto?: boolean;
+let VData: {
+  type: ValidShowTypes;
+  originUrl: string;
+  url: string;
   file?: string;
-} | null = null;
+  auto?: boolean;
+} = null as never;
 
 window.onhashchange = function(this: void): void {
-  let str: Urls.Url | null, ind: number;
   if (VShown) {
     clean();
     bgLink.style.display = "none";
     VShown.remove();
-    VShown = null as never;
+    VShown = null;
   }
-  type = file = "";
 
-  url = location.hash;
+  VData = Object.create(null);
+  let url = location.hash, type: ValidShowTypes = "", file = "";
   if (!location.hash && BG_ && BG_.Settings && BG_.Settings.temp.shownHash) {
-    const data = BG_.Settings.temp.shownHash();
-    url = data.url || "";
-    objData = (JSON.parse(JSON.stringify(data.options)) || {}) as typeof objData;
+    url = BG_.Settings.temp.shownHash();
     window.name = url;
   } else if (!url) {
     url = window.name;
@@ -78,12 +77,11 @@ window.onhashchange = function(this: void): void {
     url = url.substring(6);
     type = "url";
   }
-  while (ind = url.indexOf("&") + 1) {
+  for (let ind: number; ind = url.indexOf("&") + 1; ) {
     if (url.startsWith("download=")) {
-      file = decodeURLPart(url.substring(9, ind - 1));
+      file = VData.file = decodeURLPart(url.substring(9, ind - 1));
       url = url.substring(ind);
     } else if (url.startsWith("auto=")) {
-      objData || (objData = {});
       let i = url.substring(5, 12).toLowerCase();
       VData.auto = i.startsWith("true&") ? true : i.startsWith("false&") ? false : parseInt(i) > 0;
       url = url.substring(ind);
@@ -97,9 +95,9 @@ window.onhashchange = function(this: void): void {
   if (!url) {
     type == "image" && (type = "");
   } else if (url.toLowerCase().startsWith("javascript:")) {
-    type = url = file = "";
+    type = url = file = VData.file = "";
   } else if (BG_) {
-    str = BG_.Utils.convertToUrl(url, null, Urls.WorkType.KeepAll);
+    const str = BG_.Utils.convertToUrl(url, null, Urls.WorkType.KeepAll);
     if (BG_.Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl) {
       url = str;
     }
@@ -108,25 +106,33 @@ window.onhashchange = function(this: void): void {
   } else if ((<RegExpOne>/^([-.\dA-Za-z]+|\[[\dA-Fa-f:]+])(:\d{2,5})?\//).test(url)) {
     url = "http://" + url;
   }
+  VData.type = type;
+  VData.url = VData.originUrl = url;
 
   switch (type) {
   case "image":
-    if (file) {
-      objData && (objData.file = objData.file || file);
+    if (VData.auto) {
+      let newUrl = parseSmartImageUrl_(url);
+      if (newUrl) {
+        url = VData.url = newUrl;
+      }
     }
-    parseSmartImageUrl(url);
     VShown = (importBody as ImportBody)("shownImage");
     VShown.classList.add("hidden");
     VShown.onerror = function(): void {
-      this.onerror = this.onload = null as never;
-      (VShown as HTMLImageElement).alt = "\xa0(fail to load)\xa0";
-      if (BG_ && BG_.Settings && BG_.Settings.CONST.ChromeVersion >= BrowserVer.MinNoBorderForBrokenImage) {
-        VShown.classList.add("broken");
+      if (VData.url !== VData.originUrl) {
+        disableAutoAndReload_();
+        return;
       }
-      VShown.classList.remove("hidden");
+      this.onerror = this.onload = null as never;
+      this.alt = "\xa0(fail to load)\xa0";
+      if (BG_ && BG_.Settings && BG_.Settings.CONST.ChromeVersion >= BrowserVer.MinNoBorderForBrokenImage) {
+        this.classList.add("broken");
+      }
+      this.classList.remove("hidden");
       setTimeout(showBgLink, 34);
-      VShown.onclick = function(e) {
-        chrome.tabs && chrome.tabs.update ? chrome.tabs.update({ url })
+      this.onclick = function(e) {
+        !e.ctrlKey && !e.shiftKey && !e.altKey && chrome.tabs && chrome.tabs.update ? chrome.tabs.update({ url: VData.url })
         : clickLink({ target: "_top" }, e);
       };
     };
@@ -135,12 +141,8 @@ window.onhashchange = function(this: void): void {
       VShown.onclick = defaultOnClick;
       VShown.onload = function(this: HTMLImageElement): void {
         if (this.naturalWidth < 12 && this.naturalHeight < 12) {
-          if (objData && objData.originUrl && objData.originUrl !== url) {
-            console.log("Failed to parse a clearer version of the target image, so go back to the original version");
-            objData.auto = false;
-            url = objData.originUrl;
-            recoverHash();
-            (window.onhashchange as () => void)();
+          if (VData.url !== VData.originUrl) {
+            disableAutoAndReload_();
           } else if (this.naturalWidth < 2 && this.naturalHeight < 2) {
             console.log("The image is too small to see");
             this.onerror(null as never);
@@ -152,16 +154,16 @@ window.onhashchange = function(this: void): void {
           (VShown as HTMLImageElement).src = (VShown as HTMLImageElement).src; // trigger replay for gif
         }, 0);
         showBgLink();
-        VShown.classList.remove("hidden");
-        VShown.classList.add("zoom-in");
+        this.classList.remove("hidden");
+        this.classList.add("zoom-in");
         if (this.width >= window.innerWidth * 0.9) {
           (document.body as HTMLBodyElement).classList.add("filled");
         }
       };
     } else {
-      url = "";
+      url = VData.url = "";
       (VShown as any).onerror();
-      (VShown as HTMLImageElement).alt = "\xa0(null)\xa0";
+      VShown.alt = "\xa0(null)\xa0";
     }
     if (file) {
       VShown.setAttribute("download", file);
@@ -172,7 +174,7 @@ window.onhashchange = function(this: void): void {
   case "url":
     VShown = (importBody as ImportBody)("shownText");
     if (url && BG_) {
-      str = null;
+      let str: Urls.Url | null = null;
       if (url.startsWith("vimium://")) {
         str = BG_.Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
       }
@@ -209,7 +211,7 @@ window.onhashchange = function(this: void): void {
   }
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 
-  str = $<HTMLTitleElement>('title').getAttribute('data-title') as string;
+  let str = $<HTMLTitleElement>('title').getAttribute('data-title') as string;
   str = BG_ ? BG_.Utils.createSearch(file ? file.split(/\s+/) : [], str)
     : str.replace(<RegExpOne>/\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
@@ -223,7 +225,7 @@ String.prototype.startsWith = function(this: string, s: string): boolean {
 (window.onhashchange as () => void)();
 
 document.addEventListener("keydown", function(this: void, event): void {
-  if (type === "image" && imgOnKeydown(event)) {
+  if (VData.type === "image" && imgOnKeydown(event)) {
     return;
   }
   if (!(event.ctrlKey || event.metaKey) || event.altKey
@@ -231,7 +233,7 @@ document.addEventListener("keydown", function(this: void, event): void {
   const str = String.fromCharCode(event.keyCode as VKeyCodes | KnownKey as KnownKey);
   if (str === 'S') {
     return clickLink({
-      download: file
+      download: VData.file || ""
     }, event);
   } else if (str === "C") {
     "" + getSelection() && copyThing(event);
@@ -242,7 +244,7 @@ document.addEventListener("keydown", function(this: void, event): void {
 });
 
 function showBgLink(this: void): void {
-  const height = VShown.scrollHeight, width = VShown.scrollWidth;
+  const height = (VShown as ValidNodeTypes).scrollHeight, width = (VShown as ValidNodeTypes).scrollWidth;
   bgLink.style.height = height + "px";
   bgLink.style.width = width + "px";
   bgLink.style.display = "";
@@ -250,13 +252,13 @@ function showBgLink(this: void): void {
 
 function clickLink(this: void, options: { [key: string]: string; }, event: MouseEvent | KeyboardEvent): void {
   event.preventDefault();
-  if (!url) { return; }
+  if (!VData.url) { return; }
   const a = document.createElement('a');
   Object.setPrototypeOf(options, null);
   for (const i in options) {
     a.setAttribute(i, options[i]);
   }
-  a.href = url;
+  a.href = VData.url;
   simulateClick(a, event);
 }
 
@@ -272,7 +274,7 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
   if ((VShown as HTMLImageElement).alt) { return false; }
   if (keyCode === VKeyCodes.space || keyCode === VKeyCodes.enter) {
     event.preventDefault();
-    simulateClick(VShown, event);
+    simulateClick(VShown as ValidNodeTypes, event);
     return true;
   }
   if (!window.VKeyboard) {
@@ -327,8 +329,8 @@ function importBody(id: string): HTMLElement {
 function defaultOnClick(event: MouseEvent): void {
   if (event.altKey) {
     event.stopImmediatePropagation();
-    return clickLink({ download: file }, event);
-  } else switch (type) {
+    return clickLink({ download: VData.file || "" }, event);
+  } else switch (VData.type) {
   case "url": clickLink({ target: "_blank" }, event); break;
   case "image":
     if ((VShown as HTMLImageElement).alt) { return; }
@@ -340,8 +342,8 @@ function defaultOnClick(event: MouseEvent): void {
 
 function clickShownNode(event: MouseEvent): void {
   event.preventDefault();
-  if (VShown.onclick) {
-    VShown.onclick(event);
+  if ((VShown as ValidNodeTypes).onclick) {
+    (VShown as ValidNodeTypes).onclick(event);
   }
 }
 
@@ -350,7 +352,7 @@ function showText(tip: string, body: string | string[]): void {
   const textBody = $("#textBody");
   if (body) {
     textBody.textContent = typeof body !== "string" ? body.join(" ") : body;
-    VShown.onclick = copyThing;
+    (VShown as ValidNodeTypes).onclick = copyThing;
   } else {
     textBody.classList.add("null");
   }
@@ -359,10 +361,7 @@ function showText(tip: string, body: string | string[]): void {
 
 function copyThing(event: Event): void {
   event.preventDefault();
-  let str = url;
-  if (type == "url") {
-    str = $("#textBody").textContent;
-  }
+  const str = VData.type == "url" ? $("#textBody").textContent : VData.url;
   if (!(str && window.VPort)) { return; }
   VPort.post({
     H: kFgReq.copy,
@@ -372,11 +371,11 @@ function copyThing(event: Event): void {
 }
 
 function toggleInvert(event: Event): void {
-  if (type === "image") {
+  if (VData.type === "image") {
     if ((VShown as HTMLImageElement).alt || viewer && viewer.visible) {
       event.preventDefault();
     } else {
-      VShown.classList.toggle("invert");
+      (VShown as ValidNodeTypes).classList.toggle("invert");
     }
   }
 }
@@ -437,7 +436,7 @@ function loadViewer(): Promise<Window["Viewer"]> {
 function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
   const sel = getSelection();
   sel.type == "Range" && sel.collapseToStart();
-  const v = viewer = viewer || new Viewer(VShown);
+  const v = viewer = viewer || new Viewer(VShown as HTMLImageElement);
   v.visible || v.show();
   if (v.viewed) { return v; }
   return new Promise<ViewerType>(function(resolve, reject): void {
@@ -449,8 +448,7 @@ function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
 }
 
 function clean() {
-  if (type === "image") {
-    objData = null;
+  if (VData.type === "image") {
     (document.body as HTMLBodyElement).classList.remove("filled");
     if (viewer) {
       viewer.destroy();
@@ -459,14 +457,11 @@ function clean() {
   }
 }
 
-function parseSmartImageUrl(originUrl: string): void {
-  if (!objData || !objData.auto) {
-    return;
-  }
+function parseSmartImageUrl_(originUrl: string): string | void {
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch (e) {} return null; }
   const parsed = safeParseURL(originUrl);
   if (!parsed) { return; }
-  let search = parsed.search, arr: RegExpExecArray | null, ok = false;
+  let search = parsed.search, arr: RegExpExecArray | null;
   if (search.length > 10 && (arr = (<RegExpOne>/[&?]src=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
     const DecodeURLPart = function(this: void, url1: string | undefined, func?: (this: void, url1: string) => string): string {
       if (!url1) { return ""; }
@@ -478,49 +473,54 @@ function parseSmartImageUrl(originUrl: string): void {
     search = search.lastIndexOf('&') > 0 ? DecodeURLPart(search.split('&', 1)[0])
       : search.indexOf("://") < 0 && (<RegExpOne>/%(?:3[aA]|2[fF])/).test(search) ? DecodeURLPart(search).trim()
       : search;
-    ok = safeParseURL(search) != null;
-  }
-  if (!ok) {
-    search = parsed.pathname;
-    let offset = search.lastIndexOf('/') + 1;
-    search = search.substring(offset);
-    let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('!') + 1;
-    if (index > 2) {
-      offset += index;
-      search = search.substring(index);
-      let re = <RegExpG & RegExpI>/(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
-      let arr1: RegExpExecArray | null = null, arr2: RegExpExecArray | null;
-      for (; arr2 = re.exec(search); arr1 = arr2) {}
-      if (arr1 && (<RegExpI>/.[_\-].|\d\dx\d/i).test(arr1[0])) {
-        let next = arr1.index + arr1[0].length;
-        arr2 = (<RegExpI>/\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i).exec(search.substring(next));
-        offset += arr1.index;
-        let len = arr1[0].length;
-        if (arr2 && arr2.index === 0) {
-          len += arr2[0].length;
-        }
-        search = parsed.origin + parsed.pathname.substring(0, offset) + parsed.pathname.substring(offset + len);
-        if ((<RegExpOne>/[@!]$/).test(search)) {
-          search = search.substring(0, search.length - 1);
-        }
-        ok = true;
-      }
-    } else if ((<RegExpOne>/^[1-9]\d+$/).test(search) && +search > 0 && +search < 640) {
-      search = parsed.origin + parsed.pathname.substring(0, offset - 1);
-      ok = true;
+    if (safeParseURL(search) != null) {
+      return search;
     }
   }
-  if (ok) {
-    objData.originUrl = objData.originUrl || originUrl;
-    url = search;
-    recoverHash();
+  search = parsed.pathname;
+  let offset = search.lastIndexOf('/') + 1;
+  search = search.substring(offset);
+  let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('!') + 1;
+  if (index > 2) {
+    offset += index;
+    search = search.substring(index);
+    let re = <RegExpG & RegExpI>/(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
+    let arr1: RegExpExecArray | null = null, arr2: RegExpExecArray | null;
+    for (; arr2 = re.exec(search); arr1 = arr2) {}
+    if (arr1 && (<RegExpI>/.[_\-].|\d\dx\d/i).test(arr1[0])) {
+      let next = arr1.index + arr1[0].length;
+      arr2 = (<RegExpI>/\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i).exec(search.substring(next));
+      offset += arr1.index;
+      let len = arr1[0].length;
+      if (arr2 && arr2.index === 0) {
+        len += arr2[0].length;
+      }
+      search = parsed.origin + parsed.pathname.substring(0, offset) + parsed.pathname.substring(offset + len);
+      if ((<RegExpOne>/[@!]$/).test(search)) {
+        search = search.substring(0, search.length - 1);
+      }
+      return search;
+    }
+  } else if ((<RegExpOne>/^[1-9]\d+$/).test(search) && +search > 0 && +search < 640) {
+    search = parsed.origin + parsed.pathname.substring(0, offset - 1);
+    return search;
   }
 }
 
-function recoverHash() {
-  var str = type === "image" ? "#!image " + (file ? "download=" + encodeURIComponent(file) + "&" : "") + url
-    : "";
-  if (str) {
-    window.name = str;
+function disableAutoAndReload_(): void {
+  console.log("Failed to auto find a better URL, so go back to the original version");
+  VData.auto = false;
+  recoverHash_();
+  (window.onhashchange as () => void)();
+}
+
+function recoverHash_(): void {
+  const type = VData.type;
+  if (!type) {
+    return;
   }
+  window.name = "#!" + type + " "
+    + (VData.file ? "download=" + encodeURIComponent(VData.file) + "&" : "")
+    + (VData.auto ? "auto=1&" : "")
+    + VData.originUrl;
 }
