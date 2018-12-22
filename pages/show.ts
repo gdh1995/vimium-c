@@ -85,7 +85,7 @@ window.onhashchange = function(this: void): void {
     } else if (url.startsWith("auto=")) {
       objData || (objData = {});
       let i = url.substring(5, 12).toLowerCase();
-      objData.auto = i.startsWith("true&") ? true : i.startsWith("false&") ? false : parseInt(url) > 0;
+      VData.auto = i.startsWith("true&") ? true : i.startsWith("false&") ? false : parseInt(i) > 0;
       url = url.substring(ind);
     } else {
       break;
