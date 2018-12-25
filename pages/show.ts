@@ -468,7 +468,8 @@ function parseSmartImageUrl_(originUrl: string): string | void {
   const parsed = safeParseURL(originUrl);
   if (!parsed) { return; }
   let search = parsed.search, arr: RegExpExecArray | null;
-  if (search.length > 10 && (arr = (<RegExpOne>/[&?]src=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
+  const ImageExtRe = <RegExpI>/\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
+  if (search.length > 10 && (arr = (<RegExpOne>/[&?](?:imgurl|mediaurl|objurl|src)=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
     const DecodeURLPart = function(this: void, url1: string | undefined, func?: (this: void, url1: string) => string): string {
       if (!url1) { return ""; }
       try {
@@ -480,7 +481,10 @@ function parseSmartImageUrl_(originUrl: string): string | void {
       : search.indexOf("://") < 0 && (<RegExpOne>/%(?:3[aA]|2[fF])/).test(search) ? DecodeURLPart(search).trim()
       : search;
     if (safeParseURL(search) != null) {
-      return search;
+      let arr = search.split('?')[0].split("/"), str = arr[arr.length - 1];
+      if (str.split(".").length < 2 || ImageExtRe.test(str)) {
+        return search;
+      }
     }
   }
   search = parsed.pathname;
@@ -495,7 +499,7 @@ function parseSmartImageUrl_(originUrl: string): string | void {
     for (; arr2 = re.exec(search); arr1 = arr2) {}
     if (arr1 && (<RegExpI>/.[_\-].|\d\dx\d/i).test(arr1[0])) {
       let next = arr1.index + arr1[0].length;
-      arr2 = (<RegExpI>/\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i).exec(search.substring(next));
+      arr2 = ImageExtRe.exec(search.substring(next));
       offset += arr1.index;
       let len = arr1[0].length;
       if (arr2 && arr2.index === 0) {
