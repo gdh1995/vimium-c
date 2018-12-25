@@ -57,7 +57,7 @@
       "VHints", "VOmni", "VScroller", "VMarks", "VFind", "VVisual",
       "VSettings", "VHUD", "VPort", "VEvent",
       // # front/vomnibar
-      "VCID",
+      "VCID", "O", "U", "P",
       // # pages/
       "VData", "VShown",
       // # inner names:
