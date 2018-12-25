@@ -972,7 +972,7 @@ getUrlData_ (link: HTMLAnchorElement): string {
   return link.href;
 },
 /** return: img is HTMLImageElement | HTMLAnchorElement */
-_getImageUrl (img: HTMLElement): string | void {
+_getImageUrl (img: HTMLElement, forShow?: 1): string | void {
   let text: string | null, src = img.getAttribute("data-src") || "";
   if (img instanceof HTMLImageElement) {
     text = img.getAttribute("src") && (img as HTMLImageElement).src;
@@ -987,7 +987,7 @@ _getImageUrl (img: HTMLElement): string | void {
       }
     }
   }
-  if (!text || text.startsWith("data:") || VUtils.jsRe_.test(text)
+  if (!text || forShow && text.startsWith("data:") || VUtils.jsRe_.test(text)
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
@@ -1157,7 +1157,7 @@ Modes_: [
   133: "Open image",
   197: "Open multiple image",
   activator_ (img: HTMLElement): void {
-    let text = (this as typeof VHints)._getImageUrl(img);
+    let text = (this as typeof VHints)._getImageUrl(img, 1);
     if (!text) { return; }
     VPort.post({
       H: kFgReq.openImage,
