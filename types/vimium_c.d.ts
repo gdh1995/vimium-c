@@ -545,7 +545,7 @@ declare const enum BrowserVer {
   VomnibarMayClearLog1 = 64,
   VomnibarMayClearLog2 = 65,
   // if #enable-md-extensions, it's there since C60
-  MinEnsuredChromeUrl$ExtensionShortcuts = 65,
+  MinEnsuredChromeURL$ExtensionShortcuts = 65,
   MinSmartSpellCheck = 65,
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinCanNotRevokeObjectURLAtOnce = 65,
@@ -567,5 +567,7 @@ declare const enum BrowserVer {
   MinNoSelector$GtGtGt = 69,
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
   MinNamedGetterOnFramesetNotOverrideBulitin = 70,
+  Min$Tabs$$Update$DoesNotAcceptJavascriptURLs = 71,
+  MinTabIdBeSmallAgain = 71,
   assumedVer = 999,
 }

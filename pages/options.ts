@@ -577,7 +577,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   element = $<HTMLAnchorElement>("#openExtensionPage");
-  if (bgSettings_.CONST.ChromeVersion < BrowserVer.MinEnsuredChromeUrl$ExtensionShortcuts) {
+  if (bgSettings_.CONST.ChromeVersion < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
     (element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
     (element.parentElement as HTMLElement).insertBefore(document.createTextNode('"Keyboard shortcuts" of '), element);
   }

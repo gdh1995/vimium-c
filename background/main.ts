@@ -530,11 +530,22 @@ Are you sure you want to continue?`);
       }, commandCount);
     }
     function openJSUrl (url: string): void {
+      if (";".indexOf(url.substring(11).trim()) >= 0) {
+        return;
+      }
       if (cPort) {
         try { cPort.postMessage({ N: kBgReq.eval, url }); } catch (e) {}
-      } else { // e.g.: use Chrome omnibox at once on starting
-        chrome.tabs.update({ url }, onRuntimeError);
+        return;
       }
+      // e.g.: use Chrome omnibox at once on starting
+      chrome.tabs.executeScript({
+        code: Utils.DecodeURLPart_(url.substring(11))
+      }, function() {
+        if (onRuntimeError()) {
+          chrome.tabs.update({ url }, onRuntimeError);
+        }
+        return onRuntimeError();
+      });
     }
     const
     openShowPage = [function(url, reuse, options, tab): boolean {
