@@ -1925,7 +1925,7 @@ Are you sure you want to continue?`);
         prefix += "download=" + encodeURIComponent(req.file) + "&";
       }
       if (req.auto !== false) {
-        prefix += "auto=1&";
+        prefix += "auto=once&";
       }
       openShowPage[0](prefix + url, req.reuse, { opener: true });
     }

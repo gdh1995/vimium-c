@@ -50,7 +50,7 @@ let VData: {
   originUrl: string;
   url: string;
   file?: string;
-  auto?: boolean;
+  auto?: boolean | "once";
 } = null as never;
 
 window.onhashchange = function(this: void): void {
@@ -82,8 +82,8 @@ window.onhashchange = function(this: void): void {
       file = VData.file = decodeURLPart(url.substring(9, ind - 1));
       url = url.substring(ind);
     } else if (url.startsWith("auto=")) {
-      let i = url.substring(5, 12).toLowerCase();
-      VData.auto = i.startsWith("true&") ? true : i.startsWith("false&") ? false : parseInt(i) > 0;
+      let i = url.substring(5, 12).split('&', 1)[0].toLowerCase();
+      VData.auto = i === "once" ? i : i === "true" ? true : i === "false" ? false : parseInt(i) > 0;
       url = url.substring(ind);
     } else {
       break;
@@ -124,6 +124,7 @@ window.onhashchange = function(this: void): void {
         disableAutoAndReload_();
         return;
       }
+      resetOnceProperties_();
       this.onerror = this.onload = null as never;
       this.alt = "\xa0(fail to load)\xa0";
       if (BG_ && BG_.Settings && BG_.Settings.CONST.ChromeVersion >= BrowserVer.MinNoBorderForBrokenImage) {
@@ -150,8 +151,10 @@ window.onhashchange = function(this: void): void {
           return;
         }
         if (VData.url !== VData.originUrl) {
-          applyAutoUrl_();
+          console.log("Auto find a better URL of\n %o =>\n %o", VData.originUrl, VData.url);
+          VData.originUrl = VData.url;
         }
+        resetOnceProperties_();
         this.onerror = this.onload = null as never;
         setTimeout(function() { // safe; because on C65, in some tests refreshing did not trigger replay
           (VShown as HTMLImageElement).src = (VShown as HTMLImageElement).src; // trigger replay for gif
@@ -513,15 +516,18 @@ function parseSmartImageUrl_(originUrl: string): string | void {
 function disableAutoAndReload_(): void {
   console.log("Failed to auto find a better URL, so go back to the original version");
   VData.auto = false;
-  recoverHash_();
+  resetOnceProperties_();
   (window.onhashchange as () => void)();
 }
 
-function applyAutoUrl_() {
-  console.log("Auto find a better URL of\n %o =>\n %o", VData.originUrl, VData.url);
-  VData.auto = false;
-  VData.originUrl = VData.url;
-  recoverHash_();
+function resetOnceProperties_() {
+  let changed = false;
+  if (VData.auto === "once") {
+    VData.auto = false;
+    changed = true;
+  }
+  changed && recoverHash_();
+  return changed;
 }
 
 function recoverHash_(): void {
@@ -531,6 +537,6 @@ function recoverHash_(): void {
   }
   window.name = "#!" + type + " "
     + (VData.file ? "download=" + encodeURIComponent(VData.file) + "&" : "")
-    + (VData.auto ? "auto=1&" : "")
+    + (VData.auto ? `auto=${VData.auto === "once" ? "once" : 1}&` : "")
     + VData.originUrl;
 }
