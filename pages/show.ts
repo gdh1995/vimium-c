@@ -149,6 +149,9 @@ window.onhashchange = function(this: void): void {
           }
           return;
         }
+        if (VData.url !== VData.originUrl) {
+          applyAutoUrl_();
+        }
         this.onerror = this.onload = null as never;
         setTimeout(function() { // safe; because on C65, in some tests refreshing did not trigger replay
           (VShown as HTMLImageElement).src = (VShown as HTMLImageElement).src; // trigger replay for gif
@@ -512,6 +515,13 @@ function disableAutoAndReload_(): void {
   VData.auto = false;
   recoverHash_();
   (window.onhashchange as () => void)();
+}
+
+function applyAutoUrl_() {
+  console.log("Auto find a better URL of\n %o =>\n %o", VData.originUrl, VData.url);
+  VData.auto = false;
+  VData.originUrl = VData.url;
+  recoverHash_();
 }
 
 function recoverHash_(): void {
