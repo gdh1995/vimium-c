@@ -120,7 +120,7 @@ window.onhashchange = function(this: void): void {
     VShown = (importBody as ImportBody)("shownImage");
     VShown.classList.add("hidden");
     VShown.onerror = function(): void {
-      if (VData.url !== VData.originUrl) {
+      if (VData.auto) {
         disableAutoAndReload_();
         return;
       }
@@ -142,7 +142,7 @@ window.onhashchange = function(this: void): void {
       VShown.onclick = defaultOnClick;
       VShown.onload = function(this: HTMLImageElement): void {
         if (this.naturalWidth < 12 && this.naturalHeight < 12) {
-          if (VData.url !== VData.originUrl) {
+          if (VData.auto) {
             disableAutoAndReload_();
           } else if (this.naturalWidth < 2 && this.naturalHeight < 2) {
             console.log("The image is too small to see");
