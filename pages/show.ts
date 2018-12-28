@@ -47,7 +47,7 @@ let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer: ViewerType | null = null;
 let VData: {
   type: ValidShowTypes;
-  originUrl: string;
+  original: string;
   url: string;
   file?: string;
   auto?: boolean | "once";
@@ -107,7 +107,7 @@ window.onhashchange = function(this: void): void {
     url = "http://" + url;
   }
   VData.type = type;
-  VData.url = VData.originUrl = url;
+  VData.url = VData.original = url;
 
   switch (type) {
   case "image":
@@ -150,9 +150,9 @@ window.onhashchange = function(this: void): void {
           }
           return;
         }
-        if (VData.url !== VData.originUrl) {
-          console.log("Auto find a better URL of\n %o =>\n %o", VData.originUrl, VData.url);
-          VData.originUrl = VData.url;
+        if (VData.url !== VData.original) {
+          console.log("Auto find a better URL of\n %o =>\n %o", VData.original, VData.url);
+          VData.original = VData.url;
         }
         resetOnceProperties_();
         this.onerror = this.onload = null as never;
@@ -542,5 +542,5 @@ function recoverHash_(): void {
   window.name = "#!" + type + " "
     + (VData.file ? "download=" + encodeURIComponent(VData.file) + "&" : "")
     + (VData.auto ? `auto=${VData.auto === "once" ? "once" : 1}&` : "")
-    + VData.originUrl;
+    + VData.original;
 }
