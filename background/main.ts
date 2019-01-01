@@ -534,18 +534,25 @@ Are you sure you want to continue?`);
         return;
       }
       if (cPort) {
-        try { cPort.postMessage({ N: kBgReq.eval, url }); } catch (e) {}
-        return;
+        try {
+          cPort.postMessage({ N: kBgReq.eval, url });
+          return;
+        } catch (e) {
+          cPort = null as never;
+        }
+      }
+      const callback1 = function(opt?: object | -1): void {
+        if (opt !== -1 && !onRuntimeError()) { return; }
+        const code = Utils.DecodeURLPart_(url.substring(11));
+        chrome.tabs.executeScript({ code }, onRuntimeError);
+        return onRuntimeError();
       }
       // e.g.: use Chrome omnibox at once on starting
-      chrome.tabs.executeScript({
-        code: Utils.DecodeURLPart_(url.substring(11))
-      }, function() {
-        if (onRuntimeError()) {
-          chrome.tabs.update({ url }, onRuntimeError);
-        }
-        return onRuntimeError();
-      });
+      if (Settings.CONST.ChromeVersion < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavascriptURLs) {
+        chrome.tabs.update({ url }, callback1);
+      } else {
+        callback1(-1);
+      }
     }
     const
     openShowPage = [function(url, reuse, options, tab): boolean {
