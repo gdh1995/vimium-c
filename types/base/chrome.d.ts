@@ -724,6 +724,8 @@ declare namespace chrome.extension {
         windowId?: number;
         /** Optional. The type of view to get. If omitted, returns all views (including background pages and tabs). Valid values: 'tab', 'notification', 'popup'.  */
         type?: string;
+        /** only on Chrome and since 54 */
+        tabId?: number;
     }
 
     interface LastError {

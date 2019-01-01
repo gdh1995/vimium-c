@@ -458,6 +458,8 @@ declare const enum BrowserVer {
   // the devicePixelRatio means that of Windows, but not Chrome's zoom level
   // even when [Windows]=1.5, [zoom]=0.667, the width is still wrong
   ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1 = 53,
+  // only Chrome accepts it: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
+  Min$Extension$$GetView$AcceptsTabId = 54,
   // the 5 below are correct even if EXPERIMENTAL or LEAGCY
   MinUnprefixedUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
