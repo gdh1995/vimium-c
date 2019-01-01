@@ -1,7 +1,7 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.69.2](https://img.shields.io/badge/release-1.69.2-orange.svg
+[![Version 1.71](https://img.shields.io/badge/release-1.71-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -98,8 +98,14 @@ Known issues (Up to the master branch):
 9. Chrome 69 disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
   This issue has been fixed since Chrome Dev 70 (up to 2018-09-07).
 
-1.71 (Not released yet):
-* LinkHints.activateModeToOpenImage: add an "auto" mode to auto parse higher-res image urls
+1.71:
+* use Google, instead of Baidu, as the default search engine, for non-Chinese users
+* LinkHints: always match all links under Shadow DOMs
+* LinkHints.activateModeToOpenImage / `vimium://show#image` : try to auto parse higher-res image URLs
+* VisualMode: rewrite all code and make commands cost much less CPU and energy
+* redesign the whole message + build systems: smaller code size
+* fix lots of regressions and edge bugs
+* now can run absolutely safely on all malformed HTML webpages, and avoid potential crashes or dead loops
 * inject Vimium C into other extensions: auto reload content scripts when Vimium C updates to a new version
 
 1.69.2:
