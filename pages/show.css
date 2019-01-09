@@ -1,6 +1,8 @@
 
 body.filled {
+  font-size: 0;
   margin: 0;
+  overflow: overlay;
 }
 .filled > img {
   outline: none;
