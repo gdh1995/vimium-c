@@ -193,6 +193,9 @@ var VVisual = {
     }
     if (mode === VisualModeNS.Mode.Caret) {
       movement.extend_(1);
+      if (movement.realType_(movement.selection_) === SelType.Caret) {
+        movement.extend_(0);
+      }
     } else if (mode !== VisualModeNS.Mode.Line) {
     } else if (movement.isPointLineFeedAndInTextBox_(movement.getDirection_(""))) {
       movement.modify_(movement.di_ as VisualModeNS.ForwardDir, VisualModeNS.G.lineboundary);
