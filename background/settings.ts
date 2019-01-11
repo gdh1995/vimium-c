@@ -306,6 +306,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       privacy: "https://github.com/gdh1995/vimium-c/blob/master/PRIVACY-POLICY.md#privacy-policy",
       readme: "https://github.com/gdh1995/vimium-c#readme",
       settings: "options.html",
+      wiki: "https://github.com/gdh1995/vimium-c/wiki",
       __proto__: null as never
     } as SafeDict<string>,
     GlobalCommands: null as never as string[],

@@ -73,7 +73,7 @@ unmap &lt;f2&gt;
           <div class="nonEmptyTip"></div>
         </td>
         <td class="help"><div class="help-inner">
-          "<kbd class="sel-all" role="link">pages/blank.html</kbd>" for a blank page. <br/>
+          "<kbd class="sel-all" role="link">pages/blank.html</kbd>" for a blank page.<br/>
           <a target="_blank" rel="noopener noreferrer"
               href="https://github.com/gdh1995/vimium-c/wiki/Use-another-extension-as-the-New-Tab">
             How to redirect to another extension's newtab?
@@ -97,18 +97,21 @@ unmap &lt;f2&gt;
           <textarea id="searchEngines" data-model="NonEmptyText"></textarea>
           <div class="nonEmptyTip"></div>
         </td>
-        <td class="help"><div class="help-inner">
+        <td class="help"><div class="help-inner" style="top: -3px;">
           Add search engine shortcuts to the Vomnibar. Format:
           <code>
           <pre>
-a: https://a.com/?q=<span title="%s is equal with $s">%s</span>
+a|A|MainName: https://a.com/?q=<span title="%s is equal with $s">%s</span>
 js\:|JS: javascript:\ $S; Run JavaScript
-MainKey|c|c\:|MainName: \
-  https://c.com/?q=$s&amp;space=\s\ space_end
+key: https://c.com/$s/space=\s\ space_end
 # this is a comment</pre>
           </code>
           <kbd title="%s is equal with $s">$s</kbd> will be replaced with real search terms.
-          <a data-auto-resize="searchEngines"></a>.
+          <a data-auto-resize="searchEngines"></a>.<br/>
+          <a target="_blank" rel="noopener noreferrer"
+              href="https://github.com/gdh1995/vimium-c/wiki/Search-engine-rules">
+            How to write advanced search engine rules?
+          </a>
         </div></td>
       </tr>
       <tr>
