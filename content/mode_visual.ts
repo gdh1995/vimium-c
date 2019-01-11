@@ -39,6 +39,7 @@ var VVisual = {
     VUtils.remove_(a);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
     VScroller.prepareTop_();
+    a.diType_ = VisualModeNS.DiType.Unknown;
     let theSelected = VDom.UI.getSelected_(),
     sel: Selection = a.selection_ = theSelected[0],
     type: SelType = a.realType_(sel), mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
@@ -68,7 +69,6 @@ var VVisual = {
     }
     VDom.UI.toggleSelectStyle_(1);
     a.di_ = isRange ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right;
-    a.diType_ = VisualModeNS.DiType.Unknown;
     a.mode_ = newMode;
     a.alterMethod_ = toCaret ? "move" : "extend";
     if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_(theSelected[1])) {
@@ -268,6 +268,7 @@ var VVisual = {
       return;
     }
     // todo: how to keep direction / how to work if TextBox / ShadowDOM
+    // todo: reset diType_ ?
     this.di_ = VisualModeNS.kDir.unknown;
     const sel = this.selection_, range = sel.rangeCount && sel.getRangeAt(0);
     VFind.execute_(null, { noColor: true, count });
@@ -421,8 +422,9 @@ var VVisual = {
   /**
    * @safe_di if not `magic`
    * 
-   * @argument magic "" means only checking type, and may not detect di_;
-   *                 char[1..] means initial selection length and not extending back on DiType::Unknown
+   * @argument magic : two means
+   * * `""` means only checking type, and may not detect `di_` when `DiType.Unknown`;
+   * * `char[1..]` means initial selection text and not to extend back when `DiType.Unknown`
    */
   getDirection_ (magic?: string): VisualModeNS.ForwardDir {
     const a = this;
@@ -567,7 +569,7 @@ init_ (words: string) {
   this.realType_ = VSettings.cache.browserVer === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function(sel: Selection): SelType {
     let type = typeIdx[sel.type];
-    return type === SelType.Caret && ("" + sel).length ? SelType.Range : type;
+    return type === SelType.Caret && VVisual.diType_ !== VisualModeNS.DiType.Normal &&  ("" + sel).length ? SelType.Range : type;
   } : function(sel: Selection): SelType {
     return typeIdx[sel.type];
   };
