@@ -298,7 +298,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     OptionsPage: "pages/options.html", Platform: "", PolyFill_: "lib/polyfill.js",
     RedirectedUrls_: {
       about: "https://github.com/gdh1995/vimium-c",
-      help: "https://github.com/philc/vimium/wiki",
+      help: "https://github.com/gdh1995/vimium-c/wiki",
       license: "https://raw.githubusercontent.com/gdh1995/vimium-c/master/LICENSE.txt",
       permissions: "https://github.com/gdh1995/vimium-c/blob/master/PRIVACY-POLICY.md#permissions-required",
       policy: "https://github.com/gdh1995/vimium-c/blob/master/PRIVACY-POLICY.md",
