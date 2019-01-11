@@ -505,8 +505,7 @@ setTimeout(function() {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
-    // TODO: remove the old name on v1.72
-    message: "Vimium C (renamed from Vimium++) has been upgraded to version " + Settings.CONST.CurrentVersionName_
+    message: "Vimium C has been upgraded to version " + Settings.CONST.CurrentVersionName_
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId): void {
@@ -557,10 +556,6 @@ setTimeout(function(): void {
   chrome.runtime.onInstalled.removeListener(cb);
   (document.documentElement as HTMLHtmlElement).textContent = '';
   cb = function(b) { a = b; console.log(b); };
-  // TODO: remove the 3 lines below on 2019/01/01
-  if (localStorage.getItem("log|lastPartlyLoad") != null) {
-    localStorage.removeItem("log|lastPartlyLoad");
-  }
   Utils.resetRe_();
 }, 1200);
 // setTimeout(() => console.log("RegExp.input:", (RegExp as any).input, "."), 3600);

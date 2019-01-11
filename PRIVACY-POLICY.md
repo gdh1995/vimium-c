@@ -1,7 +1,7 @@
 Privacy Policy
 ==============
 
-All information handled by Vimium C (whose old name is Vimium++), including history, bookmarks and page titles and urls, will only be used locally.
+All information handled by Vimium C, including history, bookmarks and page titles and urls, will only be used locally.
 
 There will be no syncing activity to your Chrome account, unless you enable the setting item `vimSync` manually.
 

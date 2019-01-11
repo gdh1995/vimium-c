@@ -175,7 +175,6 @@ var VVisual = {
         return VHUD.tip("Selection is lost.");
       }
     }
-    // todo: if Mode::Caret, then does it need to getDi for DiType::Caret ?
     mode === VisualModeNS.Mode.Caret && movement.collapseSelectionTo_(0);
     if (command > 35) {
       movement.find_(command - 36 ? -count : count);
@@ -343,7 +342,6 @@ var VVisual = {
     if (!isMove) {
       const beforeText = "" + sel;
       if (beforeText && !a.getDirection_(beforeText)) {
-        // todo: @di_ should be the di after extend
         return beforeText[0];
       }
       oldLen = beforeText.length;
