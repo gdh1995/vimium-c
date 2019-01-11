@@ -1095,6 +1095,7 @@ Modes_: [
         ;
       str = str.trim() || (link instanceof HTMLElement ? link.title.trim() : "");
     }
+    // todo: aria-label: https://github.com/philc/vimium/issues/3215
     if (!str) {
       return VHUD.copied("", isUrl ? "url" : "");
     }

@@ -657,6 +657,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         if (s.indexOf(names[i]) !== -1) {
           if (s.indexOf(refusedStr) === -1 && (len = s.split(re1).length) <= maxLen) {
             maxLen > len && (maxLen = len + 1);
+            // TODO: shorter text is better - e.g. ">" should be better than ">>"
             // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
             candidates.push([(i << 23) | (len << 16) | (candidates.length & 0xffff), s, link]);
           }

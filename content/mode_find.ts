@@ -136,6 +136,7 @@ var VFind = {
     this._actived = true;
   },
   init_ (adjust: AdjustType): void {
+    // todo: https://bugs.chromium.org/p/chromium/issues/detail?id=807560
     const ref = this.postMode_, UI = VDom.UI,
     css = this.css_[0], sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
