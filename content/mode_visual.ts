@@ -425,7 +425,7 @@ var VVisual = {
   /**
    * @safe_di if not `magic`
    * 
-   * @argument magic : two means
+   * @param {string} magic two means
    * * `""` means only checking type, and may not detect `di_` when `DiType.Unknown`;
    * * `char[1..]` means initial selection text and not to extend back when `DiType.Unknown`
    */

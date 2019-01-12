@@ -1969,8 +1969,8 @@ Are you sure you want to continue?`);
         })[(request as Req.fgWithRes<T>).msg](request as Req.fgWithRes<T>, port)
       });
     }
-    function OnConnect (this: void, port: Frames.Port): void {
-      const type = (port.name.substring(9) as string | number as number) | 0,
+    function OnConnect (this: void, port: Frames.Port, type: number): void {
+      const
       sender = formatPortSender(port), { tabId, url } = sender;
       let status: Frames.ValidStatus, ref = framesForTab[tabId] as Frames.WritableFrames | undefined;
       if (type >= PortType.omnibar || (url === Settings.cache.vomnibarPage_f)) {
@@ -2275,7 +2275,9 @@ Are you sure you want to continue?`);
     onInit_(): void {
       // the line below requires all necessary have inited when calling this
       Backend.onInit_ = null;
-    chrome.runtime.onConnect.addListener(OnConnect);
+    chrome.runtime.onConnect.addListener(function(port) {
+      return OnConnect(port as Frames.RawPort as Frames.Port, (port.name.substring(9) as string | number as number) | 0);
+    });
     if (!chrome.runtime.onConnectExternal) { return; }
     Settings.extWhiteList_ || Settings.postUpdate_("extWhiteList");
     chrome.runtime.onConnectExternal.addListener(function(port): void {
@@ -2287,8 +2289,7 @@ Are you sure you want to continue?`);
           port.disconnect();
           return;
         }
-        port.name = arr[0];
-        return OnConnect(port as Frames.RawPort as Frames.Port);
+        return OnConnect(port as Frames.RawPort as Frames.Port, (arr[0] as string | number as number) | 0);
       } else {
         port.disconnect();
       }

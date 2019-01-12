@@ -1282,17 +1282,17 @@ declare namespace chrome.runtime {
      */
     interface Port {
         // postMessage: (message: Object) => void;
-        disconnect: () => void;
+        readonly disconnect: () => void;
         /**
          * Optional.
          * This property will only be present on ports passed to onConnect/onConnectExternal listeners.
          */
-        sender: MessageSender;
+        readonly sender: MessageSender;
         /** An object which allows the addition and removal of listeners for a Chrome event. */
-        onDisconnect: PortDisconnectEvent;
+        readonly onDisconnect: PortDisconnectEvent;
         /** An object which allows the addition and removal of listeners for a Chrome event. */
-        onMessage: PortMessageEvent;
-        name: string;
+        readonly onMessage: PortMessageEvent;
+        readonly name: string;
     }
 
     interface UpdateAvailableDetails {
