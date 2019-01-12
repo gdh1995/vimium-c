@@ -727,11 +727,15 @@ var Utils = {
 };
 
 declare var browser: unknown;
-const NotChrome: boolean = typeof browser !== "undefined" && (browser && (browser as any).runtime) != null
-  && location.protocol.lastIndexOf("chrome", 0) < 0 // in case Chrome also supports `browser` in the future
-, IsEdge = NotChrome && !!(window as any).StyleMedia
-, IsFirefox = NotChrome && !IsEdge && (<RegExpOne>/\bFirefox\//).test(navigator.userAgent)
-, BrowserProtocol = NotChrome ? IsFirefox ? "moz" : IsEdge ? "ms-browser" : "about" : "chrome"
+const OnOther = typeof browser === "undefined" || (browser && (browser as any).runtime) == null
+    || location.protocol.lastIndexOf("chrome", 0) >= 0 // in case Chrome also supports `browser` in the future
+  ? BrowserType.Chrome
+  : !!(window as any).StyleMedia ? BrowserType.Edge
+  : (<RegExpOne>/\bFirefox\//).test(navigator.userAgent) ? BrowserType.Firefox
+  : BrowserType.Unknown,
+BrowserProtocol = OnOther ? OnOther === BrowserType.Firefox ? "moz"
+    : OnOther === BrowserType.Edge ? "ms-browser" : "about"
+    : "chrome"
 ;
 
 if (!"".startsWith) {
@@ -743,6 +747,6 @@ String.prototype.startsWith = function(this: string, s: string): boolean {
   return i >= 0 && this.indexOf(s, i) === i;
 });
 }
-if (NotChrome) {
+if (OnOther) {
   window.chrome = browser as typeof chrome;
 }

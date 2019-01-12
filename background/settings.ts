@@ -317,17 +317,17 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   }
 };
 
-Settings.CONST.ChromeVersion = 0 | (!NotChrome && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
+Settings.CONST.ChromeVersion = 0 | (!OnOther && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number;
 Settings.payload.onMac = false;
 Settings.payload.grabFocus = Settings.get("grabBackFocus");
-Settings.payload.browser = NotChrome ? IsEdge ? BrowserType.Edge : BrowserType.Firefox : BrowserType.Chrome;
+Settings.payload.browser = OnOther;
 Settings.payload.browserVer = Settings.CONST.ChromeVersion;
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): void {
   const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs;
   Settings.CONST.Platform = os;
   Settings.payload.onMac = os === (types ? types.MAC : "mac");
-}) : (Settings.CONST.Platform = IsEdge ? "win" : "unknown");
+}) : (Settings.CONST.Platform = OnOther === BrowserType.Edge ? "win" : "unknown");
 
 (function(): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
@@ -336,14 +336,14 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   // on Edge, https://www.msn.cn/spartan/ntp also works with some complicated search parameters
   // on Firefox, both "about:newtab" and "about:home" work,
   //   but "about:newtab" skips extension hooks and uses last configured URL, so it's better.
-  CommonNewTab = IsEdge ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
+  CommonNewTab = OnOther === BrowserType.Edge ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
   ref3 = Settings.newTabs as SafeDict<Urls.NewTabType>;
   function func(path: string): string {
     return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
-  (defaults as SettingsWithDefaults).newTabUrl = NotChrome ? CommonNewTab : newtab ? obj.NtpNewTab_ : ChromeNewTab;
+  (defaults as SettingsWithDefaults).newTabUrl = OnOther ? CommonNewTab : newtab ? obj.NtpNewTab_ : ChromeNewTab;
   ref3[CommonNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
-  NotChrome || (ref3[ChromeNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
+  OnOther || (ref3[ChromeNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
   newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);
   (defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner_;
   obj.GlobalCommands = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);

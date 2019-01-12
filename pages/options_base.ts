@@ -316,7 +316,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption_ {
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
     if (!tabs[0] || !tabs[0].url || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
       refreshTip.remove();
-    } else if (BG_.IsEdge) {
+    } else if (BG_.OnOther === BrowserType.Edge) {
       (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page";
     }
     body.style.width = "auto";

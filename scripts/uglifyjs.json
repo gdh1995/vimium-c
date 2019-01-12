@@ -50,7 +50,7 @@
     },
     "reserved": [
       // # fixed background global names:
-      "Utils", "NotChrome", "IsEdge", "IsFirefox", "Settings", "Backend",
+      "Utils", "OnOther", "Settings", "Backend",
       "Commands", "Exclusions", "HelpDialog",
       // # content global names:
       "VimiumInjector", "VUtils", "VKeyboard", "VDom",

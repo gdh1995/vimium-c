@@ -418,9 +418,7 @@ interface Window {
   readonly CommandsData: CommandsData;
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
-  readonly NotChrome: boolean;
-  readonly IsEdge: boolean;
-  readonly IsFirefox: boolean;
+  readonly OnOther: BrowserType;
 
   readonly Backend: BackendHandlersNS.BackendHandlers;
   readonly Utils: {

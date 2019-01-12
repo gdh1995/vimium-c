@@ -207,7 +207,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
   } as IconNS.AccessIconBuffer;
   Backend.setIcon_ = function(this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
-    if (IsEdge) {
+    if (OnOther === BrowserType.Edge) {
       path = Settings.icons_[type];
       chrome.browserAction.setIcon({ tabId, path });
       return;
@@ -262,7 +262,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     , wantDeletable = chrome.omnibox.onDeleteSuggestion && typeof chrome.omnibox.onDeleteSuggestion.addListener === "function"
     , firstType: CompletersNS.ValidTypes | "";
   const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
-  matchTagRe = IsFirefox ? <RegExpG>/<\/?match>/g : null as never,
+  matchTagRe = OnOther === BrowserType.Firefox ? <RegExpG>/<\/?match>/g : null as never,
   maxResults = Settings.CONST.ChromeVersion < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
   ;
   function clean(): void {
@@ -322,7 +322,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
         info.type = <SubInfo["type"]>type;
         tail = ` ~${i + di}~`;
       }
-      if (IsFirefox) {
+      if (OnOther === BrowserType.Firefox) {
         tail = (sug.textSplit as string).replace(matchTagRe, "") + (title && " - " + title.replace(matchTagRe, "")) + tail;
       } else {
         tail = title ? `</url><dim> - ${title}${tail}</dim>` : tail ? `</url><dim>${tail}</dim>` : "</url>";

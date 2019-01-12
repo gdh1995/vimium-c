@@ -101,7 +101,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     } else if (type === Urls.NewTabType.vimium) {
       args.url = Settings.cache.newTabUrl_f;
     }
-    IsEdge && (delete args.openerTabId);
+    OnOther === BrowserType.Edge && (delete args.openerTabId);
     return chrome.tabs.create(args, callback);
   }
   /** if count <= 1, only open once */
@@ -212,7 +212,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       return Settings.CONST.ChromeVersion >= BrowserVer.MinSession ? Backend.complain_("control tab sessions")
         : Backend.showHUD_(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
     }
-    const isNotVomnibarPage = IsEdge ? function() { return false; } : function (this: void, port: Frames.Port, nolog?: boolean): boolean {
+    const isNotVomnibarPage = OnOther === BrowserType.Edge ? function() { return false; } : function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
       const info = port.sender as SenderEx;
       if (info.isVomnibar == null) {

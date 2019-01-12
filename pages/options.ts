@@ -593,9 +593,9 @@ $("#importButton").onclick = function(): void {
   opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
 };
 
-$("#browserName").textContent = (BG_.IsEdge ? "MS Edge"
-  : BG_.IsFirefox ? "Firefox" : ((<RegExpOne>/\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
-  ) + (!BG_.NotChrome ? " " + bgSettings_.CONST.ChromeVersion : ""
+$("#browserName").textContent = (BG_.OnOther === BrowserType.Edge ? "MS Edge"
+  : BG_.OnOther === BrowserType.Firefox ? "Firefox" : ((<RegExpOne>/\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
+  ) + (!BG_.OnOther ? " " + bgSettings_.CONST.ChromeVersion : ""
   ) + (", " + bgSettings_.CONST.Platform[0].toUpperCase() + bgSettings_.CONST.Platform.substring(1));
 
 function loadJS(file: string): HTMLScriptElement {

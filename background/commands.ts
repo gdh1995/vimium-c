@@ -262,7 +262,7 @@ availableCommands_: {
     kBgCmd.openUrl,
     {
       reuse: ReuseType.reuse,
-      url: IsFirefox ? "about:debugging#addons" : IsEdge ? Settings.CONST.OptionsPage : "chrome://extensions/?id=$id",
+      url: OnOther ? OnOther === BrowserType.Firefox ? "about:debugging#addons" : Settings.CONST.OptionsPage : "chrome://extensions/?id=$id",
       id_mask: "$id"
     }],
   blank: [ "Do nothing", 1, true, kBgCmd.blank ],
