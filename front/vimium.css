@@ -165,7 +165,9 @@ body * {
 	display: inline !important;
 }
 
-html>count {
-	float: right;
+html > count {
+	position: absolute;
+	right: 0;
+	top: 0;
 }
 /* #endregion Find IFrame */

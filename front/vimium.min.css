@@ -22,4 +22,4 @@ max-width:312px;min-width:150px;padding:2px 3px;right:150px;text-overflow:ellips
 *{cursor:default;font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif!important;
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap}
 body{cursor:text;display:inline-block;max-width:215px;min-width:7px;padding:0 3px 0 1px}
-body *{all:inherit!important;display:inline!important}html>count{float:right}
+body *{all:inherit!important;display:inline!important}html>count{position:absolute;right:0;top:0}
