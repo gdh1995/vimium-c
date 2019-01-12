@@ -277,7 +277,9 @@ var VVisual = {
     VFind.execute_(null, { noColor: true, count });
     if (VFind.hasResults_) {
       if (this.mode_ === VisualModeNS.Mode.Caret && this.realType_(sel) === SelType.Range) {
-        this.activate_(1, Object.create(null) as SafeObject & CmdOptions[kFgCmd.visualMode]);
+        this.activate_(1, VUtils.safer_({
+          mode: VisualModeNS.Mode.Visual as VisualModeNS.Mode.Visual
+        }));
       }
       return;
     }
