@@ -272,8 +272,8 @@ var VVisual = {
     }
     // todo: how to keep direction / how to work if TextBox / ShadowDOM
     // todo: reset diType_ ?
-    this.di_ = VisualModeNS.kDir.unknown;
-    const sel = this.selection_, range = sel.rangeCount && sel.getRangeAt(0);
+    const sel = this.selection_,
+    range = sel.rangeCount && (this.getDirection_(""), this.diType_ === VisualModeNS.DiType.Normal) && sel.getRangeAt(0);
     VFind.execute_(null, { noColor: true, count });
     if (VFind.hasResults_) {
       if (this.mode_ === VisualModeNS.Mode.Caret && this.realType_(sel) === SelType.Range) {
@@ -283,8 +283,7 @@ var VVisual = {
       }
       return;
     }
-    sel.removeAllRanges();
-    range && sel.addRange(range);
+    range && !sel.rangeCount && sel.addRange(range);
     return this.prompt_("No matches for " + VFind.query_, 1000);
   },
   /**
