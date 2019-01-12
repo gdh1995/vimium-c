@@ -3,6 +3,7 @@ import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 var Settings = {
   cache: Object.create(null) as Readonly<SettingsNS.FullCache>,
   temp: {
+    cmdErrors: 0,
     shownHash: null
   } as Writeable<SettingsTmpl["temp"]>,
   payload: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,

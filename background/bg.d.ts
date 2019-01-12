@@ -402,7 +402,6 @@ interface CommandsData {
   cmdMap_: SafeDict<CommandsNS.Options | null>;
   mapKeyRegistry_: SafeDict<string> | null;
   availableCommands_: ReadonlySafeDict<CommandsNS.Description>;
-  errors: number;
   wordsRe_: string;
 }
 
@@ -439,6 +438,7 @@ interface Window {
   interface SettingsTmpl {
     readonly cache: Readonly<SettingsNS.FullCache>;
     readonly temp: {
+      readonly cmdErrors: number;
       readonly shownHash: ((this: void) => string) | null;
     };
     readonly newTabs: SafeDict<Urls.NewTabType>,

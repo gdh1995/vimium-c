@@ -486,7 +486,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   });
   Option_.all_.keyMappings.onSave_ = function(): void {
-    const { errors } = BG_.CommandsData,
+    const errors = bgSettings_.temp.cmdErrors,
     msg = !errors ? "" : (errors === 1 ? "There's 1 error." : `There're ${errors} errors`
       ) + " found.\nPlease see logs of background page for more details.";
     return this.showError_(msg);

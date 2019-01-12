@@ -13,6 +13,7 @@ var gulpPrint = require('gulp-print');
 var gulpSome = require('gulp-some');
 var osPath = require('path');
 
+var LIB_UGLIFY_JS = 'terser';
 var DEST, enableSourceMap, willListFiles, willListEmittedFiles, removeComments, JSDEST;
 var locally = false;
 var debugging = process.env.DEBUG === "1";
@@ -65,6 +66,10 @@ var Tasks = {
 
   "min/bg": function(cb) {
     var exArgs = { nameCache: { vars: {}, props: {} }, passAll: true };
+    var config = loadUglifyConfig(!!exArgs.nameCache);
+    config.nameCache = exArgs.nameCache;
+    require(LIB_UGLIFY_JS).minify("var CommandsData;", config);
+
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");
     var ori_sources = sources.slice(0);
@@ -407,7 +412,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   }
   var compose = require('gulp-uglify/composer');
   var logger = require('gulp-uglify/lib/log');
-  var uglify = require('terser');
+  var uglify = require(LIB_UGLIFY_JS);
   stream = stream.pipe(compose(
     uglify,
     logger

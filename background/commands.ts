@@ -127,12 +127,12 @@ var Commands = {
       ++errors;
     }
     CommandsData.mapKeyRegistry_ = mk > 0 ? mkReg : null;
-    CommandsData.errors = CommandsData.errors > 0 ? ~errors : errors;
+    Settings.temp.cmdErrors = Settings.temp.cmdErrors > 0 ? ~errors : errors;
   }),
   populateCommandKeys_: (function(this: void): void {
     const d = CommandsData, ref = d.keyMap_ = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe_,
-    oldErrors = d.errors;
-    if (oldErrors < 0) { d.errors = ~oldErrors; }
+    d2 = Settings.temp, oldErrors = d2.cmdErrors;
+    if (oldErrors < 0) { d2.cmdErrors = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
     ref['-'] = 1;
     for (const key in d.keyToCommandRegistry_) {
@@ -152,8 +152,8 @@ var Commands = {
       while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null) as ChildKeyMap; }
       ref2[arr[last]] = 0;
     }
-    if (d.errors) {
-      console.log("%cKey Mappings: %d errors found.", "background-color:#fffbe6", d.errors);
+    if (d2.cmdErrors) {
+      console.log("%cKey Mappings: %d errors found.", "background-color:#fffbe6", d2.cmdErrors);
     } else if (oldErrors < 0) {
       console.log("The new key mappings have no errors");
     }
@@ -172,7 +172,7 @@ var Commands = {
   }),
   warnInactive_ (obj: ReadonlyChildKeyMap | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
-    ++CommandsData.errors;
+    ++Settings.temp.cmdErrors;
   },
 
 defaultKeyMappings_: [
@@ -255,7 +255,6 @@ CommandsData = (CommandsData as CommandsData) || {
   keyMap_: null as never as KeyMap,
   cmdMap_: null as never as SafeDict<CommandsNS.Options | null>,
   mapKeyRegistry_: null as SafeDict<string> | null,
-  errors: 0,
 availableCommands_: {
   __proto__: null as never,
   showHelp: [ "Show help", 1, true, kBgCmd.showHelp ],
