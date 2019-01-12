@@ -379,7 +379,7 @@ var VVisual = {
     while (0 < count-- && ch) {
       do {
         if (!a.oldLen_) {
-          a.modify_(1, VisualModeNS.G.character);
+          a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.character);
           a.di_ = a.di_ || VisualModeNS.kDir.unknown; // right / unknown are kept, left is replaced with right, so that keep @di safe
         }
         ch = a.getNextRightCharacter_(isMove);
@@ -387,7 +387,7 @@ var VVisual = {
     }
     if (ch && a.oldLen_) {
       const num1 = a.oldLen_ - 2, num2 = isMove || ("" + a.selection_).length;
-      a.modify_(0, VisualModeNS.G.character);
+      a.modify_(VisualModeNS.kDir.left, VisualModeNS.G.character);
       if (!isMove) {
         // in most cases, initial selection won't be a caret at the middle of sel-all
         // - so correct selection won't be from the middle to the end
@@ -510,11 +510,11 @@ var VVisual = {
   },
   selectLexicalEntity_ (entity: VisualModeNS.G.sentence | VisualModeNS.G.word, count: number): void {
     this.collapseSelectionTo_(1);
-    entity - VisualModeNS.G.word || this.modify_(1, VisualModeNS.G.character);
-    this.modify_(0, entity);
+    entity - VisualModeNS.G.word || this.modify_(VisualModeNS.kDir.right, VisualModeNS.G.character);
+    this.modify_(VisualModeNS.kDir.left, entity);
     this.di_ = VisualModeNS.kDir.left; // safe
     this.collapseSelectionTo_(1);
-    this.runMovements_(1, entity, count);
+    this.runMovements_(VisualModeNS.kDir.right, entity, count);
   },
   /** after called, VVisual must exit at once */
   selectLine_ (count: number): void {
@@ -522,12 +522,12 @@ var VVisual = {
     a.alterMethod_ = "extend";
     if (!a.isPointLineFeedAndInTextBox_(0)) {
       oldDi && a.reverseSelection_();
-      a.modify_(0, VisualModeNS.G.lineboundary);
+      a.modify_(VisualModeNS.kDir.left, VisualModeNS.G.lineboundary);
       a.di_ = VisualModeNS.kDir.left; // safe
       a.reverseSelection_();
     }
-    while (0 < --count) { a.modify_(1, VisualModeNS.G.line); }
-    a.modify_(1, VisualModeNS.G.lineboundary);
+    while (0 < --count) { a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.line); }
+    a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.lineboundary);
     const ch = a.getNextRightCharacter_(0);
     const num1 = a.oldLen_;
     if (ch && num1 && ch !== "\n") {
