@@ -1073,29 +1073,31 @@ Modes_: [
       str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.substring(7).trimLeft());
     }
     else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) {}
-    else if (link instanceof HTMLInputElement) {
-      str = link.type;
-      if (str === "password") {
-        return VHUD.tip("Sorry, Vimium C won't copy a password.", 2000);
-      } else if (!VDom.uneditableInputs_[str]) {
-        str = (link.value || link.placeholder).trim();
-      } else if (str === "file") {
-        str = link.files && link.files.length > 0 ? link.files[0].name : "";
-      } else if ("button image submit reset".indexOf(str) >= 0) {
-        str = link.value.trim() || link.title.trim();
+    else {
+      if (link instanceof HTMLInputElement) {
+        const type = link.type;
+        if (type === "password") {
+          return VHUD.tip("Sorry, Vimium C won't copy a password.", 2000);
+        }
+        if (!VDom.uneditableInputs_[type]) {
+          str = (link.value || link.placeholder).trim();
+        } else if (type === "file") {
+          str = link.files && link.files.length > 0 ? link.files[0].name : "";
+        } else if ("button image submit reset".indexOf(type) >= 0) {
+          str = link.value.trim();
+        }
       } else {
-        str = link.title.trim(); // including `[type="image"]`
+        str = link instanceof HTMLTextAreaElement ? link.value
+          : link instanceof HTMLSelectElement ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
+          : link instanceof HTMLElement && (str = link.innerText.trim(),
+              str.length > 7 && str.substring(0, 7).toLowerCase() === "mailto:" ? str.substring(7).trimLeft() : str)
+            || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
+          ;
       }
-    } else {
-      str = link instanceof HTMLTextAreaElement ? link.value
-        : link instanceof HTMLSelectElement ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
-        : link instanceof HTMLElement && (str = link.innerText.trim(),
-            str.length > 7 && str.substring(0, 7).toLowerCase() === "mailto:" ? str.substring(7).trimLeft() : str)
-          || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
-        ;
-      str = str.trim() || (link instanceof HTMLElement ? link.title.trim() : "");
+      if (!str && link instanceof HTMLElement) {
+        str = (link.title.trim() || link.getAttribute("aria-label") || "").trim();
+      }
     }
-    // todo: aria-label: https://github.com/philc/vimium/issues/3215
     if (!str) {
       return VHUD.copied("", isUrl ? "url" : "");
     }
