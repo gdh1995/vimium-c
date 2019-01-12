@@ -297,7 +297,10 @@ var VFind = {
     return _this.OnInput_();
   },
   saveQuery_ (): string | void | 1 {
-    return this.query_ && VPort.post({ H: kFgReq.findQuery, query: this.query_ });
+    return this.query_ && VPort.post({
+      H: kFgReq.findQuery,
+      query: this.input_.innerText.replace(this.A0Re_, " ").replace(this.tailRe_, "")
+    });
   },
   postMode_: {
     lock_: null as Element | null,
