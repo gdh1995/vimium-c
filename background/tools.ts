@@ -103,12 +103,12 @@ ContentSettings_ = {
     }
     return result;
   },
-  Clear_ (this: void, contentType: CSTypes, tab?: Readonly<{ incognito: boolean }> ): void {
+  Clear_ (this: void, contentType: CSTypes, tab?: Readonly<Pick<Frames.Sender, "a">>): void {
     if (!chrome.contentSettings) { return; }
     const cs = chrome.contentSettings[contentType];
     if (!cs || !cs.clear) { return; }
     if (tab) {
-      cs.clear({ scope: (tab.incognito ? "incognito_session_only" : "regular") });
+      cs.clear({ scope: (tab.a ? "incognito_session_only" : "regular") });
       return;
     }
     cs.clear({ scope: "regular" });
@@ -118,7 +118,7 @@ ContentSettings_ = {
   clearCS_ (options: CommandsNS.Options, port: Port): void {
     const ty = "" + options.type as CSTypes;
     if (!this.complain_(ty, "https://a.cc/")) {
-      this.Clear_(ty, port.sender);
+      this.Clear_(ty, port.s);
       return Backend.showHUD_(ty + " content settings have been cleared.");
     }
   },
@@ -280,9 +280,9 @@ Marks_ = { // NOTE: all public members should be static
     port.postMessage<1, kFgCmd.goToMarks>({ N: kBgReq.execute, S: null, c: kFgCmd.goToMarks, n: 1, a: options});
   },
   createMark (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
-    let tabId = port.sender.tabId;
+    let tabId = port.s.t;
     if (request.scroll) {
-      return Marks_._set(request as MarksNS.NewMark, port.sender.incognito, tabId);
+      return Marks_._set(request as MarksNS.NewMark, port.s.a, tabId);
     }
     (port = Backend.indexPorts(tabId, 0) || port) && port.postMessage({
       N: kBgReq.createMark,
@@ -291,14 +291,14 @@ Marks_ = { // NOTE: all public members should be static
   },
   gotoMark (this: void, request: MarksNS.FgQuery, port: Port): void {
     const { local, markName } = request, key = Marks_.getLocationKey(markName, local ? request.url : "");
-    const str = Marks_.cacheI && port.sender.incognito && Marks_.cacheI[key] || Marks_.cache.getItem(key);
+    const str = Marks_.cacheI && port.s.a && Marks_.cacheI[key] || Marks_.cache.getItem(key);
     if (local) {
       let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
       if (!scroll) {
         let oldPos = (request as MarksNS.FgLocalQuery).old, x: number, y: number;
         if (oldPos && (x = +oldPos.scrollX) >= 0 && (y = +oldPos.scrollY) >= 0) {
           (request as MarksNS.NewMark).scroll = scroll = [x, y, oldPos.hash];
-          Marks_._set(request as MarksNS.NewMark, port.sender.incognito);
+          Marks_._set(request as MarksNS.NewMark, port.s.a);
         }
       }
       if (scroll) {
@@ -434,7 +434,7 @@ IncognitoWatcher_ = {
     if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
       let left = false, arr = Backend.indexPorts();
       for (const i in arr) {
-        if ((arr[+i] as Frames.Frames)[0].sender.incognito) { left = true; break; }
+        if ((arr[+i] as Frames.Frames)[0].s.a) { left = true; break; }
       }
       if (left) { return; }
     }

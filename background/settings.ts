@@ -154,7 +154,7 @@ var Settings = {
       for (const tabId in ref) {
         const frames = ref[+tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {
-          if (frames[i].sender.flags & Frames.Flags.hasCSS) {
+          if (frames[i].s.f & Frames.Flags.hasCSS) {
             frames[i].postMessage(request);
           }
         }

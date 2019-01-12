@@ -107,26 +107,26 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     needIcon = !!(Backend.IconBuffer_ && (Backend.IconBuffer_() || Settings.get("showActionIcon")));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (const tabId in ref) {
-      const frames = ref[+tabId] as Frames.Frames, status0 = frames[0].sender.status;
+      const frames = ref[+tabId] as Frames.Frames, status0 = frames[0].s.s;
       for (let i = frames.length; 0 < --i; ) {
         const port = frames[i];
         if (always_enabled) {
-          if (port.sender.status === Frames.Status.enabled) {
+          if (port.s.s === Frames.Status.enabled) {
             continue;
           }
         } else {
-          pass = Backend.getExcluded_(port.sender.url);
+          pass = Backend.getExcluded_(port.s.u);
           status = pass === null ? Frames.Status.enabled : pass
             ? Frames.Status.partial : Frames.Status.disabled;
-          if (!pass && port.sender.status === status) {
+          if (!pass && port.s.s === status) {
             continue;
           }
         }
-        if (port.sender.flags & Frames.Flags.locked) { continue; }
+        if (port.s.f & Frames.Flags.locked) { continue; }
         port.postMessage(always_enabled || { N: kBgReq.reset, p: pass });
-        port.sender.status = status;
+        port.s.s = status;
       }
-      if (needIcon && status0 !== (status = frames[0].sender.status)) {
+      if (needIcon && status0 !== (status = frames[0].s.s)) {
         Backend.setIcon_(+tabId, status);
       }
     }

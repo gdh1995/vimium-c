@@ -340,9 +340,9 @@ interface PopExclusionRulesOption extends ExclusionRulesOption_ {
   }
 
 const bgExclusions: ExclusionsNS.ExclusionsCls = BG_.Exclusions,
-tabId = ref ? ref[0].sender.tabId : tabs[0].id,
+tabId = ref ? ref[0].s.t : tabs[0].id,
 stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
-url = ref ? ref[0].sender.url : tabs[0].url,
+url = ref ? ref[0].s.u : tabs[0].url,
 exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOption>{
   inited_: 0,
   init_ (this: PopExclusionRulesOption, element: HTMLElement
@@ -486,14 +486,14 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
     }
   });
   exclusions.init_($("#exclusionRules"), onUpdated, function (): void {
-    let sender = ref ? ref[0].sender : { status: Frames.Status.enabled, flags: Frames.Flags.Default }, el: HTMLElement
-      , newStat = sender.status !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
-    curLockedStatus = sender.flags & Frames.Flags.locked ? sender.status : Frames.Status.__fake;
+    let sender = ref ? ref[0].s : <Readonly<Frames.Sender>>{ s: Frames.Status.enabled, f: Frames.Flags.Default }, el: HTMLElement
+      , newStat = sender.s !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
+    curLockedStatus = sender.f & Frames.Flags.locked ? sender.s : Frames.Status.__fake;
     ref = null;
     el = $<HTMLElement>("#toggleOnce");
     el.textContent = newStat + " for once";
     el.onclick = forceState.bind(null, newStat);
-    if (sender.flags & Frames.Flags.locked) {
+    if (sender.f & Frames.Flags.locked) {
       el = el.nextElementSibling as HTMLElement;
       el.classList.remove("hidden");
       el = el.firstElementChild as HTMLElement;

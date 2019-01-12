@@ -119,23 +119,18 @@ declare namespace Frames {
   type ValidStatus = Status.enabled | Status.partial | Status.disabled;
   type ForcedStatusText = "reset" | "enable" | "disable" | "toggle";
 
-  interface RawSender {
-    readonly frameId: number;
-    readonly incognito: boolean;
-    tabId: number;
-    url: string;
-    status: ValidStatus;
-    flags: Flags;
-  }
-  interface Sender extends RawSender {
-    readonly tabId: number;
+  interface Sender {
+    readonly /** frameId */ i: number;
+    readonly /** incognito (anonymous) */ a: boolean;
+    readonly /** tabId */ t: number;
+    /** url */ u: string;
+    /** status */ s: ValidStatus;
+    /** flags */ f: Flags;
   }
 
-  interface RawPort extends chrome.runtime.Port {
-    sender: Partial<Sender> & chrome.runtime.MessageSender;
-  }
   interface Port extends chrome.runtime.Port {
-    sender: Sender;
+    readonly sender: never;
+    s: Sender;
     postMessage<K extends 1, O extends keyof CmdOptions>(request: Req.FgCmd<O>): K;
     postMessage<K extends keyof FgRes>(response: Req.res<K>): 1;
     postMessage<K extends kBgReq>(request: Req.bg<K>): 1;
@@ -158,7 +153,7 @@ declare namespace Frames {
   }
 }
 interface Port extends Frames.Port {
-  readonly sender: Readonly<Frames.Sender>;
+  readonly s: Readonly<Frames.Sender>;
 }
 
 declare const enum IncognitoType {
