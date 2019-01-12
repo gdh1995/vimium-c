@@ -153,7 +153,7 @@ var VFind = {
       this.updateQuery_(query);
       if (this.isActive_) {
         this.input_.textContent = query.replace(<RegExpOne> /^ /, '\xa0');
-        this.showCount_();
+        this.showCount_(1);
       }
     }
     this.init_ && this.init_(AdjustType.MustAdjust);
@@ -340,19 +340,23 @@ var VFind = {
     }
     const _this = VFind, query = _this.input_.innerText.replace(_this.A0Re_, " ").replace(_this.tailRe_, "");
     let s = _this.query_;
-    if (!_this.hasResults_ && !_this.isRegex_ && !_this.wholeWord_ && _this.notEmpty_ && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
+    if (!_this.hasResults_ && !_this.isRegex_ && !_this.wholeWord_ && _this.notEmpty_ && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) {
+      return _this.showCount_(0);
+    }
     s = "";
     _this.coords_ && window.scrollTo(_this.coords_[0], _this.coords_[1]);
     _this.updateQuery_(query);
     _this.restoreSelection_();
     _this.execute_(!_this.isRegex_ ? _this.parsedQuery_ : _this.regexMatches_ ? _this.regexMatches_[0] : "");
-    return _this.showCount_();
+    return _this.showCount_(1);
   },
   _small: false,
-  showCount_ (): void {
+  showCount_ (changed: BOOL): void {
     let count = this.matchCount_;
-    (this.countEl_.firstChild as Text).data = !this.parsedQuery_ ? ""
-      : "(" + (count || (this.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
+    if (changed) {
+      (this.countEl_.firstChild as Text).data = !this.parsedQuery_ ? ""
+        : "(" + (count || (this.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
+    }
     count = ((this.input_.offsetWidth + this.countEl_.offsetWidth + 7) >> 2) * 4;
     if (this._small && count < 152) { return; }
     this.box_.style.width = ((this._small = count < 152) ? 0 : count) + "px";
