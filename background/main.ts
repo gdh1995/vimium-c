@@ -1348,7 +1348,7 @@ Are you sure you want to continue?`);
       const leave = !cOptions.active, sender = cPort.s,
       query = leave || cOptions.last ? FindModeHistory_.query_(sender.a) : "";
       let findCSS: CmdOptions[kFgCmd.findMode]["findCSS"] = null;
-      if (!leave && !(sender.f & Frames.Flags.hadFindMode)) {
+      if (!(sender.f & Frames.Flags.hadFindMode)) {
         sender.f |= Frames.Flags.hadFindMode;
         findCSS = Settings.cache.findCSS;
       }

@@ -24,10 +24,11 @@ var VFind = {
   tailRe_: <RegExpOne> /\n$/,
   css_: null as never as [string, string],
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
+    const a = VFind;
+    a.css_ = options.findCSS || a.css_;
     if (!VDom.isHTML_()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
     ui = VDom.UI, first = !ui.box_;
-    const a = VFind;
     a.isActive_ || query === a.query_ && options.leave || VMarks.setPreviousPosition_();
     VDom.docSelectable_ = ui.getDocSelectable_();
     ui.ensureBorder_();
@@ -49,7 +50,6 @@ var VFind = {
     a.activeRegexIndex_ = 0;
 
     const el = a.box_ = VDom.createElement_("iframe") as typeof VFind.box_;
-    a.css_ = options.findCSS || a.css_;
     el.className = "R HUD UI";
     el.style.width = "0px";
     if (VDom.wdZoom_ !== 1) { el.style.zoom = "" + 1 / VDom.wdZoom_; }
