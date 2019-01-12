@@ -74,9 +74,9 @@ var Tasks = {
     var rest = ["background/*.js"];
     for (var arr = ori_sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
     var maps = [
-      [tail, sources[index], null],
       [body, sources[0], null],
       [sources.slice(1, index), ".", ""],
+      [tail, sources[index], null],
       [rest, ".", ""]
     ];
     manifest.background.scripts = sources;
