@@ -11,6 +11,7 @@ var VFind = {
   wholeWord_: false,
   hasResults_: false,
   matchCount_: 0,
+  browser_: BrowserType.Chrome,
   coords_: null as null | MarksNS.ScrollInfo,
   initialRange_: null as Range | null,
   activeRegexIndex_: 0,
@@ -123,7 +124,7 @@ var VFind = {
     if (VFind._actived && event.target === this) {
       VEvent.OnWndFocus_();
     }
-    return VUtils.Stop_(event);
+    VFind.browser_ === BrowserType.Firefox || VUtils.Stop_(event);
   },
   setFirstQuery_ (query: string): void {
     const wnd = this.box_.contentWindow;
@@ -142,6 +143,7 @@ var VFind = {
     ref.exit_ = ref.exit_.bind(ref);
     UI.addElement_(sin, adjust, true);
     sin.remove();
+    this.browser_ = VSettings.cache.browser;
     this.styleOut_ = UI.box_ !== UI.R ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
@@ -178,7 +180,6 @@ var VFind = {
     _this.coords_ && window.scrollTo(_this.coords_[0], _this.coords_[1]);
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
-      // todo: check `VFind.box.contentWindow.blur();` on FF/Edge
       window.focus();
       el = VDom.getSelectionFocusEdge_(getSelection(), 1);
       el && el.focus && el.focus();
@@ -233,7 +234,7 @@ var VFind = {
         i = FindNS.Action.DoNothing;
       }
       else if (n === VKeyCodes.f1) { this.box_.contentDocument.execCommand("delete"); }
-      else if (n === VKeyCodes.f2) { window.focus(); VEvent.suppress_(n); }
+      else if (n === VKeyCodes.f2) { this.box_.blur(); window.focus(); VEvent.suppress_(n); }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery_(n !== VKeyCodes.up); }
       else { return; }
     } else if (i === FindNS.Action.PassDirectly) {
@@ -370,7 +371,7 @@ var VFind = {
     a.wholeWord_ = false;
     a.isRegex_ = a.ignoreCase_ = null as boolean | null;
     query = query.replace(a._ctrlRe, a.FormatQuery_);
-    const supportWholeWord = VSettings.cache.browser === BrowserType.Chrome;
+    const supportWholeWord = a.browser_ === BrowserType.Chrome;
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b";
     if (isRe === null && !ww) {
       isRe = VSettings.cache.regexFindMode;
@@ -446,6 +447,7 @@ var VFind = {
     options.noColor || this.DisableStyle_(0);
     back && (count = -count);
     const isRe = this.isRegex_, pR = this.parsedRegexp_;
+    const focusHUD = this.browser_ === BrowserType.Firefox && this.box_.contentDocument.hasFocus();
     do {
       q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches_(back) : this.parsedQuery_;
       found = this.find_(q, !notSens, back, true, this.wholeWord_, false, false);
@@ -464,6 +466,7 @@ var VFind = {
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel_, 0);
     (el = VEvent.lock()) && !VDom.isSelected_() && el.blur && el.blur();
+    focusHUD && this.input_.focus();
     this.hasResults_ = found;
   },
   find_: function (this: void): boolean {
