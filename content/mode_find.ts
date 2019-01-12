@@ -480,8 +480,10 @@ var VFind = {
       sout.remove(); sin.remove();
       return;
     }
-    sout.parentNode || (UI.box_ as HTMLDivElement).appendChild(sout);
-    sin === sout || sout.parentNode || (UI.R as ShadowRoot).insertBefore(sin, a.box_);
+    if (sout.parentNode !== UI.box_) {
+      (UI.box_ as HTMLDivElement).appendChild(sout);
+      sin === sout || (UI.R as ShadowRoot).insertBefore(sin, a.box_);
+    }
     sout.sheet && (sout.sheet.disabled = disable);
     sin.sheet && (sin.sheet.disabled = disable);
   },
