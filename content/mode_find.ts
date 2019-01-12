@@ -163,6 +163,7 @@ var VFind = {
     this.execute_(null, options);
     style && (style.visibility = "");
     if (!this.hasResults_) {
+      this.DisableStyle_(1);
       if (!this.isActive_) {
         VDom.UI.toggleSelectStyle_(0);
         VHUD.tip(`No matches for '${this.query_}'`);
@@ -250,9 +251,9 @@ var VFind = {
       this.restoreSelection_(true);
     }
     if (VVisual.mode_) {
-      return VVisual.activate_(1, VUtils.safer_({
-        mode: VisualModeNS.Mode.Visual as VisualModeNS.Mode.Visual,
-        from_find: true as true
+      return VVisual.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
+        mode: VisualModeNS.Mode.Visual,
+        from_find: true
       }));
     }
     VDom.UI.toggleSelectStyle_(0);
