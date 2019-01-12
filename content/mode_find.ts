@@ -336,7 +336,7 @@ var VFind = {
     }
     const _this = VFind, query = _this.input_.innerText.replace(_this.A0Re_, " ").replace(_this.tailRe_, "");
     let s = _this.query_;
-    if (!_this.hasResults_ && !_this.isRegex_ && _this.notEmpty_ && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
+    if (!_this.hasResults_ && !_this.isRegex_ && !_this.wholeWord_ && _this.notEmpty_ && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
     s = "";
     _this.coords_ && window.scrollTo(_this.coords_[0], _this.coords_[1]);
     _this.updateQuery_(query);
