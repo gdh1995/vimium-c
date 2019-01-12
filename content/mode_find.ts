@@ -353,9 +353,9 @@ var VFind = {
     let count = this.matchCount_;
     (this.countEl_.firstChild as Text).data = !this.parsedQuery_ ? ""
       : "(" + (count || (this.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
-    count = this.input_.offsetWidth + this.countEl_.offsetWidth + 4;
-    if (this._small && count < 150) { return; }
-    this.box_.style.width = ((this._small = count < 150) ? 0 : count) + "px";
+    count = ((this.input_.offsetWidth + this.countEl_.offsetWidth + 7) >> 2) * 4;
+    if (this._small && count < 152) { return; }
+    this.box_.style.width = ((this._small = count < 152) ? 0 : count) + "px";
   },
   _ctrlRe: <RegExpG & RegExpSearchable<0>> /\\[CIRW\\cirw]/g,
   _bslashRe: <RegExpG & RegExpSearchable<0>> /\\\\/g,
