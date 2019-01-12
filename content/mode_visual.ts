@@ -92,11 +92,12 @@ var VVisual = {
     if (!this.retainSelection_) {
       this.collapseSelectionTo_(isEsc && this.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
+    this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
+    VFind.clean_(FindNS.Action.ExitNoFocus);
     const el = VEvent.lock();
     el && el.blur && el.blur();
     VDom.UI.toggleSelectStyle_(0);
     VScroller.top_ = null;
-    this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
     this.retainSelection_ = false;
     this.resetKeys_();
     this.selection_ = null as never;
