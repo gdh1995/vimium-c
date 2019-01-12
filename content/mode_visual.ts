@@ -178,6 +178,7 @@ var VVisual = {
     mode === VisualModeNS.Mode.Caret && movement.collapseSelectionTo_(0);
     if (command > 35) {
       movement.find_(command - 36 ? -count : count);
+      return;
     } else if (command > 30) {
       // 31 : y, Y, C, p, P : 35
       command === 32 && movement.selectLine_(count);
@@ -270,21 +271,23 @@ var VVisual = {
       });
       return;
     }
-    // todo: how to keep direction / how to work if TextBox / ShadowDOM
-    // todo: reset diType_ ?
     const sel = this.selection_,
     range = sel.rangeCount && (this.getDirection_(""), this.diType_ === VisualModeNS.DiType.Normal) && sel.getRangeAt(0);
     VFind.execute_(null, { noColor: true, count });
     if (VFind.hasResults_) {
+      this.diType_ = VisualModeNS.DiType.Unknown;
       if (this.mode_ === VisualModeNS.Mode.Caret && this.realType_(sel) === SelType.Range) {
         this.activate_(1, VUtils.safer_({
           mode: VisualModeNS.Mode.Visual as VisualModeNS.Mode.Visual
         }));
+      } else {
+        this.di_ = VisualModeNS.kDir.unknown;
+        this.commandHandler_(-1, 1);
       }
       return;
     }
     range && !sel.rangeCount && sel.addRange(range);
-    return this.prompt_("No matches for " + VFind.query_, 1000);
+    this.prompt_("No matches for " + VFind.query_, 1000);
   },
   /**
    * @safe_di if action !== true
