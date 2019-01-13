@@ -32,7 +32,7 @@ This extension Vimium C requires such types of information and permissions:
 Note:
 * the "**browsing activity**" listed above actually includes many permissions:
     `tabs`, `<all_urls>` and `webNavigation`.
-* Vimium C never deletes any browser history item, unless there's an explicit user operation like <kbd>Shift+Enter<kbd> .
+* Vimium C never deletes any browser history item, unless there's an explicit user operation like <kbd>Shift+Enter</kbd>.
 
 
 Other Explanations
