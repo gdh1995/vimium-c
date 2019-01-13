@@ -88,6 +88,8 @@ var VVisual = {
     if (!this.mode_) { return; }
     this.di_ = VisualModeNS.kDir.unknown;
     this.diType_ = VisualModeNS.DiType.Unknown;
+    this.getDirection_("");
+    const oldDiType = this.diType_ as VisualModeNS.DiType;
     VUtils.remove_(this);
     if (!this.retainSelection_) {
       this.collapseSelectionTo_(isEsc && this.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
@@ -95,6 +97,7 @@ var VVisual = {
     this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
     VFind.clean_(FindNS.Action.ExitNoFocus);
     const el = VEvent.lock();
+    oldDiType !== VisualModeNS.DiType.TextBox &&
     el && el.blur && el.blur();
     VDom.UI.toggleSelectStyle_(0);
     VScroller.top_ = null;
