@@ -656,8 +656,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       for (let i = 0; i < count; i++) {
         if (s.indexOf(names[i]) !== -1) {
           if (s.indexOf(refusedStr) === -1 && (len = s.split(re1).length) <= maxLen) {
+            let i2 = names.indexOf(s, i + 1);
+            if (i2 >= 0) { i = i2; len = 2; }
             maxLen > len && (maxLen = len + 1);
-            // TODO: shorter text is better - e.g. ">" should be better than ">>"
             // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
             candidates.push([(i << 23) | (len << 16) | (candidates.length & 0xffff), s, link]);
           }
