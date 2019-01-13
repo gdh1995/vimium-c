@@ -94,7 +94,8 @@ interface BgVomnibarReq {
   } & Req.baseBg<kBgReq.omni_returnFocus>;
   [kBgReq.omni_secret]: {
     secret: number;
-    browserVersion: BrowserVer;
+    browser: BrowserType;
+    browserVer: BrowserVer;
   };
   [kBgReq.omni_blurred]:  & Req.baseBg<kBgReq.omni_blurred>;
   [kBgReq.omni_parsed]: {

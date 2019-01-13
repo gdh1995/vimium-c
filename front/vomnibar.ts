@@ -127,6 +127,7 @@ var VCID: string | undefined = VCID || window.ExtId, O = {
   atimer_: 0,
   timer_: 0,
   wheelTime_: 0,
+  browser_: BrowserType.Chrome,
   browserVersion_: BrowserVer.assumedVer,
   wheelOptions_: { passive: false, capture: true as true },
   show_ (): void {
@@ -588,7 +589,7 @@ var VCID: string | undefined = VCID || window.ExtId, O = {
     let cl = this.barCls_, c = "empty";
     notEmpty ? cl.remove(c) : cl.add(c);
     cl = list.classList, c = "no-favicon";
-    this.showFavIcon_ ? cl.remove(c) :cl.add(c);
+    this.showFavIcon_ ? cl.remove(c) : cl.add(c);
     if (notEmpty) {
       if (this.selection_ === 0) {
         (list.firstElementChild as HTMLElement).classList.add("s");
@@ -684,7 +685,7 @@ var VCID: string | undefined = VCID || window.ExtId, O = {
       this.input_.addEventListener("compositionend", func);
     }
     this.init_ = U.makeListRenderer_ = null as never;
-    if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && ver !== BrowserVer.assumedVer || this.bodySt_.d != null) { return; }
+    if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && this.browser_ === BrowserType.Chrome || this.bodySt_.d != null) { return; }
     const styles = (document.querySelector("style") as HTMLStyleElement).textContent,
     re = <RegExpG & RegExpSearchable<2>> /\.([a-z]+)\s?\{(?:[^}]+;)?\s*d\s?:\s*path\s?\(\s?['"](.+?)['"]\s?\)/g,
     pathMap = Object.create<string>(null);
@@ -1011,7 +1012,8 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);
   O.secret_ = function(this: typeof O, request): void {
     this.secret_ = function() {};
-    O.browserVersion_ = request.browserVersion;
+    O.browser_ = request.browser;
+    O.browserVersion_ = request.browserVer;
     const { secret } = request, msgs = unsafeMsg;
     _sec = secret;
     unsafeMsg = null as never;

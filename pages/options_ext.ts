@@ -108,7 +108,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     extension: bgSettings_.CONST.CurrentVersion,
     platform: bgSettings_.CONST.Platform
   };
-  if (bVer != BrowserVer.assumedVer) {
+  if (!BG_.OnOther) {
     exported_object.environment.chrome = bVer;
   }
   for (let storage = localStorage, all = bgSettings_.defaults, i = 0, len = storage.length, j: string[]; i < len; i++) {

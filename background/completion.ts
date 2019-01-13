@@ -295,10 +295,10 @@ const bookmarkEngine = {
     bBm.onRemoved.addListener(Expire);
     bBm.onChanged.addListener(Expire);
     bBm.onMoved.addListener(listener);
-    bBm.onImportBegan.addListener(function(): void {
+    bBm.onImportBegan && bBm.onImportBegan.addListener(function(): void {
       chrome.bookmarks.onCreated.removeListener(bookmarkEngine.Delay_);
     });
-    bBm.onImportEnded.addListener(function(): void {
+    bBm.onImportEnded && bBm.onImportEnded.addListener(function(): void {
       const f = bookmarkEngine.Delay_;
       chrome.bookmarks.onCreated.addListener(f);
       f();

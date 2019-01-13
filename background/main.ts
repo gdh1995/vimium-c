@@ -108,7 +108,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
   function openMultiTab(this: void, option: InfoToCreateMultiTab, count: number): void {
     const wndId = option.windowId, hasIndex = option.index != null;
     tabsCreate(option, option.active ? function(tab) {
-      wndId != null && tab.windowId !== wndId && selectWnd(tab);
+      tab && tab.windowId !== wndId && selectWnd(tab);
     } : null);
     if (count < 2) { return; }
     option.active = false;
@@ -567,6 +567,13 @@ Are you sure you want to continue?`);
       }
       const { incognito } = tab;
       url = url.substring(prefix.length);
+      const arr: ShowPageData = [url, null, 0];
+      Settings.temp.shownHash = arr[1] = function(this: void) {
+        clearTimeout(arr[2]);
+        Settings.temp.shownHash = null;
+        return arr[0];
+      };
+      arr[2] = setTimeout(openShowPage[1], 1200, arr);
       if (reuse === ReuseType.current && !incognito) {
           chrome.tabs.update(tab.id, { url: prefix });
       } else
@@ -577,13 +584,6 @@ Are you sure you want to continue?`);
         openerTabId: !incognito && options.opener ? tab.id : undefined,
         url: prefix
       });
-      const arr: ShowPageData = [url, null, 0];
-      Settings.temp.shownHash = arr[1] = function(this: void) {
-        clearTimeout(arr[2]);
-        Settings.temp.shownHash = null;
-        return arr[0];
-      };
-      arr[2] = setTimeout(openShowPage[1], 1200, arr);
       return true;
     }, function(arr) {
       arr[0] = "#!url vimium://error (vimium://show: sorry, the info has expired.)";
@@ -2063,7 +2063,8 @@ Are you sure you want to continue?`);
           port.onMessage.addListener(OnMessage);
           port.postMessage({
             N: kBgReq.omni_secret,
-            browserVersion: Settings.CONST.ChromeVersion,
+            browser: OnOther,
+            browserVer: Settings.CONST.ChromeVersion,
             secret: getSecret()
           });
           return true;
@@ -2077,7 +2078,7 @@ Are you sure you want to continue?`);
           file: Settings.CONST.VomnibarScript_,
           frameId: port.s.i,
           runAt: "document_start"
-        });
+        }, onRuntimeError);
         port.disconnect();
         return true;
       }
