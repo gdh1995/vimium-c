@@ -554,6 +554,9 @@ declare const enum BrowserVer {
   MinCanNotRevokeObjectURLAtOnce = 65,
   MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65,
   MinInputMode = 66, // even if LEAGCY; still works on C35 if EXPERIMENTAL
+  // @see MinEscapeHashInBodyOfDataURL
+  // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
+  MinWarningOfEscapingHashInBodyOfDataURL = 66,
   // even if EXPERIMENTAL or LEAGCY
   // but not on pages whose JS is disabled in chrome://settings/content/siteDetails?site=<origin>
   // issue: https://bugs.chromium.org/p/chromium/issues/detail?id=811528
@@ -572,6 +575,9 @@ declare const enum BrowserVer {
   MinNamedGetterOnFramesetNotOverrideBulitin = 70,
   Min$Tabs$$Update$DoesNotAcceptJavascriptURLs = 71,
   MinTabIdBeSmallAgain = 71,
+  // https://www.chromestatus.com/features/5656049583390720
+  // deprecation is since C66
+  MinEscapeHashInBodyOfDataURL = 72,
   // https://www.chromestatus.com/features/6569666117894144
   // https://bugs.chromium.org/p/chromium/issues/detail?id=179006#c45
   MinSpecCompliantShadowBlurRadius = 73,

@@ -1287,7 +1287,7 @@ knownCs: CompletersMap & SafeObject = {
           _this._ind = -1;
           return;
         }
-        xhr.open("GET", _this._dataUrl + str.replace("#", "%25"), true);
+        xhr.open("GET", _this._dataUrl + (_this._escapeHash ? str.replace("#", "%25") : str), true);
         return xhr.send();
       }
     },
@@ -1307,7 +1307,8 @@ knownCs: CompletersMap & SafeObject = {
       _this._ind = -1;
     },
     enabled_: true,
-    _dataUrl: "wait",
+    _dataUrl: "1",
+    _escapeHash: true,
     xhr_ (): XMLHttpRequest | null {
       if (!this._dataUrl) { return null; }
       const xhr = new XMLHttpRequest();
@@ -1340,6 +1341,7 @@ knownCs: CompletersMap & SafeObject = {
       this._ind = -1;
     },
     init_ (): XMLHttpRequest | null {
+      this._escapeHash = Settings.CONST.ChromeVersion >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL;
       Settings.updateHooks_.localeEncoding = Decoder.onUpdate_.bind(Decoder);
       Decoder.onUpdate_(Settings.get("localeEncoding"));
       this.init_ = this.xhr_;
