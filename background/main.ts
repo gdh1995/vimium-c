@@ -2288,7 +2288,7 @@ Are you sure you want to continue?`);
           port.disconnect();
           return;
         }
-        return OnConnect(port as Frames.Port, (arr[0] as string | number as number) | 0);
+        return OnConnect(port as Frames.Port, (arr[0].substring(9) as string | number as number) | 0);
       } else {
         port.disconnect();
       }

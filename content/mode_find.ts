@@ -137,7 +137,7 @@ var VFind = {
     this._actived = true;
   },
   init_ (adjust: AdjustType): void {
-    // todo: https://bugs.chromium.org/p/chromium/issues/detail?id=807560
+    // Note(gdh1995): a potential improvement: https://bugs.chromium.org/p/chromium/issues/detail?id=807560
     const ref = this.postMode_, UI = VDom.UI,
     css = this.css_[0], sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
@@ -184,7 +184,7 @@ var VFind = {
       el = VDom.getSelectionFocusEdge_(getSelection(), 1);
       el && el.focus && el.focus();
     }
-    _this.box_.remove();
+    _this.box_ && _this.box_.remove();
     if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
     _this.parsedQuery_ = _this.query_ = _this.query0_ = "";
     _this.historyIndex_ = _this.matchCount_ = 0;
