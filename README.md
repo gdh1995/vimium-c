@@ -1,7 +1,7 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.71](https://img.shields.io/badge/release-1.71-orange.svg
+[![Version 1.71.1](https://img.shields.io/badge/release-1.71.1-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -97,6 +97,11 @@ Known issues (Up to the master branch):
   Chrome 66 fixes it.
 9. Chrome 69 disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
   This issue has been fixed since Chrome Dev 70 (up to 2018-09-07).
+
+1.71.1:
+* a try to fix a potential breaking on Chrome 71.0.3578.98 (win, x64)
+* a few bug fixes and improvements of `FindMode` and `VisualMode`
+* Firefox: fix Vomnibar UI and broken `FindMode`
 
 1.71:
 * use Google, instead of Baidu, as the default search engine, for non-Chinese users
