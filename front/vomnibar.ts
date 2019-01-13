@@ -701,7 +701,7 @@ var VCID: string | undefined = VCID || window.ExtId, O = {
     this.pageType_ = type;
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
       , canShowOnOthers = this.browserVersion_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
-    if (type === VomnibarNS.PageType.web || location.origin.indexOf("-") < 0) {}
+    if (this.browser_ !== BrowserType.Chrome || type === VomnibarNS.PageType.web || location.origin.indexOf("-") < 0) {}
     else if (type === VomnibarNS.PageType.inner) {
       fav = canShowOnOthers || this.sameOrigin_ ? 2 : 0;
     } else if ((canShowOnOthers || this.sameOrigin_) && (f = chrome.runtime.getManifest) && (manifest = f())) {
