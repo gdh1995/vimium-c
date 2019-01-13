@@ -575,7 +575,13 @@ Are you sure you want to continue?`);
       };
       arr[2] = setTimeout(openShowPage[1], 1200, arr);
       if (reuse === ReuseType.current && !incognito) {
+        let views = !OnOther && !tab.url.split("#", 2)[1] && Settings.CONST.ChromeVersion >= BrowserVer.Min$Extension$$GetView$AcceptsTabId
+          ? chrome.extension.getViews({ tabId: tab.id }) : [];
+        if (views.length > 0 && views[0].onhashchange) {
+          (views[0].onhashchange as () => void)();
+        } else {
           chrome.tabs.update(tab.id, { url: prefix });
+        }
       } else
       tabsCreate({
         active: reuse !== ReuseType.newBg,

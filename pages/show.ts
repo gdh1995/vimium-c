@@ -63,11 +63,16 @@ window.onhashchange = function(this: void): void {
 
   VData = Object.create(null);
   let url = location.hash, type: ValidShowTypes = "", file = "";
-  if (!location.hash && BG_ && BG_.Settings && BG_.Settings.temp.shownHash) {
+  if (!url && BG_ && BG_.Settings && BG_.Settings.temp.shownHash) {
     url = BG_.Settings.temp.shownHash();
+    if (history.state) {
+      history.pushState(url, "");
+    } else {
+      history.replaceState(url, "");
+    }
     window.name = url;
   } else if (!url) {
-    url = window.name;
+    url = history.state || window.name;
   }
   if (url.length < 3) {}
   else if (url.startsWith("#!image")) {
@@ -229,6 +234,10 @@ String.prototype.startsWith = function(this: string, s: string): boolean {
 };
 }
 (window.onhashchange as () => void)();
+
+window.onpopstate = function() {
+  (window.onhashchange as () => void)();
+};
 
 document.addEventListener("keydown", function(this: void, event): void {
   if (VData.type === "image" && imgOnKeydown(event)) {
