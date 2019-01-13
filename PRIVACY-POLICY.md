@@ -25,14 +25,14 @@ This extension Vimium C requires such types of information and permissions:
 * **`contentSettings`**: toggle browser's content settings on special websites, such as whether to show images
 * **`notifications`**: show a notification whenever Vimium C is upgraded to a higher version
 * **`sessions`**: allow you to restore closed tabs (supported from Chrome 37)
-* **`storage`**: not in use by default; if you enable `vimSync` manually,
-    Vimium C will need it to sync settings to Google servers
+* **`storage`**: **not in use** by default.
+    Only when you enable "`Sync settings with your current account for this browser`" manually,
+    then Vimium C will need this permission to sync most setting items with Google servers
 
 Note:
 * the "**browsing activity**" listed above actually includes many permissions:
     `tabs`, `<all_urls>` and `webNavigation`.
-* Vimium C will never delete any browser history item,
-     unless there's an explicit user operation like Shift+Enter.
+* Vimium C never deletes any browser history item, unless there's an explicit user operation like <kbd>Shift+Enter<kbd> .
 
 
 Other Explanations
