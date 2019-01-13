@@ -663,6 +663,12 @@ var VCID: string | undefined = VCID || window.ExtId, O = {
     (document.getElementById("close") as HTMLElement).onclick = function(): void { return O.hide(); };
     addEventListener("keydown", this.HandleKeydown_, true);
     this.renderItems_ = U.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
+    if (ver >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
+      const css = document.querySelector("style") as HTMLStyleElement;
+      if (css) {
+        css.textContent = css.textContent.replace("0 2px 10px", "0 2px 7px");
+      }
+    }
     if (ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured) {
       const css = document.createElement("style");
       css.textContent = `.item, #input { border-width: ${ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`;

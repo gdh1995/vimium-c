@@ -127,7 +127,9 @@ var Settings = {
       if (browserVer < BrowserVer.MinUnprefixedUserSelect) {
         css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
       }
-      // TODO: https://bugs.chromium.org/p/chromium/issues/detail?id=179006
+      if (browserVer >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
+        css = css.replace("3px 7px", "3px 5px");
+      }
       if (browserInfo.lastIndexOf("s") < 0) {
         // Note: &vimium.min.css: this requires `:host{` is at the beginning
         const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1;

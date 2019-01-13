@@ -526,7 +526,6 @@ declare const enum BrowserVer {
   MinCorrectBoxWidthForOptionUI = 61,
   Min$visualViewPort$ = 61,
   MinEnsuredCSS$ScrollBehavior = 61, // still exists on C35 (although has no effects before C41) if EXPERIMENTAL
-  // TODO: confirm th below
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
     // according to https://github.com/w3ctag/design-reviews/issues/51#issuecomment-96759374 ,
@@ -573,5 +572,8 @@ declare const enum BrowserVer {
   MinNamedGetterOnFramesetNotOverrideBulitin = 70,
   Min$Tabs$$Update$DoesNotAcceptJavascriptURLs = 71,
   MinTabIdBeSmallAgain = 71,
+  // https://www.chromestatus.com/features/6569666117894144
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=179006#c45
+  MinSpecCompliantShadowBlurRadius = 73,
   assumedVer = 999,
 }
