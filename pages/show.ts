@@ -52,6 +52,7 @@ let VData: {
   file?: string;
   auto?: boolean | "once";
 } = null as never;
+let urlHistory: string[] = [];
 
 window.onhashchange = function(this: void): void {
   if (VShown) {
@@ -65,14 +66,16 @@ window.onhashchange = function(this: void): void {
   let url = location.hash, type: ValidShowTypes = "", file = "";
   if (!url && BG_ && BG_.Settings && BG_.Settings.temp.shownHash) {
     url = BG_.Settings.temp.shownHash();
-    if (history.state) {
-      history.pushState(url, "");
+    if (history.state >= 0) {
+      history.pushState(urlHistory.length, "");
     } else {
-      history.replaceState(url, "");
+      history.replaceState(urlHistory.length, "");
     }
+    urlHistory.push(url);
     window.name = url;
   } else if (!url) {
-    url = history.state || window.name;
+    let stat = history.state;
+    url = stat != null && +stat < urlHistory.length ? urlHistory[+stat] : window.name;
   }
   if (url.length < 3) {}
   else if (url.startsWith("#!image")) {
@@ -552,4 +555,7 @@ function recoverHash_(): void {
     + (VData.file ? "download=" + encodeURIComponent(VData.file) + "&" : "")
     + (VData.auto ? `auto=${VData.auto === "once" ? "once" : 1}&` : "")
     + VData.original;
+  if (history.state >= 0) {
+    urlHistory[history.state] = window.name;
+  }
 }
