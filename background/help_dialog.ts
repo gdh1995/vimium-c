@@ -17,11 +17,18 @@ var HelpDialog = {
       HelpDialog.inited_ = true;
     }
     Object.setPrototypeOf(request, null);
-    const commandsToKey = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry_,
+    const commandToKeys = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry_,
           hideUnbound = !request.unbound, showNames = !!request.names;
     for (const key in ref) {
-      const command = (ref[key] as CommandsNS.Item).command;
-      (commandsToKey[command] || (commandsToKey[command] = [])).push(key);
+      let command = (ref[key] as CommandsNS.Item).command;
+      if (command.endsWith(".activateMode")) {
+        command = command.substring(0, command.length - 4);
+      } else if (command.indexOf("EditUrl") > 0) {
+        command = command.replace("EditUrl", "Url");
+      } else if (command === "quickNext") {
+        command = "nextTab";
+      }
+      (commandToKeys[command] || (commandToKeys[command] = [])).push(key);
     }
     const result = Object.setPrototypeOf({
       version: Settings.CONST.CurrentVersionName_,
@@ -33,17 +40,17 @@ var HelpDialog = {
     return (<string>Settings.cache.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
       let s = result[group];
       return s != null ? s
-        : HelpDialog.groupHtml_(group, commandsToKey, hideUnbound, showNames);
+        : HelpDialog.groupHtml_(group, commandToKeys, hideUnbound, showNames);
     });
   }),
-  groupHtml_: (function(this: {}, group: string, commandsToKey: SafeDict<string[]>
+  groupHtml_: (function(this: {}, group: string, commandToKeys: SafeDict<string[]>
       , hideUnbound: boolean, showNames: boolean): string {
     const _ref = (this as typeof HelpDialog).commandGroups_[group], renderItem = (this as typeof HelpDialog).commandHtml_
       , availableCommands = CommandsData.availableCommands_ as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
     let keys: string[] | undefined, html = "";
     for (let _i = 0, _len = _ref.length; _i < _len; _i++) {
       const command = _ref[_i];
-      keys = commandsToKey[command];
+      keys = commandToKeys[command];
       if (hideUnbound && !keys) { continue; }
       let klen = -2, bindings = '';
       if (keys && keys.length > 0) {
@@ -96,7 +103,7 @@ var HelpDialog = {
       , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simBackspace"
       , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
       , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
-      , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
+      , "focusInput", "LinkHints.activate", "LinkHints.activateModeToOpenInNewTab"
       , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
       , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
       , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
