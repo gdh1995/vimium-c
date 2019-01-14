@@ -52,7 +52,7 @@ let VData: {
   file?: string;
   auto?: boolean | "once";
 } = null as never;
-let urlHistory: string[] = [];
+let encryptKey = window.name && +window.name.split(' ')[0] || 0;
 
 window.onhashchange = function(this: void): void {
   if (VShown) {
@@ -66,16 +66,19 @@ window.onhashchange = function(this: void): void {
   let url = location.hash, type: ValidShowTypes = "", file = "";
   if (!url && BG_ && BG_.Settings && BG_.Settings.temp.shownHash) {
     url = BG_.Settings.temp.shownHash();
-    if (history.state >= 0) {
-      history.pushState(urlHistory.length, "");
+    encryptKey = encryptKey || Math.round(Math.random() * 0x100000000) || 0xc3e73c18;
+    let encryptedUrl = encrypt(url, encryptKey, true);
+    if (history.state) {
+      history.pushState(encryptedUrl, "", "");
     } else {
-      history.replaceState(urlHistory.length, "");
+      history.replaceState(encryptedUrl, "", "");
     }
-    urlHistory.push(url);
-    window.name = url;
-  } else if (!url) {
-    let stat = history.state;
-    url = stat != null && +stat < urlHistory.length ? urlHistory[+stat] : window.name;
+    window.name = encryptKey + " " + url;
+  } else if (url || !history.state) {
+  } else if (encryptKey) {
+    url = encrypt(history.state, encryptKey, false);
+  } else {
+    history.replaceState(null, "", ""); // clear useless data
   }
   if (url.length < 3) {}
   else if (url.startsWith("#!image")) {
@@ -549,13 +552,78 @@ function resetOnceProperties_() {
 function recoverHash_(): void {
   const type = VData.type;
   if (!type) {
-    return;
   }
-  window.name = "#!" + type + " "
-    + (VData.file ? "download=" + encodeURIComponent(VData.file) + "&" : "")
-    + (VData.auto ? `auto=${VData.auto === "once" ? "once" : 1}&` : "")
-    + VData.original;
-  if (history.state >= 0) {
-    urlHistory[history.state] = window.name;
+  let url = "#!" + type + " "
+      + (VData.file ? "download=" + encodeURIComponent(VData.file) + "&" : "")
+      + (VData.auto ? "auto=" + (VData.auto === "once" ? "once" : 1) + "&" : "")
+      + VData.original;
+  window.name = encryptKey + " " + url;
+  if (history.length === 1) {
+      let encryptedUrl = encrypt(url, encryptKey, true);
+      history.replaceState(encryptedUrl, "");
   }
+}
+
+function encrypt(message: string, password: number, doEncrypt: boolean): string {
+  const arr: number[] = [], useCodePoint = !!("".codePointAt && String.fromCodePoint);
+  if (doEncrypt) {
+    // Unicode <-> UTF8 : https://www.ibm.com/support/knowledgecenter/en/ssw_aix_71/com.ibm.aix.nlsgdrf/utf-8.htm
+    for (let i = 0; i < message.length; i++) {
+      const ch = useCodePoint ? (message.codePointAt as NonNullable<String["codePointAt"]>)(i) : message.charCodeAt(i);
+      if (ch == null || isNaN(ch)) { break; }
+      if (ch <= 0x7f) {
+        arr.push(ch);
+      } else if (ch <= 0x7ff) {
+        arr.push(0xc0 | (ch >> 6), 0x80 | (ch & 0x3f));
+      } else if (ch <= 0xffff) {
+        arr.push(0xe0 | (ch >> 12), 0x80 | ((ch >> 6) & 0x3f), 0x80 | (ch & 0x3f));
+      } else if (ch <= 0x1fffff) {
+        arr.push(0xf0 | (ch >> 18), 0x80 | ((ch >> 12) & 0x3f), 0x80 | ((ch >> 6) & 0x3f), 0x80 | (ch & 0x3f));
+      // } else if (ch <= 0x3ffffff) {
+      //   arr.push(0xf8 | (ch >>> 24), 0x80 | ((ch >> 18) & 0x3f), 0x80 | ((ch >> 12) & 0x3f)
+      //     , 0x80 | ((ch >> 6) & 0x3f), 0x80 | (ch & 0x3f));
+      // } else {
+      //   arr.push(0xfc | (ch >>> 30), 0x80 | ((ch >> 24) & 0x3f), 0x80 | ((ch >> 18) & 0x3f)
+      //     , 0x80 | ((ch >> 12) & 0x3f), 0x80 | ((ch >> 6) & 0x3f), 0x80 | (ch & 0x3f));
+      }
+    }
+  } else {
+    for (let i = 0; i < message.length; i++) {
+      const ch = message.charCodeAt(i);
+      if (ch == null || isNaN(ch)) { break; }
+      arr.push(ch);
+    }
+  }
+  for (let i = 0; i < arr.length; i++) {
+    arr[i] = arr[i] ^ (0xff & (password >>> (8 * (i & 3))));
+  }
+  if (doEncrypt) {
+    return String.fromCharCode.apply(String, arr);
+  }
+  const decoded: number[] = [];
+  for (let i = 0; i < arr.length; ) {
+    const ch = arr[i];
+    if (ch <= 0x7f) {
+      decoded.push(ch);
+      i++;
+    } else if (ch < 0xc1) {
+      decoded.push(((ch & 0x1f) << 6) | (arr[i + 1] & 0x3f));
+      i += 2;
+    } else if (ch < 0xe1) {
+      decoded.push(((ch & 0x0f) << 12) | ((arr[i + 1] & 0x3f) << 6) | (arr[i + 2] & 0x3f));
+      i += 3;
+    } else if (ch < 0xf1) {
+      decoded.push(((ch & 0x07) << 18) | ((arr[i + 1] & 0x3f) << 12) | ((arr[i + 2] & 0x3f) << 6) | (arr[i + 3] & 0x3f));
+      i += 4;
+    // } else if (ch < 0xf9) {
+    //   decoded.push(((ch & 0x03) << 24) | ((arr[i + 1] & 0x3f) << 18) | ((arr[i + 2] & 0x3f) << 12)
+    //     | ((arr[i + 3] & 0x3f) << 6) | (arr[i + 4] & 0x3f));
+    //   i += 5;
+    // } else {
+    //   decoded.push(((ch & 0x03) << 30) | ((arr[i + 1] & 0x3f) << 24) | ((arr[i + 2] & 0x3f) << 18)
+    //     | ((arr[i + 3] & 0x3f) << 12) | ((arr[i + 4] & 0x3f) << 6) | (arr[i + 5] & 0x3f));
+    //   i += 6;
+    }
+  }
+  return (useCodePoint ? String.fromCodePoint as NonNullable<typeof String.fromCharCode> : String.fromCharCode).apply(String, decoded);
 }

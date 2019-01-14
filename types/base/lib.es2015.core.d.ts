@@ -439,7 +439,7 @@ interface String {
      * If there is no element at that position, the result is undefined.
      * If a valid UTF-16 surrogate pair does not begin at pos, the result is the code unit at pos.
      */
-    codePointAt(pos: number): number | undefined;
+    codePointAt? (pos: number): number | undefined;
 
     /**
      * Returns true if searchString appears as a substring of the result of converting this
@@ -524,7 +524,7 @@ interface StringConstructor {
      * Return the String value whose elements are, in order, the elements in the List elements.
      * If length is 0, the empty string is returned.
      */
-    fromCodePoint(...codePoints: number[]): string;
+    fromCodePoint? (...codePoints: number[]): string;
 
     /**
      * String.raw is intended for use as a tag function of a Tagged Template String. When called

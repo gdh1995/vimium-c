@@ -89,7 +89,7 @@ var VOmni = {
       return a.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
     if (VimiumInjector === null && (window as Window & {VShown?: Element}).VShown) {
-      url = url.split("#", 1)[0] + window.name;
+      url = url.split("#", 1)[0] + window.name.replace(<RegExpOne> /^-?\d+ /, "");
     }
     const trail = options.trailing_slash;
     VPort.send_({
