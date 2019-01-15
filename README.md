@@ -1,7 +1,7 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.71.2](https://img.shields.io/badge/release-1.71.2-orange.svg
+[![Version 1.71.3](https://img.shields.io/badge/release-1.71.3-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -101,8 +101,8 @@ These issues are only up to the master branch:
 
 # Release Notes
 
-1.71.2:
-* a try to fix a potential breaking on Chrome 71.0.3578.98 (win, x64)
+1.71.3:
+* fix broken code on Vimium C's background process
 * a few bug fixes and improvements of `FindMode` and `VisualMode`
 * Firefox: fix Vomnibar UI and broken `FindMode`
 * `vimium://show` now supports history actions and stores history data safely and secretly
