@@ -701,7 +701,7 @@ var Utils = {
   keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,3}.\w*?>|./g, /* need to support "<<left>" */
   makeCommand_: (function(command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description) : CommandsNS.Item {
     let opt: CommandsNS.Options | null;
-    if (!details) { details = CommandsData.availableCommands_[command] as CommandsNS.Description }
+    if (!details) { details = CommandsData_.availableCommands_[command] as CommandsNS.Description }
     opt = details.length < 5 ? null : Object.setPrototypeOf(details[4] as NonNullable<CommandsNS.Description[4]>, null);
     if (options) {
       if ("count" in options) {

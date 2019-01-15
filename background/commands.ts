@@ -1,4 +1,4 @@
-declare var CommandsData: CommandsData;
+declare var CommandsData_: CommandsData;
 var Commands = {
   SetKeyRe (this: void, keyReSource: string): void {
     Utils.keyRe_ = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;
@@ -40,11 +40,11 @@ var Commands = {
   parseKeyMappings_: (function(this: {}, line: string): void {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i: number
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
-      , registry = CommandsData.keyToCommandRegistry_ = Object.create<CommandsNS.Item>(null)
-      , cmdMap = CommandsData.cmdMap_ = Object.create<CommandsNS.Options | null>(null)
+      , registry = CommandsData_.keyToCommandRegistry_ = Object.create<CommandsNS.Item>(null)
+      , cmdMap = CommandsData_.cmdMap_ = Object.create<CommandsNS.Options | null>(null)
       , userDefinedKeys = Object.create<true>(null)
       , mkReg = Object.create<string>(null);
-    const available = CommandsData.availableCommands_;
+    const available = CommandsData_.availableCommands_;
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
       const defaultMap = (this as typeof Commands).defaultKeyMappings_;
@@ -78,8 +78,8 @@ var Commands = {
           continue;
         }
       } else if (key === "unmapAll" || key === "unmapall") {
-        registry = CommandsData.keyToCommandRegistry_ = Object.create(null);
-        cmdMap = CommandsData.cmdMap_ = Object.create<CommandsNS.Options | null>(null);
+        registry = CommandsData_.keyToCommandRegistry_ = Object.create(null);
+        cmdMap = CommandsData_.cmdMap_ = Object.create<CommandsNS.Options | null>(null);
         userDefinedKeys = Object.create<true>(null);
         mkReg = Object.create<string>(null), mk = 0;
         if (errors > 0) {
@@ -126,11 +126,11 @@ var Commands = {
       }
       ++errors;
     }
-    CommandsData.mapKeyRegistry_ = mk > 0 ? mkReg : null;
+    CommandsData_.mapKeyRegistry_ = mk > 0 ? mkReg : null;
     Settings.temp.cmdErrors = Settings.temp.cmdErrors > 0 ? ~errors : errors;
   }),
   populateCommandKeys_: (function(this: void): void {
-    const d = CommandsData, ref = d.keyMap_ = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe_,
+    const d = CommandsData_, ref = d.keyMap_ = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe_,
     d2 = Settings.temp, oldErrors = d2.cmdErrors;
     if (oldErrors < 0) { d2.cmdErrors = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
@@ -250,7 +250,7 @@ defaultKeyMappings_: [
   "`", "Marks.activate"
 ]
 },
-CommandsData = (CommandsData as CommandsData) || {
+CommandsData_: CommandsData = CommandsData_ as never || {
   keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
   keyMap_: null as never as KeyMap,
   cmdMap_: null as never as SafeDict<CommandsNS.Options | null>,
@@ -470,7 +470,7 @@ Settings.updateHooks_.keyMappings = function(value: string): void {
   Commands.populateCommandKeys_();
   return (this as typeof Settings).broadcast({
     N: kBgReq.keyMap,
-    m: CommandsData.mapKeyRegistry_,
-    k: CommandsData.keyMap_
+    m: CommandsData_.mapKeyRegistry_,
+    k: CommandsData_.keyMap_
   });
 };

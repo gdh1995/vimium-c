@@ -68,7 +68,7 @@ var Tasks = {
     var exArgs = { nameCache: { vars: {}, props: {} }, passAll: true };
     var config = loadUglifyConfig(!!exArgs.nameCache);
     config.nameCache = exArgs.nameCache;
-    require(LIB_UGLIFY_JS).minify("var CommandsData;", config);
+    require(LIB_UGLIFY_JS).minify("var CommandsData_, Completion_, ContentSettings_, FindModeHistory_, Marks_, TabRecency_, VClipboard_;", config);
 
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");

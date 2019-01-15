@@ -276,7 +276,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       return null;
     }
     function confirm (this: void, command: string, count: number): boolean {
-      let msg = (CommandsData.availableCommands_[command] as CommandsNS.Description)[0];
+      let msg = (CommandsData_.availableCommands_[command] as CommandsNS.Description)[0];
       msg = msg.replace(<RegExpOne>/ \(use .*|&nbsp\(.*|<br\/>/, "");
       return window.confirm(
 `You have asked Vimium C to perform ${count} repeats of the command:
@@ -735,7 +735,7 @@ Are you sure you want to continue?`);
         gCmdTimer = 0;
       }
       if (!ports) {
-        return execute(cmd, CommandsData.cmdMap_[cmd] || null, 1, null);
+        return execute(cmd, CommandsData_.cmdMap_[cmd] || null, 1, null);
       }
       gCmdTimer = setTimeout(executeGlobal, 100, cmd, null);
       ports[0].postMessage({ N: kBgReq.count, cmd, id: gCmdTimer });
@@ -1339,7 +1339,7 @@ Are you sure you want to continue?`);
       const str = typeof options.mode === "string" ? (options.mode as string).toLowerCase() : "";
       options.mode = str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual;
       if (~flags & Frames.Flags.hadVisualMode) {
-        options.words = CommandsData.wordsRe_;
+        options.words = CommandsData_.wordsRe_;
         if (~flags & Frames.Flags.hadFindMode) {
           options.findCSS = Settings.cache.findCSS;
         }
@@ -1879,7 +1879,7 @@ Are you sure you want to continue?`);
         key = key.substring(prefix.length);
         count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1;
       }
-      const ref = CommandsData.keyToCommandRegistry_;
+      const ref = CommandsData_.keyToCommandRegistry_;
       if (!(key in ref)) {
         arr = key.match(Utils.keyRe_) as string[];
         key = arr[arr.length - 1];
@@ -1921,7 +1921,7 @@ Are you sure you want to continue?`);
         clearTimeout(gCmdTimer);
         gCmdTimer = 0;
       }
-      execute(cmd, CommandsData.cmdMap_[cmd] || null, request.count, port);
+      execute(cmd, CommandsData_.cmdMap_[cmd] || null, request.count, port);
     },
     /** blurTest: */ function (this: void, _0: FgReq[kFgReq.blurTest], port: Port): void {
       if (port.s.t < 0) {
@@ -2011,8 +2011,8 @@ Are you sure you want to continue?`);
           s: flags,
           c: Settings.payload,
           p: pass,
-          m: CommandsData.mapKeyRegistry_,
-          k: CommandsData.keyMap_
+          m: CommandsData_.mapKeyRegistry_,
+          k: CommandsData_.keyMap_
         });
       }
       sender.s = status;
@@ -2328,7 +2328,7 @@ Are you sure you want to continue?`);
     }
     if (typeof message === "string") {
       command = message;
-      if (command && CommandsData.availableCommands_[command]) {
+      if (command && CommandsData_.availableCommands_[command]) {
         const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
         port = frames ? indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
         return execute(command, null, 1, port);
@@ -2342,7 +2342,7 @@ Are you sure you want to continue?`);
       });
     } else if (message.handler === kFgReq.command) {
       command = message.command ? message.command + "" : "";
-      if (command && CommandsData.availableCommands_[command]) {
+      if (command && CommandsData_.availableCommands_[command]) {
         const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
         port = frames ? indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
         execute(command, message.options as CommandsNS.RawOptions | null, message.count as number | string, port, message.key);

@@ -17,7 +17,7 @@ var HelpDialog = {
       HelpDialog.inited_ = true;
     }
     Object.setPrototypeOf(request, null);
-    const commandToKeys = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry_,
+    const commandToKeys = Object.create<string[]>(null), ref = CommandsData_.keyToCommandRegistry_,
           hideUnbound = !request.unbound, showNames = !!request.names;
     for (const key in ref) {
       let command = (ref[key] as CommandsNS.Item).command;
@@ -46,7 +46,7 @@ var HelpDialog = {
   groupHtml_: (function(this: {}, group: string, commandToKeys: SafeDict<string[]>
       , hideUnbound: boolean, showNames: boolean): string {
     const _ref = (this as typeof HelpDialog).commandGroups_[group], renderItem = (this as typeof HelpDialog).commandHtml_
-      , availableCommands = CommandsData.availableCommands_ as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
+      , availableCommands = CommandsData_.availableCommands_ as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
     let keys: string[] | undefined, html = "";
     for (let _i = 0, _len = _ref.length; _i < _len; _i++) {
       const command = _ref[_i];
