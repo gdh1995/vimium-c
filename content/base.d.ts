@@ -329,8 +329,8 @@ interface VHUD {
   show_ (text: string, embed?: boolean): void;
   /** duration is default to 1500 */
   tip (text: string, duration?: number): void;
-  copied (text: string, type: string, virtual: true): string;
-  copied (text: string, type?: string): void;
+  copied (this: VHUD, text: string, type: string, virtual: true): string;
+  copied (this: VHUD, text: string, type?: string): void;
   hide_ (this: void, info?: TimerType): void;
 }
 interface VSettings {

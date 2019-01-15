@@ -275,7 +275,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     VHints.ActivateAndFocus_,
     /* unhoverLast: */ function (this: void): void {
       VDom.hover_(null);
-      VHUD.tip("The last element is unhovered");
+      HUD.tip("The last element is unhovered");
     },
     VMarks.activate_,
     VMarks.GoTo_,
@@ -309,7 +309,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       cache[key] = val as typeof cur;
       let msg = val === false ? '"' + key + '" has been turned off'
         : 'Now "' + key + (val === true ? '" is on' : '" use ' + JSON.stringify(val));
-      return VHUD.tip(msg, 1000);
+      return HUD.tip(msg, 1000);
     },
     /* insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {
       let { code, stat } = opt;
@@ -357,7 +357,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       if (!VDom.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }
       const isNext = rel === "next";
       if (patterns.length <= 0 || !Pagination.findAndFollowLink_(patterns, isNext ? "<" : ">")) {
-        return VHUD.tip("No links to go " + rel);
+        return HUD.tip("No links to go " + rel);
       }
     },
     /* reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
@@ -769,17 +769,17 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       this.text_ && ((this as typeof HUD)._timer = setTimeout(this.hide_, duration || 1500));
     },
     show_ (text: string, embed?: boolean): void {
-      if (!this.enabled_ || !VDom.isHTML_()) { return; }
-      this.opacity_ = 1; this.text_ = text;
-      if (this._timer) { clearTimeout(this._timer); this._timer = 0; }
-      let el = this.box_;
-      if (el && (embed || el.style.opacity === "")) {
-        el.style.cssText = "";
+      const hud = HUD;
+      if (!hud.enabled_ || !VDom.isHTML_()) { return; }
+      hud.opacity_ = 1; hud.text_ = text;
+      if (hud._timer) { clearTimeout(hud._timer); hud._timer = 0; }
+      embed || hud._tweenId || (hud._tweenId = setInterval(hud._tween, 40));
+      let el = hud.box_;
+      if (el) {
+        embed && (el.style.cssText = "");
         (el.firstChild as Text).data = text;
         return;
       }
-      embed || this._tweenId || (this._tweenId = setInterval(this._tween, 40));
-      if (el) { return; }
       el = VDom.createElement_("div");
       el.className = "R HUD";
       el.textContent = text;
@@ -789,7 +789,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         st.visibility = "hidden";
         VDom.UI.box_ || VDom.UI.ensureBorder_();
       }
-      VDom.UI.addElement_(this.box_ = el, AdjustType.NotAdjust, VHints.box_);
+      VDom.UI.addElement_(hud.box_ = el, AdjustType.NotAdjust, VHints.box_);
     },
     _tween (this: void, info?: TimerType): void {
       if (!VPort) { return; }
@@ -806,7 +806,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       } else {
         opacity = hud.opacity_;
       }
-      st.opacity = opacity < 1 ? opacity as number | string as string : "";
+      st.opacity = opacity < 1 ? "" + opacity : "";
       if (opacity !== hud.opacity_) { return; }
       if (opacity === 0) {
         st.visibility = "hidden";
