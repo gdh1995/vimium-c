@@ -512,8 +512,5 @@ setTimeout(function() {
 (Backend.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
 
 chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
-  const notAllowed = Settings.CONST.DisallowIncognito_ = isAllowedAccess === false;
-  if (notAllowed) {
-    console.log("Sorry, but some commands of Vimium C require the permission to run in incognito mode.");
-  }
+  Settings.CONST.DisallowIncognito_ = isAllowedAccess === false;
 });

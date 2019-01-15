@@ -488,19 +488,23 @@ setTimeout(function() {
         t.executeScript(tabId, {file: js[_j].substring(offset), allFrames: true}, callback);
       }
     }
-    function now() {
-      return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60
-        ).toJSON().substring(0, 19).replace('T', ' ');
-    }
-    console.log("%cVimium C%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
-      , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");
   });
+  function now() {
+    return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60
+      ).toJSON().substring(0, 19).replace('T', ' ');
+  }
+  console.log("%cVimium C%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
+    , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");
+
+  if (Settings.CONST.DisallowIncognito_) {
+    console.log("Sorry, but some commands of Vimium C require the permission to run in incognito mode.");
+  }
 
   if (!reason) { return; }
 
   if (parseFloat(Settings.CONST.CurrentVersion) <= parseFloat(reason)) { return; }
 
-  reason = "vimium-c_upgradeNotification";
+  reason = "vimium-c_upgrade-notification";
   chrome.notifications && chrome.notifications.create(reason, {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
