@@ -69,9 +69,10 @@ __Other extensions supporting Vimium C:__
   : a modified version of [PDF Viewer](https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
     from [PDF.js](https://github.com/mozilla/pdf.js/)
 
-# Release Notes
+# Known issues
 
-Known issues (Up to the master branch):
+These issues are only up to the master branch:
+
 1. Chrome before version 49 has bugs in `Window.postMessage` if the flag `#enable-site-per-process` is on,
   which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium C Options pages.
 2. the Chrome flag `#enable-embedded-extension-options` has a bug about dialog width on high-DPI screens,
@@ -97,6 +98,8 @@ Known issues (Up to the master branch):
   Chrome 66 fixes it.
 9. Chrome 69 disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
   This issue has been fixed since Chrome Dev 70 (up to 2018-09-07).
+
+# Release Notes
 
 1.71.2:
 * a try to fix a potential breaking on Chrome 71.0.3578.98 (win, x64)
