@@ -58,6 +58,8 @@
       "VSettings", "VHUD", "VPort", "VEvent",
       // # front/vomnibar
       "VCID",
+      // # lib/
+      "MathParser",
       // # pages/
       "VData", "VShown",
       // # inner names:

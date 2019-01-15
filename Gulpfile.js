@@ -48,7 +48,10 @@ var Tasks = {
   "static/special": function() {
     return copyByPath(["pages/newtab.js", "lib/math_parser*", "lib/*.min.js"]);
   },
-  static: ["static/special", function() {
+  "static/uglify": function() {
+    return uglifyJSFiles("lib/math_parser*.js", ".", "", { base: "." });
+  },
+  static: ["static/special", "static/uglify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*.css"
       , "settings_template.json", "*.txt", "*.md"
       , "!**/manifest.json"
@@ -369,13 +372,14 @@ function checkJSAndUglifyAll(maps, key, exArgs, cb) {
 }
 
 function uglifyJSFiles(path, output, new_suffix, exArgs) {
-  path = formatPath(path, JSDEST);
+  const base = exArgs && exArgs.base || JSDEST;
+  path = formatPath(path, base);
   path.push("!**/*.min.js");
   output = output || ".";
   new_suffix = new_suffix !== "" ? (new_suffix || ".min") : "";
   exArgs || (exArgs = {});
 
-  var stream = gulp.src(path, { base: JSDEST });
+  var stream = gulp.src(path, { base: base });
   var is_file = output.indexOf(".js", Math.max(0, output.length - 3)) > 0;
   if (!exArgs.passAll) {
     stream = stream.pipe(newer(is_file ? {
@@ -828,6 +832,6 @@ function loadUglifyConfig(reload) {
       m.keep_fnames = c.keep_fnames;
     }
   }
-  a.output.comments = removeComments ? false : "all";
+  a.output.comments = removeComments ? /^!/ : "all";
   return a;
 }
