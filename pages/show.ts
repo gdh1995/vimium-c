@@ -77,6 +77,7 @@ window.onhashchange = function(this: void): void {
   } else if (url || !history.state) {
   } else if (encryptKey) {
     url = encrypt(history.state, encryptKey, false);
+    window.name = encryptKey + " " + url;
   } else {
     history.replaceState(null, "", ""); // clear useless data
   }
