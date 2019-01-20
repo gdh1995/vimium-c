@@ -113,7 +113,8 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   }
   for (let storage = localStorage, all = bgSettings_.defaults, i = 0, len = storage.length, j: string[]; i < len; i++) {
     const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
-    if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList" || key === "innerCSS") {
+    if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f"
+        || key === "findModeRawQueryList" || key === "innerCSS" || key === "findCSS") {
       continue;
     }
     const storedVal = storage.getItem(key) as string;
@@ -223,6 +224,7 @@ Are you sure you want to continue?`
   delete new_data.findModeRawQuery;
   delete new_data.findModeRawQueryList;
   delete new_data.innerCSS;
+  delete new_data.findCSS;
   delete new_data.newTabUrl_f;
   if (new_data.vimSync !== bgSettings_.get("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);
