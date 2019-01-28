@@ -573,11 +573,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       VUtils.prevent_(event); // safer
       if (el) {
         KeydownEvents[key] = 1;
-        const parent = el.ownerDocument.defaultView, a = (parent as Window & { VEvent: typeof VEvent }).VEvent;
+        const parent = el.ownerDocument.defaultView, a1 = (parent as Window & { VEvent: typeof VEvent }).VEvent;
         el.blur && el.blur();
-        if (a) {
+        if (a1) {
           (parent as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(true);
-          a.focus_({ key, mask: FrameMaskType.ForcedSelf });
+          a1.focus_({ key, mask: FrameMaskType.ForcedSelf });
         } else {
           parent.focus();
         }
@@ -1176,10 +1176,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
   if (location.href !== "about:blank" || injector || !function(): 1 | void {
     try {
       let f = VDom.parentFrame_(),
-      a = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFind?: typeof VFind}).VFind;
-      if (a && a.box_ && a.box_ === f) {
+      a1 = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFind?: typeof VFind}).VFind;
+      if (a1 && a1.box_ && a1.box_ === f) {
         VSettings.destroy(true);
-        a.onLoad_();
+        a1.onLoad_();
         return 1; // not return a function's result so that logic is clearer for compiler
       }
     } catch (e) {}

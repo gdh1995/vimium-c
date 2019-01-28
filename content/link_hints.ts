@@ -981,9 +981,9 @@ _getImageUrl (img: HTMLElement, forShow?: 1): string | void {
     if (!VUtils.isImageUrl_(text)) {
       let arr = (<RegExpI>/^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(img.style.backgroundImage as string);
       if (arr && arr[1]) {
-        const a = document.createElement('a');
-        a.href = arr[1].replace(<RegExpG>/\\(['"])/g, "$1");
-        text = a.href;
+        const a1 = document.createElement('a');
+        a1.href = arr[1].replace(<RegExpG>/\\(['"])/g, "$1");
+        text = a1.href;
       }
     }
   }
