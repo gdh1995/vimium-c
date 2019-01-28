@@ -80,15 +80,16 @@ var VHints = {
   activate (this: void, count: number, options: FgOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
+    VUtils.remove_(a);
     if (document.body === null) {
       a.clean_();
       if (!a.timer_ && document.readyState === "loading") {
+        VUtils.push_(VDom.UI.SuppressMost_, a);
         a.timer_ = setTimeout(a.activate.bind(a as never, count, options), 300);
         return;
       }
       if (!VDom.isHTML_()) { return; }
     }
-    VUtils.remove_(a);
     a.setModeOpt_((count as number) | 0, options);
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
     if (str.length < 3) {
@@ -174,6 +175,7 @@ var VHints = {
       VHints.activate(a, b);
     });
   },
+  // TODO: also try window.top / window.parent frame if curFrame is not visible
   tryNestedFrame_ (mode: "VHints" | "VScroller" | "VOmni", action: string, a: number, b: SafeObject): boolean {
     if (this.frameNested_ !== null) {
       mode !== "VHints" && VDom.prepareCrop_();
