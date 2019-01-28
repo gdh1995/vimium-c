@@ -2,13 +2,9 @@
 var fs = require("fs");
 var gulp = require("gulp");
 var logger = require("fancy-log");
-var sourcemaps = require('gulp-sourcemaps');
-var concat = require('gulp-concat');
 var changed = require('gulp-changed');
 var ts = require("gulp-typescript");
 var newer = require('gulp-newer');
-var rename = require('gulp-rename');
-var clean = require('gulp-clean');
 var gulpPrint = require('gulp-print');
 var gulpSome = require('gulp-some');
 var osPath = require('path');
@@ -310,7 +306,7 @@ function compile(pathOrStream, header_files, skipOutput) {
     stream = stream.pipe(gulpPrint());
   }
   if (enableSourceMap) {
-    stream = stream.pipe(sourcemaps.init());
+    stream = stream.pipe(require('gulp-sourcemaps').init());
   }
   var project = tsProject();
   var tsResult = stream.pipe(project);
@@ -320,16 +316,13 @@ function compile(pathOrStream, header_files, skipOutput) {
   return outputJSResult(tsResult.js);
 }
 
-function outputJSResult(stream, concatedFile) {
+function outputJSResult(stream) {
   if (locally) {
     stream = stream.pipe(gulpMap(function(file) {
       if (file.history.join("|").indexOf("extend_click") >= 0) {
         file.contents = new Buffer(patchExtendClick(String(file.contents)));
       }
     }));
-  }
-  if (concatedFile) {
-    stream = stream.pipe(concat(concatedFile));
   }
   stream = stream.pipe(changed(JSDEST, {
     hasChanged: compareContentAndTouch
@@ -338,7 +331,7 @@ function outputJSResult(stream, concatedFile) {
     stream = stream.pipe(gulpPrint());
   }
   if (enableSourceMap) {
-    stream = stream.pipe(sourcemaps.write(".", {
+    stream = stream.pipe(require('gulp-sourcemaps').write(".", {
       sourceRoot: ""
     }));
   }
@@ -395,7 +388,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   }
   let mayPatch = false;
   if (enableSourceMap) {
-    stream = stream.pipe(sourcemaps.init({ loadMaps: true }));
+    stream = stream.pipe(require('gulp-sourcemaps').init({ loadMaps: true }));
   } else {
     stream = stream.pipe(gulpMap(function(file) {
       if (file.history.join("|").indexOf("extend_click") >= 0) {
@@ -407,7 +400,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     if (willListEmittedFiles) {
       stream = stream.pipe(gulpPrint());
     }
-    stream = stream.pipe(concat(output));
+    stream = stream.pipe(require('gulp-concat')(output));
   }
   var config = loadUglifyConfig(!!exArgs.nameCache);
   if (exArgs.nameCache) {
@@ -422,7 +415,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     logger
   )(config));
   if (!is_file && new_suffix !== "") {
-     stream = stream.pipe(rename({ suffix: new_suffix }));
+     stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
   }
   stream = stream.pipe(gulpMap(function(file) {
     if (!mayPatch) { return; }
@@ -434,7 +427,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     stream = stream.pipe(gulpPrint());
   }
   if (enableSourceMap) {
-    stream = stream.pipe(sourcemaps.write(".", {
+    stream = stream.pipe(require('gulp-sourcemaps').write(".", {
       sourceRoot: "/"
     }));
   }
@@ -454,7 +447,7 @@ function copyByPath(path) {
 }
 
 function cleanByPath(path) {
-  return gulp.src(path, {read: false}).pipe(clean());
+  return gulp.src(path, {read: false}).pipe(require('gulp-clean')());
 }
 
 function formatPath(path, base) {
