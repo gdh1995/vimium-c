@@ -1,6 +1,6 @@
-:host{border:none!important;contain:layout style!important;display:unset;height:0!important;margin:0!important;
+:host{border:none!important;contain:layout style!important;height:0!important;margin:0!important;
 opacity:1!important;outline:none!important;padding:0!important;position:static!important;
-transform:none!important;width:0!important}:host:before,:host:after{display:none!important}
+transform:none!important;width:0!important;display:contents}:host:before,:host:after{display:none!important}
 .R{background:none;border:none;box-sizing:content-box;cursor:auto;float:none;font-size-adjust:none;
 letter-spacing:normal;line-height-step:0;margin:0;opacity:1;outline:none;padding:0;text-align-last:auto;text-indent:0;
 text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal;all:initial;

@@ -553,6 +553,7 @@ declare const enum BrowserVer {
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinCanNotRevokeObjectURLAtOnce = 65,
   MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65,
+  MinEnsuredDisplayContents = 65,
   MinInputMode = 66, // even if LEAGCY; still works on C35 if EXPERIMENTAL
   // @see MinEscapeHashInBodyOfDataURL
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
@@ -573,6 +574,8 @@ declare const enum BrowserVer {
   MinNoSelector$GtGtGt = 69,
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
   MinNamedGetterOnFramesetNotOverrideBulitin = 70,
+  // Note (tested on C70 stable / C73 dev): :host{display:contents} solves it
+  MinDisplayFlexOnHtmlBreakUIBoxWhoseContainStyleHasLayout = 70, // even if EXPERIMENTAL
   Min$Tabs$$Update$DoesNotAcceptJavascriptURLs = 71,
   MinTabIdBeSmallAgain = 71,
   // https://www.chromestatus.com/features/5656049583390720

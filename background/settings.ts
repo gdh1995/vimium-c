@@ -121,6 +121,12 @@ var Settings = {
       } else {
         css = css.replace(<RegExpOne> /all:\s?initial;?\n?/, "");
       }
+      if (browserVer >= BrowserVer.MinEnsuredDisplayContents && OnOther !== BrowserType.Edge) {
+        const ind2 = css.indexOf("display:"), ind1 = css.lastIndexOf("{", ind2);
+        css = css.substring(0, ind1 + 1) + css.substring(ind2);
+      } else {
+        css = css.replace("contents", "unset");
+      }
       if (browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css += "\n.HUD,.IH,.LH{border-width:1px}";
       }
