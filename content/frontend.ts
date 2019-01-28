@@ -1057,11 +1057,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       if (!VUtils.jsRe_.test(url)) {
         return false;
       }
-      if (";".indexOf(url.substring(11).trim()) >= 0) {
+      url = url.substring(11).trim();
+      if ((<RegExpOne>/^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) {
       } else if (VDom.Scripts) setTimeout(function(): void {
         const script = VDom.createElement_("script");
         script.type = "text/javascript";
-        script.textContent = VUtils.decodeURL_(url, decodeURIComponent).substring(11).trim();
+        script.textContent = VUtils.decodeURL_(url, decodeURIComponent);
         (document.documentElement as HTMLElement).appendChild(script);
         script.remove();
       }, 0); else {
