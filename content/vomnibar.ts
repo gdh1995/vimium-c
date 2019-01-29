@@ -16,6 +16,7 @@ declare namespace VomnibarNS {
     N: string;
   }
 }
+declare let VData: unknown;
 
 var VOmni = {
   box_: null as never as HTMLIFrameElement & { contentWindow: VomnibarNS.IFrameWindow },
@@ -88,8 +89,8 @@ var VOmni = {
       options.search = "";
       return a.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
-    if (VimiumInjector === null && (window as Window & {VShown?: Element}).VShown) {
-      url = url.split("#", 1)[0] + window.name.replace(<RegExpOne> /^-?\d+ /, "");
+    if (VimiumInjector === null && (window as Window & {VData?: Element}).VData) {
+      url = url.split("#", 1)[0] + (VData as any).full.replace(<RegExpOne> /^-?\d+ /, "");
     }
     const trail = options.trailing_slash;
     VPort.send_({

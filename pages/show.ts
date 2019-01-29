@@ -1,3 +1,4 @@
+/// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
 /// <reference path="../types/lib/index.d.ts" />
 /// <reference path="../content/base.d.ts" />
@@ -46,6 +47,7 @@ let bgLink = $<HTMLAnchorElement>('#bgLink');
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer: ViewerType | null = null;
 let VData: {
+  full: string;
   type: ValidShowTypes;
   original: string;
   url: string;
@@ -81,6 +83,7 @@ window.onhashchange = function(this: void): void {
   } else {
     history.replaceState(null, "", ""); // clear useless data
   }
+  VData.full = url;
   if (url.length < 3) {}
   else if (url.startsWith("#!image")) {
     url = url.substring(8);
@@ -561,6 +564,7 @@ function recoverHash_(): void {
       + (VData.auto ? "auto=" + (VData.auto === "once" ? "once" : 1) + "&" : "")
       + VData.original;
   window.name = encryptKey + " " + url;
+  VData.full = url;
   let encryptedUrl = encrypt(url, encryptKey, true);
   history.replaceState(encryptedUrl, "", "");
 }
