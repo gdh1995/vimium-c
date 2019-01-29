@@ -411,6 +411,7 @@ availableCommands_: {
   focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true,
     kBgCmd.openUrl, { reuse: ReuseType.reuse } ]
 } as ReadonlySafeDict<CommandsNS.Description>,
+  // todo: inspect what Chrome does
   wordsRe_: "[_0-9A-Za-z\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\
 \\u02EE\\u0370-\\u0374\\u0376\\u0377\\u037A-\\u037D\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u0\
 3F7-\\u0481\\u048A-\\u0527\\u0531-\\u0556\\u0559\\u0561-\\u0587\\u05D0-\\u05EA\\u05F0-\\u05F2\\u0620-\\u064A\\u066\

@@ -510,7 +510,7 @@ setTimeout(function() {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
-    message: "Vimium C has been upgraded to version " + Settings.CONST.CurrentVerName
+    message: "Vimium C has been upgraded to version " + Settings.CONST.VerName
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId): void {

@@ -4967,7 +4967,7 @@ interface HTMLTextAreaElement extends HTMLElement {
       * @param start The offset into the text field for the start of the selection.
       * @param end The offset into the text field for the end of the selection.
       */
-    setSelectionRange(start: number, end: number): void;
+    setSelectionRange(start: number, end: number, direction?: string): void;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLTextAreaElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
