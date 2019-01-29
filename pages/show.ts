@@ -554,16 +554,15 @@ function resetOnceProperties_() {
 function recoverHash_(): void {
   const type = VData.type;
   if (!type) {
+    return;
   }
   let url = "#!" + type + " "
       + (VData.file ? "download=" + encodeURIComponent(VData.file) + "&" : "")
       + (VData.auto ? "auto=" + (VData.auto === "once" ? "once" : 1) + "&" : "")
       + VData.original;
   window.name = encryptKey + " " + url;
-  if (history.length === 1) {
-      let encryptedUrl = encrypt(url, encryptKey, true);
-      history.replaceState(encryptedUrl, "");
-  }
+  let encryptedUrl = encrypt(url, encryptKey, true);
+  history.replaceState(encryptedUrl, "", "");
 }
 
 function encrypt(message: string, password: number, doEncrypt: boolean): string {
