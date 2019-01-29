@@ -287,7 +287,7 @@ if (bgSettings_.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDev
   (document.head as HTMLHeadElement).appendChild(css);
 })();
 
-$<HTMLElement>(".version").textContent = bgSettings_.CONST.CurrentVersion;
+$<HTMLElement>(".version").textContent = bgSettings_.CONST.VerName;
 
 location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require("Exclusions").then((function(callback) {
   return function() {
@@ -312,7 +312,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption_ {
     const body = document.body as HTMLBodyElement;
     body.textContent = "";
     blockedMsg.style.display = "";
-    (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST.CurrentVersion;
+    (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST.VerName;
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
     if (!tabs[0] || !tabs[0].url || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
       refreshTip.remove();

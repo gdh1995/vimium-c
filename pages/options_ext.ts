@@ -105,7 +105,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     exported_object.time = d.getTime();
   }
   exported_object.environment = {
-    extension: bgSettings_.CONST.CurrentVersion,
+    extension: bgSettings_.CONST.VerCode,
     platform: bgSettings_.CONST.Platform
   };
   if (!BG_.OnOther) {
@@ -160,7 +160,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
 function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
   let env = new_data.environment, plat = env && env.platform || ""
     , ext_ver = env && parseFloat(env.extension || 0) || 0
-    , newer = ext_ver > parseFloat(bgSettings_.CONST.CurrentVersion);
+    , newer = ext_ver > parseFloat(bgSettings_.CONST.VerCode);
   plat && (plat = ("" + plat).substring(0, 10));
   if (!confirm(
 `You are loading ${is_recommended !== true ? "a settings copy" : "the recommended settings:"}

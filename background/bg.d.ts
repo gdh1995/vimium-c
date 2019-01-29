@@ -444,7 +444,8 @@ interface Window {
     readonly CONST: {
       readonly GlobalCommands: string[];
       readonly OptionsPage: string;
-      readonly CurrentVersion: string;
+      readonly VerCode: string;
+      readonly VerName: string;
       readonly ChromeVersion: BrowserVer;
       readonly VimiumNewTab: string;
       readonly Platform: string;

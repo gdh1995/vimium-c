@@ -503,14 +503,14 @@ setTimeout(function() {
 
   if (!reason) { return; }
 
-  if (parseFloat(Settings.CONST.CurrentVersion) <= parseFloat(reason)) { return; }
+  if (parseFloat(Settings.CONST.VerCode) <= parseFloat(reason)) { return; }
 
   reason = "vimium-c_upgrade-notification";
   chrome.notifications && chrome.notifications.create(reason, {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
-    message: "Vimium C has been upgraded to version " + Settings.CONST.CurrentVersionName_
+    message: "Vimium C has been upgraded to version " + Settings.CONST.CurrentVerName
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId): void {

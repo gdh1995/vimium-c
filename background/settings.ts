@@ -188,7 +188,7 @@ var Settings = {
         if (!url.startsWith(BrowserProtocol) && this.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
           url = (this as typeof Settings).CONST.VomnibarPageInner_;
         } else {
-          url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST.CurrentVersion));
+          url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST.VerCode));
         }
       }
       this.set("vomnibarPage_f", url);
@@ -293,7 +293,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     VimiumNewTab: "",
     ChromeVersion: BrowserVer.MinSupported,
     ContentScripts_: null as never as string[],
-    CurrentVersion: "", CurrentVersionName_: "",
+    VerCode: "", VerName: "",
     StyleCacheId_: "",
     KnownPages_: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
@@ -356,8 +356,8 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);
   (defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner_;
   obj.GlobalCommands = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
-  obj.CurrentVersion = ref.version;
-  obj.CurrentVersionName_ = ref.version_name || ref.version;
+  obj.VerCode = ref.version;
+  obj.VerName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
   obj.AllowClipboardRead_ = ref.permissions != null && ref.permissions.indexOf("clipboardRead") >= 0;
   obj.ShowPage_ = func(obj.ShowPage_);
@@ -370,7 +370,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   obj.ContentScripts_ = ref2.map(func);
 
   const hasAll = "all" in (document.documentElement as HTMLElement).style;
-  obj.StyleCacheId_ = obj.CurrentVersion + "," + Settings.CONST.ChromeVersion
+  obj.StyleCacheId_ = obj.VerCode + "," + Settings.CONST.ChromeVersion
     + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
   const innerCSS = localStorage.getItem("innerCSS");
   if (innerCSS && innerCSS.startsWith(obj.StyleCacheId_)) {

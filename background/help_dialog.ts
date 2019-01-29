@@ -31,7 +31,7 @@ var HelpDialog = {
       (commandToKeys[command] || (commandToKeys[command] = [])).push(key);
     }
     const result = Object.setPrototypeOf({
-      version: Settings.CONST.CurrentVersionName_,
+      version: Settings.CONST.CurrentVerName,
       styles: HelpDialog.styles_,
       title: request.title || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
