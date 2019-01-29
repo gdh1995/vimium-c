@@ -507,6 +507,7 @@ function parseSmartImageUrl_(originUrl: string): string | void {
   let offset = search.lastIndexOf('/') + 1;
   search = search.substring(offset);
   let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('!') + 1;
+  // todo: parse "https://pic3.zhimg.com/v2-490b1a5594d7c4ccbc99f472c4439973_250x0.jpg"
   if (index > 2) {
     offset += index;
     search = search.substring(index);

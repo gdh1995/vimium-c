@@ -131,6 +131,8 @@ VDom.UI = {
     ));
     enable ? (this.box_ as HTMLElement).appendChild(sout) : sout.remove();
   },
+  // TODO: analyse how to access the "current" tree scope during window.find on Chrome
+  //       and use it for VFind and VVisual (@related VFind.DisableStyle_)
   getSelected_ (): [Selection, ShadowRoot | null] {
     let d = document, el: Node | null, sel: Selection | null;
     if (el = VScroller.current_) {

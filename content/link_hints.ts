@@ -409,6 +409,7 @@ var VHints = {
     }
   },
   _getImagesInImg (arr: Hint[], element: HTMLImageElement): void {
+    // todo: img[srcset]
     if (!element.getAttribute("src") && !element.getAttribute("data-src")) { return; }
     let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {

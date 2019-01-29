@@ -137,7 +137,6 @@ var VFind = {
     this._actived = true;
   },
   init_ (adjust: AdjustType): void {
-    // Note(gdh1995): a potential improvement: https://bugs.chromium.org/p/chromium/issues/detail?id=807560
     const ref = this.postMode_, UI = VDom.UI,
     css = this.css_[0], sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
@@ -483,6 +482,11 @@ var VFind = {
     if (!sout) { return; }
     document.removeEventListener("selectionchange", a.DisableStyle_, true);
     disable = !!disable;
+    // Note: `<doc/root>.adoptedStyleSheets` should not be modified in an extension world
+    // TODO: when @selection_ is inside a shadowRoot or document,
+    //       * remove @styleIn_, and move styleOut_ under the shadowRoot
+    //       * share @selection_ to VVisual
+    //       * check scope of window.find on Firefox with ShadowDOM enabled
     if (!active && disable) {
       UI.toggleSelectStyle_(0);
       sout.remove(); sin.remove();

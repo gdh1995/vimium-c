@@ -460,6 +460,7 @@ var VVisual = {
     const lock = VEvent.lock();
     if (lock && lock.parentElement === anchorNode) {
       num2 = oldDiType === VisualModeNS.DiType.TextBox ? 1 : 0;
+      // todo: check invalid types like "number": @see `Browser.Min$selectionStart$MayBeNull`
       if (!num2 && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
         const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes)[num1] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
