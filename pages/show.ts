@@ -487,7 +487,7 @@ function clean() {
 function parseSmartImageUrl_(originUrl: string): string | null {
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch (e) {} return null; }
   const parsed = safeParseURL(originUrl);
-  if (!parsed) { return null; }
+  if (!parsed || !(<RegExpI>/^s?ftp|^http/i).test(parsed.protocol)) { return null; }
   let search = parsed.search, arr: RegExpExecArray | null;
   const ImageExtRe = <RegExpI>/\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
   if (search.length > 10 && (arr = (<RegExpOne>/[&?](?:imgurl|mediaurl|objurl|src)=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
