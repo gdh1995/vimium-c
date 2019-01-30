@@ -231,7 +231,7 @@ VDom.UI = {
         sel.addRange(range);
       } else {
         let len = (element as TextElement).value.length, { selectionStart: start, selectionEnd: end } = element as TextElement;
-        if (!len || (gotoEnd ? start === len : gotoStart && !end) || end < len && end || end !== start) {
+        if (!len || (gotoEnd ? start === len : gotoStart && !end) || end && end < len || end !== start) {
           return;
         }
         (element as TextElement).select();

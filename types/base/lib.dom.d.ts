@@ -3681,15 +3681,15 @@ interface HTMLInputElement extends HTMLElement {
       * When present, marks an element that can't be submitted without a value.
       */
     required: boolean;
-    selectionDirection: "backward" | "forward" | "none";
+    selectionDirection: "backward" | "forward" | "none" | null;
     /**
       * Gets or sets the end position or offset of a text selection.
       */
-    selectionEnd: number;
+    selectionEnd: number | null;
     /**
       * Gets or sets the starting position or offset of a text selection.
       */
-    selectionStart: number;
+    selectionStart: number | null;
     size: number;
     /**
       * The address or URL of the a media resource that is to be considered.

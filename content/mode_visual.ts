@@ -460,7 +460,7 @@ var VVisual = {
     const lock = VEvent.lock();
     if (lock && lock.parentElement === anchorNode) {
       num2 = oldDiType === VisualModeNS.DiType.TextBox ? 1 : 0;
-      // todo: check invalid types like "number": @see `Browser.Min$selectionStart$MayBeNull`
+      type TextModeElement = HTMLInputElement | HTMLTextAreaElement;
       if (!num2 && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
         const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes)[num1] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
@@ -469,15 +469,15 @@ var VVisual = {
         }
       }
       if (num2) {
-        let di: BOOL = (lock as HTMLInputElement | HTMLTextAreaElement).selectionDirection === "backward" ? 0 : 1;
+        let di: BOOL = (lock as TextModeElement).selectionDirection === "backward" ? 0 : 1;
         if (magic == null && num2 === 2) {
-          num1 = a.TextOffset_(lock as HTMLInputElement | HTMLTextAreaElement, VisualModeNS.kDir.left);
-          num2 = di ? a.TextOffset_(lock as HTMLInputElement | HTMLTextAreaElement, VisualModeNS.kDir.right) : num1;
+          num1 = a.TextOffset_(lock as TextModeElement, VisualModeNS.kDir.left);
+          num2 = di ? a.TextOffset_(lock as TextModeElement, VisualModeNS.kDir.right) : num1;
           // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
           if (!di || num2 && (num1 !== num2)) {
             num1 = (di || num2 ? 0 : 1) as BOOL;
             a.extend_(num1);
-            num2 !== a.TextOffset_(lock as HTMLInputElement | HTMLTextAreaElement, di) && a.extend_((1 - num1) as BOOL);
+            num2 !== a.TextOffset_(lock as TextModeElement, di) && a.extend_((1 - num1) as BOOL);
           }
         }
         return a.di_ = di;
@@ -544,8 +544,9 @@ var VVisual = {
       ("" + a.selection_).length + 2 - num1 && a.extend_(1);
     }
   },
+  /** @argument el must be in text mode  */
   TextOffset_ (this: void, el: HTMLInputElement | HTMLTextAreaElement, di: VisualModeNS.ForwardDir | boolean): number {
-    return di ? el.selectionEnd : el.selectionStart;
+    return (di ? el.selectionEnd : el.selectionStart) as number;
   },
   /** need a correct `diType_`; will use di if only `diType_` is `TextBox` */
   isPointLineFeedAndInTextBox_(di: VisualModeNS.ForwardDir): boolean | void {
@@ -581,7 +582,7 @@ init_ (words: string) {
   this.realType_ = VSettings.cache.browserVer === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function(sel: Selection): SelType {
     let type = typeIdx[sel.type];
-    return type === SelType.Caret && VVisual.diType_ !== VisualModeNS.DiType.Normal &&  ("" + sel).length ? SelType.Range : type;
+    return type === SelType.Caret && VVisual.diType_ !== VisualModeNS.DiType.Normal && ("" + sel) ? SelType.Range : type;
   } : function(sel: Selection): SelType {
     return typeIdx[sel.type];
   };
