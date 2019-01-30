@@ -378,6 +378,12 @@ var VDom = {
     <Ty extends 1>(element: Element): element is LockableElement;
     <Ty extends LockableElement>(element: EventTarget): element is Ty;
   },
+  /** @see `Browser.Min$selectionStart$MayBeNull` */
+  isInputInTextMode_ (el: HTMLInputElement | HTMLTextAreaElement): boolean | void {
+    try {
+      return el.selectionEnd != null;
+    } catch (e) {}
+  },
   docSelectable_: true,
   isSelected_ (): boolean {
     const element = document.activeElement as Element, sel = getSelection(), node = sel.anchorNode;

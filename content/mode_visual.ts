@@ -414,7 +414,11 @@ var VVisual = {
       return;
     }
     const direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
-    if (a.diType_ === VisualModeNS.DiType.TextBox || a.diType_ === VisualModeNS.DiType.Unknown) {
+    if (a.diType_ === VisualModeNS.DiType.TextBox) {
+      const el = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement;
+      el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), newDi ? "forward" : "backward");
+      // Note(gdh1995): may trigger onselect?
+    } else if (a.diType_ === VisualModeNS.DiType.Unknown) {
       let length = ("" + sel).length, i = 0;
       a.collapse_(direction);
       for (; i < length; i++) { a.extend_(newDi); }
@@ -464,8 +468,15 @@ var VVisual = {
       if (!num2 && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
         const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes)[num1] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
-          num2 = 2;
-          a.diType_ = VisualModeNS.DiType.TextBox;
+          if (VDom.isInputInTextMode_(lock as TextModeElement)) {
+            num2 = 2;
+            a.diType_ = VisualModeNS.DiType.TextBox;
+          } else if (magic == null && (lock as TextModeElement).value && (num1 = ("" + sel).length)) {
+            // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
+            a.extend_(1);
+            a.extend_(0);
+            ("" + sel).length !== num1 && a.extend_(1);
+          }
         }
       }
       if (num2) {
