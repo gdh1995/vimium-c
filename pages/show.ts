@@ -134,11 +134,12 @@ window.onhashchange = function(this: void): void {
     VShown = (importBody as ImportBody)("shownImage");
     VShown.classList.add("hidden");
     VShown.onerror = function(): void {
-      if (VData.auto) {
+      if (VData.url !== VData.original) {
         disableAutoAndReload_();
         return;
       }
       resetOnceProperties_();
+      VData.auto = false;
       this.onerror = this.onload = null as never;
       this.alt = "\xa0(fail to load)\xa0";
       if (BG_ && BG_.Settings && BG_.Settings.CONST.ChromeVersion >= BrowserVer.MinNoBorderForBrokenImage) {
@@ -155,14 +156,16 @@ window.onhashchange = function(this: void): void {
       VShown.src = url;
       VShown.onclick = defaultOnClick;
       VShown.onload = function(this: HTMLImageElement): void {
-        if (this.naturalWidth < 12 && this.naturalHeight < 12) {
+        const width = this.naturalWidth;
+        if (width < 12 && this.naturalHeight < 12) {
           if (VData.auto) {
             disableAutoAndReload_();
-          } else if (this.naturalWidth < 2 && this.naturalHeight < 2) {
+            return;
+          } else if (width < 2 && this.naturalHeight < 2) {
             console.log("The image is too small to see");
             this.onerror(null as never);
+            return;
           }
-          return;
         }
         if (VData.url !== VData.original) {
           console.log("Auto find a better URL of\n %o =>\n %o", VData.original, VData.url);
@@ -176,7 +179,7 @@ window.onhashchange = function(this: void): void {
         showBgLink();
         this.classList.remove("hidden");
         this.classList.add("zoom-in");
-        if (this.width >= window.innerWidth * 0.9) {
+        if (width >= window.innerWidth * 0.9) {
           (document.body as HTMLBodyElement).classList.add("filled");
         }
       };
