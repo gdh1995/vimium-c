@@ -1,6 +1,5 @@
 /// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
-/// <reference path="../types/lib/index.d.ts" />
 /// <reference path="../content/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
 interface ImportBody {
@@ -539,8 +538,8 @@ function parseSmartImageUrl_(originUrl: string): string | void {
 
 function disableAutoAndReload_(): void {
   console.log("Failed to auto find a better URL, so go back to the original version");
-  VData.auto = false;
   resetOnceProperties_();
+  VData.auto = false;
   (window.onhashchange as () => void)();
 }
 
