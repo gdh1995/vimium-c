@@ -481,10 +481,10 @@ function clean() {
   }
 }
 
-function parseSmartImageUrl_(originUrl: string): string | void {
+function parseSmartImageUrl_(originUrl: string): string | null {
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch (e) {} return null; }
   const parsed = safeParseURL(originUrl);
-  if (!parsed) { return; }
+  if (!parsed) { return null; }
   let search = parsed.search, arr: RegExpExecArray | null;
   const ImageExtRe = <RegExpI>/\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
   if (search.length > 10 && (arr = (<RegExpOne>/[&?](?:imgurl|mediaurl|objurl|src)=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
@@ -509,12 +509,11 @@ function parseSmartImageUrl_(originUrl: string): string | void {
   let offset = search.lastIndexOf('/') + 1;
   search = search.substring(offset);
   let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('!') + 1;
-  // todo: parse "https://pic3.zhimg.com/v2-490b1a5594d7c4ccbc99f472c4439973_250x0.jpg"
+  let found = true, arr1: RegExpExecArray | null = null, arr2: RegExpExecArray | null = null;
   if (index > 2) {
     offset += index;
     search = search.substring(index);
     let re = <RegExpG & RegExpI>/(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
-    let arr1: RegExpExecArray | null = null, arr2: RegExpExecArray | null;
     for (; arr2 = re.exec(search); arr1 = arr2) {}
     if (arr1 && (<RegExpI>/.[_\-].|\d\dx\d/i).test(arr1[0])) {
       let next = arr1.index + arr1[0].length;
@@ -524,16 +523,24 @@ function parseSmartImageUrl_(originUrl: string): string | void {
       if (arr2 && arr2.index === 0) {
         len += arr2[0].length;
       }
-      search = parsed.origin + parsed.pathname.substring(0, offset) + parsed.pathname.substring(offset + len);
+      search = parsed.pathname.substring(offset + len);
       if ((<RegExpOne>/[@!]$/).test(search)) {
         search = search.substring(0, search.length - 1);
       }
-      return search;
+    } else {
+      found = false;
     }
+  } else if (arr1 = (<RegExpOne>/_(0x)?[1-9]\d{2,3}(x0)?\./).exec(search)) {
+    search = search.substring(0, arr1.index) + search.substring(arr1.index + arr1[0].length - 1);
+  } else if (search.startsWith("thumb_")) {
+    search = search.substring(6);
   } else if ((<RegExpOne>/^[1-9]\d+$/).test(search) && +search > 0 && +search < 640) {
-    search = parsed.origin + parsed.pathname.substring(0, offset - 1);
-    return search;
+    offset--;
+    search = "";
+  } else {
+    found = false;
   }
+  return found ? parsed.origin + parsed.pathname.substring(0, offset) + search : null;
 }
 
 function disableAutoAndReload_(): void {
