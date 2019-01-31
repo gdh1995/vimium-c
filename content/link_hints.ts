@@ -409,8 +409,9 @@ var VHints = {
     }
   },
   _getImagesInImg (arr: Hint[], element: HTMLImageElement): void {
-    // todo: img[srcset]
-    if (!element.getAttribute("src") && !element.getAttribute("data-src")) { return; }
+    // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
+    // <img>.currentSrc is since C45
+    if (!element.getAttribute("src") && !element.currentSrc && !element.getAttribute("data-src")) { return; }
     let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
@@ -978,7 +979,7 @@ getUrlData_ (link: HTMLAnchorElement): string {
 _getImageUrl (img: HTMLElement, forShow?: 1): string | void {
   let text: string | null, src = img.getAttribute("data-src") || "";
   if (img instanceof HTMLImageElement) {
-    text = img.getAttribute("src") && (img as HTMLImageElement).src;
+    text = img.currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
   } else {
     text = img instanceof HTMLAnchorElement ? img.getAttribute("href") && img.href : "";
     if (!VUtils.isImageUrl_(text)) {
