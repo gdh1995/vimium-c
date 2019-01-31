@@ -430,11 +430,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         keyword, url
       });
     },
-    /* searchAs: */ function (): void {
+    /* searchAs: */ function (_0: number, options: CmdOptions[kFgCmd.searchAs]): void {
       post({
         H: kFgReq.searchAs,
         url: location.href,
-        search: VDom.UI.getSelectionText_()
+        copied: options.copied,
+        search: options.selected ? VDom.UI.getSelectionText_() : ""
       });
     },
     /* focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {

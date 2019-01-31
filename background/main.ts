@@ -1662,7 +1662,7 @@ Are you sure you want to continue?`);
         cPort = port;
         return Backend.showHUD_("No search engine found!");
       }
-      query = request.search.trim() || VClipboard_.paste_();
+      query = request.search.trim() || (request.copied ? VClipboard_.paste_() : "");
       if (query instanceof Promise) {
         query.then(doSearch, () => doSearch(null));
         return;

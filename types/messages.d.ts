@@ -208,7 +208,10 @@ interface CmdOptions {
   [kFgCmd.autoOpen]: {
     keyword?: string;
   };
-  [kFgCmd.searchAs]: FgOptions;
+  [kFgCmd.searchAs]: {
+    /** default to true */ copied?: boolean;
+    /** default to true */ selected?: boolean;
+  };
   [kFgCmd.focusInput]: {
     select?: SelectActions;
     keep?: boolean;
@@ -276,6 +279,7 @@ interface FgReq {
   [kFgReq.searchAs]: {
     url: string;
     search: string;
+    copied: boolean | undefined;
   };
   [kFgReq.gotoSession]: {
     sessionId: string | number;
