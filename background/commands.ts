@@ -130,27 +130,28 @@ var Commands = {
     Settings.temp.cmdErrors = Settings.temp.cmdErrors > 0 ? ~errors : errors;
   }),
   populateCommandKeys_: (function(this: void): void {
-    const d = CommandsData_, ref = d.keyMap_ = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe_,
+    const d = CommandsData_, ref = d.keyMap_ = Object.create<ValidKeyAction | ChildKeyMap>(null), keyRe = Utils.keyRe_,
     d2 = Settings.temp, oldErrors = d2.cmdErrors;
     if (oldErrors < 0) { d2.cmdErrors = ~oldErrors; }
-    for (let ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
-    ref['-'] = 1;
-    for (const key in d.keyToCommandRegistry_) {
+    for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
+    ref['-'] = KeyAction.count;
+    const C = Commands, R = d.keyToCommandRegistry_;
+    for (const key in R) {
       const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
       if (last === 0) {
-        (key in ref) && Commands.warnInactive_(ref[key] as ReadonlyChildKeyMap, key);
-        ref[key] = 0;
+        (key in ref) && C.warnInactive_(ref[key] as ReadonlyChildKeyMap, key);
+        ref[key] = KeyAction.cmd;
         continue;
       }
-      let ref2 = ref as ChildKeyMap, tmp: ChildKeyMap | 0 | 1 | undefined = ref2, j = 0;
+      let ref2 = ref as ChildKeyMap, tmp: ChildKeyMap | ValidChildKeyAction | undefined = ref2, j = 0;
       while ((tmp = ref2[arr[j]]) && j < last) { j++; ref2 = tmp; }
-      if (tmp === 0) {
-        Commands.warnInactive_(key, arr.slice(0, j + 1).join(""));
+      if (tmp === KeyAction.cmd) {
+        C.warnInactive_(key, arr.slice(0, j + 1).join(""));
         continue;
       }
-      tmp != null && Commands.warnInactive_(tmp, key);
+      tmp != null && C.warnInactive_(tmp, key);
       while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null) as ChildKeyMap; }
-      ref2[arr[last]] = 0;
+      ref2[arr[last]] = KeyAction.cmd;
     }
     if (d2.cmdErrors) {
       console.log("%cKey Mappings: %d errors found.", "background-color:#fffbe6", d2.cmdErrors);
@@ -160,14 +161,14 @@ var Commands = {
 
     const func = function(obj: ChildKeyMap): void {
       for (const key in obj) {
-        const val = obj[key] as 0 | ChildKeyMap;
-        if (val !== 0) { func(val); }
-        else if (ref[key] === 0) { delete obj[key]; }
+        const val = obj[key] as NonNullable<ChildKeyMap[string]>;
+        if (val !== KeyAction.cmd) { func(val); }
+        else if (ref[key] === KeyAction.cmd) { delete obj[key]; }
       }
     };
     for (const key in ref) {
-      const tmp = ref[key] as 0 | 1 | ChildKeyMap;
-      if (tmp !== 0 && tmp !== 1) { func(tmp); }
+      const val = ref[key] as NonNullable<(typeof ref)[string]>;
+      if (val !== KeyAction.cmd && val !== KeyAction.count) { func(val); }
     }
   }),
   warnInactive_ (obj: ReadonlyChildKeyMap | string, newKey: string): void {

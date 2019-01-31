@@ -125,15 +125,20 @@ declare namespace VisualModeNS {
   /** 1 means right; 0 means left */
   type ForwardDir = kDir.left | kDir.right;
 }
-
+declare const enum KeyAction {
+  cmd = 0, count = 1,
+  __mask = -1,
+}
+type ValidChildKeyAction = KeyAction.cmd;
+type ValidKeyAction = ValidChildKeyAction | KeyAction.count;
 interface ChildKeyMap {
-  [index: string]: 0 | ChildKeyMap | undefined;
+  [index: string]: ValidChildKeyAction | ChildKeyMap | undefined;
   readonly __proto__: never;
 }
 interface ReadonlyChildKeyMap {
-  readonly [index: string]: 0 | ReadonlyChildKeyMap | undefined;
+  readonly [index: string]: ValidChildKeyAction | ReadonlyChildKeyMap | undefined;
 }
-type KeyMap = ReadonlySafeDict<0 | 1 | ReadonlyChildKeyMap>;
+type KeyMap = ReadonlySafeDict<ValidKeyAction | ReadonlyChildKeyMap>;
 
 declare const enum ReuseType {
   current = 0,

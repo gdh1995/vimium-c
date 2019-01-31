@@ -914,14 +914,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       func(map, null);
       function iter(obj: ReadonlyChildKeyMap): void {
         func(obj, null);
-        for (const key in obj) { if (obj[key] !== 0) {
-          iter(obj[key] as ReadonlyChildKeyMap);
-        } }
+        for (const key in obj) {
+          type ObjItem = Exclude<NonNullable<(typeof obj)[string]>, KeyAction.cmd>;
+          obj[key] !== KeyAction.cmd && iter(obj[key] as ObjItem);
+        }
       }
       for (const key in map) {
-        const sec = map[key];
-        if (sec === 0 || sec === 1) { continue; }
-        iter(sec as ReadonlyChildKeyMap);
+        const sec = map[key] as NonNullable<(typeof map)[string]>;
+        sec && sec !== KeyAction.count && iter(sec);
       }
       (mappedKeys = request.m) && func(mappedKeys, null);
     },
@@ -1040,14 +1040,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     } else if (j == null) {
       j = keyMap[key];
       if (j == null) { return esc(HandlerResult.Nothing); }
-      if (j !== 0) { currentKeys = ""; }
+      if (j !== KeyAction.cmd) { currentKeys = ""; }
     }
     currentKeys += key;
-    if (j === 0) {
+    if (j === KeyAction.cmd) {
       post({ H: kFgReq.key, k: currentKeys, l: event.keyCode });
       return esc(HandlerResult.Prevent);
     } else {
-      nextKeys = j !== 1 ? j : keyMap;
+      nextKeys = j !== KeyAction.count ? j : keyMap;
       return HandlerResult.Prevent;
     }
   }
