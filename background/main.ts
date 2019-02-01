@@ -1214,7 +1214,7 @@ Are you sure you want to continue?`);
         S: port.s.i === 0 || !(port.s.f & Frames.Flags.hasCSS)
           ? ensureInnerCSS(port) : null,
         key: cKey,
-        mask: port !== cPort ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
+        mask: port !== cPort && frames && port !== frames[0] ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
       });
     },
     /* mainFrame: */ function (): void {
