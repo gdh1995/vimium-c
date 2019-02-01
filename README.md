@@ -101,6 +101,12 @@ These issues are only up to the master branch:
 
 # Release Notes
 
+1.72:
+* fix broken UI on some pages using a global *flex* layout (the key CSS is `html { display: flex; }`)
+  * this problem only occurs since Chrome 70, so it seems a bug of Chromium browsers.
+* be able to read the system clipboard since Firefox 63.
+* VisualMode: support cursor movement on `<input type=number>` correctly
+
 1.71.3:
 * fix broken code on Vimium C's background process
 * a few bug fixes and improvements of `FindMode` and `VisualMode`

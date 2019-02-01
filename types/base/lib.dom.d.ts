@@ -5388,6 +5388,10 @@ interface Navigator extends Object, NavigatorID, NavigatorOnLine, NavigatorConte
     readonly pointerEnabled: boolean;
     readonly webdriver: boolean;
     readonly hardwareConcurrency: number;
+    readonly clipboard?: {
+        readText?(): Promise<string>;
+        writeText?(data: string): Promise<void>;
+    };
     javaEnabled(): boolean;
     vibrate(pattern: number | number[]): boolean;
 }

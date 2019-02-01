@@ -23,9 +23,12 @@ const VClipboard_ = {
     }
     return data;
   },
-  copy_ (data: string): void | Promise<string> {
-    data = this.format_(data);
-    const textArea = this.getTextArea_();
+  copy_: OnOther === BrowserType.Firefox && navigator.clipboard ? function(this: object, data: string): Promise<void> {
+    type Clipboard = EnsureNonNull<Navigator["clipboard"]>;
+    return (navigator.clipboard as Clipboard).writeText((this as typeof VClipboard_).format_(data));
+  } : function (this: object, data: string): void {
+    data = (this as typeof VClipboard_).format_(data);
+    const textArea = (this as typeof VClipboard_).getTextArea_();
     textArea.value = data;
     (document.documentElement as HTMLHtmlElement).appendChild(textArea);
     textArea.select();
@@ -34,21 +37,27 @@ const VClipboard_ = {
     textArea.value = "";
     Utils.resetRe_();
   },
-  paste_ (): string | null | Promise<string | null> {
-    if (!Settings.CONST.AllowClipboardRead_) { return null; }
-    const textArea = this.getTextArea_();
+  reformat_ (copied: string): string {
+    copied = copied.replace(Utils.A0Re_, " ");
+    Utils.resetRe_();
+    return copied;
+  },
+  paste_: Settings.CONST.AllowClipboardRead_ ? OnOther === BrowserType.Firefox && navigator.clipboard
+  ? function(this: object): Promise<string> {
+    type Clipboard = EnsureNonNull<Navigator["clipboard"]>;
+    return (navigator.clipboard as Clipboard).readText().then((this as typeof VClipboard_).reformat_);
+  } : function (this: object): string {
+    const textArea = (this as typeof VClipboard_).getTextArea_();
     textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
     (document.documentElement as HTMLHtmlElement).appendChild(textArea);
     textArea.focus();
     document.execCommand("paste");
     let value = textArea.value.substring(0, GlobalConsts.MaxBufferLengthForPasting);
-    textArea.remove();
     textArea.value = "";
+    textArea.remove();
     textArea.removeAttribute('maxlength');
-    value = value.replace(Utils.A0Re_, " ");
-    Utils.resetRe_();
-    return value;
-  }
+    return (this as typeof VClipboard_).reformat_(value);
+  } : function(this: void): null { return null; }
 },
 ContentSettings_ = {
   makeKey_ (this: void, contentType: CSTypes, url?: string): string {
