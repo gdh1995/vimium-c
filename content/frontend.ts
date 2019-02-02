@@ -271,7 +271,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       (this: void, count: number, options: CmdOptions[K]) => void;
   } = [
     VFind.activate_,
-    VHints.activate,
+    VHints.run,
     VHints.ActivateAndFocus_,
     /* unhoverLast: */ function (this: void): void {
       VDom.hover_(null);
@@ -281,7 +281,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     VMarks.GoTo_,
     VScroller.Sc,
     VVisual.activate_,
-    VOmni.activate,
+    VOmni.run,
     /* reset: */ function (): void {
       const a = InsertMode;
       VScroller.current_ = VDom.lastHovered_ = a.last_ = a.lock_ = a.global_ = null;

@@ -77,7 +77,7 @@ var VHints = {
   noHUD_: false,
   options_: null as never as HintsNS.Options,
   timer_: 0,
-  activate (this: void, count: number, options: FgOptions): void {
+  run (this: void, count: number, options: FgOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
     if (VEvent.checkHidden_(kFgCmd.linkHints, count, options)) {
@@ -88,7 +88,7 @@ var VHints = {
       a.clean_();
       if (!a.timer_ && document.readyState === "loading") {
         VUtils.push_(VDom.UI.SuppressMost_, a);
-        a.timer_ = setTimeout(a.activate.bind(a as never, count, options), 300);
+        a.timer_ = setTimeout(a.run.bind(a as never, count, options), 300);
         return;
       }
       if (!VDom.isHTML_()) { return; }
@@ -108,7 +108,7 @@ var VHints = {
     }
     let elements = a.getVisibleElements_(arr);
     if (a.frameNested_) {
-      if (a.tryNestedFrame_("VHints", "activate", (count as number) | 0, options)) {
+      if (a.tryNestedFrame_("VHints", "run", (count as number) | 0, options)) {
         return a.clean_();
       }
     }
@@ -175,7 +175,7 @@ var VHints = {
   ActivateAndFocus_ (this: void, a: number, b: FgOptions): void {
     return VEvent.focusAndListen_(() => {
       VHints.isActive_ = false;
-      VHints.activate(a, b);
+      VHints.run(a, b);
     });
   },
   tryNestedFrame_ (mode: "VHints" | "VScroller" | "VOmni", action: string, a: number, b: SafeObject): boolean {
@@ -207,7 +207,7 @@ var VHints = {
       return false;
     }
     child.VEvent.focusAndListen_(done ? null : function(): void {
-      return (child[mode as "VHints"])[action as "activate"](a, b);
+      return (child[mode as "VHints"])[action as "run"](a, b);
     });
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested_ = false; }
@@ -772,7 +772,7 @@ var VHints = {
     this.zIndexes_ = null;
     this.resetHints_();
     const isClick = this.mode_ < HintMode.min_job;
-    this.activate(0, this.options_);
+    this.run(0, this.options_);
     return this._setupCheck(lastEl, rect, isClick);
   },
   _setupCheck (el?: HintsNS.LinkEl | null, r?: VRect | null, isClick?: boolean): void {
