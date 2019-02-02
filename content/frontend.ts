@@ -22,6 +22,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     , onKeyup2 = null as ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null
     , passKeys = null as SafeDict<true> | null | ""
     , onWndFocus = function(this: void): void {}, onWndBlur2: ((this: void) => void) | null = null
+    , OnOther: BrowserType = BrowserType.Chrome
     ;
 
   const injector = VimiumInjector,
@@ -556,10 +557,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     },
     isActive_ (): boolean {
       if (this.suppressType_) { return false; }
-      if (this.lock_ !== null || this.global_) {
+      let el: Element | null = this.lock_;
+      if (OnOther === BrowserType.Firefox && el && !VDom.isInDOM_(el)) {
+        el = this.lock_ = null;
+      }
+      if (el !== null || this.global_) {
         return true;
       }
-      let el = document.activeElement;
+      el = document.activeElement;
       if (el && (el as HTMLElement).isContentEditable === true && !VDom.notSafe_(el) && el instanceof HTMLElement) {
         this.lock_ = el as LockableElement;
         return true;
@@ -828,10 +833,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
   requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = [
     function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
-      const isChrome = !load.browser, browserVer = load.browserVer;
+      const browserVer = load.browserVer;
+      OnOther = load.browser;
       (VSettings.cache = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
-      D.specialZoom_ = isChrome && browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
-      if (isChrome && browserVer >= BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
+      D.specialZoom_ = !OnOther && browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
+      if (!OnOther && browserVer >= BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
         D.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement;
       }
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);

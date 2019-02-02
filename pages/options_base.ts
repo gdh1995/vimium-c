@@ -475,6 +475,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
     exclusions.inited_ = 3;
     updateState(true);
     (saveBtn.firstChild as Text).data = "Saved";
+    if (BG_.OnOther === BrowserType.Firefox) { saveBtn.blur(); }
     saveBtn.disabled = true;
     saved = true;
   }

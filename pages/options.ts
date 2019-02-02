@@ -270,6 +270,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     if (this.locked_) { return; }
     if (this.saved_ = this.areEqual_(this.readValueFromElement_(), this.previous_)) {
       if (status && !Option_.needSaveOptions_()) {
+        if (BG_.OnOther === BrowserType.Firefox) { saveBtn.blur(); }
         saveBtn.disabled = true;
         (saveBtn.firstChild as Text).data = "No Changes";
         exportBtn.disabled = false;
@@ -284,6 +285,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     status = true;
     saveBtn.disabled = false;
     (saveBtn.firstChild as Text).data = "Save Changes";
+    if (BG_.OnOther === BrowserType.Firefox) { exportBtn.blur(); }
     exportBtn.disabled = true;
   }
 
@@ -295,6 +297,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
     const toSync = Option_.syncToFrontend_;
     Option_.syncToFrontend_ = [];
+    if (BG_.OnOther === BrowserType.Firefox) { this.blur(); }
     this.disabled = true;
     (this.firstChild as Text).data = "Saved";
     exportBtn.disabled = false;
