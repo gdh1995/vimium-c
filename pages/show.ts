@@ -490,11 +490,11 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   if (!parsed || !(<RegExpI>/^s?ftp|^http/i).test(parsed.protocol)) { return null; }
   let search = parsed.search, arr: RegExpExecArray | null;
   const ImageExtRe = <RegExpI>/\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
-  if (search.length > 10 && (arr = (<RegExpOne>/[&?](?:imgurl|mediaurl|objurl|src)=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
-    const DecodeURLPart = function(this: void, url1: string | undefined, func?: (this: void, url1: string) => string): string {
+  if (search.length > 10 && (arr = (<RegExpOne>/[&?](?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
+    const DecodeURLPart = function(this: void, url1: string | undefined): string {
       if (!url1) { return ""; }
       try {
-        url1 = (func || decodeURIComponent)(url1);
+        url1 = decodeURIComponent(url1);
       } catch (e) {}
       return url1;
     };
