@@ -517,7 +517,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
       }
     }
   }
-  search = parsed.pathname;
+  const path = search = parsed.pathname;
   let offset = search.lastIndexOf('/') + 1;
   search = search.substring(offset);
   let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('!') + 1;
@@ -535,9 +535,13 @@ function parseSmartImageUrl_(originUrl: string): string | null {
       if (arr2 && arr2.index === 0) {
         len += arr2[0].length;
       }
-      search = parsed.pathname.substring(offset + len);
-      if ((<RegExpOne>/[@!]$/).test(search)) {
-        search = search.substring(0, search.length - 1);
+      search = path.substring(offset + len);
+      if ((<RegExpOne>/[@!]$/).test(search || path.charAt(offset - 1))) {
+        if (search) {
+          search = search.substring(0, search.length - 1);
+        } else {
+          offset--;
+        }
       }
     } else {
       found = false;
@@ -552,7 +556,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   } else {
     found = false;
   }
-  return found ? parsed.origin + parsed.pathname.substring(0, offset) + search : null;
+  return found ? parsed.origin + path.substring(0, offset) + search : null;
 }
 
 function disableAutoAndReload_(): void {
