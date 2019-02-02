@@ -235,7 +235,7 @@ window.onhashchange = function(this: void): void {
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 
   let str = $<HTMLTitleElement>('title').getAttribute('data-title') as string;
-  str = BG_ ? BG_.Utils.createSearch(file ? file.split(/\s+/) : [], str)
+  str = BG_ ? BG_.Utils.createSearch(file ? file.split(/\s+/) : [], str, "")
     : str.replace(<RegExpOne>/\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
 };

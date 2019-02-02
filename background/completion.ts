@@ -745,7 +745,7 @@ searchEngine = {
       q = [];
     }
 
-    let { url, indexes } = Utils.createSearch(q, pattern.url, []), text = url;
+    let { url, indexes } = Utils.createSearch(q, pattern.url, pattern.blank, []), text = url;
     if (keyword === "~") {}
     else if (url.startsWith("vimium://")) {
       const ret = Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);

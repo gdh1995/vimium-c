@@ -1,6 +1,7 @@
 declare namespace Search {
   interface RawEngine {
     url: string;
+    blank: string;
     name: string;
   }
   interface Engine extends Readonly<RawEngine> {}
@@ -9,8 +10,8 @@ declare namespace Search {
     readonly indexes: number[];
   }
   interface Executor {
-    (query: string[], url: string, indexes: number[]): Result;
-    (query: string[], url: string): string;
+    (query: string[], url: string, blank: string, indexes: number[]): Result;
+    (query: string[], url: string, blank: string): string;
   }
   type TmpRule = { prefix: string, matcher: RegExpOne | RegExpI };
   interface Rule {

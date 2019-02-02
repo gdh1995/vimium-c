@@ -451,24 +451,25 @@ var Utils = {
   searchWordRe_: <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g,
   searchWordRe2_: <RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g,
   searchVariable_: <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g,
-  createSearchUrl_: function (this: Window["Utils"], query: string[], keyword?: string | null
+  createSearchUrl_: function (this: {}, query: string[], keyword?: string | null
       , vimiumUrlWork?: Urls.WorkType): Urls.Url {
     let url: string, pattern: Search.Engine | undefined = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
       if (!keyword) { keyword = query.shift() as string; }
-      url = this.createSearch(query, pattern.url) as string;
+      url = (this as typeof Utils).createSearch(query, pattern.url, pattern.blank) as string;
     } else {
       url = query.join(" ");
     }
     if (keyword !== "~") {
-      return this.convertToUrl(url, null, vimiumUrlWork);
+      return (this as typeof Utils).convertToUrl(url, null, vimiumUrlWork);
     }
-    this.lastUrlType = Urls.Type.Search;
+    (this as typeof Utils).lastUrlType = Urls.Type.Search;
     return url;
   } as Urls.Searcher,
-  createSearch: function(this: Window["Utils"], query: string[], url: string, indexes?: number[]): string | Search.Result {
+  createSearch: function(this: Window["Utils"], query: string[], url: string, blank: string, indexes?: number[]): string | Search.Result {
     let q2: string[] | undefined, delta = 0;
-    url = url.replace((this as typeof Utils).searchWordRe_, function(_s: string, s1: string | undefined, s2: string, ind: number): string {
+    url = query.length === 0 && blank ? blank : url.replace((this as typeof Utils).searchWordRe_,
+    function(_s: string, s1: string | undefined, s2: string, ind: number): string {
       let arr: string[];
       if (s1 === "S") {
         arr = query;
@@ -560,6 +561,7 @@ var Utils = {
     rEscapeSpace = <RegExpG & RegExpSearchable<0>> /\\\s/g, rSpace = <RegExpOne> /\s/,
     rEscapeS = <RegExpG & RegExpSearchable<0>> /\\s/g, rColon = <RegExpG & RegExpSearchable<0>> /\\:/g,
     rPercent = <RegExpG & RegExpSearchable<0>> /\\%/g, rRe = <RegExpI> /\sre=/i,
+    rBlank = <RegExpI & RegExpSearchable<0>> /\sblank=/i,
     encodedSearchWordRe = <RegExpG & RegExpSearchable<1>> /%24([sS])/g, re = (this as typeof Utils).searchWordRe_,
     func = (function(key: string): boolean {
       return (key = key.trim()) && key !== "__proto__" && key.length < Consts.MinInvalidLengthOfSearchKey
@@ -578,9 +580,17 @@ var Utils = {
       if (!val) continue;
       key = val.replace(rEscapeSpace, "\\s");
       ind = key.search(rSpace);
+      let blank = "";
       if (ind > 0) {
         str = val.substring(ind);
         val = key.substring(0, ind);
+        ind = str.search(rBlank);
+        if (ind >= 0) {
+          let ind2 = str.substring(ind + 7).search(rSpace);
+          ind2 = ind2 > 0 ? ind + 7 + ind2 : 0;
+          blank = str.substring(ind + 7, ind2 || str.length);
+          str = str.substring(0, ind) + (ind2 ? str.substring(ind2) : "");
+        }
         ind = str.search(rRe);
       } else {
         val = key;
@@ -590,6 +600,7 @@ var Utils = {
         ).replace(rPercent, "%");
       obj = {
         name: "",
+        blank,
         url: val
       };
       ids = ids.filter(func);

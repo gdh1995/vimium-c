@@ -106,6 +106,7 @@ These issues are only up to the master branch:
   * this problem only occurs since Chrome 70, so it seems a bug of Chromium browsers.
 * be able to read the system clipboard since Firefox 63.
 * VisualMode: support cursor movement on `<input type=number>` correctly
+* search engines: support default URLs when a query is empty
 
 1.71.3:
 * fix broken code on Vimium C's background process
