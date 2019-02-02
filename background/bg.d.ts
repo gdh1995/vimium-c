@@ -190,8 +190,8 @@ declare namespace ExclusionsNS {
 declare namespace CommandsNS {
   interface RawOptions extends SafeDict<any> {}
   interface Options extends ReadonlySafeDict<any> {}
-  type BgDescription = [ string, number, true, kBgCmd & number, {}? ];
-  type FgDescription = [ string, number, false, kFgCmd & number, {}? ];
+  type BgDescription = [ string, 0 | 1, true, kBgCmd & number, {}? ];
+  type FgDescription = [ string, 0 | 1, false, kFgCmd & number, {}? ];
   /** [ description, count limit, is background, enum, default options ] */
   type Description = BgDescription | FgDescription;
   interface BaseItem {

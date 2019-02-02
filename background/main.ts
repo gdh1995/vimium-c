@@ -1097,10 +1097,17 @@ Are you sure you want to continue?`);
       let len = Math.max(-1, Math.min(i + commandCount, tabs.length)), dir = i < len ? 1 : -1,
       pin = !tab.pinned, action = {pinned: pin};
       if ((i < len) !== pin) { i = len - dir; len = tab.index - dir; dir = -dir; }
+      const todo = [] as number[];
       do {
-        chrome.tabs.update(tabs[i].id, action);
+        todo.push(tabs[i].id);
         i += dir;
       } while (len != i && i < tabs.length && i >= 0 && (pin || tabs[i].pinned));
+      if (todo.length > 30 && !confirm("togglePinTab", todo.length)) {
+        return;
+      }
+      for (i = 0, len = todo.length; i < len; i++) {
+        chrome.tabs.update(todo[i], action);
+      }
     },
     /* toggleMuteTab: */ function (): void {
       if (ChromeVer < BrowserVer.MinMuted) {
@@ -1152,16 +1159,21 @@ Are you sure you want to continue?`);
         last = len;
         count <= len && (ind = len - count);
       } else if (last < 0) {
+        // dir must be < 0
         last = dir;
         count >= -len && (ind = dir - count);
       } else {
         last += dir;
       }
       // now `last` is the real end of iteration
+      count = Math.abs(last - ind);
+      if (count > 20 && !confirm("reloadTab", count)) {
+        return;
+      }
       do {
         chrome.tabs.reload(tabs[ind].id, reloadProperties);
         ind += dir;
-      } while (last != ind && ind < len && ind >= 0);
+      } while (last != ind);
     },
     /* reloadGivenTab: */ function (): void {
       if (commandCount < 2 && commandCount > -2) {
