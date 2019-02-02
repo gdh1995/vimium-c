@@ -111,7 +111,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   lastScrolling_: 0,
   height_: 0,
   maxHeight_: 0,
-  input_: null as never as HTMLInputElement,
+  input_: null as never as HTMLInputElement & Ensure<HTMLInputElement, "selectionDirection" | "selectionEnd" | "selectionStart">,
   bodySt_: null as never as CSSStyleDeclaration,
   barCls_: null as never as DOMTokenList,
   isSelOriginal_: true,
@@ -512,7 +512,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     _i >= 0 && ((el as HTMLAnchorElement).href = Vomnibar_.completions_[_i].url);
   },
   OnSelect_ (this: HTMLInputElement): void {
-    let el = this;
+    let el = this as typeof Vomnibar_.input_;
     if (el.selectionStart !== 0 || el.selectionDirection !== "backward") { return; }
     let left = el.value,
     end = el.selectionEnd - 1;
@@ -654,7 +654,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.onWheel_ = this.onWheel_.bind(this);
     Object.setPrototypeOf(this.ctrlMap_, null);
     Object.setPrototypeOf(this.normalMap_, null);
-    this.input_ = document.getElementById("input") as HTMLInputElement;
+    this.input_ = document.getElementById("input") as typeof Vomnibar_.input_;
     const list = this.list_ = document.getElementById("list") as HTMLDivElement;
     const { browserVersion_: ver } = this;
     this.input_.oninput = this.onInput_.bind(this);

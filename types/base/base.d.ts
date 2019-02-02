@@ -14,6 +14,7 @@ interface EnsuredSafeDict<T> extends SafeDict<T> {
   [key: string]: T;
 }
 type EnsureNonNull<T> = Writeable<NonNullable<T>>;
+type Ensure<T, K extends keyof T> = { -readonly [P in K]-?: NonNullable<T[P]> };
 
 type TypedSafeEnum<Type> = {
   readonly [key in keyof Type]: 1;
