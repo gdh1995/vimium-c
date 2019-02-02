@@ -128,6 +128,7 @@ window.onhashchange = function(this: void): void {
     if (VData.auto) {
       let newUrl = parseSmartImageUrl_(url);
       if (newUrl) {
+        console.log("Auto predict a better URL of\n %o =>\n %o", url, newUrl);
         url = VData.url = newUrl;
       }
     }
@@ -168,7 +169,6 @@ window.onhashchange = function(this: void): void {
           }
         }
         if (VData.url !== VData.original) {
-          console.log("Auto find a better URL of\n %o =>\n %o", VData.original, VData.url);
           VData.original = VData.url;
         }
         resetOnceProperties_();
@@ -488,23 +488,32 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch (e) {} return null; }
   const parsed = safeParseURL(originUrl);
   if (!parsed || !(<RegExpI>/^s?ftp|^http/i).test(parsed.protocol)) { return null; }
-  let search = parsed.search, arr: RegExpExecArray | null;
+  let search = parsed.search;
   const ImageExtRe = <RegExpI>/\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
-  if (search.length > 10 && (arr = (<RegExpOne>/[&?](?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)=/).exec(search)) && (search = search.substring(arr.index + arr[0].length))) {
-    const DecodeURLPart = function(this: void, url1: string | undefined): string {
-      if (!url1) { return ""; }
-      try {
-        url1 = decodeURIComponent(url1);
-      } catch (e) {}
-      return url1;
-    };
-    search = search.lastIndexOf('&') > 0 ? DecodeURLPart(search.split('&', 1)[0])
-      : search.indexOf("://") < 0 && (<RegExpOne>/%(?:3[aA]|2[fF])/).test(search) ? DecodeURLPart(search).trim()
-      : search;
-    if (safeParseURL(search) != null) {
-      let arr = search.split('?')[0].split("/"), str = arr[arr.length - 1];
-      if (str.split(".").length < 2 || ImageExtRe.test(str)) {
-        return search;
+  function DecodeURLPart_(this: void, url1: string | undefined): string {
+    if (!url1) { return ""; }
+    try {
+      url1 = decodeURIComponent(url1);
+    } catch (e) {}
+    return url1;
+  }
+  if (search.length > 10) {
+    const keyRe = <RegExpOne>/^(?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)$/i,
+    encodedSignRe = <RegExpOne>/%(?:3[aA]|2[fF])/;
+    for (const item of search.substring(1).split('&')) {
+      const key = item.split('=', 1)[0];
+      search = item.substring(key.length + 1);
+      if (search.length > 7) {
+        search.indexOf("://") < 0 && encodedSignRe.test(search) && (search = DecodeURLPart_(search).trim());
+        if (search.indexOf("/") > 0 && safeParseURL(search) != null) {
+          if (keyRe.test(key)) {
+            return search;
+          }
+          let arr = search.split('?')[0].split("/");
+          if (ImageExtRe.test(arr[arr.length - 1]) && key.toLowerCase().indexOf("thumb") < 0) {
+            return search;
+          }
+        }
       }
     }
   }
@@ -547,7 +556,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
 }
 
 function disableAutoAndReload_(): void {
-  console.log("Failed to auto find a better URL, so go back to the original version");
+  console.log("Failed to visit the predicted URL, so go back to the original version");
   resetOnceProperties_();
   VData.auto = false;
   (window.onhashchange as () => void)();
