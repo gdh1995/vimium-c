@@ -1104,6 +1104,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       InsertMode.ExitGrab_();
       let old = onWndFocus, failed = true;
       onWndFocus = function(): void { failed = false; };
+      VOmni.status_ === VomnibarNS.Status.Showing && VOmni.box_.blur();
       window.focus();
       failed && isEnabled && hook(HookAction.Install);
       // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
