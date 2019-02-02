@@ -305,6 +305,8 @@ interface VEventModeTy {
   lock(this: void): LockableElement | null;
   suppress_(keyCode?: VKeyCodes): void;
   OnWndFocus_ (this: void): void;
+  checkHidden_ (this: void): boolean;
+  checkHidden_ (this: void, cmd: kFgCmd, count: number, options: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): boolean;
   focusAndListen_ (this: void, callback?: (() => void) | null, timedout?: 0): void;
   focus_ (this: void, request: BgReq[kBgReq.focusFrame]): void;
   onWndBlur_ (this: void, onWndBlur: ((this: void) => void) | null): void;

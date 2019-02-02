@@ -31,6 +31,7 @@ var VOmni = {
   top_: "",
   activate (this: void, count: number, options: VomnibarNS.FullOptions): void {
     const a = VOmni;
+    if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
       return VHUD.tip("Sorry, Vomnibar page seems to fail to load.", 2000);
     }

@@ -704,7 +704,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       if (mask !== FrameMaskType.NormalNext) {}
       else if (innerWidth < 3 || innerHeight < 3
         || document.body instanceof HTMLFrameSetElement
-        || FrameMask.hidden_()) {
+        || VEvent.checkHidden_()) {
         post({
           H: kFgReq.nextFrame,
           key
@@ -730,12 +730,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         _this.timer_ = setInterval(_this.Remove_, notTop ? 350 : 200);
       }
       VDom.UI.addElement_(dom1);
-    },
-    hidden_ (): boolean {
-      let el = VDom.parentFrame_();
-      if (!el) { return false; }
-      let box = el.getBoundingClientRect();
-      return box.height < 1 || box.width < 1 || getComputedStyle(el).visibility === "hidden";
     },
     Remove_ (this: void, info?: TimerType): void {
       const _this = FrameMask, { more_ } = _this;
@@ -1077,6 +1071,25 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     lock (this: void): LockableElement | null { return InsertMode.lock_; },
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { return onWndFocus(); },
+    checkHidden_ (this: void, cmd?: kFgCmd, count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): boolean {
+      let wnd = window, docEl = document.documentElement, el = wnd === wnd.top ? null : VDom.parentFrame_() || docEl;
+      if (!el) { return false; }
+      let box = el.getBoundingClientRect(),
+      result = box.height === 0 && box.width === 0 || getComputedStyle(el).visibility === "hidden";
+      if (!count) {}
+      else if (result) {
+        type ForwardedOptions = Exclude<typeof options, undefined>;
+        (options as ForwardedOptions).$forced || VPort.post({
+          H: kFgReq.gotoMainFrame,
+          c: cmd as NonNullable<typeof cmd>,
+          n: count, a: options as ForwardedOptions
+        });
+      } else if (el !== docEl && (box.bottom <= 0 || box.top > (window.parent as Window).innerHeight)) {
+        FrameMask.Focus_({ S: null, key: VKeyCodes.None, mask: FrameMaskType.ForcedSelf });
+        el.scrollIntoView();
+      }
+      return result;
+    },
     focusAndListen_ (callback?: (() => void) | null, timedout?: 0 | 1): void {
       if (timedout !== 1) {
         setTimeout(function(): void { VEvent.focusAndListen_(callback, 1 as number as 0); }, 1);

@@ -226,7 +226,7 @@ declare const enum kFgReq {
   searchAs, gotoSession, openUrl, focus, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
-  focusOrLaunch, cmd, blurTest, removeSug, openImage,
+  focusOrLaunch, cmd, blurTest, removeSug, openImage, gotoMainFrame,
   END,
   msg = 90, inject = 91,
   command = "command",
@@ -357,6 +357,13 @@ interface FgReq {
     reuse: ReuseType;
     /** default to true */
     auto?: boolean;
+  };
+  [kFgReq.gotoMainFrame]: {
+    /** command */ c: kFgCmd,
+    /** count */ n: number;
+    /** options */ a: null | (object & {
+      $forced?: true;
+    });
   }
 }
 

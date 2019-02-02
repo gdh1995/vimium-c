@@ -80,6 +80,9 @@ var VHints = {
   activate (this: void, count: number, options: FgOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
+    if (VEvent.checkHidden_(kFgCmd.linkHints, count, options)) {
+      return a.clean_();
+    }
     VUtils.remove_(a);
     if (document.body === null) {
       a.clean_();
@@ -175,7 +178,6 @@ var VHints = {
       VHints.activate(a, b);
     });
   },
-  // TODO: also try window.top / window.parent frame if curFrame is not visible
   tryNestedFrame_ (mode: "VHints" | "VScroller" | "VOmni", action: string, a: number, b: SafeObject): boolean {
     if (this.frameNested_ !== null) {
       mode !== "VHints" && VDom.prepareCrop_();

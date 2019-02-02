@@ -115,6 +115,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   Properties_: ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"] as
     ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"],
   Sc (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
+    if (VEvent.checkHidden_(kFgCmd.scroll, count, options)) { return; }
     if (VHints.tryNestedFrame_("VScroller", "Sc", count, options)) { return; }
     const a = VScroller, di: ScrollByY = options.axis === "x" ? 0 : 1;
     if (options.dest) {

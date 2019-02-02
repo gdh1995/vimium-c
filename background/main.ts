@@ -729,6 +729,25 @@ Are you sure you want to continue?`);
       (this: MarksNS.FocusOrLaunch, tabs: Tab[], wnd: Window) => void,
       (this: MarksNS.MarkToGo, tick: 0 | 1 | 2, tabs: Tab | undefined) => void
     ]
+    function gotoMainFrame(req: FgReq[kFgReq.gotoMainFrame], port: Port, mainPort: Port | null) {
+      const opt = req.a || {};
+      if (mainPort) {
+        mainPort.postMessage({
+          N: kBgReq.focusFrame,
+          S: ensureInnerCSS(port),
+          key: VKeyCodes.None,
+          mask: FrameMaskType.ForcedSelf
+        });
+      } else {
+        opt.$forced = true;
+      }
+      (mainPort || port).postMessage({
+        N: kBgReq.execute,
+        S: null,
+        c: req.c, n: req.n,
+        a: opt
+      });
+    }
     function executeGlobal (cmd: string, ports: Frames.Frames | null | undefined): void {
       if (gCmdTimer) {
         clearTimeout(gCmdTimer);
@@ -739,7 +758,7 @@ Are you sure you want to continue?`);
       }
       gCmdTimer = setTimeout(executeGlobal, 100, cmd, null);
       ports[0].postMessage({ N: kBgReq.count, cmd, id: gCmdTimer });
-    };
+    }
   const
   BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
@@ -1952,6 +1971,25 @@ Are you sure you want to continue?`);
         prefix += "auto=once&";
       }
       openShowPage[0](prefix + url, req.reuse, { opener: true });
+    },
+    /** gotoMainFrame: */ function(this: void, req: FgReq[kFgReq.gotoMainFrame], port: Port): void {
+      const tabId = port.s.t, mainPort = indexFrame(tabId, 0);
+      if (mainPort || NoFrameId || !chrome.webNavigation) {
+        gotoMainFrame(req, port, mainPort);
+      }
+      chrome.webNavigation.getAllFrames({ tabId }, function (frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
+        let frameId = port.s.i, port2: Port | null | false | void;
+        for (const i of frames) {
+          if (i.frameId === frameId) {
+            frameId = i.parentFrameId;
+            port2 = frameId > 0 && indexFrame(tabId, frameId);
+            if (port2) {
+              break;
+            }
+          }
+        }
+        gotoMainFrame(req, port, port2 || null);
+      });
     }
   ],
     framesForOmni: Frames.WritableFrames = [null as never];
