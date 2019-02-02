@@ -120,7 +120,7 @@ declare const enum kBgCmd {
 
 declare const enum kFgCmd {
   findMode, linkHints, focusAndHint, unhoverLast, marks,
-  goToMarks, scBy, scTo, visualMode, vomnibar,
+  goToMarks, scroll, visualMode, vomnibar,
   reset, toggle, insertMode, passNextKey, goNext,
   reload, switchFocus, goBack, showHelp, autoCopy,
   autoOpen, searchAs, focusInput,
@@ -139,14 +139,15 @@ interface CmdOptions {
     prefix?: true | false;
     swap?: false | true;
   };
-  [kFgCmd.scBy]: {
+  [kFgCmd.scroll]: {
     axis?: "y" | "x";
     dir?: 1 | -1;
     view?: 0 | 1 | "max" | "viewSize";
-  };
-  [kFgCmd.scTo]: {
-    dest?: "" | "max";
+    dest?: undefined;
+  } | {
+    dest: "min" | "max";
     axis?: "y" | "x";
+    view?: undefined;
   };
   [kFgCmd.reset]: FgOptions;
   [kFgCmd.toggle]: {

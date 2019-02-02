@@ -114,12 +114,18 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   scale_: 1,
   Properties_: ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"] as
     ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"],
-  ScBy (this: void, count: number, options: CmdOptions[kFgCmd.scBy] & SafeObject): void {
-    if (VHints.tryNestedFrame_("VScroller", "ScBy", count, options)) { return; }
-    return VScroller.scrollBy_(options.axis === "x" ? 0 : 1, (+<number>options.dir || 1) * count, options.view);
+  Sc (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
+    if (VHints.tryNestedFrame_("VScroller", "Sc", count, options)) { return; }
+    const a = VScroller, di: ScrollByY = options.axis === "x" ? 0 : 1;
+    if (options.dest) {
+      let fromMax: BOOL = options.dest === "max" ? 1 : 0;
+      if (count < 0) { fromMax = (1 - fromMax as BOOL); count = -count; }
+      return a.scrollTo_(di, count - 1, fromMax);
+    }
+    return a.scrollBy_(di, (+<number>options.dir || 1) * count, options.view);
   },
   /** amount: can not be 0 */
-  scrollBy_ (di: ScrollByY, amount: number, factor: CmdOptions[kFgCmd.scBy]["view"]): void {
+  scrollBy_ (di: ScrollByY, amount: number, factor: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined): void {
     VMarks.setPreviousPosition_();
     this.prepareTop_();
     const element = this.findScrollable_(di, amount);
@@ -128,12 +134,6 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       : amount * this._getDimension(element, di, factor === "max" ? 2 : 0);
     this._scroll(element, di, amount);
     this.top_ = null;
-  },
-  ScTo (this: void, count: number, options: CmdOptions[kFgCmd.scTo] & SafeObject): void {
-    if (VHints.tryNestedFrame_("VScroller", "ScTo", count, options)) { return; }
-    let fromMax: BOOL = options.dest === "max" ? 1 : 0;
-    if (count < 0) { fromMax = (1 - fromMax as BOOL); count = -count; }
-    return VScroller.scrollTo_(options.axis === "x" ? 0 : 1, count - 1, fromMax);
   },
   /** `amount`: default to be `0` */
   scrollTo_ (di: ScrollByY, amount: number, fromMax: BOOL): void {

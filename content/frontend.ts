@@ -279,8 +279,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     },
     VMarks.activate_,
     VMarks.GoTo_,
-    VScroller.ScBy,
-    VScroller.ScTo,
+    VScroller.Sc,
     VVisual.activate_,
     VOmni.activate,
     /* reset: */ function (): void {
