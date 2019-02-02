@@ -87,7 +87,7 @@ var Utils = {
     string = string.trim();
     this.lastUrlType = Urls.Type.Full;
     if ((this as typeof Utils).isJSUrl_(string)) {
-      if (Settings.CONST.ChromeVersion < BrowserVer.MinAutoDecodeJSURL && string.indexOf('%', 11) > 0
+      if (ChromeVer < BrowserVer.MinAutoDecodeJSURL && string.indexOf('%', 11) > 0
           && !(this as typeof Utils)._jsNotEscapeRe.test(string)) {
         string = (this as typeof Utils).DecodeURLPart_(string);
       }

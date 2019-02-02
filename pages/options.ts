@@ -270,7 +270,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     if (this.locked_) { return; }
     if (this.saved_ = this.areEqual_(this.readValueFromElement_(), this.previous_)) {
       if (status && !Option_.needSaveOptions_()) {
-        if (BG_.OnOther === BrowserType.Firefox) { saveBtn.blur(); }
+        if (bgOnOther === BrowserType.Firefox) { saveBtn.blur(); }
         saveBtn.disabled = true;
         (saveBtn.firstChild as Text).data = "No Changes";
         exportBtn.disabled = false;
@@ -285,7 +285,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     status = true;
     saveBtn.disabled = false;
     (saveBtn.firstChild as Text).data = "Save Changes";
-    if (BG_.OnOther === BrowserType.Firefox) { exportBtn.blur(); }
+    if (bgOnOther === BrowserType.Firefox) { exportBtn.blur(); }
     exportBtn.disabled = true;
   }
 
@@ -297,7 +297,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
     const toSync = Option_.syncToFrontend_;
     Option_.syncToFrontend_ = [];
-    if (BG_.OnOther === BrowserType.Firefox) { this.blur(); }
+    if (bgOnOther === BrowserType.Firefox) { this.blur(); }
     this.disabled = true;
     (this.firstChild as Text).data = "Saved";
     exportBtn.disabled = false;
@@ -466,7 +466,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     };
     element.style.display = "";
     (element.nextElementSibling as Element).remove();
-    if (bgSettings_.CONST.ChromeVersion >= BrowserVer.MinCorrectBoxWidthForOptionUI
+    if (bgBrowserVer >= BrowserVer.MinCorrectBoxWidthForOptionUI
         // not reset body width if not on Chrome
         || location.protocol !== "chrome-extension:") { return; }
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
@@ -505,7 +505,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   Option_.all_.vomnibarPage.onSave_ = function(): void {
     let {element_: element} = this, url: string = this.previous_
       , isExtPage = !url.lastIndexOf(location.protocol, 0) || !url.lastIndexOf("front/", 0);
-    if (bgSettings_.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+    if (bgBrowserVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
       element.style.textDecoration = isExtPage ? "" : "line-through";
       return this.showError_(`Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`, null);
     }
@@ -580,7 +580,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   element = $<HTMLAnchorElement>("#openExtensionPage");
-  if (bgSettings_.CONST.ChromeVersion < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
+  if (bgBrowserVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
     (element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
     (element.parentElement as HTMLElement).insertBefore(document.createTextNode('"Keyboard shortcuts" of '), element);
   }
@@ -596,9 +596,10 @@ $("#importButton").onclick = function(): void {
   opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
 };
 
-$("#browserName").textContent = (BG_.OnOther === BrowserType.Edge ? "MS Edge"
-  : BG_.OnOther === BrowserType.Firefox ? "Firefox" : ((<RegExpOne>/\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
-  ) + (!BG_.OnOther ? " " + bgSettings_.CONST.ChromeVersion : ""
+$("#browserName").textContent = (bgOnOther === BrowserType.Edge ? "MS Edge"
+  : bgOnOther === BrowserType.Firefox ? "Firefox" : ((<RegExpOne>/\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
+  ) + (bgOnOther === BrowserType.Firefox ? " " + (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, ""])[1]
+    : !bgOnOther ? " " + bgBrowserVer : ""
   ) + (", " + bgSettings_.CONST.Platform[0].toUpperCase() + bgSettings_.CONST.Platform.substring(1));
 
 function loadJS(file: string): HTMLScriptElement {

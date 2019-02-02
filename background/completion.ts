@@ -906,7 +906,7 @@ Completers = {
     const cb = func.bind(that, query);
     if (inNormal === null) {
       inNormal = TabRecency_.incognito_ !== IncognitoType.mayFalse ? TabRecency_.incognito_ !== IncognitoType.true
-        : Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito_
+        : ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito_
           || null;
     }
     if (inNormal !== null) {
@@ -1341,7 +1341,7 @@ knownCs: CompletersMap & SafeObject = {
       this._ind = -1;
     },
     init_ (): XMLHttpRequest | null {
-      this._escapeHash = Settings.CONST.ChromeVersion >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL;
+      this._escapeHash = ChromeVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL;
       Settings.updateHooks_.localeEncoding = Decoder.onUpdate_.bind(Decoder);
       Decoder.onUpdate_(Settings.get("localeEncoding"));
       this.init_ = this.xhr_;

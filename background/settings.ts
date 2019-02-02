@@ -109,7 +109,7 @@ var Settings = {
     },
     baseCSS (this: SettingsTmpl, css): void {
       const cacheId = (this as typeof Settings).CONST.StyleCacheId_,
-      browserVer = this.CONST.ChromeVersion,
+      browserVer = ChromeVer,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
       findOffset = css.lastIndexOf("/*Find*/"),
       findCSS = css.substring(findOffset + /* '/*Find*\/\n' */ 9),
@@ -185,7 +185,7 @@ var Settings = {
       } else {
         url = Utils.convertToUrl(url);
         url = Utils.reformatURL_(url);
-        if (!url.startsWith(BrowserProtocol) && this.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+        if (!url.startsWith(BrowserProtocol) && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
           url = (this as typeof Settings).CONST.VomnibarPageInner_;
         } else {
           url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST.VerCode));
@@ -291,7 +291,6 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     NtpNewTab_: "chrome-search://local-ntp/local-ntp.html",
     DisallowIncognito_: false,
     VimiumNewTab: "",
-    ChromeVersion: BrowserVer.MinSupported,
     ContentScripts_: null as never as string[],
     VerCode: "", VerName: "",
     StyleCacheId_: "",
@@ -326,12 +325,12 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   }
 };
 
-Settings.CONST.ChromeVersion = 0 | (!OnOther && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
+const ChromeVer = 0 | (!OnOther && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number;
 Settings.payload.onMac = false;
 Settings.payload.grabFocus = Settings.get("grabBackFocus");
 Settings.payload.browser = OnOther;
-Settings.payload.browserVer = Settings.CONST.ChromeVersion;
+Settings.payload.browserVer = ChromeVer;
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): void {
   const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs;
   Settings.CONST.Platform = os;
@@ -370,7 +369,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   obj.ContentScripts_ = ref2.map(func);
 
   const hasAll = "all" in (document.documentElement as HTMLElement).style;
-  obj.StyleCacheId_ = obj.VerCode + "," + Settings.CONST.ChromeVersion
+  obj.StyleCacheId_ = obj.VerCode + "," + ChromeVer
     + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
   const innerCSS = localStorage.getItem("innerCSS");
   if (innerCSS && innerCSS.startsWith(obj.StyleCacheId_)) {

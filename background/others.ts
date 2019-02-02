@@ -264,7 +264,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     , firstType: CompletersNS.ValidTypes | "";
   const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
   matchTagRe = OnOther === BrowserType.Firefox ? <RegExpG>/<\/?match>/g : null as never,
-  maxResults = Settings.CONST.ChromeVersion < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
+  maxResults = ChromeVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
   ;
   function clean(): void {
     if (lastSuggest) { lastSuggest.suggest = null; }

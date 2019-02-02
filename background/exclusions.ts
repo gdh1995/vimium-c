@@ -64,7 +64,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   },
   getOnURLChange_ (this: ExcCls): null | ExclusionsNS.Listener {
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
-      : Settings.CONST.ChromeVersion >= BrowserVer.MinWithFrameId ? Backend.checkIfEnabled_
+      : ChromeVer >= BrowserVer.MinWithFrameId ? Backend.checkIfEnabled_
       : function(details: chrome.webNavigation.WebNavigationCallbackDetails) {
         const ref = Backend.indexPorts(details.tabId),
         msg: Req.bg<kBgReq.url> = { N: kBgReq.url, H: kFgReq.checkIfEnabled as kFgReq.checkIfEnabled };

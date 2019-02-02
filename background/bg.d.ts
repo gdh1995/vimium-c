@@ -413,6 +413,7 @@ interface Window {
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
   readonly OnOther: BrowserType;
+  readonly ChromeVer: BrowserVer;
 
   readonly Backend: BackendHandlersNS.BackendHandlers;
   readonly Utils: {
@@ -446,7 +447,6 @@ interface Window {
       readonly OptionsPage: string;
       readonly VerCode: string;
       readonly VerName: string;
-      readonly ChromeVersion: BrowserVer;
       readonly VimiumNewTab: string;
       readonly Platform: string;
     };

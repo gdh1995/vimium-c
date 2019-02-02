@@ -143,7 +143,7 @@ window.onhashchange = function(this: void): void {
       VData.auto = false;
       this.onerror = this.onload = null as never;
       this.alt = "\xa0(fail to load)\xa0";
-      if (BG_ && BG_.Settings && BG_.Settings.CONST.ChromeVersion >= BrowserVer.MinNoBorderForBrokenImage) {
+      if (BG_ && BG_.Settings && BG_.ChromeVer >= BrowserVer.MinNoBorderForBrokenImage) {
         this.classList.add("broken");
       }
       this.classList.remove("hidden");

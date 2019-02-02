@@ -50,6 +50,7 @@ var $ = function<T extends HTMLElement>(selector: string): T {
   return document.querySelector(selector) as T;
 },
 BG_ = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl }, bgSettings_ = BG_.Settings;
+const bgOnOther = BG_.OnOther, bgBrowserVer = BG_.ChromeVer;
 
 abstract class Option_<T extends keyof AllowedOptions> {
   readonly element_: HTMLElement;
@@ -271,14 +272,14 @@ timer_?: number;
 ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
-if (bgSettings_.CONST.ChromeVersion >= BrowserVer.MinSmartSpellCheck) {
+if (bgBrowserVer >= BrowserVer.MinSmartSpellCheck) {
   (document.documentElement as HTMLElement).removeAttribute("spellcheck");
 }
 
-if (bgSettings_.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-  || window.devicePixelRatio < 2 && bgSettings_.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+if (bgBrowserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+  || window.devicePixelRatio < 2 && bgBrowserVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
 ) (function(): void {
-  const css = document.createElement("style"), ratio = window.devicePixelRatio, version = bgSettings_.CONST.ChromeVersion;
+  const css = document.createElement("style"), ratio = window.devicePixelRatio, version = bgBrowserVer;
   const onlyInputs = version >= BrowserVer.MinRoundedBorderWidthIsNotEnsured && ratio >= 1;
   let scale: string | number = onlyInputs || version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.12 / ratio : 1;
   scale = ("" + scale).substring(0, 7);
@@ -316,7 +317,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption_ {
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
     if (!tabs[0] || !tabs[0].url || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
       refreshTip.remove();
-    } else if (BG_.OnOther === BrowserType.Edge) {
+    } else if (bgOnOther === BrowserType.Edge) {
       (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page";
     }
     body.style.width = "auto";
@@ -475,7 +476,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
     exclusions.inited_ = 3;
     updateState(true);
     (saveBtn.firstChild as Text).data = "Saved";
-    if (BG_.OnOther === BrowserType.Firefox) { saveBtn.blur(); }
+    if (bgOnOther === BrowserType.Firefox) { saveBtn.blur(); }
     saveBtn.disabled = true;
     saved = true;
   }

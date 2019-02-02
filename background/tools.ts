@@ -80,7 +80,7 @@ ContentSettings_ = {
   },
   parsePattern_ (this: void, pattern: string, level: number): string[] {
     if (pattern.startsWith("file:")) {
-      const a = Settings.CONST.ChromeVersion >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
+      const a = ChromeVer >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
       if (a) {
         Backend.complain_(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set CS of file folders");
         return [];
@@ -440,7 +440,7 @@ IncognitoWatcher_ = {
   },
   TestIncognitoWnd_ (this: void): void {
     IncognitoWatcher_.timer_ = 0;
-    if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
+    if (ChromeVer >= BrowserVer.MinNoUnmatchedIncognito) {
       let left = false, arr = Backend.indexPorts();
       for (const i in arr) {
         if ((arr[+i] as Frames.Frames)[0].s.a) { left = true; break; }

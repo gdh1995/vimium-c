@@ -97,7 +97,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   cleanRes();
   let exported_object: ExportedSettings | null;
   const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
-  const d = new Date(), bVer = bgSettings_.CONST.ChromeVersion;
+  const d = new Date(), bVer = bgBrowserVer;
   exported_object = Object.create(null) as ExportedSettings & SafeObject;
   exported_object.name = "Vimium C";
   if (!all_static) {
@@ -108,7 +108,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     extension: bgSettings_.CONST.VerCode,
     platform: bgSettings_.CONST.Platform
   };
-  if (!BG_.OnOther) {
+  if (!bgOnOther) {
     exported_object.environment.chrome = bVer;
   }
   for (let storage = localStorage, all = bgSettings_.defaults, i = 0, len = storage.length, j: string[]; i < len; i++) {
