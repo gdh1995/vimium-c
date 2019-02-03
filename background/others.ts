@@ -18,7 +18,7 @@ setTimeout(function() {
     to_update: null as SettingsToUpdate | null,
     doNotSync: Object.setPrototypeOf({
       // Note(gdh1995): need to keep synced with pages/options_ext.ts#_importSettings
-      findModeRawQueryList: 1, innerCSS: 1, findCSS: 1, keyboard: 1, newTabUrl_f: 1
+      findModeRawQueryList: 1, innerCSS: 1, keyboard: 1, newTabUrl_f: 1
     }, null) as TypedSafeEnum<SettingsToSync>,
     HandleStorageUpdate: function(changes, area): void {
       if (area !== "sync") { return; }

@@ -276,6 +276,7 @@ declare namespace SettingsNS {
     grabBackFocus: boolean;
     hideHud: boolean;
     innerCSS: string;
+    /** should not in Settings.defaults */
     findCSS: NonNullable<CmdOptions[kFgCmd.findMode]["findCSS"]>;
     keyMappings: string;
     localeEncoding: string;
