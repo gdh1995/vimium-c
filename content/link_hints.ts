@@ -96,7 +96,7 @@ var VHints = {
     a.setModeOpt_((count as number) | 0, options);
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
     if (str.length < 3) {
-      a.clean_(true);
+      a.clean_(1);
       return VHUD.tip("Characters for LinkHints are too few.", 1000);
     }
     a.alphabetHints_.chars_ = str.toUpperCase();
@@ -113,7 +113,7 @@ var VHints = {
       }
     }
     if (elements.length === 0) {
-      a.clean_(true);
+      a.clean_(1);
       return VHUD.tip("No links to select.", 1000);
     }
 
@@ -646,7 +646,7 @@ var VHints = {
     } else if ((i = event.keyCode) === VKeyCodes.esc) {
       return HandlerResult.Suppress;
     } else if (i === VKeyCodes.ime) {
-      this.clean_(true);
+      this.clean_(1);
       VHUD.tip("LinkHints exits because you're inputing");
       return HandlerResult.Nothing;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
@@ -795,7 +795,7 @@ var VHints = {
       return _this._reinit();
     }
   },
-  clean_ (keepHUD?: boolean): void {
+  clean_ (keepHUD?: boolean | BOOL): void {
     const ks = this.keyStatus_, alpha = this.alphabetHints_;
     this.options_ = this.modeOpt_ = this.zIndexes_ = this.hints_ = null as never;
     this.pTimer_ > 0 && clearTimeout(this.pTimer_);

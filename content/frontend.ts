@@ -288,8 +288,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       VScroller.current_ = VDom.lastHovered_ = a.last_ = a.lock_ = a.global_ = null;
       a.mutable_ = true;
       a.ExitGrab_(); VEvent.setupSuppress_();
-      VHints.isActive_ && VHints.clean_(); VVisual.deactivate_();
-      VFind.styleOut_ || VFind.DisableStyle_(1);
+      VHints.clean_(); VVisual.deactivate_();
+      VFind.DisableStyle_(1);
       onWndBlur();
     },
 
