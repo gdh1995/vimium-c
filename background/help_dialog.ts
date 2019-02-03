@@ -5,6 +5,7 @@ var HelpDialog = {
     : ChromeVer < BrowserVer.MinFixedCSS$All$MayMistakenlyResetFixedPosition
       && ChromeVer >= BrowserVer.MinCSS$All$MayMistakenlyResetFixedPosition ? "position: fixed;"
     : "",
+  templateEl_: null as HTMLTemplateElement | null,
   render_: (function(this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
       if (Settings.CONST.StyleCacheId_.split(',', 2)[1].indexOf("s") < 0) {
@@ -17,10 +18,11 @@ var HelpDialog = {
       HelpDialog.inited_ = true;
     }
     Object.setPrototypeOf(request, null);
-    const commandToKeys = Object.create<string[]>(null), ref = CommandsData_.keyToCommandRegistry_,
+    const commandToKeys = Object.create<[string, CommandsNS.Item][]>(null), ref = CommandsData_.keyToCommandRegistry_,
           hideUnbound = !request.unbound, showNames = !!request.names;
     for (const key in ref) {
-      let command = (ref[key] as CommandsNS.Item).command;
+      const registry = ref[key] as NonNullable<(typeof ref)[string]>;
+      let command = registry.command;
       if (command.endsWith(".activateMode")) {
         command = command.substring(0, command.length - 4);
       } else if (command.indexOf("EditUrl") > 0) {
@@ -28,7 +30,7 @@ var HelpDialog = {
       } else if (command === "quickNext") {
         command = "nextTab";
       }
-      (commandToKeys[command] || (commandToKeys[command] = [])).push(key);
+      (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
     }
     const result = Object.setPrototypeOf({
       version: Settings.CONST.VerName,
@@ -37,35 +39,45 @@ var HelpDialog = {
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;
-    return (<string>Settings.cache.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
+    const html = (<string>Settings.cache.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
       let s = result[group];
       return s != null ? s
         : HelpDialog.groupHtml_(group, commandToKeys, hideUnbound, showNames);
     });
+    HelpDialog.templateEl_ = null;
+    return html;
   }),
-  groupHtml_: (function(this: {}, group: string, commandToKeys: SafeDict<string[]>
+  groupHtml_: (function(this: {}, group: string, commandToKeys: SafeDict<[string, CommandsNS.Item][]>
       , hideUnbound: boolean, showNames: boolean): string {
     const _ref = (this as typeof HelpDialog).commandGroups_[group], renderItem = (this as typeof HelpDialog).commandHtml_
       , availableCommands = CommandsData_.availableCommands_ as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
-    let keys: string[] | undefined, html = "";
+    let html = "";
     for (let _i = 0, _len = _ref.length; _i < _len; _i++) {
       const command = _ref[_i];
-      keys = commandToKeys[command];
+      let keys = commandToKeys[command];
       if (hideUnbound && !keys) { continue; }
+      const isAdvanced = command in (this as typeof HelpDialog).advancedCommands_
+        , description = availableCommands[command][0];
       let klen = -2, bindings = '';
       if (keys && keys.length > 0) {
         bindings = '\n\t\t<span class="HelpKey">';
-        for (const key of keys) {
+        for (const item of keys) {
+          const help = item[1].help;
+          help && (this as typeof HelpDialog).correctHelpInfo(help);
+          const key = help && help.$key || Utils.escapeText_(item[0]);
+          if (help && help.$desp) {
+            let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
+            html += renderItem(isAdvanced, singleBinding, help.$desp, showNames ? command: "");
+            continue;
+          }
           if (klen >= 0) {
             bindings += '</span>, <span class="HelpKey">';
           }
-          bindings += Utils.escapeText_(key);
-          klen += key.length + 2;
+          bindings += key;
+          klen += item[0].length + 2;
         }
         bindings += '</span>\n\t';
       }
-      const isAdvanced = command in (this as typeof HelpDialog).advancedCommands_
-        , description = availableCommands[command][0];
       if (klen <= 12) {
         html += renderItem(isAdvanced, bindings, description, showNames ? command: "");
       } else {
@@ -94,6 +106,23 @@ var HelpDialog = {
     }
     return html + "</td>\n</tr>\n";
   }),
+  correctHelpInfo (help: CommandsNS.CustomHelpInfo): void {
+    if (help.$key != null) { return; }
+    let a = this.templateEl_;
+    a || (a = this.templateEl_ = document.createElement('template'));
+    if (help.key) {
+      a.innerHTML = help.key || "";
+      help.$key = a.innerHTML;
+    } else {
+      help.$key = "";
+    }
+    if (help.desp) {
+      a.innerHTML = help.desp || "";
+      help.$desp = a.innerHTML;
+    } else {
+      help.$desp = "";
+    }
+  },
   commandGroups_: { __proto__: null as never,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
       , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
