@@ -651,12 +651,21 @@ Are you sure you want to continue?`);
         }
       }
       if (url) {
-        const tabIds = (curTabs.length > 1) ? curTabs.map(tab => tab.id) : [tab.id];
-        tabsCreate({ index: tabIds.length, url: Settings.cache.newTabUrl_f, windowId });
-        chrome.tabs.remove(tabIds);
-      } else {
-        chrome.windows.remove(tab.windowId);
+        tabsCreate({ index: curTabs.length, url: Settings.cache.newTabUrl_f, windowId });
       }
+      removeTabsInOrder(tab, curTabs, 0, curTabs.length);
+    }
+    function removeTabsInOrder(tab: Tab, tabs: Tab[], start: number, end: number): void {
+      const browserTabs = chrome.tabs, i = tab.index;
+      browserTabs.remove(tab.id, onRuntimeError);
+      let parts1 = tabs.slice(i + 1, end), parts2 = tabs.slice(start, i);
+      if (commandCount < 0) {
+        let tmp = parts1;
+        parts1 = parts2;
+        parts2 = tmp;
+      }
+      parts1.length > 0 && browserTabs.remove(parts1.map(j => j.id), onRuntimeError);
+      parts2.length > 0 && browserTabs.remove(parts2.map(j => j.id), onRuntimeError);
     }
     /** if `alsoWnd`, then it's safe when tab does not exist */
     function selectTab (this: void, tabId: number, alsoWnd?: boolean): void {
@@ -991,18 +1000,9 @@ Are you sure you want to continue?`);
         chrome.windows.getAll(removeAllTabsInWnd.bind(null, tab, tabs));
         return;
       }
-      const browserTabs = chrome.tabs;
-      browserTabs.remove(tab.id, onRuntimeError);
-      let parts1 = tabs.slice(i + 1, end), parts2 = tabs.slice(start, i);
-      if (commandCount < 0) {
-        let tmp = parts1;
-        parts1 = parts2;
-        parts2 = tmp;
-      }
-      parts1.length > 0 && browserTabs.remove(parts1.map(j => j.id), onRuntimeError);
-      parts2.length > 0 && browserTabs.remove(parts2.map(j => j.id), onRuntimeError);
+      removeTabsInOrder(tab, tabs, start, end);
       if (cOptions.left && start > 0) {
-        browserTabs.update(tabs[start - 1].id, { active: true });
+        chrome.tabs.update(tabs[start - 1].id, { active: true });
       }
     },
     /* removeTabsR: */ function (this: void, tabs: Tab[]): void {
