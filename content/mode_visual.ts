@@ -111,11 +111,17 @@ var VVisual = {
   /** @unknown_di_result */
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     let i: VKeyCodes | KeyStat = event.keyCode, count = 0;
-    if (i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn) { return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing; }
+    if (i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn) {
+      this.resetKeys_();
+      if (i === VKeyCodes.f1) {
+        this.flashSelection_();
+      }
+      return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing;
+    }
     if (i === VKeyCodes.enter) {
       i = VKeyboard.getKeyStat_(event);
       if ((i & KeyStat.shiftKey) && this.mode_ !== VisualModeNS.Mode.Caret) { this.retainSelection_ = true; }
-      (i & KeyStat.PrimaryModifier) ? this.deactivate_() : this.yank_(i === KeyStat.altKey || null);
+      (i & KeyStat.PrimaryModifier) ? this.deactivate_() : (this.resetKeys_(), this.yank_(i === KeyStat.altKey || null));
       return HandlerResult.Prevent;
     }
     if (VKeyboard.isEscape_(event)) {
@@ -308,6 +314,14 @@ var VVisual = {
     }
     VPort.post(action != null ? { H: kFgReq.openUrl, url: str, reuse: action }
         : { H: kFgReq.copy, data: str });
+  },
+  flashSelection_(): void {
+    const sel = this.selection_, range = sel.rangeCount > 0 ? sel.getRangeAt(0) : null,
+    br = range && range.getBoundingClientRect();
+    if (br && br.height > 0 && br.right > 0) { // width may be 0 in Caret mode
+      let cr = VDom.cropRectToVisible_(br.left - 4, br.top - 5, br.right + 3, br.bottom + 4);
+      cr && VDom.UI.flash_(null, cr).classList.add("Sel");
+    }
   },
 
   D: ["backward", "forward"] as ["backward", "forward"],
@@ -579,7 +593,7 @@ keyMap_: {
   n: 36, N: 37,
   v: 51, V: 52, c: 53,
   "/": 55,
-  "<c-e>": 61, "<c-y>": 62, "<c-down>": 61, "<c-up>": 62,
+  "<c-e>": 61, "<c-y>": 62, "<c-down>": 61, "<c-up>": 62
 } as {
   [key: string]: VisualModeNS.ValidActions | {
     [key: string]: VisualModeNS.ValidActions;

@@ -114,6 +114,10 @@
 	padding: 1px;
 }
 
+.Sel {
+  box-shadow: 0 0 4px 2px #ffa000;
+}
+
 .Frame {
 	border: 5px solid yellow;
 	box-sizing: border-box;

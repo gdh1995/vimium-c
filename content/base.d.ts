@@ -276,7 +276,7 @@ interface DomUI {
   /** @NEED_SAFE_ELEMENTS */
   _moveSel_unsafe_ (this: DomUI, element: LockableElement, action: SelectActions | undefined): void;
   getVRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): VRect | null;
-  flash_ (this: DomUI, el: null, rect: VRect): number;
+  flash_ (this: DomUI, el: null, rect: VRect): HTMLElement;
   flash_ (this: DomUI, el: Element): HTMLElement | void;
   suppressTail_ (this: void, onlyRepeated: boolean): void;
   SuppressMost_: HandlerNS.Handler<{}>;
