@@ -52,6 +52,7 @@ interface BgReq {
   [kBgReq.showHUD]: {
     text?: string;
     isCopy?: boolean;
+    /** findCSS */ F?: [string, string];
   } & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {
     mask: FrameMaskType;

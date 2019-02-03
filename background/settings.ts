@@ -168,8 +168,8 @@ var Settings = {
     userDefinedCss (this: SettingsTmpl, css2Str): void {
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(0, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
-      const css2 = (this as typeof Settings).parseCustomCSS_(css2Str),
-      innerCSS = css2.ui ? css + "\n" + css2.ui : css;
+      const css2 = (this as typeof Settings).parseCustomCSS_(css2Str);
+      let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
       {
         css = localStorage.getItem("findCSS") as string;
         headEnd = css.indexOf("\n");
@@ -179,12 +179,16 @@ var Settings = {
         localStorage.setItem("omniCSS", css2.omni || "");
       }
       this.set("innerCSS", innerCSS);
-      const ref = Backend.indexPorts(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: this.cache.innerCSS };
+      const cache = this.cache;
+      innerCSS = cache.innerCSS;
+      const ref = Backend.indexPorts(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS },
+      requestWithFindCSS: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, F: cache.findCSS };
       for (const tabId in ref) {
         const frames = ref[+tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {
-          if (frames[i].s.f & Frames.Flags.hasCSS) {
-            frames[i].postMessage(request);
+          const flags = frames[i].s.f;
+          if (flags & Frames.Flags.hasCSS) {
+            frames[i].postMessage(flags & Frames.Flags.hadFindMode ? requestWithFindCSS : request);
           }
         }
       }

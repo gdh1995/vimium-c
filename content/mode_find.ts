@@ -24,6 +24,7 @@ var VFind = {
   A0Re_: <RegExpG> /\xa0/g,
   tailRe_: <RegExpOne> /\n$/,
   css_: null as never as [string, string],
+  styleIframe_: null as HTMLStyleElement | null,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
     const a = VFind;
     a.css_ = options.findCSS || a.css_;
@@ -104,7 +105,7 @@ var VFind = {
     const el2 = a.countEl_ = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
-    (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle_(a.css_[1], doc.createElement("style")));
+    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_ = VDom.UI.createStyle_(a.css_[1], doc.createElement("style")));
     docEl.insertBefore(doc.createTextNode("/"), el);
     docEl.appendChild(el2);
     function cb(): void {
@@ -183,6 +184,7 @@ var VFind = {
       el = VDom.getSelectionFocusEdge_(getSelection(), 1);
       el && el.focus && el.focus();
     }
+    _this.styleIframe_ = null;
     _this.box_ && _this.box_.remove();
     if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
     _this.parsedQuery_ = _this.query_ = _this.query0_ = "";

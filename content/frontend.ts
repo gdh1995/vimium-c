@@ -937,9 +937,15 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       (Commands as TypeToCheck as TypeChecked)[request.c](request.n, (options ? VUtils.safer_(options) : Object.create(null)) as CmdOptions[O]);
     },
     function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.markName); },
-    function ({ text, S: CSS, isCopy }: Req.bg<kBgReq.showHUD>): void {
-      if (CSS) { VDom.UI.css_(CSS); }
-      return text ? isCopy ? HUD.copied(text) : HUD.tip(text) : void 0;
+    function (req: Req.bg<kBgReq.showHUD>): void {
+      if (req.S) {
+        VDom.UI.css_(req.S);
+        if (req.F) {
+          VFind.css_ = req.F
+          VFind.styleIframe_ && (VFind.styleIframe_.textContent = req.F[1]);
+        }
+      }
+      req.text ? req.isCopy ? HUD.copied(req.text) : HUD.tip(req.text) : void 0;
     },
     function (request: BgReq[kBgReq.count]): void {
       const count = parseInt(currentKeys, 10) || 1;
