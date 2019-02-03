@@ -278,6 +278,8 @@ declare namespace SettingsNS {
     innerCSS: string;
     /** should not in Settings.defaults */
     findCSS: NonNullable<CmdOptions[kFgCmd.findMode]["findCSS"]>;
+    /** should not in Settings.defaults */
+    omniCSS: string;
     keyMappings: string;
     localeEncoding: string;
     /** Note: if changed, /pages/newtab.js also needs a change. */
@@ -363,6 +365,12 @@ declare namespace SettingsNS {
   interface Sync {
     set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;
     HandleStorageUpdate?: OnSyncUpdate;
+  }
+
+  interface ParsedCustomCSS {
+    ui?: string;
+    find?: string;
+    omni?: string;
   }
 
   // type NameList = Array<SettingNames>;

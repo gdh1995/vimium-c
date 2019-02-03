@@ -225,6 +225,7 @@ Are you sure you want to continue?`
   delete new_data.findModeRawQueryList;
   delete new_data.innerCSS;
   delete new_data.findCSS;
+  delete new_data.omniCSS;
   delete new_data.newTabUrl_f;
   if (new_data.vimSync !== bgSettings_.get("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);

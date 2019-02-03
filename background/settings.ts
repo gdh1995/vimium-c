@@ -63,6 +63,15 @@ var Settings = {
       ref2[key] = this.get(key);
     }
   },
+  parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
+    const arr = css ? css.split(<RegExpG & RegExpSearchable<1>>/\/\*\s?#!?([A-Za-z]+)\s?\*\//g) : [""];
+    const map: SettingsNS.ParsedCustomCSS = { ui: arr[0].trim() };
+    for (let i = 1; i < arr.length; i += 2) {
+      let key = arr[i].toLowerCase();
+      map[key === "vomnibar" ? "omni" : key as "ui" | "find"] = arr[i + 1].trim();
+    }
+    return map;
+  },
   updateHooks_: {
     __proto__: null as never,
     grabBackFocus (value: FullSettings["grabBackFocus"]): void {
@@ -111,9 +120,9 @@ var Settings = {
       const cacheId = (this as typeof Settings).CONST.StyleCacheId_,
       browserVer = ChromeVer,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
-      findOffset = css.lastIndexOf("/*Find*/"),
-      findCSS = css.substring(findOffset + /* '/*Find*\/\n' */ 9),
+      findOffset = css.lastIndexOf("/*#find*/"),
       hasAll = browserInfo.lastIndexOf("a") >= 0;
+      let findCSS = css.substring(findOffset + /* '/*#find*\/\n' */ 10);
       css = css.substring(0, findOffset - /* `\n` */ 1);
       if (hasAll) {
         const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2);
@@ -150,15 +159,26 @@ var Settings = {
           body.replace(<RegExpG> /\.[A-Z]/g, `${prefix} $&`);
       }
       css = cacheId + css.length + "\n" + css;
-      let css2 = this.get("userDefinedCss");
-      css2 && (css += "\n" + css2);
-      localStorage.setItem("findCSS", findCSS);
+      const css2 = (this as typeof Settings).parseCustomCSS_(this.get("userDefinedCss"));
+      css2.ui && (css += "\n" + css2.ui);
+      localStorage.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find && "\n" + css2.find));
+      localStorage.setItem("omniCSS", css2.omni || "");
       return this.set("innerCSS", css);
     },
-    userDefinedCss (this: SettingsTmpl, css2): void {
+    userDefinedCss (this: SettingsTmpl, css2Str): void {
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(0, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
-      this.set("innerCSS", css2 ? css + "\n" + css2 : css);
+      const css2 = (this as typeof Settings).parseCustomCSS_(css2Str),
+      innerCSS = css2.ui ? css + "\n" + css2.ui : css;
+      {
+        css = localStorage.getItem("findCSS") as string;
+        headEnd = css.indexOf("\n");
+        css = css.slice(0, headEnd + 1 + +css.substring(0, headEnd));
+        let find2 = css2.find;
+        localStorage.setItem("findCSS", find2 ? css + "\n" + find2 : css);
+        localStorage.setItem("omniCSS", css2.omni || "");
+      }
+      this.set("innerCSS", innerCSS);
       const ref = Backend.indexPorts(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: this.cache.innerCSS };
       for (const tabId in ref) {
         const frames = ref[+tabId] as Frames.Frames;
@@ -170,12 +190,14 @@ var Settings = {
       }
     },
     innerCSS (this: SettingsTmpl, css): void {
-      const findCSS = localStorage.getItem("findCSS");
-      if (!findCSS) { Settings.fetchFile("baseCSS"); return; }
+      let findCSS = localStorage.getItem("findCSS"), omniCSS = localStorage.getItem("omniCSS");
+      if (!findCSS || omniCSS == null) { Settings.fetchFile("baseCSS"); return; }
+      findCSS = findCSS.substring(findCSS.indexOf('\n') + 1);
       const index = findCSS.indexOf('\n');
       // Note: The lines below are allowed as a special use case
       (this.cache as SettingsNS.FullCache).innerCSS = css.substring(css.indexOf("\n") + 1);
       (this.cache as SettingsNS.FullCache).findCSS = [findCSS.substring(0, index), findCSS.substring(index + 1)];
+      (this.cache as SettingsNS.FullCache).omniCSS = omniCSS;
     },
     vomnibarPage (this: SettingsTmpl, url): void {
       if (url === this.defaults.vomnibarPage) {
