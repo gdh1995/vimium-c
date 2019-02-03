@@ -2416,15 +2416,10 @@ declare namespace chrome.tabs {
     export function update(tabId: number, updateProperties: UpdateProperties
         , callback?: ((tab: Tab | undefined, exArg: FakeArg) => void) | null): 1;
     /**
-     * Closes a tab.
-     * @param tabId The tab to close.
+     * Closes a tab / several tabs.
+     * @param tabId The tab to close / The list of tabs to close.
      */
-    export function remove(tabId: number, callback?: (exArg: FakeArg) => void): 1;
-    /**
-     * Closes several tabs.
-     * @param tabIds The list of tabs to close.
-     */
-    export function remove(tabIds: number[], callback?: (exArg: FakeArg) => void): 1;
+    export function remove(tabId: number | number[], callback?: (exArg: FakeArg) => void): 1;
     /**
      * Captures the visible area of the currently active tab in the specified window. You must have <all_urls> permission to use this method.
      * @param callback

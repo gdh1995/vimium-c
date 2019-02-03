@@ -275,6 +275,19 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       return null;
     }
+    function getTabRange(current: number, total: number, countToAutoLimit?: number
+        , /** must be positive */ extraCount?: number | null
+    ): [number, number] {
+      let count = commandCount;
+      if (extraCount) { count += count > 0 ? extraCount : -extraCount;}
+      const end = current + count, pos = count > 0;
+      return end <= total && end > -2 ? pos ? [current, end] : [end + 1, current + 1] // normal range
+        : !cOptions.limited && Math.abs(count) < (countToAutoLimit || total * GlobalConsts.ThresholdToAutoLimitTabOperation)
+          ? Math.abs(count) < total ? pos ? [total - count, total] : [0, -count] // go forward and backward
+          : [0, total] // all
+        : pos ? [current, total] : [0, current + 1] // limited
+        ;
+    }
     function confirm (this: void, command: string, count: number): boolean {
       let msg = (CommandsData_.availableCommands_[command] as CommandsNS.Description)[0];
       msg = msg.replace(<RegExpOne>/ \(use .*|&nbsp\(.*|<br\/>/, "");
@@ -319,7 +332,7 @@ Are you sure you want to continue?`);
       options && typeof options === "object" ?
           Object.setPrototypeOf(options, null) : (options = null);
       lastKey = (+<number>lastKey || VKeyCodes.None) as VKeyCodes;
-      return executeCommand(command, Utils.makeCommand_(command, options), count, lastKey, port as Port);
+      return executeCommand(Utils.makeCommand_(command, options), count, lastKey, port as Port);
     }
 
     const
@@ -616,7 +629,7 @@ Are you sure you want to continue?`);
         }
       } while (0 < --repeat);
     }
-    function removeTab (this: void, tab: Tab, curTabs: Tab[], wnds: Window[]): void {
+    function removeAllTabsInWnd (this: void, tab: Tab, curTabs: Tab[], wnds: Window[]): void {
       let url = false, windowId: number | undefined, wnd: Window;
       wnds = wnds.filter(wnd => wnd.type === "normal");
       if (wnds.length <= 1) {
@@ -653,20 +666,21 @@ Are you sure you want to continue?`);
       tab && chrome.windows.update(tab.windowId, { focused: true });
       return onRuntimeError();
     }
-    /** `direction` is treated as limited */
+    /** `direction` is treated as limited; limited by pinned */
     function removeTabsRelative (this: void, activeTab: {index: number, pinned: boolean}, direction: number, tabs: Tab[]): void {
       let i = activeTab.index, noPinned = false;
       if (direction > 0) {
         ++i;
         tabs = tabs.slice(i, i + direction);
-      } else if (direction < 0) {
-        noPinned = i > 0 && !tabs[i - 1].pinned;
-        tabs = tabs.slice(Math.max(i + direction, 0), i);
       } else {
-        noPinned = !activeTab.pinned && tabs.length > 1;
-        tabs.splice(i, 1);
+        noPinned = i > 0 && tabs[0].pinned && !tabs[i - 1].pinned;
+        if (direction < 0) {
+          tabs = tabs.slice(Math.max(i + direction, 0), i);
+        } else {
+          tabs.splice(i, 1);
+        }
       }
-      if (noPinned && tabs[0].pinned) {
+      if (noPinned) {
         tabs = tabs.filter(tab => !tab.pinned);
       }
       if (tabs.length > 0) {
@@ -816,33 +830,23 @@ Are you sure you want to continue?`);
       }
       chrome.windows.getCurrent({populate: true}, incognito ? moveTabToIncognito : moveTabToNewWindow0);
       function moveTabToNewWindow0(this: void, wnd: PopWindow): void {
-        const total = wnd.tabs.length;
+        const tabs0 = wnd.tabs, total = tabs0.length;
         if (total <= 1) { return; } // not need to show a tip
-        const tab = selectFrom(wnd.tabs), i = tab.index, rawCount = commandCount, absCount = Math.abs(rawCount),
-        limited = cOptions.limited != null ? !!cOptions.limited : absCount > total;
-        let count = Math.min(absCount, limited ? rawCount < 0 ? i + 1 : total - i : total);
+        const tab = selectFrom(tabs0), i = tab.index,
+        range = getTabRange(i, total),
+        count = range[1] - range[0];
         if (count >= total) { return Backend.showHUD_("It does nothing to move all tabs of this window"); }
         if (count > 30 && !confirm("moveTabToNewWindow", count)) { return; }
-        rawCount < 0 && (count = -count);
         return makeWindow({
           tabId: tab.id,
           incognito: tab.incognito
-        }, wnd.type === "normal" ? wnd.state : "", absCount > 1 ?
+        }, wnd.type === "normal" ? wnd.state : "", count > 1 ?
         function(wnd2: Window): void {
-          let tabs: Tab[] | undefined = wnd.tabs, tabs2: Tab[] | undefined;
-          const curTab = tabs[i], len = tabs.length, end = i + count;
-          if (end > len || end < -1) {
-            tabs2 = count > 0 ? tabs.slice(len - count, i) : tabs.slice(i + 1, -count);
-          }
-          tabs = count > 0 ? tabs.slice(i + 1, end) : tabs.slice(Math.max(0, end + 1), i);
+          let curTab = tabs0[i], tabs = tabs0.slice(i + 1, range[1]), tabs2 = tabs0.slice(range[0], i);
           if (wnd.incognito && ChromeVer < BrowserVer.MinNoUnmatchedIncognito) {
             let {incognito} = curTab, filter = (tab: Tab): boolean => tab.incognito === incognito;
             tabs = tabs.filter(filter);
-            tabs2 && (tabs2 = tabs2.filter(filter));
-          }
-          if (count < 0) {
-            let tmp = tabs2;
-            tabs2 = tabs; tabs = tmp;
+            tabs2 = tabs2.filter(filter);
           }
           let curInd = 0;
           const getId = (tab: Tab): number => tab.id;
@@ -968,42 +972,38 @@ Are you sure you want to continue?`);
     },
     /* removeTab: */ function (this: void, tabs: Tab[]): void {
       if (!tabs || tabs.length <= 0) { return onRuntimeError(); }
-      const total = tabs.length, rawCount = commandCount, absCount = Math.abs(rawCount),
-      limited = cOptions.limited != null ? !!cOptions.limited : absCount > total;
-      let tab = tabs[0];
-      if (cOptions.allow_close === true) {} else
-      if (absCount >= total && (tab.active
-            || !limited && (!tab.pinned || selectFrom(tabs).pinned))
-      ) {
-        chrome.windows.getAll(removeTab.bind(null, tab, tabs));
-        return;
-      }
-      if (!tab.active) {
-        tab = selectFrom(tabs);
-      }
-      const i = tab.index, goLeft = cOptions.left, firstIsLeft = rawCount < 0, firstSide = firstIsLeft ? i + 1 : total - i,
-      count = Math.min(absCount, limited ? firstSide : total);
-      if (count > 20 && !confirm("removeTab", count)) {
-        return;
-      }
-      chrome.tabs.remove(tab.id, onRuntimeError);
-      if (count <= 1) {
-        if (goLeft && i > 0) {
-          chrome.tabs.update(tabs[i - 1].id, { active: true });
+      const total = tabs.length, tab = selectFrom(tabs), i = tab.index;
+      let count = 1, start = i, end = i + 1;
+      if (Math.abs(commandCount) > 1 && total > 1) {
+        const noPinned = tabs[0].pinned !== tab.pinned && !(commandCount < 0 && tabs[i - 1].pinned);
+        let skipped = 0;
+        if (noPinned) {
+          for (; tabs[skipped].pinned; skipped++) {}
         }
-        return;
-      }
-      const isFirstNotPinned = i > 0 && tabs[i - 1].pinned && !tab.pinned, dir = firstIsLeft ? -1 : 1;
-      if (!firstIsLeft || !isFirstNotPinned) {
-        removeTabsRelative(tab, dir * (count - 1), tabs);
-      }
-      if (count <= firstSide || !firstIsLeft && isFirstNotPinned) {
-        if (goLeft && count < firstSide && i > 0) {
-          chrome.tabs.update(tabs[i - 1].id, { active: true });
+        const range = getTabRange(i, total - skipped, total * GlobalConsts.ThresholdToAutoLimitTabOperation);
+        start = skipped + range[0], end = skipped + range[1];
+        count = end - start;
+        if (count > 20 && !confirm("removeTab", count)) {
+          return;
         }
+      }
+      if (count >= total && cOptions.allow_close !== true) {
+        chrome.windows.getAll(removeAllTabsInWnd.bind(null, tab, tabs));
         return;
       }
-      return removeTabsRelative(tab, dir * (firstSide - count), tabs);
+      const browserTabs = chrome.tabs;
+      browserTabs.remove(tab.id, onRuntimeError);
+      let parts1 = tabs.slice(i + 1, end), parts2 = tabs.slice(start, i);
+      if (commandCount < 0) {
+        let tmp = parts1;
+        parts1 = parts2;
+        parts2 = tmp;
+      }
+      parts1.length > 0 && browserTabs.remove(parts1.map(j => j.id), onRuntimeError);
+      parts2.length > 0 && browserTabs.remove(parts2.map(j => j.id), onRuntimeError);
+      if (cOptions.left && start > 0) {
+        browserTabs.update(tabs[start - 1].id, { active: true });
+      }
     },
     /* removeTabsR: */ function (this: void, tabs: Tab[]): void {
       let dir = cOptions.dir | 0;
@@ -1011,10 +1011,9 @@ Are you sure you want to continue?`);
       return removeTabsRelative(selectFrom(tabs), dir * commandCount, tabs);
     },
     /* removeRightTab: */ function (this: void, tabs: Tab[]): void {
-      const last = tabs.length - 1, count = commandCount;
-      if (!tabs || count > last || count < -last) { return; }
-      const ind = selectFrom(tabs).index + count;
-      chrome.tabs.remove(tabs[ind > last ? last - count : ind < 0 ? -count : ind].id);
+      if (!tabs) { return; }
+      const ind = selectFrom(tabs).index, [start, end] = getTabRange(ind, tabs.length, 0, 1);
+      chrome.tabs.remove(tabs[ind + 1 === end || commandCount > 0 && start !== ind ? start : end - 1].id);
     },
     /* restoreTab: */ function (this: void): void {
       if (!chrome.sessions) {
@@ -1092,21 +1091,25 @@ Are you sure you want to continue?`);
       BackgroundCommands[kBgCmd.openUrl](tabs);
     },
     /* togglePinTab: */ function (this: void, tabs: Tab[]): void {
-      const tab = selectFrom(tabs);
-      let i = tab.index;
-      let len = Math.max(-1, Math.min(i + commandCount, tabs.length)), dir = i < len ? 1 : -1,
-      pin = !tab.pinned, action = {pinned: pin};
-      if ((i < len) !== pin) { i = len - dir; len = tab.index - dir; dir = -dir; }
+      const tab = selectFrom(tabs), pin = !tab.pinned, action = {pinned: pin}, offset = +pin;
+      let skipped = 0;
+      if (Math.abs(commandCount) > 1 && pin) {
+        for (; tabs[skipped].pinned; skipped++) {}
+      }
+      const range = getTabRange(tab.index, tabs.length - skipped, tabs.length * GlobalConsts.ThresholdToAutoLimitTabOperation);
+      let start = skipped + range[1 - offset] - offset, end = skipped + range[offset] - offset;
       const todo = [] as number[];
-      do {
-        todo.push(tabs[i].id);
-        i += dir;
-      } while (len != i && i < tabs.length && i >= 0 && (pin || tabs[i].pinned));
-      if (todo.length > 30 && !confirm("togglePinTab", todo.length)) {
+      for (; start !== end; start += pin ? 1 : -1) {
+        if (pin || tabs[start].pinned) {
+          todo.push(tabs[start].id);
+        }
+      }
+      end = todo.length;
+      if (end > 30 && !confirm("togglePinTab", end)) {
         return;
       }
-      for (i = 0, len = todo.length; i < len; i++) {
-        chrome.tabs.update(todo[i], action);
+      for (start = 0; start < end; start++) {
+        chrome.tabs.update(todo[start], action);
       }
     },
     /* toggleMuteTab: */ function (): void {
@@ -1150,30 +1153,20 @@ Are you sure you want to continue?`);
         return;
       }
       let reloadProperties = { bypassCache: (cOptions.hard || cOptions.bypassCache) === true }
-        , ind = selectFrom(tabs).index, len = tabs.length, tail = len - 1
-        , count = commandCount, dir = count > 0 ? 1 : -1, last = ind + count - dir;
+        , ind = selectFrom(tabs).index
+        , [start, end] = getTabRange(ind, tabs.length);
       if (cOptions.single) {
-        ind = last > tail ? count > len ? 0 : len - count : last < 0 ? count < -len ? tail : dir - count : last;
-        last = ind + dir;
-      } else if (last > tail) {
-        last = len;
-        count <= len && (ind = len - count);
-      } else if (last < 0) {
-        // dir must be < 0
-        last = dir;
-        count >= -len && (ind = dir - count);
-      } else {
-        last += dir;
+        ind = ind + 1 === end || commandCount > 0 && start !== ind ? start : end - 1;
+        start = ind; end = ind + 1;
       }
-      // now `last` is the real end of iteration
-      count = Math.abs(last - ind);
+      const count = end - start;
       if (count > 20 && !confirm("reloadTab", count)) {
         return;
       }
-      do {
-        chrome.tabs.reload(tabs[ind].id, reloadProperties);
-        ind += dir;
-      } while (last != ind);
+      chrome.tabs.reload(tabs[ind].id, reloadProperties);
+      for (; start !== end; start++) {
+        start !== ind && chrome.tabs.reload(tabs[start].id, reloadProperties);
+      }
     },
     /* reloadGivenTab: */ function (): void {
       if (commandCount < 2 && commandCount > -2) {
@@ -1494,7 +1487,7 @@ Are you sure you want to continue?`);
     }
   ],
   numHeadRe = <RegExpOne>/^-?\d+|^-/;
-  function executeCommand (command: string, registryEntry: CommandsNS.Item
+  function executeCommand (registryEntry: CommandsNS.Item
       , count: number, lastKey: VKeyCodes, port: Port): void {
     const { options, repeat } = registryEntry;
     let scale: number | undefined;
@@ -1502,7 +1495,7 @@ Are you sure you want to continue?`);
     count = count >= 1e4 ? 9999 : count <= -1e4 ? 9999 : (count | 0) || 1;
     if (count === 1) {}
     else if (repeat === 1) { count = 1; }
-    else if (repeat > 0 && (count > repeat || count < -repeat) && !confirm(command, Math.abs(count))) { return; }
+    else if (repeat > 0 && (count > repeat || count < -repeat) && !confirm(registryEntry.command, Math.abs(count))) { return; }
     else { count = count || 1; }
     if (!registryEntry.background) {
       const { alias } = registryEntry,
@@ -1918,7 +1911,7 @@ Are you sure you want to continue?`);
       }
       const registryEntry = ref[key] as CommandsNS.Item;
       Utils.resetRe_();
-      return executeCommand(registryEntry.command, registryEntry, count, request.l, port);
+      return executeCommand(registryEntry, count, request.l, port);
     },
     /** marks: */ function (this: void, request: FgReq[kFgReq.marks], port: Port): void {
       cPort = port;

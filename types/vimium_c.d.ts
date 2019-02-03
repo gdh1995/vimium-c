@@ -279,6 +279,7 @@ declare const enum GlobalConsts {
   MaxNumberOfNextPatterns = 200,
   MaxBufferLengthForPasting = 8192,
   TimeoutToReleaseBackendModules = 1000 * 60,
+  ThresholdToAutoLimitTabOperation = 2, // 2 * Tab[].length
 }
 
 declare const enum KnownKey {

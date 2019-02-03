@@ -107,6 +107,7 @@ These issues are only up to the master branch:
 * be able to read the system clipboard since Firefox 63.
 * VisualMode: support cursor movement on `<input type=number>` correctly
 * search engines: support default URLs when a query is empty
+* make usages of command count consistent, for `removeTab`, `removeRightTab`, `reloadTab`, `moveTabToNewWindow` and `togglePinTab`
 
 1.71.3:
 * fix broken code on Vimium C's background process
