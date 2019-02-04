@@ -62,8 +62,8 @@ var HelpDialog = {
       if (keys && keys.length > 0) {
         bindings = '\n\t\t<span class="HelpKey">';
         for (const item of keys) {
-          const help = item[1].help;
-          help && (this as typeof HelpDialog).correctHelpInfo(help);
+          const help = item[1].help as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
+          help && (this as typeof HelpDialog).normalizeHelpInfo_(help);
           const key = help && help.$key || Utils.escapeText_(item[0]);
           if (help && help.$desp) {
             let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
@@ -106,22 +106,47 @@ var HelpDialog = {
     }
     return html + "</td>\n</tr>\n";
   }),
-  correctHelpInfo (help: CommandsNS.CustomHelpInfo): void {
+  normalizeHelpInfo_ (help: Partial<CommandsNS.NormalizedCustomHelpInfo>): void {
     if (help.$key != null) { return; }
     let a = this.templateEl_;
     a || (a = this.templateEl_ = document.createElement('template'));
-    if (help.key) {
-      a.innerHTML = help.key || "";
-      help.$key = a.innerHTML;
-    } else {
-      help.$key = "";
+    help.$key = help.key ? this.safeHTML_(help.key, a) : "";
+    help.$desp = help.desp ? this.safeHTML_(help.desp, a) : "";
+  },
+  // https://support.zendesk.com/hc/en-us/articles/115015895948-Allowing-unsafe-HTML-in-articles
+  safeTags: {
+    a: 1, abbr: 1, acronym: 1, address: 1, b: 1, big: 1, blockquote: 1, br: 1,
+    cite: 1, code: 1, colgroup: 1, dd: 1, del: 1, dfn: 1, div: 1, dl: 1, dt: 1,
+    em: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, h6: 1, hr: 1, i: 1, id: 1, img: 1,
+    ins: 1, kbd: 1, li: 1, ol: 1, p: 1, pre: 1, samp: 1, small: 1, span: 1,
+    strong: 1, sub: 1, sup: 1, table: 1, tbody: 1, td: 1, tfoot: 1, th: 1,
+    thead: 1, tr: 1, tt: 1, u: 1, ul: 1, var: 1,
+    __proto__: null as never
+  } as SafeEnum,
+  safeHTML_ (raw: string, parent: HTMLElement): string {
+    parent.innerHTML = raw;
+    for (let arr = parent.querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
+      const el = arr[i];
+      if (el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement) {
+        el.remove();
+        continue;
+      }
+      if (!((el.tagName + "").toLowerCase() in this.safeTags) && !(el instanceof HTMLUnknownElement)) {
+        el.remove();
+        continue;
+      }
+      const attrsToRemove = [] as Attr[];
+      for (let attrs = el.attributes, len2 = attrs.length, j = 0; j < len2; j++) {
+        const attrName = attrs[j].name.toLowerCase();
+        if (attrName.startsWith("on") || attrName.indexOf(":on") >= 0 || attrName.endsWith("href")) {
+          attrsToRemove.push(attrs[j]);
+        }
+      }
+      for (let j = 0; j < attrsToRemove.length; j++) {
+        el.removeAttributeNode(attrsToRemove[j]);
+      }
     }
-    if (help.desp) {
-      a.innerHTML = help.desp || "";
-      help.$desp = a.innerHTML;
-    } else {
-      help.$desp = "";
-    }
+    return parent.innerHTML;
   },
   commandGroups_: { __proto__: null as never,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"

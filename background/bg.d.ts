@@ -192,10 +192,13 @@ declare namespace CommandsNS {
   interface Options extends ReadonlySafeDict<any> {}
   // encoded info
   interface CustomHelpInfo {
-    $key?: string;
-    $desp?: string;
-    key?: string;
-    desp?: string;
+    key: string;
+    desp: string;
+    $key?: unknown;
+  }
+  interface NormalizedCustomHelpInfo extends CustomHelpInfo {
+    $key: string;
+    $desp: string;
   }
   type BgDescription = [ string, 0 | 1, true, kBgCmd & number, {}? ];
   type FgDescription = [ string, 0 | 1, false, kFgCmd & number, {}? ];
@@ -205,7 +208,7 @@ declare namespace CommandsNS {
     readonly command: string;
     readonly options: Options | null;
     readonly repeat: number;
-    readonly help: Readonly<CustomHelpInfo> | null;
+    readonly help: CustomHelpInfo | null;
   }
   type Item = (BaseItem & {
     readonly alias: kBgCmd & number;
