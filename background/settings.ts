@@ -181,14 +181,14 @@ var Settings = {
       this.set("innerCSS", innerCSS);
       const cache = this.cache;
       innerCSS = cache.innerCSS;
-      const ref = Backend.indexPorts(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS },
-      requestWithFindCSS: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, F: cache.findCSS };
+      const ref = Backend.indexPorts(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, F: cache.findCSS };
       for (const tabId in ref) {
         const frames = ref[+tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {
-          const flags = frames[i].s.f;
-          if (flags & Frames.Flags.hasCSS) {
-            frames[i].postMessage(flags & Frames.Flags.hadFindMode ? requestWithFindCSS : request);
+          const status = frames[i].s;
+          if (status.f & Frames.Flags.hasCSS) {
+            frames[i].postMessage(request);
+            status.f |= Frames.Flags.hasFindCSS;
           }
         }
       }

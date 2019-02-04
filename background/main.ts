@@ -1364,10 +1364,10 @@ Are you sure you want to continue?`);
       options.mode = str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual;
       if (~flags & Frames.Flags.hadVisualMode) {
         options.words = CommandsData_.wordsRe_;
-        if (~flags & Frames.Flags.hadFindMode) {
+        if (~flags & Frames.Flags.hasFindCSS) {
           options.findCSS = Settings.cache.findCSS;
         }
-        cPort.s.f = Frames.Flags.hadVisualMode | Frames.Flags.hadFindMode | flags;
+        cPort.s.f = Frames.Flags.hadVisualMode | Frames.Flags.hasFindCSS | flags;
       }
       cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
         S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
@@ -1378,8 +1378,8 @@ Are you sure you want to continue?`);
       const leave = !cOptions.active, sender = cPort.s,
       query = leave || cOptions.last ? FindModeHistory_.query_(sender.a) : "";
       let findCSS: CmdOptions[kFgCmd.findMode]["findCSS"] = null;
-      if (!(sender.f & Frames.Flags.hadFindMode)) {
-        sender.f |= Frames.Flags.hadFindMode;
+      if (!(sender.f & Frames.Flags.hasFindCSS)) {
+        sender.f |= Frames.Flags.hasFindCSS;
         findCSS = Settings.cache.findCSS;
       }
       cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
