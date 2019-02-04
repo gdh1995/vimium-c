@@ -309,7 +309,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     (this.isSelOriginal_ || old < 0) && (this.inputText_ = this.input_.value);
     this.updateInput_(sel);
     this.selection_ = sel;
+    old >= 1 && _ref[old - 1].classList.remove("p");
     old >= 0 && _ref[old].classList.remove("s");
+    sel >= 1 && _ref[sel - 1].classList.add("p");
     sel >= 0 && _ref[sel].classList.add("s");
   },
   ctrlMap_: {
