@@ -23,11 +23,11 @@ var VFind = {
   styleOut_: null as never as HTMLStyleElement,
   A0Re_: <RegExpG> /\xa0/g,
   tailRe_: <RegExpOne> /\n$/,
-  css_: null as never as [string, string],
+  css: null as never as [string, string],
   styleIframe_: null as HTMLStyleElement | null,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
     const a = VFind;
-    a.css_ = options.findCSS || a.css_;
+    a.css = options.findCSS || a.css;
     if (!VDom.isHTML_()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
     ui = VDom.UI, first = !ui.box_;
@@ -60,7 +60,7 @@ var VFind = {
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
     ui.toggleSelectStyle_(1);
-    ui.addElement_(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box_);
+    ui.add(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box_);
     first && ui.adjust_();
     a.isActive_ = true;
   },
@@ -105,7 +105,7 @@ var VFind = {
     const el2 = a.countEl_ = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
-    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_ = VDom.UI.createStyle_(a.css_[1], doc.createElement("style")));
+    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_ = VDom.UI.createStyle_(a.css[1], doc.createElement("style")));
     docEl.insertBefore(doc.createTextNode("/"), el);
     docEl.appendChild(el2);
     function cb(): void {
@@ -139,12 +139,12 @@ var VFind = {
   },
   init_ (adjust: AdjustType): void {
     const ref = this.postMode_, UI = VDom.UI,
-    css = this.css_[0], sin = this.styleIn_ = UI.createStyle_(css);
+    css = this.css[0], sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
-    UI.addElement_(sin, adjust, true);
+    UI.add(sin, adjust, true);
     sin.remove();
     this.browser_ = VSettings.cache.browser;
-    this.styleOut_ = UI.box_ !== UI.R ? UI.createStyle_(css) : sin;
+    this.styleOut_ = UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
   findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
@@ -496,7 +496,7 @@ var VFind = {
     }
     if (sout.parentNode !== UI.box_) {
       (UI.box_ as HTMLDivElement).appendChild(sout);
-      sin === sout || UI.addElement_(sin, AdjustType.NotAdjust, true);
+      sin === sout || UI.add(sin, AdjustType.NotAdjust, true);
     }
     sout.sheet && (sout.sheet.disabled = disable);
     sin.sheet && (sin.sheet.disabled = disable);

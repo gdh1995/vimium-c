@@ -44,7 +44,7 @@ var VVisual = {
     sel: Selection = a.selection_ = theSelected[0],
     type: SelType = a.realType_(sel), mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
     a.scope_ = theSelected[1];
-    F.css_ = options.findCSS || F.css_;
+    F.css = options.findCSS || F.css;
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
     if (mode !== VisualModeNS.Mode.Caret) {
       if (!VEvent.lock() && /* (type === SelType.Caret || type === SelType.Range) */ type) {

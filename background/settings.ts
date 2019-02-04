@@ -63,7 +63,7 @@ var Settings = {
       ref2[key] = this.get(key);
     }
   },
-  parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
+  parseCustomCSS (css: string): SettingsNS.ParsedCustomCSS {
     const arr = css ? css.split(<RegExpG & RegExpSearchable<1>>/\/\*\s?#!?([A-Za-z]+)\s?\*\//g) : [""];
     const map: SettingsNS.ParsedCustomCSS = { ui: arr[0].trim() };
     for (let i = 1; i < arr.length; i += 2) {
@@ -159,7 +159,7 @@ var Settings = {
           body.replace(<RegExpG> /\.[A-Z]/g, `${prefix} $&`);
       }
       css = cacheId + css.length + "\n" + css;
-      const css2 = (this as typeof Settings).parseCustomCSS_(this.get("userDefinedCss"));
+      const css2 = (this as typeof Settings).parseCustomCSS(this.get("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
       localStorage.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find && "\n" + css2.find));
       localStorage.setItem("omniCSS", css2.omni || "");
@@ -168,7 +168,7 @@ var Settings = {
     userDefinedCss (this: SettingsTmpl, css2Str): void {
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(0, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
-      const css2 = (this as typeof Settings).parseCustomCSS_(css2Str);
+      const css2 = (this as typeof Settings).parseCustomCSS(css2Str);
       let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
       {
         css = localStorage.getItem("findCSS") as string;

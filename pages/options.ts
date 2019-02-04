@@ -1,3 +1,14 @@
+interface Window {
+  readonly VDom?: VDomProto;
+  readonly VPort?: Readonly<VPort>;
+  readonly VHUD?: Readonly<VHUD>;
+}
+interface VDomProto {
+  readonly UI: Readonly<DomUI>;
+  view(el: Element, oldY?: number | undefined): boolean;
+}
+declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>, VEvent: Pick<VEventModeTy, "lock">;
+
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEvent | null, hash?: "hash"): void;
@@ -687,9 +698,9 @@ function OnBgUnload(): void {
 BG_.addEventListener("unload", OnBgUnload);
 
 document.addEventListener("click", function onClickOnce(): void {
-  if (!window.VDom || !VDom.UI.R) { return; }
+  if (!window.VDom || !VDom.UI.UI) { return; }
   document.removeEventListener("click", onClickOnce, true);
-  (VDom.UI.R as Node).addEventListener("click", function(event): void {
+  (VDom.UI.UI as Node).addEventListener("click", function(event): void {
     let target = event.target as HTMLElement, str: string;
     if (VPort && target.classList.contains("HelpCommandName")) {
       str = target.textContent.slice(1, -1);

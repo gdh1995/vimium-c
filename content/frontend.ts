@@ -705,7 +705,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     node_: null as HTMLDivElement | null,
     timer_: 0,
     Focus_ (this: void, { mask, S: CSS, key }: BgReq[kBgReq.focusFrame]): void {
-      CSS && VDom.UI.css_(CSS);
+      CSS && VDom.UI.css(CSS);
       if (mask !== FrameMaskType.NormalNext) {}
       else if (innerWidth < 3 || innerHeight < 3
         || document.body instanceof HTMLFrameSetElement
@@ -734,7 +734,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         _this.node_ = dom1;
         _this.timer_ = setInterval(_this.Remove_, notTop ? 350 : 200);
       }
-      VDom.UI.addElement_(dom1);
+      VDom.UI.add(dom1);
     },
     Remove_ (this: void, info?: TimerType): void {
       const _this = FrameMask, { more_ } = _this;
@@ -788,7 +788,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         st.visibility = "hidden";
         VDom.UI.box_ || VDom.UI.ensureBorder_();
       }
-      VDom.UI.addElement_(hud.box_ = el, AdjustType.NotAdjust, VHints.box_);
+      VDom.UI.add(hud.box_ = el, AdjustType.NotAdjust, VHints.box_);
     },
     _tween (this: void, info?: TimerType): void {
       if (!VPort) { return; }
@@ -925,7 +925,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       (mappedKeys = request.m) && func(mappedKeys, null);
     },
     function<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
-      if (request.S) { VDom.UI.css_(request.S); }
+      if (request.S) { VDom.UI.css(request.S); }
       const options: CmdOptions[O] | null = request.a;
       type Keys = keyof CmdOptions;
       type TypeToCheck = {
@@ -939,9 +939,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.markName); },
     function (req: Req.bg<kBgReq.showHUD>): void {
       if (req.S) {
-        VDom.UI.css_(req.S);
+        VDom.UI.css(req.S);
         if (req.F) {
-          VFind.css_ = req.F
+          VFind.css = req.F;
           VFind.styleIframe_ && (VFind.styleIframe_.textContent = req.F[1]);
         }
       }
@@ -955,7 +955,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     let box: HTMLDivElement & SafeHTMLElement
       , oldShowHelp = Commands[kFgCmd.showHelp], hide: (this: void, e?: Event | number | "exitHD") => void
       , node1: HTMLElement;
-    if (CSS) { VDom.UI.css_(CSS); }
+    if (CSS) { VDom.UI.css(CSS); }
     if (!VDom.isHTML_()) { return; }
     Commands[kFgCmd.showHelp]("exitHD");
     if (oldShowHelp !== Commands[kFgCmd.showHelp]) { return; } // an old dialog exits
@@ -1018,12 +1018,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       box.style.position = "fixed";
     }
     VDom.UI.ensureBorder_();
-    VDom.UI.addElement_(box, AdjustType.Normal, true);
+    VDom.UI.add(box, AdjustType.Normal, true);
     document.hasFocus() || VEvent.focusAndListen_();
     VScroller.current_ = box;
     VUtils.push_(function(event) {
       if (!InsertMode.lock_ && VKeyboard.isEscape_(event)) {
-        VDom.UI.removeSelection_(VDom.UI.R) || hide();
+        VDom.UI.removeSelection_(VDom.UI.UI) || hide();
         return HandlerResult.Prevent;
       }
       return HandlerResult.Nothing;

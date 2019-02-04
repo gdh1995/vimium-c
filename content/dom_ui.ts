@@ -6,12 +6,12 @@ VDom.UI = {
   box_: null,
   styleIn_: null,
   styleOut_: null,
-  R: null as never,
+  UI: null as never,
   callback_: null,
   flashLastingTime_: 400,
-  addElement_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): T {
+  add<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): T {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
-    r: VUIRoot = a.R = box.attachShadow ? box.attachShadow({mode: "closed"})
+    r: VUIRoot = a.UI = box.attachShadow ? box.attachShadow({mode: "closed"})
       : box.createShadowRoot ? box.createShadowRoot() : box;
     box.style.display = "none";
     // listen "load" so that safer if shadowRoot is open
@@ -20,22 +20,22 @@ VDom.UI = {
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { return removeEventListener("load", Onload, true); }
       const t = e.target as HTMLElement;
-      if (t.parentNode === VDom.UI.R) {
+      if (t.parentNode === VDom.UI.UI) {
         VUtils.Stop_(e); t.onload && t.onload(e);
       }
     }, true);
-    a.addElement_ = (function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
+    a.add = (function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
       adjust === AdjustType.NotAdjust || this.adjust_();
-      return this.R.insertBefore(element, before === true ? this.R.firstChild : before || null);
+      return this.UI.insertBefore(element, before === true ? this.UI.firstChild : before || null);
     });
-    a.css_ = (function (innerCSS): void {
+    a.css = (function (innerCSS): void {
       const a = VDom.UI;
-      if (a.box_ === a.R) {
+      if (a.box_ === a.UI) {
         a.box_.id = "VimiumUI";
       }
       let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_(innerCSS), border = a._styleBorder;
-      a.R.appendChild(el);
-      a.css_ = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = css; };
+      a.UI.appendChild(el);
+      a.css = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = css; };
       border && border.zoom_ < 0 && a.ensureBorder_(-border.zoom_);
       if (adjust !== AdjustType.AdjustButNotShow) {
         let f = function (this: HTMLElement | void, e: Event | 1): void {
@@ -54,7 +54,7 @@ VDom.UI = {
     r.appendChild(element);
     let b: string | null;
     if (b = a.styleIn_ as string | null) {
-      a.css_(b);
+      a.css(b);
     } else {
       b === "" || VPort.post({ H: kFgReq.css });
       if ((adjust as AdjustType) >= AdjustType.MustAdjust) {
@@ -73,11 +73,11 @@ VDom.UI = {
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
     zoom !== 1 && (style.zoom = "" + zoom);
     document.webkitIsFullScreen && (style.position = "fixed");
-    return this.addElement_(parent, AdjustType.DEFAULT, this._lastFlash);
+    return this.add(parent, AdjustType.DEFAULT, this._lastFlash);
   },
   adjust_ (event): void {
     const ui = VDom.UI, el = document.webkitFullscreenElement, box = ui.box_ as HTMLDivElement,
-    el2 = el && !(ui.R as Node).contains(el) ? el : document.documentElement as HTMLElement;
+    el2 = el && !(ui.UI as Node).contains(el) ? el : document.documentElement as HTMLElement;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
@@ -98,10 +98,10 @@ VDom.UI = {
     if (st ? st.zoom_ === zoom : zoom >= 1) { return; }
     st || (st = this._styleBorder = { el_: this.createStyle_(""), zoom_: 0 });
     if (!this.box_) { st.zoom_ = -zoom; return; }
-    const p = this.box_ === this.R ? "#VimiumUI " : "", el = st.el_;
+    const p = this.box_ === this.UI ? "#VimiumUI " : "", el = st.el_;
     st.zoom_ = zoom;
     el.textContent = `${p}.HUD, ${p}.IH, ${p}.LH { border-width: ${("" + 0.51 / zoom).substring(0, 5)}px; }`;
-    el.parentNode || this.addElement_(el, AdjustType.NotAdjust);
+    el.parentNode || this.add(el, AdjustType.NotAdjust);
   },
   createStyle_ (text, css): HTMLStyleElement {
     css = css || VDom.createElement_("style");
@@ -109,7 +109,7 @@ VDom.UI = {
     css.textContent = text;
     return css;
   },
-  css_ (innerCSS): void { this.styleIn_ = innerCSS; },
+  css (innerCSS): void { this.styleIn_ = innerCSS; },
   getDocSelectable_ (): boolean {
     let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_;
     if (sout && sout.parentNode) { return false; }
@@ -261,7 +261,7 @@ VDom.UI = {
     flashEl.className = "R Flash";
     VDom.setBoundary_(flashEl.style, rect, nfs);
     VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
-    this.addElement_(flashEl);
+    this.add(flashEl);
     this._lastFlash = flashEl;
     setTimeout(() => {
       this._lastFlash === flashEl && (this._lastFlash = null);

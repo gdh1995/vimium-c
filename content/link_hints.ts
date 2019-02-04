@@ -244,7 +244,7 @@ var VHints = {
     return hint;
   },
   adjustMarkers_ (elements: Hint[]): void {
-    const zi = VDom.bZoom_, root = VDom.UI.R;
+    const zi = VDom.bZoom_, root = VDom.UI.UI;
     let i = elements.length - 1;
     if (!root || elements[i][0] !== VOmni.box_ && !root.querySelector('#HelpDialog')) { return; }
     const z = ("" + 1 / zi).substring(0, 5), arr = this.hints_ as HintsNS.HintItem[],
@@ -475,7 +475,7 @@ var VHints = {
       }
     }
     list = null;
-    const uiRoot = VDom.UI.R;
+    const uiRoot = VDom.UI.UI;
     if (uiRoot && uiRoot !== VDom.UI.box_ && !notWantVUI
         && (uiRoot.mode === "closed" || !matchAll && a.queryInDeep_ !== DeepQueryType.InDeep)) {
       const d = VDom, z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;

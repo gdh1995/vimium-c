@@ -1,17 +1,6 @@
-interface Window {
-  readonly VDom?: VDomProto;
-  readonly VPort?: Readonly<VPort>;
-  readonly VHUD?: Readonly<VHUD>;
-}
-interface VDomProto {
-  readonly UI: Readonly<DomUI>;
-  view(el: Element, oldY?: number | undefined): boolean;
-}
-declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>, VEvent: Pick<VEventModeTy, "lock">;
-
 $<ElementWithDelay>("#showCommands").onclick = function(event): void {
   if (!window.VDom) { return; }
-  let node: HTMLElement | null, root = VDom.UI.R;
+  let node: HTMLElement | null, root = VDom.UI.UI;
   event && event.preventDefault();
   if (!root) {}
   else if (node = root.querySelector("#HClose") as HTMLElement | null) {
@@ -27,7 +16,7 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
   });
   if (event) { return; }
   setTimeout(function(): void {
-    const node = VDom.UI.R && VDom.UI.R.querySelector("#HelpDialog") as HTMLElement;
+    const node = VDom.UI.UI && VDom.UI.UI.querySelector("#HelpDialog") as HTMLElement;
     if (!node) { return; }
     (node.querySelector("#HClose") as HTMLElement).addEventListener("click", function(): void {
       window.location.hash = "";
@@ -299,7 +288,7 @@ Are you sure you want to continue?`
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
-  const node = window.VDom && VDom.UI.R && VDom.UI.R.querySelector("#HClose") as HTMLElement;
+  const node = window.VDom && VDom.UI.UI && VDom.UI.UI.querySelector("#HClose") as HTMLElement;
   if (node) { // reload help dialog
     node.click();
     $("#showCommands").click();

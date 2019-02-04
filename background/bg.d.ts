@@ -456,6 +456,7 @@ interface Window {
     };
     readonly newTabs: SafeDict<Urls.NewTabType>,
     broadcast<K extends keyof BgReq> (request: Req.bg<K>): void;
+    parseCustomCSS (css: string): SettingsNS.ParsedCustomCSS;
     readonly payload: SettingsNS.FrontendSettingCache & SafeObject;
     get<K extends keyof SettingsNS.SettingsWithDefaults> (key: K, forCache?: boolean
       ): SettingsNS.SettingsWithDefaults[K];

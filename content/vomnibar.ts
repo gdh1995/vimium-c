@@ -189,11 +189,11 @@ var VOmni = {
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {
-      UI.css_("");
+      UI.css("");
     }
-    UI.addElement_(this.box_ = el, AdjustType.AdjustButNotShow, VHUD.box_);
+    UI.add(this.box_ = el, AdjustType.AdjustButNotShow, VHUD.box_);
     if (CSS) {
-      UI.css_(CSS);
+      UI.css(CSS);
     }
     type !== VomnibarNS.PageType.inner && setTimeout(function(i): void { loaded || i || VOmni.onReset_ || reload(); }, 2000);
   },
