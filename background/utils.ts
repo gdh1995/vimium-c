@@ -404,7 +404,7 @@ var Utils = {
     }
     ind = (this as typeof Utils)._nestedEvalCounter++;
     if (ind > 12) { return null; }
-    if (ind === 12) { return (this as typeof Utils).createSearchUrl_(arr); }
+    if (ind === 12) { return (this as typeof Utils).createSearchUrl_(arr, "", Urls.WorkType.Default); }
     if (ind > 0) { return (this as typeof Utils).createSearchUrl_(arr, "", workType); }
     res = (this as typeof Utils).createSearchUrl_(arr, "", workType);
     (this as typeof Utils)._nestedEvalCounter = 0;
@@ -451,8 +451,7 @@ var Utils = {
   searchWordRe_: <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g,
   searchWordRe2_: <RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g,
   searchVariable_: <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g,
-  createSearchUrl_: function (this: {}, query: string[], keyword?: string | null
-      , vimiumUrlWork?: Urls.WorkType): Urls.Url {
+  createSearchUrl_: function (this: {}, query: string[], keyword: string, vimiumUrlWork: Urls.WorkType): Urls.Url {
     let url: string, pattern: Search.Engine | undefined = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
       if (!keyword) { keyword = query.shift() as string; }

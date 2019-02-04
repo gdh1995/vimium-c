@@ -704,6 +704,8 @@ $("#importButton").onclick = function(): void {
   opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
 };
 
+$("#defaultSearchEngine").textContent = bgSettings_.defaults.searchUrl;
+
 $("#browserName").textContent = (bgOnOther === BrowserType.Edge ? "MS Edge"
   : bgOnOther === BrowserType.Firefox ? "Firefox" : ((<RegExpOne>/\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
   ) + (bgOnOther === BrowserType.Firefox ? " " + (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, ""])[1]
