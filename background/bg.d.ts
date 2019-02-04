@@ -350,6 +350,7 @@ declare namespace SettingsNS {
   interface FullCache extends Partial<FullSettings>, SafeObject {
     innerCSS: FullSettings["innerCSS"];
     findCSS: FullSettings["findCSS"];
+    omniCSS: FullSettings["omniCSS"];
     newTabUrl_f: FullSettings["newTabUrl_f"];
     searchEngineMap: FullSettings["searchEngineMap"];
     searchEngineRules: FullSettings["searchEngineRules"];
@@ -401,6 +402,7 @@ declare namespace BackendHandlersNS {
     forceStatus (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
     indexPorts: {
       (this: void, tabId: number, frameId: number): Port | null;
+      (this: void, tabId: GlobalConsts.VomnibarFakeTabId): Frames.Frames;
       (this: void, tabId: number): Frames.Frames | null;
       (this: void): Frames.FramesMap;
     };

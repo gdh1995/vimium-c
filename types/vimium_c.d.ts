@@ -272,13 +272,14 @@ interface Document extends DocumentAttrsToBeDetected {}
 
 declare const enum GlobalConsts {
   TabIdNone = -1,
-  MaxImpossibleTabId = -2,
+  VomnibarFakeTabId = -3,
+  MaxImpossibleTabId = -4,
   WndIdNone = -1,
   VomnibarSecretTimeout = 3000,
   // limited by Pagination.findAndFollowLink_
   MaxNumberOfNextPatterns = 200,
   MaxBufferLengthForPasting = 8192,
-  TimeoutToReleaseBackendModules = 1000 * 60,
+  TimeoutToReleaseBackendModules = /** (to make TS silent) 1000 * 60 */ 60000,
   ThresholdToAutoLimitTabOperation = 2, // 2 * Tab[].length
 }
 

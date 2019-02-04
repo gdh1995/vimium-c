@@ -129,6 +129,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   wheelTime_: 0,
   browser_: BrowserType.Chrome,
   browserVersion_: BrowserVer.assumedVer,
+  customStyle_: null as HTMLStyleElement | null,
   wheelOptions_: { passive: false, capture: true as true },
   show_ (): void {
     this.showing_ = true;
@@ -277,7 +278,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       url: str
     });
   },
-  parsed_ ({ id, search }: BgVomnibarReq[kBgReq.omni_parsed]): void {
+  parsed_ ({ id, search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
     const line: SuggestionEx = this.completions_[id] as SuggestionEx;
     line.parsed = search ? (this.modeType_ !== "omni" ? ":o " : "") + search.keyword + " " + search.url + " " : line.text;
     if (id === this.selection_) {
@@ -564,7 +565,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
     this.update_(-1);
   },
-  omni_ (response: BgVomnibarReq[kBgReq.omni_omni]): void {
+  omni_ (response: BgVomnibarSpecialReq[kBgReq.omni_omni]): void {
     if (!this.isActive_) { return; }
     const list = response.list, height = list.length, notEmpty = height > 0;
     this.total_ = response.total;
@@ -684,6 +685,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       this.input_.addEventListener("compositionstart", func);
       this.input_.addEventListener("compositionend", func);
     }
+    this.customStyle_ && (document.head as HTMLElement).appendChild(this.customStyle_);
     this.init_ = VUtils_.makeListRenderer_ = null as never;
     if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && this.browser_ === BrowserType.Chrome || this.bodySt_.d != null) { return; }
     const styles = (document.querySelector("style") as HTMLStyleElement).textContent,
@@ -695,6 +697,19 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       const type = sug.type, path = pathMap[type];
       return path ? `${type}" d="${path}` : type;
     }
+  },
+  css_ (request: BgCSSReq): void {
+    let css = request.S as string, st = this.customStyle_;
+    if (!css) {
+      st && st.remove();
+      this.customStyle_ = null;
+      return;
+    }
+    if (!st) {
+      st = this.customStyle_ = document.createElement("style");
+      this.init_ || (document.head as HTMLElement).appendChild(st);
+    }
+    st.textContent = css;
   },
   getTypeIcon_ (sug: Readonly<SuggestionE>): string { return sug.type; },
   setPType_ (type: VomnibarNS.PageType): void {
@@ -729,7 +744,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (Vomnibar_.keyResult_ === HandlerResult.Prevent) { event.preventDefault(); }
     event.stopImmediatePropagation();
   },
-  returnFocus_ (this: void, request: BgVomnibarReq[kBgReq.omni_returnFocus]): void {
+  returnFocus_ (this: void, request: BgVomnibarSpecialReq[kBgReq.omni_returnFocus]): void {
     type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort_.postToOwner_ as
       VoidPost, 0, { N: "focus", key: request.key });
@@ -767,7 +782,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       }
     }, 100);
   },
-  secret_: null as never as (request: BgVomnibarReq[kBgReq.omni_secret]) => void,
+  secret_: null as never as (request: BgVomnibarSpecialReq[kBgReq.omni_secret]) => void,
 
   maxResults_: (<number>window.VomnibarListLength | 0) || 10,
   mode_: {
@@ -929,13 +944,14 @@ VPort_ = {
       this.postToOwner_({ N: "broken", active: Vomnibar_.isActive_ });
     }
   },
-  _Listener<T extends keyof BgVomnibarReq> (this: void, response: Req.bg<T>): void {
+  _Listener<T extends ValidBgVomnibarReq> (this: void, response: Req.bg<T>): void {
     const name = response.N;
     name === kBgReq.omni_omni ? Vomnibar_.omni_(response as Req.bg<kBgReq.omni_omni>) :
     name === kBgReq.omni_parsed ? Vomnibar_.parsed_(response as Req.bg<kBgReq.omni_parsed>) :
     name === kBgReq.omni_secret ? Vomnibar_.secret_(response as Req.bg<kBgReq.omni_secret>) :
     name === kBgReq.omni_returnFocus ? Vomnibar_.returnFocus_(response as Req.bg<kBgReq.omni_returnFocus>) :
     name === kBgReq.omni_blurred ? Vomnibar_.blurred_(response as Req.bg<kBgReq.omni_blurred>) :
+    name === kBgReq.showHUD ? Vomnibar_.css_(response as Req.bg<kBgReq.showHUD> as BgCSSReq) :
     0;
   },
   _OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
@@ -1010,10 +1026,11 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     }
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);
-  Vomnibar_.secret_ = function(this: typeof Vomnibar_, request): void {
-    this.secret_ = function() {};
+  Vomnibar_.secret_ = function(this: void, request): void {
+    Vomnibar_.secret_ = function() {};
     Vomnibar_.browser_ = request.browser;
     Vomnibar_.browserVersion_ = request.browserVer;
+    Vomnibar_.css_(request);
     const { secret } = request, msgs = unsafeMsg;
     _sec = secret;
     unsafeMsg = null as never;

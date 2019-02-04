@@ -82,7 +82,7 @@ interface BgReq {
   }
 }
 
-interface BgVomnibarReq {
+interface BgVomnibarSpecialReq {
   [kBgReq.omni_omni]: {
     list: CompletersNS.Suggestion[];
     autoSelect: boolean;
@@ -97,14 +97,16 @@ interface BgVomnibarReq {
     secret: number;
     browser: BrowserType;
     browserVer: BrowserVer;
+    /** CSS */ S: string;
   };
   [kBgReq.omni_blurred]:  & Req.baseBg<kBgReq.omni_blurred>;
   [kBgReq.omni_parsed]: {
     id: number;
     search: FgRes[kFgReq.parseSearchUrl];
-  }
+  };
 }
-interface FullBgReq extends BgReq, BgVomnibarReq {}
+type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.showHUD;
+interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 
 declare const enum kBgCmd {
@@ -374,7 +376,7 @@ declare namespace Req {
   };
   type bg<K extends kBgReq> =
     K extends keyof BgReq ? BgReq[K] & baseBg<K> :
-    K extends keyof BgVomnibarReq ? BgVomnibarReq[K] & baseBg<K> :
+    K extends keyof BgVomnibarSpecialReq ? BgVomnibarSpecialReq[K] & baseBg<K> :
     never;
   type baseFg<K extends kFgReq> = {
     /** handler */ H: K;

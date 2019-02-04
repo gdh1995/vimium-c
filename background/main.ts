@@ -2114,6 +2114,7 @@ Are you sure you want to continue?`);
             N: kBgReq.omni_secret,
             browser: OnOther,
             browserVer: ChromeVer,
+            S: Settings.cache.omniCSS,
             secret: getSecret()
           });
           return true;
@@ -2318,7 +2319,8 @@ Are you sure you want to continue?`);
       });
     },
     indexPorts: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
-      return tabId == null ? framesForTab : frameId == null ? (framesForTab[tabId] || null)
+      return tabId == null ? framesForTab
+        : frameId == null ? (tabId === GlobalConsts.VomnibarFakeTabId ? framesForOmni : framesForTab[tabId] || null)
         : indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts"],
     onInit_(): void {
