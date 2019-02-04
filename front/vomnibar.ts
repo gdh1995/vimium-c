@@ -706,7 +706,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       return;
     }
     if (!st) {
-      st = this.customStyle_ = document.createElement("style");
+      st = this.customStyle_ = <HTMLStyleElement | null>document.querySelector(".custom") || document.createElement("style");
+      st.className = "custom";
       this.init_ || (document.head as HTMLElement).appendChild(st);
     }
     st.textContent = css;

@@ -268,7 +268,7 @@ label:active {
   color: darkgray;
   text-decoration: line-through;
 }
-.highlight {
+.highlight, .debugging {
   background: lightyellow;
 }
 .has-error {

@@ -276,7 +276,12 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
         <tr>
           <td class="caption">Custom CSS<br/>for Vimium C UI</td>
           <td>
-            <textarea id="userDefinedCss" class="code min-height-4" inputmode="latin" data-model="Text"></textarea>
+            <textarea id="userDefinedCss" class="code min-height-4" inputmode="latin" data-model="Text"
+              placeholder="/* example: */ .LH { color: red; }
+/* #find */ * { color: green; }
+/* #omni */
+* { color: blue; } .transparent { opacity: 1; }"
+              ></textarea>
           </td>
           <td class="help"><div class="help-inner">
             To style Vimium C nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>"

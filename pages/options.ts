@@ -8,6 +8,9 @@ interface VDomProto {
   view(el: Element, oldY?: number | undefined): boolean;
 }
 declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>, VEvent: Pick<VEventModeTy, "lock">;
+declare var VFind: {
+  css: [string, string] | null;
+};
 
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
 interface ElementWithHash extends HTMLElement {
@@ -601,6 +604,100 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 })();
 
+
+$("#userDefinedCss").addEventListener("input", debounce_(function(): void {
+  if (!window.VDom) { return; }
+  const root = VDom.UI.UI as VUIRoot | null, self = Option_.all_.userDefinedCss;
+  let styleDebug = root && root.querySelector("style.debugger") as HTMLStyleElement | null;
+  if (styleDebug) {
+    if (styleDebug.nextElementSibling) {
+      (root as VUIRoot).appendChild(styleDebug);
+    }
+  } else {
+    if (self.saved_) {
+      return;
+    }
+    styleDebug = document.createElement("style");
+    styleDebug.className = "debugger";
+    const patch = function() {
+      // Note: shoule keep the same as background/settings.ts@Settings.updateHooks_.userDefinedCss
+      let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
+      css = css.substring(headEnd + 1, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
+      VDom.UI.css(css);
+      (VDom.UI.UI as NonNullable<VUIRoot>).appendChild(styleDebug as HTMLStyleElement);
+    }
+    if (root) {
+      patch();
+    } else {
+      VDom.UI.add(styleDebug);
+      styleDebug.remove();
+      setTimeout(patch, 200);
+    }
+  }
+  const newVal = self.readValueFromElement_(),
+  isSame = newVal === self.previous_,
+  css2 = bgSettings_.parseCustomCSS(newVal);
+  if (isSame) {
+    self.element_.classList.remove("debugging");
+  } else {
+    self.element_.classList.add("debugging");
+  }
+  styleDebug.textContent = css2.ui || "";
+  const iframes = root ? root.querySelectorAll("iframe") : [];
+  for (let i = 0, end = iframes.length; i < end; i++) {
+    const frame = iframes[i], isFind = frame.classList.contains("HUD"),
+    doc = frame.contentDocument as HTMLDocument;
+    styleDebug = doc.querySelector("style.debugger") as HTMLStyleElement | null;
+    if (!styleDebug) {
+      if (isFind) {
+        const oldCSS2 = bgSettings_.parseCustomCSS(bgSettings_.get("userDefinedCss")).find || "";
+        if (oldCSS2) {
+          const str = bgSettings_.cache.findCSS[1];
+          (doc.querySelector("style") as HTMLStyleElement).textContent = str.substring(0, str.length - oldCSS2.length - 1);
+        }
+        styleDebug = doc.createElement("style");
+      } else {
+        styleDebug = doc.querySelector(".custom") as HTMLStyleElement | null;
+        if (!styleDebug) {
+          // Note: shoule keep the same as front/vomnibar.ts@Vomnibar_.css_
+          styleDebug = doc.createElement("style");
+          styleDebug.className = "custom";
+        }
+      }
+      styleDebug.classList.add("debugger");
+      styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug);
+    }
+    styleDebug.textContent = isFind ? css2.find || "" : (isSame ? "" : ".transparent{ opacity: 1; }\n") + (css2.omni || "");
+    if (isFind && VFind.css) {
+      // Note: shoule keep the same as background/settings.ts@Settings.updateHooks_.userDefinedCss
+      let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
+      VFind.css[1] = VFind.css[1].substring(0, defaultLen - VFind.css[0].length - 1) + "\n" + (css2.find || "");
+    }
+  }
+}, 1800, $("#userDefinedCss") as HTMLTextAreaElement, 0));
+
+Option_.all_.userDefinedCss.onSave_ = function() {
+  if (!window.VDom) { return; }
+  const root = VDom.UI.UI;
+  let styleDebugger = root && root.querySelector("style.debugger") as HTMLStyleElement | null;
+  if (!styleDebugger) { return; }
+  setTimeout(function() {
+    (styleDebugger as HTMLStyleElement).remove();
+    const iframes = VDom.UI.UI.querySelectorAll("iframe");
+    for (let i = 0, end = iframes.length; i < end; i++) {
+      const frame = iframes[i], isFind = frame.classList.contains("HUD"),
+      doc = frame.contentDocument as HTMLDocument,
+      style = doc.querySelector("style.debugger") as HTMLStyleElement | null;
+      if (!style) {}
+      else if (isFind) {
+        style.remove();
+      } else {
+        style.classList.remove("debugger");
+      }
+    }
+    Option_.all_.userDefinedCss.element_.classList.remove("debugging");
+  }, 500);
+};
 
 $("#importButton").onclick = function(): void {
   const opt = $<HTMLSelectElement>("#importOptions");
