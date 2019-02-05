@@ -1997,7 +1997,7 @@ Are you sure you want to continue?`);
       });
     }
   ],
-    framesForOmni: Frames.WritableFrames = [null as never];
+    framesForOmni: Frames.WritableFrames = [];
     function OnMessage <K extends keyof FgReq, T extends keyof FgRes> (this: void, request: Req.fg<K> | Req.fgWithRes<T>, port: Frames.Port): void {
       type ReqK = keyof FgReq;
       type ResK = keyof FgRes;
@@ -2103,13 +2103,14 @@ Are you sure you want to continue?`);
     function onOmniConnect (port: Frames.Port, tabId: number, type: PortType): boolean {
       if (type >= PortType.omnibar) {
         if (!isNotVomnibarPage(port)) {
-          framesForOmni.push(port);
           if (tabId < 0) {
             (port.s as Writeable<Frames.Sender>).t = type !== PortType.omnibar ? _fakeTabId--
                : cPort ? cPort.s.t : TabRecency_.last_;
           }
+          framesForOmni.push(port);
           port.onDisconnect.addListener(OnOmniDisconnect);
           port.onMessage.addListener(OnMessage);
+          type === PortType.omnibar &&
           port.postMessage({
             N: kBgReq.omni_secret,
             browser: OnOther,
@@ -2415,10 +2416,13 @@ Are you sure you want to continue?`);
     let ref = framesForTab as Frames.FramesMapToDestroy;
     ref.omni = framesForOmni;
     for (const tabId in ref) {
-      const arr = ref[tabId], end = arr.length;
-      for (let i = 1; i < end; i++) {
+      const arr = ref[tabId];
+      for (let i = arr.length; 0 < --i; ) {
         arr[i].disconnect();
       }
+    }
+    if (framesForOmni.length > 0) {
+      framesForOmni[0].disconnect();
     }
   };
 })();

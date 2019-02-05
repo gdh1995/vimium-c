@@ -142,7 +142,7 @@ window.onhashchange = function(this: void): void {
       resetOnceProperties_();
       VData.auto = false;
       this.onerror = this.onload = null as never;
-      this.alt = "\xa0(fail to load)\xa0";
+      this.alt = "\xa0(fail in loading)\xa0";
       if (BG_ && BG_.Settings && BG_.ChromeVer >= BrowserVer.MinNoBorderForBrokenImage) {
         this.classList.add("broken");
       }

@@ -33,7 +33,7 @@ var VOmni = {
     const a = VOmni;
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
-      return VHUD.tip("Sorry, Vomnibar page seems to fail to load.", 2000);
+      return VHUD.tip("Sorry, Vomnibar page seems to fail in loading.", 2000);
     }
     if (!options || !options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
@@ -101,7 +101,7 @@ var VOmni = {
     }, function(search): void {
       options.search = search;
       if (search != null) { options.url = ""; }
-      return VOmni.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
+      VOmni.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     });
   },
   setOptions_ (options: VomnibarNS.FgOptionsToFront): void {
@@ -146,7 +146,7 @@ var VOmni = {
       loaded = true;
       if (_this.onReset_) { return; }
       if (type !== VomnibarNS.PageType.inner && _this.isABlank_()) {
-        console.log("Vimium C: use built-in Vomnibar page because the preferred is too old.");
+        console.log("Vimium C: use the built-in Vomnibar page because the preferred is too old.");
         return reload();
       }
       const wnd = this.contentWindow,

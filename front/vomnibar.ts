@@ -1027,7 +1027,7 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     if (options) {
       Vomnibar_.activate(options);
     } else {
-      port.postMessage({ N: "uiComponentIsReady" });
+      VPort_.postToOwner_({ N: "uiComponentIsReady" });
     }
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);

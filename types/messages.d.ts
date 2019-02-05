@@ -367,7 +367,7 @@ interface FgReq {
     /** options */ a: null | (object & {
       $forced?: true;
     });
-  }
+  };
 }
 
 declare namespace Req {

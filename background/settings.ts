@@ -192,10 +192,9 @@ var Settings = {
           }
         }
       }
-      const frames2 = Backend.indexPorts(GlobalConsts.VomnibarFakeTabId);
       const request2: Req.bg<kBgReq.showHUD> & BgCSSReq = { N: kBgReq.showHUD, S: cache.omniCSS };
-      for (let i = frames2.length; 0 < --i; ) {
-        frames2[i].postMessage(request2);
+      for (const frame of Backend.indexPorts(GlobalConsts.VomnibarFakeTabId)) {
+        frame.postMessage(request2);
       }
     },
     innerCSS (this: SettingsTmpl, css): void {
