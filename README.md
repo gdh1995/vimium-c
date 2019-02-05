@@ -106,9 +106,12 @@ These issues are only up to the master branch:
   * this problem only occurs since Chrome 70, so it seems a bug of Chromium browsers.
 * be able to read the system clipboard since Firefox 63.
 * VisualMode: support cursor movement on `<input type=number>` correctly
-* search engines: support default URLs when a query is empty
 * make usages of command count consistent, for `removeTab`, `removeRightTab`, `reloadTab`, `moveTabToNewWindow` and `togglePinTab`
 * add a dark theme of Vomnibar, and use `gn` to toggle it
+* search engines: support default URLs when a query is empty
+* custom CSS: now can specify styles for FindMode HUD and Vomnibar, and live preview any changes
+* VisualMode: `<f1>` to flash selection area
+* help dialog: support customized key mapping names and descriptions
 
 1.71.3:
 * fix broken code on Vimium C's background process
