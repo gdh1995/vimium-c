@@ -675,6 +675,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
     if (ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured) {
       const css = document.createElement("style");
+      css.type = "text/css";
       css.textContent = `.item, #input { border-width: ${ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
@@ -709,6 +710,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
     if (!st) {
       st = this.customStyle_ = <HTMLStyleElement | null>document.querySelector(".custom") || document.createElement("style");
+      st.type = "text/css";
       st.className = "custom";
       this.init_ || (document.head as HTMLElement).appendChild(st);
     }

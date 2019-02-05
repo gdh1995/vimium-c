@@ -608,7 +608,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
   if (!window.VDom) { return; }
   const root = VDom.UI.UI as VUIRoot | null, self = Option_.all_.userDefinedCss;
-  let styleDebug = root && root.querySelector("style.debugger") as HTMLStyleElement | null;
+  let styleDebug = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (styleDebug) {
     if (styleDebug.nextElementSibling) {
       (root as VUIRoot).appendChild(styleDebug);
@@ -618,7 +618,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
       return;
     }
     styleDebug = document.createElement("style");
-    styleDebug.className = "debugger";
+    styleDebug.className = "debugged";
     const patch = function() {
       // Note: shoule keep the same as background/settings.ts@Settings.updateHooks_.userDefinedCss
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
@@ -647,7 +647,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
   for (let i = 0, end = iframes.length; i < end; i++) {
     const frame = iframes[i], isFind = frame.classList.contains("HUD"),
     doc = frame.contentDocument as HTMLDocument;
-    styleDebug = doc.querySelector("style.debugger") as HTMLStyleElement | null;
+    styleDebug = doc.querySelector("style.debugged") as HTMLStyleElement | null;
     if (!styleDebug) {
       if (isFind) {
         const oldCSS2 = bgSettings_.parseCustomCSS(bgSettings_.get("userDefinedCss")).find || "";
@@ -656,15 +656,17 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
           (doc.querySelector("style") as HTMLStyleElement).textContent = str.substring(0, str.length - oldCSS2.length - 1);
         }
         styleDebug = doc.createElement("style");
+        styleDebug.type = "text/css";
       } else {
         styleDebug = doc.querySelector(".custom") as HTMLStyleElement | null;
         if (!styleDebug) {
           // Note: shoule keep the same as front/vomnibar.ts@Vomnibar_.css_
           styleDebug = doc.createElement("style");
+          styleDebug.type = "text/css";
           styleDebug.className = "custom";
         }
       }
-      styleDebug.classList.add("debugger");
+      styleDebug.classList.add("debugged");
       styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug);
     }
     styleDebug.textContent = isFind ? css2.find || "" : (isSame ? "" : ".transparent{ opacity: 1; }\n") + (css2.omni || "");
@@ -679,20 +681,20 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
 Option_.all_.userDefinedCss.onSave_ = function() {
   if (!window.VDom) { return; }
   const root = VDom.UI.UI;
-  let styleDebugger = root && root.querySelector("style.debugger") as HTMLStyleElement | null;
-  if (!styleDebugger) { return; }
+  let styledebugged = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
+  if (!styledebugged) { return; }
   setTimeout(function() {
-    (styleDebugger as HTMLStyleElement).remove();
+    (styledebugged as HTMLStyleElement).remove();
     const iframes = VDom.UI.UI.querySelectorAll("iframe");
     for (let i = 0, end = iframes.length; i < end; i++) {
       const frame = iframes[i], isFind = frame.classList.contains("HUD"),
       doc = frame.contentDocument as HTMLDocument,
-      style = doc.querySelector("style.debugger") as HTMLStyleElement | null;
+      style = doc.querySelector("style.debugged") as HTMLStyleElement | null;
       if (!style) {}
       else if (isFind) {
         style.remove();
       } else {
-        style.classList.remove("debugger");
+        style.classList.remove("debugged");
       }
     }
     Option_.all_.userDefinedCss.element_.classList.remove("debugging");
