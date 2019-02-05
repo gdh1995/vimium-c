@@ -19,7 +19,7 @@
     "management"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "4.83.12",
+  "version": "4.83.13",
   "version_name": "4.8.3 mod",
   "web_accessible_resources": [ "vomnibar.html" ]
 }
