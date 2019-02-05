@@ -130,6 +130,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   browser_: BrowserType.Chrome,
   browserVersion_: BrowserVer.assumedVer,
   customStyle_: null as HTMLStyleElement | null,
+  customClassName_: "",
   wheelOptions_: { passive: false, capture: true as true },
   show_ (): void {
     this.showing_ = true;
@@ -616,6 +617,26 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       return func.call(this);
     }
   },
+  toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
+    let omniStyles: string, toggle = req.toggled ? " " + req.toggled : "";
+    if (toggle) {
+      omniStyles = " " + (document.body as HTMLBodyElement).className;
+      omniStyles = omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, "") : omniStyles + toggle;
+    } else {
+      omniStyles = req.style as string;
+      if ((document.body as HTMLBodyElement).className === omniStyles) {
+        return;
+      }
+    }
+    this.customClassName_ = omniStyles;
+    (document.body as HTMLBodyElement).className = omniStyles;
+    if (!req.current && toggle) {
+      VPort_.postMessage_({
+        H: kFgReq.setOmniStyle,
+        style: omniStyles
+      })
+    }
+  },
   OnShown_: function (this: void): void {
     const a = Vomnibar_, i = a.input_, listen = addEventListener, wndFocus = Vomnibar_.OnWndFocus_;
     i.onselect = a.OnSelect_;
@@ -689,6 +710,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       this.input_.addEventListener("compositionend", func);
     }
     this.customStyle_ && (document.head as HTMLElement).appendChild(this.customStyle_);
+    this.customClassName_ && ((document.body as HTMLElement).className = this.customClassName_);
     this.init_ = VUtils_.makeListRenderer_ = null as never;
     if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && this.browser_ === BrowserType.Chrome || this.bodySt_.d != null) { return; }
     const styles = (document.querySelector("style") as HTMLStyleElement).textContent,
@@ -957,6 +979,7 @@ VPort_ = {
     name === kBgReq.omni_returnFocus ? Vomnibar_.returnFocus_(response as Req.bg<kBgReq.omni_returnFocus>) :
     name === kBgReq.omni_blurred ? Vomnibar_.blurred_(response as Req.bg<kBgReq.omni_blurred>) :
     name === kBgReq.showHUD ? Vomnibar_.css_(response as Req.bg<kBgReq.showHUD> as BgCSSReq) :
+    name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
     0;
   },
   _OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
@@ -1036,6 +1059,7 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     Vomnibar_.browser_ = request.browser;
     Vomnibar_.browserVersion_ = request.browserVer;
     Vomnibar_.css_(request);
+    Vomnibar_.customClassName_ = request.cls;
     const { secret } = request, msgs = unsafeMsg;
     _sec = secret;
     unsafeMsg = null as never;

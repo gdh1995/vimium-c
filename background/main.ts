@@ -45,6 +45,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     [kBgCmd.goToRoot]: UseTab.ActiveTab;
     [kBgCmd.copyTabInfo]: UseTab.ActiveTab;
     [kBgCmd.toggleViewSource]: UseTab.ActiveTab;
+    [kBgCmd.toggleVomnibarStyle]: UseTab.ActiveTab;
   }
 
   interface ReopenOptions extends chrome.tabs.CreateProperties {
@@ -77,6 +78,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
 
   /** any change to `commandCount` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
+  omniStyles = "",
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: VKeyCodes = VKeyCodes.None, gCmdTimer = 0, gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone;
   const getSecret = (function (this: void): (this: void) => number {
@@ -791,7 +793,7 @@ Are you sure you want to continue?`);
     UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.CurWndTabs, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
-    UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab,
+    UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab
   ],
   BackgroundCommands: {
     [K in kBgCmd & number]:
@@ -1484,6 +1486,23 @@ Are you sure you want to continue?`);
           a: { key, value }
         });
       }
+    },
+    /* toggleVomnibarStyle: */ function (this: void, tabs: [Tab]): void {
+      const tabId = tabs[0].id, toggled = ((cOptions.style || "") + "").trim();
+      if (!toggled) {
+        return Backend.showHUD_("No style name of Vomnibar is given");
+      }
+      for (const frame of framesForOmni) {
+        if (frame.s.t === tabId) {
+          frame.postMessage({ N: kBgReq.omni_toggleStyle, toggled, current: !!cOptions.current });
+          return;
+        }
+      }
+      if (cOptions.current) { return; }
+      const toggle = " " + toggled;
+      requestHandlers[kFgReq.setOmniStyle]({
+        style: omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, "") : omniStyles + toggle
+      }, cPort);
     }
   ],
   numHeadRe = <RegExpOne>/^-?\d+|^-/;
@@ -1995,6 +2014,13 @@ Are you sure you want to continue?`);
         }
         gotoMainFrame(req, port, port2 || null);
       });
+    },
+    /** setOmniStyle: */ function(this: void, req: FgReq[kFgReq.setOmniStyle]): void {
+      omniStyles = " " + req.style.trim();
+      let style = omniStyles.substring(1); // skip a space
+      for (const frame of framesForOmni) {
+        frame.postMessage({ N: kBgReq.omni_toggleStyle, style });
+      }
     }
   ],
     framesForOmni: Frames.WritableFrames = [];
@@ -2116,6 +2142,7 @@ Are you sure you want to continue?`);
             browser: OnOther,
             browserVer: ChromeVer,
             S: Settings.cache.omniCSS,
+            cls: omniStyles,
             secret: getSecret()
           });
           return true;

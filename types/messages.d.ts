@@ -22,6 +22,7 @@ declare const enum kBgReq {
   createMark, showHUD, count, showHelpDialog,
   OMNI_MIN = 42,
   omni_secret = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus, omni_blurred,
+  omni_toggleStyle,
   END = "END", // without it, TypeScript will report errors for number indexes
 }
 
@@ -98,11 +99,17 @@ interface BgVomnibarSpecialReq {
     browser: BrowserType;
     browserVer: BrowserVer;
     /** CSS */ S: string;
+    cls: string;
   };
   [kBgReq.omni_blurred]:  & Req.baseBg<kBgReq.omni_blurred>;
   [kBgReq.omni_parsed]: {
     id: number;
     search: FgRes[kFgReq.parseSearchUrl];
+  };
+  [kBgReq.omni_toggleStyle]: {
+    style?: string; // set to the value
+    toggled?: string; // toggle it
+    current?: boolean;
   };
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.showHUD;
@@ -117,7 +124,7 @@ declare const enum kBgCmd {
   goToRoot, goUp, moveTab, nextFrame, mainFrame,
   parentFrame, visitPreviousTab, copyTabInfo, goNext, enterInsertMode,
   enterVisualMode, performFind, showVomnibar, clearFindHistory, showHelp,
-  toggleViewSource, clearMarks, toggle,
+  toggleViewSource, clearMarks, toggle, toggleVomnibarStyle,
   END = "END",
 }
 
@@ -230,6 +237,7 @@ declare const enum kFgReq {
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
   focusOrLaunch, cmd, blurTest, removeSug, openImage, gotoMainFrame,
+  setOmniStyle,
   END,
   msg = 90, inject = 91,
   command = "command",
@@ -367,6 +375,9 @@ interface FgReq {
     /** options */ a: null | (object & {
       $forced?: true;
     });
+  };
+  [kFgReq.setOmniStyle]: {
+    style: string;
   };
 }
 
