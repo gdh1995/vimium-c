@@ -108,6 +108,7 @@ These issues are only up to the master branch:
 * VisualMode: support cursor movement on `<input type=number>` correctly
 * search engines: support default URLs when a query is empty
 * make usages of command count consistent, for `removeTab`, `removeRightTab`, `reloadTab`, `moveTabToNewWindow` and `togglePinTab`
+* add a dark theme of Vomnibar, and use `gn` to toggle it
 
 1.71.3:
 * fix broken code on Vimium C's background process
