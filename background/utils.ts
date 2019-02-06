@@ -568,7 +568,7 @@ var Utils = {
     });
     for (let val of str.replace(<RegExpG> /\\\n/g, '').split('\n')) {
       val = val.trim();
-      if (!(val.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
+      if (!(val && val.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
       ind = 0;
       do {
         ind = val.indexOf(":", ind + 1);

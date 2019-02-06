@@ -57,7 +57,7 @@ var Commands = {
     }
     for (_len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
-      if (!(line.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
+      if (!(line && line.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
       splitLine = line.split(" ");
       key = splitLine[0];
       if (key === "map") {

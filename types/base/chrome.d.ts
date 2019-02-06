@@ -836,7 +836,7 @@ declare namespace chrome.history {
         /** Optional. The number of times the user has navigated to this page by typing in the address. */
         typedCount?: number;
         /** Optional. The title of the page when it was last loaded. */
-        title: string;
+        title: string | null;
         /** Optional. The URL navigated to by a user. */
         url: string;
         /** Optional. When this page was last loaded, represented in milliseconds since the epoch. */
