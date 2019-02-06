@@ -106,7 +106,7 @@ var Tasks = {
     });
     gulp.task("min/others/_2", function() {
       var exArgs = { nameCache: { vars: {}, props: {} } };
-      return uglifyJSFiles(["pages/options_base.js", "pages/options*.js"], ".", "", exArgs);
+      return uglifyJSFiles(["pages/options_base.js", "pages/options.js", "pages/options_*.js"], ".", "", exArgs);
     });
     gulp.task("min/others/_3", function() {
       var oriManifest = readJSON("manifest.json", true);
