@@ -4,19 +4,19 @@ transform:none!important;width:0!important;display:contents}:host:before,:host:a
 .R{background:none;border:none;box-sizing:content-box;cursor:auto;float:none;font-size-adjust:none;
 letter-spacing:normal;line-height-step:0;margin:0;opacity:1;outline:none;padding:0;text-align-last:auto;text-indent:0;
 text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal;all:initial;
-color:black;contain:layout style;display:block;font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
+color:#000;contain:layout style;display:block;font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
 pointer-events:none;position:fixed;text-align:left;user-select:none;z-index:2147483647}
 .HM{font-weight:bold;position:absolute;white-space:nowrap;}
-.LH{background:linear-gradient(#FFF785,#FFC542);border:0.5px solid #E3BE23;border-radius:3px;
+.LH{background:linear-gradient(#fff785,#ffc542);border:0.5px solid #e3be23;border-radius:3px;
 box-shadow:0 3px 7px 0 rgba(0,0,0,0.3);box-sizing:border-box;overflow:hidden;padding:1px 3px 0;position:absolute}
-.IH{background-color:rgba(255,247,133,0.3);border:0.5px solid #C38A22;position:absolute}
+.IH{background-color:rgba(255,247,133,0.3);border:0.5px solid #c38a22;position:absolute}
 .IHS{background-color:rgba(255,102,102,0.3);border-color:#933}
-.HUD{background-color:#EEE;border:0.5px solid #B3B3B3;border-radius:4px 4px 0 0;bottom:0;height:14px;line-height:14px;
+.HUD{background-color:#eee;border:0.5px solid #b3b3b3;border-radius:4px 4px 0 0;bottom:0;height:14px;line-height:14px;
 max-width:312px;min-width:151px;padding:2px 3px;right:150px;text-overflow:ellipsis;white-space:nowrap}
-.Flash{box-shadow:0 0 4px 2px #4183C4;contain:strict;padding:1px}.Sel{box-shadow:0 0 4px 2px #ffa000}
-.Frame{border:5px solid yellow;box-sizing:border-box;height:100%;left:0;top:0;width:100%}
+.Flash{box-shadow:0 0 4px 2px #4183c4;contain:strict;padding:1px}.Sel{box-shadow:0 0 4px 2px #ffa000}
+.Frame{border:5px solid #ff0;box-sizing:border-box;height:100%;left:0;top:0;width:100%}
 .Omnibar{left:calc(10% - 12px);top:64px;width:calc(80% + 24px)}
-.BH{color:#902809}.MC{color:#D4AC3A}.One{border-color:lightsalmon}.UI{pointer-events:all}
+.BH{color:#902809}.MC{color:#d4ac3a}.One{border-color:#ffa07a}.UI{pointer-events:all}
 /*#find*/
 ::selection { background: #ff9632 !important; }
 *{cursor:default;font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif!important;

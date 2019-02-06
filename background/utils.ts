@@ -704,7 +704,7 @@ var Utils = {
     try {
       return new RegExp(pattern, suffix as "");
     } catch (e) {
-      logError === false || console.log("%c/%s/%s", "color:#C41A16", pattern, suffix, "is not a valid regexp.");
+      logError === false || console.log("%c/%s/%s", "color:#c41a16", pattern, suffix, "is not a valid regexp.");
     }
     return null;
   },

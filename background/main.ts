@@ -124,11 +124,11 @@ var Backend: BackendHandlersNS.BackendHandlers;
   onRuntimeError = Utils.runtimeError_,
   NoFrameId = ChromeVer < BrowserVer.MinWithFrameId;
     function isExtIdAllowed (this: void, extId: string | null | undefined): boolean {
-      if (extId == null) { extId = "unknown sender"; }
+      if (extId == null) { extId = "unknown_sender"; }
       const stat = Settings.extWhiteList_[extId];
       if (stat != null) { return stat; }
       console.log("%cReceive message from an extension/sender not in the white list: %c%s",
-        "background-color: #fffbe5", "background-color:#fffbe5; color: red", extId);
+        "background-color:#fffbe5", "background-color:#fffbe5; color:red", extId);
       return Settings.extWhiteList_[extId] = false;
     }
     function selectFrom (this: void, tabs: Tab[]): ActiveTab {

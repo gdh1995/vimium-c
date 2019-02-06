@@ -26,7 +26,7 @@
 	white-space: normal;
 	word-spacing: normal;
 	all: initial;
-	color: black;
+	color: #000;
 	contain: layout style;
 	display: block;
 	font: 12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -64,9 +64,10 @@
 	white-space: nowrap;
 }
 .LH {
-	background: linear-gradient(#FFF785, #FFC542);
-	border: 0.5px solid #E3BE23;
+	background: linear-gradient(#fff785, #ffc542);
+	border: 0.5px solid #e3be23;
 	border-radius: 3px;
+	/* use JS code to switch versions between Chrome 73+ and 72- if needed */
 	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
 	overflow: hidden;
 	padding: 1px 3px 0;
@@ -76,13 +77,13 @@
 	color: #902809;
 }
 .MC {
-	color: #D4AC3A;
+	color: #d4ac3a;
 }
 
 /* Input hints CSS */
 .IH {
 	background-color: rgba(255, 247, 133, 0.3);
-	border: 0.5px solid #C38A22;
+	border: 0.5px solid #c38a22;
 	position: absolute;
 }
 .IHS {
@@ -92,8 +93,8 @@
 
 /* HUD CSS */
 .HUD {
-	background-color: #EEE;
-	border: 0.5px solid #B3B3B3;
+	background-color: #eee;
+	border: 0.5px solid #b3b3b3;
 	border-radius: 4px 4px 0 0;
 	bottom: 0;
 	height: 14px;
@@ -109,7 +110,7 @@
 
 /* Flash CSS */
 .Flash {
-	box-shadow: 0 0 4px 2px #4183C4;
+	box-shadow: 0 0 4px 2px #4183c4;
 	contain: strict;
 	padding: 1px;
 }
@@ -119,7 +120,7 @@
 }
 
 .Frame {
-	border: 5px solid yellow;
+	border: 5px solid /** yellow */ #ff0;
 	box-sizing: border-box;
 	height: 100%;
 	left: 0;
@@ -128,7 +129,7 @@
 }
 
 .One {
-	border-color: lightsalmon;
+	border-color: /** lightsalmon */ #ffa07a;
 }
 
 /* Interactive */
