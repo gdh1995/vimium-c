@@ -172,7 +172,7 @@ var HelpDialog = {
       , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
       , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
       , "Vomnibar.activateUrl", "Vomnibar.activateUrlInNewTab"
-      , "LinkHints.activateModeToOpenVomnibar"],
+      , "LinkHints.activateModeToOpenVomnibar", "toggleVomnibarStyle"],
     historyNavigation: ["goBack", "goForward", "reopenTab"],
     findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "clearFindHistory"],
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
