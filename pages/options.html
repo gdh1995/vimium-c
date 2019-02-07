@@ -257,7 +257,19 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           </div></td>
         </tr>
         <tr>
-          <td class="caption">White list of other<br/> extension IDs</td>
+          <td class="caption">Phrase blacklist<br/>on Vomnibar</td>
+          <td>
+            <textarea id="phraseBlacklist" class="code min-height-4" data-model="Text"></textarea>
+          </td>
+          <td class="help"><div class="help-inner">
+            For a bookmark / history item, if its title or URL contains any word or phrase in this list,
+            it will not be listed on Vomnibar or the browser omnibox.<br/>
+            One piece per line; no trimming; case-sensitive.<br/>
+            "<kbd>#</kbd>" at the beginning means comments.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption">Whitelist of other<br/> extension IDs</td>
           <td>
             <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"
               data-permission="web_accessible_resources"></textarea>

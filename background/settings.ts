@@ -293,7 +293,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     smoothScroll: true,
     userDefinedCss: "",
     vimSync: null,
-    vomnibarPage: ""
+    vomnibarPage: "",
+    phraseBlacklist: ""
   } as Readonly<SettingsWithDefaults> & SafeObject,
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)

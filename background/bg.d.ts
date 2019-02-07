@@ -298,6 +298,7 @@ declare namespace SettingsNS {
     userDefinedCss: string;
     vimSync: boolean | null;
     vomnibarPage: string;
+    phraseBlacklist: string;
   }
   interface CachedFiles {
     baseCSS: string;
