@@ -52,7 +52,7 @@ interface HistoryItem extends DecodedItem, Pick<chrome.history.HistoryItem, "tit
 }
 interface UrlItem {
   url: string;
-  title: string;
+  title?: string;
   sessionId?: string | number;
 }
 interface UrlDomain
@@ -119,7 +119,7 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     inNormal: boolean | null = null, autoSelect: boolean = false, singleLine: boolean = false,
     maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
     queryTerms: QueryTerms = [""], rawQuery: string = "", rawMore: string = "",
-    phraseBlacklist: string[] | null = null;
+    phraseBlacklist: string[] | null = null, showThoseInBlacklist: boolean = true;
 
 const Suggestion: SuggestionConstructor = function Suggestion (this: CompletersNS.WritableCoreSuggestion,
     type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
@@ -274,7 +274,9 @@ const bookmarkEngine = {
       const i = arr[ind];
       const title = isPath ? i.path : i.title;
       if (!RankingUtils.Match2_(i.text, title)) { continue; }
-      results.push([-RankingUtils.wordRelevancy_(i.text, i.title), ind]);
+      if (showThoseInBlacklist || i.visible) {
+        results.push([-RankingUtils.wordRelevancy_(i.text, i.title), ind]);
+      }
     }
     matchedTotal += results.length;
     if (queryType === FirstQuery.waitFirst || offset === 0) {
@@ -470,6 +472,7 @@ historyEngine = {
       const item = history[i];
       if (onlyUseTime ? !parts0.test(item.text) : !Match2(item.text, item.title)) { continue; }
       const score = onlyUseTime ? RankingUtils.recencyScore_(item.time) : getRele(item.text, item.title, item.time);
+      if (!(showThoseInBlacklist || item.visible)) { continue; }
       matched++;
       if (results[maxNum] >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
@@ -513,6 +516,7 @@ historyEngine = {
     return sessions.some(function(item): boolean {
       const entry = item.tab;
       if (!entry) { return false; }
+      if (!showThoseInBlacklist && !BlacklistFilter.TestNotMatched_(entry.url, entry.title)) { return false; }
       const key = entry.url + "\n" + entry.title;
       if (key in arr) { return false; }
       arr[key] = 1; arr[entry.url] = 1;
@@ -524,10 +528,15 @@ historyEngine = {
       cut: number, neededMore: number): void {
     chrome.history.search({
       text: "",
-      maxResults: offset + maxResults + neededMore
+      maxResults: offset + maxResults * (showThoseInBlacklist ? 1 : 2) + neededMore
     }, function(historys2: chrome.history.HistoryItem[] | UrlItem[]): void {
       if (query.isOff) { return; }
       historys2 = (historys2 as UrlItem[]).filter(historyEngine.urlNotIn_, arr);
+      if (!showThoseInBlacklist) {
+        historys2 = historys2.filter(function(entry) {
+          return BlacklistFilter.TestNotMatched_(entry.url, entry.title || "");
+        });
+      }
       if (cut < 0) {
         historys2.length = Math.min(historys2.length, maxResults - historys.length);
         historys2 = (historys as UrlItem[]).concat(historys2);
@@ -584,8 +593,11 @@ domainEngine = {
     RankingUtils.maxScoreP_ = CompletersNS.RankingEnums.maximumScore;
     for (const domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
-      const score = ComputeRelevancy(domain, "", (d = ref[domain]).time);
-      if (score > result_score) { result_score = score; result = domain; }
+      d = ref[domain];
+      if (showThoseInBlacklist || d.count > 0) {
+        const score = ComputeRelevancy(domain, "", d.time);
+        if (score > result_score) { result_score = score; result = domain; }
+      }
     }
     if (result) {
       matchedTotal++;
@@ -594,7 +606,7 @@ domainEngine = {
         if (r2.indexOf(word) !== -1) {
           let d2: Domain | undefined;
           r2 = "www." + r2;
-          if (d2 = ref[r2]) { result = r2; d = d2; }
+          if ((d2 = ref[r2]) && (showThoseInBlacklist || d2.count > 0)) { result = r2; d = d2; }
         }
       }
       result = (d.https ? "https://" : "http://") + result;
@@ -718,6 +730,7 @@ searchEngine = {
       autoSelect = true;
       maxResults--;
       matchedTotal++;
+      showThoseInBlacklist = showThoseInBlacklist && BlacklistFilter.IsExpectingHidden_([keyword]);
       return Completers.next_([sug]);
     } else {
       pattern = Settings.cache.searchEngineMap[keyword];
@@ -745,6 +758,7 @@ searchEngine = {
     } else {
       q = [];
     }
+    showThoseInBlacklist = showThoseInBlacklist && BlacklistFilter.IsExpectingHidden_([keyword]);
 
     let { url, indexes } = Utils.createSearch(q, pattern.url, pattern.blank, []), text = url;
     if (keyword === "~") {}
@@ -954,6 +968,7 @@ Completers = {
     const newAutoSelect = autoSelect && suggestions.length > 0, matched = matchedTotal,
     newMatchType = matchType < MatchType.plain ? (matchType === MatchType.searching_
         && suggestions.length === 0 ? MatchType.searchWanted : MatchType.Default)
+      : !showThoseInBlacklist ? MatchType.Default
       : suggestions.length === 0 ? queryTerms.length > 0 ? MatchType.emptyResult : MatchType.Default
       : this.sugCounter_ === 1 ? MatchType.singleMatch : MatchType.Default,
     func = this.callback_ as CompletersNS.Callback;
@@ -970,6 +985,7 @@ Completers = {
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
     autoSelect = singleLine = false;
+    showThoseInBlacklist = true;
   },
   getOffset_ (this: void): void {
     let str = rawQuery, ind: number, i: number;
@@ -1272,12 +1288,24 @@ knownCs: CompletersMap & SafeObject = {
 
   BlacklistFilter = {
     TestNotMatched_ (url: string, title: string): Visibility {
-      for (const phrase of <string[]>phraseBlacklist) {
+      for (const phrase of <string[]> phraseBlacklist) {
         if (title.indexOf(phrase) >= 0 || url.indexOf(phrase) >= 0) {
           return kVisibility.hidden;
         }
       }
       return kVisibility.visible;
+    },
+    IsExpectingHidden_ (query: string[]): boolean {
+      if (!phraseBlacklist) { return true; }
+      for (const word of query) {
+        for (let phrase of <string[]> phraseBlacklist) {
+          phrase = phrase.trim();
+          if (word.indexOf(phrase) >= 0 || phrase.length > 9 && word.length + 2 >= phrase.length && phrase.indexOf(word) >= 0) {
+            return true;
+          }
+        }
+      }
+      return false;
     },
     UpdateAll_ (this: void): void {
       if (bookmarkEngine.bookmarks_) {
@@ -1456,6 +1484,7 @@ knownCs: CompletersMap & SafeObject = {
       if (queryTerms.length >= 1) {
         queryTerms[0] = Utils.fixCharsInUrl_(queryTerms[0]);
       }
+      showThoseInBlacklist = BlacklistFilter.IsExpectingHidden_(queryTerms);
       Completers.filter_(arr || knownCs.omni);
     },
     removeSug_ (url, type, callback): void {

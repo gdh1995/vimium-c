@@ -7,6 +7,7 @@ declare namespace CompletersNS {
     plain = 0,
     Default = plain,
     emptyResult = 1, // require query is not empty
+    /** only matches one single engine */
     singleMatch = 2,
     /**
      * must >= singleMatch
