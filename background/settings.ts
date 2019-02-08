@@ -398,6 +398,9 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   }
   obj.ContentScripts_ = ref2.map(func);
 
+  if (localStorage.length <= 0) {
+    Settings.set("newTabUrl", "pages/options.html#!newTabUrl");
+  }
   const hasAll = "all" in (document.documentElement as HTMLElement).style;
   obj.StyleCacheId_ = obj.VerCode + "," + ChromeVer
     + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
