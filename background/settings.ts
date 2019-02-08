@@ -37,6 +37,9 @@ var Settings = {
         this.sync_(key as keyof SettingsNS.PersistentSettings, value as
           FullSettings[keyof SettingsNS.PersistentSettings]);
       }
+      if (key in this.payload) {
+        this.payload[key as keyof SettingsNS.FrontendSettings] = value as FullSettings[keyof SettingsNS.FrontendSettings];
+      }
     }
     let ref: SettingsNS.UpdateHook<K> | undefined;
     if (ref = this.updateHooks_[key as keyof SettingsWithDefaults] as (SettingsNS.UpdateHook<K> | undefined)) {
