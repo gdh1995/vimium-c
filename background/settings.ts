@@ -6,7 +6,12 @@ var Settings = {
     cmdErrors: 0,
     shownHash: null
   } as Writeable<SettingsTmpl["temp"]>,
-  payload: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,
+  payload: {
+    __proto__: null as never,
+    browser: OnOther,
+    browserVer: ChromeVer,
+    onMac: false
+  } as SettingsNS.FrontendSettingCache & SafeObject,
   newTabs: Object.create(null) as SafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
   get<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
@@ -74,9 +79,6 @@ var Settings = {
   },
   updateHooks_: {
     __proto__: null as never,
-    grabBackFocus (value: FullSettings["grabBackFocus"]): void {
-      (this as typeof Settings).payload.grabFocus = value;
-    },
     extWhiteList (val): void {
       const old = (this as typeof Settings).extWhiteList_;
       const map = (this as typeof Settings).extWhiteList_ = Object.create<boolean>(null);
@@ -310,7 +312,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     { "19": "/icons/partial_19.png", "38": "/icons/partial_38.png" },
     { "19": "/icons/disabled_19.png", "38": "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
-  valuesToLoad_: ["deepHints", "keyboard", "linkHintCharacters" //
+  valuesToLoad_: ["grabBackFocus" // required in main.ts@BackgroundCommands.toggle: must be the first element
+    , "deepHints", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
   sync_: function (): void {} as SettingsNS.Sync["set"],
@@ -355,12 +358,6 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   }
 };
 
-const ChromeVer = 0 | (!OnOther && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
-  || [0, BrowserVer.assumedVer])[1] as number;
-Settings.payload.onMac = false;
-Settings.payload.grabFocus = Settings.get("grabBackFocus");
-Settings.payload.browser = OnOther;
-Settings.payload.browserVer = ChromeVer;
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): void {
   const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs;
   Settings.CONST.Platform = os;

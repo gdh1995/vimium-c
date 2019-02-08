@@ -207,6 +207,7 @@ declare namespace SettingsNS {
   }
   interface FrontendSettings {
     deepHints: boolean;
+    grabBackFocus: boolean;
     keyboard: [number, number];
     linkHintCharacters: string;
     regexFindMode: boolean;
@@ -214,7 +215,6 @@ declare namespace SettingsNS {
     smoothScroll: boolean;
   }
   interface FrontendSettingCache extends FrontendSettings {
-    grabFocus: boolean;
     browserVer: BrowserVer;
     browser: BrowserType;
     onMac: boolean;

@@ -1463,8 +1463,8 @@ Are you sure you want to continue?`);
       const all = Settings.payload, key: Keys = (cOptions.key || "") + "" as Keys,
       old = all[key], keyRepr = '"' + key + '"';
       let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
-      if (Settings.valuesToLoad_.indexOf(key) < 0) {
-        msg = 'unknown option ' + keyRepr;
+      if (Settings.valuesToLoad_.indexOf(key) < 1) {
+        msg = key in Settings.defaults ? "option " + keyRepr + " is not a valid switch" : "unknown option " + keyRepr;
       } else if (typeof old === "boolean") {
         isBool || (value = null);
       } else if (value === undefined) {

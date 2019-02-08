@@ -340,7 +340,7 @@ declare namespace SettingsNS {
   interface SpecialUpdateHookMap {
   }
   type DeclaredUpdateHookMap = NullableUpdateHookMap
-      & Pick<BaseUpdateHookMap, "extWhiteList" | "grabBackFocus" | "newTabUrl" | "baseCSS"
+      & Pick<BaseUpdateHookMap, "extWhiteList" | "newTabUrl" | "baseCSS"
         | "userDefinedCss" | "vomnibarPage" | "innerCSS">;
   type EnsuredUpdateHookMaps = DeclaredUpdateHookMap
       & Pick<BaseUpdateHookMap, "showActionIcon" | "newTabUrl_f">;

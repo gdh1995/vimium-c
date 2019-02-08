@@ -270,7 +270,7 @@ availableCommands_: {
   blank: [ "Do nothing", 1, true, kBgCmd.blank ],
   toggleLinkHintCharacters: [ "Toggle the other link hints (use value)", 1, true,
     kBgCmd.toggle, { key: "linkHintCharacters" } ],
-  toggleSwitchTemp: [ "Toggle switch only in currnet page (use key[, value])", 1, true, kBgCmd.toggle ],
+  toggleSwitchTemp: [ "Toggle switch only on current page (use key[, value])", 1, true, kBgCmd.toggle ],
   toggleVomnibarStyle: [ "Toggle style(s) of vomnibar page (use style=dark, current)", 1, true,
     kBgCmd.toggleVomnibarStyle, { style: "dark" } ],
   scrollDown: [ "Scroll down", 0, false, kFgCmd.scroll ],

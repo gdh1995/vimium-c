@@ -751,7 +751,9 @@ const OnOther = typeof browser === "undefined" || (browser && (browser as any).r
   : BrowserType.Unknown,
 BrowserProtocol = OnOther ? OnOther === BrowserType.Firefox ? "moz"
     : OnOther === BrowserType.Edge ? "ms-browser" : "about"
-    : "chrome"
+    : "chrome",
+ChromeVer = 0 | (!OnOther && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
+  || [0, BrowserVer.assumedVer])[1] as number
 ;
 
 if (!"".startsWith) {

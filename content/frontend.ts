@@ -522,7 +522,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       /** if `notBody` then `activeEl` is not null  */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = Object.create(null);
-      if (VSettings.cache.grabFocus && this.grabFocus_) {
+      if (VSettings.cache.grabBackFocus && this.grabFocus_) {
         if (notBody) {
           this.last_ = null;
           activeEl.blur && activeEl.blur();
@@ -897,14 +897,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     function ({ delta }: BgReq[kBgReq.settingsUpdate]): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer_(delta);
-      const cache = VSettings.cache;
+      const cache = VSettings.cache, deepHints = delta.deepHints;
       for (const i in delta) {
         cache[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
         const i2 = "_" + i as Keys;
         (i2 in cache) && (VUtils.safer_(cache)[i2] = undefined as never);
       }
-      "deepHints" in delta && VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
-      (VHints.queryInDeep_ = cache.deepHints ? DeepQueryType.InDeep : DeepQueryType.NotDeep);
+      deepHints != null && VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
+      (VHints.queryInDeep_ = deepHints ? DeepQueryType.InDeep : DeepQueryType.NotDeep);
     },
     FrameMask.Focus_,
     InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,

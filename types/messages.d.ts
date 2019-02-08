@@ -69,7 +69,7 @@ interface BgReq {
   [kBgReq.settingsUpdate]: {
     delta: {
       [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
-    }
+    } & SafeObject;
   };
   [kBgReq.url]: {
     url?: string;
