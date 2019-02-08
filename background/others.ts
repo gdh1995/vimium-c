@@ -60,10 +60,19 @@ setTimeout(function() {
       const wanted: SettingsNS.DynamicFiles | "" = key === "keyMappings" ? "Commands"
           : key.startsWith("exclusion") ? "Exclusions" : "";
       if (!wanted) {
-        return Settings.set(key, value);
+        return setAndPost(key, value);
       }
-      Utils.require(wanted).then(() => Settings.set(key, value));
+      Utils.require(wanted).then(() => setAndPost(key, value));
       Utils.GC();
+    }
+    function setAndPost(key: keyof SettingsWithDefaults, value: any): void {
+      Settings.set(key, value);
+      if (key in Settings.payload) {
+        const delta: BgReq[kBgReq.settingsUpdate]["delta"] = Object.create(null),
+        req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, delta };
+        delta[key as keyof SettingsNS.FrontendSettings] = Settings.get(key as keyof SettingsNS.FrontendSettings);
+        Settings.broadcast(req);
+      }
     }
   function TrySet<K extends keyof SettingsToSync> (this: void, key: K, value: SettingsToSync[K] | null) {
     if (!shouldSyncKey(key)) { return; }
