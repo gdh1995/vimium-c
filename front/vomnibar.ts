@@ -101,7 +101,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   focused_: true,
   showing_: false,
   firstShowing_: true,
-  focusByCode_: true,
+  focusByCode_: false,
   blurWanted_: false,
   forceNewTab_: false,
   sameOrigin_: false,
@@ -135,7 +135,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   show_ (): void {
     this.showing_ = true;
     this.bodySt_.zoom = this.zoomLevel_ !== 1 ? this.zoomLevel_ + "" : "";
-    this.firstShowing_ ? setTimeout(Vomnibar_.focus, 34) : (this.firstShowing_ = false);
+    this.firstShowing_ ? (this.firstShowing_ = false) : setTimeout(Vomnibar_.focus, 34);
     addEventListener("wheel", this.onWheel_, this.wheelOptions_);
     this.OnShown_ && setTimeout(this.OnShown_, 100);
   },
@@ -646,23 +646,17 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     listen("blur", wndFocus);
     a.blurred_(false);
   } as ((this: void) => void) | null,
-  _focusTimer: 0,
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.focusByCode_;
     a.focusByCode_ = false;
     if (!a.isActive_ || event.target !== window || event.isTrusted === false) { return; }
     const blurred = event.type === "blur";
-    if (blurred) {
-      const t = a._focusTimer;
-      t && clearTimeout(t);
-      a._focusTimer = 0;
-    }
     if (byCode) {
       a.blurred_(blurred);
-    } else if (blurred) {
-      a.blurred_();
-    } else {
-      a._focusTimer = setTimeout(a.blurred_, 50, false);
+      return;
+    }
+    setTimeout(a.blurred_, 50, null);
+    if (!blurred) {
       VPort_ && VPort_.postMessage_({ H: kFgReq.blank });
       if (a.pageType_ === VomnibarNS.PageType.ext && VPort_) {
         VPort_.postToOwner_({N: "test"});
@@ -672,7 +666,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   blurred_ (this: void, blurred?: boolean): void {
     const a = (document.body as HTMLBodyElement).classList;
     // Document.hidden is since C33, according to MDN
-    (blurred != null ? !blurred : document.hidden) ? a.remove("transparent") : a.add("transparent");
+    (blurred != null ? !blurred : document.hidden || document.hasFocus()) ? a.remove("transparent") : a.add("transparent");
   },
   init_ (): void {
     window.onclick = function(e) { Vomnibar_.onClick_(e); };
