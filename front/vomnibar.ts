@@ -644,7 +644,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     a.OnShown_ = null;
     listen("focus", wndFocus);
     listen("blur", wndFocus);
-    a.blurred_();
+    a.blurred_(false);
   } as ((this: void) => void) | null,
   _focusTimer: 0,
   OnWndFocus_ (this: void, event: Event): void {
@@ -660,7 +660,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (byCode) {
       a.blurred_(blurred);
     } else if (blurred) {
-      VPort_.postMessage_({ H: kFgReq.blurTest });
+      a.blurred_();
     } else {
       a._focusTimer = setTimeout(a.blurred_, 50, false);
       VPort_ && VPort_.postMessage_({ H: kFgReq.blank });
@@ -669,9 +669,10 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       }
     }
   },
-  blurred_ (this: void, blurred?: boolean | object): void {
+  blurred_ (this: void, blurred?: boolean): void {
     const a = (document.body as HTMLBodyElement).classList;
-    (typeof blurred === "boolean" ? !blurred : document.hasFocus()) ? a.remove("transparent") : a.add("transparent");
+    // Document.hidden is since C33, according to MDN
+    (blurred != null ? !blurred : document.hidden) ? a.remove("transparent") : a.add("transparent");
   },
   init_ (): void {
     window.onclick = function(e) { Vomnibar_.onClick_(e); };
@@ -977,7 +978,6 @@ VPort_ = {
     name === kBgReq.omni_parsed ? Vomnibar_.parsed_(response as Req.bg<kBgReq.omni_parsed>) :
     name === kBgReq.omni_secret ? Vomnibar_.secret_(response as Req.bg<kBgReq.omni_secret>) :
     name === kBgReq.omni_returnFocus ? Vomnibar_.returnFocus_(response as Req.bg<kBgReq.omni_returnFocus>) :
-    name === kBgReq.omni_blurred ? Vomnibar_.blurred_(response as Req.bg<kBgReq.omni_blurred>) :
     name === kBgReq.showHUD ? Vomnibar_.css_(response as Req.bg<kBgReq.showHUD> as BgCSSReq) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
     0;

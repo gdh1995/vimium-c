@@ -21,7 +21,7 @@ declare const enum kBgReq {
   settingsUpdate, focusFrame, exitGrab, keyMap, execute,
   createMark, showHUD, count, showHelpDialog,
   OMNI_MIN = 42,
-  omni_secret = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus, omni_blurred,
+  omni_secret = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
   omni_toggleStyle,
   END = "END", // without it, TypeScript will report errors for number indexes
 }
@@ -101,7 +101,6 @@ interface BgVomnibarSpecialReq {
     /** CSS */ S: string;
     cls: string;
   };
-  [kBgReq.omni_blurred]:  & Req.baseBg<kBgReq.omni_blurred>;
   [kBgReq.omni_parsed]: {
     id: number;
     search: FgRes[kFgReq.parseSearchUrl];
@@ -236,7 +235,7 @@ declare const enum kFgReq {
   searchAs, gotoSession, openUrl, focus, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
-  focusOrLaunch, cmd, blurTest, removeSug, openImage, gotoMainFrame,
+  focusOrLaunch, cmd, removeSug, openImage, gotoMainFrame,
   setOmniStyle,
   END,
   msg = 90, inject = 91,
@@ -352,7 +351,6 @@ interface FgReq {
    * .url is guaranteed to be well formatted by frontend
    */
   [kFgReq.focusOrLaunch]: MarksNS.FocusOrLaunch;
-  [kFgReq.blurTest]: {};
   [kFgReq.cmd]: {
     cmd: string;
     count: number;

@@ -1966,17 +1966,6 @@ Are you sure you want to continue?`);
       }
       execute(cmd, CommandsData_.cmdMap_[cmd] || null, request.count, port);
     },
-    /** blurTest: */ function (this: void, _0: FgReq[kFgReq.blurTest], port: Port): void {
-      if (port.s.t < 0) {
-        port.postMessage({ N: kBgReq.omni_blurred });
-        return;
-      }
-      setTimeout(function(): void {
-        if (port.s.t === TabRecency_.last_ && framesForOmni.indexOf(port) >= 0) {
-          port.postMessage({ N: kBgReq.omni_blurred });
-        }
-      }, 50);
-    },
     /** removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
       return Backend.removeSug_(req, port);
     },
