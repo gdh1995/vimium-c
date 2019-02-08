@@ -61,7 +61,7 @@
       // # lib/
       "MathParser",
       // # pages/
-      "VData", "VShown",
+      "VData",
       // # inner names:
       "startsWith", "endsWith", "addEventListener", "toString",
       "Suggestion", "VC"
