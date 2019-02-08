@@ -804,7 +804,7 @@ Are you sure you want to continue?`);
         never :
       BgCmdNoTab;
   } = [
-    /* createTab: */ function (): void {},
+    /* createTab: */ Utils.blank_,
     /* duplicateTab: */ function (): void {
       const tabId = cPort.s.t;
       if (tabId < 0) {

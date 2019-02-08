@@ -17,6 +17,7 @@ var Utils = {
     }
     return b;
   },
+  blank_ (this: void): void {},
   _reToReset: <RegExpOne> /a?/,
   resetRe_ (): true {
     return this._reToReset.test("") as true;

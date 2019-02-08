@@ -20,6 +20,9 @@ type Ensure<T, K extends keyof T> = { -readonly [P in K]-?: NonNullable<T[P]> };
 type TypedSafeEnum<Type> = {
   readonly [key in keyof Type]: 1;
 } & SafeObject;
+type PartialTypedSafeEnum<Type> = {
+  readonly [key in keyof Type]?: 1;
+} & SafeObject;
 type MappedType<Type, NewValue> = {
   [key in keyof Type]: NewValue;
 };

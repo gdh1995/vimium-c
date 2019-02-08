@@ -364,12 +364,8 @@ declare namespace SettingsNS {
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
     "MathParser";
 
-  interface OnSyncUpdate {
-    (this: void, changes: { [key: string]: chrome.storage.StorageChange }, area: string): void;
-  }
   interface Sync {
     set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;
-    HandleStorageUpdate?: OnSyncUpdate;
   }
 
   interface ParsedCustomCSS {

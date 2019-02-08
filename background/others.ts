@@ -13,28 +13,27 @@ setTimeout(function() {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
   Utils.GC();
-  const Sync = {
-    storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; },
-    to_update: null as SettingsToUpdate | null,
-    doNotSync: Object.setPrototypeOf({
-      // Note(gdh1995): need to keep synced with pages/options_ext.ts#_importSettings
-      findModeRawQueryList: 1, innerCSS: 1, keyboard: 1, newTabUrl_f: 1
-    }, null) as TypedSafeEnum<SettingsToSync>,
-    HandleStorageUpdate: function(changes, area): void {
+  function storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; }
+  let to_update: SettingsToUpdate | null = null,
+  doNotSync: PartialTypedSafeEnum<SettingsToSync> = Object.setPrototypeOf({
+    // Note(gdh1995): need to keep synced with pages/options_ext.ts#_importSettings
+    findModeRawQueryList: 1 as 1, innerCSS: 1 as 1, keyboard: 1 as 1, newTabUrl_f: 1 as 1
+  }, null);
+    function HandleStorageUpdate(changes: { [key: string]: chrome.storage.StorageChange }, area: string): void {
       if (area !== "sync") { return; }
       Object.setPrototypeOf(changes, null);
       for (const key in changes) {
         const change = changes[key];
-        Sync.storeAndPropagate(key, change != null ? change.newValue : null);
+        storeAndPropagate(key, change != null ? change.newValue : null);
       }
-    } as SettingsNS.OnSyncUpdate,
-    storeAndPropagate (key: string, value: any): void {
-      if (!(key in Settings.defaults) || key in Settings.nonPersistent_ || !this.shouldSyncKey(key)) { return; }
+    }
+    function storeAndPropagate (key: string, value: any): void {
+      if (!(key in Settings.defaults) || key in Settings.nonPersistent_ || !shouldSyncKey(key)) { return; }
       const defaultVal = Settings.defaults[key];
       if (value == null) {
         if (localStorage.getItem(key) != null) {
           console.log(new Date().toLocaleString(), "sync.local: reset", key);
-          this.doSet(key, defaultVal);
+          doSet(key, defaultVal);
         }
         return;
       }
@@ -55,9 +54,9 @@ setTimeout(function() {
         typeof value === "string"
         ? (value.length > 32 ? value.substring(0, 30) + "..." : value).replace(<RegExpG>/\n/g, "\\n")
         : value);
-      this.doSet(key, value);
-    },
-    doSet(key: keyof SettingsWithDefaults, value: any): void {
+      doSet(key, value);
+    }
+    function doSet(key: keyof SettingsWithDefaults, value: any): void {
       const wanted: SettingsNS.DynamicFiles | "" = key === "keyMappings" ? "Commands"
           : key.startsWith("exclusion") ? "Exclusions" : "";
       if (!wanted) {
@@ -65,23 +64,19 @@ setTimeout(function() {
       }
       Utils.require(wanted).then(() => Settings.set(key, value));
       Utils.GC();
-    },
-    TrySet<K extends keyof SettingsToSync> (this: void, key: K, value: SettingsToSync[K] | null) {
-      Sync.set(key, value);
-    },
-    set<K extends keyof SettingsToSync> (key: K, value: SettingsToSync[K] | null): void {
-      if (!this.shouldSyncKey(key)) { return; }
-      let items = this.to_update;
-      if (!items) {
-        setTimeout(this.DoUpdate, 800);
-        items = this.to_update = Object.create(null) as SettingsToUpdate;
-      }
-      items[key] = value;
-    },
-    DoUpdate (this: void): void {
-      let items = Sync.to_update, removed = [] as string[], left = 0;
-      Sync.to_update = null;
-      if (!items || Settings.sync_ !== Sync.TrySet) { return; }
+    }
+  function TrySet<K extends keyof SettingsToSync> (this: void, key: K, value: SettingsToSync[K] | null) {
+    if (!shouldSyncKey(key)) { return; }
+    if (!to_update) {
+      setTimeout(DoUpdate, 800);
+      to_update = Object.create(null) as SettingsToUpdate;
+    }
+    to_update[key] = value;
+  }
+    function DoUpdate (this: void): void {
+      let items = to_update, removed = [] as string[], left = 0;
+      to_update = null;
+      if (!items || Settings.sync_ !== TrySet) { return; }
       for (const key in items) {
         if (items[key as keyof SettingsToUpdate] != null) {
           ++left;
@@ -92,40 +87,38 @@ setTimeout(function() {
       }
       if (removed.length > 0) {
         console.log(new Date().toLocaleString(), "sync.cloud: reset", removed.join(" "));
-        Sync.storage().remove(removed);
+        storage().remove(removed);
       }
       if (left > 0) {
         console.log(new Date().toLocaleString(), "sync.cloud: update", Object.keys(items).join(" "));
-        Sync.storage().set(items);
+        storage().set(items);
       }
-    },
-    shouldSyncKey (key: string): key is keyof SettingsToSync {
-      return !(key in this.doNotSync);
     }
-  };
+  function shouldSyncKey (key: string): key is keyof SettingsToSync {
+    return !(key in doNotSync);
+  }
   Settings.updateHooks_.vimSync = function (value): void {
-    const storage = Sync.storage();
-    if (!storage) { return; }
-    const event = chrome.storage.onChanged, listener = Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate;
+    if (!storage()) { return; }
+    const event = chrome.storage.onChanged;
     if (!value) {
-      event.removeListener(listener);
-      Settings.sync_ = () => {};
-    } else if (Settings.sync_ !== Sync.TrySet) {
-      event.addListener(listener);
-      Settings.sync_ = Sync.TrySet;
+      event.removeListener(HandleStorageUpdate);
+      Settings.sync_ = Utils.blank_;
+    } else if (Settings.sync_ !== TrySet) {
+      event.addListener(HandleStorageUpdate);
+      Settings.sync_ = TrySet;
     }
   };
   const sync1 = Settings.get("vimSync");
   if (sync1 === false || (!sync1 && localStorage.length > 4)) {
     return;
   }
-  if (!Sync.storage()) { return; }
-  Sync.storage().get(null, function(items): void {
+  if (!storage()) { return; }
+  storage().get(null, function(items): void {
     const err = Utils.runtimeError_();
     if (err) {
       console.log(new Date().toLocaleString(), "Error: failed to get storage:", err
         , "\n\tSo disable syncing temporarily.");
-      Sync.HandleStorageUpdate = Sync.TrySet = function (): void {};
+      Settings.updateHooks_.vimSync = Settings.sync_ = Utils.blank_;
       return err;
     }
     Object.setPrototypeOf(items, null);
@@ -136,22 +129,22 @@ setTimeout(function() {
       // cloud may be empty, but the local computer wants to sync, so enable it
       console.log("sync.cloud: enable vimSync");
       items.vimSync = vimSync;
-      Sync.storage().set({ vimSync });
+      storage().set({ vimSync });
     }
     const toReset: string[] = [];
     for (let i = 0, end = localStorage.length; i < end; i++) {
       const key = localStorage.key(i) as string;
       // although storeAndPropagate indeed checks @shouldSyncKey(key)
       // here check it for easier debugging
-      if (!(key in items) && key in Settings.defaults && Sync.shouldSyncKey(key)) {
+      if (!(key in items) && key in Settings.defaults && shouldSyncKey(key)) {
         toReset.push(key);
       }
     }
     for (let key of toReset) {
-      Sync.storeAndPropagate(key, null);
+      storeAndPropagate(key, null);
     }
     for (const key in items) {
-      Sync.storeAndPropagate(key, items[key]);
+      storeAndPropagate(key, items[key]);
     }
     Settings.postUpdate_("vimSync");
   });

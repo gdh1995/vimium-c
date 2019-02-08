@@ -319,7 +319,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     , "deepHints", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
-  sync_: function (): void {} as SettingsNS.Sync["set"],
+  sync_: Utils.blank_ as SettingsNS.Sync["set"],
   CONST: {
     AllowClipboardRead_: true,
     BaseCSSLength_: 0,
