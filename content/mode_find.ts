@@ -455,11 +455,11 @@ var VFind = {
       if (found && pR && (par = VDom.GetSelectionParent_unsafe_())) {
         pR.lastIndex = 0;
         let text = par.innerText as string | HTMLElement;
-        if (typeof text !== "string") {
+        while (par && (typeof text !== "string" || text.length === q.length)) {
           par = VDom.GetParent_(par);
-          text = par ? par.innerText as string : "";
+          text = par ? par.innerText as string | HTMLElement : "";
         }
-        if (text && !(pR as RegExpG & RegExpSearchable<0>).test(text)
+        if (text && typeof text === "string" && !(pR as RegExpG & RegExpSearchable<0>).test(text)
             && timesRegExpNotMatch++ < 9) {
           count++;
         }
