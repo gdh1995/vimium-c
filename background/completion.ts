@@ -1336,7 +1336,7 @@ knownCs: CompletersMap & SafeObject = {
     OnUpdate_ (this: void, newList: string): void {
       const arr: string[] = [];
       for (let line of newList.split("\n")) {
-        if (!(line && line.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
+        if (!(line && line.trimLeft().charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
         if (line.trim()) {
           arr.push(line);
         }
