@@ -257,6 +257,24 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           </div></td>
         </tr>
         <tr>
+          <td class="caption">Custom CSS<br/>for Vimium C UI</td>
+          <td>
+            <textarea id="userDefinedCss" class="code min-height-4" inputmode="latin" data-model="Text"
+              placeholder="/* example: */ .LH { color: red; }
+/* #find */ * { color: green; }
+/* #omni */
+* { color: blue; } .transparent { opacity: 1; }"
+              ></textarea>
+          </td>
+          <td class="help"><div class="help-inner">
+            To style Vimium C nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>"
+            (On Edge and Firefox, may need "<kbd>#VimiumUI</kbd>" as prefix if no Shadow DOM).<br/>
+            These styles work in addition to and take precedence over Vimium C's
+            default styles.
+            <a class="wrap-left-space" data-auto-resize="userDefinedCss"></a>.
+          </div></td>
+        </tr>
+        <tr>
           <td class="caption">Phrase blacklist<br/>for Vomnibar</td>
           <td>
             <textarea id="phraseBlacklist" class="code min-height-4" data-model="MaskedText"></textarea>
@@ -283,24 +301,6 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
             <a target="_blank" rel="noopener noreferrer"
               href="https://github.com/gdh1995/vimium-c/wiki/Inject-into-other-extensions">
               How to inject Vimium C into other extensions?</a>
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption">Custom CSS<br/>for Vimium C UI</td>
-          <td>
-            <textarea id="userDefinedCss" class="code min-height-4" inputmode="latin" data-model="Text"
-              placeholder="/* example: */ .LH { color: red; }
-/* #find */ * { color: green; }
-/* #omni */
-* { color: blue; } .transparent { opacity: 1; }"
-              ></textarea>
-          </td>
-          <td class="help"><div class="help-inner">
-            To style Vimium C nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>"
-            (On Edge and Firefox, may need "<kbd>#VimiumUI</kbd>" as prefix if no Shadow DOM).<br/>
-            These styles work in addition to and take precedence over Vimium C's
-            default styles.
-            <a class="wrap-left-space" data-auto-resize="userDefinedCss"></a>.
           </div></td>
         </tr>
         <tr>
