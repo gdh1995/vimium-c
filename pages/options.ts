@@ -213,6 +213,37 @@ readValueFromElement_ (): AllowedOptions[T] {
 }
 }
 
+class MaskedText_<T extends keyof AllowedOptions> extends TextOption_<T> {
+  masked_: boolean;
+  _myCancelMask: (() => void) | null;
+  constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
+    super(element, onUpdated);
+    this.masked_ = true;
+    this.element_.classList.add("masked");
+    this.populateElement_(this.previous_);
+    this._myCancelMask = this.cancelMask_.bind(this);
+    (this.element_ as HTMLTextAreaElement).addEventListener("focus", this._myCancelMask);
+  }
+  cancelMask_ (): void {
+    if (!this._myCancelMask) { return; }
+    this.element_.removeEventListener("focus", this._myCancelMask);
+    this.element_.classList.remove("masked");
+    this._myCancelMask = null;
+    this.masked_ = false;
+    this.fetch_();
+  }
+  populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
+    if (this.masked_) {
+      this.element_.value = "# Click to unmask the content\u2026";
+      return;
+    }
+    super.populateElement_(value, enableUndo);
+  }
+  readValueFromElement_ (): AllowedOptions[T] {
+    return this.masked_ ? this.previous_ : super.readValueFromElement_();
+  }
+}
+
 JSONOption_.prototype.areEqual_ = Option_.areJSONEqual_;
 
 class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
@@ -335,6 +366,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     Text: TextOption_,
     NonEmptyText: NonEmptyTextOption_,
     JSON: JSONOption_,
+    MaskedText: MaskedText_,
     Boolean: BooleanOption_,
     ExclusionRules: ExclusionRulesOption_,
   };
