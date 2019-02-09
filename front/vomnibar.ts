@@ -664,9 +664,10 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
   },
   blurred_ (this: void, blurred?: boolean): void {
+    if (!Vomnibar_) { return; }
     const a = (document.body as HTMLBodyElement).classList;
     // Document.hidden is since C33, according to MDN
-    (blurred != null ? !blurred : document.hidden || document.hasFocus()) ? a.remove("transparent") : a.add("transparent");
+    !Vomnibar_.isActive_ || (blurred != null ? !blurred : document.hidden || document.hasFocus()) ? a.remove("transparent") : a.add("transparent");
   },
   init_ (): void {
     window.onclick = function(e) { Vomnibar_.onClick_(e); };

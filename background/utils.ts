@@ -23,6 +23,19 @@ var Utils = {
     return this._reToReset.test("") as true;
   },
   runtimeError_ (this: void): any { return chrome.runtime.lastError; },
+  unicodeSubstring_ (str: string, start: number, end: number): string {
+    const charCode = end < str.length ? str.charCodeAt(end - 1) : 0;
+    // Note: ZWJ is too hard to split correctly (https://en.wikipedia.org/wiki/Zero-width_joiner)
+    // so just remove such a character (if any)
+    // unicode surrogates: https://www.jianshu.com/p/7ae9005e0671
+    end += charCode === 0x200D ? -1 : charCode >= 0xD800 && charCode < 0xDC00 ? 1 : 0;
+    return str.substring(start, end);
+  },
+  unicodeLsubstring_ (str: string, start: number, end: number): string {
+    const charCode = start > 0 ? str.charCodeAt(start) : 0;
+    start += charCode === 0x200D ? 1 : charCode >= 0xDC00 && charCode <= 0xDFFF ? -1 : 0;
+    return str.substring(start, end);
+  },
   escapeText_ (s: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {

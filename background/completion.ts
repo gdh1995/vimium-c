@@ -132,19 +132,6 @@ const Suggestion: SuggestionConstructor = function Suggestion (this: CompletersN
   (this as Suggestion).relevancy = computeRelevancy(this, extraData);
 } as any;
 
-  function unicodeSubstring(str: string, start: number, end: number): string {
-    const charCode = end < str.length ? str.charCodeAt(end - 1) : 0;
-    // Note: ZWJ is too hard to split correctly (https://en.wikipedia.org/wiki/Zero-width_joiner)
-    // so just remove such a character (if any)
-    // unicode surrogates: https://www.jianshu.com/p/7ae9005e0671
-    end += charCode === 0x200D ? -1 : charCode >= 0xD800 && charCode < 0xDC00 ? 1 : 0;
-    return str.substring(start, end);
-  }
-  function unicodeLsubstring(str: string, start: number, end: number): string {
-    const charCode = start > 0 ? str.charCodeAt(start) : 0;
-    start += charCode === 0x200D ? 1 : charCode >= 0xDC00 && charCode <= 0xDFFF ? -1 : 0;
-    return str.substring(start, end);
-  }
   function prepareHtml (sug: Suggestion): void {
     if (sug.textSplit != null) {
       if (sug.text === sug.url) { sug.text = ""; }
@@ -158,7 +145,7 @@ const Suggestion: SuggestionConstructor = function Suggestion (this: CompletersN
   }
   function cutTitle (title: string): string {
     let cut = title.length > maxChars + 40;
-    cut && (title = unicodeSubstring(title, 0, maxChars + 39));
+    cut && (title = Utils.unicodeSubstring_(title, 0, maxChars + 39));
     return highlight(cut ? title + "\u2026" : title, getMatchRanges(title));
   }
   function highlight (this: void, string: string, ranges: number[]): string {
@@ -234,9 +221,9 @@ const Suggestion: SuggestionConstructor = function Suggestion (this: CompletersN
       const start = ranges[i], temp = Math.max(end, cutStart), delta = start - 20 - temp;
       if (delta > 0) {
         maxLen += delta;
-        out += Utils.escapeText_(unicodeSubstring(string, end, temp + 11));
+        out += Utils.escapeText_(Utils.unicodeSubstring_(string, end, temp + 11));
         out += "\u2026"
-        out += Utils.escapeText_(unicodeLsubstring(string, start - 8, start));
+        out += Utils.escapeText_(Utils.unicodeLsubstring_(string, start - 8, start));
       } else if (end < start) {
         out += Utils.escapeText_(string.substring(end, start));
       }
@@ -248,7 +235,7 @@ const Suggestion: SuggestionConstructor = function Suggestion (this: CompletersN
     if (string.length <= maxLen) {
       return out + Utils.escapeText_(string.substring(end));
     } else {
-      return out + Utils.escapeText_(unicodeSubstring(string, end, maxLen - 1 > end ? maxLen - 1 : end + 10)) + "\u2026";
+      return out + Utils.escapeText_(Utils.unicodeSubstring_(string, end, maxLen - 1 > end ? maxLen - 1 : end + 10)) + "\u2026";
     }
   }
   function ComputeWordRelevancy (this: void, suggestion: CompletersNS.CoreSuggestion): number {
