@@ -459,7 +459,7 @@ var VFind = {
           par = VDom.GetParent_(par);
           text = par ? par.innerText as string : "";
         }
-        if (text && !(pR as RegExpG & RegExpSearchable<0>).exec(text)
+        if (text && !(pR as RegExpG & RegExpSearchable<0>).test(text)
             && timesRegExpNotMatch++ < 9) {
           count++;
         }
@@ -470,6 +470,12 @@ var VFind = {
     focusHUD && this.input_.focus();
     this.hasResults_ = found;
   },
+  /**
+   * According to https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editor.cc?q=FindRangeOfString&g=0&l=815 ,
+   * the range to find is either `[selection..docEnd]` or `[docStart..selection]`,
+   * so those in shadowDOM / ancestor tree scopes will still be found.
+   * Therefore `@styleIn_` is always needed, and VFind may not need a sub-scope selection.
+   */
   find_: function (this: void): boolean {
     try {
       return window.find.apply(window, arguments);
@@ -485,10 +491,6 @@ var VFind = {
     document.removeEventListener("selectionchange", a.DisableStyle_, true);
     disable = !!disable;
     // Note: `<doc/root>.adoptedStyleSheets` should not be modified in an extension world
-    // TODO: when @selection_ is inside a shadowRoot or document,
-    //       * remove @styleIn_, and move styleOut_ under the shadowRoot
-    //       * share @selection_ to VVisual
-    //       * check scope of window.find on Firefox with ShadowDOM enabled
     if (!active && disable) {
       UI.toggleSelectStyle_(0);
       sout.remove(); sin.remove();

@@ -937,6 +937,7 @@ interface RegExp {
       * @param string String on which to perform the search.
       */
     test(this: RegExpOne | RegExpI, string: string): boolean;
+    test(this: RegExpG & RegExpSearchable<0>, string: string): boolean;
 
     /** Returns a copy of the text of the regular expression pattern. Read-only. The regExp argument is a Regular expression object. It can be a variable name or a literal. */
     readonly source: string;
