@@ -420,7 +420,21 @@ availableCommands_: {
   focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true,
     kBgCmd.openUrl, { reuse: ReuseType.reuse } ]
 } as ReadonlySafeDict<CommandsNS.Description>,
-  // todo: inspect what Chrome does
+  /**
+   * Call stack (Chromium > icu):
+   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
+   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/unicode.h?type=cs&q=IsAlphanumeric&g=0&l=177
+   * * https://cs.chromium.org/chromium/src/third_party/icu/source/common/uchar.cpp?q=u_isalnum&g=0&l=151
+   * Result: \p{L | Nd} || '_' (\u005F)
+   * Definitions:
+   * * General Category (Unicode): https://unicode.org/reports/tr44/#GC_Values_Table
+   * * valid GC in RegExp: https://tc39.github.io/proposal-regexp-unicode-property-escapes/#sec-runtime-semantics-unicodematchpropertyvalue-p-v
+   * * \w in RegExp: http://unicode.org/reports/tr18/#word
+   *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
+   *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
+   * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
+   */
+  // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
   wordsRe_: "[_0-9A-Za-z\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\
 \\u02EE\\u0370-\\u0374\\u0376\\u0377\\u037A-\\u037D\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u0\
 3F7-\\u0481\\u048A-\\u0527\\u0531-\\u0556\\u0559\\u0561-\\u0587\\u05D0-\\u05EA\\u05F0-\\u05F2\\u0620-\\u064A\\u066\
@@ -473,6 +487,16 @@ if (Backend.onInit_) {
     Commands = null as never;
   }
   chrome.commands && chrome.commands.onCommand.addListener(Backend.ExecuteGlobal_);
+  if (ChromeVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && !OnOther) {
+    CommandsData_.wordsRe_ = "[\\p{L}\\p{Nd}_]";
+  } else !function(): void | boolean {
+    try {
+      const re = new RegExp("[\\p{L}\\p{Nd}_]", "u");
+      if (re.test('a')) {
+        CommandsData_.wordsRe_ = re.source;
+      }
+    } catch (e) {}
+  }();
 }
 if (Commands)
 Settings.updateHooks_.keyMappings = function(value: string): void {

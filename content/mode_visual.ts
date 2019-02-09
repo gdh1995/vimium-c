@@ -333,7 +333,7 @@ var VVisual = {
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
   diType_: VisualModeNS.DiType.Unknown as VisualModeNS.DiType.Normal | VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Unknown,
   /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
-  wordRe_: null as never as RegExpOne,
+  wordRe_: null as never as RegExpOne | RegExpU,
   /** @unknown_di_result */
   extend_ (d: VisualModeNS.ForwardDir): void | 1 {
     return this.selection_.modify("extend", this.D[d], "character");
@@ -612,7 +612,8 @@ init_ (words: string) {
     return typeIdx[sel.type];
   };
   var map = this.keyMap_, func = VUtils.safer_;
-  this.wordRe_ = new RegExp(words);
+  /** @see background/commands.ts@CommandsData_.wordsRe_ */
+  this.wordRe_ = new RegExp(words, (<RegExpOne>/^\[\\p/).test(words) ? "u" : "");
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }
 };

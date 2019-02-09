@@ -426,9 +426,19 @@ interface RegExp {
      */
     readonly unicode: boolean;
 }
+interface RegExpU extends RegExpExt<"u"> {
+    readonly lastIndex: never;
+    readonly unicode: true;
+}
+interface RegExpConstructor {
+    new <T extends "u" | ""> (pattern: string, flags: T): T extends "u" ? RegExpU : RegExpOne;
+}
+interface RegExp {
+    test(this: RegExpU | RegExpOne, string: string): boolean;
+}
 
 interface KnownRegExp<T extends string> extends RegExp {
-  readonly flags: T;
+    readonly flags: T;
 }
 
 interface String {
