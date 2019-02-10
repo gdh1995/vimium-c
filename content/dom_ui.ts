@@ -137,7 +137,7 @@ VDom.UI = {
       if (el.getRootNode) {
         el = el.getRootNode();
       } else {
-        for (let pn: Node | null; pn = VDom.GetParent_(el, false); el = pn) { }
+        for (let pn: Node | null; pn = VDom.GetParent_(el, 0); el = pn) { }
       }
       if (el !== d && typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRootWithSelection).getSelection();

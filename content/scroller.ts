@@ -159,13 +159,12 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     if (!cur) {
       return this.current_ = top && this._selectFirst(top) || top;
     }
-    const getInsertion = Element.prototype.getDestinationInsertionPoints;
     let element: SafeElement | null = cur, reason, isCurVerticallyScrollable = di - 1 /** X => -1, Y => 0 */;
     while (element !== top && (reason = this.shouldScroll_unsafe_(element as NonNullable<typeof element>, di, amount)) < 1) {
       if (!reason) {
         isCurVerticallyScrollable = isCurVerticallyScrollable || +this._scrollDo(element as NonNullable<typeof element>, 1, -amount);
       }
-      element = VDom.SafeEl_(VDom.GetParent_(element as Element, getInsertion)) || top;
+      element = VDom.SafeEl_(VDom.GetParent_(element as Element, 1)) || top;
     }
     if (element === top && top && !isCurVerticallyScrollable) {
       element = this.current_ = this._selectFirst(top) || top;

@@ -61,9 +61,10 @@ var VDom = {
    * @safe_even_if_any_overridden_property
    * @UNSAFE_RETURNED
    */
-  GetParent_: function (this: void, el: Node, getInsertion?: false | Element["getDestinationInsertionPoints"]): Node | null {
-    if (getInsertion) {
-      const arr = getInsertion.call(el as Element);
+  GetParent_: function (this: void, el: Node, slotOrcomposed?: 0 | 1): Node | null {
+    if (slotOrcomposed) {
+      const func = Element.prototype.getDestinationInsertionPoints;
+      const arr = func ? func.call(el as Element) : [];
       arr.length > 0 && (el = arr[arr.length - 1]);
     }
     let pe = el.parentElement, pn = el.parentNode;
@@ -74,14 +75,14 @@ var VDom = {
     }
     const SR = window.ShadowRoot, E = Element;
     // pn is real or null
-    return getInsertion /* composedElement */ === false ? pn
+    return slotOrcomposed /* composedElement */ === 0 ? pn
         // not take composed tree into consideration; but allow Node to be returned
       : SR && !(SR instanceof E) && pn instanceof SR ? pn.host // shadow root
       : pn instanceof E ? pn /* in doc but overridden */ : null /* pn is null, DocFrag, or ... */;
   } as {
-    (this: void, el: Element, getInsertion: Element["getDestinationInsertionPoints"]): Element | null;
+    (this: void, el: Element, revealSlot: 1): Element | null;
     (this: void, el: HTMLElement): HTMLElement | null;
-    (this: void, el: Node, composedElement: false): Node | null;
+    (this: void, el: Node, composedElement: 0): Node | null;
     (this: void, el: Node): Element | null;
   },
   scrollingEl_ (fallback?: 1): ((HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement) | null {
@@ -241,8 +242,7 @@ var VDom = {
       // then it's a whole mess and nothing can be ensured to be right
       this.bZoom_ = body && (target === 1 || this.isInDOM_(target, body)) && +gcs(body).zoom || 1;
     }
-    // todo: check whether zoom follows insertion
-    for (; el && el !== docEl; el = this.GetParent_(el)) {
+    for (; el && el !== docEl; el = this.GetParent_(el, 1)) {
       zoom *= +gcs(el).zoom || 1;
     };
     this.paintBox_ = null; // it's not so necessary to get a new paintBox here
@@ -337,7 +337,7 @@ var VDom = {
     }
     if (NP.contains.call(doc, element)) { return true; }
     while ((pe = VDom.GetParent_(element)) && pe !== doc) { element = pe; }
-    const pn = VDom.GetParent_(element, false);
+    const pn = VDom.GetParent_(element, 0);
     // Note: `pn instanceof Element` means `element.parentNode` is overridden,
     // so return a "potentially correct" result `true`.
     // This requires that further jobs are safe enough even when isInDOM returns true
