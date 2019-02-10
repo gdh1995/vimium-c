@@ -37,11 +37,13 @@ var VFind = {
     if (options.leave) {
       return a.findAndFocus_(query || a.query_, options);
     }
-    a.getCurrentRange_();
-    if (options.returnToViewport) {
-      a.coords_ = [window.scrollX, window.scrollY];
+    a.isActive_ && ui.adjust_();
+    if (!a.isActive_) {
+      a.getCurrentRange_();
+      if (options.returnToViewport) {
+        a.coords_ = [window.scrollX, window.scrollY];
+      }
     }
-    a.box_ && ui.adjust_();
     VHUD.hide_(TimerType.noTimer);
     if (a.isActive_) {
       return a.setFirstQuery_(query);
@@ -172,7 +174,7 @@ var VFind = {
       }
       return;
     }
-    this.focusFoundLink_(getSelection().anchorNode as Element | null);
+    this.focusFoundLinkIfAny_();
     return this.postMode_.activate_();
   },
   clean_ (i: FindNS.Action): Element | null { // need keep @hasResults
@@ -181,7 +183,7 @@ var VFind = {
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
       window.focus();
-      el = VDom.getSelectionFocusEdge_(getSelection(), 1);
+      el = VDom.getSelectionFocusEdge_(_this.curSelection_(), 1);
       el && el.focus && el.focus();
     }
     _this.styleIframe_ = null;
@@ -261,8 +263,8 @@ var VFind = {
     VDom.UI.toggleSelectStyle_(0);
     if (i < FindNS.Action.MinComplicatedExit || !this.hasResults_) { return; }
     if (!el || el !== VEvent.lock()) {
-      el = getSelection().anchorNode as Element | null;
-      if (el && !this.focusFoundLink_(el) && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)) {
+      el = this.focusFoundLinkIfAny_();
+      if (el && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)) {
         if (VDom.getEditableType_(el2) >= EditableType.Editbox && el.contains(el2)) {
           VDom.prepareCrop_();
           VDom.UI.simulateSelect_(el2);
@@ -271,14 +273,16 @@ var VFind = {
     }
     if (i === FindNS.Action.ExitToPostMode) { return this.postMode_.activate_(); }
   },
-  focusFoundLink_ (el: Element | null): el is HTMLAnchorElement {
+  /** return an element if no <a> else null */
+  focusFoundLinkIfAny_ (): SafeElement | null {
+    let cur = VDom.SafeEl_(VDom.GetSelectionParent_unsafe_(this.curSelection_())), el: Element | null = cur;
     for (; el && el !== document.body; el = VDom.GetParent_(el)) {
       if (el instanceof HTMLAnchorElement) {
         el.focus();
-        return true;
+        return null;
       }
     }
-    return false;
+    return cur;
   },
   nextQuery_ (back?: boolean): void {
     const ind = this.historyIndex_ + (back ? -1 : 1);
@@ -432,6 +436,7 @@ var VFind = {
     range = !isCur ? this.initialRange_ : sel.isCollapsed ? null : sel.getRangeAt(0);
     if (!range) { return; }
     sel.removeAllRanges();
+    // Note: it works even when range is inside a shadow root (tested on C72 stable)
     sel.addRange(range);
   },
   getNextQueryFromRegexMatches_ (back?: boolean): string {
@@ -444,6 +449,7 @@ var VFind = {
     options = options ? VUtils.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
     let el: Element | null, found: boolean, count = ((options.count as number) | 0) || 1, back = count < 0
       , par: HTMLElement | null = null, timesRegExpNotMatch = 0
+      , sel: Selection | undefined
       , q: string, notSens = this.ignoreCase_ && !options.caseSensitive;
     options.noColor || this.DisableStyle_(0);
     back && (count = -count);
@@ -452,7 +458,7 @@ var VFind = {
     do {
       q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches_(back) : this.parsedQuery_;
       found = this.find_(q, !notSens, back, true, this.wholeWord_, false, false);
-      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(q))) {
+      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = this.curSelection_()), q))) {
         pR.lastIndex = 0;
         let text = par.innerText as string | HTMLElement;
         if (text && typeof text === "string" && !(pR as RegExpG & RegExpSearchable<0>).test(text)
@@ -500,14 +506,20 @@ var VFind = {
     sin.sheet && (sin.sheet.disabled = disable);
   },
   getCurrentRange_ (): void {
-    let sel = getSelection(), range: Range;
+    let sel = this.curSelection_(), range: Range;
     if (!sel.rangeCount) {
       range = document.createRange();
       range.setStart(document.body || document.documentElement as Element, 0);
+      range.collapse(true);
     } else {
       range = sel.getRangeAt(0);
+      // Note: `range.collapse` doesn't work if selection is inside a ShadowRoot (tested on C72 stable)
+      sel.collapseToStart();
     }
-    range.collapse(true);
     this.initialRange_ = range;
+  },
+  curSelection_(): Selection {
+    let selected = VDom.UI.getSelected_(), sel = selected[0], count = sel.rangeCount;
+    return !count && selected[1] ? getSelection() : sel;
   }
 };

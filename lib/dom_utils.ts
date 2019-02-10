@@ -395,11 +395,11 @@ var VDom = {
    * need selection.rangeCount > 0
    * @UNSAFE_RETURNED
    */
-  GetSelectionParent_unsafe_ (selected: string): HTMLElement | null {
-    let range = getSelection().getRangeAt(0), par: Node | null = range.commonAncestorContainer, p0 = par;
+  GetSelectionParent_unsafe_ (sel: Selection, selected?: string): HTMLElement | null {
+    let range = sel.getRangeAt(0), par: Node | null = range.commonAncestorContainer, p0 = par;
     // no named getters on SVG* elements
     while (par && !(par instanceof HTMLElement)) { par = par.parentNode as Element; }
-    if (p0 instanceof Text && p0.data.trim().length <= selected.length) {
+    if (selected && p0 instanceof Text && p0.data.trim().length <= selected.length) {
       let text: string;
       while (par && typeof (text = (<HTMLElement>par).innerText) === "string" && selected.length === text.length) {
         par = VDom.GetParent_(par as Element);
