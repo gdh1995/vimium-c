@@ -452,13 +452,9 @@ var VFind = {
     do {
       q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches_(back) : this.parsedQuery_;
       found = this.find_(q, !notSens, back, true, this.wholeWord_, false, false);
-      if (found && pR && (par = VDom.GetSelectionParent_unsafe_())) {
+      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(q))) {
         pR.lastIndex = 0;
         let text = par.innerText as string | HTMLElement;
-        while (par && (typeof text !== "string" || text.length === q.length)) {
-          par = VDom.GetParent_(par);
-          text = par ? par.innerText as string | HTMLElement : "";
-        }
         if (text && typeof text === "string" && !(pR as RegExpG & RegExpSearchable<0>).test(text)
             && timesRegExpNotMatch++ < 9) {
           count++;
