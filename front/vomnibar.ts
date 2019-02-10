@@ -55,8 +55,14 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.maxHeight_ = Math.ceil((this.mode_.maxResults = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
     this.init_ && this.setPType_(options.ptype);
     if (this.mode_.favIcon) {
-      scale = scale < 1.5 ? 1 : scale < 3 ? 2 : scale < 4 ? 3 : 4;
-      this._favPrefix = '" style="background-image: url(&quot;chrome://favicon/size/16' + (scale > 1 ? "@" + scale + "x" : "") + "/";
+      scale = scale < 1.5 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
+      /**
+       * Note: "@1x" is necessary, because only the whole 'size/aa@bx/' can be optional
+       * * definition: https://cs.chromium.org/chromium/src/chrome/browser/ui/webui/favicon_source.h?type=cs&q=FaviconSource&g=0&l=47
+       * * parser: https://cs.chromium.org/chromium/src/components/favicon_base/favicon_url_parser.cc?type=cs&q=ParseFaviconPath&g=0&l=33
+       * * if no '@', then Chromium's buggy code would misunderstand the wanted URL (BrowserVer.MinChar$At$InFaviconUrl)
+       */
+      this._favPrefix = '" style="background-image: url(&quot;chrome://favicon/size/16@' + scale + 'x/';
     }
     if (url == null) {
       return this.reset_(keyword ? keyword + " " : "");

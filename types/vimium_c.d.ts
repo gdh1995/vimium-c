@@ -563,6 +563,7 @@ declare const enum BrowserVer {
   MinCanNotRevokeObjectURLAtOnce = 65,
   MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65,
   MinEnsuredDisplayContents = 65,
+  // MinChar$At$InFaviconUrl = 65, // it may work but sometimes not, so '@1x' is necessary
   MinInputMode = 66, // even if LEAGCY; still works on C35 if EXPERIMENTAL
   // @see MinEscapeHashInBodyOfDataURL
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
