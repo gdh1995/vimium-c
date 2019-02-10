@@ -155,16 +155,16 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
    * @param amount should not be 0
    */
   findScrollable_ (di: ScrollByY, amount: number): SafeElement | null {
-    const cur: SafeElement | null = this.current_, top = this.top_;
-    if (!cur) {
+    let element: SafeElement | null = this.current_, top = this.top_;
+    if (!element) {
       return this.current_ = top && this._selectFirst(top) || top;
     }
-    let element: SafeElement | null = cur, reason, isCurVerticallyScrollable = di - 1 /** X => -1, Y => 0 */;
+    let reason, isCurVerticallyScrollable = di - 1 /** X => -1, Y => 0 */;
     while (element !== top && (reason = this.shouldScroll_unsafe_(element as NonNullable<typeof element>, di, amount)) < 1) {
       if (!reason) {
         isCurVerticallyScrollable = isCurVerticallyScrollable || +this._scrollDo(element as NonNullable<typeof element>, 1, -amount);
       }
-      element = VDom.SafeEl_(VDom.GetParent_(element as Element, 1)) || top;
+      element = VDom.SafeEl_(VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent)) || top;
     }
     if (element === top && top && !isCurVerticallyScrollable) {
       element = this.current_ = this._selectFirst(top) || top;

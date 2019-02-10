@@ -85,6 +85,28 @@ declare const enum HookAction {
   Destroy = 2,
 }
 
+declare const enum PNType {
+  /** accept shadow roots, doc fragments and so on; but no slots;
+   *
+   * useful for operations on selection (tested on C72 stable) */
+  DirectNode = 0,
+  /** no reveal; no shadow roots; ensured real parent element in DOM tree
+   *
+   * useful: for operations on selection, and when getting innerText (tested on C72 stable) */
+  DirectElement = 1,
+  /** no reveal; resolve shadow roots; ensured real composed parent in DOM tree
+   *
+   * useful when checking if A contains B */
+  ResolveShadowHost = 2,
+  /** reveal <slot> / <content>, if any;
+   *
+   * useful to compute layout and styles */
+  RevealSlot = 3,
+  /** reveal slots recursively; to find a real composed parent element in the layout tree (also in view) */
+  RevealSlotAndGotoParent = 4,
+  _invalid = -1,
+}
+
 declare const enum EditableType {
   Default = 0,
   NotEditable = Default,

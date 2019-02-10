@@ -276,7 +276,7 @@ var VFind = {
   /** return an element if no <a> else null */
   focusFoundLinkIfAny_ (): SafeElement | null {
     let cur = VDom.SafeEl_(VDom.GetSelectionParent_unsafe_(this.curSelection_())), el: Element | null = cur;
-    for (; el && el !== document.body; el = VDom.GetParent_(el)) {
+    for (let i = 0; el && el !== document.body && i++ < 5; el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
       if (el instanceof HTMLAnchorElement) {
         el.focus();
         return null;
@@ -410,7 +410,7 @@ var VFind = {
     if (re) {
       type FullScreenElement = Element & { innerText?: string | Element };
       let el = document.webkitFullscreenElement as FullScreenElement | null, text = el && el.innerText;
-      el && typeof text !== "string" && (el = VDom.GetParent_(el), text = el && el.innerText as string | undefined);
+      el && typeof text !== "string" && (el = VDom.GetParent_(el, PNType.DirectElement), text = el && el.innerText as string | undefined);
       query = <string | undefined | null>text || (document.documentElement as HTMLElement).innerText;
       matches = query.match(re) || query.replace(a.A0Re_, " ").match(re);
     }

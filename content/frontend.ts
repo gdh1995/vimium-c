@@ -558,7 +558,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     isActive_ (): boolean {
       if (this.suppressType_) { return false; }
       let el: Element | null = this.lock_;
-      if (OnOther === BrowserType.Firefox && el && !VDom.isInDOM_(el)) {
+      if (OnOther === BrowserType.Firefox && el && !VDom.isInDOM_(el as LockableElement)) {
         el = this.lock_ = null;
       }
       if (el !== null || this.global_) {

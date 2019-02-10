@@ -544,8 +544,9 @@ var VHints = {
     }
   },
   _isDescendant (d: Element, p: Element): boolean {
+    // Note: currently, not compute normal shadowDOMs / even <slot>s (too complicated)
     let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null;
-    for (; 0 < i-- && (c = VDom.GetParent_(d) as EnsuredMountedElement | null) !== p && c; d = c) {}
+    for (; 0 < i-- && (c = VDom.GetParent_(d, PNType.DirectElement) as EnsuredMountedElement | null) !== p && c; d = c) {}
     if (c !== p) { return false; }
     for (; ; ) {
       if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }

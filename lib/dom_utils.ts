@@ -45,6 +45,7 @@ var VDom = {
       return null;
     }
   },
+  // refer to BrowserVer.MinParentNodeInNodePrototype
   Getter_ <Ty extends Node, Key extends keyof Ty> (this: void
       , Cls: { prototype: Ty, new(): Ty; }, instance: Ty, property: Key & string
       ): NonNullable<Ty[Key]> | null {
@@ -61,29 +62,41 @@ var VDom = {
    * @safe_even_if_any_overridden_property
    * @UNSAFE_RETURNED
    */
-  GetParent_: function (this: void, el: Node, slotOrcomposed?: 0 | 1): Node | null {
-    if (slotOrcomposed) {
-      const func = Element.prototype.getDestinationInsertionPoints;
+  GetParent_: function (this: void, el: Node
+      , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent): Node | null {
+    /**
+     * Known info about Chrome:
+     * * a selection / range can only know nodes and text in a same tree scope
+     *
+     */
+    const E = Element;
+    if (type >= PNType.RevealSlot) {
+      const func = E.prototype.getDestinationInsertionPoints;
       const arr = func ? func.call(el as Element) : [];
       arr.length > 0 && (el = arr[arr.length - 1]);
+      let slot = (el as Element).assignedSlot;
+      slot && VDom.notSafe_(el) && (slot = VDom.Getter_(E, el, "assignedSlot" as "assignedSlot"));
+      if (slot) {
+        if (type === PNType.RevealSlot) { return slot; }
+        while (slot = slot.assignedSlot) { el = slot as HTMLSlotElement; }
+      }
     }
     let pe = el.parentElement, pn = el.parentNode;
-    if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn && pe; }
+    if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn; }
     // par exists but not in normal tree
     if (!pn.contains(el)) { // pn is overridden
-      pn = pe && pe.contains(el) ? pe : VDom.Getter_(Node, el, 'parentNode');
+      if (pe && pe.contains(el)) { /* pe is real */ return pe; }
+      pn = VDom.Getter_(Node, el, 'parentNode');
     }
-    const SR = window.ShadowRoot, E = Element;
+    const SR = window.ShadowRoot;
     // pn is real or null
-    return slotOrcomposed /* composedElement */ === 0 ? pn
-        // not take composed tree into consideration; but allow Node to be returned
-      : SR && !(SR instanceof E) && pn instanceof SR ? pn.host // shadow root
-      : pn instanceof E ? pn /* in doc but overridden */ : null /* pn is null, DocFrag, or ... */;
+    return type === PNType.DirectNode ? pn // may return a Node instance
+      : type >= PNType.ResolveShadowHost && SR && !(SR instanceof E) && pn instanceof SR ? pn.host // shadow root
+      : pn instanceof E ? pn /* in doc and .pN+.pE are overridden */ : null /* pn is null, DocFrag, or ... */;
   } as {
-    (this: void, el: Element, revealSlot: 1): Element | null;
-    (this: void, el: HTMLElement): HTMLElement | null;
-    (this: void, el: Node, composedElement: 0): Node | null;
-    (this: void, el: Node): Element | null;
+    (this: void, el: Element, type: PNType.DirectElement
+        | PNType.ResolveShadowHost | PNType.RevealSlot | PNType.RevealSlotAndGotoParent): Element | null;
+    (this: void, el: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null;
   },
   scrollingEl_ (fallback?: 1): ((HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement) | null {
     let d = document, el = d.scrollingElement, docEl = d.documentElement;
@@ -242,7 +255,7 @@ var VDom = {
       // then it's a whole mess and nothing can be ensured to be right
       this.bZoom_ = body && (target === 1 || this.isInDOM_(target, body)) && +gcs(body).zoom || 1;
     }
-    for (; el && el !== docEl; el = this.GetParent_(el, 1)) {
+    for (; el && el !== docEl; el = this.GetParent_(el, PNType.RevealSlot)) {
       zoom *= +gcs(el).zoom || 1;
     };
     this.paintBox_ = null; // it's not so necessary to get a new paintBox here
@@ -328,30 +341,30 @@ var VDom = {
     (element: Element): VisibilityType;
     (element: null, rect: ClientRect): VisibilityType;
   },
-  isInDOM_ (element: Element, root?: HTMLBodyElement | HTMLFrameSetElement | SVGElement): boolean {
+  isInDOM_ (element: Element, root?: HTMLBodyElement | HTMLFrameSetElement): boolean {
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;
-    root || doc.nodeType !== Node.DOCUMENT_NODE && (doc = document);
+    root || doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
     if (!root && (f = NP.getRootNode)) {
       return f.call(element, {composed: true}) === doc;
     }
     if (NP.contains.call(doc, element)) { return true; }
-    while ((pe = VDom.GetParent_(element)) && pe !== doc) { element = pe; }
-    const pn = VDom.GetParent_(element, 0);
+    while ((pe = VDom.GetParent_(element, PNType.ResolveShadowHost)) && pe !== doc) { element = pe; }
+    const pn = VDom.GetParent_(element, PNType.DirectNode);
     // Note: `pn instanceof Element` means `element.parentNode` is overridden,
     // so return a "potentially correct" result `true`.
-    // This requires that further jobs are safe enough even when isInDOM returns true
+    // This requires that further jobs are safe enough even when isInDOM returns a fake "true"
     return pn === doc || pn instanceof Element;
   },
   notSafe_ (el: Node | null): el is HTMLFormElement | HTMLFrameSetElement {
     return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
   },
   /** @safe_even_if_any_overridden_property */
-  SafeEl_: function (this: void, el: Node | null): Node | null {
-    return VDom.notSafe_(el) ? VDom.GetParent_(el) : el;
+  SafeEl_: function (this: void, el: Node | null, type?: PNType.DirectElement): Node | null {
+    return VDom.notSafe_(el) ? VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent) : el;
   } as {
     (this: void, el: HTMLElement | null): SafeHTMLElement | null;
-    (this: void, el: Element | null): SafeElement | null;
+    (this: void, el: Element | null, type?: PNType.DirectElement): SafeElement | null;
     (this: void, el: Node | null): Node | null;
   },
   uneditableInputs_: <SafeEnum> { __proto__: null as never,
@@ -402,7 +415,7 @@ var VDom = {
     if (selected && p0 instanceof Text && p0.data.trim().length <= selected.length) {
       let text: string;
       while (par && typeof (text = (<HTMLElement>par).innerText) === "string" && selected.length === text.length) {
-        par = VDom.GetParent_(par as Element);
+        par = VDom.GetParent_(par as Element, PNType.DirectElement);
       }
     }
     return par !== document.documentElement ? par as HTMLElement | null : null;
@@ -415,13 +428,13 @@ var VDom = {
       el = !((cn = this.Getter_(Node, el, "childNodes") || el.childNodes) instanceof E) && cn[sel.focusOffset] || el;
     }
     for (o = el; o && !(o instanceof E); o = knownDi ? o.previousSibling : o.nextSibling) {}
-    return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement));
+    return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement), PNType.DirectElement);
   },
   mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
       , rect?: VRect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {
     modifiers || (modifiers = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false });
     let doc = element.ownerDocument;
-    doc.nodeType !== Node.DOCUMENT_NODE && (doc = document);
+    doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
     const mouseEvent = doc.createEvent("MouseEvents");
     // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
     //  viewArg: Window, detailArg: number,
