@@ -341,6 +341,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       helpDialog: "/front/help_dialog.html"
     },
     InjectEnd_: "content/injected_end.js",
+    NewTabForNewUser_: "pages/options.html#!newTabUrl",
     OptionsPage: "pages/options.html", Platform: "", PolyFill_: "lib/polyfill.js",
     RedirectedUrls_: {
       about: "https://github.com/gdh1995/vimium-c",
@@ -399,7 +400,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   obj.ContentScripts_ = ref2.map(func);
 
   if (localStorage.length <= 0) {
-    Settings.set("newTabUrl", "pages/options.html#!newTabUrl");
+    Settings.set("newTabUrl", Settings.CONST.NewTabForNewUser_);
   }
   const hasAll = "all" in (document.documentElement as HTMLElement).style;
   obj.StyleCacheId_ = obj.VerCode + "," + ChromeVer

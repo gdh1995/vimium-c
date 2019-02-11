@@ -6,7 +6,8 @@ declare const enum OmniboxData {
   PreservedTitle = 16,
 }
 
-// Note: if localStorage is cleaned (considering newTabUrl_f, innerCSS, findCSS, omniCSS),
+// Note: if localStorage is cleaned
+//       (considering: newTabUrl (the alerting one), newTabUrl_f, innerCSS, findCSS, omniCSS),
 //       try to get vimSync from storage.sync
 setTimeout(function() {
   type SettingsToUpdate = {
@@ -118,7 +119,8 @@ setTimeout(function() {
     }
   };
   const sync1 = Settings.get("vimSync");
-  if (sync1 === false || (!sync1 && localStorage.length > 4)) {
+  if (sync1 === false || (!sync1 && (localStorage.length > 5
+                                    || Settings.get("newTabUrl") !== Settings.CONST.NewTabForNewUser_))) {
     return;
   }
   if (!storage()) { return; }
