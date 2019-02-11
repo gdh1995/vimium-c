@@ -437,7 +437,12 @@ label:active {
 .dialog-ui #footerButtons {
   width: 300px;
 }
-.masked {
+.masked::-webkit-input-placeholder {
+  font-style: italic;
+  color: #777;
+  text-indent: 14px;
+}
+.masked::placeholder {
   font-style: italic;
   color: #777;
   text-indent: 14px;

@@ -230,11 +230,12 @@ class MaskedText_<T extends keyof AllowedOptions> extends TextOption_<T> {
     this.element_.classList.remove("masked");
     this._myCancelMask = null;
     this.masked_ = false;
+    this.element_.removeAttribute("placeholder");
     this.fetch_();
   }
   populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
     if (this.masked_) {
-      this.element_.value = "# Click to unmask the content\u2026";
+      this.element_.placeholder = this.element_.getAttribute("data-mask") || "# Click to unmask the content\u2026";
       return;
     }
     super.populateElement_(value, enableUndo);
