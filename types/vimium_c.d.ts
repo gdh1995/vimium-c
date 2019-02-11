@@ -413,7 +413,7 @@ declare const enum BrowserVer {
   MinMayBeShadowDOMV1 = 48, // if EXPERIMENTAL
   // a path of an older DOMActivate event has all nodes (windows -> nodes in shadow DOM)
   // this feature is enabled by default on C53, 54, 55; and replaced by MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since C56
-  MinMayNoDOMActivateInClosedShadowRootPassedToDocument = 48, // if EXPERIMENTAL
+  MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument = 48, // if EXPERIMENTAL
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinNo$Promise$$defer = 49,

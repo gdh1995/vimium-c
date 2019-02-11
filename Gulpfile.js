@@ -223,7 +223,7 @@ function makeCompileTasks() {
   }
 }
 
-var _todoTasks = [], _todoTimer = 0;
+var _notifiedTasks = [], _notifiedTaskTimer = 0;
 function makeWatchTask(taskName) {
   var glob = CompileTasks[taskName][0];
   typeof glob === "string" && (glob = [glob]);
@@ -231,25 +231,25 @@ function makeWatchTask(taskName) {
     glob.push("!background/*.d.ts", "!content/*.d.ts", "!pages/*.d.ts", "!types/*.d.ts");
   }
   gulp.watch(glob, function() {
-    if (_todoTasks.indexOf(taskName) < 0) { _todoTasks.push(taskName); }
-    if (_todoTimer > 0) { clearTimeout(_todoTimer); }
-    _todoTimer = setTimeout(function() {
-      _todoTimer = 0;
-      gulp.parallel(..._todoTasks.slice(0))();
-      _todoTasks.length = 0;
+    if (_notifiedTasks.indexOf(taskName) < 0) { _notifiedTasks.push(taskName); }
+    if (_notifiedTaskTimer > 0) { clearTimeout(_notifiedTaskTimer); }
+    _notifiedTaskTimer = setTimeout(function() {
+      _notifiedTaskTimer = 0;
+      gulp.parallel(..._notifiedTasks.slice(0))();
+      _notifiedTasks.length = 0;
     }, 100);
   });
 }
 
 function makeTasks() {
   var hasOwn = Object.prototype.hasOwnProperty;
-  var todo = [];
+  var left = [];
   for (let key in Tasks) {
     if (!hasOwn.call(Tasks, key)) { continue; }
-    todo.push([key, Tasks[key]]);
+    left.push([key, Tasks[key]]);
   }
-  while (todo.length > 0) {
-    let [ key, task ] = todo.shift();
+  while (left.length > 0) {
+    let [ key, task ] = left.shift();
     if (typeof task === "function") {
       gulp.task(key, task);
       continue;
@@ -263,7 +263,7 @@ function makeTasks() {
       }
     }
     if (notFound) {
-      todo.push([key, task]);
+      left.push([key, task]);
       continue;
     }
     if (typeof task[1] === "function" || task[0] instanceof Array) {

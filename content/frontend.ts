@@ -964,7 +964,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
       VUtils.suppressAll_(box, i);
     }
-    VSettings.cache.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToDocument ||
+    VSettings.cache.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument ||
     box.addEventListener(useBrowser ? "click" : "DOMActivate", onActivate, true);
 
     const closeBtn = box.querySelector("#HClose") as HTMLElement;

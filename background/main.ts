@@ -1100,18 +1100,18 @@ Are you sure you want to continue?`);
       }
       const range = getTabRange(tab.index, tabs.length - skipped, tabs.length * GlobalConsts.ThresholdToAutoLimitTabOperation);
       let start = skipped + range[1 - offset] - offset, end = skipped + range[offset] - offset;
-      const todo = [] as number[];
+      const wantedTabIds = [] as number[];
       for (; start !== end; start += pin ? 1 : -1) {
         if (pin || tabs[start].pinned) {
-          todo.push(tabs[start].id);
+          wantedTabIds.push(tabs[start].id);
         }
       }
-      end = todo.length;
+      end = wantedTabIds.length;
       if (end > 30 && !confirm("togglePinTab", end)) {
         return;
       }
       for (start = 0; start < end; start++) {
-        chrome.tabs.update(todo[start], action);
+        chrome.tabs.update(wantedTabIds[start], action);
       }
     },
     /* toggleMuteTab: */ function (): void {
