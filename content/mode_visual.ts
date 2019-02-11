@@ -42,7 +42,7 @@ var VVisual = {
     a.diType_ = VisualModeNS.DiType.Unknown;
     let theSelected = VDom.UI.getSelected_(),
     sel: Selection = a.selection_ = theSelected[0],
-    type: SelType = a.realType_(sel), mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
+    type: SelType = a.selType_(), mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
     a.scope_ = theSelected[1];
     F.css = options.findCSS || F.css;
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
@@ -55,9 +55,9 @@ var VVisual = {
           sel.removeAllRanges();
         } else if (type === SelType.Caret) {
           a.extend_(1);
-          a.realType_(sel) === SelType.Range || a.extend_(0);
+          a.selType_() === SelType.Range || a.extend_(0);
         }
-        type = a.realType_(sel);
+        type = a.selType_();
       }
     }
     const isRange = type === SelType.Range, newMode = isRange ? mode : VisualModeNS.Mode.Caret,
@@ -107,7 +107,8 @@ var VVisual = {
     this.scope_ =  null;
     VHUD.hide_();
   },
-  realType_: null as never as (sel: Selection) => SelType,
+  /** need real diType */
+  selType_: null as never as () => SelType,
   /** @unknown_di_result */
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     let i: VKeyCodes | KeyStat = event.keyCode, count = 0;
@@ -204,7 +205,7 @@ var VVisual = {
     }
     if (mode === VisualModeNS.Mode.Caret) {
       movement.extend_(1);
-      if (movement.realType_(movement.selection_) === SelType.Caret) {
+      if (movement.selType_() === SelType.Caret) {
         movement.extend_(0);
       }
     } else if (mode === VisualModeNS.Mode.Line) {
@@ -283,7 +284,7 @@ var VVisual = {
     VFind.execute_(null, { noColor: true, count });
     if (VFind.hasResults_) {
       this.diType_ = VisualModeNS.DiType.Unknown;
-      if (this.mode_ === VisualModeNS.Mode.Caret && this.realType_(sel) === SelType.Range) {
+      if (this.mode_ === VisualModeNS.Mode.Caret && this.selType_() === SelType.Range) {
         this.activate_(1, VUtils.safer_({
           mode: VisualModeNS.Mode.Visual as VisualModeNS.Mode.Visual
         }));
@@ -321,8 +322,8 @@ var VVisual = {
     }
   },
 
-  D: ["backward", "forward"] as ["backward", "forward"],
-  G: ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
+  _D: ["backward", "forward"] as ["backward", "forward"],
+  _G: ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
       "documentboundary"] as
      ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
       "documentboundary"],
@@ -333,11 +334,11 @@ var VVisual = {
   wordRe_: null as never as RegExpOne | RegExpU,
   /** @unknown_di_result */
   extend_ (d: VisualModeNS.ForwardDir): void | 1 {
-    return this.selection_.modify("extend", this.D[d], "character");
+    return this.selection_.modify("extend", this._D[d], "character");
   },
   /** @unknown_di_result */
   modify_ (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
-    return this.selection_.modify(this.alterMethod_, this.D[d], this.G[g as 0 | 1 | 2]);
+    return this.selection_.modify(this.alterMethod_, this._D[d], this._G[g as 0 | 1 | 2]);
   },
   /**
    * if `isMove`, then must has collapsed;
@@ -385,7 +386,7 @@ var VVisual = {
       granularity = VisualModeNS.G.word;
     }
     let oldDi = this.di_;
-    let sel = this.selection_, m = this.alterMethod_, d = this.D[direction], g = this.G[granularity as 0 | 1 | 2];
+    let sel = this.selection_, m = this.alterMethod_, d = this._D[direction], g = this._G[granularity as 0 | 1 | 2];
     while (0 < count--) { sel.modify(m, d, g); }
     this.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
   },
@@ -419,12 +420,12 @@ var VVisual = {
   },
   /** @tolerate_di_if_caret */
   reverseSelection_ (): void {
-    const a = this, sel = a.selection_;
-    if (a.realType_(sel) !== SelType.Range) {
+    const a = this;
+    if (a.selType_() !== SelType.Range) {
       a.di_ = VisualModeNS.kDir.right;
       return;
     }
-    const direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
+    const sel = a.selection_, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
     if (a.diType_ === VisualModeNS.DiType.TextBox) {
       const el = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement;
       el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), newDi ? "forward" : "backward");
@@ -531,7 +532,7 @@ var VVisual = {
   },
   /** @tolerate_di_if_caret di will be 1 */
   collapseSelectionTo_ (toFocus: BOOL) {
-    this.realType_(this.selection_) === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus ^ 1) as BOOL);
+    this.selType_() === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus ^ 1) as BOOL);
     this.di_ = VisualModeNS.kDir.right;
   },
   /** @safe_di di will be 1 */
@@ -593,12 +594,12 @@ init_ (words: string) {
   this.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
   this._compare = Node.prototype.compareDocumentPosition;
-  this.realType_ = VSettings.cache.browserVer === BrowserVer.$Selection$NotShowStatusInTextBox
-  ? function(sel: Selection): SelType {
-    let type = typeIdx[sel.type];
-    return type === SelType.Caret && VVisual.diType_ !== VisualModeNS.DiType.Normal && ("" + sel) ? SelType.Range : type;
-  } : function(sel: Selection): SelType {
-    return typeIdx[sel.type];
+  this.selType_ = VSettings.cache.browserVer === BrowserVer.$Selection$NotShowStatusInTextBox
+  ? function(this: typeof VVisual): SelType {
+    let type = typeIdx[this.selection_.type];
+    return type === SelType.Caret && VVisual.diType_ !== VisualModeNS.DiType.Normal && ("" + this.selection_) ? SelType.Range : type;
+  } : function(this: typeof VVisual): SelType {
+    return typeIdx[this.selection_.type];
   };
   var map = this.keyMap_, func = VUtils.safer_;
   /** @see background/commands.ts@CommandsData_.wordsRe_ */
