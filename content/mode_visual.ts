@@ -209,10 +209,7 @@ var VVisual = {
         movement.extend_(0);
       }
     } else if (mode === VisualModeNS.Mode.Line) {
-      for (mode = 2; 0 < mode--; ) {
-        movement.modify_(movement.getDirection_(), VisualModeNS.G.lineboundary);
-        movement.reverseSelection_();
-      }
+      movement.ensureLine_(command);
     }
     movement.getDirection_("");
     if (movement.diType_ === VisualModeNS.DiType.Unknown) { return; }
@@ -565,6 +562,26 @@ var VVisual = {
     if (ch && num1 && ch !== "\n") {
       a.extend_(0);
       ("" + a.selection_).length + 2 - num1 && a.extend_(1);
+    }
+  },
+  ensureLine_ (command: number): void {
+    const a = this;
+    let di = a.getDirection_();
+    if (di && command < 20 && command >= 0 && a.diType_ === VisualModeNS.DiType.Normal && a.selType_() === SelType.Caret) {
+      di = (1 - (command & 1)) as VisualModeNS.ForwardDir; // old Di
+      a.modify_(di, VisualModeNS.G.lineboundary);
+      a.selType_() !== SelType.Range && a.modify_(di, VisualModeNS.G.line);
+      a.di_ = di;
+      a.reverseSelection_();
+      let len = (a.selection_ + "").length;
+      a.modify_(di = a.di_ = 1 - di, VisualModeNS.G.lineboundary);
+      (a.selection_ + "").length - len || a.modify_(di, VisualModeNS.G.line);
+      return;
+    }
+    for (let mode = 2; 0 < mode--; ) {
+      a.reverseSelection_();
+      di = a.di_ = (1 - di) as VisualModeNS.ForwardDir;
+      a.modify_(di, VisualModeNS.G.lineboundary);
     }
   },
   /** @argument el must be in text mode  */
