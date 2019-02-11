@@ -207,10 +207,7 @@ var VVisual = {
       if (movement.realType_(movement.selection_) === SelType.Caret) {
         movement.extend_(0);
       }
-    } else if (mode !== VisualModeNS.Mode.Line) {
-    } else if (movement.isPointLineFeedAndInTextBox_(movement.getDirection_(""))) {
-      movement.modify_(movement.di_ as VisualModeNS.ForwardDir, VisualModeNS.G.lineboundary);
-    } else {
+    } else if (mode === VisualModeNS.Mode.Line) {
       for (mode = 2; 0 < mode--; ) {
         movement.modify_(movement.getDirection_(), VisualModeNS.G.lineboundary);
         movement.reverseSelection_();
@@ -554,7 +551,7 @@ var VVisual = {
   selectLine_ (count: number): void {
     const a = this, oldDi = a.getDirection_();
     a.alterMethod_ = "extend";
-    if (!a.isPointLineFeedAndInTextBox_(0)) {
+    {
       oldDi && a.reverseSelection_();
       a.modify_(VisualModeNS.kDir.left, VisualModeNS.G.lineboundary);
       a.di_ = VisualModeNS.kDir.left; // safe
@@ -572,14 +569,6 @@ var VVisual = {
   /** @argument el must be in text mode  */
   TextOffset_ (this: void, el: HTMLInputElement | HTMLTextAreaElement, di: VisualModeNS.ForwardDir | boolean): number {
     return (di ? el.selectionEnd : el.selectionStart) as number;
-  },
-  /** need a correct `diType_`; will use di if only `diType_` is `TextBox` */
-  isPointLineFeedAndInTextBox_(di: VisualModeNS.ForwardDir): boolean | void {
-    if (this.diType_ === VisualModeNS.DiType.TextBox) {
-      const lock = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement,
-      ch = lock.value.charAt(this.TextOffset_(lock, di) + di - 1);
-      return ch === '\n' || !ch;
-    }
   },
 
 keyMap_: {
