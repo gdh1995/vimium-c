@@ -116,10 +116,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         action = HandlerResult.Prevent;
       } else if (!event.repeat && VDom.UI.removeSelection_()) {
         action = HandlerResult.Prevent;
-      } else if (VFind.isActive_) {
-        VUtils.prevent_(event); // safer
-        VFind.deactivate_(FindNS.Action.ExitNoFocus); // should exit
-        action = HandlerResult.Prevent;
       } else if (event.repeat && !KeydownEvents[VKeyCodes.esc] && document.activeElement !== document.body) {
         let c = document.activeElement; c && c.blur && c.blur();
       } else if (window.top !== window && document.activeElement === document.body) {

@@ -113,6 +113,7 @@ var VFind = {
     function cb(): void {
       const a = VFind;
       VUtils.remove_(a);
+      VUtils.push_(a.onHostKeydown_, a);
       el.focus();
       return a.setFirstQuery_(a.query0_);
     }
@@ -181,6 +182,7 @@ var VFind = {
     let el: Element | null = null, _this = VFind;
     _this.coords_ && window.scrollTo(_this.coords_[0], _this.coords_[1]);
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
+    VUtils.remove_(this);
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
       window.focus();
       el = VDom.getSelectionFocusEdge_(_this.curSelection_(), 1);
@@ -247,6 +249,22 @@ var VFind = {
     if (!i) { return; }
     VEvent.suppress_(n);
     this.deactivate_(i as FindNS.Action);
+  },
+  onHostKeydown_ (event: KeyboardEvent): HandlerResult {
+    let i = VKeyboard.getKeyStat_(event);
+    if (i && !(i & ~KeyStat.PrimaryModifier)) {
+      const n = event.keyCode;
+      if (n === VKeyCodes.J || n === VKeyCodes.K) {
+        this.execute_(null, { count: (VKeyCodes.K - n) || -1 });
+        return HandlerResult.Prevent;
+      }
+    }
+    if (VKeyboard.isEscape_(event)) {
+      VUtils.prevent_(event); // safer
+      VFind.deactivate_(FindNS.Action.ExitNoFocus); // should exit
+      return HandlerResult.Prevent;
+    }
+    return HandlerResult.Nothing;
   },
   deactivate_(i: FindNS.Action): void {
     let sin = this.styleIn_, noStyle = !sin || !sin.parentNode, el = this.clean_(i), el2: Element | null;
