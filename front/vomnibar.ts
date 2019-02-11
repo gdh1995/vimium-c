@@ -137,6 +137,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   browserVersion_: BrowserVer.assumedVer,
   customStyle_: null as HTMLStyleElement | null,
   customClassName_: "",
+  darkBtn_: null as HTMLElement | null,
   wheelOptions_: { passive: false, capture: true as true },
   show_ (): void {
     this.showing_ = true;
@@ -634,13 +635,23 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       }
     }
     this.customClassName_ = omniStyles;
-    (document.documentElement as HTMLHtmlElement).className = omniStyles.trim();
+    this.onStyleUpdate_(omniStyles);
     if (toggle && !req.current) {
       VPort_.postMessage_({
         H: kFgReq.setOmniStyle,
         style: omniStyles
-      })
+      });
     }
+  },
+  onStyleUpdate_(omniStyles: string): void {
+    (document.documentElement as HTMLHtmlElement).className = omniStyles.trim();
+    omniStyles += " ";
+    if (this.darkBtn_) {
+      this.darkBtn_.textContent = omniStyles.indexOf(" dark ") >= 0 ? "\u2600" : "\u263D";
+    }
+  },
+  ToggleDark_ (this: void, event: MouseEvent): void {
+    Vomnibar_.toggleStyle_({ toggled: "dark", current: event.ctrlKey });
   },
   OnShown_: function (this: void): void {
     const a = Vomnibar_, i = a.input_, listen = addEventListener, wndFocus = Vomnibar_.OnWndFocus_;
@@ -711,7 +722,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       this.input_.addEventListener("compositionend", func);
     }
     this.customStyle_ && (document.head as HTMLElement).appendChild(this.customStyle_);
-    this.customClassName_ && ((document.documentElement as HTMLElement).className = this.customClassName_.trim());
+    this.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
+    this.darkBtn_ && (this.darkBtn_.onclick = this.ToggleDark_);
+    this.customClassName_ && this.onStyleUpdate_(this.customClassName_);
     this.init_ = VUtils_.makeListRenderer_ = null as never;
     if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && this.browser_ === BrowserType.Chrome || this.bodySt_.d != null) { return; }
     const styles = (document.querySelector("style") as HTMLStyleElement).textContent,
