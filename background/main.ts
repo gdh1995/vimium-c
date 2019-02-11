@@ -2004,11 +2004,14 @@ Are you sure you want to continue?`);
         gotoMainFrame(req, port, port2 || null);
       });
     },
-    /** setOmniStyle: */ function(this: void, req: FgReq[kFgReq.setOmniStyle]): void {
-      omniStyles = " " + req.style.trim();
-      let style = omniStyles.substring(1); // skip a space
+    /** setOmniStyle: */ function(this: void, req: FgReq[kFgReq.setOmniStyle], port: Port): void {
+      let newStyle = req.style.trim();
+      newStyle = newStyle && " " + newStyle;
+      if (newStyle === omniStyles) { return; }
+      omniStyles = newStyle;
+      const msg: Req.bg<kBgReq.omni_toggleStyle> = { N: kBgReq.omni_toggleStyle, style: newStyle };
       for (const frame of framesForOmni) {
-        frame.postMessage({ N: kBgReq.omni_toggleStyle, style });
+        frame !== port && frame.postMessage(msg);
       }
     }
   ],

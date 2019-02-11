@@ -624,19 +624,18 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
   },
   toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
-    let omniStyles: string, toggle = req.toggled ? " " + req.toggled : "";
+    let omniStyles = this.customClassName_, toggle = req.toggled ? " " + req.toggled : "";
     if (toggle) {
-      omniStyles = " " + (document.body as HTMLBodyElement).className;
       omniStyles = omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, "") : omniStyles + toggle;
     } else {
       omniStyles = req.style as string;
-      if ((document.body as HTMLBodyElement).className === omniStyles) {
+      if ((document.documentElement as HTMLHtmlElement).className === omniStyles.trim()) {
         return;
       }
     }
     this.customClassName_ = omniStyles;
-    (document.body as HTMLBodyElement).className = omniStyles;
-    if (!req.current && toggle) {
+    (document.documentElement as HTMLHtmlElement).className = omniStyles.trim();
+    if (toggle && !req.current) {
       VPort_.postMessage_({
         H: kFgReq.setOmniStyle,
         style: omniStyles
@@ -712,7 +711,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       this.input_.addEventListener("compositionend", func);
     }
     this.customStyle_ && (document.head as HTMLElement).appendChild(this.customStyle_);
-    this.customClassName_ && ((document.body as HTMLElement).className = this.customClassName_);
+    this.customClassName_ && ((document.documentElement as HTMLElement).className = this.customClassName_.trim());
     this.init_ = VUtils_.makeListRenderer_ = null as never;
     if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && this.browser_ === BrowserType.Chrome || this.bodySt_.d != null) { return; }
     const styles = (document.querySelector("style") as HTMLStyleElement).textContent,
@@ -1010,7 +1009,7 @@ VPort_ = {
 });
 window.browser && (browser as typeof chrome).runtime && (window.chrome = browser as typeof chrome);
 (function(): void {
-  if ((document.documentElement as HTMLElement).getAttribute("data-version") != "1.68.1") {
+  if ((document.documentElement as HTMLElement).getAttribute("data-version") != "1.72") {
     location.href = "about:blank";
     return;
   }
