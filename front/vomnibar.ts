@@ -55,7 +55,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.maxHeight_ = Math.ceil((this.mode_.maxResults = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
     this.init_ && this.setPType_(options.ptype);
     if (this.mode_.favIcon) {
-      scale = scale < 1.5 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
+      scale = scale <= 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
       /**
        * Note: "@1x" is necessary, because only the whole 'size/aa@bx/' can be optional
        * * definition: https://cs.chromium.org/chromium/src/chrome/browser/ui/webui/favicon_source.h?type=cs&q=FaviconSource&g=0&l=47

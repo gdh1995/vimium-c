@@ -1724,14 +1724,23 @@ Are you sure you want to continue?`);
     },
     /** gotoSession: */ function (this: void, request: FgReq[kFgReq.gotoSession], port?: Port): void {
       const id = request.sessionId, active = request.active !== false;
+      cPort = findCPort(port) as Port;
       if (typeof id === "number") {
-        return selectTab(id, true);
+        chrome.tabs.update(id, {active: true}, function(tab): void {
+          const err = onRuntimeError();
+          err ? Backend.showHUD_("The target tab has gone!") : selectWnd(tab);
+          return err;
+        });
+        return;
       }
       if (!chrome.sessions) {
-        cPort = findCPort(port) as Port;
         return complainNoSession();
       }
-      chrome.sessions.restore(id, onRuntimeError);
+      chrome.sessions.restore(id, function(): void {
+        const err = onRuntimeError();
+        err && Backend.showHUD_("The closed session may be too old.");
+        return err;
+      });
       if (active) { return; }
       let tabId = (port as Port).s.t;
       tabId >= 0 || (tabId = TabRecency_.last_);

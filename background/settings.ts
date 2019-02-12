@@ -126,7 +126,7 @@ var Settings = {
       browserVer = ChromeVer,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
       hasAll = browserInfo.lastIndexOf("a") >= 0;
-      if (browserVer < BrowserVer.MinUnprefixedUserSelect) {
+      if (browserVer < BrowserVer.MinUnprefixedUserSelect || OnOther === BrowserType.Firefox) {
         css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
       }
       const findOffset = css.lastIndexOf("/*#find*/");
