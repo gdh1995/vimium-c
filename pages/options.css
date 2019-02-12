@@ -440,12 +440,10 @@ label:active {
 .masked::-webkit-input-placeholder {
   color: #777;
   font-style: italic;
-  text-indent: 14px;
 }
 .masked::placeholder {
   color: #777;
   font-style: italic;
-  text-indent: 14px;
 }
 button::-moz-focus-inner {
   border: 0;
