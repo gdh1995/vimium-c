@@ -23,7 +23,7 @@ var VFind = {
   styleOut_: null as never as HTMLStyleElement,
   A0Re_: <RegExpG> /\xa0/g,
   tailRe_: <RegExpOne> /\n$/,
-  css: null as never as [string, string],
+  css: null as never as FindCSS,
   styleIframe_: null as HTMLStyleElement | null,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
     const a = VFind;

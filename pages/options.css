@@ -438,15 +438,19 @@ label:active {
   width: 300px;
 }
 .masked::-webkit-input-placeholder {
-  font-style: italic;
   color: #777;
+  font-style: italic;
   text-indent: 14px;
 }
 .masked::placeholder {
-  font-style: italic;
   color: #777;
+  font-style: italic;
   text-indent: 14px;
 }
 button::-moz-focus-inner {
   border: 0;
+}
+select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 #000;
 }

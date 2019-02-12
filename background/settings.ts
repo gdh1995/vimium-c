@@ -125,8 +125,11 @@ var Settings = {
       const cacheId = (this as typeof Settings).CONST.StyleCacheId_,
       browserVer = ChromeVer,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
-      findOffset = css.lastIndexOf("/*#find*/"),
       hasAll = browserInfo.lastIndexOf("a") >= 0;
+      if (browserVer < BrowserVer.MinUnprefixedUserSelect) {
+        css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
+      }
+      const findOffset = css.lastIndexOf("/*#find*/");
       let findCSS = css.substring(findOffset + /* '/*#find*\/\n' */ 10);
       css = css.substring(0, findOffset - /* `\n` */ 1);
       if (hasAll) {
@@ -143,9 +146,6 @@ var Settings = {
       }
       if (browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css += "\n.HUD,.IH,.LH{border-width:1px}";
-      }
-      if (browserVer < BrowserVer.MinUnprefixedUserSelect) {
-        css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
       }
       if (browserVer >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
         css = css.replace("3px 7px", "3px 5px");
@@ -166,7 +166,7 @@ var Settings = {
       css = cacheId + css.length + "\n" + css;
       const css2 = (this as typeof Settings).parseCustomCSS(this.get("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
-      localStorage.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find && "\n" + css2.find));
+      localStorage.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
       localStorage.setItem("omniCSS", css2.omni || "");
       return this.set("innerCSS", css);
     },

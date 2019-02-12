@@ -1182,17 +1182,16 @@ Modes_: [
   136: "Download link",
   200: "Download multiple links",
   activator_ (this: void, link: HTMLAnchorElement, rect): void {
-    let oldDownload: string | null, oldUrl: string | null, changed = false;
-    oldUrl = link.getAttribute("href");
+    let oldUrl: string | null = link.getAttribute("href"), changed = false;
     if (!oldUrl || oldUrl === "#") {
-      oldDownload = link.getAttribute("data-vim-url");
-      if (oldDownload && (oldDownload = oldDownload.trim())) {
-        link.href = oldDownload;
+      let newUrl = link.getAttribute("data-vim-url");
+      if (newUrl && (newUrl = newUrl.trim())) {
+        link.href = newUrl;
         changed = true;
       }
     }
-    oldDownload = link.getAttribute("download");
-    if (oldDownload == null) {
+    const hadNoDownload = !link.hasAttribute("download");
+    if (hadNoDownload) {
       link.download = "";
     }
     VDom.UI.click_(link, rect, {
@@ -1201,7 +1200,7 @@ Modes_: [
       metaKey: false,
       shiftKey: false
     });
-    if (oldDownload === null) {
+    if (hadNoDownload) {
       link.removeAttribute("download");
     }
     if (!changed) {}

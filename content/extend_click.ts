@@ -2,12 +2,19 @@ if (VSettings && document.readyState !== "complete" &&
 VimiumInjector === undefined)
 (function(this: void): void {
   let d: Document | Document["documentElement"] = document
-    , script = d.createElement("script") as HTMLScriptElement | Element
+    , script: HTMLScriptElement | Element = d.createElement("script") as HTMLScriptElement | Element
     , box: EventTarget | null | false = null
-    , secret = "" + ((Math.random() * 1e6 + 1) | 0);
+    , secret: number = (Math.random() * 1e6 + 1) | 0;
   /**
-   * As said in https://github.com/philc/vimium/pull/1797#issuecomment-135761835
-   * it's safe enough if only no `document.createElementNS` on scripts initing
+   * Note:
+   *   should not create HTML/SVG elements before document gets ready,
+   *   otherwise the default XML parser will not enter a "xml_viewer_mode"
+   * Stack trace:
+   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?q=XMLDocumentParser::end&l=390
+   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?q=XMLDocumentParser::DoEnd&l=1543
+   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?g=0&q=HasNoStyleInformation&l=106
+   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?g=0&q=Document::CreateRawElement&l=946
+   * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
    */
   if (!(script instanceof HTMLScriptElement)) { return; }
 
@@ -52,16 +59,16 @@ const ETP = EventTarget.prototype, _listen = ETP.addEventListener, toRegister: E
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, R, A, B, C>(func: (this: T, a?: A, b?: B, c?: C) => R, self: T, a?: A, b?: B, c?: C) => R,
 dispatch = (_call as Call1<EventTarget, Event, boolean>).bind(ETP.dispatchEvent),
-d = document, cs = d.currentScript as HTMLScriptElement, Create = d.createElement as Document["createElement"],
+doc = document, cs = doc.currentScript as HTMLScriptElement, Create = doc.createElement as Document["createElement"],
 E = Element, EP = E.prototype, Append = EP.appendChild, Contains = EP.contains, Insert = EP.insertBefore,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
-contains = Contains.bind(d),
+contains = Contains.bind(doc),
 CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment,
 FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
 rel = removeEventListener, ct = clearTimeout,
-sec = <string>cs.getAttribute("data-vimium"),
+sec: number = +<string>cs.getAttribute("data-vimium"),
 hooks = {
   toString: function toString(this: Function): string {
     const a = this;
@@ -100,8 +107,8 @@ let handler = function(this: void): void {
     timer = toRegister.length > 0 ? next() : 0;
   }
 },
-docChildren = d.children,
-next = setTimeout.bind(null as never, function(): void {
+docChildren = doc.children,
+next = setTimeout.bind(window as never, function(): void {
   const len = toRegister.length, start = len > 9 ? len - 10 : 0, delta = len - start;
   timer = start > 0 ? next() : 0;
   if (len > 0) {
@@ -172,7 +179,7 @@ _listen("DOMContentLoaded", handler, true);
    * But here it still uses the same script, just for my personal preference.
    */
   script.type = "text/javascript";
-  script.setAttribute("data-vimium", secret);
+  script.setAttribute("data-vimium", "" + secret);
   script.textContent = injected;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);

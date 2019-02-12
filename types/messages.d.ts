@@ -14,6 +14,11 @@ interface ParsedSearch {
   url: string;
 }
 
+interface FindCSS {
+  /** change-selection-color */ [0]: string;
+  /** hud-iframe */ [1]: string;
+}
+
 
 declare const enum kBgReq {
   START = 0,
@@ -53,7 +58,7 @@ interface BgReq {
   [kBgReq.showHUD]: {
     text?: string;
     isCopy?: boolean;
-    /** findCSS */ F?: [string, string];
+    /** findCSS */ F?: FindCSS;
   } & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {
     mask: FrameMaskType;
@@ -194,7 +199,7 @@ interface CmdOptions {
     mode: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
     from_find?: true;
     words?: string;
-    findCSS?: [string, string] | null;
+    findCSS?: FindCSS | null;
   };
   [kFgCmd.showHelp]: {};
   [kFgCmd.reload]: { url: string, /** @deprecated */ force?: undefined, hard?: undefined
@@ -204,7 +209,7 @@ interface CmdOptions {
     leave?: boolean,
     query?: string;
     returnToViewport?: boolean;
-    findCSS?: [string, string] | null;
+    findCSS?: FindCSS | null;
   };
   [kFgCmd.goToMarks]: {
     local?: boolean;

@@ -9,7 +9,7 @@ interface VDomProto {
 }
 declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>, VEvent: Pick<VEventModeTy, "lock">;
 declare var VFind: {
-  css: [string, string] | null;
+  css: FindCSS | null;
 };
 
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
