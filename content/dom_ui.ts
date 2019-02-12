@@ -33,10 +33,9 @@ VDom.UI = {
       if (a.box_ === a.UI) {
         a.box_.id = "VimiumUI";
       }
-      let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_(innerCSS), border = a._styleBorder;
+      let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_(innerCSS);
       a.UI.appendChild(el);
-      a.css = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = css; };
-      border && border.zoom_ < 0 && a.ensureBorder_(-border.zoom_);
+      a.css = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = this._dpiWiseWidthPatch ? this._dpiWiseWidthPatch[1](css) : css; };
       if (adjust !== AdjustType.AdjustButNotShow) {
         let f = function (this: HTMLElement | void, e: Event | 1): void {
           e !== 1 && ((this as HTMLElement).onload = null as never);
@@ -91,17 +90,20 @@ VDom.UI = {
     (this.box_ as HTMLElement).remove();
     removeEventListener("webkitfullscreenchange", this.adjust_, true);
   },
-  _styleBorder: null as DomUI["_styleBorder"],
+  _dpiWiseWidthPatch: null,
   ensureBorder_ (zoom?: number): void {
-    let st = this._styleBorder;
     zoom || (zoom = VDom.getZoom_());
-    if (st ? st.zoom_ === zoom : zoom >= 1) { return; }
-    st || (st = this._styleBorder = { el_: this.createStyle_(""), zoom_: 0 });
-    if (!this.box_) { st.zoom_ = -zoom; return; }
-    const p = this.box_ === this.UI ? "#VimiumUI " : "", el = st.el_;
-    st.zoom_ = zoom;
-    el.textContent = `${p}.HUD, ${p}.IH, ${p}.LH { border-width: ${("" + 0.51 / zoom).substring(0, 5)}px; }`;
-    el.parentNode || this.add(el, AdjustType.NotAdjust);
+    let patch = this._dpiWiseWidthPatch;
+    if (!patch && zoom >= 1) { return; }
+    let width = ("" + 0.51 / zoom).substring(0, 5), st = this.styleIn_;
+    if (!patch) {
+      patch = this._dpiWiseWidthPatch = ["", function(this: NonNullable<DomUI["_dpiWiseWidthPatch"]>, css) {
+        return css.replace(<RegExpG>/\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$1" + this[0] + "px \/\*!DPI\*\/");
+      }];
+    }
+    if (patch[0] === width) { return; }
+    patch[0] = width;
+    st && this.css(typeof st === "string" ? st : st.textContent);
   },
   createStyle_ (text, css): HTMLStyleElement {
     css = css || VDom.createElement_("style");

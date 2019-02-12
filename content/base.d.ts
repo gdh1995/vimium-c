@@ -283,7 +283,7 @@ interface DomUI {
   addElementList_(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset): HTMLDivElement;
   adjust_ (this: void, event?: Event): void;
   toggle_ (this: DomUI, enabled: boolean): void;
-  _styleBorder: { el_: HTMLStyleElement, zoom_: number } | null;
+  _dpiWiseWidthPatch: [string, ((css: string) => string)] | null;
   ensureBorder_ (this: DomUI, zoom?: number): void;
   createStyle_ (this: DomUI, text: string, css?: HTMLStyleElement): HTMLStyleElement;
   css (this: DomUI, innerCSS: string): void;
