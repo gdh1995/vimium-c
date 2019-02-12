@@ -40,7 +40,7 @@ var VVisual = {
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
     VScroller.prepareTop_();
     a.diType_ = VisualModeNS.DiType.Unknown;
-    let theSelected = VDom.UI.getSelected_(),
+    let theSelected = VDom.UI.getSelected_(1),
     sel: Selection = a.selection_ = theSelected[0],
     type: SelType = a.selType_(), mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
     a.scope_ = theSelected[1];

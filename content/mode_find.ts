@@ -185,7 +185,7 @@ var VFind = {
     VUtils.remove_(this);
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
       window.focus();
-      el = VDom.getSelectionFocusEdge_(_this.curSelection_(), 1);
+      el = VDom.getSelectionFocusEdge_(VDom.UI.getSelected_()[0], 1);
       el && el.focus && el.focus();
     }
     _this.styleIframe_ = null;
@@ -293,7 +293,7 @@ var VFind = {
   },
   /** return an element if no <a> else null */
   focusFoundLinkIfAny_ (): SafeElement | null {
-    let cur = VDom.SafeEl_(VDom.GetSelectionParent_unsafe_(this.curSelection_())), el: Element | null = cur;
+    let cur = VDom.SafeEl_(VDom.GetSelectionParent_unsafe_(VDom.UI.getSelected_()[0])), el: Element | null = cur;
     for (let i = 0; el && el !== document.body && i++ < 5; el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
       if (el instanceof HTMLAnchorElement) {
         el.focus();
@@ -476,7 +476,7 @@ var VFind = {
     do {
       q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches_(back) : this.parsedQuery_;
       found = this.find_(q, !notSens, back, true, this.wholeWord_, false, false);
-      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = this.curSelection_()), q))) {
+      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VDom.UI.getSelected_()[0]), q))) {
         pR.lastIndex = 0;
         let text = par.innerText as string | HTMLElement;
         if (text && typeof text === "string" && !(pR as RegExpG & RegExpSearchable<0>).test(text)
@@ -524,7 +524,7 @@ var VFind = {
     sin.sheet && (sin.sheet.disabled = disable);
   },
   getCurrentRange_ (): void {
-    let sel = this.curSelection_(), range: Range;
+    let sel = VDom.UI.getSelected_()[0], range: Range;
     if (!sel.rangeCount) {
       range = document.createRange();
       range.setStart(document.body || document.documentElement as Element, 0);
@@ -535,9 +535,5 @@ var VFind = {
       sel.collapseToStart();
     }
     this.initialRange_ = range;
-  },
-  curSelection_(): Selection {
-    let selected = VDom.UI.getSelected_(), sel = selected[0], count = sel.rangeCount;
-    return !count && selected[1] ? getSelection() : sel;
   }
 };

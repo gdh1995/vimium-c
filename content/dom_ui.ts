@@ -129,7 +129,7 @@ VDom.UI = {
     sout || (this.styleOut_ = sout = this.createStyle_(VFind.css[2]));
     enable ? (this.box_ as HTMLElement).appendChild(sout) : sout.remove();
   },
-  getSelected_ (): [Selection, ShadowRoot | null] {
+  getSelected_ (notExpectCount?: 1): [Selection, ShadowRoot | null] {
     let d = document, el: Node | null, sel: Selection | null;
     if (el = VScroller.current_) {
       if (el.getRootNode) {
@@ -139,13 +139,13 @@ VDom.UI = {
       }
       if (el !== d && typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRootWithSelection).getSelection();
-        if (sel) {
+        if (sel && (notExpectCount || sel.rangeCount)) {
           return [sel, el as ShadowRoot];
         }
       }
     }
     sel = getSelection();
-    if (typeof ShadowRoot !== "function") { return [sel, null]; }
+    if (typeof ShadowRoot !== "function" || ShadowRoot instanceof Element) { return [sel, null]; }
     let E = Element, offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel;
     while (sel2) {
       sel2 = null;
