@@ -145,9 +145,18 @@
 }
 
 /* #region Find IFrame */
+
+/* Selection */
 ::selection {
 	background: #ff9632 !important;
 }
+
+/* Selectable */
+html, body, * {
+	user-select: auto;
+}
+
+/* IFrame */
 * {
 	cursor: default;
 	font: 12px/14px "Helvetica Neue", Helvetica, Arial, sans-serif !important;
@@ -176,4 +185,5 @@ html > count {
 	right: 0;
 	top: 0;
 }
+
 /* #endregion Find IFrame */

@@ -206,10 +206,10 @@ var Settings = {
       let findCSS = localStorage.getItem("findCSS"), omniCSS = localStorage.getItem("omniCSS");
       if (!findCSS || omniCSS == null) { Settings.fetchFile("baseCSS"); return; }
       findCSS = findCSS.substring(findCSS.indexOf('\n') + 1);
-      const index = findCSS.indexOf('\n');
+      const index = findCSS.indexOf('}') + 1, index2 = findCSS.indexOf('\n', index);
       // Note: The lines below are allowed as a special use case
       (this.cache as SettingsNS.FullCache).innerCSS = css.substring(css.indexOf("\n") + 1);
-      (this.cache as SettingsNS.FullCache).findCSS = [findCSS.substring(0, index), findCSS.substring(index + 1)];
+      (this.cache as SettingsNS.FullCache).findCSS = [findCSS.substring(0, index), findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
       (this.cache as SettingsNS.FullCache).omniCSS = omniCSS;
     },
     vomnibarPage (this: SettingsTmpl, url): void {

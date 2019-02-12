@@ -17,6 +17,7 @@ interface ParsedSearch {
 interface FindCSS {
   /** change-selection-color */ [0]: string;
   /** hud-iframe */ [1]: string;
+  /** force-content-selectable */ [2]: string;
 }
 
 

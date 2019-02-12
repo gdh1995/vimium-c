@@ -107,7 +107,7 @@ var VFind = {
     const el2 = a.countEl_ = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
-    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_ = VDom.UI.createStyle_(a.css[1], doc.createElement("style")));
+    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_ = VDom.UI.createStyle_(a.css[2], doc.createElement("style")));
     docEl.insertBefore(doc.createTextNode("/"), el);
     docEl.appendChild(el2);
     function cb(): void {

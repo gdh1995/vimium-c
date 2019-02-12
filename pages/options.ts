@@ -706,7 +706,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
     if (isFind && VFind.css) {
       // Note: shoule keep the same as background/settings.ts@Settings.updateHooks_.userDefinedCss
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
-      VFind.css[1] = VFind.css[1].substring(0, defaultLen - VFind.css[0].length - 1) + "\n" + (css2.find || "");
+      VFind.css[2] = VFind.css[2].substring(0, defaultLen - VFind.css[0].length - VFind.css[1].length - 1) + "\n" + (css2.find || "");
     }
   }
 }, 1800, $("#userDefinedCss") as HTMLTextAreaElement, 0));

@@ -18,7 +18,7 @@ max-width:312px;min-width:151px;padding:2px 3px;right:150px;text-overflow:ellips
 .Omnibar{left:calc(10% - 12px);top:64px;width:calc(80% + 24px)}
 .BH{color:#902809}.MC{color:#d4ac3a}.One{border-color:#ffa07a}.UI{pointer-events:all}
 /*#find*/
-::selection { background: #ff9632 !important; }
+::selection { background: #ff9632 !important; }html, body, * { user-select: auto; }
 *{cursor:default;font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif!important;
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap}
 body{cursor:text;display:inline-block;max-width:215px;min-width:7px;padding:0 3px 0 1px}
