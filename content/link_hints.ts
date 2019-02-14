@@ -697,7 +697,7 @@ var VHints = {
     } else {
       const limit = this.keyStatus_.tab ? 0 : this.keyStatus_.newHintLength;
       for (i = linksMatched.length; 0 <= --i; ) {
-        let ref = linksMatched[i].marker.childNodes as NodeListOf<HTMLSpanElement>, j = ref.length;
+        let ref = linksMatched[i].marker.childNodes as NodeListOf<HTMLSpanElement>, j = ref.length - 1;
         while (limit <= --j) {
           ref[j].classList.remove("MC");
         }
@@ -890,12 +890,14 @@ alphabetHints_: {
   initMarkers_ (hintItems: HintsNS.HintItem[]): void {
     this.hintKeystroke_ = "";
     for (let end = hintItems.length, hints = this.buildHintIndexes_(end), h = 0; h < end; h++) {
-      const hint = hintItems[h], hintString = hint.key = this.numberToHintString_(hints[h]);
-      for (let i = 0, len = hintString.length; i < len; i++) {
+      const hint = hintItems[h], marker = hint.marker,
+      hintString = hint.key = this.numberToHintString_(hints[h]), last = hintString.length - 1;
+      for (let i = 0; i < last; i++) {
         const node = document.createElement('span');
         node.textContent = hintString[i];
-        hint.marker.appendChild(node);
+        marker.appendChild(node);
       }
+      marker.insertAdjacentText("beforeend", hintString[last]);
     }
     this.countMax_ -= (this.countLimit_ > 0) as boolean | number as number;
     this.countLimit_ = 0;
