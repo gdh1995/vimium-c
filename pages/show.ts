@@ -67,7 +67,7 @@ window.onhashchange = function(this: void): void {
   let url = location.hash, type: ValidShowTypes = "", file = "";
   if (!url && BG_ && BG_.Settings && BG_.Settings.temp.shownHash) {
     url = BG_.Settings.temp.shownHash();
-    encryptKey = encryptKey || Math.round(Math.random() * 0x100000000) || 0xc3e73c18;
+    encryptKey = encryptKey || Math.floor(Math.random() * 0x100000000) || 0xc3e73c18;
     let encryptedUrl = encrypt(url, encryptKey, true);
     if (history.state) {
       history.pushState(encryptedUrl, "", "");
@@ -607,7 +607,7 @@ function encrypt(message: string, password: number, doEncrypt: boolean): string 
       } else if (ch <= 0x1fffff) {
         arr.push(0xf0 | (ch >> 18), 0x80 | ((ch >> 12) & 0x3f), 0x80 | ((ch >> 6) & 0x3f), 0x80 | (ch & 0x3f));
       // } else if (ch <= 0x3ffffff) {
-      //   arr.push(0xf8 | (ch >>> 24), 0x80 | ((ch >> 18) & 0x3f), 0x80 | ((ch >> 12) & 0x3f)
+      //   arr.push(0xf8 | (ch >> 24), 0x80 | ((ch >> 18) & 0x3f), 0x80 | ((ch >> 12) & 0x3f)
       //     , 0x80 | ((ch >> 6) & 0x3f), 0x80 | (ch & 0x3f));
       // } else {
       //   arr.push(0xfc | (ch >>> 30), 0x80 | ((ch >> 24) & 0x3f), 0x80 | ((ch >> 18) & 0x3f)

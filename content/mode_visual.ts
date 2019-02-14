@@ -201,7 +201,7 @@ var VVisual = {
     } else if (command > 19) {
       movement.reverseSelection_();
     } else if (command >= 0) {
-      movement.runMovements_((command & 1) as 0 | 1, command >>> 1, count);
+      movement.runMovements_((command & 1) as 0 | 1, command >> 1, count);
     }
     if (mode === VisualModeNS.Mode.Caret) {
       movement.extend_(1);

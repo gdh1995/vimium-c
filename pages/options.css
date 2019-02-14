@@ -263,6 +263,7 @@ label:active {
   white-space: normal;
   word-break: break-all;
   word-wrap: break-word;
+  word-wrap: anywhere;
 }
 .deprecated {
   color: darkgray;

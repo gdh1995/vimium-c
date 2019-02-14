@@ -182,7 +182,7 @@ var HelpDialog = {
       , "enableCSTemp", "toggleCS", "clearCS"],
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "toggleLinkHintCharacters"
       , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
-  } as Readonly<EnsuredSafeDict<ReadonlyArray<string>>>,
+  } as Readonly< EnsuredSafeDict<ReadonlyArray<string>> >,
   advancedCommands_: { __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
     , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1

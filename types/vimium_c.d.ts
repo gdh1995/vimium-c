@@ -545,6 +545,7 @@ declare const enum BrowserVer {
   // the 6 below are correct even if EXPERIMENTAL or LEAGCY
   // since C63, Vimium's inner styles have been really safe; `/deep/` works on C35 even if LEAGCY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
+  // https://www.chromestatus.com/features/6750456638341120
   MinSelector$deep$InCSSMeansNothing = 63,
   MinCSS$OverscrollBehavior = 63,
   MinOmniboxSupportDeletable = 63,

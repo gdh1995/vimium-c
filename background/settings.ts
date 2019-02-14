@@ -135,6 +135,8 @@ var Settings = {
       if (hasAll) {
         const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2);
         css = css.substring(0, ind1 + 1) + css.substring(ind2);
+        // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InCSSMeansNothing
+        // in case that ":host" is set [style="all:unset"]
       } else {
         css = css.replace(<RegExpOne> /all:\s?initial;?\n?/, "");
       }
@@ -342,7 +344,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     },
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: "pages/options.html#!newTabUrl",
-    OptionsPage: "pages/options.html", Platform: "", PolyFill_: "lib/polyfill.js",
+    OptionsPage: "pages/options.html", Platform: "browser", PolyFill_: "lib/polyfill.js",
     RedirectedUrls_: {
       about: "https://github.com/gdh1995/vimium-c",
       help: "https://github.com/gdh1995/vimium-c/wiki",

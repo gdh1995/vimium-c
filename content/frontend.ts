@@ -670,7 +670,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     if (candidates.length <= 0) { return false; }
     maxLen = (maxLen + 1) << 16;
     candidates = candidates.filter(a => (a[0] & 0x7fffff) < maxLen).sort((a, b) => a[0] - b[0]);
-    for (let re2 = <RegExpOne> /\b/, i = candidates[0][0] >>> 23; i < count; ) {
+    for (let re2 = <RegExpOne> /\b/, i = candidates[0][0] >> 23; i < count; ) {
       s = names[i++];
       const re = new RegExp(re2.test(s[0]) || re2.test(s.slice(-1)) ? `\\b${s}\\b` : s, ""), j = i << 23;
       for (const cand of candidates) {
@@ -1121,6 +1121,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
       if (!(keyCode > VKeyCodes.maxNotPageUp && keyCode < VKeyCodes.minNotDown)) { return; }
+      // TODO: (event as Event).preventDefault && VUtils.prevent_(event as Event);
       wnd && VSettings.cache.smoothScroll && VEvent.OnScrolls_[1](wnd, 1);
       if (keyCode > VKeyCodes.maxNotLeft) {
         return VScroller.scrollBy_((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);

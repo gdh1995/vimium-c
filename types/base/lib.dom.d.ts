@@ -2118,8 +2118,8 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     scrollBy(options?: ScrollToOptions): void;
     scrollBy(x: number, y: number): void;
     insertAdjacentElement(position: string, insertedElement: Element): Element | null;
-    insertAdjacentHTML(where: string, html: string): void;
-    insertAdjacentText(where: string, text: string): void;
+    insertAdjacentHTML(where: 'afterbegin' | 'beforeend', html: string): void;
+    insertAdjacentText(where: 'afterbegin' | 'beforeend', text: string): void;
     createShadowRoot?(): ShadowRoot;
     addEventListener<K extends keyof ElementEventMap>(type: K, listener: (this: Element, ev: ElementEventMap[K]) => ELRet, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
