@@ -739,6 +739,8 @@ $("#importButton").onclick = function(): void {
   opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
 };
 
+$("#defaultNewTab").textContent = bgSettings_.defaults.newTabUrl;
+
 $("#defaultSearchEngine").textContent = bgSettings_.defaults.searchUrl;
 
 $("#browserName").textContent = (bgOnOther === BrowserType.Edge ? "MS Edge"
