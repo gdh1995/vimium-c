@@ -338,7 +338,7 @@ declare const enum BrowserVer {
   // but shadowRoot.getElementById still exists on C35
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEAGCY
   MinSession = 37,
-  // even if EXPERIMENTAL
+  // even if EXPERIMENTAL; Note: should use MinSafeCSS$All
   MinCSS$All$Attr = 37,
   /*
    * an `all:initial` prevents position/z-index attrs in other matched rules from working
@@ -460,6 +460,8 @@ declare const enum BrowserVer {
   MinPositionMayBeSticky = 52, // if EXPERIMENTAL; enabled by default since C56 even if LEAGCY
   MinAutoScrollerAllocNewSpace = 53, // even if EXPERIMENTAL or LEAGCY; if box-sizing is content-box
   MinEnsuredShadowDOMV1 = 53,
+  // since C53, Vimium's inner styles have been really safe, because `>>>` only works on "open" mode shadow trees
+  MinEnsuredSafeInnerCSS = MinEnsuredShadowDOMV1,
   // wekitUserSelect still works on C35
   MinUserSelectAll = 53,
   // even if EXPERIMENTAL or LEAGCY
@@ -488,9 +490,9 @@ declare const enum BrowserVer {
   MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument = 56,
   MinFailToToggleImageOnFileURL = 56,
   Min$KeyboardEvent$$isComposing = 56,
-  MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled = 56,
-  // the static selector `>>>` is not supported on Chrome LATEST_TESTED if not EXPERIMENTAL
-  MinMayBeStaticSelectorGtGtGt = 56, // if EXPERIMENTAL
+  // the static selector `>>>` is not supported since MinNoSelector$GtGtGt
+  // `>>>` can only match those under "open"-mode shadow roots
+  MinStaticSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled = 56,
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinNoKeygenElement = 57,
   MinCSSPlaceholderPseudo = 57,
@@ -546,10 +548,10 @@ declare const enum BrowserVer {
   MinEnsured$ScrollingElement$CannotBeFrameset = 61,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
   // the 6 below are correct even if EXPERIMENTAL or LEAGCY
-  // since C63, Vimium's inner styles have been really safe; `/deep/` works on C35 even if LEAGCY
+  // `/deep/` works on C35 even if LEAGCY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
   // https://www.chromestatus.com/features/6750456638341120
-  MinSelector$deep$InCSSMeansNothing = 63,
+  MinSelector$deep$InDynamicCSSMeansNothing = 63,
   MinCSS$OverscrollBehavior = 63,
   MinOmniboxSupportDeletable = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
@@ -583,7 +585,7 @@ declare const enum BrowserVer {
   NoRAForRICOnSandboxedPage = 69,
   MinTabIdMayBeMuchLarger = 69,
   // `>>>` only works if EXPERIMENTAL before C69 and since C56
-  // (MinSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled)
+  // (MinStaticSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled)
   // https://github.com/chromium/chromium/commit/c81707c532183d4e6b878041964e85b0441b9f50
   MinNoSelector$GtGtGt = 69,
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c

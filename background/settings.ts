@@ -135,7 +135,7 @@ var Settings = {
       if (hasAll) {
         const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2);
         css = css.substring(0, ind1 + 1) + css.substring(ind2);
-        // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InCSSMeansNothing
+        // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCSSMeansNothing
         // in case that ":host" is set [style="all:unset"]
       } else {
         css = css.replace(<RegExpOne> /all:\s?initial;?\n?/, "");
@@ -144,7 +144,7 @@ var Settings = {
         const ind2 = css.indexOf("display:"), ind1 = css.lastIndexOf("{", ind2);
         css = css.substring(0, ind1 + 1) + css.substring(ind2);
       } else {
-        css = css.replace("contents", "unset");
+        css = css.replace("contents", "block");
       }
       if (browserVer >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
         css = css.replace("3px 7px", "3px 5px");
