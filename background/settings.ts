@@ -404,7 +404,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   if (localStorage.length <= 0) {
     Settings.set("newTabUrl", Settings.CONST.NewTabForNewUser_);
   }
-  const hasAll = "all" in (document.documentElement as HTMLElement).style;
+  const hasAll = ChromeVer > BrowserVer.MinSafeCSS$All && "all" in (document.documentElement as HTMLElement).style;
   obj.StyleCacheId_ = obj.VerCode + "," + ChromeVer
     + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
   const innerCSS = localStorage.getItem("innerCSS");

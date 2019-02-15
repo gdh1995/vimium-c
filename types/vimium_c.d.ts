@@ -348,10 +348,12 @@ declare const enum BrowserVer {
    * * it recovers if modifying its position/z-index attr
    * * if the Dev Tools is on, and visits styles of the box, then a mousemove won't break the UI
    * 
-   * a work-around is set <div>.style.position
+   * a work-around is set <div>.style.position,
+   * but the HUD is also affected when pressing <Shift> to switch LinkHint mode,
+   * so must remove the all: before MinFixedCSS$All$MayMistakenlyResetFixedPosition
    */
   MinCSS$All$MayMistakenlyResetFixedPosition = 37,
-  // includes for-of, Map, Set, Symbols
+  // includes for-of, Map, Set, Symbols, even if LEAGCY
   MinES6ForAndSymbols = 38,
   MinWithFrameIdInArg = 39,
   MinOptionsUI = 40,
@@ -363,6 +365,7 @@ declare const enum BrowserVer {
   Min$String$$StartsWithAndIncludes = 41,
   MinGlobal$HTMLDetailsElement = 41,
   MinFixedCSS$All$MayMistakenlyResetFixedPosition = 41,
+  MinSafeCSS$All = MinFixedCSS$All$MayMistakenlyResetFixedPosition,
   // (if EXPERIMENTAL, then it exists but) has no effects before C41;
   // if EXPERIMENTAL, there's Element::scrollTo and Element::scrollBy only since C41
   MinCSS$ScrollBehavior$$Smooth$Work = 41,

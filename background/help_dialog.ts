@@ -1,9 +1,6 @@
 var HelpDialog = {
   inited_: false,
   styles_: ChromeVer === BrowserVer.CSS$Contain$BreaksHelpDialogSize ? "contain: none;"
-    // here repeats the logic in frontend.ts, just for easier understanding
-    : ChromeVer < BrowserVer.MinFixedCSS$All$MayMistakenlyResetFixedPosition
-      && ChromeVer >= BrowserVer.MinCSS$All$MayMistakenlyResetFixedPosition ? "position: fixed;"
     : "",
   templateEl_: null as HTMLTemplateElement | null,
   render_: (function(this: void, request: FgReq[kFgReq.initHelp]): string {

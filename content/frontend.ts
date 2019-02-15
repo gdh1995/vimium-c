@@ -1010,9 +1010,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       });
     };
     shouldShowAdvanced && toggleAdvanced();
-    if (VSettings.cache.browserVer < BrowserVer.MinFixedCSS$All$MayMistakenlyResetFixedPosition) {
-      box.style.position = "fixed";
-    }
     VDom.UI.ensureBorder_();
     VDom.UI.add(box, AdjustType.Normal, true);
     document.hasFocus() || VEvent.focusAndListen_();
