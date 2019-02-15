@@ -144,9 +144,6 @@ var Settings = {
       } else {
         css = css.replace("contents", "unset");
       }
-      if (browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
-        css += "\n.HUD,.IH,.LH{border-width:1px}";
-      }
       if (browserVer >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
         css = css.replace("3px 7px", "3px 5px");
       }
@@ -166,6 +163,9 @@ var Settings = {
       css = cacheId + css.length + "\n" + css;
       const css2 = (this as typeof Settings).parseCustomCSS(this.get("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
+      if (browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
+        css = css.replace(<RegExpG>/\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$11px \/\*!DPI\*\/");
+      }
       localStorage.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
       localStorage.setItem("omniCSS", css2.omni || "");
       return this.set("innerCSS", css);

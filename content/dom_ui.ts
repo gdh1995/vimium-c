@@ -95,7 +95,7 @@ VDom.UI = {
     zoom || (zoom = VDom.getZoom_());
     let patch = this._dpiWiseWidthPatch;
     if (!patch && zoom >= 1) { return; }
-    let width = ("" + 0.51 / zoom).substring(0, 5), st = this.styleIn_;
+    let width = ("" + (VSettings.cache.browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.01 : 0.51) / zoom).substring(0, 5), st = this.styleIn_;
     if (!patch) {
       patch = this._dpiWiseWidthPatch = ["", function(this: NonNullable<DomUI["_dpiWiseWidthPatch"]>, css) {
         return css.replace(<RegExpG>/\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$1" + this[0] + "px \/\*!DPI\*\/");
