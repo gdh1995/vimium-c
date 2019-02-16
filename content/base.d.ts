@@ -276,11 +276,12 @@ interface DomUI {
   box_: HTMLDivElement | null;
   styleIn_: HTMLStyleElement | string | null;
   styleOut_: HTMLStyleElement | null;
-  /** `!!@UI` must keep the same as `!!@box_`*/ UI: VUIRoot;
+  /** `!!@UI` must keep the same as `!!@box_`*/
+  UI: VUIRoot;
   callback_: null | ((this: void) => void);
   flashLastingTime_: number;
   _lastFlash: HTMLElement | null;
-  add<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
+  add_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
   addElementList_<T extends VimiumContainerElementType | "" | undefined>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
     offset: ViewOffset, containerTagName?: T
     ): T extends VimiumContainerElementType ? HTMLElementTagNameMap[T] & SafeElement : HTMLDivElement & SafeElement;
@@ -289,7 +290,7 @@ interface DomUI {
   _dpiWiseWidthPatch: [string, ((css: string) => string)] | null;
   ensureBorder_ (this: DomUI, zoom?: number): void;
   createStyle_ (this: DomUI, text: string, css?: HTMLStyleElement): HTMLStyleElement;
-  css (this: DomUI, innerCSS: string): void;
+  css_ (this: DomUI, innerCSS: string): void;
   getDocSelectable_ (this: DomUI): boolean;
   toggleSelectStyle_ (this: DomUI, enable: BOOL): void;
   getSelected_ (this: DomUI, notExpectCount?: 1): [Selection, ShadowRoot | null];
@@ -317,17 +318,17 @@ interface VDomMouse {
     , modifiers?: null, related?: Element | null): boolean;
 }
 interface VPort {
-  post<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
-  post<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
+  post_<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
+  post_<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
   send_<K extends keyof FgRes>(this: void, req: FgReqWithRes[K] & { msg: K; }
     , callback: (this: void, res: FgRes[K]) => void): void;
   evalIfOK_ (url: string): boolean;
 }
 interface ComplicatedVPort extends VPort {
-  post<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
+  post_<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
 interface VEventModeTy {
-  lock(this: void): LockableElement | null;
+  lock_(this: void): LockableElement | null;
   suppress_(keyCode?: VKeyCodes): void;
   OnWndFocus_ (this: void): void;
   checkHidden_ (this: void): boolean;
@@ -339,7 +340,7 @@ interface VEventModeTy {
   mapKey_ (this: void, key: string): string;
   scroll_ (this: void, event?: Partial<EventControlKeys & { keyCode: VKeyCodes }>, wnd?: Window): void;
   /** return has_error */
-  keydownEvents: {
+  keydownEvents_: {
     (this: void, newArr: KeydownCacheArray): boolean;
     (this: void): KeydownCacheArray;
   };
@@ -355,9 +356,9 @@ interface VHUD {
   opacity_: 0 | 0.25 | 0.5 | 0.75 | 1;
   show_ (text: string, embed?: boolean): void;
   /** duration is default to 1500 */
-  tip (text: string, duration?: number): void;
-  copied (this: VHUD, text: string, type: string, virtual: true): string;
-  copied (this: VHUD, text: string, type?: string): void;
+  tip_ (text: string, duration?: number): void;
+  copied_ (this: VHUD, text: string, type: string, virtual: true): string;
+  copied_ (this: VHUD, text: string, type?: string): void;
   hide_ (this: void, info?: TimerType): void;
 }
 interface VSettings {

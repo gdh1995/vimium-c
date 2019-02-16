@@ -38,7 +38,6 @@
     "negate_iife": false,
     "pure_getters": true,
     "keep_fargs": true, // typescript will check unused arguments
-    "keep_fnames": false,
     // it's safe to skip `Suggestion`
     "keep_fnames": "/^(startsWith|endsWith|addEventListener|toString|VC)$/",
     "keep_infinity": false,
@@ -49,13 +48,13 @@
       "regex": "/^_|_$/"
     },
     "reserved": [
-      // # fixed background global names:
-      "Utils", "OnOther", "ChromeVer", "Settings", "Backend",
-      "Commands", "Exclusions", "HelpDialog",
       // # content global names:
       "VimiumInjector", "VUtils", "VKeyboard", "VDom",
       "VHints", "VOmni", "VScroller", "VMarks", "VFind", "VVisual",
       "VSettings", "VHUD", "VPort", "VEvent",
+      // # fixed background global names:
+      "Utils", "OnOther", "ChromeVer", "Settings", "Backend",
+      "Commands", "Exclusions", "HelpDialog",
       // # front/vomnibar
       "VCID",
       // # lib/

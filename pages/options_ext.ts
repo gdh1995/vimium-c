@@ -8,7 +8,7 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
     click(node);
     if (isCommand) { return; }
   }
-  VPort.post({
+  VPort.post_({
     H: kFgReq.initHelp,
     unbound: true,
     names: true,
@@ -94,13 +94,13 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     exported_object.time = d.getTime();
   }
   exported_object.environment = {
-    extension: bgSettings_.CONST.VerCode,
-    platform: bgSettings_.CONST.Platform
+    extension: bgSettings_.CONST_.VerCode_,
+    platform: bgSettings_.CONST_.Platform_
   };
   if (!bgOnOther) {
     exported_object.environment.chrome = bVer;
   }
-  for (let storage = localStorage, all = bgSettings_.defaults, i = 0, len = storage.length, j: string[]; i < len; i++) {
+  for (let storage = localStorage, all = bgSettings_.defaults_, i = 0, len = storage.length, j: string[]; i < len; i++) {
     const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
     if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f"
         || key === "findModeRawQueryList" || key === "innerCSS" || key === "findCSS") {
@@ -108,7 +108,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     }
     const storedVal = storage.getItem(key) as string;
     if (typeof all[key] !== "string") {
-      exported_object[key] = (key in all) ? bgSettings_.get(key) : storedVal;
+      exported_object[key] = (key in all) ? bgSettings_.get_(key) : storedVal;
     } else if (storedVal.indexOf("\n") > 0) {
       exported_object[key] = j = storedVal.split("\n");
       j.push("");
@@ -149,7 +149,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
 function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
   let env = new_data.environment, plat = env && env.platform || ""
     , ext_ver = env && parseFloat(env.extension || 0) || 0
-    , newer = ext_ver > parseFloat(bgSettings_.CONST.VerCode);
+    , newer = ext_ver > parseFloat(bgSettings_.CONST_.VerCode_);
   plat && (plat = ("" + plat).substring(0, 10));
   if (!confirm(
 `You are loading ${is_recommended !== true ? "a settings copy" : "the recommended settings:"}
@@ -159,12 +159,12 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
 
 Are you sure you want to continue?`
   )) {
-    window.VHUD && VHUD.tip("You cancelled importing.", 1000);
+    window.VHUD && VHUD.tip_("You cancelled importing.", 1000);
     return;
   }
   Object.setPrototypeOf(new_data, null);
   if (new_data.vimSync == null) {
-    const now = bgSettings_.get("vimSync"), keep = now && confirm(
+    const now = bgSettings_.get_("vimSync"), keep = now && confirm(
       'Do you want to keep settings synchronized with your current Google account?'
     );
     new_data.vimSync = keep || null;
@@ -201,7 +201,7 @@ Are you sure you want to continue?`
     }
   }
 
-  const storage = localStorage, all = bgSettings_.defaults, _ref = Option_.all_,
+  const storage = localStorage, all = bgSettings_.defaults_, _ref = Option_.all_,
   otherLineEndRe = <RegExpG>/\r\n?/g;
   for (let i = storage.length; 0 <= --i; ) {
     const key = storage.key(i) as string;
@@ -216,9 +216,9 @@ Are you sure you want to continue?`
   delete new_data.findCSS;
   delete new_data.omniCSS;
   delete new_data.newTabUrl_f;
-  if (new_data.vimSync !== bgSettings_.get("vimSync")) {
+  if (new_data.vimSync !== bgSettings_.get_("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);
-    bgSettings_.set("vimSync", new_data.vimSync);
+    bgSettings_.set_("vimSync", new_data.vimSync);
     _ref.vimSync.fetch_();
   }
   for (const _key in _ref) {
@@ -237,10 +237,10 @@ Are you sure you want to continue?`
       }
       new_value = item.normalize_(new_value, typeof all[key] === "object");
     }
-    if (!item.areEqual_(bgSettings_.get(key), new_value)) {
+    if (!item.areEqual_(bgSettings_.get_(key), new_value)) {
       logUpdate("import", key, new_value);
-      bgSettings_.set(key, new_value);
-      if (key in bgSettings_.payload) {
+      bgSettings_.set_(key, new_value);
+      if (key in bgSettings_.payload_) {
         Option_.syncToFrontend_.push(key as keyof SettingsNS.FrontendSettings);
       }
     } else if (item.saved_) {
@@ -254,12 +254,12 @@ Are you sure you want to continue?`
     if (new_value == null) {
       if (key in all) {
         new_value = all[key as SettingKeys];
-        if (bgSettings_.get(key as SettingKeys) !== new_value) {
-          bgSettings_.set(key as SettingKeys, new_value);
+        if (bgSettings_.get_(key as SettingKeys) !== new_value) {
+          bgSettings_.set_(key as SettingKeys, new_value);
           logUpdate("reset", key, new_value);
           continue;
         }
-        new_value = bgSettings_.get(key as SettingKeys);
+        new_value = bgSettings_.get_(key as SettingKeys);
       } else {
         new_value = storage.getItem(key as SettingKeys);
       }
@@ -274,8 +274,8 @@ Are you sure you want to continue?`
       new_value = new_value.replace(otherLineEndRe, "\n");
     }
     if (key in all) {
-      if (bgSettings_.get(key as SettingKeys) !== new_value) {
-        bgSettings_.set(key as SettingKeys, new_value);
+      if (bgSettings_.get_(key as SettingKeys) !== new_value) {
+        bgSettings_.set_(key as SettingKeys, new_value);
         logUpdate("update", key, new_value);
       }
     } else {
@@ -284,7 +284,7 @@ Are you sure you want to continue?`
     }
   }
   $<SaveBtn>("#saveOptions").onclick(false);
-  if ($("#advancedOptionsButton").getAttribute("aria-checked") != '' + bgSettings_.get("showAdvancedOptions")) {
+  if ($("#advancedOptionsButton").getAttribute("aria-checked") != '' + bgSettings_.get_("showAdvancedOptions")) {
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
@@ -293,7 +293,7 @@ Are you sure you want to continue?`
     node.click();
     $("#showCommands").click();
   }
-  if (window.VHUD) { return VHUD.tip("Import settings data: OK!", 1000); }
+  if (window.VHUD) { return VHUD.tip_("Import settings data: OK!", 1000); }
 }
 
 function importSettings(time: number | string | Date
@@ -326,7 +326,7 @@ function importSettings(time: number | string | Date
     const element = loadJS("options_checker.js");
     element.onload = function(): void { resolve(1); };
   });
-  Promise.all([BG_.Utils.require("Commands"), BG_.Utils.require("Exclusions"), promisedChecker]).then(function() {
+  Promise.all([BG_.Utils.require_("Commands"), BG_.Utils.require_("Exclusions"), promisedChecker]).then(function() {
     setTimeout(_importSettings, 17, time, new_data, is_recommended);
   });
 }
@@ -368,7 +368,7 @@ _el = null;
   delete (window as OptionWindow)._delayed;
   const node = $<ElementWithDelay>(arr[0]), event = arr[1];
   node.onclick && node.onclick(event);
-  BG_.Utils.GC();
+  BG_.Utils.GC_();
 })();
 
 function parseJSON(text: string): any {

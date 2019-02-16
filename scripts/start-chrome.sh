@@ -6,14 +6,21 @@ OTHER_EXT=
 OTHER_ARGS=
 GUD=/r/TEMP/GUD
 WORKING_DIR=/r/working
+DIST=0
+
+function wp() {
+  local dir=${2#/}
+  local win_dir=${dir%%/*}
+  dir=${dir#[a-z]}
+  declare -g $1=${win_dir^}:${dir}
+}
 
 while [[ $# -gt 0 ]]; do
 case "$1" in
   clean|ckean|--clean)
-    if test -d "$GUD"; then
+    if test -e "$GUD"; then
       rm -rf "$GUD" || exit $?
-      dir=${GUD}; dir=${dir#/}; gud_w=${dir%%/*}; dir=${dir#[a-z]}
-      gud_w=${gud_w^}:${dir}
+      wp gud_w "$GUD"
       echo -E "Clean ${gud_w} : done."
     fi
     shift
@@ -28,6 +35,10 @@ case "$1" in
     ;;
   test|--test) # no the "Disable developer mode extensions" dialog, but add an extra infobar
     OTHER_ARGS=$OTHER_ARGS" --enable-automation"
+    shift
+    ;;
+  dist|--dist)
+    DIST=1
     shift
     ;;
   only|--only)
@@ -49,13 +60,13 @@ else
 fi
 
 dir=$(/usr/bin/realpath "${BASH_SOURCE[0]}")
-if test -f dir/Chrome/chrome.exe; then
+dir=${dir%/*}
+if test -f "$dir"/Chrome/chrome.exe; then
   CHROME_ROOT=$dir
-  VC_EXT=E:/Git/weidu+vim/vimium-c
+  VC_ROOT=/e/Git/weidu+vim/vimium-c
 else
   CHROME_ROOT='/d/Program Files/Google'
-  dir=${dir%/*}; dir=${dir%/*}; dir=${dir#/}; VC_EXT=${dir%%/*}; dir=${dir#[a-z]}
-  VC_EXT=${VC_EXT^}:${dir}
+  VC_ROOT=${dir%/*}
 fi
 test "$VER" == cur && VER=
 if test "$VER" == wo; then
@@ -64,9 +75,21 @@ else
   EXE=$WORKING_DIR/${VER:-cur}/chrome.exe
   test -f "$EXE" || EXE=$CHROME_ROOT/${VER:-Chrome}/chrome.exe
 fi
+if test $DIST -gt 0; then
+  dir="$(/usr/bin/realpath ${VC_ROOT}/dist)"
+  wp VC_EXT "$dir"
+  if ! test -f ${dir}/manifest.json; then
+    echo -e "No dist extension: "$VC_EXT >&2
+  fi
+else
+  wp VC_EXT "$VC_ROOT"
+fi
 if test "$VER" == wo -o "$VER" == prev || test ${VER:-99} -ge 45; then
-  ub=${VC_EXT}/../uBlock/dist/build/uBlock0.chromium
-  test -d "$ub" && OTHER_EXT=${OTHER_EXT},${ub}
+  ub=${VC_ROOT}/../uBlock/dist/build/uBlock0.chromium
+  if test -d "$ub"; then
+    wp ub "${ub}"
+    OTHER_EXT=${OTHER_EXT},${ub}
+  fi
 fi
 
 exe_w=$($PATH -m "$EXE")

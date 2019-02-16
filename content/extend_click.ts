@@ -198,7 +198,7 @@ _listen("DOMContentLoaded", handler, true);
     VSettings.destroy(true);
     return;
   }
-  VDom.Scripts = false;
+  VDom.Scripts_ = false;
   interface TimerLib extends Window {
     setInterval: typeof setInterval;
     setTimeout: typeof setTimeout | ((this: void, handler: (this: void, i: TimerType.fake | undefined) => void, timeout: number) => number);

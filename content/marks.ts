@@ -15,7 +15,7 @@ var VMarks = {
     const keyCode = event.keyCode, cont = !VKeyboard.isEscape_(event);
     let keyChar: string | undefined;
     if (cont && (keyCode > VKeyCodes.f1 && keyCode < VKeyCodes.minNotFn || keyCode < VKeyCodes.minNotSpace
-        || !(keyChar = VKeyboard.char(event)) || keyChar.length !== 1)) {
+        || !(keyChar = VKeyboard.char_(event)) || keyChar.length !== 1)) {
       return 1;
     }
     VUtils.remove_(this);
@@ -34,12 +34,12 @@ var VMarks = {
   _create (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {
       this.setPreviousPosition_();
-      return VHUD.tip("Created local mark [last].", 1000);
+      return VHUD.tip_("Created local mark [last].", 1000);
     } else if (event.shiftKey !== this.swap_) {
       if (window.top === window) {
         return this.createMark_(keyChar);
       } else {
-        VPort.post({H: kFgReq.marks, action: "create", markName: keyChar});
+        VPort.post_({H: kFgReq.marks, action: "create", markName: keyChar});
         return VHUD.hide_();
       }
     } else {
@@ -53,7 +53,7 @@ var VMarks = {
       if (pos) {
         this._scroll(pos);
       }
-      return VHUD.tip((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
+      return VHUD.tip_((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
     }
     const req: Req.fg<kFgReq.marks> & { action: "goto" } = {
       H: kFgReq.marks, action: "goto",
@@ -78,7 +78,7 @@ var VMarks = {
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).local = true;
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).url = location.href;
     }
-    VPort.post(req);
+    VPort.post_(req);
   },
   _scroll(scroll: MarksNS.FgMark) {
     if (scroll[1] === 0 && scroll[2] && scroll[0] === 0) {
@@ -88,7 +88,7 @@ var VMarks = {
     }
   },
   createMark_ (markName: string, local?: "local"): void {
-    VPort.post({
+    VPort.post_({
       H: kFgReq.marks,
       action: "create",
       local: !!local,
@@ -96,7 +96,7 @@ var VMarks = {
       url: location.href,
       scroll: [window.scrollX | 0, window.scrollY | 0]
     });
-    return VHUD.tip(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
+    return VHUD.tip_(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },
   GoTo_ (this: void, _0: number, options: CmdOptions[kFgCmd.goToMarks]): void {
     const { scroll, local, markName: a } = options;
@@ -104,7 +104,7 @@ var VMarks = {
     VMarks._scroll(scroll);
     local || VEvent.focusAndListen_();
     if (a) {
-      return VHUD.tip(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
+      return VHUD.tip_(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
     }
   }
 };

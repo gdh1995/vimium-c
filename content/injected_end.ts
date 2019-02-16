@@ -3,7 +3,7 @@
   ].forEach(Object.seal);
 [VUtils, VEvent, VPort].forEach(Object.freeze);
 
-VDom.Scripts = false;
+VDom.Scripts_ = false;
 (VimiumInjector as VimiumInjector).checkIfEnabled = (function (this: null
     , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
   func({ H: kFgReq.checkIfEnabled, url: window.location.href });

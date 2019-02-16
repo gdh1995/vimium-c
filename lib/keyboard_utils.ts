@@ -32,7 +32,7 @@ var VKeyboard = {
       return keyId > 185 && (s = this.correctionMap_[keyId - 186]) && s[+event.shiftKey] || "";
     }
   },
-  char (event: KeyboardEvent): string {
+  char_ (event: KeyboardEvent): string {
     const key = event.key as string | undefined;
     if (!key) {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
@@ -41,7 +41,7 @@ var VKeyboard = {
     }
     return key.length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName_(event) : key;
   },
-  key (event: EventControlKeys, ch: string): string {
+  key_ (event: EventControlKeys, ch: string): string {
     const left = event.metaKey ? "<m-" : "<";
     return event.ctrlKey ? left + (event.altKey ? "c-a-" : "c-") + ch + ">"
       : event.altKey ? left + "a-" + ch + ">"
@@ -57,6 +57,6 @@ var VKeyboard = {
     if (event.keyCode !== VKeyCodes.esc && !event.ctrlKey) { return false; }
     const i = this.getKeyStat_(event);
     // we know that BrowserVer.MinEnsured$KeyboardEvent$$Code < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
-    return i === KeyStat.plain || i === KeyStat.ctrlKey && (event.code === "BracketLeft" || this.char(event) === '[');
+    return i === KeyStat.plain || i === KeyStat.ctrlKey && (event.code === "BracketLeft" || this.char_(event) === '[');
   }
 };

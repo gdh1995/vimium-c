@@ -391,7 +391,7 @@ declare namespace BackendHandlersNS {
     };
     openUrl_ (this: void, request: FgReq[kFgReq.openUrl], port?: Port | undefined): void;
     checkIfEnabled_: checkIfEnabled;
-    focus (this: void, request: MarksNS.FocusOrLaunch): void;
+    focus_ (this: void, request: MarksNS.FocusOrLaunch): void;
     reopenTab_ (tab: chrome.tabs.Tab, refresh?: boolean): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
     IconBuffer_: IconNS.AccessIconBuffer | null,
@@ -399,8 +399,8 @@ declare namespace BackendHandlersNS {
     complain_ (this: BackendHandlers, message: string): void;
     showHUD_ (message: string, isCopy?: boolean | undefined): void;
     getExcluded_ (this: void, url: string): string | null,
-    forceStatus (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
-    indexPorts: {
+    forceStatus_ (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
+    indexPorts_: {
       (this: void, tabId: number, frameId: number): Port | null;
       (this: void, tabId: GlobalConsts.VomnibarFakeTabId): Frames.Frames;
       (this: void, tabId: number): Frames.Frames | null;
@@ -426,9 +426,9 @@ interface BaseHelpDialog {
 interface Window {
   readonly MathParser?: any;
   readonly Commands?: {
-    hexCharRe: RegExpG & RegExpSearchable<1>;
-    onHex (this: void, _s: string, hex: string): string;
-    SetKeyRe (this: void, keyReSource: string): void;
+    hexCharRe_: RegExpG & RegExpSearchable<1>;
+    onHex_ (this: void, _s: string, hex: string): string;
+    SetKeyRe_ (this: void, keyReSource: string): void;
   };
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
@@ -437,39 +437,39 @@ interface Window {
 
   readonly Backend: BackendHandlersNS.BackendHandlers;
   readonly Utils: {
-    readonly spacesRe: RegExpG;
-    readonly convertToUrl: Urls.Converter;
-    lastUrlType: Urls.Type;
-    readonly createSearch: Search.Executor;
-    readonly evalVimiumUrl: Urls.Executor;
-    parseSearchEngines (this: any, str: string, map: Search.EngineMap): Search.Rule[];
-    require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
-    GC (): void;
+    readonly spacesRe_: RegExpG;
+    readonly convertToUrl_: Urls.Converter;
+    lastUrlType_: Urls.Type;
+    readonly createSearch_: Search.Executor;
+    readonly evalVimiumUrl_: Urls.Executor;
+    parseSearchEngines_ (this: any, str: string, map: Search.EngineMap): Search.Rule[];
+    require_<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
+    GC_ (): void;
   };
 }
 
   interface SettingsTmpl {
-    readonly cache: Readonly<SettingsNS.FullCache>;
-    readonly temp: {
-      readonly cmdErrors: number;
-      readonly shownHash: ((this: void) => string) | null;
+    readonly cache_: Readonly<SettingsNS.FullCache>;
+    readonly temp_: {
+      readonly cmdErrors_: number;
+      readonly shownHash_: ((this: void) => string) | null;
     };
-    readonly newTabs: SafeDict<Urls.NewTabType>,
-    broadcast<K extends keyof BgReq> (request: Req.bg<K>): void;
-    parseCustomCSS (css: string): SettingsNS.ParsedCustomCSS;
-    readonly payload: SettingsNS.FrontendSettingCache & SafeObject;
-    get<K extends keyof SettingsNS.SettingsWithDefaults> (key: K, forCache?: boolean
+    readonly newTabs_: SafeDict<Urls.NewTabType>,
+    broadcast_<K extends keyof BgReq> (request: Req.bg<K>): void;
+    parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS;
+    readonly payload_: SettingsNS.FrontendSettingCache & SafeObject;
+    get_<K extends keyof SettingsNS.SettingsWithDefaults> (key: K, forCache?: boolean
       ): SettingsNS.SettingsWithDefaults[K];
-    set<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void;
-    fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null;
-    readonly defaults: SettingsNS.SettingsWithDefaults & SafeObject;
-    readonly CONST: {
-      readonly GlobalCommands: string[];
-      readonly OptionsPage: string;
-      readonly VerCode: string;
-      readonly VerName: string;
-      readonly VimiumNewTab: string;
-      readonly Platform: string;
+    set_<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void;
+    fetchFile_ (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null;
+    readonly defaults_: SettingsNS.SettingsWithDefaults & SafeObject;
+    readonly CONST_: {
+      readonly GlobalCommands_: string[];
+      readonly OptionsPage_: string;
+      readonly VerCode_: string;
+      readonly VerName_: string;
+      readonly VimiumNewTab_: string;
+      readonly Platform_: string;
     };
   }
 

@@ -1,6 +1,6 @@
 declare var CommandsData_: CommandsData;
 var Commands = {
-  SetKeyRe (this: void, keyReSource: string): void {
+  SetKeyRe_ (this: void, keyReSource: string): void {
     Utils.keyRe_ = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;
   },
   getOptions_ (item: string[], start: number): CommandsNS.Options | null {
@@ -22,13 +22,13 @@ var Commands = {
     }
     return str ? opt : null;
   },
-  hexCharRe: <RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi,
+  hexCharRe_: <RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi,
   parseVal_ (val: string): any {
     try {
       return JSON.parse(val);
     } catch(e) {}
     if (!val.startsWith('"')) { return val; }
-    val = val.replace(this.hexCharRe, this.onHex_);
+    val = val.replace(this.hexCharRe_, this.onHex_);
     try {
       return JSON.parse(val);
     } catch(e) {}
@@ -104,7 +104,7 @@ var Commands = {
         key = splitLine[1];
         if (splitLine.length < 3) {
           console.log("Lacking command name and options in shortcut:", line);
-        } else if (Settings.CONST.GlobalCommands.indexOf(key)) {
+        } else if (Settings.CONST_.GlobalCommands_.indexOf(key)) {
           console.log("Shortcut %c" + key, "color:red", "doesn't exist!");
         } else if (key in cmdMap) {
           console.log("Shortcut %c" + key, "color:red", "has been configured");
@@ -127,12 +127,12 @@ var Commands = {
       ++errors;
     }
     CommandsData_.mapKeyRegistry_ = mk > 0 ? mkReg : null;
-    Settings.temp.cmdErrors = Settings.temp.cmdErrors > 0 ? ~errors : errors;
+    Settings.temp_.cmdErrors_ = Settings.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
   populateCommandKeys_: (function(this: void): void {
     const d = CommandsData_, ref = d.keyMap_ = Object.create<ValidKeyAction | ChildKeyMap>(null), keyRe = Utils.keyRe_,
-    d2 = Settings.temp, oldErrors = d2.cmdErrors;
-    if (oldErrors < 0) { d2.cmdErrors = ~oldErrors; }
+    d2 = Settings.temp_, oldErrors = d2.cmdErrors_;
+    if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
     ref['-'] = KeyAction.count;
     const C = Commands, R = d.keyToCommandRegistry_;
@@ -153,8 +153,8 @@ var Commands = {
       while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null) as ChildKeyMap; }
       ref2[arr[last]] = KeyAction.cmd;
     }
-    if (d2.cmdErrors) {
-      console.log("%cKey Mappings: %d errors found.", "background-color:#fffbe6", d2.cmdErrors);
+    if (d2.cmdErrors_) {
+      console.log("%cKey Mappings: %d errors found.", "background-color:#fffbe6", d2.cmdErrors_);
     } else if (oldErrors < 0) {
       console.log("The new key mappings have no errors");
     }
@@ -173,7 +173,7 @@ var Commands = {
   }),
   warnInactive_ (obj: ReadonlyChildKeyMap | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
-    ++Settings.temp.cmdErrors;
+    ++Settings.temp_.cmdErrors_;
   },
 
 defaultKeyMappings_: [
@@ -264,7 +264,7 @@ availableCommands_: {
     kBgCmd.openUrl,
     {
       reuse: ReuseType.reuse,
-      url: OnOther ? OnOther === BrowserType.Firefox ? "about:debugging#addons" : Settings.CONST.OptionsPage : "chrome://extensions/?id=$id",
+      url: OnOther ? OnOther === BrowserType.Firefox ? "about:debugging#addons" : Settings.CONST_.OptionsPage_ : "chrome://extensions/?id=$id",
       id_mask: "$id"
     }],
   blank: [ "Do nothing", 1, true, kBgCmd.blank ],
@@ -481,9 +481,9 @@ BE\\uFFC2-\\uFFC7\\uFFCA-\\uFFCF\\uFFD2-\\uFFD7\\uFFDA-\\uFFDC]"
 };
 
 if (Backend.onInit_) {
-  Commands.parseKeyMappings_(Settings.get("keyMappings"));
+  Commands.parseKeyMappings_(Settings.get_("keyMappings"));
   Commands.populateCommandKeys_();
-  if (!Settings.get("vimSync")) {
+  if (!Settings.get_("vimSync")) {
     Commands = null as never;
   }
   chrome.commands && chrome.commands.onCommand.addListener(Backend.ExecuteGlobal_);
@@ -502,7 +502,7 @@ if (Commands)
 Settings.updateHooks_.keyMappings = function(value: string): void {
   Commands.parseKeyMappings_(value);
   Commands.populateCommandKeys_();
-  return (this as typeof Settings).broadcast({
+  return (this as typeof Settings).broadcast_({
     N: kBgReq.keyMap,
     m: CommandsData_.mapKeyRegistry_,
     k: CommandsData_.keyMap_

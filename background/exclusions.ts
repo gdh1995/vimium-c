@@ -1,7 +1,7 @@
 import ExcCls = ExclusionsNS.ExclusionsCls;
 declare var Exclusions: ExcCls;
 
-if (Settings.get("vimSync")
+if (Settings.get_("vimSync")
     || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend.onInit_)
         && !Settings.updateHooks_.exclusionRules)) {
 var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
@@ -37,7 +37,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     }
     this.testers || (this.testers = Object.create<ExclusionsNS.Tester>(null));
     this.rules = this.format_(rules);
-    this.onlyFirstMatch_ = Settings.get("exclusionOnlyFirstMatch");
+    this.onlyFirstMatch_ = Settings.get_("exclusionOnlyFirstMatch");
     this.testers = null;
     Backend.getExcluded_ = this.GetPattern_;
     if (this._listening) { return; }
@@ -45,7 +45,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     onURLChange = this.getOnURLChange_();
     if (!onURLChange) { return; }
     chrome.webNavigation.onHistoryStateUpdated.addListener(onURLChange);
-    if (Settings.get("exclusionListenHash") && !this._listeningHash) {
+    if (Settings.get_("exclusionListenHash") && !this._listeningHash) {
       this._listeningHash = true;
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(onURLChange);
     }
@@ -66,7 +66,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
       : ChromeVer >= BrowserVer.MinWithFrameId ? Backend.checkIfEnabled_
       : function(details: chrome.webNavigation.WebNavigationCallbackDetails) {
-        const ref = Backend.indexPorts(details.tabId),
+        const ref = Backend.indexPorts_(details.tabId),
         msg: Req.bg<kBgReq.url> = { N: kBgReq.url, H: kFgReq.checkIfEnabled as kFgReq.checkIfEnabled };
         // force the tab's ports to reconnect and refresh their pass keys
         for (let i = ref ? ref.length : 0; 0 < --i; ) {
@@ -97,14 +97,14 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       p: null
     };
     if (old_is_empty) {
-      always_enabled || Settings.broadcast({
+      always_enabled || Settings.broadcast_({
         N: kBgReq.url,
         H: kFgReq.checkIfEnabled
       } as Req.fg<kFgReq.checkIfEnabled> & Req.bg<kBgReq.url>);
       return;
     }
-    const ref = Backend.indexPorts(),
-    needIcon = !!(Backend.IconBuffer_ && (Backend.IconBuffer_() || Settings.get("showActionIcon")));
+    const ref = Backend.indexPorts_(),
+    needIcon = !!(Backend.IconBuffer_ && (Backend.IconBuffer_() || Settings.get_("showActionIcon")));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (const tabId in ref) {
       const frames = ref[+tabId] as Frames.Frames, status0 = frames[0].s.s;
@@ -137,7 +137,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   }
 };
 
-Exclusions.setRules_(Settings.get("exclusionRules"));
+Exclusions.setRules_(Settings.get_("exclusionRules"));
 
 Settings.updateHooks_.exclusionRules = function(this: void, rules: ExclusionsNS.StoredRule[]): void {
   setTimeout(function() {

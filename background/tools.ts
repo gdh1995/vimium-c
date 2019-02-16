@@ -42,7 +42,7 @@ const VClipboard_ = {
     Utils.resetRe_();
     return copied;
   },
-  paste_: Settings.CONST.AllowClipboardRead_ ? OnOther === BrowserType.Firefox && navigator.clipboard
+  paste_: Settings.CONST_.AllowClipboardRead_ ? OnOther === BrowserType.Firefox && navigator.clipboard
   ? function(this: object): Promise<string> {
     type Clipboard = EnsureNonNull<Navigator["clipboard"]>;
     return (navigator.clipboard as Clipboard).readText().then((this as typeof VClipboard_).reformat_);
@@ -167,7 +167,7 @@ ContentSettings_ = {
     });
   },
   ensureIncognito_ (this: void, count: number, contentType: CSTypes, tab: Tab): void {
-    if (Settings.CONST.DisallowIncognito_) {
+    if (Settings.CONST_.DisallowIncognito_) {
       return Backend.complain_("change incognito settings");
     }
     const pattern = Utils.removeComposedScheme_(tab.url);
@@ -293,7 +293,7 @@ Marks_ = { // NOTE: all public members should be static
     if (request.scroll) {
       return Marks_._set(request as MarksNS.NewMark, port.s.a, tabId);
     }
-    (port = Backend.indexPorts(tabId, 0) || port) && port.postMessage({
+    (port = Backend.indexPorts_(tabId, 0) || port) && port.postMessage({
       N: kBgReq.createMark,
       markName: request.markName,
     });
@@ -321,10 +321,10 @@ Marks_ = { // NOTE: all public members should be static
     markInfo.markName = markName;
     markInfo.prefix = request.prefix !== false && markInfo.scroll[1] === 0 && markInfo.scroll[0] === 0 &&
         !!Utils.IsURLHttp_(markInfo.url);
-    if (tabId >= 0 && Backend.indexPorts(tabId)) {
+    if (tabId >= 0 && Backend.indexPorts_(tabId)) {
       chrome.tabs.get(tabId, Marks_.checkTab.bind(markInfo));
     } else {
-      return Backend.focus(markInfo);
+      return Backend.focus_(markInfo);
     }
   },
   checkTab (this: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
@@ -333,7 +333,7 @@ Marks_ = { // NOTE: all public members should be static
       Backend.gotoSession_({ sessionId: tab.id });
       return Marks_.scrollTab(this, tab);
     } else {
-      return Backend.focus(this);
+      return Backend.focus_(this);
     }
   },
   getLocationKey (markName: string, url: string | undefined): string {
@@ -341,7 +341,7 @@ Marks_ = { // NOTE: all public members should be static
       : "vimiumGlobalMark") + "|" + markName;
   },
   scrollTab (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
-    const tabId = tab.id, port = Backend.indexPorts(tabId, 0);
+    const tabId = tab.id, port = Backend.indexPorts_(tabId, 0);
     port && Marks_._goto(port, { markName: markInfo.markName, scroll: markInfo.scroll });
     if (markInfo.tabId !== tabId && markInfo.markName) {
       return Marks_._set(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
@@ -377,7 +377,7 @@ FindModeHistory_ = {
   listI_: null as string[] | null,
   timer_: 0,
   init_ (): void {
-    const str: string = Settings.get(this.key_);
+    const str: string = Settings.get_(this.key_);
     this.list_ = str ? str.split("\n") : [];
     this.init_ = null as never;
   },
@@ -393,7 +393,7 @@ FindModeHistory_ = {
       return a.refreshIn_(query, list, true);
     }
     const str = a.refreshIn_(query, list);
-    str && Settings.set(a.key_, str);
+    str && Settings.set_(a.key_, str);
     if (a.listI_) { return a.refreshIn_(query, a.listI_, true); }
   } as {
     (incognito: boolean, query: string, index?: undefined): void;
@@ -422,7 +422,7 @@ FindModeHistory_ = {
     }
     this.init_ = null as never;
     this.list_ = [];
-    Settings.set(this.key_, "");
+    Settings.set_(this.key_, "");
   }
 },
 IncognitoWatcher_ = {
@@ -441,7 +441,7 @@ IncognitoWatcher_ = {
   TestIncognitoWnd_ (this: void): void {
     IncognitoWatcher_.timer_ = 0;
     if (ChromeVer >= BrowserVer.MinNoUnmatchedIncognito) {
-      let left = false, arr = Backend.indexPorts();
+      let left = false, arr = Backend.indexPorts_();
       for (const i in arr) {
         if ((arr[+i] as Frames.Frames)[0].s.a) { left = true; break; }
       }
@@ -521,5 +521,5 @@ setTimeout(function() {
 (Backend.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
 
 chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
-  Settings.CONST.DisallowIncognito_ = isAllowedAccess === false;
+  Settings.CONST_.DisallowIncognito_ = isAllowedAccess === false;
 });

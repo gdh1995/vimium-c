@@ -460,7 +460,7 @@ historyEngine = {
   },
   quickSearch_ (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
     const onlyUseTime = queryTerms.length == 1 && (queryTerms[0][0] === "." ? Utils.commonFileExtRe_.test(queryTerms[0]) :
-      (Utils.convertToUrl(queryTerms[0], null, Urls.WorkType.KeepAll), Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl)
+      (Utils.convertToUrl_(queryTerms[0], null, Urls.WorkType.KeepAll), Utils.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
     ),
     results = [0.0, 0.0], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2_,
     parts0 = RegExpCache.parts_[0], getRele = ComputeRelevancy;
@@ -733,7 +733,7 @@ searchEngine = {
       showThoseInBlacklist = showThoseInBlacklist && BlacklistFilter.IsExpectingHidden_([keyword]);
       return Completers.next_([sug]);
     } else {
-      pattern = Settings.cache.searchEngineMap[keyword];
+      pattern = Settings.cache_.searchEngineMap[keyword];
     }
     if (failIfNull === true) {
       if (!pattern) { return true; }
@@ -760,10 +760,10 @@ searchEngine = {
     }
     showThoseInBlacklist = showThoseInBlacklist && BlacklistFilter.IsExpectingHidden_([keyword]);
 
-    let { url, indexes } = Utils.createSearch(q, pattern.url, pattern.blank, []), text = url;
+    let { url, indexes } = Utils.createSearch_(q, pattern.url, pattern.blank, []), text = url;
     if (keyword === "~") {}
     else if (url.startsWith("vimium://")) {
-      const ret = Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
+      const ret = Utils.evalVimiumUrl_(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
       if (ret instanceof Promise) {
         promise = ret;
       } else if (ret instanceof Array) {
@@ -781,7 +781,7 @@ searchEngine = {
         }
       }
     } else {
-      url = Utils.convertToUrl(url, null, Urls.WorkType.KeepAll);
+      url = Utils.convertToUrl_(url, null, Urls.WorkType.KeepAll);
     }
     sug = new Suggestion("search", url, text
       , pattern.name + ": " + q.join(" "), this.compute9_) as SearchSuggestion;
@@ -820,7 +820,7 @@ searchEngine = {
   searchKeywordMaxLength_: 0,
   timer_: 0,
   calcNextMatchType_ (): MatchType {
-    const key = queryTerms[0], arr = Settings.cache.searchKeywords;
+    const key = queryTerms[0], arr = Settings.cache_.searchKeywords;
     if (!arr) {
       this.timer_ = this.timer_ || setTimeout(this.BuildSearchKeywords_, 67);
       return MatchType.searching_;
@@ -849,8 +849,8 @@ searchEngine = {
     return str;
   },
   makeUrlSuggestion_ (keyword: string, text?: string): SearchSuggestion {
-    const url = Utils.convertToUrl(keyword, null, Urls.WorkType.KeepAll),
-    isSearch = Utils.lastUrlType === Urls.Type.Search,
+    const url = Utils.convertToUrl_(keyword, null, Urls.WorkType.KeepAll),
+    isSearch = Utils.lastUrlType_ === Urls.Type.Search,
     sug = new Suggestion("search", url, text || Utils.DecodeURLPart_(shortenUrl(url))
       , "", this.compute9_) as SearchSuggestion;
     sug.textSplit = Utils.escapeText_(sug.text);
@@ -859,13 +859,13 @@ searchEngine = {
     return sug;
   },
   BuildSearchKeywords_ (): void {
-    let arr = Object.keys(Settings.cache.searchEngineMap), max = 0;
+    let arr = Object.keys(Settings.cache_.searchEngineMap), max = 0;
     arr.sort();
     for (const i of arr) {
       const j = i.length;
       max < j && (max = j);
     }
-    Settings.set("searchKeywords", arr);
+    Settings.set_("searchKeywords", arr);
     searchEngine.searchKeywordMaxLength_ = max;
     searchEngine.timer_ = 0;
   },
@@ -921,7 +921,7 @@ Completers = {
     const cb = func.bind(that, query);
     if (inNormal === null) {
       inNormal = TabRecency_.incognito_ !== IncognitoType.mayFalse ? TabRecency_.incognito_ !== IncognitoType.true
-        : ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito_
+        : ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST_.DisallowIncognito_
           || null;
     }
     if (inNormal !== null) {
@@ -1450,7 +1450,7 @@ knownCs: CompletersMap & SafeObject = {
     init_ (): XMLHttpRequest | null {
       this._escapeHash = ChromeVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL;
       Settings.updateHooks_.localeEncoding = Decoder.onUpdate_.bind(Decoder);
-      Decoder.onUpdate_(Settings.get("localeEncoding"));
+      Decoder.onUpdate_(Settings.get_("localeEncoding"));
       this.init_ = this.xhr_;
       return this.xhr_();
     }
@@ -1461,7 +1461,7 @@ knownCs: CompletersMap & SafeObject = {
     filter_(this: void, query: string, options: CompletersNS.FullOptions
         , callback: CompletersNS.Callback): void {
       autoSelect = false;
-      rawQuery = (query = query.trim()) && query.replace(Utils.spacesRe, " ");
+      rawQuery = (query = query.trim()) && query.replace(Utils.spacesRe_, " ");
       Completers.getOffset_();
       query = rawQuery;
       queryTerms = query ? (query.length > Consts.MaxCharsInQuery ? query.substring(0, Consts.MaxCharsInQuery).trimRight() : query).split(" ") : [];

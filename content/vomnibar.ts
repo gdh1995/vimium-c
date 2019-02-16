@@ -33,7 +33,7 @@ var VOmni = {
     const a = VOmni;
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
-      return VHUD.tip("Sorry, Vomnibar page seems to fail in loading.", 2000);
+      return VHUD.tip_("Sorry, Vomnibar page seems to fail in loading.", 2000);
     }
     if (!options || !options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
@@ -189,11 +189,11 @@ var VOmni = {
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {
-      UI.css("");
+      UI.css_("");
     }
-    UI.add(this.box_ = el, AdjustType.AdjustButNotShow, VHUD.box_);
+    UI.add_(this.box_ = el, AdjustType.AdjustButNotShow, VHUD.box_);
     if (CSS) {
-      UI.css(CSS);
+      UI.css_(CSS);
     }
     type !== VomnibarNS.PageType.inner && setTimeout(function(i): void { loaded || i || VOmni.onReset_ || reload(); }, 2000);
   },
@@ -209,7 +209,7 @@ var VOmni = {
     this.options_ = null;
     if (this.onReset_) { return this.onReset_(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
-    return VPort.post({ H: kFgReq.vomnibar, redo: true, inner: true });
+    return VPort.post_({ H: kFgReq.vomnibar, redo: true, inner: true });
   },
   isABlank_ (): boolean {
     try {
@@ -242,7 +242,7 @@ var VOmni = {
     case "evalJS": VPort.evalIfOK_((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
     case "unload": return VOmni ? this.reset_(data.N === "broken") : undefined;
-    case "hud": VHUD.tip((data as Req["hud"]).text); return;
+    case "hud": VHUD.tip_((data as Req["hud"]).text); return;
     default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.N);
     }
   },
@@ -266,7 +266,7 @@ var VOmni = {
     return VUtils.push_(this.onKeydown_, this);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
-    if (VEvent.lock()) { return HandlerResult.Nothing; }
+    if (VEvent.lock_()) { return HandlerResult.Nothing; }
     if (VKeyboard.isEscape_(event)) { this.hide_(); return HandlerResult.Prevent; }
     const key = event.keyCode - VKeyCodes.f1;
     if (key === 0 || key === 1) {

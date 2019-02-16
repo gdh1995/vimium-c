@@ -27,8 +27,8 @@ let _a = {
   quoteRe_: <RegExpG & RegExpSearchable<0>> /"/g,
   normalizeOptions_ (str: string, value: string, s2: string | undefined, tail: string): string {
     if (s2) {
-      s2 = s2.replace((BG_.Commands as NonNullable<Window["Commands"]>).hexCharRe
-        , (BG_.Commands as NonNullable<Window["Commands"]>).onHex);
+      s2 = s2.replace((BG_.Commands as NonNullable<Window["Commands"]>).hexCharRe_
+        , (BG_.Commands as NonNullable<Window["Commands"]>).onHex_);
       value = `"${s2}"`;
     }
     try {
@@ -70,7 +70,7 @@ let _a = {
     if (!string) { return string; }
     this.init_ && this.init_();
     if (!this.isKeyReInstalled_) {
-      (BG_.Commands as NonNullable<Window["Commands"]>).SetKeyRe(KeyRe_.source);
+      (BG_.Commands as NonNullable<Window["Commands"]>).SetKeyRe_(KeyRe_.source);
       this.isKeyReInstalled_ = true;
     }
     string = "\n" + string.replace(this.wrapLineRe_, '\\\r');
@@ -83,30 +83,30 @@ let _a = {
 Option_.all_.keyMappings.checker_ = _a;
 _a = null as never;
 
-bgSettings_.CONST.VimiumNewTab && (Option_.all_.newTabUrl.checker_ = {
+bgSettings_.CONST_.VimiumNewTab_ && (Option_.all_.newTabUrl.checker_ = {
   check_ (value: string): string {
     const url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(value)
-        ? chrome.runtime.getURL(value) : BG_.Utils.convertToUrl(value.toLowerCase());
-    return url.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs) ? bgSettings_.defaults.newTabUrl : value;
+        ? chrome.runtime.getURL(value) : BG_.Utils.convertToUrl_(value.toLowerCase());
+    return url.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_) ? bgSettings_.defaults_.newTabUrl : value;
   }
 });
 
 Option_.all_.searchUrl.checker_ = {
   check_ (str: string): string {
     const map = Object.create<Search.RawEngine>(null);
-    BG_.Utils.parseSearchEngines("k:" + str, map);
+    BG_.Utils.parseSearchEngines_("k:" + str, map);
     const obj = map.k;
     if (obj == null) {
-      return bgSettings_.get("searchUrl", true);
+      return bgSettings_.get_("searchUrl", true);
     }
-    let str2 = BG_.Utils.convertToUrl(obj.url, null, Urls.WorkType.KeepAll);
-    if (BG_.Utils.lastUrlType > Urls.Type.MaxOfInputIsPlainUrl) {
+    let str2 = BG_.Utils.convertToUrl_(obj.url, null, Urls.WorkType.KeepAll);
+    if (BG_.Utils.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
       const err = `The value "${obj.url}" is not a valid plain URL.`;
       console.log("searchUrl checker:", err);
       Option_.all_.searchUrl.showError_(err);
-      return bgSettings_.get("searchUrl", true);
+      return bgSettings_.get_("searchUrl", true);
     }
-    str2 = str2.replace(BG_.Utils.spacesRe, "%20");
+    str2 = str2.replace(BG_.Utils.spacesRe_, "%20");
     if (obj.name && obj.name !== "k") { str2 += " " + obj.name; }
     Option_.all_.searchUrl.showError_("");
     return str2;
@@ -143,7 +143,7 @@ Please back up your settings using the "Export Settings" button
 Option_.all_.keyboard.checker_ = {
   check_ (data: AllowedOptions["keyboard"]): AllowedOptions["keyboard"] {
     if (data == null || data.length !== 2 || !(data[0] > 0 && data[0] < 4000) || !(data[1] > 0 && data[1] < 1000)) {
-      return bgSettings_.defaults.keyboard;
+      return bgSettings_.defaults_.keyboard;
     }
     return [+data[0], data[1]];
   }
@@ -161,7 +161,7 @@ Option_.all_.keyboard.checker_ = {
   if (info === "keyMappings") { return ReloadCommands(); }
   Option_.all_.keyMappings.element_.addEventListener("input", ReloadCommands);
   function ReloadCommands(this: HTMLElement | void, event?: Event): void {
-    BG_.Commands || BG_.Utils.require("Commands");
+    BG_.Commands || BG_.Utils.require_("Commands");
     if (!event) { return; }
     (this as HTMLElement).removeEventListener("input", ReloadCommands);
   }

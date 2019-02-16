@@ -44,10 +44,10 @@ var VVisual = {
     sel: Selection = a.selection_ = theSelected[0],
     type: SelType = a.selType_(), mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
     a.scope_ = theSelected[1];
-    F.css = options.findCSS || F.css;
+    F.css_ = options.findCSS || F.css_;
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
     if (mode !== VisualModeNS.Mode.Caret) {
-      if (!VEvent.lock() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
+      if (!VEvent.lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
         VDom.getZoom_(1);
         VDom.prepareCrop_();
@@ -73,7 +73,7 @@ var VVisual = {
     a.alterMethod_ = toCaret ? "move" : "extend";
     if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_(theSelected[1])) {
       a.deactivate_();
-      return VHUD.tip("Create a selection before entering visual mode.");
+      return VHUD.tip_("Create a selection before entering visual mode.");
     }
     if (toCaret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
@@ -96,7 +96,7 @@ var VVisual = {
     }
     this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
     VFind.clean_(FindNS.Action.ExitNoFocus);
-    const el = VEvent.lock();
+    const el = VEvent.lock_();
     oldDiType !== VisualModeNS.DiType.TextBox &&
     el && el.blur && el.blur();
     VDom.UI.toggleSelectStyle_(0);
@@ -129,9 +129,9 @@ var VVisual = {
       this.currentCount_ || this.currentSeconds_ ? this.resetKeys_() : this.deactivate_(1);
       return HandlerResult.Prevent;
     }
-    const ch = VKeyboard.char(event);
+    const ch = VKeyboard.char_(event);
     if (!ch) { this.resetKeys_(); return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress; }
-    let key = VKeyboard.key(event, ch), obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
+    let key = VKeyboard.key_(event, ch), obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
     key = VEvent.mapKey_(key);
     if (obj = this.currentSeconds_) {
       obj = obj[key];
@@ -183,7 +183,7 @@ var VVisual = {
       movement.selection_ = getSelection();
       if (!movement.selection_.rangeCount) {
         movement.deactivate_();
-        return VHUD.tip("Selection is lost.");
+        return VHUD.tip_("Selection is lost.");
       }
     }
     mode === VisualModeNS.Mode.Caret && movement.collapseSelectionTo_(0);
@@ -301,13 +301,13 @@ var VVisual = {
   yank_ (action?: true | ReuseType.current | ReuseType.newFg | null): void {
     const str = "" + this.selection_;
     if (action === true) {
-      this.prompt_(VHUD.copied(str, "", true), 2000);
+      this.prompt_(VHUD.copied_(str, "", true), 2000);
       action = null;
     } else {
       this.deactivate_();
-      action != null || VHUD.copied(str);
+      action != null || VHUD.copied_(str);
     }
-    VPort.post(action != null ? { H: kFgReq.openUrl, url: str, reuse: action }
+    VPort.post_(action != null ? { H: kFgReq.openUrl, url: str, reuse: action }
         : { H: kFgReq.copy, data: str });
   },
   flashSelection_(): void {
@@ -346,7 +346,7 @@ var VVisual = {
     const a = this, diType = a.diType_;
     a.oldLen_ = 0;
     if (diType === VisualModeNS.DiType.TextBox) {
-      const el = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement;
+      const el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement;
       return el.value.charAt(a.TextOffset_(el, a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== "backward"));
     }
     const sel = a.selection_;
@@ -424,7 +424,7 @@ var VVisual = {
     }
     const sel = a.selection_, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
     if (a.diType_ === VisualModeNS.DiType.TextBox) {
-      const el = VEvent.lock() as HTMLInputElement | HTMLTextAreaElement;
+      const el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement;
       el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), newDi ? "forward" : "backward");
       // Note(gdh1995): may trigger onselect?
     } else if (a.diType_ === VisualModeNS.DiType.Unknown) {
@@ -470,7 +470,7 @@ var VVisual = {
       return a.di_ = num2 > 0 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
     }
     // editable text elements
-    const lock = VEvent.lock();
+    const lock = VEvent.lock_();
     if (lock && lock.parentElement === anchorNode) {
       num2 = oldDiType === VisualModeNS.DiType.TextBox ? 1 : 0;
       type TextModeElement = HTMLInputElement | HTMLTextAreaElement;

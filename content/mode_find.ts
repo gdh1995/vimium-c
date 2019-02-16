@@ -23,11 +23,11 @@ var VFind = {
   styleOut_: null as never as HTMLStyleElement,
   A0Re_: <RegExpG> /\xa0/g,
   tailRe_: <RegExpOne> /\n$/,
-  css: null as never as FindCSS,
+  css_: null as never as FindCSS,
   styleIframe_: null as HTMLStyleElement | null,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
     const a = VFind;
-    a.css = options.findCSS || a.css;
+    a.css_ = options.findCSS || a.css_;
     if (!VDom.isHTML_()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
     ui = VDom.UI, first = !ui.box_;
@@ -62,7 +62,7 @@ var VFind = {
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
     ui.toggleSelectStyle_(1);
-    ui.add(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box_);
+    ui.add_(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box_);
     first && ui.adjust_();
     a.isActive_ = true;
   },
@@ -107,7 +107,7 @@ var VFind = {
     const el2 = a.countEl_ = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
-    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_ = VDom.UI.createStyle_(a.css[2], doc.createElement("style")));
+    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_ = VDom.UI.createStyle_(a.css_[2], doc.createElement("style")));
     docEl.insertBefore(doc.createTextNode("/"), el);
     docEl.appendChild(el2);
     function cb(): void {
@@ -142,9 +142,9 @@ var VFind = {
   },
   init_ (adjust: AdjustType): void {
     const ref = this.postMode_, UI = VDom.UI,
-    css = this.css[0], sin = this.styleIn_ = UI.createStyle_(css);
+    css = this.css_[0], sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
-    UI.add(sin, adjust, true);
+    UI.add_(sin, adjust, true);
     sin.remove();
     this.browser_ = VSettings.cache.browser;
     this.styleOut_ = UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
@@ -152,7 +152,7 @@ var VFind = {
   },
   findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
     if (!query) {
-      return VHUD.tip("No old queries to find.");
+      return VHUD.tip_("No old queries to find.");
     }
     if (query !== this.query_) {
       this.updateQuery_(query);
@@ -171,7 +171,7 @@ var VFind = {
       this.ToggleStyle_(1);
       if (!this.isActive_) {
         VDom.UI.toggleSelectStyle_(0);
-        VHUD.tip(`No matches for '${this.query_}'`);
+        VHUD.tip_(`No matches for '${this.query_}'`);
       }
       return;
     }
@@ -282,7 +282,7 @@ var VFind = {
     }
     VDom.UI.toggleSelectStyle_(0);
     if (i < FindNS.Action.MinComplicatedExit || !this.hasResults_) { return; }
-    if (!el || el !== VEvent.lock()) {
+    if (!el || el !== VEvent.lock_()) {
       el = this.focusFoundLinkIfAny_();
       if (el && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)) {
         if (VDom.getEditableType_(el2) >= EditableType.Editbox && el.contains(el2)) {
@@ -324,7 +324,7 @@ var VFind = {
     return _this.OnInput_();
   },
   saveQuery_ (): string | void | 1 {
-    return this.query_ && VPort.post({
+    return this.query_ && VPort.post_({
       H: kFgReq.findQuery,
       query: this.input_.innerText.replace(this.A0Re_, " ").replace(this.tailRe_, "")
     });
@@ -332,7 +332,7 @@ var VFind = {
   postMode_: {
     lock_: null as Element | null,
     activate_: function() {
-      const el = VEvent.lock(), Exit = this.exit_ as (this: void, a?: boolean | Event) => void;
+      const el = VEvent.lock_(), Exit = this.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
       VUtils.push_(this.onKeydown_, this);
       if (el === this.lock_) { return; }
@@ -494,7 +494,7 @@ var VFind = {
       }
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel_, 0);
-    (el = VEvent.lock()) && !VDom.isSelected_() && el.blur && el.blur();
+    (el = VEvent.lock_()) && !VDom.isSelected_() && el.blur && el.blur();
     focusHUD && this.input_.focus();
     this.hasResults_ = found;
   },
@@ -526,7 +526,7 @@ var VFind = {
     }
     if (sout.parentNode !== UI.box_) {
       (UI.box_ as HTMLDivElement).appendChild(sout);
-      sin === sout || UI.add(sin, AdjustType.NotAdjust, true);
+      sin === sout || UI.add_(sin, AdjustType.NotAdjust, true);
     }
     sout.sheet && (sout.sheet.disabled = disable);
     sin.sheet && (sin.sheet.disabled = disable);

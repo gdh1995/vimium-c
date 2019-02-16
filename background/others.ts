@@ -13,7 +13,7 @@ setTimeout(function() {
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
-  Utils.GC();
+  Utils.GC_();
   function storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; }
   let to_update: SettingsToUpdate | null = null,
   doNotSync: PartialTypedSafeEnum<SettingsToSync> = Object.setPrototypeOf({
@@ -29,8 +29,8 @@ setTimeout(function() {
       }
     }
     function storeAndPropagate (key: string, value: any): void {
-      if (!(key in Settings.defaults) || key in Settings.nonPersistent_ || !shouldSyncKey(key)) { return; }
-      const defaultVal = Settings.defaults[key];
+      if (!(key in Settings.defaults_) || key in Settings.nonPersistent_ || !shouldSyncKey(key)) { return; }
+      const defaultVal = Settings.defaults_[key];
       if (value == null) {
         if (localStorage.getItem(key) != null) {
           console.log(new Date().toLocaleString(), "sync.local: reset", key);
@@ -38,7 +38,7 @@ setTimeout(function() {
         }
         return;
       }
-      let curVal = Settings.get(key), curJSON: string, jsonVal: string, notJSON: boolean;
+      let curVal = Settings.get_(key), curJSON: string, jsonVal: string, notJSON: boolean;
       if (notJSON = typeof defaultVal === "string") {
         jsonVal = value as string;
         curJSON = curVal as string;
@@ -63,16 +63,16 @@ setTimeout(function() {
       if (!wanted) {
         return setAndPost(key, value);
       }
-      Utils.require(wanted).then(() => setAndPost(key, value));
-      Utils.GC();
+      Utils.require_(wanted).then(() => setAndPost(key, value));
+      Utils.GC_();
     }
     function setAndPost(key: keyof SettingsWithDefaults, value: any): void {
-      Settings.set(key, value);
-      if (key in Settings.payload) {
+      Settings.set_(key, value);
+      if (key in Settings.payload_) {
         const delta: BgReq[kBgReq.settingsUpdate]["delta"] = Object.create(null),
         req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, delta };
-        delta[key as keyof SettingsNS.FrontendSettings] = Settings.get(key as keyof SettingsNS.FrontendSettings);
-        Settings.broadcast(req);
+        delta[key as keyof SettingsNS.FrontendSettings] = Settings.get_(key as keyof SettingsNS.FrontendSettings);
+        Settings.broadcast_(req);
       }
     }
   function TrySet<K extends keyof SettingsToSync> (this: void, key: K, value: SettingsToSync[K] | null) {
@@ -118,9 +118,9 @@ setTimeout(function() {
       Settings.sync_ = TrySet;
     }
   };
-  const sync1 = Settings.get("vimSync");
+  const sync1 = Settings.get_("vimSync");
   if (sync1 === false || (!sync1 && (localStorage.length > 5
-                                    || Settings.get("newTabUrl") !== Settings.CONST.NewTabForNewUser_))) {
+                                    || Settings.get_("newTabUrl") !== Settings.CONST_.NewTabForNewUser_))) {
     return;
   }
   if (!storage()) { return; }
@@ -133,7 +133,7 @@ setTimeout(function() {
       return err;
     }
     Object.setPrototypeOf(items, null);
-    const vimSync = items.vimSync || Settings.get("vimSync");
+    const vimSync = items.vimSync || Settings.get_("vimSync");
     if (!vimSync) {
       return; // no settings have been modified
     } else if (!items.vimSync) {
@@ -147,7 +147,7 @@ setTimeout(function() {
       const key = localStorage.key(i) as string;
       // although storeAndPropagate indeed checks @shouldSyncKey(key)
       // here check it for easier debugging
-      if (!(key in items) && key in Settings.defaults && shouldSyncKey(key)) {
+      if (!(key in items) && key in Settings.defaults_ && shouldSyncKey(key)) {
         toReset.push(key);
       }
     }
@@ -201,7 +201,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
     if (enabled === undefined) { return imageData; }
     if (!enabled) {
       imageData && setTimeout(function() {
-        if (Settings.get("showActionIcon")) { return; }
+        if (Settings.get_("showActionIcon")) { return; }
         imageData = tabIds = null;
       }, 200);
       return;
@@ -371,7 +371,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     return;
   }
   function onInput(this: void, key: string, suggest: OmniboxCallback): void {
-    key = key.trim().replace(Utils.spacesRe, " ");
+    key = key.trim().replace(Utils.spacesRe_, " ");
     if (lastSuggest) {
       let same = key === lastSuggest.key;
       lastSuggest.suggest = same ? suggest : null;
@@ -413,7 +413,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       timer && clearTimeout(timer);
       return onTimer();
     }
-    text = text.trim().replace(Utils.spacesRe, " ");
+    text = text.trim().replace(Utils.spacesRe_, " ");
     if (last === null && text) {
       // need a re-computation
       // * may has been cleaned, or
@@ -429,7 +429,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   }
   function open(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition, sessionId?: string | number | null): void {
     if (!text) {
-      text = Utils.convertToUrl("");
+      text = Utils.convertToUrl_("");
     } else if (text[0] === ":" && (<RegExpOne>/^:([1-9]|1[0-2]) /).test(text)) {
       text = text.substring(text[2] === " " ? 3 : 4);
     }
@@ -484,7 +484,7 @@ setTimeout(function() {
     status: "complete"
   }, function(tabs) {
     const t = chrome.tabs, callback = Utils.runtimeError_,
-    offset = location.origin.length + 1, js = Settings.CONST.ContentScripts_;
+    offset = location.origin.length + 1, js = Settings.CONST_.ContentScripts_;
     for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
       let url = tabs[_i].url;
       if (url.startsWith(BrowserProtocol) || url.indexOf("://") === -1) { continue; }
@@ -501,20 +501,20 @@ setTimeout(function() {
   console.log("%cVimium C%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
     , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");
 
-  if (Settings.CONST.DisallowIncognito_) {
+  if (Settings.CONST_.DisallowIncognito_) {
     console.log("Sorry, but some commands of Vimium C require the permission to run in incognito mode.");
   }
 
   if (!reason) { return; }
 
-  if (parseFloat(Settings.CONST.VerCode) <= parseFloat(reason)) { return; }
+  if (parseFloat(Settings.CONST_.VerCode_) <= parseFloat(reason)) { return; }
 
   reason = "vimium-c_upgrade-notification";
   chrome.notifications && chrome.notifications.create(reason, {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
-    message: "Vimium C has been upgraded to version " + Settings.CONST.VerName
+    message: "Vimium C has been upgraded to version " + Settings.CONST_.VerName_
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId): void {
@@ -523,7 +523,7 @@ setTimeout(function() {
     reason = notificationId || reason;
     chrome.notifications.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }
-      return Backend.focus({
+      return Backend.focus_({
         url: "https://github.com/gdh1995/vimium-c#release-notes"
       });
     });
@@ -531,15 +531,15 @@ setTimeout(function() {
 }, 500);
 });
 
-Utils.GC = function(): void {
+Utils.GC_ = function(): void {
   let timestamp = 0, timeout = 0;
-  Utils.GC = function(): void {
+  Utils.GC_ = function(): void {
     if (!(Commands || Exclusions)) { return; }
     timestamp = Date.now();
     if (timeout > 0) { return; }
     timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
   };
-  return Utils.GC();
+  return Utils.GC_();
   function later(): void {
     const last = Date.now() - timestamp;
     if (last < GlobalConsts.TimeoutToReleaseBackendModules && last > -5000) {

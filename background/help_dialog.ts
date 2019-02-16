@@ -5,12 +5,12 @@ var HelpDialog = {
   templateEl_: null as HTMLTemplateElement | null,
   render_: (function(this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
-      if (Settings.CONST.StyleCacheId_.split(',', 2)[1].indexOf("s") < 0) {
-        let template = Settings.cache.helpDialog as string, styleEnd = template.indexOf("</style>");
+      if (Settings.CONST_.StyleCacheId_.split(',', 2)[1].indexOf("s") < 0) {
+        let template = Settings.cache_.helpDialog as string, styleEnd = template.indexOf("</style>");
         template = template.substring(0, styleEnd).replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
           ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv"
           ) + template.substring(styleEnd);
-        Settings.set("helpDialog", template);
+        Settings.set_("helpDialog", template);
       }
       HelpDialog.inited_ = true;
     }
@@ -30,13 +30,13 @@ var HelpDialog = {
       (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
     }
     const result = Object.setPrototypeOf({
-      version: Settings.CONST.VerName,
+      version: Settings.CONST_.VerName_,
       styles: HelpDialog.styles_,
       title: request.title || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;
-    const html = (<string>Settings.cache.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
+    const html = (<string>Settings.cache_.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
       let s = result[group];
       return s != null ? s
         : HelpDialog.groupHtml_(group, commandToKeys, hideUnbound, showNames);

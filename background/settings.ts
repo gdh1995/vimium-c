@@ -1,34 +1,34 @@
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 
 var Settings = {
-  cache: Object.create(null) as Readonly<SettingsNS.FullCache>,
-  temp: {
-    cmdErrors: 0,
-    shownHash: null
-  } as Writeable<SettingsTmpl["temp"]>,
-  payload: {
+  cache_: Object.create(null) as Readonly<SettingsNS.FullCache>,
+  temp_: {
+    cmdErrors_: 0,
+    shownHash_: null
+  } as Writeable<SettingsTmpl["temp_"]>,
+  payload_: {
     __proto__: null as never,
     browser: OnOther,
     browserVer: ChromeVer,
     onMac: false
   } as SettingsNS.FrontendSettingCache & SafeObject,
-  newTabs: Object.create(null) as SafeDict<Urls.NewTabType>,
+  newTabs_: Object.create(null) as SafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
-  get<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
-    if (key in this.cache) {
-      return (this.cache as SettingsWithDefaults)[key];
+  get_<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
+    if (key in this.cache_) {
+      return (this.cache_ as SettingsWithDefaults)[key];
     }
-    const initial = this.defaults[key], str = localStorage.getItem(key);
+    const initial = this.defaults_[key], str = localStorage.getItem(key);
     const value = str == null ? initial : typeof initial === "string" ? str
         : initial === false || initial === true ? str === "true"
         : JSON.parse<typeof initial>(str);
-    forCache && ((this.cache as SettingsNS.FullCache)[key] = value);
+    forCache && ((this.cache_ as SettingsNS.FullCache)[key] = value);
     return value;
   },
-  set<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void {
-    (this.cache as SettingsNS.FullCache)[key] = value;
+  set_<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void {
+    (this.cache_ as SettingsNS.FullCache)[key] = value;
     if (!(key in this.nonPersistent_)) {
-      const initial = this.defaults[key as keyof SettingsNS.PersistentSettings];
+      const initial = this.defaults_[key as keyof SettingsNS.PersistentSettings];
       if (value === initial) {
         localStorage.removeItem(key);
         this.sync_(key as keyof SettingsNS.PersistentSettings, null);
@@ -37,8 +37,8 @@ var Settings = {
         this.sync_(key as keyof SettingsNS.PersistentSettings, value as
           FullSettings[keyof SettingsNS.PersistentSettings]);
       }
-      if (key in this.payload) {
-        this.payload[key as keyof SettingsNS.FrontendSettings] = value as FullSettings[keyof SettingsNS.FrontendSettings];
+      if (key in this.payload_) {
+        this.payload_[key as keyof SettingsNS.FrontendSettings] = value as FullSettings[keyof SettingsNS.FrontendSettings];
       }
     }
     let ref: SettingsNS.UpdateHook<K> | undefined;
@@ -48,15 +48,15 @@ var Settings = {
   },
   postUpdate_: function<K extends keyof SettingsWithDefaults> (this: SettingsTmpl, key: K, value?: FullSettings[K]): void {
     return ((this as typeof Settings).updateHooks_[key] as SettingsNS.UpdateHook<K>).call(this,
-      value !== undefined ? value : this.get(key), key);
+      value !== undefined ? value : this.get_(key), key);
   } as {
     <K extends keyof SettingsNS.NullableUpdateHookMap>(key: K, value?: FullSettings[K] | null): void;
     <K extends keyof SettingsNS.SpecialUpdateHookMap>(key: K, value: null): void;
     <K extends keyof SettingsNS.EnsuredUpdateHookMaps>(key: K, value?: FullSettings[K]): void;
     <K extends keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
   },
-  broadcast<K extends keyof BgReq> (request: Req.bg<K>): void {
-    const ref = Backend.indexPorts();
+  broadcast_<K extends keyof BgReq> (request: Req.bg<K>): void {
+    const ref = Backend.indexPorts_();
     for (const tabId in ref) {
       const frames = ref[+tabId] as Frames.Frames;
       for (let i = frames.length; 0 < --i; ) {
@@ -65,13 +65,13 @@ var Settings = {
     }
   },
   buildPayload_ (): void {
-    const ref = (this as typeof Settings).valuesToLoad_, ref2 = this.payload;
+    const ref = (this as typeof Settings).valuesToLoad_, ref2 = this.payload_;
     for (let _i = ref.length; 0 <= --_i;) {
       let key = ref[_i];
-      ref2[key] = this.get(key);
+      ref2[key] = this.get_(key);
     }
   },
-  parseCustomCSS (css: string): SettingsNS.ParsedCustomCSS {
+  parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
     const arr = css ? css.split(<RegExpG & RegExpSearchable<1>>/\/\*\s?#!?([A-Za-z]+)\s?\*\//g) : [""];
     const map: SettingsNS.ParsedCustomCSS = { ui: arr[0].trim() };
     for (let i = 1; i < arr.length; i += 2) {
@@ -97,32 +97,32 @@ var Settings = {
     },
     newTabUrl (this: SettingsTmpl, url): void {
       url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(url)
-        ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
-      return this.set('newTabUrl_f', url);
+        ? chrome.runtime.getURL(url) : Utils.convertToUrl_(url);
+      return this.set_('newTabUrl_f', url);
     },
     searchEngines (): void {
-      return this.set("searchEngineMap", Object.create<Search.Engine>(null));
+      return this.set_("searchEngineMap", Object.create<Search.Engine>(null));
     },
     searchEngineMap (value: FullSettings["searchEngineMap"]): void {
-      "searchKeywords" in this.cache && this.set("searchKeywords", null);
+      "searchKeywords" in this.cache_ && this.set_("searchKeywords", null);
       // Note: this requires `searchUrl` must be a valid URL
-      const rules = Utils.parseSearchEngines("~:" + this.get("searchUrl") + "\n" + this.get("searchEngines"), value);
-      return this.set("searchEngineRules", rules);
+      const rules = Utils.parseSearchEngines_("~:" + this.get_("searchUrl") + "\n" + this.get_("searchEngines"), value);
+      return this.set_("searchEngineRules", rules);
     },
     searchUrl (str): void {
       if (str) {
-        Utils.parseSearchEngines("~:" + str, this.cache.searchEngineMap);
+        Utils.parseSearchEngines_("~:" + str, this.cache_.searchEngineMap);
       } else {
-        (this.cache as any).searchEngineMap = { "~": { name: "~", url: this.get("searchUrl").split(" ", 1)[0] } };
-        (this.cache as any).searchEngineRules = [];
-        if (str = this.get("newTabUrl_f", true)) {
+        (this.cache_ as any).searchEngineMap = { "~": { name: "~", url: this.get_("searchUrl").split(" ", 1)[0] } };
+        (this.cache_ as any).searchEngineRules = [];
+        if (str = this.get_("newTabUrl_f", true)) {
           return ((this as typeof Settings).updateHooks_.newTabUrl_f as (this: void, url_f: string) => void)(str);
         }
       }
       return (this as typeof Settings).postUpdate_("newTabUrl");
     },
     baseCSS (this: SettingsTmpl, css): void {
-      const cacheId = (this as typeof Settings).CONST.StyleCacheId_,
+      const cacheId = (this as typeof Settings).CONST_.StyleCacheId_,
       browserVer = ChromeVer,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
       hasAll = browserInfo.lastIndexOf("a") >= 0;
@@ -163,19 +163,19 @@ var Settings = {
           body.replace(<RegExpG> /\.[A-Z]/g, `${prefix} $&`);
       }
       css = cacheId + css.length + "\n" + css;
-      const css2 = (this as typeof Settings).parseCustomCSS(this.get("userDefinedCss"));
+      const css2 = (this as typeof Settings).parseCustomCSS_(this.get_("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
       if (browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css = css.replace(<RegExpG>/\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$11px \/\*!DPI\*\/");
       }
       localStorage.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
       localStorage.setItem("omniCSS", css2.omni || "");
-      return this.set("innerCSS", css);
+      return this.set_("innerCSS", css);
     },
     userDefinedCss (this: SettingsTmpl, css2Str): void {
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(0, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
-      const css2 = (this as typeof Settings).parseCustomCSS(css2Str);
+      const css2 = (this as typeof Settings).parseCustomCSS_(css2Str);
       let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
       {
         css = localStorage.getItem("findCSS") as string;
@@ -185,10 +185,10 @@ var Settings = {
         localStorage.setItem("findCSS", find2 ? css + "\n" + find2 : css);
         localStorage.setItem("omniCSS", css2.omni || "");
       }
-      this.set("innerCSS", innerCSS);
-      const cache = this.cache;
+      this.set_("innerCSS", innerCSS);
+      const cache = this.cache_;
       innerCSS = cache.innerCSS;
-      const ref = Backend.indexPorts(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, F: cache.findCSS };
+      const ref = Backend.indexPorts_(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, F: cache.findCSS };
       for (const tabId in ref) {
         const frames = ref[+tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {
@@ -200,46 +200,46 @@ var Settings = {
         }
       }
       const request2: Req.bg<kBgReq.showHUD> & BgCSSReq = { N: kBgReq.showHUD, S: cache.omniCSS };
-      for (const frame of Backend.indexPorts(GlobalConsts.VomnibarFakeTabId)) {
+      for (const frame of Backend.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
         frame.postMessage(request2);
       }
     },
     innerCSS (this: SettingsTmpl, css): void {
       let findCSS = localStorage.getItem("findCSS"), omniCSS = localStorage.getItem("omniCSS");
-      if (!findCSS || omniCSS == null) { Settings.fetchFile("baseCSS"); return; }
+      if (!findCSS || omniCSS == null) { Settings.fetchFile_("baseCSS"); return; }
       findCSS = findCSS.substring(findCSS.indexOf('\n') + 1);
       const index = findCSS.indexOf('}') + 1, index2 = findCSS.indexOf('\n', index);
       // Note: The lines below are allowed as a special use case
-      (this.cache as SettingsNS.FullCache).innerCSS = css.substring(css.indexOf("\n") + 1);
-      (this.cache as SettingsNS.FullCache).findCSS = [findCSS.substring(0, index), findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
-      (this.cache as SettingsNS.FullCache).omniCSS = omniCSS;
+      (this.cache_ as SettingsNS.FullCache).innerCSS = css.substring(css.indexOf("\n") + 1);
+      (this.cache_ as SettingsNS.FullCache).findCSS = [findCSS.substring(0, index), findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
+      (this.cache_ as SettingsNS.FullCache).omniCSS = omniCSS;
     },
     vomnibarPage (this: SettingsTmpl, url): void {
-      if (url === this.defaults.vomnibarPage) {
-        url = (this as typeof Settings).CONST.VomnibarPageInner_;
+      if (url === this.defaults_.vomnibarPage) {
+        url = (this as typeof Settings).CONST_.VomnibarPageInner_;
       } else if (url.startsWith("front/")) {
         url = chrome.runtime.getURL(url);
       } else {
-        url = Utils.convertToUrl(url);
+        url = Utils.convertToUrl_(url);
         url = Utils.reformatURL_(url);
         if (!url.startsWith(BrowserProtocol) && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
-          url = (this as typeof Settings).CONST.VomnibarPageInner_;
+          url = (this as typeof Settings).CONST_.VomnibarPageInner_;
         } else {
-          url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST.VerCode));
+          url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST_.VerCode_));
         }
       }
-      this.set("vomnibarPage_f", url);
+      this.set_("vomnibarPage_f", url);
     }
   } as SettingsNS.DeclaredUpdateHookMap & SettingsNS.SpecialUpdateHookMap as SettingsNS.UpdateHookMap,
-  fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
-    if (callback && file in this.cache) { callback(); return null; }
-    const url = this.CONST.XHRFiles_[file];
+  fetchFile_ (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
+    if (callback && file in this.cache_) { callback(); return null; }
+    const url = this.CONST_.XHRFiles_[file];
     if (!url) { throw Error("unknown file: " + file); } // just for debugging
     return Utils.fetchHttpContents_(url, function(): void {
       if (file === "baseCSS") {
         Settings.postUpdate_(file, this.responseText);
       } else {
-        Settings.set(file, this.responseText);
+        Settings.set_(file, this.responseText);
       }
       callback && callback();
       return;
@@ -247,7 +247,7 @@ var Settings = {
   },
   // clear localStorage & sync, if value === @defaults[key]
   // the default of all nullable fields must be set to null for compatibility with @Sync.set
-  defaults: {
+  defaults_: {
     __proto__: null as never,
     deepHints: false,
     dialogMode: false,
@@ -322,15 +322,15 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
   sync_: Utils.blank_ as SettingsNS.Sync["set"],
-  CONST: {
+  CONST_: {
     AllowClipboardRead_: true,
     BaseCSSLength_: 0,
     // should keep lower case
     NtpNewTab_: "chrome-search://local-ntp/local-ntp.html",
     DisallowIncognito_: false,
-    VimiumNewTab: "",
+    VimiumNewTab_: "",
     ContentScripts_: null as never as string[],
-    VerCode: "", VerName: "",
+    VerCode_: "", VerName_: "",
     StyleCacheId_: "",
     KnownPages_: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
@@ -344,7 +344,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     },
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: "pages/options.html#!newTabUrl",
-    OptionsPage: "pages/options.html", Platform: "browser", PolyFill_: "lib/polyfill.js",
+    OptionsPage_: "pages/options.html", Platform_: "browser", PolyFill_: "lib/polyfill.js",
     RedirectedUrls_: {
       about: "https://github.com/gdh1995/vimium-c",
       help: "https://github.com/gdh1995/vimium-c/wiki",
@@ -358,7 +358,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       wiki: "https://github.com/gdh1995/vimium-c/wiki",
       __proto__: null as never
     } as SafeDict<string>,
-    GlobalCommands: null as never as string[],
+    GlobalCommands_: null as never as string[],
     ShowPage_: "pages/show.html",
     VomnibarPageInner_: "front/vomnibar.html", VomnibarScript_: "front/vomnibar.js", VomnibarScript_f_: ""
   }
@@ -366,31 +366,31 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): void {
   const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs;
-  Settings.CONST.Platform = os;
-  Settings.payload.onMac = os === (types ? types.MAC : "mac");
-}) : (Settings.CONST.Platform = OnOther === BrowserType.Edge ? "win" : "unknown");
+  Settings.CONST_.Platform_ = os;
+  Settings.payload_.onMac = os === (types ? types.MAC : "mac");
+}) : (Settings.CONST_.Platform_ = OnOther === BrowserType.Edge ? "win" : "unknown");
 
 (function(): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
   urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js,
-  { CONST: obj, defaults } = Settings, newtab = urls && urls.newtab,
+  { CONST_: obj, defaults_: defaults } = Settings, newtab = urls && urls.newtab,
   // on Edge, https://www.msn.cn/spartan/ntp also works with some complicated search parameters
   // on Firefox, both "about:newtab" and "about:home" work,
   //   but "about:newtab" skips extension hooks and uses last configured URL, so it's better.
   CommonNewTab = OnOther === BrowserType.Edge ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
-  ref3 = Settings.newTabs as SafeDict<Urls.NewTabType>;
+  ref3 = Settings.newTabs_ as SafeDict<Urls.NewTabType>;
   function func(path: string): string {
     return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
   (defaults as SettingsWithDefaults).newTabUrl = OnOther ? CommonNewTab : newtab ? obj.NtpNewTab_ : ChromeNewTab;
   ref3[CommonNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
   OnOther || (ref3[ChromeNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
-  newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);
+  newtab && (ref3[func(obj.VimiumNewTab_ = newtab)] = Urls.NewTabType.vimium);
   (defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner_;
-  obj.GlobalCommands = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
-  obj.VerCode = ref.version;
-  obj.VerName = ref.version_name || ref.version;
-  obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
+  obj.GlobalCommands_ = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
+  obj.VerCode_ = ref.version;
+  obj.VerName_ = ref.version_name || ref.version;
+  obj.OptionsPage_ = func(ref.options_page || obj.OptionsPage_);
   obj.AllowClipboardRead_ = ref.permissions != null && ref.permissions.indexOf("clipboardRead") >= 0;
   obj.ShowPage_ = func(obj.ShowPage_);
   obj.VomnibarPageInner_ = func(obj.VomnibarPageInner_);
@@ -402,15 +402,15 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   obj.ContentScripts_ = ref2.map(func);
 
   if (localStorage.length <= 0) {
-    Settings.set("newTabUrl", Settings.CONST.NewTabForNewUser_);
+    Settings.set_("newTabUrl", Settings.CONST_.NewTabForNewUser_);
   }
   const hasAll = ChromeVer > BrowserVer.MinSafeCSS$All && "all" in (document.documentElement as HTMLElement).style;
-  obj.StyleCacheId_ = obj.VerCode + "," + ChromeVer
+  obj.StyleCacheId_ = obj.VerCode_ + "," + ChromeVer
     + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
   const innerCSS = localStorage.getItem("innerCSS");
   if (innerCSS && innerCSS.startsWith(obj.StyleCacheId_)) {
     Settings.postUpdate_("innerCSS", innerCSS);
     return;
   }
-  Settings.fetchFile("baseCSS");
+  Settings.fetchFile_("baseCSS");
 })();

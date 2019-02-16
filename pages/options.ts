@@ -5,11 +5,11 @@ interface Window {
 }
 interface VDomProto {
   readonly UI: Readonly<DomUI>;
-  view(el: Element, oldY?: number | undefined): boolean;
+  view_(el: Element, oldY?: number | undefined): boolean;
 }
-declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>, VEvent: Pick<VEventModeTy, "lock">;
+declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>, VEvent: Pick<VEventModeTy, "lock_">;
 declare var VFind: {
-  css: FindCSS | null;
+  css_: FindCSS | null;
 };
 
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
@@ -83,7 +83,7 @@ constructor (element: HTMLInputElement, onUpdated: (this: NumberOption_<T>) => v
   this.checker_ = {
     min: (s = element.min) && !isNaN(i = parseFloat(s)) ? i : null,
     max: (s = element.max) && !isNaN(i = parseFloat(s)) ? i : null,
-    default: bgSettings_.defaults[this.field_] as number,
+    default: bgSettings_.defaults_[this.field_] as number,
     check_: NumberOption_.Check_
   };
   this.element_.oninput = this.onUpdated_;
@@ -171,7 +171,7 @@ class NonEmptyTextOption_<T extends keyof AllowedOptions> extends TextOption_<T>
 readValueFromElement_ (): string {
   let value = super.readValueFromElement_() as string;
   if (!value) {
-    value = bgSettings_.defaults[this.field_] as string;
+    value = bgSettings_.defaults_[this.field_] as string;
     this.populateElement_(value, true);
   }
   return value;
@@ -206,7 +206,7 @@ readValueFromElement_ (): AllowedOptions[T] {
     } catch (e) {
     }
   } else {
-    obj = bgSettings_.defaults[this.field_];
+    obj = bgSettings_.defaults_[this.field_];
     this.populateElement_(obj, true);
   }
   return obj;
@@ -266,7 +266,7 @@ readValueFromElement_ (): boolean | null {
 ExclusionRulesOption_.prototype.onRowChange_ = function(this: ExclusionRulesOption_, isAdd: number): void {
   const count = this.list_.childElementCount;
   if (count - isAdd !== 0) { return; }
-  isAdd && (BG_.Exclusions || BG_.Utils.require("Exclusions"));
+  isAdd && (BG_.Exclusions || BG_.Utils.require_("Exclusions"));
   const el = $("#exclusionToolbar"), options = el.querySelectorAll('[data-model]');
   el.style.visibility = count > 0 ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {
@@ -356,9 +356,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     const delta: BgReq[kBgReq.settingsUpdate]["delta"] = Object.create(null),
     req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, delta };
     for (const key of toSync) {
-      delta[key] = bgSettings_.get(key);
+      delta[key] = bgSettings_.get_(key);
     }
-    bgSettings_.broadcast(req);
+    bgSettings_.broadcast_(req);
   }
 
   let _ref: NodeListOf<HTMLElement> = $$("[data-model]"), element: HTMLElement;
@@ -386,11 +386,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   let advancedMode = false;
   element = $<AdvancedOptBtn>("#advancedOptionsButton");
   (element as AdvancedOptBtn).onclick = function(this: AdvancedOptBtn, _0, init): void {
-    if (init == null || (init === "hash" && bgSettings_.get("showAdvancedOptions") === false)) {
+    if (init == null || (init === "hash" && bgSettings_.get_("showAdvancedOptions") === false)) {
       advancedMode = !advancedMode;
-      bgSettings_.set("showAdvancedOptions", advancedMode);
+      bgSettings_.set_("showAdvancedOptions", advancedMode);
     } else {
-      advancedMode = bgSettings_.get("showAdvancedOptions");
+      advancedMode = bgSettings_.get_("showAdvancedOptions");
     }
     const el = $("#advancedOptions");
     (el.previousElementSibling as HTMLElement).style.display = el.style.display = advancedMode ? "" : "none";
@@ -403,8 +403,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     if (event.keyCode !== VKeyCodes.space) {
       if (!window.VKeyboard) { return; }
       let wanted = event.keyCode === VKeyCodes.questionWin || event.keyCode === VKeyCodes.questionMac ? "?" : "";
-      if (wanted && VKeyboard.char(event) === wanted && VKeyboard.key(event, wanted) === wanted) {
-        if (!VEvent.lock()) {
+      if (wanted && VKeyboard.char_(event) === wanted && VKeyboard.key_(event, wanted) === wanted) {
+        if (!VEvent.lock_()) {
           $("#showCommands").click();
         }
       }
@@ -536,7 +536,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   });
   Option_.all_.keyMappings.onSave_ = function(): void {
-    const errors = bgSettings_.temp.cmdErrors,
+    const errors = bgSettings_.temp_.cmdErrors_,
     msg = !errors ? "" : (errors === 1 ? "There's 1 error." : `There're ${errors} errors`
       ) + " found.\nPlease see logs of background page for more details.";
     return this.showError_(msg);
@@ -556,7 +556,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       element.style.textDecoration = isExtPage ? "" : "line-through";
       return this.showError_(`Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`, null);
     }
-    url = bgSettings_.cache.vomnibarPage_f || url; // for the case Chrome is initing
+    url = bgSettings_.cache_.vomnibarPage_f || url; // for the case Chrome is initing
     if (isExtPage) {
     } else if (url.lastIndexOf("file://", 0) !== -1) {
       return this.showError_("A file page of vomnibar is limited by Chrome to only work on file://* pages.", "highlight");
@@ -597,7 +597,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       el.placeholder = `lacking permission${key ? ` "${key}"` : ""}`;
     }
   })(_ref);
-  if (BG_.Settings.CONST.GlobalCommands.length === 0) {
+  if (BG_.Settings.CONST_.GlobalCommands_.length === 0) {
     _ref = $$(".require-shortcuts");
     for (let _i = _ref.length; 0 <= --_i; ) {
       _ref[_i].remove();
@@ -633,7 +633,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
   (element as HTMLAnchorElement).onclick = function(event): void {
     event.preventDefault();
-    return BG_.Backend.focus({ url: this.href, reuse: ReuseType.reuse, prefix: true });
+    return BG_.Backend.focus_({ url: this.href, reuse: ReuseType.reuse, prefix: true });
   }
 })();
 
@@ -656,20 +656,20 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
       // Note: shoule keep the same as background/settings.ts@Settings.updateHooks_.userDefinedCss
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(headEnd + 1, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
-      VDom.UI.css(css);
+      VDom.UI.css_(css);
       (VDom.UI.UI as NonNullable<VUIRoot>).appendChild(styleDebug as HTMLStyleElement);
     }
     if (root) {
       patch();
     } else {
-      VDom.UI.add(styleDebug);
+      VDom.UI.add_(styleDebug);
       styleDebug.remove();
       setTimeout(patch, 200);
     }
   }
   const newVal = self.readValueFromElement_(),
   isSame = newVal === self.previous_,
-  css2 = bgSettings_.parseCustomCSS(newVal);
+  css2 = bgSettings_.parseCustomCSS_(newVal);
   if (isSame) {
     self.element_.classList.remove("debugging");
   } else {
@@ -683,9 +683,9 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
     styleDebug = doc.querySelector("style.debugged") as HTMLStyleElement | null;
     if (!styleDebug) {
       if (isFind) {
-        const oldCSS2 = bgSettings_.parseCustomCSS(bgSettings_.get("userDefinedCss")).find || "";
+        const oldCSS2 = bgSettings_.parseCustomCSS_(bgSettings_.get_("userDefinedCss")).find || "";
         if (oldCSS2) {
-          const str = bgSettings_.cache.findCSS[1];
+          const str = bgSettings_.cache_.findCSS[1];
           (doc.querySelector("style") as HTMLStyleElement).textContent = str.substring(0, str.length - oldCSS2.length - 1);
         }
         styleDebug = doc.createElement("style");
@@ -703,10 +703,10 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
       styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug);
     }
     styleDebug.textContent = isFind ? css2.find || "" : (isSame ? "" : ".transparent{ opacity: 1; }\n") + (css2.omni || "");
-    if (isFind && VFind.css) {
+    if (isFind && VFind.css_) {
       // Note: shoule keep the same as background/settings.ts@Settings.updateHooks_.userDefinedCss
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
-      VFind.css[2] = VFind.css[2].substring(0, defaultLen - VFind.css[0].length - VFind.css[1].length - 1) + "\n" + (css2.find || "");
+      VFind.css_[2] = VFind.css_[2].substring(0, defaultLen - VFind.css_[0].length - VFind.css_[1].length - 1) + "\n" + (css2.find || "");
     }
   }
 }, 1800, $("#userDefinedCss") as HTMLTextAreaElement, 0));
@@ -739,15 +739,15 @@ $("#importButton").onclick = function(): void {
   opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
 };
 
-$("#defaultNewTab").textContent = bgSettings_.defaults.newTabUrl;
+$("#defaultNewTab").textContent = bgSettings_.defaults_.newTabUrl;
 
-$("#defaultSearchEngine").textContent = bgSettings_.defaults.searchUrl;
+$("#defaultSearchEngine").textContent = bgSettings_.defaults_.searchUrl;
 
 $("#browserName").textContent = (bgOnOther === BrowserType.Edge ? "MS Edge"
   : bgOnOther === BrowserType.Firefox ? "Firefox" : ((<RegExpOne>/\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
   ) + (bgOnOther === BrowserType.Firefox ? " " + (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, ""])[1]
     : !bgOnOther ? " " + bgBrowserVer : ""
-  ) + (", " + bgSettings_.CONST.Platform[0].toUpperCase() + bgSettings_.CONST.Platform.substring(1));
+  ) + (", " + bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.substring(1));
 
 function loadJS(file: string): HTMLScriptElement {
   const script = document.createElement("script");
@@ -780,7 +780,7 @@ window.onhashchange = function(this: void): void {
         window.onload = null as never;
         window.scrollTo(0, 0);
       }
-      window.VDom ? VDom.view(node as Element)
+      window.VDom ? VDom.view_(node as Element)
         : (node as HTMLElement).scrollIntoViewIfNeeded ? (node as any).scrollIntoViewIfNeeded()
         : (node as HTMLElement).scrollIntoView();
     }
@@ -794,7 +794,7 @@ window.location.hash.length > 4 && (window as any).onhashchange();
 // below is for programmer debugging
 window.onunload = function(): void {
   BG_.removeEventListener("unload", OnBgUnload);
-  BG_.Utils.GC();
+  BG_.Utils.GC_();
 };
 
 function OnBgUnload(): void {
@@ -820,14 +820,14 @@ function OnBgUnload(): void {
     for (const key in ref) {
       const opt = ref[key as keyof AllowedOptions], { previous_: previous } = opt;
       if (typeof previous === "object" && previous) {
-        opt.previous_ = bgSettings_.get(opt.field_);
+        opt.previous_ = bgSettings_.get_(opt.field_);
       }
     }
     if (!Option_.all_.keyMappings.saved_) {
-      BG_.Commands || BG_.Utils.require("Commands");
+      BG_.Commands || BG_.Utils.require_("Commands");
     }
     if ((Option_.all_.exclusionRules as ExclusionRulesOption_).list_.childElementCount > 0) {
-      BG_.Exclusions || BG_.Utils.require("Exclusions");
+      BG_.Exclusions || BG_.Utils.require_("Exclusions");
     }
   }
 }
@@ -840,11 +840,11 @@ document.addEventListener("click", function onClickOnce(): void {
     let target = event.target as HTMLElement, str: string;
     if (VPort && target.classList.contains("HelpCommandName")) {
       str = target.textContent.slice(1, -1);
-      VPort.post({
+      VPort.post_({
         H: kFgReq.copy,
         data: str
       });
-      return VHUD.copied(str);
+      return VHUD.copied_(str);
     }
   }, true);
 }, true);

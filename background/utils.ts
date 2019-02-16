@@ -60,7 +60,7 @@ var Utils = {
     url = url.toLowerCase();
     return url.startsWith("about:") ? url !== "about:blank"
       : url.startsWith("chrome://") ? !url.startsWith("chrome://downloads")
-      : !url.startsWith(Settings.CONST.NtpNewTab_) && url.startsWith(BrowserProtocol);
+      : !url.startsWith(Settings.CONST_.NtpNewTab_) && url.startsWith(BrowserProtocol);
   },
   _nonENTlds: ".\u4e2d\u4fe1.\u4e2d\u56fd.\u4e2d\u570b.\u4e2d\u6587\u7f51.\u4f01\u4e1a.\u4f5b\u5c71.\u4fe1\u606f\
 .\u516c\u53f8.\u516c\u76ca.\u5546\u57ce.\u5546\u5e97.\u5546\u6807.\u5728\u7ebf.\u5a31\u4e50.\u5e7f\u4e1c\
@@ -87,7 +87,7 @@ var Utils = {
   _ipv4Re: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,
   _ipv6Re: <RegExpOne> /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/,
   _lfSpacesRe: <RegExpG> /[\r\n]+[\t \xa0]*/g,
-  spacesRe: <RegExpG> /\s+/g,
+  spacesRe_: <RegExpG> /\s+/g,
   A0Re_: <RegExpG> /\xa0/g,
   _nonENTldRe: <RegExpOne> /[^a-z]/,
   protocolRe_: <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//,
@@ -96,10 +96,10 @@ var Utils = {
   quotedStringRe_: <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/,
   filePathRe_: <RegExpOne> /^[A-Za-z]:(?:[\\/][^:*?"<>|]*)?$|^\/(?:Users|home|root)\/[^:*?"<>|]+$/,
   _backSlashRe: <RegExpG>/\\/g,
-  lastUrlType: Urls.Type.Default,
-  convertToUrl: function(this: Window["Utils"], string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
+  lastUrlType_: Urls.Type.Default,
+  convertToUrl_: function(this: Window["Utils"], string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     string = string.trim();
-    this.lastUrlType = Urls.Type.Full;
+    this.lastUrlType_ = Urls.Type.Full;
     if ((this as typeof Utils).isJSUrl_(string)) {
       if (ChromeVer < BrowserVer.MinAutoDecodeJSURL && string.indexOf('%', 11) > 0
           && !(this as typeof Utils)._jsNotEscapeRe.test(string)) {
@@ -158,7 +158,7 @@ var Utils = {
         oldString = "vimium://" + oldString.substring(9);
       }
       else if (vimiumUrlWork === Urls.WorkType.ConvertKnown
-          || !(oldString = (this as typeof Utils).evalVimiumUrl(string, vimiumUrlWork) as string)) {
+          || !(oldString = (this as typeof Utils).evalVimiumUrl_(string, vimiumUrlWork) as string)) {
         oldString = (this as typeof Utils).formatVimiumUrl_(string, false, vimiumUrlWork);
       } else if (typeof oldString !== "string") {
         type = Urls.Type.Functional;
@@ -227,9 +227,9 @@ var Utils = {
       type = Urls.Type.NoSchema;
     }
     (this as typeof Utils).resetRe_();
-    this.lastUrlType = type;
+    this.lastUrlType_ = type;
     return type === Urls.Type.Full ? oldString
-      : type === Urls.Type.Search ? (this as typeof Utils).createSearchUrl_(oldString.split(this.spacesRe), keyword || "~", vimiumUrlWork)
+      : type === Urls.Type.Search ? (this as typeof Utils).createSearchUrl_(oldString.split(this.spacesRe_), keyword || "~", vimiumUrlWork)
       : type <= Urls.Type.MaxOfInputIsPlainUrl ?
         ((this as typeof Utils).checkInDomain_(string, arr && arr[4]) === 2 ? "https:" : "http:")
         + (type === Urls.Type.NoSchema ? "//" : "") + oldString
@@ -248,8 +248,8 @@ var Utils = {
     case "blob": case "view-source":
       string = string.substring(i + 1);
       if (string.startsWith("blob:") || string.startsWith("view-source:")) { return Urls.Type.Search; }
-      this.convertToUrl(string, null, Urls.WorkType.KeepAll);
-      return this.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl ? Urls.Type.Full : Urls.Type.Search;
+      this.convertToUrl_(string, null, Urls.WorkType.KeepAll);
+      return this.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? Urls.Type.Full : Urls.Type.Search;
     case "data":
       return isSlash ? Urls.Type.Search : (i = string.indexOf(',', i)) < 0 || (spacePos > 0 && spacePos < i)
         ? Urls.TempType.Unspecified : Urls.Type.Full;
@@ -257,8 +257,8 @@ var Utils = {
     case "filesystem":
       string = string.substring(i + 1);
       if (!this.protocolRe_.test(string)) { return Urls.Type.Search; }
-      this.convertToUrl(string, null, Urls.WorkType.KeepAll);
-      return this.lastUrlType === Urls.Type.Full &&
+      this.convertToUrl_(string, null, Urls.WorkType.KeepAll);
+      return this.lastUrlType_ === Urls.Type.Full &&
           (<RegExpOne>/[^/]\/(?:persistent|temporary)(?:\/|$)/).test(string)
         ? Urls.Type.Full : Urls.Type.Search;
     case "magnet": return string[i + 1] !== '?' ? Urls.TempType.Unspecified : Urls.Type.Full;
@@ -281,8 +281,8 @@ var Utils = {
     let url = str.substring(i).trim();
     (i = url.indexOf(' ')) > 0 && (url = url.substring(0, i));
     ",.;\u3002\uff0c\uff1b".indexOf(url[url.length - 1]) >= 0 && (url = url.slice(0, -1));
-    url = this.convertToUrl(url, null, Urls.WorkType.KeepAll);
-    return Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
+    url = this.convertToUrl_(url, null, Urls.WorkType.KeepAll);
+    return Utils.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
   },
   isTld_ (tld: string, onlyEN?: boolean): Urls.TldType {
     return !onlyEN && this._nonENTldRe.test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1
@@ -309,11 +309,11 @@ var Utils = {
     }
     if (!(this.commonFileExtRe_.test(path) || this._queryRe.test(path))) {
       path = path.toLowerCase();
-      if (tempStr = Settings.CONST.RedirectedUrls_[path]) {
+      if (tempStr = Settings.CONST_.RedirectedUrls_[path]) {
         path = tempStr;
       } else if (path === "newtab") {
-        return Settings.cache.newTabUrl_f;
-      } else if (path[0] === "/" || Settings.CONST.KnownPages_.indexOf(path) >= 0) {
+        return Settings.cache_.newTabUrl_f;
+      } else if (path[0] === "/" || Settings.CONST_.KnownPages_.indexOf(path) >= 0) {
         path += ".html";
       } else if (vimiumUrlWork === Urls.WorkType.ActIfNoSideEffects  || vimiumUrlWork === Urls.WorkType.ConvertKnown) {
         return "vimium://" + fullpath.trim();
@@ -330,7 +330,7 @@ var Utils = {
   _vimiumCmdRe: <RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
   _vimiumFileExtRe: <RegExpI> /\.(?:css|html|js)$/i,
   _mathSpaceRe: <RegExpG> /[\s+,\uff0c]+/g,
-  evalVimiumUrl: function(this: Window["Utils"], path: string, workType?: Urls.WorkType
+  evalVimiumUrl_: function(this: Window["Utils"], path: string, workType?: Urls.WorkType
       , onlyOnce?: boolean): Urls.Url | null {
     let ind: number, cmd: string, arr: string[], obj: { url: string } | null, res: Urls.Url | string[];
     workType = (workType as Urls.WorkType) | 0;
@@ -352,7 +352,7 @@ var Utils = {
     }
     if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-      return this.require<object>("MathParser").catch(() => null
+      return this.require_<object>("MathParser").catch(() => null
       ).then<Urls.MathEvalResult>(function(MathParser): Urls.MathEvalResult {
         Utils.quotedStringRe_.test(path) && (path = path.slice(1, -1));
         path = path.replace(/\uff0c/g as RegExpG, ' ');
@@ -366,7 +366,7 @@ var Utils = {
     case "status": case "state":
       return [path.toLowerCase(), "status"] as Urls.StatusEvalResult;
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":
-      res = (this as typeof Utils).convertToUrl(path, null, Urls.WorkType.ActIfNoSideEffects);
+      res = (this as typeof Utils).convertToUrl_(path, null, Urls.WorkType.ActIfNoSideEffects);
       if (res instanceof Promise) {
         return res.then(function(arr): Urls.CopyEvalResult {
           let path = arr[0] || (arr[2] || "");
@@ -375,7 +375,7 @@ var Utils = {
           return [path, "copy"];
         });
       } else {
-        res = this.lastUrlType === Urls.Type.Functional &&
+        res = this.lastUrlType_ === Urls.Type.Functional &&
           res instanceof Array ? (res as Urls.BaseEvalResult)[0] : res as string;
         path = res instanceof Array ? res.join(" ") : res;
       }
@@ -394,8 +394,8 @@ var Utils = {
       }
       path = (this as typeof Utils).decodeEscapedURL_(path);
       arr = [path];
-      path = this.convertToUrl(path);
-      if (this.lastUrlType !== Urls.Type.Search && (obj = Backend.parse_({ url: path }))) {
+      path = this.convertToUrl_(path);
+      if (this.lastUrlType_ !== Urls.Type.Search && (obj = Backend.parse_({ url: path }))) {
         if (obj.url === "") {
           arr = [cmd];
         } else {
@@ -403,12 +403,12 @@ var Utils = {
           arr.unshift(cmd);
         }
       } else {
-        arr = arr[0].split(this.spacesRe);
+        arr = arr[0].split(this.spacesRe_);
       }
       break;
     case "u": case "url": case "search":
       // here path is not empty, and so `decodeEscapedURL(path).trim()` is also not empty
-      arr = (this as typeof Utils).decodeEscapedURL_(path).split(this.spacesRe);
+      arr = (this as typeof Utils).decodeEscapedURL_(path).split(this.spacesRe_);
       break;
     default:
       return null;
@@ -439,14 +439,14 @@ var Utils = {
     }
     return result;
   },
-  require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T> {
+  require_<T extends object> (name: SettingsNS.DynamicFiles): Promise<T> {
     const p: Promise<T> | T | null | undefined = window[name];
     if (p) {
       return Promise.resolve(p);
     }
     return (window as any)[name] = new Promise<T>(function(resolve, reject) {
       const script = document.createElement("script");
-      script.src = Settings.CONST[name];
+      script.src = Settings.CONST_[name];
       script.onerror = function(): void {
         this.remove();
         reject("ImportError: " + name);
@@ -466,20 +466,20 @@ var Utils = {
   searchWordRe2_: <RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g,
   searchVariable_: <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g,
   createSearchUrl_: function (this: {}, query: string[], keyword: string, vimiumUrlWork: Urls.WorkType): Urls.Url {
-    let url: string, pattern: Search.Engine | undefined = Settings.cache.searchEngineMap[keyword || query[0]];
+    let url: string, pattern: Search.Engine | undefined = Settings.cache_.searchEngineMap[keyword || query[0]];
     if (pattern) {
       if (!keyword) { keyword = query.shift() as string; }
-      url = (this as typeof Utils).createSearch(query, pattern.url, pattern.blank) as string;
+      url = (this as typeof Utils).createSearch_(query, pattern.url, pattern.blank) as string;
     } else {
       url = query.join(" ");
     }
     if (keyword !== "~") {
-      return (this as typeof Utils).convertToUrl(url, null, vimiumUrlWork);
+      return (this as typeof Utils).convertToUrl_(url, null, vimiumUrlWork);
     }
-    (this as typeof Utils).lastUrlType = Urls.Type.Search;
+    (this as typeof Utils).lastUrlType_ = Urls.Type.Search;
     return url;
   } as Urls.Searcher,
-  createSearch: function(this: Window["Utils"], query: string[], url: string, blank: string, indexes?: number[]): string | Search.Result {
+  createSearch_: function(this: Window["Utils"], query: string[], url: string, blank: string, indexes?: number[]): string | Search.Result {
     let q2: string[] | undefined, delta = 0;
     url = query.length === 0 && blank ? blank : url.replace((this as typeof Utils).searchWordRe_,
     function(_s: string, s1: string | undefined, s2: string, ind: number): string {
@@ -543,8 +543,8 @@ var Utils = {
       str = str.replace("\uff1a", ":").replace("\uff1a", ":");
     }
     i > 0 && (str += url.substring(i));
-    this.convertToUrl(str, null, Urls.WorkType.KeepAll);
-    return this.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl ? str : url;
+    this.convertToUrl_(str, null, Urls.WorkType.KeepAll);
+    return this.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? str : url;
   },
   imageFileRe_: <RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)$/i, // SVG is not blocked by images CS
   showFileUrl_ (url: string): string {
@@ -567,7 +567,7 @@ var Utils = {
     const origin = url.substring(0, ind), o2 = origin.toLowerCase();
     return origin !== o2 ? o2 + url.substring(ind) : url;
   },
-  parseSearchEngines: function(this: Window["Utils"], str: string, map: Search.EngineMap): Search.Rule[] {
+  parseSearchEngines_: function(this: Window["Utils"], str: string, map: Search.EngineMap): Search.Rule[] {
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter"],
     key: string, obj: Search.RawEngine,
     ind: number, rSlash = <RegExpOne> /[^\\]\//, rules = [] as Search.Rule[],
@@ -628,12 +628,12 @@ var Utils = {
           } else {
             key = pair[1] === "s" ? "+" : " ";
           }
-          val = this.convertToUrl(val, null, Urls.WorkType.ConvertKnown);
-          if (this.lastUrlType > Urls.Type.MaxOfInputIsPlainUrl) {
+          val = this.convertToUrl_(val, null, Urls.WorkType.ConvertKnown);
+          if (this.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
             val = val.replace(encodedSearchWordRe, "$$$1");
             ind = val.search(re as RegExp as RegExpOne) + 1;
-          } else if (this.lastUrlType !== Urls.Type.Full) {
-            ind += this.lastUrlType === Urls.Type.NoSchema ? 7 : 5;
+          } else if (this.lastUrlType_ !== Urls.Type.Full) {
+            ind += this.lastUrlType_ === Urls.Type.NoSchema ? 7 : 5;
           }
           if (tmpRule = (this as typeof Utils).reparseSearchUrl_(val.toLowerCase(), ind)) {
             if (key.indexOf("$") >= 0) {
@@ -752,7 +752,7 @@ var Utils = {
     };
   }),
   getNull_ (this: void): null { return null; },
-  GC (this: void): void {},
+  GC_ (this: void): void {},
   hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
 

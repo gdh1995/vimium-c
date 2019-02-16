@@ -72,7 +72,7 @@ constructor (element: HTMLElement, onUpdated: (this: Option_<T>) => void) {
   this.field_ = element.id as T;
   this.previous_ = this.onUpdated_ = null as never;
   this.saved_ = true;
-  if (this.field_ in bgSettings_.payload) {
+  if (this.field_ in bgSettings_.payload_) {
     onUpdated = this._onCacheUpdated.bind(this, onUpdated);
   }
   this.fetch_();
@@ -82,7 +82,7 @@ constructor (element: HTMLElement, onUpdated: (this: Option_<T>) => void) {
 
 fetch_ (): void {
   this.saved_ = true;
-  return this.populateElement_(this.previous_ = bgSettings_.get(this.field_));
+  return this.populateElement_(this.previous_ = bgSettings_.get_(this.field_));
 }
 normalize_ (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOptions[T] {
   const checker = this.checker_;
@@ -102,17 +102,17 @@ save_ (): void {
   value = this.normalize_(value, isJSON, isJSON ? pod as string : "");
   if (isJSON) {
     pod = JSON.stringify(value);
-    if (pod === JSON.stringify(bgSettings_.defaults[this.field_])) {
-      value = bgSettings_.defaults[this.field_];
+    if (pod === JSON.stringify(bgSettings_.defaults_[this.field_])) {
+      value = bgSettings_.defaults_[this.field_];
     }
   }
-  bgSettings_.set(this.field_, value);
-  this.previous_ = value = bgSettings_.get(this.field_);
+  bgSettings_.set_(this.field_, value);
+  this.previous_ = value = bgSettings_.get_(this.field_);
   this.saved_ = true;
   if (previous !== (isJSON ? JSON.stringify(value) : value)) {
     this.populateElement_(value, true);
   }
-  if (this.field_ in bgSettings_.payload) {
+  if (this.field_ in bgSettings_.payload_) {
     Option_.syncToFrontend_.push(this.field_ as keyof SettingsNS.FrontendSettings);
   }
   this.onSave_ && this.onSave_();
@@ -138,8 +138,8 @@ class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   list_: HTMLTableSectionElement;
 constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => void) {
   super(element, onUpdated);
-  bgSettings_.fetchFile("exclusionTemplate", (): void => {
-    this.element_.innerHTML = bgSettings_.cache.exclusionTemplate as string;
+  bgSettings_.fetchFile_("exclusionTemplate", (): void => {
+    this.element_.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
     this.template_ = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
     this.list_ = this.element_.getElementsByTagName('tbody')[0] as HTMLTableSectionElement;
     this.fetch_ = super.fetch_;
@@ -288,9 +288,9 @@ if (bgBrowserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
   (document.head as HTMLHeadElement).appendChild(css);
 })();
 
-$<HTMLElement>(".version").textContent = bgSettings_.CONST.VerName;
+$<HTMLElement>(".version").textContent = bgSettings_.CONST_.VerName_;
 
-location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require("Exclusions").then((function(callback) {
+location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusions").then((function(callback) {
   return function() {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
@@ -306,14 +306,14 @@ interface PopExclusionRulesOption extends ExclusionRulesOption_ {
   OnInput_ (this: void, event: Event): void;
   generateDefaultPattern_ (this: PopExclusionRulesOption): string;
 }
-  let ref = BG_.Backend.indexPorts(tabs[0].id), blockedMsg = $("#blocked-msg");
+  let ref = BG_.Backend.indexPorts_(tabs[0].id), blockedMsg = $("#blocked-msg");
   const notRunnable = !ref && !(tabs[0] && tabs[0].url && tabs[0].status === "loading"
     && (tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0));
   if (notRunnable) {
     const body = document.body as HTMLBodyElement;
     body.textContent = "";
     blockedMsg.style.display = "";
-    (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST.VerName;
+    (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST_.VerName_;
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
     if (!tabs[0] || !tabs[0].url || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
       refreshTip.remove();
@@ -327,13 +327,13 @@ interface PopExclusionRulesOption extends ExclusionRulesOption_ {
     blockedMsg.remove();
     blockedMsg = null as never;
   }
-  const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST.OptionsPage;
+  const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST_.OptionsPage_;
   element.href !== optionsUrl && (element.href = optionsUrl);
   element.onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG_.Object.create(null);
-    a.url = bgSettings_.CONST.OptionsPage;
-    BG_.Backend.focus(a);
+    a.url = bgSettings_.CONST_.OptionsPage_;
+    BG_.Backend.focus_(a);
     window.close();
   };
   if (notRunnable) {
@@ -356,7 +356,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
     this.init_ = null as never;
   },
   rebuildTesters_ (this: PopExclusionRulesOption): void {
-    const rules = bgSettings_.get("exclusionRules")
+    const rules = bgSettings_.get_("exclusionRules")
       , ref1 = bgExclusions.testers = BG_.Object.create(null)
       , ref2 = bgExclusions.rules;
     for (let _i = 0, _len = rules.length; _i < _len; _i++) {
@@ -468,7 +468,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
       return;
     }
     const testers = bgExclusions.testers;
-    BG_.Backend.forceStatus("reset", tabId);
+    BG_.Backend.forceStatus_("reset", tabId);
     exclusions.save_();
     setTimeout(function() {
       bgExclusions.testers = testers;
@@ -511,12 +511,12 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
   (window as WindowEx).exclusions = exclusions;
   window.onunload = function(): void {
     bgExclusions.testers = null;
-    BG_.Utils.GC();
+    BG_.Utils.GC_();
   };
 
   function forceState(act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();
-    BG_.Backend.forceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
+    BG_.Backend.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
     window.close();
   }
 }));

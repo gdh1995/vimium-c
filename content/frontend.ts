@@ -103,7 +103,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         }
       }
       else if (key > VKeyCodes.maxNotPrintable || key === VKeyCodes.backspace || key === VKeyCodes.tab || key === VKeyCodes.enter) {
-        if (keyChar = VKeyboard.char(event)) {
+        if (keyChar = VKeyboard.char_(event)) {
           action = checkValidKey(event, keyChar);
           if (action === HandlerResult.Nothing && InsertMode.suppressType_ && keyChar.length === 1) {
             action = HandlerResult.Prevent;
@@ -272,7 +272,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     VHints.ActivateAndFocus_,
     /* unhoverLast: */ function (this: void): void {
       VDom.hover_(null);
-      HUD.tip("The last element is unhovered");
+      HUD.tip_("The last element is unhovered");
     },
     VMarks.activate_,
     VMarks.GoTo_,
@@ -305,7 +305,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       cache[key] = val as typeof cur;
       let msg = val === false ? '"' + key + '" has been turned off'
         : 'Now "' + key + (val === true ? '" is on' : '" use ' + JSON.stringify(val));
-      return HUD.tip(msg, 1000);
+      return HUD.tip_(msg, 1000);
     },
     /* insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {
       let { code, stat } = opt;
@@ -353,7 +353,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       if (!VDom.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }
       const isNext = rel === "next";
       if (patterns.length <= 0 || !Pagination.findAndFollowLink_(patterns, isNext ? "<" : ">")) {
-        return HUD.tip("No links to go " + rel);
+        return HUD.tip_("No links to go " + rel);
       }
     },
     /* reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
@@ -365,7 +365,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       let newEl = InsertMode.lock_;
       if (newEl) {
         if ((options.act || options.action) === "backspace") {
-          if (VDom.view(newEl)) { document.execCommand("delete"); }
+          if (VDom.view_(newEl)) { document.execCommand("delete"); }
         } else {
           InsertMode.last_ = newEl;
           InsertMode.mutable_ = false;
@@ -375,10 +375,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       }
       newEl = InsertMode.last_;
       if (!newEl) {
-        return HUD.tip("Nothing was focused", 1200);
+        return HUD.tip_("Nothing was focused", 1200);
       }
-      if (!VDom.view(newEl) && VDom.NotVisible_(newEl)) {
-        return HUD.tip("The last focused is hidden", 2000);
+      if (!VDom.view_(newEl) && VDom.NotVisible_(newEl)) {
+        return HUD.tip_("The last focused is hidden", 2000);
       }
       InsertMode.last_ = null;
       InsertMode.mutable_ = true;
@@ -416,7 +416,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
           data: str
         });
       }
-      return HUD.copied(str);
+      return HUD.copied_(str);
     },
     /* autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
       let url = VDom.UI.getSelectionText_(), keyword = (options.keyword || "") + "";
@@ -444,7 +444,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       let sel = visibleInputs.length;
       if (sel === 0) {
         InsertMode.exitInputHint_();
-        return HUD.tip("There are no inputs to focus.", 1000);
+        return HUD.tip_("There are no inputs to focus.", 1000);
       } else if (sel === 1) {
         InsertMode.exitInputHint_();
         return VDom.UI.simulateSelect_(visibleInputs[0][0], visibleInputs[0][1], true, action, true);
@@ -618,7 +618,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     if (url) {
       Commands[kFgCmd.reload](1, { url });
     } else {
-      VDom.view(linkElement);
+      VDom.view_(linkElement);
       VDom.UI.flash_(linkElement);
       setTimeout(function() { VDom.UI.click_(linkElement); }, 100);
     }
@@ -701,7 +701,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     node_: null as HTMLDivElement | null,
     timer_: 0,
     Focus_ (this: void, { mask, S: CSS, key }: BgReq[kBgReq.focusFrame]): void {
-      CSS && VDom.UI.css(CSS);
+      CSS && VDom.UI.css_(CSS);
       if (mask !== FrameMaskType.NormalNext) {}
       else if (innerWidth < 3 || innerHeight < 3
         || document.body instanceof HTMLFrameSetElement
@@ -730,7 +730,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         _this.node_ = dom1;
         _this.timer_ = setInterval(_this.Remove_, notTop ? 350 : 200);
       }
-      VDom.UI.add(dom1);
+      VDom.UI.add_(dom1);
     },
     Remove_ (this: void, info?: TimerType): void {
       const _this = FrameMask, { more_ } = _this;
@@ -747,19 +747,19 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     opacity_: 0 as 0 | 0.25 | 0.5 | 0.75 | 1,
     enabled_: false,
     _timer: 0,
-    copied: function (this: VHUD, text: string, e?: string, virtual?: true): string | void {
+    copied_: function (this: VHUD, text: string, e?: string, virtual?: true): string | void {
       if (!text) {
         if (virtual) { return text; }
-        return this.tip(`No ${e || "text"} found!`, 1000);
+        return this.tip_(`No ${e || "text"} found!`, 1000);
       }
       if (text.startsWith("chrome-") && text.indexOf("://") > 0) {
         text = text.substring(text.indexOf('/', text.indexOf('/') + 2)) || text;
       }
       text = "Copied: " + (text.length > 41 ? text.substring(0, 41) + "\u2026" : text + ".");
       if (virtual) { return text; }
-      return this.tip(text, 2000);
-    } as VHUD["copied"],
-    tip (text: string, duration?: number): void {
+      return this.tip_(text, 2000);
+    } as VHUD["copied_"],
+    tip_ (text: string, duration?: number): void {
       this.show_(text);
       this.text_ && ((this as typeof HUD)._timer = setTimeout(this.hide_, duration || 1500));
     },
@@ -784,7 +784,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         st.visibility = "hidden";
         VDom.UI.box_ || VDom.UI.ensureBorder_();
       }
-      VDom.UI.add(hud.box_ = el, AdjustType.NotAdjust, VHints.box_);
+      VDom.UI.add_(hud.box_ = el, AdjustType.NotAdjust, VHints.box_);
     },
     _tween (this: void, info?: TimerType): void {
       if (!VPort) { return; }
@@ -921,7 +921,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       (mappedKeys = request.m) && func(mappedKeys, null);
     },
     function<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
-      if (request.S) { VDom.UI.css(request.S); }
+      if (request.S) { VDom.UI.css_(request.S); }
       const options: CmdOptions[O] | null = request.a;
       type Keys = keyof CmdOptions;
       type TypeToCheck = {
@@ -935,13 +935,13 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.markName); },
     function (req: Req.bg<kBgReq.showHUD>): void {
       if (req.S) {
-        VDom.UI.css(req.S);
+        VDom.UI.css_(req.S);
         if (req.F) {
-          VFind.css = req.F;
+          VFind.css_ = req.F;
           VFind.styleIframe_ && (VFind.styleIframe_.textContent = req.F[1]);
         }
       }
-      req.text ? req.isCopy ? HUD.copied(req.text) : HUD.tip(req.text) : void 0;
+      req.text ? req.isCopy ? HUD.copied_(req.text) : HUD.tip_(req.text) : void 0;
     },
     function (request: BgReq[kBgReq.count]): void {
       const count = parseInt(currentKeys, 10) || 1;
@@ -951,7 +951,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     let box: HTMLDivElement & SafeHTMLElement
       , oldShowHelp = Commands[kFgCmd.showHelp], hide: (this: void, e?: Event | number | "exitHD") => void
       , node1: HTMLElement;
-    if (CSS) { VDom.UI.css(CSS); }
+    if (CSS) { VDom.UI.css_(CSS); }
     if (!VDom.isHTML_()) { return; }
     Commands[kFgCmd.showHelp]("exitHD");
     if (oldShowHelp !== Commands[kFgCmd.showHelp]) { return; } // an old dialog exits
@@ -1011,7 +1011,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     };
     shouldShowAdvanced && toggleAdvanced();
     VDom.UI.ensureBorder_();
-    VDom.UI.add(box, AdjustType.Normal, true);
+    VDom.UI.add_(box, AdjustType.Normal, true);
     document.hasFocus() || VEvent.focusAndListen_();
     VScroller.current_ = box;
     VUtils.push_(function(event) {
@@ -1029,7 +1029,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
   ];
 
   function checkValidKey(event: KeyboardEvent, key: string): HandlerResult.Nothing | HandlerResult.Prevent {
-    key = VKeyboard.key(event, key);
+    key = VKeyboard.key_(event, key);
     mappedKeys !== null && (key = mappedKeys[key] || key);
     let j = (nextKeys || keyMap)[key];
     if (nextKeys === null) {
@@ -1051,21 +1051,21 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
   }
 
   VPort = {
-    post, send_: send,
+    post_: post, send_: send,
     evalIfOK_ (url: string): boolean {
       if (!VUtils.jsRe_.test(url)) {
         return false;
       }
       url = url.substring(11).trim();
       if ((<RegExpOne>/^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) {
-      } else if (VDom.Scripts) setTimeout(function(): void {
+      } else if (VDom.Scripts_) setTimeout(function(): void {
         const script = VDom.createElement_("script");
         script.type = "text/javascript";
         script.textContent = VUtils.decodeURL_(url, decodeURIComponent);
         (document.documentElement as HTMLElement).appendChild(script);
         script.remove();
       }, 0); else {
-        HUD.tip("Here's not allowed to eval scripts");
+        HUD.tip_("Here's not allowed to eval scripts");
       }
       return true;
     }
@@ -1073,7 +1073,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
   VHUD = HUD;
 
   VEvent = {
-    lock (this: void): LockableElement | null { return InsertMode.lock_; },
+    lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { return onWndFocus(); },
     checkHidden_ (this: void, cmd?: kFgCmd, count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): boolean {
@@ -1084,7 +1084,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       if (!count) {}
       else if (result) {
         type ForwardedOptions = Exclude<typeof options, undefined>;
-        (options as ForwardedOptions).$forced || VPort.post({
+        (options as ForwardedOptions).$forced || VPort.post_({
           H: kFgReq.gotoMainFrame,
           c: cmd as NonNullable<typeof cmd>,
           n: count, a: options as ForwardedOptions
@@ -1157,10 +1157,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       if (f) { return f(); }
     },
     suppress_ (this: void, key?: VKeyCodes): void { key && (KeydownEvents[key] = 1); },
-    keydownEvents: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | boolean {
+    keydownEvents_: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
       return !isEnabled || !(KeydownEvents = arr);
-    } as VEventModeTy["keydownEvents"]
+    } as VEventModeTy["keydownEvents_"]
   };
 
   VSettings = {

@@ -21,6 +21,6 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
   }
   scripts[scripts.length - 1].onload = function(): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
-    (window as any).VDom && ((window as any).VDom.Scripts = false);
+    (window as any).VDom && ((window as any).VDom.Scripts_ = false);
   };
 })();

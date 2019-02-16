@@ -15,6 +15,7 @@ var locally = false;
 var debugging = process.env.DEBUG === "1";
 var compileInBatch = true;
 var typescript = null, tsOptionsLogged = false;
+var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var envLegacy = process.env.SUPPORT_LEGACY === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
@@ -23,13 +24,14 @@ var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", false);
 var has_dialog_ui = manifest.options_ui != null && manifest.options_ui.open_in_tab !== true;
+var jsmin_status = [false, false, false];
 gulpPrint = gulpPrint.default || gulpPrint;
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
-  content: [["content/*.ts", "lib/*.ts", "!lib/polyfill.ts"], "content/*.d.ts"],
+  content: [["content/*.ts", "lib/*.ts", "!lib/polyfill.ts", "!lib/injector.ts"], "content/*.d.ts"],
   lib: ["lib/*.ts"],
-  front: [["front/*.ts", "lib/polyfill.ts", "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]
+  front: [["front/*.ts", "lib/polyfill.ts", "lib/injector.ts", "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]
           , ["background/bg.d.ts", "content/*.d.ts"]],
   vomnibar: ["front/*.ts", ["background/bg.d.ts", "content/*.d.ts"]],
   polyfill: ["lib/polyfill.ts"],
@@ -63,11 +65,32 @@ var Tasks = {
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/ts": ["build/scripts", "build/main_pages"],
 
-  "min/bg": function(cb) {
-    var exArgs = { nameCache: { vars: {}, props: {} }, passAll: true };
+  "min/content": function(cb) {
+    var cs = manifest.content_scripts[0], sources = cs.js;
+    if (sources.length <= 1 || jsmin_status[0]) {
+      jsmin_status[0] = true;
+      return cb();
+    }
+    cs.js = ["content/vimium-c.js"];
+    var exArgs = { nameCache: { vars: {}, props: {}, timestamp: 0 } };
+    var rest = ["content/*.js"];
+    for (var arr = sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
+    var maps = [
+      [sources.slice(0), cs.js[0], null], [rest, ".", ""]
+    ];
+    checkJSAndUglifyAll(0, maps, "min/content", exArgs, cb);
+  },
+  "min/bg": ["min/content", function(cb) {
+    if (jsmin_status[1]) {
+      return cb();
+    }
+    var exArgs = { nameCache: loadNameCache("content") };
     var config = loadUglifyConfig(!!exArgs.nameCache);
     config.nameCache = exArgs.nameCache;
-    require(LIB_UGLIFY_JS).minify("var CommandsData_, Completion_, ContentSettings_, FindModeHistory_, Marks_, TabRecency_, VClipboard_;", config);
+    require(LIB_UGLIFY_JS).minify("var CommandsData_, Completion_ \
+      , ContentSettings_, FindModeHistory_, Marks_, TabRecency_, VClipboard_ \
+      , Utils, OnOther, ChromeVer, Settings, Backend \
+      ;", config);
 
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");
@@ -84,28 +107,18 @@ var Tasks = {
       [rest, ".", ""]
     ];
     manifest.background.scripts = sources;
-    checkJSAndUglifyAll(maps, "min/bg", exArgs, cb);
-  },
-  "min/content": function(cb) {
-    var cs = manifest.content_scripts[0], sources = cs.js;
-    if (sources.length <= 1) {
+    checkJSAndUglifyAll(1, maps, "min/bg", exArgs, cb);
+  }],
+  "min/others": ["min/bg", function(cb) {
+    if (jsmin_status[2]) {
       return cb();
     }
-    cs.js = ["content/vimium-c.js"];
-    var exArgs = { nameCache: { vars: {}, props: {} }, passAll: true };
-    var rest = ["content/*.js"];
-    for (var arr = sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
-    var maps = [
-      [sources.slice(0), cs.js[0], null], [rest, ".", ""]
-    ];
-    checkJSAndUglifyAll(maps, "min/content", exArgs, cb);
-  },
-  "min/others": function(cb) {
     gulp.task("min/others/_1", function() {
       return uglifyJSFiles(["front/*.js"], ".", "");
     });
+    var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
     gulp.task("min/others/_2", function() {
-      var exArgs = { nameCache: { vars: {}, props: {} } };
+      exArgs.passAll = null;
       return uglifyJSFiles(["pages/options_base.js", "pages/options.js", "pages/options_*.js"], ".", "", exArgs);
     });
     gulp.task("min/others/_3", function() {
@@ -119,12 +132,16 @@ var Tasks = {
           res.push("!" + arr[i]);
         }
       }
-      return uglifyJSFiles(res, ".", "");
+      exArgs.passAll = false;
+      return uglifyJSFiles(res, ".", "", exArgs);
     });
-    gulp.parallel("min/others/_1", "min/others/_2", "min/others/_3")(cb);
-  },
-  "min/js": ["min/bg", "min/content", "min/others"],
-  manifest: [["min/bg", "min/content"], function(cb) {
+    gulp.parallel("min/others/_1", "min/others/_2", "min/others/_3")(function() {
+      jsmin_status[2] = true;
+      cb();
+    });
+  }],
+  "min/js": ["min/others"],
+  manifest: ["min/bg", function(cb) {
     var file = osPath.join(DEST, "manifest.json")
       , data = JSON.stringify(manifest, null, "  ");
     if (fs.existsSync(file) && fs.statSync(file).isFile()) {
@@ -338,7 +355,7 @@ function outputJSResult(stream) {
   return stream.pipe(gulp.dest(JSDEST));
 }
 
-function checkJSAndUglifyAll(maps, key, exArgs, cb) {
+function checkJSAndUglifyAll(taskOrder, maps, key, exArgs, cb) {
   Promise.all(maps.map(function(i) {
     var is_file = i[1] && i[1] !== ".";
     return checkAnyNewer(i[0], JSDEST, is_file ? osPath.join(DEST, i[1]) : DEST, is_file ? "" : ".js");
@@ -349,7 +366,15 @@ function checkJSAndUglifyAll(maps, key, exArgs, cb) {
         isNewer = true; break;
       }
     }
-    if (!isNewer) { return cb(); }
+    if (!isNewer && exArgs.nameCache && "timestamp" in exArgs.nameCache && cacheNames) {
+      var path = getNameCacheFilePath(key);
+      var stat = fs.existsSync(path) ? fs.statSync(path) : null;
+      if (!stat || stat.mtime < exArgs.nameCache.timestamp) {
+        isNewer = true;
+      }
+    }
+    if (!isNewer) { jsmin_status[taskOrder] = true; return cb(); }
+    exArgs.passAll = true;
     var tasks = [];
     for (var i = 0; i < maps.length; i++) {
       var name = key + "/_" + (i + 1);
@@ -360,7 +385,11 @@ function checkJSAndUglifyAll(maps, key, exArgs, cb) {
         }
       })(maps[i]));
     }
-    gulp.series(...tasks)(cb);
+    gulp.series(...tasks)(function() {
+      jsmin_status[taskOrder] = true;
+      saveNameCacheIfNeeded(key, exArgs.nameCache);
+      cb();
+    });
   });
 }
 
@@ -373,16 +402,19 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   exArgs || (exArgs = {});
 
   var stream = gulp.src(path, { base: base });
-  var is_file = output.indexOf(".js", Math.max(0, output.length - 3)) > 0;
+  var is_file = output.endsWith(".js");
   if (!exArgs.passAll) {
     stream = stream.pipe(newer(is_file ? {
+      extra: exArgs.nameCachePath || null,
       dest: osPath.join(DEST, output)
     } : exArgs.nameCache ? {
       dest: DEST,
       ext: new_suffix + ".js",
-      extra: path
+      extra: exArgs.passAll === false ? exArgs.nameCachePath || null
+        : (exArgs.nameCachePath && path.push(exArgs.nameCachePath), path)
     } : {
       dest: DEST,
+      extra: exArgs.nameCachePath || null,
       ext: new_suffix + ".js"
     }));
   }
@@ -827,4 +859,27 @@ function loadUglifyConfig(reload) {
   }
   a.output.comments = removeComments ? /^!/ : "all";
   return a;
+}
+
+function getNameCacheFilePath(path) {
+  if (path.indexOf(".cache") >= 0 ) {
+    return path;
+  }
+  return JSDEST + osPath.sep + ".names-" + path.replace("min/", "") + ".cache";
+}
+
+function saveNameCacheIfNeeded(key, nameCache) {
+  if (nameCache && cacheNames) {
+    nameCache.timestamp = Date.now();
+    fs.writeFileSync(getNameCacheFilePath(key), JSON.stringify(nameCache));
+    print("Saved nameCache for " + key.replace("min/", ""));
+  }
+}
+
+function loadNameCache(path) {
+  var nameCache = cacheNames ? readJSON(getNameCacheFilePath(path), false) : null;
+  if (nameCache) {
+    print("Loaded nameCache of " + path);
+  }
+  return nameCache || { vars: {}, props: {}, timestamp: 0 };
 }

@@ -2,7 +2,7 @@
 var VDom = {
   UI: null as never as DomUI,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
-  Scripts: true,
+  Scripts_: true,
   allowRAF_: true,
   isHTML_ (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   isStandard_: true,
@@ -319,7 +319,7 @@ var VDom = {
     iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
     return [x, y, iw, yScrollable ? ih - PixelConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
   },
-  view (el: Element, oldY?: number): boolean {
+  view_ (el: Element, oldY?: number): boolean {
     const P = Element.prototype, rect = P.getBoundingClientRect.call(el), ty = this.NotVisible_(null, rect);
     if (ty === VisibilityType.OutOfView) {
       const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;

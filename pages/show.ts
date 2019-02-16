@@ -7,7 +7,7 @@ interface ImportBody {
   (id: "shownText"): HTMLDivElement
 }
 declare var VPort: Readonly<VPort>, VHUD: Readonly<VHUD>,
-  VKeyboard: { char (event: KeyboardEvent): string; key (event: EventControlKeys, ch: string): string; },
+  VKeyboard: { char_ (event: KeyboardEvent): string; key_ (event: EventControlKeys, ch: string): string; },
   Viewer: new (root: HTMLElement) => ViewerType;
 interface Window {
   readonly VKeyboard?: typeof VKeyboard
@@ -37,7 +37,7 @@ var $ = function<T extends HTMLElement>(selector: string): T {
   return document.querySelector(selector) as T;
 },
 BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };
-if (!(BG_ && BG_.Utils && BG_.Utils.convertToUrl)) {
+if (!(BG_ && BG_.Utils && BG_.Utils.convertToUrl_)) {
   BG_ = null as never;
 }
 
@@ -65,8 +65,8 @@ window.onhashchange = function(this: void): void {
 
   VData = Object.create(null);
   let url = location.hash, type: ValidShowTypes = "", file = "";
-  if (!url && BG_ && BG_.Settings && BG_.Settings.temp.shownHash) {
-    url = BG_.Settings.temp.shownHash();
+  if (!url && BG_ && BG_.Settings && BG_.Settings.temp_.shownHash_) {
+    url = BG_.Settings.temp_.shownHash_();
     encryptKey = encryptKey || Math.floor(Math.random() * 0x100000000) || 0xc3e73c18;
     let encryptedUrl = encrypt(url, encryptKey, true);
     if (history.state) {
@@ -111,8 +111,8 @@ window.onhashchange = function(this: void): void {
   } else if (url.toLowerCase().startsWith("javascript:")) {
     type = url = file = VData.file = "";
   } else if (BG_) {
-    const str = BG_.Utils.convertToUrl(url, null, Urls.WorkType.KeepAll);
-    if (BG_.Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl) {
+    const str = BG_.Utils.convertToUrl_(url, null, Urls.WorkType.KeepAll);
+    if (BG_.Utils.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl) {
       url = str;
     }
   } else if (url.startsWith("//")) {
@@ -199,9 +199,9 @@ window.onhashchange = function(this: void): void {
     if (url && BG_) {
       let str: Urls.Url | null = null;
       if (url.startsWith("vimium://")) {
-        str = BG_.Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
+        str = BG_.Utils.evalVimiumUrl_(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
       }
-      str = str !== null ? str : BG_.Utils.convertToUrl(url, null, Urls.WorkType.ConvertKnown);
+      str = str !== null ? str : BG_.Utils.convertToUrl_(url, null, Urls.WorkType.ConvertKnown);
       if (typeof str === "string") {}
       else if (str instanceof BG_.Promise) {
         str.then(function(arr) {
@@ -235,7 +235,7 @@ window.onhashchange = function(this: void): void {
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 
   let str = $<HTMLTitleElement>('title').getAttribute('data-title') as string;
-  str = BG_ ? BG_.Utils.createSearch(file ? file.split(/\s+/) : [], str, "")
+  str = BG_ ? BG_.Utils.createSearch_(file ? file.split(/\s+/) : [], str, "")
     : str.replace(<RegExpOne>/\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
 };
@@ -307,10 +307,10 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
   if (!window.VKeyboard) {
     return false;
   }
-  let ch = VKeyboard.char(event);
+  let ch = VKeyboard.char_(event);
   if (!ch) { return false; }
   let action: number = 0;
-  switch (VKeyboard.key(event, ch)) {
+  switch (VKeyboard.key_(event, ch)) {
   case "<c-=>": case "+": case "=": case "<up>": action = 1; break;
   case "<left>": action = -2; break;
   case "<right>": action = 2; break;
@@ -390,11 +390,11 @@ function copyThing(event: Event): void {
   event.preventDefault();
   const str = VData.type == "url" ? $("#textBody").textContent : VData.url;
   if (!(str && window.VPort)) { return; }
-  VPort.post({
+  VPort.post_({
     H: kFgReq.copy,
     data: str
   });
-  return VHUD.copied(str);
+  return VHUD.copied_(str);
 }
 
 function toggleInvert(event: Event): void {

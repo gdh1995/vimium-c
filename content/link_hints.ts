@@ -98,7 +98,7 @@ var VHints = {
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
     if (str.length < 3) {
       a.clean_(1);
-      return VHUD.tip("Characters for LinkHints are too few.", 1000);
+      return VHUD.tip_("Characters for LinkHints are too few.", 1000);
     }
     a.alphabetHints_.chars_ = str.toUpperCase();
 
@@ -115,7 +115,7 @@ var VHints = {
     }
     if (elements.length === 0) {
       a.clean_(1);
-      return VHUD.tip("No links to select.", 1000);
+      return VHUD.tip_("No links to select.", 1000);
     }
 
     if (a.box_) { a.box_.remove(); a.box_ = null; }
@@ -200,7 +200,7 @@ var VHints = {
         if (mode === "VHints") {
           (done = child.VHints.isActive_) && child.VHints.deactivate_(true);
         }
-        err = child.VEvent.keydownEvents(VEvent.keydownEvents());
+        err = child.VEvent.keydownEvents_(VEvent.keydownEvents_());
       }
     } catch (e) {}
     if (err) {
@@ -651,7 +651,7 @@ var VHints = {
       return HandlerResult.Suppress;
     } else if (i === VKeyCodes.ime) {
       this.clean_(1);
-      VHUD.tip("LinkHints exits because you're inputting");
+      VHUD.tip_("LinkHints exits because you're inputting");
       return HandlerResult.Nothing;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       this.ResetMode_();
@@ -730,7 +730,7 @@ var VHints = {
   },
   ResetMode_ (): void {
     if (VHints.mode_ >= HintMode.min_disable_queue || VHints.lastMode_ === VHints.mode_) { return; }
-    const d = VEvent.keydownEvents();
+    const d = VEvent.keydownEvents_();
     if (d[VKeyCodes.ctrlKey] || d[VKeyCodes.metaKey] || d[VKeyCodes.shiftKey] || d[VKeyCodes.altKey]) {
       return VHints.setMode_(VHints.lastMode_);
     }
@@ -758,7 +758,7 @@ var VHints = {
       }
     } else {
       clickEl = null;
-      VHUD.tip("The link has been removed from page", 2000);
+      VHUD.tip_("The link has been removed from page", 2000);
     }
     this.pTimer_ = -(VHUD.text_ !== str);
     if (!(this.mode_ & HintMode.queue)) {
@@ -947,7 +947,7 @@ alphabetHints_: {
         return [];
       }
       this.hintKeystroke_ = this.hintKeystroke_.slice(0, -1);
-    } else if ((keyChar = VKeyboard.char(event).toUpperCase()) && keyChar.length === 1) {
+    } else if ((keyChar = VKeyboard.char_(event).toUpperCase()) && keyChar.length === 1) {
       if (this.chars_.indexOf(keyChar) === -1) {
         return [];
       }
@@ -1009,7 +1009,7 @@ _getImageUrl (img: HTMLElement, forShow?: 1): string | void {
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  return text || VHUD.tip("Not an image", 1000);
+  return text || VHUD.tip_("Not an image", 1000);
 },
 
 openUrl_ (url: string, incognito?: boolean): void {
@@ -1020,7 +1020,7 @@ openUrl_ (url: string, incognito?: boolean): void {
     keyword: kw != null ? kw + "" : ""
   };
   incognito && (opt.incognito = incognito);
-  VPort.post(opt);
+  VPort.post_(opt);
 },
 highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   interface VWindow extends Window {
@@ -1030,7 +1030,7 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   let err: boolean | null = true, child: VWindow = null as never;
   try {
     err = !el.contentDocument ||
-      (child = el.contentWindow as VWindow).VEvent.keydownEvents(VEvent.keydownEvents());
+      (child = el.contentWindow as VWindow).VEvent.keydownEvents_(VEvent.keydownEvents_());
   } catch (e) {}
   const { count_: count, options_: options } = this;
   options.mode = this.mode_;
@@ -1060,7 +1060,7 @@ Modes_: [
     type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
       element instanceof HTMLFrameElement || element.focus();
     if ((this as typeof VHints).mode_ < HintMode.min_job) {
-      return VHUD.tip("Hover for scrolling", 1000);
+      return VHUD.tip_("Hover for scrolling", 1000);
     }
   }
 } as HintsNS.ModeOpt,
@@ -1095,7 +1095,7 @@ Modes_: [
       if (link instanceof HTMLInputElement) {
         const type = link.type;
         if (type === "password") {
-          return VHUD.tip("Sorry, Vimium C won't copy a password.", 2000);
+          return VHUD.tip_("Sorry, Vimium C won't copy a password.", 2000);
         }
         if (!VDom.uneditableInputs_[type]) {
           str = (link.value || link.placeholder).trim();
@@ -1117,12 +1117,12 @@ Modes_: [
       }
     }
     if (!str) {
-      return VHUD.copied("", isUrl ? "url" : "");
+      return VHUD.copied_("", isUrl ? "url" : "");
     }
     if (a.mode_ >= HintMode.min_edit && a.mode_ <= HintMode.max_edit) {
       let newtab = a.options_.newtab;
       newtab == null && (newtab = a.options_.force);
-      (VPort as ComplicatedVPort).post<kFgReq.vomnibar, { count: number } & Partial<VomnibarNS.ContentOptions>>({
+      (VPort as ComplicatedVPort).post_<kFgReq.vomnibar, { count: number } & Partial<VomnibarNS.ContentOptions>>({
         H: kFgReq.vomnibar,
         count: 1,
         newtab: newtab != null ? !!newtab : !isUrl,
@@ -1137,11 +1137,11 @@ Modes_: [
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? VUtils.decodeURL_(str) : str;
-    VPort.post({
+    VPort.post_({
       H: kFgReq.copy,
       data: str
     });
-    VHUD.copied(str);
+    VHUD.copied_(str);
   }
 } as HintsNS.ModeOpt,
 {
@@ -1171,7 +1171,7 @@ Modes_: [
     a.download = img.getAttribute("download") || "";
     // todo: how to trigger download
     VDom.mouse_(a, "click", null);
-    return VHUD.tip("Download: " + text, 2000);
+    return VHUD.tip_("Download: " + text, 2000);
   }
 } as HintsNS.ModeOpt,
 {
@@ -1180,7 +1180,7 @@ Modes_: [
   activator_ (img: HTMLElement): void {
     let text = (this as typeof VHints)._getImageUrl(img, 1);
     if (!text) { return; }
-    VPort.post({
+    VPort.post_({
       H: kFgReq.openImage,
       reuse: (this as typeof VHints).mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       file: img.getAttribute("download"),
@@ -1228,7 +1228,7 @@ Modes_: [
   258: "Select an editable area",
   activator_ (link, rect): void | false {
     if ((this as typeof VHints).mode_ < HintMode.min_disable_queue) {
-      VDom.view(link);
+      VDom.view_(link);
       link.focus();
       VDom.UI.flash_(link);
     } else {

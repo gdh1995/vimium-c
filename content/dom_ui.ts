@@ -9,7 +9,7 @@ VDom.UI = {
   UI: null as never,
   callback_: null,
   flashLastingTime_: 400,
-  add<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): T {
+  add_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): T {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
     r: VUIRoot = a.UI = box.attachShadow ? box.attachShadow({mode: "closed"})
       : box.createShadowRoot ? box.createShadowRoot() : box;
@@ -24,18 +24,18 @@ VDom.UI = {
         VUtils.Stop_(e); t.onload && t.onload(e);
       }
     }, true);
-    a.add = (function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
+    a.add_ = (function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
       adjust === AdjustType.NotAdjust || this.adjust_();
       return this.UI.insertBefore(element, before === true ? this.UI.firstChild : before || null);
     });
-    a.css = (function (innerCSS): void {
+    a.css_ = (function (innerCSS): void {
       const a = VDom.UI;
       if (a.box_ === a.UI) {
         a.box_.id = "VimiumUI";
       }
       let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_(innerCSS);
       a.UI.appendChild(el);
-      a.css = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = this._dpiWiseWidthPatch ? this._dpiWiseWidthPatch[1](css) : css; };
+      a.css_ = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = this._dpiWiseWidthPatch ? this._dpiWiseWidthPatch[1](css) : css; };
       if (adjust !== AdjustType.AdjustButNotShow) {
         let f = function (this: HTMLElement | void, e: Event | 1): void {
           e !== 1 && ((this as HTMLElement).onload = null as never);
@@ -53,9 +53,9 @@ VDom.UI = {
     r.appendChild(element);
     let b: string | null;
     if (b = a.styleIn_ as string | null) {
-      a.css(b);
+      a.css_(b);
     } else {
-      b === "" || VPort.post({ H: kFgReq.css });
+      b === "" || VPort.post_({ H: kFgReq.css });
       if ((adjust as AdjustType) >= AdjustType.MustAdjust) {
         a.adjust_();
       }
@@ -73,7 +73,7 @@ VDom.UI = {
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
     zoom !== 1 && (style.zoom = "" + zoom);
     document.webkitIsFullScreen && (style.position = "fixed");
-    return this.add(parent, AdjustType.DEFAULT, this._lastFlash);
+    return this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
   } as DomUI["addElementList_"],
   adjust_ (event): void {
     const ui = VDom.UI, el = document.webkitFullscreenElement, box = ui.box_ as HTMLDivElement,
@@ -104,7 +104,7 @@ VDom.UI = {
     }
     if (patch[0] === width) { return; }
     patch[0] = width;
-    st && this.css(typeof st === "string" ? st : st.textContent);
+    st && this.css_(typeof st === "string" ? st : st.textContent);
   },
   createStyle_ (text, css): HTMLStyleElement {
     css = css || VDom.createElement_("style");
@@ -112,7 +112,7 @@ VDom.UI = {
     css.textContent = text;
     return css;
   },
-  css (innerCSS): void { this.styleIn_ = innerCSS; },
+  css_ (innerCSS): void { this.styleIn_ = innerCSS; },
   getDocSelectable_ (): boolean {
     let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_;
     if (sout && sout.parentNode) { return false; }
@@ -129,7 +129,7 @@ VDom.UI = {
   toggleSelectStyle_ (enable: BOOL): void {
     let sout = this.styleOut_;
     if (enable ? VDom.docSelectable_ : !sout || !sout.parentNode) { return; }
-    sout || (this.styleOut_ = sout = this.createStyle_(VFind.css[2]));
+    sout || (this.styleOut_ = sout = this.createStyle_(VFind.css_[2]));
     enable ? (this.box_ as HTMLElement).appendChild(sout) : sout.remove();
   },
   getSelected_ (notExpectCount?: 1): [Selection, ShadowRoot | null] {
@@ -170,7 +170,7 @@ VDom.UI = {
   },
   getSelectionText_ (notTrim?: 1): string {
     let sel = getSelection(), s = "" + sel, el: Element | null, rect: ClientRect;
-    if (s && !VEvent.lock() && (el = VScroller.current_) && VDom.getEditableType_(el) === EditableType.Editbox
+    if (s && !VEvent.lock_() && (el = VScroller.current_) && VDom.getEditableType_(el) === EditableType.Editbox
         && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
       s = "";
     }
@@ -189,7 +189,7 @@ VDom.UI = {
     element === VDom.lastHovered_ || VDom.hover_(element, rect);
     VDom.mouse_(element, "mousedown", rect, modifiers);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    addFocus && element !== VEvent.lock() && element !== document.activeElement &&
+    addFocus && element !== VEvent.lock_() && element !== document.activeElement &&
       typeof element.focus === "function" && element.focus();
     VDom.mouse_(element, "mouseup", rect, modifiers);
     return VDom.mouse_(element, "click", rect, modifiers);
@@ -197,10 +197,10 @@ VDom.UI = {
   simulateSelect_ (element, rect, flash, action, suppressRepeated): void {
     const y = window.scrollY;
     this.click_(element, rect, null, true);
-    VDom.view(element, y);
+    VDom.view_(element, y);
     // re-compute rect of element, in case that an input is resized when focused
     flash && this.flash_(element);
-    if (element !== VEvent.lock()) { return; }
+    if (element !== VEvent.lock_()) { return; }
     // then `element` is always safe
     this._moveSel_unsafe_(element as LockableElement, action);
     if (suppressRepeated === true) { return this.suppressTail_(true); }
@@ -260,7 +260,7 @@ VDom.UI = {
     flashEl.className = "R Flash";
     VDom.setBoundary_(flashEl.style, rect, nfs);
     VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
-    this.add(flashEl);
+    this.add_(flashEl);
     this._lastFlash = flashEl;
     setTimeout(() => {
       this._lastFlash === flashEl && (this._lastFlash = null);
