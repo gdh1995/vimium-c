@@ -101,6 +101,9 @@ These issues are only up to the master branch:
 
 # Release Notes
 
+1.73:
+* in LinkHints mode, press `<a-f2>` to fix that some hint markers are covered
+
 1.72:
 * fix broken UI on some pages using a global *flex* layout (the key CSS is `html { display: flex; }`)
   * this problem only occurs since Chrome 70, so it seems a bug of Chromium browsers.

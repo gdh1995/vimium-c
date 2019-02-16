@@ -6,7 +6,7 @@ const enum ClickType {
   frame = minBox, scrollX, scrollY,
 }
 const enum DeepQueryType {
-  NotDeep = 0,
+  NotDeep = 0, // must be 0 because of `InDeep - deep`
   NotAvailable = 1,
   InDeep = 2,
 }
@@ -55,7 +55,8 @@ var VHints = {
     url: HintMode.COPY_LINK_URL,
     image: HintMode.OPEN_IMAGE
   } as Dict<HintMode>,
-  box_: null as HTMLDivElement | null,
+  box_: null as HTMLDivElement | HTMLDialogElement | null,
+  dialogMode_: false,
   hints_: null as HintsNS.HintItem[] | null,
   mode_: 0 as HintMode,
   mode1_: 0 as HintMode,
@@ -126,7 +127,8 @@ var VHints = {
     a.noHUD_ = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
     VDom.UI.ensureBorder_(VDom.wdZoom_);
     a.setMode_(a.mode_, false);
-    a.box_ = VDom.UI.addElementList_(a.hints_, arr);
+    a.box_ = VDom.UI.addElementList_(a.hints_, arr, a.dialogMode_ ? "dialog" : "");
+    a.dialogMode_ && (a.box_ as HTMLDialogElement).showModal();
 
     a.isActive_ = true;
     VUtils.push_(a.onKeydown_, a);
@@ -166,7 +168,8 @@ var VHints = {
       this.pTimer_ = setTimeout(this.SetHUDLater_, 1000);
       return;
     }
-    return VHUD.show_((this.modeOpt_ as HintsNS.ModeOpt)[this.mode_] as string, true);
+    const msg = this.dialogMode_ ? " (modal UI)" : "";
+    return VHUD.show_((this.modeOpt_ as HintsNS.ModeOpt)[this.mode_] + msg, true);
   },
   SetHUDLater_ (this: void): void {
     const a = VHints;
@@ -648,24 +651,30 @@ var VHints = {
       return HandlerResult.Suppress;
     } else if (i === VKeyCodes.ime) {
       this.clean_(1);
-      VHUD.tip("LinkHints exits because you're inputing");
+      VHUD.tip("LinkHints exits because you're inputting");
       return HandlerResult.Nothing;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       this.ResetMode_();
       if (i !== VKeyCodes.f2) { return HandlerResult.Nothing; }
       i = VKeyboard.getKeyStat_(event);
-      const deep = this.queryInDeep_;
+      let deep = this.queryInDeep_, reinit = true;
       if (i === KeyStat.shiftKey) {
         this.isClickListened_ = !this.isClickListened_;
       } else if (i === KeyStat.plain) {
-        this.queryInDeep_ = 2 - deep;
+        reinit = deep !== DeepQueryType.NotAvailable;
+        this.queryInDeep_ = DeepQueryType.InDeep - deep;
       } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
-        if (deep !== DeepQueryType.NotDeep) {
-          return HandlerResult.Prevent;
-        }
+        reinit = deep === DeepQueryType.NotDeep;
         this.queryInDeep_ = DeepQueryType.InDeep;
+      } else if (i === KeyStat.altKey) {
+        // Note: although on Firefox there's no native blocking backdrop,
+        // here not check it, in case of any further behavior changes
+        reinit = typeof HTMLDialogElement === "function";
+        this.dialogMode_ = reinit && !this.dialogMode_;
+      } else {
+        reinit = false;
       }
-      setTimeout(this._reinit.bind(this, null, null), 0);
+      reinit && setTimeout(this._reinit.bind(this, null, null), 0);
     } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
         || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
       const mode = this.mode_,
@@ -1245,6 +1254,7 @@ Modes_: [
     }
     const { UI } = VDom;
     if (tag === "details") {
+      // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
       // `HTMLDetailsElement::FindMainSummary()` in
       // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
       for (let summaries = link.children, i = 0, len = summaries.length; i < len; i++) {

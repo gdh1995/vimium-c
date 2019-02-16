@@ -269,6 +269,7 @@ declare const enum AdjustType {
 
 declare function setInterval(this: void, handler: (this: void, info?: TimerType) => void, timeout: number): number;
 
+type VimiumContainerElementType = "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog";
 /** ShadowRoot | HTMLDivElement */
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 interface DomUI {
@@ -280,7 +281,9 @@ interface DomUI {
   flashLastingTime_: number;
   _lastFlash: HTMLElement | null;
   add<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
-  addElementList_(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset): HTMLDivElement;
+  addElementList_<T extends VimiumContainerElementType | "" | undefined>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
+    offset: ViewOffset, containerTagName?: T
+    ): T extends VimiumContainerElementType ? HTMLElementTagNameMap[T] & SafeElement : HTMLDivElement & SafeElement;
   adjust_ (this: void, event?: Event): void;
   toggle_ (this: DomUI, enabled: boolean): void;
   _dpiWiseWidthPatch: [string, ((css: string) => string)] | null;

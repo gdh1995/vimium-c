@@ -1,5 +1,4 @@
 /// <reference path="../content/base.d.ts" />
-type FrontendRootElementType = "div" | "span" | "style" | "iframe" | "a" | "script";
 var VDom = {
   UI: null as never as DomUI,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
@@ -7,12 +6,12 @@ var VDom = {
   allowRAF_: true,
   isHTML_ (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   isStandard_: true,
-  createElement_<K extends FrontendRootElementType> (tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement {
+  createElement_<K extends VimiumContainerElementType> (tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement {
     const d = document, a = this,
     node = document.createElement(tagName), valid = node instanceof HTMLElement;
     a.isStandard_ = valid;
     a.createElement_ = valid ? d.createElement.bind(d) as typeof VDom.createElement_
-      : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", [FrontendRootElementType]
+      : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", [VimiumContainerElementType]
         , HTMLElement>(d, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
     return valid ? node as HTMLElementTagNameMap[K] & SafeHTMLElement : a.createElement_(tagName);
   },

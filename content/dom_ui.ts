@@ -62,8 +62,9 @@ VDom.UI = {
     }
     return element;
   },
-  addElementList_ (els, offset: ViewOffset): HTMLDivElement {
-    const parent = VDom.createElement_("div");
+  addElementList_: function (this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
+      offset: ViewOffset, tagName?: VimiumContainerElementType | ""): HTMLElementTagNameMap[VimiumContainerElementType] & SafeElement {
+    const parent = VDom.createElement_(tagName || "div");
     parent.className = "R HM";
     for (const el of els) {
       parent.appendChild(el.marker);
@@ -73,7 +74,7 @@ VDom.UI = {
     zoom !== 1 && (style.zoom = "" + zoom);
     document.webkitIsFullScreen && (style.position = "fixed");
     return this.add(parent, AdjustType.DEFAULT, this._lastFlash);
-  },
+  } as DomUI["addElementList_"],
   adjust_ (event): void {
     const ui = VDom.UI, el = document.webkitFullscreenElement, box = ui.box_ as HTMLDivElement,
     el2 = el && !(ui.UI as Node).contains(el) ? el : document.documentElement as HTMLElement;

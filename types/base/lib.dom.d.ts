@@ -2789,10 +2789,24 @@ interface HTMLDetailsElement extends HTMLElement {
 declare var HTMLDetailsElement: {
     prototype: HTMLDetailsElement;
     new(): HTMLDetailsElement;
-}
+};
+
 interface Window {
     HTMLDetailsElement?: typeof HTMLDetailsElement | Element;
 }
+
+interface HTMLDialogElement extends HTMLElement {
+    open: boolean;
+    returnValue: string;
+    close(returnValue?: string): void;
+    show(): void;
+    showModal(): void;
+}
+
+declare var HTMLDialogElement: {
+    prototype: HTMLDialogElement;
+    new(): HTMLDialogElement;
+};
 
 interface HTMLDirectoryElement extends HTMLElement {
     compact: boolean;
@@ -8812,6 +8826,7 @@ interface HTMLElementTagNameMap {
     "colgroup": HTMLTableColElement;
     "datalist": HTMLDataListElement;
     "del": HTMLModElement;
+    "dialog": HTMLDialogElement;
     "dir": HTMLDirectoryElement;
     "div": HTMLDivElement;
     "dl": HTMLDListElement;
@@ -8913,6 +8928,7 @@ interface ElementTagNameMap {
     "del": HTMLModElement;
     "desc": SVGDescElement;
     "dfn": HTMLElement;
+    "dialog": HTMLDialogElement;
     "dir": HTMLDirectoryElement;
     "div": HTMLDivElement;
     "dl": HTMLDListElement;

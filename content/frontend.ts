@@ -469,7 +469,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       hints[sel].marker.classList.add("S", "IHS"); // Note: remove `"S"` in 2019
       VDom.UI.simulateSelect_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
       VDom.UI.ensureBorder_(VDom.wdZoom_);
-      const box = VDom.UI.addElementList_(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
+      const box = VDom.UI.addElementList_<undefined>(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       // delay exiting the old to avoid some layout actions
       // although old elements can not be GC-ed before this line, it has little influence
       InsertMode.exitInputHint_();
