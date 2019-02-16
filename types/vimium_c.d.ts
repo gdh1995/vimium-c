@@ -355,6 +355,10 @@ declare const enum BrowserVer {
   MinCSS$All$MayMistakenlyResetFixedPosition = 37,
   // includes for-of, Map, Set, Symbols, even if LEAGCY
   MinES6ForAndSymbols = 38,
+  // .repeat still exists on C35, but only works since C38, even if EXPERIMENTAL
+  // because there seems no simple fix, just ignore it
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=394907
+  MinCorrect$KeyboardEvent$$Repeat = 38,
   MinWithFrameIdInArg = 39,
   MinOptionsUI = 40,
   MinDisableMoveTabAcrossIncognito = 40,
