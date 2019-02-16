@@ -214,6 +214,23 @@ var Backend: BackendHandlersNS.BackendHandlers;
       return ChromeVer >= BrowserVer.MinSession ? Backend.complain_("control tab sessions")
         : Backend.showHUD_(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
     }
+    function upperGitUrls(url: string, path: string): string | void | null {
+      let host: string = "";
+      try {
+        host = new URL(url).hostname;
+      } catch { return; }
+      if (!(<RegExpI> /git\b|\bgit/i).test(host) || !(<RegExpI> /^[\w\-]+(\.\w+)?$/).test(host)) {
+        return;
+      }
+      const arr = path.split("/"), last = arr[arr.length - 1];
+      if (arr.length === 4) {
+        if (host === "github.com") {
+          return last === "pull" ? path + "s"
+            : last === "tree" ? arr.slice(0, 3).join("/")
+            : null;
+        }
+      }
+    }
     const isNotVomnibarPage = OnOther === BrowserType.Edge ? function() { return false; } : function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
       const info = port.s as SenderEx;
@@ -1590,6 +1607,7 @@ Are you sure you want to continue?`);
         Utils.resetRe_();
         return { url: "This url has no upper paths", path: null };
       }
+      const enc = encodeURIComponent;
       let hash = "", str: string, arr: RegExpExecArray | null, startSlash = false, endSlash = false
         , path: string | null = null, i: number, start = 0, end = 0, decoded = false, arr2: RegExpExecArray | null;
       if (i = url.lastIndexOf("#") + 1) {
@@ -1609,7 +1627,7 @@ Are you sure you want to continue?`);
             str = encodeURI(str + path).substring(str.length);
             i = hash.indexOf(str);
             if (i < 0) {
-              i = hash.indexOf(str = encodeURIComponent(path));
+              i = hash.indexOf(str = enc(path));
             }
             if (i < 0) {
               decoded = false;
@@ -1621,7 +1639,7 @@ Are you sure you want to continue?`);
               if (i < 0) {
                 decoded = true;
                 str = arr[1];
-                str = encodeURIComponent(str.substring(0, str.length - 1));
+                str = enc(str.substring(0, str.length - 1));
                 i = hash.indexOf(str);
               }
               if (i >= 0) {
@@ -1637,7 +1655,7 @@ Are you sure you want to continue?`);
               end = start + arr2[2].length;
             } else if ((str = arr[1]) !== "&") {
               i = url.length - hash.length;
-              hash = str + encodeURIComponent(path);
+              hash = str + enc(path);
               url = url.substring(0, i) + hash;
               start = str.length;
               end = 0;
@@ -1694,7 +1712,10 @@ Are you sure you want to continue?`);
           path = (startSlash ? "/" : "") + path + (endSlash ? "/" : "");
         }
       }
-      str = decoded ? encodeURIComponent(path) : path;
+      if (!end && url.substring(0, start).indexOf("git") > 0) {
+        path = upperGitUrls(url, path) || path;
+      }
+      str = decoded ? enc(path) : path;
       url = url.substring(0, start) + (end ? str + url.substring(end) : str);
       Utils.resetRe_();
       return { url, path };
