@@ -1465,12 +1465,12 @@ knownCs: CompletersMap & SafeObject = {
       Completers.getOffset_();
       query = rawQuery;
       queryTerms = query ? (query.length > Consts.MaxCharsInQuery ? query.substring(0, Consts.MaxCharsInQuery).trimRight() : query).split(" ") : [];
-      maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number>options.maxChars | 0) || 128, Consts.UpperBoundOfMaxChars));
-      singleLine = !!options.singleLine;
-      maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
+      maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number>options.c | 0) || 128, Consts.UpperBoundOfMaxChars));
+      singleLine = !!options.s;
+      maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
       matchedTotal = 0;
       Completers.callback_ = callback;
-      let arr: ReadonlyArray<Completer> | null = knownCs[options.type], str = queryTerms.length >= 1 ? queryTerms[0] : "";
+      let arr: ReadonlyArray<Completer> | null = knownCs[options.t], str = queryTerms.length >= 1 ? queryTerms[0] : "";
       if (str.length === 2 && str[0] === ":") {
         str = str[1];
         arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history : str === "t" ? knownCs.tab

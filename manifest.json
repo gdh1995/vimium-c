@@ -45,11 +45,11 @@
       "lib/dom_utils.js",
       "lib/keyboard_utils.js",
       "content/link_hints.js",
-      "content/vomnibar.js",
       "content/scroller.js",
-      "content/marks.js",
+      "content/vomnibar.js",
       "content/mode_find.js",
       "content/mode_visual.js",
+      "content/marks.js",
       "content/dom_ui.js",
       "content/frontend.js",
       "content/extend_click.js"

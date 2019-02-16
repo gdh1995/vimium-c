@@ -44,7 +44,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,
   activate (options: Options): void {
     Object.setPrototypeOf(options, null);
-    this.mode_.type = this.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
+    this.mode_.t = this.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     this.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     this.baseHttps_ = null;
     let { url, keyword, search } = options, start: number | undefined;
@@ -52,9 +52,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.zoomLevel_ = scale < 0.98 ? 1 / scale : 1;
     this.setWidth_(options.width * PixelData.WindowSizeX + PixelData.MarginH);
     const max = Math.max(3, Math.min(0 | ((options.height - PixelData.ListSpaceDelta) / PixelData.Item), this.maxResults_));
-    this.maxHeight_ = Math.ceil((this.mode_.maxResults = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
+    this.maxHeight_ = Math.ceil((this.mode_.r = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
     this.init_ && this.setPType_(options.ptype);
-    if (this.mode_.favIcon) {
+    if (this.mode_.f) {
       scale = scale <= 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
       /**
        * Note: "@1x" is necessary, because only the whole 'size/aa@bx/' can be optional
@@ -68,9 +68,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       return this.reset_(keyword ? keyword + " " : "");
     }
     if (search) {
-      start = search.start;
-      url = search.url;
-      keyword || (keyword = search.keyword);
+      start = search.s;
+      url = search.u;
+      keyword || (keyword = search.k);
     } else if (search === null) {
       url = VUtils_.decodeURL_(url).replace(<RegExpG> /\s$/g, "%20");
       if (!keyword && (<RegExpI>/^https?:\/\//i).test(url)) {
@@ -154,7 +154,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     window.onkeyup = null as never;
     const el = this.input_;
     el.blur();
-    data || VPort_.postMessage_({ H: kFgReq.nextFrame, type: Frames.NextType.current, key: this.lastKey_ });
+    data || VPort_.postMessage_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: this.lastKey_ });
     this.bodySt_.cssText = "display: none;";
     this.list_.textContent = el.value = "";
     this.list_.style.height = "";
@@ -178,9 +178,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.total_ = this.lastKey_ = 0;
     this.zoomLevel_ = 1;
     this.completions_ = this.onUpdate_ = this.isHttps_ = this.baseHttps_ = null as never;
-    this.mode_.query = this.lastQuery_ = this.inputText_ = this.lastNormalInput_ = "";
+    this.mode_.q = this.lastQuery_ = this.inputText_ = this.lastNormalInput_ = "";
     this.isSearchOnTop_ = false;
-    this.modeType_ = this.mode_.type = "omni";
+    this.modeType_ = this.mode_.t = "omni";
     this.doEnter_ ? setTimeout(this.doEnter_, 0) : (<RegExpOne> /a?/).test("");
     this.doEnter_ = null;
   },
@@ -188,7 +188,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.inputText_ = input;
     this.useInput_ = this.showing_ = false;
     this.isHttps_ = this.baseHttps_;
-    this.mode_.query = this.lastQuery_ = input && input.trim().replace(this._spacesRe, " ");
+    this.mode_.q = this.lastQuery_ = input && input.trim().replace(this._spacesRe, " ");
     this.height_ = 0;
     this.isActive_ = true;
     // also clear @timer
@@ -206,7 +206,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (focus !== false) {
       a.input_.focus();
     } else {
-      VPort_.postMessage_({ H: kFgReq.nextFrame, type: Frames.NextType.current, key: a.lastKey_ });
+      VPort_.postMessage_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
     }
   },
   update_ (updateDelay: number, callback?: (() => void) | null): void {
@@ -283,13 +283,13 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
     VPort_.postMessage_({
       H: kFgReq.parseSearchUrl,
-      id: sel,
-      url: str
+      i: sel,
+      u: str
     });
   },
   parsed_ ({ id, search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
     const line: SuggestionEx = this.completions_[id] as SuggestionEx;
-    line.parsed = search ? (this.modeType_ !== "omni" ? ":o " : "") + search.keyword + " " + search.url + " " : line.text;
+    line.parsed = search ? (this.modeType_ !== "omni" ? ":o " : "") + search.k + " " + search.u + " " : line.text;
     if (id === this.selection_) {
       return this._updateInput(line, line.parsed);
     }
@@ -435,7 +435,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   _pageNumRe: <RegExpOne> /(?:^|\s)(\+\d{0,2})$/,
   goPage_ (dirOrNum: boolean | number): void {
     if (this.isSearchOnTop_) { return; }
-    const len = this.completions_.length, n = this.mode_.maxResults;
+    const len = this.completions_.length, n = this.mode_.r;
     let str = len ? this.completions_[0].type : "", delta = +dirOrNum || -1;
     str = (this.isSelOriginal_ || this.selection_ < 0 ? this.input_.value : this.inputText_).trimRight();
     let arr = this._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
@@ -499,8 +499,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
     VPort_.postMessage_({
       H: kFgReq.removeSug,
-      type,
-      url: type === "tab" ? completion.sessionId + "" : completion.url
+      t: type,
+      u: type === "tab" ? completion.sessionId + "" : completion.url
     });
     return this.refresh_();
   },
@@ -640,7 +640,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (toggle && !req.current) {
       VPort_.postMessage_({
         H: kFgReq.setOmniStyle,
-        style: omniStyles
+        s: omniStyles
       });
     }
   },
@@ -765,7 +765,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       const arr = manifest.permissions || [];
       fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? this.sameOrigin_ ? 2 : 1 : 0;
     }
-    this.mode_.favIcon = fav;
+    this.mode_.f = fav;
   },
   HandleKeydown_ (this: void, event: KeyboardEvent): void {
     if (event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
@@ -806,7 +806,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       msg = w / zoom + "px";
       this.fixRatio_(w as number);
     }
-    this.mode_.maxChars = Math.round(((w || innerWidth) / zoom - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
+    this.mode_.c = Math.round(((w || innerWidth) / zoom - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
     if (mayHasWrongWidth) {
       (document.documentElement as HTMLHtmlElement).style.width = msg;
     }
@@ -829,11 +829,11 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   maxResults_: (<number>window.VomnibarListLength | 0) || 10,
   mode_: {
     H: kFgReq.omni as kFgReq.omni,
-    type: "omni" as CompletersNS.ValidTypes,
-    maxChars: 0,
-    maxResults: 0,
-    favIcon: 0 as 0 | 1 | 2,
-    query: ""
+    t: "omni" as CompletersNS.ValidTypes,
+    c: 0,
+    r: 0,
+    f: 0 as 0 | 1 | 2,
+    q: ""
   },
   _spacesRe: <RegExpG> /\s+/g,
   _singleQuoteRe: <RegExpG> /'/g,
@@ -849,11 +849,11 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
         str = str.replace(this._singleQuoteRe, " ");
       }
       str = str.replace(this._spacesRe, " ");
-      if (str === mode.query) { return this.postUpdate_(); }
-      mode.type = this.matchType_ < CompletersNS.MatchType.singleMatch || !str.startsWith(mode.query) ? this.modeType_
+      if (str === mode.q) { return this.postUpdate_(); }
+      mode.t = this.matchType_ < CompletersNS.MatchType.singleMatch || !str.startsWith(mode.q) ? this.modeType_
         : this.matchType_ === CompletersNS.MatchType.searchWanted ? "search"
         : (newMatchType = this.matchType_, this.completions_[0].type as CompletersNS.ValidTypes);
-      mode.query = str;
+      mode.q = str;
       this.setWidth_();
       this.matchType_ = newMatchType;
     } else {
@@ -883,7 +883,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       VPort_.postToOwner_({ N: "evalJS", url });
       return;
     }
-    VPort_.postMessage_({ H: kFgReq.openUrl, reuse, https, url, omni: true });
+    VPort_.postMessage_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, o: true });
     if (reuse === ReuseType.newBg && (!this.lastQuery_ || (<RegExpOne>/^\+\d{0,2}$/).exec(this.lastQuery_))) {
       return this.refresh_();
     }
@@ -891,8 +891,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   gotoSession_ (item: SuggestionE & { sessionId: string | number }): void {
     VPort_.postMessage_({
       H: kFgReq.gotoSession,
-      active: this.actionType_ > ReuseType.newBg,
-      sessionId: item.sessionId
+      a: this.actionType_ > ReuseType.newBg,
+      s: item.sessionId
     });
     if (this.actionType_ === ReuseType.newBg) {
       return this.refresh_(item.type === "tab");
@@ -1036,7 +1036,7 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     window.onmessage = function(event): void {
       if (event.source !== window.parent) { return; }
       const data: VomnibarNS.MessageData = event.data, script = document.createElement("script"),
-      src = script.src = (data[1] as VomnibarNS.FgOptions).script;
+      src = script.src = (data[1] as VomnibarNS.FgOptions).s;
       VCID = new URL(src).hostname;
       script.onload = function(): void {
         script.onload = null as never;

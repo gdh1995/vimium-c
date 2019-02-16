@@ -188,7 +188,7 @@ var Settings = {
       this.set_("innerCSS", innerCSS);
       const cache = this.cache_;
       innerCSS = cache.innerCSS;
-      const ref = Backend.indexPorts_(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, F: cache.findCSS };
+      const ref = Backend.indexPorts_(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, f: cache.findCSS };
       for (const tabId in ref) {
         const frames = ref[+tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {

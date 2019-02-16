@@ -1,4 +1,5 @@
 interface Window {
+  readonly VKeyboard?: typeof VKeyboard;
   readonly VDom?: VDomProto;
   readonly VPort?: Readonly<VPort>;
   readonly VHUD?: Readonly<VHUD>;
@@ -7,6 +8,7 @@ interface VDomProto {
   readonly UI: Readonly<DomUI>;
   view_(el: Element, oldY?: number | undefined): boolean;
 }
+declare var VKeyboard: { char_ (event: KeyboardEvent): string; key_ (event: EventControlKeys, ch: string): string; };
 declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>, VEvent: Pick<VEventModeTy, "lock_">;
 declare var VFind: {
   css_: FindCSS | null;
@@ -353,8 +355,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     setTimeout(doSyncToFrontend, 100, toSync);
   };
   function doSyncToFrontend (toSync: typeof Option_.syncToFrontend_): void {
-    const delta: BgReq[kBgReq.settingsUpdate]["delta"] = Object.create(null),
-    req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, delta };
+    const delta: BgReq[kBgReq.settingsUpdate]["d"] = Object.create(null),
+    req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: delta };
     for (const key of toSync) {
       delta[key] = bgSettings_.get_(key);
     }
@@ -633,7 +635,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
   (element as HTMLAnchorElement).onclick = function(event): void {
     event.preventDefault();
-    return BG_.Backend.focus_({ url: this.href, reuse: ReuseType.reuse, prefix: true });
+    return BG_.Backend.focus_({ u: this.href, r: ReuseType.reuse, p: true });
   }
 })();
 
@@ -842,7 +844,7 @@ document.addEventListener("click", function onClickOnce(): void {
       str = target.textContent.slice(1, -1);
       VPort.post_({
         H: kFgReq.copy,
-        data: str
+        d: str
       });
       return VHUD.copied_(str);
     }

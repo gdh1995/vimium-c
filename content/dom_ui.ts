@@ -96,7 +96,7 @@ VDom.UI = {
     zoom || (zoom = VDom.getZoom_());
     let patch = this._dpiWiseWidthPatch;
     if (!patch && zoom >= 1) { return; }
-    let width = ("" + (VSettings.cache.browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.01 : 0.51) / zoom).substring(0, 5), st = this.styleIn_;
+    let width = ("" + (VUtils.cache_.browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.01 : 0.51) / zoom).substring(0, 5), st = this.styleIn_;
     if (!patch) {
       patch = this._dpiWiseWidthPatch = ["", function(this: NonNullable<DomUI["_dpiWiseWidthPatch"]>, css) {
         return css.replace(<RegExpG>/\b(border(?:-\w*-?width)?: ?)(0\.5px\b|[^;}]+\/\*!DPI\*\/)/g, "$1" + this[0] + "px \/\*!DPI\*\/");
@@ -278,7 +278,7 @@ VDom.UI = {
       };
     } else {
       func = function() { tick = Date.now(); return HandlerResult.Prevent; };
-      tick = Date.now() + VSettings.cache.keyboard[0];
+      tick = Date.now() + VUtils.cache_.keyboard[0];
       timer = setInterval(function(info?: TimerType) {
         if (Date.now() - tick > 150 || info === TimerType.fake) {
           clearInterval(timer);

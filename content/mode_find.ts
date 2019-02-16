@@ -146,7 +146,7 @@ var VFind = {
     ref.exit_ = ref.exit_.bind(ref);
     UI.add_(sin, adjust, true);
     sin.remove();
-    this.browser_ = VSettings.cache.browser;
+    this.browser_ = VUtils.cache_.browser;
     this.styleOut_ = UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
@@ -223,7 +223,7 @@ var VFind = {
     let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
       : n === VKeyCodes.enter ? event.shiftKey ? FindNS.Action.PassDirectly : (this.saveQuery_(), FindNS.Action.ExitToPostMode)
       : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? FindNS.Action.DoNothing
-      : this.query_ || (n === VKeyCodes.deleteKey && !VSettings.cache.onMac || event.repeat) ? FindNS.Action.PassDirectly
+      : this.query_ || (n === VKeyCodes.deleteKey && !VUtils.cache_.onMac || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
       if (VKeyboard.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
@@ -309,7 +309,7 @@ var VFind = {
     if (ind < 0) { return; }
     this.historyIndex_ = ind;
     if (!back) {
-      return VPort.send_({ msg: kFgReq.findQuery, index: ind }, this.SetQuery_);
+      return VPort.send_({ c: kFgReq.findQuery, a: { i: ind } }, this.SetQuery_);
     }
     const wnd = this.box_.contentWindow;
     wnd.document.execCommand("undo", false);
@@ -326,7 +326,7 @@ var VFind = {
   saveQuery_ (): string | void | 1 {
     return this.query_ && VPort.post_({
       H: kFgReq.findQuery,
-      query: this.input_.innerText.replace(this.A0Re_, " ").replace(this.tailRe_, "")
+      q: this.input_.innerText.replace(this.A0Re_, " ").replace(this.tailRe_, "")
     });
   },
   postMode_: {
@@ -399,7 +399,7 @@ var VFind = {
     const supportWholeWord = a.browser_ === BrowserType.Chrome;
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b";
     if (isRe === null && !ww) {
-      isRe = VSettings.cache.regexFindMode;
+      isRe = VUtils.cache_.regexFindMode;
       const info = 2 * +query.startsWith(B) + +query.endsWith(B);
       if (info === 3 && !isRe && query.length > 3) {
         query = query.slice(2, -2);

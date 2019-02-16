@@ -95,7 +95,7 @@ var VHints = {
       if (!VDom.isHTML_()) { return; }
     }
     a.setModeOpt_((count as number) | 0, options);
-    let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
+    let str = options.characters ? options.characters + "" : VUtils.cache_.linkHintCharacters;
     if (str.length < 3) {
       a.clean_(1);
       return VHUD.tip_("Characters for LinkHints are too few.", 1000);
@@ -663,7 +663,7 @@ var VHints = {
       } else if (i === KeyStat.plain) {
         reinit = deep !== DeepQueryType.NotAvailable;
         this.queryInDeep_ = DeepQueryType.InDeep - deep;
-      } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
+      } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VUtils.cache_.onMac)) {
         reinit = deep === DeepQueryType.NotDeep;
         this.queryInDeep_ = DeepQueryType.InDeep;
       } else if (i === KeyStat.altKey) {
@@ -676,7 +676,7 @@ var VHints = {
       }
       reinit && setTimeout(this._reinit.bind(this, null, null), 0);
     } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
-        || (i === VKeyCodes.metaKey && VSettings.cache.onMac)) {
+        || (i === VKeyCodes.metaKey && VUtils.cache_.onMac)) {
       const mode = this.mode_,
       mode2 = i === VKeyCodes.altKey
         ? mode < HintMode.min_disable_queue ? ((mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | mode) ^ HintMode.queue : mode
@@ -1015,11 +1015,11 @@ _getImageUrl (img: HTMLElement, forShow?: 1): string | void {
 openUrl_ (url: string, incognito?: boolean): void {
   let kw = this.options_.keyword, opt: Req.fg<kFgReq.openUrl> = {
     H: kFgReq.openUrl,
-    reuse: this.mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-    url,
-    keyword: kw != null ? kw + "" : ""
+    r: this.mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
+    u: url,
+    k: kw != null ? kw + "" : ""
   };
-  incognito && (opt.incognito = incognito);
+  incognito && (opt.i = incognito);
   VPort.post_(opt);
 },
 highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
@@ -1036,8 +1036,9 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   options.mode = this.mode_;
   el.focus();
   if (err) {
-    VPort.send_({ msg: kFgReq.execInChild, url: el.src, S: "1",
-      c: kFgCmd.focusAndHint, n: count, a: options
+    VPort.send_({
+      c: kFgReq.execInChild,
+      a: { u: el.src, S: "1", c: kFgCmd.focusAndHint, n: count, a: options }
     }, function(res): void {
       if (!res) {
         el.contentWindow.focus();
@@ -1122,9 +1123,9 @@ Modes_: [
     if (a.mode_ >= HintMode.min_edit && a.mode_ <= HintMode.max_edit) {
       let newtab = a.options_.newtab;
       newtab == null && (newtab = a.options_.force);
-      (VPort as ComplicatedVPort).post_<kFgReq.vomnibar, { count: number } & Partial<VomnibarNS.ContentOptions>>({
+      (VPort as ComplicatedVPort).post_<kFgReq.vomnibar, { c: number } & Partial<VomnibarNS.ContentOptions>>({
         H: kFgReq.vomnibar,
-        count: 1,
+        c: 1,
         newtab: newtab != null ? !!newtab : !isUrl,
         url: str,
         keyword: (a.options_.keyword || "") + ""
@@ -1139,7 +1140,7 @@ Modes_: [
     str = isUrl ? VUtils.decodeURL_(str) : str;
     VPort.post_({
       H: kFgReq.copy,
-      data: str
+      d: str
     });
     VHUD.copied_(str);
   }
@@ -1182,10 +1183,10 @@ Modes_: [
     if (!text) { return; }
     VPort.post_({
       H: kFgReq.openImage,
-      reuse: (this as typeof VHints).mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      file: img.getAttribute("download"),
-      url: text,
-      auto: (this as typeof VHints).options_.auto
+      r: (this as typeof VHints).mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
+      f: img.getAttribute("download"),
+      u: text,
+      a: (this as typeof VHints).options_.auto
     });
   }
 } as HintsNS.ModeOpt,
@@ -1277,7 +1278,7 @@ Modes_: [
       UI.simulateSelect_(link, rect, true);
       return false;
     }
-    const mode = a.mode_ & HintMode.mask_focus_new, onMac = VSettings.cache.onMac, newTab = mode >= HintMode.newTab;
+    const mode = a.mode_ & HintMode.mask_focus_new, onMac = VUtils.cache_.onMac, newTab = mode >= HintMode.newTab;
     UI.click_(link, rect, {
       altKey: false,
       ctrlKey: newTab && !onMac,

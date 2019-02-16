@@ -35,7 +35,7 @@ var VOmni = {
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
       return VHUD.tip_("Sorry, Vomnibar page seems to fail in loading.", 2000);
     }
-    if (!options || !options.secret || !options.vomnibar) { return; }
+    if (!options || !options.k || !options.v) { return; }
     if (document.readyState === "loading") {
       if (!a._timer) {
         a._timer = setTimeout(a.run.bind(a as never, count, options), 500);
@@ -68,7 +68,7 @@ var VOmni = {
       a.focus_();
       a.status_ = VomnibarNS.Status.ToShow;
     }
-    options.secret = 0; options.vomnibar = options.vomnibar2 = options.S = "";
+    options.k = 0; options.v = options.w = options.S = "";
     options.N = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
@@ -95,9 +95,11 @@ var VOmni = {
     }
     const trail = options.trailing_slash;
     VPort.send_({
-      msg: kFgReq.parseSearchUrl,
-      trailing_slash: trail != null ? !!trail : null,
-      upper, url
+      c: kFgReq.parseSearchUrl,
+      a: {
+        t: trail != null ? !!trail : null,
+        p: upper, u: url
+      }
     }, function(search): void {
       options.search = search;
       if (search != null) { options.url = ""; }
@@ -120,7 +122,7 @@ var VOmni = {
     active || window.focus();
     this.box_.style.cssText = "display: none;";
   },
-  init_ ({secret, vomnibar: page, ptype: type, vomnibar2: inner, S: CSS}: VomnibarNS.FullOptions): void {
+  init_ ({k: secret, v: page, t: type, w: inner, S: CSS}: VomnibarNS.FullOptions): void {
     const el = VDom.createElement_("iframe") as typeof VOmni.box_, UI = VDom.UI;
     el.className = "R UI Omnibar";
     if (type !== VomnibarNS.PageType.web) {}
@@ -152,7 +154,7 @@ var VOmni = {
       const wnd = this.contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options_ as VomnibarNS.FgOptionsToFront],
       origin = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3));
-      if (inner || (VSettings.cache.browserVer < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) setTimeout(function(i): void {
+      if (inner || (VUtils.cache_.browserVer < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) setTimeout(function(i): void {
         const a = VOmni, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
         if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }
@@ -209,7 +211,7 @@ var VOmni = {
     this.options_ = null;
     if (this.onReset_) { return this.onReset_(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
-    return VPort.post_({ H: kFgReq.vomnibar, redo: true, inner: true });
+    return VPort.post_({ H: kFgReq.vomnibar, r: true, i: true });
   },
   isABlank_ (): boolean {
     try {

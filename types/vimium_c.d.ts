@@ -25,10 +25,10 @@ declare namespace CompletersNS {
    */
   type ValidSugTypes = ValidTypes | "math";
   interface Options {
-    maxChars?: number;
-    maxResults?: number;
-    singleLine?: boolean;
-    type: ValidTypes;
+    /** maxChars */ c?: number;
+    /** maxResults */ r?: number;
+    /** singleLine */ s?: boolean;
+    /** type */ t: ValidTypes;
   }
 
   interface WritableCoreSuggestion {
@@ -65,37 +65,37 @@ declare namespace MarksNS {
     scroll: ScrollInfo;
   }
   interface BaseMark {
-    markName: string;
+    /** markName */ n: string;
   }
 
   interface BaseMarkProps {
-    scroll: ScrollInfo;
-    url: string;
+    /** scroll */ s: ScrollInfo;
+    /** url */ u: string;
   }
 
   interface Mark extends BaseMark, BaseMarkProps {
   }
 
   interface NewTopMark extends BaseMark {
-    scroll?: undefined;
+    /** scroll */ s?: undefined;
   }
   interface NewMark extends Mark {
-    local?: boolean; /** default to false */
+    /** local */ l?: boolean; /** default to false */
   }
 
   interface FgGlobalQuery extends BaseMark {
-    prefix?: boolean; /** default to false */
-    local?: false; /** default to false */
-    url?: undefined;
+    /** prefix */ p?: boolean; /** default to false */
+    /** local */ l?: false; /** default to false */
+    /** url */ u?: undefined;
   }
   interface FgLocalQuery extends BaseMark {
-    prefix?: undefined;
-    url: string;
-    local: true;
-    old?: {
-      scrollX: number,
-      scrollY: number,
-      hash: string,
+    /** prefix */ p?: undefined;
+    /** local */ l: true;
+    /** url */ u: string;
+    /** old */ o?: {
+      /** scrollX */ x: number,
+      /** scrollY */ y: number,
+      /** hash */ h: string,
     };
   }
   type FgQuery = FgGlobalQuery | FgLocalQuery;
@@ -105,10 +105,10 @@ declare namespace MarksNS {
   }
 
   interface FocusOrLaunch {
-    scroll?: ScrollInfo;
-    url: string;
-    prefix?: boolean;
-    reuse?: ReuseType;
+    /** scroll */ s?: ScrollInfo;
+    /** url */ u: string;
+    /** prefix */ p?: boolean;
+    /** reuse */ r?: ReuseType;
   }
 }
 

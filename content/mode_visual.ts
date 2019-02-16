@@ -266,7 +266,7 @@ var VVisual = {
   },
   find_ (count: number): void {
     if (!VFind.query_) {
-      VPort.send_({ msg: kFgReq.findQuery }, function(query): void {
+      VPort.send_({ c: kFgReq.findQuery, a: {} }, function(query): void {
         if (query) {
           VFind.updateQuery_(query);
           return VVisual.find_(count);
@@ -307,8 +307,8 @@ var VVisual = {
       this.deactivate_();
       action != null || VHUD.copied_(str);
     }
-    VPort.post_(action != null ? { H: kFgReq.openUrl, url: str, reuse: action }
-        : { H: kFgReq.copy, data: str });
+    VPort.post_(action != null ? { H: kFgReq.openUrl, u: str, r: action }
+        : { H: kFgReq.copy, d: str });
   },
   flashSelection_(): void {
     const sel = this.selection_, range = sel.rangeCount > 0 ? sel.getRangeAt(0) : null,
@@ -611,7 +611,7 @@ init_ (words: string) {
   this.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
   this._compare = Node.prototype.compareDocumentPosition;
-  this.selType_ = VSettings.cache.browserVer === BrowserVer.$Selection$NotShowStatusInTextBox
+  this.selType_ = VUtils.cache_.browserVer === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function(this: typeof VVisual): SelType {
     let type = typeIdx[this.selection_.type];
     return type === SelType.Caret && VVisual.diType_ !== VisualModeNS.DiType.Normal && ("" + this.selection_) ? SelType.Range : type;

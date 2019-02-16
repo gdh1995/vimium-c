@@ -16,7 +16,7 @@ var HelpDialog = {
     }
     Object.setPrototypeOf(request, null);
     const commandToKeys = Object.create<[string, CommandsNS.Item][]>(null), ref = CommandsData_.keyToCommandRegistry_,
-          hideUnbound = !request.unbound, showNames = !!request.names;
+          hideUnbound = !request.b, showNames = !!request.n;
     for (const key in ref) {
       const registry = ref[key] as NonNullable<(typeof ref)[string]>;
       let command = registry.command;
@@ -32,7 +32,7 @@ var HelpDialog = {
     const result = Object.setPrototypeOf({
       version: Settings.CONST_.VerName_,
       styles: HelpDialog.styles_,
-      title: request.title || "Help",
+      title: request.t || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;

@@ -179,7 +179,7 @@ declare namespace VomnibarNS {
   }
   interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
     url?: string | null;
-    script: string;
+    /** script */ s: string;
   }
   type MessageData = [number, FgOptions | null];
   type Msg<T extends string> = { N: T };
@@ -320,7 +320,7 @@ interface VDomMouse {
 interface VPort {
   post_<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
   post_<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
-  send_<K extends keyof FgRes>(this: void, req: FgReqWithRes[K] & { msg: K; }
+  send_<K extends keyof FgRes>(this: void, req: Pick<Req.fgWithRes<K>, "a" | "c">
     , callback: (this: void, res: FgRes[K]) => void): void;
   evalIfOK_ (url: string): boolean;
 }

@@ -69,8 +69,8 @@ setTimeout(function() {
     function setAndPost(key: keyof SettingsWithDefaults, value: any): void {
       Settings.set_(key, value);
       if (key in Settings.payload_) {
-        const delta: BgReq[kBgReq.settingsUpdate]["delta"] = Object.create(null),
-        req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, delta };
+        const delta: BgReq[kBgReq.settingsUpdate]["d"] = Object.create(null),
+        req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: delta };
         delta[key as keyof SettingsNS.FrontendSettings] = Settings.get_(key as keyof SettingsNS.FrontendSettings);
         Settings.broadcast_(req);
       }
@@ -403,7 +403,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
         || !key.startsWith(last as string) ? "omni"
       : matchType === CompletersNS.MatchType.searchWanted ? "search"
       : firstType || "omni";
-    return Completion_.filter_(key, { type, maxResults, maxChars, singleLine: true }, onComplete.bind(null, lastSuggest));
+    return Completion_.filter_(key, { t: type, r: maxResults, c: maxChars, s: true }, onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     const arr = lastSuggest;
@@ -418,7 +418,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       // need a re-computation
       // * may has been cleaned, or
       // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
-      return Completion_.filter_(text, { type: "omni", maxResults: 3, maxChars, singleLine: true }, function(sugs, autoSelect): void {
+      return Completion_.filter_(text, { t: "omni", r: 3, c: maxChars, s: true }, function(sugs, autoSelect): void {
         return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) :  open(text, disposition);
       });
     }
@@ -436,10 +436,10 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     if (text.substring(0, 7).toLowerCase() === "file://") {
       text = Utils.showFileUrl_(text);
     }
-    return sessionId != null ? Backend.gotoSession_({ sessionId }) : Backend.openUrl_({
-      url: text,
-      omni: true,
-      reuse: (disposition === "currentTab" ? ReuseType.current
+    return sessionId != null ? Backend.gotoSession_({ s: sessionId }) : Backend.openUrl_({
+      u: text,
+      o: true,
+      r: (disposition === "currentTab" ? ReuseType.current
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
     });
   }
@@ -466,7 +466,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     if ((url as string)[0] === ":") {
       url = (url as string).substring((url as string).indexOf(" ") + 1);
     }
-    return Backend.removeSug_({ type, url: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
+    return Backend.removeSug_({ t: type, u: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
   });
 }, 600);
 
@@ -524,7 +524,7 @@ setTimeout(function() {
     chrome.notifications.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }
       return Backend.focus_({
-        url: "https://github.com/gdh1995/vimium-c#release-notes"
+        u: "https://github.com/gdh1995/vimium-c#release-notes"
       });
     });
   });

@@ -10,7 +10,7 @@ declare var VPort: Readonly<VPort>, VHUD: Readonly<VHUD>,
   VKeyboard: { char_ (event: KeyboardEvent): string; key_ (event: EventControlKeys, ch: string): string; },
   Viewer: new (root: HTMLElement) => ViewerType;
 interface Window {
-  readonly VKeyboard?: typeof VKeyboard
+  readonly VKeyboard?: typeof VKeyboard;
   readonly VPort?: typeof VPort;
   readonly VHUD?: typeof VHUD;
   readonly Viewer: typeof Viewer;
@@ -392,7 +392,7 @@ function copyThing(event: Event): void {
   if (!(str && window.VPort)) { return; }
   VPort.post_({
     H: kFgReq.copy,
-    data: str
+    d: str
   });
   return VHUD.copied_(str);
 }

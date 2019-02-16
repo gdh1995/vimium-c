@@ -165,13 +165,15 @@ declare const enum IncognitoType {
 type CurrentTabs = [chrome.tabs.Tab];
 
 declare namespace MarksNS {
-  interface StoredMark extends BaseMarkProps {
+  interface StoredGlobalMark {
     tabId: number;
+    url: BaseMarkProps["u"];
+    scroll: BaseMarkProps["s"];
   }
 
   interface InfoToGo extends FocusOrLaunch, Partial<BaseMark> {
-    scroll: ScrollInfo;
-    tabId?: number;
+    /** scroll */ s: ScrollInfo;
+    /** tabId */ t?: number;
   }
   type MarkToGo = InfoToGo & BaseMark;
 }
@@ -236,7 +238,7 @@ declare namespace CompletersNS {
 
   interface GlobalCompletersConstructor {
     filter_ (this: GlobalCompletersConstructor, query: string, options: FullOptions, callback: Callback): void;
-    removeSug_ (url: string, type: FgReq[kFgReq.removeSug]["type"], callback: (succeed: boolean) => void): void;
+    removeSug_ (url: string, type: FgReq[kFgReq.removeSug]["t"], callback: (succeed: boolean) => void): void;
   }
 }
 type Suggestion = CompletersNS.Suggestion;
@@ -386,8 +388,8 @@ declare namespace BackendHandlersNS {
   interface BackendHandlers {
     parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl];
     gotoSession_: {
-      (this: void, request: { sessionId: string | number, active: false }, port: Port): void;
-      (this: void, request: { sessionId: string | number, active?: true }): void;
+      (this: void, request: { s: string | number, a: false }, port: Port): void;
+      (this: void, request: { s: string | number, a?: true }): void;
     };
     openUrl_ (this: void, request: FgReq[kFgReq.openUrl], port?: Port | undefined): void;
     checkIfEnabled_: checkIfEnabled;

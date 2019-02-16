@@ -12,7 +12,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
   }
   interface SpecialCommands {
     [kFgCmd.reset] (this: void): void;
-    [kFgCmd.showHelp] (msg?: number | "exitHD"): void;
+    [kFgCmd.showHelp] (msg?: number | "e"): void;
   }
 
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
@@ -71,13 +71,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
   }
   function post<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>): 1 {
     return (vPort._port as Port).postMessage(request);
-  } 
-  function send<K extends keyof FgRes> (this: void, request: Req.fgWithRes<K>
-      , callback: (this: void, res: FgRes[K]) => void): void {
-    let id = ++vPort._id;
-    request.H = kFgReq.msg; request.mid = id;
-    (vPort._port as Port).postMessage<K>(request);
-    vPort._callbacks[id] = callback;
   }
 
     function onKeydown(event: KeyboardEvent): void {
@@ -390,14 +383,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       const step = Math.min(Math.abs(count), history.length - 1);
       step > 0 && history.go((count < 0 ? -step : step) * (+options.dir || -1));
     },
-    /* showHelp: */ function (msg?: number | "exitHD"): void {
-      if (msg === "exitHD") { return; }
+    /* showHelp: */ function (msg?: number | "e"): void {
+      if (msg === "e") { return; }
       let wantTop = innerWidth < 400 || innerHeight < 320;
       if (!VDom.isHTML_()) {
         if (window === window.top) { return; }
         wantTop = true;
       }
-      post({ H: kFgReq.initHelp, wantTop });
+      post({ H: kFgReq.initHelp, w: wantTop });
     },
     /* autoCopy: */ function (_0: number, options: CmdOptions[kFgCmd.autoCopy]): void {
       let str = VDom.UI.getSelectionText_(1);
@@ -413,7 +406,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       } else {
         post({
           H: kFgReq.copy,
-          data: str
+          d: str
         });
       }
       return HUD.copied_(str);
@@ -422,16 +415,16 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       let url = VDom.UI.getSelectionText_(), keyword = (options.keyword || "") + "";
       url && VPort.evalIfOK_(url) || post({
         H: kFgReq.openUrl,
-        copied: !url,
-        keyword, url
+        c: !url,
+        k: keyword, u: url
       });
     },
     /* searchAs: */ function (_0: number, options: CmdOptions[kFgCmd.searchAs]): void {
       post({
         H: kFgReq.searchAs,
-        url: location.href,
-        copied: options.copied,
-        search: options.selected ? VDom.UI.getSelectionText_() : ""
+        u: location.href,
+        c: options.copied,
+        s: options.selected ? VDom.UI.getSelectionText_() : ""
       });
     },
     /* focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {
@@ -518,7 +511,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       /** if `notBody` then `activeEl` is not null  */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = Object.create(null);
-      if (VSettings.cache.grabBackFocus && this.grabFocus_) {
+      if (VUtils.cache_.grabBackFocus && this.grabFocus_) {
         if (notBody) {
           this.last_ = null;
           activeEl.blur && activeEl.blur();
@@ -578,12 +571,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         el.blur && el.blur();
         if (a1) {
           (parent as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(true);
-          a1.focus_({ key, mask: FrameMaskType.ForcedSelf });
+          a1.focus_({ k: key, m: FrameMaskType.ForcedSelf });
         } else {
           parent.focus();
         }
       } else if (KeydownEvents[key] !== 2) { // avoid sending too many messages
-        post({ H: kFgReq.nextFrame, type: Frames.NextType.parent, key });
+        post({ H: kFgReq.nextFrame, t: Frames.NextType.parent, k: key });
         KeydownEvents[key] = 2;
       }
     },
@@ -700,7 +693,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     more_: false,
     node_: null as HTMLDivElement | null,
     timer_: 0,
-    Focus_ (this: void, { mask, S: CSS, key }: BgReq[kBgReq.focusFrame]): void {
+    Focus_ (this: void, { m: mask, S: CSS, k: key }: BgReq[kBgReq.focusFrame]): void {
       CSS && VDom.UI.css_(CSS);
       if (mask !== FrameMaskType.NormalNext) {}
       else if (innerWidth < 3 || innerHeight < 3
@@ -708,7 +701,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         || VEvent.checkHidden_()) {
         post({
           H: kFgReq.nextFrame,
-          key
+          k: key
         });
         return;
       }
@@ -831,7 +824,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
       const browserVer = load.browserVer;
       OnOther = load.browser;
-      (VSettings.cache = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
+      (VSettings.cache = VUtils.cache_ = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
       D.specialZoom_ = !OnOther && browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
       if (!OnOther && browserVer >= BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
         D.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement;
@@ -881,16 +874,16 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     injector ? injector.reload : function (): void {},
     function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
       delete (request as Req.bg<kBgReq.url>).N;
-      request.url = location.href;
+      request.u = location.href;
       post<T>(request);
     },
     function<K extends keyof FgRes> (response: Req.res<K>): void {
-      const arr = vPort._callbacks, id = response.mid, handler = arr[id];
+      const arr = vPort._callbacks, id = response.m, handler = arr[id];
       delete arr[id];
-      handler(response.response);
+      handler(response.r);
     },
-    function (options: BgReq[kBgReq.eval]): void { VPort.evalIfOK_(options.url); },
-    function ({ delta }: BgReq[kBgReq.settingsUpdate]): void {
+    function (options: BgReq[kBgReq.eval]): void { VPort.evalIfOK_(options.u); },
+    function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer_(delta);
       const cache = VSettings.cache, deepHints = delta.deepHints;
@@ -932,28 +925,28 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       };
       (Commands as TypeToCheck as TypeChecked)[request.c](request.n, (options ? VUtils.safer_(options) : Object.create(null)) as CmdOptions[O]);
     },
-    function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.markName); },
+    function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.n); },
     function (req: Req.bg<kBgReq.showHUD>): void {
       if (req.S) {
         VDom.UI.css_(req.S);
-        if (req.F) {
-          VFind.css_ = req.F;
-          VFind.styleIframe_ && (VFind.styleIframe_.textContent = req.F[1]);
+        if (req.f) {
+          VFind.css_ = req.f;
+          VFind.styleIframe_ && (VFind.styleIframe_.textContent = req.f[1]);
         }
       }
-      req.text ? req.isCopy ? HUD.copied_(req.text) : HUD.tip_(req.text) : void 0;
+      req.t ? req.c ? HUD.copied_(req.t) : HUD.tip_(req.t) : void 0;
     },
     function (request: BgReq[kBgReq.count]): void {
       const count = parseInt(currentKeys, 10) || 1;
-      post({ H: kFgReq.cmd, cmd: request.cmd, count, id: request.id});
+      post({ H: kFgReq.cmd, c: request.c, n: count, i: request.i});
     },
-  function ({ html, advanced: shouldShowAdvanced, optionUrl, S: CSS }: Req.bg<kBgReq.showHelpDialog>): void {
+  function ({ h: html, a: shouldShowAdvanced, o: optionUrl, S: CSS }: Req.bg<kBgReq.showHelpDialog>): void {
     let box: HTMLDivElement & SafeHTMLElement
-      , oldShowHelp = Commands[kFgCmd.showHelp], hide: (this: void, e?: Event | number | "exitHD") => void
+      , oldShowHelp = Commands[kFgCmd.showHelp], hide: (this: void, e?: Event | number | "e") => void
       , node1: HTMLElement;
     if (CSS) { VDom.UI.css_(CSS); }
     if (!VDom.isHTML_()) { return; }
-    Commands[kFgCmd.showHelp]("exitHD");
+    Commands[kFgCmd.showHelp]("e");
     if (oldShowHelp !== Commands[kFgCmd.showHelp]) { return; } // an old dialog exits
     box = VDom.createElement_("div");
     box.className = "R Scroll UI";
@@ -964,7 +957,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
       VUtils.suppressAll_(box, i);
     }
-    VSettings.cache.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument ||
+    VUtils.cache_.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument ||
     box.addEventListener(useBrowser ? "click" : "DOMActivate", onActivate, true);
 
     const closeBtn = box.querySelector("#HClose") as HTMLElement;
@@ -988,7 +981,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     if (! location.href.startsWith(optionUrl)) {
       (node1 as HTMLAnchorElement).href = optionUrl;
       node1.onclick = function(event) {
-        post({ H: kFgReq.focusOrLaunch, url: optionUrl });
+        post({ H: kFgReq.focusOrLaunch, u: optionUrl });
         hide(event);
       };
     } else {
@@ -1051,7 +1044,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
   }
 
   VPort = {
-    post_: post, send_: send,
+    post_: post,
+    send_ <K extends keyof FgRes> (this: void, request: Pick<Req.fgWithRes<K>, "a" | "c"> & Partial<Req.fgWithRes<K>>
+        , callback: (this: void, res: FgRes[K]) => void): void {
+      let id = ++vPort._id;
+      request.H = kFgReq.msg; request.i = id;
+      (vPort._port as Port).postMessage<K>(request as EnsureNonNull<typeof request>);
+      vPort._callbacks[id] = callback;
+    },
     evalIfOK_ (url: string): boolean {
       if (!VUtils.jsRe_.test(url)) {
         return false;
@@ -1090,7 +1090,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
           n: count, a: options as ForwardedOptions
         });
       } else if (el !== docEl && (box.bottom <= 0 || box.top > (window.parent as Window).innerHeight)) {
-        FrameMask.Focus_({ S: null, key: VKeyCodes.None, mask: FrameMaskType.ForcedSelf });
+        FrameMask.Focus_({ S: null, k: VKeyCodes.None, m: FrameMaskType.ForcedSelf });
         el.scrollIntoView();
       }
       return result;
@@ -1118,7 +1118,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
       if (!(keyCode > VKeyCodes.maxNotPageUp && keyCode < VKeyCodes.minNotDown)) { return; }
-      wnd && VSettings.cache.smoothScroll && VEvent.OnScrolls_[1](wnd, 1);
+      wnd && VUtils.cache_.smoothScroll && VEvent.OnScrolls_[1](wnd, 1);
       const work = keyCode > VKeyCodes.maxNotLeft ? 1 : keyCode > VKeyCodes.maxNotEnd ? 2
         : !(event.ctrlKey || event.metaKey) ? 3 : 0;
       work && event instanceof Event && VUtils.prevent_(event as Event);

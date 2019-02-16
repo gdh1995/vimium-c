@@ -10,9 +10,9 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
   }
   VPort.post_({
     H: kFgReq.initHelp,
-    unbound: true,
-    names: true,
-    title: "Command Listing"
+    b: true,
+    n: true,
+    t: "Command Listing"
   });
   if (event) { return; }
   setTimeout(function(): void {

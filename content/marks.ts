@@ -39,7 +39,7 @@ var VMarks = {
       if (window.top === window) {
         return this.createMark_(keyChar);
       } else {
-        VPort.post_({H: kFgReq.marks, action: "create", markName: keyChar});
+        VPort.post_({H: kFgReq.marks, a: kMarkAction.create, n: keyChar});
         return VHUD.hide_();
       }
     } else {
@@ -55,28 +55,28 @@ var VMarks = {
       }
       return VHUD.tip_((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
     }
-    const req: Req.fg<kFgReq.marks> & { action: "goto" } = {
-      H: kFgReq.marks, action: "goto",
-      prefix: this.prefix_,
-      markName: keyChar
+    const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto }> = {
+      H: kFgReq.marks, a: kMarkAction.goto,
+      p: this.prefix_,
+      n: keyChar
     };
     if (event.shiftKey !== this.swap_) {
       VHUD.hide_();
     } else {
       try {
-        let pos = null, key = this.getLocationKey_(keyChar), markString = localStorage.getItem(key);
+        let pos = null, key = this.getLocationKey_(keyChar), storage = localStorage, markString = storage.getItem(key);
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
           const { scrollX, scrollY, hash } = VUtils.safer_(pos);
           if (scrollX >= 0 && scrollY >= 0) {
-            (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).old = {
-              scrollX: scrollX | 0, scrollY: scrollY | 0, hash: "" + (hash || "")
+            (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).o = {
+              x: scrollX | 0, y: scrollY | 0, h: "" + (hash || "")
             };
-            localStorage.removeItem(key);
+            storage.removeItem(key);
           }
         }
       } catch (e) {}
-      (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).local = true;
-      (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).url = location.href;
+      (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).l = true;
+      (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).u = location.href;
     }
     VPort.post_(req);
   },
@@ -88,18 +88,18 @@ var VMarks = {
     }
   },
   createMark_ (markName: string, local?: "local"): void {
-    VPort.post_({
+    VPort.post_<kFgReq.marks>({
       H: kFgReq.marks,
-      action: "create",
-      local: !!local,
-      markName,
-      url: location.href,
-      scroll: [window.scrollX | 0, window.scrollY | 0]
+      a: kMarkAction.create,
+      l: !!local,
+      n: markName,
+      u: location.href,
+      s: [window.scrollX | 0, window.scrollY | 0]
     });
     return VHUD.tip_(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },
   GoTo_ (this: void, _0: number, options: CmdOptions[kFgCmd.goToMarks]): void {
-    const { scroll, local, markName: a } = options;
+    const { s: scroll, l: local, n: a } = options;
     a && VMarks.setPreviousPosition_();
     VMarks._scroll(scroll);
     local || VEvent.focusAndListen_();

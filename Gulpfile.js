@@ -35,14 +35,14 @@ var CompileTasks = {
           , ["background/bg.d.ts", "content/*.d.ts"]],
   vomnibar: ["front/*.ts", ["background/bg.d.ts", "content/*.d.ts"]],
   polyfill: ["lib/polyfill.ts"],
-  main_pages: [["pages/options*.ts", "pages/show.ts"], ["background/*.d.ts", "content/*.d.ts"]],
+  injector: ["lib/injector.ts"],
   show: ["pages/show.ts", ["background/bg.d.ts", "content/*.d.ts"]],
   options: ["pages/options*.ts", ["background/*.d.ts", "content/*.d.ts"]],
   others: [["pages/*.ts", "!pages/options*.ts", "!pages/show.ts"], "background/bg.d.ts"],
 }
 
 var Tasks = {
-  "build/pages": ["build/main_pages", "build/others"],
+  "build/pages": ["build/options", "build/show", "build/others"],
   "static/special": function() {
     return copyByPath(["pages/newtab.js", "lib/math_parser*", "lib/*.min.js"]);
   },
@@ -63,7 +63,7 @@ var Tasks = {
   }],
 
   "build/scripts": ["build/background", "build/content", "build/front"],
-  "build/ts": ["build/scripts", "build/main_pages"],
+  "build/ts": ["build/scripts", "build/options", "build/show"],
 
   "min/content": function(cb) {
     var cs = manifest.content_scripts[0], sources = cs.js;
@@ -171,7 +171,7 @@ var Tasks = {
   }],
 
   scripts: ["background", "content", "front"],
-  pages: ["main_pages", "others"],
+  pages: ["options", "show", "others"],
   "pages/": ["pages"],
   b: ["background"],
   ba: ["background"],
@@ -182,7 +182,7 @@ var Tasks = {
   p: ["pages"],
   pa: ["pages"],
   pg: ["pages"],
-  local: ["scripts", "main_pages"],
+  local: ["scripts", "options", "show"],
   tsc: ["local"],
   "default": ["tsc"],
   watch: ["locally", function(done) {

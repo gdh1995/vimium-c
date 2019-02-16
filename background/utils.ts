@@ -332,7 +332,7 @@ var Utils = {
   _mathSpaceRe: <RegExpG> /[\s+,\uff0c]+/g,
   evalVimiumUrl_: function(this: Window["Utils"], path: string, workType?: Urls.WorkType
       , onlyOnce?: boolean): Urls.Url | null {
-    let ind: number, cmd: string, arr: string[], obj: { url: string } | null, res: Urls.Url | string[];
+    let ind: number, cmd: string, arr: string[], obj: { u: string } | null, res: Urls.Url | string[];
     workType = (workType as Urls.WorkType) | 0;
     if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim()) || (ind = path.indexOf(" ")) <= 0 ||
         !(this as typeof Utils)._vimiumCmdRe.test(cmd = path.substring(0, ind).toLowerCase()) ||
@@ -395,11 +395,11 @@ var Utils = {
       path = (this as typeof Utils).decodeEscapedURL_(path);
       arr = [path];
       path = this.convertToUrl_(path);
-      if (this.lastUrlType_ !== Urls.Type.Search && (obj = Backend.parse_({ url: path }))) {
-        if (obj.url === "") {
+      if (this.lastUrlType_ !== Urls.Type.Search && (obj = Backend.parse_({ u: path }))) {
+        if (obj.u === "") {
           arr = [cmd];
         } else {
-          arr = obj.url.split(" ");
+          arr = obj.u.split(" ");
           arr.unshift(cmd);
         }
       } else {

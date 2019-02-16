@@ -332,7 +332,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption_ {
   element.onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG_.Object.create(null);
-    a.url = bgSettings_.CONST_.OptionsPage_;
+    a.u = bgSettings_.CONST_.OptionsPage_;
     BG_.Backend.focus_(a);
     window.close();
   };

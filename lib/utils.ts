@@ -50,6 +50,7 @@ var VUtils = {
     }
     return HandlerResult.Default;
   },
+  cache_: null as never as SettingsNS.FrontendSettingCache,
   remove_ (env: object): void {
     for (let ref = this._stack, i = ref.length; 0 <= --i; ) {
       if (ref[i].env === env) {

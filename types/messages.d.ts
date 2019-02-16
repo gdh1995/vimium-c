@@ -9,9 +9,9 @@ interface BaseExecute<T, C extends kFgCmd = kFgCmd> extends BgCSSReq {
 }
 
 interface ParsedSearch {
-  keyword: string;
-  start: number;
-  url: string;
+  /** keyword */ k: string;
+  /** start */ s: number;
+  /** url */ u: string;
 }
 
 interface FindCSS {
@@ -46,46 +46,46 @@ interface BgReq {
     /** forced */ f?: boolean;
   };
   [kBgReq.msg]: {
-    mid: number;
-    response: FgRes[keyof FgRes];
+    /** mid */ m: number;
+    /** response */ r: FgRes[keyof FgRes];
   };
   [kBgReq.createMark]: {
-    markName: string;
+    /** markName */ n: string;
   };
   [kBgReq.keyMap]: {
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyMap */ k: KeyMap;
   };
   [kBgReq.showHUD]: {
-    text?: string;
-    isCopy?: boolean;
-    /** findCSS */ F?: FindCSS;
+    /** text */ t?: string;
+    /** isCopy */ c?: boolean;
+    /** findCSS */ f?: FindCSS;
   } & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {
-    mask: FrameMaskType;
-    key: VKeyCodes;
+    /** mask */ m: FrameMaskType;
+    /** key */ k: VKeyCodes;
   } & Partial<BgCSSReq>;
   [kBgReq.execute]: BaseExecute<object> & Req.baseBg<kBgReq.execute>;
   [kBgReq.exitGrab]: Req.baseBg<kBgReq.exitGrab>;
   [kBgReq.showHelpDialog]: {
-    html: string;
-    optionUrl: string;
-    advanced: boolean;
+    /** html */ h: string;
+    /** optionUrl */ o: string;
+    /** advanced */ a: boolean;
   } & Partial<BgCSSReq>;
   [kBgReq.settingsUpdate]: {
-    delta: {
+    /** delta */ d: {
       [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
     } & SafeObject;
   };
   [kBgReq.url]: {
-    url?: string;
+    /** url */ u?: string;
   } & Req.baseFg<keyof FgReq> & Partial<Req.baseBg<kBgReq.url>>;
   [kBgReq.eval]: {
-    url: string; // a javascript: URL
+    /** url */ u: string; // a javascript: URL
   } & Req.baseBg<kBgReq.eval>;
   [kBgReq.count]: {
-    cmd: string;
-    id: number;
+    /** cmd */ c: string;
+    /** id */ i: number;
   }
 }
 
@@ -150,7 +150,7 @@ interface CmdOptions {
   [kFgCmd.focusAndHint]: FgOptions;
   [kFgCmd.unhoverLast]: FgOptions;
   [kFgCmd.marks]: {
-    mode?: "goto" | "goTo" | "create";
+    mode?: "create" | /* all others are treated as "goto"  */ "goto" | "goTo";
     prefix?: true | false;
     swap?: false | true;
   };
@@ -180,11 +180,11 @@ interface CmdOptions {
     dir: -1 | 1;
   };
   [kFgCmd.vomnibar]: {
-    vomnibar: string;
-    vomnibar2: string | null;
-    ptype: VomnibarNS.PageType;
-    script: string;
-    secret: number;
+    /* vomnibar */ v: string;
+    /* vomnibar2 */ w: string | null;
+    /** ptype */ t: VomnibarNS.PageType;
+    /** script */ s: string;
+    /** secret */ k: number;
   } & BgCSSReq;
   [kFgCmd.goNext]: {
     rel: string;
@@ -213,9 +213,9 @@ interface CmdOptions {
     findCSS?: FindCSS | null;
   };
   [kFgCmd.goToMarks]: {
-    local?: boolean;
-    markName?: string | undefined;
-    scroll: MarksNS.FgMark;
+    /** local */ l?: boolean;
+    /** markName */ n?: string | undefined;
+    /** scroll */ s: MarksNS.FgMark;
   };
   [kFgCmd.autoCopy]: {
     url: boolean; decoded: boolean;
@@ -248,130 +248,136 @@ declare const enum kFgReq {
   command = "command",
 }
 
+declare const enum kMarkAction {
+  goto = 0,
+  create = 1,
+  clear = 2,
+  _mask = "mask",
+}
+
 interface FgRes {
   [kFgReq.findQuery]: string;
   [kFgReq.parseSearchUrl]: ParsedSearch | null;
   [kFgReq.parseUpperUrl]: {
-    url: string;
-    path: string | null;
+    /** url */ u: string;
+    /** path */ p: string | null;
   };
   [kFgReq.execInChild]: boolean;
 }
 interface FgReqWithRes {
   [kFgReq.findQuery]: {
-    query?: undefined;
-    index: number;
+    /** query */ q?: undefined;
+    /** index */ i: number;
   } | {
-    query?: undefined;
-    index?: undefined;
+    /** query */ q?: undefined;
+    /** index */ i?: undefined;
   };
   [kFgReq.parseUpperUrl]: {
-    url: string;
-    upper: number;
-    id?: undefined;
-    trailing_slash: boolean | null;
+    /** url */ u: string;
+    /** upper */ p: number;
+    /** id */ i?: undefined;
+    /** trailing_slash */ t: boolean | null;
   };
   [kFgReq.parseSearchUrl]: {
-    url: string;
-    id?: number;
-    upper?: undefined;
+    /** url */ u: string;
+    /** upper */ p?: undefined;
+    /** id */ i?: number;
   } | FgReqWithRes[kFgReq.parseUpperUrl];
   [kFgReq.execInChild]: {
-    url: string;
+    /** url */ u: string;
   } & BaseExecute<object>;
 }
 
 interface FgReq {
   [kFgReq.parseSearchUrl]: {
-    id: number;
-    url: string;
+    /** id */ i: number;
+    /** url */ u: string;
   };
   [kFgReq.parseUpperUrl]: FgReqWithRes[kFgReq.parseUpperUrl] & {
-    execute: true;
+    /** execute */ e: true;
   };
   [kFgReq.findQuery]: {
-    query: string;
-    index?: undefined;
+    /** query */ q: string;
+    /** index */ i?: undefined;
   };
   [kFgReq.searchAs]: {
-    url: string;
-    search: string;
-    copied: boolean | undefined;
+    /** url */ u: string;
+    /** search */ s: string;
+    /** copied */ c: boolean | undefined;
   };
   [kFgReq.gotoSession]: {
-    sessionId: string | number;
-    /** default to true  */
-    active?: boolean;
+    /** sessionId */ s: string | number;
+    /** active: default to true  */ a?: boolean;
   };
   [kFgReq.openUrl]: {
-    url?: string;
-    copied?: boolean;
-    keyword?: string | null;
-    incognito?: boolean;
-    https?: boolean | null;
-    reuse?: ReuseType;
-    omni?: boolean;
+    // note: need to sync members to ReqH::openUrl in main.ts
+    /** url */ u?: string;
+    /** copied */ c?: boolean;
+    /** keyword */ k?: string | null;
+    /** incognito */ i?: boolean;
+    /** https */ h?: boolean | null;
+    /** reuse */ r?: ReuseType;
+    /** omni */ o?: boolean;
   };
   [kFgReq.focus]: {};
   [kFgReq.checkIfEnabled]: {
-    url: string;
+    /** url */ u: string;
   };
   [kFgReq.nextFrame]: {
-    type?: Frames.NextType;
-    key: VKeyCodes;
+    /** type */ t?: Frames.NextType;
+    /** key */ k: VKeyCodes;
   };
   [kFgReq.exitGrab]: {};
   [kFgReq.initHelp]: {
-    unbound?: boolean;
-    wantTop?: boolean;
-    names?: boolean;
-    title?: string;
+    /** unbound */ b?: boolean;
+    /** wantTop */ w?: boolean;
+    /** names */ n?: boolean;
+    /** title */ t?: string;
   };
   [kFgReq.css]: {};
   [kFgReq.vomnibar]: ({
-    count: number;
-    redo?: undefined;
+    /** count */ c: number;
+    /** redo */ r?: undefined;
   } | {
-    count?: never;
-    redo: boolean;
+    /** count */ c?: never;
+    /** redo */ r: boolean;
   }) & {
-    inner?: boolean;
+    /** inner */ i?: boolean;
   };
   [kFgReq.omni]: {
-    query: string;
-    favIcon?: 0 | 1 | 2;
+    /** query */ q: string;
+    /** favIcon */ f?: 0 | 1 | 2;
   } & CompletersNS.Options;
   [kFgReq.copy]: {
-    data: string;
+    /** data */ d: string;
   };
   [kFgReq.key]: {
     k: string;
     l: VKeyCodes;
   };
   [kFgReq.blank]: {},
-  [kFgReq.marks]: ({ action: "create" } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
-    action: "clear";
-    url: string;
-  } | ({ action: "goto" } & MarksNS.FgQuery);
+  [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
+    /** action */ a: kMarkAction.clear;
+    /** url */ u: string;
+  } | ({ /** action */ a: kMarkAction.goto } & MarksNS.FgQuery);
   /** 
    * .url is guaranteed to be well formatted by frontend
    */
   [kFgReq.focusOrLaunch]: MarksNS.FocusOrLaunch;
   [kFgReq.cmd]: {
-    cmd: string;
-    count: number;
-    id: number;
+    /** cmd */ c: string;
+    /** count */ n: number;
+    /** id */ i: number;
   };
   [kFgReq.removeSug]: {
-    type: "tab" | "history";
-    url: string;
+    /** type */ t: "tab" | "history";
+    /** url */ u: string;
   };
   [kFgReq.openImage]: {
-    file: string | null;
-    url: string;
-    reuse: ReuseType;
-    /** default to true */
-    auto?: boolean;
+    /** file */ f: string | null;
+    /** url */ u: string;
+    /** reuse */ r: ReuseType;
+    /** auto: default to true */ a?: boolean;
   };
   [kFgReq.gotoMainFrame]: {
     /** command */ c: kFgCmd,
@@ -381,7 +387,7 @@ interface FgReq {
     });
   };
   [kFgReq.setOmniStyle]: {
-    style: string;
+    /** style */ s: string;
   };
 }
 
@@ -398,15 +404,16 @@ declare namespace Req {
   }
   type fg<K extends keyof FgReq> = FgReq[K] & baseFg<K>;
 
-  type fgWithRes<K extends keyof FgRes> = FgReqWithRes[K] & baseFg<kFgReq.msg> & {
-    mid: number;
-    readonly msg: K;
+  type fgWithRes<K extends keyof FgRes> = baseFg<kFgReq.msg> & {
+    /** msgId */ i: number;
+    /** message */ readonly c: K;
+    /** argument */ readonly a: FgReqWithRes[K];
   }
   type res<K extends keyof FgRes> = bg<kBgReq.msg> & {
-    readonly response: FgRes[K];
+    readonly r: FgRes[K];
   }
 
-  type FgCmd<O extends keyof CmdOptions> = BaseExecute<CmdOptions[O], O> & Req.bg<kBgReq.execute>;
+  type FgCmd<O extends keyof CmdOptions> = BaseExecute<CmdOptions[O], O> & baseBg<kBgReq.execute>;
 }
 
 interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> extends Req.baseFg<kFgReq.setSetting> {
