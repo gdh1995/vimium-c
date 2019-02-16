@@ -168,7 +168,7 @@ var VFind = {
     this.execute_(null, options);
     style && (style.visibility = "");
     if (!this.hasResults_) {
-      this.DisableStyle_(1);
+      this.ToggleStyle_(1);
       if (!this.isActive_) {
         VDom.UI.toggleSelectStyle_(0);
         VHUD.tip(`No matches for '${this.query_}'`);
@@ -251,9 +251,11 @@ var VFind = {
     this.deactivate_(i as FindNS.Action);
   },
   onHostKeydown_ (event: KeyboardEvent): HandlerResult {
-    let i = VKeyboard.getKeyStat_(event);
-    if (i && !(i & ~KeyStat.PrimaryModifier)) {
-      const n = event.keyCode;
+    let i = VKeyboard.getKeyStat_(event), n = event.keyCode;
+    if (!i && n === VKeyCodes.f2) {
+      this.input_.focus();
+      return HandlerResult.Prevent;
+    } else if (i && !(i & ~KeyStat.PrimaryModifier)) {
       if (n === VKeyCodes.J || n === VKeyCodes.K) {
         this.execute_(null, { count: (VKeyCodes.K - n) || -1 });
         return HandlerResult.Prevent;
@@ -269,7 +271,7 @@ var VFind = {
   deactivate_(i: FindNS.Action): void {
     let sin = this.styleIn_, noStyle = !sin || !sin.parentNode, el = this.clean_(i), el2: Element | null;
     if ((i === FindNS.Action.ExitAndReFocus || !this.hasResults_ || VVisual.mode_) && !noStyle) {
-      this.DisableStyle_(1);
+      this.ToggleStyle_(1);
       this.restoreSelection_(true);
     }
     if (VVisual.mode_) {
@@ -469,7 +471,13 @@ var VFind = {
       , par: HTMLElement | null = null, timesRegExpNotMatch = 0
       , sel: Selection | undefined
       , q: string, notSens = this.ignoreCase_ && !options.caseSensitive;
-    options.noColor || this.DisableStyle_(0);
+    /** Note:
+     * On Firefox, it's impossible to replace the gray bg color for blurred selection:
+     * In https://hg.mozilla.org/mozilla-central/file/tip/layout/base/nsDocumentViewer.cpp#l3463 ,
+     * `nsDocViewerFocusListener::HandleEvent` calls `SetDisplaySelection(SELECTION_DISABLED)`,
+     *   if only a trusted "blur" event gets dispatched into Document
+     */
+    options.noColor || this.ToggleStyle_(0);
     back && (count = -count);
     const isRe = this.isRegex_, pR = this.parsedRegexp_;
     const focusHUD = this.browser_ === BrowserType.Firefox && this.box_.contentDocument.hasFocus();
@@ -502,13 +510,13 @@ var VFind = {
     } catch (e) { return false; }
   } as Window["find"],
   HookSel_ (): void {
-    document.addEventListener("selectionchange", VFind && VFind.DisableStyle_, true);
+    document.addEventListener("selectionchange", VFind && VFind.ToggleStyle_, true);
   },
   /** must be called after initing */
-  DisableStyle_ (this: void, disable: BOOL | boolean | Event): void {
+  ToggleStyle_ (this: void, disable: BOOL | boolean | Event): void {
     const a = VFind, sout = a.styleOut_, sin = a.styleIn_, UI = VDom.UI, active = a.isActive_;
     if (!sout) { return; }
-    document.removeEventListener("selectionchange", a.DisableStyle_, true);
+    document.removeEventListener("selectionchange", a.ToggleStyle_, true);
     disable = !!disable;
     // Note: `<doc/root>.adoptedStyleSheets` should not be modified in an extension world
     if (!active && disable) {
@@ -528,12 +536,12 @@ var VFind = {
     if (!sel.rangeCount) {
       range = document.createRange();
       range.setStart(document.body || document.documentElement as Element, 0);
-      range.collapse(true);
     } else {
       range = sel.getRangeAt(0);
       // Note: `range.collapse` doesn't work if selection is inside a ShadowRoot (tested on C72 stable)
       sel.collapseToStart();
     }
+    range.collapse(true);
     this.initialRange_ = range;
   }
 };

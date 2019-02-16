@@ -285,7 +285,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       a.mutable_ = true;
       a.ExitGrab_(); VEvent.setupSuppress_();
       VHints.clean_(); VVisual.deactivate_();
-      VFind.DisableStyle_(1);
+      VFind.ToggleStyle_(1);
       onWndBlur();
     },
 
