@@ -157,7 +157,7 @@ interface CmdOptions {
   [kFgCmd.scroll]: {
     axis?: "y" | "x";
     dir?: 1 | -1;
-    view?: 0 | 1 | "max" | "viewSize";
+    view?: 0 | 1 | "max" | /* all others are treated as "viewSize" */ "viewSize" | "view";
     dest?: undefined;
   } | {
     dest: "min" | "max";

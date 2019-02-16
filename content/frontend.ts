@@ -537,7 +537,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     },
     ExitGrab_: function (this: void, event?: Req.fg<kFgReq.exitGrab> | MouseEvent | KeyboardEvent): HandlerResult.Nothing | void {
       const _this = InsertMode;
-      if (!_this.grabFocus_) { return; }
+      if (!_this.grabFocus_) { return /* safer */ HandlerResult.Nothing; }
       _this.grabFocus_ = false;
       removeEventListener("mousedown", _this.ExitGrab_, true);
       VUtils.remove_(_this);
@@ -545,7 +545,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       // when an iframe gets clicked, the events are mousedown and then focus, so SafePost_ is needed
       !(event instanceof Event) || !frames.length && window === window.top ||
       vPort.SafePost_({ H: kFgReq.exitGrab });
-      if (event instanceof KeyboardEvent) { return HandlerResult.Nothing; }
+      return HandlerResult.Nothing;
     } as {
       (this: void, event: KeyboardEvent): HandlerResult.Nothing;
       (this: void, request: Req.bg<kBgReq.exitGrab>): void;
@@ -1118,14 +1118,16 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
       if (!(keyCode > VKeyCodes.maxNotPageUp && keyCode < VKeyCodes.minNotDown)) { return; }
-      // TODO: (event as Event).preventDefault && VUtils.prevent_(event as Event);
       wnd && VSettings.cache.smoothScroll && VEvent.OnScrolls_[1](wnd, 1);
-      if (keyCode > VKeyCodes.maxNotLeft) {
-        return VScroller.scrollBy_((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);
-      } else if (keyCode > VKeyCodes.maxNotEnd) {
-        return VScroller.scrollTo_(1, 0, c);
-      } else if (!(event.ctrlKey || event.metaKey)) {
-        return VScroller.scrollBy_(1, 0.5 - c, "viewSize");
+      const work = keyCode > VKeyCodes.maxNotLeft ? 1 : keyCode > VKeyCodes.maxNotEnd ? 2
+        : !(event.ctrlKey || event.metaKey) ? 3 : 0;
+      work && event instanceof Event && VUtils.prevent_(event as Event);
+      if (work === 1) {
+        VScroller.scrollBy_((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);
+      } else if (work === 2) {
+        VScroller.scrollTo_(1, 0, c);
+      } else if (work) {
+        VScroller.scrollBy_(1, 0.5 - c, "view");
       }
     },
     OnScrolls_: [function (event): BOOL | 28 {
