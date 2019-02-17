@@ -1188,7 +1188,8 @@ declare namespace chrome.omnibox {
  */
 declare namespace chrome.runtime {
     var PlatformOs: {
-        MAC: "mac"
+        MAC: "mac";
+        WIN: "win";
     } | undefined;
     /** This will be defined during an API method callback if there was an error */
     var lastError: void;

@@ -15,6 +15,7 @@ declare namespace VisualModeNS {
   }
   const enum VimG {
     vimword = 5,
+    _mask = -1,
   }
   const enum DiType {
     Normal = 0,
@@ -320,9 +321,9 @@ var VVisual = {
   },
 
   _D: ["backward", "forward"] as ["backward", "forward"],
-  _G: ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
+  _G: ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", /** VisualModeNS.VimG.vimword */ "", /*6*/ "word",
       "documentboundary"] as
-     ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
+     ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", /** VisualModeNS.VimG.vimword */ "", /*6*/ "word",
       "documentboundary"],
   alterMethod_: "" as "move" | "extend",
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
@@ -377,13 +378,13 @@ var VVisual = {
     }
     return '';
   },
-  runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG, count: number): void {
+  runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG.vimword, count: number): void {
     if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
       if (direction) { return this.moveRightByWord_(granularity === VisualModeNS.VimG.vimword, count); }
       granularity = VisualModeNS.G.word;
     }
     let oldDi = this.di_;
-    let sel = this.selection_, m = this.alterMethod_, d = this._D[direction], g = this._G[granularity as 0 | 1 | 2];
+    let sel = this.selection_, m = this.alterMethod_, d = this._D[direction], g = this._G[granularity];
     while (0 < count--) { sel.modify(m, d, g); }
     this.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
   },
@@ -611,7 +612,7 @@ init_ (words: string) {
   this.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
   this._compare = Node.prototype.compareDocumentPosition;
-  this.selType_ = VUtils.cache_.browserVer === BrowserVer.$Selection$NotShowStatusInTextBox
+  this.selType_ = VUtils.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function(this: typeof VVisual): SelType {
     let type = typeIdx[this.selection_.type];
     return type === SelType.Caret && VVisual.diType_ !== VisualModeNS.DiType.Normal && ("" + this.selection_) ? SelType.Range : type;

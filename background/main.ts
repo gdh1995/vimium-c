@@ -1476,12 +1476,12 @@ Are you sure you want to continue?`);
     /* clearMarks: */ function (this: void): void {
       cOptions.local ? requireURL({ H: kFgReq.marks, u: "", a: kMarkAction.clear }, true) : Marks_.clear_();
     },
-    /* toggle: */ function (this: void): void {
+    /* kBgCmd.toggle: */ function (this: void): void {
       type Keys = CmdOptions[kFgCmd.toggle]["key"];
       const all = Settings.payload_, key: Keys = (cOptions.key || "") + "" as Keys,
       old = all[key], keyRepr = '"' + key + '"';
       let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
-      if (Settings.valuesToLoad_.indexOf(key) < 1) {
+      if (Settings.valuesToLoad_.indexOf(key) < 0) {
         msg = key in Settings.defaults_ ? "option " + keyRepr + " is not a valid switch" : "unknown option " + keyRepr;
       } else if (typeof old === "boolean") {
         isBool || (value = null);
@@ -2468,7 +2468,6 @@ Are you sure you want to continue?`);
     }
   });
 
-  Settings.buildPayload_();
   Settings.postUpdate_("vomnibarPage"); // not wait 34ms in case that Vomnibar is wanted at once
   Settings.postUpdate_("searchUrl", null); // will also update newTabUrl
 

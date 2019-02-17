@@ -154,7 +154,7 @@ var VOmni = {
       const wnd = this.contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options_ as VomnibarNS.FgOptionsToFront],
       origin = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3));
-      if (inner || (VUtils.cache_.browserVer < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) setTimeout(function(i): void {
+      if (inner || (VUtils.cache_.browserVer_ < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) setTimeout(function(i): void {
         const a = VOmni, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
         if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }

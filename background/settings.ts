@@ -8,9 +8,10 @@ var Settings = {
   } as Writeable<SettingsTmpl["temp_"]>,
   payload_: {
     __proto__: null as never,
-    browser: OnOther,
-    browserVer: ChromeVer,
-    onMac: false
+    browser_: OnOther,
+    browserVer_: ChromeVer,
+    grabBackFocus_: false,
+    onMac_: false
   } as SettingsNS.FrontendSettingCache & SafeObject,
   newTabs_: Object.create(null) as SafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
@@ -64,13 +65,6 @@ var Settings = {
       }
     }
   },
-  buildPayload_ (): void {
-    const ref = (this as typeof Settings).valuesToLoad_, ref2 = this.payload_;
-    for (let _i = ref.length; 0 <= --_i;) {
-      let key = ref[_i];
-      ref2[key] = this.get_(key);
-    }
-  },
   parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
     const arr = css ? css.split(<RegExpG & RegExpSearchable<1>>/\/\*\s?#!?([A-Za-z]+)\s?\*\//g) : [""];
     const map: SettingsNS.ParsedCustomCSS = { ui: arr[0].trim() };
@@ -94,6 +88,9 @@ var Settings = {
           map[val] = true;
         }
       }
+    },
+    grabBackFocus (this: SettingsTmpl, value: FullSettings["grabBackFocus"]): void {
+      (this as typeof Settings).payload_.grabBackFocus_ = value;
     },
     newTabUrl (this: SettingsTmpl, url): void {
       url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(url)
@@ -319,7 +316,6 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
   valuesToLoad_: [
     /** required in {@link main.ts#BackgroundCommands[kBgCmd.toggle]}: must be the first element */
-    "grabBackFocus"
     , "deepHints", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
@@ -367,20 +363,22 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 };
 
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): void {
-  const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs;
+  const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
   Settings.CONST_.Platform_ = os;
-  Settings.payload_.onMac = os === (types ? types.MAC : "mac");
+  Settings.payload_.onMac_ = os === types.MAC || (os === types.WIN && 0);
 }) : (Settings.CONST_.Platform_ = OnOther === BrowserType.Edge ? "win" : "unknown");
 
 (function(): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
   urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js,
-  { CONST_: obj, defaults_: defaults } = Settings, newtab = urls && urls.newtab,
+  settings = Settings,
+  { CONST_: obj, defaults_: defaults, valuesToLoad_, payload_ } = settings,
+  newtab = urls && urls.newtab,
   // on Edge, https://www.msn.cn/spartan/ntp also works with some complicated search parameters
   // on Firefox, both "about:newtab" and "about:home" work,
   //   but "about:newtab" skips extension hooks and uses last configured URL, so it's better.
   CommonNewTab = OnOther === BrowserType.Edge ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
-  ref3 = Settings.newTabs_ as SafeDict<Urls.NewTabType>;
+  ref3 = settings.newTabs_ as SafeDict<Urls.NewTabType>;
   function func(path: string): string {
     return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
@@ -403,16 +401,21 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   }
   obj.ContentScripts_ = ref2.map(func);
 
+  for (let _i = valuesToLoad_.length; 0 <= --_i;) {
+    const key = valuesToLoad_[_i];
+    payload_[key] = settings.get_(key);
+  }
+
   if (localStorage.length <= 0) {
-    Settings.set_("newTabUrl", Settings.CONST_.NewTabForNewUser_);
+    settings.set_("newTabUrl", obj.NewTabForNewUser_);
   }
   const hasAll = ChromeVer > BrowserVer.MinSafeCSS$All && "all" in (document.documentElement as HTMLElement).style;
   obj.StyleCacheId_ = obj.VerCode_ + "," + ChromeVer
     + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
   const innerCSS = localStorage.getItem("innerCSS");
   if (innerCSS && innerCSS.startsWith(obj.StyleCacheId_)) {
-    Settings.postUpdate_("innerCSS", innerCSS);
+    settings.postUpdate_("innerCSS", innerCSS);
     return;
   }
-  Settings.fetchFile_("baseCSS");
+  settings.fetchFile_("baseCSS");
 })();

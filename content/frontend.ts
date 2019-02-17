@@ -179,7 +179,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         }
       }
       if (VDom.getEditableType_<LockableElement>(target)) {
-        if (InsertMode.grabFocus_) {
+        if (InsertMode.grabBackFocus_) {
           if (document.activeElement === target) {
             event.stopImmediatePropagation();
             target.blur();
@@ -500,7 +500,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   ],
 
   InsertMode = {
-    grabFocus_: document.readyState !== "complete",
+    grabBackFocus_: document.readyState !== "complete",
     global_: null as CmdOptions[kFgCmd.insertMode] | null,
     hinting_: false,
     inputHint_: null as { box: HTMLDivElement, hints: HintsNS.BaseHintItem[] } | null,
@@ -512,7 +512,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       /** if `notBody` then `activeEl` is not null  */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = Object.create(null);
-      if (VUtils.cache_.grabBackFocus && this.grabFocus_) {
+      if (VUtils.cache_.grabBackFocus_ && this.grabBackFocus_) {
         if (notBody) {
           this.last_ = null;
           activeEl.blur && activeEl.blur();
@@ -524,15 +524,15 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           return;
         }
       }
-      this.grabFocus_ = false;
+      this.grabBackFocus_ = false;
       if (notBody && VDom.getEditableType_<1>(activeEl)) {
         this.lock_ = activeEl;
       }
     },
     ExitGrab_: function (this: void, event?: Req.fg<kFgReq.exitGrab> | MouseEvent | KeyboardEvent): HandlerResult.Nothing | void {
       const _this = InsertMode;
-      if (!_this.grabFocus_) { return /* safer */ HandlerResult.Nothing; }
-      _this.grabFocus_ = false;
+      if (!_this.grabBackFocus_) { return /* safer */ HandlerResult.Nothing; }
+      _this.grabBackFocus_ = false;
       removeEventListener("mousedown", _this.ExitGrab_, true);
       VUtils.remove_(_this);
       // it's acceptable to not set the userActed flag if there's only the top frame;
@@ -823,9 +823,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = [
     function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
-      const browserVer = load.browserVer;
-      OnOther = load.browser;
-      ((VSettings as Writeable<VSettingsTy>).cache = VUtils.cache_ = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
+      const browserVer = load.browserVer_;
+      OnOther = load.browser_;
+      ((VSettings as Writeable<VSettingsTy>).cache = VUtils.cache_ = load).onMac_ && (VKeyboard.correctionMap_ = Object.create<string>(null));
       D.specialZoom_ = !OnOther && browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
       if (!OnOther && browserVer >= BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
         D.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement;
@@ -833,14 +833,14 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
       r[kBgReq.keyMap](request);
       if (flags) {
-        InsertMode.grabFocus_ = !(flags & Frames.Flags.userActed);
+        InsertMode.grabBackFocus_ = !(flags & Frames.Flags.userActed);
         isLocked = !!(flags & Frames.Flags.locked);
       }
       (r[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
       if (isEnabled) {
         InsertMode.init_();
       } else {
-        InsertMode.grabFocus_ = false;
+        InsertMode.grabBackFocus_ = false;
         hook(HookAction.Suppress);
         VSettings.stop_ && VSettings.stop_(HookAction.Suppress);
       }
@@ -958,7 +958,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
       VUtils.suppressAll_(box, i);
     }
-    VUtils.cache_.browserVer < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument ||
+    VUtils.cache_.browserVer_ < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument ||
     box.addEventListener(useBrowser ? "click" : "DOMActivate", onActivate, true);
 
     const closeBtn = box.querySelector("#HClose") as HTMLElement;

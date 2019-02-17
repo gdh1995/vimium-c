@@ -146,7 +146,7 @@ var VFind = {
     ref.exit_ = ref.exit_.bind(ref);
     UI.add_(sin, adjust, true);
     sin.remove();
-    this.browser_ = VUtils.cache_.browser;
+    this.browser_ = VUtils.cache_.browser_;
     this.styleOut_ = UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
@@ -223,7 +223,7 @@ var VFind = {
     let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
       : n === VKeyCodes.enter ? event.shiftKey ? FindNS.Action.PassDirectly : (this.saveQuery_(), FindNS.Action.ExitToPostMode)
       : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? FindNS.Action.DoNothing
-      : this.query_ || (n === VKeyCodes.deleteKey && !VUtils.cache_.onMac || event.repeat) ? FindNS.Action.PassDirectly
+      : this.query_ || (n === VKeyCodes.deleteKey && !VUtils.cache_.onMac_ || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
       if (VKeyboard.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }

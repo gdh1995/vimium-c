@@ -663,7 +663,7 @@ var VHints = {
       } else if (i === KeyStat.plain) {
         reinit = deep !== DeepQueryType.NotAvailable;
         this.queryInDeep_ = DeepQueryType.InDeep - deep;
-      } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VUtils.cache_.onMac)) {
+      } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VUtils.cache_.onMac_)) {
         reinit = deep === DeepQueryType.NotDeep;
         this.queryInDeep_ = DeepQueryType.InDeep;
       } else if (i === KeyStat.altKey) {
@@ -676,7 +676,7 @@ var VHints = {
       }
       reinit && setTimeout(this._reinit.bind(this, null, null), 0);
     } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
-        || (i === VKeyCodes.metaKey && VUtils.cache_.onMac)) {
+        || (i === VKeyCodes.metaKey && VUtils.cache_.onMac_)) {
       const mode = this.mode_,
       mode2 = i === VKeyCodes.altKey
         ? mode < HintMode.min_disable_queue ? ((mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | mode) ^ HintMode.queue : mode
@@ -1278,11 +1278,11 @@ Modes_: [
       UI.simulateSelect_(link, rect, true);
       return false;
     }
-    const mode = a.mode_ & HintMode.mask_focus_new, onMac = VUtils.cache_.onMac, newTab = mode >= HintMode.newTab;
+    const mode = a.mode_ & HintMode.mask_focus_new, notMac = !VUtils.cache_.onMac_, newTab = mode >= HintMode.newTab;
     UI.click_(link, rect, {
       altKey: false,
-      ctrlKey: newTab && !onMac,
-      metaKey: newTab &&  onMac,
+      ctrlKey: newTab && notMac,
+      metaKey: newTab && !notMac,
       shiftKey: mode === HintMode.OPEN_IN_NEW_FG_TAB
     }, mode !== HintMode.empty || link.tabIndex >= 0);
   }
