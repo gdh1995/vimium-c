@@ -732,7 +732,7 @@ Are you sure you want to continue?`);
       getCurTab(focusOrLaunch[1].bind(this));
       return onRuntimeError();
     }, function(tabs) {
-      // if `@scroll`, then `typeof @` is `MarksNS.MarkToGo`
+      // if `this.s`, then `typeof this` is `MarksNS.MarkToGo`
       const callback = this.s ? focusOrLaunch[3].bind(this, 0) : null;
       if (tabs.length <= 0 || TabRecency_.incognito_ === IncognitoType.true && !tabs[0].incognito) {
         chrome.windows.create({url: this.u}, callback && function(wnd: Window): void {

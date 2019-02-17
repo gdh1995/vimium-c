@@ -317,7 +317,9 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     { "19": "/icons/partial_19.png", "38": "/icons/partial_38.png" },
     { "19": "/icons/disabled_19.png", "38": "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
-  valuesToLoad_: ["grabBackFocus" // required in main.ts@BackgroundCommands.toggle: must be the first element
+  valuesToLoad_: [
+    /** required in {@link main.ts#BackgroundCommands[kBgCmd.toggle]}: must be the first element */
+    "grabBackFocus"
     , "deepHints", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,

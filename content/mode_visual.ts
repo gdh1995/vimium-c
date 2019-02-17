@@ -619,7 +619,7 @@ init_ (words: string) {
     return typeIdx[this.selection_.type];
   };
   var map = this.keyMap_, func = VUtils.safer_;
-  /** @see background/commands.ts@CommandsData_.wordsRe_ */
+  /** @see {@link background/commands.ts#CommandsData_.wordsRe_} */
   this.wordRe_ = new RegExp(words, (<RegExpOne>/^\[\\p/).test(words) ? "u" : "");
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }

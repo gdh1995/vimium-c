@@ -647,7 +647,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
     styleDebug = document.createElement("style");
     styleDebug.className = "debugged";
     const patch = function() {
-      // Note: shoule keep the same as background/settings.ts@Settings.updateHooks_.userDefinedCss
+      /** Note: shoule keep the same as {@link ../background/settings.ts#Settings.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(headEnd + 1, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
       VDom.UI.css_(css);
@@ -687,7 +687,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
       } else {
         styleDebug = doc.querySelector(".custom") as HTMLStyleElement | null;
         if (!styleDebug) {
-          // Note: shoule keep the same as front/vomnibar.ts@Vomnibar_.css_
+          /** shoule keep the same as {@link ../front/vomnibar#Vomnibar_.css_} */
           styleDebug = doc.createElement("style");
           styleDebug.type = "text/css";
           styleDebug.className = "custom";
@@ -699,7 +699,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
     styleDebug.textContent = isFind ? css2.find || "" : (isSame ? "" : ".transparent{ opacity: 1; }\n") + (css2.omni || "");
     const VFind = window.VFind as NonNullable<Window["VFind"]>;
     if (isFind && VFind.css_) {
-      // Note: shoule keep the same as background/settings.ts@Settings.updateHooks_.userDefinedCss
+      /** Note: shoule keep the same as {@link ../background/settings.ts#Settings.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
       VFind.css_[2] = VFind.css_[2].substring(0, defaultLen - VFind.css_[0].length - VFind.css_[1].length - 1) + "\n" + (css2.find || "");
     }
