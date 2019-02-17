@@ -114,25 +114,25 @@ var Tasks = {
       return cb();
     }
     var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
-    gulp.task("min/others/_1", function() {
+    gulp.task("min/others/omni", function() {
       var props = exArgs.nameCache.props && exArgs.nameCache.props.props || null;
       props = {
         "$destroy_": props["$destroy_"]
       };
-      return uglifyJSFiles(["front/*.js"], ".", "", {
+      return uglifyJSFiles(["front/vomnibar*.js"], ".", "", {
         nameCache: exArgs.nameCache && {
           vars: exArgs.nameCache.vars,
           props: { props: props }
         }
       });
     });
-    gulp.task("min/others/_2", function() {
+    gulp.task("min/others/options", function() {
       exArgs.passAll = null;
       return uglifyJSFiles(["pages/options_base.js", "pages/options.js", "pages/options_*.js"], ".", "", exArgs);
     });
-    gulp.task("min/others/_3", function() {
+    gulp.task("min/others/misc", function() {
       var oriManifest = readJSON("manifest.json", true);
-      var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/*", "!pages/options*"];
+      var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!pages/options*"];
       if (!has_dialog_ui) {
         res.push("!*/dialog_ui.*");
       }
@@ -144,7 +144,7 @@ var Tasks = {
       exArgs.passAll = false;
       return uglifyJSFiles(res, ".", "", exArgs);
     });
-    gulp.parallel("min/others/_1", "min/others/_2", "min/others/_3")(function() {
+    gulp.parallel("min/others/omni", "min/others/options", "min/others/misc")(function() {
       jsmin_status[2] = true;
       cb();
     });
@@ -221,6 +221,16 @@ gulp.task("locally", function(done) {
   locally = true;
   compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
   removeUnknownOptions();
+  if (!has_dialog_ui) {
+    let i = CompileTasks.others[0].indexOf("!*/dialog_ui.*");
+    if (i >= 0) {
+      CompileTasks.others[0].splice(i, 1);
+    }
+    i = CompileTasks.front[0].indexOf("!*/dialog_ui.*");
+    if (i >= 0) {
+      CompileTasks.front[0].splice(i, 1);
+    }
+  }
   JSDEST = compilerOptions.outDir = ".";
   enableSourceMap = false;
   willListEmittedFiles = true;
