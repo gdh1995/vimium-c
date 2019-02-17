@@ -384,7 +384,7 @@ var VVisual = {
     if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
       // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
       if (direction && (VUtils.cache_.onMac_ === /* win */ 0) !== shouldSkipSpaceWhenMovingRight) {
-        moreWord = VUtils.cache_.browser_ ? count : 1;
+        moreWord = 1 || VUtils.cache_.browser_ ? count : 1;
         count -= moreWord;
       }
       granularity = VisualModeNS.G.word;
