@@ -379,16 +379,23 @@ var VVisual = {
     return '';
   },
   runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG.vimword, count: number): void {
+    const shouldSkipSpaceWhenMovingRight = granularity === VisualModeNS.VimG.vimword;
+    let moreWord = 0;
     if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
-      if (direction) { return this.moveRightByWord_(granularity === VisualModeNS.VimG.vimword, count); }
+      // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
+      if (direction && (VUtils.cache_.onMac_ === /* win */ 0) !== shouldSkipSpaceWhenMovingRight) {
+        moreWord = VUtils.cache_.browser_ ? count : 1;
+        count -= moreWord;
+      }
       granularity = VisualModeNS.G.word;
     }
     let oldDi = this.di_;
     let sel = this.selection_, m = this.alterMethod_, d = this._D[direction], g = this._G[granularity];
     while (0 < count--) { sel.modify(m, d, g); }
     this.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
+    moreWord && this.moveRightByWord_(shouldSkipSpaceWhenMovingRight, moreWord);
   },
-  moveRightByWord_ (vimLike: boolean, count: number): void {
+  moveRightByWord_ (shouldSkipSpace: boolean, count: number): void {
     const a = this, isMove = a.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
     let ch: string = '1' /** a fake value */;
     a.getDirection_("");
@@ -401,7 +408,7 @@ var VVisual = {
           a.di_ = a.di_ || VisualModeNS.kDir.unknown; // right / unknown are kept, left is replaced with right, so that keep @di safe
         }
         ch = a.getNextRightCharacter_(isMove);
-      } while (ch && ((count & 1) - +(vimLike !== a.wordRe_.test(ch))));
+      } while (ch && ((count & 1) - +(shouldSkipSpace !== a.wordRe_.test(ch))));
     }
     if (ch && a.oldLen_) {
       const num1 = a.oldLen_ - 2, num2 = isMove || ("" + a.selection_).length;
