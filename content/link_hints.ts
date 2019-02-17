@@ -745,7 +745,7 @@ var VHints = {
     let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
     this.resetHints_();
     const str = (this.modeOpt_ as HintsNS.ModeOpt)[this.mode_] as string;
-    VHUD.text_ = str; // in case pTimer > 0
+    (VHUD as Writeable<VHUDTy>).text_ = str; // in case pTimer > 0
     if (VDom.isInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getVRect, so that VDom.zooms are updated, and prepareCrop is called

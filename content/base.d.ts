@@ -12,7 +12,16 @@ interface ShadowRoot {
 
 interface Window {
   VimiumInjector?: VimiumInjector | null;
-  VSettings: VSettings | null;
+  VSettings: VSettingsTy | null;
+  readonly VKeyboard?: {
+    char_ (event: KeyboardEvent): string;
+    key_ (event: EventControlKeys, ch: string): string;
+  };
+  readonly VDom?: {
+    readonly UI: DomUI;
+    view_ (el: Element, oldY?: number | undefined): boolean;
+  };
+  readonly VFind?: { css_: FindCSS | null; };
 }
 declare const enum HandlerResult {
   PassKey = -1,
@@ -317,14 +326,14 @@ interface VDomMouse {
   (element: Element, type: "mouseout", rect?: null
     , modifiers?: null, related?: Element | null): boolean;
 }
-interface VPort {
+interface VPortTy {
   post_<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
   post_<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
   send_<K extends keyof FgRes>(this: void, req: Pick<Req.fgWithRes<K>, "a" | "c">
     , callback: (this: void, res: FgRes[K]) => void): void;
   evalIfOK_ (url: string): boolean;
 }
-interface ComplicatedVPort extends VPort {
+interface ComplicatedVPort extends VPortTy {
   post_<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
 interface VEventModeTy {
@@ -340,32 +349,36 @@ interface VEventModeTy {
   mapKey_ (this: void, key: string): string;
   scroll_ (this: void, event?: Partial<EventControlKeys & { keyCode: VKeyCodes }>, wnd?: Window): void;
   /** return has_error */
-  keydownEvents_: {
+  readonly keydownEvents_: {
     (this: void, newArr: KeydownCacheArray): boolean;
     (this: void): KeydownCacheArray;
   };
-  OnScrolls_: {
+  readonly OnScrolls_: {
     0: (this: void, event: KeyboardEvent) => BOOL | 28;
     1: (wnd: Window, interval?: number) => void;
     2: (this: Window, event: KeyboardEvent & {type: "keyup"} | Event & {type: "blur"}) => void;
   } 
 }
-interface VHUD {
-  box_: HTMLDivElement | null;
-  text_: string;
-  opacity_: 0 | 0.25 | 0.5 | 0.75 | 1;
+interface VHUDTy {
+  readonly box_: HTMLDivElement | null;
+  readonly text_: string;
+  readonly opacity_: 0 | 0.25 | 0.5 | 0.75 | 1;
   show_ (text: string, embed?: boolean): void;
   /** duration is default to 1500 */
   tip_ (text: string, duration?: number): void;
-  copied_ (this: VHUD, text: string, type: string, virtual: true): string;
-  copied_ (this: VHUD, text: string, type?: string): void;
+  copied_ (this: VHUDTy, text: string, type: string, virtual: true): string;
+  copied_ (this: VHUDTy, text: string, type?: string): void;
   hide_ (this: void, info?: TimerType): void;
 }
-interface VSettings {
-  enabled_: boolean;
-  cache: SettingsNS.FrontendSettingCache;
+interface VSettingsTy {
+  readonly enabled_: boolean;
+  readonly cache: SettingsNS.FrontendSettingCache;
   stop_: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => void) | null;
-  destroy_ (this: void, silent?: boolean): void;
+  readonly destroy_: (this: void, silent?: boolean) => void;
 }
-declare var VimiumInjector: VimiumInjector | undefined | null, VSettings: VSettings;
+declare var VimiumInjector: VimiumInjector | undefined | null, VSettings: VSettingsTy;
 declare var browser: unknown;
+
+interface VDataTy {
+  full: string;
+}

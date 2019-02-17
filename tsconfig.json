@@ -33,9 +33,6 @@
     ".*",
     "dist",
     "node_modules",
-    "front/*.ts",
-    "lib/polyfill.ts",
-    "pages/*.ts",
     "test*",
     "weidu"
   ]

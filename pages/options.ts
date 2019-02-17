@@ -1,18 +1,10 @@
+/// <reference path="../lib/dom_utils.ts" />
+/// <reference path="../lib/keyboard_utils.ts" />
 interface Window {
-  readonly VKeyboard?: typeof VKeyboard;
-  readonly VDom?: VDomProto;
-  readonly VPort?: Readonly<VPort>;
-  readonly VHUD?: Readonly<VHUD>;
+  readonly VPort?: VPortTy;
+  readonly VHUD?: VHUDTy;
 }
-interface VDomProto {
-  readonly UI: Readonly<DomUI>;
-  view_(el: Element, oldY?: number | undefined): boolean;
-}
-declare var VKeyboard: { char_ (event: KeyboardEvent): string; key_ (event: EventControlKeys, ch: string): string; };
-declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>, VEvent: Pick<VEventModeTy, "lock_">;
-declare var VFind: {
-  css_: FindCSS | null;
-};
+declare var VPort: VPortTy, VHUD: VHUDTy, VEvent: VEventModeTy;
 
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
 interface ElementWithHash extends HTMLElement {
@@ -705,6 +697,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
       styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug);
     }
     styleDebug.textContent = isFind ? css2.find || "" : (isSame ? "" : ".transparent{ opacity: 1; }\n") + (css2.omni || "");
+    const VFind = window.VFind as NonNullable<Window["VFind"]>;
     if (isFind && VFind.css_) {
       // Note: shoule keep the same as background/settings.ts@Settings.updateHooks_.userDefinedCss
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);

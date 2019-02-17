@@ -1,22 +1,17 @@
-/// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
 /// <reference path="../content/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
+/// <reference path="../lib/keyboard_utils.ts" />
 interface ImportBody {
   (id: "shownImage"): HTMLImageElement
   (id: "shownText"): HTMLDivElement
 }
-declare var VPort: Readonly<VPort>, VHUD: Readonly<VHUD>,
-  VKeyboard: { char_ (event: KeyboardEvent): string; key_ (event: EventControlKeys, ch: string): string; },
+declare var VPort: VPortTy, VHUD: VHUDTy,
   Viewer: new (root: HTMLElement) => ViewerType;
 interface Window {
-  readonly VKeyboard?: typeof VKeyboard;
-  readonly VPort?: typeof VPort;
-  readonly VHUD?: typeof VHUD;
+  readonly VPort?: VPortTy;
+  readonly VHUD?: VHUDTy;
   readonly Viewer: typeof Viewer;
-}
-interface VDomProto {
-  readonly UI: Readonly<DomUI>;
 }
 interface ViewerType {
   readonly visible: boolean;
@@ -28,6 +23,13 @@ interface ViewerType {
 }
 type ValidShowTypes = "image" | "url" | "";
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
+interface VDataTy {
+  type: ValidShowTypes;
+  original: string;
+  url: string;
+  file?: string;
+  auto?: boolean | "once";
+}
 
 declare var browser: unknown;
 if (typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
@@ -45,14 +47,7 @@ let VShown: ValidNodeTypes | null = null;
 let bgLink = $<HTMLAnchorElement>('#bgLink');
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer: ViewerType | null = null;
-var VData: {
-  full: string;
-  type: ValidShowTypes;
-  original: string;
-  url: string;
-  file?: string;
-  auto?: boolean | "once";
-} = null as never;
+var VData: VDataTy = null as never;
 let encryptKey = window.name && +window.name.split(' ')[0] || 0;
 
 window.onhashchange = function(this: void): void {

@@ -1,4 +1,4 @@
-var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
+var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   , VimiumInjector: VimiumInjector | undefined | null;
 
 (function() {
@@ -741,7 +741,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     opacity_: 0 as 0 | 0.25 | 0.5 | 0.75 | 1,
     enabled_: false,
     _timer: 0,
-    copied_: function (this: VHUD, text: string, e?: string, virtual?: true): string | void {
+    copied_: function (this: VHUDTy, text: string, e?: string, virtual?: true): string | void {
       if (!text) {
         if (virtual) { return text; }
         return this.tip_(`No ${e || "text"} found!`, 1000);
@@ -752,7 +752,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       text = "Copied: " + (text.length > 41 ? text.substring(0, 41) + "\u2026" : text + ".");
       if (virtual) { return text; }
       return this.tip_(text, 2000);
-    } as VHUD["copied_"],
+    } as VHUDTy["copied_"],
     tip_ (text: string, duration?: number): void {
       this.show_(text);
       this.text_ && ((this as typeof HUD)._timer = setTimeout(this.hide_, duration || 1500));
@@ -825,7 +825,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
       const browserVer = load.browserVer;
       OnOther = load.browser;
-      (VSettings.cache = VUtils.cache_ = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
+      ((VSettings as Writeable<VSettingsTy>).cache = VUtils.cache_ = load).onMac && (VKeyboard.correctionMap_ = Object.create<string>(null));
       D.specialZoom_ = !OnOther && browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
       if (!OnOther && browserVer >= BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
         D.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement;
@@ -856,7 +856,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       if (newPassKeys) {
         for (const ch of newPassKeys.split(' ')) { (passKeys as SafeDict<true>)[ch] = true; }
       }
-      VSettings.enabled_ = isEnabled = enabled;
+      (VSettings as Writeable<VSettingsTy>).enabled_ = isEnabled = enabled;
       if (initing) {
         return;
       }
@@ -1169,7 +1169,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     cache: null as never as SettingsNS.FrontendSettingCache,
     stop_: null,
   destroy_: function(silent): void {
-    VSettings.enabled_ = isEnabled = false;
+    (VSettings as Writeable<VSettingsTy>).enabled_ = isEnabled = false;
     hook(HookAction.Destroy);
     
     Commands[kFgCmd.reset]();
