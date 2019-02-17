@@ -303,7 +303,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent_: { __proto__: null as never,
-    baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, wordsRe: 1,
+    baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, wordsRe_: 1,
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1, vomnibarPage_f: 1
   } as TypedSafeEnum<SettingsNS.NonPersistentSettings>,
   frontUpdateAllowed_: { __proto__: null as never,
@@ -339,7 +339,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       baseCSS: "/front/vimium.min.css",
       exclusionTemplate: "/front/exclusions.html",
       helpDialog: "/front/help_dialog.html",
-      wordsRe: "/front/words.txt"
+      wordsRe_: "/front/words.txt"
     } as { [name in keyof SettingsNS.CachedFiles]: string },
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: "pages/options.html#!newTabUrl",
@@ -369,30 +369,17 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): 
   Settings.payload_.onMac_ = os === types.MAC || (os === types.WIN && 0);
 }) : (Settings.CONST_.Platform_ = OnOther === BrowserType.Edge ? "win" : "unknown");
 
-/**
- * Call stack (Chromium > icu):
- * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
- * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/unicode.h?type=cs&q=IsAlphanumeric&g=0&l=177
- * * https://cs.chromium.org/chromium/src/third_party/icu/source/common/uchar.cpp?q=u_isalnum&g=0&l=151
- * Result: \p{L | Nd} || '_' (\u005F)
- * Definitions:
- * * General Category (Unicode): https://unicode.org/reports/tr44/#GC_Values_Table
- * * valid GC in RegExp: https://tc39.github.io/proposal-regexp-unicode-property-escapes/#sec-runtime-semantics-unicodematchpropertyvalue-p-v
- * * \w in RegExp: http://unicode.org/reports/tr18/#word
- *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
- *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
- * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
- */
-// icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
-(Settings.cache_ as SettingsNS.FullCache).wordsRe = "[\\p{L}\\p{Nd}_]";
+(Settings.cache_ as SettingsNS.FullCache).wordsRe_ = "";
 if (OnOther || ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) !function(): void | boolean {
   try {
-    const re = new RegExp(Settings.cache_.wordsRe, "u");
+    const re = new RegExp("\\p{L}", "u");
     if (re.test('a')) {
       return;
     }
   } catch (e) {}
-  Settings.fetchFile_("wordsRe");
+  Utils.fetchHttpContents_(Settings.CONST_.XHRFiles_.wordsRe_, function(): void {
+    (Settings.cache_ as SettingsNS.FullCache).wordsRe_ = this.responseText.replace(<RegExpG>/\r?\n/g, "");
+  }); 
 }();
 
 (function(): void {
@@ -423,7 +410,7 @@ if (OnOther || ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) 
   obj.VomnibarPageInner_ = func(obj.VomnibarPageInner_);
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
   ref2.push(obj.InjectEnd_);
-  if ("".startsWith.name !== "startsWith") {
+  if ("".startsWith.name !== "startsWith" && ChromeVer < BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1) {
     ref2.unshift(obj.PolyFill_);
   }
   obj.ContentScripts_ = ref2.map(func);

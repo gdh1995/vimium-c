@@ -458,7 +458,7 @@ var VVisual = {
    * * `""` means only checking type, and may not detect `di_` when `DiType.Unknown`;
    * * `char[1..]` means initial selection text and not to extend back when `DiType.Unknown`
    */
-  getDirection_ (magic?: string): VisualModeNS.ForwardDir {
+  getDirection_ (magic?: string): VisualModeNS.kDir.left | VisualModeNS.kDir.right {
     const a = this;
     if (a.di_ !== VisualModeNS.kDir.unknown) { return a.di_; }
     const oldDiType = a.diType_, sel = a.selection_, {anchorNode, focusNode} = sel;
@@ -626,9 +626,24 @@ init_ (words: string) {
   } : function(this: typeof VVisual): SelType {
     return typeIdx[this.selection_.type];
   };
-  var map = this.keyMap_, func = VUtils.safer_;
-  /** @see {@link background/settings.ts#Settings.cache_.wordsRe} */
-  this.wordRe_ = new RegExp(words, (<RegExpOne>/^\[\\p/).test(words) ? "u" : "");
+  const map = this.keyMap_, func = VUtils.safer_;
+  /**
+   * Call stack (Chromium > icu):
+   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
+   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/unicode.h?type=cs&q=IsAlphanumeric&g=0&l=177
+   * * https://cs.chromium.org/chromium/src/third_party/icu/source/common/uchar.cpp?q=u_isalnum&g=0&l=151
+   * Result: \p{L | Nd} || '_' (\u005F)
+   * Definitions:
+   * * General Category (Unicode): https://unicode.org/reports/tr44/#GC_Values_Table
+   * * valid GC in RegExp: https://tc39.github.io/proposal-regexp-unicode-property-escapes/#sec-runtime-semantics-unicodematchpropertyvalue-p-v
+   * * \w in RegExp: http://unicode.org/reports/tr18/#word
+   *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
+   *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
+   * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
+   * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings.cache_.wordsRe_}
+   */
+  // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
+  this.wordRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]", words ? "" : "u");
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }
 };

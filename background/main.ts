@@ -1381,7 +1381,7 @@ Are you sure you want to continue?`);
       const flags = cPort.s.f, str = typeof cOptions.mode === "string" ? (cOptions.mode as string).toLowerCase() : "";
       let words = "", findCSS = null;
       if (~flags & Frames.Flags.hadVisualMode) {
-        words = Settings.cache_.wordsRe;
+        words = Settings.cache_.wordsRe_;
         if (~flags & Frames.Flags.hasFindCSS) {
           findCSS = Settings.cache_.findCSS;
         }
