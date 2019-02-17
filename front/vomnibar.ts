@@ -36,8 +36,8 @@ interface ConfigurableItems {
 interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
 
-if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
-  VSettings.destroy(true);
+if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy_ === "function") {
+  VSettings.destroy_(true);
 }
 
 var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {

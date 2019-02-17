@@ -41,7 +41,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
         }
         (vPort._port as Port).postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
-        VSettings.destroy();
+        VSettings.destroy_();
       }
     },
     Listener_<T extends keyof BgReq> (this: void, response: Req.bg<T>): void {
@@ -49,13 +49,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       type TypeChecked = { [K in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
       (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
     },
-    TestAlive_ (): void { esc && !vPort._port && VSettings.destroy(); },
+    TestAlive_ (): void { esc && !vPort._port && VSettings.destroy_(); },
     ClearPort_ (this: void): void {
       vPort._port = null;
       requestHandlers[kBgReq.init] && setTimeout(function(i): void {
-        if (!i)
+        if (!i) {
           try { esc && vPort.Connect_(PortType.initing); return; } catch(e) {}
-        esc && VSettings.destroy();
+        }
+        esc && VSettings.destroy_();
       }, 2000);
     },
     Connect_: (function (this: void, status: PortType): void {
@@ -284,7 +285,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
 
     /* toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
       const key = options.key, backupKey = "_" + key as string as typeof key,
-      cache = VUtils.safer_(VSettings.cache), cur = cache[key];
+      cache = VUtils.safer_(VUtils.cache_), cur = cache[key];
       let val = options.value, u: undefined;
       if (typeof cur === "boolean") {
         val === null && (val = !cur);
@@ -850,7 +851,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       });
     },
     function (request: BgReq[kBgReq.reset], initing?: 1): void {
-      const newPassKeys = request.p, enabled = newPassKeys !== "", old = VSettings.enabled_;
+      const newPassKeys = request.p, enabled = newPassKeys !== "", old = isEnabled;
       passKeys = newPassKeys && Object.create<true>(null);
       if (newPassKeys) {
         for (const ch of newPassKeys.split(' ')) { (passKeys as SafeDict<true>)[ch] = true; }
@@ -886,7 +887,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
     function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer_(delta);
-      const cache = VSettings.cache, deepHints = delta.deepHints;
+      const cache = VUtils.cache_, deepHints = delta.deepHints;
       for (const i in delta) {
         cache[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
         const i2 = "_" + i as Keys;
@@ -1165,9 +1166,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
 
   VSettings = {
     enabled_: false,
-    cache: null as never as VSettings["cache"],
+    cache: null as never as SettingsNS.FrontendSettingCache,
     stop_: null,
-  destroy: function(silent): void {
+  destroy_: function(silent): void {
     VSettings.enabled_ = isEnabled = false;
     hook(HookAction.Destroy);
     
@@ -1201,7 +1202,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEvent: VEventModeTy
       let f = VDom.parentFrame_(),
       a1 = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFind?: typeof VFind}).VFind;
       if (a1 && a1.box_ && a1.box_ === f) {
-        VSettings.destroy(true);
+        VSettings.destroy_(true);
         a1.onLoad_();
         return 1; // not return a function's result so that logic is clearer for compiler
       }

@@ -22,7 +22,7 @@ interface String {
   S = String, RE = RegExp, TE = TypeError;
 
   "".startsWith || (
-  String.prototype.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
+  S.prototype.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString), a = this != null && err !== 1 ? S(this) : "";
     if (err === 1 || err === 2) { return !((err === 1 ? this : searchString) + ""); }
     if (err !== null) { throw new TE(err.replace("${func}", "startsWith")); }
@@ -33,7 +33,7 @@ interface String {
   });
 
   "".endsWith || (
-  String.prototype.endsWith = function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
+  S.prototype.endsWith = function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString), a = this != null && err !== 1 ? S(this) : "";
     if (err === 1 || err === 2) { return !((err === 1 ? this : searchString) + ""); }
     if (err !== null) { throw new TE(err.replace("${func}", "endsWith")); }

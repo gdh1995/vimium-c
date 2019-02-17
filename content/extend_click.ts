@@ -195,7 +195,7 @@ _listen("DOMContentLoaded", handler, true);
       + " not work because %o is sandboxed.",
     location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
   if (breakTotally) {
-    VSettings.destroy(true);
+    VSettings.destroy_(true);
     return;
   }
   VDom.Scripts_ = false;

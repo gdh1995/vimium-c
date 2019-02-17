@@ -36,4 +36,4 @@ VSettings.stop_ = function(type: number): void {
   }
 };
 
-(VimiumInjector as VimiumInjector).destroy = VSettings.destroy;
+(VimiumInjector as VimiumInjector).destroy = VSettings.destroy_;

@@ -14,11 +14,12 @@
       "NO_DIALOG_UI": false,
       "NDEBUG": true
     },
-    // `true` will remove `/a?/.test("")` and modify polyfill's `String(this)`
+    // `true` will remove `/a?/.test("")`
     // so "unsafe" is not what Vimium C needs
     "unsafe": false,
     "unsafe_comps": false,
     "unsafe_math": true,
+    "unsafe_methods": true,
     "unsafe_proto": true,
     "unsafe_regexp": false,
     "conditionals": true,

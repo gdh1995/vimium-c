@@ -113,10 +113,19 @@ var Tasks = {
     if (jsmin_status[2]) {
       return cb();
     }
-    gulp.task("min/others/_1", function() {
-      return uglifyJSFiles(["front/*.js"], ".", "");
-    });
     var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
+    gulp.task("min/others/_1", function() {
+      var props = exArgs.nameCache.props && exArgs.nameCache.props.props || null;
+      props = {
+        "$destroy_": props["$destroy_"]
+      };
+      return uglifyJSFiles(["front/*.js"], ".", "", {
+        nameCache: exArgs.nameCache && {
+          vars: exArgs.nameCache.vars,
+          props: { props: props }
+        }
+      });
+    });
     gulp.task("min/others/_2", function() {
       exArgs.passAll = null;
       return uglifyJSFiles(["pages/options_base.js", "pages/options.js", "pages/options_*.js"], ".", "", exArgs);
@@ -805,7 +814,7 @@ function patchExtendClick(source) {
     }
     source = "function(" + source;
     source = prefix + source + ")();'" + suffix;
-  } else {
+  } else if (! /= ?'"use strict";\(function\b/.test(source)) {
     logger.error("Error: can not wrap extend_click scripts!!!");
   }
   return source;
