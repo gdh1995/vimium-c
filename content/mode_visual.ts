@@ -36,16 +36,16 @@ var VVisual = {
   /** @safe_di */
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
     const a = VVisual, F = VFind;
-    a.init_ && a.init_(options.words as string);
+    a.init_ && a.init_(options.w as string);
     VUtils.remove_(a);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
     VScroller.prepareTop_();
     a.diType_ = VisualModeNS.DiType.Unknown;
     let theSelected = VDom.UI.getSelected_(1),
     sel: Selection = a.selection_ = theSelected[0],
-    type: SelType = a.selType_(), mode: CmdOptions[kFgCmd.visualMode]["mode"] = options.mode;
+    type: SelType = a.selType_(), mode: CmdOptions[kFgCmd.visualMode]["m"] = options.m;
     a.scope_ = theSelected[1];
-    F.css_ = options.findCSS || F.css_;
+    F.css_ = options.f || F.css_;
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
     if (mode !== VisualModeNS.Mode.Caret) {
       if (!VEvent.lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
@@ -64,7 +64,7 @@ var VVisual = {
     const isRange = type === SelType.Range, newMode = isRange ? mode : VisualModeNS.Mode.Caret,
     toCaret = newMode === VisualModeNS.Mode.Caret;
     a.hudTimer_ && clearTimeout(a.hudTimer_);
-    VHUD.show_(a.hud_ = (toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual") + " mode", !!options.from_find);
+    VHUD.show_(a.hud_ = (toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual") + " mode", !!options.r);
     if (newMode !== mode) {
       a.prompt_("No usable selection, entering caret mode\u2026", 1000);
     }
@@ -174,9 +174,9 @@ var VVisual = {
         clearTimeout(movement.hudTimer_);
         return VFind.activate_(1, VUtils.safer_({ returnToViewport: true }));
       }
-      return movement.activate_(1, VUtils.safer_({
+      return movement.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
         // command === 1 ? VisualModeNS.Mode.Visual : command === 2 : VisualModeNS.Mode.Line : VisualModeNS.Mode.Caret
-        mode: command - 50
+        m: command - 50
       }));
     }
     if (movement.scope_ && !movement.selection_.rangeCount) {
@@ -283,8 +283,8 @@ var VVisual = {
     if (VFind.hasResults_) {
       this.diType_ = VisualModeNS.DiType.Unknown;
       if (this.mode_ === VisualModeNS.Mode.Caret && this.selType_() === SelType.Range) {
-        this.activate_(1, VUtils.safer_({
-          mode: VisualModeNS.Mode.Visual as VisualModeNS.Mode.Visual
+        this.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
+          m: VisualModeNS.Mode.Visual
         }));
       } else {
         this.di_ = VisualModeNS.kDir.unknown;
@@ -627,7 +627,7 @@ init_ (words: string) {
     return typeIdx[this.selection_.type];
   };
   var map = this.keyMap_, func = VUtils.safer_;
-  /** @see {@link background/commands.ts#CommandsData_.wordsRe_} */
+  /** @see {@link background/settings.ts#Settings.cache_.wordsRe} */
   this.wordRe_ = new RegExp(words, (<RegExpOne>/^\[\\p/).test(words) ? "u" : "");
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }

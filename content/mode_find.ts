@@ -276,8 +276,8 @@ var VFind = {
     }
     if (VVisual.mode_) {
       return VVisual.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
-        mode: VisualModeNS.Mode.Visual,
-        from_find: true
+        m: VisualModeNS.Mode.Visual,
+        r: true
       }));
     }
     VDom.UI.toggleSelectStyle_(0);

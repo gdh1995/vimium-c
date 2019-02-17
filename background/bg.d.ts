@@ -306,6 +306,7 @@ declare namespace SettingsNS {
     baseCSS: string;
     exclusionTemplate: string;
     helpDialog: string;
+    wordsRe: string;
   }
   interface OtherSettingsWithDefaults {
     searchEngineMap: SafeDict<Search.Engine>;
@@ -361,6 +362,7 @@ declare namespace SettingsNS {
     searchEngineMap: FullSettings["searchEngineMap"];
     searchEngineRules: FullSettings["searchEngineRules"];
     vomnibarPage_f: FullSettings["vomnibarPage_f"];
+    wordsRe: FullSettings["wordsRe"];
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
@@ -419,7 +421,6 @@ interface CommandsData {
   cmdMap_: SafeDict<CommandsNS.Options | null>;
   mapKeyRegistry_: SafeDict<string> | null;
   availableCommands_: ReadonlySafeDict<CommandsNS.Description>;
-  wordsRe_: string;
 }
 
 interface BaseHelpDialog {

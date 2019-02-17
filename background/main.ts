@@ -1378,20 +1378,23 @@ Are you sure you want to continue?`);
       });
     },
     /* enterVisualMode: */ function (): void {
-      let options: CmdOptions[kFgCmd.visualMode] = Utils.extendIf_(<CmdOptions[kFgCmd.visualMode]>Object.create(null), cOptions as {})
-        , flags = cPort.s.f;
-      const str = typeof options.mode === "string" ? (options.mode as string).toLowerCase() : "";
-      options.mode = str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual;
+      const flags = cPort.s.f, str = typeof cOptions.mode === "string" ? (cOptions.mode as string).toLowerCase() : "";
+      let words = "", findCSS = null;
       if (~flags & Frames.Flags.hadVisualMode) {
-        options.words = CommandsData_.wordsRe_;
+        words = Settings.cache_.wordsRe;
         if (~flags & Frames.Flags.hasFindCSS) {
-          options.findCSS = Settings.cache_.findCSS;
+          findCSS = Settings.cache_.findCSS;
         }
         cPort.s.f = Frames.Flags.hadVisualMode | Frames.Flags.hasFindCSS | flags;
       }
       cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
         S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
-        a: options
+        a: {
+          m: (str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual
+            ) as VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret,
+          w: words,
+          f: findCSS,
+        }
       });
     },
     /* performFind: */ function (): void {

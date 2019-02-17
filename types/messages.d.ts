@@ -197,10 +197,10 @@ interface CmdOptions {
     hud: boolean;
   };
   [kFgCmd.visualMode]: {
-    mode: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
-    from_find?: true;
-    words?: string;
-    findCSS?: FindCSS | null;
+    /** mode */ m: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
+    /** from_find */ r?: true;
+    /** words */ w?: string;
+    /** findCSS */ f?: FindCSS | null;
   };
   [kFgCmd.showHelp]: {};
   [kFgCmd.reload]: { url: string, /** @deprecated */ force?: undefined, hard?: undefined
