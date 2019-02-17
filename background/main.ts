@@ -294,14 +294,14 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       return null;
     }
-    function getTabRange(current: number, total: number, countToAutoLimit?: number
+    function getTabRange(current: number, total: number, countToAutoLimitBeforeScale?: number
         , /** must be positive */ extraCount?: number | null
     ): [number, number] {
       let count = commandCount;
       if (extraCount) { count += count > 0 ? extraCount : -extraCount;}
       const end = current + count, pos = count > 0;
       return end <= total && end > -2 ? pos ? [current, end] : [end + 1, current + 1] // normal range
-        : !cOptions.limited && Math.abs(count) < (countToAutoLimit || total * GlobalConsts.ThresholdToAutoLimitTabOperation)
+        : !cOptions.limited && Math.abs(count) < (countToAutoLimitBeforeScale || total) * GlobalConsts.ThresholdToAutoLimitTabOperation
           ? Math.abs(count) < total ? pos ? [total - count, total] : [0, -count] // go forward and backward
           : [0, total] // all
         : pos ? [current, total] : [0, current + 1] // limited
@@ -997,7 +997,7 @@ Are you sure you want to continue?`);
       let count = ((cOptions.dir | 0) || 1) * commandCount, len = tabs.length, toSelect: Tab;
       count = cOptions.absolute
         ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
-        : Math.abs(commandCount) > tabs.length * 2 ? (count > 0 ? -1 : 0)
+        : Math.abs(count) > tabs.length * 2 ? (count > 0 ? -1 : 0)
         : selectFrom(tabs).index + count;
       toSelect = tabs[(count >= 0 ? 0 : len) + (count % len)];
       if (!toSelect.active) { return selectTab(toSelect.id); }
@@ -1012,7 +1012,7 @@ Are you sure you want to continue?`);
         if (noPinned) {
           for (; tabs[skipped].pinned; skipped++) {}
         }
-        const range = getTabRange(i, total - skipped, total * GlobalConsts.ThresholdToAutoLimitTabOperation);
+        const range = getTabRange(i, total - skipped, total);
         start = skipped + range[0], end = skipped + range[1];
         count = end - start;
         if (count > 20 && !confirm("removeTab", count)) {
@@ -1111,13 +1111,13 @@ Are you sure you want to continue?`);
       BackgroundCommands[kBgCmd.openUrl](tabs);
     },
     /* togglePinTab: */ function (this: void, tabs: Tab[]): void {
-      const tab = selectFrom(tabs), pin = !tab.pinned, action = {pinned: pin}, offset = +pin;
+      const tab = selectFrom(tabs), pin = !tab.pinned, action = {pinned: pin}, offset = pin ? 0 : 1;
       let skipped = 0;
       if (Math.abs(commandCount) > 1 && pin) {
         for (; tabs[skipped].pinned; skipped++) {}
       }
-      const range = getTabRange(tab.index, tabs.length - skipped, tabs.length * GlobalConsts.ThresholdToAutoLimitTabOperation);
-      let start = skipped + range[1 - offset] - offset, end = skipped + range[offset] - offset;
+      const range = getTabRange(tab.index, tabs.length - skipped, tabs.length);
+      let start = skipped + range[offset] - offset, end = skipped + range[1 - offset] - offset;
       const wantedTabIds = [] as number[];
       for (; start !== end; start += pin ? 1 : -1) {
         if (pin || tabs[start].pinned) {
