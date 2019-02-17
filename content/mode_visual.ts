@@ -79,7 +79,7 @@ var VVisual = {
     if (toCaret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
       mode = ("" + sel).length;
-      a.collapse_((a.getDirection_() & +(mode > 1)) as BOOL);
+      a.collapseToRight_((a.getDirection_() & +(mode > 1)) as BOOL);
     }
     a.commandHandler_(-1, 1);
     VUtils.push_(a.onKeydown_, a);
@@ -93,7 +93,7 @@ var VVisual = {
     const oldDiType = this.diType_ as VisualModeNS.DiType;
     VUtils.remove_(this);
     if (!this.retainSelection_) {
-      this.collapseSelectionTo_(isEsc && this.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
+      this.collapseToFocus_(isEsc && this.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
     this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
     VFind.clean_(FindNS.Action.ExitNoFocus);
@@ -187,7 +187,7 @@ var VVisual = {
         return VHUD.tip_("Selection is lost.");
       }
     }
-    mode === VisualModeNS.Mode.Caret && movement.collapseSelectionTo_(0);
+    mode === VisualModeNS.Mode.Caret && movement.collapseToFocus_(0);
     if (command > 35) {
       movement.find_(command - 36 ? -count : count);
       return;
@@ -330,6 +330,7 @@ var VVisual = {
   diType_: VisualModeNS.DiType.Unknown as VisualModeNS.DiType.Normal | VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Unknown,
   /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
   wordRe_: null as never as RegExpOne | RegExpU,
+  rightNonSpaceRe_: null as never as RegExpOne | RegExpU,
   /** @unknown_di_result */
   extend_ (d: VisualModeNS.ForwardDir): void | 1 {
     return this.selection_.modify("extend", this._D[d], "character");
@@ -355,7 +356,7 @@ var VVisual = {
       let { focusNode } = sel;
       if (focusNode instanceof Text) {
         const i = sel.focusOffset, str = focusNode.data;
-        if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.substring(i).trimLeft()) {
+        if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.substring(i).trimLeft() && str[i] !== "\n") {
           return str[i];
         }
       }
@@ -372,7 +373,7 @@ var VVisual = {
     a.oldLen_ || a.extend_(1);
     const afterText = "" + sel, newLen = afterText.length;
     if (newLen !== oldLen) {
-      isMove && a.collapse_(newLen === 1 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left);
+      isMove && a.collapseToRight_(newLen === 1 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left);
       a.oldLen_ = isMove && newLen !== 1 ? 0 : 2 + oldLen;
       return afterText[newLen - 1];
     }
@@ -384,8 +385,9 @@ var VVisual = {
     if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
       // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
       if (direction && (VUtils.cache_.onMac_ === /* win */ 0) !== shouldSkipSpaceWhenMovingRight) {
-        moreWord = 1 || VUtils.cache_.browser_ ? count : 1;
-        count -= moreWord;
+        const notChrome = VUtils.cache_.browser_;
+        moreWord = notChrome ? count * 2 : shouldSkipSpaceWhenMovingRight ? 1 : -1;
+        count -= notChrome ? count : shouldSkipSpaceWhenMovingRight ? 0 : 1;
       }
       granularity = VisualModeNS.G.word;
     }
@@ -395,12 +397,25 @@ var VVisual = {
     this.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
     moreWord && this.moveRightByWord_(shouldSkipSpaceWhenMovingRight, moreWord);
   },
+  /**
+   * Chrome use ICU4c's RuleBasedBreakIterator and then DictionaryBreakEngine -> CjkBreakEngine
+   * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/
+   *  selection_modifier.cc?type=cs&q=ModifyExtendingForwardInternal&g=0&l=342
+   *  selection_modifier.cc?type=cs&q=ModifyMovingForward&g=0&l=423
+   *  visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=97
+   * https://cs.chromium.org/chromium/src/third_party/icu/source/common/
+   *  rbbi.cpp?type=cs&q=RuleBasedBreakIterator::following&g=0&l=601
+   *  rbbi_cache.cpp?type=cs&q=BreakCache::following&g=0&l=248
+   *  rbbi_cache.cpp?type=cs&q=BreakCache::nextOL&g=0&l=278
+   */
   moveRightByWord_ (shouldSkipSpace: boolean, count: number): void {
     const a = this, isMove = a.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
+    if (count < 0) { // not shouldSkipSpace and count is 0 -> go left
+      return a._moveRightByWordButNotSkipSpace();
+    }
     let ch: string = '1' /** a fake value */;
     a.getDirection_("");
     a.oldLen_ = 1;
-    count *= 2;
     while (0 < count-- && ch) {
       do {
         if (!a.oldLen_) {
@@ -408,6 +423,9 @@ var VVisual = {
           a.di_ = a.di_ || VisualModeNS.kDir.unknown; // right / unknown are kept, left is replaced with right, so that keep @di safe
         }
         ch = a.getNextRightCharacter_(isMove);
+        if (!count && ch && shouldSkipSpace && a.rightNonSpaceRe_.test(ch)) {
+          break; // (t/b/r/c/e/) visible_units.cc?q=SkipWhitespaceAlgorithm&g=0&l=1191
+        }
       } while (ch && ((count & 1) - +(shouldSkipSpace !== a.wordRe_.test(ch))));
     }
     if (ch && a.oldLen_) {
@@ -423,6 +441,37 @@ var VVisual = {
       }
     }
   },
+  _moveRightByWordButNotSkipSpace(): void {
+    const a = this, sel = a.selection_, curAlter = "extend";
+    let str = "" + sel, len = str.length, di = a.getDirection_();
+    sel.modify(curAlter, a._D[VisualModeNS.kDir.right], "word");
+    let str2 = "" + sel;
+    if (!di) { a.di_ = str2 ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right; }
+    str = di ? str2.substring(len) : a.getDirection_() - di ? str + str2 : str.substring(0, len - str2.length);
+    // now a.di_ is correct, and can be left / right
+    let todo = str.length, match: RegExpExecArray | null;
+    if ((match = a.wordRe_.exec(str)) && (todo = todo - match.index - match[0].length)) { // after word and some spaces
+      len = str2.length;
+      if (a.diType_ !== VisualModeNS.DiType.TextBox) {
+        while (todo > 0) {
+          sel.modify(curAlter, a._D[VisualModeNS.kDir.left], a._G[VisualModeNS.G.character]);
+          len || (a.di_ = VisualModeNS.kDir.left);
+          const reduced = len - ("" + sel).length;
+          todo -= Math.abs(reduced) || todo;
+          len -= reduced;
+        }
+      } else {
+        di = a.di_ as VisualModeNS.ForwardDir;
+        let el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement,
+        start = a.TextOffset_(el, 0), end = start + len;
+        di ? (end -= todo) :  (start -= todo);
+        di = di && start > end ? (a.di_ = VisualModeNS.kDir.left) : VisualModeNS.kDir.right;
+        // di is BOOL := start < end; a.di_ will be coorrect
+        el.setSelectionRange(di ? start : end, di ? end : start, <VisualModeNS.ForwardDir>a.di_ ? "forward" : "backward");
+      }
+    }
+    a.mode_ === VisualModeNS.Mode.Caret && a.collapseToRight_(VisualModeNS.kDir.right);
+  },
   /** @tolerate_di_if_caret */
   reverseSelection_ (): void {
     const a = this;
@@ -437,14 +486,14 @@ var VVisual = {
       // Note(gdh1995): may trigger onselect?
     } else if (a.diType_ === VisualModeNS.DiType.Unknown) {
       let length = ("" + sel).length, i = 0;
-      a.collapse_(direction);
+      a.collapseToRight_(direction);
       for (; i < length; i++) { a.extend_(newDi); }
       for (let tick = 0; tick < 16 && (i = ("" + sel).length - length); tick++) {
         a.extend_(i < 0 ? newDi : direction);
       }
     } else {
       const { anchorNode, anchorOffset } = sel;
-      a.collapse_(direction);
+      a.collapseToRight_(direction);
       sel.extend(anchorNode as Node, anchorOffset);
     }
     a.di_ = newDi;
@@ -536,21 +585,21 @@ var VVisual = {
     return a.di_ = num2 >= 0 || magic && num2 === -num1 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
   },
   /** @tolerate_di_if_caret di will be 1 */
-  collapseSelectionTo_ (toFocus: BOOL) {
-    this.selType_() === SelType.Range && this.collapse_((this.getDirection_() ^ toFocus ^ 1) as BOOL);
+  collapseToFocus_ (toFocus: BOOL) {
+    this.selType_() === SelType.Range && this.collapseToRight_((this.getDirection_() ^ toFocus ^ 1) as BOOL);
     this.di_ = VisualModeNS.kDir.right;
   },
   /** @safe_di di will be 1 */
-  collapse_ (/** to-left if text is left-to-right */ toRight: VisualModeNS.ForwardDir): void {
+  collapseToRight_ (/** to-left if text is left-to-right */ toRight: VisualModeNS.ForwardDir): void {
     toRight ? this.selection_.collapseToEnd() : this.selection_.collapseToStart();
     this.di_ = VisualModeNS.kDir.right;
   },
   selectLexicalEntity_ (entity: VisualModeNS.G.sentence | VisualModeNS.G.word, count: number): void {
-    this.collapseSelectionTo_(1);
+    this.collapseToFocus_(1);
     entity - VisualModeNS.G.word || this.modify_(VisualModeNS.kDir.right, VisualModeNS.G.character);
     this.modify_(VisualModeNS.kDir.left, entity);
     this.di_ = VisualModeNS.kDir.left; // safe
-    this.collapseSelectionTo_(1);
+    this.collapseToFocus_(1);
     this.runMovements_(VisualModeNS.kDir.right, entity, count);
   },
   /** after called, VVisual must exit at once */
@@ -643,7 +692,14 @@ init_ (words: string) {
    * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings.cache_.wordsRe_}
    */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
-  this.wordRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]", words ? "" : "u");
+  this.wordRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]+", words ? "" : "u");
+  /** the real is /[^\p{space}\xa0]|\n/u : http://www.unicode.org/reports/tr9/#WS
+   * but it's strange that
+   * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
+   * (upstream: [2002/11/07] https://chromium.googlesource.com/chromium/src/+/68f88bec7f005b2abc9018b086396a88f1ffc18e%5E%21/#F0)
+   *     says "\p{WS} doesn't include '\n'",
+   * while tests on C72 shows it includes \n and \xa0 */
+  this.rightNonSpaceRe_ = words ? <RegExpOne> /\S|\n/ : new RegExp("\\P{space}|\n", "u");
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }
 };

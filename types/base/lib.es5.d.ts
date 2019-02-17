@@ -928,7 +928,7 @@ interface RegExp {
       * Executes a search on a string using a regular expression pattern, and returns an array containing the results of that search.
       * @param string The String object or string literal on which to perform the search.
       */
-    exec(this: RegExpOne | RegExpI, string: string): RegExpExecArray | null;
+    exec(this: RegExpOne | RegExpI | RegExpU, string: string): RegExpExecArray | null;
 
     exec<N extends number>(this: RegExpG & RegExpSearchable<N>, string: string): RegExpExecArray | null;
 
