@@ -403,7 +403,7 @@ const bookmarkEngine = {
         (cur as WBookmark).title = title || cur.id;
         if (url2) {
           (cur as WBookmark).url = url2;
-          (cur as WBookmark).text = Decoder.decodeURL_(url2, a);
+          (cur as WBookmark).text = Decoder.decodeURL_(url2, cur as WBookmark);
           Decoder.continueToWork_();
         }
         if (phraseBlacklist) {
