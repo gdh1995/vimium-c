@@ -1,4 +1,4 @@
-let _a = {
+let keyMappingChecker_ = {
   normalizeKeys_: null as never as (this: void, s: string) => string,
   isKeyReInstalled_: false,
   init_ (): void {
@@ -80,8 +80,8 @@ let _a = {
     return string;
   },
 };
-Option_.all_.keyMappings.checker_ = _a;
-_a = null as never;
+Option_.all_.keyMappings.checker_ = keyMappingChecker_;
+keyMappingChecker_ = null as never;
 
 bgSettings_.CONST_.VimiumNewTab_ && (Option_.all_.newTabUrl.checker_ = {
   check_ (value: string): string {

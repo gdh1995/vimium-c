@@ -697,11 +697,11 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
       styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug);
     }
     styleDebug.textContent = isFind ? css2.find || "" : (isSame ? "" : ".transparent{ opacity: 1; }\n") + (css2.omni || "");
-    const VFind = window.VFind as NonNullable<Window["VFind"]>;
-    if (isFind && VFind.css_) {
+    const vfind = window.VFind as NonNullable<Window["VFind"]>;
+    if (isFind && vfind.css_) {
       /** Note: shoule keep the same as {@link ../background/settings.ts#Settings.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
-      VFind.css_[2] = VFind.css_[2].substring(0, defaultLen - VFind.css_[0].length - VFind.css_[1].length - 1) + "\n" + (css2.find || "");
+      vfind.css_[2] = vfind.css_[2].substring(0, defaultLen - vfind.css_[0].length - vfind.css_[1].length - 1) + "\n" + (css2.find || "");
     }
   }
 }, 1800, $("#userDefinedCss") as HTMLTextAreaElement, 0));

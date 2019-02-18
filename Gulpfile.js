@@ -33,12 +33,12 @@ var CompileTasks = {
   lib: ["lib/*.ts"],
   front: [["front/*.ts", "lib/polyfill.ts", "lib/injector.ts", "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]
           , ["background/bg.d.ts", "content/*.d.ts"]],
-  vomnibar: ["front/*.ts", ["background/bg.d.ts", "content/*.d.ts"]],
+  vomnibar: ["front/vomnibar*.ts", ["background/bg.d.ts", "content/*.d.ts"]],
   polyfill: ["lib/polyfill.ts"],
   injector: ["lib/injector.ts"],
-  show: ["pages/show.ts", ["background/bg.d.ts", "content/*.d.ts"]],
   options: ["pages/options*.ts", ["background/*.d.ts", "content/*.d.ts"]],
-  others: [["pages/*.ts", "!pages/options*.ts", "!pages/show.ts"], "background/bg.d.ts"],
+  show: ["pages/show.ts", ["background/bg.d.ts", "content/*.d.ts"]],
+  others: [["pages/*.ts", "front/*.ts", "!pages/options*.ts", "!pages/show.ts", "!front/vomnibar*.ts"], "background/bg.d.ts"],
 }
 
 var Tasks = {
@@ -203,7 +203,7 @@ var Tasks = {
   debug: ["locally", function(done) {
     ignoreHeaderChanges = disableErrors = willListFiles = false;
     willListEmittedFiles = debugging = true;
-    ["background", "content", "vomnibar", "polyfill", "options", "show", "others"].forEach(makeWatchTask);
+    ["background", "content", "vomnibar", "polyfill", "injector", "options", "show", "others"].forEach(makeWatchTask);
     done();
   }],
   test: ["local"]
@@ -698,7 +698,11 @@ function loadTypeScriptCompiler(path) {
         typescript = require(path);
       } catch (e) {}
     }
-    print('Load customized TypeScript compiler:', typescript != null ? "succeed" : "fail");
+    if (path.startsWith("./node_modules/typescript/")) {
+      print('Load the TypeScript dependency:', typescript != null ? "succeed" : "fail");
+    } else {
+      print('Load a customized TypeScript compiler:', typescript != null ? "succeed" : "fail");
+    }
   }
   if (typescript == null) {
     typescript = require("typescript/lib/typescript");
