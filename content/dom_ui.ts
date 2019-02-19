@@ -129,7 +129,7 @@ VDom.UI = {
   toggleSelectStyle_ (enable: BOOL): void {
     let sout = this.styleOut_;
     if (enable ? VDom.docSelectable_ : !sout || !sout.parentNode) { return; }
-    sout || (this.styleOut_ = sout = this.createStyle_(VFind.css_[2]));
+    sout || (this.styleOut_ = sout = this.createStyle_(VFind.css_[1]));
     enable ? (this.box_ as HTMLElement).appendChild(sout) : sout.remove();
   },
   getSelected_ (notExpectCount?: 1): [Selection, ShadowRoot | null] {
