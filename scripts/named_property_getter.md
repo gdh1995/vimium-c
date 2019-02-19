@@ -76,6 +76,9 @@ Comment: on C35 and C70, `iframe` and `frame` have no named property getters
 Comment: confirmed on C35 and C70
 
 # note
+
 On Chrome, `window.Var && typeof window.Var !== "function"` is not enough,
-because on some old versions of Chrome, `typeof <embed>` is (unfortunately) `"function"`.
+because on some old versions (< 58) of Chrome, `typeof <embed>` is unfortunately `"function"`.
 Related doc: https://www.chromestatus.com/features/5715026367217664
+
+My filed issue about `<form>` is https://bugs.chromium.org/p/chromium/issues/detail?id=897399

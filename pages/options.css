@@ -261,6 +261,7 @@ label:active {
 }
 .break-all {
   white-space: normal;
+  white-space: break-spaces;
   word-break: break-all;
   word-wrap: break-word;
   word-wrap: anywhere;

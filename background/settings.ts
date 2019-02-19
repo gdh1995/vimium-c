@@ -304,7 +304,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent_: { __proto__: null as never,
-    baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, wordsRe_: 1,
+    baseCSS: 1, exclusionTemplate: 1, helpDialog: 1,
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1, vomnibarPage_f: 1
   } as TypedSafeEnum<SettingsNS.NonPersistentSettings>,
   frontUpdateAllowed_: { __proto__: null as never,
@@ -340,8 +340,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       baseCSS: "/front/vimium.min.css",
       exclusionTemplate: "/front/exclusions.html",
       helpDialog: "/front/help_dialog.html",
-      wordsRe_: "/front/words.txt"
     } as { [name in keyof SettingsNS.CachedFiles]: string },
+    WordsRe_: "/front/words.txt",
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: "pages/options.html#!newTabUrl",
     OptionsPage_: "pages/options.html", Platform_: "browser", PolyFill_: "lib/polyfill.js",
@@ -367,21 +367,17 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): void {
   const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
   Settings.CONST_.Platform_ = os;
-  Settings.payload_.onMac_ = os === types.MAC || (os === types.WIN && 0);
+  (Settings.payload_ as Writeable<SettingsNS.FrontendConsts>).onMac_ = os === types.MAC || (os === types.WIN && 0);
 }) : (Settings.CONST_.Platform_ = OnOther === BrowserType.Edge ? "win" : "unknown");
 
-(Settings.cache_ as SettingsNS.FullCache).wordsRe_ = "";
-if (OnOther || ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) !function(): void | boolean {
+(OnOther || ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) && !function(): boolean | void {
   try {
-    const re = new RegExp("\\p{L}", "u");
-    if (re.test('a')) {
-      return;
-    }
+    return new RegExp("\\p{L}", "u").test('a');
   } catch (e) {}
-  Utils.fetchHttpContents_(Settings.CONST_.XHRFiles_.wordsRe_, function(): void {
-    (Settings.cache_ as SettingsNS.FullCache).wordsRe_ = this.responseText.replace(<RegExpG>/\r?\n/g, "");
-  }); 
-}();
+}() && Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function(): void {
+  Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG>/\r?\n/g, "");
+});
+Settings.CONST_.WordsRe_ = "";
 
 (function(): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",

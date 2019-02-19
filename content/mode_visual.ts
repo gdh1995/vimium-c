@@ -329,7 +329,7 @@ var VVisual = {
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
   diType_: VisualModeNS.DiType.Unknown as VisualModeNS.DiType.Normal | VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Unknown,
   /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
-  wordRe_: null as never as RegExpOne | RegExpU,
+  WordsRe_: null as never as RegExpOne | RegExpU,
   _skipRightWhitespaceRe: null as never as RegExpOne,
   /** @unknown_di_result */
   extend_ (d: VisualModeNS.ForwardDir): void | 1 {
@@ -426,7 +426,7 @@ var VVisual = {
         if (!count && ch && shouldSkipSpace && a._skipRightWhitespaceRe.test(ch)) {
           break; // (t/b/r/c/e/) visible_units.cc?q=SkipWhitespaceAlgorithm&g=0&l=1191
         }
-      } while (ch && ((count & 1) - +(shouldSkipSpace !== a.wordRe_.test(ch))));
+      } while (ch && ((count & 1) - +(shouldSkipSpace !== a.WordsRe_.test(ch))));
     }
     if (ch && a.oldLen_) {
       const num1 = a.oldLen_ - 2, num2 = isMove || ("" + a.selection_).length;
@@ -450,7 +450,7 @@ var VVisual = {
     str = di ? str2.substring(len) : a.getDirection_() - di ? str + str2 : str.substring(0, len - str2.length);
     // now a.di_ is correct, and can be left / right
     let todo = str.length, match: RegExpExecArray | null;
-    if ((match = a.wordRe_.exec(str)) && (todo = todo - match.index - match[0].length)) { // after word and some spaces
+    if ((match = a.WordsRe_.exec(str)) && (todo = todo - match.index - match[0].length)) { // after word and some spaces
       len = str2.length;
       if (a.diType_ !== VisualModeNS.DiType.TextBox) {
         while (todo > 0) {
@@ -498,8 +498,6 @@ var VVisual = {
     }
     a.di_ = newDi;
   },
-  /** @not_related_to_di */
-  _compare: null as never as Node["compareDocumentPosition"],
   /**
    * @safe_di if not `magic`
    * 
@@ -515,7 +513,7 @@ var VVisual = {
     a.diType_ = VisualModeNS.DiType.Normal;
     let num1, num2;
     if (anchorNode != focusNode) {
-      num1 = a._compare.call(anchorNode as Node, focusNode as Node);
+      num1 = Node.prototype.compareDocumentPosition.call(anchorNode as Node, focusNode as Node);
       return a.di_ = (
           num1 & (/** Node.DOCUMENT_POSITION_CONTAINS */ 8 | /** Node.DOCUMENT_POSITION_CONTAINED_BY */ 16)
           ? sel.getRangeAt(0).endContainer === anchorNode
@@ -667,7 +665,6 @@ keyMap_: {
 init_ (words: string) {
   this.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
-  this._compare = Node.prototype.compareDocumentPosition;
   this.selType_ = VUtils.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function(this: typeof VVisual): SelType {
     let type = typeIdx[this.selection_.type];
@@ -685,14 +682,14 @@ init_ (words: string) {
    * Definitions:
    * * General Category (Unicode): https://unicode.org/reports/tr44/#GC_Values_Table
    * * valid GC in RegExp: https://tc39.github.io/proposal-regexp-unicode-property-escapes/#sec-runtime-semantics-unicodematchpropertyvalue-p-v
-   * * \w in RegExp: http://unicode.org/reports/tr18/#word
+   * * \w in RegExp: https://unicode.org/reports/tr18/#word
    *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
    *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
    * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
-   * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings.cache_.wordsRe_}
+   * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings.CONST_.WordsRe_}
    */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
-  this.wordRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]+", words ? "" : "u");
+  this.WordsRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]+", words ? "" : "u");
   /**
    * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
    * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
