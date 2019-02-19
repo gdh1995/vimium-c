@@ -454,6 +454,7 @@ interface Window {
   interface SettingsTmpl {
     readonly cache_: Readonly<SettingsNS.FullCache>;
     readonly temp_: {
+      readonly onInstall_: Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null;
       readonly cmdErrors_: number;
       readonly shownHash_: ((this: void) => string) | null;
     };

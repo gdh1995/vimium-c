@@ -3,6 +3,7 @@ import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 var Settings = {
   cache_: Object.create(null) as Readonly<SettingsNS.FullCache>,
   temp_: {
+    onInstall_: null,
     cmdErrors_: 0,
     shownHash_: null
   } as Writeable<SettingsTmpl["temp_"]>,

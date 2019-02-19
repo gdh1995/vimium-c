@@ -470,13 +470,9 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   });
 }, 600);
 
-interface WindowExForDebug extends Window {
-  a: unknown;
-  cb: (i: any) => void;
-}
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-chrome.runtime.onInstalled && chrome.runtime.onInstalled.addListener((window as WindowExForDebug).cb =
-function(details: chrome.runtime.InstalledDetails) {
+chrome.runtime.onInstalled && chrome.runtime.onInstalled.addListener(Settings.temp_.onInstall_ =
+function(details: chrome.runtime.InstalledDetails): void {
   let reason = details.reason;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion as string; }
@@ -565,14 +561,14 @@ Utils.GC_ = function(): void {
 };
 
 setTimeout(function(): void {
-  chrome.runtime.onInstalled.removeListener((window as WindowExForDebug).cb);
+  chrome.runtime.onInstalled.removeListener(Settings.temp_.onInstall_ as NonNullable<typeof Settings.temp_.onInstall_>);
+  Settings.temp_.onInstall_ = null;
   (document.documentElement as HTMLHtmlElement).textContent = '';
+  Utils.resetRe_();
   if (typeof NDEBUG === "undefined" || !NDEBUG) {
+    interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void; }
     (window as WindowExForDebug).a = null;
     (window as WindowExForDebug).cb = function(b) { (window as WindowExForDebug).a = b; console.log(b); };
-  } else {
-    (window as WindowExForDebug).cb = null as never;
   }
-  Utils.resetRe_();
 }, 1200);
 // setTimeout(() => console.log("RegExp.input:", (RegExp as any).input, "."), 3600);
