@@ -62,9 +62,9 @@ var HelpDialog = {
           const help = item[1].help as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
           help && (this as typeof HelpDialog).normalizeHelpInfo_(help);
           const key = help && help.$key || Utils.escapeText_(item[0]);
-          if (help && help.$desp) {
+          if (help && help.$desc) {
             let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
-            html += renderItem(isAdvanced, singleBinding, help.$desp, showNames ? command: "");
+            html += renderItem(isAdvanced, singleBinding, help.$desc, showNames ? command: "");
             continue;
           }
           if (klen >= 0) {
@@ -108,7 +108,7 @@ var HelpDialog = {
     let a = this.templateEl_;
     a || (a = this.templateEl_ = document.createElement('template'));
     help.$key = help.key ? this.safeHTML_(help.key, a) : "";
-    help.$desp = help.desp ? this.safeHTML_(help.desp, a) : "";
+    help.$desc = help.desc ? this.safeHTML_(help.desc, a) : "";
   },
   // https://support.zendesk.com/hc/en-us/articles/115015895948-Allowing-unsafe-HTML-in-articles
   safeTags: {

@@ -195,12 +195,12 @@ declare namespace CommandsNS {
   // encoded info
   interface CustomHelpInfo {
     key: string;
-    desp: string;
+    desc: string;
     $key?: unknown;
   }
   interface NormalizedCustomHelpInfo extends CustomHelpInfo {
     $key: string;
-    $desp: string;
+    $desc: string;
   }
   type BgDescription = [ string, 0 | 1, true, kBgCmd & number, {}? ];
   type FgDescription = [ string, 0 | 1, false, kFgCmd & number, {}? ];

@@ -48,8 +48,8 @@ var VDom = {
   Getter_ <Ty extends Node, Key extends keyof Ty> (this: void
       , Cls: { prototype: Ty, new(): Ty; }, instance: Ty, property: Key & string
       ): NonNullable<Ty[Key]> | null {
-    const desp = Object.getOwnPropertyDescriptor(Cls.prototype, property);
-    return desp && desp.get ? desp.get.call(instance) : null;
+    const desc = Object.getOwnPropertyDescriptor(Cls.prototype, property);
+    return desc && desc.get ? desc.get.call(instance) : null;
   },
   GetShadowRoot_ (el: Element | Node): ShadowRoot | null {
     const sr = (el as Element).shadowRoot || null, E = Element;
