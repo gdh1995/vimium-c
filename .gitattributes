@@ -9,6 +9,7 @@
 *.png binary
 *.sh linguist-detectable=false linguist-language=Shell
 *.py linguist-detectable=false linguist-language=Python
+tests/* linguist-detectable=false
 tsc.js linguist-language=TypeScript
 Gulpfile.js linguist-language=TypeScript
 lib/math_parser.js linguist-vendored
