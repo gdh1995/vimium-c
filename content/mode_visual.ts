@@ -330,10 +330,10 @@ var VVisual = {
   diType_: VisualModeNS.DiType.Unknown as VisualModeNS.DiType.Normal | VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Unknown,
   /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
   WordsRe_: null as never as RegExpOne | RegExpU,
-  _skipRightWhitespaceRe: null as never as RegExpOne,
+  _rightWhiteSpaceRe: null as RegExpOne | null,
   /** @unknown_di_result */
-  extend_ (d: VisualModeNS.ForwardDir): void | 1 {
-    return this.selection_.modify("extend", this._D[d], "character");
+  extend_ (d: VisualModeNS.ForwardDir, g?: VisualModeNS.G): void | 1 {
+    return this.selection_.modify("extend", this._D[d], this._G[g || VisualModeNS.G.character]);
   },
   /** @unknown_di_result */
   modify_ (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
@@ -423,7 +423,7 @@ var VVisual = {
           a.di_ = a.di_ || VisualModeNS.kDir.unknown; // right / unknown are kept, left is replaced with right, so that keep @di safe
         }
         ch = a.getNextRightCharacter_(isMove);
-        if (!count && ch && shouldSkipSpace && a._skipRightWhitespaceRe.test(ch)) {
+        if (!count && ch && shouldSkipSpace && a._rightWhiteSpaceRe && !a._rightWhiteSpaceRe.test(ch)) {
           break; // (t/b/r/c/e/) visible_units.cc?q=SkipWhitespaceAlgorithm&g=0&l=1191
         }
       } while (ch && ((count & 1) - +(shouldSkipSpace !== a.WordsRe_.test(ch))));
@@ -442,23 +442,27 @@ var VVisual = {
     }
   },
   _moveRightByWordButNotSkipSpace(): void {
-    const a = this, sel = a.selection_, curAlter = "extend";
+    const a = this, sel = a.selection_;
     let str = "" + sel, len = str.length, di = a.getDirection_();
-    sel.modify(curAlter, a._D[VisualModeNS.kDir.right], "word");
+    a.extend_(VisualModeNS.kDir.right, VisualModeNS.G.word);
     let str2 = "" + sel;
     if (!di) { a.di_ = str2 ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right; }
-    str = di ? str2.substring(len) : a.getDirection_() - di ? str + str2 : str.substring(0, len - str2.length);
+    str = di ? str2.substring(len) : a.getDirection_() ? str + str2 : str.substring(0, len - str2.length);
     // now a.di_ is correct, and can be left / right
-    let todo = str.length, match: RegExpExecArray | null;
-    if ((match = a.WordsRe_.exec(str)) && (todo = todo - match.index - match[0].length)) { // after word and some spaces
+    let match = (a._rightWhiteSpaceRe || a.WordsRe_).exec(str), todo: number;
+    todo = match ? a._rightWhiteSpaceRe ? match[0].length : str.length - match.index - match[0].length : 0;
+    if (todo > 0) { // after word are some spaces
       len = str2.length;
       if (a.diType_ !== VisualModeNS.DiType.TextBox) {
         while (todo > 0) {
-          sel.modify(curAlter, a._D[VisualModeNS.kDir.left], a._G[VisualModeNS.G.character]);
+          a.extend_(VisualModeNS.kDir.left);
           len || (a.di_ = VisualModeNS.kDir.left);
           const reduced = len - ("" + sel).length;
           todo -= Math.abs(reduced) || todo;
           len -= reduced;
+        }
+        if (todo < 0) { // may be a "user-select: all"
+          a.extend_(VisualModeNS.kDir.right);
         }
       } else {
         di = a.di_ as VisualModeNS.ForwardDir;
@@ -690,7 +694,7 @@ init_ (words: string) {
    */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
   this.WordsRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]+", words ? "" : "u");
-  /**
+  /** C72
    * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
    * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
    * `IsSpaceOrNewline` says "Bidi=WS" doesn't include '\n'", it's because:
@@ -707,7 +711,12 @@ init_ (words: string) {
    * * "\s" in regexp is not affected by the "unicode" flag https://mathiasbynens.be/notes/es6-unicode-regex
    * During tests: not skip \u0085\u180e\u2029\u202f\ufeff since C59; otherwise all including \u0085\ufeff are skipped
    */
-  this._skipRightWhitespaceRe = <RegExpOne> ((<RegExpOne>/\s/).test("\u180e") ? /[^\s\x85]|\n/ : /[\S\n\u2029\u202f\ufeff]/);
+  /** Changes
+   * MinSelExtendForwardOnlySkipWhitespaces=59 : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
+   * Min$Space$NotMatch$U180e$InRegExp=59
+   */
+  VUtils.cache_.browserVer_ > BrowserVer.MinSelExtendForwardOnlySkipWhitespaces &&
+  (this._rightWhiteSpaceRe = /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }
 };
