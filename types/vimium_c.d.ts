@@ -516,7 +516,7 @@ declare const enum BrowserVer {
    */
   MinExtIframesAlwaysInSharedProcess = 58,
   MinExtensionContentPageAlwaysCanShowFavIcon = MinExtIframesAlwaysInSharedProcess,
-  // the 4 below are correct even if EXPERIMENTAL or LEAGCY
+  // the 5 below are correct even if EXPERIMENTAL or LEAGCY
   MinCaseSensitiveUsemap = 58,
   // tmp_width := (since 58 ? Math.round : Math.floor)(width * devicePixelRatio * zoom)
   // real_width := width && Math.max(tmp_width, 1)
@@ -527,6 +527,8 @@ declare const enum BrowserVer {
   Min$selectionStart$MayBeNull = 58,
   // .type is always 'Caret'
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
+  /** `selection.modify ~, ~, "word"` is also affected. @see {@link content/mode_visual.ts#VVisual.init_ } */
+  Min$Space$NotMatch$U180e$InRegExp = 59,
   // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated) is confirmed on Chrome LATEST_TESTED
   // See `WebFormControlElement::SetAutofillValue` on
   // https://chromium.googlesource.com/chromium/src.git/+/master/third_party/blink/renderer/core/exported/web_form_control_element.cc#130

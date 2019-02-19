@@ -330,7 +330,7 @@ var VVisual = {
   diType_: VisualModeNS.DiType.Unknown as VisualModeNS.DiType.Normal | VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Unknown,
   /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
   wordRe_: null as never as RegExpOne | RegExpU,
-  rightNonSpaceRe_: null as never as RegExpOne | RegExpU,
+  _skipRightWhitespaceRe: null as never as RegExpOne,
   /** @unknown_di_result */
   extend_ (d: VisualModeNS.ForwardDir): void | 1 {
     return this.selection_.modify("extend", this._D[d], "character");
@@ -423,7 +423,7 @@ var VVisual = {
           a.di_ = a.di_ || VisualModeNS.kDir.unknown; // right / unknown are kept, left is replaced with right, so that keep @di safe
         }
         ch = a.getNextRightCharacter_(isMove);
-        if (!count && ch && shouldSkipSpace && a.rightNonSpaceRe_.test(ch)) {
+        if (!count && ch && shouldSkipSpace && a._skipRightWhitespaceRe.test(ch)) {
           break; // (t/b/r/c/e/) visible_units.cc?q=SkipWhitespaceAlgorithm&g=0&l=1191
         }
       } while (ch && ((count & 1) - +(shouldSkipSpace !== a.wordRe_.test(ch))));
@@ -693,13 +693,24 @@ init_ (words: string) {
    */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
   this.wordRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]+", words ? "" : "u");
-  /** the real is /[^\p{space}\xa0]|\n/u : http://www.unicode.org/reports/tr9/#WS
-   * but it's strange that
-   * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
-   * (upstream: [2002/11/07] https://chromium.googlesource.com/chromium/src/+/68f88bec7f005b2abc9018b086396a88f1ffc18e%5E%21/#F0)
-   *     says "\p{WS} doesn't include '\n'",
-   * while tests on C72 shows it includes \n and \xa0 */
-  this.rightNonSpaceRe_ = words ? <RegExpOne> /\S|\n/ : new RegExp("\\P{space}|\n", "u");
+  /**
+   * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
+   * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
+   * `IsSpaceOrNewline` says "Bidi=WS" doesn't include '\n'", it's because:
+   * * the upstream is (2002/11/07) https://chromium.googlesource.com/chromium/src/+/68f88bec7f005b2abc9018b086396a88f1ffc18e%5E%21/#F3 ,
+   * * and then the specification it used in `< 128 ? isspace : DirWS` was https://unicode.org/Public/2.1-Update4/PropList-2.1.9.txt
+   * * it thinks the "White space" and "Bidi: Whitespace" properties are different, and Bidi:WS only includes 0020,2000..200B,2028,3000
+   * While the current https://unicode.org/reports/tr44/#BC_Values_Table does not:
+   * * in https://unicode.org/Public/UCD/latest/ucd/PropList.txt , WS covers `WebTemplateFramework::IsASCIISpace` totally (0009..000D,0020)
+   * /\s/
+   * * Run ` for(var a="",i=0,ch=''; i<=0xffff; i++) /\s/.test(String.fromCharCode(i)) && (a+='\\u' + (0x10000 + i).toString(16).slice(1)); a; ` gets
+   * * \u0009\u000a\u000b\u000c\u000d\u0020\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff (C72)
+   * * when <= C58 (Min$Space$NotMatch$U180e$InRegExp), there's \u180e (it's added by Unicode standard v4.0.0 and then removed since v6.3.0)
+   * * compared to "\p{WS}", it ("\s") lacks \u0085 (it's added in v3.0.0), but adds an extra \ufeff
+   * * "\s" in regexp is not affected by the "unicode" flag https://mathiasbynens.be/notes/es6-unicode-regex
+   * During tests: not skip \u0085\u180e\u2029\u202f\ufeff since C59; otherwise all including \u0085\ufeff are skipped
+   */
+  this._skipRightWhitespaceRe = <RegExpOne> ((<RegExpOne>/\s/).test("\u180e") ? /[^\s\x85]|\n/ : /[\S\n\u2029\u202f\ufeff]/);
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }
 };
