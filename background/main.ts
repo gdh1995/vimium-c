@@ -1908,7 +1908,7 @@ Are you sure you want to continue?`);
         request, port,
         new Promise<void>(function(resolve, reject) {
           const xhr = Settings.fetchFile_("helpDialog", resolve);
-          xhr instanceof XMLHttpRequest && (xhr.onerror = reject);
+          xhr && (xhr.onerror = reject);
         })
       ]).then(function(args): void {
         const port = args[1].w && indexFrame(args[2].s.t, 0) || args[2];

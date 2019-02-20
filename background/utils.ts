@@ -1,11 +1,10 @@
 var Utils = {
-  fetchHttpContents_ (url: string, success: (this: TextXHR, event: Event & TypedEvent<"load">) => void,
-      req?: XMLHttpRequest | null): TextXHR {
-    req = req || (new XMLHttpRequest() as TextXHR);
-    (req as TextXHR).open("GET", url, true);
-    (req as TextXHR).responseType = "text";
-    (req as TextXHR).onload = success;
-    (req as TextXHR).send();
+  fetchHttpContents_ (url: string, success: (this: TextXHR, event: Event & TypedEvent<"load">) => void): TextXHR {
+    const req = new XMLHttpRequest() as TextXHR;
+    req.open("GET", url, true);
+    req.responseType = "text";
+    req.onload = success;
+    req.send();
     return req as TextXHR;
   },
   /**
