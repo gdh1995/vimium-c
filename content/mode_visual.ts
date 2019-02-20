@@ -449,26 +449,26 @@ var VVisual = {
     if (!di) { a.di_ = str2 ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right; }
     str = di ? str2.substring(len) : a.getDirection_() ? str + str2 : str.substring(0, len - str2.length);
     // now a.di_ is correct, and can be left / right
-    let match = (a._rightWhiteSpaceRe || a.WordsRe_).exec(str), todo: number;
-    todo = match ? a._rightWhiteSpaceRe ? match[0].length : str.length - match.index - match[0].length : 0;
-    if (todo > 0 && todo < str.length) { // after word are some spaces
+    let match = (a._rightWhiteSpaceRe || a.WordsRe_).exec(str), toGoLeft: number;
+    toGoLeft = match ? a._rightWhiteSpaceRe ? match[0].length : str.length - match.index - match[0].length : 0;
+    if (toGoLeft > 0 && toGoLeft < str.length) { // after word are some spaces
       len = str2.length;
       if (a.diType_ !== VisualModeNS.DiType.TextBox) {
-        while (todo > 0) {
+        while (toGoLeft > 0) {
           a.extend_(VisualModeNS.kDir.left);
           len || (a.di_ = VisualModeNS.kDir.left);
           const reduced = len - ("" + sel).length;
-          todo -= Math.abs(reduced) || todo;
+          toGoLeft -= Math.abs(reduced) || toGoLeft;
           len -= reduced;
         }
-        if (todo < 0) { // may be a "user-select: all"
+        if (toGoLeft < 0) { // may be a "user-select: all"
           a.extend_(VisualModeNS.kDir.right);
         }
       } else {
         di = a.di_ as VisualModeNS.ForwardDir;
         let el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement,
         start = a.TextOffset_(el, 0), end = start + len;
-        di ? (end -= todo) :  (start -= todo);
+        di ? (end -= toGoLeft) :  (start -= toGoLeft);
         di = di && start > end ? (a.di_ = VisualModeNS.kDir.left) : VisualModeNS.kDir.right;
         // di is BOOL := start < end; a.di_ will be coorrect
         el.setSelectionRange(di ? start : end, di ? end : start, <VisualModeNS.ForwardDir>a.di_ ? "forward" : "backward");
