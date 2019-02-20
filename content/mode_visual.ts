@@ -445,13 +445,13 @@ var VVisual = {
     const a = this, sel = a.selection_;
     let str = "" + sel, len = str.length, di = a.getDirection_();
     a.extend_(VisualModeNS.kDir.right, VisualModeNS.G.word);
-    let str2 = "" + sel;
+    const str2 = "" + sel;
     if (!di) { a.di_ = str2 ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right; }
     str = di ? str2.substring(len) : a.getDirection_() ? str + str2 : str.substring(0, len - str2.length);
     // now a.di_ is correct, and can be left / right
     let match = (a._rightWhiteSpaceRe || a.WordsRe_).exec(str), todo: number;
     todo = match ? a._rightWhiteSpaceRe ? match[0].length : str.length - match.index - match[0].length : 0;
-    if (todo > 0) { // after word are some spaces
+    if (todo > 0 && todo < str.length) { // after word are some spaces
       len = str2.length;
       if (a.diType_ !== VisualModeNS.DiType.TextBox) {
         while (todo > 0) {
