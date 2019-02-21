@@ -340,6 +340,8 @@ var VDom = {
     (element: Element): VisibilityType;
     (element: null, rect: ClientRect): VisibilityType;
   },
+  // todo: fix a case the element is moved to another frame
+  // todo: use .Node::isConnected
   isInDOM_ (element: Element, root?: HTMLBodyElement | HTMLFrameSetElement): boolean {
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;

@@ -486,8 +486,9 @@ var VVisual = {
     const sel = a.selection_, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
     if (a.diType_ === VisualModeNS.DiType.TextBox) {
       const el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement;
+      // Note: on C72/60/35, it can trigger document.onselectionchange
+      //      and on C72/60, it can trigger <input|textarea>.onselect
       el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), newDi ? "forward" : "backward");
-      // Note(gdh1995): may trigger onselect?
     } else if (a.diType_ === VisualModeNS.DiType.Unknown) {
       let length = ("" + sel).length, i = 0;
       a.collapseToRight_(direction);
