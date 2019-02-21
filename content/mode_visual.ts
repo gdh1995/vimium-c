@@ -98,7 +98,7 @@ var VVisual = {
     this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
     VFind.clean_(FindNS.Action.ExitNoFocus);
     const el = VEvent.lock_();
-    oldDiType !== VisualModeNS.DiType.TextBox &&
+    (oldDiType ^ VisualModeNS.DiType.TextBox) &&
     el && el.blur && el.blur();
     VDom.UI.toggleSelectStyle_(0);
     VScroller.top_ = null;
@@ -278,7 +278,7 @@ var VVisual = {
       return;
     }
     const sel = this.selection_,
-    range = sel.rangeCount && (this.getDirection_(""), this.diType_ === VisualModeNS.DiType.Normal) && sel.getRangeAt(0);
+    range = sel.rangeCount && (this.getDirection_(""), !this.diType_) && sel.getRangeAt(0);
     VFind.execute_(null, { noColor: true, count });
     if (VFind.hasResults_) {
       this.diType_ = VisualModeNS.DiType.Unknown;
@@ -347,12 +347,12 @@ var VVisual = {
   getNextRightCharacter_ (isMove: BOOL): string {
     const a = this, diType = a.diType_;
     a.oldLen_ = 0;
-    if (diType === VisualModeNS.DiType.TextBox) {
+    if (diType & VisualModeNS.DiType.TextBox) {
       const el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement;
       return el.value.charAt(a.TextOffset_(el, a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== "backward"));
     }
     const sel = a.selection_;
-    if (diType === VisualModeNS.DiType.Normal) {
+    if (!diType) {
       let { focusNode } = sel;
       if (focusNode instanceof Text) {
         const i = sel.focusOffset, str = focusNode.data;
@@ -364,12 +364,12 @@ var VVisual = {
     let oldLen = 0;
     if (!isMove) {
       const beforeText = "" + sel;
-      if (beforeText && !a.getDirection_(beforeText)) {
+      if (beforeText && (!a.getDirection_(beforeText) || a.selType_() === SelType.Caret)) {
         return beforeText[0];
       }
       oldLen = beforeText.length;
     }
-    // here, the real di must be 1 (caret also means 1)
+    // here, the real di must be 1 (range if in visual mode else caret)
     a.oldLen_ || a.extend_(1);
     const afterText = "" + sel, newLen = afterText.length;
     if (newLen !== oldLen) {
@@ -453,7 +453,7 @@ var VVisual = {
     toGoLeft = match ? a._rightWhiteSpaceRe ? match[0].length : str.length - match.index - match[0].length : 0;
     if (toGoLeft > 0 && toGoLeft < str.length) { // after word are some spaces
       len = str2.length;
-      if (a.diType_ !== VisualModeNS.DiType.TextBox) {
+      if (a.diType_ ^ VisualModeNS.DiType.TextBox) {
         while (toGoLeft > 0) {
           a.extend_(VisualModeNS.kDir.left);
           len || (a.di_ = VisualModeNS.kDir.left);
@@ -484,7 +484,7 @@ var VVisual = {
       return;
     }
     const sel = a.selection_, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
-    if (a.diType_ === VisualModeNS.DiType.TextBox) {
+    if (a.diType_ & VisualModeNS.DiType.TextBox) {
       const el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement;
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
@@ -507,27 +507,31 @@ var VVisual = {
    * @safe_di if not `magic`
    * 
    * @param {string} magic two means
-   * * `""` means only checking type, and may not detect `di_` when `DiType.Unknown`;
-   * * `char[1..]` means initial selection text and not to extend back when `DiType.Unknown`
+   * * `""` means only checking type, and may not detect `di_` when `DiType.Complicated`;
+   * * `char[1..]` means initial selection text and not to extend back when `DiType.Complicated`
    */
-  getDirection_ (magic?: string): VisualModeNS.kDir.left | VisualModeNS.kDir.right {
-    const a = this;
+  getDirection_: function (this: {}, magic?: string): VisualModeNS.kDir.left | VisualModeNS.kDir.right | VisualModeNS.kDir.unknown {
+    const a = this as typeof VVisual;
     if (a.di_ !== VisualModeNS.kDir.unknown) { return a.di_; }
-    const oldDiType = a.diType_, sel = a.selection_, {anchorNode, focusNode} = sel;
-    // common HTML nodes
-    a.diType_ = VisualModeNS.DiType.Normal;
-    let num1, num2;
-    if (anchorNode != focusNode) {
-      num1 = Node.prototype.compareDocumentPosition.call(anchorNode as Node, focusNode as Node);
-      return a.di_ = (
-          num1 & (/** Node.DOCUMENT_POSITION_CONTAINS */ 8 | /** Node.DOCUMENT_POSITION_CONTAINED_BY */ 16)
-          ? sel.getRangeAt(0).endContainer === anchorNode
-          : (num1 & /** Node.DOCUMENT_POSITION_PRECEDING */ 2)
-        ) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right; // return `right` in case unknown cases
-    }
-    num1 = sel.anchorOffset;
-    if (num2 = sel.focusOffset - num1) {
-      return a.di_ = num2 > 0 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
+    const oldDiType = a.diType_, sel = a.selection_, { anchorNode } = sel;
+    let num1 = -1, num2: number;
+    if (!oldDiType || (oldDiType & VisualModeNS.DiType.Unknown)) {
+      const { focusNode } = sel;
+      // common HTML nodes
+      if (anchorNode != focusNode) {
+        num1 = Node.prototype.compareDocumentPosition.call(anchorNode as Node, focusNode as Node);
+        a.diType_ = VisualModeNS.DiType.Normal;
+        return a.di_ = (
+            num1 & (/** Node.DOCUMENT_POSITION_CONTAINS */ 8 | /** Node.DOCUMENT_POSITION_CONTAINED_BY */ 16)
+            ? sel.getRangeAt(0).endContainer === anchorNode
+            : (num1 & /** Node.DOCUMENT_POSITION_PRECEDING */ 2)
+          ) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right; // return `right` in case unknown cases
+      }
+      num1 = sel.anchorOffset;
+      if ((num2 = sel.focusOffset - num1) || anchorNode instanceof Text) {
+        a.diType_ = VisualModeNS.DiType.Normal;
+        return a.di_ = num2 >= 0 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
+      }
     }
     // editable text elements
     const lock = VEvent.lock_();
@@ -535,7 +539,8 @@ var VVisual = {
       num2 = oldDiType === VisualModeNS.DiType.TextBox ? 1 : 0;
       type TextModeElement = HTMLInputElement | HTMLTextAreaElement;
       if (!num2 && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
-        const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes)[num1] as Node | undefined;
+        const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes
+                      )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (VDom.isInputInTextMode_(lock as TextModeElement)) {
             num2 = 2;
@@ -586,6 +591,9 @@ var VVisual = {
       a.oldLen_ = 2 + num1;
     }
     return a.di_ = num2 >= 0 || magic && num2 === -num1 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
+  } as {
+    (magic: ""): VisualModeNS.kDir.unknown;
+    (magic?: string): VisualModeNS.kDir.left | VisualModeNS.kDir.right;
   },
   /** @tolerate_di_if_caret di will be 1 */
   collapseToFocus_ (toFocus: BOOL) {
@@ -593,7 +601,7 @@ var VVisual = {
     this.di_ = VisualModeNS.kDir.right;
   },
   /** @safe_di di will be 1 */
-  collapseToRight_ (/** to-left if text is left-to-right */ toRight: VisualModeNS.ForwardDir): void {
+  collapseToRight_ (/** to-right if text is left-to-right */ toRight: VisualModeNS.ForwardDir): void {
     toRight ? this.selection_.collapseToEnd() : this.selection_.collapseToStart();
     this.di_ = VisualModeNS.kDir.right;
   },
@@ -627,7 +635,7 @@ var VVisual = {
   ensureLine_ (command: number): void {
     const a = this;
     let di = a.getDirection_();
-    if (di && command < 20 && command >= 0 && a.diType_ === VisualModeNS.DiType.Normal && a.selType_() === SelType.Caret) {
+    if (di && command < 20 && command >= 0 && !a.diType_ && a.selType_() === SelType.Caret) {
       di = (1 - (command & 1)) as VisualModeNS.ForwardDir; // old Di
       a.modify_(di, VisualModeNS.G.lineboundary);
       a.selType_() !== SelType.Range && a.modify_(di, VisualModeNS.G.line);
@@ -673,7 +681,7 @@ init_ (words: string) {
   this.selType_ = VUtils.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function(this: typeof VVisual): SelType {
     let type = typeIdx[this.selection_.type];
-    return type === SelType.Caret && VVisual.diType_ !== VisualModeNS.DiType.Normal && ("" + this.selection_) ? SelType.Range : type;
+    return type === SelType.Caret && VVisual.diType_ && ("" + this.selection_) ? SelType.Range : type;
   } : function(this: typeof VVisual): SelType {
     return typeIdx[this.selection_.type];
   };
