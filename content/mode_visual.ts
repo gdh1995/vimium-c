@@ -17,12 +17,21 @@ declare namespace VisualModeNS {
     vimword = 5,
     _mask = -1,
   }
+  /** although values are made by flags, these types are exclusive */
   const enum DiType {
     Normal = 0,
     TextBox = 1,
-    Unknown = 2,
-    __mask = -1,
+    Complicated = 2,
+    isUnsafe = 4,
+    Unknown = 8,
+
+    SafeTextBox = 1,
+    UnsafeTextBox = 5,
+    SafeComplicated = 2,
+    UnsafeComplicated = 6,
   }
+  type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
+    | DiType.UnsafeComplicated;
 }
 var VVisual = {
   mode_: VisualModeNS.Mode.NotActive,
@@ -213,7 +222,7 @@ var VVisual = {
       movement.ensureLine_(command);
     }
     movement.getDirection_("");
-    if (movement.diType_ === VisualModeNS.DiType.Unknown) { return; }
+    if (movement.diType_ & VisualModeNS.DiType.Complicated) { return; }
     const focused = VDom.getSelectionFocusEdge_(movement.selection_, movement.di_ as VisualModeNS.ForwardDir);
     if (focused) {
       VScroller.scrollIntoView_unsafe_(focused);
@@ -266,6 +275,7 @@ var VVisual = {
     if (_this.hud_) { return VHUD.show_(_this.hud_); }
   },
   find_ (count: number): void {
+    // todo: delay it to delay cOptions.findCSS
     if (!VFind.query_) {
       VPort.send_({ c: kFgReq.findQuery, a: {} }, function(query): void {
         if (query) {
@@ -327,7 +337,7 @@ var VVisual = {
       "documentboundary"],
   alterMethod_: "" as "move" | "extend",
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
-  diType_: VisualModeNS.DiType.Unknown as VisualModeNS.DiType.Normal | VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Unknown,
+  diType_: VisualModeNS.DiType.Unknown as VisualModeNS.ValidDiTypes | VisualModeNS.DiType.Unknown,
   /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
   WordsRe_: null as never as RegExpOne | RegExpU,
   _rightWhiteSpaceRe: null as RegExpOne | null,
@@ -371,8 +381,10 @@ var VVisual = {
     }
     // here, the real di must be 1 (range if in visual mode else caret)
     a.oldLen_ || a.extend_(1);
+    a.diType_ &= ~VisualModeNS.DiType.isUnsafe;
     const afterText = "" + sel, newLen = afterText.length;
     if (newLen !== oldLen) {
+      // if isMove, then cur sel is >= 1 char & di is right
       isMove && a.collapseToRight_(newLen === 1 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left);
       a.oldLen_ = isMove && newLen !== 1 ? 0 : 2 + oldLen;
       return afterText[newLen - 1];
@@ -445,6 +457,7 @@ var VVisual = {
     const a = this, sel = a.selection_;
     let str = "" + sel, len = str.length, di = a.getDirection_();
     a.extend_(VisualModeNS.kDir.right, VisualModeNS.G.word);
+    a.diType_ &= ~VisualModeNS.DiType.isUnsafe;
     const str2 = "" + sel;
     if (!di) { a.di_ = str2 ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right; }
     str = di ? str2.substring(len) : a.getDirection_() ? str + str2 : str.substring(0, len - str2.length);
@@ -489,7 +502,7 @@ var VVisual = {
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
       el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), newDi ? "forward" : "backward");
-    } else if (a.diType_ === VisualModeNS.DiType.Unknown) {
+    } else if (a.diType_ & VisualModeNS.DiType.Complicated) {
       let length = ("" + sel).length, i = 0;
       a.collapseToRight_(direction);
       for (; i < length; i++) { a.extend_(newDi); }
@@ -536,48 +549,31 @@ var VVisual = {
     // editable text elements
     const lock = VEvent.lock_();
     if (lock && lock.parentElement === anchorNode) {
-      num2 = oldDiType === VisualModeNS.DiType.TextBox ? 1 : 0;
       type TextModeElement = HTMLInputElement | HTMLTextAreaElement;
-      if (!num2 && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
+      if ((oldDiType & VisualModeNS.DiType.Unknown) && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
         const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes
                       )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (VDom.isInputInTextMode_(lock as TextModeElement)) {
-            num2 = 2;
-            a.diType_ = VisualModeNS.DiType.TextBox;
-          } else if (magic == null && (lock as TextModeElement).value && (num1 = ("" + sel).length)) {
-            // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
-            a.extend_(1);
-            a.extend_(0);
-            ("" + sel).length !== num1 && a.extend_(1);
+            a.diType_ = VisualModeNS.DiType.UnsafeTextBox;
           }
         }
       }
-      if (num2) {
-        let di: BOOL = (lock as TextModeElement).selectionDirection === "backward" ? 0 : 1;
-        if (magic == null && num2 === 2) {
-          num1 = a.TextOffset_(lock as TextModeElement, VisualModeNS.kDir.left);
-          num2 = di ? a.TextOffset_(lock as TextModeElement, VisualModeNS.kDir.right) : num1;
-          // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
-          if (!di || num2 && (num1 !== num2)) {
-            num1 = (di || num2 ? 0 : 1) as BOOL;
-            a.extend_(num1);
-            num2 !== a.TextOffset_(lock as TextModeElement, di) && a.extend_((1 - num1) as BOOL);
-          }
-        }
-        return a.di_ = di;
+      if (a.diType_ & VisualModeNS.DiType.TextBox) {
+        return a.di_ = (lock as TextModeElement).selectionDirection !== "backward" ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
       }
     }
     // nodes under shadow DOM or in other unknown edge cases
+    a.diType_ = oldDiType & VisualModeNS.DiType.Unknown ? VisualModeNS.DiType.UnsafeComplicated
+      : oldDiType & (VisualModeNS.DiType.Complicated | VisualModeNS.DiType.isUnsafe);
+    if (magic === "") { return VisualModeNS.kDir.unknown; }
     const initial = magic || "" + sel;
     num1 = initial.length;
     if (!num1) {
-      a.diType_ = anchorNode instanceof Text ? VisualModeNS.DiType.Normal : VisualModeNS.DiType.Unknown;
       return a.di_ = VisualModeNS.kDir.right;
     }
-    a.diType_ = VisualModeNS.DiType.Unknown;
-    if (magic === "") { return VisualModeNS.kDir.right; }
     a.extend_(1);
+    a.diType_ &= ~VisualModeNS.DiType.isUnsafe;
     num2 = ("" + sel).length - num1;
     /**
      * Note (tested on C70):
@@ -600,10 +596,27 @@ var VVisual = {
     this.selType_() === SelType.Range && this.collapseToRight_((this.getDirection_() ^ toFocus ^ 1) as BOOL);
     this.di_ = VisualModeNS.kDir.right;
   },
-  /** @safe_di di will be 1 */
+  /**
+   * @must_be_range_and_know_di_if_unsafe `selType == Range && this.getDirection_()` is safe enough
+   * 
+   * @fix_unsafe_in_diType
+   * 
+   * @di_will_be_1
+   */
   collapseToRight_ (/** to-right if text is left-to-right */ toRight: VisualModeNS.ForwardDir): void {
-    toRight ? this.selection_.collapseToEnd() : this.selection_.collapseToStart();
-    this.di_ = VisualModeNS.kDir.right;
+    const a = this, sel = a.selection_;
+    if (a.diType_ & VisualModeNS.DiType.isUnsafe) {
+      // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
+      const sameEnd = toRight === <VisualModeNS.ForwardDir>a.di_,
+      fixSelAll = sameEnd && (a.diType_ & VisualModeNS.DiType.Complicated) && ("" + sel).length;
+      // r / r : l ; r / l : r ; l / r : l ; l / l : r
+      a.extend_(1 - <VisualModeNS.ForwardDir>a.di_);
+      sameEnd && a.extend_(toRight);
+      fixSelAll && ("" + sel).length !== fixSelAll && a.extend_(1 - toRight);
+      a.diType_ &= ~VisualModeNS.DiType.isUnsafe;
+    }
+    toRight ? sel.collapseToEnd() : sel.collapseToStart();
+    a.di_ = VisualModeNS.kDir.right;
   },
   selectLexicalEntity_ (entity: VisualModeNS.G.sentence | VisualModeNS.G.word, count: number): void {
     this.collapseToFocus_(1);
