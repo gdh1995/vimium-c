@@ -78,6 +78,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
         || !event.keyCode) { return; }
       if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
+      if (OnOther === BrowserType.Firefox && InsertMode.lock_ && !VDom.isInDOM_(InsertMode.lock_ as LockableElement)) {
+        InsertMode.lock_ = null;
+      }
       let keyChar: string, key = event.keyCode, action: HandlerResult;
       if (action = VUtils.bubbleEvent_(event)) {}
       else if (InsertMode.isActive_()) {
@@ -548,9 +551,6 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     isActive_ (): boolean {
       if (this.suppressType_) { return false; }
       let el: Element | null = this.lock_;
-      if (OnOther === BrowserType.Firefox && el && !VDom.isInDOM_(el as LockableElement)) {
-        el = this.lock_ = null;
-      }
       if (el !== null || this.global_) {
         return true;
       }
