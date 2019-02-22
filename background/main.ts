@@ -1383,7 +1383,7 @@ Are you sure you want to continue?`);
       if (~flags & Frames.Flags.hadVisualMode) {
         words = Settings.CONST_.WordsRe_;
         if (~flags & Frames.Flags.hasFindCSS) {
-          findCSS = Settings.cache_.findCSS;
+          findCSS = Settings.cache_.findCSS_;
         }
         cPort.s.f = Frames.Flags.hadVisualMode | Frames.Flags.hasFindCSS | flags;
       }
@@ -1403,7 +1403,7 @@ Are you sure you want to continue?`);
       let findCSS: CmdOptions[kFgCmd.findMode]["findCSS"] = null;
       if (!(sender.f & Frames.Flags.hasFindCSS)) {
         sender.f |= Frames.Flags.hasFindCSS;
-        findCSS = Settings.cache_.findCSS;
+        findCSS = Settings.cache_.findCSS_;
       }
       cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
           , S: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
@@ -1411,6 +1411,7 @@ Are you sure you want to continue?`);
         count: cOptions.dir <= 0 ? -commandCount : commandCount,
         leave,
         findCSS,
+        return_: cOptions.returnToViewport === true,
         query
       }});
     },
@@ -2179,7 +2180,7 @@ Are you sure you want to continue?`);
             N: kBgReq.omni_secret,
             browser: OnOther,
             browserVer: ChromeVer,
-            S: Settings.cache_.omniCSS,
+            S: Settings.cache_.omniCSS_,
             cls: omniStyles,
             secret: getSecret()
           });

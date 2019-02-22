@@ -679,7 +679,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
       if (isFind) {
         const oldCSS2 = bgSettings_.parseCustomCSS_(bgSettings_.get_("userDefinedCss")).find || "";
         if (oldCSS2) {
-          const str = bgSettings_.cache_.findCSS[1];
+          const str = bgSettings_.cache_.findCSS_[1];
           (doc.querySelector("style") as HTMLStyleElement).textContent = str.substring(0, str.length - oldCSS2.length - 1);
         }
         styleDebug = doc.createElement("style");

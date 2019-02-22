@@ -51,7 +51,7 @@ var VMarks = {
       const pos = this._previous;
       this.setPreviousPosition_();
       if (pos) {
-        this._scroll(pos);
+        this.scroll_(pos);
       }
       return VHUD.tip_((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
     }
@@ -80,7 +80,7 @@ var VMarks = {
     }
     VPort.post_(req);
   },
-  _scroll(scroll: MarksNS.FgMark) {
+  scroll_ (scroll: MarksNS.FgMark) {
     if (scroll[1] === 0 && scroll[2] && scroll[0] === 0) {
       location.hash = scroll[2] as string;
     } else {
@@ -101,7 +101,7 @@ var VMarks = {
   GoTo_ (this: void, _0: number, options: CmdOptions[kFgCmd.goToMarks]): void {
     const { s: scroll, l: local, n: a } = options;
     a && VMarks.setPreviousPosition_();
-    VMarks._scroll(scroll);
+    VMarks.scroll_(scroll);
     local || VEvent.focusAndListen_();
     if (a) {
       return VHUD.tip_(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);

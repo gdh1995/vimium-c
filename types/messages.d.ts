@@ -209,7 +209,7 @@ interface CmdOptions {
     count?: number;
     leave?: boolean,
     query?: string;
-    returnToViewport?: boolean;
+    return_?: boolean;
     findCSS?: FindCSS | null;
   };
   [kFgCmd.goToMarks]: {

@@ -103,7 +103,9 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   for (let storage = localStorage, all = bgSettings_.defaults_, i = 0, len = storage.length, j: string[]; i < len; i++) {
     const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
     if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f"
-        || key === "findModeRawQueryList" || key === "innerCSS" || key === "findCSS") {
+        || key === "findModeRawQueryList"
+        || key.lastIndexOf("CSS") === key.length - 3 // ignore innerCSS, findCSS, omniCSS
+    ) {
       continue;
     }
     const storedVal = storage.getItem(key) as string;

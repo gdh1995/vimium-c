@@ -187,7 +187,7 @@ var Settings = {
       this.set_("innerCSS", innerCSS);
       const cache = this.cache_;
       innerCSS = cache.innerCSS;
-      const ref = Backend.indexPorts_(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, f: cache.findCSS };
+      const ref = Backend.indexPorts_(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, f: cache.findCSS_ };
       for (const tabId in ref) {
         const frames = ref[+tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {
@@ -198,7 +198,7 @@ var Settings = {
           }
         }
       }
-      const request2: Req.bg<kBgReq.showHUD> & BgCSSReq = { N: kBgReq.showHUD, S: cache.omniCSS };
+      const request2: Req.bg<kBgReq.showHUD> & BgCSSReq = { N: kBgReq.showHUD, S: cache.omniCSS_ };
       for (const frame of Backend.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
         frame.postMessage(request2);
       }
@@ -209,9 +209,10 @@ var Settings = {
       findCSS = findCSS.substring(findCSS.indexOf('\n') + 1);
       const index = findCSS.indexOf('}') + 1, index2 = findCSS.indexOf('\n', index);
       // Note: The lines below are allowed as a special use case
-      (this.cache_ as SettingsNS.FullCache).innerCSS = css.substring(css.indexOf("\n") + 1);
-      (this.cache_ as SettingsNS.FullCache).findCSS = [findCSS.substring(0, index), findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
-      (this.cache_ as SettingsNS.FullCache).omniCSS = omniCSS;
+      type RawCache = Writeable<typeof this.cache_>;
+      (this.cache_ as RawCache).innerCSS = css.substring(css.indexOf("\n") + 1);
+      (this.cache_ as RawCache).findCSS_ = [findCSS.substring(0, index), findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
+      (this.cache_ as RawCache).omniCSS_ = omniCSS;
     },
     vomnibarPage (this: SettingsTmpl, url): void {
       if (url === this.defaults_.vomnibarPage) {

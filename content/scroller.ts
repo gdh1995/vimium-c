@@ -97,7 +97,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       return window.scrollX !== before;
     }
   },
-  _scroll (element: SafeElement | null, di: ScrollByY, amount: number): void | number | boolean {
+  scroll_ (element: SafeElement | null, di: ScrollByY, amount: number): void | number | boolean {
     if (!amount) { return; }
     if (VUtils.cache_.smoothScroll && VDom.allowRAF_) {
       return this._animate(element, di, amount);
@@ -133,7 +133,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     amount = !factor ? this._adjustAmount(di, amount, element)
       : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
       : amount * this._getDimension(element, di, factor === "max" ? 2 : 0);
-    this._scroll(element, di, amount);
+    this.scroll_(element, di, amount);
     this.top_ = null;
   },
   /** `amount`: default to be `0` */
@@ -143,7 +143,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     amount = this._adjustAmount(di, amount, element);
     fromMax && (amount = this._getDimension(element, di, 2) - amount - this._getDimension(element, di, 0));
     amount -= element ? element[this.Properties_[4 + di]] : di ? window.scrollY : window.scrollX;
-    this._scroll(element, di, amount);
+    this.scroll_(element, di, amount);
     this.top_ = null;
   },
   _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
@@ -232,16 +232,17 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
     this.current_ = el;
+    // todo: disable margin for fixed/sticky
     const { innerWidth: iw, innerHeight: ih} = window,
     { min, max } = Math, ihm = min(96, ih / 2), iwm = min(64, iw / 2),
     { bottom: b, top: t, right: r, left: l } = rect,
     hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,
     hasX = r < 0 ? max(l - iwm, r - iw + iwm) : iw < l ? min(r - iw + iwm, l - iwm) : 0;
     if (hasX) {
-      (hasY ? this._performScroll : this._scroll).call(this, this.findScrollable_(0, hasX), 0, hasX);
+      (hasY ? this._performScroll : this.scroll_).call(this, this.findScrollable_(0, hasX), 0, hasX);
     }
     if (hasY) {
-      this._scroll(this.findScrollable_(1, hasY), 1, hasY);
+      this.scroll_(this.findScrollable_(1, hasY), 1, hasY);
     }
     this.keyIsDown_ = 0; // it's safe to only clean keyIsDown here
   },

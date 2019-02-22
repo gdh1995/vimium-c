@@ -281,10 +281,6 @@ declare namespace SettingsNS {
     grabBackFocus: boolean;
     hideHud: boolean;
     innerCSS: string;
-    /** should not in Settings.defaults */
-    findCSS: NonNullable<CmdOptions[kFgCmd.findMode]["findCSS"]>;
-    /** should not in Settings.defaults */
-    omniCSS: string;
     keyMappings: string;
     localeEncoding: string;
     /** Note: if changed, /pages/newtab.js also needs a change. */
@@ -355,8 +351,8 @@ declare namespace SettingsNS {
 
   interface FullCache extends Partial<FullSettings>, SafeObject {
     innerCSS: FullSettings["innerCSS"];
-    findCSS: FullSettings["findCSS"];
-    omniCSS: FullSettings["omniCSS"];
+    findCSS_: FindCSS; // should not in Settings.defaults
+    omniCSS_: string; // should not in Settings.defaults
     newTabUrl_f: FullSettings["newTabUrl_f"];
     searchEngineMap: FullSettings["searchEngineMap"];
     searchEngineRules: FullSettings["searchEngineRules"];
