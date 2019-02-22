@@ -5432,6 +5432,7 @@ interface Node extends EventTarget {
     readonly parentElement: Element | null;
     readonly parentNode: Node | null;
     readonly previousSibling: Node | null;
+    readonly isConnected?: boolean;
     textContent: string | null;
     appendChild<T extends Node>(newChild: T): T;
     cloneNode(deep?: boolean): Node;

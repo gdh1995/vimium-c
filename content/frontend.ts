@@ -78,7 +78,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
         || !event.keyCode) { return; }
       if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
-      if (OnOther === BrowserType.Firefox && InsertMode.lock_ && !VDom.isInDOM_(InsertMode.lock_ as LockableElement)) {
+      if (OnOther === BrowserType.Firefox && InsertMode.lock_ && !VDom.isInDOM_(InsertMode.lock_ as LockableElement, document)) {
         InsertMode.lock_ = null;
       }
       let keyChar: string, key = event.keyCode, action: HandlerResult;

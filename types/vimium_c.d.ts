@@ -444,13 +444,14 @@ declare const enum BrowserVer {
   // the 2 below just mean they're enabled even if LEAGCY
   MinIFrameReferrerpolicy = 51,
   MinEnsured$KeyboardEvent$$Key = 51,
-  // the 3 below are correct even if EXPERIMENTAL or LEAGCY
+  // the 4 below are correct even if EXPERIMENTAL or LEAGCY
   MinPassiveEventListener = 51,
   // before C51, if an iframe has no scrollable boxes, its parent frame scrolls and gets events
   // since C51, its parent still scrolls but gets no wheel events
   MinNotPassMouseWheelToParentFrameEvenIfSelfNotScrolled = 51,
   MinNoCustomMessageOnBeforeUnload = 51,
   MinShadowDOMV1HasMode = 51,
+  Min$Node$$isConnected = 51,
   // Chrome also began to put contain attr in use on 51 if EXPERIMENTAL
   // but obviously there's some bugs about this feature
   CSS$Contain$BreaksHelpDialogSize = 51,

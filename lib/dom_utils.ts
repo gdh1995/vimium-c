@@ -44,7 +44,7 @@ var VDom = {
       return null;
     }
   },
-  // refer to BrowserVer.MinParentNodeInNodePrototype
+  /** refer to {@link BrowserVer.MinParentNodeInNodePrototype } */
   Getter_ <Ty extends Node, Key extends keyof Ty> (this: void
       , Cls: { prototype: Ty, new(): Ty; }, instance: Ty, property: Key & string
       ): NonNullable<Ty[Key]> | null {
@@ -340,13 +340,15 @@ var VDom = {
     (element: Element): VisibilityType;
     (element: null, rect: ClientRect): VisibilityType;
   },
-  // todo: fix a case the element is moved to another frame
-  // todo: use .Node::isConnected
-  isInDOM_ (element: Element, root?: HTMLBodyElement | HTMLFrameSetElement): boolean {
+  isInDOM_ (element: Element, root?: HTMLBodyElement | HTMLFrameSetElement | Document): boolean {
+    if (!root) {
+      const isConnected = element.isConnected; // Min$Node$$isConnected
+      if (isConnected === !!isConnected) { return isConnected; } // is boolean : exists and is not overridden
+    }
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;
     root || doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
-    if (!root && (f = NP.getRootNode)) {
+    if (doc.nodeType === 9 && (f = NP.getRootNode)) {
       return f.call(element, {composed: true}) === doc;
     }
     if (NP.contains.call(doc, element)) { return true; }
