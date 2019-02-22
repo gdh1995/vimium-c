@@ -73,6 +73,7 @@ select.right {
     linear-gradient(#ededed, #ededed 38%, #dedede);
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
+  vertical-align: top;
   width: 19px;
 }
 select.right:hover {

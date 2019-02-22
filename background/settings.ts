@@ -131,10 +131,11 @@ var Settings = {
       let findCSS = css.substring(findOffset + /* '/*#find*\/\n' */ 10);
       css = css.substring(0, findOffset - /* `\n` */ 1);
       if (hasAll) {
-        const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2);
-        css = css.substring(0, ind1 + 1) + css.substring(ind2);
         // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCSSMeansNothing
         // in case that ":host" is set [style="all:unset"]
+        const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2),
+        ind3 = browserVer >= BrowserVer.MinEnsuredSafeInnerCSS ? css.indexOf(";", ind2) : css.length;
+        css = css.substring(0, ind1 + 1) + css.substring(ind2, ind3 + 1) + css.substring(css.indexOf("\n", ind3) + 1 || css.length);
       } else {
         css = css.replace(<RegExpOne> /all:\s?initial;?\n?/, "");
       }

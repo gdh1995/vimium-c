@@ -30,14 +30,14 @@ var VFind = {
     a.css_ = options.findCSS || a.css_;
     if (!VDom.isHTML_()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
-    ui = VDom.UI, first = !ui.box_;
+    UI = VDom.UI, first = !UI.box_;
     a.isActive_ || query === a.query_ && options.leave || VMarks.setPreviousPosition_();
-    VDom.docSelectable_ = ui.getDocSelectable_();
-    ui.ensureBorder_();
+    VDom.docSelectable_ = UI.getDocSelectable_();
+    UI.ensureBorder_();
     if (options.leave) {
       return a.findAndFocus_(query || a.query_, options);
     }
-    a.isActive_ && ui.adjust_();
+    a.isActive_ && UI.adjust_();
     if (!a.isActive_) {
       a.getCurrentRange_();
       if (options.returnToViewport) {
@@ -58,12 +58,12 @@ var VFind = {
     el.style.width = "0px";
     if (VDom.wdZoom_ !== 1) { el.style.zoom = "" + 1 / VDom.wdZoom_; }
     el.onload = function(this: HTMLIFrameElement): void { return VFind.onLoad_(1); };
-    VUtils.push_(ui.SuppressMost_, a);
+    VUtils.push_(UI.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
-    ui.toggleSelectStyle_(1);
-    ui.add_(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box_);
-    first && ui.adjust_();
+    UI.toggleSelectStyle_(1);
+    UI.add_(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box_);
+    first && UI.adjust_();
     a.isActive_ = true;
   },
   onLoad_ (later?: 1): void {

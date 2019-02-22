@@ -76,15 +76,15 @@ VDom.UI = {
     return this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
   } as DomUI["addElementList_"],
   adjust_ (event): void {
-    const ui = VDom.UI, el = document.webkitFullscreenElement, box = ui.box_ as HTMLDivElement,
-    el2 = el && !(ui.UI as Node).contains(el) ? el : document.documentElement as HTMLElement;
+    const UI = VDom.UI, el = document.webkitFullscreenElement, box = UI.box_ as HTMLDivElement,
+    el2 = el && !(UI.UI as Node).contains(el) ? el : document.documentElement as HTMLElement;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
     el2 !== box.parentNode && box.appendChild.call(el2, box);
-    const sin = ui.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
+    const sin = UI.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
     s && (s.disabled = false);
-    (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust_, true);
+    (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", UI.adjust_, true);
   },
   toggle_ (enabled): void {
     if (enabled) { return this.adjust_(); }

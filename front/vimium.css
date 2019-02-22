@@ -25,14 +25,17 @@
 	visibility: visible;
 	white-space: normal;
 	word-spacing: normal;
+	-webkit-writing-mode: horizontal-tb;
 	all: initial;
 	color: #000;
 	contain: layout style;
+	direction: ltr;
 	display: block;
 	font: 12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
 	pointer-events: none;
 	position: fixed;
 	text-align: left;
+	unicode-bidi: normal;
 	/* use JS code to switch to "-webkit-user-select: none;" if needed */
 	user-select: none;
 	z-index: 2147483647;

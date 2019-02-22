@@ -3,9 +3,10 @@ opacity:1!important;outline:none!important;padding:0!important;position:static!i
 transform:none!important;width:0!important;display:contents}:host:before,:host:after{display:none!important}
 .R{background:none;border:none;box-sizing:content-box;cursor:auto;float:none;font-size-adjust:none;
 letter-spacing:normal;line-height-step:0;margin:0;opacity:1;outline:none;padding:0;text-align-last:auto;text-indent:0;
-text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal;all:initial;
-color:#000;contain:layout style;display:block;font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
-pointer-events:none;position:fixed;text-align:left;user-select:none;z-index:2147483647}
+text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal;
+-webkit-writing-mode:horizontal-tb;all:initial;display:block;text-align:left;unicode-bidi:normal;
+color:#000;contain:layout style;direction:ltr;font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
+pointer-events:none;position:fixed;user-select:none;z-index:2147483647}
 .HM{font-weight:bold;position:absolute;white-space:nowrap;}
 .LH{background:linear-gradient(#fff785,#ffc542);border:0.5px solid #e3be23;border-radius:3px;
 box-shadow:0 3px 7px 0 rgba(0,0,0,0.3);box-sizing:border-box;overflow:hidden;padding:1px 3px 0;position:absolute}
