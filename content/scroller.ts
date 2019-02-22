@@ -228,24 +228,32 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     return null;
   },
   /** @NEED_SAFE_ELEMENTS */
-  scrollIntoView_unsafe_ (el: SafeElement): void {
-    const rect = el.getClientRects()[0] as ClientRect | undefined;
+  scrollIntoView_unsafe_: function (this: {}, el: SafeElement | Element | null): void {
+    const rect = (el as SafeElement).getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
-    this.current_ = el;
-    // todo: disable margin for fixed/sticky
-    const { innerWidth: iw, innerHeight: ih} = window,
+    let a = this as typeof VScroller, { innerWidth: iw, innerHeight: ih} = window,
     { min, max } = Math, ihm = min(96, ih / 2), iwm = min(64, iw / 2),
     { bottom: b, top: t, right: r, left: l } = rect,
     hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,
     hasX = r < 0 ? max(l - iwm, r - iw + iwm) : iw < l ? min(r - iw + iwm, l - iwm) : 0;
-    if (hasX) {
-      (hasY ? this._performScroll : this.scroll_).call(this, this.findScrollable_(0, hasX), 0, hasX);
+    a.current_ = el as SafeElement;
+    if (hasX || hasY) {
+      for (; el; el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
+        const pos = getComputedStyle(el).position;
+        if (pos === "fixed" || pos === "sticky") {
+          hasX = hasY = 0;
+          break;
+        }
+      }
+      if (hasX) {
+        (hasY ? a._performScroll : a.scroll_).call(a, a.findScrollable_(0, hasX), 0, hasX);
+      }
+      if (hasY) {
+        a.scroll_(a.findScrollable_(1, hasY), 1, hasY);
+      }
     }
-    if (hasY) {
-      this.scroll_(this.findScrollable_(1, hasY), 1, hasY);
-    }
-    this.keyIsDown_ = 0; // it's safe to only clean keyIsDown here
-  },
+    a.keyIsDown_ = 0; // it's safe to only clean keyIsDown here
+  } as (el: SafeElement) => void,
   scrolled_: 0,
   /** @NEED_SAFE_ELEMENTS */
   shouldScroll_unsafe_ (element: SafeElement, di: ScrollByY, amount?: number): -1 | 0 | 1 {
