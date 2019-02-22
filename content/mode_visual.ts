@@ -44,7 +44,7 @@ var VVisual = {
   selection_: null as never as Selection,
   /** @safe_di */
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
-    const a = VVisual, F = VFind;
+    const a = VVisual;
     a.init_ && a.init_(options.w as string);
     VUtils.remove_(a);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
@@ -54,7 +54,6 @@ var VVisual = {
     sel: Selection = a.selection_ = theSelected[0],
     type: SelType = a.selType_(), mode: CmdOptions[kFgCmd.visualMode]["m"] = options.m;
     a.scope_ = theSelected[1];
-    F.css_ = options.f || F.css_;
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
     if (mode !== VisualModeNS.Mode.Caret) {
       if (!VEvent.lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
@@ -181,7 +180,8 @@ var VVisual = {
       }
       if (command === 55) {
         clearTimeout(movement.hudTimer_);
-        return VFind.activate_(1, VUtils.safer_({ returnToViewport: true }));
+        VPort.post_({ H: kFgReq.cmd, c: "findFromVisual", n: 1, i: 0});
+        return;
       }
       return movement.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
         // command === 1 ? VisualModeNS.Mode.Visual : command === 2 : VisualModeNS.Mode.Line : VisualModeNS.Mode.Caret
@@ -272,17 +272,16 @@ var VVisual = {
     const _this = VVisual;
     if (!_this || i) { return; }
     _this.hudTimer_ = 0;
-    if (_this.hud_) { return VHUD.show_(_this.hud_); }
+    if (_this.hud_) { VHUD.show_(_this.hud_); }
   },
   find_ (count: number): void {
-    // todo: delay it to delay cOptions.findCSS
     if (!VFind.query_) {
       VPort.send_({ c: kFgReq.findQuery, a: {} }, function(query): void {
         if (query) {
           VFind.updateQuery_(query);
-          return VVisual.find_(count);
+          VVisual.find_(count);
         } else {
-          return VVisual.prompt_("No history queries", 1000);
+          VVisual.prompt_("No history queries", 1000);
         }
       });
       return;

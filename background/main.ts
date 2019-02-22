@@ -1379,13 +1379,10 @@ Are you sure you want to continue?`);
     },
     /* enterVisualMode: */ function (): void {
       const flags = cPort.s.f, str = typeof cOptions.mode === "string" ? (cOptions.mode as string).toLowerCase() : "";
-      let words = "", findCSS = null;
+      let words = "";
       if (~flags & Frames.Flags.hadVisualMode) {
         words = Settings.CONST_.WordsRe_;
-        if (~flags & Frames.Flags.hasFindCSS) {
-          findCSS = Settings.cache_.findCSS_;
-        }
-        cPort.s.f = Frames.Flags.hadVisualMode | Frames.Flags.hasFindCSS | flags;
+        cPort.s.f = Frames.Flags.hadVisualMode | flags;
       }
       cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
         S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
@@ -1393,7 +1390,6 @@ Are you sure you want to continue?`);
           m: (str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual
             ) as VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret,
           w: words,
-          f: findCSS,
         }
       });
     },

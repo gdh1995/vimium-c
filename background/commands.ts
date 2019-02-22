@@ -345,6 +345,7 @@ availableCommands_: {
   "LinkHints.unhoverLast": [ "Stop hovering at last location", 1, false, kFgCmd.unhoverLast ],
   enterFindMode: [ "Enter find mode (use last)", 1, true, kBgCmd.performFind, {active: true} ],
   performFind: [ "Cycle forward to the next find match", 0, true, kBgCmd.performFind ],
+  findFromVisual: [ "", 0, true, kBgCmd.performFind, { active: true, returnToViewport: true } ],
   performBackwardsFind: [ "Cycle backward to the previous find match", 0, true, kBgCmd.performFind, { count: -1 } ],
   clearFindHistory: ["Clear find mode history", 1, true, kBgCmd.clearFindHistory ],
   switchFocus: [ "blur activeElement or refocus it", 1, false, kFgCmd.switchFocus ],
