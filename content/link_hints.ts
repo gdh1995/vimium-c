@@ -1038,7 +1038,7 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   if (err) {
     VPort.send_({
       c: kFgReq.execInChild,
-      a: { u: el.src, S: "1", c: kFgCmd.focusAndHint, n: count, a: options }
+      a: { u: el.src, c: kFgCmd.focusAndHint, n: count, a: options }
     }, function(res): void {
       if (!res) {
         el.contentWindow.focus();

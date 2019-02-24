@@ -284,7 +284,7 @@ interface FgReqWithRes {
   } | FgReqWithRes[kFgReq.parseUpperUrl];
   [kFgReq.execInChild]: {
     /** url */ u: string;
-  } & BaseExecute<object>;
+  } & Pick<BaseExecute<object>, Exclude<keyof BaseExecute<object>, "S">>;
 }
 
 interface FgReq {

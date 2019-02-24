@@ -1888,7 +1888,7 @@ Are you sure you want to continue?`);
       if (iport) {
         iport.postMessage({
           N: kBgReq.execute,
-          S: request.S ? ensureInnerCSS(iport) : null,
+          S: ensureInnerCSS(iport),
           c: request.c, n: request.n || 1, a: request.a
         });
         return true;
@@ -2031,7 +2031,7 @@ Are you sure you want to continue?`);
     /** gotoMainFrame: */ function(this: void, req: FgReq[kFgReq.gotoMainFrame], port: Port): void {
       const tabId = port.s.t, mainPort = indexFrame(tabId, 0);
       if (mainPort || NoFrameId || !chrome.webNavigation) {
-        gotoMainFrame(req, port, mainPort);
+        return gotoMainFrame(req, port, mainPort);
       }
       chrome.webNavigation.getAllFrames({ tabId }, function (frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
         let frameId = port.s.i, port2: Port | null | false | void;
