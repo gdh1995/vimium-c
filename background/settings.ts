@@ -3,10 +3,10 @@ import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 var Settings = {
   cache_: Object.create(null) as Readonly<SettingsNS.FullCache>,
   temp_: {
-    onInstall_: null,
+    onInstall_: null as Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null,
     cmdErrors_: 0,
-    shownHash_: null
-  } as Writeable<SettingsTmpl["temp_"]>,
+    shownHash_: null as ((this: void) => string) | null
+  },
   payload_: {
     __proto__: null as never,
     browser_: OnOther,
@@ -48,9 +48,9 @@ var Settings = {
       return ref.call(this, value, key);
     }
   },
-  postUpdate_: function<K extends keyof SettingsWithDefaults> (this: SettingsTmpl, key: K, value?: FullSettings[K]): void {
-    return ((this as typeof Settings).updateHooks_[key] as SettingsNS.UpdateHook<K>).call(this,
-      value !== undefined ? value : this.get_(key), key);
+  postUpdate_: function<K extends keyof SettingsWithDefaults> (this: {}, key: K, value?: FullSettings[K]): void {
+    return ((this as typeof Settings).updateHooks_[key] as SettingsNS.UpdateHook<K>).call(this as typeof Settings,
+      value !== undefined ? value : (this as typeof Settings).get_(key), key);
   } as {
     <K extends keyof SettingsNS.NullableUpdateHookMap>(key: K, value?: FullSettings[K] | null): void;
     <K extends keyof SettingsNS.SpecialUpdateHookMap>(key: K, value: null): void;
@@ -90,36 +90,39 @@ var Settings = {
         }
       }
     },
-    grabBackFocus (this: SettingsTmpl, value: FullSettings["grabBackFocus"]): void {
+    grabBackFocus (this: {}, value: FullSettings["grabBackFocus"]): void {
       (this as typeof Settings).payload_.grabBackFocus_ = value;
     },
-    newTabUrl (this: SettingsTmpl, url): void {
+    newTabUrl (this: {}, url): void {
       url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(url)
         ? chrome.runtime.getURL(url) : Utils.convertToUrl_(url);
-      return this.set_('newTabUrl_f', url);
+      return (this as typeof Settings).set_('newTabUrl_f', url);
     },
-    searchEngines (): void {
-      return this.set_("searchEngineMap", Object.create<Search.Engine>(null));
+    searchEngines (this: {}): void {
+      return (this as typeof Settings).set_("searchEngineMap", Object.create<Search.Engine>(null));
     },
-    searchEngineMap (value: FullSettings["searchEngineMap"]): void {
-      "searchKeywords" in this.cache_ && this.set_("searchKeywords", null);
+    searchEngineMap (this: {}, value: FullSettings["searchEngineMap"]): void {
+      const a = this as typeof Settings;
+      "searchKeywords" in a.cache_ && a.set_("searchKeywords", null);
       // Note: this requires `searchUrl` must be a valid URL
-      const rules = Utils.parseSearchEngines_("~:" + this.get_("searchUrl") + "\n" + this.get_("searchEngines"), value);
-      return this.set_("searchEngineRules", rules);
+      const rules = Utils.parseSearchEngines_("~:" + a.get_("searchUrl") + "\n" + a.get_("searchEngines"), value);
+      return a.set_("searchEngineRules", rules);
     },
     searchUrl (str): void {
+      const cache = (this as typeof Settings).cache_ as Writeable<typeof Settings.cache_>;
       if (str) {
-        Utils.parseSearchEngines_("~:" + str, this.cache_.searchEngineMap);
+        Utils.parseSearchEngines_("~:" + str, cache.searchEngineMap);
       } else {
-        (this.cache_ as any).searchEngineMap = { "~": { name: "~", url: this.get_("searchUrl").split(" ", 1)[0] } };
-        (this.cache_ as any).searchEngineRules = [];
-        if (str = this.get_("newTabUrl_f", true)) {
+        const initialMap: { "~": Search.Engine } = { "~": { name: "~", blank: "", url: (this as typeof Settings).get_("searchUrl").split(" ", 1)[0] } };
+        cache.searchEngineMap = initialMap as SafeObject & typeof initialMap;
+        cache.searchEngineRules = [];
+        if (str = (this as typeof Settings).get_("newTabUrl_f", true)) {
           return ((this as typeof Settings).updateHooks_.newTabUrl_f as (this: void, url_f: string) => void)(str);
         }
       }
       return (this as typeof Settings).postUpdate_("newTabUrl");
     },
-    baseCSS (this: SettingsTmpl, css): void {
+    baseCSS (this: {}, css): void {
       const cacheId = (this as typeof Settings).CONST_.StyleCacheId_,
       browserVer = ChromeVer,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
@@ -162,16 +165,16 @@ var Settings = {
           body.replace(<RegExpG> /\.[A-Z]/g, `${prefix} $&`);
       }
       css = cacheId + css.length + "\n" + css;
-      const css2 = (this as typeof Settings).parseCustomCSS_(this.get_("userDefinedCss"));
+      const css2 = (this as typeof Settings).parseCustomCSS_((this as typeof Settings).get_("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
       if (browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css = css.replace(<RegExpG>/\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$11px \/\*!DPI\*\/");
       }
       localStorage.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
       localStorage.setItem("omniCSS", css2.omni || "");
-      return this.set_("innerCSS", css);
+      return (this as typeof Settings).set_("innerCSS", css);
     },
-    userDefinedCss (this: SettingsTmpl, css2Str): void {
+    userDefinedCss (this: {}, css2Str): void {
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(0, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
       const css2 = (this as typeof Settings).parseCustomCSS_(css2Str);
@@ -184,8 +187,8 @@ var Settings = {
         localStorage.setItem("findCSS", find2 ? css + "\n" + find2 : css);
         localStorage.setItem("omniCSS", css2.omni || "");
       }
-      this.set_("innerCSS", innerCSS);
-      const cache = this.cache_;
+      (this as typeof Settings).set_("innerCSS", innerCSS);
+      const cache = (this as typeof Settings).cache_;
       innerCSS = cache.innerCSS;
       const ref = Backend.indexPorts_(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, f: cache.findCSS_ };
       for (const tabId in ref) {
@@ -203,19 +206,19 @@ var Settings = {
         frame.postMessage(request2);
       }
     },
-    innerCSS (this: SettingsTmpl, css): void {
-      let findCSS = localStorage.getItem("findCSS"), omniCSS = localStorage.getItem("omniCSS");
+    innerCSS (this: {}, css): void {
+      const storage = localStorage, cache = (this as typeof Settings).cache_ as Writeable<typeof Settings.cache_>;
+      let findCSS = storage.getItem("findCSS"), omniCSS = storage.getItem("omniCSS");
       if (!findCSS || omniCSS == null) { Settings.fetchFile_("baseCSS"); return; }
       findCSS = findCSS.substring(findCSS.indexOf('\n') + 1);
       const index = findCSS.indexOf('}') + 1, index2 = findCSS.indexOf('\n', index);
       // Note: The lines below are allowed as a special use case
-      type RawCache = Writeable<typeof this.cache_>;
-      (this.cache_ as RawCache).innerCSS = css.substring(css.indexOf("\n") + 1);
-      (this.cache_ as RawCache).findCSS_ = [findCSS.substring(0, index), findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
-      (this.cache_ as RawCache).omniCSS_ = omniCSS;
+      cache.innerCSS = css.substring(css.indexOf("\n") + 1);
+      cache.findCSS_ = [findCSS.substring(0, index), findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
+      cache.omniCSS_ = omniCSS;
     },
-    vomnibarPage (this: SettingsTmpl, url): void {
-      if (url === this.defaults_.vomnibarPage) {
+    vomnibarPage (this: {}, url): void {
+      if (url === (this as typeof Settings).defaults_.vomnibarPage) {
         url = (this as typeof Settings).CONST_.VomnibarPageInner_;
       } else if (url.startsWith("front/")) {
         url = chrome.runtime.getURL(url);
@@ -228,7 +231,7 @@ var Settings = {
           url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST_.VerCode_));
         }
       }
-      this.set_("vomnibarPage_f", url);
+      (this as typeof Settings).set_("vomnibarPage_f", url);
     }
   } as SettingsNS.DeclaredUpdateHookMap & SettingsNS.SpecialUpdateHookMap as SettingsNS.UpdateHookMap,
   fetchFile_ (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {

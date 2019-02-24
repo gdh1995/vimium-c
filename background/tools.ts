@@ -23,12 +23,12 @@ const VClipboard_ = {
     }
     return data;
   },
-  copy_: OnOther === BrowserType.Firefox && navigator.clipboard ? function(this: object, data: string): Promise<void> {
+  copy_: OnOther === BrowserType.Firefox && navigator.clipboard ? function(this: void, data: string): Promise<void> {
     type Clipboard = EnsureNonNull<Navigator["clipboard"]>;
-    return (navigator.clipboard as Clipboard).writeText((this as typeof VClipboard_).format_(data));
-  } : function (this: object, data: string): void {
-    data = (this as typeof VClipboard_).format_(data);
-    const textArea = (this as typeof VClipboard_).getTextArea_();
+    return (navigator.clipboard as Clipboard).writeText(VClipboard_.format_(data));
+  } : function (this: void, data: string): void {
+    data = VClipboard_.format_(data);
+    const textArea = VClipboard_.getTextArea_();
     textArea.value = data;
     (document.documentElement as HTMLHtmlElement).appendChild(textArea);
     textArea.select();
@@ -521,6 +521,7 @@ setTimeout(function() {
   }
 }, 120);
 
+Utils.copy_ = VClipboard_.copy_;
 (Backend.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
 
 chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {

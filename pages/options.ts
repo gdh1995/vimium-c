@@ -804,7 +804,7 @@ window.onunload = function(): void {
 function OnBgUnload(): void {
   BG_.removeEventListener("unload", OnBgUnload);
   setTimeout(function(): void {
-    BG_ = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };
+    BG_ = chrome.extension.getBackgroundPage() as Window | null as typeof BG_;
     if (!BG_) { // a user may call `close()` in the console panel
       window.onbeforeunload = null as any;
       window.close();

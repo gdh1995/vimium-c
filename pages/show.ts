@@ -1,7 +1,9 @@
 /// <reference path="../types/base/index.d.ts" />
 /// <reference path="../content/base.d.ts" />
-/// <reference path="../background/bg.d.ts" />
 /// <reference path="../lib/keyboard_utils.ts" />
+/// <reference path="../background/bg.d.ts" />
+/// <reference path="../background/utils.ts" />
+/// <reference path="../background/settings.ts" />
 interface ImportBody {
   (id: "shownImage"): HTMLImageElement
   (id: "shownText"): HTMLDivElement
@@ -12,6 +14,10 @@ interface Window {
   readonly VPort?: VPortTy;
   readonly VHUD?: VHUDTy;
   readonly Viewer: typeof Viewer;
+}
+interface BgWindow extends Window {
+  Utils: typeof Utils;
+  Settings: typeof Settings;
 }
 interface ViewerType {
   readonly visible: boolean;
@@ -38,7 +44,7 @@ if (typeof browser !== "undefined" && (browser && (browser as typeof chrome).run
 var $ = function<T extends HTMLElement>(selector: string): T {
   return document.querySelector(selector) as T;
 },
-BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };
+BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow;
 if (!(BG_ && BG_.Utils && BG_.Utils.convertToUrl_)) {
   BG_ = null as never;
 }

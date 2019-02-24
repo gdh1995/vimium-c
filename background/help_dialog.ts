@@ -1,16 +1,20 @@
 var HelpDialog = {
   inited_: false,
-  styles_: ChromeVer === BrowserVer.CSS$Contain$BreaksHelpDialogSize ? "contain: none;"
-    : "",
   templateEl_: null as HTMLTemplateElement | null,
   render_: (function(this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
-      if (Settings.CONST_.StyleCacheId_.split(',', 2)[1].indexOf("s") < 0) {
-        let template = Settings.cache_.helpDialog as string, styleEnd = template.indexOf("</style>");
-        template = template.substring(0, styleEnd).replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
-          ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv"
-          ) + template.substring(styleEnd);
-        Settings.set_("helpDialog", template);
+      const noShadow = Settings.CONST_.StyleCacheId_.split(',', 2)[1].indexOf("s") < 0,
+      noContain = ChromeVer === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
+      if (noShadow || noContain) {
+        let template = Settings.cache_.helpDialog as string, styleEnd = template.indexOf("</style>"),
+        left = template.substring(0, styleEnd), right = template.substring(styleEnd);
+        if (noContain) {
+          left = left.replace(<RegExpG>/contain:\s?[\w\s]+/g, "contain: none !important");
+        }
+        if (noShadow) {
+          left = left.replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&").replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv");
+        }
+        Settings.set_("helpDialog", left + right);
       }
       HelpDialog.inited_ = true;
     }
@@ -32,7 +36,6 @@ var HelpDialog = {
     const result = Object.setPrototypeOf({
       homePage: Settings.CONST_.HomePage_,
       version: Settings.CONST_.VerName_,
-      styles: HelpDialog.styles_,
       title: request.t || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
@@ -44,7 +47,7 @@ var HelpDialog = {
     });
     HelpDialog.templateEl_ = null;
     return html;
-  }),
+  }) as BaseHelpDialog["render_"],
   groupHtml_: (function(this: {}, group: string, commandToKeys: SafeDict<[string, CommandsNS.Item][]>
       , hideUnbound: boolean, showNames: boolean): string {
     const renderItem = (this as typeof HelpDialog).commandHtml_
@@ -197,7 +200,3 @@ var HelpDialog = {
     , "Vomnibar.activateUrl": 1, "Vomnibar.activateUrlInNewTab": 1
   } as SafeEnum
 };
-
-interface BaseHelpDialog {
-  render_: typeof HelpDialog.render_;
-}

@@ -1,9 +1,11 @@
 /// <reference path="../types/base/index.d.ts" />
 /// <reference path="../types/lib/index.d.ts" />
 /// <reference path="../background/bg.d.ts" />
+/// <reference path="../background/utils.ts" />
+/// <reference path="../background/settings.ts" />
 
 (function(): void {
-const BG = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl };
+const BG = chrome.extension.getBackgroundPage() as Window as Window & { Settings: typeof Settings };
 if (BG && !BG.Settings.get_("dialogMode")) {
   BG.Backend.focus_({
     u: BG.Settings.CONST_.OptionsPage_,

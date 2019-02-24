@@ -58,7 +58,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     opener?: boolean;
     window?: boolean;
   }
-  type ShowPageData = [string, SettingsTmpl["temp_"]["shownHash_"], number];
+  type ShowPageData = [string, typeof Settings.temp_.shownHash_, number];
 
   const enum RefreshTabStep {
     start = 0,

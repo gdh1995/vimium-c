@@ -1,10 +1,16 @@
 /// <reference path="../content/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../background/bg.exclusions.d.ts" />
+/// <reference path="../background/utils.ts" />
+/// <reference path="../background/settings.ts" />
 type AllowedOptions = SettingsNS.PersistentSettings;
 interface Checker<T extends keyof AllowedOptions> {
   init_? (): any;
   check_ (value: AllowedOptions[T]): AllowedOptions[T];
+}
+interface BgWindow extends Window {
+  Utils: typeof Utils;
+  Settings: typeof Settings;
 }
 
 declare var browser: unknown;
@@ -49,7 +55,7 @@ debounce_ = function<T> (this: void, func: (this: T) => void
 var $ = function<T extends HTMLElement>(selector: string): T {
   return document.querySelector(selector) as T;
 },
-BG_ = chrome.extension.getBackgroundPage() as Window as Window & { Settings: SettingsTmpl }, bgSettings_ = BG_.Settings;
+BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow, bgSettings_ = BG_.Settings;
 const bgOnOther = BG_.OnOther, bgBrowserVer = BG_.ChromeVer;
 
 abstract class Option_<T extends keyof AllowedOptions> {

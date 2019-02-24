@@ -1,4 +1,3 @@
-declare var CommandsData_: CommandsData;
 var Commands = {
   SetKeyRe_ (this: void, keyReSource: string): void {
     Utils.keyRe_ = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;
@@ -252,7 +251,7 @@ defaultKeyMappings_: [
   "`", "Marks.activate"
 ]
 },
-CommandsData_: CommandsData = CommandsData_ as never || {
+CommandsData_: CommandsDataTy = CommandsData_ as never || {
   keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
   keyMap_: null as never as KeyMap,
   cmdMap_: null as never as SafeDict<CommandsNS.Options | null>,

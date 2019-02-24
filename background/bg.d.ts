@@ -318,11 +318,10 @@ declare namespace SettingsNS {
   interface FullSettings extends PersistentSettings, NonPersistentSettings, FrontUpdateAllowedSettings {}
 
   interface UpdateHook<K extends keyof FullSettings> {
-    // because of unknown reasons, the `this` here can not be SettingsTmpl
     (this: {}, value: FullSettings[K], key: K): void;
   }
   interface NullableUpdateHook<K extends keyof FullSettings> {
-    (this: SettingsTmpl, value: FullSettings[K] | null, key: K): void;
+    (this: {}, value: FullSettings[K] | null, key: K): void;
   }
   interface UpdateHookWoThis<K extends keyof FullSettings> {
     (this: void, value: FullSettings[K]): void;
@@ -409,7 +408,7 @@ declare namespace BackendHandlersNS {
   }
 }
 
-interface CommandsData {
+interface CommandsDataTy {
   keyToCommandRegistry_: SafeDict<CommandsNS.Item>;
   keyMap_: KeyMap;
   cmdMap_: SafeDict<CommandsNS.Options | null>;
@@ -417,7 +416,12 @@ interface CommandsData {
   availableCommands_: ReadonlySafeDict<CommandsNS.Description>;
 }
 
+interface VClipboardTy {
+  copy_ (data: string): Promise<void> | void;
+}
+
 interface BaseHelpDialog {
+  render_ (this: void, request: FgReq[kFgReq.initHelp]): string;
 }
 
 interface Window {
@@ -433,48 +437,14 @@ interface Window {
   readonly ChromeVer: BrowserVer;
 
   readonly Backend: BackendHandlersNS.BackendHandlers;
-  readonly Utils: {
-    readonly spacesRe_: RegExpG;
-    readonly convertToUrl_: Urls.Converter;
-    lastUrlType_: Urls.Type;
-    readonly createSearch_: Search.Executor;
-    readonly evalVimiumUrl_: Urls.Executor;
-    parseSearchEngines_ (this: any, str: string, map: Search.EngineMap): Search.Rule[];
-    require_<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
-    GC_ (): void;
-  };
 }
-
-  interface SettingsTmpl {
-    readonly cache_: Readonly<SettingsNS.FullCache>;
-    readonly temp_: {
-      readonly onInstall_: Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null;
-      readonly cmdErrors_: number;
-      readonly shownHash_: ((this: void) => string) | null;
-    };
-    readonly newTabs_: SafeDict<Urls.NewTabType>,
-    broadcast_<K extends keyof BgReq> (request: Req.bg<K>): void;
-    parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS;
-    readonly payload_: SettingsNS.FrontendSettingCache & SafeObject;
-    get_<K extends keyof SettingsNS.SettingsWithDefaults> (key: K, forCache?: boolean
-      ): SettingsNS.SettingsWithDefaults[K];
-    set_<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void;
-    fetchFile_ (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null;
-    readonly defaults_: SettingsNS.SettingsWithDefaults & SafeObject;
-    readonly CONST_: {
-      readonly GlobalCommands_: string[];
-      readonly OptionsPage_: string;
-      readonly VerCode_: string;
-      readonly VerName_: string;
-      readonly VimiumNewTab_: string;
-      readonly Platform_: string;
-    };
-  }
 
 declare const enum Consts {
   MaxCharsInQuery = 200, LowerBoundOfMaxChars = 50, UpperBoundOfMaxChars = 320,
   MaxLengthOfSearchKey = 50, MinInvalidLengthOfSearchKey = MaxLengthOfSearchKey + 1,
 }
+
+declare var Backend: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy;
 
 declare function setTimeout <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
   timeout: number, a1: T1, a2: T2, a3: T3): number;
