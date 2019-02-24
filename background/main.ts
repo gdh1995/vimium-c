@@ -1432,7 +1432,7 @@ Are you sure you want to continue?`);
       const useInner: boolean = forceInner || page === inner || port.s.t < 0,
       options: CmdOptions[kFgCmd.vomnibar] & SafeObject = Utils.extendIf_(Object.setPrototypeOf<CmdOptions[kFgCmd.vomnibar]>({
         v: useInner ? inner : page,
-        w: useInner ? null : inner,
+        i: useInner ? null : inner,
         t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         s: useInner ? "" : Settings.CONST_.VomnibarScript_f_,
         k: getSecret(),

@@ -61,7 +61,7 @@ var VOmni = {
     a.options_ = null;
     VDom.dbZoom_ = 1;
     const iw = VDom.prepareCrop_(), ih = a.screenHeight_ = innerHeight;
-    options.width = iw, options.height = ih;
+    options.w = iw, options.h = ih;
     VDom.getZoom_();
     // note: here require: that Inactive must be NotInited + 1
     a.status_ > VomnibarNS.Status.Inactive || VUtils.push_(VDom.UI.SuppressMost_, a);
@@ -84,11 +84,11 @@ var VOmni = {
       url = options.url = url || options.topUrl as string;
       upper = count > 1 ? 1 - count : count < 0 ? -count : 0;
     }
-    options.k = 0; options.v = options.w = "";
+    options.k = 0; options.v = options.i = "";
     options.N = "activate";
     options.topUrl = "";
     if (!url || url.indexOf("://") === -1) {
-      options.search = "";
+      options.p = "";
       return a.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
     if (VimiumInjector === null && (window as Window & {VData?: Element | VDataTy}).VData && VData.full) {
@@ -102,7 +102,7 @@ var VOmni = {
         p: upper, u: url
       }
     }, function(search): void {
-      options.search = search;
+      options.p = search;
       if (search != null) { options.url = ""; }
       VOmni.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     });
@@ -123,7 +123,7 @@ var VOmni = {
     active || window.focus();
     this.box_.style.cssText = "display: none;";
   },
-  init_ ({k: secret, v: page, t: type, w: inner}: VomnibarNS.FullOptions, CSS: BgCSSReq["S"]): void {
+  init_ ({k: secret, v: page, t: type, i: inner}: VomnibarNS.FullOptions, CSS: BgCSSReq["S"]): void {
     const el = VDom.createElement_("iframe") as typeof VOmni.box_, UI = VDom.UI;
     el.className = "R UI Omnibar";
     if (type !== VomnibarNS.PageType.web) {}
@@ -140,7 +140,7 @@ var VOmni = {
       el.removeAttribute("referrerPolicy");
       el.removeAttribute("sandbox");
       el.src = page = inner as string; inner = null;
-      let opts = VOmni.options_; opts && (opts.ptype = type);
+      let opts = VOmni.options_; opts && (opts.t = type);
     }
     el.style.visibility = "hidden";
     let loaded = false;

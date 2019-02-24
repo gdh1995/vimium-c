@@ -173,11 +173,10 @@ declare namespace VomnibarNS {
     ToShow = 2,
     Showing = 3,
   }
-  interface BaseFgOptions {
-    width: number;
-    height: number;
-    search: "" | FgRes[kFgReq.parseSearchUrl];
-    ptype: PageType;
+  interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "t"> {
+    w: number;
+    h: number;
+    p: "" | FgRes[kFgReq.parseSearchUrl];
   }
   interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
     url?: string | null;

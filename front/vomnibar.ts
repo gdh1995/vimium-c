@@ -47,13 +47,13 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.mode_.t = this.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     this.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     this.baseHttps_ = null;
-    let { url, keyword, search } = options, start: number | undefined;
+    let { url, keyword, p: search } = options, start: number | undefined;
     let scale = window.devicePixelRatio;
     this.zoomLevel_ = scale < 0.98 ? 1 / scale : 1;
-    this.setWidth_(options.width * PixelData.WindowSizeX + PixelData.MarginH);
-    const max = Math.max(3, Math.min(0 | ((options.height - PixelData.ListSpaceDelta) / PixelData.Item), this.maxResults_));
+    this.setWidth_(options.w * PixelData.WindowSizeX + PixelData.MarginH);
+    const max = Math.max(3, Math.min(0 | ((options.h - PixelData.ListSpaceDelta) / PixelData.Item), this.maxResults_));
     this.maxHeight_ = Math.ceil((this.mode_.r = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
-    this.init_ && this.setPType_(options.ptype);
+    this.init_ && this.setPType_(options.t);
     if (this.mode_.f) {
       scale = scale <= 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
       /**

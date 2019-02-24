@@ -181,7 +181,7 @@ interface CmdOptions {
   };
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;
-    /* vomnibar2 */ w: string | null;
+    /* vomnibar2 */ i: string | null;
     /** ptype */ t: VomnibarNS.PageType;
     /** script */ s: string;
     /** secret */ k: number;
