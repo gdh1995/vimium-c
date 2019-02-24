@@ -30,6 +30,7 @@ var HelpDialog = {
       (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
     }
     const result = Object.setPrototypeOf({
+      homePage: Settings.CONST_.HomePage_,
       version: Settings.CONST_.VerName_,
       styles: HelpDialog.styles_,
       title: request.t || "Help",
@@ -46,11 +47,10 @@ var HelpDialog = {
   }),
   groupHtml_: (function(this: {}, group: string, commandToKeys: SafeDict<[string, CommandsNS.Item][]>
       , hideUnbound: boolean, showNames: boolean): string {
-    const _ref = (this as typeof HelpDialog).commandGroups_[group], renderItem = (this as typeof HelpDialog).commandHtml_
+    const renderItem = (this as typeof HelpDialog).commandHtml_
       , availableCommands = CommandsData_.availableCommands_ as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
     let html = "";
-    for (let _i = 0, _len = _ref.length; _i < _len; _i++) {
-      const command = _ref[_i];
+    for (const command of (this as typeof HelpDialog).commandGroups_[group] || []) {
       let keys = commandToKeys[command];
       if (hideUnbound && !keys) { continue; }
       const isAdvanced = command in (this as typeof HelpDialog).advancedCommands_

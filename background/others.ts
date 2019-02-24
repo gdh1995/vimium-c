@@ -522,8 +522,8 @@ setTimeout(function() {
     reason = notificationId || reason;
     chrome.notifications.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }
-      return Backend.focus_({
-        u: "https://github.com/gdh1995/vimium-c#release-notes"
+      Backend.focus_({
+        u: Utils.convertToUrl_('vimium://changelog')
       });
     });
   });

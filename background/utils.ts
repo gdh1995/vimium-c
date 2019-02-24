@@ -299,17 +299,20 @@ var Utils = {
   safeParseURL_(url: string): URL | null { try { return new URL(url); } catch (e) {} return null; },
   commonFileExtRe_: <RegExpOne>/\.[0-9A-Za-z]+$/,
   formatVimiumUrl_ (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
-    let ind: number, query = "", tempStr: string | undefined, path = fullpath.trim();
+    let ind: number, subPath = "", query = "", tempStr: string | undefined, path = fullpath.trim();
     if (!path) { return partly ? "" : location.origin + "/pages/"; }
-    ind = path.indexOf(" ");
-    if (ind > 0) {
-      query = path.substring(ind + 1).trim();
-      path = path.substring(0, ind);
+    if (ind = path.indexOf(" ") + 1) {
+      query = path.substring(ind).trim();
+      path = path.substring(0, ind - 1);
     }
-    if (!(this.commonFileExtRe_.test(path) || this._queryRe.test(path))) {
+    if (ind = path.indexOf("/") + 1 || path.search(this._queryRe) + 1) {
+      subPath = path.substring(ind - 1).trim();
+      path = path.substring(0, ind - 1);
+    }
+    if (!this.commonFileExtRe_.test(path)) {
       path = path.toLowerCase();
-      if (tempStr = Settings.CONST_.RedirectedUrls_[path]) {
-        path = tempStr;
+      if ((tempStr = Settings.CONST_.RedirectedUrls_[path]) != null) {
+        tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#" ? Settings.CONST_.HomePage_ + tempStr : tempStr;
       } else if (path === "newtab") {
         return Settings.cache_.newTabUrl_f;
       } else if (path[0] === "/" || Settings.CONST_.KnownPages_.indexOf(path) >= 0) {
@@ -323,6 +326,7 @@ var Utils = {
     if (!partly && (!tempStr || tempStr.indexOf("://") < 0)) {
       path = location.origin + (path[0] === "/" ? "" : "/pages/") + path;
     }
+    subPath && (path += subPath);
     return path + (query && (path.indexOf("#") > 0 ? " " : "#!") + query);
   },
   _nestedEvalCounter: 0,

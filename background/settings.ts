@@ -347,17 +347,20 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: "pages/options.html#!newTabUrl",
     OptionsPage_: "pages/options.html", Platform_: "browser", PolyFill_: "lib/polyfill.js",
+    HomePage_: "https://github.com/gdh1995/vimium-c",
     RedirectedUrls_: {
-      about: "https://github.com/gdh1995/vimium-c",
-      help: "https://github.com/gdh1995/vimium-c/wiki",
-      license: "https://raw.githubusercontent.com/gdh1995/vimium-c/master/LICENSE.txt",
-      permissions: "https://github.com/gdh1995/vimium-c/blob/master/PRIVACY-POLICY.md#permissions-required",
-      policy: "https://github.com/gdh1995/vimium-c/blob/master/PRIVACY-POLICY.md",
+      about: "",
+      changelog: "#release-notes",
+      help: "/wiki",
+      home: "",
+      license: "/blob/master/LICENSE.txt",
+      permissions: "/blob/master/PRIVACY-POLICY.md#permissions-required",
+      policy: "/blob/master/PRIVACY-POLICY.md",
       popup: "options.html",
-      privacy: "https://github.com/gdh1995/vimium-c/blob/master/PRIVACY-POLICY.md#privacy-policy",
-      readme: "https://github.com/gdh1995/vimium-c#readme",
+      privacy: "/blob/master/PRIVACY-POLICY.md#privacy-policy",
+      readme: "#readme",
       settings: "options.html",
-      wiki: "https://github.com/gdh1995/vimium-c/wiki",
+      wiki: "/wiki",
       __proto__: null as never
     } as SafeDict<string>,
     GlobalCommands_: null as never as string[],
@@ -408,6 +411,7 @@ Settings.CONST_.WordsRe_ = "";
   obj.ShowPage_ = func(obj.ShowPage_);
   obj.VomnibarPageInner_ = func(obj.VomnibarPageInner_);
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
+  obj.HomePage_ = ref.homepage_url || obj.HomePage_;
   ref2.push(obj.InjectEnd_);
   if ("".startsWith.name !== "startsWith" && ChromeVer < BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1) {
     ref2.unshift(obj.PolyFill_);

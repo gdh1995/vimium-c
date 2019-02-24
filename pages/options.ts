@@ -616,6 +616,15 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     element.setAttribute("aria-hidden", "false");
   }
 
+  _ref = $$('[data-href]');
+  for (let _i = _ref.length; 0 <= --_i; ) {
+    element = _ref[_i] as HTMLInputElement;
+    let str = element.getAttribute("data-href") as string;
+    str = BG_.Utils.convertToUrl_(str, null, Urls.WorkType.ConvertKnown);
+    element.removeAttribute("data-href");
+    element.setAttribute("href", str);
+  }
+
   function onBeforeUnload(): string {
     return "You have unsaved changes to options.";
   }
