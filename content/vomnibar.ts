@@ -1,7 +1,6 @@
 declare namespace VomnibarNS {
   interface ContentOptions extends GlobalOptions {
     trailing_slash: boolean;
-    url: boolean | string | null;
   }
   interface Port {
     postMessage<K extends keyof CReq> (this: Port, msg: CReq[K]): void | 1;
@@ -45,8 +44,19 @@ var VOmni = {
     }
     a._timer = 0;
     if (!VDom.isHTML_()) { return; }
-    if ((options.url === true || count !== 1) && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
+    let url = options.url, isTop = window.top === window;
+    if (isTop || !options.topUrl || typeof options.topUrl !== "string") {
       options.topUrl = location.href;
+    }
+    if (url === true || count !== 1 && url == null) {
+      // update options.url to string, so that this block can only run once per command
+      if (options.url = url = url ? VDom.UI.getSelectionText_() : "") {
+        options.newtab = true;
+      }
+      if (!isTop) {
+        VPort.post_({ H: kFgReq.gotoMainFrame, c: kFgCmd.vomnibar, n: count, a: options });
+        return;
+      }
     }
     a.options_ = null;
     VDom.dbZoom_ = 1;
@@ -69,23 +79,13 @@ var VOmni = {
       a.focus_();
       a.status_ = VomnibarNS.Status.ToShow;
     }
-    options.k = 0; options.v = options.w = options.S = "";
-    options.N = "activate";
-    let url = options.url, upper = 0;
-    if (url === true) {
-      if (url = VDom.UI.getSelectionText_()) {
-        options.newtab = true;
-      } else {
-        url = options.topUrl as string;
-      }
+    let upper = 0;
+    if (url != null) {
+      url = options.url = url || options.topUrl as string;
       upper = count > 1 ? 1 - count : count < 0 ? -count : 0;
-      options.url = url;
-    } else if (url != null) {
-      url = options.url = typeof url === "string" ? url : null;
-    } else if (count !== 1) {
-      url = options.url = options.topUrl;
-      upper = count > 1 ? 1 - count : -count;
     }
+    options.k = 0; options.v = options.w = "";
+    options.N = "activate";
     options.topUrl = "";
     if (!url || url.indexOf("://") === -1) {
       options.search = "";

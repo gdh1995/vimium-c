@@ -173,13 +173,6 @@ declare namespace VomnibarNS {
     ToShow = 2,
     Showing = 3,
   }
-  interface GlobalOptions {
-    mode: string;
-    newtab: boolean;
-    /** @deprecated */
-    force: boolean;
-    keyword: string;
-  }
   interface BaseFgOptions {
     width: number;
     height: number;

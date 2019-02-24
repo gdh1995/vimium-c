@@ -256,6 +256,14 @@ declare namespace VomnibarNS {
     inner = 0, ext = 1, web = 2,
     Default = inner,
   }
+  interface GlobalOptions {
+    mode: string;
+    newtab: boolean;
+    /** @deprecated */
+    force: boolean;
+    keyword: string;
+    url?: true | string | null;
+  }
 }
 
 interface VimiumInjector {

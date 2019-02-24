@@ -1412,11 +1412,15 @@ Are you sure you want to continue?`);
       }});
     },
     /* showVomnibar: */ function (this: void, forceInner?: boolean): void {
-      let port = cPort as Port | null;
+      let port = cPort as Port | null, optUrl: VomnibarNS.GlobalOptions["url"] = cOptions.url;
+      if (optUrl != null && optUrl !== true && typeof optUrl !== "string") {
+        optUrl = null;
+        delete (cOptions as {} as VomnibarNS.GlobalOptions).url;
+      }
       if (!port) {
         port = cPort = indexFrame(TabRecency_.last_, 0) as Port;
         if (!port) { return; }
-      } else if (port.s.i !== 0 && port.s.t >= 0) {
+      } else if (port.s.i !== 0 && port.s.t >= 0 && /* null | "" */ !optUrl) {
         port = indexFrame(port.s.t, 0) || port;
       }
       const page = Settings.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol),
