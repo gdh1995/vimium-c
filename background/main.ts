@@ -317,7 +317,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
 Are you sure you want to continue?`);
     }
     function requireURL <K extends keyof FgReq> (request: Req.fg<K> & BgReq[kBgReq.url], ignoreHash?: true): void {
-      if (Exclusions == null || Exclusions.rules.length <= 0
+      if (Exclusions == null || Exclusions.rules_.length <= 0
           || !(ignoreHash || Settings.get_("exclusionListenHash", true))) {
         request.N = kBgReq.url;
         cPort.postMessage(request as Req.bg<kBgReq.url>);
@@ -2338,7 +2338,7 @@ Are you sure you want to continue?`);
       const ref = framesForTab[tabId || (tabId = TabRecency_.last_)];
       if (!ref) { return; }
       act = act.toLowerCase() as Frames.ForcedStatusText;
-      const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].s.s,
+      const always_enabled = Exclusions == null || Exclusions.rules_.length <= 0, oldStatus = ref[0].s.s,
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
         : act === "toggle" ? oldStatus === Frames.Status.disabled ? Frames.Status.enabled : Frames.Status.disabled
         : null,

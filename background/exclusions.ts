@@ -1,3 +1,23 @@
+declare namespace ExclusionsNS {
+  type Tester = RegExpOne | string;
+  type TesterDict = SafeDict<ExclusionsNS.Tester>;
+  type Rules = Array<Tester | string>;
+
+  interface ExclusionsCls {
+    testers_: SafeDict<Tester> | null;
+    getRe_ (pattern: string): Tester;
+    _listening: boolean;
+    _listeningHash: boolean;
+    onlyFirstMatch_: boolean;
+    rules_: Rules;
+    setRules_ (newRules: StoredRule[]): void;
+    GetPattern_ (this: void, url: string): string | null;
+    getOnURLChange_ (): null | Listener;
+    format_ (rules: StoredRule[]): Rules;
+    getTemp_ (this: ExclusionsCls, url: string, rules: StoredRule[]): string | null;
+    RefreshStatus_ (this: void, old_is_empty: boolean): void;
+  }
+}
 import ExcCls = ExclusionsNS.ExclusionsCls;
 declare var Exclusions: ExcCls;
 
@@ -5,25 +25,25 @@ if (Settings.get_("vimSync")
     || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend.onInit_)
         && !Settings.updateHooks_.exclusionRules)) {
 var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
-  testers: null as SafeDict<ExclusionsNS.Tester> | null,
-  getRe (this: ExcCls, pattern: string): ExclusionsNS.Tester {
-    let func: ExclusionsNS.Tester | undefined = (this.testers as ExclusionsNS.TesterDict)[pattern], re: RegExp | null;
+  testers_: null as SafeDict<ExclusionsNS.Tester> | null,
+  getRe_ (this: ExcCls, pattern: string): ExclusionsNS.Tester {
+    let func: ExclusionsNS.Tester | undefined = (this.testers_ as ExclusionsNS.TesterDict)[pattern], re: RegExp | null;
     if (func) { return func; }
     if (pattern[0] === '^' && (re = Utils.makeRegexp_(pattern, "", false))) {
       func = re as RegExpOne;
     } else {
       func = pattern.substring(1);
     }
-    return (this.testers as ExclusionsNS.TesterDict)[pattern] = func;
+    return (this.testers_ as ExclusionsNS.TesterDict)[pattern] = func;
   },
   _listening: false,
   _listeningHash: false,
   onlyFirstMatch_: false,
-  rules: [],
+  rules_: [],
   setRules_ (this: ExcCls, rules: ExclusionsNS.StoredRule[]): void {
     let onURLChange: null | ExclusionsNS.Listener;
     if (rules.length === 0) {
-      this.rules = [];
+      this.rules_ = [];
       Backend.getExcluded_ = Utils.getNull_;
       if (this._listening && (onURLChange = this.getOnURLChange_())) {
         chrome.webNavigation.onHistoryStateUpdated.removeListener(onURLChange);
@@ -35,10 +55,10 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       this._listening = false;
       return;
     }
-    this.testers || (this.testers = Object.create<ExclusionsNS.Tester>(null));
-    this.rules = this.format_(rules);
+    this.testers_ || (this.testers_ = Object.create<ExclusionsNS.Tester>(null));
+    this.rules_ = this.format_(rules);
     this.onlyFirstMatch_ = Settings.get_("exclusionOnlyFirstMatch");
-    this.testers = null;
+    this.testers_ = null;
     Backend.getExcluded_ = this.GetPattern_;
     if (this._listening) { return; }
     this._listening = true;
@@ -51,7 +71,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     }
   },
   GetPattern_ (this: void, url: string): string | null {
-    let rules = Exclusions.rules, matchedKeys = "";
+    let rules = Exclusions.rules_, matchedKeys = "";
     for (let _i = 0, _len = rules.length; _i < _len; _i += 2) {
       const rule = rules[_i] as ExclusionsNS.Tester;
       if (typeof rule === "string" ? url.startsWith(rule) : rule.test(url)) {
@@ -80,19 +100,19 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     const out = [] as ExclusionsNS.Rules;
     for (let _i = 0, _len = rules.length; _i < _len; _i++) {
       const rule = rules[_i];
-      out.push(this.getRe(rule.pattern), rule.passKeys);
+      out.push(this.getRe_(rule.pattern), rule.passKeys);
     }
     return out;
   },
-  getTemp (this: ExcCls, url: string, rules: ExclusionsNS.StoredRule[]): string | null {
-    const old = this.rules;
-    this.rules = this.format_(rules);
+  getTemp_ (this: ExcCls, url: string, rules: ExclusionsNS.StoredRule[]): string | null {
+    const old = this.rules_;
+    this.rules_ = this.format_(rules);
     const ret = this.GetPattern_(url);
-    this.rules = old;
+    this.rules_ = old;
     return ret;
   },
   RefreshStatus_ (old_is_empty: boolean): void {
-    const always_enabled = Exclusions.rules.length > 0 ? null : <Req.bg<kBgReq.reset>> {
+    const always_enabled = Exclusions.rules_.length > 0 ? null : <Req.bg<kBgReq.reset>> {
       N: kBgReq.reset,
       p: null
     };
@@ -130,10 +150,6 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
         Backend.setIcon_(+tabId, status);
       }
     }
-  },
-  destroy_ (): void {
-    Settings.updateHooks_.exclusionRules = Settings.updateHooks_.exclusionOnlyFirstMatch =
-    Settings.updateHooks_.exclusionListenHash = void 0 as never;
   }
 };
 
@@ -141,7 +157,7 @@ Exclusions.setRules_(Settings.get_("exclusionRules"));
 
 Settings.updateHooks_.exclusionRules = function(this: void, rules: ExclusionsNS.StoredRule[]): void {
   setTimeout(function() {
-    const is_empty = Exclusions.rules.length <= 0;
+    const is_empty = Exclusions.rules_.length <= 0;
     Exclusions.setRules_(rules);
     setTimeout(Exclusions.RefreshStatus_, 17, is_empty);
   }, 17);

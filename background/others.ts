@@ -548,13 +548,18 @@ Utils.GC_ = function(): void {
     timeout = 0;
     const existing = chrome.extension.getViews
     ? chrome.extension.getViews().filter(function (wnd): boolean {
-      return wnd.location.pathname.startsWith("/pages/");
+      const path = wnd.location.pathname;
+      return path.startsWith("/pages/options") || path.startsWith("/pages/popup");
     }).length > 0 : false;
     if (existing) { return; }
-    Settings.updateHooks_.keyMappings = void 0 as never;
-    Commands = null as never;
-    if (Exclusions && Exclusions.rules.length === 0) {
-      Exclusions.destroy_();
+    const hook = Settings.updateHooks_;
+    if (Commands) {
+      hook.keyMappings = null as never;
+      Commands = null as never;
+    }
+    if (Exclusions && Exclusions.rules_.length === 0) {
+      hook.exclusionRules = hook.exclusionOnlyFirstMatch =
+      hook.exclusionListenHash = null as never;
       Exclusions = null as never;
     }
   }

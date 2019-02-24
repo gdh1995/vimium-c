@@ -1,8 +1,8 @@
 /// <reference path="../content/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
-/// <reference path="../background/bg.exclusions.d.ts" />
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
+/// <reference path="../background/exclusions.ts" />
 type AllowedOptions = SettingsNS.PersistentSettings;
 interface Checker<T extends keyof AllowedOptions> {
   init_? (): any;
@@ -363,8 +363,8 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
   },
   rebuildTesters_ (this: PopExclusionRulesOption): void {
     const rules = bgSettings_.get_("exclusionRules")
-      , ref1 = bgExclusions.testers = BG_.Object.create(null)
-      , ref2 = bgExclusions.rules;
+      , ref1 = bgExclusions.testers_ = BG_.Object.create(null)
+      , ref2 = bgExclusions.rules_;
     for (let _i = 0, _len = rules.length; _i < _len; _i++) {
       ref1[rules[_i].pattern] = ref2[_i * 2];
     }
@@ -380,7 +380,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
     for (let _i = 0, _len = elements.length; _i < _len; _i++) {
       const element = elements[_i];
       const pattern = ExclusionRulesOption_.getPattern_(element).value.trim();
-      const rule = (bgExclusions.testers as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
+      const rule = (bgExclusions.testers_ as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
       if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
         haveMatch = _i;
       } else {
@@ -402,7 +402,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
     if (!patternElement.classList.contains("pattern")) {
       return;
     }
-    const rule = bgExclusions.getRe(patternElement.value);
+    const rule = bgExclusions.getRe_(patternElement.value);
     if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
       patternElement.title = patternElement.style.color = "";
     } else {
@@ -433,7 +433,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
     return Object.keys(dict).join(" ");
   }
   function updateState(initing: boolean): void {
-    let pass = bgExclusions.getTemp(url, exclusions.readValueFromElement_(true));
+    let pass = bgExclusions.getTemp_(url, exclusions.readValueFromElement_(true));
     pass && (pass = collectPass(pass));
     if (initing) {
       oldPass = exclusions.inited_ >= 2 ? pass : null;
@@ -473,11 +473,11 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
     if (saveBtn.disabled) {
       return;
     }
-    const testers = bgExclusions.testers;
+    const testers = bgExclusions.testers_;
     BG_.Backend.forceStatus_("reset", tabId);
     exclusions.save_();
     setTimeout(function() {
-      bgExclusions.testers = testers;
+      bgExclusions.testers_ = testers;
     }, 50);
     exclusions.inited_ = 3;
     updateState(true);
@@ -516,7 +516,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
   interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
   (window as WindowEx).exclusions = exclusions;
   window.onunload = function(): void {
-    bgExclusions.testers = null;
+    bgExclusions.testers_ = null;
     BG_.Utils.GC_();
   };
 
