@@ -30,7 +30,8 @@ var VOmni = {
   defaultTop_: "",
   top_: "",
   run (this: void, count: number, options: VomnibarNS.FullOptions): void {
-    const a = VOmni;
+    const a = VOmni, CSS = options.S;
+    if (CSS) { VDom.UI.css_(CSS), options.S = null };
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
       return VHUD.tip_("Sorry, Vomnibar page seems to fail in loading.", 2000);
@@ -58,7 +59,7 @@ var VOmni = {
     if (a.status_ === VomnibarNS.Status.NotInited) {
       if (VHints.tryNestedFrame_("VOmni", "run", count, options)) { return VUtils.remove_(a); }
       a.status_ = VomnibarNS.Status.Initing;
-      a.init_(options);
+      a.init_(options, CSS);
     } else if (a.isABlank_()) {
       a.onReset_ = function(this: typeof VOmni): void { this.onReset_ = null; return this.run(count, options); };
       return;
@@ -122,7 +123,7 @@ var VOmni = {
     active || window.focus();
     this.box_.style.cssText = "display: none;";
   },
-  init_ ({k: secret, v: page, t: type, w: inner, S: CSS}: VomnibarNS.FullOptions): void {
+  init_ ({k: secret, v: page, t: type, w: inner}: VomnibarNS.FullOptions, CSS: BgCSSReq["S"]): void {
     const el = VDom.createElement_("iframe") as typeof VOmni.box_, UI = VDom.UI;
     el.className = "R UI Omnibar";
     if (type !== VomnibarNS.PageType.web) {}
