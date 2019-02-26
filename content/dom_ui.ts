@@ -33,9 +33,10 @@ VDom.UI = {
       if (a.box_ === a.UI) {
         a.box_.id = "VimiumUI";
       }
-      let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_(innerCSS);
+      let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_();
+      a.css_ = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = this.cssPatch_ ? this.cssPatch_[1](css) : css; };
+      a.css_(innerCSS);
       a.UI.appendChild(el);
-      a.css_ = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = this._dpiWiseWidthPatch ? this._dpiWiseWidthPatch[1](css) : css; };
       if (adjust !== AdjustType.AdjustButNotShow) {
         let f = function (this: HTMLElement | void, e: Event | 1): void {
           e !== 1 && ((this as HTMLElement).onload = null as never);
@@ -90,14 +91,15 @@ VDom.UI = {
     (this.box_ as HTMLElement).remove();
     removeEventListener("webkitfullscreenchange", this.adjust_, true);
   },
-  _dpiWiseWidthPatch: null,
+  cssPatch_: null,
   ensureBorder_ (zoom?: number): void {
     zoom || (zoom = VDom.getZoom_());
-    let patch = this._dpiWiseWidthPatch;
+    let patch = this.cssPatch_;
     if (!patch && zoom >= 1) { return; }
-    let width = ("" + (VUtils.cache_.browserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.01 : 0.51) / zoom).substring(0, 5), st = this.styleIn_;
+    let width = ("" + (VUtils.cache_.browserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.01 : 0.51) / zoom).substring(0, 5)
+      , st = this.styleIn_;
     if (!patch) {
-      patch = this._dpiWiseWidthPatch = ["", function(this: NonNullable<DomUI["_dpiWiseWidthPatch"]>, css) {
+      patch = this.cssPatch_ = ["", function(this: NonNullable<DomUI["cssPatch_"]>, css) {
         return css.replace(<RegExpG>/\b(border(?:-\w*-?width)?: ?)(0\.5px\b|[^;}]+\/\*!DPI\*\/)/g, "$1" + this[0] + "px \/\*!DPI\*\/");
       }];
     }
@@ -108,7 +110,7 @@ VDom.UI = {
   createStyle_ (text, css): HTMLStyleElement {
     css = css || VDom.createElement_("style");
     css.type = "text/css";
-    css.textContent = text;
+    text && (css.textContent = text);
     return css;
   },
   css_ (innerCSS): void { this.styleIn_ = innerCSS; },

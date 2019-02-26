@@ -288,9 +288,9 @@ interface DomUI {
     ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   adjust_ (this: void, event?: Event): void;
   toggle_ (this: DomUI, enabled: boolean): void;
-  _dpiWiseWidthPatch: [string, ((css: string) => string)] | null;
+  cssPatch_: [string, (css: string) => string] | null;
   ensureBorder_ (this: DomUI, zoom?: number): void;
-  createStyle_ (this: DomUI, text: string, css?: HTMLStyleElement): HTMLStyleElement;
+  createStyle_ (this: DomUI, text?: string, css?: HTMLStyleElement): HTMLStyleElement;
   css_ (this: DomUI, innerCSS: string): void;
   getDocSelectable_ (this: DomUI): boolean;
   toggleSelectStyle_ (this: DomUI, enable: BOOL): void;
