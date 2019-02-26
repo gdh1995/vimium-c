@@ -1,6 +1,6 @@
 var HelpDialog = {
   inited_: false,
-  templateEl_: null as HTMLTemplateElement | null,
+  templateEl_: null as HTMLTableDataCellElement | null,
   render_: (function(this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
       const noShadow = Settings.CONST_.StyleCacheId_.split(',', 2)[1].indexOf("s") < 0,
@@ -109,7 +109,7 @@ var HelpDialog = {
   normalizeHelpInfo_ (help: Partial<CommandsNS.NormalizedCustomHelpInfo>): void {
     if (help.$key != null) { return; }
     let a = this.templateEl_;
-    a || (a = this.templateEl_ = document.createElement('template'));
+    a || (a = this.templateEl_ = document.createElement('td'));
     help.$key = help.key ? this.safeHTML_(help.key, a) : "";
     help.$desc = help.desc ? this.safeHTML_(help.desc, a) : "";
   },
