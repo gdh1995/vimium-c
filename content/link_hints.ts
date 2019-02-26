@@ -667,8 +667,6 @@ var VHints = {
         reinit = deep === DeepQueryType.NotDeep;
         this.queryInDeep_ = DeepQueryType.InDeep;
       } else if (i === KeyStat.altKey) {
-        // Note: although on Firefox there's no native blocking backdrop,
-        // here not check it, in case of any further behavior changes
         reinit = typeof HTMLDialogElement === "function";
         this.dialogMode_ = reinit && !this.dialogMode_;
       } else {

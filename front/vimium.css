@@ -66,6 +66,9 @@
 	position: absolute;
 	white-space: nowrap;
 }
+.DHM::backdrop {
+	display: none;
+}
 .LH {
 	background: linear-gradient(#fff785, #ffc542);
 	border: 0.5px solid #e3be23;

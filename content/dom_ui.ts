@@ -65,7 +65,7 @@ VDom.UI = {
   },
   addElementList_: function (this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset, dialogContainer) {
     const parent = VDom.createElement_(dialogContainer ? "dialog" : "div");
-    parent.className = "R HM";
+    parent.className = dialogContainer ? "R HM DHM" : "R HM";
     for (const el of els) {
       parent.appendChild(el.marker);
     }
