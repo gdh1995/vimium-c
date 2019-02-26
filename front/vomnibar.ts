@@ -42,7 +42,7 @@ if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy_ === 
 
 var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,
-  activate (options: Options): void {
+  run_ (options: Options): void {
     Object.setPrototypeOf(options, null);
     this.mode_.t = this.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     this.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
@@ -142,19 +142,19 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   show_ (): void {
     this.showing_ = true;
     this.bodySt_.zoom = this.zoomLevel_ !== 1 ? this.zoomLevel_ + "" : "";
-    this.firstShowing_ && this.browser_ !== BrowserType.Firefox || setTimeout(Vomnibar_.focus, 34);
+    this.firstShowing_ && this.browser_ !== BrowserType.Firefox || setTimeout(Vomnibar_.focus_, 34);
     this.firstShowing_ = false;
     addEventListener("wheel", this.onWheel_, this.wheelOptions_);
     this.OnShown_ && setTimeout(this.OnShown_, 100);
   },
-  hide (data?: "hide"): void {
+  hide_ (fromContent?: BOOL): void {
     this.isActive_ = this.showing_ = this.isEditing_ = this.isInputComposing_ = this.blurWanted_ = this.focusByCode_ = false;
     removeEventListener("wheel", this.onWheel_, this.wheelOptions_);
     this.timer_ > 0 && clearTimeout(this.timer_);
     window.onkeyup = null as never;
     const el = this.input_;
     el.blur();
-    data || VPort_.postMessage_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: this.lastKey_ });
+    fromContent || VPort_.postMessage_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: this.lastKey_ });
     this.bodySt_.cssText = "display: none;";
     this.list_.textContent = el.value = "";
     this.list_.style.height = "";
@@ -173,7 +173,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
   },
   onHidden_ (): void {
-    VPort_.postToOwner_({ N: "hide" });
+    VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide });
     this.timer_ = this.height_ = this.matchType_ = this.wheelTime_ = this.actionType_ =
     this.total_ = this.lastKey_ = 0;
     this.zoomLevel_ = 1;
@@ -200,7 +200,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (this.init_) { this.init_(); }
     this.input_.value = this.inputText_;
   },
-  focus (this: void, focus?: false | TimerType.fake | "focus"): void {
+  focus_ (this: void, focus?: false | TimerType.fake | "focus"): void {
     const a = Vomnibar_;
     a.focusByCode_ = true;
     if (focus !== false) {
@@ -237,7 +237,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
         this.selection_ = 0; this.isSelOriginal_ = false;
         this.updateSelection_(oldSel);
       }
-      this.focused_ || this.focus();
+      this.focused_ || this.focus_();
     });
   },
   updateInput_ (sel: number): void {
@@ -246,7 +246,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (sel === -1) {
       this.isHttps_ = this.baseHttps_; this.isEditing_ = false;
       this.input_.value = this.inputText_;
-      if (!focused) { this.focus(); this.blurWanted_ = blurred; }
+      if (!focused) { this.focus_(); this.blurWanted_ = blurred; }
       return;
     }
     blurred && focused && this.input_.blur();
@@ -358,7 +358,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
         event.preventDefault();
         this.lastScrolling_ = Date.now();
         window.onkeyup = Vomnibar_.HandleKeydown_;
-        VPort_.postToOwner_({ N: "scroll", keyCode: n });
+        VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll, keyCode: n });
         return;
       }
       else { action = event.code === "BracketLeft" ? AllowedActions.dismiss : event.code === "BracketRight" ? AllowedActions.toggle
@@ -405,14 +405,14 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
           el.selectionEnd < el.value.length ? el.selectionStart : el.selectionEnd;
         el.setSelectionRange(sel, sel);
       } else {
-        return this.hide();
+        return this.hide_();
       }
       break;
-    case AllowedActions.focus: this.focus(); break;
+    case AllowedActions.focus: this.focus_(); break;
     case AllowedActions.blurInput: this.blurWanted_ = true; this.input_.blur(); break;
     case AllowedActions.backspace: case AllowedActions.blur:
-      !this.focused_ ? this.focus()
-      : action === AllowedActions.blur ? this.focus(false)
+      !this.focused_ ? this.focus_()
+      : action === AllowedActions.blur ? this.focus_(false)
       : document.execCommand("delete");
       break;
     case AllowedActions.up: case AllowedActions.down:
@@ -481,7 +481,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     };
     if (this.actionType_ < ReuseType.newFg) { return func(); }
     this.doEnter_ = func;
-    this.hide();
+    this.hide_();
   },
   OnEnterUp_ (this: void, event: KeyboardEvent): void {
     if (event.isTrusted === true || (event.isTrusted == null && event instanceof KeyboardEvent) && event.keyCode === VKeyCodes.enter) {
@@ -494,7 +494,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (this.selection_ < 0) { return; }
     const completion = this.completions_[this.selection_], type = completion.type;
     if (type !== "tab" && (type !== "history" || completion.sessionId != null)) {
-      VPort_.postToOwner_({ N: "hud", text: "This item can not be deleted." });
+      VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, text: "This item can not be deleted." });
       return;
     }
     VPort_.postMessage_({
@@ -508,7 +508,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     let el: Node | null = event.target as Node;
     if (event.isTrusted === false || !(event instanceof MouseEvent) || event.button
       || el === this.input_ || getSelection().type === "Range") { return; }
-    if (el === this.input_.parentElement) { return this.focus(); }
+    if (el === this.input_.parentElement) { return this.focus_(); }
     if (this.timer_) { event.preventDefault(); return; }
     while (el && el.parentNode !== this.list_) { el = el.parentNode; }
     if (!el) { return; }
@@ -592,7 +592,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     const len = this.completions_.length, notEmpty = len > 0, oldH = this.height_, list = this.list_;
     const height = this.height_ = Math.ceil(notEmpty ? len * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty),
     needMsg = height !== oldH, earlyPost = height > oldH || this.sameOrigin_,
-    msg: VomnibarNS.FReq["style"] & VomnibarNS.Msg<"style"> = { N: "style", height };
+    msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
+      N: VomnibarNS.kFReq.style, height
+    };
     oldH || (msg.max = this.maxHeight_);
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
     this.completions_.forEach(this.parse_, this);
@@ -688,7 +690,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (!blurred) {
       VPort_ && VPort_.postMessage_({ H: kFgReq.blank });
       if (a.pageType_ === VomnibarNS.PageType.ext && VPort_) {
-        VPort_.postToOwner_({N: "test"});
+        VPort_.postToOwner_({N: VomnibarNS.kFReq.test});
       }
     }
   },
@@ -710,7 +712,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
     this.barCls_ = (this.input_.parentElement as HTMLElement).classList;
     list.oncontextmenu = this.OnMenu_;
-    (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar_.hide(); };
+    (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar_.hide_(); };
     addEventListener("keydown", this.HandleKeydown_, true);
     this.renderItems_ = VUtils_.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
     if (ver >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
@@ -787,7 +789,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       if (!Vomnibar_.lastScrolling_) {
         stop = event.keyCode > VKeyCodes.ctrlKey || event.keyCode < VKeyCodes.shiftKey;
       } else if (stop || (now = Date.now()) - Vomnibar_.lastScrolling_ > 40) {
-        VPort_.postToOwner_({ N: stop ? "scrollEnd" : "scrollGoing" });
+        VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.scrollEnd : VomnibarNS.kFReq.scrollGoing });
         Vomnibar_.lastScrolling_ = now;
       }
       if (stop) { window.onkeyup = null as never; }
@@ -800,8 +802,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   returnFocus_ (this: void, request: BgVomnibarSpecialReq[kBgReq.omni_returnFocus]): void {
     type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
-    setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort_.postToOwner_ as
-      VoidPost, 0, { N: "focus", key: request.key });
+    setTimeout<VomnibarNS.FReq[VomnibarNS.kFReq.focus] & VomnibarNS.Msg<VomnibarNS.kFReq.focus>>(VPort_.postToOwner_ as
+      VoidPost, 0, { N: VomnibarNS.kFReq.focus, key: request.key });
   },
   _realDevRatio: 0,
   setWidth_ (w?: number): void {
@@ -892,7 +894,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null): void {
     if (url.charCodeAt(10) === KnownKey.colon && url.substring(0, 11).toLowerCase() === "javascript:") {
-      VPort_.postToOwner_({ N: "evalJS", url });
+      VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, url });
       return;
     }
     VPort_.postMessage_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, o: true });
@@ -924,7 +926,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (!VPort_ || e.isTrusted === false) { return; }
     Vomnibar_.isActive_ = false;
     Vomnibar_.timer_ > 0 && clearTimeout(Vomnibar_.timer_);
-    VPort_.postToOwner_({ N: "unload" });
+    VPort_.postToOwner_({ N: VomnibarNS.kFReq.unload });
   }
 },
 VUtils_ = {
@@ -995,7 +997,7 @@ VPort_ = {
       (this._port || this.connect_(PortType.omnibarRe)).postMessage<K>(request);
     } catch (e) {
       VPort_ = null as never;
-      this.postToOwner_({ N: "broken", active: Vomnibar_.isActive_ });
+      this.postToOwner_({ N: VomnibarNS.kFReq.broken, active: Vomnibar_.isActive_ });
     }
   },
   _Listener<T extends ValidBgVomnibarReq> (this: void, response: Req.bg<T>): void {
@@ -1008,14 +1010,14 @@ VPort_ = {
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
     0;
   },
-  _OnOwnerMessage<K extends keyof VomnibarNS.CReq> ({ data: data }: { data: VomnibarNS.CReq[K] }): void {
+  _OnOwnerMessage ({ data: data }: { data: VomnibarNS.CReq[keyof VomnibarNS.CReq] }): void {
     type Res = VomnibarNS.CReq;
-    let name = ((data as VomnibarNS.Msg<string>).N || data) as keyof Res;
-    if (name === "backspace") { return Vomnibar_.onAction_(AllowedActions.backspace); }
-    type Keys = typeof name;
-    (Vomnibar_ as { [K in Keys]: (data: Res[K]) => void
-      } as { [K in Keys]: <T2 extends Keys>(data: Res[T2]) => void
-      })[name](data as Res[typeof name]);
+    let name: keyof VomnibarNS.CReq = typeof data === "number" ? data : (data as VomnibarNS.Msg<keyof Res>).N;
+    name === VomnibarNS.kCReq.activate ? Vomnibar_.run_(data as VomnibarNS.CReq[VomnibarNS.kCReq.activate]) :
+    name === VomnibarNS.kCReq.backspace ? Vomnibar_.onAction_(AllowedActions.backspace) :
+    name === VomnibarNS.kCReq.focus ? Vomnibar_.focus_() :
+    name === VomnibarNS.kCReq.hide ? Vomnibar_.hide_(1) :
+    0;
   },
   _ClearPort (this: void): void { VPort_._port = null; },
   connect_ (type: PortType): FgPort {
@@ -1074,9 +1076,9 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     port.onmessage = VPort_._OnOwnerMessage;
     window.onunload = Vomnibar_.OnUnload_;
     if (options) {
-      Vomnibar_.activate(options);
+      Vomnibar_.run_(options);
     } else {
-      VPort_.postToOwner_({ N: "uiComponentIsReady" });
+      VPort_.postToOwner_({ N: VomnibarNS.kFReq.uiComponentIsReady });
     }
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);

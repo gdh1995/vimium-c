@@ -183,46 +183,55 @@ declare namespace VomnibarNS {
     /** script */ s: string;
   }
   type MessageData = [number, FgOptions | null];
-  type Msg<T extends string> = { N: T };
+  type Msg<T extends (kCReq | kFReq) & number> = { N: T };
 
+  const enum kCReq {
+    activate, hide, focus, backspace,
+    _mask = "",
+  }
+  const enum kFReq {
+    hide, focus, style, uiComponentIsReady,
+    hud, evalJS, scroll, scrollGoing, scrollEnd, broken, unload, test,
+    _mask = "",
+  }
   interface CReq {
-    activate: FgOptions & Msg<"activate">;
-    hide: "hide";
-    focus: "focus";
-    backspace: "backspace";
+    [kCReq.activate]: FgOptions & Msg<kCReq.activate>;
+    [kCReq.hide]: kCReq.hide;
+    [kCReq.focus]: kCReq.focus;
+    [kCReq.backspace]: kCReq.backspace;
   }
   interface FReq {
-    hide: {
+    [kFReq.hide]: {
     };
-    scroll: {
-      keyCode: VKeyCodes;
+    [kFReq.scroll]: {
+      /** keyCode */ keyCode: VKeyCodes;
     };
-    style: {
-      height: number;
-      max?: number;
+    [kFReq.style]: {
+      h: number;
+      m?: number;
     };
-    hud: { text: string; };
-    focus: {
-      key: VKeyCodes;
+    [kFReq.hud]: { t: string; };
+    [kFReq.focus]: {
+      k: VKeyCodes;
     };
-    evalJS: {
-      url: string;
+    [kFReq.evalJS]: {
+      u: string;
     };
-    broken: {
-      active: boolean;
+    [kFReq.broken]: {
+      a: boolean;
     };
-    scrollEnd: {},
-    scrollGoing: {},
-    unload: {},
-    test: {},
-    uiComponentIsReady: {};
+    [kFReq.scrollEnd]: {},
+    [kFReq.scrollGoing]: {},
+    [kFReq.unload]: {},
+    [kFReq.test]: {},
+    [kFReq.uiComponentIsReady]: {};
   }
   interface IframePort {
     sameOrigin?: true;
     postMessage<K extends keyof FReq> (this: IframePort, msg: FReq[K] & Msg<K>): void | 1;
-    onmessage<K extends keyof CReq> (this: void, msg: { data: CReq[K] }): void | 1;
+    onmessage (this: void, msg: { data: CReq[keyof CReq] }): void | 1;
   }
-  type FgOptionsToFront = CReq["activate"];
+  type FgOptionsToFront = CReq[kCReq.activate];
   const enum PixelData {
     MarginTop = 64,
     InputBar = 54, InputBarWithLine = InputBar + 1,
@@ -339,7 +348,7 @@ interface VEventModeTy {
   onWndBlur_ (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
   mapKey_ (this: void, key: string): string;
-  scroll_ (this: void, event?: Partial<EventControlKeys & { keyCode: VKeyCodes }>, wnd?: Window): void;
+  scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: VKeyCodes }, wnd?: Window): void;
   /** return has_error */
   readonly keydownEvents_: {
     (this: void, newArr: KeydownCacheArray): boolean;

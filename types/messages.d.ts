@@ -351,8 +351,8 @@ interface FgReq {
     /** data */ d: string;
   };
   [kFgReq.key]: {
-    k: string;
-    l: VKeyCodes;
+    /* keySequence */ k: string;
+    /** lastKey */ l: VKeyCodes;
   };
   [kFgReq.blank]: {},
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
