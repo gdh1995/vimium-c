@@ -645,6 +645,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
   },
   onStyleUpdate_(omniStyles: string): void {
+    // todo: toggle styles using style.disabled if possible
+    // todo: switch using https://html.spec.whatwg.org/multipage/semantics.html#attr-meta-http-equiv-default-style
     (document.documentElement as HTMLHtmlElement).className = omniStyles.trim();
     omniStyles += " ";
     if (this.darkBtn_) {

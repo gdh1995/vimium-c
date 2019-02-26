@@ -100,7 +100,8 @@ var VDom = {
   scrollingEl_ (fallback?: 1): ((HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement) | null {
     let d = document, el = d.scrollingElement, docEl = d.documentElement;
     el === undefined && (el = d.compatMode === "BackCompat" ? d.body : docEl);
-    el = el === d.body && this.notSafe_(el) ? null : el as HTMLHtmlElement | SVGSVGElement | HTMLBodyElement | null;
+    /** @see {@link BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset}  */
+    el = el instanceof HTMLFrameSetElement ? null : el;
     return fallback ? el || docEl : el;
   },
   /**
