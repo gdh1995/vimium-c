@@ -359,7 +359,7 @@ var VDom = {
     // This requires that further jobs are safe enough even when isInDOM returns a fake "true"
     return pn === doc || pn instanceof Element;
   },
-  notSafe_ (el: Node | null): el is HTMLFormElement | HTMLFrameSetElement {
+  notSafe_ (el: Node | null): el is HTMLFormElement {
     return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
   },
   /** @safe_even_if_any_overridden_property */

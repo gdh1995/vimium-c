@@ -827,8 +827,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       OnOther = load.browser_;
       ((VSettings as Writeable<VSettingsTy>).cache = VUtils.cache_ = load).onMac_ && (VKeyboard.correctionMap_ = Object.create<string>(null));
       D.specialZoom_ = !OnOther && browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
-      if (!OnOther && browserVer >= BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
-        D.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement;
+      if (OnOther || browserVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
+        D.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
       }
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
       r[kBgReq.keyMap](request);
