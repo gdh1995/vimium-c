@@ -223,11 +223,13 @@ var Backend: BackendHandlersNS.BackendHandlers;
         return;
       }
       const arr = path.split("/"), last = arr[arr.length - 1];
-      if (arr.length === 4) {
-        if (host === "github.com") {
+      if (host === "github.com") {
+        if (arr.length === 4) {
           return last === "pull" ? path + "s"
             : last === "tree" ? arr.slice(0, 3).join("/")
             : null;
+        } else if (arr.length > 4) {
+          return arr[3] === "blob" ? (arr[3] = "tree", arr.join("/")) : null;
         }
       }
     }
