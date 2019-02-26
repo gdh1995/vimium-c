@@ -183,10 +183,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       if (VDom.getEditableType_<LockableElement>(target)) {
         if (InsertMode.grabBackFocus_) {
-          if (document.activeElement === target) {
-            event.stopImmediatePropagation();
-            target.blur();
-          }
+          (InsertMode.grabBackFocus_ as Exclude<typeof InsertMode.grabBackFocus_, boolean>)(event, target);
           return;
         }
         InsertMode.lock_ = target;
@@ -503,7 +500,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   ],
 
   InsertMode = {
-    grabBackFocus_: document.readyState !== "complete",
+    grabBackFocus_: (document.readyState !== "complete") as boolean | ((event: Event, target: LockableElement) => void),
     global_: null as CmdOptions[kFgCmd.insertMode] | null,
     hinting_: false,
     inputHint_: null as { box: HTMLDivElement, hints: HintsNS.BaseHintItem[] } | null,
@@ -516,12 +513,23 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = Object.create(null);
       if (VUtils.cache_.grabBackFocus_ && this.grabBackFocus_) {
+        let prompted = 0, prompt = function(): void {
+          prompted++ || console.log("An auto-focusing action is blocked by Vimium C");
+        };
         if (notBody) {
           this.last_ = null;
+          prompt();
           activeEl.blur && activeEl.blur();
           notBody = (activeEl = document.activeElement as Element) !== document.body;
         }
         if (!notBody) {
+          InsertMode.grabBackFocus_ = function(event, target): void {
+            if (document.activeElement === target) {
+              event.stopImmediatePropagation();
+              prompt();
+              target.blur();
+            }
+          }
           VUtils.push_(this.ExitGrab_, this);
           addEventListener("mousedown", this.ExitGrab_, true);
           return;

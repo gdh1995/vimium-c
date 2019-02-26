@@ -421,6 +421,7 @@ Settings.CONST_.WordsRe_ = "";
   }
   obj.ContentScripts_ = ref2.map(func);
 
+  payload_.grabBackFocus_ = settings.get_("grabBackFocus");
   for (let _i = valuesToLoad_.length; 0 <= --_i;) {
     const key = valuesToLoad_[_i];
     payload_[key] = settings.get_(key);
