@@ -127,7 +127,7 @@ var VHints = {
     a.noHUD_ = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
     VDom.UI.ensureBorder_(VDom.wdZoom_);
     a.setMode_(a.mode_, false);
-    a.box_ = VDom.UI.addElementList_(a.hints_, arr, a.dialogMode_ ? "dialog" : "");
+    a.box_ = VDom.UI.addElementList_(a.hints_, arr, a.dialogMode_);
     a.dialogMode_ && (a.box_ as HTMLDialogElement).showModal();
 
     a.isActive_ = true;

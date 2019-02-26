@@ -62,9 +62,8 @@ VDom.UI = {
     }
     return element;
   },
-  addElementList_: function (this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
-      offset: ViewOffset, tagName?: VimiumContainerElementType | ""): HTMLElementTagNameMap[VimiumContainerElementType] & SafeElement {
-    const parent = VDom.createElement_(tagName || "div");
+  addElementList_: function (this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset, dialogContainer) {
+    const parent = VDom.createElement_(dialogContainer ? "dialog" : "div");
     parent.className = "R HM";
     for (const el of els) {
       parent.appendChild(el.marker);

@@ -283,9 +283,9 @@ interface DomUI {
   flashLastingTime_: number;
   _lastFlash: HTMLElement | null;
   add_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
-  addElementList_<T extends VimiumContainerElementType | "" | undefined>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
-    offset: ViewOffset, containerTagName?: T
-    ): T extends VimiumContainerElementType ? HTMLElementTagNameMap[T] & SafeElement : HTMLDivElement & SafeElement;
+  addElementList_<T extends boolean>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
+    offset: ViewOffset, dialogContainer?: T | null
+    ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   adjust_ (this: void, event?: Event): void;
   toggle_ (this: DomUI, enabled: boolean): void;
   _dpiWiseWidthPatch: [string, ((css: string) => string)] | null;
