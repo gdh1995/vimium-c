@@ -813,7 +813,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       w = innerWidth / r;
       msg = r > 1.02 || r < 0.98 ? Math.round(10000 / r) / 100 + "%" : "";
     } else {
-      // the line below is just in case of wront usages of @setWidth
+      // the line below is just in case of wrong usages of @setWidth
       w = w || parseFloat(this.bodySt_.width) || innerWidth;
       msg = w / zoom + "px";
       this.fixRatio_(w as number);
