@@ -694,12 +694,12 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
         styleDebug = doc.createElement("style");
         styleDebug.type = "text/css";
       } else {
-        styleDebug = doc.querySelector(".custom") as HTMLStyleElement | null;
+        styleDebug = doc.querySelector("#custom") as HTMLStyleElement | null;
         if (!styleDebug) {
           /** shoule keep the same as {@link ../front/vomnibar#Vomnibar_.css_} */
           styleDebug = doc.createElement("style");
           styleDebug.type = "text/css";
-          styleDebug.className = "custom";
+          styleDebug.id = "custom";
         }
       }
       styleDebug.classList.add("debugged");

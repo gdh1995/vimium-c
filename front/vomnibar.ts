@@ -645,13 +645,23 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
   },
   onStyleUpdate_(omniStyles: string): void {
-    // todo: toggle styles using style.disabled if possible
-    // todo: switch using https://html.spec.whatwg.org/multipage/semantics.html#attr-meta-http-equiv-default-style
-    (document.documentElement as HTMLHtmlElement).className = omniStyles.trim();
     omniStyles += " ";
     if (this.darkBtn_) {
       this.darkBtn_.textContent = omniStyles.indexOf(" dark ") >= 0 ? "\u2600" : "\u263D";
     }
+    // Note: should not use style[title], because "title" on style/link has special semantics
+    // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
+    for (const style of (document.querySelectorAll(`style[id]`) as {} as HTMLStyleElement[])) {
+      const key = " " + style.id + " ", ind = omniStyles.indexOf(key);
+      style.disabled = ind < 0;
+      (style.sheet as CSSStyleSheet).disabled = ind < 0;
+      if (ind >= 0) {
+        omniStyles = omniStyles.substring(0, ind) + omniStyles.substring(ind + key.length);
+      }
+    }
+    omniStyles = omniStyles.trim();
+    const docEl = document.documentElement as HTMLHtmlElement;
+    docEl.className !== docEl.className && (docEl.className = omniStyles);
   },
   ToggleDark_ (this: void, event: MouseEvent): void {
     Vomnibar_.toggleStyle_({ toggled: "dark", current: event.ctrlKey });
@@ -727,7 +737,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.customStyle_ && (document.head as HTMLElement).appendChild(this.customStyle_);
     this.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
     this.darkBtn_ && (this.darkBtn_.onclick = this.ToggleDark_);
-    this.customClassName_ && this.onStyleUpdate_(this.customClassName_);
+    this.onStyleUpdate_(this.customClassName_);
     this.init_ = VUtils_.makeListRenderer_ = null as never;
     if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && this.browser_ === BrowserType.Chrome || this.bodySt_.d != null) { return; }
     const styles = (document.querySelector("style") as HTMLStyleElement).textContent,
@@ -748,7 +758,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       return;
     }
     if (!st) {
-      st = this.customStyle_ = <HTMLStyleElement | null>document.querySelector(".custom") || document.createElement("style");
+      st = this.customStyle_ = <HTMLStyleElement | null>document.querySelector("#custom") || document.createElement("style");
       st.type = "text/css";
       st.className = "custom";
       this.init_ || (document.head as HTMLElement).appendChild(st);

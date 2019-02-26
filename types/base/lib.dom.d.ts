@@ -4557,7 +4557,7 @@ interface HTMLStyleElement extends HTMLElement, LinkStyle {
      * not exist in https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
      * https://www.w3.org/Bugs/Public/show_bug.cgi?id=14703
      */
-    disabled?: never;
+    disabled?: boolean;
 
     /**
       * Sets or retrieves the media type.
