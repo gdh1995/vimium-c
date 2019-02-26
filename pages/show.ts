@@ -518,11 +518,14 @@ function parseSmartImageUrl_(originUrl: string): string | null {
       }
     }
   }
+  let found = true, arr1: RegExpExecArray | null = null, arr2: RegExpExecArray | null = null;
+  if ((arr1 = (<RegExpOne>/[?&]s=\d{2,4}(&|$)/).exec(search = parsed.search)) && search.split('=').length <= 3) {
+    return parsed.origin + parsed.pathname;
+  }
   const path = search = parsed.pathname;
   let offset = search.lastIndexOf('/') + 1;
   search = search.substring(offset);
   let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('!') + 1;
-  let found = true, arr1: RegExpExecArray | null = null, arr2: RegExpExecArray | null = null;
   if (index > 2 || ImageExtRe.exec(search)) {
     offset += index;
     search = search.substring(index);
