@@ -523,7 +523,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   search = search.substring(offset);
   let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('!') + 1;
   let found = true, arr1: RegExpExecArray | null = null, arr2: RegExpExecArray | null = null;
-  if (index > 2) {
+  if (index > 2 || ImageExtRe.exec(search)) {
     offset += index;
     search = search.substring(index);
     let re = <RegExpG & RegExpI>/(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
