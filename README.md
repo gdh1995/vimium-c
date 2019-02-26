@@ -71,33 +71,27 @@ __Other extensions supporting Vimium C:__
 
 # Known issues
 
-These issues are only up to the master branch:
+Here're some issues still existing on the master branch, which are mostly caused by Chrome bugs:
 
-1. Chrome before version 49 has bugs in `Window.postMessage` if the flag `#enable-site-per-process` is on,
-  which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium C Options pages.
-2. the Chrome flag `#enable-embedded-extension-options` has a bug about dialog width on high-DPI screens,
-  which can not be worked-around before Chrome 42.
-3. If a page in another extension is the preferred Vomnibar page, and the extension is disabled in incognito mode,
+1. If a page in another extension is the preferred Vomnibar page, and the extension is disabled in incognito mode,
   Vomnibar might break in such a situation, and there seems no way to detect it.
   So Vimium C has disabled other extension Vomnibar pages in incognito mode.
+2. *Before ver 42*, Chrome has a flag `#enable-embedded-extension-options` causing wrong dialog width on high-DPI screens,
+  which can not be worked-around.
+3. *Before ver 49*, Chrome has bugs in `Window.postMessage` if the flag `#enable-site-per-process` is on,
+  which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium C Options pages.
 4. If a http/file/... Vomnibar page is preferred, then there're some cases where it breaks,
   such as on some websites with very strict Content Security Policies (CSP),
-  so users may need to wait about 1 second to let Vimium C retry the inner page.
-  And before Chrome 50, such vomnibar webpages won't work because of Chrome lacking some features,
+  so users may need to wait about 1 second to let Vimium C retry the inner page.<br/>
+  *Before ver 50*, such vomnibar webpages won't work because Chrome lacks some features,
   so Vimium C will use the inner page directly.
-5. Chrome 58 stable hides some necessary infomation of page's selection,
-  so some commands on `VisualMode` cann't work as expected if editable text is being selected.
-  This Chrome feature/bug has been removed since version 59, so Vimium C works well again.
-6. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
+5. *Since ver 56*, Chrome does not apply content settings (at least images) on file:// URLs.
   Currently, no effective ways have been found (up to Chrome 69).
-7. On sandboxed pages without an `allow-scripts` permission in their CSP,
-  HUD will always be visible in order to solve some issues from Chrome 52 to 67.
-  This issue has been fixed since Chrome 68.
-  But before Chrome 52, all functions of Vimium C will be broken.
-8. Chrome 64 and 65 always clean their console logs if only Vomnibar is opened, and there's nothing we can do for it.
-  Chrome 66 fixes it.
-9. Chrome 69 disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
-  This issue has been fixed since Chrome Dev 70 (up to 2018-09-07).
+6. *Before ver 68*, Chrome has a bug on sandboxed pages without an `allow-scripts` permission in their CSP.
+  So HUD will always be visible in order to solve some browser issues on Chrome *from ver 52 to 67*.<br/>
+  While *before ver 52*, all functions of Vimium C will be broken on such pages.
+7. *When ver 64 and 65*, Chrome always cleans console logs if only Vomnibar is opened, and there's nothing we can do for it.
+8. *When ver 69*, Chrome disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
 
 # Release Notes
 
