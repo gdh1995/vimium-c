@@ -2,6 +2,7 @@
 /// <reference path="../types/base/index.d.ts" />
 /// <reference path="../types/vimium_c.d.ts" />
 /// <reference path="../background/bg.d.ts" />
+/// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
 interface BgWindow extends Window {
   Settings: typeof Settings;

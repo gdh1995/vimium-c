@@ -230,22 +230,22 @@ var VOmni = {
       if (opt) { this.options_ = null; return this.port_.postMessage<VomnibarNS.kCReq.activate>(opt as VomnibarNS.FgOptionsToFront); }
       break;
     case VomnibarNS.kFReq.style:
-      this.box_.style.height = (data as Req[VomnibarNS.kFReq.style]).height / VDom.wdZoom_ + "px";
+      this.box_.style.height = (data as Req[VomnibarNS.kFReq.style]).h / VDom.wdZoom_ + "px";
       if (this.status_ === VomnibarNS.Status.Initing || this.status_ === VomnibarNS.Status.ToShow) {
-        this.maxBoxHeight_ = (data as Req[VomnibarNS.kFReq.style]).max as number;
+        this.maxBoxHeight_ = (data as Req[VomnibarNS.kFReq.style]).m as number;
         this.onShown_();
       }
       break;
-    case VomnibarNS.kFReq.focus: window.focus(); return VEvent.suppress_((data as Req[VomnibarNS.kFReq.focus]).key);
+    case VomnibarNS.kFReq.focus: window.focus(); return VEvent.suppress_((data as Req[VomnibarNS.kFReq.focus]).k);
     case VomnibarNS.kFReq.hide: return this.hide_(1);
     case VomnibarNS.kFReq.test: return VEvent.OnWndFocus_();
     case VomnibarNS.kFReq.scroll: return VEvent.scroll_(data as Req[VomnibarNS.kFReq.scroll]);
     case VomnibarNS.kFReq.scrollGoing: VScroller.keyIsDown_ = VScroller.maxInterval_; break;
     case VomnibarNS.kFReq.scrollEnd: VScroller.keyIsDown_ = 0; break;
-    case VomnibarNS.kFReq.evalJS: VPort.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).url); break;
-    case VomnibarNS.kFReq.broken: (data as Req[VomnibarNS.kFReq.broken]).active && window.focus(); // no break;
+    case VomnibarNS.kFReq.evalJS: VPort.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
+    case VomnibarNS.kFReq.broken: (data as Req[VomnibarNS.kFReq.broken]).a && window.focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? this.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
-    case VomnibarNS.kFReq.hud: VHUD.tip_((data as Req[VomnibarNS.kFReq.hud]).text); return;
+    case VomnibarNS.kFReq.hud: VHUD.tip_((data as Req[VomnibarNS.kFReq.hud]).t); return;
     default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.N);
     }
   },

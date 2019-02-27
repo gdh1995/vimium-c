@@ -494,7 +494,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (this.selection_ < 0) { return; }
     const completion = this.completions_[this.selection_], type = completion.type;
     if (type !== "tab" && (type !== "history" || completion.sessionId != null)) {
-      VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, text: "This item can not be deleted." });
+      VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, t: "This item can not be deleted." });
       return;
     }
     VPort_.postMessage_({
@@ -593,9 +593,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     const height = this.height_ = Math.ceil(notEmpty ? len * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty),
     needMsg = height !== oldH, earlyPost = height > oldH || this.sameOrigin_,
     msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
-      N: VomnibarNS.kFReq.style, height
+      N: VomnibarNS.kFReq.style, h: height
     };
-    oldH || (msg.max = this.maxHeight_);
+    oldH || (msg.m = this.maxHeight_);
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
     this.completions_.forEach(this.parse_, this);
     list.innerHTML = this.renderItems_(this.completions_);
@@ -803,7 +803,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   returnFocus_ (this: void, request: BgVomnibarSpecialReq[kBgReq.omni_returnFocus]): void {
     type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
     setTimeout<VomnibarNS.FReq[VomnibarNS.kFReq.focus] & VomnibarNS.Msg<VomnibarNS.kFReq.focus>>(VPort_.postToOwner_ as
-      VoidPost, 0, { N: VomnibarNS.kFReq.focus, key: request.key });
+      VoidPost, 0, { N: VomnibarNS.kFReq.focus, k: request.key });
   },
   _realDevRatio: 0,
   setWidth_ (w?: number): void {
@@ -894,7 +894,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null): void {
     if (url.charCodeAt(10) === KnownKey.colon && url.substring(0, 11).toLowerCase() === "javascript:") {
-      VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, url });
+      VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: url });
       return;
     }
     VPort_.postMessage_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, o: true });
@@ -997,7 +997,7 @@ VPort_ = {
       (this._port || this.connect_(PortType.omnibarRe)).postMessage<K>(request);
     } catch (e) {
       VPort_ = null as never;
-      this.postToOwner_({ N: VomnibarNS.kFReq.broken, active: Vomnibar_.isActive_ });
+      this.postToOwner_({ N: VomnibarNS.kFReq.broken, a: Vomnibar_.isActive_ });
     }
   },
   _Listener<T extends ValidBgVomnibarReq> (this: void, response: Req.bg<T>): void {
