@@ -12,7 +12,7 @@ declare namespace VomnibarNS {
   type BaseFullOptions = CmdOptions[kFgCmd.vomnibar] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
   interface FullOptions extends BaseFullOptions {
     topUrl?: string;
-    N: string;
+    N: VomnibarNS.kCReq.activate;
   }
 }
 declare var VData: VDataTy;
@@ -30,7 +30,7 @@ var VOmni = {
   top_: "",
   run (this: void, count: number, options: VomnibarNS.FullOptions): void {
     const a = VOmni, CSS = options.S;
-    if (CSS) { VDom.UI.css_(CSS), options.S = null };
+    if (CSS) { VDom.UI.css_(CSS), options.S = null; }
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
       return VHUD.tip_("Sorry, Vomnibar page seems to fail in loading.", 2000);
@@ -85,7 +85,7 @@ var VOmni = {
       upper = count > 1 ? 1 - count : count < 0 ? -count : 0;
     }
     options.k = 0; options.v = options.i = "";
-    options.N = "activate";
+    options.N = VomnibarNS.kCReq.activate;
     options.topUrl = "";
     if (!url || url.indexOf("://") === -1) {
       options.p = "";
