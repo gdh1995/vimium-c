@@ -546,10 +546,14 @@ function parseSmartImageUrl_(originUrl: string): string | null {
         } else {
           offset--;
         }
+      } else if (!search && arr2 && arr2.index === 0 && !ImageExtRe.exec(path.substring(Math.max(0, offset - 6), offset))) {
+        search = arr2[0];
       }
     } else {
       found = false;
     }
+  }
+  if (found || index > 2) {
   } else if (arr1 = (<RegExpOne>/_(0x)?[1-9]\d{2,3}(x0)?\./).exec(search)) {
     search = search.substring(0, arr1.index) + search.substring(arr1.index + arr1[0].length - 1);
   } else if (search.startsWith("thumb_")) {
