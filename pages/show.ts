@@ -549,6 +549,9 @@ function parseSmartImageUrl_(originUrl: string): string | null {
       } else if (!search && arr2 && arr2.index === 0 && !ImageExtRe.exec(path.substring(Math.max(0, offset - 6), offset))) {
         search = arr2[0];
       }
+    } else if (arr1 = (<RegExpOne>/\b([\da-f]{8,48})([_-][a-z]{1,2})\.[a-z]{2,4}$/).exec(search)) {
+      offset += arr1.index + arr1[1].length;
+      search = search.substring(arr1.index + arr1[1].length + arr1[2].length);
     } else {
       found = false;
     }
