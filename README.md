@@ -41,25 +41,6 @@ __<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</s
 * add some powerful functions and provide more convenience (for me, at least ^_^).
 * here is its [license](LICENSE.txt) and [privacy policy](PRIVACY-POLICY.md)
 
-__微度新标签页修改版 (Modified X New Tab Page):__
-
-* [visit it on Chrome Web Store](https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
-* in folder [*weidu*](https://github.com/gdh1995/vimium-c/tree/master/weidu)
-* support Vimium C and provide a vomnibar page: chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html
-  * using this vomnibar page, Vimium C's memory cost will be smaller since Chrome 58.
-* 一款基于Html5的Chrome浏览器扩展程序。
-  它提供了网站快速拨号、网站云添加、数据云备份等功能来增强 Chrome
-    原生新标签页（New Tab）；
-  另外微度还提供了：
-    天气、云壁纸、快速搜索等插件，为用户提供最快捷的上网方式。
-* 微度新标签页: [www.weidunewtab.com](http://www.weidunewtab.com/);
-    X New Tab Page: [www.newtabplus.com](http://www.newtabplus.com/).
-* its official online version supporting multi browsers:
-    [www.94994.com](http://www.94994.com/).
-* selected only one language: zh_CN.UTF-8.
-* some is customized.
-* the official settings file is OK for it, but not the other way around.
-
 __Other extensions supporting Vimium C:__
 
 * [PDF Viewer for Vimium C](https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium%20%20/nacjakoppgmdcpemlfnfegmlhipddanj)
