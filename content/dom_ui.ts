@@ -250,8 +250,9 @@ VDom.UI = {
       return VDom.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
     const rect = VDom.getVisibleClientRect_(clickEl),
-    cr = Element.prototype.getBoundingClientRect.call(clickEl), bcr = VDom.fromClientRect_(cr);
-    return rect && !VDom.isContaining_(bcr, rect) ? rect : VDom.NotVisible_(null, cr) ? null : bcr;
+    cr = Element.prototype.getBoundingClientRect.call(clickEl), bcr = VDom.padClientRect_(cr, 8);
+    return rect && !VDom.isContaining_(bcr, rect) ? rect
+      : VDom.cropRectToVisible_.apply(VDom, bcr as [number, number, number, number]) ? bcr : null;
   },
   _lastFlash: null,
   flash_: function (this: DomUI, el: Element | null, rect?: VRect | null): HTMLDivElement | void {

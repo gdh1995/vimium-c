@@ -449,7 +449,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       const hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link): HintsNS.BaseHintItem {
         const marker = VDom.createElement_("span") as HintsNS.BaseHintItem["marker"],
-        rect = VDom.fromClientRect_(link[0].getBoundingClientRect());
+        rect = VDom.padClientRect_(link[0].getBoundingClientRect(), 3);
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
         marker.className = "IH";
         VDom.setBoundary_(marker.style, rect);

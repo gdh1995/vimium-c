@@ -472,8 +472,10 @@ var VDom = {
   isContaining_ (a: VRect, b: VRect): boolean {
     return a[3] >= b[3] && a[2] >= b[2] && a[1] <= b[1] && a[0] <= b[0];
   },
-  fromClientRect_ (rect: ClientRect): WritableVRect {
-    return [rect.left | 0, rect.top | 0, rect.right | 0, rect.bottom | 0];
+  padClientRect_ (rect: ClientRect, padding: number): WritableVRect {
+    const x = rect.left, y = rect.top, max = Math.max;
+    padding = x || y ? padding : 0;
+    return [x | 0, y | 0, (x + max(rect.width, padding)) | 0, (y + max(rect.height, padding)) | 0];
   },
   setBoundary_ (style: CSSStyleDeclaration, r: WritableVRect, allow_abs?: boolean): void {
     if (allow_abs && (r[1] < 0 || r[0] < 0 || r[3] > innerHeight || r[2] > innerWidth)) {
