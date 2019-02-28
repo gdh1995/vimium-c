@@ -48,12 +48,7 @@ VDom.UI = {
          *        that el.sheet has been valid when promise.then, even on XML pages.
          * `AdjustType.NotAdjust` must be used before a certain, clear normal adjusting
          */
-        Promise.resolve(1 as 1).then(function (this: void): void {
-          const a = VDom.UI, box = a.box_ as HTMLElement;
-          // enforce webkit to build the style attribute node, and then we can remove it totally
-          box.hasAttribute("style") && box.removeAttribute("style");
-          a.callback_ && a.callback_();
-        });
+        Promise.resolve(1 as 1).then(a.OnReady_);
       }
     });
     r.appendChild(element);
@@ -95,6 +90,13 @@ VDom.UI = {
     if (enabled) { return this.adjust_(); }
     (this.box_ as HTMLElement).remove();
     removeEventListener("webkitfullscreenchange", this.adjust_, true);
+  },
+  OnReady_ (this: void): void {
+    const a = VDom.UI, box = a.box_ as HTMLElement;
+    // enforce webkit to build the style attribute node, and then we can remove it totally
+    box.hasAttribute("style") && box.removeAttribute("style");
+    a.callback_ && a.callback_();
+    a.OnReady_ = a.callback_ = null as never;
   },
   cssPatch_: null,
   ensureBorder_ (zoom?: number): void {

@@ -298,6 +298,7 @@ interface DomUI {
     ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   adjust_ (this: void, event?: Event): void;
   toggle_ (this: DomUI, enabled: boolean): void;
+  OnReady_ (this: void): void;
   cssPatch_: [string, (css: string) => string] | null;
   ensureBorder_ (this: DomUI, zoom?: number): void;
   createStyle_ (this: DomUI, text?: string, css?: HTMLStyleElement): HTMLStyleElement;
