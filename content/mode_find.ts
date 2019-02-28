@@ -53,10 +53,10 @@ var VFind = {
     a.parsedRegexp_ = a.regexMatches_ = null;
     a.activeRegexIndex_ = 0;
 
-    const el = a.box_ = VDom.createElement_("iframe") as typeof VFind.box_;
+    const el = a.box_ = VDom.createElement_("iframe") as typeof VFind.box_, st = el.style;
     el.className = "R HUD UI";
-    el.style.width = "0px";
-    if (VDom.wdZoom_ !== 1) { el.style.zoom = "" + 1 / VDom.wdZoom_; }
+    st.display = "none";
+    if (VDom.wdZoom_ !== 1) { st.zoom = "" + 1 / VDom.wdZoom_; }
     el.onload = function(this: HTMLIFrameElement): void { return VFind.onLoad_(1); };
     VUtils.push_(UI.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
@@ -116,6 +116,7 @@ var VFind = {
       el.focus();
       return a.setFirstQuery_(a.query0_);
     }
+    a.box_.style.cssText = "width:0";
     if ((VDom.UI.box_ as HTMLElement).style.display) {
       VDom.UI.callback_ = cb;
     } else {
@@ -384,7 +385,7 @@ var VFind = {
     }
     count = ((this.input_.offsetWidth + this.countEl_.offsetWidth + 7) >> 2) * 4;
     if (this._small && count < 152) { return; }
-    this.box_.style.width = ((this._small = count < 152) ? 0 : count) + "px";
+    this.box_.style.width = ((this._small = count < 152) ? 0 as number | string as string : count + "px");
   },
   _ctrlRe: <RegExpG & RegExpSearchable<0>> /\\[CIRW\\cirw]/g,
   _bslashRe: <RegExpG & RegExpSearchable<0>> /\\\\/g,

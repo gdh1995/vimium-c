@@ -121,11 +121,12 @@ var VOmni = {
     } 
     VUtils.remove_(this);
     active || window.focus();
-    this.box_.style.cssText = "display: none;";
+    this.box_.style.cssText = "display:none";
   },
   init_ ({k: secret, v: page, t: type, i: inner}: VomnibarNS.FullOptions, CSS: BgCSSReq["S"]): void {
     const el = VDom.createElement_("iframe") as typeof VOmni.box_, UI = VDom.UI;
     el.className = "R UI Omnibar";
+    el.style.display = "none";
     if (type !== VomnibarNS.PageType.web) {}
     else if (page.startsWith("http:") && location.origin.startsWith("https:")) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
@@ -142,7 +143,6 @@ var VOmni = {
       el.src = page = inner as string; inner = null;
       let opts = VOmni.options_; opts && (opts.t = type);
     }
-    el.style.visibility = "hidden";
     let loaded = false;
     el.onload = function(this: typeof el): void {
       const _this = VOmni;
@@ -258,13 +258,8 @@ var VOmni = {
       this.defaultTop_ = sh > ScreenHeightThreshold ? (50 - NormalTopHalf / sh * 100) + "%" : "";
     }
     style.top = VDom.wdZoom_ !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.wdZoom_) | 0) + "px" : this.top_ || this.defaultTop_;
-    if (style.visibility) {
-      style.visibility = "";
-      const box = VDom.UI.box_ as HTMLElement;
-      box.hasAttribute("style") && box.removeAttribute("style");
-    } else {
-      style.display = "";
-    }
+    style.display = "";
+    VDom.UI.OnReady_ && VDom.UI.OnReady_();
     VUtils.remove_(this);
     return VUtils.push_(this.onKeydown_, this);
   },
