@@ -786,7 +786,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         st.visibility = "hidden";
         VDom.UI.box_ || VDom.UI.ensureBorder_();
       }
-      VDom.UI.add_(hud.box_ = el, AdjustType.NotAdjust, VHints.box_);
+      VDom.UI.add_(hud.box_ = el, VHints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, VHints.box_);
     },
     _tween (this: void, info?: TimerType): void {
       if (!VPort) { return; }

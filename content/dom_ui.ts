@@ -37,18 +37,21 @@ VDom.UI = {
       a.css_ = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = this.cssPatch_ ? this.cssPatch_[1](css) : css; };
       a.css_(innerCSS);
       a.UI.appendChild(el);
+      if (adjust) {
+        a.adjust_();
+      }
       if (adjust !== AdjustType.AdjustButNotShow) {
-        let f = function (this: HTMLElement | void, e: Event | 1): void {
-          e !== 1 && ((this as HTMLElement).onload = null as never);
+        /**
+         * Note: Tests on C35, 38, 41, 44, 47, 50, 53, 57, 60, 63, 67, 71, 72 confirmed
+         *        that el.sheet has been valid when promise.then, even on XML pages.
+         * `AdjustType.NotAdjust` must be used before a certain, clear normal adjusting
+         */
+        Promise.resolve(1 as 1).then(function (this: void): void {
           const a = VDom.UI, box = a.box_ as HTMLElement;
           // enforce webkit to build the style attribute node, and then we can remove it totally
           box.hasAttribute("style") && box.removeAttribute("style");
           a.callback_ && a.callback_();
-        };
-        VDom.isStandard_ ? Promise.resolve(1 as 1).then(f) : (el.onload = f);
-      }
-      if (adjust !== AdjustType.NotAdjust) {
-        a.adjust_();
+        });
       }
     });
     r.appendChild(element);

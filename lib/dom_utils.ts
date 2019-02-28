@@ -5,11 +5,9 @@ var VDom = {
   Scripts_: true,
   allowRAF_: true,
   isHTML_ (this: void): boolean { return document.documentElement instanceof HTMLElement; },
-  isStandard_: true,
   createElement_<K extends VimiumContainerElementType> (tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement {
     const d = document, a = this,
     node = document.createElement(tagName), valid = node instanceof HTMLElement;
-    a.isStandard_ = valid;
     a.createElement_ = valid ? d.createElement.bind(d) as typeof VDom.createElement_
       : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", [VimiumContainerElementType]
         , HTMLElement>(d, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
