@@ -292,7 +292,7 @@ interface DomUI {
   callback_: null | ((this: void) => void);
   flashLastingTime_: number;
   _lastFlash: HTMLElement | null;
-  add_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
+  add_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): void;
   addElementList_<T extends boolean>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
     offset: ViewOffset, dialogContainer?: T | null
     ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;

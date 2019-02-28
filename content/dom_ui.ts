@@ -9,7 +9,7 @@ VDom.UI = {
   UI: null as never,
   callback_: null,
   flashLastingTime_: 400,
-  add_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): T {
+  add_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
     r: VUIRoot = a.UI = box.attachShadow ? box.attachShadow({mode: "closed"})
       : box.createShadowRoot ? box.createShadowRoot() : box;
@@ -24,9 +24,11 @@ VDom.UI = {
         VUtils.Stop_(e); t.onload && t.onload(e);
       }
     }, true);
-    a.add_ = (function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
-      adjust === AdjustType.NotAdjust || this.adjust_();
-      return this.UI.insertBefore(element, before === true ? this.UI.firstChild : before || null);
+    a.add_ = (function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): void {
+      const noPar = !(this.box_ as NonNullable<typeof this.box_>).parentNode;
+      adjust && !noPar && this.adjust_();
+      this.UI.insertBefore(element, before === true ? this.UI.firstChild : before || null);
+      adjust && noPar && this.adjust_();
     });
     a.css_ = (function (innerCSS): void {
       const a = VDom.UI;
@@ -64,7 +66,6 @@ VDom.UI = {
         a.adjust_();
       }
     }
-    return element;
   },
   addElementList_: function (this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset, dialogContainer) {
     const parent = VDom.createElement_(dialogContainer ? "dialog" : "div");
@@ -76,7 +77,8 @@ VDom.UI = {
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
     zoom !== 1 && (style.zoom = "" + zoom);
     document.webkitIsFullScreen && (style.position = "fixed");
-    return this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
+    this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
+    return parent;
   } as DomUI["addElementList_"],
   adjust_ (event): void {
     const UI = VDom.UI, el = document.webkitFullscreenElement, box = UI.box_ as HTMLDivElement,

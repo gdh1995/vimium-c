@@ -30,7 +30,7 @@ var VFind = {
     a.css_ = options.findCSS || a.css_;
     if (!VDom.isHTML_()) { return; }
     const query: string | undefined | null = (options.query || "") + "",
-    UI = VDom.UI, first = !UI.box_;
+    UI = VDom.UI;
     a.isActive_ || query === a.query_ && options.leave || VMarks.setPreviousPosition_();
     VDom.docSelectable_ = UI.getDocSelectable_();
     UI.ensureBorder_();
@@ -62,8 +62,7 @@ var VFind = {
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
     UI.toggleSelectStyle_(1);
-    UI.add_(el, first ? AdjustType.NotAdjust : AdjustType.MustAdjust, VHUD.box_);
-    first && UI.adjust_();
+    UI.add_(el, AdjustType.DEFAULT, VHUD.box_);
     a.isActive_ = true;
   },
   onLoad_ (later?: 1): void {

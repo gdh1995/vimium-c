@@ -700,7 +700,7 @@ var VHints = {
       this.deactivate_(this.keyStatus_.known);
     } else if (linksMatched.length === 1) {
       VUtils.prevent_(event);
-      this._activateLink(linksMatched[0]);
+      this.run_(linksMatched[0]);
     } else {
       const limit = this.keyStatus_.tab ? 0 : this.keyStatus_.newHintLength;
       for (i = linksMatched.length; 0 <= --i; ) {
@@ -739,7 +739,7 @@ var VHints = {
     this.pTimer_ > 0 && clearTimeout(this.pTimer_);
     while (i < len) { (ref as HintsNS.HintItem[])[i++].target = null as never; }
   },
-  _activateLink (hint: HintsNS.HintItem): void {
+  run_ (hint: HintsNS.HintItem): void {
     let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
     this.resetHints_();
     const str = (this.modeOpt_ as HintsNS.ModeOpt)[this.mode_] as string;
