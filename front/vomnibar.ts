@@ -1,5 +1,4 @@
 /// <reference path="../content/base.d.ts" />
-/// <reference path="../background/bg.d.ts" />
 interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
   favIcon?: string;
   label?: string;
