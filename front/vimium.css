@@ -52,8 +52,7 @@
 	position: static !important;
 	transform: none !important;
 	width: 0 !important;
-	/* the value "contents" is suitable, even considering its impact on accessibility*/
-	display: contents;
+	display: contents !important;
 }
 
 :host:before, :host:after {
