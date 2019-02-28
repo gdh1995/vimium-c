@@ -20,7 +20,7 @@ else
   [ -n "$ZIP_BASE" ] && pushd $ZIP_BASE >/dev/null 2>&1 && NEED_POP=1
   OLD_IFS="$IFS"
   IFS=$'\n'
-  input=($(GLOBIGNORE=node_modules; echo *))
+  input=($(GLOBIGNORE=dist:node_modules:tests:weidu; echo *))
   IFS="$OLD_IFS"
   test $NEED_POP -eq 1 && popd >/dev/null 2>&1
 fi

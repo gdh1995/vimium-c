@@ -30,9 +30,6 @@ The branch [`basic-on-edge`](https://github.com/gdh1995/vimium-c/tree/basic-on-e
   though some function are broken because Edge always lacks many features.
 This extension can also work on lastest Firefox, but there're still some errors.
 
-In the *weidu* directory is another project - a customized 微度新标签页.
-
-
 # Project Introduction
 
 __<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>:__
