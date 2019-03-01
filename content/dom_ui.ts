@@ -13,7 +13,6 @@ VDom.UI = {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
     r: VUIRoot = a.UI = box.attachShadow ? box.attachShadow({mode: "closed"})
       : box.createShadowRoot ? box.createShadowRoot() : box;
-    box.style.display = "none";
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     r.mode === "closed" || (r !== box ? r as ShadowRoot : window).addEventListener("load",
@@ -32,9 +31,9 @@ VDom.UI = {
       adjust2 !== AdjustType.NotAdjust && noPar && this.adjust_();
     });
     a.css_ = (function (innerCSS): void {
-      const a1 = VDom.UI;
-      if (a1.box_ === a1.UI) {
-        a1.box_.id = "VimiumUI";
+      const a1 = VDom.UI, box2 = a1.box_ as HTMLElement;
+      if (box2 === a1.UI) {
+        box2.id = "VimiumUI";
       }
       let el: HTMLStyleElement | null = a1.styleIn_ = a1.createStyle_();
       a1.css_ = function (css) {
@@ -50,19 +49,17 @@ VDom.UI = {
        *        that el.sheet has been valid when promise.then, even on XML pages.
        * `AdjustType.NotAdjust` must be used before a certain, clear normal adjusting
        */
-      Promise.resolve(1 as 1).then((): void => {
-        const a2 = VDom.UI, box2 = a2.box_ as HTMLElement;
-        // enforce webkit to build the style attribute node, and then we can remove it totally
-        box2.hasAttribute("style") && box2.removeAttribute("style");
-        a2.callback_ && a2.callback_();
-        a2.callback_ = null as never;
-      });
+      // enforce webkit to build the style attribute node, and then we can remove it totally
+      box2.hasAttribute("style") && box2.removeAttribute("style");
+      a1.callback_ && a1.callback_();
+      a1.callback_ = null as never;
     });
     r.appendChild(element);
     let b: string | null;
     if (b = a.styleIn_ as string | null) {
       a.css_(b);
     } else {
+      box.style.display = "none";
       if ((adjust as AdjustType) === AdjustType.MustAdjust) {
         a.adjust_();
       }
