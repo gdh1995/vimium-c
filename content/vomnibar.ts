@@ -43,7 +43,6 @@ var VOmni = {
       }
     }
     a._timer = 0;
-    if (!VDom.isHTML_()) { return; }
     let url = options.url, isTop = window.top === window;
     if (isTop || !options.topUrl || typeof options.topUrl !== "string") {
       options.topUrl = location.href;
@@ -58,6 +57,7 @@ var VOmni = {
         return;
       }
     }
+    if (!VDom.isHTML_()) { return; }
     a.options_ = null;
     VDom.dbZoom_ = 1;
     const iw = VDom.prepareCrop_(), ih = a.screenHeight_ = innerHeight;
