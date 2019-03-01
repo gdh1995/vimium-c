@@ -1257,8 +1257,7 @@ Are you sure you want to continue?`);
       }
       port.postMessage({
         N: kBgReq.focusFrame,
-        S: port.s.i === 0 || !(port.s.f & Frames.Flags.hasCSS)
-          ? ensureInnerCSS(port) : null,
+        S: port.s.i === 0 ? ensureInnerCSS(port) : null,
         k: cKey,
         m: port !== cPort && frames && port !== frames[0] ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
       });

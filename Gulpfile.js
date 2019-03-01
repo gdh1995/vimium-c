@@ -880,7 +880,7 @@ function loadUglifyConfig(reload) {
       m.keep_fnames = c.keep_fnames;
     }
   }
-  a.output.comments = removeComments ? /^!/ : "all";
+  a.output.comments = locally ? "all" : /^!/;
   return a;
 }
 
