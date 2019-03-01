@@ -1398,7 +1398,7 @@ Are you sure you want to continue?`);
     /* performFind: */ function (): void {
       const leave = !cOptions.active, sender = cPort.s,
       query = leave || cOptions.last ? FindModeHistory_.query_(sender.a) : "";
-      let findCSS: CmdOptions[kFgCmd.findMode]["findCSS"] = null;
+      let findCSS: CmdOptions[kFgCmd.findMode]["f"] = null;
       if (!(sender.f & Frames.Flags.hasFindCSS)) {
         sender.f |= Frames.Flags.hasFindCSS;
         findCSS = Settings.cache_.findCSS_;
@@ -1407,10 +1407,10 @@ Are you sure you want to continue?`);
           , S: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
           , a: {
         count: cOptions.dir <= 0 ? -commandCount : commandCount,
-        leave,
-        findCSS,
-        return_: cOptions.returnToViewport === true,
-        query
+        l: leave,
+        f: findCSS,
+        r: cOptions.returnToViewport === true,
+        q: query
       }});
     },
     /* showVomnibar: */ function (this: void, forceInner?: boolean): void {

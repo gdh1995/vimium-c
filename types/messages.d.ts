@@ -205,11 +205,11 @@ interface CmdOptions {
   [kFgCmd.reload]: { url: string, /** @deprecated */ force?: undefined, hard?: undefined
     } | { /** @deprecated */ force?: boolean, hard?: boolean, url?: undefined };
   [kFgCmd.findMode]: {
-    count?: number;
-    leave?: boolean,
-    query?: string;
-    return_?: boolean;
-    findCSS?: FindCSS | null;
+    count: number;
+    /** leave find mode */ l: boolean,
+    /** query */ q: string;
+    /* return to view port */ r: boolean;
+    /** findCSS */ f: FindCSS | null;
   };
   [kFgCmd.goToMarks]: {
     /** local */ l?: boolean;

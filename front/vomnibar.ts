@@ -40,7 +40,7 @@ if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy_ === 
 
 var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,
-  run_ (options: Options): void {
+  activate_ (options: Options): void {
     Object.setPrototypeOf(options, null);
     this.mode_.t = this.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     this.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
@@ -1030,7 +1030,7 @@ VPort_ = {
   _OnOwnerMessage ({ data: data }: { data: VomnibarNS.CReq[keyof VomnibarNS.CReq] }): void {
     type Res = VomnibarNS.CReq;
     let name: keyof VomnibarNS.CReq = typeof data === "number" ? data : (data as VomnibarNS.Msg<keyof Res>).N;
-    name === VomnibarNS.kCReq.activate ? Vomnibar_.run_(data as VomnibarNS.CReq[VomnibarNS.kCReq.activate]) :
+    name === VomnibarNS.kCReq.activate ? Vomnibar_.activate_(data as VomnibarNS.CReq[VomnibarNS.kCReq.activate]) :
     name === VomnibarNS.kCReq.backspace ? Vomnibar_.onAction_(AllowedActions.backspace) :
     name === VomnibarNS.kCReq.focus ? Vomnibar_.focus_() :
     name === VomnibarNS.kCReq.hide ? Vomnibar_.hide_(1) :
@@ -1094,7 +1094,7 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     port.onmessage = VPort_._OnOwnerMessage;
     window.onunload = Vomnibar_.OnUnload_;
     if (options) {
-      Vomnibar_.run_(options);
+      Vomnibar_.activate_(options);
     } else {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.uiComponentIsReady });
     }

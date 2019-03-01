@@ -14,7 +14,7 @@ declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface ModeOpt {
     [mode: number]: string | undefined;
-    run_ (this: {}, linkEl: LinkEl, rect: VRect | null, hintEl: Pick<HintsNS.HintItem, "refer">): void | boolean;
+    execute_ (this: {}, linkEl: LinkEl, rect: VRect | null, hintEl: Pick<HintsNS.HintItem, "refer">): void | boolean;
   }
   interface Options extends SafeObject {
     action?: string;
@@ -712,7 +712,7 @@ var VHints = {
       this.deactivate_(this.keyStatus_.known);
     } else if (linksMatched.length === 1) {
       VUtils.prevent_(event);
-      this.run_(linksMatched[0]);
+      this.execute_(linksMatched[0]);
     } else {
       const limit = this.keyStatus_.tab ? 0 : this.keyStatus_.newHintLength;
       for (i = linksMatched.length; 0 <= --i; ) {
@@ -751,7 +751,7 @@ var VHints = {
     this.pTimer_ > 0 && clearTimeout(this.pTimer_);
     while (i < len) { (ref as HintsNS.HintItem[])[i++].target = null as never; }
   },
-  run_ (hint: HintsNS.HintItem): void {
+  execute_ (hint: HintsNS.HintItem): void {
     let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
     this.resetHints_();
     const str = (this.modeOpt_ as HintsNS.ModeOpt)[this.mode_] as string;
@@ -760,7 +760,7 @@ var VHints = {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getVRect, so that VDom.zooms are updated, and prepareCrop is called
       rect = VDom.UI.getVRect_(clickEl, hint.refer !== clickEl ? hint.refer as HTMLElementUsingMap | null : null);
-      const showRect = (this.modeOpt_ as HintsNS.ModeOpt).run_.call(this, clickEl, rect, hint);
+      const showRect = (this.modeOpt_ as HintsNS.ModeOpt).execute_.call(this, clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
         setTimeout(function (): void {
           (showRect || document.hasFocus()) && VDom.UI.flash_(null, rect as VRect);
@@ -1065,7 +1065,7 @@ Modes_: [
 {
   128: "Hover over node",
   192: "Hover over nodes continuously",
-  run_ (element, rect): void {
+  execute_ (element, rect): void {
     const type = VDom.getEditableType_<0>(element);
     VScroller.current_ = element;
     VDom.hover_(element, rect);
@@ -1079,7 +1079,7 @@ Modes_: [
 {
   129: "Simulate mouse leaving link",
   193: "Simulate mouse leaving continuously",
-  run_ (this: void, element): void {
+  execute_ (this: void, element): void {
     const same = VDom.lastHovered_ === element;
     VDom.hover_(null);
     same || VDom.mouse_(element, "mouseout");
@@ -1095,7 +1095,7 @@ Modes_: [
   201: "Copy link URL one by one",
   256: "Edit link URL on Vomnibar",
   257: "Edit link text on Vomnibar",
-  run_ (link): void {
+  execute_ (link): void {
     const a = this as typeof VHints;
     let isUrl = a.mode1_ >= HintMode.min_link_job && a.mode1_ <= HintMode.max_link_job, str: string | null;
     if (isUrl) {
@@ -1159,7 +1159,7 @@ Modes_: [
 {
   138: "Open link in incognito window",
   202: "Open multi incognito tabs",
-  run_ (link: HTMLAnchorElement): void {
+  execute_ (link: HTMLAnchorElement): void {
     const url = (this as typeof VHints).getUrlData_(link);
     if (!VPort.evalIfOK_(url)) {
       return (this as typeof VHints).openUrl_(url, true);
@@ -1169,7 +1169,7 @@ Modes_: [
 {
   132: "Download image",
   196: "Download multiple images",
-  run_ (img: SafeHTMLElement): void {
+  execute_ (img: SafeHTMLElement): void {
     let text = (this as typeof VHints)._getImageUrl(img);
     if (!text) { return; }
     const url = text, i = text.indexOf("://"), a = VDom.createElement_("a");
@@ -1189,7 +1189,7 @@ Modes_: [
 {
   133: "Open image",
   197: "Open multiple image",
-  run_ (img: SafeHTMLElement): void {
+  execute_ (img: SafeHTMLElement): void {
     let text = (this as typeof VHints)._getImageUrl(img, 1);
     if (!text) { return; }
     VPort.post_({
@@ -1204,7 +1204,7 @@ Modes_: [
 {
   136: "Download link",
   200: "Download multiple links",
-  run_ (this: void, link: HTMLAnchorElement, rect): void {
+  execute_ (this: void, link: HTMLAnchorElement, rect): void {
     let oldUrl: string | null = link.getAttribute("href"), changed = false;
     if (!oldUrl || oldUrl === "#") {
       let newUrl = link.getAttribute("data-vim-url");
@@ -1238,7 +1238,7 @@ Modes_: [
   134: "Focus node",
   198: "Focus nodes continuously",
   258: "Select an editable area",
-  run_ (link, rect): void | false {
+  execute_ (link, rect): void | false {
     if ((this as typeof VHints).mode_ < HintMode.min_disable_queue) {
       VDom.view_(link);
       link.focus();
@@ -1256,7 +1256,7 @@ Modes_: [
   64: "Open multiple links in current tab",
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
-  run_ (link, rect, hint): void | boolean {
+  execute_ (link, rect, hint): void | boolean {
     const a = this as typeof VHints, tag = link instanceof HTMLElement ? (link.tagName as string).toLowerCase() : "";
     if (tag === "iframe" || tag === "frame") {
       const highlight = link !== VOmni.box_;
@@ -1284,7 +1284,7 @@ Modes_: [
       (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
       return;
     } else if (hint.refer && hint.refer === link) {
-      return a.Modes_[0].run_.call(a, link, rect, hint);
+      return a.Modes_[0].execute_.call(a, link, rect, hint);
     } else if (VDom.getEditableType_<0>(link) >= EditableType.Editbox) {
       UI.simulateSelect_(link, rect, true);
       return false;

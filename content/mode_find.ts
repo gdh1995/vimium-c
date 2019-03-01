@@ -27,20 +27,20 @@ var VFind = {
   styleIframe_: null as HTMLStyleElement | null,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
     const a = VFind;
-    a.css_ = options.findCSS || a.css_;
+    a.css_ = options.f || a.css_;
     if (!VDom.isHTML_()) { return; }
-    const query: string | undefined | null = (options.query || "") + "",
+    const query: string | undefined | null = (options.q || "") + "",
     UI = VDom.UI;
-    a.isActive_ || query === a.query_ && options.leave || VMarks.setPreviousPosition_();
+    a.isActive_ || query === a.query_ && options.l || VMarks.setPreviousPosition_();
     VDom.docSelectable_ = UI.getDocSelectable_();
     UI.ensureBorder_();
-    if (options.leave) {
+    if (options.l) {
       return a.findAndFocus_(query || a.query_, options);
     }
     a.isActive_ && UI.adjust_();
     if (!a.isActive_) {
       a.getCurrentRange_();
-      if (options.return_) {
+      if (options.r) {
         a.coords_ = [window.scrollX, window.scrollY];
       }
     }

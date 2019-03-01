@@ -156,8 +156,7 @@ declare namespace FindNS {
     DoNothing = 0, Exit, ExitNoFocus, ExitUnexpectedly, MinComplicatedExit,
     ExitToPostMode = MinComplicatedExit, ExitAndReFocus,
   }
-  interface ExecuteOptions {
-    count?: number;
+  interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "count">> {
     noColor?: boolean;
     caseSensitive?: boolean;
   }

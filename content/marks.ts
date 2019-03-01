@@ -9,7 +9,7 @@ var VMarks = {
     a.prefix_ = options.prefix !== false;
     a.swap_ = options.swap === true;
     VUtils.push_(a.onKeydown_, a);
-    return VHUD.show_(isGo ? "Go to mark\u2026" : "Create mark\u2026");
+    return VHUD.show_((isGo ? "Go to" : "Create") + " mark\u2026");
   },
   onKeydown_ (event: HandlerNS.Event): HandlerResult {
     const keyCode = event.keyCode, cont = !VKeyboard.isEscape_(event);
