@@ -287,7 +287,6 @@ interface DomUI {
   styleOut_: HTMLStyleElement | null;
   /** `!!@UI` must keep the same as `!!@box_`*/
   UI: VUIRoot;
-  callback_: null | ((this: void) => void);
   flashLastingTime_: number;
   _lastFlash: HTMLElement | null;
   add_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): void;

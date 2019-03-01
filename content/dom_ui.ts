@@ -7,7 +7,6 @@ VDom.UI = {
   styleIn_: null,
   styleOut_: null,
   UI: null as never,
-  callback_: null,
   flashLastingTime_: 400,
   add_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
@@ -41,9 +40,6 @@ VDom.UI = {
       };
       a1.css_(innerCSS);
       a1.UI.appendChild(el);
-      if (adjust !== AdjustType.NotAdjust) {
-        a1.adjust_();
-      }
       /**
        * Note: Tests on C35, 38, 41, 44, 47, 50, 53, 57, 60, 63, 67, 71, 72 confirmed
        *        that el.sheet has been valid when promise.then, even on XML pages.
@@ -51,8 +47,9 @@ VDom.UI = {
        */
       // enforce webkit to build the style attribute node, and then we can remove it totally
       box2.hasAttribute("style") && box2.removeAttribute("style");
-      a1.callback_ && a1.callback_();
-      a1.callback_ = null as never;
+      if (adjust !== AdjustType.NotAdjust) {
+        a1.adjust_();
+      }
     });
     r.appendChild(element);
     let b: string | null;
