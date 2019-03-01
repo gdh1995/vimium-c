@@ -343,16 +343,6 @@ Are you sure you want to continue?`);
     sender.f |= Frames.Flags.hasCSSAndActed;
     return Settings.cache_.innerCSS;
   }
-  function retryCSS(port: Frames.Port, tick: number): void {
-    let frames = framesForTab[port.s.t];
-    if (!frames || frames.indexOf(port) < 0) { return; }
-    let CSS = Settings.cache_.innerCSS;
-    if (CSS) {
-      port.postMessage({ N: kBgReq.showHUD, S: CSS });
-    } else if (tick < 10) {
-      setTimeout(retryCSS, 34 * tick, port, tick + 1);
-    }
-  }
   /** in face, this functions needs to accept any types of arguments and normalize them */
   function execute(command: string, options: CommandsNS.RawOptions | null, count: number | string
       , port: Port | null, lastKey?: VKeyCodes): void {
@@ -1946,13 +1936,9 @@ Are you sure you want to continue?`);
         console.error("Promises for initHelp failed:", args[0], ";", args[3]);
       });
     },
-    /** css: */ function (this: void, _0: {}, port: Port): void {
-      const CSS = ensureInnerCSS(port);
-      if (CSS) {
-        port.postMessage({ N: kBgReq.showHUD, S: CSS });
-      } else if (!Settings.cache_.innerCSS) {
-        setTimeout(retryCSS, 34, port, 1);
-      }
+    /** kFgReq.css: */ function (this: void, _0: {}, port: Port): void {
+      (port.sender as Frames.Sender).f |= Frames.Flags.hasCSSAndActed;
+      port.postMessage({ N: kBgReq.showHUD, S: Settings.cache_.innerCSS });
     },
     /** vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar] & Req.baseFg<kFgReq.vomnibar>
         , port: Port): void {
