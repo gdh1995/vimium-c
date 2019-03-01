@@ -26,9 +26,9 @@ VDom.UI = {
     }, true);
     a.add_ = (function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): void {
       const noPar = !(this.box_ as NonNullable<typeof this.box_>).parentNode;
-      adjust && !noPar && this.adjust_();
+      adjust !== AdjustType.NotAdjust && !noPar && this.adjust_();
       this.UI.insertBefore(element, before === true ? this.UI.firstChild : before || null);
-      adjust && noPar && this.adjust_();
+      adjust !== AdjustType.NotAdjust && noPar && this.adjust_();
     });
     a.css_ = (function (innerCSS): void {
       const a = VDom.UI;
@@ -39,7 +39,7 @@ VDom.UI = {
       a.css_ = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = this.cssPatch_ ? this.cssPatch_[1](css) : css; };
       a.css_(innerCSS);
       a.UI.appendChild(el);
-      if (adjust) {
+      if (adjust !== AdjustType.NotAdjust) {
         a.adjust_();
       }
       if (adjust !== AdjustType.AdjustButNotShow) {
