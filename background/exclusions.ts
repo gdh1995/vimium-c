@@ -4,12 +4,12 @@ declare namespace ExclusionsNS {
   type Rules = Array<Tester | string>;
 
   interface ExclusionsCls {
-    testers_: SafeDict<Tester> | null;
-    getRe_ (pattern: string): Tester;
     _listening: boolean;
     _listeningHash: boolean;
     onlyFirstMatch_: boolean;
     rules_: Rules;
+    testers_: SafeDict<Tester> | null;
+    getRe_ (pattern: string): Tester;
     setRules_ (newRules: StoredRule[]): void;
     GetPattern_ (this: void, url: string): string | null;
     getOnURLChange_ (): null | Listener;
@@ -29,7 +29,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   getRe_ (this: ExcCls, pattern: string): ExclusionsNS.Tester {
     let func: ExclusionsNS.Tester | undefined = (this.testers_ as ExclusionsNS.TesterDict)[pattern], re: RegExp | null;
     if (func) { return func; }
-    if (pattern[0] === '^' && (re = Utils.makeRegexp_(pattern, "", false))) {
+    if (pattern[0] === "^" && (re = Utils.makeRegexp_(pattern, "", false))) {
       func = re as RegExpOne;
     } else {
       func = pattern.substring(1);
@@ -85,7 +85,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   getOnURLChange_ (this: ExcCls): null | ExclusionsNS.Listener {
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
       : ChromeVer >= BrowserVer.MinWithFrameId ? Backend.checkIfEnabled_
-      : function(details: chrome.webNavigation.WebNavigationCallbackDetails) {
+      : function (details: chrome.webNavigation.WebNavigationCallbackDetails) {
         const ref = Backend.indexPorts_(details.tabId),
         msg: Req.bg<kBgReq.url> = { N: kBgReq.url, H: kFgReq.checkIfEnabled as kFgReq.checkIfEnabled };
         // force the tab's ports to reconnect and refresh their pass keys
@@ -155,19 +155,19 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
 
 Exclusions.setRules_(Settings.get_("exclusionRules"));
 
-Settings.updateHooks_.exclusionRules = function(this: void, rules: ExclusionsNS.StoredRule[]): void {
-  setTimeout(function() {
+Settings.updateHooks_.exclusionRules = function (this: void, rules: ExclusionsNS.StoredRule[]): void {
+  setTimeout(function () {
     const is_empty = Exclusions.rules_.length <= 0;
     Exclusions.setRules_(rules);
     setTimeout(Exclusions.RefreshStatus_, 17, is_empty);
   }, 17);
 };
 
-Settings.updateHooks_.exclusionOnlyFirstMatch = function(this: void, value: boolean): void {
+Settings.updateHooks_.exclusionOnlyFirstMatch = function (this: void, value: boolean): void {
   Exclusions.onlyFirstMatch_ = value;
 };
 
-Settings.updateHooks_.exclusionListenHash = function(this: void, value: boolean): void {
+Settings.updateHooks_.exclusionListenHash = function (this: void, value: boolean): void {
   const _this = Exclusions;
   if (!_this._listening) { return; }
   const l = _this.getOnURLChange_();

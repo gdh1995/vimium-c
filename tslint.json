@@ -1,0 +1,41 @@
+{
+    "extends": "tslint:recommended",
+    "defaultSeverity": "error",
+    "jsRules": {},
+    "rules": {
+        "no-namespace": [true, "allow-declarations"],
+        "only-arrow-functions": false,
+        "one-variable-per-declaration": false,
+        "no-console": false,
+        "no-angle-bracket-type-assertion": false,
+        "no-var-keyword": false,
+        "no-empty": [true, "allow-empty-catch"],
+        "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore",
+            "allow-pascal-case", "allow-snake-case", "allow-trailing-underscore"],
+        "prefer-const": false,
+        "space-before-function-paren": [true, {"anonymous": "always", "named": "never", "asyncArrow": "always"}],
+        "max-line-length": [true, {"limit": 120, "ignore-pattern": "^(//|/\\*| \\*)"}],
+        "no-conditional-assignment": false,
+        "no-bitwise": false,
+        "forin": false,
+        "no-unused-expression": [true, "allow-fast-null-checks"],
+        "one-line": [true, "check-catch", "check-finally"],
+        "trailing-comma": [true, "never"],
+        "object-literal-sort-keys": false,
+        "object-literal-key-quotes": [true, "as-needed"],
+        "align": [true, "statements"],
+        "interface-name": [true, "never-prefix"],
+        "quotemark": [true, "double", "avoid-escape", "avoid-template"],
+        "arrow-parens": [true, "ban-single-arg-parens"],
+        "no-shadowed-variable": [true, {
+            "class": true,
+            "enum": true,
+            "function": false,
+            "interface": true,
+            "namespace": true,
+            "typeAlias": true,
+            "typeParameter": true
+        }]
+    },
+    "rulesDirectory": []
+}

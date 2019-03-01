@@ -16,7 +16,7 @@ var Utils = {
     }
     return b;
   },
-  blank_ (this: void): void {},
+  blank_ (this: void): void { /* empty */ },
   _reToReset: <RegExpOne> /a?/,
   resetRe_ (): true {
     return this._reToReset.test("") as true;
@@ -35,26 +35,28 @@ var Utils = {
     start += charCode === 0x200D ? 1 : charCode >= 0xDC00 && charCode <= 0xDFFF ? -1 : 0;
     return str.substring(start, end);
   },
-  escapeText_ (s: string): string {
+  escapeText_ (str: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
       return i === KnownKey.and ? "&amp;" : i === KnownKey.quote1 ? "&apos;"
         : i < KnownKey.quote1 ? "&quot;" : i === KnownKey.lt ? "&lt;" : "&gt;";
     }
-    this.escapeText_ = function(s: string): string {
+    this.escapeText_ = function (s: string): string {
       return s.replace(escapeRe, escapeCallback);
     };
-    return this.escapeText_(s);
+    return this.escapeText_(str);
   },
-  unescapeHTML_ (s: string): string {
+  unescapeHTML_ (str: string): string {
     const escapedRe = <RegExpG & RegExpSearchable<1>> /\&(amp|gt|lt|nbsp);/g,
     map = Object.setPrototypeOf({ amp: "&", gt: ">", lt: "<", nbsp: " " }, null) as EnsuredSafeDict<string>,
     unescapeCallback = (_0: string, s: string) => map[s];
     this.unescapeHTML_ = s => s.replace(escapedRe, unescapeCallback);
-    return this.unescapeHTML_(s);
+    return this.unescapeHTML_(str);
   },
-  isJSUrl_ (s: string): boolean { return s.charCodeAt(10) === KnownKey.colon && s.substring(0, 11).toLowerCase() === "javascript:"; },
+  isJSUrl_ (s: string): boolean {
+    return s.charCodeAt(10) === KnownKey.colon && s.substring(0, 11).toLowerCase() === "javascript:";
+  },
   isRefusingIncognito_ (url: string): boolean {
     url = url.toLowerCase();
     return url.startsWith("about:") ? url !== "about:blank"
@@ -66,16 +68,17 @@ var Utils = {
 .\u6211\u7231\u4f60.\u624b\u673a.\u62db\u8058.\u653f\u52a1.\u6e38\u620f.\u7f51\u5740.\u7f51\u5e97.\u7f51\u5e97\
 .\u7f51\u7edc.\u8d2d\u7269.\u96c6\u56e2.\u9910\u5385",
   _tlds: ["", "",
-    ".ac.ad.ae.af.ag.ai.al.am.ao.aq.ar.as.at.au.aw.ax.az.ba.bb.bd.be.bf.bg.bh.bi.bj.bm.bn.bo.br.bs.bt.bv.bw.by.bz.ca.cc.cd.cf\
-.cg.ch.ci.ck.cl.cm.cn.co.cr.cu.cv.cw.cx.cy.cz.de.dj.dk.dm.do.dz.ec.ee.eg.er.es.et.eu.fi.fj.fk.fm.fo.fr.ga.gb.gd.ge.gf.gg.gh.gi.gl\
-.gm.gn.gp.gq.gr.gs.gt.gu.gw.gy.hk.hm.hn.hr.ht.hu.id.ie.il.im.in.io.iq.ir.is.it.je.jm.jo.jp.ke.kg.kh.ki.km.kn.kp.kr.kw.ky.kz.la\
-.lb.lc.li.lk.lr.ls.lt.lu.lv.ly.ma.mc.md.me.mg.mh.mk.ml.mm.mn.mo.mp.mq.mr.ms.mt.mu.mv.mw.mx.my.mz.na.nc.ne.nf.ng.ni.nl.no.np.nr\
-.nu.nz.om.pa.pe.pf.pg.ph.pk.pl.pm.pn.pr.ps.pt.pw.py.qa.re.ro.rs.ru.rw.sa.sb.sc.sd.se.sg.sh.si.sj.sk.sl.sm.sn.so.sr.st.su.sv.sx\
+    ".ac.ad.ae.af.ag.ai.al.am.ao.aq.ar.as.at.au.aw.ax.az.ba.bb.bd.be.bf.bg.bh.bi.bj.bm.bn.bo.br.bs.bt.bv.bw.by.bz\
+.ca.cc.cd.cf.cg.ch.ci.ck.cl.cm.cn.co.cr.cu.cv.cw.cx.cy.cz.de.dj.dk.dm.do.dz.ec.ee.eg.er.es.et.eu.fi.fj.fk.fm.fo.fr\
+.ga.gb.gd.ge.gf.gg.gh.gi.gl.gm.gn.gp.gq.gr.gs.gt.gu.gw.gy.hk.hm.hn.hr.ht.hu.id.ie.il.im.in.io.iq.ir.is.it.je.jm.jo\
+.jp.ke.kg.kh.ki.km.kn.kp.kr.kw.ky.kz.la.lb.lc.li.lk.lr.ls.lt.lu.lv.ly.ma.mc.md.me.mg.mh.mk.ml.mm.mn.mo.mp.mq.mr.ms\
+.mt.mu.mv.mw.mx.my.mz.na.nc.ne.nf.ng.ni.nl.no.np.nr.nu.nz.om.pa.pe.pf.pg.ph.pk.pl.pm.pn.pr.ps.pt.pw.py.qa.re.ro.rs\
+.ru.rw.sa.sb.sc.sd.se.sg.sh.si.sj.sk.sl.sm.sn.so.sr.st.su.sv.sx\
 .sy.sz.tc.td.tf.tg.th.tj.tk.tl.tm.tn.to.tr.tt.tv.tw.tz.ua.ug.uk.us.uy.uz.va.vc.ve.vg.vi.vn.vu.wf.ws.ye.yt.za.zm.zw",
     ".abc.art.bid.biz.cat.com.dev.edu.fun.gov.ink.int.kim.law.lol.ltd.men.mil.moe.mom.mtn.net\
 .new.one.org.pro.pub.red.ren.run.tel.top.vip.win.xin.xxx.xyz"
-    , ".aero.arpa.asia.auto.band.beer.chat.city.club.cool.coop.date.fund.game.gift.gold.guru.help.info.jobs.life.link.live.loan\
-.love.mobi.name.news.pics.plus.post.shop.show.site.sohu.team.tech.wang.wiki.work.zone"
+    , ".aero.arpa.asia.auto.band.beer.chat.city.club.cool.coop.date.fund.game.gift.gold.guru.help.info.jobs.life\
+.link.live.loan.love.mobi.name.news.pics.plus.post.shop.show.site.sohu.team.tech.wang.wiki.work.zone"
     , ".citic.click.email.games.group.local.onion.party.photo.press.rocks.space.store.today.trade.video.world"
     , ".center.design.lawyer.market.museum.online.social.studio.travel"
     , ".company.science.website"
@@ -94,18 +97,19 @@ var Utils = {
   _jsNotEscapeRe: <RegExpOne> /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   quotedStringRe_: <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/,
   filePathRe_: <RegExpOne> /^[A-Za-z]:(?:[\\/][^:*?"<>|]*)?$|^\/(?:Users|home|root)\/[^:*?"<>|]+$/,
-  _backSlashRe: <RegExpG>/\\/g,
+  _backSlashRe: <RegExpG> /\\/g,
   lastUrlType_: Urls.Type.Default,
-  convertToUrl_: function(this: {}, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
+// tslint:disable-next-line: variable-name
+  convertToUrl_: function (this: {}, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     type UtilsTy = typeof Utils;
     string = string.trim();
     (this as UtilsTy).lastUrlType_ = Urls.Type.Full;
     if ((this as UtilsTy).isJSUrl_(string)) {
-      if (ChromeVer < BrowserVer.MinAutoDecodeJSURL && string.indexOf('%', 11) > 0
+      if (ChromeVer < BrowserVer.MinAutoDecodeJSURL && string.indexOf("%", 11) > 0
           && !(this as UtilsTy)._jsNotEscapeRe.test(string)) {
         string = (this as UtilsTy).DecodeURLPart_(string);
       }
-      string = string.replace((this as UtilsTy).A0Re_, ' ');
+      string = string.replace((this as UtilsTy).A0Re_, " ");
       (this as UtilsTy).resetRe_();
       return string;
     }
@@ -113,10 +117,11 @@ var Utils = {
       , expected: Urls.Type.Full | Urls.Type.NoProtocolName | Urls.Type.NoSchema = Urls.Type.Full
       , hasPath = false, index: number, index2: number, oldString: string
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
-    oldString = string.replace((this as UtilsTy)._lfSpacesRe, '').replace((this as UtilsTy).A0Re_, ' ');
+    oldString = string.replace((this as UtilsTy)._lfSpacesRe, "").replace((this as UtilsTy).A0Re_, " ");
     string = oldString[0] === '"' && oldString.endsWith('"') ? oldString.slice(1, -1) : oldString;
     if ((this as UtilsTy).filePathRe_.test(string)) {
-      string[1] === ":" && (string = string[0].toUpperCase() + ":/" + string.substring(3).replace((this as UtilsTy)._backSlashRe, "/"));
+      string[1] === ":" && (string = string[0].toUpperCase() + ":/"
+          + string.substring(3).replace((this as UtilsTy)._backSlashRe, "/"));
       (this as UtilsTy).resetRe_();
       return "file://" + (string[0] === "/" ? string : "/" + string);
     }
@@ -127,12 +132,12 @@ var Utils = {
       return "file://" + string;
     }
     string = oldString.toLowerCase();
-    if ((index = string.indexOf(' ')) > 0) {
+    if ((index = string.indexOf(" ")) > 0) {
       string = string.substring(0, index);
     }
-    if ((index = string.indexOf(':')) === 0) { type = Urls.Type.Search; }
+    if ((index = string.indexOf(":")) === 0) { type = Urls.Type.Search; }
     else if (index === -1 || !(this as UtilsTy).protocolRe_.test(string)) {
-      if (index !== -1 && string.lastIndexOf('/', index) < 0) {
+      if (index !== -1 && string.lastIndexOf("/", index) < 0) {
         type = (this as UtilsTy).checkSpecialSchemes_(oldString, index, string.length % oldString.length);
       }
       expected = Urls.Type.NoSchema; index2 = oldString.length;
@@ -141,8 +146,8 @@ var Utils = {
         expected = Urls.Type.NoProtocolName;
         index2 -= 2;
       }
-      if (type !== Urls.TempType.Unspecified) {}
-      else if ((index = string.indexOf('/')) <= 0) {
+      if (type !== Urls.TempType.Unspecified) { /* empty */ }
+      else if ((index = string.indexOf("/")) <= 0) {
         if (index === 0 || string.length < index2) { type = Urls.Type.Search; }
       } else if (string.length >= index2 || string.charCodeAt(index + 1) > KnownKey.space) {
         hasPath = string.length > index + 1;
@@ -164,17 +169,18 @@ var Utils = {
         type = Urls.Type.Functional;
       }
     }
-    else if ((index2 = string.indexOf('/', index + 3)) === -1
+    else if ((index2 = string.indexOf("/", index + 3)) === -1
         ? string.length < oldString.length : string.charCodeAt(index2 + 1) < KnownKey.minNotSpace
     ) {
       type = Urls.Type.Search;
     }
     else if ((this as UtilsTy)._nonENTldRe.test(string.substring(0, index))) {
-      type = (index = string.charCodeAt(index + 3)) > KnownKey.space && index !== KnownKey.slash ? Urls.Type.Full : Urls.Type.Search;
+      type = (index = string.charCodeAt(index + 3)) > KnownKey.space
+        && index !== KnownKey.slash ? Urls.Type.Full : Urls.Type.Search;
     }
     else if (string.startsWith("file:")) { type = Urls.Type.Full; }
     else if (string.startsWith("chrome:")) {
-      type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? Urls.Type.Search : Urls.Type.Full;
+      type = string.length < oldString.length && string.indexOf("/", 9) === -1 ? Urls.Type.Search : Urls.Type.Full;
     } else {
       string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
     }
@@ -183,21 +189,21 @@ var Utils = {
     //       Otherwise `type` must not be `NoSchema | NoProtocolName`
     if (type === Urls.TempType.Unspecified && string.indexOf("%") >= 0) {
       string = Utils.DecodeURLPart_(string);
-      if (string.indexOf('/') >= 0) { type = Urls.Type.Search; }
+      if (string.indexOf("/") >= 0) { type = Urls.Type.Search; }
     }
     if (type === Urls.TempType.Unspecified && string.startsWith(".")) { string = string.substring(1); }
-    if (type !== Urls.TempType.Unspecified) {
-    } else if (!(arr = (this as UtilsTy).hostRe_.exec(string) as typeof arr)) {
+    if (type !== Urls.TempType.Unspecified) { /* empty */ }
+    else if (!(arr = (this as UtilsTy).hostRe_.exec(string) as typeof arr)) {
       type = Urls.Type.Search;
       if (string.length === oldString.length && (this as UtilsTy).isIPHost_(string = "[" + string + "]", 6)) {
         oldString = string;
         type = Urls.Type.NoSchema;
       }
-    } else if ((string = arr[3]).endsWith(']')) {
+    } else if ((string = arr[3]).endsWith("]")) {
       type = (this as UtilsTy).isIPHost_(string, 6) ? expected : Urls.Type.Search;
     } else if (string.endsWith("localhost") || (this as UtilsTy).isIPHost_(string, 4) || arr[4] && hasPath) {
       type = expected;
-    } else if ((index = string.lastIndexOf('.')) < 0
+    } else if ((index = string.lastIndexOf(".")) < 0
         || (type = (this as UtilsTy).isTld_(string.substring(index + 1))) === Urls.TldType.NotTld) {
       index < 0 && string === "__proto__" && (string = "." + string);
       index2 = string.length - index - 1;
@@ -205,7 +211,8 @@ var Utils = {
       // https://en.wikipedia.org/wiki/Generic_top-level_domain#New_top-level_domains
       type = expected !== Urls.Type.NoSchema && (index < 0 || index2 >= 3 && index2 <= 5)
         || (this as UtilsTy).checkInDomain_(string, arr[4]) > 0 ? expected : Urls.Type.Search;
-    } else if (string.length !== index + 3 && type === Urls.TldType.ENTld && (this as UtilsTy)._nonENDoaminRe.test(string)) {
+    } else if (string.length !== index + 3 && type === Urls.TldType.ENTld
+        && (this as UtilsTy)._nonENDoaminRe.test(string)) {
       // `notEnglish-domain.English-notCC-TLD`
       type = Urls.Type.Search;
     } else if (expected !== Urls.Type.NoSchema || hasPath) {
@@ -229,7 +236,8 @@ var Utils = {
     (this as UtilsTy).resetRe_();
     (this as UtilsTy).lastUrlType_ = type;
     return type === Urls.Type.Full ? oldString
-      : type === Urls.Type.Search ? (this as UtilsTy).createSearchUrl_(oldString.split((this as UtilsTy).spacesRe_), keyword || "~", vimiumUrlWork)
+      : type === Urls.Type.Search ?
+        (this as UtilsTy).createSearchUrl_(oldString.split((this as UtilsTy).spacesRe_), keyword || "~", vimiumUrlWork)
       : type <= Urls.Type.MaxOfInputIsPlainUrl ?
         ((this as UtilsTy).checkInDomain_(string, arr && arr[4]) === 2 ? "https:" : "http:")
         + (type === Urls.Type.NoSchema ? "//" : "") + oldString
@@ -239,11 +247,12 @@ var Utils = {
     const domain = port && this.domains_[host + port] || this.domains_[host];
     return domain ? domain.https ? 2 : 1 : 0;
   },
+// tslint:disable-next-line: variable-name
   checkSpecialSchemes_ (string: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
     const isSlash = string[i + 1] === "/";
     switch (string.substring(0, i)) {
     case "about":
-      return isSlash ? Urls.Type.Search : spacePos > 0 || string.indexOf('@', i) > 0
+      return isSlash ? Urls.Type.Search : spacePos > 0 || string.indexOf("@", i) > 0
         ? Urls.TempType.Unspecified : Urls.Type.Full;
     case "blob": case "view-source":
       string = string.substring(i + 1);
@@ -251,7 +260,7 @@ var Utils = {
       this.convertToUrl_(string, null, Urls.WorkType.KeepAll);
       return this.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? Urls.Type.Full : Urls.Type.Search;
     case "data":
-      return isSlash ? Urls.Type.Search : (i = string.indexOf(',', i)) < 0 || (spacePos > 0 && spacePos < i)
+      return isSlash ? Urls.Type.Search : (i = string.indexOf(",", i)) < 0 || (spacePos > 0 && spacePos < i)
         ? Urls.TempType.Unspecified : Urls.Type.Full;
     case "file": return Urls.Type.Full;
     case "filesystem":
@@ -259,13 +268,13 @@ var Utils = {
       if (!this.protocolRe_.test(string)) { return Urls.Type.Search; }
       this.convertToUrl_(string, null, Urls.WorkType.KeepAll);
       return this.lastUrlType_ === Urls.Type.Full &&
-          (<RegExpOne>/[^/]\/(?:persistent|temporary)(?:\/|$)/).test(string)
+          (<RegExpOne> /[^/]\/(?:persistent|temporary)(?:\/|$)/).test(string)
         ? Urls.Type.Full : Urls.Type.Search;
-    case "magnet": return string[i + 1] !== '?' ? Urls.TempType.Unspecified : Urls.Type.Full;
+    case "magnet": return string[i + 1] !== "?" ? Urls.TempType.Unspecified : Urls.Type.Full;
     case "mailto": return isSlash ? Urls.Type.Search
-      : (i = string.indexOf('/', i)) > 0 && string.lastIndexOf('?', i) < 0
+      : (i = string.indexOf("/", i)) > 0 && string.lastIndexOf("?", i) < 0
       ? Urls.TempType.Unspecified : Urls.Type.Full;
-    case "tel": return (<RegExpOne>/\d/).test(string) ? Urls.Type.Full : Urls.Type.Search;
+    case "tel": return (<RegExpOne> /\d/).test(string) ? Urls.Type.Full : Urls.Type.Search;
     default: return isSlash ? Urls.Type.Search : Urls.TempType.Unspecified;
     }
   },
@@ -279,7 +288,7 @@ var Utils = {
     let s = str.substring(0, i - 1).trim().toLowerCase();
     if (s !== "link" && s !== "\u94fe\u63a5") { return str; }
     let url = str.substring(i).trim();
-    (i = url.indexOf(' ')) > 0 && (url = url.substring(0, i));
+    (i = url.indexOf(" ")) > 0 && (url = url.substring(0, i));
     ",.;\u3002\uff0c\uff1b".indexOf(url[url.length - 1]) >= 0 && (url = url.slice(0, -1));
     url = this.convertToUrl_(url, null, Urls.WorkType.KeepAll);
     return Utils.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
@@ -298,7 +307,7 @@ var Utils = {
      return false;
   },
   safeParseURL_(url: string): URL | null { try { return new URL(url); } catch (e) {} return null; },
-  commonFileExtRe_: <RegExpOne>/\.[0-9A-Za-z]+$/,
+  commonFileExtRe_: <RegExpOne> /\.[0-9A-Za-z]+$/,
   formatVimiumUrl_ (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, subPath = "", query = "", tempStr: string | undefined, path = fullpath.trim();
     if (!path) { return partly ? "" : location.origin + "/pages/"; }
@@ -313,7 +322,8 @@ var Utils = {
     if (!this.commonFileExtRe_.test(path)) {
       path = path.toLowerCase();
       if ((tempStr = Settings.CONST_.RedirectedUrls_[path]) != null) {
-        tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#" ? Settings.CONST_.HomePage_ + tempStr : tempStr;
+        tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#" ? Settings.CONST_.HomePage_ + tempStr
+          : tempStr;
       } else if (path === "newtab") {
         return Settings.cache_.newTabUrl_f;
       } else if (path[0] === "/" || Settings.CONST_.KnownPages_.indexOf(path) >= 0) {
@@ -334,7 +344,7 @@ var Utils = {
   _vimiumCmdRe: <RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
   _vimiumFileExtRe: <RegExpI> /\.(?:css|html|js)$/i,
   _mathSpaceRe: <RegExpG> /[\s+,\uff0c]+/g,
-  evalVimiumUrl_: function(this: {}, path: string, workType?: Urls.WorkType
+  evalVimiumUrl_: function (this: {}, path: string, workType?: Urls.WorkType
       , onlyOnce?: boolean): Urls.Url | null {
     type UtilsTy = typeof Utils;
     let ind: number, cmd: string, arr: string[], obj: { u: string } | null, res: Urls.Url | string[];
@@ -346,7 +356,7 @@ var Utils = {
     }
     path = path.substring(ind + 1).trimLeft();
     if (!path) { return null; }
-    if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
+    if (workType === Urls.WorkType.ActIfNoSideEffects) { switch (cmd) {
     case "sum": case "mul":
       path = path.replace((this as UtilsTy)._mathSpaceRe, cmd === "sum" ? " + " : " * ");
       cmd = "e"; break;
@@ -354,30 +364,30 @@ var Utils = {
       arr = path.split((this as UtilsTy)._mathSpaceRe);
       path = "(" + arr.join(" + ") + ") / " + arr.length;
       cmd = "e"; break;
-    }
-    if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
+    } }
+    if (workType === Urls.WorkType.ActIfNoSideEffects) { switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
       return (this as UtilsTy).require_<object>("MathParser").catch(() => null
-      ).then<Urls.MathEvalResult>(function(MathParser): Urls.MathEvalResult {
+      ).then<Urls.MathEvalResult>(function (MathParser): Urls.MathEvalResult {
         Utils.quotedStringRe_.test(path) && (path = path.slice(1, -1));
-        path = path.replace(/\uff0c/g as RegExpG, ' ');
+        path = path.replace(/\uff0c/g as RegExpG, " ");
         let result = Utils.tryEvalMath_(path, MathParser) || "";
         return [result, "math", path];
       });
     case "error":
       return [path, "ERROR"];
-    }
-    else if (workType === Urls.WorkType.ActAnyway) switch (cmd) {
+    } }
+    else if (workType === Urls.WorkType.ActAnyway) { switch (cmd) {
     case "status": case "state":
       return [path.toLowerCase(), "status"] as Urls.StatusEvalResult;
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":
       res = (this as UtilsTy).convertToUrl_(path, null, Urls.WorkType.ActIfNoSideEffects);
       if (res instanceof Promise) {
-        return res.then(function(arr): Urls.CopyEvalResult {
-          let path = arr[0] || (arr[2] || "");
-          path = path instanceof Array ? path.join(" ") : path;
-          Utils.copy_(path);
-          return [path, "copy"];
+        return res.then(function (arr1): Urls.CopyEvalResult {
+          let path2 = arr1[0] || (arr1[2] || "");
+          path2 = path2 instanceof Array ? path2.join(" ") : path2;
+          Utils.copy_(path2);
+          return [path2, "copy"];
         });
       } else {
         res = (this as UtilsTy).lastUrlType_ === Urls.Type.Functional &&
@@ -388,10 +398,10 @@ var Utils = {
     case "c": case "cp": case "copy": // here `typeof path` must be `string`
       Utils.copy_(path);
       return [path, "copy"];
-    }
+    } }
     switch (cmd) {
     case "p": case "parse": case "decode":
-      cmd = path.split(' ', 1)[0];
+      cmd = path.split(" ", 1)[0];
       if (cmd.indexOf("/") < 0 && cmd.toLowerCase().indexOf("%2f") < 0) {
         path = path.substring(cmd.length + 1).trimLeft();
       } else {
@@ -427,7 +437,7 @@ var Utils = {
     if (ind > 0) { return (this as UtilsTy).createSearchUrl_(arr, "", workType); }
     res = (this as UtilsTy).createSearchUrl_(arr, "", workType);
     (this as UtilsTy)._nestedEvalCounter = 0;
-    return <Urls.Url>res;
+    return <Urls.Url> res;
   } as Urls.Executor,
   tryEvalMath_ (expr: string, mathParser: any): string | null {
     let result: any = null;
@@ -444,20 +454,20 @@ var Utils = {
     }
     return result;
   },
-  copy_ (this: void, _s: string): void | Promise<void> {},
+  copy_ (this: void, _s: string): void | Promise<void> { /* empty */ },
   require_<T extends object> (name: SettingsNS.DynamicFiles): Promise<T> {
     const p: Promise<T> | T | null | undefined = window[name];
     if (p) {
       return Promise.resolve(p);
     }
-    return (window as any)[name] = new Promise<T>(function(resolve, reject) {
+    return (window as any)[name] = new Promise<T>(function (resolve, reject) {
       const script = document.createElement("script");
       script.src = Settings.CONST_[name];
-      script.onerror = function(): void {
+      script.onerror = function (): void {
         this.remove();
         reject("ImportError: " + name);
       };
-      script.onload = function(): void {
+      script.onload = function (): void {
         this.remove();
         if (window[name] instanceof Promise) {
           reject("ImportError: " + name);
@@ -486,11 +496,12 @@ var Utils = {
     (this as UtilsTy).lastUrlType_ = Urls.Type.Search;
     return url;
   } as Urls.Searcher,
-  createSearch_: function(this: {}, query: string[], url: string, blank: string, indexes?: number[]): string | Search.Result {
+  createSearch_: function (this: {}, query: string[], url: string, blank: string, indexes?: number[]
+      ): string | Search.Result {
     type UtilsTy = typeof Utils;
     let q2: string[] | undefined, delta = 0;
     url = query.length === 0 && blank ? blank : url.replace((this as UtilsTy).searchWordRe_,
-    function(_s: string, s1: string | undefined, s2: string, ind: number): string {
+    function (_s: string, s1: string | undefined, s2: string, ind: number): string {
       let arr: string[];
       if (s1 === "S") {
         arr = query;
@@ -500,10 +511,10 @@ var Utils = {
         s1 = "+";
       }
       if (arr.length === 0) { return ""; }
-      if (s2 && s2.indexOf('$') !== -1) {
-        s2 = s2.replace(Utils.searchVariable_, function(_s: string, s3: string): string {
+      if (s2 && s2.indexOf("$") !== -1) {
+        s2 = s2.replace(Utils.searchVariable_, function (_t: string, s3: string): string {
           let i = parseInt(s3, 10);
-          if (i == 0) {
+          if (i === 0) { // todo: consider about NaN
             return arr.join(s1);
           } else if (i < 0) {
             i += arr.length + 1;
@@ -532,11 +543,11 @@ var Utils = {
     } catch (e) {}
     return url;
   },
-  escapedColonOrSlashRe_: <RegExpOne>/%(?:3[aA]|2[fF])/,
+  escapedColonOrSlashRe_: <RegExpOne> /%(?:3[aA]|2[fF])/,
   decodeEscapedURL_ (url: string): string {
     return url.indexOf("://") < 0 && this.escapedColonOrSlashRe_.test(url) ? this.DecodeURLPart_(url).trim() : url;
   },
-  unicodeDotRe_: <RegExpG>/\u3002/g,
+  unicodeDotRe_: <RegExpG> /\u3002/g,
   fixCharsInUrl_ (url: string): string {
     let type = (url.indexOf("\u3002") < 0 ? 0 : 1) + (url.indexOf("\uff1a") < 0 ? 0 : 2);
     if (type === 0) { return url; }
@@ -567,7 +578,7 @@ var Utils = {
       if (ind < 0) { return url.toLowerCase() + "/"; }
       if (ind === 7 && url.substring(0, 4).toLowerCase() === "file") {
         // file:///*
-        ind = url[9] === ':' ? 3 : 0;
+        ind = url[9] === ":" ? 3 : 0;
         return "file:///" + (ind ? url[8].toUpperCase() + ":/" : "") + url.substring(ind + 8);
       }
       // may be file://*/
@@ -575,8 +586,7 @@ var Utils = {
     const origin = url.substring(0, ind), o2 = origin.toLowerCase();
     return origin !== o2 ? o2 + url.substring(ind) : url;
   },
-  parseSearchEngines_: function(this: {}, str: string, map: Search.EngineMap): Search.Rule[] {
-    type UtilsTy = typeof Utils;
+  parseSearchEngines_ (str: string, map: Search.EngineMap): Search.Rule[] {
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter"],
     key: string, obj: Search.RawEngine,
     ind: number, rSlash = <RegExpOne> /[^\\]\//, rules = [] as Search.Rule[],
@@ -584,22 +594,22 @@ var Utils = {
     rEscapeS = <RegExpG & RegExpSearchable<0>> /\\s/g, rColon = <RegExpG & RegExpSearchable<0>> /\\:/g,
     rPercent = <RegExpG & RegExpSearchable<0>> /\\%/g, rRe = <RegExpI> /\sre=/i,
     rBlank = <RegExpI & RegExpSearchable<0>> /\sblank=/i,
-    encodedSearchWordRe = <RegExpG & RegExpSearchable<1>> /%24([sS])/g, re = (this as UtilsTy).searchWordRe_,
-    func = (function(key: string): boolean {
-      return (key = key.trim()) && key !== "__proto__" && key.length < Consts.MinInvalidLengthOfSearchKey
-        ? (map[key] = obj, true) : false;
+    encodedSearchWordRe = <RegExpG & RegExpSearchable<1>> /%24([sS])/g, re = this.searchWordRe_,
+    func = (function (k: string): boolean {
+      return (k = k.trim()) && k !== "__proto__" && k.length < Consts.MinInvalidLengthOfSearchKey
+        ? (map[k] = obj, true) : false;
     });
-    for (let val of str.replace(<RegExpG> /\\\n/g, '').split('\n')) {
+    for (let val of str.replace(<RegExpG> /\\\n/g, "").split("\n")) {
       val = val.trim();
       if (!(val && val.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
       ind = 0;
       do {
         ind = val.indexOf(":", ind + 1);
       } while (val.charCodeAt(ind - 1) === KnownKey.backslash);
-      if (ind <= 0 || !(key = val.substring(0, ind).trimRight())) continue;
+      if (ind <= 0 || !(key = val.substring(0, ind).trimRight())) { continue; }
       ids = key.replace(rColon, ":").split("|");
       val = val.substring(ind + 1).trimLeft();
-      if (!val) continue;
+      if (!val) { continue; }
       key = val.replace(rEscapeSpace, "\\s");
       ind = key.search(rSpace);
       let blank = "";
@@ -618,7 +628,7 @@ var Utils = {
         val = key;
         str = "";
       }
-      val = val.replace(rEscapeS, " ").trim().replace((this as UtilsTy).searchWordRe2_, "$1$$$2"
+      val = val.replace(rEscapeS, " ").trim().replace(this.searchWordRe2_, "$1$$$2"
         ).replace(rPercent, "%");
       obj = {
         name: "",
@@ -626,7 +636,7 @@ var Utils = {
         url: val
       };
       ids = ids.filter(func);
-      if (ids.length === 0) continue;
+      if (ids.length === 0) { continue; }
       if (ind === -1) {
         re.lastIndex = 0;
         const pair = (re as RegExp as RegExpOne).exec(val);
@@ -637,17 +647,18 @@ var Utils = {
           } else {
             key = pair[1] === "s" ? "+" : " ";
           }
-          val = (this as UtilsTy).convertToUrl_(val, null, Urls.WorkType.ConvertKnown);
-          if ((this as UtilsTy).lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
+          val = this.convertToUrl_(val, null, Urls.WorkType.ConvertKnown);
+          if (this.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
             val = val.replace(encodedSearchWordRe, "$$$1");
             ind = val.search(re as RegExp as RegExpOne) + 1;
-          } else if ((this as UtilsTy).lastUrlType_ !== Urls.Type.Full) {
-            ind += (this as UtilsTy).lastUrlType_ === Urls.Type.NoSchema ? 7 : 5;
+          } else if (this.lastUrlType_ !== Urls.Type.Full) {
+            ind += this.lastUrlType_ === Urls.Type.NoSchema ? 7 : 5;
           }
-          if (tmpRule = (this as UtilsTy).reparseSearchUrl_(val.toLowerCase(), ind)) {
+          if (tmpRule = this.reparseSearchUrl_(val.toLowerCase(), ind)) {
             if (key.indexOf("$") >= 0) {
-              key = key.replace((this as UtilsTy).searchVariable_, "(.*)");
-              tmpKey = new RegExp("^" + key, (this as UtilsTy).alphaRe_.test(key) ? "i" as "" : "") as RegExpI | RegExpOne;
+              key = key.replace(this.searchVariable_, "(.*)");
+              tmpKey = new RegExp("^" + key, this.alphaRe_.test(key) ? "i" as "" : ""
+                ) as RegExpI | RegExpOne;
             } else {
               tmpKey = key.trim() || " ";
             }
@@ -661,9 +672,9 @@ var Utils = {
         val = str.substring(0, ind);
         str = str.substring(ind + 1);
         ind = str.search(rSpace);
-        const tmpKey2 = (this as UtilsTy).makeRegexp_(val, ind >= 0 ? str.substring(0, ind) : str);
+        const tmpKey2 = this.makeRegexp_(val, ind >= 0 ? str.substring(0, ind) : str);
         if (tmpKey2) {
-          key = (this as UtilsTy).prepareReparsingPrefix_(key);
+          key = this.prepareReparsingPrefix_(key);
           rules.push({prefix: key, matcher: tmpKey2, name: ids[0].trimRight(),
              delimiter: obj.url.lastIndexOf("$S") >= 0 ? " " : "+"});
         }
@@ -672,7 +683,7 @@ var Utils = {
         str = str.substring(ind + 4);
       }
       str = str.trimLeft();
-      obj.name = str ? (this as UtilsTy).DecodeURLPart_(str) : ids[ids.length - 1].trimLeft();
+      obj.name = str ? this.DecodeURLPart_(str) : ids[ids.length - 1].trimLeft();
     }
     return rules;
   },
@@ -680,14 +691,13 @@ var Utils = {
   _spaceOrPlusRe: <RegExpG> /\\\+|%20| /g,
   _queryRe: <RegExpOne> /[#?]/,
   alphaRe_: <RegExpI> /[a-z]/i,
-  reparseSearchUrl_: function (this: {}, url: string, ind: number): Search.TmpRule | null {
-    type UtilsTy = typeof Utils;
-    if (!(this as UtilsTy).protocolRe_.test(url)) { return null; }
+  reparseSearchUrl_ (url: string, ind: number): Search.TmpRule | null {
+    if (!this.protocolRe_.test(url)) { return null; }
     let prefix: string, str: string, str2: string, ind2: number;
     prefix = url.substring(0, ind - 1);
     if (ind = Math.max(prefix.lastIndexOf("?"), prefix.lastIndexOf("#")) + 1) {
       str2 = str = prefix.substring(ind);
-      prefix = prefix.substring(0, prefix.search((this as UtilsTy)._queryRe));
+      prefix = prefix.substring(0, prefix.search(this._queryRe));
       if (ind2 = str.lastIndexOf("&") + 1) {
         str2 = str.substring(ind2);
       }
@@ -701,19 +711,23 @@ var Utils = {
     } else {
       str = "^([^#?]*)";
       if (str2 = url.substring(prefix.length + 2)) {
-        if (ind = str2.search((this as UtilsTy)._queryRe) + 1) {
+        if (ind = str2.search(this._queryRe) + 1) {
           str2 = str2.substring(0, ind - 1);
         }
       }
       url = "";
     }
-    str2 = str2 && str2.replace((this as UtilsTy).escapeAllRe_, "\\$&").replace((this as UtilsTy)._spaceOrPlusRe, "(?:\\+|%20| )");
-    prefix = (this as UtilsTy).prepareReparsingPrefix_(prefix);
-    return {prefix, matcher: new RegExp(str + str2 + url, (this as UtilsTy).alphaRe_.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne};
+    str2 = str2 && str2.replace(this.escapeAllRe_, "\\$&").replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
+    prefix = this.prepareReparsingPrefix_(prefix);
+    return {
+      prefix,
+      matcher: new RegExp(str + str2 + url, this.alphaRe_.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne
+    };
   },
   IsURLHttp_ (this: void, url: string): ProtocolType {
     url = url.substring(0, 8).toLowerCase();
-    return url.startsWith("http://") ? ProtocolType.http : url === "https://" ? ProtocolType.https : ProtocolType.others;
+    return url.startsWith("http://") ? ProtocolType.http : url === "https://" ? ProtocolType.https
+      : ProtocolType.others;
   },
   prepareReparsingPrefix_ (prefix: string): string {
     const head = prefix.substring(0, 9).toLowerCase();
@@ -733,9 +747,10 @@ var Utils = {
     return null;
   },
   keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,3}.\w*?>|./g, /* need to support "<<left>" */
-  makeCommand_: (function(command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description) : CommandsNS.Item {
+  makeCommand_: (function (command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description
+      ): CommandsNS.Item {
     let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null;
-    if (!details) { details = CommandsData_.availableCommands_[command] as CommandsNS.Description }
+    if (!details) { details = CommandsData_.availableCommands_[command] as CommandsNS.Description; }
     opt = details.length < 5 ? null : Object.setPrototypeOf(details[4] as NonNullable<CommandsNS.Description[4]>, null);
     if (options) {
       if ("count" in options) {
@@ -763,7 +778,7 @@ var Utils = {
     };
   }),
   getNull_ (this: void): null { return null; },
-  GC_ (this: void): void {},
+  GC_ (this: void): void { /* empty */ },
   hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
 
@@ -772,7 +787,7 @@ const OnOther = typeof browser === "undefined" || (browser && (browser as any).r
     || location.protocol.lastIndexOf("chrome", 0) >= 0 // in case Chrome also supports `browser` in the future
   ? BrowserType.Chrome
   : !!(window as any).StyleMedia ? BrowserType.Edge
-  : (<RegExpOne>/\bFirefox\//).test(navigator.userAgent) ? BrowserType.Firefox
+  : (<RegExpOne> /\bFirefox\//).test(navigator.userAgent) ? BrowserType.Firefox
   : BrowserType.Unknown,
 BrowserProtocol = OnOther ? OnOther === BrowserType.Firefox ? "moz"
     : OnOther === BrowserType.Edge ? "ms-browser" : "about"
@@ -782,10 +797,10 @@ ChromeVer = 0 | (!OnOther && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)
 ;
 
 if (!"".startsWith) {
-String.prototype.startsWith = function(this: string, s: string): boolean {
+String.prototype.startsWith = function (this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 };
-"".endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
+"".endsWith || (String.prototype.endsWith = function (this: string, s: string): boolean {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });

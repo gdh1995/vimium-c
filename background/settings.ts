@@ -40,7 +40,8 @@ var Settings = {
           FullSettings[keyof SettingsNS.PersistentSettings]);
       }
       if (key in this.payload_) {
-        this.payload_[key as keyof SettingsNS.FrontendSettings] = value as FullSettings[keyof SettingsNS.FrontendSettings];
+        this.payload_[key as keyof SettingsNS.FrontendSettings] =
+          value as FullSettings[keyof SettingsNS.FrontendSettings];
       }
     }
     let ref: SettingsNS.UpdateHook<K> | undefined;
@@ -67,7 +68,7 @@ var Settings = {
     }
   },
   parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
-    const arr = css ? css.split(<RegExpG & RegExpSearchable<1>>/\/\*\s?#!?([A-Za-z]+)\s?\*\//g) : [""];
+    const arr = css ? css.split(<RegExpG & RegExpSearchable<1>> /\/\*\s?#!?([A-Za-z]+)\s?\*\//g) : [""];
     const map: SettingsNS.ParsedCustomCSS = { ui: arr[0].trim() };
     for (let i = 1; i < arr.length; i += 2) {
       let key = arr[i].toLowerCase();
@@ -94,9 +95,9 @@ var Settings = {
       (this as typeof Settings).payload_.grabBackFocus_ = value;
     },
     newTabUrl (this: {}, url): void {
-      url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(url)
+      url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(url)
         ? chrome.runtime.getURL(url) : Utils.convertToUrl_(url);
-      return (this as typeof Settings).set_('newTabUrl_f', url);
+      return (this as typeof Settings).set_("newTabUrl_f", url);
     },
     searchEngines (this: {}): void {
       return (this as typeof Settings).set_("searchEngineMap", Object.create<Search.Engine>(null));
@@ -113,7 +114,9 @@ var Settings = {
       if (str) {
         Utils.parseSearchEngines_("~:" + str, cache.searchEngineMap);
       } else {
-        const initialMap: { "~": Search.Engine } = { "~": { name: "~", blank: "", url: (this as typeof Settings).get_("searchUrl").split(" ", 1)[0] } };
+        const initialMap: { "~": Search.Engine } = {
+          "~": { name: "~", blank: "", url: (this as typeof Settings).get_("searchUrl").split(" ", 1)[0] }
+        };
         cache.searchEngineMap = initialMap as SafeObject & typeof initialMap;
         cache.searchEngineRules = [];
         if (str = (this as typeof Settings).get_("newTabUrl_f", true)) {
@@ -138,7 +141,8 @@ var Settings = {
         // in case that ":host" is set [style="all:unset"]
         const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2),
         ind3 = browserVer >= BrowserVer.MinEnsuredSafeInnerCSS ? css.indexOf(";", ind2) : css.length;
-        css = css.substring(0, ind1 + 1) + css.substring(ind2, ind3 + 1) + css.substring(css.indexOf("\n", ind3) + 1 || css.length);
+        css = css.substring(0, ind1 + 1) + css.substring(ind2, ind3 + 1)
+            + css.substring(css.indexOf("\n", ind3) + 1 || css.length);
       } else {
         css = css.replace(<RegExpOne> /all:\s?initial;?\n?/, "");
       }
@@ -168,7 +172,7 @@ var Settings = {
       const css2 = (this as typeof Settings).parseCustomCSS_((this as typeof Settings).get_("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
       if (browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
-        css = css.replace(<RegExpG>/\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$11px \/\*!DPI\*\/");
+        css = css.replace(<RegExpG> /\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$11px \/\*!DPI\*\/");
       }
       localStorage.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
       localStorage.setItem("omniCSS", css2.omni || "");
@@ -190,7 +194,9 @@ var Settings = {
       (this as typeof Settings).set_("innerCSS", innerCSS);
       const cache = (this as typeof Settings).cache_;
       innerCSS = cache.innerCSS;
-      const ref = Backend.indexPorts_(), request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, S: innerCSS, f: cache.findCSS_ };
+      const ref = Backend.indexPorts_(), request: Req.bg<kBgReq.showHUD> = {
+        N: kBgReq.showHUD, S: innerCSS, f: cache.findCSS_
+      };
       for (const tabId in ref) {
         const frames = ref[+tabId] as Frames.Frames;
         for (let i = frames.length; 0 < --i; ) {
@@ -210,8 +216,8 @@ var Settings = {
       const storage = localStorage, cache = (this as typeof Settings).cache_ as Writeable<typeof Settings.cache_>;
       let findCSS = storage.getItem("findCSS"), omniCSS = storage.getItem("omniCSS");
       if (!findCSS || omniCSS == null) { Settings.fetchFile_("baseCSS"); return; }
-      findCSS = findCSS.substring(findCSS.indexOf('\n') + 1);
-      const index = findCSS.indexOf('}') + 1, index2 = findCSS.indexOf('\n', index);
+      findCSS = findCSS.substring(findCSS.indexOf("\n") + 1);
+      const index = findCSS.indexOf("}") + 1, index2 = findCSS.indexOf("\n", index);
       // Note: The lines below are allowed as a special use case
       cache.innerCSS = css.substring(css.indexOf("\n") + 1);
       cache.findCSS_ = [findCSS.substring(0, index), findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
@@ -238,7 +244,7 @@ var Settings = {
     if (callback && file in this.cache_) { callback(); return null; }
     const url = this.CONST_.XHRFiles_[file];
     if (!url) { throw Error("unknown file: " + file); } // just for debugging
-    return Utils.fetchHttpContents_(url, function(): void {
+    return Utils.fetchHttpContents_(url, function (): void {
       if (file === "baseCSS") {
         Settings.postUpdate_(file, this.responseText);
       } else {
@@ -316,9 +322,9 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     showAdvancedCommands: 1
   } as TypedSafeEnum<SettingsNS.FrontUpdateAllowedSettings>,
   icons_: [
-    { "19": "/icons/enabled_19.png", "38": "/icons/enabled_38.png" },
-    { "19": "/icons/partial_19.png", "38": "/icons/partial_38.png" },
-    { "19": "/icons/disabled_19.png", "38": "/icons/disabled_38.png" }
+    { 19: "/icons/enabled_19.png", 38: "/icons/enabled_38.png" },
+    { 19: "/icons/partial_19.png", 38: "/icons/partial_38.png" },
+    { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
   valuesToLoad_: [
     /** required in {@link main.ts#BackgroundCommands[kBgCmd.toggle]}: must be the first element */
@@ -372,22 +378,22 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   }
 };
 
-chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function(info): void {
+chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info): void {
   const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
   Settings.CONST_.Platform_ = os;
   (Settings.payload_ as Writeable<SettingsNS.FrontendConsts>).onMac_ = os === types.MAC || (os === types.WIN && 0);
 }) : (Settings.CONST_.Platform_ = OnOther === BrowserType.Edge ? "win" : "unknown");
 
-(OnOther || ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) && !function(): boolean | void {
+(OnOther || ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) && !function (): boolean | void {
   try {
-    return new RegExp("\\p{L}", "u").test('a');
+    return new RegExp("\\p{L}", "u").test("a");
   } catch (e) {}
-}() && Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function(): void {
-  Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG>/\r?\n/g, "");
+}() && Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function (): void {
+  Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG> /\r?\n/g, "");
 });
 Settings.CONST_.WordsRe_ = "";
 
-(function(): void {
+(function (): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
   urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js,
   settings = Settings,
@@ -416,7 +422,8 @@ Settings.CONST_.WordsRe_ = "";
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
   obj.HomePage_ = ref.homepage_url || obj.HomePage_;
   ref2.push(obj.InjectEnd_);
-  if ("".startsWith.name !== "startsWith" && ChromeVer < BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1) {
+  if ("".startsWith.name !== "startsWith"
+      && ChromeVer < BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1) {
     ref2.unshift(obj.PolyFill_);
   }
   obj.ContentScripts_ = ref2.map(func);

@@ -1,26 +1,27 @@
 var HelpDialog = {
   inited_: false,
   templateEl_: null as HTMLTableDataCellElement | null,
-  render_: (function(this: void, request: FgReq[kFgReq.initHelp]): string {
+  render_: (function (this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
-      const noShadow = Settings.CONST_.StyleCacheId_.split(',', 2)[1].indexOf("s") < 0,
+      const noShadow = Settings.CONST_.StyleCacheId_.split(",", 2)[1].indexOf("s") < 0,
       noContain = ChromeVer === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
       if (noShadow || noContain) {
         let template = Settings.cache_.helpDialog as string, styleEnd = template.indexOf("</style>"),
         left = template.substring(0, styleEnd), right = template.substring(styleEnd);
         if (noContain) {
-          left = left.replace(<RegExpG>/contain:\s?[\w\s]+/g, "contain: none !important");
+          left = left.replace(<RegExpG> /contain:\s?[\w\s]+/g, "contain: none !important");
         }
         if (noShadow) {
-          left = left.replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&").replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv");
+          left = left.replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
+            ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv");
         }
         Settings.set_("helpDialog", left + right);
       }
       HelpDialog.inited_ = true;
     }
     Object.setPrototypeOf(request, null);
-    const commandToKeys = Object.create<[string, CommandsNS.Item][]>(null), ref = CommandsData_.keyToCommandRegistry_,
-          hideUnbound = !request.b, showNames = !!request.n;
+    const commandToKeys = Object.create<Array<[string, CommandsNS.Item]>>(null),
+    ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !request.b, showNames = !!request.n;
     for (const key in ref) {
       const registry = ref[key] as NonNullable<(typeof ref)[string]>;
       let command = registry.command;
@@ -40,7 +41,8 @@ var HelpDialog = {
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;
-    const html = (<string>Settings.cache_.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
+    const html = (<string> Settings.cache_.helpDialog).replace(
+        <RegExpSearchable<1>> /\{\{(\w+)}}/g, function (_, group: string) {
       let s = result[group];
       return s != null ? s
         : HelpDialog.groupHtml_(group, commandToKeys, hideUnbound, showNames);
@@ -48,7 +50,7 @@ var HelpDialog = {
     HelpDialog.templateEl_ = null;
     return html;
   }) as BaseHelpDialog["render_"],
-  groupHtml_: (function(this: {}, group: string, commandToKeys: SafeDict<[string, CommandsNS.Item][]>
+  groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
       , hideUnbound: boolean, showNames: boolean): string {
     const renderItem = (this as typeof HelpDialog).commandHtml_
       , availableCommands = CommandsData_.availableCommands_ as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
@@ -58,7 +60,7 @@ var HelpDialog = {
       if (hideUnbound && !keys) { continue; }
       const isAdvanced = command in (this as typeof HelpDialog).advancedCommands_
         , description = availableCommands[command][0];
-      let klen = -2, bindings = '';
+      let klen = -2, bindings = "";
       if (keys && keys.length > 0) {
         bindings = '\n\t\t<span class="HelpKey">';
         for (const item of keys) {
@@ -67,7 +69,7 @@ var HelpDialog = {
           const key = help && help.$key || Utils.escapeText_(item[0]);
           if (help && help.$desc) {
             let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
-            html += renderItem(isAdvanced, singleBinding, help.$desc, showNames ? command: "");
+            html += renderItem(isAdvanced, singleBinding, help.$desc, showNames ? command : "");
             continue;
           }
           if (klen >= 0) {
@@ -76,10 +78,10 @@ var HelpDialog = {
           bindings += key;
           klen += item[0].length + 2;
         }
-        bindings += '</span>\n\t';
+        bindings += "</span>\n\t";
       }
       if (klen <= 12) {
-        html += renderItem(isAdvanced, bindings, description, showNames ? command: "");
+        html += renderItem(isAdvanced, bindings, description, showNames ? command : "");
       } else {
         html += renderItem(isAdvanced, bindings, "", "");
         html += renderItem(isAdvanced, "", description, showNames ? command : "");
@@ -87,7 +89,7 @@ var HelpDialog = {
     }
     return html;
   }),
-  commandHtml_: (function(this: void, isAdvanced: boolean, bindings: string
+  commandHtml_: (function (this: void, isAdvanced: boolean, bindings: string
       , description: string, command: string): string {
     let html = isAdvanced ? '<tr class="HelpAdv">\n\t' : "<tr>\n\t";
     if (description) {
@@ -109,7 +111,7 @@ var HelpDialog = {
   normalizeHelpInfo_ (help: Partial<CommandsNS.NormalizedCustomHelpInfo>): void {
     if (help.$key != null) { return; }
     let a = this.templateEl_;
-    a || (a = this.templateEl_ = document.createElement('td'));
+    a || (a = this.templateEl_ = document.createElement("td"));
     help.$key = help.key ? this.safeHTML_(help.key, a) : "";
     help.$desc = help.desc ? this.safeHTML_(help.desc, a) : "";
   },
@@ -142,8 +144,8 @@ var HelpDialog = {
           attrsToRemove.push(attrs[j]);
         }
       }
-      for (let j = 0; j < attrsToRemove.length; j++) {
-        el.removeAttributeNode(attrsToRemove[j]);
+      for (let attr of attrsToRemove) {
+        el.removeAttributeNode(attr);
       }
     }
     return parent.innerHTML;

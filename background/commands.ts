@@ -25,18 +25,18 @@ var Commands = {
   parseVal_ (val: string): any {
     try {
       return JSON.parse(val);
-    } catch(e) {}
+    } catch (e) {}
     if (!val.startsWith('"')) { return val; }
     val = val.replace(this.hexCharRe_, this.onHex_);
     try {
       return JSON.parse(val);
-    } catch(e) {}
+    } catch (e) {}
     return val;
   },
   onHex_ (this: void, _s: string, hex: string): string {
-    return hex ? "\\u00" + hex : '\\\\';
+    return hex ? "\\u00" + hex : "\\\\";
   },
-  parseKeyMappings_: (function(this: {}, line: string): void {
+  parseKeyMappings_: (function (this: {}, line: string): void {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i: number
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
       , registry = CommandsData_.keyToCommandRegistry_ = Object.create<CommandsNS.Item>(null)
@@ -72,7 +72,7 @@ var Commands = {
         } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum) {
           console.log("Invalid key: %c" + key, "color:red", "(the first char can not be '-' or number)");
         } else {
-          registry[key] = Utils.makeCommand_(splitLine[2], (this as typeof Commands).getOptions_(splitLine, 3), details);
+          registry[key] = Utils.makeCommand_(splitLine[2], (<typeof Commands> this).getOptions_(splitLine, 3), details);
           userDefinedKeys[key] = true;
           continue;
         }
@@ -128,12 +128,12 @@ var Commands = {
     CommandsData_.mapKeyRegistry_ = mk > 0 ? mkReg : null;
     Settings.temp_.cmdErrors_ = Settings.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
-  populateCommandKeys_: (function(this: void): void {
+  populateCommandKeys_: (function (this: void): void {
     const d = CommandsData_, ref = d.keyMap_ = Object.create<ValidKeyAction | ChildKeyMap>(null), keyRe = Utils.keyRe_,
     d2 = Settings.temp_, oldErrors = d2.cmdErrors_;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
-    ref['-'] = KeyAction.count;
+    ref["-"] = KeyAction.count;
     const C = Commands, R = d.keyToCommandRegistry_;
     for (const key in R) {
       const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
@@ -158,7 +158,7 @@ var Commands = {
       console.log("The new key mappings have no errors");
     }
 
-    const func = function(obj: ChildKeyMap): void {
+    const func = function (obj: ChildKeyMap): void {
       for (const key in obj) {
         const val = obj[key] as NonNullable<ChildKeyMap[string]>;
         if (val !== KeyAction.cmd) { func(val); }
@@ -263,7 +263,8 @@ availableCommands_: {
     kBgCmd.openUrl,
     {
       reuse: ReuseType.reuse,
-      url: OnOther ? OnOther === BrowserType.Firefox ? "about:debugging#addons" : Settings.CONST_.OptionsPage_ : "chrome://extensions/?id=$id",
+      url: OnOther ? OnOther === BrowserType.Firefox ? "about:debugging#addons" : Settings.CONST_.OptionsPage_
+        : "chrome://extensions/?id=$id",
       id_mask: "$id"
     }],
   blank: [ "Do nothing", 1, true, kBgCmd.blank ],
@@ -314,15 +315,17 @@ availableCommands_: {
     kFgCmd.linkHints, { mode: HintMode.EDIT_TEXT } ],
   openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true,
     kBgCmd.openUrl, { reuse: ReuseType.current, copied: true } ],
-  openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20 as 0, true, kBgCmd.openUrl, { copied: true } ],
+  openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20 as 0, true, kBgCmd.openUrl, {copied: true} ],
   enterInsertMode: [ "Enter insert mode (use code=27, stat=0)", 1, true, kBgCmd.enterInsertMode ],
   passNextKey: [ "Pass the next key(s) to the page (use normal)", 0, false, kFgCmd.passNextKey ],
   enterVisualMode: [ "Enter visual mode", 1, true, kBgCmd.enterVisualMode],
   enterVisualLineMode: [ "Enter visual line mode", 1, true, kBgCmd.enterVisualMode, { mode: "line" } ],
-  focusInput: ['Focus the N-th visible text box on the page and cycle using tab (use keep, select=""/all/all-line/start/end)',
+  focusInput: [
+    'Focus the N-th visible text box on the page and cycle using tab (use keep, select=""/all/all-line/start/end)',
     0, false, kFgCmd.focusInput ],
-  "LinkHints.activate": [ "Open a link in the current tab (use characters=&lt;string&gt;)", 0, false, kFgCmd.linkHints ],
-  "LinkHints.activateMode": [ "Open a link in the current tab (use characters=&lt;string&gt;)", 0, false, kFgCmd.linkHints ],
+  "LinkHints.activate": ["Open a link in the current tab (use characters=&lt;string&gt;)", 0, false, kFgCmd.linkHints],
+  "LinkHints.activateMode": [ "Open a link in the current tab (use characters=&lt;string&gt;)", 0, false,
+    kFgCmd.linkHints ],
   "LinkHints.activateModeToOpenInNewTab": [ "Open a link in a new tab", 0, false,
     kFgCmd.linkHints, { mode: HintMode.OPEN_IN_NEW_BG_TAB } ],
   "LinkHints.activateModeToOpenInNewForegroundTab": [ "Open a link in a new tab and switch to it", 0, false,
@@ -416,7 +419,8 @@ availableCommands_: {
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, true, kBgCmd.clearMarks, { local: true } ],
   "Marks.clearGlobal": [ "Remove all global marks", 1, true, kBgCmd.clearMarks ],
   clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true, kBgCmd.clearMarks ],
-  openUrl: [ 'open URL (use url="", urls:string[], reuse=-1/0/1/-2, incognito, window, end)', 20 as 0, true, kBgCmd.openUrl ],
+  openUrl: [ 'open URL (use url="", urls:string[], reuse=-1/0/1/-2, incognito, window, end)', 20 as 0, true,
+    kBgCmd.openUrl ],
   focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true,
     kBgCmd.openUrl, { reuse: ReuseType.reuse } ]
 } as ReadonlySafeDict<CommandsNS.Description>
@@ -430,8 +434,8 @@ if (Backend.onInit_) {
   }
   chrome.commands && chrome.commands.onCommand.addListener(Backend.ExecuteGlobal_);
 }
-if (Commands)
-Settings.updateHooks_.keyMappings = function(value: string): void {
+if (Commands) {
+Settings.updateHooks_.keyMappings = function (value: string): void {
   Commands.parseKeyMappings_(value);
   Commands.populateCommandKeys_();
   return (this as typeof Settings).broadcast_({
@@ -440,3 +444,4 @@ Settings.updateHooks_.keyMappings = function(value: string): void {
     k: CommandsData_.keyMap_
   });
 };
+}

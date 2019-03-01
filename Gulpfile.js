@@ -645,6 +645,12 @@ function readCompilerOptions(tsConfigFile, throwError) {
     var baseFile = osPath.join(osPath.dirname(tsConfigFile), config.extends);
     var baseOptions = readCompilerOptions(baseFile, throwError);
     if (baseOptions) {
+      if (baseOptions.plugins && opts.plugins) {
+        var pluginNames = opts.plugins.map(function (i) { return i.name; });
+        opts.plugins.unshift.apply(opts.plugins, baseOptions.plugins.filter(function (i) {
+          return pluginNames.indexOf(i.name) < 0;
+        }));
+      }
       for (var key in baseOptions) {
         if (baseOptions.hasOwnProperty(key) && !(key in opts)) {
           opts[key] = baseOptions[key];
@@ -657,12 +663,19 @@ function readCompilerOptions(tsConfigFile, throwError) {
 
 function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
   var opts = readCompilerOptions(tsConfigFile, true);
+  
   if (!keepCustomOptions && (keepCustomOptions === false || !opts.typescript)) {
     delete opts.inferThisForObjectLiterals;
     delete opts.narrowFormat;
   }
   if (opts.noImplicitUseStrict) {
     opts.alwaysStrict = false;
+  }
+  const arr = opts.plugins || [];
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].name == "typescript-tslint-plugin") {
+      arr.splice(i, 1);
+    }
   }
   opts.target = forcedESTarget || locally && opts.target || "es5";
   if (typescript && !opts.typescript) {

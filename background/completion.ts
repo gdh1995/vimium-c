@@ -62,15 +62,15 @@ interface UrlDomain
 }
 
 interface TextTab extends chrome.tabs.Tab {
-  text: string;  
+  text: string;
 }
 
 interface Completer {
-  filter_(query: CompletersNS.QueryStatus, index: number): void;
+  filter_ (query: CompletersNS.QueryStatus, index: number): void;
 }
 interface PreCompleter extends Completer {
-  preFilter_(query: CompletersNS.QueryStatus, failIfNull: true): void | true;
-  preFilter_(query: CompletersNS.QueryStatus): void;
+  preFilter_ (query: CompletersNS.QueryStatus, failIfNull: true): void | true;
+  preFilter_ (query: CompletersNS.QueryStatus): void;
 }
 interface QueryTerms extends Array<string> {
 }
@@ -88,10 +88,10 @@ const enum FirstQuery {
 
 interface SuggestionConstructor {
   new (type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
-      computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number,
-      extraData: number): Suggestion;
+       computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number,
+       extraData: number): Suggestion;
   new (type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
-      computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion) => number
+       computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion) => number
       ): Suggestion;
 }
 
@@ -114,14 +114,14 @@ const enum kVisibility {
 }
 type Visibility = kVisibility.hidden | kVisibility.visible;
 
-
 let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType.plain,
     inNormal: boolean | null = null, autoSelect: boolean = false, singleLine: boolean = false,
     maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
     queryTerms: QueryTerms = [""], rawQuery: string = "", rawMore: string = "",
     phraseBlacklist: string[] | null = null, showThoseInBlacklist: boolean = true;
 
-const Suggestion: SuggestionConstructor = function Suggestion (this: CompletersNS.WritableCoreSuggestion,
+const Suggestion: SuggestionConstructor = function Suggestion(
+    this: CompletersNS.WritableCoreSuggestion,
     type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
     computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data?: number) => number, extraData?: number
     ) {
@@ -132,120 +132,121 @@ const Suggestion: SuggestionConstructor = function Suggestion (this: CompletersN
   (this as Suggestion).relevancy = computeRelevancy(this, extraData);
 } as any;
 
-  function prepareHtml (sug: Suggestion): void {
-    if (sug.textSplit != null) {
-      if (sug.text === sug.url) { sug.text = ""; }
-      return;
+function prepareHtml(sug: Suggestion): void {
+  if (sug.textSplit != null) {
+    if (sug.text === sug.url) { sug.text = ""; }
+    return;
+  }
+  sug.title = cutTitle(sug.title);
+  const text = sug.text, str = shortenUrl(text);
+  sug.text = text.length !== sug.url.length ? str : "";
+  sug.textSplit = cutUrl(str, getMatchRanges(str), text.length - str.length
+    , singleLine ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
+}
+function cutTitle(title: string): string {
+  let cut = title.length > maxChars + 40;
+  cut && (title = Utils.unicodeSubstring_(title, 0, maxChars + 39));
+  return highlight(cut ? title + "\u2026" : title, getMatchRanges(title));
+}
+function highlight(this: void, str: string, ranges: number[]): string {
+  if (ranges.length === 0) { return Utils.escapeText_(str); }
+  let out = "", end = 0;
+  for (let _i = 0; _i < ranges.length; _i += 2) {
+    const start = ranges[_i], end2 = ranges[_i + 1];
+    out += Utils.escapeText_(str.substring(end, start));
+    out += "<match>";
+    out += Utils.escapeText_(str.substring(start, end2));
+    out += "</match>";
+    end = end2;
+  }
+  return out + Utils.escapeText_(str.substring(end));
+}
+function shortenUrl(this: void, url: string): string {
+  const i = Utils.IsURLHttp_(url);
+  return !i || i >= url.length ? url : url.substring(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
+}
+function getMatchRanges(str: string): number[] {
+  const ranges: MatchRange[] = [];
+  for (let i = 0, len = queryTerms.length; i < len; i++) {
+    let index = 0, textPosition = 0, matchedEnd: number;
+    const splits = str.split(RegExpCache.parts_[i]), last = splits.length - 1, tl = queryTerms[i].length;
+    for (; index < last; index++, textPosition = matchedEnd) {
+      matchedEnd = (textPosition += splits[index].length) + tl;
+      ranges.push([textPosition, matchedEnd]);
     }
-    sug.title = cutTitle(sug.title);
-    const text = sug.text, str = shortenUrl(text);
-    sug.text = text.length !== sug.url.length ? str : "";
-    sug.textSplit = cutUrl(str, getMatchRanges(str), text.length - str.length
-      , singleLine ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
   }
-  function cutTitle (title: string): string {
-    let cut = title.length > maxChars + 40;
-    cut && (title = Utils.unicodeSubstring_(title, 0, maxChars + 39));
-    return highlight(cut ? title + "\u2026" : title, getMatchRanges(title));
-  }
-  function highlight (this: void, string: string, ranges: number[]): string {
-    if (ranges.length === 0) { return Utils.escapeText_(string); }
-    let out = "", end = 0;
-    for(let _i = 0; _i < ranges.length; _i += 2) {
-      const start = ranges[_i], end2 = ranges[_i + 1];
-      out += Utils.escapeText_(string.substring(end, start));
-      out += '<match>';
-      out += Utils.escapeText_(string.substring(start, end2));
-      out += "</match>";
-      end = end2;
-    }
-    return out + Utils.escapeText_(string.substring(end));
-  }
-  function shortenUrl (this: void, url: string): string {
-    const i = Utils.IsURLHttp_(url);
-    return !i || i >= url.length ? url : url.substring(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
-  }
-  function getMatchRanges (string: string): number[] {
-    const ranges: MatchRange[] = [];
-    for (let i = 0, len = queryTerms.length; i < len; i++) {
-      let index = 0, textPosition = 0, matchedEnd: number;
-      const splits = string.split(RegExpCache.parts_[i]), last = splits.length - 1, tl = queryTerms[i].length;
-      for (; index < last; index++, textPosition = matchedEnd) {
-        matchedEnd = (textPosition += splits[index].length) + tl;
-        ranges.push([textPosition, matchedEnd]);
+  if (ranges.length === 0) { return ranges as never[]; }
+  if (ranges.length === 1) { return ranges[0]; }
+  ranges.sort(sortBy0);
+  const mergedRanges: number[] = ranges[0];
+  for (let i = 1, j = 1, len = ranges.length; j < len; j++) {
+    const range = ranges[j];
+    if (mergedRanges[i] >= range[0]) {
+      if (mergedRanges[i] < range[1]) {
+        mergedRanges[i] = range[1];
       }
-    }
-    if (ranges.length === 0) { return ranges as never[]; }
-    if (ranges.length === 1) { return ranges[0]; }
-    ranges.sort(sortBy0);
-    const mergedRanges: number[] = ranges[0];
-    for (let i = 1, j = 1, len = ranges.length; j < len; j++) {
-      const range = ranges[j];
-      if (mergedRanges[i] >= range[0]) {
-        if (mergedRanges[i] < range[1]) {
-          mergedRanges[i] = range[1];
-        }
-      } else {
-        mergedRanges.push(range[0], range[1]);
-        i += 2;
-      }
-    }
-    return mergedRanges;
-  }
-  function sortBy0 (this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; }
-  // deltaLen may be: 0, 1, 7/8/9
-  function cutUrl (this: void, string: string, ranges: number[], deltaLen: number, maxLen: number): string {
-    let out = "", end = string.length, cutStart = end;
-    if (end <= maxLen) {}
-    else if (deltaLen > 1) { cutStart = string.indexOf("/") + 1 || end; }
-    else if ((cutStart = string.indexOf(":")) < 0) { cutStart = end; }
-    else if (Utils.protocolRe_.test(string.substring(0, cutStart + 3).toLowerCase())) {
-      cutStart = string.indexOf("/", cutStart + 4) + 1 || end;
     } else {
-      cutStart += 22; // for data:text/javascript,var xxx; ...
+      mergedRanges.push(range[0], range[1]);
+      i += 2;
     }
-    if (cutStart < end) {
-      for (let i = ranges.length, start = end + 8; (i -= 2) >= 0 && start >= cutStart; start = ranges[i]) {
-        const subEndInLeft = ranges[i + 1], delta = start - 20 - Math.max(subEndInLeft, cutStart);
-        if (delta > 0) {
-          end -= delta;
-          if (end <= maxLen) {
-            cutStart = subEndInLeft + (maxLen - end);
-            break;
-          }
-        }
-      }
-    }
-    end = 0;
-    for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
-      const start = ranges[i], temp = Math.max(end, cutStart), delta = start - 20 - temp;
+  }
+  return mergedRanges;
+}
+function sortBy0(this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; }
+// deltaLen may be: 0, 1, 7/8/9
+function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, maxLen: number): string {
+  let out = "", end = str.length, cutStart = end;
+  if (end <= maxLen) { /* empty */ }
+  else if (deltaLen > 1) { cutStart = str.indexOf("/") + 1 || end; }
+  else if ((cutStart = str.indexOf(":")) < 0) { cutStart = end; }
+  else if (Utils.protocolRe_.test(str.substring(0, cutStart + 3).toLowerCase())) {
+    cutStart = str.indexOf("/", cutStart + 4) + 1 || end;
+  } else {
+    cutStart += 22; // for data:text/javascript,var xxx; ...
+  }
+  if (cutStart < end) {
+    for (let i = ranges.length, start = end + 8; (i -= 2) >= 0 && start >= cutStart; start = ranges[i]) {
+      const subEndInLeft = ranges[i + 1], delta = start - 20 - Math.max(subEndInLeft, cutStart);
       if (delta > 0) {
-        maxLen += delta;
-        out += Utils.escapeText_(Utils.unicodeSubstring_(string, end, temp + 11));
-        out += "\u2026"
-        out += Utils.escapeText_(Utils.unicodeLsubstring_(string, start - 8, start));
-      } else if (end < start) {
-        out += Utils.escapeText_(string.substring(end, start));
+        end -= delta;
+        if (end <= maxLen) {
+          cutStart = subEndInLeft + (maxLen - end);
+          break;
+        }
       }
-      end = ranges[i + 1];
-      out += '<match>';
-      out += Utils.escapeText_(string.substring(start, end));
-      out += "</match>";
-    }
-    if (string.length <= maxLen) {
-      return out + Utils.escapeText_(string.substring(end));
-    } else {
-      return out + Utils.escapeText_(Utils.unicodeSubstring_(string, end, maxLen - 1 > end ? maxLen - 1 : end + 10)) + "\u2026";
     }
   }
-  function ComputeWordRelevancy (this: void, suggestion: CompletersNS.CoreSuggestion): number {
-    return RankingUtils.wordRelevancy_(suggestion.text, suggestion.title);
+  end = 0;
+  for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
+    const start = ranges[i], temp = Math.max(end, cutStart), delta = start - 20 - temp;
+    if (delta > 0) {
+      maxLen += delta;
+      out += Utils.escapeText_(Utils.unicodeSubstring_(str, end, temp + 11));
+      out += "\u2026";
+      out += Utils.escapeText_(Utils.unicodeLsubstring_(str, start - 8, start));
+    } else if (end < start) {
+      out += Utils.escapeText_(str.substring(end, start));
+    }
+    end = ranges[i + 1];
+    out += "<match>";
+    out += Utils.escapeText_(str.substring(start, end));
+    out += "</match>";
   }
-  function ComputeRelevancy (this: void, text: string, title: string, lastVisitTime: number): number {
-    const recencyScore = RankingUtils.recencyScore_(lastVisitTime),
-      wordRelevancy = RankingUtils.wordRelevancy_(text, title);
-    return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
+  if (str.length <= maxLen) {
+    return out + Utils.escapeText_(str.substring(end));
+  } else {
+    return out + Utils.escapeText_(Utils.unicodeSubstring_(str, end, maxLen - 1 > end ? maxLen - 1 : end + 10)) +
+      "\u2026";
   }
+}
+function ComputeWordRelevancy(this: void, suggestion: CompletersNS.CoreSuggestion): number {
+  return RankingUtils.wordRelevancy_(suggestion.text, suggestion.title);
+}
+function ComputeRelevancy(this: void, text: string, title: string, lastVisitTime: number): number {
+  const recencyScore = RankingUtils.recencyScore_(lastVisitTime),
+    wordRelevancy = RankingUtils.wordRelevancy_(text, title);
+  return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
+}
 
 const bookmarkEngine = {
   bookmarks_: [] as Bookmark[],
@@ -269,7 +270,7 @@ const bookmarkEngine = {
   performSearch_ (): void {
     const isPath = queryTerms.some(this.StartsWithSlash_);
     const arr = this.bookmarks_, len = arr.length;
-    let results: [number, number][] = [];
+    let results: Array<[number, number]> = [];
     for (let ind = 0; ind < len; ind++) {
       const i = arr[ind];
       const title = isPath ? i.path : i.title;
@@ -288,7 +289,7 @@ const bookmarkEngine = {
         results.length = maxResults;
       }
     }
-    let score = 0, c = function() { return score }, results2: Suggestion[] = [];
+    let score = 0, c = function () { return score; }, results2: Suggestion[] = [];
     for (const ind of results) {
       const i = arr[ind[1]];
       score = -ind[0];
@@ -309,10 +310,10 @@ const bookmarkEngine = {
     bBm.onRemoved.addListener(Expire);
     bBm.onChanged.addListener(Expire);
     bBm.onMoved.addListener(listener);
-    bBm.onImportBegan && bBm.onImportBegan.addListener(function(): void {
+    bBm.onImportBegan && bBm.onImportBegan.addListener(function (): void {
       chrome.bookmarks.onCreated.removeListener(bookmarkEngine.Delay_);
     });
-    bBm.onImportEnded && bBm.onImportEnded.addListener(function(): void {
+    bBm.onImportEnded && bBm.onImportEnded.addListener(function (): void {
       const f = bookmarkEngine.Delay_;
       chrome.bookmarks.onCreated.addListener(f);
       f();
@@ -343,7 +344,7 @@ const bookmarkEngine = {
     }
   },
   traverseBookmark_ (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
-    const title = bookmark.title, id = bookmark.id, path = this.path_ + '/' + (title || id);
+    const title = bookmark.title, id = bookmark.id, path = this.path_ + "/" + (title || id);
     if (bookmark.children) {
       this.dirs_.push(id);
       const oldPath = this.path_;
@@ -387,10 +388,11 @@ const bookmarkEngine = {
     _this._timer = setTimeout(_this.Later_, CompletersNS.InnerConsts.bookmarkBasicDelay);
     _this.status_ = BookmarkStatus.notInited;
   },
-  Expire_ (this: void, id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
+  Expire_ (
+      this: void, id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
     const _this = bookmarkEngine, arr = _this.bookmarks_, len = arr.length,
     title = info && (info as chrome.bookmarks.BookmarkChangeInfo).title;
-    let i = 0; for (; i < len && arr[i].id !== id; i++) {}
+    let i = 0; for (; i < len && arr[i].id !== id; i++) { /* empty */ }
     if (i < len) {
       const cur: Bookmark = arr[i], url = cur.url,
       url2 = info && (info as chrome.bookmarks.BookmarkChangeInfo).url;
@@ -442,9 +444,9 @@ historyEngine = {
       if (history) {
         return Completers.next_(this.quickSearch_(history));
       }
-      return HistoryCache.use_(function(history): void {
+      return HistoryCache.use_(function (historyList): void {
         if (query.isOff) { return; }
-        return Completers.next_(historyEngine.quickSearch_(history));
+        return Completers.next_(historyEngine.quickSearch_(historyList));
       });
     }
     if (history) {
@@ -459,8 +461,10 @@ historyEngine = {
     }
   },
   quickSearch_ (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
-    const onlyUseTime = queryTerms.length == 1 && (queryTerms[0][0] === "." ? Utils.commonFileExtRe_.test(queryTerms[0]) :
-      (Utils.convertToUrl_(queryTerms[0], null, Urls.WorkType.KeepAll), Utils.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
+    const onlyUseTime = queryTerms.length === 1 && (queryTerms[0][0] === "."
+      ? Utils.commonFileExtRe_.test(queryTerms[0])
+      : (Utils.convertToUrl_(queryTerms[0], null, Urls.WorkType.KeepAll),
+        Utils.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
     ),
     results = [0.0, 0.0], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2_,
     parts0 = RegExpCache.parts_[0], getRele = ComputeRelevancy;
@@ -513,7 +517,7 @@ historyEngine = {
     if (query.isOff) { return; }
     const historys: chrome.tabs.Tab[] = [], arr: Dict<number> = {};
     let i = queryType === FirstQuery.history ? -offset : 0;
-    return sessions.some(function(item): boolean {
+    return sessions.some(function (item): boolean {
       const entry = item.tab;
       if (!entry) { return false; }
       if (!showThoseInBlacklist && !BlacklistFilter.TestNotMatched_(entry.url, entry.title)) { return false; }
@@ -529,11 +533,11 @@ historyEngine = {
     chrome.history.search({
       text: "",
       maxResults: offset + maxResults * (showThoseInBlacklist ? 1 : 2) + neededMore
-    }, function(historys2: chrome.history.HistoryItem[] | UrlItem[]): void {
+    }, function (historys2: chrome.history.HistoryItem[] | UrlItem[]): void {
       if (query.isOff) { return; }
       historys2 = (historys2 as UrlItem[]).filter(historyEngine.urlNotIn_, arr);
       if (!showThoseInBlacklist) {
-        historys2 = historys2.filter(function(entry) {
+        historys2 = historys2.filter(function (entry) {
           return BlacklistFilter.TestNotMatched_(entry.url, entry.title || "");
         });
       }
@@ -570,11 +574,11 @@ domainEngine = {
       return Completers.next_([]);
     }
     const cache = HistoryCache;
-    if (cache.domains_) {}
+    if (cache.domains_) { /* empty */ }
     else if (cache.history_) {
       this.refresh_(cache.history_);
     } else {
-      return index > 0 ? Completers.next_([]) : cache.use_(function() {
+      return index > 0 ? Completers.next_([]) : cache.use_(function () {
         if (query.isOff) { return; }
         return domainEngine.filter_(query, 0);
       });
@@ -582,7 +586,8 @@ domainEngine = {
     return this.performSearch_();
   } ,
   performSearch_ (): void {
-    const ref = Utils.domains_ as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP_, word = queryTerms[0].toLowerCase();
+    const ref = Utils.domains_ as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP_,
+    word = queryTerms[0].toLowerCase();
     let sug: Suggestion | undefined, result = "", d: Domain = null as Domain | null as Domain, result_score = -1;
     if (offset > 0) {
       for (const domain in ref) {
@@ -641,7 +646,7 @@ domainEngine = {
     else if (url.startsWith("https://")) { d = Urls.SchemaId.HTTPS; }
     else if (url.startsWith("ftp://")) { d = Urls.SchemaId.FTP; }
     else { return null; }
-    url = url.substring(d, url.indexOf('/', d));
+    url = url.substring(d, url.indexOf("/", d));
     return { domain: url !== "__proto__" ? url : ".__proto__", schema: d };
   },
   compute2_ (): number { return 2; }
@@ -688,7 +693,7 @@ tabEngine = {
       suggestion.label = id;
       suggestions.push(suggestion);
     }
-    if (queryType !== FirstQuery.tabs && offset !== 0) {}
+    if (queryType !== FirstQuery.tabs && offset !== 0) { /* empty */ }
     else if (suggestions.sort(Completers.rsortByRelevancy_).length > offset + maxResults || !noFilter) {
       if (offset > 0) {
         suggestions = suggestions.slice(offset, offset + maxResults);
@@ -714,11 +719,11 @@ tabEngine = {
 
 searchEngine = {
   _nestedEvalCounter: 0,
-  filter_ (): void {},
+  filter_ (): void { /* empty */ },
   preFilter_ (query: CompletersNS.QueryStatus, failIfNull?: true): void | true {
     let sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
        pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined;
-    if (q.length === 0) {}
+    if (q.length === 0) { /* empty */ }
     else if (failIfNull !== true && keyword[0] === "\\" && keyword[1] !== "\\") {
       if (keyword.length > 1) {
         q[0] = keyword.substring(1);
@@ -761,7 +766,7 @@ searchEngine = {
     showThoseInBlacklist = showThoseInBlacklist && BlacklistFilter.IsExpectingHidden_([keyword]);
 
     let { url, indexes } = Utils.createSearch_(q, pattern.url, pattern.blank, []), text = url;
-    if (keyword === "~") {}
+    if (keyword === "~") { /* empty */ }
     else if (url.startsWith("vimium://")) {
       const ret = Utils.evalVimiumUrl_(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
       if (ret instanceof Promise) {
@@ -913,7 +918,7 @@ Completers = {
     for (l--; i <= l; i++) {
       completers[i].filter_(query, i);
     }
-    HistoryCache.lastRefresh_ || setTimeout(function() { return HistoryCache.use_(); }, 50);
+    HistoryCache.lastRefresh_ || setTimeout(function () { return HistoryCache.use_(); }, 50);
   },
   requireNormalOrIncognito_<T> (that: T
       , func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
@@ -927,7 +932,7 @@ Completers = {
     if (inNormal !== null) {
       return chrome.tabs.query({}, cb);
     }
-    return chrome.windows.getCurrent(function(wnd): void {
+    return chrome.windows.getCurrent(function (wnd): void {
       if (query.isOff) { return; }
       inNormal = wnd ? !wnd.incognito : true;
       TabRecency_.incognito_ = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
@@ -958,7 +963,7 @@ Completers = {
     RegExpCache.words_ = RegExpCache.starts_ = null as never;
     if (queryTerms.length > 0) {
       let s0 = queryTerms[0], s1 = shortenUrl(s0), cut = s0.length !== s1.length;
-      if (cut || s0.endsWith('/') && s0.length > 1) {
+      if (cut || s0.endsWith("/") && s0.length > 1) {
         queryTerms[0] = cut ? s1 : s0.substring(0, s0.length - 1);
         RegExpCache.fixParts_();
       }
@@ -997,7 +1002,7 @@ Completers = {
     }
     str = str.substring(ind);
     ind = rawQuery.length - str.length;
-    if ((i = parseInt(str, 10)) >= 0 && '+' + i === str && i <= (ind > 0 ? 100 : 200)) {
+    if ((i = parseInt(str, 10)) >= 0 && "+" + i === str && i <= (ind > 0 ? 100 : 200)) {
       offset = i;
     } else if (str !== "+") {
       return;
@@ -1029,14 +1034,14 @@ knownCs: CompletersMap & SafeObject = {
     },
     maxScoreP_: CompletersNS.RankingEnums.maximumScore,
     _emptyScores: [0, 0] as [number, number],
-    scoreTerm_ (term: number, string: string): [number, number] {
+    scoreTerm_ (term: number, str: string): [number, number] {
       let count = 0, score = 0;
-      count = string.split(RegExpCache.parts_[term]).length;
+      count = str.split(RegExpCache.parts_[term]).length;
       if (count < 1) { return this._emptyScores; }
       score = CompletersNS.RankingEnums.anywhere;
-      if (RegExpCache.starts_[term].test(string)) {
+      if (RegExpCache.starts_[term].test(str)) {
         score += CompletersNS.RankingEnums.startOfWord;
-        if (RegExpCache.words_[term].test(string)) {
+        if (RegExpCache.words_[term].test(str)) {
           score += CompletersNS.RankingEnums.wholeWord;
         }
       }
@@ -1078,7 +1083,8 @@ knownCs: CompletersMap & SafeObject = {
       const d: CachedRegExp[] = this.parts_ = [] as never;
       this.starts_ = this.words_ = null as never;
       for (const s of queryTerms) {
-        d.push(new RegExp(s.replace(Utils.escapeAllRe_, "\\$&"), Utils.hasUpperCase_(s) ? "" : "i" as "") as CachedRegExp);
+        d.push(new RegExp(s.replace(Utils.escapeAllRe_, "\\$&"), Utils.hasUpperCase_(s) ? "" : "i" as ""
+          ) as CachedRegExp);
       }
     },
     buildOthers_ (): void {
@@ -1092,7 +1098,8 @@ knownCs: CompletersMap & SafeObject = {
     fixParts_ (): void {
       if (!this.parts_) { return; }
       let s = queryTerms[0];
-      this.parts_[0] = new RegExp(s.replace(Utils.escapeAllRe_, "\\$&"), Utils.hasUpperCase_(s) ? "" : "i" as "") as CachedRegExp;
+      this.parts_[0] = new RegExp(s.replace(Utils.escapeAllRe_, "\\$&"), Utils.hasUpperCase_(s) ? "" : "i" as ""
+        ) as CachedRegExp;
     }
   },
 
@@ -1114,11 +1121,11 @@ knownCs: CompletersMap & SafeObject = {
         text: "",
         maxResults: CompletersNS.InnerConsts.historyMaxSize,
         startTime: 0
-      }, function(history: chrome.history.HistoryItem[]): void {
+      }, function (history: chrome.history.HistoryItem[]): void {
         setTimeout(HistoryCache.Clean_ as (arr: chrome.history.HistoryItem[]) => void, 0, history);
       });
     },
-    Clean_: function(this: void, arr: Array<chrome.history.HistoryItem | HistoryItem>): void {
+    Clean_: function (this: void, arr: Array<chrome.history.HistoryItem | HistoryItem>): void {
       let _this = HistoryCache, len = arr.length;
       _this.Clean_ = null;
       for (let i = 0; i < len; i++) {
@@ -1139,7 +1146,7 @@ knownCs: CompletersMap & SafeObject = {
           }
         }
       }
-      setTimeout(function(): void {
+      setTimeout(function (): void {
         setTimeout(function (): void {
           Decoder.decodeList_(HistoryCache.history_ as HistoryItem[]);
           HistoryCache.domains_ || setTimeout(function (): void {
@@ -1151,10 +1158,10 @@ knownCs: CompletersMap & SafeObject = {
         chrome.history.onVisited.addListener(HistoryCache.OnPageVisited_);
       }, 100);
       _this.history_ = arr as HistoryItem[];
-      _this.use_ = function(this: typeof HistoryCache, callback?: HistoryCallback): void {
-        if (callback) callback(this.history_ as HistoryItem[]);
+      _this.use_ = function (this: typeof HistoryCache, callback?: HistoryCallback): void {
+        if (callback) { callback(this.history_ as HistoryItem[]); }
       };
-      _this._callbacks && _this._callbacks.length > 0 && setTimeout(function(ref: Array<HistoryCallback>): void {
+      _this._callbacks && _this._callbacks.length > 0 && setTimeout(function (ref: HistoryCallback[]): void {
         for (const f of ref) {
           f(HistoryCache.history_ as HistoryItem[]);
         }
@@ -1177,7 +1184,7 @@ knownCs: CompletersMap & SafeObject = {
       let slot: Domain | undefined;
       if (d) {
         let domain = domainEngine.ParseDomainAndScheme_(url);
-        if (!domain) {}
+        if (!domain) { /* empty */ }
         else if (slot = d[domain.domain]) {
           slot.time = time;
           if (i < 0) { slot.count += j.visible; }
@@ -1241,13 +1248,15 @@ knownCs: CompletersMap & SafeObject = {
       type C = (results: chrome.history.HistoryItem[]) => void;
       if (this.toRefreshCount_ <= 0 && this.updateCount_ < 10) { return; }
       const i = Date.now();
-      if (this.toRefreshCount_ <= 0) {}
+      if (this.toRefreshCount_ <= 0) { /* empty */ }
       else if (this.lastRefresh_ + 1000 > i) { return; }
-      else setTimeout(chrome.history.search as ((q: Q, c: C) => void | 1) as (q: Q, c: C) => void, 50, {
-        text: "",
-        maxResults: Math.min(2000, this.updateCount_ + 10),
-        startTime: this.lastRefresh_
-      }, this.OnInfo_);
+      else {
+        setTimeout(chrome.history.search as ((q: Q, c: C) => void | 1) as (q: Q, c: C) => void, 50, {
+          text: "",
+          maxResults: Math.min(2000, this.updateCount_ + 10),
+          startTime: this.lastRefresh_
+        }, this.OnInfo_);
+      }
       this.lastRefresh_ = i;
       this.toRefreshCount_ = this.updateCount_ = 0;
       return Decoder.continueToWork_();
@@ -1300,7 +1309,8 @@ knownCs: CompletersMap & SafeObject = {
       for (const word of query) {
         for (let phrase of <string[]> phraseBlacklist) {
           phrase = phrase.trim();
-          if (word.indexOf(phrase) >= 0 || phrase.length > 9 && word.length + 2 >= phrase.length && phrase.indexOf(word) >= 0) {
+          if (word.indexOf(phrase) >= 0 || phrase.length > 9 && word.length + 2 >= phrase.length
+              && phrase.indexOf(word) >= 0) {
             return true;
           }
         }
@@ -1310,7 +1320,8 @@ knownCs: CompletersMap & SafeObject = {
     UpdateAll_ (this: void): void {
       if (bookmarkEngine.bookmarks_) {
         for (const k of bookmarkEngine.bookmarks_) {
-          (k as Writeable<Bookmark>).visible = phraseBlacklist ? BlacklistFilter.TestNotMatched_(k.text, k.path) : kVisibility.visible;
+          (k as Writeable<Bookmark>).visible = phraseBlacklist ? BlacklistFilter.TestNotMatched_(k.text, k.path)
+            : kVisibility.visible;
         }
       }
       if (!HistoryCache.history_) {
@@ -1349,7 +1360,7 @@ knownCs: CompletersMap & SafeObject = {
   Decoder = {
     _f: decodeURIComponent, // core function
     decodeURL_ (a: string, o: ItemToDecode | false): string {
-      if (a.length >= 400 || a.indexOf('%') < 0) { return a; }
+      if (a.length >= 400 || a.indexOf("%") < 0) { return a; }
       try {
         return this._f(a);
       } catch (e) {}
@@ -1362,7 +1373,7 @@ knownCs: CompletersMap & SafeObject = {
         try {
           while (++i < l) {
             j = a[i]; s = j.url;
-            j.text = s.length >= 400 || s.indexOf('%') < 0 ? s : f(s);
+            j.text = s.length >= 400 || s.indexOf("%") < 0 ? s : f(s);
           }
           break;
         } catch (e) {
@@ -1424,7 +1435,7 @@ knownCs: CompletersMap & SafeObject = {
       xhr.onerror = this.OnXHR_;
       return xhr;
     },
-    onUpdate_(charset: string): void {
+    onUpdate_ (charset: string): void {
       const enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false,
       newDataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "",
       isSame = newDataUrl === this._dataUrl;
@@ -1432,7 +1443,7 @@ knownCs: CompletersMap & SafeObject = {
       this._dataUrl = newDataUrl;
       if (enabled) {
         this.init_ === this.xhr_ && /* inited */
-        setTimeout(function(): void {
+        setTimeout(function (): void {
           if (HistoryCache.history_) {
             Decoder.decodeList_(HistoryCache.history_);
           }
@@ -1443,7 +1454,7 @@ knownCs: CompletersMap & SafeObject = {
         this._jobs.length = 0;
       }
       if (this.enabled_ === enabled) { return; }
-      this._jobs = enabled ? [] as ItemToDecode[] : { length: 0, push() {} } as any;
+      this._jobs = enabled ? [] as ItemToDecode[] : { length: 0, push () { /* empty */ } } as any;
       this.enabled_ = enabled;
       this._ind = -1;
     },
@@ -1456,67 +1467,70 @@ knownCs: CompletersMap & SafeObject = {
     }
   };
 
-
-  Completion_ = {
-    filter_(this: void, query: string, options: CompletersNS.FullOptions
-        , callback: CompletersNS.Callback): void {
-      autoSelect = false;
-      rawQuery = (query = query.trim()) && query.replace(Utils.spacesRe_, " ");
-      Completers.getOffset_();
-      query = rawQuery;
-      queryTerms = query ? (query.length > Consts.MaxCharsInQuery ? query.substring(0, Consts.MaxCharsInQuery).trimRight() : query).split(" ") : [];
-      maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number>options.c | 0) || 128, Consts.UpperBoundOfMaxChars));
-      singleLine = !!options.s;
-      maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
-      matchedTotal = 0;
-      Completers.callback_ = callback;
-      let arr: ReadonlyArray<Completer> | null = knownCs[options.t], str = queryTerms.length >= 1 ? queryTerms[0] : "";
-      if (str.length === 2 && str[0] === ":") {
-        str = str[1];
-        arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history : str === "t" ? knownCs.tab
-          : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
-        if (arr) {
-          queryTerms.shift();
-          rawQuery = query.substring(3);
-          autoSelect = arr !== knownCs.omni;
-        }
-      }
-      if (queryTerms.length >= 1) {
-        queryTerms[0] = Utils.fixCharsInUrl_(queryTerms[0]);
-      }
-      showThoseInBlacklist = BlacklistFilter.IsExpectingHidden_(queryTerms);
-      Completers.filter_(arr || knownCs.omni);
-    },
-    removeSug_ (url, type, callback): void {
-      switch (type) {
-      case "tab":
-        chrome.tabs.remove(+url, function(): void {
-          const err = Utils.runtimeError_();
-          callback(!<any>err);
-          return err;
-        });
-        break;
-      case "history":
-        {
-          const found = !HistoryCache.history_ || HistoryCache.binarySearch_(url) >= 0;
-          chrome.history.deleteUrl({ url });
-          callback(found);
-        }
-        break;
+Completion_ = {
+  filter_ (this: void, query: string, options: CompletersNS.FullOptions
+      , callback: CompletersNS.Callback): void {
+    autoSelect = false;
+    rawQuery = (query = query.trim()) && query.replace(Utils.spacesRe_, " ");
+    Completers.getOffset_();
+    query = rawQuery;
+    queryTerms = query
+      ? (query.length > Consts.MaxCharsInQuery ? query.substring(0, Consts.MaxCharsInQuery).trimRight()
+          : query).split(" ")
+      : [];
+    maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number> options.c | 0) || 128
+      , Consts.UpperBoundOfMaxChars));
+    singleLine = !!options.s;
+    maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
+    matchedTotal = 0;
+    Completers.callback_ = callback;
+    let arr: ReadonlyArray<Completer> | null = knownCs[options.t], str = queryTerms.length >= 1 ? queryTerms[0] : "";
+    if (str.length === 2 && str[0] === ":") {
+      str = str[1];
+      arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history : str === "t" ? knownCs.tab
+        : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
+      if (arr) {
+        queryTerms.shift();
+        rawQuery = query.substring(3);
+        autoSelect = arr !== knownCs.omni;
       }
     }
-  };
+    if (queryTerms.length >= 1) {
+      queryTerms[0] = Utils.fixCharsInUrl_(queryTerms[0]);
+    }
+    showThoseInBlacklist = BlacklistFilter.IsExpectingHidden_(queryTerms);
+    Completers.filter_(arr || knownCs.omni);
+  },
+  removeSug_ (url, type, callback): void {
+    switch (type) {
+    case "tab":
+      chrome.tabs.remove(+url, function (): void {
+        const err = Utils.runtimeError_();
+        callback(!<boolean> <boolean | void> err);
+        return err;
+      });
+      break;
+    case "history":
+      {
+        const found = !HistoryCache.history_ || HistoryCache.binarySearch_(url) >= 0;
+        chrome.history.deleteUrl({ url });
+        callback(found);
+      }
+      break;
+    }
+  }
+};
 
-  Settings.updateHooks_.phraseBlacklist = BlacklistFilter.OnUpdate_;
-  Settings.postUpdate_("phraseBlacklist");
+Settings.updateHooks_.phraseBlacklist = BlacklistFilter.OnUpdate_;
+Settings.postUpdate_("phraseBlacklist");
 
-  setTimeout(function() {
-    Settings.postUpdate_("searchEngines", null);
-  }, 80);
+setTimeout(function () {
+  Settings.postUpdate_("searchEngines", null);
+}, 80);
 }, 200);
 
-var Completion_ = { filter_: function(a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
-  setTimeout(function() {
+var Completion_ = { filter_ (a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
+  setTimeout(function () {
     return Completion_.filter_(a, b, c);
   }, 210);
-}, removeSug_ (): void {} } as CompletersNS.GlobalCompletersConstructor;
+}, removeSug_ (): void { /* empty */ } } as CompletersNS.GlobalCompletersConstructor;

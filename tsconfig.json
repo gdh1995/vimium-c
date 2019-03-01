@@ -17,6 +17,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": ".",
+    "plugins": [
+      { "name": "typescript-tslint-plugin" }
+    ],
     "preserveConstEnums": false,
     "removeComments": false,
     "rootDir": ".",
