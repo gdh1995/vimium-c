@@ -69,7 +69,7 @@ var VOmni = {
     if (a.status_ === VomnibarNS.Status.NotInited) {
       if (VHints.tryNestedFrame_("VOmni", "run", count, options)) { return VUtils.remove_(a); }
       a.status_ = VomnibarNS.Status.Initing;
-      a.init_(options, CSS);
+      a.init_(options);
     } else if (a.isABlank_()) {
       a.onReset_ = function (this: typeof VOmni): void { this.onReset_ = null; return this.run(count, options); };
       return;
@@ -123,7 +123,7 @@ var VOmni = {
     active || window.focus();
     this.box_.style.cssText = "display:none";
   },
-  init_ ({k: secret, v: page, t: type, i: inner}: VomnibarNS.FullOptions, CSS: BgCSSReq["S"]): void {
+  init_ ({k: secret, v: page, t: type, i: inner}: VomnibarNS.FullOptions): void {
     const el = VDom.createElement_("iframe") as typeof VOmni.box_, UI = VDom.UI;
     el.className = "R UI Omnibar";
     el.style.display = "none";
@@ -196,13 +196,7 @@ var VOmni = {
       }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
-    if (CSS) {
-      UI.css_("");
-    }
-    UI.add_(this.box_ = el, AdjustType.AdjustButNotShow, VHUD.box_);
-    if (CSS) {
-      UI.css_(CSS);
-    }
+    UI.add_(this.box_ = el, AdjustType.MustAdjust, VHUD.box_);
     type !== VomnibarNS.PageType.inner &&
     setTimeout(function (i): void { loaded || i || VOmni.onReset_ || reload(); }, 2000);
   },
@@ -269,7 +263,6 @@ var VOmni = {
     style.top = VDom.wdZoom_ !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.wdZoom_) | 0) + "px"
       : this.top_ || this.defaultTop_;
     style.display = "";
-    VDom.UI.OnReady_ && VDom.UI.OnReady_();
     VUtils.remove_(this);
     return VUtils.push_(this.onKeydown_, this);
   },

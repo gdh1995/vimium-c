@@ -45,24 +45,28 @@ VDom.UI = {
       if (adjust !== AdjustType.NotAdjust) {
         a1.adjust_();
       }
-      if (adjust !== AdjustType.AdjustButNotShow) {
-        /**
-         * Note: Tests on C35, 38, 41, 44, 47, 50, 53, 57, 60, 63, 67, 71, 72 confirmed
-         *        that el.sheet has been valid when promise.then, even on XML pages.
-         * `AdjustType.NotAdjust` must be used before a certain, clear normal adjusting
-         */
-        Promise.resolve(1 as 1).then(a1.OnReady_);
-      }
+      /**
+       * Note: Tests on C35, 38, 41, 44, 47, 50, 53, 57, 60, 63, 67, 71, 72 confirmed
+       *        that el.sheet has been valid when promise.then, even on XML pages.
+       * `AdjustType.NotAdjust` must be used before a certain, clear normal adjusting
+       */
+      Promise.resolve(1 as 1).then((): void => {
+        const a2 = VDom.UI, box2 = a2.box_ as HTMLElement;
+        // enforce webkit to build the style attribute node, and then we can remove it totally
+        box2.hasAttribute("style") && box2.removeAttribute("style");
+        a2.callback_ && a2.callback_();
+        a2.callback_ = null as never;
+      });
     });
     r.appendChild(element);
     let b: string | null;
     if (b = a.styleIn_ as string | null) {
       a.css_(b);
     } else {
-      b === "" || VPort.post_({ H: kFgReq.css });
-      if ((adjust as AdjustType) >= AdjustType.MustAdjust) {
+      if ((adjust as AdjustType) === AdjustType.MustAdjust) {
         a.adjust_();
       }
+      VPort.post_({ H: kFgReq.css });
     }
   },
   addElementList_: function (this: DomUI
@@ -94,13 +98,6 @@ VDom.UI = {
     if (enabled) { return this.adjust_(); }
     (this.box_ as HTMLElement).remove();
     removeEventListener("webkitfullscreenchange", this.adjust_, true);
-  },
-  OnReady_ (this: void): void {
-    const a = VDom.UI, box = a.box_ as HTMLElement;
-    // enforce webkit to build the style attribute node, and then we can remove it totally
-    box.hasAttribute("style") && box.removeAttribute("style");
-    a.callback_ && a.callback_();
-    a.OnReady_ = a.callback_ = null as never;
   },
   cssPatch_: null,
   ensureBorder_ (zoom?: number): void {

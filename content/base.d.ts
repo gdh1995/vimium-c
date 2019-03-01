@@ -271,10 +271,9 @@ interface Hint5 extends Hint4 {
 
 declare const enum AdjustType {
   /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#VDom.UI.css_ : Promise.resolve} */
-  NotAdjust = 0,
-  Normal = 1,
-  MustAdjust = 2,
-  AdjustButNotShow = 3,
+  Normal = 0,
+  MustAdjust = 1,
+  NotAdjust = 2,
   DEFAULT = Normal,
 }
 
@@ -298,7 +297,6 @@ interface DomUI {
     ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   adjust_ (this: void, event?: Event): void;
   toggle_ (this: DomUI, enabled: boolean): void;
-  OnReady_ (this: void): void;
   cssPatch_: [string, (css: string) => string] | null;
   ensureBorder_ (this: DomUI, zoom?: number): void;
   createStyle_ (this: DomUI, text?: string, css?: HTMLStyleElement): HTMLStyleElement;
