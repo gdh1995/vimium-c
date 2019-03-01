@@ -18,16 +18,27 @@ if (typeof browser !== "undefined" && (browser && (browser as typeof chrome).run
   window.chrome = browser as typeof chrome;
 }
 const KeyRe_ = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
-__extends = function(child: Function, parent: Function): void {
-  function __(this: { constructor: Function } ) { this.constructor = child; }
+__extends = function<Child, Super, Base> (
+    child: (new <Args extends any[]> (...args: Args) => Child) & {
+        prototype?: Super & { "constructor": new () => Child }
+    }, parent: (new <Args extends any[]> (...args: Args) => Super) & {
+        prototype: Base & { "constructor": new () => Super }
+    }): void {
+  interface Middle {
+    prototype?: Base & { "constructor": new () => Super };
+    new (): Super & { "constructor": new () => Child };
+  }
+  const __: Middle = function (this: Super & { "constructor": new () => Child }): void {
+    this.constructor = child;
+  } as {} as Middle;
   __.prototype = parent.prototype;
-  child.prototype = new (__ as any)();
+  child.prototype = new __();
 },
 debounce_ = function<T> (this: void, func: (this: T) => void
     , wait: number, bound_context: T, also_immediate: number
     ): (this: void) => void {
   let timeout = 0, timestamp: number;
-  const later = function() {
+  const later = function () {
     const last = Date.now() - timestamp;
     if (last < wait && last >= 0) {
       timeout = setTimeout(later, wait - last);
@@ -39,7 +50,7 @@ debounce_ = function<T> (this: void, func: (this: T) => void
     }
   };
   also_immediate = also_immediate ? 1 : 0;
-  return function() {
+  return function () {
     timestamp = Date.now();
     if (timeout) { return; }
     timeout = setTimeout(later, wait);
@@ -65,7 +76,7 @@ abstract class Option_<T extends keyof AllowedOptions> {
   saved_: boolean;
   locked_?: boolean;
   readonly onUpdated_: (this: void) => void;
-  onSave_?(): void;
+  onSave_?: () => void;
   checker_?: Checker<T>;
 
   static all_ = Object.create(null) as {
@@ -82,7 +93,6 @@ constructor (element: HTMLElement, onUpdated: (this: Option_<T>) => void) {
     onUpdated = this._onCacheUpdated.bind(this, onUpdated);
   }
   this.fetch_();
-  (Option_.all_ as SafeDict<Option_<keyof AllowedOptions>>)[this.field_] = this;
   this.onUpdated_ = debounce_(onUpdated, 330, this, 1);
 }
 
@@ -138,7 +148,6 @@ showError_: (msg: string, tag?: OptionErrorType | null, errors?: boolean) => voi
 }
 type OptionErrorType = "has-error" | "highlight";
 
-
 class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   template_: HTMLTableRowElement;
   list_: HTMLTableSectionElement;
@@ -147,7 +156,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
   bgSettings_.fetchFile_("exclusionTemplate", (): void => {
     this.element_.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
     this.template_ = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
-    this.list_ = this.element_.getElementsByTagName('tbody')[0] as HTMLTableSectionElement;
+    this.list_ = this.element_.getElementsByTagName("tbody")[0] as HTMLTableSectionElement;
     this.fetch_ = super.fetch_;
     this.fetch_();
     this.list_.addEventListener("input", this.onUpdated_);
@@ -156,11 +165,11 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
     return this.onInit_();
   });
 }
-fetch_(): void {}
-onRowChange_ (_isInc: number): void {}
+fetch_(): void { /* empty */ }
+onRowChange_ (_isInc: number): void { /* empty */ }
 addRule_ (pattern: string): HTMLTableRowElement {
   const element = this.appendRule_(this.list_, {
-    pattern: pattern,
+    pattern,
     passKeys: ""
   });
   ExclusionRulesOption_.getPattern_(element).focus();
@@ -172,7 +181,7 @@ addRule_ (pattern: string): HTMLTableRowElement {
 }
 populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
   this.list_.textContent = "";
-  if (rules.length <= 0) {}
+  if (rules.length <= 0) { /* empty */ }
   else if (rules.length === 1) {
     this.appendRule_(this.list_, rules[0]);
   } else {
@@ -184,12 +193,12 @@ populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
 }
 appendRule_ (list: HTMLTableSectionElement | DocumentFragment, rule: ExclusionsNS.StoredRule): HTMLTableRowElement {
   const row = document.importNode(this.template_, true);
-  let el = row.querySelector('.pattern') as HTMLInputElement, value: string;
+  let el = row.querySelector(".pattern") as HTMLInputElement, value: string;
   el.value = value = rule.pattern;
   if (value) {
     el.placeholder = "";
   }
-  el = row.querySelector('.passKeys') as HTMLInputElement;
+  el = row.querySelector(".passKeys") as HTMLInputElement;
   el.value = value = rule.passKeys.trimRight();
   if (value) {
     el.placeholder = "";
@@ -234,16 +243,16 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       continue;
     }
     let fixTail = false;
-    if (pattern[0] === ":" || element.style.display === "none") {}
+    if (pattern[0] === ":" || element.style.display === "none") { /* empty */ }
     else if (!this._reChar.test(pattern)) {
-      fixTail = pattern.indexOf('/', pattern.indexOf("://") + 3) < 0;
+      fixTail = pattern.indexOf("/", pattern.indexOf("://") + 3) < 0;
       pattern = pattern.replace(this._escapeRe, "$1");
       pattern = (pattern.indexOf("://") === -1 ? ":http://" : ":") + pattern;
     } else if (pattern[0] !== "^") {
-      fixTail = pattern.indexOf('/', pattern.indexOf("://") + 3) < 0;
+      fixTail = pattern.indexOf("/", pattern.indexOf("://") + 3) < 0;
       pattern = (pattern.indexOf("://") === -1 ? "^https?://" : "^") +
           (pattern[0] !== "*" || pattern[1] === "."
-            ? ((pattern = pattern.replace(<RegExpG>/\./g, "\\.")),
+            ? ((pattern = pattern.replace(<RegExpG> /\./g, "\\.")),
               pattern[0] !== "*" ? pattern.replace("://*\\.", "://(?:[^./]+\\.)*?")
                 : pattern.replace("*\\.", "(?:[^./]+\\.)*?"))
             : "[^/]" + pattern);
@@ -256,10 +265,7 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       const passArr = passKeys.match(KeyRe_);
       passKeys = passArr ? (passArr.sort().join(" ") + " ") : "";
     }
-    rules.push({
-      pattern: pattern,
-      passKeys: passKeys
-    });
+    rules.push({ pattern, passKeys });
   }
   return rules;
 }
@@ -271,7 +277,7 @@ static getPattern_ (element: HTMLTableRowElement): HTMLInputElement {
 static getPassKeys_ (element: HTMLTableRowElement): HTMLInputElement {
   return element.getElementsByClassName<HTMLInputElement>("passKeys")[0];
 }
-onInit_ (): void {}
+onInit_ (): void { /* empty */ }
 sortRules_: (el?: HTMLElement) => void;
 timer_?: number;
 }
@@ -284,34 +290,35 @@ if (bgBrowserVer >= BrowserVer.MinSmartSpellCheck) {
 
 if (bgBrowserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
   || window.devicePixelRatio < 2 && bgBrowserVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
-) (function(): void {
+) { (function (): void {
   const css = document.createElement("style"), ratio = window.devicePixelRatio, version = bgBrowserVer;
   const onlyInputs = version >= BrowserVer.MinRoundedBorderWidthIsNotEnsured && ratio >= 1;
-  let scale: string | number = onlyInputs || version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.12 / ratio : 1;
+  let scale: string | number = onlyInputs || version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+        ? 1.12 / ratio : 1;
   scale = ("" + scale).substring(0, 7);
   css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
     : `* { border-width: ${scale}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
-})();
+})(); }
 
 $<HTMLElement>(".version").textContent = bgSettings_.CONST_.VerName_;
 
-location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusions").then((function(callback) {
-  return function() {
+location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusions").then((function (callback) {
+  return function () {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
-})(function(tabs: [chrome.tabs.Tab] | never[]): void {
-interface PopExclusionRulesOption extends ExclusionRulesOption_ {
-  inited_: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */;
-  init_(this: PopExclusionRulesOption, element: HTMLElement
-    , onUpdated: (this: PopExclusionRulesOption) => void, onInit: (this: PopExclusionRulesOption) => void
-    ): void;
-  rebuildTesters_ (this: PopExclusionRulesOption): void;
-  addRule_ (): HTMLTableRowElement;
-  populateElement_ (rules: ExclusionsNS.StoredRule[]): void;
-  OnInput_ (this: void, event: Event): void;
-  generateDefaultPattern_ (this: PopExclusionRulesOption): string;
-}
+})(function (tabs: [chrome.tabs.Tab] | never[]): void {
+  interface PopExclusionRulesOption extends ExclusionRulesOption_ {
+    inited_: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */;
+    init_(this: PopExclusionRulesOption, element: HTMLElement
+      , onUpdated: (this: PopExclusionRulesOption) => void, onInit: (this: PopExclusionRulesOption) => void
+      ): void;
+    rebuildTesters_ (this: PopExclusionRulesOption): void;
+    addRule_ (): HTMLTableRowElement;
+    populateElement_ (rules: ExclusionsNS.StoredRule[]): void;
+    OnInput_ (this: void, event: Event): void;
+    generateDefaultPattern_ (this: PopExclusionRulesOption): string;
+  }
   let ref = BG_.Backend.indexPorts_(tabs[0].id), blockedMsg = $("#blocked-msg");
   const notRunnable = !ref && !(tabs[0] && tabs[0].url && tabs[0].status === "loading"
     && (tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0));
@@ -321,7 +328,8 @@ interface PopExclusionRulesOption extends ExclusionRulesOption_ {
     blockedMsg.style.display = "";
     (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST_.VerName_;
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
-    if (!tabs[0] || !tabs[0].url || !(tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
+    if (!tabs[0] || !tabs[0].url || !(tabs[0].url.lastIndexOf("http", 0) === 0
+        || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
       refreshTip.remove();
     } else if (bgOnOther === BrowserType.Edge) {
       (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page";
@@ -335,7 +343,7 @@ interface PopExclusionRulesOption extends ExclusionRulesOption_ {
   }
   const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST_.OptionsPage_;
   element.href !== optionsUrl && (element.href = optionsUrl);
-  element.onclick = function(this: HTMLAnchorElement, event: Event): void {
+  element.onclick = function (this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG_.Object.create(null);
     a.u = bgSettings_.CONST_.OptionsPage_;
@@ -346,80 +354,80 @@ interface PopExclusionRulesOption extends ExclusionRulesOption_ {
     return;
   }
 
-const bgExclusions: ExclusionsNS.ExclusionsCls = BG_.Exclusions,
-tabId = ref ? ref[0].s.t : tabs[0].id,
-stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
-url = ref ? ref[0].s.u : tabs[0].url,
-exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOption>{
-  inited_: 0,
-  init_ (this: PopExclusionRulesOption, element: HTMLElement
-      , onUpdated: (this: ExclusionRulesOption_) => void, onInit: (this: ExclusionRulesOption_) => void
-      ): void {
-    this.rebuildTesters_();
-    this.onInit_ = onInit;
-    (ExclusionRulesOption_ as any).call(this, element, onUpdated);
-    this.element_.addEventListener("input", this.OnInput_);
-    this.init_ = null as never;
-  },
-  rebuildTesters_ (this: PopExclusionRulesOption): void {
-    const rules = bgSettings_.get_("exclusionRules")
-      , ref1 = bgExclusions.testers_ = BG_.Object.create(null)
-      , ref2 = bgExclusions.rules_;
-    for (let _i = 0, _len = rules.length; _i < _len; _i++) {
-      ref1[rules[_i].pattern] = ref2[_i * 2];
-    }
-    this.rebuildTesters_ = null as never;
-  },
-  addRule_ (this: PopExclusionRulesOption): HTMLTableRowElement {
-    return ExclusionRulesOption_.prototype.addRule_.call(this, this.generateDefaultPattern_());
-  },
-  populateElement_ (this: PopExclusionRulesOption, rules: ExclusionsNS.StoredRule[]): void {
-    ExclusionRulesOption_.prototype.populateElement_.call(this, rules);
-    const elements = this.element_.getElementsByClassName<HTMLTableRowElement>("exclusionRuleInstance");
-    let haveMatch = -1;
-    for (let _i = 0, _len = elements.length; _i < _len; _i++) {
-      const element = elements[_i];
-      const pattern = ExclusionRulesOption_.getPattern_(element).value.trim();
-      const rule = (bgExclusions.testers_ as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
+  const bgExclusions: ExclusionsNS.ExclusionsCls = BG_.Exclusions,
+  tabId = ref ? ref[0].s.t : tabs[0].id,
+  stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
+  url = ref ? ref[0].s.u : tabs[0].url,
+  exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOption> {
+    inited_: 0,
+    init_ (this: PopExclusionRulesOption, element2: HTMLElement
+        , onUpdated: (this: ExclusionRulesOption_) => void, onInit: (this: ExclusionRulesOption_) => void
+        ): void {
+      this.rebuildTesters_();
+      this.onInit_ = onInit;
+      (ExclusionRulesOption_ as any).call(this, element2, onUpdated);
+      this.element_.addEventListener("input", this.OnInput_);
+      this.init_ = null as never;
+    },
+    rebuildTesters_ (this: PopExclusionRulesOption): void {
+      const rules = bgSettings_.get_("exclusionRules")
+        , ref1 = bgExclusions.testers_ = BG_.Object.create(null)
+        , ref2 = bgExclusions.rules_;
+      for (let _i = 0, _len = rules.length; _i < _len; _i++) {
+        ref1[rules[_i].pattern] = ref2[_i * 2];
+      }
+      this.rebuildTesters_ = null as never;
+    },
+    addRule_ (this: PopExclusionRulesOption): HTMLTableRowElement {
+      return ExclusionRulesOption_.prototype.addRule_.call(this, this.generateDefaultPattern_());
+    },
+    populateElement_ (this: PopExclusionRulesOption, rules: ExclusionsNS.StoredRule[]): void {
+      ExclusionRulesOption_.prototype.populateElement_.call(this, rules);
+      const elements = this.element_.getElementsByClassName<HTMLTableRowElement>("exclusionRuleInstance");
+      let haveMatch = -1;
+      for (let _i = 0, _len = elements.length; _i < _len; _i++) {
+        const element2 = elements[_i];
+        const pattern = ExclusionRulesOption_.getPattern_(element2).value.trim();
+        const rule = (bgExclusions.testers_ as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
+        if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
+          haveMatch = _i;
+        } else {
+          element2.style.display = "none";
+        }
+      }
+      if (this.inited_ === 0) {
+        if (haveMatch >= 0) {
+          ExclusionRulesOption_.getPassKeys_(elements[haveMatch]).focus();
+        } else {
+          this.addRule_();
+        }
+        this.inited_ = haveMatch >= 0 ? 2 : 1;
+      }
+      this.populateElement_ = null as never;
+    },
+    OnInput_ (this: void, event: Event): void {
+      const patternElement = event.target as HTMLInputElement;
+      if (!patternElement.classList.contains("pattern")) {
+        return;
+      }
+      const rule = bgExclusions.getRe_(patternElement.value);
       if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
-        haveMatch = _i;
+        patternElement.title = patternElement.style.color = "";
       } else {
-        element.style.display = "none";
+        patternElement.style.color = "red";
+        patternElement.title = "Red text means that the pattern does not\nmatch the current URL.";
       }
+    },
+    generateDefaultPattern_ (this: PopExclusionRulesOption): string {
+      const url2 = url.lastIndexOf("https:", 0) === 0
+        ? "^https?://" + url.split("/", 3)[2].replace(<RegExpG> /[.[\]]/g, "\\$&") + "/"
+        : (<RegExpOne> /^[^:]+:\/\/./).test(url) && url.lastIndexOf("file:", 0) < 0
+        ? ":" + (url.split("/", 3).join("/") + "/")
+        : ":" + url;
+      this.generateDefaultPattern_ = () => url2;
+      return url2;
     }
-    if (this.inited_ === 0) {
-      if (haveMatch >= 0) {
-        ExclusionRulesOption_.getPassKeys_(elements[haveMatch]).focus();
-      } else {
-        this.addRule_();
-      }
-      this.inited_ = haveMatch >= 0 ? 2 : 1;
-    }
-    this.populateElement_ = null as never;
-  },
-  OnInput_ (this: void, event: Event): void {
-    const patternElement = event.target as HTMLInputElement;
-    if (!patternElement.classList.contains("pattern")) {
-      return;
-    }
-    const rule = bgExclusions.getRe_(patternElement.value);
-    if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
-      patternElement.title = patternElement.style.color = "";
-    } else {
-      patternElement.style.color = "red";
-      patternElement.title = "Red text means that the pattern does not\nmatch the current URL.";
-    }
-  },
-  generateDefaultPattern_ (this: PopExclusionRulesOption): string {
-    const url2 = url.lastIndexOf("https:", 0) === 0
-      ? "^https?://" + url.split("/", 3)[2].replace(<RegExpG>/[.[\]]/g, "\\$&") + "/"
-      : (<RegExpOne>/^[^:]+:\/\/./).test(url) && url.lastIndexOf("file:", 0) < 0
-      ? ":" + (url.split("/", 3).join("/") + "/")
-      : ":" + url;
-    this.generateDefaultPattern_ = () => url2;
-    return url2;
-  }
-}, ExclusionRulesOption_.prototype);
+  }, ExclusionRulesOption_.prototype);
 
   let saved = true, oldPass: string | null = null, curLockedStatus = Frames.Status.__fake;
   function collectPass(pass: string): string {
@@ -446,7 +454,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
         : (same ? "keeps to " : "will ") + (pass ? "exclude" : "be"))
       + (pass
       ? `: <span class="state-value code">${pass}</span>`
-      : `:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
+      : `:<span class="state-value fixed-width">${pass !== null ? "disabled" : " enabled"}</span>`);
     if (curLockedStatus !== Frames.Status.__fake && !isSaving && same) {
       html += ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`;
     }
@@ -476,7 +484,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
     const testers = bgExclusions.testers_;
     BG_.Backend.forceStatus_("reset", tabId);
     exclusions.save_();
-    setTimeout(function() {
+    setTimeout(function () {
       bgExclusions.testers_ = testers;
     }, 50);
     exclusions.inited_ = 3;
@@ -487,14 +495,15 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
     saved = true;
   }
   saveBtn.onclick = saveOptions;
-  document.addEventListener("keyup", function(event): void {
+  document.addEventListener("keyup", function (event): void {
     if (event.keyCode === VKeyCodes.enter && (event.ctrlKey || event.metaKey)) {
       setTimeout(window.close, 300);
       if (!saved) { return saveOptions(); }
     }
   });
   exclusions.init_($("#exclusionRules"), onUpdated, function (): void {
-    let sender = ref ? ref[0].s : <Readonly<Frames.Sender>>{ s: Frames.Status.enabled, f: Frames.Flags.Default }, el: HTMLElement
+    let sender = ref ? ref[0].s : <Readonly<Frames.Sender>> { s: Frames.Status.enabled, f: Frames.Flags.Default }
+      , el: HTMLElement
       , newStat = sender.s !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
     curLockedStatus = sender.f & Frames.Flags.locked ? sender.s : Frames.Status.__fake;
     ref = null;
@@ -507,7 +516,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
       el = el.firstElementChild as HTMLElement;
       el.onclick = forceState.bind(null, "Reset");
     }
-    setTimeout(function(): void {
+    setTimeout(function (): void {
       (document.documentElement as HTMLHtmlElement).style.height = "";
     }, 17);
     this.onInit_ = null as never;
@@ -515,7 +524,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOp
   });
   interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
   (window as WindowEx).exclusions = exclusions;
-  window.onunload = function(): void {
+  window.onunload = function (): void {
     bgExclusions.testers_ = null;
     BG_.Utils.GC_();
   };

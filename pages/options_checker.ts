@@ -41,7 +41,7 @@ let keyMappingChecker_ = {
       s2 && (value = s2);
     }
     value = value && JSON.stringify(value).replace(this.toHexCharRe_, this.onToHex_);
-    return '=' + value + tail;
+    return "=" + value + tail;
   },
   optionValueRe_: <RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|\S+)(\s|$)/g,
   toHexCharRe_: <RegExpG & RegExpSearchable<0>> /\s/g,
@@ -66,18 +66,18 @@ let keyMappingChecker_ = {
   cmdKeyRe_: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
   wrapLineRe_: <RegExpG & RegExpSearchable<0>> /\\\n/g,
   wrapLineRe2_: <RegExpG & RegExpSearchable<0>> /\\\r/g,
-  check_ (string: string): string {
-    if (!string) { return string; }
+  check_ (str: string): string {
+    if (!str) { return str; }
     this.init_ && this.init_();
     if (!this.isKeyReInstalled_) {
       (BG_.Commands as NonNullable<Window["Commands"]>).SetKeyRe_(KeyRe_.source);
       this.isKeyReInstalled_ = true;
     }
-    string = "\n" + string.replace(this.wrapLineRe_, '\\\r');
-    string = string.replace(this.mapKeyRe_, this.normalizeMap_);
-    string = string.replace(this.cmdKeyRe_, this.normalizeCmd_);
-    string = string.replace(this.wrapLineRe2_, '\\\n').trim();
-    return string;
+    str = "\n" + str.replace(this.wrapLineRe_, "\\\r");
+    str = str.replace(this.mapKeyRe_, this.normalizeMap_);
+    str = str.replace(this.cmdKeyRe_, this.normalizeCmd_);
+    str = str.replace(this.wrapLineRe2_, "\\\n").trim();
+    return str;
   },
 };
 Option_.all_.keyMappings.checker_ = keyMappingChecker_;
@@ -85,7 +85,7 @@ keyMappingChecker_ = null as never;
 
 bgSettings_.CONST_.VimiumNewTab_ && (Option_.all_.newTabUrl.checker_ = {
   check_ (value: string): string {
-    const url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(value)
+    const url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
         ? chrome.runtime.getURL(value) : BG_.Utils.convertToUrl_(value.toLowerCase());
     return url.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_) ? bgSettings_.defaults_.newTabUrl : value;
   }
@@ -113,7 +113,7 @@ Option_.all_.searchUrl.checker_ = {
   }
 };
 
-Option_.all_.vimSync.allowToSave_ = function(): boolean {
+Option_.all_.vimSync.allowToSave_ = function (): boolean {
   const newlyEnableSyncing = !this.saved_ && this.readValueFromElement_() === true;
   if (newlyEnableSyncing) {
     const arr = Option_.all_;
@@ -149,7 +149,7 @@ Option_.all_.keyboard.checker_ = {
   }
 };
 
-(function(): void {
+(function (): void {
   const func = loadChecker, info = (loadChecker as CheckerLoader).info;
   (loadChecker as CheckerLoader).info = "";
   let _ref = $$("[data-check]"), _i: number;

@@ -15,7 +15,7 @@ var VDom = {
   },
   /** Note: won't call functions if Vimium is destroyed */
   DocReady_ (callback: (this: void) => void): void {
-    const f = function(callback: (this: void) => void): void { return callback(); };
+    const f = function (callback1: (this: void) => void): void { return callback1(); };
     if (document.readyState !== "loading") {
       this.DocReady_ = f;
       return callback();
@@ -30,8 +30,8 @@ var VDom = {
       }
       listeners.length = 0; // in case VDom.DocReady_ is kept by other extensions
     }
-    this.DocReady_ = function(callback): void {
-      listeners.push(callback);
+    this.DocReady_ = function (callback1): void {
+      listeners.push(callback1);
     };
     addEventListener("DOMContentLoaded", eventHandler, true);
   },
@@ -52,7 +52,7 @@ var VDom = {
   GetShadowRoot_ (el: Element | Node): ShadowRoot | null {
     const sr = (el as Element).shadowRoot || null, E = Element;
     // check el's type to avoid exceptions
-    return sr instanceof E ? el instanceof E ? VDom.Getter_(E, el, 'shadowRoot') : null : sr;
+    return sr instanceof E ? el instanceof E ? VDom.Getter_(E, el, "shadowRoot") : null : sr;
   },
   /**
    * Try its best to find a real parent
@@ -60,7 +60,8 @@ var VDom = {
    * @UNSAFE_RETURNED
    */
   GetParent_: function (this: void, el: Node
-      , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent): Node | null {
+      , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent
+      ): Node | null {
     /**
      * Known info about Chrome:
      * * a selection / range can only know nodes and text in a same tree scope
@@ -83,7 +84,7 @@ var VDom = {
     // par exists but not in normal tree
     if (!pn.contains(el)) { // pn is overridden
       if (pe && pe.contains(el)) { /* pe is real */ return pe; }
-      pn = VDom.Getter_(Node, el, 'parentNode');
+      pn = VDom.Getter_(Node, el, "parentNode");
     }
     const SR = window.ShadowRoot;
     // pn is real or null
@@ -107,7 +108,7 @@ var VDom = {
    */
   prepareCrop_ (): number {
     let iw: number, ih: number, ihs: number;
-    this.prepareCrop_ = (function(this: typeof VDom): number {
+    this.prepareCrop_ = (function (this: typeof VDom): number {
       let fz = this.dbZoom_, el = this.scrollingEl_(), i: number, j: number, b = this.paintBox_;
       if (el) {
         i = el.clientWidth, j = el.clientHeight;
@@ -127,7 +128,7 @@ var VDom = {
       ihs = ((j - 8) / fz) | 0;
       return iw;
     });
-    this.cropRectToVisible_ = (function(left, top, right, bottom): VRect | null {
+    this.cropRectToVisible_ = (function (left, top, right, bottom): VRect | null {
       if (top > ihs || bottom < 3) {
         return null;
       }
@@ -151,7 +152,7 @@ var VDom = {
         if (cr = this.cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)) {
           if (isVisible == null) {
             el_style || (el_style = getComputedStyle(element));
-            isVisible = el_style.visibility === 'visible';
+            isVisible = el_style.visibility === "visible";
           }
           if (isVisible) { return cr; }
         }
@@ -160,12 +161,12 @@ var VDom = {
       if (_ref || (_ref = element.children) instanceof Element) { continue; }
       for (let _j = 0, _len1 = _ref.length, gCS = getComputedStyle; _j < _len1; _j++) {
         style = gCS(_ref[_j]);
-        if (style.float !== 'none' ||
-            ((str = style.position) !== 'static' && str !== 'relative')) {}
+        if (style.float !== "none" || ((str = style.position) !== "static" && str !== "relative")) { /* empty */ }
         else if (rect.height === 0) {
           if (notInline == null) {
             el_style || (el_style = gCS(element));
-            notInline = (el_style.fontSize !== "0px" && el_style.lineHeight !== "0px") || !el_style.display.startsWith("inline");
+            notInline = (el_style.fontSize !== "0px" && el_style.lineHeight !== "0px")
+              || !el_style.display.startsWith("inline");
           }
           if (notInline || !style.display.startsWith("inline")) { continue; }
         } else { continue; }
@@ -186,7 +187,7 @@ var VDom = {
       ret = true;
     } else {
       const map = document.querySelector('map[name="' +
-        element.useMap.replace(<RegExpOne>/^#/, "").replace(<RegExpG>/"/g, '\\"') + '"]');
+        element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"/g, '\\"') + '"]');
       if (!map || !(map instanceof HTMLMapElement)) { return; }
       areas = map.getElementsByTagName("area");
     }
@@ -226,7 +227,8 @@ var VDom = {
       return output.length > 0 ? output[0][1] : null;
     }
   } as {
-    (element: HTMLElementUsingMap, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null;
+    (element: HTMLElementUsingMap, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]
+      ): VRect | null;
     (element: HTMLElementUsingMap, output: Hint5[]): void;
   },
   paintBox_: null as [number, number] | null, // it may need to use `paintBox[] / <body>.zoom`
@@ -238,7 +240,7 @@ var VDom = {
   bZoom_: 1,
   /**
    * return: VDom.wdZoom_ := min(devRatio, 1) * docEl.zoom
-   * 
+   *
    * also update VDom.dbZoom_
    * update VDom.bZoom_ if target
    */
@@ -255,7 +257,7 @@ var VDom = {
     }
     for (; el && el !== docEl; el = this.GetParent_(el, PNType.RevealSlot)) {
       zoom *= +gcs(el).zoom || 1;
-    };
+    }
     this.paintBox_ = null; // it's not so necessary to get a new paintBox here
     this.dbZoom_ = this.bZoom_ * zoom;
     return this.wdZoom_ = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
@@ -266,14 +268,14 @@ var VDom = {
     if (doc.webkitIsFullScreen) {
       this.getZoom_(1);
       this.dScale_ = 1;
-      const zoom = this.wdZoom_ / ratio2;
-      return [0, 0, (iw / zoom) | 0, (ih / zoom) | 0, 0];
+      const zoom3 = this.wdZoom_ / ratio2;
+      return [0, 0, (iw / zoom3) | 0, (ih / zoom3) | 0, 0];
     }
     const gcs = getComputedStyle, float = parseFloat,
     box = doc.documentElement as HTMLElement, st = gcs(box),
     box2 = doc.body, st2 = box2 ? gcs(box2) : st,
     zoom2 = this.bZoom_ = box2 && +st2.zoom || 1,
-    containHasPaint = (<RegExpOne>/content|paint|strict/).test(st.contain as string),
+    containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain as string),
     stacking = st.position !== "static" || containHasPaint || st.transform !== "none",
     // ignore the case that x != y in "transform: scale(x, y)""
     _tf = st.transform, scale = this.dScale_ = _tf && !_tf.startsWith("matrix(1,") && float(_tf.slice(7)) || 1,
@@ -305,13 +307,15 @@ var VDom = {
     if (xScrollable) {
       mw += 64 * zoom2;
       if (!containHasPaint) {
-        iw = sEl ? (sEl.scrollWidth - window.scrollX) / zoom : Math.max((iw - PixelConsts.MaxScrollbarWidth) / zoom, rect.right);
+        iw = sEl ? (sEl.scrollWidth - window.scrollX) / zoom : Math.max((iw - PixelConsts.MaxScrollbarWidth) / zoom
+          , rect.right);
       }
     }
     if (yScrollable) {
       mh += 20 * zoom2;
       if (!containHasPaint) {
-        ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max((ih - PixelConsts.MaxScrollbarWidth) / zoom, rect.bottom);
+        ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max((ih - PixelConsts.MaxScrollbarWidth) / zoom
+          , rect.bottom);
       }
     }
     iw = Math.min(iw, mw), ih = Math.min(ih, mh);
@@ -386,7 +390,9 @@ var VDom = {
     if (!(element instanceof HTMLElement) || typeof name !== "string") { return EditableType.NotEditable; }
     const ty = VDom.editableTypes_[name.toLowerCase()];
     return ty !== EditableType.input_ ? (ty
-        || (element.isContentEditable !== true || VDom.notSafe_(element) ? EditableType.NotEditable : EditableType.Editbox))
+        || (element.isContentEditable !== true || VDom.notSafe_(element) ? EditableType.NotEditable
+          : EditableType.Editbox)
+      )
       : VDom.uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.Editbox;
   } as {
     <Ty extends 0>(element: Element): EditableType;
@@ -416,7 +422,7 @@ var VDom = {
     while (par && !(par instanceof HTMLElement)) { par = par.parentNode as Element; }
     if (selected && p0 instanceof Text && p0.data.trim().length <= selected.length) {
       let text: string;
-      while (par && typeof (text = (<HTMLElement>par).innerText) === "string" && selected.length === text.length) {
+      while (par && typeof (text = (<HTMLElement> par).innerText) === "string" && selected.length === text.length) {
         par = VDom.GetParent_(par as Element, PNType.DirectElement);
       }
     }
@@ -429,8 +435,9 @@ var VDom = {
     if (el instanceof E) {
       el = !((cn = this.Getter_(Node, el, "childNodes") || el.childNodes) instanceof E) && cn[sel.focusOffset] || el;
     }
-    for (o = el; o && !(o instanceof E); o = knownDi ? o.previousSibling : o.nextSibling) {}
-    return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement), PNType.DirectElement);
+    for (o = el; o && !(o instanceof E); o = knownDi ? o.previousSibling : o.nextSibling) { /* empty */ }
+    return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement)
+      , PNType.DirectElement);
   },
   mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
       , rect?: VRect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {

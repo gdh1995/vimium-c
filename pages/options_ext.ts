@@ -1,10 +1,10 @@
-$<ElementWithDelay>("#showCommands").onclick = function(event): void {
+$<ElementWithDelay>("#showCommands").onclick = function (event): void {
   if (!window.VDom) { return; }
   let node: HTMLElement | null, root = VDom.UI.UI;
   event && event.preventDefault();
-  if (!root) {}
+  if (!root) { /* empty */ }
   else if (node = root.querySelector("#HClose") as HTMLElement | null) {
-    const isCommand = root.querySelector('.HelpCommandName') != null;
+    const isCommand = root.querySelector(".HelpCommandName") != null;
     click(node);
     if (isCommand) { return; }
   }
@@ -15,16 +15,16 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
     t: "Command Listing"
   });
   if (event) { return; }
-  setTimeout(function(): void {
-    const node = VDom.UI.UI && VDom.UI.UI.querySelector("#HelpDialog") as HTMLElement;
-    if (!node) { return; }
-    (node.querySelector("#HClose") as HTMLElement).addEventListener("click", function(): void {
+  setTimeout(function (): void {
+    const node2 = VDom.UI.UI && VDom.UI.UI.querySelector("#HelpDialog") as HTMLElement;
+    if (!node2) { return; }
+    (node2.querySelector("#HClose") as HTMLElement).addEventListener("click", function (): void {
       window.location.hash = "";
     });
   }, 100);
 };
 
-ExclusionRulesOption_.prototype.sortRules_ = function(this: ExclusionRulesOption_
+ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOption_
     , element?: HTMLElement): void {
   interface Rule extends ExclusionsNS.StoredRule {
     key: string;
@@ -45,19 +45,19 @@ ExclusionRulesOption_.prototype.sortRules_ = function(this: ExclusionRulesOption
   this.populateElement_(rules);
   if (!element) { return; }
   let self = this;
-  this.timer_ = setTimeout(function(el, text) {
+  this.timer_ = setTimeout(function (el, text) {
     (el.firstChild as Text).data = text, self.timer_ = 0;
   }, 1000, element, (element.firstChild as Text).data);
   (element.firstChild as Text).data = "(Sorted)";
 };
 
-$("#exclusionSortButton").onclick = function(): void {
+$("#exclusionSortButton").onclick = function (): void {
   return (Option_.all_.exclusionRules as ExclusionRulesOption_).sortRules_(this);
 };
 
 function formatDate(time: number | Date): string {
   return new Date(+time - new Date().getTimezoneOffset() * 1000 * 60
-    ).toJSON().substring(0, 19).replace('T', ' ');
+    ).toJSON().substring(0, 19).replace("T", " ");
 }
 
 interface ExportedSettings {
@@ -82,7 +82,7 @@ function cleanRes() {
   }
 }
 
-$<ElementWithDelay>("#exportButton").onclick = function(event): void {
+$<ElementWithDelay>("#exportButton").onclick = function (event): void {
   cleanRes();
   let exported_object: ExportedSettings | null;
   const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
@@ -100,7 +100,8 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   if (!bgOnOther) {
     exported_object.environment.chrome = bVer;
   }
-  for (let storage = localStorage, all = bgSettings_.defaults_, i = 0, len = storage.length, j: string[]; i < len; i++) {
+  for (let storage = localStorage, all = bgSettings_.defaults_, i = 0, len = storage.length, j: string[]
+      ; i < len; i++) {
     const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
     if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f"
         || key === "findModeRawQueryList"
@@ -118,22 +119,22 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
       exported_object[key] = storedVal;
     }
   }
-  let exported_data = JSON.stringify(exported_object, null, '\t'), d_s = formatDate(d);
+  let exported_data = JSON.stringify(exported_object, null, "\t"), d_s = formatDate(d);
   if (exported_object.environment.platform === "win") {
     // in case "endings" didn't work
-    exported_data = exported_data.replace(<RegExpG>/\n/g, "\r\n");
+    exported_data = exported_data.replace(<RegExpG> /\n/g, "\r\n");
   }
   exported_object = null;
-  let file_name = 'vimium-c_';
+  let file_name = "vimium-c_";
   if (all_static) {
     file_name += "settings";
   } else {
     file_name += d_s.replace(<RegExpG> /[\-:]/g, "").replace(" ", "_");
   }
-  file_name += '.json';
-  const blob = new Blob([exported_data], {type: "application/json", "endings": "native"});
+  file_name += ".json";
+  const blob = new Blob([exported_data], {type: "application/json", endings: "native"});
 
-  interface BlobSaver { (blobData: Blob, fileName: string): any; }
+  type BlobSaver = (blobData: Blob, fileName: string) => any;
   interface NavigatorEx extends Navigator { msSaveOrOpenBlob?: BlobSaver; }
   if ((navigator as NavigatorEx).msSaveOrOpenBlob) {
     (navigator as NavigatorEx & {msSaveOrOpenBlob: BlobSaver}).msSaveOrOpenBlob(blob, file_name);
@@ -167,7 +168,7 @@ Are you sure you want to continue?`
   Object.setPrototypeOf(new_data, null);
   if (new_data.vimSync == null) {
     const now = bgSettings_.get_("vimSync"), keep = now && confirm(
-      'Do you want to keep settings synchronized with your current Google account?'
+      "Do you want to keep settings synchronized with your current Google account?"
     );
     new_data.vimSync = keep || null;
     if (now) {
@@ -177,7 +178,7 @@ Are you sure you want to continue?`
     // this is useful, in case the below itering localStorage and setting-null was changed
   }
 
-  const logUpdate = function(method: string, key: string, ...args: any[]): any {
+  const logUpdate = function (method: string, key: string, ...args: any[]): any {
     let val = args.pop();
     val = typeof val !== "string" || val.length <= 72 ? val
       : val.substring(0, 71).trimRight() + "\u2026";
@@ -204,7 +205,7 @@ Are you sure you want to continue?`
   }
 
   const storage = localStorage, all = bgSettings_.defaults_, _ref = Option_.all_,
-  otherLineEndRe = <RegExpG>/\r\n?/g;
+  otherLineEndRe = <RegExpG> /\r\n?/g;
   for (let i = storage.length; 0 <= --i; ) {
     const key = storage.key(i) as string;
     if (key.indexOf("|") >= 0) { continue; }
@@ -286,7 +287,7 @@ Are you sure you want to continue?`
     }
   }
   $<SaveBtn>("#saveOptions").onclick(false);
-  if ($("#advancedOptionsButton").getAttribute("aria-checked") != '' + bgSettings_.get_("showAdvancedOptions")) {
+  if ($("#advancedOptionsButton").getAttribute("aria-checked") !== "" + bgSettings_.get_("showAdvancedOptions")) {
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
@@ -312,7 +313,7 @@ function importSettings(time: number | string | Date
     let arr = (<RegExpSearchable<2> & RegExpOne> /^(\d+):(\d+)$/).exec(err_msg);
     err_msg = !arr ? err_msg :
 `Sorry, Vimium C can not parse the JSON file:
-  an unexpect character at line ${arr[1]}, column ${arr[2]}`
+  an unexpect character at line ${arr[1]}, column ${arr[2]}`;
   }
   if (new_data) {
     time = +new Date(new_data && new_data.time || (typeof time === "object" ? +time : time)) || 0;
@@ -324,23 +325,23 @@ function importSettings(time: number | string | Date
   if (err_msg) {
     return alert(err_msg);
   }
-  const promisedChecker = Option_.all_.keyMappings.checker_ ? 1 : new Promise<1>(function(resolve): void {
+  const promisedChecker = Option_.all_.keyMappings.checker_ ? 1 : new Promise<1>(function (resolve): void {
     const element = loadJS("options_checker.js");
-    element.onload = function(): void { resolve(1); };
+    element.onload = function (): void { resolve(1); };
   });
-  Promise.all([BG_.Utils.require_("Commands"), BG_.Utils.require_("Exclusions"), promisedChecker]).then(function() {
+  Promise.all([BG_.Utils.require_("Commands"), BG_.Utils.require_("Exclusions"), promisedChecker]).then(function () {
     setTimeout(_importSettings, 17, time, new_data, is_recommended);
   });
 }
 
 let _el: HTMLInputElement | HTMLSelectElement | null = $<HTMLInputElement>("#settingsFile");
 _el.onclick = null as never;
-_el.onchange = function(this: HTMLInputElement): void {
+_el.onchange = function (this: HTMLInputElement): void {
   const file = (this.files as FileList)[0];
   this.value = "";
   if (!file) { return; }
   const reader = new FileReader(), lastModified = file.lastModified || file.lastModifiedDate || 0;
-  reader.onload = function(this: FileReader) {
+  reader.onload = function (this: FileReader) {
     let result: string = this.result;
     return importSettings(lastModified, result, false);
   };
@@ -349,7 +350,7 @@ _el.onchange = function(this: HTMLInputElement): void {
 
 _el = $<HTMLSelectElement>("#importOptions");
 _el.onclick = null as never;
-_el.onchange = function(this: HTMLSelectElement): void {
+_el.onchange = function (this: HTMLSelectElement): void {
   $("#importButton").focus();
   if (this.value === "exported") {
     click($("#settingsFile"));
@@ -358,14 +359,14 @@ _el.onchange = function(this: HTMLSelectElement): void {
   const req = new XMLHttpRequest();
   req.open("GET", "../settings_template.json", true);
   req.responseType = "text";
-  req.onload = function(this: XMLHttpRequest): void {
+  req.onload = function (this: XMLHttpRequest): void {
     return importSettings(0, this.responseText, true);
   };
   req.send();
 };
 _el = null;
 
-(window as OptionWindow)._delayed && (function() {
+(window as OptionWindow)._delayed && (function () {
   const arr = (window as OptionWindow)._delayed;
   delete (window as OptionWindow)._delayed;
   const node = $<ElementWithDelay>(arr[0]), event = arr[1];
@@ -376,7 +377,8 @@ _el = null;
 function parseJSON(text: string): any {
   const notLFRe = <RegExpG & RegExpSearchable<0>> /[^\r\n]+/g
     , errMsgRe = <RegExpSearchable<3> & RegExpOne> /\b(?:position (\d+)|line (\d+) column (\d+))/
-    , stringOrCommentRe = <RegExpG & RegExpSearchable<0>> /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*.*?\*\//g
+    , stringOrCommentRe = <RegExpG & RegExpSearchable<0>
+        > /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*.*?\*\//g
     ;
   if (!text || !(text = text.trimRight())) { return null; }
   let match: string[] | null;
@@ -403,12 +405,12 @@ function parseJSON(text: string): any {
 
   function clean(this: void): boolean { return (<RegExpOne> /a?/).test(""); }
   function spaceN(this: void, str: string): string {
-    if (' '.repeat) { return (' ' as any).repeat(str.length); }
-    for (var s2 = '', n = str.length; 0 < n--; ) { s2 += ' '; }
+    if (" ".repeat) { return (" " as any).repeat(str.length); }
+    for (var s2 = "", n = str.length; 0 < n--; ) { s2 += " "; }
     return s2;
   }
   function onReplace(this: void, str: string): string {
     let ch = str[0];
-    return ch === '/' || ch === '#' ? str[0] === "/*" ? str.replace(notLFRe, spaceN) : spaceN(str) : str;
+    return ch === "/" || ch === "#" ? str[0] === "/*" ? str.replace(notLFRe, spaceN) : spaceN(str) : str;
   }
 }

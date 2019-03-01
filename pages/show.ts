@@ -5,8 +5,8 @@
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
 interface ImportBody {
-  (id: "shownImage"): HTMLImageElement
-  (id: "shownText"): HTMLDivElement
+  (id: "shownImage"): HTMLImageElement;
+  (id: "shownText"): HTMLDivElement;
 }
 declare var VPort: VPortTy, VHUD: VHUDTy,
   Viewer: new (root: HTMLElement) => ViewerType;
@@ -50,13 +50,13 @@ if (!(BG_ && BG_.Utils && BG_.Utils.convertToUrl_)) {
 }
 
 let VShown: ValidNodeTypes | null = null;
-let bgLink = $<HTMLAnchorElement>('#bgLink');
+let bgLink = $<HTMLAnchorElement>("#bgLink");
 let tempEmit: ((succeed: boolean) => void) | null = null;
-let viewer: ViewerType | null = null;
+let viewer_: ViewerType | null = null;
 var VData: VDataTy = null as never;
-let encryptKey = window.name && +window.name.split(' ')[0] || 0;
+let encryptKey = window.name && +window.name.split(" ")[0] || 0;
 
-window.onhashchange = function(this: void): void {
+window.onhashchange = function (this: void): void {
   if (VShown) {
     clean();
     bgLink.style.display = "none";
@@ -76,15 +76,16 @@ window.onhashchange = function(this: void): void {
       history.replaceState(encryptedUrl, "", "");
     }
     window.name = encryptKey + " " + url;
-  } else if (url || !history.state) {
-  } else if (encryptKey) {
+  }
+  else if (url || !history.state) { /* empty */ }
+  else if (encryptKey) {
     url = encrypt(history.state, encryptKey, false);
     window.name = encryptKey + " " + url;
   } else {
     history.replaceState(null, "", ""); // clear useless data
   }
   VData.full = url;
-  if (url.length < 3) {}
+  if (url.length < 3) { /* empty */ }
   else if (url.startsWith("#!image")) {
     url = url.substring(8);
     type = "image";
@@ -97,8 +98,8 @@ window.onhashchange = function(this: void): void {
       file = VData.file = decodeURLPart(url.substring(9, ind - 1));
       url = url.substring(ind);
     } else if (url.startsWith("auto=")) {
-      let i = url.substring(5, 12).split('&', 1)[0].toLowerCase();
-      VData.auto = i === "once" ? i : i === "true" ? true : i === "false" ? false : parseInt(i) > 0;
+      let i = url.substring(5, 12).split("&", 1)[0].toLowerCase();
+      VData.auto = i === "once" ? i : i === "true" ? true : i === "false" ? false : parseInt(i, 10) > 0;
       url = url.substring(ind);
     } else {
       break;
@@ -108,17 +109,17 @@ window.onhashchange = function(this: void): void {
     url = decodeURLPart(url).trim();
   }
   if (!url) {
-    type == "image" && (type = "");
+    type === "image" && (type = "");
   } else if (url.toLowerCase().startsWith("javascript:")) {
     type = url = file = VData.file = "";
   } else if (BG_) {
-    const str = BG_.Utils.convertToUrl_(url, null, Urls.WorkType.KeepAll);
+    const str2 = BG_.Utils.convertToUrl_(url, null, Urls.WorkType.KeepAll);
     if (BG_.Utils.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl) {
-      url = str;
+      url = str2;
     }
   } else if (url.startsWith("//")) {
     url = "http:" + url;
-  } else if ((<RegExpOne>/^([-.\dA-Za-z]+|\[[\dA-Fa-f:]+])(:\d{2,5})?\//).test(url)) {
+  } else if ((<RegExpOne> /^([-.\dA-Za-z]+|\[[\dA-Fa-f:]+])(:\d{2,5})?\//).test(url)) {
     url = "http://" + url;
   }
   VData.type = type;
@@ -135,7 +136,7 @@ window.onhashchange = function(this: void): void {
     }
     VShown = (importBody as ImportBody)("shownImage");
     VShown.classList.add("hidden");
-    VShown.onerror = function(): void {
+    VShown.onerror = function (): void {
       if (VData.url !== VData.original) {
         disableAutoAndReload_();
         return;
@@ -149,15 +150,16 @@ window.onhashchange = function(this: void): void {
       }
       this.classList.remove("hidden");
       setTimeout(showBgLink, 34);
-      this.onclick = function(e) {
-        !e.ctrlKey && !e.shiftKey && !e.altKey && chrome.tabs && chrome.tabs.update ? chrome.tabs.update({ url: VData.url })
+      this.onclick = function (e) {
+        !e.ctrlKey && !e.shiftKey && !e.altKey && chrome.tabs && chrome.tabs.update
+        ? chrome.tabs.update({ url: VData.url })
         : clickLink({ target: "_top" }, e);
       };
     };
     if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
       VShown.src = url;
       VShown.onclick = defaultOnClick;
-      VShown.onload = function(this: HTMLImageElement): void {
+      VShown.onload = function (this: HTMLImageElement): void {
         const width = this.naturalWidth;
         if (width < 12 && this.naturalHeight < 12) {
           if (VData.auto) {
@@ -174,7 +176,7 @@ window.onhashchange = function(this: void): void {
         }
         resetOnceProperties_();
         this.onerror = this.onload = null as never;
-        setTimeout(function() { // safe; because on C65, in some tests refreshing did not trigger replay
+        setTimeout(function () { // safe; because on C65, in some tests refreshing did not trigger replay
           (VShown as HTMLImageElement).src = (VShown as HTMLImageElement).src; // trigger replay for gif
         }, 0);
         showBgLink();
@@ -198,22 +200,22 @@ window.onhashchange = function(this: void): void {
   case "url":
     VShown = (importBody as ImportBody)("shownText");
     if (url && BG_) {
-      let str: Urls.Url | null = null;
+      let str1: Urls.Url | null = null;
       if (url.startsWith("vimium://")) {
-        str = BG_.Utils.evalVimiumUrl_(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
+        str1 = BG_.Utils.evalVimiumUrl_(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
       }
-      str = str !== null ? str : BG_.Utils.convertToUrl_(url, null, Urls.WorkType.ConvertKnown);
-      if (typeof str === "string") {}
-      else if (str instanceof BG_.Promise) {
-        str.then(function(arr) {
+      str1 = str1 !== null ? str1 : BG_.Utils.convertToUrl_(url, null, Urls.WorkType.ConvertKnown);
+      if (typeof str1 === "string") { /* empty */ }
+      else if (str1 instanceof BG_.Promise) {
+        str1.then(function (arr) {
           showText(arr[1], arr[0] || (arr[2] || ""));
         });
         break;
-      } else if (str instanceof BG_.Array) {
-        showText(str[1], str[0]);
+      } else if (str1 instanceof BG_.Array) {
+        showText(str1[1], str1[0]);
         break;
       }
-      url = str;
+      url = str1;
     }
     showText(type, url);
     break;
@@ -235,31 +237,31 @@ window.onhashchange = function(this: void): void {
   }
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 
-  let str = $<HTMLTitleElement>('title').getAttribute('data-title') as string;
+  let str = $<HTMLTitleElement>("title").getAttribute("data-title") as string;
   str = BG_ ? BG_.Utils.createSearch_(file ? file.split(/\s+/) : [], str, "")
-    : str.replace(<RegExpOne>/\$[sS](?:\{[^}]*})?/, file && (file + " | "));
+    : str.replace(<RegExpOne> /\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
 };
 
 if (!"".startsWith) {
-String.prototype.startsWith = function(this: string, s: string): boolean {
+String.prototype.startsWith = function (this: string, s: string): boolean {
   return this.lastIndexOf(s, 0) === 0;
 };
 }
 (window.onhashchange as () => void)();
 
-window.onpopstate = function() {
+window.onpopstate = function () {
   (window.onhashchange as () => void)();
 };
 
-document.addEventListener("keydown", function(this: void, event): void {
+document.addEventListener("keydown", function (this: void, event): void {
   if (VData.type === "image" && imgOnKeydown(event)) {
     return;
   }
   if (!(event.ctrlKey || event.metaKey) || event.altKey
     || event.shiftKey || event.repeat) { return; }
   const str = String.fromCharCode(event.keyCode as VKeyCodes | KnownKey as KnownKey);
-  if (str === 'S') {
+  if (str === "S") {
     return clickLink({
       download: VData.file || ""
     }, event);
@@ -281,7 +283,7 @@ function showBgLink(this: void): void {
 function clickLink(this: void, options: { [key: string]: string; }, event: MouseEvent | KeyboardEvent): void {
   event.preventDefault();
   if (!VData.url) { return; }
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   Object.setPrototypeOf(options, null);
   for (const i in options) {
     a.setAttribute(i, options[i]);
@@ -320,11 +322,11 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
   }
   event.preventDefault();
   event.stopImmediatePropagation();
-  if (viewer && viewer.viewed) {
-    doImageAction(viewer, action);
+  if (viewer_ && viewer_.viewed) {
+    doImageAction(viewer_, action);
   } else {
     let p = loadViewer().then(showSlide);
-    p.then(function(viewer) {
+    p.then(function (viewer) {
       doImageAction(viewer, action);
     }).catch(defaultOnError);
   }
@@ -347,7 +349,7 @@ function decodeURLPart(url: string): string {
 }
 
 function importBody(id: string): HTMLElement {
-  const templates = $<HTMLTemplateElement>('#bodyTemplate'),
+  const templates = $<HTMLTemplateElement>("#bodyTemplate"),
   // note: content has no getElementById on Chrome before BrowserVer.Min$DocumentFragment$$getElementById
   node = document.importNode(templates.content.querySelector("#" + id) as HTMLElement, true);
   (document.body as HTMLBodyElement).insertBefore(node, templates);
@@ -358,14 +360,14 @@ function defaultOnClick(event: MouseEvent): void {
   if (event.altKey) {
     event.stopImmediatePropagation();
     return clickLink({ download: VData.file || "" }, event);
-  } else switch (VData.type) {
+  } else { switch (VData.type) {
   case "url": clickLink({ target: "_blank" }, event); break;
   case "image":
     if ((VShown as HTMLImageElement).alt) { return; }
     loadViewer().then(showSlide).catch(defaultOnError);
     break;
   default: break;
-  }
+  } }
 }
 
 function clickShownNode(event: MouseEvent): void {
@@ -389,7 +391,7 @@ function showText(tip: string, body: string | string[]): void {
 
 function copyThing(event: Event): void {
   event.preventDefault();
-  const str = VData.type == "url" ? $("#textBody").textContent : VData.url;
+  const str = VData.type === "url" ? $("#textBody").textContent : VData.url;
   if (!(str && window.VPort)) { return; }
   VPort.post_({
     H: kFgReq.copy,
@@ -400,7 +402,7 @@ function copyThing(event: Event): void {
 
 function toggleInvert(event: Event): void {
   if (VData.type === "image") {
-    if ((VShown as HTMLImageElement).alt || viewer && viewer.visible) {
+    if ((VShown as HTMLImageElement).alt || viewer_ && viewer_.visible) {
       event.preventDefault();
     } else {
       (VShown as ValidNodeTypes).classList.toggle("invert");
@@ -412,13 +414,13 @@ function requireJS(name: string, src: string): Promise<any> {
   if ((window as any)[name]) {
     return Promise.resolve((window as any)[name]);
   }
-  return (window as any)[name] = new Promise(function(resolve, reject) {
+  return (window as any)[name] = new Promise(function (resolve, reject) {
     const script = document.createElement("script");
     script.src = src;
-    script.onerror = function() {
+    script.onerror = function () {
       reject("ImportError: " + name);
     };
-    script.onload = function() {
+    script.onload = function () {
       const obj = (window as any)[name];
       obj ? resolve(obj) : (this.onerror as () => void)();
     };
@@ -445,30 +447,30 @@ function loadViewer(): Promise<Window["Viewer"]> {
     return Promise.resolve(Viewer);
   }
   loadCSS("../lib/viewer.min.css");
-  return requireJS("Viewer", "../lib/viewer.min.js").then<Window["Viewer"]>(function(Viewer): Window["Viewer"] {
-    Viewer.setDefaults({
+  return requireJS("Viewer", "../lib/viewer.min.js").then<Window["Viewer"]>(function (ViewerModule): Window["Viewer"] {
+    ViewerModule.setDefaults({
       navbar: false,
-      shown: function(this: void) {
+      shown (this: void) {
         bgLink.style.display = "none";
       },
-      viewed: function(): void { if (tempEmit) { return tempEmit(true); } },
-      hide: function(this: void) {
+      viewed (): void { if (tempEmit) { return tempEmit(true); } },
+      hide (this: void) {
         bgLink.style.display = "";
         if (tempEmit) { return tempEmit(false); }
       }
     });
-    return Viewer;
+    return ViewerModule;
   });
 }
 
-function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
+function showSlide(ViewerModule: Window["Viewer"]): Promise<ViewerType> | ViewerType {
   const sel = getSelection();
-  sel.type == "Range" && sel.collapseToStart();
-  const v = viewer = viewer || new Viewer(VShown as HTMLImageElement);
+  sel.type === "Range" && sel.collapseToStart();
+  const v = viewer_ = viewer_ || new ViewerModule(VShown as HTMLImageElement);
   v.visible || v.show();
   if (v.viewed) { return v; }
-  return new Promise<ViewerType>(function(resolve, reject): void {
-    tempEmit = function(succeed): void {
+  return new Promise<ViewerType>(function (resolve, reject): void {
+    tempEmit = function (succeed): void {
       tempEmit = null;
       succeed ? resolve(v) : reject("failed to view the image");
     };
@@ -478,9 +480,9 @@ function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
 function clean() {
   if (VData.type === "image") {
     (document.body as HTMLBodyElement).classList.remove("filled");
-    if (viewer) {
-      viewer.destroy();
-      viewer = null;
+    if (viewer_) {
+      viewer_.destroy();
+      viewer_ = null;
     }
   }
 }
@@ -488,9 +490,9 @@ function clean() {
 function parseSmartImageUrl_(originUrl: string): string | null {
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch (e) {} return null; }
   const parsed = safeParseURL(originUrl);
-  if (!parsed || !(<RegExpI>/^s?ftp|^http/i).test(parsed.protocol)) { return null; }
+  if (!parsed || !(<RegExpI> /^s?ftp|^http/i).test(parsed.protocol)) { return null; }
   let search = parsed.search;
-  const ImageExtRe = <RegExpI>/\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
+  const ImageExtRe = <RegExpI> /\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
   function DecodeURLPart_(this: void, url1: string | undefined): string {
     if (!url1) { return ""; }
     try {
@@ -499,10 +501,10 @@ function parseSmartImageUrl_(originUrl: string): string | null {
     return url1;
   }
   if (search.length > 10) {
-    const keyRe = <RegExpOne>/^(?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)$/i,
-    encodedSignRe = <RegExpOne>/%(?:3[aA]|2[fF])/;
-    for (const item of search.substring(1).split('&')) {
-      const key = item.split('=', 1)[0];
+    const keyRe = <RegExpOne> /^(?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)$/i,
+    encodedSignRe = <RegExpOne> /%(?:3[aA]|2[fF])/;
+    for (const item of search.substring(1).split("&")) {
+      const key = item.split("=", 1)[0];
       search = item.substring(key.length + 1);
       if (search.length > 7) {
         search.indexOf("://") < 0 && encodedSignRe.test(search) && (search = DecodeURLPart_(search).trim());
@@ -510,7 +512,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
           if (keyRe.test(key)) {
             return search;
           }
-          let arr = search.split('?')[0].split("/");
+          let arr = search.split("?")[0].split("/");
           if (ImageExtRe.test(arr[arr.length - 1]) && key.toLowerCase().indexOf("thumb") < 0) {
             return search;
           }
@@ -519,19 +521,20 @@ function parseSmartImageUrl_(originUrl: string): string | null {
     }
   }
   let found = true, arr1: RegExpExecArray | null = null, arr2: RegExpExecArray | null = null;
-  if ((arr1 = (<RegExpOne>/[?&]s=\d{2,4}(&|$)/).exec(search = parsed.search)) && search.split('=').length <= 3) {
+  if ((arr1 = (<RegExpOne> /[?&]s=\d{2,4}(&|$)/).exec(search = parsed.search)) && search.split("=").length <= 3) {
     return parsed.origin + parsed.pathname;
   }
   const path = search = parsed.pathname;
-  let offset = search.lastIndexOf('/') + 1;
+  let offset = search.lastIndexOf("/") + 1;
   search = search.substring(offset);
-  let index = search.lastIndexOf('@') + 1 || search.lastIndexOf('!') + 1;
+  let index = search.lastIndexOf("@") + 1 || search.lastIndexOf("!") + 1;
   if (index > 2 || ImageExtRe.exec(search)) {
     offset += index;
     search = search.substring(index);
-    let re = <RegExpG & RegExpI>/(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
-    for (; arr2 = re.exec(search); arr1 = arr2) {}
-    if (arr1 && (<RegExpI>/.[_\-].|\d\dx\d/i).test(arr1[0])) {
+    let re = <RegExpG & RegExpI // tslint:disable-next-line: max-line-length
+      > /(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
+    for (; arr2 = re.exec(search); arr1 = arr2) { /* empty */ }
+    if (arr1 && (<RegExpI> /.[_\-].|\d\dx\d/i).test(arr1[0])) {
       let next = arr1.index + arr1[0].length;
       arr2 = ImageExtRe.exec(search.substring(next));
       offset += arr1.index;
@@ -540,28 +543,29 @@ function parseSmartImageUrl_(originUrl: string): string | null {
         len += arr2[0].length;
       }
       search = path.substring(offset + len);
-      if ((<RegExpOne>/[@!]$/).test(search || path.charAt(offset - 1))) {
+      if ((<RegExpOne> /[@!]$/).test(search || path.charAt(offset - 1))) {
         if (search) {
           search = search.substring(0, search.length - 1);
         } else {
           offset--;
         }
-      } else if (!search && arr2 && arr2.index === 0 && !ImageExtRe.exec(path.substring(Math.max(0, offset - 6), offset))) {
+      } else if (!search && arr2 && arr2.index === 0
+          && !ImageExtRe.exec(path.substring(Math.max(0, offset - 6), offset))) {
         search = arr2[0];
       }
-    } else if (arr1 = (<RegExpOne>/\b([\da-f]{8,48})([_-][a-z]{1,2})\.[a-z]{2,4}$/).exec(search)) {
+    } else if (arr1 = (<RegExpOne> /\b([\da-f]{8,48})([_-][a-z]{1,2})\.[a-z]{2,4}$/).exec(search)) {
       offset += arr1.index + arr1[1].length;
       search = search.substring(arr1.index + arr1[1].length + arr1[2].length);
     } else {
       found = false;
     }
   }
-  if (found || index > 2) {
-  } else if (arr1 = (<RegExpOne>/_(0x)?[1-9]\d{2,3}(x0)?\./).exec(search)) {
+  if (found || index > 2) { /* empty */ }
+  else if (arr1 = (<RegExpOne> /_(0x)?[1-9]\d{2,3}(x0)?\./).exec(search)) {
     search = search.substring(0, arr1.index) + search.substring(arr1.index + arr1[0].length - 1);
   } else if (search.startsWith("thumb_")) {
     search = search.substring(6);
-  } else if ((<RegExpOne>/^[1-9]\d+$/).test(search) && +search > 0 && +search < 640) {
+  } else if ((<RegExpOne> /^[1-9]\d+$/).test(search) && +search > 0 && +search < 640) {
     offset--;
     search = "";
   } else {
@@ -607,7 +611,7 @@ function encrypt(message: string, password: number, doEncrypt: boolean): string 
   if (doEncrypt) {
     // Unicode <-> UTF8 : https://www.ibm.com/support/knowledgecenter/en/ssw_aix_71/com.ibm.aix.nlsgdrf/utf-8.htm
     for (let i = 0; i < message.length; i++) {
-      const ch = useCodePoint ? (message.codePointAt as NonNullable<String["codePointAt"]>)(i) : message.charCodeAt(i);
+      const ch = useCodePoint ? (message.codePointAt as NonNullable<string["codePointAt"]>)(i) : message.charCodeAt(i);
       if (ch == null || isNaN(ch)) { break; }
       if (ch <= 0x7f) {
         arr.push(ch);
@@ -651,7 +655,8 @@ function encrypt(message: string, password: number, doEncrypt: boolean): string 
       decoded.push(((ch & 0x0f) << 12) | ((arr[i + 1] & 0x3f) << 6) | (arr[i + 2] & 0x3f));
       i += 3;
     } else if (ch < 0xf1) {
-      decoded.push(((ch & 0x07) << 18) | ((arr[i + 1] & 0x3f) << 12) | ((arr[i + 2] & 0x3f) << 6) | (arr[i + 3] & 0x3f));
+      decoded.push(((ch & 0x07) << 18) | ((arr[i + 1] & 0x3f) << 12) | ((arr[i + 2] & 0x3f) << 6)
+        | (arr[i + 3] & 0x3f));
       i += 4;
     // } else if (ch < 0xf9) {
     //   decoded.push(((ch & 0x03) << 24) | ((arr[i + 1] & 0x3f) << 18) | ((arr[i + 2] & 0x3f) << 12)
@@ -663,5 +668,6 @@ function encrypt(message: string, password: number, doEncrypt: boolean): string 
     //   i += 6;
     }
   }
-  return (useCodePoint ? String.fromCodePoint as NonNullable<typeof String.fromCharCode> : String.fromCharCode).apply(String, decoded);
+  return (useCodePoint ? String.fromCodePoint as NonNullable<typeof String.fromCharCode> : String.fromCharCode
+    ).apply(String, decoded);
 }

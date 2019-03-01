@@ -24,23 +24,26 @@ VDom.UI = {
         VUtils.Stop_(e); t.onload && t.onload(e);
       }
     }, true);
-    a.add_ = (function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): void {
+    a.add_ = (function<T2 extends HTMLElement> (this: DomUI, element2: T2, adjust2?: AdjustType
+        , before?: Element | null | true): void {
       const noPar = !(this.box_ as NonNullable<typeof this.box_>).parentNode;
-      adjust !== AdjustType.NotAdjust && !noPar && this.adjust_();
-      this.UI.insertBefore(element, before === true ? this.UI.firstChild : before || null);
-      adjust !== AdjustType.NotAdjust && noPar && this.adjust_();
+      adjust2 !== AdjustType.NotAdjust && !noPar && this.adjust_();
+      this.UI.insertBefore(element2, before === true ? this.UI.firstChild : before || null);
+      adjust2 !== AdjustType.NotAdjust && noPar && this.adjust_();
     });
     a.css_ = (function (innerCSS): void {
-      const a = VDom.UI;
-      if (a.box_ === a.UI) {
-        a.box_.id = "VimiumUI";
+      const a1 = VDom.UI;
+      if (a1.box_ === a1.UI) {
+        a1.box_.id = "VimiumUI";
       }
-      let el: HTMLStyleElement | null = a.styleIn_ = a.createStyle_();
-      a.css_ = function(css) { (this.styleIn_ as HTMLStyleElement).textContent = this.cssPatch_ ? this.cssPatch_[1](css) : css; };
-      a.css_(innerCSS);
-      a.UI.appendChild(el);
+      let el: HTMLStyleElement | null = a1.styleIn_ = a1.createStyle_();
+      a1.css_ = function (css) {
+        (this.styleIn_ as HTMLStyleElement).textContent = this.cssPatch_ ? this.cssPatch_[1](css) : css;
+      };
+      a1.css_(innerCSS);
+      a1.UI.appendChild(el);
       if (adjust !== AdjustType.NotAdjust) {
-        a.adjust_();
+        a1.adjust_();
       }
       if (adjust !== AdjustType.AdjustButNotShow) {
         /**
@@ -48,7 +51,7 @@ VDom.UI = {
          *        that el.sheet has been valid when promise.then, even on XML pages.
          * `AdjustType.NotAdjust` must be used before a certain, clear normal adjusting
          */
-        Promise.resolve(1 as 1).then(a.OnReady_);
+        Promise.resolve(1 as 1).then(a1.OnReady_);
       }
     });
     r.appendChild(element);
@@ -62,7 +65,8 @@ VDom.UI = {
       }
     }
   },
-  addElementList_: function (this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset, dialogContainer) {
+  addElementList_: function (this: DomUI
+      , els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset, dialogContainer) {
     const parent = VDom.createElement_(dialogContainer ? "dialog" : "div");
     parent.className = dialogContainer ? "R HM DHM" : "R HM";
     for (const el of els) {
@@ -103,11 +107,13 @@ VDom.UI = {
     zoom || (zoom = VDom.getZoom_());
     let patch = this.cssPatch_;
     if (!patch && zoom >= 1) { return; }
-    let width = ("" + (VUtils.cache_.browserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.01 : 0.51) / zoom).substring(0, 5)
+    let width = ("" + (VUtils.cache_.browserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.01 : 0.51
+                      ) / zoom).substring(0, 5)
       , st = this.styleIn_;
     if (!patch) {
-      patch = this.cssPatch_ = ["", function(this: NonNullable<DomUI["cssPatch_"]>, css) {
-        return css.replace(<RegExpG>/\b(border(?:-\w*-?width)?: ?)(0\.5px\b|[^;}]+\/\*!DPI\*\/)/g, "$1" + this[0] + "px \/\*!DPI\*\/");
+      patch = this.cssPatch_ = ["", function (this: NonNullable<DomUI["cssPatch_"]>, css) {
+        return css.replace(<RegExpG> /\b(border(?:-\w*-?width)?: ?)(0\.5px\b|[^;}]+\/\*!DPI\*\/)/g, "$1" + this[0]
+          + "px \/\*!DPI\*\/");
       }];
     }
     if (patch[0] === width) { return; }
@@ -146,7 +152,7 @@ VDom.UI = {
       if (el.getRootNode) {
         el = el.getRootNode();
       } else {
-        for (let pn: Node | null; pn = VDom.GetParent_(el, PNType.DirectNode); el = pn) { }
+        for (let pn: Node | null; pn = VDom.GetParent_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
       if (el !== d && typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRootWithSelection).getSelection();
@@ -221,7 +227,8 @@ VDom.UI = {
         : element.isContentEditable ? EditableType.rich_
         : EditableType.Default;
     if (type === EditableType.Default) { return; }
-    const isBox = type === EditableType.Editbox || type === EditableType.rich_ && element.textContent.indexOf("\n") >= 0,
+    const isBox = type === EditableType.Editbox || type === EditableType.rich_
+        && element.textContent.indexOf("\n") >= 0,
     lineAllAndBoxEnd = action === "all-input" || action === "all-line",
     gotoStart = action === "start",
     gotoEnd = !action || action === "end" || isBox && lineAllAndBoxEnd;
@@ -234,10 +241,11 @@ VDom.UI = {
       if (type === EditableType.rich_) {
         const range = document.createRange();
         range.selectNodeContents(element);
-        sel.removeAllRanges()
+        sel.removeAllRanges();
         sel.addRange(range);
       } else {
-        let len = (element as TextElement).value.length, { selectionStart: start, selectionEnd: end } = element as TextElement;
+        let len = (element as TextElement).value.length
+          , { selectionStart: start, selectionEnd: end } = element as TextElement;
         if (!len || (gotoEnd ? start === len : gotoStart && !end) || end && end < len || end !== start) {
           return;
         }
@@ -278,17 +286,17 @@ VDom.UI = {
     return flashEl;
   } as DomUI["flash_"],
   suppressTail_ (this: void, onlyRepeated: boolean): void {
-    let func: HandlerNS.Handler<Function>, tick: number, timer: number;
+    let func: HandlerNS.Handler<{}>, tick: number, timer: number;
     if (onlyRepeated) {
-      func = function(event) {
+      func = function (event) {
         if (event.repeat) { return HandlerResult.Prevent; }
         VUtils.remove_(this);
         return HandlerResult.Nothing;
       };
     } else {
-      func = function() { tick = Date.now(); return HandlerResult.Prevent; };
+      func = function () { tick = Date.now(); return HandlerResult.Prevent; };
       tick = Date.now() + VUtils.cache_.keyboard[0];
-      timer = setInterval(function(info?: TimerType) {
+      timer = setInterval(function (info?: TimerType) {
         if (Date.now() - tick > 150 || info === TimerType.fake) {
           clearInterval(timer);
           VUtils && VUtils.remove_(func);

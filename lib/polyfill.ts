@@ -38,7 +38,7 @@ interface String {
     if (err === 1 || err === 2) { return !((err === 1 ? this : searchString) + ""); }
     if (err !== null) { throw new TE(err.replace("${func}", "endsWith")); }
     let b = S(searchString), p: primitive | object = arguments[1], l = a.length, u: undefined, c: number;
-    c = (p === u ? l : (c = +<number | string>p) > 0 ? c | 0 : 0) - b.length;
+    c = (p === u ? l : (c = +<number | string> p) > 0 ? c | 0 : 0) - b.length;
     c > l && (c = l);
     return c >= 0 && a.indexOf(b, c) === c;
   });
@@ -50,9 +50,10 @@ interface String {
     let t: 0 | 1 | 2 = typeof a === "symbol" ? 1 : typeof b === "symbol" ? 2 : 0;
     if (t) { return t; }
     interface PossibleTypeOfB {
-      [key: string]: Function | primitive;
+      [key: string]: ((this: string, re: RegExp) => boolean) | primitive;
     }
-    let f: Function | primitive, u: undefined, i = symMatch && (f = (b as PossibleTypeOfB)[symMatch]) !== u ? f : b instanceof RE;
+    let f: PossibleTypeOfB[string], u: undefined
+      , i = symMatch && (f = (b as PossibleTypeOfB)[symMatch]) !== u ? f : b instanceof RE;
     return i ? "First argument to String.prototype.${func} must not be a regular expression" : null;
   }
 })();

@@ -827,7 +827,7 @@ function patchExtendClick(source) {
   match = /' ?\+ ?\(?function VC ?\(/.exec(source);
   if (match) {
     let start = match.index, end = source.indexOf('}).toString()', start) + 1 || source.indexOf('}.toString()', start) + 1;
-    let end2 = source.indexOf("')();'", end + 2) + 1 || source.indexOf('")();"', end + 2) + 1;
+    let end2 = source.indexOf('")();"', end + 2) + 1 || source.indexOf("')();'", end + 2) + 1;
     if (end2 <= 0) {
       throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');
     }

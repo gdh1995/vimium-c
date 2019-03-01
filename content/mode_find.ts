@@ -57,7 +57,7 @@ var VFind = {
     el.className = "R HUD UI";
     st.display = "none";
     if (VDom.wdZoom_ !== 1) { st.zoom = "" + 1 / VDom.wdZoom_; }
-    el.onload = function(this: HTMLIFrameElement): void { return VFind.onLoad_(1); };
+    el.onload = function (this: HTMLIFrameElement): void { return VFind.onLoad_(1); };
     VUtils.push_(UI.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
@@ -80,14 +80,16 @@ var VFind = {
     }
     f("blur", function onBlur(this: Window): void {
       if (VFind.isActive_ && Date.now() - now < 500) {
-        let a = this.document.body as HTMLBodyElement | null;
-        a && setTimeout(function(): void { (a as HTMLBodyElement).focus(); }, tick++ * 17);
+        let a2 = this.document.body as HTMLBodyElement | null;
+        a2 && setTimeout(function (): void { (a2 as HTMLBodyElement).focus(); }, tick++ * 17);
       } else {
         this.removeEventListener("blur", onBlur, true);
       }
     }, t);
     f("focus", a.OnFocus_, t);
-    box.onload = later ? null as never : function(): void { this.onload = null as never; VFind.onLoad2_(this.contentWindow); };
+    box.onload = later ? null as never : function (): void {
+      this.onload = null as never; VFind.onLoad2_(this.contentWindow);
+    };
     if (later) { a.onLoad2_(wnd); }
   },
   onLoad2_ (wnd: Window): void {
@@ -106,15 +108,16 @@ var VFind = {
     const el2 = a.countEl_ = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
-    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_ = VDom.UI.createStyle_(a.css_[2], doc.createElement("style")));
+    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_
+      = VDom.UI.createStyle_(a.css_[2], doc.createElement("style")));
     docEl.insertBefore(doc.createTextNode("/"), el);
     docEl.appendChild(el2);
     function cb(): void {
-      const a = VFind;
-      VUtils.remove_(a);
-      VUtils.push_(a.onHostKeydown_, a);
+      const a2 = VFind;
+      VUtils.remove_(a2);
+      VUtils.push_(a2.onHostKeydown_, a2);
       el.focus();
-      return a.setFirstQuery_(a.query0_);
+      return a2.setFirstQuery_(a2.query0_);
     }
     a.box_.style.cssText = "width:0";
     if ((VDom.UI.box_ as HTMLElement).style.display) {
@@ -157,7 +160,7 @@ var VFind = {
     if (query !== this.query_) {
       this.updateQuery_(query);
       if (this.isActive_) {
-        this.input_.textContent = query.replace(<RegExpOne> /^ /, '\xa0');
+        this.input_.textContent = query.replace(<RegExpOne> /^ /, "\xa0");
         this.showCount_(1);
       }
     }
@@ -221,7 +224,8 @@ var VFind = {
     const n = event.keyCode;
     type Result = FindNS.Action;
     let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
-      : n === VKeyCodes.enter ? event.shiftKey ? FindNS.Action.PassDirectly : (this.saveQuery_(), FindNS.Action.ExitToPostMode)
+      : n === VKeyCodes.enter
+        ? event.shiftKey ? FindNS.Action.PassDirectly : (this.saveQuery_(), FindNS.Action.ExitToPostMode)
       : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? FindNS.Action.DoNothing
       : this.query_ || (n === VKeyCodes.deleteKey && !VUtils.cache_.onMac_ || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
@@ -320,7 +324,7 @@ var VFind = {
     if (query === _this.query_ || !(doc = _this.box_.contentDocument)) { return; }
     if (!query && _this.historyIndex_ > 0) { --_this.historyIndex_; return; }
     doc.execCommand("selectAll", false);
-    doc.execCommand("insertText", false, query.replace(<RegExpOne> /^ /, '\xa0'));
+    doc.execCommand("insertText", false, query.replace(<RegExpOne> /^ /, "\xa0"));
     return _this.OnInput_();
   },
   saveQuery_ (): string | void | 1 {
@@ -331,7 +335,7 @@ var VFind = {
   },
   postMode_: {
     lock_: null as Element | null,
-    activate_: function() {
+    activate_  (): void {
       const el = VEvent.lock_(), Exit = this.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
       VUtils.push_(this.onKeydown_, this);
@@ -366,7 +370,8 @@ var VFind = {
     }
     const _this = VFind, query = _this.input_.innerText.replace(_this.A0Re_, " ").replace(_this.tailRe_, "");
     let s = _this.query_;
-    if (!_this.hasResults_ && !_this.isRegex_ && !_this.wholeWord_ && _this.notEmpty_ && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) {
+    if (!_this.hasResults_ && !_this.isRegex_ && !_this.wholeWord_ && _this.notEmpty_ && query.startsWith(s)
+        && query.substring(s.length - 1).indexOf("\\") < 0) {
       return _this.showCount_(0);
     }
     s = "";
@@ -430,8 +435,10 @@ var VFind = {
     if (re) {
       type FullScreenElement = Element & { innerText?: string | Element };
       let el = document.webkitFullscreenElement as FullScreenElement | null, text = el && el.innerText;
-      el && typeof text !== "string" && (el = VDom.GetParent_(el, PNType.DirectElement), text = el && el.innerText as string | undefined);
-      query = <string | undefined | null>text || (document.documentElement as HTMLElement).innerText;
+      if (el && typeof text !== "string") {
+        el = VDom.GetParent_(el, PNType.DirectElement), text = el && el.innerText as string | undefined;
+      }
+      query = <string | undefined | null> text || (document.documentElement as HTMLElement).innerText;
       matches = query.match(re) || query.replace(a.A0Re_, " ").match(re);
     }
     a.regexMatches_ = isRe ? matches : null;
@@ -498,12 +505,12 @@ var VFind = {
     focusHUD && this.input_.focus();
     this.hasResults_ = found;
   },
-  /**
-   * According to https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editor.cc?q=FindRangeOfString&g=0&l=815 ,
-   * the range to find is either `[selection..docEnd]` or `[docStart..selection]`,
-   * so those in shadowDOM / ancestor tree scopes will still be found.
-   * Therefore `@styleIn_` is always needed, and VFind may not need a sub-scope selection.
-   */
+/**
+ * According to https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editor.cc?q=FindRangeOfString&g=0&l=815 ,
+ * the range to find is either `[selection..docEnd]` or `[docStart..selection]`,
+ * so those in shadowDOM / ancestor tree scopes will still be found.
+ * Therefore `@styleIn_` is always needed, and VFind may not need a sub-scope selection.
+ */
   find_: function (this: void): boolean {
     try {
       return window.find.apply(window, arguments);

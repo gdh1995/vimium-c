@@ -7,9 +7,7 @@
     "package-lock": false
   },
   "dependencies": {
-    "tslint": "^5.13.1",
-    "typescript": "^3.3",
-    "typescript-tslint-plugin": "^0.3.1"
+    "typescript": "^3.3"
   },
   "devDependencies": {
     "gulp": ">=4",
@@ -23,7 +21,9 @@
     "gulp-sourcemaps": "*",
     "gulp-typescript": "*",
     "gulp-uglify": ">=3",
-    "terser": "*"
+    "terser": "*",
+    "tslint": "^5.13.1",
+    "typescript-tslint-plugin": "^0.3.1"
   },
   "scripts": {
     "tsc": "node scripts/tsc.js",
@@ -34,6 +34,7 @@
     "f": "node scripts/tsc.js front",
     "l": "node scripts/tsc.js lib",
     "p": "node scripts/tsc.js pages",
+    "lint": "./node_modules/.bin/tslint --project .",
     "build": "gulp build",
     "rebuild": "gulp rebuild",
     "zip": "bash -c \"ENABLE_SOURCE_MAP=0 gulp dist && IN_DIST=1 WITH_MAP=0 ./scripts/make.sh\"",

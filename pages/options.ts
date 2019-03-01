@@ -29,7 +29,7 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.Frontend
   }
 };
 
-Option_.saveOptions_ = function(): boolean {
+Option_.saveOptions_ = function (): boolean {
   const arr = Option_.all_;
   for (const i in arr) {
     const opt = arr[i as keyof AllowedOptions];
@@ -44,7 +44,7 @@ Option_.saveOptions_ = function(): boolean {
   return true;
 };
 
-Option_.needSaveOptions_ = function(): boolean {
+Option_.needSaveOptions_ = function (): boolean {
   const arr = Option_.all_;
   for (const i in arr) {
     if (!arr[i as keyof AllowedOptions].saved_) {
@@ -141,7 +141,7 @@ constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
 whiteRe_: RegExpG;
 whiteMaskRe_: RegExpG;
 populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
-  value = (value as string).replace(this.whiteRe_, '\xa0');
+  value = (value as string).replace(this.whiteRe_, "\xa0");
   if (enableUndo !== true) {
     this.element_.value = value as string;
     return;
@@ -149,7 +149,7 @@ populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
   return this.atomicUpdate_(value as string, true, true);
 }
 readValueFromElement_ (): AllowedOptions[T] {
-  let value = this.element_.value.trim().replace(this.whiteMaskRe_, ' ');
+  let value = this.element_.value.trim().replace(this.whiteMaskRe_, " ");
   if (value && this.converter_) {
     value = this.converter_ === "lower" ? value.toLowerCase()
       : this.converter_ === "upper" ? value.toUpperCase()
@@ -257,11 +257,11 @@ readValueFromElement_ (): boolean | null {
 }
 }
 
-ExclusionRulesOption_.prototype.onRowChange_ = function(this: ExclusionRulesOption_, isAdd: number): void {
+ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOption_, isAdd: number): void {
   const count = this.list_.childElementCount;
   if (count - isAdd !== 0) { return; }
   isAdd && (BG_.Exclusions || BG_.Utils.require_("Exclusions"));
-  const el = $("#exclusionToolbar"), options = el.querySelectorAll('[data-model]');
+  const el = $("#exclusionToolbar"), options = el.querySelectorAll("[data-model]");
   el.style.visibility = count > 0 ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {
     const opt = Option_.all_[options[i].id as keyof AllowedOptions],
@@ -271,7 +271,7 @@ ExclusionRulesOption_.prototype.onRowChange_ = function(this: ExclusionRulesOpti
   }
 };
 
-ExclusionRulesOption_.prototype.onInit_ = function(this: ExclusionRulesOption_): void {
+ExclusionRulesOption_.prototype.onInit_ = function (this: ExclusionRulesOption_): void {
   if (this.previous_.length > 0) {
     $("#exclusionToolbar").style.visibility = "";
   }
@@ -294,7 +294,7 @@ TextOption_.prototype.showError_ = function<T extends keyof AllowedOptions>(this
     cls.remove("has-error"), cls.remove("highlight");
     errEl && errEl.remove();
   }
-}
+};
 
 interface SaveBtn extends HTMLButtonElement {
   onclick (this: SaveBtn, virtually?: MouseEvent | false): void;
@@ -302,11 +302,11 @@ interface SaveBtn extends HTMLButtonElement {
 interface AdvancedOptBtn extends HTMLButtonElement {
   onclick (_0: MouseEvent | null, init?: "hash" | true): void;
 }
-(function() {
+(function () {
   const saveBtn = $<SaveBtn>("#saveOptions"), exportBtn = $<HTMLButtonElement>("#exportButton");
   let status = false;
 
-  function onUpdated<T extends keyof AllowedOptions> (this: Option_<T>): void {
+  function onUpdated<T extends keyof AllowedOptions>(this: Option_<T>): void {
     if (this.locked_) { return; }
     if (this.saved_ = this.areEqual_(this.readValueFromElement_(), this.previous_)) {
       if (status && !Option_.needSaveOptions_()) {
@@ -329,7 +329,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     exportBtn.disabled = true;
   }
 
-  saveBtn.onclick = function(virtually): void {
+  saveBtn.onclick = function (virtually): void {
     if (virtually !== false) {
       if (!Option_.saveOptions_()) {
         return;
@@ -346,7 +346,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     if (toSync.length === 0) { return; }
     setTimeout(doSyncToFrontend, 100, toSync);
   };
-  function doSyncToFrontend (toSync: typeof Option_.syncToFrontend_): void {
+  function doSyncToFrontend(toSync: typeof Option_.syncToFrontend_): void {
     const delta: BgReq[kBgReq.settingsUpdate]["d"] = Object.create(null),
     req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: delta };
     for (const key of toSync) {
@@ -368,7 +368,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     const cls = types[element.getAttribute("data-model") as "Text"];
-    new (cls as any)(element, onUpdated);
+    // tslint:disable-next-line: no-unused-expression
+    const instance = new cls(element as TextElement, onUpdated);
+    (Option_.all_ as SafeDict<Option_<keyof AllowedOptions>>)[instance.field_] = instance;
   }
 
   _ref = $$("[data-check]");
@@ -379,7 +381,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   let advancedMode = false;
   element = $<AdvancedOptBtn>("#advancedOptionsButton");
-  (element as AdvancedOptBtn).onclick = function(this: AdvancedOptBtn, _0, init): void {
+  (element as AdvancedOptBtn).onclick = function (this: AdvancedOptBtn, _0, init): void {
     if (init == null || (init === "hash" && bgSettings_.get_("showAdvancedOptions") === false)) {
       advancedMode = !advancedMode;
       bgSettings_.set_("showAdvancedOptions", advancedMode);
@@ -393,7 +395,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   };
   (element as AdvancedOptBtn).onclick(null, true);
 
-  document.addEventListener("keydown", function(this: void, event): void {
+  document.addEventListener("keydown", function (this: void, event): void {
     if (event.keyCode !== VKeyCodes.space) {
       if (!window.VKeyboard) { return; }
       let wanted = event.keyCode === VKeyCodes.questionWin || event.keyCode === VKeyCodes.questionMac ? "?" : "";
@@ -410,7 +412,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   });
 
-  document.addEventListener("keyup", function(this: void, event): void {
+  document.addEventListener("keyup", function (this: void, event): void {
     const el = event.target as Element, i = event.keyCode;
     if (i !== VKeyCodes.enter) {
       if (i !== VKeyCodes.space) { return; }
@@ -421,9 +423,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       return;
     }
     if (el instanceof HTMLAnchorElement) {
-      el.hasAttribute('href') || setTimeout(function(el) {
-        click(el);
-        el.blur();
+      el.hasAttribute("href") || setTimeout(function (el1) {
+        click(el1);
+        el1.blur();
       }, 0, el);
     } else if (event.ctrlKey || event.metaKey) {
       el.blur && el.blur();
@@ -440,7 +442,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     element.textContent = "Delete all to reset this option.";
   }
 
-  let func: (this: HTMLElement, event: MouseEvent) => void = function(this: HTMLElement): void {
+  let func: (this: HTMLElement, event: MouseEvent) => void = function (this: HTMLElement): void {
     const target = $("#" + this.getAttribute("data-auto-resize") as string);
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
@@ -465,7 +467,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     element.setAttribute("role", "button");
   }
 
-  func = function(event): void {
+  func = function (event): void {
     let str = this.getAttribute("data-delay") as string, e = null as MouseEvent | null;
     if (str !== "continue") {
       event && event.preventDefault();
@@ -476,8 +478,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       loadJS("options_ext.js");
       return;
     }
-    window.addEventListener("load", function onLoad(event): void {
-      if (event.target === window) {
+    window.addEventListener("load", function onLoad(event1): void {
+      if (event1.target === window) {
         window.removeEventListener("load", onLoad);
         loadJS("options_ext.js");
       }
@@ -489,7 +491,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   _ref = $$(".sel-all");
-  func = function(this: HTMLElement, event: MouseEvent): void {
+  func = function (this: HTMLElement, event: MouseEvent): void {
     if (event.target !== this) { return; }
     getSelection().selectAllChildren(this);
     event.preventDefault();
@@ -499,37 +501,38 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   function setUI(curTabId: number | null): void {
-    const ratio = BG_.devicePixelRatio, element = document.getElementById("openInTab") as HTMLAnchorElement;
+    const ratio = BG_.devicePixelRatio, element2 = document.getElementById("openInTab") as HTMLAnchorElement;
     (document.body as HTMLBodyElement).classList.add("dialog-ui");
     (document.getElementById("mainHeader") as HTMLElement).remove();
-    element.onclick = function(this: HTMLAnchorElement): void {
+    element2.onclick = function (this: HTMLAnchorElement): void {
       setTimeout(window.close, 17);
     };
-    element.style.display = "";
-    (element.nextElementSibling as Element).remove();
+    element2.style.display = "";
+    (element2.nextElementSibling as Element).remove();
     if (bgBrowserVer >= BrowserVer.MinCorrectBoxWidthForOptionUI
         // not reset body width if not on Chrome
         || location.protocol !== "chrome-extension:") { return; }
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
-    chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function(zoom): void {
+    chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function (zoom): void {
       // >= BrowserVer.Min$Tabs$$getZoom
       if (!zoom) { return chrome.runtime.lastError; }
-      const ratio = Math.round(window.devicePixelRatio / zoom * 1024) / 1024;
-      (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 910 / ratio + "px" : "";
+      const ratio2 = Math.round(window.devicePixelRatio / zoom * 1024) / 1024;
+      (document.body as HTMLBodyElement).style.width = ratio2 !== 1 ? 910 / ratio2 + "px" : "";
     });
   }
-  if (typeof NO_DIALOG_UI !== "undefined" && NO_DIALOG_UI) {}
+  if (typeof NO_DIALOG_UI !== "undefined" && NO_DIALOG_UI) { /* empty */ }
   else if (window.location.hash === "#dialog-ui") {
     setUI(null);
-  } else if (chrome.tabs.query)
-  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs): void {
-    let url: string;
-    if (document.hasFocus() && tabs[0] && (url = tabs[0].url).indexOf("-") > 0
-            && url.lastIndexOf(location.protocol, 0) < 0) {
-      setUI(tabs[0].id);
-    }
-  });
-  Option_.all_.keyMappings.onSave_ = function(): void {
+  } else if (chrome.tabs.query) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs): void {
+      let url: string;
+      if (document.hasFocus() && tabs[0] && (url = tabs[0].url).indexOf("-") > 0
+              && url.lastIndexOf(location.protocol, 0) < 0) {
+        setUI(tabs[0].id);
+      }
+    });
+  }
+  Option_.all_.keyMappings.onSave_ = function (): void {
     const errors = bgSettings_.temp_.cmdErrors_,
     msg = !errors ? "" : (errors === 1 ? "There's 1 error." : `There're ${errors} errors`
       ) + " found.\nPlease see logs of background page for more details.";
@@ -537,32 +540,36 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   };
   Option_.all_.keyMappings.onSave_();
 
-  Option_.all_.linkHintCharacters.onSave_ = function(): void {
+  Option_.all_.linkHintCharacters.onSave_ = function (): void {
     const errors = this.previous_.length < 3;
     return this.showError_(errors ? "Characters for LinkHints are too few." : "");
   };
   Option_.all_.linkHintCharacters.onSave_();
 
-  Option_.all_.vomnibarPage.onSave_ = function(): void {
-    let {element_: element} = this, url: string = this.previous_
+  Option_.all_.vomnibarPage.onSave_ = function (): void {
+    let {element_: element2} = this, url: string = this.previous_
       , isExtPage = !url.lastIndexOf(location.protocol, 0) || !url.lastIndexOf("front/", 0);
     if (bgBrowserVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
-      element.style.textDecoration = isExtPage ? "" : "line-through";
-      return this.showError_(`Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`, null);
+      element2.style.textDecoration = isExtPage ? "" : "line-through";
+      return this.showError_(
+        `Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`,
+        null);
     }
     url = bgSettings_.cache_.vomnibarPage_f || url; // for the case Chrome is initing
-    if (isExtPage) {
-    } else if (url.lastIndexOf("file://", 0) !== -1) {
-      return this.showError_("A file page of vomnibar is limited by Chrome to only work on file://* pages.", "highlight");
+    if (isExtPage) { /* empty */ }
+    else if (url.lastIndexOf("file://", 0) !== -1) {
+      return this.showError_("A file page of vomnibar is limited by Chrome to only work on file://* pages."
+        , "highlight");
     } else if (url.lastIndexOf("http://", 0) !== -1) {
-      return this.showError_("A HTTP page of vomnibar is limited by Chrome and doesn't work on HTTPS pages.", "highlight");
+      return this.showError_("A HTTP page of vomnibar is limited by Chrome and doesn't work on HTTPS pages."
+        , "highlight");
     }
     return this.showError_("");
   };
   Option_.all_.vomnibarPage.onSave_();
 
   _ref = $$("[data-permission]");
-  _ref.length > 0 && (function(this: void, els: NodeListOf<HTMLElement>): void {
+  _ref.length > 0 && (function (this: void, els: NodeListOf<HTMLElement>): void {
     const manifest = chrome.runtime.getManifest(), permissions = manifest.permissions || [];
     for (const key of permissions) {
       manifest[key] = true;
@@ -570,7 +577,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
       let key = el.getAttribute("data-permission") as string;
-      if (key in manifest) continue;
+      if (key in manifest) { continue; }
       (el as HTMLInputElement | HTMLTextAreaElement).disabled = true;
       key = `This option is disabled for lacking permission${key ? ":\n* " + key : ""}`;
       if (el instanceof HTMLInputElement && el.type === "checkbox") {
@@ -598,9 +605,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   }
 
-  function toggleHide(element: HTMLElement): void | 1 {
-    element.tabIndex = -1;
-    return element.setAttribute("aria-hidden", "true");
+  function toggleHide(element2: HTMLElement): void | 1 {
+    element2.tabIndex = -1;
+    return element2.setAttribute("aria-hidden", "true");
   }
 
   _ref = $$('[data-model="Boolean"]');
@@ -616,7 +623,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     element.setAttribute("aria-hidden", "false");
   }
 
-  _ref = $$('[data-href]');
+  _ref = $$("[data-href]");
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i] as HTMLInputElement;
     let str = element.getAttribute("data-href") as string;
@@ -634,14 +641,13 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     (element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
     (element.parentElement as HTMLElement).insertBefore(document.createTextNode('"Keyboard shortcuts" of '), element);
   }
-  (element as HTMLAnchorElement).onclick = function(event): void {
+  (element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
     return BG_.Backend.focus_({ u: this.href, r: ReuseType.reuse, p: true });
-  }
+  };
 })();
 
-
-$("#userDefinedCss").addEventListener("input", debounce_(function(): void {
+$("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   if (!window.VDom) { return; }
   const root = VDom.UI.UI as VUIRoot | null, self = Option_.all_.userDefinedCss;
   let styleDebug = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
@@ -655,13 +661,13 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
     }
     styleDebug = document.createElement("style");
     styleDebug.className = "debugged";
-    const patch = function() {
+    const patch = function () {
       /** Note: shoule keep the same as {@link ../background/settings.ts#Settings.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(headEnd + 1, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
       VDom.UI.css_(css);
       (VDom.UI.UI as NonNullable<VUIRoot>).appendChild(styleDebug as HTMLStyleElement);
-    }
+    };
     if (root) {
       patch();
     } else {
@@ -689,7 +695,8 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
         const oldCSS2 = bgSettings_.parseCustomCSS_(bgSettings_.get_("userDefinedCss")).find || "";
         if (oldCSS2) {
           const str = bgSettings_.cache_.findCSS_[1];
-          (doc.querySelector("style") as HTMLStyleElement).textContent = str.substring(0, str.length - oldCSS2.length - 1);
+          (doc.querySelector("style") as HTMLStyleElement).textContent = str.substring(0
+              , str.length - oldCSS2.length - 1);
         }
         styleDebug = doc.createElement("style");
         styleDebug.type = "text/css";
@@ -705,29 +712,31 @@ $("#userDefinedCss").addEventListener("input", debounce_(function(): void {
       styleDebug.classList.add("debugged");
       styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug);
     }
-    styleDebug.textContent = isFind ? css2.find || "" : (isSame ? "" : ".transparent{ opacity: 1; }\n") + (css2.omni || "");
+    styleDebug.textContent = isFind ? css2.find || ""
+      : (isSame ? "" : ".transparent{ opacity: 1; }\n") + (css2.omni || "");
     const vfind = window.VFind as NonNullable<Window["VFind"]>;
     if (isFind && vfind.css_) {
       /** Note: shoule keep the same as {@link ../background/settings.ts#Settings.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
-      vfind.css_[2] = vfind.css_[2].substring(0, defaultLen - vfind.css_[0].length - vfind.css_[1].length - 1) + "\n" + (css2.find || "");
+      vfind.css_[2] = vfind.css_[2].substring(0, defaultLen - vfind.css_[0].length - vfind.css_[1].length - 1)
+        + "\n" + (css2.find || "");
     }
   }
 }, 1800, $("#userDefinedCss") as HTMLTextAreaElement, 0));
 
-Option_.all_.userDefinedCss.onSave_ = function() {
+Option_.all_.userDefinedCss.onSave_ = function () {
   if (!window.VDom) { return; }
   const root = VDom.UI.UI;
   let styledebugged = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (!styledebugged) { return; }
-  setTimeout(function() {
+  setTimeout(function () {
     (styledebugged as HTMLStyleElement).remove();
     const iframes = VDom.UI.UI.querySelectorAll("iframe");
     for (let i = 0, end = iframes.length; i < end; i++) {
       const frame = iframes[i], isFind = frame.classList.contains("HUD"),
       doc = frame.contentDocument as HTMLDocument,
       style = doc.querySelector("style.debugged") as HTMLStyleElement | null;
-      if (!style) {}
+      if (!style) { /* empty */ }
       else if (isFind) {
         style.remove();
       } else {
@@ -738,7 +747,7 @@ Option_.all_.userDefinedCss.onSave_ = function() {
   }, 500);
 };
 
-$("#importButton").onclick = function(): void {
+$("#importButton").onclick = function (): void {
   const opt = $<HTMLSelectElement>("#importOptions");
   opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
 };
@@ -748,7 +757,8 @@ $("#defaultNewTab").textContent = bgSettings_.defaults_.newTabUrl;
 $("#defaultSearchEngine").textContent = bgSettings_.defaults_.searchUrl;
 
 $("#browserName").textContent = (bgOnOther === BrowserType.Edge ? "MS Edge"
-  : bgOnOther === BrowserType.Firefox ? "Firefox" : ((<RegExpOne>/\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
+    : bgOnOther === BrowserType.Firefox ? "Firefox"
+    : ((<RegExpOne> /\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
   ) + (bgOnOther === BrowserType.Firefox ? " " + (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, ""])[1]
     : !bgOnOther ? " " + bgBrowserVer : ""
   ) + (", " + bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.substring(1));
@@ -766,7 +776,7 @@ function loadChecker(this: HTMLElement): void {
   loadJS("options_checker.js");
 }
 
-window.onhashchange = function(this: void): void {
+window.onhashchange = function (this: void): void {
   let hash = window.location.hash, node: HTMLElement | null;
   hash = hash.substring(hash[1] === "!" ? 2 : 1);
   if (!hash || (<RegExpI> /[^a-z\d_\.]/i).test(hash)) { return; }
@@ -778,7 +788,7 @@ window.onhashchange = function(this: void): void {
     if (node.getAttribute("data-model")) {
       node.classList.add("highlight");
     }
-    const callback = function(event?: Event): void {
+    const callback = function (event?: Event): void {
       if (event && event.target !== window) { return; }
       if (window.onload) {
         window.onload = null as never;
@@ -787,7 +797,7 @@ window.onhashchange = function(this: void): void {
       window.VDom ? VDom.view_(node as Element)
         : (node as HTMLElement).scrollIntoViewIfNeeded ? (node as any).scrollIntoViewIfNeeded()
         : (node as HTMLElement).scrollIntoView();
-    }
+    };
     if (document.readyState === "complete") { return callback(); }
     window.scrollTo(0, 0);
     window.onload = callback;
@@ -796,14 +806,14 @@ window.onhashchange = function(this: void): void {
 window.location.hash.length > 4 && (window as any).onhashchange();
 
 // below is for programmer debugging
-window.onunload = function(): void {
+window.onunload = function (): void {
   BG_.removeEventListener("unload", OnBgUnload);
   BG_.Utils.GC_();
 };
 
 function OnBgUnload(): void {
   BG_.removeEventListener("unload", OnBgUnload);
-  setTimeout(function(): void {
+  setTimeout(function (): void {
     BG_ = chrome.extension.getBackgroundPage() as Window | null as typeof BG_;
     if (!BG_) { // a user may call `close()` in the console panel
       window.onbeforeunload = null as any;
@@ -840,7 +850,7 @@ BG_.addEventListener("unload", OnBgUnload);
 document.addEventListener("click", function onClickOnce(): void {
   if (!window.VDom || !VDom.UI.UI) { return; }
   document.removeEventListener("click", onClickOnce, true);
-  (VDom.UI.UI as Node).addEventListener("click", function(event): void {
+  (VDom.UI.UI as Node).addEventListener("click", function (event): void {
     let target = event.target as HTMLElement, str: string;
     if (VPort && target.classList.contains("HelpCommandName")) {
       str = target.textContent.slice(1, -1);

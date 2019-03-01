@@ -1,7 +1,7 @@
 var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   , VimiumInjector: VimiumInjector | undefined | null;
 
-(function() {
+(function () {
   interface EscF {
     <T extends HandlerResult>(this: void, i: T): T;
     (this: void): void;
@@ -18,10 +18,10 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , currentKeys = "", isEnabled = false, isLocked = false
     , mappedKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
-    , esc = function(i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscF
+    , esc = function (i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscF
     , onKeyup2 = null as ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null
     , passKeys = null as SafeDict<true> | null | ""
-    , onWndFocus = function(this: void): void {}, onWndBlur2: ((this: void) => void) | null = null
+    , onWndFocus = function (this: void): void { /* empty */ }, onWndBlur2: ((this: void) => void) | null = null
     , OnOther: BrowserType = BrowserType.Chrome
     ;
 
@@ -52,9 +52,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     TestAlive_ (): void { esc && !vPort._port && VSettings.destroy_(); },
     ClearPort_ (this: void): void {
       vPort._port = null;
-      requestHandlers[kBgReq.init] && setTimeout(function(i): void {
+      requestHandlers[kBgReq.init] && setTimeout(function (i): void {
         if (!i) {
-          try { esc && vPort.Connect_(PortType.initing); return; } catch(e) {}
+          try { esc && vPort.Connect_(PortType.initing); return; } catch (e) { /* empty */ }
         }
         esc && VSettings.destroy_();
       }, 2000);
@@ -69,193 +69,195 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       port.onDisconnect.addListener(vPort.ClearPort_);
       port.onMessage.addListener(vPort.Listener_);
     })
-  }
-  function post<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>): 1 {
+  };
+  function post<K extends keyof FgReq>(this: void, request: FgReq[K] & Req.baseFg<K>): 1 {
     return (vPort._port as Port).postMessage(request);
   }
 
-    function onKeydown(event: KeyboardEvent): void {
-      if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
-        || !event.keyCode) { return; }
-      if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
-      if (OnOther === BrowserType.Firefox && InsertMode.lock_ && !VDom.isInDOM_(InsertMode.lock_ as LockableElement, document)) {
-        InsertMode.lock_ = null;
-      }
-      let keyChar: string, key = event.keyCode, action: HandlerResult;
-      if (action = VUtils.bubbleEvent_(event)) {}
-      else if (InsertMode.isActive_()) {
-        const g = InsertMode.global_;
-        if (g ? !g.code ? VKeyboard.isEscape_(event)
-              : key === g.code && VKeyboard.getKeyStat_(event) === g.stat
-            : VKeyboard.isEscape_(event)
-              || (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName_(event)) &&
-                (action = checkValidKey(event, keyChar)), false)
-        ) {
-          if (InsertMode.lock_ === document.body && InsertMode.lock_) {
-            event.repeat && InsertMode.focusUpper_(key, true, event);
-          } else {
-            action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
-            InsertMode.exit_(event);
-          }
+  function onKeydown(event: KeyboardEvent): void {
+    if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
+      || !event.keyCode) { return; }
+    if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
+    if (OnOther === BrowserType.Firefox && InsertMode.lock_
+        && !VDom.isInDOM_(InsertMode.lock_ as LockableElement, document)) {
+      InsertMode.lock_ = null;
+    }
+    let keyChar: string, key = event.keyCode, action: HandlerResult;
+    if (action = VUtils.bubbleEvent_(event)) { /* empty */ }
+    else if (InsertMode.isActive_()) {
+      const g = InsertMode.global_;
+      if (g ? !g.code ? VKeyboard.isEscape_(event)
+            : key === g.code && VKeyboard.getKeyStat_(event) === g.stat
+          : VKeyboard.isEscape_(event)
+            || (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName_(event)) &&
+              (action = checkValidKey(event, keyChar)), false)
+      ) {
+        if (InsertMode.lock_ === document.body && InsertMode.lock_) {
+          event.repeat && InsertMode.focusUpper_(key, true, event);
+        } else {
+          action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
+          InsertMode.exit_(event);
         }
       }
-      else if (key > VKeyCodes.maxNotPrintable || key === VKeyCodes.backspace || key === VKeyCodes.tab || key === VKeyCodes.enter) {
-        if (keyChar = VKeyboard.char_(event)) {
-          action = checkValidKey(event, keyChar);
-          if (action === HandlerResult.Nothing && InsertMode.suppressType_ && keyChar.length === 1) {
-            action = HandlerResult.Prevent;
-          }
+    }
+    else if (key > VKeyCodes.maxNotPrintable || key === VKeyCodes.backspace || key === VKeyCodes.tab
+        || key === VKeyCodes.enter) {
+      if (keyChar = VKeyboard.char_(event)) {
+        action = checkValidKey(event, keyChar);
+        if (action === HandlerResult.Nothing && InsertMode.suppressType_ && keyChar.length === 1) {
+          action = HandlerResult.Prevent;
         }
       }
-      else if (key !== VKeyCodes.esc || VKeyboard.getKeyStat_(event)) {}
-      else if (nextKeys !== null) {
-        esc(HandlerResult.Suppress);
-        action = HandlerResult.Prevent;
-      } else if (!event.repeat && VDom.UI.removeSelection_()) {
-        action = HandlerResult.Prevent;
-      } else if (event.repeat && !KeydownEvents[VKeyCodes.esc] && document.activeElement !== document.body) {
-        let c = document.activeElement; c && c.blur && c.blur();
-      } else if (window.top !== window && document.activeElement === document.body) {
-        InsertMode.focusUpper_(key, event.repeat, event);
-      }
-      if (action < HandlerResult.MinStopOrPreventEvents) { return; }
-      if (action > HandlerResult.MaxNotPrevent) {
-        event.preventDefault();
-      }
+    }
+    else if (key !== VKeyCodes.esc || VKeyboard.getKeyStat_(event)) { /* empty */ }
+    else if (nextKeys !== null) {
+      esc(HandlerResult.Suppress);
+      action = HandlerResult.Prevent;
+    } else if (!event.repeat && VDom.UI.removeSelection_()) {
+      action = HandlerResult.Prevent;
+    } else if (event.repeat && !KeydownEvents[VKeyCodes.esc] && document.activeElement !== document.body) {
+      let c = document.activeElement; c && c.blur && c.blur();
+    } else if (window.top !== window && document.activeElement === document.body) {
+      InsertMode.focusUpper_(key, event.repeat, event);
+    }
+    if (action < HandlerResult.MinStopOrPreventEvents) { return; }
+    if (action > HandlerResult.MaxNotPrevent) {
+      event.preventDefault();
+    }
+    event.stopImmediatePropagation();
+    KeydownEvents[key] = 1;
+  }
+  function onKeyup(event: KeyboardEvent): void {
+    if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
+      || !event.keyCode) { return; }
+    VScroller.keyIsDown_ = 0;
+    if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
+      VEvent.setupSuppress_();
+    }
+    if (KeydownEvents[event.keyCode]) {
+      KeydownEvents[event.keyCode] = 0;
+      event.preventDefault();
       event.stopImmediatePropagation();
-      KeydownEvents[key] = 1;
+    } else if (onKeyup2) {
+      onKeyup2(event);
     }
-    function onKeyup(event: KeyboardEvent): void {
-      if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
-        || !event.keyCode) { return; }
-      VScroller.keyIsDown_ = 0;
-      if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
-        VEvent.setupSuppress_();
-      }
-      if (KeydownEvents[event.keyCode]) {
-        KeydownEvents[event.keyCode] = 0;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      } else if (onKeyup2) {
-        onKeyup2(event);
-      }
+  }
+  function onFocus(this: void, event: Event | FocusEvent): void {
+    if (event.isTrusted === false) { return; }
+    // on Firefox, target may also be `document`
+    let target: EventTarget | Element | Window | Document = event.target;
+    if (target === window || target === document) {
+      return onWndFocus();
     }
-    function onFocus(this: void, event: Event | FocusEvent): void {
-      if (event.isTrusted === false) { return; }
-      // on Firefox, target may also be `document`
-      let target: EventTarget | Element | Window | Document = event.target;
-      if (target === window || target === document) {
-        return onWndFocus();
-      }
-      if (!isEnabled) { return; }
-      /**
-       * Notes:
-       * according to test, Chrome Password Saver won't fill fields inside a shadow DOM
-       * it's safe to compare .lock and doc.activeEl here without checking target.shadowRoot,
-       *   and .shadowRoot should not block this check
-       * DO NOT stop propagation
-       * check `InsertMode.lock !== null` first, so that it needs less cost for common (plain) cases
-       * use `lock === doc.active`, because:
-       *   `lock !== target` ignores the case a blur event is missing or not captured;
-       *   `target !== doc.active` lets it pass the case `target === lock === doc.active`
-       */
-      const lock = InsertMode.lock_;
-      if (lock !== null && lock === document.activeElement) { return; }
-      if (target === VDom.UI.box_) { return event.stopImmediatePropagation(); }
-      const sr = VDom.GetShadowRoot_(target as Element);
-      if (sr) {
-        let path = event.path, top: EventTarget | undefined, SR = ShadowRoot
-          /**
-           * isNormalHost is true if one of:
-           * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
-           * - `event.currentTarget` (`this`) is a shadowRoot
-           */ 
-          , isNormalHost = !!(top = path && path[0]) && top !== window && top !== target
-          , len = isNormalHost ? [].indexOf.call(path as EventPath, target) : 1;
-        isNormalHost ? (target = top as Element) : (path = [sr]);
-        while (0 <= --len) {
-          const root = (path as EventPath)[len];
-          if (!(root instanceof SR) || root.vimiumListened === ShadowRootListenType.Full) { continue; }
-          root.addEventListener("focus", onShadow, true);
-          root.addEventListener("blur", onShadow, true);
-          root.vimiumListened = ShadowRootListenType.Full;
-        }
-      }
-      if (VDom.getEditableType_<LockableElement>(target)) {
-        if (InsertMode.grabBackFocus_) {
-          (InsertMode.grabBackFocus_ as Exclude<typeof InsertMode.grabBackFocus_, boolean>)(event, target);
-          return;
-        }
-        InsertMode.lock_ = target;
-        if (InsertMode.mutable_) {
-          if (document.activeElement !== document.body) {
-            InsertMode.last_ = target;
-          }
-        }
+    if (!isEnabled) { return; }
+    /**
+     * Notes:
+     * according to test, Chrome Password Saver won't fill fields inside a shadow DOM
+     * it's safe to compare .lock and doc.activeEl here without checking target.shadowRoot,
+     *   and .shadowRoot should not block this check
+     * DO NOT stop propagation
+     * check `InsertMode.lock !== null` first, so that it needs less cost for common (plain) cases
+     * use `lock === doc.active`, because:
+     *   `lock !== target` ignores the case a blur event is missing or not captured;
+     *   `target !== doc.active` lets it pass the case `target === lock === doc.active`
+     */
+    const lock = InsertMode.lock_;
+    if (lock !== null && lock === document.activeElement) { return; }
+    if (target === VDom.UI.box_) { return event.stopImmediatePropagation(); }
+    const sr = VDom.GetShadowRoot_(target as Element);
+    if (sr) {
+      let path = event.path, top: EventTarget | undefined, SR = ShadowRoot
+        /**
+         * isNormalHost is true if one of:
+         * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
+         * - `event.currentTarget` (`this`) is a shadowRoot
+         */
+        , isNormalHost = !!(top = path && path[0]) && top !== window && top !== target
+        , len = isNormalHost ? [].indexOf.call(path as EventPath, target) : 1;
+      isNormalHost ? (target = top as Element) : (path = [sr]);
+      while (0 <= --len) {
+        const root = (path as EventPath)[len];
+        if (!(root instanceof SR) || root.vimiumListened === ShadowRootListenType.Full) { continue; }
+        root.addEventListener("focus", onShadow, true);
+        root.addEventListener("blur", onShadow, true);
+        root.vimiumListened = ShadowRootListenType.Full;
       }
     }
-    function onBlur(this: void, event: Event | FocusEvent): void {
-      if (!isEnabled || event.isTrusted === false) { return; }
-      const target: EventTarget | Element | Window | Document = event.target;
-      if (target === window || target === document) { return onWndBlur(); }
-      let path = event.path as EventPath | undefined, top: EventTarget | undefined
-        , same = !(top = path && path[0]) || top === window || top === target
-        , sr = VDom.GetShadowRoot_(target as Element);
-      if (InsertMode.lock_ === (same ? target : top)) {
-        InsertMode.lock_ = null;
-        InsertMode.inputHint_ && !InsertMode.hinting_ && document.hasFocus() && InsertMode.exitInputHint_();
-      }
-      if (!sr || target === VDom.UI.box_) { return; }
-      let wrapper = onShadow;
-      if (same) {
-        sr.vimiumListened = ShadowRootListenType.Blur;
+    if (VDom.getEditableType_<LockableElement>(target)) {
+      if (InsertMode.grabBackFocus_) {
+        (InsertMode.grabBackFocus_ as Exclude<typeof InsertMode.grabBackFocus_, boolean>)(event, target);
         return;
       }
-      for (let len = [].indexOf.call(path as EventPath, target), SR = ShadowRoot; 0 <= --len; ) {
-        const root = (path as EventPath)[len];
-        if (!(root instanceof SR)) { continue; }
-        root.removeEventListener("focus", wrapper, true);
-        root.removeEventListener("blur", wrapper, true);
-        root.vimiumListened = ShadowRootListenType.None;
+      InsertMode.lock_ = target;
+      if (InsertMode.mutable_) {
+        if (document.activeElement !== document.body) {
+          InsertMode.last_ = target;
+        }
       }
     }
-    function onActivate(event: UIEvent): void {
-      if (event.isTrusted !== false) {
-        VScroller.current_ = VDom.SafeEl_(event.path ? event.path[0] as Element : event.target as Element);
-      }
+  }
+  function onBlur(this: void, event: Event | FocusEvent): void {
+    if (!isEnabled || event.isTrusted === false) { return; }
+    const target: EventTarget | Element | Window | Document = event.target;
+    if (target === window || target === document) { return onWndBlur(); }
+    let path = event.path as EventPath | undefined, top: EventTarget | undefined
+      , same = !(top = path && path[0]) || top === window || top === target
+      , sr = VDom.GetShadowRoot_(target as Element);
+    if (InsertMode.lock_ === (same ? target : top)) {
+      InsertMode.lock_ = null;
+      InsertMode.inputHint_ && !InsertMode.hinting_ && document.hasFocus() && InsertMode.exitInputHint_();
     }
-    function onWndBlur(this: void): void {
-      VScroller.keyIsDown_ = 0;
-      const f = onWndBlur2;
-      f && f();
-      KeydownEvents = Object.create(null);
-      (<RegExpOne> /a?/).test("");
-      esc(HandlerResult.Suppress);
+    if (!sr || target === VDom.UI.box_) { return; }
+    let wrapper = onShadow;
+    if (same) {
+      sr.vimiumListened = ShadowRootListenType.Blur;
+      return;
     }
-    function onShadow(this: ShadowRoot, event: FocusEvent): void {
-      if (event.isTrusted === false) { return; }
-      if (isEnabled && event.type === "focus") {
-        return onFocus(event);
-      }
-      if (!isEnabled || this.vimiumListened === ShadowRootListenType.Blur) {
-        const r = this.removeEventListener.bind(this) as Element["removeEventListener"], f = onShadow;
-        r("focus", f, true); r("blur", f, true);
-        this.vimiumListened = ShadowRootListenType.None;
-      }
-      if (isEnabled) {
-        onBlur(event);
-      }
+    for (let len = [].indexOf.call(path as EventPath, target), SR = ShadowRoot; 0 <= --len; ) {
+      const root = (path as EventPath)[len];
+      if (!(root instanceof SR)) { continue; }
+      root.removeEventListener("focus", wrapper, true);
+      root.removeEventListener("blur", wrapper, true);
+      root.vimiumListened = ShadowRootListenType.None;
     }
+  }
+  function onActivate(event: UIEvent): void {
+    if (event.isTrusted !== false) {
+      VScroller.current_ = VDom.SafeEl_(event.path ? event.path[0] as Element : event.target as Element);
+    }
+  }
+  function onWndBlur(this: void): void {
+    VScroller.keyIsDown_ = 0;
+    const f = onWndBlur2;
+    f && f();
+    KeydownEvents = Object.create(null);
+    (<RegExpOne> /a?/).test("");
+    esc(HandlerResult.Suppress);
+  }
+  function onShadow(this: ShadowRoot, event: FocusEvent): void {
+    if (event.isTrusted === false) { return; }
+    if (isEnabled && event.type === "focus") {
+      return onFocus(event);
+    }
+    if (!isEnabled || this.vimiumListened === ShadowRootListenType.Blur) {
+      const r = this.removeEventListener.bind(this) as Element["removeEventListener"], f = onShadow;
+      r("focus", f, true); r("blur", f, true);
+      this.vimiumListened = ShadowRootListenType.None;
+    }
+    if (isEnabled) {
+      onBlur(event);
+    }
+  }
 
-    const hook = (function(action: HookAction): void {
-      let f = action ? removeEventListener : addEventListener;
-      f("keydown", onKeydown, true);
-      f("keyup", onKeyup, true);
-      action !== HookAction.Suppress && f("focus", onFocus, true);
-      f("blur", onBlur, true);
-      useBrowser ? f("click", onActivate, true) :
-      f.call(document, "DOMActivate", onActivate, true);
-    }),
+  const hook = (function (action: HookAction): void {
+    let f = action ? removeEventListener : addEventListener;
+    f("keydown", onKeydown, true);
+    f("keyup", onKeyup, true);
+    action !== HookAction.Suppress && f("focus", onFocus, true);
+    f("blur", onBlur, true);
+    useBrowser ? f("click", onActivate, true) :
+    f.call(document, "DOMActivate", onActivate, true);
+  }),
   Commands: {
     [K in kFgCmd & number]:
       K extends keyof SpecialCommands ? SpecialCommands[K] :
@@ -312,7 +314,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       let keyCount = 0;
       if (options.normal) {
         const func = esc;
-        esc = function(i?: HandlerResult): HandlerResult | void {
+        esc = function (i?: HandlerResult): HandlerResult | void {
           if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.Suppress) {
             HUD.hide_();
             return (esc = func)(HandlerResult.Prevent);
@@ -323,19 +325,19 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         } as EscF;
         return esc();
       }
-      VUtils.push_(function(event) {
+      VUtils.push_(function (event) {
         keyCount += +!keys[event.keyCode];
         keys[event.keyCode] = 1;
         return HandlerResult.PassKey;
       }, keys);
-      onKeyup2 = function(event): void {
+      onKeyup2 = function (event): void {
         if (keyCount === 0 || --keyCount || --count) {
           keys[event.keyCode] = 0;
           return HUD.show_(`Pass next ${count > 1 ? count + " keys." : "key."}`);
         }
         return (onWndBlur2 as () => void)();
       };
-      onWndBlur2 = function(): void {
+      onWndBlur2 = function (): void {
         onKeyup2 = null;
         VUtils.remove_(keys);
         onWndBlur2 = null;
@@ -351,7 +353,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
     },
     /* reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
-      setTimeout(function() {
+      setTimeout(function () {
         options.url ? (location.href = options.url) : location.reload(!!(options.hard || options.force));
       }, 17);
     },
@@ -402,7 +404,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           str = str.slice(0, -1) + "%20";
         }
       }
-      if (str.length < 4 && !str.trim() && str[0] === ' ') {
+      if (str.length < 4 && !str.trim() && str[0] === " ") {
         str = "";
       } else {
         post({
@@ -447,7 +449,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
         hint[2] = j > 0 ? ind / 8192 - j : ind;
       }
-      const hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link): HintsNS.BaseHintItem {
+      const hints = visibleInputs.sort((a, b) => a[2] - b[2]).map(function (link): HintsNS.BaseHintItem {
         const marker = VDom.createElement_("span") as HintsNS.BaseHintItem["marker"],
         rect = VDom.padClientRect_(link[0].getBoundingClientRect(), 3);
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
@@ -468,26 +470,27 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       // although old elements can not be GC-ed before this line, it has little influence
       InsertMode.exitInputHint_();
       InsertMode.inputHint_ = { box, hints };
-      VUtils.push_(function(event) {
+      VUtils.push_(function (event) {
         const { keyCode } = event;
         if (keyCode === VKeyCodes.tab) {
-          const hints = this.hints, oldSel = sel, len = hints.length;
+          const hints2 = this.hints, oldSel = sel, len = hints2.length;
           sel = (oldSel + (event.shiftKey ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
           VUtils.prevent_(event); // in case that selecting is too slow
-          VDom.UI.simulateSelect_(hints[sel].target, null, false, action);
-          hints[oldSel].marker.classList.remove("S", "IHS");
-          hints[sel].marker.classList.add("S", "IHS");
+          VDom.UI.simulateSelect_(hints2[sel].target, null, false, action);
+          hints2[oldSel].marker.classList.remove("S", "IHS");
+          hints2[sel].marker.classList.add("S", "IHS");
           InsertMode.hinting_ = false;
           return HandlerResult.Prevent;
         }
         let keyStat: KeyStat;
         if (keyCode === VKeyCodes.shiftKey || keep && (keyCode === VKeyCodes.altKey
-            || keyCode === VKeyCodes.ctrlKey || keyCode === VKeyCodes.metaKey)) {}
+            || keyCode === VKeyCodes.ctrlKey || keyCode === VKeyCodes.metaKey)) { /* empty */ }
         else if (event.repeat) { return HandlerResult.Nothing; }
         else if (keep ? VKeyboard.isEscape_(event) || (
             keyCode === VKeyCodes.enter && (keyStat = VKeyboard.getKeyStat_(event),
-              keyStat !== KeyStat.shiftKey && (keyStat !== KeyStat.plain || this.hints[sel].target instanceof HTMLInputElement) )
+              keyStat !== KeyStat.shiftKey
+              && (keyStat !== KeyStat.plain || this.hints[sel].target instanceof HTMLInputElement) )
           ) : keyCode !== VKeyCodes.ime && keyCode !== VKeyCodes.f12
         ) {
           InsertMode.exitInputHint_();
@@ -513,7 +516,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = Object.create(null);
       if (VUtils.cache_.grabBackFocus_ && this.grabBackFocus_) {
-        let prompted = 0, prompt = function(): void {
+        let prompted = 0, prompt = function (): void {
           prompted++ || console.log("An auto-focusing action is blocked by Vimium C");
         };
         if (notBody) {
@@ -523,13 +526,13 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           notBody = (activeEl = document.activeElement as Element) !== document.body;
         }
         if (!notBody) {
-          InsertMode.grabBackFocus_ = function(event, target): void {
+          InsertMode.grabBackFocus_ = function (event, target): void {
             if (document.activeElement === target) {
               event.stopImmediatePropagation();
               prompt();
               target.blur();
             }
-          }
+          };
           VUtils.push_(this.ExitGrab_, this);
           addEventListener("mousedown", this.ExitGrab_, true);
           return;
@@ -540,7 +543,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         this.lock_ = activeEl;
       }
     },
-    ExitGrab_: function (this: void, event?: Req.fg<kFgReq.exitGrab> | MouseEvent | KeyboardEvent): HandlerResult.Nothing | void {
+    ExitGrab_: function (this: void, event?: Req.fg<kFgReq.exitGrab> | MouseEvent | KeyboardEvent
+        ): HandlerResult.Nothing | void {
       const _this = InsertMode;
       if (!_this.grabBackFocus_) { return /* safer */ HandlerResult.Nothing; }
       _this.grabBackFocus_ = false;
@@ -622,7 +626,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     } else {
       VDom.view_(linkElement);
       VDom.UI.flash_(linkElement);
-      setTimeout(function() { VDom.UI.click_(linkElement); }, 100);
+      setTimeout(function () { VDom.UI.click_(linkElement); }, 100);
     }
     return true;
   },
@@ -704,7 +708,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     timer_: 0,
     Focus_ (this: void, { m: mask, S: CSS, k: key }: BgReq[kBgReq.focusFrame]): void {
       CSS && VDom.UI.css_(CSS);
-      if (mask !== FrameMaskType.NormalNext) {}
+      if (mask !== FrameMaskType.NormalNext) { /* empty */ }
       else if (innerWidth < 3 || innerHeight < 3
         || document.body instanceof HTMLFrameSetElement
         || VEvent.checkHidden_()) {
@@ -755,7 +759,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         return this.tip_(`No ${e || "text"} found!`, 1000);
       }
       if (text.startsWith("chrome-") && text.indexOf("://") > 0) {
-        text = text.substring(text.indexOf('/', text.indexOf('/') + 2)) || text;
+        text = text.substring(text.indexOf("/", text.indexOf("/") + 2)) || text;
       }
       text = "Copied: " + (text.length > 41 ? text.substring(0, 41) + "\u2026" : text + ".");
       if (virtual) { return text; }
@@ -792,7 +796,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       if (!VPort) { return; }
       const hud = HUD, el = hud.box_ as HTMLDivElement, st = el.style, fake = info === TimerType.fake;
       let opacity = fake ? 0 : +(st.opacity || 1);
-      if (opacity === hud.opacity_) {}
+      if (opacity === hud.opacity_) { /* empty */ }
       else if (opacity === 0) {
         (el.firstChild as Text).data = hud.text_;
         st.opacity = fake ? "" : "0.25";
@@ -816,7 +820,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       let hud = HUD, i: number;
       if (i = hud._timer) { clearTimeout(i); hud._timer = 0; }
       hud.opacity_ = 0; hud.text_ = "";
-      if (!hud.box_) {}
+      if (!hud.box_) { /* empty */ }
       else if (info === TimerType.noTimer) {
         const box = hud.box_, st = box.style;
         st.opacity = "0";
@@ -833,10 +837,11 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
       const browserVer = load.browserVer_;
       OnOther = load.browser_;
-      ((VSettings as Writeable<VSettingsTy>).cache = VUtils.cache_ = load).onMac_ && (VKeyboard.correctionMap_ = Object.create<string>(null));
+      ((VSettings as Writeable<VSettingsTy>).cache = VUtils.cache_ = load).onMac_ &&
+        (VKeyboard.correctionMap_ = Object.create<string>(null));
       D.specialZoom_ = !OnOther && browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
       if (OnOther || browserVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
-        D.notSafe_ = (el) : el is HTMLFormElement => el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
+        D.notSafe_ = (el): el is HTMLFormElement => el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
       }
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
       r[kBgReq.keyMap](request);
@@ -855,14 +860,14 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       r[kBgReq.init] = null as never;
       D.DocReady_(function (): void {
         HUD.enabled_ = true;
-        onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>>{ H: kFgReq.focus });
+        onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>> { H: kFgReq.focus });
       });
     },
     function (request: BgReq[kBgReq.reset], initing?: 1): void {
       const newPassKeys = request.p, enabled = newPassKeys !== "", old = isEnabled;
       passKeys = newPassKeys && Object.create<true>(null);
       if (newPassKeys) {
-        for (const ch of newPassKeys.split(' ')) { (passKeys as SafeDict<true>)[ch] = true; }
+        for (const ch of newPassKeys.split(" ")) { (passKeys as SafeDict<true>)[ch] = true; }
       }
       (VSettings as Writeable<VSettingsTy>).enabled_ = isEnabled = enabled;
       if (initing) {
@@ -880,7 +885,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       if (VDom.UI.box_) { return VDom.UI.toggle_(enabled); }
     },
-    injector ? injector.reload : function (): void {},
+    injector ? injector.reload : function (): void { /* empty */ },
     function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
       delete (request as Req.bg<kBgReq.url>).N;
       request.u = location.href;
@@ -932,7 +937,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       type TypeChecked = {
         [key in Keys]: <T2 extends Keys>(this: void, count: number, options: CmdOptions[T2]) => void;
       };
-      (Commands as TypeToCheck as TypeChecked)[request.c](request.n, (options ? VUtils.safer_(options) : Object.create(null)) as CmdOptions[O]);
+      (Commands as TypeToCheck as TypeChecked)[request.c](request.n
+        , (options ? VUtils.safer_(options) : Object.create(null)) as CmdOptions[O]);
     },
     function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.n); },
     function (req: Req.bg<kBgReq.showHUD>): void {
@@ -943,7 +949,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           VFind.styleIframe_ && (VFind.styleIframe_.textContent = req.f[1]);
         }
       }
-      req.t ? req.c ? HUD.copied_(req.t) : HUD.tip_(req.t) : void 0;
+      // tslint:disable-next-line: no-unused-expression
+      req.t ? req.c ? HUD.copied_(req.t) : HUD.tip_(req.t) : 0;
     },
     function (request: BgReq[kBgReq.count]): void {
       const count = parseInt(currentKeys, 10) || 1;
@@ -970,7 +977,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     box.addEventListener(useBrowser ? "click" : "DOMActivate", onActivate, true);
 
     const closeBtn = box.querySelector("#HClose") as HTMLElement;
-    hide = function(event): void {
+    hide = function (event): void {
       if (event instanceof Event) {
         VUtils.prevent_(event);
       } else {
@@ -989,7 +996,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     node1 = box.querySelector("#OptionsPage") as HTMLAnchorElement;
     if (! location.href.startsWith(optionUrl)) {
       (node1 as HTMLAnchorElement).href = optionUrl;
-      node1.onclick = function(event) {
+      node1.onclick = function (event) {
         post({ H: kFgReq.focusOrLaunch, u: optionUrl });
         hide(event);
       };
@@ -1001,7 +1008,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       (node1.firstChild as Text).data = (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";
       box.classList.toggle("HelpAdvanced");
     }
-    node1.onclick = function(event) {
+    node1.onclick = function (event) {
       VUtils.prevent_(event);
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
@@ -1016,7 +1023,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     VDom.UI.add_(box, AdjustType.Normal, true);
     document.hasFocus() || VEvent.focusAndListen_();
     VScroller.current_ = box;
-    VUtils.push_(function(event) {
+    VUtils.push_(function (event) {
       if (!InsertMode.lock_ && VKeyboard.isEscape_(event)) {
         VDom.UI.removeSelection_(VDom.UI.UI) || hide();
         return HandlerResult.Prevent;
@@ -1036,7 +1043,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     let j = (nextKeys || keyMap)[key];
     if (nextKeys === null) {
       // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
-      if (j == null || passKeys !== null && key in <SafeDict<true>>passKeys) { return HandlerResult.Nothing; }
+      if (j == null || passKeys !== null && key in <SafeDict<true>> passKeys) { return HandlerResult.Nothing; }
     } else if (j == null) {
       j = keyMap[key];
       if (j == null) { return esc(HandlerResult.Nothing); }
@@ -1066,14 +1073,16 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         return false;
       }
       url = url.substring(11).trim();
-      if ((<RegExpOne>/^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) {
-      } else if (VDom.Scripts_) setTimeout(function(): void {
-        const script = VDom.createElement_("script");
-        script.type = "text/javascript";
-        script.textContent = VUtils.decodeURL_(url, decodeURIComponent);
-        (document.documentElement as HTMLElement).appendChild(script);
-        script.remove();
-      }, 0); else {
+      if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
+      else if (VDom.Scripts_) {
+        setTimeout(function (): void {
+          const script = VDom.createElement_("script");
+          script.type = "text/javascript";
+          script.textContent = VUtils.decodeURL_(url, decodeURIComponent);
+          (document.documentElement as HTMLElement).appendChild(script);
+          script.remove();
+        }, 0);
+      } else {
         HUD.tip_("Here's not allowed to eval scripts");
       }
       return true;
@@ -1085,12 +1094,13 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { return onWndFocus(); },
-    checkHidden_ (this: void, cmd?: kFgCmd, count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): boolean {
+    checkHidden_ (this: void
+        , cmd?: kFgCmd, count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): boolean {
       let wnd = window, docEl = document.documentElement, el = wnd === wnd.top ? null : VDom.parentFrame_() || docEl;
       if (!el) { return false; }
       let box = el.getBoundingClientRect(),
       result = box.height === 0 && box.width === 0 || getComputedStyle(el).visibility === "hidden";
-      if (!count) {}
+      if (!count) { /* empty */ }
       else if (result) {
         type ForwardedOptions = Exclude<typeof options, undefined>;
         (options as ForwardedOptions).$forced || VPort.post_({
@@ -1106,12 +1116,12 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     },
     focusAndListen_ (callback?: (() => void) | null, timedout?: 0 | 1): void {
       if (timedout !== 1) {
-        setTimeout(function(): void { VEvent.focusAndListen_(callback, 1 as number as 0); }, 1);
+        setTimeout(function (): void { VEvent.focusAndListen_(callback, 1 as number as 0); }, 1);
         return;
       }
       InsertMode.ExitGrab_();
       let old = onWndFocus, failed = true;
-      onWndFocus = function(): void { failed = false; };
+      onWndFocus = function (): void { failed = false; };
       VOmni.status_ === VomnibarNS.Status.Showing && VOmni.box_.blur();
       window.focus();
       failed && isEnabled && hook(HookAction.Install);
@@ -1176,10 +1186,10 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     enabled_: false,
     cache: null as never as SettingsNS.FrontendSettingCache,
     stop_: null,
-  destroy_: function(silent): void {
+  destroy_ (silent): void {
     (VSettings as Writeable<VSettingsTy>).enabled_ = isEnabled = false;
     hook(HookAction.Destroy);
-    
+
     Commands[kFgCmd.reset]();
     let f = VSettings.stop_, ui = VDom.UI;
     f && f(HookAction.Destroy);
@@ -1195,17 +1205,19 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
       , Date.now());
 
-    if (vPort._port) { try { vPort._port.disconnect(); } catch (e) {} }
+    if (vPort._port) { try { vPort._port.disconnect(); } catch (e) { /* empty */ } }
     (<RegExpOne> /a?/).test("");
   }
   };
   if (injector) {
-    injector.checkIfEnabled = vPort.SafePost_ as Function as () => void;
-    injector.getCommandCount = function (this: void): number { return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1; };
+    injector.checkIfEnabled = vPort.SafePost_ as {} as () => void;
+    injector.getCommandCount = function (this: void): number {
+      return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
+    };
   }
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
-  if (location.href !== "about:blank" || injector || !function(): 1 | void {
+  if (location.href !== "about:blank" || injector || !function (): 1 | void {
     try {
       let f = VDom.parentFrame_(),
       a1 = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFind?: typeof VFind}).VFind;
@@ -1214,7 +1226,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         a1.onLoad_();
         return 1; // not return a function's result so that logic is clearer for compiler
       }
-    } catch (e) {}
+    } catch (e) { /* empty */ }
   }()) {
     hook(HookAction.Install);
     vPort.Connect_(PortType.initing);

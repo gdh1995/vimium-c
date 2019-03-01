@@ -48,15 +48,15 @@ var VKeyboard = {
       : event.metaKey || ch.length > 1 ? left + ch + ">" : ch;
   },
   getKeyStat_ (event: EventControlKeys): KeyStat {
-    return <number><boolean|number>event.altKey |
-            (<number><boolean|number>event.ctrlKey << 1) |
-            (<number><boolean|number>event.metaKey << 2) |
-            (<number><boolean|number>event.shiftKey << 3);
+    return <number> <boolean|number> event.altKey |
+            (<number> <boolean|number> event.ctrlKey << 1) |
+            (<number> <boolean|number> event.metaKey << 2) |
+            (<number> <boolean|number> event.shiftKey << 3);
   },
   isEscape_ (event: KeyboardEvent): boolean {
     if (event.keyCode !== VKeyCodes.esc && !event.ctrlKey) { return false; }
     const i = this.getKeyStat_(event);
     // we know that BrowserVer.MinEnsured$KeyboardEvent$$Code < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
-    return i === KeyStat.plain || i === KeyStat.ctrlKey && (event.code === "BracketLeft" || this.char_(event) === '[');
+    return i === KeyStat.plain || i === KeyStat.ctrlKey && (event.code === "BracketLeft" || this.char_(event) === "[");
   }
 };

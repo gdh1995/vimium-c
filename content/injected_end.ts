@@ -8,12 +8,12 @@ VDom.Scripts_ = false;
     , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
   func({ H: kFgReq.checkIfEnabled, u: window.location.href });
 }).bind(null, (VimiumInjector as VimiumInjector).checkIfEnabled);
-VDom.DocReady_(function() {
+VDom.DocReady_(function () {
   VimiumInjector &&
   addEventListener("hashchange", VimiumInjector.checkIfEnabled);
 });
 
-(function() {
+(function () {
   // Note: should keep the same with frontend.ts
   const useBrowser = typeof browser !== "undefined" &&
     browser && (browser as typeof chrome).runtime && !((browser as typeof chrome | Element) instanceof Element),
@@ -27,7 +27,7 @@ VDom.DocReady_(function() {
   }
 })();
 
-VSettings.stop_ = function(type: number): void {
+VSettings.stop_ = function (type: number): void {
   let injector = VimiumInjector;
   if (type >= HookAction.Destroy && injector) {
     removeEventListener("hashchange", injector.checkIfEnabled);

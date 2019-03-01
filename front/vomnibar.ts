@@ -9,9 +9,7 @@ interface SuggestionEx extends SuggestionE {
   parsed?: string;
   text: string;
 }
-interface Render {
-  (this: void, list: ReadonlyArray<Readonly<SuggestionE>>): string;
-}
+type Render = (this: void, list: ReadonlyArray<Readonly<SuggestionE>>) => string;
 interface Post<R extends void | 1> {
   postMessage<K extends keyof FgReq>(request: Req.fg<K>): R;
   postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): R;
@@ -32,6 +30,7 @@ interface ConfigurableItems {
   VomnibarWheelInterval?: number;
   VomnibarMaxPageNum?: number;
 }
+// tslint:disable-next-line: no-empty-interface
 interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
 
@@ -55,13 +54,13 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.init_ && this.setPType_(options.t);
     if (this.mode_.f) {
       scale = scale <= 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
-      /**
-       * Note: "@1x" is necessary, because only the whole 'size/aa@bx/' can be optional
-       * * definition: https://cs.chromium.org/chromium/src/chrome/browser/ui/webui/favicon_source.h?type=cs&q=FaviconSource&g=0&l=47
-       * * parser: https://cs.chromium.org/chromium/src/components/favicon_base/favicon_url_parser.cc?type=cs&q=ParseFaviconPath&g=0&l=33
-       * * if no '@', then Chromium's buggy code would misunderstand the wanted URL (BrowserVer.MinChar$At$InFaviconUrl)
-       */
-      this._favPrefix = '" style="background-image: url(&quot;chrome://favicon/size/16@' + scale + 'x/';
+/**
+ * Note: "@1x" is necessary, because only the whole 'size/aa@bx/' can be optional
+ * * definition: https://cs.chromium.org/chromium/src/chrome/browser/ui/webui/favicon_source.h?type=cs&q=FaviconSource&g=0&l=47
+ * * parser: https://cs.chromium.org/chromium/src/components/favicon_base/favicon_url_parser.cc?type=cs&q=ParseFaviconPath&g=0&l=33
+ * * if no '@', then Chromium's buggy code would misunderstand the wanted URL (BrowserVer.MinChar$At$InFaviconUrl)
+ */
+      this._favPrefix = '" style="background-image: url(&quot;chrome://favicon/size/16@' + scale + "x/";
     }
     if (url == null) {
       return this.reset_(keyword ? keyword + " " : "");
@@ -72,9 +71,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       keyword || (keyword = search.k);
     } else if (search === null) {
       url = VUtils_.decodeURL_(url).replace(<RegExpG> /\s$/g, "%20");
-      if (!keyword && (<RegExpI>/^https?:\/\//i).test(url)) {
+      if (!keyword && (<RegExpI> /^https?:\/\//i).test(url)) {
         this.baseHttps_ = (url.charCodeAt(4) | KnownKey.CASE_DELTA) === KnownKey.s;
-        url = url.substring(this.baseHttps_ ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? url.length - 1 : undefined);
+        url = url.substring(this.baseHttps_ ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? url.length - 1 : void 0);
       }
     } else {
       url = VUtils_.decodeURL_(url, decodeURIComponent).trim().replace(this._spacesRe, " ");
@@ -95,7 +94,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   useInput_: true,
   completions_: null as never as SuggestionE[],
   total_: 0,
-  maxPageNum_: Math.min(Math.max(3, (<number>window.VomnibarMaxPageNum | 0) || 10), 100),
+  maxPageNum_: Math.min(Math.max(3, (<number> window.VomnibarMaxPageNum | 0) || 10), 100),
   isEditing_: false,
   isInputComposing_: false,
   baseHttps_: null as boolean | null,
@@ -116,7 +115,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   lastScrolling_: 0,
   height_: 0,
   maxHeight_: 0,
-  input_: null as never as HTMLInputElement & Ensure<HTMLInputElement, "selectionDirection" | "selectionEnd" | "selectionStart">,
+  input_: null as never as HTMLInputElement & Ensure<HTMLInputElement
+      , "selectionDirection" | "selectionEnd" | "selectionStart">,
   bodySt_: null as never as CSSStyleDeclaration,
   barCls_: null as never as DOMTokenList,
   isSelOriginal_: true,
@@ -125,8 +125,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   list_: null as never as HTMLDivElement,
   onUpdate_: null as (() => void) | null,
   doEnter_: null as ((this: void) => void) | null,
-  refreshInterval_: Math.max(256, (<number>window.VomnibarRefreshInterval | 0) || 500),
-  wheelInterval_: Math.max(33, (<number>window.VomnibarWheelInterval | 0) || 100),
+  refreshInterval_: Math.max(256, (<number> window.VomnibarRefreshInterval | 0) || 500),
+  wheelInterval_: Math.max(33, (<number> window.VomnibarWheelInterval | 0) || 100),
   renderItems_: null as never as Render,
   selection_: -1,
   atimer_: 0,
@@ -147,21 +147,21 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.OnShown_ && setTimeout(this.OnShown_, 100);
   },
   hide_ (fromContent?: BOOL): void {
-    this.isActive_ = this.showing_ = this.isEditing_ = this.isInputComposing_ = this.blurWanted_ = this.focusByCode_ = false;
-    removeEventListener("wheel", this.onWheel_, this.wheelOptions_);
-    this.timer_ > 0 && clearTimeout(this.timer_);
+    const a = this, el = a.input_;
+    a.isActive_ = a.showing_ = a.isEditing_ = a.isInputComposing_ = a.blurWanted_ = a.focusByCode_ = false;
+    removeEventListener("wheel", a.onWheel_, a.wheelOptions_);
+    a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
-    const el = this.input_;
     el.blur();
-    fromContent || VPort_.postMessage_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: this.lastKey_ });
-    this.bodySt_.cssText = "display: none;";
-    this.list_.textContent = el.value = "";
-    this.list_.style.height = "";
-    this.barCls_.remove("empty");
-    this.list_.classList.remove("no-favicon");
-    if (this.sameOrigin_) { return this.onHidden_(); }
-    this.atimer_ = requestAnimationFrame(this.AfterHide_);
-    this.timer_ = setTimeout(this.AfterHide_, 35);
+    fromContent || VPort_.postMessage_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
+    a.bodySt_.cssText = "display: none;";
+    a.list_.textContent = el.value = "";
+    a.list_.style.height = "";
+    a.barCls_.remove("empty");
+    a.list_.classList.remove("no-favicon");
+    if (a.sameOrigin_) { return a.onHidden_(); }
+    a.atimer_ = requestAnimationFrame(a.AfterHide_);
+    a.timer_ = setTimeout(a.AfterHide_, 35);
   },
   AfterHide_ (this: void): void {
     const a = Vomnibar_;
@@ -191,7 +191,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.height_ = 0;
     this.isActive_ = true;
     // also clear @timer
-    this.update_(0, (start as number) <= (end as number) ? function(this: typeof Vomnibar_): void {
+    this.update_(0, (start as number) <= (end as number) ? function (this: typeof Vomnibar_): void {
       if (this.input_.value === this.inputText_) {
         this.input_.setSelectionRange(start as number, end as number);
       }
@@ -229,7 +229,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     let oldSel = this.selection_, origin = this.isSelOriginal_;
     this.useInput_ = false;
     this.setWidth_();
-    return this.update_(wait, function(this: typeof Vomnibar_): void {
+    return this.update_(wait, function (this: typeof Vomnibar_): void {
       const len = this.completions_.length;
       if (!origin && oldSel >= 0 && len > 0) {
         oldSel = Math.min(oldSel, len - 1);
@@ -268,15 +268,15 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     const onlyUrl = !line.text, url = line.url;
     const ind = VUtils_.ensureText_(line);
     let str = onlyUrl ? url : VUtils_.decodeURL_(url, decodeURIComponent);
-    if (!onlyUrl && str.length === url.length && url.indexOf('%') >= 0) {
+    if (!onlyUrl && str.length === url.length && url.indexOf("%") >= 0) {
       // has error during decoding
       str = line.text;
       if (ind) {
         if (str.lastIndexOf("://", 5) < 0) {
           str = (ind === ProtocolType.http ? "http://" : "https://") + str;
         }
-        if (url.endsWith('/') || !str.endsWith('/')) {
-          str += '/';
+        if (url.endsWith("/") || !str.endsWith("/")) {
+          str += "/";
         }
       }
     }
@@ -337,11 +337,11 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     let action: AllowedActions = AllowedActions.nothing, n = event.keyCode, focused = this.focused_;
     this.lastKey_ = n;
     if (event.altKey || event.metaKey) {
-      if (event.ctrlKey || event.shiftKey) {}
+      if (event.ctrlKey || event.shiftKey) { /* empty */ }
       else if (n === VKeyCodes.f2) {
         return this.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
-      else if (!focused) {}
+      else if (!focused) { /* empty */ }
       else if (n > VKeyCodes.A && n < VKeyCodes.G && n !== VKeyCodes.C || n === VKeyCodes.backspace) {
         return this.onBashAction_(n - VKeyCodes.maxNotAlphabet);
       }
@@ -352,23 +352,27 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       return;
     }
     else if (event.ctrlKey || event.metaKey) {
-      if (event.shiftKey) { action = n === VKeyCodes.F ? AllowedActions.pagedown : n === VKeyCodes.B ? AllowedActions.pageup : AllowedActions.nothing; }
-      else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
+      if (event.shiftKey) {
+        action = n === VKeyCodes.F ? AllowedActions.pagedown : n === VKeyCodes.B ? AllowedActions.pageup
+          : AllowedActions.nothing;
+      } else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
         event.preventDefault();
         this.lastScrolling_ = Date.now();
         window.onkeyup = Vomnibar_.HandleKeydown_;
         VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll, keyCode: n });
         return;
+      } else {
+        action = event.code === "BracketLeft" ? AllowedActions.dismiss
+          : event.code === "BracketRight" ? AllowedActions.toggle
+          : this.ctrlMap_[n] || AllowedActions.nothing;
       }
-      else { action = event.code === "BracketLeft" ? AllowedActions.dismiss : event.code === "BracketRight" ? AllowedActions.toggle
-                      : this.ctrlMap_[n] || AllowedActions.nothing; }
     }
     else if (event.shiftKey) {
       action = n === VKeyCodes.up ? AllowedActions.pageup : n === VKeyCodes.down ? AllowedActions.pagedown
         : n === VKeyCodes.tab ? AllowedActions.up : n === VKeyCodes.deleteKey ? AllowedActions.remove
         : AllowedActions.nothing;
     }
-    else if (action = this.normalMap_[n] || AllowedActions.nothing) {}
+    else if (action = this.normalMap_[n] || AllowedActions.nothing) { /* empty */ }
     else if (n === VKeyCodes.ime || n > VKeyCodes.f1 && n < VKeyCodes.minNotFn) {
       this.keyResult_ = HandlerResult.Nothing;
       return;
@@ -377,7 +381,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       if (focused) { this.keyResult_ = HandlerResult.Suppress; }
       return;
     }
-    else if (n !== VKeyCodes.space) {}
+    else if (n !== VKeyCodes.space) { /* empty */ }
     else if (!focused) { action = AllowedActions.focus; }
     else if ((this.selection_ >= 0
         || this.completions_.length <= 1) && this.input_.value.endsWith("  ")) {
@@ -395,7 +399,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   onAction_ (action: AllowedActions): void {
     let sel: number;
-    switch(action) {
+    switch (action) {
     case AllowedActions.dismiss:
       const selection = getSelection();
       if (selection.type === "Range" && this.focused_) {
@@ -460,9 +464,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       : event === true ? this.forceNewTab_ ? ReuseType.newFg : ReuseType.current
       : event.ctrlKey || event.metaKey ? event.shiftKey ? ReuseType.newBg : ReuseType.newFg
       : event.shiftKey || !this.forceNewTab_ ? ReuseType.current : ReuseType.newFg;
-    if (newSel != null) {}
+    if (newSel != null) { /* empty */ }
     else if (sel === -1 && this.input_.value.length === 0) { return; }
-    else if (!this.timer_) {}
+    else if (!this.timer_) { /* empty */ }
     else if (this.isEditing_) { sel = -1; }
     else if (this.timer_ > 0) {
       return this.update_(0, this.onEnter_);
@@ -470,10 +474,10 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       this.onUpdate_ = this.onEnter_;
       return;
     }
-    interface UrlInfo { url: string; sessionId?: undefined }
+    interface UrlInfo { url: string; sessionId?: undefined; }
     const item: SuggestionE | UrlInfo = sel >= 0 ? this.completions_[sel] : { url: this.input_.value.trim() },
     action = this.actionType_, https = this.isHttps_,
-    func = function(this: void): void {
+    func = function (this: void): void {
       item.sessionId != null ? Vomnibar_.gotoSession_(item as SuggestionE & { sessionId: string | number })
         : Vomnibar_.navigateToUrl_((item as UrlInfo).url, action, https);
       (<RegExpOne> /a?/).test("");
@@ -483,7 +487,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.hide_();
   },
   OnEnterUp_ (this: void, event: KeyboardEvent): void {
-    if (event.isTrusted === true || (event.isTrusted == null && event instanceof KeyboardEvent) && event.keyCode === VKeyCodes.enter) {
+    if (event.isTrusted === true
+        || (event.isTrusted == null && event instanceof KeyboardEvent) && event.keyCode === VKeyCodes.enter) {
       Vomnibar_.lastKey_ = VKeyCodes.None;
       window.onkeyup = null as never;
       Vomnibar_.onEnter_(event);
@@ -516,9 +521,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   OnMenu_ (this: void, event: Event): void {
     let el = event.target as Element | null, item: Element | null;
-    for (; el && !el.classList.contains("url"); el = el.parentElement) {}
+    while (el && !el.classList.contains("url")) { el = el.parentElement; }
     if (!el || (el as HTMLAnchorElement).href) { return; }
-    for (item = el; item && item.parentElement !== Vomnibar_.list_; item = item.parentElement) {}
+    for (item = el; item && item.parentElement !== Vomnibar_.list_; item = item.parentElement) { /* empty */ }
     const _i = [].indexOf.call(Vomnibar_.list_.children, item);
     _i >= 0 && ((el as HTMLAnchorElement).href = Vomnibar_.completions_[_i].url);
   },
@@ -530,7 +535,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (left.charCodeAt(end) !== KnownKey.space || end === left.length - 1) { return; }
     left = left.substring(0, end).trimRight();
     if (left.indexOf(" ") === -1) {
-      el.setSelectionRange(0, left.length, 'backward');
+      el.setSelectionRange(0, left.length, "backward");
     }
   },
   OnFocus_ (this: void, event: Event): void {
@@ -541,7 +546,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (event.ctrlKey || event.metaKey || event.isTrusted === false) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (event.deltaX || !event.deltaY || Date.now() - this.wheelTime_ < this.wheelInterval_ || !Vomnibar_.isActive_) { return; }
+    if (event.deltaX || !event.deltaY || Date.now() - this.wheelTime_ < this.wheelInterval_
+      || !Vomnibar_.isActive_) { return; }
     this.wheelTime_ = Date.now();
     this.goPage_(event.deltaY > 0);
   },
@@ -554,7 +560,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (this.matchType_ === CompletersNS.MatchType.emptyResult && str.startsWith(s0)) { return; }
     if (!str) { this.isHttps_ = this.baseHttps_ = null; }
     let i = this.input_.selectionStart, arr: RegExpExecArray | null;
-    if (this.isSearchOnTop_) {}
+    if (this.isSearchOnTop_) { /* empty */ }
     else if (i > s1.length - 2) {
       if (s1.endsWith(" +") && !this.timer_ && str.substring(0, str.length - 2).trimRight() === s0) {
         return;
@@ -589,7 +595,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   populateUI_ (): void {
     const len = this.completions_.length, notEmpty = len > 0, oldH = this.height_, list = this.list_;
-    const height = this.height_ = Math.ceil(notEmpty ? len * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty),
+    const height = this.height_
+      = Math.ceil(notEmpty ? len * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty),
     needMsg = height !== oldH, earlyPost = height > oldH || this.sameOrigin_,
     msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
       N: VomnibarNS.kFReq.style, h: height
@@ -652,7 +659,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
-    for (const style of (document.querySelectorAll(`style[id]`) as {} as HTMLStyleElement[])) {
+    for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
       const key = " " + style.id + " ", ind = omniStyles.indexOf(key);
       style.disabled = ind < 0;
       (style.sheet as CSSStyleSheet).disabled = ind < 0;
@@ -697,10 +704,11 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (!Vomnibar_) { return; }
     const a = (document.body as HTMLBodyElement).classList;
     // Document.hidden is since C33, according to MDN
-    !Vomnibar_.isActive_ || (blurred != null ? !blurred : document.hidden || document.hasFocus()) ? a.remove("transparent") : a.add("transparent");
+    !Vomnibar_.isActive_ || (blurred != null ? !blurred : document.hidden || document.hasFocus())
+      ? a.remove("transparent") : a.add("transparent");
   },
   init_ (): void {
-    window.onclick = function(e) { Vomnibar_.onClick_(e); };
+    window.onclick = function (e) { Vomnibar_.onClick_(e); };
     this.onWheel_ = this.onWheel_.bind(this);
     Object.setPrototypeOf(this.ctrlMap_, null);
     Object.setPrototypeOf(this.normalMap_, null);
@@ -711,7 +719,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
     this.barCls_ = (this.input_.parentElement as HTMLElement).classList;
     list.oncontextmenu = this.OnMenu_;
-    (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar_.hide_(); };
+    (document.getElementById("close") as HTMLElement).onclick = function (): void { return Vomnibar_.hide_(); };
     addEventListener("keydown", this.HandleKeydown_, true);
     this.renderItems_ = VUtils_.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
     if (ver >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
@@ -723,7 +731,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured) {
       const css = document.createElement("style");
       css.type = "text/css";
-      css.textContent = `.item, #input { border-width: ${ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`;
+      css.textContent = `.item, #input { border-width: ${
+          ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
     if (ver < BrowserVer.Min$KeyboardEvent$$isComposing) {
@@ -740,16 +749,19 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.darkBtn_ && (this.darkBtn_.onclick = this.ToggleDark_);
     this.onStyleUpdate_(this.customClassName_);
     this.init_ = VUtils_.makeListRenderer_ = null as never;
-    if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && this.browser_ === BrowserType.Chrome || this.bodySt_.d != null) { return; }
+    if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && this.browser_ === BrowserType.Chrome
+        || this.bodySt_.d != null) {
+      return;
+    }
     const styles = (document.querySelector("style") as HTMLStyleElement).textContent,
     re = <RegExpG & RegExpSearchable<2>> /\.([a-z]+)\s?\{(?:[^}]+;)?\s*d\s?:\s*path\s?\(\s?['"](.+?)['"]\s?\)/g,
     pathMap = Object.create<string>(null);
     let arr: RegExpExecArray | null;
     while (arr = re.exec(styles)) { pathMap[arr[1]] = arr[2]; }
-    this.getTypeIcon_ = function(sug: Readonly<SuggestionE>): string {
+    this.getTypeIcon_ = function (sug: Readonly<SuggestionE>): string {
       const type = sug.type, path = pathMap[type];
       return path ? `${type}" d="${path}` : type;
-    }
+    };
   },
   css_ (request: BgCSSReq): void {
     let css = request.S as string, st = this.customStyle_;
@@ -759,7 +771,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       return;
     }
     if (!st) {
-      st = this.customStyle_ = <HTMLStyleElement | null>document.querySelector("#custom") || document.createElement("style");
+      st = this.customStyle_ = <HTMLStyleElement | null> document.querySelector("#custom")
+        || document.createElement("style");
       st.type = "text/css";
       st.className = "custom";
       this.init_ || (document.head as HTMLElement).appendChild(st);
@@ -771,7 +784,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.pageType_ = type;
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
       , canShowOnOthers = this.browserVersion_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
-    if (this.browser_ !== BrowserType.Chrome || type === VomnibarNS.PageType.web || location.origin.indexOf("-") < 0) {}
+    if (this.browser_ !== BrowserType.Chrome || type === VomnibarNS.PageType.web
+        || location.origin.indexOf("-") < 0) { /* empty */ }
     else if (type === VomnibarNS.PageType.inner) {
       fav = canShowOnOthers || this.sameOrigin_ ? 2 : 0;
     } else if ((canShowOnOthers || this.sameOrigin_) && (f = chrome.runtime.getManifest) && (manifest = f())) {
@@ -806,9 +820,10 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   _realDevRatio: 0,
   setWidth_ (w?: number): void {
-    let mayHasWrongWidth = this.browserVersion_ === BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
+    let mayHasWrongWidth
+          = this.browserVersion_ === BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
       , msg = "", r: number, zoom = this.zoomLevel_;
-    if (!mayHasWrongWidth) {}
+    if (!mayHasWrongWidth) { /* empty */ }
     else if (r = this._realDevRatio) {
       // now we has real screen device pixel ratio (of not Chrome but Windows)
       w = innerWidth / r;
@@ -826,7 +841,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   fixRatio_ (w: number): void {
     // this function is only for BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
-    let tick = 0, timer = setInterval(function(): void {
+    let tick = 0, timer = setInterval(function (): void {
       const iw = innerWidth, a = Vomnibar_;
       if (iw > 0 || tick++ > 15) {
         clearInterval(timer);
@@ -839,7 +854,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   secret_: null as never as (request: BgVomnibarSpecialReq[kBgReq.omni_secret]) => void,
 
-  maxResults_: (<number>window.VomnibarListLength | 0) || 10,
+  maxResults_: (<number> window.VomnibarListLength | 0) || 10,
   mode_: {
     H: kFgReq.omni as kFgReq.omni,
     t: "omni" as CompletersNS.ValidTypes,
@@ -855,7 +870,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.timer_ = -1;
     if (this.useInput_) {
       this.lastQuery_ = str = this.input_.value.trim();
-      if (!this.isInputComposing_) {}
+      if (!this.isInputComposing_) { /* empty */ }
       else if (str.startsWith(last = this.lastNormalInput_)) {
         str = last + str.substring(last.length).replace(this._singleQuoteRe, "");
       } else {
@@ -897,7 +912,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       return;
     }
     VPort_.postMessage_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, o: true });
-    if (reuse === ReuseType.newBg && (!this.lastQuery_ || (<RegExpOne>/^\+\d{0,2}$/).exec(this.lastQuery_))) {
+    if (reuse === ReuseType.newBg && (!this.lastQuery_ || (<RegExpOne> /^\+\d{0,2}$/).exec(this.lastQuery_))) {
       return this.refresh_();
     }
   },
@@ -916,7 +931,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (!waitFocus) {
       return this.doRefresh_(150);
     }
-    window.onfocus = function(e: Event): void {
+    window.onfocus = function (e: Event): void {
       window.onfocus = null as never;
       if (e.isTrusted !== false && VPort_._port) { Vomnibar_.doRefresh_(17); }
     };
@@ -931,14 +946,14 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
 VUtils_ = {
   makeListRenderer_ (this: void, template: string): Render {
     const a = template.split(/\{\{(\w+)}}/g);
-    return function(objectArray): string {
+    return function (objectArray): string {
       let html = "", len = a.length - 1;
       for (const o of objectArray) {
         let j = 0;
         for (; j < len; j += 2) {
           html += a[j];
           const key = a[j + 1];
-          html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(o) : o[key as keyof SuggestionE] || ""
+          html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(o) : o[key as keyof SuggestionE] || "";
         }
         html += a[len];
       }
@@ -948,17 +963,18 @@ VUtils_ = {
   decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => string): string {
     try {
       url = (decode || decodeURI)(url);
-    } catch (e) {}
+    } catch (e) { /* empty */ }
     return url;
   },
   ensureText_ (sug: SuggestionEx): ProtocolType {
     let { url, text } = sug, str = url.substring(0, 8).toLowerCase();
-    let i = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https : ProtocolType.others;
+    let i = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https
+            : ProtocolType.others;
     i >= url.length && (i = ProtocolType.others);
     let wantSchema = !i;
     if (i === ProtocolType.https) {
-      let j = url.indexOf('/', i);
-      if (j > 0 ? j < url.length : /* domain has port */ (<RegExpOne>/:\d+\/?$/).test(url)) {
+      let j = url.indexOf("/", i);
+      if (j > 0 ? j < url.length : /* domain has port */ (<RegExpOne> /:\d+\/?$/).test(url)) {
         wantSchema = true;
       }
     }
@@ -968,29 +984,30 @@ VUtils_ = {
       if (wantSchema && !text.startsWith(str)) {
         text = str + text;
       }
-      if (url.endsWith('/') && !str.endsWith('/') && str.indexOf('/') > 0) {
-        text += '/';
+      if (url.endsWith("/") && !str.endsWith("/") && str.indexOf("/") > 0) {
+        text += "/";
       }
     }
     sug.text = text;
     return i;
   },
-  escapeCSSStringInAttr_ (s: string): string {
+  escapeCSSStringInAttr_ (s0: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
       return i === KnownKey.and ? "&amp;" : i === KnownKey.quote1 ? "&apos;"
         : i < KnownKey.quote1 ? "%22" : i === KnownKey.lt ? "%3C" : "%3E";
     }
-    this.escapeCSSStringInAttr_ = function(s): string {
+    this.escapeCSSStringInAttr_ = function (s): string {
       return s.replace(escapeRe, escapeCallback);
     };
-    return this.escapeCSSStringInAttr_(s);
+    return this.escapeCSSStringInAttr_(s0);
   }
 },
 VPort_ = {
   _port: null as FgPort | null,
-  postToOwner_: null as never as <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void | 1,
+  postToOwner_: null as never as <K extends keyof VomnibarNS.FReq> (this: void
+      , msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void | 1,
   postMessage_<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
     try {
       (this._port || this.connect_(PortType.omnibarRe)).postMessage<K>(request);
@@ -1007,6 +1024,7 @@ VPort_ = {
     name === kBgReq.omni_returnFocus ? Vomnibar_.returnFocus_(response as Req.bg<kBgReq.omni_returnFocus>) :
     name === kBgReq.showHUD ? Vomnibar_.css_(response as Req.bg<kBgReq.showHUD> as BgCSSReq) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
+    // tslint:disable-next-line: no-unused-expression
     0;
   },
   _OnOwnerMessage ({ data: data }: { data: VomnibarNS.CReq[keyof VomnibarNS.CReq] }): void {
@@ -1016,6 +1034,7 @@ VPort_ = {
     name === VomnibarNS.kCReq.backspace ? Vomnibar_.onAction_(AllowedActions.backspace) :
     name === VomnibarNS.kCReq.focus ? Vomnibar_.focus_() :
     name === VomnibarNS.kCReq.hide ? Vomnibar_.hide_(1) :
+    // tslint:disable-next-line: no-unused-expression
     0;
   },
   _ClearPort (this: void): void { VPort_._port = null; },
@@ -1027,31 +1046,31 @@ VPort_ = {
     return port;
   }
 };
-"".startsWith || (String.prototype.startsWith = function(this: string, s: string): boolean {
+"".startsWith || (String.prototype.startsWith = function (this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 });
-"".endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
+"".endsWith || (String.prototype.endsWith = function (this: string, s: string): boolean {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
 window.browser && (browser as typeof chrome).runtime && (window.chrome = browser as typeof chrome);
-(function(): void {
-  if ((document.documentElement as HTMLElement).getAttribute("data-version") != "1.72") {
+(function (): void {
+  if ((document.documentElement as HTMLElement).getAttribute("data-version") !== "1.72") {
     location.href = "about:blank";
     return;
   }
   let curEl: HTMLScriptElement;
-  if (location.pathname.startsWith("/front/") || !(curEl = document.currentScript as typeof curEl)) {}
+  if (location.pathname.startsWith("/front/") || !(curEl = document.currentScript as typeof curEl)) { /* empty */ }
   else if (curEl.src.endsWith("/front/vomnibar.js") && !curEl.src.startsWith("http") && !curEl.src.startsWith("ftp")) {
     VCID = new URL(curEl.src).hostname;
   } else {
     curEl.remove();
-    window.onmessage = function(event): void {
+    window.onmessage = function (event): void {
       if (event.source !== window.parent) { return; }
       const data: VomnibarNS.MessageData = event.data, script = document.createElement("script"),
       src = script.src = (data[1] as VomnibarNS.FgOptions).s;
       VCID = new URL(src).hostname;
-      script.onload = function(): void {
+      script.onload = function (): void {
         script.onload = null as never;
         window.onmessage(event);
       };
@@ -1061,9 +1080,9 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
   }
 
   let _sec = 0 as number,
-  unsafeMsg = [] as [number, VomnibarNS.IframePort, Options | null][],
-  handler = function(this: void, secret: number, port: VomnibarNS.IframePort, options: Options | null): void {
-    if (_sec < 1 || secret != _sec) {
+  unsafeMsg = [] as Array<[number, VomnibarNS.IframePort, Options | null]>,
+  handler = function (this: void, secret: number, port: VomnibarNS.IframePort, options: Options | null): void {
+    if (_sec < 1 || secret !== _sec) {
       _sec || unsafeMsg.push([secret, port, options]);
       return;
     }
@@ -1080,9 +1099,9 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.uiComponentIsReady });
     }
   },
-  timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);
-  Vomnibar_.secret_ = function(this: void, request): void {
-    Vomnibar_.secret_ = function() {};
+  timer = setTimeout(function () { window.location.href = "about:blank"; }, 700);
+  Vomnibar_.secret_ = function (this: void, request): void {
+    Vomnibar_.secret_ = function () { /* empty */ };
     Vomnibar_.browser_ = request.browser;
     Vomnibar_.browserVersion_ = request.browserVer;
     Vomnibar_.css_(request);
@@ -1091,16 +1110,16 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
     _sec = secret;
     unsafeMsg = null as never;
     for (const i of msgs) {
-      if (i[0] == secret) {
+      if (i[0] === secret) {
         return handler(i[0], i[1], i[2]);
       }
     }
   };
-  window.onmessage = function(event): void {
+  window.onmessage = function (event): void {
     if (event.source === window.parent) {
       const data: VomnibarNS.MessageData = event.data;
       handler(data[0], event.ports[0], data[1]);
     }
   };
-VPort_.connect_(PortType.omnibar);
+  VPort_.connect_(PortType.omnibar);
 })();

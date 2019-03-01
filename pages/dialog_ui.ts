@@ -4,7 +4,7 @@
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
 
-(function(): void {
+(function (): void {
 const BG = chrome.extension.getBackgroundPage() as Window as Window & { Settings: typeof Settings };
 if (BG && !BG.Settings.get_("dialogMode")) {
   BG.Backend.focus_({

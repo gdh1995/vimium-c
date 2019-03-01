@@ -1,21 +1,21 @@
-if (VSettings && document.readyState !== "complete" &&
-VimiumInjector === undefined)
-(function(this: void): void {
+if (VSettings && document.readyState !== "complete"
+    && VimiumInjector === undefined) {
+(function (this: void): void {
   let d: Document | Document["documentElement"] = document
     , script: HTMLScriptElement | Element = d.createElement("script") as HTMLScriptElement | Element
     , box: EventTarget | null | false = null
     , secret: number = (Math.random() * 1e6 + 1) | 0;
-  /**
-   * Note:
-   *   should not create HTML/SVG elements before document gets ready,
-   *   otherwise the default XML parser will not enter a "xml_viewer_mode"
-   * Stack trace:
-   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?q=XMLDocumentParser::end&l=390
-   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?q=XMLDocumentParser::DoEnd&l=1543
-   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?g=0&q=HasNoStyleInformation&l=106
-   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?g=0&q=Document::CreateRawElement&l=946
-   * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
-   */
+/**
+ * Note:
+ *   should not create HTML/SVG elements before document gets ready,
+ *   otherwise the default XML parser will not enter a "xml_viewer_mode"
+ * Stack trace:
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?q=XMLDocumentParser::end&l=390
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?q=XMLDocumentParser::DoEnd&l=1543
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?g=0&q=HasNoStyleInformation&l=106
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?g=0&q=Document::CreateRawElement&l=946
+ * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
+ */
   if (!(script instanceof HTMLScriptElement)) { return; }
 
   function installer(event: CustomEvent): void {
@@ -44,20 +44,21 @@ VimiumInjector === undefined)
       box.dispatchEvent(new CustomEvent("VimiumUnhook", {detail: secret}));
     }
     if (box === null) {
-      setTimeout(function(): void { r("VimiumHook", installer, true); }, 1100);
+      setTimeout(function (): void { r("VimiumHook", installer, true); }, 1100);
     }
     box = false;
     VSettings && (VSettings.stop_ = null);
   }
   VSettings.stop_ = destroy;
 
-  let injected: Function | string = '"use strict";(' + (function VC(this: void): void {
+  let injected: string = '"use strict";(' + (function VC(this: void): void {
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
 type Call3o<T, A, B, C, R> = (this: (this: T, a: A, b: B, c?: C) => R, thisArg: T, a: A, b: B, c?: C) => R;
 
 const ETP = EventTarget.prototype, _listen = ETP.addEventListener, toRegister: Element[] = [],
 _apply = _listen.apply, _call = _listen.call,
-call = _call.bind(_call) as <T, R, A, B, C>(func: (this: T, a?: A, b?: B, c?: C) => R, self: T, a?: A, b?: B, c?: C) => R,
+call = _call.bind(_call) as <T, R, A, B, C>(
+        func: (this: T, a?: A, b?: B, c?: C) => R, self: T, a?: A, b?: B, c?: C) => R,
 dispatch = (_call as Call1<EventTarget, Event, boolean>).bind(ETP.dispatchEvent),
 doc = document, cs = doc.currentScript as HTMLScriptElement, Create = doc.createElement as Document["createElement"],
 E = Element, EP = E.prototype, Append = EP.appendChild, Contains = EP.contains, Insert = EP.insertBefore,
@@ -68,15 +69,18 @@ FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
 rel = removeEventListener, ct = clearTimeout,
-sec: number = +<string>cs.getAttribute("data-vimium"),
+sec: number = +<string> cs.getAttribute("data-vimium"),
 hooks = {
+  // tslint:disable-next-line: ban-types
   toString: function toString(this: Function): string {
     const a = this;
-    return call(_apply as (this: (this: Function, ...args: {}[]) => string, self: Function, args: IArguments) => string,
+    return call(_apply as ( // tslint:disable-next-line: ban-types
+                  this: (this: Function, ...args: Array<{}>) => string, self: Function, args: IArguments) => string,
                 funcToString,
                 a === hooks.addEventListener ? _listen : a === hooks.toString ? funcToString : a, arguments);
   },
-  addEventListener: function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): void {
+  addEventListener: function addEventListener(this: EventTarget, type: string
+      , listener: EventListenerOrEventListenerObject): void {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA) && a instanceof E) {
       toRegister.push(a);
@@ -84,13 +88,14 @@ hooks = {
     }
     const args = arguments, len = args.length;
     return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
-      : call(_apply as (this: (this: EventTarget, ...args: {}[]) => void, self: EventTarget, args: IArguments) => void,
-             _listen as (this: EventTarget, ...args: {}[]) => void, a, args);
+      : call(_apply as (this: (this: EventTarget, ...args: Array<{}>) => void
+                        , self: EventTarget, args: IArguments) => void,
+             _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
   }
 }
 ;
 
-let handler = function(this: void): void {
+let handler = function (this: void): void {
   rel("DOMContentLoaded", handler, true);
   ct(timer);
   const docEl = docChildren[0] as HTMLElement | SVGElement | null;
@@ -103,12 +108,12 @@ let handler = function(this: void): void {
   if (call(HasAttr, el, key)) {
     destroy();
   } else {
-    box = el;
+    root = el;
     timer = toRegister.length > 0 ? next() : 0;
   }
 },
 docChildren = doc.children,
-next = setTimeout.bind(window as never, function(): void {
+next = setTimeout.bind(window as never, function (): void {
   const len = toRegister.length, start = len > 9 ? len - 10 : 0, delta = len - start;
   timer = start > 0 ? next() : 0;
   if (len > 0) {
@@ -116,7 +121,7 @@ next = setTimeout.bind(window as never, function(): void {
     for (const i of toRegister.splice(start, delta)) { reg(i); }
   }
 }, 1)
-, box: HTMLDivElement, timer = setTimeout(handler, 1000)
+, root: HTMLDivElement, timer = setTimeout(handler, 1000)
 , SR: typeof ShadowRoot = window.ShadowRoot as typeof ShadowRoot
 ;
 function reg(this: void, element: Element): void {
@@ -135,14 +140,14 @@ function reg(this: void, element: Element): void {
   // note: the below changes DOM trees,
   // so `dispatch` MUST NEVER throw. Otherwises a page might break
   if ((e2 = e1.parentNode) == null) {
-    call(Append, box, e1);
+    call(Append, root, e1);
     dispatch(element, event);
     call(Remove, e1);
   } else if (e2 instanceof DF && !(e2 instanceof SR || ((e3 = e1.nextSibling) && e3.parentElement))) {
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
-    call(Append, box, e1);
+    call(Append, root, e1);
     dispatch(element, event);
     call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, e3);
   }
@@ -150,8 +155,8 @@ function reg(this: void, element: Element): void {
 function destroy(e?: CustomEvent): void {
   if (e && e.detail !== sec) { return; }
   toRegister.length = 0;
-  toRegister.push = next = function() { return 1; };
-  box = null as never;
+  toRegister.push = next = function () { return 1; };
+  root = null as never;
   ct(timer);
 }
 toRegister.push = toRegister.push, toRegister.splice = toRegister.splice;
@@ -161,7 +166,7 @@ cs.remove();
 ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
-  }).toString() + ')();'
+  }).toString() + ")();"
     , appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0
     , safeRAF = VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage
@@ -183,7 +188,7 @@ _listen("DOMContentLoaded", handler, true);
   script.textContent = injected;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
-  VDom.DocReady_(function() { box === null && setTimeout(function() { box || destroy(); }, 17); });
+  VDom.DocReady_(function () { box === null && setTimeout(function () { box || destroy(); }, 17); });
   if (!script.parentNode) { // It succeeded to hook.
     safeRAF || requestAnimationFrame(() => { VDom.allowRAF_ = true; });
     return;
@@ -201,12 +206,15 @@ _listen("DOMContentLoaded", handler, true);
   VDom.Scripts_ = false;
   interface TimerLib extends Window {
     setInterval: typeof setInterval;
-    setTimeout: typeof setTimeout | ((this: void, handler: (this: void, i: TimerType.fake | undefined) => void, timeout: number) => number);
+    setTimeout: typeof setTimeout | (
+      (this: void, handler: (this: void, i: TimerType.fake | undefined) => void, timeout: number) => number);
   }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
-    return VDom.allowRAF_ ? f && !(f instanceof Element) ? f(cb, { timeout }) : requestAnimationFrame(cb) : (Promise.resolve(1).then(cb), 1);
+    return VDom.allowRAF_ ? f && !(f instanceof Element) ? f(cb, { timeout }) : requestAnimationFrame(cb)
+      : (Promise.resolve(1).then(cb), 1);
   };
 })();
+}

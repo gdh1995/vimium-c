@@ -71,7 +71,7 @@ var VOmni = {
       a.status_ = VomnibarNS.Status.Initing;
       a.init_(options, CSS);
     } else if (a.isABlank_()) {
-      a.onReset_ = function(this: typeof VOmni): void { this.onReset_ = null; return this.run(count, options); };
+      a.onReset_ = function (this: typeof VOmni): void { this.onReset_ = null; return this.run(count, options); };
       return;
     } else if (a.status_ === VomnibarNS.Status.Inactive) {
       a.status_ = VomnibarNS.Status.ToShow;
@@ -101,7 +101,7 @@ var VOmni = {
         t: trail != null ? !!trail : null,
         p: upper, u: url
       }
-    }, function(search): void {
+    }, function (search): void {
       options.p = search;
       if (search != null) { options.url = ""; }
       VOmni.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
@@ -118,7 +118,7 @@ var VOmni = {
     if (fromInner == null) {
       active && this.port_.postMessage(VomnibarNS.kCReq.hide);
       return;
-    } 
+    }
     VUtils.remove_(this);
     active || window.focus();
     this.box_.style.cssText = "display:none";
@@ -127,7 +127,7 @@ var VOmni = {
     const el = VDom.createElement_("iframe") as typeof VOmni.box_, UI = VDom.UI;
     el.className = "R UI Omnibar";
     el.style.display = "none";
-    if (type !== VomnibarNS.PageType.web) {}
+    if (type !== VomnibarNS.PageType.web) { /* empty */ }
     else if (page.startsWith("http:") && location.origin.startsWith("https:")) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
       reload();
@@ -144,7 +144,7 @@ var VOmni = {
       let opts = VOmni.options_; opts && (opts.t = type);
     }
     let loaded = false;
-    el.onload = function(this: typeof el): void {
+    el.onload = function (this: typeof el): void {
       const _this = VOmni;
       loaded = true;
       if (_this.onReset_) { return; }
@@ -155,16 +155,18 @@ var VOmni = {
       const wnd = this.contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options_ as VomnibarNS.FgOptionsToFront],
       origin = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3));
-      if (inner || (VUtils.cache_.browserVer_ < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) setTimeout(function(i): void {
-        const a = VOmni, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
-        if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
-        if (type !== VomnibarNS.PageType.inner) { return reload(); }
-        a.reset_();
-        (VDom.UI.box_ as HTMLElement).style.display = "";
-        window.focus();
-        a.status_ = VomnibarNS.Status.KeepBroken;
-        (a as typeof VOmni & {run (): void}).run();
-      }, 1000); else {
+      if (inner || (VUtils.cache_.browserVer_ < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) {
+        setTimeout(function (i): void {
+          const a = VOmni, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
+          if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
+          if (type !== VomnibarNS.PageType.inner) { return reload(); }
+          a.reset_();
+          (VDom.UI.box_ as HTMLElement).style.display = "";
+          window.focus();
+          a.status_ = VomnibarNS.Status.KeepBroken;
+          (a as typeof VOmni & {run (): void}).run();
+        }, 1000);
+      } else {
         this.onload = null as never;
       }
       if (location.origin !== origin || origin.indexOf("-") < 0) {
@@ -185,10 +187,13 @@ var VOmni = {
         }
       };
       _this.port_ = {
-        close (): void { port.postMessage = function() {}; },
+        close (): void { port.postMessage = function () { /* empty */ }; },
         postMessage (data: CReq[keyof CReq]): void | 1 { return port.onmessage({ data }); }
       };
-      if ((typeof NO_DIALOG_UI === "undefined" || !NO_DIALOG_UI) && location.hash === "#dialog-ui" && VimiumInjector === null) { _this.top_ = "8px"; }
+      if ((typeof NO_DIALOG_UI === "undefined" || !NO_DIALOG_UI) && location.hash === "#dialog-ui"
+          && VimiumInjector === null) {
+        _this.top_ = "8px";
+      }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {
@@ -198,7 +203,8 @@ var VOmni = {
     if (CSS) {
       UI.css_(CSS);
     }
-    type !== VomnibarNS.PageType.inner && setTimeout(function(i): void { loaded || i || VOmni.onReset_ || reload(); }, 2000);
+    type !== VomnibarNS.PageType.inner &&
+    setTimeout(function (i): void { loaded || i || VOmni.onReset_ || reload(); }, 2000);
   },
   reset_ (redo?: boolean): void | 1 {
     if (this.status_ === VomnibarNS.Status.NotInited) { return; }
@@ -227,7 +233,10 @@ var VOmni = {
     case VomnibarNS.kFReq.uiComponentIsReady:
       this.status_ = VomnibarNS.Status.ToShow;
       let opt = this.options_;
-      if (opt) { this.options_ = null; return this.port_.postMessage<VomnibarNS.kCReq.activate>(opt as VomnibarNS.FgOptionsToFront); }
+      if (opt) {
+        this.options_ = null;
+        return this.port_.postMessage<VomnibarNS.kCReq.activate>(opt as VomnibarNS.FgOptionsToFront);
+      }
       break;
     case VomnibarNS.kFReq.style:
       this.box_.style.height = (data as Req[VomnibarNS.kFReq.style]).h / VDom.wdZoom_ + "px";
@@ -257,7 +266,8 @@ var VOmni = {
       NormalTopHalf = (bh * 0.6) | 0, ScreenHeightThreshold = (VomnibarNS.PixelData.MarginTop + NormalTopHalf) * 2;
       this.defaultTop_ = sh > ScreenHeightThreshold ? (50 - NormalTopHalf / sh * 100) + "%" : "";
     }
-    style.top = VDom.wdZoom_ !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.wdZoom_) | 0) + "px" : this.top_ || this.defaultTop_;
+    style.top = VDom.wdZoom_ !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.wdZoom_) | 0) + "px"
+      : this.top_ || this.defaultTop_;
     style.display = "";
     VDom.UI.OnReady_ && VDom.UI.OnReady_();
     VUtils.remove_(this);

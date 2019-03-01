@@ -72,7 +72,8 @@ var VVisual = {
     const isRange = type === SelType.Range, newMode = isRange ? mode : VisualModeNS.Mode.Caret,
     toCaret = newMode === VisualModeNS.Mode.Caret;
     a.hudTimer_ && clearTimeout(a.hudTimer_);
-    VHUD.show_(a.hud_ = (toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual") + " mode", !!options.r);
+    VHUD.show_(a.hud_ = (toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual") + " mode"
+      , !!options.r);
     if (newMode !== mode) {
       a.prompt_("No usable selection, entering caret mode\u2026", 1000);
     }
@@ -131,7 +132,8 @@ var VVisual = {
     if (i === VKeyCodes.enter) {
       i = VKeyboard.getKeyStat_(event);
       if ((i & KeyStat.shiftKey) && this.mode_ !== VisualModeNS.Mode.Caret) { this.retainSelection_ = true; }
-      (i & KeyStat.PrimaryModifier) ? this.deactivate_() : (this.resetKeys_(), this.yank_(i === KeyStat.altKey || null));
+      (i & KeyStat.PrimaryModifier) ? this.deactivate_()
+        : (this.resetKeys_(), this.yank_(i === KeyStat.altKey || null));
       return HandlerResult.Prevent;
     }
     if (VKeyboard.isEscape_(event)) {
@@ -139,15 +141,19 @@ var VVisual = {
       return HandlerResult.Prevent;
     }
     const ch = VKeyboard.char_(event);
-    if (!ch) { this.resetKeys_(); return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress; }
-    let key = VKeyboard.key_(event, ch), obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
+    if (!ch) {
+      this.resetKeys_();
+      return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
+    }
+    let key = VKeyboard.key_(event, ch)
+      , obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
     key = VEvent.mapKey_(key);
     if (obj = this.currentSeconds_) {
       obj = obj[key];
       count = this.currentCount_;
       this.resetKeys_();
     }
-    if (obj != null) {}
+    if (obj != null) { /* empty */ }
     else if (key.length === 1 && (i = +key[0]) < 10 && (i || this.currentCount_)) {
       this.currentCount_ = this.currentCount_ * 10 + i;
       this.currentSeconds_ = null;
@@ -238,7 +244,8 @@ var VVisual = {
     if (!VDom.isHTML_()) { return true; }
     VDom.getZoom_(1);
     VDom.prepareCrop_();
-    const nodes = document.createTreeWalker(sr || document.body || document.documentElement as HTMLElement, NodeFilter.SHOW_TEXT);
+    const nodes = document.createTreeWalker(sr || document.body || document.documentElement as HTMLElement
+            , NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         const element = node.parentElement;
@@ -256,7 +263,7 @@ var VVisual = {
       }
       return true;
     }
-    offset = ((str as string).match(<RegExpOne>/^\s*/) as RegExpMatchArray)[0].length;
+    offset = ((str as string).match(<RegExpOne> /^\s*/) as RegExpMatchArray)[0].length;
     this.selection_.collapse(node, offset);
     this.di_ = VisualModeNS.kDir.right;
     return !this.selection_.rangeCount;
@@ -276,7 +283,7 @@ var VVisual = {
   },
   find_ (count: number): void {
     if (!VFind.query_) {
-      VPort.send_({ c: kFgReq.findQuery, a: {} }, function(query): void {
+      VPort.send_({ c: kFgReq.findQuery, a: {} }, function (query): void {
         if (query) {
           VFind.updateQuery_(query);
           VVisual.find_(count);
@@ -330,9 +337,11 @@ var VVisual = {
   },
 
   _D: ["backward", "forward"] as ["backward", "forward"],
-  _G: ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", /** VisualModeNS.VimG.vimword */ "", /*6*/ "word",
+  _G: ["character", "line", "lineboundary", /*3*/ "paragraph",
+      "sentence", /** VisualModeNS.VimG.vimword */ "", /*6*/ "word",
       "documentboundary"] as
-     ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", /** VisualModeNS.VimG.vimword */ "", /*6*/ "word",
+     ["character", "line", "lineboundary", /*3*/ "paragraph",
+      "sentence", /** VisualModeNS.VimG.vimword */ "", /*6*/ "word",
       "documentboundary"],
   alterMethod_: "" as "move" | "extend",
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
@@ -358,7 +367,8 @@ var VVisual = {
     a.oldLen_ = 0;
     if (diType & VisualModeNS.DiType.TextBox) {
       const el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement;
-      return el.value.charAt(a.TextOffset_(el, a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== "backward"));
+      return el.value.charAt(a.TextOffset_(el
+          , a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== "backward"));
     }
     const sel = a.selection_;
     if (!diType) {
@@ -388,13 +398,14 @@ var VVisual = {
       a.oldLen_ = isMove && newLen !== 1 ? 0 : 2 + oldLen;
       return afterText[newLen - 1];
     }
-    return '';
+    return "";
   },
-  runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG.vimword, count: number): void {
+  runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG.vimword
+      , count: number): void {
     const shouldSkipSpaceWhenMovingRight = granularity === VisualModeNS.VimG.vimword;
     let moreWord = 0;
     if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
-      // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
+// https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
       if (direction && (VUtils.cache_.onMac_ === /* win */ 0) !== shouldSkipSpaceWhenMovingRight) {
         const notChrome = VUtils.cache_.browser_;
         moreWord = notChrome ? count * 2 : shouldSkipSpaceWhenMovingRight ? 1 : -1;
@@ -424,14 +435,15 @@ var VVisual = {
     if (count < 0) { // not shouldSkipSpace and count is 0 -> go left
       return a._moveRightByWordButNotSkipSpace();
     }
-    let ch: string = '1' /** a fake value */;
+    let ch: string = "1" /** a fake value */;
     a.getDirection_("");
     a.oldLen_ = 1;
     while (0 < count-- && ch) {
       do {
         if (!a.oldLen_) {
           a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.character);
-          a.di_ = a.di_ || VisualModeNS.kDir.unknown; // right / unknown are kept, left is replaced with right, so that keep @di safe
+          // right / unknown are kept, left is replaced with right, so that keep @di safe
+          a.di_ = a.di_ || VisualModeNS.kDir.unknown;
         }
         ch = a.getNextRightCharacter_(isMove);
         if (!count && ch && shouldSkipSpace && a._rightWhiteSpaceRe && !a._rightWhiteSpaceRe.test(ch)) {
@@ -482,8 +494,9 @@ var VVisual = {
         start = a.TextOffset_(el, 0), end = start + len;
         di ? (end -= toGoLeft) :  (start -= toGoLeft);
         di = di && start > end ? (a.di_ = VisualModeNS.kDir.left) : VisualModeNS.kDir.right;
-        // di is BOOL := start < end; a.di_ will be coorrect
-        el.setSelectionRange(di ? start : end, di ? end : start, <VisualModeNS.ForwardDir>a.di_ ? "forward" : "backward");
+        // di is BOOL := start < end; a.di_ will be correct
+        el.setSelectionRange(di ? start : end, di ? end : start
+          , <VisualModeNS.ForwardDir> a.di_ ? "forward" : "backward");
       }
     }
     a.mode_ === VisualModeNS.Mode.Caret && a.collapseToRight_(VisualModeNS.kDir.right);
@@ -517,12 +530,13 @@ var VVisual = {
   },
   /**
    * @safe_di if not `magic`
-   * 
+   *
    * @param {string} magic two means
    * * `""` means only checking type, and may not detect `di_` when `DiType.Complicated`;
    * * `char[1..]` means initial selection text and not to extend back when `DiType.Complicated`
    */
-  getDirection_: function (this: {}, magic?: string): VisualModeNS.kDir.left | VisualModeNS.kDir.right | VisualModeNS.kDir.unknown {
+  getDirection_: function (this: {}, magic?: string
+      ): VisualModeNS.kDir.left | VisualModeNS.kDir.right | VisualModeNS.kDir.unknown {
     const a = this as typeof VVisual;
     if (a.di_ !== VisualModeNS.kDir.unknown) { return a.di_; }
     const oldDiType = a.diType_, sel = a.selection_, { anchorNode } = sel;
@@ -530,7 +544,7 @@ var VVisual = {
     if (!oldDiType || (oldDiType & VisualModeNS.DiType.Unknown)) {
       const { focusNode } = sel;
       // common HTML nodes
-      if (anchorNode != focusNode) {
+      if (anchorNode !== focusNode) {
         num1 = Node.prototype.compareDocumentPosition.call(anchorNode as Node, focusNode as Node);
         a.diType_ = VisualModeNS.DiType.Normal;
         return a.di_ = (
@@ -549,7 +563,8 @@ var VVisual = {
     const lock = VEvent.lock_();
     if (lock && lock.parentElement === anchorNode) {
       type TextModeElement = HTMLInputElement | HTMLTextAreaElement;
-      if ((oldDiType & VisualModeNS.DiType.Unknown) && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
+      if ((oldDiType & VisualModeNS.DiType.Unknown)
+          && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
         const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes
                       )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
@@ -559,7 +574,8 @@ var VVisual = {
         }
       }
       if (a.diType_ & VisualModeNS.DiType.TextBox) {
-        return a.di_ = (lock as TextModeElement).selectionDirection !== "backward" ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
+        return a.di_ = (lock as TextModeElement).selectionDirection !== "backward"
+          ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
       }
     }
     // nodes under shadow DOM or in other unknown edge cases
@@ -597,19 +613,19 @@ var VVisual = {
   },
   /**
    * @must_be_range_and_know_di_if_unsafe `selType == Range && this.getDirection_()` is safe enough
-   * 
+   *
    * @fix_unsafe_in_diType
-   * 
+   *
    * @di_will_be_1
    */
   collapseToRight_ (/** to-right if text is left-to-right */ toRight: VisualModeNS.ForwardDir): void {
     const a = this, sel = a.selection_;
     if (a.diType_ & VisualModeNS.DiType.isUnsafe) {
       // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
-      const sameEnd = toRight === <VisualModeNS.ForwardDir>a.di_,
+      const sameEnd = toRight === <VisualModeNS.ForwardDir> a.di_,
       fixSelAll = sameEnd && (a.diType_ & VisualModeNS.DiType.Complicated) && ("" + sel).length;
       // r / r : l ; r / l : r ; l / r : l ; l / l : r
-      a.extend_(1 - <VisualModeNS.ForwardDir>a.di_);
+      a.extend_(1 - <VisualModeNS.ForwardDir> a.di_);
       sameEnd && a.extend_(toRight);
       fixSelAll && ("" + sel).length !== fixSelAll && a.extend_(1 - toRight);
       a.diType_ &= ~VisualModeNS.DiType.isUnsafe;
@@ -691,49 +707,50 @@ init_ (words: string) {
   this.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
   this.selType_ = VUtils.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
-  ? function(this: typeof VVisual): SelType {
+  ? function (this: typeof VVisual): SelType {
     let type = typeIdx[this.selection_.type];
     return type === SelType.Caret && VVisual.diType_ && ("" + this.selection_) ? SelType.Range : type;
-  } : function(this: typeof VVisual): SelType {
+  } : function (this: typeof VVisual): SelType {
     return typeIdx[this.selection_.type];
   };
   const map = this.keyMap_, func = VUtils.safer_;
-  /**
-   * Call stack (Chromium > icu):
-   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
-   * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/unicode.h?type=cs&q=IsAlphanumeric&g=0&l=177
-   * * https://cs.chromium.org/chromium/src/third_party/icu/source/common/uchar.cpp?q=u_isalnum&g=0&l=151
-   * Result: \p{L | Nd} || '_' (\u005F)
-   * Definitions:
-   * * General Category (Unicode): https://unicode.org/reports/tr44/#GC_Values_Table
-   * * valid GC in RegExp: https://tc39.github.io/proposal-regexp-unicode-property-escapes/#sec-runtime-semantics-unicodematchpropertyvalue-p-v
-   * * \w in RegExp: https://unicode.org/reports/tr18/#word
-   *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
-   *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
-   * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
-   * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings.CONST_.WordsRe_}
-   */
+/**
+ * Call stack (Chromium > icu):
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/unicode.h?type=cs&q=IsAlphanumeric&g=0&l=177
+ * * https://cs.chromium.org/chromium/src/third_party/icu/source/common/uchar.cpp?q=u_isalnum&g=0&l=151
+ * Result: \p{L | Nd} || '_' (\u005F)
+ * Definitions:
+ * * General Category (Unicode): https://unicode.org/reports/tr44/#GC_Values_Table
+ * * valid GC in RegExp: https://tc39.github.io/proposal-regexp-unicode-property-escapes/#sec-runtime-semantics-unicodematchpropertyvalue-p-v
+ * * \w in RegExp: https://unicode.org/reports/tr18/#word
+ *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
+ *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
+ * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
+ * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings.CONST_.WordsRe_}
+ */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
   this.WordsRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]+", words ? "" : "u");
-  /** C72
-   * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
-   * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
-   * `IsSpaceOrNewline` says "Bidi=WS" doesn't include '\n'", it's because:
-   * * the upstream is (2002/11/07) https://chromium.googlesource.com/chromium/src/+/68f88bec7f005b2abc9018b086396a88f1ffc18e%5E%21/#F3 ,
-   * * and then the specification it used in `< 128 ? isspace : DirWS` was https://unicode.org/Public/2.1-Update4/PropList-2.1.9.txt
-   * * it thinks the "White space" and "Bidi: Whitespace" properties are different, and Bidi:WS only includes 0020,2000..200B,2028,3000
-   * While the current https://unicode.org/reports/tr44/#BC_Values_Table does not:
-   * * in https://unicode.org/Public/UCD/latest/ucd/PropList.txt , WS covers `WebTemplateFramework::IsASCIISpace` totally (0009..000D,0020)
-   * /\s/
-   * * Run ` for(var a="",i=0,ch=''; i<=0xffff; i++) /\s/.test(String.fromCharCode(i)) && (a+='\\u' + (0x10000 + i).toString(16).slice(1)); a; ` gets
-   * * \u0009\u000a\u000b\u000c\u000d\u0020\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff (C72)
-   * * when <= C58 (Min$Space$NotMatch$U180e$InRegExp), there's \u180e (it's added by Unicode standard v4.0.0 and then removed since v6.3.0)
-   * * compared to "\p{WS}", it ("\s") lacks \u0085 (it's added in v3.0.0), but adds an extra \ufeff
-   * * "\s" in regexp is not affected by the "unicode" flag https://mathiasbynens.be/notes/es6-unicode-regex
-   * During tests: not skip \u0085\u180e\u2029\u202f\ufeff since C59; otherwise all including \u0085\ufeff are skipped
-   */
+/** C72
+ * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
+ * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
+ * `IsSpaceOrNewline` says "Bidi=WS" doesn't include '\n'", it's because:
+ * * the upstream is (2002/11/07) https://chromium.googlesource.com/chromium/src/+/68f88bec7f005b2abc9018b086396a88f1ffc18e%5E%21/#F3 ,
+ * * and then the specification it used in `< 128 ? isspace : DirWS` was https://unicode.org/Public/2.1-Update4/PropList-2.1.9.txt
+ * * it thinks the "White space" and "Bidi: Whitespace" properties are different, and Bidi:WS only includes 0020,2000..200B,2028,3000
+ * While the current https://unicode.org/reports/tr44/#BC_Values_Table does not:
+ * * in https://unicode.org/Public/UCD/latest/ucd/PropList.txt , WS covers `WebTemplateFramework::IsASCIISpace` totally (0009..000D,0020)
+ * /\s/
+ * * Run ` for(var a="",i=0,ch=''; i<=0xffff; i++) /\s/.test(String.fromCharCode(i)) && (a+='\\u' + (0x10000 + i).toString(16).slice(1)); a; ` gets
+ * * \u0009\u000a\u000b\u000c\u000d\u0020\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff (C72)
+ * * when <= C58 (Min$Space$NotMatch$U180e$InRegExp), there's \u180e (it's added by Unicode standard v4.0.0 and then removed since v6.3.0)
+ * * compared to "\p{WS}", it ("\s") lacks \u0085 (it's added in v3.0.0), but adds an extra \ufeff
+ * * "\s" in regexp is not affected by the "unicode" flag https://mathiasbynens.be/notes/es6-unicode-regex
+ * During tests: not skip \u0085\u180e\u2029\u202f\ufeff since C59; otherwise all including \u0085\ufeff are skipped
+ */
   /** Changes
-   * MinSelExtendForwardOnlySkipWhitespaces=59 : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
+   * MinSelExtendForwardOnlySkipWhitespaces=59
+   *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
    * Min$Space$NotMatch$U180e$InRegExp=59
    */
   VUtils.cache_.browserVer_ > BrowserVer.MinSelExtendForwardOnlySkipWhitespaces &&

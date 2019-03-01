@@ -28,9 +28,11 @@ declare namespace HintsNS {
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
   interface ElementIterator<T> {
+    // tslint:disable-next-line: callable-types
     (this: { [index: number]: Element, length: number}, fn: (this: T[], value: Element) => void, self: T[]): void;
   }
   interface Filter<T> {
+    // tslint:disable-next-line: callable-types
     (this: T[], element: Element): void;
   }
   type LinksMatched = false | null | HintItem[];
@@ -137,8 +139,8 @@ var VHints = {
   setModeOpt_ (count: number, options: HintsNS.Options): void {
     if (this.options_ === options) { return; }
     let ref = this.Modes_, modeOpt: HintsNS.ModeOpt | undefined,
-    mode = (<number>options.mode > 0 ? options.mode as number
-      : this.CONST_[options.action || options.mode as string] as number | undefined | Function as number) | 0;
+    mode = (<number> options.mode > 0 ? options.mode as number
+      : this.CONST_[options.action || options.mode as string] as number | undefined | {} as number) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
     }
@@ -187,10 +189,10 @@ var VHints = {
       this.checkNestedFrame_();
     }
     interface VWindow extends Window {
-      VHints: typeof VHints,
+      VHints: typeof VHints;
       VScroller: typeof VScroller;
       VOmni: typeof VOmni;
-      VEvent: VEventModeTy,
+      VEvent: VEventModeTy;
       VDom: typeof VDom;
     }
     let frame = this.frameNested_, child: VWindow = null as never, err = true, done = false;
@@ -202,14 +204,14 @@ var VHints = {
         }
         err = child.VEvent.keydownEvents_(VEvent.keydownEvents_());
       }
-    } catch (e) {}
+    } catch (e) { /* empty */ }
     if (err) {
       // It's cross-site, or Vimium C on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
       this.frameNested_ = null;
       return false;
     }
-    child.VEvent.focusAndListen_(done ? null : function(): void {
+    child.VEvent.focusAndListen_(done ? null : function (): void {
       return (child[mode as "VHints"])[action as "run"](a, b);
     });
     if (done) { return true; }
@@ -249,7 +251,7 @@ var VHints = {
   adjustMarkers_ (elements: Hint[]): void {
     const zi = VDom.bZoom_, root = VDom.UI.UI;
     let i = elements.length - 1;
-    if (!root || elements[i][0] !== VOmni.box_ && !root.querySelector('#HelpDialog')) { return; }
+    if (!root || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
     const z = ("" + 1 / zi).substring(0, 5), arr = this.hints_ as HintsNS.HintItem[],
     mr = this.maxRight_ * zi, mt = this.maxTop_ * zi;
     while (0 <= i && root.contains(elements[i][0])) {
@@ -311,7 +313,8 @@ var VHints = {
       }
       break;
     case "button": case "select":
-      isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled || VHints.mode1_ > HintMode.LEAVE; break;
+      isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled || VHints.mode1_ > HintMode.LEAVE;
+      break;
     case "object": case "embed":
       s = (element as HTMLObjectElement | HTMLEmbedElement).type;
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
@@ -455,15 +458,15 @@ var VHints = {
       , wholeDoc?: true): Hint[] | Element[] {
     const a = VHints, matchAll = key === "*", D = document;
     if (a.ngEnabled_ === null && matchAll) {
-      a.ngEnabled_ = D.querySelector('.ng-scope') != null;
+      a.ngEnabled_ = D.querySelector(".ng-scope") != null;
     }
     const output: Hint[] | Element[] = [],
     query = matchAll || a.queryInDeep_ !== DeepQueryType.InDeep ? key : a.getDeepDescendantCombinator_() + key,
     Sc = VScroller,
-    wantClickable = matchAll && (filter as Function) === a.GetClickable_,
+    wantClickable = matchAll && filter === a.GetClickable_,
     box = !wholeDoc && D.webkitFullscreenElement || D, isD = box === D;
     wantClickable && Sc.getScale_();
-    let list: HintsNS.ElementList | null = (matchAll || (<RegExpOne>/^[a-z]+$/).test(query)) && isD ?
+    let list: HintsNS.ElementList | null = (matchAll || (<RegExpOne> /^[a-z]+$/).test(query)) && isD ?
           box.getElementsByTagName(query) : D.querySelectorAll.call(box, query);
     if (!wholeDoc && a.tooHigh_ && isD && list.length >= 15000) {
       list = a.getElementsInViewPort_(list);
@@ -486,7 +489,8 @@ var VHints = {
         d.dbZoom_ = z / bz;
         d.prepareCrop_();
       }
-      (output.forEach as HintsNS.ElementIterator<Hint | Element>).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
+      (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(
+        (uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
       d.dbZoom_ = z;
       if (notHookScroll) {
         Sc.scrolled_ = 0;
@@ -494,7 +498,7 @@ var VHints = {
     }
     Sc.scrolled_ === 1 && Sc.supressScroll_();
     if (wantClickable) { a.deduplicate_(output as Hint[]); }
-    if (a.frameNested_ === null) {}
+    if (a.frameNested_ === null) { /* empty */ }
     else if (wantClickable) {
       a.checkNestedFrame_(output as Hint[]);
     } else if (output.length > 0) {
@@ -519,7 +523,7 @@ var VHints = {
       }
       const last = el.lastElementChild;
       if (!last) { continue; }
-      while (list[++i] !== last) {}
+      while (list[++i] !== last) { /* empty */ }
       i--;
     }
     return result.length > 12 ? result : list;
@@ -527,8 +531,8 @@ var VHints = {
   deduplicate_ (list: Hint[]): void {
     let j = list.length, i: number, k: ClickType;
     while (0 < --j) {
-      if (list[i = j][2] !== ClickType.classname) {
-      } else if ((k = list[--j][2]) > ClickType.frame || !this._isDescendant(list[i][0], list[j][0])) {
+      if (list[i = j][2] !== ClickType.classname) { /* empty */ }
+      else if ((k = list[--j][2]) > ClickType.frame || !this._isDescendant(list[i][0], list[j][0])) {
         continue;
       } else if (VDom.isContaining_(list[j][1], list[i][1])) {
         list.splice(i, 1);
@@ -549,7 +553,9 @@ var VHints = {
   _isDescendant (d: Element, p: Element): boolean {
     // Note: currently, not compute normal shadowDOMs / even <slot>s (too complicated)
     let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null;
-    for (; 0 < i-- && (c = VDom.GetParent_(d, PNType.DirectElement) as EnsuredMountedElement | null) !== p && c; d = c) {}
+    while (0 < i-- && (c = VDom.GetParent_(d, PNType.DirectElement) as EnsuredMountedElement | null) !== p && c) {
+      d = c;
+    }
     if (c !== p) { return false; }
     for (; ; ) {
       if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }
@@ -559,7 +565,7 @@ var VHints = {
     return true;
   },
   frameNested_: false as HintsNS.NestedFrame,
-  checkNestedFrame_: function(output?: Hint[]): void {
+  checkNestedFrame_ (output?: Hint[]): void {
     const res = output && output.length > 1 ? null : !frames.length ? false
       : document.webkitIsFullScreen ? 0 : this._getNestedFrame(output);
     this.frameNested_ = res === false && document.readyState === "complete" ? null : res;
@@ -569,7 +575,8 @@ var VHints = {
       if (!VDom.isHTML_()) { return false; }
       output = [];
       type Iter = HintsNS.ElementIterator<Hint>;
-      (output.forEach as Function as Iter).call(document.querySelectorAll("a,button,input,frame,iframe"), this.GetClickable_, output);
+      (output.forEach as {} as Iter).call(
+        document.querySelectorAll("a,button,input,frame,iframe"), this.GetClickable_, output);
     }
     if (output.length !== 1) {
       return output.length !== 0 && null;
@@ -581,7 +588,7 @@ var VHints = {
         && (rect2 = (document.documentElement as HTMLHtmlElement).getBoundingClientRect())
         && rect.top - rect2.top < 20 && rect.left - rect2.left < 20
         && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20
-        && getComputedStyle(element).visibility === 'visible'
+        && getComputedStyle(element).visibility === "visible"
     ) {
       return element;
     }
@@ -589,8 +596,9 @@ var VHints = {
   },
   getVisibleElements_ (view: ViewBox): Hint[] {
     let _i: number = this.mode1_;
-    const isNormal = _i < HintMode.min_job, visibleElements = _i === HintMode.DOWNLOAD_IMAGE
-        || _i === HintMode.OPEN_IMAGE ? this.traverse_("a[href],img[src],[data-src],div[style],span[style]", this.GetImages_, true)
+    const isNormal = _i < HintMode.min_job,
+    visibleElements = _i === HintMode.DOWNLOAD_IMAGE || _i === HintMode.OPEN_IMAGE
+      ? this.traverse_("a[href],img[src],[data-src],div[style],span[style]", this.GetImages_, true)
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? this.traverse_("a", this.GetLinks_)
       : this.traverse_("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable_ : this.GetClickable_
           );
@@ -677,8 +685,11 @@ var VHints = {
         || (i === VKeyCodes.metaKey && VUtils.cache_.onMac_)) {
       const mode = this.mode_,
       mode2 = i === VKeyCodes.altKey
-        ? mode < HintMode.min_disable_queue ? ((mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | mode) ^ HintMode.queue : mode
-        : mode < HintMode.min_job ? i === VKeyCodes.shiftKey ? (mode | HintMode.focused) ^ HintMode.mask_focus_new : (mode | HintMode.newTab) ^ HintMode.focused
+        ? mode < HintMode.min_disable_queue
+          ? ((mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | mode) ^ HintMode.queue : mode
+        : mode < HintMode.min_job
+          ? i === VKeyCodes.shiftKey ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
+          : (mode | HintMode.newTab) ^ HintMode.focused
         : mode;
       if (mode2 !== mode) {
         this.setMode_(mode2);
@@ -691,7 +702,8 @@ var VHints = {
     } else if (i === VKeyCodes.space) {
       this.zIndexes_ === false || this.rotateHints_(event.shiftKey);
       event.shiftKey && this.ResetMode_();
-    } else if (!(linksMatched = this.alphabetHints_.matchHintsByKey_(this.hints_ as HintsNS.HintItem[], event, this.keyStatus_))){
+    } else if (!(linksMatched
+        = this.alphabetHints_.matchHintsByKey_(this.hints_ as HintsNS.HintItem[], event, this.keyStatus_))) {
       if (linksMatched === false) {
         this.tooHigh_ = null;
         setTimeout(this._reinit.bind(this, null, null), 0);
@@ -718,7 +730,7 @@ var VHints = {
   getDeepDescendantCombinator_(): string {
     let v0 = "* /deep/ ";
     try {
-      (VDom.UI.box_ || document.head || VDom.createElement_('div')).querySelector(v0 + "html");
+      (VDom.UI.box_ || document.head || VDom.createElement_("div")).querySelector(v0 + "html");
     } catch (e) {
       this.queryInDeep_ = DeepQueryType.NotAvailable;
       v0 = "";
@@ -750,7 +762,7 @@ var VHints = {
       rect = VDom.UI.getVRect_(clickEl, hint.refer !== clickEl ? hint.refer as HTMLElementUsingMap | null : null);
       const showRect = (this.modeOpt_ as HintsNS.ModeOpt).run_.call(this, clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
-        setTimeout(function(): void {
+        setTimeout(function (): void {
           (showRect || document.hasFocus()) && VDom.UI.flash_(null, rect as VRect);
         }, 17);
       }
@@ -765,7 +777,7 @@ var VHints = {
     }
     this.isActive_ = false;
     this._setupCheck();
-    setTimeout(function(): void {
+    setTimeout(function (): void {
       const _this = VHints;
       _this._reinit(clickEl, rect);
       if (1 === --_this.count_ && _this.isActive_) {
@@ -785,7 +797,7 @@ var VHints = {
   },
   _setupCheck (el?: HintsNS.LinkEl | null, r?: VRect | null, isClick?: boolean): void {
     this.timer_ && clearTimeout(this.timer_);
-    this.timer_ = el && (isClick === true || this.mode_ < HintMode.min_job) ? setTimeout(function(i): void {
+    this.timer_ = el && (isClick === true || this.mode_ < HintMode.min_job) ? setTimeout(function (i): void {
       !i && VHints && VHints._CheckLast(el, r);
     }, 255) : 0;
   },
@@ -793,7 +805,8 @@ var VHints = {
     const _this = VHints;
     if (!_this) { return; }
     _this.timer_ = 0;
-    const r2 = el.getBoundingClientRect(), hidden = r2.width < 1 && r2.height < 1 || getComputedStyle(el).visibility !== "visible";
+    const r2 = el.getBoundingClientRect(),
+    hidden = r2.width < 1 && r2.height < 1 || getComputedStyle(el).visibility !== "visible";
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
     }
@@ -861,7 +874,7 @@ var VHints = {
           break;
         }
       }
-      if (k >= len3) {}
+      if (k >= len3) { /* empty */ }
       else if (stackForThisMarker) {
         stackForThisMarker.push(...stack);
         stacks.splice(j, 1); len2--;
@@ -880,17 +893,17 @@ alphabetHints_: {
   hintKeystroke_: "",
   countMax_: 0,
   countLimit_: 0,
-  numberToHintString_ (number: number): string {
+  numberToHintString_ (num: number): string {
     const characterSet = this.chars_, base = characterSet.length;
     let hintString = "";
     do {
-      let remainder = number % base;
-      number = (number / base) | 0;
+      let remainder = num % base;
+      num = (num / base) | 0;
       hintString = characterSet[remainder] + hintString;
-    } while (number > 0);
-    number = this.countMax_ - hintString.length - +(number < this.countLimit_);
-    if (number > 0) {
-      hintString = this.repeat_(characterSet[0], number) + hintString;
+    } while (num > 0);
+    num = this.countMax_ - hintString.length - +(num < this.countLimit_);
+    if (num > 0) {
+      hintString = this.repeat_(characterSet[0], num) + hintString;
     }
     return hintString;
   },
@@ -900,7 +913,7 @@ alphabetHints_: {
       const hint = hintItems[h], marker = hint.marker,
       hintString = hint.key = this.numberToHintString_(hints[h]), last = hintString.length - 1;
       for (let i = 0; i < last; i++) {
-        const node = document.createElement('span');
+        const node = document.createElement("span");
         node.textContent = hintString[i];
         marker.appendChild(node);
       }
@@ -927,8 +940,8 @@ alphabetHints_: {
     }
     return result;
   },
-  matchHintsByKey_ (hints: HintsNS.HintItem[], event: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
-    let keyChar: string, key = event.keyCode, arr = null as HintsNS.HintItem[] | null;
+  matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
+    let keyChar: string, key = e.keyCode, arr = null as HintsNS.HintItem[] | null;
     if (key === VKeyCodes.tab) {
       if (!this.hintKeystroke_) {
         return false;
@@ -939,13 +952,13 @@ alphabetHints_: {
       keyStatus.tab = 0;
     }
     keyStatus.known = true;
-    if (key === VKeyCodes.tab) {}
+    if (key === VKeyCodes.tab) { /* empty */ }
     else if (key === VKeyCodes.backspace || key === VKeyCodes.deleteKey || key === VKeyCodes.f1) {
       if (!this.hintKeystroke_) {
         return [];
       }
       this.hintKeystroke_ = this.hintKeystroke_.slice(0, -1);
-    } else if ((keyChar = VKeyboard.char_(event).toUpperCase()) && keyChar.length === 1) {
+    } else if ((keyChar = VKeyboard.char_(e).toUpperCase()) && keyChar.length === 1) {
       if (this.chars_.indexOf(keyChar) === -1) {
         return [];
       }
@@ -960,12 +973,12 @@ alphabetHints_: {
     VHints.zIndexes_ && (VHints.zIndexes_ = null);
     const wanted = !keyStatus.tab;
     if (arr !== null && keyChar.length >= this.countMax_) {
-      hints.some(function(hint): boolean {
+      hints.some(function (hint): boolean {
         return hint.key === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
       });
       if (arr.length === 1) { return arr; }
     }
-    return hints.filter(function(hint) {
+    return hints.filter(function (hint) {
       const pass = (hint.key as string).startsWith(keyChar) === wanted;
       hint.marker.style.visibility = pass ? "" : "hidden";
       return pass;
@@ -995,10 +1008,10 @@ _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
   } else {
     text = img instanceof HTMLAnchorElement ? img.getAttribute("href") && img.href : "";
     if (!VUtils.isImageUrl_(text)) {
-      let arr = (<RegExpI>/^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(img.style.backgroundImage as string);
+      let arr = (<RegExpI> /^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(img.style.backgroundImage as string);
       if (arr && arr[1]) {
-        const a1 = document.createElement('a');
-        a1.href = arr[1].replace(<RegExpG>/\\(['"])/g, "$1");
+        const a1 = document.createElement("a");
+        a1.href = arr[1].replace(<RegExpG> /\\(['"])/g, "$1");
         text = a1.href;
       }
     }
@@ -1029,7 +1042,7 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   try {
     err = !el.contentDocument ||
       (child = el.contentWindow as VWindow).VEvent.keydownEvents_(VEvent.keydownEvents_());
-  } catch (e) {}
+  } catch (e) { /* empty */ }
   const { count_: count, options_: options } = this;
   options.mode = this.mode_;
   el.focus();
@@ -1037,7 +1050,7 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
     VPort.send_({
       c: kFgReq.execInChild,
       a: { u: el.src, c: kFgCmd.focusAndHint, n: count, a: options }
-    }, function(res): void {
+    }, function (res): void {
       if (!res) {
         el.contentWindow.focus();
       }
@@ -1089,7 +1102,7 @@ Modes_: [
       str = a.getUrlData_(link as HTMLAnchorElement);
       str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.substring(7).trimLeft());
     }
-    else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) {}
+    else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) { /* empty */ }
     else {
       if (link instanceof HTMLInputElement) {
         const type = link.type;
@@ -1161,7 +1174,7 @@ Modes_: [
     if (!text) { return; }
     const url = text, i = text.indexOf("://"), a = VDom.createElement_("a");
     if (i > 0) {
-      text = text.substring(text.indexOf('/', i + 4) + 1);
+      text = text.substring(text.indexOf("/", i + 4) + 1);
     }
     if (text.length > 40) {
       text = text.substring(0, 39) + "\u2026";
@@ -1213,7 +1226,7 @@ Modes_: [
     if (hadNoDownload) {
       link.removeAttribute("download");
     }
-    if (!changed) {}
+    if (!changed) { /* empty */ }
     else if (typeof oldUrl === "string") {
       link.setAttribute("href", oldUrl);
     } else if (oldUrl === null) {

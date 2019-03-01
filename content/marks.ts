@@ -25,7 +25,7 @@ var VMarks = {
     return 2;
   },
   getLocationKey_ (keyChar: string): string {
-    return `vimiumMark|${location.href.split('#', 1)[0]}|${keyChar}`;
+    return `vimiumMark|${location.href.split("#", 1)[0]}|${keyChar}`;
   },
   _previous: null as MarksNS.FgMark | null,
   setPreviousPosition_ (): void {
