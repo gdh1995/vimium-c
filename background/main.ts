@@ -2426,6 +2426,9 @@ Are you sure you want to continue?`);
           port.disconnect();
         }
       });
+    },
+    isDark_ (this: void): boolean {
+      return !!omniStyles && ` ${omniStyles} `.indexOf(" dark ") >= 0;
     }
   };
 

@@ -405,6 +405,7 @@ declare namespace BackendHandlersNS {
     };
     ExecuteGlobal_ (this: void, command: string): void;
     onInit_: ((this: void) => void) | null;
+    isDark_ (this: void): boolean;
   }
 }
 

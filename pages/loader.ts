@@ -25,9 +25,17 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
     (window as any).VDom && ((window as any).VDom.Scripts_ = false);
   };
+  interface BgWindow extends Window { Settings: typeof Settings; }
+  if (location.pathname.indexOf("options") < 0) {
+    const bg = chrome.extension.getBackgroundPage() as BgWindow;
+    if (bg && bg.Backend && bg.Backend.isDark_()) {
+      const style = document.createElement("style");
+      style.textContent = "body { background: #000; color: #aaa; }";
+      (document.head as HTMLHeadElement).appendChild(style);
+    }
+  }
   if (typeof NDEBUG === "undefined" || !NDEBUG) {
     (window as {} as {updateCSS(): void}).updateCSS = function (): void {
-      interface BgWindow extends Window { Settings: typeof Settings; }
       const settings = (chrome.extension.getBackgroundPage() as BgWindow).Settings;
       settings.fetchFile_("baseCSS", function (): void {
         settings.postUpdate_("userDefinedCss");
