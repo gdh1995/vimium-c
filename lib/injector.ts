@@ -1,5 +1,3 @@
-/// <reference path="../types/base/index.d.ts" />
-/// <reference path="../types/lib/index.d.ts" />
 declare var browser: unknown;
 var VimiumInjector: VimiumInjector | undefined | null;
 (function (injectorBuilder: (scriptSrc: string) => VimiumInjector["reload"]) {

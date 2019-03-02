@@ -1,4 +1,3 @@
-/// <reference path="../types/base/index.d.ts" />
 /// <reference path="../content/base.d.ts" />
 /// <reference path="../lib/keyboard_utils.ts" />
 /// <reference path="../background/bg.d.ts" />

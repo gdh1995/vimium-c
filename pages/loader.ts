@@ -1,12 +1,6 @@
-/// <reference no-default-lib="true"/>
-/// <reference path="../types/base/index.d.ts" />
-/// <reference path="../types/vimium_c.d.ts" />
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
-interface BgWindow extends Window {
-  Settings: typeof Settings;
-}
 declare var browser: unknown;
 var VimiumInjector: VimiumInjector | undefined | null = null;
 if (typeof browser !== "undefined" && browser && (browser as any).runtime) {
@@ -31,6 +25,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
   };
   if (typeof NDEBUG === "undefined" || !NDEBUG) {
     (window as {} as {updateCSS(): void}).updateCSS = function (): void {
+      interface BgWindow extends Window { Settings: typeof Settings; }
       const settings = (chrome.extension.getBackgroundPage() as BgWindow).Settings;
       settings.fetchFile_("baseCSS", function (): void {
         settings.postUpdate_("userDefinedCss");

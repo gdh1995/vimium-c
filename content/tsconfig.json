@@ -3,5 +3,8 @@
   "include": [
     "*.ts",
     "../lib/*.ts"
+  ],
+  "exclude": [
+    "../lib/polyfill.ts"
   ]
 }
