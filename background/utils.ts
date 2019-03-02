@@ -486,7 +486,7 @@ var Utils = {
     let url: string, pattern: Search.Engine | undefined = Settings.cache_.searchEngineMap[keyword || query[0]];
     if (pattern) {
       if (!keyword) { keyword = query.shift() as string; }
-      url = (this as UtilsTy).createSearch_(query, pattern.url, pattern.blank) as string;
+      url = (this as UtilsTy).createSearch_(query, pattern.url, pattern.blank);
     } else {
       url = query.join(" ");
     }
@@ -514,7 +514,7 @@ var Utils = {
       if (s2 && s2.indexOf("$") !== -1) {
         s2 = s2.replace(Utils.searchVariable_, function (_t: string, s3: string): string {
           let i = parseInt(s3, 10);
-          if (i === 0) { // todo: consider about NaN
+          if (!i) {
             return arr.join(s1);
           } else if (i < 0) {
             i += arr.length + 1;
