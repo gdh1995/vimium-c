@@ -112,9 +112,9 @@ interface BgVomnibarSpecialReq {
     search: FgRes[kFgReq.parseSearchUrl];
   };
   [kBgReq.omni_toggleStyle]: {
-    style?: string; // set to the value
-    toggled?: string; // toggle it
-    current?: boolean;
+    /** style */ s?: string; // set to the value
+    /** toggled */ t?: string; // toggle it
+    /** current */ c?: boolean;
   };
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.showHUD;

@@ -634,18 +634,17 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
   },
   toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
-    let omniStyles = this.customClassName_, toggle = req.toggled ? " " + req.toggled : "";
+    let omniStyles = this.customClassName_, toggle = req.t ? ` ${req.t} ` : "";
     if (toggle) {
-      omniStyles = omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, "") : omniStyles + toggle;
-    } else {
-      omniStyles = req.style as string;
-      if ((document.documentElement as HTMLHtmlElement).className === omniStyles.trim()) {
-        return;
-      }
+      omniStyles = omniStyles && ` ${omniStyles} `;
+      omniStyles = omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, " ") : omniStyles + req.t;
+      omniStyles = omniStyles.trim();
+    } else if (this.customClassName_ === (omniStyles = (req.s as string))) {
+      return;
     }
     this.customClassName_ = omniStyles;
     this.onStyleUpdate_(omniStyles);
-    if (toggle && !req.current) {
+    if (toggle && !req.c) {
       VPort_.postMessage_({
         H: kFgReq.setOmniStyle,
         s: omniStyles
@@ -653,18 +652,17 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
   },
   onStyleUpdate_(omniStyles: string): void {
-    omniStyles += " ";
+    omniStyles = ` ${omniStyles} `;
     if (this.darkBtn_) {
       this.darkBtn_.textContent = omniStyles.indexOf(" dark ") >= 0 ? "\u2600" : "\u263D";
     }
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
-      const key = " " + style.id + " ", ind = omniStyles.indexOf(key);
-      style.disabled = ind < 0;
-      (style.sheet as CSSStyleSheet).disabled = ind < 0;
-      if (ind >= 0) {
-        omniStyles = omniStyles.substring(0, ind) + omniStyles.substring(ind + key.length);
+      const key = " " + style.id + " ", found = omniStyles.indexOf(key) >= 0;
+      (style.sheet as CSSStyleSheet).disabled = !found;
+      if (found) {
+        omniStyles = omniStyles.replace(key, " ");
       }
     }
     omniStyles = omniStyles.trim();
@@ -672,7 +670,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     docEl.className !== docEl.className && (docEl.className = omniStyles);
   },
   ToggleDark_ (this: void, event: MouseEvent): void {
-    Vomnibar_.toggleStyle_({ toggled: "dark", current: event.ctrlKey });
+    Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
   },
   OnShown_: function (this: void): void {
     const a = Vomnibar_, i = a.input_, listen = addEventListener, wndFocus = Vomnibar_.OnWndFocus_;

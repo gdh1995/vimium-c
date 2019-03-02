@@ -79,7 +79,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
 
   /** any change to `commandCount` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
-  omniStyles = "",
+  omniStyles = "", // format: `<word> (+ " " + <word>)...` | `""`
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: VKeyCodes = VKeyCodes.None,
   gCmdTimer = 0, gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone;
@@ -1428,7 +1428,8 @@ Are you sure you want to continue?`);
       const page = Settings.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol),
       inner = forceInner || !page.startsWith(location.origin) ? Settings.CONST_.VomnibarPageInner_ : page;
       forceInner = (preferWeb ? url.startsWith(BrowserProtocol) || page.startsWith("file:") && !url.startsWith("file:")
-// it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) that https refusing http iframes.
+          // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
+          // that HTTPS refusing HTTP iframes.
           || page.startsWith("http:") && url.startsWith("https:")
         : port.s.a) || url.startsWith(location.origin) || !!forceInner;
       const useInner: boolean = forceInner || page === inner || port.s.t < 0,
@@ -1513,20 +1514,20 @@ Are you sure you want to continue?`);
       }
     },
     /* toggleVomnibarStyle: */ function (this: void, tabs: [Tab]): void {
-      const tabId = tabs[0].id, toggled = ((cOptions.style || "") + "").trim();
+      const tabId = tabs[0].id, toggled = ((cOptions.style || "") + "").trim(), current = !!cOptions.current;
       if (!toggled) {
         return Backend.showHUD_("No style name of Vomnibar is given");
       }
       for (const frame of framesForOmni) {
         if (frame.s.t === tabId) {
-          frame.postMessage({ N: kBgReq.omni_toggleStyle, toggled, current: !!cOptions.current });
+          frame.postMessage({ N: kBgReq.omni_toggleStyle, t: toggled, c: current });
           return;
         }
       }
-      if (cOptions.current) { return; }
-      const toggle = " " + toggled;
+      if (current) { return; }
+      let toggle = ` ${toggled} `, curStyles = omniStyles && ` ${omniStyles} `;
       requestHandlers[kFgReq.setOmniStyle]({
-        s: omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, "") : omniStyles + toggle
+        s: curStyles.indexOf(toggle) >= 0 ? curStyles.replace(toggle, " ") : curStyles + toggled
       }, cPort);
     }
   ],
@@ -2065,10 +2066,9 @@ Are you sure you want to continue?`);
     },
     /** setOmniStyle: */ function (this: void, req: FgReq[kFgReq.setOmniStyle], port: Port): void {
       let newStyle = req.s.trim();
-      newStyle = newStyle && " " + newStyle;
       if (newStyle === omniStyles) { return; }
       omniStyles = newStyle;
-      const msg: Req.bg<kBgReq.omni_toggleStyle> = { N: kBgReq.omni_toggleStyle, style: newStyle };
+      const msg: Req.bg<kBgReq.omni_toggleStyle> = { N: kBgReq.omni_toggleStyle, s: newStyle };
       for (const frame of framesForOmni) {
         frame !== port && frame.postMessage(msg);
       }
