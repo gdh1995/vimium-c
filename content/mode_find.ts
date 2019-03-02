@@ -80,13 +80,17 @@ var VFind = {
     }
     f("blur", function onBlur(this: Window): void {
       if (VFind.isActive_ && Date.now() - now < 500) {
-        let a2 = this.document.body as HTMLBodyElement | null;
-        a2 && setTimeout(function (): void { (a2 as HTMLBodyElement).focus(); }, tick++ * 17);
+        this.document.body && setTimeout(function (): void { VFind.focus_(); }, tick++ * 17);
       } else {
         this.removeEventListener("blur", onBlur, true);
       }
     }, t);
-    f("focus", a.OnFocus_, t);
+    f("focus", function (this: Window, event: Event): void {
+      if (VFind._actived && event.target === this) {
+        VEvent.OnWndFocus_();
+      }
+      VFind.browser_ === BrowserType.Firefox || VUtils.Stop_(event);
+    }, t);
     box.onload = later ? null as never : function (): void {
       this.onload = null as never; VFind.onLoad2_(this.contentWindow);
     };
@@ -117,22 +121,18 @@ var VFind = {
     VUtils.push_(a.onHostKeydown_, a);
     return a.setFirstQuery_(a.query0_);
   },
-  _actived: false,
-  OnFocus_ (this: Window, event: Event): void {
-    if (VFind._actived && event.target === this) {
-      VEvent.OnWndFocus_();
-    }
-    VFind.browser_ === BrowserType.Firefox || VUtils.Stop_(event);
-  },
-  setFirstQuery_ (query: string): void {
-    const wnd = this.box_.contentWindow;
+  focus_ (): void {
     this._actived = false;
-    wnd.focus();
-    this.query0_ = "";
-    this.query_ || this.SetQuery_(query);
     this.input_.focus();
-    this.query_ && wnd.document.execCommand("selectAll", false);
     this._actived = true;
+  },
+  _actived: false,
+  setFirstQuery_ (query: string): void {
+    const a = this;
+    a.focus_();
+    a.query0_ = "";
+    a.query_ || a.SetQuery_(query);
+    a.query_ && a.box_.contentDocument.execCommand("selectAll", false);
   },
   init_ (adjust: AdjustType): void {
     const ref = this.postMode_, UI = VDom.UI,
@@ -199,7 +199,7 @@ var VFind = {
   OnMousedown_ (this: void, event: MouseEvent): void {
     if (event.target !== VFind.input_ && event.isTrusted !== false) {
       VUtils.prevent_(event);
-      VFind.input_.focus();
+      VFind.focus_();
     }
   },
   OnPaste_ (this: HTMLElement, event: ClipboardEvent): void {
@@ -248,7 +248,7 @@ var VFind = {
   onHostKeydown_ (event: KeyboardEvent): HandlerResult {
     let i = VKeyboard.getKeyStat_(event), n = event.keyCode;
     if (!i && n === VKeyCodes.f2) {
-      this.input_.focus();
+      this.focus_();
       return HandlerResult.Prevent;
     } else if (i && !(i & ~KeyStat.PrimaryModifier)) {
       if (n === VKeyCodes.J || n === VKeyCodes.K) {
@@ -493,7 +493,7 @@ var VFind = {
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel_, 0);
     (el = VEvent.lock_()) && !VDom.isSelected_() && el.blur && el.blur();
-    focusHUD && this.input_.focus();
+    focusHUD && this.focus_();
     this.hasResults_ = found;
   },
 /**
