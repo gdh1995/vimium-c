@@ -307,7 +307,7 @@ location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusion
   return function () {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
-})(function (tabs: [chrome.tabs.Tab] | never[]): void {
+})(function (activeTabs: [chrome.tabs.Tab] | never[]): void {
   interface PopExclusionRulesOption extends ExclusionRulesOption_ {
     inited_: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */;
     init_(this: PopExclusionRulesOption, element: HTMLElement
@@ -319,17 +319,18 @@ location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusion
     OnInput_ (this: void, event: Event): void;
     generateDefaultPattern_ (this: PopExclusionRulesOption): string;
   }
-  let ref = BG_.Backend.indexPorts_(tabs[0].id), blockedMsg = $("#blocked-msg");
-  const notRunnable = !ref && !(tabs[0] && tabs[0].url && tabs[0].status === "loading"
-    && (tabs[0].url.lastIndexOf("http", 0) === 0 || tabs[0].url.lastIndexOf("ftp", 0) === 0));
+  const curTab = activeTabs[0];
+  let ref = BG_.Backend.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg");
+  const notRunnable = !ref && !(curTab && curTab.url && curTab.status === "loading"
+    && (curTab.url.lastIndexOf("http", 0) === 0 || curTab.url.lastIndexOf("ftp", 0) === 0));
   if (notRunnable) {
     const body = document.body as HTMLBodyElement;
     body.textContent = "";
     blockedMsg.style.display = "";
     (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST_.VerName_;
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
-    if (!tabs[0] || !tabs[0].url || !(tabs[0].url.lastIndexOf("http", 0) === 0
-        || tabs[0].url.lastIndexOf("ftp", 0) === 0)) {
+    if (!curTab || !curTab.url || !(curTab.url.lastIndexOf("http", 0) === 0
+        || curTab.url.lastIndexOf("ftp", 0) === 0)) {
       refreshTip.remove();
     } else if (bgOnOther === BrowserType.Edge) {
       (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page";
@@ -355,9 +356,19 @@ location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusion
   }
 
   const bgExclusions: ExclusionsNS.ExclusionsCls = BG_.Exclusions,
-  tabId = ref ? ref[0].s.t : tabs[0].id,
+  frameInfo: Frames.Sender = ref ? ref[0].s : {
+    /** must keep aligned with {@link ../background/main.ts#formatPortSender} */
+    i: 0,
+    a: curTab.incognito,
+    s: Frames.Status.enabled, // not real
+    f: Frames.Flags.blank,
+    t: curTab.id,
+    u: curTab.url
+  },
+  topUrl = frameInfo.i && ((BG_.Backend.indexPorts_(curTab.id, 0)
+      || {} as Frames.Port).s || {} as Frames.Sender).u || "",
   stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
-  url = ref ? ref[0].s.u : tabs[0].url,
+  url = frameInfo.u,
   exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOption> {
     inited_: 0,
     init_ (this: PopExclusionRulesOption, element2: HTMLElement
@@ -391,6 +402,8 @@ location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusion
         const rule = (bgExclusions.testers_ as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
         if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
           haveMatch = _i;
+        } else if (topUrl && (typeof rule === "string" ? !topUrl.lastIndexOf(rule, 0) : rule.test(topUrl))) {
+          /* empty */
         } else {
           element2.style.display = "none";
         }
@@ -441,7 +454,7 @@ location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusion
     return Object.keys(dict).join(" ");
   }
   function updateState(initing: boolean): void {
-    let pass = bgExclusions.getTemp_(url, exclusions.readValueFromElement_(true));
+    let pass = bgExclusions.getTemp_(url, frameInfo, exclusions.readValueFromElement_(true));
     pass && (pass = collectPass(pass));
     if (initing) {
       oldPass = exclusions.inited_ >= 2 ? pass : null;
@@ -482,7 +495,7 @@ location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusion
       return;
     }
     const testers = bgExclusions.testers_;
-    BG_.Backend.forceStatus_("reset", tabId);
+    BG_.Backend.forceStatus_("reset", frameInfo.t);
     exclusions.save_();
     setTimeout(function () {
       bgExclusions.testers_ = testers;
@@ -531,7 +544,7 @@ location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusion
 
   function forceState(act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();
-    BG_.Backend.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
+    BG_.Backend.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", frameInfo.t);
     window.close();
   }
 }));

@@ -1842,18 +1842,18 @@ Are you sure you want to continue?`);
         port = indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId);
         if (!port) { return; }
       }
-      const { s: sender } = port, { u: oldUrl, t: tabId } = sender
-        , pattern = Backend.getExcluded_(sender.u
-                      = (request as ExclusionsNS.Details).url || (request as FgReq[kFgReq.checkIfEnabled]).u)
-        , status = pattern === null ? Frames.Status.enabled : pattern
-            ? Frames.Status.partial : Frames.Status.disabled;
+      const { s: sender } = port, { u: oldUrl } = sender,
+      pattern = Backend.getExcluded_(sender.u = (request as ExclusionsNS.Details).url
+          || (request as FgReq[kFgReq.checkIfEnabled]).u
+        , sender),
+      status = pattern === null ? Frames.Status.enabled : pattern ? Frames.Status.partial : Frames.Status.disabled;
       if (sender.s !== status) {
         if (sender.f & Frames.Flags.locked) { return; }
         sender.s = status;
-        if (needIcon && (framesForTab[tabId] as Frames.Frames)[0] === port) {
-          Backend.setIcon_(tabId, status);
+        if (needIcon && (framesForTab[sender.t] as Frames.Frames)[0] === port) {
+          Backend.setIcon_(sender.t, status);
         }
-      } else if (!pattern || pattern === Backend.getExcluded_(oldUrl)) {
+      } else if (!pattern || pattern === Backend.getExcluded_(oldUrl, sender)) {
         return;
       }
       port.postMessage({ N: kBgReq.reset, p: pattern });
@@ -2124,7 +2124,7 @@ Are you sure you want to continue?`);
         status = ref[0].s.s;
         pass = status !== Frames.Status.disabled ? null : "";
       } else {
-        pass = Backend.getExcluded_(url);
+        pass = Backend.getExcluded_(url, sender);
         status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
       }
       port.postMessage({
@@ -2234,7 +2234,7 @@ Are you sure you want to continue?`);
       s: Frames.Status.enabled,
       f: Frames.Flags.blank,
       t: tab.id,
-      u: sender.url || (tab as any).url || ""
+      u: sender.url || tab.url || ""
     };
   }
 
@@ -2371,7 +2371,7 @@ Are you sure you want to continue?`);
         const port = ref[i], sender = port.s;
         sender.f = locked ? sender.f | Frames.Flags.locked : sender.f & ~Frames.Flags.locked;
         if (unknown) {
-          pattern = msg.p = this.getExcluded_(sender.u);
+          pattern = msg.p = this.getExcluded_(sender.u, sender);
           newStatus = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
           if (newStatus !== Frames.Status.partial && sender.s === newStatus) { continue; }

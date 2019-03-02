@@ -121,9 +121,9 @@ declare namespace Frames {
   type ForcedStatusText = "reset" | "enable" | "disable" | "toggle";
 
   interface Sender {
-    readonly /** frameId */ i: number;
-    readonly /** incognito (anonymous) */ a: boolean;
-    readonly /** tabId */ t: number;
+    /** frameId */ readonly i: number;
+    /** incognito (anonymous) */ readonly a: boolean;
+    /** tabId */ readonly t: number;
     /** url */ u: string;
     /** status */ s: ValidStatus;
     /** flags */ f: Flags;
@@ -395,7 +395,7 @@ declare namespace BackendHandlersNS {
     removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
     showHUD_ (message: string, isCopy?: boolean | undefined): void;
-    getExcluded_ (this: void, url: string): string | null,
+    getExcluded_ (this: void, url: string, sender: Frames.Sender): string | null,
     forceStatus_ (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
     indexPorts_: {
       (this: void, tabId: number, frameId: number): Port | null;

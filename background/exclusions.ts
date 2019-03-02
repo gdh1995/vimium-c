@@ -11,10 +11,10 @@ declare namespace ExclusionsNS {
     testers_: SafeDict<Tester> | null;
     getRe_ (pattern: string): Tester;
     setRules_ (newRules: StoredRule[]): void;
-    GetPattern_ (this: void, url: string): string | null;
+    GetPattern_: BackendHandlersNS.BackendHandlers["getExcluded_"];
     getOnURLChange_ (): null | Listener;
     format_ (rules: StoredRule[]): Rules;
-    getTemp_ (this: ExclusionsCls, url: string, rules: StoredRule[]): string | null;
+    getTemp_ (this: ExclusionsCls, url: string, sender: Frames.Sender, rules: StoredRule[]): string | null;
     RefreshStatus_ (this: void, old_is_empty: boolean): void;
   }
 }
@@ -70,7 +70,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(onURLChange);
     }
   },
-  GetPattern_ (this: void, url: string): string | null {
+  GetPattern_ (this: void, url: string, sender: Frames.Sender): string | null {
     let rules = Exclusions.rules_, matchedKeys = "";
     for (let _i = 0, _len = rules.length; _i < _len; _i += 2) {
       const rule = rules[_i] as ExclusionsNS.Tester;
@@ -78,6 +78,12 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
         const str = rules[_i + 1] as string;
         if (str.length === 0 || Exclusions.onlyFirstMatch_) { return str; }
         matchedKeys += str;
+      }
+    }
+    if (!matchedKeys && sender.i && url.lastIndexOf("://", 5) < 0 && !Utils.protocolRe_.test(url)) {
+      const mainFrame = Backend.indexPorts_(sender.t, 0);
+      if (mainFrame) {
+        return Backend.getExcluded_(mainFrame.s.u, mainFrame.s);
       }
     }
     return matchedKeys || null;
@@ -104,10 +110,10 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     }
     return out;
   },
-  getTemp_ (this: ExcCls, url: string, rules: ExclusionsNS.StoredRule[]): string | null {
+  getTemp_ (this: ExcCls, url: string, sender: Frames.Sender, rules: ExclusionsNS.StoredRule[]): string | null {
     const old = this.rules_;
     this.rules_ = this.format_(rules);
-    const ret = this.GetPattern_(url);
+    const ret = this.GetPattern_(url, sender);
     this.rules_ = old;
     return ret;
   },
@@ -135,7 +141,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
             continue;
           }
         } else {
-          pass = Backend.getExcluded_(port.s.u);
+          pass = Backend.getExcluded_(port.s.u, port.s);
           status = pass === null ? Frames.Status.enabled : pass
             ? Frames.Status.partial : Frames.Status.disabled;
           if (!pass && port.s.s === status) {
