@@ -1,3 +1,5 @@
+/// <reference path="../types/base/index.d.ts" />
+/// <reference path="../types/lib/index.d.ts" />
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
