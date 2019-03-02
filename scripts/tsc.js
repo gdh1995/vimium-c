@@ -14,26 +14,7 @@ cwd === "." && (cwd = null);
 if (cwd && !fs.existsSync("package.json")) {
   process.chdir(__dirname);
 }
-switch (cwd) {
-case "all": case "local": case "scripts":
-  var child_process = require('child_process');
-  var cmd = argv[0];
-  var tasks = ["background", "content", "front", "pages"];
-  if (cwd === "scripts") {
-    tasks.pop();
-  }
-  argv = argv.slice(1);
-  argv.push("");
-  var options = {
-    stdio: ["ignore", process.stdout, process.stderr]
-  };
-  for (var i = 0; i < tasks.length; i++) {
-    var name = tasks[i];
-    argv[argv.length - 1] = tasks[i];
-    child_process.spawn(cmd, argv.slice(0, name ? undefined : argv.length - 1), options);
-  }
-  break;
-default:
+(function() {
   if (cwd && fs.existsSync(cwd) && fs.statSync(cwd).isDirectory()) {
     process.chdir(cwd);
     cwd = null;
@@ -41,9 +22,8 @@ default:
     console.error("No such command or directory:", cwd);
     return;
   }
-  tsc = require("typescript/lib/tsc");
-  break;
-}
+  require("typescript/lib/tsc");
+})();
 
 function popProcessArg(index, defaultValue) {
   var arg = process.argv[index] || null;

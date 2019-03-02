@@ -18,6 +18,7 @@ var typescript = null, tsOptionsLogged = false;
 var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var envLegacy = process.env.SUPPORT_LEGACY === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
+var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var forcedESTarget = (process.env.TARGET || "").toLowerCase();
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
@@ -241,8 +242,8 @@ makeTasks();
 
 function makeCompileTask(src, header_files) {
   header_files = typeof header_files === "string" ? [header_files] : header_files || [];
-  return function() {
-    return compile(src, header_files);
+  return function(done) {
+    compile(src, header_files, done);
   };
 }
 
@@ -314,7 +315,8 @@ function tsProject() {
   return disableErrors ? ts(compilerOptions, ts.reporter.nullReporter()) : ts(compilerOptions);
 }
 
-function compile(pathOrStream, header_files, skipOutput) {
+var _mergedProject = null, _mergedProjectInput = null;
+function compile(pathOrStream, header_files, done) {
   if (typeof pathOrStream === "string") {
     pathOrStream = [pathOrStream];
   }
@@ -341,15 +343,27 @@ function compile(pathOrStream, header_files, skipOutput) {
   if (willListFiles) {
     stream = stream.pipe(gulpPrint());
   }
+  if (doesMergeProjects) {
+    if (_mergedProjectInput == null) {
+      var merged = _mergedProjectInput = gulpMerge();
+      if (enableSourceMap) {
+        merged = merged.pipe(require('gulp-sourcemaps').init());
+      }
+      var project = tsProject();
+      var tsResult = merged.pipe(project);
+      _mergedProject = outputJSResult(tsResult.js);
+    }
+    _mergedProject.on("finish", done);
+    stream.pipe(_mergedProjectInput.attachSource());
+    return;
+  }
   if (enableSourceMap) {
     stream = stream.pipe(require('gulp-sourcemaps').init());
   }
   var project = tsProject();
   var tsResult = stream.pipe(project);
-  if (skipOutput) {
-    return tsResult;
-  }
-  return outputJSResult(tsResult.js);
+  stream = outputJSResult(tsResult.js);
+  stream.on("finish", done);
 }
 
 function outputJSResult(stream) {
@@ -810,6 +824,35 @@ function gulpMap(map) {
   };
   transformer._flush = function(done) { done(); };
   return transformer;
+}
+
+function gulpMerge() {
+  var Transform = require('stream').Transform;
+  var knownFiles = {};
+  var ref = 0;
+  var merged = new Transform({objectMode: true});
+  var push = function(srcFile, encoding, done) {
+    var path = "@" + srcFile.history[0];
+    if (! knownFiles[path]) {
+      knownFiles[path] = 1;
+      merged.push(srcFile);
+    }
+    done();
+  }, flush = function(done) {
+    ref--;
+    if (ref === 0) {
+      merged.push(null);
+    }
+    done();
+  };
+  merged.attachSource = function() {
+    var proxy = new Transform({objectMode: true});
+    proxy._transform = push;
+    proxy._flush = flush;
+    ref++;
+    return proxy;
+  };
+  return merged;
 }
 
 function patchExtendClick(source) {
