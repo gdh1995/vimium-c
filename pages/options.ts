@@ -552,7 +552,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     if (bgBrowserVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
       element2.style.textDecoration = isExtPage ? "" : "line-through";
       return this.showError_(
-        `Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`,
+        url === bgSettings_.defaults_.vomnibarPage ? ""
+          : `Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`,
         null);
     }
     url = bgSettings_.cache_.vomnibarPage_f || url; // for the case Chrome is initing

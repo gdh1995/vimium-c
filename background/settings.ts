@@ -309,7 +309,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     smoothScroll: true,
     userDefinedCss: "",
     vimSync: null,
-    vomnibarPage: "",
+    vomnibarPage: "front/vomnibar.html",
     phraseBlacklist: ""
   } as Readonly<SettingsWithDefaults> & SafeObject,
   // not set localStorage, neither sync, if key in @nonPersistent
@@ -374,7 +374,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     } as SafeDict<string>,
     GlobalCommands_: null as never as string[],
     ShowPage_: "pages/show.html",
-    VomnibarPageInner_: "front/vomnibar.html", VomnibarScript_: "front/vomnibar.js", VomnibarScript_f_: ""
+    VomnibarPageInner_: "", VomnibarScript_: "front/vomnibar.js", VomnibarScript_f_: ""
   }
 };
 
@@ -411,14 +411,13 @@ Settings.CONST_.WordsRe_ = "";
   ref3[CommonNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
   OnOther || (ref3[ChromeNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
   newtab && (ref3[func(obj.VimiumNewTab_ = newtab)] = Urls.NewTabType.vimium);
-  (defaults as SettingsWithDefaults).vomnibarPage = obj.VomnibarPageInner_;
   obj.GlobalCommands_ = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
   obj.OptionsPage_ = func(ref.options_page || obj.OptionsPage_);
   obj.AllowClipboardRead_ = ref.permissions != null && ref.permissions.indexOf("clipboardRead") >= 0;
   obj.ShowPage_ = func(obj.ShowPage_);
-  obj.VomnibarPageInner_ = func(obj.VomnibarPageInner_);
+  obj.VomnibarPageInner_ = func(defaults.vomnibarPage);
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
   obj.HomePage_ = ref.homepage_url || obj.HomePage_;
   ref2.push(obj.InjectEnd_);

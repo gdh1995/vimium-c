@@ -44,9 +44,12 @@ case "$1" in
   only|--only)
     exit 0
     ;;
-  *) # ver
+  [1-9][0-9]) # ver
     VER=$1
     shift
+    ;;
+  *)
+    break
     ;;
 esac
 done

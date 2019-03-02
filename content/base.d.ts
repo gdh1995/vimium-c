@@ -172,14 +172,13 @@ declare namespace VomnibarNS {
     ToShow = 2,
     Showing = 3,
   }
-  interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "t"> {
+  interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "s" | "t"> {
     w: number;
     h: number;
     p: "" | FgRes[kFgReq.parseSearchUrl];
   }
   interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
     url?: string | null;
-    /** script */ s: string;
   }
   type MessageData = [number, FgOptions | null];
   type Msg<T extends (kCReq | kFReq) & number> = { N: T };
