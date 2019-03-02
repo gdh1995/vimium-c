@@ -1055,7 +1055,7 @@ VPort_ = {
 });
 window.browser && (browser as typeof chrome).runtime && (window.chrome = browser as typeof chrome);
 (function (): void {
-  if ((document.documentElement as HTMLElement).getAttribute("data-version") !== "1.72") {
+  if ((document.documentElement as HTMLElement).dataset.version !== "1.72") {
     location.href = "about:blank";
     return;
   }

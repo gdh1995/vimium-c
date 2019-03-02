@@ -227,9 +227,9 @@ window.onhashchange = function (this: void): void {
     break;
   }
 
-  bgLink.setAttribute("data-vim-url", url);
+  bgLink.dataset.vimUrl = url;
   if (file) {
-    bgLink.setAttribute("data-vim-text", file);
+    bgLink.dataset.vimText = file;
     bgLink.download = file;
   } else {
     bgLink.removeAttribute("data-vim-text");
@@ -237,7 +237,7 @@ window.onhashchange = function (this: void): void {
   }
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 
-  let str = $<HTMLTitleElement>("title").getAttribute("data-title") as string;
+  let str = $<HTMLTitleElement>("title").dataset.title as string;
   str = BG_ ? BG_.Utils.createSearch_(file ? file.split(/\s+/) : [], str, "")
     : str.replace(<RegExpOne> /\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
@@ -378,7 +378,7 @@ function clickShownNode(event: MouseEvent): void {
 }
 
 function showText(tip: string, body: string | string[]): void {
-  $("#textTip").setAttribute("data-text", tip);
+  $("#textTip").dataset.text = tip;
   const textBody = $("#textBody");
   if (body) {
     textBody.textContent = typeof body !== "string" ? body.join(" ") : body;

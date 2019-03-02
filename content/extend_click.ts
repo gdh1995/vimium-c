@@ -69,7 +69,7 @@ FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
 rel = removeEventListener, ct = clearTimeout,
-sec: number = +<string> cs.getAttribute("data-vimium"),
+sec: number = +<string> cs.dataset.vimium,
 hooks = {
   // tslint:disable-next-line: ban-types
   toString: function toString(this: Function): string {
@@ -184,7 +184,7 @@ _listen("DOMContentLoaded", handler, true);
    * But here it still uses the same script, just for my personal preference.
    */
   script.type = "text/javascript";
-  script.setAttribute("data-vimium", "" + secret);
+  script.dataset.vimium = secret as number | string as string;
   script.textContent = injected;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);

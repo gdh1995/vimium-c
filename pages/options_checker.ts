@@ -155,7 +155,7 @@ Option_.all_.keyboard.checker_ = {
   let _ref = $$("[data-check]"), _i: number;
   for (_i = _ref.length; 0 <= --_i; ) {
     const element = _ref[_i];
-    element.removeEventListener(element.getAttribute("data-check") || "input", func);
+    element.removeEventListener(element.dataset.check || "input", func);
   }
 
   if (info === "keyMappings") { return ReloadCommands(); }

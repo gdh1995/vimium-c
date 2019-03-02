@@ -136,7 +136,7 @@ previous_: string;
 constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
   super(element, onUpdated);
   this.element_.oninput = this.onUpdated_;
-  this.converter_ = this.element_.getAttribute("data-converter") || "";
+  this.converter_ = this.element_.dataset.converter || "";
 }
 whiteRe_: RegExpG;
 whiteMaskRe_: RegExpG;
@@ -229,7 +229,7 @@ class MaskedText_<T extends keyof AllowedOptions> extends TextOption_<T> {
   }
   populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
     if (this.masked_) {
-      this.element_.placeholder = this.element_.getAttribute("data-mask") || "  # Click to unmask the content\u2026";
+      this.element_.placeholder = this.element_.dataset.mask || "  # Click to unmask the content\u2026";
       return;
     }
     super.populateElement_(value, enableUndo);
@@ -367,7 +367,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   };
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
-    const cls = types[element.getAttribute("data-model") as "Text"];
+    const cls = types[element.dataset.model as "Text"];
     // tslint:disable-next-line: no-unused-expression
     const instance = new cls(element as TextElement, onUpdated);
     (Option_.all_ as SafeDict<Option_<keyof AllowedOptions>>)[instance.field_] = instance;
@@ -376,7 +376,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   _ref = $$("[data-check]");
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
-    element.addEventListener(element.getAttribute("data-check") || "input", loadChecker);
+    element.addEventListener(element.dataset.check || "input", loadChecker);
   }
 
   let advancedMode = false;
@@ -443,7 +443,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   let func: (this: HTMLElement, event: MouseEvent) => void = function (this: HTMLElement): void {
-    const target = $("#" + this.getAttribute("data-auto-resize") as string);
+    const target = $("#" + this.dataset.autoResize as string);
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
     const maxWidth = Math.max(Math.min(window.innerWidth, 1024) - 120, 550);
@@ -468,7 +468,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   func = function (event): void {
-    let str = this.getAttribute("data-delay") as string, e = null as MouseEvent | null;
+    let str = this.dataset.delay as string, e = null as MouseEvent | null;
     if (str !== "continue") {
       event && event.preventDefault();
     }
@@ -577,7 +577,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
-      let key = el.getAttribute("data-permission") as string;
+      let key = el.dataset.permission as string;
       if (key in manifest) { continue; }
       (el as HTMLInputElement | HTMLTextAreaElement).disabled = true;
       key = `This option is disabled for lacking permission${key ? ":\n* " + key : ""}`;
@@ -595,7 +595,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       const el = this.querySelector("[data-permission]") as HTMLInputElement | HTMLTextAreaElement | null;
       this.onclick = null as never;
       if (!el) { return; }
-      const key = el.getAttribute("data-permission");
+      const key = el.dataset.permission;
       el.placeholder = `lacking permission${key ? ` "${key}"` : ""}`;
     }
   })(_ref);
@@ -627,7 +627,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   _ref = $$("[data-href]");
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i] as HTMLInputElement;
-    let str = element.getAttribute("data-href") as string;
+    let str = element.dataset.href as string;
     str = BG_.Utils.convertToUrl_(str, null, Urls.WorkType.ConvertKnown);
     element.removeAttribute("data-href");
     element.setAttribute("href", str);
@@ -786,7 +786,7 @@ window.onhashchange = function (this: void): void {
       return (node as ElementWithHash).onclick(null, "hash");
     }
   } else if ((node = $("#" + hash))) {
-    if (node.getAttribute("data-model")) {
+    if (node.dataset.model) {
       node.classList.add("highlight");
     }
     const callback = function (event?: Event): void {

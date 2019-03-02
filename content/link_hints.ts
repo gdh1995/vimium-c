@@ -410,7 +410,7 @@ var VHints = {
     let a: string | null, arr: VRect | null;
     if (element instanceof HTMLAnchorElement && ((a = element.getAttribute("href")) && a !== "#"
         && !VUtils.jsRe_.test(a)
-        || element.hasAttribute("data-vim-url"))) {
+        || element.dataset.vimUrl != null)) {
       if (arr = VDom.getVisibleClientRect_(element)) {
         this.push([element, arr, ClickType.click]);
       }
@@ -419,7 +419,7 @@ var VHints = {
   _getImagesInImg (arr: Hint[], element: HTMLImageElement): void {
     // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
     // <img>.currentSrc is since C45
-    if (!element.getAttribute("src") && !element.currentSrc && !element.getAttribute("data-src")) { return; }
+    if (!element.getAttribute("src") && !element.currentSrc && !element.dataset.src) { return; }
     let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
@@ -440,7 +440,7 @@ var VHints = {
   GetImages_ (this: Hint[], element: Element): void {
     if (element instanceof HTMLImageElement) { return VHints._getImagesInImg(this, element); }
     if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
-    let str = element.getAttribute("data-src") || element.getAttribute("href"), cr: VRect | null;
+    let str = element.dataset.src || element.getAttribute("href"), cr: VRect | null;
     if (!VUtils.isImageUrl_(str)) {
       str = element.style.backgroundImage as string;
       // skip "data:" URLs, becase they are not likely to be big images
@@ -992,7 +992,7 @@ alphabetHints_: {
 },
 
 getUrlData_ (link: HTMLAnchorElement): string {
-  const str = link.getAttribute("data-vim-url");
+  const str = link.dataset.vimUrl;
   if (str) {
     link = VDom.createElement_("a");
     link.href = str.trim();
@@ -1002,7 +1002,7 @@ getUrlData_ (link: HTMLAnchorElement): string {
 },
 /** return: img is HTMLImageElement | HTMLAnchorElement */
 _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
-  let text: string | null, src = img.getAttribute("data-src") || "";
+  let text: string | null, src = img.dataset.src || "";
   if (img instanceof HTMLImageElement) {
     text = img.currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
   } else {
@@ -1102,6 +1102,7 @@ Modes_: [
       str = a.getUrlData_(link as HTMLAnchorElement);
       str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.substring(7).trimLeft());
     }
+    /** Note: SVGElement::dataset is only since `BrowserVer.Min$SVGElement$$dataset` */
     else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) { /* empty */ }
     else {
       if (link instanceof HTMLInputElement) {
@@ -1207,7 +1208,7 @@ Modes_: [
   execute_ (this: void, link: HTMLAnchorElement, rect): void {
     let oldUrl: string | null = link.getAttribute("href"), changed = false;
     if (!oldUrl || oldUrl === "#") {
-      let newUrl = link.getAttribute("data-vim-url");
+      let newUrl = link.dataset.vimUrl;
       if (newUrl && (newUrl = newUrl.trim())) {
         link.href = newUrl;
         changed = true;

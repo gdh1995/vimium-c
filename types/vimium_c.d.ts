@@ -489,13 +489,14 @@ declare const enum BrowserVer {
   ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1 = 53,
   // only Chrome accepts it: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
   Min$Extension$$GetView$AcceptsTabId = 54,
-  // the 5 below are correct even if EXPERIMENTAL or LEAGCY
+  // the 6 below are correct even if EXPERIMENTAL or LEAGCY
   MinUnprefixedUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
   MinNo$KeyboardEvent$$keyIdentifier = 54,
   // https://chromium.googlesource.com/chromium/src/+/9520623861da283533e71d6b7a8babd02675cb0b
   Min$Node$$getRootNode = 54,
   MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM = 55,
+  Min$SVGElement$$dataset = 55,
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
   MinSomeDocumentListenersArePassiveByDefault = 56,
   // not need if LEAGCY or EMPTY (even on Chrome 66)
