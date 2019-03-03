@@ -59,7 +59,8 @@ var Utils = {
   },
   isRefusingIncognito_ (url: string): boolean {
     url = url.toLowerCase();
-    return url.startsWith("about:") ? url !== "about:blank"
+    // https://cs.chromium.org/chromium/src/url/url_constants.cc?type=cs&q=kAboutBlankWithHashPath&g=0&l=12
+    return url.startsWith("about:") ? url !== "about:blank" && url !== "about:blank/"
       : url.startsWith("chrome://") ? !url.startsWith("chrome://downloads")
       : !url.startsWith(Settings.CONST_.NtpNewTab_) && url.startsWith(BrowserProtocol);
   },
@@ -88,7 +89,7 @@ var Utils = {
   hostRe_: <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
   _ipv4Re: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,
   _ipv6Re: <RegExpOne> /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/,
-  _lfSpacesRe: <RegExpG> /[\r\n]+[\t \xa0]*/g,
+  _lfSpacesRe: <RegExpG> /[\r\n]+[\t \xa0]*|\t+/g,
   spacesRe_: <RegExpG> /\s+/g,
   A0Re_: <RegExpG> /\xa0/g,
   _nonENTldRe: <RegExpOne> /[^a-z]/,
@@ -117,6 +118,8 @@ var Utils = {
       , expected: Urls.Type.Full | Urls.Type.NoProtocolName | Urls.Type.NoSchema = Urls.Type.Full
       , hasPath = false, index: number, index2: number, oldString: string
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
+    // refer: https://cs.chromium.org/chromium/src/url/url_canon_etc.cc?type=cs&q=IsRemovableURLWhitespace&g=0&l=18
+    // here's not its copy, but a more generalized strategy
     oldString = string.replace((this as UtilsTy)._lfSpacesRe, "").replace((this as UtilsTy).A0Re_, " ");
     string = oldString[0] === '"' && oldString.endsWith('"') ? oldString.slice(1, -1) : oldString;
     if ((this as UtilsTy).filePathRe_.test(string)) {
