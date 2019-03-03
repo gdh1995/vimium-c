@@ -69,7 +69,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
     [kFgReq.setSetting]: (this: void
       , request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port) => void;
     [kFgReq.gotoSession]: BackendHandlersNS.BackendHandlers["gotoSession_"];
-    [kFgReq.checkIfEnabled]: BackendHandlersNS.checkIfEnabled;
+    [kFgReq.checkIfEnabled]: ExclusionsNS.Listener & (
+        (this: void, request: FgReq[kFgReq.checkIfEnabled], port?: Frames.Port) => void);
     [kFgReq.parseUpperUrl]: {
       (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl] & { execute: true }, port: Port): void;
       (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl];
@@ -1838,7 +1839,7 @@ Are you sure you want to continue?`);
     },
     /** checkIfEnabled: */ function (this: void, request: ExclusionsNS.Details | FgReq[kFgReq.checkIfEnabled]
         , port?: Frames.Port | null): void {
-      if (!port || !port.postMessage) {
+      if (!port) {
         port = indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId);
         if (!port) { return; }
       }

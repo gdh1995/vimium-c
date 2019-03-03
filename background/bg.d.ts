@@ -376,10 +376,6 @@ declare namespace SettingsNS {
 import FullSettings = SettingsNS.FullSettings;
 
 declare namespace BackendHandlersNS {
-  interface checkIfEnabled extends ExclusionsNS.Listener {
-    (this: void, request: FgReq[kFgReq.checkIfEnabled], port: Frames.Port): void;
-  }
-
   interface BackendHandlers {
     parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl];
     gotoSession_: {
@@ -387,7 +383,7 @@ declare namespace BackendHandlersNS {
       (this: void, request: { s: string | number, a?: true }): void;
     };
     openUrl_ (this: void, request: FgReq[kFgReq.openUrl], port?: Port | undefined): void;
-    checkIfEnabled_: checkIfEnabled;
+    checkIfEnabled_: ExclusionsNS.Listener;
     focus_ (this: void, request: MarksNS.FocusOrLaunch): void;
     reopenTab_ (tab: chrome.tabs.Tab, refresh?: boolean): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
