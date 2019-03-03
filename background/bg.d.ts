@@ -247,7 +247,7 @@ declare namespace IconNS {
   type ValidSizes = "19" | "38";
   const enum PixelConsts {
     MaxSize = 38, // what's currently used
-    // https://docs.microsoft.com/en-us/microsoft-edge/extensions/api-support/supported-manifest-keys#browser_action-or-page_action-keys
+// https://docs.microsoft.com/en-us/microsoft-edge/extensions/api-support/supported-manifest-keys#browser_action-or-page_action-keys
     KnownMaxSizeForEdge = 40,
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/browserAction/setIcon
     KnownMaxSizeForFirefox = 32,

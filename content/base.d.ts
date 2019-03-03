@@ -303,7 +303,8 @@ interface DomUI {
   getSelected_ (this: DomUI, notExpectCount?: 1): [Selection, ShadowRoot | null];
   getSelectionText_ (notTrim?: 1): string;
   removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
-  click_ (this: DomUI, element: Element, rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
+  click_ (this: DomUI, element: Element
+    , rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
   simulateSelect_ (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;
   /** @NEED_SAFE_ELEMENTS */
@@ -339,7 +340,7 @@ interface VEventModeTy {
   suppress_(keyCode?: VKeyCodes): void;
   OnWndFocus_ (this: void): void;
   checkHidden_ (this: void): boolean;
-  checkHidden_ (this: void, cmd: kFgCmd, count: number, options: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): boolean;
+  checkHidden_ (this: void, cmd: kFgCmd, count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): boolean;
   focusAndListen_ (this: void, callback?: (() => void) | null, timedout?: 0): void;
   focus_ (this: void, request: BgReq[kBgReq.focusFrame]): void;
   onWndBlur_ (this: void, onWndBlur: ((this: void) => void) | null): void;

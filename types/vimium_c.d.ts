@@ -428,7 +428,8 @@ declare const enum BrowserVer {
   MinEnsured$KeyboardEvent$$Code = 48,
   MinMayBeShadowDOMV1 = 48, // if EXPERIMENTAL
   // a path of an older DOMActivate event has all nodes (windows -> nodes in shadow DOM)
-  // this feature is enabled by default on C53, 54, 55; and replaced by MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since C56
+  // this feature is enabled by default on C53, 54, 55;
+  // and replaced by MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since C56
   MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument = 48, // if EXPERIMENTAL
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinSafeWndPostMessageAcrossProcesses = 49,
@@ -487,7 +488,8 @@ declare const enum BrowserVer {
   // the devicePixelRatio means that of Windows, but not Chrome's zoom level
   // even when [Windows]=1.5, [zoom]=0.667, the width is still wrong
   ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1 = 53,
-  // only Chrome accepts it: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
+  // only Chrome accepts it:
+  // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
   Min$Extension$$GetView$AcceptsTabId = 54,
   // the 6 below are correct even if EXPERIMENTAL or LEAGCY
   MinUnprefixedUserSelect = 54,
@@ -542,9 +544,10 @@ declare const enum BrowserVer {
   /** @see {@link content/mode_visual.ts#VVisual.init_ } */
   MinSelExtendForwardOnlySkipWhitespaces = 59,
   Min$Space$NotMatch$U180e$InRegExp = 59,
-  // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated) is confirmed on Chrome LATEST_TESTED
+  // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated)
+  //   is confirmed on Chrome LATEST_TESTED
   // See `WebFormControlElement::SetAutofillValue` on
-  // https://chromium.googlesource.com/chromium/src.git/+/master/third_party/blink/renderer/core/exported/web_form_control_element.cc#130
+  // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/exported/web_form_control_element.cc?&l=130
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
   MinOmniboxUIMaxAutocompleteMatchesMayBe12 = 60, // #omnibox-ui-max-autocomplete-matches

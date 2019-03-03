@@ -39,7 +39,8 @@ var CompileTasks = {
   injector: ["lib/injector.ts"],
   options: ["pages/options*.ts", ["background/*.d.ts", "content/*.d.ts"]],
   show: ["pages/show.ts", ["background/bg.d.ts", "content/*.d.ts"]],
-  others: [["pages/*.ts", "front/*.ts", "!pages/options*.ts", "!pages/show.ts", "!front/vomnibar*.ts"], "background/bg.d.ts"],
+  others: [ ["pages/*.ts", "front/*.ts", "!pages/options*.ts", "!pages/show.ts", "!front/vomnibar*.ts"]
+            , "background/bg.d.ts" ],
 }
 
 var Tasks = {
@@ -304,9 +305,11 @@ function makeTasks() {
       continue;
     }
     if (typeof task[1] === "function" || task[0] instanceof Array) {
-      gulp.task(key, Tasks[key] = gulp.series(task[0] instanceof Array ? gulp.parallel(...task[0]) : task[0], task[1]));
+      gulp.task(key, Tasks[key] =
+          gulp.series(task[0] instanceof Array ? gulp.parallel(...task[0]) : task[0], task[1]));
     } else {
-      gulp.task(key, task.length === 1 && typeof Tasks[task[0]] === "function" ? Tasks[task[0]] : gulp.parallel(...task));
+      gulp.task(key, task.length === 1 && typeof Tasks[task[0]] === "function" ? Tasks[task[0]]
+          : gulp.parallel(...task));
     }
   }
 }
@@ -869,7 +872,8 @@ function patchExtendClick(source) {
   }
   match = /' ?\+ ?\(?function VC ?\(/.exec(source);
   if (match) {
-    let start = match.index, end = source.indexOf('}).toString()', start) + 1 || source.indexOf('}.toString()', start) + 1;
+    const start = match.index;
+    const end = source.indexOf('}).toString()', start) + 1 || source.indexOf('}.toString()', start) + 1;
     let end2 = source.indexOf('")();"', end + 2) + 1 || source.indexOf("')();'", end + 2) + 1;
     if (end2 <= 0) {
       throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');

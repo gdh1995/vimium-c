@@ -531,7 +531,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
     offset += index;
     search = search.substring(index);
     let re = <RegExpG & RegExpI // tslint:disable-next-line: max-line-length
-      > /(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
+> /(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
     for (; arr2 = re.exec(search); arr1 = arr2) { /* empty */ }
     if (arr1 && (<RegExpI> /.[_\-].|\d\dx\d/i).test(arr1[0])) {
       let next = arr1.index + arr1[0].length;

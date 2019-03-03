@@ -382,7 +382,8 @@ interface ReadonlyArray<T> {
      * predicate. If it is not provided, undefined is used instead.
      */
     find(predicate: (this: void, value: T, index: number, obj: ReadonlyArray<T>) => boolean): T | undefined;
-    find(predicate: (this: void, value: T, index: number, obj: ReadonlyArray<T>) => boolean, thisArg: undefined): T | undefined;
+    find(predicate: (this: void, value: T, index: number, obj: ReadonlyArray<T>) => boolean
+        , thisArg: undefined): T | undefined;
     find<Z>(predicate: (this: Z, value: T, index: number, obj: ReadonlyArray<T>) => boolean, thisArg: Z): T | undefined;
 
     /**

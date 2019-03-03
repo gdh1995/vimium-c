@@ -1,5 +1,6 @@
 body {
-  font: 14px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;
+  font: 14px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB"
+    ,"Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;
   margin: 0;
 }
 body.dialog-ui {
@@ -69,7 +70,8 @@ select.right {
   -webkit-padding-end: 17px;
   -webkit-appearance: button; 
   background: #ddd 45% center no-repeat;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6" fill="%23444"/></svg>'),
+  background-image:url(
+'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6" fill="%23444"/></svg>'),
     linear-gradient(#ededed, #ededed 38%, #dedede);
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
@@ -77,11 +79,13 @@ select.right {
   width: 19px;
 }
 select.right:hover {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
+  background-image: url(
+'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
     linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
 }
 select.right:active {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
+  background-image: url(
+'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
     linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
 }
 button.left:focus+select.right {
