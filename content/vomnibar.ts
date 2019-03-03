@@ -154,18 +154,19 @@ var VOmni = {
       }
       const wnd = this.contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options_ as VomnibarNS.FgOptionsToFront],
-      origin = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3));
+      origin = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3)),
+      checkBroken = function (i?: TimerType.fake): void {
+        const a = VOmni, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
+        if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
+        if (type !== VomnibarNS.PageType.inner) { return reload(); }
+        a.reset_();
+        (VDom.UI.box_ as HTMLElement).style.display = "";
+        window.focus();
+        a.status_ = VomnibarNS.Status.KeepBroken;
+        a.run(1, {} as VomnibarNS.FullOptions);
+      };
       if (inner || (VUtils.cache_.browserVer_ < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) {
-        setTimeout(function (i): void {
-          const a = VOmni, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
-          if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
-          if (type !== VomnibarNS.PageType.inner) { return reload(); }
-          a.reset_();
-          (VDom.UI.box_ as HTMLElement).style.display = "";
-          window.focus();
-          a.status_ = VomnibarNS.Status.KeepBroken;
-          (a as typeof VOmni & {run (): void}).run();
-        }, 1000);
+        setTimeout(checkBroken, 1000);
       } else {
         this.onload = null as never;
       }
@@ -176,7 +177,7 @@ var VOmni = {
         wnd.postMessage(sec, type !== VomnibarNS.PageType.web ? origin : "*", [channel.port2]);
         return;
       }
-      if (!wnd.onmessage) { return reload(); }
+      if (!wnd.onmessage) { return checkBroken(); } // check it to make "debugging VOmni on options page" easier
       type FReq = VomnibarNS.FReq;
       type CReq = VomnibarNS.CReq;
       const port: VomnibarNS.IframePort = {
@@ -201,16 +202,16 @@ var VOmni = {
     setTimeout(function (i): void { loaded || i || VOmni.onReset_ || reload(); }, 2000);
   },
   reset_ (redo?: boolean): void | 1 {
-    if (this.status_ === VomnibarNS.Status.NotInited) { return; }
-    const oldStatus = this.status_;
-    this.status_ = VomnibarNS.Status.NotInited;
-    this.port_.close();
-    this.box_.remove();
-    this.port_ = this.box_ = null as never;
-    this.defaultTop_ = "";
-    VUtils.remove_(this);
-    this.options_ = null;
-    if (this.onReset_) { return this.onReset_(); }
+    const a = this, oldStatus = a.status_;
+    if (oldStatus === VomnibarNS.Status.NotInited) { return; }
+    a.status_ = VomnibarNS.Status.NotInited;
+    a.port_ && a.port_.close();
+    a.box_.remove();
+    a.port_ = a.box_ = null as never;
+    a.defaultTop_ = "";
+    VUtils.remove_(a);
+    a.options_ = null;
+    if (a.onReset_) { return a.onReset_(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
     return VPort.post_({ H: kFgReq.vomnibar, r: true, i: true });
   },
