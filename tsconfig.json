@@ -18,7 +18,13 @@
     "noUnusedParameters": true,
     "outDir": ".",
     "plugins": [
-      { "name": "typescript-tslint-plugin" }
+      {
+        "name": "typescript-tslint-plugin",
+        "alwaysShowRuleFailuresAsWarnings": false,
+        "exclude": ["types/base"],
+        "ignoreDefinitionFiles": false,
+        "suppressWhileTypeErrorsPresent": true
+      }
     ],
     "preserveConstEnums": false,
     "removeComments": false,
