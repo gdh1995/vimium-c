@@ -42,7 +42,7 @@
       {
         "class": true,
         "enum": true,
-        "function": false,
+        "function": true,
         "interface": true,
         "namespace": true,
         "typeAlias": true,

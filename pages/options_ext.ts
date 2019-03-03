@@ -386,7 +386,7 @@ function parseJSON(text: string): any {
     const obj = JSON.parse(text.replace(stringOrCommentRe, onReplace));
     clean();
     return obj;
-  } catch {
+  } catch (e) {
     match = errMsgRe.exec(e + "");
     clean();
     if (!match || !match[0]) { throw e; }

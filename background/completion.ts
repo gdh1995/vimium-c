@@ -120,7 +120,7 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     queryTerms: QueryTerms = [""], rawQuery: string = "", rawMore: string = "",
     phraseBlacklist: string[] | null = null, showThoseInBlacklist: boolean = true;
 
-const Suggestion: SuggestionConstructor = function Suggestion(
+const Suggestion: SuggestionConstructor = function Suggestion_(
     this: CompletersNS.WritableCoreSuggestion,
     type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
     computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data?: number) => number, extraData?: number

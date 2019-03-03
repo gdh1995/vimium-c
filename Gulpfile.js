@@ -630,7 +630,7 @@ function _makeJSONReader() {
     text = text.replace(stringOrComment, onReplace);
     try {
       return notWhiteSpace.test(text) ? JSON.parse(text) : {};
-    } catch {
+    } catch (e) {
       if (throwError === true) {
         throw e;
       }
@@ -723,7 +723,7 @@ function loadTypeScriptCompiler(path) {
       }
       try {
         typescript = require(path);
-      } catch {}
+      } catch (e) {}
     }
     if (path.startsWith("./node_modules/typescript/")) {
       print('Load the TypeScript dependency:', typescript != null ? "succeed" : "fail");
@@ -898,11 +898,12 @@ function patchGulpUglify() {
   try {
     var minify_tmpl = readFile(path, info);
     if (! /nameCache\s*=/.test(minify_tmpl)) {
-      minify_tmpl = minify_tmpl.replace(/\b(\w+)\s?=\s?setup\(([^)]+)\)(.*?);/, "$1 = setup($2)$3;\n      $1.nameCache = ($2).nameCache || null;");
+      minify_tmpl = minify_tmpl.replace(/\b(\w+)\s?=\s?setup\(([^)]+)\)(.*?);/
+          , "$1 = setup($2)$3;\n      $1.nameCache = ($2).nameCache || null;");
       fs.writeFileSync(path, minify_tmpl);
       print("Patch gulp-uglify: succeed");
     }
-  } catch {
+  } catch (e) {
     logger.error("Error: Failed to patch gulp-uglify: " + e);
   }
   _gulpUglifyPatched = true;

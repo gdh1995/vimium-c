@@ -35,7 +35,7 @@ if (VSettings && document.readyState !== "complete"
     event.stopPropagation();
   }
   addEventListener("VimiumOnclick", onclick, true);
-  function destroy() {
+  function destroyServer() {
     const r = removeEventListener;
     /** this function should keep idempotent */
     r("VimiumOnclick", onclick, true);
@@ -49,12 +49,12 @@ if (VSettings && document.readyState !== "complete"
     box = false;
     VSettings && (VSettings.stop_ = null);
   }
-  VSettings.stop_ = destroy;
+  VSettings.stop_ = destroyServer;
 
   let injected: string = '"use strict";(' + (function VC(this: void): void {
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
 type Call3o<T, A, B, C, R> = (this: (this: T, a: A, b: B, c?: C) => R, thisArg: T, a: A, b: B, c?: C) => R;
-
+type FUNC = (this: unknown, ...args: unknown[]) => unknown;
 const ETP = EventTarget.prototype, _listen = ETP.addEventListener, toRegister: Element[] = [],
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, R, A, B, C>(
@@ -71,11 +71,9 @@ listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), bool
 rel = removeEventListener, ct = clearTimeout,
 sec: number = +<string> cs.dataset.vimium,
 hooks = {
-  // tslint:disable-next-line: ban-types
-  toString: function toString(this: Function): string {
+  toString: function toString(this: FUNC): string {
     const a = this;
-    return call(_apply as ( // tslint:disable-next-line: ban-types
-                  this: (this: Function, ...args: Array<{}>) => string, self: Function, args: IArguments) => string,
+    return call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
                 funcToString,
                 a === hooks.addEventListener ? _listen : a === hooks.toString ? funcToString : a, arguments);
   },
@@ -100,13 +98,13 @@ let handler = function (this: void): void {
   ct(timer);
   const docEl = docChildren[0] as HTMLElement | SVGElement | null;
   handler = docChildren = null as never;
-  if (!docEl) { return destroy(); }
+  if (!docEl) { return destroyClient(); }
   const el = call(Create, document, "div") as HTMLDivElement, key = "data-vimium";
   call(Attr, el, key, "");
-  listen(el, "VimiumUnhook", destroy as (e: CustomEvent) => void, true);
+  listen(el, "VimiumUnhook", destroyClient, true);
   call(Append, docEl, el), dispatch(el, new CE("VimiumHook", {detail: sec})), call(Remove, el);
   if (call(HasAttr, el, key)) {
-    destroy();
+    destroyClient();
   } else {
     root = el;
     timer = toRegister.length > 0 ? next() : 0;
@@ -152,8 +150,8 @@ function reg(this: void, element: Element): void {
     call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, e3);
   }
 }
-function destroy(e?: CustomEvent): void {
-  if (e && e.detail !== sec) { return; }
+function destroyClient(e?: Event): void {
+  if (e && (e as CustomEvent).detail !== sec) { return; }
   toRegister.length = 0;
   toRegister.push = next = function () { return 1; };
   root = null as never;
@@ -188,7 +186,7 @@ _listen("DOMContentLoaded", handler, true);
   script.textContent = injected;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
-  VDom.DocReady_(function () { box === null && setTimeout(function () { box || destroy(); }, 17); });
+  VDom.DocReady_(function () { box === null && setTimeout(function () { box || destroyServer(); }, 17); });
   if (!script.parentNode) { // It succeeded to hook.
     safeRAF || requestAnimationFrame(() => { VDom.allowRAF_ = true; });
     return;

@@ -39,7 +39,6 @@
     "negate_iife": false,
     "pure_getters": true,
     "keep_fargs": true, // typescript will check unused arguments
-    // it's safe to skip `Suggestion`
     "keep_fnames": "/^(startsWith|endsWith|addEventListener|toString|VC)$/",
     "keep_infinity": false,
     "side_effects": true
@@ -64,7 +63,7 @@
       "VData",
       // # inner names:
       "startsWith", "endsWith", "addEventListener", "toString",
-      "Suggestion", "VC"
+      "VC"
     ],
     "toplevel": true
   }

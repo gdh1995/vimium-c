@@ -120,8 +120,7 @@ function addEventListener(this: EventTarget, type: string, listener: EventListen
     : _listen.apply(this, args);
 },
 funcCls = Function.prototype, funcToString = funcCls.toString,
-// tslint:disable-next-line: ban-types
-newToString = funcCls.toString = function toString(this: Function): string {
+newToString = funcCls.toString = function toString(this: (this: unknown, ...args: unknown[]) => unknown): string {
   return funcToString.apply(this === newListen ? _listen : this === newToString ? funcToString : this, arguments);
 };
 newListen.vimiumHooked = true;

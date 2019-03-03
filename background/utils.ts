@@ -100,19 +100,18 @@ var Utils = {
   filePathRe_: <RegExpOne> /^[A-Za-z]:(?:[\\/][^:*?"<>|]*)?$|^\/(?:Users|home|root)\/[^:*?"<>|]+$/,
   _backSlashRe: <RegExpG> /\\/g,
   lastUrlType_: Urls.Type.Default,
-// tslint:disable-next-line: variable-name
-  convertToUrl_: function (this: {}, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
+  convertToUrl_: function (this: {}, str: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     type UtilsTy = typeof Utils;
-    string = string.trim();
+    str = str.trim();
     (this as UtilsTy).lastUrlType_ = Urls.Type.Full;
-    if ((this as UtilsTy).isJSUrl_(string)) {
-      if (ChromeVer < BrowserVer.MinAutoDecodeJSURL && string.indexOf("%", 11) > 0
-          && !(this as UtilsTy)._jsNotEscapeRe.test(string)) {
-        string = (this as UtilsTy).DecodeURLPart_(string);
+    if ((this as UtilsTy).isJSUrl_(str)) {
+      if (ChromeVer < BrowserVer.MinAutoDecodeJSURL && str.indexOf("%", 11) > 0
+          && !(this as UtilsTy)._jsNotEscapeRe.test(str)) {
+        str = (this as UtilsTy).DecodeURLPart_(str);
       }
-      string = string.replace((this as UtilsTy).A0Re_, " ");
+      str = str.replace((this as UtilsTy).A0Re_, " ");
       (this as UtilsTy).resetRe_();
-      return string;
+      return str;
     }
     let type: Urls.Type | Urls.TempType.Unspecified | Urls.TldType = Urls.TempType.Unspecified
       , expected: Urls.Type.Full | Urls.Type.NoProtocolName | Urls.Type.NoSchema = Urls.Type.Full
@@ -120,119 +119,119 @@ var Utils = {
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
     // refer: https://cs.chromium.org/chromium/src/url/url_canon_etc.cc?type=cs&q=IsRemovableURLWhitespace&g=0&l=18
     // here's not its copy, but a more generalized strategy
-    oldString = string.replace((this as UtilsTy)._lfSpacesRe, "").replace((this as UtilsTy).A0Re_, " ");
-    string = oldString[0] === '"' && oldString.endsWith('"') ? oldString.slice(1, -1) : oldString;
-    if ((this as UtilsTy).filePathRe_.test(string)) {
-      string[1] === ":" && (string = string[0].toUpperCase() + ":/"
-          + string.substring(3).replace((this as UtilsTy)._backSlashRe, "/"));
+    oldString = str.replace((this as UtilsTy)._lfSpacesRe, "").replace((this as UtilsTy).A0Re_, " ");
+    str = oldString[0] === '"' && oldString.endsWith('"') ? oldString.slice(1, -1) : oldString;
+    if ((this as UtilsTy).filePathRe_.test(str)) {
+      str[1] === ":" && (str = str[0].toUpperCase() + ":/"
+          + str.substring(3).replace((this as UtilsTy)._backSlashRe, "/"));
       (this as UtilsTy).resetRe_();
-      return "file://" + (string[0] === "/" ? string : "/" + string);
+      return "file://" + (str[0] === "/" ? str : "/" + str);
     }
-    if (string.startsWith("\\\\") && string.length > 3) {
-      string = string.substring(2).replace((this as UtilsTy)._backSlashRe, "/");
-      string.lastIndexOf("/") <= 0 && (string += "/");
+    if (str.startsWith("\\\\") && str.length > 3) {
+      str = str.substring(2).replace((this as UtilsTy)._backSlashRe, "/");
+      str.lastIndexOf("/") <= 0 && (str += "/");
       (this as UtilsTy).resetRe_();
-      return "file://" + string;
+      return "file://" + str;
     }
-    string = oldString.toLowerCase();
-    if ((index = string.indexOf(" ")) > 0) {
-      string = string.substring(0, index);
+    str = oldString.toLowerCase();
+    if ((index = str.indexOf(" ")) > 0) {
+      str = str.substring(0, index);
     }
-    if ((index = string.indexOf(":")) === 0) { type = Urls.Type.Search; }
-    else if (index === -1 || !(this as UtilsTy).protocolRe_.test(string)) {
-      if (index !== -1 && string.lastIndexOf("/", index) < 0) {
-        type = (this as UtilsTy).checkSpecialSchemes_(oldString, index, string.length % oldString.length);
+    if ((index = str.indexOf(":")) === 0) { type = Urls.Type.Search; }
+    else if (index === -1 || !(this as UtilsTy).protocolRe_.test(str)) {
+      if (index !== -1 && str.lastIndexOf("/", index) < 0) {
+        type = (this as UtilsTy).checkSpecialSchemes_(oldString, index, str.length % oldString.length);
       }
       expected = Urls.Type.NoSchema; index2 = oldString.length;
-      if (type === Urls.TempType.Unspecified && string.startsWith("//")) {
-        string = string.substring(2);
+      if (type === Urls.TempType.Unspecified && str.startsWith("//")) {
+        str = str.substring(2);
         expected = Urls.Type.NoProtocolName;
         index2 -= 2;
       }
       if (type !== Urls.TempType.Unspecified) { /* empty */ }
-      else if ((index = string.indexOf("/")) <= 0) {
-        if (index === 0 || string.length < index2) { type = Urls.Type.Search; }
-      } else if (string.length >= index2 || string.charCodeAt(index + 1) > KnownKey.space) {
-        hasPath = string.length > index + 1;
-        string = string.substring(0, index);
+      else if ((index = str.indexOf("/")) <= 0) {
+        if (index === 0 || str.length < index2) { type = Urls.Type.Search; }
+      } else if (str.length >= index2 || str.charCodeAt(index + 1) > KnownKey.space) {
+        hasPath = str.length > index + 1;
+        str = str.substring(0, index);
       } else {
         type = Urls.Type.Search;
       }
     }
-    else if (string.startsWith("vimium:")) {
+    else if (str.startsWith("vimium:")) {
       type = Urls.Type.PlainVimium;
       vimiumUrlWork = (vimiumUrlWork as number) | 0;
-      if (vimiumUrlWork < Urls.WorkType.ConvertKnown || !(string = oldString.substring(9))) {
+      if (vimiumUrlWork < Urls.WorkType.ConvertKnown || !(str = oldString.substring(9))) {
         oldString = "vimium://" + oldString.substring(9);
       }
       else if (vimiumUrlWork === Urls.WorkType.ConvertKnown
-          || !(oldString = (this as UtilsTy).evalVimiumUrl_(string, vimiumUrlWork) as string)) {
-        oldString = (this as UtilsTy).formatVimiumUrl_(string, false, vimiumUrlWork);
+          || !(oldString = (this as UtilsTy).evalVimiumUrl_(str, vimiumUrlWork) as string)) {
+        oldString = (this as UtilsTy).formatVimiumUrl_(str, false, vimiumUrlWork);
       } else if (typeof oldString !== "string") {
         type = Urls.Type.Functional;
       }
     }
-    else if ((index2 = string.indexOf("/", index + 3)) === -1
-        ? string.length < oldString.length : string.charCodeAt(index2 + 1) < KnownKey.minNotSpace
+    else if ((index2 = str.indexOf("/", index + 3)) === -1
+        ? str.length < oldString.length : str.charCodeAt(index2 + 1) < KnownKey.minNotSpace
     ) {
       type = Urls.Type.Search;
     }
-    else if ((this as UtilsTy)._nonENTldRe.test(string.substring(0, index))) {
-      type = (index = string.charCodeAt(index + 3)) > KnownKey.space
+    else if ((this as UtilsTy)._nonENTldRe.test(str.substring(0, index))) {
+      type = (index = str.charCodeAt(index + 3)) > KnownKey.space
         && index !== KnownKey.slash ? Urls.Type.Full : Urls.Type.Search;
     }
-    else if (string.startsWith("file:")) { type = Urls.Type.Full; }
-    else if (string.startsWith("chrome:")) {
-      type = string.length < oldString.length && string.indexOf("/", 9) === -1 ? Urls.Type.Search : Urls.Type.Full;
+    else if (str.startsWith("file:")) { type = Urls.Type.Full; }
+    else if (str.startsWith("chrome:")) {
+      type = str.length < oldString.length && str.indexOf("/", 9) === -1 ? Urls.Type.Search : Urls.Type.Full;
     } else {
-      string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
+      str = str.substring(index + 3, index2 !== -1 ? index2 : undefined);
     }
 
     // Note: here `string` should be just a host, and can only become a hostname.
     //       Otherwise `type` must not be `NoSchema | NoProtocolName`
-    if (type === Urls.TempType.Unspecified && string.indexOf("%") >= 0) {
-      string = Utils.DecodeURLPart_(string);
-      if (string.indexOf("/") >= 0) { type = Urls.Type.Search; }
+    if (type === Urls.TempType.Unspecified && str.indexOf("%") >= 0) {
+      str = Utils.DecodeURLPart_(str);
+      if (str.indexOf("/") >= 0) { type = Urls.Type.Search; }
     }
-    if (type === Urls.TempType.Unspecified && string.startsWith(".")) { string = string.substring(1); }
+    if (type === Urls.TempType.Unspecified && str.startsWith(".")) { str = str.substring(1); }
     if (type !== Urls.TempType.Unspecified) { /* empty */ }
-    else if (!(arr = (this as UtilsTy).hostRe_.exec(string) as typeof arr)) {
+    else if (!(arr = (this as UtilsTy).hostRe_.exec(str) as typeof arr)) {
       type = Urls.Type.Search;
-      if (string.length === oldString.length && (this as UtilsTy).isIPHost_(string = "[" + string + "]", 6)) {
-        oldString = string;
+      if (str.length === oldString.length && (this as UtilsTy).isIPHost_(str = "[" + str + "]", 6)) {
+        oldString = str;
         type = Urls.Type.NoSchema;
       }
-    } else if ((string = arr[3]).endsWith("]")) {
-      type = (this as UtilsTy).isIPHost_(string, 6) ? expected : Urls.Type.Search;
-    } else if (string.endsWith("localhost") || (this as UtilsTy).isIPHost_(string, 4) || arr[4] && hasPath) {
+    } else if ((str = arr[3]).endsWith("]")) {
+      type = (this as UtilsTy).isIPHost_(str, 6) ? expected : Urls.Type.Search;
+    } else if (str.endsWith("localhost") || (this as UtilsTy).isIPHost_(str, 4) || arr[4] && hasPath) {
       type = expected;
-    } else if ((index = string.lastIndexOf(".")) < 0
-        || (type = (this as UtilsTy).isTld_(string.substring(index + 1))) === Urls.TldType.NotTld) {
-      index < 0 && string === "__proto__" && (string = "." + string);
-      index2 = string.length - index - 1;
+    } else if ((index = str.lastIndexOf(".")) < 0
+        || (type = (this as UtilsTy).isTld_(str.substring(index + 1))) === Urls.TldType.NotTld) {
+      index < 0 && str === "__proto__" && (str = "." + str);
+      index2 = str.length - index - 1;
       // the new gTLDs allow long and notEnglish TLDs
       // https://en.wikipedia.org/wiki/Generic_top-level_domain#New_top-level_domains
       type = expected !== Urls.Type.NoSchema && (index < 0 || index2 >= 3 && index2 <= 5)
-        || (this as UtilsTy).checkInDomain_(string, arr[4]) > 0 ? expected : Urls.Type.Search;
-    } else if (string.length !== index + 3 && type === Urls.TldType.ENTld
-        && (this as UtilsTy)._nonENDoaminRe.test(string)) {
+        || (this as UtilsTy).checkInDomain_(str, arr[4]) > 0 ? expected : Urls.Type.Search;
+    } else if (str.length !== index + 3 && type === Urls.TldType.ENTld
+        && (this as UtilsTy)._nonENDoaminRe.test(str)) {
       // `notEnglish-domain.English-notCC-TLD`
       type = Urls.Type.Search;
     } else if (expected !== Urls.Type.NoSchema || hasPath) {
       type = expected;
-    } else if (string.endsWith(".so") && string.startsWith("lib") && string.indexOf(".") === string.length - 3) {
+    } else if (str.endsWith(".so") && str.startsWith("lib") && str.indexOf(".") === str.length - 3) {
       type = Urls.Type.Search;
     // the below check the username field
-    } else if (arr[2] || arr[4] || !arr[1] || string.startsWith("ftp")) {
+    } else if (arr[2] || arr[4] || !arr[1] || str.startsWith("ftp")) {
       type = Urls.Type.NoSchema;
     // the below means string is like "(?<=abc@)(uvw.)*xyz.tld"
-    } else if (string.startsWith("mail") || string.indexOf(".mail") > 0
-        || (index2 = string.indexOf(".")) === index) {
+    } else if (str.startsWith("mail") || str.indexOf(".mail") > 0
+        || (index2 = str.indexOf(".")) === index) {
       type = Urls.Type.Search;
-    } else if (string.indexOf(".", ++index2) !== index) {
+    } else if (str.indexOf(".", ++index2) !== index) {
       type = Urls.Type.NoSchema;
-    } else if (string.length === index + 3 && type === Urls.TldType.ENTld) { // treat as a ccTLD
-      type = (this as UtilsTy).isTld_(string.substring(index2, index), true) ? Urls.Type.Search : Urls.Type.NoSchema;
+    } else if (str.length === index + 3 && type === Urls.TldType.ENTld) { // treat as a ccTLD
+      type = (this as UtilsTy).isTld_(str.substring(index2, index), true) ? Urls.Type.Search : Urls.Type.NoSchema;
     } else {
       type = Urls.Type.NoSchema;
     }
@@ -242,7 +241,7 @@ var Utils = {
       : type === Urls.Type.Search ?
         (this as UtilsTy).createSearchUrl_(oldString.split((this as UtilsTy).spacesRe_), keyword || "~", vimiumUrlWork)
       : type <= Urls.Type.MaxOfInputIsPlainUrl ?
-        ((this as UtilsTy).checkInDomain_(string, arr && arr[4]) === 2 ? "https:" : "http:")
+        ((this as UtilsTy).checkInDomain_(str, arr && arr[4]) === 2 ? "https:" : "http:")
         + (type === Urls.Type.NoSchema ? "//" : "") + oldString
       : oldString;
   } as Urls.Converter,
@@ -250,34 +249,33 @@ var Utils = {
     const domain = port && this.domains_[host + port] || this.domains_[host];
     return domain ? domain.https ? 2 : 1 : 0;
   },
-// tslint:disable-next-line: variable-name
-  checkSpecialSchemes_ (string: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
-    const isSlash = string[i + 1] === "/";
-    switch (string.substring(0, i)) {
+  checkSpecialSchemes_ (str: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
+    const isSlash = str[i + 1] === "/";
+    switch (str.substring(0, i)) {
     case "about":
-      return isSlash ? Urls.Type.Search : spacePos > 0 || string.indexOf("@", i) > 0
+      return isSlash ? Urls.Type.Search : spacePos > 0 || str.indexOf("@", i) > 0
         ? Urls.TempType.Unspecified : Urls.Type.Full;
     case "blob": case "view-source":
-      string = string.substring(i + 1);
-      if (string.startsWith("blob:") || string.startsWith("view-source:")) { return Urls.Type.Search; }
-      this.convertToUrl_(string, null, Urls.WorkType.KeepAll);
+      str = str.substring(i + 1);
+      if (str.startsWith("blob:") || str.startsWith("view-source:")) { return Urls.Type.Search; }
+      this.convertToUrl_(str, null, Urls.WorkType.KeepAll);
       return this.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? Urls.Type.Full : Urls.Type.Search;
     case "data":
-      return isSlash ? Urls.Type.Search : (i = string.indexOf(",", i)) < 0 || (spacePos > 0 && spacePos < i)
+      return isSlash ? Urls.Type.Search : (i = str.indexOf(",", i)) < 0 || (spacePos > 0 && spacePos < i)
         ? Urls.TempType.Unspecified : Urls.Type.Full;
     case "file": return Urls.Type.Full;
     case "filesystem":
-      string = string.substring(i + 1);
-      if (!this.protocolRe_.test(string)) { return Urls.Type.Search; }
-      this.convertToUrl_(string, null, Urls.WorkType.KeepAll);
+      str = str.substring(i + 1);
+      if (!this.protocolRe_.test(str)) { return Urls.Type.Search; }
+      this.convertToUrl_(str, null, Urls.WorkType.KeepAll);
       return this.lastUrlType_ === Urls.Type.Full &&
-          (<RegExpOne> /[^/]\/(?:persistent|temporary)(?:\/|$)/).test(string)
+          (<RegExpOne> /[^/]\/(?:persistent|temporary)(?:\/|$)/).test(str)
         ? Urls.Type.Full : Urls.Type.Search;
-    case "magnet": return string[i + 1] !== "?" ? Urls.TempType.Unspecified : Urls.Type.Full;
+    case "magnet": return str[i + 1] !== "?" ? Urls.TempType.Unspecified : Urls.Type.Full;
     case "mailto": return isSlash ? Urls.Type.Search
-      : (i = string.indexOf("/", i)) > 0 && string.lastIndexOf("?", i) < 0
+      : (i = str.indexOf("/", i)) > 0 && str.lastIndexOf("?", i) < 0
       ? Urls.TempType.Unspecified : Urls.Type.Full;
-    case "tel": return (<RegExpOne> /\d/).test(string) ? Urls.Type.Full : Urls.Type.Search;
+    case "tel": return (<RegExpOne> /\d/).test(str) ? Urls.Type.Full : Urls.Type.Search;
     default: return isSlash ? Urls.Type.Search : Urls.TempType.Unspecified;
     }
   },
