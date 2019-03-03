@@ -780,6 +780,9 @@ function loadChecker(this: HTMLElement): void {
 window.onhashchange = function (this: void): void {
   let hash = window.location.hash, node: HTMLElement | null;
   hash = hash.substring(hash[1] === "!" ? 2 : 1);
+  if (!hash && Option_.all_.newTabUrl.previous_ === bgSettings_.CONST_.NewTabForNewUser_) {
+    hash = "newTabUrl";
+  }
   if (!hash || (<RegExpI> /[^a-z\d_\.]/i).test(hash)) { return; }
   if (node = $(`[data-hash="${hash}"]`) as HTMLElement | null) {
     if (node.onclick) {
@@ -804,7 +807,7 @@ window.onhashchange = function (this: void): void {
     window.onload = callback;
   }
 };
-window.location.hash.length > 4 && (window as any).onhashchange();
+(window as any).onhashchange();
 
 // below is for programmer debugging
 window.onunload = function (): void {
