@@ -185,7 +185,7 @@ interface CmdOptions {
     /** ptype */ t: VomnibarNS.PageType;
     /** script */ s: string;
     /** secret */ k: number;
-  } & BgCSSReq;
+  };
   [kFgCmd.goNext]: {
     rel: string;
     patterns: string[];

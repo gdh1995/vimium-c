@@ -29,8 +29,7 @@ var VOmni = {
   defaultTop_: "",
   top_: "",
   run (this: void, count: number, options: VomnibarNS.FullOptions): void {
-    const a = VOmni, CSS = options.S;
-    if (CSS) { VDom.UI.css_(CSS), options.S = null; }
+    const a = VOmni;
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
       return VHUD.tip_("Sorry, Vomnibar page seems to fail in loading.", 2000);

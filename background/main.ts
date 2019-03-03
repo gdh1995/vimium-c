@@ -1441,10 +1441,9 @@ Are you sure you want to continue?`);
         t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         s: useInner ? "" : Settings.CONST_.VomnibarScript_f_,
         k: getSecret(),
-        S: ensureInnerCSS(port)
       }, null), cOptions as {} as CmdOptions[kFgCmd.vomnibar]);
       port.postMessage<1, kFgCmd.vomnibar>({
-        N: kBgReq.execute, S: null,
+        N: kBgReq.execute, S: ensureInnerCSS(port),
         c: kFgCmd.vomnibar, n: commandCount,
         a: options
       });
