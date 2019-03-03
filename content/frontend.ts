@@ -40,7 +40,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           injector && setTimeout(vPort.TestAlive_, 50);
         }
         (vPort._port as Port).postMessage(request);
-      } catch (e) { // this extension is reloaded or disabled
+      } catch { // this extension is reloaded or disabled
         VSettings.destroy_();
       }
     },
@@ -54,7 +54,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       vPort._port = null;
       requestHandlers[kBgReq.init] && setTimeout(function (i): void {
         if (!i) {
-          try { esc && vPort.Connect_(PortType.initing); return; } catch (e) { /* empty */ }
+          try { esc && vPort.Connect_(PortType.initing); return; } catch {}
         }
         esc && VSettings.destroy_();
       }, 2000);
@@ -1205,7 +1205,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
       , Date.now());
 
-    if (vPort._port) { try { vPort._port.disconnect(); } catch (e) { /* empty */ } }
+    if (vPort._port) { try { vPort._port.disconnect(); } catch {} }
     (<RegExpOne> /a?/).test("");
   }
   };
@@ -1226,7 +1226,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         a1.onLoad_();
         return 1; // not return a function's result so that logic is clearer for compiler
       }
-    } catch (e) { /* empty */ }
+    } catch {}
   }()) {
     hook(HookAction.Install);
     vPort.Connect_(PortType.initing);

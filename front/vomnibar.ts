@@ -961,7 +961,7 @@ VUtils_ = {
   decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => string): string {
     try {
       url = (decode || decodeURI)(url);
-    } catch (e) { /* empty */ }
+    } catch {}
     return url;
   },
   ensureText_ (sug: SuggestionEx): ProtocolType {
@@ -1009,7 +1009,7 @@ VPort_ = {
   postMessage_<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
     try {
       (this._port || this.connect_(PortType.omnibarRe)).postMessage<K>(request);
-    } catch (e) {
+    } catch {
       VPort_ = null as never;
       this.postToOwner_({ N: VomnibarNS.kFReq.broken, a: Vomnibar_.isActive_ });
     }

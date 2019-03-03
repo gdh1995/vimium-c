@@ -1363,7 +1363,7 @@ knownCs: CompletersMap & SafeObject = {
       if (a.length >= 400 || a.indexOf("%") < 0) { return a; }
       try {
         return this._f(a);
-      } catch (e) {}
+      } catch {}
       return this.dict_[a] || (o !== false && this._jobs.push(o), a);
     },
     decodeList_ (a: DecodedItem[]): void {
@@ -1376,7 +1376,7 @@ knownCs: CompletersMap & SafeObject = {
             j.text = s.length >= 400 || s.indexOf("%") < 0 ? s : f(s);
           }
           break;
-        } catch (e) {
+        } catch {
           (j as DecodedItem).text = m[s as string] || (w.push(j as DecodedItem), s as string);
         }
       }

@@ -630,7 +630,7 @@ function _makeJSONReader() {
     text = text.replace(stringOrComment, onReplace);
     try {
       return notWhiteSpace.test(text) ? JSON.parse(text) : {};
-    } catch (e) {
+    } catch {
       if (throwError === true) {
         throw e;
       }
@@ -723,7 +723,7 @@ function loadTypeScriptCompiler(path) {
       }
       try {
         typescript = require(path);
-      } catch (e) {}
+      } catch {}
     }
     if (path.startsWith("./node_modules/typescript/")) {
       print('Load the TypeScript dependency:', typescript != null ? "succeed" : "fail");
@@ -902,7 +902,7 @@ function patchGulpUglify() {
       fs.writeFileSync(path, minify_tmpl);
       print("Patch gulp-uglify: succeed");
     }
-  } catch (e) {
+  } catch {
     logger.error("Error: Failed to patch gulp-uglify: " + e);
   }
   _gulpUglifyPatched = true;

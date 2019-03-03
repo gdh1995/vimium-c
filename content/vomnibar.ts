@@ -218,7 +218,7 @@ var VOmni = {
     try {
       const doc = this.box_.contentDocument;
       if (doc && doc.URL === "about:blank") { return true; }
-    } catch (e) {}
+    } catch {}
     return false;
   },
   onMessage_<K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }): void | 1 {

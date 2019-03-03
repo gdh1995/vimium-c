@@ -290,7 +290,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     Utils.resetRe_();
     try {
     this.postMessage({ N: kBgReq.omni_omni, autoSelect, matchType, list, favIcon, total });
-    } catch (e) {}
+    } catch {}
   }
   function indexFrame(this: void, tabId: number, frameId: number): Port | null {
     const ref = framesForTab[tabId];
@@ -574,7 +574,7 @@ Are you sure you want to continue?`);
       try {
         cPort.postMessage({ N: kBgReq.eval, u: url });
         return;
-      } catch (e) {
+      } catch {
         cPort = null as never;
       }
     }
@@ -1875,7 +1875,7 @@ Are you sure you want to continue?`);
         });
         return;
       }
-      try { port.postMessage({ N: kBgReq.omni_returnFocus, key: cKey }); } catch (e) {}
+      try { port.postMessage({ N: kBgReq.omni_returnFocus, key: cKey }); } catch {}
     },
     /** exitGrab: */ function (this: void, _0: FgReq[kFgReq.exitGrab], port: Port): void {
       const ports = framesForTab[port.s.t];
@@ -2347,7 +2347,7 @@ Are you sure you want to continue?`);
           t: message,
           c: isCopy === true
         });
-      } catch (e) {
+      } catch {
         cPort = null as never;
       }
     },

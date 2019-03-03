@@ -74,7 +74,7 @@ var VMarks = {
             storage.removeItem(key);
           }
         }
-      } catch (e) {}
+      } catch {}
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).l = true;
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).u = location.href;
     }

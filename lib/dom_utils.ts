@@ -38,7 +38,7 @@ var VDom = {
   parentFrame_(): SafeElement | null {
     try {
       return window.frameElement as SafeElement | null;
-    } catch (e) {
+    } catch {
       return null;
     }
   },
@@ -403,7 +403,7 @@ var VDom = {
   isInputInTextMode_ (el: HTMLInputElement | HTMLTextAreaElement): boolean | void {
     try {
       return el.selectionEnd != null;
-    } catch (e) {}
+    } catch {}
   },
   docSelectable_: true,
   isSelected_ (): boolean {

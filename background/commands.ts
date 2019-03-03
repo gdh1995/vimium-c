@@ -25,12 +25,12 @@ var Commands = {
   parseVal_ (val: string): any {
     try {
       return JSON.parse(val);
-    } catch (e) {}
+    } catch {}
     if (!val.startsWith('"')) { return val; }
     val = val.replace(this.hexCharRe_, this.onHex_);
     try {
       return JSON.parse(val);
-    } catch (e) {}
+    } catch {}
     return val;
   },
   onHex_ (this: void, _s: string, hex: string): string {

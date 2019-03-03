@@ -343,7 +343,7 @@ function doImageAction(viewer: ViewerType, action: number) {
 function decodeURLPart(url: string): string {
   try {
     url = decodeURIComponent(url);
-  } catch (e) {}
+  } catch {}
   return url;
 }
 
@@ -487,7 +487,7 @@ function clean() {
 }
 
 function parseSmartImageUrl_(originUrl: string): string | null {
-  function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch (e) {} return null; }
+  function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch {} return null; }
   const parsed = safeParseURL(originUrl);
   if (!parsed || !(<RegExpI> /^s?ftp|^http/i).test(parsed.protocol)) { return null; }
   let search = parsed.search;
@@ -496,7 +496,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
     if (!url1) { return ""; }
     try {
       url1 = decodeURIComponent(url1);
-    } catch (e) {}
+    } catch {}
     return url1;
   }
   if (search.length > 10) {

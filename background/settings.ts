@@ -387,7 +387,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
 (OnOther || ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) && !function (): boolean | void {
   try {
     return new RegExp("\\p{L}", "u").test("a");
-  } catch (e) {}
+  } catch {}
 }() && Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function (): void {
   Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG> /\r?\n/g, "");
 });

@@ -309,7 +309,7 @@ var Utils = {
      }
      return false;
   },
-  safeParseURL_(url: string): URL | null { try { return new URL(url); } catch (e) {} return null; },
+  safeParseURL_(url: string): URL | null { try { return new URL(url); } catch {} return null; },
   commonFileExtRe_: <RegExpOne> /\.[0-9A-Za-z]+$/,
   formatVimiumUrl_ (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, subPath = "", query = "", tempStr: string | undefined, path = fullpath.trim();
@@ -452,7 +452,7 @@ var Utils = {
         } else {
           result = "" + result;
         }
-      } catch (e) {}
+      } catch {}
       mathParser.expression = "";
     }
     return result;
@@ -543,7 +543,7 @@ var Utils = {
     if (!url) { return ""; }
     try {
       url = (func || decodeURIComponent)(url);
-    } catch (e) {}
+    } catch {}
     return url;
   },
   escapedColonOrSlashRe_: <RegExpOne> /%(?:3[aA]|2[fF])/,
@@ -744,7 +744,7 @@ var Utils = {
   makeRegexp_ (pattern: string, suffix: string, logError?: boolean): RegExp | null {
     try {
       return new RegExp(pattern, suffix as "");
-    } catch (e) {
+    } catch {
       logError === false || console.log("%c/%s/%s", "color:#c41a16", pattern, suffix, "is not a valid regexp.");
     }
     return null;

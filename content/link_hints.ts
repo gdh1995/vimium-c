@@ -204,7 +204,7 @@ var VHints = {
         }
         err = child.VEvent.keydownEvents_(VEvent.keydownEvents_());
       }
-    } catch (e) { /* empty */ }
+    } catch {}
     if (err) {
       // It's cross-site, or Vimium C on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
@@ -731,7 +731,7 @@ var VHints = {
     let v0 = "* /deep/ ";
     try {
       (VDom.UI.box_ || document.head || VDom.createElement_("div")).querySelector(v0 + "html");
-    } catch (e) {
+    } catch {
       this.queryInDeep_ = DeepQueryType.NotAvailable;
       v0 = "";
     }
@@ -1042,7 +1042,7 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   try {
     err = !el.contentDocument ||
       (child = el.contentWindow as VWindow).VEvent.keydownEvents_(VEvent.keydownEvents_());
-  } catch (e) { /* empty */ }
+  } catch {}
   const { count_: count, options_: options } = this;
   options.mode = this.mode_;
   el.focus();

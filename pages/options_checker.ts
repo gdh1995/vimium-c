@@ -37,7 +37,7 @@ let keyMappingChecker_ = {
         return obj !== true ? str : "";
       }
       value = obj;
-    } catch (e) {
+    } catch {
       s2 && (value = s2);
     }
     value = value && JSON.stringify(value).replace(this.toHexCharRe_, this.onToHex_);

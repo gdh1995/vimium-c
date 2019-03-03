@@ -247,7 +247,7 @@ VDom.UI = {
       } else if (gotoStart) {
         sel.collapseToStart();
       }
-    } catch (e) {}
+    } catch {}
   },
   getVRect_ (this: void, clickEl, refer): VRect | null {
     VDom.getZoom_(clickEl);

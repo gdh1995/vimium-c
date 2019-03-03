@@ -197,7 +197,7 @@ readValueFromElement_ (): AllowedOptions[T] {
   if (value) {
     try {
       obj = JSON.parse<AllowedOptions[T]>(value as string);
-    } catch (e) {
+    } catch {
     }
   } else {
     obj = bgSettings_.defaults_[this.field_];

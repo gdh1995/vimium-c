@@ -104,7 +104,7 @@ var VFind = {
     let plain = true;
     try {
       el.contentEditable = "plaintext-only";
-    } catch (e) {
+    } catch {
       plain = false;
       el.contentEditable = "true";
     }
@@ -420,7 +420,7 @@ var VFind = {
 
     let re: RegExpG | null = null;
     if (query) {
-      try { re = new RegExp(ww ? B + query + B : query, a.ignoreCase_ ? "gi" as "g" : "g"); } catch (e) {}
+      try { re = new RegExp(ww ? B + query + B : query, a.ignoreCase_ ? "gi" as "g" : "g"); } catch {}
     }
     let matches: RegExpMatchArray | null = null;
     if (re) {
@@ -505,7 +505,7 @@ var VFind = {
   find_: function (this: void): boolean {
     try {
       return window.find.apply(window, arguments);
-    } catch (e) { return false; }
+    } catch { return false; }
   } as Window["find"],
   HookSel_ (): void {
     document.addEventListener("selectionchange", VFind && VFind.ToggleStyle_, true);
