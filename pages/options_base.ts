@@ -294,8 +294,9 @@ if (bgBrowserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
   const css = document.createElement("style"), ratio = window.devicePixelRatio, version = bgBrowserVer;
   const onlyInputs = version >= BrowserVer.MinRoundedBorderWidthIsNotEnsured && ratio >= 1;
   let scale: string | number = onlyInputs || version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-        ? 1.12 / ratio : 1;
-  scale = ("" + scale).substring(0, 7);
+        ? 1 / ratio : 1;
+  scale = scale + 0.00000999;
+  scale = ("" + scale).substring(0, 7).replace(<RegExpOne> /\.?0+$/, "");
   css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
     : `* { border-width: ${scale}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
