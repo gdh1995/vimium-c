@@ -714,7 +714,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug);
     }
     styleDebug.textContent = isFind ? css2.find || ""
-      : (isSame ? "" : ".transparent{ opacity: 1; }\n") + (css2.omni || "");
+      : (isSame ? "" : "\n.transparent { opacity: 1; }\n") + (css2.omni && css2.omni + "\n" || "");
     const vfind = window.VFind as NonNullable<Window["VFind"]>;
     if (isFind && vfind.css_) {
       /** Note: shoule keep the same as {@link ../background/settings.ts#Settings.updateHooks_.userDefinedCss } */

@@ -520,12 +520,12 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.onEnter_(event, [].indexOf.call(this.list_.children, el));
   },
   OnMenu_ (this: void, event: Event): void {
-    let el = event.target as Element | null, item: Element | null;
-    while (el && !el.classList.contains("url")) { el = el.parentElement; }
-    if (!el || (el as HTMLAnchorElement).href) { return; }
+    let el = event.target as Element | null, item: Element | null, Anchor = HTMLAnchorElement;
+    while (el && !(el instanceof Anchor)) { el = el.parentElement; }
+    if (!el || el.href) { return; }
     for (item = el; item && item.parentElement !== Vomnibar_.list_; item = item.parentElement) { /* empty */ }
     const _i = [].indexOf.call(Vomnibar_.list_.children, item);
-    _i >= 0 && ((el as HTMLAnchorElement).href = Vomnibar_.completions_[_i].url);
+    _i >= 0 && (el.href = Vomnibar_.completions_[_i].url);
   },
   OnSelect_ (this: HTMLInputElement): void {
     let el = this as typeof Vomnibar_.input_;

@@ -144,7 +144,7 @@ var Settings = {
         css = css.substring(0, ind1 + 1) + css.substring(ind2, ind3 + 1)
             + css.substring(css.indexOf("\n", ind3) + 1 || css.length);
       } else {
-        css = css.replace(<RegExpOne> /all:\s?initial;?\n?/, "");
+        css = css.replace(<RegExpOne> /all:\s?\w+;?\n?/, "");
       }
       if (browserVer >= BrowserVer.MinEnsuredDisplayContents && OnOther !== BrowserType.Edge) {
         const ind2 = css.indexOf("display:"), ind1 = css.lastIndexOf("{", ind2);

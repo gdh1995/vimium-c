@@ -373,11 +373,11 @@ location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusion
   exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOption> {
     inited_: 0,
     init_ (this: PopExclusionRulesOption, element2: HTMLElement
-        , onUpdated: (this: ExclusionRulesOption_) => void, onInit: (this: ExclusionRulesOption_) => void
+        , onUpdated1: (this: ExclusionRulesOption_) => void, onInit: (this: ExclusionRulesOption_) => void
         ): void {
       this.rebuildTesters_();
       this.onInit_ = onInit;
-      (ExclusionRulesOption_ as any).call(this, element2, onUpdated);
+      (ExclusionRulesOption_ as any).call(this, element2, onUpdated1);
       this.element_.addEventListener("input", this.OnInput_);
       this.init_ = null as never;
     },

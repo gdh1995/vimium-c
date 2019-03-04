@@ -30,3 +30,5 @@ weidu/
 scripts/*public_suffix*
 package-lock.json
 scripts/*releases*
+# just to make vscode ignore those on finding
+types/base/
