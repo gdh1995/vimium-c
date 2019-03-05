@@ -235,8 +235,7 @@ interface CmdOptions {
 }
 
 declare const enum kFgReq {
-  START = 0,
-  blank = START, setSetting, findQuery, parseSearchUrl, parseUpperUrl,
+  setSetting, findQuery, parseSearchUrl, parseUpperUrl,
   searchAs, gotoSession, openUrl, focus, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
@@ -288,6 +287,7 @@ interface FgReqWithRes {
 }
 
 interface FgReq {
+  [kFgReq.setSetting]: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>;
   [kFgReq.parseSearchUrl]: {
     /** id */ i: number;
     /** url */ u: string;
@@ -354,7 +354,6 @@ interface FgReq {
     /* keySequence */ k: string;
     /** lastKey */ l: VKeyCodes;
   };
-  [kFgReq.blank]: {},
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
     /** action */ a: kMarkAction.clear;
     /** url */ u: string;

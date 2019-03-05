@@ -1576,7 +1576,6 @@ Are you sure you want to continue?`);
       K extends keyof FgReq ? ((this: void, request: FgReq[K], port: Port) => void) :
       never;
   } = [
-    /** blank: */ function (this: void): void { /* empty */ },
     /** setSetting: */ function (this: void, request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>
         , port: Port): void {
       const key = request.key;
