@@ -23,20 +23,6 @@ const VClipboard_ = {
     }
     return data;
   },
-  copy_: OnOther === BrowserType.Firefox && navigator.clipboard ? function (this: void, data: string): Promise<void> {
-    type Clipboard = EnsureNonNull<Navigator["clipboard"]>;
-    return (navigator.clipboard as Clipboard).writeText(VClipboard_.format_(data));
-  } : function (this: void, data: string): void {
-    data = VClipboard_.format_(data);
-    const textArea = VClipboard_.getTextArea_();
-    textArea.value = data;
-    (document.documentElement as HTMLHtmlElement).appendChild(textArea);
-    textArea.select();
-    document.execCommand("copy");
-    textArea.remove();
-    textArea.value = "";
-    Utils.resetRe_();
-  },
   reformat_ (copied: string): string {
     copied = copied.replace(Utils.A0Re_, " ");
     Utils.resetRe_();
@@ -525,7 +511,21 @@ setTimeout(function () {
   }
 }, 120);
 
-Utils.copy_ = VClipboard_.copy_;
+Utils.copy_ = OnOther === BrowserType.Firefox && navigator.clipboard
+? function (this: void, data: string): Promise<void> {
+  type Clipboard = EnsureNonNull<Navigator["clipboard"]>;
+  return (navigator.clipboard as Clipboard).writeText(VClipboard_.format_(data));
+} : function (this: void, data: string): void {
+  data = VClipboard_.format_(data);
+  const textArea = VClipboard_.getTextArea_();
+  textArea.value = data;
+  (document.documentElement as HTMLHtmlElement).appendChild(textArea);
+  textArea.select();
+  document.execCommand("copy");
+  textArea.remove();
+  textArea.value = "";
+  Utils.resetRe_();
+};
 (Backend.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
 
 chrome.extension.isAllowedIncognitoAccess &&

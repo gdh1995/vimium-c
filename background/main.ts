@@ -1332,7 +1332,7 @@ Are you sure you want to continue?`);
       default: str = tabs[0].url; break;
       }
       decoded && (str = Utils.DecodeURLPart_(str, decodeURI));
-      VClipboard_.copy_(str);
+      Utils.copy_(str);
       return Backend.showHUD_(str, true);
     },
     /* goNext: */ function (): void {
@@ -1968,7 +1968,7 @@ Are you sure you want to continue?`);
         , (<number> request.f | 0) as number as 0 | 1 | 2));
     },
     /** copy: */ function (this: void, request: FgReq[kFgReq.copy]): void {
-      VClipboard_.copy_(request.d);
+      Utils.copy_(request.d);
     },
     /** key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {
       (port.s as Frames.Sender).f |= Frames.Flags.userActed;
@@ -2411,7 +2411,7 @@ Are you sure you want to continue?`);
         return OnConnect(port as Frames.Port, (port.name.substring(9) as string | number as number) | 0);
       });
       if (!chrome.runtime.onConnectExternal) { return; }
-      Settings.extWhiteList_ || Settings.postUpdate_("extWhiteList");
+      Settings.postUpdate_("extWhiteList");
       chrome.runtime.onConnectExternal.addListener(function (port): void {
         let { sender, name } = port, arr: string[];
         if (sender && isExtIdAllowed(sender.id)
