@@ -52,12 +52,12 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     TestAlive_ (): void { esc && !vPort._port && VSettings.destroy_(); },
     ClearPort_ (this: void): void {
       vPort._port = null;
-      requestHandlers[kBgReq.init] && setTimeout(function (i): void {
+      setTimeout(function (i): void {
         if (!i) {
           try { esc && vPort.Connect_(PortType.initing); return; } catch {}
         }
         esc && VSettings.destroy_();
-      }, 2000);
+      }, requestHandlers[kBgReq.init] ? 2000 : 5000);
     },
     Connect_: (function (this: void, status: PortType): void {
       const runtime: typeof chrome.runtime = (useBrowser ? browser as typeof chrome : chrome).runtime,
