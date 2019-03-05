@@ -604,9 +604,9 @@ domainEngine = {
         if (score > result_score) { result_score = score; result = domain; }
       }
     }
-    if (result) {
-      matchedTotal++;
-      if (result.length > word.length && !result.startsWith("www.") && !result.startsWith(word)) {
+    let isMainPart = result.length === word.length;
+    if (!isMainPart) {
+      if (!result.startsWith("www.") && !result.startsWith(word)) {
         let r2 = result.substring(result.indexOf(".") + 1);
         if (r2.indexOf(word) !== -1) {
           let d2: Domain | undefined;
@@ -614,6 +614,20 @@ domainEngine = {
           if ((d2 = ref[r2]) && (showThoseInBlacklist || d2.count > 0)) { result = r2; d = d2; }
         }
       }
+      let mainLen = result.startsWith(word) ? 0 : result.startsWith("www." + word) ? 4 : -1;
+      if (mainLen >= 0) {
+        const [arr, partsNum] = Utils.splitByPublicSuffix_(result), i = arr.length - 1;
+        if (partsNum > 1) {
+          mainLen = result.length - mainLen - word.length - arr[i].length - 1;
+          if (!mainLen || partsNum === 3 && mainLen === arr[i - 1].length + 1) {
+            isMainPart = true;
+          }
+        }
+      }
+    }
+    if (result) {
+      matchedTotal++;
+      autoSelect = isMainPart || autoSelect;
       result = (d.https ? "https://" : "http://") + result;
       sug = new Suggestion("domain", result, result, "", this.compute2_);
       prepareHtml(sug);

@@ -99,16 +99,14 @@ ContentSettings_ = {
     result = [pattern + host + "/*"];
     if (level < 2 || Utils.isIPHost_(hosts[3], 0)) { return result; }
     hosts = null as never;
-    const arr = host.toLowerCase().split("."), i = arr.length,
-    minLen = Utils.isTld_(arr[i - 1]) === Urls.TldType.NotTld ? 1
-      : i > 2 && arr[i - 1].length === 2 && Utils.isTld_(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2,
-    end = Math.min(arr.length - minLen, level - 1);
+    const [arr, partsNum] = Utils.splitByPublicSuffix_(host),
+    end = Math.min(arr.length - partsNum, level - 1);
     for (let j = 0; j < end; j++) {
       host = host.substring(arr[j].length + 1);
       result.push(pattern + host + "/*");
     }
     result.push(pattern + "*." + host + "/*");
-    if (end === arr.length - minLen && pattern === "http://") {
+    if (end === arr.length - partsNum && pattern === "http://") {
       result.push("https://*." + host + "/*");
     }
     return result;

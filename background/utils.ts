@@ -300,6 +300,11 @@ var Utils = {
       : tld.length < this._tlds.length && this._tlds[tld.length].indexOf(tld) > 0 ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
   },
+  splitByPublicSuffix_ (host: string): [string[], /* partsNum */ 1 | 2 | 3] {
+    const arr = host.toLowerCase().split("."), i = arr.length;
+    return [arr, Utils.isTld_(arr[i - 1]) === Urls.TldType.NotTld ? 1
+      : i > 2 && arr[i - 1].length === 2 && Utils.isTld_(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2];
+  },
   /** type: 0=all */
   isIPHost_ (hostname: string, type: 0 | 4 | 6): boolean {
      if (type !== 6 && this._ipv4Re.test(hostname) || type !== 4 && this._ipv6Re.test(hostname)) {
