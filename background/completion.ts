@@ -1,21 +1,22 @@
 import Domain = CompletersNS.Domain;
 import MatchType = CompletersNS.MatchType;
-declare namespace CompletersNS {
-  const enum RankingEnums {
-    timeCalibrator = 1814400000, // 21 days
-    recCalibrator = 2 / 3,
-    anywhere = 1,
-    startOfWord = 1,
-    wholeWord = 1,
-    maximumScore = 3,
-  }
-  const enum InnerConsts {
-    bookmarkBasicDelay = 1000 * 60, bookmarkFurtherDelay = bookmarkBasicDelay / 2,
-    historyMaxSize = 20000,
-  }
-}
 
 setTimeout(function (): void {
+const enum TimeEnums {
+  baseOffset = 1000 * 3600 * 24 * 360, // 360 days
+  timeCalibrator = 1000 * 3600 * 24 * 21, // 21 days
+}
+const enum RankingEnums {
+  recCalibrator = 2 / 3,
+  anywhere = 1,
+  startOfWord = 1,
+  wholeWord = 1,
+  maximumScore = 3,
+}
+const enum InnerConsts {
+  bookmarkBasicDelay = 1000 * 60, bookmarkFurtherDelay = bookmarkBasicDelay / 2,
+  historyMaxSize = 20000,
+}
 
 type MatchRange = [number, number];
 
@@ -119,6 +120,8 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
     queryTerms: QueryTerms = [""], rawQuery: string = "", rawMore: string = "",
     phraseBlacklist: string[] | null = null, showThoseInBlacklist: boolean = true;
+
+const TimeBase = Date.now() - TimeEnums.baseOffset;
 
 const Suggestion: SuggestionConstructor = function Suggestion_(
     this: CompletersNS.WritableCoreSuggestion,
@@ -371,21 +374,21 @@ const bookmarkEngine = {
   Later_ (this: void): void {
     const _this = bookmarkEngine, last = Date.now() - _this._stamp;
     if (_this.status_ !== BookmarkStatus.notInited) { return; }
-    if (last >= CompletersNS.InnerConsts.bookmarkBasicDelay || last < 0) {
+    if (last >= InnerConsts.bookmarkBasicDelay || last < 0) {
       _this._timer = _this._stamp = 0;
       _this._expiredUrls = false;
       _this.refresh_();
     } else {
       _this.bookmarks_ = [];
       _this.dirs_ = [];
-      _this._timer = setTimeout(_this.Later_, CompletersNS.InnerConsts.bookmarkFurtherDelay);
+      _this._timer = setTimeout(_this.Later_, InnerConsts.bookmarkFurtherDelay);
     }
   },
   Delay_ (this: void): void {
     const _this = bookmarkEngine;
     _this._stamp = Date.now();
     if (_this.status_ < BookmarkStatus.inited) { return; }
-    _this._timer = setTimeout(_this.Later_, CompletersNS.InnerConsts.bookmarkBasicDelay);
+    _this._timer = setTimeout(_this.Later_, InnerConsts.bookmarkBasicDelay);
     _this.status_ = BookmarkStatus.notInited;
   },
   Expire_ (
@@ -597,7 +600,7 @@ domainEngine = {
       }
       return Completers.next_([]);
     }
-    RankingUtils.maxScoreP_ = CompletersNS.RankingEnums.maximumScore;
+    RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     for (const domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
       d = ref[domain];
@@ -925,8 +928,8 @@ Completers = {
       searchEngine.preFilter_(query);
       i = 1;
     }
-    RankingUtils.timeAgo_ = Date.now() - CompletersNS.RankingEnums.timeCalibrator;
-    RankingUtils.maxScoreP_ = CompletersNS.RankingEnums.maximumScore * queryTerms.length || 0.01;
+    RankingUtils.timeAgo_ = ((Date.now() - TimeBase) | 0) - TimeEnums.timeCalibrator;
+    RankingUtils.maxScoreP_ = RankingEnums.maximumScore * queryTerms.length || 0.01;
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(this.protoRe_, " __proto_").trimLeft().split(" ");
     }
@@ -1001,7 +1004,7 @@ Completers = {
     queryTerms = [];
     rawQuery = rawMore = "";
     RegExpCache.parts_ = null as never;
-    RankingUtils.maxScoreP_ = CompletersNS.RankingEnums.maximumScore;
+    RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     RankingUtils.timeAgo_ = this.sugCounter_ = matchType =
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
@@ -1048,17 +1051,17 @@ knownCs: CompletersMap & SafeObject = {
       }
       return true;
     },
-    maxScoreP_: CompletersNS.RankingEnums.maximumScore,
+    maxScoreP_: RankingEnums.maximumScore,
     _emptyScores: [0, 0] as [number, number],
     scoreTerm_ (term: number, str: string): [number, number] {
       let count = 0, score = 0;
       count = str.split(RegExpCache.parts_[term]).length;
       if (count < 1) { return this._emptyScores; }
-      score = CompletersNS.RankingEnums.anywhere;
+      score = RankingEnums.anywhere;
       if (RegExpCache.starts_[term].test(str)) {
-        score += CompletersNS.RankingEnums.startOfWord;
+        score += RankingEnums.startOfWord;
         if (RegExpCache.words_[term].test(str)) {
-          score += CompletersNS.RankingEnums.wholeWord;
+          score += RankingEnums.wholeWord;
         }
       }
       return [score, (count - 1) * queryTerms[term].length];
@@ -1083,8 +1086,8 @@ knownCs: CompletersMap & SafeObject = {
     },
     timeAgo_: 0,
     recencyScore_ (lastAccessedTime: number): number {
-      const score = Math.max(0, lastAccessedTime - this.timeAgo_) / CompletersNS.RankingEnums.timeCalibrator;
-      return score * score * CompletersNS.RankingEnums.recCalibrator;
+      const score = Math.max(0, lastAccessedTime - this.timeAgo_) / TimeEnums.timeCalibrator;
+      return score * score * RankingEnums.recCalibrator;
     },
     normalizeDifference_ (a: number, b: number): number {
       return a < b ? a / b : b / a;
@@ -1135,7 +1138,7 @@ knownCs: CompletersMap & SafeObject = {
       this.lastRefresh_ = Date.now();
       chrome.history.search({
         text: "",
-        maxResults: CompletersNS.InnerConsts.historyMaxSize,
+        maxResults: InnerConsts.historyMaxSize,
         startTime: 0
       }, function (history: chrome.history.HistoryItem[]): void {
         setTimeout(HistoryCache.Clean_ as (arr: chrome.history.HistoryItem[]) => void, 0, history);
@@ -1149,7 +1152,7 @@ knownCs: CompletersMap & SafeObject = {
         (arr as HistoryItem[])[i] = {
           text: j.url,
           title: j.title || "",
-          time: j.lastVisitTime,
+          time: (j.lastVisitTime - TimeBase) | 0,
           visible: kVisibility.visible,
           url: j.url
         };
@@ -1196,7 +1199,7 @@ knownCs: CompletersMap & SafeObject = {
       const j: HistoryItem = i >= 0 ? (_this.history_ as HistoryItem[])[i] : {
         text: "",
         title,
-        time,
+        time: (time - TimeBase) | 0,
         visible: phraseBlacklist ? BlacklistFilter.TestNotMatched_(url, title) : kVisibility.visible,
         url
       };
@@ -1213,7 +1216,7 @@ knownCs: CompletersMap & SafeObject = {
         }
       }
       if (i >= 0) {
-        j.time = time;
+        j.time = (time - TimeBase) | 0;
         if (title && title !== j.title) {
           j.title = title;
           if (phraseBlacklist) {
