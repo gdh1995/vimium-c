@@ -789,17 +789,18 @@ var Utils = {
 };
 
 declare var browser: unknown;
-const OnOther = typeof browser === "undefined" || (browser && (browser as any).runtime) == null
+var OnOther = typeof browser === "undefined" || (browser && (browser as any).runtime) == null
     || location.protocol.lastIndexOf("chrome", 0) >= 0 // in case Chrome also supports `browser` in the future
   ? BrowserType.Chrome
   : !!(window as any).StyleMedia ? BrowserType.Edge
   : (<RegExpOne> /\bFirefox\//).test(navigator.userAgent) ? BrowserType.Firefox
   : BrowserType.Unknown,
-BrowserProtocol = OnOther ? OnOther === BrowserType.Firefox ? "moz"
-    : OnOther === BrowserType.Edge ? "ms-browser" : "about"
-    : "chrome",
 ChromeVer = 0 | (!OnOther && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number
+;
+const BrowserProtocol = OnOther ? OnOther === BrowserType.Firefox ? "moz"
+  : OnOther === BrowserType.Edge ? "ms-browser" : "about"
+  : "chrome"
 ;
 
 if (!"".startsWith) {
