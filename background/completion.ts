@@ -450,7 +450,9 @@ historyEngine = {
       });
     }
     if (history) {
-      HistoryCache.refreshInfo_();
+      if (HistoryCache.updateCount_ > 10 || HistoryCache.toRefreshCount_ > 0) {
+        HistoryCache.refreshInfo_();
+      }
     }
     if (index === 0) {
       Completers.requireNormalOrIncognito_(this, this.loadTabs_, query);
@@ -1185,9 +1187,12 @@ knownCs: CompletersMap & SafeObject = {
     OnPageVisited_ (this: void, newPage: chrome.history.HistoryItem): void {
       const _this = HistoryCache, url = newPage.url, time = newPage.lastVisitTime,
       title = newPage.title || "",
+      updateCount = ++_this.updateCount_,
       d = _this.domains_, i = _this.binarySearch_(url);
       if (i < 0) { _this.toRefreshCount_++; }
-      if (_this.updateCount_++ > 99) { _this.refreshInfo_(); }
+      if (updateCount > 59 || (updateCount > 10 && Date.now() - _this.lastRefresh_ > 300000)) {
+        _this.refreshInfo_();
+      }
       const j: HistoryItem = i >= 0 ? (_this.history_ as HistoryItem[])[i] : {
         text: "",
         title,
@@ -1260,14 +1265,13 @@ knownCs: CompletersMap & SafeObject = {
     refreshInfo_ (): void {
       type Q = chrome.history.HistoryQuery;
       type C = (results: chrome.history.HistoryItem[]) => void;
-      if (this.toRefreshCount_ <= 0 && this.updateCount_ < 10) { return; }
       const i = Date.now();
       if (this.toRefreshCount_ <= 0) { /* empty */ }
       else if (this.lastRefresh_ + 1000 > i) { return; }
       else {
         setTimeout(chrome.history.search as ((q: Q, c: C) => void | 1) as (q: Q, c: C) => void, 50, {
           text: "",
-          maxResults: Math.min(2000, this.updateCount_ + 10),
+          maxResults: Math.min(999, this.updateCount_ + 10),
           startTime: this.lastRefresh_
         }, this.OnInfo_);
       }
