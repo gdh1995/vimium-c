@@ -293,6 +293,7 @@ declare namespace SettingsNS {
     showActionIcon: boolean;
     showAdvancedCommands: boolean;
     showAdvancedOptions: boolean;
+    styles: string;
     userDefinedCss: string;
     vimSync: boolean | null;
     vomnibarPage: string;

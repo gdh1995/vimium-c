@@ -80,7 +80,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
 
   /** any change to `commandCount` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
-  omniStyles = localStorage.getItem("styles") || "", // syntax: `<word> (+ " " + <word>)...` | `""`
+  omniStyles = Settings.get_("styles"), // syntax: `<word> (+ " " + <word>)...` | `""`
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: VKeyCodes = VKeyCodes.None,
   gCmdTimer = 0, gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone;

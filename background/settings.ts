@@ -307,6 +307,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     showAdvancedCommands: false,
     showAdvancedOptions: false,
     smoothScroll: true,
+    styles: "",
     userDefinedCss: "",
     vimSync: null,
     vomnibarPage: "front/vomnibar.html",
