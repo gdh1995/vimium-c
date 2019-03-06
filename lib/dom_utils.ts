@@ -128,11 +128,11 @@ var VDom = {
       ihs = ((j - 8) / fz) | 0;
       return iw;
     });
-    this.cropRectToVisible_ = (function (left, top, right, bottom): VRect | null {
+    this.cropRectToVisible_ = (function (left, top, right, bottom): Rect | null {
       if (top > ihs || bottom < 3) {
         return null;
       }
-      const cr: VRect = [ //
+      const cr: Rect = [ //
         left   >  0 ? (left   | 0) :  0, //
         top    >  0 ? (top    | 0) :  0, //
         right  < iw ? (right  | 0) : iw, //
@@ -142,9 +142,9 @@ var VDom = {
     });
     return this.prepareCrop_();
   },
-  getVisibleClientRect_ (element: Element, el_style?: CSSStyleDeclaration): VRect | null {
+  getVisibleClientRect_ (element: Element, el_style?: CSSStyleDeclaration): Rect | null {
     const arr = Element.prototype.getClientRects.call(element);
-    let cr: VRect | null, style: CSSStyleDeclaration | null, _ref: HTMLCollection | undefined
+    let cr: Rect | null, style: CSSStyleDeclaration | null, _ref: HTMLCollection | undefined
       , isVisible: boolean | undefined, notInline: boolean | undefined, str: string;
     for (let _i = 0, _len = arr.length; _i < _len; _i++) {
       const rect = arr[_i];
@@ -177,8 +177,8 @@ var VDom = {
     return null;
   },
   getClientRectsForAreas_: function (this: {}, element: HTMLElementUsingMap, output: Hint5[]
-      , areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): VRect | null | void {
-    let diff: number, x1: number, x2: number, y1: number, y2: number, rect: VRect | null | undefined;
+      , areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): Rect | null | void {
+    let diff: number, x1: number, x2: number, y1: number, y2: number, rect: Rect | null | undefined;
     const cr = element.getClientRects()[0] as ClientRect | undefined;
     if (!cr || cr.height < 3 || cr.width < 3) { return; }
     // replace is necessary: chrome allows "&quot;", and also allows no "#"
@@ -228,7 +228,7 @@ var VDom = {
     }
   } as {
     (element: HTMLElementUsingMap, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]
-      ): VRect | null;
+      ): Rect | null;
     (element: HTMLElementUsingMap, output: Hint5[]): void;
   },
   paintBox_: null as [number, number] | null, // it may need to use `paintBox[] / <body>.zoom`
@@ -440,7 +440,7 @@ var VDom = {
       , PNType.DirectElement);
   },
   mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
-      , rect?: VRect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {
+      , rect?: Rect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {
     modifiers || (modifiers = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false });
     let doc = element.ownerDocument;
     doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
@@ -461,7 +461,7 @@ var VDom = {
   } as VDomMouse,
   lastHovered_: null as Element | null,
   /** note: will NOT skip even if newEl == @lastHovered */
-  hover_: function (this: {}, newEl: Element | null, rect?: VRect | null): void {
+  hover_: function (this: {}, newEl: Element | null, rect?: Rect | null): void {
     let a = VDom as typeof VDom, last = a.lastHovered_;
     if (last && a.isInDOM_(last)) {
       a.mouse_(last, "mouseout", null, null, newEl !== last ? newEl : null);
@@ -469,20 +469,20 @@ var VDom = {
       last = null;
     }
     a.lastHovered_ = newEl;
-    newEl && a.mouse_(newEl, "mouseover", rect as VRect | null, null, last);
+    newEl && a.mouse_(newEl, "mouseover", rect as Rect | null, null, last);
   } as {
-    (newEl: Element, rect: VRect | null): void;
+    (newEl: Element, rect: Rect | null): void;
     (newEl: null): void;
   },
-  isContaining_ (a: VRect, b: VRect): boolean {
+  isContaining_ (a: Rect, b: Rect): boolean {
     return a[3] >= b[3] && a[2] >= b[2] && a[1] <= b[1] && a[0] <= b[0];
   },
-  padClientRect_ (rect: ClientRect, padding: number): WritableVRect {
+  padClientRect_ (rect: ClientRect, padding: number): WritableRect {
     const x = rect.left, y = rect.top, max = Math.max;
     padding = x || y ? padding : 0;
     return [x | 0, y | 0, (x + max(rect.width, padding)) | 0, (y + max(rect.height, padding)) | 0];
   },
-  setBoundary_ (style: CSSStyleDeclaration, r: WritableVRect, allow_abs?: boolean): void {
+  setBoundary_ (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): void {
     if (allow_abs && (r[1] < 0 || r[0] < 0 || r[3] > innerHeight || r[2] > innerWidth)) {
       const arr: ViewOffset = this.getViewBox_();
       r[0] += arr[0], r[2] += arr[0], r[1] += arr[1], r[3] += arr[1];
@@ -491,8 +491,8 @@ var VDom = {
     style.left = r[0] + "px", style.top = r[1] + "px";
     style.width = (r[2] - r[0]) + "px", style.height = (r[3] - r[1]) + "px";
   },
-  cropRectToVisible_: null as never as (left: number, top: number, right: number, bottom: number) => VRect | null,
-  SubtractSequence_ (this: [VRect[], VRect], rect1: VRect): void { // rect1 - rect2
+  cropRectToVisible_: null as never as (left: number, top: number, right: number, bottom: number) => Rect | null,
+  SubtractSequence_ (this: [Rect[], Rect], rect1: Rect): void { // rect1 - rect2
     let rect2 = this[1], a = this[0], x1: number, x2: number
       , y1 = Math.max(rect1[1], rect2[1]), y2 = Math.min(rect1[3], rect2[3]);
     if (y1 >= y2 || ((x1 = Math.max(rect1[0], rect2[0])) >= (x2 = Math.min(rect1[2], rect2[2])))) {

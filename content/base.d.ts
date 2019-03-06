@@ -64,13 +64,13 @@ interface EventControlKeys {
   shiftKey: boolean;
 }
 
-interface WritableVRect {
+interface WritableRect {
   [0]: number; // left
   [1]: number; // top
   [2]: number; // right
   [3]: number; // bottom
 }
-interface VRect extends WritableVRect {
+interface Rect extends WritableRect {
   readonly [0]: number; // left
   readonly [1]: number; // top
   readonly [2]: number; // right
@@ -247,14 +247,14 @@ declare namespace VomnibarNS {
 declare type ScrollByY = 0 | 1;
 
 interface HintOffset {
-  [0]: VRect; // rect of the hint below this marker
+  [0]: Rect; // rect of the hint below this marker
   [1]: number; // offset-x
 }
 
 type HTMLElementUsingMap = HTMLImageElement | HTMLObjectElement;
 interface Hint {
   [0]: SafeHTMLElement | SVGElement; // element
-  [1]: VRect; // bounding rect
+  [1]: Rect; // bounding rect
   [2]: number; // priority (smaller is prior)
   [3]?: HintOffset;
   [4]?: HTMLElementUsingMap;
@@ -304,13 +304,13 @@ interface DomUI {
   getSelectionText_ (notTrim?: 1): string;
   removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
   click_ (this: DomUI, element: Element
-    , rect?: VRect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
-  simulateSelect_ (this: DomUI, element: Element, rect?: VRect | null, flash?: boolean
+    , rect?: Rect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
+  simulateSelect_ (this: DomUI, element: Element, rect?: Rect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;
   /** @NEED_SAFE_ELEMENTS */
   _moveSel_unsafe_ (this: DomUI, element: LockableElement, action: SelectActions | undefined): void;
-  getVRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): VRect | null;
-  flash_ (this: DomUI, el: null, rect: VRect): HTMLElement;
+  getRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null;
+  flash_ (this: DomUI, el: null, rect: Rect): HTMLElement;
   flash_ (this: DomUI, el: Element): HTMLElement | void;
   suppressTail_ (this: void, onlyRepeated: boolean): void;
   SuppressMost_: HandlerNS.Handler<{}>;
@@ -318,9 +318,9 @@ interface DomUI {
 
 interface VDomMouse {
   (element: Element, type: "mousedown" | "mouseup" | "click"
-    , rect: VRect | null // rect must be not optional, so that human can understand program logic easily
+    , rect: Rect | null // rect must be not optional, so that human can understand program logic easily
     , modifiers?: EventControlKeys | null, related?: Element | null): boolean;
-  (element: Element, type: "mouseover", rect: VRect | null
+  (element: Element, type: "mouseover", rect: Rect | null
     , modifiers?: null, related?: Element | null): boolean;
   (element: Element, type: "mouseout", rect?: null
     , modifiers?: null, related?: Element | null): boolean;

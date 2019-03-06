@@ -249,7 +249,7 @@ VDom.UI = {
       }
     } catch {}
   },
-  getVRect_ (this: void, clickEl, refer): VRect | null {
+  getRect_ (this: void, clickEl, refer): Rect | null {
     VDom.getZoom_(clickEl);
     VDom.prepareCrop_();
     if (refer) {
@@ -261,8 +261,8 @@ VDom.UI = {
       : VDom.cropRectToVisible_.apply(VDom, bcr as [number, number, number, number]) ? bcr : null;
   },
   _lastFlash: null,
-  flash_: function (this: DomUI, el: Element | null, rect?: VRect | null): HTMLDivElement | void {
-    rect || (rect = this.getVRect_(el as Element));
+  flash_: function (this: DomUI, el: Element | null, rect?: Rect | null): HTMLDivElement | void {
+    rect || (rect = this.getRect_(el as Element));
     if (!rect) { return; }
     const flashEl = VDom.createElement_("div"), nfs = !document.webkitIsFullScreen;
     flashEl.className = "R Flash";

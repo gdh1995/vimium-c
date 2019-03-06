@@ -1086,7 +1086,7 @@ Are you sure you want to continue?`);
       if (cOptions.url) {
         openUrl(cOptions.url + "", Urls.WorkType.Default, tabs);
       } else if (cOptions.copied) {
-        const url = VClipboard_.paste_();
+        const url = Clipboard_.paste_();
         if (url instanceof Promise) {
           url.then(openCopiedUrl.bind(null, tabs), openCopiedUrl.bind(null, null as never, null));
           return;
@@ -1426,9 +1426,9 @@ Are you sure you want to continue?`);
       } else if (port.s.i !== 0 && port.s.t >= 0 && /* null | "" */ !optUrl) {
         port = indexFrame(port.s.t, 0) || port;
       }
-      const page = Settings.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol),
+      const page = Settings.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
       inner = forceInner || !page.startsWith(location.origin) ? Settings.CONST_.VomnibarPageInner_ : page;
-      forceInner = (preferWeb ? url.startsWith(BrowserProtocol) || page.startsWith("file:") && !url.startsWith("file:")
+      forceInner = (preferWeb ? url.startsWith(BrowserProtocol_) || page.startsWith("file:") && !url.startsWith("file:")
           // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
           // that HTTPS refusing HTTP iframes.
           || page.startsWith("http:") && url.startsWith("https:")
@@ -1472,7 +1472,7 @@ Are you sure you want to continue?`);
     },
     /* toggleViewSource: */ function (this: void, tabs: [Tab]): void {
       let tab = tabs[0], url = tab.url;
-      if (url.startsWith(BrowserProtocol)) {
+      if (url.startsWith(BrowserProtocol_)) {
         return Backend.complain_("visit HTML of an extension's page");
       }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
@@ -1683,7 +1683,7 @@ Are you sure you want to continue?`);
         }
       }
       if (!path) {
-        if (url_l.startsWith(BrowserProtocol)) {
+        if (url_l.startsWith(BrowserProtocol_)) {
           Utils.resetRe_();
           return { u: "An extension has no upper-level pages", p: null };
         }
@@ -1740,7 +1740,7 @@ Are you sure you want to continue?`);
         cPort = port;
         return Backend.showHUD_("No search engine found!");
       }
-      query = request.s.trim() || (request.c ? VClipboard_.paste_() : "");
+      query = request.s.trim() || (request.c ? Clipboard_.paste_() : "");
       if (query instanceof Promise) {
         query.then(doSearch, () => doSearch(null));
         return;

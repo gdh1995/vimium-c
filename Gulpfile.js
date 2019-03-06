@@ -90,8 +90,8 @@ var Tasks = {
     var config = loadUglifyConfig(!!exArgs.nameCache);
     config.nameCache = exArgs.nameCache;
     require(LIB_UGLIFY_JS).minify("var CommandsData_, Completion_ \
-      , ContentSettings_, FindModeHistory_, Marks_, TabRecency_, VClipboard_ \
-      , Utils, OnOther, ChromeVer, Settings, Backend \
+      , ContentSettings_, FindModeHistory_, Marks_, TabRecency_, Clipboard_ \
+      , Utils, OnOther, BrowserProtocol_, ChromeVer, Settings, Backend \
       ;", config);
 
     var sources = manifest.background.scripts;

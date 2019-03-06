@@ -62,7 +62,7 @@ var Utils = {
     // https://cs.chromium.org/chromium/src/url/url_constants.cc?type=cs&q=kAboutBlankWithHashPath&g=0&l=12
     return url.startsWith("about:") ? url !== "about:blank" && url !== "about:blank/"
       : url.startsWith("chrome://") ? !url.startsWith("chrome://downloads")
-      : !url.startsWith(Settings.CONST_.NtpNewTab_) && url.startsWith(BrowserProtocol);
+      : !url.startsWith(Settings.CONST_.NtpNewTab_) && url.startsWith(BrowserProtocol_);
   },
   _nonENTlds: ".\u4e2d\u4fe1.\u4e2d\u56fd.\u4e2d\u570b.\u4e2d\u6587\u7f51.\u4f01\u4e1a.\u4f5b\u5c71.\u4fe1\u606f\
 .\u516c\u53f8.\u516c\u76ca.\u5546\u57ce.\u5546\u5e97.\u5546\u6807.\u5728\u7ebf.\u5a31\u4e50.\u5e7f\u4e1c\
@@ -798,7 +798,7 @@ var OnOther = typeof browser === "undefined" || (browser && (browser as any).run
 ChromeVer = 0 | (!OnOther && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number
 ;
-const BrowserProtocol = OnOther ? OnOther === BrowserType.Firefox ? "moz"
+const BrowserProtocol_ = OnOther ? OnOther === BrowserType.Firefox ? "moz"
   : OnOther === BrowserType.Edge ? "ms-browser" : "about"
   : "chrome"
 ;

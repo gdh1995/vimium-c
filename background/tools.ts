@@ -1,7 +1,7 @@
 type CSTypes = chrome.contentSettings.ValidTypes;
 type Tab = chrome.tabs.Tab;
 type MarkStorage = Pick<Storage, "setItem"> & SafeDict<string>;
-const VClipboard_ = {
+const Clipboard_ = {
   getTextArea_ (): HTMLTextAreaElement {
     const el = document.createElement("textarea");
     el.style.position = "absolute";
@@ -31,9 +31,9 @@ const VClipboard_ = {
   paste_: Settings.CONST_.AllowClipboardRead_ ? OnOther === BrowserType.Firefox && navigator.clipboard
   ? function (this: object): Promise<string> {
     type Clipboard = EnsureNonNull<Navigator["clipboard"]>;
-    return (navigator.clipboard as Clipboard).readText().then((this as typeof VClipboard_).reformat_);
+    return (navigator.clipboard as Clipboard).readText().then((this as typeof Clipboard_).reformat_);
   } : function (this: object): string {
-    const textArea = (this as typeof VClipboard_).getTextArea_();
+    const textArea = (this as typeof Clipboard_).getTextArea_();
     textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
     (document.documentElement as HTMLHtmlElement).appendChild(textArea);
     textArea.focus();
@@ -42,7 +42,7 @@ const VClipboard_ = {
     textArea.value = "";
     textArea.remove();
     textArea.removeAttribute("maxlength");
-    return (this as typeof VClipboard_).reformat_(value);
+    return (this as typeof Clipboard_).reformat_(value);
   } : function (this: void): null { return null; }
 },
 ContentSettings_ = {
@@ -58,7 +58,7 @@ ContentSettings_ = {
       Backend.showHUD_("Unknown content settings type: " + contentType);
       return true;
     }
-    if (Utils.protocolRe_.test(url) && !url.startsWith(BrowserProtocol)) {
+    if (Utils.protocolRe_.test(url) && !url.startsWith(BrowserProtocol_)) {
       return false;
     }
     Backend.complain_("change its content settings");
@@ -514,10 +514,10 @@ setTimeout(function () {
 Utils.copy_ = OnOther === BrowserType.Firefox && navigator.clipboard
 ? function (this: void, data: string): Promise<void> {
   type Clipboard = EnsureNonNull<Navigator["clipboard"]>;
-  return (navigator.clipboard as Clipboard).writeText(VClipboard_.format_(data));
+  return (navigator.clipboard as Clipboard).writeText(Clipboard_.format_(data));
 } : function (this: void, data: string): void {
-  data = VClipboard_.format_(data);
-  const textArea = VClipboard_.getTextArea_();
+  data = Clipboard_.format_(data);
+  const textArea = Clipboard_.getTextArea_();
   textArea.value = data;
   (document.documentElement as HTMLHtmlElement).appendChild(textArea);
   textArea.select();

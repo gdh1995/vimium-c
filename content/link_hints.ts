@@ -14,7 +14,7 @@ declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface ModeOpt {
     [mode: number]: string | undefined;
-    execute_ (this: {}, linkEl: LinkEl, rect: VRect | null, hintEl: Pick<HintsNS.HintItem, "refer">): void | boolean;
+    execute_ (this: {}, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintsNS.HintItem, "refer">): void | boolean;
   }
   interface Options extends SafeObject {
     action?: string;
@@ -266,7 +266,7 @@ var VHints = {
    * Must ensure only call `VScroller.shouldScroll` during `@getVisibleElements`
    */
   GetClickable_ (this: Hint[], element: Element): void {
-    let arr: VRect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
+    let arr: Rect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
     if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) {
       if (element instanceof SVGElement) {
         type = element.vimiumHasOnclick || element.getAttribute("onclick")
@@ -287,7 +287,7 @@ var VHints = {
     case "frame": case "iframe":
       if (element === VOmni.box_) {
         if (arr = VDom.getVisibleClientRect_(element)) {
-          (arr as WritableVRect)[0] += 12; (arr as WritableVRect)[1] += 9;
+          (arr as WritableRect)[0] += 12; (arr as WritableRect)[1] += 9;
           this.push([element as SafeHTMLElement, arr, ClickType.frame]);
         }
         return;
@@ -381,7 +381,7 @@ var VHints = {
   },
   GetEditable_ (this: Hint[], element: Element): void {
     if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
-    let arr: VRect | null, type = ClickType.Default, s: string;
+    let arr: Rect | null, type = ClickType.Default, s: string;
     switch ((element.tagName as string).toLowerCase()) {
     case "input":
       if (VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
@@ -407,7 +407,7 @@ var VHints = {
     }
   },
   GetLinks_ (this: Hint[], element: Element): void {
-    let a: string | null, arr: VRect | null;
+    let a: string | null, arr: Rect | null;
     if (element instanceof HTMLAnchorElement && ((a = element.getAttribute("href")) && a !== "#"
         && !VUtils.jsRe_.test(a)
         || element.dataset.vimUrl != null)) {
@@ -420,7 +420,7 @@ var VHints = {
     // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
     // <img>.currentSrc is since C45
     if (!element.getAttribute("src") && !element.currentSrc && !element.dataset.src) { return; }
-    let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
+    let rect: ClientRect | undefined, cr: Rect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
       rect = element.getClientRects()[0];
@@ -440,7 +440,7 @@ var VHints = {
   GetImages_ (this: Hint[], element: Element): void {
     if (element instanceof HTMLImageElement) { return VHints._getImagesInImg(this, element); }
     if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
-    let str = element.dataset.src || element.getAttribute("href"), cr: VRect | null;
+    let str = element.dataset.src || element.getAttribute("href"), cr: Rect | null;
     if (!VUtils.isImageUrl_(str)) {
       str = element.style.backgroundImage as string;
       // skip "data:" URLs, becase they are not likely to be big images
@@ -609,8 +609,8 @@ var VHints = {
     }
     visibleElements.reverse();
 
-    const obj = [null as never, null as never] as [VRect[], VRect], func = VDom.SubtractSequence_.bind(obj);
-    let r2 = null as VRect[] | null, t: VRect, reason: ClickType, visibleElement: Hint;
+    const obj = [null as never, null as never] as [Rect[], Rect], func = VDom.SubtractSequence_.bind(obj);
+    let r2 = null as Rect[] | null, t: Rect, reason: ClickType, visibleElement: Hint;
     for (let _len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
       _j > 0 && --_j;
       visibleElement = visibleElements[_len];
@@ -752,18 +752,18 @@ var VHints = {
     while (i < len) { (ref as HintsNS.HintItem[])[i++].target = null as never; }
   },
   execute_ (hint: HintsNS.HintItem): void {
-    let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
+    let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
     this.resetHints_();
     const str = (this.modeOpt_ as HintsNS.ModeOpt)[this.mode_] as string;
     (VHUD as Writeable<VHUDTy>).text_ = str; // in case pTimer > 0
     if (VDom.isInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
-      // must use UI.getVRect, so that VDom.zooms are updated, and prepareCrop is called
-      rect = VDom.UI.getVRect_(clickEl, hint.refer !== clickEl ? hint.refer as HTMLElementUsingMap | null : null);
+      // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
+      rect = VDom.UI.getRect_(clickEl, hint.refer !== clickEl ? hint.refer as HTMLElementUsingMap | null : null);
       const showRect = (this.modeOpt_ as HintsNS.ModeOpt).execute_.call(this, clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
         setTimeout(function (): void {
-          (showRect || document.hasFocus()) && VDom.UI.flash_(null, rect as VRect);
+          (showRect || document.hasFocus()) && VDom.UI.flash_(null, rect as Rect);
         }, 17);
       }
     } else {
@@ -785,7 +785,7 @@ var VHints = {
       }
     }, 18);
   },
-  _reinit (lastEl?: HintsNS.LinkEl | null, rect?: VRect | null): void {
+  _reinit (lastEl?: HintsNS.LinkEl | null, rect?: Rect | null): void {
     if (!VSettings.enabled_) { return this.clean_(); }
     this.isActive_ = false;
     this.keyStatus_.tab = 0;
@@ -795,13 +795,13 @@ var VHints = {
     this.run(0, this.options_);
     return this._setupCheck(lastEl, rect, isClick);
   },
-  _setupCheck (el?: HintsNS.LinkEl | null, r?: VRect | null, isClick?: boolean): void {
+  _setupCheck (el?: HintsNS.LinkEl | null, r?: Rect | null, isClick?: boolean): void {
     this.timer_ && clearTimeout(this.timer_);
     this.timer_ = el && (isClick === true || this.mode_ < HintMode.min_job) ? setTimeout(function (i): void {
       !i && VHints && VHints._CheckLast(el, r);
     }, 255) : 0;
   },
-  _CheckLast (this: void, el: HintsNS.LinkEl, r?: VRect | null): void {
+  _CheckLast (this: void, el: HintsNS.LinkEl, r?: Rect | null): void {
     const _this = VHints;
     if (!_this) { return; }
     _this.timer_ = 0;

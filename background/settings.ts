@@ -231,7 +231,7 @@ var Settings = {
       } else {
         url = Utils.convertToUrl_(url);
         url = Utils.reformatURL_(url);
-        if (!url.startsWith(BrowserProtocol) && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+        if (!url.startsWith(BrowserProtocol_) && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
           url = (this as typeof Settings).CONST_.VomnibarPageInner_;
         } else {
           url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST_.VerCode_));
