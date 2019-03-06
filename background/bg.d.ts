@@ -202,8 +202,8 @@ declare namespace CommandsNS {
     $key: string;
     $desc: string;
   }
-  type BgDescription = [ string, 0 | 1, true, kBgCmd & number, {}? ];
-  type FgDescription = [ string, 0 | 1, false, kFgCmd & number, {}? ];
+  type BgDescription = [ string, 0 | 1, 1, kBgCmd & number, {}? ];
+  type FgDescription = [ string, 0 | 1, 0, kFgCmd & number, {}? ];
   /** [ description, count limit, is background, enum, default options ] */
   type Description = BgDescription | FgDescription;
   interface BaseItem {
@@ -214,10 +214,10 @@ declare namespace CommandsNS {
   }
   type Item = (BaseItem & {
     readonly alias: kBgCmd & number;
-    readonly background: true;
+    readonly background: 1;
   }) | (BaseItem & {
     readonly alias: kFgCmd & number;
-    readonly background: false;
+    readonly background: 0;
   });
 }
 

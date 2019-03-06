@@ -776,7 +776,7 @@ var Utils = {
     }
     return {
       alias: details[3] as kBgCmd & number,
-      background: details[2] as true,
+      background: details[2] as 1,
       command,
       help,
       options,
