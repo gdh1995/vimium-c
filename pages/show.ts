@@ -519,7 +519,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
       }
     }
   }
-  let found = true, arr1: RegExpExecArray | null = null, arr2: RegExpExecArray | null = null;
+  let arr1: RegExpExecArray | null = null;
   if ((arr1 = (<RegExpOne> /[?&]s=\d{2,4}(&|$)/).exec(search = parsed.search)) && search.split("=").length <= 3) {
     return parsed.origin + parsed.pathname;
   }
@@ -527,7 +527,8 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   let offset = search.lastIndexOf("/") + 1;
   search = search.substring(offset);
   let index = search.lastIndexOf("@") + 1 || search.lastIndexOf("!") + 1;
-  if (index > 2 || ImageExtRe.exec(search)) {
+  let found: boolean | 0 = index > 2 || ImageExtRe.exec(search) != null, arr2: RegExpExecArray | null = null;
+  if (found) {
     offset += index;
     search = search.substring(index);
     let re = <RegExpG & RegExpI // tslint:disable-next-line: max-line-length
@@ -559,7 +560,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
       found = false;
     }
   }
-  if (found || index > 2) { /* empty */ }
+  if (found || index > 2) { found = found || 0; }
   else if (arr1 = (<RegExpOne> /_(0x)?[1-9]\d{2,3}(x0)?\./).exec(search)) {
     search = search.substring(0, arr1.index) + search.substring(arr1.index + arr1[0].length - 1);
   } else if (search.startsWith("thumb_")) {
@@ -568,9 +569,9 @@ function parseSmartImageUrl_(originUrl: string): string | null {
     offset--;
     search = "";
   } else {
-    found = false;
+    found = 0;
   }
-  return found ? parsed.origin + path.substring(0, offset) + search : null;
+  return found !== 0 ? parsed.origin + path.substring(0, offset) + search : null;
 }
 
 function disableAutoAndReload_(): void {
