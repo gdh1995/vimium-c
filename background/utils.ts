@@ -89,7 +89,7 @@ var Utils = {
   hostRe_: <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
   _ipv4Re: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,
   _ipv6Re: <RegExpOne> /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/,
-  _lfSpacesRe: <RegExpG> /[\r\n]+[\t \xa0]*|\t+/g,
+  _lfSpacesRe: <RegExpG> /[\r\n]+[\t \xa0]*/g,
   spacesRe_: <RegExpG> /\s+/g,
   A0Re_: <RegExpG> /\xa0/g,
   _nonENTldRe: <RegExpOne> /[^a-z]/,
@@ -134,8 +134,8 @@ var Utils = {
       return "file://" + str;
     }
     str = oldString.toLowerCase();
-    if ((index = str.indexOf(" ")) > 0) {
-      str = str.substring(0, index);
+    if ((index = str.indexOf(" ") + 1 || str.indexOf("\t") + 1) > 1) {
+      str = str.substring(0, index - 1);
     }
     if ((index = str.indexOf(":")) === 0) { type = Urls.Type.Search; }
     else if (index === -1 || !(this as UtilsTy).protocolRe_.test(str)) {
