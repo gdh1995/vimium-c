@@ -592,30 +592,24 @@ domainEngine = {
   performSearch_ (): void {
     const ref = Utils.domains_ as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP_,
     word = queryTerms[0].toLowerCase();
-    let sug: Suggestion | undefined, result = "", d: Domain = null as Domain | null as Domain, result_score = -1;
-    if (offset > 0) {
-      for (const domain in ref) {
-        if (domain.indexOf(word) !== -1) { offset--; matchedTotal++; break; }
-      }
-      return Completers.next_([]);
-    }
+    let sug: Suggestion | undefined, result = "", matchedDomain: Domain | undefined, result_score = -1;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     for (const domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
-      d = ref[domain];
-      if (showThoseInBlacklist || d.count > 0) {
-        const score = ComputeRelevancy(domain, "", d.time);
+      matchedDomain = ref[domain];
+      if (showThoseInBlacklist || matchedDomain.count > 0) {
+        const score = ComputeRelevancy(domain, "", matchedDomain.time);
         if (score > result_score) { result_score = score; result = domain; }
       }
     }
     let isMainPart = result.length === word.length;
-    if (!isMainPart) {
+    if (result && !isMainPart) {
       if (!result.startsWith("www.") && !result.startsWith(word)) {
         let r2 = result.substring(result.indexOf(".") + 1);
         if (r2.indexOf(word) !== -1) {
           let d2: Domain | undefined;
           r2 = "www." + r2;
-          if ((d2 = ref[r2]) && (showThoseInBlacklist || d2.count > 0)) { result = r2; d = d2; }
+          if ((d2 = ref[r2]) && (showThoseInBlacklist || d2.count > 0)) { result = r2; matchedDomain = d2; }
         }
       }
       let mainLen = result.startsWith(word) ? 0 : result.startsWith("www." + word) ? 4 : -1;
@@ -631,13 +625,18 @@ domainEngine = {
     }
     if (result) {
       matchedTotal++;
-      autoSelect = isMainPart || autoSelect;
-      result = (d.https ? "https://" : "http://") + result;
-      sug = new Suggestion("domain", result, result, "", this.compute2_);
-      prepareHtml(sug);
-      const ind = HistoryCache.binarySearch_(result + "/");
-      ind < 0 || (sug.title = Utils.escapeText_((HistoryCache.history_ as HistoryItem[])[ind].title));
-      --maxResults;
+      result = ((matchedDomain as Domain).https ? "https://" : "http://") + result;
+      const url = result + "/";
+      if (offset > 0) {
+        offset--;
+      } else {
+        autoSelect = isMainPart || autoSelect;
+        sug = new Suggestion("domain", url, result, "", this.compute2_);
+        prepareHtml(sug);
+        const ind = HistoryCache.binarySearch_(url), item = (HistoryCache.history_ as HistoryItem[])[ind];
+        item && (showThoseInBlacklist || item.visible) && (sug.title = Utils.escapeText_(item.title));
+        --maxResults;
+      }
     }
     RankingUtils.maxScoreP_ = p;
     return Completers.next_(sug ? [sug] : []);
