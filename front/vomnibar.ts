@@ -751,7 +751,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
         || this.bodySt_.d != null) {
       return;
     }
-    const styles = (document.querySelector("style") as HTMLStyleElement).textContent,
+    const styles = (document.querySelector("style") || {} as HTMLStyleElement).textContent || "",
     re = <RegExpG & RegExpSearchable<2>> /\.([a-z]+)\s?\{(?:[^}]+;)?\s*d\s?:\s*path\s?\(\s?['"](.+?)['"]\s?\)/g,
     pathMap = Object.create<string>(null);
     let arr: RegExpExecArray | null;
