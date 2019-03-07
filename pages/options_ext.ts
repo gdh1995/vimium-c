@@ -19,7 +19,7 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
     const node2 = VDom.UI.UI && VDom.UI.UI.querySelector("#HelpDialog") as HTMLElement;
     if (!node2) { return; }
     (node2.querySelector("#HClose") as HTMLElement).addEventListener("click", function (): void {
-      window.location.hash = "";
+      location.hash = "";
     });
   }, 100);
 };

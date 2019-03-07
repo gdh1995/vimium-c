@@ -12,7 +12,7 @@ if (BG && !BG.Settings.get_("dialogMode")) {
     r: ReuseType.reuse
   });
 } else if (BG) {
-  window.location.href = BG.Settings.CONST_.OptionsPage_ + "#dialog-ui";
+  location.href = BG.Settings.CONST_.OptionsPage_ + "#dialog-ui";
   return;
 } else {
   chrome.tabs.create({ url: "pages/options.html" });

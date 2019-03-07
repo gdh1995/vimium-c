@@ -521,7 +521,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     });
   }
   if (typeof NO_DIALOG_UI !== "undefined" && NO_DIALOG_UI) { /* empty */ }
-  else if (window.location.hash === "#dialog-ui") {
+  else if (location.hash.toLowerCase() === "#dialog-ui") {
     setUI(null);
   } else if (chrome.tabs.query) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs): void {
@@ -778,7 +778,7 @@ function loadChecker(this: HTMLElement): void {
 }
 
 window.onhashchange = function (this: void): void {
-  let hash = window.location.hash, node: HTMLElement | null;
+  let hash = location.hash, node: HTMLElement | null;
   hash = hash.substring(hash[1] === "!" ? 2 : 1);
   if (!hash && Option_.all_.newTabUrl.previous_ === bgSettings_.CONST_.NewTabForNewUser_) {
     hash = "newTabUrl";

@@ -6,7 +6,7 @@
 VDom.Scripts_ = false;
 (VimiumInjector as VimiumInjector).checkIfEnabled = (function (this: null
     , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
-  func({ H: kFgReq.checkIfEnabled, u: window.location.href });
+  func({ H: kFgReq.checkIfEnabled, u: location.href });
 }).bind(null, (VimiumInjector as VimiumInjector).checkIfEnabled);
 VDom.DocReady_(function () {
   VimiumInjector &&

@@ -1097,7 +1097,7 @@ window.browser && (browser as typeof chrome).runtime && (window.chrome = browser
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.uiComponentIsReady });
     }
   },
-  timer = setTimeout(function () { window.location.href = "about:blank"; }, 700);
+  timer = setTimeout(function () { location.href = "about:blank"; }, 700);
   Vomnibar_.secret_ = function (this: void, request): void {
     Vomnibar_.secret_ = function () { /* empty */ };
     Vomnibar_.browser_ = request.browser;

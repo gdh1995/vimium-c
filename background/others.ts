@@ -555,10 +555,10 @@ Utils.GC_ = function (): void {
     }
     timeout = 0;
     const existing = chrome.extension.getViews
-    ? chrome.extension.getViews().filter(function (wnd): boolean {
-      const path = wnd.location.pathname;
+    ? chrome.extension.getViews().some(function (wnd): boolean {
+      const path = wnd.location.pathname.toLowerCase();
       return path.startsWith("/pages/options") || path.startsWith("/pages/popup");
-    }).length > 0 : false;
+    }) : false;
     if (existing) { return; }
     const hook = Settings.updateHooks_;
     if (Commands) {

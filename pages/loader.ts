@@ -26,7 +26,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     (window as any).VDom && ((window as any).VDom.Scripts_ = false);
   };
   interface BgWindow extends Window { Settings: typeof Settings; }
-  if (location.pathname.indexOf("options") < 0) {
+  if (location.pathname.toLowerCase().indexOf("options") < 0) {
     const bg = chrome.extension.getBackgroundPage() as BgWindow;
     if (bg && bg.Backend && bg.Backend.isDark_()) {
       const style = document.createElement("style");

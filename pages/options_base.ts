@@ -303,7 +303,8 @@ if (bgBrowserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
 
 $<HTMLElement>(".version").textContent = bgSettings_.CONST_.VerName_;
 
-location.pathname.indexOf("/popup.html") !== -1 && BG_.Utils.require_("Exclusions").then((function (callback) {
+location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
+BG_.Utils.require_("Exclusions").then((function (callback) {
   return function () {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
