@@ -120,6 +120,7 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     inNormal: boolean | null = null, autoSelect: boolean = false, singleLine: boolean = false,
     maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
     queryTerms: QueryTerms = [""], rawQuery: string = "", rawMore: string = "",
+    domainToSkip = "",
     phraseBlacklist: string[] | null = null, showThoseInBlacklist: boolean = true;
 
 const Suggestion: SuggestionConstructor = function Suggestion_(
@@ -474,13 +475,14 @@ historyEngine = {
     parts0 = RegExpCache.parts_[0], getRele = ComputeRelevancy;
     let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0)
       , i = 0, j = 0, matched = 0;
+    domainToSkip && maxNum++;
     for (j = maxNum; --j; ) { results.push(0.0, 0.0); }
     maxNum = maxNum * 2 - 2;
     for (const len = history.length; i < len; i++) {
       const item = history[i];
       if (onlyUseTime ? !parts0.test(item.text) : !Match2(item.text, item.title)) { continue; }
-      const score = onlyUseTime ? RankingUtils.recencyScore_(item.time) : getRele(item.text, item.title, item.time);
       if (!(showThoseInBlacklist || item.visible)) { continue; }
+      const score = onlyUseTime ? RankingUtils.recencyScore_(item.time) : getRele(item.text, item.title, item.time);
       matched++;
       if (results[maxNum] >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
@@ -501,7 +503,9 @@ historyEngine = {
       const score = results[i];
       if (score <= 0) { break; }
       const item = history[results[i + 1]];
-      sugs.push(new Suggestion("history", item.url, item.text, item.title, getExtra, score));
+      if (item.url !== domainToSkip) {
+        sugs.push(new Suggestion("history", item.url, item.text, item.title, getExtra, score));
+      }
     }
     Decoder.continueToWork_();
     return sugs;
@@ -574,7 +578,9 @@ historyEngine = {
 
 domainEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if (queryTerms.length !== 1 || queryType === FirstQuery.searchEngines || queryTerms[0].indexOf("/") !== -1) {
+    let i: number;
+    if (queryTerms.length !== 1 || queryType === FirstQuery.searchEngines
+        || (i = queryTerms[0].indexOf("/") + 1) && i < queryTerms[0].length) {
       return Completers.next_([]);
     }
     const cache = HistoryCache;
@@ -591,7 +597,7 @@ domainEngine = {
   } ,
   performSearch_ (): void {
     const ref = Utils.domains_ as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP_,
-    word = queryTerms[0].toLowerCase();
+    word = queryTerms[0].replace("/", "").toLowerCase();
     let sug: Suggestion | undefined, result = "", matchedDomain: Domain | undefined, result_score = -1;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     for (const domain in ref) {
@@ -625,13 +631,13 @@ domainEngine = {
     }
     if (result) {
       matchedTotal++;
-      result = ((matchedDomain as Domain).https ? "https://" : "http://") + result;
-      const url = result + "/";
+      const url = ((matchedDomain as Domain).https ? "https://" : "http://") + result + "/";
+      domainToSkip = url;
       if (offset > 0) {
         offset--;
       } else {
         autoSelect = isMainPart || autoSelect;
-        sug = new Suggestion("domain", url, result, "", this.compute2_);
+        sug = new Suggestion("domain", url, word === queryTerms[0] ? result : result + "/", "", this.compute2_);
         prepareHtml(sug);
         const ind = HistoryCache.binarySearch_(url), item = (HistoryCache.history_ as HistoryItem[])[ind];
         item && (showThoseInBlacklist || item.visible) && (sug.title = Utils.escapeText_(item.title));
@@ -1000,7 +1006,7 @@ Completers = {
   cleanGlobals_ (): void {
     this.mostRecentQuery_ = this.callback_ = inNormal = null;
     queryTerms = [];
-    rawQuery = rawMore = "";
+    rawQuery = rawMore = domainToSkip = "";
     RegExpCache.parts_ = null as never;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     RankingUtils.timeAgo_ = this.sugCounter_ = matchType =
