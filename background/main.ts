@@ -229,7 +229,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     const arr = path.split("/"), last = arr[arr.length - 1];
     if (host === "github.com") {
       if (arr.length === 4) {
-        return last === "pull" ? path + "s"
+        return last === "pull" || last === "milestone" ? path + "s"
           : last === "tree" ? arr.slice(0, 3).join("/")
           : null;
       } else if (arr.length > 4) {

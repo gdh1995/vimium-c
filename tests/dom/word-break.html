@@ -1,32 +1,40 @@
-"use strict";
-/**
- * **C72**:
- * ex-stopped: (0)
- *   stopped-word: 49199 ; matched-non-white: 64240
- * strange chars: 1274
- * ex-skipped: (0)
- *   all-skipped: 21
- * others: 0
- * 
- * **C59**:
- * ex-stopped: (0)
- *   stopped-word: 48467 ; matched-non-white: 64259
- * strange chars: 1255
- * ex-skipped: (0)
- *   all-skipped: 21
- * others: 0
- * 
- * **C58**:
- * ex-stopped: (0)
- *   stopped-word: 48467 ; matched-non-white: 49115
- * strange chars: 4
- * ex-skipped: \u1885\u1886 (2)
- *   all-skipped: 16416
- *   strange-and-non-stopped: 0
- *   new-found-word: \u1885\u1886
- *   unknown-char-may-be-ws:
- * others: 0
- */
+<!DOCTYPE html>
+<html>
+  <head>
+		<meta charset="utf-8">
+		<title>Word Break Test</title>
+  </head>
+  <body>
+    <div id="test" style="direction: ltr !important;"></div>
+    <script type="text/javascript">
+    "use strict";
+/* C72
+ex-stopped: (0)
+  stopped-word: 49199 ; matched-non-white: 64240
+strange chars: 1274
+ex-skipped: (0)
+  all-skipped: 21
+others: 0
+*/
+/* C59
+ex-stopped: (0)
+  stopped-word: 48467 ; matched-non-white: 64259
+strange chars: 1255
+ex-skipped: (0)
+  all-skipped: 21
+others: 0
+*/
+/* C58
+ex-stopped: (0)
+  stopped-word: 48467 ; matched-non-white: 49115
+strange chars: 4
+ex-skipped: \u1885\u1886 (2)
+  all-skipped: 16416
+  strange-and-non-stopped: 0
+  new-found-word: \u1885\u1886
+  unknown-char-may-be-ws:
+others: 0
+*/
 /* C50
 ex-stopped: (0)
   stopped-word: 48470 ; matched-non-white: 48964
@@ -177,4 +185,6 @@ function start() {
 	});
 }
 setTimeout(start, 100);
-
+    </script>
+  </body>
+</html>

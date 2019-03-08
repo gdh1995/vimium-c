@@ -551,7 +551,7 @@ var VVisual = {
             num1 & (/** Node.DOCUMENT_POSITION_CONTAINS */ 8 | /** Node.DOCUMENT_POSITION_CONTAINED_BY */ 16)
             ? sel.getRangeAt(0).endContainer === anchorNode
             : (num1 & /** Node.DOCUMENT_POSITION_PRECEDING */ 2)
-          ) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right; // return `right` in case unknown cases
+          ) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right; // return `right` in case of unknown cases
       }
       num1 = sel.anchorOffset;
       if ((num2 = sel.focusOffset - num1) || anchorNode instanceof Text) {

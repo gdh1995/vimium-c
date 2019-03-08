@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Named Property Test</title>
+    <!-- from https://jsfiddle.net/bvumn4g3/ -->
+  </head>
+<body>
+  <form name="superBug" id="superBug">
+    parentELement: <input type="text" name="parentElement"/><br/>
+    parentNode: <select name="parentNode"><option>this is a select</option></select><br/>
+    <br/>
+    contains: <input type="text" name="contains" /><br/>
+    getBoundingClientRect: <input type="text" name="getBoundingClientRect" /><br/>
+    addEventListener: <input type="text" name="addEventListener" /><br/>
+    dispatchEvent: <input type="text" name="dispatchEvent" /><br/>
+  </form>
+  <pre id="errors">
+  </pre>
+  <script type="text/javascript">
+var superBug = document.getElementById("superBug");
+var msg = "superBug.parentElement is " + superBug.parentElement + "\n";
+msg += "superBug.parentElement.parentElement === superBug : ";
+msg += (superBug.parentElement.parentElement === superBug) + "\n";
+msg += "superBug.parentElement.parentElement.parentElement is ";
+msg += superBug.parentElement.parentElement.parentElement + "\n";
+msg += "superBug.parentElement.parentElement.parentElement.parentElement === superBug : ";
+msg += (superBug.parentElement.parentElement.parentElement.parentElement === superBug) + "\n";
+
+msg += "\n";
+msg += "superBug.parentNode is " + superBug.parentNode + "\n";
+msg += "superBug.parentNode.parentNode === superBug : ";
+msg += (superBug.parentNode.parentNode === superBug) + "\n";
+msg += "superBug.parentNode.parentNode.parentNode is ";
+msg += superBug.parentNode.parentNode.parentNode + "\n";
+
+var functions = "contains getBoundingClientRect addEventListener dispatchEvent";
+functions = functions.split(" ");
+for (var i = 0; i < functions.length; i++) {
+  msg += "\n>>> Now call <form>[\"" + functions[i] + "\"]():\n";
+  try {
+    var expected_false = superBug[functions[i]]();
+    msg += "succeed: result is " + expected_false + "\n";
+  } catch (e) {
+    console.log("failed to call <form>." + functions[i] + " :", e);
+    msg += "ERROR: " + functions[i] + ": " + e + "\n";
+  }
+}
+
+var targets = "parentElement parentNode";
+targets = targets.split(" ");
+for (var i = 0; i < targets.length; i++) {
+  msg += "\n>>> Now call <form>.Node::" + targets[i] + "():\n";
+  try {
+    var desc = Object.getOwnPropertyDescriptor(Node.prototype, targets[i]);
+    var expected_node = desc && desc.get ? desc.get.call(superBug) : null;
+    msg += "Node::" + targets[i] + "(): result is " + expected_node + "\n";
+  } catch (e) {
+    console.log("failed to call <form>.Node::" + targets[i] + "() :", e);
+    msg += "ERROR: Node::" + targets[i] + "(): " + e + "\n";
+  }
+}
+
+document.getElementById("errors").textContent = msg;
+  </script>
+</body>
+</html>

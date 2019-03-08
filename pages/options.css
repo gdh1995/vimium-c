@@ -309,18 +309,17 @@ label:active {
   width: 33%;
 }
 .exclusionRemoveTd {
-  vertical-align: middle;
-  width: 22px;
+  width: 20px;
 }
 .exclusionRemoveButton {
   border: none;
   background: none;
   color: #979ca0;
   cursor: default;
-  font-size: small;
+  font-size: 13px;
   font-family: "Segoe UI Symbol", monospace;
   line-height: 12px;
-  padding: 5px;
+  padding: 5px 4px 5px 3px;
   -webkit-user-select: none;
   user-select: none;
 }
