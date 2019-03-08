@@ -268,7 +268,7 @@ interface Hint5 extends Hint4 {
 }
 
 declare const enum AdjustType {
-  /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#VDom.UI.css_ : Promise.resolve} */
+  /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#VDom.UI.add_ : VDom.UI.css_} */
   Normal = 0,
   MustAdjust = 1,
   NotAdjust = 2,
