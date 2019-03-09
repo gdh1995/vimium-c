@@ -1,25 +1,25 @@
 /// <reference no-default-lib="true"/>
 /// <reference path="../types/base/index.d.ts" />
 
-type primitiveObject = boolean | number | string;
-type primitive = primitiveObject | null | undefined;
-type ObjectCoercible = primitiveObject | {
-    toString: () => primitive,
-  } | {
-    valueOf: () => primitive,
-  };
-type anyNotSymbol = ObjectCoercible | null | undefined;
-interface String {
-  endsWith(this: string, searchString: string, pos?: number | undefined): boolean;
-  endsWith(this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
-  startsWith(this: string, searchString: string, pos?: number | undefined): boolean;
-  startsWith(this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
-}
-
 (function (): void {
+  type primitiveObject = boolean | number | string;
+  type primitive = primitiveObject | null | undefined;
+  type ObjectCoercible = primitiveObject | {
+      toString: () => primitive,
+    } | {
+      valueOf: () => primitive,
+    };
+  type anyNotSymbol = ObjectCoercible | null | undefined;
+  interface StandardString {
+    endsWith(this: string, searchString: string, pos?: number | undefined): boolean;
+    endsWith(this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
+    startsWith(this: string, searchString: string, pos?: number | undefined): boolean;
+    startsWith(this: ObjectCoercible, searchString?: anyNotSymbol, pos?: anyNotSymbol): boolean;
+  }
+
   const symMatch = typeof Symbol === "function" && typeof Symbol.match === "symbol" &&
                     Symbol.match as symbol | string | false as "Symbol(Symbol.match)" | false,
-  S = String, RE = RegExp, TE = TypeError;
+  S = String as StringConstructor & { readonly prototype: StandardString }, RE = RegExp, TE = TypeError;
 
   "".startsWith || (
   S.prototype.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {

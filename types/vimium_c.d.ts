@@ -343,7 +343,7 @@ declare const enum BrowserVer {
   MinShadowDOMV0 = 35, // ensured
   MinSupported = MinShadowDOMV0,
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
-  MinES6WeakMap = 36,
+  MinEnsuredES6WeakMap = 36,
   // but shadowRoot.getElementById still exists on C35
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEAGCY
   MinSession = 37,
