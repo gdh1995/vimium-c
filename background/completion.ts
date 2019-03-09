@@ -1,11 +1,10 @@
-import Domain = CompletersNS.Domain;
 import MatchType = CompletersNS.MatchType;
 
 setTimeout(function (): void {
+type Domain = CompletersNS.Domain;
+
 const enum TimeEnums {
-  Scale = 1024, // upper limit is 2039-09-07T15:47:35.552Z
-  TimeBase = 1218196800512 / Scale, // 2008-08-08 20:00:00.512
-  timeCalibrator = 1000 * 3600 * 24 * 21 / Scale, // 21 days
+  timeCalibrator = 1814400000, // 21 days
 }
 const enum RankingEnums {
   recCalibrator = 2 / 3,
@@ -932,7 +931,7 @@ Completers = {
       searchEngine.preFilter_(query);
       i = 1;
     }
-    RankingUtils.timeAgo_ = (Date.now() / TimeEnums.Scale - TimeEnums.TimeBase - TimeEnums.timeCalibrator) | 0;
+    RankingUtils.timeAgo_ = Date.now() - TimeEnums.timeCalibrator;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore * queryTerms.length || 0.01;
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(this.protoRe_, " __proto_").trimLeft().split(" ");
@@ -1156,7 +1155,7 @@ knownCs: CompletersMap & SafeObject = {
         (arr as HistoryItem[])[i] = {
           text: j.url,
           title: j.title || "",
-          time: (j.lastVisitTime / TimeEnums.Scale - TimeEnums.TimeBase) | 0,
+          time: j.lastVisitTime,
           visible: kVisibility.visible,
           url: j.url
         };
@@ -1203,7 +1202,7 @@ knownCs: CompletersMap & SafeObject = {
       const j: HistoryItem = i >= 0 ? (_this.history_ as HistoryItem[])[i] : {
         text: "",
         title,
-        time: (time / TimeEnums.Scale - TimeEnums.TimeBase) | 0,
+        time,
         visible: phraseBlacklist ? BlacklistFilter.TestNotMatched_(url, title) : kVisibility.visible,
         url
       };
@@ -1220,7 +1219,7 @@ knownCs: CompletersMap & SafeObject = {
         }
       }
       if (i >= 0) {
-        j.time = (time / TimeEnums.Scale - TimeEnums.TimeBase) | 0;
+        j.time = time;
         if (title && title !== j.title) {
           j.title = title;
           if (phraseBlacklist) {
