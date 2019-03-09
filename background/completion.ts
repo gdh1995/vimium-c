@@ -1430,7 +1430,7 @@ knownCs: CompletersMap & SafeObject = {
           _this._ind = -1;
           return;
         }
-        xhr.open("GET", _this._dataUrl + (Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL 
+        xhr.open("GET", _this._dataUrl + (Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
             || _this._escapeHash ? str.replace("#", "%25") : str), true);
         return xhr.send();
       }
