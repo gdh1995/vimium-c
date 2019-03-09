@@ -14,7 +14,8 @@ interface BgWindow extends Window {
 }
 
 declare var browser: unknown;
-if (typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
+if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+    : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
 }
 const KeyRe_ = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
@@ -66,7 +67,7 @@ debounce_ = function<T> (this: void, func: (this: T) => void
 var $ = function<T extends HTMLElement>(selector: string): T { return document.querySelector(selector) as T; }
   , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow;
 let bgSettings_ = BG_.Settings;
-const bgOnOther = BG_.OnOther, bgBrowserVer = BG_.ChromeVer;
+const bgOnOther_ = BG_.OnOther, bgBrowserVer_ = BG_.ChromeVer;
 
 abstract class Option_<T extends keyof AllowedOptions> {
   readonly element_: HTMLElement;
@@ -283,17 +284,20 @@ timer_?: number;
 ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
-if (bgBrowserVer >= BrowserVer.MinSmartSpellCheck) {
+if (Build.MinCVer >= BrowserVer.MinSmartSpellCheck || bgBrowserVer_ >= BrowserVer.MinSmartSpellCheck) {
   (document.documentElement as HTMLElement).removeAttribute("spellcheck");
 }
 
-if (bgBrowserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-  || window.devicePixelRatio < 2 && bgBrowserVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+      && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
+  || window.devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+      || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
 ) { (function (): void {
-  const css = document.createElement("style"), ratio = window.devicePixelRatio, version = bgBrowserVer;
-  const onlyInputs = version >= BrowserVer.MinRoundedBorderWidthIsNotEnsured && ratio >= 1;
-  let scale: string | number = onlyInputs || version >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-        ? 1 / ratio : 1;
+  const css = document.createElement("style"), ratio = window.devicePixelRatio;
+  const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+      || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
+  let scale: string | number = Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+      || onlyInputs || bgBrowserVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
   scale = scale + 0.00000999;
   scale = ("" + scale).substring(0, 7).replace(<RegExpOne> /\.?0+$/, "");
   css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
@@ -333,7 +337,8 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     if (!curTab || !curTab.url || !(curTab.url.lastIndexOf("http", 0) === 0
         || curTab.url.lastIndexOf("ftp", 0) === 0)) {
       refreshTip.remove();
-    } else if (bgOnOther === BrowserType.Edge) {
+    } else if (Build.BTypes & BrowserType.Edge
+        && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)) {
       (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page";
     }
     body.style.width = "auto";
@@ -504,7 +509,10 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     exclusions.inited_ = 3;
     updateState(true);
     (saveBtn.firstChild as Text).data = "Saved";
-    if (bgOnOther === BrowserType.Firefox) { saveBtn.blur(); }
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+      saveBtn.blur();
+    }
     saveBtn.disabled = true;
     saved = true;
   }

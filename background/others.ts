@@ -213,7 +213,7 @@ setTimeout(function () {
   } as IconNS.AccessIconBuffer;
   Backend.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
-    if (OnOther === BrowserType.Edge) {
+    if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
       path = Settings.icons_[type];
       chrome.browserAction.setIcon({ tabId, path });
       return;
@@ -258,18 +258,21 @@ setTimeout(function () {
     sessionId?: number | string;
   }
   type SubInfoMap = SafeDict<SubInfo>;
+  const onDel = chrome.omnibox.onDeleteSuggestion,
+  wantDeletable = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
+      || !!onDel && typeof onDel.addListener === "function";
   let last: string | null = null, firstResultUrl: string = "", lastSuggest: SuggestCallback | null = null
     , timer = 0, subInfoMap: SubInfoMap | null = null
     , maxChars = OmniboxData.DefaultMaxChars
     , suggestions: chrome.omnibox.SuggestResult[] | null = null, cleanTimer = 0, inputTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
-    // since BrowserVer.MinOmniboxSupportDeletable
-    , wantDeletable = chrome.omnibox.onDeleteSuggestion
-        && typeof chrome.omnibox.onDeleteSuggestion.addListener === "function"
     , firstType: CompletersNS.ValidTypes | "";
   const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
-  matchTagRe = OnOther === BrowserType.Firefox ? <RegExpG> /<\/?match>/g : null as never,
-  maxResults = ChromeVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
+  matchTagRe = Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+      ? <RegExpG> /<\/?match>/g : null as never,
+  maxResults = Build.MinCVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12
+      && ChromeVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
   ;
   function clean(): void {
     if (lastSuggest) { lastSuggest.suggest = null; }
@@ -328,7 +331,8 @@ setTimeout(function () {
         info.type = <SubInfo["type"]> type;
         tail = ` ~${i + di}~`;
       }
-      if (OnOther === BrowserType.Firefox) {
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
         tail = (sugItem.textSplit as string).replace(matchTagRe, "")
           + (title && " - " + title.replace(matchTagRe, "")) + tail;
       } else {
@@ -461,8 +465,7 @@ setTimeout(function () {
   });
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
-  wantDeletable &&
-  (chrome.omnibox.onDeleteSuggestion as chrome.omnibox.OmniboxDeleteSuggestionEvent).addListener(function (text): void {
+  wantDeletable && (onDel as NonNullable<typeof onDel>).addListener(function (text): void {
     // tslint:disable-next-line: radix
     const ind = parseInt(text.substring(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
     let url = suggestions && suggestions[ind].content, info = url && subInfoMap && subInfoMap[url],

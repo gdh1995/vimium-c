@@ -2,8 +2,10 @@
 var VDom = {
   UI: null as never as DomUI,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
-  Scripts_: true,
+  allowScripts_: true,
   allowRAF_: true,
+  specialZoom_: true,
+  docSelectable_: true,
   isHTML_ (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   createElement_<K extends VimiumContainerElementType> (tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement {
     const d = document, a = this,
@@ -36,6 +38,9 @@ var VDom = {
     addEventListener("DOMContentLoaded", eventHandler, true);
   },
   parentFrame_(): SafeElement | null {
+    if (Build.MinCVer >= BrowserVer.MinSafeGlobal$frameElement) {
+      return window.frameElement as SafeElement | null;
+    }
     try {
       return window.frameElement as SafeElement | null;
     } catch {
@@ -98,10 +103,13 @@ var VDom = {
   },
   scrollingEl_ (fallback?: 1): ((HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement) | null {
     let d = document, el = d.scrollingElement, docEl = d.documentElement;
-    el === undefined && (el = d.compatMode === "BackCompat" ? d.body : docEl);
-    /** @see {@link BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset}  */
-    el = el instanceof HTMLFrameSetElement ? null : el;
-    return fallback ? el || docEl : el;
+    if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement) {
+      el === undefined && (el = d.compatMode === "BackCompat" ? d.body : docEl);
+    }
+    if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset) {
+      el = el instanceof HTMLFrameSetElement ? null : el;
+    }
+    return (fallback ? el || docEl : el) as (HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement | null;
   },
   /**
    * other parts of code require that prepareCrop only depends on @dbZoom
@@ -232,7 +240,6 @@ var VDom = {
     (element: HTMLElementUsingMap, output: Hint5[]): void;
   },
   paintBox_: null as [number, number] | null, // it may need to use `paintBox[] / <body>.zoom`
-  specialZoom_: false,
   wdZoom_: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
   dbZoom_: 1, // absolute zoom value of <html> * <body>
   dScale_: 1, // <html>.transform:scale (ignore the case of sx != sy)
@@ -248,7 +255,8 @@ var VDom = {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
       , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = document.webkitFullscreenElement;
-    Math.abs(zoom - ratio) < 1e-5 && this.specialZoom_ && (zoom = 1);
+    Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
+      && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || this.specialZoom_) && (zoom = 1);
     if (target) {
       const body = el ? null : document.body;
       // if fullscreen and there's nested "contain" styles,
@@ -283,7 +291,8 @@ var VDom = {
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
     let zoom = +st.zoom || 1;
-    Math.abs(zoom - ratio) < 1e-5 && this.specialZoom_ && (zoom = 1);
+    Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
+      && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || this.specialZoom_) && (zoom = 1);
     this.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
     this.dbZoom_ = zoom * zoom2;
     let x = stacking ? -box.clientLeft : float(st.marginLeft)
@@ -332,6 +341,7 @@ var VDom = {
     return ty === VisibilityType.Visible;
   },
   scrollWndBy_ (left: number, top: number): void {
+    !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
     HTMLElement.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
   },
   NotVisible_: function (this: void, element: Element | null, rect?: ClientRect): VisibilityType {
@@ -345,7 +355,7 @@ var VDom = {
   },
   isInDOM_ (element: Element, root?: HTMLBodyElement | HTMLFrameSetElement | Document): boolean {
     if (!root) {
-      const isConnected = element.isConnected; // Min$Node$$isConnected
+      const isConnected = element.isConnected; /** {@link BrowserVer.Min$Node$$isConnected} */
       if (isConnected === !!isConnected) { return isConnected; } // is boolean : exists and is not overridden
     }
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
@@ -399,13 +409,14 @@ var VDom = {
     <Ty extends 1>(element: Element): element is LockableElement;
     <Ty extends LockableElement>(element: EventTarget): element is Ty;
   },
-  /** @see `Browser.Min$selectionStart$MayBeNull` */
   isInputInTextMode_ (el: HTMLInputElement | HTMLTextAreaElement): boolean | void {
+    if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull) {
+      return el.selectionEnd != null;
+    }
     try {
       return el.selectionEnd != null;
     } catch {}
   },
-  docSelectable_: true,
   isSelected_ (): boolean {
     const element = document.activeElement as Element, sel = getSelection(), node = sel.anchorNode;
     // only <form>, <select>, Window has index getter, so `=== node.childNodes[i]` is safe

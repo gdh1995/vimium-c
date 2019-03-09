@@ -720,20 +720,24 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     (document.getElementById("close") as HTMLElement).onclick = function (): void { return Vomnibar_.hide_(); };
     addEventListener("keydown", this.HandleKeydown_, true);
     this.renderItems_ = VUtils_.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
-    if (ver >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
+    if (Build.MinCVer >= BrowserVer.MinSpecCompliantShadowBlurRadius
+        || ver >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
       const css = document.querySelector("style") as HTMLStyleElement;
       if (css) {
         css.textContent = css.textContent.replace("0 2px 10px", "0 2px 7px");
       }
     }
-    if (ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured) {
+    if (Build.MinCVer < BrowserVer.MinRoundedBorderWidthIsNotEnsured
+        && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured) {
       const css = document.createElement("style");
       css.type = "text/css";
       css.textContent = `.item, #input { border-width: ${
+          Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
           ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
-    if (ver < BrowserVer.Min$KeyboardEvent$$isComposing) {
+    if (Build.MinCVer < BrowserVer.Min$KeyboardEvent$$isComposing
+        && ver < BrowserVer.Min$KeyboardEvent$$isComposing) {
       let func = function (this: void, event: CompositionEvent): void {
         if (Vomnibar_.isInputComposing_ = event.type === "compositionstart") {
           Vomnibar_.lastNormalInput_ = Vomnibar_.input_.value.trim();
@@ -747,7 +751,10 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.darkBtn_ && (this.darkBtn_.onclick = this.ToggleDark_);
     this.onStyleUpdate_(this.customClassName_);
     this.init_ = VUtils_.makeListRenderer_ = null as never;
-    if (ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute && this.browser_ === BrowserType.Chrome
+    if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute
+        || (Build.MinCVer >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute
+                || ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute)
+            && (!(Build.BTypes & ~BrowserType.Chrome) || this.browser_ === BrowserType.Chrome)
         || this.bodySt_.d != null) {
       return;
     }
@@ -780,9 +787,12 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   getTypeIcon_ (sug: Readonly<SuggestionE>): string { return sug.type; },
   setPType_ (type: VomnibarNS.PageType): void {
     this.pageType_ = type;
-    let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
-      , canShowOnOthers = this.browserVersion_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
-    if (this.browser_ !== BrowserType.Chrome || type === VomnibarNS.PageType.web
+    let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
+    const canShowOnOthers = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
+          || this.browserVersion_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
+    if (( !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+          : this.browser_ !== BrowserType.Chrome)
+        || type === VomnibarNS.PageType.web
         || location.origin.indexOf("-") < 0) { /* empty */ }
     else if (type === VomnibarNS.PageType.inner) {
       fav = canShowOnOthers || this.sameOrigin_ ? 2 : 0;
@@ -818,9 +828,10 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   _realDevRatio: 0,
   setWidth_ (w?: number): void {
-    let mayHasWrongWidth
-          = this.browserVersion_ === BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
-      , msg = "", r: number, zoom = this.zoomLevel_;
+    const zoom = this.zoomLevel_,
+    mayHasWrongWidth = Build.MinCVer <= BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
+      && this.browserVersion_ === BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1;
+    let msg = "", r: number;
     if (!mayHasWrongWidth) { /* empty */ }
     else if (r = this._realDevRatio) {
       // now we has real screen device pixel ratio (of not Chrome but Windows)
@@ -830,15 +841,15 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       // the line below is just in case of wrong usages of @setWidth
       w = w || parseFloat(this.bodySt_.width) || innerWidth;
       msg = w / zoom + "px";
-      this.fixRatio_(w as number);
+      (this as EnsureNonNull<typeof Vomnibar_>).fixRatio_(w as number);
     }
     this.mode_.c = Math.round(((w || innerWidth) / zoom - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
     if (mayHasWrongWidth) {
       (document.documentElement as HTMLHtmlElement).style.width = msg;
     }
   },
-  fixRatio_ (w: number): void {
-    // this function is only for BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
+  fixRatio_: Build.MinCVer <= BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1 ? null
+      : function (w: number): void {
     let tick = 0, timer = setInterval(function (): void {
       const iw = innerWidth, a = Vomnibar_;
       if (iw > 0 || tick++ > 15) {
@@ -1051,7 +1062,10 @@ VPort_ = {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
-window.browser && (browser as typeof chrome).runtime && (window.chrome = browser as typeof chrome);
+if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+    : window.browser && (browser as typeof chrome).runtime) {
+  window.chrome = browser as typeof chrome;
+}
 (function (): void {
   if ((document.documentElement as HTMLElement).dataset.version !== "1.72") {
     location.href = "about:blank";

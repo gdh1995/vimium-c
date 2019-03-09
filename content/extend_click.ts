@@ -167,8 +167,9 @@ _listen("DOMContentLoaded", handler, true);
   }).toString() + ")();"
     , appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0
-    , safeRAF = VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage
     ;
+  Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage &&
+    (VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage);
   // the block below is also correct on Edge
   if (appVer >= BrowserVer.MinEnsureMethodFunction && appVer) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
@@ -188,7 +189,8 @@ _listen("DOMContentLoaded", handler, true);
   d.insertBefore(script, d.firstChild);
   VDom.DocReady_(function () { box === null && setTimeout(function () { box || destroyServer(); }, 17); });
   if (!script.parentNode) { // It succeeded to hook.
-    safeRAF || requestAnimationFrame(() => { VDom.allowRAF_ = true; });
+    Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage ||
+    VDom.allowRAF_ || requestAnimationFrame(() => { VDom.allowRAF_ = true; });
     return;
   }
   // else: sandboxed or JS-disabled
@@ -201,7 +203,7 @@ _listen("DOMContentLoaded", handler, true);
     VSettings.destroy_(true);
     return;
   }
-  VDom.Scripts_ = false;
+  VDom.allowScripts_ = false;
   interface TimerLib extends Window {
     setInterval: typeof setInterval;
     setTimeout: typeof setTimeout | (
@@ -211,7 +213,7 @@ _listen("DOMContentLoaded", handler, true);
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
-    return VDom && VDom.allowRAF_
+    return (Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage || VDom && VDom.allowRAF_)
       ? f && !(f instanceof Element) ? f(cb, { timeout }) : requestAnimationFrame(cb)
       : (Promise.resolve(1).then(cb), 1);
   };

@@ -3,9 +3,11 @@
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
+/// <reference path="../lib/dom_utils.ts" />
 declare var browser: unknown;
 var VimiumInjector: VimiumInjector | undefined | null = null;
-if (typeof browser !== "undefined" && browser && (browser as any).runtime) {
+if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+    : typeof browser !== "undefined" && browser && (browser as any).runtime) {
   window.chrome = browser as typeof chrome;
 }
 window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
@@ -23,7 +25,8 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
   }
   scripts[scripts.length - 1].onload = function (): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
-    (window as any).VDom && ((window as any).VDom.Scripts_ = false);
+    const dom = (window as any).VDom as typeof VDom | undefined;
+    dom && (dom.allowScripts_ = false);
   };
   interface BgWindow extends Window { Settings: typeof Settings; }
   if (location.pathname.toLowerCase().indexOf("options") < 0) {

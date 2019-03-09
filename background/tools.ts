@@ -7,7 +7,8 @@ const Clipboard_ = {
     el.style.position = "absolute";
     el.style.left = "-99px";
     el.style.width = "0";
-    OnOther === BrowserType.Firefox && (el.contentEditable = "true");
+    Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+      && (el.contentEditable = "true");
     this.getTextArea_ = () => el;
     return el;
   },
@@ -28,10 +29,11 @@ const Clipboard_ = {
     Utils.resetRe_();
     return copied;
   },
-  paste_: Settings.CONST_.AllowClipboardRead_ ? OnOther === BrowserType.Firefox && navigator.clipboard
-  ? function (this: object): Promise<string> {
-    type Clipboard = EnsureNonNull<Navigator["clipboard"]>;
-    return (navigator.clipboard as Clipboard).readText().then((this as typeof Clipboard_).reformat_);
+  paste_: Settings.CONST_.AllowClipboardRead_
+    ? Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+  ? function (this: object): Promise<string> | null {
+    const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
+    return clipboard ? clipboard.readText().then((this as typeof Clipboard_).reformat_) : null;
   } : function (this: object): string {
     const textArea = (this as typeof Clipboard_).getTextArea_();
     textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
@@ -66,7 +68,8 @@ ContentSettings_ = {
   },
   parsePattern_ (this: void, pattern: string, level: number): string[] {
     if (pattern.startsWith("file:")) {
-      const a = ChromeVer >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
+      const a = Build.MinCVer >= BrowserVer.MinFailToToggleImageOnFileURL
+          || ChromeVer >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
       if (a) {
         Backend.complain_(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}`
           : "set CS of file folders");
@@ -433,7 +436,7 @@ IncognitoWatcher_ = {
   },
   TestIncognitoWnd_ (this: void): void {
     IncognitoWatcher_.timer_ = 0;
-    if (ChromeVer >= BrowserVer.MinNoUnmatchedIncognito) {
+    if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito) {
       let left = false, arr = Backend.indexPorts_();
       for (const i in arr) {
         if ((arr[+i] as Frames.Frames)[0].s.a) { left = true; break; }
@@ -511,10 +514,11 @@ setTimeout(function () {
   }
 }, 120);
 
-Utils.copy_ = OnOther === BrowserType.Firefox && navigator.clipboard
-? function (this: void, data: string): Promise<void> {
-  type Clipboard = EnsureNonNull<Navigator["clipboard"]>;
-  return (navigator.clipboard as Clipboard).writeText(Clipboard_.format_(data));
+Utils.copy_ = Build.BTypes & BrowserType.Firefox
+    && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+? function (this: void, data: string): void {
+  const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
+  clipboard && clipboard.writeText(Clipboard_.format_(data));
 } : function (this: void, data: string): void {
   data = Clipboard_.format_(data);
   const textArea = Clipboard_.getTextArea_();

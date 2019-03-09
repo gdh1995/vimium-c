@@ -129,8 +129,10 @@ var Settings = {
       const cacheId = (this as typeof Settings).CONST_.StyleCacheId_,
       browserVer = ChromeVer,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
-      hasAll = browserInfo.lastIndexOf("a") >= 0;
-      if (browserVer < BrowserVer.MinUnprefixedUserSelect || OnOther === BrowserType.Firefox) {
+      hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All
+          || browserInfo.lastIndexOf("a") >= 0;
+      if (Build.MinCVer < BrowserVer.MinUnprefixedUserSelect && browserVer < BrowserVer.MinUnprefixedUserSelect
+          || OnOther === BrowserType.Firefox) {
         css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
       }
       const findOffset = css.lastIndexOf("/*#find*/");
@@ -140,22 +142,27 @@ var Settings = {
         // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCSSMeansNothing
         // in case that ":host" is set [style="all:unset"]
         const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2),
-        ind3 = browserVer >= BrowserVer.MinEnsuredSafeInnerCSS ? css.indexOf(";", ind2) : css.length;
+        ind3 = Build.MinCVer >= BrowserVer.MinEnsuredSafeInnerCSS || browserVer >= BrowserVer.MinEnsuredSafeInnerCSS
+          ? css.indexOf(";", ind2) : css.length;
         css = css.substring(0, ind1 + 1) + css.substring(ind2, ind3 + 1)
             + css.substring(css.indexOf("\n", ind3) + 1 || css.length);
       } else {
         css = css.replace(<RegExpOne> /all:\s?\w+;?\n?/, "");
       }
-      if (browserVer >= BrowserVer.MinEnsuredDisplayContents && OnOther !== BrowserType.Edge) {
+      if ((Build.MinCVer >= BrowserVer.MinEnsuredDisplayContents || browserVer >= BrowserVer.MinEnsuredDisplayContents)
+          && !(Build.BTypes & BrowserType.Edge
+                && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))) {
         const ind2 = css.indexOf("display:"), ind1 = css.lastIndexOf("{", ind2);
         css = css.substring(0, ind1 + 1) + css.substring(ind2);
       } else {
         css = css.replace("contents", "block");
       }
-      if (browserVer >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
+      if (Build.MinCVer >= BrowserVer.MinSpecCompliantShadowBlurRadius
+          || browserVer >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
         css = css.replace("3px 7px", "3px 5px");
       }
-      if (browserInfo.lastIndexOf("s") < 0) {
+      if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0)
+          && browserInfo.lastIndexOf("s") < 0) {
         // Note: &vimium.min.css: this requires `:host{` is at the beginning
         const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1,
         prefix = "#VimiumUI";
@@ -171,7 +178,8 @@ var Settings = {
       css = cacheId + css.length + "\n" + css;
       const css2 = (this as typeof Settings).parseCustomCSS_((this as typeof Settings).get_("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
-      if (browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
+      if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+          && browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css = css.replace(<RegExpG> /\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$11px \/\*!DPI\*\/");
       }
       localStorage.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
@@ -231,7 +239,8 @@ var Settings = {
       } else {
         url = Utils.convertToUrl_(url);
         url = Utils.reformatURL_(url);
-        if (!url.startsWith(BrowserProtocol_) && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+        if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
+            && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg && !url.startsWith(BrowserProtocol_)) {
           url = (this as typeof Settings).CONST_.VomnibarPageInner_;
         } else {
           url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST_.VerCode_));
@@ -385,7 +394,10 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
   (Settings.payload_ as Writeable<SettingsNS.FrontendConsts>).onMac_ = os === types.MAC || (os === types.WIN && 0);
 }) : (Settings.CONST_.Platform_ = OnOther === BrowserType.Edge ? "win" : "unknown");
 
-(OnOther || ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) && !function (): boolean | void {
+((Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
+   || (Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      && ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp)) &&
+!function (): boolean | void {
   try {
     return new RegExp("\\p{L}", "u").test("a");
   } catch {}
@@ -403,14 +415,19 @@ Settings.CONST_.WordsRe_ = "";
   // on Edge, https://www.msn.cn/spartan/ntp also works with some complicated search parameters
   // on Firefox, both "about:newtab" and "about:home" work,
   //   but "about:newtab" skips extension hooks and uses last configured URL, so it's better.
-  CommonNewTab = OnOther === BrowserType.Edge ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
+  CommonNewTab = Build.BTypes & BrowserType.Edge
+      && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
+    ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
   ref3 = settings.newTabs_ as SafeDict<Urls.NewTabType>;
   function func(path: string): string {
     return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
-  (defaults as SettingsWithDefaults).newTabUrl = OnOther ? CommonNewTab : newtab ? obj.NtpNewTab_ : ChromeNewTab;
+  (defaults as SettingsWithDefaults).newTabUrl = (Build.BTypes & ~BrowserType.Chrome
+      && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
+    ? CommonNewTab : newtab ? obj.NtpNewTab_ : ChromeNewTab;
   ref3[CommonNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
-  OnOther || (ref3[ChromeNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
+  (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
+    (ref3[ChromeNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
   newtab && (ref3[func(obj.VimiumNewTab_ = newtab)] = Urls.NewTabType.vimium);
   obj.GlobalCommands_ = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
   obj.VerCode_ = ref.version;
@@ -422,8 +439,9 @@ Settings.CONST_.WordsRe_ = "";
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
   obj.HomePage_ = ref.homepage_url || obj.HomePage_;
   ref2.push(obj.InjectEnd_);
-  if ("".startsWith.name !== "startsWith"
-      && ChromeVer < BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1) {
+  if (Build.MinCVer < BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1
+      && ChromeVer < BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1
+      && "".startsWith.name !== "startsWith") {
     ref2.unshift(obj.PolyFill_);
   }
   obj.ContentScripts_ = ref2.map(func);
@@ -437,9 +455,14 @@ Settings.CONST_.WordsRe_ = "";
   if (localStorage.length <= 0) {
     settings.set_("newTabUrl", obj.NewTabForNewUser_);
   }
-  const hasAll = ChromeVer > BrowserVer.MinSafeCSS$All && "all" in (document.documentElement as HTMLElement).style;
   obj.StyleCacheId_ = obj.VerCode_ + "," + ChromeVer
-    + (window.ShadowRoot ? "s" : "") + (hasAll ? "a" : "") + ",";
+    + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || window.ShadowRoot ? "s" : "")
+    + ((Build.MinCVer > BrowserVer.MinSafeCSS$All || ChromeVer > BrowserVer.MinSafeCSS$All)
+        && (!(Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))
+          || "all" in (document.documentElement as HTMLElement).style)
+      ? "a" : "")
+    + ",";
   const innerCSS = localStorage.getItem("innerCSS");
   if (innerCSS && innerCSS.startsWith(obj.StyleCacheId_)) {
     settings.postUpdate_("innerCSS", innerCSS);

@@ -88,7 +88,9 @@ var VFind = {
       if (VFind._actived && event.target === this) {
         VEvent.OnWndFocus_();
       }
-      VSettings.cache.browser_ === BrowserType.Firefox || VUtils.Stop_(event);
+      Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VUtils.cache_.browser_ === BrowserType.Firefox)
+        || VUtils.Stop_(event);
     }, t);
     box.onload = later ? null as never : function (): void {
       this.onload = null as never; VFind.onLoad2_(this.contentWindow);
@@ -390,7 +392,8 @@ var VFind = {
     a.wholeWord_ = false;
     a.isRegex_ = a.ignoreCase_ = null as boolean | null;
     query = query.replace(a._ctrlRe, a.FormatQuery_);
-    const supportWholeWord = VSettings.cache.browser_ === BrowserType.Chrome;
+    const supportWholeWord = !!(Build.BTypes & BrowserType.Chrome)
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VUtils.cache_.browser_ === BrowserType.Chrome);
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b";
     if (isRe === null && !ww) {
       isRe = VUtils.cache_.regexFindMode;
@@ -476,7 +479,8 @@ var VFind = {
     options.noColor || this.ToggleStyle_(0);
     back && (count = -count);
     const isRe = this.isRegex_, pR = this.parsedRegexp_;
-    const focusHUD = VSettings.cache.browser_ === BrowserType.Firefox
+    const focusHUD = !!(Build.BTypes & BrowserType.Firefox)
+      && (!(Build.BTypes & ~BrowserType.Firefox) || VUtils.cache_.browser_ === BrowserType.Firefox)
       && this.isActive_ && this.box_.contentDocument.hasFocus();
     do {
       q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches_(back) : this.parsedQuery_;

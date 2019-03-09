@@ -310,7 +310,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     if (this.locked_) { return; }
     if (this.saved_ = this.areEqual_(this.readValueFromElement_(), this.previous_)) {
       if (status && !Option_.needSaveOptions_()) {
-        if (bgOnOther === BrowserType.Firefox) { saveBtn.blur(); }
+        if (Build.BTypes & BrowserType.Firefox
+            && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+          saveBtn.blur();
+        }
         saveBtn.disabled = true;
         (saveBtn.firstChild as Text).data = "No Changes";
         exportBtn.disabled = false;
@@ -325,7 +328,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     status = true;
     saveBtn.disabled = false;
     (saveBtn.firstChild as Text).data = "Save Changes";
-    if (bgOnOther === BrowserType.Firefox) { exportBtn.blur(); }
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+      exportBtn.blur();
+    }
     exportBtn.disabled = true;
   }
 
@@ -337,7 +343,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
     const toSync = Option_.syncToFrontend_;
     Option_.syncToFrontend_ = [];
-    if (bgOnOther === BrowserType.Firefox) { this.blur(); }
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+      this.blur();
+    }
     this.disabled = true;
     (this.firstChild as Text).data = "Saved";
     exportBtn.disabled = false;
@@ -509,9 +518,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     };
     element2.style.display = "";
     (element2.nextElementSibling as Element).remove();
-    if (bgBrowserVer >= BrowserVer.MinCorrectBoxWidthForOptionUI
-        // not reset body width if not on Chrome
-        || location.protocol !== "chrome-extension:") { return; }
+    if (Build.MinCVer >= BrowserVer.MinCorrectBoxWidthForOptionUI
+        || !(Build.BTypes & BrowserType.Chrome)
+        || bgBrowserVer_ >= BrowserVer.MinCorrectBoxWidthForOptionUI) { return; }
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
     chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function (zoom): void {
       // >= BrowserVer.Min$Tabs$$getZoom
@@ -549,7 +558,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   Option_.all_.vomnibarPage.onSave_ = function (): void {
     let {element_: element2} = this, url: string = this.previous_
       , isExtPage = !url.lastIndexOf(location.protocol, 0) || !url.lastIndexOf("front/", 0);
-    if (bgBrowserVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+    if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
+        && bgBrowserVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
       element2.style.textDecoration = isExtPage ? "" : "line-through";
       return this.showError_(
         url === bgSettings_.defaults_.vomnibarPage ? ""
@@ -638,7 +648,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   element = $<HTMLAnchorElement>("#openExtensionPage");
-  if (bgBrowserVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
+  if (Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
+      && bgBrowserVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
     (element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
     (element.parentElement as HTMLElement).insertBefore(document.createTextNode('"Keyboard shortcuts" of '), element);
   }
@@ -757,11 +768,19 @@ $("#defaultNewTab").textContent = bgSettings_.defaults_.newTabUrl;
 
 $("#defaultSearchEngine").textContent = bgSettings_.defaults_.searchUrl;
 
-$("#browserName").textContent = (bgOnOther === BrowserType.Edge ? "MS Edge"
-    : bgOnOther === BrowserType.Firefox ? "Firefox"
+$("#browserName").textContent = (Build.BTypes & BrowserType.Edge
+        && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)
+    ? "MS Edge"
+    : Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
+    ? "Firefox"
     : ((<RegExpOne> /\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
-  ) + (bgOnOther === BrowserType.Firefox ? " " + (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, ""])[1]
-    : !bgOnOther ? " " + bgBrowserVer : ""
+  ) + (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
+    ? " " + (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, ""])[1]
+    : Build.BTypes & BrowserType.Chrome
+        && (!(Build.BTypes & ~BrowserType.Chrome) || bgOnOther_ === BrowserType.Chrome)
+    ? " " + bgBrowserVer_ : ""
   ) + (", " + bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.substring(1));
 
 function loadJS(file: string): HTMLScriptElement {

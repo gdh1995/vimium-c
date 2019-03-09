@@ -675,7 +675,8 @@ var VHints = {
         reinit = deep === DeepQueryType.NotDeep;
         this.queryInDeep_ = DeepQueryType.InDeep;
       } else if (i === KeyStat.altKey) {
-        reinit = typeof HTMLDialogElement === "function";
+        reinit = (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinHTMLDialogElement)
+          || typeof HTMLDialogElement === "function";
         this.dialogMode_ = reinit && !this.dialogMode_;
       } else {
         reinit = false;
@@ -903,7 +904,10 @@ alphabetHints_: {
     } while (num > 0);
     num = this.countMax_ - hintString.length - +(num < this.countLimit_);
     if (num > 0) {
-      hintString = this.repeat_(characterSet[0], num) + hintString;
+      hintString = (Build.MinCVer >= BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes
+          ? (characterSet[0] as Ensure<string, "repeat">).repeat(num)
+          : (this as Ensure<typeof VHints.alphabetHints_, "repeat_">).repeat_(characterSet[0], num)
+        ) + hintString;
     }
     return hintString;
   },
@@ -984,7 +988,8 @@ alphabetHints_: {
       return pass;
     });
   },
-  repeat_ (this: void, s: string, n: number): string {
+  repeat_: Build.MinCVer >= BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes ? null
+      : function (this: void, s: string, n: number): string {
     if (s.repeat) { return s.repeat(n); }
     for (var s2 = s; --n; ) { s2 += s; }
     return s2;

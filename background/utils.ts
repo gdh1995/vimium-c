@@ -105,7 +105,8 @@ var Utils = {
     str = str.trim();
     (this as UtilsTy).lastUrlType_ = Urls.Type.Full;
     if ((this as UtilsTy).isJSUrl_(str)) {
-      if (ChromeVer < BrowserVer.MinAutoDecodeJSURL && str.indexOf("%", 11) > 0
+      if (Build.MinCVer < BrowserVer.MinAutoDecodeJSURL && ChromeVer < BrowserVer.MinAutoDecodeJSURL
+          && str.indexOf("%", 11) > 0
           && !(this as UtilsTy)._jsNotEscapeRe.test(str)) {
         str = (this as UtilsTy).DecodeURLPart_(str);
       }
@@ -789,17 +790,25 @@ var Utils = {
 };
 
 declare var browser: unknown;
-var OnOther = typeof browser === "undefined" || (browser && (browser as any).runtime) == null
+var OnOther = !(Build.BTypes & ~BrowserType.Chrome)
+    || typeof browser === "undefined" || (browser && (browser as any).runtime) == null
     || location.protocol.lastIndexOf("chrome", 0) >= 0 // in case Chrome also supports `browser` in the future
   ? BrowserType.Chrome
-  : !!(window as any).StyleMedia ? BrowserType.Edge
-  : (<RegExpOne> /\bFirefox\//).test(navigator.userAgent) ? BrowserType.Firefox
+  : !(Build.BTypes & ~BrowserType.Edge) && !!(window as any).StyleMedia ? BrowserType.Edge
+  : !(Build.BTypes & ~BrowserType.Firefox) && (<RegExpOne> /\bFirefox\//).test(navigator.userAgent)
+    ? BrowserType.Firefox
   : BrowserType.Unknown,
-ChromeVer = 0 | (!OnOther && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
+ChromeVer = 0 | (Build.BTypes & BrowserType.Chrome
+  && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+  && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number
 ;
-const BrowserProtocol_ = OnOther ? OnOther === BrowserType.Firefox ? "moz"
-  : OnOther === BrowserType.Edge ? "ms-browser" : "about"
+const BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
+    && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
+  ? Build.BTypes & BrowserType.Firefox
+    && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) ? "moz"
+  : Build.BTypes & BrowserType.Edge
+    && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? "ms-browser" : "about"
   : "chrome"
 ;
 
@@ -812,6 +821,6 @@ String.prototype.startsWith = function (this: string, s: string): boolean {
   return i >= 0 && this.indexOf(s, i) === i;
 });
 }
-if (OnOther) {
+if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
   window.chrome = browser as typeof chrome;
 }

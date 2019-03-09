@@ -263,7 +263,11 @@ availableCommands_: {
     kBgCmd.openUrl,
     {
       reuse: ReuseType.reuse,
-      url: OnOther ? OnOther === BrowserType.Firefox ? "about:debugging#addons" : Settings.CONST_.OptionsPage_
+      url: Build.BTypes & ~BrowserType.Chrome &&
+            (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
+        ? Build.BTypes & BrowserType.Firefox &&
+            (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+          ? "about:debugging#addons" : Settings.CONST_.OptionsPage_
         : "chrome://extensions/?id=$id",
       id_mask: "$id"
     }],

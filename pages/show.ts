@@ -37,7 +37,8 @@ interface VDataTy {
 }
 
 declare var browser: unknown;
-if (typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
+if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+    : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
 }
 var $ = function<T extends HTMLElement>(selector: string): T {
@@ -144,7 +145,8 @@ window.onhashchange = function (this: void): void {
       VData.auto = false;
       this.onerror = this.onload = null as never;
       this.alt = "\xa0(fail in loading)\xa0";
-      if (BG_ && BG_.Settings && BG_.ChromeVer >= BrowserVer.MinNoBorderForBrokenImage) {
+      if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || BG_ && BG_.Settings
+            && BG_.ChromeVer >= BrowserVer.MinNoBorderForBrokenImage) {
         this.classList.add("broken");
       }
       this.classList.remove("hidden");

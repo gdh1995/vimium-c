@@ -90,7 +90,8 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   },
   getOnURLChange_ (this: ExcCls): null | ExclusionsNS.Listener {
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
-      : ChromeVer >= BrowserVer.MinWithFrameId ? function (details): void { Backend.checkIfEnabled_(details); }
+      : Build.MinCVer >= BrowserVer.MinWithFrameId || ChromeVer >= BrowserVer.MinWithFrameId
+      ? function (details): void { Backend.checkIfEnabled_(details); }
       : function (details: chrome.webNavigation.WebNavigationCallbackDetails) {
         const ref = Backend.indexPorts_(details.tabId),
         msg: Req.bg<kBgReq.url> = { N: kBgReq.url, H: kFgReq.checkIfEnabled as kFgReq.checkIfEnabled };

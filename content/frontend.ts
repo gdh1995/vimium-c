@@ -26,7 +26,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     ;
 
   const injector = VimiumInjector,
-  useBrowser = typeof browser !== "undefined" && !!(
+  useBrowser = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+    : typeof browser !== "undefined" && !!(
     browser && (browser as typeof chrome).runtime) && !((browser as typeof chrome | Element) instanceof Element),
   vPort = {
     _port: null as Port | null,
@@ -60,7 +61,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }, requestHandlers[kBgReq.init] ? 2000 : 5000);
     },
     Connect_: (function (this: void, status: PortType): void {
-      const runtime: typeof chrome.runtime = (useBrowser ? browser as typeof chrome : chrome).runtime,
+      const runtime: typeof chrome.runtime = (
+        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : useBrowser)
+        ? browser as typeof chrome : chrome).runtime,
       name = "vimium-c." + (
         PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status),
       data = { name: injector ? name + "@" + injector.version : name },
@@ -78,7 +81,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
       || !event.keyCode) { return; }
     if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
-    if (OnOther === BrowserType.Firefox && InsertMode.lock_
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+        && InsertMode.lock_
         && !VDom.isInDOM_(InsertMode.lock_ as LockableElement, document)) {
       InsertMode.lock_ = null;
     }
@@ -255,7 +260,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     f("keyup", onKeyup, true);
     action !== HookAction.Suppress && f("focus", onFocus, true);
     f("blur", onBlur, true);
-    useBrowser ? f("click", onActivate, true) :
+    (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : useBrowser)
+    ? f("click", onActivate, true) :
     f.call(document, "DOMActivate", onActivate, true);
   }),
   Commands: {
@@ -839,8 +845,17 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       OnOther = load.browser_;
       ((VSettings as Writeable<VSettingsTy>).cache = VUtils.cache_ = load).onMac_ &&
         (VKeyboard.correctionMap_ = Object.create<string>(null));
-      D.specialZoom_ = !OnOther && browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
-      if (OnOther || browserVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
+      if ((Build.BTypes & ~BrowserType.Chrome)
+          || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl) {
+        D.specialZoom_ = !!(Build.BTypes & BrowserType.Chrome)
+          && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+          && (Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
+              || browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl);
+      }
+      if ((Build.BTypes & ~BrowserType.Chrome
+              && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
+          || (Build.MinCVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin
+              && browserVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin)) {
         D.notSafe_ = (el): el is HTMLFormElement => el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
       }
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
@@ -973,8 +988,12 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
       VUtils.suppressAll_(box, i);
     }
-    VUtils.cache_.browserVer_ < BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument ||
-    box.addEventListener(useBrowser ? "click" : "DOMActivate", onActivate, true);
+    if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
+        || VUtils.cache_.browserVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
+      box.addEventListener(
+        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : useBrowser)
+        ? "click" : "DOMActivate", onActivate, true);
+    }
 
     const closeBtn = box.querySelector("#HClose") as HTMLElement;
     hide = function (event): void {
@@ -1074,7 +1093,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       url = url.substring(11).trim();
       if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
-      else if (VDom.Scripts_) {
+      else if (VDom.allowScripts_) {
         setTimeout(function (): void {
           const script = VDom.createElement_("script");
           script.type = "text/javascript";

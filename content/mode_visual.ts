@@ -407,7 +407,8 @@ var VVisual = {
     if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
       if (direction && (VUtils.cache_.onMac_ === /* win */ 0) !== shouldSkipSpaceWhenMovingRight) {
-        const notChrome = VUtils.cache_.browser_;
+        const notChrome = !!(Build.BTypes & ~BrowserType.Chrome)
+            && (!(Build.BTypes & BrowserType.Chrome) || VUtils.cache_.browser_ !== BrowserType.Chrome);
         moreWord = notChrome ? count * 2 : shouldSkipSpaceWhenMovingRight ? 1 : -1;
         count -= notChrome ? count : shouldSkipSpaceWhenMovingRight ? 0 : 1;
       }
@@ -706,7 +707,8 @@ keyMap_: {
 init_ (words: string) {
   this.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
-  this.selType_ = VUtils.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
+  this.selType_ = Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
+      && VUtils.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function (this: typeof VVisual): SelType {
     let type = typeIdx[this.selection_.type];
     return type === SelType.Caret && VVisual.diType_ && ("" + this.selection_) ? SelType.Range : type;
@@ -753,7 +755,8 @@ init_ (words: string) {
    *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
    * Min$Space$NotMatch$U180e$InRegExp=59
    */
-  (VUtils.cache_.browserVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
+  (Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+    || VUtils.cache_.browserVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
   (this._rightWhiteSpaceRe = /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }

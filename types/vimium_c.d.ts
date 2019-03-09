@@ -323,7 +323,7 @@ declare const enum KeyStat {
 
 /** `OnOther` and `fg::reqH.init` requires .Chrome must be 0 */
 declare const enum BrowserType {
-  Chrome = 0,
+  Chrome = 1,
   Firefox = 2,
   Edge = 4,
   Unknown = 8,
@@ -348,6 +348,7 @@ declare const enum BrowserVer {
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEAGCY
   MinSession = 37,
   // even if EXPERIMENTAL; Note: should use MinSafeCSS$All
+  /** @deprecated */
   MinCSS$All$Attr = 37,
   /*
    * an `all:initial` prevents position/z-index attrs in other matched rules from working
@@ -362,6 +363,7 @@ declare const enum BrowserVer {
    * so must remove the all: before MinFixedCSS$All$MayMistakenlyResetFixedPosition
    */
   MinCSS$All$MayMistakenlyResetFixedPosition = 37,
+  MinHTMLDialogElement = 37, // not on Edge; still exists on C35 if EXPERIMENTAL
   // includes for-of, Map, Set, Symbols, even if LEAGCY
   MinES6ForAndSymbols = 38,
   // .repeat still exists on C35, but only works since C38, even if EXPERIMENTAL
@@ -460,7 +462,7 @@ declare const enum BrowserVer {
   MinNotPassMouseWheelToParentFrameEvenIfSelfNotScrolled = 51,
   MinNoCustomMessageOnBeforeUnload = 51,
   MinShadowDOMV1HasMode = 51,
-  Min$Node$$isConnected = 51,
+  Min$Node$$isConnected = 51, // not on Edge
   // Chrome also began to put contain attr in use on 51 if EXPERIMENTAL
   // but obviously there's some bugs about this feature
   CSS$Contain$BreaksHelpDialogSize = 51,
@@ -559,6 +561,7 @@ declare const enum BrowserVer {
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   MinCorrectBoxWidthForOptionUI = 61,
   Min$visualViewPort$ = 61,
+  // also means ensured Element::scrollBy, Element::scrollTo and window.scrollTo/scrollBy({})
   MinEnsuredCSS$ScrollBehavior = 61, // still exists on C35 (although has no effects before C41) if EXPERIMENTAL
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,

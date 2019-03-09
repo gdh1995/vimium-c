@@ -164,7 +164,8 @@ var VOmni = {
         a.status_ = VomnibarNS.Status.KeepBroken;
         a.run(1, {} as VomnibarNS.FullOptions);
       };
-      if (inner || (VUtils.cache_.browserVer_ < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) {
+      if (inner || (Build.MinCVer < BrowserVer.MinSafeWndPostMessageAcrossProcesses
+                    && VUtils.cache_.browserVer_ < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) {
         setTimeout(checkBroken, 1000);
       } else {
         this.onload = null as never;

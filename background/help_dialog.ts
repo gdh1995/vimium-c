@@ -4,7 +4,8 @@ var HelpDialog = {
   render_: (function (this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
       const noShadow = Settings.CONST_.StyleCacheId_.split(",", 2)[1].indexOf("s") < 0,
-      noContain = ChromeVer === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
+      noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize &&
+          ChromeVer === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
       if (noShadow || noContain) {
         let template = Settings.cache_.helpDialog as string, styleEnd = template.indexOf("</style>"),
         left = template.substring(0, styleEnd), right = template.substring(styleEnd);

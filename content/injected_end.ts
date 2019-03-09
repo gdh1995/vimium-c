@@ -3,7 +3,7 @@
   VUtils, VEvent, VPort
   ].forEach(Object.seal);
 
-VDom.Scripts_ = false;
+VDom.allowScripts_ = false;
 (VimiumInjector as VimiumInjector).checkIfEnabled = (function (this: null
     , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
   func({ H: kFgReq.checkIfEnabled, u: location.href });
@@ -15,7 +15,8 @@ VDom.DocReady_(function () {
 
 (function () {
   // Note: should keep the same with frontend.ts
-  const useBrowser = typeof browser !== "undefined" &&
+  const useBrowser = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+    : typeof browser !== "undefined" &&
     browser && (browser as typeof chrome).runtime && !((browser as typeof chrome | Element) instanceof Element),
   runtime: typeof chrome.runtime = (useBrowser ? browser as typeof chrome : chrome).runtime;
   if (runtime.onMessageExternal) {

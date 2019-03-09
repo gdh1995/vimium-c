@@ -17,7 +17,9 @@ var VKeyboard = {
       : (s = event.key) ? this._funcKeyRe.test(s) ? c ? s : s.toLowerCase() : ""
       : i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn ? "fF"[+c] + (i - VKeyCodes.maxNotFn) : "";
   },
-  getKeyCharUsingKeyIdentifier_ (event: OldKeyboardEvent): string {
+  // we know that BrowserVer.MinEnsured$KeyboardEvent$$Key < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
+  _getKeyCharUsingKeyIdentifier: Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key ? null
+      : function (this: {}, event: OldKeyboardEvent): string {
     let s: string | undefined = event.keyIdentifier || "";
     if (!s.startsWith("U+")) { return ""; }
     const keyId: KnownKey = parseInt(s.substring(2), 16);
@@ -29,15 +31,16 @@ var VKeyboard = {
     } else if (keyId < KnownKey.minNotAlphabet) {
       return String.fromCharCode(keyId + (event.shiftKey ? 0 : KnownKey.CASE_DELTA));
     } else {
-      return keyId > 185 && (s = this.correctionMap_[keyId - 186]) && s[+event.shiftKey] || "";
+      return keyId > 185 && (s = (this as typeof VKeyboard).correctionMap_[keyId - 186]) && s[+event.shiftKey] || "";
     }
   },
   char_ (event: KeyboardEvent): string {
-    const key = event.key as string | undefined;
-    if (!key) {
+    const key = event.key as string | "";
+    if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && !key) {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
-      return event.keyCode && this.getKeyName_(event) || this.getKeyCharUsingKeyIdentifier_(event as OldKeyboardEvent);
+      return event.keyCode && this.getKeyName_(event)
+        || (this as EnsureNonNull<typeof VKeyboard>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     }
     return key.length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName_(event) : key;
   },
@@ -57,6 +60,7 @@ var VKeyboard = {
     if (event.keyCode !== VKeyCodes.esc && !event.ctrlKey) { return false; }
     const i = this.getKeyStat_(event);
     // we know that BrowserVer.MinEnsured$KeyboardEvent$$Code < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
-    return i === KeyStat.plain || i === KeyStat.ctrlKey && (event.code === "BracketLeft" || this.char_(event) === "[");
+    return i === KeyStat.plain || i === KeyStat.ctrlKey && (event.code === "BracketLeft"
+        || Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && this.char_(event) === "[");
   }
 };

@@ -98,8 +98,10 @@ VDom.UI = {
     zoom || (zoom = VDom.getZoom_());
     let patch = this.cssPatch_;
     if (!patch && zoom >= 1) { return; }
-    let width = ("" + (VUtils.cache_.browserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1.01 : 0.51
-                      ) / zoom).substring(0, 5)
+    let width = ("" + (
+        Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
+          VUtils.cache_.browserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+        ? 1.01 : 0.51) / zoom).substring(0, 5)
       , st = this.styleIn_;
     if (!patch) {
       patch = this.cssPatch_ = ["", function (this: NonNullable<DomUI["cssPatch_"]>, css) {

@@ -80,6 +80,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     if (di) {
       if (el) {
         before = el.scrollTop;
+        !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
         el.scrollBy ? el.scrollBy({behavior: "instant", top: amount}) : (el.scrollTop += amount);
         return el.scrollTop !== before;
       } else {
@@ -90,6 +91,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       }
     } else if (el) {
       before = el.scrollLeft;
+      !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
       el.scrollBy ? el.scrollBy({behavior: "instant", left: amount}) : (el.scrollLeft += amount);
       return el.scrollLeft !== before;
     } else {
@@ -100,7 +102,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   },
   scroll_ (element: SafeElement | null, di: ScrollByY, amount: number): void | number | boolean {
     if (!amount) { return; }
-    if (VUtils.cache_.smoothScroll && VDom.allowRAF_) {
+    if (VUtils.cache_.smoothScroll && (Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage || VDom.allowRAF_)) {
       return this._animate(element, di, amount);
     }
     this._performScroll(element, di, amount);
@@ -196,6 +198,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     const key = this.Properties_[4 + di as 4 | 5], before = el[key], k2: "top" | "left" = di ? "top" : "left"
       , arg: ScrollToOptions = { behavior: "instant" };
     arg[k2] = (amount > 0 ? 1 : -1) * this.scale_;
+    !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
     el.scrollBy ? el.scrollBy(arg) : (el[key] += arg[k2] as number);
     let changed = el[key] !== before;
     if (changed) {
@@ -266,7 +269,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       : <BOOL> +this._scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
   },
   supressScroll_ (): void {
-    if (!VDom.allowRAF_) { this.scrolled_ = 0; return; }
+    if (Build.MinCVer < BrowserVer.NoRAForRICOnSandboxedPage && !VDom.allowRAF_) { this.scrolled_ = 0; return; }
     this.scrolled_ = 2;
     VUtils.suppressAll_(window, "scroll");
     requestAnimationFrame(function (): void {

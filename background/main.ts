@@ -106,7 +106,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
     } else if (type === Urls.NewTabType.vimium) {
       args.url = Settings.cache_.newTabUrl_f;
     }
-    OnOther === BrowserType.Edge && (delete args.openerTabId);
+    Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) &&
+      (delete args.openerTabId);
     return chrome.tabs.create(args, callback);
   }
   /** if count <= 1, only open once */
@@ -125,7 +126,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
 
   const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
   onRuntimeError = Utils.runtimeError_,
-  NoFrameId = ChromeVer < BrowserVer.MinWithFrameId;
+  NoFrameId = Build.MinCVer < BrowserVer.MinWithFrameId && ChromeVer < BrowserVer.MinWithFrameId;
   function isExtIdAllowed(this: void, extId: string | null | undefined): boolean {
     if (extId == null) { extId = "unknown_sender"; }
     const stat = Settings.extWhiteList_[extId];
@@ -153,7 +154,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     } else if (state === "minimized") {
       state = "normal";
     }
-    if (state && ChromeVer >= BrowserVer.MinCreateWndWithState) {
+    if (state && (Build.MinCVer >= BrowserVer.MinCreateWndWithState || ChromeVer >= BrowserVer.MinCreateWndWithState)) {
       option.state = state;
       state = "";
     }
@@ -177,7 +178,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       tabId: isId ? tabIdUrl as number : undefined,
       url: isId ? undefined : tabIdUrl as string
     };
-    if (ChromeVer < BrowserVer.MinCreateWndWithState) {
+    if (Build.MinCVer < BrowserVer.MinCreateWndWithState && ChromeVer < BrowserVer.MinCreateWndWithState) {
       option.state = undefined;
       option.left = option.top = 0; option.width = option.height = 50;
     }
@@ -215,7 +216,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
     }
   }
   function complainNoSession(this: void): void {
-    return ChromeVer >= BrowserVer.MinSession ? Backend.complain_("control tab sessions")
+    return Build.MinCVer >= BrowserVer.MinSession || ChromeVer >= BrowserVer.MinSession
+      ? Backend.complain_("control tab sessions")
       : Backend.showHUD_(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
   }
   function upperGitUrls(url: string, path: string): string | void | null {
@@ -237,7 +239,9 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
     }
   }
-  const isNotVomnibarPage = OnOther === BrowserType.Edge ? function () { return false; }
+  const isNotVomnibarPage = Build.BTypes & BrowserType.Edge &&
+          (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
+      ? function () { return false; }
       : function (this: void, port: Frames.Port, nolog?: boolean): boolean {
     interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
     const info = port.s as SenderEx;
@@ -259,7 +263,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
   function PostCompletions(this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>
       , autoSelect: boolean, matchType: CompletersNS.MatchType, total: number): void {
     let { u: url } = this.s, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
-    if (favIcon0 === 1 && ChromeVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon) {
+    if (favIcon0 === 1 && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
+          || ChromeVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon)) {
       url = url.substring(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
       const map = framesForTab;
       let frame1 = gTabIdOfExtWithVomnibar >= 0 ? indexFrame(gTabIdOfExtWithVomnibar, 0) : null;
@@ -397,9 +402,7 @@ Are you sure you want to continue?`);
       incognito: true, focused: active
     }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "");
   }
-
-  const
-  createTab = [function (url, onlyNormal, tabs): void {
+  function standardCreateTab(this: void, url: string, onlyNormal?: boolean, tabs?: Tab[]): void {
     if (cOptions.url || cOptions.urls) {
       BackgroundCommands[kBgCmd.openUrl](tabs as [Tab] | undefined);
       return onRuntimeError();
@@ -409,7 +412,7 @@ Are you sure you want to continue?`);
     else if (tabs.length > 0) { tab = tabs[0]; }
     else if (TabRecency_.last_ >= 0) {
       chrome.tabs.get(TabRecency_.last_, function (lastTab): void {
-        createTab[0](url, onlyNormal, lastTab && [lastTab]);
+        standardCreateTab(url, onlyNormal, lastTab && [lastTab]);
       });
       return onRuntimeError();
     }
@@ -422,7 +425,11 @@ Are you sure you want to continue?`);
       url, active: tab.active, windowId: tab.windowId,
       index: newTabIndex(tab, cOptions.position)
     }, commandCount);
-  }, function (wnd): void {
+  }
+
+  const
+  createTab = (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
+      ? [standardCreateTab] : [standardCreateTab, function (wnd): void {
     if (cOptions.url || cOptions.urls) {
       return BackgroundCommands[kBgCmd.openUrl]([selectFrom((wnd as PopWindow).tabs)]);
     }
@@ -485,8 +492,8 @@ Are you sure you want to continue?`);
       callback && callback(newTab.id, newTab.windowId);
       return selectTab(newTab.id);
     });
-  }] as [
-    (this: void, url: string, onlyNormal?: boolean, tabs?: Tab[]) => void,
+  }]) as [
+    typeof standardCreateTab,
     (this: string, wnd?: PopWindow) => void,
     (this: void, url: string, tab: Tab, repeat: ((this: void, tabId: number) => void) | null, allTabs: Tab[]) => void,
     (this: string, tab: Tab, repeat: ((this: void, tabId: number) => void) | null, wnds: Window[]) => void,
@@ -585,7 +592,8 @@ Are you sure you want to continue?`);
       return onRuntimeError();
     };
     // e.g.: use Chrome omnibox at once on starting
-    if (ChromeVer < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavascriptURLs) {
+    if (Build.MinCVer < BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon &&
+        ChromeVer < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavascriptURLs) {
       chrome.tabs.update({ url }, callback1);
     } else {
       callback1(-1);
@@ -612,7 +620,11 @@ Are you sure you want to continue?`);
     };
     arr[2] = setTimeout(openShowPage[1], 1200, arr);
     if (reuse === ReuseType.current && !incognito) {
-      let views = !OnOther && !tab.url.split("#", 2)[1] && ChromeVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId
+      let views = Build.BTypes & BrowserType.Chrome
+            && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+            && !tab.url.split("#", 2)[1] && (
+          Build.MinCVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId ||
+          ChromeVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId)
         ? chrome.extension.getViews({ tabId: tab.id }) : [];
       if (views.length > 0 && views[0].onhashchange) {
         (views[0].onhashchange as () => void)();
@@ -835,7 +847,7 @@ Are you sure you want to continue?`);
       }
       chrome.tabs.duplicate(tabId);
       if (commandCount < 2) { return; }
-      if (ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
+      if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
           || TabRecency_.incognito_ === IncognitoType.ensuredFalse) {
         chrome.tabs.get(tabId, fallback);
       } else {
@@ -877,7 +889,8 @@ Are you sure you want to continue?`);
         }, wnd.type === "normal" ? wnd.state : "", count > 1 ?
         function (wnd2: Window): void {
           let curTab = tabs0[i], tabs = tabs0.slice(i + 1, range[1]), tabs2 = tabs0.slice(range[0], i);
-          if (wnd.incognito && ChromeVer < BrowserVer.MinNoUnmatchedIncognito) {
+          if (wnd.incognito && Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
+              && ChromeVer < BrowserVer.MinNoUnmatchedIncognito) {
             let { incognito: incognito2 } = curTab, filter = (tab2: Tab): boolean => tab2.incognito === incognito2;
             tabs = tabs.filter(filter);
             tabs2 = tabs2.filter(filter);
@@ -908,7 +921,8 @@ Are you sure you want to continue?`);
           if (wnd.incognito) {
             return reportNoop();
           }
-          if (ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST_.DisallowIncognito_) {
+          if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito ||
+              ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST_.DisallowIncognito_) {
             return Backend.complain_("open this URL in incognito mode");
           }
         } else if (wnd.incognito) {
@@ -1135,7 +1149,7 @@ Are you sure you want to continue?`);
       }
     },
     /* toggleMuteTab: */ function (): void {
-      if (ChromeVer < BrowserVer.MinMuted) {
+      if (Build.MinCVer < BrowserVer.MinMuted && ChromeVer < BrowserVer.MinMuted) {
         return Backend.showHUD_(`Vimium C can not control mute state before Chrome ${BrowserVer.MinMuted}`);
       }
       if (!(cOptions.all || cOptions.other)) {
@@ -1202,7 +1216,8 @@ Are you sure you want to continue?`);
       if (tabs.length <= 0) { return; }
       const tab = tabs[0];
       ++tab.index;
-      if (ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST_.DisallowIncognito_
+      if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
+          || Settings.CONST_.DisallowIncognito_
           || TabRecency_.incognito_ === IncognitoType.ensuredFalse || !Utils.isRefusingIncognito_(tab.url)) {
         return Backend.reopenTab_(tab);
       }
@@ -1274,12 +1289,13 @@ Are you sure you want to continue?`);
     },
     /* parentFrame: */ function (): void {
       const sender = cPort.s as typeof cPort.s | undefined,
-      msg = NoFrameId ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
+      msg = Build.MinCVer < BrowserVer.MinWithFrameId && NoFrameId
+        ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
         : !(sender && sender.t >= 0 && framesForTab[sender.t])
           ? "Vimium C can not access frames in current tab"
         : null;
       msg && Backend.showHUD_(msg);
-      if (!sender || !sender.i || NoFrameId || !chrome.webNavigation) {
+      if (!sender || !sender.i || Build.MinCVer < BrowserVer.MinWithFrameId && NoFrameId || !chrome.webNavigation) {
         return BackgroundCommands[kBgCmd.mainFrame]();
       }
       chrome.webNavigation.getAllFrames({
@@ -2045,7 +2061,7 @@ Are you sure you want to continue?`);
     },
     /** gotoMainFrame: */ function (this: void, req: FgReq[kFgReq.gotoMainFrame], port: Port): void {
       const tabId = port.s.t, mainPort = indexFrame(tabId, 0);
-      if (mainPort || NoFrameId || !chrome.webNavigation) {
+      if (mainPort || Build.MinCVer < BrowserVer.MinWithFrameId && NoFrameId || !chrome.webNavigation) {
         return gotoMainFrame(req, port, mainPort);
       }
       chrome.webNavigation.getAllFrames({ tabId },
@@ -2199,7 +2215,8 @@ Are you sure you want to continue?`);
         return true;
       }
     } else if (tabId < 0 // should not be true; just in case of misusing
-      || ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
+      || (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
+          && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
       || port.s.i === 0
       ) { /* empty */ }
     else {
@@ -2431,14 +2448,14 @@ Are you sure you want to continue?`);
     }
   };
 
-  if (ChromeVer >= BrowserVer.MinNoUnmatchedIncognito) {
+  if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito) {
     (createTab as Array<{}>).length = 1;
   }
   Settings.updateHooks_.newTabUrl_f = function (url) {
     const onlyNormal = Utils.isRefusingIncognito_(url), mayForceIncognito = createTab.length > 1 && onlyNormal;
     BackgroundCommands[kBgCmd.createTab] = mayForceIncognito ? function (): void {
       getCurWnd(true, createTab[1].bind(url));
-    } : createTab[0].bind(null, url, onlyNormal);
+    } : standardCreateTab.bind(null, url, onlyNormal);
     BgCmdInfo[kBgCmd.createTab] = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
   };
 
