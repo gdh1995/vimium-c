@@ -864,7 +864,7 @@ function patchExtendClick(source) {
   source = source.replace(/(addEventListener|toString) ?: ?function \w+/g, "$1 "); // es6 member function
   let match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
   if (match) {
-    const start = Math.max(0, match.index - 64), end = match.index;
+    const start = Math.max(0, match.index - 128), end = match.index;
     let prefix = source.substring(0, start), suffix = source.substring(end);
     source = source.substring(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
     suffix = '/\\b(addEventListener|toString) \\(/g, "$1:function $1("' + suffix.substring(match[0].length);
