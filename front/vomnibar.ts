@@ -574,11 +574,11 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       }
     }
     const { isComposing } = event;
-    if (isComposing != null) {
+    if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing || isComposing != null) {
       if (isComposing && !this.isInputComposing_) {
         this.lastNormalInput_ = this.input_.value.trim();
       }
-      this.isInputComposing_ = isComposing;
+      this.isInputComposing_ = isComposing as NonNullable<typeof isComposing>;
     }
     this.update_(-1);
   },
@@ -737,8 +737,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
           ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
-    if (Build.MinCVer < BrowserVer.Min$KeyboardEvent$$isComposing
-        && ver < BrowserVer.Min$KeyboardEvent$$isComposing) {
+    if (Build.MinCVer < BrowserVer.Min$InputEvent$$isComposing
+        && ver < BrowserVer.Min$InputEvent$$isComposing) {
       let func = function (this: void, event: CompositionEvent): void {
         if (Vomnibar_.isInputComposing_ = event.type === "compositionstart") {
           Vomnibar_.lastNormalInput_ = Vomnibar_.input_.value.trim();

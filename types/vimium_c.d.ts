@@ -509,6 +509,7 @@ declare const enum BrowserVer {
   // the 3 below are correct even if EXPERIMENTAL or LEAGCY
   MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument = 56,
   MinFailToToggleImageOnFileURL = 56,
+  // note: an "input" event is not KeyboardEvent: {@see Min$InputEvent$$isComposing}
   Min$KeyboardEvent$$isComposing = 56,
   // the static selector `>>>` is not supported since MinNoSelector$GtGtGt
   // `>>>` can only match those under "open"-mode shadow roots
@@ -533,7 +534,7 @@ declare const enum BrowserVer {
    */
   MinExtIframesAlwaysInSharedProcess = 58,
   MinExtensionContentPageAlwaysCanShowFavIcon = MinExtIframesAlwaysInSharedProcess,
-  // the 6 below are correct even if EXPERIMENTAL or LEAGCY
+  // the 8 below are correct even if EXPERIMENTAL or LEAGCY
   MinCaseSensitiveUsemap = 58,
   // tmp_width := (since 58 ? Math.round : Math.floor)(width * devicePixelRatio * zoom)
   // real_width := width && Math.max(tmp_width, 1)
@@ -552,6 +553,7 @@ declare const enum BrowserVer {
   // See `WebFormControlElement::SetAutofillValue` on
   // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/exported/web_form_control_element.cc?&l=130
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
+  Min$InputEvent$$isComposing = 60,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
   MinOmniboxUIMaxAutocompleteMatchesMayBe12 = 60, // #omnibox-ui-max-autocomplete-matches
   // the 6 below are correct even if EXPERIMENTAL or LEAGCY
