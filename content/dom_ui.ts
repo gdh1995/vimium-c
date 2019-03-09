@@ -10,10 +10,13 @@ VDom.UI = {
   flashLastingTime_: 400,
   add_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
-    r: VUIRoot = a.UI = box.attachShadow ? box.attachShadow({mode: "closed"})
+    r: VUIRoot = a.UI = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
+        || box.attachShadow
+      ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
       : box.createShadowRoot ? box.createShadowRoot() : box;
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
+    !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 ||
     r.mode === "closed" || (r !== box ? r as ShadowRoot : window).addEventListener("load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { return removeEventListener("load", Onload, true); }
@@ -31,7 +34,7 @@ VDom.UI = {
     });
     a.css_ = (function (innerCSS): void {
       const a1 = VDom.UI, box2 = a1.box_ as HTMLElement;
-      if (box2 === a1.UI) {
+      if ((Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer < BrowserVer.MinShadowDOMV0 || box2 === a1.UI) {
         box2.id = "VimiumUI";
       }
       let el: HTMLStyleElement | null = a1.styleIn_ = a1.createStyle_();
@@ -83,15 +86,15 @@ VDom.UI = {
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    el2 !== box.parentNode && box.appendChild.call(el2, box);
+    event === 2 ? box.remove() : el2 !== box.parentNode && box.appendChild.call(el2, box);
     const sin = UI.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
     s && (s.disabled = false);
-    (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", UI.adjust_, true);
-  },
-  toggle_ (enabled): void {
-    if (enabled) { return this.adjust_(); }
-    (this.box_ as HTMLElement).remove();
-    removeEventListener("webkitfullscreenchange", this.adjust_, true);
+    if (el || event) {
+      const isFF = !(Build.BTypes & ~BrowserType.Firefox) || !!(Build.BTypes & BrowserType.Firefox)
+        && VUtils.cache_.browser_ === BrowserType.Firefox;
+      (el && event !== 2 ? addEventListener : removeEventListener).call(isFF ? document : window
+        , (isFF ? "webkit" : "") + "fullscreenchange", UI.adjust_, true);
+    }
   },
   cssPatch_: null,
   ensureBorder_ (zoom?: number): void {
@@ -126,12 +129,12 @@ VDom.UI = {
     let gcs = getComputedStyle, st: CSSStyleDeclaration;
     if (sout = document.body) {
       st = gcs(sout);
-      if ((st.userSelect || st.webkitUserSelect) === "none") {
+      if ((st.userSelect || Build.MinCVer >= BrowserVer.MinUnprefixedUserSelect || st.webkitUserSelect) === "none") {
         return false;
       }
     }
     st = gcs(document.documentElement as HTMLHtmlElement);
-    return (st.userSelect || st.webkitUserSelect) !== "none";
+    return (st.userSelect || Build.MinCVer >= BrowserVer.MinUnprefixedUserSelect || st.webkitUserSelect) !== "none";
   },
   toggleSelectStyle_ (enable: BOOL): void {
     let sout = this.styleOut_;
@@ -142,8 +145,9 @@ VDom.UI = {
   getSelected_ (notExpectCount?: 1): [Selection, ShadowRoot | null] {
     let d = document, el: Node | null, sel: Selection | null;
     if (el = VScroller.current_) {
-      if (el.getRootNode) {
-        el = el.getRootNode();
+      if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
+          || el.getRootNode) {
+        el = (el as Ensure<Node, "getRootNode">).getRootNode();
       } else {
         for (let pn: Node | null; pn = VDom.GetParent_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
@@ -155,7 +159,9 @@ VDom.UI = {
       }
     }
     sel = getSelection();
-    if (typeof ShadowRoot !== "function" || ShadowRoot instanceof Element) { return [sel, null]; }
+    if ((Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer < BrowserVer.MinShadowDOMV0) {
+      if (typeof ShadowRoot !== "function" || ShadowRoot instanceof Element) { return [sel, null]; }
+    }
     let E = Element, offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel;
     while (sel2) {
       sel2 = null;

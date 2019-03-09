@@ -488,7 +488,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   OnEnterUp_ (this: void, event: KeyboardEvent): void {
     if (event.isTrusted === true
-        || (event.isTrusted == null && event instanceof KeyboardEvent) && event.keyCode === VKeyCodes.enter) {
+        || Build.MinCVer < BrowserVer.Min$Event$$IsTrusted && event.isTrusted == null && event instanceof KeyboardEvent
+            && event.keyCode === VKeyCodes.enter) {
       Vomnibar_.lastKey_ = VKeyCodes.None;
       window.onkeyup = null as never;
       Vomnibar_.onEnter_(event);
@@ -803,7 +804,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.mode_.f = fav;
   },
   HandleKeydown_ (this: void, event: KeyboardEvent): void {
-    if (event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
+    if (event.isTrusted !== true && !(Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
+            && event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
     Vomnibar_.keyResult_ = HandlerResult.Prevent as HandlerResult;
     if (window.onkeyup) {
       let stop = !event.repeat, now: number = 0;

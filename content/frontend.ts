@@ -78,8 +78,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   }
 
   function onKeydown(event: KeyboardEvent): void {
-    if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
-      || !event.keyCode) { return; }
+    if (!isEnabled || event.isTrusted !== true && !(
+          Build.MinCVer < BrowserVer.Min$Event$$IsTrusted && event.isTrusted == null && event instanceof KeyboardEvent)
+        || !event.keyCode) { return; }
     if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
@@ -133,7 +134,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     KeydownEvents[key] = 1;
   }
   function onKeyup(event: KeyboardEvent): void {
-    if (!isEnabled || event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)
+    if (!isEnabled || event.isTrusted !== true && !(
+          Build.MinCVer < BrowserVer.Min$Event$$IsTrusted && event.isTrusted == null && event instanceof KeyboardEvent)
       || !event.keyCode) { return; }
     VScroller.keyIsDown_ = 0;
     if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
@@ -898,7 +900,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       } else {
         Commands[kFgCmd.reset]();
       }
-      if (VDom.UI.box_) { return VDom.UI.toggle_(enabled); }
+      if (VDom.UI.box_) { return VDom.UI.adjust_(+enabled ? 1 : 2); }
     },
     injector ? injector.reload : function (): void { /* empty */ },
     function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
@@ -1217,7 +1219,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     VHints = VOmni = VScroller = VMarks = VFind = //
     VSettings = VHUD = VPort = VEvent = VVisual = //
     esc = null as never;
-    ui.box_ && ui.toggle_(false);
+    ui.box_ && ui.adjust_(2);
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
       , "color:red", "color:auto"

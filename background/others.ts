@@ -587,4 +587,3 @@ setTimeout(function (): void {
     (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log(b); };
   }
 }, 1200);
-// setTimeout(() => console.log("RegExp.input:", (RegExp as any).input, "."), 3600);

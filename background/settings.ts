@@ -132,7 +132,7 @@ var Settings = {
       hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All
           || browserInfo.lastIndexOf("a") >= 0;
       if (Build.MinCVer < BrowserVer.MinUnprefixedUserSelect && browserVer < BrowserVer.MinUnprefixedUserSelect
-          || OnOther === BrowserType.Firefox) {
+          || (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
         css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
       }
       const findOffset = css.lastIndexOf("/*#find*/");

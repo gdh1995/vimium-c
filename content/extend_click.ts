@@ -158,6 +158,7 @@ function destroyClient(e?: Event): void {
   ct(timer);
 }
 toRegister.push = toRegister.push, toRegister.splice = toRegister.splice;
+!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 ||
 (!SR || SR instanceof E) && (SR = CE as never);
 // only the below can affect outsides
 cs.remove();
@@ -171,6 +172,7 @@ _listen("DOMContentLoaded", handler, true);
   Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage &&
     (VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage);
   // the block below is also correct on Edge
+  // todo: add static version check
   if (appVer >= BrowserVer.MinEnsureMethodFunction && appVer) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
   }
@@ -195,7 +197,8 @@ _listen("DOMContentLoaded", handler, true);
   }
   // else: sandboxed or JS-disabled
   script.remove();
-  const breakTotally = appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && appVer;
+  const breakTotally = Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
+      && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && appVer;
   console.info((breakTotally ? "Vimium C can" : "Some functions of Vimium C may")
       + " not work because %o is sandboxed.",
     location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
@@ -214,7 +217,8 @@ _listen("DOMContentLoaded", handler, true);
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
     return (Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage || VDom && VDom.allowRAF_)
-      ? f && !(f instanceof Element) ? f(cb, { timeout }) : requestAnimationFrame(cb)
+      ? f && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && f instanceof Element)
+        ? (f as Exclude<typeof f, null | Element>)(cb, { timeout }) : requestAnimationFrame(cb)
       : (Promise.resolve(1).then(cb), 1);
   };
 })();

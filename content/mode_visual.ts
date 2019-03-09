@@ -732,7 +732,9 @@ init_ (words: string) {
  * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings.CONST_.WordsRe_}
  */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
-  this.WordsRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]+", words ? "" : "u");
+  this.WordsRe_ = new RegExp(
+    Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && words || "[\\p{L}\\p{Nd}_]+",
+    Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && words ? "" : "u");
 /** C72
  * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
  * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800

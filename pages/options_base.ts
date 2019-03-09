@@ -382,7 +382,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
         ): void {
       this.rebuildTesters_();
       this.onInit_ = onInit;
-      (ExclusionRulesOption_ as any).call(this, element2, onUpdated1);
+      ExclusionRulesOption_.call(this, element2, onUpdated1);
       this.element_.addEventListener("input", this.OnInput_);
       this.init_ = null as never;
     },

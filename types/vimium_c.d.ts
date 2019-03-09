@@ -409,8 +409,9 @@ declare const enum BrowserVer {
   // even if EXPERIMENTAL or LEAGCY
   Min$Event$$IsTrusted = 46,
   // occur on Chrome 46 if EXPERIMENTAL; always enabled since C47 even if LEAGCY
-  Min$requestIdleCallback = 46,
+  MinMayBe$requestIdleCallback = 46,
   Min$windows$APIsFilterOutDevToolsByDefault = 46,
+  MinEnsured$requestIdleCallback = 47,
   Min$Tabs$$Query$RejectHash = 47,
   // if .key exists, it's "v" for `v`, but "" (empty) for `<c-v>` - doesn't support all cases
   Min$KeyboardEvent$MayHas$$Key = 47, // if EXPERIMENTAL
@@ -498,7 +499,7 @@ declare const enum BrowserVer {
   MinHighDPIOnRemoteDesktop = 54,
   MinNo$KeyboardEvent$$keyIdentifier = 54,
   // https://chromium.googlesource.com/chromium/src/+/9520623861da283533e71d6b7a8babd02675cb0b
-  Min$Node$$getRootNode = 54,
+  Min$Node$$getRootNode = 54, // not on Edge
   MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM = 55,
   Min$SVGElement$$dataset = 55,
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
@@ -562,6 +563,7 @@ declare const enum BrowserVer {
   MinCorrectBoxWidthForOptionUI = 61,
   Min$visualViewPort$ = 61,
   // also means ensured Element::scrollBy, Element::scrollTo and window.scrollTo/scrollBy({})
+  // not on edge
   MinEnsuredCSS$ScrollBehavior = 61, // still exists on C35 (although has no effects before C41) if EXPERIMENTAL
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,

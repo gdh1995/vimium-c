@@ -482,7 +482,10 @@ var VHints = {
     }
     list = null;
     const uiRoot = VDom.UI.UI;
-    if (uiRoot && uiRoot !== VDom.UI.box_ && !notWantVUI
+    if (uiRoot
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+          || uiRoot !== VDom.UI.box_)
+        && !notWantVUI
         && (uiRoot.mode === "closed" || !matchAll && a.queryInDeep_ !== DeepQueryType.InDeep)) {
       const d = VDom, z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
       if (bz !== 1 && isD) {

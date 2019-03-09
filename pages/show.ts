@@ -189,7 +189,7 @@ window.onhashchange = function (this: void): void {
       };
     } else {
       url = VData.url = "";
-      (VShown as any).onerror();
+      (VShown as HTMLImageElement).onerror(null as never);
       VShown.alt = "\xa0(null)\xa0";
     }
     if (file) {

@@ -292,8 +292,7 @@ interface DomUI {
   addElementList_<T extends boolean>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
     offset: ViewOffset, dialogContainer?: T | null
     ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;
-  adjust_ (this: void, event?: Event): void;
-  toggle_ (this: DomUI, enabled: boolean): void;
+  adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void;
   cssPatch_: [string, (css: string) => string] | null;
   ensureBorder_ (this: DomUI, zoom?: number): void;
   createStyle_ (this: DomUI, text?: string, css?: HTMLStyleElement): HTMLStyleElement;

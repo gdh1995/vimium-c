@@ -7,11 +7,11 @@
 declare var browser: unknown;
 var VimiumInjector: VimiumInjector | undefined | null = null;
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : typeof browser !== "undefined" && browser && (browser as any).runtime) {
+    : typeof browser !== "undefined" && browser && (browser as typeof chrome).runtime) {
   window.chrome = browser as typeof chrome;
 }
 window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
-  let loader = (document as any).currentScript as HTMLScriptElement;
+  let loader = document.currentScript as HTMLScriptElement;
   const head = loader.parentElement as HTMLElement
     , scripts: HTMLScriptElement[] = [loader]
     , prefix = chrome.runtime.getURL("")
@@ -25,7 +25,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
   }
   scripts[scripts.length - 1].onload = function (): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
-    const dom = (window as any).VDom as typeof VDom | undefined;
+    const dom = (window as {} as {VDom?: typeof VDom}).VDom;
     dom && (dom.allowScripts_ = false);
   };
   interface BgWindow extends Window { Settings: typeof Settings; }

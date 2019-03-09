@@ -761,7 +761,7 @@ Option_.all_.userDefinedCss.onSave_ = function () {
 
 $("#importButton").onclick = function (): void {
   const opt = $<HTMLSelectElement>("#importOptions");
-  opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
+  opt.onchange ? opt.onchange(null as never) : click($("#settingsFile"));
 };
 
 $("#defaultNewTab").textContent = bgSettings_.defaults_.newTabUrl;
@@ -817,16 +817,16 @@ window.onhashchange = function (this: void): void {
         window.onload = null as never;
         window.scrollTo(0, 0);
       }
-      window.VDom ? VDom.view_(node as Element)
-        : (node as HTMLElement).scrollIntoViewIfNeeded ? (node as any).scrollIntoViewIfNeeded()
-        : (node as HTMLElement).scrollIntoView();
+      const node2 = node as Element;
+      window.VDom ? VDom.view_(node2)
+        : (node2.scrollIntoViewIfNeeded || node2.scrollIntoView).call(node2);
     };
     if (document.readyState === "complete") { return callback(); }
     window.scrollTo(0, 0);
     window.onload = callback;
   }
 };
-(window as any).onhashchange();
+window.onhashchange(null as never);
 
 // below is for programmer debugging
 window.onunload = function (): void {

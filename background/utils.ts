@@ -467,7 +467,7 @@ var Utils = {
     if (p) {
       return Promise.resolve(p);
     }
-    return (window as any)[name] = new Promise<T>(function (resolve, reject) {
+    return (window as { -readonly [K in keyof Window]?: any })[name] = new Promise<T>(function (resolve, reject) {
       const script = document.createElement("script");
       script.src = Settings.CONST_[name];
       script.onerror = function (): void {
@@ -791,12 +791,15 @@ var Utils = {
 
 declare var browser: unknown;
 var OnOther = !(Build.BTypes & ~BrowserType.Chrome)
-    || typeof browser === "undefined" || (browser && (browser as any).runtime) == null
+    || typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
     || location.protocol.lastIndexOf("chrome", 0) >= 0 // in case Chrome also supports `browser` in the future
   ? BrowserType.Chrome
-  : !(Build.BTypes & ~BrowserType.Edge) && !!(window as any).StyleMedia ? BrowserType.Edge
-  : !(Build.BTypes & ~BrowserType.Firefox) && (<RegExpOne> /\bFirefox\//).test(navigator.userAgent)
-    ? BrowserType.Firefox
+  : Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge)
+      || !!(window as {} as {StyleMedia: unknown}).StyleMedia)
+  ? BrowserType.Edge
+  : Build.BTypes & BrowserType.Firefox
+    && (!(Build.BTypes & ~BrowserType.Firefox) || (<RegExpOne> /\bFirefox\//).test(navigator.userAgent))
+  ? BrowserType.Firefox
   : BrowserType.Unknown,
 ChromeVer = 0 | (Build.BTypes & BrowserType.Chrome
   && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)

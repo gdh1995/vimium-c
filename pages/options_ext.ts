@@ -406,7 +406,7 @@ function parseJSON(text: string): any {
 
   function clean(this: void): boolean { return (<RegExpOne> /a?/).test(""); }
   function spaceN(this: void, str: string): string {
-    if (" ".repeat) { return (" " as any).repeat(str.length); }
+    if (" ".repeat) { return (" " as Ensure<string, "repeat">).repeat(str.length); }
     for (var s2 = "", n = str.length; 0 < n--; ) { s2 += " "; }
     return s2;
   }

@@ -141,7 +141,8 @@ var VFind = {
     ref.exit_ = ref.exit_.bind(ref);
     UI.box_ ? UI.adjust_() : UI.add_(sin, adjust, true);
     sin.remove();
-    this.styleOut_ = UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
+    this.styleOut_ = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
   findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
@@ -527,6 +528,7 @@ var VFind = {
     }
     if (sout.parentNode !== UI.box_) {
       (UI.box_ as HTMLDivElement).appendChild(sout);
+      ((Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer < BrowserVer.MinShadowDOMV0) &&
       sin === sout || UI.add_(sin, AdjustType.NotAdjust, true);
     }
     sout.sheet && (sout.sheet.disabled = disable);

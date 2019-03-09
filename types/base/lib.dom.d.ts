@@ -2111,7 +2111,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     matches(selector: string): boolean;
     closest(selector: string): Element | null;
     scrollIntoView(alignToTop?: boolean): void;
-    scrollIntoViewIfNeeded(alignToTop?: boolean): void;
+    scrollIntoViewIfNeeded? (alignToTop?: boolean): void;
     scroll(x: number, y: number): void;
     scrollTo(options?: ScrollToOptions): void;
     scrollTo(x: number, y: number): void;
