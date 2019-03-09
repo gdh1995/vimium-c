@@ -2151,7 +2151,7 @@ Are you sure you want to continue?`);
       status !== Frames.Status.enabled && needIcon && Backend.setIcon_(tabId, status);
     }
     if (NoFrameId) {
-      (sender as any).frameId = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
+      (sender as Writeable<Frames.Sender>).i = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
     }
   }
   function OnDisconnect(this: void, port: Port): void {

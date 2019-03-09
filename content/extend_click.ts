@@ -211,7 +211,8 @@ _listen("DOMContentLoaded", handler, true);
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
-    return VDom.allowRAF_ ? f && !(f instanceof Element) ? f(cb, { timeout }) : requestAnimationFrame(cb)
+    return VDom && VDom.allowRAF_
+      ? f && !(f instanceof Element) ? f(cb, { timeout }) : requestAnimationFrame(cb)
       : (Promise.resolve(1).then(cb), 1);
   };
 })();

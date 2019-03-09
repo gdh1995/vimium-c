@@ -11,7 +11,6 @@ var VFind = {
   wholeWord_: false,
   hasResults_: false,
   matchCount_: 0,
-  browser_: BrowserType.Chrome,
   coords_: null as null | MarksNS.ScrollInfo,
   initialRange_: null as Range | null,
   activeRegexIndex_: 0,
@@ -89,7 +88,7 @@ var VFind = {
       if (VFind._actived && event.target === this) {
         VEvent.OnWndFocus_();
       }
-      VFind.browser_ === BrowserType.Firefox || VUtils.Stop_(event);
+      VSettings.cache.browser_ === BrowserType.Firefox || VUtils.Stop_(event);
     }, t);
     box.onload = later ? null as never : function (): void {
       this.onload = null as never; VFind.onLoad2_(this.contentWindow);
@@ -138,9 +137,8 @@ var VFind = {
     const ref = this.postMode_, UI = VDom.UI,
     css = this.css_[0], sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
-    UI.add_(sin, adjust, true);
+    UI.box_ ? UI.adjust_() : UI.add_(sin, adjust, true);
     sin.remove();
-    this.browser_ = VUtils.cache_.browser_;
     this.styleOut_ = UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
@@ -148,6 +146,7 @@ var VFind = {
     if (!query) {
       return VHUD.tip_("No old queries to find.");
     }
+    this.init_ && this.init_(AdjustType.MustAdjust);
     if (query !== this.query_) {
       this.updateQuery_(query);
       if (this.isActive_) {
@@ -155,7 +154,6 @@ var VFind = {
         this.showCount_(1);
       }
     }
-    this.init_ && this.init_(AdjustType.MustAdjust);
     const style = this.isActive_ || VHUD.opacity_ !== 1 ? null : (VHUD.box_ as HTMLDivElement).style;
     style && (style.visibility = "hidden");
     VDom.UI.toggleSelectStyle_(0);
@@ -392,7 +390,7 @@ var VFind = {
     a.wholeWord_ = false;
     a.isRegex_ = a.ignoreCase_ = null as boolean | null;
     query = query.replace(a._ctrlRe, a.FormatQuery_);
-    const supportWholeWord = a.browser_ === BrowserType.Chrome;
+    const supportWholeWord = VSettings.cache.browser_ === BrowserType.Chrome;
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b";
     if (isRe === null && !ww) {
       isRe = VUtils.cache_.regexFindMode;
@@ -478,7 +476,8 @@ var VFind = {
     options.noColor || this.ToggleStyle_(0);
     back && (count = -count);
     const isRe = this.isRegex_, pR = this.parsedRegexp_;
-    const focusHUD = this.browser_ === BrowserType.Firefox && this.box_.contentDocument.hasFocus();
+    const focusHUD = VSettings.cache.browser_ === BrowserType.Firefox
+      && this.isActive_ && this.box_.contentDocument.hasFocus();
     do {
       q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches_(back) : this.parsedQuery_;
       found = this.find_(q, !notSens, back, true, this.wholeWord_, false, false);

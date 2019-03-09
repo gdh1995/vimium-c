@@ -118,7 +118,7 @@ var Tasks = {
     var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
     gulp.task("min/others/omni", function() {
       var props = exArgs.nameCache.props && exArgs.nameCache.props.props || null;
-      props = {
+      props = props && {
         "$destroy_": props["$destroy_"]
       };
       return uglifyJSFiles(["front/vomnibar*.js"], ".", "", {
@@ -610,7 +610,7 @@ function readFile(fileName, info) {
 }
 
 function _makeJSONReader() {
-  var stringOrComment = /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*.*?\*\//g
+  var stringOrComment = /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*[^]*?\*\//g
     , notLF = /[^\r\n]+/g, notWhiteSpace = /\S/;
   function spaceN(str) {
     return ' '.repeat(str.length);
@@ -879,7 +879,7 @@ function patchExtendClick(source) {
       throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');
     }
     let prefix = source.substring(0, start), suffix = source.substring(end2 + ")();'".length);
-    source = source.substring(start + match[0].length, end).replace(/ \/\/.*?$/g, "").replace(/'/g, '"');
+    source = source.substring(start + match[0].length, end).replace(/ \/\/[^\n]*?$/g, "").replace(/'/g, '"');
     source = source.replace(/\\/g, "\\\\");
     if (locally) {
       source = source.replace(/([\r\n]) {4,8}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");

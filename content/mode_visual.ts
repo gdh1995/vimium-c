@@ -753,7 +753,7 @@ init_ (words: string) {
    *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
    * Min$Space$NotMatch$U180e$InRegExp=59
    */
-  VUtils.cache_.browserVer_ > BrowserVer.MinSelExtendForwardOnlySkipWhitespaces &&
+  (VUtils.cache_.browserVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
   (this._rightWhiteSpaceRe = /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }

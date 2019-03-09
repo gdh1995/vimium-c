@@ -363,7 +363,7 @@ var VDom = {
     return pn === doc || pn instanceof Element;
   },
   notSafe_ (el: Node | null): el is HTMLFormElement {
-    return el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
+    return el instanceof HTMLFormElement;
   },
   /** @safe_even_if_any_overridden_property */
   SafeEl_: function (this: void, el: Node | null, type?: PNType.DirectElement): Node | null {
