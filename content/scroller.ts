@@ -269,7 +269,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       : <BOOL> +this._scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
   },
   supressScroll_ (): void {
-    if (Build.MinCVer < BrowserVer.NoRAForRICOnSandboxedPage && !VDom.allowRAF_) { this.scrolled_ = 0; return; }
+    if (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage && !VDom.allowRAF_) { this.scrolled_ = 0; return; }
     this.scrolled_ = 2;
     VUtils.suppressAll_(window, "scroll");
     requestAnimationFrame(function (): void {
