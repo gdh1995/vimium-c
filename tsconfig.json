@@ -36,7 +36,7 @@
     "strictPropertyInitialization": false,
     "target": "es5",
     "typeRoots": ["./types"],
-    "types": ["lib", "base"]
+    "types": ["base", "lib", "build"]
   },
   "exclude": [
     ".*",

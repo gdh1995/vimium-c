@@ -8,5 +8,9 @@
     "target": "es5",
     "typescript": "typescript/lib/typescript"
   },
+  "build": { // for [ local, dist ]
+    "MinCVer": [ 70, 35 ],
+    "BTypes": [ 3, 1 ] // [ Chrome | Firefox, Chrome ]
+  },
   "extends": "../tsconfig"
 }

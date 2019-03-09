@@ -15,6 +15,7 @@ var locally = false;
 var debugging = process.env.DEBUG === "1";
 var compileInBatch = true;
 var typescript = null, tsOptionsLogged = false;
+var buildConfig = null;
 var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var envLegacy = process.env.SUPPORT_LEGACY === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
@@ -153,6 +154,13 @@ var Tasks = {
   }],
   "min/js": ["min/others"],
   manifest: ["min/bg", function(cb) {
+    var minCVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
+    minCVer = minCVer ? (minCVer | 0) : 0;
+    if (!(browser & 1)) {
+      delete manifest.minimum_chrome_version;
+    } else if (minCVer && minCVer < 999) {
+      manifest.minimum_chrome_version = "" + (minCVer | 0);
+    }
     var file = osPath.join(DEST, "manifest.json")
       , data = JSON.stringify(manifest, null, "  ");
     if (fs.existsSync(file) && fs.statSync(file).isFile()) {
@@ -165,6 +173,7 @@ var Tasks = {
       }
     }
     fs.writeFile(file, data, cb);
+    print("Save manifest file: " + file);
   }],
   dist: [["static", "build/ts"], ["manifest", "min/others"]],
   "dist/": ["dist"],
@@ -266,7 +275,8 @@ function makeWatchTask(taskName) {
   var glob = CompileTasks[taskName][0];
   typeof glob === "string" && (glob = [glob]);
   if (!debugging) {
-    glob.push("!background/*.d.ts", "!content/*.d.ts", "!pages/*.d.ts", "!types/*.d.ts");
+    glob.push("!background/*.d.ts", "!content/*.d.ts", "!pages/*.d.ts",
+      "!types/**/*.ts", "!types/*.d.ts", "!node_modules/**/*.ts");
   }
   gulp.watch(glob, function() {
     if (_notifiedTasks.indexOf(taskName) < 0) { _notifiedTasks.push(taskName); }
@@ -330,7 +340,8 @@ function compile(pathOrStream, header_files, done) {
   }
   var stream = pathOrStream instanceof Array ? gulp.src(pathOrStream, { base: "." }) : pathOrStream;
   var extra = ignoreHeaderChanges || header_files === false ? undefined
-    : ["types/**/*.d.ts", "types/*.d.ts"].concat(header_files);
+    : ["types/**/*.d.ts", "types/*.d.ts", "!types/build/*.ts"].concat(header_files
+        ).concat(buildConfig ? ["scripts/gulp.tsconfig.json"] : []);
   var allIfNotEmpty = gulpAllIfNotEmpty();
   stream = stream.pipe(allIfNotEmpty.prepare);
   if (!debugging) {
@@ -346,27 +357,25 @@ function compile(pathOrStream, header_files, done) {
   if (willListFiles) {
     stream = stream.pipe(gulpPrint());
   }
-  if (doesMergeProjects) {
-    if (_mergedProjectInput == null) {
-      var merged = _mergedProjectInput = gulpMerge();
-      if (enableSourceMap) {
-        merged = merged.pipe(require('gulp-sourcemaps').init());
-      }
-      var project = tsProject();
-      var tsResult = merged.pipe(project);
-      _mergedProject = outputJSResult(tsResult.js);
+  var merged = doesMergeProjects ? _mergedProjectInput : null;
+  var isInitingMerged = merged == null;
+  if (isInitingMerged) {
+    merged = gulpMerge();
+    doesMergeProjects && (_mergedProjectInput = merged);
+  }
+  stream.pipe(merged.attachSource());
+  if (isInitingMerged) {
+    getBuildConfigStream().pipe(merged.attachSource());
+    if (enableSourceMap) {
+      merged = merged.pipe(require('gulp-sourcemaps').init());
     }
-    _mergedProject.on("finish", done);
-    stream.pipe(_mergedProjectInput.attachSource());
-    return;
+    var project = tsProject();
+    merged = merged.pipe(project);
+    merged = outputJSResult(merged.js);
+    _mergedProject = merged;
   }
-  if (enableSourceMap) {
-    stream = stream.pipe(require('gulp-sourcemaps').init());
-  }
-  var project = tsProject();
-  var tsResult = stream.pipe(project);
-  stream = outputJSResult(tsResult.js);
-  stream.on("finish", done);
+  merged = _mergedProject;
+  merged.on("finish", done);
 }
 
 function outputJSResult(stream) {
@@ -652,15 +661,19 @@ function readJSON(fileName, throwError) {
   return _readJSON(fileName, throwError);
 }
 
-function readCompilerOptions(tsConfigFile, throwError) {
+function readTSConfig(tsConfigFile, throwError) {
   if (tsConfigFile.lastIndexOf(".json") !== tsConfigFile.length - 5) {
     tsConfigFile += ".json";
   }
   var config = readJSON(tsConfigFile);
-  var opts = config ? config.compilerOptions || {} : null;
-  if (opts && config.extends) {
+  if (!config) { return null; }
+  var opts = config.compilerOptions || (config.compilerOptions = {});
+  if (config.extends) {
     var baseFile = osPath.join(osPath.dirname(tsConfigFile), config.extends);
-    var baseOptions = readCompilerOptions(baseFile, throwError);
+    var baseConfig = readTSConfig(baseFile, throwError), baseOptions = baseConfig.compilerOptions;
+    if (baseConfig.build) {
+      extendIf(config.build, baseConfig.build);
+    }
     if (baseOptions) {
       if (baseOptions.plugins && opts.plugins) {
         var pluginNames = opts.plugins.map(function (i) { return i.name; });
@@ -668,18 +681,21 @@ function readCompilerOptions(tsConfigFile, throwError) {
           return pluginNames.indexOf(i.name) < 0;
         }));
       }
-      for (var key in baseOptions) {
-        if (baseOptions.hasOwnProperty(key) && !(key in opts)) {
-          opts[key] = baseOptions[key];
-        }
-      }
+      extendIf(opts, baseOptions);
     }
   }
-  return opts;
+  return config;
 }
 
 function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
-  var opts = readCompilerOptions(tsConfigFile, true);
+  var tsconfig = readTSConfig(tsConfigFile, true);
+  if (tsconfig.build) {
+    buildConfig = tsconfig.build;
+  }
+  var opts = tsconfig.compilerOptions;
+  if (buildConfig && opts.types) {
+    opts.types = opts.types.filter(i => i !== "build");
+  }
   
   if (!keepCustomOptions && (keepCustomOptions === false || !opts.typescript)) {
     delete opts.inferThisForObjectLiterals;
@@ -761,6 +777,44 @@ function removeUnknownOptions() {
   } else if (toDelete.length === 1) {
     print("Skip the TypeScript option:", toDelete[0]);
   }
+}
+
+function getBuildConfigStream() {
+  return gulp.src("types/build/index.d.ts").pipe(gulpMap(function(file) {
+    file.history = file.history.map(i => i.replace("index.d.ts", "gulp.d.ts"));
+    file.contents = new Buffer(patchBuild(String(file.contents)));
+    return file;
+  }));
+}
+
+function patchBuild(build) {
+  return build.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, defaultVal) {
+    var newVal = getBuildItem(key);
+    return key + " = " + (newVal != null ? newVal : defaultVal);
+  });
+}
+
+function getBuildItem(key, defaultVal) {
+  var env_key = key.replace(/[A-Z]+[a-z0-9]+/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
+  var newVal = process.env["BUILD_" + env_key];
+  if (newVal != null) {
+    try {
+      return JSON.parse(newVal);
+    } catch (e) {}
+  }
+  newVal = buildConfig && buildConfig[key];
+  if (newVal instanceof Array && newVal.length === 2) {
+    newVal = newVal[locally ? 0 : 1];
+  }
+  return newVal;
+}
+
+function extendIf(b, a) {
+  Object.setPrototypeOf(a, null);
+  for (const i in a) {
+    (i in b) || (b[i] = a[i]);
+  }
+  return b;
 }
 
 function print() {

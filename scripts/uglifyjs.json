@@ -37,6 +37,10 @@
     "collapse_vars": true,
     "warnings": true,
     "negate_iife": false,
+    "pure_funcs": ["startsWith", "endsWith", "contains", "indexOf", "lastIndexOf",
+      "substring", "substr", "slice", "charAt", "charCodeAt", "repeat", "concat",
+      "_getKeyCharUsingKeyIdentifier", "parentFrame_"
+    ],
     "pure_getters": true,
     "keep_fargs": true, // typescript will check unused arguments
     "keep_fnames": "/^(startsWith|endsWith|addEventListener|toString|VC)$/",
@@ -66,5 +70,5 @@
       "VC"
     ],
     "toplevel": true
-  }
+  } //*/
 }

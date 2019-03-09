@@ -41,6 +41,10 @@ case "$1" in
     DIST=1
     shift
     ;;
+  local|--local)
+    DIST=0
+    shift
+    ;;
   only|--only)
     exit 0
     ;;
