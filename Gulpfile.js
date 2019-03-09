@@ -915,13 +915,13 @@ function gulpMerge() {
 function patchExtendClick(source) {
   if (locally && envLegacy) { return source; }
   print('Patch the extend_click module');
-  source = source.replace(/(addEventListener|toString) ?: ?function \w+/g, "$1 "); // es6 member function
+  source = source.replace(/(addEventListener|toString) ?: ?function \w+/g, "$1");
   let match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
   if (match) {
     const start = Math.max(0, match.index - 128), end = match.index;
     let prefix = source.substring(0, start), suffix = source.substring(end);
     source = source.substring(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
-    suffix = '/\\b(addEventListener|toString) \\(/g, "$1:function $1("' + suffix.substring(match[0].length);
+    suffix = '/\\b(addEventListener|toString)\\(/g, "$1:function $1("' + suffix.substring(match[0].length);
     source = prefix + source + suffix;
   }
   match = /' ?\+ ?\(?function VC ?\(/.exec(source);

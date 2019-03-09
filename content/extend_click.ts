@@ -171,9 +171,8 @@ _listen("DOMContentLoaded", handler, true);
     ;
   Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage &&
     (VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage);
-  // the block below is also correct on Edge
-  // todo: add static version check
-  if (appVer >= BrowserVer.MinEnsureMethodFunction && appVer) {
+  if (Build.MinCVer < BrowserVer.MinEnsureMethodFunction &&
+      appVer >= BrowserVer.MinEnsureMethodFunction) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
   }
   /**
