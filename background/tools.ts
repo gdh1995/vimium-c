@@ -516,9 +516,9 @@ setTimeout(function () {
 
 Utils.copy_ = Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+    && navigator.clipboard
 ? function (this: void, data: string): void {
-  const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
-  clipboard && clipboard.writeText(Clipboard_.format_(data));
+  (navigator.clipboard as EnsureNonNull<Navigator["clipboard"]>).writeText(Clipboard_.format_(data));
 } : function (this: void, data: string): void {
   data = Clipboard_.format_(data);
   const textArea = Clipboard_.getTextArea_();
