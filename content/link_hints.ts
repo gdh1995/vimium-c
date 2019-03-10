@@ -43,7 +43,7 @@ declare namespace HintsNS {
     newHintLength: number;
     tab: 0 | 1;
   }
-  interface ElementList { readonly length: number; [index: number]: Element; }
+  type ElementList = NodeListOf<Element> | Element[];
 }
 
 var VHints = {
@@ -464,20 +464,21 @@ var VHints = {
     query = matchAll || a.queryInDeep_ !== DeepQueryType.InDeep ? key : a.getDeepDescendantCombinator_() + key,
     Sc = VScroller,
     wantClickable = matchAll && filter === a.GetClickable_,
-    box = !wholeDoc && D.webkitFullscreenElement || D, isD = box === D;
+    box = !wholeDoc && D.webkitFullscreenElement || D, isD = box === D,
+    querySelectorAll = isD ? D.querySelectorAll : Element.prototype.querySelectorAll;
     wantClickable && Sc.getScale_();
-    let list: HintsNS.ElementList | null = (matchAll || (<RegExpOne> /^[a-z]+$/).test(query)) && isD ?
-          box.getElementsByTagName(query) : D.querySelectorAll.call(box, query);
+    let list: HintsNS.ElementList | null = querySelectorAll.call(box, query);
     if (!wholeDoc && a.tooHigh_ && isD && list.length >= 15000) {
       list = a.getElementsInViewPort_(list);
     }
-    (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(list, filter, output);
+    const forEach = (list.forEach || output.forEach) as HintsNS.ElementIterator<Hint | Element>;
+    forEach.call(list, filter, output);
     if (wholeDoc) { /* this requires not detecting scrollable elements if wholeDoc */ return output; }
     if (output.length === 0 && !matchAll && a.queryInDeep_ === DeepQueryType.NotDeep && !a.tooHigh_) {
       a.queryInDeep_ = DeepQueryType.InDeep;
       if (a.getDeepDescendantCombinator_()) {
-        (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(
-          D.querySelectorAll.call(box, a.getDeepDescendantCombinator_() + key), filter, output);
+        forEach.call(
+          querySelectorAll.call(box, a.getDeepDescendantCombinator_() + key), filter, output);
       }
     }
     list = null;
@@ -492,7 +493,7 @@ var VHints = {
         d.dbZoom_ = z / bz;
         d.prepareCrop_();
       }
-      (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(
+      forEach.call(
         (uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
       d.dbZoom_ = z;
       if (notHookScroll) {

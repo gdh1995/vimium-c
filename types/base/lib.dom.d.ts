@@ -8668,7 +8668,7 @@ interface ImageBitmap {
     close(): void;
 }
 
-interface NodeListOf<TNode extends Node> extends NodeList {
+interface NodeListOf<TNode extends Node> extends NodeList, ReadonlyArray<TNode> {
     length: number;
     item(index: number): TNode;
     [index: number]: TNode;
