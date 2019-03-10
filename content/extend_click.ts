@@ -116,7 +116,11 @@ next = setTimeout.bind(window as never, function (): void {
   timer = start > 0 ? next() : 0;
   if (len > 0) {
     // skip some nodes if only crashing, so that there would be less crash logs in console
-    for (const i of toRegister.splice(start, delta)) { reg(i); }
+    const slice = toRegister.splice(start, delta);
+    // tslint:disable-next-line: prefer-for-of
+    for (let i = 0; i < slice.length; i++) {
+      reg(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
+    }
   }
 }, 1)
 , root: HTMLDivElement, timer = setTimeout(handler, 1000)
@@ -142,6 +146,7 @@ function reg(this: void, element: Element): void {
     dispatch(element, event);
     call(Remove, e1);
   } else if (e2 instanceof DF && !(e2 instanceof SR || ((e3 = e1.nextSibling) && e3.parentElement))) {
+    // Note: up to C72, no ways to detect <template>.content
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
