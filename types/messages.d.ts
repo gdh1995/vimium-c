@@ -425,6 +425,7 @@ interface ExternalMsgs {
     res: {
       version: string;
       scripts: string[];
+      versionHash: string;
     }
   };
   [kFgReq.command]: {

@@ -2432,7 +2432,7 @@ Are you sure you want to continue?`);
         let { sender, name } = port, arr: string[];
         if (sender && isExtIdAllowed(sender.id)
             && name.startsWith("vimium-c") && (arr = name.split("@")).length > 1) {
-          if (arr[1] !== Settings.CONST_.VerCode_ && arr[1] !== "omni") {
+          if (arr[1] !== Settings.CONST_.GitVer && arr[1] !== "omni") {
             (port as Port).postMessage({ N: kBgReq.reInject });
             port.disconnect();
             return;
@@ -2483,7 +2483,8 @@ Are you sure you want to continue?`);
     if (typeof message !== "object" || !message) { return; }
     if (message.handler === kFgReq.inject) {
       (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
-        scripts: Settings.CONST_.ContentScripts_, version: Settings.CONST_.VerCode_
+        scripts: Settings.CONST_.ContentScripts_, version: Settings.CONST_.VerCode_,
+        versionHash: Settings.CONST_.GitVer
       });
     } else if (message.handler === kFgReq.command) {
       command = message.command ? message.command + "" : "";

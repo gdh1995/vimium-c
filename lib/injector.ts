@@ -39,6 +39,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     id: extHost,
     alive: 0,
     version: res ? res.version : "",
+    versionHash: res ? res.versionHash : "",
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
     getCommandCount: null as never,
@@ -81,10 +82,10 @@ if (document.readyState === "complete") {
 }
 })(function (scriptSrc): VimiumInjector["reload"] {
   return function (async): void {
+    if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
+      VimiumInjector.destroy(true);
+    }
     function inject(): void {
-      if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
-        VimiumInjector.destroy(true);
-      }
       const docEl = document.documentElement as HTMLHtmlElement | null;
       if (!docEl) { return; }
       const script = document.createElement("script");
@@ -92,7 +93,7 @@ if (document.readyState === "complete") {
       script.src = scriptSrc;
       (document.head || document.body || docEl).appendChild(script);
     }
-    async === true ? setTimeout(inject, 200) : inject();
+    async ? setTimeout(inject, 200) : inject();
   };
 });
 

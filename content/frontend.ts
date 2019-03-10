@@ -66,7 +66,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         ? browser as typeof chrome : chrome).runtime,
       name = "vimium-c." + (
         PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status),
-      data = { name: injector ? name + "@" + injector.version : name },
+      data = { name: injector ? name + "@" + injector.versionHash : name },
       port = vPort._port = injector ? runtime.connect(injector.id, data) as Port
         : runtime.connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);
