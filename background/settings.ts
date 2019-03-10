@@ -351,6 +351,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     VimiumNewTab_: "",
     ContentScripts_: null as never as string[],
     VerCode_: "", VerName_: "",
+    GitVer: BuildStr.Commit,
     StyleCacheId_: "",
     KnownPages_: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",

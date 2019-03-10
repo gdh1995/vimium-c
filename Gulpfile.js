@@ -789,7 +789,8 @@ function getBuildConfigStream() {
 
 function patchBuild(build) {
   return build.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, defaultVal) {
-    var newVal = getBuildItem(key);
+    var newVal = key === "Commit" ? getGitCommit()
+        : getBuildItem(key);
     return key + " = " + (newVal != null ? newVal : defaultVal);
   });
 }
@@ -807,6 +808,11 @@ function getBuildItem(key, defaultVal) {
     newVal = newVal[locally ? 0 : 1];
   }
   return newVal;
+}
+
+function getGitCommit() {
+  var commit = readFile(".git/refs/heads/master");
+  return commit ? JSON.stringify(commit.trim()) : null;
 }
 
 function extendIf(b, a) {

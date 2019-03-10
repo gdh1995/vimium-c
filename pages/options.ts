@@ -364,7 +364,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     bgSettings_.broadcast_(req);
   }
 
-  let _ref: NodeListOf<HTMLElement> = $$("[data-model]"), element: HTMLElement;
+  let _ref: {length: number, [index: number]: HTMLElement} = $$("[data-model]"), element: HTMLElement;
   const types = {
     Number: NumberOption_,
     Text: TextOption_,
@@ -580,7 +580,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   Option_.all_.vomnibarPage.onSave_();
 
   _ref = $$("[data-permission]");
-  _ref.length > 0 && (function (this: void, els: NodeListOf<HTMLElement>): void {
+  _ref.length > 0 && (function (this: void, els: typeof _ref): void {
     const manifest = chrome.runtime.getManifest(), permissions = manifest.permissions || [];
     for (const key of permissions) {
       manifest[key] = true;
