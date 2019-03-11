@@ -1095,7 +1095,8 @@ knownCs: CompletersMap & SafeObject = {
     },
     timeAgo_: 0,
     recencyScore_ (lastAccessedTime: number): number {
-      const score = Math.max(0, lastAccessedTime - this.timeAgo_) / TimeEnums.timeCalibrator;
+      let score = (lastAccessedTime - this.timeAgo_) / TimeEnums.timeCalibrator;
+      score = score < 0 || score > 1 ? 0 : score;
       return score * score * RankingEnums.recCalibrator;
     },
     normalizeDifference_ (a: number, b: number): number {
