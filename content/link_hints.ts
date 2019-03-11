@@ -270,7 +270,7 @@ var VHints = {
     let arr: Rect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
     if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) {
       if (element instanceof SVGElement) {
-        type = element.vimiumHasOnclick || element.getAttribute("onclick")
+        type = VUtils.clickable_.has(element) || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
             || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.listener
           : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
@@ -348,7 +348,7 @@ var VHints = {
     }
     if (isClickable === null) {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
-        : (element.vimiumHasOnclick && VHints.isClickListened_) || element.getAttribute("onclick")
+        : (VUtils.clickable_.has(element) && VHints.isClickListened_) || element.getAttribute("onclick")
           || VHints.ngEnabled_ && element.getAttribute("ng-click")
           || (s = element.getAttribute("role")) && (s = s.toLowerCase()
             , s === "button" || s === "link" || s === "tab"

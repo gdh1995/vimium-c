@@ -649,7 +649,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
     const isClickable = s === "a" || (
       s === "button" ? !(element as HTMLButtonElement).disabled
-      : element.vimiumHasOnclick || element.getAttribute("onclick") || (
+      : VUtils.clickable_.has(element) || element.getAttribute("onclick") || (
         (s = element.getAttribute("role")) ? (s = s.toLowerCase(), s === "link" || s === "button")
         : VHints.ngEnabled_ && element.getAttribute("ng-click")));
     if (!isClickable) { return; }

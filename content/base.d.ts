@@ -1,6 +1,3 @@
-interface Element {
-  vimiumHasOnclick?: boolean;
-}
 declare const enum ShadowRootListenType {
   None = 0,
   Blur = 1,

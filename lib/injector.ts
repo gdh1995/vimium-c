@@ -40,6 +40,17 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     alive: 0,
     version: res ? res.version : "",
     versionHash: res ? res.versionHash : "",
+    clickable: VimiumInjector ? VimiumInjector.clickable
+        : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+          || window.WeakSet ? new WeakSet<Element>() : {
+      add (element: Element) { (element as ElementWithClickable).vimiumHasOnclick = true; return this; },
+      has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; },
+      delete (element: Element): boolean {
+        const oldVal = (element as ElementWithClickable).vimiumHasOnclick;
+        oldVal && ((element as ElementWithClickable).vimiumHasOnclick = false);
+        return !!oldVal;
+      },
+    },
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
     getCommandCount: null as never,
@@ -116,7 +127,7 @@ const HA = HTMLAnchorElement, E = Element;
 const newListen: ListenerEx = cls.addEventListener =
 function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
   if (type === "click" && !(this instanceof HA) && listener && this instanceof E) {
-    (this as Element).vimiumHasOnclick = true;
+    VimiumInjector && VimiumInjector.clickable.add(this as Element);
   }
   const args = arguments, len = args.length;
   return len === 2 ? _listen.call(this, type, listener) : len === 3 ? _listen.call(this, type, listener, args[2])

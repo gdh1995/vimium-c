@@ -23,3 +23,4 @@ Modified by gdh1995 (github).
 /// <reference path="lib.es6.d.ts" />
 /// <reference path="lib.es2015.core.d.ts" />
 /// <reference path="lib.es2015.promise.d.ts" />
+/// <reference path="lib.es2015.collection.d.ts" />

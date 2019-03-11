@@ -50,7 +50,7 @@ if (VSettings && document.readyState !== "complete"
       resolve(0, detail[0]); resolve(1, detail[1]);
       console.log("vimium-c: extend click: resolve(Element[%d], Element[%d])", detail[0].length, detail[1].length);
     } else {
-      (event.target as Element).vimiumHasOnclick = true;
+      VUtils.clickable_.add(event.target as Element);
       console.log("vimium-c: extend click: resolve <%s>", (event.target as Element).tagName.toString().toLowerCase());
     }
   }
@@ -59,7 +59,7 @@ if (VSettings && document.readyState !== "complete"
     let list = isBox ? (box as Element).getElementsByTagName("*") : document.getElementsByTagName("*");
     for (const index of nodeIndexList) {
       let el = list[index];
-      el && (el.vimiumHasOnclick = true);
+      el && VUtils.clickable_.add(el);
     }
   }
   function destroyServer() {
