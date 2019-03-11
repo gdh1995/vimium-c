@@ -954,7 +954,7 @@ Completers = {
     }
     const cb = func.bind(that, query);
     if (inNormal !== null || Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito) {
-      return chrome.tabs.query({ currentWindow: wantInCurrentWindow }, cb);
+      return chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, cb);
     }
     return chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {
       if (query.isOff) { return; }

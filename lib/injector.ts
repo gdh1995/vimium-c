@@ -108,6 +108,9 @@ type _EventTargetEx = typeof EventTarget;
 interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;
 }
+interface ElementWithClickable {
+  vimiumHasOnclick?: boolean;
+}
 VimiumClickable = VimiumClickable ? VimiumClickable
     : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
       || window.WeakSet ? new WeakSet<Element>() : {
