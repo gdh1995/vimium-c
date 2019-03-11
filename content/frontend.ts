@@ -36,8 +36,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     SafePost_<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>): void {
       try {
         if (!vPort._port) {
-          vPort.Connect_((isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
-            + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn_ ? PortType.hasCSS : 0));
+          vPort.Connect_();
           injector && setTimeout(vPort.TestAlive_, 50);
         }
         (vPort._port as Port).postMessage(request);
@@ -55,15 +54,18 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       vPort._port = null;
       setTimeout(function (i): void {
         if (!i) {
-          try { esc && vPort.Connect_(PortType.initing); return; } catch {}
+          try { esc && vPort.Connect_(); return; } catch {}
         }
         esc && VSettings.destroy_();
       }, requestHandlers[kBgReq.init] ? 2000 : 5000);
     },
-    Connect_: (function (this: void, status: PortType): void {
+    Connect_: (function (this: void): void {
       const runtime: typeof chrome.runtime = (
         (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : useBrowser)
         ? browser as typeof chrome : chrome).runtime,
+      status = requestHandlers[0] ? PortType.initing
+        : (isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
+        + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn_ ? PortType.hasCSS : 0),
       name = "vimium-c." + (
         PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status),
       data = { name: injector ? name + "@" + injector.versionHash : name },
@@ -1252,6 +1254,6 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     } catch {}
   }()) {
     hook(HookAction.Install);
-    vPort.Connect_(PortType.initing);
+    vPort.Connect_();
   }
 })();
