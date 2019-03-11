@@ -860,6 +860,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
               && browserVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin)) {
         D.notSafe_ = (el): el is HTMLFormElement => el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
       }
+      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 &&
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
       r[kBgReq.keyMap](request);
       if (flags) {
@@ -923,6 +924,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         const i2 = "_" + i as Keys;
         (i2 in cache) && (VUtils.safer_(cache)[i2] = undefined as never);
       }
+      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 &&
       deepHints != null && VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
       (VHints.queryInDeep_ = deepHints ? DeepQueryType.InDeep : DeepQueryType.NotDeep);
     },

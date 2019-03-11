@@ -629,5 +629,7 @@ declare const enum BrowserVer {
   // https://www.chromestatus.com/features/6569666117894144
   // https://bugs.chromium.org/p/chromium/issues/detail?id=179006#c45
   MinSpecCompliantShadowBlurRadius = 73,
+  // it's said the deadline is C73 in https://www.chromestatus.com/features/4507242028072960
+  MinNoShadowDOMv0 = 73,
   assumedVer = 999,
 }

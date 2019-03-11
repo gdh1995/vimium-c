@@ -63,7 +63,8 @@ var VHints = {
   mode_: 0 as HintMode,
   mode1_: 0 as HintMode,
   modeOpt_: null as HintsNS.ModeOpt | null,
-  queryInDeep_: DeepQueryType.NotDeep,
+  queryInDeep_: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0
+    ? DeepQueryType.NotDeep : DeepQueryType.NotAvailable,
   forHover_: false,
   count_: 0,
   lastMode_: 0 as HintMode,
@@ -461,7 +462,8 @@ var VHints = {
       a.ngEnabled_ = D.querySelector(".ng-scope") != null;
     }
     const output: Hint[] | Element[] = [],
-    query = matchAll || a.queryInDeep_ !== DeepQueryType.InDeep ? key : a.getDeepDescendantCombinator_() + key,
+    query = !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0)
+      || matchAll || a.queryInDeep_ !== DeepQueryType.InDeep ? key : a.getDeepDescendantCombinator_() + key,
     Sc = VScroller,
     wantClickable = matchAll && filter === a.GetClickable_,
     box = !wholeDoc && D.webkitFullscreenElement || D, isD = box === D,
@@ -474,7 +476,8 @@ var VHints = {
     const forEach = (list.forEach || output.forEach) as HintsNS.ElementIterator<Hint | Element>;
     forEach.call(list, filter, output);
     if (wholeDoc) { /* this requires not detecting scrollable elements if wholeDoc */ return output; }
-    if (output.length === 0 && !matchAll && a.queryInDeep_ === DeepQueryType.NotDeep && !a.tooHigh_) {
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0
+        && output.length === 0 && !matchAll && a.queryInDeep_ === DeepQueryType.NotDeep && !a.tooHigh_) {
       a.queryInDeep_ = DeepQueryType.InDeep;
       if (a.getDeepDescendantCombinator_()) {
         forEach.call(
@@ -487,7 +490,11 @@ var VHints = {
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
           || uiRoot !== VDom.UI.box_)
         && !notWantVUI
-        && (uiRoot.mode === "closed" || !matchAll && a.queryInDeep_ !== DeepQueryType.InDeep)) {
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
+          || uiRoot.mode === "closed"
+          || !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0)
+          || !matchAll && a.queryInDeep_ !== DeepQueryType.InDeep)
+        ) {
       const d = VDom, z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
       if (bz !== 1 && isD) {
         d.dbZoom_ = z / bz;
@@ -673,11 +680,15 @@ var VHints = {
       if (i === KeyStat.shiftKey) {
         this.isClickListened_ = !this.isClickListened_;
       } else if (i === KeyStat.plain) {
-        reinit = deep !== DeepQueryType.NotAvailable;
-        this.queryInDeep_ = DeepQueryType.InDeep - deep;
+        if ((Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinNoShadowDOMv0) {
+          reinit = deep !== DeepQueryType.NotAvailable;
+          this.queryInDeep_ = DeepQueryType.InDeep - deep;
+        }
       } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VUtils.cache_.onMac_)) {
-        reinit = deep === DeepQueryType.NotDeep;
-        this.queryInDeep_ = DeepQueryType.InDeep;
+        if ((Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinNoShadowDOMv0) {
+          reinit = deep === DeepQueryType.NotDeep;
+          this.queryInDeep_ = DeepQueryType.InDeep;
+        }
       } else if (i === KeyStat.altKey) {
         reinit = (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinHTMLDialogElement)
           || typeof HTMLDialogElement === "function";
@@ -732,17 +743,18 @@ var VHints = {
     }
     return HandlerResult.Prevent;
   },
-  getDeepDescendantCombinator_(): string {
+  getDeepDescendantCombinator_: Build.BTypes & BrowserType.Chrome
+      && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 ? function (this: {}): string {
     let v0 = "* /deep/ ";
     try {
-      (VDom.UI.box_ || document.head || VDom.createElement_("div")).querySelector(v0 + "html");
+      document.querySelector(v0 + "html");
     } catch {
-      this.queryInDeep_ = DeepQueryType.NotAvailable;
+      (this as typeof VHints).queryInDeep_ = DeepQueryType.NotAvailable;
       v0 = "";
     }
-    this.getDeepDescendantCombinator_ = () => v0;
+    (this as typeof VHints).getDeepDescendantCombinator_ = () => v0;
     return v0;
-  },
+  } : null as never,
   ResetMode_ (): void {
     if (VHints.mode_ >= HintMode.min_disable_queue || VHints.lastMode_ === VHints.mode_) { return; }
     const d = VEvent.keydownEvents_();
