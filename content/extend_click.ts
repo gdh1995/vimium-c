@@ -1,6 +1,16 @@
 if (VSettings && document.readyState !== "complete"
     && VimiumInjector === undefined) {
 (function (this: void): void {
+/** Note(gdh1995):
+ * According to source code of C72,
+ *     getElementsByTagName has a special cache (per container node) for tag name queries,
+ * and I think it's shared across V8 worlds.
+ * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/container_node.cc?type=cs&q=getElementsByTagName&g=0&l=1578
+ */
+  const enum InnerConsts {
+    MaxElementsInOneTick = 64,
+    MaxUnsafeEventsInOneTick = 10,
+  }
   let d: Document | Document["documentElement"] = document
     , script: HTMLScriptElement | Element = d.createElement("script") as HTMLScriptElement | Element
     , box: EventTarget | null | false = null
@@ -30,15 +40,31 @@ if (VSettings && document.readyState !== "complete"
     }
   }
   addEventListener("VimiumHook", installer, true);
-  function onclick(event: Event): void {
-    (event.target as Element).vimiumHasOnclick = true;
-    event.stopPropagation();
+  interface ClickableEvent extends CustomEvent {
+    detail: [number[], number[]];
   }
-  addEventListener("VimiumOnclick", onclick, true);
+  function onclick(event: CustomEvent): void {
+    event.stopImmediatePropagation();
+    let detail = event.detail as ClickableEvent["detail"] | null;
+    if (detail) {
+      resolve(0, detail[0]); resolve(1, detail[1]);
+      console.log("vimium-c: extend click: resolve(Element[%d], Element[%d])", detail[0].length, detail[1].length);
+    } else {
+      (event.target as Element).vimiumHasOnclick = true;
+      console.log("vimium-c: extend click: resolve <%s>", (event.target as Element).tagName.toString().toLowerCase());
+    }
+  }
+  function resolve(isBox: BOOL, nodeIndexList: number[]): void {
+    if (!nodeIndexList.length) { return; }
+    let list = isBox ? (box as Element).getElementsByTagName("*") : document.getElementsByTagName("*");
+    for (const index of nodeIndexList) {
+      let el = list[index];
+      el && (el.vimiumHasOnclick = true);
+    }
+  }
   function destroyServer() {
-    const r = removeEventListener;
+    const r = removeEventListener, settings = VSettings;
     /** this function should keep idempotent */
-    r("VimiumOnclick", onclick, true);
     if (box) {
       r.call(box, "VimiumOnclick", onclick, true);
       box.dispatchEvent(new CustomEvent("VimiumUnhook", {detail: secret}));
@@ -47,7 +73,7 @@ if (VSettings && document.readyState !== "complete"
       setTimeout(function (): void { r("VimiumHook", installer, true); }, 1100);
     }
     box = false;
-    VSettings && (VSettings.stop_ = null);
+    settings && (settings.stop_ = null);
   }
   VSettings.stop_ = destroyServer;
 
@@ -55,6 +81,7 @@ if (VSettings && document.readyState !== "complete"
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
 type Call3o<T, A, B, C, R> = (this: (this: T, a: A, b: B, c?: C) => R, thisArg: T, a: A, b: B, c?: C) => R;
 type FUNC = (this: unknown, ...args: unknown[]) => unknown;
+interface CollectionEx extends HTMLCollectionOf<Element> { indexOf: Element[]["indexOf"]; }
 const ETP = EventTarget.prototype, _listen = ETP.addEventListener, toRegister: Element[] = [],
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, R, A, B, C>(
@@ -64,6 +91,11 @@ doc = document, cs = doc.currentScript as HTMLScriptElement, Create = doc.create
 E = Element, EP = E.prototype, Append = EP.appendChild, Contains = EP.contains, Insert = EP.insertBefore,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 contains = Contains.bind(doc),
+nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
+getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP = EP.getElementsByTagName,
+IndexOf = _call.bind(toRegister.indexOf) as never as (this: void, list: CollectionEx, item: Element) => number,
+push = nodeIndexListInDocument.push,
+pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
 CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment,
 FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
@@ -82,7 +114,7 @@ hooks = {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA) && a instanceof E) {
       toRegister.push(a);
-      if (timer === 0) { timer = next(); }
+      timer || (timer = next());
     }
     const args = arguments, len = args.length;
     return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
@@ -110,25 +142,32 @@ let handler = function (this: void): void {
   }
 },
 docChildren = doc.children,
+unsafeDispatchCounter = 0,
+allNodesInDocument = null as CollectionEx | null, allNodesForDetached = null as CollectionEx | null,
 next = setTimeout.bind(window as never, function (): void {
-  const len = toRegister.length, start = len > 9 ? len - 10 : 0, delta = len - start;
+  const len = toRegister.length,
+  start = len > InnerConsts.MaxElementsInOneTick ? len - InnerConsts.MaxElementsInOneTick : 0,
+  delta = len - start;
   timer = start > 0 ? next() : 0;
-  if (len > 0) {
-    // skip some nodes if only crashing, so that there would be less crash logs in console
-    const slice = toRegister.splice(start, delta);
-    // tslint:disable-next-line: prefer-for-of
-    for (let i = 0; i < slice.length; i++) {
-      reg(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
-    }
+  if (!len) { return; }
+  unsafeDispatchCounter = 0;
+  // skip some nodes if only crashing, so that there would be less crash logs in console
+  const slice = toRegister.splice(start, delta);
+  // tslint:disable-next-line: prefer-for-of
+  for (let i = 0; i < slice.length; i++) {
+    prepareRegister(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
   }
+  doRegister();
+  allNodesInDocument = allNodesForDetached = null;
 }, 1)
 , root: HTMLDivElement, timer = setTimeout(handler, 1000)
 , SR: typeof ShadowRoot = window.ShadowRoot as typeof ShadowRoot
 ;
-function reg(this: void, element: Element): void {
-  const event = new CE("VimiumOnclick");
-  if (contains(element)) { // todo: batch event
-    dispatch(element, event);
+function prepareRegister(this: void, element: Element): void {
+  if (contains(element)) {
+    pushInDocument(
+      IndexOf(allNodesInDocument || (allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*") as CollectionEx)
+        , element));
     return;
   }
   if (element.ownerDocument !== doc) { // in case element is moved / adopted
@@ -147,15 +186,30 @@ function reg(this: void, element: Element): void {
   // so `dispatch` MUST NEVER throw. Otherwises a page might break
   if ((e2 = e1.parentNode) == null) {
     call(Append, root, e1);
-    dispatch(element, event);
-    call(Remove, e1);
+    pushForDetached(
+      IndexOf(allNodesForDetached || (allNodesForDetached = call(getElementsByTagNameInEP, root, "*") as CollectionEx)
+        , element));
   } else if (e2 instanceof DF && !(e2 instanceof SR || ((e3 = e1.nextSibling) && e3.parentElement))) {
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
-    call(Append, root, e1);
-    dispatch(element, event);
-    call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, e3);
+    if (unsafeDispatchCounter < 10) {
+      unsafeDispatchCounter++;
+      doRegister();
+      call(Append, root, e1);
+      dispatch(element, new CE("VimiumOnclick"));
+      call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, e3);
+    } else {
+      toRegister.push(element);
+      timer || (timer = next());
+    }
+  }
+}
+function doRegister(): void {
+  if (nodeIndexListInDocument.length || nodeIndexListForDetached.length) {
+    dispatch(root, new CE("VimiumOnclick", { detail: [nodeIndexListInDocument, nodeIndexListForDetached] }));
+    nodeIndexListForDetached.length && (root.textContent = "");
+    nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
   }
 }
 function destroyClient(e?: Event): void {
@@ -165,7 +219,7 @@ function destroyClient(e?: Event): void {
   root = null as never;
   ct(timer);
 }
-toRegister.push = toRegister.push, toRegister.splice = toRegister.splice;
+toRegister.push = push as any, toRegister.splice = toRegister.splice;
 !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 ||
 (!SR || SR instanceof E) && (SR = CE as never);
 // only the below can affect outsides
