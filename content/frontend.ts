@@ -1214,12 +1214,12 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     Commands[kFgCmd.reset]();
     let f = VSettings.stop_, ui = VDom.UI;
     f && f(HookAction.Destroy);
+    ui.box_ && ui.adjust_(2);
 
     VUtils = VKeyboard = VDom = VDom = VUtils = //
     VHints = VOmni = VScroller = VMarks = VFind = //
     VSettings = VHUD = VPort = VEvent = VVisual = //
     esc = null as never;
-    ui.box_ && ui.adjust_(2);
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
       , "color:red", "color:auto"

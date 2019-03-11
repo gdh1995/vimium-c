@@ -17,7 +17,8 @@ VDom.UI = {
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 ||
-    r.mode === "closed" || (r !== box ? r as ShadowRoot : window).addEventListener("load",
+    r.mode === "closed" ||
+    (r !== box ? r as ShadowRoot : window).addEventListener("load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { return removeEventListener("load", Onload, true); }
       const t = e.target as HTMLElement;
@@ -34,7 +35,7 @@ VDom.UI = {
     });
     a.css_ = (function (innerCSS): void {
       const a1 = VDom.UI, box2 = a1.box_ as HTMLElement;
-      if ((Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer < BrowserVer.MinShadowDOMV0 || box2 === a1.UI) {
+      if (((Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer < BrowserVer.MinShadowDOMV0) && box2 === a1.UI) {
         box2.id = "VimiumUI";
       }
       let el: HTMLStyleElement | null = a1.styleIn_ = a1.createStyle_();

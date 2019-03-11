@@ -47,7 +47,7 @@ __Other extensions supporting Vimium C:__
   : a modified version of [PDF Viewer](https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
     from [PDF.js](https://github.com/mozilla/pdf.js/)
 
-# Known issues
+# Known Issues
 
 Here're some issues still existing on the master branch, which are mostly caused by Chrome bugs:
 
@@ -240,7 +240,7 @@ node scripts/tsc all
 
 `gulp local` can also compile files in place, while `gulp dist` compiles and minimizes files into `dist/`.
 
-# Thanks & License
+# Thanks & Licenses
 
 Vimium C: Copyright (c) Dahan Gong, Phil Crosby, Ilya Sukhar.
 See the [MIT LICENSE](LICENSE.txt) for details.
