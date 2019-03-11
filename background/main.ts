@@ -1814,7 +1814,7 @@ Are you sure you want to continue?`);
       opts.incognito = request.i;
       opts.opener = false;
       if (url) {
-        if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhost]\s/).test(url)) {
+        if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
           url = url.substring(2).trim();
           url || (unsafe = false);
         }

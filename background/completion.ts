@@ -119,6 +119,7 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     inNormal: boolean | null = null, autoSelect: boolean = false, singleLine: boolean = false,
     maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
     queryTerms: QueryTerms = [""], rawQuery: string = "", rawMore: string = "",
+    wantInCurrentWindow = false,
     domainToSkip = "",
     phraseBlacklist: string[] | null = null, showThoseInBlacklist: boolean = true;
 
@@ -945,20 +946,23 @@ Completers = {
   requireNormalOrIncognito_<T> (that: T
       , func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
       , query: CompletersNS.QueryStatus): 1 {
-    const cb = func.bind(that, query);
     if (inNormal === null) {
       inNormal = TabRecency_.incognito_ !== IncognitoType.mayFalse ? TabRecency_.incognito_ !== IncognitoType.true
         : Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito
           || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST_.DisallowIncognito_
           || null;
     }
-    if (inNormal !== null) {
-      return chrome.tabs.query({}, cb);
+    const cb = func.bind(that, query);
+    if (inNormal !== null || Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito) {
+      return chrome.tabs.query({ currentWindow: wantInCurrentWindow }, cb);
     }
-    return chrome.windows.getCurrent(function (wnd): void {
+    return chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {
       if (query.isOff) { return; }
       inNormal = wnd ? !wnd.incognito : true;
       TabRecency_.incognito_ = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
+      if (wantInCurrentWindow) {
+        return cb((wnd as chrome.windows.Window & { tabs: chrome.tabs.Tab[] }).tabs);
+      }
       chrome.tabs.query({}, cb);
     });
   },
@@ -1013,6 +1017,7 @@ Completers = {
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
     autoSelect = singleLine = false;
+    wantInCurrentWindow = false;
     showThoseInBlacklist = true;
   },
   getOffset_ (this: void): void {
@@ -1515,6 +1520,7 @@ Completion_ = {
     if (str.length === 2 && str[0] === ":") {
       str = str[1];
       arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history : str === "t" ? knownCs.tab
+        : str === "w" ? (wantInCurrentWindow = true, knownCs).tab
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (arr) {
         queryTerms.shift();
