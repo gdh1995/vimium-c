@@ -90,8 +90,7 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
   }
-}
-;
+};
 
 let handler = function (this: void): void {
   rel("DOMContentLoaded", handler, true);
@@ -128,8 +127,13 @@ next = setTimeout.bind(window as never, function (): void {
 ;
 function reg(this: void, element: Element): void {
   const event = new CE("VimiumOnclick");
-  if (contains(element)) {
+  if (contains(element)) { // todo: batch event
     dispatch(element, event);
+    return;
+  }
+  if (element.ownerDocument !== doc) { // in case element is moved / adopted
+    // Note: on C72, ownerDocument of elements under <template>.content
+    // is a fake "about:blank" document object
     return;
   }
   let e1: Element | null = element, e2: Node | null, e3: Node | null;
@@ -146,7 +150,6 @@ function reg(this: void, element: Element): void {
     dispatch(element, event);
     call(Remove, e1);
   } else if (e2 instanceof DF && !(e2 instanceof SR || ((e3 = e1.nextSibling) && e3.parentElement))) {
-    // Note: up to C72, no ways to detect <template>.content
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed

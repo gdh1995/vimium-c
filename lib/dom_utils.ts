@@ -467,7 +467,7 @@ var VDom = {
       , doc.defaultView || window, type.startsWith("mouseo") ? 0 : 1
       , x, y, x, y
       , modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey
-      , 0, related || null);
+      , 0, related && related.ownerDocument === doc ? related : null);
     return doc.dispatchEvent.call(element, mouseEvent);
   } as VDomMouse,
   lastHovered_: null as Element | null,
