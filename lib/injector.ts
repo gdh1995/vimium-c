@@ -1,5 +1,5 @@
 declare var browser: unknown;
-var VimiumInjector: VimiumInjector | undefined | null;
+var VimiumInjector: VimiumInjector | undefined | null, VimiumClickable: WeakSet<Element> | undefined | null;
 (function (injectorBuilder: (scriptSrc: string) => VimiumInjector["reload"]) {
 let runtime = (typeof browser !== "undefined" && browser &&
   !((browser as typeof chrome | Element) instanceof Element) ? browser as typeof chrome : chrome).runtime;
@@ -40,17 +40,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     alive: 0,
     version: res ? res.version : "",
     versionHash: res ? res.versionHash : "",
-    clickable: VimiumInjector ? VimiumInjector.clickable
-        : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-          || window.WeakSet ? new WeakSet<Element>() : {
-      add (element: Element) { (element as ElementWithClickable).vimiumHasOnclick = true; return this; },
-      has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; },
-      delete (element: Element): boolean {
-        const oldVal = (element as ElementWithClickable).vimiumHasOnclick;
-        oldVal && ((element as ElementWithClickable).vimiumHasOnclick = false);
-        return !!oldVal;
-      },
-    },
+    clickable: VimiumClickable,
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
     getCommandCount: null as never,
@@ -118,6 +108,17 @@ type _EventTargetEx = typeof EventTarget;
 interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;
 }
+VimiumClickable = VimiumClickable ? VimiumClickable
+    : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+      || window.WeakSet ? new WeakSet<Element>() : {
+  add (element: Element) { (element as ElementWithClickable).vimiumHasOnclick = true; return this; },
+  has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; },
+  delete (element: Element): boolean {
+    const oldVal = (element as ElementWithClickable).vimiumHasOnclick;
+    oldVal && ((element as ElementWithClickable).vimiumHasOnclick = false);
+    return !!oldVal;
+  }
+};
 
 const obj = EventTarget as EventTargetEx, cls = obj.prototype, _listen = cls.addEventListener as ListenerEx;
 if (_listen.vimiumHooked === true) { return; }
@@ -127,7 +128,7 @@ const HA = HTMLAnchorElement, E = Element;
 const newListen: ListenerEx = cls.addEventListener =
 function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
   if (type === "click" && !(this instanceof HA) && listener && this instanceof E) {
-    VimiumInjector && VimiumInjector.clickable.add(this as Element);
+    VimiumClickable && VimiumClickable.add(this as Element);
   }
   const args = arguments, len = args.length;
   return len === 2 ? _listen.call(this, type, listener) : len === 3 ? _listen.call(this, type, listener, args[2])

@@ -3,7 +3,10 @@
   VUtils, VEvent, VPort
   ].forEach(Object.seal);
 
-VUtils.clickable_ = (VimiumInjector as VimiumInjector).clickable;
+declare var VimiumClickable: WeakSet<Element> | undefined | null;
+VimiumClickable ? (VUtils.clickable_ = VimiumClickable)
+  : (VimiumClickable = (VimiumInjector as VimiumInjector).clickable = VUtils.clickable_ as WeakSet<Element>);
+
 VDom.allowScripts_ = false;
 (VimiumInjector as VimiumInjector).checkIfEnabled = (function (this: null
     , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {

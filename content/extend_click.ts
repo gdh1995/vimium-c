@@ -48,10 +48,8 @@ if (VSettings && document.readyState !== "complete"
     let detail = event.detail as ClickableEvent["detail"] | null;
     if (detail) {
       resolve(0, detail[0]); resolve(1, detail[1]);
-      console.log("vimium-c: extend click: resolve(Element[%d], Element[%d])", detail[0].length, detail[1].length);
     } else {
       VUtils.clickable_.add(event.target as Element);
-      console.log("vimium-c: extend click: resolve <%s>", (event.target as Element).tagName.toString().toLowerCase());
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {

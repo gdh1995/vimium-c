@@ -271,7 +271,7 @@ interface VimiumInjector {
   alive: 0 | 0.5 | 1;
   version: string;
   versionHash: string;
-  clickable: WeakSet<Element>;
+  clickable: WeakSet<Element> | null | undefined;
   getCommandCount: (this: void) => number;
   checkIfEnabled: (this: void) => void;
   reload (req?: Req.bg<kBgReq.reInject> | false): void;
