@@ -811,6 +811,7 @@ function getBuildItem(key, defaultVal) {
 }
 
 function getGitCommit() {
+  if (locally) { return null; }
   var commit = readFile(".git/refs/heads/master");
   return commit ? JSON.stringify(commit.trim()) : null;
 }
