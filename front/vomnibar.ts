@@ -43,6 +43,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   activate_ (options: Options): void {
     Object.setPrototypeOf(options, null);
     this.mode_.t = this.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
+    this.mode_.f = this.mode_.t === "tab" && options.currentWindow ? 1 : 0;
     this.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     this.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
@@ -52,7 +53,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     const max = Math.max(3, Math.min(0 | ((options.h - PixelData.ListSpaceDelta) / PixelData.Item), this.maxResults_));
     this.maxHeight_ = Math.ceil((this.mode_.r = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
     this.init_ && this.setPType_(options.t);
-    if (this.mode_.f) {
+    if (this.mode_.i) {
       scale = scale <= 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
 /**
  * Note: "@1x" is necessary, because only the whole 'size/aa@bx/' can be optional
@@ -801,7 +802,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       const arr = manifest.permissions || [];
       fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? this.sameOrigin_ ? 2 : 1 : 0;
     }
-    this.mode_.f = fav;
+    this.mode_.i = fav;
   },
   HandleKeydown_ (this: void, event: KeyboardEvent): void {
     if (event.isTrusted !== true && !(Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
@@ -871,13 +872,15 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     t: "omni" as CompletersNS.ValidTypes,
     c: 0,
     r: 0,
-    f: 0 as 0 | 1 | 2,
+    f: 0,
+    i: 0 as 0 | 1 | 2,
     q: ""
   },
   _spacesRe: <RegExpG> /\s+/g,
   _singleQuoteRe: <RegExpG> /'/g,
   fetch_ (): void {
-    let mode = this.mode_, str: string, last: string, newMatchType = CompletersNS.MatchType.Default;
+    let mode: Req.fg<kFgReq.omni> = this.mode_
+      , str: string, last: string, newMatchType = CompletersNS.MatchType.Default;
     this.timer_ = -1;
     if (this.useInput_) {
       this.lastQuery_ = str = this.input_.value.trim();

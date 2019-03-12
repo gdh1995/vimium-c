@@ -1980,7 +1980,7 @@ Are you sure you want to continue?`);
       return Completion_.filter_(request.q, request,
       PostCompletions.bind<Port, 0 | 1 | 2
           , [Array<Readonly<CompletersNS.Suggestion>>, boolean, CompletersNS.MatchType, number], void>(port
-        , (<number> request.f | 0) as number as 0 | 1 | 2));
+        , (<number> request.i | 0) as number as 0 | 1 | 2));
     },
     /** copy: */ function (this: void, request: FgReq[kFgReq.copy]): void {
       Utils.copy_(request.d);

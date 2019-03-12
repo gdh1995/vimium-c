@@ -345,7 +345,7 @@ interface FgReq {
   };
   [kFgReq.omni]: {
     /** query */ q: string;
-    /** favIcon */ f?: 0 | 1 | 2;
+    /** favIcon */ i?: 0 | 1 | 2;
   } & CompletersNS.Options;
   [kFgReq.copy]: {
     /** data */ d: string;

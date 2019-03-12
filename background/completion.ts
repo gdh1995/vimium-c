@@ -1520,10 +1520,13 @@ Completion_ = {
     matchedTotal = 0;
     Completers.callback_ = callback;
     let arr: ReadonlyArray<Completer> | null = knownCs[options.t], str = queryTerms.length >= 1 ? queryTerms[0] : "";
+    if (arr === knownCs.tab) {
+       wantInCurrentWindow = !!(options.f && options.f & 1);
+    }
     if (str.length === 2 && str[0] === ":") {
       str = str[1];
-      arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history : str === "t" ? knownCs.tab
-        : str === "w" ? (wantInCurrentWindow = true, knownCs).tab
+      arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
+        : str === "t" || str === "w" ? (wantInCurrentWindow = str === "w", knownCs.tab)
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (arr) {
         queryTerms.shift();

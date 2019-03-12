@@ -28,6 +28,7 @@ declare namespace CompletersNS {
     /** maxChars */ c?: number;
     /** maxResults */ r?: number;
     /** singleLine */ s?: boolean;
+    /** flags */ f?: number;
     /** type */ t: ValidTypes;
   }
 
@@ -258,6 +259,7 @@ declare namespace VomnibarNS {
   }
   interface GlobalOptions {
     mode: string;
+    currentWindow?: boolean;
     newtab: boolean;
     /** @deprecated */
     force: boolean;
