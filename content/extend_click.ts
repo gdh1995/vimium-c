@@ -9,7 +9,7 @@ if (VSettings && document.readyState !== "complete"
  */
   const enum InnerConsts {
     MaxElementsInOneTick = 64,
-    MaxUnsafeEventsInOneTick = 10,
+    MaxUnsafeEventsInOneTick = 12,
   }
   let d: Document | Document["documentElement"] = document
     , script: HTMLScriptElement | Element = d.createElement("script") as HTMLScriptElement | Element
@@ -149,6 +149,7 @@ next = setTimeout.bind(window as never, function (): void {
   timer = start > 0 ? next() : 0;
   if (!len) { return; }
   unsafeDispatchCounter = 0;
+  call(Remove, root);
   // skip some nodes if only crashing, so that there would be less crash logs in console
   const slice = toRegister.splice(start, delta);
   // tslint:disable-next-line: prefer-for-of
@@ -183,7 +184,7 @@ function prepareRegister(this: void, element: Element): void {
   // note: the below changes DOM trees,
   // so `dispatch` MUST NEVER throw. Otherwises a page might break
   if ((e2 = e1.parentNode) == null) {
-    call(Append, root, e1);
+    root !== e1 && call(Append, root, e1);
     pushForDetached(
       IndexOf(allNodesForDetached || (allNodesForDetached = call(getElementsByTagNameInEP, root, "*") as CollectionEx)
         , element));
@@ -191,10 +192,10 @@ function prepareRegister(this: void, element: Element): void {
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
-    if (unsafeDispatchCounter < 10) {
-      unsafeDispatchCounter++;
+    if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick - 2) {
       doRegister();
       call(Append, root, e1);
+      unsafeDispatchCounter++;
       dispatch(element, new CE("VimiumOnclick"));
       call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, e3);
     } else {
@@ -205,6 +206,7 @@ function prepareRegister(this: void, element: Element): void {
 }
 function doRegister(): void {
   if (nodeIndexListInDocument.length || nodeIndexListForDetached.length) {
+    unsafeDispatchCounter++;
     dispatch(root, new CE("VimiumOnclick", { detail: [nodeIndexListInDocument, nodeIndexListForDetached] }));
     nodeIndexListForDetached.length && (root.textContent = "");
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
