@@ -9,7 +9,7 @@ color:#000;contain:layout style;direction:ltr;font:12px/1 "Helvetica Neue",Helve
 pointer-events:none;position:fixed;user-select:none;z-index:2147483647}
 .HM{font-weight:bold;position:absolute;white-space:nowrap;}.DHM::backdrop{display:none;}
 .LH{background:linear-gradient(#fff785,#ffc542);border:0.5px solid #e3be23;border-radius:3px;
-box-shadow:0 3px 7px 0 rgba(0,0,0,0.3);box-sizing:border-box;overflow:hidden;padding:1px 3px 0;position:absolute}
+box-shadow:0 3px 5px 0 rgba(0,0,0,0.3);box-sizing:border-box;overflow:hidden;padding:1px 3px 0;position:absolute}
 .IH{background-color:rgba(255,247,133,0.3);border:0.5px solid #c38a22;position:absolute}
 .IHS{background-color:rgba(255,102,102,0.3);border-color:#933}
 .HUD{background-color:#eee;border:0.5px solid #b3b3b3;border-radius:4px 4px 0 0;bottom:0;height:14px;line-height:14px;

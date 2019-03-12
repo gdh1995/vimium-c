@@ -157,9 +157,9 @@ var Settings = {
       } else {
         css = css.replace("contents", "block");
       }
-      if (Build.MinCVer >= BrowserVer.MinSpecCompliantShadowBlurRadius
-          || browserVer >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
-        css = css.replace("3px 7px", "3px 5px");
+      if (Build.MinCVer < BrowserVer.MinSpecCompliantShadowBlurRadius
+          && browserVer < BrowserVer.MinSpecCompliantShadowBlurRadius) {
+        css = css.replace("3px 5px", "3px 7px");
       }
       if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0)
           && browserInfo.lastIndexOf("s") < 0) {

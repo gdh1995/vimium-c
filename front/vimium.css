@@ -73,7 +73,7 @@
 	border: 0.5px solid #e3be23;
 	border-radius: 3px;
 	/* use JS code to switch versions between Chrome 73+ and 72- if needed */
-	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
+	box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.3);
 	overflow: hidden;
 	padding: 1px 3px 0;
 	position: absolute;

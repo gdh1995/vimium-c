@@ -724,11 +724,11 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     (document.getElementById("close") as HTMLElement).onclick = function (): void { return Vomnibar_.hide_(); };
     addEventListener("keydown", this.HandleKeydown_, true);
     this.renderItems_ = VUtils_.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
-    if (Build.MinCVer >= BrowserVer.MinSpecCompliantShadowBlurRadius
-        || ver >= BrowserVer.MinSpecCompliantShadowBlurRadius) {
+    if (Build.MinCVer < BrowserVer.MinSpecCompliantShadowBlurRadius
+        && ver < BrowserVer.MinSpecCompliantShadowBlurRadius) {
       const css = document.querySelector("style") as HTMLStyleElement;
       if (css) {
-        css.textContent = css.textContent.replace("0 2px 10px", "0 2px 7px");
+        css.textContent = css.textContent.replace("0 2px 7px", "0 2px 10px");
       }
     }
     if (Build.MinCVer < BrowserVer.MinRoundedBorderWidthIsNotEnsured
