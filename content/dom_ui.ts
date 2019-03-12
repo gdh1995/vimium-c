@@ -297,7 +297,8 @@ VDom.UI = {
       func = function () { tick = Date.now(); return HandlerResult.Prevent; };
       tick = Date.now() + VUtils.cache_.keyboard[0];
       timer = setInterval(function (info?: TimerType) {
-        if (Date.now() - tick > 150 || info === TimerType.fake) {
+        const delta = Date.now() - tick; // Note: performance.now() may has a worse resolution
+        if (delta > 150 || delta < -99 || info === TimerType.fake) {
           clearInterval(timer);
           VUtils && VUtils.remove_(func);
         }

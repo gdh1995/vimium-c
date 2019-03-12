@@ -102,8 +102,8 @@ addWheelListener_ (): void {
 onWheel_ (event: WheelEvent): void {
   event.preventDefault();
   const oldTime = this.wheelTime_;
-  let i = Date.now();
-  if (i - oldTime < 100 && oldTime > 0) { return; }
+  let i = Date.now(); // safe for time changes
+  if (i - oldTime < 100 && i + 99 > oldTime && oldTime > 0) { return; }
   this.wheelTime_ = i;
   const el = this.element_, inc = event.wheelDelta > 0, val0 = el.value;
   let val: string, func: undefined | ((n: string) => number) | (

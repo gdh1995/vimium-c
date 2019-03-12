@@ -78,7 +78,8 @@ var VFind = {
       f(i, s, t);
     }
     f("blur", function onBlur(this: Window): void {
-      if (VFind.isActive_ && Date.now() - now < 500) {
+      const delta = Date.now() - now;
+      if (VFind.isActive_ && delta < 500 && delta > -99) {
         this.document.body && setTimeout(function (): void { VFind.focus_(); }, tick++ * 17);
       } else {
         this.removeEventListener("blur", onBlur, true);

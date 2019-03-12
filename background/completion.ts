@@ -374,9 +374,9 @@ const bookmarkEngine = {
   _stamp: 0,
   _expiredUrls: false,
   Later_ (this: void): void {
-    const _this = bookmarkEngine, last = Date.now() - _this._stamp;
+    const _this = bookmarkEngine, last = performance.now() - _this._stamp;
     if (_this.status_ !== BookmarkStatus.notInited) { return; }
-    if (last >= InnerConsts.bookmarkBasicDelay || last < 0) {
+    if (last >= InnerConsts.bookmarkBasicDelay || last < -GlobalConsts.ToleranceOfNegativeTimeDelta) {
       _this._timer = _this._stamp = 0;
       _this._expiredUrls = false;
       _this.refresh_();
@@ -388,7 +388,7 @@ const bookmarkEngine = {
   },
   Delay_ (this: void): void {
     const _this = bookmarkEngine;
-    _this._stamp = Date.now();
+    _this._stamp = performance.now();
     if (_this.status_ < BookmarkStatus.inited) { return; }
     _this._timer = setTimeout(_this.Later_, InnerConsts.bookmarkBasicDelay);
     _this.status_ = BookmarkStatus.notInited;
@@ -934,7 +934,7 @@ Completers = {
       searchEngine.preFilter_(query);
       i = 1;
     }
-    RankingUtils.timeAgo_ = Date.now() - TimeEnums.timeCalibrator;
+    RankingUtils.timeAgo_ = Date.now() - TimeEnums.timeCalibrator; // safe for time change
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore * queryTerms.length || 0.01;
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(this.protoRe_, " __proto_").trimLeft().split(" ");
@@ -1147,7 +1147,7 @@ knownCs: CompletersMap & SafeObject = {
         return;
       }
       this._callbacks = callback ? [callback] : [];
-      this.lastRefresh_ = Date.now();
+      this.lastRefresh_ = Date.now(); // safe for time changes
       chrome.history.search({
         text: "",
         maxResults: InnerConsts.historyMaxSize,
@@ -1205,7 +1205,7 @@ knownCs: CompletersMap & SafeObject = {
       updateCount = ++_this.updateCount_,
       d = _this.domains_, i = _this.binarySearch_(url);
       if (i < 0) { _this.toRefreshCount_++; }
-      if (updateCount > 59 || (updateCount > 10 && Date.now() - _this.lastRefresh_ > 300000)) {
+      if (updateCount > 59 || (updateCount > 10 && Date.now() - _this.lastRefresh_ > 300000)) { // safe for time change
         _this.refreshInfo_();
       }
       const j: HistoryItem = i >= 0 ? (_this.history_ as HistoryItem[])[i] : {
@@ -1280,14 +1280,14 @@ knownCs: CompletersMap & SafeObject = {
     refreshInfo_ (): void {
       type Q = chrome.history.HistoryQuery;
       type C = (results: chrome.history.HistoryItem[]) => void;
-      const i = Date.now();
+      const i = Date.now(); // safe for time change
       if (this.toRefreshCount_ <= 0) { /* empty */ }
-      else if (this.lastRefresh_ + 1000 > i) { return; }
+      else if (i < this.lastRefresh_ + 1000 && i >= this.lastRefresh_) { return; }
       else {
         setTimeout(chrome.history.search as ((q: Q, c: C) => void | 1) as (q: Q, c: C) => void, 50, {
           text: "",
           maxResults: Math.min(999, this.updateCount_ + 10),
-          startTime: this.lastRefresh_
+          startTime: i < this.lastRefresh_ ? i - 5 * 60 * 1000 : this.lastRefresh_
         }, this.OnInfo_);
       }
       this.lastRefresh_ = i;

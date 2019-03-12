@@ -40,7 +40,7 @@ debounce_ = function<T> (this: void, func: (this: T) => void
     ): (this: void) => void {
   let timeout = 0, timestamp: number;
   const later = function () {
-    const last = Date.now() - timestamp;
+    const last = Date.now() - timestamp; // safe for time changes
     if (last < wait && last >= 0) {
       timeout = setTimeout(later, wait - last);
       return;
@@ -52,7 +52,7 @@ debounce_ = function<T> (this: void, func: (this: T) => void
   };
   also_immediate = also_immediate ? 1 : 0;
   return function () {
-    timestamp = Date.now();
+    timestamp = Date.now(); // safe for time changes
     if (timeout) { return; }
     timeout = setTimeout(later, wait);
     if (also_immediate) {

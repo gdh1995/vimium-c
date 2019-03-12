@@ -414,7 +414,7 @@ function checkJSAndUglifyAll(taskOrder, maps, key, exArgs, cb) {
     if (!isNewer && exArgs.nameCache && "timestamp" in exArgs.nameCache && cacheNames) {
       var path = getNameCacheFilePath(key);
       var stat = fs.existsSync(path) ? fs.statSync(path) : null;
-      if (!stat || stat.mtime < exArgs.nameCache.timestamp) {
+      if (!stat || stat.mtime < exArgs.nameCache.timestamp - 4) {
         isNewer = true;
       }
     }
@@ -1022,7 +1022,7 @@ function getNameCacheFilePath(path) {
 
 function saveNameCacheIfNeeded(key, nameCache) {
   if (nameCache && cacheNames) {
-    nameCache.timestamp = Date.now();
+    nameCache.timestamp = Date.now(); // safe for (ignore) time changes
     fs.writeFileSync(getNameCacheFilePath(key), JSON.stringify(nameCache));
     print("Saved nameCache for " + key.replace("min/", ""));
   }

@@ -284,7 +284,8 @@ setTimeout(function () {
     Utils.resetRe_();
   }
   function tryClean(): void {
-    if (Date.now() - inputTime > 5000) {
+    const delta = Date.now() - inputTime; // safe for time changes
+    if (delta > 5000 || delta < -GlobalConsts.ToleranceOfNegativeTimeDelta) {
       return clean();
     }
     cleanTimer = setTimeout(tryClean, 30000);
@@ -295,6 +296,10 @@ setTimeout(function () {
     if (!arr || arr.sent) { return; }
     lastSuggest = null;
     if (arr.suggest) {
+      const now = Date.now(); // safe for time changes
+      if (now < inputTime) {
+        inputTime = now - 1000;
+      }
       return onInput(arr.key, arr.suggest);
     }
   }
@@ -398,7 +403,7 @@ setTimeout(function () {
     }
     lastSuggest = { suggest, key, sent: false };
     if (timer) { return; }
-    const now = Date.now(), delta = 600 + inputTime - now;
+    const now = Date.now(), delta = 600 + inputTime - now; /** it's made safe by {@see #onTimer} */
     if (delta > 50) {
       timer = setTimeout(onTimer, delta);
       return;
@@ -545,14 +550,14 @@ Utils.GC_ = function (): void {
   let timestamp = 0, timeout = 0;
   Utils.GC_ = function (): void {
     if (!(Commands || Exclusions)) { return; }
-    timestamp = Date.now();
+    timestamp = Date.now(); // safe for time changes
     if (timeout > 0) { return; }
     timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
   };
   return Utils.GC_();
   function later(): void {
-    const last = Date.now() - timestamp;
-    if (last < GlobalConsts.TimeoutToReleaseBackendModules && last > -5000) {
+    const last = Date.now() - timestamp; // safe for time changes
+    if (last < GlobalConsts.TimeoutToReleaseBackendModules && last > -GlobalConsts.ToleranceOfNegativeTimeDelta) {
       timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules - last);
       return;
     }

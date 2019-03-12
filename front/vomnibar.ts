@@ -548,7 +548,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (event.ctrlKey || event.metaKey || event.isTrusted === false) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (event.deltaX || !event.deltaY || Date.now() - this.wheelTime_ < this.wheelInterval_
+    let now: number;
+    if (event.deltaX || !event.deltaY
+      || (now = Date.now()) - this.wheelTime_ < this.wheelInterval_ && now + 99 > this.wheelTime_
       || !Vomnibar_.isActive_) { return; }
     this.wheelTime_ = Date.now();
     this.goPage_(event.deltaY > 0);
@@ -812,7 +814,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       let stop = !event.repeat, now: number = 0;
       if (!Vomnibar_.lastScrolling_) {
         stop = event.keyCode > VKeyCodes.ctrlKey || event.keyCode < VKeyCodes.shiftKey;
-      } else if (stop || (now = Date.now()) - Vomnibar_.lastScrolling_ > 40) {
+      } else if (stop || (now = Date.now()) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
         VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.scrollEnd : VomnibarNS.kFReq.scrollGoing });
         Vomnibar_.lastScrolling_ = now;
       }
