@@ -56,13 +56,24 @@ var VFind = {
     el.className = "R HUD UI";
     st.cssText = "display:none;width:0";
     if (VDom.wdZoom_ !== 1) { st.zoom = "" + 1 / VDom.wdZoom_; }
-    el.onload = function (this: HTMLIFrameElement): void { return VFind.onLoad_(1); };
+    el.onload = function (this: HTMLIFrameElement): void { VFind.notDisableScript_() && VFind.onLoad_(1); };
     VUtils.push_(UI.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
     UI.toggleSelectStyle_(1);
-    UI.add_(el, AdjustType.DEFAULT, VHUD.box_);
     a.isActive_ = true;
+    UI.add_(el, AdjustType.DEFAULT, VHUD.box_);
+  },
+  notDisableScript_(): BOOL {
+    let a = this, ret: BOOL = 1;
+    try {
+      a.box_.contentWindow.document;
+    } catch {
+      ret = 0;
+      a.clean_(FindNS.Action.ExitUnexpectedly);
+      VHUD.tip_("Sorry, Vimium C can not open a HUD on this page");
+    }
+    return ret;
   },
   onLoad_ (later?: 1): void {
     const a = this, box: HTMLIFrameElement = a.box_,
