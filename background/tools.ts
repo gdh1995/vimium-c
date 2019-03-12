@@ -474,8 +474,8 @@ setTimeout(function () {
     stamp = 128;
   }
   function listener(info: { tabId: number }): void {
-    const now = Date.now();
-    if (now - time > 500) {
+    const now = performance.now();
+    if (now - time > 666) {
       cache[TabRecency_.last_] = ++stamp;
       if (stamp === 1023) { clean(); }
     }
@@ -497,7 +497,7 @@ setTimeout(function () {
     chrome.tabs.query({windowId, active: true}, onWndFocus);
   });
   chrome.tabs.query({currentWindow: true, active: true}, function (tabs: CurrentTabs): void {
-    time = Date.now();
+    time = performance.now();
     const a = tabs && tabs[0];
     if (!a) { return Utils.runtimeError_(); }
     TabRecency_.last_ = a.id;

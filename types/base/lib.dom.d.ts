@@ -5571,6 +5571,14 @@ declare var PageTransitionEvent: {
 interface Path2D extends Object, CanvasPathMethods {
 }
 
+interface Performance extends EventTarget {
+    now(): number;
+}
+
+declare var Performance: {
+    prototype: Performance;
+    new(): Performance;
+};
 interface PermissionRequest extends DeferredPermissionRequest {
     readonly state: string;
     defer(): void;
@@ -9431,6 +9439,7 @@ declare function clearInterval(handle: number): void;
 declare function clearTimeout(handle: number): void;
 declare function atob(encodedString: string): string;
 declare function btoa(rawString: string): string;
+declare var performance: Performance;
 declare function addEventListener<K extends keyof WindowEventMap>(type: K,
   listener: (this: Window, ev: WindowEventMap[K]) => ELRet,
   useCapture?: EventListenerOptions

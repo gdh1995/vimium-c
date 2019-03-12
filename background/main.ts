@@ -87,7 +87,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
   const getSecret = (function (this: void): (this: void) => number {
     let secret = 0, time = 0;
     return function (this: void): number {
-      const now = Date.now();
+      const now = Date.now(); // safe for time changes
       if (now - time > GlobalConsts.VomnibarSecretTimeout) {
         secret = 1 + (0 | (Math.random() * 0x6fffffff));
       }
