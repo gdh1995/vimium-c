@@ -870,6 +870,21 @@ function OnBgUnload(): void {
 }
 BG_.addEventListener("unload", OnBgUnload);
 
+const cmdRegistry = BG_.CommandsData_.keyToCommandRegistry_["?"];
+if (!cmdRegistry || cmdRegistry.alias !== kBgCmd.showHelp) { (function(): void {
+  const arr = BG_.CommandsData_.keyToCommandRegistry_;
+  let matched = "";
+  for (let key in arr) {
+    const item = arr[key] as CommandsNS.Item;
+    if (item.alias === kBgCmd.showHelp) {
+      matched = matched && matched.length < key.length ? matched : key;
+    }
+  }
+  if (matched) {
+    $("#questionShortcut").textContent = matched;
+  }
+})(); }
+
 document.addEventListener("click", function onClickOnce(): void {
   if (!window.VDom || !VDom.UI.UI) { return; }
   document.removeEventListener("click", onClickOnce, true);

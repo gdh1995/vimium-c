@@ -429,6 +429,7 @@ interface Window {
     onHex_ (this: void, _s: string, hex: string): string;
     SetKeyRe_ (this: void, keyReSource: string): void;
   };
+  readonly CommandsData_: CommandsDataTy;
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
   readonly OnOther: BrowserType;
