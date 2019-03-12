@@ -2219,7 +2219,7 @@ declare namespace chrome.tabs {
          * Optional. Whether the tabs are in the current window.
          * @since Chrome 19.
          */
-        currentWindow?: boolean;
+        currentWindow?: true;
         /** Optional. Whether the tabs are highlighted. */
         highlighted?: boolean;
         /** Optional. Whether the tabs are pinned. */

@@ -812,8 +812,15 @@ function getBuildItem(key, defaultVal) {
 
 function getGitCommit() {
   if (locally) { return null; }
-  var commit = readFile(".git/refs/heads/master");
-  return commit ? JSON.stringify(commit.trim()) : null;
+  try {
+    var branch = readFile(".git/HEAD");
+    branch = branch && branch.replace("ref:", "").trim();
+    if (branch) {
+      var commit = readFile(".git/" + branch);
+      return commit ? JSON.stringify(commit.trim().substring(0, 7)) : null;
+    }
+  } catch (e) {}
+  return null;
 }
 
 function extendIf(b, a) {

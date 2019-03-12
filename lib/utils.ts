@@ -53,12 +53,6 @@ var VUtils = {
     }
     return HandlerResult.Default;
   },
-  clickable_: Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-      || window.WeakSet ? new WeakSet<Element>() : {
-    add (element: Element): void { (element as ElementWithClickable).vimiumHasOnclick = true; },
-    has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; }
-  },
-  cache_: null as never as SettingsNS.FrontendSettingCache,
   remove_ (env: object): void {
     for (let ref = this._keydownHandlers, i = ref.length; 0 <= --i; ) {
       if (ref[i].env === env) {
@@ -66,5 +60,14 @@ var VUtils = {
         break;
       }
     }
-  }
+  },
+  /**
+   * Miscellaneous section
+   */
+  clickable_: Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+      || window.WeakSet ? new WeakSet<Element>() : {
+    add (element: Element): void { (element as ElementWithClickable).vimiumHasOnclick = true; },
+    has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; }
+  },
+  cache_: null as never as SettingsNS.FrontendSettingCache
 };

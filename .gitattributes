@@ -18,4 +18,5 @@ types/* linguist-vendored
 types/*.d.ts linguist-vendored=false
 types/base/* linguist-vendored
 types/base/base.d.ts linguist-vendored=false
+types/build/*.d.ts linguist-vendored=false
 scripts/*.json linguist-language=jsonc

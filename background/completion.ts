@@ -3,15 +3,17 @@ import MatchType = CompletersNS.MatchType;
 setTimeout(function (): void {
 type Domain = CompletersNS.Domain;
 
-const enum TimeEnums {
-  timeCalibrator = 1814400000, // 21 days
-}
 const enum RankingEnums {
-  recCalibrator = 2 / 3,
+  recCalibrator = 0.666667, // 2 / 3,
   anywhere = 1,
   startOfWord = 1,
   wholeWord = 1,
   maximumScore = 3,
+}
+const enum TimeEnums {
+  timeCalibrator = 1814400000, // 21 days
+  futureTimeTolerance = 1.000165, // 1 + 5 * 60 * 1000 / timeCalibrator, // +5min
+  futureTimeScore = 0.666446, // (1 - 5 * 60 * 1000 / timeCalibrator) ** 2 * RankingEnums.recCalibrator, // -5min
 }
 const enum InnerConsts {
   bookmarkBasicDelay = 1000 * 60, bookmarkFurtherDelay = bookmarkBasicDelay / 2,
@@ -1096,8 +1098,8 @@ knownCs: CompletersMap & SafeObject = {
     timeAgo_: 0,
     recencyScore_ (lastAccessedTime: number): number {
       let score = (lastAccessedTime - this.timeAgo_) / TimeEnums.timeCalibrator;
-      score = score < 0 || score > 1 ? 0 : score;
-      return score * score * RankingEnums.recCalibrator;
+      return score < 0 ? 0 : score < 1 ? score * score * RankingEnums.recCalibrator
+        : score < TimeEnums.futureTimeTolerance ? TimeEnums.futureTimeScore : 0;
     },
     normalizeDifference_ (a: number, b: number): number {
       return a < b ? a / b : b / a;
