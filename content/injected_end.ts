@@ -5,7 +5,7 @@
 
 declare var VimiumClickable: WeakSet<Element> | undefined | null;
 VimiumClickable ? (VUtils.clickable_ = VimiumClickable)
-  : (VimiumClickable = (VimiumInjector as VimiumInjector).clickable = VUtils.clickable_ as WeakSet<Element>);
+  : (VimiumClickable = (VimiumInjector as VimiumInjector).clickable = null);
 
 VDom.allowScripts_ = false;
 (VimiumInjector as VimiumInjector).checkIfEnabled = (function (this: null

@@ -92,7 +92,9 @@ if (document.readyState === "complete") {
       const script = document.createElement("script");
       script.type = "text/javascript";
       script.src = scriptSrc;
-      console.log("%cVimium C%c begins to reload because it has been updated.", "color:red", "color:auto");
+      console.log("%cVimium C%c begins to reload"
+          + (async && typeof async === "object" ? " because it has been updated." : ".")
+        , "color:red", "color:auto");
       (document.head || document.body || docEl).appendChild(script);
     }
     async ? setTimeout(inject, 200) : inject();
@@ -101,7 +103,7 @@ if (document.readyState === "complete") {
 
 (!document.currentScript
   || ((document.currentScript as HTMLScriptElement).dataset.vimiumHooks || "").toLowerCase() !== "false"
-  ) &&
+  ) && VimiumClickable !== null &&
 (function (): void {
 type ListenerEx = EventTarget["addEventListener"] & { vimiumHooked?: boolean; };
 type _EventTargetEx = typeof EventTarget;
