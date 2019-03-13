@@ -32,9 +32,9 @@ VDom.DocReady_(function () {
   }
 })();
 
-VSettings.stop_ = function (type: number): void {
+VSettings.execute_ = function (cmd): void {
   let injector = VimiumInjector;
-  if (type >= HookAction.Destroy && injector) {
+  if (cmd === kContentCmd.Destroy && injector) {
     removeEventListener("hashchange", injector.checkIfEnabled);
     injector.alive = 0;
     injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;

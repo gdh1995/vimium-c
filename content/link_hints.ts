@@ -677,8 +677,15 @@ var VHints = {
       if (i !== VKeyCodes.f2) { return HandlerResult.Nothing; }
       i = VKeyboard.getKeyStat_(event);
       let deep = this.queryInDeep_, reinit = true;
-      if (i === KeyStat.shiftKey) {
-        this.isClickListened_ = !this.isClickListened_;
+      if (i & KeyStat.shiftKey) {
+        if (i & ~KeyStat.shiftKey) {
+          reinit = !!VSettings.execute_;
+          if (reinit) {
+            (VSettings as EnsureNonNull<VSettingsTy>).execute_(kContentCmd.FindAllOnClick);
+          }
+        } else {
+          this.isClickListened_ = !this.isClickListened_;
+        }
       } else if (i === KeyStat.plain) {
         if ((Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinNoShadowDOMv0) {
           reinit = deep !== DeepQueryType.NotAvailable;

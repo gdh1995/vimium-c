@@ -10,10 +10,18 @@ if (VSettings && document.readyState !== "complete"
   const enum InnerConsts {
     MaxElementsInOneTick = 64,
     MaxUnsafeEventsInOneTick = 12,
+    kClick = "VimiumOnclick",
+    kHook = "VimiumHook",
+    kAttr = "data-vimium",
+    kCmd = "Vimium",
   }
+  type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[] ];
+  type CommandEventDetail = [ /** secret */ number, /* command */ kContentCmd ];
+
+  const kClick1 = InnerConsts.kClick, kHook = InnerConsts.kHook;
   let d: Document | Document["documentElement"] = document
     , script: HTMLScriptElement | Element = d.createElement("script") as HTMLScriptElement | Element
-    , box: EventTarget | null | false = null
+    , box: Element | null | false = null
     , secret: number = (Math.random() * 1e6 + 1) | 0;
 /**
  * Note:
@@ -28,24 +36,21 @@ if (VSettings && document.readyState !== "complete"
  */
   if (!(script instanceof HTMLScriptElement)) { return; }
 
-  function installer(event: CustomEvent): void {
+  function hook(event: CustomEvent): void {
     const t = event.target;
-    if (!(t instanceof Element) || event.detail !== secret) { return; }
+    if (event.detail !== secret || !(t instanceof Element)) { return; }
     event.stopImmediatePropagation();
-    removeEventListener("VimiumHook", installer, true);
+    removeEventListener(kHook, hook, true);
     if (box === null) {
-      t.removeAttribute("data-vimium");
-      t.addEventListener("VimiumOnclick", onclick, true);
+      t.removeAttribute(InnerConsts.kAttr);
+      t.addEventListener(kClick1, onClick, true);
       box = t;
     }
   }
-  addEventListener("VimiumHook", installer, true);
-  interface ClickableEvent extends CustomEvent {
-    detail: [number[], number[]];
-  }
-  function onclick(event: CustomEvent): void {
+  addEventListener(kHook, hook, true);
+  function onClick(event: CustomEvent): void {
     event.stopImmediatePropagation();
-    let detail = event.detail as ClickableEvent["detail"] | null;
+    let detail = event.detail as ClickableEventDetail | null;
     if (detail) {
       resolve(0, detail[0]); resolve(1, detail[1]);
     } else {
@@ -60,20 +65,29 @@ if (VSettings && document.readyState !== "complete"
       el && VUtils.clickable_.add(el);
     }
   }
-  function destroyServer() {
+  function dispatch(cmd: ValidContentCmds) {
+    (box as Exclude<typeof box, null | false | undefined>).dispatchEvent(new CustomEvent(InnerConsts.kCmd, {
+      detail: <CommandEventDetail> [ secret, cmd ]
+    }));
+  }
+  function execute(cmd: ValidContentCmds): void {
+    if (cmd < kContentCmd._minNotDispatchDirectly) {
+      box && dispatch(cmd);
+      return;
+    }
     const r = removeEventListener, settings = VSettings;
     /** this function should keep idempotent */
     if (box) {
-      r.call(box, "VimiumOnclick", onclick, true);
-      box.dispatchEvent(new CustomEvent("VimiumUnhook", {detail: secret}));
+      r.call(box, kClick1, onClick, true);
+      dispatch(kContentCmd.Destroy);
     }
     if (box === null) {
-      setTimeout(function (): void { r("VimiumHook", installer, true); }, 1100);
+      setTimeout(function (): void { r(kHook, hook, true); }, 1100);
     }
     box = false;
-    settings && (settings.stop_ = null);
+    settings && (settings.execute_ = null);
   }
-  VSettings.stop_ = destroyServer;
+  VSettings.execute_ = execute;
 
   let injected: string = '"use strict";(' + (function VC(this: void): void {
 type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
@@ -100,6 +114,7 @@ listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), bool
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
 rel = removeEventListener, ct = clearTimeout,
 sec: number = +<string> cs.dataset.vimium,
+kClick = InnerConsts.kClick,
 hooks = {
   toString: function toString(this: FUNC): string {
     const a = this;
@@ -127,17 +142,24 @@ let handler = function (this: void): void {
   ct(timer);
   const docEl = docChildren[0] as HTMLElement | SVGElement | null;
   handler = docChildren = null as never;
-  if (!docEl) { return destroyClient(); }
-  const el = call(Create, document, "div") as HTMLDivElement, key = "data-vimium";
+  if (!docEl) { return executeCmd(); }
+  const el = call(Create, document, "div") as HTMLDivElement, key = InnerConsts.kAttr;
   call(Attr, el, key, "");
-  listen(el, "VimiumUnhook", destroyClient, true);
-  call(Append, docEl, el), dispatch(el, new CE("VimiumHook", {detail: sec})), call(Remove, el);
+  listen(el, InnerConsts.kCmd, executeCmd, true);
+  call(Append, docEl, el), dispatch(el, new CE(InnerConsts.kHook, {detail: sec})), call(Remove, el);
   if (call(HasAttr, el, key)) {
-    destroyClient();
+    executeCmd();
   } else {
     root = el;
     timer = toRegister.length > 0 ? next() : 0;
   }
+},
+callFindAllAfterAWhile: (() => void) = setTimeout.bind(window as never, findAllOnClick, 600),
+delayFindAll = function (e?: Event): void {
+  if (e && e.isTrusted === false) { return; }
+  rel("load", delayFindAll, true);
+  callFindAllAfterAWhile();
+  callFindAllAfterAWhile = delayFindAll = null as never;
 },
 docChildren = doc.children,
 unsafeDispatchCounter = 0,
@@ -196,7 +218,7 @@ function prepareRegister(this: void, element: Element): void {
       doRegister();
       call(Append, root, e1);
       unsafeDispatchCounter++;
-      dispatch(element, new CE("VimiumOnclick"));
+      dispatch(element, new CE(kClick));
       call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, e3);
     } else {
       toRegister.push(element);
@@ -207,17 +229,34 @@ function prepareRegister(this: void, element: Element): void {
 function doRegister(): void {
   if (nodeIndexListInDocument.length || nodeIndexListForDetached.length) {
     unsafeDispatchCounter++;
-    dispatch(root, new CE("VimiumOnclick", { detail: [nodeIndexListInDocument, nodeIndexListForDetached] }));
+    dispatch(root, new CE(kClick, { detail: [nodeIndexListInDocument, nodeIndexListForDetached] }));
     nodeIndexListForDetached.length && (root.textContent = "");
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
   }
 }
-function destroyClient(e?: Event): void {
-  if (e && (e as CustomEvent).detail !== sec) { return; }
+function findAllOnClick(): void {
+  if (!root) { return; }
+  allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*") as CollectionEx;
+  for (let len = allNodesInDocument.length, i = 0; i < len; i++) {
+    const el: Element | HTMLElement = allNodesInDocument[i];
+    if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")) {
+      pushInDocument(i);
+    }
+  }
+  doRegister();
+}
+function executeCmd(eventOrDestroy?: Event): void {
+  const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
+  cmd = detail ? detail[0] === sec ? detail[1] : kContentCmd._fake
+        : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
+  if (cmd !== kContentCmd.Destroy) {
+    cmd === kContentCmd.FindAllOnClick && findAllOnClick();
+  }
   toRegister.length = 0;
   toRegister.push = next = function () { return 1; };
   root = null as never;
   ct(timer);
+  delayFindAll && delayFindAll(); // clean the "load" listener
 }
 toRegister.push = push as any, toRegister.splice = toRegister.splice;
 !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 ||
@@ -227,6 +266,7 @@ cs.remove();
 ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
+_listen("load", delayFindAll, true);
   }).toString() + ")();"
     , appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0
@@ -250,7 +290,9 @@ _listen("DOMContentLoaded", handler, true);
   script.textContent = injected;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
-  VDom.DocReady_(function () { box === null && setTimeout(function () { box || destroyServer(); }, 17); });
+  VDom.DocReady_(function () { box === null && setTimeout(function () {
+    box || execute(kContentCmd.Destroy);
+  }, 17); });
   if (!script.parentNode) { // It succeeded to hook.
     Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage ||
     VDom.allowRAF_ || requestAnimationFrame(() => { VDom.allowRAF_ = true; });

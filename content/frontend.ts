@@ -875,7 +875,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       } else {
         InsertMode.grabBackFocus_ = false;
         hook(HookAction.Suppress);
-        VSettings.stop_ && VSettings.stop_(HookAction.Suppress);
+        VSettings.execute_ && VSettings.execute_(kContentCmd.SuppressClickable);
       }
       r[kBgReq.init] = null as never;
       D.DocReady_(function (): void {
@@ -1210,14 +1210,14 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   VSettings = {
     enabled_: false,
     cache: null as never as SettingsNS.FrontendSettingCache,
-    stop_: null,
+    execute_: null,
   destroy_ (silent): void {
     (VSettings as Writeable<VSettingsTy>).enabled_ = isEnabled = false;
     hook(HookAction.Destroy);
 
     Commands[kFgCmd.reset]();
-    let f = VSettings.stop_, ui = VDom.UI;
-    f && f(HookAction.Destroy);
+    let f = VSettings.execute_, ui = VDom.UI;
+    f && f(kContentCmd.Destroy);
     ui.box_ && ui.adjust_(2);
 
     VUtils = VKeyboard = VDom = VDom = VUtils = //

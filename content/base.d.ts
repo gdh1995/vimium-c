@@ -368,7 +368,7 @@ interface VHUDTy {
 interface VSettingsTy {
   readonly enabled_: boolean;
   readonly cache: SettingsNS.FrontendSettingCache;
-  stop_: ((this: void, type: HookAction.Suppress | HookAction.Destroy) => void) | null;
+  execute_: ((this: void, cmd: ValidContentCmds) => void) | null;
   readonly destroy_: (this: void, silent?: boolean) => void;
 }
 declare var VimiumInjector: VimiumInjector | undefined | null, VSettings: VSettingsTy;
@@ -377,3 +377,12 @@ declare var browser: unknown;
 interface VDataTy {
   full: string;
 }
+
+declare const enum kContentCmd {
+  _fake = 0,
+  FindAllOnClick = 1,
+  _minNotDispatchDirectly = 4,
+  SuppressClickable = 8,
+  Destroy = 9,
+}
+type ValidContentCmds = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minNotDispatchDirectly>;
