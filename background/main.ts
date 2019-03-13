@@ -228,13 +228,15 @@ var Backend: BackendHandlersNS.BackendHandlers;
     if (!(<RegExpI> /git\b|\bgit/i).test(host) || !(<RegExpI> /^[\w\-]+(\.\w+)?$/).test(host)) {
       return;
     }
-    const arr = path.split("/"), last = arr[arr.length - 1];
+    let arr = path.split("/"), lastIndex = arr.length - 1;
+    if (!arr[lastIndex]) { lastIndex--; arr.pop(); }
+    let last = arr[lastIndex];
     if (host === "github.com") {
-      if (arr.length === 4) {
+      if (lastIndex === 3) {
         return last === "pull" || last === "milestone" ? path + "s"
           : last === "tree" ? arr.slice(0, 3).join("/")
           : null;
-      } else if (arr.length > 4) {
+      } else if (lastIndex > 3) {
         return arr[3] === "blob" ? (arr[3] = "tree", arr.join("/")) : null;
       }
     }
@@ -1727,7 +1729,8 @@ Are you sure you want to continue?`);
         endSlash = true;
       } else {
         endSlash = request.t != null ? !!request.t
-          : path.length > 1 && path.endsWith("/");
+          : path.length > 1 && path.endsWith("/")
+            || (<RegExpI> /\.([a-z]{2,3}|jpeg|tiff)$/i).test(path); // just a try: not include .html 
       }
       if (!i || i === 1) {
         path = "/";
