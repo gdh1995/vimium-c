@@ -139,7 +139,7 @@ var VOmni = {
       type = VomnibarNS.PageType.inner;
       el.removeAttribute("referrerPolicy");
       el.removeAttribute("sandbox");
-      el.src = page = inner as string; inner = null;
+      el.src = page = inner as string;
       let opts = VOmni.options_; opts && (opts.t = type);
     }
     let loaded = false;
