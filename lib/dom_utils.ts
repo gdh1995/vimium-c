@@ -74,9 +74,11 @@ var VDom = {
      */
     const E = Element;
     if (type >= PNType.RevealSlot) {
-      const func = E.prototype.getDestinationInsertionPoints;
-      const arr = func ? func.call(el as Element) : [];
-      arr.length > 0 && (el = arr[arr.length - 1]);
+      if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome) {
+        const func = E.prototype.getDestinationInsertionPoints;
+        const arr = func ? func.call(el as Element) : [];
+        arr.length > 0 && (el = arr[arr.length - 1]);
+      }
       let slot = (el as Element).assignedSlot;
       slot && VDom.notSafe_(el) && (slot = VDom.Getter_(E, el, "assignedSlot" as "assignedSlot"));
       if (slot) {
