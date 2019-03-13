@@ -108,7 +108,8 @@ var VHints = {
     const arr: ViewBox = VDom.getViewBox_(1) as ViewBox;
     VDom.prepareCrop_();
     if (a.tooHigh_ !== null) {
-      a.tooHigh_ = (VDom.scrollingEl_(1) as HTMLElement).scrollHeight / innerHeight > 20;
+      a.tooHigh_ = (VDom.scrollingEl_(1) as HTMLElement).scrollHeight / innerHeight
+        > GlobalConsts.LinkHintTooHighThreshold;
     }
     let elements = a.getVisibleElements_(arr);
     if (a.frameNested_) {
@@ -470,7 +471,7 @@ var VHints = {
     querySelectorAll = isD ? D.querySelectorAll : Element.prototype.querySelectorAll;
     wantClickable && Sc.getScale_();
     let list: HintsNS.ElementList | null = querySelectorAll.call(box, query);
-    if (!wholeDoc && a.tooHigh_ && isD && list.length >= 15000) {
+    if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintLimitToCheckViewportFirst) {
       list = a.getElementsInViewPort_(list);
     }
     const forEach = (list.forEach || output.forEach) as HintsNS.ElementIterator<Hint | Element>;

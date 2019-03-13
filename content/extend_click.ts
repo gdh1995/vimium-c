@@ -108,7 +108,7 @@ getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP =
 IndexOf = _call.bind(toRegister.indexOf) as never as (this: void, list: CollectionEx, item: Element) => number,
 push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
-CE = CustomEvent, HA = HTMLAnchorElement, DF = DocumentFragment,
+CE = CustomEvent, HA = HTMLAnchorElement, HB = HTMLButtonElement, DF = DocumentFragment,
 FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
@@ -125,7 +125,7 @@ hooks = {
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this;
-    if (type === "click" && listener && !(a instanceof HA) && a instanceof E) {
+    if (type === "click" && listener && !(a instanceof HA) && a instanceof E && !(a instanceof HB)) {
       toRegister.push(a);
       timer || (timer = next());
     }
@@ -154,7 +154,8 @@ let handler = function (this: void): void {
     timer = toRegister.length > 0 ? next() : 0;
   }
 },
-callFindAllAfterAWhile: (() => void) = setTimeout.bind(window as never, findAllOnClick, 600),
+callFindAllAfterAWhile: (() => void) = (setTimeout as (func: (this: void) => void, timeout: number) => number
+    ).bind(window as never, findAllOnClick, 600),
 delayFindAll = function (e?: Event): void {
   if (e && e.isTrusted === false) { return; }
   rel("load", delayFindAll, true);
@@ -234,12 +235,15 @@ function doRegister(): void {
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
   }
 }
-function findAllOnClick(): void {
+function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
   if (!root) { return; }
   allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*") as CollectionEx;
-  for (let len = allNodesInDocument.length, i = 0; i < len; i++) {
+  let len = allNodesInDocument.length, i = 0;
+  !cmd && len > GlobalConsts.maxElementsWhenScanOnClick && (len = 0); // stop it
+  for (; i < len; i++) {
     const el: Element | HTMLElement = allNodesInDocument[i];
-    if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")) {
+    if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")
+        && !(el instanceof HA || el instanceof HB)) {
       pushInDocument(i);
     }
   }
@@ -250,7 +254,7 @@ function executeCmd(eventOrDestroy?: Event): void {
   cmd = detail ? detail[0] === sec ? detail[1] : kContentCmd._fake
         : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   if (cmd !== kContentCmd.Destroy) {
-    cmd === kContentCmd.FindAllOnClick && findAllOnClick();
+    cmd === kContentCmd.FindAllOnClick && findAllOnClick(cmd);
   }
   toRegister.length = 0;
   toRegister.push = next = function () { return 1; };
