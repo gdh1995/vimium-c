@@ -269,7 +269,7 @@ var VFind = {
         return HandlerResult.Prevent;
       }
     }
-    if (VKeyboard.isEscape_(event)) {
+    if (!VEvent.lock_() && VKeyboard.isEscape_(event)) {
       VUtils.prevent_(event); // safer
       VFind.deactivate_(FindNS.Action.ExitNoFocus); // should exit
       return HandlerResult.Prevent;

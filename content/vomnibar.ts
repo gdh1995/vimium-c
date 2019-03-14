@@ -248,7 +248,7 @@ var VOmni = {
     default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.N);
     }
   },
-  onShown_ (): number {
+  onShown_ (): void {
     this.status_ = VomnibarNS.Status.Showing;
     let style = this.box_.style, bh = this.maxBoxHeight_;
     if (bh > 0) {
@@ -259,8 +259,11 @@ var VOmni = {
     style.top = VDom.wdZoom_ !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.wdZoom_) | 0) + "px"
       : this.top_ || this.defaultTop_;
     style.display = "";
-    VUtils.remove_(this);
-    return VUtils.push_(this.onKeydown_, this);
+    setTimeout(function() {
+      const a = VOmni;
+      VUtils.remove_(a);
+      a && a.status_ === VomnibarNS.Status.Showing && VUtils.push_(a.onKeydown_, a);
+    }, 120);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     if (VEvent.lock_()) { return HandlerResult.Nothing; }

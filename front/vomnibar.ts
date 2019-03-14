@@ -142,13 +142,11 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   show_ (): void {
     this.showing_ = true;
     this.bodySt_.zoom = this.zoomLevel_ !== 1 ? this.zoomLevel_ + "" : "";
-    if (Build.BTypes & BrowserType.Firefox) {
-      this.firstShowing_ && ((Build.BTypes & ~BrowserType.Firefox) && this.browser_ !== BrowserType.Firefox) ||
-      setTimeout(Vomnibar_.focus_, 34);
-      this.firstShowing_ = false;
-    }
+    this.firstShowing_ && ((Build.BTypes & ~BrowserType.Firefox) && this.browser_ !== BrowserType.Firefox) ||
+    setTimeout(Vomnibar_.focus_, 34);
+    this.firstShowing_ = false;
     addEventListener("wheel", this.onWheel_, this.wheelOptions_);
-    this.OnShown_ && setTimeout(this.OnShown_, 100);
+    this.OnShown_ && setTimeout(this.OnShown_, 67);
   },
   hide_ (fromContent?: BOOL): void {
     const a = this, el = a.input_;
