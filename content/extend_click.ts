@@ -10,13 +10,23 @@ if (VSettings && document.readyState !== "complete"
   const enum InnerConsts {
     MaxElementsInOneTick = 64,
     MaxUnsafeEventsInOneTick = 12,
+    kSecretAttr = "data-vimium",
+
     kClick = "VimiumOnclick",
     kHook = "VimiumHook",
-    kAttr = "data-vimium",
     kCmd = "Vimium",
   }
   type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[] ];
   type CommandEventDetail = [ /** secret */ number, /* command */ kContentCmd ];
+  interface VimiumCustomEventCls {
+    prototype: CustomEvent;
+    new <Type extends InnerConsts & string>(typeArg: Type, eventInitDict?: { detail?:
+      Type extends InnerConsts.kClick ? ClickableEventDetail
+        : Type extends InnerConsts.kCmd ? CommandEventDetail
+        : Type extends InnerConsts.kHook ? /** secret */ number
+        : never;
+    }): CustomEvent;
+  }
 
   const kClick1 = InnerConsts.kClick, kHook = InnerConsts.kHook;
   let d: Document | Document["documentElement"] = document
@@ -42,7 +52,7 @@ if (VSettings && document.readyState !== "complete"
     event.stopImmediatePropagation();
     removeEventListener(kHook, hook, true);
     if (box === null) {
-      t.removeAttribute(InnerConsts.kAttr);
+      t.removeAttribute(InnerConsts.kSecretAttr);
       t.addEventListener(kClick1, onClick, true);
       box = t;
     }
@@ -65,21 +75,21 @@ if (VSettings && document.readyState !== "complete"
       el && VUtils.clickable_.add(el);
     }
   }
-  function dispatch(cmd: ValidContentCmds) {
+  function dispatchCmd(cmd: ValidContentCmds) {
     (box as Exclude<typeof box, null | false | undefined>).dispatchEvent(new CustomEvent(InnerConsts.kCmd, {
       detail: <CommandEventDetail> [ secret, cmd ]
     }));
   }
   function execute(cmd: ValidContentCmds): void {
     if (cmd < kContentCmd._minNotDispatchDirectly) {
-      box && dispatch(cmd);
+      box && dispatchCmd(cmd);
       return;
     }
     const r = removeEventListener, settings = VSettings;
     /** this function should keep idempotent */
     if (box) {
       r.call(box, kClick1, onClick, true);
-      dispatch(kContentCmd.Destroy);
+      dispatchCmd(kContentCmd.Destroy);
     }
     if (box === null) {
       setTimeout(function (): void { r(kHook, hook, true); }, 1100);
@@ -108,7 +118,7 @@ getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP =
 IndexOf = _call.bind(toRegister.indexOf) as never as (this: void, list: CollectionEx, item: Element) => number,
 push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
-CE = CustomEvent, HA = HTMLAnchorElement, HB = HTMLButtonElement, DF = DocumentFragment,
+CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement, HB = HTMLButtonElement, DF = DocumentFragment,
 FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
@@ -143,7 +153,7 @@ let handler = function (this: void): void {
   const docEl = docChildren[0] as HTMLElement | SVGElement | null;
   handler = docChildren = null as never;
   if (!docEl) { return executeCmd(); }
-  const el = call(Create, document, "div") as HTMLDivElement, key = InnerConsts.kAttr;
+  const el = call(Create, document, "div") as HTMLDivElement, key = InnerConsts.kSecretAttr;
   call(Attr, el, key, "");
   listen(el, InnerConsts.kCmd, executeCmd, true);
   call(Append, docEl, el), dispatch(el, new CE(InnerConsts.kHook, {detail: sec})), call(Remove, el);
@@ -157,7 +167,7 @@ let handler = function (this: void): void {
 callFindAllAfterAWhile: (() => void) = (setTimeout as (func: (this: void) => void, timeout: number) => number
     ).bind(window as never, findAllOnClick, 600),
 delayFindAll = function (e?: Event): void {
-  if (e && e.isTrusted === false) { return; }
+  if (e && (e.target !== window && e.target !== doc || e.isTrusted === false)) { return; }
   rel("load", delayFindAll, true);
   callFindAllAfterAWhile();
   callFindAllAfterAWhile = delayFindAll = null as never;

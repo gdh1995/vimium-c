@@ -70,16 +70,16 @@ function call() {
   runtime.sendMessage(extHost, <ExternalMsgs[kFgReq.inject]["req"]> { handler: kFgReq.inject }, handler);
 }
 function start() {
-  removeEventListener("load", start);
+  removeEventListener("DOMContentLoaded", start);
   onIdle && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && onIdle instanceof Element)
   ? (onIdle as Exclude<typeof onIdle, null | Element>)(function (): void {
     (onIdle as Exclude<typeof onIdle, null | Element>)(function (): void { setTimeout(call, 0); }, {timeout: 67});
   }, {timeout: 330}) : setTimeout(call, 67);
 }
-if (document.readyState === "complete") {
+if (document.readyState !== "loading") {
   start();
 } else {
-  addEventListener("load", start);
+  addEventListener("DOMContentLoaded", start, true);
 }
 })(function (scriptSrc): VimiumInjector["reload"] {
   return function (async): void {
