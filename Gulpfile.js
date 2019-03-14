@@ -124,6 +124,17 @@ var Tasks = {
       return cb();
     }
     var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
+    if (exArgs.nameCache.vars && exArgs.nameCache.props) {
+      let {vars: {props: vars}, props: {props: props}} = exArgs.nameCache;
+      for (let key in vars) {
+        if (vars.hasOwnProperty(key)) {
+          if (props[key] != null) {
+            throw new Error('The name cache #bg can not be used to build others: values differ for ' + key);
+          }
+          props[key] = vars[key];
+        }
+      }
+    }
     gulp.task("min/others/omni", function() {
       var props = exArgs.nameCache.props && exArgs.nameCache.props.props || null;
       props = props && {
