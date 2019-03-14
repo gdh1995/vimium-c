@@ -586,7 +586,7 @@ setTimeout(function (): void {
   Settings.temp_.onInstall_ = null;
   (document.documentElement as HTMLHtmlElement).textContent = "";
   Utils.resetRe_();
-  if (typeof NDEBUG === "undefined" || !NDEBUG) {
+  if (!Build.NDEBUG) {
     interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void; }
     (window as WindowExForDebug).a = null;
     (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log(b); };

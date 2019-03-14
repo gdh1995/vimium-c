@@ -529,7 +529,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       (document.body as HTMLBodyElement).style.width = ratio2 !== 1 ? 910 / ratio2 + "px" : "";
     });
   }
-  if (typeof NO_DIALOG_UI !== "undefined" && NO_DIALOG_UI) { /* empty */ }
+  if (Build.NoDialogUI) { /* empty */ }
   else if (location.hash.toLowerCase() === "#dialog-ui") {
     setUI(null);
   } else if (chrome.tabs.query) {

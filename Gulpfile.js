@@ -791,12 +791,17 @@ function patchBuild(build) {
   return build.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, defaultVal) {
     var newVal = key === "Commit" ? getGitCommit()
         : getBuildItem(key);
+    if (newVal == null) {
+      if (key === "NoDialogUI") {
+        newVal = !has_dialog_ui;
+      }
+    }
     return key + " = " + (newVal != null ? newVal : defaultVal);
   });
 }
 
-function getBuildItem(key, defaultVal) {
-  var env_key = key.replace(/[A-Z]+[a-z0-9]+/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
+function getBuildItem(key) {
+  var env_key = key.replace(/[A-Z]+[a-z0-9]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
   var newVal = process.env["BUILD_" + env_key];
   if (newVal != null) {
     try {
@@ -990,8 +995,7 @@ function loadUglifyConfig(reload) {
       _uglifyjsConfig = a;
     }
     a.output || (a.output = {});
-    var c = a.compress || (a.compress = {}), gd = c.global_defs || (c.global_defs = {});
-    gd.NO_DIALOG_UI = !has_dialog_ui;
+    var c = a.compress || (a.compress = {}); // gd = c.global_defs || (c.global_defs = {});
     if (typeof c.keep_fnames === "string") {
       let re = c.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
       c.keep_fnames = new RegExp(re[1], re[2]);

@@ -10,7 +10,9 @@
   },
   "build": { // for [ local, dist ]
     "MinCVer": [ 70, 35 ],
-    "BTypes": [ 3, 1 ] // [ Chrome | Firefox, Chrome ]
+    "BTypes": [ 3, 1 ], // [ Chrome | Firefox, Chrome ]
+    "NoDialogUI": [ 0, 1 ],
+    "NDEBUG": [ 0, 1 ]
   },
   "extends": "../tsconfig"
 }

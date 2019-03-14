@@ -177,7 +177,8 @@ var VOmni = {
         wnd.postMessage(sec, type !== VomnibarNS.PageType.web ? origin : "*", [channel.port2]);
         return;
       }
-      if (!wnd.onmessage) { return checkBroken(); } // check it to make "debugging VOmni on options page" easier
+      // check it to make "debugging VOmni on options page" easier
+      if (!Build.NDEBUG && !wnd.onmessage) { return checkBroken(); }
       type FReq = VomnibarNS.FReq;
       type CReq = VomnibarNS.CReq;
       const port: VomnibarNS.IframePort = {
@@ -191,7 +192,7 @@ var VOmni = {
         close (): void { port.postMessage = function () { /* empty */ }; },
         postMessage (data: CReq[keyof CReq]): void | 1 { return port.onmessage({ data }); }
       };
-      if ((typeof NO_DIALOG_UI === "undefined" || !NO_DIALOG_UI) && location.hash === "#dialog-ui"
+      if (!Build.NoDialogUI && location.hash === "#dialog-ui"
           && VimiumInjector === null) {
         _this.top_ = "8px";
       }

@@ -10,10 +10,6 @@
     "properties": true,
     "dead_code": true,
     "drop_debugger": true,
-    "global_defs": {
-      "NO_DIALOG_UI": false,
-      "NDEBUG": true
-    },
     // `true` will remove `/a?/.test("")`
     // so "unsafe" is not what Vimium C needs
     "unsafe": false,

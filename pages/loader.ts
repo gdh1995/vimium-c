@@ -37,7 +37,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
       (document.head as HTMLHeadElement).appendChild(style);
     }
   }
-  if (typeof NDEBUG === "undefined" || !NDEBUG) {
+  if (!Build.NDEBUG) {
     (window as {} as {updateUI(): void}).updateUI = function (): void {
       const settings = (chrome.extension.getBackgroundPage() as BgWindow).Settings;
       delete (settings.cache_ as FullSettings).helpDialog;
