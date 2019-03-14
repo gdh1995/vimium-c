@@ -10,13 +10,16 @@ if (VSettings && document.readyState !== "complete"
   const enum InnerConsts {
     MaxElementsInOneTick = 64,
     MaxUnsafeEventsInOneTick = 12,
+    DelayToFindAll = 600,
+    DelayForNext = 36,
+    DelayForNextComplicatedCase = 1,
     kSecretAttr = "data-vimium",
 
     kClick = "VimiumOnclick",
     kHook = "VimiumHook",
     kCmd = "Vimium",
   }
-  type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[] ];
+  type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[] | null ];
   type CommandEventDetail = [ /** secret */ number, /* command */ kContentCmd ];
   interface VimiumCustomEventCls {
     prototype: CustomEvent;
@@ -61,8 +64,15 @@ if (VSettings && document.readyState !== "complete"
   function onClick(event: CustomEvent): void {
     event.stopImmediatePropagation();
     let detail = event.detail as ClickableEventDetail | null;
+    if (!Build.NDEBUG) {
+      console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s" } in %o @t=%o`
+        , detail ? detail[0].length : ((event.target as Element).tagName + "").toLowerCase()
+        , detail ? detail[1] ? detail[1].length : -1 : ""
+        , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
+        , Date.now() % 10000);
+    }
     if (detail) {
-      resolve(0, detail[0]); resolve(1, detail[1]);
+      resolve(0, detail[0]); detail[1] && resolve(1, detail[1]);
     } else {
       VUtils.clickable_.add(event.target as Element);
     }
@@ -137,7 +147,7 @@ hooks = {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA) && a instanceof E && !(a instanceof HB)) {
       toRegister.push(a);
-      timer || (timer = next());
+      timer || (timer = next(InnerConsts.DelayForNext));
     }
     const args = arguments, len = args.length;
     return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
@@ -161,11 +171,11 @@ let handler = function (this: void): void {
     executeCmd();
   } else {
     root = el;
-    timer = toRegister.length > 0 ? next() : 0;
+    timer = toRegister.length > 0 ? next(InnerConsts.DelayForNext) : 0;
   }
 },
 callFindAllAfterAWhile: (() => void) = (setTimeout as (func: (this: void) => void, timeout: number) => number
-    ).bind(window as never, findAllOnClick, 600),
+    ).bind(window as never, findAllOnClick, InnerConsts.DelayToFindAll),
 delayFindAll = function (e?: Event): void {
   if (e && (e.target !== window && e.target !== doc || e.isTrusted === false)) { return; }
   rel("load", delayFindAll, true);
@@ -179,7 +189,7 @@ next = setTimeout.bind(window as never, function (): void {
   const len = toRegister.length,
   start = len > InnerConsts.MaxElementsInOneTick ? len - InnerConsts.MaxElementsInOneTick : 0,
   delta = len - start;
-  timer = start > 0 ? next() : 0;
+  timer = start > 0 ? next(InnerConsts.DelayForNext) : 0;
   if (!len) { return; }
   unsafeDispatchCounter = 0;
   call(Remove, root);
@@ -191,7 +201,7 @@ next = setTimeout.bind(window as never, function (): void {
   }
   doRegister();
   allNodesInDocument = allNodesForDetached = null;
-}, 1)
+})
 , root: HTMLDivElement, timer = setTimeout(handler, 1000)
 , SR: typeof ShadowRoot = window.ShadowRoot as typeof ShadowRoot
 ;
@@ -233,31 +243,38 @@ function prepareRegister(this: void, element: Element): void {
       call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, e3);
     } else {
       toRegister.push(element);
-      timer || (timer = next());
+      if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick + 1) {
+        unsafeDispatchCounter = InnerConsts.MaxUnsafeEventsInOneTick + 1; // a fake value to run it only once a tick
+        ct(timer);
+        timer = next(InnerConsts.DelayForNextComplicatedCase);
+      }
     }
   }
 }
-function doRegister(): void {
+function doRegister(onlyInDocument?: 1): void {
   if (nodeIndexListInDocument.length || nodeIndexListForDetached.length) {
     unsafeDispatchCounter++;
-    dispatch(root, new CE(kClick, { detail: [nodeIndexListInDocument, nodeIndexListForDetached] }));
+    dispatch(root, new CE(kClick, {
+      detail: [nodeIndexListInDocument, onlyInDocument ? null : nodeIndexListForDetached]
+    }));
     nodeIndexListForDetached.length && (root.textContent = "");
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
   }
 }
 function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
   if (!root) { return; }
+  call(Remove, root);
   allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*") as CollectionEx;
   let len = allNodesInDocument.length, i = 0;
   !cmd && len > GlobalConsts.maxElementsWhenScanOnClick && (len = 0); // stop it
   for (; i < len; i++) {
     const el: Element | HTMLElement = allNodesInDocument[i];
     if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")
-        && !(el instanceof HA || el instanceof HB)) {
+        && !(el instanceof HA)) { // ignore <button>s to iter faster
       pushInDocument(i);
     }
   }
-  doRegister();
+  doRegister(1);
 }
 function executeCmd(eventOrDestroy?: Event): void {
   const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
