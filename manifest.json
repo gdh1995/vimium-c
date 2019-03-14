@@ -98,8 +98,8 @@
     "<all_urls>"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.72.2",
-  "version_name": "1.72",
+  "version": "1.73.0",
+  "version_name": "1.73",
   "web_accessible_resources": [
     "content/*",
     "front/vomnibar.*",
