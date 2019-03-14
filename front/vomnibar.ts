@@ -142,7 +142,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   show_ (): void {
     this.showing_ = true;
     this.bodySt_.zoom = this.zoomLevel_ !== 1 ? this.zoomLevel_ + "" : "";
-    this.firstShowing_ && ((Build.BTypes & ~BrowserType.Firefox) && this.browser_ !== BrowserType.Firefox) ||
+    Build.BTypes & ~BrowserType.Firefox && this.firstShowing_ &&
+      (!(Build.BTypes & BrowserType.Firefox) || this.browser_ !== BrowserType.Firefox) ||
     setTimeout(Vomnibar_.focus_, 34);
     this.firstShowing_ = false;
     addEventListener("wheel", this.onWheel_, this.wheelOptions_);
