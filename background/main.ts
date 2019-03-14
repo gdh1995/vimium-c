@@ -237,6 +237,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
         return last === "pull" || last === "milestone" ? path + "s"
           : last === "tree" ? arr.slice(0, 3).join("/")
           : null;
+      } else if (lastIndex === 4 && arr[3] === "releases" && (arr[4] === "tag" || arr[4] === "edit")) {
+        return arr.slice(0, 4).join("/");
       } else if (lastIndex > 3) {
         return arr[3] === "blob" ? (arr[3] = "tree", arr.join("/")) : null;
       }

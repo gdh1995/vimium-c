@@ -79,7 +79,7 @@ Here're some issues still existing on the master branch, which are mostly caused
 * in LinkHints mode, press `<a-f2>` if some hint markers are covered by page content
 * Vomnibar supports keyword/phase blacklist, and matched items are hidden except you type the keyword
 * on Vomnibar, a perfectly matched domain suggestion may get auto selected
-* on Vomnibar, query "`:w`" to search tabs only in current window (or use a option `currentWindow`)
+* on Vomnibar, query "`:w`" to search tabs only in current window (or use an option `currentWindow`)
 * if an iframe is embeded dynamically and no exclusion rules found, now apply those rules of the top frame on it
   * for pages like https://docs.google.com
 * `w` and `e` in visual mode now jump among words much more smartly
