@@ -159,18 +159,12 @@ var VOmni = {
         if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }
         a.reset_();
-        (VDom.UI.box_ as HTMLElement).style.display = "";
         window.focus();
         a.status_ = VomnibarNS.Status.KeepBroken;
         a.run(1, {} as VomnibarNS.FullOptions);
       };
-      if (inner || (Build.MinCVer < BrowserVer.MinSafeWndPostMessageAcrossProcesses
-                    && VUtils.cache_.browserVer_ < BrowserVer.MinSafeWndPostMessageAcrossProcesses)) {
-        setTimeout(checkBroken, 1000);
-      } else {
-        this.onload = null as never;
-      }
       if (location.origin !== origin || origin.indexOf("-") < 0) {
+        setTimeout(checkBroken, 600);
         const channel = new MessageChannel();
         _this.port_ = channel.port1;
         channel.port1.onmessage = _this.onMessage_.bind(_this);
