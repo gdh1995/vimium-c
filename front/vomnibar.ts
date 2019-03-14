@@ -867,7 +867,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       }
     }, 100);
   },
-  secret_: null as never as (request: BgVomnibarSpecialReq[kBgReq.omni_secret]) => void,
+  secret_: null as ((request: BgVomnibarSpecialReq[kBgReq.omni_secret]) => void) | null,
 
   maxResults_: (<number> window.VomnibarListLength | 0) || 10,
   mode_: {
@@ -1037,7 +1037,7 @@ VPort_ = {
     const name = response.N;
     name === kBgReq.omni_omni ? Vomnibar_.omni_(response as Req.bg<kBgReq.omni_omni>) :
     name === kBgReq.omni_parsed ? Vomnibar_.parsed_(response as Req.bg<kBgReq.omni_parsed>) :
-    name === kBgReq.omni_secret ? Vomnibar_.secret_(response as Req.bg<kBgReq.omni_secret>) :
+    name === kBgReq.omni_secret ? Vomnibar_.secret_ && Vomnibar_.secret_(response as Req.bg<kBgReq.omni_secret>) :
     name === kBgReq.omni_returnFocus ? Vomnibar_.returnFocus_(response as Req.bg<kBgReq.omni_returnFocus>) :
     name === kBgReq.showHUD ? Vomnibar_.css_(response as Req.bg<kBgReq.showHUD> as BgCSSReq) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
@@ -1113,24 +1113,23 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     VPort_.postToOwner_ = port.postMessage.bind(port);
     port.onmessage = VPort_._OnOwnerMessage;
     window.onunload = Vomnibar_.OnUnload_;
+    VPort_.postToOwner_({ N: VomnibarNS.kFReq.iframeIsAlive, o: options ? 1 : 0 });
     if (options) {
       Vomnibar_.activate_(options);
-    } else {
-      VPort_.postToOwner_({ N: VomnibarNS.kFReq.uiComponentIsReady });
     }
   },
   timer = setTimeout(function () { location.href = "about:blank"; }, 700);
   Vomnibar_.secret_ = function (this: void, request): void {
-    Vomnibar_.secret_ = function () { /* empty */ };
+    Vomnibar_.secret_ = null;
     Vomnibar_.browser_ = request.browser;
     Vomnibar_.browserVersion_ = request.browserVer;
     Vomnibar_.css_(request);
     Vomnibar_.customClassName_ = request.cls;
     const { secret } = request, msgs = unsafeMsg;
     _sec = secret;
-    unsafeMsg = null as never;
     for (const i of msgs) {
       if (i[0] === secret) {
+        msgs.length = 0;
         return handler(i[0], i[1], i[2]);
       }
     }

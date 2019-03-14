@@ -226,11 +226,11 @@ var VOmni = {
   onMessage_<K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }): void | 1 {
     type Req = VomnibarNS.FReq;
     switch (data.N) {
-    case VomnibarNS.kFReq.uiComponentIsReady:
+    case VomnibarNS.kFReq.iframeIsAlive:
       this.status_ = VomnibarNS.Status.ToShow;
       let opt = this.options_;
-      if (opt) {
-        this.options_ = null;
+      this.options_ = null;
+      if (!(data as VomnibarNS.FReq[VomnibarNS.kFReq.iframeIsAlive]).o && opt) {
         return this.port_.postMessage<VomnibarNS.kCReq.activate>(opt as VomnibarNS.FgOptionsToFront);
       }
       break;
