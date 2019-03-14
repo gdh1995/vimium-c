@@ -20,6 +20,7 @@ var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var envLegacy = process.env.SUPPORT_LEGACY === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
+var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var forcedESTarget = (process.env.TARGET || "").toLowerCase();
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
@@ -27,13 +28,16 @@ var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", false);
 var has_dialog_ui = manifest.options_ui != null && manifest.options_ui.open_in_tab !== true;
 var jsmin_status = [false, false, false];
+var buildOptionCache = Object.create(null);
+var has_polyfill = getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
 gulpPrint = gulpPrint.default || gulpPrint;
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
   content: [["content/*.ts", "lib/*.ts", "!lib/polyfill.ts", "!lib/injector.ts"], "content/*.d.ts"],
-  lib: ["lib/*.ts"],
-  front: [["front/*.ts", "lib/polyfill.ts", "lib/injector.ts", "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]
+  lib: ["lib/*.ts"].concat(has_polyfill ? [] : ["!lib/polyfill.ts"]),
+  front: [["front/*.ts", has_polyfill ? "lib/polyfill.ts" : "!lib/polyfill.ts"
+            , "lib/injector.ts", "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]
           , ["background/bg.d.ts", "content/*.d.ts"]],
   vomnibar: ["front/vomnibar*.ts", ["background/bg.d.ts", "content/*.d.ts"]],
   polyfill: ["lib/polyfill.ts"],
@@ -59,6 +63,9 @@ var Tasks = {
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!front/vimium.css", "!test*", "!todo*"
     ];
+    var has_wordsRe = getBuildItem("MinCVer") < 64 /* MinEnsuredUnicodePropertyEscapesInRegExp */
+                      || !!(getBuildItem("BTypes") & ~1 /* Chrome */);
+    has_wordsRe || arr.push("!front/words.txt");
     if (!has_dialog_ui) {
       arr.push("!*/dialog_ui.*");
     }
@@ -136,6 +143,7 @@ var Tasks = {
     gulp.task("min/others/misc", function() {
       var oriManifest = readJSON("manifest.json", true);
       var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!pages/options*"];
+      has_polyfill || res.push("!lib/polyfill.*");
       if (!has_dialog_ui) {
         res.push("!*/dialog_ui.*");
       }
@@ -161,6 +169,10 @@ var Tasks = {
     } else if (minCVer && minCVer < 999) {
       manifest.minimum_chrome_version = "" + (minCVer | 0);
     }
+    var dialog_ui = getBuildItem("NoDialogUI");
+    if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {
+      manifest.options_ui && (manifest.options_ui.open_in_tab = true);
+    }
     var file = osPath.join(DEST, "manifest.json")
       , data = JSON.stringify(manifest, null, "  ");
     if (fs.existsSync(file) && fs.statSync(file).isFile()) {
@@ -181,12 +193,7 @@ var Tasks = {
   build: ["dist"],
   rebuild: [["clean"], "dist"],
   all: ["build"],
-  "clean/temp": function() {
-    return cleanByPath([JSDEST + "**/*.js"
-      , JSDEST + "**/*.js.map"
-      , "!" + JSDEST + "/pages/newtab.js"]);
-  },
-  clean: ["clean/temp", function() {
+  clean: [function() {
     return cleanByPath(DEST + "/*");
   }],
 
@@ -232,6 +239,13 @@ gulp.task("locally", function(done) {
   locally = true;
   compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
   removeUnknownOptions();
+  var old_has_polyfill = has_polyfill;
+  has_polyfill = getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
+  if (has_polyfill != old_has_polyfill) {
+    CompileTasks.front[0][1] = has_polyfill ? "lib/polyfill.ts" : "!lib/polyfill.ts";
+    CompileTasks.lib.length = 1;
+    has_polyfill || CompileTasks.lib.push("!lib/polyfill.ts");
+  }
   if (!has_dialog_ui) {
     let i = CompileTasks.others[0].indexOf("!*/dialog_ui.*");
     if (i >= 0) {
@@ -380,6 +394,10 @@ function compile(pathOrStream, header_files, done) {
 
 function outputJSResult(stream) {
   if (locally) {
+    if (doesUglifyLocalFiles) {
+      var config = loadUglifyConfig();
+      stream = stream.pipe(getGulpUglify()(config));
+    }
     stream = stream.pipe(gulpMap(function(file) {
       if (file.history.join("|").indexOf("extend_click") >= 0) {
         file.contents = new Buffer(patchExtendClick(String(file.contents)));
@@ -402,6 +420,7 @@ function outputJSResult(stream) {
 
 function checkJSAndUglifyAll(taskOrder, maps, key, exArgs, cb) {
   Promise.all(maps.map(function(i) {
+    if (debugging) { return true; }
     var is_file = i[1] && i[1] !== ".";
     return checkAnyNewer(i[0], JSDEST, is_file ? osPath.join(DEST, i[1]) : DEST, is_file ? "" : ".js");
   })).then(function(all) {
@@ -484,13 +503,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     config.nameCache = exArgs.nameCache;
     patchGulpUglify();
   }
-  var compose = require('gulp-uglify/composer');
-  var logger = require('gulp-uglify/lib/log');
-  var uglify = require(LIB_UGLIFY_JS);
-  stream = stream.pipe(compose(
-    uglify,
-    logger
-  )(config));
+  stream = stream.pipe(getGulpUglify()(config));
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
   }
@@ -524,7 +537,7 @@ function copyByPath(path) {
 }
 
 function cleanByPath(path) {
-  return gulp.src(path, {read: false}).pipe(require('gulp-clean')());
+  return gulp.src(path, {read: false, dot: true}).pipe(require('gulp-clean')());
 }
 
 function formatPath(path, base) {
@@ -540,11 +553,6 @@ function formatPath(path, base) {
     }
   }
   return path;
-}
-
-function convertToStream(pathOrStream) {
-  return typeof pathOrStream === "string" || pathOrStream instanceof Array
-    ? gulp.src(pathOrStream, { base: "." }) : pathOrStream;
 }
 
 function compareContentAndTouch(stream, sourceFile, targetPath) {
@@ -791,26 +799,36 @@ function patchBuild(build) {
   return build.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, defaultVal) {
     var newVal = key === "Commit" ? getGitCommit()
         : getBuildItem(key);
-    if (newVal == null) {
-      if (key === "NoDialogUI") {
-        newVal = !has_dialog_ui;
-      }
-    }
     return key + " = " + (newVal != null ? newVal : defaultVal);
   });
 }
 
 function getBuildItem(key) {
+  if (key in buildOptionCache) {
+    return parseBuildItem(key, buildOptionCache[key]);
+  }
   var env_key = key.replace(/[A-Z]+[a-z0-9]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
   var newVal = process.env["BUILD_" + env_key];
   if (newVal != null) {
     try {
-      return JSON.parse(newVal);
+      newVal = JSON.parse(newVal);
     } catch (e) {}
+    buildOptionCache[key] = newVal;
+    return parseBuildItem(key, newVal);
   }
   newVal = buildConfig && buildConfig[key];
-  if (newVal instanceof Array && newVal.length === 2) {
+  buildOptionCache[key] = newVal != null ? newVal : null;
+  return parseBuildItem(key, newVal);
+}
+
+function parseBuildItem(key, newVal) {
+  if (newVal != null && newVal instanceof Array && newVal.length === 2) {
     newVal = newVal[locally ? 0 : 1];
+  }
+  if (newVal == null) {
+    if (key === "NoDialogUI") {
+      newVal = !has_dialog_ui;
+    }
   }
   return newVal;
 }
@@ -967,6 +985,16 @@ function patchExtendClick(source) {
   return source;
 }
 
+function getGulpUglify() {
+  var compose = require('gulp-uglify/composer');
+  var logger = require('gulp-uglify/lib/log');
+  var uglify = require(LIB_UGLIFY_JS);
+  return compose(
+    uglify,
+    logger
+  );
+}
+
 var _gulpUglifyPatched = false;
 function patchGulpUglify() {
   if (_gulpUglifyPatched) { return; }
@@ -990,7 +1018,7 @@ var _uglifyjsConfig = null;
 function loadUglifyConfig(reload) {
   let a = _uglifyjsConfig;
   if (a == null || reload) {
-    a = readJSON("scripts/uglifyjs.json");
+    a = readJSON(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json");
     if (!reload) {
       _uglifyjsConfig = a;
     }
@@ -1013,7 +1041,9 @@ function loadUglifyConfig(reload) {
       m.keep_fnames = c.keep_fnames;
     }
   }
-  a.output.comments = locally ? "all" : /^!/;
+  if (!locally) {
+    a.output.comments = /^!/;
+  }
   return a;
 }
 

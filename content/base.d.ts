@@ -308,7 +308,7 @@ interface DomUI {
   getRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null;
   flash_ (this: DomUI, el: null, rect: Rect): HTMLElement;
   flash_ (this: DomUI, el: Element): HTMLElement | void;
-  suppressTail_ (this: void, onlyRepeated: boolean): void;
+  suppressTail_ (this: void, onlyRepeated: BOOL): void;
   SuppressMost_: HandlerNS.Handler<{}>;
 }
 

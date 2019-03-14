@@ -1,0 +1,34 @@
+{
+  "output": {
+    "ascii_only": true, // if `false` by default, '\xa0' is replaced with '\xc2\xa0', which is wrong
+    "beautify": true,
+    "braces": true,
+    "comments": true,
+    "keep_quoted_props": false,
+    "semicolons": true,
+    "wrap_iife": true
+  },
+  "compress": {
+    "conditionals": true,
+    "dead_code": true,
+    "defaults": false,
+    "evaluate": true,
+    "keep_fargs": true, // typescript will check unused arguments
+    "keep_fnames": true,
+    "passes": 1,
+    "properties": true,
+    "pure_getters": true,
+    "side_effects": true,
+    "unsafe_arrows": true,
+    "unsafe_comps": false,
+    "unsafe_math": true,
+    "unsafe_methods": true,
+    "unsafe_proto": true,
+    "unsafe": false,
+    "unused": true,
+    "warnings": true
+    // `true` will remove `/a?/.test("")`
+    // so "unsafe" is not what Vimium C needs
+  },
+  "mangle": false //*/
+}

@@ -405,8 +405,6 @@ var VFind = {
     a.wholeWord_ = false;
     a.isRegex_ = a.ignoreCase_ = null as boolean | null;
     query = query.replace(a._ctrlRe, a.FormatQuery_);
-    const supportWholeWord = !!(Build.BTypes & BrowserType.Chrome)
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VUtils.cache_.browser_ === BrowserType.Chrome);
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b";
     if (isRe === null && !ww) {
       isRe = VUtils.cache_.regexFindMode;
@@ -419,7 +417,9 @@ var VFind = {
       }
     }
     isRe = isRe || false;
-    if (ww && (isRe || !supportWholeWord)) {
+    if (ww && (isRe || !(Build.BTypes & BrowserType.Chrome)
+              || ((Build.BTypes & ~BrowserType.Chrome) && VUtils.cache_.browser_ !== BrowserType.Chrome)
+        )) {
       query = B + query.replace(a._bslashRe, "\\").replace(a._escapeAllRe, "\\$&") + B;
       ww = false;
       isRe = true;
@@ -509,7 +509,7 @@ var VFind = {
     } while (0 < --count && found);
     options.noColor || setTimeout(this.HookSel_, 0);
     (el = VEvent.lock_()) && !VDom.isSelected_() && el.blur && el.blur();
-    focusHUD && this.focus_();
+    Build.BTypes & BrowserType.Firefox && focusHUD && this.focus_();
     this.hasResults_ = found;
   },
 /**

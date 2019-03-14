@@ -76,7 +76,9 @@ interface ExportedSettings {
 
 let _lastBlobURL = "";
 function cleanRes() {
-  if (_lastBlobURL) {
+  if ((Build.MinCVer >= BrowserVer.MinCanNotRevokeObjectURLAtOnce
+        || bgBrowserVer_ >= BrowserVer.MinCanNotRevokeObjectURLAtOnce)
+      && _lastBlobURL) {
     URL.revokeObjectURL(_lastBlobURL);
     _lastBlobURL = "";
   }
@@ -137,14 +139,19 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
 
   type BlobSaver = (blobData: Blob, fileName: string) => any;
   interface NavigatorEx extends Navigator { msSaveOrOpenBlob?: BlobSaver; }
-  if ((navigator as NavigatorEx).msSaveOrOpenBlob) {
+  if (Build.BTypes & BrowserType.Edge && (navigator as NavigatorEx).msSaveOrOpenBlob) {
     (navigator as NavigatorEx & {msSaveOrOpenBlob: BlobSaver}).msSaveOrOpenBlob(blob, file_name);
   } else {
     const nodeA = document.createElement("a");
     nodeA.download = file_name;
     nodeA.href = URL.createObjectURL(blob);
-    _lastBlobURL = nodeA.href;
     click(nodeA);
+    if (Build.MinCVer < BrowserVer.MinCanNotRevokeObjectURLAtOnce
+        && bgBrowserVer_ < BrowserVer.MinCanNotRevokeObjectURLAtOnce) {
+      URL.revokeObjectURL(nodeA.href);
+    } else {
+    _lastBlobURL = nodeA.href;
+    }
   }
   console.info("EXPORT settings to %c%s%c at %c%s%c."
     , "color:darkred", file_name, "color:auto", "color:darkblue", d_s, "color:auto");

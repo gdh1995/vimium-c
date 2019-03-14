@@ -39,9 +39,9 @@ declare namespace HintsNS {
   type Stack = number[];
   type Stacks = Stack[];
   interface KeyStatus {
-    known: boolean;
-    newHintLength: number;
-    tab: 0 | 1;
+    known_: BOOL;
+    newHintLength_: number;
+    tab_: BOOL;
   }
   type ElementList = NodeListOf<Element> | Element[];
 }
@@ -73,9 +73,9 @@ var VHints = {
   isClickListened_: true,
   ngEnabled_: null as boolean | null,
   keyStatus_: {
-    known: false,
-    newHintLength: 0,
-    tab: 0
+    known_: 0,
+    newHintLength_: 0,
+    tab_: 0
   } as HintsNS.KeyStatus,
   isActive_: false,
   noHUD_: false,
@@ -202,7 +202,7 @@ var VHints = {
     try {
       if (frame.contentDocument && (child = frame.contentWindow as VWindow).VDom.isHTML_()) {
         if (mode === "VHints") {
-          (done = child.VHints.isActive_) && child.VHints.deactivate_(true);
+          (done = child.VHints.isActive_) && child.VHints.deactivate_(1);
         }
         err = child.VEvent.keydownEvents_(VEvent.keydownEvents_());
       }
@@ -733,12 +733,12 @@ var VHints = {
         setTimeout(this._reinit.bind(this, null, null), 0);
       }
     } else if (linksMatched.length === 0) {
-      this.deactivate_(this.keyStatus_.known);
+      this.deactivate_(this.keyStatus_.known_);
     } else if (linksMatched.length === 1) {
       VUtils.prevent_(event);
       this.execute_(linksMatched[0]);
     } else {
-      const limit = this.keyStatus_.tab ? 0 : this.keyStatus_.newHintLength;
+      const limit = this.keyStatus_.tab_ ? 0 : this.keyStatus_.newHintLength_;
       for (i = linksMatched.length; 0 <= --i; ) {
         let ref = linksMatched[i].marker.childNodes as NodeListOf<HTMLSpanElement>, j = ref.length - 1;
         while (limit <= --j) {
@@ -798,7 +798,7 @@ var VHints = {
     this.pTimer_ = -(VHUD.text_ !== str);
     if (!(this.mode_ & HintMode.queue)) {
       this._setupCheck(clickEl, null);
-      return this.deactivate_(true);
+      return this.deactivate_(1);
     }
     this.isActive_ = false;
     this._setupCheck();
@@ -813,7 +813,7 @@ var VHints = {
   _reinit (lastEl?: HintsNS.LinkEl | null, rect?: Rect | null): void {
     if (!VSettings.enabled_) { return this.clean_(); }
     this.isActive_ = false;
-    this.keyStatus_.tab = 0;
+    this.keyStatus_.tab_ = 0;
     this.zIndexes_ = null;
     this.resetHints_();
     const isClick = this.mode_ < HintMode.min_job;
@@ -846,9 +846,10 @@ var VHints = {
     this.options_ = this.modeOpt_ = this.zIndexes_ = this.hints_ = null as never;
     this.pTimer_ > 0 && clearTimeout(this.pTimer_);
     this.lastMode_ = this.mode_ = this.mode1_ = this.count_ = this.pTimer_ =
-    this.maxLeft_ = this.maxTop_ = this.maxRight_ = ks.tab = ks.newHintLength = alpha.countMax_ = 0;
+    this.maxLeft_ = this.maxTop_ = this.maxRight_ =
+    ks.tab_ = ks.newHintLength_ = ks.known_ = alpha.countMax_ = 0;
     alpha.hintKeystroke_ = alpha.chars_ = "";
-    this.isActive_ = this.noHUD_ = this.tooHigh_ = ks.known = false;
+    this.isActive_ = this.noHUD_ = this.tooHigh_ = false;
     VUtils.remove_(this);
     VEvent.onWndBlur_(null);
     if (this.box_) {
@@ -857,7 +858,7 @@ var VHints = {
     }
     keepHUD || VHUD.hide_();
   },
-  deactivate_ (onlySuppressRepeated: boolean): void {
+  deactivate_ (onlySuppressRepeated: BOOL): void {
     this.clean_(this.pTimer_ < 0);
     return VDom.UI.suppressTail_(onlySuppressRepeated);
   },
@@ -868,7 +869,7 @@ var VHints = {
       ref.forEach(this.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
       stacks = stacks.filter(stack => stack.length > 1);
       if (stacks.length <= 0) {
-        this.zIndexes_ = this.keyStatus_.newHintLength <= 0 ? false : null;
+        this.zIndexes_ = this.keyStatus_.newHintLength_ <= 0 ? false : null;
         return;
       }
       this.zIndexes_ = stacks;
@@ -928,7 +929,7 @@ alphabetHints_: {
     } while (num > 0);
     num = this.countMax_ - hintString.length - +(num < this.countLimit_);
     if (num > 0) {
-      hintString = (Build.MinCVer >= BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes
+      hintString = (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith
           ? (characterSet[0] as Ensure<string, "repeat">).repeat(num)
           : (this as Ensure<typeof VHints.alphabetHints_, "repeat_">).repeat_(characterSet[0], num)
         ) + hintString;
@@ -974,12 +975,12 @@ alphabetHints_: {
       if (!this.hintKeystroke_) {
         return false;
       }
-      keyStatus.tab = (1 - keyStatus.tab) as BOOL;
-    } else if (keyStatus.tab) {
+      keyStatus.tab_ = (1 - keyStatus.tab_) as BOOL;
+    } else if (keyStatus.tab_) {
       this.hintKeystroke_ = "";
-      keyStatus.tab = 0;
+      keyStatus.tab_ = 0;
     }
-    keyStatus.known = true;
+    keyStatus.known_ = 1;
     if (key === VKeyCodes.tab) { /* empty */ }
     else if (key === VKeyCodes.backspace || key === VKeyCodes.deleteKey || key === VKeyCodes.f1) {
       if (!this.hintKeystroke_) {
@@ -996,10 +997,10 @@ alphabetHints_: {
       return null;
     }
     keyChar = this.hintKeystroke_;
-    keyStatus.newHintLength = keyChar.length;
-    keyStatus.known = false;
+    keyStatus.newHintLength_ = keyChar.length;
+    keyStatus.known_ = 0;
     VHints.zIndexes_ && (VHints.zIndexes_ = null);
-    const wanted = !keyStatus.tab;
+    const wanted = !keyStatus.tab_;
     if (arr !== null && keyChar.length >= this.countMax_) {
       hints.some(function (hint): boolean {
         return hint.key === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
@@ -1012,7 +1013,7 @@ alphabetHints_: {
       return pass;
     });
   },
-  repeat_: Build.MinCVer >= BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes ? null
+  repeat_: Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith ? null
       : function (this: void, s: string, n: number): string {
     if (s.repeat) { return s.repeat(n); }
     for (var s2 = s; --n; ) { s2 += s; }

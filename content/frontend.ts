@@ -26,7 +26,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     ;
 
   const injector = VimiumInjector,
-  useBrowser = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+  notChrome = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : typeof browser !== "undefined" && !!(
     browser && (browser as typeof chrome).runtime) && !((browser as typeof chrome | Element) instanceof Element),
   vPort = {
@@ -61,7 +61,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     },
     Connect_: (function (this: void): void {
       const runtime: typeof chrome.runtime = (
-        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : useBrowser)
+        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : notChrome)
         ? browser as typeof chrome : chrome).runtime,
       status = requestHandlers[0] ? PortType.initing
         : (isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
@@ -175,14 +175,14 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (target === VDom.UI.box_) { return event.stopImmediatePropagation(); }
     const sr = VDom.GetShadowRoot_(target as Element);
     if (sr) {
-      let path = event.path, top: EventTarget | undefined, SR = ShadowRoot
-        /**
-         * isNormalHost is true if one of:
-         * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
-         * - `event.currentTarget` (`this`) is a shadowRoot
-         */
-        , isNormalHost = !!(top = path && path[0]) && top !== window && top !== target
-        , len = isNormalHost ? [].indexOf.call(path as EventPath, target) : 1;
+      let path = event.path, top: EventTarget | undefined, SR = ShadowRoot,
+      /**
+       * isNormalHost is true if one of:
+       * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
+       * - `event.currentTarget` (`this`) is a shadowRoot
+       */
+      isNormalHost = !!(top = path && path[0]) && top !== window && top !== target,
+      len = isNormalHost ? [].indexOf.call(path as EventPath, target) : 1;
       isNormalHost ? (target = top as Element) : (path = [sr]);
       while (0 <= --len) {
         const root = (path as EventPath)[len];
@@ -264,7 +264,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     f("keyup", onKeyup, true);
     action !== HookAction.Suppress && f("focus", onFocus, true);
     f("blur", onBlur, true);
-    (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : useBrowser)
+    (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : notChrome)
     ? f("click", onActivate, true) :
     f.call(document, "DOMActivate", onActivate, true);
   }),
@@ -593,7 +593,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         const parent = el.ownerDocument.defaultView, a1 = (parent as Window & { VEvent: typeof VEvent }).VEvent;
         el.blur && el.blur();
         if (a1) {
-          (parent as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(true);
+          (parent as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(1);
           a1.focus_({ k: key, m: FrameMaskType.ForcedSelf });
         } else {
           parent.focus();
@@ -997,7 +997,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || VUtils.cache_.browserVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
       box.addEventListener(
-        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : useBrowser)
+        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : notChrome)
         ? "click" : "DOMActivate", onActivate, true);
     }
 
@@ -1220,9 +1220,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     f && f(kContentCmd.Destroy);
     ui.box_ && ui.adjust_(2);
 
-    VUtils = VKeyboard = VDom = VDom = VUtils = //
-    VHints = VOmni = VScroller = VMarks = VFind = //
-    VSettings = VHUD = VPort = VEvent = VVisual = //
+    VUtils = VKeyboard = VDom = VDom = VUtils =
+    VHints = VOmni = VScroller = VMarks = VFind =
+    VSettings = VHUD = VPort = VEvent = VVisual =
     esc = null as never;
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
@@ -1257,3 +1257,13 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     vPort.Connect_();
   }
 })();
+
+if (Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
+  String.prototype.startsWith = function (this: string, s: string): boolean {
+    return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
+  };
+  "".endsWith || (String.prototype.endsWith = function (this: string, s: string): boolean {
+    const i = this.length - s.length;
+    return i >= 0 && this.indexOf(s, i) === i;
+  });
+}

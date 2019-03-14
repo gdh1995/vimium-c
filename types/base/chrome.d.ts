@@ -1187,6 +1187,7 @@ declare namespace chrome.omnibox {
  * @since Chrome 22
  */
 declare namespace chrome.runtime {
+    // in tests, it exists since Chrome 44
     var PlatformOs: {
         MAC: "mac";
         WIN: "win";

@@ -298,7 +298,7 @@ ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen("DOMContentLoaded", handler, true);
 _listen("load", delayFindAll, true);
-  }).toString() + ")();"
+  }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */
     , appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
     , appVer = appInfo && +appInfo[1] || 0
     ;

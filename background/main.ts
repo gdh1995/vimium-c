@@ -216,7 +216,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
     }
   }
   function complainNoSession(this: void): void {
-    return Build.MinCVer >= BrowserVer.MinSession || ChromeVer >= BrowserVer.MinSession
+    (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
+    || Build.MinCVer >= BrowserVer.MinSession || ChromeVer >= BrowserVer.MinSession
       ? Backend.complain_("control tab sessions")
       : Backend.showHUD_(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
   }
@@ -2169,7 +2170,7 @@ Are you sure you want to continue?`);
       framesForTab[tabId] = [port, port];
       status !== Frames.Status.enabled && needIcon && Backend.setIcon_(tabId, status);
     }
-    if (NoFrameId) {
+    if (Build.MinCVer < BrowserVer.MinWithFrameId && NoFrameId) {
       (sender as Writeable<Frames.Sender>).i = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
     }
   }
@@ -2248,12 +2249,12 @@ Are you sure you want to continue?`);
       incognito: false
     };
     return (port as Writeable<Port>).s = {
-      i: sender.frameId || 0,
+      i: Build.MinCVer >= BrowserVer.MinWithFrameId ? sender.frameId as number : sender.frameId || 0,
       a: tab.incognito,
       s: Frames.Status.enabled,
       f: Frames.Flags.blank,
       t: tab.id,
-      u: sender.url || tab.url || ""
+      u: Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url as string
     };
   }
 

@@ -351,7 +351,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     VimiumNewTab_: "",
     ContentScripts_: null as never as string[],
     VerCode_: "", VerName_: "",
-    GitVer: BuildStr.Commit,
+    GitVer: BuildStr.Commit as string,
     StyleCacheId_: "",
     KnownPages_: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
@@ -363,10 +363,12 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       exclusionTemplate: "/front/exclusions.html",
       helpDialog: "/front/help_dialog.html",
     } as { [name in keyof SettingsNS.CachedFiles]: string },
-    WordsRe_: "/front/words.txt",
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: "pages/options.html#!newTabUrl",
-    OptionsPage_: "pages/options.html", Platform_: "browser", PolyFill_: "lib/polyfill.js",
+    OptionsPage_: "pages/options.html", Platform_: "browser",
+    WordsRe_: Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      ? "/front/words.txt" : "",
+    PolyFill_: Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith ? "lib/polyfill.js" : "",
     HomePage_: "https://github.com/gdh1995/vimium-c",
     RedirectedUrls_: {
       about: "",
@@ -389,11 +391,16 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   }
 };
 
+!(Build.BTypes & ~BrowserType.Chrome) ||
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info): void {
-  const os = (info.os || "").toLowerCase(), types = chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
+  const os = (!(Build.BTypes & ~BrowserType.Chrome) ? info.os : info.os || "").toLowerCase(),
+  types = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
+    ? chrome.runtime.PlatformOs as EnsureNonNull<typeof chrome.runtime.PlatformOs>
+    : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
   Settings.CONST_.Platform_ = os;
   (Settings.payload_ as Writeable<SettingsNS.FrontendConsts>).onMac_ = os === types.MAC || (os === types.WIN && 0);
-}) : (Settings.CONST_.Platform_ = OnOther === BrowserType.Edge ? "win" : "unknown");
+}) : (Settings.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
+    && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown");
 
 ((Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
    || (Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
@@ -405,7 +412,9 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
 }() && Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function (): void {
   Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG> /\r?\n/g, "");
 });
-Settings.CONST_.WordsRe_ = "";
+if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) {
+  Settings.CONST_.WordsRe_ = "";
+}
 
 (function (): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
@@ -440,8 +449,7 @@ Settings.CONST_.WordsRe_ = "";
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
   obj.HomePage_ = ref.homepage_url || obj.HomePage_;
   ref2.push(obj.InjectEnd_);
-  if (Build.MinCVer < BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1
-      && ChromeVer < BrowserVer.MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1
+  if (Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && ChromeVer < BrowserVer.MinSafe$String$$StartsWith
       && "".startsWith.name !== "startsWith") {
     ref2.unshift(obj.PolyFill_);
   }

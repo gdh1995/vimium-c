@@ -562,7 +562,7 @@ Utils.GC_ = function (): void {
       return;
     }
     timeout = 0;
-    const existing = chrome.extension.getViews
+    const existing = !(Build.BTypes & ~BrowserType.Chrome) || chrome.extension.getViews
     ? chrome.extension.getViews().some(function (wnd): boolean {
       const path = wnd.location.pathname.toLowerCase();
       return path.startsWith("/pages/options") || path.startsWith("/pages/popup");

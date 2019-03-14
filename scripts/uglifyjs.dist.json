@@ -1,48 +1,54 @@
 {
   "output": {
     "ascii_only": true, // if `false` by default, '\xa0' is replaced with '\xc2\xa0', which is wrong
+    "comments": "all", // in gulp, replaced with `/^!/`
     "keep_quoted_props": false,
-    "comments": "all", // in gulp, replaced with `removeComments ? false : "all"`
     "wrap_iife": true
   },
   "compress": {
-    "sequences": false,
-    "properties": true,
+    "booleans": false,
+    "collapse_vars": true,
+    "comparisons": false,
+    "conditionals": true,
     "dead_code": true,
     "drop_debugger": true,
-    // `true` will remove `/a?/.test("")`
-    // so "unsafe" is not what Vimium C needs
-    "unsafe": false,
-    "unsafe_comps": false,
-    "unsafe_math": true,
-    "unsafe_methods": true,
-    "unsafe_proto": true,
-    "unsafe_regexp": false,
-    "conditionals": true,
-    "comparisons": true,
     "evaluate": true,
-    "booleans": false,
-    "loops": true,
-    "unused": true,
-    "toplevel": false,
     "hoist_funs": true,
     "hoist_vars": true,
     "if_return": true,
     "inline": true,
     "join_vars": true,
-    "collapse_vars": true,
-    "warnings": true,
-    "negate_iife": false,
-    "pure_funcs": ["startsWith", "endsWith", "contains", "indexOf", "lastIndexOf",
-      "substring", "substr", "slice", "charAt", "charCodeAt", "repeat", "concat",
-      "match", "exec", "replace",
-      "_getKeyCharUsingKeyIdentifier", "parentFrame_"
-    ],
-    "pure_getters": true,
     "keep_fargs": true, // typescript will check unused arguments
     "keep_fnames": "/^(startsWith|endsWith|addEventListener|toString|VC)$/",
     "keep_infinity": false,
-    "side_effects": true
+    "loops": true,
+    "negate_iife": false,
+    "passes": 1,
+    "properties": true,
+    "pure_funcs": ["startsWith", "endsWith", "contains", "indexOf", "lastIndexOf",
+      "substring", "substr", "slice", "charAt", "charCodeAt", "repeat", "concat",
+      "toUpperCase", "toLowerCase", "trim", "trimLeft", "trimRight",
+      "search", "match", "exec", "replace",
+      "create", "setPrototypeOf", "bind", "toString",
+      "getAttribute", "hasAttribute", "querySelectorAll",
+      "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
+      "_getKeyCharUsingKeyIdentifier", "parentFrame_"
+    ],
+    "pure_getters": true,
+    "sequences": 20,
+    "side_effects": true,
+    "toplevel": false,
+    "unsafe_arrows": true,
+    "unsafe_comps": false,
+    "unsafe_math": true,
+    "unsafe_methods": true,
+    "unsafe_proto": true,
+    "unsafe_regexp": false,
+    "unsafe": false,
+    "unused": true,
+    "warnings": true
+    // `true` will remove `/a?/.test("")`
+    // so "unsafe" is not what Vimium C needs
   },
   "mangle": {
     "properties": {
@@ -50,7 +56,7 @@
     },
     "reserved": [
       // # content global names:
-      "VimiumInjector", "VUtils", "VKeyboard", "VDom",
+      "VimiumInjector", "VimiumClickable", "VUtils", "VKeyboard", "VDom",
       "VHints", "VOmni", "VScroller", "VMarks", "VFind", "VVisual",
       "VSettings", "VHUD", "VPort", "VEvent",
       // # fixed background global names:

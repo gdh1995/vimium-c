@@ -13,12 +13,15 @@ VDom.UI = {
     r: VUIRoot = a.UI = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
         || box.attachShadow
       ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
-      : box.createShadowRoot ? box.createShadowRoot() : box;
+      : (Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+        && Build.MinCVer >= BrowserVer.MinShadowDOMV0 && box.createShadowRoot
+      ? box.createShadowRoot() : box;
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 ||
     r.mode === "closed" ||
-    (r !== box ? r as ShadowRoot : window).addEventListener("load",
+    (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || r !== box
+      ? r as ShadowRoot : window).addEventListener("load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { return removeEventListener("load", Onload, true); }
       const t = e.target as HTMLElement;
@@ -217,7 +220,7 @@ VDom.UI = {
     if (element !== VEvent.lock_()) { return; }
     // then `element` is always safe
     this._moveSel_unsafe_(element as LockableElement, action);
-    if (suppressRepeated === true) { return this.suppressTail_(true); }
+    if (suppressRepeated === true) { return this.suppressTail_(1); }
   },
   /** @NEED_SAFE_ELEMENTS */
   _moveSel_unsafe_ (element, action): void {
@@ -285,7 +288,7 @@ VDom.UI = {
     }, this.flashLastingTime_);
     return flashEl;
   } as DomUI["flash_"],
-  suppressTail_ (this: void, onlyRepeated: boolean): void {
+  suppressTail_ (this: void, onlyRepeated: BOOL): void {
     let func: HandlerNS.Handler<{}>, tick: number, timer: number;
     if (onlyRepeated) {
       func = function (event) {

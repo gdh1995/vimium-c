@@ -1163,7 +1163,7 @@ knownCs: CompletersMap & SafeObject = {
         const j = arr[i] as chrome.history.HistoryItem;
         (arr as HistoryItem[])[i] = {
           text: j.url,
-          title: j.title || "",
+          title: Build.BTypes & ~BrowserType.Chrome ? j.title || "" : j.title as string,
           time: j.lastVisitTime,
           visible: kVisibility.visible,
           url: j.url
@@ -1201,7 +1201,7 @@ knownCs: CompletersMap & SafeObject = {
     } as ((arr: chrome.history.HistoryItem[]) => void) | null,
     OnPageVisited_ (this: void, newPage: chrome.history.HistoryItem): void {
       const _this = HistoryCache, url = newPage.url, time = newPage.lastVisitTime,
-      title = newPage.title || "",
+      title = Build.BTypes & ~BrowserType.Chrome ? newPage.title || "" : newPage.title as string,
       updateCount = ++_this.updateCount_,
       d = _this.domains_, i = _this.binarySearch_(url);
       if (i < 0) { _this.toRefreshCount_++; }

@@ -815,7 +815,7 @@ const BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
   : "chrome"
 ;
 
-if (!"".startsWith) {
+if (Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
 String.prototype.startsWith = function (this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 };

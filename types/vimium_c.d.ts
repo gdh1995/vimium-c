@@ -398,6 +398,8 @@ declare const enum BrowserVer {
   Min$EnableSitePerProcess$Flag = 42,
   MinParentNodeInNodePrototype = 42, // even if even if EXPERIMENTAL or LEAGCY
   MinEnsured$String$$StartsWithAndRepeatAndIncludes = 43, // even if LEAGCY
+  MinSafe$String$$StartsWith = MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1, // add a margin
+  MinRuntimePlatformOs = 44,
   MinCreateWndWithState = 44,
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   // #scroll-top-left-interop is also since C44
