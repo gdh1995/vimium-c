@@ -32,7 +32,7 @@ button, select {
   background-image: linear-gradient(#ededed, #ededed 38%, #dedede);
   border: 0.5px solid rgba(0, 0, 0, 0.25);
   border-radius: 2px;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
+  box-shadow: 0 1px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
   box-sizing: border-box;
   color: #444;
   font: 12px Arial,sans-serif !important;
@@ -40,7 +40,7 @@ button, select {
   outline: none;
   padding: 0 10px;
   text-align: center;
-  text-shadow: 0 1px 0 #f0f0f0;
+  text-shadow: 0 1px #f0f0f0;
 }
 .dialog-ui button {
   margin-right: 0;
@@ -265,7 +265,6 @@ label:active {
 }
 .break-all {
   white-space: normal;
-  white-space: break-spaces;
   word-break: break-all;
   word-wrap: break-word;
   word-wrap: anywhere;

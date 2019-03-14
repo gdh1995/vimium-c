@@ -728,7 +728,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
         && ver < BrowserVer.MinSpecCompliantShadowBlurRadius) {
       const css = document.querySelector("style") as HTMLStyleElement;
       if (css) {
-        css.textContent = css.textContent.replace("0 2px 7px", "0 2px 10px");
+        // ignore the "1.5px" in <style #dark>
+        css.textContent = css.textContent.replace("0 2px 7px", "0 2px 10px").replace("0 0 1.5px", "0 0 1px");
       }
     }
     if (Build.MinCVer < BrowserVer.MinRoundedBorderWidthIsNotEnsured
@@ -1074,7 +1075,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   window.chrome = browser as typeof chrome;
 }
 (function (): void {
-  if ((document.documentElement as HTMLElement).dataset.version !== "1.72") {
+  if ((document.documentElement as HTMLElement).dataset.version !== "1.73") {
     location.href = "about:blank";
     return;
   }
