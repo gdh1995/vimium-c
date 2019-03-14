@@ -284,10 +284,6 @@ timer_?: number;
 ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
-if (Build.MinCVer >= BrowserVer.MinSmartSpellCheck || bgBrowserVer_ >= BrowserVer.MinSmartSpellCheck) {
-  (document.documentElement as HTMLElement).removeAttribute("spellcheck");
-}
-
 if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
       && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
   || window.devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured

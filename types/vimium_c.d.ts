@@ -600,7 +600,6 @@ declare const enum BrowserVer {
   VomnibarMayClearLog2 = 65,
   // if #enable-md-extensions, it's there since C60
   MinEnsuredChromeURL$ExtensionShortcuts = 65,
-  MinSmartSpellCheck = 65,
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinCanNotRevokeObjectURLAtOnce = 65,
   MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65,
