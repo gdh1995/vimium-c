@@ -83,7 +83,6 @@ Here're some issues still existing on the master branch, which are mostly caused
 * if an iframe is embeded dynamically and no exclusion rules found, now apply those rules of the top frame on it
   * for pages like https://docs.google.com
 * `w` and `e` in visual mode now jump among words much more smartly
-
 * Vimium C's blank page will also be dark if Vomnibar is in dark mode
 * FindMode supports `<c-j/k>` to go next on a host frame
 * fix broken `togglePinTab`
@@ -92,8 +91,7 @@ Here're some issues still existing on the master branch, which are mostly caused
 * fix lots of edge cases
 
 1.72:
-* fix broken UI on some pages using a global *flex* layout (the key CSS is `html { display: flex; }`)
-  * this problem only occurs since Chrome 70, so it seems a bug of Chromium browsers.
+* fix that UI may break on some pages since Chrome 70.
 * be able to read the system clipboard since Firefox 63.
 * VisualMode: support cursor movement on `<input type=number>` correctly
 * make usages of command count consistent, for `removeTab`, `removeRightTab`, `reloadTab`, `moveTabToNewWindow` and `togglePinTab`
