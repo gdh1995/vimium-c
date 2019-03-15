@@ -221,8 +221,12 @@ var Tasks = {
   pa: ["pages"],
   pg: ["pages"],
   local: ["scripts", "options", "show"],
-  tsc: ["local"],
-  "default": ["tsc"],
+  tsc: ["locally", function(done) {
+    debugging = true;
+    doesMergeProjects = true;
+    compile(["*/*.ts"], false, done);
+  }],
+  "default": ["local"],
   watch: ["locally", function(done) {
     ignoreHeaderChanges = willListFiles = true;
     willListEmittedFiles = false;
@@ -359,7 +363,6 @@ function compile(pathOrStream, header_files, done) {
     pathOrStream = [pathOrStream];
   }
   if (pathOrStream instanceof Array) {
-    pathOrStream.push("!node_modules/**/*.ts");
     pathOrStream.push("!types/**/*.ts");
     pathOrStream.push("!types/*.ts");
   }
