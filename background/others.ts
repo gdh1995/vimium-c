@@ -28,12 +28,15 @@ setTimeout(function () {
       storeAndPropagate(key, change != null ? change.newValue : null);
     }
   }
+  function now() {
+    return new Date().toLocaleString();
+  }
   function storeAndPropagate(key: string, value: any): void {
     if (!(key in Settings.defaults_) || key in Settings.nonPersistent_ || !shouldSyncKey(key)) { return; }
     const defaultVal = Settings.defaults_[key];
     if (value == null) {
       if (localStorage.getItem(key) != null) {
-        console.log(new Date().toLocaleString(), "sync.local: reset", key);
+        console.log(now(), "sync.local: reset", key);
         doSet(key, defaultVal);
       }
       return;
@@ -51,7 +54,7 @@ setTimeout(function () {
     if (jsonVal === curVal) {
       value = defaultVal;
     }
-    console.log(new Date().toLocaleString(), "sync.local: update", key,
+    console.log(now(), "sync.local: update", key,
       typeof value === "string"
       ? (value.length > 32 ? value.substring(0, 30) + "..." : value).replace(<RegExpG> /\n/g, "\\n")
       : value);
@@ -96,11 +99,11 @@ setTimeout(function () {
       }
     }
     if (removed.length > 0) {
-      console.log(new Date().toLocaleString(), "sync.cloud: reset", removed.join(" "));
+      console.log(now(), "sync.cloud: reset", removed.join(" "));
       storage().remove(removed);
     }
     if (left > 0) {
-      console.log(new Date().toLocaleString(), "sync.cloud: update", Object.keys(items).join(" "));
+      console.log(now(), "sync.cloud: update", Object.keys(items).join(" "));
       storage().set(items);
     }
   }
@@ -127,7 +130,7 @@ setTimeout(function () {
   storage().get(null, function (items): void {
     const err = Utils.runtimeError_();
     if (err) {
-      console.log(new Date().toLocaleString(), "Error: failed to get storage:", err
+      console.log(now(), "Error: failed to get storage:", err
         , "\n\tSo disable syncing temporarily.");
       Settings.updateHooks_.vimSync = Settings.sync_ = Utils.blank_;
       return err;

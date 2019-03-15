@@ -69,7 +69,7 @@ if (VSettings && document.readyState !== "complete"
         , detail ? detail[0].length : ((event.target as Element).tagName + "").toLowerCase()
         , detail ? detail[1] ? detail[1].length : -1 : ""
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
-        , Date.now() % 10000);
+        , Date.now() % 3600000);
     }
     if (detail) {
       resolve(0, detail[0]); detail[1] && resolve(1, detail[1]);
