@@ -405,16 +405,15 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
 ((Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
    || (Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
       && ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp)) &&
-!function (): boolean | void {
+(Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome) &&
+ChromeVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+|| !function (): boolean | void {
   try {
     return new RegExp("\\p{L}", "u").test("a");
   } catch {}
-}() && Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function (): void {
+}()) ? Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function (): void {
   Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG> /\r?\n/g, "");
-});
-if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) {
-  Settings.CONST_.WordsRe_ = "";
-}
+}) : (Settings.CONST_.WordsRe_ = "");
 
 (function (): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",

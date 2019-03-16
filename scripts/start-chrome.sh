@@ -48,7 +48,7 @@ case "$1" in
   only|--only)
     exit 0
     ;;
-  [1-9][0-9]|cur|wo|prev) # ver
+  [3-9][0-9]|cur|wo|prev) # ver
     VER=$1
     shift
     ;;

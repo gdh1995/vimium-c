@@ -542,7 +542,7 @@ declare const enum BrowserVer {
    */
   MinExtIframesAlwaysInSharedProcess = 58,
   MinExtensionContentPageAlwaysCanShowFavIcon = MinExtIframesAlwaysInSharedProcess,
-  // the 8 below are correct even if EXPERIMENTAL or LEAGCY
+  // the 6 below are correct even if EXPERIMENTAL or LEAGCY
   MinCaseSensitiveUsemap = 58,
   // tmp_width := (since 58 ? Math.round : Math.floor)(width * devicePixelRatio * zoom)
   // real_width := width && Math.max(tmp_width, 1)
@@ -556,6 +556,8 @@ declare const enum BrowserVer {
   /** @see {@link content/mode_visual.ts#VVisual.init_ } */
   MinSelExtendForwardOnlySkipWhitespaces = 59,
   Min$Space$NotMatch$U180e$InRegExp = 59,
+  MinMaybeUnicodePropertyEscapesInRegExp = 59, // only if EXPERIMENTAL
+  // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated)
   //   is confirmed on Chrome LATEST_TESTED
   // See `WebFormControlElement::SetAutofillValue` on
