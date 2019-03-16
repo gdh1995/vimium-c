@@ -107,7 +107,7 @@ var VVisual = {
     this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
     VFind.clean_(FindNS.Action.ExitNoFocus);
     const el = VEvent.lock_();
-    (oldDiType ^ VisualModeNS.DiType.TextBox) &&
+    oldDiType & (VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Complicated) ||
     el && el.blur && el.blur();
     VDom.UI.toggleSelectStyle_(0);
     VScroller.top_ = null;
@@ -478,7 +478,7 @@ var VVisual = {
     toGoLeft = match ? a._rightWhiteSpaceRe ? match[0].length : str.length - match.index - match[0].length : 0;
     if (toGoLeft > 0 && toGoLeft < str.length) { // after word are some spaces
       len = str2.length;
-      if (a.diType_ ^ VisualModeNS.DiType.TextBox) {
+      if (!(a.diType_ & VisualModeNS.DiType.TextBox)) {
         while (toGoLeft > 0) {
           a.extend_(VisualModeNS.kDir.left);
           len || (a.di_ = VisualModeNS.kDir.left);
