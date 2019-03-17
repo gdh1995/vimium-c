@@ -789,7 +789,8 @@ init_ (words: string) {
           ) {
         this.WordsRe_ = new RegExp(words, "");
       } else {
-        this.WordsRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]+", words ? "" : "u");
+        // note: the /[^]*[~~~]/ should have an acceptable performance
+        this.WordsRe_ = new RegExp(words || "[^]*[\\p{L}\\p{Nd}_]", words ? "" : "u");
       }
     }
   }
