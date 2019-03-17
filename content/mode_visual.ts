@@ -20,15 +20,17 @@ declare namespace VisualModeNS {
   /** although values are made by flags, these types are exclusive */
   const enum DiType {
     Normal = 0,
-    TextBox = 1,
-    Complicated = 2,
+    Unknown = 1,
+    TextBox = 2,
     isUnsafe = 4,
-    Unknown = 8,
+    Complicated = 8,
 
-    SafeTextBox = 1,
-    UnsafeTextBox = 5,
-    SafeComplicated = 2,
-    UnsafeComplicated = 6,
+    SafeUnknown = 1,
+    UnsafeUnknown = 5,
+    SafeTextBox = 2,
+    UnsafeTextBox = 6,
+    SafeComplicated = 8,
+    UnsafeComplicated = 12,
   }
   type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
     | DiType.UnsafeComplicated;
@@ -49,7 +51,7 @@ var VVisual = {
     VUtils.remove_(a);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
     VScroller.prepareTop_();
-    a.diType_ = VisualModeNS.DiType.Unknown;
+    a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     let theSelected = VDom.UI.getSelected_(1),
     sel: Selection = a.selection_ = theSelected[0],
     type: SelType = a.selType_(), mode: CmdOptions[kFgCmd.visualMode]["m"] = options.m;
@@ -63,8 +65,8 @@ var VVisual = {
         if (!VDom.cropRectToVisible_(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
           sel.removeAllRanges();
         } else if (type === SelType.Caret) {
-          a.extend_(1);
-          a.selType_() === SelType.Range || a.extend_(0);
+          a.extend_(VisualModeNS.kDir.right);
+          a.selType_() === SelType.Range || a.extend_(VisualModeNS.kDir.left);
         }
         type = a.selType_();
       }
@@ -97,7 +99,7 @@ var VVisual = {
   deactivate_ (isEsc?: 1): void {
     if (!this.mode_) { return; }
     this.di_ = VisualModeNS.kDir.unknown;
-    this.diType_ = VisualModeNS.DiType.Unknown;
+    this.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     this.getDirection_("");
     const oldDiType = this.diType_ as VisualModeNS.DiType;
     VUtils.remove_(this);
@@ -169,7 +171,7 @@ var VVisual = {
     if (obj == null) { return ch.length === 1 && ch === key ? HandlerResult.Prevent : HandlerResult.Suppress; }
     VUtils.prevent_(event);
     this.di_ = VisualModeNS.kDir.unknown; // make @di safe even when a user modifies the selection
-    this.diType_ = VisualModeNS.DiType.Unknown;
+    this.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     this.commandHandler_(obj, count || 1);
     return HandlerResult.Prevent;
   },
@@ -220,9 +222,9 @@ var VVisual = {
       movement.runMovements_((command & 1) as 0 | 1, command >> 1, count);
     }
     if (mode === VisualModeNS.Mode.Caret) {
-      movement.extend_(1);
+      movement.extend_(VisualModeNS.kDir.right);
       if (movement.selType_() === SelType.Caret) {
-        movement.extend_(0);
+        movement.extend_(VisualModeNS.kDir.left);
       }
     } else if (mode === VisualModeNS.Mode.Line) {
       movement.ensureLine_(command);
@@ -297,7 +299,7 @@ var VVisual = {
     range = sel.rangeCount && (this.getDirection_(""), !this.diType_) && sel.getRangeAt(0);
     VFind.execute_(null, { noColor: true, count });
     if (VFind.hasResults_) {
-      this.diType_ = VisualModeNS.DiType.Unknown;
+      this.diType_ = VisualModeNS.DiType.UnsafeUnknown;
       if (this.mode_ === VisualModeNS.Mode.Caret && this.selType_() === SelType.Range) {
         this.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
           m: VisualModeNS.Mode.Visual
@@ -345,13 +347,15 @@ var VVisual = {
       "documentboundary"],
   alterMethod_: "" as "move" | "extend",
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
-  diType_: VisualModeNS.DiType.Unknown as VisualModeNS.ValidDiTypes | VisualModeNS.DiType.Unknown,
+  diType_: VisualModeNS.DiType.UnsafeUnknown as
+    VisualModeNS.ValidDiTypes | VisualModeNS.DiType.UnsafeUnknown | VisualModeNS.DiType.SafeUnknown,
   /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
   WordsRe_: null as RegExpOne | RegExpU | null,
   _rightWhiteSpaceRe: null as RegExpOne | null,
   /** @unknown_di_result */
   extend_ (d: VisualModeNS.ForwardDir, g?: VisualModeNS.G): void | 1 {
-    return this.selection_.modify("extend", this._D[d], this._G[g || VisualModeNS.G.character]);
+    this.selection_.modify("extend", this._D[d], this._G[g || VisualModeNS.G.character]);
+    this.diType_ &= ~VisualModeNS.DiType.isUnsafe;
   },
   /** @unknown_di_result */
   modify_ (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
@@ -389,9 +393,8 @@ var VVisual = {
       }
       oldLen = beforeText.length;
     }
-    // here, the real di must be 1 (range if in visual mode else caret)
-    a.oldLen_ || a.extend_(1);
-    a.diType_ &= ~VisualModeNS.DiType.isUnsafe;
+    // here, the real di must be kDir.right (range if in visual mode else caret)
+    a.oldLen_ || a.extend_(VisualModeNS.kDir.right);
     const afterText = "" + sel, newLen = afterText.length;
     if (newLen !== oldLen) {
       // if isMove, then cur sel is >= 1 char & di is right
@@ -425,6 +428,9 @@ var VVisual = {
     while (0 < count--) {
       a.selection_.modify(a.alterMethod_, a._D[direction], a._G[granularity as VisualModeNS.G]);
     }
+    // it's safe to remove `isUnsafe` here, because:
+    // either `count > 0` or `fixWord && _moveRight***()`
+    a.mode_ !== VisualModeNS.Mode.Caret && (a.diType_ &= ~VisualModeNS.DiType.isUnsafe);
     a.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
     if (fixWord) {
       if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left
@@ -477,7 +483,7 @@ var VVisual = {
         // - so correct selection won't be from the middle to the end
         // if in the case, selection can not be kept during @getDi,
         // so it's okay to ignore the case
-        ("" + a.selection_).length - num1 && a.extend_(1);
+        ("" + a.selection_).length - num1 && a.extend_(VisualModeNS.kDir.right);
         a.di_ = num2 < num1 ? VisualModeNS.kDir.left : VisualModeNS.kDir.right;
       }
     }
@@ -490,7 +496,6 @@ var VVisual = {
     const a = this as typeof VVisual, sel = a.selection_;
     let str = "" + sel, len = str.length, di = a.getDirection_();
     a.extend_(VisualModeNS.kDir.right, VisualModeNS.G.word);
-    a.diType_ &= ~VisualModeNS.DiType.isUnsafe;
     const str2 = "" + sel;
     if (!di) { a.di_ = str2 ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right; }
     str = di ? str2.substring(len) : a.getDirection_() ? str + str2 : str.substring(0, len - str2.length);
@@ -571,7 +576,7 @@ var VVisual = {
    *
    * @param {string} magic two means
    * * `""` means only checking type, and may not detect `di_` when `DiType.Complicated`;
-   * * `char[1..]` means initial selection text and not to extend back when `DiType.Complicated`
+   * * `char[1..]` means initial selection text and not to extend back when `oldLen_ >= 2`
    */
   getDirection_: function (this: {}, magic?: string
       ): VisualModeNS.kDir.left | VisualModeNS.kDir.right | VisualModeNS.kDir.unknown {
@@ -579,7 +584,7 @@ var VVisual = {
     if (a.di_ !== VisualModeNS.kDir.unknown) { return a.di_; }
     const oldDiType = a.diType_, sel = a.selection_, { anchorNode } = sel;
     let num1 = -1, num2: number;
-    if (!oldDiType || (oldDiType & VisualModeNS.DiType.Unknown)) {
+    if (!oldDiType || (oldDiType & (VisualModeNS.DiType.Unknown | VisualModeNS.DiType.Complicated))) {
       const { focusNode } = sel;
       // common HTML nodes
       if (anchorNode !== focusNode) {
@@ -607,7 +612,7 @@ var VVisual = {
                       )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (VDom.isInputInTextMode_(lock as TextModeElement)) {
-            a.diType_ = VisualModeNS.DiType.UnsafeTextBox;
+            a.diType_ = VisualModeNS.DiType.TextBox | (oldDiType & VisualModeNS.DiType.isUnsafe);
           }
         }
       }
@@ -617,7 +622,9 @@ var VVisual = {
       }
     }
     // nodes under shadow DOM or in other unknown edge cases
-    a.diType_ = oldDiType & VisualModeNS.DiType.Unknown ? VisualModeNS.DiType.UnsafeComplicated
+    // (edge case: an example is, focusNode is a <div> and focusOffset points to #text, and then collapse to it)
+    a.diType_ = oldDiType & VisualModeNS.DiType.Unknown
+      ? VisualModeNS.DiType.Complicated | (oldDiType & VisualModeNS.DiType.isUnsafe)
       : oldDiType & (VisualModeNS.DiType.Complicated | VisualModeNS.DiType.isUnsafe);
     if (magic === "") { return VisualModeNS.kDir.unknown; }
     const initial = magic || "" + sel;
@@ -625,8 +632,9 @@ var VVisual = {
     if (!num1) {
       return a.di_ = VisualModeNS.kDir.right;
     }
-    a.extend_(1);
-    a.diType_ &= ~VisualModeNS.DiType.isUnsafe;
+    a.extend_(VisualModeNS.kDir.right);
+    a.diType_ = a.diType_ && sel.anchorOffset !== sel.focusOffset ? VisualModeNS.DiType.Normal
+      : a.diType_ & ~VisualModeNS.DiType.isUnsafe;
     num2 = ("" + sel).length - num1;
     /**
      * Note (tested on C70):
@@ -634,14 +642,14 @@ var VVisual = {
      * so a detection and the third `extend` may be necessary
      */
     if (num2 && !magic) {
-      a.extend_(0);
-      "" + sel !== initial && a.extend_(1);
+      a.extend_(VisualModeNS.kDir.left);
+      "" + sel !== initial && a.extend_(VisualModeNS.kDir.right);
     } else {
       a.oldLen_ = 2 + num1;
     }
     return a.di_ = num2 >= 0 || magic && num2 === -num1 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
   } as {
-    (magic: ""): VisualModeNS.kDir.unknown;
+    (magic: ""): VisualModeNS.kDir.unknown | -1;
     (magic?: string): VisualModeNS.kDir.left | VisualModeNS.kDir.right;
   },
   /** @tolerate_di_if_caret di will be 1 */
@@ -666,7 +674,6 @@ var VVisual = {
       a.extend_(1 - <VisualModeNS.ForwardDir> a.di_);
       sameEnd && a.extend_(toRight);
       fixSelAll && ("" + sel).length !== fixSelAll && a.extend_(1 - toRight);
-      a.diType_ &= ~VisualModeNS.DiType.isUnsafe;
     }
     toRight ? sel.collapseToEnd() : sel.collapseToStart();
     a.di_ = VisualModeNS.kDir.right;
@@ -682,6 +689,7 @@ var VVisual = {
   /** after called, VVisual must exit at once */
   selectLine_ (count: number): void {
     const a = this, oldDi = a.getDirection_();
+    a.mode_ = VisualModeNS.Mode.Visual; // safer
     a.alterMethod_ = "extend";
     {
       oldDi && a.reverseSelection_();
@@ -694,8 +702,8 @@ var VVisual = {
     const ch = a.getNextRightCharacter_(0);
     const num1 = a.oldLen_;
     if (ch && num1 && ch !== "\n" && !(Build.BTypes & BrowserType.Firefox && ch === "\r")) {
-      a.extend_(0);
-      ("" + a.selection_).length + 2 - num1 && a.extend_(1);
+      a.extend_(VisualModeNS.kDir.left);
+      ("" + a.selection_).length + 2 - num1 && a.extend_(VisualModeNS.kDir.right);
     }
   },
   ensureLine_ (command: number): void {
