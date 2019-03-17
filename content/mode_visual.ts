@@ -375,7 +375,8 @@ var VVisual = {
       let { focusNode } = sel;
       if (focusNode instanceof Text) {
         const i = sel.focusOffset, str = focusNode.data;
-        if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.substring(i).trimLeft() && str[i] !== "\n") {
+        if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.substring(i).trimLeft()
+              && (str[i] !== "\n" && !(Build.BTypes & BrowserType.Firefox && str[i] === "\r"))) {
           return str[i];
         }
       }
@@ -692,7 +693,7 @@ var VVisual = {
     a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.lineboundary);
     const ch = a.getNextRightCharacter_(0);
     const num1 = a.oldLen_;
-    if (ch && num1 && ch !== "\n") {
+    if (ch && num1 && ch !== "\n" && !(Build.BTypes & BrowserType.Firefox && ch === "\r")) {
       a.extend_(0);
       ("" + a.selection_).length + 2 - num1 && a.extend_(1);
     }
@@ -810,7 +811,9 @@ init_ (words: string) {
     || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
     || (Build.BTypes & BrowserType.Firefox && VUtils.cache_.browser_ === BrowserType.Firefox)
     || VUtils.cache_.browserVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
-  (this._rightWhiteSpaceRe = /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);
+  // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
+  (this._rightWhiteSpaceRe = Build.BTypes & BrowserType.Firefox
+      ? /[^\S\n\r\u2029\u202f\ufeff]+$/ as RegExpOne : /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }
 };

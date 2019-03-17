@@ -230,7 +230,7 @@ var VOmni = {
       break;
     case VomnibarNS.kFReq.style:
       this.box_.style.height = (data as Req[VomnibarNS.kFReq.style]).h / VDom.wdZoom_ + "px";
-      if (this.status_ === VomnibarNS.Status.Initing || this.status_ === VomnibarNS.Status.ToShow) {
+      if (this.status_ === VomnibarNS.Status.ToShow) {
         this.maxBoxHeight_ = (data as Req[VomnibarNS.kFReq.style]).m as number;
         this.onShown_();
       }

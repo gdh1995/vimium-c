@@ -6,7 +6,7 @@ declare const enum Build {
   BTypes = BrowserType.Chrome | BrowserType.Firefox | BrowserType.Edge, // supported browser types
   NDEBUG = 0,
   NoDialogUI = 0,
-  NativeWordMoveOnFirefox = 1,
+  NativeWordMoveOnFirefox = 0,
 }
 declare const enum BuildStr {
   Commit = "in-developing",
