@@ -29,8 +29,11 @@ var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", fal
 var has_dialog_ui = manifest.options_ui != null && manifest.options_ui.open_in_tab !== true;
 var jsmin_status = [false, false, false];
 var buildOptionCache = Object.create(null);
-var has_polyfill = getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
 gulpPrint = gulpPrint.default || gulpPrint;
+
+createBuildConfigCache();
+var has_polyfill = !!(getBuildItem("BTypes") & 1 /* Chrome */)
+    && getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
@@ -256,6 +259,7 @@ gulp.task("locally", function(done) {
   locally = true;
   compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
   removeUnknownOptions();
+  createBuildConfigCache();
   var old_has_polyfill = has_polyfill;
   has_polyfill = getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
   if (has_polyfill != old_has_polyfill) {
@@ -806,15 +810,23 @@ function removeUnknownOptions() {
 function getBuildConfigStream() {
   return gulp.src("types/build/index.d.ts").pipe(gulpMap(function(file) {
     file.history = file.history.map(i => i.replace("index.d.ts", "gulp.d.ts"));
-    file.contents = new Buffer(patchBuild(String(file.contents)));
+    file.contents = new Buffer(_buildConfigTSContent);
     return file;
   }));
 }
 
-function patchBuild(build) {
-  return build.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, defaultVal) {
+var _buildConfigTSContent;
+function createBuildConfigCache() {
+  _buildConfigTSContent = _buildConfigTSContent || readFile("types/build/index.d.ts");
+  _buildConfigTSContent = _buildConfigTSContent.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, defaultVal) {
     var newVal = key === "Commit" ? getGitCommit()
         : getBuildItem(key);
+    if (buildOptionCache[key] == null) {
+      try {
+        defaultVal = JSON.parse(defaultVal)
+      } catch (e) {}
+      buildOptionCache[key] = defaultVal;
+    }
     return key + " = " + (newVal != null ? newVal : defaultVal);
   });
 }
