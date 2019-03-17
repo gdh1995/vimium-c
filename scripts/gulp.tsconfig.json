@@ -12,6 +12,7 @@
     "MinCVer": [ 73, 35 ],
     "BTypes": [ 1, 1 ], // [ Chrome | Firefox, Chrome ]
     "NoDialogUI": [ 0, 1 ],
+    "NativeWordMoveOnFirefox": 0,
     "NDEBUG": [ 0, 1 ]
   },
   "extends": "../tsconfig"

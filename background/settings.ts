@@ -366,7 +366,9 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: "pages/options.html#!newTabUrl",
     OptionsPage_: "pages/options.html", Platform_: "browser",
-    WordsRe_: Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+    WordsRe_: Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
+      || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
       ? "/front/words.txt" : "",
     PolyFill_: Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith ? "lib/polyfill.js" : "",
     HomePage_: "https://github.com/gdh1995/vimium-c",
@@ -402,18 +404,31 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
 }) : (Settings.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown");
 
-((Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
-   || (Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-      && ChromeVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp)) &&
-(Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome) &&
-ChromeVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-|| !function (): boolean | void {
-  try {
-    return new RegExp("\\p{L}", "u").test("a");
-  } catch {}
-}()) ? Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function (): void {
-  Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG> /\r?\n/g, "");
-}) : (Settings.CONST_.WordsRe_ = "");
+if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
+  || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+    && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
+  ( (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox))
+    ? !Build.NativeWordMoveOnFirefox
+    : Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+      && ChromeVer < (
+        BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+        ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
+  ) &&
+  ( Build.BTypes & ~BrowserType.Firefox
+    && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+    && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+      || ChromeVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp)
+    && (Build.NativeWordMoveOnFirefox || !(Build.BTypes & BrowserType.Firefox) || OnOther !== BrowserType.Firefox)
+  || !function (): boolean | void {
+    try {
+      return new RegExp("\\p{L}", "u").test("a");
+    } catch {}
+  }()) ? Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function (): void {
+    Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG> /\r?\n/g, "");
+  }) : (Settings.CONST_.WordsRe_ = "");
+}
 
 (function (): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",

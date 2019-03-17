@@ -347,7 +347,7 @@ var VVisual = {
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
   diType_: VisualModeNS.DiType.Unknown as VisualModeNS.ValidDiTypes | VisualModeNS.DiType.Unknown,
   /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */ oldLen_: 0,
-  WordsRe_: null as never as RegExpOne | RegExpU,
+  WordsRe_: null as RegExpOne | RegExpU | null,
   _rightWhiteSpaceRe: null as RegExpOne | null,
   /** @unknown_di_result */
   extend_ (d: VisualModeNS.ForwardDir, g?: VisualModeNS.G): void | 1 {
@@ -403,22 +403,41 @@ var VVisual = {
   runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG.vimword
       , count: number): void {
     const shouldSkipSpaceWhenMovingRight = granularity === VisualModeNS.VimG.vimword;
-    let moreWord = 0;
-    if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
+    const isFirefox = !(Build.BTypes & ~BrowserType.Firefox)
+      || !!(Build.BTypes & BrowserType.Firefox) && VUtils.cache_.browser_ === BrowserType.Firefox;
+    let fixWord: BOOL = 0;
+    if (shouldSkipSpaceWhenMovingRight || granularity === VisualModeNS.G.word) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
-      if (direction && (VUtils.cache_.onMac_ === /* win */ 0) !== shouldSkipSpaceWhenMovingRight) {
-        const notChrome = !!(Build.BTypes & ~BrowserType.Chrome)
-            && (!(Build.BTypes & BrowserType.Chrome) || VUtils.cache_.browser_ !== BrowserType.Chrome);
-        moreWord = notChrome ? count * 2 : shouldSkipSpaceWhenMovingRight ? 1 : -1;
-        count -= notChrome ? count : shouldSkipSpaceWhenMovingRight ? 0 : 1;
+      if (direction &&
+          (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
+            ? !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
+            : (VUtils.cache_.onMac_ === /* win */ 0) !== shouldSkipSpaceWhenMovingRight)) {
+        fixWord = 1;
+        if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
+            ? !Build.NativeWordMoveOnFirefox : !shouldSkipSpaceWhenMovingRight) {
+          count--;
+        }
       }
       granularity = VisualModeNS.G.word;
     }
-    let oldDi = this.di_;
-    let sel = this.selection_, m = this.alterMethod_, d = this._D[direction], g = this._G[granularity];
-    while (0 < count--) { sel.modify(m, d, g); }
-    this.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
-    moreWord && this.moveRightByWord_(shouldSkipSpaceWhenMovingRight, moreWord);
+    const a = this, oldDi = a.di_;
+    while (0 < count--) {
+      a.selection_.modify(a.alterMethod_, a._D[direction], a._G[granularity as VisualModeNS.G]);
+    }
+    a.di_ = direction === oldDi ? direction : VisualModeNS.kDir.unknown;
+    if (fixWord) {
+      if (!shouldSkipSpaceWhenMovingRight) { // not shouldSkipSpace -> go left
+        if (!(Build.BTypes & BrowserType.Firefox) || !Build.NativeWordMoveOnFirefox
+            || Build.BTypes & ~BrowserType.Firefox && !isFirefox) {
+          (a as EnsureNonNull<typeof VVisual>)._moveRightByWordButNotSkipSpace();
+        }
+        return;
+      }
+      !Build.NativeWordMoveOnFirefox &&
+      (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox) &&
+      (a as EnsureNonNull<typeof VVisual>)._moveRightByWordButNotSkipSpace() ||
+      a._moveRightForSpaces();
+    }
   },
   /**
    * Chrome use ICU4c's RuleBasedBreakIterator and then DictionaryBreakEngine -> CjkBreakEngine
@@ -431,27 +450,24 @@ var VVisual = {
    *  rbbi_cache.cpp?type=cs&q=BreakCache::following&g=0&l=248
    *  rbbi_cache.cpp?type=cs&q=BreakCache::nextOL&g=0&l=278
    */
-  moveRightByWord_ (shouldSkipSpace: boolean, count: number): void {
+  _moveRightForSpaces (): void {
     const a = this, isMove = a.mode_ === VisualModeNS.Mode.Caret ? 1 : 0;
-    if (count < 0) { // not shouldSkipSpace and count is 0 -> go left
-      return a._moveRightByWordButNotSkipSpace();
-    }
     let ch: string = "1" /** a fake value */;
     a.getDirection_("");
     a.oldLen_ = 1;
-    while (0 < count-- && ch) {
-      do {
-        if (!a.oldLen_) {
-          a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.character);
-          // right / unknown are kept, left is replaced with right, so that keep @di safe
-          a.di_ = a.di_ || VisualModeNS.kDir.unknown;
-        }
-        ch = a.getNextRightCharacter_(isMove);
-        if (!count && ch && shouldSkipSpace && a._rightWhiteSpaceRe && !a._rightWhiteSpaceRe.test(ch)) {
-          break; // (t/b/r/c/e/) visible_units.cc?q=SkipWhitespaceAlgorithm&g=0&l=1191
-        }
-      } while (ch && ((count & 1) - +(shouldSkipSpace !== a.WordsRe_.test(ch))));
-    }
+    do {
+      if (!a.oldLen_) {
+        a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.character);
+        // right / unknown are kept, left is replaced with right, so that keep @di safe
+        a.di_ = a.di_ || VisualModeNS.kDir.unknown;
+      }
+      ch = a.getNextRightCharacter_(isMove);
+      // (t/b/r/c/e/) visible_units.cc?q=SkipWhitespaceAlgorithm&g=0&l=1191
+    } while (ch && (
+      !(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+      || a._rightWhiteSpaceRe ? (a._rightWhiteSpaceRe as RegExpOne).test(ch)
+          : !(a.WordsRe_ as RegExpOne | RegExpU).test(ch)
+    ));
     if (ch && a.oldLen_) {
       const num1 = a.oldLen_ - 2, num2 = isMove || ("" + a.selection_).length;
       a.modify_(VisualModeNS.kDir.left, VisualModeNS.G.character);
@@ -465,8 +481,12 @@ var VVisual = {
       }
     }
   },
-  _moveRightByWordButNotSkipSpace(): void {
-    const a = this, sel = a.selection_;
+  /**
+   * if Build.NativeWordMoveOnFirefox, then should never be called if browser is Firefox
+   */
+  _moveRightByWordButNotSkipSpace: !(Build.BTypes & ~BrowserType.Firefox) && Build.NativeWordMoveOnFirefox ? null
+      : function (this: {}): boolean {
+    const a = this as typeof VVisual, sel = a.selection_;
     let str = "" + sel, len = str.length, di = a.getDirection_();
     a.extend_(VisualModeNS.kDir.right, VisualModeNS.G.word);
     a.diType_ &= ~VisualModeNS.DiType.isUnsafe;
@@ -474,9 +494,24 @@ var VVisual = {
     if (!di) { a.di_ = str2 ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right; }
     str = di ? str2.substring(len) : a.getDirection_() ? str + str2 : str.substring(0, len - str2.length);
     // now a.di_ is correct, and can be left / right
-    let match = (a._rightWhiteSpaceRe || a.WordsRe_).exec(str), toGoLeft: number;
-    toGoLeft = match ? a._rightWhiteSpaceRe ? match[0].length : str.length - match.index - match[0].length : 0;
-    if (toGoLeft > 0 && toGoLeft < str.length) { // after word are some spaces
+    let match = ((!(Build.BTypes & BrowserType.Firefox)
+        ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+          ? a._rightWhiteSpaceRe : a._rightWhiteSpaceRe || a.WordsRe_
+        : !(Build.BTypes & ~BrowserType.Firefox) ? a.WordsRe_
+        : (Build.NativeWordMoveOnFirefox || VUtils.cache_.browser_ !== BrowserType.Firefox)
+          && a._rightWhiteSpaceRe || a.WordsRe_
+        ) as Exclude<typeof a._rightWhiteSpaceRe | typeof a.WordsRe_, null>).exec(str),
+    toGoLeft = match ? (!(Build.BTypes & BrowserType.Firefox)
+      ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+        || <Exclude<typeof a._rightWhiteSpaceRe, null>> a._rightWhiteSpaceRe
+      : Build.BTypes & ~BrowserType.Firefox
+        && (Build.NativeWordMoveOnFirefox || VUtils.cache_.browser_ !== BrowserType.Firefox)
+        && <Exclude<typeof a._rightWhiteSpaceRe, null>> a._rightWhiteSpaceRe
+      )
+      ? match[0].length : str.length - match.index - match[0].length : 0;
+    const needBack = toGoLeft > 0 && toGoLeft < str.length;
+    if (needBack) {
+      // after word are some spaces (>= C59) or non-word chars (< C59 || Firefox)
       len = str2.length;
       if (!(a.diType_ & VisualModeNS.DiType.TextBox)) {
         while (toGoLeft > 0) {
@@ -501,6 +536,7 @@ var VVisual = {
       }
     }
     a.mode_ === VisualModeNS.Mode.Caret && a.collapseToRight_(VisualModeNS.kDir.right);
+    return needBack;
   },
   /** @tolerate_di_if_caret */
   reverseSelection_ (): void {
@@ -707,7 +743,8 @@ keyMap_: {
 init_ (words: string) {
   this.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
-  this.selType_ = Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
+  this.selType_ = !!(Build.BTypes & BrowserType.Chrome)
+      && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
       && VUtils.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function (this: typeof VVisual): SelType {
     let type = typeIdx[this.selection_.type];
@@ -732,9 +769,21 @@ init_ (words: string) {
  * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings.CONST_.WordsRe_}
  */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
-  this.WordsRe_ = new RegExp(
-    Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && words || "[\\p{L}\\p{Nd}_]+",
-    Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && words ? "" : "u");
+  if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
+      || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
+    if (!(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && VUtils.cache_.browser_ === BrowserType.Firefox
+        || VUtils.cache_.browserVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
+      // Firefox && not native || Chrome && not only white spaces
+      if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+          && !(Build.BTypes & ~BrowserType.Chrome)
+          ) {
+        this.WordsRe_ = new RegExp(words, "");
+      } else {
+        this.WordsRe_ = new RegExp(words || "[\\p{L}\\p{Nd}_]+", words ? "" : "u");
+      }
+    }
+  }
 /** C72
  * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
  * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
@@ -757,7 +806,9 @@ init_ (words: string) {
    *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
    * Min$Space$NotMatch$U180e$InRegExp=59
    */
-  (Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+  (!(Build.BTypes & ~BrowserType.Firefox)
+    || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+    || (Build.BTypes & BrowserType.Firefox && VUtils.cache_.browser_ === BrowserType.Firefox)
     || VUtils.cache_.browserVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
   (this._rightWhiteSpaceRe = /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);

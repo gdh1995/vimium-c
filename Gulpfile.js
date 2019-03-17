@@ -63,8 +63,10 @@ var Tasks = {
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!front/vimium.css", "!test*", "!todo*"
     ];
-    var has_wordsRe = getBuildItem("MinCVer") < 64 /* MinEnsuredUnicodePropertyEscapesInRegExp */
-                      || !!(getBuildItem("BTypes") & ~1 /* Chrome */);
+    var has_wordsRe = getBuildItem("BTypes") & /* not Firefox */ ~2
+            && getBuildItem("MinCVer") <
+                59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
+        || getBuildItem("BTypes") & /* Firefox */ 2 && !getBuildItem("NativeWordMoveOnFirefox");
     has_wordsRe || arr.push("!front/words.txt");
     if (!has_dialog_ui) {
       arr.push("!*/dialog_ui.*");
@@ -823,12 +825,17 @@ function getBuildItem(key) {
   }
   var env_key = key.replace(/[A-Z]+[a-z0-9]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
   var newVal = process.env["BUILD_" + env_key];
-  if (newVal != null) {
+  if (!newVal) {
+    newVal = process.env["BUILD_" + key];
+  }
+  if (newVal) {
     try {
       newVal = JSON.parse(newVal);
     } catch (e) {}
-    buildOptionCache[key] = newVal;
-    return parseBuildItem(key, newVal);
+    if (newVal != null) {
+      buildOptionCache[key] = newVal;
+      return parseBuildItem(key, newVal);
+    }
   }
   newVal = buildConfig && buildConfig[key];
   buildOptionCache[key] = newVal != null ? newVal : null;

@@ -1403,9 +1403,14 @@ Are you sure you want to continue?`);
     /* enterVisualMode: */ function (): void {
       const flags = cPort.s.f, str = typeof cOptions.mode === "string" ? (cOptions.mode as string).toLowerCase() : "";
       let words = "";
-      if (~flags & Frames.Flags.hadVisualMode) {
-        words = Settings.CONST_.WordsRe_;
-        cPort.s.f = Frames.Flags.hadVisualMode | flags;
+      if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
+        || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+          && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+      ) {
+        if (~flags & Frames.Flags.hadVisualMode) {
+          words = Settings.CONST_.WordsRe_;
+          cPort.s.f = Frames.Flags.hadVisualMode | flags;
+        }
       }
       cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
         S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
