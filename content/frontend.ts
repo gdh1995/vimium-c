@@ -240,7 +240,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     const f = onWndBlur2;
     f && f();
     KeydownEvents = Object.create(null);
-    (<RegExpOne> /a?/).test("");
+    injector || (<RegExpOne> /a?/).test("");
     esc(HandlerResult.Suppress);
   }
   function onShadow(this: ShadowRoot, event: FocusEvent): void {
@@ -1230,7 +1230,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       , Date.now());
 
     if (vPort._port) { try { vPort._port.disconnect(); } catch {} }
-    (<RegExpOne> /a?/).test("");
+    injector || (<RegExpOne> /a?/).test("");
   }
   };
   if (injector) {
