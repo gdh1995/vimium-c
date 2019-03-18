@@ -204,7 +204,8 @@ next = setTimeout.bind(window as never, function (): void {
   allNodesInDocument = allNodesForDetached = null;
 })
 , root: HTMLDivElement, timer = setTimeout(handler, 1000)
-, SR: typeof ShadowRoot = window.ShadowRoot as typeof ShadowRoot
+, SR: typeof ShadowRoot = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+      ? ShadowRoot : window.ShadowRoot as typeof ShadowRoot
 ;
 function prepareRegister(this: void, element: Element): void {
   if (contains(element)) {
@@ -276,6 +277,7 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
     }
   }
   doRegister(1);
+  allNodesInDocument = null;
 }
 function executeCmd(eventOrDestroy?: Event): void {
   const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
