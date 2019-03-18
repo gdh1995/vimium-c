@@ -105,7 +105,7 @@ onWheel_ (event: WheelEvent): void {
   let i = Date.now(); // safe for time changes
   if (i - oldTime < 100 && i + 99 > oldTime && oldTime > 0) { return; }
   this.wheelTime_ = i;
-  const el = this.element_, inc = event.wheelDelta > 0, val0 = el.value;
+  const el = this.element_, inc = (event.deltaY || event.deltaX) > 0, val0 = el.value;
   let val: string, func: undefined | ((n: string) => number) | (
         (this: HTMLInputElement, n?: number) => void) = inc ? el.stepUp : el.stepDown;
   if (typeof func === "function") {
