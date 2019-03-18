@@ -461,7 +461,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.isInputComposing_ = false;
     return this.update_(-1);
   },
-  onEnter_ (event?: MouseEvent | KeyboardEvent | true, newSel?: number): void {
+  onEnter_ (event?: EventControlKeys | true, newSel?: number): void {
     let sel = newSel != null ? newSel : this.selection_;
     this.actionType_ = event == null ? this.actionType_
       : event === true ? this.forceNewTab_ ? ReuseType.newFg : ReuseType.current
@@ -490,12 +490,22 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     this.hide_();
   },
   OnEnterUp_ (this: void, event: KeyboardEvent): void {
+    const keyCode = event.keyCode;
     if (event.isTrusted === true
-        || Build.MinCVer < BrowserVer.Min$Event$$IsTrusted && event.isTrusted == null && event instanceof KeyboardEvent
-            && event.keyCode === VKeyCodes.enter) {
+        || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
+            && event.isTrusted == null && event instanceof KeyboardEvent
+            && (keyCode === VKeyCodes.enter || keyCode === VKeyCodes.ctrlKey || keyCode === VKeyCodes.shiftKey
+                || keyCode === VKeyCodes.metaKey)
+    ) { // call onEnter once an enter / control key is up
       Vomnibar_.lastKey_ = VKeyCodes.None;
       window.onkeyup = null as never;
-      Vomnibar_.onEnter_(event);
+      var keys = {
+        altKey: event.altKey || keyCode === VKeyCodes.altKey,
+        ctrlKey: event.ctrlKey || keyCode === VKeyCodes.ctrlKey,
+        metaKey: event.metaKey || keyCode === VKeyCodes.metaKey,
+        shiftKey: event.shiftKey || keyCode === VKeyCodes.shiftKey
+      };
+      Vomnibar_.onEnter_(keys);
     }
   },
   removeCur_ (): void {
