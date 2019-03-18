@@ -158,7 +158,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
     el.blur();
-    fromContent || VPort_.postMessage_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
+    fromContent || VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
     a.bodySt_.cssText = "display: none;";
     a.list_.textContent = el.value = "";
     a.list_.style.height = "";
@@ -212,7 +212,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (focus !== false) {
       a.input_.focus();
     } else {
-      VPort_.postMessage_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
+      VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
     }
   },
   update_ (updateDelay: number, callback?: (() => void) | null): void {
@@ -288,7 +288,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
         }
       }
     }
-    VPort_.postMessage_({
+    VPort_.post_({
       H: kFgReq.parseSearchUrl,
       i: sel,
       u: str
@@ -525,7 +525,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, t: "This item can not be deleted." });
       return;
     }
-    VPort_.postMessage_({
+    VPort_.post_({
       H: kFgReq.removeSug,
       t: type,
       u: type === "tab" ? completion.sessionId + "" : completion.url
@@ -677,7 +677,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     Vomnibar_.customClassName_ = omniStyles;
     Vomnibar_.onStyleUpdate_(omniStyles);
     if (toggle && !req.c) {
-      VPort_.postMessage_({
+      VPort_.post_({
         H: kFgReq.setOmniStyle,
         s: omniStyles
       });
@@ -724,7 +724,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
     setTimeout(a.blurred_, 50, null);
     if (!blurred) {
-      VPort_ && VPort_.postMessage_({ H: kFgReq.cmd, c: "", n: 1, i: 1 });
+      VPort_ && VPort_.post_({ H: kFgReq.cmd, c: "", n: 1, i: 1 });
       if (a.pageType_ === VomnibarNS.PageType.ext && VPort_) {
         VPort_.postToOwner_({N: VomnibarNS.kFReq.test});
       }
@@ -935,7 +935,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     } else {
       a.useInput_ = true;
     }
-    return VPort_.postMessage_(mode);
+    return VPort_.post_(mode);
   },
 
   _favPrefix: "",
@@ -959,14 +959,14 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: url });
       return;
     }
-    VPort_.postMessage_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, o: true });
+    VPort_.post_({ H: kFgReq.openUrl, r: reuse, h: https, u: url, o: true });
     if (reuse === ReuseType.newBg
         && (!Vomnibar_.lastQuery_ || (<RegExpOne> /^\+\d{0,2}$/).exec(Vomnibar_.lastQuery_))) {
       return Vomnibar_.refresh_();
     }
   },
   gotoSession_ (item: SuggestionE & { sessionId: string | number }): void {
-    VPort_.postMessage_({
+    VPort_.post_({
       H: kFgReq.gotoSession,
       a: Vomnibar_.actionType_ > ReuseType.newBg,
       s: item.sessionId
@@ -1057,12 +1057,12 @@ VPort_ = {
   _port: null as FgPort | null,
   postToOwner_: null as never as <K extends keyof VomnibarNS.FReq> (this: void
       , msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void | 1,
-  postMessage_<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
+  post_<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
     try {
-      (VPort_._port || VPort_.connect_(PortType.omnibarRe)).postMessage<K>(request);
+      (this._port || this.connect_(PortType.omnibarRe)).postMessage<K>(request);
     } catch {
       VPort_ = null as never;
-      VPort_.postToOwner_({ N: VomnibarNS.kFReq.broken, a: Vomnibar_.isActive_ });
+      this.postToOwner_({ N: VomnibarNS.kFReq.broken, a: Vomnibar_.isActive_ });
     }
   },
   _Listener<T extends ValidBgVomnibarReq> (this: void, response: Req.bg<T>): void {
