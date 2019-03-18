@@ -282,6 +282,7 @@ function executeCmd(eventOrDestroy?: Event): void {
         : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   if (cmd !== kContentCmd.Destroy) {
     cmd === kContentCmd.FindAllOnClick && findAllOnClick(cmd);
+    return;
   }
   toRegister.length = 0;
   toRegister.push = next = function () { return 1; };
