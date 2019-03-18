@@ -54,7 +54,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       vPort._port = null;
       setTimeout(function (i): void {
         if (!i) {
-          try { esc && vPort.Connect_(); return; } catch {}
+          try { !esc || vPort._port || vPort.Connect_(); return; } catch {}
         }
         esc && VSettings.destroy_();
       }, requestHandlers[kBgReq.init] ? 2000 : 5000);
