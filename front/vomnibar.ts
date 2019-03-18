@@ -599,14 +599,14 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   omni_ (response: BgVomnibarSpecialReq[kBgReq.omni_omni]): void {
     if (!this.isActive_) { return; }
-    const list = response.list, height = list.length, notEmpty = height > 0;
+    const list = response.list, height = list.length;
     this.total_ = response.total;
     this.showFavIcon_ = response.favIcon;
     this.matchType_ = response.matchType;
     this.completions_ = list;
-    this.selection_ = (response.autoSelect || this.modeType_ !== "omni") && notEmpty ?  0 : -1;
+    this.selection_ = response.autoSelect ? 0 : -1;
     this.isSelOriginal_ = true;
-    this.isSearchOnTop_ = notEmpty && list[0].type === "search";
+    this.isSearchOnTop_ = height > 0 && list[0].type === "search";
     return this.populateUI_();
   },
   populateUI_ (): void {

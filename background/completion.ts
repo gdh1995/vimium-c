@@ -459,12 +459,13 @@ historyEngine = {
         HistoryCache.refreshInfo_();
       }
     }
+    autoSelect = false;
     if (index === 0) {
       Completers.requireNormalOrIncognito_(this, this.loadTabs_, query);
     } else if (chrome.sessions) {
       chrome.sessions.getRecentlyClosed(this.loadSessions_.bind(this, query));
     } else {
-      return this.filterFill_([], query, {}, 0, 0);
+      this.filterFill_([], query, {}, 0, 0);
     }
   },
   quickSearch_ (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
@@ -1531,12 +1532,12 @@ Completion_ = {
       if (arr) {
         queryTerms.shift();
         rawQuery = query.substring(3);
-        autoSelect = arr !== knownCs.omni;
       }
     }
     if (queryTerms.length >= 1) {
       queryTerms[0] = Utils.fixCharsInUrl_(queryTerms[0]);
     }
+    autoSelect = arr != null && arr.length === 1;
     showThoseInBlacklist = BlacklistFilter.IsExpectingHidden_(queryTerms);
     Completers.filter_(arr || knownCs.omni);
   },

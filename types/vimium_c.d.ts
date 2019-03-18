@@ -260,6 +260,7 @@ declare namespace VomnibarNS {
   interface GlobalOptions {
     mode: string;
     currentWindow?: boolean;
+    silentOnEmpty: boolean;
     newtab: boolean;
     /** @deprecated */
     force: boolean;
