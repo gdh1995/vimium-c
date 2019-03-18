@@ -729,7 +729,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       VEvent.focusAndListen_();
       esc();
-      VEvent.suppress_(key);
+      KeydownEvents[key] = 1;
       const notTop = window.top !== window;
       if (notTop && mask === FrameMaskType.NormalNext) {
         let docEl = document.documentElement;
@@ -1199,7 +1199,6 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       if (f) { return f(); }
     },
-    suppress_ (this: void, key?: VKeyCodes): void { key && (KeydownEvents[key] = 1); },
     keydownEvents_: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
       return !isEnabled || !(KeydownEvents = arr);

@@ -250,7 +250,7 @@ var VFind = {
         i = FindNS.Action.DoNothing;
       }
       else if (n === VKeyCodes.f1) { a.box_.contentDocument.execCommand("delete"); }
-      else if (n === VKeyCodes.f2) { a.box_.blur(); window.focus(); VEvent.suppress_(n); }
+      else if (n === VKeyCodes.f2) { a.box_.blur(); window.focus(); VEvent.keydownEvents_()[n] = 1; }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) { a.nextQuery_(n !== VKeyCodes.up); }
       else { return; }
     } else if (i === FindNS.Action.PassDirectly) {
@@ -258,7 +258,7 @@ var VFind = {
     }
     VUtils.prevent_(event);
     if (!i) { return; }
-    VEvent.suppress_(n);
+    VEvent.keydownEvents_()[n] = 1;
     a.deactivate_(i as FindNS.Action);
   },
   onHostKeydown_ (event: KeyboardEvent): HandlerResult {

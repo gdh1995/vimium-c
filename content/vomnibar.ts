@@ -236,7 +236,9 @@ var VOmni = {
         a.onShown_();
       }
       break;
-    case VomnibarNS.kFReq.focus: window.focus(); return VEvent.suppress_((data as Req[VomnibarNS.kFReq.focus]).k);
+    case VomnibarNS.kFReq.focus:
+      window.focus();
+      return VEvent.keydownEvents_()[(data as Req[VomnibarNS.kFReq.focus]).k] = 1;
     case VomnibarNS.kFReq.hide: return a.hide_(1);
     case VomnibarNS.kFReq.test: return VEvent.OnWndFocus_();
     case VomnibarNS.kFReq.scroll: return VEvent.scroll_(data as Req[VomnibarNS.kFReq.scroll]);

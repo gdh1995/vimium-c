@@ -333,7 +333,6 @@ interface ComplicatedVPort extends VPortTy {
 }
 interface VEventModeTy {
   lock_(this: void): LockableElement | null;
-  suppress_(keyCode?: VKeyCodes): void;
   OnWndFocus_ (this: void): void;
   checkHidden_ (this: void): boolean;
   checkHidden_ (this: void, cmd: kFgCmd, count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): boolean;
