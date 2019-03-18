@@ -820,8 +820,8 @@ searchEngine = {
     if (q.length > 0) {
       sug.text = this.makeText_(text, indexes);
       sug.textSplit = highlight(sug.text, indexes);
-      sug.title = highlight(sug.title
-        , [pattern.name.length + 2, sug.title.length]);
+      sug.title = highlight(sug.title, [pattern.name.length + 2, sug.title.length]);
+      sug.visited = !!HistoryCache.history_ && HistoryCache.binarySearch_(url) >= 0;
     } else {
       sug.text = Utils.DecodeURLPart_(shortenUrl(text));
       sug.textSplit = Utils.escapeText_(sug.text);

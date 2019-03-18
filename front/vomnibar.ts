@@ -931,7 +931,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     let str = url.substring(0, 11).toLowerCase();
     return str.startsWith("vimium://") ? "chrome-extension://" + (VCID || chrome.runtime.id) + "/pages/options.html"
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
-      : item.type === "search"
+      : item.type === "search" && !item.visited
         ? url.startsWith("http") ? url.substring(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || url.length) : ""
       : url;
   },
