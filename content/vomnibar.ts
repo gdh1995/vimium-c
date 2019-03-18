@@ -261,10 +261,10 @@ var VOmni = {
     style.top = VDom.wdZoom_ !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.wdZoom_) | 0) + "px"
       : a.top_ || a.defaultTop_;
     style.display = "";
-    setTimeout(function() {
-      const a = VOmni;
-      VUtils.remove_(a);
-      a && a.status_ === VomnibarNS.Status.Showing && VUtils.push_(a.onKeydown_, a);
+    setTimeout(function (): void {
+      const a2 = VOmni;
+      VUtils.remove_(a2);
+      a2 && a2.status_ === VomnibarNS.Status.Showing && VUtils.push_(a2.onKeydown_, a2);
     }, 120);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {

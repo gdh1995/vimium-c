@@ -67,6 +67,7 @@ var VFind = {
   notDisableScript_(): BOOL {
     let a = this, ret: BOOL = 1;
     try {
+      // tslint:disable-next-line: no-unused-expression
       a.box_.contentWindow.document;
     } catch {
       ret = 0;
@@ -438,10 +439,7 @@ var VFind = {
     a.ignoreCase_ !== null || (a.ignoreCase_ = !VUtils.hasUpperCase_(query));
     isRe || (query = a.isActive_ ? query.replace(a._escapeAllRe, "\\$&") : "");
 
-    let re: RegExpG | null = null;
-    if (query) {
-      try { re = new RegExp(ww ? B + query + B : query, a.ignoreCase_ ? "gi" as "g" : "g"); } catch {}
-    }
+    let re: RegExpG | null = query && a.safeCreateRe_(ww ? B + query + B : query, a.ignoreCase_ ? "gi" : "g") || null;
     let matches: RegExpMatchArray | null = null;
     if (re) {
       type FullScreenElement = Element & { innerText?: string | Element };
@@ -456,6 +454,9 @@ var VFind = {
     a.parsedRegexp_ = isRe ? re : null;
     a.activeRegexIndex_ = 0;
     a.matchCount_ = matches ? matches.length : 0;
+  },
+  safeCreateRe_ (pattern: string, flags: "g" | "gi"): RegExpG | void {
+    try { return new RegExp(pattern, flags as "g"); } catch {}
   },
   FormatQuery_ (this: void, str: string): string {
     let flag = str.charCodeAt(1), enabled = flag >= KnownKey.a, a = VFind;

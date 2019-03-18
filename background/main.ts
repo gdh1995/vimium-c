@@ -222,10 +222,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
       : Backend.showHUD_(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
   }
   function upperGitUrls(url: string, path: string): string | void | null {
-    let host: string = "";
-    try {
-      host = new URL(url).hostname;
-    } catch { return; }
+    const obj = Utils.safeParseURL_(url), host: string = obj ? obj.hostname : "";
+    if (!host) { return; }
     if (!(<RegExpI> /git\b|\bgit/i).test(host) || !(<RegExpI> /^[\w\-]+(\.\w+)?$/).test(host)) {
       return;
     }
@@ -297,10 +295,14 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       }
     }
+    safePost(this, { N: kBgReq.omni_omni, autoSelect, matchType, list, favIcon, total });
     Utils.resetRe_();
+  }
+  function safePost<K extends keyof FullBgReq>(port: Port, req: Req.bg<K>): BOOL {
     try {
-    this.postMessage({ N: kBgReq.omni_omni, autoSelect, matchType, list, favIcon, total });
-    } catch {}
+      port.postMessage(req);
+      return 1;
+    } catch { return 0; }
   }
   function indexFrame(this: void, tabId: number, frameId: number): Port | null {
     const ref = framesForTab[tabId];
@@ -583,12 +585,10 @@ Are you sure you want to continue?`);
       return;
     }
     if (cPort) {
-      try {
-        cPort.postMessage({ N: kBgReq.eval, u: url });
+      if (safePost(cPort, { N: kBgReq.eval, u: url })) {
         return;
-      } catch {
-        cPort = null as never;
       }
+      cPort = null as never;
     }
     const callback1 = function (opt?: object | -1): void {
       if (opt !== -1 && !onRuntimeError()) { return; }
@@ -1738,7 +1738,7 @@ Are you sure you want to continue?`);
       } else {
         endSlash = request.t != null ? !!request.t
           : path.length > 1 && path.endsWith("/")
-            || (<RegExpI> /\.([a-z]{2,3}|jpeg|tiff)$/i).test(path); // just a try: not include .html 
+            || (<RegExpI> /\.([a-z]{2,3}|jpeg|tiff)$/i).test(path); // just a try: not include .html
       }
       if (!i || i === 1) {
         path = "/";
@@ -1901,7 +1901,7 @@ Are you sure you want to continue?`);
         });
         return;
       }
-      try { port.postMessage({ N: kBgReq.omni_returnFocus, key: cKey }); } catch {}
+      safePost(port, { N: kBgReq.omni_returnFocus, key: cKey });
     },
     /** exitGrab: */ function (this: void, _0: FgReq[kFgReq.exitGrab], port: Port): void {
       const ports = framesForTab[port.s.t];
@@ -2367,14 +2367,12 @@ Are you sure you want to continue?`);
       // not seems to need to restore muted status
     },
     showHUD_ (message: string, isCopy?: boolean): void {
-      try {
-        cPort && cPort.postMessage({
+      if (cPort && !safePost(cPort, {
           N: kBgReq.showHUD,
           S: ensureInnerCSS(cPort),
           t: message,
           c: isCopy === true
-        });
-      } catch {
+        })) {
         cPort = null as never;
       }
     },

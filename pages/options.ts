@@ -871,7 +871,7 @@ function OnBgUnload(): void {
 BG_.addEventListener("unload", OnBgUnload);
 
 const cmdRegistry = BG_.CommandsData_.keyToCommandRegistry_["?"];
-if (!cmdRegistry || cmdRegistry.alias !== kBgCmd.showHelp) { (function(): void {
+if (!cmdRegistry || cmdRegistry.alias !== kBgCmd.showHelp) { (function (): void {
   const arr = BG_.CommandsData_.keyToCommandRegistry_;
   let matched = "";
   for (let key in arr) {
