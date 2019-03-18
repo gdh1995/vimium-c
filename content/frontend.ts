@@ -904,7 +904,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       if (VDom.UI.box_) { return VDom.UI.adjust_(+enabled ? 1 : 2); }
     },
-    injector ? injector.reload : function (): void { /* empty */ },
+    injector ? injector.reload : null as never,
     function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
       delete (request as Req.bg<kBgReq.url>).N;
       request.u = location.href;
@@ -1235,9 +1235,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   };
   if (injector) {
     injector.checkIfEnabled = vPort.SafePost_ as {} as () => void;
-    injector.getCommandCount = function (this: void): number {
-      return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
-    };
+    injector.getCommandCount = function (this: void): string {
+      return currentKeys;
+    } as (this: void) => (string | number) as (this: void) => number;
   }
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
