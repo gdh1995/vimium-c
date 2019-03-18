@@ -139,10 +139,11 @@ var VHints = {
     VEvent.onWndBlur_(a.ResetMode_);
   },
   setModeOpt_ (count: number, options: HintsNS.Options): void {
-    if (this.options_ === options) { return; }
-    let ref = this.Modes_, modeOpt: HintsNS.ModeOpt | undefined,
+    const a = this;
+    if (a.options_ === options) { return; }
+    let ref = a.Modes_, modeOpt: HintsNS.ModeOpt | undefined,
     mode = (<number> options.mode > 0 ? options.mode as number
-      : this.CONST_[options.action || options.mode as string] as number | undefined | {} as number) | 0;
+      : a.CONST_[options.action || options.mode as string] as number | undefined | {} as number) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
     }
@@ -158,22 +159,23 @@ var VHints = {
       modeOpt = ref[8];
       mode = count > 1 ? HintMode.OPEN_WITH_QUEUE : HintMode.OPEN_IN_CURRENT_TAB;
     }
-    this.modeOpt_ = modeOpt;
-    this.options_ = options;
-    this.count_ = count;
-    return this.setMode_(mode, true);
+    a.modeOpt_ = modeOpt;
+    a.options_ = options;
+    a.count_ = count;
+    return a.setMode_(mode, true);
   },
   setMode_ (mode: HintMode, slient?: boolean): void {
-    this.lastMode_ = this.mode_ = mode;
-    this.mode1_ = mode = mode & ~HintMode.queue;
-    this.forHover_ = mode >= HintMode.HOVER && mode <= HintMode.LEAVE;
-    if (slient || this.noHUD_) { return; }
-    if (this.pTimer_ < 0) {
-      this.pTimer_ = setTimeout(this.SetHUDLater_, 1000);
+    const a = this;
+    a.lastMode_ = a.mode_ = mode;
+    a.mode1_ = mode = mode & ~HintMode.queue;
+    a.forHover_ = mode >= HintMode.HOVER && mode <= HintMode.LEAVE;
+    if (slient || a.noHUD_) { return; }
+    if (a.pTimer_ < 0) {
+      a.pTimer_ = setTimeout(a.SetHUDLater_, 1000);
       return;
     }
-    const msg = this.dialogMode_ ? " (modal UI)" : "";
-    return VHUD.show_((this.modeOpt_ as HintsNS.ModeOpt)[this.mode_] + msg, true);
+    const msg = a.dialogMode_ ? " (modal UI)" : "";
+    return VHUD.show_((a.modeOpt_ as HintsNS.ModeOpt)[a.mode_] + msg, true);
   },
   SetHUDLater_ (this: void): void {
     const a = VHints;
@@ -185,10 +187,12 @@ var VHints = {
       VHints.run(a, b);
     });
   },
-  tryNestedFrame_ (mode: "VHints" | "VScroller" | "VOmni", action: string, a: number, b: SafeObject): boolean {
-    if (this.frameNested_ !== null) {
+  tryNestedFrame_ (mode: "VHints" | "VScroller" | "VOmni", action: "run" | "Sc"
+      , count: number, options: SafeObject): boolean {
+    const a = this;
+    if (a.frameNested_ !== null) {
       mode !== "VHints" && VDom.prepareCrop_();
-      this.checkNestedFrame_();
+      a.checkNestedFrame_();
     }
     interface VWindow extends Window {
       VHints: typeof VHints;
@@ -197,7 +201,7 @@ var VHints = {
       VEvent: VEventModeTy;
       VDom: typeof VDom;
     }
-    let frame = this.frameNested_, child: VWindow = null as never, err = true, done = false;
+    let frame = a.frameNested_, child: VWindow = null as never, err = true, done = false;
     if (!frame) { return false; }
     try {
       if (frame.contentDocument && (child = frame.contentWindow as VWindow).VDom.isHTML_()) {
@@ -210,14 +214,14 @@ var VHints = {
     if (err) {
       // It's cross-site, or Vimium C on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
-      this.frameNested_ = null;
+      a.frameNested_ = null;
       return false;
     }
     child.VEvent.focusAndListen_(done ? null : function (): void {
-      return (child[mode as "VHints"])[action as "run"](a, b);
+      return (child[mode as "VHints"])[action as "run"](count, options);
     });
     if (done) { return true; }
-    if (document.readyState !== "complete") { this.frameNested_ = false; }
+    if (document.readyState !== "complete") { a.frameNested_ = false; }
     return true;
   },
   maxLeft_: 0,
@@ -607,17 +611,18 @@ var VHints = {
     return null;
   },
   getVisibleElements_ (view: ViewBox): Hint[] {
-    let _i: number = this.mode1_;
+    const a = this;
+    let _i: number = a.mode1_;
     const isNormal = _i < HintMode.min_job,
     visibleElements = _i === HintMode.DOWNLOAD_IMAGE || _i === HintMode.OPEN_IMAGE
-      ? this.traverse_("a[href],img[src],[data-src],div[style],span[style]", this.GetImages_, true)
-      : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? this.traverse_("a", this.GetLinks_)
-      : this.traverse_("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable_ : this.GetClickable_
+      ? a.traverse_("a[href],img[src],[data-src],div[style],span[style]", a.GetImages_, true)
+      : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? a.traverse_("a", a.GetLinks_)
+      : a.traverse_("*", _i === HintMode.FOCUS_EDITABLE ? a.GetEditable_ : a.GetClickable_
           );
-    this.maxLeft_ = view[2], this.maxTop_ = view[3], this.maxRight_ = view[4];
-    if (this.maxRight_ > 0) {
-      _i = Math.ceil(Math.log(visibleElements.length) / Math.log(this.alphabetHints_.chars_.length));
-      this.maxLeft_ -= 16 * _i + 12;
+    a.maxLeft_ = view[2], a.maxTop_ = view[3], a.maxRight_ = view[4];
+    if (a.maxRight_ > 0) {
+      _i = Math.ceil(Math.log(visibleElements.length) / Math.log(a.alphabetHints_.chars_.length));
+      a.maxLeft_ -= 16 * _i + 12;
     }
     visibleElements.reverse();
 
@@ -639,7 +644,7 @@ var VHints = {
       if (r2 === null) { continue; }
       if (r2.length > 0) {
         t = r2[0];
-        t[1] > this.maxTop_ && t[1] > r[1] || t[0] > this.maxLeft_ && t[0] > r[0] ||
+        t[1] > a.maxTop_ && t[1] > r[1] || t[0] > a.maxLeft_ && t[0] > r[0] ||
           r2.length === 1 && (t[3] - t[1] < 3 || t[2] - t[0] < 3) || (visibleElement[1] = t);
       } else if ((reason = visibleElement[2]) === ClickType.classname
             || (reason === ClickType.listener ? isNormal : reason === ClickType.tabindex)
@@ -662,22 +667,23 @@ var VHints = {
     return visibleElements.reverse();
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
+    const a = this;
     let linksMatched: HintsNS.LinksMatched, i: number;
-    if (event.repeat || !this.isActive_) {
+    if (event.repeat || !a.isActive_) {
       // NOTE: should always prevent repeated keys.
     } else if (VKeyboard.isEscape_(event)) {
-      this.clean_();
+      a.clean_();
     } else if ((i = event.keyCode) === VKeyCodes.esc) {
       return HandlerResult.Suppress;
     } else if (i === VKeyCodes.ime) {
-      this.clean_(1);
+      a.clean_(1);
       VHUD.tip_("LinkHints exits because you're inputting");
       return HandlerResult.Nothing;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
-      this.ResetMode_();
+      a.ResetMode_();
       if (i !== VKeyCodes.f2) { return HandlerResult.Nothing; }
       i = VKeyboard.getKeyStat_(event);
-      let deep = this.queryInDeep_, reinit = true;
+      let deep = a.queryInDeep_, reinit = true;
       if (i & KeyStat.shiftKey) {
         if (i & ~KeyStat.shiftKey) {
           reinit = !!VSettings.execute_;
@@ -685,29 +691,29 @@ var VHints = {
             (VSettings as EnsureNonNull<VSettingsTy>).execute_(kContentCmd.FindAllOnClick);
           }
         } else {
-          this.isClickListened_ = !this.isClickListened_;
+          a.isClickListened_ = !a.isClickListened_;
         }
       } else if (i === KeyStat.plain) {
         if ((Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinNoShadowDOMv0) {
           reinit = deep !== DeepQueryType.NotAvailable;
-          this.queryInDeep_ = DeepQueryType.InDeep - deep;
+          a.queryInDeep_ = DeepQueryType.InDeep - deep;
         }
       } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VUtils.cache_.onMac_)) {
         if ((Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinNoShadowDOMv0) {
           reinit = deep === DeepQueryType.NotDeep;
-          this.queryInDeep_ = DeepQueryType.InDeep;
+          a.queryInDeep_ = DeepQueryType.InDeep;
         }
       } else if (i === KeyStat.altKey) {
         reinit = (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinHTMLDialogElement)
           || typeof HTMLDialogElement === "function";
-        this.dialogMode_ = reinit && !this.dialogMode_;
+        a.dialogMode_ = reinit && !a.dialogMode_;
       } else {
         reinit = false;
       }
-      reinit && setTimeout(this._reinit.bind(this, null, null), 0);
+      reinit && setTimeout(a._reinit.bind(a, null, null), 0);
     } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
         || (i === VKeyCodes.metaKey && VUtils.cache_.onMac_)) {
-      const mode = this.mode_,
+      const mode = a.mode_,
       mode2 = i === VKeyCodes.altKey
         ? mode < HintMode.min_disable_queue
           ? ((mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | mode) ^ HintMode.queue : mode
@@ -716,29 +722,29 @@ var VHints = {
           : (mode | HintMode.newTab) ^ HintMode.focused
         : mode;
       if (mode2 !== mode) {
-        this.setMode_(mode2);
+        a.setMode_(mode2);
         i = VKeyboard.getKeyStat_(event);
-        (i & (i - 1)) || (this.lastMode_ = mode);
+        (i & (i - 1)) || (a.lastMode_ = mode);
       }
     } else if (i <= VKeyCodes.down && i >= VKeyCodes.pageup) {
       VEvent.scroll_(event);
-      this.ResetMode_();
+      a.ResetMode_();
     } else if (i === VKeyCodes.space) {
-      this.zIndexes_ === false || this.rotateHints_(event.shiftKey);
-      event.shiftKey && this.ResetMode_();
+      a.zIndexes_ === false || a.rotateHints_(event.shiftKey);
+      event.shiftKey && a.ResetMode_();
     } else if (!(linksMatched
-        = this.alphabetHints_.matchHintsByKey_(this.hints_ as HintsNS.HintItem[], event, this.keyStatus_))) {
+        = a.alphabetHints_.matchHintsByKey_(a.hints_ as HintsNS.HintItem[], event, a.keyStatus_))) {
       if (linksMatched === false) {
-        this.tooHigh_ = null;
-        setTimeout(this._reinit.bind(this, null, null), 0);
+        a.tooHigh_ = null;
+        setTimeout(a._reinit.bind(a, null, null), 0);
       }
     } else if (linksMatched.length === 0) {
-      this.deactivate_(this.keyStatus_.known_);
+      a.deactivate_(a.keyStatus_.known_);
     } else if (linksMatched.length === 1) {
       VUtils.prevent_(event);
-      this.execute_(linksMatched[0]);
+      a.execute_(linksMatched[0]);
     } else {
-      const limit = this.keyStatus_.tab_ ? 0 : this.keyStatus_.newHintLength_;
+      const limit = a.keyStatus_.tab_ ? 0 : a.keyStatus_.newHintLength_;
       for (i = linksMatched.length; 0 <= --i; ) {
         let ref = linksMatched[i].marker.childNodes as NodeListOf<HTMLSpanElement>, j = ref.length - 1;
         while (limit <= --j) {
@@ -777,15 +783,16 @@ var VHints = {
     while (i < len) { (ref as HintsNS.HintItem[])[i++].target = null as never; }
   },
   execute_ (hint: HintsNS.HintItem): void {
+    const a = this;
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
-    this.resetHints_();
-    const str = (this.modeOpt_ as HintsNS.ModeOpt)[this.mode_] as string;
+    a.resetHints_();
+    const str = (a.modeOpt_ as HintsNS.ModeOpt)[a.mode_] as string;
     (VHUD as Writeable<VHUDTy>).text_ = str; // in case pTimer > 0
     if (VDom.isInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
       rect = VDom.UI.getRect_(clickEl, hint.refer !== clickEl ? hint.refer as HTMLElementUsingMap | null : null);
-      const showRect = (this.modeOpt_ as HintsNS.ModeOpt).execute_.call(this, clickEl, rect, hint);
+      const showRect = (a.modeOpt_ as HintsNS.ModeOpt).execute_.call(a, clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
         setTimeout(function (): void {
           (showRect || document.hasFocus()) && VDom.UI.flash_(null, rect as Rect);
@@ -795,13 +802,13 @@ var VHints = {
       clickEl = null;
       VHUD.tip_("The link has been removed from page", 2000);
     }
-    this.pTimer_ = -(VHUD.text_ !== str);
-    if (!(this.mode_ & HintMode.queue)) {
-      this._setupCheck(clickEl, null);
-      return this.deactivate_(1);
+    a.pTimer_ = -(VHUD.text_ !== str);
+    if (!(a.mode_ & HintMode.queue)) {
+      a._setupCheck(clickEl, null);
+      return a.deactivate_(1);
     }
-    this.isActive_ = false;
-    this._setupCheck();
+    a.isActive_ = false;
+    a._setupCheck();
     setTimeout(function (): void {
       const _this = VHints;
       _this._reinit(clickEl, rect);
@@ -811,14 +818,15 @@ var VHints = {
     }, 18);
   },
   _reinit (lastEl?: HintsNS.LinkEl | null, rect?: Rect | null): void {
-    if (!VSettings.enabled_) { return this.clean_(); }
-    this.isActive_ = false;
-    this.keyStatus_.tab_ = 0;
-    this.zIndexes_ = null;
-    this.resetHints_();
-    const isClick = this.mode_ < HintMode.min_job;
-    this.run(0, this.options_);
-    return this._setupCheck(lastEl, rect, isClick);
+    const a = this;
+    if (!VSettings.enabled_) { return a.clean_(); }
+    a.isActive_ = false;
+    a.keyStatus_.tab_ = 0;
+    a.zIndexes_ = null;
+    a.resetHints_();
+    const isClick = a.mode_ < HintMode.min_job;
+    a.run(0, a.options_);
+    return a._setupCheck(lastEl, rect, isClick);
   },
   _setupCheck (el?: HintsNS.LinkEl | null, r?: Rect | null, isClick?: boolean): void {
     this.timer_ && clearTimeout(this.timer_);
@@ -842,19 +850,20 @@ var VHints = {
     }
   },
   clean_ (keepHUD?: boolean | BOOL): void {
-    const ks = this.keyStatus_, alpha = this.alphabetHints_;
-    this.options_ = this.modeOpt_ = this.zIndexes_ = this.hints_ = null as never;
-    this.pTimer_ > 0 && clearTimeout(this.pTimer_);
-    this.lastMode_ = this.mode_ = this.mode1_ = this.count_ = this.pTimer_ =
-    this.maxLeft_ = this.maxTop_ = this.maxRight_ =
+    const a = this;
+    const ks = a.keyStatus_, alpha = a.alphabetHints_;
+    a.options_ = a.modeOpt_ = a.zIndexes_ = a.hints_ = null as never;
+    a.pTimer_ > 0 && clearTimeout(a.pTimer_);
+    a.lastMode_ = a.mode_ = a.mode1_ = a.count_ = a.pTimer_ =
+    a.maxLeft_ = a.maxTop_ = a.maxRight_ =
     ks.tab_ = ks.newHintLength_ = ks.known_ = alpha.countMax_ = 0;
     alpha.hintKeystroke_ = alpha.chars_ = "";
-    this.isActive_ = this.noHUD_ = this.tooHigh_ = false;
-    VUtils.remove_(this);
+    a.isActive_ = a.noHUD_ = a.tooHigh_ = false;
+    VUtils.remove_(a);
     VEvent.onWndBlur_(null);
-    if (this.box_) {
-      this.box_.remove();
-      this.box_ = null;
+    if (a.box_) {
+      a.box_.remove();
+      a.box_ = null;
     }
     keepHUD || VHUD.hide_();
   },
@@ -863,16 +872,17 @@ var VHints = {
     return VDom.UI.suppressTail_(onlySuppressRepeated);
   },
   rotateHints_ (reverse?: boolean): void {
-    let ref = this.hints_ as HintsNS.HintItem[], stacks = this.zIndexes_;
+    const a = this;
+    let ref = a.hints_ as HintsNS.HintItem[], stacks = a.zIndexes_;
     if (!stacks) {
       stacks = [] as HintsNS.Stacks;
-      ref.forEach(this.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
+      ref.forEach(a.MakeStacks_, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
       stacks = stacks.filter(stack => stack.length > 1);
       if (stacks.length <= 0) {
-        this.zIndexes_ = this.keyStatus_.newHintLength_ <= 0 ? false : null;
+        a.zIndexes_ = a.keyStatus_.newHintLength_ <= 0 ? false : null;
         return;
       }
-      this.zIndexes_ = stacks;
+      a.zIndexes_ = stacks;
     }
     for (const stack of stacks) {
       reverse && stack.reverse();
@@ -937,10 +947,11 @@ alphabetHints_: {
     return hintString;
   },
   initMarkers_ (hintItems: HintsNS.HintItem[]): void {
-    this.hintKeystroke_ = "";
-    for (let end = hintItems.length, hints = this.buildHintIndexes_(end), h = 0; h < end; h++) {
+    const a = this;
+    a.hintKeystroke_ = "";
+    for (let end = hintItems.length, hints = a.buildHintIndexes_(end), h = 0; h < end; h++) {
       const hint = hintItems[h], marker = hint.marker,
-      hintString = hint.key = this.numberToHintString_(hints[h]), last = hintString.length - 1;
+      hintString = hint.key = a.numberToHintString_(hints[h]), last = hintString.length - 1;
       for (let i = 0; i < last; i++) {
         const node = document.createElement("span");
         node.textContent = hintString[i];
@@ -948,8 +959,8 @@ alphabetHints_: {
       }
       marker.insertAdjacentText("beforeend", hintString[last]);
     }
-    this.countMax_ -= (this.countLimit_ > 0) as boolean | number as number;
-    this.countLimit_ = 0;
+    a.countMax_ -= (a.countLimit_ > 0) as boolean | number as number;
+    a.countLimit_ = 0;
   },
   buildHintIndexes_ (linkCount: number): number[] {
     const hints: number[] = [], result: number[] = [], len = this.chars_.length, count = linkCount, start = count % len;
@@ -970,38 +981,39 @@ alphabetHints_: {
     return result;
   },
   matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
+    const a = this;
     let keyChar: string, key = e.keyCode, arr = null as HintsNS.HintItem[] | null;
     if (key === VKeyCodes.tab) {
-      if (!this.hintKeystroke_) {
+      if (!a.hintKeystroke_) {
         return false;
       }
       keyStatus.tab_ = (1 - keyStatus.tab_) as BOOL;
     } else if (keyStatus.tab_) {
-      this.hintKeystroke_ = "";
+      a.hintKeystroke_ = "";
       keyStatus.tab_ = 0;
     }
     keyStatus.known_ = 1;
     if (key === VKeyCodes.tab) { /* empty */ }
     else if (key === VKeyCodes.backspace || key === VKeyCodes.deleteKey || key === VKeyCodes.f1) {
-      if (!this.hintKeystroke_) {
+      if (!a.hintKeystroke_) {
         return [];
       }
-      this.hintKeystroke_ = this.hintKeystroke_.slice(0, -1);
+      a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
     } else if ((keyChar = VKeyboard.char_(e).toUpperCase()) && keyChar.length === 1) {
-      if (this.chars_.indexOf(keyChar) === -1) {
+      if (a.chars_.indexOf(keyChar) === -1) {
         return [];
       }
-      this.hintKeystroke_ += keyChar;
+      a.hintKeystroke_ += keyChar;
       arr = [];
     } else {
       return null;
     }
-    keyChar = this.hintKeystroke_;
+    keyChar = a.hintKeystroke_;
     keyStatus.newHintLength_ = keyChar.length;
     keyStatus.known_ = 0;
     VHints.zIndexes_ && (VHints.zIndexes_ = null);
     const wanted = !keyStatus.tab_;
-    if (arr !== null && keyChar.length >= this.countMax_) {
+    if (arr !== null && keyChar.length >= a.countMax_) {
       hints.some(function (hint): boolean {
         return hint.key === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
       });

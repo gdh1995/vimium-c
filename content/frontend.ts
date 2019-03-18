@@ -525,12 +525,12 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       /** if `notBody` then `activeEl` is not null  */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = Object.create(null);
-      if (VUtils.cache_.grabBackFocus_ && this.grabBackFocus_) {
+      if (VUtils.cache_.grabBackFocus_ && InsertMode.grabBackFocus_) {
         let prompted = 0, prompt = function (): void {
           prompted++ || console.log("An auto-focusing action is blocked by Vimium C");
         };
         if (notBody) {
-          this.last_ = null;
+          InsertMode.last_ = null;
           prompt();
           activeEl.blur && activeEl.blur();
           notBody = (activeEl = document.activeElement as Element) !== document.body;
@@ -543,23 +543,22 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
               target.blur();
             }
           };
-          VUtils.push_(this.ExitGrab_, this);
-          addEventListener("mousedown", this.ExitGrab_, true);
+          VUtils.push_(InsertMode.ExitGrab_, InsertMode);
+          addEventListener("mousedown", InsertMode.ExitGrab_, true);
           return;
         }
       }
-      this.grabBackFocus_ = false;
+      InsertMode.grabBackFocus_ = false;
       if (notBody && VDom.getEditableType_<1>(activeEl)) {
-        this.lock_ = activeEl;
+        InsertMode.lock_ = activeEl;
       }
     },
     ExitGrab_: function (this: void, event?: Req.fg<kFgReq.exitGrab> | MouseEvent | KeyboardEvent
         ): HandlerResult.Nothing | void {
-      const _this = InsertMode;
-      if (!_this.grabBackFocus_) { return /* safer */ HandlerResult.Nothing; }
-      _this.grabBackFocus_ = false;
-      removeEventListener("mousedown", _this.ExitGrab_, true);
-      VUtils.remove_(_this);
+      if (!InsertMode.grabBackFocus_) { return /* safer */ HandlerResult.Nothing; }
+      InsertMode.grabBackFocus_ = false;
+      removeEventListener("mousedown", InsertMode.ExitGrab_, true);
+      VUtils.remove_(InsertMode);
       // it's acceptable to not set the userActed flag if there's only the top frame;
       // when an iframe gets clicked, the events are mousedown and then focus, so SafePost_ is needed
       !(event instanceof Event) || !frames.length && window === window.top ||
@@ -571,14 +570,14 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       (this: void, event?: MouseEvent): void;
     },
     isActive_ (): boolean {
-      if (this.suppressType_) { return false; }
-      let el: Element | null = this.lock_;
-      if (el !== null || this.global_) {
+      if (InsertMode.suppressType_) { return false; }
+      let el: Element | null = InsertMode.lock_;
+      if (el !== null || InsertMode.global_) {
         return true;
       }
       el = document.activeElement;
       if (el && (el as HTMLElement).isContentEditable === true && !VDom.notSafe_(el) && el instanceof HTMLElement) {
-        this.lock_ = el as LockableElement;
+        InsertMode.lock_ = el as LockableElement;
         return true;
       } else {
         return false;
@@ -606,23 +605,23 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     exit_ (event: KeyboardEvent): void {
       let target: Element | null = event.target as Element, sr = VDom.GetShadowRoot_(target);
       if (sr != null && sr instanceof ShadowRoot) {
-        if (target = this.lock_) {
-          this.lock_ = null;
+        if (target = InsertMode.lock_) {
+          InsertMode.lock_ = null;
           (target as LockableElement).blur();
         }
-      } else if (target === this.lock_ ? (this.lock_ = null, 1) : VDom.getEditableType_<1>(target)) {
+      } else if (target === InsertMode.lock_ ? (InsertMode.lock_ = null, 1) : VDom.getEditableType_<1>(target)) {
         (target as LockableElement).blur();
       }
-      if (this.global_) {
-        this.lock_ = null; this.global_ = null;
+      if (InsertMode.global_) {
+        InsertMode.lock_ = null; InsertMode.global_ = null;
         HUD.hide_();
       }
     },
     onExitSuppress_: null as ((this: void) => void) | null,
     exitInputHint_ (): void {
-      let hint = this.inputHint_;
+      let hint = InsertMode.inputHint_;
       if (!hint) { return; }
-      this.inputHint_ = null;
+      InsertMode.inputHint_ = null;
       hint.box.remove();
       VUtils.remove_(hint);
     }
@@ -662,7 +661,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   findAndFollowLink_ (names: string[], refusedStr: string): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: HTMLElement; }
     // Note: this traverser should not need a prepareCrop
-    const count = names.length, links = VHints.traverse_("*", this.GetLinks_, true, true);
+    const count = names.length, links = VHints.traverse_("*", Pagination.GetLinks_, true, true);
     links.push(document.documentElement as HTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = 99, len: number;
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
@@ -691,7 +690,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       const re = new RegExp(re2.test(s[0]) || re2.test(s.slice(-1)) ? `\\b${s}\\b` : s, ""), j = i << 23;
       for (const cand of candidates) {
         if (cand[0] > j) { break; }
-        if (re.test(cand[1])) { return this.followLink_(cand[2]); }
+        if (re.test(cand[1])) { return Pagination.followLink_(cand[2]); }
       }
     }
     return false;
@@ -706,7 +705,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           && element instanceof HTMLElement
           && (s = (element as HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement).rel)
           && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {
-        return this.followLink_(element);
+        return Pagination.followLink_(element);
       }
     }
     return false;
@@ -766,18 +765,18 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     copied_: function (this: VHUDTy, text: string, e?: string, virtual?: true): string | void {
       if (!text) {
         if (virtual) { return text; }
-        return this.tip_(`No ${e || "text"} found!`, 1000);
+        return HUD.tip_(`No ${e || "text"} found!`, 1000);
       }
       if (text.startsWith("chrome-") && text.indexOf("://") > 0) {
         text = text.substring(text.indexOf("/", text.indexOf("/") + 2)) || text;
       }
       text = "Copied: " + (text.length > 41 ? text.substring(0, 41) + "\u2026" : text + ".");
       if (virtual) { return text; }
-      return this.tip_(text, 2000);
+      return HUD.tip_(text, 2000);
     } as VHUDTy["copied_"],
     tip_ (text: string, duration?: number): void {
-      this.show_(text);
-      this.text_ && ((this as typeof HUD)._timer = setTimeout(this.hide_, duration || 1500));
+      HUD.show_(text);
+      HUD.text_ && ((HUD as typeof HUD)._timer = setTimeout(HUD.hide_, duration || 1500));
     },
     show_ (text: string, embed?: boolean): void {
       const hud = HUD;

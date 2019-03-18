@@ -264,12 +264,12 @@ const bookmarkEngine = {
     if (queryTerms.length === 0) {
       Completers.next_([]);
       if (index !== 0) { return; }
-    } else if (this.status_ === BookmarkStatus.inited) {
-      return this.performSearch_();
+    } else if (bookmarkEngine.status_ === BookmarkStatus.inited) {
+      return bookmarkEngine.performSearch_();
     } else {
-      this.currentSearch_ = query;
+      bookmarkEngine.currentSearch_ = query;
     }
-    if (this.status_ === BookmarkStatus.notInited) { return this.refresh_(); }
+    if (bookmarkEngine.status_ === BookmarkStatus.notInited) { return bookmarkEngine.refresh_(); }
   },
   StartsWithSlash_ (str: string): boolean { return str.charCodeAt(0) === KnownKey.slash; },
   performSearch_ (): void {
@@ -325,44 +325,46 @@ const bookmarkEngine = {
     });
   } as ((this: void) => void) | null,
   refresh_ (): void {
-    this.status_ = BookmarkStatus.initing;
-    if (this._timer) {
-      clearTimeout(this._timer);
-      this._timer = 0;
+    bookmarkEngine.status_ = BookmarkStatus.initing;
+    if (bookmarkEngine._timer) {
+      clearTimeout(bookmarkEngine._timer);
+      bookmarkEngine._timer = 0;
     }
-    chrome.bookmarks.getTree(this.readTree_.bind(this));
+    chrome.bookmarks.getTree(bookmarkEngine.readTree_.bind(bookmarkEngine));
   },
   readTree_ (tree: chrome.bookmarks.BookmarkTreeNode[]): void {
-    this.status_ = BookmarkStatus.inited;
-    this.bookmarks_ = [];
-    this.dirs_ = [];
-    tree.forEach(this.traverseBookmark_, this);
-    const query = this.currentSearch_;
-    this.currentSearch_ = null;
+    const a = this;
+    a.status_ = BookmarkStatus.inited;
+    a.bookmarks_ = [];
+    a.dirs_ = [];
+    tree.forEach(a.traverseBookmark_, a);
+    const query = a.currentSearch_;
+    a.currentSearch_ = null;
     setTimeout(() => Decoder.decodeList_(bookmarkEngine.bookmarks_), 50);
-    if (this.Listen_) {
-      setTimeout(this.Listen_, 0);
-      this.Listen_ = null;
+    if (a.Listen_) {
+      setTimeout(a.Listen_, 0);
+      a.Listen_ = null;
     }
     if (query && !query.isOff) {
-      return this.performSearch_();
+      return a.performSearch_();
     }
   },
   traverseBookmark_ (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
-    const title = bookmark.title, id = bookmark.id, path = this.path_ + "/" + (title || id);
+    const a = bookmarkEngine;
+    const title = bookmark.title, id = bookmark.id, path = a.path_ + "/" + (title || id);
     if (bookmark.children) {
-      this.dirs_.push(id);
-      const oldPath = this.path_;
-      if (2 < ++this.depth_) {
-        this.path_ = path;
+      a.dirs_.push(id);
+      const oldPath = a.path_;
+      if (2 < ++a.depth_) {
+        a.path_ = path;
       }
-      bookmark.children.forEach(this.traverseBookmark_, this);
-      --this.depth_;
-      this.path_ = oldPath;
+      bookmark.children.forEach(a.traverseBookmark_, a);
+      --a.depth_;
+      a.path_ = oldPath;
       return;
     }
     const url = bookmark.url as string, jsSchema = "javascript:", isJS = url.startsWith(jsSchema);
-    this.bookmarks_.push({
+    a.bookmarks_.push({
       id, path, title,
       text: isJS ? jsSchema : url,
       visible: phraseBlacklist ? BlacklistFilter.TestNotMatched_(url, title) : kVisibility.visible,
@@ -387,11 +389,10 @@ const bookmarkEngine = {
     }
   },
   Delay_ (this: void): void {
-    const _this = bookmarkEngine;
-    _this._stamp = performance.now();
-    if (_this.status_ < BookmarkStatus.inited) { return; }
-    _this._timer = setTimeout(_this.Later_, InnerConsts.bookmarkBasicDelay);
-    _this.status_ = BookmarkStatus.notInited;
+    bookmarkEngine._stamp = performance.now();
+    if (bookmarkEngine.status_ < BookmarkStatus.inited) { return; }
+    bookmarkEngine._timer = setTimeout(bookmarkEngine.Later_, InnerConsts.bookmarkBasicDelay);
+    bookmarkEngine.status_ = BookmarkStatus.notInited;
   },
   Expire_ (
       this: void, id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
@@ -447,7 +448,7 @@ historyEngine = {
     }
     if (queryTerms.length > 0) {
       if (history) {
-        return Completers.next_(this.quickSearch_(history));
+        return Completers.next_(historyEngine.quickSearch_(history));
       }
       return HistoryCache.use_(function (historyList): void {
         if (query.isOff) { return; }
@@ -461,11 +462,11 @@ historyEngine = {
     }
     autoSelect = false;
     if (index === 0) {
-      Completers.requireNormalOrIncognito_(this, this.loadTabs_, query);
+      Completers.requireNormalOrIncognito_(historyEngine, historyEngine.loadTabs_, query);
     } else if (chrome.sessions) {
-      chrome.sessions.getRecentlyClosed(this.loadSessions_.bind(this, query));
+      chrome.sessions.getRecentlyClosed(historyEngine.loadSessions_.bind(historyEngine, query));
     } else {
-      this.filterFill_([], query, {}, 0, 0);
+      historyEngine.filterFill_([], query, {}, 0, 0);
     }
   },
   quickSearch_ (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
@@ -757,7 +758,7 @@ searchEngine = {
         q.shift();
       }
       keyword = rawQuery.substring(1).trimLeft();
-      sug = this.makeUrlSuggestion_(keyword, "\\" + keyword);
+      sug = searchEngine.makeUrlSuggestion_(keyword, "\\" + keyword);
       autoSelect = true;
       maxResults--;
       matchedTotal++;
@@ -770,7 +771,7 @@ searchEngine = {
       if (!pattern) { return true; }
     } else if (!pattern) {
       if (matchType === MatchType.plain && q.length <= 1) {
-        matchType = q.length ? this.calcNextMatchType_() : MatchType.reset;
+        matchType = q.length ? searchEngine.calcNextMatchType_() : MatchType.reset;
       }
       return Completers.next_([]);
     } else {
@@ -801,10 +802,10 @@ searchEngine = {
         switch (ret[1]) {
         case "search":
           queryTerms = ret[0] as string[];
-          const counter = this._nestedEvalCounter++;
+          const counter = searchEngine._nestedEvalCounter++;
           if (counter > 12) { break; }
-          const subVal = this.preFilter_(query, true);
-          if (counter <= 0) { this._nestedEvalCounter = 0; }
+          const subVal = searchEngine.preFilter_(query, true);
+          if (counter <= 0) { searchEngine._nestedEvalCounter = 0; }
           if (subVal !== true) {
             return;
           }
@@ -815,10 +816,10 @@ searchEngine = {
       url = Utils.convertToUrl_(url, null, Urls.WorkType.KeepAll);
     }
     sug = new Suggestion("search", url, text
-      , pattern.name + ": " + q.join(" "), this.compute9_) as SearchSuggestion;
+      , pattern.name + ": " + q.join(" "), searchEngine.compute9_) as SearchSuggestion;
 
     if (q.length > 0) {
-      sug.text = this.makeText_(text, indexes);
+      sug.text = searchEngine.makeText_(text, indexes);
       sug.textSplit = highlight(sug.text, indexes);
       sug.title = highlight(sug.title, [pattern.name.length + 2, sug.title.length]);
       sug.visited = !!HistoryCache.history_ && HistoryCache.binarySearch_(url) >= 0;
@@ -832,7 +833,7 @@ searchEngine = {
     if (!promise) {
       return Completers.next_([sug]);
     }
-    promise.then(this.onPrimose_.bind(this, query, sug));
+    promise.then(searchEngine.onPrimose_.bind(searchEngine, query, sug));
   },
   onPrimose_ (query: CompletersNS.QueryStatus, output: Suggestion, arr: Urls.MathEvalResult): void {
     if (query.isOff) { return; }
@@ -853,11 +854,11 @@ searchEngine = {
   calcNextMatchType_ (): MatchType {
     const key = queryTerms[0], arr = Settings.cache_.searchKeywords;
     if (!arr) {
-      this.timer_ = this.timer_ || setTimeout(this.BuildSearchKeywords_, 67);
+      searchEngine.timer_ = searchEngine.timer_ || setTimeout(searchEngine.BuildSearchKeywords_, 67);
       return MatchType.searching_;
     }
-    if (key.length >= this.searchKeywordMaxLength_) { return MatchType.plain; }
-    const next = this.binaryInsert_(key, arr);
+    if (key.length >= searchEngine.searchKeywordMaxLength_) { return MatchType.plain; }
+    const next = searchEngine.binaryInsert_(key, arr);
     return next < arr.length && arr[next].startsWith(key) ? MatchType.searching_
       : MatchType.plain;
   },
@@ -921,12 +922,12 @@ Completers = {
   mostRecentQuery_: null as CompletersNS.QueryStatus | null,
   callback_: null as CompletersNS.Callback | null,
   filter_ (completers: ReadonlyArray<Completer>): void {
-    if (this.mostRecentQuery_) { this.mostRecentQuery_.isOff = true; }
-    const query: CompletersNS.QueryStatus = this.mostRecentQuery_ = {
+    if (Completers.mostRecentQuery_) { Completers.mostRecentQuery_.isOff = true; }
+    const query: CompletersNS.QueryStatus = Completers.mostRecentQuery_ = {
       isOff: false
     };
-    let i = this.sugCounter_ = 0, l = this.counter_ = completers.length;
-    this.suggestions_ = [];
+    let i = Completers.sugCounter_ = 0, l = Completers.counter_ = completers.length;
+    Completers.suggestions_ = [];
     matchType = offset && MatchType.reset;
     if (completers[0] === searchEngine) {
       if (l < 2) {
@@ -938,7 +939,7 @@ Completers = {
     RankingUtils.timeAgo_ = Date.now() - TimeEnums.timeCalibrator; // safe for time change
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore * queryTerms.length || 0.01;
     if (queryTerms.indexOf("__proto__") >= 0) {
-      queryTerms = queryTerms.join(" ").replace(this.protoRe_, " __proto_").trimLeft().split(" ");
+      queryTerms = queryTerms.join(" ").replace(Completers.protoRe_, " __proto_").trimLeft().split(" ");
     }
     RegExpCache.buildParts_();
     for (l--; i <= l; i++) {
@@ -970,20 +971,20 @@ Completers = {
     });
   },
   next_ (newSugs: Suggestion[]): void {
-    let arr = this.suggestions_;
+    let arr = Completers.suggestions_;
     if (newSugs.length > 0) {
-      this.sugCounter_++;
-      this.suggestions_ = (arr as Suggestion[]).length === 0 ? newSugs : (arr as Suggestion[]).concat(newSugs);
+      Completers.sugCounter_++;
+      Completers.suggestions_ = (arr as Suggestion[]).length === 0 ? newSugs : (arr as Suggestion[]).concat(newSugs);
     }
-    if (0 === --this.counter_) {
+    if (0 === --Completers.counter_) {
       arr = null;
-      return this.finish_();
+      return Completers.finish_();
     }
   },
   finish_ (): void {
-    let suggestions = this.suggestions_ as Suggestion[];
-    this.suggestions_ = null;
-    suggestions.sort(this.rsortByRelevancy_);
+    let suggestions = Completers.suggestions_ as Suggestion[];
+    Completers.suggestions_ = null;
+    suggestions.sort(Completers.rsortByRelevancy_);
     if (offset > 0) {
       suggestions = suggestions.slice(offset, offset + maxTotal);
       offset = 0;
@@ -1005,18 +1006,18 @@ Completers = {
         && suggestions.length === 0 ? MatchType.searchWanted : MatchType.Default)
       : !showThoseInBlacklist ? MatchType.Default
       : suggestions.length === 0 ? queryTerms.length > 0 ? MatchType.emptyResult : MatchType.Default
-      : this.sugCounter_ === 1 ? MatchType.singleMatch : MatchType.Default,
-    func = this.callback_ as CompletersNS.Callback;
-    this.cleanGlobals_();
+      : Completers.sugCounter_ === 1 ? MatchType.singleMatch : MatchType.Default,
+    func = Completers.callback_ as CompletersNS.Callback;
+    Completers.cleanGlobals_();
     return func(suggestions, newAutoSelect, newMatchType, matched);
   },
   cleanGlobals_ (): void {
-    this.mostRecentQuery_ = this.callback_ = inNormal = null;
+    Completers.mostRecentQuery_ = Completers.callback_ = inNormal = null;
     queryTerms = [];
     rawQuery = rawMore = domainToSkip = "";
     RegExpCache.parts_ = null as never;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
-    RankingUtils.timeAgo_ = this.sugCounter_ = matchType =
+    RankingUtils.timeAgo_ = Completers.sugCounter_ = matchType =
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
     autoSelect = singleLine = false;
@@ -1281,18 +1282,18 @@ knownCs: CompletersMap & SafeObject = {
     refreshInfo_ (): void {
       type Q = chrome.history.HistoryQuery;
       type C = (results: chrome.history.HistoryItem[]) => void;
-      const i = Date.now(); // safe for time change
-      if (this.toRefreshCount_ <= 0) { /* empty */ }
-      else if (i < this.lastRefresh_ + 1000 && i >= this.lastRefresh_) { return; }
+      const a = HistoryCache, i = Date.now(); // safe for time change
+      if (a.toRefreshCount_ <= 0) { /* empty */ }
+      else if (i < a.lastRefresh_ + 1000 && i >= a.lastRefresh_) { return; }
       else {
         setTimeout(chrome.history.search as ((q: Q, c: C) => void | 1) as (q: Q, c: C) => void, 50, {
           text: "",
-          maxResults: Math.min(999, this.updateCount_ + 10),
-          startTime: i < this.lastRefresh_ ? i - 5 * 60 * 1000 : this.lastRefresh_
-        }, this.OnInfo_);
+          maxResults: Math.min(999, a.updateCount_ + 10),
+          startTime: i < a.lastRefresh_ ? i - 5 * 60 * 1000 : a.lastRefresh_
+        }, a.OnInfo_);
       }
-      this.lastRefresh_ = i;
-      this.toRefreshCount_ = this.updateCount_ = 0;
+      a.lastRefresh_ = i;
+      a.toRefreshCount_ = a.updateCount_ = 0;
       return Decoder.continueToWork_();
     },
     OnInfo_ (history: chrome.history.HistoryItem[]): void {
@@ -1470,14 +1471,15 @@ knownCs: CompletersMap & SafeObject = {
       xhr.onerror = this.OnXHR_;
       return xhr;
     },
-    onUpdate_ (charset: string): void {
+    onUpdate_ (this: void, charset: string): void {
       const enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false,
       newDataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "",
-      isSame = newDataUrl === this._dataUrl;
+      a = Decoder,
+      isSame = newDataUrl === a._dataUrl;
       if (isSame) { return; }
-      this._dataUrl = newDataUrl;
+      a._dataUrl = newDataUrl;
       if (enabled) {
-        this.init_ === this.xhr_ && /* inited */
+        a.init_ === a.xhr_ && /* inited */
         setTimeout(function (): void {
           if (HistoryCache.history_) {
             Decoder.decodeList_(HistoryCache.history_);
@@ -1485,21 +1487,21 @@ knownCs: CompletersMap & SafeObject = {
           return Decoder.decodeList_(bookmarkEngine.bookmarks_);
         }, 100);
       } else {
-        this.dict_ = Object.create<string>(null);
-        this._jobs.length = 0;
+        a.dict_ = Object.create<string>(null);
+        a._jobs.length = 0;
       }
-      if (this.enabled_ === enabled) { return; }
-      this._jobs = enabled ? [] as ItemToDecode[] : { length: 0, push () { /* empty */ } } as any;
-      this.enabled_ = enabled;
-      this._ind = -1;
+      if (a.enabled_ === enabled) { return; }
+      a._jobs = enabled ? [] as ItemToDecode[] : { length: 0, push () { /* empty */ } } as any;
+      a.enabled_ = enabled;
+      a._ind = -1;
     },
     init_ (): XMLHttpRequest | null {
-      this._escapeHash = Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL ||
+      Decoder._escapeHash = Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL ||
           ChromeVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL;
-      Settings.updateHooks_.localeEncoding = Decoder.onUpdate_.bind(Decoder);
+      Settings.updateHooks_.localeEncoding = Decoder.onUpdate_;
       Decoder.onUpdate_(Settings.get_("localeEncoding"));
-      this.init_ = this.xhr_;
-      return this.xhr_();
+      Decoder.init_ = Decoder.xhr_;
+      return Decoder.xhr_();
     }
   };
 

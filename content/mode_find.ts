@@ -161,29 +161,30 @@ var VFind = {
     if (!query) {
       return VHUD.tip_("No old queries to find.");
     }
-    this.init_ && this.init_(AdjustType.MustAdjust);
-    if (query !== this.query_) {
-      this.updateQuery_(query);
-      if (this.isActive_) {
-        this.input_.textContent = query.replace(<RegExpOne> /^ /, "\xa0");
-        this.showCount_(1);
+    const a = this;
+    a.init_ && a.init_(AdjustType.MustAdjust);
+    if (query !== a.query_) {
+      a.updateQuery_(query);
+      if (a.isActive_) {
+        a.input_.textContent = query.replace(<RegExpOne> /^ /, "\xa0");
+        a.showCount_(1);
       }
     }
-    const style = this.isActive_ || VHUD.opacity_ !== 1 ? null : (VHUD.box_ as HTMLDivElement).style;
+    const style = a.isActive_ || VHUD.opacity_ !== 1 ? null : (VHUD.box_ as HTMLDivElement).style;
     style && (style.visibility = "hidden");
     VDom.UI.toggleSelectStyle_(0);
-    this.execute_(null, options);
+    a.execute_(null, options);
     style && (style.visibility = "");
-    if (!this.hasResults_) {
-      this.ToggleStyle_(1);
-      if (!this.isActive_) {
+    if (!a.hasResults_) {
+      a.ToggleStyle_(1);
+      if (!a.isActive_) {
         VDom.UI.toggleSelectStyle_(0);
-        VHUD.tip_(`No matches for '${this.query_}'`);
+        VHUD.tip_(`No matches for '${a.query_}'`);
       }
       return;
     }
-    this.focusFoundLinkIfAny_();
-    return this.postMode_.activate_();
+    a.focusFoundLinkIfAny_();
+    return a.postMode_.activate_();
   },
   clean_ (i: FindNS.Action): Element | null { // need keep @hasResults
     let el: Element | null = null, _this = VFind;
@@ -225,30 +226,31 @@ var VFind = {
     VUtils.Stop_(event);
     if (event.isTrusted === false) { return; }
     if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
+    const a = this;
     const n = event.keyCode;
     type Result = FindNS.Action;
     let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
       : n === VKeyCodes.enter
-        ? event.shiftKey ? FindNS.Action.PassDirectly : (this.saveQuery_(), FindNS.Action.ExitToPostMode)
+        ? event.shiftKey ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
       : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? FindNS.Action.DoNothing
-      : this.query_ || (n === VKeyCodes.deleteKey && !VUtils.cache_.onMac_ || event.repeat) ? FindNS.Action.PassDirectly
+      : a.query_ || (n === VKeyCodes.deleteKey && !VUtils.cache_.onMac_ || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
       if (VKeyboard.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
       else if (i = VKeyboard.getKeyStat_(event)) {
         if (i & ~KeyStat.PrimaryModifier) { return; }
         else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
-          VEvent.scroll_(event, this.box_.contentWindow);
+          VEvent.scroll_(event, a.box_.contentWindow);
         }
         else if (n === VKeyCodes.J || n === VKeyCodes.K) {
-          this.execute_(null, { count: (VKeyCodes.K - n) || -1 });
+          a.execute_(null, { count: (VKeyCodes.K - n) || -1 });
         }
         else { return; }
         i = FindNS.Action.DoNothing;
       }
-      else if (n === VKeyCodes.f1) { this.box_.contentDocument.execCommand("delete"); }
-      else if (n === VKeyCodes.f2) { this.box_.blur(); window.focus(); VEvent.suppress_(n); }
-      else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery_(n !== VKeyCodes.up); }
+      else if (n === VKeyCodes.f1) { a.box_.contentDocument.execCommand("delete"); }
+      else if (n === VKeyCodes.f2) { a.box_.blur(); window.focus(); VEvent.suppress_(n); }
+      else if (n === VKeyCodes.up || n === VKeyCodes.down) { a.nextQuery_(n !== VKeyCodes.up); }
       else { return; }
     } else if (i === FindNS.Action.PassDirectly) {
       return;
@@ -256,7 +258,7 @@ var VFind = {
     VUtils.prevent_(event);
     if (!i) { return; }
     VEvent.suppress_(n);
-    this.deactivate_(i as FindNS.Action);
+    a.deactivate_(i as FindNS.Action);
   },
   onHostKeydown_ (event: KeyboardEvent): HandlerResult {
     let i = VKeyboard.getKeyStat_(event), n = event.keyCode;
@@ -277,10 +279,11 @@ var VFind = {
     return HandlerResult.Nothing;
   },
   deactivate_(i: FindNS.Action): void {
-    let sin = this.styleIn_, noStyle = !sin || !sin.parentNode, el = this.clean_(i), el2: Element | null;
-    if ((i === FindNS.Action.ExitAndReFocus || !this.hasResults_ || VVisual.mode_) && !noStyle) {
-      this.ToggleStyle_(1);
-      this.restoreSelection_(true);
+    const a = this;
+    let sin = a.styleIn_, noStyle = !sin || !sin.parentNode, el = a.clean_(i), el2: Element | null;
+    if ((i === FindNS.Action.ExitAndReFocus || !a.hasResults_ || VVisual.mode_) && !noStyle) {
+      a.ToggleStyle_(1);
+      a.restoreSelection_(true);
     }
     if (VVisual.mode_) {
       return VVisual.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
@@ -289,9 +292,9 @@ var VFind = {
       }));
     }
     VDom.UI.toggleSelectStyle_(0);
-    if (i < FindNS.Action.MinComplicatedExit || !this.hasResults_) { return; }
+    if (i < FindNS.Action.MinComplicatedExit || !a.hasResults_) { return; }
     if (!el || el !== VEvent.lock_()) {
-      el = this.focusFoundLinkIfAny_();
+      el = a.focusFoundLinkIfAny_();
       if (el && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)) {
         if (VDom.getEditableType_(el2) >= EditableType.Editbox && el.contains(el2)) {
           VDom.prepareCrop_();
@@ -299,7 +302,7 @@ var VFind = {
         }
       }
     }
-    if (i === FindNS.Action.ExitToPostMode) { return this.postMode_.activate_(); }
+    if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
   },
   /** return an element if no <a> else null */
   focusFoundLinkIfAny_ (): SafeElement | null {
@@ -340,16 +343,17 @@ var VFind = {
   postMode_: {
     lock_: null as Element | null,
     activate_  (): void {
-      const el = VEvent.lock_(), Exit = this.exit_ as (this: void, a?: boolean | Event) => void;
+      const pm = this;
+      const el = VEvent.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
-      VUtils.push_(this.onKeydown_, this);
-      if (el === this.lock_) { return; }
-      if (!this.lock_) {
+      VUtils.push_(pm.onKeydown_, pm);
+      if (el === pm.lock_) { return; }
+      if (!pm.lock_) {
         addEventListener("click", Exit, true);
         VEvent.setupSuppress_(Exit);
       }
       Exit(true);
-      this.lock_ = el;
+      pm.lock_ = el;
       el.addEventListener("blur", Exit, true);
     },
     onKeydown_ (event: KeyboardEvent): HandlerResult {
@@ -359,11 +363,12 @@ var VFind = {
     },
     exit_ (skip?: boolean | Event): void {
       if (skip instanceof MouseEvent && skip.isTrusted === false) { return; }
-      this.lock_ && this.lock_.removeEventListener("blur", this.exit_, true);
-      if (!this.lock_ || skip === true) { return; }
-      this.lock_ = null;
-      removeEventListener("click", this.exit_, true);
-      VUtils.remove_(this);
+      const a = this;
+      a.lock_ && a.lock_.removeEventListener("blur", a.exit_, true);
+      if (!a.lock_ || skip === true) { return; }
+      a.lock_ = null;
+      removeEventListener("click", a.exit_, true);
+      VUtils.remove_(a);
       VEvent.setupSuppress_();
     }
   },
@@ -387,14 +392,15 @@ var VFind = {
   },
   _small: false,
   showCount_ (changed: BOOL): void {
-    let count = this.matchCount_;
+    const a = this;
+    let count = a.matchCount_;
     if (changed) {
-      (this.countEl_.firstChild as Text).data = !this.parsedQuery_ ? ""
-        : "(" + (count || (this.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
+      (a.countEl_.firstChild as Text).data = !a.parsedQuery_ ? ""
+        : "(" + (count || (a.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
     }
-    count = ((this.input_.offsetWidth + this.countEl_.offsetWidth + 7) >> 2) * 4;
-    if (this._small && count < 152) { return; }
-    this.box_.style.width = ((this._small = count < 152) ? 0 as number | string as string : count + "px");
+    count = ((a.input_.offsetWidth + a.countEl_.offsetWidth + 7) >> 2) * 4;
+    if (a._small && count < 152) { return; }
+    a.box_.style.width = ((a._small = count < 152) ? 0 as number | string as string : count + "px");
   },
   _ctrlRe: <RegExpG & RegExpSearchable<0>> /\\[CIRW\\cirw]/g,
   _bslashRe: <RegExpG & RegExpSearchable<0>> /\\\\/g,
@@ -472,32 +478,34 @@ var VFind = {
     sel.addRange(range);
   },
   getNextQueryFromRegexMatches_ (back?: boolean): string {
-    if (!this.regexMatches_) { return ""; }
-    let count = this.matchCount_;
-    this.activeRegexIndex_ = count = (this.activeRegexIndex_ + (back ? -1 : 1) + count) % count;
-    return this.regexMatches_[count];
+    const a = this;
+    if (!a.regexMatches_) { return ""; }
+    let count = a.matchCount_;
+    a.activeRegexIndex_ = count = (a.activeRegexIndex_ + (back ? -1 : 1) + count) % count;
+    return a.regexMatches_[count];
   },
   execute_ (query?: string | null, options?: FindNS.ExecuteOptions): void {
     options = options ? VUtils.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
+    const a = this;
     let el: Element | null, found: boolean, count = ((options.count as number) | 0) || 1, back = count < 0
       , par: HTMLElement | null = null, timesRegExpNotMatch = 0
       , sel: Selection | undefined
-      , q: string, notSens = this.ignoreCase_ && !options.caseSensitive;
+      , q: string, notSens = a.ignoreCase_ && !options.caseSensitive;
     /** Note:
      * On Firefox, it's impossible to replace the gray bg color for blurred selection:
      * In https://hg.mozilla.org/mozilla-central/file/tip/layout/base/nsDocumentViewer.cpp#l3463 ,
      * `nsDocViewerFocusListener::HandleEvent` calls `SetDisplaySelection(SELECTION_DISABLED)`,
      *   if only a trusted "blur" event gets dispatched into Document
      */
-    options.noColor || this.ToggleStyle_(0);
+    options.noColor || a.ToggleStyle_(0);
     back && (count = -count);
-    const isRe = this.isRegex_, pR = this.parsedRegexp_;
+    const isRe = a.isRegex_, pR = a.parsedRegexp_;
     const focusHUD = !!(Build.BTypes & BrowserType.Firefox)
       && (!(Build.BTypes & ~BrowserType.Firefox) || VUtils.cache_.browser_ === BrowserType.Firefox)
-      && this.isActive_ && this.box_.contentDocument.hasFocus();
+      && a.isActive_ && a.box_.contentDocument.hasFocus();
     do {
-      q = query != null ? query : isRe ? this.getNextQueryFromRegexMatches_(back) : this.parsedQuery_;
-      found = this.find_(q, !notSens, back, true, this.wholeWord_, false, false);
+      q = query != null ? query : isRe ? a.getNextQueryFromRegexMatches_(back) : a.parsedQuery_;
+      found = a.find_(q, !notSens, back, true, a.wholeWord_, false, false);
       if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VDom.UI.getSelected_()[0]), q))) {
         pR.lastIndex = 0;
         let text = par.innerText as string | HTMLElement;
@@ -507,10 +515,10 @@ var VFind = {
         }
       }
     } while (0 < --count && found);
-    options.noColor || setTimeout(this.HookSel_, 0);
+    options.noColor || setTimeout(a.HookSel_, 0);
     (el = VEvent.lock_()) && !VDom.isSelected_() && el.blur && el.blur();
-    Build.BTypes & BrowserType.Firefox && focusHUD && this.focus_();
-    this.hasResults_ = found;
+    Build.BTypes & BrowserType.Firefox && focusHUD && a.focus_();
+    a.hasResults_ = found;
   },
 /**
  * According to https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editor.cc?q=FindRangeOfString&g=0&l=815 ,

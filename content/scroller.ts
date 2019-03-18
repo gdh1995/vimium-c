@@ -130,24 +130,26 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   },
   /** amount: can not be 0 */
   scrollBy_ (di: ScrollByY, amount: number, factor: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined): void {
+    const a = this;
     VMarks.setPreviousPosition_();
-    this.prepareTop_();
-    const element = this.findScrollable_(di, amount);
-    amount = !factor ? this._adjustAmount(di, amount, element)
+    a.prepareTop_();
+    const element = a.findScrollable_(di, amount);
+    amount = !factor ? a._adjustAmount(di, amount, element)
       : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
-      : amount * this._getDimension(element, di, factor === "max" ? 2 : 0);
-    this.scroll_(element, di, amount);
-    this.top_ = null;
+      : amount * a._getDimension(element, di, factor === "max" ? 2 : 0);
+    a.scroll_(element, di, amount);
+    a.top_ = null;
   },
   /** `amount`: default to be `0` */
   scrollTo_ (di: ScrollByY, amount: number, fromMax: BOOL): void {
-    this.prepareTop_();
-    const element = this.findScrollable_(di, fromMax ? 1 : -1);
-    amount = this._adjustAmount(di, amount, element);
-    fromMax && (amount = this._getDimension(element, di, 2) - amount - this._getDimension(element, di, 0));
-    amount -= element ? element[this.Properties_[4 + di]] : di ? window.scrollY : window.scrollX;
-    this.scroll_(element, di, amount);
-    this.top_ = null;
+    const a = this;
+    a.prepareTop_();
+    const element = a.findScrollable_(di, fromMax ? 1 : -1);
+    amount = a._adjustAmount(di, amount, element);
+    fromMax && (amount = a._getDimension(element, di, 2) - amount - a._getDimension(element, di, 0));
+    amount -= element ? element[a.Properties_[4 + di]] : di ? window.scrollY : window.scrollX;
+    a.scroll_(element, di, amount);
+    a.top_ = null;
   },
   _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
     amount *= VUtils.cache_.scrollStepSize;
@@ -158,22 +160,23 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
    * @param amount should not be 0
    */
   findScrollable_ (di: ScrollByY, amount: number): SafeElement | null {
-    let element: SafeElement | null = this.current_, top = this.top_;
+    const a = this;
+    let element: SafeElement | null = a.current_, top = a.top_;
     if (!element) {
-      return this.current_ = top && this._selectFirst(top) || top;
+      return a.current_ = top && a._selectFirst(top) || top;
     }
     let reason, isCurVerticallyScrollable = di - 1 /** X => -1, Y => 0 */;
     type Element2 = NonNullable<typeof element>;
-    while (element !== top && (reason = this.shouldScroll_unsafe_(element as Element2, di, amount)) < 1) {
+    while (element !== top && (reason = a.shouldScroll_unsafe_(element as Element2, di, amount)) < 1) {
       if (!reason) {
-        isCurVerticallyScrollable = isCurVerticallyScrollable || +this._scrollDo(element as Element2, 1, -amount);
+        isCurVerticallyScrollable = isCurVerticallyScrollable || +a._scrollDo(element as Element2, 1, -amount);
       }
       element = VDom.SafeEl_(VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent)) || top;
     }
     if (element === top && top && !isCurVerticallyScrollable) {
-      element = this.current_ = this._selectFirst(top) || top;
+      element = a.current_ = a._selectFirst(top) || top;
     }
-    this.scrolled_ = 0;
+    a.scrolled_ = 0;
     return element;
   },
   prepareTop_ (): void {

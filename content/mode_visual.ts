@@ -97,82 +97,84 @@ var VVisual = {
   },
   /** @safe_di */
   deactivate_ (isEsc?: 1): void {
-    if (!this.mode_) { return; }
-    this.di_ = VisualModeNS.kDir.unknown;
-    this.diType_ = VisualModeNS.DiType.UnsafeUnknown;
-    this.getDirection_("");
-    const oldDiType = this.diType_ as VisualModeNS.DiType;
-    VUtils.remove_(this);
-    if (!this.retainSelection_) {
-      this.collapseToFocus_(isEsc && this.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
+    const a = this;
+    if (!a.mode_) { return; }
+    a.di_ = VisualModeNS.kDir.unknown;
+    a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
+    a.getDirection_("");
+    const oldDiType = a.diType_ as VisualModeNS.DiType;
+    VUtils.remove_(a);
+    if (!a.retainSelection_) {
+      a.collapseToFocus_(isEsc && a.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
-    this.mode_ = VisualModeNS.Mode.NotActive; this.hud_ = "";
+    a.mode_ = VisualModeNS.Mode.NotActive; a.hud_ = "";
     VFind.clean_(FindNS.Action.ExitNoFocus);
     const el = VEvent.lock_();
     oldDiType & (VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Complicated) ||
     el && el.blur && el.blur();
     VDom.UI.toggleSelectStyle_(0);
     VScroller.top_ = null;
-    this.retainSelection_ = false;
-    this.resetKeys_();
-    this.selection_ = null as never;
-    this.scope_ =  null;
+    a.retainSelection_ = false;
+    a.resetKeys_();
+    a.selection_ = null as never;
+    a.scope_ =  null;
     VHUD.hide_();
   },
   /** need real diType */
   selType_: null as never as () => SelType,
   /** @unknown_di_result */
   onKeydown_ (event: KeyboardEvent): HandlerResult {
+    const a = this;
     let i: VKeyCodes | KeyStat = event.keyCode, count = 0;
     if (i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn) {
-      this.resetKeys_();
+      a.resetKeys_();
       if (i === VKeyCodes.f1) {
-        this.flashSelection_();
+        a.flashSelection_();
       }
       return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing;
     }
     if (i === VKeyCodes.enter) {
       i = VKeyboard.getKeyStat_(event);
-      if ((i & KeyStat.shiftKey) && this.mode_ !== VisualModeNS.Mode.Caret) { this.retainSelection_ = true; }
-      (i & KeyStat.PrimaryModifier) ? this.deactivate_()
-        : (this.resetKeys_(), this.yank_(i === KeyStat.altKey || null));
+      if ((i & KeyStat.shiftKey) && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
+      (i & KeyStat.PrimaryModifier) ? a.deactivate_()
+        : (a.resetKeys_(), a.yank_(i === KeyStat.altKey || null));
       return HandlerResult.Prevent;
     }
     if (VKeyboard.isEscape_(event)) {
-      this.currentCount_ || this.currentSeconds_ ? this.resetKeys_() : this.deactivate_(1);
+      a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivate_(1);
       return HandlerResult.Prevent;
     }
     const ch = VKeyboard.char_(event);
     if (!ch) {
-      this.resetKeys_();
+      a.resetKeys_();
       return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
     let key = VKeyboard.key_(event, ch)
       , obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
     key = VEvent.mapKey_(key);
-    if (obj = this.currentSeconds_) {
+    if (obj = a.currentSeconds_) {
       obj = obj[key];
-      count = this.currentCount_;
-      this.resetKeys_();
+      count = a.currentCount_;
+      a.resetKeys_();
     }
     if (obj != null) { /* empty */ }
-    else if (key.length === 1 && (i = +key[0]) < 10 && (i || this.currentCount_)) {
-      this.currentCount_ = this.currentCount_ * 10 + i;
-      this.currentSeconds_ = null;
-    } else if ((obj = this.keyMap_[key]) == null) {
-      this.currentCount_ = 0;
+    else if (key.length === 1 && (i = +key[0]) < 10 && (i || a.currentCount_)) {
+      a.currentCount_ = a.currentCount_ * 10 + i;
+      a.currentSeconds_ = null;
+    } else if ((obj = a.keyMap_[key]) == null) {
+      a.currentCount_ = 0;
     } else if (typeof obj === "object") {
-      this.currentSeconds_ = obj;
+      a.currentSeconds_ = obj;
       obj = null;
     } else {
-      count = this.currentCount_;
-      this.currentCount_ = 0;
+      count = a.currentCount_;
+      a.currentCount_ = 0;
     }
     if (obj == null) { return ch.length === 1 && ch === key ? HandlerResult.Prevent : HandlerResult.Suppress; }
     VUtils.prevent_(event);
-    this.di_ = VisualModeNS.kDir.unknown; // make @di safe even when a user modifies the selection
-    this.diType_ = VisualModeNS.DiType.UnsafeUnknown;
-    this.commandHandler_(obj, count || 1);
+    a.di_ = VisualModeNS.kDir.unknown; // make @di safe even when a user modifies the selection
+    a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
+    a.commandHandler_(obj, count || 1);
     return HandlerResult.Prevent;
   },
   /** @not_related_to_di */
@@ -257,18 +259,19 @@ var VVisual = {
         }
       }
     }
+    const a = this;
     if (!node) {
       if (sr) {
-        this.selection_ = getSelection();
-        this.scope_ = null;
-        return this.establishInitialSelectionAnchor_();
+        a.selection_ = getSelection();
+        a.scope_ = null;
+        return a.establishInitialSelectionAnchor_();
       }
       return true;
     }
     offset = ((str as string).match(<RegExpOne> /^\s*/) as RegExpMatchArray)[0].length;
-    this.selection_.collapse(node, offset);
-    this.di_ = VisualModeNS.kDir.right;
-    return !this.selection_.rangeCount;
+    a.selection_.collapse(node, offset);
+    a.di_ = VisualModeNS.kDir.right;
+    return !a.selection_.rangeCount;
   },
   /** @not_related_to_di */
   prompt_ (text: string, duration: number): void {
@@ -295,23 +298,24 @@ var VVisual = {
       });
       return;
     }
-    const sel = this.selection_,
-    range = sel.rangeCount && (this.getDirection_(""), !this.diType_) && sel.getRangeAt(0);
+    const a = this;
+    const sel = a.selection_,
+    range = sel.rangeCount && (a.getDirection_(""), !a.diType_) && sel.getRangeAt(0);
     VFind.execute_(null, { noColor: true, count });
     if (VFind.hasResults_) {
-      this.diType_ = VisualModeNS.DiType.UnsafeUnknown;
-      if (this.mode_ === VisualModeNS.Mode.Caret && this.selType_() === SelType.Range) {
-        this.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
+      a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
+      if (a.mode_ === VisualModeNS.Mode.Caret && a.selType_() === SelType.Range) {
+        a.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
           m: VisualModeNS.Mode.Visual
         }));
       } else {
-        this.di_ = VisualModeNS.kDir.unknown;
-        this.commandHandler_(-1, 1);
+        a.di_ = VisualModeNS.kDir.unknown;
+        a.commandHandler_(-1, 1);
       }
       return;
     }
     range && !sel.rangeCount && sel.addRange(range);
-    this.prompt_("No matches for " + VFind.query_, 1000);
+    a.prompt_("No matches for " + VFind.query_, 1000);
   },
   /**
    * @safe_di if action !== true
@@ -679,12 +683,13 @@ var VVisual = {
     a.di_ = VisualModeNS.kDir.right;
   },
   selectLexicalEntity_ (entity: VisualModeNS.G.sentence | VisualModeNS.G.word, count: number): void {
-    this.collapseToFocus_(1);
-    entity - VisualModeNS.G.word || this.modify_(VisualModeNS.kDir.right, VisualModeNS.G.character);
-    this.modify_(VisualModeNS.kDir.left, entity);
-    this.di_ = VisualModeNS.kDir.left; // safe
-    this.collapseToFocus_(1);
-    this.runMovements_(VisualModeNS.kDir.right, entity, count);
+    const a = this;
+    a.collapseToFocus_(1);
+    entity - VisualModeNS.G.word || a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.character);
+    a.modify_(VisualModeNS.kDir.left, entity);
+    a.di_ = VisualModeNS.kDir.left; // safe
+    a.collapseToFocus_(1);
+    a.runMovements_(VisualModeNS.kDir.right, entity, count);
   },
   /** after called, VVisual must exit at once */
   selectLine_ (count: number): void {
@@ -750,9 +755,10 @@ keyMap_: {
 } as SafeDict<VisualModeNS.ValidActions | SafeDict<VisualModeNS.ValidActions>>,
 /** @not_related_to_di */
 init_ (words: string) {
-  this.init_ = null as never;
+  const a = this;
+  a.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
-  this.selType_ = !!(Build.BTypes & BrowserType.Chrome)
+  a.selType_ = !!(Build.BTypes & BrowserType.Chrome)
       && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
       && VUtils.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function (this: typeof VVisual): SelType {
@@ -761,7 +767,7 @@ init_ (words: string) {
   } : function (this: typeof VVisual): SelType {
     return typeIdx[this.selection_.type];
   };
-  const map = this.keyMap_, func = VUtils.safer_;
+  const map = a.keyMap_, func = VUtils.safer_;
 /**
  * Call stack (Chromium > icu):
  * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
@@ -787,10 +793,10 @@ init_ (words: string) {
       if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
           && !(Build.BTypes & ~BrowserType.Chrome)
           ) {
-        this.WordsRe_ = new RegExp(words, "");
+        a.WordsRe_ = new RegExp(words, "");
       } else {
         // note: the /[^]*[~~~]/ should have an acceptable performance
-        this.WordsRe_ = new RegExp(words || "[^]*[\\p{L}\\p{Nd}_]", words ? "" : "u");
+        a.WordsRe_ = new RegExp(words || "[^]*[\\p{L}\\p{Nd}_]", words ? "" : "u");
       }
     }
   }
@@ -821,7 +827,7 @@ init_ (words: string) {
     || (Build.BTypes & BrowserType.Firefox && VUtils.cache_.browser_ === BrowserType.Firefox)
     || VUtils.cache_.browserVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
   // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
-  (this._rightWhiteSpaceRe = Build.BTypes & BrowserType.Firefox
+  (a._rightWhiteSpaceRe = Build.BTypes & BrowserType.Firefox
       ? /[^\S\n\r\u2029\u202f\ufeff]+$/ as RegExpOne : /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);
   func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }

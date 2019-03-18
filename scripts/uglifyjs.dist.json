@@ -30,9 +30,10 @@
       "toUpperCase", "toLowerCase", "trim", "trimLeft", "trimRight",
       "search", "match", "exec", "replace",
       "create", "setPrototypeOf", "bind", "toString",
+      "Object.create", "Object.setPrototypeOf",
       "getAttribute", "hasAttribute", "querySelectorAll",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
-      "VEvent.lock_", "VEvent.mapKey_",
+      "VEvent.lock_", "VEvent.mapKey_", "VUtils.safer_",
       "_getKeyCharUsingKeyIdentifier", "parentFrame_"
     ],
     "pure_getters": true,

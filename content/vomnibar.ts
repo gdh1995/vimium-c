@@ -219,45 +219,47 @@ var VOmni = {
   },
   onMessage_<K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }): void | 1 {
     type Req = VomnibarNS.FReq;
+    const a = this;
     switch (data.N) {
     case VomnibarNS.kFReq.iframeIsAlive:
-      this.status_ = VomnibarNS.Status.ToShow;
-      let opt = this.options_;
-      this.options_ = null;
+      a.status_ = VomnibarNS.Status.ToShow;
+      let opt = a.options_;
+      a.options_ = null;
       if (!(data as VomnibarNS.FReq[VomnibarNS.kFReq.iframeIsAlive]).o && opt) {
-        return this.port_.postMessage<VomnibarNS.kCReq.activate>(opt as VomnibarNS.FgOptionsToFront);
+        return a.port_.postMessage<VomnibarNS.kCReq.activate>(opt as VomnibarNS.FgOptionsToFront);
       }
       break;
     case VomnibarNS.kFReq.style:
-      this.box_.style.height = (data as Req[VomnibarNS.kFReq.style]).h / VDom.wdZoom_ + "px";
-      if (this.status_ === VomnibarNS.Status.ToShow) {
-        this.maxBoxHeight_ = (data as Req[VomnibarNS.kFReq.style]).m as number;
-        this.onShown_();
+      a.box_.style.height = (data as Req[VomnibarNS.kFReq.style]).h / VDom.wdZoom_ + "px";
+      if (a.status_ === VomnibarNS.Status.ToShow) {
+        a.maxBoxHeight_ = (data as Req[VomnibarNS.kFReq.style]).m as number;
+        a.onShown_();
       }
       break;
     case VomnibarNS.kFReq.focus: window.focus(); return VEvent.suppress_((data as Req[VomnibarNS.kFReq.focus]).k);
-    case VomnibarNS.kFReq.hide: return this.hide_(1);
+    case VomnibarNS.kFReq.hide: return a.hide_(1);
     case VomnibarNS.kFReq.test: return VEvent.OnWndFocus_();
     case VomnibarNS.kFReq.scroll: return VEvent.scroll_(data as Req[VomnibarNS.kFReq.scroll]);
     case VomnibarNS.kFReq.scrollGoing: VScroller.keyIsDown_ = VScroller.maxInterval_; break;
     case VomnibarNS.kFReq.scrollEnd: VScroller.keyIsDown_ = 0; break;
     case VomnibarNS.kFReq.evalJS: VPort.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
     case VomnibarNS.kFReq.broken: (data as Req[VomnibarNS.kFReq.broken]).a && window.focus(); // no break;
-    case VomnibarNS.kFReq.unload: return VOmni ? this.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
+    case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
     case VomnibarNS.kFReq.hud: VHUD.tip_((data as Req[VomnibarNS.kFReq.hud]).t); return;
     default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.N);
     }
   },
   onShown_ (): void {
-    this.status_ = VomnibarNS.Status.Showing;
-    let style = this.box_.style, bh = this.maxBoxHeight_;
+    const a = this;
+    a.status_ = VomnibarNS.Status.Showing;
+    let style = a.box_.style, bh = a.maxBoxHeight_;
     if (bh > 0) {
-      const sh = this.screenHeight_,
+      const sh = a.screenHeight_,
       NormalTopHalf = (bh * 0.6) | 0, ScreenHeightThreshold = (VomnibarNS.PixelData.MarginTop + NormalTopHalf) * 2;
-      this.defaultTop_ = sh > ScreenHeightThreshold ? (50 - NormalTopHalf / sh * 100) + "%" : "";
+      a.defaultTop_ = sh > ScreenHeightThreshold ? (50 - NormalTopHalf / sh * 100) + "%" : "";
     }
     style.top = VDom.wdZoom_ !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.wdZoom_) | 0) + "px"
-      : this.top_ || this.defaultTop_;
+      : a.top_ || a.defaultTop_;
     style.display = "";
     setTimeout(function() {
       const a = VOmni;

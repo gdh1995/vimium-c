@@ -274,18 +274,19 @@ VDom.UI = {
   },
   _lastFlash: null,
   flash_: function (this: DomUI, el: Element | null, rect?: Rect | null): HTMLDivElement | void {
-    rect || (rect = this.getRect_(el as Element));
+    const a = this;
+    rect || (rect = a.getRect_(el as Element));
     if (!rect) { return; }
     const flashEl = VDom.createElement_("div"), nfs = !document.webkitIsFullScreen;
     flashEl.className = "R Flash";
     VDom.setBoundary_(flashEl.style, rect, nfs);
     VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
-    this.add_(flashEl);
-    this._lastFlash = flashEl;
-    setTimeout(() => {
-      this._lastFlash === flashEl && (this._lastFlash = null);
+    a.add_(flashEl);
+    a._lastFlash = flashEl;
+    setTimeout(function (): void {
+      a._lastFlash === flashEl && (a._lastFlash = null);
       flashEl.remove();
-    }, this.flashLastingTime_);
+    }, a.flashLastingTime_);
     return flashEl;
   } as DomUI["flash_"],
   suppressTail_ (this: void, onlyRepeated: BOOL): void {

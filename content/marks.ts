@@ -47,24 +47,25 @@ var VMarks = {
     }
   },
   _goto (event: HandlerNS.Event, keyChar: string): void {
+    const a = this;
     if (keyChar === "`" || keyChar === "'") {
-      const pos = this._previous;
-      this.setPreviousPosition_();
+      const pos = a._previous;
+      a.setPreviousPosition_();
       if (pos) {
-        this.scroll_(pos);
+        a.scroll_(pos);
       }
       return VHUD.tip_((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
     }
     const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto }> = {
       H: kFgReq.marks, a: kMarkAction.goto,
-      p: this.prefix_,
+      p: a.prefix_,
       n: keyChar
     };
-    if (event.shiftKey !== this.swap_) {
+    if (event.shiftKey !== a.swap_) {
       VHUD.hide_();
     } else {
       try {
-        let pos = null, key = this.getLocationKey_(keyChar), storage = localStorage, markString = storage.getItem(key);
+        let pos = null, key = a.getLocationKey_(keyChar), storage = localStorage, markString = storage.getItem(key);
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
           const { scrollX, scrollY, hash } = VUtils.safer_(pos);
           if (scrollX >= 0 && scrollY >= 0) {

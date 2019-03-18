@@ -254,49 +254,51 @@ var VDom = {
    * update VDom.bZoom_ if target
    */
   getZoom_ (target?: 1 | Element): number {
+    const a = this;
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
       , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = document.webkitFullscreenElement;
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
-      && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || this.specialZoom_) && (zoom = 1);
+      && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
     if (target) {
       const body = el ? null : document.body;
       // if fullscreen and there's nested "contain" styles,
       // then it's a whole mess and nothing can be ensured to be right
-      this.bZoom_ = body && (target === 1 || this.isInDOM_(target, body)) && +gcs(body).zoom || 1;
+      a.bZoom_ = body && (target === 1 || a.isInDOM_(target, body)) && +gcs(body).zoom || 1;
     }
-    for (; el && el !== docEl; el = this.GetParent_(el, PNType.RevealSlot)) {
+    for (; el && el !== docEl; el = a.GetParent_(el, PNType.RevealSlot)) {
       zoom *= +gcs(el).zoom || 1;
     }
-    this.paintBox_ = null; // it's not so necessary to get a new paintBox here
-    this.dbZoom_ = this.bZoom_ * zoom;
-    return this.wdZoom_ = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
+    a.paintBox_ = null; // it's not so necessary to get a new paintBox here
+    a.dbZoom_ = a.bZoom_ * zoom;
+    return a.wdZoom_ = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
   },
   getViewBox_ (needBox?: 1): ViewBox | ViewOffset {
     let iw = innerWidth, ih = innerHeight;
+    const a = this;
     const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1), doc = document;
     if (doc.webkitIsFullScreen) {
-      this.getZoom_(1);
-      this.dScale_ = 1;
-      const zoom3 = this.wdZoom_ / ratio2;
+      a.getZoom_(1);
+      a.dScale_ = 1;
+      const zoom3 = a.wdZoom_ / ratio2;
       return [0, 0, (iw / zoom3) | 0, (ih / zoom3) | 0, 0];
     }
     const gcs = getComputedStyle, float = parseFloat,
     box = doc.documentElement as HTMLElement, st = gcs(box),
     box2 = doc.body, st2 = box2 ? gcs(box2) : st,
-    zoom2 = this.bZoom_ = box2 && +st2.zoom || 1,
+    zoom2 = a.bZoom_ = box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain as string),
     stacking = st.position !== "static" || containHasPaint || st.transform !== "none",
     // ignore the case that x != y in "transform: scale(x, y)""
-    _tf = st.transform, scale = this.dScale_ = _tf && !_tf.startsWith("matrix(1,") && float(_tf.slice(7)) || 1,
+    _tf = st.transform, scale = a.dScale_ = _tf && !_tf.startsWith("matrix(1,") && float(_tf.slice(7)) || 1,
     // NOTE: if box.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
     let zoom = +st.zoom || 1;
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
-      && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || this.specialZoom_) && (zoom = 1);
-    this.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
-    this.dbZoom_ = zoom * zoom2;
+      && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
+    a.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
+    a.dbZoom_ = zoom * zoom2;
     let x = stacking ? -box.clientLeft : float(st.marginLeft)
       , y = stacking ? -box.clientTop  : float(st.marginTop );
     x = x * scale - rect.left, y = y * scale - rect.top;
@@ -308,11 +310,11 @@ var VDom = {
     if (containHasPaint) { // ignore the area on the block's left
       iw = rect.right, ih = rect.bottom;
     }
-    this.paintBox_ = containHasPaint ? [iw - float(st.borderRightWidth ) * scale,
+    a.paintBox_ = containHasPaint ? [iw - float(st.borderRightWidth ) * scale,
                                        ih - float(st.borderBottomWidth) * scale] : null;
     if (!needBox) { return [x, y]; }
     // here rect.right is not exact because <html> may be smaller than <body>
-    const sEl = this.scrollingEl_(), H = "hidden" as "hidden",
+    const sEl = a.scrollingEl_(), H = "hidden" as "hidden",
     xScrollable = st.overflowX !== H && st2.overflowX !== H,
     yScrollable = st.overflowY !== H && st2.overflowY !== H;
     if (xScrollable) {
