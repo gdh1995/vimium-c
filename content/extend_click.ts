@@ -11,6 +11,7 @@ if (VSettings && document.readyState !== "complete"
     MaxElementsInOneTick = 64,
     MaxUnsafeEventsInOneTick = 12,
     DelayToFindAll = 600,
+    DelayToStartIteration = 333,
     DelayForNext = 36,
     DelayForNextComplicatedCase = 1,
     kSecretAttr = "data-vimium",
@@ -147,7 +148,7 @@ hooks = {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA) && a instanceof E && !(a instanceof HB)) {
       toRegister.push(a);
-      timer || (timer = next(InnerConsts.DelayForNext));
+      timer || (timer = next(InnerConsts.DelayToStartIteration));
     }
     const args = arguments, len = args.length;
     return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
