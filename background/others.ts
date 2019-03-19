@@ -61,12 +61,14 @@ setTimeout(function () {
     doSet(key, value);
   }
   function doSet(key: keyof SettingsWithDefaults, value: any): void {
-    const wanted: SettingsNS.DynamicFiles | "" = key === "keyMappings" ? "Commands"
+    const Cmd = "commands" as "Commands",
+    wanted: SettingsNS.DynamicFiles | "" = key === "keyMappings" ? Cmd
         : key.startsWith("exclusion") ? "Exclusions" : "";
     if (!wanted) {
       return setAndPost(key, value);
     }
-    Utils.require_(wanted).then(() => setAndPost(key, value));
+    Promise.all([wanted === "Exclusions" && Utils.require_(Cmd), Utils.require_(wanted)]).then(
+        () => setAndPost(key, value));
     Utils.GC_();
   }
   function setAndPost(key: keyof SettingsWithDefaults, value: any): void {

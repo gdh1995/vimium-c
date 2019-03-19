@@ -157,12 +157,14 @@ var Commands = {
     } else if (oldErrors < 0) {
       console.log("The new key mappings have no errors");
     }
-
+    const maybePassed = Exclusions ? Exclusions.getAllPassed_() : null;
     const func = function (obj: ChildKeyMap): void {
       for (const key in obj) {
         const val = obj[key] as NonNullable<ChildKeyMap[string]>;
         if (val !== KeyAction.cmd) { func(val); }
-        else if (ref[key] === KeyAction.cmd) { delete obj[key]; }
+        else if (ref[key] === KeyAction.cmd && !(maybePassed && key in maybePassed)) {
+          delete obj[key];
+        }
       }
     };
     for (const key in ref) {

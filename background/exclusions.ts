@@ -15,6 +15,7 @@ declare namespace ExclusionsNS {
     getOnURLChange_ (): null | Listener;
     format_ (rules: StoredRule[]): Rules;
     getTemp_ (this: ExclusionsCls, url: string, sender: Frames.Sender, rules: StoredRule[]): string | null;
+    getAllPassed_ (): SafeEnum | null;
     RefreshStatus_ (this: void, old_is_empty: boolean): void;
   }
 }
@@ -110,6 +111,17 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       out.push(this.getRe_(rule.pattern), rule.passKeys);
     }
     return out;
+  },
+  getAllPassed_ (): SafeEnum | null {
+    const rules = this.rules_, all = Object.create(null) as SafeDict<1>;
+    let tick = 0;
+    for (let _i = 0, _len = rules.length; _i < _len; _i++) {
+      const passKeys = rules[_i] as string;
+      if (passKeys) {
+        for (const ch of passKeys.split(" ")) { all[ch] = 1; tick++; }
+      }
+    }
+    return tick ? all : null;
   },
   getTemp_ (this: ExcCls, url: string, sender: Frames.Sender, rules: ExclusionsNS.StoredRule[]): string | null {
     const old = this.rules_;

@@ -22,7 +22,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       currentKeys = ""; nextKeys = null; return i;
     } as EscF
     , onKeyup2 = null as ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null
-    , passKeys = null as SafeDict<true> | null | ""
+    , passKeys = null as SafeEnum | null | ""
     , onWndFocus = function (this: void): void { /* empty */ }, onWndBlur2: ((this: void) => void) | null = null
     , OnOther: BrowserType = BrowserType.Chrome
     ;
@@ -887,9 +887,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     },
     function (request: BgReq[kBgReq.reset], initing?: 1): void {
       const newPassKeys = request.p, enabled = newPassKeys !== "", old = isEnabled;
-      passKeys = newPassKeys && Object.create<true>(null);
+      passKeys = newPassKeys && Object.create<1>(null);
       if (newPassKeys) {
-        for (const ch of newPassKeys.split(" ")) { (passKeys as SafeDict<true>)[ch] = true; }
+        for (const ch of newPassKeys.split(" ")) { (passKeys as SafeDict<1>)[ch] = 1; }
       }
       (VSettings as Writeable<VSettingsTy>).enabled_ = isEnabled = enabled;
       if (initing) {
@@ -1067,14 +1067,16 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   function checkValidKey(event: KeyboardEvent, key: string): HandlerResult.Nothing | HandlerResult.Prevent {
     key = VKeyboard.key_(event, key);
     mappedKeys !== null && (key = mappedKeys[key] || key);
-    let j = (nextKeys || keyMap)[key];
-    if (nextKeys === null) {
-      // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
-      if (j == null || passKeys !== null && key in <SafeDict<true>> passKeys) { return HandlerResult.Nothing; }
-    } else if (j == null) {
+    let j: ReadonlyChildKeyMap | ValidKeyAction | undefined;
+    if (!nextKeys || (j = nextKeys[key]) == null) {
       j = keyMap[key];
-      if (j !== KeyAction.cmd) { currentKeys = ""; }
-      if (j == null) { nextKeys = null; return HandlerResult.Nothing; }
+      // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
+      if (j == null || passKeys !== null && key in <SafeEnum> passKeys) {
+        currentKeys = "";
+        nextKeys = null;
+        return HandlerResult.Nothing;
+      }
+      if (j !== KeyAction.cmd && nextKeys) { currentKeys = ""; }
     }
     currentKeys += key;
     if (j === KeyAction.cmd) {

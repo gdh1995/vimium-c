@@ -306,6 +306,7 @@ $<HTMLElement>(".version").textContent = bgSettings_.CONST_.VerName_;
 location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
 BG_.Utils.require_("Exclusions").then((function (callback) {
   return function () {
+    BG_.Utils.require_("Commands");
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
 })(function (activeTabs: [chrome.tabs.Tab] | never[]): void {

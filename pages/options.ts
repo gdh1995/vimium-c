@@ -260,7 +260,7 @@ readValueFromElement_ (): boolean | null {
 ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOption_, isAdd: number): void {
   const count = this.list_.childElementCount;
   if (count - isAdd !== 0) { return; }
-  isAdd && (BG_.Exclusions || BG_.Utils.require_("Exclusions"));
+  isAdd && !BG_.Exclusions && (BG_.Utils.require_("Exclusions"), BG_.Utils.require_("Commands"));
   const el = $("#exclusionToolbar"), options = el.querySelectorAll("[data-model]");
   el.style.visibility = count > 0 ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {
@@ -865,6 +865,7 @@ function OnBgUnload(): void {
     }
     if ((Option_.all_.exclusionRules as ExclusionRulesOption_).list_.childElementCount > 0) {
       BG_.Exclusions || BG_.Utils.require_("Exclusions");
+      BG_.Commands || BG_.Utils.require_("Commands");
     }
   }
 }

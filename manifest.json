@@ -6,8 +6,8 @@
       "background/utils.js",
       "background/settings.js",
       "background/main.js",
-      "background/commands.js",
       "background/exclusions.js",
+      "background/commands.js",
       "background/tools.js",
       "background/completion.js",
       "background/others.js"
