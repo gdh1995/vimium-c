@@ -135,6 +135,9 @@ var Settings = {
           || (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
         css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
       }
+      if (!Build.NDEBUG) {
+        css = css.replace(<RegExpG> /\r\n?/g, "\n");
+      }
       const findOffset = css.lastIndexOf("/*#find*/");
       let findCSS = css.substring(findOffset + /* '/*#find*\/\n' */ 10);
       css = css.substring(0, findOffset - /* `\n` */ 1);
@@ -426,7 +429,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
       return new RegExp("\\p{L}", "u").test("a");
     } catch {}
   }()) ? Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function (): void {
-    Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG> /\r?\n/g, "");
+    Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG> /[\n\r]/g, "");
   }) : (Settings.CONST_.WordsRe_ = "");
 }
 

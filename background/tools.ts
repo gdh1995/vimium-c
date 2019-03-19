@@ -12,9 +12,9 @@ const Clipboard_ = {
     this.getTextArea_ = () => el;
     return el;
   },
-  tailSpacesRe_: <RegExpG & RegExpSearchable<0>> /[ \t]+\n/g,
+  tailSpacesOrNewLineRe_: <RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g,
   format_ (data: string): string {
-    data = data.replace(Utils.A0Re_, " ").replace(this.tailSpacesRe_, "\n");
+    data = data.replace(Utils.A0Re_, " ").replace(this.tailSpacesOrNewLineRe_, "\n");
     let i = data.charCodeAt(data.length - 1);
     if (i !== KnownKey.space && i !== KnownKey.tab) { /* empty */ }
     else if (i = data.lastIndexOf("\n") + 1) {
