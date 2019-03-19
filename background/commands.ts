@@ -377,7 +377,7 @@ availableCommands_: {
   restoreGivenTab: [ "Restore the last N-th tab", 0, 1, kBgCmd.restoreGivenTab ],
   moveTabToNewWindow: [ "Move N tab(s) to new window (use limited=null/&lt;boolean&gt;)",
     /** 30 in main.ts */ 0, 1, kBgCmd.moveTabToNewWindow ],
-  moveTabToNextWindow: [ "Move tab to next window", 0, 1, kBgCmd.moveTabToNextWindow ],
+  moveTabToNextWindow: [ "Move tab to next window (use right)", 0, 1, kBgCmd.moveTabToNextWindow ],
   moveTabToIncognito: [ "Make tab in incognito window", 1, 1, kBgCmd.moveTabToNewWindow, { incognito: true } ],
   togglePinTab: [ "Pin or unpin N tab(s)",
     /** 30 in main.ts */ 0, 1, kBgCmd.togglePinTab ],

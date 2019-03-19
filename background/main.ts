@@ -991,7 +991,9 @@ Are you sure you want to continue?`);
             chrome.tabs.query({windowId: ids[dest], active: true}, function ([tab2]): void {
               return index >= 0 ? callback() : makeTempWindow(tab.id, tab.incognito, callback);
               function callback(): void {
-                chrome.tabs.move(tab.id, {index: tab2.index + 1, windowId: tab2.windowId}, function (): void {
+                chrome.tabs.move(tab.id, {
+                  index: tab2.index + (cOptions.right > 0 ? 1 : 0), windowId: tab2.windowId
+                }, function (): void {
                   return selectTab(tab.id, true);
                 });
               }
