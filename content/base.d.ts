@@ -24,8 +24,8 @@ declare const enum HandlerResult {
   PassKey = -1,
   Nothing = 0,
   Default = Nothing,
-  MinStopOrPreventEvents = 1,
   Suppress = 1,
+  MinStopOrPreventEvents = 1,
   MaxNotPrevent = 1,
   Prevent = 2,
 }

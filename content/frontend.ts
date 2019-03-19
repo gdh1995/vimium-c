@@ -3,8 +3,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
 
 (function () {
   interface EscF {
-    <T extends HandlerResult>(this: void, i: T): T;
-    (this: void): void;
+    <T extends Exclude<HandlerResult, HandlerResult.Suppress>> (this: void, i: T): T;
+    (this: void, i: HandlerResult.Suppress): HandlerResult.Prevent;
   }
   interface Port extends chrome.runtime.Port {
     postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): 1;
@@ -18,7 +18,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , currentKeys = "", isEnabled = false, isLocked = false
     , mappedKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
-    , esc = function (i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscF
+    , esc = function<T extends Exclude<HandlerResult, HandlerResult.Suppress>> (i: T): T {
+      currentKeys = ""; nextKeys = null; return i;
+    } as EscF
     , onKeyup2 = null as ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null
     , passKeys = null as SafeDict<true> | null | ""
     , onWndFocus = function (this: void): void { /* empty */ }, onWndBlur2: ((this: void) => void) | null = null
@@ -323,17 +325,18 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       count = Math.abs(count);
       let keyCount = 0;
       if (options.normal) {
-        const func = esc;
-        esc = function (i?: HandlerResult): HandlerResult | void {
+        const oldEsc = esc;
+        esc = function (i: HandlerResult): HandlerResult {
           if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.Suppress) {
             HUD.hide_();
-            return (esc = func)(HandlerResult.Prevent);
+            return (esc = oldEsc)(HandlerResult.Prevent);
           }
           currentKeys = ""; nextKeys = keyMap;
           HUD.show_("Normal mode (pass keys disabled)" + (count > 1 ? `: ${count} times` : ""));
           return i;
         } as EscF;
-        return esc();
+        esc(HandlerResult.Nothing);
+        return;
       }
       VUtils.push_(function (event) {
         keyCount += +!keys[event.keyCode];
@@ -728,7 +731,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         return;
       }
       VEvent.focusAndListen_();
-      esc();
+      esc(HandlerResult.Nothing);
       KeydownEvents[key] = 1;
       const notTop = window.top !== window;
       if (notTop && mask === FrameMaskType.NormalNext) {
@@ -1070,8 +1073,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       if (j == null || passKeys !== null && key in <SafeDict<true>> passKeys) { return HandlerResult.Nothing; }
     } else if (j == null) {
       j = keyMap[key];
-      if (j == null) { return esc(HandlerResult.Nothing); }
       if (j !== KeyAction.cmd) { currentKeys = ""; }
+      if (j == null) { nextKeys = null; return HandlerResult.Nothing; }
     }
     currentKeys += key;
     if (j === KeyAction.cmd) {
