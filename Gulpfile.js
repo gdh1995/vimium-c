@@ -547,7 +547,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
 function copyByPath(path) {
   var stream = gulp.src(path, { base: "." })
     .pipe(newer(DEST))
-    .pipe(gulpMap(function() {
+    .pipe(gulpMap(function(file) {
       if (file.history.join("|").indexOf("vimium.min.css") >= 0) {
         file.contents = new Buffer(String(file.contents).replace(/\r\n?/g, "\n"));
       }
