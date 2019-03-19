@@ -409,9 +409,9 @@ Are you sure you want to continue?`);
       incognito: true, focused: active
     }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "");
   }
-  function standardCreateTab(this: void, url: string, onlyNormal?: boolean, tabs?: Tab[]): void {
+  function standardCreateTab(this: void, url: string, onlyNormal?: boolean, tabs?: [Tab]): void {
     if (cOptions.url || cOptions.urls) {
-      BackgroundCommands[kBgCmd.openUrl](tabs as [Tab] | undefined);
+      BackgroundCommands[kBgCmd.openUrl](tabs);
       return onRuntimeError();
     }
     let tab: Tab | null = null;
@@ -518,7 +518,7 @@ Are you sure you want to continue?`);
         url = url && url.replace(mask + "", chrome.runtime.id);
       }
       if (workType !== Urls.WorkType.FakeType) {
-        url = Utils.convertToUrl_(url + "", cOptions.keyword + "", workType);
+        url = Utils.convertToUrl_(url + "", (cOptions.keyword || "") + "", workType);
       }
     }
     const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
@@ -1103,7 +1103,7 @@ Are you sure you want to continue?`);
         return onRuntimeError() || <any> void getCurTab(BackgroundCommands[kBgCmd.openUrl]);
       }
       if (cOptions.url) {
-        openUrl(cOptions.url + "", Urls.WorkType.Default, tabs);
+        openUrl(cOptions.url + "", Urls.WorkType.ActAnyway, tabs);
       } else if (cOptions.copied) {
         const url = Clipboard_.paste_();
         if (url instanceof Promise) {
