@@ -129,7 +129,7 @@ getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP =
 IndexOf = _call.bind(toRegister.indexOf) as never as (this: void, list: CollectionEx, item: Element) => number,
 push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
-CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement, HB = HTMLButtonElement, DF = DocumentFragment,
+CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement, DF = DocumentFragment,
 FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
@@ -146,7 +146,7 @@ hooks = {
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this;
-    if (type === "click" && listener && !(a instanceof HA) && a instanceof E && !(a instanceof HB)) {
+    if (type === "click" && listener && !(a instanceof HA) && a instanceof E) {
       toRegister.push(a);
       timer || (timer = next(InnerConsts.DelayToStartIteration));
     }
