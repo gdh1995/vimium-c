@@ -1,12 +1,4 @@
 var Utils = {
-  fetchHttpContents_ (url: string, success: (this: TextXHR, event: Event & TypedEvent<"load">) => void): TextXHR {
-    const req = new XMLHttpRequest() as TextXHR;
-    req.open("GET", url, true);
-    req.responseType = "text";
-    req.onload = success;
-    req.send();
-    return req as TextXHR;
-  },
   /**
    * both b and a must extend SafeObject
    */

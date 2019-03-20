@@ -44,19 +44,18 @@ var Settings = {
           value as FullSettings[keyof SettingsNS.FrontendSettings];
       }
     }
-    let ref: SettingsNS.UpdateHook<K> | undefined;
+    let ref: SettingsNS.SimpleUpdateHook<K> | undefined;
     if (ref = this.updateHooks_[key as keyof SettingsWithDefaults] as (SettingsNS.UpdateHook<K> | undefined)) {
       return ref.call(this, value, key);
     }
   },
   postUpdate_: function<K extends keyof SettingsWithDefaults> (this: {}, key: K, value?: FullSettings[K]): void {
-    return ((this as typeof Settings).updateHooks_[key] as SettingsNS.UpdateHook<K>).call(this as typeof Settings,
+    return ((this as typeof Settings).updateHooks_[key] as SettingsNS.SimpleUpdateHook<K>).call(
+      this as typeof Settings,
       value !== undefined ? value : (this as typeof Settings).get_(key), key);
   } as {
-    <K extends keyof SettingsNS.NullableUpdateHookMap>(key: K, value?: FullSettings[K] | null): void;
-    <K extends keyof SettingsNS.SpecialUpdateHookMap>(key: K, value: null): void;
-    <K extends keyof SettingsNS.EnsuredUpdateHookMaps>(key: K, value?: FullSettings[K]): void;
-    <K extends keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
+    <K extends SettingsNS.NullableUpdateHooks>(key: K, value?: FullSettings[K] | null): void;
+    <K extends SettingsNS.EnsuredUpdateHooks | keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
   },
   broadcast_<K extends keyof BgReq> (request: Req.bg<K>): void {
     const ref = Backend.indexPorts_();
@@ -251,20 +250,29 @@ var Settings = {
       }
       (this as typeof Settings).set_("vomnibarPage_f", url);
     }
-  } as SettingsNS.DeclaredUpdateHookMap & SettingsNS.SpecialUpdateHookMap as SettingsNS.UpdateHookMap,
-  fetchFile_ (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
+  } as { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } as SettingsNS.FullUpdateHookMap,
+  /** can only fetch files in the `[ROOT]/front` folder */
+  fetchFile_ (file: "words" | keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
     if (callback && file in this.cache_) { callback(); return null; }
-    const url = this.CONST_.XHRFiles_[file];
-    if (!url) { throw Error("unknown file: " + file); } // just for debugging
-    return Utils.fetchHttpContents_(url, function (): void {
+    const fileName = this.CONST_[file];
+    if (!fileName) { throw Error("unknown file: " + file); } // just for debugging
+    const req = new XMLHttpRequest() as TextXHR;
+    req.open("GET", "/front/" + fileName, true);
+    req.responseType = "text";
+    req.onload = function (): void {
+      const text = this.responseText;
       if (file === "baseCSS") {
-        Settings.postUpdate_(file, this.responseText);
+        Settings.postUpdate_(file, text);
+      } else if (file === "words") {
+        Settings.CONST_.words = text.replace(<RegExpG> /[\n\r]/g, "");
       } else {
-        Settings.set_(file, this.responseText);
+        Settings.set_(file, text);
       }
-      callback && callback();
+      callback && setTimeout(callback, 0);
       return;
-    });
+    };
+    req.send();
+    return req as TextXHR;
   },
   // clear localStorage & sync, if value === @defaults[key]
   // the default of all nullable fields must be set to null for compatibility with @Sync.set
@@ -361,18 +369,16 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     HelpDialog: "/background/help_dialog.js",
     Commands: "/background/commands.js",
     Exclusions: "/background/exclusions.js",
-    XHRFiles_: {
-      baseCSS: "/front/vimium.min.css",
-      exclusionTemplate: "/front/exclusions.html",
-      helpDialog: "/front/help_dialog.html",
-    } as { [name in keyof SettingsNS.CachedFiles]: string },
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: "pages/options.html#!newTabUrl",
     OptionsPage_: "pages/options.html", Platform_: "browser",
-    WordsRe_: Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
+    baseCSS: "vimium.min.css",
+    exclusionTemplate: "exclusions.html",
+    helpDialog: "help_dialog.html",
+    words: Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
       || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-      ? "/front/words.txt" : "",
+      ? "words.txt" : "",
     PolyFill_: Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith ? "lib/polyfill.js" : "",
     HomePage_: "https://github.com/gdh1995/vimium-c",
     RedirectedUrls_: {
@@ -428,9 +434,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     try {
       return new RegExp("\\p{L}", "u").test("a");
     } catch {}
-  }()) ? Utils.fetchHttpContents_(Settings.CONST_.WordsRe_, function (): void {
-    Settings.CONST_.WordsRe_ = this.responseText.replace(<RegExpG> /[\n\r]/g, "");
-  }) : (Settings.CONST_.WordsRe_ = "");
+  }()) ? Settings.fetchFile_("words") : (Settings.CONST_.words = "");
 }
 
 (function (): void {

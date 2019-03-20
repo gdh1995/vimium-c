@@ -318,7 +318,7 @@ declare namespace SettingsNS {
   interface SettingsWithDefaults extends PersistentSettings, OtherSettingsWithDefaults {}
   interface FullSettings extends PersistentSettings, NonPersistentSettings, FrontUpdateAllowedSettings {}
 
-  interface UpdateHook<K extends keyof FullSettings> {
+  interface SimpleUpdateHook<K extends keyof FullSettings> {
     (this: {}, value: FullSettings[K], key: K): void;
   }
   interface NullableUpdateHook<K extends keyof FullSettings> {
@@ -327,36 +327,28 @@ declare namespace SettingsNS {
   interface UpdateHookWoThis<K extends keyof FullSettings> {
     (this: void, value: FullSettings[K]): void;
   }
-  type BaseUpdateHookMap = {
-    [key in keyof FullSettings]: UpdateHook<key>;
-  }
-  interface NullableUpdateHookMap {
-    searchEngines: NullableUpdateHook<"searchEngines">;
-    searchEngineMap: NullableUpdateHook<"searchEngineMap">;
-    searchUrl: NullableUpdateHook<"searchUrl">;
-  }
-  interface SpecialUpdateHookMap {
-  }
-  type DeclaredUpdateHookMap = NullableUpdateHookMap
-      & Pick<BaseUpdateHookMap, "extWhiteList" | "newTabUrl" | "baseCSS"
-        | "userDefinedCss" | "vomnibarPage" | "innerCSS">;
-  type EnsuredUpdateHookMaps = DeclaredUpdateHookMap
-      & Pick<BaseUpdateHookMap, "showActionIcon" | "newTabUrl_f">;
-  type BaseUpdateHookMap2 = {
-    [key in keyof SettingsWithDefaults]: UpdateHook<key>;
-  } & EnsuredUpdateHookMaps & SpecialUpdateHookMap;
-  interface UpdateHookMap extends BaseUpdateHookMap2 {
-    showActionIcon: UpdateHookWoThis<"showActionIcon">;
-  }
 
-  interface FullCache extends Partial<FullSettings>, SafeObject {
-    innerCSS: FullSettings["innerCSS"];
+  type NullableUpdateHooks = "searchEngines" | "searchEngineMap" | "searchUrl" | "keyMappings";
+  type WoThisUpdateHooks = "showActionIcon";
+  type SpecialUpdateHooks = "newTabUrl_f";
+
+  type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchEngineMap" | "searchUrl"
+        | "baseCSS" | "userDefinedCss" | "innerCSS" | "vomnibarPage"
+        | "extWhiteList";
+  type EnsuredUpdateHooks = DeclaredUpdateHooks | WoThisUpdateHooks | SpecialUpdateHooks;
+  type UpdateHook<key extends keyof FullSettings> =
+        key extends NullableUpdateHooks ? NullableUpdateHook<key>
+      : key extends WoThisUpdateHooks ? UpdateHookWoThis<key>
+      : key extends EnsuredUpdateHooks | keyof SettingsWithDefaults ? SimpleUpdateHook<key>
+      : never;
+  type BaseFullUpdateHookMap = { [key in EnsuredUpdateHooks | keyof SettingsWithDefaults]: UpdateHook<key>; };
+  type FullUpdateHookMap = PartialOrEnsured<BaseFullUpdateHookMap, EnsuredUpdateHooks>;
+
+  interface FullCache extends SafeObject, PartialOrEnsured<FullSettings
+      , "innerCSS" | "newTabUrl_f" | "searchEngineMap" | "searchEngineRules" | "vomnibarPage_f"
+      > {
     findCSS_: FindCSS; // should not in Settings.defaults
     omniCSS_: string; // should not in Settings.defaults
-    newTabUrl_f: FullSettings["newTabUrl_f"];
-    searchEngineMap: FullSettings["searchEngineMap"];
-    searchEngineRules: FullSettings["searchEngineRules"];
-    vomnibarPage_f: FullSettings["vomnibarPage_f"];
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |

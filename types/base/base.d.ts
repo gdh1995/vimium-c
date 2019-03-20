@@ -17,6 +17,12 @@ type EnsureItemsNonNull<T> = { [P in keyof T]-?: NonNullable<T[P]> };
 type EnsureNonNull<T> = EnsureItemsNonNull<NonNullable<T>>;
 type Ensure<T, K extends keyof T> = { -readonly [P in K]-?: NonNullable<T[P]> };
 
+type PartialOrEnsured<T, EnsuredKeys extends keyof T> = {
+  [P in EnsuredKeys]: T[P];
+} & {
+  [P in Exclude<keyof T, EnsuredKeys>]?: T[P];
+};
+
 type TypedSafeEnum<Type> = {
   readonly [key in keyof Type]: 1;
 } & SafeObject;

@@ -1410,7 +1410,7 @@ Are you sure you want to continue?`);
           && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
       ) {
         if (~flags & Frames.Flags.hadVisualMode) {
-          words = Settings.CONST_.WordsRe_;
+          words = Settings.CONST_.words;
           cPort.s.f = Frames.Flags.hadVisualMode | flags;
         }
       }
