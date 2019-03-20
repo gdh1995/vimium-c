@@ -115,7 +115,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   getAllPassed_ (): SafeEnum | null {
     const rules = this.rules_, all = Object.create(null) as SafeDict<1>;
     let tick = 0;
-    for (let _i = 0, _len = rules.length; _i < _len; _i++) {
+    for (let _i = 1, _len = rules.length; _i < _len; _i += 2) {
       const passKeys = rules[_i] as string;
       if (passKeys) {
         for (const ch of passKeys.split(" ")) { all[ch] = 1; tick++; }
@@ -135,6 +135,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       N: kBgReq.reset,
       p: null
     };
+    Utils.require_("Commands").then(() => Settings.postUpdate_("keyMappings", null));
     if (old_is_empty) {
       always_enabled || Settings.broadcast_({
         N: kBgReq.url,

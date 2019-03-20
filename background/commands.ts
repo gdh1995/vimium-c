@@ -441,8 +441,8 @@ if (Backend.onInit_) {
   chrome.commands && chrome.commands.onCommand.addListener(Backend.ExecuteGlobal_);
 }
 if (Commands) {
-Settings.updateHooks_.keyMappings = function (value: string): void {
-  Commands.parseKeyMappings_(value);
+Settings.updateHooks_.keyMappings = function (this: {}, value: string | null): void {
+  value != null && Commands.parseKeyMappings_(value);
   Commands.populateCommandKeys_();
   return (this as typeof Settings).broadcast_({
     N: kBgReq.keyMap,
