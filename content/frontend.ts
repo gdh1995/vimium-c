@@ -96,11 +96,10 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (action = VUtils.bubbleEvent_(event)) { /* empty */ }
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
-      if (g ? !g.code ? VKeyboard.isEscape_(event)
-            : key === g.code && VKeyboard.getKeyStat_(event) === g.stat
-          : VKeyboard.isEscape_(event)
-            || (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName_(event)) &&
-              (action = checkValidKey(event, keyChar)), false)
+      if (g ? !g.code ? VKeyboard.isEscape_(event) : key === g.code && VKeyboard.getKeyStat_(event) === g.stat
+          : VKeyboard.isEscape_(event) ? !(passKeys && (key === VKeyCodes.esc ? "<esc>" : "<c-[>") in passKeys)
+          : (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName_(event)) &&
+              (action = checkValidKey(event, keyChar)), 0)
       ) {
         if (InsertMode.lock_ === document.body && InsertMode.lock_) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
@@ -119,8 +118,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         }
       }
     }
-    else if (key !== VKeyCodes.esc || VKeyboard.getKeyStat_(event)) { /* empty */ }
-    else if (nextKeys !== null) {
+    else if (key !== VKeyCodes.esc || VKeyboard.getKeyStat_(event)
+      || passKeys && "<esc>" in passKeys) { /* empty */ }
+    else if (nextKeys) {
       esc(HandlerResult.Suppress);
       action = HandlerResult.Prevent;
     } else if (!event.repeat && VDom.UI.removeSelection_()) {
