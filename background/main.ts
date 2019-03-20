@@ -1403,6 +1403,9 @@ Are you sure you want to continue?`);
       });
     },
     /* enterVisualMode: */ function (): void {
+      if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
+        return Backend.complain_("control selection on MS Edge");
+      }
       const flags = cPort.s.f, str = typeof cOptions.mode === "string" ? (cOptions.mode as string).toLowerCase() : "";
       let words = "";
       if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox

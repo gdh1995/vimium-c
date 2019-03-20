@@ -424,6 +424,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
         BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
+      && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
   ) &&
   ( Build.BTypes & ~BrowserType.Firefox
     && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
