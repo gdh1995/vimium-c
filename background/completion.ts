@@ -482,18 +482,20 @@ historyEngine = {
     domainToSkip && maxNum++;
     for (j = maxNum; --j; ) { results.push(0.0, 0.0); }
     maxNum = maxNum * 2 - 2;
+    let curMinScore = 0.0;
     for (const len = history.length; i < len; i++) {
       const item = history[i];
       if (onlyUseTime ? !parts0.test(item.text) : !Match2(item.text, item.title)) { continue; }
       if (!(showThoseInBlacklist || item.visible)) { continue; }
       const score = onlyUseTime ? RankingUtils.recencyScore_(item.time) : getRele(item.text, item.title, item.time);
       matched++;
-      if (results[maxNum] >= score) { continue; }
+      if (curMinScore >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
         results[j + 2] = results[j], results[j + 3] = results[j + 1];
       }
       results[j + 2] = score;
       results[j + 3] = i;
+      curMinScore = results[maxNum];
     }
     matchedTotal += matched;
     const getExtra = this.getExtra_;
