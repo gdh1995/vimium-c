@@ -240,12 +240,11 @@ var VOmni = {
       window.focus();
       return VEvent.keydownEvents_()[(data as Req[VomnibarNS.kFReq.focus]).k] = 1;
     case VomnibarNS.kFReq.hide: return a.hide_(1);
-    case VomnibarNS.kFReq.test: return VEvent.OnWndFocus_();
     case VomnibarNS.kFReq.scroll: return VEvent.scroll_(data as Req[VomnibarNS.kFReq.scroll]);
     case VomnibarNS.kFReq.scrollGoing: VScroller.keyIsDown_ = VScroller.maxInterval_; break;
     case VomnibarNS.kFReq.scrollEnd: VScroller.keyIsDown_ = 0; break;
     case VomnibarNS.kFReq.evalJS: VPort.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
-    case VomnibarNS.kFReq.broken: (data as Req[VomnibarNS.kFReq.broken]).a && window.focus(); // no break;
+    case VomnibarNS.kFReq.broken: window.focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
     case VomnibarNS.kFReq.hud: VHUD.tip_((data as Req[VomnibarNS.kFReq.hud]).t); return;
     default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.N);

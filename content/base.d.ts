@@ -212,9 +212,7 @@ declare namespace VomnibarNS {
     [kFReq.evalJS]: {
       u: string;
     };
-    [kFReq.broken]: {
-      a: boolean;
-    };
+    [kFReq.broken]: {};
     [kFReq.scrollEnd]: {},
     [kFReq.scrollGoing]: {},
     [kFReq.unload]: {},

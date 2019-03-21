@@ -702,7 +702,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.focusByCode_;
-    if (event.isTrusted === false) { return; }
+    if (event.isTrusted === false || !VPort_) { return; }
     a.focusByCode_ = false;
     const blurred = event.type === "blur";
     const target = event.target;
@@ -717,9 +717,11 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
     setTimeout(a.blurred_, 50, null);
     if (!blurred) {
-      VPort_ && VPort_.post_({ H: kFgReq.cmd, c: "", n: 1, i: 1 });
+      VPort_.post_({ H: kFgReq.cmd, c: "", n: 1, i: 1 });
       if (a.pageType_ === VomnibarNS.PageType.ext && VPort_) {
-        VPort_.postToOwner_({N: VomnibarNS.kFReq.test});
+        setTimeout(function(): void {
+          VPort_ && !VPort_._port && VPort_.postToOwner_({ N: VomnibarNS.kFReq.broken });;
+        }, 50);
       }
     }
   },
@@ -1060,7 +1062,7 @@ VPort_ = {
       (this._port || this.connect_(PortType.omnibarRe)).postMessage<K>(request);
     } catch {
       VPort_ = null as never;
-      this.postToOwner_({ N: VomnibarNS.kFReq.broken, a: Vomnibar_.isActive_ });
+      this.postToOwner_({ N: VomnibarNS.kFReq.broken });
     }
   },
   _Listener<T extends ValidBgVomnibarReq> (this: void, response: Req.bg<T>): void {
