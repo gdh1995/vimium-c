@@ -158,10 +158,10 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (event.isTrusted === false) { return; }
     // on Firefox, target may also be `document`
     let target: EventTarget | Element | Window | Document = event.target;
-    if (target === window || target === document) {
+    if (target === window) {
       return onWndFocus();
     }
-    if (!isEnabled) { return; }
+    if (!isEnabled || Build.BTypes & BrowserType.Firefox && target === document) { return; }
     /**
      * Notes:
      * according to test, Chrome Password Saver won't fill fields inside a shadow DOM
@@ -211,7 +211,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   function onBlur(this: void, event: Event | FocusEvent): void {
     if (!isEnabled || event.isTrusted === false) { return; }
     const target: EventTarget | Element | Window | Document = event.target;
-    if (target === window || target === document) { return onWndBlur(); }
+    if (target === window || Build.BTypes & BrowserType.Firefox && target === document) { return onWndBlur(); }
     let path = event.path as EventPath | undefined, top: EventTarget | undefined
       , same = !(top = path && path[0]) || top === window || top === target
       , sr = VDom.GetShadowRoot_(target as Element);
