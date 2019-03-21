@@ -263,7 +263,13 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
     let passKeys = ExclusionRulesOption_.getPassKeys_(element).value;
     if (passKeys) {
       const passArr = passKeys.match(KeyRe_);
-      passKeys = passArr ? (passArr.sort().join(" ") + " ") : "";
+      if (passArr) {
+        const isReverted = passArr[0] === "^" && passArr.length > 1;
+        isReverted && passArr.shift();
+        passArr.sort();
+        isReverted ? passArr.unshift("^") : passArr[0] === "^" && (passArr.shift(), passArr.push("^"));
+      }
+      passKeys = passArr ? (passArr.join(" ") + " ") : "";
     }
     rules.push({ pattern, passKeys });
   }
@@ -448,13 +454,15 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
   let saved = true, oldPass: string | null = null, curLockedStatus = Frames.Status.__fake;
   function collectPass(pass: string): string {
     pass = pass.trim();
+    const isReverted = pass && pass[0] === "^";
+    isReverted && (pass = pass.substring(1).trimLeft());
     const dict = Object.create<1>(null);
     for (let i of pass.split(" ")) {
       const n = i.charCodeAt(0);
       i = n === KnownKey.lt ? "&lt;" : n === KnownKey.gt ? "&gt;" : n === KnownKey.and ? "&amp;" : i;
       dict[i] = 1;
     }
-    return Object.keys(dict).join(" ");
+    return (isReverted ? "^ " : "") + Object.keys(dict).join(" ");
   }
   function updateState(initing: boolean): void {
     let pass = bgExclusions.getTemp_(url, frameInfo, exclusions.readValueFromElement_(true));
@@ -465,11 +473,12 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     const isSaving = exclusions.inited_ === 3;
     exclusions.inited_ = 2;
     const same = pass === oldPass;
+    const isReverted = !!pass && pass.length > 2 && pass[0] === "^";
     let html = '<span class="Vim">Vim</span>ium <span class="C">C</span> '
-      + (isSaving ? pass ? "becomes to exclude" : "becomes"
-        : (same ? "keeps to " : "will ") + (pass ? "exclude" : "be"))
+      + (isSaving ? pass ? "becomes to " + (isReverted ? "only hook" : "exclude") : "becomes"
+        : (same ? "keeps to " : "will ") + (pass ? isReverted ? "only hook" : "exclude" : "be"))
       + (pass
-      ? `: <span class="state-value code">${pass}</span>`
+      ? `: <span class="state-value code">${isReverted ? pass.substring(2) : pass}</span>`
       : `:<span class="state-value fixed-width">${pass !== null ? "disabled" : " enabled"}</span>`);
     if (curLockedStatus !== Frames.Status.__fake && !isSaving && same) {
       html += ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`;

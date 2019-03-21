@@ -22,7 +22,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       currentKeys = ""; nextKeys = null; return i;
     } as EscF
     , onKeyup2 = null as ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null
-    , passKeys = null as SafeEnum | null | ""
+    , passKeys = null as SafeEnum | null | "", isPassKeysReverted = false
     , onWndFocus = function (this: void): void { /* empty */ }, onWndBlur2: ((this: void) => void) | null = null
     , OnOther: BrowserType = BrowserType.Chrome
     ;
@@ -97,7 +97,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
       if (g ? !g.code ? VKeyboard.isEscape_(event) : key === g.code && VKeyboard.getKeyStat_(event) === g.stat
-          : VKeyboard.isEscape_(event) ? !(passKeys && (key === VKeyCodes.esc ? "<esc>" : "<c-[>") in passKeys)
+          : VKeyboard.isEscape_(event)
+          ? !(passKeys && ((key === VKeyCodes.esc ? "<esc>" : "<c-[>") in passKeys) !== isPassKeysReverted)
           : (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName_(event)) &&
               (action = checkValidKey(event, keyChar)), 0)
       ) {
@@ -119,7 +120,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
     }
     else if (key !== VKeyCodes.esc || VKeyboard.getKeyStat_(event)
-      || passKeys && "<esc>" in passKeys) { /* empty */ }
+      || passKeys && ("<esc>" in passKeys) !== isPassKeysReverted) { /* empty */ }
     else if (nextKeys) {
       esc(HandlerResult.Suppress);
       action = HandlerResult.Prevent;
@@ -889,7 +890,10 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       const newPassKeys = request.p, enabled = newPassKeys !== "", old = isEnabled;
       passKeys = newPassKeys && Object.create<1>(null);
       if (newPassKeys) {
-        for (const ch of newPassKeys.split(" ")) { (passKeys as SafeDict<1>)[ch] = 1; }
+        isPassKeysReverted = newPassKeys[0] === "^" && newPassKeys.length > 2;
+        for (const ch of (isPassKeysReverted ? newPassKeys.substring(2) : newPassKeys).split(" ")) {
+          (passKeys as SafeDict<1>)[ch] = 1;
+        }
       }
       (VSettings as Writeable<VSettingsTy>).enabled_ = isEnabled = enabled;
       if (initing) {
@@ -1071,7 +1075,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (!nextKeys || (j = nextKeys[key]) == null) {
       j = keyMap[key];
       // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
-      if (j == null || passKeys !== null && key in <SafeEnum> passKeys) {
+      if (j == null || passKeys !== null && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
         currentKeys = "";
         nextKeys = null;
         return HandlerResult.Nothing;

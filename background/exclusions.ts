@@ -15,7 +15,7 @@ declare namespace ExclusionsNS {
     getOnURLChange_ (): null | Listener;
     format_ (rules: StoredRule[]): Rules;
     getTemp_ (this: ExclusionsCls, url: string, sender: Frames.Sender, rules: StoredRule[]): string | null;
-    getAllPassed_ (): SafeEnum | null;
+    getAllPassed_ (): SafeEnum | true | null;
     RefreshStatus_ (this: void, old_is_empty: boolean): void;
   }
 }
@@ -77,7 +77,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       const rule = rules[_i] as ExclusionsNS.Tester;
       if (typeof rule === "string" ? url.startsWith(rule) : rule.test(url)) {
         const str = rules[_i + 1] as string;
-        if (str.length === 0 || Exclusions.onlyFirstMatch_) { return str; }
+        if (str.length === 0 || Exclusions.onlyFirstMatch_ || str[0] === "^" && str.length > 2) { return str; }
         matchedKeys += str;
       }
     }
@@ -112,12 +112,13 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     }
     return out;
   },
-  getAllPassed_ (): SafeEnum | null {
+  getAllPassed_ (): SafeEnum | true | null {
     const rules = this.rules_, all = Object.create(null) as SafeDict<1>;
     let tick = 0;
     for (let _i = 1, _len = rules.length; _i < _len; _i += 2) {
       const passKeys = rules[_i] as string;
       if (passKeys) {
+        if (passKeys[0] === "^" && passKeys.length > 2) { return true; }
         for (const ch of passKeys.split(" ")) { all[ch] = 1; tick++; }
       }
     }

@@ -162,7 +162,7 @@ var Commands = {
       for (const key in obj) {
         const val = obj[key] as NonNullable<ChildKeyMap[string]>;
         if (val !== KeyAction.cmd) { func(val); }
-        else if (ref[key] === KeyAction.cmd && !(maybePassed && key in maybePassed)) {
+        else if (maybePassed !== true && ref[key] === KeyAction.cmd && !(maybePassed && key in maybePassed)) {
           delete obj[key];
         }
       }
