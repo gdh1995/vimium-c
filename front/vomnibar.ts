@@ -243,7 +243,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
         Vomnibar_.selection_ = 0; Vomnibar_.isSelOriginal_ = false;
         Vomnibar_.updateSelection_(oldSel);
       }
-      Vomnibar_.focused_ || Vomnibar_.focus_();
+      Vomnibar_.focused_ || Vomnibar_.blurWanted_ || Vomnibar_.focus_();
     });
   },
   updateInput_ (sel: number): void {
