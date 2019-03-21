@@ -107,7 +107,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   focused_: true,
   showing_: false,
   firstShowing_: true,
-  focusByCode_: false,
+  focusByCode_: true,
   blurWanted_: false,
   forceNewTab_: false,
   sameOrigin_: false,
@@ -149,7 +149,6 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     setTimeout(Vomnibar_.focus_, 34);
     a.firstShowing_ = false;
     addEventListener("wheel", a.onWheel_, a.wheelOptions_);
-    a.OnShown_ && setTimeout(a.OnShown_, 67);
   },
   hide_ (fromContent?: BOOL): void {
     const a = Vomnibar_, el = a.input_;
@@ -563,9 +562,6 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       el.setSelectionRange(0, left.length, "backward");
     }
   },
-  OnFocus_ (this: void, event: Event): void {
-    event.isTrusted !== false && (Vomnibar_.focused_ = event.type !== "blur") && (Vomnibar_.blurWanted_ = false);
-  },
   OnTimer_ (this: void): void { if (Vomnibar_) { return Vomnibar_.fetch_(); } },
   onWheel_ (event: WheelEvent): void {
     if (event.ctrlKey || event.metaKey || event.isTrusted === false) { return; }
@@ -704,20 +700,17 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   ToggleDark_ (this: void, event: MouseEvent): void {
     Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
   },
-  OnShown_: function (this: void): void {
-    const a = Vomnibar_, i = a.input_, listen = addEventListener, wndFocus = Vomnibar_.OnWndFocus_;
-    i.onselect = a.OnSelect_;
-    i.onfocus = i.onblur = a.OnFocus_;
-    a.OnShown_ = null;
-    listen("focus", wndFocus);
-    listen("blur", wndFocus);
-    a.blurred_(false);
-  } as ((this: void) => void) | null,
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.focusByCode_;
+    if (event.isTrusted === false) { return; }
     a.focusByCode_ = false;
-    if (!a.isActive_ || event.target !== window || event.isTrusted === false) { return; }
     const blurred = event.type === "blur";
+    const target = event.target;
+    if (!a.isActive_ || target !== window) {
+      target === a.input_ &&
+      (Vomnibar_.focused_ = !blurred) && (Vomnibar_.blurWanted_ = false);
+      return;
+    }
     if (byCode) {
       a.blurred_(blurred);
       return;
@@ -743,15 +736,20 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     a.onWheel_ = a.onWheel_.bind(a);
     Object.setPrototypeOf(a.ctrlMap_, null);
     Object.setPrototypeOf(a.normalMap_, null);
-    a.input_ = document.getElementById("input") as typeof Vomnibar_.input_;
     const list = a.list_ = document.getElementById("list") as HTMLDivElement;
-    const { browserVersion_: ver } = a;
-    a.input_.oninput = a.onInput_.bind(a);
+    const { browserVersion_: ver } = a, listen = addEventListener,
+    input = a.input_ = document.getElementById("input") as typeof Vomnibar_.input_;
     a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
-    a.barCls_ = (a.input_.parentElement as HTMLElement).classList;
+    a.barCls_ = (input.parentElement as HTMLElement).classList;
     list.oncontextmenu = a.OnMenu_;
     (document.getElementById("close") as HTMLElement).onclick = function (): void { return Vomnibar_.hide_(); };
-    addEventListener("keydown", a.HandleKeydown_, true);
+
+    listen("keydown", a.HandleKeydown_, true);
+    listen("focus", a.OnWndFocus_);
+    listen("blur", a.OnWndFocus_);
+    input.oninput = a.onInput_.bind(a);
+    input.onselect = a.OnSelect_;
+
     a.renderItems_ = VUtils_.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
     if (Build.MinCVer < BrowserVer.MinSpecCompliantShadowBlurRadius
         && ver < BrowserVer.MinSpecCompliantShadowBlurRadius) {
@@ -772,13 +770,13 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
     if (Build.MinCVer < BrowserVer.Min$InputEvent$$isComposing
         && ver < BrowserVer.Min$InputEvent$$isComposing) {
-      let func = function (this: void, event: CompositionEvent): void {
+      let func = function (this: HTMLInputElement, event: CompositionEvent): void {
         if (Vomnibar_.isInputComposing_ = event.type === "compositionstart") {
-          Vomnibar_.lastNormalInput_ = Vomnibar_.input_.value.trim();
+          Vomnibar_.lastNormalInput_ = this.value.trim();
         }
       };
-      a.input_.addEventListener("compositionstart", func);
-      a.input_.addEventListener("compositionend", func);
+      input.addEventListener("compositionstart", func);
+      input.addEventListener("compositionend", func);
     }
     a.customStyle_ && (document.head as HTMLElement).appendChild(a.customStyle_);
     a.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
