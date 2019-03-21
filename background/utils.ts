@@ -52,7 +52,8 @@ var Utils = {
   isRefusingIncognito_ (url: string): boolean {
     url = url.toLowerCase();
     // https://cs.chromium.org/chromium/src/url/url_constants.cc?type=cs&q=kAboutBlankWithHashPath&g=0&l=12
-    return url.startsWith("about:") ? url !== "about:blank" && url !== "about:blank/"
+    return url.startsWith("about:") ? url !== "about:blank" && ((Build.BTypes & ~BrowserType.Chrome
+          && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) || url !== "about:blank/")
       : url.startsWith("chrome://") ? !url.startsWith("chrome://downloads")
       : !url.startsWith(Settings.CONST_.NtpNewTab_) && url.startsWith(BrowserProtocol_);
   },
