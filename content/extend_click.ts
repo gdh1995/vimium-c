@@ -68,7 +68,7 @@ if (VSettings && document.readyState !== "complete"
     if (!Build.NDEBUG) {
       console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s" } in %o @t=%o`
         , detail ? detail[0].length : ((event.target as Element).tagName + "").toLowerCase()
-        , detail ? detail[1] ? detail[1].length : -1 : ""
+        , detail ? detail[1] ? detail[1].length : -0 : ""
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
     }
@@ -85,6 +85,7 @@ if (VSettings && document.readyState !== "complete"
       let el = list[index];
       el && VUtils.clickable_.add(el);
     }
+    isBox && ((box as Element).textContent = "");
   }
   function dispatchCmd(cmd: ValidContentCmds) {
     (box as Exclude<typeof box, null | false | undefined>).dispatchEvent(new CustomEvent(InnerConsts.kCmd, {
@@ -259,7 +260,6 @@ function doRegister(onlyInDocument?: 1): void {
     dispatch(root, new CE(kClick, {
       detail: [nodeIndexListInDocument, onlyInDocument ? null : nodeIndexListForDetached]
     }));
-    nodeIndexListForDetached.length && (root.textContent = "");
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
   }
 }
