@@ -74,6 +74,7 @@ select.right {
     linear-gradient(#ededed, #ededed 38%, #dedede);
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
+  font-size: 0 !important;
   vertical-align: top;
   width: 19px;
 }
@@ -92,6 +93,7 @@ button.left:focus+select.right {
 }
 select.right > option {
   background-color: #f3f3f3;
+  font-size: 13px;
   text-align: left;
 }
 
