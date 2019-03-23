@@ -150,12 +150,14 @@ VDom.UI = {
     let d = document, el: Node | null, sel: Selection | null;
     if (el = VScroller.current_) {
       if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
+          || !(Build.BTypes & ~BrowserType.Firefox)
           || el.getRootNode) {
         el = (el as Ensure<Node, "getRootNode">).getRootNode();
       } else {
         for (let pn: Node | null; pn = VDom.GetParent_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
-      if (el !== d && typeof (el as ShadowRoot).getSelection === "function") {
+      if (el !== d && el.nodeType === /* Node.DOCUMENT_FRAGMENT_NODE */ 11
+          && typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRootWithSelection).getSelection();
         if (sel && (notExpectCount || sel.rangeCount)) {
           return [sel, el as ShadowRoot];
