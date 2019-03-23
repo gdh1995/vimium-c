@@ -142,7 +142,7 @@
 		"map Gb searchInAnother keyword=\"b\"",
 		"map Gs searchInAnother keyword=\"g.s\"",
 		"",
-		"map Gn toggleVomnibarStyle current",
+		"map Gn toggleVomnibarStyle",
 		"",
 		"#shortcut createTab position=\"end\"",
 		""
