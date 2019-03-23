@@ -201,7 +201,7 @@ VDom.UI = {
     sel.collapseToStart();
     return true;
   },
-  click_ (element, rect, modifiers, addFocus): boolean {
+  click_ (element, rect, modifiers, addFocus): void {
     rect || (rect = VDom.getVisibleClientRect_(element));
     element === VDom.lastHovered_ || VDom.hover_(element, rect);
     VDom.mouse_(element, "mousedown", rect, modifiers);
@@ -209,7 +209,7 @@ VDom.UI = {
     addFocus && element !== VEvent.lock_() && element !== document.activeElement &&
       typeof element.focus === "function" && element.focus();
     VDom.mouse_(element, "mouseup", rect, modifiers);
-    return VDom.mouse_(element, "click", rect, modifiers);
+    VDom.mouse_(element, "click", rect, modifiers);
   },
   simulateSelect_ (element, rect, flash, action, suppressRepeated): void {
     const y = window.scrollY;

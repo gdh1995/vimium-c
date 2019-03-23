@@ -298,7 +298,7 @@ interface DomUI {
   getSelectionText_ (notTrim?: 1): string;
   removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
   click_ (this: DomUI, element: Element
-    , rect?: Rect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
+    , rect?: Rect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): void;
   simulateSelect_ (this: DomUI, element: Element, rect?: Rect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;
   /** @NEED_SAFE_ELEMENTS */

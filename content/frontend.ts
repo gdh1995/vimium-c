@@ -87,8 +87,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         || !event.keyCode) { return; }
     if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
     if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        && InsertMode.lock_
+        && (!(Build.BTypes & ~BrowserType.Firefox) ? InsertMode.lock_
+          : InsertMode.lock_ && OnOther === BrowserType.Firefox)
         && !VDom.isInDOM_(InsertMode.lock_ as LockableElement, document)) {
       InsertMode.lock_ = null;
     }
