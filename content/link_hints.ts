@@ -1124,9 +1124,12 @@ Modes_: [
   129: "Simulate mouse leaving link",
   193: "Simulate mouse leaving continuously",
   execute_ (this: void, element): void {
-    const same = VDom.lastHovered_ === element;
-    VDom.hover_(null);
-    same || VDom.mouse_(element, "mouseout");
+    const a = VDom;
+    if (a.lastHovered_ !== element) {
+      a.hover_(null);
+    }
+    a.lastHovered_ = element;
+    a.hover_(null);
     if (document.activeElement === element) { element.blur(); }
   }
 } as HintsNS.ModeOpt,
