@@ -2165,7 +2165,7 @@ interface Event {
     preventDefault(): void;
     stopImmediatePropagation(): void;
     stopPropagation(): void;
-    deepPath(): EventTarget[];
+    deepPath?(): EventTarget[];
     path?: EventPath;
     readonly AT_TARGET: number;
     readonly BUBBLING_PHASE: number;
@@ -5140,6 +5140,16 @@ declare var ImageData: {
     new(width: number, height: number): ImageData;
     new(array: Uint8ClampedArray, width: number, height: number): ImageData;
 }
+
+interface InputEvent extends UIEvent {
+    readonly isComposing: boolean;
+    readonly inputType?: string; // not on Firefox
+}
+
+declare var InputEvent: {
+    prototype: InputEvent;
+    new(typeArg: string): InputEvent;
+} | undefined;
 
 interface KeyboardEvent extends UIEvent {
     readonly altKey: boolean;

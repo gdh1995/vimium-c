@@ -394,7 +394,7 @@ declare const enum BrowserVer {
   MinCSS$ScrollBehavior$$Smooth$Work = 41,
   // MethodFunction is accepted since C42 if EMPTY
   MinMayBeMethodFunction = 41, // if EXPERIMENTAL
-  // before 42, event.path is a simple NodeList instance
+  // before 42, event.path is a simple NodeList instance ; even if EXPERIMENTAL or LEAGCY
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
@@ -411,7 +411,7 @@ declare const enum BrowserVer {
   // even if EXPERIMENTAL or EMPTY
   MinMayBeArrowFunction = 45,
   // even if LEAGCY
-  MinEnsureMethodFunction = 45, // e.g.: `a = { b() {} }`
+  MinEnsuredMethodFunction = 45, // e.g.: `a = { b() {} }`
   MinMuted = 45,
   MinMutedInfo = 46,
   // even if EXPERIMENTAL or LEAGCY
@@ -462,6 +462,7 @@ declare const enum BrowserVer {
   // And, all "since C39" lines are totally wrong in the 2018-02-18 version of `tabs.executeScript`
   Min$tabs$$executeScript$hasFrameIdArg = 50,
   MinSVG$Path$Has$Use$Attribute = 50, // <path use="..." />
+  MinMaybe$window$$InputEvent = 50, // only if EXPERIMENTAL
   // MinShowBlockForBrokenImage = 51, // not reproduced
   // the 2 below just mean they're enabled even if LEAGCY
   MinIFrameReferrerpolicy = 51,
@@ -566,6 +567,7 @@ declare const enum BrowserVer {
   // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/exported/web_form_control_element.cc?&l=130
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   Min$InputEvent$$isComposing = 60,
+  MinEnsured$window$$InputEvent = 60, // even if LEGACY
   MinWarningWebkitGradient = 60, // only happened on a Canary version
   MinOmniboxUIMaxAutocompleteMatchesMayBe12 = 60, // #omnibox-ui-max-autocomplete-matches
   // the 6 below are correct even if EXPERIMENTAL or LEAGCY

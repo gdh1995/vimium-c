@@ -308,8 +308,8 @@ _listen("load", delayFindAll, true);
     ;
   Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage &&
     (VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage);
-  if (Build.MinCVer < BrowserVer.MinEnsureMethodFunction &&
-      appVer >= BrowserVer.MinEnsureMethodFunction) {
+  if (Build.MinCVer < BrowserVer.MinEnsuredMethodFunction &&
+      appVer >= BrowserVer.MinEnsuredMethodFunction) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
   }
   /**

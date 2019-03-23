@@ -266,7 +266,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
   function PostCompletions(this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>
       , autoSelect: boolean, matchType: CompletersNS.MatchType, total: number): void {
     let { u: url } = this.s, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
-    if (favIcon0 === 1 && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
+    if (favIcon0 === 1 && Build.BTypes & BrowserType.Chrome
+        && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
           || ChromeVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon)) {
       url = url.substring(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
       const map = framesForTab;

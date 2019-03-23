@@ -185,7 +185,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
        * - `event.currentTarget` (`this`) is a shadowRoot
        */
       isNormalHost = !!(top = path && path[0]) && top !== window && top !== target,
-      len = isNormalHost ? [].indexOf.call(path as EventPath, target) : 1;
+      len = isNormalHost ? Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
+        ? (path as EventTarget[]).indexOf(target) : [].indexOf.call(path as NodeList, target) : 1;
       isNormalHost ? (target = top as Element) : (path = [sr]);
       while (0 <= --len) {
         const root = (path as EventPath)[len];
@@ -225,7 +226,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       sr.vimiumListened = ShadowRootListenType.Blur;
       return;
     }
-    for (let len = [].indexOf.call(path as EventPath, target), SR = ShadowRoot; 0 <= --len; ) {
+    for (let len = Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
+              ? (path as EventTarget[]).indexOf(target) : [].indexOf.call(path as NodeList, target)
+          , SR = ShadowRoot; 0 <= --len; ) {
       const root = (path as EventPath)[len];
       if (!(root instanceof SR)) { continue; }
       root.removeEventListener("focus", wrapper, true);
@@ -233,9 +236,10 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       root.vimiumListened = ShadowRootListenType.None;
     }
   }
-  function onActivate(event: UIEvent): void {
+  function onActivate(event: UIEvent | MouseEvent): void {
     if (event.isTrusted !== false) {
-      VScroller.current_ = VDom.SafeEl_(event.path ? event.path[0] as Element : event.target as Element);
+      VScroller.current_ = VDom.SafeEl_(!(Build.BTypes & ~BrowserType.Chrome) ||
+        event.path ? (event.path as EventTarget[])[0] as Element : event.target as Element);
     }
   }
   function onWndBlur(this: void): void {
