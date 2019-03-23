@@ -357,7 +357,7 @@ var VDom = {
     (element: Element): VisibilityType;
     (element: null, rect: ClientRect): VisibilityType;
   },
-  isInDOM_ (element: Element, root?: HTMLBodyElement | HTMLFrameSetElement | Document): boolean {
+  isInDOM_ (element: Element, root?: Element | Document, expectFalse?: 1): boolean {
     if (!root) {
       const isConnected = element.isConnected; /** {@link BrowserVer.Min$Node$$isConnected} */
       if (isConnected === !!isConnected) { return isConnected; } // is boolean : exists and is not overridden
@@ -374,7 +374,7 @@ var VDom = {
     // Note: `pn instanceof Element` means `element.parentNode` is overridden,
     // so return a "potentially correct" result `true`.
     // This requires that further jobs are safe enough even when isInDOM returns a fake "true"
-    return pn === doc || pn instanceof Element;
+    return pn === doc || !expectFalse && pn instanceof Element;
   },
   notSafe_ (el: Node | null): el is HTMLFormElement {
     return el instanceof HTMLFormElement;
@@ -454,7 +454,8 @@ var VDom = {
     return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement)
       , PNType.DirectElement);
   },
-  mouse_: function (this: {}, element: Element, type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseout"
+  mouse_: function (this: {}, element: Element
+      , type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseenter" | "mouseout" | "mouseleave"
       , rect?: Rect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {
     modifiers || (modifiers = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false });
     let doc = element.ownerDocument;
@@ -479,12 +480,19 @@ var VDom = {
   hover_: function (this: {}, newEl: Element | null, rect?: Rect | null): void {
     let a = VDom as typeof VDom, last = a.lastHovered_;
     if (last && a.isInDOM_(last)) {
-      a.mouse_(last, "mouseout", null, null, newEl !== last ? newEl : null);
+      const notSame = newEl !== last;
+      a.mouse_(last, "mouseout", null, null, notSame ? newEl : null);
+      if (!newEl || notSame && !a.isInDOM_(newEl, last, 1)) {
+        a.mouse_(last, "mouseleave", null, null, newEl);
+      }
     } else {
       last = null;
     }
     a.lastHovered_ = newEl;
-    newEl && a.mouse_(newEl, "mouseover", rect as Rect | null, null, last);
+    if (newEl) {
+      a.mouse_(newEl, "mouseover", rect as Rect | null, null, last);
+      a.mouse_(newEl, "mouseenter", rect as Rect | null, null, last);
+    }
   } as {
     (newEl: Element, rect: Rect | null): void;
     (newEl: null): void;

@@ -314,9 +314,9 @@ interface VDomMouse {
   (element: Element, type: "mousedown" | "mouseup" | "click"
     , rect: Rect | null // rect must be not optional, so that human can understand program logic easily
     , modifiers?: EventControlKeys | null, related?: Element | null): boolean;
-  (element: Element, type: "mouseover", rect: Rect | null
+  (element: Element, type: "mouseover" | "mouseenter", rect: Rect | null
     , modifiers?: null, related?: Element | null): boolean;
-  (element: Element, type: "mouseout", rect?: null
+  (element: Element, type: "mouseout" | "mouseleave", rect?: null
     , modifiers?: null, related?: Element | null): boolean;
 }
 interface VPortTy {

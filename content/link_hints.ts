@@ -1109,6 +1109,8 @@ Modes_: [
   192: "Hover over nodes continuously",
   execute_ (element, rect): void {
     const type = VDom.getEditableType_<0>(element);
+    // here not check VDom.lastHovered on purpose
+    // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     VScroller.current_ = element;
     VDom.hover_(element, rect);
     type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
