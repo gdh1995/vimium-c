@@ -197,6 +197,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
     }
     if (VDom.getEditableType_<LockableElement>(target)) {
+      VScroller.current_ = target;
       if (InsertMode.grabBackFocus_) {
         (InsertMode.grabBackFocus_ as Exclude<typeof InsertMode.grabBackFocus_, boolean>)(event, target);
         return;
@@ -207,6 +208,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           InsertMode.last_ = target;
         }
       }
+    } else {
+      VScroller.current_ = VDom.SafeEl_(target as Element) || VScroller.current_;
     }
   }
   function onBlur(this: void, event: Event | FocusEvent): void {
