@@ -2388,7 +2388,7 @@ Are you sure you want to continue?`);
       act = act.toLowerCase() as Frames.ForcedStatusText;
       const always_enabled = Exclusions == null || Exclusions.rules_.length <= 0, oldStatus = ref[0].s.s,
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
-        : act === "toggle" ? oldStatus === Frames.Status.disabled ? Frames.Status.enabled : Frames.Status.disabled
+        : act === "toggle" ? oldStatus !== Frames.Status.enabled ? Frames.Status.enabled : Frames.Status.disabled
         : null,
       locked = stat !== null, unknown = !(locked || always_enabled),
       msg: Req.bg<kBgReq.reset> = { N: kBgReq.reset, p: stat !== Frames.Status.disabled ? null : "", f: locked };
