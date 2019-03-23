@@ -65,16 +65,12 @@ var VFind = {
     UI.add_(el, AdjustType.DEFAULT, VHUD.box_);
   },
   notDisableScript_(): BOOL {
-    let a = this, ret: BOOL = 1;
     try {
-      // tslint:disable-next-line: no-unused-expression
-      a.box_.contentWindow.document;
-    } catch {
-      ret = 0;
-      a.clean_(FindNS.Action.ExitUnexpectedly);
-      VHUD.tip_("Sorry, Vimium C can not open a HUD on this page");
-    }
-    return ret;
+      if (this.box_.contentWindow.document) { return 1; }
+    } catch {}
+    this.clean_(FindNS.Action.ExitUnexpectedly);
+    VHUD.tip_("Sorry, Vimium C can not open a HUD on this page");
+    return 0;
   },
   onLoad_ (later?: 1): void {
     const a = this, box: HTMLIFrameElement = a.box_,
@@ -84,7 +80,9 @@ var VFind = {
     f("mousedown", a.OnMousedown_, t);
     f("keydown", a.onKeydown_.bind(a), t);
     f("input", a.OnInput_, t);
-    f("paste", a.OnPaste_, t);
+    if (Build.BTypes & ~BrowserType.Chrome) {
+      f("paste", a._OnPaste, t);
+    }
     f("unload", a.OnUnload_, t);
     for (const i of ["keypress", "keyup", "mouseup", "click", "contextmenu", "copy", "cut", "paste"]) {
       f(i, s, t);
@@ -92,7 +90,7 @@ var VFind = {
     f("blur", function onBlur(this: Window): void {
       const delta = Date.now() - now;
       if (VFind.isActive_ && delta < 500 && delta > -99) {
-        this.document.body && setTimeout(function (): void { VFind.focus_(); }, tick++ * 17);
+        this.document.body && setTimeout(function (): void { VFind && VFind.focus_(); }, tick++ * 17);
       } else {
         this.removeEventListener("blur", onBlur, true);
       }
@@ -115,14 +113,18 @@ var VFind = {
     a = VFind,
     el: HTMLElement = a.input_ = doc.body as HTMLBodyElement,
     zoom = wnd.devicePixelRatio;
-    let plain = true;
-    try {
+    if (Build.BTypes & ~BrowserType.Chrome) {
+      let plain = true;
+      try {
+        el.contentEditable = "plaintext-only";
+      } catch {
+        plain = false;
+        el.contentEditable = "true";
+      }
+      wnd.removeEventListener("paste", plain ? a._OnPaste : VUtils.Stop_, true);
+    } else {
       el.contentEditable = "plaintext-only";
-    } catch {
-      plain = false;
-      el.contentEditable = "true";
     }
-    wnd.removeEventListener("paste", plain ? a.OnPaste_ : VUtils.Stop_, true);
     const el2 = a.countEl_ = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
@@ -217,12 +219,12 @@ var VFind = {
       VFind.focus_();
     }
   },
-  OnPaste_ (this: HTMLElement, event: ClipboardEvent): void {
+  _OnPaste: Build.BTypes & ~BrowserType.Chrome ? function (this: HTMLElement, event: ClipboardEvent): void {
     const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
     VUtils.prevent_(event);
     if (!text) { return; }
     (event.target as HTMLElement).ownerDocument.execCommand("insertText", false, text + "");
-  },
+  } : null,
   onKeydown_ (event: KeyboardEvent): void {
     VUtils.Stop_(event);
     if (event.isTrusted === false) { return; }
@@ -274,7 +276,7 @@ var VFind = {
     }
     if (!VEvent.lock_() && VKeyboard.isEscape_(event)) {
       VUtils.prevent_(event); // safer
-      VFind.deactivate_(FindNS.Action.ExitNoFocus); // should exit
+      this.deactivate_(FindNS.Action.ExitNoFocus); // should exit
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
