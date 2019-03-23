@@ -162,19 +162,19 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   findScrollable_ (di: ScrollByY, amount: number): SafeElement | null {
     const a = this;
     let element: SafeElement | null = a.current_, top = a.top_;
-    if (!element) {
-      return a.current_ = top && a._selectFirst(top) || top;
-    }
-    let reason, isCurVerticallyScrollable = di - 1 /** X => -1, Y => 0 */;
-    type Element2 = NonNullable<typeof element>;
-    while (element !== top && (reason = a.shouldScroll_unsafe_(element as Element2, di, amount)) < 1) {
-      if (!reason) {
-        isCurVerticallyScrollable = isCurVerticallyScrollable || +a._scrollDo(element as Element2, 1, -amount);
+    if (element) {
+      let reason, notNeedToRecheck = !di;
+      type Element2 = NonNullable<typeof element>;
+      while (element !== top && (reason = a.shouldScroll_unsafe_(element as Element2, di, amount)) < 1) {
+        if (!reason) {
+          notNeedToRecheck = notNeedToRecheck || a._scrollDo(element as Element2, 1, -amount);
+        }
+        element = VDom.SafeEl_(VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent)) || top;
       }
-      element = VDom.SafeEl_(VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent)) || top;
+      element = element !== top || notNeedToRecheck ? element : null;
     }
-    if (element === top && top && !isCurVerticallyScrollable) {
-      element = a.current_ = a._selectFirst(top) || top;
+    if (!element && top) {
+      element = a.current_ = a._selectFirst(VDom.SafeEl_(document.body) || top) || top;
     }
     a.scrolled_ = 0;
     return element;
@@ -213,7 +213,6 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   _selectFirst (element: SafeElement, skipPrepare?: 1): SafeElement | null {
     if (element.clientHeight + 3 < element.scrollHeight &&
         (this._scrollDo(element, 1, 1) || element.scrollTop > 0 && this._scrollDo(element, 1, 0))) {
-      this.scrolled_ = 0;
       return element as SafeElement;
     }
     skipPrepare || VDom.prepareCrop_();
