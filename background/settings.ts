@@ -129,9 +129,10 @@ var Settings = {
       browserVer = ChromeVer,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
       hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All
-          || browserInfo.lastIndexOf("a") >= 0;
+          || browserInfo.indexOf("a") >= 0;
       if (Build.MinCVer < BrowserVer.MinUnprefixedUserSelect && browserVer < BrowserVer.MinUnprefixedUserSelect
-          || (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+          || (!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)) {
         css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
       }
       if (!Build.NDEBUG) {
@@ -164,12 +165,12 @@ var Settings = {
         css = css.replace("3px 5px", "3px 7px");
       }
       if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0)
-          && browserInfo.lastIndexOf("s") < 0) {
+          && browserInfo.indexOf("s") < 0) {
         // Note: &vimium.min.css: this requires `:host{` is at the beginning
         const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1,
         prefix = "#VimiumUI";
         let body = css.substring(secondEnd);
-        if (hasAll) {
+        if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All || hasAll) {
           body = body.replace(<RegExpG> /\b[IL]H\s?\{/g, "$&all:inherit;");
         }
         body += `\n${prefix}:before,${prefix}:after,.R:before,.R:after{display:none!important}`;
@@ -487,9 +488,10 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     settings.set_("newTabUrl", obj.NewTabForNewUser_);
   }
   obj.StyleCacheId_ = obj.VerCode_ + "," + ChromeVer
-    + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || window.ShadowRoot ? "s" : "")
-    + ((Build.MinCVer > BrowserVer.MinSafeCSS$All || ChromeVer > BrowserVer.MinSafeCSS$All)
+    + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? ""
+        : window.ShadowRoot ? "s" : "")
+    + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All ? ""
+      : (Build.MinCVer > BrowserVer.MinSafeCSS$All || ChromeVer > BrowserVer.MinSafeCSS$All)
         && (!(Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))
           || "all" in (document.documentElement as HTMLElement).style)
       ? "a" : "")
