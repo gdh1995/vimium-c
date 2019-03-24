@@ -134,7 +134,7 @@ var Utils = {
     if ((index = str.indexOf(":")) === 0) { type = Urls.Type.Search; }
     else if (index === -1 || !a.protocolRe_.test(str)) {
       if (index !== -1 && str.lastIndexOf("/", index) < 0) {
-        type = a.checkSpecialSchemes_(oldString, index, str.length % oldString.length);
+        type = a.checkSpecialSchemes_(oldString.toLowerCase(), index, str.length % oldString.length);
       }
       expected = Urls.Type.NoSchema; index2 = oldString.length;
       if (type === Urls.TempType.Unspecified && str.startsWith("//")) {
@@ -142,7 +142,9 @@ var Utils = {
         expected = Urls.Type.NoProtocolName;
         index2 -= 2;
       }
-      if (type !== Urls.TempType.Unspecified) { /* empty */ }
+      if (type !== Urls.TempType.Unspecified) {
+        if (str === "about:blank/") { oldString = "about:blank"; }
+      }
       else if ((index = str.indexOf("/")) <= 0) {
         if (index === 0 || str.length < index2) { type = Urls.Type.Search; }
       } else if (str.length >= index2 || str.charCodeAt(index + 1) > KnownKey.space) {
