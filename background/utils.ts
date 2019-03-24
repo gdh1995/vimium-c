@@ -761,11 +761,10 @@ var Utils = {
       if ("count" in options) {
         options.count = details[1] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
       }
-      if (options.$desc || options.$key || options.$desp) {
-        help = { key: options.$key || "", desc: options.$desc || options.$desp || "" };
+      if (options.$desc || options.$key) {
+        help = { key: options.$key || "", desc: options.$desc || "" };
         delete options.$key;
         delete options.$desc;
-        delete options.$desp;
       }
       if (opt) {
         Utils.extendIf_(options, opt);
