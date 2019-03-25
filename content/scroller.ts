@@ -174,7 +174,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       element = element !== top || notNeedToRecheck ? element : null;
     }
     if (!element && top) {
-      element = a.current_ = a._selectFirst(VDom.SafeEl_(document.body) || top) || top;
+      element = a.current_ = a._selectFirst(top) || top;
     }
     a.scrolled_ = 0;
     return element;
