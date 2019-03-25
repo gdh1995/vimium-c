@@ -436,7 +436,8 @@ IncognitoWatcher_ = {
   },
   TestIncognitoWnd_ (this: void): void {
     IncognitoWatcher_.timer_ = 0;
-    if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito) {
+    if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+        || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito) {
       let left = false, arr = Backend.indexPorts_();
       for (const i in arr) {
         if ((arr[+i] as Frames.Frames)[0].s.a) { left = true; break; }

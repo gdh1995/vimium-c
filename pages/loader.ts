@@ -31,10 +31,13 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
   interface BgWindow extends Window { Settings: typeof Settings; }
   if (location.pathname.toLowerCase().indexOf("options") < 0) {
     const bg = chrome.extension.getBackgroundPage() as BgWindow;
-    if (bg && bg.Backend && bg.Backend.isDark_()) {
-      const style = document.createElement("style");
-      style.textContent = "body { background: #000; color: #aaa; }";
-      (document.head as HTMLHeadElement).appendChild(style);
+    if (bg && bg.Backend) {
+      const uiStyles = bg.Backend.uiStyles_();
+      if (uiStyles && ` ${uiStyles} `.indexOf(" dark ") >= 0) {
+        const style = document.createElement("style");
+        style.textContent = "body { background: #000; color: #aaa; }";
+        (document.head as HTMLHeadElement).appendChild(style);
+      }
     }
   }
   if (!Build.NDEBUG) {

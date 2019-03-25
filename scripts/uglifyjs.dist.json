@@ -34,6 +34,7 @@
       "getAttribute", "hasAttribute", "querySelectorAll",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
       "VEvent.lock_", "VEvent.mapKey_", "VUtils.safer_",
+      "onRuntimeError", "Utils.runtimeError_",
       "_getKeyCharUsingKeyIdentifier", "parentFrame_"
     ],
     "pure_getters": true,

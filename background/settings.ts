@@ -141,7 +141,7 @@ var Settings = {
       const findOffset = css.lastIndexOf("/*#find*/");
       let findCSS = css.substring(findOffset + /* '/*#find*\/\n' */ 10);
       css = css.substring(0, findOffset - /* `\n` */ 1);
-      if (hasAll) {
+      if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All || hasAll) {
         // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCSSMeansNothing
         // in case that ":host" is set [style="all:unset"]
         const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2),
@@ -264,10 +264,13 @@ var Settings = {
       const text = this.responseText;
       if (file === "baseCSS") {
         Settings.postUpdate_(file, text);
-      } else if (file === "words") {
+      } else if ((Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
+          || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+              && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
+          && file === "words") {
         Settings.CONST_.words = text.replace(<RegExpG> /[\n\r]/g, "");
       } else {
-        Settings.set_(file, text);
+        Settings.set_(file as Exclude<typeof file, "baseCSS" | "words">, text);
       }
       callback && setTimeout(callback, 0);
       return;

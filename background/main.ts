@@ -178,7 +178,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
       tabId: isId ? tabIdUrl as number : undefined,
       url: isId ? undefined : tabIdUrl as string
     };
-    if (Build.MinCVer < BrowserVer.MinCreateWndWithState && ChromeVer < BrowserVer.MinCreateWndWithState) {
+    if (Build.MinCVer < BrowserVer.MinCreateWndWithState && Build.BTypes & BrowserType.Chrome
+        && ChromeVer < BrowserVer.MinCreateWndWithState) {
       option.state = undefined;
       option.left = option.top = 0; option.width = option.height = 50;
     }
@@ -435,9 +436,10 @@ Are you sure you want to continue?`);
     }, commandCount);
   }
 
-  const
-  createTab = (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
-      ? [standardCreateTab] : [standardCreateTab, function (wnd): void {
+  const hackedCreateTab =
+      (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+        || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
+      ? null : [function (wnd): void {
     if (cOptions.url || cOptions.urls) {
       return BackgroundCommands[kBgCmd.openUrl]([selectFrom((wnd as PopWindow).tabs)]);
     }
@@ -448,7 +450,7 @@ Are you sure you want to continue?`);
     const tab = selectFrom(wnd.tabs);
     if (wnd.incognito && wnd.type !== "normal") {
       // url is disabled to be opened in a incognito window directly
-      return createTab[2](this, tab, commandCount > 1 ? (id: number): void => {
+      return hackedCreateTab[1](this, tab, commandCount > 1 ? (id: number): void => {
         for (let count = commandCount; 0 < --count; ) {
           chrome.tabs.duplicate(id);
         }
@@ -465,7 +467,7 @@ Are you sure you want to continue?`);
       return ((end < 0) ? url2 : url2.substring(0, end)) === urlLower;
     });
     if (allTabs.length === 0) {
-      chrome.windows.getAll(createTab[3].bind(url, tab, repeat));
+      chrome.windows.getAll(hackedCreateTab[2].bind(url, tab, repeat));
       return;
     }
     const tabs = allTabs.filter(tab1 => tab1.index >= tab.index);
@@ -477,10 +479,10 @@ Are you sure you want to continue?`);
       return !wnd.incognito && wnd.type === "normal";
     });
     if (wnds.length > 0) {
-      return createTab[4](this, tab, repeat, wnds[0]);
+      return hackedCreateTab[3](this, tab, repeat, wnds[0]);
     }
     return makeTempWindow("about:blank", false, //
-    createTab[4].bind(null, this, tab, function (newTabId: number, newWndId: number): void {
+    hackedCreateTab[3].bind(null, this, tab, function (newTabId: number, newWndId: number): void {
       chrome.windows.remove(newWndId);
       if (repeat) { return repeat(newTabId); }
     }));
@@ -490,24 +492,22 @@ Are you sure you want to continue?`);
       windowId: wnd.id,
       url
     }, function (newTab) {
-      return makeTempWindow(newTab.id, true, createTab[5].bind(tab, callback, newTab));
-    });
-  }, function (callback, newTab) {
-    chrome.tabs.move(newTab.id, {
-      index: this.index + 1,
-      windowId: this.windowId
-    }, function (): void {
-      callback && callback(newTab.id, newTab.windowId);
-      return selectTab(newTab.id);
+      return makeTempWindow(newTab.id, true, function () {
+        chrome.tabs.move(newTab.id, {
+          index: tab.index + 1,
+          windowId: tab.windowId
+        }, function (): void {
+          callback && callback(newTab.id, newTab.windowId);
+          return selectTab(newTab.id);
+        });
+      });
     });
   }]) as [
-    typeof standardCreateTab,
     (this: string, wnd?: PopWindow) => void,
     (this: void, url: string, tab: Tab, repeat: ((this: void, tabId: number) => void) | null, allTabs: Tab[]) => void,
     (this: string, tab: Tab, repeat: ((this: void, tabId: number) => void) | null, wnds: Window[]) => void,
     (this: void, url: string, tab: Tab
       , callback: ((this: void, tabId: number, wndId: number) => void) | null, wnd: Window) => void,
-    (this: Tab, callback: ((this: void, tabId: number, wndId: number) => void) | null, newTab: Tab) => void
   ];
   function openUrl(url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | never[]): void {
     if (typeof url === "string") {
@@ -632,7 +632,7 @@ Are you sure you want to continue?`);
           Build.MinCVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId ||
           ChromeVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId)
         ? chrome.extension.getViews({ tabId: tab.id }) : [];
-      if (views.length > 0 && views[0].onhashchange) {
+      if (Build.BTypes & BrowserType.Chrome && views.length > 0 && views[0].onhashchange) {
         (views[0].onhashchange as () => void)();
       } else {
         chrome.tabs.update(tab.id, { url: prefix });
@@ -853,7 +853,8 @@ Are you sure you want to continue?`);
       }
       chrome.tabs.duplicate(tabId);
       if (commandCount < 2) { return; }
-      if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
+      if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+          || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
           || TabRecency_.incognito_ === IncognitoType.ensuredFalse) {
         chrome.tabs.get(tabId, fallback);
       } else {
@@ -895,8 +896,9 @@ Are you sure you want to continue?`);
         }, wnd.type === "normal" ? wnd.state : "", count > 1 ?
         function (wnd2: Window): void {
           let curTab = tabs0[i], tabs = tabs0.slice(i + 1, range[1]), tabs2 = tabs0.slice(range[0], i);
-          if (wnd.incognito && Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
-              && ChromeVer < BrowserVer.MinNoUnmatchedIncognito) {
+          if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
+              && Build.BTypes & BrowserType.Chrome
+              && wnd.incognito && ChromeVer < BrowserVer.MinNoUnmatchedIncognito) {
             let { incognito: incognito2 } = curTab, filter = (tab2: Tab): boolean => tab2.incognito === incognito2;
             tabs = tabs.filter(filter);
             tabs2 = tabs2.filter(filter);
@@ -923,17 +925,18 @@ Are you sure you want to continue?`);
         if (wnd.incognito && tab.incognito) { return reportNoop(); }
         const options: chrome.windows.CreateData = {tabId: tab.id, incognito: true}, url = tab.url;
         if (tab.incognito) { /* empty */ }
-        else if (Utils.isRefusingIncognito_(url)) {
-          if (wnd.incognito) {
+        else if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
+            && wnd.incognito) {
+          if (Utils.isRefusingIncognito_(url)) {
             return reportNoop();
           }
-          if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito ||
+          ++tab.index;
+          return Backend.reopenTab_(tab);
+        } else if (Utils.isRefusingIncognito_(url)) {
+          if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome) ||
               ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST_.DisallowIncognito_) {
             return Backend.complain_("open this URL in incognito mode");
           }
-        } else if (wnd.incognito) {
-          ++tab.index;
-          return Backend.reopenTab_(tab);
         } else {
           options.url = url;
         }
@@ -946,17 +949,18 @@ Are you sure you want to continue?`);
           if (wnds.length) {
             chrome.tabs.query({ windowId: wnds[wnds.length - 1].id, active: true }, function ([tab2]): void {
               const tabId2 = options.tabId as number;
-              if (options.url) {
+              if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+                  || options.url) {
                 chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
                 selectWnd(tab2);
                 chrome.tabs.remove(tabId2);
-                return;
-              }
-              return makeTempWindow(tabId2, true, function (): void {
-                chrome.tabs.move(tabId2, {index: tab2.index + 1, windowId: tab2.windowId}, function (): void {
-                  return selectTab(tabId2, true);
+              } else {
+                makeTempWindow(tabId2, true, function (): void {
+                  chrome.tabs.move(tabId2, {index: tab2.index + 1, windowId: tab2.windowId}, function (): void {
+                    return selectTab(tabId2, true);
+                  });
                 });
-              });
+              }
             });
             return;
           }
@@ -985,12 +989,19 @@ Are you sure you want to continue?`);
         if (wnds.length > 0) {
           ids = wnds.map(wnd => wnd.id);
           index = ids.indexOf(index);
-          if (ids.length >= 2 || index === -1) {
+          if (ids.length >= 2 || index < 0) {
             let dest = (index + commandCount) % ids.length;
-            index === -1 && commandCount < 0 && dest++;
+            index < 0 && commandCount < 0 && dest++;
             dest < 0 && (dest += ids.length);
             chrome.tabs.query({windowId: ids[dest], active: true}, function ([tab2]): void {
-              return index >= 0 ? callback() : makeTempWindow(tab.id, tab.incognito, callback);
+              Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+              ? chrome.tabs.move(tab.id, {
+                index: tab2.index + (cOptions.right > 0 ? 1 : 0), windowId: tab2.windowId
+              }, function (): void {
+                return selectTab(tab.id, true);
+              })
+              : index >= 0 || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito ? callback()
+              : makeTempWindow(tab.id, tab.incognito, callback);
               function callback(): void {
                 chrome.tabs.move(tab.id, {
                   index: tab2.index + (cOptions.right > 0 ? 1 : 0), windowId: tab2.windowId
@@ -1224,7 +1235,8 @@ Are you sure you want to continue?`);
       if (tabs.length <= 0) { return; }
       const tab = tabs[0];
       ++tab.index;
-      if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
+      if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+          || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
           || Settings.CONST_.DisallowIncognito_
           || TabRecency_.incognito_ === IncognitoType.ensuredFalse || !Utils.isRefusingIncognito_(tab.url)) {
         return Backend.reopenTab_(tab);
@@ -2441,9 +2453,9 @@ Are you sure you want to continue?`);
       chrome.runtime.onConnect.addListener(function (port): void {
         return OnConnect(port as Frames.Port, (port.name.substring(9) as string | number as number) | 0);
       });
-      if (!chrome.runtime.onConnectExternal) { return; }
+      if (Build.BTypes & ~BrowserType.Chrome && !chrome.runtime.onConnectExternal) { return; }
       Settings.postUpdate_("extWhiteList");
-      chrome.runtime.onConnectExternal.addListener(function (port): void {
+      (chrome.runtime.onConnectExternal as chrome.runtime.ExtensionConnectEvent).addListener(function (port): void {
         let { sender, name } = port, arr: string[];
         if (sender && isExtIdAllowed(sender.id)
             && name.startsWith("vimium-c") && (arr = name.split("@")).length > 1) {
@@ -2458,27 +2470,29 @@ Are you sure you want to continue?`);
         }
       });
     },
-    isDark_ (this: void): boolean {
-      return !!omniStyles && ` ${omniStyles} `.indexOf(" dark ") >= 0;
+    uiStyles_ (this: void): string {
+      return omniStyles;
     }
   };
 
-  if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito) {
-    (createTab as Array<{}>).length = 1;
-  }
   Settings.updateHooks_.newTabUrl_f = function (url) {
-    const onlyNormal = Utils.isRefusingIncognito_(url), mayForceIncognito = createTab.length > 1 && onlyNormal;
-    BackgroundCommands[kBgCmd.createTab] = mayForceIncognito ? function (): void {
-      getCurWnd(true, createTab[1].bind(url));
+    const onlyNormal = Utils.isRefusingIncognito_(url),
+    mayForceIncognito = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
+      && ChromeVer < BrowserVer.MinNoUnmatchedIncognito && onlyNormal;
+    BackgroundCommands[kBgCmd.createTab] = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
+        && Build.BTypes & BrowserType.Chrome && mayForceIncognito ? function (): void {
+      getCurWnd(true, hackedCreateTab[0].bind(url));
     } : standardCreateTab.bind(null, url, onlyNormal);
-    BgCmdInfo[kBgCmd.createTab] = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
+    BgCmdInfo[kBgCmd.createTab] = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
+        && Build.BTypes & BrowserType.Chrome && mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
   };
 
   Settings.updateHooks_.showActionIcon = function (value) {
     needIcon = value && !!chrome.browserAction;
   };
 
-  chrome.runtime.onMessageExternal && (chrome.runtime.onMessageExternal.addListener(function (this: void
+  (!(Build.BTypes & ~BrowserType.Chrome) || chrome.runtime.onMessageExternal) &&
+  ((chrome.runtime.onMessageExternal as chrome.runtime.ExtensionMessageEvent).addListener(function (this: void
       , message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void {
     let command: string | undefined;
@@ -2512,7 +2526,8 @@ Are you sure you want to continue?`);
     }
   }), Settings.postUpdate_("extWhiteList"));
 
-  chrome.tabs.onReplaced && chrome.tabs.onReplaced.addListener(function (addedTabId, removedTabId) {
+  (!(Build.BTypes & ~BrowserType.Chrome) || chrome.tabs.onReplaced) &&
+  (chrome.tabs.onReplaced as chrome.tabs.TabReplacedEvent).addListener(function (addedTabId, removedTabId) {
     const ref = framesForTab, frames = ref[removedTabId];
     if (!frames) { return; }
     delete ref[removedTabId];

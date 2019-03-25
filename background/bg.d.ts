@@ -56,8 +56,8 @@ declare namespace Urls {
   type Url = string | SpecialUrl;
 
   const enum Type {
-    Default = 0,
-    Full = Default,
+    Full = 0,
+    Default = Full,
     NoProtocolName = 1,
     NoSchema = 2,
     MaxOfInputIsPlainUrl = NoSchema,
@@ -394,7 +394,7 @@ declare namespace BackendHandlersNS {
     };
     ExecuteGlobal_ (this: void, command: string): void;
     onInit_: ((this: void) => void) | null;
-    isDark_ (this: void): boolean;
+    uiStyles_ (this: void): string;
   }
 }
 

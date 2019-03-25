@@ -475,7 +475,8 @@ setTimeout(function () {
   });
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
-  wantDeletable && (onDel as NonNullable<typeof onDel>).addListener(function (text): void {
+  (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable || wantDeletable) &&
+  (onDel as NonNullable<typeof onDel>).addListener(function (text): void {
     // tslint:disable-next-line: radix
     const ind = parseInt(text.substring(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
     let url = suggestions && suggestions[ind].content, info = url && subInfoMap && subInfoMap[url],

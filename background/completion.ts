@@ -953,13 +953,15 @@ Completers = {
       , func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
       , query: CompletersNS.QueryStatus): 1 {
     if (inNormal === null) {
-      inNormal = TabRecency_.incognito_ !== IncognitoType.mayFalse ? TabRecency_.incognito_ !== IncognitoType.true
-        : Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito
-          || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST_.DisallowIncognito_
+      inNormal = Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+          || TabRecency_.incognito_ !== IncognitoType.mayFalse
+        ? TabRecency_.incognito_ !== IncognitoType.true
+        : ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST_.DisallowIncognito_
           || null;
     }
     const cb = func.bind(that, query);
-    if (inNormal !== null || Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito) {
+    if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+        || inNormal !== null) {
       return chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, cb);
     }
     return chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {
