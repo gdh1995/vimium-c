@@ -2109,7 +2109,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     getElementsByClassName<T extends Element>(classNames: string): NodeListOf<T>;
     getElementsByClassName(classNames: string): NodeListOf<Element>;
     matches(selector: string): boolean;
-    closest(selector: string): Element | null;
+    closest? (selector: string): Element | null;
     scrollIntoView(alignToTop?: boolean): void;
     scrollIntoViewIfNeeded? (alignToTop?: boolean): void;
     scroll(x: number, y: number): void;

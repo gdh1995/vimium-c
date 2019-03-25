@@ -384,6 +384,7 @@ declare const enum BrowserVer {
   MinDisableMoveTabAcrossIncognito = 40,
   // even if EXPERIMENTAL or LEAGCY
   MinWarningSyncXHR = 40,
+  MinEnsured$Element$$Closest = 41, // even if LEAGCY
   MinWithFrameId = 41,
   // just means it's enabled by default
   Min$String$$StartsWithAndIncludes = 41,

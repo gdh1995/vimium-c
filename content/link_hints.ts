@@ -22,6 +22,9 @@ declare namespace HintsNS {
     url?: boolean;
     keyword?: string;
     newtab?: boolean;
+    toggle?: {
+      [selector: string]: string;
+    };
     auto?: boolean;
     /** @deprecated */
     force?: boolean;
@@ -1115,8 +1118,41 @@ Modes_: [
     VDom.hover_(element, rect);
     type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
       element instanceof HTMLFrameElement || element.focus();
-    if ((this as typeof VHints).mode_ < HintMode.min_job) {
+    const a = this as typeof VHints;
+    if (a.mode_ < HintMode.min_job) {
       return VHUD.tip_("Hover for scrolling", 1000);
+    }
+    const toggleMap = a.options_.toggle;
+    if (!toggleMap || typeof toggleMap !== "object") { return; }
+    VUtils.safer_(toggleMap);
+    let ancestors = [], topest: Element | null = element, re = <RegExpOne> /^-?\d+/;
+    for (let key in toggleMap) {
+      // if no Element::closest, go up by 6 levels and then query the selector
+      let selector = key, prefix = re.exec(key), upper = prefix && prefix[0];
+      if (upper) {
+        selector = selector.substring(upper.length);
+      }
+      let up = (upper as string | number as number) | 0, selected: Element | null = null;
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !up) {
+        up = element.closest ? 0 : 6;
+      }
+      selector = selector.trim();
+      while (up && up + 1 >= ancestors.length && topest) {
+        ancestors.push(topest);
+        topest = VDom.GetParent_(topest, PNType.RevealSlotAndGotoParent)
+      }
+      try {
+        if (selector && (selected = up
+              ? (ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]).querySelector(selector)
+              : (element as EnsureNonNull<Element>).closest(selector))) {
+          for (const clsName of toggleMap[key].split(" ")) {
+            clsName.trim() && selected.classList.toggle(clsName);
+          }
+        }
+      } catch {}
+      if (selected) {
+        break;
+      }
     }
   }
 } as HintsNS.ModeOpt,
