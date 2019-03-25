@@ -338,7 +338,7 @@ var VVisual = {
     br = range && range.getBoundingClientRect();
     if (br && br.height > 0 && br.right > 0) { // width may be 0 in Caret mode
       let cr = VDom.cropRectToVisible_(br.left - 4, br.top - 5, br.right + 3, br.bottom + 4);
-      cr && VDom.UI.flash_(null, cr).classList.add("Sel");
+      cr && VDom.UI.flash_(null, cr, 660).classList.add("Sel");
     }
   },
 
