@@ -7,8 +7,11 @@ declare const enum OmniboxData {
 }
 
 // Note: if localStorage is cleaned
-//       (considering: newTabUrl (the alerting one), newTabUrl_f, innerCSS, findCSS, omniCSS),
+//       (considering: newTabUrl (the alerting one), newTabUrl_f, vomnibarPage_f, innerCSS, findCSS, omniCSS),
 //       try to get vimSync from storage.sync
+declare const enum SyncConsts {
+  LocalItemCountWhenInstalled = 6,
+}
 setTimeout(function () {
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
@@ -19,6 +22,7 @@ setTimeout(function () {
   doNotSync: PartialTypedSafeEnum<SettingsToSync> = Object.setPrototypeOf({
     // Note(gdh1995): need to keep synced with pages/options_ext.ts#_importSettings
     findModeRawQueryList: 1 as 1, innerCSS: 1 as 1, keyboard: 1 as 1, newTabUrl_f: 1 as 1
+    , vomnibarPage_f: 1 as 1
   }, null);
   function HandleStorageUpdate(changes: { [key: string]: chrome.storage.StorageChange }, area: string): void {
     if (area !== "sync") { return; }
@@ -124,7 +128,7 @@ setTimeout(function () {
     }
   };
   const sync1 = Settings.get_("vimSync");
-  if (sync1 === false || (!sync1 && (localStorage.length > 5
+  if (sync1 === false || (!sync1 && (localStorage.length > SyncConsts.LocalItemCountWhenInstalled
                                     || Settings.get_("newTabUrl") !== Settings.CONST_.NewTabForNewUser_))) {
     return;
   }

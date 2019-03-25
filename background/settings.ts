@@ -16,11 +16,12 @@ var Settings = {
   } as SettingsNS.FrontendSettingCache & SafeObject,
   newTabs_: Object.create(null) as SafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
+  storage_: localStorage,
   get_<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
     if (key in this.cache_) {
       return (this.cache_ as SettingsWithDefaults)[key];
     }
-    const initial = this.defaults_[key], str = localStorage.getItem(key);
+    const initial = this.defaults_[key], str = this.storage_.getItem(key);
     const value = str == null ? initial : typeof initial === "string" ? str
         : initial === false || initial === true ? str === "true"
         : JSON.parse<typeof initial>(str);
@@ -28,25 +29,26 @@ var Settings = {
     return value;
   },
   set_<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void {
-    (this.cache_ as SettingsNS.FullCache)[key] = value;
-    if (!(key in this.nonPersistent_)) {
-      const initial = this.defaults_[key as keyof SettingsNS.PersistentSettings];
+    const a = this;
+    (a.cache_ as SettingsNS.FullCache)[key] = value;
+    if (!(key in a.nonPersistent_)) {
+      const initial = a.defaults_[key as keyof SettingsNS.PersistentSettings];
       if (value === initial) {
-        localStorage.removeItem(key);
-        this.sync_(key as keyof SettingsNS.PersistentSettings, null);
+        a.storage_.removeItem(key);
+        a.sync_(key as keyof SettingsNS.PersistentSettings, null);
       } else {
-        localStorage.setItem(key, typeof initial === "string" ? value as string : JSON.stringify(value));
-        this.sync_(key as keyof SettingsNS.PersistentSettings, value as
+        a.storage_.setItem(key, typeof initial === "string" ? value as string : JSON.stringify(value));
+        a.sync_(key as keyof SettingsNS.PersistentSettings, value as
           FullSettings[keyof SettingsNS.PersistentSettings]);
       }
-      if (key in this.payload_) {
-        this.payload_[key as keyof SettingsNS.FrontendSettings] =
+      if (key in a.payload_) {
+        a.payload_[key as keyof SettingsNS.FrontendSettings] =
           value as FullSettings[keyof SettingsNS.FrontendSettings];
       }
     }
     let ref: SettingsNS.SimpleUpdateHook<K> | undefined;
-    if (ref = this.updateHooks_[key as keyof SettingsWithDefaults] as (SettingsNS.UpdateHook<K> | undefined)) {
-      return ref.call(this, value, key);
+    if (ref = a.updateHooks_[key as keyof SettingsWithDefaults] as (SettingsNS.UpdateHook<K> | undefined)) {
+      return ref.call(a, value, key);
     }
   },
   postUpdate_: function<K extends keyof SettingsWithDefaults> (this: {}, key: K, value?: FullSettings[K]): void {
@@ -125,7 +127,7 @@ var Settings = {
       return (this as typeof Settings).postUpdate_("newTabUrl");
     },
     baseCSS (this: {}, css): void {
-      const cacheId = (this as typeof Settings).CONST_.StyleCacheId_,
+      const a = this as typeof Settings, cacheId = a.CONST_.StyleCacheId_,
       browserVer = ChromeVer,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
       hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All
@@ -179,31 +181,32 @@ var Settings = {
           body.replace(<RegExpG> /\.[A-Z]/g, `${prefix} $&`);
       }
       css = cacheId + css.length + "\n" + css;
-      const css2 = (this as typeof Settings).parseCustomCSS_((this as typeof Settings).get_("userDefinedCss"));
+      const css2 = a.parseCustomCSS_(a.get_("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
       if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
           && browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css = css.replace(<RegExpG> /\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$11px \/\*!DPI\*\/");
       }
-      localStorage.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
-      localStorage.setItem("omniCSS", css2.omni || "");
-      return (this as typeof Settings).set_("innerCSS", css);
+      a.storage_.setItem("findCSS", findCSS.length + "\n" + findCSS + (css2.find ? "\n" + css2.find : ""));
+      a.storage_.setItem("omniCSS", css2.omni || "");
+      return a.set_("innerCSS", css);
     },
     userDefinedCss (this: {}, css2Str): void {
-      let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
+      const a = this as typeof Settings;
+      let css = a.storage_.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substring(0, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
-      const css2 = (this as typeof Settings).parseCustomCSS_(css2Str);
+      const css2 = a.parseCustomCSS_(css2Str);
       let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
       {
-        css = localStorage.getItem("findCSS") as string;
+        css = a.storage_.getItem("findCSS") as string;
         headEnd = css.indexOf("\n");
         css = css.slice(0, headEnd + 1 + +css.substring(0, headEnd));
         let find2 = css2.find;
-        localStorage.setItem("findCSS", find2 ? css + "\n" + find2 : css);
-        localStorage.setItem("omniCSS", css2.omni || "");
+        a.storage_.setItem("findCSS", find2 ? css + "\n" + find2 : css);
+        a.storage_.setItem("omniCSS", css2.omni || "");
       }
-      (this as typeof Settings).set_("innerCSS", innerCSS);
-      const cache = (this as typeof Settings).cache_;
+      a.set_("innerCSS", innerCSS);
+      const cache = a.cache_;
       innerCSS = cache.innerCSS;
       const ref = Backend.indexPorts_(), request: Req.bg<kBgReq.showHUD> = {
         N: kBgReq.showHUD, S: innerCSS, f: cache.findCSS_
@@ -224,8 +227,8 @@ var Settings = {
       }
     },
     innerCSS (this: {}, css): void {
-      const storage = localStorage, cache = (this as typeof Settings).cache_ as Writeable<typeof Settings.cache_>;
-      let findCSS = storage.getItem("findCSS"), omniCSS = storage.getItem("omniCSS");
+      const a = this as typeof Settings, cache = a.cache_ as Writeable<typeof Settings.cache_>;
+      let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS");
       if (!findCSS || omniCSS == null) { Settings.fetchFile_("baseCSS"); return; }
       findCSS = findCSS.substring(findCSS.indexOf("\n") + 1);
       const index = findCSS.indexOf("}") + 1, index2 = findCSS.indexOf("\n", index);
@@ -235,8 +238,13 @@ var Settings = {
       cache.omniCSS_ = omniCSS;
     },
     vomnibarPage (this: {}, url): void {
-      if (url === (this as typeof Settings).defaults_.vomnibarPage) {
-        url = (this as typeof Settings).CONST_.VomnibarPageInner_;
+      const a = this as typeof Settings, cur = localStorage.getItem("vomnibarPage_f");
+      if (cur) {
+        (a.cache_ as Writeable<typeof Settings.cache_>).vomnibarPage_f = cur;
+        return;
+      }
+      if (url === a.defaults_.vomnibarPage) {
+        url = a.CONST_.VomnibarPageInner_;
       } else if (url.startsWith("front/")) {
         url = chrome.runtime.getURL(url);
       } else {
@@ -244,12 +252,12 @@ var Settings = {
         url = Utils.reformatURL_(url);
         if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
             && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg && !url.startsWith(BrowserProtocol_)) {
-          url = (this as typeof Settings).CONST_.VomnibarPageInner_;
+          url = a.CONST_.VomnibarPageInner_;
         } else {
-          url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST_.VerCode_));
+          url = url.replace(":version", "" + parseFloat(a.CONST_.VerCode_));
         }
       }
-      (this as typeof Settings).set_("vomnibarPage_f", url);
+      a.set_("vomnibarPage_f", url);
     }
   } as { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } as SettingsNS.FullUpdateHookMap,
   /** can only fetch files in the `[ROOT]/front` folder */
@@ -335,13 +343,14 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     userDefinedCss: "",
     vimSync: null,
     vomnibarPage: "front/vomnibar.html",
+    vomnibarPage_f: "",
     phraseBlacklist: ""
   } as Readonly<SettingsWithDefaults> & SafeObject,
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent_: { __proto__: null as never,
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1,
-    searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1, vomnibarPage_f: 1
+    searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
   } as TypedSafeEnum<SettingsNS.NonPersistentSettings>,
   frontUpdateAllowed_: { __proto__: null as never,
     showAdvancedCommands: 1
@@ -505,4 +514,5 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     return;
   }
   settings.fetchFile_("baseCSS");
+  localStorage.removeItem("vomnibarPage_f");
 })();

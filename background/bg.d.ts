@@ -297,6 +297,7 @@ declare namespace SettingsNS {
     userDefinedCss: string;
     vimSync: boolean | null;
     vomnibarPage: string;
+    vomnibarPage_f: string;
     phraseBlacklist: string;
   }
   interface CachedFiles {
@@ -310,7 +311,6 @@ declare namespace SettingsNS {
   interface BaseNonPersistentSettings {
     searchEngineRules: Search.Rule[];
     searchKeywords: string[] | null;
-    vomnibarPage_f: string;
   }
   interface NonPersistentSettings extends BaseNonPersistentSettings, OtherSettingsWithDefaults, CachedFiles {}
   interface PersistentSettings extends FrontendSettings, BackendSettings {}
