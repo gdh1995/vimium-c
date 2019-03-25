@@ -7,7 +7,6 @@ VDom.UI = {
   styleIn_: null,
   styleOut_: null,
   UI: null as never,
-  flashLastingTime_: 400,
   add_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
     r: VUIRoot = a.UI = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
@@ -275,7 +274,7 @@ VDom.UI = {
       : VDom.cropRectToVisible_.apply(VDom, bcr as [number, number, number, number]) ? bcr : null;
   },
   _lastFlash: null,
-  flash_: function (this: DomUI, el: Element | null, rect?: Rect | null): HTMLDivElement | void {
+  flash_: function (this: DomUI, el: Element | null, rect?: Rect | null, lifeTime?: number): HTMLDivElement | void {
     const a = this;
     rect || (rect = a.getRect_(el as Element));
     if (!rect) { return; }
@@ -288,7 +287,7 @@ VDom.UI = {
     setTimeout(function (): void {
       a._lastFlash === flashEl && (a._lastFlash = null);
       flashEl.remove();
-    }, a.flashLastingTime_);
+    }, lifeTime || GlobalConsts.DefaultRectFlashTime);
     return flashEl;
   } as DomUI["flash_"],
   suppressTail_ (this: void, onlyRepeated: BOOL): void {

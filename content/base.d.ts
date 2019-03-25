@@ -283,7 +283,6 @@ interface DomUI {
   styleOut_: HTMLStyleElement | null;
   /** `!!@UI` must keep the same as `!!@box_`*/
   UI: VUIRoot;
-  flashLastingTime_: number;
   _lastFlash: HTMLElement | null;
   add_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): void;
   addElementList_<T extends boolean>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
@@ -306,7 +305,7 @@ interface DomUI {
   /** @NEED_SAFE_ELEMENTS */
   _moveSel_unsafe_ (this: DomUI, element: LockableElement, action: SelectActions | undefined): void;
   getRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null;
-  flash_ (this: DomUI, el: null, rect: Rect): HTMLElement;
+  flash_ (this: DomUI, el: null, rect: Rect, lifeTime?: number): HTMLElement;
   flash_ (this: DomUI, el: Element): HTMLElement | void;
   suppressTail_ (this: void, onlyRepeated: BOOL): void;
   SuppressMost_: HandlerNS.Handler<{}>;
