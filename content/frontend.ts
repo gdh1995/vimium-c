@@ -1272,7 +1272,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   }
 })();
 
-if (Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
   String.prototype.startsWith = function (this: string, s: string): boolean {
     return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
   };

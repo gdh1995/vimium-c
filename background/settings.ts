@@ -484,7 +484,8 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
   obj.HomePage_ = ref.homepage_url || obj.HomePage_;
   ref2.push(obj.InjectEnd_);
-  if (Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && ChromeVer < BrowserVer.MinSafe$String$$StartsWith
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith
+      && ChromeVer < BrowserVer.MinSafe$String$$StartsWith
       && "".startsWith.name !== "startsWith") {
     ref2.unshift(obj.PolyFill_);
   }

@@ -244,7 +244,7 @@ window.onhashchange = function (this: void): void {
   document.title = str;
 };
 
-if (!"".startsWith) {
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
 String.prototype.startsWith = function (this: string, s: string): boolean {
   return this.lastIndexOf(s, 0) === 0;
 };

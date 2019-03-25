@@ -814,7 +814,6 @@ function removeUnknownOptions() {
 
 function getBuildConfigStream() {
   return gulp.src("types/build/index.d.ts").pipe(gulpMap(function(file) {
-    file.history = file.history.map(i => i.replace("index.d.ts", "gulp.d.ts"));
     file.contents = new Buffer(_buildConfigTSContent);
     return file;
   }));
