@@ -2537,7 +2537,7 @@ Are you sure you want to continue?`);
     }
   });
 
-  Settings.postUpdate_("vomnibarPage"); // not wait 34ms in case that Vomnibar is wanted at once
+  Settings.postUpdate_("vomnibarPage");
   Settings.postUpdate_("searchUrl", null); // will also update newTabUrl
 
   // will run only on <F5>, not on runtime.reload
