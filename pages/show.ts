@@ -221,6 +221,9 @@ window.onhashchange = function (this: void): void {
       }
       url = str1;
     }
+    if (typeof url === "string") {
+      url = tryDecryptUrl(url) || url;
+    }
     showText(type, url);
     break;
   default:
@@ -577,6 +580,26 @@ function parseSmartImageUrl_(originUrl: string): string | null {
     found = 0;
   }
   return found !== 0 ? parsed.origin + path.substring(0, offset) + search : null;
+}
+
+function tryDecryptUrl(url: string): string {
+  const schema = url.split(":", 1)[0];
+  switch (schema.toLowerCase()) {
+  case "thunder": case "flashget": case "qqdl":
+    url = url.substring(schema.length + 3).split("&", 1)[0];
+    break;
+  default: return "";
+  }
+  try {
+    url = atob(url);
+  } catch { return ""; }
+  if (url.startsWith("AA") && url.indexOf("ZZ", url.length - 2) > 0) {
+    url = url.substring(2, url.length - 2);
+  }
+  if (url.startsWith("[FLASHGET]") && url.indexOf("[FLASHGET]", url.length - 10) > 0) {
+    url = url.substring(10, url.length - 10);
+  }
+  return tryDecryptUrl(url) || url;
 }
 
 function disableAutoAndReload_(): void {
