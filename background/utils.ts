@@ -574,12 +574,14 @@ var Utils = {
       : url;
   },
   reformatURL_ (url: string): string {
-    let ind = url.indexOf(":");
+    let ind = url.indexOf(":"), ind2 = ind;
     if (ind <= 0) { return url; }
     if (url.substring(ind, ind + 3) === "://") {
       ind = url.indexOf("/", ind + 3);
-      if (ind < 0) { return url.toLowerCase() + "/"; }
-      if (ind === 7 && url.substring(0, 4).toLowerCase() === "file") {
+      if (ind < 0) {
+        ind = ind2;
+        ind2 = -1;
+      } else if (ind === 7 && url.substring(0, 4).toLowerCase() === "file") {
         // file:///*
         ind = url[9] === ":" ? 3 : 0;
         return "file:///" + (ind ? url[8].toUpperCase() + ":/" : "") + url.substring(ind + 8);
@@ -587,6 +589,11 @@ var Utils = {
       // may be file://*/
     }
     const origin = url.substring(0, ind), o2 = origin.toLowerCase();
+    if (ind2 === -1) {
+      if ((<RegExpOne> /^(file|ftp|https?|rt[ms]p|wss?)$/).test(origin)) {
+        url += "/";
+      }
+    }
     return origin !== o2 ? o2 + url.substring(ind) : url;
   },
   parseSearchEngines_ (str: string, map: Search.EngineMap): Search.Rule[] {

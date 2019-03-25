@@ -206,7 +206,10 @@ window.onhashchange = function (this: void): void {
         str1 = BG_.Utils.evalVimiumUrl_(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
       }
       str1 = str1 !== null ? str1 : BG_.Utils.convertToUrl_(url, null, Urls.WorkType.ConvertKnown);
-      if (typeof str1 === "string") { /* empty */ }
+      if (typeof str1 === "string") {
+        str1 = BG_.Utils.detectLinkDeclaration_(str1);
+        str1 = BG_.Utils.reformatURL_(str1);
+      }
       else if (str1 instanceof BG_.Promise) {
         str1.then(function (arr) {
           showText(arr[1], arr[0] || (arr[2] || ""));
