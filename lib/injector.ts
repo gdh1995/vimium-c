@@ -55,11 +55,12 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     , parentElement = inserAfter.parentElement as Element;
   let scripts: HTMLScriptElement[] = [];
   for (const i of res.scripts) {
-    const scriptElement = document.createElement("script");
-    scriptElement.async = false;
-    scriptElement.src = i;
-    parentElement.insertBefore(scriptElement, insertBefore);
-    scripts.push(scriptElement);
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.async = false;
+    script.src = i;
+    parentElement.insertBefore(script, insertBefore);
+    scripts.push(script);
   }
   scripts.length > 0 && (scripts[scripts.length - 1].onload = function (): void {
     this.onload = null as never;
@@ -91,6 +92,7 @@ if (document.readyState !== "loading") {
       if (!docEl) { return; }
       const script = document.createElement("script");
       script.type = "text/javascript";
+      script.async = false;
       script.src = scriptSrc;
       console.log("%cVimium C%c begins to reload"
           + (async && typeof async === "object" ? " because it has been updated." : ".")
