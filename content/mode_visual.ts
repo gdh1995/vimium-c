@@ -592,7 +592,9 @@ var VVisual = {
       const { focusNode } = sel;
       // common HTML nodes
       if (anchorNode !== focusNode) {
-        num1 = Node.prototype.compareDocumentPosition.call(anchorNode as Node, focusNode as Node);
+        num1 = Build.BTypes & ~BrowserType.Firefox
+          ? Node.prototype.compareDocumentPosition.call(anchorNode as Node, focusNode as Node)
+          : (anchorNode as Node).compareDocumentPosition(focusNode as Node);
         a.diType_ = VisualModeNS.DiType.Normal;
         return a.di_ = (
             num1 & (/** Node.DOCUMENT_POSITION_CONTAINS */ 8 | /** Node.DOCUMENT_POSITION_CONTAINED_BY */ 16)
@@ -612,7 +614,8 @@ var VVisual = {
       type TextModeElement = HTMLInputElement | HTMLTextAreaElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)
           && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
-        const child = (VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes
+        const child = (Build.BTypes & ~BrowserType.Firefox && VDom.Getter_(Node, anchorNode as Element, "childNodes")
+                        || (anchorNode as Element).childNodes
                       )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (VDom.isInputInTextMode_(lock as TextModeElement)) {

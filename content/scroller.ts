@@ -169,7 +169,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
         if (!reason) {
           notNeedToRecheck = notNeedToRecheck || a._scrollDo(element as Element2, 1, -amount);
         }
-        element = VDom.SafeEl_(VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent)) || top;
+        element = (Build.BTypes & ~BrowserType.Firefox
+            ? VDom.SafeEl_(VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent))
+            : VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent) as SafeElement | null
+          ) || top;
       }
       element = element !== top || notNeedToRecheck ? element : null;
     }
@@ -220,7 +223,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     while (0 < _len--) {
       element = _ref[_len] as Element as /** fake `as` */ SafeElement;
       // here assumes that a <form> won't be a main scrollable area
-      if (VDom.notSafe_(element)) { continue; }
+      if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { continue; }
       const rect = element.getBoundingClientRect(),
       visible = rect.height > 0 ? VDom.cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)
         : VDom.getVisibleClientRect_(element);

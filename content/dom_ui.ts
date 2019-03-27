@@ -172,7 +172,7 @@ VDom.UI = {
       sel2 = null;
       el = sel.anchorNode;
       if (el && el === sel.focusNode && (offset = sel.anchorOffset) === sel.focusOffset) {
-        if (el instanceof E && !(el.childNodes instanceof E)) {
+        if (el instanceof E && !(Build.BTypes & ~BrowserType.Firefox && (el.childNodes instanceof E))) {
           el = el.childNodes[offset];
           if (el && (sr = VDom.GetShadowRoot_(el))) {
             if (sr.getSelection && (sel2 = sr.getSelection())) {

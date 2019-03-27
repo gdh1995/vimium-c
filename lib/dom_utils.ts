@@ -48,16 +48,17 @@ var VDom = {
     }
   },
   /** refer to {@link BrowserVer.MinParentNodeInNodePrototype } */
-  Getter_ <Ty extends Node, Key extends keyof Ty> (this: void
+  Getter_: Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty> (this: void
       , Cls: { prototype: Ty, new(): Ty; }, instance: Ty, property: Key & string
       ): NonNullable<Ty[Key]> | null {
     const desc = Object.getOwnPropertyDescriptor(Cls.prototype, property);
     return desc && desc.get ? desc.get.call(instance) : null;
-  },
+  } : null as never,
   GetShadowRoot_ (el: Element | Node): ShadowRoot | null {
     const sr = (el as Element).shadowRoot || null, E = Element;
     // check el's type to avoid exceptions
-    return sr instanceof E ? el instanceof E ? VDom.Getter_(E, el, "shadowRoot") : null : sr;
+    return Build.BTypes & ~BrowserType.Firefox && sr instanceof E
+      ? el instanceof E ? VDom.Getter_(E, el, "shadowRoot") : null : sr;
   },
   /**
    * Try its best to find a real parent
@@ -80,7 +81,8 @@ var VDom = {
         arr.length > 0 && (el = arr[arr.length - 1]);
       }
       let slot = (el as Element).assignedSlot;
-      slot && VDom.notSafe_(el) && (slot = VDom.Getter_(E, el, "assignedSlot" as "assignedSlot"));
+      Build.BTypes & ~BrowserType.Firefox && slot && VDom.notSafe_(el) &&
+      (slot = VDom.Getter_(E, el, "assignedSlot" as "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
         while (slot = slot.assignedSlot) { el = slot as HTMLSlotElement; }
@@ -89,7 +91,7 @@ var VDom = {
     let pe = el.parentElement, pn = el.parentNode;
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn; }
     // par exists but not in normal tree
-    if (!pn.contains(el)) { // pn is overridden
+    if (Build.BTypes & ~BrowserType.Firefox && !pn.contains(el)) { // pn is overridden
       if (pe && pe.contains(el)) { /* pe is real */ return pe; }
       pn = VDom.Getter_(Node, el, "parentNode");
     }
@@ -153,7 +155,8 @@ var VDom = {
     return this.prepareCrop_();
   },
   getVisibleClientRect_ (element: Element, el_style?: CSSStyleDeclaration): Rect | null {
-    const arr = Element.prototype.getClientRects.call(element);
+    const arr = Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getClientRects.call(element)
+                : element.getClientRects();
     let cr: Rect | null, style: CSSStyleDeclaration | null, _ref: HTMLCollection | undefined
       , isVisible: boolean | undefined, notInline: boolean | undefined, str: string;
     for (let _i = 0, _len = arr.length; _i < _len; _i++) {
@@ -168,7 +171,9 @@ var VDom = {
         }
         continue;
       }
-      if (_ref || (_ref = element.children) instanceof Element) { continue; }
+      if (_ref || (_ref = element.children, Build.BTypes & ~BrowserType.Firefox && _ref instanceof Element)) {
+        continue;
+      }
       for (let _j = 0, _len1 = _ref.length, gCS = getComputedStyle; _j < _len1; _j++) {
         style = gCS(_ref[_j]);
         if (style.float !== "none" || ((str = style.position) !== "static" && str !== "relative")) { /* empty */ }
@@ -332,20 +337,26 @@ var VDom = {
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
   },
   view_ (el: Element, oldY?: number): boolean {
-    const P = Element.prototype, rect = P.getBoundingClientRect.call(el), ty = this.NotVisible_(null, rect);
+    const P = Element.prototype,
+    rect = Build.BTypes & ~BrowserType.Firefox ? P.getBoundingClientRect.call(el) : el.getBoundingClientRect(),
+    ty = this.NotVisible_(null, rect);
     if (ty === VisibilityType.OutOfView) {
       const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
-      P.scrollIntoView.call(el, delta < 0);
+      Build.BTypes & ~BrowserType.Firefox ? P.scrollIntoView.call(el, delta < 0) : el.scrollIntoView(delta < 0);
       (delta || f) && this.scrollWndBy_(0, f ? (oldY as number) - window.scrollY : delta * ih / 5);
     }
     return ty === VisibilityType.Visible;
   },
   scrollWndBy_ (left: number, top: number): void {
+    !(Build.BTypes & ~BrowserType.Firefox) ||
     !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
     HTMLElement.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
   },
   NotVisible_: function (this: void, element: Element | null, rect?: ClientRect): VisibilityType {
-    if (!rect) { rect = Element.prototype.getBoundingClientRect.call(element as Element); }
+    if (!rect) {
+      rect = Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getBoundingClientRect.call(element as Element)
+        : (element as Element).getBoundingClientRect();
+    }
     return rect.height < 0.5 || rect.width < 0.5 ? VisibilityType.NoSpace
       : rect.bottom <= 0 || rect.top >= innerHeight || rect.right <= 0 || rect.left >= innerWidth
         ? VisibilityType.OutOfView : VisibilityType.Visible;
@@ -360,15 +371,17 @@ var VDom = {
     }
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;
+    !(Build.BTypes & ~BrowserType.Firefox) ||
     root || doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
     if (doc.nodeType === 9 && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox) || (f = NP.getRootNode))) {
-      return (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
-          || !(Build.BTypes & ~BrowserType.Firefox)
+      return !(Build.BTypes & ~BrowserType.Firefox)
+        ? (element as EnsureNonNull<Element>).getRootNode({composed: true}) === doc
+        : (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
         ? NP.getRootNode as NonNullable<typeof f> : f as NonNullable<typeof f>
         ).call(element, {composed: true}) === doc;
     }
-    if (NP.contains.call(doc, element)) { return true; }
+    if (Build.BTypes & ~BrowserType.Firefox ? NP.contains.call(doc, element) : doc.contains(element)) { return true; }
     while ((pe = VDom.GetParent_(element, PNType.ResolveShadowHost)) && pe !== doc) { element = pe; }
     const pn = VDom.GetParent_(element, PNType.DirectNode);
     // Note: `pn instanceof Element` means `element.parentNode` is overridden,
@@ -376,17 +389,19 @@ var VDom = {
     // This requires that further jobs are safe enough even when isInDOM returns a fake "true"
     return pn === doc || !expectFalse && pn instanceof Element;
   },
-  notSafe_ (el: Node | null): el is HTMLFormElement {
+  notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
     return el instanceof HTMLFormElement;
-  },
+  } : null as never,
   /** @safe_even_if_any_overridden_property */
-  SafeEl_: function (this: void, el: Node | null, type?: PNType.DirectElement): Node | null {
-    return VDom.notSafe_(el) ? VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent) : el;
+  SafeEl_: Build.BTypes & ~BrowserType.Firefox ?
+  function (this: void, el: Node | null, type?: PNType.DirectElement): Node | null {
+    return VDom.notSafe_(el)
+      ? VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent) : el;
   } as {
     (this: void, el: HTMLElement | null): SafeHTMLElement | null;
     (this: void, el: Element | null, type?: PNType.DirectElement): SafeElement | null;
     (this: void, el: Node | null): Node | null;
-  },
+  } : null as never,
   uneditableInputs_: <SafeEnum> { __proto__: null as never,
     button: 1, checkbox: 1, color: 1, file: 1, hidden: 1, //
     image: 1, radio: 1, range: 1, reset: 1, submit: 1
@@ -401,11 +416,13 @@ var VDom = {
    */
   getEditableType_: function (element: Element): EditableType {
     const name = element.tagName;
-    if (!(element instanceof HTMLElement) || typeof name !== "string") { return EditableType.NotEditable; }
-    const ty = VDom.editableTypes_[name.toLowerCase()];
-    return ty !== EditableType.input_ ? (ty
-        || (element.isContentEditable !== true || VDom.notSafe_(element) ? EditableType.NotEditable
-          : EditableType.Editbox)
+    if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && typeof name !== "string") {
+      return EditableType.NotEditable;
+    }
+    const ty = VDom.editableTypes_[(name as string).toLowerCase()];
+    return ty !== EditableType.input_ ? (ty ||
+        (element.isContentEditable !== true || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)
+        ? EditableType.NotEditable : EditableType.Editbox)
       )
       : VDom.uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.Editbox;
   } as {
@@ -424,7 +441,8 @@ var VDom = {
   isSelected_ (): boolean {
     const element = document.activeElement as Element, sel = getSelection(), node = sel.anchorNode;
     // only <form>, <select>, Window has index getter, so `=== node.childNodes[i]` is safe
-    return (element as HTMLElement).isContentEditable === true ? !!node && document.contains.call(element, node)
+    return (element as HTMLElement).isContentEditable === true
+      ? !!node && (Build.BTypes & ~BrowserType.Firefox ? document.contains.call(element, node) : element.contains(node))
       : element === node || node instanceof Element && element === node.childNodes[sel.anchorOffset];
   },
   /**
@@ -437,7 +455,9 @@ var VDom = {
     while (par && !(par instanceof HTMLElement)) { par = par.parentNode as Element; }
     if (selected && p0 instanceof Text && p0.data.trim().length <= selected.length) {
       let text: string;
-      while (par && typeof (text = (<HTMLElement> par).innerText) === "string" && selected.length === text.length) {
+      while (par && (text = (<HTMLElement> par).innerText,
+            !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string"))
+          && selected.length === text.length) {
         par = VDom.GetParent_(par as Element, PNType.DirectElement);
       }
     }
@@ -448,9 +468,14 @@ var VDom = {
     let el = sel.focusNode, E = Element
       , o: Node | null, cn: Node["childNodes"];
     if (el instanceof E) {
-      el = !((cn = this.Getter_(Node, el, "childNodes") || el.childNodes) instanceof E) && cn[sel.focusOffset] || el;
+      el = Build.BTypes & ~BrowserType.Firefox
+        ? !((cn = this.Getter_(Node, el, "childNodes") || el.childNodes) instanceof E) && cn[sel.focusOffset] || el
+        : el.childNodes[sel.focusOffset] || el;
     }
     for (o = el; o && !(o instanceof E); o = knownDi ? o.previousSibling : o.nextSibling) { /* empty */ }
+    if (!(Build.BTypes & ~BrowserType.Firefox)) {
+      return (/* Element | null */ o || (/* el is not Element */ el && el.parentElement)) as SafeElement | null;
+    }
     return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement)
       , PNType.DirectElement);
   },
@@ -459,6 +484,7 @@ var VDom = {
       , rect?: Rect | null, modifiers?: EventControlKeys | null, related?: Element | null): boolean {
     modifiers || (modifiers = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false });
     let doc = element.ownerDocument;
+    Build.BTypes & ~BrowserType.Firefox &&
     doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
     const mouseEvent = doc.createEvent("MouseEvents");
     // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
@@ -473,7 +499,8 @@ var VDom = {
       , x, y, x, y
       , modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey
       , 0, related && related.ownerDocument === doc ? related : null);
-    return doc.dispatchEvent.call(element, mouseEvent);
+    return Build.BTypes & ~BrowserType.Firefox ? doc.dispatchEvent.call(element, mouseEvent)
+      : element.dispatchEvent(mouseEvent);
   } as VDomMouse,
   lastHovered_: null as Element | null,
   /** note: will NOT skip even if newEl == @lastHovered */

@@ -276,7 +276,7 @@ var VHints = {
    */
   GetClickable_ (this: Hint[], element: Element): void {
     let arr: Rect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
-    if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) {
+    if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) {
       if (element instanceof SVGElement) {
         type = VUtils.clickable_.has(element) || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
@@ -389,7 +389,7 @@ var VHints = {
     return false;
   },
   GetEditable_ (this: Hint[], element: Element): void {
-    if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
+    if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { return; }
     let arr: Rect | null, type = ClickType.Default, s: string;
     switch ((element.tagName as string).toLowerCase()) {
     case "input":
@@ -448,7 +448,7 @@ var VHints = {
   },
   GetImages_ (this: Hint[], element: Element): void {
     if (element instanceof HTMLImageElement) { return VHints._getImagesInImg(this, element); }
-    if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
+    if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { return; }
     let str = element.dataset.src || element.getAttribute("href"), cr: Rect | null;
     if (!VUtils.isImageUrl_(str)) {
       str = element.style.backgroundImage as string;
@@ -475,7 +475,8 @@ var VHints = {
     Sc = VScroller,
     wantClickable = matchAll && filter === a.GetClickable_,
     box = !wholeDoc && D.webkitFullscreenElement || D, isD = box === D,
-    querySelectorAll = isD ? D.querySelectorAll : Element.prototype.querySelectorAll;
+    querySelectorAll = Build.BTypes & ~BrowserType.Firefox
+      ? isD ? D.querySelectorAll : Element.prototype.querySelectorAll : box.querySelectorAll;
     wantClickable && Sc.getScale_();
     let list: HintsNS.ElementList | null = querySelectorAll.call(box, query);
     if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintLimitToCheckViewportFirst) {
@@ -534,7 +535,7 @@ var VHints = {
     const result: Element[] = [], height = innerHeight;
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
       const el = list[i];
-      if (VDom.notSafe_(el)) { continue; }
+      if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(el)) { continue; }
       const cr = el.getBoundingClientRect();
       if (cr.bottom > 0 && cr.top < height) {
         result.push(el);
@@ -1311,9 +1312,9 @@ Modes_: [
       link.removeAttribute("download");
     }
     if (!changed) { /* empty */ }
-    else if (typeof oldUrl === "string") {
+    else if (oldUrl != null) {
       link.setAttribute("href", oldUrl);
-    } else if (oldUrl === null) {
+    } else {
       link.removeAttribute("href");
     }
   }
@@ -1356,7 +1357,8 @@ Modes_: [
       for (let summaries = link.children, i = 0, len = summaries.length; i < len; i++) {
         const summary = summaries[i];
         // there's no window.HTMLSummaryElement on C70
-        if ((summary.tagName + "").toLowerCase() === "summary" && summary instanceof HTMLElement) {
+        if ((Build.BTypes & ~BrowserType.Firefox ? summary.tagName + "" : summary.tagName as string
+            ).toLowerCase() === "summary" && summary instanceof HTMLElement) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
           rect = (link as HTMLDetailsElement).open || !rect ? VDom.getVisibleClientRect_(summary) : rect;

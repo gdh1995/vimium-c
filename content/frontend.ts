@@ -209,7 +209,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         }
       }
     } else {
-      VScroller.current_ = VDom.SafeEl_(target as Element) || VScroller.current_;
+      VScroller.current_ = (Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_(target as Element)
+        : target as SafeElement) || VScroller.current_;
     }
   }
   function onBlur(this: void, event: Event | FocusEvent): void {
@@ -241,8 +242,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   }
   function onActivate(event: UIEvent | MouseEvent): void {
     if (event.isTrusted !== false) {
-      VScroller.current_ = VDom.SafeEl_(!(Build.BTypes & ~BrowserType.Chrome) ||
-        event.path ? (event.path as EventTarget[])[0] as Element : event.target as Element);
+      const el = !(Build.BTypes & ~BrowserType.Chrome) ||
+          event.path ? (event.path as EventTarget[])[0] as Element : event.target as Element;
+      VScroller.current_ = Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_(el) : el as SafeElement | null;
     }
   }
   function onWndBlur(this: void): void {
@@ -587,7 +589,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         return true;
       }
       el = document.activeElement;
-      if (el && (el as HTMLElement).isContentEditable === true && !VDom.notSafe_(el) && el instanceof HTMLElement) {
+      if (el && (el as HTMLElement).isContentEditable === true &&
+         !(Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(el))
+         && el instanceof HTMLElement) {
         InsertMode.lock_ = el as LockableElement;
         return true;
       } else {
@@ -651,7 +655,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     return true;
   },
   GetLinks_ (this: HTMLElement[], element: Element): void {
-    if (!(element instanceof HTMLElement) || VDom.notSafe_(element)) { return; }
+    if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { return; }
     let s: string | null = (element.tagName as string).toLowerCase(), sr = element.shadowRoot;
     if (sr) {
       ([].forEach as HintsNS.ElementIterator<Element>).call(
@@ -712,7 +716,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     let s: string | null;
     for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
       const element = elements[_i], name = element.tagName as string | Element | Window;
-      if (relTags[(name + "").toLowerCase()]
+      if (relTags[(Build.BTypes & ~BrowserType.Firefox ? name + "" : name as string).toLowerCase()]
           && element instanceof HTMLElement
           && (s = (element as HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement).rel)
           && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {
@@ -866,11 +870,12 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           && (Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
               || browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl);
       }
-      if ((Build.BTypes & ~BrowserType.Chrome
-              && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
-          || (Build.MinCVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin
-              && browserVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin)) {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin
+          && browserVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin) {
         D.notSafe_ = (el): el is HTMLFormElement => el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
+      } else if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
+          && OnOther === BrowserType.Firefox) {
+        D.notSafe_ = (_el): _el is HTMLFormElement => false;
       }
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 &&
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);

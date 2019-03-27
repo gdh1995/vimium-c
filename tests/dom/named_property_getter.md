@@ -3,15 +3,20 @@
 ## frames
 
 - **framset**: CrossContext, OverrideBuiltins
-  - ***fixed***
+  - ***fixed*** for Chrome
   - OverrideBuiltins: removed since C70, commit 6a866d29f4314b990981119285da46540a50742c
+  - not on MS Edge 18.17763
+  - not on modern versions of Firefox
+    - according to logs of https://dxr.mozilla.org/mozilla-central/source/dom/webidl/HTMLFrameSetElement.webidl
 
 Comment: on C35 and C70, `iframe` and `frame` have no named property getters
 
 ## forms
 
 - **form**: CrossContext, OverrideBuiltins
-  - ***fixed***
+  - ***fixed*** for Chrome
+  - CrossContext: not on Firefox 65
+  - does cross contexts on MS Edge 18.17763
 
 ## plugins
 

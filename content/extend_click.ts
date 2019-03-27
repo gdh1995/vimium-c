@@ -67,7 +67,9 @@ if (VSettings && document.readyState !== "complete"
     let detail = event.detail as ClickableEventDetail | null;
     if (!Build.NDEBUG) {
       console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s" } in %o @t=%o`
-        , detail ? detail[0].length : ((event.target as Element).tagName + "").toLowerCase()
+        , detail ? detail[0].length
+          : (Build.BTypes & ~BrowserType.Firefox ? (event.target as Element).tagName + ""
+              : (event.target as Element).tagName as string).toLowerCase()
         , detail ? detail[1] ? detail[1].length : -0 : ""
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);

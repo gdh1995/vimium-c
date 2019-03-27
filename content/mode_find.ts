@@ -309,14 +309,16 @@ var VFind = {
   },
   /** return an element if no <a> else null */
   focusFoundLinkIfAny_ (): SafeElement | null {
-    let cur = VDom.SafeEl_(VDom.GetSelectionParent_unsafe_(VDom.UI.getSelected_()[0])), el: Element | null = cur;
-    for (let i = 0; el && el !== document.body && i++ < 5; el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
+    let cur = VDom.GetSelectionParent_unsafe_(VDom.UI.getSelected_()[0]);
+    Build.BTypes & ~BrowserType.Firefox && (cur = VDom.SafeEl_(cur));
+    for (let i = 0, el: Element | null = cur; el && el !== document.body && i++ < 5;
+        el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
       if (el instanceof HTMLAnchorElement) {
         el.focus();
         return null;
       }
     }
-    return cur;
+    return cur as SafeElement | null;
   },
   nextQuery_ (back?: boolean): void {
     const ind = this.historyIndex_ + (back ? -1 : 1);
@@ -446,7 +448,7 @@ var VFind = {
     if (re) {
       type FullScreenElement = Element & { innerText?: string | Element };
       let el = document.webkitFullscreenElement as FullScreenElement | null, text = el && el.innerText;
-      if (el && typeof text !== "string") {
+      if (Build.BTypes & ~BrowserType.Firefox && el && typeof text !== "string") {
         el = VDom.GetParent_(el, PNType.DirectElement), text = el && el.innerText as string | undefined;
       }
       query = <string | undefined | null> text || (document.documentElement as HTMLElement).innerText;
@@ -512,7 +514,8 @@ var VFind = {
       if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VDom.UI.getSelected_()[0]), q))) {
         pR.lastIndex = 0;
         let text = par.innerText as string | HTMLElement;
-        if (text && typeof text === "string" && !(pR as RegExpG & RegExpSearchable<0>).test(text)
+        if (text && !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string")
+            && !(pR as RegExpG & RegExpSearchable<0>).test(text as string)
             && timesRegExpNotMatch++ < 9) {
           count++;
         }

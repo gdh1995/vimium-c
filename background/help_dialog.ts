@@ -134,11 +134,9 @@ var HelpDialog = {
     parent.innerHTML = raw;
     for (let arr = parent.querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
       const el = arr[i];
-      if (el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement) {
-        el.remove();
-        continue;
-      }
-      if (!((el.tagName + "").toLowerCase() in this.safeTags) && !(el instanceof HTMLUnknownElement)) {
+      if (!((Build.BTypes & ~BrowserType.Firefox ? el.tagName + "" : el.tagName as string
+            ).toLowerCase() in this.safeTags)
+          && !(el instanceof HTMLUnknownElement)) {
         el.remove();
         continue;
       }

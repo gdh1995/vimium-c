@@ -35,6 +35,7 @@
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
       "VEvent.lock_", "VEvent.mapKey_", "VUtils.safer_",
       "onRuntimeError", "Utils.runtimeError_",
+      "SafeEl_", "notSafe_", "getEditableType_",
       "_getKeyCharUsingKeyIdentifier", "parentFrame_"
     ],
     "pure_getters": true,
