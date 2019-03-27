@@ -748,6 +748,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       const notTop = window.top !== window;
       if (notTop && mask === FrameMaskType.NormalNext) {
         let docEl = document.documentElement;
+        !(Build.BTypes & ~BrowserType.Chrome)
+        ? docEl && (docEl as EnsureNonNull<typeof docEl>).scrollIntoViewIfNeeded() :
         docEl && (docEl.scrollIntoViewIfNeeded || docEl.scrollIntoView).call(docEl);
       }
       if (mask < FrameMaskType.minWillMask || !VDom.isHTML_()) { return; }

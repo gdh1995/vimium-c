@@ -130,6 +130,7 @@ var HelpDialog = {
     thead: 1, tr: 1, tt: 1, u: 1, ul: 1, var: 1,
     __proto__: null as never
   } as SafeEnum,
+  _invalidAttrNameRe: <RegExpI> /^on|[^0-9a-z\-]|href$/i,
   safeHTML_ (raw: string, parent: HTMLElement): string {
     parent.innerHTML = raw;
     for (let arr = parent.querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
@@ -143,7 +144,7 @@ var HelpDialog = {
       const attrsToRemove = [] as Attr[];
       for (let attrs = el.attributes, len2 = attrs.length, j = 0; j < len2; j++) {
         const attrName = attrs[j].name.toLowerCase();
-        if (attrName.startsWith("on") || attrName.indexOf(":on") >= 0 || attrName.endsWith("href")) {
+        if (this._invalidAttrNameRe.test(attrName)) {
           attrsToRemove.push(attrs[j]);
         }
       }
