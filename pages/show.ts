@@ -487,6 +487,7 @@ function showSlide(ViewerModule: Window["Viewer"]): Promise<ViewerType> | Viewer
 function clean() {
   if (VData.type === "image") {
     (document.body as HTMLBodyElement).classList.remove("filled");
+    (VShown as HTMLImageElement).removeAttribute("src");
     if (viewer_) {
       viewer_.destroy();
       viewer_ = null;
