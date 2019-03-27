@@ -300,6 +300,8 @@ declare const enum GlobalConsts {
   LinkHintTooHighThreshold = 20, // scrollHeight / innerHeight
   LinkHintLimitToCheckViewportFirst = 15000,
   maxElementsWhenScanOnClick = 5000,
+  MaxScrollbarWidth = 24,
+  MaxHeightOfLinkHintMarker = 18,
 }
 
 declare const enum KnownKey {

@@ -127,8 +127,8 @@ var VDom = {
         const doc = document.documentElement as Element | null, dz = fz / this.bZoom_;
         if (!doc) { return ih = j, ihs = j - 8, iw = i; }
         // not reliable
-        i = Math.min(Math.max(i - PixelConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
-        j = Math.min(Math.max(j - PixelConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
+        i = Math.min(Math.max(i - GlobalConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
+        j = Math.min(Math.max(j - GlobalConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
       }
       if (b) {
         const dz = fz / this.bZoom_;
@@ -316,20 +316,20 @@ var VDom = {
     if (xScrollable) {
       mw += 64 * zoom2;
       if (!containHasPaint) {
-        iw = sEl ? (sEl.scrollWidth - window.scrollX) / zoom : Math.max((iw - PixelConsts.MaxScrollbarWidth) / zoom
+        iw = sEl ? (sEl.scrollWidth - window.scrollX) / zoom : Math.max((iw - GlobalConsts.MaxScrollbarWidth) / zoom
           , rect.right);
       }
     }
     if (yScrollable) {
       mh += 20 * zoom2;
       if (!containHasPaint) {
-        ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max((ih - PixelConsts.MaxScrollbarWidth) / zoom
+        ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max((ih - GlobalConsts.MaxScrollbarWidth) / zoom
           , rect.bottom);
       }
     }
     iw = Math.min(iw, mw), ih = Math.min(ih, mh);
     iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
-    return [x, y, iw, yScrollable ? ih - PixelConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
+    return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
   },
   view_ (el: Element, oldY?: number): boolean {
     const P = Element.prototype, rect = P.getBoundingClientRect.call(el), ty = this.NotVisible_(null, rect);
@@ -361,8 +361,12 @@ var VDom = {
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;
     root || doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
-    if (doc.nodeType === 9 && (f = NP.getRootNode)) {
-      return f.call(element, {composed: true}) === doc;
+    if (doc.nodeType === 9 && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
+          || !(Build.BTypes & ~BrowserType.Firefox) || (f = NP.getRootNode))) {
+      return (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
+          || !(Build.BTypes & ~BrowserType.Firefox)
+        ? NP.getRootNode as NonNullable<typeof f> : f as NonNullable<typeof f>
+        ).call(element, {composed: true}) === doc;
     }
     if (NP.contains.call(doc, element)) { return true; }
     while ((pe = VDom.GetParent_(element, PNType.ResolveShadowHost)) && pe !== doc) { element = pe; }

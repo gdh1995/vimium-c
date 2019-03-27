@@ -253,7 +253,7 @@ var VHints = {
     i = link[1][1];
     st.top = i + "px";
     if (i > this.maxTop_) {
-      st.maxHeight = this.maxTop_ - i + PixelConsts.MaxHeightOfLinkHintMarker + "px";
+      st.maxHeight = this.maxTop_ - i + GlobalConsts.MaxHeightOfLinkHintMarker + "px";
     }
     return hint;
   },

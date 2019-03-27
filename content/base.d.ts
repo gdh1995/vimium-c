@@ -129,11 +129,6 @@ declare const enum SelType {
   Range = 2,
 }
 
-declare const enum PixelConsts {
-  MaxScrollbarWidth = 24,
-  MaxHeightOfLinkHintMarker = 18,
-}
-
 declare namespace HintsNS {
   interface BaseHintItem {
     marker: HTMLSpanElement;
@@ -232,7 +227,7 @@ declare namespace VomnibarNS {
     MarginV1 = 9, MarginV2 = 10, MarginV = MarginV1 + MarginV2,
     OthersIfEmpty = InputBar + MarginV,
     OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
-    MaxScrollbarWidth = PixelConsts.MaxScrollbarWidth,
+    MaxScrollbarWidth = GlobalConsts.MaxScrollbarWidth,
     ListSpaceDelta = MarginTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0) + MaxScrollbarWidth,
     MarginH = 24, AllHNotUrl = 20 * 2 + 20 + 2 + MarginH, MeanWidthOfChar = 7.7,
     WindowSizeX = 0.8, AllHNotInput = AllHNotUrl,
