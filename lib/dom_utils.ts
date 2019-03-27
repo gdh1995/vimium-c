@@ -22,20 +22,20 @@ var VDom = {
       this.DocReady_ = f;
       return callback();
     }
-    const listeners = [callback];
-    function eventHandler(): void {
+    let listeners = [callback], eventName = "DOMContentLoaded",
+    eventHandler = function (): void {
       // not need to check event.isTrusted
-      removeEventListener("DOMContentLoaded", eventHandler, true);
+      removeEventListener(eventName, eventHandler, true);
       if (VDom) {
         VDom.DocReady_ = f;
         for (const i of listeners) { i(); }
       }
-      listeners.length = 0; // in case VDom.DocReady_ is kept by other extensions
-    }
+      listeners = null as never;
+    };
     this.DocReady_ = function (callback1): void {
       listeners.push(callback1);
     };
-    addEventListener("DOMContentLoaded", eventHandler, true);
+    addEventListener(eventName, eventHandler, true);
   },
   parentFrame_(): SafeElement | null {
     if (Build.MinCVer >= BrowserVer.MinSafeGlobal$frameElement) {
