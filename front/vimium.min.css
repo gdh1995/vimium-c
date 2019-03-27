@@ -9,9 +9,9 @@ color:#000;contain:layout style;direction:ltr;font:12px/1 "Helvetica Neue",Helve
 pointer-events:none;position:fixed;user-select:none;z-index:2147483647}
 .HM{font-weight:bold;position:absolute;white-space:nowrap;}.DHM::backdrop{display:none;}
 .LH{background:linear-gradient(#fff785,#ffc542);border:0.5px solid #e3be23;border-radius:3px;
-box-shadow:0 3px 5px rgba(0,0,0,0.3);box-sizing:border-box;overflow:hidden;padding:1px 3px 0;position:absolute}
-.IH{background-color:rgba(255,247,133,0.3);border:0.5px solid #c38a22;position:absolute}
-.IHS{background-color:rgba(255,102,102,0.3);border-color:#933}
+box-shadow:0 3px 5px #0000004d;box-sizing:border-box;overflow:hidden;padding:1px 3px 0;position:absolute}
+.IH{background-color:#fff7854d;border:0.5px solid #c38a22;position:absolute}
+.IHS{background-color:#ff66664d;border-color:#933}
 .HUD{background-color:#eee;border:0.5px solid #b3b3b3;border-radius:4px 4px 0 0;bottom:0;height:14px;line-height:14px;
 max-width:312px;min-width:151px;padding:2px 3px;right:150px;text-overflow:ellipsis;white-space:nowrap}
 .Flash{box-shadow:0 0 4px 2px #4183c4;contain:strict;padding:1px}.Sel{box-shadow:0 0 4px 2px #ffa000}
