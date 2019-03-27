@@ -105,7 +105,7 @@ var VDom = {
   },
   scrollingEl_ (fallback?: 1): ((HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement) | null {
     let d = document, el = d.scrollingElement, docEl = d.documentElement;
-    if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement) {
+    if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome) {
       el === undefined && (el = d.compatMode === "BackCompat" ? d.body : docEl);
     }
     if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset) {
@@ -187,23 +187,21 @@ var VDom = {
     return null;
   },
   getClientRectsForAreas_: function (this: {}, element: HTMLElementUsingMap, output: Hint5[]
-      , areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): Rect | null | void {
+      , areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): Rect | null {
     let diff: number, x1: number, x2: number, y1: number, y2: number, rect: Rect | null | undefined;
     const cr = element.getClientRects()[0] as ClientRect | undefined;
-    if (!cr || cr.height < 3 || cr.width < 3) { return; }
+    if (!cr || cr.height < 3 || cr.width < 3) { return null; }
     // replace is necessary: chrome allows "&quot;", and also allows no "#"
-    let ret = false;
-    if (areas) {
-      ret = true;
-    } else {
+    let wantRet = areas;
+    if (!areas) {
       const map = document.querySelector('map[name="' +
         element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"/g, '\\"') + '"]');
-      if (!map || !(map instanceof HTMLMapElement)) { return; }
+      if (!map || !(map instanceof HTMLMapElement)) { return null; }
       areas = map.getElementsByTagName("area");
     }
     const toInt = (a: string) => (a as string | number as number) | 0;
-    for (let _i = 0, _len = areas.length; _i < _len; _i++) {
-      const area = areas[_i], coords = area.coords.split(",").map(toInt);
+    for (let _i = 0, _len = (areas as NonNullable<typeof areas>).length; _i < _len; _i++) {
+      const area = (areas as NonNullable<typeof areas>)[_i], coords = area.coords.split(",").map(toInt);
       switch (area.shape.toLowerCase()) {
       case "circle": case "circ": // note: "circ" is non-conforming
         x2 = coords[0]; y2 = coords[1]; diff = coords[2] / Math.sqrt(2);
@@ -233,13 +231,11 @@ var VDom = {
         output.push([area, rect, 0, [rect, 0], element]);
       }
     }
-    if (ret) {
-      return output.length > 0 ? output[0][1] : null;
-    }
+    return wantRet && output.length > 0 ? output[0][1] : null;
   } as {
     (element: HTMLElementUsingMap, output: Hint5[], areas: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]
       ): Rect | null;
-    (element: HTMLElementUsingMap, output: Hint5[]): void;
+    (element: HTMLElementUsingMap, output: Hint5[]): null;
   },
   paintBox_: null as [number, number] | null, // it may need to use `paintBox[] / <body>.zoom`
   wdZoom_: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
