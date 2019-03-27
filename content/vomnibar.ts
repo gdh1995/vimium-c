@@ -191,6 +191,7 @@ var VOmni = {
         _this.top_ = "8px";
       }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
+      checkBroken(TimerType.fake);
     };
     UI.add_(this.box_ = el, AdjustType.MustAdjust, VHUD.box_);
     type !== VomnibarNS.PageType.inner &&
