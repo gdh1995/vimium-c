@@ -265,7 +265,7 @@ var VHints = {
     mr = this.maxRight_ * zi, mt = this.maxTop_ * zi;
     while (0 <= i && root.contains(elements[i][0])) {
       let st = arr[i--].marker.style;
-      st.zoom = z;
+      Build.BTypes & ~BrowserType.Firefox && (st.zoom = z);
       st.maxWidth && (st.maxWidth = mr - elements[i][1][0] + "px");
       st.maxHeight && (st.maxHeight = mt - elements[i][1][1] + 18 + "px");
     }

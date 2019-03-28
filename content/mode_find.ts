@@ -55,7 +55,7 @@ var VFind = {
     const el = a.box_ = VDom.createElement_("iframe") as typeof VFind.box_, st = el.style;
     el.className = "R HUD UI";
     st.cssText = "display:none;width:0";
-    if (VDom.wdZoom_ !== 1) { st.zoom = "" + 1 / VDom.wdZoom_; }
+    if (Build.BTypes & ~BrowserType.Firefox && VDom.wdZoom_ !== 1) { st.zoom = "" + 1 / VDom.wdZoom_; }
     el.onload = function (this: HTMLIFrameElement): void { VFind.notDisableScript_() && VFind.onLoad_(1); };
     VUtils.push_(UI.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
@@ -127,6 +127,7 @@ var VFind = {
     }
     const el2 = a.countEl_ = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
+    Build.BTypes & ~BrowserType.Firefox &&
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
     (doc.head as HTMLHeadElement).appendChild(a.styleIframe_
       = VDom.UI.createStyle_(a.css_[2], doc.createElement("style")));

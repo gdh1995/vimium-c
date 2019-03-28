@@ -78,6 +78,7 @@ VDom.UI = {
     }
     const style = parent.style, zoom = VDom.bZoom_ / VDom.dScale_;
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
+    Build.BTypes & ~BrowserType.Firefox &&
     zoom !== 1 && (style.zoom = "" + zoom);
     document.webkitIsFullScreen && (style.position = "fixed");
     this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
@@ -284,6 +285,7 @@ VDom.UI = {
     const flashEl = VDom.createElement_("div"), nfs = !document.webkitIsFullScreen;
     flashEl.className = "R Flash";
     VDom.setBoundary_(flashEl.style, rect, nfs);
+    Build.BTypes & ~BrowserType.Firefox &&
     VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
     a.add_(flashEl);
     a._lastFlash = flashEl;

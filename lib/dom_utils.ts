@@ -38,7 +38,7 @@ var VDom = {
     addEventListener(eventName, eventHandler, true);
   },
   parentFrame_(): SafeElement | null {
-    if (Build.MinCVer >= BrowserVer.MinSafeGlobal$frameElement) {
+    if (Build.MinCVer >= BrowserVer.MinSafeGlobal$frameElement || !(Build.BTypes & BrowserType.Chrome)) {
       return window.frameElement as SafeElement | null;
     }
     try {
@@ -254,8 +254,8 @@ var VDom = {
    * also update VDom.dbZoom_
    * update VDom.bZoom_ if target
    */
-  getZoom_ (target?: 1 | Element): number {
-    const a = this;
+  getZoom_: Build.BTypes & ~BrowserType.Firefox ? function (this: {}, target?: 1 | Element): number {
+    const a = this as typeof VDom;
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
       , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = document.webkitFullscreenElement;
@@ -273,7 +273,12 @@ var VDom = {
     a.paintBox_ = null; // it's not so necessary to get a new paintBox here
     a.dbZoom_ = a.bZoom_ * zoom;
     return a.wdZoom_ = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
-  },
+  } : function (this: {}): number {
+    const a = this as typeof VDom;
+    a.paintBox_ = null;
+    a.dbZoom_ = a.bZoom_ = 1;
+    return a.wdZoom_ = Math.min(window.devicePixelRatio, 1);
+  } as never,
   getViewBox_ (needBox?: 1): ViewBox | ViewOffset {
     let iw = innerWidth, ih = innerHeight;
     const a = this;
@@ -287,7 +292,7 @@ var VDom = {
     const gcs = getComputedStyle, float = parseFloat,
     box = doc.documentElement as HTMLElement, st = gcs(box),
     box2 = doc.body, st2 = box2 ? gcs(box2) : st,
-    zoom2 = a.bZoom_ = box2 && +st2.zoom || 1,
+    zoom2 = a.bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain as string),
     stacking = st.position !== "static" || containHasPaint || st.transform !== "none",
     // ignore the case that x != y in "transform: scale(x, y)""
@@ -295,7 +300,8 @@ var VDom = {
     // NOTE: if box.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
-    let zoom = +st.zoom || 1;
+    let zoom = Build.BTypes & ~BrowserType.Firefox && +st.zoom || 1;
+    Build.BTypes & ~BrowserType.Firefox &&
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
       && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
     a.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
@@ -337,7 +343,7 @@ var VDom = {
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
   },
   view_ (el: Element, oldY?: number): boolean {
-    const P = Element.prototype,
+    const P = Build.BTypes & ~BrowserType.Firefox ? Element.prototype : null as never,
     rect = Build.BTypes & ~BrowserType.Firefox ? P.getBoundingClientRect.call(el) : el.getBoundingClientRect(),
     ty = this.NotVisible_(null, rect);
     if (ty === VisibilityType.OutOfView) {
@@ -393,8 +399,8 @@ var VDom = {
     return el instanceof HTMLFormElement;
   } : null as never,
   /** @safe_even_if_any_overridden_property */
-  SafeEl_: Build.BTypes & ~BrowserType.Firefox ?
-  function (this: void, el: Node | null, type?: PNType.DirectElement): Node | null {
+  SafeEl_: Build.BTypes & ~BrowserType.Firefox ? function (
+      this: void, el: Node | null, type?: PNType.DirectElement): Node | null {
     return VDom.notSafe_(el)
       ? VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent) : el;
   } as {
@@ -431,7 +437,7 @@ var VDom = {
     <Ty extends LockableElement>(element: EventTarget): element is Ty;
   },
   isInputInTextMode_ (el: HTMLInputElement | HTMLTextAreaElement): boolean | void {
-    if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull) {
+    if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)) {
       return el.selectionEnd != null;
     }
     try {
