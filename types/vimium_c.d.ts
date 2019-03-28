@@ -638,7 +638,7 @@ declare const enum BrowserVer {
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
   MinNamedGetterOnFramesetNotOverrideBulitin = 70,
   MinContainLayoutBreakUIBox = 70, // even if EXPERIMENTAL
-  Min$Tabs$$Update$DoesNotAcceptJavascriptURLs = 71,
+  Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,
   MinTabIdBeSmallAgain = 71,
   // https://www.chromestatus.com/features/5656049583390720
   // deprecation is since C66

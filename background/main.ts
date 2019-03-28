@@ -598,8 +598,8 @@ Are you sure you want to continue?`);
       return onRuntimeError();
     };
     // e.g.: use Chrome omnibox at once on starting
-    if (Build.MinCVer < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavascriptURLs &&
-        ChromeVer < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavascriptURLs) {
+    if (Build.MinCVer < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs &&
+        ChromeVer < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs) {
       chrome.tabs.update({ url }, callback1);
     } else {
       callback1(-1);
