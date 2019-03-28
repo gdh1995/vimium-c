@@ -30,6 +30,7 @@ declare namespace CompletersNS {
     /** singleLine */ s?: boolean;
     /** flags */ f?: number;
     /** type */ t: ValidTypes;
+    /** original type */ o: ValidTypes;
   }
 
   interface WritableCoreSuggestion {

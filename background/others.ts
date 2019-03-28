@@ -425,7 +425,7 @@ setTimeout(function () {
         || !key.startsWith(last as string) ? "omni"
       : matchType === CompletersNS.MatchType.searchWanted ? "search"
       : firstType || "omni";
-    return Completion_.filter_(key, { t: type, r: maxResults, c: maxChars, s: true }
+    return Completion_.filter_(key, { o: "omni", t: type, r: maxResults, c: maxChars, s: true }
       , onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
@@ -441,7 +441,8 @@ setTimeout(function () {
       // need a re-computation
       // * may has been cleaned, or
       // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
-      return Completion_.filter_(text, { t: "omni", r: 3, c: maxChars, s: true }, function (sugs, autoSelect): void {
+      return Completion_.filter_(text, { o: "omni", t: "omni", r: 3, c: maxChars, s: true }
+          , function (sugs, autoSelect): void {
         return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) : open(text, disposition);
       });
     }
