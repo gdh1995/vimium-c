@@ -726,8 +726,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (!blurred) {
       VPort_.post_({ H: kFgReq.cmd, c: "", n: 1, i: 1 });
       if (a.pageType_ === VomnibarNS.PageType.ext && VPort_) {
-        setTimeout(function(): void {
-          VPort_ && !VPort_._port && VPort_.postToOwner_({ N: VomnibarNS.kFReq.broken });;
+        setTimeout(function (): void {
+          VPort_ && !VPort_._port && VPort_.postToOwner_({ N: VomnibarNS.kFReq.broken });
         }, 50);
       }
     }

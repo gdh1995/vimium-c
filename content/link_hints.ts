@@ -1141,7 +1141,7 @@ Modes_: [
       selector = selector.trim();
       while (up && up + 1 >= ancestors.length && topest) {
         ancestors.push(topest);
-        topest = VDom.GetParent_(topest, PNType.RevealSlotAndGotoParent)
+        topest = VDom.GetParent_(topest, PNType.RevealSlotAndGotoParent);
       }
       try {
         if (selector && (selected = up
