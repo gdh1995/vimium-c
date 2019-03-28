@@ -22,6 +22,7 @@ declare namespace HintsNS {
     url?: boolean;
     keyword?: string;
     newtab?: boolean;
+    button?: "right";
     toggle?: {
       [selector: string]: string;
     };
@@ -1381,7 +1382,8 @@ Modes_: [
       ctrlKey: newTab && notMac,
       metaKey: newTab && !notMac,
       shiftKey: mode === HintMode.OPEN_IN_NEW_FG_TAB
-    }, mode !== HintMode.empty || link.tabIndex >= 0);
+    }, mode !== HintMode.empty || link.tabIndex >= 0
+    , a.options_.button === "right" ? 2 : 0);
   }
 } as HintsNS.ModeOpt
 ]

@@ -292,7 +292,8 @@ interface DomUI {
   getSelectionText_ (notTrim?: 1): string;
   removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
   click_ (this: DomUI, element: Element
-    , rect?: Rect | null, modifiers?: EventControlKeys | null, addFocus?: boolean): void;
+    , rect?: Rect | null, modifiers?: EventControlKeys | null, addFocus?: boolean
+    , button?: 0 | 2): void;
   simulateSelect_ (this: DomUI, element: Element, rect?: Rect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;
   /** @NEED_SAFE_ELEMENTS */
@@ -307,7 +308,7 @@ interface DomUI {
 interface VDomMouse {
   (element: Element, type: "mousedown" | "mouseup" | "click"
     , rect: Rect | null // rect must be not optional, so that human can understand program logic easily
-    , modifiers?: EventControlKeys | null, related?: Element | null): boolean;
+    , modifiers?: EventControlKeys | null, related?: Element | null, button?: 0 | 2): boolean;
   (element: Element, type: "mouseover" | "mouseenter", rect: Rect | null
     , modifiers?: null, related?: Element | null): boolean;
   (element: Element, type: "mouseout" | "mouseleave", rect?: null

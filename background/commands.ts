@@ -329,8 +329,8 @@ availableCommands_: {
   focusInput: [
     'Focus the N-th visible text box on the page and cycle using tab (use keep, select=""/all/all-line/start/end)',
     0, 0, kFgCmd.focusInput ],
-  "LinkHints.activate": ["Open a link in the current tab (use characters=&lt;string&gt;)", 0, 0, kFgCmd.linkHints],
-  "LinkHints.activateMode": [ "Open a link in the current tab (use characters=&lt;string&gt;)", 0, 0,
+  "LinkHints.activate": ['Open a link in the current tab (use button=""/"right")', 0, 0, kFgCmd.linkHints],
+  "LinkHints.activateMode": [ 'Open a link in the current tab (use button=""/"right")', 0, 0,
     kFgCmd.linkHints ],
   "LinkHints.activateModeToOpenInNewTab": [ "Open a link in a new tab", 0, 0,
     kFgCmd.linkHints, { mode: HintMode.OPEN_IN_NEW_BG_TAB } ],
