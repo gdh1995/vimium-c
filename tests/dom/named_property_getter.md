@@ -83,5 +83,13 @@ because on some old versions (< 58) of Chrome, `typeof <embed>` is unfortunately
 Related doc: https://www.chromestatus.com/features/5715026367217664
 
 My filed issue about `<form>` is https://bugs.chromium.org/p/chromium/issues/detail?id=897399
+and https://github.com/whatwg/html/issues/4458 .
 
 And there's a test page: https://jsfiddle.net/bvumn4g3/ (../tests/dom/named-property.html)
+
+# Firefox: Xray vision
+
+Firefox has applied [Xray vision](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/Xray_vision)
+  to help protect privileged JavaScript code.
+* http://devdoc.net/web/developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts.html#DOM_access
+* https://dxr.mozilla.org/mozilla-central/source/dom/bindings/Codegen.py#11708
