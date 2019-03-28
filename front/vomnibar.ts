@@ -143,7 +143,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   show_ (): void {
     const a = Vomnibar_;
     a.showing_ = true;
-    a.bodySt_.zoom = a.zoomLevel_ !== 1 ? a.zoomLevel_ + "" : "";
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      a.bodySt_.zoom = a.zoomLevel_ !== 1 ? a.zoomLevel_ + "" : "";
+    }
     Build.BTypes & ~BrowserType.Firefox && a.firstShowing_ &&
       (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox) ||
     setTimeout(Vomnibar_.focus_, 34);
@@ -576,7 +578,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     a.wheelTime_ = Date.now();
     a.goPage_(event.deltaY > 0);
   },
-  onInput_ (event: KeyboardEvent): void {
+  onInput_ (event: InputEvent): void {
     const a = Vomnibar_, s0 = a.lastQuery_, s1 = a.input_.value, str = s1.trim();
     a.blurWanted_ = false;
     if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].text)) {
@@ -1095,6 +1097,8 @@ VPort_ = {
     return port;
   }
 };
+
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith) {
 "".startsWith || (String.prototype.startsWith = function (this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 });
@@ -1102,6 +1106,8 @@ VPort_ = {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
+}
+
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : window.browser && (browser as typeof chrome).runtime) {
   window.chrome = browser as typeof chrome;
