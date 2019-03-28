@@ -89,7 +89,8 @@ VDom.UI = {
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    event === 2 ? box.remove() : el2 !== box.parentNode && box.appendChild.call(el2, box);
+    event === 2 ? box.remove() : el2 !== box.parentNode &&
+    (Build.BTypes & ~BrowserType.Firefox ? box.appendChild.call(el2, box) : el2.appendChild(box));
     const sin = UI.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
     s && (s.disabled = false);
     if (el || event) {
@@ -269,7 +270,9 @@ VDom.UI = {
       return VDom.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
     const rect = VDom.getVisibleClientRect_(clickEl),
-    cr = Element.prototype.getBoundingClientRect.call(clickEl), bcr = VDom.padClientRect_(cr, 8);
+    cr = Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getBoundingClientRect.call(clickEl)
+      : clickEl.getBoundingClientRect(),
+    bcr = VDom.padClientRect_(cr, 8);
     return rect && !VDom.isContaining_(bcr, rect) ? rect
       : VDom.cropRectToVisible_.apply(VDom, bcr as [number, number, number, number]) ? bcr : null;
   },
