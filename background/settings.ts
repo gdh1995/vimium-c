@@ -524,6 +524,6 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     settings.postUpdate_("innerCSS", innerCSS);
     return;
   }
-  settings.fetchFile_("baseCSS");
   localStorage.removeItem("vomnibarPage_f");
+  settings.fetchFile_("baseCSS");
 })();

@@ -227,6 +227,7 @@ Are you sure you want to continue?`
   delete new_data.findCSS;
   delete new_data.omniCSS;
   delete new_data.newTabUrl_f;
+  delete new_data.vomnibarPage_f;
   if (new_data.vimSync !== bgSettings_.get_("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);
     bgSettings_.set_("vimSync", new_data.vimSync);
