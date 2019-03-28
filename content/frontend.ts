@@ -371,7 +371,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     /* goNext: */ function (_0: number, {rel, patterns}: CmdOptions[kFgCmd.goNext]): void {
       if (!VDom.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }
       const isNext = rel === "next";
-      if (patterns.length <= 0 || !Pagination.findAndFollowLink_(patterns, isNext ? "<" : ">")) {
+      if (patterns.length <= 0 || !Pagination.findAndFollowLink_(patterns, isNext)) {
         return HUD.tip_("No links to go " + rel);
       }
     },
@@ -673,10 +673,13 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       this.push(element);
     }
   },
-  findAndFollowLink_ (names: string[], refusedStr: string): boolean {
+  findAndFollowLink_ (names: string[], isNext: boolean): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: HTMLElement; }
     // Note: this traverser should not need a prepareCrop
-    const count = names.length, links = VHints.traverse_("*", Pagination.GetLinks_, true, true);
+    const count = names.length, links = VHints.traverse_("*", Pagination.GetLinks_, true, true),
+    quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
+    detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
+    refusedStr = isNext ? "<" : ">";
     links.push(document.documentElement as HTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = 99, len: number;
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
@@ -687,7 +690,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       for (let i = 0; i < count; i++) {
         if (s.indexOf(names[i]) !== -1) {
           if (s.indexOf(refusedStr) === -1 && (len = s.split(re1).length) <= maxLen) {
-            let i2 = names.indexOf(s, i + 1);
+            let i2 = detectQuirk - i ? names.indexOf(s, i + 1) : s.indexOf(quirk) >= 0 ? quirkIdx : -1;
             if (i2 >= 0) { i = i2; len = 2; }
             maxLen > len && (maxLen = len + 1);
             // requires GlobalConsts.MaxNumberOfNextPatterns <= 255
