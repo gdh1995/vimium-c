@@ -1524,26 +1524,29 @@ Completion_ = {
     maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
     matchedTotal = 0;
     Completers.callback_ = callback;
-    let arr: ReadonlyArray<Completer> | null = knownCs[options.t], str = queryTerms.length >= 1 ? queryTerms[0] : "";
+    let arr: ReadonlyArray<Completer> | null = knownCs[options.o], str = queryTerms.length >= 1 ? queryTerms[0] : "";
     if (arr === knownCs.tab) {
        wantInCurrentWindow = !!(options.f && options.f & 1);
     }
+    autoSelect = arr != null && arr.length === 1;
     if (str.length === 2 && str[0] === ":") {
       str = str[1];
       arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
         : str === "t" || str === "w" ? (wantInCurrentWindow = str === "w", knownCs.tab)
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (arr) {
+        autoSelect = arr.length === 1;
         queryTerms.shift();
         rawQuery = query.substring(3);
       }
+    } else {
+      arr = null;
     }
     if (queryTerms.length >= 1) {
       queryTerms[0] = Utils.fixCharsInUrl_(queryTerms[0]);
     }
-    autoSelect = arr != null && arr.length === 1;
     showThoseInBlacklist = BlacklistFilter.IsExpectingHidden_(queryTerms);
-    Completers.filter_(arr || knownCs.omni);
+    Completers.filter_(arr || knownCs[options.t] || knownCs.omni);
   },
   removeSug_ (url, type, callback): void {
     switch (type) {

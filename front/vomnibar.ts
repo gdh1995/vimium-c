@@ -43,7 +43,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   activate_ (options: Options): void {
     Object.setPrototypeOf(options, null);
     const a = Vomnibar_;
-    a.mode_.t = a.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
+    a.mode_.t = a.mode_.o = a.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     a.mode_.f = a.mode_.t === "tab" && options.currentWindow ? 1 : 0;
     a.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     a.baseHttps_ = null;
@@ -185,7 +185,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never;
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = "";
     a.isSearchOnTop_ = false;
-    a.modeType_ = a.mode_.t = "omni";
+    a.modeType_ = a.mode_.t = a.mode_.o = "omni";
     a.doEnter_ ? setTimeout(a.doEnter_, 0) : (<RegExpOne> /a?/).test("");
     a.doEnter_ = null;
   },
@@ -902,6 +902,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   maxResults_: (<number> window.VomnibarListLength | 0) || 10,
   mode_: {
     H: kFgReq.omni as kFgReq.omni,
+    o: "omni" as CompletersNS.ValidTypes,
     t: "omni" as CompletersNS.ValidTypes,
     c: 0,
     r: 0,
