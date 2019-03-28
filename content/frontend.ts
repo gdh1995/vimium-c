@@ -868,10 +868,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       OnOther = load.browser_;
       ((VSettings as Writeable<VSettingsTy>).cache = VUtils.cache_ = load).onMac_ &&
         (VKeyboard.correctionMap_ = Object.create<string>(null));
-      if ((Build.BTypes & ~BrowserType.Chrome)
-          || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl) {
-        D.specialZoom_ = !!(Build.BTypes & BrowserType.Chrome)
-          && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+      if (Build.BTypes & BrowserType.Chrome
+          && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
+        D.specialZoom_ = (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
               || browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl);
       }

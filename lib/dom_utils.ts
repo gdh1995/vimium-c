@@ -4,7 +4,8 @@ var VDom = {
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: true,
   allowRAF_: true,
-  specialZoom_: true,
+  specialZoom_: !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
+    ? true : !!(Build.BTypes & BrowserType.Chrome),
   docSelectable_: true,
   isHTML_ (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   createElement_<K extends VimiumContainerElementType> (tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement {
@@ -259,6 +260,7 @@ var VDom = {
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
       , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = document.webkitFullscreenElement;
+    Build.BTypes & BrowserType.Chrome &&
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
       && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
     if (target) {
@@ -301,7 +303,7 @@ var VDom = {
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
     let zoom = Build.BTypes & ~BrowserType.Firefox && +st.zoom || 1;
-    Build.BTypes & ~BrowserType.Firefox &&
+    Build.BTypes & BrowserType.Chrome &&
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
       && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
     a.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;

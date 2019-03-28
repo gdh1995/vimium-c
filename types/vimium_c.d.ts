@@ -348,7 +348,7 @@ declare const enum BrowserType {
  * )
  * #define LEAGCY (#disable-javascript-harmony-shipping)
  * #define EMPTY ((a clean User Data)
- * #define LATEST_TESTED 68.0.3440.75
+ * #define LATEST_TESTED 73.0.3683.86
  */
 declare const enum BrowserVer {
   MinShadowDOMV0 = 35, // ensured
@@ -568,7 +568,7 @@ declare const enum BrowserVer {
   // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated)
   //   is confirmed on Chrome LATEST_TESTED
   // See `WebFormControlElement::SetAutofillValue` on
-  // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/exported/web_form_control_element.cc?&l=130
+  // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/exported/web_form_control_element.cc?l=138
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   Min$InputEvent$$isComposing = 60,
   MinEnsured$window$$InputEvent = 60, // even if LEGACY
@@ -578,7 +578,7 @@ declare const enum BrowserVer {
   MinNoBorderForBrokenImage = 60,
   MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
-  // DevicePixelRatioImplyZoomOfDocEl is confirmed on Chrome LATEST_TESTED
+  // a bug of styke.zoom not working is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   MinCorrectBoxWidthForOptionUI = 61,
   Min$visualViewPort$ = 61,
@@ -626,6 +626,7 @@ declare const enum BrowserVer {
   // the commit is firstly applied to C68:
   // https://github.com/chromium/chromium/commit/5a5267ab58dd0310fc2b427db30de60c0eea4457
   MinNewScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
+  MinASameZoomOfDocElAsdevPixRatioWorksAgain = 68,
   // even if EXPERIMENTAL or LEAGCY
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>
   NoRAForRICOnSandboxedPage = 69,
