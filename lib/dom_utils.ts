@@ -200,8 +200,13 @@ var VDom = {
     // replace is necessary: chrome allows "&quot;", and also allows no "#"
     let wantRet = areas;
     if (!areas) {
-      const map = document.querySelector('map[name="' +
-        element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"/g, '\\"') + '"]');
+      const selector = `map[name="${element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"/g, '\\"')}"]`;
+      // on C73, if a <map> is moved outside from a #shadowRoot, then the relation of the <img> and it is kept;
+      // while on F65 the relation will get lost.
+      const root = (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
+          || !(Build.BTypes & ~BrowserType.Firefox) || element.getRootNode)
+        ? (element as EnsureNonNull<typeof element>).getRootNode() as ShadowRoot | Document : document;
+      const map = root.querySelector(selector);
       if (!map || !(map instanceof HTMLMapElement)) { return null; }
       areas = map.getElementsByTagName("area");
     }
