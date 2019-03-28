@@ -442,7 +442,7 @@ setTimeout(function () {
       // * may has been cleaned, or
       // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
       return Completion_.filter_(text, { t: "omni", r: 3, c: maxChars, s: true }, function (sugs, autoSelect): void {
-        return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) :  open(text, disposition);
+        return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) : open(text, disposition);
       });
     }
     if (firstResultUrl && text === last) { text = firstResultUrl; }

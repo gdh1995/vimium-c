@@ -82,8 +82,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   }
 
   function onKeydown(event: KeyboardEvent): void {
-    if (!isEnabled || event.isTrusted !== true && !(
-          Build.MinCVer < BrowserVer.Min$Event$$IsTrusted && event.isTrusted == null && event instanceof KeyboardEvent)
+    if (!isEnabled
+        || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
+            : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent))
         || !event.keyCode) { return; }
     if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
     if (Build.BTypes & BrowserType.Firefox
@@ -139,9 +140,10 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     KeydownEvents[key] = 1;
   }
   function onKeyup(event: KeyboardEvent): void {
-    if (!isEnabled || event.isTrusted !== true && !(
-          Build.MinCVer < BrowserVer.Min$Event$$IsTrusted && event.isTrusted == null && event instanceof KeyboardEvent)
-      || !event.keyCode) { return; }
+    if (!isEnabled
+        || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
+            : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent))
+        || !event.keyCode) { return; }
     VScroller.keyIsDown_ = 0;
     if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
       VEvent.setupSuppress_();
@@ -155,7 +157,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
   }
   function onFocus(this: void, event: Event | FocusEvent): void {
-    if (event.isTrusted === false) { return; }
+    if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+        ? !event.isTrusted : event.isTrusted === false) { return; }
     // on Firefox, target may also be `document`
     let target: EventTarget | Element | Window | Document = event.target;
     if (target === window) {
@@ -214,7 +217,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
   }
   function onBlur(this: void, event: Event | FocusEvent): void {
-    if (!isEnabled || event.isTrusted === false) { return; }
+    if (!isEnabled
+        || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+            ? !event.isTrusted : event.isTrusted === false)) { return; }
     const target: EventTarget | Element | Window | Document = event.target;
     if (target === window || Build.BTypes & BrowserType.Firefox && target === document) { return onWndBlur(); }
     let path = event.path as EventPath | undefined, top: EventTarget | undefined
@@ -241,7 +246,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
   }
   function onActivate(event: UIEvent | MouseEvent): void {
-    if (event.isTrusted !== false) {
+    if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+        ? event.isTrusted : event.isTrusted !== false) {
       const el = !(Build.BTypes & ~BrowserType.Chrome) ||
           event.path ? (event.path as EventTarget[])[0] as Element : event.target as Element;
       VScroller.current_ = Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_(el) : el as SafeElement | null;
@@ -256,7 +262,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     esc(HandlerResult.Suppress);
   }
   function onShadow(this: ShadowRoot, event: FocusEvent): void {
-    if (event.isTrusted === false) { return; }
+    if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+        ? !event.isTrusted : event.isTrusted === false) { return; }
     if (isEnabled && event.type === "focus") {
       return onFocus(event);
     }
@@ -1206,7 +1213,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       VScroller.keyIsDown_ = interval || 0;
       f.call(wnd, "keyup", listener, true); f.call(wnd, "blur", listener, true);
     }, function (event): void {
-      if (event.isTrusted === false) {
+      if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+          ? !event.isTrusted : event.isTrusted === false) {
         if (event.type !== "blur") {
           VUtils.prevent_(event);
         } else if (event.target !== this) {

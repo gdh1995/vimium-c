@@ -502,9 +502,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   OnEnterUp_ (this: void, event: KeyboardEvent): void {
     const keyCode = event.keyCode;
-    if (event.isTrusted === true
-        || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
-            && event.isTrusted == null && event instanceof KeyboardEvent
+    if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? event.isTrusted
+        : event.isTrusted === true
+          || event.isTrusted == null && event instanceof KeyboardEvent
             && (keyCode === VKeyCodes.enter || keyCode === VKeyCodes.ctrlKey || keyCode === VKeyCodes.shiftKey
                 || keyCode === VKeyCodes.metaKey)
     ) { // call onEnter once an enter / control key is up
@@ -536,8 +536,10 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   onClick_ (event: MouseEvent): void {
     const a = Vomnibar_;
     let el: Node | null = event.target as Node;
-    if (event.isTrusted === false || !(event instanceof MouseEvent) || event.button
-      || el === a.input_ || getSelection().type === "Range") { return; }
+    if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
+          : event.isTrusted === false || !(event instanceof MouseEvent))
+        || event.button
+        || el === a.input_ || getSelection().type === "Range") { return; }
     if (el === a.input_.parentElement) { return a.focus_(); }
     if (a.timer_) { event.preventDefault(); return; }
     while (el && el.parentNode !== a.list_) { el = el.parentNode; }
@@ -566,7 +568,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   OnTimer_ (this: void): void { if (Vomnibar_) { return Vomnibar_.fetch_(); } },
   onWheel_ (event: WheelEvent): void {
-    if (event.ctrlKey || event.metaKey || event.isTrusted === false) { return; }
+    if (event.ctrlKey || event.metaKey
+        || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+            ? !event.isTrusted : event.isTrusted === false)) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
     if (event.deltaX || !event.deltaY) { return; }
@@ -704,7 +708,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.focusByCode_;
-    if (event.isTrusted === false || !VPort_) { return; }
+    if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+          ? !event.isTrusted : event.isTrusted === false) || !VPort_) { return; }
     a.focusByCode_ = false;
     const blurred = event.type === "blur";
     const target = event.target;
@@ -840,8 +845,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     a.mode_.i = fav;
   },
   HandleKeydown_ (this: void, event: KeyboardEvent): void {
-    if (event.isTrusted !== true && !(Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
-            && event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
+    if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
+        : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
     Vomnibar_.keyResult_ = HandlerResult.Prevent as HandlerResult;
     if (window.onkeyup) {
       let stop = !event.repeat, now: number = 0;
@@ -984,11 +989,16 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
     window.onfocus = function (e: Event): void {
       window.onfocus = null as never;
-      if (e.isTrusted !== false && VPort_._port) { Vomnibar_.doRefresh_(17); }
+      if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+            ? e.isTrusted : e.isTrusted !== false) && VPort_._port) {
+        Vomnibar_.doRefresh_(17);
+      }
     };
   },
   OnUnload_ (e: Event): void {
-    if (!VPort_ || e.isTrusted === false) { return; }
+    if (!VPort_
+        || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+            ? !e.isTrusted : e.isTrusted === false)) { return; }
     Vomnibar_.isActive_ = false;
     Vomnibar_.timer_ > 0 && clearTimeout(Vomnibar_.timer_);
     VPort_.postToOwner_({ N: VomnibarNS.kFReq.unload });

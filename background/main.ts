@@ -2542,7 +2542,9 @@ Are you sure you want to continue?`);
 
   // will run only on <F5>, not on runtime.reload
   window.onunload = function (event): void {
-    if (event && event.isTrusted === false) { return; }
+    if (event
+        && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+            ? !event.isTrusted : event.isTrusted === false)) { return; }
     let ref = framesForTab as Frames.FramesMapToDestroy;
     ref.omni = framesForOmni;
     for (const tabId in ref) {

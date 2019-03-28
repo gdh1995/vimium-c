@@ -181,7 +181,9 @@ let handler = function (this: void): void {
 callFindAllAfterAWhile: (() => void) = (setTimeout as (func: (this: void) => void, timeout: number) => number
     ).bind(window as never, findAllOnClick, InnerConsts.DelayToFindAll),
 delayFindAll = function (e?: Event): void {
-  if (e && (e.target !== window && e.target !== doc || e.isTrusted === false)) { return; }
+  if (e && (e.target !== window && e.target !== doc
+          || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+              ? !e.isTrusted : e.isTrusted === false))) { return; }
   rel("load", delayFindAll, true);
   callFindAllAfterAWhile();
   callFindAllAfterAWhile = delayFindAll = null as never;

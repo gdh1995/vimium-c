@@ -211,11 +211,14 @@ var VFind = {
   },
   OnUnload_ (this: void, e: Event): void {
     const f = VFind;
-    if (!f || e.isTrusted === false) { return; }
+    if (!f || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+              ? !e.isTrusted : e.isTrusted === false)) { return; }
     f.isActive_ && f.deactivate_(FindNS.Action.ExitUnexpectedly);
   },
   OnMousedown_ (this: void, event: MouseEvent): void {
-    if (event.target !== VFind.input_ && event.isTrusted !== false) {
+    if (event.target !== VFind.input_
+        && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+            ? event.isTrusted : event.isTrusted !== false)) {
       VUtils.prevent_(event);
       VFind.focus_();
     }
@@ -228,7 +231,8 @@ var VFind = {
   } : null,
   onKeydown_ (event: KeyboardEvent): void {
     VUtils.Stop_(event);
-    if (event.isTrusted === false) { return; }
+    if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+        ? !event.isTrusted : event.isTrusted === false) { return; }
     if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
     const a = this;
     const n = event.keyCode;
@@ -368,7 +372,9 @@ var VFind = {
       return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
     },
     exit_ (skip?: boolean | Event): void {
-      if (skip instanceof MouseEvent && skip.isTrusted === false) { return; }
+      if (skip instanceof Event
+          && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+              ? !skip.isTrusted : skip.isTrusted === false)) { return; }
       const a = this;
       a.lock_ && a.lock_.removeEventListener("blur", a.exit_, true);
       if (!a.lock_ || skip === true) { return; }
@@ -381,7 +387,8 @@ var VFind = {
   OnInput_ (this: void, e?: Event): void {
     if (e != null) {
       VUtils.Stop_(e);
-      if (e.isTrusted === false) { return; }
+      if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+          ? !e.isTrusted : e.isTrusted === false) { return; }
     }
     const _this = VFind, query = _this.input_.innerText.replace(_this.A0Re_, " ").replace(_this.tailRe_, "");
     let s = _this.query_;
