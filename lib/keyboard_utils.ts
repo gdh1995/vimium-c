@@ -35,14 +35,14 @@ var VKeyboard = {
     }
   },
   char_ (event: KeyboardEvent): string {
-    const key = event.key as string | "";
+    const key = event.key as string | undefined;
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && !key) {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
       return event.keyCode && this.getKeyName_(event)
         || (this as EnsureNonNull<typeof VKeyboard>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     }
-    return key.length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName_(event) : key;
+    return (key as string).length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName_(event) : key as string;
   },
   key_ (event: EventControlKeys, ch: string): string {
     const left = event.metaKey ? "<m-" : "<";
@@ -58,9 +58,10 @@ var VKeyboard = {
   },
   isEscape_ (event: KeyboardEvent): boolean {
     if (event.keyCode !== VKeyCodes.esc && !event.ctrlKey) { return false; }
-    const i = this.getKeyStat_(event);
+    const i = this.getKeyStat_(event), code = event.code;
     // we know that BrowserVer.MinEnsured$KeyboardEvent$$Code < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
-    return i === KeyStat.plain || i === KeyStat.ctrlKey && (event.code === "BracketLeft"
-        || Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && this.char_(event) === "[");
+    return i === KeyStat.plain || i === KeyStat.ctrlKey
+      && (Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Code && code
+          ? code === "BracketLeft" : this.char_(event) === "[");
   }
 };

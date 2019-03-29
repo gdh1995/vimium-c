@@ -989,7 +989,7 @@ function gulpMerge() {
 function patchExtendClick(source) {
   if (locally && envLegacy) { return source; }
   print('Patch the extend_click module');
-  source = source.replace(/(addEventListener|toString) ?: ?function \w+/g, "$1");
+  source = source.replace(/(addEventListener|toString) ?: ?function ?\w*/g, "$1");
   let match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
   if (match) {
     const start = Math.max(0, match.index - 128), end = match.index;

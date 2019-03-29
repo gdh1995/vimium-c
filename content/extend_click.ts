@@ -66,7 +66,9 @@ if (VSettings && document.readyState !== "complete"
     event.stopImmediatePropagation();
     let detail = event.detail as ClickableEventDetail | null;
     if (!Build.NDEBUG) {
-      console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s" } in %o @t=%o`
+      console.log(`Vimium C: extend click: resolve ${
+          detail ? Build.BTypes & ~BrowserType.Firefox ? "[%o + %o]" : "[%o+%o]" : "<%o>%s"
+        } in %o @t=%o`
         , detail ? detail[0].length
           : (Build.BTypes & ~BrowserType.Firefox ? (event.target as Element).tagName + ""
               : (event.target as Element).tagName as string).toLowerCase()
@@ -136,9 +138,10 @@ CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement, DF = DocumentF
 FP = Function.prototype, funcToString = FP.toString,
 listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
   , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
-rel = removeEventListener, ct = clearTimeout,
+rel = removeEventListener, clearTimeout_ = clearTimeout,
 sec: number = +<string> cs.dataset.vimium,
 kClick = InnerConsts.kClick,
+kOnDomRead = "DOMContentLoaded" as "DOMContentLoaded",
 hooks = {
   toString: function toString(this: FUNC): string {
     const a = this;
@@ -151,7 +154,7 @@ hooks = {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA) && a instanceof E) {
       toRegister.push(a);
-      timer || (timer = next(InnerConsts.DelayToStartIteration));
+      timer || (timer = setTimeout_(next, InnerConsts.DelayToStartIteration));
     }
     const args = arguments, len = args.length;
     return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
@@ -162,8 +165,8 @@ hooks = {
 };
 
 let handler = function (this: void): void {
-  rel("DOMContentLoaded", handler, true);
-  ct(timer);
+  rel(kOnDomRead, handler, true);
+  clearTimeout_(timer);
   const docEl = docChildren[0] as HTMLElement | SVGElement | null;
   handler = docChildren = null as never;
   if (!docEl) { return executeCmd(); }
@@ -175,27 +178,27 @@ let handler = function (this: void): void {
     executeCmd();
   } else {
     root = el;
-    timer = toRegister.length > 0 ? next(InnerConsts.DelayForNext) : 0;
+    timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   }
 },
-callFindAllAfterAWhile: (() => void) = (setTimeout as (func: (this: void) => void, timeout: number) => number
-    ).bind(window as never, findAllOnClick, InnerConsts.DelayToFindAll),
+// here `setTimeout` is normal and won't use TimerType.fake
+setTimeout_ = setTimeout as (this: void, handler: (this: void) => void, timeout: number) => number,
 delayFindAll = function (e?: Event): void {
-  if (e && (e.target !== window && e.target !== doc
+  if (e && (e.target !== window
           || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
               ? !e.isTrusted : e.isTrusted === false))) { return; }
   rel("load", delayFindAll, true);
-  callFindAllAfterAWhile();
-  callFindAllAfterAWhile = delayFindAll = null as never;
+  delayFindAll = null as never;
+  setTimeout_(findAllOnClick, InnerConsts.DelayToFindAll);
 },
 docChildren = doc.children,
 unsafeDispatchCounter = 0,
 allNodesInDocument = null as CollectionEx | null, allNodesForDetached = null as CollectionEx | null,
-next = setTimeout.bind(window as never, function (): void {
+next = function (): void {
   const len = toRegister.length,
   start = len > InnerConsts.MaxElementsInOneTick ? len - InnerConsts.MaxElementsInOneTick : 0,
   delta = len - start;
-  timer = start > 0 ? next(InnerConsts.DelayForNext) : 0;
+  timer = start > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   if (!len) { return; }
   unsafeDispatchCounter = 0;
   call(Remove, root);
@@ -207,8 +210,8 @@ next = setTimeout.bind(window as never, function (): void {
   }
   doRegister();
   allNodesInDocument = allNodesForDetached = null;
-})
-, root: HTMLDivElement, timer = setTimeout(handler, 1000)
+}
+, root: HTMLDivElement, timer = setTimeout_(handler, 1000)
 , SR: typeof ShadowRoot = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
       ? ShadowRoot : window.ShadowRoot as typeof ShadowRoot
 ;
@@ -252,8 +255,8 @@ function prepareRegister(this: void, element: Element): void {
       toRegister.push(element);
       if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick + 1) {
         unsafeDispatchCounter = InnerConsts.MaxUnsafeEventsInOneTick + 1; // a fake value to run it only once a tick
-        ct(timer);
-        timer = next(InnerConsts.DelayForNextComplicatedCase);
+        clearTimeout_(timer);
+        timer = setTimeout_(next, InnerConsts.DelayForNextComplicatedCase);
       }
     }
   }
@@ -292,9 +295,9 @@ function executeCmd(eventOrDestroy?: Event): void {
     return;
   }
   toRegister.length = 0;
-  toRegister.push = next = function () { return 1; };
+  toRegister.push = setTimeout_ = function () { return 1; };
   root = null as never;
-  ct(timer);
+  clearTimeout_(timer);
   delayFindAll && delayFindAll(); // clean the "load" listener
 }
 toRegister.push = push as any, toRegister.splice = toRegister.splice;
@@ -304,7 +307,7 @@ toRegister.push = push as any, toRegister.splice = toRegister.splice;
 cs.remove();
 ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
-_listen("DOMContentLoaded", handler, true);
+_listen(kOnDomRead, handler, true);
 _listen("load", delayFindAll, true);
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */
     , appInfo = navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/)
