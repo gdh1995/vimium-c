@@ -36,7 +36,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
       const uiStyles = bg.Backend.uiStyles_();
       if (uiStyles && ` ${uiStyles} `.indexOf(" dark ") >= 0) {
         const style = document.createElement("style");
-        style.textContent = "body { background: #000; color: #aaa; }";
+        style.textContent = "body { background: #1e1e1e; color: #aaa; }";
         (document.head as HTMLHeadElement).appendChild(style);
       }
     }
