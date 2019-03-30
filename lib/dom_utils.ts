@@ -16,24 +16,25 @@ var VDom = {
         , HTMLElement>(d, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
     return valid ? node as HTMLElementTagNameMap[K] & SafeHTMLElement : a.createElement_(tagName);
   },
+  _call (callback: (this: void) => void): void { callback(); },
   /** Note: won't call functions if Vimium is destroyed */
   DocReady_ (callback: (this: void) => void): void {
-    const f = function (callback1: (this: void) => void): void { return callback1(); };
+    const a = this, call = a._call;
     if (document.readyState !== "loading") {
-      this.DocReady_ = f;
+      a.DocReady_ = call;
       return callback();
     }
-    let listeners = [callback], eventName = "DOMContentLoaded",
-    eventHandler = function (): void {
+    let listeners = [callback], eventName = "DOMContentLoaded";
+    function eventHandler(): void {
       // not need to check event.isTrusted
       removeEventListener(eventName, eventHandler, true);
       if (VDom) {
-        VDom.DocReady_ = f;
-        for (const i of listeners) { i(); }
+        VDom.DocReady_ = call;
+        listeners.forEach(call);
       }
       listeners = null as never;
-    };
-    this.DocReady_ = function (callback1): void {
+    }
+    a.DocReady_ = function (callback1): void {
       listeners.push(callback1);
     };
     addEventListener(eventName, eventHandler, true);

@@ -181,7 +181,7 @@ declare namespace VomnibarNS {
   }
   const enum kFReq {
     hide, focus, style, iframeIsAlive,
-    hud, evalJS, scroll, scrollGoing, scrollEnd, broken, unload, test,
+    hud, evalJS, scroll, scrollGoing, scrollEnd, broken, unload,
     _mask = "",
   }
   interface CReq {
@@ -208,10 +208,9 @@ declare namespace VomnibarNS {
       u: string;
     };
     [kFReq.broken]: {};
-    [kFReq.scrollEnd]: {},
-    [kFReq.scrollGoing]: {},
-    [kFReq.unload]: {},
-    [kFReq.test]: {},
+    [kFReq.scrollEnd]: {};
+    [kFReq.scrollGoing]: {};
+    [kFReq.unload]: {};
     [kFReq.iframeIsAlive]: { /** hasOptionsPassed */ o: BOOL };
   }
   interface IframePort {

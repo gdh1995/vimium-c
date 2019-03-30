@@ -248,7 +248,6 @@ var VOmni = {
     case VomnibarNS.kFReq.broken: window.focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
     case VomnibarNS.kFReq.hud: VHUD.tip_((data as Req[VomnibarNS.kFReq.hud]).t); return;
-    default: console.log("[%d] Vimium C: unknown message \"%s\" from Vomnibar page", Date.now(), data.N);
     }
   },
   onShown_ (): void {
