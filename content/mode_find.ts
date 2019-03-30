@@ -411,7 +411,7 @@ var VFind = {
       (a.countEl_.firstChild as Text).data = !a.parsedQuery_ ? ""
         : "(" + (count || (a.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
     }
-    count = ((a.input_.offsetWidth + a.countEl_.offsetWidth + 7) >> 2) * 4;
+    count = (a.input_.offsetWidth + a.countEl_.offsetWidth + 31) & ~31;
     if (a._small && count < 152) { return; }
     a.box_.style.width = ((a._small = count < 152) ? 0 as number | string as string : count + "px");
   },
