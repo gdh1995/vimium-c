@@ -29,7 +29,9 @@ header {
   padding: 0 0 5px 0;
 }
 button, select {
+  background-color: /* buttonface */ #ddd;
   background-image: linear-gradient(#ededed, #ededed 38%, #dedede);
+  background-origin: border-box;
   border: 0.5px solid rgba(0, 0, 0, 0.25);
   border-radius: 2px;
   box-shadow: 0 1px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
@@ -67,11 +69,12 @@ button.left {
 select.right {
   -webkit-padding-start: 0;
   -webkit-padding-end: 17px;
-  -webkit-appearance: button; 
-  background: #ddd 45% center no-repeat;
-  background-image:url(
-'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6" fill="%23444"/></svg>'),
-    linear-gradient(#ededed, #ededed 38%, #dedede);
+  -webkit-appearance: button;
+  background-image: url(
+'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="8px"><polygon points="0,2 6,2 3,8" fill="%23444"/></svg>'
+    ), linear-gradient(#ededed, #ededed 38%, #dedede);
+  background-repeat: no-repeat, repeat;
+  background-position: center;
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
   font-size: 0 !important;
@@ -80,13 +83,13 @@ select.right {
 }
 select.right:hover {
   background-image: url(
-'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
-    linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
+'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="8px"><polygon points="0,2 6,2 3,8"/></svg>'
+    ), linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
 }
 select.right:active {
   background-image: url(
-'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
-    linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
+'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="8px"><polygon points="0,2 6,2 3,8"/></svg>'
+    ), linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
 }
 button.left:focus+select.right {
   border-left-color: #4d90fe;
@@ -141,6 +144,7 @@ input[type=number]::-webkit-inner-spin-button {
 input[type=checkbox] {
   height: 13px;
   margin: 3px;
+  outline: none;
   padding: 0;
   position: relative;
   top: 2px;
