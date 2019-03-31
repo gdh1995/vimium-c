@@ -243,10 +243,10 @@ var Settings = {
       let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS");
       if (!findCSS || omniCSS == null) { Settings.fetchFile_("baseCSS"); return; }
       findCSS = findCSS.substring(findCSS.indexOf("\n") + 1);
-      const index = findCSS.indexOf("}") + 1, index2 = findCSS.indexOf("\n", index);
+      const index = findCSS.indexOf("\n") + 1, index2 = findCSS.indexOf("\n", index);
       // Note: The lines below are allowed as a special use case
       cache.innerCSS = css.substring(css.indexOf("\n") + 1);
-      cache.findCSS_ = [findCSS.substring(0, index), findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
+      cache.findCSS_ = [findCSS.substring(0, index - 1), findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
       cache.omniCSS_ = omniCSS;
     },
     vomnibarPage (this: {}, url): void {
