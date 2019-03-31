@@ -146,8 +146,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (Build.BTypes & ~BrowserType.Firefox) {
       a.bodySt_.zoom = a.zoomLevel_ !== 1 ? a.zoomLevel_ + "" : "";
     }
-    Build.BTypes & ~BrowserType.Firefox && a.firstShowing_ &&
-      (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox) ||
+    Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
+      && a.firstShowing_ ||
     setTimeout(Vomnibar_.focus_, 34);
     a.firstShowing_ = false;
     addEventListener("wheel", a.onWheel_, a.wheelOptions_);
@@ -769,12 +769,17 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       }
     }
     if (Build.MinCVer < BrowserVer.MinRoundedBorderWidthIsNotEnsured
-        && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured) {
+        && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured
+        || Build.BTypes & BrowserType.Edge
+            && (!(Build.BTypes & ~BrowserType.Edge) || a.browser_ === BrowserType.Edge)) {
       const css = document.createElement("style");
       css.type = "text/css";
-      css.textContent = `.item, #input { border-width: ${
+      css.textContent = !(Build.BTypes & BrowserType.Edge)
+          || Build.BTypes & ~BrowserType.Edge && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured
+        ? `.item, #input { border-width: ${
           Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
-          ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`;
+          ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`
+        : `#input::-ms-clear { display: none; }`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
     if (Build.MinCVer < BrowserVer.Min$InputEvent$$isComposing
