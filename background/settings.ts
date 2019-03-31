@@ -9,7 +9,8 @@ var Settings = {
   },
   payload_: {
     __proto__: null as never,
-    browser_: OnOther,
+    browser_: !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
+        || !(Build.BTypes & ~BrowserType.Edge) ? Build.BTypes as number as BrowserType : OnOther,
     browserVer_: ChromeVer,
     grabBackFocus_: false,
     onMac_: false
@@ -130,9 +131,11 @@ var Settings = {
       browserVer = ChromeVer,
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
       hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All
-          || browserInfo.lastIndexOf("a") >= 0;
-      if (Build.MinCVer < BrowserVer.MinUnprefixedUserSelect && browserVer < BrowserVer.MinUnprefixedUserSelect
-          || (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+          || browserInfo.indexOf("a") >= 0;
+      if (Build.MinCVer < BrowserVer.MinUnprefixedUserSelect && Build.BTypes & BrowserType.Chrome
+            && browserVer < BrowserVer.MinUnprefixedUserSelect
+          || (!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)) {
         css = css.replace(<RegExpG> /user-select\b/g, "-webkit-$&");
       }
       if (!Build.NDEBUG) {

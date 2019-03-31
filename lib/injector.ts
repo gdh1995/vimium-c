@@ -1,8 +1,9 @@
 declare var browser: unknown;
 var VimiumInjector: VimiumInjector | undefined | null, VimiumClickable: WeakSet<Element> | undefined | null;
 (function (injectorBuilder: (scriptSrc: string) => VimiumInjector["reload"]) {
-let runtime = (typeof browser !== "undefined" && browser &&
-  !((browser as typeof chrome | Element) instanceof Element) ? browser as typeof chrome : chrome).runtime;
+let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+  : typeof browser !== "undefined" && browser &&
+  !((browser as typeof chrome | Element) instanceof Element)) ? browser as typeof chrome : chrome).runtime;
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3,
 extHost = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0)), onIdle = window.requestIdleCallback;
 let tick = 1;

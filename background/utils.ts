@@ -800,21 +800,20 @@ var Utils = {
 };
 
 declare var browser: unknown;
-var OnOther = !(Build.BTypes & ~BrowserType.Chrome)
-    || typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
-    || location.protocol.lastIndexOf("chrome", 0) >= 0 // in case Chrome also supports `browser` in the future
+var OnOther = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
+      || !(Build.BTypes & ~BrowserType.Edge)
+  ? Build.BTypes as number as BrowserType
+  : Build.BTypes & BrowserType.Chrome &&
+    (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
+    || location.protocol.lastIndexOf("chrome", 0) >= 0) // in case Chrome also supports `browser` in the future
   ? BrowserType.Chrome
-  : Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge)
-      || !!(window as {} as {StyleMedia: unknown}).StyleMedia)
-  ? BrowserType.Edge
-  : Build.BTypes & BrowserType.Firefox
-    && (!(Build.BTypes & ~BrowserType.Firefox) || (<RegExpOne> /\bFirefox\//).test(navigator.userAgent))
-  ? BrowserType.Firefox
+  : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
+  : Build.BTypes & BrowserType.Firefox && (<RegExpOne> /\bFirefox\//).test(navigator.userAgent) ? BrowserType.Firefox
   : BrowserType.Unknown,
-ChromeVer = 0 | (Build.BTypes & BrowserType.Chrome
-  && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+ChromeVer: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
+  (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
   && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
-  || [0, BrowserVer.assumedVer])[1] as number
+  || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer
 ;
 const BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
