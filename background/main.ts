@@ -243,10 +243,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
     }
   }
-  const isNotVomnibarPage = Build.BTypes & BrowserType.Edge &&
-          (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
-      ? function () { return false; }
-      : function (this: void, port: Frames.Port, nolog?: boolean): boolean {
+  const isNotVomnibarPage = function (this: void, port: Frames.Port, nolog?: boolean): boolean {
     interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
     const info = port.s as SenderEx;
     if (info.isVomnibar == null) {
