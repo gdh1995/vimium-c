@@ -459,6 +459,8 @@ historyEngine = {
       if (HistoryCache.updateCount_ > 10 || HistoryCache.toRefreshCount_ > 0) {
         HistoryCache.refreshInfo_();
       }
+    } else if (!HistoryCache.lastRefresh_) {
+      setTimeout(function (): void { HistoryCache.use_(); }, 50);
     }
     autoSelect = false;
     if (index === 0) {
@@ -947,7 +949,6 @@ Completers = {
     for (l--; i <= l; i++) {
       completers[i].filter_(query, i);
     }
-    HistoryCache.lastRefresh_ || setTimeout(function () { return HistoryCache.use_(); }, 50);
   },
   requireNormalOrIncognito_<T> (that: T
       , func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
