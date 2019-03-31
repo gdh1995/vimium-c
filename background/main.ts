@@ -2235,7 +2235,8 @@ Are you sure you want to continue?`);
         type === PortType.omnibar &&
         port.postMessage({
           N: kBgReq.omni_secret,
-          browser: OnOther,
+          browser: !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
+              || !(Build.BTypes & ~BrowserType.Edge) ? Build.BTypes as number as BrowserType : OnOther,
           browserVer: ChromeVer,
           S: Settings.cache_.omniCSS_,
           cls: omniStyles,

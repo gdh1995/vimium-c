@@ -800,7 +800,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       return;
     }
     const styles = (document.querySelector("style") || {} as HTMLStyleElement).textContent || "",
-    re = <RegExpG & RegExpSearchable<2>> /\.([a-z]+)\s?\{(?:[^}]+;)?\s*d\s?:\s*path\s?\(\s?['"](.+?)['"]\s?\)/g,
+    re = <RegExpG & RegExpSearchable<2>> /\.([a-z]+)\s?\{(?:[^}]+;)?\s*d\s?:\s*path\r?\s?\(\s?['"](.+?)['"]\s?\)/g,
     pathMap = Object.create<string>(null);
     let arr: RegExpExecArray | null;
     while (arr = re.exec(styles)) { pathMap[arr[1]] = arr[2]; }

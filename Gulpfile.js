@@ -833,6 +833,9 @@ function createBuildConfigCache() {
     }
     return key + " = " + (newVal != null ? newVal : defaultVal);
   });
+  if (!(getBuildItem("BTypes") > 0)) {
+    throw new Error("Unsupported Build.BTypes: " + getBuildItem("BTypes"));
+  }
 }
 
 function getBuildItem(key) {
