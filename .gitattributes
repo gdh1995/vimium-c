@@ -14,7 +14,6 @@ tests/**/*.html linguist-detectable=false linguist-language=HTML
 tsc.js linguist-language=TypeScript
 Gulpfile.js linguist-language=TypeScript
 lib/math_parser.js linguist-vendored
-pages/newtab.js linguist-language=TypeScript
 types/* linguist-vendored
 types/*.d.ts linguist-vendored=false
 types/base/* linguist-vendored

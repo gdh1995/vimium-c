@@ -9445,6 +9445,7 @@ declare function addEventListener<K extends keyof WindowEventMap>(type: K,
   listener: (this: Window, ev: WindowEventMap[K]) => ELRet,
   useCapture?: EventListenerOptions
   ): void;
+declare var close: unknown;
 declare function addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 type AAGUID = string;
 type AlgorithmIdentifier = string | Algorithm;

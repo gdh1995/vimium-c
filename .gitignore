@@ -26,7 +26,6 @@ todo*
 !tsc.js
 !/lib/math_parser.js
 !/lib/viewer.min.js
-!/pages/newtab.js
 weidu/
 scripts/*public_suffix*
 package-lock.json
