@@ -283,7 +283,6 @@ declare namespace SettingsNS {
     innerCSS: string;
     keyMappings: string;
     localeEncoding: string;
-    /** Note: if changed, /pages/newtab.js also needs a change. */
     newTabUrl: string;
     newTabUrl_f: string;
     nextPatterns: string;

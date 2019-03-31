@@ -54,7 +54,7 @@ var CompileTasks = {
 var Tasks = {
   "build/pages": ["build/options", "build/show", "build/others"],
   "static/special": function() {
-    return copyByPath(["pages/newtab.js", "lib/*.min.js"]);
+    return copyByPath(["lib/*.min.js"]);
   },
   "static/uglify": function() {
     return uglifyJSFiles("lib/math_parser*.js", ".", "", { base: "." });
