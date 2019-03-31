@@ -593,6 +593,7 @@ declare const enum BrowserVer {
     // which has been fixed commit 0cf160e2ff055fb12c562cabc2da9e62db14cc8d (if #scroll-top-left-interop is enabled),
     // and it's always fixed since C61
   MinEnsured$ScrollingElement$CannotBeFrameset = 61,
+  MinMaybe$Document$$fullscreenElement = 61, // if EXPERIMENTAL
   MinCSS$Color$$RRGGBBAA = 62,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
   // the 6 below are correct even if EXPERIMENTAL or LEAGCY
@@ -639,6 +640,7 @@ declare const enum BrowserVer {
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
   MinNamedGetterOnFramesetNotOverrideBulitin = 70,
   MinContainLayoutBreakUIBox = 70, // even if EXPERIMENTAL
+  MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,
   MinTabIdBeSmallAgain = 71,
   // https://www.chromestatus.com/features/5656049583390720

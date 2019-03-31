@@ -455,7 +455,10 @@ var VFind = {
     let matches: RegExpMatchArray | null = null;
     if (re) {
       type FullScreenElement = Element & { innerText?: string | Element };
-      let el = document.webkitFullscreenElement as FullScreenElement | null, text = el && el.innerText;
+      let el = (!(Build.BTypes & ~BrowserType.Chrome)
+            || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+          ? document.fullscreenElement : document.webkitFullscreenElement) as FullScreenElement | null,
+      text = el && el.innerText;
       if (Build.BTypes & ~BrowserType.Firefox && el && typeof text !== "string") {
         el = VDom.GetParent_(el, PNType.DirectElement), text = el && el.innerText as string | undefined;
       }

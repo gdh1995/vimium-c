@@ -80,12 +80,17 @@ VDom.UI = {
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
     Build.BTypes & ~BrowserType.Firefox &&
     zoom !== 1 && (style.zoom = "" + zoom);
-    document.webkitIsFullScreen && (style.position = "fixed");
+    (!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
+      : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+      ? document.fullscreenElement : document.webkitIsFullScreen) && (style.position = "fixed");
     this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
     return parent;
   } as DomUI["addElementList_"],
   adjust_ (event): void {
-    const UI = VDom.UI, el = document.webkitFullscreenElement, box = UI.box_ as HTMLDivElement,
+    const UI = VDom.UI, el: Element | null = !(Build.BTypes & ~BrowserType.Chrome)
+          || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+        ? document.fullscreenElement : document.webkitFullscreenElement,
+    box = UI.box_ as HTMLDivElement,
     el2 = el && !(UI.UI as Node).contains(el) ? el : document.documentElement as HTMLElement;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
@@ -97,8 +102,12 @@ VDom.UI = {
     if (el || event) {
       const isFF = !(Build.BTypes & ~BrowserType.Firefox) || !!(Build.BTypes & BrowserType.Firefox)
         && VUtils.cache_.browser_ === BrowserType.Firefox;
-      (el && event !== 2 ? addEventListener : removeEventListener).call(isFF ? document : window
-        , (isFF ? "webkit" : "") + "fullscreenchange", UI.adjust_, true);
+      // todo: fix
+      (el && event !== 2 ? addEventListener : removeEventListener).call(
+        (!(Build.BTypes & ~BrowserType.Firefox) ? true : !(Build.BTypes & BrowserType.Firefox) ? false : isFF)
+          ? document : window
+        , ((!(Build.BTypes & ~BrowserType.Firefox) ? true : !(Build.BTypes & BrowserType.Firefox) ? false : isFF)
+            ? "webkit" : "") + "fullscreenchange", UI.adjust_, true);
     }
   },
   cssPatch_: null,
@@ -282,7 +291,9 @@ VDom.UI = {
     const a = this;
     rect || (rect = a.getRect_(el as Element));
     if (!rect) { return; }
-    const flashEl = VDom.createElement_("div"), nfs = !document.webkitIsFullScreen;
+    const flashEl = VDom.createElement_("div"), nfs = !(!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
+        : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+        ? document.fullscreenElement : document.webkitIsFullScreen);
     flashEl.className = "R Flash";
     VDom.setBoundary_(flashEl.style, rect, nfs);
     Build.BTypes & ~BrowserType.Firefox &&

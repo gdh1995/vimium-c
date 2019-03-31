@@ -475,7 +475,9 @@ var VHints = {
       || matchAll || a.queryInDeep_ !== DeepQueryType.InDeep ? key : a.getDeepDescendantCombinator_() + key,
     Sc = VScroller,
     wantClickable = matchAll && filter === a.GetClickable_,
-    box = !wholeDoc && D.webkitFullscreenElement || D, isD = box === D,
+    box = !wholeDoc && (!(Build.BTypes & ~BrowserType.Chrome)
+          || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+        ? D.fullscreenElement : D.webkitFullscreenElement) || D, isD = box === D,
     querySelectorAll = Build.BTypes & ~BrowserType.Firefox
       ? isD ? D.querySelectorAll : Element.prototype.querySelectorAll : box.querySelectorAll;
     wantClickable && Sc.getScale_();
@@ -588,7 +590,10 @@ var VHints = {
   frameNested_: false as HintsNS.NestedFrame,
   checkNestedFrame_ (output?: Hint[]): void {
     const res = output && output.length > 1 ? null : !frames.length ? false
-      : document.webkitIsFullScreen ? 0 : this._getNestedFrame(output);
+      : (!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
+          : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+          ? document.fullscreenElement : document.webkitIsFullScreen)
+      ? 0 : this._getNestedFrame(output);
     this.frameNested_ = res === false && document.readyState === "complete" ? null : res;
   },
   _getNestedFrame (output?: Hint[]): HintsNS.NestedFrame {

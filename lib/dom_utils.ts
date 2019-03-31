@@ -265,7 +265,9 @@ var VDom = {
     const a = this as typeof VDom;
     let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
       , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
-      , el: Element | null = document.webkitFullscreenElement;
+      , el: Element | null = !(Build.BTypes & ~BrowserType.Chrome)
+            || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+          ? document.fullscreenElement : document.webkitFullscreenElement;
     Build.BTypes & BrowserType.Chrome &&
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
       && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
@@ -291,7 +293,9 @@ var VDom = {
     let iw = innerWidth, ih = innerHeight;
     const a = this;
     const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1), doc = document;
-    if (doc.webkitIsFullScreen) {
+    if (!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
+        : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
+        ? document.fullscreenElement : document.webkitIsFullScreen) {
       a.getZoom_(1);
       a.dScale_ = 1;
       const zoom3 = a.wdZoom_ / ratio2;
