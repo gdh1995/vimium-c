@@ -100,14 +100,15 @@ VDom.UI = {
     const sin = UI.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
     s && (s.disabled = false);
     if (el || event) {
-      const isFF = !(Build.BTypes & ~BrowserType.Firefox) || !!(Build.BTypes & BrowserType.Firefox)
-        && VUtils.cache_.browser_ === BrowserType.Firefox;
-      // todo: fix
-      (el && event !== 2 ? addEventListener : removeEventListener).call(
-        (!(Build.BTypes & ~BrowserType.Firefox) ? true : !(Build.BTypes & BrowserType.Firefox) ? false : isFF)
-          ? document : window
-        , ((!(Build.BTypes & ~BrowserType.Firefox) ? true : !(Build.BTypes & BrowserType.Firefox) ? false : isFF)
-            ? "webkit" : "") + "fullscreenchange", UI.adjust_, true);
+      const func = (el && event !== 2 ? addEventListener : removeEventListener), name = "fullscreenchange";
+      if (Build.BTypes & BrowserType.Chrome
+          && (!(Build.BTypes & ~BrowserType.Chrome) || VUtils.cache_.browser_ === BrowserType.Chrome)) {
+        func("webkit" + name, UI.adjust_, true);
+      }
+      if (!(Build.BTypes & BrowserType.Chrome)
+          || VUtils.cache_.browserVer_ >= BrowserVer.MinEnsured$Document$$fullscreenElement) {
+        func(name, UI.adjust_, true);
+      }
     }
   },
   cssPatch_: null,
