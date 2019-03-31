@@ -375,7 +375,7 @@ declare const enum BrowserVer {
    * so must remove the all: before MinFixedCSS$All$MayMistakenlyResetFixedPosition
    */
   MinCSS$All$MayMistakenlyResetFixedPosition = 37,
-  MinHTMLDialogElement = 37, // not on Edge; still exists on C35 if EXPERIMENTAL
+  MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C35 if EXPERIMENTAL
   // includes for-of, Map, Set, Symbols, even if LEAGCY
   MinES6ForAndSymbols = 38,
   // .repeat still exists on C35, but only works since C38, even if EXPERIMENTAL

@@ -277,9 +277,9 @@ interface DomUI {
   UI: VUIRoot;
   _lastFlash: HTMLElement | null;
   add_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): void;
-  addElementList_<T extends boolean>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
+  addElementList_<T extends boolean | BOOL>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
     offset: ViewOffset, dialogContainer?: T | null
-    ): (T extends true ? HTMLDialogElement : HTMLDivElement) & SafeElement;
+    ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement;
   adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void;
   cssPatch_: [string, (css: string) => string] | null;
   ensureBorder_ (this: DomUI, zoom?: number): void;

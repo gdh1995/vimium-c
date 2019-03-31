@@ -714,7 +714,7 @@ var VHints = {
           a.queryInDeep_ = DeepQueryType.InDeep;
         }
       } else if (i === KeyStat.altKey) {
-        reinit = (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinHTMLDialogElement)
+        reinit = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement)
           || typeof HTMLDialogElement === "function";
         a.dialogMode_ = reinit && !a.dialogMode_;
       } else {
