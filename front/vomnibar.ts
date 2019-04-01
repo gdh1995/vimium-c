@@ -134,6 +134,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   atimer_: 0,
   timer_: 0,
   wheelTime_: 0,
+  wheelDelta_: 0,
   browser_: BrowserType.Chrome,
   browserVersion_: BrowserVer.assumedVer,
   customStyle_: null as HTMLStyleElement | null,
@@ -181,7 +182,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide });
     const a = Vomnibar_;
     a.timer_ = a.height_ = a.matchType_ = a.wheelTime_ = a.actionType_ =
-    a.total_ = a.lastKey_ = 0;
+    a.total_ = a.lastKey_ = a.wheelDelta_ = 0;
     a.zoomLevel_ = 1;
     a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never;
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = "";
@@ -576,9 +577,12 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (event.deltaX || !event.deltaY) { return; }
     const a = Vomnibar_, now = Date.now();
     if (now - a.wheelTime_ < a.wheelInterval_ && now + 99 > a.wheelTime_
+        || event.deltaMode === 0 /* WheelEvent.DOM_DELTA_PIXEL */ && Math.abs(a.wheelDelta_ + event.deltaY) < 100
         || !a.isActive_) {
+      a.wheelDelta_ = now - a.wheelTime_ < 1200 ? a.wheelDelta_ + event.deltaY : 0;
       return;
     }
+    a.wheelDelta_ = 0;
     a.wheelTime_ = Date.now();
     a.goPage_(event.deltaY > 0);
   },
