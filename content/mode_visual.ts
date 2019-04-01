@@ -790,15 +790,16 @@ init_ (words: string) {
   if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
       || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
     if (!(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && VUtils.cache_.browser_ === BrowserType.Firefox
-        || VUtils.cache_.browserVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
+        || VUtils.cache_.browserVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+        || Build.BTypes & BrowserType.Firefox && Build.BTypes & BrowserType.Edge
+            && VUtils.cache_.browser_ === BrowserType.Firefox) {
       // Firefox && not native || Chrome && not only white spaces
       if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
           && !(Build.BTypes & ~BrowserType.Chrome)
           ) {
         a.WordsRe_ = new RegExp(words, "");
       } else {
-        // note: the /[^]*[~~~]/ should have an acceptable performance
+        // note: here thinks the `/[^]*[~~~]/` has acceptable performance
         a.WordsRe_ = new RegExp(words || "[^]*[\\p{L}\\p{Nd}_]", words ? "" : "u");
       }
     }

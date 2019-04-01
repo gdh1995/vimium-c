@@ -11,7 +11,7 @@ var Settings = {
     __proto__: null as never,
     browser_: !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
         || !(Build.BTypes & ~BrowserType.Edge) ? Build.BTypes as number as BrowserType : OnOther,
-    browserVer_: ChromeVer,
+    browserVer_: Build.BTypes & BrowserType.Chrome ? ChromeVer : BrowserVer.assumedVer,
     grabBackFocus_: false,
     onMac_: false
   } as SettingsNS.FrontendSettingCache & SafeObject,
@@ -427,7 +427,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
   }
 };
 
-!(Build.BTypes & ~BrowserType.Chrome) ||
+!(Build.BTypes & BrowserType.Edge) ||
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info): void {
   const os = (!(Build.BTypes & ~BrowserType.Chrome) ? info.os : info.os || "").toLowerCase(),
   types = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinRuntimePlatformOs

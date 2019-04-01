@@ -102,14 +102,14 @@ ContentSettings_ = {
   },
   Clear_ (this: void, contentType: CSTypes, tab?: Readonly<Pick<Frames.Sender, "a">>): void {
     if (!chrome.contentSettings) { return; }
-    const cs = chrome.contentSettings[contentType];
+    const cs = chrome.contentSettings[contentType], kIncognito = "incognito_session_only", kRegular = "regular";
     if (!cs || !cs.clear) { return; }
     if (tab) {
-      cs.clear({ scope: (tab.a ? "incognito_session_only" : "regular") });
+      cs.clear({ scope: (tab.a ? kIncognito : kRegular) });
       return;
     }
-    cs.clear({ scope: "regular" });
-    cs.clear({ scope: "incognito_session_only" }, Utils.runtimeError_);
+    cs.clear({ scope: kRegular });
+    cs.clear({ scope: kIncognito }, Utils.runtimeError_);
     localStorage.removeItem(ContentSettings_.makeKey_(contentType));
   },
   clearCS_ (options: CommandsNS.Options, port: Port): void {
