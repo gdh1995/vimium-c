@@ -104,7 +104,7 @@
 	bottom: 0;
 	height: 14px;
 	line-height: 14px;
-	max-width: 312px;
+	max-width: 320px;
 	min-width: 151px;
 	overflow: hidden;
 	padding: 2px 3px;
@@ -176,7 +176,7 @@ html, body, * {
 body {
 	cursor: text;
 	display: inline-block;
-	max-width: 215px;
+	max-width: 240px;
 	min-width: 7px;
 	padding: 0 3px 0 1px;
 }
