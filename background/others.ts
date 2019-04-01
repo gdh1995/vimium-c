@@ -499,7 +499,7 @@ setTimeout(function () {
 }, 600);
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-chrome.runtime.onInstalled && chrome.runtime.onInstalled.addListener(Settings.temp_.onInstall_ =
+chrome.runtime.onInstalled.addListener(Settings.temp_.onInstall_ =
 function (details: chrome.runtime.InstalledDetails): void {
   let reason = details.reason;
   if (reason === "install") { reason = ""; }
@@ -511,7 +511,7 @@ function (details: chrome.runtime.InstalledDetails): void {
     status: "complete"
   }, function (tabs) {
     const t = chrome.tabs, callback = Utils.runtimeError_,
-    offset = location.origin.length + 1, js = Settings.CONST_.ContentScripts_;
+    offset = location.origin.length, js = Settings.CONST_.ContentScripts_;
     for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
       let url = tabs[_i].url;
       if (url.startsWith(BrowserProtocol_) || url.indexOf("://") === -1) { continue; }

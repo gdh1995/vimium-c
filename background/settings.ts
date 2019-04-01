@@ -423,7 +423,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     } as SafeDict<string>,
     GlobalCommands_: null as never as string[],
     ShowPage_: "pages/show.html",
-    VomnibarPageInner_: "", VomnibarScript_: "front/vomnibar.js", VomnibarScript_f_: ""
+    VomnibarPageInner_: "", VomnibarScript_: "/front/vomnibar.js", VomnibarScript_f_: ""
   }
 };
 
