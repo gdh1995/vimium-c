@@ -54,6 +54,11 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     TestAlive_ (): void { esc && !vPort._port && VSettings.destroy_(); },
     ClearPort_ (this: void): void {
       vPort._port = null;
+      if (!(Build.BTypes & ~BrowserType.Firefox)) {
+        // Note: here causes no reconnecting on Firefox
+        VSettings.destroy_();
+        return;
+      }
       setTimeout(function (i): void {
         if (!i) {
           try { !esc || vPort._port || vPort.Connect_(); return; } catch {}
