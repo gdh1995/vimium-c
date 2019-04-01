@@ -10,7 +10,7 @@ var gulpSome = require('gulp-some');
 var osPath = require('path');
 
 var LIB_UGLIFY_JS = 'terser';
-var DEST, enableSourceMap, willListFiles, willListEmittedFiles, removeComments, JSDEST;
+var DEST, enableSourceMap, willListFiles, willListEmittedFiles, JSDEST;
 var locally = false;
 var debugging = process.env.DEBUG === "1";
 var compileInBatch = true;
@@ -78,7 +78,32 @@ var Tasks = {
   }],
 
   "build/scripts": ["build/background", "build/content", "build/front"],
-  "build/ts": ["build/scripts", "build/options", "build/show"],
+  "build/_clean_diff": function() {
+    return cleanByPath([".build/*", "manifest.json", "lib/polyfill.js", "pages/dialog_ui.*"]);
+  },
+  "build/_all": ["build/scripts", "build/options", "build/show"],
+  "build/ts": function(cb) {
+    var btypes = getBuildItem("BTypes");
+    var curConfig = JSON.stringify([btypes, getBuildItem("MinCVer"), envSourceMap, envLegacy]);
+    var configFile = btypes === 1 ? "chrome" : btypes === 2 ? "firefox" : "browser-" + btypes;
+    configFile = osPath.join(JSDEST, "." + configFile + ".build");
+    var needClean = true;
+    try {
+      var oldConfig = readFile(configFile);
+      needClean = oldConfig !== curConfig;
+    } catch (e) {}
+    if (needClean) {
+      gulp.series("build/_clean_diff")(function() {
+        if (!fs.existsSync(JSDEST)) {
+          fs.mkdirSync(JSDEST, {recursive: true});
+        }
+        fs.writeFileSync(configFile, curConfig);
+        gulp.series("build/_all")(cb);
+      });
+    } else {
+      gulp.series("build/_all")(cb);
+    }
+  },
 
   "min/content": function(cb) {
     var cs = manifest.content_scripts[0], sources = cs.js;
@@ -182,8 +207,20 @@ var Tasks = {
     minCVer = minCVer ? (minCVer | 0) : 0;
     if (!(browser & 1)) {
       delete manifest.minimum_chrome_version;
+      delete manifest.key;
+      delete manifest.update_url;
     } else if (minCVer && minCVer < 999) {
       manifest.minimum_chrome_version = "" + (minCVer | 0);
+    }
+    if (browser === 1) { // Chrome
+      delete manifest.browser_specific_settings;
+    } else if (browser === 2) { // Firefox
+      delete manifest.options_page;
+      delete manifest.version_name;
+      manifest.permissions.splice(manifest.permissions.indexOf("contentSettings") || manifest.length, 1);
+      manifest.browser_specific_settings && manifest.browser_specific_settings.gecko &&
+      minCVer < 199 &&
+      (manifest.browser_specific_settings.gecko.strict_min_version = minCVer + ".0");
     }
     var dialog_ui = getBuildItem("NoDialogUI");
     if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {
@@ -210,7 +247,7 @@ var Tasks = {
   rebuild: [["clean"], "dist"],
   all: ["build"],
   clean: [function() {
-    return cleanByPath(DEST + "/*");
+    return cleanByPath(".build/*");
   }],
 
   scripts: ["background", "content", "front"],
@@ -562,7 +599,8 @@ function copyByPath(path) {
 }
 
 function cleanByPath(path) {
-  return gulp.src(path, {read: false, dot: true}).pipe(require('gulp-clean')());
+  path = formatPath(path, DEST);
+  return gulp.src(path, {base: ".", read: false, dot: true}).pipe(require('gulp-clean')());
 }
 
 function formatPath(path, base) {
@@ -755,7 +793,6 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
   enableSourceMap = !!opts.sourceMap && envSourceMap;
   willListFiles   = !!opts.listFiles;
   willListEmittedFiles = !!opts.listEmittedFiles;
-  removeComments  = !!opts.removeComments;
   return opts;
 }
 

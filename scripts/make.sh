@@ -38,6 +38,10 @@ if [ -z "$output" -o -d "$output" ]; then
     if [ -n "$ori_output" ]; then :
     elif bool "$WITH_MAP"; then
       ver=${ver}_debug
+    elif test -f "$ZIP_BASE/.build/.chrome.build"; then
+      ver=${ver}_chrome
+    elif test -f "$ZIP_BASE/.build/.firefox.build"; then
+      ver=${ver}_firefox
     else
       ver=${ver}_dist
     fi
@@ -111,6 +115,10 @@ else
 fi
 echo ""
 echo "$action_name $output"
+
+if test -f "$ZIP_BASE/.build/.firefox.build"; then
+  exit
+fi
 
 key="$2"
 if [ -z "$key" ]; then
