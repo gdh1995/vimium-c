@@ -288,9 +288,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     f("keyup", onKeyup, true);
     action !== HookAction.Suppress && f("focus", onFocus, true);
     f("blur", onBlur, true);
-    (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : notChrome)
-    ? f("click", onActivate, true) :
-    f.call(document, "DOMActivate", onActivate, true);
+    f((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : notChrome)
+        ? "click" : "DOMActivate", onActivate, true);
   }),
   Commands: {
     [K in kFgCmd & number]:
