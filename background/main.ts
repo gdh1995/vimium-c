@@ -1856,7 +1856,7 @@ Are you sure you want to continue?`);
         request.u = "";
         request.k = "";
         opts.url_f = url;
-        opts.opener = unsafe;
+        opts.opener = unsafe && !request.n;
       } else {
         opts.copied = request.c;
         opts.keyword = request.k;

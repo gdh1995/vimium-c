@@ -22,6 +22,10 @@ Modified by gdh1995 (github).
 
 declare type PropertyKey = string | number;
 
+interface ES6Array<T> extends Array<T> {
+    includes(searchObject: any): boolean;
+}
+
 interface Array<T> {
     /**
      * Returns the value of the first element in the array where predicate is true, and undefined
@@ -372,6 +376,7 @@ interface ObjectConstructor {
 }
 
 interface ReadonlyArray<T> {
+    includes? (searchObject: any): boolean;
     /**
      * Returns the value of the first element in the array where predicate is true, and undefined
      * otherwise.

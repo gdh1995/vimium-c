@@ -317,6 +317,7 @@ interface FgReq {
     /** https */ h?: boolean | null;
     /** reuse */ r?: ReuseType;
     /** omni */ o?: boolean;
+    /** noopener */ n?: boolean;
   };
   [kFgReq.focus]: {};
   [kFgReq.checkIfEnabled]: {

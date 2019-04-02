@@ -226,7 +226,36 @@ VDom.UI = {
     if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
       return;
     }
-    VDom.mouse_(element, "click", rect, modifiers, null, button);
+    if (!(Build.BTypes & BrowserType.Firefox)) {
+      VDom.mouse_(element, "click", rect, modifiers, null, button);
+      return;
+    }
+    const enum ActionType {
+      OnlyDispatch = 0,
+      DispatchAndFix = 1,
+      FixButNotDispatch = 2,
+    }
+    let result: ActionType = ActionType.OnlyDispatch;
+    if ((!(Build.BTypes & ~BrowserType.Firefox) || VUtils.cache_.browser_ === BrowserType.Firefox)
+        && modifiers && !modifiers.altKey_
+        && element instanceof HTMLAnchorElement && element.href) {
+      // need to work around Firefox's popup blocker
+      result = (element.target === "_blank" || modifiers.ctrlKey_ || modifiers.metaKey_)
+          && !(element.getAttribute("onclick") || VUtils.clickable_.has(element))
+        ? ActionType.FixButNotDispatch : ActionType.DispatchAndFix;
+    }
+    if (result >= ActionType.FixButNotDispatch
+        || VDom.mouse_(element, "click", rect, modifiers, null, button) && result) {
+      // do fix
+      VPort.post_({
+        H: kFgReq.openUrl,
+        u: (element as HTMLAnchorElement).href,
+        n: ((element as HTMLAnchorElement).rel.split(<RegExpOne> /\s/) as ES6Array<string>).includes("noopener"),
+        r: (modifiers as MyMouseControlKeys).shiftKey_
+          || !(modifiers as MyMouseControlKeys).ctrlKey_ && !(modifiers as MyMouseControlKeys).metaKey_
+          ? ReuseType.newFg : ReuseType.newBg
+      });
+    }
   },
   simulateSelect_ (element, rect, flash, action, suppressRepeated): void {
     const y = window.scrollY;
