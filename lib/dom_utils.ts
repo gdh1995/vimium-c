@@ -499,9 +499,9 @@ var VDom = {
   },
   mouse_: function (this: {}, element: Element
       , type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseenter" | "mouseout" | "mouseleave"
-      , rect?: Rect | null, modifiers?: EventControlKeys | null, related?: Element | null
+      , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, related?: Element | null
       , button?: number): boolean {
-    modifiers || (modifiers = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false });
+    modifiers || (modifiers = { altKey_: !1, ctrlKey_: !1, metaKey_: !1, shiftKey_: !1 });
     let doc = element.ownerDocument;
     Build.BTypes & ~BrowserType.Firefox &&
     doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
@@ -516,7 +516,7 @@ var VDom = {
     mouseEvent.initMouseEvent(type, true, true
       , doc.defaultView || window, type.startsWith("mouseo") ? 0 : 1
       , x, y, x, y
-      , modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey
+      , modifiers.ctrlKey_, modifiers.altKey_, modifiers.shiftKey_, modifiers.metaKey_
       , <number> button | 0, related && related.ownerDocument === doc ? related : null);
     return Build.BTypes & ~BrowserType.Firefox ? doc.dispatchEvent.call(element, mouseEvent)
       : element.dispatchEvent(mouseEvent);

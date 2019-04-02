@@ -269,6 +269,9 @@ declare function setInterval(this: void, handler: (this: void, info?: TimerType)
 type VimiumContainerElementType = "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog";
 /** ShadowRoot | HTMLDivElement */
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
+
+interface MyMouseControlKeys { altKey_: boolean; ctrlKey_: boolean; metaKey_: boolean; shiftKey_: boolean; }
+
 interface DomUI {
   box_: HTMLDivElement | null;
   styleIn_: HTMLStyleElement | string | null;
@@ -291,7 +294,7 @@ interface DomUI {
   getSelectionText_ (notTrim?: 1): string;
   removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
   click_ (this: DomUI, element: Element
-    , rect?: Rect | null, modifiers?: EventControlKeys | null, addFocus?: boolean
+    , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean
     , button?: 0 | 2): void;
   simulateSelect_ (this: DomUI, element: Element, rect?: Rect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;
@@ -307,7 +310,7 @@ interface DomUI {
 interface VDomMouse {
   (element: Element, type: "mousedown" | "mouseup" | "click"
     , rect: Rect | null // rect must be not optional, so that human can understand program logic easily
-    , modifiers?: EventControlKeys | null, related?: Element | null, button?: 0 | 2): boolean;
+    , modifiers?: MyMouseControlKeys | null, related?: Element | null, button?: 0 | 2): boolean;
   (element: Element, type: "mouseover" | "mouseenter", rect: Rect | null
     , modifiers?: null, related?: Element | null): boolean;
   (element: Element, type: "mouseout" | "mouseleave", rect?: null

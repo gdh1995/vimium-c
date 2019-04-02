@@ -1309,10 +1309,10 @@ Modes_: [
       link.download = "";
     }
     VDom.UI.click_(link, rect, {
-      altKey: true,
-      ctrlKey: false,
-      metaKey: false,
-      shiftKey: false
+      altKey_: true,
+      ctrlKey_: false,
+      metaKey_: false,
+      shiftKey_: false
     });
     if (hadNoDownload) {
       link.removeAttribute("download");
@@ -1383,10 +1383,10 @@ Modes_: [
     }
     const mode = a.mode_ & HintMode.mask_focus_new, notMac = !VUtils.cache_.onMac_, newTab = mode >= HintMode.newTab;
     UI.click_(link, rect, {
-      altKey: false,
-      ctrlKey: newTab && notMac,
-      metaKey: newTab && !notMac,
-      shiftKey: mode === HintMode.OPEN_IN_NEW_FG_TAB
+      altKey_: false,
+      ctrlKey_: newTab && notMac,
+      metaKey_: newTab && !notMac,
+      shiftKey_: mode === HintMode.OPEN_IN_NEW_FG_TAB
     }, mode !== HintMode.empty || link.tabIndex >= 0
     , a.options_.button === "right" ? 2 : 0);
   }

@@ -145,7 +145,8 @@ window.onhashchange = function (this: void): void {
       VData.auto = false;
       this.onerror = this.onload = null as never;
       this.alt = "\xa0(fail in loading)\xa0";
-      if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || BG_ && BG_.Settings
+      if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || !(Build.BTypes & BrowserType.Chrome)
+          || BG_ && BG_.Settings
             && BG_.ChromeVer >= BrowserVer.MinNoBorderForBrokenImage) {
         this.classList.add("broken");
       }

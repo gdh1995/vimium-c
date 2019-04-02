@@ -67,7 +67,10 @@ debounce_ = function<T> (this: void, func: (this: T) => void
 var $ = function<T extends HTMLElement>(selector: string): T { return document.querySelector(selector) as T; }
   , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow;
 let bgSettings_ = BG_.Settings;
-const bgOnOther_ = BG_.OnOther, bgBrowserVer_ = BG_.ChromeVer;
+const bgOnOther_ = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
+      || !(Build.BTypes & ~BrowserType.Edge)
+    ? Build.BTypes as number as BrowserType : BG_.OnOther,
+bgBrowserVer_ = BG_.ChromeVer;
 
 abstract class Option_<T extends keyof AllowedOptions> {
   readonly element_: HTMLElement;
