@@ -220,8 +220,12 @@ VDom.UI = {
     VDom.mouse_(element, "mousedown", rect, modifiers, null, button);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
     addFocus && element !== VEvent.lock_() && element !== document.activeElement &&
+      !(element as Partial<HTMLInputElement>).disabled &&
       typeof element.focus === "function" && element.focus();
     VDom.mouse_(element, "mouseup", rect, modifiers, null, button);
+    if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
+      return;
+    }
     VDom.mouse_(element, "click", rect, modifiers, null, button);
   },
   simulateSelect_ (element, rect, flash, action, suppressRepeated): void {

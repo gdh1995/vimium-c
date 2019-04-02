@@ -578,6 +578,9 @@ declare const enum BrowserVer {
   MinEnsured$window$$InputEvent = 60, // even if LEGACY
   MinWarningWebkitGradient = 60, // only happened on a Canary version
   MinOmniboxUIMaxAutocompleteMatchesMayBe12 = 60, // #omnibox-ui-max-autocomplete-matches
+  // only if EXPERIMENTAL; tests show there're mouseover/mousedown/mouseup/mouseout events
+  // but no click events
+  MinMaybeSomeMouseEventsOnDisabledFormControlElements = 60,
   // the 6 below are correct even if EXPERIMENTAL or LEAGCY
   MinNoBorderForBrokenImage = 60,
   MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
