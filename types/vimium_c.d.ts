@@ -404,6 +404,9 @@ declare const enum BrowserVer {
   Min$Tabs$$getZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
   MinParentNodeInNodePrototype = 42, // even if even if EXPERIMENTAL or LEAGCY
+  // before C43, "font-size: ***" of <select> overrides those of its <options>s'
+  // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43
+  Min$Option$HasReliableFontSize = 43, // even if LEAGCY
   MinEnsured$String$$StartsWithAndRepeatAndIncludes = 43, // even if LEAGCY
   MinSafe$String$$StartsWith = MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1, // add a margin
   MinRuntimePlatformOs = 44,
