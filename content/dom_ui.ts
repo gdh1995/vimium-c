@@ -76,10 +76,16 @@ VDom.UI = {
     for (const el of els) {
       parent.appendChild(el.marker);
     }
-    const style = parent.style, zoom = VDom.bZoom_ / VDom.dScale_;
-    style.left = offset[0] + "px"; style.top = offset[1] + "px";
-    Build.BTypes & ~BrowserType.Firefox &&
-    zoom !== 1 && (style.zoom = "" + zoom);
+    const style = parent.style, zoom = VDom.bZoom_ / VDom.dScale_,
+    left = offset[0] + "px", top = offset[1] + "px";
+    if ((!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && VUtils.cache_.browser_ === BrowserType.Firefox)
+        && zoom - 1) {
+      style.cssText = `left:0;top:0;transform:scale(${zoom})translate(${left},${top})`;
+    } else {
+      style.left = left; style.top = top;
+      zoom - 1 && (style.zoom = zoom as number | string as string);
+    }
     (!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
       : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
       ? document.fullscreenElement : document.webkitIsFullScreen) && (style.position = "fixed");

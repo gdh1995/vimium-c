@@ -4,6 +4,7 @@ var VDom = {
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: true,
   allowRAF_: true,
+  fixedClientTop_: !(Build.BTypes & ~BrowserType.Firefox) ? 1 as BOOL : 0 as BOOL,
   specialZoom_: !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
     ? true : !!(Build.BTypes & BrowserType.Chrome),
   docSelectable_: true,
@@ -317,14 +318,16 @@ var VDom = {
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
       && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
     a.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
-    a.dbZoom_ = zoom * zoom2;
-    let x = stacking ? -box.clientLeft : float(st.marginLeft)
-      , y = stacking ? -box.clientTop  : float(st.marginTop );
+    a.dbZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom * zoom2 : zoom2;
+    let x = stacking ? a.fixedClientTop_ ? -float(st.borderLeftWidth) : -box.clientLeft : float(st.marginLeft)
+      , y = stacking ? a.fixedClientTop_ ? -float(st.borderTopWidth) : -box.clientTop  : float(st.marginTop );
     x = x * scale - rect.left, y = y * scale - rect.top;
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
     x = Math.abs(x) < 0.01 ? 0 : Math.ceil(Math.round(x / zoom2 * 100) / 100);
     y = Math.abs(y) < 0.01 ? 0 : Math.ceil(Math.round(y / zoom2 * 100) / 100);
-    iw /= zoom, ih /= zoom;
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      iw /= zoom, ih /= zoom;
+    }
     let mw = iw, mh = ih;
     if (containHasPaint) { // ignore the area on the block's left
       iw = rect.right, ih = rect.bottom;
