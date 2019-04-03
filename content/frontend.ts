@@ -1178,7 +1178,13 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       InsertMode.ExitGrab_();
       let old = onWndFocus, failed = true;
       onWndFocus = function (): void { failed = false; };
-      VOmni.status_ === VomnibarNS.Status.Showing && VOmni.box_.blur();
+      if (VOmni.status_ === VomnibarNS.Status.Showing) {
+        VOmni.box_.blur();
+      } else if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+        let cur = document.activeElement;
+        cur && (/^i?frame$/i as RegExpI).test((cur.tagName as string)) && cur.blur && cur.blur();
+      }
       window.focus();
       failed && isEnabled && hook(HookAction.Install);
       // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725

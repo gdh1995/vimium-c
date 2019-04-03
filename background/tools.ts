@@ -164,10 +164,14 @@ ContentSettings_ = {
       if (Utils.runtimeError_()) {
         chrome.contentSettings[contentType].get({primaryUrl: pattern}, function (opt2) {
           if (opt2 && opt2.setting === "allow") { return; }
-          const tabOpt: chrome.windows.CreateData = {
+          const wndOpt: chrome.windows.CreateData = {
             type: "normal", incognito: true, focused: false, url: "about:blank"
           };
-          chrome.windows.create(tabOpt, function (wnd: chrome.windows.Window): void {
+          if (Build.BTypes & BrowserType.Firefox
+              && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+            delete wndOpt.focused;
+          }
+          chrome.windows.create(wndOpt, function (wnd: chrome.windows.Window): void {
             const leftTabId = (wnd.tabs as Tab[])[0].id;
             return ContentSettings_.setAndUpdate_(count, contentType, tab, pattern, wnd.id, true, function (): void {
               chrome.tabs.remove(leftTabId);

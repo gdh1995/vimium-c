@@ -507,6 +507,8 @@ function (details: chrome.runtime.InstalledDetails): void {
   else { return; }
 
   setTimeout(function () {
+  Build.BTypes & ~BrowserType.Firefox &&
+  (!(Build.BTypes & BrowserType.Firefox) || OnOther !== BrowserType.Firefox) &&
   chrome.tabs.query({
     status: "complete"
   }, function (tabs) {

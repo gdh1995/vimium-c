@@ -159,7 +159,12 @@ var Backend: BackendHandlersNS.BackendHandlers;
       state = "";
     }
     const focused = option.focused !== false;
-    option.focused = true;
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      delete option.focused;
+    } else {
+      option.focused = true;
+    }
     chrome.windows.create(option, state || !focused ? function (wnd: Window) {
       callback && callback(wnd);
       if (!wnd) { return; } // do not return lastError: just throw errors for easier debugging
