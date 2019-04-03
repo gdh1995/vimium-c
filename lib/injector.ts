@@ -8,7 +8,7 @@ const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src
 onIdle = window.requestIdleCallback;
 let tick = 1, extHost = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0));
 if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extHost.indexOf("-") > 0) {
-  extHost = curEl.dataset.vimiumID || BuildStr.FirefoxID;
+  extHost = curEl.dataset.vimiumId || BuildStr.FirefoxID;
 }
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
   type LastError = chrome.runtime.LastError;
