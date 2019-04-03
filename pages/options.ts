@@ -183,6 +183,11 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
   this.locked_ = locked;
   this.element_.select();
   document.execCommand("insertText", false, value);
+  if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome) {
+    if (this.element_.value !== value) {
+      this.element_.value = value;
+    }
+  }
   this.locked_ = false;
 };
 
