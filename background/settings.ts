@@ -307,10 +307,16 @@ var Settings = {
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}] as ExclusionsNS.StoredRule[],
-    extWhiteList: `# modified { Vomnibar Page, X New Tab, PDF Viewer }
+    extWhiteList: !(Build.BTypes & ~BrowserType.Chrome)
+      || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome
+? `# modified { Vomnibar Page, X New Tab, PDF Viewer }
 ekohaelnhhdhbccgefjmjpdjoijhojgd
 hdnehngglnbnehkfcidabjckinphnief
-nacjakoppgmdcpemlfnfegmlhipddanj`,
+nacjakoppgmdcpemlfnfegmlhipddanj`
+: !(Build.BTypes & ~BrowserType.Firefox)
+  || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+? `# extension id, like "${BuildStr.FirefoxID}"`
+: "",
     findModeRawQueryList: "",
     grabBackFocus: false,
     hideHud: false,

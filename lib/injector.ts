@@ -5,8 +5,11 @@ let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes &
   : typeof browser !== "undefined" && browser &&
   !((browser as typeof chrome | Element) instanceof Element)) ? browser as typeof chrome : chrome).runtime;
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3,
-extHost = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0)), onIdle = window.requestIdleCallback;
-let tick = 1;
+onIdle = window.requestIdleCallback;
+let tick = 1, extHost = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0));
+if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extHost.indexOf("-") > 0) {
+  extHost = curEl.dataset.vimiumID || BuildStr.FirefoxID;
+}
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
   type LastError = chrome.runtime.LastError;
   let str: string | undefined, noBackend: boolean, err = runtime.lastError as void | LastError;

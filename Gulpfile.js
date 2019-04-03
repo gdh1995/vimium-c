@@ -218,9 +218,11 @@ var Tasks = {
       delete manifest.options_page;
       delete manifest.version_name;
       manifest.permissions.splice(manifest.permissions.indexOf("contentSettings") || manifest.length, 1);
-      manifest.browser_specific_settings && manifest.browser_specific_settings.gecko &&
-      minCVer < 199 &&
-      (manifest.browser_specific_settings.gecko.strict_min_version = minCVer + ".0");
+      if (manifest.browser_specific_settings && manifest.browser_specific_settings.gecko) {
+        minCVer < 199 &&
+        (manifest.browser_specific_settings.gecko.strict_min_version = minCVer + ".0");
+        manifest.browser_specific_settings.gecko.id = getBuildItem("FirefoxID");
+      }
     }
     var dialog_ui = getBuildItem("NoDialogUI");
     if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {
@@ -868,7 +870,8 @@ function createBuildConfigCache() {
       } catch (e) {}
       buildOptionCache[key] = defaultVal;
     }
-    return key + " = " + (newVal != null ? newVal : defaultVal);
+    var finalVal = newVal != null ? newVal : defaultVal;
+    return key + " = " + (typeof finalVal === "string" ? JSON.stringify(finalVal) : finalVal);
   });
   if (!(getBuildItem("BTypes") > 0)) {
     throw new Error("Unsupported Build.BTypes: " + getBuildItem("BTypes"));

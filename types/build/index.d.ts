@@ -10,4 +10,5 @@ declare const enum Build {
 }
 declare const enum BuildStr {
   Commit = "in-developing",
+  FirefoxID = "vimium-c@gdh1995.cn",
 }
