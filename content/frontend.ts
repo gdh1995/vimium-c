@@ -24,7 +24,9 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     , onKeyup2 = null as ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null
     , passKeys = null as SafeEnum | null | "", isPassKeysReverted = false
     , onWndFocus = function (this: void): void { /* empty */ }, onWndBlur2: ((this: void) => void) | null = null
-    , OnOther: BrowserType = BrowserType.Chrome
+    , OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
+          || !(Build.BTypes & ~BrowserType.Edge)
+        ? Build.BTypes as number : BrowserType.Chrome
     ;
 
   const injector = VimiumInjector,
@@ -871,7 +873,10 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
       const browserVer = load.browserVer_;
-      OnOther = load.browser_;
+      if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
+          && <number> Build.BTypes !== BrowserType.Edge) {
+        OnOther = load.browser_;
+      }
       ((VSettings as Writeable<VSettingsTy>).cache = VUtils.cache_ = load).onMac_ &&
         (VKeyboard.correctionMap_ = Object.create<string>(null));
       if (Build.BTypes & BrowserType.Chrome

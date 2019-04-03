@@ -262,7 +262,8 @@ var VHints = {
     const zi = VDom.bZoom_, root = VDom.UI.UI;
     let i = elements.length - 1;
     if (!root || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
-    const z = ("" + 1 / zi).substring(0, 5), arr = this.hints_ as HintsNS.HintItem[],
+    const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).substring(0, 5) : "",
+    arr = this.hints_ as HintsNS.HintItem[],
     mr = this.maxRight_ * zi, mt = this.maxTop_ * zi;
     while (0 <= i && root.contains(elements[i][0])) {
       let st = arr[i--].marker.style;
@@ -778,7 +779,7 @@ var VHints = {
     }
     (this as typeof VHints).getDeepDescendantCombinator_ = () => v0;
     return v0;
-  } : null as never,
+  } : 0 as never,
   ResetMode_ (): void {
     if (VHints.mode_ >= HintMode.min_disable_queue || VHints.lastMode_ === VHints.mode_) { return; }
     const d = VEvent.keydownEvents_();
@@ -1035,7 +1036,7 @@ alphabetHints_: {
       return pass;
     });
   },
-  repeat_: Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith ? null
+  repeat_: !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith ? 0 as never
       : function (this: void, s: string, n: number): string {
     if (s.repeat) { return s.repeat(n); }
     for (var s2 = s; --n; ) { s2 += s; }

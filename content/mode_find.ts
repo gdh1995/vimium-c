@@ -521,7 +521,9 @@ var VFind = {
       && a.isActive_ && a.box_.contentDocument.hasFocus();
     do {
       q = query != null ? query : isRe ? a.getNextQueryFromRegexMatches_(back) : a.parsedQuery_;
-      found = a.find_(q, !notSens, back, true, a.wholeWord_, false, false);
+      found = Build.BTypes & ~BrowserType.Chrome
+        ? a.find_(q, !notSens, back, true, a.wholeWord_, false, false)
+        : window.find(q, !notSens, back, true, a.wholeWord_, false, false);
       if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VDom.UI.getSelected_()[0]), q))) {
         pR.lastIndex = 0;
         let text = par.innerText as string | HTMLElement;
@@ -543,11 +545,11 @@ var VFind = {
  * so those in shadowDOM / ancestor tree scopes will still be found.
  * Therefore `@styleIn_` is always needed, and VFind may not need a sub-scope selection.
  */
-  find_: function (this: void): boolean {
+  find_: Build.BTypes & ~BrowserType.Chrome ? function (this: void): boolean {
     try {
       return window.find.apply(window, arguments);
     } catch { return false; }
-  } as Window["find"],
+  } as Window["find"] : 0 as never,
   HookSel_ (): void {
     document.addEventListener("selectionchange", VFind && VFind.ToggleStyle_, true);
   },

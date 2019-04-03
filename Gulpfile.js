@@ -314,7 +314,7 @@ gulp.task("locally", function(done) {
       CompileTasks.front[0].splice(i, 1);
     }
   }
-  JSDEST = compilerOptions.outDir = ".";
+  JSDEST = compilerOptions.outDir = process.env.LOCAL_DIST || ".";
   enableSourceMap = false;
   willListEmittedFiles = true;
   done();

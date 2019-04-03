@@ -2,7 +2,7 @@
   VFind, VSettings, VHUD, VVisual,
   VUtils, VEvent, VPort
   ].forEach(Object.seal);
-VDom.allowScripts_ = false;
+VDom.allowScripts_ = 0;
 
 declare var VimiumClickable: WeakSet<Element> | undefined | null;
 

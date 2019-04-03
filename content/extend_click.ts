@@ -314,7 +314,7 @@ _listen("load", delayFindAll, true);
     , appVer = appInfo && +appInfo[1] || 0
     ;
   Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage &&
-    (VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage);
+    (VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage ? 1 : 0);
   if (Build.MinCVer < BrowserVer.MinEnsuredMethodFunction &&
       appVer >= BrowserVer.MinEnsuredMethodFunction) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
@@ -337,7 +337,7 @@ _listen("load", delayFindAll, true);
   }, 17); });
   if (!script.parentNode) { // It succeeded to hook.
     Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage ||
-    VDom.allowRAF_ || requestAnimationFrame(() => { VDom.allowRAF_ = true; });
+    VDom.allowRAF_ || requestAnimationFrame(() => { VDom.allowRAF_ = 1; });
     return;
   }
   // else: sandboxed or JS-disabled
@@ -351,7 +351,7 @@ _listen("load", delayFindAll, true);
     VSettings.destroy_(true);
     return;
   }
-  VDom.allowScripts_ = false;
+  VDom.allowScripts_ = 0;
   interface TimerLib extends Window {
     setInterval: typeof setInterval;
     setTimeout: typeof setTimeout | (

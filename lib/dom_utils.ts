@@ -2,8 +2,8 @@
 var VDom = {
   UI: null as never as DomUI,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
-  allowScripts_: true,
-  allowRAF_: true,
+  allowScripts_: 1 as BOOL,
+  allowRAF_: 1 as BOOL,
   fixedClientTop_: !(Build.BTypes & ~BrowserType.Firefox) ? 1 as BOOL : 0 as BOOL,
   specialZoom_: !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
     ? true : !!(Build.BTypes & BrowserType.Chrome),
@@ -56,7 +56,7 @@ var VDom = {
       ): NonNullable<Ty[Key]> | null {
     const desc = Object.getOwnPropertyDescriptor(Cls.prototype, property);
     return desc && desc.get ? desc.get.call(instance) : null;
-  } : null as never,
+  } : 0 as never,
   GetShadowRoot_ (el: Element | Node): ShadowRoot | null {
     const sr = (el as Element).shadowRoot || null, E = Element;
     // check el's type to avoid exceptions
@@ -412,7 +412,7 @@ var VDom = {
   },
   notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
     return el instanceof HTMLFormElement;
-  } : null as never,
+  } : 0 as never,
   /** @safe_even_if_any_overridden_property */
   SafeEl_: Build.BTypes & ~BrowserType.Firefox ? function (
       this: void, el: Node | null, type?: PNType.DirectElement): Node | null {
@@ -422,7 +422,7 @@ var VDom = {
     (this: void, el: HTMLElement | null): SafeHTMLElement | null;
     (this: void, el: Element | null, type?: PNType.DirectElement): SafeElement | null;
     (this: void, el: Node | null): Node | null;
-  } : null as never,
+  } : 0 as never,
   uneditableInputs_: <SafeEnum> { __proto__: null as never,
     button: 1, checkbox: 1, color: 1, file: 1, hidden: 1, //
     image: 1, radio: 1, range: 1, reset: 1, submit: 1

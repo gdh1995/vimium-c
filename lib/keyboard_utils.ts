@@ -18,7 +18,8 @@ var VKeyboard = {
       : i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn ? "fF"[+c] + (i - VKeyCodes.maxNotFn) : "";
   },
   // we know that BrowserVer.MinEnsured$KeyboardEvent$$Key < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
-  _getKeyCharUsingKeyIdentifier: Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key ? null
+  _getKeyCharUsingKeyIdentifier: !(Build.BTypes & BrowserType.Chrome)
+        || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key ? 0 as never
       : function (this: {}, event: OldKeyboardEvent): string {
     let s: string | undefined = event.keyIdentifier || "";
     if (!s.startsWith("U+")) { return ""; }
