@@ -1,6 +1,6 @@
 declare var browser: unknown;
-var VimiumInjector: VimiumInjector | undefined | null, VimiumClickable: WeakSet<Element> | undefined | null;
-(function (injectorBuilder: (scriptSrc: string) => VimiumInjector["reload"]) {
+var VimiumInjector: VimiumInjectorTy | undefined | null, VimiumClickable: WeakSet<Element> | undefined | null;
+(function (injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]) {
 let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
   : typeof browser !== "undefined" && browser &&
   !((browser as typeof chrome | Element) instanceof Element)) ? browser as typeof chrome : chrome).runtime;
@@ -86,7 +86,7 @@ if (document.readyState !== "loading") {
 } else {
   addEventListener("DOMContentLoaded", start, true);
 }
-})(function (scriptSrc): VimiumInjector["reload"] {
+})(function (scriptSrc): VimiumInjectorTy["reload"] {
   return function (async): void {
     if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
       VimiumInjector.destroy(true);

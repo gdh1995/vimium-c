@@ -271,7 +271,7 @@ declare namespace VomnibarNS {
   }
 }
 
-interface VimiumInjector {
+interface VimiumInjectorTy {
   id: string;
   alive: 0 | 0.5 | 1;
   version: string;

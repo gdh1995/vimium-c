@@ -182,7 +182,7 @@ let handler = function (this: void): void {
   }
 },
 // here `setTimeout` is normal and won't use TimerType.fake
-setTimeout_ = setTimeout as (this: void, handler: (this: void) => void, timeout: number) => number,
+setTimeout_ = setTimeout as SafeSetTimeout,
 delayFindAll = function (e?: Event): void {
   if (e && (e.target !== window
           || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)

@@ -1,5 +1,5 @@
 var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
-  , VimiumInjector: VimiumInjector | undefined | null;
+  , VimiumInjector: VimiumInjectorTy | undefined | null;
 
 (function () {
   interface EscF {
@@ -1031,7 +1031,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || VUtils.cache_.browserVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
       box.addEventListener(
-        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : notChrome)
+        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+          : OnOther !== BrowserType.Chrome)
         ? "click" : "DOMActivate", onActivate, true);
     }
 

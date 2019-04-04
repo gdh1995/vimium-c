@@ -7,7 +7,7 @@ VDom.allowScripts_ = 0;
 declare var VimiumClickable: WeakSet<Element> | undefined | null;
 
 (function () {
-  const injector = VimiumInjector as VimiumInjector, clickable = VimiumClickable;
+  const injector = VimiumInjector as VimiumInjectorTy, clickable = VimiumClickable;
   clickable ? (VUtils.clickable_ = clickable) : (VimiumClickable = injector.clickable = null);
 
   injector.checkIfEnabled = (function (this: null
@@ -47,4 +47,4 @@ VSettings.execute_ = function (cmd): void {
   }
 };
 
-(VimiumInjector as VimiumInjector).destroy = VSettings.destroy_;
+(VimiumInjector as VimiumInjectorTy).destroy = VSettings.destroy_;

@@ -8,7 +8,7 @@ interface ShadowRoot {
 }
 
 interface Window {
-  VimiumInjector?: VimiumInjector | null;
+  VimiumInjector?: VimiumInjectorTy | null;
   VSettings: VSettingsTy | null;
   readonly VKeyboard?: {
     char_ (event: KeyboardEvent): string;
@@ -365,7 +365,7 @@ interface VSettingsTy {
   execute_: ((this: void, cmd: ValidContentCmds) => void) | null;
   readonly destroy_: (this: void, silent?: boolean) => void;
 }
-declare var VimiumInjector: VimiumInjector | undefined | null, VSettings: VSettingsTy;
+declare var VimiumInjector: VimiumInjectorTy | undefined | null, VSettings: VSettingsTy;
 declare var browser: unknown;
 
 interface VDataTy {

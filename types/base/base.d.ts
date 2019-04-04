@@ -39,6 +39,7 @@ declare const enum TimerType {
   fake = -1,
   noTimer = -2,
 }
+type SafeSetTimeout = (this: void, handler: (this: void) => void, timeout: number) => number;
 declare function setTimeout (this: void
   , handler: (this: void, i: TimerType.fake | undefined) => void, timeout: number): number;
 
