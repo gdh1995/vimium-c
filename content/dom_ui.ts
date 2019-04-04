@@ -22,7 +22,7 @@ VDom.UI = {
     (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || r !== box
       ? r as ShadowRoot : window).addEventListener("load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
-      if (!VDom) { return removeEventListener("load", Onload, true); }
+      if (!VDom) { removeEventListener("load", Onload, true); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement;
       if (t.parentNode === VDom.UI.UI) {
         VUtils.Stop_(e); t.onload && t.onload(e);
@@ -357,11 +357,11 @@ VDom.UI = {
     } else {
       func = function () { tick = Date.now(); return HandlerResult.Prevent; };
       tick = Date.now() + VUtils.cache_.keyboard[0];
-      timer = setInterval(function (info?: TimerType) {
+      timer = setInterval(function (info?: TimerType) { // safe-interval
         const delta = Date.now() - tick; // Note: performance.now() may has a worse resolution
         if (delta > 150 || delta < -99 || info === TimerType.fake) {
           clearInterval(timer);
-          VUtils && VUtils.remove_(func);
+          VUtils && VUtils.remove_(func); // safe enough even if reloaded
         }
       }, 75);
     }

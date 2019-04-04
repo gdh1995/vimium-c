@@ -29,7 +29,7 @@ var VDom = {
     function eventHandler(): void {
       // not need to check event.isTrusted
       removeEventListener(eventName, eventHandler, true);
-      if (VDom) {
+      if (VDom === a) { // check `a` for safety even if reloaded
         VDom.DocReady_ = call;
         listeners.forEach(call);
       }

@@ -47,7 +47,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         }
         (vPort._port as Port).postMessage(request);
       } catch { // this extension is reloaded or disabled
-        VSettings.destroy_();
+        safeDestroy();
       }
     },
     Listener_<T extends keyof BgReq> (this: void, response: Req.bg<T>): void {
@@ -55,14 +55,14 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       type TypeChecked = { [K in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => void };
       (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
     },
-    TestAlive_ (): void { esc && !vPort._port && VSettings.destroy_(); },
+    TestAlive_ (): void { vPort._port || safeDestroy(); },
     ClearPort_ (this: void): void {
       vPort._port = null;
       setTimeout(function (i): void {
         if (!i) {
-          try { !esc || vPort._port || vPort.Connect_(); return; } catch {}
+          try { !safeDestroy || vPort._port || vPort.Connect_(); return; } catch {}
         }
-        esc && VSettings.destroy_();
+        safeDestroy && safeDestroy();
       }, requestHandlers[kBgReq.init] ? 2000 : 5000);
     },
     Connect_: (function (this: void): void {
@@ -777,7 +777,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       VDom.UI.add_(dom1);
     },
-    Remove_ (this: void, info?: TimerType): void {
+    Remove_ (this: void, info?: TimerType): void { // safe-interval
       const _this = FrameMask, { more_ } = _this;
       _this.more_ = false;
       if (more_ && info !== TimerType.fake) { return; }
@@ -831,43 +831,42 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       VDom.UI.add_(hud.box_ = el, VHints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, VHints.box_);
     },
-    _tween (this: void, info?: TimerType): void {
-      if (!VPort) { return; }
-      const hud = HUD, el = hud.box_ as HTMLDivElement, st = el.style, fake = info === TimerType.fake;
+    _tween (this: void, info?: TimerType): void { // safe-interval
+      const el = HUD.box_ as HTMLDivElement, st = el.style, fake = info === TimerType.fake;
       let opacity = fake ? 0 : +(st.opacity || 1);
-      if (opacity === hud.opacity_) { /* empty */ }
+      if (opacity === HUD.opacity_) { /* empty */ }
       else if (opacity === 0) {
-        (el.firstChild as Text).data = hud.text_;
+        (el.firstChild as Text).data = HUD.text_;
         st.opacity = fake ? "" : "0.25";
         st.visibility = "";
         return VDom.UI.adjust_();
       } else if (document.hasFocus()) {
-        opacity += opacity < hud.opacity_ ? 0.25 : -0.25;
+        opacity += opacity < HUD.opacity_ ? 0.25 : -0.25;
       } else {
-        opacity = hud.opacity_;
+        opacity = HUD.opacity_;
       }
       st.opacity = opacity < 1 ? "" + opacity : "";
-      if (opacity !== hud.opacity_) { return; }
+      if (opacity !== HUD.opacity_) { return; }
       if (opacity === 0) {
         st.visibility = "hidden";
         (el.firstChild as Text).data = "";
       }
-      clearInterval(hud._tweenId);
-      hud._tweenId = 0;
+      clearInterval(HUD._tweenId);
+      HUD._tweenId = 0;
     },
     hide_ (this: void, info?: TimerType): void {
-      let hud = HUD, i: number;
-      if (i = hud._timer) { clearTimeout(i); hud._timer = 0; }
-      hud.opacity_ = 0; hud.text_ = "";
-      if (!hud.box_) { /* empty */ }
+      let i: number;
+      if (i = HUD._timer) { clearTimeout(i); HUD._timer = 0; }
+      HUD.opacity_ = 0; HUD.text_ = "";
+      if (!HUD.box_) { /* empty */ }
       else if (info === TimerType.noTimer) {
-        const box = hud.box_, st = box.style;
+        const box = HUD.box_, st = box.style;
         st.opacity = "0";
         st.visibility = "hidden";
         (box.firstChild as Text).data = "";
       }
-      else if (!hud._tweenId && VHUD) {
-        hud._tweenId = setInterval(hud._tween, 40);
+      else if (!HUD._tweenId && VHUD) {
+        HUD._tweenId = setInterval(HUD._tween, 40);
       }
     }
   },
@@ -1197,7 +1196,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       failed && isEnabled && hook(HookAction.Install);
       // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
       (onWndFocus = old)();
-      if (callback && esc) {
+      if (callback && safeDestroy) {
         return callback();
       }
     },
@@ -1252,11 +1251,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     } as VEventModeTy["keydownEvents_"]
   };
 
-  VSettings = {
-    enabled_: false,
-    cache: null as never as SettingsNS.FrontendSettingCache,
-    execute_: null,
-  destroy_ (silent): void {
+  let safeDestroy: VSettingsTy["destroy_"] = function (this: void, silent?: boolean | 9): void {
+    if (VHUD !== HUD) { return; }
     if (Build.BTypes & BrowserType.Firefox && silent === 9) {
       vPort._port = null;
       return onWndFocus();
@@ -1272,7 +1268,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     VUtils = VKeyboard = VDom = VDom = VUtils =
     VHints = VOmni = VScroller = VMarks = VFind =
     VSettings = VHUD = VPort = VEvent = VVisual =
-    esc = null as never;
+    safeDestroy = null as never;
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
       , "color:red", "color:auto"
@@ -1282,6 +1278,12 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (vPort._port) { try { vPort._port.disconnect(); } catch {} }
     injector || (<RegExpOne> /a?/).test("");
   }
+
+  VSettings = {
+    enabled_: false,
+    cache: null as never as SettingsNS.FrontendSettingCache,
+    execute_: null,
+    destroy_: safeDestroy
   };
   if (injector) {
     injector.checkIfEnabled = vPort.SafePost_ as {} as () => void;
@@ -1296,7 +1298,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       let f = VDom.parentFrame_(),
       a1 = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFind?: typeof VFind}).VFind;
       if (a1 && a1.box_ && a1.box_ === f) {
-        VSettings.destroy_(true);
+        safeDestroy(true);
         a1.onLoad_();
         return 1; // not return a function's result so that logic is clearer for compiler
       }

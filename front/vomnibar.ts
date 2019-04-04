@@ -882,9 +882,13 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   setWidth_ (w?: number): void {
     const zoom = Vomnibar_.zoomLevel_,
     mayHasWrongWidth = Build.MinCVer <= BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
+      && Build.BTypes & BrowserType.Chrome
       && Vomnibar_.browserVersion_ === BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1;
     let msg = "", r: number;
-    if (!mayHasWrongWidth) { /* empty */ }
+    if (Build.MinCVer > BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
+      || !(Build.BTypes & BrowserType.Chrome)
+      || !mayHasWrongWidth
+    ) { /* empty */ }
     else if (r = Vomnibar_._realDevRatio) {
       // now we has real screen device pixel ratio (of not Chrome but Windows)
       w = innerWidth / r;
@@ -896,13 +900,17 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       (Vomnibar_ as EnsureNonNull<typeof Vomnibar_>).fixRatio_(w as number);
     }
     Vomnibar_.mode_.c = Math.round(((w || innerWidth) / zoom - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
-    if (mayHasWrongWidth) {
+    if (Build.MinCVer <= BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
+        && Build.BTypes & BrowserType.Chrome
+        && mayHasWrongWidth) {
       (document.documentElement as HTMLHtmlElement).style.width = msg;
     }
   },
-  fixRatio_: Build.MinCVer <= BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1 ? null
+  fixRatio_: Build.MinCVer > BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
+        || !(Build.BTypes & BrowserType.Chrome)
+      ? 0 as never
       : function (w: number): void {
-    let tick = 0, timer = setInterval(function (): void {
+    let tick = 0, timer = setInterval(function (): void { // safe-interval
       const iw = innerWidth, a = Vomnibar_;
       if (iw > 0 || tick++ > 15) {
         clearInterval(timer);
