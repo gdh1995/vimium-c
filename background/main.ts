@@ -127,13 +127,19 @@ var Backend: BackendHandlersNS.BackendHandlers;
   const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
   onRuntimeError = Utils.runtimeError_,
   NoFrameId = Build.MinCVer < BrowserVer.MinWithFrameId && ChromeVer < BrowserVer.MinWithFrameId;
-  function isExtIdAllowed(this: void, extId: string | null | undefined): boolean {
+  function isExtIdAllowed(this: void, extId: string | null | undefined, url?: string): boolean {
     if (extId == null) { extId = "unknown_sender"; }
-    const stat = Settings.extWhiteList_[extId];
+    let list = Settings.extWhiteList_, stat = list[extId];
     if (stat != null) { return stat; }
+    if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
+        && stat == null && url) {
+      if (list[new URL(url).host]) {
+        return list[extId] = true;
+      }
+    }
     console.log("%cReceive message from an extension/sender not in the white list: %c%s",
       "background-color:#fffbe5", "background-color:#fffbe5; color:red", extId);
-    return Settings.extWhiteList_[extId] = false;
+    return list[extId] = false;
   }
   function selectFrom(this: void, tabs: Tab[]): ActiveTab {
     for (let i = tabs.length; 0 < --i; ) {
@@ -2460,7 +2466,8 @@ Are you sure you want to continue?`);
       Settings.postUpdate_("extWhiteList");
       (chrome.runtime.onConnectExternal as chrome.runtime.ExtensionConnectEvent).addListener(function (port): void {
         let { sender, name } = port, arr: string[];
-        if (sender && isExtIdAllowed(sender.id)
+        if (sender
+            && (Build.BTypes & ~BrowserType.Chrome ? isExtIdAllowed(sender.id, sender.url) : isExtIdAllowed(sender.id))
             && name.startsWith("vimium-c") && (arr = name.split("@")).length > 1) {
           if (arr[1] !== Settings.CONST_.GitVer && arr[1] !== "omni") {
             (port as Port).postMessage({ N: kBgReq.reInject });
@@ -2499,7 +2506,7 @@ Are you sure you want to continue?`);
       , message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void {
     let command: string | undefined;
-    if (!isExtIdAllowed(sender.id)) {
+    if (Build.BTypes & ~BrowserType.Chrome ? !isExtIdAllowed(sender.id, sender.url) : !isExtIdAllowed(sender.id)) {
       sendResponse(false);
       return;
     }
