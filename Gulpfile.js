@@ -222,11 +222,14 @@ var Tasks = {
       delete manifest.options_page;
       delete manifest.version_name;
       manifest.permissions.splice(manifest.permissions.indexOf("contentSettings") || manifest.length, 1);
-      if (manifest.browser_specific_settings && manifest.browser_specific_settings.gecko) {
-        minCVer < 199 &&
-        (manifest.browser_specific_settings.gecko.strict_min_version = minCVer + ".0");
-        manifest.browser_specific_settings.gecko.id = getBuildItem("FirefoxID");
+      var specific = manifest.browser_specific_settings || (manifest.browser_specific_settings = {});
+      var gecko = specific.gecko || (specific.gecko = {});
+      if (minCVer < 199 && minCVer > 60) {
+        gecko.strict_min_version = minCVer + ".0";
+      } else {
+        delete gecko.strict_min_version;
       }
+      gecko.id = getBuildItem("FirefoxID");
     }
     var dialog_ui = getBuildItem("NoDialogUI");
     if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {

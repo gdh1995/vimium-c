@@ -42,6 +42,8 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         if (!vPort._port) {
           vPort.Connect_();
           injector && setTimeout(vPort.TestAlive_, 50);
+        } else if (Build.BTypes & BrowserType.Firefox && injector) {
+          injector.$_run(InjectorTask.recheckLiving);
         }
         (vPort._port as Port).postMessage(request);
       } catch { // this extension is reloaded or disabled
@@ -939,7 +941,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       if (VDom.UI.box_) { return VDom.UI.adjust_(+enabled ? 1 : 2); }
     },
-    injector ? injector.reload : null as never,
+    injector ? injector.$run : null as never,
     function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
       delete (request as Req.bg<kBgReq.url>).N;
       request.u = location.href;
@@ -1255,6 +1257,10 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     cache: null as never as SettingsNS.FrontendSettingCache,
     execute_: null,
   destroy_ (silent): void {
+    if (Build.BTypes & BrowserType.Firefox && silent === 9) {
+      vPort._port = null;
+      return onWndFocus();
+    }
     (VSettings as Writeable<VSettingsTy>).enabled_ = isEnabled = false;
     hook(HookAction.Destroy);
 

@@ -23,7 +23,7 @@ interface FindCSS {
 
 declare const enum kBgReq {
   START = 0,
-  init = START, reset, reInject, url, msg, eval,
+  init = START, reset, injectorRun, url, msg, eval,
   settingsUpdate, focusFrame, exitGrab, keyMap, execute,
   createMark, showHUD, count, showHelpDialog,
   OMNI_MIN = 42,
@@ -40,7 +40,9 @@ interface BgReq {
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyMap */ k: KeyMap;
   };
-  [kBgReq.reInject]: Req.baseBg<kBgReq.reInject>;
+  [kBgReq.injectorRun]: {
+    /** task */ t: InjectorTask;
+  };
   [kBgReq.reset]: {
     /** passKeys */ p: string | null;
     /** forced */ f?: boolean;

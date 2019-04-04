@@ -1877,6 +1877,10 @@ Are you sure you want to continue?`);
       return BackgroundCommands[kBgCmd.openUrl]();
     },
     /** focus: */ function (this: void, _0: FgReq[kFgReq.focus], port: Port): void {
+      if (!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
+        port.postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reportLiving });
+      }
       let tabId = port.s.t, ref = framesForTab[tabId] as Frames.WritableFrames | undefined, status: Frames.ValidStatus;
       if (!ref) {
         return needIcon ? Backend.setIcon_(tabId, port.s.s) : undefined;
@@ -2470,7 +2474,7 @@ Are you sure you want to continue?`);
             && (Build.BTypes & ~BrowserType.Chrome ? isExtIdAllowed(sender.id, sender.url) : isExtIdAllowed(sender.id))
             && name.startsWith("vimium-c") && (arr = name.split("@")).length > 1) {
           if (arr[1] !== Settings.CONST_.GitVer && arr[1] !== "omni") {
-            (port as Port).postMessage({ N: kBgReq.reInject });
+            (port as Port).postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reload });
             port.disconnect();
             return;
           }

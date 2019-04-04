@@ -271,6 +271,11 @@ declare namespace VomnibarNS {
   }
 }
 
+declare const enum InjectorTask {
+  reload = 1,
+  recheckLiving = 2,
+  reportLiving = 3,
+}
 interface VimiumInjectorTy {
   id: string;
   alive: 0 | 0.5 | 1;
@@ -279,7 +284,9 @@ interface VimiumInjectorTy {
   clickable: WeakSet<Element> | null | undefined;
   getCommandCount: (this: void) => number;
   checkIfEnabled: (this: void) => void;
-  reload (req?: Req.bg<kBgReq.reInject> | false): void;
+  $run (taskType: BgReq[kBgReq.injectorRun]): void;
+  $_run (taskType: InjectorTask): void;
+  reload (req?: boolean | InjectorTask.reload): void;
   destroy: ((this: void, silent?: boolean) => void) | null;
 }
 
@@ -303,6 +310,7 @@ declare const enum GlobalConsts {
   maxElementsWhenScanOnClick = 5000,
   MaxScrollbarWidth = 24,
   MaxHeightOfLinkHintMarker = 18,
+  FirefoxFocusResponseTimeout = 340,
 }
 
 declare const enum KnownKey {

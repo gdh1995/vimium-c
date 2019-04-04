@@ -47,6 +47,8 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     clickable: VimiumClickable,
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
+    $run (task): void { VimiumInjector && VimiumInjector.$_run(task.t); },
+    $_run (): void {},
     getCommandCount: null as never,
     destroy: null
   };
@@ -99,7 +101,7 @@ if (document.readyState !== "loading") {
       script.async = false;
       script.src = scriptSrc;
       console.log("%cVimium C%c begins to reload"
-          + (async && typeof async === "object" ? " because it has been updated." : ".")
+          + (async === InjectorTask.reload ? " because it has been updated." : ".")
         , "color:red", "color:auto");
       (document.head || document.body || docEl).appendChild(script);
     }

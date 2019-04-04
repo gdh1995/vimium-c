@@ -363,7 +363,7 @@ interface VSettingsTy {
   readonly enabled_: boolean;
   readonly cache: SettingsNS.FrontendSettingCache;
   execute_: ((this: void, cmd: ValidContentCmds) => void) | null;
-  readonly destroy_: (this: void, silent?: boolean) => void;
+  readonly destroy_: (this: void, silent?: boolean | 9) => void;
 }
 declare var VimiumInjector: VimiumInjectorTy | undefined | null, VSettings: VSettingsTy;
 declare var browser: unknown;
