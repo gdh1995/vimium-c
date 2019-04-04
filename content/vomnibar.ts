@@ -32,7 +32,7 @@ var VOmni = {
     const a = VOmni;
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
-      return VHUD.tip_("Sorry, Vomnibar page seems to fail in loading.", 2000);
+      return VHud.tip_("Sorry, Vomnibar page seems to fail in loading.", 2000);
     }
     if (!options || !options.k || !options.v) { return; }
     if (document.readyState === "loading") {
@@ -193,7 +193,7 @@ var VOmni = {
       wnd.onmessage({ source: window, data: sec, ports: [port] });
       checkBroken(TimerType.fake);
     };
-    UI.add_(this.box_ = el, AdjustType.MustAdjust, VHUD.box_);
+    UI.add_(this.box_ = el, AdjustType.MustAdjust, VHud.box_);
     type !== VomnibarNS.PageType.inner &&
     setTimeout(function (i): void { loaded || i || VOmni.onReset_ || reload(); }, 2000);
   },
@@ -247,7 +247,7 @@ var VOmni = {
     case VomnibarNS.kFReq.evalJS: VPort.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
     case VomnibarNS.kFReq.broken: window.focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
-    case VomnibarNS.kFReq.hud: VHUD.tip_((data as Req[VomnibarNS.kFReq.hud]).t); return;
+    case VomnibarNS.kFReq.hud: VHud.tip_((data as Req[VomnibarNS.kFReq.hud]).t); return;
     }
   },
   onShown_ (): void {

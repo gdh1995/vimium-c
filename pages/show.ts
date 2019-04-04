@@ -7,11 +7,11 @@ interface ImportBody {
   (id: "shownImage"): HTMLImageElement;
   (id: "shownText"): HTMLDivElement;
 }
-declare var VPort: VPortTy, VHUD: VHUDTy,
+declare var VPort: VPortTy, VHud: VHUDTy,
   Viewer: new (root: HTMLElement) => ViewerType;
 interface Window {
   readonly VPort?: VPortTy;
-  readonly VHUD?: VHUDTy;
+  readonly VHud?: VHUDTy;
   readonly Viewer: typeof Viewer;
 }
 interface BgWindow extends Window {
@@ -405,7 +405,7 @@ function copyThing(event: Event): void {
     H: kFgReq.copy,
     d: str
   });
-  return VHUD.copied_(str);
+  return VHud.copied_(str);
 }
 
 function toggleInvert(event: Event): void {

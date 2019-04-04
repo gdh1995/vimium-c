@@ -1,5 +1,5 @@
 [VDom, VHints, VKeyboard, VOmni, VScroller, VMarks,
-  VFind, VSettings, VHUD, VVisual,
+  VFind, VSettings, VHud, VVisual,
   VUtils, VEvent, VPort
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;

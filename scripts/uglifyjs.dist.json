@@ -62,7 +62,7 @@
       // # content global names:
       "VimiumInjector", "VimiumClickable", "VUtils", "VKeyboard", "VDom",
       "VHints", "VOmni", "VScroller", "VMarks", "VFind", "VVisual",
-      "VSettings", "VHUD", "VPort", "VEvent",
+      "VSettings", "VHud", "VPort", "VEvent",
       // # fixed background global names:
       "Utils", "OnOther", "ChromeVer", "Settings", "Backend",
       "Commands", "Exclusions", "HelpDialog",

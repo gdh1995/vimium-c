@@ -74,7 +74,7 @@ var VVisual = {
     const isRange = type === SelType.Range, newMode = isRange ? mode : VisualModeNS.Mode.Caret,
     toCaret = newMode === VisualModeNS.Mode.Caret;
     a.hudTimer_ && clearTimeout(a.hudTimer_);
-    VHUD.show_(a.hud_ = (toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual") + " mode"
+    VHud.show_(a.hud_ = (toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual") + " mode"
       , !!options.r);
     if (newMode !== mode) {
       a.prompt_("No usable selection, entering caret mode\u2026", 1000);
@@ -85,7 +85,7 @@ var VVisual = {
     a.alterMethod_ = toCaret ? "move" : "extend";
     if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_(theSelected[1])) {
       a.deactivate_();
-      return VHUD.tip_("Create a selection before entering visual mode.");
+      return VHud.tip_("Create a selection before entering visual mode.");
     }
     if (toCaret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
@@ -118,7 +118,7 @@ var VVisual = {
     a.resetKeys_();
     a.selection_ = null as never;
     a.scope_ =  null;
-    VHUD.hide_();
+    VHud.hide_();
   },
   /** need real diType */
   selType_: null as never as () => SelType,
@@ -203,7 +203,7 @@ var VVisual = {
       movement.selection_ = getSelection();
       if (!movement.selection_.rangeCount) {
         movement.deactivate_();
-        return VHUD.tip_("Selection is lost.");
+        return VHud.tip_("Selection is lost.");
       }
     }
     mode === VisualModeNS.Mode.Caret && movement.collapseToFocus_(0);
@@ -277,14 +277,14 @@ var VVisual = {
   prompt_ (text: string, duration: number): void {
     this.hudTimer_ && clearTimeout(this.hudTimer_);
     this.hudTimer_ = setTimeout(this.ResetHUD_, duration);
-    return VHUD.show_(text);
+    return VHud.show_(text);
   },
   /** @not_related_to_di */
   ResetHUD_ (i?: TimerType.fake | undefined): void {
     const _this = VVisual;
     if (!_this || i) { return; }
     _this.hudTimer_ = 0;
-    if (_this.hud_) { VHUD.show_(_this.hud_); }
+    if (_this.hud_) { VHud.show_(_this.hud_); }
   },
   find_ (count: number): void {
     if (!VFind.query_) {
@@ -324,11 +324,11 @@ var VVisual = {
   yank_ (action?: true | ReuseType.current | ReuseType.newFg | null): void {
     const str = "" + this.selection_;
     if (action === true) {
-      this.prompt_(VHUD.copied_(str, "", true), 2000);
+      this.prompt_(VHud.copied_(str, "", true), 2000);
       action = null;
     } else {
       this.deactivate_();
-      action != null || VHUD.copied_(str);
+      action != null || VHud.copied_(str);
     }
     VPort.post_(action != null ? { H: kFgReq.openUrl, u: str, r: action }
         : { H: kFgReq.copy, d: str });

@@ -1,4 +1,4 @@
-var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
+var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   , VimiumInjector: VimiumInjectorTy | undefined | null;
 
 (function () {
@@ -865,7 +865,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         st.visibility = "hidden";
         (box.firstChild as Text).data = "";
       }
-      else if (!HUD._tweenId && VHUD) {
+      else if (!HUD._tweenId && VHud) {
         HUD._tweenId = setInterval(HUD._tween, 40);
       }
     }
@@ -1151,7 +1151,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       return true;
     }
   };
-  VHUD = HUD;
+  VHud = HUD;
 
   VEvent = {
     lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
@@ -1252,7 +1252,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   };
 
   let safeDestroy: VSettingsTy["destroy_"] = function (this: void, silent?: boolean | 9): void {
-    if (VHUD !== HUD) { return; }
+    if (VHud !== HUD) { return; }
     if (Build.BTypes & BrowserType.Firefox && silent === 9) {
       vPort._port = null;
       return onWndFocus();
@@ -1267,7 +1267,7 @@ var VSettings: VSettingsTy, VHUD: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
 
     VUtils = VKeyboard = VDom = VDom = VUtils =
     VHints = VOmni = VScroller = VMarks = VFind =
-    VSettings = VHUD = VPort = VEvent = VVisual =
+    VSettings = VHud = VPort = VEvent = VVisual =
     safeDestroy = null as never;
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."

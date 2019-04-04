@@ -105,7 +105,7 @@ var VHints = {
     let str = options.characters ? options.characters + "" : VUtils.cache_.linkHintCharacters;
     if (str.length < 3) {
       a.clean_(1);
-      return VHUD.tip_("Characters for LinkHints are too few.", 1000);
+      return VHud.tip_("Characters for LinkHints are too few.", 1000);
     }
     a.alphabetHints_.chars_ = str.toUpperCase();
 
@@ -123,7 +123,7 @@ var VHints = {
     }
     if (elements.length === 0) {
       a.clean_(1);
-      return VHUD.tip_("No links to select.", 1000);
+      return VHud.tip_("No links to select.", 1000);
     }
 
     if (a.box_) { a.box_.remove(); a.box_ = null; }
@@ -179,7 +179,7 @@ var VHints = {
       return;
     }
     const msg = a.dialogMode_ ? " (modal UI)" : "";
-    return VHUD.show_((a.modeOpt_ as HintsNS.ModeOpt)[a.mode_] + msg, true);
+    return VHud.show_((a.modeOpt_ as HintsNS.ModeOpt)[a.mode_] + msg, true);
   },
   SetHUDLater_ (this: void): void {
     const a = VHints;
@@ -688,7 +688,7 @@ var VHints = {
       return HandlerResult.Suppress;
     } else if (i === VKeyCodes.ime) {
       a.clean_(1);
-      VHUD.tip_("LinkHints exits because you're inputting");
+      VHud.tip_("LinkHints exits because you're inputting");
       return HandlerResult.Nothing;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       a.ResetMode_();
@@ -798,7 +798,7 @@ var VHints = {
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
     a.resetHints_();
     const str = (a.modeOpt_ as HintsNS.ModeOpt)[a.mode_] as string;
-    (VHUD as Writeable<VHUDTy>).text_ = str; // in case pTimer > 0
+    (VHud as Writeable<VHUDTy>).text_ = str; // in case pTimer > 0
     if (VDom.isInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
@@ -811,9 +811,9 @@ var VHints = {
       }
     } else {
       clickEl = null;
-      VHUD.tip_("The link has been removed from page", 2000);
+      VHud.tip_("The link has been removed from page", 2000);
     }
-    a.pTimer_ = -(VHUD.text_ !== str);
+    a.pTimer_ = -(VHud.text_ !== str);
     if (!(a.mode_ & HintMode.queue)) {
       a._setupCheck(clickEl, null);
       return a.deactivate_(1);
@@ -876,7 +876,7 @@ var VHints = {
       a.box_.remove();
       a.box_ = null;
     }
-    keepHUD || VHUD.hide_();
+    keepHUD || VHud.hide_();
   },
   deactivate_ (onlySuppressRepeated: BOOL): void {
     this.clean_(this.pTimer_ < 0);
@@ -1073,7 +1073,7 @@ _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  return text || VHUD.tip_("Not an image", 1000);
+  return text || VHud.tip_("Not an image", 1000);
 },
 
 openUrl_ (url: string, incognito?: boolean): void {
@@ -1128,7 +1128,7 @@ Modes_: [
       element instanceof HTMLFrameElement || element.focus();
     const a = this as typeof VHints;
     if (a.mode_ < HintMode.min_job) {
-      return VHUD.tip_("Hover for scrolling", 1000);
+      return VHud.tip_("Hover for scrolling", 1000);
     }
     const toggleMap = a.options_.toggle;
     if (!toggleMap || typeof toggleMap !== "object") { return; }
@@ -1199,7 +1199,7 @@ Modes_: [
       if (link instanceof HTMLInputElement) {
         const type = link.type;
         if (type === "password") {
-          return VHUD.tip_("Sorry, Vimium C won't copy a password.", 2000);
+          return VHud.tip_("Sorry, Vimium C won't copy a password.", 2000);
         }
         if (!VDom.uneditableInputs_[type]) {
           str = (link.value || link.placeholder).trim();
@@ -1221,7 +1221,7 @@ Modes_: [
       }
     }
     if (!str) {
-      return VHUD.copied_("", isUrl ? "url" : "");
+      return VHud.copied_("", isUrl ? "url" : "");
     }
     if (a.mode_ >= HintMode.min_edit && a.mode_ <= HintMode.max_edit) {
       let newtab = a.options_.newtab;
@@ -1245,7 +1245,7 @@ Modes_: [
       H: kFgReq.copy,
       d: str
     });
-    VHUD.copied_(str);
+    VHud.copied_(str);
   }
 } as HintsNS.ModeOpt,
 {
@@ -1275,7 +1275,7 @@ Modes_: [
     a.download = img.getAttribute("download") || "";
     // todo: how to trigger download
     VDom.mouse_(a, "click", null);
-    return VHUD.tip_("Download: " + text, 2000);
+    return VHud.tip_("Download: " + text, 2000);
   }
 } as HintsNS.ModeOpt,
 {

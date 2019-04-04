@@ -43,7 +43,7 @@ var VFind = {
         a.coords_ = [window.scrollX, window.scrollY];
       }
     }
-    VHUD.hide_(TimerType.noTimer);
+    VHud.hide_(TimerType.noTimer);
     if (a.isActive_) {
       return a.setFirstQuery_(query);
     }
@@ -62,14 +62,14 @@ var VFind = {
     a.init_ && a.init_(AdjustType.NotAdjust);
     UI.toggleSelectStyle_(1);
     a.isActive_ = true;
-    UI.add_(el, AdjustType.DEFAULT, VHUD.box_);
+    UI.add_(el, AdjustType.DEFAULT, VHud.box_);
   },
   notDisableScript_(): BOOL {
     try {
       if (this.box_.contentWindow.document) { return 1; }
     } catch {}
     this.clean_(FindNS.Action.ExitUnexpectedly);
-    VHUD.tip_("Sorry, Vimium C can not open a HUD on this page");
+    VHud.tip_("Sorry, Vimium C can not open a HUD on this page");
     return 0;
   },
   onLoad_ (later?: 1): void {
@@ -163,7 +163,7 @@ var VFind = {
   },
   findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
     if (!query) {
-      return VHUD.tip_("No old queries to find.");
+      return VHud.tip_("No old queries to find.");
     }
     const a = this;
     a.init_ && a.init_(AdjustType.MustAdjust);
@@ -174,7 +174,7 @@ var VFind = {
         a.showCount_(1);
       }
     }
-    const style = a.isActive_ || VHUD.opacity_ !== 1 ? null : (VHUD.box_ as HTMLDivElement).style;
+    const style = a.isActive_ || VHud.opacity_ !== 1 ? null : (VHud.box_ as HTMLDivElement).style;
     style && (style.visibility = "hidden");
     VDom.UI.toggleSelectStyle_(0);
     a.execute_(null, options);
@@ -183,7 +183,7 @@ var VFind = {
       a.ToggleStyle_(1);
       if (!a.isActive_) {
         VDom.UI.toggleSelectStyle_(0);
-        VHUD.tip_(`No matches for '${a.query_}'`);
+        VHud.tip_(`No matches for '${a.query_}'`);
       }
       return;
     }

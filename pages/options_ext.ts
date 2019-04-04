@@ -170,7 +170,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
 
 Are you sure you want to continue?`
   )) {
-    window.VHUD && VHUD.tip_("You cancelled importing.", 1000);
+    window.VHud && VHud.tip_("You cancelled importing.", 1000);
     return;
   }
   Object.setPrototypeOf(new_data, null);
@@ -305,7 +305,7 @@ Are you sure you want to continue?`
     node.click();
     $("#showCommands").click();
   }
-  if (window.VHUD) { return VHUD.tip_("Import settings data: OK!", 1000); }
+  if (window.VHud) { return VHud.tip_("Import settings data: OK!", 1000); }
 }
 
 function importSettings(time: number | string | Date

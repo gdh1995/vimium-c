@@ -2,9 +2,9 @@
 /// <reference path="../lib/keyboard_utils.ts" />
 interface Window {
   readonly VPort?: VPortTy;
-  readonly VHUD?: VHUDTy;
+  readonly VHud?: VHUDTy;
 }
-declare var VPort: VPortTy, VHUD: VHUDTy, VEvent: VEventModeTy;
+declare var VPort: VPortTy, VHud: VHUDTy, VEvent: VEventModeTy;
 
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
 interface ElementWithHash extends HTMLElement {
@@ -910,7 +910,7 @@ document.addEventListener("click", function onClickOnce(): void {
         H: kFgReq.copy,
         d: str
       });
-      return VHUD.copied_(str);
+      return VHud.copied_(str);
     }
   }, true);
 }, true);
