@@ -62,7 +62,7 @@ var Tasks = {
   static: ["static/special", "static/uglify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*.css"
       , "settings_template.json", "*.txt", "*.md"
-      , "!**/manifest.json"
+      , locally ? "manifest.json" : "!**/manifest*.json"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!front/vimium.css", "!test*", "!todo*"
     ];
@@ -76,6 +76,10 @@ var Tasks = {
     }
     return copyByPath(arr);
   }],
+  "static/all": function(cb) {
+    locally = true;
+    gulp.series("static")(cb);
+  },
 
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
@@ -727,6 +731,14 @@ function _makeJSONReader() {
   global._readJSON = readJSON;
 }
 
+function safeJSONParse(literalVal, defaultVal) {
+  var newVal = defaultVal != null ? defaultVal : null;
+  try {
+    newVal = JSON.parse(literalVal);
+  } catch (e) {}
+  return newVal;
+}
+
 function readJSON(fileName, throwError) {
   if (!global._readJSON) {
     _makeJSONReader();
@@ -788,6 +800,7 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
     opts.typescript = typescript;
   }
   DEST = opts.outDir;
+  DEST = process.env.LOCAL_DIST || DEST;
   if (!DEST || DEST === ".") {
     DEST = opts.outDir = "dist";
   }
@@ -861,26 +874,24 @@ function getBuildConfigStream() {
 var _buildConfigTSContent;
 function createBuildConfigCache() {
   _buildConfigTSContent = _buildConfigTSContent || readFile("types/build/index.d.ts");
-  _buildConfigTSContent = _buildConfigTSContent.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, defaultVal) {
-    var newVal = key === "Commit" ? getGitCommit()
-        : getBuildItem(key);
-    if (buildOptionCache[key] == null) {
-      try {
-        defaultVal = JSON.parse(defaultVal)
-      } catch (e) {}
-      buildOptionCache[key] = defaultVal;
-    }
-    var finalVal = newVal != null ? newVal : defaultVal;
-    return key + " = " + (typeof finalVal === "string" ? JSON.stringify(finalVal) : finalVal);
+  _buildConfigTSContent = _buildConfigTSContent.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, literalVal) {
+    var newVal = getBuildItem(key, literalVal);
+    return key + " = " + (newVal != null ? JSON.stringify(newVal) : buildOptionCache[key][0]);
   });
-  if (!(getBuildItem("BTypes") > 0)) {
+  if (!(getBuildItem("BTypes") & 0x7)) {
     throw new Error("Unsupported Build.BTypes: " + getBuildItem("BTypes"));
   }
 }
 
-function getBuildItem(key) {
-  if (key in buildOptionCache) {
-    return parseBuildItem(key, buildOptionCache[key]);
+function getBuildItem(key, literalVal) {
+  let cached = buildOptionCache[key];
+  if (!cached) {
+    if (key === "Commit") {
+      cached = buildOptionCache[key] = [literalVal, [safeJSONParse(literalVal), getGitCommit()]];
+    }
+  }
+  if (cached != null) {
+    return parseBuildItem(key, cached[1]);
   }
   var env_key = key.replace(/[A-Z]+[a-z0-9]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
   var newVal = process.env["BUILD_" + env_key];
@@ -888,16 +899,14 @@ function getBuildItem(key) {
     newVal = process.env["BUILD_" + key];
   }
   if (newVal) {
-    try {
-      newVal = JSON.parse(newVal);
-    } catch (e) {}
+    newVal = safeJSONParse(newVal);
     if (newVal != null) {
-      buildOptionCache[key] = newVal;
+      buildOptionCache[key] = [literalVal, newVal];
       return parseBuildItem(key, newVal);
     }
   }
   newVal = buildConfig && buildConfig[key];
-  buildOptionCache[key] = newVal != null ? newVal : null;
+  buildOptionCache[key] = [literalVal, newVal != null ? newVal : null];
   return parseBuildItem(key, newVal);
 }
 
@@ -920,7 +929,7 @@ function getGitCommit() {
     branch = branch && branch.replace("ref:", "").trim();
     if (branch) {
       var commit = readFile(".git/" + branch);
-      return commit ? JSON.stringify(commit.trim().substring(0, 7)) : null;
+      return commit ? commit.trim().substring(0, 7) : null;
     }
   } catch (e) {}
   return null;
