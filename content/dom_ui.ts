@@ -122,7 +122,7 @@ VDom.UI = {
     zoom || (zoom = VDom.getZoom_());
     let patch = this.cssPatch_;
     if (!patch && zoom >= 1) { return; }
-    let width = ("" + (
+    let width = ("" + (Build.BTypes & BrowserType.Chrome &&
         Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
           VUtils.cache_.browserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         ? 1.01 : 0.51) / zoom).substring(0, 5)
@@ -150,12 +150,14 @@ VDom.UI = {
     let gcs = getComputedStyle, st: CSSStyleDeclaration;
     if (sout = document.body) {
       st = gcs(sout);
-      if ((st.userSelect || Build.MinCVer >= BrowserVer.MinUnprefixedUserSelect || st.webkitUserSelect) === "none") {
+      if ((st.userSelect || !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUnprefixedUserSelect
+            || st.webkitUserSelect) === "none") {
         return false;
       }
     }
     st = gcs(document.documentElement as HTMLHtmlElement);
-    return (st.userSelect || Build.MinCVer >= BrowserVer.MinUnprefixedUserSelect || st.webkitUserSelect) !== "none";
+    return (st.userSelect || !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUnprefixedUserSelect
+            || st.webkitUserSelect) !== "none";
   },
   toggleSelectStyle_ (enable: BOOL): void {
     let sout = this.styleOut_;

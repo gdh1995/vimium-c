@@ -98,7 +98,8 @@ var Utils = {
     str = str.trim();
     a.lastUrlType_ = Urls.Type.Full;
     if (a.isJSUrl_(str)) {
-      if (Build.MinCVer < BrowserVer.MinAutoDecodeJSURL && ChromeVer < BrowserVer.MinAutoDecodeJSURL
+      if (Build.MinCVer < BrowserVer.MinAutoDecodeJSURL && Build.BTypes & BrowserType.Chrome
+          && ChromeVer < BrowserVer.MinAutoDecodeJSURL
           && str.indexOf("%", 11) > 0
           && !a._jsNotEscapeRe.test(str)) {
         str = a.DecodeURLPart_(str);

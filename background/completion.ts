@@ -1446,6 +1446,7 @@ knownCs: CompletersMap & SafeObject = {
           return;
         }
         xhr.open("GET", _this._dataUrl + (Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
+            || !(Build.BTypes & BrowserType.Chrome)
             || _this._escapeHash ? str.replace("#", "%25") : str), true);
         return xhr.send();
       }
@@ -1501,8 +1502,9 @@ knownCs: CompletersMap & SafeObject = {
       a._ind = -1;
     },
     init_ (): XMLHttpRequest | null {
-      Decoder._escapeHash = Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL ||
-          ChromeVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL;
+      if (Build.MinCVer < BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL && Build.BTypes & BrowserType.Chrome) {
+        Decoder._escapeHash = ChromeVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL;
+      }
       Settings.updateHooks_.localeEncoding = Decoder.onUpdate_;
       Decoder.onUpdate_(Settings.get_("localeEncoding"));
       Decoder.init_ = Decoder.xhr_;

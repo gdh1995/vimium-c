@@ -608,7 +608,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       }
     }
     const { isComposing } = event;
-    if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing || isComposing != null) {
+    if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing || !(Build.BTypes & BrowserType.Chrome)
+        || isComposing != null) {
       if (isComposing && !a.isInputComposing_) {
         a.lastNormalInput_ = a.input_.value.trim();
       }
@@ -765,6 +766,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
 
     a.renderItems_ = VUtils_.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
     if (Build.MinCVer < BrowserVer.MinSpecCompliantShadowBlurRadius
+        && Build.BTypes & BrowserType.Chrome
         && ver < BrowserVer.MinSpecCompliantShadowBlurRadius) {
       const css = document.querySelector("style") as HTMLStyleElement;
       if (css) {
@@ -773,6 +775,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       }
     }
     if (Build.MinCVer < BrowserVer.MinRoundedBorderWidthIsNotEnsured
+        && Build.BTypes & BrowserType.Chrome
         && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured
         || Build.BTypes & BrowserType.Edge
             && (!(Build.BTypes & ~BrowserType.Edge) || a.browser_ === BrowserType.Edge)) {
@@ -787,6 +790,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       (document.head as HTMLHeadElement).appendChild(css);
     }
     if (Build.MinCVer < BrowserVer.Min$InputEvent$$isComposing
+        && Build.BTypes & BrowserType.Chrome
         && ver < BrowserVer.Min$InputEvent$$isComposing) {
       let func = function (this: HTMLInputElement, event: CompositionEvent): void {
         if (Vomnibar_.isInputComposing_ = event.type === "compositionstart") {
@@ -840,7 +844,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     a.pageType_ = type;
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
     const canShowOnOthers = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
-          || a.browserVersion_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
+          || Build.BTypes & BrowserType.Chrome
+              && a.browserVersion_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
     if (( !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
           : a.browser_ !== BrowserType.Chrome)
         || type === VomnibarNS.PageType.web

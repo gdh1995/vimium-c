@@ -193,6 +193,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
        */
       isNormalHost = !!(top = path && path[0]) && top !== window && top !== target,
       len = isNormalHost ? Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
+              || !(Build.BTypes & BrowserType.Chrome) // in face, FF66 has no event.path
         ? (path as EventTarget[]).indexOf(target) : [].indexOf.call(path as NodeList, target) : 1;
       isNormalHost ? (target = top as Element) : (path = [sr]);
       while (0 <= --len) {
@@ -240,6 +241,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
     let wrapper = onShadow;
     for (let len = Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
+                    || !(Build.BTypes & BrowserType.Chrome)
               ? (path as EventTarget[]).indexOf(target) : [].indexOf.call(path as NodeList, target)
           , SR = ShadowRoot; 0 <= --len; ) {
       const root = (path as EventPath)[len];
@@ -1029,6 +1031,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       VUtils.suppressAll_(box, i);
     }
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
+        || !(Build.BTypes & BrowserType.Chrome)
         || VUtils.cache_.browserVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
       box.addEventListener(
         (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true

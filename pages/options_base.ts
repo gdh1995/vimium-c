@@ -294,6 +294,7 @@ ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|
 ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
 if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+      && Build.BTypes & BrowserType.Chrome
       && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
   || window.devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
       || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
@@ -340,7 +341,9 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     blockedMsg.style.display = "";
     (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST_.VerName_;
     const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement;
-    if (!curTab || !curTab.url || !(curTab.url.lastIndexOf("http", 0) === 0
+    if (!(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox
+        || !curTab || !curTab.url || !(curTab.url.lastIndexOf("http", 0) === 0
         || curTab.url.lastIndexOf("ftp", 0) === 0)) {
       refreshTip.remove();
     } else if (Build.BTypes & BrowserType.Edge

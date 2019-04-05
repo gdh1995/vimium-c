@@ -566,6 +566,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     let {element_: element2} = this, url: string = this.previous_
       , isExtPage = !url.lastIndexOf(location.protocol, 0) || !url.lastIndexOf("front/", 0);
     if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
+        && Build.BTypes & BrowserType.Chrome
         && bgBrowserVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
       element2.style.textDecoration = isExtPage ? "" : "line-through";
       return this.showError_(

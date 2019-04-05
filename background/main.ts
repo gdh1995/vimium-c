@@ -126,7 +126,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
 
   const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
   onRuntimeError = Utils.runtimeError_,
-  NoFrameId = Build.MinCVer < BrowserVer.MinWithFrameId && ChromeVer < BrowserVer.MinWithFrameId;
+  NoFrameId = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome
+      && ChromeVer < BrowserVer.MinWithFrameId;
   function isExtIdAllowed(this: void, extId: string | null | undefined, url?: string): boolean {
     if (extId == null) { extId = "unknown_sender"; }
     let list = Settings.extWhiteList_, stat = list[extId];
@@ -160,7 +161,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
     } else if (state === "minimized") {
       state = "normal";
     }
-    if (state && (Build.MinCVer >= BrowserVer.MinCreateWndWithState || ChromeVer >= BrowserVer.MinCreateWndWithState)) {
+    if (state && (Build.MinCVer >= BrowserVer.MinCreateWndWithState || !(Build.BTypes & BrowserType.Chrome)
+                  || ChromeVer >= BrowserVer.MinCreateWndWithState)) {
       option.state = state;
       state = "";
     }
@@ -606,7 +608,7 @@ Are you sure you want to continue?`);
       return onRuntimeError();
     };
     // e.g.: use Chrome omnibox at once on starting
-    if (Build.MinCVer < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs &&
+    if (Build.MinCVer < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs && Build.BTypes & BrowserType.Chrome &&
         ChromeVer < BrowserVer.Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs) {
       chrome.tabs.update({ url }, callback1);
     } else {
@@ -1176,7 +1178,10 @@ Are you sure you want to continue?`);
       }
     },
     /* toggleMuteTab: */ function (): void {
-      if (Build.MinCVer < BrowserVer.MinMuted && ChromeVer < BrowserVer.MinMuted) {
+      if (!(Build.BTypes & ~BrowserType.Edge)
+          || (Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
+          || Build.MinCVer < BrowserVer.MinMuted && Build.BTypes & BrowserType.Chrome
+              && ChromeVer < BrowserVer.MinMuted) {
         return Backend.showHUD_(`Vimium C can not control mute state before Chrome ${BrowserVer.MinMuted}`);
       }
       if (!(cOptions.all || cOptions.other)) {
@@ -1317,13 +1322,15 @@ Are you sure you want to continue?`);
     },
     /* parentFrame: */ function (): void {
       const sender = cPort.s as typeof cPort.s | undefined,
-      msg = Build.MinCVer < BrowserVer.MinWithFrameId && NoFrameId
+      msg = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
         ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
         : !(sender && sender.t >= 0 && framesForTab[sender.t])
           ? "Vimium C can not access frames in current tab"
         : null;
       msg && Backend.showHUD_(msg);
-      if (!sender || !sender.i || Build.MinCVer < BrowserVer.MinWithFrameId && NoFrameId || !chrome.webNavigation) {
+      if (!sender || !sender.i
+          || Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
+          || !chrome.webNavigation) {
         return BackgroundCommands[kBgCmd.mainFrame]();
       }
       chrome.webNavigation.getAllFrames({
@@ -2102,7 +2109,8 @@ Are you sure you want to continue?`);
     },
     /** gotoMainFrame: */ function (this: void, req: FgReq[kFgReq.gotoMainFrame], port: Port): void {
       const tabId = port.s.t, mainPort = indexFrame(tabId, 0);
-      if (mainPort || Build.MinCVer < BrowserVer.MinWithFrameId && NoFrameId || !chrome.webNavigation) {
+      if (mainPort || Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
+          || !chrome.webNavigation) {
         return gotoMainFrame(req, port, mainPort);
       }
       chrome.webNavigation.getAllFrames({ tabId },
@@ -2207,7 +2215,7 @@ Are you sure you want to continue?`);
       framesForTab[tabId] = [port, port];
       status !== Frames.Status.enabled && needIcon && Backend.setIcon_(tabId, status);
     }
-    if (Build.MinCVer < BrowserVer.MinWithFrameId && NoFrameId) {
+    if (Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId) {
       (sender as Writeable<Frames.Sender>).i = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
     }
   }
@@ -2258,6 +2266,7 @@ Are you sure you want to continue?`);
       }
     } else if (tabId < 0 // should not be true; just in case of misusing
       || (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
+          && Build.BTypes & BrowserType.Chrome
           && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
       || port.s.i === 0
       ) { /* empty */ }
@@ -2287,7 +2296,8 @@ Are you sure you want to continue?`);
       incognito: false
     };
     return (port as Writeable<Port>).s = {
-      i: Build.MinCVer >= BrowserVer.MinWithFrameId ? sender.frameId as number : sender.frameId || 0,
+      i: Build.MinCVer >= BrowserVer.MinWithFrameId || !(Build.BTypes & BrowserType.Chrome)
+          ? sender.frameId as number : sender.frameId || 0,
       a: tab.incognito,
       s: Frames.Status.enabled,
       f: Frames.Flags.blank,

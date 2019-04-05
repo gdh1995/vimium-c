@@ -149,14 +149,16 @@ var Settings = {
         // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCSSMeansNothing
         // in case that ":host" is set [style="all:unset"]
         const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2),
-        ind3 = Build.MinCVer >= BrowserVer.MinEnsuredSafeInnerCSS || browserVer >= BrowserVer.MinEnsuredSafeInnerCSS
+        ind3 = Build.MinCVer >= BrowserVer.MinEnsuredSafeInnerCSS || !(Build.BTypes & BrowserType.Chrome)
+              || browserVer >= BrowserVer.MinEnsuredSafeInnerCSS
           ? css.indexOf(";", ind2) : css.length;
         css = css.substring(0, ind1 + 1) + css.substring(ind2, ind3 + 1)
             + css.substring(css.indexOf("\n", ind3) + 1 || css.length);
       } else {
         css = css.replace(<RegExpOne> /all:\s?\w+;?\n?/, "");
       }
-      if ((Build.MinCVer >= BrowserVer.MinEnsuredDisplayContents || browserVer >= BrowserVer.MinEnsuredDisplayContents)
+      if ((Build.MinCVer >= BrowserVer.MinEnsuredDisplayContents || !(Build.BTypes & BrowserType.Chrome)
+            || browserVer >= BrowserVer.MinEnsuredDisplayContents)
           && !(Build.BTypes & BrowserType.Edge
                 && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))) {
         const ind2 = css.indexOf("display:"), ind1 = css.lastIndexOf("{", ind2);
@@ -165,6 +167,7 @@ var Settings = {
         css = css.replace("contents", "block");
       }
       if (Build.MinCVer < BrowserVer.MinSpecCompliantShadowBlurRadius
+          && Build.BTypes & BrowserType.Chrome
           && browserVer < BrowserVer.MinSpecCompliantShadowBlurRadius) {
         css = css.replace("3px 5px", "3px 7px");
       }
@@ -196,6 +199,7 @@ var Settings = {
       const css2 = a.parseCustomCSS_(a.get_("userDefinedCss"));
       css2.ui && (css += "\n" + css2.ui);
       if (Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+          && Build.BTypes & BrowserType.Chrome
           && browserVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo) {
         css = css.replace(<RegExpG> /\b(border(?:-\w*-?width)?: ?)(0\.5px|\S+.\/\*!DPI\*\/)/g, "$11px \/\*!DPI\*\/");
       }
@@ -263,6 +267,7 @@ var Settings = {
         url = Utils.convertToUrl_(url);
         url = Utils.reformatURL_(url);
         if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
+            && Build.BTypes & BrowserType.Chrome
             && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg && !url.startsWith(BrowserProtocol_)) {
           url = a.CONST_.VomnibarPageInner_;
         } else {
@@ -411,7 +416,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
       ? "words.txt" : "",
-    PolyFill_: Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith ? "lib/polyfill.js" : "",
+    PolyFill_: Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && Build.BTypes & BrowserType.Chrome
+      ? "lib/polyfill.js" : "",
     HomePage_: "https://github.com/gdh1995/vimium-c",
     RedirectedUrls_: {
       about: "",

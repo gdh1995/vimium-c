@@ -951,6 +951,7 @@ alphabetHints_: {
     num = this.countMax_ - hintString.length - +(num < this.countLimit_);
     if (num > 0) {
       hintString = (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith
+              || !(Build.BTypes & BrowserType.Chrome)
           ? (characterSet[0] as Ensure<string, "repeat">).repeat(num)
           : (this as Ensure<typeof VHints.alphabetHints_, "repeat_">).repeat_(characterSet[0], num)
         ) + hintString;

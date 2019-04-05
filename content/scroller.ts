@@ -81,6 +81,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       if (el) {
         before = el.scrollTop;
         !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
+        !(Build.BTypes & ~BrowserType.Firefox) ||
         el.scrollBy ? el.scrollBy({behavior: "instant", top: amount}) : (el.scrollTop += amount);
         return el.scrollTop !== before;
       } else {
@@ -92,6 +93,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     } else if (el) {
       before = el.scrollLeft;
       !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
+      !(Build.BTypes & ~BrowserType.Firefox) ||
       el.scrollBy ? el.scrollBy({behavior: "instant", left: amount}) : (el.scrollLeft += amount);
       return el.scrollLeft !== before;
     } else {
@@ -205,6 +207,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       , arg: ScrollToOptions = { behavior: "instant" };
     arg[k2] = (amount > 0 ? 1 : -1) * this.scale_;
     !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
+    !(Build.BTypes & ~BrowserType.Firefox) ||
     el.scrollBy ? el.scrollBy(arg) : (el[key] += arg[k2] as number);
     let changed = el[key] !== before;
     if (changed) {

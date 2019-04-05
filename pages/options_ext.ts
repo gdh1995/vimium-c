@@ -77,6 +77,7 @@ interface ExportedSettings {
 let _lastBlobURL = "";
 function cleanRes() {
   if ((Build.MinCVer >= BrowserVer.MinCanNotRevokeObjectURLAtOnce
+        || !(Build.BTypes & BrowserType.Chrome)
         || bgBrowserVer_ >= BrowserVer.MinCanNotRevokeObjectURLAtOnce)
       && _lastBlobURL) {
     URL.revokeObjectURL(_lastBlobURL);

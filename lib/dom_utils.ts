@@ -113,7 +113,7 @@ var VDom = {
     if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome) {
       el === undefined && (el = d.compatMode === "BackCompat" ? d.body : docEl);
     }
-    if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset) {
+    if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset && Build.BTypes & BrowserType.Chrome) {
       el = el instanceof HTMLFrameSetElement ? null : el;
     }
     return (fallback ? el || docEl : el) as (HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement | null;

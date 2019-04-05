@@ -315,7 +315,7 @@ _listen("load", delayFindAll, true);
     ;
   Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage &&
     (VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage ? 1 : 0);
-  if (Build.MinCVer < BrowserVer.MinEnsuredMethodFunction &&
+  if (Build.MinCVer < BrowserVer.MinEnsuredMethodFunction && Build.BTypes & BrowserType.Chrome &&
       appVer >= BrowserVer.MinEnsuredMethodFunction) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
   }
@@ -343,6 +343,7 @@ _listen("load", delayFindAll, true);
   // else: sandboxed or JS-disabled
   script.remove();
   const breakTotally = Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
+      && Build.BTypes & BrowserType.Chrome
       && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && appVer;
   console.info((breakTotally ? "Vimium C can" : "Some functions of Vimium C may")
       + " not work because %o is sandboxed.",
@@ -362,7 +363,8 @@ _listen("load", delayFindAll, true);
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
     return (Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage || VDom && VDom.allowRAF_)
-      ? f && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && f instanceof Element)
+      ? f && !(Build.BTypes & BrowserType.Chrome
+                && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && f instanceof Element)
         ? (f as Exclude<typeof f, null | Element>)(cb, { timeout }) : requestAnimationFrame(cb)
       : (Promise.resolve(1).then(cb), 1);
   };

@@ -281,6 +281,7 @@ setTimeout(function () {
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
       ? <RegExpG> /<\/?match>/g : null as never,
   maxResults = Build.MinCVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12
+      && Build.BTypes & BrowserType.Chrome
       && ChromeVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
   ;
   function clean(): void {

@@ -78,7 +78,8 @@ function call() {
 }
 function start() {
   removeEventListener("DOMContentLoaded", start);
-  onIdle && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && onIdle instanceof Element)
+  onIdle && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
+              && onIdle instanceof Element)
   ? (onIdle as Exclude<typeof onIdle, null | Element>)(function (): void {
     (onIdle as Exclude<typeof onIdle, null | Element>)(function (): void { setTimeout(call, 0); }, {timeout: 67});
   }, {timeout: 330}) : setTimeout(call, 67);
