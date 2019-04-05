@@ -192,7 +192,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     }
   },
   getScale_ (): void {
-    this.scale_ = 1 / Math.min(1, VDom.wdZoom_) / Math.min(1, VDom.bZoom_);
+    this.scale_ = (Build.BTypes & BrowserType.Firefox ? 2 : 1) / Math.min(1, VDom.wdZoom_) / Math.min(1, VDom.bZoom_);
   },
   _checkCurrent (el: SafeElement | null): void {
     const cur = this.current_;
