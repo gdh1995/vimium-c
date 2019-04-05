@@ -207,25 +207,26 @@ var Tasks = {
   }],
   "min/js": ["min/others"],
   manifest: ["min/bg", function(cb) {
-    var minCVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
-    minCVer = minCVer ? (minCVer | 0) : 0;
+    var minVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
+    minVer = minVer ? (minVer | 0) : 0;
     if (!(browser & 1)) {
       delete manifest.minimum_chrome_version;
       delete manifest.key;
       delete manifest.update_url;
-    } else if (minCVer && minCVer < 999) {
-      manifest.minimum_chrome_version = "" + (minCVer | 0);
+    } else if (minVer && minVer < 999) {
+      manifest.minimum_chrome_version = "" + (minVer | 0);
     }
     if (browser === 1) { // Chrome
       delete manifest.browser_specific_settings;
     } else if (browser === 2) { // Firefox
+      minVer = getBuildItem("MinFFVer");
       delete manifest.options_page;
       delete manifest.version_name;
       manifest.permissions.splice(manifest.permissions.indexOf("contentSettings") || manifest.length, 1);
       var specific = manifest.browser_specific_settings || (manifest.browser_specific_settings = {});
       var gecko = specific.gecko || (specific.gecko = {});
-      if (minCVer < 199 && minCVer > 60) {
-        gecko.strict_min_version = minCVer + ".0";
+      if (minVer < 199 && minVer >= 54) {
+        gecko.strict_min_version = minVer + ".0";
       } else {
         delete gecko.strict_min_version;
       }

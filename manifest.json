@@ -21,12 +21,6 @@
     "default_popup": "pages/popup.html",
     "default_title": "Vimium C"
   },
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "vimium-c@gdh1995.cn",
-      "strict_min_version": "63.0"
-    }
-  },
   "chrome_url_overrides": {
     "newtab": "pages/newtab.html"
   },
