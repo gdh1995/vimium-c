@@ -192,6 +192,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     }
   },
   getScale_ (): void {
+    /** https://drafts.csswg.org/cssom-view/#dom-element-scrolltop
+     * Imported on 2013-05-15 by https://github.com/w3c/csswg-drafts/commit/ad01664359641f791d99f0b3fce545b55579acdc
+     * Firefox is still using `int`: https://bugzilla.mozilla.org/show_bug.cgi?id=1217330 (filed on 2015-10-22)
+     */
     this.scale_ = (Build.BTypes & BrowserType.Firefox ? 2 : 1) / Math.min(1, VDom.wdZoom_) / Math.min(1, VDom.bZoom_);
   },
   _checkCurrent (el: SafeElement | null): void {
