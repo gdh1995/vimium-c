@@ -77,6 +77,7 @@ VSettings.execute_ = function (cmd): void {
     removeEventListener("hashchange", injector.checkIfEnabled);
     injector.alive = 0;
     injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;
+    injector.$_run = injector.$run = null as never;
   }
 };
 

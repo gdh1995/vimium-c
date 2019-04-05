@@ -244,7 +244,8 @@ declare const enum kFgReq {
   focusOrLaunch, cmd, removeSug, openImage, gotoMainFrame,
   setOmniStyle,
   END,
-  msg = 90, inject = 91,
+  msg = 90, injectDeprecated = 91,
+  inject = 99,
   command = "command",
 }
 
@@ -424,10 +425,14 @@ interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> e
 
 interface ExternalMsgs {
   [kFgReq.inject]: {
-    req: { handler: kFgReq.inject};
+    req: {
+      handler: kFgReq.inject | kFgReq.injectDeprecated;
+      scripts?: boolean;
+    };
     res: {
       version: string;
-      scripts: string[];
+      scripts: string[] | null;
+      host: string;
       versionHash: string;
     }
   };

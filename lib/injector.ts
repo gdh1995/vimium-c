@@ -6,9 +6,9 @@ let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes &
   !((browser as typeof chrome | Element) instanceof Element)) ? browser as typeof chrome : chrome).runtime;
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3,
 onIdle = window.requestIdleCallback;
-let tick = 1, extHost = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0));
-if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extHost.indexOf("-") > 0) {
-  extHost = curEl.dataset.vimiumId || BuildStr.FirefoxID;
+let tick = 1, extID = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0));
+if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extID.indexOf("-") > 0) {
+  extID = curEl.dataset.vimiumId || BuildStr.FirefoxID;
 }
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
   type LastError = chrome.runtime.LastError;
@@ -40,8 +40,9 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   }
 
   VimiumInjector = {
-    id: extHost,
+    id: extID,
     alive: 0,
+    host: !(Build.BTypes & ~BrowserType.Chrome) ? extID : res ? res.host : "",
     version: res ? res.version : "",
     versionHash: res ? res.versionHash : "",
     clickable: VimiumClickable,
@@ -60,7 +61,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     , insertBefore = inserAfter.nextSibling
     , parentElement = inserAfter.parentElement as Element;
   let scripts: HTMLScriptElement[] = [];
-  for (const i of res.scripts) {
+  for (const i of res.scripts as string[]) {
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.async = false;
@@ -74,7 +75,9 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   });
 }
 function call() {
-  runtime.sendMessage(extHost, <ExternalMsgs[kFgReq.inject]["req"]> { handler: kFgReq.inject }, handler);
+  runtime.sendMessage(extID, <ExternalMsgs[kFgReq.inject]["req"]> {
+    handler: kFgReq.inject, scripts: true
+  }, handler);
 }
 function start() {
   removeEventListener("DOMContentLoaded", start);

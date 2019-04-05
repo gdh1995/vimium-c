@@ -2534,9 +2534,11 @@ Are you sure you want to continue?`);
       return;
     }
     if (typeof message !== "object" || !message) { return; }
-    if (message.handler === kFgReq.inject) {
+    if (message.handler === kFgReq.inject || message.handler === kFgReq.injectDeprecated) {
       (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
-        scripts: Settings.CONST_.ContentScripts_, version: Settings.CONST_.VerCode_,
+        scripts: message.scripts ? Settings.CONST_.ContentScripts_ : null,
+        version: Settings.CONST_.VerCode_,
+        host: !(Build.BTypes & ~BrowserType.Chrome) ? "" : location.host,
         versionHash: Settings.CONST_.GitVer
       });
     } else if (message.handler === kFgReq.command) {
