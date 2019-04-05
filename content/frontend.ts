@@ -226,7 +226,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
     const target: EventTarget | Element | Window | Document = event.target;
-    if (target === window || Build.BTypes & BrowserType.Firefox && target === document) { return onWndBlur(); }
+    if (target === window) { return onWndBlur(); }
+    if (Build.BTypes & BrowserType.Firefox && target === document) { return; }
     let path = event.path as EventPath | undefined, top: EventTarget | undefined
       , same = !(top = path && path[0]) || top === window || top === target
       , sr = VDom.GetShadowRoot_(target as Element);
