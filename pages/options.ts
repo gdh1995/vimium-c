@@ -656,14 +656,27 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   element = $<HTMLAnchorElement>("#openExtensionPage");
   if (Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
+      && Build.BTypes & BrowserType.Chrome
       && bgBrowserVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
     (element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
     (element.parentElement as HTMLElement).insertBefore(document.createTextNode('"Keyboard shortcuts" of '), element);
+  } else if (Build.BTypes & BrowserType.Firefox
+      && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+    (element as HTMLAnchorElement).textContent = (element as HTMLAnchorElement).href = "about:addons";
+    (element.parentElement as HTMLElement).insertBefore(
+      document.createTextNode('"Manage Shortcuts" in "Tools Menu" of'), element);
   }
   (element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
     return BG_.Backend.focus_({ u: this.href, r: ReuseType.reuse, p: true });
   };
+
+  if (Build.BTypes & BrowserType.Firefox
+      && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+    element = $("#chromeExtVomnibar");
+    (element.nextSibling as Text).remove();
+    element.remove();
+  }
 })();
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {

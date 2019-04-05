@@ -234,11 +234,11 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       InsertMode.inputHint_ && !InsertMode.hinting_ && document.hasFocus() && InsertMode.exitInputHint_();
     }
     if (!sr || target === VDom.UI.box_) { return; }
-    let wrapper = onShadow;
     if (same) {
       sr.vimiumListened = ShadowRootListenType.Blur;
       return;
     }
+    let wrapper = onShadow;
     for (let len = Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
               ? (path as EventTarget[]).indexOf(target) : [].indexOf.call(path as NodeList, target)
           , SR = ShadowRoot; 0 <= --len; ) {
@@ -259,8 +259,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   }
   function onWndBlur(this: void): void {
     VScroller.keyIsDown_ = 0;
-    const f = onWndBlur2;
-    f && f();
+    onWndBlur2 && onWndBlur2();
     KeydownEvents = Object.create(null);
     injector || (<RegExpOne> /a?/).test("");
     esc(HandlerResult.Suppress);
@@ -272,8 +271,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       return onFocus(event);
     }
     if (!isEnabled || this.vimiumListened === ShadowRootListenType.Blur) {
-      const r = this.removeEventListener.bind(this) as Element["removeEventListener"], f = onShadow;
-      r("focus", f, true); r("blur", f, true);
+      const r = this.removeEventListener.bind(this) as Element["removeEventListener"];
+      r("focus", onShadow, true); r("blur", onShadow, true);
       this.vimiumListened = ShadowRootListenType.None;
     }
     if (isEnabled) {
@@ -1156,7 +1155,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   VEvent = {
     lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
-    OnWndFocus_ (this: void): void { return onWndFocus(); },
+    OnWndFocus_ (this: void): void { onWndFocus(); },
     checkHidden_ (this: void
         , cmd?: kFgCmd, count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): boolean {
       let wnd = window, docEl = document.documentElement, el = wnd === wnd.top ? null : VDom.parentFrame_() || docEl;
@@ -1255,7 +1254,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (VHud !== HUD) { return; }
     if (Build.BTypes & BrowserType.Firefox && silent === 9) {
       vPort._port = null;
-      return onWndFocus();
+      return;
     }
     (VSettings as Writeable<VSettingsTy>).enabled_ = isEnabled = false;
     hook(HookAction.Destroy);

@@ -146,12 +146,9 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
     nodeA.download = file_name;
     nodeA.href = URL.createObjectURL(blob);
     click(nodeA);
-    if (Build.MinCVer < BrowserVer.MinCanNotRevokeObjectURLAtOnce
-        && bgBrowserVer_ < BrowserVer.MinCanNotRevokeObjectURLAtOnce) {
-      URL.revokeObjectURL(nodeA.href);
-    } else {
+    // not `URL.revokeObjectURL(nodeA.href);` so that it works almost all the same
+    // on old Chrome before BrowserVer.MinCanNotRevokeObjectURLAtOnce
     _lastBlobURL = nodeA.href;
-    }
   }
   console.info("EXPORT settings to %c%s%c at %c%s%c."
     , "color:darkred", file_name, "color:auto", "color:darkblue", d_s, "color:auto");

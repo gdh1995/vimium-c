@@ -87,7 +87,7 @@ var Settings = {
         for (const key in old) { if (old[key] === false) { map[key] = false; } }
       }
       if (!val) { return; }
-      for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\dA-Za-z]/ as RegExpOne; 0 <= --i; ) {
+      for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\da-z]/i as RegExpI; 0 <= --i; ) {
         if ((val = arr[i].trim()) && wordCharRe.test(val)) {
           map[val] = true;
         }
@@ -315,7 +315,8 @@ hdnehngglnbnehkfcidabjckinphnief
 nacjakoppgmdcpemlfnfegmlhipddanj`
 : !(Build.BTypes & ~BrowserType.Firefox)
   || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-? `# extension id, like "${BuildStr.FirefoxID}"`
+? `# extension id or hostname
+# like "${BuildStr.FirefoxID}"`
 : "",
     findModeRawQueryList: "",
     grabBackFocus: false,

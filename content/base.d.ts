@@ -333,7 +333,7 @@ interface VEventModeTy {
   checkHidden_ (this: void, cmd: kFgCmd, count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): boolean;
   focusAndListen_ (this: void, callback?: (() => void) | null, timedout?: 0): void;
   focus_ (this: void, request: BgReq[kBgReq.focusFrame]): void;
-  onWndBlur_ (this: void, onWndBlur: ((this: void) => void) | null): void;
+  onWndBlur_ (this: void, onWndBlur2: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
   mapKey_ (this: void, key: string): string;
   scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: VKeyCodes }, wnd?: Window): void;

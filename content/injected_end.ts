@@ -59,7 +59,10 @@ declare var VimiumClickable: WeakSet<Element> | undefined | null;
     }
   };
   function onTimeout() {
-    VSettings.destroy_(9); // note: here Firefox is just like a (9)
+    if (Build.BTypes & BrowserType.Firefox) {
+      VSettings.destroy_(9); // note: here Firefox is just like a (9)
+      VEvent.OnWndFocus_();
+    }
   }
 })();
 
