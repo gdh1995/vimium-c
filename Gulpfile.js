@@ -219,7 +219,7 @@ var Tasks = {
     if (browser === 1) { // Chrome
       delete manifest.browser_specific_settings;
     } else if (browser === 2) { // Firefox
-      minVer = getBuildItem("MinFFVer");
+      minVer = getNonNullBuildItem("MinFFVer");
       delete manifest.options_page;
       delete manifest.version_name;
       manifest.permissions.splice(manifest.permissions.indexOf("contentSettings") || manifest.length, 1);
@@ -230,7 +230,7 @@ var Tasks = {
       } else {
         delete gecko.strict_min_version;
       }
-      gecko.id = getBuildItem("FirefoxID");
+      gecko.id = getNonNullBuildItem("FirefoxID");
     }
     var dialog_ui = getBuildItem("NoDialogUI");
     if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {
@@ -885,6 +885,18 @@ function createBuildConfigCache() {
   if (!(getBuildItem("BTypes") & 0x7)) {
     throw new Error("Unsupported Build.BTypes: " + getBuildItem("BTypes"));
   }
+}
+
+function getNonNullBuildItem(key) {
+  const cache = buildOptionCache[key];
+  let value = parseBuildItem(key, cache[1]);
+  if (value == null) {
+    value = safeJSONParse(cache[0]);
+    if (value == null) {
+      throw new Error("Failed in loading build item: " + key, cache);
+    }
+  }
+  return value;
 }
 
 function getBuildItem(key, literalVal) {
