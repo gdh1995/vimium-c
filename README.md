@@ -25,10 +25,8 @@ This project is developed by [gdh1995](https://github.com/gdh1995)
 
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
-The branch [`basic-on-edge`](https://github.com/gdh1995/vimium-c/tree/basic-on-edge)
-  is able to run on lastest Microsoft Edge,
-  though some function are broken because Edge always lacks many features.
-This extension can also work on lastest Firefox, but there're still some errors.
+This extension can also work on Firefox (since version 64.0).
+It can also run on MS Edge, though there're still some errors.
 
 # Project Introduction
 
@@ -72,6 +70,20 @@ Here're some issues still existing on the master branch, which are mostly caused
 8. *When ver 69*, Chrome disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
 
 # Release Notes
+
+1.74:
+* full-featured Firefox support (although Firefox has no "contentSettings" support)
+* Exclusions:
+  * passKeys always takes effects, even when a prior key has matched
+  * passKeys supports `<esc>` and `<c-[>`
+  * use "`^`" as a prefix of passKeys now means it's a whitelist of hooked keys
+* LinkHints:
+  * can simulate clicking the right mouse button (use an option of `button="right"`)
+  * in hover mode, can toggle class names of given HTML nodes (use `toggle={".selector":"className"}`)
+* Vomnibar:
+* vimium://show : now auto decrypt "thunder://" URLs
+* fix some typos about `<a-c>` and `<a-t>` in recommended key mappings
+* fix the detection of fullscreen status on Chrome >= 71
 
 1.73:
 * now LinkHints can hint items using the `.onclick` handler
@@ -148,7 +160,11 @@ node scripts/tsc all
 #./scripts/make.sh output-file.zip
 ```
 
-`gulp local` can also compile files in place, while `gulp dist` compiles and minimizes files into `dist/`.
+`gulp local` can also compile files in place (using configurable build options),
+while `gulp dist` compiles and minimizes files into `dist/`.
+
+The options including `MinCVer` and `BTypes` in [gulp.tsconfig.json](scripts/gulp.tsconfig.json)
+  are used to control supported target browsers and set a minimum browser version.
 
 # Thanks & Licenses
 
