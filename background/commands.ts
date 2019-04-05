@@ -198,6 +198,7 @@ defaultKeyMappings_: [
   "<a-r>", "reloadTab",
   "<a-t>", "createTab",
   "<a-c>", "previousTab",
+  "<a-C>", "nextTab",
   "<a-v>", "nextTab",
   "i", "enterInsertMode",
   "v", "enterVisualMode",
