@@ -1886,7 +1886,9 @@ Are you sure you want to continue?`);
     /** focus: */ function (this: void, _0: FgReq[kFgReq.focus], port: Port): void {
       if (!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
-        port.postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reportLiving });
+        if (port.s.u.startsWith("moz-")) {
+          port.postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reportLiving });
+        }
       }
       let tabId = port.s.t, ref = framesForTab[tabId] as Frames.WritableFrames | undefined, status: Frames.ValidStatus;
       if (!ref) {
