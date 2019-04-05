@@ -1,5 +1,18 @@
 declare var browser: unknown;
-var VimiumInjector: VimiumInjectorTy | undefined | null, VimiumClickable: WeakSet<Element> | undefined | null;
+var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
+  id: "",
+  alive: -1,
+  host: "",
+  version: "",
+  versionHash: "",
+  clickable: undefined,
+  reload: null as never,
+  checkIfEnabled: null as never,
+  $run: null as never,
+  $_run: null as never,
+  getCommandCount: null as never,
+  destroy: null
+};
 (function (injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]) {
 let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
   : typeof browser !== "undefined" && browser &&
@@ -10,6 +23,7 @@ let tick = 1, extID = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0));
 if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extID.indexOf("-") > 0) {
   extID = curEl.dataset.vimiumId || BuildStr.FirefoxID;
 }
+VimiumInjector.id = extID;
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
   type LastError = chrome.runtime.LastError;
   let str: string | undefined, noBackend: boolean, err = runtime.lastError as void | LastError;
@@ -35,6 +49,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
         , host, "color:auto", str ? str : ` (${tick} retries).`);
     }
   }
+  const oldClickable = VimiumInjector && VimiumInjector.clickable;
   if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
     VimiumInjector.destroy(true);
   }
@@ -45,7 +60,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     host: !(Build.BTypes & ~BrowserType.Chrome) ? extID : res ? res.host : "",
     version: res ? res.version : "",
     versionHash: res ? res.versionHash : "",
-    clickable: VimiumClickable,
+    clickable: oldClickable,
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
     $run (task): void { VimiumInjector && VimiumInjector.$_run(task.t); },
@@ -94,10 +109,15 @@ if (document.readyState !== "loading") {
 }
 })(function (scriptSrc): VimiumInjectorTy["reload"] {
   return function (async): void {
-    if (VimiumInjector && typeof VimiumInjector.destroy === "function") {
-      VimiumInjector.destroy(true);
+    const injector = VimiumInjector;
+    if (injector) {
+      const oldClickable = injector.clickable;
+      if (typeof injector.destroy === "function") {
+        injector.destroy(true);
+      }
+      injector.clickable = oldClickable;
     }
-    function inject(): void {
+    function doReload(): void {
       const docEl = document.documentElement as HTMLHtmlElement | null;
       if (!docEl) { return; }
       const script = document.createElement("script");
@@ -109,13 +129,13 @@ if (document.readyState !== "loading") {
         , "color:red", "color:auto");
       (document.head || document.body || docEl).appendChild(script);
     }
-    async ? setTimeout(inject, 200) : inject();
+    async ? setTimeout(doReload, 200) : doReload();
   };
 });
 
 (!document.currentScript
   || ((document.currentScript as HTMLScriptElement).dataset.vimiumHooks || "").toLowerCase() !== "false"
-  ) && VimiumClickable !== null &&
+  ) && VimiumInjector.clickable !== null &&
 (function (): void {
 type ListenerEx = EventTarget["addEventListener"] & { vimiumHooked?: boolean; };
 type _EventTargetEx = typeof EventTarget;
@@ -125,7 +145,7 @@ interface EventTargetEx extends _EventTargetEx {
 interface ElementWithClickable {
   vimiumHasOnclick?: boolean;
 }
-VimiumClickable = VimiumClickable ? VimiumClickable
+VimiumInjector.clickable = VimiumInjector.clickable ? VimiumInjector.clickable
     : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
       || window.WeakSet ? new WeakSet<Element>() : {
   add (element: Element) { (element as ElementWithClickable).vimiumHasOnclick = true; return this; },
@@ -145,7 +165,8 @@ const HA = HTMLAnchorElement, E = Element;
 const newListen: ListenerEx = cls.addEventListener =
 function addEventListener(this: EventTarget, type: string, listener: EventListenerOrEventListenerObject) {
   if (type === "click" && !(this instanceof HA) && listener && this instanceof E) {
-    VimiumClickable && VimiumClickable.add(this as Element);
+    const injector = VimiumInjector;
+    injector && injector.clickable && injector.clickable.add(this as Element);
   }
   const args = arguments, len = args.length;
   return len === 2 ? _listen.call(this, type, listener) : len === 3 ? _listen.call(this, type, listener, args[2])

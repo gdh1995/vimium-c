@@ -278,7 +278,7 @@ declare const enum InjectorTask {
 }
 interface VimiumInjectorTy {
   id: string;
-  alive: 0 | 0.5 | 1;
+  alive: 0 | 0.5 | 1 | -1;
   host: string;
   version: string;
   versionHash: string;

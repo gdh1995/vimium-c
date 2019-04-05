@@ -4,11 +4,9 @@
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;
 
-declare var VimiumClickable: WeakSet<Element> | undefined | null;
-
 (function () {
-  const injector = VimiumInjector as VimiumInjectorTy, clickable = VimiumClickable;
-  clickable ? (VUtils.clickable_ = clickable) : (VimiumClickable = injector.clickable = null);
+  const injector = VimiumInjector as VimiumInjectorTy, clickable = injector.clickable;
+  clickable && (VUtils.clickable_ = clickable);
 
   injector.checkIfEnabled = (function (this: null
       , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
@@ -78,6 +76,7 @@ VSettings.execute_ = function (cmd): void {
     injector.alive = 0;
     injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;
     injector.$_run = injector.$run = null as never;
+    injector.clickable = null;
   }
 };
 
