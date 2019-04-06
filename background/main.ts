@@ -368,8 +368,8 @@ Are you sure you want to continue?`);
     sender.f |= Frames.Flags.hasCSSAndActed;
     return Settings.cache_.innerCSS;
   }
-  /** in face, this functions needs to accept any types of arguments and normalize them */
-  function execute(command: string, options: CommandsNS.RawOptions | null, count: number | string
+  /** this functions needs to accept any types of arguments and normalize them */
+  function executeAny(command: string, options: CommandsNS.RawOptions | null, count: number | string
       , port: Port | null, lastKey?: VKeyCodes): void {
     count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
     options && typeof options === "object" ?
@@ -830,7 +830,7 @@ Are you sure you want to continue?`);
       gCmdTimer = 0;
     }
     if (!ports) {
-      return execute(cmd, CommandsData_.cmdMap_[cmd] || null, 1, null);
+      return executeCommand(CommandsData_.cmdMap_[cmd] as CommandsNS.Item, 1, VKeyCodes.None, null as never as Port);
     }
     gCmdTimer = setTimeout(executeGlobal, 100, cmd, null);
     ports[0].postMessage({ N: kBgReq.count, c: cmd, i: gCmdTimer });
@@ -2091,7 +2091,7 @@ Are you sure you want to continue?`);
         clearTimeout(gCmdTimer);
         gCmdTimer = 0;
       }
-      execute(cmd, CommandsData_.cmdMap_[cmd] || null, request.n, port);
+      return executeCommand(CommandsData_.cmdMap_[cmd] as CommandsNS.Item, request.n, VKeyCodes.None, port);
     },
     /** removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
       return Backend.removeSug_(req, port);
@@ -2535,7 +2535,7 @@ Are you sure you want to continue?`);
       if (command && CommandsData_.availableCommands_[command]) {
         const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
         port = frames ? indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
-        return execute(command, null, 1, port);
+        return executeAny(command, null, 1, port);
       }
       return;
     }
@@ -2552,7 +2552,7 @@ Are you sure you want to continue?`);
       if (command && CommandsData_.availableCommands_[command]) {
         const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
         port = frames ? indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
-        execute(command, message.options as CommandsNS.RawOptions | null, message.count as number | string
+        executeAny(command, message.options as CommandsNS.RawOptions | null, message.count as number | string
           , port, message.key);
       }
     }

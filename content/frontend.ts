@@ -193,7 +193,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
        */
       isNormalHost = !!(top = path && path[0]) && top !== window && top !== target,
       len = isNormalHost ? Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
-              || !(Build.BTypes & BrowserType.Chrome) // in face, FF66 has no event.path
+              || !(Build.BTypes & BrowserType.Chrome) // in fact, FF66 has no event.path
         ? (path as EventTarget[]).indexOf(target) : [].indexOf.call(path as NodeList, target) : 1;
       isNormalHost ? (target = top as Element) : (path = [sr]);
       while (0 <= --len) {

@@ -400,7 +400,7 @@ declare namespace BackendHandlersNS {
 interface CommandsDataTy {
   keyToCommandRegistry_: SafeDict<CommandsNS.Item>;
   keyMap_: KeyMap;
-  cmdMap_: SafeDict<CommandsNS.Options | null>;
+  cmdMap_: SafeDict<CommandsNS.Item | null>;
   mapKeyRegistry_: SafeDict<string> | null;
   availableCommands_: ReadonlySafeDict<CommandsNS.Description>;
 }
