@@ -12,12 +12,11 @@ let keyMappingChecker_ = {
       const isLong = ch.length > 1, hasShift = modifiers.indexOf("s-") >= 0, chUpper = ch.toUpperCase();
       if (!isLong) {
         if (!modifiers) { return _0; }
-        if (hasShift && modifiers.length < 3) { console.log("format keys:", _0, chUpper); return chUpper; }
+        if (hasShift && modifiers.length < 3) { return chUpper; }
       }
       const chLower = ch.toLowerCase();
       modifiers = sortModifiers(modifiers);
       ch !== chLower && !hasShift && (modifiers += "s-");
-      console.log("format keys:", _0, modifiers || isLong ? `<${modifiers}${chLower}>` : ch);
       return modifiers || isLong ? `<${modifiers}${chLower}>` : ch;
     }
     this.normalizeKeys_ = keys => keys.replace(keyLeftRe, func);

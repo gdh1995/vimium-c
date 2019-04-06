@@ -233,7 +233,7 @@ var Tasks = {
       gecko.id = getNonNullBuildItem("FirefoxID");
     }
     if (browser & 2) {
-      // manifest.permissions.push("tabHide");
+      locally && manifest.permissions.push("tabHide");
     }
     var dialog_ui = getBuildItem("NoDialogUI");
     if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {

@@ -99,6 +99,10 @@ select.right > option {
   font-size: 13px;
   text-align: left;
 }
+select > option.option-hr {
+  font-size: 7px;
+  text-align: center;
+}
 
 pre, kbd, .code {
   font-family: Consolas, "Liberation Mono", "Courier New", "PingFang SC", "Hiragino Sans GB",
