@@ -1889,7 +1889,7 @@ Are you sure you want to continue?`);
     /** focus: */ function (this: void, _0: FgReq[kFgReq.focus], port: Port): void {
       if (!(Build.BTypes & ~BrowserType.Firefox)
           || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
-        if (port.s.u.startsWith("moz-")) {
+        if (port.s.f & Frames.Flags.OtherExtension) {
           port.postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reportLiving });
         }
       }
@@ -2493,7 +2493,10 @@ Are you sure you want to continue?`);
             port.disconnect();
             return;
           }
-          return OnConnect(port as Frames.Port, (arr[0].substring(9) as string | number as number) | 0);
+          OnConnect(port as Frames.Port, (arr[0].substring(9) as string | number as number) | 0);
+          if (Build.BTypes & BrowserType.Firefox) {
+            (port as Frames.Port).s.f |= Frames.Flags.OtherExtension;
+          }
         } else {
           port.disconnect();
         }

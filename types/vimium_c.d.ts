@@ -180,6 +180,7 @@ declare namespace Frames {
     hadHelpDialog = 8,
     hadVisualMode = 16,
     hasFindCSS = 32,
+    OtherExtension = 64,
   }
   const enum NextType {
     next = 0, Default = next,
