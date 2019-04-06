@@ -2221,6 +2221,8 @@ declare namespace chrome.tabs {
          * @since Chrome 19.
          */
         currentWindow?: true;
+        /** only on Firefox */
+        hidden?: boolean;
         /** Optional. Whether the tabs are highlighted. */
         highlighted?: boolean;
         /** Optional. Whether the tabs are pinned. */

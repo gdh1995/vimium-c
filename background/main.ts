@@ -20,7 +20,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     openerTabId?: number;
     pinned?: boolean;
   }
-  const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2 }
+  const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2, CurShownTabs = 3 }
   type BgCmdNoTab = (this: void, _fakeArg?: undefined) => void;
   type BgCmdActiveTab = (this: void, tabs1: [Tab] | never[]) => void;
   type BgCmdActiveTabOrNoTab = (this: void, tabs1?: [Tab] | never[]) => void;
@@ -29,7 +29,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     [kBgCmd.createTab]: UseTab.ActiveTab | UseTab.NoTab;
     [kBgCmd.openUrl]: UseTab.ActiveTab | UseTab.NoTab;
 
-    [kBgCmd.goTab]: UseTab.CurWndTabs;
+    [kBgCmd.goTab]: UseTab.CurShownTabs;
     [kBgCmd.removeTab]: UseTab.CurWndTabs;
     [kBgCmd.removeTabsR]: UseTab.CurWndTabs;
     [kBgCmd.removeRightTab]: UseTab.CurWndTabs;
@@ -142,13 +142,26 @@ var Backend: BackendHandlersNS.BackendHandlers;
       "background-color:#fffbe5", "background-color:#fffbe5; color:red", extId);
     return list[extId] = false;
   }
-  function selectFrom(this: void, tabs: Tab[]): ActiveTab {
+  function selectFrom(this: void, tabs: Tab[], fixIndexes?: BOOL): ActiveTab {
+    Build.BTypes & BrowserType.Firefox && fixIndexes && fixTabsIndexes(tabs);
     for (let i = tabs.length; 0 < --i; ) {
       if (tabs[i].active) {
         return tabs[i] as ActiveTab;
       }
     }
     return tabs[0] as ActiveTab;
+  }
+  function fixTabsIndexes(tabs: Tab[]): Tab[] {
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      const len = tabs.length;
+      if (len > 0 && tabs[len - 1].index !== len - 1) {
+        for (let i = 0; i < len; i++) {
+          tabs[i].index = i;
+        }
+      }
+    }
+    return tabs;
   }
   function newTabIndex(this: void, tab: Readonly<Tab>, pos: OpenUrlOptions["position"]): number | undefined {
     return pos === "before" ? tab.index : pos === "start" ? 0
@@ -382,6 +395,9 @@ Are you sure you want to continue?`);
   getCurTab = chrome.tabs.query.bind<null, { active: true, currentWindow: true }
       , [(result: [Tab], _ex: FakeArg) => void], 1>(null, { active: true, currentWindow: true }),
   getCurTabs = chrome.tabs.query.bind(null, {currentWindow: true}),
+  getCurShownTabs = Build.BTypes & BrowserType.Firefox
+      &&(!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+    ? chrome.tabs.query.bind(null, { currentWindow: true, hidden: false }) : 0 as never,
   getCurWnd = function (populate: boolean, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1 {
     const wndId = TabRecency_.lastWnd_;
     return wndId >= 0 ? chrome.windows.get(wndId, { populate }, callback)
@@ -840,7 +856,7 @@ Are you sure you want to continue?`);
     Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
       ? UseTab.NoTab : UseTab.ActiveTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
-    UseTab.NoTab, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
+    UseTab.NoTab, UseTab.CurShownTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.CurWndTabs, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
@@ -853,6 +869,7 @@ Are you sure you want to continue?`);
       K extends keyof BgCmdInfoNS ?
         BgCmdInfoNS[K] extends UseTab.ActiveTab ? BgCmdActiveTab :
         BgCmdInfoNS[K] extends UseTab.CurWndTabs ? BgCmdCurWndTabs :
+        BgCmdInfoNS[K] extends UseTab.CurShownTabs ? BgCmdCurWndTabs :
         BgCmdInfoNS[K] extends UseTab.ActiveTab | UseTab.NoTab ? BgCmdActiveTabOrNoTab :
         never :
       BgCmdNoTab;
@@ -1041,12 +1058,13 @@ Are you sure you want to continue?`);
     },
     /* goTab: */ function (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
-      let count = ((cOptions.dir | 0) || 1) * commandCount, len = tabs.length, toSelect: Tab;
-      count = cOptions.absolute
+      const count = ((cOptions.dir | 0) || 1) * commandCount, len = tabs.length;
+      let cur: Tab | undefined, index = cOptions.absolute
         ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : Math.abs(count) > tabs.length * 2 ? (count > 0 ? -1 : 0)
-        : selectFrom(tabs).index + count;
-      toSelect = tabs[(count >= 0 ? 0 : len) + (count % len)];
+        : (cur = selectFrom(tabs, 1)).index + count;
+      index = (index >= 0 ? 0 : len) + (index % len);
+      let toSelect: Tab = tabs[index];
       if (!toSelect.active) { return selectTab(toSelect.id); }
     },
     /* removeTab: */ function (this: void, tabs: Tab[]): void {
@@ -1625,6 +1643,9 @@ Are you sure you want to continue?`);
       return (func as BgCmdNoTab)();
     } else if (count === UseTab.ActiveTab) {
       getCurTab(func as BgCmdActiveTab);
+    } else if (Build.BTypes & BrowserType.Firefox && count === UseTab.CurShownTabs
+        &&(!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      getCurShownTabs(func as BgCmdCurWndTabs);
     } else {
       getCurTabs(func as BgCmdCurWndTabs);
     }
