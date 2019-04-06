@@ -853,6 +853,7 @@ Are you sure you want to continue?`);
   }
   const
   BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
+    UseTab.NoTab,
     Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
       ? UseTab.NoTab : UseTab.ActiveTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
@@ -874,6 +875,14 @@ Are you sure you want to continue?`);
         never :
       BgCmdNoTab;
   } = [
+    /* kBgCmd.goBack: */ !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
+        ||chrome.tabs.goBack ? function(this: void): void {
+      const tabID = TabRecency_.last_ < 0 ? null as never : TabRecency_.last_, count = commandCount,
+      jump = (count > 0 ? chrome.tabs.goBack : chrome.tabs.goForward) as NonNullable<typeof chrome.tabs.goBack>;
+      for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
+        jump(tabID, onRuntimeError);
+      }
+    } : null as never,
     /* createTab: */ Utils.blank_,
     /* duplicateTab: */ function (): void {
       const tabId = cPort.s.t;

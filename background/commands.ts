@@ -366,8 +366,12 @@ availableCommands_: {
   simBackspace: [ "simulate backspace for once if focused", 1, 0, kFgCmd.switchFocus, { act: "backspace" } ],
   goPrevious: [ "Follow the link labeled previous or &lt;", 1, 1, kBgCmd.goNext, { rel: "prev" } ],
   goNext: [ "Follow the link labeled next or &gt;", 1, 1, kBgCmd.goNext ],
-  goBack: [ "Go back in history", 0, 0, kFgCmd.goBack ],
-  goForward: [ "Go forward in history", 0, 0, kFgCmd.goBack, { count: -1 } ],
+  goBack: [ "Go back in history", 0,
+    !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || chrome.tabs.goBack
+    ? 1 : 0, kFgCmd.goBack ],
+  goForward: [ "Go forward in history", 0,
+    !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || chrome.tabs.goBack
+    ? 1 : 0, kFgCmd.goBack, { count: -1 } ],
   goUp: [ "Go up the URL hierarchy (use trailing_slash=null/&lt;boolean&gt;)", 0, 1, kBgCmd.goUp ],
   goToRoot: [ "Go to root of current URL hierarchy", 0, 1, kBgCmd.goToRoot ],
   nextTab: [ "Go one tab right", 0, 1, kBgCmd.goTab ],

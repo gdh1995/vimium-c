@@ -2605,6 +2605,9 @@ declare namespace chrome.tabs {
      */
     export function getZoomSettings(tabId: number, callback: (zoomSettings: ZoomSettings) => void): 1;
 
+    var goBack: ((tabId?: number, callback?: (exArg: FakeArg) => void) => 1) | undefined;
+    var goForward: ((tabId?: number, callback?: (exArg: FakeArg) => void) => 1) | undefined;
+
     /**
      * Fired when the highlighted or selected tabs in a window changes.
      * @since Chrome 18.

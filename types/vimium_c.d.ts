@@ -660,6 +660,7 @@ declare const enum BrowserVer {
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,
   MinTabIdBeSmallAgain = 71,
+  Min$Tabs$$goBack = 72, // and tabs.goForward; even if EXPERIMENTAL or LEGACY
   // https://www.chromestatus.com/features/5656049583390720
   // deprecation is since C66
   MinEscapeHashInBodyOfDataURL = 72,

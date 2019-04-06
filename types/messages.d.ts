@@ -137,7 +137,7 @@ interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 
 declare const enum kBgCmd {
-  createTab, duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
+  goBack, createTab, duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
   clearCS, goTab, removeTab, removeTabsR, removeRightTab,
   restoreTab, restoreGivenTab, blank, openUrl, searchInAnother,
   togglePinTab, toggleMuteTab, reloadTab, reloadGivenTab, reopenTab,
@@ -147,12 +147,13 @@ declare const enum kBgCmd {
   toggleViewSource, clearMarks, toggle, toggleVomnibarStyle,
   END = "END",
 }
+// keep same index: goBack
 
 declare const enum kFgCmd {
-  findMode, linkHints, focusAndHint, unhoverLast, marks,
+  goBack, findMode, linkHints, focusAndHint, unhoverLast, marks,
   goToMarks, scroll, visualMode, vomnibar,
   reset, toggle, insertMode, passNextKey, goNext,
-  reload, switchFocus, goBack, showHelp, autoCopy,
+  reload, switchFocus, showHelp, autoCopy,
   autoOpen, searchAs, focusInput,
   END = "END",
 }
