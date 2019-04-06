@@ -60,8 +60,11 @@ var VDom = {
   GetShadowRoot_ (el: Element | Node): ShadowRoot | null {
     const sr = (el as Element).shadowRoot || null, E = Element;
     // check el's type to avoid exceptions
-    return Build.BTypes & ~BrowserType.Firefox && sr instanceof E
-      ? el instanceof E ? VDom.Getter_(E, el, "shadowRoot") : null : sr;
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      return sr && sr instanceof E ? el instanceof E ? VDom.Getter_(E, el, "shadowRoot") : null : sr;
+    } else {
+      return sr;
+    }
   },
   /**
    * Try its best to find a real parent
@@ -98,10 +101,13 @@ var VDom = {
       if (pe && pe.contains(el)) { /* pe is real */ return pe; }
       pn = VDom.Getter_(Node, el, "parentNode");
     }
-    const SR = window.ShadowRoot;
+    const SR = window.ShadowRoot as Exclude<Window["ShadowRoot"], Element | undefined>;
     // pn is real or null
     return type === PNType.DirectNode ? pn // may return a Node instance
-      : type >= PNType.ResolveShadowHost && SR && !(SR instanceof E) && pn instanceof SR ? pn.host // shadow root
+      : type >= PNType.ResolveShadowHost && (
+        !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 ||
+          SR && !(SR instanceof E)
+        ) && pn instanceof SR ? pn.host // shadow root
       : pn instanceof E ? pn /* in doc and .pN+.pE are overridden */ : null /* pn is null, DocFrag, or ... */;
   } as {
     (this: void, el: Element, type: PNType.DirectElement

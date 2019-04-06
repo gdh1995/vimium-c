@@ -62,7 +62,7 @@ var Tasks = {
   static: ["static/special", "static/uglify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*.css"
       , "settings_template.json", "*.txt", "*.md"
-      , locally ? "manifest.json" : "!**/manifest*.json"
+      , "!**/manifest*.json"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!front/vimium.css", "!test*", "!todo*"
     ];
@@ -76,9 +76,9 @@ var Tasks = {
     }
     return copyByPath(arr);
   }],
-  "static/all": function(cb) {
+  "static/local": function(cb) {
     locally = true;
-    gulp.series("static")(cb);
+    gulp.series("static", "manifest")(cb);
   },
 
   "build/scripts": ["build/background", "build/content", "build/front"],
@@ -206,7 +206,7 @@ var Tasks = {
     });
   }],
   "min/js": ["min/others"],
-  manifest: ["min/bg", function(cb) {
+  manifest: function(cb) {
     var minVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
     minVer = minVer ? (minVer | 0) : 0;
     if (!(browser & 1)) {
@@ -232,6 +232,9 @@ var Tasks = {
       }
       gecko.id = getNonNullBuildItem("FirefoxID");
     }
+    if (browser & 2) {
+      // manifest.permissions.push("tabHide");
+    }
     var dialog_ui = getBuildItem("NoDialogUI");
     if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {
       manifest.options_ui && (manifest.options_ui.open_in_tab = true);
@@ -249,7 +252,7 @@ var Tasks = {
     }
     fs.writeFile(file, data, cb);
     print("Save manifest file: " + file);
-  }],
+  },
   dist: [["static", "build/ts"], ["manifest", "min/others"]],
   "dist/": ["dist"],
 

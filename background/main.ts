@@ -837,7 +837,9 @@ Are you sure you want to continue?`);
   }
   const
   BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
-    UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
+    Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
+      ? UseTab.NoTab : UseTab.ActiveTab,
+    UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
     UseTab.NoTab, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.CurWndTabs, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
@@ -1069,7 +1071,8 @@ Are you sure you want to continue?`);
         return;
       }
       removeTabsInOrder(tab, tabs, start, end);
-      if (cOptions.left && start > 0) {
+      if (start > 0 && cOptions.left) {
+        // note: here not wait real removing, otherwise the browser window may flicker
         chrome.tabs.update(tabs[start - 1].id, { active: true });
       }
     },
@@ -2504,13 +2507,14 @@ Are you sure you want to continue?`);
   Settings.updateHooks_.newTabUrl_f = function (url) {
     const onlyNormal = Utils.isRefusingIncognito_(url),
     mayForceIncognito = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
-      && ChromeVer < BrowserVer.MinNoUnmatchedIncognito && onlyNormal;
+      && onlyNormal && ChromeVer < BrowserVer.MinNoUnmatchedIncognito;
     BackgroundCommands[kBgCmd.createTab] = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
         && Build.BTypes & BrowserType.Chrome && mayForceIncognito ? function (): void {
       getCurWnd(true, hackedCreateTab[0].bind(url));
     } : standardCreateTab.bind(null, url, onlyNormal);
-    BgCmdInfo[kBgCmd.createTab] = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
-        && Build.BTypes & BrowserType.Chrome && mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
+    if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome) {
+      BgCmdInfo[kBgCmd.createTab] = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
+    }
   };
 
   Settings.updateHooks_.showActionIcon = function (value) {
