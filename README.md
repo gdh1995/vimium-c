@@ -72,11 +72,16 @@ Here're some issues still existing on the master branch, which are mostly caused
 # Release Notes
 
 1.74:
+* *BREAKING*: now **use `s-` to represent the `ShiftKey`** is being pressed when constructing keys
+  * e.g. `<a-s-f>`: just like using `a-`, `c-` and `m-` to represent `AltKey`, `CtrlKey` and `MetaKey`
+  * if a key is one of function key, space and arrow keys, should also use `s-` (like `<s-space>` and `<s-f12>`)
+  * an exception is when a key is a punctuation (is a single character and has no lower/UPPER forms)
+    * in this case, use `<a-#>` and `<c-+>` directly
 * full-featured Firefox support (although Firefox has no "contentSettings" support)
 * Exclusions:
   * passKeys always takes effects, even when a prior key has matched
   * passKeys supports `<esc>` and `<c-[>`
-  * use "`^`" as a prefix of passKeys now means it's a whitelist of hooked keys
+  * *BREAKING*: use "`^`" as a prefix of passKeys now means it's a whitelist of hooked keys
 * LinkHints:
   * can simulate clicking the right mouse button (use an option of `button="right"`)
   * in hover mode, can toggle class names of given HTML nodes (use `toggle={".selector":"className"}`)

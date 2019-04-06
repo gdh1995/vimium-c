@@ -18,7 +18,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
 }
-const KeyRe_ = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
+const KeyRe_ = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:s-)?(?:[a-z][\da-z]+|[^\sA-Z])>|\S/g,
 __extends = function<Child, Super, Base> (
     child: (new <Args extends any[]> (...args: Args) => Child) & {
         prototype?: Super & { "constructor": new () => Child }
@@ -265,6 +265,7 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
     }
     let passKeys = ExclusionRulesOption_.getPassKeys_(element).value;
     if (passKeys) {
+      passKeys = BG_.Utils.formatKeys_(passKeys);
       const passArr = passKeys.match(KeyRe_);
       if (passArr) {
         const isReverted = passArr[0] === "^" && passArr.length > 1;

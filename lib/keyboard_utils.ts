@@ -46,16 +46,16 @@ var VKeyboard = {
     return (key as string).length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName_(event) : key as string;
   },
   key_ (event: EventControlKeys, ch: string): string {
-    const left = event.metaKey ? "<m-" : "<";
-    return event.ctrlKey ? left + (event.altKey ? "c-a-" : "c-") + ch + ">"
-      : event.altKey ? left + "a-" + ch + ">"
-      : event.metaKey || ch.length > 1 ? left + ch + ">" : ch;
+    let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
+    chLower = ch.toLowerCase();
+    (modifiers || ch.length > 1) && ch !== chLower && (modifiers += "s-");
+    return ch.length > 1 || modifiers ? `<${modifiers}${chLower}>` : ch;
   },
   getKeyStat_ (event: EventControlKeys): KeyStat {
     return <number> <boolean|number> event.altKey |
-            (<number> <boolean|number> event.ctrlKey << 1) |
-            (<number> <boolean|number> event.metaKey << 2) |
-            (<number> <boolean|number> event.shiftKey << 3);
+            (<number> <boolean|number> event.ctrlKey * 2) |
+            (<number> <boolean|number> event.metaKey * 4) |
+            (<number> <boolean|number> event.shiftKey * 8);
   },
   isEscape_ (event: KeyboardEvent): boolean {
     if (event.keyCode !== VKeyCodes.esc && !event.ctrlKey) { return false; }

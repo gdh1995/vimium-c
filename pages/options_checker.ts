@@ -2,21 +2,23 @@ let keyMappingChecker_ = {
   normalizeKeys_: null as never as (this: void, s: string) => string,
   isKeyReInstalled_: false,
   init_ (): void {
-    const keyLeftRe = <RegExpG & RegExpSearchable<2>> /<(?!<)((?:[ACMSacms]-){0,4})(.[^>]*)>/g,
-    lowerRe = <RegExpOne> /[a-z]/;
+    const keyLeftRe = <RegExpG & RegExpSearchable<2>> /<(?!<)((?:[ACMSacms]-){0,4})(.[^>]*)>/g;
     function sortModifiers(option: string) {
-      return option.length < 4 ? option : option.length > 4 ? "a-c-m-"
-        : option === "c-a-" ? "a-c-" : option === "m-a-" ? "a-m-"
-        : option === "m-c-" ? "c-m-" : option;
+      return option.length < 4 ? option : option.length > 6 ? "a-c-m-s-"
+        : option.slice(0, -1).split("-").sort().join("-") + "-";
     }
-    function func(_0: string, option: string, key: string): string {
-      option = option.toLowerCase();
-      const forceUpper = option.indexOf("s-") >= 0;
-      if (forceUpper && option.length === 2 && key.length === 1) {
-        return key.toUpperCase();
+    function func(_0: string, oldModifiers: string, ch: string): string {
+      let modifiers = oldModifiers.toLowerCase();
+      const isLong = ch.length > 1, hasShift = modifiers.indexOf("s-") >= 0, chUpper = ch.toUpperCase();
+      if (!isLong) {
+        if (!modifiers) { return _0; }
+        if (hasShift && modifiers.length < 3) { console.log("format keys:", _0, chUpper); return chUpper; }
       }
-      return (option ? "<" + sortModifiers(forceUpper ? option.replace("s-", "") : option) : "<") +
-        (forceUpper ? key.toUpperCase() : key.length > 1 && lowerRe.test(key) ? key.toLowerCase() : key) + ">";
+      const chLower = ch.toLowerCase();
+      modifiers = sortModifiers(modifiers);
+      ch !== chLower && !hasShift && (modifiers += "s-");
+      console.log("format keys:", _0, modifiers || isLong ? `<${modifiers}${chLower}>` : ch);
+      return modifiers || isLong ? `<${modifiers}${chLower}>` : ch;
     }
     this.normalizeKeys_ = keys => keys.replace(keyLeftRe, func);
     this.normalizeMap_ = this.normalizeMap_.bind(this);

@@ -60,7 +60,7 @@ var Commands = {
       splitLine = line.split(" ");
       key = splitLine[0];
       if (key === "map") {
-        key = splitLine[1] as string | undefined;
+        key = Utils.formatKeys_(splitLine[1] || "");
         if (!key || key === "__proto__") {
           console.log("Unsupported key sequence %c" + (key || '""'), "color:red", `for "${splitLine[2] || ""}"`);
         } else if (key in userDefinedKeys) {
@@ -115,7 +115,7 @@ var Commands = {
         console.log("Unknown mapping command: %c" + key, "color:red", "in", line);
       } else if (splitLine.length !== 2) {
         console.log("Unmap needs one mapped key:", line);
-      } else if ((key = splitLine[1]) in registry) {
+      } else if ((key = Utils.formatKeys_(splitLine[1])) in registry) {
         delete userDefinedKeys[key];
         delete registry[key];
         continue;

@@ -109,7 +109,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     const out = [] as ExclusionsNS.Rules;
     for (let _i = 0, _len = rules.length; _i < _len; _i++) {
       const rule = rules[_i];
-      out.push(this.getRe_(rule.pattern), rule.passKeys);
+      out.push(this.getRe_(rule.pattern), Utils.formatKeys_(rule.passKeys));
     }
     return out;
   },
