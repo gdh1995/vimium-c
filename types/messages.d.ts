@@ -32,6 +32,19 @@ declare const enum kBgReq {
   END = "END", // without it, TypeScript will report errors for number indexes
 }
 
+declare const enum kFgReq {
+  setSetting, findQuery, parseSearchUrl, parseUpperUrl,
+  searchAs, gotoSession, openUrl, focus, checkIfEnabled,
+  nextFrame, exitGrab, execInChild, initHelp, css,
+  vomnibar, omni, copy, key, marks,
+  focusOrLaunch, cmd, removeSug, openImage, gotoMainFrame,
+  setOmniStyle,
+  END,
+  msg = 90, injectDeprecated = 91,
+  inject = 99,
+  command = "command",
+}
+
 interface BgReq {
   [kBgReq.init]: {
     /** status */ s: Frames.Flags;
@@ -234,19 +247,6 @@ interface CmdOptions {
     keep?: boolean;
     passExitKey?: boolean;
   }
-}
-
-declare const enum kFgReq {
-  setSetting, findQuery, parseSearchUrl, parseUpperUrl,
-  searchAs, gotoSession, openUrl, focus, checkIfEnabled,
-  nextFrame, exitGrab, execInChild, initHelp, css,
-  vomnibar, omni, copy, key, marks,
-  focusOrLaunch, cmd, removeSug, openImage, gotoMainFrame,
-  setOmniStyle,
-  END,
-  msg = 90, injectDeprecated = 91,
-  inject = 99,
-  command = "command",
 }
 
 declare const enum kMarkAction {
