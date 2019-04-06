@@ -1065,6 +1065,13 @@ Are you sure you want to continue?`);
         : (cur = selectFrom(tabs, 1)).index + count;
       index = (index >= 0 ? 0 : len) + (index % len);
       let toSelect: Tab = tabs[index];
+      if (toSelect.pinned && count < 0 && cOptions.noPinned) {
+        let curIndex = (cur || selectFrom(tabs, 1)).index;
+        if (curIndex > index && !tabs[curIndex - 1].pinned) {
+          while (tabs[index].pinned) { index++; }
+          toSelect = tabs[index];
+        }
+      }
       if (!toSelect.active) { return selectTab(toSelect.id); }
     },
     /* removeTab: */ function (this: void, tabs: Tab[]): void {
