@@ -342,6 +342,9 @@ VDom.UI = {
     VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
     a.add_(flashEl);
     a._lastFlash = flashEl;
+    if (!Build.NDEBUG) {
+      lifeTime = Math.max(lifeTime || 0, <number> VDom.UI.flashTime | 0);
+    }
     setTimeout(function (): void {
       a._lastFlash === flashEl && (a._lastFlash = null);
       flashEl.remove();
@@ -376,3 +379,6 @@ VDom.UI = {
       HandlerResult.Suppress : HandlerResult.Prevent;
   }
 };
+if (!Build.NDEBUG) {
+  VDom.UI.flashTime = GlobalConsts.DefaultRectFlashTime;
+}

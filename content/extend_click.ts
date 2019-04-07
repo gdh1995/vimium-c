@@ -1,5 +1,4 @@
-if (VSettings && document.readyState !== "complete"
-    && VimiumInjector === undefined) {
+if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefined) {
 (function (this: void): void {
 /** Note(gdh1995):
  * According to source code of C72,
@@ -332,7 +331,7 @@ _listen("load", delayFindAll, true);
   script.textContent = injected;
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild);
-  VDom.DocReady_(function () { box === null && setTimeout(function () {
+  VDom.OnDocLoaded_(function (): void { box === null && setTimeout(function (): void {
     box || execute(kContentCmd.Destroy);
   }, 17); });
   if (!script.parentNode) { // It succeeded to hook.

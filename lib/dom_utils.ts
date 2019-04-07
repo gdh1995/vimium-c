@@ -8,6 +8,7 @@ var VDom = {
   specialZoom_: !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
     ? true : !!(Build.BTypes & BrowserType.Chrome),
   docSelectable_: true,
+  docNotCompleteWhenVimiumIniting_: document.readyState !== "complete",
   isHTML_ (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   createElement_<K extends VimiumContainerElementType> (tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement {
     const d = document, a = this,
@@ -17,12 +18,12 @@ var VDom = {
         , HTMLElement>(d, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
     return valid ? node as HTMLElementTagNameMap[K] & SafeHTMLElement : a.createElement_(tagName);
   },
-  _call (callback: (this: void) => void): void { callback(); },
+  execute_ (callback: (this: void) => void): void { callback(); },
   /** Note: won't call functions if Vimium is destroyed */
-  DocReady_ (callback: (this: void) => void): void {
-    const a = this, call = a._call;
+  OnDocLoaded_ (callback: (this: void) => void): void {
+    const a = this, call = a.execute_;
     if (document.readyState !== "loading") {
-      a.DocReady_ = call;
+      a.OnDocLoaded_ = call;
       return callback();
     }
     let listeners = [callback], eventName = "DOMContentLoaded";
@@ -30,12 +31,12 @@ var VDom = {
       // not need to check event.isTrusted
       removeEventListener(eventName, eventHandler, true);
       if (VDom === a) { // check `a` for safety even if reloaded
-        VDom.DocReady_ = call;
+        VDom.OnDocLoaded_ = call;
         listeners.forEach(call);
       }
       listeners = null as never;
     }
-    a.DocReady_ = function (callback1): void {
+    a.OnDocLoaded_ = function (callback1): void {
       listeners.push(callback1);
     };
     addEventListener(eventName, eventHandler, true);

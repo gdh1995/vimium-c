@@ -36,6 +36,7 @@
       "VEvent.lock_", "VEvent.mapKey_", "VUtils.safer_",
       "onRuntimeError", "Utils.runtimeError_",
       "SafeEl_", "notSafe_", "getEditableType_",
+      "readyState",
       "_getKeyCharUsingKeyIdentifier", "parentFrame_"
     ],
     "pure_getters": true,

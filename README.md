@@ -5,8 +5,11 @@
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
-**[Visit Vimium C on Chrome Web Store](
+**Visit Vimium C on [Chrome Web Store](
   https://chrome.google.com/webstore/detail/vimium-c/hfjbmagddngcpeloejdejnfgbamkjaeg
+  )** /
+**[Firefox Add-ons](
+  https://addons.mozilla.org/en-US/firefox/addon/vimium-c/
   )**
 
 A <span style="color: #8e5e2f;">C</span>ustomized
@@ -15,8 +18,9 @@ A <span style="color: #8e5e2f;">C</span>ustomized
     global <span style="color: #8e5e2f;">C</span>ommands
     and injection functionality,
   in <span style="color: #8e5e2f;">C</span>-style code for better speed and less resource cost.
+
 It supports Chrome and other Chromium-based browsers whose core versions are >= 35,
-  and partly supports latest Firefox.
+  and supports most of the functionality on a latest Firefox (since version 64.0).
 
 This project is developed by [gdh1995](https://github.com/gdh1995)
   and licensed under the [MIT license](LICENSE.txt).
@@ -25,7 +29,6 @@ This project is developed by [gdh1995](https://github.com/gdh1995)
 
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
-This extension can also work on Firefox (since version 64.0).
 It can also run on MS Edge, though there're still some errors.
 
 # Project Introduction
@@ -41,9 +44,11 @@ __<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</s
 
 __Other extensions supporting Vimium C:__
 
-* [PDF Viewer for Vimium C](https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium%20%20/nacjakoppgmdcpemlfnfegmlhipddanj)
+* PDF Viewer for Vimium C
   : a modified version of [PDF Viewer](https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
     from [PDF.js](https://github.com/mozilla/pdf.js/)
+  * Visit it on [Chrome WebStore](
+      https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj)
 
 # Known Issues
 
@@ -82,6 +87,7 @@ Here're some issues still existing on the master branch, which are mostly caused
   * passKeys always takes effects, even when a prior key has matched
   * passKeys supports `<esc>` and `<c-[>`
   * *BREAKING*: use "`^`" as a prefix of passKeys now means it's a whitelist of hooked keys
+* `goBack`, `goForward`: now works perfectly since Chrome 72
 * LinkHints:
   * can simulate clicking the right mouse button (use an option of `button="right"`)
   * in hover mode, can toggle class names of given HTML nodes (use `toggle={".selector":"className"}`)

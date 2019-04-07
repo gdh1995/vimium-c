@@ -35,7 +35,7 @@ var VOmni = {
       return VHud.tip_("Sorry, Vomnibar page seems to fail in loading.", 2000);
     }
     if (!options || !options.k || !options.v) { return; }
-    if (document.readyState === "loading") {
+    if (VDom.OnDocLoaded_ !== VDom.execute_) {
       if (!a._timer) {
         a._timer = setTimeout(a.run.bind(a as never, count, options), 500);
         return;
@@ -66,7 +66,7 @@ var VOmni = {
     a.status_ > VomnibarNS.Status.Inactive || VUtils.push_(VDom.UI.SuppressMost_, a);
     a.box_ && VDom.UI.adjust_();
     if (a.status_ === VomnibarNS.Status.NotInited) {
-      if (VHints.tryNestedFrame_("VOmni", "run", count, options)) { return VUtils.remove_(a); }
+      if (VHints.TryNestedFrame_("VOmni", "run", count, options)) { return VUtils.remove_(a); }
       a.status_ = VomnibarNS.Status.Initing;
       a.init_(options);
     } else if (a.isABlank_()) {

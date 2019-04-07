@@ -539,7 +539,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   ],
 
   InsertMode = {
-    grabBackFocus_: (document.readyState !== "complete") as boolean | ((event: Event, target: LockableElement) => void),
+    grabBackFocus_: VDom.docNotCompleteWhenVimiumIniting_ as boolean | ((event: Event, target: LockableElement) => void),
     global_: null as CmdOptions[kFgCmd.insertMode] | null,
     hinting_: false,
     inputHint_: null as { box: HTMLDivElement, hints: HintsNS.BaseHintItem[] } | null,
@@ -913,7 +913,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         VSettings.execute_ && VSettings.execute_(kContentCmd.SuppressClickable);
       }
       r[kBgReq.init] = null as never;
-      D.DocReady_(function (): void {
+      D.OnDocLoaded_(function (): void {
         HUD.enabled_ = true;
         onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>> { H: kFgReq.focus });
       });

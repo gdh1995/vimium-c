@@ -64,7 +64,7 @@ VDom.allowScripts_ = 0;
   }
 })();
 
-VDom.DocReady_(function () {
+VDom.OnDocLoaded_(function () {
   VimiumInjector &&
   addEventListener("hashchange", VimiumInjector.checkIfEnabled);
 });

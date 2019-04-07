@@ -94,7 +94,7 @@ var VHints = {
     VUtils.remove_(a);
     if (document.body === null) {
       a.clean_();
-      if (!a.timer_ && document.readyState === "loading") {
+      if (!a.timer_ && VDom.OnDocLoaded_ !== VDom.execute_) {
         VUtils.push_(VDom.UI.SuppressMost_, a);
         a.timer_ = setTimeout(a.run.bind(a as never, count, options), 300);
         return;
@@ -117,7 +117,7 @@ var VHints = {
     }
     let elements = a.getVisibleElements_(arr);
     if (a.frameNested_) {
-      if (a.tryNestedFrame_("VHints", "run", (count as number) | 0, options)) {
+      if (a.TryNestedFrame_("VHints", "run", (count as number) | 0, options)) {
         return a.clean_();
       }
     }
@@ -191,7 +191,7 @@ var VHints = {
       VHints.run(a, b);
     });
   },
-  tryNestedFrame_ (mode: "VHints" | "VScroller" | "VOmni", action: "run" | "Sc"
+  TryNestedFrame_ (mode: "VHints" | "VScroller" | "VOmni", action: "run" | "Sc"
       , count: number, options: SafeObject): boolean {
     const a = this;
     if (a.frameNested_ !== null) {

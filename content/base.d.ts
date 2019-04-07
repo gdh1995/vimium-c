@@ -279,6 +279,7 @@ interface DomUI {
   /** `!!@UI` must keep the same as `!!@box_`*/
   UI: VUIRoot;
   _lastFlash: HTMLElement | null;
+  /** only exists under DEBUG mode */ flashTime?: number;
   add_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): void;
   addElementList_<T extends boolean | BOOL>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
     offset: ViewOffset, dialogContainer?: T | null
