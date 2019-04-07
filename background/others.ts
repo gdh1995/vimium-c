@@ -229,7 +229,8 @@ setTimeout(function () {
      *   builds a css text of "--webextension-***: url(icon-url)",
      *   and then set the style of an extension's toolbar button to it
      */
-    if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
+    if (Build.BTypes & ~BrowserType.Chrome
+        && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
       path = Settings.icons_[type];
       chrome.browserAction.setIcon({ tabId, path });
       return;

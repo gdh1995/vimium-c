@@ -14,12 +14,12 @@ if (Build.BTypes & ~BrowserType.Firefox) {
   (close as () => {})();
 }
 if (!(Build.BTypes & ~BrowserType.Firefox)) {
-  (browser as typeof chrome).runtime.connect({ name:"vimium-c.999" });
+  (browser as typeof chrome).runtime.connect({ name: "vimium-c.999" });
 } else if (Build.BTypes & BrowserType.Firefox) {
   setTimeout(function (): void {
     (!(Build.BTypes & ~BrowserType.Chrome) ? chrome
       : !(Build.BTypes & ~BrowserType.Firefox) ? browser as typeof chrome
       : window.chrome || browser
-    ).runtime.connect({ name:"vimium-c.999" });
+    ).runtime.connect({ name: "vimium-c.999" });
   }, 33);
 }

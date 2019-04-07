@@ -11,11 +11,12 @@ VDom.allowScripts_ = 0;
   injector.checkIfEnabled = (function (this: null
       , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
     func({ H: kFgReq.checkIfEnabled, u: location.href });
-  }).bind(null, injector.checkIfEnabled);
+  }).bind(null, (injector.$priv as NonNullable<VimiumInjectorTy["$priv"]>)[0]);
   injector.getCommandCount = (function (this: null, func: (this: void) => string): number {
     var currentKeys = func();
     return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
-  }).bind(null, injector.getCommandCount as (this: void) => (string | number) as (this: void) => string);
+  }).bind(null, (injector.$priv as NonNullable<VimiumInjectorTy["$priv"]>)[1]);
+  injector.$priv = null;
 
   // Note: should keep the same with frontend.ts
   const useBrowser = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
@@ -39,7 +40,7 @@ VDom.allowScripts_ = 0;
       , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9");
   }
   let livingCheckTimer = 0;
-  injector.$_run = function(task): void {
+  injector.$_run = function (task): void {
     if (task === InjectorTask.reload) {
       VimiumInjector && VimiumInjector.reload(InjectorTask.reload);
       return;

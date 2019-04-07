@@ -69,8 +69,11 @@ var Tasks = {
     var has_wordsRe = getBuildItem("BTypes") & /* not Firefox */ ~2
             && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
-        || getBuildItem("BTypes") & /* Firefox */ 2 && !getBuildItem("NativeWordMoveOnFirefox");
-    has_wordsRe || arr.push("!front/words.txt");
+        || getBuildItem("BTypes") & /* Firefox */ 2 && !getNonNullBuildItem("NativeWordMoveOnFirefox");
+    if (!has_wordsRe) {
+      arr.push("!front/words.txt");
+      gulp.series(function() { return cleanByPath("front/words.txt"); })();
+    }
     if (!has_dialog_ui) {
       arr.push("!*/dialog_ui.*");
     }
@@ -88,8 +91,14 @@ var Tasks = {
   "build/_all": ["build/scripts", "build/options", "build/show"],
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
-    var curConfig = JSON.stringify([btypes, getBuildItem("MinCVer"), envSourceMap, envLegacy]);
+    var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, envLegacy];
     var configFile = btypes === 1 ? "chrome" : btypes === 2 ? "firefox" : "browser-" + btypes;
+    if (btypes === 2) {
+      curConfig[1] = getNonNullBuildItem("MinFFVer");
+      curConfig.push(getNonNullBuildItem("FirefoxID"));
+      curConfig.push(getNonNullBuildItem("NativeWordMoveOnFirefox"));
+    }
+    curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
     var needClean = true;
     try {

@@ -33,7 +33,10 @@ const Clipboard_ = {
     ? Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
   ? function (this: object): Promise<string> | null {
     const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
-    return clipboard ? clipboard.readText().then((this as typeof Clipboard_).reformat_) : null;
+    return (Build.MinFFVer >= FirefoxBrowserVer.MinUsable$Navigator$$Clipboard || clipboard)
+      ? (clipboard as EnsureNonNull<Navigator["clipboard"]>).readText().then(
+        (this as typeof Clipboard_).reformat_)
+      : null;
   } : function (this: object): string {
     const textArea = (this as typeof Clipboard_).getTextArea_();
     textArea.maxLength = GlobalConsts.MaxBufferLengthForPasting;
@@ -47,7 +50,7 @@ const Clipboard_ = {
     return (this as typeof Clipboard_).reformat_(value);
   } : function (this: void): null { return null; }
 },
-ContentSettings_ = {
+ContentSettings_ = Build.PContentSettings ? {
   makeKey_ (this: void, contentType: CSTypes, url?: string): string {
     return "vimiumContent|" + contentType + (url ? "|" + url : "");
   },
@@ -258,7 +261,11 @@ ContentSettings_ = {
     }
     Backend.reopenTab_(tab);
   }
-},
+} : {
+  complain_ () {
+    Backend.showHUD_("This version of Vimium C has no permissions to set CSs");
+  }
+} as never,
 Marks_ = { // NOTE: all public members should be static
   cache_: localStorage,
   cacheI_: null as MarkStorage | null,
@@ -513,6 +520,7 @@ setTimeout(function () {
     return (cache[b.id] as number) - (cache[a.id] as number);
   };
 
+  if (!Build.PContentSettings) { return; }
   for (const i of ["images", "plugins", "javascript", "cookies"] as CSTypes[]) {
     localStorage.getItem(ContentSettings_.makeKey_(i)) != null &&
     setTimeout(ContentSettings_.Clear_, 100, i);
@@ -521,7 +529,7 @@ setTimeout(function () {
 
 Utils.copy_ = Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-    && navigator.clipboard
+    && (Build.MinFFVer >= FirefoxBrowserVer.MinUsable$Navigator$$Clipboard || navigator.clipboard)
 ? function (this: void, data: string): void {
   (navigator.clipboard as EnsureNonNull<Navigator["clipboard"]>).writeText(Clipboard_.format_(data));
 } : function (this: void, data: string): void {

@@ -786,7 +786,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
         ? `.item, #input { border-width: ${
           Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
           ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`
-        : `#input::-ms-clear { display: none; }`;
+        : "#input::-ms-clear { display: none; }";
       (document.head as HTMLHeadElement).appendChild(css);
     }
     if (Build.MinCVer < BrowserVer.Min$InputEvent$$isComposing

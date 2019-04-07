@@ -4,7 +4,7 @@ var HelpDialog = {
   render_: (function (this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
       const noShadow = (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0)
-          && Settings.CONST_.StyleCacheId_.split(",", 2)[1].indexOf("s") < 0,
+          && !window.ShadowRoot,
       noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
           && ChromeVer === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
       if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0) && noShadow

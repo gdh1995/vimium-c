@@ -288,6 +288,10 @@ interface VimiumInjectorTy {
   checkIfEnabled: (this: void) => void;
   $run (taskType: BgReq[kBgReq.injectorRun]): void;
   $_run (taskType: InjectorTask): void;
+  $priv?: [
+    <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void
+    , () => string
+  ] | null;
   reload (req?: boolean | InjectorTask.reload): void;
   destroy: ((this: void, silent?: boolean) => void) | null;
 }
@@ -671,4 +675,10 @@ declare const enum BrowserVer {
   // but no source code in Chromium to disable it (tested on 2019-03-13)
   MinNoShadowDOMv0 = 76,
   assumedVer = 999,
+}
+declare const enum FirefoxBrowserVer {
+  MinEnsuredShadowDOMV1 = 63, // also DocumentOrShadowRoot::getSelection
+  MinUsable$Navigator$$Clipboard = 63,
+  Min$Document$$FullscreenElement = 64,
+  MinSupported = 64,
 }

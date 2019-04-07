@@ -539,7 +539,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   ],
 
   InsertMode = {
-    grabBackFocus_: VDom.docNotCompleteWhenVimiumIniting_ as boolean | ((event: Event, target: LockableElement) => void),
+    grabBackFocus_: VDom.docNotCompleteWhenVimiumIniting_ as boolean | (
+        (event: Event, target: LockableElement) => void),
     global_: null as CmdOptions[kFgCmd.insertMode] | null,
     hinting_: false,
     inputHint_: null as { box: HTMLDivElement, hints: HintsNS.BaseHintItem[] } | null,
@@ -1281,7 +1282,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
 
     if (vPort._port) { try { vPort._port.disconnect(); } catch {} }
     injector || (<RegExpOne> /a?/).test("");
-  }
+  };
 
   VSettings = {
     enabled_: false,
@@ -1290,10 +1291,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     destroy_: safeDestroy
   };
   if (injector) {
-    injector.checkIfEnabled = vPort.SafePost_ as {} as () => void;
-    injector.getCommandCount = function (this: void): string {
-      return currentKeys;
-    } as (this: void) => (string | number) as (this: void) => number;
+    injector.$priv = [vPort.SafePost_, function () { return currentKeys; }];
   }
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync

@@ -396,7 +396,7 @@ Are you sure you want to continue?`);
       , [(result: [Tab], _ex: FakeArg) => void], 1>(null, { active: true, currentWindow: true }),
   getCurTabs = chrome.tabs.query.bind(null, {currentWindow: true}),
   getCurShownTabs = Build.BTypes & BrowserType.Firefox
-      &&(!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
     ? chrome.tabs.query.bind(null, { currentWindow: true, hidden: false }) : 0 as never,
   getCurWnd = function (populate: boolean, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1 {
     const wndId = TabRecency_.lastWnd_;
@@ -876,7 +876,7 @@ Are you sure you want to continue?`);
       BgCmdNoTab;
   } = [
     /* kBgCmd.goBack: */ !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
-        ||chrome.tabs.goBack ? function(this: void): void {
+        || chrome.tabs.goBack ? function (this: void): void {
       const tabID = TabRecency_.last_ < 0 ? null as never : TabRecency_.last_, count = commandCount,
       jump = (count > 0 ? chrome.tabs.goBack : chrome.tabs.goForward) as NonNullable<typeof chrome.tabs.goBack>;
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
@@ -1060,9 +1060,17 @@ Are you sure you want to continue?`);
       });
     },
     /* toggleCS: */ function (this: void, tabs: [Tab]): void {
+      if (!Build.PContentSettings) {
+        (ContentSettings_.complain_ as () => any)();
+        return;
+      }
       return ContentSettings_.toggleCS_(commandCount, cOptions, tabs);
     },
     /* clearCS: */ function (this: void): void {
+      if (!Build.PContentSettings) {
+        (ContentSettings_.complain_ as () => any)();
+        return;
+      }
       return ContentSettings_.clearCS_(cOptions, cPort);
     },
     /* goTab: */ function (this: void, tabs: Tab[]): void {
@@ -1661,7 +1669,7 @@ Are you sure you want to continue?`);
     } else if (count === UseTab.ActiveTab) {
       getCurTab(func as BgCmdActiveTab);
     } else if (Build.BTypes & BrowserType.Firefox && count === UseTab.CurShownTabs
-        &&(!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
       getCurShownTabs(func as BgCmdCurWndTabs);
     } else {
       getCurTabs(func as BgCmdCurWndTabs);

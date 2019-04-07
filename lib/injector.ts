@@ -10,6 +10,7 @@ var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   checkIfEnabled: null as never,
   $run: null as never,
   $_run: null as never,
+  $priv: null,
   getCommandCount: null as never,
   destroy: null
 };
@@ -64,7 +65,8 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
     $run (task): void { VimiumInjector && VimiumInjector.$_run(task.t); },
-    $_run (): void {},
+    $_run (): void { /* empty */ },
+    $priv: null,
     getCommandCount: null as never,
     destroy: null
   };

@@ -1,6 +1,6 @@
 {
   "name": "vimium-c",
-  "version": "1.74.0",
+  "version": "1.74.1",
   "description": "customized Vimium in C-Style code, supporting Chinese, global commands and injection into some other extensions",
   "private": true,
   "config": {
@@ -39,7 +39,7 @@
     "rebuild": "gulp rebuild",
     "chrome": "bash -c \"BUILD_MinCVer=35 BUILD_BTypes=1 gulp dist && IN_DIST=1 ./scripts/make.sh\"",
     "chromium": "npm run chrome",
-    "firefox": "bash -c \"BUILD_MinCVer=64 BUILD_BTypes=2 gulp dist && IN_DIST=1 ./scripts/make.sh\"",
+    "firefox": "bash -c \"BUILD_MinFFVer=64 BUILD_PContentSettings=0 BUILD_BTypes=2 gulp dist && IN_DIST=1 ./scripts/make.sh\"",
     "zip": "bash -c \"ENABLE_SOURCE_MAP=0 gulp dist && IN_DIST=1 WITH_MAP=0 ./scripts/make.sh\"",
     "zip-d": "bash -c \"DEBUG=1 ENABLE_SOURCE_MAP=1 gulp dist && IN_DIST=1 WITH_MAP=1 ./scripts/make.sh\"",
     "clean": "gulp clean",
