@@ -149,7 +149,8 @@ var VFind = {
     a.focus_();
     a.query0_ = "";
     a.query_ || a.SetQuery_(query);
-    a.query_ && a.box_.contentDocument.execCommand("selectAll", false);
+    a.notEmpty_ = !!a.query_;
+    a.notEmpty_ && a.box_.contentDocument.execCommand("selectAll", false);
   },
   init_ (adjust: AdjustType): void {
     const ref = this.postMode_, UI = VDom.UI,
