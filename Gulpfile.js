@@ -78,7 +78,7 @@ var Tasks = {
   }],
   "static/local": function(cb) {
     locally = true;
-    gulp.series("static", "manifest")(cb);
+    gulp.series("static", "_manifest")(cb);
   },
 
   "build/scripts": ["build/background", "build/content", "build/front"],
@@ -206,7 +206,7 @@ var Tasks = {
     });
   }],
   "min/js": ["min/others"],
-  manifest: function(cb) {
+  _manifest: function(cb) {
     var minVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
     minVer = minVer ? (minVer | 0) : 0;
     if (!(browser & 1)) {
@@ -226,13 +226,13 @@ var Tasks = {
     if (locally ? browser & 2 : browser === 2) { // Firefox
       var specific = manifest.browser_specific_settings || (manifest.browser_specific_settings = {});
       var gecko = specific.gecko || (specific.gecko = {});
+      gecko.id = getNonNullBuildItem("FirefoxID");
       var ffVer = getNonNullBuildItem("MinFFVer");
       if (ffVer < 199 && ffVer >= 54) {
         gecko.strict_min_version = ffVer + ".0";
       } else {
         delete gecko.strict_min_version;
       }
-      gecko.id = getNonNullBuildItem("FirefoxID");
     }
     if (browser & 2) {
       locally && manifest.permissions.push("tabHide");
@@ -255,6 +255,7 @@ var Tasks = {
     fs.writeFile(file, data, cb);
     print("Save manifest file: " + file);
   },
+  manifest: [["min/bg"], "_manifest"],
   dist: [["static", "build/ts"], ["manifest", "min/others"]],
   "dist/": ["dist"],
 
