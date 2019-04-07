@@ -750,7 +750,7 @@ tabEngine = {
 
 searchEngine = {
   _nestedEvalCounter: 0,
-  filter_ (): void { /* empty */ },
+  filter_: Utils.blank_,
   preFilter_ (query: CompletersNS.QueryStatus, failIfNull?: true): void | true {
     let sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
        pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined;
@@ -1431,44 +1431,42 @@ knownCs: CompletersMap & SafeObject = {
       setTimeout(this.Work_, 17, null);
     },
     Work_ (xhr: XMLHttpRequest | null): void {
-      const _this = Decoder;
       let text: string | undefined;
-      for (; _this._ind < _this._jobs.length; _this._ind++) {
-        const url = _this._jobs[_this._ind], isStr = typeof url === "string",
+      for (; Decoder._ind < Decoder._jobs.length; Decoder._ind++) {
+        const url = Decoder._jobs[Decoder._ind], isStr = typeof url === "string",
         str = isStr ? url as string : (url as DecodedItem).url;
-        if (text = _this.dict_[str]) {
+        if (text = Decoder.dict_[str]) {
           isStr || ((url as DecodedItem).text = text);
           continue;
         }
-        if (!xhr && !(xhr = _this.init_())) {
-          _this._jobs.length = 0;
-          _this._ind = -1;
+        if (!xhr && !(xhr = Decoder.init_())) {
+          Decoder._jobs.length = 0;
+          Decoder._ind = -1;
           return;
         }
-        xhr.open("GET", _this._dataUrl + (Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
+        xhr.open("GET", Decoder._dataUrl + (Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
             || !(Build.BTypes & BrowserType.Chrome)
-            || _this._escapeHash ? str.replace("#", "%25") : str), true);
+            || ChromeVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
+          ? str.replace("#", "%25") : str), true);
         return xhr.send();
       }
     },
     OnXHR_ (this: XMLHttpRequest): void {
-      const _this = Decoder;
-      if (_this._ind < 0) { return; } // disabled by the outsides
-      const text = this.responseText, url = _this._jobs[_this._ind++];
+      if (Decoder._ind < 0) { return; } // disabled by the outsides
+      const text = this.responseText, url = Decoder._jobs[Decoder._ind++];
       if (typeof url !== "string") {
-        _this.dict_[url.url] = url.text = text;
+        Decoder.dict_[url.url] = url.text = text;
       } else {
-        _this.dict_[url] = text;
+        Decoder.dict_[url] = text;
       }
-      if (_this._ind < _this._jobs.length) {
-        return _this.Work_(this);
+      if (Decoder._ind < Decoder._jobs.length) {
+        return Decoder.Work_(this);
       }
-      _this._jobs.length = 0;
-      _this._ind = -1;
+      Decoder._jobs.length = 0;
+      Decoder._ind = -1;
     },
     enabled_: true,
     _dataUrl: "1",
-    _escapeHash: true,
     xhr_ (): XMLHttpRequest | null {
       if (!this._dataUrl) { return null; }
       const xhr = new XMLHttpRequest();
@@ -1480,12 +1478,11 @@ knownCs: CompletersMap & SafeObject = {
     onUpdate_ (this: void, charset: string): void {
       const enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false,
       newDataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "",
-      a = Decoder,
-      isSame = newDataUrl === a._dataUrl;
+      isSame = newDataUrl === Decoder._dataUrl;
       if (isSame) { return; }
-      a._dataUrl = newDataUrl;
+      Decoder._dataUrl = newDataUrl;
       if (enabled) {
-        a.init_ === a.xhr_ && /* inited */
+        Decoder.init_ === Decoder.xhr_ && /* inited */
         setTimeout(function (): void {
           if (HistoryCache.history_) {
             Decoder.decodeList_(HistoryCache.history_);
@@ -1493,18 +1490,15 @@ knownCs: CompletersMap & SafeObject = {
           return Decoder.decodeList_(bookmarkEngine.bookmarks_);
         }, 100);
       } else {
-        a.dict_ = Object.create<string>(null);
-        a._jobs.length = 0;
+        Decoder.dict_ = Object.create<string>(null);
+        Decoder._jobs.length = 0;
       }
-      if (a.enabled_ === enabled) { return; }
-      a._jobs = enabled ? [] as ItemToDecode[] : { length: 0, push () { /* empty */ } } as any;
-      a.enabled_ = enabled;
-      a._ind = -1;
+      if (Decoder.enabled_ === enabled) { return; }
+      Decoder._jobs = enabled ? [] as ItemToDecode[] : { length: 0, push: Utils.blank_ } as any;
+      Decoder.enabled_ = enabled;
+      Decoder._ind = -1;
     },
     init_ (): XMLHttpRequest | null {
-      if (Build.MinCVer < BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL && Build.BTypes & BrowserType.Chrome) {
-        Decoder._escapeHash = ChromeVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL;
-      }
       Settings.updateHooks_.localeEncoding = Decoder.onUpdate_;
       Decoder.onUpdate_(Settings.get_("localeEncoding"));
       Decoder.init_ = Decoder.xhr_;

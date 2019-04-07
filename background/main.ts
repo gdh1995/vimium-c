@@ -882,7 +882,7 @@ Are you sure you want to continue?`);
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
         jump(tabID, onRuntimeError);
       }
-    } : null as never,
+    } : Utils.blank_ as never,
     /* createTab: */ Utils.blank_,
     /* duplicateTab: */ function (): void {
       const tabId = cPort.s.t;
@@ -1154,7 +1154,8 @@ Are you sure you want to continue?`);
       }
       chrome.sessions.getRecentlyClosed(doRestore);
     },
-    /* blank: */ function (this: void): void { /* empty */ },
+    /* blank: */ Utils.blank_
+    ,
     /* openUrl: */ function (this: void, tabs?: [Tab] | never[]): void {
       if (cOptions.urls) {
         if (!(cOptions.urls instanceof Array)) { cOptions = null as never; return; }

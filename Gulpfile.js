@@ -219,14 +219,16 @@ var Tasks = {
     if (browser === 1) { // Chrome
       delete manifest.browser_specific_settings;
     } else if (browser === 2) { // Firefox
-      minVer = getNonNullBuildItem("MinFFVer");
       delete manifest.options_page;
       delete manifest.version_name;
       manifest.permissions.splice(manifest.permissions.indexOf("contentSettings") || manifest.length, 1);
+    }
+    if (locally ? browser & 2 : browser === 2) { // Firefox
       var specific = manifest.browser_specific_settings || (manifest.browser_specific_settings = {});
       var gecko = specific.gecko || (specific.gecko = {});
-      if (minVer < 199 && minVer >= 54) {
-        gecko.strict_min_version = minVer + ".0";
+      var ffVer = getNonNullBuildItem("MinFFVer");
+      if (ffVer < 199 && ffVer >= 54) {
+        gecko.strict_min_version = ffVer + ".0";
       } else {
         delete gecko.strict_min_version;
       }
@@ -613,7 +615,7 @@ function copyByPath(path) {
 
 function cleanByPath(path) {
   path = formatPath(path, DEST);
-  return gulp.src(path, {base: ".", read: false, dot: true}).pipe(require('gulp-clean')());
+  return gulp.src(path, {base: ".", read: false, dot: true, allowEmpty: true}).pipe(require('gulp-clean')());
 }
 
 function formatPath(path, base) {
