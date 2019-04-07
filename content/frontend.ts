@@ -255,8 +255,12 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   function onActivate(event: UIEvent | MouseEvent): void {
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? event.isTrusted : event.isTrusted !== false) {
-      const el = !(Build.BTypes & ~BrowserType.Chrome) ||
-          event.path ? (event.path as EventTarget[])[0] as Element : event.target as Element;
+      const path = event.path,
+      el = (!(Build.BTypes & ~BrowserType.Chrome) || path)
+          && (Build.MinCVer >= BrowserVer.Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow
+            || !(Build.BTypes & BrowserType.Chrome)
+            || (path as EventTarget[]).length > 1)
+          ? (path as EventTarget[])[0] as Element : event.target as Element;
       VScroller.current_ = Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_(el) : el as SafeElement | null;
     }
   }
@@ -285,6 +289,11 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
 
   const hook = (function (action: HookAction): void {
     let f = action ? removeEventListener : addEventListener;
+    if (Build.MinCVer < BrowserVer.Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow
+        && Build.BTypes & BrowserType.Chrome) {
+      Build.BTypes & ~BrowserType.Chrome && notChrome || f.call(document, "DOMActivate", onActivate, true);
+      if (action === HookAction.SuppressActivateOnDocument) { return; }
+    }
     f("keydown", onKeydown, true);
     f("keyup", onKeyup, true);
     action !== HookAction.Suppress && f("focus", onFocus, true);
@@ -908,6 +917,11 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       (r[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
       if (isEnabled) {
         InsertMode.init_();
+        if (Build.MinCVer < BrowserVer.Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow
+            && Build.BTypes & BrowserType.Chrome
+            && browserVer >= BrowserVer.Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow) {
+          hook(HookAction.SuppressActivateOnDocument);
+        }
       } else {
         InsertMode.grabBackFocus_ = false;
         hook(HookAction.Suppress);

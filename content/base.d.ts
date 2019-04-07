@@ -87,8 +87,9 @@ interface ViewBox extends ViewOffset {
 
 declare const enum HookAction {
   Install = 0,
-  Suppress = 1,
-  Destroy = 2,
+  SuppressActivateOnDocument = 1,
+  Suppress = 2,
+  Destroy = 3,
 }
 
 declare const enum PNType {
