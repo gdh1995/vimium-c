@@ -20,7 +20,6 @@ var VUtils = {
     try { url = (decode || decodeURI)(url); } catch {}
     return url;
   },
-  hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; },
   /**
    * Handler section
    */

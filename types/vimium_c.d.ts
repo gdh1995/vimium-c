@@ -500,6 +500,9 @@ declare const enum BrowserVer {
   // Chrome also began to put contain attr in use on 51 if EXPERIMENTAL
   // but obviously there's some bugs about this feature
   CSS$Contain$BreaksHelpDialogSize = 51,
+  // test: var {a,b,c}={a:(...a)=>[-1,`${Math.sign(2)}`,...a],b(i=2){return i*6}, ['c'](d){let j=class A{};return ""+j}}
+  // on C51, the above passes, but the Developer Tools can not be opened if LEGACY
+  MinEnsuredFullES6Environment = 52,
   // the 2 below are correct even if EXPERIMENTAL or LEAGCY
   MinNoUnmatchedIncognito = 52,
   // since https://github.com/chromium/chromium/commit/866d1237c72059624def2242e218a7dfe78b125e

@@ -449,7 +449,7 @@ var VFind = {
     a.isRegex_ = isRe;
     a.wholeWord_ = ww;
     a.notEmpty_ = !!query;
-    a.ignoreCase_ !== null || (a.ignoreCase_ = !VUtils.hasUpperCase_(query));
+    a.ignoreCase_ !== null || (a.ignoreCase_ = query.toLowerCase() === query);
     isRe || (query = a.isActive_ ? query.replace(a._escapeAllRe, "\\$&") : "");
 
     let re: RegExpG | null = query && a.safeCreateRe_(ww ? B + query + B : query, a.ignoreCase_ ? "gi" : "g") || null;

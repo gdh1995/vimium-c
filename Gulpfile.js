@@ -29,6 +29,7 @@ var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", fal
 var has_dialog_ui = manifest.options_ui != null && manifest.options_ui.open_in_tab !== true;
 var jsmin_status = [false, false, false];
 var buildOptionCache = Object.create(null);
+var onlyES6 = false;
 gulpPrint = gulpPrint.default || gulpPrint;
 
 createBuildConfigCache();
@@ -91,7 +92,7 @@ var Tasks = {
   "build/_all": ["build/scripts", "build/options", "build/show"],
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
-    var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, envLegacy];
+    var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, envLegacy, compilerOptions.target];
     var configFile = btypes === 1 ? "chrome" : btypes === 2 ? "firefox" : "browser-" + btypes;
     if (btypes === 2) {
       curConfig[1] = getNonNullBuildItem("MinFFVer");
@@ -900,6 +901,9 @@ function createBuildConfigCache() {
   if (!(getBuildItem("BTypes") & 0x7)) {
     throw new Error("Unsupported Build.BTypes: " + getBuildItem("BTypes"));
   }
+  var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
+  onlyES6 = !(btypes & 1 && cver < /* MinEnsuredFullES6Environment */ 52);
+  compilerOptions.target = onlyES6 ? "es6" : "es5";
 }
 
 function getNonNullBuildItem(key) {
@@ -1159,6 +1163,9 @@ function loadUglifyConfig(reload) {
     }
     else if (m && !typeof m.keep_fnames) {
       m.keep_fnames = c.keep_fnames;
+    }
+    if (onlyES6) {
+      c.hoist_vars = false;
     }
   }
   if (!locally) {
