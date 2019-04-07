@@ -248,9 +248,9 @@ declare namespace IconNS {
   const enum PixelConsts {
     MaxSize = 38, // what's currently used
 // https://docs.microsoft.com/en-us/microsoft-edge/extensions/api-support/supported-manifest-keys#browser_action-or-page_action-keys
-    KnownMaxSizeForEdge = 40,
+    KnownRecommendedLargeSizeForEdge = 40,
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/browserAction/setIcon
-    KnownMaxSizeForFirefox = 32,
+    KnownRecommendedLargeSizeForFirefox = 32, // in fact, 32 * devicePixelRatio
   }
 
   interface StatusMap<T> {
@@ -266,7 +266,7 @@ declare namespace IconNS {
   }
   interface AccessIconBuffer {
     (this: void, enabled: boolean): void;
-    (this: void): IconNS.StatusMap<IconNS.IconBuffer> | null;
+    (this: void): object | null;
   }
 }
 

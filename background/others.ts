@@ -207,7 +207,7 @@ setTimeout(function () {
       img.src = path[i as IconNS.ValidSizes];
     }
   }
-  Backend.IconBuffer_ = function (this: void, enabled?: boolean): IconNS.StatusMap<IconNS.IconBuffer> | null | void {
+  Backend.IconBuffer_ = function (this: void, enabled?: boolean): object | null | void {
     if (enabled === undefined) { return imageData; }
     if (!enabled) {
       imageData && setTimeout(function () {
@@ -222,7 +222,14 @@ setTimeout(function () {
   } as IconNS.AccessIconBuffer;
   Backend.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
-    if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
+    /** Firefox does not use ImageData as inner data format
+     * * https://dxr.mozilla.org/mozilla-central/source/toolkit/components/extensions/schemas/manifest.json#577
+     *   converts ImageData objects in parameters into data:image/png,... URLs
+     * * https://dxr.mozilla.org/mozilla-central/source/browser/components/extensions/parent/ext-browserAction.js#483
+     *   builds a css text of "--webextension-***: url(icon-url)",
+     *   and then set the style of an extension's toolbar button to it
+     */
+    if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
       path = Settings.icons_[type];
       chrome.browserAction.setIcon({ tabId, path });
       return;
