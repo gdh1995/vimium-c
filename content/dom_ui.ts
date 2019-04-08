@@ -240,17 +240,17 @@ VDom.UI = {
     }
     const enum ActionType {
       OnlyDispatch = 0,
-      DispatchAndFix = 1,
+      DispatchAndMayFix = 1,
       FixButNotDispatch = 2,
     }
     let result: ActionType = ActionType.OnlyDispatch;
     if ((!(Build.BTypes & ~BrowserType.Firefox) || VUtils.cache_.browser_ === BrowserType.Firefox)
         && modifiers && !modifiers.altKey_
-        && element instanceof HTMLAnchorElement && element.href) {
+        && element instanceof HTMLAnchorElement && element.href
+        && (element.target === "_blank" || modifiers.ctrlKey_ || modifiers.metaKey_)) {
       // need to work around Firefox's popup blocker
-      result = (element.target === "_blank" || modifiers.ctrlKey_ || modifiers.metaKey_)
-          && !(element.getAttribute("onclick") || VUtils.clickable_.has(element))
-        ? ActionType.FixButNotDispatch : ActionType.DispatchAndFix;
+      result = element.getAttribute("onclick") || VUtils.clickable_.has(element)
+          ? ActionType.DispatchAndMayFix : ActionType.FixButNotDispatch;
     }
     if (result >= ActionType.FixButNotDispatch
         || VDom.mouse_(element, "click", rect, modifiers, null, button) && result) {
