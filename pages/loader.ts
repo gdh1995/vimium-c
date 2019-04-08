@@ -5,7 +5,6 @@
 /// <reference path="../background/utils.ts" />
 /// <reference path="../background/settings.ts" />
 /// <reference path="../lib/dom_utils.ts" />
-declare var browser: unknown;
 var VimiumInjector: VimiumInjectorTy | undefined | null = null;
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : typeof browser !== "undefined" && browser && (browser as typeof chrome).runtime) {

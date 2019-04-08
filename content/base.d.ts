@@ -368,7 +368,6 @@ interface VSettingsTy {
   readonly destroy_: (this: void, silent?: boolean | 9) => void;
 }
 declare var VimiumInjector: VimiumInjectorTy | undefined | null, VSettings: VSettingsTy;
-declare var browser: unknown;
 
 interface VDataTy {
   full: string;

@@ -802,7 +802,6 @@ var Utils = {
   hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
 
-declare var browser: unknown;
 var OnOther = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
       || !(Build.BTypes & ~BrowserType.Edge)
   ? Build.BTypes as number as BrowserType

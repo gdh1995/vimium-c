@@ -82,6 +82,8 @@ Here're some issues still existing on the master branch, which are mostly caused
   * if a key is one of function key, space and arrow keys, should also use `s-` (like `<s-space>` and `<s-f12>`)
   * an exception is when a key is a punctuation (is a single character and has no lower/UPPER forms)
     * in this case, use `<a-#>` and `<c-+>` directly
+  * if only one of Alt/Ctrl/Meta is pressed, then ignore the CapsLock (just like what Chrome does),
+    and a key can be translated into `<a-s-f>` only when the ShiftKey is pressed
 * full-featured Firefox support (although Firefox has no "contentSettings" support)
 * Exclusions:
   * passKeys always takes effects, even when a prior key has matched

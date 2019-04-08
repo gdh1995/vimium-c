@@ -46,10 +46,9 @@ var VKeyboard = {
     return (key as string).length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName_(event) : key as string;
   },
   key_ (event: EventControlKeys, ch: string): string {
-    let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
-    chLower = ch.toLowerCase();
-    (modifiers || ch.length > 1) && ch !== chLower && (modifiers += "s-");
-    return ch.length > 1 || modifiers ? `<${modifiers}${chLower}>` : ch;
+    let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`;
+    event.shiftKey && (modifiers || ch.length > 1) && (modifiers += "s-");
+    return ch.length > 1 || modifiers ? `<${modifiers}${ch.toLowerCase()}>` : ch;
   },
   getKeyStat_ (event: EventControlKeys): KeyStat {
     return <number> <boolean|number> event.altKey |

@@ -1,4 +1,3 @@
-declare var browser: unknown;
 var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   id: "",
   alive: -1,

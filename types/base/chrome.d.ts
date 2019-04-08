@@ -3058,3 +3058,5 @@ declare namespace chrome.windows {
      */
     var onFocusChanged: WindowIdEvent;
 }
+
+declare var browser: unknown;

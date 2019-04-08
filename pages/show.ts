@@ -36,7 +36,6 @@ interface VDataTy {
   auto?: boolean | "once";
 }
 
-declare var browser: unknown;
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
