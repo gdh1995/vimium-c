@@ -118,10 +118,7 @@ var VDom = {
   },
   scrollingEl_ (fallback?: 1): ((HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement) | null {
     type ValidScrollingElement = HTMLBodyElement | HTMLHtmlElement | SVGSVGElement;
-    if (Build.MinCVer >= BrowserVer.MinEnsured$ScrollingElement$IsDocumentElement
-        && !(Build.BTypes & ~BrowserType.Chrome)) {
-      return document.documentElement;
-    }
+    // Both C73 and FF66 still supports the Quirk mode (entered by `document.open()`)
     if (Build.MinCVer >= BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset
         || !(Build.BTypes & BrowserType.Chrome)) {
       return document.scrollingElement as (ValidScrollingElement & SafeElement) | null;
@@ -129,7 +126,7 @@ var VDom = {
     let d = document, el = d.scrollingElement;
     if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && el === undefined) {
       /**
-       * The code about `inQuirksMode` in `Element::scrollTop()` is wrapped by a flag #scrollTopLeftInteropEnabled
+       * The code about `inQuirksMode` in `Element::scrollTop()` is wrapped by a flag #scrollTopLeftInterop
        * since [2013-11-18] https://github.com/chromium/chromium/commit/25aa0914121f94d2e2efbc4bf907f231afae8b51 ,
        * while the flag is hidden on Chrome 34~43 (32-bits) for Windows (34.0.1751.0 is on 2014-04-07).
        * As a result, only `document.body` works
