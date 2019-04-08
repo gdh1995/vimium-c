@@ -117,9 +117,15 @@ var VDom = {
     (this: void, el: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null;
   },
   scrollingEl_ (fallback?: 1): ((HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement) | null {
-    let d = document, el = d.scrollingElement, docEl = d.documentElement;
-    if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome) {
-      el === undefined && (el = d.compatMode === "BackCompat" ? d.body : docEl);
+    let d = document, el = d.scrollingElement, docEl = d.documentElement,
+      body = Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome
+              ? d.body : null;
+    if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome
+        && el === undefined) {
+      // not use https://github.com/mathiasbynens/document.scrollingElement/issues/1 because it's too expensive
+      el = d.compatMode === "BackCompat"
+         || body && (window.scrollY ? body.scrollTop : (docEl as HTMLHtmlElement).scrollHeight <= body.scrollHeight)
+        ? body : docEl;
     }
     if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset && Build.BTypes & BrowserType.Chrome) {
       el = el instanceof HTMLFrameSetElement ? null : el;

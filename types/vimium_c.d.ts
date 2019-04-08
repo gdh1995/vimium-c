@@ -428,6 +428,8 @@ declare const enum BrowserVer {
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   // #scroll-top-left-interop is also since C44
   // `scrollingElement` is added in (commit 8df26a52e71e5b239c3749ec6f4180441ee4fc7e)
+  // before C44, the real scrolling may be <body> even if document.compatMode is "CSS1Compat"
+  // - it's said this behavior is for compatibility with websites at that time
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
   // even if EXPERIMENTAL or EMPTY
