@@ -117,20 +117,27 @@ var VDom = {
     (this: void, el: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null;
   },
   scrollingEl_ (fallback?: 1): ((HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement) | null {
-    let d = document, el = d.scrollingElement, docEl = d.documentElement,
-      body = Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome
-              ? d.body : null;
-    if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome
-        && el === undefined) {
-      // not use https://github.com/mathiasbynens/document.scrollingElement/issues/1 because it's too expensive
-      el = d.compatMode === "BackCompat"
-         || body && (window.scrollY ? body.scrollTop : (docEl as HTMLHtmlElement).scrollHeight <= body.scrollHeight)
-        ? body : docEl;
+    type ValidScrollingElement = HTMLBodyElement | HTMLHtmlElement | SVGSVGElement;
+    if (Build.MinCVer >= BrowserVer.MinEnsured$ScrollingElement$IsDocumentElement
+        && !(Build.BTypes & ~BrowserType.Chrome)) {
+      return document.documentElement;
     }
-    if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset && Build.BTypes & BrowserType.Chrome) {
-      el = el instanceof HTMLFrameSetElement ? null : el;
+    if (Build.MinCVer >= BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset
+        || !(Build.BTypes & BrowserType.Chrome)) {
+      return document.scrollingElement as (ValidScrollingElement & SafeElement) | null;
     }
-    return (fallback ? el || docEl : el) as (HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement | null;
+    let d = document, el = d.scrollingElement;
+    if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && el === undefined) {
+      /**
+       * The code about `inQuirksMode` in `Element::scrollTop()` is wrapped by a flag #scrollTopLeftInteropEnabled
+       * since [2013-11-18] https://github.com/chromium/chromium/commit/25aa0914121f94d2e2efbc4bf907f231afae8b51 ,
+       * while the flag is hidden on Chrome 34~43 (32-bits) for Windows (34.0.1751.0 is on 2014-04-07).
+       * As a result, only `document.body` works
+       */
+      el = d.body;
+    }
+    el = el instanceof HTMLFrameSetElement ? null : el;
+    return (fallback ? el || d.documentElement : el) as (ValidScrollingElement & SafeElement) | null;
   },
   /**
    * other parts of code require that prepareCrop only depends on @dbZoom
