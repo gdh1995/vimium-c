@@ -712,7 +712,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       s = s.toLowerCase();
       for (let i = 0; i < count; i++) {
         if (s.indexOf(names[i]) !== -1) {
-          if (s.indexOf(refusedStr) === -1 && (len = s.split(re1).length) <= maxLen) {
+          if (s.indexOf(refusedStr) === -1 && (len = (s = s.trim()).split(re1).length) <= maxLen) {
             let i2 = detectQuirk - i ? names.indexOf(s, i + 1) : s.indexOf(quirk) >= 0 ? quirkIdx : -1;
             if (i2 >= 0) { i = i2; len = 2; }
             maxLen > len && (maxLen = len + 1);
