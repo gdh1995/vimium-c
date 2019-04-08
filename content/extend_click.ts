@@ -350,6 +350,10 @@ _listen("load", delayFindAll, true);
   }
   // else: sandboxed or JS-disabled
   script.remove();
+  if (!(Build.BTypes & BrowserType.Chrome)
+      || Build.BTypes & ~BrowserType.Chrome && !appVer) {
+    return;
+  }
   const breakTotally = Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
       && Build.BTypes & BrowserType.Chrome
       && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && appVer;
