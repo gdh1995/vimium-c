@@ -6,6 +6,7 @@ OTHER_EXT=
 OTHER_ARGS=
 GUD=/r/TEMP/GUD
 WORKING_DIR=/r/working
+VC_ROOT=
 DIST=0
 
 function wp() {
@@ -53,7 +54,10 @@ case "$1" in
     shift
     ;;
   *)
-    break
+    if test -d "$1" && test -f "$1/manifest.json"; then
+      VC_ROOT=$1
+    fi
+    shift
     ;;
 esac
 done
@@ -70,10 +74,10 @@ dir=$(/usr/bin/realpath "${BASH_SOURCE[0]}")
 dir=${dir%/*}
 if test -f "$dir"/Chrome/chrome.exe; then
   CHROME_ROOT=$dir
-  VC_ROOT=/e/Git/weidu+vim/vimium-c
+  VC_ROOT=${VC_ROOT:-/e/Git/weidu+vim/vimium-c}
 else
   CHROME_ROOT='/d/Program Files/Google'
-  VC_ROOT=${dir%/*}
+  VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
 test "$VER" == cur && VER=
 if test "$VER" == wo; then
