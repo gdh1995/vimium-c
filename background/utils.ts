@@ -760,7 +760,7 @@ var Utils = {
     return null;
   },
   keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,4}.\w*?>|./g, /* need to support "<<left>" */
-  keyReToFormat_: <RegExpG & RegExpSearchable<2>> /<((?:[acm]-){1,3})([^a-z0-9][\dA-Z]*)>/g,
+  keyReToFormat_: <RegExpG & RegExpSearchable<2>> /<(?!<)((?:[acm]-){0,3})([^a-z0-9][\dA-Z]*)>/g,
   onFormatKey_ (this: void, _0: string, modifiers: string, ch: string): string {
     const chLower = ch.toLowerCase();
     return ch !== chLower ? `<${modifiers}s-${chLower}>` : _0;
