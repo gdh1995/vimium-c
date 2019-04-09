@@ -654,7 +654,7 @@ declare const enum BrowserVer {
   // issue: https://bugs.chromium.org/p/chromium/issues/detail?id=811528
   // the commit is firstly applied to C68:
   // https://github.com/chromium/chromium/commit/5a5267ab58dd0310fc2b427db30de60c0eea4457
-  MinNewScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
+  MinEnsuredNewScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
   MinASameZoomOfDocElAsdevPixRatioWorksAgain = 68,
   // even if EXPERIMENTAL or LEGACY
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>

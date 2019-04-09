@@ -9,6 +9,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   const enum InnerConsts {
     MaxElementsInOneTick = 64,
     MaxUnsafeEventsInOneTick = 12,
+    DelayToWaitDomReady = 1000,
     DelayToFindAll = 600,
     DelayToStartIteration = 333,
     DelayForNext = 36,
@@ -107,7 +108,8 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
       dispatchCmd(kContentCmd.Destroy);
     }
     if (box === null) {
-      setTimeout(function (): void { r(kHook, hook, true); }, 1100);
+      // in case of untrusted DOMReady events
+      setTimeout(function (): void { r(kHook, hook, true); }, InnerConsts.DelayToWaitDomReady + 100);
     }
     box = false;
     settings && (settings.execute_ = null);
@@ -210,7 +212,7 @@ next = function (): void {
   doRegister();
   allNodesInDocument = allNodesForDetached = null;
 }
-, root: HTMLDivElement, timer = setTimeout_(handler, 1000)
+, root: HTMLDivElement, timer = setTimeout_(handler, InnerConsts.DelayToWaitDomReady)
 , SR: typeof ShadowRoot = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
       ? ShadowRoot : window.ShadowRoot as typeof ShadowRoot
 ;
@@ -343,20 +345,23 @@ _listen("load", delayFindAll, true);
   VDom.OnDocLoaded_(function (): void { box === null && setTimeout(function (): void {
     box || execute(kContentCmd.Destroy);
   }, 17); });
-  if (!script.parentNode) { // It succeeded to hook.
+  if ((Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+        && !(Build.BTypes & ~BrowserType.Chrome))
+      || !script.parentNode) { // It succeeded to hook.
     Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage ||
     !(Build.BTypes & BrowserType.Chrome) ||
     VDom.allowRAF_ || requestAnimationFrame(() => { VDom.allowRAF_ = 1; });
     return;
   }
-  // else: sandboxed or JS-disabled
+  // else: sandboxed or JS-disabled; Firefox == * or Chrome < 68 (MinEnsuredNewScriptsFromExtensionOnSandboxedPage)
   script.remove();
   if (!(Build.BTypes & BrowserType.Chrome)
       || Build.BTypes & ~BrowserType.Chrome && !appVer) {
     return;
   }
+  // else: Chrome < MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   const breakTotally = Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
-      && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && appVer;
+      && appVer && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage;
   console.info((Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally
                 ? "Vimium C can" : "Some functions of Vimium C may")
       + " not work because %o is sandboxed.",
@@ -375,8 +380,8 @@ _listen("load", delayFindAll, true);
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
-    return (Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
-            || VDom && VDom.allowRAF_)
+    return (BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAForRICOnSandboxedPage
+            || Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage || VDom && VDom.allowRAF_)
       ? f && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && f instanceof Element)
         ? (f as Exclude<typeof f, null | Element>)(cb, { timeout }) : requestAnimationFrame(cb)
       : (Promise.resolve(1).then(cb), 1);
