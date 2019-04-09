@@ -310,18 +310,19 @@ _listen(kOnDomRead, handler, true);
 _listen("load", delayFindAll, true);
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */
     , appInfo = Build.BTypes & BrowserType.Chrome
-        && (Build.MinCVer < BrowserVer.NoRAForRICOnSandboxedPage
-            || Build.MinCVer <= BrowserVer.MinEnsuredMethodFunction
-            || Build.MinCVer <= BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
+        && (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage
+            || Build.MinCVer < BrowserVer.MinEnsuredMethodFunction
+            || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
         ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as 0
     , appVer: BrowserVer | 0 = Build.BTypes & BrowserType.Chrome
-        && (Build.MinCVer < BrowserVer.NoRAForRICOnSandboxedPage
-            || Build.MinCVer <= BrowserVer.MinEnsuredMethodFunction
-            || Build.MinCVer <= BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
+        && (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage
+            || Build.MinCVer < BrowserVer.MinEnsuredMethodFunction
+            || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
         && appInfo && <BrowserVer> +appInfo[1] || 0 as 0;
     ;
-  Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome &&
-    (VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage ? 1 : 0);
+  if (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome) {
+    VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage ? 1 : 0;
+  }
   if (Build.MinCVer < BrowserVer.MinEnsuredMethodFunction && Build.BTypes & BrowserType.Chrome &&
       appVer >= BrowserVer.MinEnsuredMethodFunction) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
@@ -355,14 +356,12 @@ _listen("load", delayFindAll, true);
     return;
   }
   const breakTotally = Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
-      && Build.BTypes & BrowserType.Chrome
       && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && appVer;
   console.info((Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally
                 ? "Vimium C can" : "Some functions of Vimium C may")
       + " not work because %o is sandboxed.",
     location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
-  if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
-      && Build.BTypes & BrowserType.Chrome && breakTotally) {
+  if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally) {
     VSettings.destroy_(true);
     return;
   }
@@ -378,8 +377,7 @@ _listen("load", delayFindAll, true);
     // in case there's `$("#requestIdleCallback")`
     return (Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
             || VDom && VDom.allowRAF_)
-      ? f && !(Build.BTypes & BrowserType.Chrome
-                && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && f instanceof Element)
+      ? f && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && f instanceof Element)
         ? (f as Exclude<typeof f, null | Element>)(cb, { timeout }) : requestAnimationFrame(cb)
       : (Promise.resolve(1).then(cb), 1);
   };
