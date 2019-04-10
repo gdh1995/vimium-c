@@ -28,7 +28,7 @@ declare const enum kBgReq {
   createMark, showHUD, count, showHelpDialog,
   OMNI_MIN = 42,
   omni_secret = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
-  omni_toggleStyle,
+  omni_toggleStyle, omni_globalOptions,
   END = "END", // without it, TypeScript will report errors for number indexes
 }
 
@@ -119,6 +119,7 @@ interface BgVomnibarSpecialReq {
     secret: number;
     browser: BrowserType;
     browserVer: BrowserVer;
+    o: SettingsNS.BackendSettings["vomnibarOptions"],
     /** CSS */ S: string;
     cls: string;
   };
@@ -131,6 +132,9 @@ interface BgVomnibarSpecialReq {
     /** toggled */ t?: string; // toggle it
     /** current */ c?: boolean;
   };
+  [kBgReq.omni_globalOptions]: {
+    o: SettingsNS.BackendSettings["vomnibarOptions"];
+  }
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.showHUD;
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}

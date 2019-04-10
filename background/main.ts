@@ -2309,6 +2309,7 @@ Are you sure you want to continue?`);
           browser: !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
               || !(Build.BTypes & ~BrowserType.Edge) ? Build.BTypes as number as BrowserType : OnOther,
           browserVer: ChromeVer,
+          o: Settings.cache_.vomnibarOptions,
           S: Settings.cache_.omniCSS_,
           cls: omniStyles,
           secret: getSecret()
@@ -2524,6 +2525,7 @@ Are you sure you want to continue?`);
     onInit_(): void {
       // the line below requires all necessary have inited when calling this
       Backend.onInit_ = null;
+      Settings.postUpdate_("vomnibarOptions");
       chrome.runtime.onConnect.addListener(function (port): void {
         return OnConnect(port as Frames.Port, (port.name.substring(9) as string | number as number) | 0);
       });

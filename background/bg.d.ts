@@ -345,6 +345,7 @@ declare namespace SettingsNS {
 
   interface FullCache extends SafeObject, PartialOrEnsured<FullSettings
       , "innerCSS" | "newTabUrl_f" | "searchEngineMap" | "searchEngineRules" | "vomnibarPage_f"
+        | "vomnibarOptions"
       > {
     findCSS_: FindCSS; // should not in Settings.defaults
     omniCSS_: string; // should not in Settings.defaults

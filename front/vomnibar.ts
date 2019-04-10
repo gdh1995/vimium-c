@@ -25,8 +25,6 @@ declare const enum AllowedActions {
 
 interface ConfigurableItems {
   /** @deprecated */ ExtId?: string;
-  VomnibarListLength?: number;
-  VomnibarRefreshInterval?: number;
   VomnibarWheelInterval?: number;
   VomnibarMaxPageNum?: number;
 }
@@ -51,7 +49,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     let scale = window.devicePixelRatio;
     a.zoomLevel_ = scale < 0.98 ? 1 / scale : 1;
     a.setWidth_(options.w * PixelData.WindowSizeX + PixelData.MarginH);
-    const max = Math.max(3, Math.min(0 | ((options.h - PixelData.ListSpaceDelta) / PixelData.Item), a.maxResults_));
+    const max = Math.max(3, Math.min(0 | ((options.h - PixelData.ListSpaceDelta) / PixelData.Item),
+                                      a.globalOptions_.maxMatches));
     a.maxHeight_ = Math.ceil((a.mode_.r = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
     a.init_ && a.setPType_(options.t);
     if (a.mode_.i) {
@@ -127,7 +126,6 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   list_: null as never as HTMLDivElement,
   onUpdate_: null as (() => void) | null,
   doEnter_: null as ((this: void) => void) | null,
-  refreshInterval_: Math.max(256, (<number> window.VomnibarRefreshInterval | 0) || 500),
   wheelInterval_: Math.max(33, (<number> window.VomnibarWheelInterval | 0) || 100),
   renderItems_: null as never as Render,
   selection_: -1,
@@ -137,6 +135,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   wheelDelta_: 0,
   browser_: BrowserType.Chrome,
   browserVersion_: BrowserVer.assumedVer,
+  globalOptions_: null as never as SettingsNS.BackendSettings["vomnibarOptions"],
   customStyle_: null as HTMLStyleElement | null,
   customClassName_: "",
   darkBtn_: null as HTMLElement | null,
@@ -231,7 +230,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     } else if (a.timer_ > 0) {
       return;
     } else {
-      updateDelay = a.refreshInterval_;
+      updateDelay = a.globalOptions_.queryInterval;
     }
     a.timer_ = setTimeout(a.OnTimer_, updateDelay);
   },
@@ -928,7 +927,6 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   secret_: null as ((request: BgVomnibarSpecialReq[kBgReq.omni_secret]) => void) | null,
 
-  maxResults_: (<number> window.VomnibarListLength | 0) || 10,
   mode_: {
     H: kFgReq.omni as kFgReq.omni,
     o: "omni" as CompletersNS.ValidTypes,
@@ -1108,6 +1106,7 @@ VPort_ = {
     name === kBgReq.omni_returnFocus ? Vomnibar_.returnFocus_(response as Req.bg<kBgReq.omni_returnFocus>) :
     name === kBgReq.showHUD ? Vomnibar_.css_(response as Req.bg<kBgReq.showHUD> as BgCSSReq) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
+    name === kBgReq.omni_globalOptions ? Vomnibar_.globalOptions_ = (response as Req.bg<kBgReq.omni_globalOptions>).o :
     // tslint:disable-next-line: no-unused-expression
     0;
   },
@@ -1194,6 +1193,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     Vomnibar_.secret_ = null;
     Vomnibar_.browser_ = request.browser;
     Vomnibar_.browserVersion_ = request.browserVer;
+    Vomnibar_.globalOptions_ = request.o;
     Vomnibar_.css_(request);
     Vomnibar_.customClassName_ = request.cls;
     const { secret } = request, msgs = unsafeMsg;

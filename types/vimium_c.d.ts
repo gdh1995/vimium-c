@@ -205,6 +205,12 @@ declare const enum PortType {
 }
 
 declare namespace SettingsNS {
+  interface BackendSettings {
+    vomnibarOptions: {
+      maxMatches: number;
+      queryInterval: number;
+    };
+  }
   interface FrontUpdateAllowedSettings {
     showAdvancedCommands: boolean;
   }

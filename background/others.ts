@@ -12,7 +12,7 @@ declare const enum OmniboxData {
 declare const enum SyncConsts {
   LocalItemCountWhenInstalled = 6,
 }
-setTimeout(function () {
+setTimeout(function (): void {
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
@@ -170,7 +170,7 @@ setTimeout(function () {
   });
 }, 1000);
 
-setTimeout(function () {
+setTimeout(function (): void {
   if (!chrome.browserAction) { return; }
   const func = Settings.updateHooks_.showActionIcon;
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
@@ -258,7 +258,7 @@ setTimeout(function () {
   Settings.postUpdate_("showActionIcon");
 }, 150);
 
-setTimeout(function () {
+setTimeout(function (): void {
   if (!chrome.omnibox) { return; }
   type OmniboxCallback = (this: void, suggestResults: chrome.omnibox.SuggestResult[]) => true | void;
   const enum FirstSugType {
@@ -421,8 +421,9 @@ setTimeout(function () {
     }
     lastSuggest = { suggest, key, sent: false };
     if (timer) { return; }
-    const now = Date.now(), delta = 600 + inputTime - now; /** it's made safe by {@see #onTimer} */
-    if (delta > 50) {
+    const now = Date.now(),
+    delta = Settings.cache_.vomnibarOptions.queryInterval + inputTime - now; /** it's made safe by {@see #onTimer} */
+    if (delta > 30 && delta < 3000) { // in case of system time jumping
       timer = setTimeout(onTimer, delta);
       return;
     }

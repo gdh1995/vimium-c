@@ -276,6 +276,27 @@ var Settings = {
         }
       }
       a.set_("vomnibarPage_f", url);
+    },
+    vomnibarOptions (this: {}, options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void {
+      const a = this as typeof Settings, defaultOptions = a.defaults_.vomnibarOptions;
+      let isSame = true;
+      if (options !== defaultOptions && options && typeof options === "object") {
+        const { maxMatches: defaultMatches, queryInterval: defaultInterval } = defaultOptions,
+        maxMatches = Math.max(3, Math.min((options.maxMatches | 0) || defaultMatches, 25)),
+        newInterval = +options.queryInterval,
+        queryInterval = Math.max(0, Math.min(newInterval >= 0 ? newInterval : defaultInterval, 1200));
+        isSame = defaultMatches === maxMatches && defaultInterval === queryInterval;
+        if (!isSame) {
+          options.maxMatches = maxMatches;
+          options.queryInterval = queryInterval;
+        }
+      }
+      (a.cache_ as Writeable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
+        : options as NonNullable<typeof options>;
+      const request2: Req.bg<kBgReq.omni_globalOptions> = { N: kBgReq.omni_globalOptions, o: options };
+      for (const frame of Backend.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
+        frame.postMessage(request2);
+      }
     }
   } as { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } as SettingsNS.FullUpdateHookMap,
   /** can only fetch files in the `[ROOT]/front` folder */
@@ -364,6 +385,10 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     showAdvancedCommands: false,
     showAdvancedOptions: false,
     smoothScroll: true,
+    vomnibarOptions: {
+      maxMatches: 10,
+      queryInterval: 500,
+    },
     styles: "",
     userDefinedCss: "",
     vimSync: null,
