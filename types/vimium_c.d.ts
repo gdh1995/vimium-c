@@ -372,6 +372,7 @@ declare const enum BrowserVer {
   MinEnsuredES6WeakMapAndWeakSet = 36,
   // but shadowRoot.getElementById still exists on C35
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEGACY
+  MinPhysicalPixelOnWindows = 37, // even if EXPERIMENTAL or LEGACY; replaced by MinHighDPIOnWindows
   MinSession = 37,
   // even if EXPERIMENTAL; Note: should use MinSafeCSS$All
   /** @deprecated */
@@ -534,7 +535,7 @@ declare const enum BrowserVer {
   Min$Extension$$GetView$AcceptsTabId = 54,
   // the 7 below are correct even if EXPERIMENTAL or LEGACY
   MinUnprefixedUserSelect = 54,
-  MinHighDPIOnRemoteDesktop = 54,
+  MinHighDPIOnWindows = 54, // replace MinPhysicalPixelOnWindows
   MinNo$KeyboardEvent$$keyIdentifier = 54,
   // https://chromium.googlesource.com/chromium/src/+/9520623861da283533e71d6b7a8babd02675cb0b
   Min$Node$$getRootNode = 54, // not on Edge

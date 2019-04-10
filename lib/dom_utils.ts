@@ -150,20 +150,23 @@ var VDom = {
    */
   prepareCrop_ (): number {
     let iw: number, ih: number, ihs: number;
-    this.prepareCrop_ = (function (this: typeof VDom): number {
-      let fz = this.dbZoom_, el = this.scrollingEl_(), i: number, j: number, b = this.paintBox_;
-      if (el) {
-        i = el.clientWidth, j = el.clientHeight;
+    this.prepareCrop_ = (function (this: void): number {
+      const a = VDom, fz = a.dbZoom_, dz = fz / a.bZoom_, b = a.paintBox_,
+      d = document, doc = document.documentElement,
+      el = Build.MinCVer >= BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled || !(Build.BTypes & BrowserType.Chrome)
+            ? a.scrollingEl_() : d.compatMode === "BackCompat" ? d.body : doc;
+      let i: number, j: number;
+      if (Build.MinCVer < BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled && Build.BTypes & BrowserType.Chrome
+          ? el && !a.notSafe_(el) : el) {
+        i = (el as SafeElement).clientWidth, j = (el as SafeElement).clientHeight;
       } else {
         i = innerWidth, j = innerHeight;
-        const doc = document.documentElement as Element | null, dz = fz / this.bZoom_;
         if (!doc) { return ih = j, ihs = j - 8, iw = i; }
-        // not reliable
+        // the below is not reliable but safe enough, even when docEl is unsafe
         i = Math.min(Math.max(i - GlobalConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
         j = Math.min(Math.max(j - GlobalConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
       }
       if (b) {
-        const dz = fz / this.bZoom_;
         i = Math.min(i, b[0] * dz); j = Math.min(j, b[1] * dz);
       }
       iw = (i / fz) | 0, ih = (j / fz) | 0;
