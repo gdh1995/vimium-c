@@ -532,7 +532,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All ? ""
       : (Build.MinCVer > BrowserVer.MinSafeCSS$All || ChromeVer > BrowserVer.MinSafeCSS$All)
         && (!(Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))
-          || "all" in (document.documentElement as HTMLElement).style)
+          || "all" in (document.documentElement as HTMLHtmlElement).style)
       ? "a" : "")
     + ",";
   const innerCSS = localStorage.getItem("innerCSS");

@@ -322,8 +322,7 @@ VDom.UI = {
       return VDom.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
     const rect = VDom.getVisibleClientRect_(clickEl),
-    cr = Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getBoundingClientRect.call(clickEl)
-      : clickEl.getBoundingClientRect(),
+    cr = VDom.getBoundingClientRect_(clickEl),
     bcr = VDom.padClientRect_(cr, 8);
     return rect && !VDom.isContaining_(bcr, rect) ? rect
       : VDom.cropRectToVisible_.apply(VDom, bcr as [number, number, number, number]) ? bcr : null;

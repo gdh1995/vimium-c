@@ -496,7 +496,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       const hints = visibleInputs.sort((a, b) => a[2] - b[2]).map(function (link): HintsNS.BaseHintItem {
         const marker = VDom.createElement_("span") as HintsNS.BaseHintItem["marker"],
-        rect = VDom.padClientRect_(link[0].getBoundingClientRect(), 3);
+        rect = VDom.padClientRect_(VDom.getBoundingClientRect_(link[0]), 3);
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
         marker.className = "IH";
         VDom.setBoundary_(marker.style, rect);
@@ -691,7 +691,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         : VHints.ngEnabled_ && element.getAttribute("ng-click")));
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
-    const rect = element.getBoundingClientRect();
+    const rect = VDom.getBoundingClientRect_(element);
     if (rect.width > 2 && rect.height > 2 && getComputedStyle(element).visibility === "visible") {
       this.push(element);
     }
@@ -699,7 +699,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   findAndFollowLink_ (names: string[], isNext: boolean): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: HTMLElement; }
     // Note: this traverser should not need a prepareCrop
-    const count = names.length, links = VHints.traverse_("*", Pagination.GetLinks_, true, true),
+    let links = VHints.traverse_("*", Pagination.GetLinks_, true, true);
+    const count = names.length,
     quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
     detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
     refusedStr = isNext ? "<" : ">";
@@ -724,6 +725,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
     }
     if (candidates.length <= 0) { return false; }
+    links = [];
     maxLen = (maxLen + 1) << 16;
     candidates = candidates.filter(a => (a[0] & 0x7fffff) < maxLen).sort((a, b) => a[0] - b[0]);
     for (let re2 = <RegExpOne> /\b/, i = candidates[0][0] >> 23; i < count; ) {
@@ -1180,7 +1182,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         , cmd?: kFgCmd, count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): boolean {
       let wnd = window, docEl = document.documentElement, el = wnd === wnd.top ? null : VDom.parentFrame_() || docEl;
       if (!el) { return false; }
-      let box = el.getBoundingClientRect(),
+      let box = VDom.getBoundingClientRect_(el),
       result = box.height === 0 && box.width === 0 || getComputedStyle(el).visibility === "hidden";
       if (!count) { /* empty */ }
       else if (result) {

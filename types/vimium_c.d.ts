@@ -620,6 +620,7 @@ declare const enum BrowserVer {
     // which has been fixed commit 0cf160e2ff055fb12c562cabc2da9e62db14cc8d (if #scroll-top-left-interop is enabled),
     // and it's always fixed since C61
   MinEnsured$ScrollingElement$CannotBeFrameset = 61,
+  MinScrollTopLeftInteropIsAlwaysEnabled = 61,
   MinMaybe$Document$$fullscreenElement = 61, // if EXPERIMENTAL
   MinCSS$Color$$RRGGBBAA = 62,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https

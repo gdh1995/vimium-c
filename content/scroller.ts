@@ -219,7 +219,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     const before = this.getDimension_(el, di, kScrollDim.position),
     changed = this._performScroll(el, di, (amount > 0 ? 1 : -1) * this.scale_, before);
     if (changed) {
-      if (el.scrollTo) {
+      if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
+          || !(Build.BTypes & ~BrowserType.Firefox) || el.scrollTo) {
         let arg: ScrollToOptions = {behavior: "instant"};
         arg[di ? "top" : "left"] = before;
         el.scrollTo(arg);
@@ -241,7 +242,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       element = _ref[_len] as Element as /** fake `as` */ SafeElement;
       // here assumes that a <form> won't be a main scrollable area
       if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { continue; }
-      const rect = element.getBoundingClientRect(),
+      const rect = VDom.getBoundingClientRect_(element),
       visible = rect.height > 0 ? VDom.cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)
         : VDom.getVisibleClientRect_(element);
       if (visible) {

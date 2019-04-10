@@ -4,6 +4,7 @@ var VDom = {
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as BOOL,
   allowRAF_: 1 as BOOL,
+  /** is true only when Firefox  */
   fixedClientTop_: !(Build.BTypes & ~BrowserType.Firefox) ? 1 as BOOL : 0 as BOOL,
   specialZoom_: !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
     ? true : !!(Build.BTypes & BrowserType.Chrome),
@@ -178,6 +179,10 @@ var VDom = {
     });
     return this.prepareCrop_();
   },
+  getBoundingClientRect_ (el: Element): ClientRect {
+    return Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getBoundingClientRect.call(el)
+      : el.getBoundingClientRect();
+  },
   getVisibleClientRect_ (element: Element, el_style?: CSSStyleDeclaration): Rect | null {
     const arr = Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getClientRects.call(element)
                 : element.getClientRects();
@@ -333,15 +338,19 @@ var VDom = {
     _tf = st.transform, scale = a.dScale_ = _tf && !_tf.startsWith("matrix(1,") && float(_tf.slice(7)) || 1,
     // NOTE: if box.zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
-    rect = box.getBoundingClientRect();
+    rect = VDom.getBoundingClientRect_(box);
     let zoom = Build.BTypes & ~BrowserType.Firefox && +st.zoom || 1;
     Build.BTypes & BrowserType.Chrome &&
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
       && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
     a.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
     a.dbZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom * zoom2 : zoom2;
-    let x = stacking ? a.fixedClientTop_ ? -float(st.borderLeftWidth) : -box.clientLeft : float(st.marginLeft)
-      , y = stacking ? a.fixedClientTop_ ? -float(st.borderTopWidth) : -box.clientTop  : float(st.marginTop );
+    let x = !stacking ? float(st.marginLeft)
+          : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && a.fixedClientTop_
+          ? -float(st.borderLeftWidth) : -box.clientLeft
+      , y = !stacking ? float(st.marginTop)
+          : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && a.fixedClientTop_
+          ? -float(st.borderTopWidth ) : -box.clientTop;
     x = x * scale - rect.left, y = y * scale - rect.top;
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
     x = Math.abs(x) < 0.01 ? 0 : Math.ceil(Math.round(x / zoom2 * 100) / 100);
@@ -356,7 +365,7 @@ var VDom = {
     a.paintBox_ = containHasPaint ? [iw - float(st.borderRightWidth ) * scale,
                                        ih - float(st.borderBottomWidth) * scale] : null;
     if (!needBox) { return [x, y]; }
-    // here rect.right is not exact because <html> may be smaller than <body>
+    // here rect.right is not accurate because <html> may be smaller than <body>
     const sEl = a.scrollingEl_(), H = "hidden" as "hidden",
     xScrollable = st.overflowX !== H && st2.overflowX !== H,
     yScrollable = st.overflowY !== H && st2.overflowY !== H;
@@ -379,12 +388,12 @@ var VDom = {
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
   },
   view_ (el: Element, oldY?: number): boolean {
-    const P = Build.BTypes & ~BrowserType.Firefox ? Element.prototype : null as never,
-    rect = Build.BTypes & ~BrowserType.Firefox ? P.getBoundingClientRect.call(el) : el.getBoundingClientRect(),
+    const rect = this.getBoundingClientRect_(el),
     ty = this.NotVisible_(null, rect);
     if (ty === VisibilityType.OutOfView) {
       const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
-      Build.BTypes & ~BrowserType.Firefox ? P.scrollIntoView.call(el, delta < 0) : el.scrollIntoView(delta < 0);
+      Build.BTypes & ~BrowserType.Firefox ? Element.prototype.scrollIntoView.call(el, delta < 0)
+        : el.scrollIntoView(delta < 0);
       (delta || f) && this.scrollWndBy_(0, f ? (oldY as number) - window.scrollY : delta * ih / 5);
     }
     return ty === VisibilityType.Visible;
@@ -396,8 +405,7 @@ var VDom = {
   },
   NotVisible_: function (this: void, element: Element | null, rect?: ClientRect): VisibilityType {
     if (!rect) {
-      rect = Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getBoundingClientRect.call(element as Element)
-        : (element as Element).getBoundingClientRect();
+      rect = VDom.getBoundingClientRect_(element as Element);
     }
     return rect.height < 0.5 || rect.width < 0.5 ? VisibilityType.NoSpace
       : rect.bottom <= 0 || rect.top >= innerHeight || rect.right <= 0 || rect.left >= innerWidth

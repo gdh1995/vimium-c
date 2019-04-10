@@ -1146,7 +1146,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   window.chrome = browser as typeof chrome;
 }
 (function (): void {
-  if ((document.documentElement as HTMLElement).dataset.version !== "1.73") {
+  if ((document.documentElement as HTMLHtmlElement).dataset.version !== "1.73") {
     location.href = "about:blank";
     return;
   }
@@ -1165,7 +1165,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
         script.onload = null as never;
         window.onmessage(event);
       };
-      (document.head || document.documentElement as HTMLElement).appendChild(script);
+      (document.head || document.documentElement as HTMLHtmlElement).appendChild(script);
     };
     return;
   }

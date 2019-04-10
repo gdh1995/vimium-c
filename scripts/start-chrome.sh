@@ -53,6 +53,10 @@ case "$1" in
     VER=$1
     shift
     ;;
+  --*)
+    OTHER_ARGS=$OTHER_ARGS " $1"
+    shift
+    ;;
   *)
     if test -d "$1" && test -f "$1/manifest.json"; then
       VC_ROOT=$1

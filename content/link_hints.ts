@@ -612,7 +612,7 @@ var VHints = {
     if (
       ((element instanceof HTMLIFrameElement) || (element instanceof HTMLFrameElement))
         && (rect = element.getClientRects()[0])
-        && (rect2 = (document.documentElement as HTMLHtmlElement).getBoundingClientRect())
+        && (rect2 = VDom.getBoundingClientRect_(document.documentElement as HTMLElement))
         && rect.top - rect2.top < 20 && rect.left - rect2.left < 20
         && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20
         && getComputedStyle(element).visibility === "visible"
@@ -849,7 +849,7 @@ var VHints = {
     const _this = VHints;
     if (!_this) { return; }
     _this.timer_ = 0;
-    const r2 = el.getBoundingClientRect(),
+    const r2 = VDom.getBoundingClientRect_(el),
     hidden = r2.width < 1 && r2.height < 1 || getComputedStyle(el).visibility !== "visible";
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
