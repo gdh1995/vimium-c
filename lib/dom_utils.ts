@@ -117,14 +117,10 @@ var VDom = {
         | PNType.ResolveShadowHost | PNType.RevealSlot | PNType.RevealSlotAndGotoParent): Element | null;
     (this: void, el: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null;
   },
-  scrollingEl_ (fallback?: 1): ((HTMLBodyElement | HTMLHtmlElement | SVGSVGElement) & SafeElement) | null {
-    type ValidScrollingElement = HTMLBodyElement | HTMLHtmlElement | SVGSVGElement;
+  scrollingEl_ (fallback?: 1): SafeElement | null {
     // Both C73 and FF66 still supports the Quirk mode (entered by `document.open()`)
-    if (Build.MinCVer >= BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset
-        || !(Build.BTypes & BrowserType.Chrome)) {
-      return document.scrollingElement as (ValidScrollingElement & SafeElement) | null;
-    }
     let d = document, el = d.scrollingElement, docEl = d.documentElement;
+    if (!(Build.BTypes & BrowserType.Chrome)) { /* empty */ } else
     if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && el === undefined) {
       /**
        * The code about `inQuirksMode` in `Element::scrollTop()` is wrapped by a flag #scrollTopLeftInterop
@@ -135,10 +131,19 @@ var VDom = {
       let body = d.body;
       el = d.compatMode === "BackCompat" || body && (
               window.scrollY ? body.scrollTop : (docEl as HTMLHtmlElement).scrollHeight <= body.scrollHeight)
-        ? body : docEl;
+        ? body : body ? docEl : null;
+      // If not fallback, then the task is to get an exact one in order to use `scEl.scrollHeight`,
+      // but if body is null in the meanwhile, then docEl.scrollHeight is not reliable (scrollY neither)
+      //   when it's real scroll height is not larger than innerHeight
     }
-    el = el instanceof HTMLFrameSetElement ? null : el;
-    return (fallback ? el || docEl : el) as (ValidScrollingElement & SafeElement) | null;
+    if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset && Build.BTypes & BrowserType.Chrome) {
+      el = (Build.MinCVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin ? el && this.notSafe_(el)
+            : el instanceof HTMLFrameSetElement) ? null : el;
+    }
+    // here `el` may be `:root` / `:root > body` / null, but never `:root > frameset`
+    return this.notSafe_(el as Exclude<typeof el, undefined>) ? null // :root is unsafe
+      : el || !fallback ? el as SafeElement | null // el is safe object or null
+      : this.notSafe_(docEl) ? null : docEl as SafeElement | null;
   },
   /**
    * other parts of code require that prepareCrop only depends on @dbZoom

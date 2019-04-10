@@ -1790,9 +1790,11 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       */
     scripts: HTMLCollectionOf<HTMLScriptElement>;
     /**
-     * `scrollingElement: HTMLFrameSetElement` is the result of a bug on Chrome before 61
+     * `scrollingElement: HTMLFrameSetElement` may be:
+     *  * the result of a bug on Chrome before 61
+     *  * a page removes the standard documentElement and move a `<frameset>` to the position
      */
-    readonly scrollingElement?: HTMLHtmlElement | SVGSVGElement | HTMLBodyElement | HTMLFrameSetElement | null;
+    readonly scrollingElement?: Element | null;
     /**
       * Retrieves a collection of styleSheet objects representing the style sheets that correspond to each instance of a link or style object in the document.
       */
