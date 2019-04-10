@@ -2,11 +2,11 @@ var Utils = {
   /**
    * both b and a must extend SafeObject
    */
-  extendIf_<T extends object, K extends keyof T> (b: T, a: Readonly<Pick<T, K>>): T {
+  extendIf_<T extends object, T2 extends object> (dest: T & Partial<T2>, a: T2): T & T2 {
     for (const i in a) {
-      (i in b) || ((b as any)[i as K] = a[i as K]);
+      (i in dest) || ((dest as Partial<T2>)[i as keyof T2] = a[i as keyof T2]);
     }
-    return b;
+    return dest as T & T2;
   },
   blank_ (this: void): void { /* empty */ },
   _reToReset: <RegExpOne> /a?/,

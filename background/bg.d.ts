@@ -292,7 +292,6 @@ declare namespace SettingsNS {
     showActionIcon: boolean;
     showAdvancedCommands: boolean;
     showAdvancedOptions: boolean;
-    styles: string;
     userDefinedCss: string;
     vimSync: boolean | null;
     vomnibarPage: string;
@@ -394,7 +393,6 @@ declare namespace BackendHandlersNS {
     };
     ExecuteGlobal_ (this: void, command: string): void;
     onInit_: ((this: void) => void) | null;
-    uiStyles_ (this: void): string;
   }
 }
 

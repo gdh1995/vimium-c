@@ -76,11 +76,11 @@ var Backend: BackendHandlersNS.BackendHandlers;
       (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl];
     };
     [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
+    [kFgReq.setOmniStyle]: (this: void, request: FgReq[kFgReq.setOmniStyle], _port?: Port) => void;
   }
 
   /** any change to `commandCount` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
-  omniStyles = Settings.get_("styles"), // syntax: `<word> (+ " " + <word>)...` | `""`
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: VKeyCodes = VKeyCodes.None,
   gCmdTimer = 0, gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone;
@@ -1630,10 +1630,11 @@ Are you sure you want to continue?`);
         }
       }
       if (current) { return; }
-      let toggle = ` ${toggled} `, curStyles = omniStyles && ` ${omniStyles} `;
+      const vomnibarOptions = Settings.cache_.vomnibarOptions;
+      let toggle = ` ${toggled} `, curStyles = vomnibarOptions.styles && ` ${vomnibarOptions.styles} `;
       requestHandlers[kFgReq.setOmniStyle]({
         s: curStyles.indexOf(toggle) >= 0 ? curStyles.replace(toggle, " ") : curStyles + toggled
-      }, cPort);
+      });
     }
   ],
   numHeadRe = <RegExpOne> /^-?\d+|^-/;
@@ -2179,14 +2180,12 @@ Are you sure you want to continue?`);
         gotoMainFrame(req, port, port2 || null);
       });
     },
-    /** setOmniStyle: */ function (this: void, req: FgReq[kFgReq.setOmniStyle], port: Port): void {
-      let newStyle = req.s.trim();
-      if (newStyle === omniStyles) { return; }
-      omniStyles = newStyle;
-      const msg: Req.bg<kBgReq.omni_toggleStyle> = { N: kBgReq.omni_toggleStyle, s: newStyle };
-      for (const frame of framesForOmni) {
-        frame !== port && frame.postMessage(msg);
-      }
+    /** setOmniStyle: */ function (this: void, req: FgReq[kFgReq.setOmniStyle]): void {
+      let styles = req.s.trim(), vomnibarOptions = Settings.cache_.vomnibarOptions;
+      if (styles === vomnibarOptions.styles) { return; }
+      const newOptions: SettingsNS.BackendSettings["vomnibarOptions"] =
+          Utils.extendIf_({ styles }, vomnibarOptions);
+      Settings.set_("vomnibarOptions", newOptions);
     }
   ],
   framesForOmni: Frames.WritableFrames = [];
@@ -2311,7 +2310,6 @@ Are you sure you want to continue?`);
           browserVer: ChromeVer,
           o: Settings.cache_.vomnibarOptions,
           S: Settings.cache_.omniCSS_,
-          cls: omniStyles,
           secret: getSecret()
         });
         return true;
@@ -2526,6 +2524,12 @@ Are you sure you want to continue?`);
       // the line below requires all necessary have inited when calling this
       Backend.onInit_ = null;
       Settings.postUpdate_("vomnibarOptions");
+      // note: remove the block below on v1.75
+      const storage = localStorage, oldStyles = storage.getItem("styles");
+      if (oldStyles) {
+        storage.removeItem("styles");
+        requestHandlers[kFgReq.setOmniStyle]({ s: oldStyles });
+      }
       chrome.runtime.onConnect.addListener(function (port): void {
         return OnConnect(port as Frames.Port, (port.name.substring(9) as string | number as number) | 0);
       });
@@ -2549,9 +2553,6 @@ Are you sure you want to continue?`);
           port.disconnect();
         }
       });
-    },
-    uiStyles_ (this: void): string {
-      return omniStyles;
     }
   };
 

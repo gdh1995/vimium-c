@@ -209,6 +209,7 @@ declare namespace SettingsNS {
     vomnibarOptions: {
       maxMatches: number;
       queryInterval: number;
+      styles: string;
     };
   }
   interface FrontUpdateAllowedSettings {

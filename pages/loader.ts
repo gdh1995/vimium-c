@@ -32,7 +32,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
   if (location.pathname.toLowerCase().indexOf("options") < 0) {
     const bg = chrome.extension.getBackgroundPage() as BgWindow;
     if (bg && bg.Backend) {
-      const uiStyles = bg.Backend.uiStyles_();
+      const uiStyles = bg.Settings.cache_.vomnibarOptions.styles;
       if (uiStyles && ` ${uiStyles} `.indexOf(" dark ") >= 0) {
         const style = document.createElement("style");
         style.textContent = "body { background: #1e1e1e; color: #aaa; }";

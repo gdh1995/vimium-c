@@ -121,16 +121,14 @@ interface BgVomnibarSpecialReq {
     browserVer: BrowserVer;
     o: SettingsNS.BackendSettings["vomnibarOptions"],
     /** CSS */ S: string;
-    cls: string;
   };
   [kBgReq.omni_parsed]: {
     id: number;
     search: FgRes[kFgReq.parseSearchUrl];
   };
   [kBgReq.omni_toggleStyle]: {
-    /** style */ s?: string; // set to the value
-    /** toggled */ t?: string; // toggle it
-    /** current */ c?: boolean;
+    /** toggled */ t: string;
+    /** current */ c: boolean;
   };
   [kBgReq.omni_globalOptions]: {
     o: SettingsNS.BackendSettings["vomnibarOptions"];

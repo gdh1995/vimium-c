@@ -284,11 +284,14 @@ var Settings = {
         const { maxMatches: defaultMatches, queryInterval: defaultInterval } = defaultOptions,
         maxMatches = Math.max(3, Math.min((options.maxMatches | 0) || defaultMatches, 25)),
         newInterval = +options.queryInterval,
+        newStyles = (options.styles || "") + "",
         queryInterval = Math.max(0, Math.min(newInterval >= 0 ? newInterval : defaultInterval, 1200));
-        isSame = defaultMatches === maxMatches && defaultInterval === queryInterval;
+        isSame = defaultMatches === maxMatches && defaultInterval === queryInterval
+                && !newStyles;
         if (!isSame) {
           options.maxMatches = maxMatches;
           options.queryInterval = queryInterval;
+          options.styles = newStyles;
         }
       }
       (a.cache_ as Writeable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
@@ -388,8 +391,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     vomnibarOptions: {
       maxMatches: 10,
       queryInterval: 500,
+      styles: "",
     },
-    styles: "",
     userDefinedCss: "",
     vimSync: null,
     vomnibarPage: "front/vomnibar.html",

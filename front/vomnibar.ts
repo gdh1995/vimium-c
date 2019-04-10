@@ -137,7 +137,6 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   browserVersion_: BrowserVer.assumedVer,
   globalOptions_: null as never as SettingsNS.BackendSettings["vomnibarOptions"],
   customStyle_: null as HTMLStyleElement | null,
-  customClassName_: "",
   darkBtn_: null as HTMLElement | null,
   wheelOptions_: { passive: false, capture: true as true },
   show_ (): void {
@@ -672,15 +671,11 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     }
   },
   toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
-    let omniStyles = Vomnibar_.customClassName_, toggle = req.t ? ` ${req.t} ` : "";
-    if (toggle) {
+    let omniStyles = Vomnibar_.globalOptions_.styles, toggle = ` ${req.t} `;
       omniStyles = omniStyles && ` ${omniStyles} `;
       omniStyles = omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, " ") : omniStyles + req.t;
       omniStyles = omniStyles.trim();
-    } else if (Vomnibar_.customClassName_ === (omniStyles = (req.s as string))) {
-      return;
-    }
-    Vomnibar_.customClassName_ = omniStyles;
+    Vomnibar_.globalOptions_.styles = omniStyles;
     Vomnibar_.onStyleUpdate_(omniStyles);
     if (toggle && !req.c) {
       VPort_.post_({
@@ -689,7 +684,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       });
     }
   },
-  onStyleUpdate_(omniStyles: string): void {
+  onStyleUpdate_ (omniStyles: string): void {
     omniStyles = ` ${omniStyles} `;
     if (Vomnibar_.darkBtn_) {
       Vomnibar_.darkBtn_.textContent = omniStyles.indexOf(" dark ") >= 0 ? "\u2600" : "\u263D";
@@ -709,6 +704,13 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   ToggleDark_ (this: void, event: MouseEvent): void {
     Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
+  },
+  setGlobalOptions_ (response: Req.bg<kBgReq.omni_globalOptions>): void {
+    const newOptions = response.o, { styles } = newOptions;
+    if (Vomnibar_.globalOptions_.styles !== styles) {
+      Vomnibar_.onStyleUpdate_(styles);
+    }
+    Vomnibar_.globalOptions_ = newOptions;
   },
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.focusByCode_;
@@ -802,7 +804,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     a.customStyle_ && (document.head as HTMLElement).appendChild(a.customStyle_);
     a.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
     a.darkBtn_ && (a.darkBtn_.onclick = a.ToggleDark_);
-    a.onStyleUpdate_(a.customClassName_);
+    a.onStyleUpdate_(a.globalOptions_.styles);
     a.init_ = VUtils_.makeListRenderer_ = null as never;
     if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute
         || (Build.MinCVer >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute
@@ -1106,7 +1108,7 @@ VPort_ = {
     name === kBgReq.omni_returnFocus ? Vomnibar_.returnFocus_(response as Req.bg<kBgReq.omni_returnFocus>) :
     name === kBgReq.showHUD ? Vomnibar_.css_(response as Req.bg<kBgReq.showHUD> as BgCSSReq) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
-    name === kBgReq.omni_globalOptions ? Vomnibar_.globalOptions_ = (response as Req.bg<kBgReq.omni_globalOptions>).o :
+    name === kBgReq.omni_globalOptions ? Vomnibar_.setGlobalOptions_(response as Req.bg<kBgReq.omni_globalOptions>) :
     // tslint:disable-next-line: no-unused-expression
     0;
   },
@@ -1195,7 +1197,6 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     Vomnibar_.browserVersion_ = request.browserVer;
     Vomnibar_.globalOptions_ = request.o;
     Vomnibar_.css_(request);
-    Vomnibar_.customClassName_ = request.cls;
     const { secret } = request, msgs = unsafeMsg;
     _sec = secret;
     for (const i of msgs) {
