@@ -422,7 +422,7 @@ var VDom = {
     (element: Element): VisibilityType;
     (element: null, rect: ClientRect): VisibilityType;
   },
-  isInDOM_ (element: Element, root?: Element | Document, expectFalse?: 1): boolean {
+  isInDOM_ (element: Element, root?: Element | Document, checkMouseEnter?: 1): boolean {
     if (!root) {
       const isConnected = element.isConnected; /** {@link BrowserVer.Min$Node$$isConnected} */
       if (isConnected === !!isConnected) { return isConnected; } // is boolean : exists and is not overridden
@@ -440,12 +440,15 @@ var VDom = {
         ).call(element, {composed: true}) === doc;
     }
     if (Build.BTypes & ~BrowserType.Firefox ? NP.contains.call(doc, element) : doc.contains(element)) { return true; }
-    while ((pe = VDom.GetParent_(element, PNType.ResolveShadowHost)) && pe !== doc) { element = pe; }
+    while ((pe = VDom.GetParent_(element, checkMouseEnter ? PNType.RevealSlotAndGotoParent : PNType.ResolveShadowHost))
+            && pe !== doc) {
+      element = pe;
+    }
     const pn = VDom.GetParent_(element, PNType.DirectNode);
     // Note: `pn instanceof Element` means `element.parentNode` is overridden,
     // so return a "potentially correct" result `true`.
     // This requires that further jobs are safe enough even when isInDOM returns a fake "true"
-    return pn === doc || !expectFalse && pn instanceof Element;
+    return pn === doc || !checkMouseEnter && pn instanceof Element;
   },
   notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
     return el instanceof HTMLFormElement;
