@@ -463,7 +463,7 @@ var VFind = {
       if (Build.BTypes & ~BrowserType.Firefox && el && typeof text !== "string") {
         el = VDom.GetParent_(el, PNType.DirectElement), text = el && el.innerText as string | undefined;
       }
-      query = <string | undefined | null> text || (document.documentElement as HTMLElement).innerText;
+      query = <string | undefined | null> text || (document.documentElement as HTMLElement).innerText + "";
       matches = query.match(re) || query.replace(a.A0Re_, " ").match(re);
     }
     a.regexMatches_ = isRe ? matches : null;

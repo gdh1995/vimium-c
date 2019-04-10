@@ -97,7 +97,7 @@ VDom.UI = {
           || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
         ? document.fullscreenElement : document.webkitFullscreenElement,
     box = UI.box_ as HTMLDivElement,
-    el2 = el && !(UI.UI as Node).contains(el) ? el : document.documentElement as HTMLElement;
+    el2 = el && !(UI.UI as Node).contains(el) ? el : document.documentElement as Element;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2

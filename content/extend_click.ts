@@ -32,11 +32,11 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     }): CustomEvent;
   }
 
-  const kClick1 = InnerConsts.kClick, kHook = InnerConsts.kHook;
-  let d: Document | Document["documentElement"] = document
+  const kClick1 = InnerConsts.kClick, kHook = InnerConsts.kHook
+    , d = document, docEl = d.documentElement
     , script: HTMLScriptElement | Element = d.createElement("script") as HTMLScriptElement | Element
-    , box: Element | null | false = null
     , secret: number = (Math.random() * 1e6 + 1) | 0;
+  let box: Element | null | false = null;
 /**
  * Note:
  *   should not create HTML/SVG elements before document gets ready,
@@ -340,8 +340,8 @@ _listen("load", delayFindAll, true);
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
   script.textContent = injected;
-  d = (d as Document).documentElement || d;
-  d.insertBefore(script, d.firstChild);
+  docEl ? Build.BTypes & ~BrowserType.Firefox ? script.insertBefore.call(docEl, script, docEl.firstChild)
+    : docEl.insertBefore(script, docEl.firstChild) : d.appendChild(script);
   VDom.OnDocLoaded_(function (): void { box === null && setTimeout(function (): void {
     box || execute(kContentCmd.Destroy);
   }, 17); });

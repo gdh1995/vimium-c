@@ -776,9 +776,12 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       const notTop = window.top !== window;
       if (notTop && mask === FrameMaskType.NormalNext) {
         let docEl = document.documentElement;
-        !(Build.BTypes & ~BrowserType.Chrome)
-        ? docEl && (docEl as EnsureNonNull<typeof docEl>).scrollIntoViewIfNeeded() :
-        docEl && (docEl.scrollIntoViewIfNeeded || docEl.scrollIntoView).call(docEl);
+        !(Build.BTypes & ~BrowserType.Chrome) || (Build.BTypes & BrowserType.Chrome && !OnOther)
+        ? docEl &&
+          (Element.prototype.scrollIntoViewIfNeeded as NonNullable<Element["scrollIntoViewIfNeeded"]>).call(docEl)
+        : !(Build.BTypes & ~(BrowserType.Firefox | BrowserType.Chrome))
+        ? docEl && docEl.scrollIntoView()
+        : docEl && Element.prototype.scrollIntoView.call(docEl);
       }
       if (mask < FrameMaskType.minWillMask || !VDom.isHTML_()) { return; }
       let _this = FrameMask, dom1: HTMLDivElement | null;
@@ -1163,7 +1166,12 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           const script = VDom.createElement_("script");
           script.type = "text/javascript";
           script.textContent = VUtils.decodeURL_(url, decodeURIComponent);
-          (document.documentElement as HTMLElement).appendChild(script);
+          const el = document.documentElement;
+          if (Build.BTypes & ~BrowserType.Firefox) {
+            document.appendChild.call(el || document, script);
+          } else {
+            (el || document).appendChild(script);
+          }
           script.remove();
         }, 0);
       } else {

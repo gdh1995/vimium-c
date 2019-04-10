@@ -70,7 +70,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     destroy: null
   };
   const docEl = document.documentElement;
-  if (!res || !docEl) {
+  if (!res || !(docEl instanceof HTMLHtmlElement)) {
     return err as void;
   }
   const inserAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild as Node
