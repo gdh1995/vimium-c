@@ -107,7 +107,7 @@ pre, kbd, .code {
   font-family: Consolas, "Liberation Mono", "Courier New", "PingFang SC", "Hiragino Sans GB",
     "Heiti SC", "WenQuanYi Micro Hei", monospace;
 }
-pre {
+pre, .help-block {
   margin: 5px;
   /* keep 1px so it can be more conspicuous than 0.5px */
   border-left: 0.5px solid #ccc;
@@ -219,6 +219,10 @@ label:active {
 .min-height-4 {
   padding-bottom: 2px;
   min-height: 75px;
+}
+.height-5 {
+  height: 90px;
+  min-height: 28px;
 }
 #keyMappings {
   min-height: 134px;

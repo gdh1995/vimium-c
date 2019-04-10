@@ -339,6 +339,23 @@ so only the default inner version will be used on them
           </div></td>
         </tr>
         <tr>
+          <td class="caption">Vomnibar settings</td>
+          <td>
+            <textarea id="vomnibarOptions" class="code height-5" data-model="JSON">
+            </textarea>
+            <div class="nonEmptyTip"></div>
+          </td>
+          <td class="help"><div class="help-inner">
+            Adjust some inner behaviors of Vomnibar.<br/>
+            <div class="help-block">
+              "<var>maxMatches</var>" should be in <kbd>3 ~ 25</kbd> ;<br/>
+              "<var>queryInterval</var>" should be in <kbd>0 ~ 1200 (ms)</kbd> ;<br/>
+              "<var>styles</var>" may be <kbd>"dark"</kbd> .<br/>
+            </div>
+            A low <var>queryInterval</var> will cause CPU cost a bit higher.
+          </div></td>
+        </tr>
+        <tr>
           <td class="caption">Keyboard settings</td>
           <td>
             <input id="keyboard" type="text" inputmode="numeric" data-model="JSON" data-check="" />

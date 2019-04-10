@@ -282,9 +282,10 @@ var Settings = {
       let isSame = true;
       if (options !== defaultOptions && options && typeof options === "object") {
         const { maxMatches: defaultMatches, queryInterval: defaultInterval } = defaultOptions,
-        maxMatches = Math.max(3, Math.min((options.maxMatches | 0) || defaultMatches, 25)),
+        maxMatches = Math.max(3, Math.min((options.maxMatches | 0) || defaultMatches
+            , GlobalConsts.MaxLimitOfVomnibarMatches)),
         newInterval = +options.queryInterval,
-        newStyles = (options.styles || "") + "",
+        newStyles = ((options.styles || "") + "").trim(),
         queryInterval = Math.max(0, Math.min(newInterval >= 0 ? newInterval : defaultInterval, 1200));
         isSame = defaultMatches === maxMatches && defaultInterval === queryInterval
                 && !newStyles;

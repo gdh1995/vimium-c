@@ -324,6 +324,7 @@ declare const enum GlobalConsts {
   MaxScrollbarWidth = 24,
   MaxHeightOfLinkHintMarker = 18,
   FirefoxFocusResponseTimeout = 340,
+  MaxLimitOfVomnibarMatches = 25,
 }
 
 declare const enum KnownKey {

@@ -2183,8 +2183,8 @@ Are you sure you want to continue?`);
     /** setOmniStyle: */ function (this: void, req: FgReq[kFgReq.setOmniStyle]): void {
       let styles = req.s.trim(), vomnibarOptions = Settings.cache_.vomnibarOptions;
       if (styles === vomnibarOptions.styles) { return; }
-      const newOptions: SettingsNS.BackendSettings["vomnibarOptions"] =
-          Utils.extendIf_({ styles }, vomnibarOptions);
+      const newOptions: SettingsNS.BackendSettings["vomnibarOptions"] = Utils.extendIf_({}, vomnibarOptions);
+      newOptions.styles = styles;
       Settings.set_("vomnibarOptions", newOptions);
     }
   ],
