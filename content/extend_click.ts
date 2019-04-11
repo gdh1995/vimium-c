@@ -131,7 +131,8 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   }
   let injected: string = '"use strict";(' + (function VC(this: void): void {
 type FUNC = (this: unknown, ...args: never[]) => unknown;
-const ETP = EventTarget.prototype, _listen = ETP.addEventListener, toRegister: Element[] = [],
+const ETP = EventTarget.prototype, _listen = ETP.addEventListener,
+toRegister: Element[] & { push_ (el: Element): void | 1; splice_: Element[]["splice"] } = [] as any,
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
@@ -162,16 +163,17 @@ hooks = {
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
-    const a = this;
-    if (type === "click" && listener && !(a instanceof HA) && a instanceof E) {
-      toRegister.push(a);
-      timer = timer || setTimeout_(next, InnerConsts.DelayToStartIteration);
-    }
-    const args = arguments, len = args.length;
-    return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
+    const a = this, args = arguments, len = args.length;
+    len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
       : call(_apply as (this: (this: EventTarget, ...args: Array<{}>) => void
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
+    if (type === "click" ? listener && !(a instanceof HA) && a instanceof E
+        : type === kClick && a && a !== window && (a as Node).nodeType === /* Node.ELEMENT_NODE */ 1) {
+      toRegister.push_(a as Element);
+      timer || (timer = setTimeout_(next, InnerConsts.DelayToStartIteration));
+    }
+    // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
   }
 }, myAEL = hooks.addEventListener;
 
@@ -234,7 +236,13 @@ function prepareRegister(this: void, element: Element): void {
         , element));
     return;
   }
-  if (element.ownerDocument !== doc) { // in case element is moved / adopted
+  const doc1 = element.ownerDocument;
+  // in case element is <form> / <frameset> / adopted into another document, or aEL is from another frame
+  if (doc1 !== doc) {
+    if (Build.BTypes & ~BrowserType.Firefox
+        && doc1.nodeType === /* Node.DOCUMENT_NODE */ 9 && doc1.defaultView) {
+      safeReRegister(element, doc1);
+    } // `defaultView` is to check whether element is in a real
     // Note: on C72, ownerDocument of elements under <template>.content
     // is a fake "about:blank" document object
     return;
@@ -264,7 +272,7 @@ function prepareRegister(this: void, element: Element): void {
       dispatch(element, new CE(kClick));
       call(Insert, e2, e1, e3);
     } else {
-      toRegister.push(element);
+      toRegister.push_(element);
       if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick + 1) {
         unsafeDispatchCounter = InnerConsts.MaxUnsafeEventsInOneTick + 1; // a fake value to run it only once a tick
         clearTimeout_(timer);
@@ -280,6 +288,17 @@ function doRegister(onlyInDocument?: 1): void {
       detail: [nodeIndexListInDocument, onlyInDocument ? null : nodeIndexListForDetached]
     }));
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
+  }
+}
+function safeReRegister(element: Element, doc: Document): void {
+  const localAEL = doc.addEventListener, localREL = doc.removeEventListener, kFunc = "function";
+  if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
+    try {
+      call(localAEL, element, kClick, noop);
+    } catch {}
+    try {
+      call(localREL, element, kClick, noop);
+    } catch {}
   }
 }
 function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
@@ -307,12 +326,14 @@ function executeCmd(eventOrDestroy?: Event): void {
     return;
   }
   toRegister.length = 0;
-  toRegister.push = setTimeout_ = function () { return 1; };
+  toRegister.push_ = setTimeout_ = Build.BTypes & ~BrowserType.Firefox ? noop as () => 1 : function (): 1 { return 1; };
   root = null as never;
   clearTimeout_(timer);
+  timer = 1;
   delayFindAll && delayFindAll(); // clean the "load" listener
 }
-toRegister.push = push as any, toRegister.splice = toRegister.splice;
+function noop(): void | 1 { return; }
+toRegister.push_ = push as any, toRegister.splice_ = toRegister.splice;
 !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 ||
 (!SR || SR instanceof E) && (SR = CE as never);
 // only the below can affect outsides
