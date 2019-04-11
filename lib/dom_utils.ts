@@ -425,7 +425,9 @@ var VDom = {
   isInDOM_ (element: Element, root?: Element | Document, checkMouseEnter?: 1): boolean {
     if (!root) {
       const isConnected = element.isConnected; /** {@link BrowserVer.Min$Node$$isConnected} */
-      if (isConnected === !!isConnected) { return isConnected; } // is boolean : exists and is not overridden
+      if (!(Build.BTypes & ~BrowserType.Firefox) || isConnected === !!isConnected) {
+        return isConnected as boolean; // is boolean : exists and is not overridden
+      }
     }
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;

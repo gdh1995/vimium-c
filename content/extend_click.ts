@@ -149,7 +149,7 @@ FP = Function.prototype, funcToString = FP.toString,
 listen = _call.bind<(this: EventTarget,
         type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions) => any,
     [EventTarget, string, EventListenerOrEventListenerObject, EventListenerOptions?], any>(_listen),
-rel = removeEventListener, clearTimeout_ = clearTimeout,
+rEL = removeEventListener, clearTimeout_ = clearTimeout,
 sec: number = +<string> cs.dataset.vimium,
 kClick = InnerConsts.kClick,
 kOnDomRead = "DOMContentLoaded" as "DOMContentLoaded",
@@ -158,14 +158,14 @@ hooks = {
     const a = this;
     return call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
                 funcToString,
-                a === hooks.addEventListener ? _listen : a === hooks.toString ? funcToString : a, arguments);
+                a === myAEL ? _listen : a === hooks.toString ? funcToString : a, arguments);
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this;
     if (type === "click" && listener && !(a instanceof HA) && a instanceof E) {
       toRegister.push(a);
-      timer || (timer = setTimeout_(next, InnerConsts.DelayToStartIteration));
+      timer = timer || setTimeout_(next, InnerConsts.DelayToStartIteration);
     }
     const args = arguments, len = args.length;
     return len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
@@ -173,10 +173,10 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
   }
-};
+}, myAEL = hooks.addEventListener;
 
 let handler = function (this: void): void {
-  rel(kOnDomRead, handler, true);
+  rEL(kOnDomRead, handler, true);
   clearTimeout_(timer);
   const docEl2 = docChildren[0] as HTMLElement | SVGElement | null;
   handler = docChildren = null as never;
@@ -198,7 +198,7 @@ delayFindAll = function (e?: Event): void {
   if (e && (e.target !== window
           || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
               ? !e.isTrusted : e.isTrusted === false))) { return; }
-  rel("load", delayFindAll, true);
+  rEL("load", delayFindAll, true);
   delayFindAll = null as never;
   setTimeout_(findAllOnClick, InnerConsts.DelayToFindAll);
 },
@@ -317,7 +317,7 @@ toRegister.push = push as any, toRegister.splice = toRegister.splice;
 (!SR || SR instanceof E) && (SR = CE as never);
 // only the below can affect outsides
 cs.remove();
-ETP.addEventListener = hooks.addEventListener;
+ETP.addEventListener = myAEL;
 FP.toString = hooks.toString;
 _listen(kOnDomRead, handler, true);
 _listen("load", delayFindAll, true);

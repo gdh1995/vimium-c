@@ -354,18 +354,18 @@ var VFind = {
   postMode_: {
     lock_: null as Element | null,
     activate_  (): void {
-      const pm = this;
+      const pm = this, hook = addEventListener;
       const el = VEvent.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
       VUtils.push_(pm.onKeydown_, pm);
       if (el === pm.lock_) { return; }
       if (!pm.lock_) {
-        addEventListener("click", Exit, true);
+        hook("click", Exit, true);
         VEvent.setupSuppress_(Exit);
       }
       Exit(true);
       pm.lock_ = el;
-      el.addEventListener("blur", Exit, true);
+      hook.call(el, "blur", Exit, true);
     },
     onKeydown_ (event: KeyboardEvent): HandlerResult {
       const exit = VKeyboard.isEscape_(event);
@@ -376,11 +376,11 @@ var VFind = {
       if (skip instanceof Event
           && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
               ? !skip.isTrusted : skip.isTrusted === false)) { return; }
-      const a = this;
-      a.lock_ && a.lock_.removeEventListener("blur", a.exit_, true);
+      const a = this, unhook = removeEventListener;
+      a.lock_ && unhook.call(a.lock_, "blur", a.exit_, true);
       if (!a.lock_ || skip === true) { return; }
       a.lock_ = null;
-      removeEventListener("click", a.exit_, true);
+      unhook("click", a.exit_, true);
       VUtils.remove_(a);
       VEvent.setupSuppress_();
     }
