@@ -86,8 +86,9 @@ keyMappingChecker_ = null as never;
 
 bgSettings_.CONST_.VimiumNewTab_ && (Option_.all_.newTabUrl.checker_ = {
   check_ (value: string): string {
-    const url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
+    let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
         ? chrome.runtime.getURL(value) : BG_.Utils.convertToUrl_(value.toLowerCase());
+    url = url.split("?", 1)[0].split("#", 1)[0];
     return url.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_) ? bgSettings_.defaults_.newTabUrl : value;
   }
 });

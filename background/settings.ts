@@ -527,7 +527,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     ? CommonNewTab : newtab ? obj.NtpNewTab_ : ChromeNewTab;
   ref3[CommonNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
-    (ref3[ChromeNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
+    (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
   newtab && (ref3[func(obj.VimiumNewTab_ = newtab)] = Urls.NewTabType.vimium);
   obj.GlobalCommands_ = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
   obj.VerCode_ = ref.version;
