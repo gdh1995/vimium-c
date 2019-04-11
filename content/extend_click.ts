@@ -116,29 +116,39 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   }
   VSettings.execute_ = execute;
 
+  const appInfo = Build.BTypes & BrowserType.Chrome
+        && (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage
+            || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
+            || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
+        ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as 0
+    , appVer: BrowserVer | 0 = Build.BTypes & BrowserType.Chrome
+        && (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage
+            || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
+            || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
+        && appInfo && <BrowserVer> +appInfo[1] || 0;
+  if (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome) {
+    VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage ? 1 : 0;
+  }
   let injected: string = '"use strict";(' + (function VC(this: void): void {
-type Call1<T, A, R> = (this: (this: T, a: A) => R, thisArg: T, a: A) => R;
-type Call3o<T, A, B, C, R> = (this: (this: T, a: A, b: B, c?: C) => R, thisArg: T, a: A, b: B, c?: C) => R;
-type FUNC = (this: unknown, ...args: unknown[]) => unknown;
-interface CollectionEx extends HTMLCollectionOf<Element> { indexOf: Element[]["indexOf"]; }
+type FUNC = (this: unknown, ...args: never[]) => unknown;
 const ETP = EventTarget.prototype, _listen = ETP.addEventListener, toRegister: Element[] = [],
 _apply = _listen.apply, _call = _listen.call,
-call = _call.bind(_call) as <T, R, A, B, C>(
-        func: (this: T, a?: A, b?: B, c?: C) => R, self: T, a?: A, b?: B, c?: C) => R,
-dispatch = (_call as Call1<EventTarget, Event, boolean>).bind(ETP.dispatchEvent),
+call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) => R, thisArg: T, ...args: A) => R,
+dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
 doc = document, cs = doc.currentScript as HTMLScriptElement, Create = doc.createElement as Document["createElement"],
 E = Element, EP = E.prototype, Append = EP.appendChild, Contains = EP.contains, Insert = EP.insertBefore,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 contains = Contains.bind(doc),
 nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
 getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP = EP.getElementsByTagName,
-IndexOf = _call.bind(toRegister.indexOf) as never as (this: void, list: CollectionEx, item: Element) => number,
+IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Element>, item: Element) => number,
 push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
 CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement, DF = DocumentFragment,
 FP = Function.prototype, funcToString = FP.toString,
-listen = (_call as Call3o<EventTarget, string, null | ((e: Event) => void), boolean, void>).bind(_listen) as (this: void
-  , T: EventTarget, a: string, b: null | ((e: Event) => void), c?: boolean) => void,
+listen = _call.bind<(this: EventTarget,
+        type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions) => any,
+    [EventTarget, string, EventListenerOrEventListenerObject, EventListenerOptions?], any>(_listen),
 rel = removeEventListener, clearTimeout_ = clearTimeout,
 sec: number = +<string> cs.dataset.vimium,
 kClick = InnerConsts.kClick,
@@ -168,13 +178,13 @@ hooks = {
 let handler = function (this: void): void {
   rel(kOnDomRead, handler, true);
   clearTimeout_(timer);
-  const docEl = docChildren[0] as HTMLElement | SVGElement | null;
+  const docEl2 = docChildren[0] as HTMLElement | SVGElement | null;
   handler = docChildren = null as never;
-  if (!docEl) { return executeCmd(); }
+  if (!docEl2) { return executeCmd(); }
   const el = call(Create, document, "div") as HTMLDivElement, key = InnerConsts.kSecretAttr;
   call(Attr, el, key, "");
   listen(el, InnerConsts.kCmd, executeCmd, true);
-  call(Append, docEl, el), dispatch(el, new CE(InnerConsts.kHook, {detail: sec})), call(Remove, el);
+  call(Append, docEl2, el), dispatch(el, new CE(InnerConsts.kHook, {detail: sec})), call(Remove, el);
   if (call(HasAttr, el, key)) {
     executeCmd();
   } else {
@@ -194,7 +204,8 @@ delayFindAll = function (e?: Event): void {
 },
 docChildren = doc.children,
 unsafeDispatchCounter = 0,
-allNodesInDocument = null as CollectionEx | null, allNodesForDetached = null as CollectionEx | null,
+allNodesInDocument = null as HTMLCollectionOf<Element> | null,
+allNodesForDetached = null as HTMLCollectionOf<Element> | null,
 next = function (): void {
   const len = toRegister.length,
   start = len > InnerConsts.MaxElementsInOneTick ? len - InnerConsts.MaxElementsInOneTick : 0,
@@ -219,7 +230,7 @@ next = function (): void {
 function prepareRegister(this: void, element: Element): void {
   if (contains(element)) {
     pushInDocument(
-      IndexOf(allNodesInDocument || (allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*") as CollectionEx)
+      IndexOf(allNodesInDocument || (allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*"))
         , element));
     return;
   }
@@ -240,7 +251,7 @@ function prepareRegister(this: void, element: Element): void {
   if ((e2 = e1.parentNode) == null) {
     root !== e1 && call(Append, root, e1);
     pushForDetached(
-      IndexOf(allNodesForDetached || (allNodesForDetached = call(getElementsByTagNameInEP, root, "*") as CollectionEx)
+      IndexOf(allNodesForDetached || (allNodesForDetached = call(getElementsByTagNameInEP, root, "*"))
         , element));
   } else if (e2 instanceof DF && !(e2 instanceof SR || ((e3 = e1.nextSibling) && e3.parentElement))) {
     // NOTE: ignore nodes belonging to a shadowRoot,
@@ -251,7 +262,7 @@ function prepareRegister(this: void, element: Element): void {
       call(Append, root, e1);
       unsafeDispatchCounter++;
       dispatch(element, new CE(kClick));
-      call<Node, Node, Node, Node | null, 1>(Insert, e2, e1, e3);
+      call(Insert, e2, e1, e3);
     } else {
       toRegister.push(element);
       if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick + 1) {
@@ -274,7 +285,7 @@ function doRegister(onlyInDocument?: 1): void {
 function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
   if (!root) { return; }
   call(Remove, root);
-  allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*") as CollectionEx;
+  allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*");
   let len = allNodesInDocument.length, i = 0;
   !cmd && len > GlobalConsts.maxElementsWhenScanOnClick && (len = 0); // stop it
   for (; i < len; i++) {
@@ -310,25 +321,12 @@ ETP.addEventListener = hooks.addEventListener;
 FP.toString = hooks.toString;
 _listen(kOnDomRead, handler, true);
 _listen("load", delayFindAll, true);
-  }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */
-    , appInfo = Build.BTypes & BrowserType.Chrome
-        && (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage
-            || Build.MinCVer < BrowserVer.MinEnsuredMethodFunction
-            || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
-        ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as 0
-    , appVer: BrowserVer | 0 = Build.BTypes & BrowserType.Chrome
-        && (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage
-            || Build.MinCVer < BrowserVer.MinEnsuredMethodFunction
-            || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
-        && appInfo && <BrowserVer> +appInfo[1] || 0 as 0;
-    ;
-  if (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome) {
-    VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage ? 1 : 0;
-  }
-  if (Build.MinCVer < BrowserVer.MinEnsuredMethodFunction && Build.BTypes & BrowserType.Chrome &&
-      appVer >= BrowserVer.MinEnsuredMethodFunction) {
+  }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
+  if (Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction && Build.BTypes & BrowserType.Chrome &&
+      appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
     injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
   }
+  script.textContent = injected;
   /**
    * According to `V8CodeCache::ProduceCache` and `V8CodeCache::GetCompileOptions`
    *     in third_party/blink/renderer/bindings/core/v8/v8_code_cache.cc,
@@ -339,7 +337,6 @@ _listen("load", delayFindAll, true);
    */
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
-  script.textContent = injected;
   docEl ? Build.BTypes & ~BrowserType.Firefox ? script.insertBefore.call(docEl, script, docEl.firstChild)
     : docEl.insertBefore(script, docEl.firstChild) : d.appendChild(script);
   VDom.OnDocLoaded_(function (): void { box === null && setTimeout(function (): void {

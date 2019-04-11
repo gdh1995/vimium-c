@@ -464,7 +464,7 @@ historyEngine = {
     }
     autoSelect = false;
     if (index === 0) {
-      Completers.requireNormalOrIncognito_(historyEngine, historyEngine.loadTabs_, query);
+      Completers.requireNormalOrIncognito_(historyEngine.loadTabs_, query);
     } else if (chrome.sessions) {
       chrome.sessions.getRecentlyClosed(historyEngine.loadSessions_.bind(historyEngine, query));
     } else {
@@ -518,7 +518,7 @@ historyEngine = {
     Decoder.continueToWork_();
     return sugs;
   },
-  loadTabs_ (query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]): void {
+  loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
     const arr: SafeDict<number> = Object.create(null);
     let count = 0;
@@ -527,7 +527,7 @@ historyEngine = {
       if (url in arr) { continue; }
       arr[url] = 1; count++;
     }
-    return this.filterFill_([], query, arr, offset, count);
+    return historyEngine.filterFill_([], query, arr, offset, count);
   },
   loadSessions_ (query: CompletersNS.QueryStatus, sessions: chrome.sessions.Session[]): void {
     if (query.isOff) { return; }
@@ -685,9 +685,9 @@ domainEngine = {
 
 tabEngine = {
   filter_ (query: CompletersNS.QueryStatus): void {
-    Completers.requireNormalOrIncognito_(this, this.performSearch_, query);
+    Completers.requireNormalOrIncognito_(this.performSearch_, query);
   },
-  performSearch_ (query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
+  performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0;
@@ -711,8 +711,8 @@ tabEngine = {
       }
       return Completers.next_(suggestions);
     }
-    wndIds = wndIds.sort(this.SortNumbers_);
-    const c = noFilter ? this.computeRecency_ : ComputeWordRelevancy;
+    wndIds = wndIds.sort(tabEngine.SortNumbers_);
+    const c = noFilter ? tabEngine.computeRecency_ : ComputeWordRelevancy;
     for (const tab of tabs) {
       let id = "#";
       wndIds.length > 1 && (id += `${wndIds.indexOf(tab.windowId) + 1}:`);
@@ -950,19 +950,21 @@ Completers = {
       completers[i].filter_(query, i);
     }
   },
-  requireNormalOrIncognito_<T> (that: T
-      , func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
+  requireNormalOrIncognito_<T> (
+      func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
       , query: CompletersNS.QueryStatus): 1 {
+    const cb = func.bind(null, query);
+    if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)) {
+      inNormal = TabRecency_.incognito_ !== IncognitoType.true;
+      return chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, cb);
+    }
     if (inNormal === null) {
-      inNormal = Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
-          || TabRecency_.incognito_ !== IncognitoType.mayFalse
+      inNormal = TabRecency_.incognito_ !== IncognitoType.mayFalse
         ? TabRecency_.incognito_ !== IncognitoType.true
         : ChromeVer >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST_.DisallowIncognito_
           || null;
     }
-    const cb = func.bind(that, query);
-    if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
-        || inNormal !== null) {
+    if (inNormal !== null) {
       return chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, cb);
     }
     return chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {

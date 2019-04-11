@@ -7,7 +7,7 @@
     "package-lock": false
   },
   "dependencies": {
-    "typescript": "^3.3"
+    "typescript": "^3.4.3"
   },
   "devDependencies": {
     "gulp": ">=4",

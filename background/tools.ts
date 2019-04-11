@@ -470,7 +470,8 @@ TabRecency_ = {
   tabs_: Object.create<number>(null) as SafeDict<number>,
   last_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
   lastWnd_: (chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone) as number,
-  incognito_: IncognitoType.mayFalse,
+  incognito_: Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+      ? IncognitoType.ensuredFalse : IncognitoType.mayFalse,
   rCompare_: null as never as (a: {id: number}, b: {id: number}) => number,
 };
 
@@ -498,7 +499,9 @@ setTimeout(function () {
     let a = tabs[0];
     if (a) {
       TabRecency_.lastWnd_ = a.windowId;
-      TabRecency_.incognito_ = +a.incognito;
+      TabRecency_.incognito_ = a.incognito ? IncognitoType.true
+        : Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+        ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
       return listener({ tabId: a.id });
     }
   }
@@ -514,7 +517,9 @@ setTimeout(function () {
     if (!a) { return Utils.runtimeError_(); }
     TabRecency_.last_ = a.id;
     TabRecency_.lastWnd_ = a.windowId;
-    TabRecency_.incognito_ = a.incognito ? IncognitoType.true : IncognitoType.mayFalse;
+    TabRecency_.incognito_ = a.incognito ? IncognitoType.true
+      : Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+      ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
   });
   TabRecency_.rCompare_ = function (a, b): number {
     return (cache[b.id] as number) - (cache[a.id] as number);

@@ -893,7 +893,9 @@ Are you sure you want to continue?`);
       if (commandCount < 2) { return; }
       if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
           || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
-          || TabRecency_.incognito_ === IncognitoType.ensuredFalse) {
+          || TabRecency_.incognito_ === IncognitoType.ensuredFalse
+          || Settings.CONST_.DisallowIncognito_
+          ) {
         chrome.tabs.get(tabId, fallback);
       } else {
         chrome.windows.getCurrent({populate: true}, function (wnd: PopWindow): void {
@@ -1296,8 +1298,9 @@ Are you sure you want to continue?`);
       ++tab.index;
       if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
           || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
+          || TabRecency_.incognito_ === IncognitoType.ensuredFalse
           || Settings.CONST_.DisallowIncognito_
-          || TabRecency_.incognito_ === IncognitoType.ensuredFalse || !Utils.isRefusingIncognito_(tab.url)) {
+          || !Utils.isRefusingIncognito_(tab.url)) {
         return Backend.reopenTab_(tab);
       }
       chrome.windows.get(tab.windowId, function (wnd): void {

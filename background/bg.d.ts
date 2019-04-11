@@ -158,8 +158,8 @@ interface Port extends Frames.Port {
 }
 
 declare const enum IncognitoType {
-  mayFalse = 0, true = 1,
-  ensuredFalse = -1,
+  ensuredFalse = 0,
+  mayFalse = 1, true = 2,
 }
 
 type CurrentTabs = [chrome.tabs.Tab];

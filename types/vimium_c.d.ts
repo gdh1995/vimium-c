@@ -421,7 +421,7 @@ declare const enum BrowserVer {
   // if EXPERIMENTAL, there's Element::scrollTo and Element::scrollBy only since C41
   MinCSS$ScrollBehavior$$Smooth$Work = 41,
   // MethodFunction is accepted since C42 if EMPTY
-  MinMayBeMethodFunction = 41, // if EXPERIMENTAL
+  MinMayBeES6MethodFunction = 41, // if EXPERIMENTAL
   // before 42, event.path is a simple NodeList instance ; even if EXPERIMENTAL or LEGACY
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,
@@ -430,8 +430,8 @@ declare const enum BrowserVer {
   // before C43, "font-size: ***" of <select> overrides those of its <options>s'
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43
   Min$Option$HasReliableFontSize = 43, // even if LEGACY
-  MinEnsured$String$$StartsWithAndRepeatAndIncludes = 43, // even if LEGACY
-  MinSafe$String$$StartsWith = MinEnsured$String$$StartsWithAndRepeatAndIncludes + 1, // add a margin
+  MinEnsuredES6$String$$StartsWithAndRepeatAndIncludes = 43, // even if LEGACY
+  MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithAndRepeatAndIncludes + 1, // add a margin
   MinRuntimePlatformOs = 44,
   MinCreateWndWithState = 44,
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
@@ -442,9 +442,9 @@ declare const enum BrowserVer {
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
   // even if EXPERIMENTAL or EMPTY
-  MinMayBeArrowFunction = 45,
+  MinMayBeES6ArrowFunction = 45,
   // even if LEGACY
-  MinEnsuredMethodFunction = 45, // e.g.: `a = { b() {} }`
+  MinEnsuredES6MethodFunction = 45, // e.g.: `a = { b() {} }`
   MinMuted = 45,
   MinMutedInfo = 46,
   // even if EXPERIMENTAL or LEGACY
@@ -466,7 +466,7 @@ declare const enum BrowserVer {
   // if LEGACY, arrow functions will be accepted only since C48,
   // but this flag will break the Developer Tools (can not open the window) on Chrome 46/47/48,
   // so Chrome can only debug arrow functions since 49
-  MinEnsuredArrowFunction = 48,
+  MinEnsuredES6ArrowFunction = 48,
   // even if EXPERIMENTAL or LEGACY
   MinSafeGlobal$frameElement = 48,
   // just means it's enabled even if LEGACY;
@@ -479,7 +479,7 @@ declare const enum BrowserVer {
   MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument = 48, // if EXPERIMENTAL
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   MinSafeWndPostMessageAcrossProcesses = 49,
-  MinNo$Promise$$defer = 49,
+  MinES6No$Promise$$defer = 49,
   /* content scripts are always injected (tested on Chrome from 35 to 66), and can always be listed by the Dev Tools */
   // even if EXPERIMENTAL or LEGACY; length of an older addEventListener is 0
   Min$addEventListener$$length$Is2 = 49,
@@ -488,7 +488,7 @@ declare const enum BrowserVer {
   MinLinkRelAcceptNoopener = 49,
   MinSVG$Path$MayHave$d$CSSAttribute = 49, // if #enable-experimental-web-platform-features is on
   // Object.observe is from C36 to C49 even if EXPERIMENTAL or LEGACY
-  MinNo$Object$$Observe = 50,
+  MinES6No$Object$$Observe = 50,
   // The real support for arg frameId of chrome.tabs.executeScript is since C50,
   //   and is neither 41 (an older version) nor 39 (cur ver on 2018-02-18)
   //   in https://developer.chrome.com/extensions/tabs#method-executeScript.
