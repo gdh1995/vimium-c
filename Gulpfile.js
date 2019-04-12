@@ -463,6 +463,10 @@ function compile(pathOrStream, header_files, done) {
   stream.pipe(merged.attachSource());
   if (isInitingMerged) {
     getBuildConfigStream().pipe(merged.attachSource());
+    merged = merged.pipe(gulpSome(function(file) {
+      var t = file.relative, s = ".d.ts", i = t.length - s.length;
+      return i < 0 || t.indexOf(s, i) !== i;
+    }));
     if (enableSourceMap) {
       merged = merged.pipe(require('gulp-sourcemaps').init());
     }
