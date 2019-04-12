@@ -7,7 +7,8 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/container_node.cc?type=cs&q=getElementsByTagName&g=0&l=1578
  */
   const enum InnerConsts {
-    MaxElementsInOneTick = 64,
+    MaxElementsInOneTickDebug = 512,
+    MaxElementsInOneTickRelease = 256,
     MaxUnsafeEventsInOneTick = 12,
     DelayToWaitDomReady = 1000,
     DelayToFindAll = 600,
@@ -212,7 +213,8 @@ allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
 next = function (): void {
   const len = toRegister.length,
-  start = len > InnerConsts.MaxElementsInOneTick ? len - InnerConsts.MaxElementsInOneTick : 0,
+  start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
+    ? len - (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug) : 0,
   delta = len - start;
   timer = start > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   if (!len) { return; }
