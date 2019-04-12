@@ -525,7 +525,8 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   (defaults as SettingsWithDefaults).newTabUrl = (Build.BTypes & ~BrowserType.Chrome
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
     ? CommonNewTab : newtab ? obj.NtpNewTab_ : ChromeNewTab;
-  ref3[CommonNewTab] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
+  // note: on firefox, "about:newtab/" is invalid, but it's OKay if still marking the URL a NewTab URL.
+  ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
     (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
   newtab && (ref3[func(obj.VimiumNewTab_ = newtab)] = Urls.NewTabType.vimium);
