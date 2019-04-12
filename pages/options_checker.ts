@@ -89,7 +89,9 @@ bgSettings_.CONST_.VimiumNewTab_ && (Option_.all_.newTabUrl.checker_ = {
     let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
         ? chrome.runtime.getURL(value) : BG_.Utils.convertToUrl_(value.toLowerCase());
     url = url.split("?", 1)[0].split("#", 1)[0];
-    return url.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_) ? bgSettings_.defaults_.newTabUrl : value;
+    return value.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_
+      || (<RegExpI> /^[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
+      ) ? bgSettings_.defaults_.newTabUrl : value;
   }
 });
 
