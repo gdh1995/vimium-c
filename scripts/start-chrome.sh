@@ -68,10 +68,10 @@ done
 
 if test -f "/usr/bin/env.exe"; then
   RUN=/usr/bin/start2.exe
-  PATH=/usr/bin/cygpath.exe
+  REALPATH=/usr/bin/cygpath.exe
 else
   RUN=$(which env.exe)' start2.exe'
-  PATH=/bin/wslpath
+  REALPATH=/bin/wslpath
 fi
 
 dir=$(/usr/bin/realpath "${BASH_SOURCE[0]}")
@@ -107,10 +107,13 @@ if test "$VER" == wo -o "$VER" == prev || test ${VER:-99} -ge 45; then
   fi
 fi
 
-exe_w=$($PATH -m "$EXE")
+exe_w=$($REALPATH -m "$EXE")
 if ! test -f "$EXE"; then
   echo -E "No such a file: "$exe_w >&2
   exit 1
+fi
+if test -n "$VER"; then # not cur
+  rm -f "${EXE%/*}/default_apps/"*
 fi
 
 dir=${GUD}; dir=${dir#/}; gud_w=${dir%%/*}; dir=${dir#[a-z]}
