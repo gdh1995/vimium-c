@@ -120,8 +120,8 @@ var VDom = {
   scrollingEl_ (fallback?: 1): SafeElement | null {
     // Both C73 and FF66 still supports the Quirk mode (entered by `document.open()`)
     let d = document, el = d.scrollingElement, docEl = d.documentElement;
-    if (!(Build.BTypes & BrowserType.Chrome)) { /* empty */ } else
-    if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && el === undefined) {
+    if (Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement && Build.BTypes & BrowserType.Chrome
+        && el === undefined) {
       /**
        * The code about `inQuirksMode` in `Element::scrollTop()` is wrapped by a flag #scrollTopLeftInterop
        * since [2013-11-18] https://github.com/chromium/chromium/commit/25aa0914121f94d2e2efbc4bf907f231afae8b51 ,
@@ -139,6 +139,9 @@ var VDom = {
     if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset && Build.BTypes & BrowserType.Chrome) {
       el = (Build.MinCVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin ? el && this.notSafe_(el)
             : el instanceof HTMLFrameSetElement) ? null : el;
+    }
+    if (!(Build.BTypes & ~BrowserType.Firefox)) {
+      return el || !fallback ? el as SafeElement | null : docEl as SafeElement | null;
     }
     // here `el` may be `:root` / `:root > body` / null, but never `:root > frameset`
     return this.notSafe_(el as Exclude<typeof el, undefined>) ? null // :root is unsafe
