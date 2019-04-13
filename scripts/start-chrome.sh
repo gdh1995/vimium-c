@@ -54,7 +54,7 @@ case "$1" in
     shift
     ;;
   --*)
-    OTHER_ARGS=$OTHER_ARGS " $1"
+    OTHER_ARGS=$OTHER_ARGS" $1"
     shift
     ;;
   *)

@@ -1124,7 +1124,7 @@ Modes_: [
     // here not check VDom.lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     VScroller.current_ = element;
-    VDom.hover_(element, rect);
+    VDom.hover_(element, VDom.center_(rect));
     type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
       element instanceof HTMLFrameElement || element.focus();
     const a = this as typeof VHints;
@@ -1275,7 +1275,7 @@ Modes_: [
     a.href = url;
     a.download = img.getAttribute("download") || "";
     // todo: how to trigger download
-    VDom.mouse_(a, "click", null);
+    VDom.mouse_(a, "click", [0, 0]);
     return VHud.tip_("Download: " + text, 2000);
   }
 } as HintsNS.ModeOpt,

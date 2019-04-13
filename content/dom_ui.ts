@@ -222,20 +222,22 @@ VDom.UI = {
     sel.collapseToStart();
     return true;
   },
-  click_ (element, rect, modifiers, addFocus, button): void {
-    rect || (rect = VDom.getVisibleClientRect_(element));
-    element === VDom.lastHovered_ || VDom.hover_(element, rect);
-    VDom.mouse_(element, "mousedown", rect, modifiers, null, button);
+  click_ (element, rect, modifiers, addFocus, button, touchMode): void {
+    const a = VDom;
+    rect || (rect = a.getVisibleClientRect_(element));
+    const center = a.center_(rect);
+    element === a.lastHovered_ || a.hover_(element, center);
+    a.mouse_(element, "mousedown", center, modifiers, null, button);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
     addFocus && element !== VEvent.lock_() && element !== document.activeElement &&
       !(element as Partial<HTMLInputElement>).disabled &&
       typeof element.focus === "function" && element.focus();
-    VDom.mouse_(element, "mouseup", rect, modifiers, null, button);
+    a.mouse_(element, "mouseup", center, modifiers, null, button);
     if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
       return;
     }
     if (!(Build.BTypes & BrowserType.Firefox)) {
-      VDom.mouse_(element, "click", rect, modifiers, null, button);
+      a.mouse_(element, "click", center, modifiers, null, button);
       return;
     }
     const enum ActionType {
@@ -253,7 +255,7 @@ VDom.UI = {
           ? ActionType.DispatchAndMayFix : ActionType.FixButNotDispatch;
     }
     if (result >= ActionType.FixButNotDispatch
-        || VDom.mouse_(element, "click", rect, modifiers, null, button) && result) {
+        || a.mouse_(element, "click", center, modifiers, null, button) && result) {
       // do fix
       VPort.post_({
         H: kFgReq.openUrl,
@@ -316,16 +318,17 @@ VDom.UI = {
     } catch {}
   },
   getRect_ (this: void, clickEl, refer): Rect | null {
-    VDom.getZoom_(clickEl);
-    VDom.prepareCrop_();
+    const a = VDom;
+    a.getZoom_(clickEl);
+    a.prepareCrop_();
     if (refer) {
-      return VDom.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
+      return a.getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
-    const rect = VDom.getVisibleClientRect_(clickEl),
-    cr = VDom.getBoundingClientRect_(clickEl),
-    bcr = VDom.padClientRect_(cr, 8);
-    return rect && !VDom.isContaining_(bcr, rect) ? rect
-      : VDom.cropRectToVisible_.apply(VDom, bcr as [number, number, number, number]) ? bcr : null;
+    const rect = a.getVisibleClientRect_(clickEl),
+    cr = a.getBoundingClientRect_(clickEl),
+    bcr = a.padClientRect_(cr, 8);
+    return rect && !a.isContaining_(bcr, rect) ? rect
+      : a.cropRectToVisible_.apply(a, bcr as [number, number, number, number]) ? bcr : null;
   },
   _lastFlash: null,
   flash_: function (this: DomUI, el: Element | null, rect?: Rect | null, lifeTime?: number): HTMLDivElement | void {

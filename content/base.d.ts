@@ -73,6 +73,10 @@ interface Rect extends WritableRect {
   readonly [2]: number; // right
   readonly [3]: number; // bottom
 }
+interface Point2D {
+  readonly [0]: number;
+  readonly [1]: number;
+}
 
 interface ViewOffset {
   readonly [0]: number; // left
@@ -311,11 +315,11 @@ interface DomUI {
 
 interface VDomMouse {
   (element: Element, type: "mousedown" | "mouseup" | "click"
-    , rect: Rect | null // rect must be not optional, so that human can understand program logic easily
+    , rect: Point2D // rect must be not optional, so that human can understand program logic easily
     , modifiers?: MyMouseControlKeys | null, related?: Element | null, button?: 0 | 2): boolean;
-  (element: Element, type: "mouseover" | "mouseenter", rect: Rect | null
+  (element: Element, type: "mouseover" | "mouseenter", rect: Point2D
     , modifiers?: null, related?: Element | null): boolean;
-  (element: Element, type: "mouseout" | "mouseleave", rect?: null
+  (element: Element, type: "mouseout" | "mouseleave", rect: Point2D
     , modifiers?: null, related?: Element | null): boolean;
 }
 interface VPortTy {

@@ -355,7 +355,7 @@ var VDom = {
     Math.abs(zoom - ratio) < 1e-5 && (!(Build.BTypes & ~BrowserType.Chrome)
       && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl || a.specialZoom_) && (zoom = 1);
     a.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
-    a.dbZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom * zoom2 : zoom2;
+    a.dbZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom * zoom2 : 1;
     let x = !stacking ? float(st.marginLeft)
           : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && a.fixedClientTop_
           ? -float(st.borderLeftWidth) : -box.clientLeft
@@ -545,9 +545,13 @@ var VDom = {
     return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement)
       , PNType.DirectElement);
   },
+  center_ (rect?: Rect | null): Point2D {
+    let zoom = Build.BTypes & ~BrowserType.Firefox ? this.dbZoom_ / 2 : 0.5;
+    return rect ? [((rect[0] + rect[2]) * zoom) | 0, ((rect[1] + rect[3]) * zoom) | 0] : [0, 0];
+  },
   mouse_: function (this: {}, element: Element
       , type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseenter" | "mouseout" | "mouseleave"
-      , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, related?: Element | null
+      , center: Point2D, modifiers?: MyMouseControlKeys | null, related?: Element | null
       , button?: number): boolean {
     modifiers || (modifiers = { altKey_: !1, ctrlKey_: !1, metaKey_: !1, shiftKey_: !1 });
     let doc = element.ownerDocument;
@@ -559,11 +563,9 @@ var VDom = {
     //  screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number,
     //  ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean,
     //  buttonArg: number, relatedTargetArg: EventTarget | null)
-    let x = rect ? ((rect[0] + rect[2]) * VDom.dbZoom_ / 2) | 0 : 0
-      , y = rect ? ((rect[1] + rect[3]) * VDom.dbZoom_ / 2) | 0 : 0;
     mouseEvent.initMouseEvent(type, true, true
       , doc.defaultView || window, type.startsWith("mouseo") ? 0 : 1
-      , x, y, x, y
+      , center[0], center[1], center[0], center[1]
       , modifiers.ctrlKey_, modifiers.altKey_, modifiers.shiftKey_, modifiers.metaKey_
       , <number> button | 0, related && related.ownerDocument === doc ? related : null);
     return Build.BTypes & ~BrowserType.Firefox ? doc.dispatchEvent.call(element, mouseEvent)
@@ -571,24 +573,24 @@ var VDom = {
   } as VDomMouse,
   lastHovered_: null as Element | null,
   /** note: will NOT skip even if newEl == @lastHovered */
-  hover_: function (this: {}, newEl: Element | null, rect?: Rect | null): void {
+  hover_: function (this: {}, newEl: Element | null, center?: Point2D): void {
     let a = VDom as typeof VDom, last = a.lastHovered_;
     if (last && a.isInDOM_(last)) {
       const notSame = newEl !== last;
-      a.mouse_(last, "mouseout", null, null, notSame ? newEl : null);
+      a.mouse_(last, "mouseout", [0, 0], null, notSame ? newEl : null);
       if (!newEl || notSame && !a.isInDOM_(newEl, last, 1)) {
-        a.mouse_(last, "mouseleave", null, null, newEl);
+        a.mouse_(last, "mouseleave", [0, 0], null, newEl);
       }
     } else {
       last = null;
     }
     a.lastHovered_ = newEl;
     if (newEl) {
-      a.mouse_(newEl, "mouseover", rect as Rect | null, null, last);
-      a.mouse_(newEl, "mouseenter", rect as Rect | null, null, last);
+      a.mouse_(newEl, "mouseover", center as Point2D, null, last);
+      a.mouse_(newEl, "mouseenter", center as Point2D, null, last);
     }
   } as {
-    (newEl: Element, rect: Rect | null): void;
+    (newEl: Element, center: Point2D): void;
     (newEl: null): void;
   },
   isContaining_ (a: Rect, b: Rect): boolean {

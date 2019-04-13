@@ -672,6 +672,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       Commands[kFgCmd.reload](1, { url });
     } else {
       VDom.view_(linkElement);
+      // note: prepareCrop is called during UI.flash_
       VDom.UI.flash_(linkElement);
       setTimeout(function () { VDom.UI.click_(linkElement); }, 100);
     }
