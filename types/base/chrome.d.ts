@@ -1760,6 +1760,10 @@ declare namespace chrome.sessions {
      * Parameter sessions: The list of closed entries in reverse order that they were closed (the most recently closed tab or window will be at index 0). The entries may contain either tabs or windows.
      */
     export function getRecentlyClosed(callback: (sessions: Session[], exArg: FakeArg) => void): 1;
+
+    /** only for Firefox  */
+    export function getRecentlyClosed(filter: Filter, exArg?: FakeArg): Promise<chrome.sessions.Session[]>;
+
     /**
      * Retrieves all devices with synced sessions.
      * @param callback
@@ -1780,6 +1784,9 @@ declare namespace chrome.sessions {
      * Parameter restoredSession: A sessions.Session containing the restored windows.Window or tabs.Tab object.
      */
     export function restore(sessionId?: string | null, callback?: (restoredSession: Session, exArg: FakeArg) => void): 1;
+
+    /** only on Firefox */
+    export function forgetClosedTab(windowId: number, sessionId: string): 1;
 
     /** Fired when recently closed tabs and/or windows are changed. This event does not monitor synced sessions changes. */
     export var onChanged: SessionChangedEvent;

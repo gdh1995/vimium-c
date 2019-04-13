@@ -83,6 +83,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: VKeyCodes = VKeyCodes.None,
+  _removeTempTabLock: Promise<void> | null | 0 = Build.BTypes & BrowserType.Firefox ? null : 0, // only for Firefox
   gCmdTimer = 0, gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone;
   const getSecret = (function (this: void): (this: void) => number {
     let secret = 0, time = 0;
@@ -2223,8 +2224,10 @@ Are you sure you want to continue?`);
         }
         status = Frames.Status.enabled;
         sender.f = Frames.Flags.userActed;
-      } else if (type === PortType.CloseSelf) {
-        sender.i || tabId < 0 || chrome.tabs.remove(tabId);
+      } else if (Build.BTypes & BrowserType.Firefox && type === PortType.CloseSelf) {
+        if (tabId >= 0 && !sender.i) {
+          removeTempNewTab(tabId, port);
+        }
         return;
       } else {
         status = ((type >>> PortType.BitOffsetOfKnownStatus) & PortType.MaskOfKnownStatus) - 1;
@@ -2357,6 +2360,31 @@ Are you sure you want to continue?`);
       t: tab.id,
       u: Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url as string
     };
+  }
+
+  function removeTempNewTab(tabId: number, port: chrome.runtime.Port): void {
+    let wndId = (port.sender.tab as chrome.tabs.Tab).windowId;
+    if (_removeTempTabLock) {
+      _removeTempTabLock.then(_removeTempNewTab.bind(null, tabId, wndId));
+    } else {
+      interface LatestPromise extends Promise<void> {
+        finally (onFinally: () => void): LatestPromise;
+      }
+      _removeTempTabLock = (_removeTempNewTab(tabId, wndId) as LatestPromise).finally(function (): void {
+        _removeTempTabLock = null;
+      });
+    }
+  }
+
+  function _removeTempNewTab(tabId: number, windowId: number): Promise<void> {
+    let promise = chrome.tabs.remove(tabId) as never as Promise<void>;
+    promise = promise.then(function() {
+      return chrome.sessions.getRecentlyClosed({ maxResults: 1 });
+    }).then(function (sessions: chrome.sessions.Session[]): void {
+      const tab = sessions && sessions[0] && sessions[0].tab;
+      tab && chrome.sessions.forgetClosedTab(windowId, tab.sessionId as string);
+    });
+    return promise;
   }
 
   Backend = {
