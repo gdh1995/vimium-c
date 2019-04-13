@@ -9,11 +9,13 @@ declare namespace ScrollerNS {
     invalidTime = 0, minDuration = 100, durationScaleForAmount = 20,
     maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17,
 
+    DelayMinDelta = 60, DelayTolerance = 60,
     DelayUnitMs = 30, FrameIntervalMs = 16.67, MaxSkippedF = 4,
+    // https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc978658(v=technet.10)
     //            delay         interval  # delay - interval (not so useful)
-    // high:  60f / 1000ms :  400ms / 24f # 600 / 28
+    // high:  60f / 1000ms :  400ms / 24f # 660 / 28
     // low:   15f /  250ms :   33ms /  2f # 200 / 6
-    HighDelayMs = 1000, LowDelayMs = 250, DefaultMinDelayMs = 600,
+    HighDelayMs = 1000, LowDelayMs = 250, DefaultMinDelayMs = 660,
     HighIntervalF = 24, LowIntervalF = 2, DefaultMaxIntervalF = HighIntervalF + MaxSkippedF,
   }
 }
@@ -63,14 +65,16 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     requestAnimationFrame(animate);
   }
   this._animate = (function (this: typeof VScroller, newEl, newDi, newAmount): void | number {
-    amount = Math.abs(newAmount); calibration = 1.0; di = newDi;
-    duration = Math.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * Math.log(amount));
+    const M = Math;
+    amount = M.abs(newAmount); calibration = 1.0; di = newDi;
+    duration = M.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * M.log(amount));
     element = newEl;
     sign = newAmount < 0 ? -1 : 1;
     timestamp = ScrollerNS.Consts.invalidTime; totalDelta = totalElapsed = 0.0;
     const keyboard = VUtils.cache_.keyboard;
-    this.maxInterval_ = Math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
-    this.minDelay_ = (((keyboard[0] - keyboard[1]) / ScrollerNS.Consts.DelayUnitMs) | 0)
+    this.maxInterval_ = M.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
+    this.minDelay_ = (((keyboard[0] + M.max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
+          + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
       * ScrollerNS.Consts.DelayUnitMs;
     this.keyIsDown_ = this.maxInterval_;
     if (last) { return; }

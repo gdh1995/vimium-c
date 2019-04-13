@@ -93,7 +93,8 @@ Here're some issues still existing on the master branch, which are mostly caused
 * LinkHints:
   * can simulate clicking the right mouse button (use an option of `button="right"`)
   * in hover mode, can toggle class names of given HTML nodes (use `toggle={".selector":"className"}`)
-* Vomnibar:
+* Vomnibar: the dark mode becomes a little lighter
+* Scroller: a better default value of keyboard settings
 * vimium://show : now auto decrypt "thunder://" URLs
 * fix some typos about `<a-c>` and `<a-t>` in recommended key mappings
 * fix the detection of fullscreen status on Chrome >= 71
