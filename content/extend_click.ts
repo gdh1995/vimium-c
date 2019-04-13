@@ -186,7 +186,7 @@ let handler = function (this: void): void {
   const docEl2 = docChildren[0] as HTMLElement | SVGElement | null;
   handler = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
-  const el = call(Create, document, "div") as HTMLDivElement, key = InnerConsts.kSecretAttr;
+  const el = call(Create, doc, "div") as HTMLDivElement, key = InnerConsts.kSecretAttr;
   call(Attr, el, key, "");
   listen(el, InnerConsts.kCmd, executeCmd, true);
   call(Append, docEl2, el), dispatch(el, new CE(InnerConsts.kHook, {detail: sec})), call(Remove, el);
@@ -296,9 +296,9 @@ function doRegister(onlyInDocument?: 1): void {
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
   }
 }
-function safeReRegister(element: Element, doc: Document): void {
-  const localAEL = doc.addEventListener, localREL = doc.removeEventListener, kFunc = "function";
-  if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
+function safeReRegister(element: Element, doc1: Document): void {
+  const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
+  if (typeof localAEL === kFunc && typeof localREL === kFunc && localAEL !== myAEL) {
     try {
       call(localAEL, element, kClick, noop);
     } catch {}

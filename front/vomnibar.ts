@@ -55,7 +55,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     a.init_ && a.setPType_(options.t);
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
-      a._favPrefix = '" style="background-image: url(&quot;'; 
+      a._favPrefix = '" style="background-image: url(&quot;';
     } else if (a.mode_.i) {
       scale = scale <= 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
 /**
@@ -675,9 +675,9 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
     let omniStyles = Vomnibar_.globalOptions_.styles, toggle = ` ${req.t} `;
-      omniStyles = omniStyles && ` ${omniStyles} `;
-      omniStyles = omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, " ") : omniStyles + req.t;
-      omniStyles = omniStyles.trim();
+    omniStyles = omniStyles && ` ${omniStyles} `;
+    omniStyles = omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, " ") : omniStyles + req.t;
+    omniStyles = omniStyles.trim();
     Vomnibar_.globalOptions_.styles = omniStyles;
     Vomnibar_.onStyleUpdate_(omniStyles);
     if (toggle && !req.c) {

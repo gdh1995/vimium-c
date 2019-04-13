@@ -8,7 +8,7 @@ chrome_ = (!(Build.BTypes & ~BrowserType.Chrome) ? chrome
     : !(Build.BTypes & ~BrowserType.Firefox) ? browser as typeof chrome
     : window.chrome || browser as typeof chrome
     );
-chrome_.tabs[focusContent_ ? "create" as const: "update" as const]({
+chrome_.tabs[focusContent_ ? "create" as const : "update" as const]({
   url: storage_.newTabUrl_f || "about:blank"
 }, Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || window.browser)
     ? function (): void {
@@ -19,17 +19,16 @@ chrome_.tabs[focusContent_ ? "create" as const: "update" as const]({
     script.src = "loader.js";
     (document.head as HTMLHeadElement).appendChild(script);
   }
+  else if (!focusContent_) { /* empty */ }
+  else if (!(Build.BTypes & ~BrowserType.Firefox)) {
+    chrome_.runtime.connect({ name: PortNameEnum.Prefix + PortType.CloseSelf });
+  } else {
+    setTimeout(function (): void {
+      chrome_.runtime.connect({ name: PortNameEnum.Prefix + PortType.CloseSelf });
+    }, 33);
+  }
   return error;
 } : undefined);
 if (Build.BTypes & ~BrowserType.Firefox && focusContent_) {
   (close as () => {})();
-}
-if (!(Build.BTypes & ~BrowserType.Firefox)) {
-  if (focusContent_) {
-    chrome_.runtime.connect({ name: PortNameEnum.Prefix + PortType.CloseSelf });
-  }
-} else if (Build.BTypes & BrowserType.Firefox && focusContent_) {
-  setTimeout(function (): void {
-    chrome_.runtime.connect({ name: PortNameEnum.Prefix + PortType.CloseSelf });
-  }, 33);
 }

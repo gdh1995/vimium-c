@@ -27,6 +27,13 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
     const dom = (window as {} as {VDom?: typeof VDom}).VDom;
     dom && (dom.allowScripts_ = 0);
+    if (Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab
+        && location.pathname.indexOf("newtab") >= 0) {
+      setTimeout(function (): void {
+        const hud = (window as {} as {VHud?: VHUDTy}).VHud;
+        hud && hud.tip_("Not allowed to open the target new tab URL", 2560);
+      }, 100);
+    }
   };
   interface BgWindow extends Window { Settings: typeof Settings; }
   if (location.pathname.toLowerCase().indexOf("options") < 0) {

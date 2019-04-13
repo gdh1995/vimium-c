@@ -2229,7 +2229,7 @@ Are you sure you want to continue?`);
         }
         status = Frames.Status.enabled;
         sender.f = Frames.Flags.userActed;
-      } else if (Build.BTypes & BrowserType.Firefox && type === PortType.CloseSelf) {
+      } else if (Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab && type === PortType.CloseSelf) {
         if (tabId >= 0 && !sender.i) {
           removeTempNewTab(tabId, port);
         }
@@ -2383,7 +2383,7 @@ Are you sure you want to continue?`);
 
   function _removeTempNewTab(tabId: number, windowId: number): Promise<void> {
     let promise = chrome.tabs.remove(tabId) as never as Promise<void>;
-    promise = promise.then(function() {
+    promise = promise.then(function () {
       return chrome.sessions.getRecentlyClosed({ maxResults: 1 });
     }).then(function (sessions: chrome.sessions.Session[]): void {
       const tab = sessions && sessions[0] && sessions[0].tab;
