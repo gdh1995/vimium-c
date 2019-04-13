@@ -1109,6 +1109,7 @@ VPort_ = {
     name === kBgReq.showHUD ? Vomnibar_.css_(response as Req.bg<kBgReq.showHUD> as BgCSSReq) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
     name === kBgReq.omni_globalOptions ? Vomnibar_.setGlobalOptions_(response as Req.bg<kBgReq.omni_globalOptions>) :
+    name === kBgReq.injectorRun ? 0 :
     // tslint:disable-next-line: no-unused-expression
     0;
   },
@@ -1124,8 +1125,8 @@ VPort_ = {
   },
   _ClearPort (this: void): void { VPort_._port = null; },
   connect_ (type: PortType): FgPort {
-    const data = { name: "vimium-c." + type + (VCID ? "@omni" : "") }, port = VPort_._port = (VCID ?
-      chrome.runtime.connect(VCID, data) : chrome.runtime.connect(data)) as FgPort;
+    const data = { name: PortNameEnum.Prefix + type + (VCID ? PortNameEnum.Delimiter + BuildStr.Commit : "") },
+    port = VPort_._port = (VCID ? chrome.runtime.connect(VCID, data) : chrome.runtime.connect(data)) as FgPort;
     port.onDisconnect.addListener(VPort_._ClearPort);
     port.onMessage.addListener(VPort_._Listener as (message: object) => void);
     return port;

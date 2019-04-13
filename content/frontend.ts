@@ -72,9 +72,9 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       status = requestHandlers[0] ? PortType.initing
         : (isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
         + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn_ ? PortType.hasCSS : 0),
-      name = "vimium-c." + (
+      name = PortNameEnum.Prefix + (
         PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status),
-      data = { name: injector ? name + "@" + injector.versionHash : name },
+      data = { name: injector ? name + PortNameEnum.Delimiter + injector.versionHash : name },
       port = vPort._port = injector ? runtime.connect(injector.id, data) as Port
         : runtime.connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);

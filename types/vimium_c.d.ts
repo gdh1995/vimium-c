@@ -189,6 +189,12 @@ declare namespace Frames {
   }
 }
 
+declare const enum PortNameEnum {
+  Prefix = "vimium-c.",
+  PrefixLen = 9,
+  Delimiter = "@",
+}
+
 declare const enum PortType {
   initing = 1,
   hasFocus = 2,

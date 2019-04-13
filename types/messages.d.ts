@@ -134,7 +134,7 @@ interface BgVomnibarSpecialReq {
     o: SettingsNS.BackendSettings["vomnibarOptions"];
   }
 }
-type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.showHUD;
+type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.showHUD | kBgReq.injectorRun;
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 

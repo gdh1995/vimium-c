@@ -2534,7 +2534,8 @@ Are you sure you want to continue?`);
         requestHandlers[kFgReq.setOmniStyle]({ s: oldStyles });
       }
       chrome.runtime.onConnect.addListener(function (port): void {
-        return OnConnect(port as Frames.Port, (port.name.substring(9) as string | number as number) | 0);
+        return OnConnect(port as Frames.Port,
+            (port.name.substring(PortNameEnum.PrefixLen) as string | number as number) | 0);
       });
       if (Build.BTypes & ~BrowserType.Chrome && !chrome.runtime.onConnectExternal) { return; }
       Settings.postUpdate_("extWhiteList");
@@ -2542,13 +2543,13 @@ Are you sure you want to continue?`);
         let { sender, name } = port, arr: string[];
         if (sender
             && (Build.BTypes & ~BrowserType.Chrome ? isExtIdAllowed(sender.id, sender.url) : isExtIdAllowed(sender.id))
-            && name.startsWith("vimium-c") && (arr = name.split("@")).length > 1) {
-          if (arr[1] !== Settings.CONST_.GitVer && arr[1] !== "omni") {
+            && name.startsWith(PortNameEnum.Prefix) && (arr = name.split(PortNameEnum.Delimiter)).length > 1) {
+          if (arr[1] !== Settings.CONST_.GitVer) {
             (port as Port).postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reload });
             port.disconnect();
             return;
           }
-          OnConnect(port as Frames.Port, (arr[0].substring(9) as string | number as number) | 0);
+          OnConnect(port as Frames.Port, (arr[0].substring(PortNameEnum.PrefixLen) as string | number as number) | 0);
           if (Build.BTypes & BrowserType.Firefox) {
             (port as Frames.Port).s.f |= Frames.Flags.OtherExtension;
           }
