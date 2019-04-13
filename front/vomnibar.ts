@@ -53,7 +53,10 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
                                       a.globalOptions_.maxMatches));
     a.maxHeight_ = Math.ceil((a.mode_.r = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
     a.init_ && a.setPType_(options.t);
-    if (a.mode_.i) {
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
+      a._favPrefix = '" style="background-image: url(&quot;'; 
+    } else if (a.mode_.i) {
       scale = scale <= 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
 /**
  * Note: "@1x" is necessary, because only the whole 'size/aa@bx/' can be optional
@@ -973,6 +976,12 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     let str: string | undefined;
     item.relevancy = Vomnibar_.showRelevancy_ ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
     (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
+    if (Build.BTypes & BrowserType.Firefox) {
+      if (item.favIcon) {
+        item.favIcon = Vomnibar_._favPrefix + VUtils_.escapeCSSStringInAttr_(item.favIcon) + "&quot;);";
+        return;
+      }
+    }
     item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.url : "") && Vomnibar_._favPrefix +
         ((str = Vomnibar_._parseFavIcon(item, str)) ? VUtils_.escapeCSSStringInAttr_(str) : "about:blank") + "&quot;);";
   },

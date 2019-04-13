@@ -49,6 +49,7 @@ declare namespace CompletersNS {
     sessionId?: string | number;
     label?: string;
     visited?: boolean;
+    favIcon?: string;
   }
   interface Suggestion extends BaseSuggestion {
     relevancy: number;

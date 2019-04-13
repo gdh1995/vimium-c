@@ -722,6 +722,10 @@ tabEngine = {
       if (curTabId === tabId) { suggestion.relevancy = 1; }
       suggestion.sessionId = tabId;
       suggestion.label = id;
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+        suggestion.favIcon = tab.favIconUrl;
+      }
       suggestions.push(suggestion);
     }
     if (queryType !== FirstQuery.tabs && offset !== 0) { /* empty */ }
