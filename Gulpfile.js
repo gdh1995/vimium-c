@@ -35,16 +35,20 @@ gulpPrint = gulpPrint.default || gulpPrint;
 createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & 1 /* Chrome */)
     && getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
+var has_newtab = getNonNullBuildItem("OverrideNewTab") > 0;
+const POLYFILL_FILE = "lib/polyfill.ts", NEWTAB_FILE = "pages/newtab.ts";
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
-  content: [["content/*.ts", "lib/*.ts", "!lib/polyfill.ts", "!lib/injector.ts"], "content/*.d.ts"],
-  lib: ["lib/*.ts"].concat(has_polyfill ? [] : ["!lib/polyfill.ts"]),
-  front: [["front/*.ts", has_polyfill ? "lib/polyfill.ts" : "!lib/polyfill.ts"
-            , "lib/injector.ts", "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]
+  content: [["content/*.ts", "lib/*.ts", "!" + POLYFILL_FILE, "!lib/injector.ts"], "content/*.d.ts"],
+  lib: ["lib/*.ts"].concat(has_polyfill ? [] : ["!" + POLYFILL_FILE]),
+  front: [["front/*.ts", has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE
+            , "lib/injector.ts", "pages/*.ts"
+            , has_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
+            , "!pages/options*.ts", "!pages/show.ts"]
           , ["background/bg.d.ts", "content/*.d.ts"]],
   vomnibar: ["front/vomnibar*.ts", ["background/bg.d.ts", "content/*.d.ts"]],
-  polyfill: ["lib/polyfill.ts"],
+  polyfill: [POLYFILL_FILE],
   injector: ["lib/injector.ts"],
   options: ["pages/options*.ts", ["background/*.d.ts", "content/*.d.ts"]],
   show: ["pages/show.ts", ["background/bg.d.ts", "content/*.d.ts"]],
@@ -67,6 +71,7 @@ var Tasks = {
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!front/vimium.css", "!test*", "!todo*"
     ];
+    has_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     var has_wordsRe = getBuildItem("BTypes") & /* not Firefox */ ~2
             && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
@@ -199,7 +204,8 @@ var Tasks = {
     gulp.task("min/others/misc", function() {
       var oriManifest = readJSON("manifest.json", true);
       var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!pages/options*"];
-      has_polyfill || res.push("!lib/polyfill.*");
+      has_polyfill || res.push("!" + POLYFILL_FILE.replace(".ts", ".*"));
+      has_newtab || res.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
       if (!has_dialog_ui) {
         res.push("!*/dialog_ui.*");
       }
@@ -252,6 +258,14 @@ var Tasks = {
     if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {
       manifest.options_ui && (manifest.options_ui.open_in_tab = true);
     }
+    if (getNonNullBuildItem("OverrideNewTab") <= 0) {
+      if (manifest.chrome_url_overrides) {
+        delete manifest.chrome_url_overrides.newtab;
+      }
+    }
+    if (manifest.chrome_url_overrides && Object.keys(manifest.chrome_url_overrides) == 0) {
+      delete manifest.chrome_url_overrides;
+    }
     var file = osPath.join(DEST, "manifest.json")
       , data = JSON.stringify(manifest, null, "  ");
     if (fs.existsSync(file) && fs.statSync(file).isFile()) {
@@ -290,6 +304,7 @@ var Tasks = {
   pa: ["pages"],
   pg: ["pages"],
   local: ["scripts", "options", "show"],
+  "local/": ["local"],
   tsc: ["locally", function(done) {
     debugging = true;
     doesMergeProjects = true;
@@ -327,9 +342,14 @@ gulp.task("locally", function(done) {
   var old_has_polyfill = has_polyfill;
   has_polyfill = getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
   if (has_polyfill != old_has_polyfill) {
-    CompileTasks.front[0][1] = has_polyfill ? "lib/polyfill.ts" : "!lib/polyfill.ts";
+    CompileTasks.front[0][1] = has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE;
     CompileTasks.lib.length = 1;
-    has_polyfill || CompileTasks.lib.push("!lib/polyfill.ts");
+    has_polyfill || CompileTasks.lib.push("!" + POLYFILL_FILE);
+  }
+  var old_has_newtab = has_newtab;
+  has_newtab = getNonNullBuildItem("OverrideNewTab") > 0;
+  if (has_newtab != old_has_newtab) {
+    CompileTasks.front[0][4] = has_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE;
   }
   if (!has_dialog_ui) {
     let i = CompileTasks.others[0].indexOf("!*/dialog_ui.*");
@@ -927,8 +947,13 @@ function getBuildItem(key, literalVal) {
   let cached = buildOptionCache[key];
   if (!cached) {
     if (key === "Commit") {
-      cached = buildOptionCache[key] = [literalVal, [safeJSONParse(literalVal), getGitCommit()]];
+      cached = [literalVal, [safeJSONParse(literalVal), getGitCommit()]];
+    } else if (key === "OverrideNewTab") {
+      if (!manifest.chrome_url_overrides || !manifest.chrome_url_overrides.newtab) {
+        cached = buildOptionCache[key] = ["0", 0];
+      }
     }
+    cached && (buildOptionCache[key] = cached);
   }
   if (cached != null) {
     return parseBuildItem(key, cached[1]);

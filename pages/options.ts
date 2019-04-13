@@ -369,6 +369,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     bgSettings_.broadcast_(req);
   }
 
+  if (!Build.OverrideNewTab) {
+    ($("#focusNewTabContent") as Element as EnsuredMountedElement).parentElement.parentElement.parentElement.remove();
+  }
+
   let _ref: {length: number, [index: number]: HTMLElement} = $$("[data-model]"), element: HTMLElement;
   const types = {
     Number: NumberOption_,

@@ -84,7 +84,8 @@ let keyMappingChecker_ = {
 Option_.all_.keyMappings.checker_ = keyMappingChecker_;
 keyMappingChecker_ = null as never;
 
-bgSettings_.CONST_.VimiumNewTab_ && (Option_.all_.newTabUrl.checker_ = {
+if (Build.OverrideNewTab) {
+Option_.all_.newTabUrl.checker_ = {
   check_ (value: string): string {
     let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
         ? chrome.runtime.getURL(value) : BG_.Utils.convertToUrl_(value.toLowerCase());
@@ -93,7 +94,8 @@ bgSettings_.CONST_.VimiumNewTab_ && (Option_.all_.newTabUrl.checker_ = {
       || (<RegExpI> /^[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
       ) ? bgSettings_.defaults_.newTabUrl : value;
   }
-});
+};
+}
 
 Option_.all_.searchUrl.checker_ = {
   check_ (str: string): string {

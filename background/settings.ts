@@ -427,7 +427,6 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     // should keep lower case
     NtpNewTab_: "chrome-search://local-ntp/local-ntp.html",
     DisallowIncognito_: false,
-    VimiumNewTab_: "",
     ContentScripts_: null as never as string[],
     VerCode_: "", VerName_: "",
     GitVer: BuildStr.Commit as string,
@@ -509,10 +508,9 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
 
 (function (): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
-  urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js,
+  ref2 = ref.content_scripts[0].js,
   settings = Settings,
   { CONST_: obj, defaults_: defaults, valuesToLoad_, payload_ } = settings,
-  newtab = urls && urls.newtab,
   // on Edge, https://www.msn.cn/spartan/ntp also works with some complicated search parameters
   // on Firefox, both "about:newtab" and "about:home" work,
   //   but "about:newtab" skips extension hooks and uses last configured URL, so it's better.
@@ -525,12 +523,17 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   }
   (defaults as SettingsWithDefaults).newTabUrl = (Build.BTypes & ~BrowserType.Chrome
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
-    ? CommonNewTab : newtab ? obj.NtpNewTab_ : ChromeNewTab;
+      ? CommonNewTab : Build.OverrideNewTab ? obj.NtpNewTab_ : ChromeNewTab;
   // note: on firefox, "about:newtab/" is invalid, but it's OKay if still marking the URL a NewTab URL.
-  ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
+  ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = Build.OverrideNewTab
+      ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
-    (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = newtab ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
-  newtab && (ref3[func(obj.VimiumNewTab_ = newtab)] = Urls.NewTabType.vimium);
+  (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = Build.OverrideNewTab
+      ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
+  if (Build.OverrideNewTab) {
+    type Overridden = EnsureNonNull<typeof ref.chrome_url_overrides>;
+    ref3[func((ref.chrome_url_overrides as Overridden).newtab)] = Urls.NewTabType.vimium;
+  }
   obj.GlobalCommands_ = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
