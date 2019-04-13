@@ -138,7 +138,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   wheelDelta_: 0,
   browser_: BrowserType.Chrome,
   browserVersion_: BrowserVer.assumedVer,
-  globalOptions_: null as never as SettingsNS.BackendSettings["vomnibarOptions"],
+  globalOptions_: null as never as SettingsNS.BaseBackendSettings["vomnibarOptions"],
   customStyle_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
   wheelOptions_: { passive: false, capture: true as true },

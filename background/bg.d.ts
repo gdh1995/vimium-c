@@ -271,7 +271,7 @@ declare namespace IconNS {
 }
 
 declare namespace SettingsNS {
-  interface BackendSettings {
+  interface BackendSettings extends BaseBackendSettings {
     dialogMode: boolean;
     exclusionListenHash: boolean;
     exclusionOnlyFirstMatch: boolean;
@@ -284,7 +284,6 @@ declare namespace SettingsNS {
     keyMappings: string;
     localeEncoding: string;
     newTabUrl: string;
-    newTabUrl_f: string;
     nextPatterns: string;
     previousPatterns: string;
     searchUrl: string;

@@ -350,6 +350,7 @@ nacjakoppgmdcpemlfnfegmlhipddanj`
 # like "${BuildStr.FirefoxID}"`
 : "",
     findModeRawQueryList: "",
+    focusNewTabContent: true,
     grabBackFocus: false,
     hideHud: false,
     innerCSS: "",

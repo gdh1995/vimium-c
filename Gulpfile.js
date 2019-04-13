@@ -84,6 +84,7 @@ var Tasks = {
     locally = true;
     gulp.series("static", "_manifest")(cb);
   },
+  "local/static": ["static/local"],
 
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {

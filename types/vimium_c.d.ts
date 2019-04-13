@@ -212,7 +212,9 @@ declare const enum PortType {
 }
 
 declare namespace SettingsNS {
-  interface BackendSettings {
+  interface BaseBackendSettings {
+    focusNewTabContent: boolean;
+    newTabUrl_f: string;
     vomnibarOptions: {
       maxMatches: number;
       queryInterval: number;

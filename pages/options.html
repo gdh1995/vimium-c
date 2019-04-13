@@ -146,7 +146,7 @@ key: https://c.com/$s/space=\s\ space_end
           </div></td>
         </tr>
         <tr>
-          <td class="caption" rowspan="5">Miscellaneous<br/>options</td>
+          <td class="caption" rowspan="2">Miscellaneous<br/>options</td>
           <td colspan="2">
             <label class="booleanOption">
               <input id="smoothScroll" type="checkbox" data-model="Boolean" />
@@ -167,6 +167,20 @@ key: https://c.com/$s/space=\s\ space_end
           </div></td>
         </tr>
         <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
+              <input id="focusNewTabContent" type="checkbox" data-model="Boolean" />
+              <span>Focus web page when creating a new tab</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            If the browser focuses its address bar for new tab (e.g. on <kbd>Ctrl+T</kbd>),
+            this option re-focuses the page content.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption" rowspan="5"></td>
           <td>
             <label class="booleanOption">
               <input id="grabBackFocus" type="checkbox" data-model="Boolean" />
@@ -200,7 +214,6 @@ key: https://c.com/$s/space=\s\ space_end
           </div></td>
         </tr>
         <tr>
-          <td class="caption"></td>
           <td>
             <label class="booleanOption">
               <input id="showActionIcon" type="checkbox" data-model="Boolean" data-permission="browser_action" />
@@ -210,6 +223,17 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="help"><div class="help-inner">
             Make the extension icon reflect states on current page.<br/>
             If this is unchecked, Vimium C will be a little faster.
+          </div></td>
+        </tr>
+        <tr>
+          <td>
+            <label class="booleanOption">
+              <input id="vimSync" type="checkbox" data-model="Boolean" data-permission="storage" data-check="change" />
+              <span>Synchronize settings with your current account for this browser</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-2x">
+            Need to reload Vimium C manually.
           </div></td>
         </tr>
         <tr style="display: none;" title="
@@ -226,18 +250,6 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="help"><div class="help-inner">
             The "Options" link on chrome://extensions will open a dialogue.
             This will only work since Chrome 40.
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption"></td>
-          <td>
-            <label class="booleanOption">
-              <input id="vimSync" type="checkbox" data-model="Boolean" data-permission="storage" data-check="change" />
-              <span>Synchronize settings with your current account for this browser</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner line-2x">
-            Need to reload Vimium C manually.
           </div></td>
         </tr>
         <tr>

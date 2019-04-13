@@ -316,7 +316,7 @@ function importSettings(time: number | string | Date
     else { new_data = d; }
   } catch (_e) { e = _e; }
   if (e != null) {
-    err_msg = e ? e.message + "" : "Error: " + (e !== "" ? e : "(unknown)");
+    err_msg = e ? (e.message || e) + "" : "Error: " + (e !== "" ? e : "(unknown)");
     let arr = (<RegExpSearchable<2> & RegExpOne> /^(\d+):(\d+)$/).exec(err_msg);
     err_msg = !arr ? err_msg :
 `Sorry, Vimium C can not parse the JSON file:

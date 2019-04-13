@@ -119,7 +119,7 @@ interface BgVomnibarSpecialReq {
     secret: number;
     browser: BrowserType;
     browserVer: BrowserVer;
-    o: SettingsNS.BackendSettings["vomnibarOptions"],
+    o: SettingsNS.BaseBackendSettings["vomnibarOptions"],
     /** CSS */ S: string;
   };
   [kBgReq.omni_parsed]: {
@@ -131,7 +131,7 @@ interface BgVomnibarSpecialReq {
     /** current */ c: boolean;
   };
   [kBgReq.omni_globalOptions]: {
-    o: SettingsNS.BackendSettings["vomnibarOptions"];
+    o: SettingsNS.BaseBackendSettings["vomnibarOptions"];
   }
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.showHUD | kBgReq.injectorRun;
