@@ -11,6 +11,11 @@ var VDom = {
   docSelectable_: true,
   docNotCompleteWhenVimiumIniting_: document.readyState !== "complete",
   isHTML_ (this: void): boolean { return document.documentElement instanceof HTMLElement; },
+  isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
+    const viewport = document.querySelector("meta[name=viewport]");
+    return !!viewport &&
+      (<RegExpI> /\b(device-width|initial-scale)\b/i).test(viewport.getAttribute("content") || "");
+  } : 0 as never,
   createElement_<K extends VimiumContainerElementType> (tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement {
     const d = document, a = this,
     node = document.createElement(tagName), valid = node instanceof HTMLElement;
@@ -595,6 +600,25 @@ var VDom = {
     (newEl: Element, center: Point2D): void;
     (newEl: null): void;
   },
+  touch_: Build.BTypes & BrowserType.Chrome ? function (this: {}, element: Element
+      , [x, y]: Point2D, id?: number): number {
+    const newId = id || Date.now(),
+    touchObj = new Touch({
+      identifier: newId, target: element,
+      clientX: x, clientY: y,
+      screenX: x, screenY: y,
+      pageX: x + scrollX, pageY: y + scrollY,
+      radiusX: 8, radiusY: 8, force: 1,
+    }),
+    touchEvent = new TouchEvent(id ? "touchend" : "touchstart", {
+      cancelable: true, bubbles: true,
+      touches: id ? [] : [touchObj],
+      targetTouches: id ? [] : [touchObj],
+      changedTouches: [touchObj],
+    });
+    document.dispatchEvent.call(element, touchEvent);
+    return newId;
+  } : 0 as never,
   isContaining_ (a: Rect, b: Rect): boolean {
     return a[3] >= b[3] && a[2] >= b[2] && a[1] <= b[1] && a[0] <= b[0];
   },

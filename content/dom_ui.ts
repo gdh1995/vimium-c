@@ -226,6 +226,14 @@ VDom.UI = {
     const a = VDom;
     rect || (rect = a.getVisibleClientRect_(element));
     const center = a.center_(rect);
+    if (Build.BTypes & BrowserType.Chrome && touchMode && (touchMode === !!touchMode || a.isInTouchMode_())) {
+      if (Build.BTypes & BrowserType.Chrome
+          && (!(Build.BTypes & ~BrowserType.Chrome) || VUtils.cache_.browser_ === BrowserType.Chrome)
+          && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
+              || VUtils.cache_.browserVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)) {
+        a.touch_(element, center, a.touch_(element, center));
+      }
+    }
     element === a.lastHovered_ || a.hover_(element, center);
     a.mouse_(element, "mousedown", center, modifiers, null, button);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document

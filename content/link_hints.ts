@@ -23,6 +23,7 @@ declare namespace HintsNS {
     keyword?: string;
     newtab?: boolean;
     button?: "right";
+    touch?: "auto" | boolean;
     toggle?: {
       [selector: string]: string;
     };
@@ -1390,7 +1391,8 @@ Modes_: [
       metaKey_: newTab && !notMac,
       shiftKey_: mode === HintMode.OPEN_IN_NEW_FG_TAB
     }, mode !== HintMode.empty || link.tabIndex >= 0
-    , a.options_.button === "right" ? 2 : 0);
+    , a.options_.button === "right" ? 2 : 0
+    , Build.BTypes & BrowserType.Chrome ? a.options_.touch : 0);
   }
 } as HintsNS.ModeOpt
 ]

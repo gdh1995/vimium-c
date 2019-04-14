@@ -92,6 +92,7 @@ Here're some issues still existing on the master branch, which are mostly caused
 * `goBack`, `goForward`: now works perfectly since Chrome 72
 * LinkHints:
   * can simulate clicking the right mouse button (use an option of `button="right"`)
+  * can simulate touching the middle area of an element (use an option of `touch="auto"/true`)
   * in hover mode, can toggle class names of given HTML nodes (use `toggle={".selector":"className"}`)
 * Vomnibar: the dark mode becomes a little lighter
 * Scroller: a better default value of keyboard settings

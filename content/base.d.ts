@@ -73,7 +73,7 @@ interface Rect extends WritableRect {
   readonly [2]: number; // right
   readonly [3]: number; // bottom
 }
-interface Point2D {
+interface Point2D extends Array<number> {
   readonly [0]: number;
   readonly [1]: number;
 }
@@ -301,7 +301,7 @@ interface DomUI {
   removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
   click_ (this: DomUI, element: Element
     , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean
-    , button?: 0 | 2): void;
+    , button?: 0 | 2, touchMode?: boolean | "auto" | 0): void;
   simulateSelect_ (this: DomUI, element: Element, rect?: Rect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;
   /** @NEED_SAFE_ELEMENTS */

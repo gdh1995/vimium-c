@@ -7856,7 +7856,19 @@ interface Touch {
 
 declare var Touch: {
     prototype: Touch;
-    new(): Touch;
+    new (touchInit: {
+      identifier: number;
+      target: Element;
+      clientX?: number;
+      clientY?: number;
+      screenX?: number;
+      screenY?: number;
+      pageX?: number;
+      pageY?: number;
+      radiusX?: number;
+      radiusY?: number;
+      force?: number;
+    }): Touch;
 }
 
 interface TouchEvent extends UIEvent {
@@ -7871,7 +7883,12 @@ interface TouchEvent extends UIEvent {
 
 declare var TouchEvent: {
     prototype: TouchEvent;
-    new(): TouchEvent;
+    new (type: "touchstart" | "touchend", touchEventInit: {
+      cancelable: boolean, bubbles: boolean;
+      touches?: Touch[];
+      targetTouches?: Touch[];
+      changedTouches?: Touch[];
+    }): TouchEvent;
 }
 
 interface TouchList {
@@ -9389,8 +9406,6 @@ declare var screenLeft: number;
 declare var screenTop: number;
 declare var screenX: number;
 declare var screenY: number;
-declare var scrollX: number;
-declare var scrollY: number;
 declare var scrollbars: BarProp;
 declare var self: Window;
 // declare var status: string;
@@ -9399,6 +9414,8 @@ declare var styleMedia: StyleMedia;
 declare var toolbar: BarProp;
 declare var top: Window;
 */
+declare var scrollX: number;
+declare var scrollY: number;
 declare var window: Window;
 declare function alert(message?: any): void;
 // declare function blur(): void;
