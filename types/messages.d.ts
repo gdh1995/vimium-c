@@ -338,7 +338,7 @@ interface FgReq {
     /** unbound */ b?: boolean;
     /** wantTop */ w?: boolean;
     /** names */ n?: boolean;
-    /** title */ t?: string;
+    /** "Command Listing" title */ t?: boolean;
   };
   [kFgReq.css]: {};
   [kFgReq.vomnibar]: ({

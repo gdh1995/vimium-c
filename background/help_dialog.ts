@@ -42,7 +42,7 @@ var HelpDialog = {
     const result = Object.setPrototypeOf({
       homePage: Settings.CONST_.HomePage_,
       version: Settings.CONST_.VerName_,
-      title: request.t || "Help",
+      title: request.t ? "Command Listing" : "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;

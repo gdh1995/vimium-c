@@ -2038,6 +2038,7 @@ Are you sure you want to continue?`);
     },
     /** initHelp: */ function (this: void, request: FgReq[kFgReq.initHelp], port: Port): void {
       if (port.s.u.startsWith(Settings.CONST_.OptionsPage_)) {
+        request.t = true;
         request.b = true;
         request.n = true;
       }

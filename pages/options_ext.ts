@@ -12,7 +12,7 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
     H: kFgReq.initHelp,
     b: true,
     n: true,
-    t: "Command Listing"
+    t: true,
   });
   if (event) { return; }
   setTimeout(function (): void {
