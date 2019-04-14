@@ -1168,7 +1168,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   } else {
     curEl.remove();
     window.onmessage = function (event): void {
-      if (event.source !== window.parent) { return; }
+      if (event.source !== parent) { return; }
       const data: VomnibarNS.MessageData = event.data, script = document.createElement("script"),
       src = script.src = (data[1] as VomnibarNS.FgOptions).s;
       VCID = new URL(src).hostname;
@@ -1217,7 +1217,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     }
   };
   window.onmessage = function (event): void {
-    if (event.source === window.parent) {
+    if (event.source === parent) {
       const data: VomnibarNS.MessageData = event.data;
       handler(data[0], event.ports[0], data[1]);
     }
