@@ -547,6 +547,7 @@ var VDom = {
   },
   center_ (rect?: Rect | null): Point2D {
     let zoom = Build.BTypes & ~BrowserType.Firefox ? this.dbZoom_ / 2 : 0.5;
+    rect = rect && this.cropRectToVisible_.apply(this, rect as [number, number, number, number]) || rect;
     return rect ? [((rect[0] + rect[2]) * zoom) | 0, ((rect[1] + rect[3]) * zoom) | 0] : [0, 0];
   },
   mouse_: function (this: {}, element: Element
@@ -563,6 +564,7 @@ var VDom = {
     //  screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number,
     //  ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean,
     //  buttonArg: number, relatedTargetArg: EventTarget | null)
+    // note: there seems no way to get correct screenX/Y of an element
     mouseEvent.initMouseEvent(type, true, true
       , doc.defaultView || window, type.startsWith("mouseo") ? 0 : 1
       , center[0], center[1], center[0], center[1]
