@@ -275,7 +275,8 @@ setTimeout(function (): void {
     sessionId?: number | string;
   }
   type SubInfoMap = SafeDict<SubInfo>;
-  const onDel = chrome.omnibox.onDeleteSuggestion,
+  const onDel = (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
+      ? chrome.omnibox.onDeleteSuggestion : null,
   wantDeletable = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
       || !!onDel && typeof onDel.addListener === "function";
   let last: string | null = null, firstResultUrl: string = "", lastSuggest: SuggestCallback | null = null

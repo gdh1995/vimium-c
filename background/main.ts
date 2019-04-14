@@ -882,7 +882,8 @@ Are you sure you want to continue?`);
       BgCmdNoTab;
   } = [
     /* kBgCmd.goBack: */ !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
-        || chrome.tabs.goBack ? function (this: void): void {
+          || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && chrome.tabs.goBack
+        ? function (this: void): void {
       const tabID = TabRecency_.last_ < 0 ? null as never : TabRecency_.last_, count = commandCount,
       jump = (count > 0 ? chrome.tabs.goBack : chrome.tabs.goForward) as NonNullable<typeof chrome.tabs.goBack>;
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {

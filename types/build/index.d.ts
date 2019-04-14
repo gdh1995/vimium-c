@@ -10,6 +10,7 @@ declare const enum Build {
   NativeWordMoveOnFirefox = 1,
   PContentSettings = 1,
   OverrideNewTab = 1,
+  DetectAPIOnFirefox = 1,
 }
 declare const enum BuildStr {
   Commit = "in-developing",
