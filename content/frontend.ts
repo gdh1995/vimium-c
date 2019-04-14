@@ -73,7 +73,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         : (isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
         + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn_ ? PortType.hasCSS : 0),
       name = PortNameEnum.Prefix + (
-        PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status),
+        PortType.isTop * +(top === window) + PortType.hasFocus * +document.hasFocus() + status),
       data = { name: injector ? name + PortNameEnum.Delimiter + injector.versionHash : name },
       port = vPort._port = injector ? runtime.connect(injector.id, data) as Port
         : runtime.connect(data) as Port;
@@ -133,7 +133,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       action = HandlerResult.Prevent;
     } else if (event.repeat && !KeydownEvents[VKeyCodes.esc] && document.activeElement !== document.body) {
       let c = document.activeElement; c && c.blur && c.blur();
-    } else if (window.top !== window && document.activeElement === document.body) {
+    } else if (top !== window && document.activeElement === document.body) {
       InsertMode.focusUpper_(key, event.repeat, event);
     }
     if (action < HandlerResult.MinStopOrPreventEvents) { return; }
@@ -435,7 +435,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       if (msg === "e") { return; }
       let wantTop = innerWidth < 400 || innerHeight < 320;
       if (!VDom.isHTML_()) {
-        if (window === window.top) { return; }
+        if (window === top) { return; }
         wantTop = true;
       }
       post({ H: kFgReq.initHelp, w: wantTop });
@@ -597,7 +597,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       VUtils.remove_(InsertMode);
       // it's acceptable to not set the userActed flag if there's only the top frame;
       // when an iframe gets clicked, the events are mousedown and then focus, so SafePost_ is needed
-      !(event instanceof Event) || !frames.length && window === window.top ||
+      !(event instanceof Event) || !frames.length && window === top ||
       vPort.SafePost_({ H: kFgReq.exitGrab });
       return HandlerResult.Nothing;
     } as {
@@ -623,7 +623,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     },
     focusUpper_ (this: void, key: VKeyCodes, force: boolean, event: Event): void {
       let el = VDom.parentFrame_();
-      if (!el && (!force || window.top === window)) { return; }
+      if (!el && (!force || top === window)) { return; }
       VUtils.prevent_(event); // safer
       if (el) {
         KeydownEvents[key] = 1;
@@ -774,7 +774,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       VEvent.focusAndListen_();
       esc(HandlerResult.Nothing);
       KeydownEvents[key] = 1;
-      const notTop = window.top !== window;
+      const notTop = top !== window;
       if (notTop && mask === FrameMaskType.NormalNext) {
         let docEl = document.documentElement;
         !(Build.BTypes & ~BrowserType.Chrome) || (Build.BTypes & BrowserType.Chrome && !OnOther)
@@ -1189,7 +1189,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     OnWndFocus_ (this: void): void { onWndFocus(); },
     checkHidden_ (this: void
         , cmd?: kFgCmd, count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): boolean {
-      let wnd = window, docEl = document.documentElement, el = wnd === wnd.top ? null : VDom.parentFrame_() || docEl;
+      let docEl = document.documentElement, el = window === top ? null : VDom.parentFrame_() || docEl;
       if (!el) { return false; }
       let box = VDom.getBoundingClientRect_(el),
       result = box.height === 0 && box.width === 0 || getComputedStyle(el).visibility === "hidden";
@@ -1201,7 +1201,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           c: cmd as NonNullable<typeof cmd>,
           n: count, a: options as ForwardedOptions
         });
-      } else if (el !== docEl && (box.bottom <= 0 || box.top > (window.parent as Window).innerHeight)) {
+      } else if (el !== docEl && (box.bottom <= 0 || parent && box.top > parent.innerHeight)) {
         FrameMask.Focus_({ S: null, k: VKeyCodes.None, m: FrameMaskType.ForcedSelf });
         el.scrollIntoView();
       }
@@ -1222,7 +1222,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         let cur = document.activeElement;
         cur && (/^i?frame$/i as RegExpI).test((cur.tagName as string)) && cur.blur && cur.blur();
       }
-      window.focus();
+      focus();
       failed && isEnabled && hook(HookAction.Install);
       // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
       (onWndFocus = old)();

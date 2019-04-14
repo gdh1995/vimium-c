@@ -276,7 +276,7 @@ VDom.UI = {
     }
   },
   simulateSelect_ (element, rect, flash, action, suppressRepeated): void {
-    const y = window.scrollY;
+    const y = scrollY;
     this.click_(element, rect, null, true);
     VDom.view_(element, y);
     // re-compute rect of element, in case that an input is resized when focused

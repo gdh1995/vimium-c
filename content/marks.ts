@@ -29,14 +29,14 @@ var VMarks = {
   },
   _previous: null as MarksNS.FgMark | null,
   setPreviousPosition_ (): void {
-    this._previous = [ window.scrollX, window.scrollY, location.hash ];
+    this._previous = [ scrollX, scrollY, location.hash ];
   },
   _create (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {
       this.setPreviousPosition_();
       return VHud.tip_("Created local mark [last].", 1000);
     } else if (event.shiftKey !== this.swap_) {
-      if (window.top === window) {
+      if (top === window) {
         return this.createMark_(keyChar);
       } else {
         VPort.post_({H: kFgReq.marks, a: kMarkAction.create, n: keyChar});
@@ -85,7 +85,7 @@ var VMarks = {
     if (scroll[1] === 0 && scroll[2] && scroll[0] === 0) {
       location.hash = scroll[2] as string;
     } else {
-      window.scrollTo(scroll[0], scroll[1]);
+      scrollTo(scroll[0], scroll[1]);
     }
   },
   createMark_ (markName: string, local?: "local"): void {
@@ -95,7 +95,7 @@ var VMarks = {
       l: !!local,
       n: markName,
       u: location.href,
-      s: [window.scrollX | 0, window.scrollY | 0]
+      s: [scrollX | 0, scrollY | 0]
     });
     return VHud.tip_(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },

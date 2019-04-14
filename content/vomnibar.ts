@@ -42,7 +42,7 @@ var VOmni = {
       }
     }
     a._timer = 0;
-    let url = options.url, isTop = window.top === window;
+    let url = options.url, isTop = top === window;
     if (isTop || !options.topUrl || typeof options.topUrl !== "string") {
       options.topUrl = location.href;
     }
@@ -119,7 +119,7 @@ var VOmni = {
       return;
     }
     VUtils.remove_(this);
-    active || window.focus();
+    active || focus();
     this.box_.style.cssText = "display:none";
   },
   init_ ({k: secret, v: page, t: type, i: inner}: VomnibarNS.FullOptions): void {
@@ -159,7 +159,7 @@ var VOmni = {
         if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }
         a.reset_();
-        window.focus();
+        focus();
         a.status_ = VomnibarNS.Status.KeepBroken;
         a.run(1, {} as VomnibarNS.FullOptions);
       };
@@ -238,14 +238,14 @@ var VOmni = {
       }
       break;
     case VomnibarNS.kFReq.focus:
-      window.focus();
+      focus();
       return VEvent.keydownEvents_()[(data as Req[VomnibarNS.kFReq.focus]).k] = 1;
     case VomnibarNS.kFReq.hide: return a.hide_(1);
     case VomnibarNS.kFReq.scroll: return VEvent.scroll_(data as Req[VomnibarNS.kFReq.scroll]);
     case VomnibarNS.kFReq.scrollGoing: VScroller.keyIsDown_ = VScroller.maxInterval_; break;
     case VomnibarNS.kFReq.scrollEnd: VScroller.keyIsDown_ = 0; break;
     case VomnibarNS.kFReq.evalJS: VPort.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
-    case VomnibarNS.kFReq.broken: window.focus(); // no break;
+    case VomnibarNS.kFReq.broken: focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
     case VomnibarNS.kFReq.hud: VHud.tip_((data as Req[VomnibarNS.kFReq.hud]).t); return;
     }

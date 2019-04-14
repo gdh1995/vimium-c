@@ -49,10 +49,10 @@ var VDom = {
   },
   parentFrame_(): SafeElement | null {
     if (Build.MinCVer >= BrowserVer.MinSafeGlobal$frameElement || !(Build.BTypes & BrowserType.Chrome)) {
-      return window.frameElement as SafeElement | null;
+      return frameElement as SafeElement | null;
     }
     try {
-      return window.frameElement as SafeElement | null;
+      return frameElement as SafeElement | null;
     } catch {
       return null;
     }
@@ -135,7 +135,7 @@ var VDom = {
        */
       let body = d.body;
       el = d.compatMode === "BackCompat" || body && (
-              window.scrollY ? body.scrollTop : (docEl as HTMLHtmlElement).scrollHeight <= body.scrollHeight)
+              scrollY ? body.scrollTop : (docEl as HTMLHtmlElement).scrollHeight <= body.scrollHeight)
         ? body : body ? docEl : null;
       // If not fallback, then the task is to get an exact one in order to use `scEl.scrollHeight`,
       // but if body is null in the meanwhile, then docEl.scrollHeight is not reliable (scrollY neither)
@@ -306,7 +306,7 @@ var VDom = {
    */
   getZoom_: Build.BTypes & ~BrowserType.Firefox ? function (this: {}, target?: 1 | Element): number {
     const a = this as typeof VDom;
-    let docEl = document.documentElement as Element, ratio = window.devicePixelRatio
+    let docEl = document.documentElement as Element, ratio = devicePixelRatio
       , gcs = getComputedStyle, st = gcs(docEl), zoom = +st.zoom || 1
       , el: Element | null = !(Build.BTypes & ~BrowserType.Chrome)
             || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
@@ -330,12 +330,12 @@ var VDom = {
     const a = this as typeof VDom;
     a.paintBox_ = null;
     a.dbZoom_ = a.bZoom_ = 1;
-    return a.wdZoom_ = Math.min(window.devicePixelRatio, 1);
+    return a.wdZoom_ = Math.min(devicePixelRatio, 1);
   } as never,
   getViewBox_ (needBox?: 1): ViewBox | ViewOffset {
     let iw = innerWidth, ih = innerHeight;
     const a = this;
-    const ratio = window.devicePixelRatio, ratio2 = Math.min(ratio, 1), doc = document;
+    const ratio = devicePixelRatio, ratio2 = Math.min(ratio, 1), doc = document;
     if (!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
         : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
         ? document.fullscreenElement : document.webkitIsFullScreen) {
@@ -388,14 +388,14 @@ var VDom = {
     if (xScrollable) {
       mw += 64 * zoom2;
       if (!containHasPaint) {
-        iw = sEl ? (sEl.scrollWidth - window.scrollX) / zoom : Math.max((iw - GlobalConsts.MaxScrollbarWidth) / zoom
+        iw = sEl ? (sEl.scrollWidth - scrollX) / zoom : Math.max((iw - GlobalConsts.MaxScrollbarWidth) / zoom
           , rect.right);
       }
     }
     if (yScrollable) {
       mh += 20 * zoom2;
       if (!containHasPaint) {
-        ih = sEl ? (sEl.scrollHeight - window.scrollY) / zoom : Math.max((ih - GlobalConsts.MaxScrollbarWidth) / zoom
+        ih = sEl ? (sEl.scrollHeight - scrollY) / zoom : Math.max((ih - GlobalConsts.MaxScrollbarWidth) / zoom
           , rect.bottom);
       }
     }
@@ -410,7 +410,7 @@ var VDom = {
       const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
       Build.BTypes & ~BrowserType.Firefox ? Element.prototype.scrollIntoView.call(el, delta < 0)
         : el.scrollIntoView(delta < 0);
-      (delta || f) && this.scrollWndBy_(0, f ? (oldY as number) - window.scrollY : delta * ih / 5);
+      (delta || f) && this.scrollWndBy_(0, f ? (oldY as number) - scrollY : delta * ih / 5);
     }
     return ty === VisibilityType.Visible;
   },

@@ -40,7 +40,7 @@ var VFind = {
     if (!a.isActive_) {
       a.getCurrentRange_();
       if (options.r) {
-        a.coords_ = [window.scrollX, window.scrollY];
+        a.coords_ = [scrollX, scrollY];
       }
     }
     VHud.hide_(TimerType.noTimer);
@@ -197,7 +197,7 @@ var VFind = {
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
     VUtils.remove_(this);
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
-      window.focus();
+      focus();
       el = VDom.getSelectionFocusEdge_(VDom.UI.getSelected_()[0], 1);
       el && el.focus && el.focus();
     }
@@ -258,7 +258,7 @@ var VFind = {
         i = FindNS.Action.DoNothing;
       }
       else if (n === VKeyCodes.f1) { a.box_.contentDocument.execCommand("delete"); }
-      else if (n === VKeyCodes.f2) { a.box_.blur(); window.focus(); VEvent.keydownEvents_()[n] = 1; }
+      else if (n === VKeyCodes.f2) { a.box_.blur(); focus(); VEvent.keydownEvents_()[n] = 1; }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) { a.nextQuery_(n !== VKeyCodes.up); }
       else { return; }
     } else if (i === FindNS.Action.PassDirectly) {

@@ -94,10 +94,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
         el.scrollBy ? el.scrollBy({behavior: "instant", top: amount}) : (el.scrollTop += amount);
         return el.scrollTop !== before;
       } else {
-        before = window.scrollY;
+        before = scrollY;
         // avoid using `Element`, so that users may override it
         VDom.scrollWndBy_(0, amount);
-        return window.scrollY !== before;
+        return scrollY !== before;
       }
     } else if (el) {
       before = before == null ? el.scrollTop : before;
@@ -106,9 +106,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       el.scrollBy ? el.scrollBy({behavior: "instant", left: amount}) : (el.scrollLeft += amount);
       return el.scrollLeft !== before;
     } else {
-      before = window.scrollX;
+      before = scrollX;
       VDom.scrollWndBy_(amount, 0);
-      return window.scrollX !== before;
+      return scrollX !== before;
     }
   },
   scroll_ (element: SafeElement | null, di: ScrollByY, amount: number): void | number | boolean {
@@ -159,7 +159,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       amount = a.getDimension_(element, di, kScrollDim.scrollSize) - amount
         - a.getDimension_(element, di, kScrollDim.viewSize);
     }
-    amount -= element ? a.getDimension_(element, di, kScrollDim.position) : di ? window.scrollY : window.scrollX;
+    amount -= element ? a.getDimension_(element, di, kScrollDim.position) : di ? scrollY : scrollX;
     a.scroll_(element, di, amount);
     a.top_ = null;
   },

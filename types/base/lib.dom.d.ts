@@ -8302,7 +8302,7 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     readonly outerWidth: number;
     readonly pageXOffset: number;
     readonly pageYOffset: number;
-    readonly parent: Window | object | null | undefined;
+    // readonly parent: Window | object | null | undefined;
     readonly personalbar: BarProp;
     readonly screen: Screen;
     readonly screenLeft: number;
@@ -8317,7 +8317,7 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     readonly statusbar: BarProp;
     readonly styleMedia: StyleMedia;
     readonly toolbar: BarProp;
-    readonly top: Window;
+    // readonly top: Window;
     readonly window: Window;
     URL: typeof URL;
     Blob: typeof Blob;
@@ -9399,7 +9399,6 @@ declare var outerHeight: number;
 declare var outerWidth: number;
 declare var pageXOffset: number;
 declare var pageYOffset: number;
-declare var parent: Window;
 declare var personalbar: BarProp;
 declare var screen: Screen;
 declare var screenLeft: number;
@@ -9412,8 +9411,9 @@ declare var self: Window;
 declare var statusbar: BarProp;
 declare var styleMedia: StyleMedia;
 declare var toolbar: BarProp;
-declare var top: Window;
 */
+declare var parent: Window | null | undefined;
+declare var top: Window;
 declare var scrollX: number;
 declare var scrollY: number;
 declare var window: Window;
@@ -9423,7 +9423,7 @@ declare function cancelAnimationFrame(handle: number): void;
 declare function captureEvents(): void;
 // declare function close(): void;
 declare function confirm(message?: string): boolean;
-// declare function focus(): void;
+declare function focus(): void;
 declare function getComputedStyle(elt: Element, pseudoElt?: string): CSSStyleDeclaration;
 // removed since Chrome 64
 //declare function getMatchedCSSRules(elt: Element, pseudoElt?: string): CSSRuleList;
