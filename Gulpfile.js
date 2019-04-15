@@ -9,6 +9,13 @@ var gulpPrint = require('gulp-print');
 var gulpSome = require('gulp-some');
 var osPath = require('path');
 
+class BrowserType {}
+Object.assign(BrowserType, {
+  Chrome: 1,
+  Firefox: 2,
+  Edge: 4
+});
+
 var LIB_UGLIFY_JS = 'terser';
 var DEST, enableSourceMap, willListFiles, willListEmittedFiles, JSDEST;
 var locally = false;
@@ -33,7 +40,7 @@ var onlyES6 = false;
 gulpPrint = gulpPrint.default || gulpPrint;
 
 createBuildConfigCache();
-var has_polyfill = !!(getBuildItem("BTypes") & 1 /* Chrome */)
+var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
     && getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
 var has_newtab = getNonNullBuildItem("OverrideNewTab") > 0;
 const POLYFILL_FILE = "lib/polyfill.ts", NEWTAB_FILE = "pages/newtab.ts";
@@ -72,10 +79,10 @@ var Tasks = {
       , "!front/vimium.css", "!test*", "!todo*"
     ];
     has_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
-    var has_wordsRe = getBuildItem("BTypes") & /* not Firefox */ ~2
+    var has_wordsRe = getBuildItem("BTypes") & ~BrowserType.Firefox
             && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
-        || getBuildItem("BTypes") & /* Firefox */ 2 && !getNonNullBuildItem("NativeWordMoveOnFirefox");
+        || getBuildItem("BTypes") & BrowserType.Firefox && !getNonNullBuildItem("NativeWordMoveOnFirefox");
     if (!has_wordsRe) {
       arr.push("!front/words.txt");
       gulp.series(function() { return cleanByPath("front/words.txt"); })();
@@ -99,8 +106,9 @@ var Tasks = {
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
     var curConfig = [btypes, getBuildItem("MinCVer"), envSourceMap, envLegacy, compilerOptions.target];
-    var configFile = btypes === 1 ? "chrome" : btypes === 2 ? "firefox" : "browser-" + btypes;
-    if (btypes === 2) {
+    var configFile = btypes === BrowserType.Chrome ? "chrome"
+          : btypes === BrowserType.Firefox ? "firefox" : "browser-" + btypes;
+    if (btypes === BrowserType.Firefox) {
       curConfig[1] = getNonNullBuildItem("MinFFVer");
       curConfig.push(getNonNullBuildItem("FirefoxID"));
       curConfig.push(getNonNullBuildItem("NativeWordMoveOnFirefox"));
@@ -226,21 +234,24 @@ var Tasks = {
   _manifest: function(cb) {
     var minVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
     minVer = minVer ? (minVer | 0) : 0;
-    if (!(browser & 1)) {
+    if (locally ? browser & ~BrowserType.Chrome : !(browser & BrowserType.Chrome)) {
       delete manifest.minimum_chrome_version;
       delete manifest.key;
       delete manifest.update_url;
+      delete manifest.background.persistent;
     } else if (minVer && minVer < 999) {
       manifest.minimum_chrome_version = "" + (minVer | 0);
     }
-    if (browser === 1) { // Chrome
+    if (browser === BrowserType.Chrome) {
       delete manifest.browser_specific_settings;
-    } else if (browser === 2) { // Firefox
-      delete manifest.options_page;
-      delete manifest.version_name;
+    } else if (browser === BrowserType.Firefox) {
       manifest.permissions.splice(manifest.permissions.indexOf("contentSettings") || manifest.length, 1);
     }
-    if (locally ? browser & 2 : browser === 2) { // Firefox
+    if (locally ? browser & BrowserType.Firefox : browser === BrowserType.Firefox) {
+      if (!(browser & BrowserType.Edge)) {
+        delete manifest.options_page;
+      }
+      delete manifest.version_name;
       var specific = manifest.browser_specific_settings || (manifest.browser_specific_settings = {});
       var gecko = specific.gecko || (specific.gecko = {});
       gecko.id = getNonNullBuildItem("FirefoxID");
@@ -251,7 +262,7 @@ var Tasks = {
         delete gecko.strict_min_version;
       }
     }
-    if (browser & 2) {
+    if (browser & BrowserType.Firefox) {
       locally && manifest.permissions.push("tabHide");
     }
     var dialog_ui = getBuildItem("NoDialogUI");
@@ -923,11 +934,11 @@ function createBuildConfigCache() {
     var newVal = getBuildItem(key, literalVal);
     return key + " = " + (newVal != null ? JSON.stringify(newVal) : buildOptionCache[key][0]);
   });
-  if (!(getBuildItem("BTypes") & 0x7)) {
+  if (!(getBuildItem("BTypes") & (BrowserType.Chrome | BrowserType.Firefox | BrowserType.Edge))) {
     throw new Error("Unsupported Build.BTypes: " + getBuildItem("BTypes"));
   }
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
-  onlyES6 = !(btypes & 1 && cver < /* MinEnsuredFullES6Environment */ 52);
+  onlyES6 = !(btypes & BrowserType.Chrome && cver < /* MinEnsuredFullES6Environment */ 52);
   compilerOptions.target = onlyES6 ? "es6" : "es5";
 }
 
