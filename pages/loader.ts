@@ -56,5 +56,8 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
         settings.postUpdate_("userDefinedCss");
       });
     };
+    interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void; }
+    (window as WindowExForDebug).a = null;
+    (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log(b); };
   }
 })();

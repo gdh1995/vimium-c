@@ -54,6 +54,7 @@ let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
 var VData: VDataTy = null as never;
 let encryptKey = window.name && +window.name.split(" ")[0] || 0;
+let wndLoaded = false;
 
 window.onhashchange = function (this: void): void {
   if (VShown) {
@@ -94,7 +95,9 @@ window.onhashchange = function (this: void): void {
   }
   for (let ind: number; ind = url.indexOf("&") + 1; ) {
     if (url.startsWith("download=")) {
-      file = VData.file = decodeURLPart(url.substring(9, ind - 1));
+      // avoid confusing meanings in title content
+      file = decodeURLPart(url.substring(9, ind - 1)).split(<RegExpOne>/\||\uff5c| - /, 1)[0].trim();
+      VData.file = file;
       url = url.substring(ind);
     } else if (url.startsWith("auto=")) {
       let i = url.substring(5, 12).split("&", 1)[0].toLowerCase();
@@ -243,11 +246,35 @@ window.onhashchange = function (this: void): void {
     bgLink.removeAttribute("download");
   }
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
+  updateDocTitle();
+};
 
+function _updateDocTitle(file: string) {
   let str = $<HTMLTitleElement>("title").dataset.title as string;
   str = BG_ ? BG_.Utils.createSearch_(file ? file.split(/\s+/) : [], str, "")
     : str.replace(<RegExpOne> /\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
+}
+
+function updateDocTitle(): void {
+  if (wndLoaded && VData && VData.file) {
+    // todo: a better way to hide title in history
+    setTimeout(function(): void {
+      if (document.readyState !== "complete") {
+        setTimeout(updateDocTitle, 220);
+        return;
+      }
+      VData && _updateDocTitle(VData.file || "");
+    }, 220);
+  }
+}
+
+window.onload = function(): void {
+  wndLoaded = true;
+  updateDocTitle();
+};
+window.onbeforeunload = function(): void { // hide title in session
+  VData && VData.file && _updateDocTitle("");
 };
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
