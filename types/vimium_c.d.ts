@@ -698,6 +698,8 @@ declare const enum BrowserVer {
   // https://www.chromestatus.com/features/6569666117894144
   // https://bugs.chromium.org/p/chromium/issues/detail?id=179006#c45
   MinSpecCompliantShadowBlurRadius = 73,
+  // re-implement extension APIs into C++ bindings: https://bugs.chromium.org/p/chromium/issues/detail?id=763564
+  MinEnsuredNativeCrxBindings = 73, // even if LEGACY
   // it's said the deadline is C73 in https://www.chromestatus.com/features/4507242028072960
   // but no source code in Chromium to disable it (tested on 2019-03-13)
   MinNoShadowDOMv0 = 76,
