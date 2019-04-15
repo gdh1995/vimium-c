@@ -167,7 +167,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
     return this.onInit_();
   });
 }
-fetch_(): void { /* empty */ }
+fetch_ (): void { /* empty */ }
 onRowChange_ (_isInc: number): void { /* empty */ }
 addRule_ (pattern: string): HTMLTableRowElement {
   const element = this.appendRule_(this.list_, {
@@ -320,17 +320,6 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
 })(function (activeTabs: [chrome.tabs.Tab] | never[]): void {
-  interface PopExclusionRulesOption extends ExclusionRulesOption_ {
-    inited_: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */;
-    init_(this: PopExclusionRulesOption, element: HTMLElement
-      , onUpdated: (this: PopExclusionRulesOption) => void, onInit: (this: PopExclusionRulesOption) => void
-      ): void;
-    rebuildTesters_ (this: PopExclusionRulesOption): void;
-    addRule_ (): HTMLTableRowElement;
-    populateElement_ (rules: ExclusionsNS.StoredRule[]): void;
-    OnInput_ (this: void, event: Event): void;
-    generateDefaultPattern_ (this: PopExclusionRulesOption): string;
-  }
   const curTab = activeTabs[0];
   let ref = BG_.Backend.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg");
   const notRunnable = !ref && !(curTab && curTab.url && curTab.status === "loading"
@@ -383,32 +372,20 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
   topUrl = frameInfo.i && ((BG_.Backend.indexPorts_(curTab.id, 0)
       || {} as Frames.Port).s || {} as Frames.Sender).u || "",
   stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
-  url = frameInfo.u,
-  exclusions: PopExclusionRulesOption = Object.setPrototypeOf(<PopExclusionRulesOption> {
-    inited_: 0,
-    init_ (this: PopExclusionRulesOption, element2: HTMLElement
-        , onUpdated1: (this: ExclusionRulesOption_) => void, onInit: (this: ExclusionRulesOption_) => void
-        ): void {
-      this.rebuildTesters_();
-      this.onInit_ = onInit;
-      ExclusionRulesOption_.call(this, element2, onUpdated1);
-      this.element_.addEventListener("input", this.OnInput_);
-      this.init_ = null as never;
-    },
-    rebuildTesters_ (this: PopExclusionRulesOption): void {
-      const rules = bgSettings_.get_("exclusionRules")
-        , ref1 = bgExclusions.testers_ = BG_.Object.create(null)
-        , ref2 = bgExclusions.rules_;
-      for (let _i = 0, _len = rules.length; _i < _len; _i++) {
-        ref1[rules[_i].pattern] = ref2[_i * 2];
-      }
-      this.rebuildTesters_ = null as never;
-    },
+  url = frameInfo.u;
+  let delayedInit: (() => void) | null = function (): void {
+    if (exclusions != null) {
+      delayedInit = null as never;
+      updateState(true);
+      (document.documentElement as HTMLHtmlElement).style.height = "";
+    }
+  };
+  class PopExclusionRulesOption extends ExclusionRulesOption_ {
     addRule_ (this: PopExclusionRulesOption): HTMLTableRowElement {
       return ExclusionRulesOption_.prototype.addRule_.call(this, this.generateDefaultPattern_());
-    },
-    populateElement_ (this: PopExclusionRulesOption, rules: ExclusionsNS.StoredRule[]): void {
-      ExclusionRulesOption_.prototype.populateElement_.call(this, rules);
+    }
+    populateElement_ (this: PopExclusionRulesOption, rules1: ExclusionsNS.StoredRule[]): void {
+      ExclusionRulesOption_.prototype.populateElement_.call(this, rules1);
       const elements = this.element_.getElementsByClassName<HTMLTableRowElement>("exclusionRuleInstance");
       let haveMatch = -1;
       for (let _i = 0, _len = elements.length; _i < _len; _i++) {
@@ -423,16 +400,16 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
           element2.style.display = "none";
         }
       }
-      if (this.inited_ === 0) {
+      if (inited <= 0) {
         if (haveMatch >= 0) {
           ExclusionRulesOption_.getPassKeys_(elements[haveMatch]).focus();
         } else {
           this.addRule_();
         }
-        this.inited_ = haveMatch >= 0 ? 2 : 1;
+        inited = haveMatch >= 0 ? 2 : 1;
       }
       this.populateElement_ = null as never;
-    },
+    }
     OnInput_ (this: void, event: Event): void {
       const patternElement = event.target as HTMLInputElement;
       if (!patternElement.classList.contains("pattern")) {
@@ -445,7 +422,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
         patternElement.style.color = "red";
         patternElement.title = "Red text means that the pattern does not\nmatch the current URL.";
       }
-    },
+    }
     generateDefaultPattern_ (this: PopExclusionRulesOption): string {
       const url2 = url.lastIndexOf("https:", 0) === 0
         ? "^https?://" + url.split("/", 3)[2].replace(<RegExpG> /[.[\]]/g, "\\$&") + "/"
@@ -455,9 +432,11 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
       this.generateDefaultPattern_ = () => url2;
       return url2;
     }
-  }, ExclusionRulesOption_.prototype);
+  }
 
-  let saved = true, oldPass: string | null = null, curLockedStatus = Frames.Status.__fake;
+  let saved = true, oldPass: string | null = null, curLockedStatus = Frames.Status.__fake
+    , inited: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */ = 0
+  ;
   function collectPass(pass: string): string {
     pass = pass.trim();
     const isReverted = pass && pass[0] === "^";
@@ -474,10 +453,10 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     let pass = bgExclusions.getTemp_(url, frameInfo, exclusions.readValueFromElement_(true));
     pass && (pass = collectPass(pass));
     if (initing) {
-      oldPass = exclusions.inited_ >= 2 ? pass : null;
+      oldPass = inited >= 2 ? pass : null;
     }
-    const isSaving = exclusions.inited_ === 3;
-    exclusions.inited_ = 2;
+    const isSaving = inited === 3;
+    inited = 2;
     const same = pass === oldPass;
     const isReverted = !!pass && pass.length > 2 && pass[0] === "^";
     let html = '<span class="Vim">Vim</span>ium <span class="C">C</span> '
@@ -504,7 +483,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
       saveBtn.removeAttribute("disabled");
       (saveBtn.firstChild as Text).data = "Save Changes";
     }
-    if (!exclusions.init_) {
+    if (!delayedInit) {
       updateState(false);
     }
   }
@@ -518,7 +497,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     setTimeout(function () {
       bgExclusions.testers_ = testers;
     }, 50);
-    exclusions.inited_ = 3;
+    inited = 3;
     updateState(true);
     (saveBtn.firstChild as Text).data = "Saved";
     if (Build.BTypes & BrowserType.Firefox
@@ -535,29 +514,37 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
       if (!saved) { return saveOptions(); }
     }
   });
-  exclusions.init_($("#exclusionRules"), onUpdated, function (): void {
-    let sender = ref ? ref[0].s : <Readonly<Frames.Sender>> { s: Frames.Status.enabled, f: Frames.Flags.Default }
-      , el: HTMLElement
-      , newStat = sender.s !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
-    curLockedStatus = sender.f & Frames.Flags.locked ? sender.s : Frames.Status.__fake;
-    ref = null;
-    el = $<HTMLElement>("#toggleOnce");
-    el.textContent = newStat + " for once";
-    el.onclick = forceState.bind(null, newStat);
-    if (sender.f & Frames.Flags.locked) {
-      el = el.nextElementSibling as HTMLElement;
-      el.classList.remove("hidden");
-      el = el.firstElementChild as HTMLElement;
-      el.onclick = forceState.bind(null, "Reset");
-    }
-    setTimeout(function (): void {
-      (document.documentElement as HTMLHtmlElement).style.height = "";
-    }, 17);
-    this.onInit_ = null as never;
-    return updateState(true);
-  });
-  interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
-  (window as WindowEx).exclusions = exclusions;
+
+  const rules = bgSettings_.get_("exclusionRules")
+    , ref1 = bgExclusions.testers_ = BG_.Object.create(null)
+    , ref2 = bgExclusions.rules_;
+  for (let _i = 0, _len = rules.length; _i < _len; _i++) {
+    ref1[rules[_i].pattern] = ref2[_i * 2];
+  }
+  let sender = ref ? ref[0].s : <Readonly<Frames.Sender>> { s: Frames.Status.enabled, f: Frames.Flags.Default }
+    , el0: HTMLElement
+    , initialStat = sender.s !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
+  curLockedStatus = sender.f & Frames.Flags.locked ? sender.s : Frames.Status.__fake;
+  el0 = $<HTMLElement>("#toggleOnce");
+  el0.textContent = initialStat + " for once";
+  el0.onclick = forceState.bind(null, initialStat);
+  if (sender.f & Frames.Flags.locked) {
+    el0 = el0.nextElementSibling as HTMLElement;
+    el0.classList.remove("hidden");
+    el0 = el0.firstElementChild as HTMLElement;
+    el0.onclick = forceState.bind(null, "Reset");
+  }
+  let exclusions: PopExclusionRulesOption = null as never;
+  PopExclusionRulesOption.prototype.onInit_ = delayedInit;
+  exclusions = new PopExclusionRulesOption($("#exclusionRules"), onUpdated);
+  if (inited > 0) {
+    delayedInit();
+  }
+  exclusions.element_.addEventListener("input", exclusions.OnInput_);
+  if (!Build.NDEBUG) {
+    interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
+    (window as WindowEx).exclusions = exclusions;
+  }
   window.onunload = function (): void {
     bgExclusions.testers_ = null;
     BG_.Utils.GC_();
