@@ -2649,8 +2649,7 @@ Are you sure you want to continue?`);
     }
   }), Settings.postUpdate_("extWhiteList"));
 
-  (!(Build.BTypes & ~BrowserType.Chrome) || chrome.tabs.onReplaced) &&
-  (chrome.tabs.onReplaced as chrome.tabs.TabReplacedEvent).addListener(function (addedTabId, removedTabId) {
+  chrome.tabs.onReplaced.addListener(function (addedTabId, removedTabId) {
     const ref = framesForTab, frames = ref[removedTabId];
     if (!frames) { return; }
     delete ref[removedTabId];

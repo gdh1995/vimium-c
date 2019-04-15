@@ -2643,7 +2643,7 @@ declare namespace chrome.tabs {
      * Fired when a tab is replaced with another tab due to prerendering or instant.
      * @since Chrome 26.
      */
-    var onReplaced: TabReplacedEvent | undefined;
+    var onReplaced: TabReplacedEvent;
     /**
      * @deprecated since Chrome 33. Please use tabs.onActivated.
      * Fires when the selected tab in a window changes.
