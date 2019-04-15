@@ -34,6 +34,7 @@ interface VDataTy {
   url: string;
   file?: string;
   auto?: boolean | "once";
+  error?: string;
 }
 
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
@@ -97,6 +98,7 @@ window.onhashchange = function (this: void): void {
     if (url.startsWith("download=")) {
       // avoid confusing meanings in title content
       file = decodeURLPart(url.substring(9, ind - 1)).split(<RegExpOne>/\||\uff5c| - /, 1)[0].trim();
+      file = file.replace(<RegExpG> /[\r\n"]/g, "");
       VData.file = file;
       url = url.substring(ind);
     } else if (url.startsWith("auto=")) {
@@ -146,7 +148,7 @@ window.onhashchange = function (this: void): void {
       resetOnceProperties_();
       VData.auto = false;
       this.onerror = this.onload = null as never;
-      this.alt = "\xa0(fail in loading)\xa0";
+      this.alt = VData.error = "\xa0(fail in loading)\xa0";
       if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || !(Build.BTypes & BrowserType.Chrome)
           || BG_ && BG_.Settings
             && BG_.ChromeVer >= BrowserVer.MinNoBorderForBrokenImage) {
@@ -193,7 +195,7 @@ window.onhashchange = function (this: void): void {
     } else {
       url = VData.url = "";
       (VShown as HTMLImageElement).onerror(null as never);
-      VShown.alt = "\xa0(null)\xa0";
+      VShown.alt = VData.error = "\xa0(null)\xa0";
     }
     if (file) {
       VShown.setAttribute("download", file);
@@ -335,7 +337,7 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
 
 function imgOnKeydown(event: KeyboardEvent): boolean {
   const { keyCode } = event;
-  if ((VShown as HTMLImageElement).alt) { return false; }
+  if (VData.error) { return false; }
   if (keyCode === VKeyCodes.space || keyCode === VKeyCodes.enter) {
     event.preventDefault();
     simulateClick(VShown as ValidNodeTypes, event);
@@ -397,7 +399,7 @@ function defaultOnClick(event: MouseEvent): void {
   } else { switch (VData.type) {
   case "url": clickLink({ target: "_blank" }, event); break;
   case "image":
-    if ((VShown as HTMLImageElement).alt) { return; }
+    if (VData.error) { return; }
     loadViewer().then(showSlide).catch(defaultOnError);
     break;
   default: break;
@@ -436,7 +438,7 @@ function copyThing(event: Event): void {
 
 function toggleInvert(event: Event): void {
   if (VData.type === "image") {
-    if ((VShown as HTMLImageElement).alt || viewer_ && viewer_.visible) {
+    if (VData.error || viewer_ && viewer_.visible) {
       event.preventDefault();
     } else {
       (VShown as ValidNodeTypes).classList.toggle("invert");
