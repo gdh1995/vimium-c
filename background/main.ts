@@ -2051,7 +2051,7 @@ Are you sure you want to continue?`);
         })
       ]).then(function (args): void {
         const port2 = args[1].w && indexFrame(args[2].s.t, 0) || args[2];
-        (port2.s as Writeable<Frames.Sender>).f |= Frames.Flags.hadHelpDialog;
+        (port2.s as Frames.Sender).f |= Frames.Flags.hadHelpDialog;
         port2.postMessage({
           N: kBgReq.showHelpDialog,
           S: ensureInnerCSS(port2),
@@ -2064,7 +2064,7 @@ Are you sure you want to continue?`);
       });
     },
     /** kFgReq.css: */ function (this: void, _0: {}, port: Port): void {
-      (port.sender as Frames.Sender).f |= Frames.Flags.hasCSSAndActed;
+      (port.s as Frames.Sender).f |= Frames.Flags.hasCSSAndActed;
       port.postMessage({ N: kBgReq.showHUD, S: Settings.cache_.innerCSS });
     },
     /** vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar] & Req.baseFg<kFgReq.vomnibar>
