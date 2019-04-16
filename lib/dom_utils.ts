@@ -559,7 +559,6 @@ var VDom = {
       , type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseenter" | "mouseout" | "mouseleave"
       , center: Point2D, modifiers?: MyMouseControlKeys | null, related?: Element | null
       , button?: number): boolean {
-    modifiers || (modifiers = { altKey_: !1, ctrlKey_: !1, metaKey_: !1, shiftKey_: !1 });
     let doc = element.ownerDocument;
     Build.BTypes & ~BrowserType.Firefox &&
     doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
@@ -570,12 +569,13 @@ var VDom = {
     //  ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean,
     //  buttonArg: number, relatedTargetArg: EventTarget | null)
     // note: there seems no way to get correct screenX/Y of an element
-    mouseEvent.initMouseEvent(type, true, true
+    mouseEvent.initMouseEvent(type, !0, !0
       , doc.defaultView || window, type.startsWith("mouseo") ? 0 : 1
       , center[0], center[1], center[0], center[1]
-      , modifiers.ctrlKey_, modifiers.altKey_, modifiers.shiftKey_, modifiers.metaKey_
+      , modifiers ? modifiers.ctrlKey_ : !1, modifiers ? modifiers.altKey_ : !1, modifiers ? modifiers.shiftKey_ : !1
+      , modifiers ? modifiers.metaKey_ : !1
       , <number> button | 0, related && related.ownerDocument === doc ? related : null);
-    return Build.BTypes & ~BrowserType.Firefox ? doc.dispatchEvent.call(element, mouseEvent)
+    return Build.BTypes & ~BrowserType.Firefox ? dispatchEvent.call(element, mouseEvent)
       : element.dispatchEvent(mouseEvent);
   } as VDomMouse,
   lastHovered_: null as Element | null,

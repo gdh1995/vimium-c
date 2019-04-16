@@ -1390,9 +1390,9 @@ Modes_: [
       ctrlKey_: newTab && notMac,
       metaKey_: newTab && !notMac,
       shiftKey_: mode === HintMode.OPEN_IN_NEW_FG_TAB
-    }, mode !== HintMode.empty || link.tabIndex >= 0
+    }, mode > 0 || link.tabIndex >= 0
     , a.options_.button === "right" ? 2 : 0
-    , Build.BTypes & BrowserType.Chrome ? a.options_.touch : 0);
+    , !mode && Build.BTypes & BrowserType.Chrome ? a.options_.touch : 0);
   }
 } as HintsNS.ModeOpt
 ]
