@@ -37,6 +37,7 @@
     "lint": "./node_modules/.bin/tslint --project .",
     "build": "gulp build",
     "rebuild": "gulp rebuild",
+    "latest": "bash -c \"BUILD_MinCVer=73 BUILD_BTypes=1 gulp dist",
     "chrome": "bash -c \"BUILD_MinCVer=35 BUILD_BTypes=1 gulp dist && IN_DIST=1 ./scripts/make.sh\"",
     "chromium": "npm run chrome",
     "firefox": "bash -c \"BUILD_MinFFVer=64 BUILD_PContentSettings=0 BUILD_BTypes=2 gulp dist && IN_DIST=1 ./scripts/make.sh\"",

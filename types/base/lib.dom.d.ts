@@ -5378,34 +5378,6 @@ declare var NamedNodeMap: {
     new(): NamedNodeMap;
 }
 
-interface NavigationCompletedEvent extends NavigationEvent {
-    readonly isSuccess: boolean;
-    readonly webErrorStatus: number;
-}
-
-declare var NavigationCompletedEvent: {
-    prototype: NavigationCompletedEvent;
-    new(): NavigationCompletedEvent;
-}
-
-interface NavigationEvent extends Event {
-    readonly uri: string;
-}
-
-declare var NavigationEvent: {
-    prototype: NavigationEvent;
-    new(): NavigationEvent;
-}
-
-interface NavigationEventWithReferrer extends NavigationEvent {
-    readonly referer: string;
-}
-
-declare var NavigationEventWithReferrer: {
-    prototype: NavigationEventWithReferrer;
-    new(): NavigationEventWithReferrer;
-}
-
 interface Navigator extends Object, NavigatorID, NavigatorOnLine, NavigatorContentUtils, NavigatorStorageUtils {
     readonly cookieEnabled: boolean;
     readonly language: string;
@@ -7975,15 +7947,6 @@ declare var URL: {
     revokeObjectURL(url: string): void;
 }
 
-interface UnviewableContentIdentifiedEvent extends NavigationEventWithReferrer {
-    readonly mediaType: string;
-}
-
-declare var UnviewableContentIdentifiedEvent: {
-    prototype: UnviewableContentIdentifiedEvent;
-    new(): UnviewableContentIdentifiedEvent;
-}
-
 interface ValidityState {
     readonly badInput: boolean;
     readonly customError: boolean;
@@ -8494,9 +8457,6 @@ interface DocumentEvent {
     createEvent(eventInterface:"MessageEvent"): MessageEvent;
     createEvent(eventInterface:"MouseEvent"): MouseEvent;
     createEvent(eventInterface:"MouseEvents"): MouseEvent;
-    createEvent(eventInterface:"NavigationCompletedEvent"): NavigationCompletedEvent;
-    createEvent(eventInterface:"NavigationEvent"): NavigationEvent;
-    createEvent(eventInterface:"NavigationEventWithReferrer"): NavigationEventWithReferrer;
     createEvent(eventInterface:"OverflowEvent"): OverflowEvent;
     createEvent(eventInterface:"PageTransitionEvent"): PageTransitionEvent;
     createEvent(eventInterface:"PermissionRequestedEvent"): PermissionRequestedEvent;
@@ -8511,7 +8471,6 @@ interface DocumentEvent {
     createEvent(eventInterface:"TransitionEvent"): TransitionEvent;
     createEvent(eventInterface:"UIEvent"): UIEvent;
     createEvent(eventInterface:"UIEvents"): UIEvent;
-    createEvent(eventInterface:"UnviewableContentIdentifiedEvent"): UnviewableContentIdentifiedEvent;
     createEvent(eventInterface:"WheelEvent"): WheelEvent;
     createEvent(eventInterface: string): Event;
 }
