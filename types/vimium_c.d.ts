@@ -678,7 +678,7 @@ declare const enum BrowserVer {
   MinASameZoomOfDocElAsdevPixRatioWorksAgain = 68,
   // even if EXPERIMENTAL or LEGACY
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>
-  NoRAForRICOnSandboxedPage = 69,
+  NoRAFOrRICOnSandboxedPage = 69,
   MinTabIdMayBeMuchLarger = 69,
   // `>>>` only works if EXPERIMENTAL before C69 and since C56
   // (MinStaticSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled)

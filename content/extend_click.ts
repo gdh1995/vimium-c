@@ -118,17 +118,17 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   VSettings.execute_ = execute;
 
   const appInfo = Build.BTypes & BrowserType.Chrome
-        && (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage
+        && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
         ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as 0
     , appVer: BrowserVer | 0 = Build.BTypes & BrowserType.Chrome
-        && (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage
+        && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
         && appInfo && <BrowserVer> +appInfo[1] || 0;
-  if (Build.MinCVer <= BrowserVer.NoRAForRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome) {
-    VDom.allowRAF_ = appVer !== BrowserVer.NoRAForRICOnSandboxedPage ? 1 : 0;
+  if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome) {
+    VDom.allowRAF_ = appVer !== BrowserVer.NoRAFOrRICOnSandboxedPage ? 1 : 0;
   }
   let injected: string = '"use strict";(' + (function VC(this: void): void {
 type FUNC = (this: unknown, ...args: never[]) => unknown;
@@ -372,7 +372,7 @@ _listen("load", delayFindAll, true);
   if ((Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         && !(Build.BTypes & ~BrowserType.Chrome))
       || !script.parentNode) { // It succeeded to hook.
-    Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage ||
+    Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage ||
     !(Build.BTypes & BrowserType.Chrome) ||
     VDom.allowRAF_ || requestAnimationFrame(() => { VDom.allowRAF_ = 1; });
     return;
@@ -404,8 +404,8 @@ _listen("load", delayFindAll, true);
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
     let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
-    return (BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAForRICOnSandboxedPage
-            || Build.MinCVer > BrowserVer.NoRAForRICOnSandboxedPage || VDom && VDom.allowRAF_)
+    return (BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage
+            || Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || VDom && VDom.allowRAF_)
       ? f && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && f instanceof Element)
         ? (f as Exclude<typeof f, null | Element>)(cb, { timeout }) : requestAnimationFrame(cb)
       : (Promise.resolve(1).then(cb), 1);
