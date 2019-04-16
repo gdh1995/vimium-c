@@ -43,7 +43,10 @@ createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
     && getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
 var has_newtab = getNonNullBuildItem("OverrideNewTab") > 0;
+var es6_viewer = false;
+// es6_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome) || getBuildItem("MinCVer") >= 52;
 const POLYFILL_FILE = "lib/polyfill.ts", NEWTAB_FILE = "pages/newtab.ts";
+const VIEWER_JS = "lib/viewer.min.js";
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
@@ -66,10 +69,15 @@ var CompileTasks = {
 var Tasks = {
   "build/pages": ["build/options", "build/show", "build/others"],
   "static/special": function() {
-    return copyByPath(["lib/*.min.js"]);
+    const path = ["lib/*.min.js"];
+    es6_viewer && path.push("!" + VIEWER_JS);
+    return copyByPath(path);
   },
   "static/uglify": function() {
-    return uglifyJSFiles("lib/math_parser*.js", ".", "", { base: "." });
+    const path = ["lib/math_parser*.js"];
+    // todo: currently, generated es6 code of viewer.js always breaks (can not .shown()), so disable it
+    es6_viewer && path.push(VIEWER_JS);
+    return uglifyJSFiles(path, ".", "", { base: "." });
   },
   static: ["static/special", "static/uglify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*.css"
@@ -79,6 +87,7 @@ var Tasks = {
       , "!front/vimium.css", "!test*", "!todo*"
     ];
     has_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
+    es6_viewer && arr.push("!" + VIEWER_JS);
     var has_wordsRe = getBuildItem("BTypes") & ~BrowserType.Firefox
             && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
@@ -362,6 +371,8 @@ gulp.task("locally", function(done) {
   if (has_newtab != old_has_newtab) {
     CompileTasks.front[0][4] = has_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE;
   }
+  es6_viewer = false;
+  // es6_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome) || getBuildItem("MinCVer") >= 52;
   if (!has_dialog_ui) {
     let i = CompileTasks.others[0].indexOf("!*/dialog_ui.*");
     if (i >= 0) {
@@ -579,7 +590,9 @@ function checkJSAndUglifyAll(taskOrder, maps, key, exArgs, cb) {
 function uglifyJSFiles(path, output, new_suffix, exArgs) {
   const base = exArgs && exArgs.base || JSDEST;
   path = formatPath(path, base);
-  path.push("!**/*.min.js");
+  if (path.join("\n").indexOf("viewer.min.js") < 0) {
+    path.push("!**/*.min.js");
+  }
   output = output || ".";
   new_suffix = new_suffix !== "" ? (new_suffix || ".min") : "";
   exArgs || (exArgs = {});
@@ -1206,6 +1219,7 @@ function loadUglifyConfig(reload) {
       m.keep_fnames = c.keep_fnames;
     }
     if (onlyES6) {
+      a.ecma = 6;
       c.hoist_vars = false;
     }
   }

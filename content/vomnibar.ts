@@ -278,8 +278,8 @@ var VOmni = {
     }
     return HandlerResult.Nothing;
   },
-  focus_ (): void | 1 {
+  focus_ (): void {
     if (this.status_ < VomnibarNS.Status.Showing) { return; }
-    return this.port_.postMessage(VomnibarNS.kCReq.focus);
+    this.port_.postMessage(VomnibarNS.kCReq.focus);
   }
 };
