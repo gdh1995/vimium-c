@@ -133,6 +133,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       action = HandlerResult.Prevent;
     } else if (event.repeat && !KeydownEvents[VKeyCodes.esc] && document.activeElement !== document.body) {
       let c = document.activeElement; c && c.blur && c.blur();
+      action = HandlerResult.Prevent;
     } else if (top !== window && document.activeElement === document.body) {
       InsertMode.focusUpper_(key, event.repeat, event);
     }
