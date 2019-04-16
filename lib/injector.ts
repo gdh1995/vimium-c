@@ -13,7 +13,7 @@ var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   getCommandCount: null as never,
   destroy: null
 };
-(function (injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]) {
+(function (_a0: 1, injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]) {
 let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
   : typeof browser !== "undefined" && browser &&
   !((browser as typeof chrome | Element) instanceof Element)) ? browser as typeof chrome : chrome).runtime;
@@ -108,7 +108,7 @@ if (document.readyState !== "loading") {
 } else {
   addEventListener("DOMContentLoaded", start, true);
 }
-})(function (scriptSrc): VimiumInjectorTy["reload"] {
+})(1, function (scriptSrc): VimiumInjectorTy["reload"] {
   return function (async): void {
     const injector = VimiumInjector;
     if (injector) {

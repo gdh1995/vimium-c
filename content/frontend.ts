@@ -1320,7 +1320,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   }
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
-  if (location.href !== "about:blank" || injector || !function (): 1 | void {
+  if (location.href !== "about:blank" || injector || !+function (): 1 | void {
     try {
       let f = VDom.parentFrame_(),
       a1 = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFind?: typeof VFind}).VFind;
