@@ -345,7 +345,7 @@ const bookmarkEngine = {
       setTimeout(a.Listen_, 0);
       a.Listen_ = null;
     }
-    if (query && !query.isOff) {
+    if (query && !query.o) {
       return a.performSearch_();
     }
   },
@@ -451,7 +451,7 @@ historyEngine = {
         return Completers.next_(historyEngine.quickSearch_(history));
       }
       return HistoryCache.use_(function (historyList): void {
-        if (query.isOff) { return; }
+        if (query.o) { return; }
         return Completers.next_(historyEngine.quickSearch_(historyList));
       });
     }
@@ -519,7 +519,7 @@ historyEngine = {
     return sugs;
   },
   loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]): void {
-    if (query.isOff) { return; }
+    if (query.o) { return; }
     const arr: SafeDict<number> = Object.create(null);
     let count = 0;
     for (const { url, incognito } of tabs) {
@@ -530,7 +530,7 @@ historyEngine = {
     return historyEngine.filterFill_([], query, arr, offset, count);
   },
   loadSessions_ (query: CompletersNS.QueryStatus, sessions: chrome.sessions.Session[]): void {
-    if (query.isOff) { return; }
+    if (query.o) { return; }
     const historys: chrome.tabs.Tab[] = [], arr: Dict<number> = {};
     let i = queryType === FirstQuery.history ? -offset : 0;
     return sessions.some(function (item): boolean {
@@ -550,7 +550,7 @@ historyEngine = {
       text: "",
       maxResults: offset + maxResults * (showThoseInBlacklist ? 1 : 2) + neededMore
     }, function (historys2: chrome.history.HistoryItem[] | UrlItem[]): void {
-      if (query.isOff) { return; }
+      if (query.o) { return; }
       historys2 = (historys2 as UrlItem[]).filter(historyEngine.urlNotIn_, arr);
       if (!showThoseInBlacklist) {
         historys2 = historys2.filter(function (entry) {
@@ -597,7 +597,7 @@ domainEngine = {
       this.refresh_(cache.history_);
     } else {
       return index > 0 ? Completers.next_([]) : cache.use_(function () {
-        if (query.isOff) { return; }
+        if (query.o) { return; }
         return domainEngine.filter_(query, 0);
       });
     }
@@ -688,7 +688,7 @@ tabEngine = {
     Completers.requireNormalOrIncognito_(this.performSearch_, query);
   },
   performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
-    if (query.isOff) { return; }
+    if (query.o) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0;
     let suggestions = [] as Suggestion[], tabs = [] as TextTab[], wndIds: number[] = [];
@@ -844,7 +844,7 @@ searchEngine = {
     promise.then(searchEngine.onPrimose_.bind(searchEngine, query, sug));
   },
   onPrimose_ (query: CompletersNS.QueryStatus, output: Suggestion, arr: Urls.MathEvalResult): void {
-    if (query.isOff) { return; }
+    if (query.o) { return; }
     const result = arr[0];
     if (!result) {
       return Completers.next_([output]);
@@ -930,9 +930,9 @@ Completers = {
   mostRecentQuery_: null as CompletersNS.QueryStatus | null,
   callback_: null as CompletersNS.Callback | null,
   filter_ (completers: ReadonlyArray<Completer>): void {
-    if (Completers.mostRecentQuery_) { Completers.mostRecentQuery_.isOff = true; }
+    if (Completers.mostRecentQuery_) { Completers.mostRecentQuery_.o = true; }
     const query: CompletersNS.QueryStatus = Completers.mostRecentQuery_ = {
-      isOff: false
+      o: false
     };
     let i = Completers.sugCounter_ = 0, l = Completers.counter_ = completers.length;
     Completers.suggestions_ = [];
@@ -947,7 +947,7 @@ Completers = {
     RankingUtils.timeAgo_ = Date.now() - TimeEnums.timeCalibrator; // safe for time change
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore * queryTerms.length || 0.01;
     if (queryTerms.indexOf("__proto__") >= 0) {
-      queryTerms = queryTerms.join(" ").replace(Completers.protoRe_, " __proto_").trimLeft().split(" ");
+      queryTerms = queryTerms.join(" ").replace(<RegExpG> /(^| )__proto__(?=$| )/g, " __proto_").trimLeft().split(" ");
     }
     RegExpCache.buildParts_();
     for (l--; i <= l; i++) {
@@ -972,7 +972,7 @@ Completers = {
       return chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, cb);
     }
     return chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {
-      if (query.isOff) { return; }
+      if (query.o) { return; }
       inNormal = wnd ? !wnd.incognito : true;
       TabRecency_.incognito_ = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
       if (wantInCurrentWindow) {
@@ -1054,7 +1054,6 @@ Completers = {
     rawMore = str;
     queryType = FirstQuery.waitFirst;
   },
-  protoRe_: <RegExpG & RegExpSearchable<0>> /(?:^|\s)__proto__(?=$|\s)/g,
   rsortByRelevancy_ (a: Suggestion, b: Suggestion): number { return b.relevancy - a.relevancy; }
 },
 knownCs: CompletersMap & SafeObject = {

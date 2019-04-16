@@ -207,7 +207,7 @@ declare namespace VomnibarNS {
     };
     [kFReq.hud]: { t: string; };
     [kFReq.focus]: {
-      k: VKeyCodes;
+      /** lastKey */ l: VKeyCodes;
     };
     [kFReq.evalJS]: {
       u: string;

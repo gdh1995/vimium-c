@@ -106,25 +106,25 @@ interface BgReq {
 
 interface BgVomnibarSpecialReq {
   [kBgReq.omni_omni]: {
-    list: CompletersNS.Suggestion[];
-    autoSelect: boolean;
-    matchType: CompletersNS.MatchType;
-    favIcon: 0 | 1 | 2;
-    total: number;
+    /** list */ l: CompletersNS.Suggestion[];
+    /** autoSelect */ a: boolean;
+    /** matchType */ m: CompletersNS.MatchType;
+    /** favIcon  */ i: 0 | 1 | 2;
+    /** total */ t: number;
   };
   [kBgReq.omni_returnFocus]: {
-    key: VKeyCodes;
+    /** lastKey */ l: VKeyCodes;
   } & Req.baseBg<kBgReq.omni_returnFocus>;
   [kBgReq.omni_secret]: {
-    secret: number;
-    browser: BrowserType;
-    browserVer: BrowserVer;
-    o: SettingsNS.BaseBackendSettings["vomnibarOptions"],
+    /** secret */ s: number;
+    /** browser */ b: BrowserType;
+    /** browserVer */ v: BrowserVer;
+    /** globalOptions */ o: SettingsNS.BaseBackendSettings["vomnibarOptions"],
     /** CSS */ S: string;
   };
   [kBgReq.omni_parsed]: {
-    id: number;
-    search: FgRes[kFgReq.parseSearchUrl];
+    /** id */ i: number;
+    /** search */ s: FgRes[kFgReq.parseSearchUrl];
   };
   [kBgReq.omni_toggleStyle]: {
     /** toggled */ t: string;

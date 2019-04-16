@@ -297,7 +297,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       u: str
     });
   },
-  parsed_ ({ id, search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
+  parsed_ ({ i: id, s: search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
     const line: SuggestionEx = Vomnibar_.completions_[id] as SuggestionEx;
     line.parsed = search ? (Vomnibar_.modeType_ !== "omni" ? ":o " : "") + search.k + " " + search.u + " " : line.text;
     if (id === Vomnibar_.selection_) {
@@ -621,12 +621,12 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   omni_ (response: BgVomnibarSpecialReq[kBgReq.omni_omni]): void {
     const a = Vomnibar_;
     if (!a.isActive_) { return; }
-    const list = response.list, height = list.length;
-    a.total_ = response.total;
-    a.showFavIcon_ = response.favIcon;
-    a.matchType_ = response.matchType;
+    const list = response.l, height = list.length;
+    a.total_ = response.t;
+    a.showFavIcon_ = response.i;
+    a.matchType_ = response.m;
     a.completions_ = list;
-    a.selection_ = response.autoSelect ? 0 : -1;
+    a.selection_ = response.a ? 0 : -1;
     a.isSelOriginal_ = true;
     a.isSearchOnTop_ = height > 0 && list[0].type === "search";
     return a.populateUI_();
@@ -885,7 +885,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   returnFocus_ (this: void, request: BgVomnibarSpecialReq[kBgReq.omni_returnFocus]): void {
     type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
     setTimeout<VomnibarNS.FReq[VomnibarNS.kFReq.focus] & VomnibarNS.Msg<VomnibarNS.kFReq.focus>>(VPort_.postToOwner_ as
-      VoidPost, 0, { N: VomnibarNS.kFReq.focus, k: request.key });
+      VoidPost, 0, { N: VomnibarNS.kFReq.focus, l: request.l });
   },
   _realDevRatio: 0,
   setWidth_ (w?: number): void {
@@ -1203,11 +1203,11 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   timer = setTimeout(function () { location.href = "about:blank"; }, 700);
   Vomnibar_.secret_ = function (this: void, request): void {
     Vomnibar_.secret_ = null;
-    Vomnibar_.browser_ = request.browser;
-    Vomnibar_.browserVersion_ = request.browserVer;
+    Vomnibar_.browser_ = request.b;
+    Vomnibar_.browserVersion_ = request.v;
     Vomnibar_.globalOptions_ = request.o;
     Vomnibar_.css_(request);
-    const { secret } = request, msgs = unsafeMsg;
+    const { s: secret } = request, msgs = unsafeMsg;
     _sec = secret;
     for (const i of msgs) {
       if (i[0] === secret) {

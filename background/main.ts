@@ -326,7 +326,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
       }
     }
-    safePost(this, { N: kBgReq.omni_omni, autoSelect, matchType, list, favIcon, total });
+    safePost(this, { N: kBgReq.omni_omni, a: autoSelect, m: matchType, l: list, i: favIcon, t: total });
     Utils.resetRe_();
   }
   function safePost<K extends keyof FullBgReq>(port: Port, req: Req.bg<K>): BOOL {
@@ -1716,7 +1716,7 @@ Are you sure you want to continue?`);
         , port: Port): FgRes[kFgReq.parseSearchUrl] | void {
       let search = Backend.parse_(request);
       if ("i" in request) {
-        port.postMessage({ N: kBgReq.omni_parsed, id: request.i as number, search });
+        port.postMessage({ N: kBgReq.omni_parsed, i: request.i as number, s: search });
       } else {
         return search;
       }
@@ -2000,7 +2000,7 @@ Are you sure you want to continue?`);
         });
         return;
       }
-      safePost(port, { N: kBgReq.omni_returnFocus, key: cKey });
+      safePost(port, { N: kBgReq.omni_returnFocus, l: cKey });
     },
     /** exitGrab: */ function (this: void, _0: FgReq[kFgReq.exitGrab], port: Port): void {
       const ports = framesForTab[port.s.t];
@@ -2320,12 +2320,12 @@ Are you sure you want to continue?`);
         type === PortType.omnibar &&
         port.postMessage({
           N: kBgReq.omni_secret,
-          browser: !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
+          b: !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
               || !(Build.BTypes & ~BrowserType.Edge) ? Build.BTypes as number as BrowserType : OnOther,
-          browserVer: ChromeVer,
+          v: ChromeVer,
           o: Settings.cache_.vomnibarOptions,
           S: Settings.cache_.omniCSS_,
-          secret: getSecret()
+          s: getSecret()
         });
         return true;
       }

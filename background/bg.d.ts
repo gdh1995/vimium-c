@@ -222,7 +222,9 @@ declare namespace CommandsNS {
 }
 
 declare namespace CompletersNS {
-  interface QueryStatus { isOff: boolean; }
+  interface QueryStatus {
+    /** isOff */ o: boolean;
+  }
 
   interface Domain {
     time: number;
