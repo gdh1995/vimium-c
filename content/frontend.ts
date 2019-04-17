@@ -1034,8 +1034,9 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       req.t ? req.c ? HUD.copied_(req.t) : HUD.tip_(req.t) : 0;
     },
     function (request: BgReq[kBgReq.count]): void {
-      const count = parseInt(currentKeys, 10) || 1;
-      post({ H: kFgReq.cmd, c: request.c, n: count, i: request.i});
+      const n = parseInt(currentKeys, 10) || 1;
+      esc(HandlerResult.Nothing);
+      post({ H: kFgReq.cmd, c: request.c, n, i: request.i});
     },
   function ({ h: html, a: shouldShowAdvanced, o: optionUrl, S: CSS }: Req.bg<kBgReq.showHelpDialog>): void {
     let box: HTMLDivElement & SafeHTMLElement
