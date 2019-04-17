@@ -371,7 +371,7 @@ var Utils = {
     } }
     if (workType === Urls.WorkType.ActIfNoSideEffects) { switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-      return a.require_<object>("MathParser").catch(() => null
+      return a.require_("MathParser").catch(() => null
       ).then<Urls.MathEvalResult>(function (MathParser): Urls.MathEvalResult {
         Utils.quotedStringRe_.test(path) && (path = path.slice(1, -1));
         path = path.replace(/\uff0c/g as RegExpG, " ");
@@ -459,9 +459,10 @@ var Utils = {
     return result;
   },
   copy_ (this: void, _s: string): void | Promise<void> { /* empty */ },
-  require_ <K extends SettingsNS.DynamicFiles> (name: K): Promise<Window[K]> {
-    type T = Window[K];
-    const p: Promise<T> | T | null | undefined = window[name];
+  require_ <K extends SettingsNS.DynamicFiles> (name: K): Promise<NonNullable<Window[K]>> {
+    type T = NonNullable<Window[K]>;
+    type P = Promise<T>;
+    const p: P | T | null | undefined = window[name] as P | Window[K] as P | T | null | undefined;
     if (p) {
       return Promise.resolve(p);
     }
@@ -477,7 +478,7 @@ var Utils = {
         if (window[name] instanceof Promise) {
           reject("ImportError: " + name);
         } else {
-          resolve(window[name]);
+          resolve(window[name] as Window[K] as T);
         }
       };
       (document.documentElement as HTMLHtmlElement).appendChild(script);

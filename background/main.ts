@@ -1575,7 +1575,7 @@ Are you sure you want to continue?`);
         return requestHandlers[kFgReq.initHelp]({}, cPort);
       }
       if (!window.HelpDialog) {
-        Utils.require_<BaseHelpDialog>("HelpDialog");
+        Utils.require_("HelpDialog");
       }
       cPort.postMessage<1, kFgCmd.showHelp>({
         N: kBgReq.execute,
@@ -2043,7 +2043,7 @@ Are you sure you want to continue?`);
         request.n = true;
       }
       Promise.all([
-        Utils.require_<BaseHelpDialog>("HelpDialog"),
+        Utils.require_("HelpDialog"),
         request, port,
         new Promise<void>(function (resolve, reject) {
           const xhr = Settings.fetchFile_("helpDialog", resolve);

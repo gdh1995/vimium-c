@@ -359,7 +359,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     return;
   }
 
-  const bgExclusions: ExclusionsNS.ExclusionsCls = BG_.Exclusions,
+  const bgExclusions: ExclusionsNS.ExclusionsCls = BG_.Exclusions as ExclusionsNS.ExclusionsCls,
   frameInfo: Frames.Sender = ref ? ref[0].s : {
     /** must keep aligned with {@link ../background/main.ts#formatPortSender} */
     i: 0,

@@ -414,10 +414,10 @@ interface BaseHelpDialog {
 }
 
 interface Window {
-  readonly MathParser?: any;
-  readonly Commands?: any;
+  readonly MathParser?: object;
+  readonly Commands?: object;
   readonly CommandsData_: CommandsDataTy;
-  readonly Exclusions?: any;
+  readonly Exclusions?: object;
   readonly HelpDialog?: BaseHelpDialog;
   readonly OnOther: BrowserType;
   readonly ChromeVer: BrowserVer;
