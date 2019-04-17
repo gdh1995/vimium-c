@@ -415,11 +415,7 @@ interface BaseHelpDialog {
 
 interface Window {
   readonly MathParser?: any;
-  readonly Commands?: {
-    hexCharRe_: RegExpG & RegExpSearchable<1>;
-    onHex_ (this: void, _s: string, hex: string): string;
-    SetKeyRe_ (this: void, keyReSource: string): void;
-  };
+  readonly Commands?: any;
   readonly CommandsData_: CommandsDataTy;
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;

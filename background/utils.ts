@@ -459,7 +459,8 @@ var Utils = {
     return result;
   },
   copy_ (this: void, _s: string): void | Promise<void> { /* empty */ },
-  require_<T extends object> (name: SettingsNS.DynamicFiles): Promise<T> {
+  require_ <K extends SettingsNS.DynamicFiles> (name: K): Promise<Window[K]> {
+    type T = Window[K];
     const p: Promise<T> | T | null | undefined = window[name];
     if (p) {
       return Promise.resolve(p);

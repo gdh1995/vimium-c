@@ -1,7 +1,4 @@
 var Commands = {
-  SetKeyRe_ (this: void, keyReSource: string): void {
-    Utils.keyRe_ = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;
-  },
   getOptions_ (item: string[], start: number): CommandsNS.Options | null {
     let opt: CommandsNS.RawOptions, i = start, len = item.length, ind: number, str: string | undefined, val: string;
     if (len <= i) { return null; }
@@ -21,20 +18,15 @@ var Commands = {
     }
     return str ? opt : null;
   },
-  hexCharRe_: <RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi,
   parseVal_ (val: string): any {
     try {
       return JSON.parse(val);
     } catch {}
     if (!val.startsWith('"')) { return val; }
-    val = val.replace(this.hexCharRe_, this.onHex_);
     try {
       return JSON.parse(val);
     } catch {}
     return val;
-  },
-  onHex_ (this: void, _s: string, hex: string): string {
-    return hex ? "\\u00" + hex : "\\\\";
   },
   parseKeyMappings_: (function (this: {}, line: string): void {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i: number

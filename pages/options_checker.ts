@@ -1,6 +1,5 @@
 let keyMappingChecker_ = {
   normalizeKeys_: null as never as (this: void, s: string) => string,
-  isKeyReInstalled_: false,
   init_ (): void {
     const keyLeftRe = <RegExpG & RegExpSearchable<2>> /<(?!<)((?:[ACMSacms]-){0,4})(.[^>]*)>/g;
     function sortModifiers(option: string) {
@@ -25,11 +24,13 @@ let keyMappingChecker_ = {
     this.normalizeOptions_ = this.normalizeOptions_.bind(this);
     this.init_ = null as never;
   },
-  quoteRe_: <RegExpG & RegExpSearchable<0>> /"/g,
+  hexCharRe_: <RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi,
+  onHex_ (this: void, _s: string, hex: string): string {
+    return hex ? "\\u00" + hex : "\\\\";
+  },
   normalizeOptions_ (str: string, value: string, s2: string | undefined, tail: string): string {
     if (s2) {
-      s2 = s2.replace((BG_.Commands as NonNullable<Window["Commands"]>).hexCharRe_
-        , (BG_.Commands as NonNullable<Window["Commands"]>).onHex_);
+      s2 = s2.replace(this.hexCharRe_, this.onHex_);
       value = `"${s2}"`;
     }
     try {
@@ -70,10 +71,6 @@ let keyMappingChecker_ = {
   check_ (str: string): string {
     if (!str) { return str; }
     this.init_ && this.init_();
-    if (!this.isKeyReInstalled_) {
-      (BG_.Commands as NonNullable<Window["Commands"]>).SetKeyRe_(KeyRe_.source);
-      this.isKeyReInstalled_ = true;
-    }
     str = "\n" + str.replace(this.wrapLineRe_, "\\\r");
     str = str.replace(this.mapKeyRe_, this.normalizeMap_);
     str = str.replace(this.cmdKeyRe_, this.normalizeCmd_);

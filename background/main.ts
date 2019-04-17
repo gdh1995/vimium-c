@@ -2098,8 +2098,8 @@ Are you sure you want to continue?`);
     },
     /** key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {
       (port.s as Frames.Sender).f |= Frames.Flags.userActed;
-      let key: string = request.k, count = 1;
-      let arr: null | string[] = numHeadRe.exec(key);
+      let key: string = request.k, count = 1
+        , arr: null | string[] = numHeadRe.exec(key);
       if (arr != null) {
         let prefix = arr[0];
         key = key.substring(prefix.length);
