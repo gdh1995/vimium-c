@@ -55,7 +55,7 @@ let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
 var VData: VDataTy = null as never;
 let encryptKey = window.name && +window.name.split(" ")[0] || 0;
-let wndLoaded = false;
+let wndLoaded = GlobalConsts.DisplayUseDynamicTitle ? false : 0 as never;
 
 window.onhashchange = function (this: void): void {
   if (VShown) {
@@ -252,6 +252,7 @@ window.onhashchange = function (this: void): void {
 };
 
 function _updateDocTitle(file: string) {
+  if (!GlobalConsts.DisplayUseDynamicTitle) { return; }
   let str = $<HTMLTitleElement>("title").dataset.title as string;
   str = BG_ ? BG_.Utils.createSearch_(file ? file.split(/\s+/) : [], str, "")
     : str.replace(<RegExpOne> /\$[sS](?:\{[^}]*})?/, file && (file + " | "));
@@ -259,7 +260,7 @@ function _updateDocTitle(file: string) {
 }
 
 function updateDocTitle(): void {
-  if (wndLoaded && VData && VData.file) {
+  if (GlobalConsts.DisplayUseDynamicTitle && wndLoaded && VData && VData.file) {
     // todo: a better way to hide title in history
     setTimeout(function(): void {
       if (document.readyState !== "complete") {
@@ -271,6 +272,7 @@ function updateDocTitle(): void {
   }
 }
 
+if (GlobalConsts.DisplayUseDynamicTitle) {
 window.onload = function(): void {
   wndLoaded = true;
   updateDocTitle();
@@ -278,6 +280,7 @@ window.onload = function(): void {
 window.onbeforeunload = function(): void { // hide title in session
   VData && VData.file && _updateDocTitle("");
 };
+}
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
 String.prototype.startsWith = function (this: string, s: string): boolean {
