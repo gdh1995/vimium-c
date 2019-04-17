@@ -71,7 +71,7 @@ setTimeout(function (): void {
     if (!wanted) {
       return setAndPost(key, value);
     }
-    Promise.all([wanted === "Exclusions" && Utils.require_(Cmd), Utils.require_(wanted)]).then(
+    Promise.all<false | object>([wanted === "Exclusions" && Utils.require_(Cmd), Utils.require_(wanted)]).then(
         () => setAndPost(key, value));
     Utils.GC_();
   }
