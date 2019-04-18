@@ -129,7 +129,6 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   list_: null as never as HTMLDivElement,
   onUpdate_: null as (() => void) | null,
   doEnter_: null as ((this: void) => void) | null,
-  wheelInterval_: Math.max(33, (<number> window.VomnibarWheelInterval | 0) || 100),
   renderItems_: null as never as Render,
   selection_: -1,
   atimer_: 0,
@@ -575,17 +574,21 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
             ? !event.isTrusted : event.isTrusted === false)) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (event.deltaX || !event.deltaY) { return; }
-    const a = Vomnibar_, now = Date.now();
-    if (now - a.wheelTime_ < a.wheelInterval_ && now + 99 > a.wheelTime_
-        || event.deltaMode === 0 /* WheelEvent.DOM_DELTA_PIXEL */ && Math.abs(a.wheelDelta_ + event.deltaY) < 100
-        || !a.isActive_) {
-      a.wheelDelta_ = now - a.wheelTime_ < 1200 ? a.wheelDelta_ + event.deltaY : 0;
+    const a = Vomnibar_, deltaY = event.deltaY, now = Date.now();
+    if (event.deltaX || !deltaY || !a.isActive_) { return; }
+    if (now - a.wheelTime_ > (event.deltaMode === 0 /* WheelEvent.DOM_DELTA_PIXEL */
+                              ? GlobalConsts.TouchpadTimeout : GlobalConsts.WheelTimeout)
+        || now + 33 < a.wheelTime_) {
+      a.wheelDelta_ = 0;
+    }
+    a.wheelTime_ = now;
+    let total = a.wheelDelta_ + deltaY, abs = Math.abs(total);
+    if (abs < GlobalConsts.VomnibarWheelStepForPage) {
+      a.wheelDelta_ = total;
       return;
     }
-    a.wheelDelta_ = 0;
-    a.wheelTime_ = Date.now();
-    a.goPage_(event.deltaY > 0);
+    a.wheelDelta_ = (abs - GlobalConsts.VomnibarWheelStepForPage) * (abs > 0 ? 1 : -1);
+    a.goPage_(deltaY > 0);
   },
   onInput_ (event: InputEvent): void {
     const a = Vomnibar_, s0 = a.lastQuery_, s1 = a.input_.value, str = s1.trim();

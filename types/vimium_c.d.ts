@@ -320,6 +320,9 @@ declare const enum GlobalConsts {
   MaxImpossibleTabId = -4,
   WndIdNone = -1,
   VomnibarSecretTimeout = 3000,
+  VomnibarWheelStepForPage = 320,
+  WheelTimeout = 330,
+  TouchpadTimeout = 120,
   DefaultRectFlashTime = 400,
   // limited by Pagination.findAndFollowLink_
   MaxNumberOfNextPatterns = 200,
