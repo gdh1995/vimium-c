@@ -263,11 +263,10 @@ readValueFromElement_ (): boolean | null {
 }
 
 ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOption_, isAdd: number): void {
-  const count = this.list_.length;
-  if (count - isAdd !== 0) { return; }
+  if (this.list_.length !== isAdd) { return; }
   isAdd && !BG_.Exclusions && (BG_.Utils.require_("Exclusions"), BG_.Utils.require_("Commands"));
   const el = $("#exclusionToolbar"), options = el.querySelectorAll("[data-model]");
-  el.style.visibility = count > 0 ? "" : "hidden";
+  el.style.visibility = isAdd ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {
     const opt = Option_.all_[options[i].id as keyof AllowedOptions],
     style = (opt.element_.parentNode as HTMLElement).style;

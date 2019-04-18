@@ -212,6 +212,7 @@ addRule_ (pattern: string): void {
 }
 populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
   this.$list_.textContent = "";
+  this.list_ = [];
   if (rules.length <= 0) { /* empty */ }
   else if (rules.length === 1) {
     this.appendRuleTo_(this.$list_, rules[0]);
