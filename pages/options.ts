@@ -263,7 +263,7 @@ readValueFromElement_ (): boolean | null {
 }
 
 ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOption_, isAdd: number): void {
-  const count = this.list_.childElementCount;
+  const count = this.list_.length;
   if (count - isAdd !== 0) { return; }
   isAdd && !BG_.Exclusions && (BG_.Utils.require_("Exclusions"), BG_.Utils.require_("Commands"));
   const el = $("#exclusionToolbar"), options = el.querySelectorAll("[data-model]");
@@ -893,7 +893,7 @@ function OnBgUnload(): void {
     if (!Option_.all_.keyMappings.saved_) {
       BG_.Commands || BG_.Utils.require_("Commands");
     }
-    if ((Option_.all_.exclusionRules as ExclusionRulesOption_).list_.childElementCount > 0) {
+    if ((Option_.all_.exclusionRules as ExclusionRulesOption_).list_.length > 0) {
       BG_.Exclusions || BG_.Utils.require_("Exclusions");
       BG_.Commands || BG_.Utils.require_("Commands");
     }

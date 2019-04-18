@@ -150,80 +150,127 @@ showError_: (msg: string, tag?: OptionErrorType | null, errors?: boolean) => voi
 }
 type OptionErrorType = "has-error" | "highlight";
 
+interface ExclusionBaseVirtualNode {
+  rule_: ExclusionsNS.StoredRule;
+  changed_: boolean;
+  visible_: boolean;
+}
+interface ExclusionInvisibleVirtualNode extends ExclusionBaseVirtualNode {
+  changed_: false;
+  visible_: false;
+  $pattern_: null;
+  $keys_: null;
+}
+interface ExclusionVisibleVirtualNode extends ExclusionBaseVirtualNode {
+  rule_: ExclusionsNS.StoredRule;
+  changed_: boolean;
+  visible_: true;
+  $pattern_: HTMLInputElement & ExclusionRealNode;
+  $keys_: HTMLInputElement & ExclusionRealNode;
+};
+interface ExclusionRealNode extends HTMLElement {
+  vnode: ExclusionVisibleVirtualNode;
+}
+
 class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   template_: HTMLTableRowElement;
-  list_: HTMLTableSectionElement;
+  list_: Array<ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode>;
+  $list_: HTMLTableSectionElement;
 constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => void) {
   super(element, onUpdated);
   bgSettings_.fetchFile_("exclusionTemplate", (): void => {
     this.element_.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
     this.template_ = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
-    this.list_ = this.element_.getElementsByTagName("tbody")[0] as HTMLTableSectionElement;
+    this.$list_ = this.element_.getElementsByTagName("tbody")[0] as HTMLTableSectionElement;
+    this.list_ = [];
     this.fetch_ = super.fetch_;
     this.fetch_();
-    this.list_.addEventListener("input", this.onUpdated_);
-    this.list_.addEventListener("click", e => this.onRemoveRow_(e));
+    this.$list_.addEventListener("input", ExclusionRulesOption_.MarkChanged_);
+    this.$list_.addEventListener("input", this.onUpdated_);
+    this.$list_.addEventListener("click", e => this.onRemoveRow_(e));
     $("#exclusionAddButton").onclick = () => this.addRule_("");
     return this.onInit_();
   });
 }
 fetch_ (): void { /* empty */ }
 onRowChange_ (_isInc: number): void { /* empty */ }
-addRule_ (pattern: string): HTMLTableRowElement {
-  const element = this.appendRule_(this.list_, {
+static MarkChanged_ (this: void, event: Event): void {
+  const vnode = (event.target as HTMLInputElement & Partial<ExclusionRealNode>).vnode;
+  vnode && (vnode.changed_ = true);
+}
+addRule_ (pattern: string): void {
+  this.appendRuleTo_(this.$list_, {
     pattern,
     passKeys: ""
   });
-  ExclusionRulesOption_.getPattern_(element).focus();
+  const item = this.list_[this.list_.length - 1] as ExclusionVisibleVirtualNode;
+  item.$pattern_.focus();
   if (pattern) {
     this.onUpdated_();
   }
   this.onRowChange_(1);
-  return element;
 }
 populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
-  this.list_.textContent = "";
+  this.$list_.textContent = "";
   if (rules.length <= 0) { /* empty */ }
   else if (rules.length === 1) {
-    this.appendRule_(this.list_, rules[0]);
+    this.appendRuleTo_(this.$list_, rules[0]);
   } else {
     const frag = document.createDocumentFragment();
-    rules.forEach(this.appendRule_.bind(this, frag));
-    this.list_.appendChild(frag);
+    rules.forEach(this.appendRuleTo_.bind(this, frag));
+    this.$list_.appendChild(frag);
   }
   return this.onRowChange_(rules.length);
 }
-appendRule_ (list: HTMLTableSectionElement | DocumentFragment, rule: ExclusionsNS.StoredRule): HTMLTableRowElement {
-  const row = document.importNode(this.template_, true);
-  let el = row.querySelector(".pattern") as HTMLInputElement, value: string;
-  el.value = value = rule.pattern;
-  if (value) {
-    el.placeholder = "";
+isPatternMatched_ (_pattern: string) { return true; }
+appendRuleTo_ (list: HTMLTableSectionElement | DocumentFragment, { pattern, passKeys }: ExclusionsNS.StoredRule): void {
+  const vnode: ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode = {
+    // rebuild a rule, to ensure a consistent memory layout
+    rule_: { pattern, passKeys },
+    changed_: false,
+    visible_: false,
+    $pattern_: null,
+    $keys_: null,
+  };
+  if (!this.isPatternMatched_(pattern)) {
+    this.list_.push(vnode);
+    return;
   }
-  el = row.querySelector(".passKeys") as HTMLInputElement;
-  el.value = value = rule.passKeys.trimRight();
-  if (value) {
-    el.placeholder = "";
-  } else {
-    el.addEventListener("input", ExclusionRulesOption_.OnNewPassKeyInput_);
+  const row = document.importNode(this.template_, true),
+  patternEl = row.querySelector(".pattern") as HTMLInputElement & ExclusionRealNode,
+  passKeysEl = row.querySelector(".passKeys") as HTMLInputElement & ExclusionRealNode,
+  trimedKeys = passKeys.trimRight();
+  patternEl.value = pattern;
+  if (pattern) {
+    patternEl.placeholder = "";
   }
+  passKeysEl.value = trimedKeys;
+  if (trimedKeys) {
+    passKeysEl.placeholder = "";
+  }
+  const vnode2 = vnode as ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode as ExclusionVisibleVirtualNode;
+  vnode2.visible_ = true;
+  vnode2.$pattern_ = patternEl; vnode2.$keys_ = passKeysEl;
+  patternEl.vnode = vnode2;
+  passKeysEl.vnode = vnode2;
+  this.list_.push(vnode2);
   list.appendChild(row);
-  return row;
 }
-static OnNewPassKeyInput_ (this: HTMLInputElement): void {
-  this.removeEventListener("input", ExclusionRulesOption_.OnNewPassKeyInput_);
-  this.title = "Example: " + this.placeholder;
-  this.placeholder = "";
+static OnNewPassKeysInput_ (passKeysEl: HTMLInputElement): void {
+  const placeholder = passKeysEl.placeholder;
+  if (placeholder) {
+    passKeysEl.title = "Example: " + placeholder;
+    passKeysEl.placeholder = "";
+  }
 }
 onRemoveRow_ (event: Event): void {
   let element = event.target as HTMLElement;
-  for (let i = 0; i < 2; i++) {
-    if (element.classList.contains("exclusionRemoveButton")) { break; }
-    element = element.parentElement as HTMLElement;
-  }
+  if (!element.classList.contains("exclusionRemoveButton")) { return; }
   element = (element.parentNode as Node).parentNode as HTMLElement;
   if (element.classList.contains("exclusionRuleInstance")) {
+    const vnode = (element.querySelector(".pattern") as ExclusionRealNode).vnode;
     element.remove();
+    this.list_.splice(this.list_.indexOf(vnode), 1);
     this.onUpdated_();
     return this.onRowChange_(0);
   }
@@ -232,20 +279,22 @@ onRemoveRow_ (event: Event): void {
 _reChar: RegExpOne;
 _escapeRe: RegExpG;
 readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
-  const rules: ExclusionsNS.StoredRule[] = [],
-  _ref = this.element_.getElementsByClassName<HTMLTableRowElement>("exclusionRuleInstance");
+  const rules: ExclusionsNS.StoredRule[] = [];
   part = (part === true);
-  for (let _i = 0, _len = _ref.length; _i < _len; _i++) {
-    const element = _ref[_i];
-    if (part && element.style.display === "none") {
+  for (const vnode of this.list_) {
+    if (part && !vnode.visible_) {
       continue;
     }
-    let pattern = ExclusionRulesOption_.getPattern_(element).value.trim();
+    if (!vnode.changed_) {
+      rules.push(vnode.rule_);
+      continue;
+    }
+    let pattern = vnode.$pattern_.value.trim();
     if (!pattern) {
       continue;
     }
-    let fixTail = false;
-    if (pattern[0] === ":" || element.style.display === "none") { /* empty */ }
+    let fixTail = false, passKeys = vnode.$keys_.value;
+    if (pattern[0] === ":") { /* empty */ }
     else if (!this._reChar.test(pattern)) {
       fixTail = pattern.indexOf("/", pattern.indexOf("://") + 3) < 0;
       pattern = pattern.replace(this._escapeRe, "$1");
@@ -262,7 +311,6 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
     if (fixTail) {
       pattern += "/";
     }
-    let passKeys = ExclusionRulesOption_.getPassKeys_(element).value;
     if (passKeys) {
       passKeys = BG_.Utils.formatKeys_(passKeys);
       const passArr = passKeys.match(KeyRe_);
@@ -274,18 +322,20 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       }
       passKeys = passArr ? (passArr.join(" ") + " ") : "";
     }
-    rules.push({ pattern, passKeys });
+    this.updateVNode_(vnode, { pattern, passKeys });
+    rules.push(vnode.rule_);
   }
   return rules;
 }
+updateVNode_ (vnode: ExclusionVisibleVirtualNode, rule: ExclusionsNS.StoredRule) {
+  if (!vnode.rule_.passKeys && rule.passKeys) {
+    ExclusionRulesOption_.OnNewPassKeysInput_(vnode.$keys_);
+  }
+  vnode.rule_ = rule;
+  vnode.changed_ = false;
+}
 
 readonly areEqual_ = Option_.areJSONEqual_;
-static getPattern_ (element: HTMLTableRowElement): HTMLInputElement {
-  return element.getElementsByClassName<HTMLInputElement>("pattern")[0];
-}
-static getPassKeys_ (element: HTMLTableRowElement): HTMLInputElement {
-  return element.getElementsByClassName<HTMLInputElement>("passKeys")[0];
-}
 onInit_ (): void { /* empty */ }
 sortRules_: (el?: HTMLElement) => void;
 timer_?: number;
@@ -381,55 +431,53 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     }
   };
   class PopExclusionRulesOption extends ExclusionRulesOption_ {
-    addRule_ (this: PopExclusionRulesOption): HTMLTableRowElement {
-      return ExclusionRulesOption_.prototype.addRule_.call(this, this.generateDefaultPattern_());
+    addRule_ (): void {
+      super.addRule_(PopExclusionRulesOption.generateDefaultPattern_());
     }
-    populateElement_ (this: PopExclusionRulesOption, rules1: ExclusionsNS.StoredRule[]): void {
-      ExclusionRulesOption_.prototype.populateElement_.call(this, rules1);
-      const elements = this.element_.getElementsByClassName<HTMLTableRowElement>("exclusionRuleInstance");
-      let haveMatch = -1;
-      for (let _i = 0, _len = elements.length; _i < _len; _i++) {
-        const element2 = elements[_i];
-        const pattern = ExclusionRulesOption_.getPattern_(element2).value.trim();
-        const rule = (bgExclusions.testers_ as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
-        if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
-          haveMatch = _i;
-        } else if (topUrl && (typeof rule === "string" ? !topUrl.lastIndexOf(rule, 0) : rule.test(topUrl))) {
-          /* empty */
-        } else {
-          element2.style.display = "none";
-        }
+    isPatternMatched_ (pattern: string) {
+      if (!pattern) { return false; }
+      const rule = (bgExclusions.testers_ as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern]
+      if (typeof rule === "string"
+          ? !url.lastIndexOf(rule, 0) && (!topUrl || !topUrl.lastIndexOf(rule, 0))
+          : rule.test(url) && (!topUrl || rule.test(topUrl))) {
+        return true;
       }
+      return false;
+    }
+    populateElement_ (rules1: ExclusionsNS.StoredRule[]): void {
+      super.populateElement_(rules1);
+      PopExclusionRulesOption.prototype.isPatternMatched_ = ExclusionRulesOption_.prototype.isPatternMatched_;
       if (inited <= 0) {
-        if (haveMatch >= 0) {
-          ExclusionRulesOption_.getPassKeys_(elements[haveMatch]).focus();
+        let visible_ = this.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0;
+        if (some) {
+          visible_[0].$keys_.focus();
         } else {
           this.addRule_();
         }
-        inited = haveMatch >= 0 ? 2 : 1;
+        inited = some ? 2 : 1;
       }
-      this.populateElement_ = null as never;
     }
-    OnInput_ (this: void, event: Event): void {
-      const patternElement = event.target as HTMLInputElement;
-      if (!patternElement.classList.contains("pattern")) {
+    updateVNode_ (vnode: ExclusionVisibleVirtualNode, rule: ExclusionsNS.StoredRule): void {
+      const pattern = rule.pattern, patternIsSame = vnode.rule_.pattern === pattern;
+      super.updateVNode_(vnode, rule);
+      if (patternIsSame) {
         return;
       }
-      const rule = bgExclusions.getRe_(patternElement.value);
-      if (typeof rule === "string" ? !url.lastIndexOf(rule, 0) : rule.test(url)) {
+      const parsedPattern = bgExclusions.getRe_(pattern), patternElement = vnode.$pattern_;
+      if (typeof parsedPattern === "string" ? !url.lastIndexOf(parsedPattern, 0) : parsedPattern.test(url)) {
         patternElement.title = patternElement.style.color = "";
       } else {
         patternElement.style.color = "red";
         patternElement.title = "Red text means that the pattern does not\nmatch the current URL.";
       }
     }
-    generateDefaultPattern_ (this: PopExclusionRulesOption): string {
+    static generateDefaultPattern_ (this: void): string {
       const url2 = url.lastIndexOf("https:", 0) === 0
         ? "^https?://" + url.split("/", 3)[2].replace(<RegExpG> /[.[\]]/g, "\\$&") + "/"
         : (<RegExpOne> /^[^:]+:\/\/./).test(url) && url.lastIndexOf("file:", 0) < 0
         ? ":" + (url.split("/", 3).join("/") + "/")
         : ":" + url;
-      this.generateDefaultPattern_ = () => url2;
+      PopExclusionRulesOption.generateDefaultPattern_ = () => url2;
       return url2;
     }
   }
@@ -540,7 +588,6 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
   if (inited > 0) {
     delayedInit();
   }
-  exclusions.element_.addEventListener("input", exclusions.OnInput_);
   if (!Build.NDEBUG) {
     interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
     (window as WindowEx).exclusions = exclusions;
