@@ -25,6 +25,11 @@ declare const enum kScrollDim {
   scrollSize = 1,
   position = 2,
 }
+interface ElementScrollInfo {
+  area_: number;
+  element_: SafeElement;
+  height_: number; /* cropped visible */
+}
 var VScroller = {
 _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
@@ -189,7 +194,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       element = element !== top || notNeedToRecheck ? element : null;
     }
     if (!element && top) {
-      element = a.current_ = a._selectFirst(top) || top;
+      const candidate = a._selectFirst({ area_: 0, element_: top, height_: 0 });
+      a.current_ = element = candidate && candidate.element_ !== top
+          && (!a.current_ || candidate.height_ > innerHeight / 2)
+          ? candidate.element_ : top;
     }
     a.scrolled_ = 0;
     return element;
@@ -235,13 +243,15 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     }
     return changed;
   },
-  _selectFirst (element: SafeElement, skipPrepare?: 1): SafeElement | null {
+  _selectFirst (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null {
+    let element = info.element_;
     if (element.clientHeight + 3 < element.scrollHeight &&
         (this._scrollDo(element, 1, 1) || element.scrollTop > 0 && this._scrollDo(element, 1, 0))) {
-      return element as SafeElement;
+      return info;
     }
     skipPrepare || VDom.prepareCrop_();
-    let children = [] as Array<{area: number, el: Element}>, _ref = element.children, _len = _ref.length;
+    let children: ElementScrollInfo[] = [], child: ElementScrollInfo | null
+      , _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
       element = _ref[_len] as Element as /** fake `as` */ SafeElement;
       // here assumes that a <form> won't be a main scrollable area
@@ -250,13 +260,14 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       visible = rect.height > 0 ? VDom.cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)
         : VDom.getVisibleClientRect_(element);
       if (visible) {
-        children.push({ area: (visible[2] - visible[0]) * (visible[3] - visible[1]), el: element});
+        let height_ = visible[3] - visible[1];
+        children.push({ area_: (visible[2] - visible[0]) * height_, element_: element, height_});
       }
     }
     children.sort(this.sortByArea_);
-    for (_len = children.length; 0 < _len--; ) {
-      if (element = this._selectFirst(children[_len].el as Element as SafeElement, 1) as SafeElement) {
-        return element;
+    for (const info of children) {
+      if (child = this._selectFirst(info, 1)) {
+        return child;
       }
     }
     return null;
@@ -304,7 +315,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       VUtils.suppressAll_(window, "scroll", true);
     });
   },
-  sortByArea_ (this: void, a: {area: number, el: Element}, b: {area: number, el: Element}): number {
-    return a.area - b.area;
+  sortByArea_ (this: void, a: ElementScrollInfo, b: ElementScrollInfo): number {
+    return b.area_ - a.area_;
   }
 };
