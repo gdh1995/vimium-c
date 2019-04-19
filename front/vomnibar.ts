@@ -133,6 +133,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   selection_: -1,
   atimer_: 0,
   timer_: 0,
+  wheelStart_: 0,
   wheelTime_: 0,
   wheelDelta_: 0,
   browser_: BrowserType.Chrome,
@@ -181,7 +182,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   onHidden_ (): void {
     VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide });
     const a = Vomnibar_;
-    a.timer_ = a.height_ = a.matchType_ = a.wheelTime_ = a.actionType_ =
+    a.timer_ = a.height_ = a.matchType_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
     a.total_ = a.lastKey_ = a.wheelDelta_ = 0;
     a.zoomLevel_ = 1;
     a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never;
@@ -574,20 +575,28 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
             ? !event.isTrusted : event.isTrusted === false)) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
-    const a = Vomnibar_, deltaY = event.deltaY, now = Date.now();
-    if (event.deltaX || !deltaY || !a.isActive_) { return; }
-    if (now - a.wheelTime_ > (event.deltaMode === 0 /* WheelEvent.DOM_DELTA_PIXEL */
+    const a = Vomnibar_, deltaY = event.deltaY, now = Date.now(), mode = event.deltaMode;
+    if (event.deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_) { return; }
+    if (now - a.wheelTime_ > (!mode /* WheelEvent.DOM_DELTA_PIXEL */
                               ? GlobalConsts.TouchpadTimeout : GlobalConsts.WheelTimeout)
         || now + 33 < a.wheelTime_) {
       a.wheelDelta_ = 0;
+      a.wheelStart_ = 0;
     }
     a.wheelTime_ = now;
-    let total = a.wheelDelta_ + deltaY, abs = Math.abs(total);
-    if (abs < GlobalConsts.VomnibarWheelStepForPage) {
+    let total = a.wheelDelta_ + (mode ? mode === /* WheelEvent.DOM_DELTA_LINE */ 1
+          ? deltaY * (GlobalConsts.VomnibarWheelStepForPage / 3)
+          : /* WheelEvent.DOM_DELTA_PAGE */ deltaY * GlobalConsts.VomnibarWheelStepForPage : deltaY)
+      , abs = Math.abs(total);
+    if (abs < GlobalConsts.VomnibarWheelStepForPage
+        || a.wheelStart_ && now - a.wheelStart_ < GlobalConsts.VomnibarWheelIntervalForPage
+            && now + 33 > a.wheelStart_
+    ) {
       a.wheelDelta_ = total;
       return;
     }
-    a.wheelDelta_ = (abs - GlobalConsts.VomnibarWheelStepForPage) * (abs > 0 ? 1 : -1);
+    a.wheelDelta_ = (abs % GlobalConsts.VomnibarWheelStepForPage) * (abs > 0 ? 1 : -1);
+    a.wheelStart_ = now;
     a.goPage_(deltaY > 0);
   },
   onInput_ (event: InputEvent): void {
