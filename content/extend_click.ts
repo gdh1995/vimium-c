@@ -154,7 +154,7 @@ listen = _call.bind<(this: EventTarget,
 rEL = removeEventListener, clearTimeout_ = clearTimeout,
 sec: number = +<string> cs.dataset.vimium,
 kClick = InnerConsts.kClick,
-kOnDomRead = "DOMContentLoaded" as "DOMContentLoaded",
+kOnDomRead = "DOMContentLoaded",
 hooks = {
   toString: function toString(this: FUNC): string {
     const a = this;

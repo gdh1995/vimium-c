@@ -342,13 +342,10 @@ var VVisual = {
     }
   },
 
-  _D: ["backward", "forward"] as ["backward", "forward"],
+  _D: ["backward", "forward"] as const,
   _G: ["character", "line", "lineboundary", /*3*/ "paragraph",
       "sentence", /** VisualModeNS.VimG.vimword */ "", /*6*/ "word",
-      "documentboundary"] as
-     ["character", "line", "lineboundary", /*3*/ "paragraph",
-      "sentence", /** VisualModeNS.VimG.vimword */ "", /*6*/ "word",
-      "documentboundary"],
+      "documentboundary"] as const,
   alterMethod_: "" as "move" | "extend",
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
   diType_: VisualModeNS.DiType.UnsafeUnknown as

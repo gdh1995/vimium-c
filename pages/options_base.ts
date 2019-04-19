@@ -570,11 +570,10 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
   for (let _i = 0, _len = rules.length; _i < _len; _i++) {
     ref1[rules[_i].pattern] = ref2[_i * 2];
   }
-  let sender = ref ? ref[0].s : <Readonly<Frames.Sender>> { s: Frames.Status.enabled, f: Frames.Flags.Default }
-    , el0: HTMLElement
-    , initialStat = sender.s !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
+  const sender = ref ? ref[0].s : <Readonly<Frames.Sender>> { s: Frames.Status.enabled, f: Frames.Flags.Default }
+    , initialStat = sender.s !== Frames.Status.disabled ? "Disable" : "Enable";
   curLockedStatus = sender.f & Frames.Flags.locked ? sender.s : Frames.Status.__fake;
-  el0 = $<HTMLElement>("#toggleOnce");
+  let el0 = $<HTMLElement>("#toggleOnce");
   el0.textContent = initialStat + " for once";
   el0.onclick = forceState.bind(null, initialStat);
   if (sender.f & Frames.Flags.locked) {

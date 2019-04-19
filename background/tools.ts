@@ -378,8 +378,7 @@ Marks_ = { // NOTE: all public members should be static
   }
 },
 FindModeHistory_ = {
-  key_: "findModeRawQueryList" as "findModeRawQueryList",
-  max_: 50,
+  key_: "findModeRawQueryList" as const,
   list_: null as string[] | null,
   listI_: null as string[] | null,
   timer_: 0,
@@ -407,13 +406,13 @@ FindModeHistory_ = {
     (incognito: boolean, query?: undefined | "", index?: number): string;
     (incognito: boolean, query: string | undefined, index: number | undefined): void | string;
   },
-  refreshIn_: function (this: any, query: string, list: string[], skipResult?: boolean): string | void {
+  refreshIn_: function (query: string, list: string[], skipResult?: boolean): string | void {
     const ind = list.lastIndexOf(query);
     if (ind >= 0) {
       if (ind === list.length - 1) { return; }
       list.splice(ind, 1);
     }
-    else if (list.length >= (this as typeof FindModeHistory_).max_) { list.shift(); }
+    else if (list.length >= GlobalConsts.MaxFindHistory) { list.shift(); }
     list.push(query);
     if (!skipResult) {
       return list.join("\n");
@@ -526,7 +525,7 @@ setTimeout(function () {
   };
 
   if (!Build.PContentSettings) { return; }
-  for (const i of ["images", "plugins", "javascript", "cookies"] as CSTypes[]) {
+  for (const i of ["images", "plugins", "javascript", "cookies"] as const) {
     localStorage.getItem(ContentSettings_.makeKey_(i)) != null &&
     setTimeout(ContentSettings_.Clear_, 100, i);
   }

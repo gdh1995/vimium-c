@@ -339,6 +339,7 @@ declare const enum GlobalConsts {
   FirefoxFocusResponseTimeout = 340,
   MaxLimitOfVomnibarMatches = 25,
   DisplayUseDynamicTitle = 0,
+  MaxFindHistory = 50,
 }
 
 declare const enum KnownKey {

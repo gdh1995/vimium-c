@@ -96,7 +96,7 @@ var VDom = {
       }
       let slot = (el as Element).assignedSlot;
       Build.BTypes & ~BrowserType.Firefox && slot && VDom.notSafe_(el) &&
-      (slot = VDom.Getter_(E, el, "assignedSlot" as "assignedSlot"));
+      (slot = VDom.Getter_(E, el, "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
         while (slot = slot.assignedSlot) { el = slot as HTMLSlotElement; }
@@ -382,7 +382,7 @@ var VDom = {
                                        ih - float(st.borderBottomWidth) * scale] : null;
     if (!needBox) { return [x, y]; }
     // here rect.right is not accurate because <html> may be smaller than <body>
-    const sEl = a.scrollingEl_(), H = "hidden" as "hidden",
+    const sEl = a.scrollingEl_(), H = "hidden",
     xScrollable = st.overflowX !== H && st2.overflowX !== H,
     yScrollable = st.overflowY !== H && st2.overflowY !== H;
     if (xScrollable) {
