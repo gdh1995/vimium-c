@@ -157,14 +157,14 @@ kClick = InnerConsts.kClick,
 kOnDomRead = "DOMContentLoaded",
 hooks = {
   toString: function toString(this: FUNC): string {
-    const a = this;
+    let a = this;
     return call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
                 funcToString,
                 a === myAEL ? _listen : a === hooks.toString ? funcToString : a, arguments);
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
-    const a = this, args = arguments, len = args.length;
+    let a = this, args = arguments, len = args.length;
     len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
       : call(_apply as (this: (this: EventTarget, ...args: Array<{}>) => void
                         , self: EventTarget, args: IArguments) => void,
@@ -183,10 +183,10 @@ hooks = {
 let handler = function (this: void): void {
   rEL(kOnDomRead, handler, true);
   clearTimeout_(timer);
-  const docEl2 = docChildren[0] as HTMLElement | SVGElement | null;
+  let docEl2 = docChildren[0] as HTMLElement | SVGElement | null;
   handler = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
-  const el = call(Create, doc, "div") as HTMLDivElement, key = InnerConsts.kSecretAttr;
+  let el = call(Create, doc, "div") as HTMLDivElement, key = InnerConsts.kSecretAttr;
   call(Attr, el, key, "");
   listen(el, InnerConsts.kCmd, executeCmd, true);
   call(Append, docEl2, el), dispatch(el, new CE(InnerConsts.kHook, {detail: sec})), call(Remove, el);
@@ -212,7 +212,7 @@ unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
 next = function (): void {
-  const len = toRegister.length,
+  let len = toRegister.length,
   start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
     ? len - (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug) : 0,
   delta = len - start;
@@ -221,7 +221,7 @@ next = function (): void {
   unsafeDispatchCounter = 0;
   call(Remove, root);
   // skip some nodes if only crashing, so that there would be less crash logs in console
-  const slice = toRegister.splice(start, delta);
+  let slice = toRegister.splice_(start, delta);
   // tslint:disable-next-line: prefer-for-of
   for (let i = 0; i < slice.length; i++) {
     prepareRegister(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
@@ -240,7 +240,7 @@ function prepareRegister(this: void, element: Element): void {
         , element));
     return;
   }
-  const doc1 = element.ownerDocument;
+  let doc1 = element.ownerDocument;
   // in case element is <form> / <frameset> / adopted into another document, or aEL is from another frame
   if (doc1 !== doc) {
     // on Firefox, element.__proto__ is auto-updated when it's adopted
@@ -297,7 +297,7 @@ function doRegister(onlyInDocument?: 1): void {
   }
 }
 function safeReRegister(element: Element, doc1: Document): void {
-  const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
+  let localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
   if (typeof localAEL === kFunc && typeof localREL === kFunc && localAEL !== myAEL) {
     try {
       call(localAEL, element, kClick, noop);
@@ -314,7 +314,7 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
   let len = allNodesInDocument.length, i = 0;
   !cmd && len > GlobalConsts.maxElementsWhenScanOnClick && (len = 0); // stop it
   for (; i < len; i++) {
-    const el: Element | HTMLElement = allNodesInDocument[i];
+    let el: Element | HTMLElement = allNodesInDocument[i];
     if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")
         && !(el instanceof HA)) { // ignore <button>s to iter faster
       pushInDocument(i);
@@ -324,7 +324,7 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
   allNodesInDocument = null;
 }
 function executeCmd(eventOrDestroy?: Event): void {
-  const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
+  let detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
   cmd = detail ? detail[0] === sec ? detail[1] : kContentCmd._fake
         : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   if (cmd !== kContentCmd.Destroy) {
