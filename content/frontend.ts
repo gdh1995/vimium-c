@@ -1039,14 +1039,12 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       post({ H: kFgReq.cmd, c: request.c, n, i: request.i});
     },
   function ({ h: html, a: shouldShowAdvanced, o: optionUrl, S: CSS }: Req.bg<kBgReq.showHelpDialog>): void {
-    let box: HTMLDivElement & SafeHTMLElement
-      , oldShowHelp = Commands[kFgCmd.showHelp], hide: (this: void, e?: Event | number | "e") => void
-      , node1: HTMLElement;
     if (CSS) { VDom.UI.css_(CSS); }
+    const oldShowHelp = Commands[kFgCmd.showHelp];
+    oldShowHelp("e");
     if (!VDom.isHTML_()) { return; }
-    Commands[kFgCmd.showHelp]("e");
     if (oldShowHelp !== Commands[kFgCmd.showHelp]) { return; } // an old dialog exits
-    box = VDom.createElement_("div");
+    const box: HTMLDivElement & SafeHTMLElement = VDom.createElement_("div");
     box.className = "R Scroll UI";
     box.id = "HelpDialog";
     box.innerHTML = html;
@@ -1064,15 +1062,14 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         ? "click" : "DOMActivate", onActivate, true);
     }
 
-    const closeBtn = box.querySelector("#HClose") as HTMLElement;
-    hide = function (event): void {
+    const closeBtn = box.querySelector("#HClose") as HTMLElement,
+    optBtn = box.querySelector("#OptionsPage") as HTMLAnchorElement,
+    advCmd = box.querySelector("#AdvancedCommands") as HTMLElement,
+    hide: (this: void, e?: Event | number | "e") => void = function (event): void {
       if (event instanceof Event) {
         VUtils.prevent_(event);
-      } else {
-        closeBtn.onclick = null as never;
-        closeBtn.removeAttribute("href");
-        closeBtn.click();
       }
+      optBtn.onclick = closeBtn.onclick = null as never;
       let i = VDom.lastHovered_;
       i && box.contains(i) && (VDom.lastHovered_ = null);
       (i = VScroller.current_) && box.contains(i) && (VScroller.current_ = null);
@@ -1081,22 +1078,20 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       Commands[kFgCmd.showHelp] = oldShowHelp;
     };
     closeBtn.onclick = Commands[kFgCmd.showHelp] = hide;
-    node1 = box.querySelector("#OptionsPage") as HTMLAnchorElement;
     if (! location.href.startsWith(optionUrl)) {
-      (node1 as HTMLAnchorElement).href = optionUrl;
-      node1.onclick = function (event) {
+      optBtn.href = optionUrl;
+      optBtn.onclick = function (event) {
         post({ H: kFgReq.focusOrLaunch, u: optionUrl });
         hide(event);
       };
     } else {
-      node1.remove();
+      optBtn.remove();
     }
-    node1 = box.querySelector("#AdvancedCommands") as HTMLElement;
     function toggleAdvanced(this: void): void {
-      (node1.firstChild as Text).data = (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";
+      (advCmd.firstChild as Text).data = (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";
       box.classList.toggle("HelpAdvanced");
     }
-    node1.onclick = function (event) {
+    advCmd.onclick = function (event) {
       VUtils.prevent_(event);
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
