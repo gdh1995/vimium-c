@@ -154,7 +154,7 @@ var VOmni = {
       const wnd = this.contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options_ as VomnibarNS.FgOptionsToFront],
       origin = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3)),
-      checkBroken = function (i?: TimerType.fake): void {
+      checkBroken = function (i?: TimerType.fake | 1): void {
         const a = VOmni, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
         if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }
@@ -191,7 +191,7 @@ var VOmni = {
         _this.top_ = "8px";
       }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
-      checkBroken(TimerType.fake);
+      checkBroken(1);
     };
     UI.add_(this.box_ = el, AdjustType.MustAdjust, VHud.box_);
     type !== VomnibarNS.PageType.inner &&

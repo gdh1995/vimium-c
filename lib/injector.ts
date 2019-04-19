@@ -18,7 +18,8 @@ let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes &
   : typeof browser !== "undefined" && browser &&
   !((browser as typeof chrome | Element) instanceof Element)) ? browser as typeof chrome : chrome).runtime;
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3,
-onIdle = window.requestIdleCallback;
+onIdle = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
+  ? window.requestIdleCallback : requestIdleCallback;
 let tick = 1, extID = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0));
 if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extID.indexOf("-") > 0) {
   extID = curEl.dataset.vimiumId || BuildStr.FirefoxID;

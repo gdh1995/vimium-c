@@ -380,7 +380,9 @@ _listen("load", delayFindAll, true);
   // else: sandboxed or JS-disabled; Firefox == * or Chrome < 68 (MinEnsuredNewScriptsFromExtensionOnSandboxedPage)
   script.remove();
   if (!(Build.BTypes & BrowserType.Chrome)
+      || Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       || Build.BTypes & ~BrowserType.Chrome && !appVer) {
+    VDom.allowScripts_ = 0;
     return;
   }
   // else: Chrome < MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -402,12 +404,15 @@ _listen("load", delayFindAll, true);
   }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
   function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
-    let f = timeout > 10 ? window.requestIdleCallback : null, cb = () => func(TimerType.fake);
+    let f = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && timeout > 9 ? window.requestIdleCallback : null
+      , cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
     return (BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || VDom && VDom.allowRAF_)
-      ? f && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && f instanceof Element)
-        ? (f as Exclude<typeof f, null | Element>)(cb, { timeout }) : requestAnimationFrame(cb)
+      ? (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? f && !(f instanceof Element) : timeout > 9)
+      ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? f : requestIdleCallback
+          ) as Exclude<typeof f, null | undefined | Element>)(cb, { timeout })
+      : requestAnimationFrame(cb)
       : (Promise.resolve(1).then(cb), 1);
   };
 })();

@@ -683,6 +683,7 @@ declare const enum BrowserVer {
   // the commit is firstly applied to C68:
   // https://github.com/chromium/chromium/commit/5a5267ab58dd0310fc2b427db30de60c0eea4457
   MinEnsuredNewScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
+  MinNo$TimerType$$Fake = MinEnsuredNewScriptsFromExtensionOnSandboxedPage,
   MinASameZoomOfDocElAsdevPixRatioWorksAgain = 68,
   // even if EXPERIMENTAL or LEGACY
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>

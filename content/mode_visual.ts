@@ -281,10 +281,10 @@ var VVisual = {
   },
   /** @not_related_to_di */
   ResetHUD_ (i?: TimerType.fake | undefined): void {
-    const _this = VVisual;
-    if (!_this || i) { return; }
-    _this.hudTimer_ = 0;
-    if (_this.hud_) { VHud.show_(_this.hud_); }
+    const a = VVisual;
+    if (!a || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) { return; }
+    a.hudTimer_ = 0;
+    if (a.hud_) { VHud.show_(a.hud_); }
   },
   find_ (count: number): void {
     if (!VFind.query_) {

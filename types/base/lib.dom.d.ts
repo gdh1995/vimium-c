@@ -9436,6 +9436,7 @@ declare function addEventListener<K extends keyof WindowEventMap>(type: K,
   ): void;
 declare var close: unknown;
 declare function addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+declare var requestIdleCallback: Window["requestIdleCallback"];
 type AAGUID = string;
 type AlgorithmIdentifier = string | Algorithm;
 type ConstrainBoolean = boolean | ConstrainBooleanParameters;
