@@ -416,8 +416,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
   valuesToLoad_: [
-    /** required in {@link main.ts#BackgroundCommands[kBgCmd.toggle]}: must be the first element */
-    , "deepHints", "keyboard", "linkHintCharacters" //
+    "deepHints", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
   sync_: Utils.blank_ as SettingsNS.Sync["set"],
