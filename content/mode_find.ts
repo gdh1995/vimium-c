@@ -87,12 +87,13 @@ var VFind = {
     for (const i of ["keypress", "keyup", "mouseup", "click", "contextmenu", "copy", "cut", "paste"]) {
       f(i, s, t);
     }
-    f("blur", function onBlur(this: Window): void {
-      const delta = Date.now() - now;
-      if (VFind.isActive_ && delta < 500 && delta > -99) {
-        this.document.body && setTimeout(function (): void { VFind && VFind.focus_(); }, tick++ * 17);
+    f("blur", a._onUnexpectedBlur = function (this: Window, event): void {
+      const b = VFind, delta = Date.now() - now, wnd1 = this;
+      if (event && b && b.isActive_ && delta < 500 && delta > -99 && event.target === wnd1) {
+        wnd1.closed || setTimeout(function (): void { VFind && b.focus_(); }, tick++ * 17);
       } else {
-        this.removeEventListener("blur", onBlur, true);
+        wnd1.removeEventListener("blur", b._onUnexpectedBlur, true);
+        b._onUnexpectedBlur = null;
       }
     }, t);
     f("focus", function (this: Window, event: Event): void {
@@ -138,6 +139,7 @@ var VFind = {
     VUtils.push_(a.onHostKeydown_, a);
     return a.setFirstQuery_(a.query0_);
   },
+  _onUnexpectedBlur: null as ((event?: Event) => void) | null,
   focus_ (): void {
     this._actived = false;
     this.input_.focus();
@@ -270,19 +272,20 @@ var VFind = {
     a.deactivate_(i as FindNS.Action);
   },
   onHostKeydown_ (event: KeyboardEvent): HandlerResult {
-    let i = VKeyboard.getKeyStat_(event), n = event.keyCode;
+    let i = VKeyboard.getKeyStat_(event), n = event.keyCode, a = this;
     if (!i && n === VKeyCodes.f2) {
-      this.focus_();
+      a._onUnexpectedBlur && a._onUnexpectedBlur();
+      a.focus_();
       return HandlerResult.Prevent;
     } else if (i && !(i & ~KeyStat.PrimaryModifier)) {
       if (n === VKeyCodes.J || n === VKeyCodes.K) {
-        this.execute_(null, { count: (VKeyCodes.K - n) || -1 });
+        a.execute_(null, { count: (VKeyCodes.K - n) || -1 });
         return HandlerResult.Prevent;
       }
     }
     if (!VEvent.lock_() && VKeyboard.isEscape_(event)) {
       VUtils.prevent_(event); // safer
-      this.deactivate_(FindNS.Action.ExitNoFocus); // should exit
+      a.deactivate_(FindNS.Action.ExitNoFocus); // should exit
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
