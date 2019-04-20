@@ -79,8 +79,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
     [kFgReq.setOmniStyle]: (this: void, request: FgReq[kFgReq.setOmniStyle], _port?: Port) => void;
   }
 
-  /** any change to `commandCount` should ensure it won't be `0` */
-  let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, commandCount: number = 1,
+  /** any change to `cRepeat` should ensure it won't be `0` */
+  let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, cRepeat: number = 1,
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: VKeyCodes = VKeyCodes.None,
   _removeTempTabLock: Promise<void> | null | 0 = Build.BTypes & BrowserType.Firefox ? null : 0, // only for Firefox
@@ -348,7 +348,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
   function getTabRange(current: number, total: number, countToAutoLimitBeforeScale?: number
       , /** must be positive */ extraCount?: number | null
   ): [number, number] {
-    let count = commandCount;
+    let count = cRepeat;
     if (extraCount) { count += count > 0 ? extraCount : -extraCount; }
     const end = current + count, pos = count > 0;
     return end <= total && end > -2 ? pos ? [current, end] : [end + 1, current + 1] // normal range
@@ -435,7 +435,7 @@ Are you sure you want to continue?`);
         options.index = newTabIndex(tab, opts.position);
         opts.opener && (options.openerTabId = tab.id);
       }
-      openMultiTab(options, commandCount);
+      openMultiTab(options, cRepeat);
       return !inCurWnd && active ? selectWnd(options) : undefined;
     }
     return makeWindow({
@@ -458,14 +458,14 @@ Are you sure you want to continue?`);
       return onRuntimeError();
     }
     if (!tab) {
-      openMultiTab({url, active: true}, commandCount);
+      openMultiTab({url, active: true}, cRepeat);
       return onRuntimeError();
     }
     if (tab.incognito && onlyNormal) { url = ""; }
     return openMultiTab({
       url, active: tab.active, windowId: tab.windowId,
       index: newTabIndex(tab, cOptions.position)
-    }, commandCount);
+    }, cRepeat);
   }
 
   const hackedCreateTab =
@@ -482,8 +482,8 @@ Are you sure you want to continue?`);
     const tab = selectFrom(wnd.tabs);
     if (wnd.incognito && wnd.type !== "normal") {
       // url is disabled to be opened in a incognito window directly
-      return hackedCreateTab[1](this, tab, commandCount > 1 ? (id: number): void => {
-        for (let count = commandCount; 0 < --count; ) {
+      return hackedCreateTab[1](this, tab, cRepeat > 1 ? (id: number): void => {
+        for (let count = cRepeat; 0 < --count; ) {
           chrome.tabs.duplicate(id);
         }
       } : null, wnd.tabs);
@@ -491,7 +491,7 @@ Are you sure you want to continue?`);
     return openMultiTab({
       url: this, active: tab.active, windowId: wnd.type === "normal" ? tab.windowId : undefined,
       index: newTabIndex(tab, cOptions.position)
-    }, commandCount);
+    }, cRepeat);
   }, function (url, tab, repeat, allTabs): void {
     const urlLower = url.toLowerCase().split("#", 1)[0];
     allTabs = allTabs.filter(function (tab1) {
@@ -611,7 +611,7 @@ Are you sure you want to continue?`);
       url, active, windowId: tab ? tab.windowId : undefined,
       openerTabId: options.opener && tab ? tab.id : undefined,
       index: tab ? newTabIndex(tab, options.position) : undefined
-    }, commandCount);
+    }, cRepeat);
   }
   function openJSUrl(url: string): void {
     if (";".indexOf(url.substring(11).trim()) >= 0) {
@@ -692,7 +692,7 @@ Are you sure you want to continue?`);
   // use Urls.WorkType.Default
   function openUrls(tabs: [Tab]): void {
     const tab = tabs[0], { windowId } = tab;
-    let urls: string[] = cOptions.urls, repeat = commandCount;
+    let urls: string[] = cOptions.urls, repeat = cRepeat;
     for (let i = 0; i < urls.length; i++) {
       urls[i] = Utils.convertToUrl_(urls[i] + "");
     }
@@ -734,7 +734,7 @@ Are you sure you want to continue?`);
     const browserTabs = chrome.tabs, i = tab.index;
     browserTabs.remove(tab.id, onRuntimeError);
     let parts1 = tabs.slice(i + 1, end), parts2 = tabs.slice(start, i);
-    if (commandCount < 0) {
+    if (cRepeat < 0) {
       let tmp = parts1;
       parts1 = parts2;
       parts2 = tmp;
@@ -884,7 +884,7 @@ Are you sure you want to continue?`);
     /* kBgCmd.goBack: */ !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
           || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && chrome.tabs.goBack
         ? function (this: void): void {
-      const tabID = TabRecency_.last_ < 0 ? null as never : TabRecency_.last_, count = commandCount,
+      const tabID = TabRecency_.last_ < 0 ? null as never : TabRecency_.last_, count = cRepeat,
       jump = (count > 0 ? chrome.tabs.goBack : chrome.tabs.goForward) as NonNullable<typeof chrome.tabs.goBack>;
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
         jump(tabID, onRuntimeError);
@@ -897,7 +897,7 @@ Are you sure you want to continue?`);
         return Backend.complain_("duplicate such a tab");
       }
       chrome.tabs.duplicate(tabId);
-      if (commandCount < 2) { return; }
+      if (cRepeat < 2) { return; }
       if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
           || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito
           || TabRecency_.incognito_ === IncognitoType.ensuredFalse
@@ -910,7 +910,7 @@ Are you sure you want to continue?`);
           if (!wnd.incognito || tab.incognito) {
             return fallback(tab);
           }
-          for (let count = commandCount; 0 < --count; ) {
+          for (let count = cRepeat; 0 < --count; ) {
             chrome.tabs.duplicate(tabId);
           }
         });
@@ -920,7 +920,7 @@ Are you sure you want to continue?`);
           url: tab.url, active: false, windowId: tab.windowId,
           pinned: tab.pinned,
           index: tab.index + 2 , openerTabId: tab.id
-        }, commandCount - 1);
+        }, cRepeat - 1);
       }
     },
     /* moveTabToNewWindow: */ function (): void {
@@ -1037,8 +1037,8 @@ Are you sure you want to continue?`);
           ids = wnds.map(wnd => wnd.id);
           index = ids.indexOf(index);
           if (ids.length >= 2 || index < 0) {
-            let dest = (index + commandCount) % ids.length;
-            index < 0 && commandCount < 0 && dest++;
+            let dest = (index + cRepeat) % ids.length;
+            index < 0 && cRepeat < 0 && dest++;
             dest < 0 && (dest += ids.length);
             chrome.tabs.query({windowId: ids[dest], active: true}, function ([tab2]): void {
               Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
@@ -1073,7 +1073,7 @@ Are you sure you want to continue?`);
         (ContentSettings_.complain_ as () => any)();
         return;
       }
-      return ContentSettings_.toggleCS_(commandCount, cOptions, tabs);
+      return ContentSettings_.toggleCS_(cRepeat, cOptions, tabs);
     },
     /* clearCS: */ function (this: void): void {
       if (!Build.PContentSettings) {
@@ -1084,7 +1084,7 @@ Are you sure you want to continue?`);
     },
     /* goTab: */ function (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
-      const count = ((cOptions.dir | 0) || 1) * commandCount, len = tabs.length;
+      const count = ((cOptions.dir | 0) || 1) * cRepeat, len = tabs.length;
       let cur: Tab | undefined, index = cOptions.absolute
         ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : Math.abs(count) > tabs.length * 2 ? (count > 0 ? -1 : 0)
@@ -1104,8 +1104,8 @@ Are you sure you want to continue?`);
       if (!tabs || tabs.length <= 0) { return onRuntimeError(); }
       const total = tabs.length, tab = selectFrom(tabs), i = tab.index;
       let count = 1, start = i, end = i + 1;
-      if (Math.abs(commandCount) > 1 && total > 1) {
-        const noPinned = tabs[0].pinned !== tab.pinned && !(commandCount < 0 && tabs[i - 1].pinned);
+      if (Math.abs(cRepeat) > 1 && total > 1) {
+        const noPinned = tabs[0].pinned !== tab.pinned && !(cRepeat < 0 && tabs[i - 1].pinned);
         let skipped = 0;
         if (noPinned) {
           while (tabs[skipped].pinned) { skipped++; }
@@ -1130,18 +1130,18 @@ Are you sure you want to continue?`);
     /* removeTabsR: */ function (this: void, tabs: Tab[]): void {
       let dir = cOptions.dir | 0;
       dir = dir > 0 ? 1 : dir < 0 ? -1 : 0;
-      return removeTabsRelative(selectFrom(tabs), dir * commandCount, tabs);
+      return removeTabsRelative(selectFrom(tabs), dir * cRepeat, tabs);
     },
     /* removeRightTab: */ function (this: void, tabs: Tab[]): void {
       if (!tabs) { return; }
       const ind = selectFrom(tabs).index, [start, end] = getTabRange(ind, tabs.length, 0, 1);
-      chrome.tabs.remove(tabs[ind + 1 === end || commandCount > 0 && start !== ind ? start : end - 1].id);
+      chrome.tabs.remove(tabs[ind + 1 === end || cRepeat > 0 && start !== ind ? start : end - 1].id);
     },
     /* restoreTab: */ function (this: void): void {
       if (!chrome.sessions) {
         return complainNoSession();
       }
-      let count = commandCount;
+      let count = cRepeat;
       if (count < 2 && count > -2 && cPort.s.a) {
         return Backend.showHUD_("Can not restore a tab in incognito mode!");
       }
@@ -1156,16 +1156,16 @@ Are you sure you want to continue?`);
         return complainNoSession();
       }
       function doRestore(this: void, list: chrome.sessions.Session[]): void {
-        if (commandCount > list.length) {
+        if (cRepeat > list.length) {
           return Backend.showHUD_("The session index provided is out of range.");
         }
-        const session = list[commandCount - 1], item = session.tab || session.window;
+        const session = list[cRepeat - 1], item = session.tab || session.window;
         item && chrome.sessions.restore(item.sessionId);
       }
-      if (commandCount > (chrome.sessions.MAX_SESSION_RESULTS || 25)) {
+      if (cRepeat > (chrome.sessions.MAX_SESSION_RESULTS || 25)) {
         return doRestore([]);
       }
-      if (commandCount <= 1) {
+      if (cRepeat <= 1) {
         chrome.sessions.restore(null, onRuntimeError);
         return;
       }
@@ -1213,7 +1213,7 @@ Are you sure you want to continue?`);
     /* togglePinTab: */ function (this: void, tabs: Tab[]): void {
       const tab = selectFrom(tabs), pin = !tab.pinned, action = {pinned: pin}, offset = pin ? 0 : 1;
       let skipped = 0;
-      if (Math.abs(commandCount) > 1 && pin) {
+      if (Math.abs(cRepeat) > 1 && pin) {
         while (tabs[skipped].pinned) { skipped++; }
       }
       const range = getTabRange(tab.index, tabs.length - skipped, tabs.length);
@@ -1279,7 +1279,7 @@ Are you sure you want to continue?`);
         , ind = selectFrom(tabs).index
         , [start, end] = getTabRange(ind, tabs.length);
       if (cOptions.single) {
-        ind = ind + 1 === end || commandCount > 0 && start !== ind ? start : end - 1;
+        ind = ind + 1 === end || cRepeat > 0 && start !== ind ? start : end - 1;
         start = ind; end = ind + 1;
       }
       const count = end - start;
@@ -1292,7 +1292,7 @@ Are you sure you want to continue?`);
       }
     },
     /* reloadGivenTab: */ function (): void {
-      if (commandCount < 2 && commandCount > -2) {
+      if (cRepeat < 2 && cRepeat > -2) {
         let reloadProperties = { bypassCache: (cOptions.hard || cOptions.bypassCache) === true };
         chrome.tabs.reload(reloadProperties);
         return;
@@ -1321,7 +1321,7 @@ Are you sure you want to continue?`);
       const trail = cOptions.trailing_slash,
       { p: path, u: url } = requestHandlers[kFgReq.parseUpperUrl]({
         t: trail != null ? !!trail : null,
-        u: tabs[0].url, p: commandCount
+        u: tabs[0].url, p: cRepeat
       });
       if (path != null) {
         chrome.tabs.update(tabs[0].id, {url});
@@ -1334,14 +1334,14 @@ Are you sure you want to continue?`);
       requireURL({
         H: kFgReq.parseUpperUrl,
         u: "", // just a hack to make TypeScript compiler happy
-        p: -commandCount,
+        p: -cRepeat,
         t: trail != null ? !!trail : null,
         e: true
       });
     },
     /* moveTab: */ function (this: void, tabs: Tab[]): void {
       const tab = selectFrom(tabs), dir = cOptions.dir > 0 ? 1 : -1, pinned = tab.pinned;
-      let index = Math.max(0, Math.min(tabs.length - 1, tab.index + dir * commandCount));
+      let index = Math.max(0, Math.min(tabs.length - 1, tab.index + dir * cRepeat));
       while (pinned !== tabs[index].pinned) { index -= dir; }
       if (index !== tab.index) {
         chrome.tabs.move(tab.id, { index });
@@ -1352,7 +1352,7 @@ Are you sure you want to continue?`);
       const frames = framesForTab[port.s.t];
       if (frames && frames.length > 2) {
         ind = Math.max(0, frames.indexOf(port, 1));
-        for (let count = Math.abs(commandCount), dir = commandCount > 0 ? 1 : -1; count > 0; count--) {
+        for (let count = Math.abs(cRepeat), dir = cRepeat > 0 ? 1 : -1; count > 0; count--) {
           ind += dir;
           if (ind === frames.length) { ind = 1; }
           else if (ind < 1) { ind = frames.length - 1; }
@@ -1392,7 +1392,7 @@ Are you sure you want to continue?`);
       chrome.webNavigation.getAllFrames({
         tabId: sender.t
       }, function (frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
-        let frameId = sender.i, found: boolean, count = commandCount;
+        let frameId = sender.i, found: boolean, count = cRepeat;
         do {
           found = false;
           for (const i of frames) {
@@ -1419,8 +1419,8 @@ Are you sure you want to continue?`);
       if (tabs.length < 2) { return; }
       tabs.splice(selectFrom(tabs).index, 1);
       tabs = tabs.filter(i => i.id in TabRecency_.tabs_).sort(TabRecency_.rCompare_);
-      const tab = tabs[commandCount > 0 ? Math.min(commandCount, tabs.length) - 1
-        : Math.max(0, tabs.length + commandCount)];
+      const tab = tabs[cRepeat > 0 ? Math.min(cRepeat, tabs.length) - 1
+        : Math.max(0, tabs.length + cRepeat)];
       tab && selectTab(tab.id);
     },
     /* copyTabInfo: */ function (this: void, tabs: [Tab]): void {
@@ -1522,7 +1522,7 @@ Are you sure you want to continue?`);
       cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
           , S: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
           , a: {
-        count: cOptions.dir <= 0 ? -commandCount : commandCount,
+        count: cOptions.dir <= 0 ? -cRepeat : cRepeat,
         l: leave,
         f: findCSS,
         r: cOptions.returnToViewport === true,
@@ -1559,7 +1559,7 @@ Are you sure you want to continue?`);
       }, null), cOptions as {} as CmdOptions[kFgCmd.vomnibar]);
       port.postMessage<1, kFgCmd.vomnibar>({
         N: kBgReq.execute, S: ensureInnerCSS(port),
-        c: kFgCmd.vomnibar, n: commandCount,
+        c: kFgCmd.vomnibar, n: cRepeat,
         a: options
       });
       options.k = -1;
@@ -1672,7 +1672,7 @@ Are you sure you want to continue?`);
     // safe on renaming
     cOptions = options || Object.create(null);
     cPort = port;
-    commandCount = count;
+    cRepeat = count;
     cKey = lastKey;
     count = BgCmdInfo[alias];
     if (count < UseTab.ActiveTab) {
@@ -1939,7 +1939,7 @@ Are you sure you want to continue?`);
         opts.copied = request.c;
         opts.keyword = request.k;
       }
-      commandCount = 1;
+      cRepeat = 1;
       cOptions = opts;
       return BackgroundCommands[kBgCmd.openUrl]();
     },
@@ -1985,7 +1985,7 @@ Are you sure you want to continue?`);
     },
     /** nextFrame: */ function (this: void, request: FgReq[kFgReq.nextFrame], port: Port): void {
       cPort = port;
-      commandCount = 1;
+      cRepeat = 1;
       cKey = request.k;
       const type = request.t || Frames.NextType.Default;
       if (type !== Frames.NextType.current) {
@@ -2072,14 +2072,14 @@ Are you sure you want to continue?`);
       const { c: count, i: inner } = request;
       if (count != null) {
         delete request.c, delete request.H, delete request.i;
-        commandCount = +count || 1;
+        cRepeat = +count || 1;
         cOptions = Object.setPrototypeOf(request, null);
       } else if (request.r !== true) {
         return;
       } else if (cOptions == null || cOptions.secret !== -1) {
         if (inner) { return; }
         cOptions = Object.create(null);
-        commandCount = 1;
+        cRepeat = 1;
       } else if (inner && (cOptions as any as CmdOptions[kFgCmd.vomnibar]).v === Settings.CONST_.VomnibarPageInner_) {
         return;
       }
