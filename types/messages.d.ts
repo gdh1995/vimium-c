@@ -38,7 +38,7 @@ declare const enum kFgReq {
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
   focusOrLaunch, cmd, removeSug, openImage, gotoMainFrame,
-  setOmniStyle,
+  setOmniStyle, findFromVisual,
   END,
   msg = 90, injectDeprecated = 91,
   inject = 99,
@@ -394,6 +394,7 @@ interface FgReq {
   [kFgReq.setOmniStyle]: {
     /** style */ s: string;
   };
+  [kFgReq.findFromVisual]: {};
 }
 
 declare namespace Req {

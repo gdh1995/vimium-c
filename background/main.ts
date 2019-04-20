@@ -2144,7 +2144,7 @@ Are you sure you want to continue?`);
     },
     /** cmd: */ function (this: void, request: FgReq[kFgReq.cmd], port: Port): void {
       const cmd = request.c, id = request.i;
-      if (id && gCmdTimer !== id) { return; } // an old / aborted message
+      if (id >= 0 && gCmdTimer !== id) { return; } // an old / aborted / test message
       if (gCmdTimer) {
         clearTimeout(gCmdTimer);
         gCmdTimer = 0;
@@ -2197,6 +2197,12 @@ Are you sure you want to continue?`);
       const newOptions: SettingsNS.BackendSettings["vomnibarOptions"] = Utils.extendIf_({}, vomnibarOptions);
       newOptions.styles = styles;
       Settings.set_("vomnibarOptions", newOptions);
+    },
+    /** findFromVisual */ function (this: void, _: {}, port: Port): void {
+      cOptions = Object.setPrototypeOf({ active: true, returnToViewport: true }, null);
+      cPort = port;
+      cRepeat = 1;
+      BackgroundCommands[kBgCmd.performFind]();
     }
   ],
   framesForOmni: Frames.WritableFrames = [];

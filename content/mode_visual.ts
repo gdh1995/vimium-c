@@ -190,7 +190,7 @@ var VVisual = {
       }
       if (command === 55) {
         clearTimeout(movement.hudTimer_);
-        VPort.post_({ H: kFgReq.cmd, c: "findFromVisual", n: 1, i: 0});
+        VPort.post_({ H: kFgReq.findFromVisual });
         return;
       }
       return movement.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
