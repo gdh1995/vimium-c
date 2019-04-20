@@ -89,12 +89,14 @@ Here're some issues still existing on the master branch, which are mostly caused
   * passKeys always takes effects, even when a prior key has matched
   * passKeys supports `<esc>` and `<c-[>`
   * *BREAKING*: use "`^`" as a prefix of passKeys now means it's a whitelist of hooked keys
-* `goBack`, `goForward`: now works perfectly since Chrome 72
 * LinkHints:
   * can simulate clicking the right mouse button (use an option of `button="right"`)
   * can simulate touching the middle area of an element (use an option of `touch="auto"/true`)
   * in hover mode, can toggle class names of given HTML nodes (use `toggle={".selector":"className"}`)
-* Vomnibar: the dark mode becomes a little lighter
+* Vomnibar: make max number of suggestions and query interval configurable
+* add an option to stop focusing new tab page and leave browser's address bar focused
+* `goBack`, `goForward`: now works perfectly since Chrome 72
+* FindMode: focus found node on exit, for easier `<tab>` navigation
 * Scroller: a better default value of keyboard settings
 * vimium://show : now auto decrypt "thunder://" URLs
 * fix some typos about `<a-c>` and `<a-t>` in recommended key mappings

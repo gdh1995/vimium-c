@@ -307,11 +307,23 @@ var VFind = {
     VDom.UI.toggleSelectStyle_(0);
     if (i < FindNS.Action.MinComplicatedExit || !a.hasResults_) { return; }
     if (!el || el !== VEvent.lock_()) {
-      el = a.focusFoundLinkIfAny_();
-      if (el && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
-          && VDom.getEditableType_(el2) >= EditableType.Editbox && el.contains(el2)) {
+      let container = a.focusFoundLinkIfAny_();
+      if (container && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
+          && VDom.getEditableType_(el2) >= EditableType.Editbox && container.contains(el2)) {
         VDom.prepareCrop_();
         VDom.UI.simulateSelect_(el2);
+      } if (!(Build.BTypes & BrowserType.Chrome)) {
+        /* empty */
+      } else if (Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions) {
+/** ScrollIntoView to notify it's <tab>'s current target
+ * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/element.cc?q=ScrollIntoViewNoVisualUpdate&g=0&l=717
+ * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=SetSequentialFocusNavigationStartingPoint&g=0&l=4773
+ */
+        el && VDom.scrollIntoView_(el);
+      } else if (el) {
+        let oldScrollY = VUtils.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions ? scrollY : -1;
+        VDom.scrollIntoView_(el);
+        oldScrollY >= 0 && (scrollY = oldScrollY);
       }
     }
     if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
