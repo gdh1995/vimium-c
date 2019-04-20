@@ -787,12 +787,13 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       const notTop = top !== window;
       if (notTop && mask === FrameMaskType.NormalNext) {
         let docEl = document.documentElement;
+        if (docEl) {
+        Build.MinCVer < BrowserVer.MinScrollIntoViewOptions &&
         !(Build.BTypes & ~BrowserType.Chrome) || (Build.BTypes & BrowserType.Chrome && !OnOther)
-        ? docEl &&
+        ?
           (Element.prototype.scrollIntoViewIfNeeded as NonNullable<Element["scrollIntoViewIfNeeded"]>).call(docEl)
-        : !(Build.BTypes & ~(BrowserType.Firefox | BrowserType.Chrome))
-        ? docEl && docEl.scrollIntoView()
-        : docEl && Element.prototype.scrollIntoView.call(docEl);
+        : VDom.scrollIntoView_(docEl);
+        }
       }
       if (mask < FrameMaskType.minWillMask || !VDom.isHTML_()) { return; }
       let _this = FrameMask, dom1: HTMLDivElement | null;
@@ -1214,7 +1215,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         });
       } else if (el !== docEl && (box.bottom <= 0 || parent && box.top > parent.innerHeight)) {
         FrameMask.Focus_({ S: null, k: VKeyCodes.None, m: FrameMaskType.ForcedSelf });
-        el.scrollIntoView();
+        VDom.scrollIntoView_(el);
       }
       return result;
     },

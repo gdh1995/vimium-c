@@ -403,13 +403,19 @@ var VDom = {
     iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
   },
+  scrollIntoView_ (el: Element, dir?: boolean): void {
+    return !(Build.BTypes & ~BrowserType.Firefox) ? el.scrollIntoView({ block: "nearest" })
+      : Element.prototype.scrollIntoView.call(el,
+          Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome &&
+          dir != null ? dir : { block: "nearest" });
+  },
   view_ (el: Element, oldY?: number): boolean {
     const rect = this.getBoundingClientRect_(el),
     ty = this.NotVisible_(null, rect);
     if (ty === VisibilityType.OutOfView) {
       const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
-      Build.BTypes & ~BrowserType.Firefox ? Element.prototype.scrollIntoView.call(el, delta < 0)
-        : el.scrollIntoView(delta < 0);
+      Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome
+      ? this.scrollIntoView_(el, delta < 0) : this.scrollIntoView_(el);
       (delta || f) && this.scrollWndBy_(0, f ? (oldY as number) - scrollY : delta * ih / 5);
     }
     return ty === VisibilityType.Visible;

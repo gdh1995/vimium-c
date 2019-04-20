@@ -630,7 +630,7 @@ declare const enum BrowserVer {
   // only if EXPERIMENTAL; tests show there're mouseover/mousedown/mouseup/mouseout events
   // but no click events
   MinMaybeSomeMouseEventsOnDisabledFormControlElements = 60,
-  // the 6 below are correct even if EXPERIMENTAL or LEGACY
+  // the 7 below are correct even if EXPERIMENTAL or LEGACY
   MinNoBorderForBrokenImage = 60,
   MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
@@ -638,6 +638,7 @@ declare const enum BrowserVer {
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   MinCorrectBoxWidthForOptionUI = 61,
   Min$visualViewPort$ = 61,
+  MinScrollIntoViewOptions = 61,
   // also means ensured Element::scrollBy, Element::scrollTo and window.scrollTo/scrollBy({})
   // not on edge
   MinEnsuredCSS$ScrollBehavior = 61, // still exists on C35 (although has no effects before C41) if EXPERIMENTAL

@@ -848,7 +848,7 @@ window.onhashchange = function (this: void): void {
       }
       const node2 = node as Element;
       window.VDom ? VDom.view_(node2)
-        : (node2.scrollIntoViewIfNeeded || node2.scrollIntoView).call(node2);
+        : (Build.BTypes & BrowserType.Chrome && node2.scrollIntoViewIfNeeded || node2.scrollIntoView).call(node2);
     };
     if (document.readyState === "complete") { return callback(); }
     window.scrollTo(0, 0);

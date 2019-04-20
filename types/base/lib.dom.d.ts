@@ -2112,7 +2112,8 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     getElementsByClassName(classNames: string): NodeListOf<Element>;
     matches(selector: string): boolean;
     closest? (selector: string): Element | null;
-    scrollIntoView(alignToTop?: boolean): void;
+    /** default to true  */
+    scrollIntoView(alignToTop?: boolean | ScrollIntoViewOptions): void;
     scrollIntoViewIfNeeded? (alignToTop?: boolean): void;
     scroll(x: number, y: number): void;
     scrollTo(options?: ScrollToOptions): void;
@@ -8698,6 +8699,7 @@ interface ScrollOptions {
 }
 
 interface ScrollIntoViewOptions extends ScrollOptions {
+    /* if "nearest", work as scrollIntoViewIfNeeded */
     block?: ScrollLogicalPosition;
     inline?: ScrollLogicalPosition;
 }
