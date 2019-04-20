@@ -951,7 +951,7 @@ function createBuildConfigCache() {
     throw new Error("Unsupported Build.BTypes: " + getBuildItem("BTypes"));
   }
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
-  onlyES6 = !(btypes & BrowserType.Chrome && cver < /* MinEnsuredFullES6Environment */ 52);
+  onlyES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
   compilerOptions.target = onlyES6 ? "es6" : "es5";
 }
 
