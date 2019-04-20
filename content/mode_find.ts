@@ -193,8 +193,8 @@ var VFind = {
     a.focusFoundLinkIfAny_();
     return a.postMode_.activate_();
   },
-  clean_ (i: FindNS.Action): Element | null { // need keep @hasResults
-    let el: Element | null = null, _this = VFind;
+  clean_ (i: FindNS.Action): SafeElement | null { // need keep @hasResults
+    let el: SafeElement | null = null, _this = VFind;
     _this.coords_ && VMarks.scroll_(_this.coords_);
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
     VUtils.remove_(this);
@@ -208,6 +208,7 @@ var VFind = {
     if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
     _this.parsedQuery_ = _this.query_ = _this.query0_ = "";
     _this.historyIndex_ = _this.matchCount_ = 0;
+    _this._onUnexpectedBlur =
     _this.box_ = _this.input_ = _this.countEl_ = _this.parsedRegexp_ =
     _this.initialRange_ = _this.regexMatches_ = _this.coords_ = null as never;
     return el;
@@ -307,11 +308,10 @@ var VFind = {
     if (i < FindNS.Action.MinComplicatedExit || !a.hasResults_) { return; }
     if (!el || el !== VEvent.lock_()) {
       el = a.focusFoundLinkIfAny_();
-      if (el && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)) {
-        if (VDom.getEditableType_(el2) >= EditableType.Editbox && el.contains(el2)) {
-          VDom.prepareCrop_();
-          VDom.UI.simulateSelect_(el2);
-        }
+      if (el && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
+          && VDom.getEditableType_(el2) >= EditableType.Editbox && el.contains(el2)) {
+        VDom.prepareCrop_();
+        VDom.UI.simulateSelect_(el2);
       }
     }
     if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
@@ -466,7 +466,9 @@ var VFind = {
       if (Build.BTypes & ~BrowserType.Firefox && el && typeof text !== "string") {
         el = VDom.GetParent_(el, PNType.DirectElement), text = el && el.innerText as string | undefined;
       }
-      query = <string | undefined | null> text || (document.documentElement as HTMLElement).innerText + "";
+      query = <string | undefined | null> text ||
+          (Build.BTypes & ~BrowserType.Firefox ? (document.documentElement as HTMLElement).innerText + ""
+            : (document.documentElement as HTMLElement).innerText);
       matches = query.match(re) || query.replace(a.A0Re_, " ").match(re);
     }
     a.regexMatches_ = isRe ? matches : null;
@@ -507,7 +509,8 @@ var VFind = {
   execute_ (query?: string | null, options?: FindNS.ExecuteOptions): void {
     options = options ? VUtils.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
     const a = this;
-    let el: Element | null, found: boolean, count = ((options.count as number) | 0) || 1, back = count < 0
+    let el: LockableElement | null
+      , found: boolean, count = ((options.count as number) | 0) || 1, back = count < 0
       , par: HTMLElement | null = null, timesRegExpNotMatch = 0
       , sel: Selection | undefined
       , q: string, notSens = a.ignoreCase_ && !options.caseSensitive;
@@ -539,7 +542,7 @@ var VFind = {
       }
     } while (0 < --count && found);
     options.noColor || setTimeout(a.HookSel_, 0);
-    (el = VEvent.lock_()) && !VDom.isSelected_() && el.blur && el.blur();
+    (el = VEvent.lock_()) && !VDom.isSelected_() && el.blur();
     Build.BTypes & BrowserType.Firefox && focusHUD && a.focus_();
     a.hasResults_ = found;
   },

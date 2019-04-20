@@ -85,6 +85,20 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     return (vPort._port as Port).postMessage(request);
   }
 
+  function onEscDown(event: KeyboardEvent): HandlerResult {
+    let action = HandlerResult.Default, { repeat } = event
+      , { activeElement: activeEl, body } = document;
+    /** if `notBody` then `activeEl` is not null */
+    if (!repeat && VDom.UI.removeSelection_()) {
+      action = HandlerResult.Prevent;
+    } else if (repeat && !KeydownEvents[VKeyCodes.esc] && activeEl !== body) {
+      typeof (activeEl as Element).blur === "function" && (activeEl as Element & { blur (): void; }).blur();
+      action = HandlerResult.Prevent;
+    } else if (top !== window && activeEl === body) {
+      InsertMode.focusUpper_(event.keyCode, repeat, event);
+    }
+    return action;
+  }
   function onKeydown(event: KeyboardEvent): void {
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
@@ -129,13 +143,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     else if (nextKeys) {
       esc(HandlerResult.Suppress);
       action = HandlerResult.Prevent;
-    } else if (!event.repeat && VDom.UI.removeSelection_()) {
-      action = HandlerResult.Prevent;
-    } else if (event.repeat && !KeydownEvents[VKeyCodes.esc] && document.activeElement !== document.body) {
-      let c = document.activeElement; c && c.blur && c.blur();
-      action = HandlerResult.Prevent;
-    } else if (top !== window && document.activeElement === document.body) {
-      InsertMode.focusUpper_(key, event.repeat, event);
+    } else {
+      action = onEscDown(event);
     }
     if (action < HandlerResult.MinStopOrPreventEvents) { return; }
     if (action > HandlerResult.MaxNotPrevent) {
@@ -559,7 +568,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     lock_: null as LockableElement | null,
     mutable_: true,
     init_ (): void {
-      /** if `notBody` then `activeEl` is not null  */
+      /** if `notBody` then `activeEl` is not null */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = Object.create(null);
       if (VUtils.cache_.grabBackFocus_ && InsertMode.grabBackFocus_) {
@@ -569,7 +578,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         if (notBody) {
           InsertMode.last_ = null;
           prompt();
-          activeEl.blur && activeEl.blur();
+          typeof activeEl.blur === "function" && activeEl.blur();
           notBody = (activeEl = document.activeElement as Element) !== document.body;
         }
         if (!notBody) {
@@ -629,7 +638,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       if (el) {
         KeydownEvents[key] = 1;
         const parent = el.ownerDocument.defaultView, a1 = (parent as Window & { VEvent: typeof VEvent }).VEvent;
-        el.blur && el.blur();
+        el.blur();
         if (a1) {
           (parent as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(1);
           a1.focus_({ k: key, m: FrameMaskType.ForcedSelf });
@@ -1221,8 +1230,9 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         VOmni.box_.blur();
       } else if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-        let cur = document.activeElement;
-        cur && (/^i?frame$/i as RegExpI).test((cur.tagName as string)) && cur.blur && cur.blur();
+        let cur: Element | null = document.activeElement;
+        cur && (/^i?frame$/i as RegExpI).test((cur.tagName as string)) && cur.blur &&
+        (cur as HTMLFrameElement | HTMLIFrameElement).blur();
       }
       focus();
       failed && isEnabled && hook(HookAction.Install);

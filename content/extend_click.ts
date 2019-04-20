@@ -183,7 +183,7 @@ hooks = {
 let handler = function (this: void): void {
   rEL(kOnDomRead, handler, true);
   clearTimeout_(timer);
-  let docEl2 = docChildren[0] as HTMLElement | SVGElement | null;
+  let docEl2 = docChildren[0] as Element | null;
   handler = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
   let el = call(Create, doc, "div") as HTMLDivElement, key = InnerConsts.kSecretAttr;

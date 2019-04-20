@@ -47,12 +47,12 @@ var VDom = {
     };
     addEventListener(eventName, eventHandler, true);
   },
-  parentFrame_(): SafeElement | null {
+  parentFrame_(): (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null {
     if (Build.MinCVer >= BrowserVer.MinSafeGlobal$frameElement || !(Build.BTypes & BrowserType.Chrome)) {
-      return frameElement as SafeElement | null;
+      return frameElement as (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null;
     }
     try {
-      return frameElement as SafeElement | null;
+      return frameElement as (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null;
     } catch {
       return null;
     }
@@ -345,7 +345,7 @@ var VDom = {
       return [0, 0, (iw / zoom3) | 0, (ih / zoom3) | 0, 0];
     }
     const gcs = getComputedStyle, float = parseFloat,
-    box = doc.documentElement as HTMLElement, st = gcs(box),
+    box = doc.documentElement as Element, st = gcs(box),
     box2 = doc.body, st2 = box2 ? gcs(box2) : st,
     zoom2 = a.bZoom_ = Build.BTypes & ~BrowserType.Firefox && box2 && +st2.zoom || 1,
     containHasPaint = (<RegExpOne> /content|paint|strict/).test(st.contain as string),
@@ -363,10 +363,10 @@ var VDom = {
     a.dbZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom * zoom2 : 1;
     let x = !stacking ? float(st.marginLeft)
           : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && a.fixedClientTop_
-          ? -float(st.borderLeftWidth) : -box.clientLeft
+          ? -float(st.borderLeftWidth) : 0 | -box.clientLeft
       , y = !stacking ? float(st.marginTop)
           : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && a.fixedClientTop_
-          ? -float(st.borderTopWidth ) : -box.clientTop;
+          ? -float(st.borderTopWidth ) : 0 | -box.clientTop;
     x = x * scale - rect.left, y = y * scale - rect.top;
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
     x = Math.abs(x) < 0.01 ? 0 : Math.ceil(Math.round(x / zoom2 * 100) / 100);

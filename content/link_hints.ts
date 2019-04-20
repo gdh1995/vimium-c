@@ -541,7 +541,7 @@ var VHints = {
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
       const el = list[i];
       if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(el)) { continue; }
-      const cr = el.getBoundingClientRect();
+      const cr = VDom.getBoundingClientRect_(el);
       if (cr.bottom > 0 && cr.top < height) {
         result.push(el);
         continue;

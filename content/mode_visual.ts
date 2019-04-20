@@ -111,7 +111,7 @@ var VVisual = {
     VFind.clean_(FindNS.Action.ExitNoFocus);
     const el = VEvent.lock_();
     oldDiType & (VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Complicated) ||
-    el && el.blur && el.blur();
+    el && el.blur();
     VDom.UI.toggleSelectStyle_(0);
     VScroller.top_ = null;
     a.retainSelection_ = false;
