@@ -1120,7 +1120,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     VDom.UI.ensureBorder_();
     VDom.UI.add_(box, AdjustType.Normal, true);
     document.hasFocus() || VEvent.focusAndListen_();
-    Build.BTypes & BrowserType.Chrome && VDom.scrollIntoView_(box);
+    // on FF66, `scrollIntoView` does not set tab-navigation node
+    Build.BTypes & ~BrowserType.Firefox && VDom.scrollIntoView_(box);
     VScroller.current_ = box;
     VUtils.push_(function (event) {
       if (!InsertMode.lock_ && VKeyboard.isEscape_(event)) {

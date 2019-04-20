@@ -312,18 +312,24 @@ var VFind = {
           && VDom.getEditableType_(el2) >= EditableType.Editbox && container.contains(el2)) {
         VDom.prepareCrop_();
         VDom.UI.simulateSelect_(el2);
-      } if (!(Build.BTypes & BrowserType.Chrome)) {
-        /* empty */
-      } else if (Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions) {
-/** ScrollIntoView to notify it's <tab>'s current target
+      } if (!(Build.BTypes & ~BrowserType.Firefox)) {
+        // firefox seems to have "focused" it
+      } else if (Build.BTypes && BrowserType.Chrome && Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions) {
+/** ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)
+ * https://bugs.chromium.org/p/chromium/issues/detail?id=594613
+ * https://chromium.googlesource.com/chromium/src/+/0bb887b20c70582eeafad2a58ac1650b7159f2b6
+ *
+ * Tracking:
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/element.cc?q=ScrollIntoViewNoVisualUpdate&g=0&l=717
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=SetSequentialFocusNavigationStartingPoint&g=0&l=4773
  */
         el && VDom.scrollIntoView_(el);
       } else if (el) {
-        let oldScrollY = VUtils.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions ? scrollY : -1;
+        let ver = VUtils.cache_.browserVer_,
+        oldPos = ver < BrowserVer.MinScrollIntoViewOptions && ver >= BrowserVer.Min$ScrollIntoView$SetTabNavigationNode
+            && [scrollX, scrollY];
         VDom.scrollIntoView_(el);
-        oldScrollY >= 0 && (scrollY = oldScrollY);
+        oldPos && scrollTo(oldPos[0], oldPos[1]);
       }
     }
     if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
