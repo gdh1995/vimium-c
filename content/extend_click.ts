@@ -134,7 +134,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   let injected: string = '"use strict";(' + (function VC(this: void): void {
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const ETP = EventTarget.prototype, _listen = ETP.addEventListener,
-toRegister: Element[] & { push_ (el: Element): void | 1; splice_: Element[]["splice"] } = [] as any,
+toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
@@ -174,7 +174,7 @@ hooks = {
         : Build.BTypes & ~BrowserType.Firefox && type === kVOnClick
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === /* Node.ELEMENT_NODE */ 1) {
-      toRegister.push_(a as Element);
+      toRegister.p(a as Element);
       timer || (timer = setTimeout_(next, InnerConsts.DelayToStartIteration));
     }
     // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
@@ -184,10 +184,11 @@ hooks = {
 let handler = function (this: void): void {
   rEL(kOnDomRead, handler, true);
   clearTimeout_(timer);
-  let docEl2 = docChildren[0] as Element | null;
+  const docEl2 = docChildren[0] as Element | null,
+  el = call(Create, doc, "div") as HTMLDivElement,
+  key = InnerConsts.kSecretAttr;
   handler = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
-  let el = call(Create, doc, "div") as HTMLDivElement, key = InnerConsts.kSecretAttr;
   call(Attr, el, key, "");
   listen(el, InnerConsts.kCmd, executeCmd, true);
   call(Append, docEl2, el), dispatch(el, new CE(InnerConsts.kHook, {detail: sec})), call(Remove, el);
@@ -213,7 +214,7 @@ unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
 next = function (): void {
-  let len = toRegister.length,
+  const len = toRegister.length,
   start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
     ? len - (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug) : 0,
   delta = len - start;
@@ -222,7 +223,7 @@ next = function (): void {
   unsafeDispatchCounter = 0;
   call(Remove, root);
   // skip some nodes if only crashing, so that there would be less crash logs in console
-  let slice = toRegister.splice_(start, delta);
+  const slice = toRegister.s(start, delta);
   // tslint:disable-next-line: prefer-for-of
   for (let i = 0; i < slice.length; i++) {
     prepareRegister(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
@@ -241,7 +242,7 @@ function prepareRegister(this: void, element: Element): void {
         , element));
     return;
   }
-  let doc1 = element.ownerDocument;
+  const doc1 = element.ownerDocument;
   // in case element is <form> / <frameset> / adopted into another document, or aEL is from another frame
   if (doc1 !== doc) {
     // on Firefox, element.__proto__ is auto-updated when it's adopted
@@ -279,7 +280,7 @@ function prepareRegister(this: void, element: Element): void {
       dispatch(element, new CE(kVOnClick));
       call(Insert, e2, e1, e3);
     } else {
-      toRegister.push_(element);
+      toRegister.p(element);
       if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick + 1) {
         unsafeDispatchCounter = InnerConsts.MaxUnsafeEventsInOneTick + 1; // a fake value to run it only once a tick
         clearTimeout_(timer);
@@ -298,7 +299,7 @@ function doRegister(onlyInDocument?: 1): void {
   }
 }
 function safeReRegister(element: Element, doc1: Document): void {
-  let localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
+  const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
   if (typeof localAEL === kFunc && typeof localREL === kFunc && localAEL !== myAEL) {
     try {
       call(localAEL, element, kVOnClick, noop);
@@ -315,7 +316,7 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
   let len = allNodesInDocument.length, i = 0;
   !cmd && len > GlobalConsts.maxElementsWhenScanOnClick && (len = 0); // stop it
   for (; i < len; i++) {
-    let el: Element | HTMLElement = allNodesInDocument[i];
+    const el: Element | HTMLElement = allNodesInDocument[i];
     if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")
         && !(el instanceof HA)) { // ignore <button>s to iter faster
       pushInDocument(i);
@@ -325,7 +326,7 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
   allNodesInDocument = null;
 }
 function executeCmd(eventOrDestroy?: Event): void {
-  let detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
+  const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
   cmd = detail ? detail[0] === sec ? detail[1] : kContentCmd._fake
         : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   if (cmd !== kContentCmd.Destroy) {
@@ -333,14 +334,14 @@ function executeCmd(eventOrDestroy?: Event): void {
     return;
   }
   toRegister.length = 0;
-  toRegister.push_ = setTimeout_ = Build.BTypes & ~BrowserType.Firefox ? noop as () => 1 : function (): 1 { return 1; };
+  toRegister.p = setTimeout_ = Build.BTypes & ~BrowserType.Firefox ? noop as () => 1 : function (): 1 { return 1; };
   root = null as never;
   clearTimeout_(timer);
   timer = 1;
   delayFindAll && delayFindAll(); // clean the "load" listener
 }
 function noop(): void | 1 { return; }
-toRegister.push_ = push as any, toRegister.splice_ = toRegister.splice;
+toRegister.p = push as any, toRegister.s = toRegister.splice;
 !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 ||
 (!SR || SR instanceof E) && (SR = CE as never);
 // only the below can affect outsides

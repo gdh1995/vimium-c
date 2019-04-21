@@ -1155,6 +1155,9 @@ function patchExtendClick(source) {
     } else {
       source = source.replace(/[\r\n]\s*/g, "");
     }
+    if (onlyES6) {
+      source = source.replace(/\bconst\b/g, "let");
+    }
     source = "function(" + source;
     source = prefix + source + ")();'" + suffix;
   } else if (! /= ?'"use strict";\(function\b/.test(source)) {
