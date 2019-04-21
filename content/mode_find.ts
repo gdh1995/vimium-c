@@ -126,6 +126,7 @@ var VFind = {
     } else {
       el.contentEditable = "plaintext-only";
     }
+    el.spellcheck = false;
     const el2 = a.countEl_ = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
     Build.BTypes & ~BrowserType.Firefox &&
