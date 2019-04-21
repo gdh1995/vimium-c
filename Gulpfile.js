@@ -16,7 +16,7 @@ Object.assign(BrowserType, {
   Edge: 4
 });
 
-var LIB_UGLIFY_JS = 'terser';
+const LIB_UGLIFY_JS = 'terser';
 var DEST, enableSourceMap, willListFiles, willListEmittedFiles, JSDEST;
 var locally = false;
 var debugging = process.env.DEBUG === "1";
@@ -529,9 +529,7 @@ function outputJSResult(stream) {
       stream = stream.pipe(getGulpUglify()(config));
     }
     stream = stream.pipe(gulpMap(function(file) {
-      if (file.history.join("|").indexOf("extend_click") >= 0) {
-        file.contents = new Buffer(patchExtendClick(String(file.contents)));
-      }
+      postUglify(file, file.history.join("|").indexOf("extend_click") >= 0);
     }));
   }
   stream = stream.pipe(changed(JSDEST, {
@@ -614,13 +612,13 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
       ext: new_suffix + ".js"
     }));
   }
-  let mayPatch = false;
+  let needPatch = false;
   if (enableSourceMap) {
     stream = stream.pipe(require('gulp-sourcemaps').init({ loadMaps: true }));
   } else {
     stream = stream.pipe(gulpMap(function(file) {
       if (file.history.join("|").indexOf("extend_click") >= 0) {
-        mayPatch = true;
+        needPatch = true;
       }
     }));
   }
@@ -640,10 +638,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
      stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
   }
   stream = stream.pipe(gulpMap(function(file) {
-    if (!mayPatch) { return; }
-    if (is_file || file.history.join("|").indexOf("extend_click") >= 0) {
-      file.contents = new Buffer(patchExtendClick(String(file.contents)));
-    }
+    postUglify(file, needPatch);
   }));
   if (willListEmittedFiles && !is_file) {
     stream = stream.pipe(gulpPrint());
@@ -654,6 +649,21 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     }));
   }
   return stream.pipe(gulp.dest(DEST));
+}
+
+function postUglify(file, needToPatchExtendClick) {
+  var contents = String(file.contents), changed = false;
+  if (onlyES6) {
+    contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
+    changed = true;
+  }
+  if (needToPatchExtendClick) {
+    contents = patchExtendClick(contents);
+    changed = true;
+  }
+  if (changed) {
+    file.contents = new Buffer(contents);
+  }
 }
 
 function copyByPath(path) {
@@ -1154,9 +1164,6 @@ function patchExtendClick(source) {
       source = source.replace(/([\r\n]) {4,8}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");
     } else {
       source = source.replace(/[\r\n]\s*/g, "");
-    }
-    if (onlyES6) {
-      source = source.replace(/\bconst\b/g, "let");
     }
     source = "function(" + source;
     source = prefix + source + ")();'" + suffix;
