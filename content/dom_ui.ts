@@ -239,7 +239,8 @@ VDom.UI = {
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
     addFocus && element !== VEvent.lock_() && element !== document.activeElement &&
       !(element as Partial<HTMLInputElement>).disabled &&
-      typeof element.focus === "function" && element.focus();
+      (Build.BTypes & ~BrowserType.Firefox ? typeof element.focus === "function" : element.focus) &&
+      (element as HTMLElement | SVGElement).focus();
     a.mouse_(element, "mouseup", center, modifiers, null, button);
     if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
       return;

@@ -65,13 +65,12 @@ var VDom = {
     return desc && desc.get ? desc.get.call(instance) : null;
   } : 0 as never,
   GetShadowRoot_ (el: Element | Node): ShadowRoot | null {
-    const sr = (el as Element).shadowRoot || null;
     // check el's type to avoid exceptions
     if (Build.BTypes & ~BrowserType.Firefox) {
-      const E = Element;
+      const sr = (el as Element).shadowRoot || null, E = Element;
       return sr && sr instanceof E ? el instanceof E ? VDom.Getter_(E, el, "shadowRoot") : null : sr;
     } else {
-      return sr;
+      return (el as Element).shadowRoot || null;
     }
   },
   /**

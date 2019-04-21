@@ -54,6 +54,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   function hook(event: CustomEvent): void {
     const t = event.target;
     if (event.detail !== secret || !(t instanceof Element)) { return; }
+    // it's unhooking is delayed, so here may no VUtils
     event.stopImmediatePropagation();
     removeEventListener(kHook, hook, true);
     if (box === null) {
@@ -64,7 +65,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   }
   addEventListener(kHook, hook, true);
   function onClick(event: CustomEvent): void {
-    event.stopImmediatePropagation();
+    VUtils.Stop_(event);
     let detail = event.detail as ClickableEventDetail | null;
     if (!Build.NDEBUG) {
       console.log(`Vimium C: extend click: resolve ${

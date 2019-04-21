@@ -1126,8 +1126,8 @@ Modes_: [
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     VScroller.current_ = element;
     VDom.hover_(element, VDom.center_(rect));
-    type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
-      element instanceof HTMLFrameElement || element.focus();
+    type || element.tabIndex < 0 ||
+    (<RegExpI> /^i?frame$/i).test(element.tagName as string) && element.focus && element.focus();
     const a = this as typeof VHints;
     if (a.mode_ < HintMode.min_job) {
       return VHud.tip_("Hover for scrolling", 1000);
@@ -1169,7 +1169,7 @@ Modes_: [
 {
   129: "Simulate mouse leaving link",
   193: "Simulate mouse leaving continuously",
-  execute_ (this: void, element): void {
+  execute_ (this: void, element: SafeHTMLElement | SVGElement): void {
     const a = VDom;
     if (a.lastHovered_ !== element) {
       a.hover_(null);

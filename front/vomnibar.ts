@@ -543,7 +543,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
         || event.button
         || el === a.input_ || getSelection().type === "Range") { return; }
     if (el === a.input_.parentElement) { return a.focus_(); }
-    if (a.timer_) { event.preventDefault(); return; }
+    if (a.timer_) { VUtils_.Stop_(event, 1); return; }
     while (el && el.parentNode !== a.list_) { el = el.parentNode; }
     if (!el) { return; }
     a.lastKey_ = VKeyCodes.None;
@@ -573,8 +573,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    event.preventDefault();
-    event.stopImmediatePropagation();
+    VUtils_.Stop_(event, 1);
     const a = Vomnibar_, deltaY = event.deltaY, now = Date.now(), mode = event.deltaMode;
     if (event.deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_) { return; }
     if (now - a.wheelTime_ > (!mode /* WheelEvent.DOM_DELTA_PIXEL */
@@ -891,8 +890,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       Vomnibar_.onKeydown_(event);
     }
     if (Vomnibar_.keyResult_ === HandlerResult.Nothing) { return; }
-    if (Vomnibar_.keyResult_ === HandlerResult.Prevent) { event.preventDefault(); }
-    event.stopImmediatePropagation();
+    VUtils_.Stop_(event, Vomnibar_.keyResult_ === HandlerResult.Prevent);
   },
   returnFocus_ (this: void, request: BgVomnibarSpecialReq[kBgReq.omni_returnFocus]): void {
     type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
@@ -1107,6 +1105,10 @@ VUtils_ = {
       return s.replace(escapeRe, escapeCallback);
     };
     return VUtils_.escapeCSSStringInAttr_(s0);
+  },
+  Stop_ (event: Event, prevent: boolean | 1): void {
+    prevent && event.preventDefault();
+    event.stopImmediatePropagation();
   }
 },
 VPort_ = {

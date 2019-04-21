@@ -201,7 +201,8 @@ var VFind = {
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
       focus();
       el = VDom.getSelectionFocusEdge_(VDom.UI.getSelected_()[0], 1);
-      el && el.focus && el.focus();
+      el && (Build.BTypes & ~BrowserType.Firefox ? typeof el.focus === "function" : el.focus) &&
+      (el as HTMLElement | SVGElement).focus();
     }
     _this.styleIframe_ = null;
     _this.box_ && _this.box_.remove();
@@ -261,7 +262,10 @@ var VFind = {
         i = FindNS.Action.DoNothing;
       }
       else if (n === VKeyCodes.f1) { a.box_.contentDocument.execCommand("delete"); }
-      else if (n === VKeyCodes.f2) { a.box_.blur(); focus(); VEvent.keydownEvents_()[n] = 1; }
+      else if (n === VKeyCodes.f2) {
+        Build.BTypes & BrowserType.Firefox && a.box_.blur();
+        focus(); VEvent.keydownEvents_()[n] = 1;
+      }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) { a.nextQuery_(n !== VKeyCodes.up); }
       else { return; }
     } else if (i === FindNS.Action.PassDirectly) {

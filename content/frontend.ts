@@ -92,7 +92,9 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (!repeat && VDom.UI.removeSelection_()) {
       action = HandlerResult.Prevent;
     } else if (repeat && !KeydownEvents[VKeyCodes.esc] && activeEl !== body) {
-      typeof (activeEl as Element).blur === "function" && (activeEl as Element & { blur (): void; }).blur();
+      (Build.BTypes & ~BrowserType.Firefox ? typeof (activeEl as Element).blur === "function"
+          : (activeEl as Element).blur) &&
+      (activeEl as HTMLElement | SVGElement).blur();
       action = HandlerResult.Prevent;
     } else if (top !== window && activeEl === body) {
       InsertMode.focusUpper_(event.keyCode, repeat, event);
@@ -148,9 +150,10 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
     if (action < HandlerResult.MinStopOrPreventEvents) { return; }
     if (action > HandlerResult.MaxNotPrevent) {
-      event.preventDefault();
+      VUtils.prevent_(event);
+    } else {
+      VUtils.Stop_(event);
     }
-    event.stopImmediatePropagation();
     KeydownEvents[key] = 1;
   }
   function onKeyup(event: KeyboardEvent): void {
@@ -164,8 +167,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
     if (KeydownEvents[event.keyCode]) {
       KeydownEvents[event.keyCode] = 0;
-      event.preventDefault();
-      event.stopImmediatePropagation();
+      VUtils.prevent_(event);
     } else if (onKeyup2) {
       onKeyup2(event);
     }
@@ -188,11 +190,11 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
      * check `InsertMode.lock !== null` first, so that it needs less cost for common (plain) cases
      * use `lock === doc.active`, because:
      *   `lock !== target` ignores the case a blur event is missing or not captured;
-     *   `target !== doc.active` lets it pass the case `target === lock === doc.active`
+     *   `target !== doc.active` lets it mistakenly passes the case of `target === lock === doc.active`
      */
     const lock = InsertMode.lock_;
     if (lock !== null && lock === document.activeElement) { return; }
-    if (target === VDom.UI.box_) { return event.stopImmediatePropagation(); }
+    if (target === VDom.UI.box_) { return VUtils.Stop_(event); }
     const sr = VDom.GetShadowRoot_(target as Element);
     if (sr) {
       let path = event.path, top: EventTarget | undefined, SR = ShadowRoot,
@@ -572,19 +574,21 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = Object.create(null);
       if (VUtils.cache_.grabBackFocus_ && InsertMode.grabBackFocus_) {
-        let prompted = 0, prompt = function (): void {
-          prompted++ || console.log("An auto-focusing action is blocked by Vimium C");
+        let counter = 0, prompt = function (): void {
+          counter++ || console.log("An auto-focusing action is blocked by Vimium C");
         };
         if (notBody) {
           InsertMode.last_ = null;
           prompt();
-          typeof activeEl.blur === "function" && activeEl.blur();
+          (Build.BTypes & ~BrowserType.Firefox ? typeof activeEl.blur === "function" : activeEl.blur) &&
+          (activeEl as HTMLElement | SVGElement).blur();
           notBody = (activeEl = document.activeElement as Element) !== document.body;
         }
         if (!notBody) {
-          InsertMode.grabBackFocus_ = function (event, target): void {
-            if (document.activeElement === target) {
-              event.stopImmediatePropagation();
+          InsertMode.grabBackFocus_ = function (event: Event, target: LockableElement): void {
+            const activeEl1 = document.activeElement;
+            if (activeEl1 === target || activeEl1 && VDom.GetShadowRoot_(activeEl1)) {
+              VUtils.Stop_(event);
               prompt();
               target.blur();
             }
@@ -651,8 +655,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
     },
     exit_ (event: KeyboardEvent): void {
-      let target: Element | null = event.target as Element, sr = VDom.GetShadowRoot_(target);
-      if (sr != null && sr instanceof ShadowRoot) {
+      let target: Element | null = event.target as Element;
+      if (VDom.GetShadowRoot_(target)) {
         if (target = InsertMode.lock_) {
           InsertMode.lock_ = null;
           (target as LockableElement).blur();
@@ -1229,12 +1233,14 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       InsertMode.ExitGrab_();
       let old = onWndFocus, failed = true;
       onWndFocus = function (): void { failed = false; };
-      if (VOmni.status_ === VomnibarNS.Status.Showing) {
+      if (!(Build.BTypes & BrowserType.Firefox)
+          || (Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox)) {
+        /* empty */
+      } else if (VOmni.status_ === VomnibarNS.Status.Showing) {
         VOmni.box_.blur();
-      } else if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      } else {
         let cur: Element | null = document.activeElement;
-        cur && (/^i?frame$/i as RegExpI).test((cur.tagName as string)) && cur.blur &&
+        cur && (<RegExpI> /^i?frame$/i).test(cur.tagName as string) && cur.blur &&
         (cur as HTMLFrameElement | HTMLIFrameElement).blur();
       }
       focus();

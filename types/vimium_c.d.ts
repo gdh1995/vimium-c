@@ -569,7 +569,7 @@ declare const enum BrowserVer {
   // https://chromium.googlesource.com/chromium/src/+/9520623861da283533e71d6b7a8babd02675cb0b
   Min$Node$$getRootNode = 54, // not on Edge
   MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM = 55,
-  // before C55, onActivate can only be listend on document
+  // before C55, onActivate should only be installed on document
   Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow = 55,
   Min$SVGElement$$dataset = 55,
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
