@@ -316,9 +316,14 @@ var VFind = {
           && VDom.getEditableType_(el2) >= EditableType.Editbox && container.contains(el2)) {
         VDom.prepareCrop_();
         VDom.UI.simulateSelect_(el2);
-      } if (!(Build.BTypes & ~BrowserType.Firefox)) {
-        // firefox seems to have "focused" it
-      } else if (Build.BTypes && BrowserType.Chrome && Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions) {
+      } else if (el) {
+        !(Build.BTypes & ~BrowserType.Firefox) ||
+        Build.BTypes & BrowserType.Chrome && Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
+          ? VDom.scrollIntoView_(el) : a.fixTabNav_(el);
+      }
+    }
+    if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
+  },
 /** ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)
  * https://bugs.chromium.org/p/chromium/issues/detail?id=594613
  * https://chromium.googlesource.com/chromium/src/+/0bb887b20c70582eeafad2a58ac1650b7159f2b6
@@ -327,16 +332,13 @@ var VFind = {
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/element.cc?q=ScrollIntoViewNoVisualUpdate&g=0&l=717
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=SetSequentialFocusNavigationStartingPoint&g=0&l=4773
  */
-        el && VDom.scrollIntoView_(el);
-      } else if (el) {
-        let ver = VUtils.cache_.browserVer_,
-        oldPos = ver < BrowserVer.MinScrollIntoViewOptions && ver >= BrowserVer.Min$ScrollIntoView$SetTabNavigationNode
-            && [scrollX, scrollY];
-        VDom.scrollIntoView_(el);
-        oldPos && scrollTo(oldPos[0], oldPos[1]);
-      }
-    }
-    if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
+  fixTabNav_: !(Build.BTypes & ~BrowserType.Firefox) // firefox seems to have "focused" it
+        || Build.BTypes & BrowserType.Chrome && Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
+      : function (el: Element): void {
+    let oldPos: MarksNS.ScrollInfo | 0 = VUtils.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions
+          ? [scrollX, scrollY] : 0;
+    VDom.scrollIntoView_(el);
+    oldPos && VMarks.ScrollTo_(oldPos);
   },
   /** return an element if no <a> else null */
   focusFoundLinkIfAny_ (): SafeElement | null {
