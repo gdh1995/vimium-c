@@ -34,8 +34,8 @@ var HelpDialog = {
         command = command.substring(0, command.length - 4);
       } else if (command.indexOf("EditUrl") > 0) {
         command = command.replace("EditUrl", "Url");
-      } else if (command === "quickNext") {
-        command = "nextTab";
+      } else if (command === kShortcutAliases.nextTab1) {
+        command = kShortcutNames.nextTab;
       }
       (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
     }

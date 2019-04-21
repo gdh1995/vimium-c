@@ -463,7 +463,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
       wiki: "/wiki",
       __proto__: null as never
     } as SafeDict<string>,
-    GlobalCommands_: null as never as string[],
+    GlobalCommands_: null as never as kShortcutNames[],
     ShowPage_: "pages/show.html",
     VomnibarPageInner_: "", VomnibarScript_: "/front/vomnibar.js", VomnibarScript_f_: ""
   }
@@ -533,7 +533,8 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     type Overridden = EnsureNonNull<typeof ref.chrome_url_overrides>;
     ref3[func((ref.chrome_url_overrides as Overridden).newtab)] = Urls.NewTabType.vimium;
   }
-  obj.GlobalCommands_ = Object.keys(ref.commands || {}).map(i => i === "quickNext" ? "nextTab" : i);
+  obj.GlobalCommands_ = (<Array<kShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
+      ).map(i => i === kShortcutAliases.nextTab1 ? kShortcutNames.nextTab : i);
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
   obj.OptionsPage_ = func(ref.options_page || obj.OptionsPage_);

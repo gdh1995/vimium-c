@@ -392,15 +392,19 @@ declare namespace BackendHandlersNS {
       (this: void, tabId: number): Frames.Frames | null;
       (this: void): Frames.FramesMap;
     };
-    ExecuteGlobal_ (this: void, command: string): void;
+    ExecuteShortcut_ (this: void, command: kShortcutNames | kShortcutAliases & string): void;
     onInit_: ((this: void) => void) | null;
   }
 }
 
+type ShortcutInfoMap = {
+  [shortcut in kShortcutNames]: CommandsNS.Item;
+};
+
 interface CommandsDataTy {
   keyToCommandRegistry_: SafeDict<CommandsNS.Item>;
   keyMap_: KeyMap;
-  cmdMap_: SafeDict<CommandsNS.Item | null>;
+  shortcutMap_: ShortcutInfoMap;
   mapKeyRegistry_: SafeDict<string> | null;
   availableCommands_: ReadonlySafeDict<CommandsNS.Description>;
 }

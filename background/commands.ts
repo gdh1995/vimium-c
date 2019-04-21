@@ -31,8 +31,8 @@ var Commands = {
   parseKeyMappings_: (function (this: {}, line: string): void {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i: number
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
-      , registry = CommandsData_.keyToCommandRegistry_ = Object.create<CommandsNS.Item>(null)
-      , cmdMap = CommandsData_.cmdMap_ = Object.create<CommandsNS.Item | null>(null)
+      , registry = Object.create<CommandsNS.Item>(null)
+      , cmdMap = Object.create<CommandsNS.Item>(null) as Partial<ShortcutInfoMap>
       , userDefinedKeys = Object.create<true>(null)
       , mkReg = Object.create<string>(null);
     const available = CommandsData_.availableCommands_;
@@ -69,8 +69,8 @@ var Commands = {
           continue;
         }
       } else if (key === "unmapAll" || key === "unmapall") {
-        registry = CommandsData_.keyToCommandRegistry_ = Object.create(null);
-        cmdMap = CommandsData_.cmdMap_ = Object.create<CommandsNS.Item | null>(null);
+        registry = Object.create(null);
+        cmdMap = Object.create<CommandsNS.Item>(null) as Partial<ShortcutInfoMap>;
         userDefinedKeys = Object.create<true>(null);
         mkReg = Object.create<string>(null), mk = 0;
         if (errors > 0) {
@@ -95,12 +95,13 @@ var Commands = {
         key = splitLine[1];
         if (splitLine.length < 3) {
           console.log("Lacking command name and options in shortcut:", line);
-        } else if (Settings.CONST_.GlobalCommands_.indexOf(key) < 0) {
+        } else if ((Settings.CONST_.GlobalCommands_ as Array<kShortcutNames | string>).indexOf(key) < 0) {
           console.log("Shortcut %c" + key, "color:red", "doesn't exist!");
         } else if (key in cmdMap) {
           console.log("Shortcut %c" + key, "color:red", "has been configured");
         } else {
-          cmdMap[key] = Utils.makeCommand_(key, (this as typeof Commands).getOptions_(splitLine, 2), available[key]);
+          cmdMap[key as kShortcutNames] = Utils.makeCommand_(key,
+              (this as typeof Commands).getOptions_(splitLine, 2), available[key]);
           continue;
         }
       } else if (key !== "unmap") {
@@ -117,11 +118,12 @@ var Commands = {
       ++errors;
     }
     for (key of Settings.CONST_.GlobalCommands_) {
-      if (key === "quickNext") { key = "nextTab"; }
-      if (!cmdMap[key]) {
-        cmdMap[key] = Utils.makeCommand_(key, null, available[key]);
+      if (!cmdMap[key as kShortcutNames]) {
+        cmdMap[key as kShortcutNames] = Utils.makeCommand_(key, null, available[key]);
       }
     }
+    CommandsData_.keyToCommandRegistry_ = registry;
+    CommandsData_.shortcutMap_ = cmdMap as ShortcutInfoMap;
     CommandsData_.mapKeyRegistry_ = mk > 0 ? mkReg : null;
     Settings.temp_.cmdErrors_ = Settings.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
@@ -254,7 +256,7 @@ defaultKeyMappings_: [
 CommandsData_: CommandsDataTy = CommandsData_ as never || {
   keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
   keyMap_: null as never as KeyMap,
-  cmdMap_: null as never as SafeDict<CommandsNS.Item | null>,
+  shortcutMap_: null as never as ShortcutInfoMap,
   mapKeyRegistry_: null as SafeDict<string> | null,
 availableCommands_: {
   __proto__: null as never,
@@ -445,7 +447,10 @@ if (Backend.onInit_) {
   if (!Settings.get_("vimSync")) {
     Commands = null as never;
   }
-  chrome.commands && chrome.commands.onCommand.addListener(Backend.ExecuteGlobal_);
+  Build.BTypes & BrowserType.Edge && !chrome.commands ||
+  (chrome.commands.onCommand as chrome.events.Event<
+        (command: kShortcutNames | kShortcutAliases & string, exArg: FakeArg) => void
+      >).addListener(Backend.ExecuteShortcut_);
 }
 if (Commands) {
 Settings.updateHooks_.keyMappings = function (this: {}, value: string | null): void {

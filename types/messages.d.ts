@@ -45,6 +45,17 @@ declare const enum kFgReq {
   command = "command",
 }
 
+declare const enum kShortcutNames {
+  createTab = "createTab",
+  previousTab = "previousTab",
+  nextTab = "nextTab",
+  reloadTab = "reloadTab",
+}
+declare const enum kShortcutAliases {
+  _mask = 0,
+  nextTab1 = "quickNext",
+}
+
 interface BgReq {
   [kBgReq.init]: {
     /** status */ s: Frames.Flags;
@@ -99,7 +110,7 @@ interface BgReq {
     /** url */ u: string; // a javascript: URL
   } & Req.baseBg<kBgReq.eval>;
   [kBgReq.count]: {
-    /** cmd */ c: string;
+    /** cmd */ c: kShortcutNames;
     /** id */ i: number;
   }
 }
@@ -370,7 +381,7 @@ interface FgReq {
    */
   [kFgReq.focusOrLaunch]: MarksNS.FocusOrLaunch;
   [kFgReq.cmd]: {
-    /** cmd */ c: string;
+    /** cmd */ c: kShortcutNames | "";
     /** count */ n: number;
     /** id */ i: number;
   };

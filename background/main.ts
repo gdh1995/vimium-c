@@ -846,15 +846,15 @@ Are you sure you want to continue?`);
       a: opt
     });
   }
-  function executeGlobal(cmd: string, ports: Frames.Frames | null | undefined): void {
+  function executeShortcut(cmd: kShortcutNames, ports: Frames.Frames | null | undefined): void {
     if (gCmdTimer) {
       clearTimeout(gCmdTimer);
       gCmdTimer = 0;
     }
     if (!ports) {
-      return executeCommand(CommandsData_.cmdMap_[cmd] as CommandsNS.Item, 1, VKeyCodes.None, null as never as Port);
+      return executeCommand(CommandsData_.shortcutMap_[cmd], 1, VKeyCodes.None, null as never as Port);
     }
-    gCmdTimer = setTimeout(executeGlobal, 100, cmd, null);
+    gCmdTimer = setTimeout(executeShortcut, 100, cmd, null);
     ports[0].postMessage({ N: kBgReq.count, c: cmd, i: gCmdTimer });
   }
   const
@@ -2149,7 +2149,8 @@ Are you sure you want to continue?`);
         clearTimeout(gCmdTimer);
         gCmdTimer = 0;
       }
-      return executeCommand(CommandsData_.cmdMap_[cmd] as CommandsNS.Item, request.n, VKeyCodes.None, port);
+      return executeCommand(CommandsData_.shortcutMap_[cmd as Exclude<typeof cmd, "">]
+          , request.n, VKeyCodes.None, port);
     },
     /** removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
       return Backend.removeSug_(req, port);
@@ -2549,15 +2550,15 @@ Are you sure you want to continue?`);
         return this.setIcon_(tabId, newStatus);
       }
     },
-    ExecuteGlobal_ (this: void, cmd: string): void {
+    ExecuteShortcut_ (this: void, cmd: kShortcutNames | kShortcutAliases & string): void {
       const tabId = TabRecency_.last_, ports = framesForTab[tabId];
-      if (cmd === "quickNext") { cmd = "nextTab"; }
+      if (cmd === kShortcutAliases.nextTab1) { cmd = kShortcutNames.nextTab; }
       if (ports == null || (ports[0].s.f & Frames.Flags.userActed) || tabId < 0) {
-        return executeGlobal(cmd, ports);
+        return executeShortcut(cmd, ports);
       }
       ports && (ports[0].s.f |= Frames.Flags.userActed);
       chrome.tabs.get(tabId, function (tab): void {
-        executeGlobal(cmd, tab && tab.status === "complete" ? framesForTab[tab.id] : null);
+        executeShortcut(cmd as kShortcutNames, tab && tab.status === "complete" ? framesForTab[tab.id] : null);
         return onRuntimeError();
       });
     },
