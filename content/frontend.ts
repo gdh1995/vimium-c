@@ -937,7 +937,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
       r[kBgReq.keyMap](request);
       if (flags) {
-        InsertMode.grabBackFocus_ = !(flags & Frames.Flags.userActed);
+        InsertMode.grabBackFocus_ = InsertMode.grabBackFocus_ && !(flags & Frames.Flags.userActed);
         isLocked = !!(flags & Frames.Flags.locked);
       }
       (r[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
