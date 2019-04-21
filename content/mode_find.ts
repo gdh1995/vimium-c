@@ -64,13 +64,13 @@ var VFind = {
     a.isActive_ = true;
     UI.add_(el, AdjustType.DEFAULT, VHud.box_);
   },
-  notDisableScript_(): BOOL {
+  notDisableScript_(): 1 | void {
     try {
       if (this.box_.contentWindow.document) { return 1; }
     } catch {}
-    this.clean_(FindNS.Action.ExitUnexpectedly);
-    VHud.tip_("Sorry, Vimium C can not open a HUD on this page");
-    return 0;
+    this.deactivate_(FindNS.Action.ExitUnexpectedly);
+    let s = "Sorry, Vimium C can not open a HUD on this page", b = VVisual;
+    b.mode_ ? b.prompt_(s, 2000) : VHud.tip_(s);
   },
   onLoad_ (later?: 1): void {
     const a = this, box: HTMLIFrameElement = a.box_,
@@ -193,26 +193,19 @@ var VFind = {
     a.focusFoundLinkIfAny_();
     return a.postMode_.activate_();
   },
-  clean_ (i: FindNS.Action): SafeElement | null { // need keep @hasResults
-    let el: SafeElement | null = null, _this = VFind;
+  clean_ (): void {
+    let _this = VFind;
     _this.coords_ && VMarks.ScrollTo_(_this.coords_);
+    _this.hasResults_ =
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
     VUtils.remove_(this);
-    if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
-      focus();
-      el = VDom.getSelectionFocusEdge_(VDom.UI.getSelected_()[0], 1);
-      el && (Build.BTypes & ~BrowserType.Firefox ? typeof el.focus === "function" : el.focus) &&
-      (el as HTMLElement | SVGElement).focus();
-    }
-    _this.styleIframe_ = null;
     _this.box_ && _this.box_.remove();
     if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
     _this.parsedQuery_ = _this.query_ = _this.query0_ = "";
     _this.historyIndex_ = _this.matchCount_ = 0;
-    _this._onUnexpectedBlur =
+    _this.styleIframe_ = _this._onUnexpectedBlur =
     _this.box_ = _this.input_ = _this.countEl_ = _this.parsedRegexp_ =
     _this.initialRange_ = _this.regexMatches_ = _this.coords_ = null as never;
-    return el;
   },
   OnUnload_ (this: void, e: Event): void {
     const f = VFind;
@@ -296,9 +289,16 @@ var VFind = {
     return HandlerResult.Nothing;
   },
   deactivate_(i: FindNS.Action): void {
-    const a = this;
-    let sin = a.styleIn_, noStyle = !sin || !sin.parentNode, el = a.clean_(i), el2: Element | null;
-    if ((i === FindNS.Action.ExitAndReFocus || !a.hasResults_ || VVisual.mode_) && !noStyle) {
+    let a = this, sin = a.styleIn_, noStyle = !sin || !sin.parentNode, hasResult = a.hasResults_
+      , el: SafeElement | null | undefined, el2: Element | null;
+    focus();
+    a.clean_();
+    if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
+      el = VDom.getSelectionFocusEdge_(VDom.UI.getSelected_()[0], 1);
+      el && (Build.BTypes & ~BrowserType.Firefox ? typeof el.focus === "function" : el.focus) &&
+      (el as HTMLElement | SVGElement).focus();
+    }
+    if ((i === FindNS.Action.ExitAndReFocus || !hasResult || VVisual.mode_) && !noStyle) {
       a.ToggleStyle_(1);
       a.restoreSelection_(true);
     }
@@ -308,9 +308,7 @@ var VFind = {
         r: true
       }));
     }
-    VDom.UI.toggleSelectStyle_(0);
-    if (i < FindNS.Action.MinComplicatedExit || !a.hasResults_) { return; }
-    if (!el || el !== VEvent.lock_()) {
+    if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VEvent.lock_())) {
       let container = a.focusFoundLinkIfAny_();
       if (container && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
           && VDom.getEditableType_(el2) >= EditableType.Editbox && container.contains(el2)) {
@@ -322,6 +320,7 @@ var VFind = {
           ? VDom.scrollIntoView_(el) : a.fixTabNav_(el);
       }
     }
+    VDom.UI.toggleSelectStyle_(0);
     if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
   },
 /** ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)

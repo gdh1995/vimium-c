@@ -150,8 +150,9 @@ declare namespace HintsNS {
 declare namespace FindNS {
   const enum Action {
     PassDirectly = -1,
-    DoNothing = 0, Exit, ExitNoFocus, ExitUnexpectedly, MinComplicatedExit,
-    ExitToPostMode = MinComplicatedExit, ExitAndReFocus,
+    DoNothing = 0, Exit, ExitNoFocus, ExitUnexpectedly,
+    ExitToPostMode, ExitAndReFocus,
+    MaxExitButNoWork = ExitUnexpectedly, MinExitAndwork = ExitToPostMode,
   }
   interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "count">> {
     noColor?: boolean;

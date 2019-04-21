@@ -341,7 +341,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       a.mutable_ = true;
       a.ExitGrab_(); VEvent.setupSuppress_();
       VHints.clean_(); VVisual.deactivate_();
-      VFind.ToggleStyle_(1);
+      VFind.deactivate_(FindNS.Action.ExitNoFocus);
       onWndBlur();
     },
 

@@ -108,7 +108,7 @@ var VVisual = {
       a.collapseToFocus_(isEsc && a.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
     a.mode_ = VisualModeNS.Mode.NotActive; a.hud_ = "";
-    VFind.clean_(FindNS.Action.ExitNoFocus);
+    VFind.clean_();
     const el = VEvent.lock_();
     oldDiType & (VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Complicated) ||
     el && el.blur();
