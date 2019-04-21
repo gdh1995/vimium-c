@@ -17,7 +17,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     DelayForNextComplicatedCase = 1,
     kSecretAttr = "data-vimium",
 
-    kClick = "VimiumOnclick",
+    kVOnClick = "VimiumOnclick",
     kHook = "VimiumHook",
     kCmd = "Vimium",
   }
@@ -26,14 +26,14 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   interface VimiumCustomEventCls {
     prototype: CustomEvent;
     new <Type extends InnerConsts & string>(typeArg: Type, eventInitDict?: { detail?:
-      Type extends InnerConsts.kClick ? ClickableEventDetail
+      Type extends InnerConsts.kVOnClick ? ClickableEventDetail
         : Type extends InnerConsts.kCmd ? CommandEventDetail
         : Type extends InnerConsts.kHook ? /** secret */ number
         : never;
     }): CustomEvent;
   }
 
-  const kClick1 = InnerConsts.kClick, kHook = InnerConsts.kHook
+  const kClick1 = InnerConsts.kVOnClick, kHook = InnerConsts.kHook
     , d = document, docEl = d.documentElement
     , script: HTMLScriptElement | Element = d.createElement("script") as HTMLScriptElement | Element
     , secret: number = (Math.random() * 1e6 + 1) | 0;
@@ -154,7 +154,7 @@ listen = _call.bind<(this: EventTarget,
     [EventTarget, string, EventListenerOrEventListenerObject, EventListenerOptions?], any>(_listen),
 rEL = removeEventListener, clearTimeout_ = clearTimeout,
 sec: number = +<string> cs.dataset.vimium,
-kClick = InnerConsts.kClick,
+kVOnClick = InnerConsts.kVOnClick,
 kOnDomRead = "DOMContentLoaded",
 hooks = {
   toString: function toString(this: FUNC): string {
@@ -171,7 +171,7 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
     if (type === "click" ? listener && !(a instanceof HA) && a instanceof E
-        : Build.BTypes & ~BrowserType.Firefox && type === kClick
+        : Build.BTypes & ~BrowserType.Firefox && type === kVOnClick
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === /* Node.ELEMENT_NODE */ 1) {
       toRegister.push_(a as Element);
@@ -276,7 +276,7 @@ function prepareRegister(this: void, element: Element): void {
       doRegister();
       call(Append, root, e1);
       unsafeDispatchCounter++;
-      dispatch(element, new CE(kClick));
+      dispatch(element, new CE(kVOnClick));
       call(Insert, e2, e1, e3);
     } else {
       toRegister.push_(element);
@@ -291,7 +291,7 @@ function prepareRegister(this: void, element: Element): void {
 function doRegister(onlyInDocument?: 1): void {
   if (nodeIndexListInDocument.length || nodeIndexListForDetached.length) {
     unsafeDispatchCounter++;
-    dispatch(root, new CE(kClick, {
+    dispatch(root, new CE(kVOnClick, {
       detail: [nodeIndexListInDocument, onlyInDocument ? null : nodeIndexListForDetached]
     }));
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
@@ -301,10 +301,10 @@ function safeReRegister(element: Element, doc1: Document): void {
   let localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
   if (typeof localAEL === kFunc && typeof localREL === kFunc && localAEL !== myAEL) {
     try {
-      call(localAEL, element, kClick, noop);
+      call(localAEL, element, kVOnClick, noop);
     } catch {}
     try {
-      call(localREL, element, kClick, noop);
+      call(localREL, element, kVOnClick, noop);
     } catch {}
   }
 }

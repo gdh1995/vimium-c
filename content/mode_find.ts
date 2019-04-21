@@ -583,13 +583,13 @@ var VFind = {
     } catch { return false; }
   } as Window["find"] : 0 as never,
   HookSel_ (): void {
-    document.addEventListener("selectionchange", VFind && VFind.ToggleStyle_, true);
+    addEventListener("selectionchange", VFind && VFind.ToggleStyle_, true);
   },
   /** must be called after initing */
   ToggleStyle_ (this: void, disable: BOOL | boolean | Event): void {
     const a = VFind, sout = a.styleOut_, sin = a.styleIn_, UI = VDom.UI, active = a.isActive_;
     if (!sout) { return; }
-    document.removeEventListener("selectionchange", a.ToggleStyle_, true);
+    removeEventListener("selectionchange", a.ToggleStyle_, true);
     disable = !!disable;
     // Note: `<doc/root>.adoptedStyleSheets` should not be modified in an extension world
     if (!active && disable) {

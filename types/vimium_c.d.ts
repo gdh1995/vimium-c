@@ -632,8 +632,9 @@ declare const enum BrowserVer {
   // only if EXPERIMENTAL; tests show there're mouseover/mousedown/mouseup/mouseout events
   // but no click events
   MinMaybeSomeMouseEventsOnDisabledFormControlElements = 60,
-  // the 7 below are correct even if EXPERIMENTAL or LEGACY
+  // the 8 below are correct even if EXPERIMENTAL or LEGACY
   MinNoBorderForBrokenImage = 60,
+  MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused = 60,
   MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
   // a bug of styke.zoom not working is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
