@@ -195,7 +195,7 @@ var VFind = {
   },
   clean_ (i: FindNS.Action): SafeElement | null { // need keep @hasResults
     let el: SafeElement | null = null, _this = VFind;
-    _this.coords_ && VMarks.scroll_(_this.coords_);
+    _this.coords_ && VMarks.ScrollTo_(_this.coords_);
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
     VUtils.remove_(this);
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
@@ -423,7 +423,7 @@ var VFind = {
       return _this.showCount_(0);
     }
     s = "";
-    _this.coords_ && VMarks.scroll_(_this.coords_);
+    _this.coords_ && VMarks.ScrollTo_(_this.coords_);
     _this.updateQuery_(query);
     _this.restoreSelection_();
     _this.execute_(!_this.isRegex_ ? _this.parsedQuery_ : _this.regexMatches_ ? _this.regexMatches_[0] : "");

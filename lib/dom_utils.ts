@@ -403,7 +403,7 @@ var VDom = {
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
   },
   scrollIntoView_ (el: Element, dir?: boolean): void {
-    return !(Build.BTypes & ~BrowserType.Firefox) ? el.scrollIntoView({ block: "nearest" })
+    !(Build.BTypes & ~BrowserType.Firefox) ? el.scrollIntoView({ block: "nearest" })
       : Element.prototype.scrollIntoView.call(el,
           Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome &&
           dir != null ? dir : { block: "nearest" });

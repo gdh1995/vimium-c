@@ -97,7 +97,7 @@ window.onhashchange = function (this: void): void {
   for (let ind: number; ind = url.indexOf("&") + 1; ) {
     if (url.startsWith("download=")) {
       // avoid confusing meanings in title content
-      file = decodeURLPart(url.substring(9, ind - 1)).split(<RegExpOne>/\||\uff5c| - /, 1)[0].trim();
+      file = decodeURLPart(url.substring(9, ind - 1)).split(<RegExpOne> /\||\uff5c| - /, 1)[0].trim();
       file = file.replace(<RegExpG> /[\r\n"]/g, "");
       VData.file = file;
       url = url.substring(ind);
@@ -262,7 +262,7 @@ function _updateDocTitle(file: string) {
 function updateDocTitle(): void {
   if (GlobalConsts.DisplayUseDynamicTitle && wndLoaded && VData && VData.file) {
     // todo: a better way to hide title in history
-    setTimeout(function(): void {
+    setTimeout(function (): void {
       if (document.readyState !== "complete") {
         setTimeout(updateDocTitle, 220);
         return;
@@ -273,11 +273,11 @@ function updateDocTitle(): void {
 }
 
 if (GlobalConsts.DisplayUseDynamicTitle) {
-window.onload = function(): void {
+window.onload = function (): void {
   wndLoaded = true;
   updateDocTitle();
 };
-window.onbeforeunload = function(): void { // hide title in session
+window.onbeforeunload = function (): void { // hide title in session
   VData && VData.file && _updateDocTitle("");
 };
 }

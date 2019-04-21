@@ -466,7 +466,7 @@ var Utils = {
     if (p) {
       return Promise.resolve(p);
     }
-    return (window as { -readonly [K in keyof Window]?: any })[name] = new Promise<T>(function (resolve, reject) {
+    return (window as { -readonly [K2 in keyof Window]?: any })[name] = new Promise<T>(function (resolve, reject) {
       const script = document.createElement("script");
       script.src = Settings.CONST_[name];
       script.onerror = function (): void {

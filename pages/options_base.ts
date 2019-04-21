@@ -167,7 +167,7 @@ interface ExclusionVisibleVirtualNode extends ExclusionBaseVirtualNode {
   visible_: true;
   $pattern_: HTMLInputElement & ExclusionRealNode;
   $keys_: HTMLInputElement & ExclusionRealNode;
-};
+}
 interface ExclusionRealNode extends HTMLElement {
   vnode: ExclusionVisibleVirtualNode;
 }
@@ -437,7 +437,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     }
     isPatternMatched_ (pattern: string) {
       if (!pattern) { return false; }
-      const rule = (bgExclusions.testers_ as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern]
+      const rule = (bgExclusions.testers_ as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
       if (typeof rule === "string"
           ? !url.lastIndexOf(rule, 0) && (!topUrl || !topUrl.lastIndexOf(rule, 0))
           : rule.test(url) && (!topUrl || rule.test(topUrl))) {

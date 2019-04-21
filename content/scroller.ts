@@ -273,8 +273,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
       }
     }
     children.sort(this.sortByArea_);
-    for (const info of children) {
-      if (child = this._selectFirst(info, 1)) {
+    for (const info1 of children) {
+      if (child = this._selectFirst(info1, 1)) {
         return child;
       }
     }
