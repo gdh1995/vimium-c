@@ -566,7 +566,6 @@ var VFind = {
       }
     } while (0 < --count && found);
     options.noColor || setTimeout(a.HookSel_, 0);
-    // todo:?
     (el = VEvent.lock_()) && !VDom.isSelected_() && el.blur();
     Build.BTypes & BrowserType.Firefox && focusHUD && a.focus_();
     a.hasResults_ = found;
