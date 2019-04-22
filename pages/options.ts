@@ -498,7 +498,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       return;
     }
     window.addEventListener("load", function onLoad(event1): void {
-      if (event1.target === window || event1.target === document) {
+      if (event1.target === document) {
         window.removeEventListener("load", onLoad);
         loadJS("options_ext.js");
       }

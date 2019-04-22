@@ -12,7 +12,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     MaxUnsafeEventsInOneTick = 12,
     DelayToWaitDomReady = 1000,
     DelayToFindAll = 600,
-    DelayToStartIteration = 333,
+    DelayToStartIteration = 666,
     DelayForNext = 36,
     DelayForNextComplicatedCase = 1,
     kSecretAttr = "data-vimium",
@@ -113,8 +113,13 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
       dispatchCmd(kContentCmd.Destroy);
     }
     if (box == null) {
-      // in case of untrusted DOMReady events
-      setTimeout(function (): void { r(kHook, hook, true); }, InnerConsts.DelayToWaitDomReady + 100);
+      r(kHook, hook, !0);
+      if (cmd === kContentCmd.DestroyForCSP) {
+        // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+        // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
+        //     which might mean curCVer has no ES6...
+        VDom.runJS_(`\`\${Vimium${secret}=>9}\``);
+      }
     }
     box = 0;
     settings && (settings.execute_ = null);
@@ -163,10 +168,12 @@ kVOnClick = InnerConsts.kVOnClick,
 kOnDomRead = "DOMContentLoaded",
 hooks = {
   toString: function toString(this: FUNC): string {
-    let a = this;
-    return call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
+    const a = this,
+    str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
                 funcToString,
                 a === myAEL ? _listen : a === hooks.toString ? funcToString : a, arguments);
+    detectDisabled && str === `Vimium${sec}=>9` && executeCmd();
+    return str;
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
@@ -187,8 +194,10 @@ hooks = {
 }, myAEL = hooks.addEventListener;
 
 let handler = function (this: void): void {
-  rEL(kOnDomRead, handler, true);
+  /** not check if a DOMReady event is trusted: keep the same as {@link ../lib/dom_utils.ts#VDom.OnDocLoaded_ } */
+  rEL(kOnDomRead, handler, !0);
   clearTimeout_(timer);
+  detectDisabled = 0;
   const docEl2 = docChildren[0] as Element | null,
   el = call(Create, doc, "div") as HTMLDivElement,
   key = InnerConsts.kSecretAttr;
@@ -204,10 +213,11 @@ let handler = function (this: void): void {
     timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   }
 },
+detectDisabled: BOOL = 1,
 // here `setTimeout` is normal and won't use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 delayFindAll = function (e?: Event): void {
-  if (e && (e.target !== window
+  if (e && (e.target !== doc
           || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
               ? !e.isTrusted : e.isTrusted === !1))) { return; }
   rEL("load", delayFindAll, !0);
@@ -340,11 +350,12 @@ function executeCmd(eventOrDestroy?: Event): void {
     cmd === kContentCmd.FindAllOnClick && findAllOnClick(cmd);
     return;
   }
-  toRegister.length = 0;
+  toRegister.length = detectDisabled = 0;
   toRegister.p = setTimeout_ = Build.BTypes & ~BrowserType.Firefox ? noop as () => 1 : function (): 1 { return 1; };
   root = null as never;
   clearTimeout_(timer);
   timer = 1;
+  rEL(kOnDomRead, handler, !0);
   delayFindAll && delayFindAll(); // clean the "load" listener
 }
 function noop(): void | 1 { return; }
@@ -377,12 +388,12 @@ _listen("load", delayFindAll, !0);
   script.dataset.vimium = secret as number | string as string;
   docEl ? Build.BTypes & ~BrowserType.Firefox ? script.insertBefore.call(docEl, script, docEl.firstChild)
     : docEl.insertBefore(script, docEl.firstChild) : d.appendChild(script);
-  VDom.OnDocLoaded_(function (): void { box === null && setTimeout(function (): void {
-    box || execute(kContentCmd.Destroy);
-  }, 17); });
   if ((Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         && !(Build.BTypes & ~BrowserType.Chrome))
       || !script.parentNode) { // It succeeded to hook.
+    VDom.OnDocLoaded_(function (): void {
+      box || execute(kContentCmd.DestroyForCSP);
+    });
     Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage ||
     !(Build.BTypes & BrowserType.Chrome) ||
     VDom.allowRAF_ || requestAnimationFrame(() => { VDom.allowRAF_ = 1; });
@@ -390,6 +401,7 @@ _listen("load", delayFindAll, !0);
   }
   // else: sandboxed or JS-disabled; Firefox == * or Chrome < 68 (MinEnsuredNewScriptsFromExtensionOnSandboxedPage)
   script.remove();
+  execute(kContentCmd.Destroy);
   if (!(Build.BTypes & BrowserType.Chrome)
       || Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       || Build.BTypes & ~BrowserType.Chrome && !appVer) {

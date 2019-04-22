@@ -25,7 +25,11 @@ var VDom = {
     return valid ? node as HTMLElementTagNameMap[K] & SafeHTMLElement : a.createElement_(tagName);
   },
   execute_ (callback: (this: void) => void): void { callback(); },
-  /** Note: won't call functions if Vimium is destroyed */
+  /** Note:
+   * won't call functions if Vimium is destroyed;
+   *
+   * should not be called before the one in {@link ../content/extend_click.ts}
+   */
   OnDocLoaded_ (callback: (this: void) => void): void {
     const a = this, call = a.execute_;
     if (document.readyState !== "loading") {
@@ -624,6 +628,17 @@ var VDom = {
     document.dispatchEvent.call(element, touchEvent);
     return newId;
   } : 0 as never,
+  runJS_ (code: string): void {
+    const script = VDom.createElement_("script"), doc = document, docEl = doc.documentElement;
+    script.type = "text/javascript";
+    script.textContent = code;
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      doc.appendChild.call(docEl || document, script);
+    } else {
+      (docEl || doc).appendChild(script);
+    }
+    script.remove();
+  },
   isContaining_ (a: Rect, b: Rect): boolean {
     return a[3] >= b[3] && a[2] >= b[2] && a[1] <= b[1] && a[0] <= b[0];
   },

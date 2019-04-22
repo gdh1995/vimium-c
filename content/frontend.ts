@@ -1184,16 +1184,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
       else if (VDom.allowScripts_) {
         setTimeout(function (): void {
-          const script = VDom.createElement_("script");
-          script.type = "text/javascript";
-          script.textContent = VUtils.decodeURL_(url, decodeURIComponent);
-          const el = document.documentElement;
-          if (Build.BTypes & ~BrowserType.Firefox) {
-            document.appendChild.call(el || document, script);
-          } else {
-            (el || document).appendChild(script);
-          }
-          script.remove();
+          VDom.runJS_(VUtils.decodeURL_(url, decodeURIComponent));
         }, 0);
       } else {
         HUD.tip_("Here's not allowed to eval scripts");
