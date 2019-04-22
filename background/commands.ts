@@ -36,6 +36,7 @@ var Commands = {
       , userDefinedKeys = Object.create<true>(null)
       , mkReg = Object.create<string>(null);
     const available = CommandsData_.availableCommands_;
+    const colorRed = "color:red";
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
       const defaultMap = (this as typeof Commands).defaultKeyMappings_;
@@ -54,15 +55,15 @@ var Commands = {
       if (key === "map") {
         key = Utils.formatKeys_(splitLine[1] || "");
         if (!key || key === "__proto__") {
-          console.log("Unsupported key sequence %c" + (key || '""'), "color:red", `for "${splitLine[2] || ""}"`);
+          console.log("Unsupported key sequence %c%s", colorRed, key || '""', `for "${splitLine[2] || ""}"`);
         } else if (key in userDefinedKeys) {
-          console.log("Key %c" + key, "color:red", "has been mapped to", (registry[key] as CommandsNS.Item).command);
+          console.log("Key %c%s", colorRed, key, "has been mapped to", (registry[key] as CommandsNS.Item).command);
         } else if (splitLine.length < 3) {
-          console.log("Lacking command when mapping %c" + key, "color:red");
+          console.log("Lacking command when mapping %c%s", colorRed, key);
         } else if (!(details = available[splitLine[2]])) {
-          console.log("Command %c" + splitLine[2], "color:red", "doesn't exist!");
+          console.log("Command %c%s", colorRed, splitLine[2], "doesn't exist!");
         } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum) {
-          console.log("Invalid key: %c" + key, "color:red", "(the first char can not be '-' or number)");
+          console.log("Invalid key: %c%s", colorRed, key, "(the first char can not be '-' or number)");
         } else {
           registry[key] = Utils.makeCommand_(splitLine[2], (<typeof Commands> this).getOptions_(splitLine, 3), details);
           userDefinedKeys[key] = true;
@@ -75,7 +76,7 @@ var Commands = {
         mkReg = Object.create<string>(null), mk = 0;
         if (errors > 0) {
           console.log("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
-            , errors > 1 ? "have" : "has", "color:red", errors, errors > 1 ? "s" : "", "color:auto");
+            , errors > 1 ? "have" : "has", colorRed, errors, errors > 1 ? "s" : "", "color:auto");
         }
         continue;
       } else if (key === "mapkey" || key === "mapKey") {
@@ -85,7 +86,7 @@ var Commands = {
           || splitLine[2].length > 1 && (splitLine[2].match(Utils.keyRe_) as RegExpMatchArray).length > 1) {
           console.log("MapKey: a source / target key should be a single key:", line);
         } else if (key in mkReg) {
-          console.log("This key %c" + key, "color:red", "has been mapped to another key:", mkReg[key]);
+          console.log("This key %c%s", colorRed, key, "has been mapped to another key:", mkReg[key]);
         } else {
           mkReg[key] = splitLine[2];
           mk++;
@@ -96,16 +97,16 @@ var Commands = {
         if (splitLine.length < 3) {
           console.log("Lacking command name and options in shortcut:", line);
         } else if ((Settings.CONST_.GlobalCommands_ as Array<kShortcutNames | string>).indexOf(key) < 0) {
-          console.log("Shortcut %c" + key, "color:red", "doesn't exist!");
+          console.log("Shortcut %c%s", colorRed, key, "doesn't exist!");
         } else if (key in cmdMap) {
-          console.log("Shortcut %c" + key, "color:red", "has been configured");
+          console.log("Shortcut %c%s", colorRed, key, "has been configured");
         } else {
           cmdMap[key as kShortcutNames] = Utils.makeCommand_(key,
               (this as typeof Commands).getOptions_(splitLine, 2), available[key]);
           continue;
         }
       } else if (key !== "unmap") {
-        console.log("Unknown mapping command: %c" + key, "color:red", "in", line);
+        console.log("Unknown mapping command: %c%s", colorRed, key, "in", line);
       } else if (splitLine.length !== 2) {
         console.log("Unmap needs one mapped key:", line);
       } else if ((key = Utils.formatKeys_(splitLine[1])) in registry) {
@@ -113,7 +114,7 @@ var Commands = {
         delete registry[key];
         continue;
       } else {
-        console.log("Unmapping: %c" + key, "color:red", "has not been mapped");
+        console.log("Unmapping: %c%s", colorRed, key, "has not been mapped");
       }
       ++errors;
     }
