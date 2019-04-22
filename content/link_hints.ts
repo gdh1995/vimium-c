@@ -843,7 +843,8 @@ var VHints = {
   _setupCheck (el?: HintsNS.LinkEl | null, r?: Rect | null, isClick?: boolean): void {
     this.timer_ && clearTimeout(this.timer_);
     this.timer_ = el && (isClick === true || this.mode_ < HintMode.min_job) ? setTimeout(function (i): void {
-      !i && VHints && VHints._CheckLast(el, r);
+      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
+      VHints && VHints._CheckLast(el, r);
     }, 255) : 0;
   },
   _CheckLast (this: void, el: HintsNS.LinkEl, r?: Rect | null): void {

@@ -132,6 +132,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     VDom.allowRAF_ = appVer !== BrowserVer.NoRAFOrRICOnSandboxedPage ? 1 : 0;
   }
   let injected: string = '"use strict";(' + (function VC(this: void): void {
+
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const ETP = EventTarget.prototype, _listen = ETP.addEventListener,
 toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
@@ -350,6 +351,7 @@ ETP.addEventListener = myAEL;
 FP.toString = hooks.toString;
 _listen(kOnDomRead, handler, true);
 _listen("load", delayFindAll, true);
+
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
   if (Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction && Build.BTypes & BrowserType.Chrome &&
       appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
@@ -402,10 +404,10 @@ _listen("load", delayFindAll, true);
   interface TimerLib extends Window {
     setInterval: typeof setInterval;
     setTimeout: typeof setTimeout | (
-      (this: void, handler: (this: void, i: TimerType.fake | undefined) => void, timeout: number) => number);
+      (this: void, handler: (this: void, fake?: TimerType.fake) => void, timeout: number) => number);
   }
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
-  function (func: (info: TimerType.fake | undefined) => void, timeout: number): number {
+  function (func: (info?: TimerType.fake) => void, timeout: number): number {
     let f = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && timeout > 9 ? window.requestIdleCallback : null
       , cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`

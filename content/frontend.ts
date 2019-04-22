@@ -59,7 +59,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     ClearPort_ (this: void): void {
       vPort._port = null;
       setTimeout(function (i): void {
-        if (!i) {
+        if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)) {
           try { !safeDestroy || vPort._port || vPort.Connect_(); return; } catch {}
         }
         safeDestroy && safeDestroy();
@@ -811,11 +811,11 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       VDom.UI.add_(dom1);
     },
-    Remove_ (this: void, info?: TimerType): void { // safe-interval
+    Remove_ (this: void, fake?: TimerType.fake): void { // safe-interval
       const _this = FrameMask, { more_ } = _this;
       _this.more_ = false;
       if (more_ && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
-                      && info === TimerType.fake)) { return; }
+                      && fake)) { return; }
       if (_this.node_) { _this.node_.remove(); _this.node_ = null; }
       clearInterval(_this.timer_);
     }
@@ -866,10 +866,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       VDom.UI.add_(hud.box_ = el, VHints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, VHints.box_);
     },
-    _tween (this: void, info?: TimerType): void { // safe-interval
-      const el = HUD.box_ as HTMLDivElement, st = el.style,
-      fake = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
-              && info === TimerType.fake;
+    _tween (this: void, fake?: TimerType.fake): void { // safe-interval
+      const el = HUD.box_ as HTMLDivElement, st = el.style;
       let opacity = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                     && fake ? 0 : +(st.opacity || 1);
       if (opacity === HUD.opacity_) { /* empty */ }

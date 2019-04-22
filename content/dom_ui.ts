@@ -373,11 +373,11 @@ VDom.UI = {
     } else {
       func = function () { tick = Date.now(); return HandlerResult.Prevent; };
       tick = Date.now() + VUtils.cache_.keyboard[0];
-      timer = setInterval(function (info?: TimerType) { // safe-interval
+      timer = setInterval(function (info?: TimerType.fake) { // safe-interval
         const delta = Date.now() - tick; // Note: performance.now() may has a worse resolution
         if (delta > 150 || delta < -99
            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
-              && info === TimerType.fake) {
+              && info) {
           clearInterval(timer);
           VUtils && VUtils.remove_(func); // safe enough even if reloaded
         }

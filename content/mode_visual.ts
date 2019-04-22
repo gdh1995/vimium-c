@@ -280,7 +280,7 @@ var VVisual = {
     return VHud.show_(text);
   },
   /** @not_related_to_di */
-  ResetHUD_ (i?: TimerType.fake | undefined): void {
+  ResetHUD_ (i?: TimerType.fake): void {
     const a = VVisual;
     if (!a || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) { return; }
     a.hudTimer_ = 0;

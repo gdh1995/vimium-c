@@ -195,7 +195,10 @@ var VOmni = {
     };
     UI.add_(this.box_ = el, AdjustType.MustAdjust, VHud.box_);
     type !== VomnibarNS.PageType.inner &&
-    setTimeout(function (i): void { loaded || i || VOmni.onReset_ || reload(); }, 2000);
+    setTimeout(function (i): void {
+      loaded || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
+      VOmni.onReset_ || reload();
+    }, 2000);
   },
   reset_ (redo?: boolean): void | 1 {
     const a = this, oldStatus = a.status_;

@@ -114,7 +114,10 @@ var VFind = {
     a = VFind,
     el: HTMLElement = a.input_ = doc.body as HTMLBodyElement,
     zoom = wnd.devicePixelRatio;
-    if (Build.BTypes & ~BrowserType.Chrome) {
+    if (!(Build.BTypes & BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
+      el.contentEditable = "true";
+      wnd.removeEventListener("paste", VUtils.Stop_, true);
+    } else if (Build.BTypes & ~BrowserType.Chrome) {
       let plain = true;
       try {
         el.contentEditable = "plaintext-only";
