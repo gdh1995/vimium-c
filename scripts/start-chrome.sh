@@ -30,7 +30,7 @@ case "$1" in
     FLAGS=$FLAGS" --enable-experimental-web-platform-features --javascript-harmony --enable-experimental-canvas-features"
     shift
     ;;
-  leg|legacy|--legacy)
+  leg|legacy|leagcy|--legacy|--leagcy)
     FLAGS=$FLAGS" --disable-javascript-harmony-shipping"
     shift
     ;;
