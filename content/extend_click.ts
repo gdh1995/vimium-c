@@ -16,6 +16,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     DelayForNext = 36,
     DelayForNextComplicatedCase = 1,
     kSecretAttr = "data-vimium",
+    MaxRetryTimesForHook = 99,
 
     kVOnClick = "VimiumOnclick",
     kHook = "VimiumHook",
@@ -33,11 +34,10 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     }): CustomEvent;
   }
 
-  const kClick1 = InnerConsts.kVOnClick, kHook = InnerConsts.kHook
+  const kVOnClick1 = InnerConsts.kVOnClick, kHook = InnerConsts.kHook
     , d = document, docEl = d.documentElement
     , script: HTMLScriptElement | Element = d.createElement("script") as HTMLScriptElement | Element
     , secret: number = (Math.random() * 1e6 + 1) | 0;
-  let box: Element | null | false = null;
 /**
  * Note:
  *   should not create HTML/SVG elements before document gets ready,
@@ -51,19 +51,22 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
  */
   if (!(script instanceof HTMLScriptElement)) { return; }
 
-  function hook(event: CustomEvent): void {
+  let box: Element | undefined | 0, hookRetryTimes = 0,
+  hook = function (event: CustomEvent): void {
     const t = event.target;
-    if (event.detail !== secret || !(t instanceof Element)) { return; }
+    if (++hookRetryTimes > InnerConsts.MaxRetryTimesForHook
+        || event.detail !== secret || !(t instanceof Element)) { return; }
     // it's unhooking is delayed, so here may no VUtils
     event.stopImmediatePropagation();
     removeEventListener(kHook, hook, true);
-    if (box === null) {
+    hook = null as never;
+    if (box == null) {
       t.removeAttribute(InnerConsts.kSecretAttr);
-      t.addEventListener(kClick1, onClick, true);
+      t.addEventListener(kVOnClick1, onClick, true);
       box = t;
     }
-  }
-  addEventListener(kHook, hook, true);
+  };
+  addEventListener(kHook, hook, !0);
   function onClick(event: CustomEvent): void {
     VUtils.Stop_(event);
     let detail = event.detail as ClickableEventDetail | null;
@@ -94,7 +97,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     isBox && ((box as Element).textContent = "");
   }
   function dispatchCmd(cmd: ValidContentCmds) {
-    (box as Exclude<typeof box, null | false | undefined>).dispatchEvent(new CustomEvent(InnerConsts.kCmd, {
+    (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new CustomEvent(InnerConsts.kCmd, {
       detail: <CommandEventDetail> [ secret, cmd ]
     }));
   }
@@ -106,14 +109,14 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     const r = removeEventListener, settings = VSettings;
     /** this function should keep idempotent */
     if (box) {
-      r.call(box, kClick1, onClick, true);
+      r.call(box, kVOnClick1, onClick, !0);
       dispatchCmd(kContentCmd.Destroy);
     }
-    if (box === null) {
+    if (box == null) {
       // in case of untrusted DOMReady events
       setTimeout(function (): void { r(kHook, hook, true); }, InnerConsts.DelayToWaitDomReady + 100);
     }
-    box = false;
+    box = 0;
     settings && (settings.execute_ = null);
   }
   VSettings.execute_ = execute;
@@ -142,6 +145,7 @@ dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ET
 doc = document, cs = doc.currentScript as HTMLScriptElement, Create = doc.createElement as Document["createElement"],
 E = Element, EP = E.prototype, Append = EP.appendChild, Contains = EP.contains, Insert = EP.insertBefore,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
+StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
 contains = Contains.bind(doc),
 nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
 getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP = EP.getElementsByTagName,
@@ -176,7 +180,7 @@ hooks = {
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === /* Node.ELEMENT_NODE */ 1) {
       toRegister.p(a as Element);
-      timer || (timer = setTimeout_(next, InnerConsts.DelayToStartIteration));
+      timer = timer || setTimeout_(next, InnerConsts.DelayToStartIteration);
     }
     // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
   }
@@ -191,7 +195,7 @@ let handler = function (this: void): void {
   handler = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
   call(Attr, el, key, "");
-  listen(el, InnerConsts.kCmd, executeCmd, true);
+  listen(el, InnerConsts.kCmd, executeCmd, !0);
   call(Append, docEl2, el), dispatch(el, new CE(InnerConsts.kHook, {detail: sec})), call(Remove, el);
   if (call(HasAttr, el, key)) {
     executeCmd();
@@ -205,8 +209,8 @@ setTimeout_ = setTimeout as SafeSetTimeout,
 delayFindAll = function (e?: Event): void {
   if (e && (e.target !== window
           || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-              ? !e.isTrusted : e.isTrusted === false))) { return; }
-  rEL("load", delayFindAll, true);
+              ? !e.isTrusted : e.isTrusted === !1))) { return; }
+  rEL("load", delayFindAll, !0);
   delayFindAll = null as never;
   setTimeout_(findAllOnClick, InnerConsts.DelayToFindAll);
 },
@@ -239,7 +243,7 @@ next = function (): void {
 function prepareRegister(this: void, element: Element): void {
   if (contains(element)) {
     pushInDocument(
-      IndexOf(allNodesInDocument || (allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*"))
+      IndexOf(allNodesInDocument = allNodesInDocument || call(getElementsByTagNameInDoc, doc, "*")
         , element));
     return;
   }
@@ -268,7 +272,7 @@ function prepareRegister(this: void, element: Element): void {
   if ((e2 = e1.parentNode) == null) {
     root !== e1 && call(Append, root, e1);
     pushForDetached(
-      IndexOf(allNodesForDetached || (allNodesForDetached = call(getElementsByTagNameInEP, root, "*"))
+      IndexOf(allNodesForDetached = allNodesForDetached || call(getElementsByTagNameInEP, root, "*")
         , element));
   } else if (e2 instanceof DF && !(e2 instanceof SR || ((e3 = e1.nextSibling) && e3.parentElement))) {
     // NOTE: ignore nodes belonging to a shadowRoot,
@@ -315,7 +319,7 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
   call(Remove, root);
   allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*");
   let len = allNodesInDocument.length, i = 0;
-  !cmd && len > GlobalConsts.maxElementsWhenScanOnClick && (len = 0); // stop it
+  len = cmd || len < GlobalConsts.MinElementCountToStopScanOnClick ? len : 0; // stop it
   for (; i < len; i++) {
     const el: Element | HTMLElement = allNodesInDocument[i];
     if ((el as HTMLElement).onclick && !call(HasAttr, el, "onclick")
@@ -330,7 +334,9 @@ function executeCmd(eventOrDestroy?: Event): void {
   const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
   cmd = detail ? detail[0] === sec ? detail[1] : kContentCmd._fake
         : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
-  if (cmd !== kContentCmd.Destroy) {
+  // always stop prop even if the secret doesn't match, so that an attacker can not detect secret by enumerating numbers
+  detail && call(StopProp, eventOrDestroy as Event);
+  if (cmd < kContentCmd.Destroy) {
     cmd === kContentCmd.FindAllOnClick && findAllOnClick(cmd);
     return;
   }
@@ -343,14 +349,15 @@ function executeCmd(eventOrDestroy?: Event): void {
 }
 function noop(): void | 1 { return; }
 toRegister.p = push as any, toRegister.s = toRegister.splice;
-!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 ||
-(!SR || SR instanceof E) && (SR = CE as never);
+if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0) {
+  SR = !SR || SR instanceof E ? CE as never : SR;
+}
 // only the below can affect outsides
 cs.remove();
 ETP.addEventListener = myAEL;
 FP.toString = hooks.toString;
-_listen(kOnDomRead, handler, true);
-_listen("load", delayFindAll, true);
+_listen(kOnDomRead, handler, !0);
+_listen("load", delayFindAll, !0);
 
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
   if (Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction && Build.BTypes & BrowserType.Chrome &&

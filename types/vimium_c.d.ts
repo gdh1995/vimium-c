@@ -333,7 +333,7 @@ declare const enum GlobalConsts {
   ThresholdToAutoLimitTabOperation = 2, // 2 * Tab[].length
   LinkHintTooHighThreshold = 20, // scrollHeight / innerHeight
   LinkHintLimitToCheckViewportFirst = 15000,
-  maxElementsWhenScanOnClick = 5000,
+  MinElementCountToStopScanOnClick = 5000,
   MaxScrollbarWidth = 24,
   MaxHeightOfLinkHintMarker = 18,
   FirefoxFocusResponseTimeout = 340,
