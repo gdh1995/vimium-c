@@ -60,8 +60,9 @@ case "$1" in
   *)
     if test -d "$1" && test -f "$1/manifest.json"; then
       VC_ROOT=$1
+      shift
     fi
-    shift
+    break
     ;;
 esac
 done
