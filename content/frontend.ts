@@ -1126,8 +1126,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     document.hasFocus() || VEvent.focusAndListen_();
     // on FF66, `scrollIntoView` does not set tab-navigation node
     // tslint:disable-next-line: no-unused-expression
-    !(Build.BTypes & ~BrowserType.Firefox) ? 0 :
-    Build.BTypes & BrowserType.Chrome && Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
+    !(Build.BTypes & BrowserType.Chrome) ? 0
+      : Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
       ? VDom.scrollIntoView_(box) : VFind.fixTabNav_(box);
     VScroller.current_ = box;
     VUtils.push_(function (event) {

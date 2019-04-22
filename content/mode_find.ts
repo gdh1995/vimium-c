@@ -316,9 +316,11 @@ var VFind = {
         VDom.prepareCrop_();
         VDom.UI.simulateSelect_(el2);
       } else if (el) {
-        !(Build.BTypes & ~BrowserType.Firefox) ||
-        Build.BTypes & BrowserType.Chrome && Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
-          ? VDom.scrollIntoView_(el) : a.fixTabNav_(el);
+        (!(Build.BTypes & ~BrowserType.Chrome)
+          || Build.BTypes & BrowserType.Chrome && VUtils.cache_.browser_ === BrowserType.Chrome)
+        ? Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? VDom.scrollIntoView_(el) : a.fixTabNav_(el)
+        // tslint:disable-next-line: no-unused-expression
+        : 0;
       }
     }
     VDom.UI.toggleSelectStyle_(0);
@@ -332,7 +334,7 @@ var VFind = {
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/element.cc?q=ScrollIntoViewNoVisualUpdate&g=0&l=717
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=SetSequentialFocusNavigationStartingPoint&g=0&l=4773
  */
-  fixTabNav_: !(Build.BTypes & ~BrowserType.Firefox) // firefox seems to have "focused" it
+  fixTabNav_: !(Build.BTypes & BrowserType.Chrome) // firefox seems to have "focused" it
         || Build.BTypes & BrowserType.Chrome && Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
       : function (el: Element): void {
     let oldPos: MarksNS.ScrollInfo | 0 = VUtils.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions
