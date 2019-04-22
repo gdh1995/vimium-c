@@ -58,6 +58,6 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     };
     interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void; }
     (window as WindowExForDebug).a = null;
-    (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log(b); };
+    (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log("%o", b); };
   }
 })();

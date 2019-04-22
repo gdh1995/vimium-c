@@ -172,7 +172,7 @@ window.onhashchange = function (this: void): void {
             disableAutoAndReload_();
             return;
           } else if (width < 2 && this.naturalHeight < 2) {
-            console.log("The image is too small to see");
+            console.log("The image is too small to see.");
             this.onerror(null as never);
             return;
           }
@@ -478,7 +478,7 @@ function loadCSS(src: string): void {
 }
 
 function defaultOnError(err: any): void {
-  err && console.log(err);
+  err && console.log("%o", err);
 }
 
 function loadViewer(): Promise<Window["Viewer"]> {
@@ -636,7 +636,7 @@ function tryDecryptUrl(url: string): string {
 }
 
 function disableAutoAndReload_(): void {
-  console.log("Failed to visit the predicted URL, so go back to the original version");
+  console.log("Failed to visit the predicted URL, so go back to the original version.");
   resetOnceProperties_();
   VData.auto = false;
   (window.onhashchange as () => void)();

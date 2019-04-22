@@ -14,7 +14,7 @@ chrome_.tabs[focusContent_ ? "create" as const : "update" as const]({
     ? function (): void {
   let error = chrome_.runtime.lastError;
   if (error as void | object) {
-    console.log(error);
+    console.log("%o", error);
     const script = document.createElement("script");
     script.src = "loader.js";
     (document.head as HTMLHeadElement).appendChild(script);

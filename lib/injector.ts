@@ -45,9 +45,10 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
       noBackend = true;
     }
     if (!noBackend) {
+      const colorRed = "color:red", colorAuto = "color:auto";
       console.log("%cVimium C%c: %cfail%c to inject into %c%s%c %s"
-        , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9"
-        , host, "color:auto", str ? str : ` (${tick} retries).`);
+        , colorRed, colorAuto, colorRed, colorAuto, "color:#0c85e9"
+        , host, colorAuto, str ? str : ` (${tick} retries).`);
     }
   }
   const oldClickable = VimiumInjector && VimiumInjector.clickable;
@@ -126,9 +127,9 @@ if (document.readyState !== "loading") {
       script.type = "text/javascript";
       script.async = false;
       script.src = scriptSrc;
-      console.log("%cVimium C%c begins to reload"
-          + (async === InjectorTask.reload ? " because it has been updated." : ".")
-        , "color:red", "color:auto");
+      console.log("%cVimium C%c begins to reload%s."
+        , "color:red", "color:auto"
+        , async === InjectorTask.reload ? " because it has been updated." : "");
       (document.head || document.body || docEl).appendChild(script);
     }
     async ? setTimeout(doReload, 200) : doReload();

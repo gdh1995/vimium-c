@@ -153,7 +153,7 @@ var Commands = {
       ref2[arr[last]] = KeyAction.cmd;
     }
     if (d2.cmdErrors_) {
-      console.log("%cKey Mappings: %d errors found.", "background-color:#fffbe6", d2.cmdErrors_);
+      console.log("%cKey Mappings: %o errors found.", "background-color:#fffbe5", d2.cmdErrors_);
     } else if (oldErrors < 0) {
       console.log("The new key mappings have no errors");
     }

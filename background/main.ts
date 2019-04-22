@@ -139,8 +139,9 @@ var Backend: BackendHandlersNS.BackendHandlers;
         return list[extId] = true;
       }
     }
+    const backgroundLightYellow = "background-color:#fffbe5";
     console.log("%cReceive message from an extension/sender not in the white list: %c%s",
-      "background-color:#fffbe5", "background-color:#fffbe5; color:red", extId);
+      backgroundLightYellow, backgroundLightYellow + ";color:red", extId);
     return list[extId] = false;
   }
   function selectFrom(this: void, tabs: Tab[], fixIndexes?: BOOL): ActiveTab {

@@ -178,7 +178,7 @@ Are you sure you want to continue?`
     );
     new_data.vimSync = keep || null;
     if (now) {
-      console.log("Before importing: You chose to " + (keep ? "keep settings synced." : "stop syncing settings."));
+      console.log("Before importing: You chose to", keep ? "keep settings synced." : "stop syncing settings.");
     }
     // if `new_data.vimSync` was undefined, then now it's null
     // this is useful, in case the below itering localStorage and setting-null was changed
@@ -196,7 +196,7 @@ Are you sure you want to continue?`
   if (time > 10000) {
     console.info("IMPORT settings saved at %c%s%c.", "color:darkblue", formatDate(time), "color:auto");
   } else {
-    console.info("IMPORT settings:", is_recommended ? "recommended" : "saved before");
+    console.info("IMPORT settings:", is_recommended ? "recommended." : "saved before.");
   }
 
   delete new_data.name;

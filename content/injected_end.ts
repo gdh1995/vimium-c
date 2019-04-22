@@ -36,9 +36,10 @@ VDom.allowScripts_ = 0;
     injector.alive = 1;
   } else {
     injector.alive = 0.5;
+    const colorRed = "color:red", colorAuto = "color:auto";
     console.log("%cVimium C%c: injected %cpartly%c into %c%s"
-      , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9"
-      , runtime.id || location.host);
+      , colorRed, colorAuto, colorRed, colorAuto, "color:#0c85e9"
+      , runtime.id || location.host, ".");
   }
   let livingCheckTimer = 0;
   injector.$_run = function (task): void {

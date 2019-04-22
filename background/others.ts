@@ -178,7 +178,7 @@ setTimeout(function (): void {
     let img: HTMLImageElement, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
     ctx: CanvasRenderingContext2D | null = null;
     function onerror(this: HTMLImageElement): void {
-      console.error("Could not load action icon: " + this.getAttribute("src"));
+      console.error("Could not load action icon:", this.getAttribute("src"));
     }
     function onload(this: HTMLImageElement): void {
       if (!ctx) {
@@ -614,6 +614,6 @@ setTimeout(function (): void {
   if (!Build.NDEBUG) {
     interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void; }
     (window as WindowExForDebug).a = null;
-    (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log(b); };
+    (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log("%o", b); };
   }
 }, 1200);

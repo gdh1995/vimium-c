@@ -70,7 +70,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     if (!Build.NDEBUG) {
       console.log(`Vimium C: extend click: resolve ${
           detail ? Build.BTypes & ~BrowserType.Firefox ? "[%o + %o]" : "[%o+%o]" : "<%o>%s"
-        } in %o @t=%o`
+        } in %o @t=%o .`
         , detail ? detail[0].length
           : (Build.BTypes & ~BrowserType.Firefox ? (event.target as Element).tagName + ""
               : (event.target as Element).tagName as string).toLowerCase()

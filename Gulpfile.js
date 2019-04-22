@@ -803,7 +803,7 @@ function _makeJSONReader() {
         throw e;
       }
       var err = "Failed to parse file '" + fileName + "': " + e + ".";
-      console.warn(err);
+      console.warn("%s", err);
       return {};
     }
   }

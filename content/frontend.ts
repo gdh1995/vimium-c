@@ -575,7 +575,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       KeydownEvents = Object.create(null);
       if (VUtils.cache_.grabBackFocus_ && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
-          counter++ || console.log("An auto-focusing action is blocked by Vimium C");
+          counter++ || console.log("An auto-focusing action is blocked by Vimium C.");
         };
         if (notBody) {
           InsertMode.last_ = null;
