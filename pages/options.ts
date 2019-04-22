@@ -668,7 +668,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
     (element as HTMLAnchorElement).textContent = (element as HTMLAnchorElement).href = "about:addons";
     (element.parentElement as HTMLElement).insertBefore(
-      document.createTextNode('"Manage Shortcuts" in "Tools Menu" of'), element);
+      document.createTextNode('"Manage Shortcuts" in "Tools Menu" of '), element);
   }
   (element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();

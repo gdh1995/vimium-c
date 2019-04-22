@@ -709,6 +709,8 @@ declare const enum BrowserVer {
   // https://www.chromestatus.com/features/5656049583390720
   // deprecation is since C66
   MinEscapeHashInBodyOfDataURL = 72,
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=908809 seems related with it
+  MinElement$Focus$MayMakeArrowKeySelectIt = 72, // if only EXPERIMENTAL (feature #KeyboardFocusableScrollers)
   // https://www.chromestatus.com/features/6569666117894144
   // https://bugs.chromium.org/p/chromium/issues/detail?id=179006#c45
   MinSpecCompliantShadowBlurRadius = 73,

@@ -1141,6 +1141,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       VUtils.remove_(VOmni);
       VUtils.push_(VOmni.onKeydown_, VOmni);
     }
+    setTimeout((): void => box.focus(), 17); // since MinElement$Focus$MayMakeArrowKeySelectIt; also work on Firefox
   }
   ];
 
