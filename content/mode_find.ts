@@ -316,11 +316,9 @@ var VFind = {
         VDom.prepareCrop_();
         VDom.UI.simulateSelect_(el2);
       } else if (el) {
-        (!(Build.BTypes & ~BrowserType.Chrome)
-          || Build.BTypes & BrowserType.Chrome && VUtils.cache_.browser_ === BrowserType.Chrome)
-        ? Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? VDom.scrollIntoView_(el) : a.fixTabNav_(el)
-        // tslint:disable-next-line: no-unused-expression
-        : 0;
+        // always call scrollIntoView if only possible, to keep a consistent behavior
+        !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
+          ? VDom.scrollIntoView_(el) : a.fixTabNav_(el);
       }
     }
     VDom.UI.toggleSelectStyle_(0);
