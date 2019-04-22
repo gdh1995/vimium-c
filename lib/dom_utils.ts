@@ -141,7 +141,7 @@ var VDom = {
       //   when it's real scroll height is not larger than innerHeight
     }
     if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset && Build.BTypes & BrowserType.Chrome) {
-      el = (Build.MinCVer < BrowserVer.MinNamedGetterOnFramesetNotOverrideBulitin ? el && this.notSafe_(el)
+      el = (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter ? el && this.notSafe_(el)
             : el instanceof HTMLFrameSetElement) ? null : el;
     }
     if (!(Build.BTypes & ~BrowserType.Firefox)) {

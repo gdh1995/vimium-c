@@ -699,7 +699,7 @@ declare const enum BrowserVer {
   // https://github.com/chromium/chromium/commit/c81707c532183d4e6b878041964e85b0441b9f50
   MinNoSelector$GtGtGt = 69,
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
-  MinNamedGetterOnFramesetNotOverrideBulitin = 70,
+  MinFramesetHasNoNamedGetter = 70,
   MinContainLayoutBreakUIBox = 70, // even if EXPERIMENTAL
   // means unprefixed properties and event name
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61

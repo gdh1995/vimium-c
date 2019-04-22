@@ -4,7 +4,9 @@
 
 - **framset**: CrossContext, OverrideBuiltins
   - ***fixed*** for Chrome
+  - BrowserVer.MinFramesetHasNoNamedGetter
   - OverrideBuiltins: removed since C70, commit 6a866d29f4314b990981119285da46540a50742c
+    - https://bugs.chromium.org/p/chromium/issues/detail?id=695891
   - not on MS Edge 18.17763
   - not on modern versions of Firefox
     - according to logs of https://dxr.mozilla.org/mozilla-central/source/dom/webidl/HTMLFrameSetElement.webidl
