@@ -235,12 +235,11 @@ next = function (): void {
   delta = len - start;
   timer = start > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   if (!len) { return; }
-  unsafeDispatchCounter = 0;
   call(Remove, root);
   // skip some nodes if only crashing, so that there would be less crash logs in console
   const slice = toRegister.s(start, delta);
   // tslint:disable-next-line: prefer-for-of
-  for (let i = 0; i < slice.length; i++) {
+  for (let i = unsafeDispatchCounter = 0; i < slice.length; i++) {
     prepareRegister(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
   }
   doRegister();
@@ -314,8 +313,8 @@ function doRegister(onlyInDocument?: 1): void {
   }
 }
 function safeReRegister(element: Element, doc1: Document): void {
-  const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
-  if (typeof localAEL === kFunc && typeof localREL === kFunc && localAEL !== myAEL) {
+  let localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
+  if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
     try {
       call(localAEL, element, kVOnClick, noop);
     } catch {}
