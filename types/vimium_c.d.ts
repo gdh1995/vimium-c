@@ -340,6 +340,7 @@ declare const enum GlobalConsts {
   MaxLimitOfVomnibarMatches = 25,
   DisplayUseDynamicTitle = 0,
   MaxFindHistory = 50,
+  TimeOfSuppressingTailKeydowns = 200,
 }
 
 declare const enum KnownKey {
