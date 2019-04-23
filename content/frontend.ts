@@ -792,8 +792,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       if (notTop && mask === FrameMaskType.NormalNext) {
         let docEl = document.documentElement;
         if (docEl) {
-        Build.MinCVer < BrowserVer.MinScrollIntoViewOptions &&
-        !(Build.BTypes & ~BrowserType.Chrome) || (Build.BTypes & BrowserType.Chrome && !OnOther)
+        Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
+          && (!(Build.BTypes & ~BrowserType.Chrome) || VUtils.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions)
         ?
           (Element.prototype.scrollIntoViewIfNeeded as NonNullable<Element["scrollIntoViewIfNeeded"]>).call(docEl)
         : VDom.scrollIntoView_(docEl);

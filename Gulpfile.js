@@ -1000,6 +1000,7 @@ function getBuildItem(key, literalVal) {
   if (newVal) {
     newVal = safeJSONParse(newVal);
     if (newVal != null) {
+      print("Use env:", "BUILD_" + key, "=", newVal);
       buildOptionCache[key] = [literalVal, newVal];
       return parseBuildItem(key, newVal);
     }
