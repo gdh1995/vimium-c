@@ -61,8 +61,9 @@ case "$1" in
     if test -d "$1" && test -f "$1/manifest.json"; then
       VC_ROOT=$1
       shift
+    else
+      break
     fi
-    break
     ;;
 esac
 done
@@ -113,8 +114,8 @@ if ! test -f "$EXE"; then
   echo -E "No such a file: "$exe_w >&2
   exit 1
 fi
-if test -n "$VER"; then # not cur
-  rm -f "${EXE%/*}/default_apps/"*
+if test -n "$VER" -o "$CHROME_ROOT" == '/d/Program Files/Google'; then
+  rm -f "${EXE%/*}/default_apps/"* "${EXE%/*}/"[0-9]*"/default_apps/"*
 fi
 
 dir=${GUD}; dir=${dir#/}; gud_w=${dir%%/*}; dir=${dir#[a-z]}
