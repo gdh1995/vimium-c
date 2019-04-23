@@ -151,6 +151,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
     Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
       && a.firstShowing_ ||
     setTimeout(Vomnibar_.focus_, 34);
+    Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
+      && a.firstShowing_ && setTimeout(Vomnibar_.focus_, 67);
     a.firstShowing_ = false;
     addEventListener("wheel", a.onWheel_, a.wheelOptions_);
   },
