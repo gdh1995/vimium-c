@@ -50,30 +50,6 @@ __Other extensions supporting Vimium C:__
   * Visit it on [Chrome WebStore](
       https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj)
 
-# Known Issues
-
-Here're some issues still existing on the master branch, which are mostly caused by Chrome bugs:
-
-1. If a page in another extension is the preferred Vomnibar page, and the extension is disabled in incognito mode,
-  Vomnibar might break in such a situation, and there seems no way to detect it.
-  So Vimium C has disabled other extension Vomnibar pages in incognito mode.
-2. *Before ver 42*, Chrome has a flag `#enable-embedded-extension-options` causing wrong dialog width on high-DPI screens,
-  which can not be worked-around.
-3. *Before ver 49*, Chrome has bugs in `Window.postMessage` if the flag `#enable-site-per-process` is on,
-  which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium C Options pages.
-4. If a http/file/... Vomnibar page is preferred, then there're some cases where it breaks,
-  such as on some websites with very strict Content Security Policies (CSP),
-  so users may need to wait about 1 second to let Vimium C retry the inner page.<br/>
-  *Before ver 50*, such vomnibar webpages won't work because Chrome lacks some features,
-  so Vimium C will use the inner page directly.
-5. *Since ver 56*, Chrome does not apply content settings (at least images) on file:// URLs.
-  Currently, no effective ways have been found (up to Chrome 69).
-6. *Before ver 68*, Chrome has a bug on sandboxed pages without an `allow-scripts` permission in their CSP.
-  So HUD will always be visible in order to solve some browser issues on Chrome *from ver 52 to 67*.<br/>
-  While *before ver 52*, all functions of Vimium C will be broken on such pages.
-7. *When ver 64 and 65*, Chrome always cleans console logs if only Vomnibar is opened, and there's nothing we can do for it.
-8. *When ver 69*, Chrome disables `requestAnimationFrame` on some sandboxed pages, so Vimium C can not scroll them smoothly.
-
 # Release Notes
 
 1.74:
@@ -84,6 +60,7 @@ Here're some issues still existing on the master branch, which are mostly caused
     * in this case, use `<a-#>` and `<c-+>` directly
   * if only one of Alt/Ctrl/Meta is pressed, then ignore the CapsLock (just like what Chrome does),
     and a key can be translated into `<a-s-f>` only when the ShiftKey is pressed
+* add an **option to stop focusing new tab page** and leave browser's address bar focused
 * full-featured Firefox support (although Firefox has no "contentSettings" support)
 * Exclusions:
   * passKeys always takes effects, even when a prior key has matched
@@ -94,7 +71,6 @@ Here're some issues still existing on the master branch, which are mostly caused
   * can simulate touching the middle area of an element (use an option of `touch="auto"/true`)
   * in hover mode, can toggle class names of given HTML nodes (use `toggle={".selector":"className"}`)
 * Vomnibar: make max number of suggestions and query interval configurable
-* add an option to stop focusing new tab page and leave browser's address bar focused
 * `goBack`, `goForward`: now works perfectly since Chrome 72
 * FindMode: focus found node on exit, for easier `<tab>` navigation
 * Scroller: a better default value of keyboard settings
@@ -166,6 +142,13 @@ Here're some issues still existing on the master branch, which are mostly caused
 
 1.68.2:
 * rename this project into "Vimium C"
+
+### Known Issues
+
+There're some known issues on previous or latest versions of Chrome,
+and please read https://github.com/gdh1995/vimium-c/wiki/Known-issues-on-various-versions-of-Chrome
+  for more information.
+
 
 # Building
 
