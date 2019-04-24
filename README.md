@@ -35,12 +35,12 @@ It can also run on MS Edge, though there're still some errors.
 
 __<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>:__
 
-* a Chrome extension that provides keyboard-based navigation and control
-    of the web in the spirit of the Vim editor.
-* forked from [philc/vimium:master](https://github.com/philc/vimium).
-* customized after translating it from CoffeeScript into JavaScript.
-* add some powerful functions and provide more convenience (for me, at least ^_^).
+* a web extension on Chrome and Firefox that provides keyboard-based navigation and control
+    of the web, in the spirit of the Vim editor.
+* add some powerful functions and provide more configurable details and convenience.
 * here is its [license](LICENSE.txt) and [privacy policy](PRIVACY-POLICY.md)
+* the initial code is forked from [philc/vimium:master](https://github.com/philc/vimium) on 2014.
+* customized after translating it from CoffeeScript into JavaScript and then TypeScript.
 
 __Other extensions supporting Vimium C:__
 
@@ -49,6 +49,11 @@ __Other extensions supporting Vimium C:__
     from [PDF.js](https://github.com/mozilla/pdf.js/)
   * Visit it on [Chrome WebStore](
       https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj)
+* Modified Weidu New Tab (微度新标签页修改版)
+  : a modified, lite version of [www.weidunewtab.com](http://www.weidunewtab.com/) (or
+      [www.newtabplus.com](http://www.newtabplus.com/) )
+  * Visit it on [Chrome WebStore](
+      https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 
 # Release Notes
 
