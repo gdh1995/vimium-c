@@ -554,8 +554,9 @@ function (details: chrome.runtime.InstalledDetails): void {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
-    message: "Vimium C has been upgraded to version " + Settings.CONST_.VerName_
-      + ". Click here for more information.",
+    message: `Vimium C has been upgraded to version v${Settings.CONST_.VerName_}.`
+      + "\nKey mapping usage has UPDATED.",
+    contextMessage: "Click here for more information.",
     isClickable: true
   }, function (notificationId): void {
     let err: any;
@@ -563,6 +564,7 @@ function (details: chrome.runtime.InstalledDetails): void {
     reason = notificationId || reason;
     chrome.notifications.onClicked.addListener(function (id): void {
       if (id !== reason) { return; }
+      chrome.notifications.clear(reason);
       Backend.focus_({
         u: Utils.convertToUrl_("vimium://changelog")
       });

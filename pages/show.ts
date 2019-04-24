@@ -97,7 +97,7 @@ window.onhashchange = function (this: void): void {
   for (let ind: number; ind = url.indexOf("&") + 1; ) {
     if (url.startsWith("download=")) {
       // avoid confusing meanings in title content
-      file = decodeURLPart(url.substring(9, ind - 1)).split(<RegExpOne> /\||\uff5c| - /, 1)[0].trim();
+      file = decodeURLPart(url.substring(9, ind - 1)).split(<RegExpOne> /\||\uff5c| [-·] /, 1)[0].trim();
       file = file.replace(<RegExpG> /[\r\n"]/g, "");
       VData.file = file;
       url = url.substring(ind);
@@ -198,7 +198,8 @@ window.onhashchange = function (this: void): void {
       VShown.alt = VData.error = "\xa0(null)\xa0";
     }
     if (file) {
-      VShown.setAttribute("download", file);
+      const path = file.split(<RegExpOne> /\/\\/);
+      VShown.setAttribute("download", path[path.length - 1]);
       VShown.alt = file;
       VShown.title = file;
     }
