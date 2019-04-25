@@ -8,8 +8,7 @@
 	"keyMappings": [
 		"unmapAll",
 		"map ? showHelp",
-		"map <a-/> enterInsertMode passExitKey",
-		"map <c-/> enterInsertMode hideHud",
+		"map <a-/> enterInsertMode",
 		"map <a-?> enterInsertMode stat=8",
 		"map <a-t> createTab",
 		"map <a-c> previousTab",
