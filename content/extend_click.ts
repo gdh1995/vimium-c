@@ -314,6 +314,7 @@ function doRegister(onlyInDocument?: 1): void {
 }
 function safeReRegister(element: Element, doc1: Document): void {
   let localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
+  // tslint:disable-next-line: triple-equals
   if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
     try {
       call(localAEL, element, kVOnClick, noop);

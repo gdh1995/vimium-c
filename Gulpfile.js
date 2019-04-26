@@ -21,7 +21,7 @@ var DEST, enableSourceMap, willListFiles, willListEmittedFiles, JSDEST;
 var locally = false;
 var debugging = process.env.DEBUG === "1";
 var compileInBatch = true;
-var typescript = null, tsOptionsLogged = false;
+var gTypescript = null, tsOptionsCleaned = false;
 var buildConfig = null;
 var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var envLegacy = process.env.SUPPORT_LEGACY === "1";
@@ -307,9 +307,9 @@ var Tasks = {
   build: ["dist"],
   rebuild: [["clean"], "dist"],
   all: ["build"],
-  clean: [function() {
+  clean: function() {
     return cleanByPath(".build/*");
-  }],
+  },
 
   scripts: ["background", "content", "front"],
   pages: ["options", "show", "others"],
@@ -343,12 +343,15 @@ var Tasks = {
     ["background", "content", "vomnibar", "polyfill", "injector", "options", "show", "others"].forEach(makeWatchTask);
     done();
   }],
-  test: ["local"]
+  lint: function (done) {
+    var node = process.argv[0];
+    process.argv = [node, ..."./node_modules/tslint/bin/tslint --project .".split(" ")];
+    require(process.argv[1]);
+    done();
+  },
+  test: ["local", "lint"]
 };
 
-
-typescript = compilerOptions.typescript = loadTypeScriptCompiler();
-removeUnknownOptions();
 if (!has_dialog_ui) {
   CompileTasks.front[0].push("!*/dialog_ui.*");
   CompileTasks.others[0].push("!*/dialog_ui.*");
@@ -356,8 +359,8 @@ if (!has_dialog_ui) {
 gulp.task("locally", function(done) {
   if (locally) { return done(); }
   locally = true;
+  gTypescript = null;
   compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
-  removeUnknownOptions();
   createBuildConfigCache();
   var old_has_polyfill = has_polyfill;
   has_polyfill = getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
@@ -466,6 +469,8 @@ function makeTasks() {
 }
 
 function tsProject() {
+  loadTypeScriptCompiler();
+  removeUnknownOptions();
   return disableErrors ? ts(compilerOptions, ts.reporter.nullReporter()) : ts(compilerOptions);
 }
 
@@ -860,7 +865,6 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
   if (buildConfig && opts.types) {
     opts.types = opts.types.filter(i => i !== "build");
   }
-  
   if (!keepCustomOptions && (keepCustomOptions === false || !opts.typescript)) {
     delete opts.inferThisForObjectLiterals;
     delete opts.narrowFormat;
@@ -875,8 +879,9 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
     }
   }
   opts.target = forcedESTarget || locally && opts.target || "es5";
-  if (typescript && !opts.typescript) {
-    opts.typescript = typescript;
+  var oldTS = gTypescript || compilerOptions && compilerOptions.typescript;
+  if (oldTS && !opts.typescript) {
+    opts.typescript = oldTS;
   }
   DEST = opts.outDir;
   DEST = process.env.LOCAL_DIST || DEST;
@@ -891,7 +896,9 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
 }
 
 function loadTypeScriptCompiler(path) {
-  var typescript;
+  if (gTypescript) { return; }
+  tsOptionsCleaned = false;
+  var typescript1;
   path = path || compilerOptions.typescript || null;
   if (typeof path === "string") {
     var exists1 = fs.existsSync(path), exists = exists1 || fs.existsSync(path + ".js");
@@ -905,27 +912,28 @@ function loadTypeScriptCompiler(path) {
         path = osPath.join(path, "typescript");
       }
       try {
-        typescript = require(path);
+        typescript1 = require(path);
       } catch (e) {}
     }
     if (path.startsWith("./node_modules/typescript/")) {
-      print('Load the TypeScript dependency:', typescript != null ? "succeed" : "fail");
+      print('Load the TypeScript dependency:', typescript1 != null ? "succeed" : "fail");
     } else {
-      print('Load a customized TypeScript compiler:', typescript != null ? "succeed" : "fail");
+      print('Load a customized TypeScript compiler:', typescript1 != null ? "succeed" : "fail");
     }
   }
-  if (typescript == null) {
-    typescript = require("typescript/lib/typescript");
+  if (typescript1 == null) {
+    typescript1 = require("typescript/lib/typescript");
   }
-  return typescript;
+  gTypescript = compilerOptions.typescript = typescript1;
 }
 
 function removeUnknownOptions() {
+  if (tsOptionsCleaned) { return; }
   var hasOwn = Object.prototype.hasOwnProperty, toDelete = [], key, val;
   for (var key in compilerOptions) {
     if (key === "typescript" || key === "__proto__") { continue; }
     if (!hasOwn.call(compilerOptions, key)) { continue; }
-    var declared = typescript.optionDeclarations.some(function(i) {
+    var declared = gTypescript.optionDeclarations.some(function(i) {
       return i.name === key;
     });
     declared || toDelete.push(key);
@@ -934,13 +942,12 @@ function removeUnknownOptions() {
     key = toDelete[i], val = compilerOptions[key];
     delete compilerOptions[key];
   }
-  if (tsOptionsLogged) { return; }
-  tsOptionsLogged = true;
   if (toDelete.length > 1) {
     print("Skip these TypeScript options:", toDelete.join(", "));
   } else if (toDelete.length === 1) {
     print("Skip the TypeScript option:", toDelete[0]);
   }
+  tsOptionsCleaned = true;
 }
 
 function getBuildConfigStream() {
