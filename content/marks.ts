@@ -2,10 +2,12 @@ var VMarks = {
   onKeyChar_: null as never as (event: HandlerNS.Event, keyChar: string) => void,
   prefix_: true,
   swap_: true,
-  activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.marks]): void {
+  count_: 0,
+  activate_ (this: void, count: number, options: CmdOptions[kFgCmd.marks]): void {
     const a = VMarks;
     const isGo = options.mode !== "create";
     a.onKeyChar_ = isGo ? a._goto : a._create;
+    a.count_ = count < 0 || count > 9 ? 0 : count - 1;
     a.prefix_ = options.prefix !== false;
     a.swap_ = options.swap === true;
     VUtils.push_(a.onKeydown_, a);
@@ -27,13 +29,13 @@ var VMarks = {
   getLocationKey_ (keyChar: string): string {
     return `vimiumMark|${location.href.split("#", 1)[0]}|${keyChar}`;
   },
-  _previous: null as MarksNS.FgMark | null,
-  setPreviousPosition_ (): void {
-    this._previous = [ scrollX, scrollY, location.hash ];
+  previous_: [] as Array<MarksNS.FgMark>, // [0..8]
+  setPreviousPosition_ (idx?: number): void {
+    this.previous_[<number> <number | string> idx | 0] = [ scrollX, scrollY, location.hash ];
   },
   _create (event: HandlerNS.Event, keyChar: string): void {
     if (keyChar === "`" || keyChar === "'") {
-      this.setPreviousPosition_();
+      this.setPreviousPosition_(this.count_);
       return VHud.tip_("Created local mark [last].", 1000);
     } else if (event.shiftKey !== this.swap_) {
       if (top === window) {
@@ -49,12 +51,12 @@ var VMarks = {
   _goto (event: HandlerNS.Event, keyChar: string): void {
     const a = this;
     if (keyChar === "`" || keyChar === "'") {
-      const pos = a._previous;
-      a.setPreviousPosition_();
+      const count = a.count_, pos = a.previous_[count];
+      a.setPreviousPosition_(pos ? 0 : count);
       if (pos) {
         a.ScrollTo_(pos);
       }
-      return VHud.tip_((pos ? "Jumped to" : "Created") + " local mark [last]", 1000);
+      return VHud.tip_(`${pos ? "Jumped to" : "Created"} local mark [ ${count ? count + 1 : "last"} ]`, 1000);
     }
     const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto }> = {
       H: kFgReq.marks, a: kMarkAction.goto,

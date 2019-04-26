@@ -59,6 +59,7 @@ __Other extensions supporting Vimium C:__
 
 Not released yet:
 * add command `performAnotherFind` to find the second or even eariler query in the query history list.
+* `Marks.activate` supports extra 8 temporary marks besides the "last" mark, and uses `2` ~ `9` prefix to specify them.
 
 1.74:
 * *BREAKING*: now **use `s-` to represent the `ShiftKey`** is being pressed when constructing keys
