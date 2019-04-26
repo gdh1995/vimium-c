@@ -147,7 +147,6 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   /** amount: can not be 0 */
   scrollBy_ (di: ScrollByY, amount: number, factor: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined): void {
     const a = this;
-    VMarks.setPreviousPosition_();
     a.prepareTop_();
     const element = a.findScrollable_(di, amount);
     amount = !factor ? a._adjustAmount(di, amount, element)
@@ -160,6 +159,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   scrollTo_ (di: ScrollByY, amount: number, fromMax: BOOL): void {
     const a = this;
     a.prepareTop_();
+    di && VMarks.setPreviousPosition_();
     const element = a.findScrollable_(di, fromMax ? 1 : -1);
     amount = a._adjustAmount(di, amount, element);
     if (fromMax) {
