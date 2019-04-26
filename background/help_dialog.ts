@@ -180,7 +180,7 @@ var HelpDialog = {
       , "Vomnibar.activateUrl", "Vomnibar.activateUrlInNewTab"
       , "LinkHints.activateModeToOpenVomnibar", "toggleVomnibarStyle"],
     historyNavigation: ["goBack", "goForward", "reopenTab"],
-    findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "clearFindHistory"],
+    findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "performAnotherFind", "clearFindHistory"],
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
       , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
       , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab", "toggleMuteTab", "visitPreviousTab"

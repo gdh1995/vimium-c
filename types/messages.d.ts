@@ -234,7 +234,7 @@ interface CmdOptions {
   [kFgCmd.reload]: { url: string, /** @deprecated */ force?: undefined, hard?: undefined
     } | { /** @deprecated */ force?: boolean, hard?: boolean, url?: undefined };
   [kFgCmd.findMode]: {
-    count: number;
+    /** count */ n: number;
     /** leave find mode */ l: boolean,
     /** query */ q: string;
     /* return to view port */ r: boolean;

@@ -253,7 +253,7 @@ var VFind = {
           VEvent.scroll_(event, a.box_.contentWindow);
         }
         else if (n === VKeyCodes.J || n === VKeyCodes.K) {
-          a.execute_(null, { count: (VKeyCodes.K - n) || -1 });
+          a.execute_(null, { n: (VKeyCodes.K - n) || -1 });
         }
         else { return; }
         i = FindNS.Action.DoNothing;
@@ -281,7 +281,7 @@ var VFind = {
       return HandlerResult.Prevent;
     } else if (i && !(i & ~KeyStat.PrimaryModifier)) {
       if (n === VKeyCodes.J || n === VKeyCodes.K) {
-        a.execute_(null, { count: (VKeyCodes.K - n) || -1 });
+        a.execute_(null, { n: (VKeyCodes.K - n) || -1 });
         return HandlerResult.Prevent;
       }
     }
@@ -537,7 +537,7 @@ var VFind = {
     options = options ? VUtils.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
     const a = this;
     let el: LockableElement | null
-      , found: boolean, count = ((options.count as number) | 0) || 1, back = count < 0
+      , found: boolean, count = ((options.n as number) | 0) || 1, back = count < 0
       , par: HTMLElement | null = null, timesRegExpNotMatch = 0
       , sel: Selection | undefined
       , q: string, notSens = a.ignoreCase_ && !options.caseSensitive;

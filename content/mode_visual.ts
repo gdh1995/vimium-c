@@ -301,7 +301,7 @@ var VVisual = {
     const a = this;
     const sel = a.selection_,
     range = sel.rangeCount && (a.getDirection_(""), !a.diType_) && sel.getRangeAt(0);
-    VFind.execute_(null, { noColor: true, count });
+    VFind.execute_(null, { noColor: true, n: count });
     if (VFind.hasResults_) {
       a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
       if (a.mode_ === VisualModeNS.Mode.Caret && a.selType_() === SelType.Range) {

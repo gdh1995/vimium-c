@@ -1513,8 +1513,10 @@ Are you sure you want to continue?`);
       });
     },
     /* performFind: */ function (): void {
-      const leave = !cOptions.active, sender = cPort.s,
-      query = leave || cOptions.last ? FindModeHistory_.query_(sender.a) : "";
+      const sender = cPort.s, absRepeat = cRepeat < 0 ? -cRepeat : cRepeat, rawIndex = cOptions.index,
+      nth = rawIndex ? rawIndex === "other" ? absRepeat + 1 : rawIndex === "count" ? absRepeat
+                : rawIndex >= 0 ? -1 - (0 | rawIndex) : 0 : 0,
+      leave = !!nth || !cOptions.active;
       let findCSS: CmdOptions[kFgCmd.findMode]["f"] = null;
       if (!(sender.f & Frames.Flags.hasFindCSS)) {
         sender.f |= Frames.Flags.hasFindCSS;
@@ -1523,11 +1525,11 @@ Are you sure you want to continue?`);
       cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
           , S: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
           , a: {
-        count: cOptions.dir <= 0 ? -cRepeat : cRepeat,
+        n: nth > 0 ? cRepeat < 0 ? -1 : 1 : cOptions.dir <= 0 ? -cRepeat : cRepeat,
         l: leave,
         f: findCSS,
         r: cOptions.returnToViewport === true,
-        q: query
+        q: leave || cOptions.last ? FindModeHistory_.query_(sender.a, "", nth < 0 ? -nth : nth) : ""
       }});
     },
     /* showVomnibar: */ function (this: void, forceInner?: boolean): void {

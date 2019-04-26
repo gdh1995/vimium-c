@@ -387,13 +387,13 @@ FindModeHistory_ = {
     this.list_ = str ? str.split("\n") : [];
     this.init_ = null as never;
   },
-  query_: function (incognito: boolean, query?: string, index?: number): string | void {
+  query_: function (incognito: boolean, query?: string, nth?: number): string | void {
     const a = FindModeHistory_;
     a.init_ && a.init_();
     const list = incognito ? a.listI_ || (IncognitoWatcher_.watch_(),
                             a.listI_ = (a.list_ as string[]).slice(0)) : (a.list_ as string[]);
     if (!query) {
-      return list[list.length - (index || 1)] || "";
+      return list[list.length - (nth || 1)] || "";
     }
     if (incognito) {
       return a.refreshIn_(query, list, true);
@@ -402,9 +402,9 @@ FindModeHistory_ = {
     str && Settings.set_(a.key_, str);
     if (a.listI_) { return a.refreshIn_(query, a.listI_, true); }
   } as {
-    (incognito: boolean, query: string, index?: undefined): void;
-    (incognito: boolean, query?: undefined | "", index?: number): string;
-    (incognito: boolean, query: string | undefined, index: number | undefined): void | string;
+    (incognito: boolean, query?: undefined | "", nth?: number): string;
+    (incognito: boolean, query: string, nth?: undefined): void;
+    (incognito: boolean, query: string | undefined, nth: number | undefined): void | string;
   },
   refreshIn_: function (query: string, list: string[], skipResult?: boolean): string | void {
     const ind = list.lastIndexOf(query);

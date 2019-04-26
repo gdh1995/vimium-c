@@ -57,6 +57,9 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+Not released yet:
+* add command `performAnotherFind` to find the second or even eariler query in the query history list.
+
 1.74:
 * *BREAKING*: now **use `s-` to represent the `ShiftKey`** is being pressed when constructing keys
   * e.g. `<a-s-f>`: just like using `a-`, `c-` and `m-` to represent `AltKey`, `CtrlKey` and `MetaKey`
