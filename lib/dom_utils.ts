@@ -469,8 +469,14 @@ var VDom = {
     // This requires that further jobs are safe enough even when isInDOM returns a fake "true"
     return pn === doc || !checkMouseEnter && pn instanceof Element;
   },
+  unsafeFramesetTag_: 0 as "FRAMESET" | 0,
+  // todo: apply similar checks for HTMLElement and LockableElement
   notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
-    return el instanceof HTMLFormElement;
+    let s: Node["nodeName"];
+    // tslint:disable-next-line: triple-equals
+    return !!el && typeof (s = el.nodeName) == "string" &&
+      (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter ? s.toUpperCase() === "FORM"
+        : (s = s.toUpperCase()) === "FORM" || s === VDom.unsafeFramesetTag_);
   } : 0 as never,
   /** @safe_even_if_any_overridden_property */
   SafeEl_: Build.BTypes & ~BrowserType.Firefox ? function (

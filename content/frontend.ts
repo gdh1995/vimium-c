@@ -924,7 +924,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       }
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
           && browserVer < BrowserVer.MinFramesetHasNoNamedGetter) {
-        D.notSafe_ = (el): el is HTMLFormElement => el instanceof HTMLFormElement || el instanceof HTMLFrameSetElement;
+        D.unsafeFramesetTag_ = "FRAMESET";
       } else if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {
         D.notSafe_ = (_el): _el is HTMLFormElement => false;

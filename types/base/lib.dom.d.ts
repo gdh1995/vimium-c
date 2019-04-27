@@ -5410,7 +5410,7 @@ interface Node extends EventTarget {
     readonly localName: string | null;
     readonly namespaceURI: string | null;
     readonly nextSibling: Node | null;
-    //readonly nodeName: string;
+    readonly nodeName?: string | Element;
     readonly nodeType: number;
     nodeValue: string | null;
     readonly ownerDocument: Document;
