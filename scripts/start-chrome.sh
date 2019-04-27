@@ -8,6 +8,7 @@ GUD=/r/TEMP/GUD
 WORKING_DIR=/r/working
 VC_ROOT=
 DIST=0
+HOME_PAGE=
 
 function wp() {
   local dir=${2#/}
@@ -55,6 +56,10 @@ case "$1" in
     ;;
   --*)
     OTHER_ARGS=$OTHER_ARGS" $1"
+    shift
+    ;;
+  *://*|about:*|chrome:*)
+    HOME_PAGE=$1
     shift
     ;;
   *)
@@ -128,7 +133,7 @@ echo -E Run: "${exe_w}" at ${gud_w} with "${VC_EXT}"
 $RUN "$EXE" \
   --user-data-dir=${gud_w} \
   --load-extension=${VC_EXT}${OTHER_EXT} \
-  --homepage chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html \
+  --homepage ${HOME_PAGE:-chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html} \
   --disable-office-editing-component-extension \
   --disable-extensions-file-access-check \
   $OTHER_ARGS \

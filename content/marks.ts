@@ -29,7 +29,7 @@ var VMarks = {
   getLocationKey_ (keyChar: string): string {
     return `vimiumMark|${location.href.split("#", 1)[0]}|${keyChar}`;
   },
-  previous_: [] as Array<MarksNS.FgMark>, // [0..8]
+  previous_: [] as MarksNS.FgMark[], // [0..8]
   setPreviousPosition_ (idx?: number): void {
     this.previous_[<number> <number | string> idx | 0] = [ scrollX, scrollY, location.hash ];
   },

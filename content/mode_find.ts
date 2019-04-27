@@ -225,11 +225,11 @@ var VFind = {
       VFind.focus_();
     }
   },
-  _OnPaste: Build.BTypes & ~BrowserType.Chrome ? function (this: HTMLElement, event: ClipboardEvent): void {
+  _OnPaste: Build.BTypes & ~BrowserType.Chrome ? function (this: Window, event: ClipboardEvent): void {
     const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
     VUtils.prevent_(event);
     if (!text) { return; }
-    (event.target as HTMLElement).ownerDocument.execCommand("insertText", false, text + "");
+    this.document.execCommand("insertText", false, text + "");
   } : null,
   onKeydown_ (event: KeyboardEvent): void {
     VUtils.Stop_(event);

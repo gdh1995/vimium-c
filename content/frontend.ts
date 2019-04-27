@@ -641,13 +641,13 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       VUtils.prevent_(event); // safer
       if (el) {
         KeydownEvents[key] = 1;
-        const parent = el.ownerDocument.defaultView, a1 = (parent as Window & { VEvent: typeof VEvent }).VEvent;
+        const parent1 = parent as Window, a1 = (parent1 as Window & { VEvent: typeof VEvent }).VEvent;
         el.blur();
         if (a1) {
-          (parent as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(1);
+          (parent1 as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(1);
           a1.focus_({ k: key, m: FrameMaskType.ForcedSelf });
         } else {
-          parent.focus();
+          parent1.focus();
         }
       } else if (KeydownEvents[key] !== 2) { // avoid sending too many messages
         post({ H: kFgReq.nextFrame, t: Frames.NextType.parent, k: key });
@@ -702,7 +702,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     const isClickable = s === "a" || (
       s === "button" ? !(element as HTMLButtonElement).disabled
       : VUtils.clickable_.has(element) || element.getAttribute("onclick") || (
-        (s = element.getAttribute("role")) ? (s = s.toLowerCase(), s === "link" || s === "button")
+        (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
         : VHints.ngEnabled_ && element.getAttribute("ng-click")));
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
@@ -754,12 +754,11 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     return false;
   },
   findAndFollowRel_ (relName: string): boolean {
-    const elements = document.querySelectorAll("[rel]"),
-    relTags: SafeEnum = VUtils.safer_({a: 1, area: 1, link: 1});
+    const elements = document.querySelectorAll("[rel]");
     let s: string | null;
     for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
-      const element = elements[_i], name = element.tagName as string | Element | Window;
-      if (relTags[(Build.BTypes & ~BrowserType.Firefox ? name + "" : name as string).toLowerCase()]
+      const element = elements[_i];
+      if ((<RegExpI> /^(a|area|link)$/i).test(element.tagName as string)
           && element instanceof HTMLElement
           && (s = (element as HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement).rel)
           && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {
@@ -1237,6 +1236,10 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         (cur as HTMLFrameElement | HTMLIFrameElement).blur();
       }
       focus();
+      /** Maybe a `document.open()` has been called
+       * Step 8 of https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#document-open-steps
+       * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=Document::open&l=3107
+       */
       failed && isEnabled && hook(HookAction.Install);
       // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
       (onWndFocus = old)();
@@ -1337,7 +1340,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   if (location.href !== "about:blank" || injector || !+function (): 1 | void {
     try {
       let f = VDom.parentFrame_(),
-      a1 = f && ((f as HTMLElement).ownerDocument.defaultView as Window & { VFind?: typeof VFind}).VFind;
+      a1 = f && (parent as Window & { VFind?: typeof VFind}).VFind;
       if (a1 && a1.box_ && a1.box_ === f) {
         safeDestroy(true);
         a1.onLoad_();

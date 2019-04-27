@@ -284,13 +284,13 @@ VDom.UI = {
     flash && this.flash_(element);
     if (element !== VEvent.lock_()) { return; }
     // then `element` is always safe
-    this._moveSel_unsafe_(element as LockableElement, action);
+    this._moveSel(element as LockableElement, action);
     if (suppressRepeated === true) { return this.suppressTail_(1); }
   },
-  /** @NEED_SAFE_ELEMENTS */
-  _moveSel_unsafe_ (element, action): void {
+  /** @NEED_SAFE_ELEMENTS element is LockableElement */
+  _moveSel (element, action): void {
     type TextElement = HTMLInputElement | HTMLTextAreaElement;
-    const tag = (element.tagName as string).toLowerCase();
+    const tag = element.tagName.toLowerCase();
     const type = tag === "textarea" ? EditableType.Editbox : tag === "input" ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
         : EditableType.Default;

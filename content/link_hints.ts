@@ -274,6 +274,7 @@ var VHints = {
     }
   },
   btnRe_: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,
+  roleRe_: <RegExpI> /^(button|checkbox|link|radio|tab)$|^menuitem/i,
   /**
    * Must ensure only call `VScroller.shouldScroll` during `@getVisibleElements`
    */
@@ -361,9 +362,7 @@ var VHints = {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
         : (VUtils.clickable_.has(element) && VHints.isClickListened_) || element.getAttribute("onclick")
           || VHints.ngEnabled_ && element.getAttribute("ng-click")
-          || (s = element.getAttribute("role")) && (s = s.toLowerCase()
-            , s === "button" || s === "link" || s === "tab"
-              || s === "checkbox" || s === "radio" || s.startsWith("menuitem"))
+          || (s = element.getAttribute("role")) && VHints.roleRe_.test(s)
           || VHints.forHover_ && element.getAttribute("onmouseover")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.listener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
@@ -882,6 +881,7 @@ var VHints = {
   },
   deactivate_ (onlySuppressRepeated: BOOL): void {
     this.clean_(this.pTimer_ < 0);
+    (<RegExpOne> /0?/).test("");
     return VDom.UI.suppressTail_(onlySuppressRepeated);
   },
   rotateHints_ (reverse?: boolean): void {
@@ -1352,23 +1352,22 @@ Modes_: [
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
   execute_ (link, rect, hint): void | boolean {
-    const a = this as typeof VHints, tag = link instanceof HTMLElement ? (link.tagName as string).toLowerCase() : "";
-    if (tag === "iframe" || tag === "frame") {
+    const a = this as typeof VHints, tag = link instanceof HTMLElement ? link.tagName as string : "";
+    if ((<RegExpOne> /^i?frame$/i).test(tag)) {
       const highlight = link !== VOmni.box_;
       highlight ? a.highlightChild_(link as HTMLIFrameElement | HTMLFrameElement) : VOmni.focus_();
       a.mode_ = HintMode.DEFAULT;
       return highlight;
     }
     const { UI } = VDom;
-    if (tag === "details") {
+    if ((<RegExpI> /^details$/i).test(tag)) {
       // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
       // `HTMLDetailsElement::FindMainSummary()` in
       // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
       for (let summaries = link.children, i = 0, len = summaries.length; i < len; i++) {
         const summary = summaries[i];
         // there's no window.HTMLSummaryElement on C70
-        if ((Build.BTypes & ~BrowserType.Firefox ? summary.tagName + "" : summary.tagName as string
-            ).toLowerCase() === "summary" && summary instanceof HTMLElement) {
+        if ((<RegExpI> /^summary$/i).test(summary.tagName as string) && summary instanceof HTMLElement) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
           rect = (link as HTMLDetailsElement).open || !rect ? VDom.getVisibleClientRect_(summary) : rect;
