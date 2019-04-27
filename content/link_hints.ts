@@ -296,7 +296,7 @@ var VHints = {
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
     // elements of the types below should refuse `attachShadow`
     switch ((element.tagName as string).toLowerCase()) {
-    case "a": case "details": isClickable = true; break;
+    case "a": isClickable = true; break;
     case "frame": case "iframe":
       if (element === VOmni.box_) {
         if (arr = VDom.getVisibleClientRect_(element)) {
@@ -317,13 +317,11 @@ var VHints = {
         isClickable = true;
       }
       break;
+    case "details":
+      isClickable = VHints.checkReplaced_(VDom.findMainSummary_(element as HTMLDetailsElement), this);
+      break;
     case "label":
-      if ((element as HTMLLabelElement).control) {
-        let el2 = (element as HTMLLabelElement).control as HTMLElement, arr2: Hint[] = [];
-        if (el2.getAttribute("disabled")) { return; }
-        VHints.GetClickable_.call(arr2, el2);
-        isClickable = arr2.length === 0;
-      }
+      isClickable = VHints.checkReplaced_((element as HTMLLabelElement).control as SafeHTMLElement | null);
       break;
     case "button": case "select":
       isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled || VHints.mode1_ > HintMode.LEAVE;
@@ -353,8 +351,7 @@ var VHints = {
       // no break;
     default:
       if (element.shadowRoot) {
-        ([].forEach as HintsNS.ElementIterator<Hint>).call(
-          element.shadowRoot.querySelectorAll("*"), VHints.GetClickable_, this);
+        VHints.detectMore_(element as SafeHTMLElement, VHints.GetClickable_, this);
         return;
       }
     }
@@ -390,6 +387,15 @@ var VHints = {
     }
     return false;
   },
+  checkReplaced_ (element: SafeHTMLElement | null | void, output?: Hint[]): boolean | null {
+    const arr2: Hint[] = output || [], len = arr2.length;
+    if (element) {
+      if (!output && element.getAttribute("disabled")) { return false; }
+      output && VUtils.clickable_.add(element);
+      VHints.GetClickable_.call(arr2, element);
+    }
+    return element ? arr2.length <= len : output ? true : null;
+  },
   GetEditable_ (this: Hint[], element: Element): void {
     if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { return; }
     let arr: Rect | null, type = ClickType.Default, s: string;
@@ -405,8 +411,7 @@ var VHints = {
     default:
       if ((s = element.contentEditable) === "inherit" || !s || s === "false") {
         if (element.shadowRoot) {
-          ([].forEach as HintsNS.ElementIterator<Hint>).call(
-            element.shadowRoot.querySelectorAll("*"), VHints.GetEditable_, this);
+          VHints.detectMore_(element as SafeHTMLElement, VHints.GetEditable_, this);
         }
         return;
       }
@@ -553,6 +558,11 @@ var VHints = {
       i--;
     }
     return result.length > 12 ? result : list;
+  },
+  detectMore_ (element: SafeHTMLElement | null, func: HintsNS.Filter<Hint>, dest: Hint[]): boolean | void {
+    ([].forEach as HintsNS.ElementIterator<Hint>).call(
+      ((element as Element).shadowRoot as ShadowRoot).querySelectorAll("*"),
+      func, dest);
   },
   deduplicate_ (list: Hint[]): void {
     let j = list.length, i: number, k: ClickType;
@@ -1363,20 +1373,14 @@ Modes_: [
     }
     const { UI } = VDom;
     if ((<RegExpI> /^details$/i).test(tag)) {
-      // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
-      // `HTMLDetailsElement::FindMainSummary()` in
-      // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
-      for (let summaries = link.children, i = 0, len = summaries.length; i < len; i++) {
-        const summary = summaries[i];
-        // there's no window.HTMLSummaryElement on C70
-        if ((<RegExpI> /^summary$/i).test(summary.tagName as string) && summary instanceof HTMLElement) {
+      const summary = VDom.findMainSummary_(link as HTMLDetailsElement);
+      if (summary) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
           rect = (link as HTMLDetailsElement).open || !rect ? VDom.getVisibleClientRect_(summary) : rect;
           UI.click_(summary, rect, null, true);
           rect && UI.flash_(null, rect);
           return false;
-        }
       }
       (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
       return;

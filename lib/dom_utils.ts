@@ -307,6 +307,18 @@ var VDom = {
       ): Rect | null;
     (element: HTMLElementUsingMap, output: Hint5[]): null;
   },
+  findMainSummary_ (details: HTMLDetailsElement): SafeHTMLElement | void {
+    // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
+    // `HTMLDetailsElement::FindMainSummary()` in
+    // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
+    for (let summaries = details.children, i = 0, len = summaries.length; i < len; i++) {
+      const summary = summaries[i];
+      // there's no window.HTMLSummaryElement on C70
+      if ((<RegExpI> /^summary$/i).test(summary.tagName as string) && summary instanceof HTMLElement) {
+        return summary as SafeHTMLElement;
+      }
+    }
+  },
   paintBox_: null as [number, number] | null, // it may need to use `paintBox[] / <body>.zoom`
   wdZoom_: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
   dbZoom_: 1, // absolute zoom value of <html> * <body>
