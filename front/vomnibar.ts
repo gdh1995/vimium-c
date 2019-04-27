@@ -314,7 +314,8 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
       return a.updateInput_(a.selection_);
     }
     let line = a.completions_[a.selection_] as SuggestionEx, str = a.input_.value.trim();
-    str = str === line.url ? (line.parsed || line.text)
+    str = str === (line.title || line.url) ? (line.parsed || line.text)
+      : line.title && str === line.url ? line.title
       : str === line.text ? line.url : line.text;
     return a._updateInput(line, str);
   },
@@ -1094,7 +1095,15 @@ VUtils_ = {
       }
     }
     sug.text = text;
+    if (str = sug.title) {
+      (sug as Writeable<Suggestion>).title = str.replace(<RegExpG> /<\/?match>/g, "").replace(
+          <RegExpG & RegExpSearchable<1>> /&(amp|apos|gt|lt|quot);|\u2026/g, VUtils_.onHTMLEntity);
+    }
     return i;
+  },
+  onHTMLEntity (_s0: string, str: string): string {
+    return str === "amp" ? "&" : str === "apos" ? "'" : str === "quot" ? '"'
+      : str === "gt" ? ">" : str === "lt" ? "<" : "";
   },
   escapeCSSStringInAttr_ (s0: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
