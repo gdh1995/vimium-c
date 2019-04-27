@@ -175,7 +175,7 @@ VDom.UI = {
       } else {
         for (let pn: Node | null; pn = VDom.GetParent_(el, PNType.DirectNode); el = pn) { /* empty */ }
       }
-      if (el !== d && el.nodeType === /* Node.DOCUMENT_FRAGMENT_NODE */ 11
+      if (el !== d && el.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
           && typeof (el as ShadowRoot).getSelection === "function") {
         sel = (el as ShadowRootWithSelection).getSelection();
         if (sel && (notExpectCount || sel.rangeCount)) {
@@ -184,17 +184,24 @@ VDom.UI = {
       }
     }
     sel = getSelection();
-    if ((Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer < BrowserVer.MinShadowDOMV0) {
-      if (typeof ShadowRoot !== "function" || ShadowRoot instanceof Element) { return [sel, null]; }
-    }
     let E = Element, offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel;
+    if (!(  !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+            || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1) ) {
+      let SR = Build.MinCVer < BrowserVer.MinEmbedElementIsNotFunction && Build.BTypes & BrowserType.Chrome
+                && Build.MinCVer < BrowserVer.MinShadowDOMV0 ? window.ShadowRoot : 0 as never;
+      if (Build.MinCVer < BrowserVer.MinEmbedElementIsNotFunction && Build.BTypes & BrowserType.Chrome
+            && Build.MinCVer < BrowserVer.MinShadowDOMV0
+          ? !SR || "tagName" in SR : typeof ShadowRoot !== "function") {
+        return [sel, null];
+      }
+    }
     while (sel2) {
       sel2 = null;
       el = sel.anchorNode;
       if (el && el === sel.focusNode && (offset = sel.anchorOffset) === sel.focusOffset) {
         if (el instanceof E && !(Build.BTypes & ~BrowserType.Firefox && (el.childNodes instanceof E))) {
           el = el.childNodes[offset];
-          if (el && (sr = VDom.GetShadowRoot_(el))) {
+          if (el instanceof E && (sr = VDom.GetShadowRoot_(el))) {
             if (sr.getSelection && (sel2 = sr.getSelection())) {
               sel = sel2;
             } else {

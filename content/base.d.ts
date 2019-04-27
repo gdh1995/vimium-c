@@ -48,11 +48,11 @@ interface KeydownCacheArray extends SafeObject {
 interface SafeElement extends Element {
   tagName: string;
 }
-type BaseLockableElement = HTMLElement & SafeElement;
-/** must extend `SafeElement` */
-interface LockableElement extends BaseLockableElement {
+type SafeHTMLElement = HTMLElement & SafeElement & {
+  readonly innerText: string;
+};
+interface LockableElement extends SafeHTMLElement {
 }
-type SafeHTMLElement = HTMLElement & SafeElement;
 
 interface EventControlKeys {
   altKey: boolean;
@@ -123,6 +123,7 @@ declare const enum EditableType {
   NotEditable = Default,
   Embed = 1,
   Select = 2,
+  MaxNotTextModeElement = 2,
   Editbox = 3,
   input_ = 4,
   rich_ = 5,

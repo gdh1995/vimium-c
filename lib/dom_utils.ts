@@ -63,19 +63,24 @@ var VDom = {
   },
   /** refer to {@link BrowserVer.MinParentNodeInNodePrototype } */
   Getter_: Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty> (this: void
-      , Cls: { prototype: Ty, new(): Ty; }, instance: Ty, property: Key & string
+      , Cls: { prototype: Ty, new(): Ty; }, instance: Ty
+      , property: Key & (Ty extends Element ? "shadowRoot" | "assignedSlot" : "childNodes" | "parentNode")
       ): NonNullable<Ty[Key]> | null {
     const desc = Object.getOwnPropertyDescriptor(Cls.prototype, property);
     return desc && desc.get ? desc.get.call(instance) : null;
   } : 0 as never,
-  GetShadowRoot_ (el: Element | Node): ShadowRoot | null {
+  GetShadowRoot_ (el: Element): ShadowRoot | null {
     // check el's type to avoid exceptions
-    if (Build.BTypes & ~BrowserType.Firefox) {
-      const sr = (el as Element).shadowRoot || null, E = Element;
-      return sr && sr instanceof E ? el instanceof E ? VDom.Getter_(E, el, "shadowRoot") : null : sr;
-    } else {
-      return (el as Element).shadowRoot || null;
+    if (!(Build.BTypes & ~BrowserType.Firefox)) {
+      return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ? el.shadowRoot as ShadowRoot | null
+        : <ShadowRoot | null | undefined> el.shadowRoot || null;
     }
+    const sr = el.shadowRoot;
+    if (sr) {
+      return sr.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
+        ? sr : VDom.Getter_(Element, el, "shadowRoot") as ShadowRoot;
+    }
+    return Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? sr as null : sr || null;
   },
   /**
    * Try its best to find a real parent
@@ -112,14 +117,15 @@ var VDom = {
       if (pe && pe.contains(el)) { /* pe is real */ return pe; }
       pn = VDom.Getter_(Node, el, "parentNode");
     }
-    const SR = window.ShadowRoot as Exclude<Window["ShadowRoot"], Element | undefined>;
-    // pn is real or null
+    // pn is real (if BrowserVer.MinParentNodeGetterInNodePrototype else) real or null
     return type === PNType.DirectNode ? pn // may return a Node instance
       : type >= PNType.ResolveShadowHost && (
-        !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 ||
-          SR && !(SR instanceof E)
-        ) && pn instanceof SR ? pn.host // shadow root
-      : pn instanceof E ? pn /* in doc and .pN+.pE are overridden */ : null /* pn is null, DocFrag, or ... */;
+        !(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype || pn)
+        && (pn as Node).nodeType === kNode.DOCUMENT_FRAGMENT_NODE
+      ? (pn as DocumentFragment as ShadowRoot).host || null // shadow root or other type of document fragment
+      : (!(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype || pn)
+        && "tagName" in (pn as Node) ? pn as Element /* in doc and .pN+.pE are overridden */
+      : null /* pn is null, or some unknown type ... */;
   } as {
     (this: void, el: Element, type: PNType.DirectElement
         | PNType.ResolveShadowHost | PNType.RevealSlot | PNType.RevealSlotAndGotoParent): Element | null;
@@ -219,11 +225,15 @@ var VDom = {
         }
         continue;
       }
-      if (_ref || (_ref = element.children, Build.BTypes & ~BrowserType.Firefox && _ref instanceof Element)) {
+      // according to https://dom.spec.whatwg.org/#dom-parentnode-children
+      // .children will always be a HTMLCollection even if element is SVGElement
+      if (_ref || Build.BTypes & ~BrowserType.Firefox && !((_ref = element.children) instanceof HTMLCollection)) {
         continue;
       }
-      for (let _j = 0, _len1 = _ref.length, gCS = getComputedStyle; _j < _len1; _j++) {
-        style = gCS(_ref[_j]);
+      Build.BTypes & ~BrowserType.Firefox || (_ref = element.children);
+      type EnsuredChildren = Exclude<Element["children"], Element | null | undefined>;
+      for (let _j = 0, _len1 = (_ref as EnsuredChildren).length, gCS = getComputedStyle; _j < _len1; _j++) {
+        style = gCS((_ref as EnsuredChildren)[_j]);
         if (style.float !== "none" || ((str = style.position) !== "static" && str !== "relative")) { /* empty */ }
         else if (rect.height === 0) {
           if (notInline == null) {
@@ -233,7 +243,7 @@ var VDom = {
           }
           if (notInline || !style.display.startsWith("inline")) { continue; }
         } else { continue; }
-        if (cr = this.getVisibleClientRect_(_ref[_j], style)) { return cr; }
+        if (cr = this.getVisibleClientRect_((_ref as EnsuredChildren)[_j], style)) { return cr; }
       }
       style = null;
     }
@@ -449,7 +459,7 @@ var VDom = {
     let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;
     !(Build.BTypes & ~BrowserType.Firefox) ||
-    root || doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
+    root || doc.nodeType !== kNode.DOCUMENT_NODE && (doc = document);
     if (doc.nodeType === 9 && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox) || (f = NP.getRootNode))) {
       return !(Build.BTypes & ~BrowserType.Firefox)
@@ -532,37 +542,44 @@ var VDom = {
       : element === node || node instanceof Element && element === node.childNodes[sel.anchorOffset];
   },
   /**
-   * need selection.rangeCount > 0
+   * need selection.rangeCount > 0; return HTMLElement if there's only Firefox
    * @UNSAFE_RETURNED
    */
-  GetSelectionParent_unsafe_ (sel: Selection, selected?: string): HTMLElement | null {
+  GetSelectionParent_unsafe_ (sel: Selection, selected?: string): Element | null {
     let range = sel.getRangeAt(0), par: Node | null = range.commonAncestorContainer, p0 = par;
     // no named getters on SVG* elements
-    while (par && !(par instanceof HTMLElement)) { par = par.parentNode as Element; }
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      while (par && par instanceof SVGElement) { par = VDom.GetParent_(par, PNType.DirectElement); }
+    } else {
+      while (par && !(par instanceof HTMLElement)) { par = par.parentNode as Element; }
+    }
     if (selected && p0 instanceof Text && p0.data.trim().length <= selected.length) {
-      let text: string;
-      while (par && (text = (<HTMLElement> par).innerText,
-            !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string"))
-          && selected.length === text.length) {
+      let text: string | Element | undefined;
+      while (par && (text = (par as HTMLElement | Element & {innerText?: undefined}).innerText,
+            !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
+          && selected.length === (text as string).length) {
         par = VDom.GetParent_(par as Element, PNType.DirectElement);
       }
     }
-    return par !== document.documentElement ? par as HTMLElement | null : null;
+    return par !== document.documentElement ? par as Element | null : null;
   },
   getSelectionFocusEdge_ (sel: Selection, knownDi: VisualModeNS.ForwardDir): SafeElement | null {
     if (!sel.rangeCount) { return null; }
     let el = sel.focusNode, E = Element
-      , o: Node | null, cn: Node["childNodes"];
+      , o: Node | null, cn: Node["childNodes"] | null;
     if (el instanceof E) {
       el = Build.BTypes & ~BrowserType.Firefox
-        ? !((cn = this.Getter_(Node, el, "childNodes") || el.childNodes) instanceof E) && cn[sel.focusOffset] || el
+        ? ((cn = el.childNodes) instanceof HTMLCollection || (cn = this.Getter_(Node, el, "childNodes")))
+          && cn[sel.focusOffset] || el
         : el.childNodes[sel.focusOffset] || el;
     }
-    for (o = el; o && !(o instanceof E); o = knownDi ? o.previousSibling : o.nextSibling) { /* empty */ }
+    for (o = el; o && o.nodeType !== kNode.ELEMENT_NODE;
+          o = knownDi ? o.previousSibling : o.nextSibling) { /* empty */ }
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
       return (/* Element | null */ o || (/* el is not Element */ el && el.parentElement)) as SafeElement | null;
     }
-    return this.SafeEl_(/* Element | null */ o || (/* el is not Element */ el && el.parentElement)
+    return this.SafeEl_(<Element | null> o
+        || (/* el is not SafeElement */ el instanceof E ? el : el && el.parentElement)
       , PNType.DirectElement);
   },
   center_ (rect?: Rect | null): Point2D {
@@ -576,7 +593,7 @@ var VDom = {
       , button?: number): boolean {
     let doc = element.ownerDocument;
     Build.BTypes & ~BrowserType.Firefox &&
-    doc.nodeType !== /* Node.DOCUMENT_NODE */ 9 && (doc = document);
+    doc.nodeType !== kNode.DOCUMENT_NODE && (doc = document);
     const mouseEvent = doc.createEvent("MouseEvents");
     // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
     //  viewArg: Window, detailArg: number,

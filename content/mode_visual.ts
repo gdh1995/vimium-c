@@ -594,9 +594,9 @@ var VVisual = {
           : (anchorNode as Node).compareDocumentPosition(focusNode as Node);
         a.diType_ = VisualModeNS.DiType.Normal;
         return a.di_ = (
-            num1 & (/** Node.DOCUMENT_POSITION_CONTAINS */ 8 | /** Node.DOCUMENT_POSITION_CONTAINED_BY */ 16)
+            num1 & (kNode.DOCUMENT_POSITION_CONTAINS | kNode.DOCUMENT_POSITION_CONTAINED_BY)
             ? sel.getRangeAt(0).endContainer === anchorNode
-            : (num1 & /** Node.DOCUMENT_POSITION_PRECEDING */ 2)
+            : (num1 & kNode.DOCUMENT_POSITION_PRECEDING)
           ) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right; // return `right` in case of unknown cases
       }
       num1 = sel.anchorOffset;
@@ -610,10 +610,12 @@ var VVisual = {
     if (lock && lock.parentElement === anchorNode) {
       type TextModeElement = HTMLInputElement | HTMLTextAreaElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)
-          && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.Select) {
-        const child = (Build.BTypes & ~BrowserType.Firefox && VDom.Getter_(Node, anchorNode as Element, "childNodes")
-                        || (anchorNode as Element).childNodes
-                      )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
+          && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.MaxNotTextModeElement) {
+        const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes
+            : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
+            ? VDom.Getter_(Node, anchorNode as Element, "childNodes") as NodeList
+            : VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes
+            )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (VDom.isInputInTextMode_(lock as TextModeElement)) {
             a.diType_ = VisualModeNS.DiType.TextBox | (oldDiType & VisualModeNS.DiType.isUnsafe);

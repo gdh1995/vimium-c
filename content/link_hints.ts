@@ -532,7 +532,7 @@ var VHints = {
     }
     return output as Hint[];
   } as {
-    (key: string, filter: HintsNS.Filter<HTMLElement>, notWantVUI?: true, wholeDoc?: true): HTMLElement[];
+    (key: string, filter: HintsNS.Filter<SafeHTMLElement>, notWantVUI?: true, wholeDoc?: true): SafeHTMLElement[];
     (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: boolean): Hint[];
   },
   getElementsInViewPort_ (list: HintsNS.ElementList): HintsNS.ElementList {

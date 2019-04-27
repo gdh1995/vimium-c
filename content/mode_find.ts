@@ -495,7 +495,7 @@ var VFind = {
       }
       query = <string | undefined | null> text ||
           (Build.BTypes & ~BrowserType.Firefox ? (document.documentElement as HTMLElement).innerText + ""
-            : (document.documentElement as HTMLElement).innerText);
+            : (document.documentElement as HTMLElement).innerText as string);
       matches = query.match(re) || query.replace(a.A0Re_, " ").match(re);
     }
     a.regexMatches_ = isRe ? matches : null;
@@ -538,7 +538,7 @@ var VFind = {
     const a = this;
     let el: LockableElement | null
       , found: boolean, count = ((options.n as number) | 0) || 1, back = count < 0
-      , par: HTMLElement | null = null, timesRegExpNotMatch = 0
+      , par: Element | null = null, timesRegExpNotMatch = 0
       , sel: Selection | undefined
       , q: string, notSens = a.ignoreCase_ && !options.caseSensitive;
     /** Note:
@@ -560,7 +560,7 @@ var VFind = {
         : window.find(q, !notSens, back, true, a.wholeWord_, false, false);
       if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VDom.UI.getSelected_()[0]), q))) {
         pR.lastIndex = 0;
-        let text = par.innerText as string | HTMLElement;
+        let text = (par as HTMLElement | Element & {innerText?: undefined}).innerText;
         if (text && !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string")
             && !(pR as RegExpG & RegExpSearchable<0>).test(text as string)
             && timesRegExpNotMatch++ < 9) {

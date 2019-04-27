@@ -1387,6 +1387,7 @@ interface DocumentAttrsToBeDetected {
 }
 
 interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEvent, ParentNode, DocumentOrShadowRoot {
+    readonly nodeType: kNode.DOCUMENT_NODE | Element;
     /**
       * Sets or gets the URL for the current document. 
       */
@@ -1998,6 +1999,7 @@ declare var Document: {
 }
 
 interface DocumentFragment extends Node, NodeSelector, ParentNode {
+    readonly nodeType: kNode.DOCUMENT_FRAGMENT_NODE;
     getElementById?(elementId: string): Element | null;
 }
 
@@ -2051,6 +2053,7 @@ interface AttachShadow {
 }
 interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelector, ChildNode, ParentNode
         , Partial<AttachShadow> {
+    readonly nodeType: kNode.ELEMENT_NODE | Element;
     readonly classList: DOMTokenList;
     className: string;
     readonly clientHeight: number;
@@ -2077,7 +2080,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     readonly tagName: string | Element | Window;
     readonly assignedSlot: HTMLSlotElement | null;
     slot: string;
-    readonly shadowRoot?: ShadowRoot | null;
+    readonly shadowRoot?: ShadowRoot | Element | null;
     textContent: string;
     focus?(): void;
     blur?(): void;
@@ -2277,6 +2280,7 @@ declare var HTMLAllCollection: {
 
 interface HTMLAnchorElement extends HTMLElement {
     readonly tagName: "A" | "a";
+    readonly innerText: string;
     Methods: string;
     /**
       * Sets or retrieves the character set used to encode the object.
@@ -2441,6 +2445,7 @@ declare var HTMLAppletElement: {
 
 interface HTMLAreaElement extends HTMLElement {
     readonly tagName: "area" | "AREA";
+    readonly innerText: string;
     /**
       * Sets or retrieves a text alternative to the graphic.
       */
@@ -2600,6 +2605,7 @@ interface HTMLBodyElementEventMap extends HTMLElementEventMap {
 
 interface HTMLBodyElement extends HTMLElement {
     readonly tagName: "body" | "BODY";
+    readonly innerText: string;
     aLink: any;
     background: string;
     bgColor: any;
@@ -2926,7 +2932,7 @@ interface HTMLElement extends Element {
     draggable: boolean;
     hidden: boolean;
     hideFocus: boolean;
-    innerText: string;
+    innerText: string | Element;
     readonly isContentEditable: boolean;
     lang: string;
     readonly offsetHeight: number;
@@ -3507,6 +3513,7 @@ declare var HTMLIFrameElement: {
 
 interface HTMLImageElement extends HTMLElement {
     readonly tagName: "img" | "IMG";
+    readonly innerText: string;
     /**
       * Sets or retrieves how the object is aligned with adjacent text.
       */
@@ -5401,6 +5408,18 @@ declare var Navigator: {
     new(): Navigator;
 }
 
+declare const enum kNode {
+    ELEMENT_NODE = 1,
+    DOCUMENT_NODE = 9,
+    DOCUMENT_FRAGMENT_NODE = 11,
+
+    DOCUMENT_POSITION_PRECEDING = 2,
+    DOCUMENT_POSITION_CONTAINS = 8,
+    DOCUMENT_POSITION_CONTAINED_BY = 16,
+
+    _mask = 0,
+}
+
 interface Node extends EventTarget {
     readonly attributes: NamedNodeMap;
     readonly baseURI: string | null;
@@ -5411,7 +5430,7 @@ interface Node extends EventTarget {
     readonly namespaceURI: string | null;
     readonly nextSibling: Node | null;
     readonly nodeName?: string | Element;
-    readonly nodeType: number;
+    readonly nodeType: number | Element;
     nodeValue: string | null;
     readonly ownerDocument: Document;
     readonly parentElement: Element | null;
@@ -5421,7 +5440,7 @@ interface Node extends EventTarget {
     textContent: string | null;
     appendChild<T extends Node>(newChild: T): T;
     cloneNode(deep?: boolean): Node;
-    compareDocumentPosition(other: Node): number;
+    compareDocumentPosition(other: Node): kNode;
     contains(child: Node): boolean;
     getRootNode?(options?: { composed?: boolean }): Node;
     hasAttributes(): boolean;
@@ -5435,47 +5454,11 @@ interface Node extends EventTarget {
     normalize(): void;
     removeChild(oldChild: Node): Node;
     replaceChild(newChild: Node, oldChild: Node): Node;
-    readonly ATTRIBUTE_NODE: number;
-    readonly CDATA_SECTION_NODE: number;
-    readonly COMMENT_NODE: number;
-    readonly DOCUMENT_FRAGMENT_NODE: number;
-    readonly DOCUMENT_NODE: number;
-    readonly DOCUMENT_POSITION_CONTAINED_BY: number;
-    readonly DOCUMENT_POSITION_CONTAINS: number;
-    readonly DOCUMENT_POSITION_DISCONNECTED: number;
-    readonly DOCUMENT_POSITION_FOLLOWING: number;
-    readonly DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: number;
-    readonly DOCUMENT_POSITION_PRECEDING: number;
-    readonly DOCUMENT_TYPE_NODE: number;
-    readonly ELEMENT_NODE: number;
-    readonly ENTITY_NODE: number;
-    readonly ENTITY_REFERENCE_NODE: number;
-    readonly NOTATION_NODE: number;
-    readonly PROCESSING_INSTRUCTION_NODE: number;
-    readonly TEXT_NODE: number;
 }
 
 declare var Node: {
     prototype: Node;
     new(): Node;
-    readonly ATTRIBUTE_NODE: number;
-    readonly CDATA_SECTION_NODE: number;
-    readonly COMMENT_NODE: number;
-    readonly DOCUMENT_FRAGMENT_NODE: number;
-    readonly DOCUMENT_NODE: number;
-    readonly DOCUMENT_POSITION_CONTAINED_BY: number;
-    readonly DOCUMENT_POSITION_CONTAINS: number;
-    readonly DOCUMENT_POSITION_DISCONNECTED: number;
-    readonly DOCUMENT_POSITION_FOLLOWING: number;
-    readonly DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: number;
-    readonly DOCUMENT_POSITION_PRECEDING: number;
-    readonly DOCUMENT_TYPE_NODE: number;
-    readonly ELEMENT_NODE: number;
-    readonly ENTITY_NODE: number;
-    readonly ENTITY_REFERENCE_NODE: number;
-    readonly NOTATION_NODE: number;
-    readonly PROCESSING_INSTRUCTION_NODE: number;
-    readonly TEXT_NODE: number;
 }
 
 interface NodeFilter {

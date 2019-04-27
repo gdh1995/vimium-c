@@ -185,7 +185,7 @@ hooks = {
     if (type === "click" ? listener && !(a instanceof HA) && a instanceof E
         : type === kVOnClick
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
-          && a && !(a as Window).window && (a as Node).nodeType === /* Node.ELEMENT_NODE */ 1) {
+          && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
       toRegister.p(a as Element);
       timer = timer || setTimeout_(next, InnerConsts.DelayToStartIteration);
     }
@@ -256,21 +256,22 @@ function prepareRegister(this: void, element: Element): void {
         , element));
     return;
   }
-  const doc1 = element.ownerDocument;
+  const doc1 = element.ownerDocument as Document | Element;
   // in case element is <form> / <frameset> / adopted into another document, or aEL is from another frame
   if (doc1 !== doc) {
     // although on Firefox element.__proto__ is auto-updated when it's adopted
     // but aEl may be called before real insertion
-    if (doc1.nodeType === /* Node.DOCUMENT_NODE */ 9 && doc1.defaultView) {
-      safeReRegister(element, doc1);
+    if (doc1.nodeType === kNode.DOCUMENT_NODE && (doc1 as Document).defaultView) {
+      // just smell like a Document
+      safeReRegister(element, doc1 as Document);
     } // `defaultView` is to check whether element is in a real frame's DOM tree
     // Note: on C72, ownerDocument of elements under <template>.content
     // is a fake "about:blank" document object
     return;
   }
-  let e1: Element | null = element, e2: Node | null, e3: Node | null;
+  let e1: Element | null = element, e2: Node | null, e3: Node | null | undefined;
   for (; e2 = e1.parentElement; e1 = e2 as Element) {
-    if (e2 !== (e3 = e1.parentNode as Element)) {
+    if (Build.BTypes & ~BrowserType.Firefox && e2 !== (e3 = e1.parentNode as Element)) {
       e2 = call(Contains, e2, e1) ? e2 as Element : call(Contains, e3, e1) ? e3 as Element : null;
       if (!e2) { return; }
     }
@@ -282,16 +283,19 @@ function prepareRegister(this: void, element: Element): void {
     pushForDetached(
       IndexOf(allNodesForDetached = allNodesForDetached || call(getElementsByTagNameInEP, root, "*")
         , element));
-  } else if (e2 instanceof DF && !(e2 instanceof SR || ((e3 = e1.nextSibling) && e3.parentElement))) {
+  } else if (e2 instanceof DF && !((e2 as ShadowRoot).host
+              || Build.BTypes & ~BrowserType.Firefox && (e3 = e1.nextSibling) && e3.parentElement)) {
+    // not register, if ShadowRoot or .nextSibling is not real
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
     if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick - 2) {
       doRegister();
+      Build.BTypes & ~BrowserType.Firefox || (e3 = e1.nextSibling);
       call(Append, root, e1);
       unsafeDispatchCounter++;
       dispatch(element, new CE(kVOnClick));
-      call(Insert, e2, e1, e3);
+      call(Insert, e2, e1, e3 as Exclude<typeof e3, undefined>);
     } else {
       toRegister.p(element);
       if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick + 1) {
@@ -431,7 +435,7 @@ _listen("load", delayFindAll, !0);
     // in case there's `$("#requestIdleCallback")`
     return (BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || VDom && VDom.allowRAF_)
-      ? (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? f && !(f instanceof Element) : timeout > 9)
+      ? (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? f && !("tagName" in f) : timeout > 9)
       ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? f : requestIdleCallback
           ) as Exclude<typeof f, null | undefined | Element>)(cb, { timeout })
       : requestAnimationFrame(cb)

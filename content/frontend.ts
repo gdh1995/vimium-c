@@ -197,23 +197,28 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (target === VDom.UI.box_) { return VUtils.Stop_(event); }
     const sr = VDom.GetShadowRoot_(target as Element);
     if (sr) {
-      let path = event.path, top: EventTarget | undefined, SR = ShadowRoot,
+      let path = event.path, top: EventTarget | undefined,
       /**
        * isNormalHost is true if one of:
        * - Chrome is since BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
        * - `event.currentTarget` (`this`) is a shadowRoot
        */
-      isNormalHost = !!(top = path && path[0]) && top !== window && top !== target,
+      isNormalHost = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
+          && !(Build.BTypes & ~BrowserType.Chrome)
+        ? (top = (path as EventPath)[0]) !== target
+        : !!(top = path && path[0]) && top !== window && top !== target,
       len = isNormalHost ? Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
               || !(Build.BTypes & BrowserType.Chrome) // in fact, FF66 has no event.path
         ? (path as EventTarget[]).indexOf(target) : [].indexOf.call(path as NodeList, target) : 1;
       isNormalHost ? (target = top as Element) : (path = [sr]);
       while (0 <= --len) {
-        const root = (path as EventPath)[len];
-        if (!(root instanceof SR) || root.vimiumListened === ShadowRootListenType.Full) { continue; }
+        // root is target or inside target, so always a Node
+        const root = (path as EventPath)[len] as Node;
+        if (root.nodeType !== kNode.DOCUMENT_FRAGMENT_NODE
+            || (root as ShadowRoot).vimiumListened === ShadowRootListenType.Full) { continue; }
         root.addEventListener("focus", onShadow, true);
         root.addEventListener("blur", onShadow, true);
-        root.vimiumListened = ShadowRootListenType.Full;
+        (root as ShadowRoot).vimiumListened = ShadowRootListenType.Full;
       }
     }
     if (VDom.getEditableType_<LockableElement>(target)) {
@@ -241,7 +246,10 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if (target === window) { return onWndBlur(); }
     if (Build.BTypes & BrowserType.Firefox && target === document) { return; }
     let path = event.path as EventPath | undefined, top: EventTarget | undefined
-      , same = !(top = path && path[0]) || top === window || top === target
+      , same = Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM
+            && !(Build.BTypes & ~BrowserType.Chrome)
+          ? (top = (path as EventPath)[0]) === target
+          : !(top = path && path[0]) || top === window || top === target
       , sr = VDom.GetShadowRoot_(target as Element);
     if (InsertMode.lock_ === (same ? target : top)) {
       InsertMode.lock_ = null;
@@ -252,16 +260,16 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       sr.vimiumListened = ShadowRootListenType.Blur;
       return;
     }
-    let wrapper = onShadow;
     for (let len = Build.MinCVer >= BrowserVer.Min$Event$$path$IsStdArrayAndIncludesWindow
                     || !(Build.BTypes & BrowserType.Chrome)
               ? (path as EventTarget[]).indexOf(target) : [].indexOf.call(path as NodeList, target)
-          , SR = ShadowRoot; 0 <= --len; ) {
-      const root = (path as EventPath)[len];
-      if (!(root instanceof SR)) { continue; }
-      root.removeEventListener("focus", wrapper, true);
-      root.removeEventListener("blur", wrapper, true);
-      root.vimiumListened = ShadowRootListenType.None;
+          ; 0 <= --len; ) {
+      // root is target or inside target, so always a Node
+      const root = (path as EventPath)[len] as Node;
+      if (root.nodeType !== kNode.DOCUMENT_FRAGMENT_NODE) { continue; }
+      root.removeEventListener("focus", onShadow, true);
+      root.removeEventListener("blur", onShadow, true);
+      (root as ShadowRoot).vimiumListened = ShadowRootListenType.None;
     }
   }
   function onActivate(event: UIEvent | MouseEvent): void {
@@ -692,9 +700,10 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
     return true;
   },
-  GetLinks_ (this: HTMLElement[], element: Element): void {
+  GetLinks_ (this: SafeHTMLElement[], element: Element): void {
     if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { return; }
-    let s: string | null = (element.tagName as string).toLowerCase(), sr = element.shadowRoot;
+    let s: string | null = (element.tagName as string).toLowerCase()
+      , sr = element.shadowRoot as Exclude<Element["shadowRoot"], Element>;
     if (sr) {
       ([].forEach as HintsNS.ElementIterator<Element>).call(
         sr.querySelectorAll("*"), Pagination.GetLinks_, this);
@@ -708,7 +717,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
     const rect = VDom.getBoundingClientRect_(element);
     if (rect.width > 2 && rect.height > 2 && getComputedStyle(element).visibility === "visible") {
-      this.push(element);
+      this.push(element as SafeHTMLElement);
     }
   },
   findAndFollowLink_ (names: string[], isNext: boolean): boolean {
@@ -719,7 +728,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
     detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
     refusedStr = isNext ? "<" : ">";
-    links.push(document.documentElement as HTMLElement);
+    links.push(document.documentElement as never as SafeHTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = 99, len: number;
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
       const link = links[_len];
