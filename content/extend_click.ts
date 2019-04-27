@@ -183,7 +183,7 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
     if (type === "click" ? listener && !(a instanceof HA) && a instanceof E
-        : Build.BTypes & ~BrowserType.Firefox && type === kVOnClick
+        : type === kVOnClick
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === /* Node.ELEMENT_NODE */ 1) {
       toRegister.p(a as Element);
@@ -259,10 +259,9 @@ function prepareRegister(this: void, element: Element): void {
   const doc1 = element.ownerDocument;
   // in case element is <form> / <frameset> / adopted into another document, or aEL is from another frame
   if (doc1 !== doc) {
-    // on Firefox, element.__proto__ is auto-updated when it's adopted
-    // so here we don't want to check this a too rare case if Firefox is the only supported
-    if (Build.BTypes & ~BrowserType.Firefox
-        && doc1.nodeType === /* Node.DOCUMENT_NODE */ 9 && doc1.defaultView) {
+    // although on Firefox element.__proto__ is auto-updated when it's adopted
+    // but aEl may be called before real insertion
+    if (doc1.nodeType === /* Node.DOCUMENT_NODE */ 9 && doc1.defaultView) {
       safeReRegister(element, doc1);
     } // `defaultView` is to check whether element is in a real frame's DOM tree
     // Note: on C72, ownerDocument of elements under <template>.content
