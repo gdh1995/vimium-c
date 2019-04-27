@@ -355,7 +355,10 @@ var VDom = {
       // then it's a whole mess and nothing can be ensured to be right
       a.bZoom_ = body && (target === 1 || a.isInDOM_(target, body)) && +gcs(body).zoom || 1;
     }
-    for (; el && el !== docEl; el = a.GetParent_(el, PNType.RevealSlot)) {
+    for (; el && el !== docEl;
+        el = a.GetParent_(el, Build.MinCVer < BrowserVer.MinSlotIsNotDisplayContents
+              && Build.BTypes & BrowserType.Chrome && a.cache_.browserVer_ < BrowserVer.MinSlotIsNotDisplayContents
+            ? PNType.RevealSlotAndGotoParent : PNType.RevealSlot)) {
       zoom *= +gcs(el).zoom || 1;
     }
     a.paintBox_ = null; // it's not so necessary to get a new paintBox here

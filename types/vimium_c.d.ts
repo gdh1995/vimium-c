@@ -684,6 +684,7 @@ declare const enum BrowserVer {
   // @see MinEscapeHashInBodyOfDataURL
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
   MinWarningOfEscapingHashInBodyOfDataURL = 66,
+  MinSlotIsNotDisplayContents = 67,
   // even if EXPERIMENTAL or LEGACY
   // but not on pages whose JS is disabled in chrome://settings/content/siteDetails?site=<origin>
   // issue: https://bugs.chromium.org/p/chromium/issues/detail?id=811528
