@@ -247,6 +247,7 @@ next = function (): void {
 }
 , root: HTMLDivElement, timer = setTimeout_(handler, InnerConsts.DelayToWaitDomReady)
 , SR: typeof ShadowRoot = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
       ? ShadowRoot : window.ShadowRoot as typeof ShadowRoot
 ;
 function prepareRegister(this: void, element: Element): void {
@@ -363,7 +364,8 @@ function executeCmd(eventOrDestroy?: Event): void {
 }
 function noop(): void | 1 { return; }
 toRegister.p = push as any, toRegister.s = toRegister.splice;
-if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0) {
+if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0) &&
+    (Build.BTypes & ~BrowserType.Firefox || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1)) {
   SR = !SR || SR instanceof E ? CE as never : SR;
 }
 // only the below can affect outsides

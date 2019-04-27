@@ -501,9 +501,11 @@ var VHints = {
     const uiRoot = VDom.UI.UI;
     if (uiRoot
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+          || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || uiRoot !== VDom.UI.box_)
         && !notWantVUI
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
+          || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || uiRoot.mode === "closed"
           || !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0)
           || !matchAll && a.queryInDeep_ !== DeepQueryType.InDeep)

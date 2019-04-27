@@ -181,7 +181,8 @@ var Settings = {
           return `rgba(${r},${g},${b},${alpha.slice(0, 4)})`;
         });
       }
-      if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0)
+      if (!( !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+            || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && browserInfo.indexOf("s") < 0) {
         // Note: &vimium.min.css: this requires `:host{` is at the beginning
         const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1,
@@ -561,8 +562,9 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     settings.set_("newTabUrl", obj.NewTabForNewUser_);
   }
   obj.StyleCacheId_ = obj.VerCode_ + "," + ChromeVer
-    + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? ""
-        : window.ShadowRoot ? "s" : "")
+    + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+          || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+        ? "" : window.ShadowRoot ? "s" : "")
     + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All ? ""
       : (Build.MinCVer > BrowserVer.MinSafeCSS$All || ChromeVer > BrowserVer.MinSafeCSS$All)
         && (!(Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))

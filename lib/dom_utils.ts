@@ -80,7 +80,9 @@ var VDom = {
       return sr.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
         ? sr : VDom.Getter_(Element, el, "shadowRoot") as ShadowRoot;
     }
-    return Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? sr as null : sr || null;
+    return !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+      ? sr as null :sr || null;
   },
   /**
    * Try its best to find a real parent

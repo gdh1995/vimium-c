@@ -10,14 +10,21 @@ VDom.UI = {
   add_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
     r: VUIRoot = a.UI = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
+        || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+        || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 && !(Build.BTypes & BrowserType.Edge)
+            && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
         || box.attachShadow
       ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
       : (Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
-        && Build.MinCVer >= BrowserVer.MinShadowDOMV0 && box.createShadowRoot
-      ? box.createShadowRoot() : box;
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+            || box.createShadowRoot)
+      ? (box as Ensure<typeof box, "createShadowRoot">).createShadowRoot() : box;
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 ||
+    !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ||
+    Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 && !(Build.BTypes & BrowserType.Edge)
+      && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ||
     r.mode === "closed" ||
     (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || r !== box
       ? r as ShadowRoot : window).addEventListener("load",
@@ -37,7 +44,9 @@ VDom.UI = {
     });
     a.css_ = (function (innerCSS): void {
       const a1 = VDom.UI, box2 = a1.box_ as HTMLElement;
-      if (((Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer < BrowserVer.MinShadowDOMV0) && box2 === a1.UI) {
+      if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0) &&
+          (Build.BTypes & ~BrowserType.Firefox || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) &&
+          box2 === a1.UI) {
         box2.id = "VimiumUI";
       }
       let el: HTMLStyleElement | null = a1.styleIn_ = a1.createStyle_();

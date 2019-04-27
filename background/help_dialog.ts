@@ -3,11 +3,14 @@ var HelpDialog = {
   templateEl_: null as HTMLTableDataCellElement | null,
   render_: (function (this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
-      const noShadow = (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0)
+      const noShadow = !( !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+            || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !window.ShadowRoot,
       noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
           && ChromeVer === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
-      if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0) && noShadow
+      if (!( !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+            || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+          && noShadow
           || Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
               && noContain) {
         let template = Settings.cache_.helpDialog as string, styleEnd = template.indexOf("</style>"),
@@ -16,7 +19,9 @@ var HelpDialog = {
             && noContain) {
           left = left.replace(<RegExpG> /contain:\s?[\w\s]+/g, "contain: none !important");
         }
-        if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0) && noShadow) {
+        if (!( !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+              || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            && noShadow) {
           left = left.replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
             ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv");
         }

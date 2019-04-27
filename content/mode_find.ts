@@ -165,6 +165,7 @@ var VFind = {
     UI.box_ ? UI.adjust_() : UI.add_(sin, adjust, true);
     sin.remove();
     this.styleOut_ = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
         || UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
@@ -584,14 +585,14 @@ var VFind = {
       return window.find.apply(window, arguments);
     } catch { return false; }
   } as Window["find"] : 0 as never,
-  HookSel_ (): void {
-    addEventListener("selectionchange", VFind && VFind.ToggleStyle_, true);
+  HookSel_ (t?: TimerType.fake | 1): void {
+    (<number> t > 0 ? removeEventListener : addEventListener)("selectionchange", VFind && VFind.ToggleStyle_, true);
   },
   /** must be called after initing */
   ToggleStyle_ (this: void, disable: BOOL | boolean | Event): void {
     const a = VFind, sout = a.styleOut_, sin = a.styleIn_, UI = VDom.UI, active = a.isActive_;
     if (!sout) { return; }
-    removeEventListener("selectionchange", a.ToggleStyle_, true);
+    a.HookSel_(1);
     disable = !!disable;
     // Note: `<doc/root>.adoptedStyleSheets` should not be modified in an extension world
     if (!active && disable) {
@@ -602,6 +603,7 @@ var VFind = {
     if (sout.parentNode !== UI.box_) {
       (UI.box_ as HTMLDivElement).appendChild(sout);
       ((Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer < BrowserVer.MinShadowDOMV0) &&
+      (Build.BTypes & ~BrowserType.Firefox || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) &&
       sin === sout || UI.add_(sin, AdjustType.NotAdjust, true);
     }
     sout.sheet && (sout.sheet.disabled = disable);

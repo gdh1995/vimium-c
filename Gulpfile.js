@@ -950,8 +950,13 @@ function removeUnknownOptions() {
   tsOptionsCleaned = true;
 }
 
+var _buildConfigPrinted = false;
 function getBuildConfigStream() {
   return gulp.src("types/build/index.d.ts").pipe(gulpMap(function(file) {
+    if (debugging && !_buildConfigPrinted) {
+      _buildConfigPrinted = true;
+      print("Current build config is:\n" + _buildConfigTSContent);
+    }
     file.contents = new Buffer(_buildConfigTSContent);
     return file;
   }));

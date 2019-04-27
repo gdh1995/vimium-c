@@ -720,7 +720,7 @@ declare const enum BrowserVer {
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
   // it's said the deadline is C73 in https://www.chromestatus.com/features/4507242028072960
   // but no source code in Chromium to disable it (tested on 2019-03-13)
-  MinNoShadowDOMv0 = 76,
+  MinNoShadowDOMv0 = 77,
   assumedVer = 999,
 }
 declare const enum FirefoxBrowserVer {
