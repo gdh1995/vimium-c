@@ -355,7 +355,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
 
     /* toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
       const key = options.key, backupKey = "_" + key as string as typeof key,
-      cache = VUtils.safer_(VUtils.cache_), cur = cache[key];
+      cache = VUtils.safer_(VDom.cache_), cur = cache[key];
       let val = options.value, u: undefined;
       if (typeof cur === "boolean") {
         val === null && (val = !cur);
@@ -581,7 +581,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       /** if `notBody` then `activeEl` is not null */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = Object.create(null);
-      if (VUtils.cache_.grabBackFocus_ && InsertMode.grabBackFocus_) {
+      if (VDom.cache_.grabBackFocus_ && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
           counter++ || console.log("An auto-focusing action is blocked by Vimium C.");
         };
@@ -710,7 +710,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
     const isClickable = s === "a" || (
       s === "button" ? !(element as HTMLButtonElement).disabled
-      : VUtils.clickable_.has(element) || element.getAttribute("onclick") || (
+      : VDom.clickable_.has(element) || element.getAttribute("onclick") || (
         (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
         : VHints.ngEnabled_ && element.getAttribute("ng-click")));
     if (!isClickable) { return; }
@@ -801,7 +801,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         let docEl = document.documentElement;
         if (docEl) {
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-          && (!(Build.BTypes & ~BrowserType.Chrome) || VUtils.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions)
+          && (!(Build.BTypes & ~BrowserType.Chrome) || VDom.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions)
         ?
           (Element.prototype.scrollIntoViewIfNeeded as NonNullable<Element["scrollIntoViewIfNeeded"]>).call(docEl)
         : VDom.scrollIntoView_(docEl);
@@ -923,7 +923,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
           && <number> Build.BTypes !== BrowserType.Edge) {
         OnOther = load.browser_;
       }
-      ((VSettings as Writeable<VSettingsTy>).cache = VUtils.cache_ = load).onMac_ &&
+      ((VSettings as Writeable<VSettingsTy>).cache = VDom.cache_ = load).onMac_ &&
         (VKeyboard.correctionMap_ = Object.create<string>(null));
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
@@ -937,7 +937,6 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       } else if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {
         D.notSafe_ = (_el): _el is HTMLFormElement => false;
-        D.fixedClientTop_ = 1;
       }
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 &&
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
@@ -1005,7 +1004,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VUtils.safer_(delta);
-      const cache = VUtils.cache_, deepHints = delta.deepHints;
+      const cache = VDom.cache_, deepHints = delta.deepHints;
       for (const i in delta) {
         cache[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
         const i2 = "_" + i as Keys;
@@ -1080,7 +1079,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)
-        || VUtils.cache_.browserVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
+        || VDom.cache_.browserVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
       box.addEventListener(
         (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
           : OnOther !== BrowserType.Chrome)
@@ -1262,7 +1261,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
       if (!(keyCode > VKeyCodes.maxNotPageUp && keyCode < VKeyCodes.minNotDown)) { return; }
-      wnd && VUtils.cache_.smoothScroll && VEvent.OnScrolls_[1](wnd, 1);
+      wnd && VDom.cache_.smoothScroll && VEvent.OnScrolls_[1](wnd, 1);
       const work = keyCode > VKeyCodes.maxNotLeft ? 1 : keyCode > VKeyCodes.maxNotEnd ? 2
         : !(event.ctrlKey || event.metaKey) ? 3 : 0;
       work && event instanceof Event && VUtils.prevent_(event as Event);

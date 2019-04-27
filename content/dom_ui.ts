@@ -88,7 +88,7 @@ VDom.UI = {
     const style = parent.style, zoom = VDom.bZoom_ / VDom.dScale_,
     left = offset[0] + "px", top = offset[1] + "px";
     if ((!(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && VUtils.cache_.browser_ === BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && VDom.cache_.browser_ === BrowserType.Firefox)
         && zoom - 1) {
       style.cssText = `left:0;top:0;transform:scale(${zoom})translate(${left},${top})`;
     } else {
@@ -117,11 +117,11 @@ VDom.UI = {
     if (el || event) {
       const func = (el && event !== 2 ? addEventListener : removeEventListener), name = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.Chrome) || VUtils.cache_.browser_ === BrowserType.Chrome)) {
+          && (!(Build.BTypes & ~BrowserType.Chrome) || VDom.cache_.browser_ === BrowserType.Chrome)) {
         func("webkit" + name, UI.adjust_, true);
       }
       if (!(Build.BTypes & BrowserType.Chrome)
-          || VUtils.cache_.browserVer_ >= BrowserVer.MinEnsured$Document$$fullscreenElement) {
+          || VDom.cache_.browserVer_ >= BrowserVer.MinEnsured$Document$$fullscreenElement) {
         func(name, UI.adjust_, true);
       }
     }
@@ -133,7 +133,7 @@ VDom.UI = {
     if (!patch && zoom >= 1) { return; }
     let width = ("" + (Build.BTypes & BrowserType.Chrome &&
         Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
-          VUtils.cache_.browserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+          VDom.cache_.browserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
         ? 1.01 : 0.51) / zoom).substring(0, 5)
       , st = this.styleIn_;
     if (!patch) {
@@ -244,9 +244,9 @@ VDom.UI = {
     const center = a.center_(rect);
     if (Build.BTypes & BrowserType.Chrome
         && touchMode
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VUtils.cache_.browser_ === BrowserType.Chrome)
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VDom.cache_.browser_ === BrowserType.Chrome)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
-            || VUtils.cache_.browserVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)
+            || VDom.cache_.browserVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)
         && (touchMode === !!touchMode || a.isInTouchMode_())) {
       a.touch_(element, center, a.touch_(element, center));
     }
@@ -271,12 +271,12 @@ VDom.UI = {
       FixButNotDispatch = 2,
     }
     let result: ActionType = ActionType.OnlyDispatch;
-    if ((!(Build.BTypes & ~BrowserType.Firefox) || VUtils.cache_.browser_ === BrowserType.Firefox)
+    if ((!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.browser_ === BrowserType.Firefox)
         && modifiers && !modifiers.altKey_
         && element instanceof HTMLAnchorElement && element.href
         && (element.target === "_blank" || modifiers.ctrlKey_ || modifiers.metaKey_)) {
       // need to work around Firefox's popup blocker
-      result = element.getAttribute("onclick") || VUtils.clickable_.has(element)
+      result = element.getAttribute("onclick") || VDom.clickable_.has(element)
           ? ActionType.DispatchAndMayFix : ActionType.FixButNotDispatch;
     }
     if (result >= ActionType.FixButNotDispatch
@@ -388,7 +388,7 @@ VDom.UI = {
       };
     } else {
       func = function () { tick = Date.now(); return HandlerResult.Prevent; };
-      tick = Date.now() + VUtils.cache_.keyboard[0];
+      tick = Date.now() + VDom.cache_.keyboard[0];
       timer = setInterval(function (info?: TimerType.fake) { // safe-interval
         const delta = Date.now() - tick; // Note: performance.now() may has a worse resolution
         if (delta > GlobalConsts.TimeOfSuppressingTailKeydowns || delta < -99

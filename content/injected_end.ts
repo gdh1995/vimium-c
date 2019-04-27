@@ -6,7 +6,7 @@ VDom.allowScripts_ = 0;
 
 (function () {
   const injector = VimiumInjector as VimiumInjectorTy, clickable = injector.clickable;
-  clickable && (VUtils.clickable_ = clickable);
+  clickable && (VDom.clickable_ = clickable);
 
   injector.checkIfEnabled = (function (this: null
       , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {

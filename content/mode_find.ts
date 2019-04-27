@@ -101,7 +101,7 @@ var VFind = {
         VEvent.OnWndFocus_();
       }
       Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VUtils.cache_.browser_ === BrowserType.Firefox)
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.browser_ === BrowserType.Firefox)
         || VUtils.Stop_(event);
     }, t);
     box.onload = later ? null as never : function (): void {
@@ -244,7 +244,7 @@ var VFind = {
       : n === VKeyCodes.enter
         ? event.shiftKey ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
       : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? FindNS.Action.DoNothing
-      : a.query_ || (n === VKeyCodes.deleteKey && !VUtils.cache_.onMac_ || event.repeat) ? FindNS.Action.PassDirectly
+      : a.query_ || (n === VKeyCodes.deleteKey && !VDom.cache_.onMac_ || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
       if (VKeyboard.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
@@ -339,7 +339,7 @@ var VFind = {
   fixTabNav_: !(Build.BTypes & BrowserType.Chrome) // firefox seems to have "focused" it
         || Build.BTypes & BrowserType.Chrome && Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
       : function (el: Element): void {
-    let oldPos: MarksNS.ScrollInfo | 0 = VUtils.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions
+    let oldPos: MarksNS.ScrollInfo | 0 = VDom.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions
           ? [scrollX, scrollY] : 0;
     VDom.scrollIntoView_(el);
     oldPos && VMarks.ScrollTo_(oldPos);
@@ -458,7 +458,7 @@ var VFind = {
     query = query.replace(a._ctrlRe, a.FormatQuery_);
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b";
     if (isRe === null && !ww) {
-      isRe = VUtils.cache_.regexFindMode;
+      isRe = VDom.cache_.regexFindMode;
       const info = 2 * +query.startsWith(B) + +query.endsWith(B);
       if (info === 3 && !isRe && query.length > 3) {
         query = query.slice(2, -2);
@@ -469,7 +469,7 @@ var VFind = {
     }
     isRe = isRe || false;
     if (ww && (isRe || !(Build.BTypes & BrowserType.Chrome)
-              || ((Build.BTypes & ~BrowserType.Chrome) && VUtils.cache_.browser_ !== BrowserType.Chrome)
+              || ((Build.BTypes & ~BrowserType.Chrome) && VDom.cache_.browser_ !== BrowserType.Chrome)
         )) {
       query = B + query.replace(a._bslashRe, "\\").replace(a._escapeAllRe, "\\$&") + B;
       ww = false;
@@ -552,7 +552,7 @@ var VFind = {
     back && (count = -count);
     const isRe = a.isRegex_, pR = a.parsedRegexp_;
     const focusHUD = !!(Build.BTypes & BrowserType.Firefox)
-      && (!(Build.BTypes & ~BrowserType.Firefox) || VUtils.cache_.browser_ === BrowserType.Firefox)
+      && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.browser_ === BrowserType.Firefox)
       && a.isActive_ && a.box_.contentDocument.hasFocus();
     do {
       q = query != null ? query : isRe ? a.getNextQueryFromRegexMatches_(back) : a.parsedQuery_;

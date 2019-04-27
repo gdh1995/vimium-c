@@ -1,11 +1,19 @@
 /// <reference path="../content/base.d.ts" />
+interface ElementWithClickable { vimiumHasOnclick?: boolean; }
 var VDom = {
   UI: null as never as DomUI,
+  /**
+   * Miscellaneous section
+   */
+  clickable_: Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+      || window.WeakSet ? new WeakSet<Element>() : {
+    add (element: Element): void { (element as ElementWithClickable).vimiumHasOnclick = true; },
+    has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; }
+  },
+  cache_: null as never as SettingsNS.FrontendSettingCache,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as BOOL,
   allowRAF_: 1 as BOOL,
-  /** is true only when Firefox  */
-  fixedClientTop_: !(Build.BTypes & ~BrowserType.Firefox) ? 1 as BOOL : 0 as BOOL,
   specialZoom_: !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
     ? true : !!(Build.BTypes & BrowserType.Chrome),
   docSelectable_: true,
@@ -389,10 +397,12 @@ var VDom = {
     a.wdZoom_ = Math.round(zoom * ratio2 * 1000) / 1000;
     a.dbZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom * zoom2 : 1;
     let x = !stacking ? float(st.marginLeft)
-          : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && a.fixedClientTop_
+          : !(Build.BTypes & ~BrowserType.Firefox)
+            || Build.BTypes & BrowserType.Firefox && a.cache_.browser_ === BrowserType.Firefox
           ? -float(st.borderLeftWidth) : 0 | -box.clientLeft
       , y = !stacking ? float(st.marginTop)
-          : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && a.fixedClientTop_
+          : !(Build.BTypes & ~BrowserType.Firefox)
+            || Build.BTypes & BrowserType.Firefox && a.cache_.browser_ === BrowserType.Firefox
           ? -float(st.borderTopWidth ) : 0 | -box.clientTop;
     x = x * scale - rect.left, y = y * scale - rect.top;
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)

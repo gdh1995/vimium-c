@@ -84,7 +84,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     if (detail) {
       resolve(0, detail[0]); detail[1] && resolve(1, detail[1]);
     } else {
-      VUtils.clickable_.add(event.target as Element);
+      VDom.clickable_.add(event.target as Element);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
@@ -92,7 +92,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     let list = isBox ? (box as Element).getElementsByTagName("*") : document.getElementsByTagName("*");
     for (const index of nodeIndexList) {
       let el = list[index];
-      el && VUtils.clickable_.add(el);
+      el && VDom.clickable_.add(el);
     }
     isBox && ((box as Element).textContent = "");
   }

@@ -1,6 +1,3 @@
-interface ElementWithClickable {
-  vimiumHasOnclick?: boolean;
-}
 var VUtils = {
   /**
    * tool function section
@@ -50,14 +47,5 @@ var VUtils = {
         break;
       }
     }
-  },
-  /**
-   * Miscellaneous section
-   */
-  clickable_: Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-      || window.WeakSet ? new WeakSet<Element>() : {
-    add (element: Element): void { (element as ElementWithClickable).vimiumHasOnclick = true; },
-    has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; }
-  },
-  cache_: null as never as SettingsNS.FrontendSettingCache
+  }
 };

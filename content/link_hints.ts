@@ -103,7 +103,7 @@ var VHints = {
       if (!VDom.isHTML_()) { return; }
     }
     a.setModeOpt_((count as number) | 0, options);
-    let str = options.characters ? options.characters + "" : VUtils.cache_.linkHintCharacters;
+    let str = options.characters ? options.characters + "" : VDom.cache_.linkHintCharacters;
     if (str.length < 3) {
       a.clean_(1);
       return VHud.tip_("Characters for LinkHints are too few.", 1000);
@@ -282,7 +282,7 @@ var VHints = {
     let arr: Rect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
     if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) {
       if (element instanceof SVGElement) {
-        type = VUtils.clickable_.has(element) || element.getAttribute("onclick")
+        type = VDom.clickable_.has(element) || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
             || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.listener
           : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
@@ -357,7 +357,7 @@ var VHints = {
     }
     if (isClickable === null) {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
-        : (VUtils.clickable_.has(element) && VHints.isClickListened_) || element.getAttribute("onclick")
+        : (VDom.clickable_.has(element) && VHints.isClickListened_) || element.getAttribute("onclick")
           || VHints.ngEnabled_ && element.getAttribute("ng-click")
           || (s = element.getAttribute("role")) && VHints.roleRe_.test(s)
           || VHints.forHover_ && element.getAttribute("onmouseover")
@@ -391,7 +391,7 @@ var VHints = {
     const arr2: Hint[] = output || [], len = arr2.length;
     if (element) {
       if (!output && element.getAttribute("disabled")) { return false; }
-      output && VUtils.clickable_.add(element);
+      output && VDom.clickable_.add(element);
       VHints.GetClickable_.call(arr2, element);
     }
     return element ? arr2.length <= len : output ? true : null;
@@ -721,7 +721,7 @@ var VHints = {
           reinit = deep !== DeepQueryType.NotAvailable;
           a.queryInDeep_ = DeepQueryType.InDeep - deep;
         }
-      } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VUtils.cache_.onMac_)) {
+      } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VDom.cache_.onMac_)) {
         if ((Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinNoShadowDOMv0) {
           reinit = deep === DeepQueryType.NotDeep;
           a.queryInDeep_ = DeepQueryType.InDeep;
@@ -735,7 +735,7 @@ var VHints = {
       }
       reinit && setTimeout(a._reinit.bind(a, null, null), 0);
     } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
-        || (i === VKeyCodes.metaKey && VUtils.cache_.onMac_)) {
+        || (i === VKeyCodes.metaKey && VDom.cache_.onMac_)) {
       const mode = a.mode_,
       mode2 = i === VKeyCodes.altKey
         ? mode < HintMode.min_disable_queue
@@ -1390,7 +1390,7 @@ Modes_: [
       UI.simulateSelect_(link, rect, true);
       return false;
     }
-    const mode = a.mode_ & HintMode.mask_focus_new, notMac = !VUtils.cache_.onMac_, newTab = mode >= HintMode.newTab;
+    const mode = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.onMac_, newTab = mode >= HintMode.newTab;
     UI.click_(link, rect, {
       altKey_: false,
       ctrlKey_: newTab && notMac,

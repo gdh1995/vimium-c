@@ -76,7 +76,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     element = newEl;
     sign = newAmount < 0 ? -1 : 1;
     timestamp = ScrollerNS.Consts.invalidTime; totalDelta = totalElapsed = 0.0;
-    const keyboard = VUtils.cache_.keyboard;
+    const keyboard = VDom.cache_.keyboard;
     this.maxInterval_ = M.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
     this.minDelay_ = (((keyboard[0] + M.max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
           + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
@@ -118,7 +118,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
   },
   scroll_ (element: SafeElement | null, di: ScrollByY, amount: number): void | number | boolean {
     if (!amount) { return; }
-    if (VUtils.cache_.smoothScroll
+    if (VDom.cache_.smoothScroll
         && (Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
             || VDom.allowRAF_)) {
       return this._animate(element, di, amount);
@@ -171,7 +171,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void | number {
     a.top_ = null;
   },
   _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
-    amount *= VUtils.cache_.scrollStepSize;
+    amount *= VDom.cache_.scrollStepSize;
     return !di && amount && element && element.scrollWidth <= element.scrollHeight * (element.scrollWidth < 720 ? 2 : 1)
       ? Math.ceil(amount * 0.6) : amount;
   },
