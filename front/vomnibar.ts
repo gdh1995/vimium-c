@@ -1117,7 +1117,7 @@ VUtils_ = {
     };
     return VUtils_.escapeCSSStringInAttr_(s0);
   },
-  Stop_ (event: Event, prevent: boolean | 1): void {
+  Stop_ (event: Event, prevent: boolean | BOOL): void {
     prevent && event.preventDefault();
     event.stopImmediatePropagation();
   }
@@ -1186,28 +1186,20 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     location.href = "about:blank";
     return;
   }
-  let curEl: HTMLScriptElement;
-  if (location.pathname.startsWith("/front/") || !(curEl = document.currentScript as typeof curEl)) { /* empty */ }
-  else if (curEl.src.endsWith("/front/vomnibar.js") && !curEl.src.startsWith("http") && !curEl.src.startsWith("ftp")) {
+  let curEl: HTMLScriptElement | undefined | null;
+  if (location.pathname.startsWith("/front/") || !(curEl = document.currentScript as HTMLScriptElement | null)) {
+    /* is inner or web */
+  }
+  else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^ftp|^http/).test(curEl.src)) {
     VCID = new URL(curEl.src).hostname;
   } else {
     curEl.remove();
-    window.onmessage = function (event): void {
-      if (event.source !== parent) { return; }
-      const data: VomnibarNS.MessageData = event.data, script = document.createElement("script"),
-      src = script.src = (data[1] as VomnibarNS.FgOptions).s;
-      VCID = new URL(src).hostname;
-      script.onload = function (): void {
-        script.onload = null as never;
-        window.onmessage(event);
-      };
-      (document.head || document.documentElement as HTMLHtmlElement).appendChild(script);
-    };
     return;
   }
 
+  const unsafeMsg = [] as Array<[number, VomnibarNS.IframePort, Options | null]>,
+  isWeb = curEl === null;
   let _sec = 0 as number,
-  unsafeMsg = [] as Array<[number, VomnibarNS.IframePort, Options | null]>,
   handler = function (this: void, secret: number, port: VomnibarNS.IframePort, options: Options | null): void {
     if (_sec < 1 || secret !== _sec) {
       _sec || unsafeMsg.push([secret, port, options]);
@@ -1215,7 +1207,11 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     }
     _sec = -1;
     clearTimeout(timer);
-    window.onmessage = null as never;
+    if (isWeb) {
+      removeEventListener("message", onUnknownMsg, true);
+    } else {
+      window.onmessage = null as never;
+    }
     Vomnibar_.sameOrigin_ = !!port.sameOrigin;
     VPort_.postToOwner_ = port.postMessage.bind(port);
     port.onmessage = VPort_._OnOwnerMessage;
@@ -1232,20 +1228,27 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     Vomnibar_.browserVersion_ = request.v;
     Vomnibar_.globalOptions_ = request.o;
     Vomnibar_.css_(request);
-    const { s: secret } = request, msgs = unsafeMsg;
+    const { s: secret } = request;
     _sec = secret;
-    for (const i of msgs) {
+    for (const i of unsafeMsg) {
       if (i[0] === secret) {
-        msgs.length = 0;
+        unsafeMsg.length = 0;
         return handler(i[0], i[1], i[2]);
       }
     }
   };
-  window.onmessage = function (event): void {
+  if (isWeb) {
+    addEventListener("message", onUnknownMsg, true);
+  } else {
+    window.onmessage = onUnknownMsg;
+  }
+  function onUnknownMsg(event: MessageEvent): void {
     if (event.source === parent) {
       const data: VomnibarNS.MessageData = event.data;
+      if (!(data && data.length === 2 && data[0] >= 0)) { return; }
+      isWeb && VUtils_.Stop_(event, 0); // smell like VomnibarNS.MessageData
       handler(data[0], event.ports[0], data[1]);
     }
-  };
+  }
   VPort_.connect_(PortType.omnibar);
 })();
