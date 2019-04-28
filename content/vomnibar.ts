@@ -233,7 +233,7 @@ var VOmni = {
       }
       break;
     case VomnibarNS.kFReq.style:
-      a.box_.style.height = (data as Req[VomnibarNS.kFReq.style]).h / VDom.wdZoom_ + "px";
+      a.box_.style.height = Math.ceil((data as Req[VomnibarNS.kFReq.style]).h / VDom.wdZoom_) + "px";
       if (a.status_ === VomnibarNS.Status.ToShow) {
         a.maxBoxHeight_ = (data as Req[VomnibarNS.kFReq.style]).m as number;
         a.onShown_();
@@ -253,16 +253,16 @@ var VOmni = {
     }
   },
   onShown_ (): void {
-    const a = this;
+    const a = this,
+    marginTop = (VomnibarNS.PixelData.MarginTop / VDom.wdZoom_) | 0;
     a.status_ = VomnibarNS.Status.Showing;
     let style = a.box_.style, bh = a.maxBoxHeight_;
     if (bh > 0) {
       const sh = a.screenHeight_,
-      NormalTopHalf = (bh * 0.6) | 0, ScreenHeightThreshold = (VomnibarNS.PixelData.MarginTop + NormalTopHalf) * 2;
+      NormalTopHalf = (bh * 0.6) | 0, ScreenHeightThreshold = (marginTop + NormalTopHalf) * 2;
       a.defaultTop_ = sh > ScreenHeightThreshold ? (50 - NormalTopHalf / sh * 100) + "%" : "";
     }
-    style.top = VDom.wdZoom_ !== 1 ? ((VomnibarNS.PixelData.MarginTop / VDom.wdZoom_) | 0) + "px"
-      : a.top_ || a.defaultTop_;
+    style.top = VDom.wdZoom_ !== 1 ? marginTop + "px" : a.top_ || a.defaultTop_;
     style.display = "";
     setTimeout(function (): void {
       const a2 = VOmni;

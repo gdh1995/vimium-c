@@ -44,10 +44,13 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
-    let scale = window.devicePixelRatio;
-    a.zoomLevel_ = scale < 0.98 ? 1 / scale : 1;
+    // todo: Firefox always returns a devPixRatio of 1 here
+    let scale = Build.BTypes & ~BrowserType.Firefox ? window.devicePixelRatio : 1;
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      a.zoomLevel_ = scale < 0.98 ? 1 / scale : 1;
+    }
     a.setWidth_(options.w * PixelData.WindowSizeX + PixelData.MarginH);
-    const max = Math.max(3, Math.min(0 | ((options.h - PixelData.ListSpaceDelta) / PixelData.Item),
+    const max = Math.max(3, Math.min(0 | ((options.h / a.zoomLevel_ - PixelData.ListSpaceDelta) / PixelData.Item),
                                       a.globalOptions_.maxMatches));
     a.maxHeight_ = Math.ceil((a.mode_.r = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
     a.init_ && a.setPType_(options.t);
@@ -652,7 +655,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
       N: VomnibarNS.kFReq.style, h: height
     };
-    oldH || (msg.m = a.maxHeight_);
+    oldH || (msg.m = a.maxHeight_ * a.zoomLevel_);
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.parse_, a);
     list.innerHTML = a.renderItems_(a.completions_);
