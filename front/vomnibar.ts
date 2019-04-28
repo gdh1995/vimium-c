@@ -24,8 +24,6 @@ declare const enum AllowedActions {
 }
 
 interface ConfigurableItems {
-  /** @deprecated */ ExtId?: string;
-  VomnibarWheelInterval?: number;
   VomnibarMaxPageNum?: number;
 }
 // tslint:disable-next-line: no-empty-interface
@@ -36,7 +34,7 @@ if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy_ === 
   VSettings.destroy_(true);
 }
 
-var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
+var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,
   activate_ (options: Options): void {
     Object.setPrototypeOf(options, null);
@@ -1000,7 +998,7 @@ var VCID: string | undefined = VCID || window.ExtId, Vomnibar_ = {
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
     let str = url.substring(0, 11).toLowerCase();
-    return str.startsWith("vimium://") ? "chrome-extension://" + (VCID || chrome.runtime.id) + "/pages/options.html"
+    return str.startsWith("vimium://") ? "chrome-extension://" + (VCID_ || chrome.runtime.id) + "/pages/options.html"
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
       : item.type === "search" && !item.visited
         ? url.startsWith("http") ? url.substring(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || url.length) : ""
@@ -1159,8 +1157,8 @@ VPort_ = {
   },
   _ClearPort (this: void): void { VPort_._port = null; },
   connect_ (type: PortType): FgPort {
-    const data = { name: PortNameEnum.Prefix + type + (VCID ? PortNameEnum.Delimiter + BuildStr.Commit : "") },
-    port = VPort_._port = (VCID ? chrome.runtime.connect(VCID, data) : chrome.runtime.connect(data)) as FgPort;
+    const data = { name: PortNameEnum.Prefix + type + (VCID_ ? PortNameEnum.Delimiter + BuildStr.Commit : "") },
+    port = VPort_._port = (VCID_ ? chrome.runtime.connect(VCID_, data) : chrome.runtime.connect(data)) as FgPort;
     port.onDisconnect.addListener(VPort_._ClearPort);
     port.onMessage.addListener(VPort_._Listener as (message: object) => void);
     return port;
@@ -1191,7 +1189,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     /* is inner or web */
   }
   else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^ftp|^http/).test(curEl.src)) {
-    VCID = new URL(curEl.src).hostname;
+    VCID_ = new URL(curEl.src).hostname;
   } else {
     curEl.remove();
     return;

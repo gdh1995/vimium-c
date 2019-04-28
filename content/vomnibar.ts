@@ -59,8 +59,7 @@ var VOmni = {
     if (!VDom.isHTML_()) { return; }
     a.options_ = null;
     VDom.dbZoom_ = 1;
-    const iw = VDom.prepareCrop_(), ih = a.screenHeight_ = innerHeight;
-    options.w = iw, options.h = ih;
+    options.w = VDom.prepareCrop_(); options.h = a.screenHeight_ = innerHeight;
     VDom.getZoom_();
     // note: here require: that Inactive must be NotInited + 1
     a.status_ > VomnibarNS.Status.Inactive || VUtils.push_(VDom.UI.SuppressMost_, a);
