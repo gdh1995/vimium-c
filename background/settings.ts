@@ -257,10 +257,11 @@ var Settings = {
     },
     vomnibarPage (this: {}, url): void {
       const a = this as typeof Settings, cur = localStorage.getItem("vomnibarPage_f");
-      if (cur) {
+      if (cur && !url) {
         (a.cache_ as Writeable<typeof Settings.cache_>).vomnibarPage_f = cur;
         return;
       }
+      url = url || a.get_("vomnibarPage");
       if (url === a.defaults_.vomnibarPage) {
         url = a.CONST_.VomnibarPageInner_;
       } else if (url.startsWith("front/")) {

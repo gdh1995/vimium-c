@@ -327,7 +327,7 @@ declare namespace SettingsNS {
     (this: void, value: FullSettings[K]): void;
   }
 
-  type NullableUpdateHooks = "searchEngines" | "searchEngineMap" | "searchUrl" | "keyMappings";
+  type NullableUpdateHooks = "searchEngines" | "searchEngineMap" | "searchUrl" | "keyMappings" | "vomnibarPage";
   type WoThisUpdateHooks = "showActionIcon";
   type SpecialUpdateHooks = "newTabUrl_f";
 

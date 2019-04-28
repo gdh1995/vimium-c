@@ -2671,7 +2671,7 @@ Are you sure you want to continue?`);
     }
   });
 
-  Settings.postUpdate_("vomnibarPage");
+  Settings.postUpdate_("vomnibarPage", null);
   Settings.postUpdate_("searchUrl", null); // will also update newTabUrl
 
   // will run only on <F5>, not on runtime.reload
