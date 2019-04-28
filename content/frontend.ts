@@ -1068,15 +1068,16 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     oldShowHelp("e");
     if (!VDom.isHTML_()) { return; }
     if (oldShowHelp !== Commands[kFgCmd.showHelp]) { return; } // an old dialog exits
-    const box: HTMLDivElement & SafeHTMLElement = VDom.createElement_("div");
+    const box: HTMLDivElement & SafeHTMLElement = VDom.createElement_("div"), suppress = VUtils.suppressAll_;
     box.className = "R Scroll UI";
     box.id = "HelpDialog";
     box.innerHTML = html;
     box.onclick = VUtils.Stop_;
-    for (let i of ["mousedown", "mouseup", "wheel", "contextmenu"]) {
-      // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
-      VUtils.suppressAll_(box, i);
-    }
+    suppress(box, "mousedown");
+    suppress(box, "mouseup");
+    // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
+    suppress(box, "wheel");
+    suppress(box, "contextmenu");
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)
         || VDom.cache_.browserVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
