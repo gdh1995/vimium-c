@@ -122,6 +122,7 @@ var Tasks = {
       curConfig.push(getNonNullBuildItem("FirefoxID"));
       curConfig.push(getNonNullBuildItem("NativeWordMoveOnFirefox"));
     }
+    curConfig.push(getNonNullBuildItem("Commit"));
     curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
     var needClean = true;
