@@ -1,7 +1,7 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.74](https://img.shields.io/badge/release-1.74-orange.svg
+[![Version 1.74.5](https://img.shields.io/badge/release-1.74.5-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -57,11 +57,7 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-Not released yet:
-* add command `performAnotherFind` to find the second or even eariler query in the query history list.
-* `Marks.activate` supports extra 8 temporary marks besides the "last" mark, and uses `2` ~ `9` prefix to specify them.
-
-1.74:
+1.74.5:
 * *BREAKING*: now **use `s-` to represent the `ShiftKey`** is being pressed when constructing keys
   * e.g. `<a-s-f>`: just like using `a-`, `c-` and `m-` to represent `AltKey`, `CtrlKey` and `MetaKey`
   * if a key is one of function key, space and arrow keys, should also use `s-` (like `<s-space>` and `<s-f12>`)
@@ -82,8 +78,11 @@ Not released yet:
 * Vomnibar: make max number of suggestions and query interval configurable
 * `goBack`, `goForward`: now works perfectly since Chrome 72
 * FindMode: focus found node on exit, for easier `<tab>` navigation
+* add command `performAnotherFind` to find the second or even eariler query in the query history list.
+* `Marks.activate` supports extra 8 temporary marks besides the "last" mark, and uses `2` ~ `9` prefix to specify them.
 * Scroller: a better default value of keyboard settings
 * vimium://show : now auto decrypt "thunder://" URLs
+* fix the broken option "Preferred Vomnibar Page"
 * fix some typos about `<a-c>` and `<a-t>` in recommended key mappings
 * fix the detection of fullscreen status on Chrome >= 71
 
