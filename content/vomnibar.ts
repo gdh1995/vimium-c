@@ -25,9 +25,6 @@ var VOmni = {
   onReset_: null as (() => void) | null,
   _timer: 0,
   screenHeight_: 0,
-  maxBoxHeight_: 0,
-  defaultTop_: "",
-  top_: "",
   run (this: void, count: number, options: VomnibarNS.FullOptions): void {
     const a = VOmni;
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
@@ -112,7 +109,6 @@ var VOmni = {
     const active = this.status_ > VomnibarNS.Status.Inactive;
     this.status_ = VomnibarNS.Status.Inactive;
     this.screenHeight_ = 0;
-    this.defaultTop_ = "";
     if (fromInner == null) {
       active && this.port_.postMessage(VomnibarNS.kCReq.hide);
       return;
@@ -185,10 +181,6 @@ var VOmni = {
         close (): void { port.postMessage = function () { /* empty */ }; },
         postMessage (data: CReq[keyof CReq]): void | 1 { return port.onmessage({ data }); }
       };
-      if (!Build.NoDialogUI && location.hash === "#dialog-ui"
-          && VimiumInjector === null) {
-        _this.top_ = "8px";
-      }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
       checkBroken(1);
     };
@@ -206,7 +198,6 @@ var VOmni = {
     a.port_ && a.port_.close();
     a.box_.remove();
     a.port_ = a.box_ = null as never;
-    a.defaultTop_ = "";
     VUtils.remove_(a);
     a.options_ = null;
     if (a.onReset_) { return a.onReset_(); }
@@ -235,8 +226,7 @@ var VOmni = {
     case VomnibarNS.kFReq.style:
       a.box_.style.height = Math.ceil((data as Req[VomnibarNS.kFReq.style]).h / VDom.wdZoom_) + "px";
       if (a.status_ === VomnibarNS.Status.ToShow) {
-        a.maxBoxHeight_ = (data as Req[VomnibarNS.kFReq.style]).m as number;
-        a.onShown_();
+        a.onShown_((data as Req[VomnibarNS.kFReq.style]).m as number);
       }
       break;
     case VomnibarNS.kFReq.focus:
@@ -252,17 +242,13 @@ var VOmni = {
     case VomnibarNS.kFReq.hud: VHud.tip_((data as Req[VomnibarNS.kFReq.hud]).t); return;
     }
   },
-  onShown_ (): void {
-    const a = this,
-    marginTop = (VomnibarNS.PixelData.MarginTop / VDom.wdZoom_) | 0;
+  onShown_ (maxBoxHeight: number): void {
+    const a = this;
     a.status_ = VomnibarNS.Status.Showing;
-    let style = a.box_.style, bh = a.maxBoxHeight_;
-    if (bh > 0) {
-      const sh = a.screenHeight_,
-      NormalTopHalf = (bh * 0.6) | 0, ScreenHeightThreshold = (marginTop + NormalTopHalf) * 2;
-      a.defaultTop_ = sh > ScreenHeightThreshold ? (50 - NormalTopHalf / sh * 100) + "%" : "";
-    }
-    style.top = VDom.wdZoom_ !== 1 ? marginTop + "px" : a.top_ || a.defaultTop_;
+    const style = a.box_.style, NormalTopHalf = maxBoxHeight * 0.6,
+    screenHeightThreshold = (VomnibarNS.PixelData.MarginTop / VDom.wdZoom_ + NormalTopHalf) * 2,
+    top = a.screenHeight_ > screenHeightThreshold ? ((50 - NormalTopHalf / a.screenHeight_ * 100) | 0) + "%" : "";
+    style.top = !Build.NoDialogUI && VimiumInjector === null && location.hash === "#dialog-ui" ? "8px" : top;
     style.display = "";
     setTimeout(function (): void {
       const a2 = VOmni;
