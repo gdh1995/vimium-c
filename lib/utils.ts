@@ -22,8 +22,8 @@ var VUtils = {
    */
   Stop_ (this: void, event: Event): void { event.stopImmediatePropagation(); },
   prevent_ (event: Event): void { event.preventDefault(); this.Stop_(event); },
-  suppressAll_ (target: EventTarget, name: string, disable?: boolean): void {
-    (disable ? removeEventListener : addEventListener).call(target, name, this.Stop_,
+  suppressAll_ (this: void, target: EventTarget, name: string, disable?: boolean): void {
+    (disable ? removeEventListener : addEventListener).call(target, name, VUtils.Stop_,
       {passive: true, capture: true} as EventListenerOptions | boolean as boolean);
   },
   _keydownHandlers: [] as Array<{ func: (event: HandlerNS.Event) => HandlerResult; env: object; }>,
