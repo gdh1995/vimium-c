@@ -188,7 +188,7 @@ window.onhashchange = function (this: void): void {
         showBgLink();
         this.classList.remove("hidden");
         this.classList.add("zoom-in");
-        if (width >= window.innerWidth * 0.9) {
+        if (width >= innerWidth * 0.9) {
           (document.body as HTMLBodyElement).classList.add("filled");
         }
       };

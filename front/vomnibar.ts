@@ -53,7 +53,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const max = Math.max(3, Math.min(0 | ((options.h / a.zoomLevel_ - PixelData.ListSpaceDelta) / PixelData.Item),
                                       a.globalOptions_.maxMatches));
     a.maxHeight_ = Math.ceil((a.mode_.r = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
-    a.init_ && a.setPType_(options.t);
+    a.init_ && a.preInit_(options.t);
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
       a._favPrefix = '" style="background-image: url(&quot;';
@@ -138,7 +138,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   wheelTime_: 0,
   wheelDelta_: 0,
   browser_: BrowserType.Chrome,
-  browserVersion_: BrowserVer.assumedVer,
+  browserVer_: BrowserVer.assumedVer,
   globalOptions_: null as never as SettingsNS.BaseBackendSettings["vomnibarOptions"],
   customStyle_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
@@ -147,7 +147,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const a = Vomnibar_;
     a.showing_ = true;
     if (Build.BTypes & ~BrowserType.Firefox) {
-      a.bodySt_.zoom = a.zoomLevel_ !== 1 ? a.zoomLevel_ + "" : "";
+      a.bodySt_.zoom = a.zoomLevel_ < 1 ? a.zoomLevel_ + "" : "";
     }
     Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
       && a.firstShowing_ ||
@@ -770,7 +770,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     Object.setPrototypeOf(a.ctrlMap_, null);
     Object.setPrototypeOf(a.normalMap_, null);
     const list = a.list_ = document.getElementById("list") as HTMLDivElement;
-    const { browserVersion_: ver } = a, listen = addEventListener,
+    const { browserVer_: ver } = a, listen = addEventListener,
     input = a.input_ = document.getElementById("input") as typeof Vomnibar_.input_;
     a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
     a.barCls_ = (input.parentElement as HTMLElement).classList;
@@ -858,13 +858,13 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     st.textContent = css;
   },
   getTypeIcon_ (sug: Readonly<SuggestionE>): string { return sug.type; },
-  setPType_ (type: VomnibarNS.PageType): void {
+  preInit_ (type: VomnibarNS.PageType): void {
     const a = Vomnibar_;
     a.pageType_ = type;
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
     const canShowOnOthers = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
           || Build.BTypes & BrowserType.Chrome
-              && a.browserVersion_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
+              && a.browserVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
     if (( !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
           : a.browser_ !== BrowserType.Chrome)
         || type === VomnibarNS.PageType.web
@@ -906,7 +906,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const zoom = Vomnibar_.zoomLevel_,
     mayHasWrongWidth = Build.MinCVer <= BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
       && Build.BTypes & BrowserType.Chrome
-      && Vomnibar_.browserVersion_ === BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1;
+      && Vomnibar_.browserVer_ === BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1;
     let msg = "", r: number;
     if (Build.MinCVer > BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
       || !(Build.BTypes & BrowserType.Chrome)
@@ -1226,7 +1226,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   Vomnibar_.secret_ = function (this: void, request): void {
     Vomnibar_.secret_ = null;
     Vomnibar_.browser_ = request.b;
-    Vomnibar_.browserVersion_ = request.v;
+    Vomnibar_.browserVer_ = request.v;
     Vomnibar_.globalOptions_ = request.o;
     Vomnibar_.css_(request);
     const { s: secret } = request;

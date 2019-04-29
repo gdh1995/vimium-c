@@ -11,8 +11,8 @@ declare namespace VomnibarNS {
   }
   type BaseFullOptions = CmdOptions[kFgCmd.vomnibar] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
   interface FullOptions extends BaseFullOptions {
-    topUrl?: string;
-    N: VomnibarNS.kCReq.activate;
+    /** top URL */ T?: string;
+    /** request Name */ N: VomnibarNS.kCReq.activate;
   }
 }
 declare var VData: VDataTy;
@@ -43,8 +43,8 @@ var VOmni = {
     }
     a._timer = 0;
     let url = options.url, isTop = top === window;
-    if (isTop || !options.topUrl || typeof options.topUrl !== "string") {
-      options.topUrl = location.href;
+    if (isTop || !options.T || typeof options.T !== "string") {
+      options.T = location.href;
     }
     if (url === true || count !== 1 && url == null) {
       // update options.url to string, so that this block can only run once per command
@@ -79,12 +79,12 @@ var VOmni = {
     }
     let upper = 0;
     if (url != null) {
-      url = options.url = url || options.topUrl as string;
+      url = options.url = url || options.T as string;
       upper = count > 1 ? 1 - count : count < 0 ? -count : 0;
     }
     options.k = 0; options.v = options.i = "";
     options.N = VomnibarNS.kCReq.activate;
-    options.topUrl = "";
+    options.T = "";
     if (!url || url.indexOf("://") === -1) {
       options.p = "";
       return a.setOptions_(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);

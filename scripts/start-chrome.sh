@@ -97,6 +97,7 @@ else
   EXE=$WORKING_DIR/${VER:-cur}/chrome.exe
   test -f "$EXE" || EXE=$CHROME_ROOT/${VER:-Chrome}/chrome.exe
 fi
+VC_ROOT="$(/usr/bin/realpath ${VC_ROOT})"
 if test $DIST -gt 0; then
   dir="$(/usr/bin/realpath ${VC_ROOT}/dist)"
   wp VC_EXT "$dir"

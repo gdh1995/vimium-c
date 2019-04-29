@@ -347,10 +347,10 @@ ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
       && Build.BTypes & BrowserType.Chrome
       && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
-  || window.devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+  || devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
       || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
 ) { (function (): void {
-  const css = document.createElement("style"), ratio = window.devicePixelRatio;
+  const css = document.createElement("style"), ratio = devicePixelRatio;
   const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
       || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
   let scale: string | number = Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo

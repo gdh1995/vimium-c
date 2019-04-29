@@ -465,7 +465,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     const target = $("#" + this.dataset.autoResize as string);
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
-    const maxWidth = Math.max(Math.min(window.innerWidth, 1024) - 120, 550);
+    const maxWidth = Math.max(Math.min(innerWidth, 1024) - 120, 550);
     target.style.maxWidth = width > maxWidth ? maxWidth + "px" : "";
     target.style.height = target.style.width = "";
     dw = width - target.clientWidth;
@@ -535,7 +535,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function (zoom): void {
       // >= BrowserVer.Min$Tabs$$getZoom
       if (!zoom) { return chrome.runtime.lastError; }
-      const ratio2 = Math.round(window.devicePixelRatio / zoom * 1024) / 1024;
+      const ratio2 = Math.round(devicePixelRatio / zoom * 1024) / 1024;
       (document.body as HTMLBodyElement).style.width = ratio2 !== 1 ? 910 / ratio2 + "px" : "";
     });
   }

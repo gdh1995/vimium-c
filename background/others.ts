@@ -483,7 +483,7 @@ setTimeout(function (): void {
     chrome.windows.getCurrent(function (wnd?: chrome.windows.Window): void {
       const width = wnd && wnd.width;
       maxChars = width
-        ? Math.floor((width - OmniboxData.MarginH / window.devicePixelRatio) / OmniboxData.MeanWidthOfChar)
+        ? Math.floor((width - OmniboxData.MarginH / devicePixelRatio) / OmniboxData.MeanWidthOfChar)
         : OmniboxData.DefaultMaxChars;
     });
     if (cleanTimer) {
