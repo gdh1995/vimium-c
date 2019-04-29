@@ -58,6 +58,11 @@ var VOmni = {
     VDom.dbZoom_ = 1;
     options.w = VDom.prepareCrop_(); options.h = a.screenHeight_ = innerHeight;
     VDom.getZoom_();
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.browser_ === BrowserType.Firefox)) {
+      // on Chrome, it's neither needed (except C53), nor correct (element zoom in parent is not applied to child)
+      options.z = VDom.wdZoom_;
+    }
     // note: here require: that Inactive must be NotInited + 1
     a.status_ > VomnibarNS.Status.Inactive || VUtils.push_(VDom.UI.SuppressMost_, a);
     a.box_ && VDom.UI.adjust_();

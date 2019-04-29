@@ -174,6 +174,7 @@ declare namespace VomnibarNS {
   interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "s" | "t"> {
     w: number;
     h: number;
+    /** adjusted devicePixelRatio only for Firefox */ z?: number;
     p: "" | FgRes[kFgReq.parseSearchUrl];
   }
   interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {

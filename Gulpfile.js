@@ -676,8 +676,13 @@ function copyByPath(path) {
   var stream = gulp.src(path, { base: "." })
     .pipe(newer(DEST))
     .pipe(gulpMap(function(file) {
-      if (file.history.join("|").indexOf("vimium.min.css") >= 0) {
+      var fileName = file.history.join("|");
+      if (fileName.indexOf("vimium.min.css") >= 0) {
         file.contents = new Buffer(String(file.contents).replace(/\r\n?/g, "\n"));
+      } else if (getBuildItem("BTypes") === BrowserType.Chrome
+          && fileName.indexOf("vomnibar.html") >= 0) {
+        file.contents = new Buffer(String(file.contents).replace(/(\d)rem\b/g, "$1px"
+            ).replace(/html ?{ ?font-size: ?1px;? ?}\r?\n?/, ""));
       }
     }))
     .pipe(changed(DEST, {

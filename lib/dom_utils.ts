@@ -368,6 +368,7 @@ var VDom = {
     const a = this as typeof VDom;
     a.paintBox_ = null;
     a.dbZoom_ = a.bZoom_ = 1;
+    /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activate_ } */
     return a.wdZoom_ = Math.min(devicePixelRatio, 1);
   } as never,
   getViewBox_ (needBox?: 1): ViewBox | ViewOffset {

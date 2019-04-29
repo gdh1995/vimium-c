@@ -44,16 +44,18 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
-    // todo: Firefox always returns a devPixRatio of 1 here
-    let scale = Build.BTypes & ~BrowserType.Firefox ? window.devicePixelRatio : 1;
-    if (Build.BTypes & ~BrowserType.Firefox) {
-      a.zoomLevel_ = scale < 0.98 ? 1 / scale : 1;
-    }
+    let scale = Build.BTypes & BrowserType.Firefox
+                  && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
+                ? options.z as number : devicePixelRatio;
+    a.zoomLevel_ = scale < 0.98 ? 1 / scale : 1;
     a.setWidth_(options.w * PixelData.WindowSizeX + PixelData.MarginH);
     const max = Math.max(3, Math.min(0 | ((options.h / a.zoomLevel_ - PixelData.ListSpaceDelta) / PixelData.Item),
                                       a.globalOptions_.maxMatches));
     a.maxHeight_ = Math.ceil((a.mode_.r = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
     a.init_ && a.preInit_(options.t);
+    if (Build.BTypes & ~BrowserType.Chrome || !Build.NDEBUG) {
+      a.bodySt_.fontSize = a.zoomLevel_ < 1 ? a.zoomLevel_ + "px" : "";
+    }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
       a._favPrefix = '" style="background-image: url(&quot;';
@@ -146,7 +148,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   show_ (): void {
     const a = Vomnibar_;
     a.showing_ = true;
-    if (Build.BTypes & ~BrowserType.Firefox) {
+    if (!(Build.BTypes & ~BrowserType.Chrome || !Build.NDEBUG)) {
       a.bodySt_.zoom = a.zoomLevel_ < 1 ? a.zoomLevel_ + "" : "";
     }
     Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
@@ -772,7 +774,9 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const list = a.list_ = document.getElementById("list") as HTMLDivElement;
     const { browserVer_: ver } = a, listen = addEventListener,
     input = a.input_ = document.getElementById("input") as typeof Vomnibar_.input_;
-    a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
+    if (!(Build.BTypes & ~BrowserType.Chrome || !Build.NDEBUG)) {
+      a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
+    }
     a.barCls_ = (input.parentElement as HTMLElement).classList;
     list.oncontextmenu = a.OnMenu_;
     (document.getElementById("close") as HTMLElement).onclick = function (): void { return Vomnibar_.hide_(); };
@@ -860,6 +864,9 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   getTypeIcon_ (sug: Readonly<SuggestionE>): string { return sug.type; },
   preInit_ (type: VomnibarNS.PageType): void {
     const a = Vomnibar_;
+    if (Build.BTypes & ~BrowserType.Chrome || !Build.NDEBUG) {
+      a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
+    }
     a.pageType_ = type;
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
     const canShowOnOthers = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
