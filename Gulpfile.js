@@ -309,7 +309,7 @@ var Tasks = {
   rebuild: [["clean"], "dist"],
   all: ["build"],
   clean: function() {
-    return cleanByPath([".build/*", "**/*.js"
+    return cleanByPath([".build/**", "**/*.js"
       , "front/vomnibar.html", "front/words.txt"]);
   },
 
@@ -698,7 +698,9 @@ function copyByPath(path) {
 
 function cleanByPath(path) {
   path = formatPath(path, DEST);
-  return gulp.src(path, {base: ".", read: false, dot: true, allowEmpty: true}).pipe(require('gulp-clean')());
+  return gulp.src(path, {
+      base: ".", read: false, dot: true, allowEmpty: true, nodir: true
+    }).pipe(require('gulp-clean')());
 }
 
 function formatPath(path, base) {

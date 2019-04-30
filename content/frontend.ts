@@ -412,7 +412,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         onWndBlur2 = null;
         return HUD.hide_();
       };
-      return onKeyup2({keyCode: VKeyCodes.None});
+      onKeyup2({keyCode: VKeyCodes.None});
     },
     /* goNext: */ function (_0: number, {rel, patterns}: CmdOptions[kFgCmd.goNext]): void {
       if (!VDom.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }

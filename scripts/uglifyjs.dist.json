@@ -40,6 +40,7 @@
       "_getKeyCharUsingKeyIdentifier", "parentFrame_"
     ],
     "pure_getters": true,
+    "reduce_funcs": false,
     "sequences": 20,
     "side_effects": true,
     "toplevel": false,
