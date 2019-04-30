@@ -54,7 +54,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.maxHeight_ = Math.ceil((a.mode_.r = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
     a.init_ && a.preInit_(options.t);
     if (Build.BTypes & ~BrowserType.Chrome || !Build.NDEBUG) {
-      a.bodySt_.fontSize = a.zoomLevel_ < 1 ? a.zoomLevel_ + "px" : "";
+      a.bodySt_.fontSize = a.zoomLevel_ > 1 ? a.zoomLevel_ + "px" : "";
     }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
@@ -149,7 +149,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const a = Vomnibar_;
     a.showing_ = true;
     if (!(Build.BTypes & ~BrowserType.Chrome || !Build.NDEBUG)) {
-      a.bodySt_.zoom = a.zoomLevel_ < 1 ? a.zoomLevel_ + "" : "";
+      a.bodySt_.zoom = a.zoomLevel_ > 1 ? a.zoomLevel_ + "" : "";
     }
     Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
       && a.firstShowing_ ||

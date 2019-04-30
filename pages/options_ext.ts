@@ -253,10 +253,13 @@ Are you sure you want to continue?`
       if (key in bgSettings_.payload_) {
         Option_.syncToFrontend_.push(key as keyof SettingsNS.FrontendSettings);
       }
+      item.fetch_();
+      item.onSave_ && item.onSave_();
     } else if (item.saved_) {
       continue;
+    } else {
+      item.fetch_();
     }
-    item.fetch_();
   }
   for (const key in new_data) {
     let new_value = new_data[key];
@@ -310,7 +313,7 @@ function importSettings(time: number | string | Date
     , data: string, is_recommended?: boolean): void {
   let new_data: ExportedSettings | null = null, e: Error | null = null, err_msg: string = "";
   try {
-    let d = parseJSON(data);
+    let d = parseJSON(is_recommended ? data : data.replace(<RegExpG> /\xa0/g, " "));
     if (d instanceof Error) { e = d; }
     else if (!d) { err_msg = "No JSON data found!"; }
     else { new_data = d; }

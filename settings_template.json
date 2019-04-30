@@ -109,7 +109,7 @@
 		"map / enterFindMode",
 		"map . performFind",
 		"map , performBackwardsFind",
-		"map <a-.> performAnotherFind",
+		"map <a-.> performAnotherFind",
 		"map ; enterVisualMode",
 		"map : enterVisualLineMode",
 		"map <f8> enterVisualMode",

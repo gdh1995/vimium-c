@@ -375,6 +375,7 @@ bi|bing: https://www.bing.com/search?q=%s Bing
 g|go|gg|google: https://www.google.com/search?q=%s Google
 js\\:|Js: javascript:\\ $S; JavaScript
 w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=%s Wikipedia
+v.m|v\\:math: vimium://math\\ $S re= Calculate
 
 # More examples.
 #
