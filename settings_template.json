@@ -56,6 +56,7 @@
 		"map o Vomnibar.activate",
 		"map g Vomnibar.activateInNewTab",
 		"map t Vomnibar.activateTabSelection",
+		"map T Vomnibar.activateTabSelection",
 		"map h Vomnibar.activateHistoryInNewTab",
 		"map b Vomnibar.activateInNewTab keyword=\"bing\"",
 		"map Fe Vomnibar.activateUrl",
