@@ -309,7 +309,8 @@ var Tasks = {
   rebuild: [["clean"], "dist"],
   all: ["build"],
   clean: function() {
-    return cleanByPath(".build/*");
+    return cleanByPath([".build/*", "**/*.js"
+      , "front/vomnibar.html", "front/words.txt"]);
   },
 
   scripts: ["background", "content", "front"],
@@ -680,6 +681,7 @@ function copyByPath(path) {
       if (fileName.indexOf("vimium.min.css") >= 0) {
         file.contents = new Buffer(String(file.contents).replace(/\r\n?/g, "\n"));
       } else if (getBuildItem("BTypes") === BrowserType.Chrome
+          && getBuildItem("NDEBUG")
           && fileName.indexOf("vomnibar.html") >= 0) {
         file.contents = new Buffer(String(file.contents).replace(/(\d)rem\b/g, "$1px"
             ).replace(/html ?{ ?font-size: ?1px;? ?}\r?\n?/, ""));
