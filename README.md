@@ -1,7 +1,7 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.74.5](https://img.shields.io/badge/release-1.74.5-orange.svg
+[![Version 1.74](https://img.shields.io/badge/release-1.74-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -57,7 +57,7 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.74.5:
+1.74.6:
 * *BREAKING*: now **use `s-` to represent the `ShiftKey`** is being pressed when constructing keys
   * e.g. `<a-s-f>`: just like using `a-`, `c-` and `m-` to represent `AltKey`, `CtrlKey` and `MetaKey`
   * if a key is one of function key, space and arrow keys, should also use `s-` (like `<s-space>` and `<s-f12>`)
