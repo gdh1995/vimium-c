@@ -128,7 +128,7 @@ VDom.UI = {
   },
   cssPatch_: null,
   ensureBorder_ (zoom?: number): void {
-    zoom || (zoom = VDom.getZoom_());
+    zoom || (VDom.getZoom_(), zoom = VDom.wdZoom_);
     let patch = this.cssPatch_;
     if (!patch && zoom >= 1) { return; }
     let width = ("" + (Build.BTypes & BrowserType.Chrome &&

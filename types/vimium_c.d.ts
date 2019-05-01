@@ -540,10 +540,13 @@ declare const enum BrowserVer {
   MinNoUnmatchedIncognito = 52,
   // since https://github.com/chromium/chromium/commit/866d1237c72059624def2242e218a7dfe78b125e
   MinEventListenersFromExtensionOnSandboxedPage = 52,
-  // the 3 below are correct even if LEGACY
+  // the 4 below are correct even if LEGACY
   MinCSSEnableContain = 52,
   MinSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); }
   MinForcedDirectWriteOnWindows = 52,
+  // if #enable-site-per-process or #enable-top-document-isolation,
+  // for 3rd-party child frames in other processes, it keeps the same only since C52 even if EXPERIMENTAL
+  MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent = 52,
   MinPositionMayBeSticky = 52, // if EXPERIMENTAL; enabled by default since C56 even if LEGACY
   MinAutoScrollerAllocNewSpace = 53, // even if EXPERIMENTAL or LEGACY; if box-sizing is content-box
   MinEnsuredShadowDOMV1 = 53,
@@ -555,11 +558,6 @@ declare const enum BrowserVer {
   MinUntrustedEventsDoNothing = 53, // fake click events won't show a <select>'s popup
   // before Chrome 53, there may be window.VisualViewPort under flags, but not the instance
   Min$visualViewPort$UnderFlags = 53, // window.visualViewPort occurs if EXPERIMENTAL
-  // only if #enable-site-per-process or #enable-top-document-isolation
-  // the wrong innerWidth := realWidth * devicePixelRatio
-  // the devicePixelRatio means that of Windows, but not Chrome's zoom level
-  // even when [Windows]=1.5, [zoom]=0.667, the width is still wrong
-  ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1 = 53,
   // only Chrome accepts it:
   // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
   Min$Extension$$GetView$AcceptsTabId = 54,
@@ -669,6 +667,7 @@ declare const enum BrowserVer {
   MinCSS$textDecorationSkipInk = 64,
   MinNoMultipleShadowRootsOfV0 = 64,
   MinEnsuredUnicodePropertyEscapesInRegExp = 64, // https://www.chromestatus.com/features/6706900393525248
+  MinFocus3rdPartyIframeDirectly = 64, // even if EXPERIMENTAL; or need .contentWindow.focus()
   // a 3rd-party Vomnibar will trigger "navigation" and clear all logs in console on Chrome 64
   // this still occurs on Chrome 65.0.3325.181 (Stable, x64, Windows 10)
   VomnibarMayClearLog1 = 64,

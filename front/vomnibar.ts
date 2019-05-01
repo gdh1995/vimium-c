@@ -44,23 +44,36 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
-    let scale = Build.BTypes & BrowserType.Firefox
-                  && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
-                ? options.z as number : devicePixelRatio;
-    a.zoomLevel_ = scale < 0.98 ? 1 / scale : 1;
-    a.setWidth_(options.w * PixelData.WindowSizeX + PixelData.MarginH);
-    const max = Math.max(3, Math.min(0 | ((options.h / a.zoomLevel_ - PixelData.ListSpaceDelta) / PixelData.Item),
-                                      a.globalOptions_.maxMatches));
-    a.maxHeight_ = Math.ceil((a.mode_.r = max) * PixelData.Item + PixelData.OthersIfNotEmpty);
+    let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+            && (!(Build.BTypes & ~BrowserType.Chrome)
+                || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
+          ? devicePixelRatio : options.z
+      , dz = a.docZoom_ = scale < 0.98 ? 1 / scale : 1;
+    if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+        && (!(Build.BTypes & ~BrowserType.Chrome)
+            || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)) {
+      a.onInnerWidth_((options.w * PixelData.WindowSizeX + PixelData.MarginH * options.z) / scale);
+    } else {
+      a.onInnerWidth_(options.w * PixelData.WindowSizeX + PixelData.MarginH);
+    }
+    const max = Math.max(3, Math.min(0 | ((options.h / dz
+          / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+              && (!(Build.BTypes & ~BrowserType.Chrome)
+                  || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
+              ? scale : 1)
+        - PixelData.ListSpaceDelta) / PixelData.Item), a.globalOptions_.maxMatches));
+    a.mode_.r = max;
     a.init_ && a.preInit_(options.t);
-    if (Build.BTypes & ~BrowserType.Chrome || !Build.NDEBUG) {
-      a.bodySt_.fontSize = a.zoomLevel_ > 1 ? a.zoomLevel_ + "px" : "";
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      a.bodySt_.zoom = dz > 1 ? dz + "" : "";
+    } else {
+      a.bodySt_.fontSize = dz > 1 ? dz + "px" : "";
     }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
       a._favPrefix = '" style="background-image: url(&quot;';
     } else if (a.mode_.i) {
-      scale = scale <= 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
+      scale = scale === 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
 /**
  * Note: "@1x" is necessary, because only the whole 'size/aa@bx/' can be optional
  * * definition: https://cs.chromium.org/chromium/src/chrome/browser/ui/webui/favicon_source.h?type=cs&q=FaviconSource&g=0&l=47
@@ -118,7 +131,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   sameOrigin_: false,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
-  zoomLevel_: 1,
+  docZoom_: 1,
   lastScrolling_: 0,
   height_: 0,
   maxHeight_: 0,
@@ -148,9 +161,6 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   show_ (): void {
     const a = Vomnibar_;
     a.showing_ = true;
-    if (!(Build.BTypes & ~BrowserType.Chrome || !Build.NDEBUG)) {
-      a.bodySt_.zoom = a.zoomLevel_ > 1 ? a.zoomLevel_ + "" : "";
-    }
     Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
       && a.firstShowing_ ||
     setTimeout(Vomnibar_.focus_, 34);
@@ -189,7 +199,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const a = Vomnibar_;
     a.timer_ = a.height_ = a.matchType_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
     a.total_ = a.lastKey_ = a.wheelDelta_ = 0;
-    a.zoomLevel_ = 1;
+    a.docZoom_ = 1;
     a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never;
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = "";
     a.isSearchOnTop_ = false;
@@ -244,7 +254,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   doRefresh_ (wait: number): void {
     let oldSel = Vomnibar_.selection_, origin = Vomnibar_.isSelOriginal_;
     Vomnibar_.useInput_ = false;
-    Vomnibar_.setWidth_();
+    Vomnibar_.onInnerWidth_();
     return Vomnibar_.update_(wait, function (): void {
       const len = Vomnibar_.completions_.length;
       if (!origin && oldSel >= 0 && len > 0) {
@@ -589,6 +599,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       a.wheelStart_ = 0;
     }
     a.wheelTime_ = now;
+    // todo: use percentage of physical screen resolution as delta
     let total = a.wheelDelta_ + (mode ? mode === /* WheelEvent.DOM_DELTA_LINE */ 1
           ? deltaY * (GlobalConsts.VomnibarWheelStepForPage / 3)
           : /* WheelEvent.DOM_DELTA_PAGE */ deltaY * GlobalConsts.VomnibarWheelStepForPage : deltaY)
@@ -654,10 +665,14 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const height = a.height_
       = Math.ceil(notEmpty ? len * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty),
     needMsg = height !== oldH, earlyPost = height > oldH || a.sameOrigin_,
+    wdZoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+          && (!(Build.BTypes & ~BrowserType.Chrome)
+              || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
+        ? a.docZoom_ * devicePixelRatio : a.docZoom_,
     msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
-      N: VomnibarNS.kFReq.style, h: height
+      N: VomnibarNS.kFReq.style, h: height * wdZoom
     };
-    oldH || (msg.m = a.maxHeight_ * a.zoomLevel_);
+    oldH || (msg.m = Math.ceil(a.mode_.r * PixelData.Item + PixelData.OthersIfNotEmpty) * wdZoom);
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.parse_, a);
     list.innerHTML = a.renderItems_(a.completions_);
@@ -774,9 +789,6 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const list = a.list_ = document.getElementById("list") as HTMLDivElement;
     const { browserVer_: ver } = a, listen = addEventListener,
     input = a.input_ = document.getElementById("input") as typeof Vomnibar_.input_;
-    if (!(Build.BTypes & ~BrowserType.Chrome || !Build.NDEBUG)) {
-      a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
-    }
     a.barCls_ = (input.parentElement as HTMLElement).classList;
     list.oncontextmenu = a.OnMenu_;
     (document.getElementById("close") as HTMLElement).onclick = function (): void { return Vomnibar_.hide_(); };
@@ -864,9 +876,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   getTypeIcon_ (sug: Readonly<SuggestionE>): string { return sug.type; },
   preInit_ (type: VomnibarNS.PageType): void {
     const a = Vomnibar_;
-    if (Build.BTypes & ~BrowserType.Chrome || !Build.NDEBUG) {
-      a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
-    }
+    a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
     a.pageType_ = type;
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
     const canShowOnOthers = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
@@ -909,47 +919,9 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       VoidPost, 0, { N: VomnibarNS.kFReq.focus, l: request.l });
   },
   _realDevRatio: 0,
-  setWidth_ (w?: number): void {
-    const zoom = Vomnibar_.zoomLevel_,
-    mayHasWrongWidth = Build.MinCVer <= BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
-      && Build.BTypes & BrowserType.Chrome
-      && Vomnibar_.browserVer_ === BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1;
-    let msg = "", r: number;
-    if (Build.MinCVer > BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
-      || !(Build.BTypes & BrowserType.Chrome)
-      || !mayHasWrongWidth
-    ) { /* empty */ }
-    else if (r = Vomnibar_._realDevRatio) {
-      // now we has real screen device pixel ratio (of not Chrome but Windows)
-      w = innerWidth / r;
-      msg = r > 1.02 || r < 0.98 ? Math.round(10000 / r) / 100 + "%" : "";
-    } else {
-      // the line below is just in case of wrong usages of @setWidth
-      w = w || parseFloat(Vomnibar_.bodySt_.width) || innerWidth;
-      msg = w / zoom + "px";
-      (Vomnibar_ as EnsureNonNull<typeof Vomnibar_>).fixRatio_(w as number);
-    }
-    Vomnibar_.mode_.c = Math.round(((w || innerWidth) / zoom - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
-    if (Build.MinCVer <= BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
-        && Build.BTypes & BrowserType.Chrome
-        && mayHasWrongWidth) {
-      (document.documentElement as HTMLHtmlElement).style.width = msg;
-    }
-  },
-  fixRatio_: Build.MinCVer > BrowserVer.ExtIframeIn3rdProcessHasWrong$innerWidth$If$devicePixelRatio$isNot1
-        || !(Build.BTypes & BrowserType.Chrome)
-      ? 0 as never
-      : function (w: number): void {
-    let tick = 0, timer = setInterval(function (): void { // safe-interval
-      const iw = innerWidth, a = Vomnibar_;
-      if (iw > 0 || tick++ > 15) {
-        clearInterval(timer);
-        if (a) {
-          a._realDevRatio = iw / w;
-          iw > 0 && a.setWidth_();
-        }
-      }
-    }, 100);
+  onInnerWidth_ (w?: number): void {
+    Vomnibar_.mode_.c = Math.round(((w || innerWidth) / Vomnibar_.docZoom_
+      - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
   },
   secret_: null as ((request: BgVomnibarSpecialReq[kBgReq.omni_secret]) => void) | null,
 
@@ -984,7 +956,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         : a.matchType_ === CompletersNS.MatchType.searchWanted ? "search"
         : (newMatchType = a.matchType_, a.completions_[0].type as CompletersNS.ValidTypes);
       mode.q = str;
-      a.setWidth_();
+      a.onInnerWidth_();
       a.matchType_ = newMatchType;
     } else {
       a.useInput_ = true;

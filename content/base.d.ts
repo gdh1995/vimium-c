@@ -172,9 +172,10 @@ declare namespace VomnibarNS {
     Showing = 3,
   }
   interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "s" | "t"> {
+    // physical pixel size (if C<52) and devicePixelRatio
     w: number;
     h: number;
-    /** adjusted devicePixelRatio only for Firefox */ z?: number;
+    z: number;
     p: "" | FgRes[kFgReq.parseSearchUrl];
   }
   interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
@@ -205,6 +206,7 @@ declare namespace VomnibarNS {
       /** keyCode */ keyCode: VKeyCodes;
     };
     [kFReq.style]: {
+      // unit: physical pixel (if C<52)
       h: number;
       m?: number;
     };

@@ -363,13 +363,15 @@ var VDom = {
     }
     a.paintBox_ = null; // it's not so necessary to get a new paintBox here
     a.dbZoom_ = a.bZoom_ * zoom;
-    return a.wdZoom_ = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
+    a.wdZoom_ = Math.round(zoom * Math.min(ratio, 1) * 1000) / 1000;
+    return zoom;
   } : function (this: {}): number {
     const a = this as typeof VDom;
     a.paintBox_ = null;
     a.dbZoom_ = a.bZoom_ = 1;
     /** the min() is required in {@link ../front/vomnibar.ts#Vomnibar_.activate_ } */
-    return a.wdZoom_ = Math.min(devicePixelRatio, 1);
+    a.wdZoom_ = Math.min(devicePixelRatio, 1);
+    return 1;
   } as never,
   getViewBox_ (needBox?: 1): ViewBox | ViewOffset {
     let iw = innerWidth, ih = innerHeight;

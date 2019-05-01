@@ -8,6 +8,7 @@ GUD=/r/TEMP/GUD
 WORKING_DIR=/r/working
 VC_ROOT=
 DIST=0
+UBO=0
 HOME_PAGE=
 
 function wp() {
@@ -45,6 +46,10 @@ case "$1" in
     ;;
   local|--local)
     DIST=0
+    shift
+    ;;
+  ub|ubo)
+    UBO=1
     shift
     ;;
   only|--only)
@@ -107,11 +112,12 @@ if test $DIST -gt 0; then
 else
   wp VC_EXT "$VC_ROOT"
 fi
-if test "$VER" == wo -o "$VER" == prev || test ${VER:-99} -ge 45; then
-  ub=${VC_ROOT}/../uBlock/dist/build/uBlock0.chromium
-  if test -d "$ub"; then
-    wp ub "${ub}"
-    OTHER_EXT=${OTHER_EXT},${ub}
+if test $UBO -le 0; then UBO=
+elif test "$VER" == wo -o "$VER" == prev || test ${VER:-99} -ge 45; then
+  UBO=${VC_ROOT}/../uBlock/dist/build/uBlock0.chromium
+  if test -d "$UBO"; then
+    wp UBO "${UBO}"
+    OTHER_EXT=${OTHER_EXT},${UBO}
   fi
 fi
 

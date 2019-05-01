@@ -24,7 +24,9 @@ var VOmni = {
   options_: null as VomnibarNS.FgOptionsToFront | null,
   onReset_: null as (() => void) | null,
   _timer: 0,
+  // unit: physical pixel (if C<52)
   screenHeight_: 0,
+  docZoom_: 0,
   run (this: void, count: number, options: VomnibarNS.FullOptions): void {
     const a = VOmni;
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
@@ -56,13 +58,18 @@ var VOmni = {
     if (!VDom.isHTML_()) { return; }
     a.options_ = null;
     VDom.dbZoom_ = 1;
-    options.w = VDom.prepareCrop_(); options.h = a.screenHeight_ = innerHeight;
-    VDom.getZoom_();
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.browser_ === BrowserType.Firefox)) {
-      // on Chrome, it's neither needed (except C53), nor correct (element zoom in parent is not applied to child)
-      options.z = VDom.wdZoom_;
+    let scale = devicePixelRatio;
+    if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+        && (!(Build.BTypes & ~BrowserType.Chrome)
+            || Build.BTypes & BrowserType.Chrome && VDom.cache_.browser_ === BrowserType.Chrome)) {
+      options.w = VDom.prepareCrop_() * scale;
+      options.h = a.screenHeight_ = innerHeight * scale;
+    } else {
+      options.w = VDom.prepareCrop_();
+      options.h = a.screenHeight_ = innerHeight;
     }
+    options.z = scale;
+    a.docZoom_ = VDom.getZoom_();
     // note: here require: that Inactive must be NotInited + 1
     a.status_ > VomnibarNS.Status.Inactive || VUtils.push_(VDom.UI.SuppressMost_, a);
     a.box_ && VDom.UI.adjust_();
@@ -111,16 +118,16 @@ var VOmni = {
     this.status_ > VomnibarNS.Status.Initing ? this.port_.postMessage(options) : (this.options_ = options);
   },
   hide_ (fromInner?: 1): void {
-    const active = this.status_ > VomnibarNS.Status.Inactive;
-    this.status_ = VomnibarNS.Status.Inactive;
-    this.screenHeight_ = 0;
+    const a = this, active = a.status_ > VomnibarNS.Status.Inactive;
+    a.status_ = VomnibarNS.Status.Inactive;
+    a.screenHeight_ = a.docZoom_ = 0;
     if (fromInner == null) {
-      active && this.port_.postMessage(VomnibarNS.kCReq.hide);
+      active && a.port_.postMessage(VomnibarNS.kCReq.hide);
       return;
     }
-    VUtils.remove_(this);
+    VUtils.remove_(a);
     active || focus();
-    this.box_.style.cssText = "display:none";
+    a.box_.style.cssText = "display:none";
   },
   init_ ({k: secret, v: page, t: type, i: inner}: VomnibarNS.FullOptions): void {
     const el = VDom.createElement_("iframe") as typeof VOmni.box_, UI = VDom.UI;
@@ -229,7 +236,11 @@ var VOmni = {
       }
       break;
     case VomnibarNS.kFReq.style:
-      a.box_.style.height = Math.ceil((data as Req[VomnibarNS.kFReq.style]).h / VDom.wdZoom_) + "px";
+      a.box_.style.height = Math.ceil((data as Req[VomnibarNS.kFReq.style]).h / a.docZoom_
+          / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+              && (!(Build.BTypes & ~BrowserType.Chrome)
+                  || Build.BTypes & BrowserType.Chrome && VDom.cache_.browser_ === BrowserType.Chrome)
+              ? devicePixelRatio : 1)) + "px";
       if (a.status_ === VomnibarNS.Status.ToShow) {
         a.onShown_((data as Req[VomnibarNS.kFReq.style]).m as number);
       }
@@ -250,9 +261,13 @@ var VOmni = {
   onShown_ (maxBoxHeight: number): void {
     const a = this;
     a.status_ = VomnibarNS.Status.Showing;
-    const style = a.box_.style, NormalTopHalf = maxBoxHeight * 0.6,
-    screenHeightThreshold = (VomnibarNS.PixelData.MarginTop / VDom.wdZoom_ + NormalTopHalf) * 2,
-    top = a.screenHeight_ > screenHeightThreshold ? ((50 - NormalTopHalf / a.screenHeight_ * 100) | 0) + "%" : "";
+    const style = a.box_.style,
+    topHalfThreshold = maxBoxHeight * 0.6 + VomnibarNS.PixelData.MarginTop *
+        (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+          && (!(Build.BTypes & ~BrowserType.Chrome)
+              || Build.BTypes & BrowserType.Chrome && VDom.cache_.browser_ === BrowserType.Chrome)
+          ? devicePixelRatio : 1),
+    top = a.screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / a.screenHeight_ * 100) | 0) + "%" : "";
     style.top = !Build.NoDialogUI && VimiumInjector === null && location.hash === "#dialog-ui" ? "8px" : top;
     style.display = "";
     setTimeout(function (): void {
@@ -273,6 +288,10 @@ var VOmni = {
   },
   focus_ (): void {
     if (this.status_ < VomnibarNS.Status.Showing) { return; }
+    if (Build.MinCVer < BrowserVer.MinFocus3rdPartyIframeDirectly
+        && Build.BTypes & BrowserType.Chrome) {
+      this.box_.contentWindow.focus();
+    }
     this.port_.postMessage(VomnibarNS.kCReq.focus);
   }
 };

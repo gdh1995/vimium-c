@@ -9,7 +9,7 @@
     "typescript": "typescript/lib/typescript"
   },
   "build": { // for [ local, dist ]
-    "MinCVer": [ 73, 35 ],
+    "MinCVer": [ 74, 35 ],
     "MinFFVer": [ 64, 64 ],
     "BTypes": [ 3, 1 ], // [ Chrome | Firefox, Chrome ]
     "NoDialogUI": [ 0, 1 ],

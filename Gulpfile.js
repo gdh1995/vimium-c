@@ -109,7 +109,7 @@ var Tasks = {
 
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
-    return cleanByPath([".build/*", "manifest.json", "lib/polyfill.js", "pages/dialog_ui.*"]);
+    return cleanByPath([".build/**", "manifest.json", "lib/polyfill.js", "pages/dialog_ui.*", "*/vomnibar.html"]);
   },
   "build/_all": ["build/scripts", "build/options", "build/show"],
   "build/ts": function(cb) {
@@ -302,7 +302,7 @@ var Tasks = {
     print("Save manifest file: " + file);
   },
   manifest: [["min/bg"], "_manifest"],
-  dist: [["static", "build/ts"], ["manifest", "min/others"]],
+  dist: [["build/ts"], ["static", "manifest", "min/others"]],
   "dist/": ["dist"],
 
   build: ["dist"],
@@ -680,11 +680,10 @@ function copyByPath(path) {
       var fileName = file.history.join("|");
       if (fileName.indexOf("vimium.min.css") >= 0) {
         file.contents = new Buffer(String(file.contents).replace(/\r\n?/g, "\n"));
-      } else if (getBuildItem("BTypes") === BrowserType.Chrome
-          && getBuildItem("NDEBUG")
-          && fileName.indexOf("vomnibar.html") >= 0) {
-        file.contents = new Buffer(String(file.contents).replace(/(\d)rem\b/g, "$1px"
-            ).replace(/html ?{ ?font-size: ?1px;? ?}\r?\n?/, ""));
+      } else if (fileName.indexOf("vomnibar.html") >= 0
+          && getBuildItem("BTypes") === BrowserType.Firefox) {
+        file.contents = new Buffer(String(file.contents).replace(/(\d)px\b/g, "$1rem"
+            ).replace(/body ?\{/, "html{font-size:1px;}\nbody{"));
       }
     }))
     .pipe(changed(DEST, {
