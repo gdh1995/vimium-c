@@ -310,7 +310,7 @@ interface DomUI {
   simulateSelect_ (this: DomUI, element: Element, rect?: Rect | null, flash?: boolean
     , action?: SelectActions, suppressRepeated?: boolean): void;
   /** @NEED_SAFE_ELEMENTS */
-  _moveSel (this: DomUI, element: LockableElement, action: SelectActions | undefined): void;
+  _moveSel_need_safe (this: DomUI, element: LockableElement, action: SelectActions | undefined): void;
   getRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null;
   flash_ (this: DomUI, el: null, rect: Rect, lifeTime?: number): HTMLElement;
   flash_ (this: DomUI, el: Element): HTMLElement | void;

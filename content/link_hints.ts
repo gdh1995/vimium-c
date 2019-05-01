@@ -370,7 +370,7 @@ var VHints = {
     if (element === document.documentElement || element === document.body) { return; }
     if ((arr = VDom.getVisibleClientRect_(element))
         && (type < ClickType.scrollX
-          || VScroller.shouldScroll_unsafe_(element as SafeHTMLElement, type - ClickType.scrollX as 0 | 1) > 0)
+          || VScroller.shouldScroll_need_safe_(element as SafeHTMLElement, type - ClickType.scrollX as 0 | 1) > 0)
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
           || VHints.mode_ >= HintMode.min_job) // note: might need to apply aria-disable on FOCUS/HOVER/LEAVE mode?
@@ -589,7 +589,8 @@ var VHints = {
   _isDescendant (d: Element, p: Element): boolean {
     // Note: currently, not compute normal shadowDOMs / even <slot>s (too complicated)
     let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null;
-    while (0 < i-- && (c = VDom.GetParent_(d, PNType.DirectElement) as EnsuredMountedElement | null) !== p && c) {
+    while (0 < i-- && (c = (Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(d, PNType.DirectElement)
+                            : d.parentElement) as EnsuredMountedElement | null) !== p && c) {
       d = c;
     }
     if (c !== p) { return false; }

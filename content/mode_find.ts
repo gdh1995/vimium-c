@@ -490,11 +490,11 @@ var VFind = {
       let el = (!(Build.BTypes & ~BrowserType.Chrome)
             || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
           ? document.fullscreenElement : document.webkitFullscreenElement) as FullScreenElement | null,
-      text = el && el.innerText;
-      if (Build.BTypes & ~BrowserType.Firefox && el && typeof text !== "string") {
-        el = VDom.GetParent_(el, PNType.DirectElement), text = el && el.innerText as string | undefined;
+      text: string | undefined | Element;
+      if (el && typeof (text = el.innerText) !== "string") { // in case of SVG elements
+        el = VDom.GetParent_(el, PNType.DirectElement);
       }
-      query = <string | undefined | null> text ||
+      query = el && <string> text ||
           (Build.BTypes & ~BrowserType.Firefox ? (document.documentElement as HTMLElement).innerText + ""
             : (document.documentElement as HTMLElement).innerText as string);
       matches = query.match(re) || query.replace(a.A0Re_, " ").match(re);

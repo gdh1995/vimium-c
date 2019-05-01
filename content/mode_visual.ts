@@ -235,7 +235,7 @@ var VVisual = {
     if (movement.diType_ & VisualModeNS.DiType.Complicated) { return; }
     const focused = VDom.getSelectionFocusEdge_(movement.selection_, movement.di_ as VisualModeNS.ForwardDir);
     if (focused) {
-      VScroller.scrollIntoView_unsafe_(focused);
+      VScroller.scrollIntoView_need_safe_(focused);
     }
   },
   /**

@@ -178,12 +178,12 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
    * @param amount should not be 0
    */
   findScrollable_ (di: ScrollByY, amount: number): SafeElement | null {
-    const a = this;
-    let element: SafeElement | null = a.current_, top = a.top_;
+    const a = this, top = a.top_;
+    let element: SafeElement | null = a.current_;
     if (element) {
       let reason, notNeedToRecheck = !di;
       type Element2 = NonNullable<typeof element>;
-      while (element !== top && (reason = a.shouldScroll_unsafe_(element as Element2, di, amount)) < 1) {
+      while (element !== top && (reason = a.shouldScroll_need_safe_(element as Element2, di, amount)) < 1) {
         if (!reason) {
           notNeedToRecheck = notNeedToRecheck || a._scrollDo(element as Element2, 1, -amount);
         }
@@ -280,18 +280,18 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     return null;
   },
   /** @NEED_SAFE_ELEMENTS */
-  scrollIntoView_unsafe_: function (this: {}, el: SafeElement | Element | null): void {
-    const rect = (el as SafeElement).getClientRects()[0] as ClientRect | undefined;
+  scrollIntoView_need_safe_ (el: SafeElement): void {
+    const rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
-    let a = this as typeof VScroller, { innerWidth: iw, innerHeight: ih} = window,
+    let a = this, { innerWidth: iw, innerHeight: ih} = window,
     { min, max } = Math, ihm = min(96, ih / 2), iwm = min(64, iw / 2),
     { bottom: b, top: t, right: r, left: l } = rect,
     hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,
     hasX = r < 0 ? max(l - iwm, r - iw + iwm) : iw < l ? min(r - iw + iwm, l - iwm) : 0;
     a.current_ = el as SafeElement;
     if (hasX || hasY) {
-      for (; el; el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
-        const pos = getComputedStyle(el).position;
+      for (let el2: Element | null = el; el2; el2 = VDom.GetParent_(el2, PNType.RevealSlotAndGotoParent)) {
+        const pos = getComputedStyle(el2).position;
         if (pos === "fixed" || pos === "sticky") {
           hasX = hasY = 0;
           break;
@@ -305,10 +305,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       }
     }
     a.keyIsDown_ = 0; // it's safe to only clean keyIsDown here
-  } as (el: SafeElement) => void,
+  },
   scrolled_: 0,
   /** @NEED_SAFE_ELEMENTS */
-  shouldScroll_unsafe_ (element: SafeElement, di: ScrollByY, amount?: number): -1 | 0 | 1 {
+  shouldScroll_need_safe_ (element: SafeElement, di: ScrollByY, amount?: number): -1 | 0 | 1 {
     const st = getComputedStyle(element);
     return (di ? st.overflowY : st.overflowX) === "hidden" || st.display === "none" || st.visibility !== "visible" ? -1
       : <BOOL> +this._scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));

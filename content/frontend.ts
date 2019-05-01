@@ -234,8 +234,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         }
       }
     } else {
-      VScroller.current_ = (Build.BTypes & ~BrowserType.Firefox ? VDom.SafeEl_(target as Element)
-        : target as SafeElement) || VScroller.current_;
+      VScroller.current_ = Build.BTypes & ~BrowserType.Firefox
+          ? VDom.SafeEl_(target as Element) || VScroller.current_ : target as SafeElement;
     }
   }
   function onBlur(this: void, event: Event | FocusEvent): void {
