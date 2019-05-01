@@ -121,7 +121,13 @@ var HelpDialog = {
   normalizeHelpInfo_ (help: Partial<CommandsNS.NormalizedCustomHelpInfo>): void {
     if (help.$key != null) { return; }
     let a = this.templateEl_;
-    a || (a = this.templateEl_ = document.createElement("td"));
+    if (!a) {
+      const template = document.createElement("template"),
+      td = document.createElement("td");
+      template.content.appendChild(td);
+      // make `<td>` inert, so that "onclick" won't be parsed
+      a = this.templateEl_ = td;
+    }
     help.$key = help.key ? this.safeHTML_(help.key, a) : "";
     help.$desc = help.desc ? this.safeHTML_(help.desc, a) : "";
   },
