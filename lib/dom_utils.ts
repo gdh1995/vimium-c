@@ -486,28 +486,28 @@ var VDom = {
         return isConnected as boolean; // is boolean : exists and is not overridden
       }
     }
-    let doc: Element | Document = root || element.ownerDocument, f: Node["getRootNode"]
+    let f: Node["getRootNode"]
       , NP = Node.prototype, pe: Element | null;
-    !(Build.BTypes & ~BrowserType.Firefox) ||
-    root || doc.nodeType !== kNode.DOCUMENT_NODE && (doc = document);
-    if (doc.nodeType === 9 && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
+    root = root
+          || (!(Build.BTypes & ~BrowserType.Firefox) ? element.ownerDocument
+              : (root = element.ownerDocument).nodeType !== kNode.DOCUMENT_NODE ? document : root);
+    if (root.nodeType === kNode.DOCUMENT_NODE
+        && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox) || (f = NP.getRootNode))) {
       return !(Build.BTypes & ~BrowserType.Firefox)
-        ? (element as EnsureNonNull<Element>).getRootNode({composed: true}) === doc
+        ? (element as EnsureNonNull<Element>).getRootNode({composed: true}) === root
         : (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
         ? NP.getRootNode as NonNullable<typeof f> : f as NonNullable<typeof f>
-        ).call(element, {composed: true}) === doc;
+        ).call(element, {composed: true}) === root;
     }
-    if (Build.BTypes & ~BrowserType.Firefox ? NP.contains.call(doc, element) : doc.contains(element)) { return true; }
+    if (Build.BTypes & ~BrowserType.Firefox ? NP.contains.call(root, element) : root.contains(element)) { return true; }
     while ((pe = VDom.GetParent_(element, checkMouseEnter ? PNType.RevealSlotAndGotoParent : PNType.ResolveShadowHost))
-            && pe !== doc) {
+            && pe !== root) {
       element = pe;
     }
-    const pn = VDom.GetParent_(element, PNType.DirectNode);
-    // Note: `pn instanceof Element` means `element.parentNode` is overridden,
-    // so return a "potentially correct" result `true`.
-    // This requires that further jobs are safe enough even when isInDOM returns a fake "true"
-    return pn === doc || !checkMouseEnter && pn instanceof Element;
+    // if not pe, then PNType.DirectNode won't return an Element
+    // because .GetParent_ will only return a real parent, but not a fake <form>.parentNode
+    return (pe || VDom.GetParent_(element, PNType.DirectNode)) === root;
   },
   unsafeFramesetTag_: 0 as "FRAMESET" | 0,
   // todo: apply similar checks for HTMLElement and LockableElement
@@ -520,12 +520,12 @@ var VDom = {
   } : 0 as never,
   /** @safe_even_if_any_overridden_property */
   SafeEl_: Build.BTypes & ~BrowserType.Firefox ? function (
-      this: void, el: Node | null, type?: PNType.DirectElement): Node | null {
+      this: void, el: Node | null, type?: PNType.DirectElement | undefined): Node | null {
     return VDom.notSafe_(el)
-      ? VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent) : el;
+      ? VDom.SafeEl_(VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent), type) : el;
   } as {
     (this: void, el: HTMLElement | null): SafeHTMLElement | null;
-    (this: void, el: Element | null, type?: PNType.DirectElement): SafeElement | null;
+    (this: void, el: Element | null, type?: PNType.DirectElement | undefined): SafeElement | null;
     (this: void, el: Node | null): Node | null;
   } : 0 as never,
   uneditableInputs_: <SafeEnum> { __proto__: null as never,
@@ -579,16 +579,20 @@ var VDom = {
     let range = sel.getRangeAt(0), par: Node | null = range.commonAncestorContainer, p0 = par;
     // no named getters on SVG* elements
     if (Build.BTypes & ~BrowserType.Firefox) {
-      while (par && par instanceof SVGElement) { par = VDom.GetParent_(par, PNType.DirectElement); }
+      while (par && (par.nodeType !== kNode.ELEMENT_NODE || par instanceof SVGElement)) {
+        par = VDom.GetParent_(par, PNType.DirectNode);
+      }
+      // now par is Element or null, and may be a <form>
     } else {
       while (par && !(par instanceof HTMLElement)) { par = par.parentNode as Element; }
+      // now par is HTMLElement or null
     }
     if (selected && p0 instanceof Text && p0.data.trim().length <= selected.length) {
       let text: string | Element | undefined;
       while (par && (text = (par as HTMLElement | Element & {innerText?: undefined}).innerText,
             !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
           && selected.length === (text as string).length) {
-        par = VDom.GetParent_(par as Element, PNType.DirectElement);
+        par = VDom.GetParent_(par as HTMLElement, PNType.DirectElement);
       }
     }
     return par !== document.documentElement ? par as Element | null : null;

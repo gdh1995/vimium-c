@@ -1148,7 +1148,7 @@ Modes_: [
     const toggleMap = a.options_.toggle;
     if (!toggleMap || typeof toggleMap !== "object") { return; }
     VUtils.safer_(toggleMap);
-    let ancestors = [], topest: Element | null = element, re = <RegExpOne> /^-?\d+/;
+    let ancestors: Element[] = [], topest: Element | null = element, re = <RegExpOne> /^-?\d+/;
     for (let key in toggleMap) {
       // if no Element::closest, go up by 6 levels and then query the selector
       let selector = key, prefix = re.exec(key), upper = prefix && prefix[0];
@@ -1166,7 +1166,10 @@ Modes_: [
       }
       try {
         if (selector && (selected = up
-              ? (ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]).querySelector(selector)
+              ? Build.BTypes & ~BrowserType.Firefox
+                ? Element.prototype.querySelector.call(ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]
+                    , selector)
+                : (ancestors[Math.max(0, Math.min(up + 1, ancestors.length - 1))]).querySelector(selector)
               : (element as EnsureNonNull<Element>).closest(selector))) {
           for (const clsName of toggleMap[key].split(" ")) {
             clsName.trim() && selected.classList.toggle(clsName);
