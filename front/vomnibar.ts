@@ -163,9 +163,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.showing_ = true;
     Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
       && a.firstShowing_ ||
-    setTimeout(Vomnibar_.focus_, 34);
-    Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
-      && a.firstShowing_ && setTimeout(Vomnibar_.focus_, 67);
+    setTimeout(a.focus_, 34);
     a.firstShowing_ = false;
     addEventListener("wheel", a.onWheel_, a.wheelOptions_);
   },
@@ -224,11 +222,15 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (a.init_) { a.init_(); }
     a.input_.value = a.inputText_;
   },
-  focus_ (this: void, focus?: false | TimerType.fake | "focus"): void {
+  focus_ (this: void, focus?: false | TimerType.fake | "focus" | 1 | 2 | 3): void {
     const a = Vomnibar_;
     a.focusByCode_ = true;
     if (focus !== false) {
       a.input_.focus();
+      if (a.focusByCode_ || document.activeElement !== a.input_) {
+        focus = focus ? <number> focus | 0 : 0;
+        focus < 3 && focus >= 0 && setTimeout(a.focus_, 34, focus + 1);
+      }
     } else {
       VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
     }

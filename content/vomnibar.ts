@@ -274,7 +274,7 @@ var VOmni = {
       const a2 = VOmni;
       VUtils.remove_(a2);
       a2 && a2.status_ === VomnibarNS.Status.Showing && VUtils.push_(a2.onKeydown_, a2);
-    }, 120);
+    }, 160);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     if (VEvent.lock_()) { return HandlerResult.Nothing; }
