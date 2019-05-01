@@ -356,7 +356,7 @@ nacjakoppgmdcpemlfnfegmlhipddanj`
     grabBackFocus: false,
     hideHud: false,
     innerCSS: "",
-    keyboard: [540, 33],
+    keyboard: [560, 33],
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
     localeEncoding: "gbk",
