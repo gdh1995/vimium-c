@@ -2584,8 +2584,14 @@ Are you sure you want to continue?`);
         return OnConnect(port as Frames.Port,
             (port.name.substring(PortNameEnum.PrefixLen) as string | number as number) | 0);
       });
-      if (Build.BTypes & ~BrowserType.Chrome && !chrome.runtime.onConnectExternal) { return; }
-      Settings.postUpdate_("extWhiteList");
+      if (Build.BTypes & ~BrowserType.Chrome
+          && (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)) {
+        if (chrome.runtime.onConnectExternal) {
+          Settings.extWhiteList_ || Settings.postUpdate_("extWhiteList");
+        } else {
+          return;
+        }
+      }
       (chrome.runtime.onConnectExternal as chrome.runtime.ExtensionConnectEvent).addListener(function (port): void {
         let { sender, name } = port, arr: string[];
         if (sender
@@ -2624,7 +2630,9 @@ Are you sure you want to continue?`);
     needIcon = value && !!chrome.browserAction;
   };
 
-  (!(Build.BTypes & ~BrowserType.Chrome) || chrome.runtime.onMessageExternal) &&
+  (!(Build.BTypes & ~BrowserType.Chrome)
+    || !(Build.BTypes & ~BrowserType.Firefox) && !Build.DetectAPIOnFirefox
+    || chrome.runtime.onMessageExternal) &&
   ((chrome.runtime.onMessageExternal as chrome.runtime.ExtensionMessageEvent).addListener(function (this: void
       , message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void {
