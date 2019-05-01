@@ -369,7 +369,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   if (!Build.OverrideNewTab) {
-    ($("#focusNewTabContent") as Element as EnsuredMountedElement).parentElement.parentElement.parentElement.remove();
+    $<EnsuredMountedElement & HTMLElement>("#focusNewTabContent").parentElement.parentElement.parentElement.remove();
+    $<EnsuredMountedElement & HTMLElement>("#newTabUrlRefer").remove();
   }
 
   let _ref: {length: number, [index: number]: HTMLElement} = $$("[data-model]"), element: HTMLElement;
@@ -592,8 +593,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   _ref = $$("[data-permission]");
   _ref.length > 0 && (function (this: void, els: typeof _ref): void {
-    const manifest = chrome.runtime.getManifest(), permissions = manifest.permissions || [];
-    for (const key of permissions) {
+    const manifest = chrome.runtime.getManifest();
+    for (const key of manifest.permissions || []) {
       manifest[key] = true;
     }
     for (let i = els.length; 0 <= --i; ) {

@@ -123,6 +123,7 @@ var Tasks = {
       curConfig.push(getNonNullBuildItem("NativeWordMoveOnFirefox"));
     }
     curConfig.push(getNonNullBuildItem("Commit"));
+    curConfig.push(getNonNullBuildItem("OverrideNewTab"));
     curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
     var needClean = true;
