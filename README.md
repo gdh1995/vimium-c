@@ -14,10 +14,10 @@
 
 A <span style="color: #8e5e2f;">C</span>ustomized
   [<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)
-  having <span style="color: #8e5e2f;">C</span>hinese support,
-    global <span style="color: #8e5e2f;">C</span>ommands
-    and injection functionality,
-  in <span style="color: #8e5e2f;">C</span>-style code for better speed and less resource cost.
+  having <span style="color: #8e5e2f;">**C**</span>hinese support,
+    global <span style="color: #8e5e2f;">**C**</span>ommands
+    and inje**c**tion functionality,
+  in <span style="color: #8e5e2f;">**C**</span>-style code for qui**c**ker response and less resource **c**ost.
 
 It supports Chrome and other Chromium-based browsers whose core versions are >= 35,
   and supports most of the functionality on a latest Firefox (since version 64.0).
