@@ -48,6 +48,13 @@ var HelpDialog = {
       homePage: Settings.CONST_.HomePage_,
       version: Settings.CONST_.VerName_,
       title: request.t ? "Command Listing" : "Help",
+      reviewPage: (!(Build.BTypes & ~BrowserType.Firefox)
+              || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+            ? BuildStr.FirefoxAddonPage : BuildStr.ChromeWebStorePage
+          ).replace("$id", chrome.runtime.id),
+      webStore: !(Build.BTypes & ~BrowserType.Firefox)
+            || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+          ? "Firefox Add-ons" : "Web Store",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;

@@ -15,4 +15,6 @@ declare const enum Build {
 declare const enum BuildStr {
   Commit = "in-developing",
   FirefoxID = "vimium-c@gdh1995.cn",
+  FirefoxAddonPage = "https://addons.mozilla.org/en-US/firefox/addon/vimium-c/",
+  ChromeWebStorePage = "https://chrome.google.com/webstore/detail/vimium-c/$id/reviews",
 }
