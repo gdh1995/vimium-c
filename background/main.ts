@@ -129,7 +129,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
   onRuntimeError = Utils.runtimeError_,
   NoFrameId = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome
       && ChromeVer < BrowserVer.MinWithFrameId;
-  function isExtIdAllowed(this: void, extId: string | null | undefined, url?: string): boolean {
+  function isExtIdAllowed(this: void, extId: string | null | undefined, url: string | undefined): boolean {
     if (extId == null) { extId = "unknown_sender"; }
     let list = Settings.extWhiteList_, stat = list[extId];
     if (stat != null) { return stat; }
@@ -138,6 +138,9 @@ var Backend: BackendHandlersNS.BackendHandlers;
       if (list[new URL(url).host]) {
         return list[extId] = true;
       }
+    }
+    if (url === Settings.cache_.vomnibarPage_f) {
+      return true;
     }
     const backgroundLightYellow = "background-color:#fffbe5";
     console.log("%cReceive message from an extension/sender not in the white list: %c%s",
@@ -2232,14 +2235,15 @@ Are you sure you want to continue?`);
     });
   }
   function OnConnect(this: void, port: Frames.Port, type: number): void {
-    const sender = formatPortSender(port), { t: tabId, u: url } = sender;
-    let status: Frames.ValidStatus, ref = framesForTab[tabId] as Frames.WritableFrames | undefined;
-    if (type >= PortType.omnibar || (url === Settings.cache_.vomnibarPage_f)) {
-      if (type < PortType.knownStatusBase) {
+    const sender = formatPortSender(port), { t: tabId, u: url } = sender
+      , ref = framesForTab[tabId] as Frames.WritableFrames | undefined
+      , isOmni = url === Settings.cache_.vomnibarPage_f;
+    let status: Frames.ValidStatus = Frames.Status.enabled;
+    if (type >= PortType.omnibar || isOmni) {
+      if (type < PortType.knownStatusBase || isOmni) {
         if (onOmniConnect(port, tabId, type)) {
           return;
         }
-        status = Frames.Status.enabled;
         sender.f = Frames.Flags.userActed;
       } else if (Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab && type === PortType.CloseSelf) {
         if (tabId >= 0 && !sender.i) {
@@ -2595,7 +2599,7 @@ Are you sure you want to continue?`);
       (chrome.runtime.onConnectExternal as chrome.runtime.ExtensionConnectEvent).addListener(function (port): void {
         let { sender, name } = port, arr: string[];
         if (sender
-            && (Build.BTypes & ~BrowserType.Chrome ? isExtIdAllowed(sender.id, sender.url) : isExtIdAllowed(sender.id))
+            && isExtIdAllowed(sender.id, sender.url)
             && name.startsWith(PortNameEnum.Prefix) && (arr = name.split(PortNameEnum.Delimiter)).length > 1) {
           if (arr[1] !== Settings.CONST_.GitVer) {
             (port as Port).postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reload });
@@ -2637,7 +2641,7 @@ Are you sure you want to continue?`);
       , message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void {
     let command: string | undefined;
-    if (Build.BTypes & ~BrowserType.Chrome ? !isExtIdAllowed(sender.id, sender.url) : !isExtIdAllowed(sender.id)) {
+    if (!isExtIdAllowed(sender.id, "")) {
       sendResponse(false);
       return;
     }
