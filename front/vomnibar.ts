@@ -122,7 +122,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   isSearchOnTop_: false,
   actionType_: ReuseType.Default,
   matchType_: CompletersNS.MatchType.Default,
-  focused_: true,
+  focused_: Build.BTypes & ~BrowserType.Firefox ? true : false,
   showing_: false,
   firstShowing_: true,
   focusByCode_: true,
@@ -222,14 +222,22 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (a.init_) { a.init_(); }
     a.input_.value = a.inputText_;
   },
-  focus_ (this: void, focus?: false | TimerType.fake | "focus" | 1 | 2 | 3): void {
+  focus_ (this: void, focus?: false | TimerType.fake | "focus" | 1 | 2 | 3 | 4 | 5): void {
     const a = Vomnibar_;
     a.focusByCode_ = true;
     if (focus !== false) {
       a.input_.focus();
-      if (a.focusByCode_ || document.activeElement !== a.input_) {
+      if (a.focusByCode_ || !a.focused_) {
         focus = focus ? <number> focus | 0 : 0;
-        focus < 3 && focus >= 0 && setTimeout(a.focus_, 34, focus + 1);
+        if (!Build.NDEBUG) {
+          if (focus >= 0) {
+            console.log(`Vomnibar: can not focus the input bar at the ${focus + 1} time`
+              + (focus < 5 ? ", so retry in 33ms." : "."));
+          } else {
+            console.log("Vomnibar: fail in focusing the input bar.");
+          }
+        }
+        focus < 5 && focus >= 0 && setTimeout(a.focus_, 33, focus + 1);
       }
     } else {
       VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
@@ -750,12 +758,10 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     Vomnibar_.globalOptions_ = newOptions;
   },
   OnWndFocus_ (this: void, event: Event): void {
-    const a = Vomnibar_, byCode = a.focusByCode_;
+    const a = Vomnibar_, byCode = a.focusByCode_, blurred = event.type === "blur", target = event.target;
     if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !event.isTrusted : event.isTrusted === false) || !VPort_) { return; }
     a.focusByCode_ = false;
-    const blurred = event.type === "blur";
-    const target = event.target;
     if (!a.isActive_ || target !== window) {
       target === a.input_ &&
       (Vomnibar_.focused_ = !blurred) && (Vomnibar_.blurWanted_ = false);
