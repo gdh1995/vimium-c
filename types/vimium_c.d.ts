@@ -182,6 +182,9 @@ declare namespace Frames {
     hadVisualMode = 16,
     hasFindCSS = 32,
     OtherExtension = 64,
+    vomnibarChecked = 128,
+    isVomnibar = 256,
+    sourceWarned = 512,
   }
   const enum NextType {
     next = 0, Default = next,

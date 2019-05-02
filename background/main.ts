@@ -274,24 +274,23 @@ var Backend: BackendHandlersNS.BackendHandlers;
       }
     }
   }
-  const isNotVomnibarPage = function (this: void, port: Frames.Port, nolog?: boolean): boolean {
-    interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
-    const info = port.s as SenderEx;
-    if (info.isVomnibar == null) {
-      info.isVomnibar = info.u === Settings.cache_.vomnibarPage_f || info.u === Settings.CONST_.VomnibarPageInner_;
+  /** `true` means `port` is NOT vomnibar port */
+  function isNotVomnibarPage(this: void, port: Frames.Port, noLog: boolean): boolean {
+    let info = port.s, f = info.f;
+    if (!(f & Frames.Flags.vomnibarChecked)) {
+      f |= Frames.Flags.vomnibarChecked |
+        (info.u === Settings.cache_.vomnibarPage_f || info.u === Settings.CONST_.VomnibarPageInner_
+          ? Frames.Flags.isVomnibar : 0);
+      (info as Writeable<Frames.Sender>).f = f;
     }
-    if (info.isVomnibar) { return false; }
-    if (!nolog && !info.warned) {
+    if (f & Frames.Flags.isVomnibar) { return false; }
+    if (!noLog && !(f & Frames.Flags.sourceWarned)) {
       console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @ tab %o",
         "color:red", "color:auto", info.u, info.t);
-      info.warned = true;
+      (info as Writeable<Frames.Sender>).f = f | Frames.Flags.sourceWarned;
     }
     return true;
-  } as {
-    /** `true` means `port` is NOT vomnibar port */
-    (this: void, port: Port, nolog: true): boolean;
-    (this: void, port: Frames.Port, nolog?: false): boolean;
-  };
+  }
   function PostCompletions(this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>
       , autoSelect: boolean, matchType: CompletersNS.MatchType, total: number): void {
     let { u: url } = this.s, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
@@ -2093,7 +2092,7 @@ Are you sure you want to continue?`);
       return (BackgroundCommands[kBgCmd.showVomnibar] as (this: void, forceInner?: boolean) => void)(inner);
     },
     /** omni: */ function (this: void, request: FgReq[kFgReq.omni], port: Port): void {
-      if (isNotVomnibarPage(port)) { return; }
+      if (isNotVomnibarPage(port, false)) { return; }
       return Completion_.filter_(request.q, request,
       PostCompletions.bind<Port, 0 | 1 | 2
           , [Array<Readonly<CompletersNS.Suggestion>>, boolean, CompletersNS.MatchType, number], void>(port
@@ -2322,7 +2321,7 @@ Are you sure you want to continue?`);
   }
   function onOmniConnect(port: Frames.Port, tabId: number, type: PortType): boolean {
     if (type >= PortType.omnibar) {
-      if (!isNotVomnibarPage(port)) {
+      if (!isNotVomnibarPage(port, false)) {
         if (tabId < 0) {
           (port.s as Writeable<Frames.Sender>).t = type !== PortType.omnibar ? _fakeTabId--
               : cPort ? cPort.s.t : TabRecency_.last_;

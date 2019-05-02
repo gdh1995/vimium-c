@@ -90,7 +90,7 @@ var VDom = {
     }
     return !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-      ? sr as null :sr || null;
+      ? sr as null : sr || null;
   },
   /**
    * Try its best to find a real parent
