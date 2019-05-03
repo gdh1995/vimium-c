@@ -22,6 +22,11 @@ declare const enum AllowedActions {
   nothing = Default,
   dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, enter, remove
 }
+declare function setTimeout <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
+  timeout: number, a1: T1, a2: T2, a3: T3): number;
+declare function setTimeout <T1, T2>(this: void, handler: (this: void, a1: T1, a2: T2) => void,
+  timeout: number, a1: T1, a2: T2): number;
+declare function setTimeout <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
 
 interface ConfigurableItems {
   VomnibarMaxPageNum?: number;
@@ -1084,7 +1089,7 @@ VUtils_ = {
     }
     sug.text = text;
     if (str = sug.title) {
-      (sug as Writeable<Suggestion>).title = str.replace(<RegExpG> /<\/?match>/g, "").replace(
+      (sug as Writeable<typeof sug>).title = str.replace(<RegExpG> /<\/?match>/g, "").replace(
           <RegExpG & RegExpSearchable<1>> /&(amp|apos|gt|lt|quot);|\u2026/g, VUtils_.onHTMLEntity);
     }
     return i;

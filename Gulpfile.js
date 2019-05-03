@@ -56,7 +56,8 @@ var CompileTasks = {
             , "lib/injector.ts", "pages/*.ts"
             , has_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
             , "!pages/options*.ts", "!pages/show.ts"]
-          , ["background/bg.d.ts", "content/*.d.ts"]],
+          , ["background/bg.d.ts", "content/*.d.ts"]
+          , { inBatch: false }],
   vomnibar: ["front/vomnibar*.ts", ["background/bg.d.ts", "content/*.d.ts"]],
   polyfill: [POLYFILL_FILE],
   injector: ["lib/injector.ts"],
@@ -132,6 +133,7 @@ var Tasks = {
       needClean = oldConfig !== curConfig;
     } catch (e) {}
     if (needClean) {
+      console.log("found diff:", oldConfig, "!=", curConfig);
       gulp.series("build/_clean_diff")(function() {
         if (!fs.existsSync(JSDEST)) {
           fs.mkdirSync(JSDEST, {recursive: true});
@@ -397,10 +399,10 @@ gulp.task("locally", function(done) {
 makeCompileTasks();
 makeTasks();
 
-function makeCompileTask(src, header_files) {
+function makeCompileTask(src, header_files, options) {
   header_files = typeof header_files === "string" ? [header_files] : header_files || [];
   return function(done) {
-    compile(src, header_files, done);
+    compile(src, header_files, done, options);
   };
 }
 
@@ -408,7 +410,7 @@ function makeCompileTasks() {
   var hasOwn = Object.prototype.hasOwnProperty;
   for (var key in CompileTasks) {
     if (!hasOwn.call(CompileTasks, key)) { continue; }
-    var config = CompileTasks[key], task = makeCompileTask(config[0], config[1]);
+    var config = CompileTasks[key], task = makeCompileTask(config[0], config[1], config.length > 2 ? config[2] : null);
     gulp.task(key, gulp.series("locally", task));
     gulp.task("build/" + key, task);
     if (fs.existsSync(key) && fs.statSync(key).isDirectory()) {
@@ -478,7 +480,7 @@ function tsProject() {
 }
 
 var _mergedProject = null, _mergedProjectInput = null;
-function compile(pathOrStream, header_files, done) {
+function compile(pathOrStream, header_files, done, options) {
   if (typeof pathOrStream === "string") {
     pathOrStream = [pathOrStream];
   }
@@ -491,7 +493,10 @@ function compile(pathOrStream, header_files, done) {
     : ["types/**/*.d.ts", "types/*.d.ts", "!types/build/*.ts"].concat(header_files
         ).concat(buildConfig ? ["scripts/gulp.tsconfig.json"] : []);
   var allIfNotEmpty = gulpAllIfNotEmpty();
-  stream = stream.pipe(allIfNotEmpty.prepare);
+  var localCompileInBatch = options && options.inBatch != null ? options.inBatch : compileInBatch;
+  if (localCompileInBatch) {
+    stream = stream.pipe(allIfNotEmpty.prepare);
+  }
   if (!debugging) {
     stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: extra }));
   }
@@ -499,7 +504,7 @@ function compile(pathOrStream, header_files, done) {
     var t = file.relative, s = ".d.ts", i = t.length - s.length;
     return i < 0 || t.indexOf(s, i) !== i;
   }));
-  if (compileInBatch) {
+  if (localCompileInBatch) {
     stream = stream.pipe(allIfNotEmpty.cond);
   }
   if (willListFiles) {
