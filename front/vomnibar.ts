@@ -802,8 +802,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     (document.getElementById("close") as HTMLElement).onclick = function (): void { return Vomnibar_.hide_(); };
 
     listen("keydown", a.HandleKeydown_, true);
-    listen("focus", a.OnWndFocus_);
-    listen("blur", a.OnWndFocus_);
+    listen("focus", a.OnWndFocus_, true);
+    listen("blur", a.OnWndFocus_, true);
     input.oninput = a.onInput_.bind(a);
     input.onselect = a.OnSelect_;
 

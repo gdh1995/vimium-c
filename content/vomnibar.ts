@@ -170,7 +170,7 @@ var VOmni = {
         a.status_ = VomnibarNS.Status.KeepBroken;
         a.run(1, {} as VomnibarNS.FullOptions);
       };
-      if (location.origin !== origin || origin.indexOf("-") < 0) {
+      if (location.origin !== origin || type === VomnibarNS.PageType.web) {
         setTimeout(checkBroken, 600);
         const channel = new MessageChannel();
         _this.port_ = channel.port1;
