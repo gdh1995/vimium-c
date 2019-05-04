@@ -2406,7 +2406,9 @@ Are you sure you want to continue?`);
       return chrome.sessions.getRecentlyClosed({ maxResults: 1 });
     }).then(function (sessions: chrome.sessions.Session[]): void {
       const tab = sessions && sessions[0] && sessions[0].tab;
-      tab && chrome.sessions.forgetClosedTab(windowId, tab.sessionId as string);
+      if (tab && Settings.newTabs_[tab.url] === Urls.NewTabType.vimium) {
+        chrome.sessions.forgetClosedTab(windowId, tab.sessionId as string);
+      }
     });
     return promise;
   }
