@@ -34,6 +34,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     [kBgCmd.removeTabsR]: UseTab.CurWndTabs;
     [kBgCmd.removeRightTab]: UseTab.CurWndTabs;
     [kBgCmd.togglePinTab]: UseTab.CurWndTabs;
+    [kBgCmd.discardTab]: UseTab.CurWndTabs;
     [kBgCmd.reloadTab]: UseTab.CurWndTabs;
     [kBgCmd.moveTab]: UseTab.CurWndTabs;
     [kBgCmd.visitPreviousTab]: UseTab.CurWndTabs;
@@ -867,7 +868,7 @@ Are you sure you want to continue?`);
       ? UseTab.NoTab : UseTab.ActiveTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
     UseTab.NoTab, UseTab.CurShownTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
-    UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab,
+    UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.CurWndTabs, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.CurWndTabs, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab,
@@ -1173,6 +1174,31 @@ Are you sure you want to continue?`);
         return;
       }
       chrome.sessions.getRecentlyClosed(doRestore);
+    },
+    /* discardTab: */ function (this: void, tabs: Tab[]): void {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$tabs$$discard
+          && ChromeVer < BrowserVer.Min$tabs$$discard) {
+        Backend.showHUD_(`Vimium C can not discard tabs before Chrome ${BrowserVer.Min$tabs$$discard}`);
+      }
+      const current = selectFrom(tabs, 1).index, end = Math.max(0, Math.min(current + cRepeat, tabs.length - 1)),
+      count = Math.abs(end - current), step = end > current ? 1 : -1;
+      if (!count || count > 20 && !confirm("discardTab", count)) {
+        return;
+      }
+      const near = tabs[current + step];
+      if (!near.discarded) {
+        chrome.tabs.discard(near.id, count > 1 ? onRuntimeError : function(): void {
+          const err = onRuntimeError();
+          err && Backend.showHUD_("Can not discard the tab");
+          return err;
+        });
+      }
+      for (let i = 2; i <= count; i++) {
+        const tab = tabs[current + step * i];
+        if (!tab.discarded) {
+          chrome.tabs.discard(tab.id, onRuntimeError);
+        }
+      }
     },
     /* blank: */ Utils.blank_
     ,

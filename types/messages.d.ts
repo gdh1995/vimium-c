@@ -152,7 +152,7 @@ interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 declare const enum kBgCmd {
   goBack, createTab, duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
   clearCS, goTab, removeTab, removeTabsR, removeRightTab,
-  restoreTab, restoreGivenTab, blank, openUrl, searchInAnother,
+  restoreTab, restoreGivenTab, discardTab, blank, openUrl, searchInAnother,
   togglePinTab, toggleMuteTab, reloadTab, reloadGivenTab, reopenTab,
   goToRoot, goUp, moveTab, nextFrame, mainFrame,
   parentFrame, visitPreviousTab, copyTabInfo, goNext, enterInsertMode,

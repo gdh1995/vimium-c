@@ -200,7 +200,7 @@ var HelpDialog = {
     historyNavigation: ["goBack", "goForward", "reopenTab"],
     findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "performAnotherFind", "clearFindHistory"],
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
-      , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
+      , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "discardTab", "moveTabToNextWindow"
       , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab", "toggleMuteTab", "visitPreviousTab"
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
       , "enableCSTemp", "toggleCS", "clearCS"],
@@ -215,6 +215,7 @@ var HelpDialog = {
     , toggleCS: 1, clearCS: 1, "LinkHints.activateModeToDownloadImage": 1, reopenTab: 1
     , "LinkHints.activateModeToOpenImage": 1, removeRightTab: 1
     , "LinkHints.activateModeToDownloadLink": 1, restoreGivenTab: 1
+    , discardTab: 1
     , "LinkHints.activateModeToOpenIncognito": 1, passNextKey: 1
     , goNext: 1, goPrevious: 1, "Marks.clearLocal": 1, "Marks.clearGlobal": 1
     , moveTabLeft: 1, moveTabRight: 1, closeTabsOnLeft: 1, closeTabsOnRight: 1, closeOtherTabs: 1

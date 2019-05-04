@@ -718,6 +718,7 @@ tabEngine = {
       wndIds.length > 1 && (id += `${wndIds.indexOf(tab.windowId) + 1}:`);
       id += "" + (tab.index + 1);
       if (tab.incognito) { id += "*"; }
+      if (tab.discarded) { id += "~"; }
       const tabId = tab.id, suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
       if (curTabId === tabId) { suggestion.relevancy = 1; }
       suggestion.sessionId = tabId;

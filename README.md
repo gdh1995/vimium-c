@@ -57,6 +57,9 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+Not released yet:
+* add a command `discardTab` to discard tab(s) on the right (or left if count is negative)
+
 1.74.6:
 * *BREAKING*: now **use `s-` to represent the `ShiftKey`** is being pressed when constructing keys
   * e.g. `<a-s-f>`: just like using `a-`, `c-` and `m-` to represent `AltKey`, `CtrlKey` and `MetaKey`
@@ -78,7 +81,7 @@ __Other extensions supporting Vimium C:__
 * Vomnibar: make max number of suggestions and query interval configurable
 * `goBack`, `goForward`: now works perfectly since Chrome 72
 * FindMode: focus found node on exit, for easier `<tab>` navigation
-* add command `performAnotherFind` to find the second or even eariler query in the query history list.
+* add a command `performAnotherFind` to find the second or even eariler query in the query history list.
 * `Marks.activate` supports extra 8 temporary marks besides the "last" mark, and uses `2` ~ `9` prefix to specify them.
 * Scroller: a better default value of keyboard settings
 * vimium://show : now auto decrypt "thunder://" URLs

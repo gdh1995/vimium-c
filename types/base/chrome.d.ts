@@ -2016,6 +2016,17 @@ declare namespace chrome.tabs {
          * @since Chrome 31.
          */
         height?: number;
+        /**
+         * Whether the tab can be discarded automatically by the browser when resources are low.
+         * @since Chrome 54.
+         */
+        autoDiscardable?: boolean;
+        /**
+         * Whether the tab is discarded. A discarded tab is one whose content has been unloaded from memory,
+         * but is still visible in the tab strip. Its content is reloaded the next time it is activated.
+         * @since Chrome 54.
+         */
+        discarded?: boolean;
     }
 
     /**
@@ -2477,9 +2488,14 @@ declare namespace chrome.tabs {
     export function reload(tabId: number, callback?: (exArg: FakeArg) => void): 1;
     /**
      * Reload the selected tab of the current window.
-      * @since Chrome 16.
+     * @since Chrome 16.
      */
     export function reload(callback?: (exArg: FakeArg) => void): 1;
+    /**
+     * Discards a tab from memory. Discarded tabs are still visible on the tab strip and are reloaded when activated.
+     * @since Chrome 54
+     */
+    export function discard(tabId: number, callback?: (exArg: FakeArg) => void): 1;
     /**
      * Duplicates a tab.
      * @since Chrome 23.

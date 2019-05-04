@@ -565,6 +565,7 @@ declare const enum BrowserVer {
   // only Chrome accepts it:
   // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
   Min$Extension$$GetView$AcceptsTabId = 54,
+  Min$tabs$$discard = 54,
   // the 7 below are correct even if EXPERIMENTAL or LEGACY
   MinUnprefixedUserSelect = 54,
   MinHighDPIOnWindows = 54, // replace MinPhysicalPixelOnWindows

@@ -389,6 +389,7 @@ availableCommands_: {
   removeRightTab: [ "Close N-th tab on the right", 0, 1, kBgCmd.removeRightTab ],
   restoreTab: [ "Restore closed tab(s)", 25 as 0, 1, kBgCmd.restoreTab ],
   restoreGivenTab: [ "Restore the last N-th tab", 0, 1, kBgCmd.restoreGivenTab ],
+  discardTab: [ "Discard some other tab(s)", /* 20 in main.ts */ 0, 1, kBgCmd.discardTab ],
   moveTabToNewWindow: [ "Move N tab(s) to new window (use limited=null/&lt;boolean&gt;)",
     /** 30 in main.ts */ 0, 1, kBgCmd.moveTabToNewWindow ],
   moveTabToNextWindow: [ "Move tab to next window (use right)", 0, 1, kBgCmd.moveTabToNextWindow ],
