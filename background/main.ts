@@ -863,7 +863,6 @@ Are you sure you want to continue?`);
   }
   const
   BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
-    UseTab.NoTab,
     Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
       ? UseTab.NoTab : UseTab.ActiveTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
@@ -885,15 +884,6 @@ Are you sure you want to continue?`);
         never :
       BgCmdNoTab;
   } = [
-    /* kBgCmd.goBack: */ !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
-          || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && chrome.tabs.goBack
-        ? function (this: void): void {
-      const tabID = TabRecency_.last_ < 0 ? null as never : TabRecency_.last_, count = cRepeat,
-      jump = (count > 0 ? chrome.tabs.goBack : chrome.tabs.goForward) as NonNullable<typeof chrome.tabs.goBack>;
-      for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
-        jump(tabID, onRuntimeError);
-      }
-    } : Utils.blank_ as never,
     /* createTab: */ Utils.blank_,
     /* duplicateTab: */ function (): void {
       const tabId = cPort.s.t;
@@ -2237,7 +2227,17 @@ Are you sure you want to continue?`);
       cPort = port;
       cRepeat = 1;
       BackgroundCommands[kBgCmd.performFind]();
-    }
+    },
+    /* framesGoBack: */ 
+        (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
+          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || ChromeVer >= BrowserVer.Min$Tabs$$goBack)
+        ? function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void {
+      const tabID = port.s.t, count = req.s,
+      jump = (count > 0 ? chrome.tabs.goForward : chrome.tabs.goBack) as NonNullable<typeof chrome.tabs.goBack>;
+      for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
+        jump(tabID, onRuntimeError);
+      }
+    } : Utils.blank_ as never
   ],
   framesForOmni: Frames.WritableFrames = [];
   function OnMessage <K extends keyof FgReq, T extends keyof FgRes>(this: void, request: Req.fg<K> | Req.fgWithRes<T>

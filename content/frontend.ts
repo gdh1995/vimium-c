@@ -326,11 +326,18 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       K extends keyof SpecialCommands ? SpecialCommands[K] :
       (this: void, count: number, options: CmdOptions[K]) => void;
   } = [
-    /* goBack: */ Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.Min$Tabs$$goBack
-        ? function (count: number, options: CmdOptions[kFgCmd.goBack]): void {
-      const step = Math.min(Math.abs(count), history.length - 1);
-      step > 0 && history.go((count < 0 ? -step : step) * (+options.dir || -1));
-    } : null as never,
+    /* framesGoBack: */ function (rawStep: number): void {
+      const maxStep = Math.min(Math.abs(rawStep), history.length - 1),
+      realStep = rawStep < 0 ? -maxStep : maxStep;
+      if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
+          && maxStep > 1
+          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || VDom.cache_.browserVer_ >= BrowserVer.Min$Tabs$$goBack)
+      ) {
+        post({ H: kFgReq.framesGoBack, s: realStep });
+      } else {
+        maxStep && history.go(realStep);
+      }
+    },
     VFind.activate_,
     VHints.run,
     VHints.ActivateAndFocus_,

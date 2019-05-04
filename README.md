@@ -58,6 +58,7 @@ __Other extensions supporting Vimium C:__
 # Release Notes
 
 Not released yet:
+* `goBack`, `goForward`: now works perfectly since Chrome 72
 * add a command `discardTab` to discard tab(s) on the right (or left if count is negative)
 
 1.74.6:
@@ -79,7 +80,7 @@ Not released yet:
   * can simulate touching the middle area of an element (use an option of `touch="auto"/true`)
   * in hover mode, can toggle class names of given HTML nodes (use `toggle={".selector":"className"}`)
 * Vomnibar: make max number of suggestions and query interval configurable
-* `goBack`, `goForward`: now works perfectly since Chrome 72
+* ~~`goBack`, `goForward`: now works perfectly since Chrome 72~~
 * FindMode: focus found node on exit, for easier `<tab>` navigation
 * add a command `performAnotherFind` to find the second or even eariler query in the query history list.
 * `Marks.activate` supports extra 8 temporary marks besides the "last" mark, and uses `2` ~ `9` prefix to specify them.

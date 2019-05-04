@@ -38,7 +38,7 @@ declare const enum kFgReq {
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
   focusOrLaunch, cmd, removeSug, openImage, gotoMainFrame,
-  setOmniStyle, findFromVisual,
+  setOmniStyle, findFromVisual, framesGoBack,
   END,
   msg = 90, injectDeprecated = 91,
   inject = 99,
@@ -150,7 +150,7 @@ interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 
 declare const enum kBgCmd {
-  goBack, createTab, duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
+  createTab, duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
   clearCS, goTab, removeTab, removeTabsR, removeRightTab,
   restoreTab, restoreGivenTab, discardTab, blank, openUrl, searchInAnother,
   togglePinTab, toggleMuteTab, reloadTab, reloadGivenTab, reopenTab,
@@ -160,10 +160,9 @@ declare const enum kBgCmd {
   toggleViewSource, clearMarks, toggle, toggleVomnibarStyle,
   END = "END",
 }
-// keep same index: goBack
 
 declare const enum kFgCmd {
-  goBack, findMode, linkHints, focusAndHint, unhoverLast, marks,
+  framesGoBack, findMode, linkHints, focusAndHint, unhoverLast, marks,
   goToMarks, scroll, visualMode, vomnibar,
   reset, toggle, insertMode, passNextKey, goNext,
   reload, switchFocus, showHelp, autoCopy,
@@ -205,8 +204,7 @@ interface CmdOptions {
     act?: "" | "backspace";
     action?: "" | "backspace";
   };
-  [kFgCmd.goBack]: {
-    dir: -1 | 1;
+  [kFgCmd.framesGoBack]: {
   };
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;
@@ -406,6 +404,7 @@ interface FgReq {
     /** style */ s: string;
   };
   [kFgReq.findFromVisual]: {};
+  [kFgReq.framesGoBack]: { /** step */ s: number; };
 }
 
 declare namespace Req {
