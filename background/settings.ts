@@ -527,6 +527,10 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
       ? CommonNewTab : Build.OverrideNewTab ? obj.NtpNewTab_ : ChromeNewTab;
   // note: on firefox, "about:newtab/" is invalid, but it's OKay if still marking the URL a NewTab URL.
+  /** Note: .vimium and .browser should never exist in the same time
+   * use {@link #Build.OverrideNewTab} to decide which one
+   * required by {@link main.ts#tabsCreate}
+   */ 
   ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = Build.OverrideNewTab
       ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||

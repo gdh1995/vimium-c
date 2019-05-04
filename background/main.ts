@@ -102,9 +102,9 @@ var Backend: BackendHandlersNS.BackendHandlers;
     if (!url) {
       delete args.url;
     } else if (!(type = Settings.newTabs_[url])) { /* empty */ }
-    else if (type === Urls.NewTabType.browser) {
+    else if (!Build.OverrideNewTab && type === Urls.NewTabType.browser) {
       delete args.url;
-    } else if (type === Urls.NewTabType.vimium) {
+    } else if (Build.OverrideNewTab && type === Urls.NewTabType.vimium) {
       args.url = Settings.cache_.newTabUrl_f;
     }
     Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) &&
@@ -1658,7 +1658,9 @@ Are you sure you want to continue?`);
     const { options, repeat } = registryEntry;
     let scale: number | undefined;
     if (options && (scale = options.count)) { count = count * scale; }
-    count = count >= 1e4 ? 9999 : count <= -1e4 ? 9999 : (count | 0) || 1;
+    count = count >= GlobalConsts.CommandCountLimit + 1 ? GlobalConsts.CommandCountLimit
+      : count <= -GlobalConsts.CommandCountLimit - 1 ? -GlobalConsts.CommandCountLimit
+      : (count | 0) || 1;
     if (count === 1) { /* empty */ }
     else if (repeat === 1) { count = 1; }
     else if (repeat > 0 && (count > repeat || count < -repeat) && !confirm(registryEntry.command, Math.abs(count))) {

@@ -1088,13 +1088,13 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     }
 
     const closeBtn = box.querySelector("#HClose") as HTMLElement,
-    optBtn = box.querySelector("#OptionsPage") as HTMLAnchorElement,
+    optLink = box.querySelector("#OptionsPage") as HTMLAnchorElement,
     advCmd = box.querySelector("#AdvancedCommands") as HTMLElement,
     hide: (this: void, e?: Event | number | "e") => void = function (event): void {
       if (event instanceof Event) {
         VUtils.prevent_(event);
       }
-      optBtn.onclick = closeBtn.onclick = null as never;
+      optLink.onclick = closeBtn.onclick = null as never;
       let i = VDom.lastHovered_;
       i && box.contains(i) && (VDom.lastHovered_ = null);
       (i = VScroller.current_) && box.contains(i) && (VScroller.current_ = null);
@@ -1104,13 +1104,13 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     };
     closeBtn.onclick = Commands[kFgCmd.showHelp] = hide;
     if (! location.href.startsWith(optionUrl)) {
-      optBtn.href = optionUrl;
-      optBtn.onclick = function (event) {
+      optLink.href = optionUrl;
+      optLink.onclick = function (event) {
         post({ H: kFgReq.focusOrLaunch, u: optionUrl });
         hide(event);
       };
     } else {
-      optBtn.remove();
+      optLink.remove();
     }
     function toggleAdvanced(this: void): void {
       (advCmd.firstChild as Text).data = (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";

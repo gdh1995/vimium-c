@@ -344,6 +344,7 @@ declare const enum GlobalConsts {
   DisplayUseDynamicTitle = 0,
   MaxFindHistory = 50,
   TimeOfSuppressingTailKeydowns = 200,
+  CommandCountLimit = 9999,
 }
 
 declare const enum KnownKey {

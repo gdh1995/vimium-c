@@ -79,6 +79,9 @@ var Tasks = {
     const path = ["lib/math_parser*.js"];
     // todo: currently, generated es6 code of viewer.js always breaks (can not .shown()), so disable it
     es6_viewer && path.push(VIEWER_JS);
+    if (!getNonNullBuildItem("NDEBUG")) {
+      return copyByPath(path);
+    }
     return uglifyJSFiles(path, ".", "", { base: "." });
   },
   static: ["static/special", "static/uglify", function() {
@@ -103,11 +106,6 @@ var Tasks = {
     }
     return copyByPath(arr);
   }],
-  "static/local": function(cb) {
-    locally = true;
-    gulp.series("static", "_manifest")(cb);
-  },
-  "local/static": ["static/local"],
 
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
@@ -127,6 +125,7 @@ var Tasks = {
     if (needCommitInfo) {
       curConfig.push(getNonNullBuildItem("Commit"));
     }
+    curConfig.push(getNonNullBuildItem("NDEBUG"));
     curConfig.push(getNonNullBuildItem("OverrideNewTab"));
     curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
@@ -136,7 +135,7 @@ var Tasks = {
       needClean = oldConfig !== curConfig;
     } catch (e) {}
     if (needClean) {
-      console.log("found diff:", oldConfig, "!=", curConfig);
+      print("found diff:", oldConfig || "(miss)", "!=", curConfig);
       gulp.series("build/_clean_diff")(function() {
         if (!fs.existsSync(JSDEST)) {
           fs.mkdirSync(JSDEST, {recursive: true});
@@ -179,7 +178,9 @@ var Tasks = {
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");
     var ori_sources = sources.slice(0);
-    var body = sources.splice(0, sources.indexOf("background/main.js") + 1, "background/main.js");
+    // on Firefox, a browser-inner file `resource://devtools/server/main.js` is also shown as `main.js`
+    // which makes debugging annoying
+    var body = sources.splice(0, sources.indexOf("background/main.js") + 1, "background/body.js");
     var index = sources.indexOf("background/tools.js");
     var tail = sources.splice(index, sources.length - index, "background/tail.js");
     var rest = ["background/*.js"];
@@ -356,6 +357,15 @@ var Tasks = {
     process.argv = [node, ..."./node_modules/tslint/bin/tslint --project .".split(" ")];
     require(process.argv[1]);
     done();
+  },
+  local2: function(cb) {
+    locally = true;
+    gulp.series("static", "_manifest")(function() {
+      locally = false;
+      gulp.series("local")(function() {
+        cb();
+      });
+    });
   },
   test: ["local", "lint"]
 };
@@ -1247,6 +1257,12 @@ function loadUglifyConfig(reload) {
       let re = c.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
       c.keep_fnames = new RegExp(re[1], re[2]);
     }
+    if (!getNonNullBuildItem("NDEBUG")) {
+      a.mangle = false;
+      a.output.beautify = true;
+      a.output.comments = true;
+      a.output.indent_level = 2;
+    }
     var m = a.mangle, p = m && m.properties;
     if (p && typeof p.regex === "string") {
       let re = p.regex.match(/^\/(.*)\/([a-z]*)$/);
@@ -1264,7 +1280,7 @@ function loadUglifyConfig(reload) {
       c.hoist_vars = false;
     }
   }
-  if (!locally) {
+  if (!locally && getNonNullBuildItem("NDEBUG")) {
     a.output.comments = /^!/;
   }
   return a;
