@@ -364,7 +364,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
       ;
   }
   function confirm(this: void, command: string, count: number): boolean {
-    let msg = (CommandsData_.availableCommands_[command] as CommandsNS.Description)[0];
+    let msg = (CommandsData_.availableCommands_[command] as CommandsNS.Description)[0] as string;
     msg = msg.replace(<RegExpOne> / \(use .*|&nbsp\(.*|<br\/>/, "");
     return window.confirm(
 `You have asked Vimium C to perform ${count} repeats of the command:
