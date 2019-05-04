@@ -25,6 +25,7 @@ var gTypescript = null, tsOptionsCleaned = false;
 var buildConfig = null;
 var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var envLegacy = process.env.SUPPORT_LEGACY === "1";
+var needCommitInfo = process.env.NEED_COMMIT === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
@@ -123,7 +124,9 @@ var Tasks = {
       curConfig.push(getNonNullBuildItem("FirefoxID"));
       curConfig.push(getNonNullBuildItem("NativeWordMoveOnFirefox"));
     }
-    curConfig.push(getNonNullBuildItem("Commit"));
+    if (needCommitInfo) {
+      curConfig.push(getNonNullBuildItem("Commit"));
+    }
     curConfig.push(getNonNullBuildItem("OverrideNewTab"));
     curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
