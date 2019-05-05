@@ -57,9 +57,10 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-Not released yet:
+1.74.7:
 * `goBack`, `goForward`: now works perfectly since Chrome 72
 * add a command `discardTab` to discard tab(s) on the right (or left if count is negative)
+* help dialog show AMO links on Firefox
 
 1.74.6:
 * *BREAKING*: now **use `s-` to represent the `ShiftKey`** is being pressed when constructing keys

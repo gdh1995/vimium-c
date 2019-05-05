@@ -274,7 +274,7 @@ var VHints = {
     }
   },
   btnRe_: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,
-  roleRe_: <RegExpI> /^(button|checkbox|link|radio|tab)$|^menuitem/i,
+  roleRe_: <RegExpI> /^(?:button|checkbox|link|radio|tab)$|^menuitem/i,
   /**
    * Must ensure only call `VScroller.shouldScroll` during `@getVisibleElements`
    */
