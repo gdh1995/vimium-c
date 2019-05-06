@@ -19,7 +19,6 @@
     testNode.id = "testNode";
     testNode.textContent = 'this-is-test-span';
     var iframeContent = mainIframe.contentDocument.createElement('div');
-    testNode.tabIndex = 0
     testNode.addEventListener("click", function(event) {
       var path = event.path, loc = path && path[path.length - 1].location;
       loc && console.log("current is", loc.protocol === "about:" ? loc.href : loc.pathname.replace(/.*\//, "") || "/");
