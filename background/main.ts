@@ -1177,7 +1177,7 @@ Are you sure you want to continue?`);
       }
       const near = tabs[current + step];
       if (!near.discarded) {
-        chrome.tabs.discard(near.id, count > 1 ? onRuntimeError : function(): void {
+        chrome.tabs.discard(near.id, count > 1 ? onRuntimeError : function (): void {
           const err = onRuntimeError();
           err && Backend.showHUD_("Can not discard the tab");
           return err;
@@ -2228,7 +2228,7 @@ Are you sure you want to continue?`);
       cRepeat = 1;
       BackgroundCommands[kBgCmd.performFind]();
     },
-    /* framesGoBack: */ 
+    /* framesGoBack: */
         (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || ChromeVer >= BrowserVer.Min$Tabs$$goBack)
         ? function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void {

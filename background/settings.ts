@@ -530,7 +530,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   /** Note: .vimium and .browser should never exist in the same time
    * use {@link #Build.OverrideNewTab} to decide which one
    * required by {@link main.ts#tabsCreate}
-   */ 
+   */
   ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = Build.OverrideNewTab
       ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||

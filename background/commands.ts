@@ -305,7 +305,7 @@ availableCommands_: { __proto__: null as never,
   copyCurrentTitle: [ 0, 1, 1, kBgCmd.copyTabInfo, { type: "title" } ],
   copyCurrentUrl: [ 0, 1, 1, kBgCmd.copyTabInfo ],
   createTab: [ "Create new tab(s)", 20 as 0, 1, kBgCmd.createTab ],
-  debugBackground: [ 0, 1, 1, kBgCmd.openUrl, 
+  debugBackground: [ 0, 1, 1, kBgCmd.openUrl,
     {
       reuse: ReuseType.reuse,
       url: Build.BTypes & ~BrowserType.Chrome &&

@@ -148,7 +148,8 @@ _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
 doc = document, cs = doc.currentScript as HTMLScriptElement, Create = doc.createElement as Document["createElement"],
-E = Element, EP = E.prototype, Append = EP.appendChild, Contains = EP.contains, Insert = EP.insertBefore,
+E = Element, EP = E.prototype, Append = EP.appendChild, Insert = EP.insertBefore,
+Contains = EP.contains as (this: Node, child: Node) => boolean, // in fact, it's Node.prototype.contains
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
 contains = Contains.bind(doc),
@@ -246,9 +247,6 @@ next = function (): void {
   allNodesInDocument = allNodesForDetached = null;
 }
 , root: HTMLDivElement, timer = setTimeout_(handler, InnerConsts.DelayToWaitDomReady)
-, SR: typeof ShadowRoot = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-      ? ShadowRoot : window.ShadowRoot as typeof ShadowRoot
 ;
 function prepareRegister(this: void, element: Element): void {
   if (contains(element)) {
@@ -364,10 +362,6 @@ function executeCmd(eventOrDestroy?: Event): void {
 }
 function noop(): void | 1 { return; }
 toRegister.p = push as any, toRegister.s = toRegister.splice;
-if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0) &&
-    (Build.BTypes & ~BrowserType.Firefox || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1)) {
-  SR = !SR || SR instanceof E ? CE as never : SR;
-}
 // only the below can affect outsides
 cs.remove();
 ETP.addEventListener = myAEL;
