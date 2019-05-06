@@ -514,9 +514,10 @@ var VDom = {
   notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
     let s: Node["nodeName"];
     // tslint:disable-next-line: triple-equals
-    return !!el && typeof (s = el.nodeName) == "string" &&
+    return !!el && (typeof (s = el.nodeName) != "string" ||
       (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter ? s.toUpperCase() === "FORM"
-        : (s = s.toUpperCase()) === "FORM" || s === VDom.unsafeFramesetTag_);
+        : (s = s.toUpperCase()) === "FORM" || s === VDom.unsafeFramesetTag_)
+    );
   } : 0 as never,
   /** @safe_even_if_any_overridden_property */
   SafeEl_: Build.BTypes & ~BrowserType.Firefox ? function (
