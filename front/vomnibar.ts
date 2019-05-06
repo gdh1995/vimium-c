@@ -568,23 +568,26 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   onClick_ (event: MouseEvent): void {
     const a = Vomnibar_;
-    let el: Node | null = event.target as Node;
+    let el: SafeHTMLElement | null = event.target as SafeHTMLElement;
     if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
           : event.isTrusted === false || !(event instanceof MouseEvent))
         || event.button
         || el === a.input_ || getSelection().type === "Range") { return; }
     if (el === a.input_.parentElement) { return a.focus_(); }
     if (a.timer_) { VUtils_.Stop_(event, 1); return; }
-    while (el && el.parentNode !== a.list_) { el = el.parentNode; }
+    while (el && el.parentElement !== a.list_) { el = el.parentElement as SafeHTMLElement | null; }
     if (!el) { return; }
     a.lastKey_ = VKeyCodes.None;
     a.onEnter_(event, [].indexOf.call(a.list_.children, el));
   },
   OnMenu_ (this: void, event: Event): void {
-    let el = event.target as Element | null, item: Element | null, Anchor = HTMLAnchorElement;
-    while (el && !(el instanceof Anchor)) { el = el.parentElement; }
+    let el = event.target as SafeHTMLElement | null, item: Element | null, Anchor = HTMLAnchorElement;
+    while (el && !(el instanceof Anchor)) { el = el.parentElement as SafeHTMLElement | null; }
     if (!el || el.href) { return; }
-    for (item = el; item && item.parentElement !== Vomnibar_.list_; item = item.parentElement) { /* empty */ }
+    for (item = el; item && item.parentElement !== Vomnibar_.list_;
+          item = item.parentElement as SafeHTMLElement | null) {
+      /* empty */
+    }
     const _i = [].indexOf.call(Vomnibar_.list_.children, item);
     _i >= 0 && (el.href = Vomnibar_.completions_[_i].url);
   },

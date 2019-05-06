@@ -1,12 +1,13 @@
 /// <reference path="../content/base.d.ts" />
 interface ElementWithClickable { vimiumHasOnclick?: boolean; }
-var VDom = {
+var WeakSet: WeakSetConstructor | undefined,
+VDom = {
   UI: null as never as DomUI,
   /**
    * Miscellaneous section
    */
   clickable_: Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-      || window.WeakSet ? new WeakSet<Element>() : {
+        || WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() : {
     add (element: Element): void { (element as ElementWithClickable).vimiumHasOnclick = true; },
     has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; }
   },
@@ -85,8 +86,9 @@ var VDom = {
     }
     const sr = el.shadowRoot;
     if (sr) {
-      return sr.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
-        ? sr : VDom.Getter_(Element, el, "shadowRoot") as ShadowRoot;
+      // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
+      // <form> and <frameset> can not have shadowRoot
+      return VDom.notSafe_(el) ? null : sr as ShadowRoot;
     }
     return !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
@@ -105,6 +107,7 @@ var VDom = {
      * * a selection / range can only know nodes and text in a same tree scope
      *
      */
+    // todo: fix it.
     const E = Element;
     if (type >= PNType.RevealSlot) {
       if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome) {
@@ -120,12 +123,18 @@ var VDom = {
         while (slot = slot.assignedSlot) { el = slot as HTMLSlotElement; }
       }
     }
-    let pe = el.parentElement, pn = el.parentNode;
-    if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn; }
+    let pe = el.parentElement as Exclude<Element["parentElement"], Window>
+      , pn = el.parentNode as Exclude<Element["parentNode"], Window>;
+    if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null; }
+    if (Build.BTypes & ~BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
+        && VDom.unsafeFramesetTag_ && el === document.body) {
+      // ignore pn / pe because they may be unsafe
+      return document.documentElement;
+    }
     // par exists but not in normal tree
     if (Build.BTypes & ~BrowserType.Firefox && !pn.contains(el)) { // pn is overridden
       if (pe && pe.contains(el)) { /* pe is real */ return pe; }
-      pn = VDom.Getter_(Node, el, "parentNode");
+      pn = VDom.Getter_(Node, el, "parentNode") as Exclude<Node["parentNode"], Window>;
     }
     // pn is real (if BrowserVer.MinParentNodeGetterInNodePrototype else) real or null
     return type === PNType.DirectNode ? pn // may return a Node instance
@@ -320,7 +329,9 @@ var VDom = {
     for (let summaries = details.children, i = 0, len = summaries.length; i < len; i++) {
       const summary = summaries[i];
       // there's no window.HTMLSummaryElement on C70
-      if ((<RegExpI> /^summary$/i).test(summary.tagName as string) && summary instanceof HTMLElement) {
+      // normally, a child element of <details> won't be a <frameset>, so the line below is safe
+      if ((<RegExpI> /^summary$/i).test(summary.tagName as string | Element as string)
+          && summary instanceof HTMLElement) {
         return summary as SafeHTMLElement;
       }
     }
@@ -510,6 +521,7 @@ var VDom = {
   unsafeFramesetTag_: 0 as "FRAMESET" | 0,
   // todo: apply similar checks for HTMLElement and LockableElement
   notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
+    // todo: faster
     let s: Node["nodeName"];
     // tslint:disable-next-line: triple-equals
     return !!el && (typeof (s = el.nodeName) != "string" ||
@@ -577,6 +589,7 @@ var VDom = {
   GetSelectionParent_unsafe_ (sel: Selection, selected?: string): Element | null {
     let range = sel.getRangeAt(0), par: Node | null = range.commonAncestorContainer, p0 = par;
     // no named getters on SVG* elements
+    // just ignore the case of unsafe <frameset>
     if (Build.BTypes & ~BrowserType.Firefox) {
       while (par && (par.nodeType !== kNode.ELEMENT_NODE || par instanceof SVGElement)) {
         par = VDom.GetParent_(par, PNType.DirectNode);
@@ -587,7 +600,7 @@ var VDom = {
       // now par is HTMLElement or null
     }
     if (selected && p0 instanceof Text && p0.data.trim().length <= selected.length) {
-      let text: string | Element | undefined;
+      let text: string | Element | Window | undefined;
       while (par && (text = (par as HTMLElement | Element & {innerText?: undefined}).innerText,
             !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
           && selected.length === (text as string).length) {
@@ -600,6 +613,7 @@ var VDom = {
     if (!sel.rangeCount) { return null; }
     let el = sel.focusNode, E = Element
       , o: Node | null, cn: Node["childNodes"] | null;
+    // just ignore the case of unsafe <frameset>
     if (el instanceof E) {
       el = Build.BTypes & ~BrowserType.Firefox
         ? ((cn = el.childNodes) instanceof HTMLCollection || (cn = this.Getter_(Node, el, "childNodes")))
@@ -612,7 +626,7 @@ var VDom = {
       return (/* Element | null */ o || (/* el is not Element */ el && el.parentElement)) as SafeElement | null;
     }
     return this.SafeEl_(<Element | null> o
-        || (/* el is not SafeElement */ el instanceof E ? el : el && el.parentElement)
+        || (/* el is not SafeElement */ el instanceof E ? el : el && el.parentElement as Element | null)
       , PNType.DirectElement);
   },
   center_ (rect?: Rect | null): Point2D {

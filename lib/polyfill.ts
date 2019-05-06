@@ -26,7 +26,7 @@
     const err = check(this, searchString), a = this != null && err !== 1 ? S(this) : "";
     if (err === 1 || err === 2) { return !((err === 1 ? this : searchString) + ""); }
     if (err !== null) { throw new TE(err.replace("${func}", "startsWith")); }
-    let b = S(searchString), c = +arguments[1];
+    let b = S(searchString), args = arguments, c = args.length > 1 ? +args[1] : 0;
     c = c > 0 ? c | 0 : 0;
     c > a.length && (c = a.length);
     return a.lastIndexOf(b, c) === c;
@@ -37,7 +37,8 @@
     const err = check(this, searchString), a = this != null && err !== 1 ? S(this) : "";
     if (err === 1 || err === 2) { return !((err === 1 ? this : searchString) + ""); }
     if (err !== null) { throw new TE(err.replace("${func}", "endsWith")); }
-    let b = S(searchString), p: primitive | object = arguments[1], l = a.length, u: undefined, c: number;
+    let b = S(searchString), args = arguments, u: undefined, c: number
+      , p: primitive | object = args.length > 1 ? args[1] : u, l = a.length;
     c = (p === u ? l : (c = +<number | string> p) > 0 ? c | 0 : 0) - b.length;
     c > l && (c = l);
     return c >= 0 && a.indexOf(b, c) === c;

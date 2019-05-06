@@ -1,5 +1,6 @@
 var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   , VimiumInjector: VimiumInjectorTy | undefined | null;
+if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 
 (function () {
   interface EscF {
@@ -27,12 +28,12 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     , OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
           || !(Build.BTypes & ~BrowserType.Edge)
         ? Build.BTypes as number : BrowserType.Chrome
+    , browserVer = 0 as BrowserVer
     ;
 
   const injector = VimiumInjector,
   notChrome = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : typeof browser !== "undefined" && !!(
-    browser && (browser as typeof chrome).runtime) && !((browser as typeof chrome | Element) instanceof Element),
+    : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect),
   vPort = {
     _port: null as Port | null,
     _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
@@ -331,7 +332,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       realStep = rawStep < 0 ? -maxStep : maxStep;
       if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
           && maxStep > 1
-          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || VDom.cache_.browserVer_ >= BrowserVer.Min$Tabs$$goBack)
+          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || browserVer >= BrowserVer.Min$Tabs$$goBack)
       ) {
         post({ H: kFgReq.framesGoBack, s: realStep });
       } else {
@@ -710,7 +711,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   GetLinks_ (this: SafeHTMLElement[], element: Element): void {
     if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { return; }
     let s: string | null = (element.tagName as string).toLowerCase()
-      , sr = element.shadowRoot as Exclude<Element["shadowRoot"], Element>;
+      , sr = element.shadowRoot as ShadowRoot | null | undefined;
     if (sr) {
       ([].forEach as HintsNS.ElementIterator<Element>).call(
         sr.querySelectorAll("*"), Pagination.GetLinks_, this);
@@ -777,6 +778,9 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
       const element = elements[_i];
       if ((<RegExpI> /^(a|area|link)$/i).test(element.tagName as string)
+          && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
+                // in case of <frameset> -> <frame name> -> #document -> <script>window.toString = () => "1"</script>
+                && browserVer < BrowserVer.MinFramesetHasNoNamedGetter && VDom.notSafe_(element))
           && element instanceof HTMLElement
           && (s = (element as HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement).rel)
           && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {
@@ -810,7 +814,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
         let docEl = document.documentElement;
         if (docEl) {
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-          && (!(Build.BTypes & ~BrowserType.Chrome) || VDom.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions)
+          && (!(Build.BTypes & ~BrowserType.Chrome) || browserVer < BrowserVer.MinScrollIntoViewOptions)
         ?
           (Element.prototype.scrollIntoViewIfNeeded as NonNullable<Element["scrollIntoViewIfNeeded"]>).call(docEl)
         : VDom.scrollIntoView_(docEl);
@@ -927,7 +931,9 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = [
     function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
-      const browserVer = load.browserVer_;
+      if (Build.BTypes & BrowserType.Chrome) {
+        browserVer = load.browserVer_;
+      }
       if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
           && <number> Build.BTypes !== BrowserType.Edge) {
         OnOther = load.browser_;
@@ -1089,7 +1095,7 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
     suppress(box, "contextmenu");
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)
-        || VDom.cache_.browserVer_ >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
+        || browserVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
       box.addEventListener(
         (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
           : OnOther !== BrowserType.Chrome)
@@ -1249,7 +1255,8 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       } else if (VOmni.status_ === VomnibarNS.Status.Showing) {
         VOmni.box_.blur();
       } else {
-        let cur: Element | null = document.activeElement;
+        // cur is safe because on Firefox
+        let cur: SafeElement | null = document.activeElement as SaferType<Document["activeElement"]>;
         cur && (<RegExpI> /^i?frame$/i).test(cur.tagName as string) && cur.blur &&
         (cur as HTMLFrameElement | HTMLIFrameElement).blur();
       }

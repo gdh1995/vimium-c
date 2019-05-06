@@ -20,8 +20,7 @@ VDom.allowScripts_ = 0;
 
   // Note: should keep the same with frontend.ts
   const useBrowser = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : typeof browser !== "undefined" &&
-    browser && (browser as typeof chrome).runtime && !((browser as typeof chrome | Element) instanceof Element),
+    : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect),
   OnOther = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
       || !(Build.BTypes & ~BrowserType.Edge)
     ? Build.BTypes as number
@@ -31,7 +30,8 @@ VDom.allowScripts_ = 0;
     ? BrowserType.Edge
     : BrowserType.Firefox
     ,
-  runtime: typeof chrome.runtime = (useBrowser ? browser as typeof chrome : chrome).runtime;
+  runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome)
+      || Build.BTypes & ~BrowserType.Chrome && useBrowser ? browser as typeof chrome : chrome).runtime;
   if (runtime.onMessageExternal) {
     injector.alive = 1;
   } else {

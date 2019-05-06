@@ -200,7 +200,8 @@ VDom.UI = {
                 && Build.MinCVer < BrowserVer.MinShadowDOMV0 ? window.ShadowRoot : 0 as never;
       if (Build.MinCVer < BrowserVer.MinEmbedElementIsNotFunction && Build.BTypes & BrowserType.Chrome
             && Build.MinCVer < BrowserVer.MinShadowDOMV0
-          ? !SR || "tagName" in SR : typeof ShadowRoot !== "function") {
+          // tslint:disable-next-line: triple-equals
+          ? typeof SR != "function" || SR && "tagName" in SR : typeof ShadowRoot != "function") {
         return [sel, null];
       }
     }

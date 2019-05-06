@@ -13,10 +13,11 @@ var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   getCommandCount: null as never,
   destroy: null
 };
+if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 (function (_a0: 1, injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]) {
 let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-  : typeof browser !== "undefined" && browser &&
-  !((browser as typeof chrome | Element) instanceof Element)) ? browser as typeof chrome : chrome).runtime;
+      : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect)
+    ) ? browser as typeof chrome : chrome).runtime;
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3,
 onIdle = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
   ? window.requestIdleCallback : requestIdleCallback;
@@ -150,7 +151,7 @@ interface ElementWithClickable {
 }
 VimiumInjector.clickable = VimiumInjector.clickable ? VimiumInjector.clickable
     : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-      || window.WeakSet ? new WeakSet<Element>() : {
+      || window.WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() : {
   add (element: Element) { (element as ElementWithClickable).vimiumHasOnclick = true; return this; },
   has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; },
   delete (element: Element): boolean {

@@ -61,7 +61,10 @@
       "regex": "/^_|_$/"
     },
     "reserved": [
+      // # expected names in content
+      "WeakSet",
       // # content global names:
+      "browser",
       "VimiumInjector", "VimiumClickable", "VUtils", "VKeyboard", "VDom",
       "VHints", "VOmni", "VScroller", "VMarks", "VFind", "VVisual",
       "VSettings", "VHud", "VPort", "VEvent",

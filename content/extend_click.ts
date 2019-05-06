@@ -71,12 +71,13 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     VUtils.Stop_(event);
     let detail = event.detail as ClickableEventDetail | null;
     if (!Build.NDEBUG) {
+      let target = event.target as Element;
       console.log(`Vimium C: extend click: resolve ${
           detail ? Build.BTypes & ~BrowserType.Firefox ? "[%o + %o]" : "[%o+%o]" : "<%o>%s"
         } in %o @t=%o .`
         , detail ? detail[0].length
-          : (Build.BTypes & ~BrowserType.Firefox ? (event.target as Element).tagName + ""
-              : (event.target as Element).tagName as string).toLowerCase()
+          : (Build.BTypes & ~BrowserType.Firefox && typeof target.tagName !== "string" ? target + ""
+              : target.tagName as string).toLowerCase()
         , detail ? detail[1] ? detail[1].length : -0 : ""
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
@@ -255,6 +256,7 @@ function prepareRegister(this: void, element: Element): void {
         , element));
     return;
   }
+  // here element is inside a #shadow-root or not connected
   const doc1 = element.ownerDocument as Document | Element;
   // in case element is <form> / <frameset> / adopted into another document, or aEL is from another frame
   if (doc1 !== doc) {
@@ -269,20 +271,26 @@ function prepareRegister(this: void, element: Element): void {
     return;
   }
   let e1: Element | null = element, e2: Node | null, e3: Node | null | undefined;
-  for (; e2 = e1.parentElement; e1 = e2 as Element) {
-    if (Build.BTypes & ~BrowserType.Firefox && e2 !== (e3 = e1.parentNode as Element)) {
+  for (; e2 = e1.parentElement as Exclude<Element["parentElement"], Window>; e1 = e2 as Element) {
+    // according to tests and source code, <frameset>'s named getter requires <frame>.contentDocument is valid
+    // so here pe and pn won't be Window if only ignoring the case of `<div> -> #shadow-root -> <frameset>`
+    if (Build.BTypes & ~BrowserType.Firefox
+        && e2 !== (e3 = e1.parentNode as Exclude<Element["parentNode"], Window | null>)) {
       e2 = call(Contains, e2, e1) ? e2 as Element : call(Contains, e3, e1) ? e3 as Element : null;
       if (!e2) { return; }
     }
   }
   // note: the below changes DOM trees,
   // so `dispatch` MUST NEVER throw. Otherwises a page might break
-  if ((e2 = e1.parentNode) == null) {
+  if ((e2 = e1.parentNode as Exclude<Element["parentNode"], Window>) == null) {
     root !== e1 && call(Append, root, e1);
     pushForDetached(
       IndexOf(allNodesForDetached = allNodesForDetached || call(getElementsByTagNameInEP, root, "*")
         , element));
-  } else if (e2 instanceof DF && !((e2 as ShadowRoot).host
+  // Note: ignore the case that a plain #document-fragment has a fake .host
+  } else if (e2 instanceof DF && !((e2 as ShadowRoot | DocumentFragment & { host?: undefined }).host
+    // Note: input[form] takes effects only if the input is connected, so here `e3.parentElement` is enough
+    // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#reset-the-form-owner
               || Build.BTypes & ~BrowserType.Firefox && (e3 = e1.nextSibling) && e3.parentElement)) {
     // not register, if ShadowRoot or .nextSibling is not real
     // NOTE: ignore nodes belonging to a shadowRoot,
@@ -319,6 +327,7 @@ function safeReRegister(element: Element, doc1: Document): void {
   // tslint:disable-next-line: triple-equals
   if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
     try {
+      // Note: here may break in case .addEventListener is an <embed> or overridden by host code
       call(localAEL, element, kVOnClick, noop);
     } catch {}
     try {
@@ -427,16 +436,22 @@ _listen("load", delayFindAll, !0);
     setTimeout: typeof setTimeout | (
       (this: void, handler: (this: void, fake?: TimerType.fake) => void, timeout: number) => number);
   }
+  let rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? window.requestIdleCallback : 0 as const;
+  if (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
+    // accessed on page initing, so won't be a <embed>
+    // tslint:disable-next-line: triple-equals
+    rIC = typeof rIC != "function" ? 0 : rIC;
+  }
+  // here rIC is (not defined), 0 or real
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
   function (func: (info?: TimerType.fake) => void, timeout: number): number {
-    let f = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && timeout > 9 ? window.requestIdleCallback : null
-      , cb = () => func(TimerType.fake);
+    const cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
     return (BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || VDom && VDom.allowRAF_)
-      ? (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? f && !("tagName" in f) : timeout > 9)
-      ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? f : requestIdleCallback
-          ) as Exclude<typeof f, null | undefined | Element>)(cb, { timeout })
+      ? timeout > 9 && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || rIC)
+      ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback
+          ) as RequestIdleCallback)(cb, { timeout })
       : requestAnimationFrame(cb)
       : (Promise.resolve(1).then(cb), 1);
   };

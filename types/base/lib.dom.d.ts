@@ -1387,7 +1387,7 @@ interface DocumentAttrsToBeDetected {
 }
 
 interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEvent, ParentNode, DocumentOrShadowRoot {
-    readonly nodeType: kNode.DOCUMENT_NODE | Element;
+    readonly nodeType: kNode.DOCUMENT_NODE | Element | Window;
     /**
       * Sets or gets the URL for the current document. 
       */
@@ -2053,7 +2053,7 @@ interface AttachShadow {
 }
 interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelector, ChildNode, ParentNode
         , Partial<AttachShadow> {
-    readonly nodeType: kNode.ELEMENT_NODE | Element;
+    readonly nodeType: kNode.ELEMENT_NODE | Element | Window;
     readonly classList: DOMTokenList;
     className: string;
     readonly clientHeight: number;
@@ -2080,7 +2080,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     readonly tagName: string | Element | Window;
     readonly assignedSlot: HTMLSlotElement | null;
     slot: string;
-    readonly shadowRoot?: ShadowRoot | Element | null;
+    readonly shadowRoot?: ShadowRoot | Element | Window | null;
     textContent: string;
     focus?(): void;
     blur?(): void;
@@ -2131,10 +2131,11 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
-declare var Element: {
+interface ElementConstructor {
     prototype: Element;
     new(): Element;
 }
+declare var Element: ElementConstructor;
 
 interface ErrorEvent extends Event {
     readonly type: "error";
@@ -2801,7 +2802,7 @@ declare var HTMLDetailsElement: {
 };
 
 interface Window {
-    HTMLDetailsElement?: typeof HTMLDetailsElement | Element;
+    HTMLDetailsElement?: typeof HTMLDetailsElement | Element | Window;
 }
 
 interface HTMLDialogElement extends HTMLElement {
@@ -2932,7 +2933,7 @@ interface HTMLElement extends Element {
     draggable: boolean;
     hidden: boolean;
     hideFocus: boolean;
-    innerText: string | Element;
+    innerText: string | Element | Window;
     readonly isContentEditable: boolean;
     lang: string;
     readonly offsetHeight: number;
@@ -5429,19 +5430,19 @@ interface Node extends EventTarget {
     readonly localName: string | null;
     readonly namespaceURI: string | null;
     readonly nextSibling: Node | null;
-    readonly nodeName?: string | Element;
-    readonly nodeType: number | Element;
+    readonly nodeName?: string | Element | Window;
+    readonly nodeType: number | Element | Window;
     nodeValue: string | null;
     readonly ownerDocument: Document;
-    readonly parentElement: Element | null;
-    readonly parentNode: Node | null;
+    readonly parentElement: Element | Window | null;
+    readonly parentNode: Node | Window | null;
     readonly previousSibling: Node | null;
     readonly isConnected?: boolean;
     textContent: string | null;
     appendChild<T extends Node>(newChild: T): T;
     cloneNode(deep?: boolean): Node;
     compareDocumentPosition(other: Node): kNode;
-    contains(child: Node): boolean;
+    contains(this: Node, child: Node): boolean;
     getRootNode?(options?: { composed?: boolean }): Node;
     hasAttributes(): boolean;
     hasChildNodes(): boolean;
@@ -7641,7 +7642,8 @@ declare var StyleSheetPageList: {
 
 interface Text extends CharacterData {
     readonly wholeText: string;
-    readonly assignedSlot: HTMLSlotElement | null;
+    readonly assignedSlot?: HTMLSlotElement | null;
+    readonly parentElement: Element | null;
     splitText(offset: number): Text;
 }
 
@@ -8299,10 +8301,8 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     webkitRequestAnimationFrame(callback: FrameRequestCallback): number;
     addEventListener<K extends keyof WindowEventMap>(type: K, listener: (this: Window, ev: WindowEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
-    // the below are what may not exist (so may be overriden by element with such a id)
-    ShadowRoot?: typeof ShadowRoot | Element;
-    requestIdleCallback?: ((callback: (idleDeadline: { didTimeout: boolean }) => void, options?: { timeout?: number }) => number
-        ) | Element;
+    ShadowRoot?: ShadowRootConstructor | Element | Window;
+    requestIdleCallback?: RequestIdleCallback;
 }
 
 // declare var Window: {
@@ -8742,10 +8742,11 @@ interface ShadowRoot extends DocumentOrShadowRoot, DocumentFragment {
     innerHTML: string;
     getElementById(elementId: string): Element | null;
 }
-declare var ShadowRoot: {
+interface ShadowRootConstructor {
     prototype: ShadowRoot;
     new(): never;
 }
+declare var ShadowRoot: ShadowRootConstructor | undefined | Element | Window;
 
 interface ShadowRootInit {
     mode: 'open'|'closed';
@@ -9421,7 +9422,10 @@ declare function addEventListener<K extends keyof WindowEventMap>(type: K,
   ): void;
 declare var close: unknown;
 declare function addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
-declare var requestIdleCallback: Window["requestIdleCallback"];
+interface RequestIdleCallback {
+  (callback: (idleDeadline: { didTimeout: boolean }) => void, options?: { timeout?: number }): number;
+}
+declare var requestIdleCallback: RequestIdleCallback | undefined;
 type AAGUID = string;
 type AlgorithmIdentifier = string | Algorithm;
 type ConstrainBoolean = boolean | ConstrainBooleanParameters;

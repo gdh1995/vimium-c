@@ -86,7 +86,7 @@ interface WeakSetConstructor {
     new <T extends object = object>(values?: ReadonlyArray<T> | null): WeakSet<T>;
     readonly prototype: WeakSet<object>;
 }
-declare var WeakSet: WeakSetConstructor;
+declare var WeakSet: WeakSetConstructor | undefined;
 interface Window {
     WeakSet?: WeakSetConstructor;
 }

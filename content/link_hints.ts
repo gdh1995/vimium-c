@@ -294,7 +294,7 @@ var VHints = {
       return;
     }
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
-    // elements of the types below should refuse `attachShadow`
+    // elements of the types below (except <div>) should refuse `attachShadow`
     switch ((element.tagName as string).toLowerCase()) {
     case "a": isClickable = true; break;
     case "frame": case "iframe":
@@ -729,7 +729,7 @@ var VHints = {
         }
       } else if (i === KeyStat.altKey) {
         reinit = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement)
-          || typeof HTMLDialogElement === "function";
+          || typeof HTMLDialogElement === "function"; // safe enough even if it's an <embed>
         a.dialogMode_ = reinit && !a.dialogMode_;
       } else {
         reinit = false;
