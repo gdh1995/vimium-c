@@ -11,7 +11,7 @@ declare namespace ExclusionsNS {
     testers_: SafeDict<Tester> | null;
     getRe_ (pattern: string): Tester;
     setRules_ (newRules: StoredRule[]): void;
-    GetPattern_: BackendHandlersNS.BackendHandlers["getExcluded_"];
+    GetPassKeys_: BackendHandlersNS.BackendHandlers["getExcluded_"];
     getOnURLChange_ (): null | Listener;
     format_ (rules: StoredRule[]): Rules;
     getTemp_ (this: ExclusionsCls, url: string, sender: Frames.Sender, rules: StoredRule[]): string | null;
@@ -30,12 +30,14 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   getRe_ (this: ExcCls, pattern: string): ExclusionsNS.Tester {
     let func: ExclusionsNS.Tester | undefined = (this.testers_ as ExclusionsNS.TesterDict)[pattern], re: RegExp | null;
     if (func) { return func; }
-    if (pattern[0] === "^" && (re = Utils.makeRegexp_(pattern, "", false))) {
-      func = re as RegExpOne;
-    } else {
-      func = pattern.substring(1);
+    if (pattern[0] === "^") {
+      if (re = Utils.makeRegexp_(pattern.startsWith("^$|") ? pattern.substring(3) : pattern, "", false)) {
+        func = re as RegExpOne;
+      } else {
+        console.log("Failed in creating an RegExp from %o", pattern);
+      }
     }
-    return (this.testers_ as ExclusionsNS.TesterDict)[pattern] = func;
+    return (this.testers_ as ExclusionsNS.TesterDict)[pattern] = func || pattern.substring(1);
   },
   _listening: false,
   _listeningHash: false,
@@ -60,7 +62,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     this.rules_ = this.format_(rules);
     this.onlyFirstMatch_ = Settings.get_("exclusionOnlyFirstMatch");
     this.testers_ = null;
-    Backend.getExcluded_ = this.GetPattern_;
+    Backend.getExcluded_ = this.GetPassKeys_;
     if (this._listening) { return; }
     this._listening = true;
     onURLChange = this.getOnURLChange_();
@@ -71,7 +73,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(onURLChange);
     }
   },
-  GetPattern_ (this: void, url: string, sender: Frames.Sender): string | null {
+  GetPassKeys_ (this: void, url: string, sender: Frames.Sender): string | null {
     let rules = Exclusions.rules_, matchedKeys = "";
     for (let _i = 0, _len = rules.length; _i < _len; _i += 2) {
       const rule = rules[_i] as ExclusionsNS.Tester;
@@ -128,7 +130,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   getTemp_ (this: ExcCls, url: string, sender: Frames.Sender, rules: ExclusionsNS.StoredRule[]): string | null {
     const old = this.rules_;
     this.rules_ = this.format_(rules);
-    const ret = this.GetPattern_(url, sender);
+    const ret = this.GetPassKeys_(url, sender);
     this.rules_ = old;
     return ret;
   },
