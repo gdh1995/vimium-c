@@ -727,7 +727,9 @@ var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
       this.push(element as SafeHTMLElement);
     }
   },
-  findAndFollowLink_ (names: string[], isNext: boolean): boolean {
+  findAndFollowLink_: !(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)
+      ? (console.log("Assert error: GlobalConsts.MaxNumberOfNextPatterns <= 255"), 0 as never)
+      : function (names: string[], isNext: boolean): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: HTMLElement; }
     // Note: this traverser should not need a prepareCrop
     let links = VHints.traverse_("*", Pagination.GetLinks_, true, true);

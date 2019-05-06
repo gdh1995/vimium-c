@@ -15,7 +15,7 @@ var Settings = {
     grabBackFocus_: false,
     onMac_: false
   } as SettingsNS.FrontendSettingCache & SafeObject,
-  newTabs_: Object.create(null) as SafeDict<Urls.NewTabType>,
+  newTabs_: Object.create(null) as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
   storage_: localStorage,
   get_<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {

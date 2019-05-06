@@ -172,9 +172,7 @@ var VDom = {
       : el || !fallback ? el as SafeElement | null // el is safe object or null
       : this.notSafe_(docEl) ? null : docEl as SafeElement | null;
   },
-  /**
-   * other parts of code require that prepareCrop only depends on @dbZoom
-   */
+  /** depends on .dbZoom_, .bZoom_, .paintBox_ */
   prepareCrop_ (): number {
     let iw: number, ih: number, ihs: number;
     this.prepareCrop_ = (function (this: void): number {
