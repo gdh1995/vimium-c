@@ -89,7 +89,7 @@ var Tasks = {
       , "settings_template.json", "*.txt", "*.md"
       , "!**/manifest*.json"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
-      , "!front/vimium.css", "!test*", "!todo*"
+      , "!test*", "!todo*"
     ];
     has_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     es6_viewer && arr.push("!" + VIEWER_JS);

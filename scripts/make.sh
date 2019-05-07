@@ -96,7 +96,7 @@ if ! bool "$NOT_IGNORE_FRONT"; then
   ZIP_IGNORE=$ZIP_IGNORE' front/manifest* front/*.png'
 fi
 zip -rX -MM $args "$output_for_zip" ${input[@]} -x 'weidu*' 'test*' 'git*' \
-  'dist*' 'front/vimium.css' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
+  'dist*' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
   'pages/dialog_ui*' 'GUD*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
   '*tslint*' \
   '*.coffee' '*.crx' '*.enc' '*.log' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
