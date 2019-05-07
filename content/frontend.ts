@@ -1257,7 +1257,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       } else {
         // cur is safe because on Firefox
         let cur: SafeElement | null = document.activeElement as SaferType<Document["activeElement"]>;
-        cur && (<RegExpI> /^i?frame$/i).test(cur.tagName as string) && cur.blur &&
+        cur && (<RegExpI> /^i?frame$/i).test(cur.tagName) && cur.blur &&
         (cur as HTMLFrameElement | HTMLIFrameElement).blur();
       }
       focus();

@@ -168,7 +168,7 @@ and please read https://github.com/gdh1995/vimium-c/wiki/Known-issues-on-various
 If you want to compile this project manually, please run:
 
 ``` bash
-npm install typescript@3.3.1
+npm install typescript@3.4.3
 node scripts/tsc all
 #./scripts/make.sh output-file.zip
 ```
