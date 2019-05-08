@@ -281,6 +281,17 @@ ExclusionRulesOption_.prototype.onInit_ = function (this: ExclusionRulesOption_)
   }
 };
 
+ExclusionRulesOption_.prototype.onSave_ = function (): void {
+  for (let rule of this.list_ as ExclusionVisibleVirtualNode[]) {
+    if (rule.$pattern_.value !== rule.rule_.pattern) {
+      rule.$pattern_.value = rule.rule_.pattern;
+    }
+    if (rule.$keys_.value !== rule.rule_.passKeys) {
+      rule.$keys_.value = rule.rule_.passKeys;
+    }
+  }
+};
+
 TextOption_.prototype.showError_ = function<T extends keyof AllowedOptions>(this: TextOption_<T>
     , msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
   errors != null || (errors = !!msg);

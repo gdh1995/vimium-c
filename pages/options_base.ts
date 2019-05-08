@@ -257,11 +257,9 @@ appendRuleTo_ (list: HTMLTableSectionElement | DocumentFragment, { pattern, pass
   this.list_.push(vnode2);
   list.appendChild(row);
 }
-static OnNewPassKeysInput_ (passKeysEl: HTMLInputElement): void {
-  const placeholder = passKeysEl.placeholder;
-  if (placeholder) {
-    passKeysEl.title = "Example: " + placeholder;
-    passKeysEl.placeholder = "";
+static OnNewKeys_ (vnode: ExclusionVisibleVirtualNode): void {
+  if (vnode.rule_.pattern && vnode.$keys_.placeholder) {
+    vnode.$keys_.placeholder = "";
   }
 }
 onRemoveRow_ (event: Event): void {
@@ -287,14 +285,17 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       continue;
     }
     if (!vnode.changed_) {
-      rules.push(vnode.rule_);
+      if (vnode.rule_.pattern) {
+        rules.push(vnode.rule_);
+      }
       continue;
     }
     let pattern = vnode.$pattern_.value.trim();
+    let fixTail = false, passKeys = vnode.$keys_.value;
     if (!pattern) {
+      this.updateVNode_(vnode, "", passKeys);
       continue;
     }
-    let fixTail = false, passKeys = vnode.$keys_.value;
     if (pattern[0] === ":") { /* empty */ }
     else if (!this._reChar.test(pattern)) {
       fixTail = pattern.indexOf("/", pattern.indexOf("://") + 3) < 0;
@@ -323,17 +324,21 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       }
       passKeys = passArr ? (passArr.join(" ") + " ") : "";
     }
-    this.updateVNode_(vnode, { pattern, passKeys });
+    let tip = passKeys ? passKeys.length > 1 && passKeys[0] === "^" ? "only hook such keys" : "pass through such keys"
+              : "completely disabled";
+    vnode.$keys_.title !== tip && (vnode.$keys_.title = tip);
+    this.updateVNode_(vnode, pattern, passKeys);
     rules.push(vnode.rule_);
   }
   return rules;
 }
-updateVNode_ (vnode: ExclusionVisibleVirtualNode, rule: ExclusionsNS.StoredRule) {
-  if (!vnode.rule_.passKeys && rule.passKeys) {
-    ExclusionRulesOption_.OnNewPassKeysInput_(vnode.$keys_);
-  }
-  vnode.rule_ = rule;
+updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string) {
+  const hasNewKeys = !vnode.rule_.passKeys && !!keys;
+  vnode.rule_ = { pattern, passKeys: keys };
   vnode.changed_ = false;
+  if (hasNewKeys) {
+    ExclusionRulesOption_.OnNewKeys_(vnode);
+  }
 }
 
 readonly areEqual_ = Option_.areJSONEqual_;
@@ -458,9 +463,9 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
         inited = some ? 2 : 1;
       }
     }
-    updateVNode_ (vnode: ExclusionVisibleVirtualNode, rule: ExclusionsNS.StoredRule): void {
-      const pattern = rule.pattern, patternIsSame = vnode.rule_.pattern === pattern;
-      super.updateVNode_(vnode, rule);
+    updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
+      const patternIsSame = vnode.rule_.pattern === pattern;
+      super.updateVNode_(vnode, pattern, keys);
       if (patternIsSame) {
         return;
       }

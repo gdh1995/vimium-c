@@ -302,6 +302,9 @@ var Tasks = {
     if (manifest.chrome_url_overrides && Object.keys(manifest.chrome_url_overrides) == 0) {
       delete manifest.chrome_url_overrides;
     }
+    let newManifest = {};
+    for (let key of Object.keys(manifest).sort()) { newManifest[key] = manifest[key]; }
+    manifest = newManifest;
     var file = osPath.join(DEST, "manifest.json")
       , data = JSON.stringify(manifest, null, "  ");
     if (fs.existsSync(file) && fs.statSync(file).isFile()) {
