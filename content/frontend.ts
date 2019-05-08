@@ -535,7 +535,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       } else {
         sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
       }
-      hints[sel].marker.classList.add("S", "IHS"); // Note: remove `"S"` in 2019
+      hints[sel].marker.classList.add("IHS");
       VDom.UI.simulateSelect_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
       VDom.UI.ensureBorder_(VDom.wdZoom_);
       const box = VDom.UI.addElementList_<false>(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
@@ -551,8 +551,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           InsertMode.hinting_ = true;
           VUtils.prevent_(event); // in case that selecting is too slow
           VDom.UI.simulateSelect_(hints2[sel].target, null, false, action);
-          hints2[oldSel].marker.classList.remove("S", "IHS");
-          hints2[sel].marker.classList.add("S", "IHS");
+          hints2[oldSel].marker.classList.remove("IHS");
+          hints2[sel].marker.classList.add("IHS");
           InsertMode.hinting_ = false;
           return HandlerResult.Prevent;
         }
