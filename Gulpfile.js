@@ -48,6 +48,7 @@ var es6_viewer = false;
 // es6_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome) || getBuildItem("MinCVer") >= 52;
 const POLYFILL_FILE = "lib/polyfill.ts", NEWTAB_FILE = "pages/newtab.ts";
 const VIEWER_JS = "lib/viewer.min.js";
+const FILE_URLS_CSS = "front/file_urls.css";
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
@@ -92,6 +93,7 @@ var Tasks = {
       , "!test*", "!todo*"
     ];
     has_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
+    getBuildItem("BTypes") & BrowserType.Chrome || arr.push("!" + FILE_URLS_CSS);
     es6_viewer && arr.push("!" + VIEWER_JS);
     var has_wordsRe = getBuildItem("BTypes") & ~BrowserType.Firefox
             && getBuildItem("MinCVer") <
@@ -109,7 +111,8 @@ var Tasks = {
 
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
-    return cleanByPath([".build/**", "manifest.json", "lib/polyfill.js", "pages/dialog_ui.*", "*/vomnibar.html"]);
+    return cleanByPath([".build/**", "manifest.json", "lib/polyfill.js", "pages/dialog_ui.*", "*/vomnibar.html"
+      , FILE_URLS_CSS]);
   },
   "build/_all": ["build/scripts", "build/options", "build/show"],
   "build/ts": function(cb) {
@@ -290,6 +293,11 @@ var Tasks = {
       if (manifest.chrome_url_overrides) {
         delete manifest.chrome_url_overrides.newtab;
       }
+    }
+    if (!(browser & BrowserType.Chrome)) {
+      manifest.content_scripts = manifest.content_scripts.filter(function(item) {
+        return item.matches.length > 1 || item.matches.indexOf("file:///*") < 0 && item.matches.indexOf("file://*") < 0;
+      });
     }
     if (manifest.chrome_url_overrides && Object.keys(manifest.chrome_url_overrides) == 0) {
       delete manifest.chrome_url_overrides;
@@ -763,7 +771,8 @@ function compareContentAndTouch(stream, sourceFile, targetPath) {
         }
       }
       fs.futimesSync(fd, parseInt(s.atime.getTime() / 1000, 10), parseInt(Date.now() / 1000, 10));
-      print("Touch an unchanged file:", sourceFile.relative);
+      var fileName = sourceFile.relative;
+      print("Touch an unchanged file:", fileName.indexOf(":\\") > 0 ? fileName : fileName.replace(/\\/g, "/"));
     } finally {
       fs.closeSync(fd);
       if (fd2 != null) {
