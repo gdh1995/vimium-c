@@ -1661,8 +1661,8 @@ Are you sure you want to continue?`);
         }
       }
       if (current) { return; }
-      const vomnibarOptions = Settings.cache_.vomnibarOptions;
-      let toggle = ` ${toggled} `, curStyles = vomnibarOptions.styles && ` ${vomnibarOptions.styles} `;
+      const payload = Settings.omniPayload_;
+      let toggle = ` ${toggled} `, curStyles = payload.styles_ && ` ${payload.styles_} `;
       requestHandlers[kFgReq.setOmniStyle]({
         s: curStyles.indexOf(toggle) >= 0 ? curStyles.replace(toggle, " ") : curStyles + toggled
       });
@@ -2216,11 +2216,13 @@ Are you sure you want to continue?`);
       });
     },
     /** setOmniStyle: */ function (this: void, req: FgReq[kFgReq.setOmniStyle]): void {
-      let styles = req.s.trim(), vomnibarOptions = Settings.cache_.vomnibarOptions;
-      if (styles === vomnibarOptions.styles) { return; }
-      const newOptions: SettingsNS.BackendSettings["vomnibarOptions"] = Utils.extendIf_({}, vomnibarOptions);
-      newOptions.styles = styles;
-      Settings.set_("vomnibarOptions", newOptions);
+      let styles = req.s.trim(), payload = Settings.omniPayload_;
+      if (styles === payload.styles_) { return; }
+      payload.styles_ = styles;
+      const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { styles_: styles } };
+      for (const frame of framesForOmni) {
+        frame.postMessage(request2);
+      }
     },
     /** findFromVisual */ function (this: void, _: {}, port: Port): void {
       cOptions = Object.setPrototypeOf({ active: true, returnToViewport: true }, null);
@@ -2360,12 +2362,8 @@ Are you sure you want to continue?`);
         port.onMessage.addListener(OnMessage);
         type === PortType.omnibar &&
         port.postMessage({
-          N: kBgReq.omni_secret,
-          b: !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
-              || !(Build.BTypes & ~BrowserType.Edge) ? Build.BTypes as number as BrowserType : OnOther,
-          v: ChromeVer,
-          o: Settings.cache_.vomnibarOptions,
-          S: Settings.cache_.omniCSS_,
+          N: kBgReq.omni_init,
+          l: Settings.omniPayload_,
           s: getSecret()
         });
         return true;

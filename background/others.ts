@@ -423,7 +423,7 @@ setTimeout(function (): void {
     lastSuggest = { suggest, key, sent: false };
     if (timer) { return; }
     const now = Date.now(),
-    delta = Settings.cache_.vomnibarOptions.queryInterval + inputTime - now; /** it's made safe by {@see #onTimer} */
+    delta = Settings.omniPayload_.queryInterval_ + inputTime - now; /** it's made safe by {@see #onTimer} */
     if (delta > 30 && delta < 3000) { // in case of system time jumping
       timer = setTimeout(onTimer, delta);
       return;

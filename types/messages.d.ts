@@ -27,8 +27,8 @@ declare const enum kBgReq {
   settingsUpdate, focusFrame, exitGrab, keyMap, execute,
   createMark, showHUD, count, showHelpDialog,
   OMNI_MIN = 42,
-  omni_secret = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
-  omni_toggleStyle, omni_globalOptions,
+  omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
+  omni_toggleStyle, omni_updateOptions,
   END = "END", // without it, TypeScript will report errors for number indexes
 }
 
@@ -115,6 +115,15 @@ interface BgReq {
   }
 }
 
+interface VomnibarPayload {
+  browser_: BrowserType;
+  browserVer_: BrowserVer;
+  css_: string;
+  maxMatches_: number;
+  queryInterval_: number;
+  styles_: string;
+}
+
 interface BgVomnibarSpecialReq {
   [kBgReq.omni_omni]: {
     /** list */ l: CompletersNS.Suggestion[];
@@ -126,12 +135,9 @@ interface BgVomnibarSpecialReq {
   [kBgReq.omni_returnFocus]: {
     /** lastKey */ l: VKeyCodes;
   } & Req.baseBg<kBgReq.omni_returnFocus>;
-  [kBgReq.omni_secret]: {
+  [kBgReq.omni_init]: {
     /** secret */ s: number;
-    /** browser */ b: BrowserType;
-    /** browserVer */ v: BrowserVer;
-    /** globalOptions */ o: SettingsNS.BaseBackendSettings["vomnibarOptions"],
-    /** CSS */ S: string;
+    /* payload */ l: VomnibarPayload;
   };
   [kBgReq.omni_parsed]: {
     /** id */ i: number;
@@ -141,11 +147,11 @@ interface BgVomnibarSpecialReq {
     /** toggled */ t: string;
     /** current */ c: boolean;
   };
-  [kBgReq.omni_globalOptions]: {
-    o: SettingsNS.BaseBackendSettings["vomnibarOptions"];
+  [kBgReq.omni_updateOptions]: {
+    /** delta */ d: Partial<Exclude<VomnibarPayload, "browser_" | "browserVer_">>;
   }
 }
-type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.showHUD | kBgReq.injectorRun;
+type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 

@@ -348,7 +348,6 @@ declare namespace SettingsNS {
         | "vomnibarOptions"
       > {
     findCSS_: FindCSS; // should not in Settings.defaults
-    omniCSS_: string; // should not in Settings.defaults
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |

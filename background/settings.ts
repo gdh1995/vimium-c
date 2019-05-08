@@ -15,6 +15,15 @@ var Settings = {
     grabBackFocus_: false,
     onMac_: false
   } as SettingsNS.FrontendSettingCache & SafeObject,
+  omniPayload_: {
+    browser_: !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
+        || !(Build.BTypes & ~BrowserType.Edge) ? Build.BTypes as number as BrowserType : OnOther,
+    browserVer_: Build.BTypes & BrowserType.Chrome ? ChromeVer : BrowserVer.assumedVer,
+    css_: "",
+    maxMatches_: 0,
+    queryInterval_: 0,
+    styles_: ""
+  },
   newTabs_: Object.create(null) as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
   storage_: localStorage,
@@ -238,7 +247,9 @@ var Settings = {
           }
         }
       }
-      const request2: Req.bg<kBgReq.showHUD> & BgCSSReq = { N: kBgReq.showHUD, S: cache.omniCSS_ };
+      const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: {
+        css_: a.omniPayload_.css_
+      } };
       for (const frame of Backend.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
         frame.postMessage(request2);
       }
@@ -253,7 +264,7 @@ var Settings = {
       cache.innerCSS = css.substring(css.indexOf("\n") + 1);
       cache.findCSS_ = [findCSS.substring(0, index - 1),
           findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
-      cache.omniCSS_ = omniCSS;
+      a.omniPayload_.css_ = omniCSS;
     },
     vomnibarPage (this: {}, url): void {
       const a = this as typeof Settings, cur = localStorage.getItem("vomnibarPage_f");
@@ -282,24 +293,34 @@ var Settings = {
     vomnibarOptions (this: {}, options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void {
       const a = this as typeof Settings, defaultOptions = a.defaults_.vomnibarOptions;
       let isSame = true;
+      let { maxMatches, queryInterval, styles } = defaultOptions;
       if (options !== defaultOptions && options && typeof options === "object") {
-        const { maxMatches: defaultMatches, queryInterval: defaultInterval } = defaultOptions,
-        maxMatches = Math.max(3, Math.min((options.maxMatches | 0) || defaultMatches
+        const newMaxMatches = Math.max(3, Math.min((options.maxMatches | 0) || maxMatches
             , GlobalConsts.MaxLimitOfVomnibarMatches)),
         newInterval = +options.queryInterval,
         newStyles = ((options.styles || "") + "").trim(),
-        queryInterval = Math.max(0, Math.min(newInterval >= 0 ? newInterval : defaultInterval, 1200));
-        isSame = defaultMatches === maxMatches && defaultInterval === queryInterval
-                && !newStyles;
+        newQueryInterval = Math.max(0, Math.min(newInterval >= 0 ? newInterval : queryInterval, 1200));
+        isSame = maxMatches === newMaxMatches && queryInterval === newQueryInterval
+                  && styles === newStyles;
         if (!isSame) {
-          options.maxMatches = maxMatches;
-          options.queryInterval = queryInterval;
-          options.styles = newStyles;
+          maxMatches = newMaxMatches;
+          queryInterval = newQueryInterval;
+          styles = newStyles;
         }
+        options.maxMatches = newMaxMatches;
+        options.queryInterval = newQueryInterval;
+        options.styles = newStyles;
       }
       (a.cache_ as Writeable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
         : options as NonNullable<typeof options>;
-      const request2: Req.bg<kBgReq.omni_globalOptions> = { N: kBgReq.omni_globalOptions, o: options };
+      a.omniPayload_.maxMatches_ = maxMatches;
+      a.omniPayload_.queryInterval_ = queryInterval;
+      a.omniPayload_.styles_ = styles;
+      const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: {
+        maxMatches_: maxMatches,
+        queryInterval_: queryInterval,
+        styles_: styles
+      } };
       for (const frame of Backend.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
         frame.postMessage(request2);
       }

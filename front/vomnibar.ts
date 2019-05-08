@@ -66,7 +66,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
               && (!(Build.BTypes & ~BrowserType.Chrome)
                   || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
               ? scale : 1)
-        - PixelData.ListSpaceDelta) / PixelData.Item), a.globalOptions_.maxMatches));
+        - PixelData.ListSpaceDelta) / PixelData.Item), a.maxMatches_));
     a.mode_.r = max;
     a.init_ && a.preInit_(options.t);
     if (Build.BTypes & ~BrowserType.Firefox) {
@@ -159,8 +159,10 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   wheelDelta_: 0,
   browser_: BrowserType.Chrome,
   browserVer_: BrowserVer.assumedVer,
-  globalOptions_: null as never as SettingsNS.BaseBackendSettings["vomnibarOptions"],
-  customStyle_: null as HTMLStyleElement | null,
+  maxMatches_: 0,
+  queryInterval_: 0,
+  styles_: "",
+  styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
   wheelOptions_: { passive: false, capture: true as true },
   show_ (): void {
@@ -262,7 +264,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     } else if (a.timer_ > 0) {
       return;
     } else {
-      updateDelay = a.globalOptions_.queryInterval;
+      updateDelay = a.queryInterval_;
     }
     a.timer_ = setTimeout(a.OnTimer_, updateDelay);
   },
@@ -724,11 +726,11 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     }
   },
   toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
-    let omniStyles = Vomnibar_.globalOptions_.styles, toggle = ` ${req.t} `;
+    let omniStyles = Vomnibar_.styles_, toggle = ` ${req.t} `;
     omniStyles = omniStyles && ` ${omniStyles} `;
     omniStyles = omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, " ") : omniStyles + req.t;
     omniStyles = omniStyles.trim();
-    Vomnibar_.globalOptions_.styles = omniStyles;
+    Vomnibar_.styles_ = omniStyles;
     Vomnibar_.onStyleUpdate_(omniStyles);
     if (toggle && !req.c) {
       VPort_.post_({
@@ -758,12 +760,15 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   ToggleDark_ (this: void, event: MouseEvent): void {
     Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
   },
-  setGlobalOptions_ (response: Req.bg<kBgReq.omni_globalOptions>): void {
-    const newOptions = response.o, { styles } = newOptions;
-    if (Vomnibar_.globalOptions_.styles !== styles) {
+  updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
+    const delta = response.d, { css_, maxMatches_, queryInterval_, styles_: styles } = delta;
+    if (styles != null && Vomnibar_.styles_ !== styles) {
+      Vomnibar_.styles_ = styles;
       Vomnibar_.onStyleUpdate_(styles);
     }
-    Vomnibar_.globalOptions_ = newOptions;
+    css_ != null && Vomnibar_.css_(css_);
+    maxMatches_ != null && (Vomnibar_.maxMatches_ = maxMatches_);
+    queryInterval_ != null && (Vomnibar_.queryInterval_ = queryInterval_);
   },
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.focusByCode_, blurred = event.type === "blur", target = event.target;
@@ -851,10 +856,10 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       input.addEventListener("compositionstart", func);
       input.addEventListener("compositionend", func);
     }
-    a.customStyle_ && (document.head as HTMLElement).appendChild(a.customStyle_);
+    a.styleEl_ && (document.head as HTMLElement).appendChild(a.styleEl_);
     a.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
     a.darkBtn_ && (a.darkBtn_.onclick = a.ToggleDark_);
-    a.onStyleUpdate_(a.globalOptions_.styles);
+    a.onStyleUpdate_(a.styles_);
     a.init_ = VUtils_.makeListRenderer_ = null as never;
     if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute
         || (Build.MinCVer >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute
@@ -873,15 +878,15 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       return path ? `${type}" d="${path}` : type;
     };
   },
-  css_ (request: BgCSSReq): void {
-    let css = request.S as string, st = Vomnibar_.customStyle_;
+  css_ (css: string): void {
+    let st = Vomnibar_.styleEl_;
     if (!css) {
       st && st.remove();
-      Vomnibar_.customStyle_ = null;
+      Vomnibar_.styleEl_ = null;
       return;
     }
     if (!st) {
-      st = Vomnibar_.customStyle_ = <HTMLStyleElement | null> document.querySelector("#custom")
+      st = Vomnibar_.styleEl_ = <HTMLStyleElement | null> document.querySelector("#custom")
         || document.createElement("style");
       st.type = "text/css";
       st.className = "custom";
@@ -939,7 +944,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     Vomnibar_.mode_.c = Math.round(((w || innerWidth) / Vomnibar_.docZoom_
       - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
   },
-  secret_: null as ((request: BgVomnibarSpecialReq[kBgReq.omni_secret]) => void) | null,
+  secret_: null as ((request: BgVomnibarSpecialReq[kBgReq.omni_init]) => void) | null,
 
   mode_: {
     H: kFgReq.omni as kFgReq.omni,
@@ -1134,11 +1139,10 @@ VPort_ = {
     const name = response.N;
     name === kBgReq.omni_omni ? Vomnibar_.omni_(response as Req.bg<kBgReq.omni_omni>) :
     name === kBgReq.omni_parsed ? Vomnibar_.parsed_(response as Req.bg<kBgReq.omni_parsed>) :
-    name === kBgReq.omni_secret ? Vomnibar_.secret_ && Vomnibar_.secret_(response as Req.bg<kBgReq.omni_secret>) :
+    name === kBgReq.omni_init ? Vomnibar_.secret_ && Vomnibar_.secret_(response as Req.bg<kBgReq.omni_init>) :
     name === kBgReq.omni_returnFocus ? Vomnibar_.returnFocus_(response as Req.bg<kBgReq.omni_returnFocus>) :
-    name === kBgReq.showHUD ? Vomnibar_.css_(response as Req.bg<kBgReq.showHUD> as BgCSSReq) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
-    name === kBgReq.omni_globalOptions ? Vomnibar_.setGlobalOptions_(response as Req.bg<kBgReq.omni_globalOptions>) :
+    name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response as Req.bg<kBgReq.omni_updateOptions>) :
     name === kBgReq.injectorRun ? 0 :
     // tslint:disable-next-line: no-unused-expression
     0;
@@ -1220,10 +1224,13 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   timer = setTimeout(function () { location.href = "about:blank"; }, 700);
   Vomnibar_.secret_ = function (this: void, request): void {
     Vomnibar_.secret_ = null;
-    Vomnibar_.browser_ = request.b;
-    Vomnibar_.browserVer_ = request.v;
-    Vomnibar_.globalOptions_ = request.o;
-    Vomnibar_.css_(request);
+    const payload = request.l;
+    Vomnibar_.browser_ = payload.browser_;
+    Vomnibar_.browserVer_ = payload.browserVer_;
+    Vomnibar_.maxMatches_ = payload.maxMatches_;
+    Vomnibar_.queryInterval_ = payload.queryInterval_;
+    Vomnibar_.styles_ = payload.styles_;
+    Vomnibar_.css_(payload.css_);
     const { s: secret } = request;
     _sec = secret;
     for (const i of unsafeMsg) {
