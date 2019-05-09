@@ -761,7 +761,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
   },
   updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
-    const delta = response.d, { css_, maxMatches_, queryInterval_, styles_: styles } = delta;
+    const delta = Object.setPrototypeOf(response.d, null),
+    { css_, maxMatches_, queryInterval_, styles_: styles } = delta;
     if (styles != null && Vomnibar_.styles_ !== styles) {
       Vomnibar_.styles_ = styles;
       Vomnibar_.onStyleUpdate_(styles);
