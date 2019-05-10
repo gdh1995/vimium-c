@@ -66,3 +66,8 @@ interface ReadonlyArray<T> {
     /** Iterator of values in the array. */
     [Symbol.iterator](): IterableIterator<T>;
 }
+
+interface String {
+    /** Iterator */
+    [Symbol.iterator](): IterableIterator<string>;
+}

@@ -131,12 +131,16 @@ static Check_ (this: NumberChecker, value: number): number {
 
 class TextOption_<T extends keyof AllowedOptions> extends Option_<T> {
 readonly element_: TextElement;
-readonly converter_: string;
+readonly converter_: string[];
 previous_: string;
 constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
   super(element, onUpdated);
   this.element_.oninput = this.onUpdated_;
-  this.converter_ = this.element_.dataset.converter || "";
+  const conv = this.element_.dataset.converter || "", ops = conv ? conv.split(" ") : [];
+  this.converter_ = ops;
+  if (ops.indexOf("chars") >= 0) {
+    this.checker_ = TextOption_.charsChecker;
+  }
 }
 whiteRe_: RegExpG;
 whiteMaskRe_: RegExpG;
@@ -149,13 +153,30 @@ populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
   return this.atomicUpdate_(value as string, true, true);
 }
 readValueFromElement_ (): AllowedOptions[T] {
-  let value = this.element_.value.trim().replace(this.whiteMaskRe_, " ");
-  if (value && this.converter_) {
-    value = this.converter_ === "lower" ? value.toLowerCase()
-      : this.converter_ === "upper" ? value.toUpperCase()
-      : value;
+  let value = this.element_.value.trim().replace(this.whiteMaskRe_, " "), ops = this.converter_;
+  if (value && ops.length > 0) {
+    ops.indexOf("lower") >= 0 && (value = value.toLowerCase());
+    ops.indexOf("upper") >= 0 && (value = value.toUpperCase());
+    if (ops.indexOf("chars") >= 0 && this.previous_.indexOf(" ") < 0) {
+      // allow old users to correct chars and save
+      value = TextOption_.toChars(value);
+    }
   }
   return value;
+}
+static charsChecker: TextOption_<"linkHintCharacters">["checker_"] = {
+  check_ (value: string): string {
+    return TextOption_.toChars(value);
+  }
+};
+static toChars (value: string): string {
+  let str2 = "";
+  for (let ch of value.replace(<RegExpG> /\s/g, "")) {
+    if (str2.indexOf(ch) < 0) {
+      str2 += ch;
+    }
+  }
+  return str2;
 }
 }
 TextOption_.prototype.whiteRe_ = <RegExpG> / /g;
