@@ -30,7 +30,22 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.Frontend
 };
 
 Option_.saveOptions_ = function (): boolean {
-  const arr = Option_.all_;
+  const arr = Option_.all_, dirty: string[] = [];
+  for (const i in arr) {
+    const opt = arr[i as keyof AllowedOptions];
+    if (!opt.saved_ && !opt.areEqual_(opt.previous_ as never, bgSettings_.get_(opt.field_) as never)) {
+      dirty.push(opt.field_);
+    }
+  }
+  if (dirty.length > 0) {
+    let ok = confirm(
+`Such options have been changed at other places:
+  * ${dirty.join("\n  * ")}
+Continue to save and override these changes?`);
+    if (!ok) {
+      return false;
+    }
+  }
   for (const i in arr) {
     const opt = arr[i as keyof AllowedOptions];
     if (!opt.saved_ && !opt.allowToSave_()) {
