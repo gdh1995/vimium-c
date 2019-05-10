@@ -396,8 +396,8 @@ _listen("load", delayFindAll, !0);
   script.dataset.vimium = secret as number | string as string;
   docEl ? Build.BTypes & ~BrowserType.Firefox ? script.insertBefore.call(docEl, script, docEl.firstChild)
     : docEl.insertBefore(script, docEl.firstChild) : d.appendChild(script);
-  if (!(Build.NDEBUG || VDom.OnDocLoaded_ === VDom.execute_)) {
-    console.log("Assert error: VDom.OnDocLoaded_ === VDom.execute_");
+  if (!(Build.NDEBUG || (VDom.OnDocLoaded_ + "").indexOf("DOMContentLoaded") >= 0)) {
+    console.log("Assert error: VDom.OnDocLoaded_ should have not been called");
   }
   if ((Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         && !(Build.BTypes & ~BrowserType.Chrome))
