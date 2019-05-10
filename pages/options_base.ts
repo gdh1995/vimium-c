@@ -78,7 +78,7 @@ abstract class Option_<T extends keyof AllowedOptions> {
   saved_: boolean;
   locked_?: boolean;
   readonly onUpdated_: (this: void) => void;
-  onSave_?: () => void;
+  onSave_ (): void { /* empty */ };
   checker_?: Checker<T>;
 
   static all_ = Object.create(null) as {
@@ -90,11 +90,10 @@ constructor (element: HTMLElement, onUpdated: (this: Option_<T>) => void) {
   this.element_ = element;
   this.field_ = element.id as T;
   this.previous_ = this.onUpdated_ = null as never;
-  this.saved_ = true;
+  this.saved_ = false;
   if (this.field_ in bgSettings_.payload_) {
     onUpdated = this._onCacheUpdated.bind(this, onUpdated);
   }
-  this.fetch_();
   this.onUpdated_ = debounce_(onUpdated, 330, this, 1);
 }
 
@@ -133,7 +132,7 @@ save_ (): void {
   if (this.field_ in bgSettings_.payload_) {
     Option_.syncToFrontend_.push(this.field_ as keyof SettingsNS.FrontendSettings);
   }
-  this.onSave_ && this.onSave_();
+  this.onSave_();
 }
 abstract readValueFromElement_ (): AllowedOptions[T];
 abstract populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void;
@@ -176,23 +175,25 @@ class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   template_: HTMLTableRowElement;
   list_: Array<ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode>;
   $list_: HTMLTableSectionElement;
+  inited_: boolean;
 constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => void) {
   super(element, onUpdated);
+  this.inited_ == false;
   bgSettings_.fetchFile_("exclusionTemplate", (): void => {
     this.element_.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
     this.template_ = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
     this.$list_ = this.element_.getElementsByTagName("tbody")[0] as HTMLTableSectionElement;
     this.list_ = [];
-    this.fetch_ = super.fetch_;
-    this.fetch_();
     this.$list_.addEventListener("input", ExclusionRulesOption_.MarkChanged_);
     this.$list_.addEventListener("input", this.onUpdated_);
     this.$list_.addEventListener("click", e => this.onRemoveRow_(e));
     $("#exclusionAddButton").onclick = () => this.addRule_("");
-    return this.onInit_();
+    this.inited_ = true;
+    if (this.saved_) { // async and .fetch called
+      this.populateElement_(this.previous_);
+    }
   });
 }
-fetch_ (): void { /* empty */ }
 onRowChange_ (_isInc: number): void { /* empty */ }
 static MarkChanged_ (this: void, event: Event): void {
   const vnode = (event.target as HTMLInputElement & Partial<ExclusionRealNode>).vnode;
@@ -211,6 +212,7 @@ addRule_ (pattern: string): void {
   this.onRowChange_(1);
 }
 populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
+  if (!this.inited_) { return; }
   this.$list_.textContent = "";
   this.list_ = [];
   if (rules.length <= 0) { /* empty */ }
@@ -340,9 +342,19 @@ updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string)
     ExclusionRulesOption_.OnNewKeys_(vnode);
   }
 }
+onSave_ (): void {
+  for (let rule of this.list_) {
+    if (!rule.visible_) { continue; }
+    if (rule.$pattern_.value !== rule.rule_.pattern) {
+      rule.$pattern_.value = rule.rule_.pattern;
+    }
+    if (rule.$keys_.value !== rule.rule_.passKeys) {
+      rule.$keys_.value = rule.rule_.passKeys;
+    }
+  }
+}
 
 readonly areEqual_ = Option_.areJSONEqual_;
-onInit_ (): void { /* empty */ }
 sortRules_: (el?: HTMLElement) => void;
 timer_?: number;
 }
@@ -429,13 +441,6 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
       || {} as Frames.Port).s || {} as Frames.Sender).u || "",
   stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
   url = frameInfo.u;
-  let delayedInit: (() => void) | null = function (): void {
-    if (exclusions != null) {
-      delayedInit = null as never;
-      updateState(true);
-      (document.documentElement as HTMLHtmlElement).style.height = "";
-    }
-  };
   class PopExclusionRulesOption extends ExclusionRulesOption_ {
     addRule_ (): void {
       super.addRule_(PopExclusionRulesOption.generateDefaultPattern_());
@@ -452,15 +457,17 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     }
     populateElement_ (rules1: ExclusionsNS.StoredRule[]): void {
       super.populateElement_(rules1);
+      if (!this.inited_) { return; }
+      this.populateElement_ = null as never; // ensure .populateElement_ is only executed for once
+      (document.documentElement as HTMLHtmlElement).style.height = "";
       PopExclusionRulesOption.prototype.isPatternMatched_ = ExclusionRulesOption_.prototype.isPatternMatched_;
-      if (inited <= 0) {
-        let visible_ = this.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0;
-        if (some) {
-          visible_[0].$keys_.focus();
-        } else {
-          this.addRule_();
-        }
-        inited = some ? 2 : 1;
+      let visible_ = this.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0;
+      inited = some ? 2 : 1;
+      if (some) {
+        visible_[0].$keys_.focus();
+        updateState(true);
+      } else {
+        this.addRule_();
       }
     }
     updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
@@ -503,10 +510,10 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     }
     return (isReverted ? "^ " : "") + Object.keys(dict).join(" ");
   }
-  function updateState(initing: boolean): void {
+  function updateState(updateOldPass: boolean): void {
     let pass = bgExclusions.getTemp_(url, frameInfo, exclusions.readValueFromElement_(true));
     pass && (pass = collectPass(pass));
-    if (initing) {
+    if (updateOldPass) {
       oldPass = inited >= 2 ? pass : null;
     }
     const isSaving = inited === 3;
@@ -537,9 +544,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
       saveBtn.removeAttribute("disabled");
       (saveBtn.firstChild as Text).data = "Save Changes";
     }
-    if (!delayedInit) {
-      updateState(false);
-    }
+    updateState(inited < 2);
   }
   function saveOptions(this: void): void {
     if (saveBtn.disabled) {
@@ -588,11 +593,8 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     el0.onclick = forceState.bind(null, "Reset");
   }
   let exclusions: PopExclusionRulesOption = null as never;
-  PopExclusionRulesOption.prototype.onInit_ = delayedInit;
   exclusions = new PopExclusionRulesOption($("#exclusionRules"), onUpdated);
-  if (inited > 0) {
-    delayedInit();
-  }
+  exclusions.fetch_();
   if (!Build.NDEBUG) {
     interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
     (window as WindowEx).exclusions = exclusions;

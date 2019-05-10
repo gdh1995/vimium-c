@@ -132,18 +132,26 @@ static Check_ (this: NumberChecker, value: number): number {
 class TextOption_<T extends keyof AllowedOptions> extends Option_<T> {
 readonly element_: TextElement;
 readonly converter_: string[];
+needToCovertToCharsOnRead_: boolean;
 previous_: string;
 constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
   super(element, onUpdated);
   this.element_.oninput = this.onUpdated_;
   const conv = this.element_.dataset.converter || "", ops = conv ? conv.split(" ") : [];
   this.converter_ = ops;
+  this.needToCovertToCharsOnRead_ = false;
   if (ops.indexOf("chars") >= 0) {
     this.checker_ = TextOption_.charsChecker;
   }
 }
 whiteRe_: RegExpG;
 whiteMaskRe_: RegExpG;
+fetch_ (): void {
+  super.fetch_();
+  // allow old users to correct mistaken chars and save
+  this.needToCovertToCharsOnRead_ = this.converter_.indexOf("chars") >= 0
+    && TextOption_.charsChecker.check_(this.previous_) === this.previous_;
+}
 populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
   value = (value as string).replace(this.whiteRe_, "\xa0");
   if (enableUndo !== true) {
@@ -157,14 +165,13 @@ readValueFromElement_ (): AllowedOptions[T] {
   if (value && ops.length > 0) {
     ops.indexOf("lower") >= 0 && (value = value.toLowerCase());
     ops.indexOf("upper") >= 0 && (value = value.toUpperCase());
-    if (ops.indexOf("chars") >= 0 && this.previous_.indexOf(" ") < 0) {
-      // allow old users to correct chars and save
+    if (this.needToCovertToCharsOnRead_) {
       value = TextOption_.toChars(value);
     }
   }
   return value;
 }
-static charsChecker: TextOption_<"linkHintCharacters">["checker_"] = {
+static charsChecker: Checker<"linkHintCharacters"> = {
   check_ (value: string): string {
     return TextOption_.toChars(value);
   }
@@ -240,7 +247,6 @@ class MaskedText_<T extends keyof AllowedOptions> extends TextOption_<T> {
     super(element, onUpdated);
     this.masked_ = true;
     this.element_.classList.add("masked");
-    this.populateElement_(this.previous_);
     this._myCancelMask = this.cancelMask_.bind(this);
     (this.element_ as HTMLTextAreaElement).addEventListener("focus", this._myCancelMask);
   }
@@ -293,23 +299,6 @@ ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOpt
     style = (opt.element_.parentNode as HTMLElement).style;
     style.visibility = isAdd || opt.saved_ ? "" : "visible";
     style.display = !isAdd && opt.saved_ ? "none" : "";
-  }
-};
-
-ExclusionRulesOption_.prototype.onInit_ = function (this: ExclusionRulesOption_): void {
-  if (this.previous_.length > 0) {
-    $("#exclusionToolbar").style.visibility = "";
-  }
-};
-
-ExclusionRulesOption_.prototype.onSave_ = function (): void {
-  for (let rule of this.list_ as ExclusionVisibleVirtualNode[]) {
-    if (rule.$pattern_.value !== rule.rule_.pattern) {
-      rule.$pattern_.value = rule.rule_.pattern;
-    }
-    if (rule.$keys_.value !== rule.rule_.passKeys) {
-      rule.$keys_.value = rule.rule_.passKeys;
-    }
   }
 };
 
@@ -420,7 +409,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     const cls = types[element.dataset.model as "Text"];
     // tslint:disable-next-line: no-unused-expression
     const instance = new cls(element as TextElement, onUpdated);
+    instance.fetch_();
     (Option_.all_ as SafeDict<Option_<keyof AllowedOptions>>)[instance.field_] = instance;
+  }
+  if (Option_.all_.exclusionRules.previous_.length > 0) {
+    $("#exclusionToolbar").style.visibility = "";
   }
 
   _ref = $$("[data-check]");
@@ -613,6 +606,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     url = bgSettings_.cache_.vomnibarPage_f || url; // for the case Chrome is initing
     if (isExtPage) { /* empty */ }
     else if (url.lastIndexOf("file://", 0) !== -1) {
+      // todo: update text
       return this.showError_("A file page of vomnibar is limited by Chrome to only work on file://* pages."
         , "highlight");
     } else if (url.lastIndexOf("http://", 0) !== -1) {
