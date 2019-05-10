@@ -57,6 +57,11 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.74.8:
+* Vomnibar: make effects of the dark mode button not persistent
+* Options page: normalize exclusions and link hints characters on saving
+* fix some rare edge cases on malformed webpages
+
 1.74.7:
 * `goBack`, `goForward`: now works perfectly since Chrome 72
 * add a command `discardTab` to discard tab(s) on the right (or left if count is negative)
