@@ -30,12 +30,14 @@ ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOptio
     key: string;
   }
   if (element && this.timer_) { return; }
-  const rules = this.readValueFromElement_() as Rule[], hostRe = <RegExpOne> /^([:^]?[a-z\-?*]+:\/\/)?([^\/]+)(\/.*)?/;
+  const rules = this.readValueFromElement_() as Rule[],
+  hostRe = <RegExpOne> /^([:^]?[a-z\-?*]+:\/\/)?((?:[^\/]|\/])+)(\/[^\]].*|\/?$)/,
+  escapedDotRe = <RegExpG> /\\\./g;
   let key: Rule["pattern"], arr: string[] | null;
   for (const rule of rules) {
-    if ((arr = hostRe.exec(key = rule.pattern)) && arr[1] && arr[2]) {
-      key = arr[3] || "";
-      arr = arr[2].split(".");
+    if ((arr = hostRe.exec(key = rule.pattern.replace("(?:[^./]+\\.)*?", "*."))) && arr[1] && arr[2]) {
+      key = arr[3] ? arr[3].replace(escapedDotRe, ".") : "";
+      arr = arr[2].replace(escapedDotRe, ".").split(".");
       arr.reverse();
       key = arr.join(".") + key;
     }
@@ -43,6 +45,7 @@ ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOptio
   }
   rules.sort((a, b) => a.key < b.key ? -1 : a.key === b.key ? 0 : 1);
   this.populateElement_(rules);
+  this.onUpdated_();
   if (!element) { return; }
   let self = this;
   this.timer_ = setTimeout(function (el, text) {
