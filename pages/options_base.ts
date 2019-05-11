@@ -199,13 +199,15 @@ static MarkChanged_ (this: void, event: Event): void {
   const vnode = (event.target as HTMLInputElement & Partial<ExclusionRealNode>).vnode;
   vnode && (vnode.changed_ = true);
 }
-addRule_ (pattern: string): void {
+addRule_ (pattern: string, autoFocus?: false | undefined): void {
   this.appendRuleTo_(this.$list_, {
     pattern,
     passKeys: ""
   });
   const item = this.list_[this.list_.length - 1] as ExclusionVisibleVirtualNode;
-  item.$pattern_.focus();
+  if (autoFocus !== false) {
+    item.$pattern_.focus();
+  }
   if (pattern) {
     this.onUpdated_();
   }
@@ -442,8 +444,8 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
   stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
   url = frameInfo.u;
   class PopExclusionRulesOption extends ExclusionRulesOption_ {
-    addRule_ (): void {
-      super.addRule_(PopExclusionRulesOption.generateDefaultPattern_());
+    addRule_ (_pattern: string, autoFocus?: false): void {
+      super.addRule_(PopExclusionRulesOption.generateDefaultPattern_(), autoFocus);
     }
     isPatternMatched_ (pattern: string) {
       if (!pattern) { return false; }
@@ -457,17 +459,19 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     }
     populateElement_ (rules1: ExclusionsNS.StoredRule[]): void {
       super.populateElement_(rules1);
-      if (!this.inited_) { return; }
-      this.populateElement_ = null as never; // ensure .populateElement_ is only executed for once
+      const a = this;
+      if (!a.inited_) { return; }
+      a.populateElement_ = null as never; // ensure .populateElement_ is only executed for once
       (document.documentElement as HTMLHtmlElement).style.height = "";
       PopExclusionRulesOption.prototype.isPatternMatched_ = ExclusionRulesOption_.prototype.isPatternMatched_;
-      let visible_ = this.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0;
+      let visible_ = a.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0;
       inited = some ? 2 : 1;
       if (some) {
         visible_[0].$keys_.focus();
         updateState(true);
       } else {
-        this.addRule_();
+        a.addRule_("", false);
+        (a.list_[a.list_.length - 1] as ExclusionVisibleVirtualNode).$keys_.focus();
       }
     }
     updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
