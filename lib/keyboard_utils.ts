@@ -66,6 +66,6 @@ var VKeyboard = {
     return i === KeyStat.plain || i === KeyStat.ctrlKey
       && (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
           ? code ? code === "BracketLeft" : this.char_(event) === "["
-          : event.code === "BracketLeft");;
+          : event.code === "BracketLeft");
   }
 };

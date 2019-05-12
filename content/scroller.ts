@@ -72,7 +72,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       running = 0;
     }
   }
-  function animate2 (): void {
+  function animate2(): void {
     timer = 0;
     animate(performance.now());
   }

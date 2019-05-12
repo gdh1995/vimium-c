@@ -57,6 +57,12 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.74.9:
+* fix `scrollPx*` commands might scroll too much
+* popup page: add `<a-x>` and `<a-z>` shortcuts to toggle status buttons
+* options page: show normalized exclusion rules after saving and fix some issues
+* Firefox: fix some issues breaking Vomnibar
+
 1.74.8:
 * Vomnibar: make effects of the dark mode button not persistent
 * Options page: normalize exclusions and link hints characters on saving

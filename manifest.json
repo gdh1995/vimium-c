@@ -63,7 +63,7 @@
     "matches": [ "file:///*" ]
   } ],
   "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'none'; object-src 'none'; connect-src 'self' data:",
-  "description": "A keyboard shortcut tool supporting keyboard-based inner-page navigation, browser tab operations, an enhanced search panel, global commands and injection into some other extensions",
+  "description": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts",
   "homepage_url": "https://github.com/gdh1995/vimium-c",
   "icons": {
     "128": "icons/icon128.png",
@@ -98,7 +98,7 @@
     "<all_urls>"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.74.8",
+  "version": "1.74.9",
   "web_accessible_resources": [
     "content/*",
     "front/vomnibar.*",

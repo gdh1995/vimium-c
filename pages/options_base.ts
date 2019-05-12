@@ -78,7 +78,7 @@ abstract class Option_<T extends keyof AllowedOptions> {
   saved_: boolean;
   locked_?: boolean;
   readonly onUpdated_: (this: void) => void;
-  onSave_ (): void { /* empty */ };
+  onSave_ (): void { /* empty */ }
   checker_?: Checker<T>;
 
   static all_ = Object.create(null) as {
@@ -178,7 +178,7 @@ class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   inited_: boolean;
 constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => void) {
   super(element, onUpdated);
-  this.inited_ == false;
+  this.inited_ = false;
   bgSettings_.fetchFile_("exclusionTemplate", (): void => {
     this.element_.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
     this.template_ = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
@@ -533,7 +533,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     if (curIsLocked && !isSaving && same) {
       html += ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`;
     } else if (curIsLocked) {
-      html += ` if reset`;
+      html += "if reset";
     }
     stateLine.innerHTML = html;
     saveBtn.disabled = same;

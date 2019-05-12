@@ -112,6 +112,7 @@ var Tasks = {
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
     return cleanByPath([".build/**", "manifest.json", "lib/polyfill.js", "pages/dialog_ui.*", "*/vomnibar.html"
+      , "**/*.js"
       , FILE_URLS_CSS]);
   },
   "build/_all": ["build/scripts", "build/options", "build/show"],

@@ -1,6 +1,6 @@
 {
   "name": "vimium-c",
-  "version": "1.74.8",
+  "version": "1.74.9",
   "description": "A keyboard shortcut tool supporting keyboard-based inner-page navigation, browser tab operations, an enhanced search panel, global commands and injection into some other extension",
   "private": true,
   "config": {
