@@ -16,6 +16,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     DelayForNext = 36,
     DelayForNextComplicatedCase = 1,
     kSecretAttr = "data-vimium",
+    SecretUpperLimit = 1e5,
     MaxRetryTimesForHook = 99,
 
     kVOnClick = "VimiumOnclick",
@@ -23,7 +24,12 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     kCmd = "Vimium",
   }
   type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[] | null ];
-  type CommandEventDetail = [ /** secret */ number, /* command */ kContentCmd ];
+  /**
+   * Note: on FF 66.0.2 x64 (Win 10), a '[sec, cmd]' from {@link ../front/vomnibar#VSettings.destroy_}
+   *     will cause "permission error" when reading property [0] on main world.
+   * `high bits` mean secret, `lower bits >> kContentCmd.MaskedBitNumber` mean content cmd
+   */
+  type CommandEventDetail = number;
   interface VimiumCustomEventCls {
     prototype: CustomEvent;
     new <Type extends InnerConsts & string>(typeArg: Type, eventInitDict?: { detail?:
@@ -37,7 +43,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   const kVOnClick1 = InnerConsts.kVOnClick, kHook = InnerConsts.kHook
     , d = document, docEl = d.documentElement
     , script: HTMLScriptElement | Element = d.createElement("script") as HTMLScriptElement | Element
-    , secret: number = (Math.random() * 1e6 + 1) | 0;
+    , secret: number = (Math.random() * InnerConsts.SecretUpperLimit + 1) | 0;
 /**
  * Note:
  *   should not create HTML/SVG elements before document gets ready,
@@ -99,7 +105,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   }
   function dispatchCmd(cmd: ValidContentCmds) {
     (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new CustomEvent(InnerConsts.kCmd, {
-      detail: <CommandEventDetail> [ secret, cmd ]
+      detail: <CommandEventDetail> (secret << kContentCmd.MaskedBitNumber) | cmd
     }));
   }
   function execute(cmd: ValidContentCmds): void {
@@ -353,7 +359,8 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
 }
 function executeCmd(eventOrDestroy?: Event): void {
   const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
-  cmd = detail ? detail[0] === sec ? detail[1] : kContentCmd._fake
+  cmd = detail ? (detail >> kContentCmd.MaskedBitNumber) === sec ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1)
+        : kContentCmd._fake
         : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   // always stop prop even if the secret doesn't match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy as Event);

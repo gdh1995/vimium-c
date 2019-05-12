@@ -142,12 +142,16 @@ var VOmni = {
       reload();
     } else {
       el.referrerPolicy = "no-referrer";
-      el.sandbox = "allow-scripts";
+      if (!(Build.BTypes & ~BrowserType.Chrome)
+          || Build.BTypes & BrowserType.Chrome && VDom.cache_.browser_ === BrowserType.Chrome) {
+        el.sandbox = "allow-scripts";
+      }
     }
     el.src = page;
     function reload(): void {
       type = VomnibarNS.PageType.inner;
       el.removeAttribute("referrerPolicy");
+      // not skip the line below: in case main world JS adds some sandbox attributes
       el.removeAttribute("sandbox");
       el.src = page = inner as string;
       let opts = VOmni.options_; opts && (opts.t = type);

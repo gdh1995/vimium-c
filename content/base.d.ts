@@ -387,8 +387,10 @@ declare const enum kContentCmd {
   _fake = 0,
   FindAllOnClick = 1,
   _minNotDispatchDirectly = 4,
-  SuppressClickable = 6,
-  Destroy = 7,
-  DestroyForCSP = 8,
+  SuppressClickable = 5,
+  Destroy = 6,
+  DestroyForCSP = 7,
+  MaskedBitNumber = 3,
 }
-type ValidContentCmds = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minNotDispatchDirectly>;
+type ValidContentCmds = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minNotDispatchDirectly
+    | kContentCmd.MaskedBitNumber>;
