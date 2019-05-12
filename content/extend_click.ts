@@ -173,7 +173,7 @@ listen = _call.bind<(this: EventTarget,
 rEL = removeEventListener, clearTimeout_ = clearTimeout,
 sec: number = +<string> cs.dataset.vimium,
 kVOnClick = InnerConsts.kVOnClick,
-kOnDomRead = "DOMContentLoaded",
+kOnDomReady = "DOMContentLoaded",
 hooks = {
   toString: function toString(this: FUNC): string {
     const a = this,
@@ -203,7 +203,7 @@ hooks = {
 
 let handler = function (this: void): void {
   /** not check if a DOMReady event is trusted: keep the same as {@link ../lib/dom_utils.ts#VDom.OnDocLoaded_ } */
-  rEL(kOnDomRead, handler, !0);
+  rEL(kOnDomReady, handler, !0);
   clearTimeout_(timer);
   detectDisabled = 0;
   const docEl2 = docChildren[0] as Element | null,
@@ -373,7 +373,7 @@ function executeCmd(eventOrDestroy?: Event): void {
   root = null as never;
   clearTimeout_(timer);
   timer = 1;
-  rEL(kOnDomRead, handler, !0);
+  rEL(kOnDomReady, handler, !0);
   delayFindAll && delayFindAll(); // clean the "load" listener
 }
 function noop(): void | 1 { return; }
@@ -382,7 +382,7 @@ toRegister.p = push as any, toRegister.s = toRegister.splice;
 cs.remove();
 ETP.addEventListener = myAEL;
 FP.toString = hooks.toString;
-_listen(kOnDomRead, handler, !0);
+_listen(kOnDomReady, handler, !0);
 _listen("load", delayFindAll, !0);
 
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
@@ -418,12 +418,12 @@ _listen("load", delayFindAll, !0);
     return;
   }
   // else: sandboxed or JS-disabled; Firefox == * or Chrome < 68 (MinEnsuredNewScriptsFromExtensionOnSandboxedPage)
+  VDom.allowScripts_ = 0;
   script.remove();
   execute(kContentCmd.Destroy);
   if (!(Build.BTypes & BrowserType.Chrome)
       || Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       || Build.BTypes & ~BrowserType.Chrome && !appVer) {
-    VDom.allowScripts_ = 0;
     return;
   }
   // else: Chrome < MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -437,7 +437,6 @@ _listen("load", delayFindAll, !0);
     VSettings.destroy_(true);
     return;
   }
-  VDom.allowScripts_ = 0;
   interface TimerLib extends Window {
     setInterval: typeof setInterval;
     setTimeout: typeof setTimeout | (
@@ -445,7 +444,7 @@ _listen("load", delayFindAll, !0);
   }
   let rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? window.requestIdleCallback : 0 as const;
   if (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
-    // accessed on page initing, so won't be a <embed>
+    // accessed on page initing, so won't be an <embed>
     // tslint:disable-next-line: triple-equals
     rIC = typeof rIC != "function" ? 0 : rIC;
   }
@@ -456,7 +455,7 @@ _listen("load", delayFindAll, !0);
     // in case there's `$("#requestIdleCallback")`
     return (BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || VDom && VDom.allowRAF_)
-      ? timeout > 9 && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || rIC)
+      ? timeout > 19 && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || rIC)
       ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback
           ) as RequestIdleCallback)(cb, { timeout })
       : requestAnimationFrame(cb)

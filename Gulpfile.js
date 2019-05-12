@@ -1215,7 +1215,7 @@ function patchExtendClick(source) {
     source = source.substring(start + match[0].length, end).replace(/ \/\/[^\n]*?$/g, "").replace(/'/g, '"');
     source = source.replace(/\\/g, "\\\\");
     if (locally) {
-      source = source.replace(/([\r\n]) {4,8}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");
+      source = source.replace(/([\r\n]) {4}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");
     } else {
       source = source.replace(/[\r\n]\s*/g, "");
     }
