@@ -620,8 +620,17 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
     url = bgSettings_.cache_.vomnibarPage_f || url; // for the case Chrome is initing
     if (isExtPage) { /* empty */ }
+    else if (!(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
+      // Note(gdh1995): tests on FF 66.0.3 (stable) / 67.0b19 (beta) (x64, Win 10)
+      //     shows that the web page iframe may fail to receive ANY messages from content/vomnibar.ts,
+      //     and neither re-sending nor re-adding-listener can work.
+      // This bug often occurs after Vimium C gets reloaded and the test page gets refreshed,
+      // and after further several refreshing, sometimes it may work - sometimes still not.
+      return this.showError_("A web page of vomnibar may fail because of bugs of Firefox."
+        , "highlight");
+    }
     else if (url.lastIndexOf("file://", 0) !== -1) {
-      // todo: update text
       return this.showError_("A file page of vomnibar is limited by Chrome to only work on file://* pages."
         , "highlight");
     } else if (url.lastIndexOf("http://", 0) !== -1) {

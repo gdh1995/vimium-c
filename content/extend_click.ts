@@ -25,7 +25,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
   }
   type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[] | null ];
   /**
-   * Note: on FF 66.0.2 x64 (Win 10), a '[sec, cmd]' from {@link ../front/vomnibar#VSettings.destroy_}
+   * Note: on FF 66.0.3 x64 (Win 10), a '[sec, cmd]' from {@link ../front/vomnibar#VSettings.destroy_}
    *     will cause "permission error" when reading property [0] on main world.
    * `high bits` mean secret, `lower bits >> kContentCmd.MaskedBitNumber` mean content cmd
    */
