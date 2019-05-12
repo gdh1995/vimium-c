@@ -17,6 +17,8 @@ declare namespace ScrollerNS {
     // low:   15f /  250ms :   33ms /  2f # 200 / 6
     HighDelayMs = 1000, LowDelayMs = 250, DefaultMinDelayMs = 660,
     HighIntervalF = 24, LowIntervalF = 2, DefaultMaxIntervalF = HighIntervalF + MaxSkippedF,
+
+    AmountLimitToScrollAndWaitRepeatedKeys = 20,
   }
 }
 declare const enum kScrollDim {
@@ -34,16 +36,21 @@ var VScroller = {
 _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
   sign = 0, timestamp = ScrollerNS.Consts.invalidTime as number, totalDelta = 0.0, totalElapsed = 0.0, //
-  running = 0 as number, next = requestAnimationFrame;
+  running = 0 as number, next = requestAnimationFrame, timer = 0;
   function animate(newTimestamp: number): void {
     const _this = VScroller,
     // although timestamp is mono, Firefox adds too many limits to its precision
     elapsed = newTimestamp > timestamp ? newTimestamp - timestamp
               : (newTimestamp += ScrollerNS.Consts.tickForUnexpectedTime, ScrollerNS.Consts.tickForUnexpectedTime),
     continuous = _this.keyIsDown_ > 0;
-    if (!_this) { return; }
+    if (!_this || !running) { return; }
     timestamp = newTimestamp;
     totalElapsed += elapsed;
+    if (amount < ScrollerNS.Consts.AmountLimitToScrollAndWaitRepeatedKeys
+        && continuous && totalDelta >= amount && totalElapsed < _this.minDelay_ - 2) {
+      timer = setTimeout(animate2, _this.minDelay_ - totalElapsed);
+      return;
+    }
     if (continuous) {
       if (totalElapsed >= ScrollerNS.Consts.delayToChangeSpeed) {
         if (totalElapsed > _this.minDelay_) { --_this.keyIsDown_; }
@@ -65,6 +72,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       running = 0;
     }
   }
+  function animate2 (): void {
+    timer = 0;
+    animate(performance.now());
+  }
   this._animate = (function (this: typeof VScroller, newEl, newDi, newAmount): void {
     const M = Math;
     amount = M.abs(newAmount); calibration = 1.0; di = newDi;
@@ -72,6 +83,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     element = newEl;
     sign = newAmount < 0 ? -1 : 1;
     totalDelta = totalElapsed = 0.0;
+    if (timer) {
+      clearTimeout(timer);
+      timer = running = 0;
+    }
     const keyboard = VDom.cache_.keyboard;
     this.maxInterval_ = M.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
     this.minDelay_ = (((keyboard[0] + M.max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
