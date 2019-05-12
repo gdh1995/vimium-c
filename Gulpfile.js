@@ -690,7 +690,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
 
 function postUglify(file, needToPatchExtendClick) {
   var contents = String(file.contents), changed = false;
-  if (onlyES6) {
+  if (onlyES6 && !locally) {
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
     changed = true;
   }
