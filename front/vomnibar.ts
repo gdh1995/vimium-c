@@ -1193,6 +1193,9 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   }
   else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^ftp|^http/).test(curEl.src)) {
     VCID_ = new URL(curEl.src).hostname;
+    if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && VCID_.indexOf("-") > 0) {
+      VCID_ = curEl.dataset.vimiumId || BuildStr.FirefoxID;
+    }
   } else {
     curEl.remove();
     return;

@@ -2284,6 +2284,8 @@ Are you sure you want to continue?`);
         sender.f = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
           ) + ((type & PortType.hasCSS) && Frames.Flags.hasCSS);
       }
+    }
+    if (type >= PortType.knownStatusBase) {
       port.postMessage({
         N: kBgReq.settingsUpdate,
         d: Settings.payload_
