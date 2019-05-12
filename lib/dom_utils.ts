@@ -1,7 +1,10 @@
 /// <reference path="../content/base.d.ts" />
 interface ElementWithClickable { vimiumHasOnclick?: boolean; }
-var WeakSet: WeakSetConstructor | undefined,
-VDom = {
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
+  var WeakSet: WeakSetConstructor | undefined;
+}
+
+var VDom = {
   UI: null as never as DomUI,
   /**
    * Miscellaneous section

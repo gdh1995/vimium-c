@@ -36,37 +36,33 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   sign = 0, timestamp = ScrollerNS.Consts.invalidTime as number, totalDelta = 0.0, totalElapsed = 0.0, //
   running = 0 as number, next = requestAnimationFrame;
   function animate(newTimestamp: number): void {
-    let int1 = timestamp, elapsed: number, continuous: boolean;
+    const _this = VScroller,
+    // although timestamp is mono, Firefox adds too many limits to its precision
+    elapsed = newTimestamp > timestamp ? newTimestamp - timestamp
+              : (newTimestamp += ScrollerNS.Consts.tickForUnexpectedTime, ScrollerNS.Consts.tickForUnexpectedTime),
+    continuous = _this.keyIsDown_ > 0;
+    if (!_this) { return; }
     timestamp = newTimestamp;
-    {
-      elapsed = newTimestamp - int1;
-      // although timestamp is mono, Firefox adds too many limits to its precision
-      elapsed = elapsed > 0 ? elapsed
-        : (timestamp += ScrollerNS.Consts.tickForUnexpectedTime, ScrollerNS.Consts.tickForUnexpectedTime);
-      int1 = (totalElapsed += elapsed);
-      const _this = VScroller;
-      if (!_this) { return; }
-      if (continuous = _this.keyIsDown_ > 0) {
-        if (int1 >= ScrollerNS.Consts.delayToChangeSpeed) {
-          if (int1 > _this.minDelay_) { --_this.keyIsDown_; }
-          int1 = calibration;
-          if (ScrollerNS.Consts.minCalibration <= int1 && int1 <= ScrollerNS.Consts.maxCalibration) {
-            int1 = ScrollerNS.Consts.calibrationBoundary / amount / int1;
-            calibration *= (int1 > ScrollerNS.Consts.maxS) ? ScrollerNS.Consts.maxS
-              : (int1 < ScrollerNS.Consts.minS) ? ScrollerNS.Consts.minS : 1.0;
-          }
+    totalElapsed += elapsed;
+    if (continuous) {
+      if (totalElapsed >= ScrollerNS.Consts.delayToChangeSpeed) {
+        if (totalElapsed > _this.minDelay_) { --_this.keyIsDown_; }
+        if (ScrollerNS.Consts.minCalibration <= calibration && calibration <= ScrollerNS.Consts.maxCalibration) {
+          const calibrationScale = ScrollerNS.Consts.calibrationBoundary / amount / calibration;
+          calibration *= calibrationScale > ScrollerNS.Consts.maxS ? ScrollerNS.Consts.maxS
+            : calibrationScale < ScrollerNS.Consts.minS ? ScrollerNS.Consts.minS : 1;
         }
       }
-      int1 = Math.ceil(amount * (elapsed / duration) * calibration);
-      continuous || (int1 = Math.min(int1, amount - totalDelta));
-      if (int1 > 0 && _this._performScroll(element, di, sign * int1)) {
-        totalDelta += int1;
-        next(animate);
-      } else {
-        _this._checkCurrent(element);
-        element = null;
-        running = 0;
-      }
+    }
+    let delta = Math.ceil(amount * (elapsed / duration) * calibration);
+    continuous || (delta = Math.min(delta, amount - totalDelta));
+    if (delta > 0 && _this._performScroll(element, di, sign * delta)) {
+      totalDelta += delta;
+      next(animate);
+    } else {
+      _this._checkCurrent(element);
+      element = null;
+      running = 0;
     }
   }
   this._animate = (function (this: typeof VScroller, newEl, newDi, newAmount): void {
