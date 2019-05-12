@@ -69,3 +69,11 @@ interface EnsuredMountedElement extends Element {
     readonly parentNode: EnsuredMountedElement;
     readonly parentElement: EnsuredMountedElement;
 }
+
+interface EnsuredMountedHTMLElement extends HTMLElement {
+  readonly firstElementChild: EnsuredMountedHTMLElement;
+  readonly lastElementChild: EnsuredMountedHTMLElement;
+  readonly parentNode: EnsuredMountedHTMLElement;
+  readonly parentElement: EnsuredMountedHTMLElement;
+  readonly nextElementSibling: EnsuredMountedHTMLElement;
+}

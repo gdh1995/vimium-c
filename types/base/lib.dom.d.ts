@@ -5167,7 +5167,7 @@ interface KeyboardEvent extends UIEvent {
     readonly char: string | null;
     readonly charCode: number;
     readonly ctrlKey: boolean;
-    readonly key: string;
+    readonly key?: string;
     readonly keyCode: VKeyCodes;
     readonly locale: string;
     readonly location: number;
@@ -5175,7 +5175,7 @@ interface KeyboardEvent extends UIEvent {
     readonly repeat: boolean;
     readonly shiftKey: boolean;
     readonly which: number;
-    readonly code: string;
+    readonly code?: string;
     getModifierState(keyArg: string): boolean;
     initKeyboardEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, keyArg: string, locationArg: number, modifiersListArg: string, repeat: boolean, locale: string): void;
     readonly DOM_KEY_LOCATION_JOYSTICK: number;
@@ -5188,8 +5188,8 @@ interface KeyboardEvent extends UIEvent {
 }
 interface OldKeyboardEvent extends KeyboardEvent {
     readonly keyIdentifier: string;
-    readonly code: never;
-    readonly key: never;
+    readonly code: undefined;
+    readonly key: undefined;
 }
 
 declare var KeyboardEvent: {

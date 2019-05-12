@@ -36,7 +36,7 @@ var VKeyboard = {
     }
   },
   char_ (event: KeyboardEvent): string {
-    const key = event.key as string | undefined;
+    const key = event.key;
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
@@ -59,11 +59,13 @@ var VKeyboard = {
   },
   isEscape_ (event: KeyboardEvent): boolean {
     if (event.keyCode !== VKeyCodes.esc && !event.ctrlKey) { return false; }
-    const i = this.getKeyStat_(event), code = event.code;
+    const i = this.getKeyStat_(event),
+    code = Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
+            ? event.code : "";
     // we know that BrowserVer.MinEnsured$KeyboardEvent$$Code < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
     return i === KeyStat.plain || i === KeyStat.ctrlKey
-      && ((Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Code || !(Build.BTypes & BrowserType.Chrome))
-           && code
-          ? code === "BracketLeft" : this.char_(event) === "[");
+      && (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
+          ? code ? code === "BracketLeft" : this.char_(event) === "["
+          : event.code === "BracketLeft");;
   }
 };
