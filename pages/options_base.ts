@@ -530,8 +530,10 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
       + (pass
       ? `: <span class="state-value code">${isReverted ? pass.substring(2) : pass}</span>`
       : `:<span class="state-value fixed-width">${pass !== null ? "disabled" : " enabled"}</span>`);
-    if (curLockedStatus !== Frames.Status.__fake && !isSaving && same) {
+    if (curIsLocked && !isSaving && same) {
       html += ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`;
+    } else if (curIsLocked) {
+      html += ` if reset`;
     }
     stateLine.innerHTML = html;
     saveBtn.disabled = same;

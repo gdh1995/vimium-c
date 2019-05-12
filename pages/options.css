@@ -117,9 +117,6 @@ td {
   padding: 0;
   vertical-align: top;
 }
-.decorate-none {
-  text-decoration: none;
-}
 
 input, textarea {
   background-color: white;
