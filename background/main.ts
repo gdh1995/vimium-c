@@ -2668,7 +2668,7 @@ Are you sure you want to continue?`);
       , message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void {
     let command: string | undefined;
-    if (!isExtIdAllowed(sender.id, "")) {
+    if (!isExtIdAllowed(sender.id, sender.url)) {
       sendResponse(false);
       return;
     }

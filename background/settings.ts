@@ -92,7 +92,8 @@ var Settings = {
     extWhiteList (val): void {
       const old = (this as typeof Settings).extWhiteList_;
       const map = (this as typeof Settings).extWhiteList_ = Object.create<boolean>(null);
-      if (old) {
+      if (old && Build.BTypes & BrowserType.Chrome
+          && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
         for (const key in old) { if (old[key] === false) { map[key] = false; } }
       }
       if (!val) { return; }
