@@ -585,16 +585,32 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     ref1[rules[_i].pattern] = ref2[_i * 2];
   }
   const sender = ref ? ref[0].s : <Readonly<Frames.Sender>> { s: Frames.Status.enabled, f: Frames.Flags.Default }
-    , initialStat = sender.s !== Frames.Status.disabled ? "Disable" : "Enable";
-  curLockedStatus = sender.f & Frames.Flags.locked ? sender.s : Frames.Status.__fake;
-  let el0 = $<HTMLElement>("#toggleOnce");
-  el0.textContent = initialStat + " for once";
-  el0.onclick = forceState.bind(null, initialStat);
-  if (sender.f & Frames.Flags.locked) {
-    el0 = el0.nextElementSibling as HTMLElement;
-    el0.classList.remove("hidden");
-    el0 = el0.firstElementChild as HTMLElement;
-    el0.onclick = forceState.bind(null, "Reset");
+    , toggleAction = sender.s !== Frames.Status.disabled ? "Disable" : "Enable"
+    , curIsLocked = !!(sender.f & Frames.Flags.locked);
+  curLockedStatus = curIsLocked ? sender.s : Frames.Status.__fake;
+  let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling;
+  el0.firstElementChild.textContent = curIsLocked ? toggleAction : toggleAction + " for once";
+  el0.onclick = forceState.bind(null, toggleAction);
+  if (curIsLocked) {
+    el1.classList.remove("hidden");
+    el1.firstElementChild.onclick = forceState.bind(null, "Reset");
+  } else {
+    el1.remove();
+  }
+  if (!(Build.BTypes & BrowserType.Chrome)
+      || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
+      || bgSettings_.payload_.onMac_
+      ) {
+    window.addEventListener("keydown", function (event): void {
+      if (event.altKey
+          && (event.keyCode === VKeyCodes.X || curIsLocked && event.keyCode === VKeyCodes.Z)
+          && !(event.shiftKey || event.ctrlKey || event.metaKey)
+          ) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        forceState(event.keyCode === VKeyCodes.X ? toggleAction : "Reset");
+      }
+    });
   }
   let exclusions: PopExclusionRulesOption = null as never;
   exclusions = new PopExclusionRulesOption($("#exclusionRules"), onUpdated);
