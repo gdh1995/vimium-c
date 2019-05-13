@@ -623,9 +623,10 @@ var VDom = {
     // just ignore the case of unsafe <frameset>
     if (el instanceof E) {
       el = Build.BTypes & ~BrowserType.Firefox
-        ? ((cn = el.childNodes) instanceof HTMLCollection || (cn = this.Getter_(Node, el, "childNodes")))
+        ? ((cn = el.childNodes) instanceof NodeList && !("value" in cn) // exclude RadioNodeList
+            || (cn = this.Getter_(Node, el, "childNodes") as NodeList | null))
           && cn[sel.focusOffset] || el
-        : el.childNodes[sel.focusOffset] || el;
+        : (el.childNodes as NodeList)[sel.focusOffset] || el;
     }
     for (o = el; o && o.nodeType !== kNode.ELEMENT_NODE;
           o = knownDi ? o.previousSibling : o.nextSibling) { /* empty */ }
