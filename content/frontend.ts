@@ -776,11 +776,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     const elements = document.querySelectorAll("[rel]");
     let s: string | null;
     for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
-      const element = elements[_i];
-      if ((<RegExpI> /^(a|area|link)$/i).test(element.tagName as string)
-          && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-                // in case of <frameset> -> <frame name> -> #document -> <script>window.toString = () => "1"</script>
-                && browserVer < BrowserVer.MinFramesetHasNoNamedGetter && VDom.notSafe_(element))
+      const element = elements[_i], { tagName } = element;
+      if ((!(Build.BTypes & ~BrowserType.Firefox) || typeof tagName === "string")
+          && (<RegExpI> /^(a|area|link)$/i).test(tagName as string)
           && element instanceof HTMLElement
           && (s = (element as HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement).rel)
           && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {

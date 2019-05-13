@@ -20,6 +20,9 @@ interface Window {
   };
   readonly VFind?: { css_: FindCSS | null; };
 }
+interface WindowWithTop extends Window {
+  top: Window;
+}
 declare const enum HandlerResult {
   PassKey = -1,
   Nothing = 0,
@@ -52,6 +55,7 @@ type BaseSafeHTMLElement = HTMLElement & SafeElement;
 interface SafeHTMLElement extends BaseSafeHTMLElement {
   readonly innerText: string;
   readonly parentElement: HTMLElement | null;
+  readonly parentNode: Node | null;
 }
 type SaferType<Ty> = Ty extends HTMLElement ? SafeHTMLElement : Ty extends Element ? SafeElement : Ty;
 interface LockableElement extends SafeHTMLElement {
@@ -289,7 +293,7 @@ type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 interface MyMouseControlKeys { altKey_: boolean; ctrlKey_: boolean; metaKey_: boolean; shiftKey_: boolean; }
 
 interface DomUI {
-  box_: HTMLDivElement | null;
+  box_: HTMLDivElement & SafeHTMLElement | null;
   styleIn_: HTMLStyleElement | string | null;
   styleOut_: HTMLStyleElement | null;
   /** `!!@UI` must keep the same as `!!@box_`*/

@@ -1387,7 +1387,7 @@ interface DocumentAttrsToBeDetected {
 }
 
 interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEvent, ParentNode, DocumentOrShadowRoot {
-    readonly nodeType: kNode.DOCUMENT_NODE | Element | Window;
+    readonly nodeType: kNode.DOCUMENT_NODE | Element | HTMLCollection | Window;
     /**
       * Sets or gets the URL for the current document. 
       */
@@ -2053,7 +2053,7 @@ interface AttachShadow {
 }
 interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelector, ChildNode, ParentNode
         , Partial<AttachShadow> {
-    readonly nodeType: kNode.ELEMENT_NODE | Element | Window;
+    readonly nodeType: kNode.ELEMENT_NODE | Element | RadioNodeList | Window;
     readonly classList: DOMTokenList;
     className: string;
     readonly clientHeight: number;
@@ -2077,10 +2077,10 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     scrollLeft: number;
     scrollTop: number;
     readonly scrollWidth: number;
-    readonly tagName: string | Element | Window;
+    readonly tagName: string | Element | RadioNodeList | Window;
     readonly assignedSlot: HTMLSlotElement | null;
     slot: string;
-    readonly shadowRoot?: ShadowRoot | Element | Window | null;
+    readonly shadowRoot?: ShadowRoot | Element | RadioNodeList | Window | null;
     textContent: string;
     focus?(): void;
     blur?(): void;
@@ -2283,6 +2283,7 @@ interface HTMLAnchorElement extends HTMLElement {
     readonly tagName: "A" | "a";
     readonly innerText: string;
     readonly parentElement: HTMLElement | null;
+    readonly parentNode: Node | null;
     Methods: string;
     /**
       * Sets or retrieves the character set used to encode the object.
@@ -2449,6 +2450,7 @@ interface HTMLAreaElement extends HTMLElement {
     readonly tagName: "area" | "AREA";
     readonly innerText: string;
     readonly parentElement: HTMLElement | null;
+    readonly parentNode: Node | null;
     /**
       * Sets or retrieves a text alternative to the graphic.
       */
@@ -2804,7 +2806,7 @@ declare var HTMLDetailsElement: {
 };
 
 interface Window {
-    HTMLDetailsElement?: typeof HTMLDetailsElement | Element | Window;
+    HTMLDetailsElement?: typeof HTMLDetailsElement | Element | RadioNodeList | Window;
 }
 
 interface HTMLDialogElement extends HTMLElement {
@@ -2935,7 +2937,7 @@ interface HTMLElement extends Element {
     draggable: boolean;
     hidden: boolean;
     hideFocus: boolean;
-    innerText: string | Element | Window;
+    innerText: string | Element | RadioNodeList | Window;
     readonly isContentEditable: boolean;
     lang: string;
     readonly offsetHeight: number;
@@ -3518,6 +3520,7 @@ interface HTMLImageElement extends HTMLElement {
     readonly tagName: "img" | "IMG";
     readonly innerText: string;
     readonly parentElement: HTMLElement | null;
+    readonly parentNode: Node | null;
     /**
       * Sets or retrieves how the object is aligned with adjacent text.
       */
@@ -5427,18 +5430,18 @@ declare const enum kNode {
 interface Node extends EventTarget {
     readonly attributes: NamedNodeMap;
     readonly baseURI: string | null;
-    readonly childNodes: NodeList;
+    readonly childNodes: NodeList | Element | HTMLCollection | RadioNodeList | Window;
     readonly firstChild: Node | null;
     readonly lastChild: Node | null;
     readonly localName: string | null;
     readonly namespaceURI: string | null;
     readonly nextSibling: Node | null;
-    readonly nodeName?: string | Element | Window;
-    readonly nodeType: number | Element | Window;
+    readonly nodeName?: string | Element | HTMLCollection | RadioNodeList | Window;
+    readonly nodeType: kNode | Element | HTMLCollection | RadioNodeList | Window;
     nodeValue: string | null;
-    readonly ownerDocument: Document;
-    readonly parentElement: Element | Window | null;
-    readonly parentNode: Node | Window | null;
+    readonly ownerDocument: Document | RadioNodeList | Window;
+    readonly parentElement: Element | RadioNodeList | Window | null;
+    readonly parentNode: Node | RadioNodeList | Window | null;
     readonly previousSibling: Node | null;
     readonly isConnected?: boolean;
     textContent: string | null;
@@ -5507,6 +5510,14 @@ interface NodeList {
     readonly length: number;
     item(index: number): Node;
     [index: number]: Node;
+}
+
+interface RadioNodeList /* extends NodeList */ {
+  readonly length: number;
+  value: string;
+  item(index: number): HTMLInputElement & { type: "radio" };
+  [index: number]: HTMLInputElement & { type: "radio" };
+  nodeType?: undefined;
 }
 
 declare var NodeList: {
@@ -8304,7 +8315,7 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     webkitRequestAnimationFrame(callback: FrameRequestCallback): number;
     addEventListener<K extends keyof WindowEventMap>(type: K, listener: (this: Window, ev: WindowEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
-    ShadowRoot?: ShadowRootConstructor | Element | Window;
+    ShadowRoot?: ShadowRootConstructor | Element | HTMLCollection | Window;
     requestIdleCallback?: RequestIdleCallback;
 }
 
@@ -8749,7 +8760,7 @@ interface ShadowRootConstructor {
     prototype: ShadowRoot;
     new(): never;
 }
-declare var ShadowRoot: ShadowRootConstructor | undefined | Element | Window;
+declare var ShadowRoot: ShadowRootConstructor | undefined | Element | HTMLCollection | Window;
 
 interface ShadowRootInit {
     mode: 'open'|'closed';

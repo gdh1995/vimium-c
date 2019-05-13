@@ -105,7 +105,7 @@ VDom.UI = {
     const UI = VDom.UI, el: Element | null = !(Build.BTypes & ~BrowserType.Chrome)
           || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
         ? document.fullscreenElement : document.webkitFullscreenElement,
-    box = UI.box_ as HTMLDivElement,
+    box = UI.box_ as NonNullable<typeof UI.box_>,
     el2 = el && !(UI.UI as Node).contains(el) ? el : document.documentElement as Element;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
@@ -209,8 +209,8 @@ VDom.UI = {
       sel2 = null;
       el = sel.anchorNode;
       if (el && el === sel.focusNode && (offset = sel.anchorOffset) === sel.focusOffset) {
-        if (el instanceof E && !(Build.BTypes & ~BrowserType.Firefox && (el.childNodes instanceof E))) {
-          el = el.childNodes[offset];
+        if (el instanceof E && (!(Build.BTypes & ~BrowserType.Firefox) || el.childNodes instanceof NodeList)) {
+          el = (el.childNodes as NodeList | RadioNodeList)[offset];
           if (el instanceof E && (sr = VDom.GetShadowRoot_(el))) {
             if (sr.getSelection && (sel2 = sr.getSelection())) {
               sel = sel2;

@@ -252,7 +252,7 @@ var VVisual = {
             , NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
-        const element = node.parentElement;
+        const element = node.parentElement; // safe because node is Text
         // Note(gdh1995): I'm not sure whether element might be null
         if (element && VDom.getVisibleClientRect_(element) && !VDom.getEditableType_(element)) {
           break;
@@ -607,14 +607,16 @@ var VVisual = {
     }
     // editable text elements
     const lock = VEvent.lock_();
-    if (lock && lock.parentElement === anchorNode) {
+    if (lock && lock.parentElement === anchorNode) { // safe beacuse lock is LockableElement
       type TextModeElement = HTMLInputElement | HTMLTextAreaElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)
           && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.MaxNotTextModeElement) {
-        const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes
+        let cn: Node["childNodes"];
+        const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes as NodeList
             : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
             ? VDom.Getter_(Node, anchorNode as Element, "childNodes") as NodeList
-            : VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes
+            : (cn = (anchorNode as Element).childNodes) instanceof NodeList && !("value" in cn) ? cn
+            : VDom.Getter_(Node, anchorNode as Element, "childNodes") as NodeList | null || []
             )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (VDom.isInputInTextMode_(lock as TextModeElement)) {

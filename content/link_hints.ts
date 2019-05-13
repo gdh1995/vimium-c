@@ -541,7 +541,6 @@ var VHints = {
     const result: Element[] = [], height = innerHeight;
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
       const el = list[i];
-      if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(el)) { continue; }
       const cr = VDom.getBoundingClientRect_(el);
       if (cr.bottom > 0 && cr.top < height) {
         result.push(el);
@@ -549,6 +548,7 @@ var VHints = {
       }
       const last = el.lastElementChild;
       if (!last) { continue; }
+      if (Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(el)) { continue; }
       while (list[++i] !== last) { /* empty */ }
       i--;
     }
@@ -1140,7 +1140,7 @@ Modes_: [
     VScroller.current_ = element;
     VDom.hover_(element, VDom.center_(rect));
     type || element.tabIndex < 0 ||
-    (<RegExpI> /^i?frame$/i).test(element.tagName as string) && element.focus && element.focus();
+    (<RegExpI> /^i?frame$/i).test(element.tagName) && element.focus && element.focus();
     const a = this as typeof VHints;
     if (a.mode_ < HintMode.min_job) {
       return VHud.tip_("Hover for scrolling", 1000);
@@ -1367,7 +1367,7 @@ Modes_: [
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
   execute_ (link, rect, hint): void | boolean {
-    const a = this as typeof VHints, tag = link instanceof HTMLElement ? link.tagName as string : "";
+    const a = this as typeof VHints, tag = link instanceof HTMLElement ? (link as SafeHTMLElement).tagName : "";
     if ((<RegExpOne> /^i?frame$/i).test(tag)) {
       const highlight = link !== VOmni.box_;
       highlight ? a.highlightChild_(link as HTMLIFrameElement | HTMLFrameElement) : VOmni.focus_();

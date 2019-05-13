@@ -4,10 +4,12 @@
 
 - **framset**: CrossContext, OverrideBuiltins
   - ***fixed (some are ignored)*** for Chrome
+  - `[name] = Window`
   - test page: http://www.w3school.com.cn/tiy/loadtext.asp?f=html_frame_cols
   - OverrideBuiltins: removed since C70, commit 6a866d29f4314b990981119285da46540a50742c
     - https://bugs.chromium.org/p/chromium/issues/detail?id=695891
     - BrowserVer.MinFramesetHasNoNamedGetter
+  - according to tests and source code, its named getter requires `<frame>.contentDocument` is valid
   - not on MS Edge 18.17763
   - not on modern versions of Firefox
     - according to logs of https://dxr.mozilla.org/mozilla-central/source/dom/webidl/HTMLFrameSetElement.webidl
@@ -18,13 +20,17 @@ Comment: on C35 and C70, `iframe` and `frame` have no named property getters
 
 - **form**: CrossContext, OverrideBuiltins
   - ***fixed*** for Chrome
+  - `[name] = HTMLFormControlElement | RadioNodeList`
   - CrossContext: not on Firefox 65
   - does cross contexts on MS Edge 18.17763
+  - `input[form]` takes effects only if the input is connected
+    - https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#reset-the-form-owner
 
 ## plugins
 
 - **object**, **embed**: CrossContext?, OverrideBuiltins?
   - ***ignored***
+  - `[name] = unknown (any)`
   - OverrideBuiltins: added since C45, commit b3afcae7d957f15d5a23c6dfd891be3bd21f3e21
   - CrossContext: removed since C61, commit 1e196e33687bd22a33c8b2116956754b90b29bde
 
@@ -79,6 +85,15 @@ Comment: on C35 and C70, `iframe` and `frame` have no named property getters
   - those whose `Element::GetNamedItemType() != NamedItemType::kNone`
     - `embed, form, iframe, image, object`
   - doc: https://html.spec.whatwg.org/multipage/dom.html#dom-document-nameditem
+
+The overriding values may be:
+* `HTMLCollection` if multi matched else
+* `Window` if `iframe,frame` else
+* `Element` if `[id]`
+
+Traces:
+  - https://cs.chromium.org/chromium/src/third_party/blink/renderer/bindings/core/v8/custom/v8_window_custom.cc?q=NamedPropertyGetterCustom&dr=CSs&l=300
+  - https://cs.chromium.org/chromium/src/third_party/blink/renderer/bindings/core/v8/local_window_proxy.cc?q=GetNamedProperty&g=0&l=482
 
 Comment: confirmed on C35 and C70
 

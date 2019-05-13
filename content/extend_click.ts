@@ -159,16 +159,15 @@ call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) 
 dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
 doc = document, cs = doc.currentScript as HTMLScriptElement, Create = doc.createElement as Document["createElement"],
 E = Element, EP = E.prototype, Append = EP.appendChild, Insert = EP.insertBefore,
-Contains = EP.contains as (this: Node, child: Node) => boolean, // in fact, it's Node.prototype.contains
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
-contains = Contains.bind(doc),
+contains = EP.contains.bind(doc), // in fact, it's Node.prototype.contains
 nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
 getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP = EP.getElementsByTagName,
 IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Element>, item: Element) => number,
 push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
-CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement, DF = DocumentFragment,
+CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement,
 FP = Function.prototype, funcToString = FP.toString,
 listen = _call.bind<(this: EventTarget,
         type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions) => any,
@@ -177,6 +176,7 @@ rEL = removeEventListener, clearTimeout_ = clearTimeout,
 sec: number = +<string> cs.dataset.vimium,
 kVOnClick = InnerConsts.kVOnClick,
 kOnDomReady = "DOMContentLoaded",
+kValue = "value",
 hooks = {
   toString: function toString(this: FUNC): string {
     const a = this,
@@ -188,7 +188,7 @@ hooks = {
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
-    let a = this, args = arguments, len = args.length;
+    const a = this, args = arguments, len = args.length;
     len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
       : call(_apply as (this: (this: EventTarget, ...args: Array<{}>) => void
                         , self: EventTarget, args: IArguments) => void,
@@ -266,12 +266,13 @@ function prepareRegister(this: void, element: Element): void {
     return;
   }
   // here element is inside a #shadow-root or not connected
-  const doc1 = element.ownerDocument as Document | Element;
+  const doc1 = element.ownerDocument;
   // in case element is <form> / <frameset> / adopted into another document, or aEL is from another frame
   if (doc1 !== doc) {
     // although on Firefox element.__proto__ is auto-updated when it's adopted
     // but aEl may be called before real insertion
-    if (doc1.nodeType === kNode.DOCUMENT_NODE && (doc1 as Document).defaultView) {
+    if ((doc1 as WindowWithTop).top !== top && (doc1 as Exclude<typeof doc1, Window>).nodeType === kNode.DOCUMENT_NODE
+        && (doc1 as Document).defaultView) {
       // just smell like a Document
       safeReRegister(element, doc1 as Document);
     } // `defaultView` is to check whether element is in a real frame's DOM tree
@@ -279,28 +280,31 @@ function prepareRegister(this: void, element: Element): void {
     // is a fake "about:blank" document object
     return;
   }
-  let e1: Element | null = element, e2: Node | null, e3: Node | null | undefined;
+  let e1: Element | null = element, e2: Node | RadioNodeList | null, e3: Node | RadioNodeList | null | undefined;
   for (; e2 = e1.parentElement as Exclude<Element["parentElement"], Window>; e1 = e2 as Element) {
     // according to tests and source code, <frameset>'s named getter requires <frame>.contentDocument is valid
     // so here pe and pn won't be Window if only ignoring the case of `<div> -> #shadow-root -> <frameset>`
     if (Build.BTypes & ~BrowserType.Firefox
-        && e2 !== (e3 = e1.parentNode as Exclude<Element["parentNode"], Window | null>)) {
-      e2 = call(Contains, e2, e1) ? e2 as Element : call(Contains, e3, e1) ? e3 as Element : null;
-      if (!e2) { return; }
+        && e2 !== (e3 = e1.parentNode as Exclude<Element["parentNode"], Window>)
+        && kValue in e2) {
+      // here skips more cases than a most precise solution, but it's enough
+      if (!e3 || kValue in e3) { return; }
+      if (e3.nodeType !== kNode.ELEMENT_NODE) { break; }
+      e2 = e3 as Element;
     }
   }
   // note: the below changes DOM trees,
   // so `dispatch` MUST NEVER throw. Otherwises a page might break
-  if ((e2 = e1.parentNode as Exclude<Element["parentNode"], Window>) == null) {
+  if (!(e2 = e1.parentNode as Exclude<Element["parentNode"], Window>)) {
     root !== e1 && call(Append, root, e1);
     pushForDetached(
       IndexOf(allNodesForDetached = allNodesForDetached || call(getElementsByTagNameInEP, root, "*")
         , element));
   // Note: ignore the case that a plain #document-fragment has a fake .host
-  } else if (e2 instanceof DF && !((e2 as ShadowRoot | DocumentFragment & { host?: undefined }).host
-    // Note: input[form] takes effects only if the input is connected, so here `e3.parentElement` is enough
-    // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#reset-the-form-owner
-              || Build.BTypes & ~BrowserType.Firefox && (e3 = e1.nextSibling) && e3.parentElement)) {
+  } else if (e2.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
+      && !((e2 as ShadowRoot | DocumentFragment & { host?: undefined }).host
+    // here use a larger matching of `"value" in`, so that a RadioNodeList cann't crash the block below
+            || Build.BTypes & ~BrowserType.Firefox && (e3 = e1.nextSibling) && e3.parentElement !== null)) {
     // not register, if ShadowRoot or .nextSibling is not real
     // NOTE: ignore nodes belonging to a shadowRoot,
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
