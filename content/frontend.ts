@@ -523,19 +523,19 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         hint[2] = j > 0 ? ind / 8192 - j : ind;
       }
       const hints = visibleInputs.sort((a, b) => a[2] - b[2]).map(function (link): HintsNS.BaseHintItem {
-        const marker = VDom.createElement_("span") as HintsNS.BaseHintItem["marker"],
+        const marker = VDom.createElement_("span") as HintsNS.BaseHintItem["marker_"],
         rect = VDom.padClientRect_(VDom.getBoundingClientRect_(link[0]), 3);
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
         marker.className = "IH";
         VDom.setBoundary_(marker.style, rect);
-        return {marker, target: link[0]};
+        return {marker_: marker, target_: link[0]};
       });
       if (count === 1 && InsertMode.last_) {
         sel = Math.max(0, visibleInputs.map(link => link[0]).indexOf(InsertMode.last_));
       } else {
         sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
       }
-      hints[sel].marker.classList.add("IHS");
+      hints[sel].marker_.className = "IH IHS";
       VDom.UI.simulateSelect_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
       VDom.UI.ensureBorder_(VDom.wdZoom_);
       const box = VDom.UI.addElementList_<false>(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
@@ -550,9 +550,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           sel = (oldSel + (event.shiftKey ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
           VUtils.prevent_(event); // in case that selecting is too slow
-          VDom.UI.simulateSelect_(hints2[sel].target, null, false, action);
-          hints2[oldSel].marker.classList.remove("IHS");
-          hints2[sel].marker.classList.add("IHS");
+          VDom.UI.simulateSelect_(hints2[sel].target_, null, false, action);
+          hints2[oldSel].marker_.className = "IH";
+          hints2[oldSel].marker_.className = "IH IHS";
           InsertMode.hinting_ = false;
           return HandlerResult.Prevent;
         }
@@ -563,7 +563,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         else if (keep ? VKeyboard.isEscape_(event) || (
             keyCode === VKeyCodes.enter && (keyStat = VKeyboard.getKeyStat_(event),
               keyStat !== KeyStat.shiftKey
-              && (keyStat !== KeyStat.plain || this.hints[sel].target instanceof HTMLInputElement) )
+              && (keyStat !== KeyStat.plain || this.hints[sel].target_ instanceof HTMLInputElement) )
           ) : keyCode !== VKeyCodes.ime && keyCode !== VKeyCodes.f12
         ) {
           InsertMode.exitInputHint_();
@@ -844,6 +844,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   HUD = {
     _tweenId: 0,
     box_: null as HTMLDivElement | null,
+    $text_: null as never as Text,
     text_: "",
     opacity_: 0 as 0 | 0.25 | 0.5 | 0.75 | 1,
     enabled_: false,
@@ -873,12 +874,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let el = hud.box_;
       if (el) {
         embed && (el.style.cssText = "");
-        (el.firstChild as Text).data = text;
+        hud.$text_.data = text;
         return;
       }
       el = VDom.createElement_("div");
       el.className = "R HUD";
       el.textContent = text;
+      hud.$text_ = el.firstChild as Text;
       if (!embed) {
         const st = el.style;
         st.opacity = "0";
@@ -893,7 +895,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
                     && fake ? 0 : +(st.opacity || 1);
       if (opacity === HUD.opacity_) { /* empty */ }
       else if (opacity === 0) {
-        (el.firstChild as Text).data = HUD.text_;
+        HUD.$text_.data = HUD.text_;
         st.opacity = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                       && fake ? "" : "0.25";
         st.visibility = "";
@@ -907,7 +909,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (opacity !== HUD.opacity_) { return; }
       if (opacity === 0) {
         st.visibility = "hidden";
-        (el.firstChild as Text).data = "";
+        HUD.$text_.data = "";
       }
       clearInterval(HUD._tweenId);
       HUD._tweenId = 0;
@@ -921,7 +923,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         const box = HUD.box_, st = box.style;
         st.opacity = "0";
         st.visibility = "hidden";
-        (box.firstChild as Text).data = "";
+        HUD.$text_.data = "";
       }
       else if (!HUD._tweenId && VHud) {
         HUD._tweenId = setInterval(HUD._tween, 40);
@@ -1128,7 +1130,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       optLink.remove();
     }
     function toggleAdvanced(this: void): void {
-      (advCmd.firstChild as Text).data = (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";
+      (advCmd.firstChild as Text).data = shouldShowAdvanced ? "Hide" : "Show";
       box.classList.toggle("HelpAdvanced");
     }
     advCmd.onclick = function (event) {

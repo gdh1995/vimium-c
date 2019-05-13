@@ -83,7 +83,7 @@ VDom.UI = {
     const parent = VDom.createElement_(dialogContainer ? "dialog" : "div");
     parent.className = dialogContainer ? "R HM DHM" : "R HM";
     for (const el of els) {
-      parent.appendChild(el.marker);
+      parent.appendChild(el.marker_);
     }
     const style = parent.style, zoom = VDom.bZoom_ / VDom.dScale_,
     left = offset[0] + "px", top = offset[1] + "px";
@@ -357,14 +357,14 @@ VDom.UI = {
       : a.cropRectToVisible_.apply(a, bcr as [number, number, number, number]) ? bcr : null;
   },
   _lastFlash: null,
-  flash_: function (this: DomUI, el: Element | null, rect?: Rect | null, lifeTime?: number): HTMLDivElement | void {
+  flash_: function (this: DomUI, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string): void {
     const a = this;
     rect || (rect = a.getRect_(el as Element));
     if (!rect) { return; }
     const flashEl = VDom.createElement_("div"), nfs = !(!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
         : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
         ? document.fullscreenElement : document.webkitIsFullScreen);
-    flashEl.className = "R Flash";
+    flashEl.className = "R Flash" + (classNames || "");
     VDom.setBoundary_(flashEl.style, rect, nfs);
     Build.BTypes & ~BrowserType.Firefox &&
     VDom.bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bZoom_);
@@ -377,7 +377,6 @@ VDom.UI = {
       a._lastFlash === flashEl && (a._lastFlash = null);
       flashEl.remove();
     }, lifeTime || GlobalConsts.DefaultRectFlashTime);
-    return flashEl;
   } as DomUI["flash_"],
   suppressTail_ (this: void, onlyRepeated: BOOL): void {
     let func: HandlerNS.Handler<{}>, tick: number, timer: number;

@@ -14,7 +14,7 @@ declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface ModeOpt {
     [mode: number]: string | undefined;
-    execute_ (this: {}, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintsNS.HintItem, "refer">): void | boolean;
+    execute_ (this: {}, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintsNS.HintItem, "refer_">): void | boolean;
   }
   interface Options extends SafeObject {
     action?: string;
@@ -234,20 +234,15 @@ var VHints = {
   maxRight_: 0,
   zIndexes_: null as null | false | HintsNS.Stacks,
   createHint_ (link: Hint): HintsNS.HintItem {
-    let marker = VDom.createElement_("span") as HintsNS.HintItem["marker"], i: number;
-    i = link.length < 4 ? link[1][0] : (link as Hint4)[3][0][0] + (link as Hint4)[3][1];
-    const hint: HintsNS.HintItem = {
-      marker, target: link[0],
-      key: "",
-      refer: link.length > 4 ? (link as Hint5)[4] : null,
+    let i: number = link.length < 4 ? link[1][0] : (link as Hint4)[3][0][0] + (link as Hint4)[3][1];
+    const marker = VDom.createElement_("span") as HintsNS.MarkerElement, st = marker.style,
+    isBox = link[2] > ClickType.maxNotBox,
+    hint: HintsNS.HintItem = {
+      marker_: marker, target_: link[0],
+      key_: "",
+      refer_: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null,
     };
-    if (link[2] < ClickType.minBox) {
-      marker.className = "LH";
-    } else {
-      marker.className = "LH BH";
-      hint.refer = link[0];
-    }
-    const st = marker.style;
+    marker.className = isBox ? "LH BH" : "LH";
     st.left = i + "px";
     if (i > this.maxLeft_ && this.maxRight_) {
       st.maxWidth = this.maxRight_ - i + "px";
@@ -267,7 +262,7 @@ var VHints = {
     arr = this.hints_ as HintsNS.HintItem[],
     mr = this.maxRight_ * zi, mt = this.maxTop_ * zi;
     while (0 <= i && root.contains(elements[i][0])) {
-      let st = arr[i--].marker.style;
+      let st = arr[i--].marker_.style;
       Build.BTypes & ~BrowserType.Firefox && (st.zoom = z);
       st.maxWidth && (st.maxWidth = mr - elements[i][1][0] + "px");
       st.maxHeight && (st.maxHeight = mt - elements[i][1][1] + 18 + "px");
@@ -768,18 +763,22 @@ var VHints = {
       VUtils.prevent_(event);
       a.execute_(linksMatched[0]);
     } else {
-      const limit = a.keyStatus_.tab_ ? 0 : a.keyStatus_.newHintLength_;
-      for (i = linksMatched.length; 0 <= --i; ) {
-        let ref = linksMatched[i].marker.childNodes as NodeListOf<HTMLSpanElement>, j = ref.length - 1;
-        while (limit <= --j) {
-          ref[j].classList.remove("MC");
-        }
-        for (; 0 <= j; --j) {
-          ref[j].classList.add("MC");
-        }
-      }
+      a.hideSpans_(linksMatched);
     }
     return HandlerResult.Prevent;
+  },
+  hideSpans_ (linksMatched: HintsNS.HintItem[]): void {
+    const limit = this.keyStatus_.tab_ ? 0 : this.keyStatus_.newHintLength_;
+    let newClass: string;
+    for (const { marker_: { childNodes: ref } } of linksMatched) {
+// https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
+// shows that `.classList.add()` costs more
+      for (let j = ref.length - 1; 0 <= --j; ) {
+        newClass = j < limit ? "MC" : "";
+        (ref[j] as Exclude<HintsNS.MarkerElement, Text>).className !== newClass &&
+        ((ref[j] as Exclude<HintsNS.MarkerElement, Text>).className = newClass);
+      }
+    }
   },
   getDeepDescendantCombinator_: Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 ? function (this: {}): string {
@@ -804,18 +803,18 @@ var VHints = {
     let ref = this.hints_, i = 0, len = ref ? ref.length : 0;
     this.hints_ = this.zIndexes_ = null;
     this.pTimer_ > 0 && clearTimeout(this.pTimer_);
-    while (i < len) { (ref as HintsNS.HintItem[])[i++].target = null as never; }
+    while (i < len) { (ref as HintsNS.HintItem[])[i++].target_ = null as never; }
   },
   execute_ (hint: HintsNS.HintItem): void {
     const a = this;
-    let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target;
+    let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target_;
     a.resetHints_();
     const str = (a.modeOpt_ as HintsNS.ModeOpt)[a.mode_] as string;
     (VHud as Writeable<VHUDTy>).text_ = str; // in case pTimer > 0
     if (VDom.isInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
-      rect = VDom.UI.getRect_(clickEl, hint.refer !== clickEl ? hint.refer as HTMLElementUsingMap | null : null);
+      rect = VDom.UI.getRect_(clickEl, hint.refer_ !== clickEl ? hint.refer_ as HTMLElementUsingMap | null : null);
       const showRect = (a.modeOpt_ as HintsNS.ModeOpt).execute_.call(a, clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
         setTimeout(function (): void {
@@ -913,10 +912,10 @@ var VHints = {
     for (const stack of stacks) {
       reverse && stack.reverse();
       const i = stack[stack.length - 1];
-      let oldI = ref[i].zIndex || i;
+      let oldI = ref[i].zIndex_ || i;
       for (const j of stack) {
-        const hint = ref[j], {style} = hint.marker, newI = hint.zIndex || j;
-        style.zIndex = (hint.zIndex = oldI) as number | string as string;
+        const hint = ref[j], {style} = hint.marker_, newI = hint.zIndex_ || j;
+        style.zIndex = (hint.zIndex_ = oldI) as number | string as string;
         oldI = newI;
       }
       reverse && stack.reverse();
@@ -924,8 +923,8 @@ var VHints = {
   },
   MakeStacks_ (this: [Array<ClientRect | null>, HintsNS.Stacks], hint: HintsNS.HintItem, i: number) {
     let rects = this[0];
-    if (hint.marker.style.visibility === "hidden") { rects.push(null); return; }
-    const stacks = this[1], m = hint.marker.getClientRects()[0];
+    if (hint.marker_.style.visibility === "hidden") { rects.push(null); return; }
+    const stacks = this[1], m = hint.marker_.getClientRects()[0];
     rects.push(m);
     let stackForThisMarker = null as HintsNS.Stack | null;
     for (let j = 0, len2 = stacks.length; j < len2; ) {
@@ -977,8 +976,8 @@ alphabetHints_: {
     const a = this;
     a.hintKeystroke_ = "";
     for (let end = hintItems.length, hints = a.buildHintIndexes_(end), h = 0; h < end; h++) {
-      const hint = hintItems[h], marker = hint.marker,
-      hintString = hint.key = a.numberToHintString_(hints[h]), last = hintString.length - 1;
+      const hint = hintItems[h], marker = hint.marker_,
+      hintString = hint.key_ = a.numberToHintString_(hints[h]), last = hintString.length - 1;
       for (let i = 0; i < last; i++) {
         const node = document.createElement("span");
         node.textContent = hintString[i];
@@ -1042,13 +1041,13 @@ alphabetHints_: {
     const wanted = !keyStatus.tab_;
     if (arr !== null && keyChar.length >= a.countMax_) {
       hints.some(function (hint): boolean {
-        return hint.key === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
+        return hint.key_ === keyChar && ((arr as HintsNS.HintItem[]).push(hint), true);
       });
       if (arr.length === 1) { return arr; }
     }
     return hints.filter(function (hint) {
-      const pass = (hint.key as string).startsWith(keyChar) === wanted;
-      hint.marker.style.visibility = pass ? "" : "hidden";
+      const pass = (hint.key_ as string).startsWith(keyChar) === wanted;
+      hint.marker_.style.visibility = pass ? "" : "hidden";
       return pass;
     });
   },
@@ -1388,7 +1387,7 @@ Modes_: [
       }
       (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
       return;
-    } else if (hint.refer && hint.refer === link) {
+    } else if (hint.refer_ && hint.refer_ === link) {
       return a.Modes_[0].execute_.call(a, link, rect, hint);
     } else if (VDom.getEditableType_<0>(link) >= EditableType.Editbox) {
       UI.simulateSelect_(link, rect, true);

@@ -2282,6 +2282,7 @@ declare var HTMLAllCollection: {
 interface HTMLAnchorElement extends HTMLElement {
     readonly tagName: "A" | "a";
     readonly innerText: string;
+    readonly parentElement: HTMLElement | null;
     Methods: string;
     /**
       * Sets or retrieves the character set used to encode the object.
@@ -2447,6 +2448,7 @@ declare var HTMLAppletElement: {
 interface HTMLAreaElement extends HTMLElement {
     readonly tagName: "area" | "AREA";
     readonly innerText: string;
+    readonly parentElement: HTMLElement | null;
     /**
       * Sets or retrieves a text alternative to the graphic.
       */
@@ -3515,6 +3517,7 @@ declare var HTMLIFrameElement: {
 interface HTMLImageElement extends HTMLElement {
     readonly tagName: "img" | "IMG";
     readonly innerText: string;
+    readonly parentElement: HTMLElement | null;
     /**
       * Sets or retrieves how the object is aligned with adjacent text.
       */

@@ -48,9 +48,11 @@ interface KeydownCacheArray extends SafeObject {
 interface SafeElement extends Element {
   tagName: string;
 }
-type SafeHTMLElement = HTMLElement & SafeElement & {
+type BaseSafeHTMLElement = HTMLElement & SafeElement;
+interface SafeHTMLElement extends BaseSafeHTMLElement {
   readonly innerText: string;
-};
+  readonly parentElement: HTMLElement | null;
+}
 type SaferType<Ty> = Ty extends HTMLElement ? SafeHTMLElement : Ty extends Element ? SafeElement : Ty;
 interface LockableElement extends SafeHTMLElement {
 }
@@ -137,15 +139,18 @@ declare const enum SelType {
 }
 
 declare namespace HintsNS {
+  interface MarkerElement extends HTMLSpanElement {
+    readonly childNodes: NodeListOf<HTMLSpanElement | Text>
+  }
   interface BaseHintItem {
-    marker: HTMLSpanElement;
-    target: Hint[0];
+    marker_: MarkerElement;
+    target_: Hint[0];
   }
 
   interface HintItem extends BaseHintItem {
-    key: string;
-    refer: HTMLElementUsingMap | Hint[0] | null;
-    zIndex?: number;
+    key_: string;
+    refer_: HTMLElementUsingMap | Hint[0] | null;
+    zIndex_?: number;
   }
 }
 
@@ -313,8 +318,8 @@ interface DomUI {
   /** @NEED_SAFE_ELEMENTS */
   _moveSel_need_safe (this: DomUI, element: LockableElement, action: SelectActions | undefined): void;
   getRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null;
-  flash_ (this: DomUI, el: null, rect: Rect, lifeTime?: number): HTMLElement;
-  flash_ (this: DomUI, el: Element): HTMLElement | void;
+  flash_ (this: DomUI, el: null, rect: Rect, lifeTime?: number, classNames?: string): void;
+  flash_ (this: DomUI, el: Element): void;
   suppressTail_ (this: void, onlyRepeated: BOOL): void;
   SuppressMost_: HandlerNS.Handler<{}>;
 }

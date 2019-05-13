@@ -76,9 +76,9 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   if (!res || !(docEl instanceof HTMLHtmlElement)) {
     return err as void;
   }
-  const inserAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild as Node
-    , insertBefore = inserAfter.nextSibling
-    , parentElement = inserAfter.parentElement as Element;
+  const insertAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild as Node
+    , insertBefore = insertAfter.nextSibling
+    , parentElement = insertAfter.parentElement as Element;
   let scripts: HTMLScriptElement[] = [];
   for (const i of res.scripts as string[]) {
     const script = document.createElement("script");
