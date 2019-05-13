@@ -1,5 +1,5 @@
-if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefined) {
-(function (this: void): void {
+if (VDom && VimiumInjector === undefined) {
+(function extendClick(this: void, isFirstTime?: boolean): void | false | undefined {
 /** Note(gdh1995):
  * According to source code of C72,
  *     getElementsByTagName has a special cache (per container node) for tag name queries,
@@ -40,9 +40,12 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     }): CustomEvent;
   }
 
+  if (!(Build.NDEBUG || !isFirstTime || (VDom.createElement_ + "").indexOf("instanceof HTMLElement") >= 0)) {
+    console.log("Assert error: VDom.createElement_ should have not been called");
+  }
   const kVOnClick1 = InnerConsts.kVOnClick, kHook = InnerConsts.kHook
     , d = document, docEl = d.documentElement
-    , script: HTMLScriptElement | Element = d.createElement("script") as HTMLScriptElement | Element
+    , script = VDom.createElement_<1>("script")
     , secret: number = (Math.random() * InnerConsts.SecretUpperLimit + 1) | 0;
 /**
  * Note:
@@ -55,7 +58,9 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
  * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?g=0&q=Document::CreateRawElement&l=946
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
-  if (!(script instanceof HTMLScriptElement)) { return; }
+  if (!(script instanceof HTMLScriptElement)) {
+    return isFirstTime != null && VDom.OnDocLoaded_(extendClick); // retry after a while, using a real <script>
+  }
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
   hook = function (event: CustomEvent): void {
@@ -72,7 +77,6 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
       box = t;
     }
   };
-  addEventListener(kHook, hook, !0);
   function onClick(event: CustomEvent): void {
     VUtils.Stop_(event);
     let detail = event.detail as ClickableEventDetail | null;
@@ -119,7 +123,7 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
       r.call(box, kVOnClick1, onClick, !0);
       dispatchCmd(kContentCmd.Destroy);
     }
-    if (box == null) {
+    if (box == null && isFirstTime) {
       r(kHook, hook, !0);
       if (cmd === kContentCmd.DestroyForCSP) {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -131,7 +135,6 @@ if (VDom && VDom.docNotCompleteWhenVimiumIniting_ && VimiumInjector === undefine
     box = 0;
     settings && (settings.execute_ = null);
   }
-  VSettings.execute_ = execute;
 
   const appInfo = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
@@ -386,9 +389,17 @@ _listen(kOnDomReady, handler, !0);
 _listen("load", delayFindAll, !0);
 
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
-  if (Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction && Build.BTypes & BrowserType.Chrome &&
-      appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
-    injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
+  if (isFirstTime) {
+    if (Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction && Build.BTypes & BrowserType.Chrome &&
+        appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
+      injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
+    }
+    VSettings.execute_ = execute;
+    addEventListener(kHook, hook, !0);
+  } else {
+    injected = 'typeof HTMLScriptElement=="function"&&' +
+      'document.currentScript instanceof HTMLScriptElement&&' +
+      'document.currentScript.remove()';
   }
   script.textContent = injected;
   /**
@@ -403,9 +414,10 @@ _listen("load", delayFindAll, !0);
   script.dataset.vimium = secret as number | string as string;
   docEl ? Build.BTypes & ~BrowserType.Firefox ? script.insertBefore.call(docEl, script, docEl.firstChild)
     : docEl.insertBefore(script, docEl.firstChild) : d.appendChild(script);
-  if (!(Build.NDEBUG || (VDom.OnDocLoaded_ + "").indexOf("DOMContentLoaded") >= 0)) {
+  if (!(Build.NDEBUG || !isFirstTime || (VDom.OnDocLoaded_ + "").indexOf("DOMContentLoaded") >= 0)) {
     console.log("Assert error: VDom.OnDocLoaded_ should have not been called");
   }
+  script.dataset.vimium = "";
   if ((Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         && !(Build.BTypes & ~BrowserType.Chrome))
       || !script.parentNode) { // It succeeded to hook.
@@ -444,9 +456,8 @@ _listen("load", delayFindAll, !0);
   }
   let rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? window.requestIdleCallback : 0 as const;
   if (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
-    // accessed on page initing, so won't be an <embed>
     // tslint:disable-next-line: triple-equals
-    rIC = typeof rIC != "function" ? 0 : rIC;
+    rIC = typeof rIC != "function" || rIC instanceof Element ? 0 : rIC;
   }
   // here rIC is (not defined), 0 or real
   (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
@@ -461,5 +472,5 @@ _listen("load", delayFindAll, !0);
       : requestAnimationFrame(cb)
       : (Promise.resolve(1).then(cb), 1);
   };
-})();
+})(VDom.docNotCompleteWhenVimiumIniting_);
 }

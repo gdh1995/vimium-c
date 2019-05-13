@@ -28,13 +28,17 @@ var VDom = {
     return !!viewport &&
       (<RegExpI> /\b(device-width|initial-scale)\b/i).test(viewport.getAttribute("content") || "");
   } : 0 as never,
-  createElement_<K extends VimiumContainerElementType> (tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement {
-    const d = document, a = this,
+  createElement_: function<K extends VimiumContainerElementType> (this: {},
+      tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement | Element {
+    const d = document,
     node = document.createElement(tagName), valid = node instanceof HTMLElement;
-    a.createElement_ = valid ? d.createElement.bind(d) as typeof VDom.createElement_
+    (this as typeof VDom).createElement_ = valid ? d.createElement.bind(d) as typeof VDom.createElement_
       : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", [VimiumContainerElementType]
         , HTMLElement>(d, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
-    return valid ? node as HTMLElementTagNameMap[K] & SafeHTMLElement : a.createElement_(tagName);
+    return node;
+  } as {
+    <K extends VimiumContainerElementType> (this: {}, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
+    <K extends 1>(this: {}, tagName: "script" | K): HTMLScriptElement | Element;
   },
   execute_ (callback: (this: void) => void): void { callback(); },
   /** Note:
