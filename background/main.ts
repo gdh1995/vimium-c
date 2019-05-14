@@ -2607,12 +2607,6 @@ Are you sure you want to continue?`);
       // the line below requires all necessary have inited when calling this
       Backend.onInit_ = null;
       Settings.postUpdate_("vomnibarOptions");
-      // note: remove the block below on v1.75
-      const storage = localStorage, oldStyles = storage.getItem("styles");
-      if (oldStyles) {
-        storage.removeItem("styles");
-        requestHandlers[kFgReq.setOmniStyle]({ s: oldStyles });
-      }
       chrome.runtime.onConnect.addListener(function (port): void {
         return OnConnect(port as Frames.Port,
             (port.name.substring(PortNameEnum.PrefixLen) as string | number as number) | 0);

@@ -1,7 +1,7 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.74](https://img.shields.io/badge/release-1.74-orange.svg
+[![Version 1.75](https://img.shields.io/badge/release-1.75-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -57,6 +57,10 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.75.0:
+* use new icons
+* fix some rare edge cases on malformed webpages
+
 1.74.9:
 * fix `scrollPx*` commands might scroll too much
 * popup page: add `<a-x>` and `<a-z>` shortcuts to toggle status buttons
@@ -66,7 +70,6 @@ __Other extensions supporting Vimium C:__
 1.74.8:
 * Vomnibar: make effects of the dark mode button not persistent
 * Options page: normalize exclusions and link hints characters on saving
-* fix some rare edge cases on malformed webpages
 
 1.74.7:
 * `goBack`, `goForward`: now works perfectly since Chrome 72
