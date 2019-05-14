@@ -507,7 +507,8 @@ var VDom = {
       , NP = Node.prototype, pe: Element | null;
     root = <Element | Document> root || (!(Build.BTypes & ~BrowserType.Firefox) ? element.ownerDocument as Document
         : (root = element.ownerDocument, Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter &&
-            (root as WindowWithTop).top === top || (root as Document | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE
+            VDom.unsafeFramesetTag_ && (root as WindowWithTop).top === top ||
+            (root as Document | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE
         ? document : root as Document));
     if (root.nodeType === kNode.DOCUMENT_NODE
         && (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
@@ -633,7 +634,8 @@ var VDom = {
     }
     for (o = el; !(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           ? o && <number> o.nodeType - kNode.ELEMENT_NODE
-          : o && (nt = o.nodeType, (nt as WindowWithTop).top !== top && <number> nt - kNode.ELEMENT_NODE);
+          : o && (nt = o.nodeType, !(this.unsafeFramesetTag_ && (nt as WindowWithTop).top === top)
+                  && <number> nt - kNode.ELEMENT_NODE);
         o = knownDi ? (o as Node).previousSibling : (o as Node).nextSibling) { /* empty */ }
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
       return (/* Element | null */ o || (/* el is not Element */ el && el.parentElement)) as SafeElement | null;
@@ -653,7 +655,8 @@ var VDom = {
       , button?: number): boolean {
     let doc = element.ownerDocument;
     Build.BTypes & ~BrowserType.Firefox &&
-    (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && (doc as WindowWithTop).top === top
+    (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && (this as typeof VDom).unsafeFramesetTag_
+      && (doc as WindowWithTop).top === top
       || (doc as Node | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE) && (doc = document);
     const mouseEvent = (doc as Document).createEvent("MouseEvents");
     // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
