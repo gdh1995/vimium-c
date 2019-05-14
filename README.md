@@ -216,3 +216,4 @@ See the [MIT LICENSE](LICENSE.txt) for details.
 * [PDF.js](https://github.com/mozilla/pdf.js/):
   Copyright (c) Mozilla and individual contributors.
   Licensed under the Apache License, Version 2.0.
+* The Orange in icon is from https://pixabay.com/illustrations/orange-fruit-healthy-juicy-fresh-832278/
