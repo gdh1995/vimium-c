@@ -59,6 +59,11 @@ if (VDom && VimiumInjector === undefined) {
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
   if (!(script instanceof HTMLScriptElement)) {
+    if (!(Build.BTypes & ~BrowserType.Chrome)
+        && Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage
+        && Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage) {
+      return;
+    }
     return isFirstTime != null && VDom.OnDocLoaded_(extendClick); // retry after a while, using a real <script>
   }
 
@@ -138,11 +143,13 @@ if (VDom && VimiumInjector === undefined) {
 
   const appInfo = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
+            || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
         ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as 0
     , appVer: BrowserVer | 0 = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
+            || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
         && appInfo && <BrowserVer> +appInfo[1] || 0;
@@ -386,6 +393,7 @@ function executeCmd(eventOrDestroy?: Event): void {
   delayFindAll && delayFindAll(); // clean the "load" listener
 }
 function noop(): void | 1 { return; }
+
 toRegister.p = push as any, toRegister.s = toRegister.splice;
 // only the below can affect outsides
 cs.remove();
@@ -402,12 +410,10 @@ _listen("load", delayFindAll, !0);
     }
     VSettings.execute_ = execute;
     addEventListener(kHook, hook, !0);
-  } else {
-    injected = 'typeof HTMLScriptElement=="function"&&' +
-      'document.currentScript instanceof HTMLScriptElement&&' +
-      'document.currentScript.remove()';
+  } else if (Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+      || Build.BTypes & ~BrowserType.Chrome) {
+    injected = 'document.currentScript.dataset.vimium=""';
   }
-  script.textContent = injected;
   /**
    * According to `V8CodeCache::ProduceCache` and `V8CodeCache::GetCompileOptions`
    *     in third_party/blink/renderer/bindings/core/v8/v8_code_cache.cc,
@@ -416,17 +422,27 @@ _listen("load", delayFindAll, !0);
    * inlined script are not cached for `v8::ScriptCompiler::kNoCacheBecauseInlineScript`.
    * But here it still uses the same script, just for my personal preference.
    */
+  if (!(Build.BTypes & BrowserType.Chrome) || isFirstTime
+      || (Build.BTypes & ~BrowserType.Chrome
+            || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage)
+          && appVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage) {
+  script.textContent = injected;
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
   docEl ? Build.BTypes & ~BrowserType.Firefox ? script.insertBefore.call(docEl, script, docEl.firstChild)
     : docEl.insertBefore(script, docEl.firstChild) : d.appendChild(script);
+  isFirstTime ? (script.dataset.vimium = "") : script.remove();
+  }
   if (!(Build.NDEBUG || !isFirstTime || (VDom.OnDocLoaded_ + "").indexOf("DOMContentLoaded") >= 0)) {
     console.log("Assert error: VDom.OnDocLoaded_ should have not been called");
   }
-  script.dataset.vimium = "";
   if ((Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         && !(Build.BTypes & ~BrowserType.Chrome))
-      || !script.parentNode) { // It succeeded to hook.
+      ? true : isFirstTime ? !script.parentNode
+      : !(Build.BTypes & ~BrowserType.Chrome)
+        && Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+      ? true
+      : !script.dataset.vimium) { // It succeeded to hook.
     VDom.OnDocLoaded_(function (): void {
       box || execute(kContentCmd.DestroyForCSP);
     });
