@@ -185,9 +185,11 @@ setTimeout(function (): void {
       if (!mayShowIcons) { return; }
       mayShowIcons = false;
       Backend.setIcon_ = Utils.blank_;
+      tabIds = null;
       chrome.browserAction.setTitle({ title: "Vimium C\n\nFailed in showing dynamic icons." });
     }
     function onload(this: HTMLImageElement): void {
+      if (!mayShowIcons) { return; }
       if (!ctx) {
         const canvas = document.createElement("canvas");
         canvas.width = canvas.height = IconNS.PixelConsts.MaxSize;
@@ -199,13 +201,11 @@ setTimeout(function (): void {
       // in case of https://peter.sh/experiments/chromium-command-line-switches/#disable-reading-from-canvas
       // and tested on C54 and C74
       try {
-        if (mayShowIcons) {
-          cache[w as number | string as IconNS.ValidSizes] = ctx.getImageData(0, 0, w, h);
-        }
+        cache[w as number | string as IconNS.ValidSizes] = ctx.getImageData(0, 0, w, h);
       } catch {
         this.onerror(1 as never);
       }
-      if (count++) {
+      if (count++ || !mayShowIcons) {
         ctx = null; return;
       }
       (imageData as Exclude<typeof imageData, null>)[type] = cache;
