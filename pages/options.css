@@ -184,6 +184,10 @@ label:active {
   margin-bottom: 37px;
   margin-top: -23px;
 }
+.icon {
+  float: left;
+  margin: -16px 4px 0 0;
+}
 .Vim {
   color: #2f508e;
 }

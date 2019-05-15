@@ -89,6 +89,7 @@ var Tasks = {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*.css"
       , "settings_template.json", "*.txt", "*.md"
       , "!**/manifest*.json"
+      , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!test*", "!todo*"
     ];
