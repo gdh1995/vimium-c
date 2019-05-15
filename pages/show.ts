@@ -235,7 +235,7 @@ window.onhashchange = function (this: void): void {
   default:
     url = "";
     VShown = (importBody as ImportBody)("shownImage");
-    VShown.src = "../icons/vimium.png";
+    VShown.src = "../icons/icon128.png";
     bgLink.style.display = "none";
     break;
   }
