@@ -174,11 +174,18 @@ setTimeout(function (): void {
   if (!chrome.browserAction) { return; }
   const func = Settings.updateHooks_.showActionIcon;
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
+  let mayShowIcons = true;
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
     let img: HTMLImageElement, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
     ctx: CanvasRenderingContext2D | null = null;
-    function onerror(this: HTMLImageElement): void {
-      console.error("Could not load action icon:", this.getAttribute("src"));
+    function onerror(this: HTMLImageElement, err: Event | 1 | null): void {
+      console.log("%cError:%c %s %s", "color:red", "color:auto"
+        , err === 1 ? "Could not read image data from a <canvas> for"
+          : "Could not load action icon:", this.getAttribute("src"));
+      if (!mayShowIcons) { return; }
+      mayShowIcons = false;
+      Backend.setIcon_ = Utils.blank_;
+      chrome.browserAction.setTitle({ title: "Vimium C\n\nFailed in showing dynamic icons." });
     }
     function onload(this: HTMLImageElement): void {
       if (!ctx) {
@@ -189,11 +196,19 @@ setTimeout(function (): void {
       let w = this.width, h = this.height;
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(this, 0, 0, w, h);
-      cache[w as number | string as string as IconNS.ValidSizes] = ctx.getImageData(0, 0, w, h);
+      // in case of https://peter.sh/experiments/chromium-command-line-switches/#disable-reading-from-canvas
+      // and tested on C54 and C74
+      try {
+        if (mayShowIcons) {
+          cache[w as number | string as IconNS.ValidSizes] = ctx.getImageData(0, 0, w, h);
+        }
+      } catch {
+        this.onerror(1 as never);
+      }
       if (count++) {
         ctx = null; return;
       }
-      (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type] = cache;
+      (imageData as Exclude<typeof imageData, null>)[type] = cache;
       const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
       for (w = 0, h = arr.length; w < h; w++) {
@@ -235,7 +250,7 @@ setTimeout(function (): void {
       chrome.browserAction.setIcon({ tabId, path });
       return;
     }
-    if (data = (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type]) {
+    if (data = (imageData as Exclude<typeof imageData, null>)[type]) {
       const f = chrome.browserAction.setIcon, args: chrome.browserAction.TabIconDetails = {
         tabId,
         imageData: data

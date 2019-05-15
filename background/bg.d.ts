@@ -262,10 +262,10 @@ declare namespace IconNS {
   }
   type IconBuffer = {
     [size in ValidSizes]?: ImageData;
-  }
+  };
   type PathBuffer = {
     readonly [size in ValidSizes]: string;
-  }
+  };
   interface AccessIconBuffer {
     (this: void, enabled: boolean): void;
     (this: void): object | null;
