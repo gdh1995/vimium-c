@@ -9,6 +9,7 @@
 *.js
 *.log
 *.old
+*.psd
 *.sh
 *.swp
 *.tar

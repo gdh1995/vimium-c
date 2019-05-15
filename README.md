@@ -1,4 +1,5 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
+![ ](icons/icon32.png)
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
