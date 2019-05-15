@@ -488,7 +488,13 @@ var VHints = {
     }
     const forEach = (list.forEach || output.forEach) as HintsNS.ElementIterator<Hint | Element>;
     forEach.call(list, filter, output);
-    if (wholeDoc) { /* this requires not detecting scrollable elements if wholeDoc */ return output; }
+    if (wholeDoc) {
+      // this requires not detecting scrollable elements if wholeDoc
+      if (!(Build.NDEBUG || filter !== a.GetClickable_)) {
+        console.log("Assert error: `filter !== VHints.GetClickable_` in VHints.traverse_");
+      }
+      return output;
+    }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0
         && output.length === 0 && !matchAll && a.queryInDeep_ === DeepQueryType.NotDeep && !a.tooHigh_) {
       a.queryInDeep_ = DeepQueryType.InDeep;

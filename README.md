@@ -1,5 +1,6 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
 ========
+
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
 [![Version 1.75](https://img.shields.io/badge/release-1.75-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
@@ -17,7 +18,7 @@ A <span style="color: #8e5e2f;">C</span>ustomized
   having <span style="color: #8e5e2f;">**C**</span>hinese support,
     global <span style="color: #8e5e2f;">**C**</span>ommands
     and inje**c**tion functionality,
-  in <span style="color: #8e5e2f;">**C**</span>-style code for qui**c**ker response and less resource **c**ost.
+  in <span style="color: #8e5e2f;">**C**</span>-style code for qui**c**ker action and less resource **c**ost.
 
 It supports Chrome and other Chromium-based browsers whose core versions are >= 35,
   and supports most of the functionality on a latest Firefox (since version 64.0).

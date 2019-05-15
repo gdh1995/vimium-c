@@ -70,7 +70,6 @@ var VOmni = {
     }
     options.z = scale;
     a.docZoom_ = VDom.getZoom_();
-    // // note: here requires there's no other statuses between NotInited and Inactive
     if (!(Build.NDEBUG || VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1)) {
       console.log("Assert error: VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1");
     }

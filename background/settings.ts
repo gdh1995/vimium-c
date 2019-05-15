@@ -118,6 +118,9 @@ var Settings = {
       const a = this as typeof Settings;
       "searchKeywords" in a.cache_ && a.set_("searchKeywords", null);
       // Note: this requires `searchUrl` must be a valid URL
+      if (!(Build.NDEBUG || Utils.protocolRe_.test(a.get_("searchUrl")))) {
+        console.log('Assert error: Utils.protocolRe_.test(Settings.get_("searchUrl"))');
+      }
       const rules = Utils.parseSearchEngines_("~:" + a.get_("searchUrl") + "\n" + a.get_("searchEngines"), value);
       return a.set_("searchEngineRules", rules);
     },
@@ -143,6 +146,9 @@ var Settings = {
       browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
       hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All
           || browserInfo.indexOf("a") >= 0;
+      if (!(Build.NDEBUG || css.startsWith(":host{"))) {
+        console.log('Assert error: `css.startsWith(":host{")` in Settings.updateHooks_.baseCSS');
+      }
       if (Build.MinCVer < BrowserVer.MinUnprefixedUserSelect && Build.BTypes & BrowserType.Chrome
             && browserVer < BrowserVer.MinUnprefixedUserSelect
           || (!(Build.BTypes & ~BrowserType.Firefox)
