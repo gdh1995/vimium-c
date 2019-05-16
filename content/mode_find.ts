@@ -293,6 +293,10 @@ var VFind = {
     }
     return HandlerResult.Nothing;
   },
+  /** Note: host page may have no range (type is "None"), if:
+   * * press <Enter> on HUD to exit FindMode
+   * * a host script has removed all ranges
+   */
   deactivate_(i: FindNS.Action): void {
     let a = this, sin = a.styleIn_, noStyle = !sin || !sin.parentNode, hasResult = a.hasResults_
       , el: SafeElement | null | undefined, el2: Element | null;
@@ -346,7 +350,7 @@ var VFind = {
   },
   /** return an element if no <a> else null */
   focusFoundLinkIfAny_ (): SafeElement | null {
-    let cur = VDom.GetSelectionParent_unsafe_(VDom.UI.getSelected_()[0]);
+    let sel = VDom.UI.getSelected_()[0], cur = sel.rangeCount ? VDom.GetSelectionParent_unsafe_(sel) : null;
     Build.BTypes & ~BrowserType.Firefox && (cur = VDom.SafeEl_(cur));
     for (let i = 0, el: Element | null = cur; el && el !== document.body && i++ < 5;
         el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
