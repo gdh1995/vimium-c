@@ -552,7 +552,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           VUtils.prevent_(event); // in case that selecting is too slow
           VDom.UI.simulateSelect_(hints2[sel].target_, null, false, action);
           hints2[oldSel].marker_.className = "IH";
-          hints2[oldSel].marker_.className = "IH IHS";
+          hints2[sel].marker_.className = "IH IHS";
           InsertMode.hinting_ = false;
           return HandlerResult.Prevent;
         }
