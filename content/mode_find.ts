@@ -16,8 +16,8 @@ var VFind = {
   activeRegexIndex_: 0,
   regexMatches_: null as RegExpMatchArray | null,
   box_: null as never as HTMLIFrameElement & { contentDocument: Document },
-  input_: null as never as HTMLBodyElement,
-  countEl_: null as never as HTMLSpanElement,
+  input_: null as never as SafeHTMLElement,
+  countEl_: null as never as SafeHTMLElement,
   styleIn_: null as never as HTMLStyleElement,
   styleOut_: null as never as HTMLStyleElement,
   A0Re_: <RegExpG> /\xa0/g,
@@ -112,8 +112,11 @@ var VFind = {
   onLoad2_ (wnd: Window): void {
     const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
     a = VFind,
-    el: HTMLElement = a.input_ = doc.body as HTMLBodyElement,
-    zoom = wnd.devicePixelRatio;
+    zoom = wnd.devicePixelRatio, list = doc.createDocumentFragment(),
+    add = list.appendChild.bind(list),
+    el0 = doc.createElement("slash"),
+    el = a.input_ = doc.createElement("div") as SafeHTMLElement & HTMLDivElement,
+    el2 = a.countEl_ = doc.createElement("count") as SafeHTMLElement;
     if (!(Build.BTypes & BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
       el.contentEditable = "true";
       wnd.removeEventListener("paste", VUtils.Stop_, true);
@@ -130,14 +133,15 @@ var VFind = {
       el.contentEditable = "plaintext-only";
     }
     el.spellcheck = false;
-    const el2 = a.countEl_ = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
+    el0.textContent = "/";
+    add(el0);
+    add(el);
+    add(el2);
+    add(a.styleIframe_ = VDom.UI.createStyle_(a.css_[2], doc.createElement("style")));
+    VDom.createShadowRoot_(doc.body as HTMLBodyElement).appendChild(list);
     Build.BTypes & ~BrowserType.Firefox &&
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
-    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_
-      = VDom.UI.createStyle_(a.css_[2], doc.createElement("style")));
-    docEl.insertBefore(doc.createTextNode("/"), el);
-    docEl.appendChild(el2);
     a.box_.style.display = "";
     VUtils.remove_(a);
     VUtils.push_(a.onHostKeydown_, a);

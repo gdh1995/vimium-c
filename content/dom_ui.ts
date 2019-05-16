@@ -9,16 +9,7 @@ VDom.UI = {
   UI: null as never,
   add_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
-    r: VUIRoot = a.UI = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
-        || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-        || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 && !(Build.BTypes & BrowserType.Edge)
-            && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-        || box.attachShadow
-      ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
-      : (Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-            || box.createShadowRoot)
-      ? (box as Ensure<typeof box, "createShadowRoot">).createShadowRoot() : box;
+    r: VUIRoot = a.UI = VDom.createShadowRoot_(box);
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 ||

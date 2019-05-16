@@ -40,6 +40,16 @@ var VDom = {
     <K extends VimiumContainerElementType> (this: {}, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
     <K extends 1>(this: {}, tagName: "script" | K): HTMLScriptElement | Element;
   },
+  createShadowRoot_<T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T {
+    return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        && !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Firefox))
+        || box.attachShadow
+      ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
+      : Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || box.createShadowRoot)
+      ? (box as Ensure<typeof box, "createShadowRoot">).createShadowRoot() : box;
+  },
   execute_ (callback: (this: void) => void): void { callback(); },
   /** Note:
    * won't call functions if Vimium is destroyed;

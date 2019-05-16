@@ -22,6 +22,6 @@ max-width:320px;min-width:151px;overflow:hidden;padding:2px 3px;right:150px;text
 ::selection { background: #ff9632 !important; }
 html, body, * { user-select: auto; }
 *{cursor:default;font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif!important;
-height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap}
-body{cursor:text;display:inline-block;max-width:240px;min-width:7px;padding:0 3px 0 1px}
-body *{all:inherit!important;display:inline!important}html>count{position:absolute;right:0;top:0}
+height:14px;margin:0;outline:none;overflow:hidden;vertical-align:top;white-space:nowrap}
+div{cursor:text;display:inline-block;max-width:240px;min-width:7px;padding:0 3px 0 1px}
+br{all:inherit!important;display:inline!important}count{position:absolute;right:0;top:0}:host{margin:0;}
