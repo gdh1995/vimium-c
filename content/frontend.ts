@@ -120,7 +120,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       const g = InsertMode.global_;
       if (g ? !g.code ? VKeyboard.isEscape_(event) : key === g.code && VKeyboard.getKeyStat_(event) === g.stat
           : VKeyboard.isEscape_(event)
-          ? !(passKeys && ((key === VKeyCodes.esc ? "<esc>" : "<c-[>") in passKeys) !== isPassKeysReverted)
+          ? !(passKeys && ((key - VKeyCodes.esc ? "<c-[>" : "<esc>") in passKeys) !== isPassKeysReverted)
           : (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName_(event)) &&
               (action = checkValidKey(event, keyChar)), 0)
       ) {

@@ -59,7 +59,7 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.75.0:
+1.75:
 * use new icons
 * fix some rare edge cases on malformed webpages
 
