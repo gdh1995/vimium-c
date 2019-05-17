@@ -58,7 +58,8 @@ var VKey = {
             (<number> <boolean|number> event.metaKey * 4) |
             (<number> <boolean|number> event.shiftKey * 8);
   },
-  isEscape_ (event: KeyboardEvent): boolean {
+  isEscape_: null as never as (event: KeyboardEvent) => boolean,
+  isRawEscape_ (event: KeyboardEvent): boolean {
     if (event.keyCode !== VKeyCodes.esc && !event.ctrlKey) { return false; }
     const i = this.getKeyStat_(event),
     code = Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome

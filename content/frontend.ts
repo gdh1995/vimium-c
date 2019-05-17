@@ -35,6 +35,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return (vPort._port as Port).postMessage(request);
   }
 
+  function isEscape(event: KeyboardEvent): boolean {
+    let ch: string | undefined;
+    if (mappedKeys) {
+      ch = VKey.getKeyName_(event);
+      ch = ch && mappedKeys[VKey.key_(event, ch)];
+    }
+    return ch ? ch === "<esc>" || ch === "<c-[>" : VKey.isRawEscape_(event);
+  }
   function checkKey(key: string, keyCode: VKeyCodes
       ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc {
     // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
@@ -1373,6 +1381,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
   };
   VHud = HUD;
+  VKey.isEscape_ = isEscape;
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
   if (location.href !== "about:blank" || injector || !+function (): 1 | void {
