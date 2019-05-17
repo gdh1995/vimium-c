@@ -4,8 +4,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
 (function () {
   interface EscF {
-    <T extends Exclude<HandlerResult, HandlerResult.Suppress>> (this: void, i: T): T;
-    (this: void, i: HandlerResult.Suppress): HandlerResult.Prevent;
+    <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
+    (this: void, i: HandlerResult.ExitPassMode): HandlerResult.Prevent;
   }
   interface Port extends chrome.runtime.Port {
     postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): 1;
@@ -19,7 +19,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , currentKeys = "", isEnabled = false, isLocked = false
     , mappedKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
-    , esc = function<T extends Exclude<HandlerResult, HandlerResult.Suppress>> (i: T): T {
+    , esc = function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
       currentKeys = ""; nextKeys = null; return i;
     } as EscF
     , onKeyup2 = null as ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null
@@ -87,22 +87,19 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
 
   function onEscDown(event: KeyboardEvent): HandlerResult {
-    if (nextKeys) {
-      esc(HandlerResult.Suppress);
-      return HandlerResult.Prevent;
-    }
-    let action = HandlerResult.Default, { repeat } = event
+    let action = HandlerResult.Prevent, { repeat } = event
       , { activeElement: activeEl, body } = document;
     /** if `notBody` then `activeEl` is not null */
     if (!repeat && VDom.UI.removeSelection_()) {
-      action = HandlerResult.Prevent;
+      /* empty */
     } else if (repeat && !KeydownEvents[VKeyCodes.esc] && activeEl !== body) {
       (Build.BTypes & ~BrowserType.Firefox ? typeof (activeEl as Element).blur === "function"
           : (activeEl as Element).blur) &&
       (activeEl as HTMLElement | SVGElement).blur();
-      action = HandlerResult.Prevent;
     } else if (top !== window && activeEl === body) {
-      InsertMode.focusUpper_(event.keyCode, repeat, event);
+      action = InsertMode.focusUpper_(event.keyCode, repeat, event);
+    } else {
+      action = HandlerResult.Default;
     }
     return action;
   }
@@ -123,10 +120,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
       if (g ? !g.code ? VKeyboard.isEscape_(event) : key === g.code && VKeyboard.getKeyStat_(event) === g.stat
-          : VKeyboard.isEscape_(event)
-          ? !(passKeys && ((key - VKeyCodes.esc ? "<c-[>" : "<esc>") in passKeys) !== isPassKeysReverted)
-          : (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName_(event)) &&
-              (action = checkKey(VKeyboard.key_(event, keyChar), key)), 0)
+          : (keyChar = key > VKeyCodes.maxNotFn && key < VKeyCodes.minNotFn
+              ? VKeyboard.key_(event, VKeyboard.getKeyName_(event))
+              : VKeyboard.isEscape_(event) ? key - VKeyCodes.esc ? "<c-[>" : "<esc>" : "")
+            && (action = checkKey(keyChar, key)) === HandlerResult.Esc
       ) {
         if (InsertMode.lock_ === document.body && InsertMode.lock_) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
@@ -137,19 +134,17 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     }
     else if (key > VKeyCodes.maxNotPrintable || key === VKeyCodes.backspace || key === VKeyCodes.tab
-        || key === VKeyCodes.enter) {
+        || key === VKeyCodes.esc || key === VKeyCodes.enter) {
       if (keyChar = VKeyboard.char_(event)) {
         keyChar = VKeyboard.key_(event, keyChar);
         action = checkKey(keyChar, key);
+        if (action === HandlerResult.Esc) {
+          action = key === VKeyCodes.esc ? onEscDown(event) : HandlerResult.Nothing;
+        }
         if (action === HandlerResult.Nothing && InsertMode.suppressType_ && keyChar.length === 1) {
           action = HandlerResult.Prevent;
         }
       }
-    }
-    else if (key !== VKeyCodes.esc || VKeyboard.getKeyStat_(event)
-      || passKeys && ("<esc>" in passKeys) !== isPassKeysReverted) { /* empty */ }
-    else {
-      action = onEscDown(event);
     }
     if (action < HandlerResult.MinStopOrPreventEvents) { return; }
     if (action > HandlerResult.MaxNotPrevent) {
@@ -292,7 +287,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     onWndBlur2 && onWndBlur2();
     KeydownEvents = Object.create(null);
     injector || (<RegExpOne> /a?/).test("");
-    esc(HandlerResult.Suppress);
+    esc(HandlerResult.ExitPassMode);
   }
   function onShadow(this: ShadowRoot, event: FocusEvent): void {
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
@@ -396,13 +391,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
         passKeys = null;
         esc = function (i: HandlerResult): HandlerResult {
-          if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.Suppress) {
+          if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
             HUD.hide_();
             passKeys = oldPassKeys;
             return (esc = oldEsc)(HandlerResult.Prevent);
           }
           currentKeys = ""; nextKeys = keyMap;
-          HUD.show_("Normal mode (pass keys disabled)" + (count > 1 ? `: ${count} times` : ""));
+          if (keyCount - count) {
+            keyCount = count;
+            HUD.show_("Normal mode (pass keys disabled)" + (count > 1 ? `: ${count} times` : ""));
+          }
           return i;
         } as EscF;
         esc(HandlerResult.Nothing);
@@ -657,9 +655,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return false;
       }
     },
-    focusUpper_ (this: void, key: VKeyCodes, force: boolean, event: Event): void {
+    focusUpper_ (this: void, key: VKeyCodes, force: boolean, event: Parameters<typeof VUtils.prevent_>[0]
+        ): HandlerResult.Default | HandlerResult.Prevent {
       let el = VDom.parentFrame_();
-      if (!el && (!force || top === window)) { return; }
+      if (!el && (!force || top === window)) { return HandlerResult.Default; }
       VUtils.prevent_(event); // safer
       if (el) {
         KeydownEvents[key] = 1;
@@ -675,6 +674,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         post({ H: kFgReq.nextFrame, t: Frames.NextType.parent, k: key });
         KeydownEvents[key] = 2;
       }
+      return HandlerResult.Prevent;
     },
     exit_ (event: KeyboardEvent): void {
       let target: Element | null = event.target as Element;
@@ -1172,12 +1172,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
   ];
 
-  function checkKey(key: string, keyCode: VKeyCodes): HandlerResult.Nothing | HandlerResult.Prevent {
+  function checkKey(key: string, keyCode: VKeyCodes
+      ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc {
     // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
     if (passKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
       return esc(HandlerResult.Nothing);
     }
     mappedKeys !== null && (key = mappedKeys[key] || key);
+    if (key === "<esc>" || key === "<c-[>") {
+      return nextKeys ? (esc(HandlerResult.ExitPassMode), HandlerResult.Prevent) : HandlerResult.Esc;
+    }
     let j: ReadonlyChildKeyMap | ValidKeyAction | undefined;
     if (!nextKeys || (j = nextKeys[key]) == null) {
       j = keyMap[key];

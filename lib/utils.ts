@@ -20,8 +20,10 @@ var VUtils = {
   /**
    * Handler section
    */
-  Stop_ (this: void, event: Event): void { event.stopImmediatePropagation(); },
-  prevent_ (event: Event): void { event.preventDefault(); this.Stop_(event); },
+  Stop_ (this: void, event: Pick<Event, "stopImmediatePropagation">): void { event.stopImmediatePropagation(); },
+  prevent_ (event: Pick<Event, "preventDefault" | "stopImmediatePropagation">): void {
+    event.preventDefault(); this.Stop_(event);
+  },
   suppressAll_ (this: void, target: EventTarget, name: string, disable?: boolean): void {
     (disable ? removeEventListener : addEventListener).call(target, name, VUtils.Stop_,
       {passive: true, capture: true} as EventListenerOptions | boolean as boolean);

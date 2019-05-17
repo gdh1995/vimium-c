@@ -11,6 +11,7 @@ var VKeyboard = {
     let s: string | undefined;
     return i < VKeyCodes.minNotInKeyNames ? (s = i > VKeyCodes.maxNotPrintable
           ? this.keyNames_[i - VKeyCodes.space] : i === VKeyCodes.backspace ? "backspace"
+          : i === VKeyCodes.esc ? "esc"
           : i === VKeyCodes.tab ? "tab" : i === VKeyCodes.enter ? "enter" : ""
         , c ? s && s.toUpperCase() : s)
       : i < VKeyCodes.minNotDelete && i > VKeyCodes.maxNotInsert ? (i > VKeyCodes.insert ? "delete" : "insert")
@@ -40,7 +41,7 @@ var VKeyboard = {
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
-      return event.keyCode && this.getKeyName_(event)
+      return this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
         || (this as EnsureNonNull<typeof VKeyboard>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     }
     return (key as string).length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName_(event) : key as string;

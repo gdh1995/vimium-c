@@ -365,12 +365,13 @@ var Tasks = {
     ["background", "content", "vomnibar", "polyfill", "injector", "options", "show", "others"].forEach(makeWatchTask);
     done();
   }],
-  lint: function (done) {
+  tslint: function (done) {
     var node = process.argv[0];
     process.argv = [node, ..."./node_modules/tslint/bin/tslint --project .".split(" ")];
     require(process.argv[1]);
     done();
   },
+  lint: ["tslint"],
   local2: function(cb) {
     locally = true;
     gulp.series("static", "_manifest")(function() {

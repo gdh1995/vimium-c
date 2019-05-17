@@ -31,6 +31,8 @@ declare const enum HandlerResult {
   MinStopOrPreventEvents = 1,
   MaxNotPrevent = 1,
   Prevent = 2,
+  Esc = 3,
+  ExitPassMode = 4,
 }
 declare const enum VisibilityType {
   Visible = 0,
