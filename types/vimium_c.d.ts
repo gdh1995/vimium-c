@@ -349,7 +349,9 @@ declare const enum GlobalConsts {
 
 declare const enum KnownKey {
   tab = 9, space = 32, minNotSpace, bang = 33, quote2 = 34, hash = 35,
-  maxCommentHead = hash, and = 38, quote1 = 39, minNotInKeyNames = 41, dot = 46, slash = 47,
+  maxCommentHead = hash, and = 38, quote1 = 39, minNotInKeyNames = 41,
+  /** '-' */ line = 45,
+  dot = 46, slash = 47,
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62, question = 63,
   A = 65, minAlphabet = A, B, C, I = A + 8, W = A + 22, minLastAlphabet = A + 25, minNotAlphabet,
   a = 97, CASE_DELTA = a - A, AlphaMask = 0xff & ~CASE_DELTA,

@@ -62,7 +62,7 @@ var Commands = {
           console.log("Lacking command when mapping %c%s", colorRed, key);
         } else if (!(details = available[splitLine[2]])) {
           console.log("Command %c%s", colorRed, splitLine[2], "doesn't exist!");
-        } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum) {
+        } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum || ch === KnownKey.line) {
           console.log("Invalid key: %c%s", colorRed, key, "(the first char can not be '-' or number)");
         } else {
           registry[key] = Utils.makeCommand_(splitLine[2], (<typeof Commands> this).getOptions_(splitLine, 3), details);
