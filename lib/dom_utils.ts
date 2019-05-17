@@ -143,7 +143,7 @@ var VDom = {
       , pn = el.parentNode as Exclude<Element["parentNode"], Window>;
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null; }
     const NL = NodeList as { prototype: RadioNodeList; new(): unknown; };
-    if (Build.BTypes & ~BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && VDom.unsafeFramesetTag_ && el === document.body) {
       // todo: iframe's <body> ?
       // ignore pn / pe because they may be unsafe
