@@ -126,7 +126,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           : VKeyboard.isEscape_(event)
           ? !(passKeys && ((key - VKeyCodes.esc ? "<c-[>" : "<esc>") in passKeys) !== isPassKeysReverted)
           : (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName_(event)) &&
-              (action = checkValidKey(event, keyChar)), 0)
+              (action = checkKey(VKeyboard.key_(event, keyChar), key)), 0)
       ) {
         if (InsertMode.lock_ === document.body && InsertMode.lock_) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
@@ -139,7 +139,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     else if (key > VKeyCodes.maxNotPrintable || key === VKeyCodes.backspace || key === VKeyCodes.tab
         || key === VKeyCodes.enter) {
       if (keyChar = VKeyboard.char_(event)) {
-        action = checkValidKey(event, keyChar);
+        keyChar = VKeyboard.key_(event, keyChar);
+        action = checkKey(keyChar, key);
         if (action === HandlerResult.Nothing && InsertMode.suppressType_ && keyChar.length === 1) {
           action = HandlerResult.Prevent;
         }
@@ -1171,23 +1172,23 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
   ];
 
-  function checkValidKey(event: KeyboardEvent, key: string): HandlerResult.Nothing | HandlerResult.Prevent {
-    key = VKeyboard.key_(event, key);
+  function checkKey(key: string, keyCode: VKeyCodes): HandlerResult.Nothing | HandlerResult.Prevent {
+    // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
+    if (passKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
+      return esc(HandlerResult.Nothing);
+    }
     mappedKeys !== null && (key = mappedKeys[key] || key);
     let j: ReadonlyChildKeyMap | ValidKeyAction | undefined;
     if (!nextKeys || (j = nextKeys[key]) == null) {
       j = keyMap[key];
-      // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
-      if (j == null || passKeys !== null && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
-        currentKeys = "";
-        nextKeys = null;
-        return HandlerResult.Nothing;
+      if (j == null) {
+        return esc(HandlerResult.Nothing);
       }
       if (j !== KeyAction.cmd && nextKeys) { currentKeys = ""; }
     }
     currentKeys += key;
     if (j === KeyAction.cmd) {
-      post({ H: kFgReq.key, k: currentKeys, l: event.keyCode });
+      post({ H: kFgReq.key, k: currentKeys, l: keyCode });
       return esc(HandlerResult.Prevent);
     } else {
       nextKeys = j !== KeyAction.count ? j : keyMap;
@@ -1363,7 +1364,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     destroy_: safeDestroy
   };
   if (injector) {
-    injector.$priv = [vPort.SafePost_, function () { return currentKeys; }];
+    injector.$priv = [vPort.SafePost_, function () {
+      let keys = currentKeys; esc(HandlerResult.Nothing); return keys;
+    }];
   }
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
