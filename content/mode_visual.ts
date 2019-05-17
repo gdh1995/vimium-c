@@ -613,9 +613,9 @@ var VVisual = {
         let cn: Node["childNodes"];
         const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes as NodeList
             : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
-            ? VDom.Getter_(Node, anchorNode as Element, "childNodes") as NodeList
+            ? VDom.Getter_<Node, "childNodes", true>(Node, anchorNode as Element, "childNodes")
             : (cn = (anchorNode as Element).childNodes) instanceof NodeList && !("value" in cn) ? cn
-            : VDom.Getter_(Node, anchorNode as Element, "childNodes") as NodeList | null || []
+            : VDom.Getter_(Node, anchorNode as Element, "childNodes") || []
             )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (VDom.isInputInTextMode_(lock as TextModeElement)) {

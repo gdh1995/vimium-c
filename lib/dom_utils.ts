@@ -88,10 +88,13 @@ var VDom = {
     }
   },
   /** refer to {@link BrowserVer.MinParentNodeInNodePrototype } */
-  Getter_: Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty> (this: void
+  Getter_: Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty
+            , ensured extends boolean = false>(this: void
       , Cls: { prototype: Ty, new(): Ty; }, instance: Ty
       , property: Key & (Ty extends Element ? "shadowRoot" | "assignedSlot" : "childNodes" | "parentNode")
-      ): NonNullable<Ty[Key]> | null {
+      ): Exclude<NonNullable<Ty[Key]>, Window | RadioNodeList | HTMLCollection
+            | (Key extends "parentNode" ? never : Element)>
+          | (ensured extends true ? never : null) {
     const desc = Object.getOwnPropertyDescriptor(Cls.prototype, property);
     return desc && desc.get ? desc.get.call(instance) : null;
   } : 0 as never,
@@ -124,7 +127,7 @@ var VDom = {
      * Known info about Chrome:
      * * a selection / range can only know nodes and text in a same tree scope
      */
-    const E = Element;
+    const E = Element, a = Build.BTypes & ~BrowserType.Firefox ? VDom : 0 as never;
     if (type >= PNType.RevealSlot) {
       if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome) {
         const func = E.prototype.getDestinationInsertionPoints,
@@ -132,27 +135,33 @@ var VDom = {
         len > 0 && (el = arr[len - 1]);
       }
       let slot = (el as Element).assignedSlot;
-      Build.BTypes & ~BrowserType.Firefox && slot && VDom.notSafe_(el) &&
-      (slot = VDom.Getter_(E, el, "assignedSlot"));
+      Build.BTypes & ~BrowserType.Firefox && slot && a.notSafe_(el) &&
+      (slot = a.Getter_(E, el, "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
         while (slot = slot.assignedSlot) { el = slot as HTMLSlotElement; }
       }
     }
-    let pe = el.parentElement as Exclude<Element["parentElement"], Window>
-      , pn = el.parentNode as Exclude<Element["parentNode"], Window>;
+    type PN = Node["parentNode"]; type PE = Node["parentElement"];
+    let pe = el.parentElement as Exclude<PE, Window>
+      , pn = el.parentNode as Exclude<PN, Window>;
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null; }
-    const NL = NodeList as { prototype: RadioNodeList; new(): unknown; };
+    const NL = Build.BTypes & ~BrowserType.Firefox ? NodeList as { prototype: RadioNodeList; new(): unknown; }
+                : 0 as never,
+    kPN = "parentNode";
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-        && VDom.unsafeFramesetTag_ && el === document.body) {
-      // todo: iframe's <body> ?
-      // ignore pn / pe because they may be unsafe
-      return document.documentElement;
+        && pe && a.unsafeFramesetTag_) { // may be [a <frameset> with pn or pe overridden], or a <form>
+      const action = +((pn as PN as WindowWithTop).top === top) + 2 * +((pe as PE as WindowWithTop).top === top)
+        , d = document;
+      if (action) { // indeed a <frameset>
+        return action < 2 ? pe as Element : action < 3 ? pn as Node : el === d.body ? d.documentElement
+          : a.Getter_(Node, el, kPN);
+      }
     }
     // par exists but not in normal tree
     if (Build.BTypes & ~BrowserType.Firefox && (pn instanceof NL || !pn.contains(el))) { // pn is overridden
       if (pe && !(pe instanceof NL) && pe.contains(el)) { /* pe is real */ return pe; }
-      pn = VDom.Getter_(Node, el, "parentNode") as Exclude<Node["parentNode"], Window | RadioNodeList>;
+      pn = a.Getter_(Node, el, kPN);
     }
     // pn is real (if BrowserVer.MinParentNodeGetterInNodePrototype else) real or null
     return type === PNType.DirectNode ? pn as Node | null // may return a Node instance
@@ -639,7 +648,7 @@ var VDom = {
     if (el instanceof E) {
       el = Build.BTypes & ~BrowserType.Firefox
         ? ((cn = el.childNodes) instanceof NodeList && !("value" in cn) // exclude RadioNodeList
-            || (cn = this.Getter_(Node, el, "childNodes") as NodeList | null))
+            || (cn = this.Getter_(Node, el, "childNodes")))
           && cn[sel.focusOffset] || el
         : (el.childNodes as NodeList)[sel.focusOffset] || el;
     }
