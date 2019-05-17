@@ -46,7 +46,7 @@ var VDom = {
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || box.attachShadow
       ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
-      : Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+      : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || box.createShadowRoot)
       ? (box as Ensure<typeof box, "createShadowRoot">).createShadowRoot() : box;
   },
