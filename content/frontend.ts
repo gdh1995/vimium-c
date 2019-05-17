@@ -87,6 +87,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
 
   function onEscDown(event: KeyboardEvent): HandlerResult {
+    if (nextKeys) {
+      esc(HandlerResult.Suppress);
+      return HandlerResult.Prevent;
+    }
     let action = HandlerResult.Default, { repeat } = event
       , { activeElement: activeEl, body } = document;
     /** if `notBody` then `activeEl` is not null */
@@ -143,10 +147,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     else if (key !== VKeyCodes.esc || VKeyboard.getKeyStat_(event)
       || passKeys && ("<esc>" in passKeys) !== isPassKeysReverted) { /* empty */ }
-    else if (nextKeys) {
-      esc(HandlerResult.Suppress);
-      action = HandlerResult.Prevent;
-    } else {
+    else {
       action = onEscDown(event);
     }
     if (action < HandlerResult.MinStopOrPreventEvents) { return; }
@@ -385,14 +386,18 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (opt.hud) { return HUD.show_(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
     /* passNextKey: */ function (count: number, options: CmdOptions[kFgCmd.passNextKey]): void {
-      const keys = Object.create<BOOL>(null);
-      count = Math.abs(count);
+      const keys = Object.create<BOOL>(null), oldEsc = esc, oldPassKeys = passKeys;
       let keyCount = 0;
+      count = Math.abs(count);
       if (options.normal) {
-        const oldEsc = esc;
+        if (!oldPassKeys) {
+          return HUD.tip_("No pass keys.");
+        }
+        passKeys = null;
         esc = function (i: HandlerResult): HandlerResult {
           if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.Suppress) {
             HUD.hide_();
+            passKeys = oldPassKeys;
             return (esc = oldEsc)(HandlerResult.Prevent);
           }
           currentKeys = ""; nextKeys = keyMap;
