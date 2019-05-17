@@ -1,19 +1,6 @@
 /// <reference path="../content/base.d.ts" />
-interface ElementWithClickable { vimiumHasOnclick?: boolean; }
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
-  var WeakSet: WeakSetConstructor | undefined;
-}
-
 var VDom = {
   UI: null as never as DomUI,
-  /*
-   * Miscellaneous section
-   */
-  clickable_: Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-        || WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() as never : <Pick<WeakSet<Element>, "add" | "has">> {
-    add (element: Element): void { (element as ElementWithClickable).vimiumHasOnclick = true; },
-    has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; }
-  },
   cache_: null as never as SettingsNS.FrontendSettingCache,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as BOOL,

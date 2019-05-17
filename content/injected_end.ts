@@ -1,12 +1,12 @@
-[VDom, VHints, VKeyboard, VOmni, VScroller, VMarks,
+[VDom, VHints, VKey, VOmni, VScroller, VMarks,
   VFind, VSettings, VHud, VVisual,
-  VUtils, VEvent, VPort
+  VLib, VEvent, VPort
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;
 
 (function () {
   const injector = VimiumInjector as VimiumInjectorTy, clickable = injector.clickable;
-  clickable && (VDom.clickable_ = clickable);
+  clickable && (VLib.clickable_ = clickable);
 
   injector.checkIfEnabled = (function (this: null
       , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
@@ -44,7 +44,8 @@ VDom.allowScripts_ = 0;
   let livingCheckTimer = 0;
   injector.$_run = function (task): void {
     if (task === InjectorTask.reload) {
-      VimiumInjector && VimiumInjector.reload(InjectorTask.reload);
+      const injector1 = VimiumInjector;
+      injector1 && injector1.reload(InjectorTask.reload);
       return;
     }
     if (!(Build.BTypes & ~BrowserType.Firefox)
@@ -68,12 +69,12 @@ VDom.allowScripts_ = 0;
 })();
 
 VDom.OnDocLoaded_(function () {
-  VimiumInjector &&
-  addEventListener("hashchange", VimiumInjector.checkIfEnabled);
+  const injector = VimiumInjector;
+  injector && addEventListener("hashchange", injector.checkIfEnabled);
 });
 
 VSettings.execute_ = function (cmd): void {
-  let injector = VimiumInjector;
+  const injector = VimiumInjector;
   if (cmd === kContentCmd.Destroy && injector) {
     removeEventListener("hashchange", injector.checkIfEnabled);
     injector.alive = 0;

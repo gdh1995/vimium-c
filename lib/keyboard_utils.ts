@@ -1,4 +1,4 @@
-var VKeyboard = {
+var VKey = {
   keyNames_: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down"] as ReadonlyArray<string>,
   correctionMap_: {
     __proto__: null as never,
@@ -33,7 +33,7 @@ var VKeyboard = {
     } else if (keyId < KnownKey.minNotAlphabet) {
       return String.fromCharCode(keyId + (event.shiftKey ? 0 : KnownKey.CASE_DELTA));
     } else {
-      return keyId > 185 && (s = (this as typeof VKeyboard).correctionMap_[keyId - 186]) && s[+event.shiftKey] || "";
+      return keyId > 185 && (s = (this as typeof VKey).correctionMap_[keyId - 186]) && s[+event.shiftKey] || "";
     }
   },
   char_ (event: KeyboardEvent): string {
@@ -42,7 +42,7 @@ var VKeyboard = {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
       return this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
-        || (this as EnsureNonNull<typeof VKeyboard>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
+        || (this as EnsureNonNull<typeof VKey>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     }
     return (key as string).length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName_(event) : key as string;
   },

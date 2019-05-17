@@ -33,7 +33,7 @@
       "Object.create", "Object.setPrototypeOf",
       "getAttribute", "hasAttribute", "querySelectorAll",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
-      "VEvent.lock_", "VEvent.mapKey_", "VUtils.safer_",
+      "VEvent.lock_", "VEvent.mapKey_", "VLib.safer_",
       "onRuntimeError", "Utils.runtimeError_",
       "SafeEl_", "notSafe_", "getEditableType_",
       "readyState",
@@ -65,7 +65,7 @@
       "WeakSet",
       // # content global names:
       "browser",
-      "VimiumInjector", "VimiumClickable", "VUtils", "VKeyboard", "VDom",
+      "VimiumInjector", "VimiumClickable", "VLib", "VKey", "VDom",
       "VHints", "VOmni", "VScroller", "VMarks", "VFind", "VVisual",
       "VSettings", "VHud", "VPort", "VEvent",
       // # fixed background global names:

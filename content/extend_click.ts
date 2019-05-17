@@ -72,7 +72,7 @@ if (VDom && VimiumInjector === undefined) {
     const t = event.target;
     if (++hookRetryTimes > InnerConsts.MaxRetryTimesForHook
         || event.detail !== secret || !(t instanceof Element)) { return; }
-    // it's unhooking is delayed, so here may no VUtils
+    // it's unhooking is delayed, so here may no VLib
     event.stopImmediatePropagation();
     removeEventListener(kHook, hook, true);
     hook = null as never;
@@ -83,7 +83,7 @@ if (VDom && VimiumInjector === undefined) {
     }
   };
   function onClick(event: CustomEvent): void {
-    VUtils.Stop_(event);
+    VLib.Stop_(event);
     let detail = event.detail as ClickableEventDetail | null;
     if (!Build.NDEBUG) {
       let target = event.target as Element;
@@ -100,7 +100,7 @@ if (VDom && VimiumInjector === undefined) {
     if (detail) {
       resolve(0, detail[0]); detail[1] && resolve(1, detail[1]);
     } else {
-      VDom.clickable_.add(event.target as Element);
+      VLib.clickable_.add(event.target as Element);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
@@ -108,7 +108,7 @@ if (VDom && VimiumInjector === undefined) {
     let list = isBox ? (box as Element).getElementsByTagName("*") : document.getElementsByTagName("*");
     for (const index of nodeIndexList) {
       let el = list[index];
-      el && VDom.clickable_.add(el);
+      el && VLib.clickable_.add(el);
     }
     isBox && ((box as Element).textContent = "");
   }

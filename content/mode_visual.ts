@@ -48,7 +48,7 @@ var VVisual = {
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
     const a = VVisual;
     a.init_ && a.init_(options.w as string);
-    VUtils.remove_(a);
+    VLib.remove_(a);
     VDom.docSelectable_ = VDom.UI.getDocSelectable_();
     VScroller.prepareTop_();
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
@@ -93,7 +93,7 @@ var VVisual = {
       a.collapseToRight_((a.getDirection_() & +(mode > 1)) as BOOL);
     }
     a.commandHandler_(-1, 1);
-    VUtils.push_(a.onKeydown_, a);
+    VLib.push_(a.onKeydown_, a);
   },
   /** @safe_di */
   deactivate_ (isEsc?: 1): void {
@@ -103,7 +103,7 @@ var VVisual = {
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     a.getDirection_("");
     const oldDiType = a.diType_ as VisualModeNS.DiType;
-    VUtils.remove_(a);
+    VLib.remove_(a);
     if (!a.retainSelection_) {
       a.collapseToFocus_(isEsc && a.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
@@ -134,22 +134,22 @@ var VVisual = {
       return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing;
     }
     if (i === VKeyCodes.enter) {
-      i = VKeyboard.getKeyStat_(event);
+      i = VKey.getKeyStat_(event);
       if ((i & KeyStat.shiftKey) && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
       (i & KeyStat.PrimaryModifier) ? a.deactivate_()
         : (a.resetKeys_(), a.yank_(i === KeyStat.altKey || null));
       return HandlerResult.Prevent;
     }
-    if (VKeyboard.isEscape_(event)) {
+    if (VKey.isEscape_(event)) {
       a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivate_(1);
       return HandlerResult.Prevent;
     }
-    const ch = VKeyboard.char_(event);
+    const ch = VKey.char_(event);
     if (!ch) {
       a.resetKeys_();
       return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    let key = VKeyboard.key_(event, ch)
+    let key = VKey.key_(event, ch)
       , obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
     key = VEvent.mapKey_(key);
     if (obj = a.currentSeconds_) {
@@ -171,7 +171,7 @@ var VVisual = {
       a.currentCount_ = 0;
     }
     if (obj == null) { return ch.length === 1 && ch === key ? HandlerResult.Prevent : HandlerResult.Suppress; }
-    VUtils.prevent_(event);
+    VLib.prevent_(event);
     a.di_ = VisualModeNS.kDir.unknown; // make @di safe even when a user modifies the selection
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     a.commandHandler_(obj, count || 1);
@@ -193,7 +193,7 @@ var VVisual = {
         VPort.post_({ H: kFgReq.findFromVisual });
         return;
       }
-      return movement.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
+      return movement.activate_(1, VLib.safer_<CmdOptions[kFgCmd.visualMode]>({
         // command === 1 ? VisualModeNS.Mode.Visual : command === 2 : VisualModeNS.Mode.Line : VisualModeNS.Mode.Caret
         m: command - 50
       }));
@@ -304,7 +304,7 @@ var VVisual = {
     if (VFind.hasResults_) {
       a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
       if (a.mode_ === VisualModeNS.Mode.Caret && a.selType_() === SelType.Range) {
-        a.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
+        a.activate_(1, VLib.safer_<CmdOptions[kFgCmd.visualMode]>({
           m: VisualModeNS.Mode.Visual
         }));
       } else {
@@ -770,7 +770,7 @@ init_ (words: string) {
   } : function (this: typeof VVisual): SelType {
     return typeIdx[this.selection_.type];
   };
-  const map = a.keyMap_, func = VUtils.safer_;
+  const map = a.keyMap_, func = VLib.safer_;
 /**
  * Call stack (Chromium > icu):
  * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86

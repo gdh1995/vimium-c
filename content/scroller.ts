@@ -331,10 +331,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       return;
     }
     this.scrolled_ = 2;
-    VUtils.suppressAll_(window, "scroll");
+    VLib.suppressAll_(window, "scroll");
     requestAnimationFrame(function (): void {
       VScroller.scrolled_ = 0;
-      VUtils.suppressAll_(window, "scroll", true);
+      VLib.suppressAll_(window, "scroll", true);
     });
   },
   sortByArea_ (this: void, a: ElementScrollInfo, b: ElementScrollInfo): number {

@@ -22,7 +22,7 @@ VDom.UI = {
       if (!VDom) { removeEventListener("load", Onload, true); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement;
       if (t.parentNode === VDom.UI.UI) {
-        VUtils.Stop_(e); t.onload && t.onload(e);
+        VLib.Stop_(e); t.onload && t.onload(e);
       }
     }, true);
     a.add_ = (function<T2 extends HTMLElement> (this: DomUI, element2: T2, adjust2?: AdjustType
@@ -268,7 +268,7 @@ VDom.UI = {
         && element instanceof HTMLAnchorElement && element.href
         && (element.target === "_blank" || modifiers.ctrlKey_ || modifiers.metaKey_)) {
       // need to work around Firefox's popup blocker
-      result = element.getAttribute("onclick") || VDom.clickable_.has(element)
+      result = element.getAttribute("onclick") || VLib.clickable_.has(element)
           ? ActionType.DispatchAndMayFix : ActionType.FixButNotDispatch;
     }
     if (result >= ActionType.FixButNotDispatch
@@ -374,7 +374,7 @@ VDom.UI = {
     if (onlyRepeated) {
       func = function (event) {
         if (event.repeat) { return HandlerResult.Prevent; }
-        VUtils.remove_(this);
+        VLib.remove_(this);
         return HandlerResult.Nothing;
       };
     } else {
@@ -386,14 +386,14 @@ VDom.UI = {
            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
               && info) {
           clearInterval(timer);
-          VUtils && VUtils.remove_(func); // safe enough even if reloaded
+          VLib && VLib.remove_(func); // safe enough even if reloaded
         }
       }, 75);
     }
-    VUtils.push_(func, func);
+    VLib.push_(func, func);
   },
   SuppressMost_ (event) {
-    VKeyboard.isEscape_(event) && VUtils.remove_(this);
+    VKey.isEscape_(event) && VLib.remove_(this);
     const key = event.keyCode;
     return key > VKeyCodes.f10 && key < VKeyCodes.minNotFn || key === VKeyCodes.f5 ?
       HandlerResult.Suppress : HandlerResult.Prevent;

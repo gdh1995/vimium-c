@@ -92,11 +92,11 @@ var VHints = {
     if (VEvent.checkHidden_(kFgCmd.linkHints, count, options)) {
       return a.clean_();
     }
-    VUtils.remove_(a);
+    VLib.remove_(a);
     if (document.body === null) {
       a.clean_();
       if (!a.timer_ && VDom.OnDocLoaded_ !== VDom.execute_) {
-        VUtils.push_(VDom.UI.SuppressMost_, a);
+        VLib.push_(VDom.UI.SuppressMost_, a);
         a.timer_ = setTimeout(a.run.bind(a as never, count, options), 300);
         return;
       }
@@ -140,7 +140,7 @@ var VHints = {
     a.dialogMode_ && (a.box_ as HTMLDialogElement).showModal();
 
     a.isActive_ = true;
-    VUtils.push_(a.onKeydown_, a);
+    VLib.push_(a.onKeydown_, a);
     VEvent.onWndBlur_(a.ResetMode_);
   },
   setModeOpt_ (count: number, options: HintsNS.Options): void {
@@ -277,7 +277,7 @@ var VHints = {
     let arr: Rect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
     if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) {
       if (element instanceof SVGElement) {
-        type = VDom.clickable_.has(element) || element.getAttribute("onclick")
+        type = VLib.clickable_.has(element) || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
             || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.listener
           : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
@@ -352,7 +352,7 @@ var VHints = {
     }
     if (isClickable === null) {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
-        : (VDom.clickable_.has(element) && VHints.isClickListened_) || element.getAttribute("onclick")
+        : (VLib.clickable_.has(element) && VHints.isClickListened_) || element.getAttribute("onclick")
           || VHints.ngEnabled_ && element.getAttribute("ng-click")
           || (s = element.getAttribute("role")) && VHints.roleRe_.test(s)
           || VHints.forHover_ && element.getAttribute("onmouseover")
@@ -386,7 +386,7 @@ var VHints = {
     const arr2: Hint[] = output || [], len = arr2.length;
     if (element) {
       if (!output && element.getAttribute("disabled")) { return false; }
-      output && VDom.clickable_.add(element);
+      output && VLib.clickable_.add(element);
       VHints.GetClickable_.call(arr2, element);
     }
     return element ? arr2.length <= len : output ? true : null;
@@ -420,7 +420,7 @@ var VHints = {
   GetLinks_ (this: Hint[], element: Element): void {
     let a: string | null, arr: Rect | null;
     if (element instanceof HTMLAnchorElement && ((a = element.getAttribute("href")) && a !== "#"
-        && !VUtils.jsRe_.test(a)
+        && !VLib.jsRe_.test(a)
         || element.dataset.vimUrl != null)) {
       if (arr = VDom.getVisibleClientRect_(element)) {
         this.push([element, arr, ClickType.click]);
@@ -452,7 +452,7 @@ var VHints = {
     if (element instanceof HTMLImageElement) { return VHints._getImagesInImg(this, element); }
     if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { return; }
     let str = element.dataset.src || element.getAttribute("href"), cr: Rect | null;
-    if (!VUtils.isImageUrl_(str)) {
+    if (!VLib.isImageUrl_(str)) {
       str = element.style.backgroundImage as string;
       // skip "data:" URLs, becase they are not likely to be big images
       str = (str.startsWith("url") || str.startsWith("URL")) && str.lastIndexOf("data:", 9) < 0 ? str : "";
@@ -698,7 +698,7 @@ var VHints = {
     let linksMatched: HintsNS.LinksMatched, i: number;
     if (event.repeat || !a.isActive_) {
       // NOTE: should always prevent repeated keys.
-    } else if (VKeyboard.isEscape_(event)) {
+    } else if (VKey.isEscape_(event)) {
       a.clean_();
     } else if ((i = event.keyCode) === VKeyCodes.esc) {
       return HandlerResult.Suppress;
@@ -709,7 +709,7 @@ var VHints = {
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       a.ResetMode_();
       if (i !== VKeyCodes.f2) { return HandlerResult.Nothing; }
-      i = VKeyboard.getKeyStat_(event);
+      i = VKey.getKeyStat_(event);
       let deep = a.queryInDeep_, reinit = true;
       if (i & KeyStat.shiftKey) {
         if (i & ~KeyStat.shiftKey) {
@@ -750,7 +750,7 @@ var VHints = {
         : mode;
       if (mode2 !== mode) {
         a.setMode_(mode2);
-        i = VKeyboard.getKeyStat_(event);
+        i = VKey.getKeyStat_(event);
         (i & (i - 1)) || (a.lastMode_ = mode);
       }
     } else if (i <= VKeyCodes.down && i >= VKeyCodes.pageup) {
@@ -768,7 +768,7 @@ var VHints = {
     } else if (linksMatched.length === 0) {
       a.deactivate_(a.keyStatus_.known_);
     } else if (linksMatched.length === 1) {
-      VUtils.prevent_(event);
+      VLib.prevent_(event);
       a.execute_(linksMatched[0]);
     } else {
       a.hideSpans_(linksMatched);
@@ -891,7 +891,7 @@ var VHints = {
     ks.tab_ = ks.newHintLength_ = ks.known_ = alpha.countMax_ = 0;
     alpha.hintKeystroke_ = alpha.chars_ = "";
     a.isActive_ = a.noHUD_ = a.tooHigh_ = false;
-    VUtils.remove_(a);
+    VLib.remove_(a);
     VEvent.onWndBlur_(null);
     if (a.box_) {
       a.box_.remove();
@@ -1033,7 +1033,7 @@ alphabetHints_: {
         return [];
       }
       a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
-    } else if ((keyChar = VKeyboard.char_(e).toUpperCase()) && keyChar.length === 1) {
+    } else if ((keyChar = VKey.char_(e).toUpperCase()) && keyChar.length === 1) {
       if (a.chars_.indexOf(keyChar) === -1) {
         return [];
       }
@@ -1083,7 +1083,7 @@ _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
     text = img.currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
   } else {
     text = img instanceof HTMLAnchorElement ? img.getAttribute("href") && img.href : "";
-    if (!VUtils.isImageUrl_(text)) {
+    if (!VLib.isImageUrl_(text)) {
       let arr = (<RegExpI> /^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(img.style.backgroundImage as string);
       if (arr && arr[1]) {
         const a1 = document.createElement("a");
@@ -1092,7 +1092,7 @@ _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
       }
     }
   }
-  if (!text || forShow && text.startsWith("data:") || VUtils.jsRe_.test(text)
+  if (!text || forShow && text.startsWith("data:") || VLib.jsRe_.test(text)
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
@@ -1155,7 +1155,7 @@ Modes_: [
     }
     const toggleMap = a.options_.toggle;
     if (!toggleMap || typeof toggleMap !== "object") { return; }
-    VUtils.safer_(toggleMap);
+    VLib.safer_(toggleMap);
     let ancestors: Element[] = [], topest: Element | null = element, re = <RegExpOne> /^-?\d+/;
     for (let key in toggleMap) {
       // if no Element::closest, go up by 6 levels and then query the selector
@@ -1266,7 +1266,7 @@ Modes_: [
     }
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
-    str = isUrl ? VUtils.decodeURL_(str) : str;
+    str = isUrl ? VLib.decodeURL_(str) : str;
     VPort.post_({
       H: kFgReq.copy,
       d: str

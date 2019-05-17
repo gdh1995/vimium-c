@@ -10,7 +10,7 @@ interface ShadowRoot {
 interface Window {
   VimiumInjector?: VimiumInjectorTy | null;
   VSettings: VSettingsTy | null;
-  readonly VKeyboard?: {
+  readonly VKey?: {
     char_ (event: KeyboardEvent): string;
     key_ (event: EventControlKeys, ch: string): string;
   };

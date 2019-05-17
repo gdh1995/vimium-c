@@ -347,13 +347,13 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
     simulateClick(VShown as ValidNodeTypes, event);
     return true;
   }
-  if (!window.VKeyboard) {
+  if (!window.VKey) {
     return false;
   }
-  let ch = VKeyboard.char_(event);
+  let ch = VKey.char_(event);
   if (!ch) { return false; }
   let action: number = 0;
-  switch (VKeyboard.key_(event, ch)) {
+  switch (VKey.key_(event, ch)) {
   case "<c-=>": case "+": case "=": case "<up>": action = 1; break;
   case "<left>": action = -2; break;
   case "<right>": action = 2; break;

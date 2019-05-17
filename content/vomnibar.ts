@@ -73,10 +73,10 @@ var VOmni = {
     if (!(Build.NDEBUG || VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1)) {
       console.log("Assert error: VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1");
     }
-    a.status_ > VomnibarNS.Status.Inactive || VUtils.push_(VDom.UI.SuppressMost_, a);
+    a.status_ > VomnibarNS.Status.Inactive || VLib.push_(VDom.UI.SuppressMost_, a);
     a.box_ && VDom.UI.adjust_();
     if (a.status_ === VomnibarNS.Status.NotInited) {
-      if (VHints.TryNestedFrame_("VOmni", "run", count, options)) { return VUtils.remove_(a); }
+      if (VHints.TryNestedFrame_("VOmni", "run", count, options)) { return VLib.remove_(a); }
       a.status_ = VomnibarNS.Status.Initing;
       a.init_(options);
     } else if (a.isABlank_()) {
@@ -127,7 +127,7 @@ var VOmni = {
       active && a.port_.postMessage(VomnibarNS.kCReq.hide);
       return;
     }
-    VUtils.remove_(a);
+    VLib.remove_(a);
     active || focus();
     a.box_.style.cssText = "display:none";
   },
@@ -216,7 +216,7 @@ var VOmni = {
     a.port_ && a.port_.close();
     a.box_.remove();
     a.port_ = a.box_ = null as never;
-    VUtils.remove_(a);
+    VLib.remove_(a);
     a.options_ = null;
     if (a.onReset_) { return a.onReset_(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
@@ -278,13 +278,13 @@ var VOmni = {
     style.display = "";
     setTimeout(function (): void {
       const a2 = VOmni;
-      VUtils.remove_(a2);
-      a2 && a2.status_ === VomnibarNS.Status.Showing && VUtils.push_(a2.onKeydown_, a2);
+      VLib.remove_(a2);
+      a2 && a2.status_ === VomnibarNS.Status.Showing && VLib.push_(a2.onKeydown_, a2);
     }, 160);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     if (VEvent.lock_()) { return HandlerResult.Nothing; }
-    if (VKeyboard.isEscape_(event)) { this.hide_(); return HandlerResult.Prevent; }
+    if (VKey.isEscape_(event)) { this.hide_(); return HandlerResult.Prevent; }
     const key = event.keyCode - VKeyCodes.f1;
     if (key === 0 || key === 1) {
       this.focus_();

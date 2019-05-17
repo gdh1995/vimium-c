@@ -1,4 +1,8 @@
-var VUtils = {
+interface ElementWithClickable { vimiumHasOnclick?: boolean; }
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
+  var WeakSet: WeakSetConstructor | undefined;
+}
+var VLib = {
   /**
    * tool function section
    */
@@ -25,7 +29,7 @@ var VUtils = {
     event.preventDefault(); this.Stop_(event);
   },
   suppressAll_ (this: void, target: EventTarget, name: string, disable?: boolean): void {
-    (disable ? removeEventListener : addEventListener).call(target, name, VUtils.Stop_,
+    (disable ? removeEventListener : addEventListener).call(target, name, VLib.Stop_,
       {passive: true, capture: true} as EventListenerOptions | boolean as boolean);
   },
   _keydownHandlers: [] as Array<{ func: (event: HandlerNS.Event) => HandlerResult; env: object; }>,
@@ -49,5 +53,13 @@ var VUtils = {
         break;
       }
     }
+  },
+  /*
+   * Miscellaneous section
+   */
+  clickable_: Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+      || WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() as never : <Pick<WeakSet<Element>, "add" | "has">> {
+    add (element: Element): void { (element as ElementWithClickable).vimiumHasOnclick = true; },
+    has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; }
   }
 };

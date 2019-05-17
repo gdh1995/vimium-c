@@ -57,7 +57,7 @@ var VFind = {
     st.cssText = "display:none;width:0";
     if (Build.BTypes & ~BrowserType.Firefox && VDom.wdZoom_ !== 1) { st.zoom = "" + 1 / VDom.wdZoom_; }
     el.onload = function (this: HTMLIFrameElement): void { VFind.notDisableScript_() && VFind.onLoad_(1); };
-    VUtils.push_(UI.SuppressMost_, a);
+    VLib.push_(UI.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
     UI.toggleSelectStyle_(1);
@@ -75,7 +75,7 @@ var VFind = {
   onLoad_ (later?: 1): void {
     const a = this, box: HTMLIFrameElement = a.box_,
     wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
-    now = Date.now(), s = VUtils.Stop_, t = true;
+    now = Date.now(), s = VLib.Stop_, t = true;
     let tick = 0;
     f("mousedown", a.OnMousedown_, t);
     f("keydown", a.onKeydown_.bind(a), t);
@@ -102,7 +102,7 @@ var VFind = {
       }
       Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.browser_ === BrowserType.Firefox)
-        || VUtils.Stop_(event);
+        || VLib.Stop_(event);
     }, t);
     box.onload = later ? null as never : function (): void {
       this.onload = null as never; VFind.onLoad2_(this.contentWindow);
@@ -119,7 +119,7 @@ var VFind = {
     el2 = a.countEl_ = doc.createElement("count") as SafeHTMLElement;
     if (!(Build.BTypes & BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
       el.contentEditable = "true";
-      wnd.removeEventListener("paste", VUtils.Stop_, true);
+      wnd.removeEventListener("paste", VLib.Stop_, true);
     } else if (Build.BTypes & ~BrowserType.Chrome) {
       let plain = true;
       try {
@@ -128,7 +128,7 @@ var VFind = {
         plain = false;
         el.contentEditable = "true";
       }
-      wnd.removeEventListener("paste", plain ? a._OnPaste : VUtils.Stop_, true);
+      wnd.removeEventListener("paste", plain ? a._OnPaste : VLib.Stop_, true);
     } else {
       el.contentEditable = "plaintext-only";
     }
@@ -143,8 +143,8 @@ var VFind = {
     Build.BTypes & ~BrowserType.Firefox &&
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
     a.box_.style.display = "";
-    VUtils.remove_(a);
-    VUtils.push_(a.onHostKeydown_, a);
+    VLib.remove_(a);
+    VLib.push_(a.onHostKeydown_, a);
     return a.setFirstQuery_(a.query0_);
   },
   _onUnexpectedBlur: null as ((event?: Event) => void) | null,
@@ -208,7 +208,7 @@ var VFind = {
     _this.coords_ && VMarks.ScrollTo_(_this.coords_);
     _this.hasResults_ =
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
-    VUtils.remove_(this);
+    VLib.remove_(this);
     _this.box_ && _this.box_.remove();
     if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
     _this.parsedQuery_ = _this.query_ = _this.query0_ = "";
@@ -227,18 +227,18 @@ var VFind = {
     if (event.target !== VFind.input_
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? event.isTrusted : event.isTrusted !== false)) {
-      VUtils.prevent_(event);
+      VLib.prevent_(event);
       VFind.focus_();
     }
   },
   _OnPaste: Build.BTypes & ~BrowserType.Chrome ? function (this: Window, event: ClipboardEvent): void {
     const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
-    VUtils.prevent_(event);
+    VLib.prevent_(event);
     if (!text) { return; }
     this.document.execCommand("insertText", false, text + "");
   } : null,
   onKeydown_ (event: KeyboardEvent): void {
-    VUtils.Stop_(event);
+    VLib.Stop_(event);
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? !event.isTrusted : event.isTrusted === false) { return; }
     if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
@@ -252,8 +252,8 @@ var VFind = {
       : a.query_ || (n === VKeyCodes.deleteKey && !VDom.cache_.onMac_ || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
-      if (VKeyboard.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
-      else if (i = VKeyboard.getKeyStat_(event)) {
+      if (VKey.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
+      else if (i = VKey.getKeyStat_(event)) {
         if (i & ~KeyStat.PrimaryModifier) { return; }
         else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
           VEvent.scroll_(event, a.box_.contentWindow);
@@ -274,13 +274,13 @@ var VFind = {
     } else if (i === FindNS.Action.PassDirectly) {
       return;
     }
-    VUtils.prevent_(event);
+    VLib.prevent_(event);
     if (!i) { return; }
     VEvent.keydownEvents_()[n] = 1;
     a.deactivate_(i as FindNS.Action);
   },
   onHostKeydown_ (event: KeyboardEvent): HandlerResult {
-    let i = VKeyboard.getKeyStat_(event), n = event.keyCode, a = this;
+    let i = VKey.getKeyStat_(event), n = event.keyCode, a = this;
     if (!i && n === VKeyCodes.f2) {
       a._onUnexpectedBlur && a._onUnexpectedBlur();
       a.focus_();
@@ -291,8 +291,8 @@ var VFind = {
         return HandlerResult.Prevent;
       }
     }
-    if (!VEvent.lock_() && VKeyboard.isEscape_(event)) {
-      VUtils.prevent_(event); // safer
+    if (!VEvent.lock_() && VKey.isEscape_(event)) {
+      VLib.prevent_(event); // safer
       a.deactivate_(FindNS.Action.ExitNoFocus); // should exit
       return HandlerResult.Prevent;
     }
@@ -317,7 +317,7 @@ var VFind = {
       a.restoreSelection_(true);
     }
     if (VVisual.mode_) {
-      return VVisual.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
+      return VVisual.activate_(1, VLib.safer_<CmdOptions[kFgCmd.visualMode]>({
         m: VisualModeNS.Mode.Visual,
         r: true
       }));
@@ -397,7 +397,7 @@ var VFind = {
       const pm = this, hook = addEventListener;
       const el = VEvent.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
-      VUtils.push_(pm.onKeydown_, pm);
+      VLib.push_(pm.onKeydown_, pm);
       if (el === pm.lock_) { return; }
       if (!pm.lock_) {
         hook("click", Exit, true);
@@ -408,8 +408,8 @@ var VFind = {
       hook.call(el, "blur", Exit, true);
     },
     onKeydown_ (event: KeyboardEvent): HandlerResult {
-      const exit = VKeyboard.isEscape_(event);
-      exit ? this.exit_() : VUtils.remove_(this);
+      const exit = VKey.isEscape_(event);
+      exit ? this.exit_() : VLib.remove_(this);
       return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
     },
     exit_ (skip?: boolean | Event): void {
@@ -421,13 +421,13 @@ var VFind = {
       if (!a.lock_ || skip === true) { return; }
       a.lock_ = null;
       unhook("click", a.exit_, true);
-      VUtils.remove_(a);
+      VLib.remove_(a);
       VEvent.setupSuppress_();
     }
   },
   OnInput_ (this: void, e?: Event): void {
     if (e != null) {
-      VUtils.Stop_(e);
+      VLib.Stop_(e);
       if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !e.isTrusted : e.isTrusted === false) { return; }
     }
@@ -544,7 +544,7 @@ var VFind = {
     return a.regexMatches_[count];
   },
   execute_ (query?: string | null, options?: FindNS.ExecuteOptions): void {
-    options = options ? VUtils.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
+    options = options ? VLib.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
     const a = this;
     let el: LockableElement | null
       , found: boolean, count = ((options.n as number) | 0) || 1, back = count < 0
