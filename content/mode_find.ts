@@ -168,8 +168,9 @@ var VFind = {
     ref.exit_ = ref.exit_.bind(ref);
     UI.box_ ? UI.adjust_() : UI.add_(sin, adjust, true);
     sin.remove();
-    this.styleOut_ = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+    this.styleOut_ = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+          && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
@@ -610,8 +611,9 @@ var VFind = {
     }
     if (sout.parentNode !== UI.box_) {
       (UI.box_ as HTMLDivElement).appendChild(sout);
-      ((Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer < BrowserVer.MinShadowDOMV0) &&
-      (Build.BTypes & ~BrowserType.Firefox || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) &&
+      !((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) &&
       sin === sout || UI.add_(sin, AdjustType.NotAdjust, true);
     }
     sout.sheet && (sout.sheet.disabled = disable);

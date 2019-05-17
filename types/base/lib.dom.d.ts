@@ -8315,8 +8315,9 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     webkitRequestAnimationFrame(callback: FrameRequestCallback): number;
     addEventListener<K extends keyof WindowEventMap>(type: K, listener: (this: Window, ev: WindowEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+
     ShadowRoot?: ShadowRootConstructor | Element | HTMLCollection | Window;
-    requestIdleCallback?: RequestIdleCallback;
+    requestIdleCallback?: RequestIdleCallback | Element | HTMLCollection | Window;
 }
 
 // declare var Window: {

@@ -382,6 +382,7 @@ declare const enum BrowserType {
   Firefox = 2,
   Edge = 4,
   Unknown = 8,
+  ChromeOrFirefox = Chrome | Firefox,
   _mask = 127,
 }
 

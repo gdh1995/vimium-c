@@ -43,7 +43,7 @@ var VDom = {
   createShadowRoot_<T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T {
     return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-        && !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Firefox))
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         || box.attachShadow
       ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
       : Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
@@ -107,8 +107,9 @@ var VDom = {
       // <form> and <frameset> can not have shadowRoot
       return VDom.notSafe_(el) ? null : sr as ShadowRoot;
     }
-    return !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+    return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
       ? sr as null : sr || null;
   },
   /**

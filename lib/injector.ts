@@ -14,13 +14,21 @@ var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   destroy: null
 };
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
+  var WeakSet: WeakSetConstructor | undefined;
+}
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
+  var requestIdleCallback: RequestIdleCallback | undefined;
+}
+
 (function (_a0: 1, injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]) {
 let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
       : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect)
     ) ? browser as typeof chrome : chrome).runtime;
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3,
 onIdle = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
-  ? window.requestIdleCallback : requestIdleCallback;
+  ? window.requestIdleCallback as Exclude<Window["requestIdleCallback"], Element | Window | HTMLCollection>
+  : requestIdleCallback;
 let tick = 1, extID = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0));
 if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extID.indexOf("-") > 0) {
   extID = curEl.dataset.vimiumId || BuildStr.FirefoxID;
@@ -100,10 +108,9 @@ function call() {
 }
 function start() {
   removeEventListener("DOMContentLoaded", start);
-  onIdle && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
-              && onIdle instanceof Element)
-  ? (onIdle as Exclude<typeof onIdle, null | Element>)(function (): void {
-    (onIdle as Exclude<typeof onIdle, null | Element>)(function (): void { setTimeout(call, 0); }, {timeout: 67});
+  Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || !(Build.BTypes & BrowserType.Chrome) || onIdle
+  ? (onIdle as Exclude<typeof onIdle, null | undefined>)(function (): void {
+    (onIdle as Exclude<typeof onIdle, null | undefined>)(function (): void { setTimeout(call, 0); }, {timeout: 67});
   }, {timeout: 330}) : setTimeout(call, 67);
 }
 if (document.readyState !== "loading") {

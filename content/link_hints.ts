@@ -506,14 +506,16 @@ var VHints = {
     list = null;
     const uiRoot = VDom.UI.UI;
     if (uiRoot
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-          || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+        && ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           || uiRoot !== VDom.UI.box_)
         && !notWantVUI
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
-          || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+        && ( !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0)
+          || (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           || uiRoot.mode === "closed"
-          || !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0)
           || !matchAll && a.queryInDeep_ !== DeepQueryType.InDeep)
         ) {
       const d = VDom, z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;

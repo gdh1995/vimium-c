@@ -9,16 +9,15 @@ VDom.UI = {
   UI: null as never,
   add_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
     const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
-    r: VUIRoot = a.UI = VDom.createShadowRoot_(box);
+    root: VUIRoot = a.UI = VDom.createShadowRoot_(box);
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
-    !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 ||
-    !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ||
-    Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 && !(Build.BTypes & BrowserType.Edge)
-      && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ||
-    r.mode === "closed" ||
-    (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || r !== box
-      ? r as ShadowRoot : window).addEventListener("load",
+    (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+      && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+      && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) ||
+    root.mode === "closed" ||
+    (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || root !== box
+      ? root as ShadowRoot : window).addEventListener("load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { removeEventListener("load", Onload, true); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement;
@@ -35,8 +34,9 @@ VDom.UI = {
     });
     a.css_ = (function (innerCSS): void {
       const a1 = VDom.UI, box2 = a1.box_ as HTMLElement;
-      if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinShadowDOMV0) &&
-          (Build.BTypes & ~BrowserType.Firefox || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) &&
+      if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) &&
           box2 === a1.UI) {
         box2.id = "VimiumUI";
       }
@@ -57,10 +57,9 @@ VDom.UI = {
         a1.adjust_();
       }
     });
-    r.appendChild(element);
-    let b: string | null;
-    if (b = a.styleIn_ as string | null) {
-      a.css_(b);
+    root.appendChild(element);
+    if (a.styleIn_) {
+      a.css_(a.styleIn_ as Exclude<typeof a.styleIn_, Element | null | undefined | "">);
     } else {
       box.style.display = "none";
       if ((adjust as AdjustType) === AdjustType.MustAdjust) {
@@ -185,14 +184,15 @@ VDom.UI = {
     }
     sel = getSelection();
     let E = Element, offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel;
-    if (!(  !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-            || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1) ) {
+    if (!(  (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) )) {
       let SR = Build.MinCVer < BrowserVer.MinEmbedElementIsNotFunction && Build.BTypes & BrowserType.Chrome
                 && Build.MinCVer < BrowserVer.MinShadowDOMV0 ? window.ShadowRoot : 0 as never;
       if (Build.MinCVer < BrowserVer.MinEmbedElementIsNotFunction && Build.BTypes & BrowserType.Chrome
             && Build.MinCVer < BrowserVer.MinShadowDOMV0
           // tslint:disable-next-line: triple-equals
-          ? typeof SR != "function" || SR && "tagName" in SR : typeof ShadowRoot != "function") {
+          ? typeof SR != "function" || "tagName" in SR : typeof ShadowRoot != "function") {
         return [sel, null];
       }
     }
