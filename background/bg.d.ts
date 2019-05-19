@@ -291,7 +291,6 @@ declare namespace SettingsNS {
     searchUrl: string;
     searchEngines: string;
     showActionIcon: boolean;
-    showAdvancedCommands: boolean;
     showAdvancedOptions: boolean;
     userDefinedCss: string;
     vimSync: boolean | null;

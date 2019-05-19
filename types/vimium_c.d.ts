@@ -218,6 +218,7 @@ declare namespace SettingsNS {
   interface BaseBackendSettings {
     focusNewTabContent: boolean;
     newTabUrl_f: string;
+    showAdvancedCommands: boolean;
     vomnibarOptions: {
       maxMatches: number;
       queryInterval: number;
@@ -225,7 +226,7 @@ declare namespace SettingsNS {
     };
   }
   interface FrontUpdateAllowedSettings {
-    showAdvancedCommands: boolean;
+    showAdvancedCommands: 0;
   }
   interface FrontendSettings {
     deepHints: boolean;

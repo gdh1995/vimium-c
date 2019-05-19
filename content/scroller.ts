@@ -149,8 +149,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (VHints.TryNestedFrame_("VScroller", "Sc", count, options)) { return; }
     const a = VScroller, di: ScrollByY = options.axis === "x" ? 0 : 1;
     if (options.dest) {
-      let fromMax: BOOL = options.dest === "max" ? 1 : 0;
-      if (count < 0) { fromMax = (1 - fromMax as BOOL); count = -count; }
+      let fromMax = options.dest === "max";
+      if (count < 0) { fromMax = !fromMax; count = -count; }
       return a.scrollTo_(di, count - 1, fromMax);
     }
     return a.scrollBy_(di, (+<number> options.dir || 1) * count, options.view);
@@ -167,7 +167,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     a.top_ = null;
   },
   /** `amount`: default to be `0` */
-  scrollTo_ (di: ScrollByY, amount: number, fromMax: BOOL): void {
+  scrollTo_ (di: ScrollByY, amount: number, fromMax: boolean): void {
     const a = this;
     a.prepareTop_();
     di && VMarks.setPreviousPosition_();

@@ -1720,12 +1720,13 @@ Are you sure you want to continue?`);
   } = [
     /** setSetting: */ function (this: void, request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>
         , port: Port): void {
-      const key = request.key;
-      if (!(key in Settings.frontUpdateAllowed_)) {
+      const k = request.k, allowed = Settings.frontUpdateAllowed_;
+      if (!(k >= 0 && k < allowed.length)) {
         cPort = port;
-        return Backend.complain_(`modify ${key} setting`);
+        return Backend.complain_(`modify #${k} option`);
       }
-      Settings.set_(key, request.value);
+      const key = allowed[k];
+      Settings.set_(key, request.v);
       if (key in Settings.payload_) {
         type CacheValue = SettingsNS.FullCache[keyof SettingsNS.FrontUpdateAllowedSettings];
         (Settings.payload_ as SafeDict<CacheValue>)[key] = Settings.cache_[key];

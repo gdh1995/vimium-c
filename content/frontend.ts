@@ -1127,10 +1127,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VLib.prevent_(event);
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
-      (post as <K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>) => 1)({
+      post({
         H: kFgReq.setSetting,
-        key: "showAdvancedCommands",
-        value: shouldShowAdvanced
+        k: 0,
+        v: shouldShowAdvanced
       });
     };
     shouldShowAdvanced && toggleAdvanced();
@@ -1226,7 +1226,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (work === 1) {
         VScroller.scrollBy_((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);
       } else if (work === 2) {
-        VScroller.scrollTo_(1, 0, c);
+        VScroller.scrollTo_(1, 0, c > 0);
       } else if (work) {
         VScroller.scrollBy_(1, 0.5 - c, "view");
       }

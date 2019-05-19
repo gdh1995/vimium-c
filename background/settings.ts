@@ -439,9 +439,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1,
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
   } as TypedSafeEnum<SettingsNS.NonPersistentSettings>,
-  frontUpdateAllowed_: { __proto__: null as never,
-    showAdvancedCommands: 1
-  } as TypedSafeEnum<SettingsNS.FrontUpdateAllowedSettings>,
+  frontUpdateAllowed_: ["showAdvancedCommands"] as Array<keyof SettingsNS.FrontUpdateAllowedSettings>,
   icons_: [
     { 19: "/icons/enabled_19.png", 38: "/icons/enabled_38.png" },
     { 19: "/icons/partial_19.png", 38: "/icons/partial_38.png" },

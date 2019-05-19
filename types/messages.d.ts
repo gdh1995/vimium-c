@@ -191,7 +191,7 @@ interface CmdOptions {
   [kFgCmd.scroll]: {
     axis?: "y" | "x";
     dir?: 1 | -1;
-    view?: 0 | 1 | "max" | /* all others are treated as "viewSize" */ "viewSize" | "view";
+    view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ "view";
     dest?: undefined;
   } | {
     dest: "min" | "max";
@@ -439,8 +439,8 @@ declare namespace Req {
 }
 
 interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> extends Req.baseFg<kFgReq.setSetting> {
-  key: T;
-  value: SettingsNS.FrontUpdateAllowedSettings[T];
+  /** key */ k: SettingsNS.FrontUpdateAllowedSettings[T];
+  /** value */ v: T extends keyof SettingsNS.BaseBackendSettings ? SettingsNS.BaseBackendSettings[T] : never;
 }
 
 interface ExternalMsgs {
