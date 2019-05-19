@@ -140,7 +140,7 @@ var Tasks = {
       needClean = oldConfig !== curConfig;
     } catch (e) {}
     if (needClean) {
-      print("found diff:", oldConfig || "(miss)", "!=", curConfig);
+      print("found diff:", oldConfig || "(unknown)", "!=", curConfig);
       gulp.series("build/_clean_diff")(function() {
         if (!fs.existsSync(JSDEST)) {
           fs.mkdirSync(JSDEST, {recursive: true});

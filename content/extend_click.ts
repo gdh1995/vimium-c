@@ -134,7 +134,7 @@ if (VDom && VimiumInjector === undefined) {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
         //     which might mean curCVer has no ES6...
-        VDom.runJS_(`\`\${Vimium${secret}=>9}\``);
+        VDom.runJS_('`${Vimium'+secret+'=>9}`');
       }
     }
     box = 0;
