@@ -6,8 +6,8 @@
 declare namespace ScrollerNS {
   const enum Consts {
     calibrationBoundary = 150, maxCalibration = 1.6, minCalibration = 0.5,
-    invalidTime = 0, minDuration = 100, durationScaleForAmount = 20,
-    maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17,
+    minDuration = 100, durationScaleForAmount = 20,
+    maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17, firstTick = 17,
 
     DelayMinDelta = 60, DelayTolerance = 60,
     DelayUnitMs = 30, FrameIntervalMs = 16.67, MaxSkippedF = 4,
@@ -35,20 +35,22 @@ interface ElementScrollInfo {
 var VScroller = {
 _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
-  sign = 0, timestamp = ScrollerNS.Consts.invalidTime as number, totalDelta = 0.0, totalElapsed = 0.0, //
+  sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
   running = 0 as number, next = requestAnimationFrame, timer = 0;
   function animate(newTimestamp: number): void {
     const _this = VScroller,
     // although timestamp is mono, Firefox adds too many limits to its precision
-    elapsed = newTimestamp > timestamp ? newTimestamp - timestamp
+    elapsed = !timestamp ? (newTimestamp = performance.now(), ScrollerNS.Consts.firstTick)
+              : newTimestamp > timestamp ? newTimestamp - timestamp
               : (newTimestamp += ScrollerNS.Consts.tickForUnexpectedTime, ScrollerNS.Consts.tickForUnexpectedTime),
     continuous = _this.keyIsDown_ > 0;
-    if (!_this || !running) { return; }
+    if (!_this) { return; }
     timestamp = newTimestamp;
     totalElapsed += elapsed;
     if (amount < ScrollerNS.Consts.AmountLimitToScrollAndWaitRepeatedKeys
         && continuous && totalDelta >= amount && totalElapsed < _this.minDelay_ - 2) {
-      timer = setTimeout(animate2, _this.minDelay_ - totalElapsed);
+      running = 0;
+      timer = setTimeout(startAnimate, _this.minDelay_ - totalElapsed);
       return;
     }
     if (continuous) {
@@ -72,9 +74,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       running = 0;
     }
   }
-  function animate2(): void {
+  function startAnimate(): void {
     timer = 0;
-    animate(performance.now());
+    running = running || next(animate);
   }
   this._animate = (function (this: typeof VScroller, newEl, newDi, newAmount): void {
     const M = Math;
@@ -85,7 +87,6 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     totalDelta = totalElapsed = 0.0;
     if (timer) {
       clearTimeout(timer);
-      timer = running = 0;
     }
     const keyboard = VDom.cache_.keyboard;
     this.maxInterval_ = M.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
@@ -93,8 +94,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
           + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
       * ScrollerNS.Consts.DelayUnitMs;
     this.keyIsDown_ = this.maxInterval_;
-    timestamp = performance.now();
-    running = running || next(animate);
+    timestamp = 0;
+    startAnimate();
   });
   return this._animate(e, d, a);
 },
