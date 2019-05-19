@@ -1078,7 +1078,7 @@ Are you sure you want to continue?`);
     },
     /* goTab: */ function (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
-      const count = ((cOptions.dir | 0) || 1) * cRepeat, len = tabs.length;
+      const count = cRepeat, len = tabs.length;
       let cur: Tab | undefined, index = cOptions.absolute
         ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : Math.abs(count) > tabs.length * 2 ? (count > 0 ? -1 : 0)
@@ -1122,9 +1122,7 @@ Are you sure you want to continue?`);
       }
     },
     /* removeTabsR: */ function (this: void, tabs: Tab[]): void {
-      let dir = cOptions.dir | 0;
-      dir = dir > 0 ? 1 : dir < 0 ? -1 : 0;
-      return removeTabsRelative(selectFrom(tabs), dir * cRepeat, tabs);
+      return removeTabsRelative(selectFrom(tabs), cOptions.other ? 0 : cRepeat, tabs);
     },
     /* removeRightTab: */ function (this: void, tabs: Tab[]): void {
       if (!tabs) { return; }
@@ -1359,9 +1357,9 @@ Are you sure you want to continue?`);
       });
     },
     /* moveTab: */ function (this: void, tabs: Tab[]): void {
-      const tab = selectFrom(tabs), dir = cOptions.dir > 0 ? 1 : -1, pinned = tab.pinned;
-      let index = Math.max(0, Math.min(tabs.length - 1, tab.index + dir * cRepeat));
-      while (pinned !== tabs[index].pinned) { index -= dir; }
+      const tab = selectFrom(tabs), pinned = tab.pinned;
+      let index = Math.max(0, Math.min(tabs.length - 1, tab.index + cRepeat));
+      while (pinned !== tabs[index].pinned) { index -= cRepeat > 0 ? 1 : -1; }
       if (index !== tab.index) {
         chrome.tabs.move(tab.id, { index });
       }
@@ -1371,8 +1369,8 @@ Are you sure you want to continue?`);
       const frames = framesForTab[port.s.t];
       if (frames && frames.length > 2) {
         ind = Math.max(0, frames.indexOf(port, 1));
-        for (let count = Math.abs(cRepeat), dir = cRepeat > 0 ? 1 : -1; count > 0; count--) {
-          ind += dir;
+        for (let count = Math.abs(cRepeat); count > 0; count--) {
+          ind += cRepeat > 0 ? 1 : -1;
           if (ind === frames.length) { ind = 1; }
           else if (ind < 1) { ind = frames.length - 1; }
         }
@@ -1462,7 +1460,7 @@ Are you sure you want to continue?`);
       return Backend.showHUD_(str, true);
     },
     /* goNext: */ function (): void {
-      let rel: string | undefined = cOptions.rel || cOptions.dir, p2: string[] = []
+      let rel: string | undefined = cOptions.rel, p2: string[] = []
         , patterns: string | string[] | boolean | number = cOptions.patterns;
       rel = rel ? rel + "" : "next";
       if (patterns instanceof Array) {
@@ -1543,7 +1541,7 @@ Are you sure you want to continue?`);
       cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
           , S: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
           , a: {
-        n: nth > 0 ? cRepeat < 0 ? -1 : 1 : cOptions.dir <= 0 ? -cRepeat : cRepeat,
+        n: nth > 0 ? cRepeat / absRepeat : cRepeat,
         l: leave,
         f: findCSS,
         r: cOptions.returnToViewport === true,
