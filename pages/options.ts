@@ -594,7 +594,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
   Option_.all_.keyMappings.onSave_ = function (): void {
     const errors = bgSettings_.temp_.cmdErrors_,
-    msg = !errors ? "" : (errors === 1 ? "There's 1 error." : `There're ${errors} errors`
+    msg = !errors ? "" : (errors === 1 ? "There's 1 error" : `There're ${errors} errors`
       ) + " found.\nPlease see logs of background page for more details.";
     return this.showError_(msg);
   };
@@ -926,12 +926,12 @@ function OnBgUnload(): void {
     bgSettings_ = BG_.Settings;
     if (!bgSettings_) { BG_ = null as never; return; }
     BG_.addEventListener("unload", OnBgUnload);
-    if (BG_.document.readyState !== "loading") { return callback(); }
+    if (BG_.document.readyState !== "loading") { setTimeout(callback, 67); return; }
     BG_.addEventListener("DOMContentLoaded", function load(): void {
       BG_.removeEventListener("DOMContentLoaded", load, true);
-      return callback();
+      setTimeout(callback, 100);
     }, true);
-  }, 100);
+  }, 200);
   function callback() {
     const ref = Option_.all_;
     for (const key in ref) {
@@ -940,13 +940,14 @@ function OnBgUnload(): void {
         opt.previous_ = bgSettings_.get_(opt.field_);
       }
     }
-    if (!Option_.all_.keyMappings.saved_) {
-      BG_.Commands || BG_.Utils.require_("Commands");
-    }
+    let needExclusions = false, needCommands = false;
     if ((Option_.all_.exclusionRules as ExclusionRulesOption_).list_.length > 0) {
-      BG_.Exclusions || BG_.Utils.require_("Exclusions");
-      BG_.Commands || BG_.Utils.require_("Commands");
+      needExclusions = needCommands = true;
+    } else if (Option_.all_.keyMappings.checker_) {
+      needCommands = true;
     }
+    needExclusions && !BG_.Exclusions && BG_.Utils.require_("Exclusions");
+    needCommands && !BG_.Commands && BG_.Utils.require_("Commands");
   }
 }
 BG_.addEventListener("unload", OnBgUnload);
