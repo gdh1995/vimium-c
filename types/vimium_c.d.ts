@@ -665,6 +665,13 @@ declare const enum BrowserVer {
   MinMaybe$Document$$fullscreenElement = 61, // if EXPERIMENTAL
   MinCSS$Color$$RRGGBBAA = 62,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
+  // there's a bug of C62/63 even if EXPERIMENTAL or LEGACY:
+  // * if a `createShadowRoot()` from ext isolates after docReady and before wnd.onload,
+  //   then some pages using ShadowDOM v0 heavily may be stuck.
+  // * before C62 / since C64 / attachShadow has no such a bug
+  // https://github.com/philc/vimium/issues/2921#issuecomment-361052160
+  CreateShadowRootOnDocReadyBreakPages1 = 62,
+  CreateShadowRootOnDocReadyBreakPages2 = 63,
   // the 6 below are correct even if EXPERIMENTAL or LEGACY
   // `/deep/` works on C35 even if LEGACY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
