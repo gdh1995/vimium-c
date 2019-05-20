@@ -186,7 +186,7 @@ var VVisual = {
     let movement = this, mode = movement.mode_;
     if (command > 50) {
       if (command > 60) {
-        return VScroller.scrollBy_(1, (command === 61 ? 1 : -1) * count, 0);
+        return VScroller.scroll_(1, (command === 61 ? 1 : -1) * count, 0);
       }
       if (command === 55) {
         clearTimeout(movement.hudTimer_);

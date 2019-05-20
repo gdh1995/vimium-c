@@ -1221,14 +1221,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (!(keyCode > VKeyCodes.maxNotPageUp && keyCode < VKeyCodes.minNotDown)) { return; }
       wnd && VDom.cache_.smoothScroll && events.OnScrolls_[1](wnd, 1);
       const work = keyCode > VKeyCodes.maxNotLeft ? 1 : keyCode > VKeyCodes.maxNotEnd ? 2
-        : !(event.ctrlKey || event.metaKey) ? 3 : 0;
+        : !(event.ctrlKey || event.metaKey) ? 3 : 0,
+      Sc = VScroller;
       work && event instanceof Event && VLib.prevent_(event as Event);
       if (work === 1) {
-        VScroller.scrollBy_((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);
+        Sc.scroll_((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);
       } else if (work === 2) {
-        VScroller.scrollTo_(1, 0, c > 0);
+        Sc.scroll_(1, 0, 1, 0, c > 0);
       } else if (work) {
-        VScroller.scrollBy_(1, 0.5 - c, "view");
+        Sc.scroll_(1, 0.5 - c, 0, 2);
       }
     },
     OnScrolls_: [function (event): BOOL | 28 {

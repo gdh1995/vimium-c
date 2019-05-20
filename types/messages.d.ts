@@ -191,12 +191,13 @@ interface CmdOptions {
   [kFgCmd.scroll]: {
     axis?: "y" | "x";
     dir?: 1 | -1;
-    view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ "view";
+    view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;
   } | {
     dest: "min" | "max";
     axis?: "y" | "x";
     view?: undefined;
+    dir?: undefined;
   };
   [kFgCmd.reset]: FgOptions;
   [kFgCmd.toggle]: {

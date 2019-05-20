@@ -314,7 +314,7 @@ declare namespace SettingsNS {
   interface PersistentSettings extends FrontendSettings, BackendSettings {}
 
   interface SettingsWithDefaults extends PersistentSettings, OtherSettingsWithDefaults {}
-  interface FullSettings extends PersistentSettings, NonPersistentSettings, FrontUpdateAllowedSettings {}
+  interface FullSettings extends PersistentSettings, NonPersistentSettings {}
 
   interface SimpleUpdateHook<K extends keyof FullSettings> {
     (this: {}, value: FullSettings[K], key: K): void;

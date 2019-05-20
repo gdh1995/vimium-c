@@ -127,15 +127,16 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       return scrollX !== before;
     }
   },
-  scroll_ (element: SafeElement | null, di: ScrollByY, amount: number): void | number | boolean {
+  _innerScroll (element: SafeElement | null, di: ScrollByY, amount: number): void | number | boolean {
     if (!amount) { return; }
     if (VDom.cache_.smoothScroll
         && (Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
             || VDom.allowRAF_)) {
-      return this._animate(element, di, amount);
+      this._animate(element, di, amount);
+    } else {
+      this._performScroll(element, di, amount);
+      this._checkCurrent(element);
     }
-    this._performScroll(element, di, amount);
-    return this._checkCurrent(element);
   },
 
   /** @NEED_SAFE_ELEMENTS */
@@ -147,44 +148,52 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   Sc (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
     if (VEvent.checkHidden_(kFgCmd.scroll, count, options)) { return; }
     if (VHints.TryNestedFrame_("VScroller", "Sc", count, options)) { return; }
-    const a = VScroller, di: ScrollByY = options.axis === "x" ? 0 : 1;
-    if (options.dest) {
-      let fromMax = options.dest === "max";
+    const a = VScroller, di: ScrollByY = options.axis === "x" ? 0 : 1,
+    dest = options.dest;
+    let fromMax = dest === "max";
+    if (dest) {
       if (count < 0) { fromMax = !fromMax; count = -count; }
-      return a.scrollTo_(di, count - 1, fromMax);
+      count--;
+    } else {
+      count *= +<number> options.dir || 1;
     }
-    return a.scrollBy_(di, (+<number> options.dir || 1) * count, options.view);
+    return a.scroll_(di, count, dest ? 1 as never : 0, options.view, fromMax as false);
   },
-  /** amount: can not be 0 */
-  scrollBy_ (di: ScrollByY, amount: number, factor: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined): void {
-    const a = this;
+  /**
+   * @param amount0 can not be 0, if `isTo` is 0
+   * @param factor `!!factor` can be true only if `isTo` is 0
+   * @param fromMax can not be true, if `isTo` is 0
+   */
+  scroll_: function (this: {}, di: ScrollByY, amount0: number, isTo: BOOL
+      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: boolean): void {
+    const a = this as typeof VScroller;
     a.prepareTop_();
-    const element = a.findScrollable_(di, amount);
+    isTo && di && VMarks.setPreviousPosition_();
+    let amount = amount0;
+    const element = a.findScrollable_(di, isTo ? fromMax ? 1 : -1 : amount);
     amount = !factor ? a._adjustAmount(di, amount, element)
-      : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
+      : factor === 1 ? amount
       : amount * a.getDimension_(element, di, factor === "max" ? kScrollDim.scrollSize : kScrollDim.viewSize);
-    a.scroll_(element, di, amount);
-    a.top_ = null;
-  },
-  /** `amount`: default to be `0` */
-  scrollTo_ (di: ScrollByY, amount: number, fromMax: boolean): void {
-    const a = this;
-    a.prepareTop_();
-    di && VMarks.setPreviousPosition_();
-    const element = a.findScrollable_(di, fromMax ? 1 : -1);
-    amount = a._adjustAmount(di, amount, element);
     if (fromMax) {
       amount = a.getDimension_(element, di, kScrollDim.scrollSize) - amount
         - a.getDimension_(element, di, kScrollDim.viewSize);
     }
-    amount -= element ? a.getDimension_(element, di, kScrollDim.position) : di ? scrollY : scrollX;
-    a.scroll_(element, di, amount);
+    if (isTo) {
+      amount -= element ? a.getDimension_(element, di, kScrollDim.position) : di ? scrollY : scrollX;
+    }
+    amount = (amount > 0 ? Math.ceil : Math.floor)(amount);
+    a._innerScroll(element, di, amount);
     a.top_ = null;
+  } as {
+    (di: ScrollByY, amount: number, isTo: 0
+      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false): void;
+    (di: ScrollByY, amount: number, isTo: 1
+      , factor?: undefined | 0, fromMax?: boolean): void;
   },
   _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
     amount *= VDom.cache_.scrollStepSize;
     return !di && amount && element && element.scrollWidth <= element.scrollHeight * (element.scrollWidth < 720 ? 2 : 1)
-      ? Math.ceil(amount * 0.6) : amount;
+      ? amount * 0.6 : amount;
   },
   /**
    * @param amount should not be 0
@@ -197,7 +206,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       type Element2 = NonNullable<typeof element>;
       while (element !== top && (reason = a.shouldScroll_need_safe_(element as Element2, di, amount)) < 1) {
         if (!reason) {
-          notNeedToRecheck = notNeedToRecheck || a._scrollDo(element as Element2, 1, -amount);
+          notNeedToRecheck = notNeedToRecheck || a._doesScroll(element as Element2, 1, -amount);
         }
         element = (Build.BTypes & ~BrowserType.Firefox
             ? VDom.SafeEl_(VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent))
@@ -246,7 +255,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         : di ? (el as SafeElement).scrollTop : (el as SafeElement).scrollLeft
       : di ? innerHeight : innerWidth;
   },
-  _scrollDo (el: SafeElement, di: ScrollByY, amount: number): boolean {
+  _doesScroll (el: SafeElement, di: ScrollByY, amount: number): boolean {
     const before = this.getDimension_(el, di, kScrollDim.position),
     changed = this._performScroll(el, di, (amount > 0 ? 1 : -1) * this.scale_, before);
     if (changed) {
@@ -265,7 +274,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   _selectFirst (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null {
     let element = info.element_;
     if (element.clientHeight + 3 < element.scrollHeight &&
-        (this._scrollDo(element, 1, 1) || element.scrollTop > 0 && this._scrollDo(element, 1, 0))) {
+        (this._doesScroll(element, 1, 1) || element.scrollTop > 0 && this._doesScroll(element, 1, 0))) {
       return info;
     }
     skipPrepare || VDom.prepareCrop_();
@@ -310,10 +319,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         }
       }
       if (hasX) {
-        (hasY ? a._performScroll : a.scroll_).call(a, a.findScrollable_(0, hasX), 0, hasX);
+        (hasY ? a._performScroll : a._innerScroll).call(a, a.findScrollable_(0, hasX), 0, hasX);
       }
       if (hasY) {
-        a.scroll_(a.findScrollable_(1, hasY), 1, hasY);
+        a._innerScroll(a.findScrollable_(1, hasY), 1, hasY);
       }
     }
     a.keyIsDown_ = 0; // it's safe to only clean keyIsDown here
@@ -323,7 +332,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   shouldScroll_need_safe_ (element: SafeElement, di: ScrollByY, amount?: number): -1 | 0 | 1 {
     const st = getComputedStyle(element);
     return (di ? st.overflowY : st.overflowX) === "hidden" || st.display === "none" || st.visibility !== "visible" ? -1
-      : <BOOL> +this._scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
+      : <BOOL> +this._doesScroll(element, di
+                  , amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
   },
   supressScroll_ (): void {
     if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
