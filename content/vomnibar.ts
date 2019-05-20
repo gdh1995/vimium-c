@@ -256,8 +256,8 @@ var VOmni = {
       return VEvent.keydownEvents_()[(data as Req[VomnibarNS.kFReq.focus]).l] = 1;
     case VomnibarNS.kFReq.hide: return a.hide_(1);
     case VomnibarNS.kFReq.scroll: return VEvent.scroll_(data as Req[VomnibarNS.kFReq.scroll]);
-    case VomnibarNS.kFReq.scrollGoing: VScroller.keyIsDown_ = VScroller.maxInterval_; break;
-    case VomnibarNS.kFReq.scrollEnd: VScroller.keyIsDown_ = 0; break;
+    case VomnibarNS.kFReq.scrollGoing: // no break;
+    case VomnibarNS.kFReq.scrollEnd: VScroller.scrollTick_(data.N === VomnibarNS.kFReq.scrollGoing); break;
     case VomnibarNS.kFReq.evalJS: VPort.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
     case VomnibarNS.kFReq.broken: focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;

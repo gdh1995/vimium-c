@@ -85,6 +85,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     element = newEl;
     sign = newAmount < 0 ? -1 : 1;
     totalDelta = totalElapsed = 0.0;
+    timestamp = 0;
     if (timer) {
       clearTimeout(timer);
     }
@@ -93,8 +94,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     this.minDelay_ = (((keyboard[0] + M.max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
           + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
       * ScrollerNS.Consts.DelayUnitMs;
-    this.keyIsDown_ = this.maxInterval_;
-    timestamp = 0;
+    this.scrollTick_(1);
     startAnimate();
   });
   return this._animate(e, d, a);
@@ -181,6 +181,22 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (isTo) {
       amount -= element ? a.getDimension_(element, di, kScrollDim.position) : di ? scrollY : scrollX;
     }
+    if (amount && element === a.top_ && element && window !== top && VDom.parentFrame_()) {
+      interface VWindow extends Window {
+        VDom: typeof VDom;
+        VScroller: typeof VScroller;
+      }
+      const par = parent as VWindow, Sc = par.VScroller;
+      if (Sc && !a._doesScroll(element, di, amount)) {
+        if (par.VDom.cache_.smoothScroll) {
+          a.scrollTick_(1);
+          a._joined = Sc;
+        }
+        Sc.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
+        amount = 0;
+      }
+      a.scrolled_ = 0;
+    }
     amount = (amount > 0 ? Math.ceil : Math.floor)(amount);
     a._innerScroll(element, di, amount);
     a.top_ = null;
@@ -189,6 +205,17 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false): void;
     (di: ScrollByY, amount: number, isTo: 1
       , factor?: undefined | 0, fromMax?: boolean): void;
+  },
+  _joined: null as { scrollTick_ (willContinue: BOOL | boolean): void; } | null,
+  scrollTick_ (willContinue: BOOL | boolean): void {
+    const a = this;
+    a.keyIsDown_ = willContinue ? a.maxInterval_ : 0;
+    if (a._joined) {
+      a._joined.scrollTick_(willContinue);
+      if (!willContinue) {
+        a._joined = null;
+      }
+    }
   },
   _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
     amount *= VDom.cache_.scrollStepSize;
@@ -325,7 +352,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         a._innerScroll(a.findScrollable_(1, hasY), 1, hasY);
       }
     }
-    a.keyIsDown_ = 0; // it's safe to only clean keyIsDown here
+    a.scrollTick_(0); // it's safe to only clean keyIsDown here
   },
   scrolled_: 0,
   /** @NEED_SAFE_ELEMENTS */

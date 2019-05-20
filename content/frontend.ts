@@ -143,7 +143,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
             : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent))
         || !event.keyCode) { return; }
-    VScroller.keyIsDown_ = 0;
+    VScroller.scrollTick_(0);
     if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
       events.setupSuppress_();
     }
@@ -268,7 +268,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
   }
   function onWndBlur(this: void): void {
-    VScroller.keyIsDown_ = 0;
+    VScroller.scrollTick_(0);
     onWndBlur2 && onWndBlur2();
     KeydownEvents = Object.create(null);
     injector || (<RegExpOne> /a?/).test("");
@@ -1158,7 +1158,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
   ],
 
-  events: VEventModeTy = VEvent = {
+  events = VEvent = {
     lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { onWndFocus(); },
@@ -1232,12 +1232,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         Sc.scroll_(1, 0.5 - c, 0, 2);
       }
     },
-    OnScrolls_: [function (event): BOOL | 28 {
-      return VScroller.keyIsDown_ = event.repeat ? (VLib.prevent_(event), VScroller.maxInterval_ as 1 | 28) : 0;
-    }, function (this: VEventModeTy["OnScrolls_"], wnd, interval): void {
-      const f = interval ? addEventListener : removeEventListener,
+    OnScrolls_: [function (event): boolean {
+      let repeat = event.repeat;
+      repeat && VLib.prevent_(event);
+      VScroller.scrollTick_(repeat);
+      return repeat;
+    }, function (this: VEventModeTy["OnScrolls_"], wnd, isAdd): void {
+      const f = isAdd ? addEventListener : removeEventListener,
       listener = this[2];
-      VScroller.keyIsDown_ = interval || 0;
+      VScroller.scrollTick_(isAdd);
       f.call(wnd, "keyup", listener, true); f.call(wnd, "blur", listener, true);
     }, function (event): void {
       if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
@@ -1247,10 +1250,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         } else if (event.target !== this) {
           return;
         }
-        events.OnScrolls_[1](this);
+        (events as VEventModeTy).OnScrolls_[1](this, 0);
       }
     }],
-    setupSuppress_ (this: void, onExit): void {
+    setupSuppress_ (this: void, onExit?: (this: void) => void): void {
       const mode = InsertMode, f = mode.onExitSuppress_;
       mode.onExitSuppress_ = mode.suppressType_ = null;
       if (onExit) {
