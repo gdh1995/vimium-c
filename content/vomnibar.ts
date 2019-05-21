@@ -27,7 +27,7 @@ var VOmni = {
   // unit: physical pixel (if C<52)
   screenHeight_: 0,
   docZoom_: 0,
-  run (this: void, count: number, options: VomnibarNS.FullOptions): void {
+  activate_ (this: void, count: number, options: VomnibarNS.FullOptions): void {
     const a = VOmni;
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
@@ -36,7 +36,7 @@ var VOmni = {
     if (!options || !options.k || !options.v) { return; }
     if (VDom.OnDocLoaded_ !== VDom.execute_) {
       if (!a._timer) {
-        a._timer = setTimeout(a.run.bind(a as never, count, options), 500);
+        a._timer = setTimeout(a.activate_.bind(a as never, count, options), 500);
         return;
       }
     }
@@ -76,11 +76,11 @@ var VOmni = {
     a.status_ > VomnibarNS.Status.Inactive || VLib.push_(VDom.UI.SuppressMost_, a);
     a.box_ && VDom.UI.adjust_();
     if (a.status_ === VomnibarNS.Status.NotInited) {
-      if (VHints.TryNestedFrame_("VOmni", "run", count, options)) { return VLib.remove_(a); }
+      if (VHints.TryNestedFrame_(kFgCmd.vomnibar, count, options)) { return VLib.remove_(a); }
       a.status_ = VomnibarNS.Status.Initing;
       a.init_(options);
     } else if (a.isABlank_()) {
-      a.onReset_ = function (this: typeof VOmni): void { this.onReset_ = null; return this.run(count, options); };
+      a.onReset_ = function (this: typeof VOmni): void { this.onReset_ = null; return this.activate_(count, options); };
       return;
     } else if (a.status_ === VomnibarNS.Status.Inactive) {
       a.status_ = VomnibarNS.Status.ToShow;
@@ -174,7 +174,7 @@ var VOmni = {
         a.reset_();
         focus();
         a.status_ = VomnibarNS.Status.KeepBroken;
-        a.run(1, {} as VomnibarNS.FullOptions);
+        a.activate_(1, {} as VomnibarNS.FullOptions);
       };
       if (location.origin !== origin || type === VomnibarNS.PageType.web) {
         setTimeout(checkBroken, 600);

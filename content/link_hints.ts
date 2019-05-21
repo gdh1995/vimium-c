@@ -86,7 +86,7 @@ var VHints = {
   noHUD_: false,
   options_: null as never as HintsNS.Options,
   timer_: 0,
-  run (this: void, count: number, options: FgOptions): void {
+  activate_ (this: void, count: number, options: FgOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
     if (VEvent.checkHidden_(kFgCmd.linkHints, count, options)) {
@@ -97,7 +97,7 @@ var VHints = {
       a.clean_();
       if (!a.timer_ && VDom.OnDocLoaded_ !== VDom.execute_) {
         VLib.push_(VDom.UI.SuppressMost_, a);
-        a.timer_ = setTimeout(a.run.bind(a as never, count, options), 300);
+        a.timer_ = setTimeout(a.activate_.bind(a as never, count, options), 300);
         return;
       }
       if (!VDom.isHTML_()) { return; }
@@ -118,7 +118,7 @@ var VHints = {
     }
     let elements = a.getVisibleElements_(arr);
     if (a.frameNested_) {
-      if (a.TryNestedFrame_("VHints", "run", (count as number) | 0, options)) {
+      if (a.TryNestedFrame_(kFgCmd.linkHints, (count as number) | 0, options)) {
         return a.clean_();
       }
     }
@@ -187,33 +187,28 @@ var VHints = {
     if (a && a.isActive_) { a.pTimer_ = 0; return a.setMode_(a.mode_); }
   },
   ActivateAndFocus_ (this: void, a: number, b: FgOptions): void {
-    return VEvent.focusAndListen_(() => {
-      VHints.isActive_ = false;
-      VHints.run(a, b);
-    });
+    VEvent.focusAndRun_(kFgCmd.linkHints, a, b);
   },
-  TryNestedFrame_ (mode: "VHints" | "VScroller" | "VOmni", action: "run" | "Sc"
-      , count: number, options: SafeObject): boolean {
+  TryNestedFrame_ (cmd: FgCmdAcrossFrames, count: number, options: SafeObject): boolean {
     const a = this;
     if (a.frameNested_ !== null) {
-      mode !== "VHints" && VDom.prepareCrop_();
+      cmd !== kFgCmd.linkHints && VDom.prepareCrop_();
       a.checkNestedFrame_();
     }
     interface VWindow extends Window {
       VHints: typeof VHints;
-      VScroller: typeof VScroller;
-      VOmni: typeof VOmni;
       VEvent: VEventModeTy;
       VDom: typeof VDom;
     }
     let frame = a.frameNested_, child: VWindow = null as never, err = true, done = false;
+    let events: VEventModeTy | undefined;
     if (!frame) { return false; }
     try {
       if (frame.contentDocument && (child = frame.contentWindow as VWindow).VDom.isHTML_()) {
-        if (mode === "VHints") {
+        if (cmd === kFgCmd.linkHints) {
           (done = child.VHints.isActive_) && child.VHints.deactivate_(1);
         }
-        err = child.VEvent.keydownEvents_(VEvent.keydownEvents_());
+        err = (events = child.VEvent).keydownEvents_(VEvent.keydownEvents_());
       }
     } catch {}
     if (err) {
@@ -222,9 +217,8 @@ var VHints = {
       a.frameNested_ = null;
       return false;
     }
-    child.VEvent.focusAndListen_(done ? null : function (): void {
-      return (child[mode as "VHints"])[action as "run"](count, options);
-    });
+    done ? (events as NonNullable<typeof events>).focusAndRun_()
+    : (events as NonNullable<typeof events>).focusAndRun_(cmd, count, options);
     if (done) { return true; }
     if (document.readyState !== "complete") { a.frameNested_ = false; }
     return true;
@@ -856,7 +850,7 @@ var VHints = {
     a.zIndexes_ = null;
     a.resetHints_();
     const isClick = a.mode_ < HintMode.min_job;
-    a.run(0, a.options_);
+    a.activate_(0, a.options_);
     return a._setupCheck(lastEl, rect, isClick);
   },
   _setupCheck (el?: HintsNS.LinkEl | null, r?: Rect | null, isClick?: boolean): void {

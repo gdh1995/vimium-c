@@ -9372,7 +9372,7 @@ declare var statusbar: BarProp;
 declare var styleMedia: StyleMedia;
 declare var toolbar: BarProp;
 */
-declare var parent: Window | null | undefined;
+declare var parent: unknown;
 declare var top: Window;
 declare var scrollX: number;
 declare var scrollY: number;

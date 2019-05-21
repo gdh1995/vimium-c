@@ -323,7 +323,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     },
     VFind.activate_,
-    VHints.run,
+    VHints.activate_,
     VHints.ActivateAndFocus_,
     /* unhoverLast: */ function (this: void): void {
       VDom.hover_(null);
@@ -331,9 +331,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     VMarks.activate_,
     VMarks.GoTo_,
-    VScroller.Sc,
+    VScroller.activate_,
     VVisual.activate_,
-    VOmni.run,
+    VOmni.activate_,
     /* reset: */ function (): void {
       const a = InsertMode;
       VScroller.current_ = VDom.lastHovered_ = a.last_ = a.lock_ = a.global_ = null;
@@ -648,11 +648,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VLib.prevent_(event); // safer
       if (el) {
         KeydownEvents[key] = 1;
-        const parent1 = parent as Window, a1 = (parent1 as Window & { VEvent: typeof VEvent }).VEvent;
+        const parent1 = parent as Window, a1 = parent1 && (parent1 as Window & { VEvent: VEventModeTy }).VEvent;
         el.blur();
         if (a1) {
           (parent1 as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(1);
-          a1.focus_({ k: key, m: FrameMaskType.ForcedSelf });
+          a1.focusAndRun_(0, 0 as never, 0 as never, 1);
         } else {
           parent1.focus();
         }
@@ -796,8 +796,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         });
         return;
       }
-      events.focusAndListen_();
+      events.focusAndRun_();
       esc(HandlerResult.Nothing);
+      FrameMask.show_(mask, key);
+    },
+    show_ (mask: FrameMaskType, key: VKeyCodes): void {
       KeydownEvents[key] = 1;
       const notTop = top !== window;
       if (notTop && mask === FrameMaskType.NormalNext) {
@@ -1136,7 +1139,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     shouldShowAdvanced && toggleAdvanced();
     VDom.UI.ensureBorder_();
     VDom.UI.add_(box, AdjustType.Normal, true);
-    document.hasFocus() || events.focusAndListen_();
+    document.hasFocus() || events.focusAndRun_();
     // on FF66, `scrollIntoView` does not set tab-navigation node
     // tslint:disable-next-line: no-unused-expression
     !(Build.BTypes & BrowserType.Chrome) ? 0
@@ -1162,29 +1165,36 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { onWndFocus(); },
-    checkHidden_ (this: void
-        , cmd?: kFgCmd, count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): boolean {
+    checkHidden_ (this: void, cmd?: FgCmdAcrossFrames
+        , count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): BOOL {
       let docEl = document.documentElement, el = window === top ? null : VDom.parentFrame_() || docEl;
-      if (!el) { return false; }
+      if (!el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
-      result = box.height === 0 && box.width === 0 || getComputedStyle(el).visibility === "hidden";
-      if (!count) { /* empty */ }
+      result: boolean | BOOL = box.height === 0 && box.width === 0 || getComputedStyle(el).visibility === "hidden";
+      if (!cmd) { /* empty */ }
       else if (result) {
         type ForwardedOptions = Exclude<typeof options, undefined>;
         (options as ForwardedOptions).$forced || post({
           H: kFgReq.gotoMainFrame,
-          c: cmd as NonNullable<typeof cmd>,
-          n: count, a: options as ForwardedOptions
+          c: cmd,
+          n: count as number, a: options as ForwardedOptions
         });
-      } else if (el !== docEl && (box.bottom <= 0 || parent && box.top > parent.innerHeight)) {
-        FrameMask.Focus_({ S: null, k: VKeyCodes.None, m: FrameMaskType.ForcedSelf });
-        VDom.scrollIntoView_(el);
+      } else if (el !== docEl && (box.bottom <= 0 || parent && box.top > (parent as Window).innerHeight)) {
+        interface VWindow extends Window {
+          VEvent: VEventModeTy;
+          VHints: typeof VHints;
+          VScroller: typeof VScroller;
+          VOmni: typeof VOmni;
+        }
+        (parent as VWindow).VEvent.focusAndRun_(cmd, count as number, options as FgOptions, 1);
+        result = 1;
       }
-      return result;
+      return <BOOL> +result;
     },
-    focusAndListen_ (callback?: (() => void) | null, timedout?: 0 | 1): void {
+    focusAndRun_ (cmd?: FgCmdAcrossFrames, count?: number, options?: FgOptions
+        , highlightOutline?: BOOL, timedout?: 0 | 1): void {
       if (timedout !== 1) {
-        setTimeout(function (): void { events.focusAndListen_(callback, 1 as number as 0); }, 1);
+        setTimeout(function (): void { events.focusAndRun_(cmd, count, options, highlightOutline, 1); }, 1);
         return;
       }
       InsertMode.ExitGrab_();
@@ -1209,11 +1219,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       failed && isEnabled && hook(HookAction.Install);
       // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
       (onWndFocus = old)();
-      if (callback && esc) {
-        return callback();
+      if (esc) {
+        esc(HandlerResult.Nothing);
+        if (cmd) {
+          cmd === kFgCmd.linkHints ? (VHints.isActive_ = false, VHints.activate_(count as number, options as FgOptions))
+          : cmd === kFgCmd.scroll ? VScroller.activate_(count as number, options as FgOptions)
+          : VOmni.activate_(count as number, options as FgOptions as VomnibarNS.FullOptions);
+        }
+        highlightOutline && FrameMask.show_(FrameMaskType.ForcedSelf, 0);
       }
     },
-    focus_: FrameMask.Focus_,
     mapKey_ (this: void, key): string { return mappedKeys !== null && mappedKeys[key] || key; },
     scroll_ (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }

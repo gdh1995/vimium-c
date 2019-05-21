@@ -349,13 +349,17 @@ interface VPortTy {
 interface ComplicatedVPort extends VPortTy {
   post_<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
+type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar;
 interface VEventModeTy {
   lock_(this: void): LockableElement | null;
   OnWndFocus_ (this: void): void;
-  checkHidden_ (this: void): boolean;
-  checkHidden_ (this: void, cmd: kFgCmd, count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): boolean;
-  focusAndListen_ (this: void, callback?: (() => void) | null, timedout?: 0): void;
-  focus_ (this: void, request: BgReq[kBgReq.focusFrame]): void;
+  checkHidden_ (this: void): BOOL;
+  checkHidden_ (this: void, cmd: FgCmdAcrossFrames
+      , count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): BOOL;
+  focusAndRun_ (this: void, cmd?: FgCmdAcrossFrames
+      , count?: number, options?: FgOptions
+      , highlightOutline?: BOOL, timedout?: 0): void;
+  focusAndRun_ (this: void, cmd: 0, count: never, options: never, highlightOutline: BOOL, timedout?: 0): void;
   onWndBlur_ (this: void, onWndBlur2: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
   mapKey_ (this: void, key: string): string;

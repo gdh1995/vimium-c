@@ -145,9 +145,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   top_: null as SafeElement | null,
   keyIsDown_: 0,
   scale_: 1,
-  Sc (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
+  activate_ (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
     if (VEvent.checkHidden_(kFgCmd.scroll, count, options)) { return; }
-    if (VHints.TryNestedFrame_("VScroller", "Sc", count, options)) { return; }
+    if (VHints.TryNestedFrame_(kFgCmd.scroll, count, options)) { return; }
     const a = VScroller, di: ScrollByY = options.axis === "x" ? 0 : 1,
     dest = options.dest;
     let fromMax = dest === "max";
@@ -182,17 +182,18 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       amount -= element ? a.getDimension_(element, di, kScrollDim.position) : di ? scrollY : scrollX;
     }
     if (amount && element === a.top_ && element && window !== top && VDom.parentFrame_()) {
+      // somehow like https://github.com/philc/vimium/pull/2875
       interface VWindow extends Window {
         VDom: typeof VDom;
         VScroller: typeof VScroller;
       }
-      const par = parent as VWindow, Sc = par.VScroller;
+      const par = parent, Sc = par && (par as VWindow).VScroller;
       if (Sc && !a._doesScroll(element, di, amount)) {
-        if (par.VDom.cache_.smoothScroll) {
+        Sc.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
+        if (Sc.keyIsDown_) {
           a.scrollTick_(1);
           a._joined = Sc;
         }
-        Sc.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
         amount = 0;
       }
       a.scrolled_ = 0;

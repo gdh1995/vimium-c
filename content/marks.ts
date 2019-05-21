@@ -105,7 +105,7 @@ var VMarks = {
     const { s: scroll, l: local, n: a } = options;
     a && VMarks.setPreviousPosition_();
     VMarks.ScrollTo_(scroll);
-    local || VEvent.focusAndListen_();
+    local || VEvent.focusAndRun_();
     if (a) {
       return VHud.tip_(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
     }
