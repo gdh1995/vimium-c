@@ -75,16 +75,18 @@ var VFind = {
   onLoad_ (later?: 1): void {
     const a = this, box: HTMLIFrameElement = a.box_,
     wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
+    onKey = a.onKeydown_.bind(a),
     now = Date.now(), s = VLib.Stop_, t = true;
     let tick = 0;
     f("mousedown", a.OnMousedown_, t);
-    f("keydown", a.onKeydown_.bind(a), t);
+    f("keydown", onKey, t);
+    f("keyup", onKey, t);
     f("input", a.OnInput_, t);
     if (Build.BTypes & ~BrowserType.Chrome) {
       f("paste", a._OnPaste, t);
     }
     f("unload", a.OnUnload_, t);
-    for (const i of ["keypress", "keyup", "mouseup", "click", "contextmenu", "copy", "cut", "paste"]) {
+    for (const i of ["keypress", "mouseup", "click", "contextmenu", "copy", "cut", "paste"]) {
       f(i, s, t);
     }
     f("blur", a._onUnexpectedBlur = function (this: Window, event): void {
@@ -241,7 +243,7 @@ var VFind = {
     VLib.Stop_(event);
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? !event.isTrusted : event.isTrusted === false) { return; }
-    if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
+    if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event) || event.type === "keyup") { return; }
     const a = this;
     const n = event.keyCode;
     type Result = FindNS.Action;
