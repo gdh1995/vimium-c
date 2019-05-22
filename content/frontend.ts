@@ -111,6 +111,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       ) {
         if (InsertMode.lock_ === document.body && InsertMode.lock_) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
+          action = HandlerResult.Nothing; // skip the below `KeydownEvents[key] = 1`
         } else {
           action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
           InsertMode.exit_(event);
