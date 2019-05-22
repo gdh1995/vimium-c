@@ -342,31 +342,31 @@ interface VDomMouse {
 interface VPortTy {
   post_<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
   post_<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
-  send_<K extends keyof FgRes>(this: void, req: Pick<Req.fgWithRes<K>, "a" | "c">
+  send_<K extends keyof FgRes>(this: void, cmd: K, args: Req.fgWithRes<K>["a"]
     , callback: (this: void, res: FgRes[K]) => void): void;
   evalIfOK_ (url: string): boolean;
 }
 interface ComplicatedVPort extends VPortTy {
   post_<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
-type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar;
 interface VEventModeTy {
   lock_(this: void): LockableElement | null;
   OnWndFocus_ (this: void): void;
   checkHidden_ (this: void): BOOL;
   checkHidden_ (this: void, cmd: FgCmdAcrossFrames
       , count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): BOOL;
-  focusAndRun_ (this: void, cmd?: FgCmdAcrossFrames
-      , count?: number, options?: FgOptions
-      , highlightOutline?: BOOL, timedout?: 0): void;
-  focusAndRun_ (this: void, cmd: 0, count: never, options: never, highlightOutline: BOOL, timedout?: 0): void;
+  focusAndRun_ (this: void): void;
+  focusAndRun_ (this: void, cmd: FgCmdAcrossFrames
+      , count: number, options: FgOptions
+      , showBorder?: 1): void;
+  focusAndRun_ (this: void, cmd: 0, count: never, options: never, showBorder: 1): void;
   onWndBlur_ (this: void, onWndBlur2: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
   mapKey_ (this: void, key: string): string;
   scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: VKeyCodes }, wnd?: Window): void;
   /** return has_error */
   readonly keydownEvents_: {
-    (this: void, newArr: KeydownCacheArray): boolean;
+    (this: void, srcFrame: VEventModeTy): boolean;
     (this: void): KeydownCacheArray;
   };
   readonly OnScrolls_: {

@@ -102,7 +102,7 @@ var VHints = {
       }
       if (!VDom.isHTML_()) { return; }
     }
-    a.setModeOpt_((count as number) | 0, options);
+    a.setModeOpt_(count, options);
     let str = options.characters ? options.characters + "" : VDom.cache_.linkHintCharacters;
     if (str.length < 3) {
       a.clean_(1);
@@ -118,7 +118,7 @@ var VHints = {
     }
     let elements = a.getVisibleElements_(arr);
     if (a.frameNested_) {
-      if (a.TryNestedFrame_(kFgCmd.linkHints, (count as number) | 0, options)) {
+      if (a.TryNestedFrame_(kFgCmd.linkHints, count, options)) {
         return a.clean_();
       }
     }
@@ -186,9 +186,6 @@ var VHints = {
     const a = VHints;
     if (a && a.isActive_) { a.pTimer_ = 0; return a.setMode_(a.mode_); }
   },
-  ActivateAndFocus_ (this: void, a: number, b: FgOptions): void {
-    VEvent.focusAndRun_(kFgCmd.linkHints, a, b);
-  },
   TryNestedFrame_ (cmd: FgCmdAcrossFrames, count: number, options: SafeObject): boolean {
     const a = this;
     if (a.frameNested_ !== null) {
@@ -208,7 +205,7 @@ var VHints = {
         if (cmd === kFgCmd.linkHints) {
           (done = child.VHints.isActive_) && child.VHints.deactivate_(1);
         }
-        err = (events = child.VEvent).keydownEvents_(VEvent.keydownEvents_());
+        err = (events = child.VEvent).keydownEvents_(VEvent);
       }
     } catch {}
     if (err) {
@@ -763,6 +760,8 @@ var VHints = {
       a.deactivate_(a.keyStatus_.known_);
     } else if (linksMatched.length === 1) {
       VLib.prevent_(event);
+      /** safer; necessary for {@link #VHints.highlightChild_} */
+      VEvent.keydownEvents_()[i] = 1;
       a.execute_(linksMatched[0]);
     } else {
       a.hideSpans_(linksMatched);
@@ -1108,18 +1107,18 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
     VEvent: VEventModeTy;
     VHints: typeof VHints;
   }
-  let err: boolean | null = true, child: VWindow = null as never;
+  let err: boolean | null = true, childEvents: VEventModeTy | undefined;
   try {
     err = !el.contentDocument ||
-      (child = el.contentWindow as VWindow).VEvent.keydownEvents_(VEvent.keydownEvents_());
+      (childEvents = (el.contentWindow as VWindow).VEvent).keydownEvents_(VEvent);
   } catch {}
   const { count_: count, options_: options } = this;
   options.mode = this.mode_;
   el.focus();
   if (err) {
-    VPort.send_({
-      c: kFgReq.execInChild,
-      a: { u: el.src, c: kFgCmd.focusAndHint, n: count, a: options }
+    /* Note: require window.event is KeyboardEvent  */
+    VPort.send_(kFgReq.execInChild, {
+      u: el.src, c: kFgCmd.linkHints, n: count, k: (event as KeyboardEvent).keyCode, a: options
     }, function (res): void {
       if (!res) {
         el.contentWindow.focus();
@@ -1127,7 +1126,7 @@ highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
     });
     return;
   }
-  child.VHints.ActivateAndFocus_(count, options);
+  (childEvents as NonNullable<typeof childEvents>).focusAndRun_(kFgCmd.linkHints, count, options, 1);
   return false;
 },
 
@@ -1246,6 +1245,7 @@ Modes_: [
     if (a.mode_ >= HintMode.min_edit && a.mode_ <= HintMode.max_edit) {
       let newtab = a.options_.newtab;
       newtab == null && (newtab = a.options_.force);
+      // this frame is normal, so during Vomnibar.activate, checkHidden will only pass (in most cases)
       (VPort as ComplicatedVPort).post_<kFgReq.vomnibar, { c: number } & Partial<VomnibarNS.ContentOptions>>({
         H: kFgReq.vomnibar,
         c: 1,

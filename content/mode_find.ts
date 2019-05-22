@@ -373,7 +373,7 @@ var VFind = {
     if (ind < 0) { return; }
     this.historyIndex_ = ind;
     if (!back) {
-      return VPort.send_({ c: kFgReq.findQuery, a: { i: ind } }, this.SetQuery_);
+      return VPort.send_(kFgReq.findQuery, { i: ind }, this.SetQuery_);
     }
     const wnd = this.box_.contentWindow;
     wnd.document.execCommand("undo", false);

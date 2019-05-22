@@ -9264,8 +9264,8 @@ declare var devicePixelRatio: number;
 declare var doNotTrack: string;
 declare var document: Document;
 declare var fullScreen: boolean | undefined;
+declare var event: unknown;
 /*
-declare var event: Event | undefined;
 declare var external: External;
 */
 declare var frameElement: Element | null;

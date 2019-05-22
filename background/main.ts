@@ -831,24 +831,26 @@ Are you sure you want to continue?`);
     (this: MarksNS.FocusOrLaunch, tabs: Tab[], wnd: Window) => void,
     (this: MarksNS.MarkToGo, tick: 0 | 1 | 2, tabs: Tab | undefined) => void
   ];
-  function gotoMainFrame(req: FgReq[kFgReq.gotoMainFrame], port: Port, mainPort: Port | null) {
-    const opt = req.a || {};
-    if (mainPort) {
+  function focusAndRun(req: Excluded<FgReq[kFgReq.gotoMainFrame], "f">
+      , port: Port, mainPort: Port | null, focusAndShowFrameBorder: BOOL): void {
+    if (mainPort && mainPort.s.s !== Frames.Status.disabled) {
       mainPort.postMessage({
         N: kBgReq.focusFrame,
-        S: ensureInnerCSS(port),
-        k: VKeyCodes.None,
-        m: FrameMaskType.ForcedSelf
+        S: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port) : null,
+        m: focusAndShowFrameBorder ? FrameMaskType.ForcedSelf : FrameMaskType.NoMaskAndNoFocus,
+        c: req.c, n: req.n,
+        k: focusAndShowFrameBorder ? cKey : VKeyCodes.None,
+        a: req.a
       });
     } else {
-      opt.$forced = true;
+      req.a.$forced = true;
+      port.postMessage({
+        N: kBgReq.execute,
+        S: null,
+        c: req.c, n: req.n,
+        a: req.a
+      });
     }
-    (mainPort || port).postMessage({
-      N: kBgReq.execute,
-      S: null,
-      c: req.c, n: req.n,
-      a: opt
-    });
   }
   function executeShortcut(cmd: kShortcutNames, ports: Frames.Frames | null | undefined): void {
     if (gCmdTimer) {
@@ -1557,8 +1559,7 @@ Are you sure you want to continue?`);
       if (!port) {
         port = cPort = indexFrame(TabRecency_.last_, 0) as Port;
         if (!port) { return; }
-      } else if (port.s.i !== 0 && port.s.t >= 0 && /* null | "" */ !optUrl) {
-        port = indexFrame(port.s.t, 0) || port;
+        // not go to the top frame here, so that a current frame can suppress keys for a while
       }
       const page = Settings.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
       inner = forceInner || !page.startsWith(location.origin) ? Settings.CONST_.VomnibarPageInner_ : page;
@@ -2049,14 +2050,10 @@ Are you sure you want to continue?`);
         }
       }
       if (iport) {
-        iport.postMessage({
-          N: kBgReq.execute,
-          S: ensureInnerCSS(iport),
-          c: request.c, n: request.n || 1, a: request.a
-        });
-        return true;
+        cKey = request.k;
+        focusAndRun(request, port, iport, 1);
       }
-      return false;
+      return !!iport;
     },
     /** initHelp: */ function (this: void, request: FgReq[kFgReq.initHelp], port: Port): void {
       if (port.s.u.startsWith(Settings.CONST_.OptionsPage_)) {
@@ -2092,6 +2089,7 @@ Are you sure you want to continue?`);
     /** vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar] & Req.baseFg<kFgReq.vomnibar>
         , port: Port): void {
       const { c: count, i: inner } = request;
+      cKey = VKeyCodes.None; // it's only from VHints's task / VOmni reloading, so no Key to suppress
       if (count != null) {
         delete request.c, delete request.H, delete request.i;
         cRepeat = +count || 1;
@@ -2194,25 +2192,8 @@ Are you sure you want to continue?`);
       openShowPage[0](prefix + url, req.r, { opener: true });
     },
     /** gotoMainFrame: */ function (this: void, req: FgReq[kFgReq.gotoMainFrame], port: Port): void {
-      const tabId = port.s.t, mainPort = indexFrame(tabId, 0);
-      if (mainPort || Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
-          || !chrome.webNavigation) {
-        return gotoMainFrame(req, port, mainPort);
-      }
-      chrome.webNavigation.getAllFrames({ tabId },
-      function (frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
-        let frameId = port.s.i, port2: Port | null | false | void;
-        for (const i of frames) {
-          if (i.frameId === frameId) {
-            frameId = i.parentFrameId;
-            port2 = frameId > 0 && indexFrame(tabId, frameId);
-            if (port2) {
-              break;
-            }
-          }
-        }
-        gotoMainFrame(req, port, port2 || null);
-      });
+      // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.
+      focusAndRun(req, port, indexFrame(port.s.t, 0), req.f);
     },
     /** setOmniStyle: */ function (this: void, req: FgReq[kFgReq.setOmniStyle]): void {
       let styles = req.s.trim(), payload = Settings.omniPayload_;

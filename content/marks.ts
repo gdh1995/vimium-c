@@ -99,7 +99,7 @@ var VMarks = {
       u: location.href,
       s: [scrollX | 0, scrollY | 0]
     });
-    return VHud.tip_(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
+    VHud.tip_(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },
   GoTo_ (this: void, _0: number, options: CmdOptions[kFgCmd.goToMarks]): void {
     const { s: scroll, l: local, n: a } = options;
@@ -107,7 +107,7 @@ var VMarks = {
     VMarks.ScrollTo_(scroll);
     local || VEvent.focusAndRun_();
     if (a) {
-      return VHud.tip_(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
+      VHud.tip_(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
     }
   }
 };

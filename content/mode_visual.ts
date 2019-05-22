@@ -287,7 +287,7 @@ var VVisual = {
   },
   find_ (count: number): void {
     if (!VFind.query_) {
-      VPort.send_({ c: kFgReq.findQuery, a: {} }, function (query): void {
+      VPort.send_(kFgReq.findQuery, {}, function (query): void {
         if (query) {
           VFind.updateQuery_(query);
           VVisual.find_(count);

@@ -388,7 +388,7 @@ VDom.UI = {
           clearInterval(timer);
           VLib && VLib.remove_(func); // safe enough even if reloaded
         }
-      }, 75);
+      }, (GlobalConsts.TimeOfSuppressingTailKeydowns * 0.36) | 0);
     }
     VLib.push_(func, func);
   },

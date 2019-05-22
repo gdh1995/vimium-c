@@ -37,7 +37,9 @@ declare const enum kFgReq {
   searchAs, gotoSession, openUrl, focus, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
-  focusOrLaunch, cmd, removeSug, openImage, gotoMainFrame,
+  focusOrLaunch, cmd, removeSug, openImage,
+  /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
+  gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack,
   END,
   msg = 90, injectDeprecated = 91,
@@ -90,7 +92,7 @@ interface BgReq {
   [kBgReq.focusFrame]: {
     /** mask */ m: FrameMaskType;
     /** key */ k: VKeyCodes;
-  } & Partial<BgCSSReq>;
+  } & Partial<BaseExecute<FgOptions, FgCmdAcrossFrames>>;
   [kBgReq.execute]: BaseExecute<object> & Req.baseBg<kBgReq.execute>;
   [kBgReq.exitGrab]: Req.baseBg<kBgReq.exitGrab>;
   [kBgReq.showHelpDialog]: {
@@ -168,20 +170,20 @@ declare const enum kBgCmd {
 }
 
 declare const enum kFgCmd {
-  framesGoBack, findMode, linkHints, focusAndHint, unhoverLast, marks,
+  framesGoBack, findMode, linkHints, unhoverLast, marks,
   goToMarks, scroll, visualMode, vomnibar,
   reset, toggle, insertMode, passNextKey, goNext,
   reload, switchFocus, showHelp, autoCopy,
   autoOpen, searchAs, focusInput,
   END = "END",
 }
+type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar;
 
 interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
 interface CmdOptions {
   [kFgCmd.linkHints]: FgOptions;
-  [kFgCmd.focusAndHint]: FgOptions;
   [kFgCmd.unhoverLast]: FgOptions;
   [kFgCmd.marks]: {
     mode?: "create" | /* all others are treated as "goto"  */ "goto" | "goTo";
@@ -305,7 +307,9 @@ interface FgReqWithRes {
   } | FgReqWithRes[kFgReq.parseUpperUrl];
   [kFgReq.execInChild]: {
     /** url */ u: string;
-  } & Pick<BaseExecute<object>, Exclude<keyof BaseExecute<object>, "S">>;
+    /** lastKey */ k: VKeyCodes;
+    /** ensured args */ a: FgOptions;
+  } & Excluded<BaseExecute<FgOptions, FgCmdAcrossFrames>, "S">;
 }
 
 interface FgReq {
@@ -401,11 +405,12 @@ interface FgReq {
     /** auto: default to true */ a?: boolean;
   };
   [kFgReq.gotoMainFrame]: {
-    /** command */ c: kFgCmd,
+    /** command */ c: FgCmdAcrossFrames;
+    /** focusMainFrame and showFrameBorder */ f: BOOL;
     /** count */ n: number;
-    /** options */ a: null | (object & {
+    /** options */ a: FgOptions & {
       $forced?: true;
-    });
+    };
   };
   [kFgReq.setOmniStyle]: {
     /** style */ s: string;

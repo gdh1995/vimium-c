@@ -28,14 +28,19 @@ var VOmni = {
   screenHeight_: 0,
   docZoom_: 0,
   activate_ (this: void, count: number, options: VomnibarNS.FullOptions): void {
-    const a = VOmni;
+    const a = VOmni, dom = VDom;
+    // hide all further key events to wait iframe loading and focus changing from JS
+    VLib.remove_(a);
+    VLib.push_(dom.UI.SuppressMost_, a);
+    let timer1 = setTimeout(a.RefreshKeyHandler_, GlobalConsts.TimeOfSuppressingTailKeydowns);
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
       return VHud.tip_("Sorry, Vomnibar page seems to fail in loading.", 2000);
     }
     if (!options || !options.k || !options.v) { return; }
-    if (VDom.OnDocLoaded_ !== VDom.execute_) {
+    if (dom.OnDocLoaded_ !== dom.execute_) {
       if (!a._timer) {
+        clearTimeout(timer1);
         a._timer = setTimeout(a.activate_.bind(a as never, count, options), 500);
         return;
       }
@@ -47,40 +52,39 @@ var VOmni = {
     }
     if (url === true || count !== 1 && url == null) {
       // update options.url to string, so that this block can only run once per command
-      if (options.url = url = url ? VDom.UI.getSelectionText_() : "") {
+      if (options.url = url = url ? dom.UI.getSelectionText_() : "") {
         options.newtab = true;
       }
-      if (!isTop) {
-        VPort.post_({ H: kFgReq.gotoMainFrame, c: kFgCmd.vomnibar, n: count, a: options });
+      if (!isTop && !(options as FgReq[kFgReq.gotoMainFrame]["a"]).$forced) { // check $forced to avoid dead loops
+        VPort.post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options });
         return;
       }
     }
-    if (!VDom.isHTML_()) { return; }
+    if (!dom.isHTML_()) { return; }
     a.options_ = null;
-    VDom.dbZoom_ = 1;
+    dom.dbZoom_ = 1;
     let scale = devicePixelRatio;
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (!(Build.BTypes & ~BrowserType.Chrome)
-            || Build.BTypes & BrowserType.Chrome && VDom.cache_.browser_ === BrowserType.Chrome)) {
-      options.w = VDom.prepareCrop_() * scale;
+            || Build.BTypes & BrowserType.Chrome && dom.cache_.browser_ === BrowserType.Chrome)) {
+      options.w = dom.prepareCrop_() * scale;
       options.h = a.screenHeight_ = innerHeight * scale;
     } else {
-      options.w = VDom.prepareCrop_();
+      options.w = dom.prepareCrop_();
       options.h = a.screenHeight_ = innerHeight;
     }
     options.z = scale;
-    a.docZoom_ = VDom.getZoom_();
+    a.docZoom_ = dom.getZoom_();
     if (!(Build.NDEBUG || VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1)) {
       console.log("Assert error: VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1");
     }
-    a.status_ > VomnibarNS.Status.Inactive || VLib.push_(VDom.UI.SuppressMost_, a);
-    a.box_ && VDom.UI.adjust_();
+    a.box_ && dom.UI.adjust_();
     if (a.status_ === VomnibarNS.Status.NotInited) {
-      if (VHints.TryNestedFrame_(kFgCmd.vomnibar, count, options)) { return VLib.remove_(a); }
+      if (VHints.TryNestedFrame_(kFgCmd.vomnibar, count, options)) { return; }
       a.status_ = VomnibarNS.Status.Initing;
       a.init_(options);
     } else if (a.isABlank_()) {
-      a.onReset_ = function (this: typeof VOmni): void { this.onReset_ = null; return this.activate_(count, options); };
+      a.onReset_ = function (): void { this.onReset_ = null; this.activate_(count, options); };
       return;
     } else if (a.status_ === VomnibarNS.Status.Inactive) {
       a.status_ = VomnibarNS.Status.ToShow;
@@ -104,12 +108,9 @@ var VOmni = {
       url = url.split("#", 1)[0] + VData.full.replace(<RegExpOne> /^-?\d+ /, "");
     }
     const trail = options.trailing_slash;
-    VPort.send_({
-      c: kFgReq.parseSearchUrl,
-      a: {
+    VPort.send_(kFgReq.parseSearchUrl, {
         t: trail != null ? !!trail : null,
         p: upper, u: url
-      }
     }, function (search): void {
       options.p = search;
       if (search != null) { options.url = ""; }
@@ -127,7 +128,8 @@ var VOmni = {
       active && a.port_.postMessage(VomnibarNS.kCReq.hide);
       return;
     }
-    VLib.remove_(a);
+    // needed, in case the iframe is focused and then a `<esc>` is pressed before removing suppressing
+    a.RefreshKeyHandler_();
     active || focus();
     a.box_.style.cssText = "display:none";
   },
@@ -216,7 +218,7 @@ var VOmni = {
     a.port_ && a.port_.close();
     a.box_.remove();
     a.port_ = a.box_ = null as never;
-    VLib.remove_(a);
+    a.RefreshKeyHandler_(); // just for safer code
     a.options_ = null;
     if (a.onReset_) { return a.onReset_(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
@@ -276,11 +278,12 @@ var VOmni = {
     top = a.screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / a.screenHeight_ * 100) | 0) + "%" : "";
     style.top = !Build.NoDialogUI && VimiumInjector === null && location.hash === "#dialog-ui" ? "8px" : top;
     style.display = "";
-    setTimeout(function (): void {
-      const a2 = VOmni;
-      VLib.remove_(a2);
-      a2 && a2.status_ === VomnibarNS.Status.Showing && VLib.push_(a2.onKeydown_, a2);
-    }, 160);
+    setTimeout(a.RefreshKeyHandler_, 160);
+  },
+  RefreshKeyHandler_ (this: void): void {
+    const a = VOmni, st = a.status_;
+    st < VomnibarNS.Status.Showing && st > VomnibarNS.Status.Inactive || VLib.remove_(a);
+    st > VomnibarNS.Status.ToShow && VLib.push_(a.onKeydown_, a);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     if (VEvent.lock_()) { return HandlerResult.Nothing; }

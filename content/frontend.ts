@@ -29,6 +29,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           || !(Build.BTypes & ~BrowserType.Edge)
         ? Build.BTypes as number : BrowserType.Chrome
     , browserVer = 0 as BrowserVer
+    , isTop = top === window
     ;
 
   function post<K extends keyof FgReq>(this: void, request: FgReq[K] & Req.baseFg<K>): 1 {
@@ -80,8 +81,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       (Build.BTypes & ~BrowserType.Firefox ? typeof (activeEl as Element).blur === "function"
           : (activeEl as Element).blur) &&
       (activeEl as HTMLElement | SVGElement).blur();
-    } else if (top !== window && activeEl === body) {
-      action = InsertMode.focusUpper_(event.keyCode, repeat, event);
+    } else if (!isTop && activeEl === body) {
+      InsertMode.focusUpper_(event.keyCode, repeat, event);
+      action = HandlerResult.PassKey;
     } else {
       action = HandlerResult.Default;
     }
@@ -111,7 +113,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       ) {
         if (InsertMode.lock_ === document.body && InsertMode.lock_) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
-          action = HandlerResult.Nothing; // skip the below `KeydownEvents[key] = 1`
+          action = HandlerResult.PassKey;
         } else {
           action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
           InsertMode.exit_(event);
@@ -309,7 +311,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   Commands: {
     [K in kFgCmd & number]:
       K extends keyof SpecialCommands ? SpecialCommands[K] :
-      (this: void, count: number, options: CmdOptions[K]) => void;
+      (this: void, count: number, options: CmdOptions[K], key?: -42) => void;
   } = [
     /* framesGoBack: */ function (rawStep: number): void {
       const maxStep = Math.min(Math.abs(rawStep), history.length - 1),
@@ -325,7 +327,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     VFind.activate_,
     VHints.activate_,
-    VHints.ActivateAndFocus_,
     /* unhoverLast: */ function (this: void): void {
       VDom.hover_(null);
       HUD.tip_("The last element is unhovered");
@@ -454,7 +455,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (msg === "e") { return; }
       let wantTop = innerWidth < 400 || innerHeight < 320;
       if (!VDom.isHTML_()) {
-        if (window === top) { return; }
+        if (isTop) { return; }
         wantTop = true;
       }
       post({ H: kFgReq.initHelp, w: wantTop });
@@ -618,7 +619,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VLib.remove_(InsertMode);
       // it's acceptable to not set the userActed flag if there's only the top frame;
       // when an iframe gets clicked, the events are mousedown and then focus, so SafePost_ is needed
-      !(event instanceof Event) || !frames.length && window === top ||
+      !(event instanceof Event) || !frames.length && isTop ||
       vPort.SafePost_({ H: kFgReq.exitGrab });
       return HandlerResult.Nothing;
     } as {
@@ -642,17 +643,18 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return false;
       }
     },
+    /** @param key should not be `VKeyCodes.None` */
     focusUpper_ (this: void, key: VKeyCodes, force: boolean, event: Parameters<typeof VLib.prevent_>[0]
-        ): HandlerResult.Default | HandlerResult.Prevent {
+        ) {
       let el = VDom.parentFrame_();
-      if (!el && (!force || top === window)) { return HandlerResult.Default; }
+      if (!el && (!force || isTop)) { return; }
       VLib.prevent_(event); // safer
       if (el) {
         KeydownEvents[key] = 1;
         const parent1 = parent as Window, a1 = parent1 && (parent1 as Window & { VEvent: VEventModeTy }).VEvent;
-        el.blur();
         if (a1) {
           (parent1 as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(1);
+          a1.keydownEvents_(VEvent);
           a1.focusAndRun_(0, 0 as never, 0 as never, 1);
         } else {
           parent1.focus();
@@ -661,7 +663,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         post({ H: kFgReq.nextFrame, t: Frames.NextType.parent, k: key });
         KeydownEvents[key] = 2;
       }
-      return HandlerResult.Prevent;
     },
     exit_ (event: KeyboardEvent): void {
       let target: Element | null = event.target as Element;
@@ -785,7 +786,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     more_: false,
     node_: null as HTMLDivElement | null,
     timer_: 0,
-    Focus_ (this: void, { m: mask, S: CSS, k: key }: BgReq[kBgReq.focusFrame]): void {
+    Focus_ (this: void, req: BgReq[kBgReq.focusFrame]): void {
+      const { m: mask, S: CSS, k: key } = req;
       CSS && VDom.UI.css_(CSS);
       if (mask !== FrameMaskType.NormalNext) { /* empty */ }
       else if (innerWidth < 3 || innerHeight < 3
@@ -797,14 +799,17 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         });
         return;
       }
-      events.focusAndRun_();
-      esc(HandlerResult.Nothing);
-      FrameMask.show_(mask, key);
-    },
-    show_ (mask: FrameMaskType, key: VKeyCodes): void {
+      mask !== FrameMaskType.NoMaskAndNoFocus && events.focusAndRun_();
+      if (req.c) {
+        type TypeChecked = { [key in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
+            count: number, options: CmdOptions[T2]) => void; };
+        (Commands as TypeChecked)[req.c](req.n as number, req.a as FgOptions);
+      }
       KeydownEvents[key] = 1;
-      const notTop = top !== window;
-      if (notTop && mask === FrameMaskType.NormalNext) {
+      FrameMask.show_(mask);
+    },
+    show_ (mask: FrameMaskType): void {
+      if (!isTop && mask === FrameMaskType.NormalNext) {
         let docEl = document.documentElement;
         if (docEl) {
         Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
@@ -822,7 +827,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         dom1 = VDom.createElement_("div");
         dom1.className = "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : "");
         _this.node_ = dom1;
-        _this.timer_ = setInterval(_this.Remove_, notTop ? 350 : 200);
+        _this.timer_ = setInterval(_this.Remove_, isTop ? 200 : 350);
       }
       VDom.UI.add_(dom1);
     },
@@ -1074,6 +1079,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       post({ H: kFgReq.cmd, c: request.c, n, i: request.i});
     },
   function ({ h: html, a: shouldShowAdvanced, o: optionUrl, S: CSS }: Req.bg<kBgReq.showHelpDialog>): void {
+    // Note: not suppress key on the top, because help dialog may need a while to render,
+    // and then a keyup may occur before or after it
     if (CSS) { VDom.UI.css_(CSS); }
     const oldShowHelp = Commands[kFgCmd.showHelp];
     oldShowHelp("e");
@@ -1168,36 +1175,35 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     OnWndFocus_ (this: void): void { onWndFocus(); },
     checkHidden_ (this: void, cmd?: FgCmdAcrossFrames
         , count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): BOOL {
-      let docEl = document.documentElement, el = window === top ? null : VDom.parentFrame_() || docEl;
-      if (!el) { return 0; }
+      let docEl = document.documentElement, parEl = isTop && VDom.parentFrame_(), el = parEl || docEl;
+      if (isTop || !el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
-      result: boolean | BOOL = box.height === 0 && box.width === 0 || getComputedStyle(el).visibility === "hidden";
-      if (!cmd) { /* empty */ }
-      else if (result) {
-        type ForwardedOptions = Exclude<typeof options, undefined>;
-        (options as ForwardedOptions).$forced || post({
-          H: kFgReq.gotoMainFrame,
-          c: cmd,
-          n: count as number, a: options as ForwardedOptions
-        });
-      } else if (el !== docEl && (box.bottom <= 0 || parent && box.top > (parent as Window).innerHeight)) {
-        interface VWindow extends Window {
-          VEvent: VEventModeTy;
-          VHints: typeof VHints;
-          VScroller: typeof VScroller;
-          VOmni: typeof VOmni;
+      parEvents: VEventModeTy,
+      result: boolean | BOOL | 2 = box.height === 0 && box.width === 0 || getComputedStyle(el).visibility === "hidden";
+      if (cmd) {
+        if (parEl && (result || box.bottom <= 0 || parent && box.top > (parent as Window).innerHeight)) {
+          parEvents = (parent as Window & { VEvent: VEventModeTy }).VEvent;
+          if (!parEvents.keydownEvents_(VEvent)) {
+            parEvents.focusAndRun_(cmd, count as number, options as FgOptions, 1);
+            result = 2;
+          }
         }
-        (parent as VWindow).VEvent.focusAndRun_(cmd, count as number, options as FgOptions, 1);
-        result = 1;
+        // tslint:disable-next-line: triple-equals
+        if (<number> result == 1) { // if there's a same-origin parent, use it instead of top
+          // here not suppress current cmd, in case of malformed pages;
+          // the worst result is doing something in a hidden frame,
+          //   which is tolerable, since only few commands do check hidden)
+          (options as Exclude<typeof options, undefined>).$forced ? (result = 0) : post({
+            H: kFgReq.gotoMainFrame, f: 1,
+            c: cmd,
+            n: count as number, a: options as Exclude<typeof options, undefined>
+          });
+        }
       }
       return <BOOL> +result;
     },
     focusAndRun_ (cmd?: FgCmdAcrossFrames, count?: number, options?: FgOptions
-        , highlightOutline?: BOOL, timedout?: 0 | 1): void {
-      if (timedout !== 1) {
-        setTimeout(function (): void { events.focusAndRun_(cmd, count, options, highlightOutline, 1); }, 1);
-        return;
-      }
+        , showBorder?: 1): void {
       InsertMode.ExitGrab_();
       let old = onWndFocus, failed = true;
       onWndFocus = function (): void { failed = false; };
@@ -1223,11 +1229,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (esc) {
         esc(HandlerResult.Nothing);
         if (cmd) {
-          cmd === kFgCmd.linkHints ? (VHints.isActive_ = false, VHints.activate_(count as number, options as FgOptions))
-          : cmd === kFgCmd.scroll ? VScroller.activate_(count as number, options as FgOptions)
-          : VOmni.activate_(count as number, options as FgOptions as VomnibarNS.FullOptions);
+          type TypeChecked = { [key in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
+              count: number, options: CmdOptions[T2]) => void; };
+          (Commands as TypeChecked)[cmd](count as number, options as FgOptions);
         }
-        highlightOutline && FrameMask.show_(FrameMaskType.ForcedSelf, 0);
+        showBorder && FrameMask.show_(FrameMaskType.ForcedSelf);
       }
     },
     mapKey_ (this: void, key): string { return mappedKeys !== null && mappedKeys[key] || key; },
@@ -1278,9 +1284,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       if (f) { return f(); }
     },
-    keydownEvents_: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | boolean {
+    keydownEvents_: function (this: void, arr?: VEventModeTy): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
-      return !isEnabled || !(KeydownEvents = arr);
+      return !isEnabled || !(KeydownEvents = arr.keydownEvents_());
     } as VEventModeTy["keydownEvents_"]
   },
 
@@ -1354,7 +1360,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         : (isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
         + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn_ ? PortType.hasCSS : 0),
       name = PortNameEnum.Prefix + (
-        PortType.isTop * +(top === window) + PortType.hasFocus * +document.hasFocus() + status),
+        PortType.isTop * +isTop + PortType.hasFocus * +document.hasFocus() + status),
       data = { name: injector ? name + PortNameEnum.Delimiter + injector.versionHash : name },
       port = vPort._port = injector ? runtime.connect(injector.id, data) as Port
         : runtime.connect(data) as Port;
@@ -1377,11 +1383,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
   VPort = {
     post_: post,
-    send_ <K extends keyof FgRes> (this: void, request: Pick<Req.fgWithRes<K>, "a" | "c"> & Partial<Req.fgWithRes<K>>
+    send_ <K extends keyof FgRes> (this: void, cmd: K, args: Req.fgWithRes<K>["a"]
         , callback: (this: void, res: FgRes[K]) => void): void {
       let id = ++vPort._id;
-      request.H = kFgReq.msg; request.i = id;
-      (vPort._port as Port).postMessage<K>(request as EnsureNonNull<typeof request>);
+      (vPort._port as Port).postMessage({ H: kFgReq.msg, i: id, c: cmd, a: args });
       vPort._callbacks[id] = callback;
     },
     evalIfOK_ (url: string): boolean {

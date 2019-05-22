@@ -25,3 +25,8 @@ type Unpacked<T> =
     T;
 
 interface ThisType<T> {}
+
+type Excluded<T, K extends keyof T> = {
+    [P in Exclude<keyof T, K>]: T[P];
+};
+  

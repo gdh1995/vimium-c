@@ -153,7 +153,8 @@ declare const enum ReuseType {
 }
 
 declare const enum FrameMaskType {
-  NoMask = 0,
+  NoMaskAndNoFocus = 0,
+  NoMask = 1,
   minWillMask = NoMask + 1,
   OnlySelf = minWillMask,
   NormalNext = 2,
