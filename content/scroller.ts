@@ -182,12 +182,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       amount -= element ? a.getDimension_(element, di, kScrollDim.position) : di ? scrollY : scrollX;
     }
     if (amount && element === a.top_ && element && window !== top && VDom.parentFrame_()) {
-      // somehow like https://github.com/philc/vimium/pull/2875
-      interface VWindow extends Window {
-        VDom: typeof VDom;
-        VScroller: typeof VScroller;
-      }
-      const par = parent, Sc = par && (par as VWindow).VScroller;
+      const Sc = parent && (parent as Window & { VScroller: typeof VScroller; }).VScroller;
       if (Sc && !a._doesScroll(element, di, amount)) {
         Sc.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
         if (Sc.keyIsDown_) {
