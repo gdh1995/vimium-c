@@ -6,6 +6,7 @@ var VFind = {
   parsedRegexp_: null as RegExpG | null,
   historyIndex_: 0,
   notEmpty_: false,
+  isQueryRichText_: true,
   isRegex_: null as boolean | null,
   ignoreCase_: null as boolean | null,
   wholeWord_: false,
@@ -25,13 +26,15 @@ var VFind = {
   css_: null as never as FindCSS,
   styleIframe_: null as HTMLStyleElement | null,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
-    const a = VFind;
+    const a = VFind, dom = VDom, UI = dom.UI;
     a.css_ = options.f || a.css_;
-    if (!VDom.isHTML_()) { return; }
-    const query: string | undefined | null = (options.q || "") + "",
-    UI = VDom.UI;
+    if (!dom.isHTML_()) { return; }
+    let query: string = options.s ? UI.getSelectionText_() : "";
+    (query.length > 99 || query.indexOf("\n") > 0) && (query = "");
+    a.isQueryRichText_ = !query;
+    query || (query = options.q);
     a.isActive_ || query === a.query_ && options.l || VMarks.setPreviousPosition_();
-    VDom.docSelectable_ = UI.getDocSelectable_();
+    dom.docSelectable_ = UI.getDocSelectable_();
     UI.ensureBorder_();
     if (options.l) {
       return a.findAndFocus_(query || a.query_, options);
@@ -52,10 +55,10 @@ var VFind = {
     a.parsedRegexp_ = a.regexMatches_ = null;
     a.activeRegexIndex_ = 0;
 
-    const el = a.box_ = VDom.createElement_("iframe") as typeof VFind.box_, st = el.style;
+    const el = a.box_ = dom.createElement_("iframe") as typeof VFind.box_, st = el.style;
     el.className = "R HUD UI";
     st.cssText = "display:none;width:0";
-    if (Build.BTypes & ~BrowserType.Firefox && VDom.wdZoom_ !== 1) { st.zoom = "" + 1 / VDom.wdZoom_; }
+    if (Build.BTypes & ~BrowserType.Firefox && dom.wdZoom_ !== 1) { st.zoom = "" + 1 / dom.wdZoom_; }
     el.onload = function (this: HTMLIFrameElement): void { VFind.notDisableScript_() && VFind.onLoad_(1); };
     VLib.push_(UI.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
@@ -161,6 +164,7 @@ var VFind = {
     a.focus_();
     a.query0_ = "";
     a.query_ || a.SetQuery_(query);
+    a.isQueryRichText_ = true;
     a.notEmpty_ = !!a.query_;
     a.notEmpty_ && a.box_.contentDocument.execCommand("selectAll", false);
   },
@@ -189,6 +193,7 @@ var VFind = {
         a.showCount_(1);
       }
     }
+    a.isQueryRichText_ = true;
     const style = a.isActive_ || VHud.opacity_ !== 1 ? null : (VHud.box_ as HTMLDivElement).style;
     style && (style.visibility = "hidden");
     VDom.UI.toggleSelectStyle_(0);
@@ -238,7 +243,7 @@ var VFind = {
     VLib.prevent_(event);
     if (!text) { return; }
     this.document.execCommand("insertText", false, text + "");
-  } : null,
+  } : 0 as never,
   onKeydown_ (event: KeyboardEvent): void {
     VLib.Stop_(event);
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
@@ -373,7 +378,8 @@ var VFind = {
     if (ind < 0) { return; }
     this.historyIndex_ = ind;
     if (!back) {
-      return VPort.send_(kFgReq.findQuery, { i: ind }, this.SetQuery_);
+      VPort.send_(kFgReq.findQuery, { i: ind }, this.SetQuery_);
+      return;
     }
     const wnd = this.box_.contentWindow;
     wnd.document.execCommand("undo", false);
@@ -385,10 +391,10 @@ var VFind = {
     if (!query && _this.historyIndex_ > 0) { --_this.historyIndex_; return; }
     doc.execCommand("selectAll", false);
     doc.execCommand("insertText", false, query.replace(<RegExpOne> /^ /, "\xa0"));
-    return _this.OnInput_();
+    _this.OnInput_();
   },
-  saveQuery_ (): string | void | 1 {
-    return this.query_ && VPort.post_({
+  saveQuery_ (): void {
+    this.query_ && VPort.post_({
       H: kFgReq.findQuery,
       q: this.input_.innerText.replace(this.A0Re_, " ").replace(this.tailRe_, "")
     });
@@ -466,8 +472,9 @@ var VFind = {
     a.query_ = query;
     a.wholeWord_ = false;
     a.isRegex_ = a.ignoreCase_ = null as boolean | null;
-    query = query.replace(a._ctrlRe, a.FormatQuery_);
+    query = a.isQueryRichText_ ? query.replace(a._ctrlRe, a.FormatQuery_) : query;
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b";
+    if (a.isQueryRichText_) {
     if (isRe === null && !ww) {
       isRe = VDom.cache_.regexFindMode;
       const info = 2 * +query.startsWith(B) + +query.endsWith(B);
@@ -478,7 +485,6 @@ var VFind = {
         isRe = true;
       }
     }
-    isRe = isRe || false;
     if (ww && (isRe || !(Build.BTypes & BrowserType.Chrome)
               || ((Build.BTypes & ~BrowserType.Chrome) && VDom.cache_.browser_ !== BrowserType.Chrome)
         )) {
@@ -487,8 +493,9 @@ var VFind = {
       isRe = true;
     }
     query = isRe ? query !== "\\b\\b" && query !== B ? query : "" : query.replace(a._bslashRe, "\\");
+    }
     a.parsedQuery_ = query;
-    a.isRegex_ = isRe;
+    a.isRegex_ = !!isRe;
     a.wholeWord_ = ww;
     a.notEmpty_ = !!query;
     a.ignoreCase_ !== null || (a.ignoreCase_ = query.toLowerCase() === query);

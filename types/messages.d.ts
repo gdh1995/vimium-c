@@ -245,6 +245,7 @@ interface CmdOptions {
     /** leave find mode */ l: boolean,
     /** query */ q: string;
     /* return to view port */ r: boolean;
+    /* auto use selected text */ s: boolean;
     /** findCSS */ f: FindCSS | null;
   };
   [kFgCmd.goToMarks]: {

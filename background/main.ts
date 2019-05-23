@@ -1547,6 +1547,7 @@ Are you sure you want to continue?`);
         l: leave,
         f: findCSS,
         r: cOptions.returnToViewport === true,
+        s: !nth && absRepeat < 2 && !!cOptions.selected,
         q: leave || cOptions.last ? FindModeHistory_.query_(sender.a, "", nth < 0 ? -nth : nth) : ""
       }});
     },

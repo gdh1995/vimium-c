@@ -283,7 +283,7 @@ var HelpDialog = {
     copyCurrentUrl: "Copy page's info (use type=url/frame, decoded)",
     debugBackground: "Debug the background page",
     enableCSTemp: "enable the site's CS in incognito window (use type=images)",
-    enterFindMode: "Enter find mode (use last)",
+    enterFindMode: "Enter find mode (use last, selected=true)",
     enterInsertMode: "Enter insert mode (use code=27, stat=0)",
     enterVisualLineMode: "Enter visual line mode",
     enterVisualMode: "Enter visual mode",
