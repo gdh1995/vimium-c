@@ -306,7 +306,7 @@ readValueFromElement_ (): boolean | null {
 
 ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOption_, isAdd: number): void {
   if (this.list_.length !== isAdd) { return; }
-  isAdd && !BG_.Exclusions && (BG_.Utils.require_("Exclusions"), BG_.Utils.require_("Commands"));
+  isAdd && !BG_.Exclusions && BG_.Utils.require_("Exclusions");
   const el = $("#exclusionToolbar"), options = el.querySelectorAll("[data-model]");
   el.style.visibility = isAdd ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {
