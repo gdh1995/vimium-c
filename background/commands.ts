@@ -160,7 +160,7 @@ var Commands = {
   }),
   populateCommandKeys_: (function (this: void): void {
     const d = CommandsData_, ref = d.keyMap_ = Object.create<ValidKeyAction | ChildKeyMap>(null), keyRe = Utils.keyRe_,
-    d2 = Settings.temp_, oldErrors = d2.cmdErrors_;
+    d2 = Settings.temp_, oldErrors = d2.cmdErrors_, detectNewError = oldErrors <= 0;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
     ref["-"] = KeyAction.count;
@@ -168,21 +168,21 @@ var Commands = {
     for (const key in R) {
       const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
       if (last === 0) {
-        (key in ref) && C.warnInactive_(ref[key] as ReadonlyChildKeyMap, key);
+        (key in ref) && detectNewError && C.warnInactive_(ref[key] as ReadonlyChildKeyMap, key);
         ref[key] = KeyAction.cmd;
         continue;
       }
       let ref2 = ref as ChildKeyMap, tmp: ChildKeyMap | ValidChildKeyAction | undefined = ref2, j = 0;
       while ((tmp = ref2[arr[j]]) && j < last) { j++; ref2 = tmp; }
       if (tmp === KeyAction.cmd) {
-        C.warnInactive_(key, arr.slice(0, j + 1).join(""));
+        detectNewError && C.warnInactive_(key, arr.slice(0, j + 1).join(""));
         continue;
       }
-      tmp != null && C.warnInactive_(tmp, key);
+      tmp != null && detectNewError && C.warnInactive_(tmp, key);
       while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null) as ChildKeyMap; }
       ref2[arr[last]] = KeyAction.cmd;
     }
-    if (d2.cmdErrors_) {
+    if (detectNewError && d2.cmdErrors_) {
       console.log("%cKey Mappings: %o errors found.", "background-color:#fffbe5", d2.cmdErrors_);
     } else if (oldErrors < 0) {
       console.log("The new key mappings have no errors");
