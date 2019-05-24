@@ -1,34 +1,11 @@
-declare namespace ExclusionsNS {
-  type Tester = RegExpOne | string;
-  type TesterDict = SafeDict<ExclusionsNS.Tester>;
-  type Rules = Array<Tester | string>;
-
-  interface ExclusionsCls {
-    _listening: boolean;
-    _listeningHash: boolean;
-    onlyFirstMatch_: boolean;
-    rules_: Rules;
-    testers_: SafeDict<Tester> | null;
-    getRe_ (pattern: string): Tester;
-    setRules_ (newRules: StoredRule[]): void;
-    GetPassKeys_: BackendHandlersNS.BackendHandlers["getExcluded_"];
-    getOnURLChange_ (): null | Listener;
-    format_ (rules: StoredRule[]): Rules;
-    getTemp_ (this: ExclusionsCls, url: string, sender: Frames.Sender, rules: StoredRule[]): string | null;
-    getAllPassed_ (): SafeEnum | true | null;
-    RefreshStatus_ (this: void, old_is_empty: boolean): void;
-  }
-}
-import ExcCls = ExclusionsNS.ExclusionsCls;
-declare var Exclusions: ExcCls;
-
 if (Settings.get_("vimSync")
     || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend.onInit_)
         && !Settings.updateHooks_.exclusionRules)) {
-var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
+var Exclusions = {
   testers_: null as SafeDict<ExclusionsNS.Tester> | null,
-  getRe_ (this: ExcCls, pattern: string): ExclusionsNS.Tester {
-    let func: ExclusionsNS.Tester | undefined = (this.testers_ as ExclusionsNS.TesterDict)[pattern], re: RegExp | null;
+  getRe_ (pattern: string): ExclusionsNS.Tester {
+    type TesterDict = NonNullable<typeof Exclusions.testers_>;
+    let func: ExclusionsNS.Tester | undefined = (this.testers_ as TesterDict)[pattern], re: RegExp | null;
     if (func) { return func; }
     if (pattern[0] === "^") {
       if (re = Utils.makeRegexp_(pattern.startsWith("^$|") ? pattern.substring(3) : pattern, "", false)) {
@@ -37,13 +14,13 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
         console.log("Failed in creating an RegExp from %o", pattern);
       }
     }
-    return (this.testers_ as ExclusionsNS.TesterDict)[pattern] = func || pattern.substring(1);
+    return (this.testers_ as TesterDict)[pattern] = func || pattern.substring(1);
   },
   _listening: false,
   _listeningHash: false,
   onlyFirstMatch_: false,
-  rules_: [],
-  setRules_ (this: ExcCls, rules: ExclusionsNS.StoredRule[]): void {
+  rules_: [] as ExclusionsNS.Rules,
+  setRules_ (rules: ExclusionsNS.StoredRule[]): void {
     let onURLChange: null | ExclusionsNS.Listener;
     if (rules.length === 0) {
       this.rules_ = [];
@@ -91,7 +68,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     }
     return matchedKeys || null;
   },
-  getOnURLChange_ (this: ExcCls): null | ExclusionsNS.Listener {
+  getOnURLChange_ (): null | ExclusionsNS.Listener {
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
       : Build.MinCVer >= BrowserVer.MinWithFrameId || !(Build.BTypes & BrowserType.Chrome)
         || ChromeVer >= BrowserVer.MinWithFrameId
@@ -107,7 +84,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     this.getOnURLChange_ = () => onURLChange;
     return onURLChange;
   },
-  format_ (this: ExcCls, rules: ExclusionsNS.StoredRule[]): ExclusionsNS.Rules {
+  format_ (rules: ExclusionsNS.StoredRule[]): ExclusionsNS.Rules {
     const out = [] as ExclusionsNS.Rules;
     for (let _i = 0, _len = rules.length; _i < _len; _i++) {
       const rule = rules[_i];
@@ -127,14 +104,14 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     }
     return tick ? all : null;
   },
-  getTemp_ (this: ExcCls, url: string, sender: Frames.Sender, rules: ExclusionsNS.StoredRule[]): string | null {
+  getTemp_ (url: string, sender: Frames.Sender, rules: ExclusionsNS.StoredRule[]): string | null {
     const old = this.rules_;
     this.rules_ = this.format_(rules);
     const ret = this.GetPassKeys_(url, sender);
     this.rules_ = old;
     return ret;
   },
-  RefreshStatus_ (old_is_empty: boolean): void {
+  RefreshStatus_ (this: void, old_is_empty: boolean): void {
     const always_enabled = Exclusions.rules_.length > 0 ? null : <Req.bg<kBgReq.reset>> {
       N: kBgReq.reset,
       p: null
@@ -201,5 +178,5 @@ Settings.updateHooks_.exclusionListenHash = function (this: void, value: boolean
   value ? e.addListener(l) : e.removeListener(l);
 };
 } else {
-  var Exclusions: ExcCls = null as never;
+  var Exclusions = null as never as typeof Exclusions;
 }

@@ -333,7 +333,7 @@ declare const enum GlobalConsts {
   // limited by Pagination.findAndFollowLink_
   MaxNumberOfNextPatterns = 200,
   MaxBufferLengthForPasting = 8192,
-  TimeoutToReleaseBackendModules = /** (to make TS silent) 1000 * 60 */ 60000,
+  TimeoutToReleaseBackendModules = /** (to make TS silent) 1000 * 60 * 5 */ 300000,
   ToleranceOfNegativeTimeDelta = 5000,
   ThresholdToAutoLimitTabOperation = 2, // 2 * Tab[].length
   LinkHintTooHighThreshold = 20, // scrollHeight / innerHeight

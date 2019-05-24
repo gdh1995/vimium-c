@@ -428,7 +428,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     return;
   }
 
-  const bgExclusions: ExclusionsNS.ExclusionsCls = BG_.Exclusions as ExclusionsNS.ExclusionsCls,
+  const bgExclusions = BG_.Exclusions as typeof Exclusions,
   frameInfo: Frames.Sender = ref ? ref[0].s : {
     /** must keep aligned with {@link ../background/main.ts#formatPortSender} */
     i: 0,
@@ -448,7 +448,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     }
     isPatternMatched_ (pattern: string) {
       if (!pattern) { return false; }
-      const rule = (bgExclusions.testers_ as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
+      const rule = (bgExclusions.testers_ as EnsureNonNull<typeof bgExclusions.testers_>)[pattern];
       if (typeof rule === "string"
           ? !url.lastIndexOf(rule, 0) && (!topUrl || !topUrl.lastIndexOf(rule, 0))
           : rule.test(url) && (!topUrl || rule.test(topUrl))) {

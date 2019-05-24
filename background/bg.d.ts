@@ -183,9 +183,14 @@ declare namespace ExclusionsNS {
     pattern: string;
     passKeys: string;
   }
+  type Tester = RegExpOne | string;
+  type Rules = Array<Tester | string>;
   type Details = chrome.webNavigation.WebNavigationFramedCallbackDetails;
   interface Listener {
     (this: void, details: Details): void;
+  }
+  interface GetExcluded {
+    (this: void, url: string, sender: Frames.Sender): string | null;
   }
 }
 
@@ -382,7 +387,7 @@ declare namespace BackendHandlersNS {
     removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
     showHUD_ (message: string, isCopy?: boolean | undefined): void;
-    getExcluded_ (this: void, url: string, sender: Frames.Sender): string | null,
+    getExcluded_: ExclusionsNS.GetExcluded,
     forceStatus_ (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
     indexPorts_: {
       (this: void, tabId: number, frameId: number): Port | null;
