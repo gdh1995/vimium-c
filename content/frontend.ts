@@ -801,7 +801,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       mask !== FrameMaskType.NoMaskAndNoFocus && events.focusAndRun_();
       if (req.c) {
-        type TypeChecked = { [key in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
+        type TypeChecked = { [key1 in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
             count: number, options: CmdOptions[T2]) => void; };
         (Commands as TypeChecked)[req.c](req.n as number, req.a as FgOptions);
       }

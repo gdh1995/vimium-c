@@ -116,7 +116,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         return scrollY !== before;
       }
     } else if (el) {
-      before = before == null ? el.scrollTop : before;
+      before = before == null ? el.scrollLeft : before;
       !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
       !(Build.BTypes & ~BrowserType.Firefox) ||
       el.scrollBy ? el.scrollBy({behavior: "instant", left: amount}) : (el.scrollLeft += amount);
@@ -179,7 +179,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         - a.getDimension_(element, di, kScrollDim.viewSize);
     }
     if (isTo) {
-      amount -= element ? a.getDimension_(element, di, kScrollDim.position) : di ? scrollY : scrollX;
+      amount -= a.getDimension_(element, di, kScrollDim.position);
     }
     if (amount && element === a.top_ && element && window !== top && VDom.parentFrame_()) {
       const Sc = parent && (parent as Window & { VScroller: typeof VScroller; }).VScroller;
@@ -273,10 +273,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   },
   getDimension_ (el: SafeElement | null, di: ScrollByY, index: kScrollDim & number): number {
     return el !== this.top_ || index && el
-      ? index === kScrollDim.viewSize ? di ? (el as SafeElement).clientHeight : (el as SafeElement).clientWidth
+      ? !index ? di ? (el as SafeElement).clientHeight : (el as SafeElement).clientWidth
         : index === kScrollDim.scrollSize ? di ? (el as SafeElement).scrollHeight : (el as SafeElement).scrollWidth
         : di ? (el as SafeElement).scrollTop : (el as SafeElement).scrollLeft
-      : di ? innerHeight : innerWidth;
+      : index ? di ? scrollY : scrollX : di ? innerHeight : innerWidth;
   },
   _doesScroll (el: SafeElement, di: ScrollByY, amount: number): boolean {
     const before = this.getDimension_(el, di, kScrollDim.position),
