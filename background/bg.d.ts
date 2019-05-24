@@ -202,22 +202,22 @@ declare namespace CommandsNS {
     $key: string;
     $desc: string;
   }
-  type BgDescription = [ string | 0, 0 | 1, 1, kBgCmd & number, {}? ];
-  type FgDescription = [ string | 0, 0 | 1, 0, kFgCmd & number, {}? ];
-  /** [ description, count limit, is background, enum, default options ] */
+  type BgDescription = [ kBgCmd & number, 1, number, {}? ];
+  type FgDescription = [ kFgCmd & number, 0, number, {}? ];
+  /** [ enum, is background, count limit, default options ] */
   type Description = BgDescription | FgDescription;
   interface BaseItem {
-    readonly command: string;
-    readonly options: Options | null;
-    readonly repeat: number;
-    readonly help: CustomHelpInfo | null;
+    readonly command_: string;
+    readonly options_: Options | null;
+    readonly repeat_: number;
+    readonly help_: CustomHelpInfo | null;
   }
   type Item = (BaseItem & {
-    readonly alias: kBgCmd & number;
-    readonly background: 1;
+    readonly alias_: kBgCmd & number;
+    readonly background_: 1;
   }) | (BaseItem & {
-    readonly alias: kFgCmd & number;
-    readonly background: 0;
+    readonly alias_: kFgCmd & number;
+    readonly background_: 0;
   });
 }
 
@@ -400,11 +400,11 @@ type ShortcutInfoMap = {
 };
 
 interface CommandsDataTy {
+  cmdDescriptions_: ReadonlySafeDict<string>;
   keyToCommandRegistry_: SafeDict<CommandsNS.Item>;
   keyMap_: KeyMap;
   shortcutMap_: ShortcutInfoMap;
   mapKeyRegistry_: SafeDict<string> | null;
-  availableCommands_: ReadonlySafeDict<CommandsNS.Description>;
 }
 
 interface VClipboardTy {

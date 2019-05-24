@@ -953,12 +953,12 @@ function OnBgUnload(): void {
 BG_.addEventListener("unload", OnBgUnload);
 
 const cmdRegistry = BG_.CommandsData_.keyToCommandRegistry_["?"];
-if (!cmdRegistry || cmdRegistry.alias !== kBgCmd.showHelp) { (function (): void {
+if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) { (function (): void {
   const arr = BG_.CommandsData_.keyToCommandRegistry_;
   let matched = "";
   for (let key in arr) {
     const item = arr[key] as CommandsNS.Item;
-    if (item.alias === kBgCmd.showHelp) {
+    if (item.alias_ === kBgCmd.showHelp) {
       matched = matched && matched.length < key.length ? matched : key;
     }
   }

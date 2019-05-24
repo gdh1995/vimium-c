@@ -28,6 +28,35 @@ var Commands = {
     } catch {}
     return val;
   },
+  makeCommand_ (command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description
+      ): CommandsNS.Item {
+    let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null;
+    if (!details) { details = Commands.availableCommands_[command] as CommandsNS.Description; }
+    opt = details.length < 4 ? null : Object.setPrototypeOf(details[3] as NonNullable<CommandsNS.Description[3]>, null);
+    if (options) {
+      if ("count" in options) {
+        options.count = details[0] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
+      }
+      if (options.$desc || options.$key) {
+        help = { key: options.$key || "", desc: options.$desc || "" };
+        delete options.$key;
+        delete options.$desc;
+      }
+      if (opt) {
+        Utils.extendIf_(options, opt);
+      }
+    } else {
+      options = opt;
+    }
+    return {
+      alias_: details[0] as Exclude<typeof details[0], kFgCmd>,
+      background_: details[1] as Exclude<typeof details[1], 0>,
+      command_: command,
+      help_: help,
+      options_: options,
+      repeat_: details[2]
+    };
+  },
   parseKeyMappings_: (function (this: {}, line: string): void {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i: number
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
@@ -35,14 +64,14 @@ var Commands = {
       , cmdMap = Object.create<CommandsNS.Item>(null) as Partial<ShortcutInfoMap>
       , userDefinedKeys = Object.create<true>(null)
       , mkReg = Object.create<string>(null);
-    const available = CommandsData_.availableCommands_;
+    const available = (this as typeof Commands).availableCommands_;
     const colorRed = "color:red";
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
       const defaultMap = (this as typeof Commands).defaultKeyMappings_;
       for (_i = defaultMap.length; 0 < _i; ) {
         _i -= 2;
-        registry[defaultMap[_i]] = Utils.makeCommand_(defaultMap[_i + 1]);
+        registry[defaultMap[_i]] = (this as typeof Commands).makeCommand_(defaultMap[_i + 1]);
       }
     } else {
       _i = 1;
@@ -57,7 +86,7 @@ var Commands = {
         if (!key || key === "__proto__") {
           console.log("Unsupported key sequence %c%s", colorRed, key || '""', `for "${splitLine[2] || ""}"`);
         } else if (key in userDefinedKeys) {
-          console.log("Key %c%s", colorRed, key, "has been mapped to", (registry[key] as CommandsNS.Item).command);
+          console.log("Key %c%s", colorRed, key, "has been mapped to", (registry[key] as CommandsNS.Item).command_);
         } else if (splitLine.length < 3) {
           console.log("Lacking command when mapping %c%s", colorRed, key);
         } else if (!(details = available[splitLine[2]])) {
@@ -65,7 +94,8 @@ var Commands = {
         } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum || ch === KnownKey.line) {
           console.log("Invalid key: %c%s", colorRed, key, "(the first char can not be '-' or number)");
         } else {
-          registry[key] = Utils.makeCommand_(splitLine[2], (<typeof Commands> this).getOptions_(splitLine, 3), details);
+          registry[key] = (this as typeof Commands).makeCommand_(splitLine[2],
+              (<typeof Commands> this).getOptions_(splitLine, 3), details);
           userDefinedKeys[key] = true;
           continue;
         }
@@ -101,8 +131,8 @@ var Commands = {
         } else if (key in cmdMap) {
           console.log("Shortcut %c%s", colorRed, key, "has been configured");
         } else {
-          cmdMap[key as kShortcutNames] = Utils.makeCommand_(key,
-              (this as typeof Commands).getOptions_(splitLine, 2), available[key]);
+          cmdMap[key as kShortcutNames] = (this as typeof Commands).makeCommand_(key,
+              (this as typeof Commands).getOptions_(splitLine, 2));
           continue;
         }
       } else if (key !== "unmap") {
@@ -120,7 +150,7 @@ var Commands = {
     }
     for (key of Settings.CONST_.GlobalCommands_) {
       if (!cmdMap[key as kShortcutNames]) {
-        cmdMap[key as kShortcutNames] = Utils.makeCommand_(key, null, available[key]);
+        cmdMap[key as kShortcutNames] = (this as typeof Commands).makeCommand_(key);
       }
     }
     CommandsData_.keyToCommandRegistry_ = registry;
@@ -175,6 +205,23 @@ var Commands = {
   warnInactive_ (obj: ReadonlyChildKeyMap | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
     ++Settings.temp_.cmdErrors_;
+  },
+  execute_ (message: Partial<ExternalMsgs[kFgReq.command]["req"]> , sender: chrome.runtime.MessageSender
+      , exec: (registryEntry: CommandsNS.Item, count: number, lastKey: VKeyCodes, port: Port) => void
+      ): void {
+    let command = message.command;
+    command = message.command ? message.command + "" : "";
+    if (!(command && this.availableCommands_[command])) { return; }
+    const port: Port | null = sender.tab ? Backend.indexPorts_(sender.tab.id, sender.frameId || 0)
+            || (Backend.indexPorts_(sender.tab.id) || [null])[0] : null;
+    let options = message.options as CommandsNS.RawOptions | null | undefined
+      , lastKey: VKeyCodes | undefined = message.key
+      , count = message.count as number | string | undefined;
+    count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
+    options && typeof options === "object" ?
+        Object.setPrototypeOf(options, null) : (options = null);
+    lastKey = 0 | <number> lastKey;
+    return exec(this.makeCommand_(command, options), count, lastKey, port as Port);
   },
 
 defaultKeyMappings_: [
@@ -253,59 +300,53 @@ defaultKeyMappings_: [
   "<f2>", "switchFocus",
   "m", "Marks.activateCreateMode",
   "`", "Marks.activate"
-]
-},
-CommandsData_: CommandsDataTy = CommandsData_ as never || {
-  keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
-  keyMap_: null as never as KeyMap,
-  shortcutMap_: null as never as ShortcutInfoMap,
-  mapKeyRegistry_: null as SafeDict<string> | null,
+],
 availableCommands_: { __proto__: null as never,
-  "LinkHints.activate": [ 0, 0, 0, kFgCmd.linkHints],
-  "LinkHints.activateMode": [ 0, 0, 0, kFgCmd.linkHints ],
-  "LinkHints.activateModeToCopyLinkText": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.COPY_TEXT } ],
-  "LinkHints.activateModeToCopyLinkUrl": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.COPY_LINK_URL } ],
-  "LinkHints.activateModeToDownloadImage": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.DOWNLOAD_IMAGE } ],
-  "LinkHints.activateModeToDownloadLink": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.DOWNLOAD_LINK } ],
-  "LinkHints.activateModeToEdit": [ 0, 1, 0, kFgCmd.linkHints, { mode: HintMode.FOCUS_EDITABLE } ],
-  "LinkHints.activateModeToHover": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.HOVER } ],
-  "LinkHints.activateModeToLeave": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.LEAVE } ],
-  "LinkHints.activateModeToOpenImage": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.OPEN_IMAGE } ],
-  "LinkHints.activateModeToOpenIncognito": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.OPEN_INCOGNITO_LINK } ],
-  "LinkHints.activateModeToOpenInNewForegroundTab": [ 0, 0, 0, kFgCmd.linkHints, {mode: HintMode.OPEN_IN_NEW_FG_TAB} ],
-  "LinkHints.activateModeToOpenInNewTab": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.OPEN_IN_NEW_BG_TAB } ],
-  "LinkHints.activateModeToOpenVomnibar": [ 0, 1, 0, kFgCmd.linkHints, { mode: HintMode.EDIT_TEXT } ],
-  "LinkHints.activateModeToSearchLinkText": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.SEARCH_TEXT } ],
-  "LinkHints.activateModeWithQueue": [ 0, 0, 0, kFgCmd.linkHints, { mode: HintMode.OPEN_WITH_QUEUE } ],
-  "LinkHints.unhoverLast": [ 0, 1, 0, kFgCmd.unhoverLast ],
-  "Marks.activate": [ 0, 0, 0, kFgCmd.marks ],
-  "Marks.activateCreateMode": [ 0, 0, 0, kFgCmd.marks, { mode: "create" } ],
-  "Marks.clearGlobal": [ 0, 1, 1, kBgCmd.clearMarks ],
-  "Marks.clearLocal": [ 0, 1, 1, kBgCmd.clearMarks, { local: true } ],
-  "Vomnibar.activate": [ 0, 0, 1, kBgCmd.showVomnibar ],
-  "Vomnibar.activateBookmarks": [ 0, 1, 1, kBgCmd.showVomnibar, { mode: "bookm" } ],
-  "Vomnibar.activateBookmarksInNewTab": [ 0, 1, 1, kBgCmd.showVomnibar, { mode: "bookm", newtab: true } ],
-  "Vomnibar.activateEditUrl": [ 0, 0, 1, kBgCmd.showVomnibar, { url: true } ],
-  "Vomnibar.activateEditUrlInNewTab": [ 0, 0, 1, kBgCmd.showVomnibar, { url: true, newtab: true } ],
-  "Vomnibar.activateHistory": [ 0, 1, 1, kBgCmd.showVomnibar, { mode: "history" } ],
-  "Vomnibar.activateHistoryInNewTab": [ 0, 1, 1, kBgCmd.showVomnibar, { mode: "history", newtab: true } ],
-  "Vomnibar.activateInNewTab": [ 0, 0, 1, kBgCmd.showVomnibar, { newtab: true } ],
-  "Vomnibar.activateTabSelection": [ 0, 1, 1, kBgCmd.showVomnibar, { mode: "tab", newtab: true } ],
-  "Vomnibar.activateUrl": [ 0, 0, 1, kBgCmd.showVomnibar, { url: true } ],
-  "Vomnibar.activateUrlInNewTab": [ 0, 0, 1, kBgCmd.showVomnibar, { url: true, newtab: true } ],
-  autoCopy: [ 0, 1, 0, kFgCmd.autoCopy ],
-  autoOpen: [ 0, 1, 0, kFgCmd.autoOpen ],
-  blank: [ 0, 1, 1, kBgCmd.blank ],
-  clearCS: [ 0, 1, 1, kBgCmd.clearCS, { type: "images" } ],
-  clearFindHistory: [ 0, 1, 1, kBgCmd.clearFindHistory ],
-  clearGlobalMarks: [ 0, 1, 1, kBgCmd.clearMarks ],
-  closeOtherTabs: [ 0, 1, 1, kBgCmd.removeTabsR, { other: true } ],
-  closeTabsOnLeft: [ 0, 0, 1, kBgCmd.removeTabsR, { count: -1 } ],
-  closeTabsOnRight: [ 0, 0, 1, kBgCmd.removeTabsR ],
-  copyCurrentTitle: [ 0, 1, 1, kBgCmd.copyTabInfo, { type: "title" } ],
-  copyCurrentUrl: [ 0, 1, 1, kBgCmd.copyTabInfo ],
-  createTab: [ "Create new tab(s)", 20 as 0, 1, kBgCmd.createTab ],
-  debugBackground: [ 0, 1, 1, kBgCmd.openUrl,
+  "LinkHints.activate": [ kFgCmd.linkHints, 0, 0 ],
+  "LinkHints.activateMode": [ kFgCmd.linkHints, 0, 0 ],
+  "LinkHints.activateModeToCopyLinkText": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.COPY_TEXT } ],
+  "LinkHints.activateModeToCopyLinkUrl": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.COPY_LINK_URL } ],
+  "LinkHints.activateModeToDownloadImage": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.DOWNLOAD_IMAGE } ],
+  "LinkHints.activateModeToDownloadLink": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.DOWNLOAD_LINK } ],
+  "LinkHints.activateModeToEdit": [ kFgCmd.linkHints, 0, 1, { mode: HintMode.FOCUS_EDITABLE } ],
+  "LinkHints.activateModeToHover": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.HOVER } ],
+  "LinkHints.activateModeToLeave": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.LEAVE } ],
+  "LinkHints.activateModeToOpenImage": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.OPEN_IMAGE } ],
+  "LinkHints.activateModeToOpenIncognito": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.OPEN_INCOGNITO_LINK } ],
+  "LinkHints.activateModeToOpenInNewForegroundTab": [ kFgCmd.linkHints, 0, 0, {mode: HintMode.OPEN_IN_NEW_FG_TAB} ],
+  "LinkHints.activateModeToOpenInNewTab": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.OPEN_IN_NEW_BG_TAB } ],
+  "LinkHints.activateModeToOpenVomnibar": [ kFgCmd.linkHints, 0, 1, { mode: HintMode.EDIT_TEXT } ],
+  "LinkHints.activateModeToSearchLinkText": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.SEARCH_TEXT } ],
+  "LinkHints.activateModeWithQueue": [ kFgCmd.linkHints, 0, 0, { mode: HintMode.OPEN_WITH_QUEUE } ],
+  "LinkHints.unhoverLast": [ kFgCmd.unhoverLast, 0, 1 ],
+  "Marks.activate": [ kFgCmd.marks, 0, 0 ],
+  "Marks.activateCreateMode": [ kFgCmd.marks, 0, 0, { mode: "create" } ],
+  "Marks.clearGlobal": [ kBgCmd.clearMarks, 1, 1 ],
+  "Marks.clearLocal": [ kBgCmd.clearMarks, 1, 1, { local: true } ],
+  "Vomnibar.activate": [ kBgCmd.showVomnibar, 1, 0 ],
+  "Vomnibar.activateBookmarks": [ kBgCmd.showVomnibar, 1, 1, { mode: "bookm" } ],
+  "Vomnibar.activateBookmarksInNewTab": [ kBgCmd.showVomnibar, 1, 1, { mode: "bookm", newtab: true } ],
+  "Vomnibar.activateEditUrl": [ kBgCmd.showVomnibar, 1, 0, { url: true } ],
+  "Vomnibar.activateEditUrlInNewTab": [ kBgCmd.showVomnibar, 1, 0, { url: true, newtab: true } ],
+  "Vomnibar.activateHistory": [ kBgCmd.showVomnibar, 1, 1, { mode: "history" } ],
+  "Vomnibar.activateHistoryInNewTab": [ kBgCmd.showVomnibar, 1, 1, { mode: "history", newtab: true } ],
+  "Vomnibar.activateInNewTab": [ kBgCmd.showVomnibar, 1, 0, { newtab: true } ],
+  "Vomnibar.activateTabSelection": [ kBgCmd.showVomnibar, 1, 1, { mode: "tab", newtab: true } ],
+  "Vomnibar.activateUrl": [ kBgCmd.showVomnibar, 1, 0, { url: true } ],
+  "Vomnibar.activateUrlInNewTab": [ kBgCmd.showVomnibar, 1, 0, { url: true, newtab: true } ],
+  autoCopy: [ kFgCmd.autoCopy, 0, 1 ],
+  autoOpen: [ kFgCmd.autoOpen, 0, 1 ],
+  blank: [ kBgCmd.blank, 1, 1 ],
+  clearCS: [ kBgCmd.clearCS, 1, 1, { type: "images" } ],
+  clearFindHistory: [ kBgCmd.clearFindHistory, 1, 1 ],
+  clearGlobalMarks: [ kBgCmd.clearMarks, 1, 1 ],
+  closeOtherTabs: [ kBgCmd.removeTabsR, 1, 1, { other: true } ],
+  closeTabsOnLeft: [ kBgCmd.removeTabsR, 1, 0, { count: -1 } ],
+  closeTabsOnRight: [ kBgCmd.removeTabsR, 1, 0 ],
+  copyCurrentTitle: [ kBgCmd.copyTabInfo, 1, 1, { type: "title" } ],
+  copyCurrentUrl: [ kBgCmd.copyTabInfo, 1, 1 ],
+  createTab: [ kBgCmd.createTab, 1, 20 as 0 ],
+  debugBackground: [ kBgCmd.openUrl, 1, 1,
     {
       reuse: ReuseType.reuse,
       url: Build.BTypes & ~BrowserType.Chrome &&
@@ -316,83 +357,99 @@ availableCommands_: { __proto__: null as never,
         : "chrome://extensions/?id=$id",
       id_mask: "$id"
     }],
-  discardTab: [ "Discard some other tab(s)", /* 20 in main.ts */ 0, 1, kBgCmd.discardTab ],
-  duplicateTab: [ "Duplicate current tab for N times", 20 as 0, 1, kBgCmd.duplicateTab ],
-  enableCSTemp: [ 0, 0, 1, kBgCmd.toggleCS, { type: "images", incognito: true } ],
-  enterFindMode: [ 0, 1, 1, kBgCmd.performFind, {active: true, selected: true} ],
-  enterInsertMode: [ 0, 1, 1, kBgCmd.enterInsertMode ],
-  enterVisualLineMode: [ 0, 1, 1, kBgCmd.enterVisualMode, { mode: "line" } ],
-  enterVisualMode: [ 0, 1, 1, kBgCmd.enterVisualMode],
-  firstTab: [ 0, 0, 1, kBgCmd.goTab, { absolute: true } ],
-  focusInput: [ 0, 0, 0, kFgCmd.focusInput ],
-  focusOrLaunch: [ 0, 1, 1, kBgCmd.openUrl, { reuse: ReuseType.reuse } ],
-  goBack: [ 0, 0, 0, kFgCmd.framesGoBack, { count: -1 } ],
-  goForward: [ 0, 0, 0, kFgCmd.framesGoBack ],
-  goNext: [ 0, 1, 1, kBgCmd.goNext ],
-  goPrevious: [ 0, 1, 1, kBgCmd.goNext, { rel: "prev" } ],
-  goToRoot: [ 0, 0, 1, kBgCmd.goToRoot ],
-  goUp: [ 0, 0, 1, kBgCmd.goUp ],
-  lastTab: [ 0, 0, 1, kBgCmd.goTab, { count: -1, absolute: true } ],
-  mainFrame: [ 0, 1, 1, kBgCmd.mainFrame ],
-  moveTabLeft: [ 0, 0, 1, kBgCmd.moveTab, { count: -1 } ],
-  moveTabRight: [ 0, 0, 1, kBgCmd.moveTab ],
-  moveTabToIncognito: [ 0, 1, 1, kBgCmd.moveTabToNewWindow, { incognito: true } ],
-  moveTabToNewWindow: [ "Move N tab(s) to new window (use limited=null/&lt;boolean&gt;)",
-    /** 30 in main.ts */ 0, 1, kBgCmd.moveTabToNewWindow ],
-  moveTabToNextWindow: [ 0, 0, 1, kBgCmd.moveTabToNextWindow ],
-  nextFrame: [ 0, 0, 1, kBgCmd.nextFrame ],
-  nextTab: [ 0, 0, 1, kBgCmd.goTab ],
-  openCopiedUrlInCurrentTab: [ 0, 1, 1, kBgCmd.openUrl, { reuse: ReuseType.current, copied: true } ],
-  openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20 as 0, 1, kBgCmd.openUrl, {copied: true} ],
-  openUrl: [ 'open URL (use url="", urls:string[], reuse=-1/0/1/-2, incognito, window, end)',
-    20 as 0, 1, kBgCmd.openUrl ],
-  parentFrame: [ 0, 0, 1, kBgCmd.parentFrame ],
-  passNextKey: [ 0, 0, 0, kFgCmd.passNextKey ],
-  performAnotherFind: [ 0, 0, 1, kBgCmd.performFind, { index: "other" } ],
-  performBackwardsFind: [ 0, 0, 1, kBgCmd.performFind, { count: -1 } ],
-  performFind: [ 0, 0, 1, kBgCmd.performFind ],
-  previousTab: [ 0, 0, 1, kBgCmd.goTab, { count: -1 } ],
-  quickNext: [ 0, 0, 1, kBgCmd.goTab ],
-  reload: [ 0, 1, 0, kFgCmd.reload ],
-  reloadGivenTab: [ 0, 0, 1, kBgCmd.reloadGivenTab, { single: true } ],
-  reloadTab: [ "Reload N tab(s) (use hard, bypassCache)", /** 20 in main.ts */ 0, 1, kBgCmd.reloadTab ],
-  removeRightTab: [ 0, 0, 1, kBgCmd.removeRightTab ],
-  removeTab: [ "Close N tab(s) (use allow_close, limited=null/&lt;boolean&gt;, left)",
-    /** 20 in main.ts */ 0, 1, kBgCmd.removeTab ],
-  reopenTab: [ 0, 1, 1, kBgCmd.reopenTab ],
-  restoreGivenTab: [ 0, 0, 1, kBgCmd.restoreGivenTab ],
-  restoreTab: [ "Restore closed tab(s)", 25 as 0, 1, kBgCmd.restoreTab ],
-  scrollDown: [ 0, 0, 0, kFgCmd.scroll ],
-  scrollFullPageDown: [ 0, 0, 0, kFgCmd.scroll, { view: 2 } ],
-  scrollFullPageUp: [ 0, 0, 0, kFgCmd.scroll, { count: -1, view: 2 } ],
-  scrollLeft: [ 0, 0, 0, kFgCmd.scroll, { count: -1, axis: "x" } ],
-  scrollPageDown: [ 0, 0, 0, kFgCmd.scroll, { dir: 0.5, view: 2 } ],
-  scrollPageUp: [ 0, 0, 0, kFgCmd.scroll, { dir: -0.5, view: 2 } ],
-  scrollPxDown: [ 0, 0, 0, kFgCmd.scroll, { view: 1 } ],
-  scrollPxLeft: [ 0, 0, 0, kFgCmd.scroll, { count: -1, axis: "x", view: 1 } ],
-  scrollPxRight: [ 0, 0, 0, kFgCmd.scroll, { axis: "x", view: 1 } ],
-  scrollPxUp: [ 0, 0, 0, kFgCmd.scroll, { count: -1, view: 1 } ],
-  scrollRight: [ 0, 0, 0, kFgCmd.scroll, { axis: "x" } ],
-  scrollTo: [ 0, 0, 0, kFgCmd.scroll, { dest: "min" } ],
-  scrollToBottom: [ 0, 0, 0, kFgCmd.scroll, { dest: "max" } ],
-  scrollToLeft: [ 0, 0, 0, kFgCmd.scroll, { axis: "x", dest: "min" } ],
-  scrollToRight: [ 0, 0, 0, kFgCmd.scroll, { axis: "x", dest: "max" } ],
-  scrollToTop: [ 0, 0, 0, kFgCmd.scroll, { dest: "min" } ],
-  scrollUp: [ 0, 0, 0, kFgCmd.scroll, { count: -1 } ],
-  searchAs: [ 0, 1, 0, kFgCmd.searchAs, { copied: true, selected: true } ],
-  searchInAnother: [ 0, 1, 1, kBgCmd.searchInAnother ],
-  showHelp: [ 0, 1, 1, kBgCmd.showHelp ],
-  simBackspace: [ 0, 1, 0, kFgCmd.switchFocus, { act: "backspace" } ],
-  switchFocus: [ 0, 1, 0, kFgCmd.switchFocus ],
-  toggleCS: [ 0, 0, 1, kBgCmd.toggleCS, { type: "images" } ],
-  toggleLinkHintCharacters: [ 0, 1, 1, kBgCmd.toggle, { key: "linkHintCharacters" } ],
-  toggleMuteTab: [ 0, 1, 1, kBgCmd.toggleMuteTab ],
-  togglePinTab: [ "Pin or unpin N tab(s)", /** 30 in main.ts */ 0, 1, kBgCmd.togglePinTab ],
-  toggleSwitchTemp: [ 0, 1, 1, kBgCmd.toggle ],
-  toggleViewSource: [ 0, 1, 1, kBgCmd.toggleViewSource ],
-  toggleVomnibarStyle: [ 0, 1, 1, kBgCmd.toggleVomnibarStyle, { style: "dark" } ],
-  visitPreviousTab: [ 0, 0, 1, kBgCmd.visitPreviousTab ]
+  discardTab: [ /* 20 in main.ts */ kBgCmd.discardTab, 1, 0 ],
+  duplicateTab: [ kBgCmd.duplicateTab, 1, 20 as 0 ],
+  enableCSTemp: [ kBgCmd.toggleCS, 1, 0, { type: "images", incognito: true } ],
+  enterFindMode: [ kBgCmd.performFind, 1, 1, {active: true, selected: true} ],
+  enterInsertMode: [ kBgCmd.enterInsertMode, 1, 1 ],
+  enterVisualLineMode: [ kBgCmd.enterVisualMode, 1, 1, { mode: "line" } ],
+  enterVisualMode: [ kBgCmd.enterVisualMode, 1, 1 ],
+  firstTab: [ kBgCmd.goTab, 1, 0, { absolute: true } ],
+  focusInput: [ kFgCmd.focusInput, 0, 0 ],
+  focusOrLaunch: [ kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse } ],
+  goBack: [ kFgCmd.framesGoBack, 0, 0, { count: -1 } ],
+  goForward: [ kFgCmd.framesGoBack, 0, 0 ],
+  goNext: [ kBgCmd.goNext, 1, 1 ],
+  goPrevious: [ kBgCmd.goNext, 1, 1, { rel: "prev" } ],
+  goToRoot: [ kBgCmd.goToRoot, 1, 0 ],
+  goUp: [ kBgCmd.goUp, 1, 0 ],
+  lastTab: [ kBgCmd.goTab, 1, 0, { count: -1, absolute: true } ],
+  mainFrame: [ kBgCmd.mainFrame, 1, 1 ],
+  moveTabLeft: [ kBgCmd.moveTab, 1, 0, { count: -1 } ],
+  moveTabRight: [ kBgCmd.moveTab, 1, 0 ],
+  moveTabToIncognito: [ kBgCmd.moveTabToNewWindow, 1, 1, { incognito: true } ],
+  moveTabToNewWindow: [/** 30 in main.ts */ kBgCmd.moveTabToNewWindow, 1, 0 ],
+  moveTabToNextWindow: [ kBgCmd.moveTabToNextWindow, 1, 0 ],
+  nextFrame: [ kBgCmd.nextFrame, 1, 0 ],
+  nextTab: [ kBgCmd.goTab, 1, 0 ],
+  openCopiedUrlInCurrentTab: [ kBgCmd.openUrl, 1, 1, { reuse: ReuseType.current, copied: true } ],
+  openCopiedUrlInNewTab: [ kBgCmd.openUrl, 1, 20 as 0, {copied: true} ],
+  openUrl: [ kBgCmd.openUrl, 1, 20 as 0 ],
+  parentFrame: [ kBgCmd.parentFrame, 1, 0 ],
+  passNextKey: [ kFgCmd.passNextKey, 0, 0 ],
+  performAnotherFind: [ kBgCmd.performFind, 1, 0, { index: "other" } ],
+  performBackwardsFind: [ kBgCmd.performFind, 1, 0, { count: -1 } ],
+  performFind: [ kBgCmd.performFind, 1, 0 ],
+  previousTab: [ kBgCmd.goTab, 1, 0, { count: -1 } ],
+  quickNext: [ kBgCmd.goTab, 1, 0 ],
+  reload: [ kFgCmd.reload, 0, 1 ],
+  reloadGivenTab: [ kBgCmd.reloadGivenTab, 1, 0, { single: true } ],
+  reloadTab: [ kBgCmd.reloadTab, 1, /** 20 in main.ts */ 0 ],
+  removeRightTab: [ kBgCmd.removeRightTab, 1, 0 ],
+  removeTab: [ kBgCmd.removeTab, 1, /** 20 in main.ts */ 0 ],
+  reopenTab: [ kBgCmd.reopenTab, 1, 1 ],
+  restoreGivenTab: [ kBgCmd.restoreGivenTab, 1, 0 ],
+  restoreTab: [ kBgCmd.restoreTab, 1, 25 as 0 ],
+  scrollDown: [ kFgCmd.scroll, 0, 0 ],
+  scrollFullPageDown: [ kFgCmd.scroll, 0, 0, { view: 2 } ],
+  scrollFullPageUp: [ kFgCmd.scroll, 0, 0, { count: -1, view: 2 } ],
+  scrollLeft: [ kFgCmd.scroll, 0, 0, { count: -1, axis: "x" } ],
+  scrollPageDown: [ kFgCmd.scroll, 0, 0, { dir: 0.5, view: 2 } ],
+  scrollPageUp: [ kFgCmd.scroll, 0, 0, { dir: -0.5, view: 2 } ],
+  scrollPxDown: [ kFgCmd.scroll, 0, 0, { view: 1 } ],
+  scrollPxLeft: [ kFgCmd.scroll, 0, 0, { count: -1, axis: "x", view: 1 } ],
+  scrollPxRight: [ kFgCmd.scroll, 0, 0, { axis: "x", view: 1 } ],
+  scrollPxUp: [ kFgCmd.scroll, 0, 0, { count: -1, view: 1 } ],
+  scrollRight: [ kFgCmd.scroll, 0, 0, { axis: "x" } ],
+  scrollTo: [ kFgCmd.scroll, 0, 0, { dest: "min" } ],
+  scrollToBottom: [ kFgCmd.scroll, 0, 0, { dest: "max" } ],
+  scrollToLeft: [ kFgCmd.scroll, 0, 0, { axis: "x", dest: "min" } ],
+  scrollToRight: [ kFgCmd.scroll, 0, 0, { axis: "x", dest: "max" } ],
+  scrollToTop: [ kFgCmd.scroll, 0, 0, { dest: "min" } ],
+  scrollUp: [ kFgCmd.scroll, 0, 0, { count: -1 } ],
+  searchAs: [ kFgCmd.searchAs, 0, 1, { copied: true, selected: true } ],
+  searchInAnother: [ kBgCmd.searchInAnother, 1, 1 ],
+  showHelp: [ kBgCmd.showHelp, 1, 1 ],
+  simBackspace: [ kFgCmd.switchFocus, 0, 1, { act: "backspace" } ],
+  switchFocus: [ kFgCmd.switchFocus, 0, 1 ],
+  toggleCS: [ kBgCmd.toggleCS, 1, 0, { type: "images" } ],
+  toggleLinkHintCharacters: [ kBgCmd.toggle, 1, 1, { key: "linkHintCharacters" } ],
+  toggleMuteTab: [ kBgCmd.toggleMuteTab, 1, 1 ],
+  togglePinTab: [ /** 30 in main.ts */ kBgCmd.togglePinTab, 1, 0 ],
+  toggleSwitchTemp: [ kBgCmd.toggle, 1, 1 ],
+  toggleViewSource: [ kBgCmd.toggleViewSource, 1, 1 ],
+  toggleVomnibarStyle: [ kBgCmd.toggleVomnibarStyle, 1, 1, { style: "dark" } ],
+  visitPreviousTab: [ kBgCmd.visitPreviousTab, 1, 0 ]
 } as ReadonlySafeDict<CommandsNS.Description>
+},
+CommandsData_: CommandsDataTy = CommandsData_ as never || {
+  cmdDescriptions_: {
+    __proto__: null as never,
+    createTab: "Create new tab(s)",
+    discardTab: "Discard some other tab(s)",
+    duplicateTab: "Duplicate current tab for N times",
+    moveTabToNewWindow: "Move N tab(s) to new window (use limited=null/&lt;boolean&gt;)",
+    openCopiedUrlInNewTab: "Open the clipboard's URL in N new tab(s)",
+    openUrl: 'open URL (use url="", urls:string[], reuse=-1/0/1/-2, incognito, window, end)',
+    reloadTab: "Reload N tab(s) (use hard, bypassCache)",
+    removeTab: "Close N tab(s) (use allow_close, limited=null/&lt;boolean&gt;, left)",
+    restoreTab: "Restore closed tab(s)",
+    togglePinTab: "Pin or unpin N tab(s)",
+  },
+  keyToCommandRegistry_: null as never as SafeDict<CommandsNS.Item>,
+  keyMap_: null as never as KeyMap,
+  shortcutMap_: null as never as ShortcutInfoMap,
+  mapKeyRegistry_: null as SafeDict<string> | null
 };
 
 if (Backend.onInit_) {

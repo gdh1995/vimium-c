@@ -37,7 +37,7 @@ var HelpDialog = {
     ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !request.b, showNames = !!request.n;
     for (const key in ref) {
       const registry = ref[key] as NonNullable<(typeof ref)[string]>;
-      let command = registry.command;
+      let command = registry.command_;
       if (command.endsWith(".activateMode")) {
         command = command.substring(0, command.length - 4);
       } else if (command.indexOf("EditUrl") > 0) {
@@ -73,18 +73,18 @@ var HelpDialog = {
   groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
       , hideUnbound: boolean, showNames: boolean): string {
     const renderItem = (this as typeof HelpDialog).commandHtml_
-      , defaultDescriptions = (this as typeof HelpDialog).descriptions
-      , availableCommands = CommandsData_.availableCommands_ as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
+      , secondDescriptions = (this as typeof HelpDialog).descriptions
+      , firstDescriptions = CommandsData_.cmdDescriptions_;
     let html = "";
     for (const command of (this as typeof HelpDialog).commandGroups_[group] || []) {
       let keys = commandToKeys[command];
       if (hideUnbound && !keys) { continue; }
       const isAdvanced = command in (this as typeof HelpDialog).advancedCommands_
-        , description = defaultDescriptions[command] || <string> availableCommands[command][0];
+        , description = secondDescriptions[command] || <string> firstDescriptions[command];
       if (!Build.NDEBUG) {
         if (!description) {
           console.log("Error: lack a description for %c%s", "color:red", command);
-        } else if (defaultDescriptions[command] && availableCommands[command][0]) {
+        } else if (secondDescriptions[command] && firstDescriptions[command]) {
           console.log("Error: duplicated descriptions for %c%s", "color:red", command);
         }
       }
@@ -92,7 +92,7 @@ var HelpDialog = {
       if (keys && keys.length > 0) {
         bindings = '\n\t\t<span class="HelpKey">';
         for (const item of keys) {
-          const help = item[1].help as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
+          const help = item[1].help_ as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
           help && (this as typeof HelpDialog).normalizeHelpInfo_(help);
           const key = help && help.$key || Utils.escapeText_(item[0]);
           if (help && help.$desc) {

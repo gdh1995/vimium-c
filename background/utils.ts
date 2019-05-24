@@ -770,35 +770,6 @@ var Utils = {
   formatKeys_: (function (this: {}, keys: string): string {
     return keys && keys.replace((this as typeof Utils).keyReToFormat_, (this as typeof Utils).onFormatKey_);
   }),
-  makeCommand_: (function (command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description
-      ): CommandsNS.Item {
-    let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null;
-    if (!details) { details = CommandsData_.availableCommands_[command] as CommandsNS.Description; }
-    opt = details.length < 5 ? null : Object.setPrototypeOf(details[4] as NonNullable<CommandsNS.Description[4]>, null);
-    if (options) {
-      if ("count" in options) {
-        options.count = details[1] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
-      }
-      if (options.$desc || options.$key) {
-        help = { key: options.$key || "", desc: options.$desc || "" };
-        delete options.$key;
-        delete options.$desc;
-      }
-      if (opt) {
-        Utils.extendIf_(options, opt);
-      }
-    } else {
-      options = opt;
-    }
-    return {
-      alias: details[3] as kBgCmd & number,
-      background: details[2] as 1,
-      command,
-      help,
-      options,
-      repeat: details[1]
-    };
-  }),
   getNull_ (this: void): null { return null; },
   GC_ (this: void): void { /* empty */ },
   hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; }

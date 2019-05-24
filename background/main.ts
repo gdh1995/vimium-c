@@ -364,8 +364,8 @@ var Backend: BackendHandlersNS.BackendHandlers;
       ;
   }
   function confirm(this: void, command: string, count: number): boolean {
-    let msg = (CommandsData_.availableCommands_[command] as CommandsNS.Description)[0] as string;
-    msg = msg.replace(<RegExpOne> / \(use .*|&nbsp\(.*|<br\/>/, "");
+    let msg = CommandsData_.cmdDescriptions_[command];
+    msg = (msg as NonNullable<typeof msg>).replace(<RegExpOne> / \(use .*|&nbsp\(.*|<br\/>/, "");
     return window.confirm(
 `You have asked Vimium C to perform ${count} repeats of the command:
       ${Utils.unescapeHTML_(msg)}
@@ -392,13 +392,11 @@ Are you sure you want to continue?`);
     return Settings.cache_.innerCSS;
   }
   /** this functions needs to accept any types of arguments and normalize them */
-  function executeAny(command: string, options: CommandsNS.RawOptions | null, count: number | string
-      , port: Port | null, lastKey?: VKeyCodes): void {
-    count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
-    options && typeof options === "object" ?
-        Object.setPrototypeOf(options, null) : (options = null);
-    lastKey = (+<number> lastKey || VKeyCodes.None) as VKeyCodes;
-    return executeCommand(Utils.makeCommand_(command, options), count, lastKey, port as Port);
+  function executeExternalCmd(message: Partial<ExternalMsgs[kFgReq.command]["req"]>
+      , sender: chrome.runtime.MessageSender): void {
+    if (!Commands) { Utils.require_("Commands").then(_ => executeExternalCmd(message, sender)); return; }
+    Utils.GC_();
+    Commands.execute_(message, sender, executeCommand);
   }
 
   const
@@ -1671,7 +1669,7 @@ Are you sure you want to continue?`);
   numHeadRe = <RegExpOne> /^-?\d+|^-/;
   function executeCommand(registryEntry: CommandsNS.Item
       , count: number, lastKey: VKeyCodes, port: Port): void {
-    const { options, repeat } = registryEntry;
+    const { options_: options, repeat_: repeat } = registryEntry;
     let scale: number | undefined;
     if (options && (scale = options.count)) { count = count * scale; }
     count = count >= GlobalConsts.CommandCountLimit + 1 ? GlobalConsts.CommandCountLimit
@@ -1679,11 +1677,11 @@ Are you sure you want to continue?`);
       : (count | 0) || 1;
     if (count === 1) { /* empty */ }
     else if (repeat === 1) { count = 1; }
-    else if (repeat > 0 && (count > repeat || count < -repeat) && !confirm(registryEntry.command, Math.abs(count))) {
+    else if (repeat > 0 && (count > repeat || count < -repeat) && !confirm(registryEntry.command_, Math.abs(count))) {
       return;
     }else { count = count || 1; }
-    if (!registryEntry.background) {
-      const { alias: fgAlias } = registryEntry,
+    if (!registryEntry.background_) {
+      const { alias_: fgAlias } = registryEntry,
       dot = ((
         (1 << kFgCmd.linkHints) | (1 << kFgCmd.unhoverLast) | (1 << kFgCmd.marks) |
         (1 << kFgCmd.passNextKey) | (1 << kFgCmd.autoCopy) | (1 << kFgCmd.focusInput)
@@ -1691,7 +1689,7 @@ Are you sure you want to continue?`);
       port.postMessage({ N: kBgReq.execute, S: dot ? ensureInnerCSS(port) : null, c: fgAlias, n: count, a: options });
       return;
     }
-    const { alias } = registryEntry, func = BackgroundCommands[alias];
+    const { alias_: alias } = registryEntry, func = BackgroundCommands[alias];
     // safe on renaming
     cOptions = options || Object.create(null);
     cPort = port;
@@ -2644,19 +2642,12 @@ Are you sure you want to continue?`);
   ((chrome.runtime.onMessageExternal as chrome.runtime.ExtensionMessageEvent).addListener(function (this: void
       , message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void {
-    let command: string | undefined;
     if (!isExtIdAllowed(sender.id, sender.url)) {
       sendResponse(false);
       return;
     }
     if (typeof message === "string") {
-      command = message;
-      if (command && CommandsData_.availableCommands_[command]) {
-        const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
-        port = frames ? indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
-        return executeAny(command, null, 1, port);
-      }
-      return;
+      executeExternalCmd({command: message}, sender);
     }
     else if (typeof message !== "object" || !message) { /* empty */ }
     else if (message.handler === kFgReq.inject) {
@@ -2667,13 +2658,7 @@ Are you sure you want to continue?`);
         h: PortNameEnum.Delimiter + Settings.CONST_.GitVer
       });
     } else if (message.handler === kFgReq.command) {
-      command = message.command ? message.command + "" : "";
-      if (command && CommandsData_.availableCommands_[command]) {
-        const tab = sender.tab, frames = tab ? framesForTab[tab.id] : null,
-        port = frames ? indexFrame((tab as Tab).id, sender.frameId || 0) || frames[0] : null;
-        executeAny(command, message.options as CommandsNS.RawOptions | null, message.count as number | string
-          , port, message.key);
-      }
+      executeExternalCmd(message, sender);
     }
   }), Settings.postUpdate_("extWhiteList"));
 
