@@ -303,7 +303,7 @@ interface VimiumInjectorTy {
   alive: 0 | 0.5 | 1 | -1;
   host: string;
   version: string;
-  versionHash: string;
+  $hash: string;
   clickable: WeakSet<Element> | null | undefined;
   getCommandCount: (this: void) => number;
   checkIfEnabled: (this: void) => void;

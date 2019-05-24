@@ -3,7 +3,7 @@ var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   alive: -1,
   host: "",
   version: "",
-  versionHash: "",
+  $hash: "",
   clickable: undefined,
   reload: null as never,
   checkIfEnabled: null as never,
@@ -70,7 +70,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     alive: 0,
     host: !(Build.BTypes & ~BrowserType.Chrome) ? extID : res ? res.host : "",
     version: res ? res.version : "",
-    versionHash: res ? res.versionHash : "",
+    $hash: res ? res.h : "",
     clickable: oldClickable,
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
@@ -88,7 +88,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     , insertBefore = insertAfter.nextSibling
     , parentElement = insertAfter.parentElement as Element;
   let scripts: HTMLScriptElement[] = [];
-  for (const i of res.scripts as string[]) {
+  for (const i of res.s as NonNullable<typeof res.s>) {
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.async = false;

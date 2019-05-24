@@ -1361,7 +1361,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn_ ? PortType.hasCSS : 0),
       name = PortNameEnum.Prefix + (
         PortType.isTop * +isTop + PortType.hasFocus * +document.hasFocus() + status),
-      data = { name: injector ? name + PortNameEnum.Delimiter + injector.versionHash : name },
+      data = { name: injector ? name + injector.$hash : name },
       port = vPort._port = injector ? runtime.connect(injector.id, data) as Port
         : runtime.connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);

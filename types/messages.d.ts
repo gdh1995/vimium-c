@@ -42,7 +42,7 @@ declare const enum kFgReq {
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack,
   END,
-  msg = 90, injectDeprecated = 91,
+  msg = 90,
   inject = 99,
   command = "command",
 }
@@ -453,20 +453,21 @@ interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> e
 interface ExternalMsgs {
   [kFgReq.inject]: {
     req: {
-      handler: kFgReq.inject | kFgReq.injectDeprecated;
+      handler: kFgReq.inject;
       scripts?: boolean;
     };
     res: {
       version: string;
-      scripts: string[] | null;
       host: string;
-      versionHash: string;
+      /** the blow are only for inner usages  */
+      /** scripts */ s: string[] | null;
+      /** versionHash */ h: string;
     }
   };
   [kFgReq.command]: {
     req: {
       handler: kFgReq.command;
-      command: string;
+      command?: string;
       options?: object | null;
       count?: number;
       key?: VKeyCodes;
