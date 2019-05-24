@@ -158,9 +158,9 @@ var Commands = {
     CommandsData_.mapKeyRegistry_ = mk > 0 ? mkReg : null;
     Settings.temp_.cmdErrors_ = Settings.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
-  populateCommandKeys_: (function (this: void): void {
+  populateCommandKeys_: (function (this: void, detectNewError: boolean): void {
     const d = CommandsData_, ref = d.keyMap_ = Object.create<ValidKeyAction | ChildKeyMap>(null), keyRe = Utils.keyRe_,
-    d2 = Settings.temp_, oldErrors = d2.cmdErrors_, detectNewError = oldErrors <= 0;
+    d2 = Settings.temp_, oldErrors = d2.cmdErrors_;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
     ref["-"] = KeyAction.count;
@@ -357,7 +357,7 @@ availableCommands_: { __proto__: null as never,
         : "chrome://extensions/?id=$id",
       id_mask: "$id"
     }],
-  discardTab: [ /* 20 in main.ts */ kBgCmd.discardTab, 1, 0 ],
+  discardTab: [ kBgCmd.discardTab, 1, /* 20 in main.ts */ 0 ],
   duplicateTab: [ kBgCmd.duplicateTab, 1, 20 as 0 ],
   enableCSTemp: [ kBgCmd.toggleCS, 1, 0, { type: "images", incognito: true } ],
   enterFindMode: [ kBgCmd.performFind, 1, 1, {active: true, selected: true} ],
@@ -378,7 +378,7 @@ availableCommands_: { __proto__: null as never,
   moveTabLeft: [ kBgCmd.moveTab, 1, 0, { count: -1 } ],
   moveTabRight: [ kBgCmd.moveTab, 1, 0 ],
   moveTabToIncognito: [ kBgCmd.moveTabToNewWindow, 1, 1, { incognito: true } ],
-  moveTabToNewWindow: [/** 30 in main.ts */ kBgCmd.moveTabToNewWindow, 1, 0 ],
+  moveTabToNewWindow: [ kBgCmd.moveTabToNewWindow, 1, /** 30 in main.ts */ 0 ],
   moveTabToNextWindow: [ kBgCmd.moveTabToNextWindow, 1, 0 ],
   nextFrame: [ kBgCmd.nextFrame, 1, 0 ],
   nextTab: [ kBgCmd.goTab, 1, 0 ],
@@ -425,7 +425,7 @@ availableCommands_: { __proto__: null as never,
   toggleCS: [ kBgCmd.toggleCS, 1, 0, { type: "images" } ],
   toggleLinkHintCharacters: [ kBgCmd.toggle, 1, 1, { key: "linkHintCharacters" } ],
   toggleMuteTab: [ kBgCmd.toggleMuteTab, 1, 1 ],
-  togglePinTab: [ /** 30 in main.ts */ kBgCmd.togglePinTab, 1, 0 ],
+  togglePinTab: [ kBgCmd.togglePinTab, 1, /** 30 in main.ts */ 0 ],
   toggleSwitchTemp: [ kBgCmd.toggle, 1, 1 ],
   toggleViewSource: [ kBgCmd.toggleViewSource, 1, 1 ],
   toggleVomnibarStyle: [ kBgCmd.toggleVomnibarStyle, 1, 1, { style: "dark" } ],
@@ -454,7 +454,7 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
 
 if (Backend.onInit_) {
   Commands.parseKeyMappings_(Settings.get_("keyMappings"));
-  Commands.populateCommandKeys_();
+  Commands.populateCommandKeys_(true);
   if (!Settings.get_("vimSync")) {
     Commands = null as never;
   }
@@ -466,7 +466,7 @@ if (Backend.onInit_) {
 if (Commands) {
 Settings.updateHooks_.keyMappings = function (this: {}, value: string | null): void {
   value != null && Commands.parseKeyMappings_(value);
-  Commands.populateCommandKeys_();
+  Commands.populateCommandKeys_(value != null);
   return (this as typeof Settings).broadcast_({
     N: kBgReq.keyMap,
     m: CommandsData_.mapKeyRegistry_,
