@@ -452,6 +452,12 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
   mapKeyRegistry_: null as SafeDict<string> | null
 };
 
+if (!Build.NDEBUG) {
+  (Commands.availableCommands_ as Writeable<typeof Commands.availableCommands_>).focusOptions = [
+    kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse, url: "vimium://options" }
+  ];
+  Commands.defaultKeyMappings_.push("<a-s-f12>", "debugBackground", "<s-f12>", "focusOptions");
+}
 if (Backend.onInit_) {
   Commands.parseKeyMappings_(Settings.get_("keyMappings"));
   Commands.populateCommandKeys_(true);

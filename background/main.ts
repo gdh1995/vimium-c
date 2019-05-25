@@ -2288,7 +2288,9 @@ Are you sure you want to continue?`);
       });
     }
     sender.s = status;
-    (port as chrome.runtime.Port).sender.tab = null as never;
+    if (Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab) {
+      (port as chrome.runtime.Port).sender.tab = null as never;
+    }
     port.onDisconnect.addListener(OnDisconnect);
     port.onMessage.addListener(OnMessage);
     if (ref) {
@@ -2338,7 +2340,9 @@ Are you sure you want to continue?`);
               : cPort ? cPort.s.t : TabRecency_.last_;
         }
         framesForOmni.push(port);
-        (port as chrome.runtime.Port).sender.tab = null as never;
+        if (Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab) {
+          (port as chrome.runtime.Port).sender.tab = null as never;
+        }
         port.onDisconnect.addListener(OnOmniDisconnect);
         port.onMessage.addListener(OnMessage);
         type === PortType.omnibar &&
@@ -2380,6 +2384,9 @@ Are you sure you want to continue?`);
       url: "",
       incognito: false
     };
+    if (!(Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab)) {
+      sender.tab = null as never;
+    }
     return (port as Writeable<Port>).s = {
       i: Build.MinCVer >= BrowserVer.MinWithFrameId || !(Build.BTypes & BrowserType.Chrome)
           ? sender.frameId as number : sender.frameId || 0,
