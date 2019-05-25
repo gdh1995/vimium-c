@@ -144,7 +144,12 @@ var VFind = {
     add(el);
     add(el2);
     add(a.styleIframe_ = VDom.UI.createStyle_(a.css_[2], doc.createElement("style")));
-    VDom.createShadowRoot_(doc.body as HTMLBodyElement).appendChild(list);
+    if (!(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && VDom.cache_.browser_ === BrowserType.Firefox) {
+      (doc.body as HTMLBodyElement).appendChild(list);
+    } else {
+      VDom.createShadowRoot_(doc.body as HTMLBodyElement).appendChild(list);
+    }
     Build.BTypes & ~BrowserType.Firefox &&
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
     a.box_.style.display = "";
