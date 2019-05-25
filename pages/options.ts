@@ -882,7 +882,7 @@ window.onhashchange = function (this: void): void {
   if (!hash && Option_.all_.newTabUrl.previous_ === bgSettings_.CONST_.NewTabForNewUser_) {
     hash = "newTabUrl";
   }
-  if (!hash || (<RegExpI> /[^a-z\d_\.]/i).test(hash)) { return; }
+  if (!hash || !(<RegExpI> /^[a-z][a-z\d_-]*$/i).test(hash)) { return; }
   if (node = $(`[data-hash="${hash}"]`) as HTMLElement | null) {
     if (node.onclick) {
       return (node as ElementWithHash).onclick(null, "hash");
