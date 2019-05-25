@@ -234,6 +234,13 @@ Are you sure you want to continue?`
     bgSettings_.set_("vimSync", new_data.vimSync);
     _ref.vimSync.fetch_();
   }
+  { // delay the update of keyMappings
+    const tmp1 = _ref.keyMappings;
+    if (tmp1 !== undefined) {
+      delete _ref.keyMappings;
+      _ref.keyMappings = tmp1;
+    }
+  }
   for (const _key in _ref) {
     const item: Option_<any> = _ref[_key as keyof AllowedOptions];
     let key: keyof AllowedOptions = item.field_, new_value: any = new_data[key];

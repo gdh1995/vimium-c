@@ -99,7 +99,6 @@ var Exclusions = {
       N: kBgReq.reset,
       p: null
     };
-    Utils.require_("Commands").then(() => Settings.postUpdate_("keyMappings", null));
     if (old_is_empty) {
       always_enabled || Settings.broadcast_({
         N: kBgReq.url,
@@ -156,11 +155,15 @@ var Exclusions = {
 Exclusions.setRules_(Settings.get_("exclusionRules"));
 
 Settings.updateHooks_.exclusionRules = function (this: void, rules: ExclusionsNS.StoredRule[]): void {
-  setTimeout(function () {
-    const is_empty = Exclusions.rules_.length <= 0;
-    Exclusions.setRules_(rules);
-    setTimeout(Exclusions.RefreshStatus_, 17, is_empty);
-  }, 17);
+  const isEmpty = Exclusions.rules_.length <= 0, curKeyMap = CommandsData_.keyMap_;
+  Exclusions.setRules_(rules);
+  Utils.GC_();
+  setTimeout(function (): void {
+    setTimeout(Exclusions.RefreshStatus_, 10, isEmpty);
+    if (CommandsData_.keyMap_ === curKeyMap) {
+      Utils.require_("Commands").then(() => Settings.postUpdate_("keyMappings", null));
+    }
+  }, 1);
 };
 
 Settings.updateHooks_.exclusionOnlyFirstMatch = function (this: void, value: boolean): void {

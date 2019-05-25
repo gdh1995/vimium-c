@@ -514,12 +514,13 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     return (isReverted ? "^ " : "") + Object.keys(dict).join(" ");
   }
   function updateState(updateOldPass: boolean): void {
-    let pass = bgExclusions.getTemp_(url, frameInfo, exclusions.readValueFromElement_(true));
+    const isSaving = inited === 3;
+    let pass = isSaving ? bgExclusions.GetPassKeys_(url, frameInfo)
+          : bgExclusions.getTemp_(url, frameInfo, exclusions.readValueFromElement_(true));
     pass && (pass = collectPass(pass));
     if (updateOldPass) {
       oldPass = inited >= 2 ? pass : null;
     }
-    const isSaving = inited === 3;
     inited = 2;
     const same = pass === oldPass;
     const isReverted = !!pass && pass.length > 2 && pass[0] === "^";

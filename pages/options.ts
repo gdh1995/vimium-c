@@ -53,6 +53,7 @@ Continue to save and override these changes?`);
     }
   }
   arr.vimSync.saved_ || arr.vimSync.save_();
+  arr.exclusionRules.saved_ || arr.exclusionRules.save_();
   for (const i in arr) {
     arr[i as keyof AllowedOptions].saved_ || arr[i as keyof AllowedOptions].save_();
   }
