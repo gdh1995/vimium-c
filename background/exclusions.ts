@@ -5,50 +5,33 @@ var Exclusions = {
   testers_: null as SafeDict<ExclusionsNS.Tester> | null,
   getRe_ (pattern: string): ExclusionsNS.Tester {
     type TesterDict = NonNullable<typeof Exclusions.testers_>;
-    let func: ExclusionsNS.Tester | undefined = (this.testers_ as TesterDict)[pattern], re: RegExp | null;
-    if (func) { return func; }
+    let cur: ExclusionsNS.Tester | undefined = (this.testers_ as TesterDict)[pattern], re: RegExp | null | undefined;
+    if (cur) { return cur; }
     if (pattern[0] === "^") {
       if (re = Utils.makeRegexp_(pattern.startsWith("^$|") ? pattern.substring(3) : pattern, "", false)) {
-        func = re as RegExpOne;
+        /* empty */
       } else {
         console.log("Failed in creating an RegExp from %o", pattern);
       }
     }
-    return (this.testers_ as TesterDict)[pattern] = func || pattern.substring(1);
+    return (this.testers_ as TesterDict)[pattern] = <typeof cur> re || pattern.substring(1);
   },
   _listening: false,
   _listeningHash: false,
-  onlyFirstMatch_: false,
+  onlyFirstMatch_: Settings.get_("exclusionOnlyFirstMatch"),
   rules_: [] as ExclusionsNS.Rules,
   setRules_ (rules: ExclusionsNS.StoredRule[]): void {
-    let onURLChange: null | ExclusionsNS.Listener;
     if (rules.length === 0) {
       this.rules_ = [];
       Backend.getExcluded_ = Utils.getNull_;
-      if (this._listening && (onURLChange = this.getOnURLChange_())) {
-        chrome.webNavigation.onHistoryStateUpdated.removeListener(onURLChange);
-        if (this._listeningHash) {
-          this._listeningHash = false;
-          chrome.webNavigation.onReferenceFragmentUpdated.removeListener(onURLChange);
-        }
-      }
-      this._listening = false;
+      this.updateListeners_();
       return;
     }
     this.testers_ || (this.testers_ = Object.create<ExclusionsNS.Tester>(null));
     this.rules_ = this.format_(rules);
-    this.onlyFirstMatch_ = Settings.get_("exclusionOnlyFirstMatch");
     this.testers_ = null;
     Backend.getExcluded_ = this.GetPassKeys_;
-    if (this._listening) { return; }
-    this._listening = true;
-    onURLChange = this.getOnURLChange_();
-    if (!onURLChange) { return; }
-    chrome.webNavigation.onHistoryStateUpdated.addListener(onURLChange);
-    if (Settings.get_("exclusionListenHash") && !this._listeningHash) {
-      this._listeningHash = true;
-      chrome.webNavigation.onReferenceFragmentUpdated.addListener(onURLChange);
-    }
+    this.updateListeners_();
   },
   GetPassKeys_ (this: void, url: string, sender: Frames.Sender): string | null {
     let rules = Exclusions.rules_, matchedKeys = "";
@@ -151,6 +134,22 @@ var Exclusions = {
         Backend.setIcon_(+tabId, status);
       }
     }
+  },
+  updateListeners_ (this: void): void {
+    const a = Exclusions, listenHistory = a.rules_.length > 0,
+    l = a.getOnURLChange_(),
+    listenHash = listenHistory && Settings.get_("exclusionListenHash");
+    if (!l) { return; }
+    if (a._listening !== listenHistory) {
+      a._listening = listenHistory;
+      const e = chrome.webNavigation.onHistoryStateUpdated;
+      listenHistory ? e.addListener(l) : e.removeListener(l);
+    }
+    if (a._listeningHash !== listenHash) {
+      a._listeningHash = listenHash;
+      const e = chrome.webNavigation.onReferenceFragmentUpdated;
+      listenHash ? e.addListener(l) : e.removeListener(l);
+    }
   }
 };
 
@@ -168,15 +167,7 @@ Settings.updateHooks_.exclusionOnlyFirstMatch = function (this: void, value: boo
   Exclusions.onlyFirstMatch_ = value;
 };
 
-Settings.updateHooks_.exclusionListenHash = function (this: void, value: boolean): void {
-  const _this = Exclusions;
-  if (!_this._listening) { return; }
-  const l = _this.getOnURLChange_();
-  if (!l) { return; }
-  _this._listeningHash = value;
-  const e = chrome.webNavigation.onReferenceFragmentUpdated;
-  value ? e.addListener(l) : e.removeListener(l);
-};
+Settings.updateHooks_.exclusionListenHash = Exclusions.updateListeners_;
 } else {
   var Exclusions = null as never as typeof Exclusions;
 }
