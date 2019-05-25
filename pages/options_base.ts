@@ -40,7 +40,7 @@ debounce_ = function<T> (this: void, func: (this: T) => void
   let timeout = 0, timestamp: number;
   const later = function () {
     const last = Date.now() - timestamp; // safe for time changes
-    if (last < wait && last >= 0) {
+    if (last < wait - /* for resolution tolerance */ 4 && last >= 0) {
       timeout = setTimeout(later, wait - last);
       return;
     }

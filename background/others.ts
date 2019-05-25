@@ -16,7 +16,6 @@ setTimeout(function (): void {
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
-  Utils.GC_();
   function storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; }
   let to_update: SettingsToUpdate | null = null,
   doNotSync: PartialTypedSafeEnum<SettingsToSync> = Object.setPrototypeOf({
@@ -83,6 +82,7 @@ setTimeout(function (): void {
       delta[key as keyof SettingsNS.FrontendSettings] = Settings.get_(key as keyof SettingsNS.FrontendSettings);
       Settings.broadcast_(req);
     }
+    Utils.GC_();
   }
   function TrySet<K extends keyof SettingsToSync>(this: void, key: K, value: SettingsToSync[K] | null) {
     if (!shouldSyncKey(key)) { return; }
@@ -591,7 +591,7 @@ function (details: chrome.runtime.InstalledDetails): void {
 Utils.GC_ = function (): void {
   let timestamp = 0, timeout = 0;
   Utils.GC_ = function (): void {
-    if (!(Commands || Exclusions)) { return; }
+    if (!(Commands || Exclusions && Exclusions.rules_.length <= 0)) { return; }
     timestamp = Date.now(); // safe for time changes
     if (timeout > 0) { return; }
     timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
@@ -599,7 +599,8 @@ Utils.GC_ = function (): void {
   return Utils.GC_();
   function later(): void {
     const last = Date.now() - timestamp; // safe for time changes
-    if (last < GlobalConsts.TimeoutToReleaseBackendModules && last > -GlobalConsts.ToleranceOfNegativeTimeDelta) {
+    if (last < GlobalConsts.TimeoutToReleaseBackendModules - 1000 // for small time adjust
+        && last > -GlobalConsts.ToleranceOfNegativeTimeDelta) {
       timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules - last);
       return;
     }
