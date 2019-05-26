@@ -13,7 +13,8 @@ var VDom = {
   isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
     const viewport = document.querySelector("meta[name=viewport]");
     return !!viewport &&
-      (<RegExpI> /\b(device-width|initial-scale)\b/i).test(viewport.getAttribute("content") || "");
+      (<RegExpI> /\b(device-width|initial-scale)\b/i).test(
+          (viewport as HTMLMetaElement).content as string | undefined as /* safe even if undefined */ string);
   } : 0 as never,
   createElement_: function<K extends VimiumContainerElementType> (this: {},
       tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement | Element {
