@@ -61,6 +61,12 @@ __Other extensions supporting Vimium C:__
 
 1.75:
 * use new icons
+* exclusion: make passKeys take precedence over mappedKeys
+* now `mapKey` can map any key to `<esc>` and map `<esc>` and `<c-[>` to others
+* LinkHints/Scroller/Vomnibar: activate on a parent frame if needed
+* FindMode: auto fill/search with selected text by default
+  * a new option `selected=false` can prevent this behavior
+* fix some bugs of `passNextKey`
 * fix some rare edge cases on malformed webpages
 
 1.74.9:
