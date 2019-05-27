@@ -12,7 +12,7 @@ declare const enum OmniboxData {
 declare const enum SyncConsts {
   LocalItemCountWhenInstalled = 6,
 }
-setTimeout(function (): void {
+Utils.timeout_(1000, function (): void {
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
@@ -168,9 +168,9 @@ setTimeout(function (): void {
     }
     Settings.postUpdate_("vimSync");
   });
-}, 1000);
+});
 
-setTimeout(function (): void {
+Utils.timeout_(150, function (): void {
   if (!chrome.browserAction) { return; }
   const func = Settings.updateHooks_.showActionIcon;
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
@@ -271,9 +271,9 @@ setTimeout(function (): void {
     chrome.browserAction.setTitle({ title });
   };
   Settings.postUpdate_("showActionIcon");
-}, 150);
+});
 
-setTimeout(function (): void {
+Utils.timeout_(600, function (): void {
   if (!chrome.omnibox) { return; }
   type OmniboxCallback = (this: void, suggestResults: chrome.omnibox.SuggestResult[]) => true | void;
   const enum FirstSugType {
@@ -522,7 +522,7 @@ setTimeout(function (): void {
     }
     return Backend.removeSug_({ t: type, u: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
   });
-}, 600);
+});
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 chrome.runtime.onInstalled.addListener(Settings.temp_.onInstall_ =
@@ -624,7 +624,7 @@ Utils.GC_ = function (): void {
   }
 };
 
-setTimeout(function (): void {
+Utils.timeout_(1200, function (): void {
   chrome.runtime.onInstalled.removeListener(Settings.temp_.onInstall_ as NonNullable<typeof Settings.temp_.onInstall_>);
   Settings.temp_.onInstall_ = null;
   (document.documentElement as HTMLHtmlElement).textContent = "";
@@ -634,4 +634,4 @@ setTimeout(function (): void {
     (window as WindowExForDebug).a = null;
     (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log("%o", b); };
   }
-}, 1200);
+});

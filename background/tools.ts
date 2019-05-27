@@ -474,7 +474,7 @@ TabRecency_ = {
   rCompare_: null as never as (a: {id: number}, b: {id: number}) => number,
 };
 
-setTimeout(function () {
+Utils.timeout_(120, function (): void {
   const cache = TabRecency_.tabs_, noneWnd = chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone;
   let stamp = 1, time = 0;
   function clean(): void {
@@ -529,7 +529,7 @@ setTimeout(function () {
     localStorage.getItem(ContentSettings_.makeKey_(i)) != null &&
     setTimeout(ContentSettings_.Clear_, 100, i);
   }
-}, 120);
+});
 
 Utils.copy_ = Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)

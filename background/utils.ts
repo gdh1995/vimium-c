@@ -771,6 +771,9 @@ var Utils = {
     return keys && keys.replace((this as typeof Utils).keyReToFormat_, (this as typeof Utils).onFormatKey_);
   }),
   getNull_ (this: void): null { return null; },
+  timeout_ (timeout: number, callback: (this: void, fakeArgs?: TimerType.fake) => void): void {
+    setTimeout(callback, timeout);
+  },
   GC_ (this: void): void { /* empty */ },
   hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };

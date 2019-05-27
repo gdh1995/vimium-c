@@ -1,6 +1,6 @@
 import MatchType = CompletersNS.MatchType;
 
-setTimeout(function (): void {
+Utils.timeout_(200, function (): void {
 type Domain = CompletersNS.Domain;
 
 const enum RankingEnums {
@@ -1576,13 +1576,13 @@ Completion_ = {
 Settings.updateHooks_.phraseBlacklist = BlacklistFilter.OnUpdate_;
 Settings.postUpdate_("phraseBlacklist");
 
-setTimeout(function () {
+Utils.timeout_(80, function () {
   Settings.postUpdate_("searchEngines", null);
-}, 80);
-}, 200);
+});
+});
 
 var Completion_ = { filter_ (a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
-  setTimeout(function () {
+  Utils.timeout_(210, function () {
     return Completion_.filter_(a, b, c);
-  }, 210);
+  });
 }, removeSug_ (): void { /* empty */ } } as CompletersNS.GlobalCompletersConstructor;
