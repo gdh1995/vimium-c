@@ -799,7 +799,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         });
         return;
       }
-      mask !== FrameMaskType.NoMaskAndNoFocus && events.focusAndRun_();
+      mask && events.focusAndRun_(); // require FrameMaskType.minWillMask is 0
       if (req.c) {
         type TypeChecked = { [key1 in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
             count: number, options: CmdOptions[T2]) => void; };

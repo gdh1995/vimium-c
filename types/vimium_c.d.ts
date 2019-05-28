@@ -155,10 +155,10 @@ declare const enum ReuseType {
 declare const enum FrameMaskType {
   NoMaskAndNoFocus = 0,
   NoMask = 1,
-  minWillMask = NoMask + 1,
-  OnlySelf = minWillMask,
-  NormalNext = 2,
-  ForcedSelf = 3,
+  OnlySelf = 2,
+  NormalNext = 3,
+  ForcedSelf = 4,
+  minWillMask = OnlySelf,
 }
 
 declare const enum ProtocolType {
