@@ -229,8 +229,7 @@ var VHints = {
     const marker = VDom.createElement_("span") as HintsNS.MarkerElement, st = marker.style,
     isBox = link[2] > ClickType.maxNotBox,
     hint: HintsNS.HintItem = {
-      marker_: marker, target_: link[0],
-      key_: "",
+      key_: "", target_: link[0], marker_: marker,
       refer_: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null,
     };
     marker.className = isBox ? "LH BH" : "LH";
@@ -474,7 +473,7 @@ var VHints = {
       ? isD ? D.querySelectorAll : Element.prototype.querySelectorAll : box.querySelectorAll;
     wantClickable && Sc.getScale_();
     let list: HintsNS.ElementList | null = querySelectorAll.call(box, query);
-    if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintLimitToCheckViewportFirst) {
+    if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
       list = a.getElementsInViewPort_(list);
     }
     const forEach = (list.forEach || output.forEach) as HintsNS.ElementIterator<Hint | Element>;
