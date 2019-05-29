@@ -92,7 +92,9 @@ interface BgReq {
   [kBgReq.focusFrame]: {
     /** mask */ m: FrameMaskType;
     /** key */ k: VKeyCodes;
-  } & Partial<BaseExecute<FgOptions, FgCmdAcrossFrames>>;
+    // ensure .c, .S exist, for safer code
+    /** command */ c: FgCmdAcrossFrames | 0;
+  } & BgCSSReq & Partial<Pick<BaseExecute<FgOptions, FgCmdAcrossFrames>, "n" | "a">>;
   [kBgReq.execute]: BaseExecute<object> & Req.baseBg<kBgReq.execute>;
   [kBgReq.exitGrab]: Req.baseBg<kBgReq.exitGrab>;
   [kBgReq.showHelpDialog]: {

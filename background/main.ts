@@ -1380,6 +1380,7 @@ Are you sure you want to continue?`);
         N: kBgReq.focusFrame,
         S: port.s.i === 0 ? ensureInnerCSS(port) : null,
         k: cKey,
+        c: 0,
         m: port !== cPort && frames && port !== frames[0] ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
       });
     },
@@ -1390,6 +1391,7 @@ Are you sure you want to continue?`);
         N: kBgReq.focusFrame,
         S: ensureInnerCSS(port),
         k: cKey,
+        c: 0,
         m: (framesForTab[tabId] as Frames.Frames)[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
       });
     },
@@ -1428,6 +1430,7 @@ Are you sure you want to continue?`);
           N: kBgReq.focusFrame,
           S: ensureInnerCSS(port),
           k: cKey,
+          c: 0,
           m: FrameMaskType.ForcedSelf
         });
       });
@@ -2017,7 +2020,9 @@ Are you sure you want to continue?`);
       if (ports) {
         ports[0].postMessage({
           N: kBgReq.focusFrame,
+          S: null,
           k: cKey,
+          c: 0,
           m: FrameMaskType.NoMask
         });
         return;

@@ -787,25 +787,26 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     node_: null as HTMLDivElement | null,
     timer_: 0,
     Focus_ (this: void, req: BgReq[kBgReq.focusFrame]): void {
-      const { m: mask, S: CSS, k: key } = req;
-      CSS && VDom.UI.css_(CSS);
+      // Note: .c, .S are ensured to exist
+      const mask = req.m;
+      req.S && VDom.UI.css_(req.S);
       if (mask !== FrameMaskType.NormalNext) { /* empty */ }
       else if (innerWidth < 3 || innerHeight < 3
         || document.body instanceof HTMLFrameSetElement
         || events.checkHidden_()) {
         post({
           H: kFgReq.nextFrame,
-          k: key
+          k: req.k
         });
         return;
       }
-      mask && events.focusAndRun_(); // require FrameMaskType.minWillMask is 0
+      mask && events.focusAndRun_(); // require FrameMaskType.NoMaskAndNoFocus is 0
       if (req.c) {
         type TypeChecked = { [key1 in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
             count: number, options: CmdOptions[T2]) => void; };
         (Commands as TypeChecked)[req.c](req.n as number, req.a as FgOptions);
       }
-      KeydownEvents[key] = 1;
+      KeydownEvents[req.k] = 1;
       FrameMask.show_(mask);
     },
     show_ (mask: FrameMaskType): void {

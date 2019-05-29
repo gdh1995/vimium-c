@@ -533,7 +533,7 @@ var VFind = {
   FormatQuery_ (this: void, str: string): string {
     let flag = str.charCodeAt(1), enabled = flag >= KnownKey.a, a = VFind;
     if (flag === KnownKey.backslash) { return str; }
-    flag &= KnownKey.AlphaMask;
+    flag &= ~KnownKey.CASE_DELTA;
     if (flag === KnownKey.I || flag === KnownKey.C) { a.ignoreCase_ = enabled === (flag === KnownKey.I); }
     else if (flag === KnownKey.W) {
       if (a.isRegex_) { return str; }
