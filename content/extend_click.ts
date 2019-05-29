@@ -278,7 +278,7 @@ function prepareRegister(this: void, element: Element): void {
   if (doc1 !== doc) {
     // although on Firefox element.__proto__ is auto-updated when it's adopted
     // but aEl may be called before real insertion
-    if ((!(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
+    if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           || (doc1 as WindowWithTop).top !== top)
         && (doc1 as Exclude<typeof doc1, Window>).nodeType === kNode.DOCUMENT_NODE
         && (doc1 as Document).defaultView) {

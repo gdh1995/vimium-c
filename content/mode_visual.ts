@@ -761,7 +761,7 @@ init_ (words: string) {
   const a = this;
   a.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
-  a.selType_ = !!(Build.BTypes & BrowserType.Chrome)
+  a.selType_ = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
       && VDom.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function (this: typeof VVisual): SelType {
@@ -790,7 +790,8 @@ init_ (words: string) {
   if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
       || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
     if (!(Build.BTypes & ~BrowserType.Firefox)
-        || VDom.cache_.browserVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+        || Build.BTypes & BrowserType.Chrome
+            && VDom.cache_.browserVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         || Build.BTypes & BrowserType.Firefox && Build.BTypes & BrowserType.Edge
             && VDom.cache_.browser_ === BrowserType.Firefox) {
       // Firefox && not native || Chrome && not only white spaces
@@ -826,7 +827,7 @@ init_ (words: string) {
    *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
    * Min$Space$NotMatch$U180e$InRegExp=59
    */
-  (!(Build.BTypes & ~BrowserType.Firefox)
+  (!(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
     || (Build.BTypes & BrowserType.Firefox && VDom.cache_.browser_ === BrowserType.Firefox)
     || VDom.cache_.browserVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&

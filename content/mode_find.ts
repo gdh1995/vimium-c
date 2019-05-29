@@ -358,7 +358,7 @@ var VFind = {
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=SetSequentialFocusNavigationStartingPoint&g=0&l=4773
  */
   fixTabNav_: !(Build.BTypes & BrowserType.Chrome) // firefox seems to have "focused" it
-        || Build.BTypes & BrowserType.Chrome && Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
+        || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
       : function (el: Element): void {
     let oldPos: MarksNS.ScrollInfo | 0 = VDom.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions
           ? [scrollX, scrollY] : 0;

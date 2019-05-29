@@ -515,6 +515,7 @@ var VDom = {
       , NP = Node.prototype, pe: Element | null;
     root = <Element | Document> root || (!(Build.BTypes & ~BrowserType.Firefox) ? element.ownerDocument as Document
         : (root = element.ownerDocument, Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter &&
+            Build.BTypes & BrowserType.Chrome &&
             VDom.unsafeFramesetTag_ && (root as WindowWithTop).top === top ||
             (root as Document | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE
         ? document : root as Document));
@@ -543,7 +544,8 @@ var VDom = {
     let s: Node["nodeName"];
     // tslint:disable-next-line: triple-equals
     return !!el && (typeof (s = el.nodeName) != "string" ||
-      (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter ? s.toUpperCase() === "FORM"
+      (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter && Build.BTypes & BrowserType.Chrome
+        ? s.toUpperCase() === "FORM"
         : (s = s.toUpperCase()) === "FORM" || s === VDom.unsafeFramesetTag_)
     );
   } : 0 as never,
@@ -640,7 +642,7 @@ var VDom = {
           && cn[sel.focusOffset] || el
         : (el.childNodes as NodeList)[sel.focusOffset] || el;
     }
-    for (o = el; !(Build.BTypes & ~BrowserType.Firefox) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
+    for (o = el; !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           ? o && <number> o.nodeType - kNode.ELEMENT_NODE
           : o && (nt = o.nodeType, !(this.unsafeFramesetTag_ && (nt as WindowWithTop).top === top)
                   && <number> nt - kNode.ELEMENT_NODE);
@@ -662,7 +664,7 @@ var VDom = {
       , center: Point2D, modifiers?: MyMouseControlKeys | null, related?: Element | null
       , button?: number): boolean {
     let doc = element.ownerDocument;
-    Build.BTypes & ~BrowserType.Firefox &&
+    Build.BTypes & BrowserType.Chrome &&
     (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && (this as typeof VDom).unsafeFramesetTag_
       && (doc as WindowWithTop).top === top
       || (doc as Node | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE) && (doc = document);

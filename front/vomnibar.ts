@@ -836,10 +836,11 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured
         || Build.BTypes & BrowserType.Edge
             && (!(Build.BTypes & ~BrowserType.Edge) || a.browser_ === BrowserType.Edge)) {
+      // is old Chrome or Edge
       const css = document.createElement("style");
       css.type = "text/css";
       css.textContent = !(Build.BTypes & BrowserType.Edge)
-          || Build.BTypes & ~BrowserType.Edge && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured
+          || Build.BTypes & BrowserType.Chrome && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured
         ? `.item, #input { border-width: ${
           Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
           ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`
