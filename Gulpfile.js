@@ -29,6 +29,7 @@ var needCommitInfo = process.env.NEED_COMMIT === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
+var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var forcedESTarget = (process.env.TARGET || "").toLowerCase();
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
@@ -373,8 +374,14 @@ var Tasks = {
   },
   lint: ["tslint"],
   local2: function(cb) {
+    gNoComments = true;
+    compilerOptions.removeComments = true;
     locally = true;
-    gulp.series("static", "_manifest")(function() {
+    var arr = ["static", "_manifest"];
+    if (fs.existsSync(JSDEST)) {
+      arr.unshift("build/_clean_diff");
+    }
+    gulp.series(...arr)(function () {
       locally = false;
       gulp.series("local")(function() {
         cb();
@@ -915,6 +922,9 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
   if (opts.noImplicitUseStrict) {
     opts.alwaysStrict = false;
   }
+  if (gNoComments) {
+    opts.removeComments = true;
+  }
   const arr = opts.plugins || [];
   for (let i = 0; i < arr.length; i++) {
     if (arr[i].name == "typescript-tslint-plugin") {
@@ -1295,7 +1305,7 @@ function loadUglifyConfig(reload) {
       c.hoist_vars = false;
     }
   }
-  if (!locally && getNonNullBuildItem("NDEBUG")) {
+  if (gNoComments || !locally && getNonNullBuildItem("NDEBUG")) {
     a.output.comments = /^!/;
   }
   return a;

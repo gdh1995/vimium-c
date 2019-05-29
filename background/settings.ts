@@ -7,23 +7,23 @@ var Settings = {
     cmdErrors_: 0,
     shownHash_: null as ((this: void) => string) | null
   },
-  payload_: {
+  payload_: (Build.BTypes & BrowserType.Chrome ? {
     __proto__: null as never,
-    browser_: !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
-        || !(Build.BTypes & ~BrowserType.Edge) ? Build.BTypes as number as BrowserType : OnOther,
-    browserVer_: Build.BTypes & BrowserType.Chrome ? ChromeVer : BrowserVer.assumedVer,
+    browserVer_: ChromeVer,
     grabBackFocus_: false,
     onMac_: false
-  } as SettingsNS.FrontendSettingCache & SafeObject,
-  omniPayload_: {
-    browser_: !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
-        || !(Build.BTypes & ~BrowserType.Edge) ? Build.BTypes as number as BrowserType : OnOther,
-    browserVer_: Build.BTypes & BrowserType.Chrome ? ChromeVer : BrowserVer.assumedVer,
+  } : {
+    __proto__: null as never, grabBackFocus_: false, onMac_: false
+  }) as SettingsNS.FrontendSettingsWithoutSyncing & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
+  omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
+    browserVer_: ChromeVer,
     css_: "",
     maxMatches_: 0,
     queryInterval_: 0,
     styles_: ""
-  },
+  } : {
+    css_: "", maxMatches_: 0, queryInterval_: 0, styles_: ""
+  }) as VomnibarPayload,
   newTabs_: Object.create(null) as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
   storage_: localStorage,
@@ -506,7 +506,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
     ? chrome.runtime.PlatformOs as EnsureNonNull<typeof chrome.runtime.PlatformOs>
     : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
   Settings.CONST_.Platform_ = os;
-  (Settings.payload_ as Writeable<SettingsNS.FrontendConsts>).onMac_ = os === types.MAC || (os === types.WIN && 0);
+  (Settings.payload_ as Writeable<typeof Settings.payload_>).onMac_ = os === types.MAC || (os === types.WIN && 0);
 }) : (Settings.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown");
 
@@ -549,6 +549,10 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   ref3 = settings.newTabs_ as SafeDict<Urls.NewTabType>;
   function func(path: string): string {
     return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
+  }
+  if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+    (payload_ as Writeable<typeof payload_>).browser_ =
+        (settings.omniPayload_ as Writeable<VomnibarPayload>).browser_ = OnOther;
   }
   (defaults as SettingsWithDefaults).newTabUrl = (Build.BTypes & ~BrowserType.Chrome
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))

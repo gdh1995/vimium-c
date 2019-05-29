@@ -778,16 +778,17 @@ var Utils = {
   hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
 
-var OnOther = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
-      || !(Build.BTypes & ~BrowserType.Edge)
-  ? Build.BTypes as number as BrowserType
-  : Build.BTypes & BrowserType.Chrome &&
+declare var OnOther: BrowserType;
+if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+  (window as Writeable<Window>).OnOther = Build.BTypes & BrowserType.Chrome &&
     (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
     || location.protocol.lastIndexOf("chrome", 0) >= 0) // in case Chrome also supports `browser` in the future
   ? BrowserType.Chrome
   : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
   : Build.BTypes & BrowserType.Firefox && (<RegExpOne> /\bFirefox\//).test(navigator.userAgent) ? BrowserType.Firefox
-  : BrowserType.Unknown,
+  : BrowserType.Unknown;
+}
+var
 ChromeVer: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
   (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
   && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)

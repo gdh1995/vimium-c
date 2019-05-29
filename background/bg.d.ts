@@ -426,7 +426,7 @@ interface Window {
   readonly CommandsData_: CommandsDataTy;
   readonly Exclusions?: object;
   readonly HelpDialog?: BaseHelpDialog;
-  readonly OnOther: BrowserType;
+  readonly OnOther?: BrowserType;
   readonly ChromeVer: BrowserVer;
 
   readonly Backend: BackendHandlersNS.BackendHandlers;

@@ -35,7 +35,8 @@ interface ConfigurableItems {
 interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
 
-if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy_ === "function") {
+// tslint:disable-next-line: triple-equals
+if (typeof VSettings == "object" && VSettings && typeof VSettings.destroy_ == "function") {
   VSettings.destroy_(true);
 }
 
@@ -158,7 +159,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   wheelTime_: 0,
   wheelDelta_: 0,
   browser_: BrowserType.Chrome,
-  browserVer_: BrowserVer.assumedVer,
+  browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
   maxMatches_: 0,
   queryInterval_: 0,
   styles_: "",
@@ -809,7 +810,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     Object.setPrototypeOf(a.ctrlMap_, null);
     Object.setPrototypeOf(a.normalMap_, null);
     const list = a.list_ = document.getElementById("list") as HTMLDivElement;
-    const { browserVer_: ver } = a, listen = addEventListener,
+    const ver: BrowserVer = Build.BTypes & BrowserType.Chrome ? a.browserVer_ : BrowserVer.assumedVer,
+    listen = addEventListener,
     input = a.input_ = document.getElementById("input") as typeof Vomnibar_.input_;
     a.barCls_ = (input.parentElement as HTMLElement).classList;
     list.oncontextmenu = a.OnMenu_;
@@ -863,10 +865,10 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.darkBtn_ && (a.darkBtn_.onclick = a.ToggleDark_);
     a.onStyleUpdate_(a.styles_);
     a.init_ = VUtils_.makeListRenderer_ = null as never;
-    if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute
-        || (Build.MinCVer >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute
-                || ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute)
-            && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
+    if (Build.BTypes & BrowserType.Chrome
+          && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
+          && (Build.MinCVer >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute
+              || ver >= BrowserVer.MinSVG$Path$Has$d$CSSAttribute)
         || a.bodySt_.d != null) {
       return;
     }
@@ -902,7 +904,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
     a.pageType_ = type;
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
-    const canShowOnOthers = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
+    const canShowOnExtOrWeb = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
           || Build.BTypes & BrowserType.Chrome
               && a.browserVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
     if (( !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
@@ -910,8 +912,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         || type === VomnibarNS.PageType.web
         || location.origin.indexOf("-") < 0) { /* empty */ }
     else if (type === VomnibarNS.PageType.inner) {
-      fav = canShowOnOthers || a.sameOrigin_ ? 2 : 0;
-    } else if ((canShowOnOthers || a.sameOrigin_) && (f = chrome.runtime.getManifest) && (manifest = f())) {
+      fav = canShowOnExtOrWeb || a.sameOrigin_ ? 2 : 0;
+    } else if ((canShowOnExtOrWeb || a.sameOrigin_) && (f = chrome.runtime.getManifest) && (manifest = f())) {
       const arr = manifest.permissions || [];
       fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? a.sameOrigin_ ? 2 : 1 : 0;
     }
@@ -1230,8 +1232,12 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   Vomnibar_.secret_ = function (this: void, request): void {
     Vomnibar_.secret_ = null;
     const payload = request.l;
-    Vomnibar_.browser_ = payload.browser_;
-    Vomnibar_.browserVer_ = payload.browserVer_;
+    if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+      Vomnibar_.browser_ = payload.browser_ as BrowserType;
+    }
+    if (Build.BTypes & BrowserType.Chrome) {
+      Vomnibar_.browserVer_ = payload.browserVer_ as NonNullable<typeof payload.browserVer_>;
+    }
     Vomnibar_.maxMatches_ = payload.maxMatches_;
     Vomnibar_.queryInterval_ = payload.queryInterval_;
     Vomnibar_.styles_ = payload.styles_;

@@ -120,8 +120,8 @@ interface BgReq {
 }
 
 interface VomnibarPayload {
-  browser_: BrowserType;
-  browserVer_: BrowserVer;
+  readonly browser_?: BrowserType;
+  readonly browserVer_?: BrowserVer;
   css_: string;
   maxMatches_: number;
   queryInterval_: number;

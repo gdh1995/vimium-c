@@ -28,7 +28,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     , OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
           || !(Build.BTypes & ~BrowserType.Edge)
         ? Build.BTypes as number : BrowserType.Chrome
-    , browserVer = 0 as BrowserVer
+    , /** should be used only if OnOther is Chrome */ browserVer: BrowserVer = 0
     , isTop = top === window
     ;
 
@@ -934,11 +934,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
       if (Build.BTypes & BrowserType.Chrome) {
-        browserVer = load.browserVer_;
+        browserVer = load.browserVer_ as NonNullable<typeof load.browserVer_>;
       }
       if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
           && <number> Build.BTypes !== BrowserType.Edge) {
-        OnOther = load.browser_;
+        OnOther = load.browser_ as NonNullable<typeof load.browser_>;
       }
       ((settings as Writeable<VSettingsTy>).cache = VDom.cache_ = load).onMac_ &&
         (VKey.correctionMap_ = Object.create<string>(null));
@@ -951,7 +951,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
           && browserVer < BrowserVer.MinFramesetHasNoNamedGetter) {
         D.unsafeFramesetTag_ = "FRAMESET";
-      } else if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
+      }
+      if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {
         D.notSafe_ = (_el): _el is HTMLFormElement => false;
       }

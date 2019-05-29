@@ -237,13 +237,14 @@ declare namespace SettingsNS {
     scrollStepSize: number;
     smoothScroll: boolean;
   }
-  interface FrontendConsts {
-    readonly browserVer_: BrowserVer;
-    readonly browser_: BrowserType;
+  interface FrontendSettingsWithoutSyncing {
+    readonly browserVer_?: BrowserVer;
+    readonly browser_?: BrowserType;
     /** `mac`: true, `win`: 0, `others`: false */ readonly onMac_: boolean | 0;
-  }
-  interface FrontendSettingCache extends FrontendSettings, FrontendConsts {
     grabBackFocus_: boolean;
+  }
+  interface FrontendSettingCache extends FrontendSettings, FrontendSettingsWithoutSyncing {
+    readonly browserVer_: BrowserVer;
   }
 }
 
