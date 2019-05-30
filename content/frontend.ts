@@ -315,7 +315,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       K extends keyof SpecialCommands ? SpecialCommands[K] :
       (this: void, count: number, options: CmdOptions[K], key?: -42) => void;
   } = [
-    /* framesGoBack: */ function (rawStep: number): void {
+    /* kFgCmd.framesGoBack: */ function (rawStep: number): void {
       const maxStep = Math.min(Math.abs(rawStep), history.length - 1),
       realStep = rawStep < 0 ? -maxStep : maxStep;
       if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
@@ -327,18 +327,18 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         maxStep && history.go(realStep);
       }
     },
-    VFind.activate_,
-    VHints.activate_,
+    /* kFgCmd.findMode: */ VFind.activate_,
+    /* kFgCmd.linkHints: */ VHints.activate_,
     /* unhoverLast: */ function (this: void): void {
       VDom.hover_(null);
       HUD.tip_("The last element is unhovered");
     },
-    VMarks.activate_,
-    VMarks.GoTo_,
-    VScroller.activate_,
-    VVisual.activate_,
-    VOmni.activate_,
-    /* reset: */ function (): void {
+    /* kFgCmd.marks: */ VMarks.activate_,
+    /* kFgCmd.goToMarks: */ VMarks.GoTo_,
+    /* kFgCmd.scroll: */ VScroller.activate_,
+    /* kFgCmd.visualMode: */ VVisual.activate_,
+    /* kFgCmd.vomnibar: */ VOmni.activate_,
+    /* kFgCmdreset: */ function (): void {
       const a = InsertMode;
       VScroller.current_ = VDom.lastHovered_ = a.last_ = a.lock_ = a.global_ = null;
       a.mutable_ = true;
@@ -348,7 +348,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       onWndBlur();
     },
 
-    /* toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
+    /* kFgCmd.toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
       const key = options.key, backupKey = "_" + key as string as typeof key,
       cache = VLib.safer_(VDom.cache_), cur = cache[key];
       let val = options.value, u: undefined;
@@ -366,12 +366,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         : 'Now "' + key + (val === true ? '" is on' : '" use ' + JSON.stringify(val));
       return HUD.tip_(msg, 1000);
     },
-    /* insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {
+    /* kFgCmd.insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {
       let { code, stat } = opt;
       InsertMode.global_ = opt;
       if (opt.hud) { return HUD.show_(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
-    /* passNextKey: */ function (count0: number, options: CmdOptions[kFgCmd.passNextKey]): void {
+    /* kFgCmd.passNextKey: */ function (count0: number, options: CmdOptions[kFgCmd.passNextKey]): void {
       let keyCount = 0, count = Math.abs(count0);
       if (!!options.normal === (count0 > 0)) {
         esc(HandlerResult.ExitPassMode); // singleton
@@ -417,19 +417,19 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       };
       onKeyup2({keyCode: VKeyCodes.None});
     },
-    /* goNext: */ function (_0: number, {rel, patterns}: CmdOptions[kFgCmd.goNext]): void {
+    /* kFgCmd.goNext: */ function (_0: number, {rel, patterns}: CmdOptions[kFgCmd.goNext]): void {
       if (!VDom.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }
       const isNext = rel === "next";
       if (patterns.length <= 0 || !Pagination.findAndFollowLink_(patterns, isNext)) {
         return HUD.tip_("No links to go " + rel);
       }
     },
-    /* reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
+    /* kFgCmd.reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
       setTimeout(function () {
         options.url ? (location.href = options.url) : location.reload(!!(options.hard || options.force));
       }, 17);
     },
-    /* switchFocus: */ function (_0: number, options: CmdOptions[kFgCmd.switchFocus]): void {
+    /* kFgCmd.switchFocus: */ function (_0: number, options: CmdOptions[kFgCmd.switchFocus]): void {
       let newEl = InsertMode.lock_;
       if (newEl) {
         if ((options.act || options.action) === "backspace") {
@@ -454,7 +454,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VDom.prepareCrop_();
       return VDom.UI.simulateSelect_(newEl, null, false, "", true);
     },
-    /* showHelp: */ function (msg?: number | "e"): void {
+    /* kFgCmd.showHelp: */ function (msg?: number | "e"): void {
       if (msg === "e") { return; }
       let wantTop = innerWidth < 400 || innerHeight < 320;
       if (!VDom.isHTML_()) {
@@ -463,7 +463,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       post({ H: kFgReq.initHelp, w: wantTop });
     },
-    /* autoCopy: */ function (_0: number, options: CmdOptions[kFgCmd.autoCopy]): void {
+    /* kFgCmd.autoCopy: */ function (_0: number, options: CmdOptions[kFgCmd.autoCopy]): void {
       let str = VDom.UI.getSelectionText_(1);
       if (!str) {
         str = options.url ? location.href : document.title;
@@ -482,7 +482,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       return HUD.copied_(str);
     },
-    /* autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
+    /* kFgCmd.autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
       let url = VDom.UI.getSelectionText_(), keyword = (options.keyword || "") + "";
       url && VPort.evalIfOK_(url) || post({
         H: kFgReq.openUrl,
@@ -490,7 +490,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         k: keyword, u: url
       });
     },
-    /* searchAs: */ function (_0: number, options: CmdOptions[kFgCmd.searchAs]): void {
+    /* kFgCmd.searchAs: */ function (_0: number, options: CmdOptions[kFgCmd.searchAs]): void {
       post({
         H: kFgReq.searchAs,
         u: location.href,
@@ -498,7 +498,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         s: options.selected ? VDom.UI.getSelectionText_() : ""
       });
     },
-    /* focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {
+    /* kFgCmd.focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {
       InsertMode.inputHint_ && (InsertMode.inputHint_.hints = null as never);
       const arr: ViewOffset = VDom.getViewBox_();
       VDom.prepareCrop_();
@@ -935,7 +935,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
   },
   requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = [
-    function (request: BgReq[kBgReq.init]): void {
+    /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
       if (Build.BTypes & BrowserType.Chrome) {
         browserVer = load.browserVer_ as NonNullable<typeof load.browserVer_>;
@@ -986,7 +986,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>> { H: kFgReq.focus });
       });
     },
-    function (request: BgReq[kBgReq.reset], initing?: 1): void {
+    /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset], initing?: 1): void {
       const newPassKeys = request.p, enabled = newPassKeys !== "", old = isEnabled;
       passKeys = newPassKeys && Object.create<1>(null);
       if (newPassKeys) {
@@ -1012,19 +1012,19 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       if (VDom.UI.box_) { VDom.UI.adjust_(+enabled ? 1 : 2); }
     },
-    injector ? injector.$run : null as never,
-    function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
+    /* kBgReq.injectorRun: */ injector ? injector.$run : null as never,
+    /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
       delete (request as Req.bg<kBgReq.url>).N;
       request.u = location.href;
       post<T>(request);
     },
-    function<K extends keyof FgRes> (response: Req.res<K>): void {
+    /* kBgReq.msg: */ function<K extends keyof FgRes> (response: Req.res<K>): void {
       const arr = vPort._callbacks, id = response.m, handler = arr[id];
       delete arr[id];
       handler(response.r);
     },
-    function (options: BgReq[kBgReq.eval]): void { VPort.evalIfOK_(options.u); },
-    function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
+    /* kBgReq.eval: */ function (options: BgReq[kBgReq.eval]): void { VPort.evalIfOK_(options.u); },
+    /* kBgReq.settingsUpdate: */function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VLib.safer_(delta);
       const cache = VDom.cache_, deepHints = delta.deepHints;
@@ -1037,9 +1037,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       deepHints != null && VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
       (VHints.queryInDeep_ = deepHints ? DeepQueryType.InDeep : DeepQueryType.NotDeep);
     },
-    FrameMask.Focus_,
-    InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
-    function (request: BgReq[kBgReq.keyMap]): void {
+    /* kBgReq.focusFrame: */ FrameMask.Focus_,
+    /* kBgReq.exitGrab: */ InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
+    /* kBgReq.keyMap: */ function (request: BgReq[kBgReq.keyMap]): void {
       const map = keyMap = request.k, func = Object.setPrototypeOf;
       func(map, null);
       function iter(obj: ReadonlyChildKeyMap): void {
@@ -1055,7 +1055,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       (mappedKeys = request.m) && func(mappedKeys, null);
     },
-    function<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
+    /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
       if (request.S) { VDom.UI.css_(request.S); }
       const options: CmdOptions[O] | null = request.a;
       type Keys = keyof CmdOptions;
@@ -1068,8 +1068,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       (Commands as TypeToCheck as TypeChecked)[request.c](request.n
         , (options ? VLib.safer_(options) : Object.create(null)) as CmdOptions[O]);
     },
-    function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.n); },
-    function (req: Req.bg<kBgReq.showHUD>): void {
+    /* kBgReq.createMark: */ function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.n); },
+    /* kBgReq.showHUD: */ function (req: Req.bg<kBgReq.showHUD>): void {
       if (req.S) {
         VDom.UI.css_(req.S);
         if (req.f) {
@@ -1080,11 +1080,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       // tslint:disable-next-line: no-unused-expression
       req.t ? req.c ? HUD.copied_(req.t) : HUD.tip_(req.t) : 0;
     },
-    function (request: BgReq[kBgReq.count]): void {
+    /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
       const n = parseInt(currentKeys, 10) || 1;
       esc(HandlerResult.Nothing);
       post({ H: kFgReq.cmd, c: request.c, n, i: request.i});
     },
+    /* kBgReq.showHelpDialog: */
   function ({ h: html, a: shouldShowAdvanced, o: optionUrl, S: CSS }: Req.bg<kBgReq.showHelpDialog>): void {
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it

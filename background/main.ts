@@ -2217,7 +2217,7 @@ Are you sure you want to continue?`);
       cRepeat = 1;
       BackgroundCommands[kBgCmd.performFind]();
     },
-    /* framesGoBack: */
+    /** framesGoBack: */
         (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || ChromeVer >= BrowserVer.Min$Tabs$$goBack)
         ? function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void {
