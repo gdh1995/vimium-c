@@ -13,7 +13,7 @@ box-shadow:0 3px 5px #0000004d;overflow:hidden;padding:1px 3px 0;position:absolu
 .IH{background:#fff7854d;border:0.5px solid #c38a22;position:absolute}
 .IHS{background:#ff66664d;border-color:#933}
 .HUD{background:#eee;border:0.5px solid #b3b3b3;border-radius:4px 4px 0 0;bottom:0;height:14px;line-height:14px;
-max-width:320px;min-width:151px;overflow:hidden;padding:2px 3px;right:150px;text-overflow:ellipsis;white-space:nowrap}
+max-width:320px;min-width:152px;overflow:hidden;padding:2px 3.5px;right:148px;text-overflow:ellipsis;white-space:nowrap}
 .Flash{box-shadow:0 0 4px 2px #4183c4;padding:1px}.Sel{box-shadow:0 0 4px 2px #ffa000}
 .Frame{border:5px solid #ff0;box-sizing:border-box;height:100%;left:0;top:0;width:100%}
 .Omnibar{left:calc(10% - 12px);top:64px;width:calc(80% + 24px)}
@@ -23,5 +23,5 @@ max-width:320px;min-width:151px;overflow:hidden;padding:2px 3px;right:150px;text
 html, body, * { user-select: auto; }
 *{cursor:default;font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif!important;
 height:14px;margin:0;outline:none;overflow:hidden;vertical-align:top;white-space:nowrap}
-div{cursor:text;display:inline-block;max-width:240px;min-width:7px;padding:0 3px 0 1px}
-br{all:inherit!important;display:inline!important}count{position:absolute;right:0;top:0}:host{margin:0;}
+#r{display:flex}#s{flex:0 0 4px;}#i{flex:0 1 auto;min-width:9px}#h{flex:1 0 auto}#c{flex:0 0 auto}
+#i,#h{cursor:text}br{all:inherit!important;display:inline!important}:host{margin:0;}

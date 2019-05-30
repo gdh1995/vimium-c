@@ -16,6 +16,7 @@ var VFind = {
   initialRange_: null as Range | null,
   activeRegexIndex_: 0,
   regexMatches_: null as RegExpMatchArray | null,
+  inShadow_: true,
   box_: null as never as HTMLIFrameElement & { contentDocument: Document },
   input_: null as never as SafeHTMLElement,
   countEl_: null as never as SafeHTMLElement,
@@ -116,12 +117,18 @@ var VFind = {
   },
   onLoad2_ (wnd: Window): void {
     const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
+    body = doc.body as HTMLBodyElement,
     a = VFind,
     zoom = wnd.devicePixelRatio, list = doc.createDocumentFragment(),
-    add = list.appendChild.bind(list),
-    el0 = doc.createElement("slash"),
-    el = a.input_ = doc.createElement("div") as SafeHTMLElement & HTMLDivElement,
-    el2 = a.countEl_ = doc.createElement("count") as SafeHTMLElement;
+    addElement = function (tag: 0 | "div" | "style", id?: string | 0): SafeHTMLElement {
+      const newEl = doc.createElement(tag || "span") as SafeHTMLElement;
+      id && (newEl.id = id);
+      id !== 0 && list.appendChild(newEl);
+      return newEl;
+    };
+    addElement(0, "s").textContent = "/";
+    const el = a.input_ = addElement(0, "i");
+    addElement(0, "h");
     if (!(Build.BTypes & BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
       el.contentEditable = "true";
       wnd.removeEventListener("paste", VLib.Stop_, true);
@@ -137,18 +144,16 @@ var VFind = {
     } else {
       el.contentEditable = "plaintext-only";
     }
-    el.spellcheck = false;
-    el2.appendChild(doc.createTextNode(""));
-    el0.textContent = "/";
-    add(el0);
-    add(el);
-    add(el2);
-    add(a.styleIframe_ = VDom.UI.createStyle_(a.css_[2], doc.createElement("style")));
-    if (!(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && VDom.cache_.browser_ === BrowserType.Firefox) {
-      (doc.body as HTMLBodyElement).appendChild(list);
-    } else {
-      VDom.createShadowRoot_(doc.body as HTMLBodyElement).appendChild(list);
+    (a.countEl_ = addElement(0, "c")).textContent = " ";
+    VDom.UI.createStyle_(a.css_[2], a.styleIframe_ = addElement("style") as HTMLStyleElement);
+    const root = VDom.createShadowRoot_(body), inShadow = a.inShadow_ = root !== body,
+    root2 = inShadow ? addElement("div", 0) : body;
+    root2.id = "r";
+    root2.spellcheck = false;
+    root2.appendChild(list);
+    if (inShadow) {
+      root2.addEventListener("mousedown", a.OnMousedown_, true);
+      root.appendChild(root2);
     }
     Build.BTypes & ~BrowserType.Firefox &&
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
@@ -235,8 +240,9 @@ var VFind = {
               ? !e.isTrusted : e.isTrusted === false)) { return; }
     f.isActive_ && f.deactivate_(FindNS.Action.ExitUnexpectedly);
   },
-  OnMousedown_ (this: void, event: MouseEvent): void {
-    if (event.target !== VFind.input_
+  OnMousedown_ (this: Window | ShadowRoot, event: MouseEvent): void {
+    const target = event.target as Element;
+    if (target !== VFind.input_ && (!VFind.inShadow_ || target.parentNode === this)
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? event.isTrusted : event.isTrusted !== false)) {
       VLib.prevent_(event);
@@ -465,7 +471,7 @@ var VFind = {
       (a.countEl_.firstChild as Text).data = !a.parsedQuery_ ? ""
         : "(" + (count || (a.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
     }
-    count = (a.input_.offsetWidth + a.countEl_.offsetWidth + 31) & ~31;
+    count = (a.input_.scrollWidth + a.countEl_.offsetWidth + 35) & ~31;
     if (a._small && count < 152) { return; }
     a.box_.style.width = ((a._small = count < 152) ? 0 as number | string as string : count + "px");
   },
