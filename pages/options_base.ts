@@ -376,7 +376,7 @@ if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
   let scale: string | number = Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
       || onlyInputs || bgBrowserVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
   scale = scale + 0.00000999;
-  scale = ("" + scale).substring(0, 7).replace(<RegExpOne> /\.?0+$/, "");
+  scale = ("" + scale).slice(0, 7).replace(<RegExpOne> /\.?0+$/, "");
   css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
     : `* { border-width: ${scale}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
@@ -505,7 +505,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
   function collectPass(pass: string): string {
     pass = pass.trim();
     const isReverted = pass && pass[0] === "^";
-    isReverted && (pass = pass.substring(1).trimLeft());
+    isReverted && (pass = pass.slice(1).trimLeft());
     const dict = Object.create<1>(null);
     for (let i of pass.split(" ")) {
       const n = i.charCodeAt(0);
@@ -529,7 +529,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
       + (isSaving ? pass ? "becomes to " + (isReverted ? "only hook" : "exclude") : "becomes"
         : (same ? "keeps to " : "will ") + (pass ? isReverted ? "only hook" : "exclude" : "be"))
       + (pass
-      ? `: <span class="state-value code">${isReverted ? pass.substring(2) : pass}</span>`
+      ? `: <span class="state-value code">${isReverted ? pass.slice(2) : pass}</span>`
       : `:<span class="state-value fixed-width">${pass !== null ? "disabled" : " enabled"}</span>`);
     if (curIsLocked && !isSaving && same) {
       html += ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`;

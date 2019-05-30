@@ -13,7 +13,8 @@ var VLib = {
       return false;
     }
     const end = str.lastIndexOf("#") + 1 || str.length;
-    str = str.substring(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
+    // tslint:disable-next-line: ban-types
+    str = (str as EnsureNonNull<String>).substring(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
     return this._imageUrlRe.test(str);
   },
   safer_<T extends object> (this: void, opt: T): T & SafeObject { return Object.setPrototypeOf(opt, null); },

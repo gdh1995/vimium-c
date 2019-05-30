@@ -99,7 +99,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       url = VUtils_.decodeURL_(url).replace(<RegExpG> /\s$/g, "%20");
       if (!keyword && (<RegExpI> /^https?:\/\//i).test(url)) {
         a.baseHttps_ = (url.charCodeAt(4) | KnownKey.CASE_DELTA) === KnownKey.s;
-        url = url.substring(a.baseHttps_ ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? url.length - 1 : void 0);
+        url = url.slice(a.baseHttps_ ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? -1 : void 0);
       }
     } else {
       url = VUtils_.decodeURL_(url, decodeURIComponent).trim().replace(a._spacesRe, " ");
@@ -497,7 +497,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
 
     const dest = Math.min(Math.max(0, i + delta), a.maxPageNum_ * n - n);
     if (delta > 0 && (dest === i || dest >= a.total_ && a.total_ > 0)) { return; }
-    if (arr) { str = str.substring(0, str.length - arr[0].length); }
+    if (arr) { str = str.slice(0, -arr[0].length); }
     str = str.trimRight();
     i = Math.min(a.input_.selectionEnd, str.length);
     if (dest > 0) { str += " +" + dest; }
@@ -600,7 +600,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     let left = el.value,
     end = el.selectionEnd - 1;
     if (left.charCodeAt(end) !== KnownKey.space || end === left.length - 1) { return; }
-    left = left.substring(0, end).trimRight();
+    left = left.slice(0, end).trimRight();
     if (left.indexOf(" ") === -1) {
       el.setSelectionRange(0, left.length, "backward");
     }
@@ -647,12 +647,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     let i = a.input_.selectionStart, arr: RegExpExecArray | null;
     if (a.isSearchOnTop_) { /* empty */ }
     else if (i > s1.length - 2) {
-      if (s1.endsWith(" +") && !a.timer_ && str.substring(0, str.length - 2).trimRight() === s0) {
+      if (s1.endsWith(" +") && !a.timer_ && str.slice(0, -2).trimRight() === s0) {
         return;
       }
     } else if ((arr = a._pageNumRe.exec(s0)) && str.endsWith(arr[0])) {
-      const j = arr[0].length, s2 = s1.substring(0, s1.trimRight().length - j);
-      if (s2.trim() !== s0.substring(0, s0.length - j).trimRight()) {
+      const j = arr[0].length, s2 = s1.slice(0, s1.trimRight().length - j);
+      if (s2.trim() !== s0.slice(0, -j).trimRight()) {
         a.input_.value = s2.trimRight();
         a.input_.setSelectionRange(i, i);
       }
@@ -971,7 +971,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       a.lastQuery_ = str = a.input_.value.trim();
       if (!a.isInputComposing_) { /* empty */ }
       else if (str.startsWith(last = a.lastNormalInput_)) {
-        str = last + str.substring(last.length).replace(a._singleQuoteRe, "");
+        str = last + str.slice(last.length).replace(a._singleQuoteRe, "");
       } else {
         str = str.replace(a._singleQuoteRe, " ");
       }
@@ -1004,15 +1004,15 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         ((str = Vomnibar_._parseFavIcon(item, str)) ? VUtils_.escapeCSSStringInAttr_(str) : "about:blank") + "&quot;);";
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
-    let str = url.substring(0, 11).toLowerCase();
+    let str = url.slice(0, 11).toLowerCase();
     return str.startsWith("vimium://") ? "chrome-extension://" + (VCID_ || chrome.runtime.id) + "/pages/options.html"
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
       : item.type === "search" && !item.visited
-        ? url.startsWith("http") ? url.substring(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || url.length) : ""
+        ? url.startsWith("http") ? url.slice(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || void 0) : ""
       : url;
   },
   navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null): void {
-    if (url.charCodeAt(10) === KnownKey.colon && url.substring(0, 11).toLowerCase() === "javascript:") {
+    if (url.charCodeAt(10) === KnownKey.colon && url.slice(0, 11).toLowerCase() === "javascript:") {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: url });
       return;
     }
@@ -1078,7 +1078,7 @@ VUtils_ = {
     return url;
   },
   ensureText_ (sug: SuggestionEx): ProtocolType {
-    let { url, text } = sug, str = url.substring(0, 8).toLowerCase();
+    let { url, text } = sug, str = url.slice(0, 8).toLowerCase();
     let i = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https
             : ProtocolType.others;
     i >= url.length && (i = ProtocolType.others);
@@ -1090,7 +1090,7 @@ VUtils_ = {
       }
     }
     if (!text) {
-      text = !wantSchema && i ? url.substring(i) : url;
+      text = !wantSchema && i ? url.slice(i) : url;
     } else if (i) {
       if (wantSchema && !text.startsWith(str)) {
         text = str + text;

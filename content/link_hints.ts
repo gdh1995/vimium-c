@@ -248,7 +248,7 @@ var VHints = {
     const zi = VDom.bZoom_, root = VDom.UI.UI;
     let i = elements.length - 1;
     if (!root || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
-    const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).substring(0, 5) : "",
+    const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).slice(0, 5) : "",
     arr = this.hints_ as HintsNS.HintItem[],
     mr = this.maxRight_ * zi, mt = this.maxTop_ * zi;
     while (0 <= i && root.contains(elements[i][0])) {
@@ -365,7 +365,7 @@ var VHints = {
   checkJSAction_ (str: string): boolean {
     for (let s of str.split(";")) {
       s = s.trim();
-      const t = s.startsWith("click:") ? (s = s.substring(6)) : s && s.indexOf(":") === -1 ? s : null;
+      const t = s.startsWith("click:") ? (s = s.slice(6)) : s && s.indexOf(":") === -1 ? s : null;
       if (t && t !== "none" && !this.noneActionRe_.test(t)) {
         return true;
       }
@@ -1153,7 +1153,7 @@ Modes_: [
       // if no Element::closest, go up by 6 levels and then query the selector
       let selector = key, prefix = re.exec(key), upper = prefix && prefix[0];
       if (upper) {
-        selector = selector.substring(upper.length);
+        selector = selector.slice(upper.length);
       }
       let up = (upper as string | number as number) | 0, selected: Element | null = null;
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !up) {
@@ -1209,7 +1209,7 @@ Modes_: [
     let isUrl = a.mode1_ >= HintMode.min_link_job && a.mode1_ <= HintMode.max_link_job, str: string | null;
     if (isUrl) {
       str = a.getUrlData_(link as HTMLAnchorElement);
-      str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.substring(7).trimLeft());
+      str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.slice(7).trimLeft());
     }
     /** Note: SVGElement::dataset is only since `BrowserVer.Min$SVGElement$$dataset` */
     else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) { /* empty */ }
@@ -1230,7 +1230,7 @@ Modes_: [
         str = link instanceof HTMLTextAreaElement ? link.value
           : link instanceof HTMLSelectElement ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
           : link instanceof HTMLElement && (str = link.innerText.trim(),
-              str.length > 7 && str.substring(0, 7).toLowerCase() === "mailto:" ? str.substring(7).trimLeft() : str)
+              str.length > 7 && str.slice(0, 7).toLowerCase() === "mailto:" ? str.slice(7).trimLeft() : str)
             || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
           ;
       }
@@ -1285,10 +1285,10 @@ Modes_: [
     if (!text) { return; }
     const url = text, i = text.indexOf("://"), a = VDom.createElement_("a");
     if (i > 0) {
-      text = text.substring(text.indexOf("/", i + 4) + 1);
+      text = text.slice(text.indexOf("/", i + 4) + 1);
     }
     if (text.length > 40) {
-      text = text.substring(0, 39) + "\u2026";
+      text = text.slice(0, 39) + "\u2026";
     }
     a.href = url;
     a.download = img.getAttribute("download") || "";

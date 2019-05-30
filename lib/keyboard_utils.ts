@@ -24,7 +24,7 @@ var VKey = {
       : function (this: {}, event: OldKeyboardEvent): string {
     let s: string | undefined = event.keyIdentifier || "";
     if (!s.startsWith("U+")) { return ""; }
-    const keyId: KnownKey = parseInt(s.substring(2), 16);
+    const keyId: KnownKey = parseInt(s.slice(2), 16);
     if (keyId < KnownKey.minAlphabet) {
       return keyId < KnownKey.minNotSpace ? ""
       : (event.shiftKey && keyId > KnownKey.maxNotNum

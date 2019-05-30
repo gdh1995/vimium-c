@@ -379,7 +379,7 @@ var VVisual = {
       let { focusNode } = sel;
       if (focusNode instanceof Text) {
         const i = sel.focusOffset, str = focusNode.data;
-        if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.substring(i).trimLeft()
+        if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.slice(i).trimLeft()
               && (str[i] !== "\n" && !(Build.BTypes & BrowserType.Firefox && str[i] === "\r"))) {
           return str[i];
         }
@@ -498,7 +498,7 @@ var VVisual = {
     a.extend_(VisualModeNS.kDir.right, VisualModeNS.G.word);
     const str2 = "" + sel;
     if (!di) { a.di_ = str2 ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right; }
-    str = di ? str2.substring(len) : a.getDirection_() ? str + str2 : str.substring(0, len - str2.length);
+    str = di ? str2.slice(len) : a.getDirection_() ? str + str2 : str.slice(0, len - str2.length);
     // now a.di_ is correct, and can be left / right
     let match = ((!(Build.BTypes & BrowserType.Firefox)
         ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces

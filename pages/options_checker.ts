@@ -49,7 +49,7 @@ let keyMappingChecker_ = {
   toHexCharRe_: <RegExpG & RegExpSearchable<0>> /\s/g,
   onToHex_ (this: void, s: string): string {
     const hex = s.charCodeAt(0) + 0x100000;
-    return "\\u" + hex.toString(16).substring(2);
+    return "\\u" + hex.toString(16).slice(2);
   },
   normalizeMap_ (_0: string, cmd: string, keys: string, options: string) {
     const keys2 = this.normalizeKeys_(keys);

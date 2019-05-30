@@ -11,8 +11,8 @@ var Commands = {
       } else if (ind < 0) {
         opt[str] = true;
       } else {
-        val = str.substring(ind + 1);
-        str = str.substring(0, ind);
+        val = str.slice(ind + 1);
+        str = str.slice(0, ind);
         opt[str] = val && this.parseVal_(val);
       }
     }

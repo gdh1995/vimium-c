@@ -752,7 +752,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     const patch = function () {
       /** Note: shoule keep the same as {@link ../background/settings.ts#Settings.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
-      css = css.substring(headEnd + 1, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
+      css = css.substr(headEnd + 1, +css.slice(0, headEnd).split(",")[2]);
       VDom.UI.css_(css);
       (VDom.UI.UI as NonNullable<VUIRoot>).appendChild(styleDebug as HTMLStyleElement);
     };
@@ -783,8 +783,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
         const oldCSS2 = bgSettings_.parseCustomCSS_(bgSettings_.get_("userDefinedCss")).find || "";
         if (oldCSS2) {
           const str = bgSettings_.cache_.findCSS_[1];
-          (doc.querySelector("style") as HTMLStyleElement).textContent = str.substring(0
-              , str.length - oldCSS2.length - 1);
+          (doc.querySelector("style") as HTMLStyleElement).textContent = str.slice(0, -oldCSS2.length - 1);
         }
         styleDebug = doc.createElement("style");
         styleDebug.type = "text/css";
@@ -806,7 +805,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     if (isFind && vfind.css_) {
       /** Note: shoule keep the same as {@link ../background/settings.ts#Settings.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
-      vfind.css_[2] = vfind.css_[2].substring(0, defaultLen - vfind.css_[0].length - vfind.css_[1].length - 1)
+      vfind.css_[2] = vfind.css_[2].slice(0, defaultLen - vfind.css_[0].length - vfind.css_[1].length - 1)
         + "\n" + (css2.find || "");
     }
   }
@@ -862,7 +861,7 @@ $("#browserName").textContent = (Build.BTypes & BrowserType.Edge
     : Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || bgOnOther_ === BrowserType.Chrome)
     ? " " + bgBrowserVer_ : ""
-  ) + (", " + bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.substring(1));
+  ) + (", " + bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.slice(1));
 
 function loadJS(file: string): HTMLScriptElement {
   const script = document.createElement("script");
@@ -879,7 +878,7 @@ function loadChecker(this: HTMLElement): void {
 
 window.onhashchange = function (this: void): void {
   let hash = location.hash, node: HTMLElement | null;
-  hash = hash.substring(hash[1] === "!" ? 2 : 1);
+  hash = hash.slice(hash[1] === "!" ? 2 : 1);
   if (!hash && Option_.all_.newTabUrl.previous_ === bgSettings_.CONST_.NewTabForNewUser_) {
     hash = "newTabUrl";
   }

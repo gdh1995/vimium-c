@@ -88,23 +88,23 @@ window.onhashchange = function (this: void): void {
   VData.full = url;
   if (url.length < 3) { /* empty */ }
   else if (url.startsWith("#!image")) {
-    url = url.substring(8);
+    url = url.slice(8);
     type = "image";
   } else if (url.startsWith("#!url")) {
-    url = url.substring(6);
+    url = url.slice(6);
     type = "url";
   }
   for (let ind: number; ind = url.indexOf("&") + 1; ) {
     if (url.startsWith("download=")) {
       // avoid confusing meanings in title content
-      file = decodeURLPart(url.substring(9, ind - 1)).split(<RegExpOne> /\||\uff5c| [-\xb7] /, 1)[0].trim();
+      file = decodeURLPart(url.slice(9, ind - 1)).split(<RegExpOne> /\||\uff5c| [-\xb7] /, 1)[0].trim();
       file = file.replace(<RegExpG> /[\r\n"]/g, "");
       VData.file = file;
-      url = url.substring(ind);
+      url = url.slice(ind);
     } else if (url.startsWith("auto=")) {
-      let i = url.substring(5, 12).split("&", 1)[0].toLowerCase();
+      let i = url.slice(5, 12).split("&", 1)[0].toLowerCase();
       VData.auto = i === "once" ? i : i === "true" ? true : i === "false" ? false : parseInt(i, 10) > 0;
-      url = url.substring(ind);
+      url = url.slice(ind);
     } else {
       break;
     }
@@ -209,7 +209,7 @@ window.onhashchange = function (this: void): void {
     if (url && BG_) {
       let str1: Urls.Url | null = null;
       if (url.startsWith("vimium://")) {
-        str1 = BG_.Utils.evalVimiumUrl_(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
+        str1 = BG_.Utils.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true);
       }
       str1 = str1 !== null ? str1 : BG_.Utils.convertToUrl_(url, null, Urls.WorkType.ConvertKnown);
       if (typeof str1 === "string") {
@@ -544,9 +544,9 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   if (search.length > 10) {
     const keyRe = <RegExpOne> /^(?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)$/i,
     encodedSignRe = <RegExpOne> /%(?:3[aA]|2[fF])/;
-    for (const item of search.substring(1).split("&")) {
+    for (const item of search.slice(1).split("&")) {
       const key = item.split("=", 1)[0];
-      search = item.substring(key.length + 1);
+      search = item.slice(key.length + 1);
       if (search.length > 7) {
         search.indexOf("://") < 0 && encodedSignRe.test(search) && (search = DecodeURLPart_(search).trim());
         if (search.indexOf("/") > 0 && safeParseURL(search) != null) {
@@ -567,60 +567,60 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   }
   const path = search = parsed.pathname;
   let offset = search.lastIndexOf("/") + 1;
-  search = search.substring(offset);
+  search = search.slice(offset);
   let index = search.lastIndexOf("@") + 1 || search.lastIndexOf("!") + 1;
   let found: boolean | 0 = index > 2 || ImageExtRe.exec(search) != null, arr2: RegExpExecArray | null = null;
   if (found) {
     offset += index;
-    search = search.substring(index);
+    search = search.slice(index);
     let re = <RegExpG & RegExpI // tslint:disable-next-line: max-line-length
 > /(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
     for (; arr2 = re.exec(search); arr1 = arr2) { /* empty */ }
     if (arr1 && (<RegExpI> /.[_\-].|\d\dx\d/i).test(arr1[0])) {
       let next = arr1.index + arr1[0].length;
-      arr2 = ImageExtRe.exec(search.substring(next));
+      arr2 = ImageExtRe.exec(search.slice(next));
       offset += arr1.index;
       let len = arr1[0].length;
       if (arr2 && arr2.index === 0) {
         len += arr2[0].length;
       }
-      search = path.substring(offset + len);
+      search = path.slice(offset + len);
       if ((<RegExpOne> /[@!]$/).test(search || path.charAt(offset - 1))) {
         if (search) {
-          search = search.substring(0, search.length - 1);
+          search = search.slice(0, -1);
         } else {
           offset--;
         }
       } else if (!search && arr2 && arr2.index === 0
-          && !ImageExtRe.exec(path.substring(Math.max(0, offset - 6), offset))) {
+          && !ImageExtRe.exec(path.slice(Math.max(0, offset - 6), offset))) {
         search = arr2[0];
       }
     } else if (arr1 = (<RegExpOne> /\b([\da-f]{8,48})([_-][a-z]{1,2})\.[a-z]{2,4}$/).exec(search)) {
       offset += arr1.index + arr1[1].length;
-      search = search.substring(arr1.index + arr1[1].length + arr1[2].length);
+      search = search.slice(arr1.index + arr1[1].length + arr1[2].length);
     } else {
       found = false;
     }
   }
   if (found || index > 2) { found = found || 0; }
   else if (arr1 = (<RegExpOne> /_(0x)?[1-9]\d{2,3}(x0)?\./).exec(search)) {
-    search = search.substring(0, arr1.index) + search.substring(arr1.index + arr1[0].length - 1);
+    search = search.slice(0, arr1.index) + search.slice(arr1.index + arr1[0].length - 1);
   } else if (search.startsWith("thumb_")) {
-    search = search.substring(6);
+    search = search.slice(6);
   } else if ((<RegExpOne> /^[1-9]\d+$/).test(search) && +search > 0 && +search < 640) {
     offset--;
     search = "";
   } else {
     found = 0;
   }
-  return found !== 0 ? parsed.origin + path.substring(0, offset) + search : null;
+  return found !== 0 ? parsed.origin + path.slice(0, offset) + search : null;
 }
 
 function tryDecryptUrl(url: string): string {
   const schema = url.split(":", 1)[0];
   switch (schema.toLowerCase()) {
   case "thunder": case "flashget": case "qqdl":
-    url = url.substring(schema.length + 3).split("&", 1)[0];
+    url = url.slice(schema.length + 3).split("&", 1)[0];
     break;
   default: return "";
   }
@@ -628,10 +628,10 @@ function tryDecryptUrl(url: string): string {
     url = atob(url);
   } catch { return ""; }
   if (url.startsWith("AA") && url.indexOf("ZZ", url.length - 2) > 0) {
-    url = url.substring(2, url.length - 2);
+    url = url.slice(2, -2);
   }
   if (url.startsWith("[FLASHGET]") && url.indexOf("[FLASHGET]", url.length - 10) > 0) {
-    url = url.substring(10, url.length - 10);
+    url = url.slice(10, -10);
   }
   return tryDecryptUrl(url) || url;
 }

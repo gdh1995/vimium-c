@@ -858,9 +858,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return HUD.tip_(`No ${e || "text"} found!`, 1000);
       }
       if (text.startsWith("chrome-") && text.indexOf("://") > 0) {
-        text = text.substring(text.indexOf("/", text.indexOf("/") + 2)) || text;
+        // tslint:disable-next-line: ban-types
+        text = (text as EnsureNonNull<String>).substring(text.indexOf("/", text.indexOf("/") + 2)) || text;
       }
-      text = "Copied: " + (text.length > 41 ? text.substring(0, 41) + "\u2026" : text + ".");
+      text = "Copied: " + (text.length > 41 ? text.slice(0, 41) + "\u2026" : text + ".");
       if (virtual) { return text; }
       return HUD.tip_(text, 2000);
     } as VHUDTy["copied_"],
@@ -990,7 +991,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       passKeys = newPassKeys && Object.create<1>(null);
       if (newPassKeys) {
         isPassKeysReverted = newPassKeys[0] === "^" && newPassKeys.length > 2;
-        for (const ch of (isPassKeysReverted ? newPassKeys.substring(2) : newPassKeys).split(" ")) {
+        for (const ch of (isPassKeysReverted ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
           (passKeys as SafeDict<1>)[ch] = 1;
         }
       }
@@ -1399,7 +1400,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (!VLib.jsRe_.test(url)) {
         return false;
       }
-      url = url.substring(11).trim();
+      url = url.slice(11).trim();
       if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
       else if (VDom.allowScripts_) {
         setTimeout(function (): void {

@@ -303,7 +303,7 @@ var Backend: BackendHandlersNS.BackendHandlers;
     else if (favIcon0 === 1 && Build.BTypes & BrowserType.Chrome
           && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
           || ChromeVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon)) {
-      url = url.substring(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
+      url = url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
       const map = framesForTab;
       let frame1 = gTabIdOfExtWithVomnibar >= 0 ? indexFrame(gTabIdOfExtWithVomnibar, 0) : null;
       if (frame1 != null) {
@@ -498,7 +498,7 @@ Are you sure you want to continue?`);
     const urlLower = url.toLowerCase().split("#", 1)[0];
     allTabs = allTabs.filter(function (tab1) {
       const url2 = tab1.url.toLowerCase(), end = url2.indexOf("#");
-      return ((end < 0) ? url2 : url2.substring(0, end)) === urlLower;
+      return (end < 0 ? url2 : url2.slice(0, end)) === urlLower;
     });
     if (allTabs.length === 0) {
       chrome.windows.getAll(hackedCreateTab[2].bind(url, tab, repeat));
@@ -616,7 +616,7 @@ Are you sure you want to continue?`);
     }, cRepeat);
   }
   function openJSUrl(url: string): void {
-    if (";".indexOf(url.substring(11).trim()) >= 0) {
+    if (";".indexOf(url.slice(11).trim()) >= 0) {
       return;
     }
     if (cPort) {
@@ -627,7 +627,7 @@ Are you sure you want to continue?`);
     }
     const callback1 = function (opt?: object | -1): void {
       if (opt !== -1 && !onRuntimeError()) { return; }
-      const code = Utils.DecodeURLPart_(url.substring(11));
+      const code = Utils.DecodeURLPart_(url.slice(11));
       chrome.tabs.executeScript({ code }, onRuntimeError);
       return onRuntimeError();
     };
@@ -651,7 +651,7 @@ Are you sure you want to continue?`);
       return true;
     }
     const { incognito } = tab;
-    url = url.substring(prefix.length);
+    url = url.slice(prefix.length);
     const arr: ShowPageData = [url, null, 0];
     Settings.temp_.shownHash_ = arr[1] = function (this: void) {
       clearTimeout(arr[2]);
@@ -1612,7 +1612,7 @@ Are you sure you want to continue?`);
       if (url.startsWith(BrowserProtocol_)) {
         return Backend.complain_("visit HTML of an extension's page");
       }
-      url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
+      url = url.startsWith("view-source:") ? url.slice(12) : ("view-source:" + url);
       tabsCreate({
         url, active: tab.active, windowId: tab.windowId,
         index: tab.index + 1, openerTabId: tab.id
@@ -1637,7 +1637,7 @@ Are you sure you want to continue?`);
       } else if (typeof value !== typeof old) {
         msg = JSON.stringify(old);
         msg = "value of " + keyRepr + " should be like " +
-          (msg.length > 10 ? msg.substring(0, 9) + "\u2026" : msg);
+          (msg.length > 10 ? msg.slice(0, 9) + "\u2026" : msg);
       }
       if (msg) {
         Backend.showHUD_(msg);
@@ -1769,7 +1769,7 @@ Are you sure you want to continue?`);
       let hash = "", str: string, arr: RegExpExecArray | null, startSlash = false, endSlash = false
         , path: string | null = null, i: number, start = 0, end = 0, decoded = false, arr2: RegExpExecArray | null;
       if (i = url.lastIndexOf("#") + 1) {
-        hash = url.substring(i + +(url[i] === "!"));
+        hash = url.slice(i + +(url.substr(i, 1) === "!"));
         str = Utils.DecodeURLPart_(hash);
         i = str.lastIndexOf("/");
         if (i > 0 || (i === 0 && str.length > 1)) {
@@ -1777,12 +1777,13 @@ Are you sure you want to continue?`);
           const argRe = <RegExpOne> /([^&=]+=)([^&\/=]*\/[^&]*)/;
           arr = argRe.exec(str) || (<RegExpOne> /(^|&)([^&\/=]*\/[^&=]*)(?:&|$)/).exec(str);
           path = arr ? arr[2] : str;
+          // here `path` is ensured not empty
           if (path === "/" || path.indexOf("://") >= 0) { path = null; }
           else if (!arr) { start = 0; }
           else if (!decoded) { start = arr.index + arr[1].length; }
           else {
             str = "https://example.com/";
-            str = encodeURI(str + path).substring(str.length);
+            str = encodeURI(str + path).slice(str.length);
             i = hash.indexOf(str);
             if (i < 0) {
               i = hash.indexOf(str = enc(path));
@@ -1797,7 +1798,7 @@ Are you sure you want to continue?`);
               if (i < 0) {
                 decoded = true;
                 str = arr[1];
-                str = enc(str.substring(0, str.length - 1));
+                str = enc(str.slice(0, -1));
                 i = hash.indexOf(str);
               }
               if (i >= 0) {
@@ -1814,7 +1815,7 @@ Are you sure you want to continue?`);
             } else if ((str = arr[1]) !== "&") {
               i = url.length - hash.length;
               hash = str + enc(path);
-              url = url.substring(0, i) + hash;
+              url = url.slice(0, i) + hash;
               start = str.length;
               end = 0;
             }
@@ -1834,14 +1835,16 @@ Are you sure you want to continue?`);
         hash = "";
         start = url.indexOf("/", url.indexOf("://") + 3);
         if (url_l.startsWith("filesystem:")) { start = url.indexOf("/", start + 1); }
+        start = start < 0 ? 0 : start;
         i = url.indexOf("?", start);
         end = url.indexOf("#", start);
         i = end < 0 ? i : i < 0 ? end : i < end ? i : end;
         i = i > 0 ? i : url.length;
-        path = url.substring(start, i);
+        path = url.slice(start, i);
         end = 0;
         decoded = false;
       }
+      // Note: here should ensure `end` >= 0
       i = request.p;
       startSlash = path.startsWith("/");
       if (!hash && url_l.startsWith("file:")) {
@@ -1861,7 +1864,7 @@ Are you sure you want to continue?`);
       if (!i || i === 1) {
         path = "/";
       } else {
-        const arr3 = path.substring(+startSlash, (path.length - +path.endsWith("/")) || +startSlash).split("/");
+        const arr3 = path.slice(+startSlash, path.length - +path.endsWith("/")).split("/");
         i < 0 && (i += arr3.length);
         if (i <= 0) {
           path = "/";
@@ -1871,11 +1874,11 @@ Are you sure you want to continue?`);
           path = (startSlash ? "/" : "") + path + (endSlash ? "/" : "");
         }
       }
-      if (!end && url.substring(0, start).indexOf("git") > 0) {
+      if (!end && url.slice(0, start).indexOf("git") > 0) {
         path = upperGitUrls(url, path) || path;
       }
       str = decoded ? enc(path) : path;
-      url = url.substring(0, start) + (end ? str + url.substring(end) : str);
+      url = url.slice(0, start) + (end ? str + url.slice(end) : str);
       Utils.resetRe_();
       return { u: url, p: path };
     } as SpecialHandlers[kFgReq.parseUpperUrl],
@@ -1944,7 +1947,7 @@ Are you sure you want to continue?`);
       opts.opener = false;
       if (url) {
         if (url[0] === ":" && request.o && (<RegExpOne> /^:[bdhostw]\s/).test(url)) {
-          url = url.substring(2).trim();
+          url = url.slice(2).trim();
           url || (unsafe = false);
         }
         url = Utils.fixCharsInUrl_(url);
@@ -1952,7 +1955,7 @@ Are you sure you want to continue?`);
             , unsafe ? Urls.WorkType.ConvertKnown : Urls.WorkType.ActAnyway);
         const type = Utils.lastUrlType_;
         if (request.h != null && (type === Urls.Type.NoSchema || type === Urls.Type.NoProtocolName)) {
-          url = (request.h ? "https" : "http") + (url as string).substring((url as string)[4] === "s" ? 5 : 4);
+          url = (request.h ? "https" : "http") + (url as string).slice((url as string)[4] === "s" ? 5 : 4);
         } else if (unsafe && type === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")) {
           url = Utils.convertToUrl_(url as string);
         }
@@ -2126,7 +2129,7 @@ Are you sure you want to continue?`);
         , arr: null | string[] = numHeadRe.exec(key);
       if (arr != null) {
         let prefix = arr[0];
-        key = key.substring(prefix.length);
+        key = key.slice(prefix.length);
         count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1;
       }
       const ref = CommandsData_.keyToCommandRegistry_;
@@ -2154,7 +2157,7 @@ Are you sure you want to continue?`);
       // * do not limit windowId or windowType
       let url = Utils.reformatURL_(request.u.split("#", 1)[0]), callback = focusOrLaunch[0];
       let cb2: (result: Tab[], exArg: FakeArg) => void;
-      if (url.startsWith("file:") && !notFolder && url.substring(url.lastIndexOf("/") + 1).indexOf(".") < 0) {
+      if (url.startsWith("file:") && !notFolder && url.slice(url.lastIndexOf("/") + 1).indexOf(".") < 0) {
         url += "/";
         cb2 = function (tabs): void {
           return tabs && tabs.length > 0 ? callback.call(request, tabs)
@@ -2465,13 +2468,13 @@ Are you sure you want to continue?`);
       }
       const decoders = Settings.cache_.searchEngineRules;
       if (_i = Utils.IsURLHttp_(url)) {
-        url = url.substring(_i);
-        s0 = s0.substring(_i);
+        url = url.slice(_i);
+        s0 = s0.slice(_i);
       }
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
         if (!url.startsWith(pattern.prefix)) { continue; }
-        arr = s0.substring(pattern.prefix.length).match(pattern.matcher);
+        arr = s0.slice(pattern.prefix.length).match(pattern.matcher);
         if (arr) { break; }
       }
       if (!arr || !pattern) { Utils.resetRe_(); return null; }
@@ -2600,7 +2603,7 @@ Are you sure you want to continue?`);
       Settings.postUpdate_("vomnibarOptions");
       chrome.runtime.onConnect.addListener(function (port): void {
         return OnConnect(port as Frames.Port,
-            (port.name.substring(PortNameEnum.PrefixLen) as string | number as number) | 0);
+            (port.name.slice(PortNameEnum.PrefixLen) as string | number as number) | 0);
       });
       if (Build.BTypes & ~BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)) {
@@ -2620,7 +2623,7 @@ Are you sure you want to continue?`);
             port.disconnect();
             return;
           }
-          OnConnect(port as Frames.Port, (arr[0].substring(PortNameEnum.PrefixLen) as string | number as number) | 0);
+          OnConnect(port as Frames.Port, (arr[0].slice(PortNameEnum.PrefixLen) as string | number as number) | 0);
           if (Build.BTypes & BrowserType.Firefox) {
             (port as Frames.Port).s.f |= Frames.Flags.OtherExtension;
           }

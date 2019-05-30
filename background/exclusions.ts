@@ -8,13 +8,13 @@ var Exclusions = {
     let cur: ExclusionsNS.Tester | undefined = (this.testers_ as TesterDict)[pattern], re: RegExp | null | undefined;
     if (cur) { return cur; }
     if (pattern[0] === "^") {
-      if (re = Utils.makeRegexp_(pattern.startsWith("^$|") ? pattern.substring(3) : pattern, "", false)) {
+      if (re = Utils.makeRegexp_(pattern.startsWith("^$|") ? pattern.slice(3) : pattern, "", false)) {
         /* empty */
       } else {
         console.log("Failed in creating an RegExp from %o", pattern);
       }
     }
-    return (this.testers_ as TesterDict)[pattern] = <typeof cur> re || pattern.substring(1);
+    return (this.testers_ as TesterDict)[pattern] = <typeof cur> re || pattern.slice(1);
   },
   _listening: false,
   _listeningHash: false,

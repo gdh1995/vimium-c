@@ -16,7 +16,7 @@ var HelpDialog = {
           || Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
               && noContain) {
         let template = Settings.cache_.helpDialog as string, styleEnd = template.indexOf("</style>"),
-        left = template.substring(0, styleEnd), right = template.substring(styleEnd);
+        left = template.slice(0, styleEnd), right = template.slice(styleEnd);
         if (Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
             && noContain) {
           left = left.replace(<RegExpG> /contain:\s?[\w\s]+/g, "contain: none !important");
@@ -39,7 +39,7 @@ var HelpDialog = {
       const registry = ref[key] as NonNullable<(typeof ref)[string]>;
       let command = registry.command_;
       if (command.endsWith(".activateMode")) {
-        command = command.substring(0, command.length - 4);
+        command = command.slice(0, -4);
       } else if (command.indexOf("EditUrl") > 0) {
         command = command.replace("EditUrl", "Url");
       } else if (command === kShortcutAliases.nextTab1) {

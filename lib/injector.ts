@@ -29,7 +29,7 @@ const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src
 onIdle = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
   ? window.requestIdleCallback as Exclude<Window["requestIdleCallback"], Element | Window | HTMLCollection>
   : requestIdleCallback;
-let tick = 1, extID = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0));
+let tick = 1, extID = scriptSrc.slice(i0, scriptSrc.indexOf("/", i0));
 if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extID.indexOf("-") > 0) {
   extID = curEl.dataset.vimiumId || BuildStr.FirefoxID;
 }

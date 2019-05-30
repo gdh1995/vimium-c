@@ -18,7 +18,7 @@ const Clipboard_ = {
     let i = data.charCodeAt(data.length - 1);
     if (i !== KnownKey.space && i !== KnownKey.tab) { /* empty */ }
     else if (i = data.lastIndexOf("\n") + 1) {
-      data = data.substring(0, i) + data.substring(i).trimRight();
+      data = data.slice(0, i) + data.slice(i).trimRight();
     } else if ((i = data.charCodeAt(0)) !== KnownKey.space && i !== KnownKey.tab) {
       data = data.trimRight();
     }
@@ -43,7 +43,7 @@ const Clipboard_ = {
     (document.documentElement as HTMLHtmlElement).appendChild(textArea);
     textArea.focus();
     document.execCommand("paste");
-    let value = textArea.value.substring(0, GlobalConsts.MaxBufferLengthForPasting);
+    let value = textArea.value.slice(0, GlobalConsts.MaxBufferLengthForPasting);
     textArea.value = "";
     textArea.remove();
     textArea.removeAttribute("maxlength");
@@ -94,7 +94,7 @@ ContentSettings_ = Build.PContentSettings ? {
     const [arr, partsNum] = Utils.splitByPublicSuffix_(host),
     end = Math.min(arr.length - partsNum, level - 1);
     for (let j = 0; j < end; j++) {
-      host = host.substring(arr[j].length + 1);
+      host = host.slice(arr[j].length + 1);
       result.push(pattern + host + "/*");
     }
     result.push(pattern + "*." + host + "/*");
@@ -280,7 +280,7 @@ Marks_ = { // NOTE: all public members should be static
     if (local && scroll[0] === 0 && scroll[1] === 0) {
       if (scroll.length === 2) {
         const i = url.indexOf("#");
-        i > 0 && i < url.length - 1 && scroll.push(url.substring(i));
+        i > 0 && i < url.length - 1 && scroll.push(url.slice(i));
       } else if ((scroll[2] || "").length < 2) { // '#' or (wrongly) ''
         scroll.pop();
       }

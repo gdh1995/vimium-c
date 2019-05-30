@@ -168,7 +168,9 @@ var VOmni = {
       }
       const wnd = this.contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options_ as VomnibarNS.FgOptionsToFront],
-      origin = page.substring(0, page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3)),
+      // tslint:disable-next-line: ban-types
+      origin = (page as EnsureNonNull<String>).substring(0
+          , page.startsWith("file:") ? 7 : page.indexOf("/", page.indexOf("://") + 3)),
       checkBroken = function (i?: TimerType.fake | 1): void {
         const a = VOmni, ok = !a || a.status_ !== VomnibarNS.Status.Initing;
         if (ok || i) { a && a.box_ && (a.box_.onload = a.options_ = null as never); return; }
@@ -178,12 +180,12 @@ var VOmni = {
         a.status_ = VomnibarNS.Status.KeepBroken;
         a.activate_(1, {} as VomnibarNS.FullOptions);
       };
-      if (location.origin !== origin || type === VomnibarNS.PageType.web) {
+      if (location.origin !== origin || !origin || type === VomnibarNS.PageType.web) {
         setTimeout(checkBroken, 600);
         const channel = new MessageChannel();
         _this.port_ = channel.port1;
         channel.port1.onmessage = _this.onMessage_.bind(_this);
-        wnd.postMessage(sec, type !== VomnibarNS.PageType.web ? origin : "*", [channel.port2]);
+        wnd.postMessage(sec, type !== VomnibarNS.PageType.web && origin || "*", [channel.port2]);
         return;
       }
       // check it to make "debugging VOmni on options page" easier

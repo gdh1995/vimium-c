@@ -453,7 +453,7 @@ var VFind = {
     const _this = VFind, query = _this.input_.innerText.replace(_this.A0Re_, " ").replace(_this.tailRe_, "");
     let s = _this.query_;
     if (!_this.hasResults_ && !_this.isRegex_ && !_this.wholeWord_ && _this.notEmpty_ && query.startsWith(s)
-        && query.substring(s.length - 1).indexOf("\\") < 0) {
+        && query.slice(s.length - 1).indexOf("\\") < 0) {
       return _this.showCount_(0);
     }
     s = "";

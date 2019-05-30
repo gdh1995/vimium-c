@@ -60,7 +60,7 @@ $("#exclusionSortButton").onclick = function (): void {
 
 function formatDate(time: number | Date): string {
   return new Date(+time - new Date().getTimezoneOffset() * 1000 * 60
-    ).toJSON().substring(0, 19).replace("T", " ");
+    ).toJSON().slice(0, 19).replace("T", " ");
 }
 
 interface ExportedSettings {
@@ -110,7 +110,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
   for (let storage = localStorage, all = bgSettings_.defaults_, i = 0, len = storage.length, j: string[]
       ; i < len; i++) {
     const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
-    if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f"
+    if (key.indexOf("|") >= 0 || key.slice(-2) === "_f"
         || key === "findModeRawQueryList"
         || key.lastIndexOf("CSS") === key.length - 3 // ignore innerCSS, findCSS, omniCSS
     ) {
@@ -162,11 +162,11 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   let env = new_data.environment, plat = env && env.platform || ""
     , ext_ver = env && parseFloat(env.extension || 0) || 0
     , newer = ext_ver > parseFloat(bgSettings_.CONST_.VerCode_);
-  plat && (plat = ("" + plat).substring(0, 10));
+  plat && (plat = ("" + plat).slice(0, 10));
   if (!confirm(
 `You are loading ${is_recommended !== true ? "a settings copy" : "the recommended settings:"}
       * from ${ext_ver > 1 ? `version ${ext_ver} of ` : "" }Vimium C${newer ? " (newer)" : ""}
-      * for ${plat ? `the ${plat[0].toUpperCase() + plat.substring(1)} platform` : "common platforms" }
+      * for ${plat ? `the ${plat[0].toUpperCase() + plat.slice(1)} platform` : "common platforms" }
       * exported ${time ? "at " + formatDate(time) : "before"}
 
 Are you sure you want to continue?`
@@ -190,7 +190,7 @@ Are you sure you want to continue?`
   const logUpdate = function (method: string, key: string, ...args: any[]): any {
     let val = args.pop();
     val = typeof val !== "string" || val.length <= 72 ? val
-      : val.substring(0, 71).trimRight() + "\u2026";
+      : val.slice(0, 71).trimRight() + "\u2026";
     return console.log("%s %c%s", method, "color:darkred", key, ...args, val);
   } as {
     (method: string, key: string, val: any): any;
@@ -416,7 +416,7 @@ function parseJSON(text: string): any {
     err_line = +match[2]; err_offset = +match[3];
   } else if (+match[1] > 0) {
     const LF = text.indexOf("\r") < 0 ? "\n" : text.indexOf("\r\n") < 0 ? "\r\n" : "\r"
-      , arr = text.substring(0, +match[1]).split(LF);
+      , arr = text.slice(0, +match[1]).split(LF);
     err_line = arr.length; err_offset = arr[err_line - 1].length + 1;
   } else {
     err_line = err_offset = 1;

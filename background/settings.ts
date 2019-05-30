@@ -143,7 +143,7 @@ var Settings = {
     baseCSS (this: {}, css): void {
       const a = this as typeof Settings, cacheId = a.CONST_.StyleCacheId_,
       browserVer = ChromeVer,
-      browserInfo = cacheId.substring(cacheId.indexOf(",") + 1),
+      browserInfo = cacheId.slice(cacheId.indexOf(",") + 1),
       hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All
           || browserInfo.indexOf("a") >= 0;
       if (!(Build.NDEBUG || css.startsWith(":host{"))) {
@@ -159,8 +159,8 @@ var Settings = {
         css = css.replace(<RegExpG> /\r\n?/g, "\n");
       }
       const findOffset = css.lastIndexOf("/*#find*/");
-      let findCSS = css.substring(findOffset + /* '/*#find*\/\n' */ 10);
-      css = css.substring(0, findOffset - /* `\n` */ 1);
+      let findCSS = css.slice(findOffset + /* '/*#find*\/\n' */ 10);
+      css = css.slice(0, findOffset - /* `\n` */ 1);
       if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All || hasAll) {
         // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCSSMeansNothing
         // in case that ":host" is set [style="all:unset"]
@@ -168,8 +168,8 @@ var Settings = {
         ind3 = Build.MinCVer >= BrowserVer.MinEnsuredSafeInnerCSS || !(Build.BTypes & BrowserType.Chrome)
               || browserVer >= BrowserVer.MinEnsuredSafeInnerCSS
           ? css.indexOf(";", ind2) : css.length;
-        css = css.substring(0, ind1 + 1) + css.substring(ind2, ind3 + 1)
-            + css.substring(css.indexOf("\n", ind3) + 1 || css.length);
+        css = css.slice(0, ind1 + 1) + css.slice(ind2, ind3 + 1)
+            + css.slice(css.indexOf("\n", ind3) + 1 || css.length);
       } else {
         css = css.replace(<RegExpOne> /all:\s?\w+;?\n?/, "");
       }
@@ -178,7 +178,7 @@ var Settings = {
           && !(Build.BTypes & BrowserType.Edge
                 && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))) {
         const ind2 = css.indexOf("display:"), ind1 = css.lastIndexOf("{", ind2);
-        css = css.substring(0, ind1 + 1) + css.substring(ind2);
+        css = css.slice(0, ind1 + 1) + css.slice(ind2);
       } else {
         css = css.replace("contents", "block");
       }
@@ -204,12 +204,12 @@ var Settings = {
         // Note: &vimium.min.css: this requires `:host{` is at the beginning
         const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1,
         prefix = "#VimiumUI";
-        let body = css.substring(secondEnd);
+        let body = css.slice(secondEnd);
         if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All || hasAll) {
           body = body.replace(<RegExpG> /\b[IL]H\s?\{/g, "$&all:inherit;");
         }
         body += `\n${prefix}:before,${prefix}:after,.R:before,.R:after{display:none!important}`;
-        css = prefix + css.substring(5, hostEnd) +
+        css = prefix + css.slice(5, hostEnd) +
           // Note: &vimium.min.css: this requires no ID/attr selectors in base styles
           body.replace(<RegExpG> /\.[A-Z]/g, `${prefix} $&`);
       }
@@ -228,13 +228,13 @@ var Settings = {
     userDefinedCss (this: {}, css2Str): void {
       const a = this as typeof Settings;
       let css = a.storage_.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
-      css = css.substring(0, headEnd + 1 + +css.substring(0, headEnd).split(",")[2]);
+      css = css.slice(0, headEnd + 1 + +css.slice(0, headEnd).split(",")[2]);
       const css2 = a.parseCustomCSS_(css2Str);
       let innerCSS = css2.ui ? css + "\n" + css2.ui : css;
       {
         css = a.storage_.getItem("findCSS") as string;
         headEnd = css.indexOf("\n");
-        css = css.slice(0, headEnd + 1 + +css.substring(0, headEnd));
+        css = css.slice(0, headEnd + 1 + +css.slice(0, headEnd));
         let find2 = css2.find;
         a.storage_.setItem("findCSS", find2 ? css + "\n" + find2 : css);
         a.storage_.setItem("omniCSS", css2.omni || "");
@@ -266,12 +266,12 @@ var Settings = {
       const a = this as typeof Settings, cache = a.cache_ as Writeable<typeof Settings.cache_>;
       let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS");
       if (!findCSS || omniCSS == null) { Settings.fetchFile_("baseCSS"); return; }
-      findCSS = findCSS.substring(findCSS.indexOf("\n") + 1);
+      findCSS = findCSS.slice(findCSS.indexOf("\n") + 1);
       const index = findCSS.indexOf("\n") + 1, index2 = findCSS.indexOf("\n", index);
       // Note: The lines below are allowed as a special use case
-      cache.innerCSS = css.substring(css.indexOf("\n") + 1);
-      cache.findCSS_ = [findCSS.substring(0, index - 1),
-          findCSS.substring(index, index2), findCSS.substring(index2 + 1)];
+      cache.innerCSS = css.slice(css.indexOf("\n") + 1);
+      cache.findCSS_ = [findCSS.slice(0, index - 1),
+          findCSS.slice(index, index2), findCSS.slice(index2 + 1)];
       a.omniPayload_.css_ = omniCSS;
     },
     vomnibarPage (this: {}, url): void {

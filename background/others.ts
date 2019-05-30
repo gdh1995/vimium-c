@@ -59,7 +59,7 @@ Utils.timeout_(1000, function (): void {
     }
     console.log(now(), "sync.local: update", key,
       typeof value === "string"
-      ? (value.length > 32 ? value.substring(0, 30) + "..." : value).replace(<RegExpG> /\n/g, "\\n")
+      ? (value.length > 32 ? value.slice(0, 30) + "..." : value).replace(<RegExpG> /\n/g, "\\n")
       : value);
     doSet(key, value);
   }
@@ -482,9 +482,9 @@ Utils.timeout_(600, function (): void {
     if (!text) {
       text = Utils.convertToUrl_("");
     } else if (text[0] === ":" && (<RegExpOne> /^:([1-9]|1[0-2]) /).test(text)) {
-      text = text.substring(text[2] === " " ? 3 : 4);
+      text = text.slice(text[2] === " " ? 3 : 4);
     }
-    if (text.substring(0, 7).toLowerCase() === "file://") {
+    if (text.slice(0, 7).toLowerCase() === "file://") {
       text = Utils.showFileUrl_(text);
     }
     return sessionId != null ? Backend.gotoSession_({ s: sessionId }) : Backend.openUrl_({
@@ -510,7 +510,7 @@ Utils.timeout_(600, function (): void {
   (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable || wantDeletable) &&
   (onDel as NonNullable<typeof onDel>).addListener(function (text): void {
     // tslint:disable-next-line: radix
-    const ind = parseInt(text.substring(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
+    const ind = parseInt(text.slice(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
     let url = suggestions && suggestions[ind].content, info = url && subInfoMap && subInfoMap[url],
     type = info && info.type;
     if (!type) {
@@ -518,7 +518,7 @@ Utils.timeout_(600, function (): void {
       return;
     }
     if ((url as string)[0] === ":") {
-      url = (url as string).substring((url as string).indexOf(" ") + 1);
+      url = (url as string).slice((url as string).indexOf(" ") + 1);
     }
     return Backend.removeSug_({ t: type, u: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
   });
@@ -545,13 +545,13 @@ function (details: chrome.runtime.InstalledDetails): void {
       if (url.startsWith(BrowserProtocol_) || url.indexOf("://") === -1) { continue; }
       let tabId = tabs[_i].id;
       for (let _j = 0; _j < _len; ++_j) {
-        t.executeScript(tabId, {file: js[_j].substring(offset), allFrames: true}, callback);
+        t.executeScript(tabId, {file: js[_j].slice(offset), allFrames: true}, callback);
       }
     }
   });
   function now() {
     return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60
-      ).toJSON().substring(0, 19).replace("T", " ");
+      ).toJSON().slice(0, 19).replace("T", " ");
   }
   console.log("%cVimium C%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
     , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");

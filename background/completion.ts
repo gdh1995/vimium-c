@@ -158,17 +158,17 @@ function highlight(this: void, str: string, ranges: number[]): string {
   let out = "", end = 0;
   for (let _i = 0; _i < ranges.length; _i += 2) {
     const start = ranges[_i], end2 = ranges[_i + 1];
-    out += Utils.escapeText_(str.substring(end, start));
+    out += Utils.escapeText_(str.slice(end, start));
     out += "<match>";
-    out += Utils.escapeText_(str.substring(start, end2));
+    out += Utils.escapeText_(str.slice(start, end2));
     out += "</match>";
     end = end2;
   }
-  return out + Utils.escapeText_(str.substring(end));
+  return out + Utils.escapeText_(str.slice(end));
 }
 function shortenUrl(this: void, url: string): string {
   const i = Utils.IsURLHttp_(url);
-  return !i || i >= url.length ? url : url.substring(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
+  return !i || i >= url.length ? url : url.slice(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
 }
 function getMatchRanges(str: string): number[] {
   const ranges: MatchRange[] = [];
@@ -204,7 +204,7 @@ function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, max
   if (end <= maxLen) { /* empty */ }
   else if (deltaLen > 1) { cutStart = str.indexOf("/") + 1 || end; }
   else if ((cutStart = str.indexOf(":")) < 0) { cutStart = end; }
-  else if (Utils.protocolRe_.test(str.substring(0, cutStart + 3).toLowerCase())) {
+  else if (Utils.protocolRe_.test(str.slice(0, cutStart + 3).toLowerCase())) {
     cutStart = str.indexOf("/", cutStart + 4) + 1 || end;
   } else {
     cutStart += 22; // for data:text/javascript,var xxx; ...
@@ -230,15 +230,15 @@ function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, max
       out += "\u2026";
       out += Utils.escapeText_(Utils.unicodeLsubstring_(str, start - 8, start));
     } else if (end < start) {
-      out += Utils.escapeText_(str.substring(end, start));
+      out += Utils.escapeText_(str.slice(end, start));
     }
     end = ranges[i + 1];
     out += "<match>";
-    out += Utils.escapeText_(str.substring(start, end));
+    out += Utils.escapeText_(str.slice(start, end));
     out += "</match>";
   }
   if (str.length <= maxLen) {
-    return out + Utils.escapeText_(str.substring(end));
+    return out + Utils.escapeText_(str.slice(end));
   } else {
     return out + Utils.escapeText_(Utils.unicodeSubstring_(str, end, maxLen - 1 > end ? maxLen - 1 : end + 10)) +
       "\u2026";
@@ -365,7 +365,7 @@ const bookmarkEngine = {
     }
     const url = bookmark.url as string, jsSchema = "javascript:", isJS = url.startsWith(jsSchema);
     a.bookmarks_.push({
-      id, path, title,
+      id, path, title: title || id,
       text: isJS ? jsSchema : url,
       visible: phraseBlacklist ? BlacklistFilter.TestNotMatched_(url, title) : kVisibility.visible,
       url: isJS ? jsSchema : url,
@@ -407,7 +407,7 @@ const bookmarkEngine = {
         url in Decoder.dict_ && HistoryCache.binarySearch_(url) < 0 && delete Decoder.dict_[url];
       }
       if (title != null) {
-        (cur as WBookmark).path = cur.path.substring(0, cur.path.length - cur.title.length) + (title || cur.id);
+        (cur as WBookmark).path = cur.path.slice(0, -cur.title.length) + (title || cur.id);
         (cur as WBookmark).title = title || cur.id;
         if (url2) {
           (cur as WBookmark).url = url2;
@@ -619,7 +619,7 @@ domainEngine = {
     let isMainPart = result.length === word.length;
     if (result && !isMainPart) {
       if (!result.startsWith("www.") && !result.startsWith(word)) {
-        let r2 = result.substring(result.indexOf(".") + 1);
+        let r2 = result.slice(result.indexOf(".") + 1);
         if (r2.indexOf(word) !== -1) {
           let d2: Domain | undefined;
           r2 = "www." + r2;
@@ -677,7 +677,7 @@ domainEngine = {
     else if (url.startsWith("https://")) { d = Urls.SchemaId.HTTPS; }
     else if (url.startsWith("ftp://")) { d = Urls.SchemaId.FTP; }
     else { return null; }
-    url = url.substring(d, url.indexOf("/", d));
+    url = url.slice(d, url.indexOf("/", d));
     return { domain: url !== "__proto__" ? url : ".__proto__", schema: d };
   },
   compute2_ (): number { return 2; }
@@ -762,11 +762,11 @@ searchEngine = {
     if (q.length === 0) { /* empty */ }
     else if (failIfNull !== true && keyword[0] === "\\" && keyword[1] !== "\\") {
       if (keyword.length > 1) {
-        q[0] = keyword.substring(1);
+        q[0] = keyword.slice(1);
       } else {
         q.shift();
       }
-      keyword = rawQuery.substring(1).trimLeft();
+      keyword = rawQuery.slice(1).trimLeft();
       sug = searchEngine.makeUrlSuggestion_(keyword, "\\" + keyword);
       autoSelect = true;
       maxResults--;
@@ -804,7 +804,7 @@ searchEngine = {
     let { url, indexes } = Utils.createSearch_(q, pattern.url, pattern.blank, []), text = url;
     if (keyword === "~") { /* empty */ }
     else if (url.startsWith("vimium://")) {
-      const ret = Utils.evalVimiumUrl_(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
+      const ret = Utils.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true);
       if (ret instanceof Promise) {
         promise = ret;
       } else if (ret instanceof Array) {
@@ -873,19 +873,19 @@ searchEngine = {
   },
   makeText_ (url: string, arr: number[]): string {
     let len = arr.length, i: number, str: string, ind: number;
-    str = Utils.DecodeURLPart_(arr.length > 0 ? url.substring(0, arr[0]) : url);
+    str = Utils.DecodeURLPart_(arr.length > 0 ? url.slice(0, arr[0]) : url);
     if (i = Utils.IsURLHttp_(str)) {
-      str = str.substring(i);
+      str = str.slice(i);
       i = 0;
     }
     if (arr.length <= 0) { return str; }
     ind = arr[0];
     while (arr[i] = str.length, len > ++i) {
-      str += Utils.DecodeURLPart_(url.substring(ind, arr[i]));
+      str += Utils.DecodeURLPart_(url.slice(ind, arr[i]));
       ind = arr[i];
     }
     if (ind < url.length) {
-      str += Utils.DecodeURLPart_(url.substring(ind));
+      str += Utils.DecodeURLPart_(url.slice(ind));
     }
     return str;
   },
@@ -1007,7 +1007,7 @@ Completers = {
     if (queryTerms.length > 0) {
       let s0 = queryTerms[0], s1 = shortenUrl(s0), cut = s0.length !== s1.length;
       if (cut || s0.endsWith("/") && s0.length > 1) {
-        queryTerms[0] = cut ? s1 : s0.substring(0, s0.length - 1);
+        queryTerms[0] = cut ? s1 : s0.slice(0, -1);
         RegExpCache.fixParts_();
       }
     }
@@ -1044,14 +1044,14 @@ Completers = {
     ) {
       return;
     }
-    str = str.substring(ind);
+    str = str.slice(ind);
     ind = rawQuery.length - str.length;
     if ((i = parseInt(str, 10)) >= 0 && "+" + i === str && i <= (ind > 0 ? 100 : 200)) {
       offset = i;
     } else if (str !== "+") {
       return;
     }
-    rawQuery = rawQuery.substring(0, ind - 1);
+    rawQuery = rawQuery.slice(0, ind && ind - 1);
     rawMore = str;
     queryType = FirstQuery.waitFirst;
   },
@@ -1520,7 +1520,7 @@ Completion_ = {
     Completers.getOffset_();
     query = rawQuery;
     queryTerms = query
-      ? (query.length > Consts.MaxCharsInQuery ? query.substring(0, Consts.MaxCharsInQuery).trimRight()
+      ? (query.length > Consts.MaxCharsInQuery ? query.slice(0, Consts.MaxCharsInQuery).trimRight()
           : query).split(" ")
       : [];
     maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number> options.c | 0) || 128
@@ -1542,7 +1542,7 @@ Completion_ = {
       if (arr) {
         autoSelect = arr.length === 1;
         queryTerms.shift();
-        rawQuery = query.substring(3);
+        rawQuery = query.slice(3);
       }
     } else {
       arr = null;

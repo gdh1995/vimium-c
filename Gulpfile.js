@@ -426,7 +426,7 @@ gulp.task("locally", function(done) {
     }
   }
   JSDEST = process.env.LOCAL_DIST || ".";
-  /[\/\\]$/.test(JSDEST) && (JSDEST = JSDEST.substring(-1));
+  /[\/\\]$/.test(JSDEST) && (JSDEST = JSDEST.slice(0, -1));
   compilerOptions.outDir = JSDEST;
   enableSourceMap = false;
   willListEmittedFiles = true;
@@ -753,7 +753,7 @@ function formatPath(path, base) {
   if (base && base !== ".") {
     for (var i = 0; i < path.length; i++) {
       var p = path[i];
-      path[i] = p[0] !== "!" ? osPath.join(base, p) : "!" + osPath.join(base, p.substring(1));
+      path[i] = p[0] !== "!" ? osPath.join(base, p) : "!" + osPath.join(base, p.slice(1));
     }
   }
   return path;
@@ -777,7 +777,7 @@ function compareContentAndTouch(stream, sourceFile, targetPath) {
     try {
       var s = s = fs.fstatSync(fd);
       if (s.mtime != null && len1 > 3 && targetPath.indexOf(".js", len1 - 3) > 0) {
-        var src = (sourceFile.history && sourceFile.history[0] || targetPath).substring(0, len1 - 3) + ".ts";
+        var src = (sourceFile.history && sourceFile.history[0] || targetPath).slice(0, -3) + ".ts";
         if (fs.existsSync(src)) {
           var mtime = fs.fstatSync(fd2 = fs.openSync(src, "r")).mtime;
           if (mtime != null && mtime < s.mtime) {
@@ -1096,7 +1096,7 @@ function getGitCommit() {
     branch = branch && branch.replace("ref:", "").trim();
     if (branch) {
       var commit = readFile(".git/" + branch);
-      return commit ? commit.trim().substring(0, 7) : null;
+      return commit ? commit.trim().slice(0, 7) : null;
     }
   } catch (e) {}
   return null;
@@ -1212,9 +1212,9 @@ function patchExtendClick(source) {
   let match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
   if (match) {
     const start = Math.max(0, match.index - 128), end = match.index;
-    let prefix = source.substring(0, start), suffix = source.substring(end);
-    source = source.substring(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
-    suffix = '/\\b(addEventListener|toString)\\(/g, "$1:function $1("' + suffix.substring(match[0].length);
+    let prefix = source.slice(0, start), suffix = source.slice(end);
+    source = source.slice(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
+    suffix = '/\\b(addEventListener|toString)\\(/g, "$1:function $1("' + suffix.slice(match[0].length);
     source = prefix + source + suffix;
   }
   match = /' ?\+ ?\(?function VC ?\(/.exec(source);
@@ -1225,8 +1225,8 @@ function patchExtendClick(source) {
     if (end2 <= 0) {
       throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');
     }
-    let prefix = source.substring(0, start), suffix = source.substring(end2 + ")();'".length);
-    source = source.substring(start + match[0].length, end).replace(/ \/\/[^\n]*?$/g, "").replace(/'/g, '"');
+    let prefix = source.slice(0, start), suffix = source.slice(end2 + ")();'".length);
+    source = source.slice(start + match[0].length, end).replace(/ \/\/[^\n]*?$/g, "").replace(/'/g, '"');
     source = source.replace(/\\/g, "\\\\");
     if (locally) {
       source = source.replace(/([\r\n]) {4}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");

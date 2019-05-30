@@ -496,7 +496,7 @@ interface String {
       * @param end Zero-based index number indicating the end of the substring. The substring includes the characters up to, but not including, the character indicated by end.
       * If end is omitted, the characters from start through the end of the original string are returned.
       */
-    substring(start: number, end?: number): string;
+    substring?(start: number, end?: number): string;
 
     /** Converts all the alphabetic characters in a string to lowercase. */
     toLowerCase(): string;
@@ -522,7 +522,7 @@ interface String {
       * @param from The starting position of the desired substring. The index of the first character in the string is zero.
       * @param length The number of characters to include in the returned substring.
       */
-    substr?(from: number, length?: number): string;
+    substr(from: number, length?: number): string;
 
     /** Returns the primitive value of the specified object. */
     valueOf(): string;

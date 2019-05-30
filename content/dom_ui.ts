@@ -124,7 +124,7 @@ VDom.UI = {
     let width = ("" + (Build.BTypes & BrowserType.Chrome &&
         Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
           VDom.cache_.browserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-        ? 1.01 : 0.51) / zoom).substring(0, 5)
+        ? 1.01 : 0.51) / zoom).slice(0, 5)
       , st = this.styleIn_;
     if (!patch) {
       patch = this.cssPatch_ = ["", function (this: NonNullable<DomUI["cssPatch_"]>, css) {
