@@ -22,9 +22,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     , esc = function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
       currentKeys = ""; nextKeys = null; return i;
     } as EscF
-    , onKeyup2 = null as ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null
+    , onKeyup2: ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null | undefined
     , passKeys = null as SafeEnum | null | "", isPassKeysReverted = false
-    , onWndFocus = function (this: void): void { /* empty */ }, onWndBlur2: ((this: void) => void) | null = null
+    , onWndFocus = function (this: void): void { /* empty */ }, onWndBlur2: ((this: void) => void) | undefined | null
+    , exitPassMode: ((this: void) => void) | undefined | null
     , OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
           || !(Build.BTypes & ~BrowserType.Edge)
         ? Build.BTypes as number : BrowserType.Chrome
@@ -273,6 +274,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   function onWndBlur(this: void): void {
     VScroller.scrollTick_(0);
     onWndBlur2 && onWndBlur2();
+    exitPassMode && exitPassMode();
     KeydownEvents = Object.create(null);
     injector || (<RegExpOne> /a?/).test("");
     esc(HandlerResult.ExitPassMode);
@@ -369,14 +371,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       InsertMode.global_ = opt;
       if (opt.hud) { return HUD.show_(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
-    /* passNextKey: */ function (count: number, options: CmdOptions[kFgCmd.passNextKey]): void {
-      const keys = Object.create<BOOL>(null), oldEsc = esc, oldPassKeys = passKeys;
-      let keyCount = 0;
-      count = Math.abs(count);
-      if (options.normal) {
-        if (!oldPassKeys) {
+    /* passNextKey: */ function (count0: number, options: CmdOptions[kFgCmd.passNextKey]): void {
+      let keyCount = 0, count = Math.abs(count0);
+      if (!!options.normal === (count0 > 0)) {
+        esc(HandlerResult.ExitPassMode); // singleton
+        if (!passKeys) {
           return HUD.tip_("No pass keys.");
         }
+        const oldEsc = esc, oldPassKeys = passKeys;
         passKeys = null;
         esc = function (i: HandlerResult): HandlerResult {
           if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
@@ -385,7 +387,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             return (esc = oldEsc)(HandlerResult.Prevent);
           }
           currentKeys = ""; nextKeys = keyMap;
-          if (keyCount - count) {
+          if (keyCount - count || !HUD.text_) {
             keyCount = count;
             HUD.show_("Normal mode (pass keys disabled)" + (count > 1 ? `: ${count} times` : ""));
           }
@@ -394,6 +396,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         esc(HandlerResult.Nothing);
         return;
       }
+      const keys = Object.create<BOOL>(null);
       VLib.push_(function (event) {
         keyCount += +!keys[event.keyCode];
         keys[event.keyCode] = 1;
@@ -402,15 +405,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       onKeyup2 = function (event): void {
         if (keyCount === 0 || --keyCount || --count) {
           keys[event.keyCode] = 0;
-          return HUD.show_(`Pass next ${count > 1 ? count + " keys." : "key."}`);
+          HUD.show_(`Pass next ${count > 1 ? count + " keys." : "key."}`);
+        } else {
+          (exitPassMode as NonNullable<typeof exitPassMode>)();
         }
-        return (onWndBlur2 as () => void)();
       };
-      onWndBlur2 = function (): void {
-        onKeyup2 = null;
+      exitPassMode = function (): void {
+        exitPassMode = onKeyup2 = null;
         VLib.remove_(keys);
-        onWndBlur2 = null;
-        return HUD.hide_();
+        HUD.hide_();
       };
       onKeyup2({keyCode: VKeyCodes.None});
     },
@@ -873,8 +876,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       embed || hud._tweenId || (hud._tweenId = setInterval(hud._tween, 40));
       let el = hud.box_;
       if (el) {
-        embed && (el.style.cssText = "");
         hud.$text_.data = text;
+        embed && (el.style.cssText = "");
         return;
       }
       el = VDom.createElement_("div");
@@ -999,13 +1002,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       // if true, recover listeners on shadow roots;
       // otherwise listeners on shadow roots will be removed on next blur events
       if (enabled) {
+        esc(HandlerResult.Nothing); // for passNextKey#normal
         old || InsertMode.init_();
         (old && !isLocked) || hook(HookAction.Install);
         // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
         Commands[kFgCmd.reset]();
       }
-      if (VDom.UI.box_) { return VDom.UI.adjust_(+enabled ? 1 : 2); }
+      if (VDom.UI.box_) { VDom.UI.adjust_(+enabled ? 1 : 2); }
     },
     injector ? injector.$run : null as never,
     function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
@@ -1069,7 +1073,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         VDom.UI.css_(req.S);
         if (req.f) {
           VFind.css_ = req.f;
-          VFind.styleIframe_ && (VFind.styleIframe_.textContent = req.f[1]);
+          VFind.styleIframe_ && (VFind.styleIframe_.textContent = req.f[2]);
         }
       }
       // tslint:disable-next-line: no-unused-expression

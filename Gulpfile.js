@@ -378,7 +378,7 @@ var Tasks = {
     compilerOptions.removeComments = true;
     locally = true;
     var arr = ["static", "_manifest"];
-    if (fs.existsSync(JSDEST)) {
+    if (fs.existsSync(osPath.join(JSDEST, "lib/utils.js"))) {
       arr.unshift("build/_clean_diff");
     }
     gulp.series(...arr)(function () {
@@ -425,7 +425,9 @@ gulp.task("locally", function(done) {
       CompileTasks.front[0].splice(i, 1);
     }
   }
-  JSDEST = compilerOptions.outDir = process.env.LOCAL_DIST || ".";
+  JSDEST = process.env.LOCAL_DIST || ".";
+  /[\/\\]$/.test(JSDEST) && (JSDEST = JSDEST.substring(-1));
+  compilerOptions.outDir = JSDEST;
   enableSourceMap = false;
   willListEmittedFiles = true;
   done();
@@ -1315,7 +1317,7 @@ function getNameCacheFilePath(path) {
   if (path.indexOf(".cache") >= 0 ) {
     return path;
   }
-  return JSDEST + osPath.sep + ".names-" + path.replace("min/", "") + ".cache";
+  return osPath.join(JSDEST, ".names-" + path.replace("min/", "") + ".cache");
 }
 
 function saveNameCacheIfNeeded(key, nameCache) {
