@@ -588,15 +588,16 @@ function (details: chrome.runtime.InstalledDetails): void {
   }, 500);
 });
 
-Utils.GC_ = function (): void {
-  let timestamp = 0, timeout = 0;
-  Utils.GC_ = function (): void {
+Utils.GC_ = function (inc0?: number): void {
+  let timestamp = 0, timeout = 0, referenceCount = 0;
+  Utils.GC_ = function (inc?: number): void {
+    inc && (referenceCount += inc);
     if (!(Commands || Exclusions && Exclusions.rules_.length <= 0)) { return; }
     timestamp = Date.now(); // safe for time changes
-    if (timeout > 0) { return; }
+    if (timeout > 0 || referenceCount > 0) { return; }
     timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
   };
-  return Utils.GC_();
+  return Utils.GC_(inc0);
   function later(): void {
     const last = Date.now() - timestamp; // safe for time changes
     if (last < GlobalConsts.TimeoutToReleaseBackendModules - 1000 // for small time adjust

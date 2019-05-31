@@ -911,8 +911,9 @@ window.onhashchange(null as never);
 // below is for programmer debugging
 window.onunload = function (): void {
   BG_.removeEventListener("unload", OnBgUnload);
-  BG_.Utils.GC_();
+  BG_.Utils.GC_(-1);
 };
+BG_.Utils.GC_(1);
 
 function OnBgUnload(): void {
   BG_.removeEventListener("unload", OnBgUnload);

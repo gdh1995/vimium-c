@@ -624,8 +624,9 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
   }
   window.onunload = function (): void {
     bgExclusions.testers_ = null;
-    BG_.Utils.GC_();
+    BG_.Utils.GC_(-1);
   };
+  BG_.Utils.GC_(1);
 
   function forceState(act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();

@@ -774,7 +774,7 @@ var Utils = {
   timeout_ (timeout: number, callback: (this: void, fakeArgs?: TimerType.fake) => void): void {
     setTimeout(callback, timeout);
   },
-  GC_ (this: void): void { /* empty */ },
+  GC_: function (this: void): void { /* empty */ } as (this: void, inc?: number) => void,
   hasUpperCase_ (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
 
