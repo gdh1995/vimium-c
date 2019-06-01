@@ -59,6 +59,12 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.75.1:
+* support `prefers-reduced-motion` and `prefers-color-scheme` media queries
+  * be able to auto disable animation and enter dark mode when some options are enabled
+  * enable the option "Auto reduce UI motions following your system settings" by default
+* fix more issues about `passNextKey`
+
 1.75:
 * use new icons
 * exclusion: make passKeys take precedence over mappedKeys
