@@ -756,7 +756,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     }
     omniStyles = omniStyles.trim();
     const docEl = document.documentElement as HTMLHtmlElement;
-    docEl.className !== docEl.className && (docEl.className = omniStyles);
+    docEl.className !== omniStyles && (docEl.className = omniStyles);
   },
   ToggleDark_ (this: void, event: MouseEvent): void {
     Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });

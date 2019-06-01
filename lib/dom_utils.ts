@@ -75,7 +75,7 @@ var VDom = {
       return null;
     }
   },
-  /** refer to {@link BrowserVer.MinParentNodeInNodePrototype } */
+  /** refer to {@link #BrowserVer.MinParentNodeInNodePrototype } */
   Getter_: Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty
             , ensured extends boolean = false>(this: void
       , Cls: { prototype: Ty, new(): Ty; }, instance: Ty
@@ -506,7 +506,7 @@ var VDom = {
   isInDOM_: function (element: Element, root?: Element | Document | Window | RadioNodeList
       , checkMouseEnter?: 1): boolean {
     if (!root) {
-      const isConnected = element.isConnected; /** {@link BrowserVer.Min$Node$$isConnected} */
+      const isConnected = element.isConnected; /** {@link #BrowserVer.Min$Node$$isConnected} */
       if (!(Build.BTypes & ~BrowserType.Firefox) || isConnected === !!isConnected) {
         return isConnected as boolean; // is boolean : exists and is not overridden
       }
