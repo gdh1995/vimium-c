@@ -511,7 +511,7 @@ MediaWatcher_ = {
       a.update_(key);
     }
   },
-  update_ (key: MediaNS.kName, embed?: 1): void {
+  update_ (this: void, key: MediaNS.kName, embed?: 1): void {
     const settings = Settings, payload = settings.payload_,
     omniToggled = key ? "dark" : "reduce-motion",
     matched = MediaWatcher_.get_(key), bMatched = !!matched;
@@ -608,6 +608,7 @@ Utils.timeout_(120, function (): void {
   };
   settings.postUpdate_("autoDarkMode");
   settings.postUpdate_("autoReduceMotion");
+  settings.updateOmniStyles_ = MediaWatcher_.update_;
 
   if (!Build.PContentSettings) { return; }
   for (const i of ["images", "plugins", "javascript", "cookies"] as const) {

@@ -84,6 +84,7 @@ var Settings = {
       frame.postMessage(request);
     }
   },
+  updateOmniStyles_: Utils.blank_ as (key: MediaNS.kName, embed?: 1 | undefined) => void,
   parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
     const arr = css ? css.split(<RegExpG & RegExpSearchable<1>> /\/\*\s?#!?([A-Za-z]+)\s?\*\//g) : [""];
     const map: SettingsNS.ParsedCustomCSS = { ui: arr[0].trim() };
@@ -326,8 +327,8 @@ var Settings = {
       payload.maxMatches_ = maxMatches;
       payload.queryInterval_ = queryInterval;
       payload.styles_ = styles;
-      MediaWatcher_.update_(MediaNS.kName.PrefersReduceMotion, 1);
-      MediaWatcher_.update_(MediaNS.kName.PrefersColorScheme, 1);
+      a.updateOmniStyles_(MediaNS.kName.PrefersReduceMotion, 1);
+      a.updateOmniStyles_(MediaNS.kName.PrefersColorScheme, 1);
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: {
         maxMatches_: maxMatches,
         queryInterval_: queryInterval,
