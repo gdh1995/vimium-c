@@ -55,7 +55,6 @@ let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
 var VData: VDataTy = null as never;
 let encryptKey = window.name && +window.name.split(" ")[0] || 0;
-let wndLoaded = GlobalConsts.DisplayUseDynamicTitle ? false : 0 as never;
 let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
 
 window.onhashchange = function (this: void): void {
@@ -251,39 +250,7 @@ window.onhashchange = function (this: void): void {
     bgLink.removeAttribute("download");
   }
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
-  updateDocTitle();
 };
-
-function _updateDocTitle(file: string) {
-  if (!GlobalConsts.DisplayUseDynamicTitle) { return; }
-  let str = $<HTMLTitleElement>("title").dataset.title as string;
-  str = BG_ ? BG_.Utils.createSearch_(file ? file.split(/\s+/) : [], str, "")
-    : str.replace(<RegExpOne> /\$[sS](?:\{[^}]*})?/, file && (file + " | "));
-  document.title = str;
-}
-
-function updateDocTitle(): void {
-  if (GlobalConsts.DisplayUseDynamicTitle && wndLoaded && VData && VData.file) {
-    // todo: a better way to hide title in history
-    setTimeout(function (): void {
-      if (document.readyState !== "complete") {
-        setTimeout(updateDocTitle, 220);
-        return;
-      }
-      VData && _updateDocTitle(VData.file || "");
-    }, 220);
-  }
-}
-
-if (GlobalConsts.DisplayUseDynamicTitle) {
-window.onload = function (): void {
-  wndLoaded = true;
-  updateDocTitle();
-};
-window.onbeforeunload = function (): void { // hide title in session
-  VData && VData.file && _updateDocTitle("");
-};
-}
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
 String.prototype.startsWith = function (this: string, s: string): boolean {

@@ -1068,7 +1068,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       (Commands as TypeToCheck as TypeChecked)[request.c](request.n
         , (options ? VLib.safer_(options) : Object.create(null)) as CmdOptions[O]);
     },
-    /* kBgReq.createMark: */ function (request: BgReq[kBgReq.createMark]): void { return VMarks.createMark_(request.n); },
+    /* kBgReq.createMark: */ function (request: BgReq[kBgReq.createMark]): void { VMarks.createMark_(request.n); },
     /* kBgReq.showHUD: */ function (req: Req.bg<kBgReq.showHUD>): void {
       if (req.S) {
         VDom.UI.css_(req.S);

@@ -620,7 +620,6 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       a.wheelStart_ = 0;
     }
     a.wheelTime_ = now;
-    // todo: use percentage of physical screen resolution as delta
     let total = a.wheelDelta_ + (mode ? mode === /* WheelEvent.DOM_DELTA_LINE */ 1
           ? deltaY * (GlobalConsts.VomnibarWheelStepForPage / 3)
           : /* WheelEvent.DOM_DELTA_PAGE */ deltaY * GlobalConsts.VomnibarWheelStepForPage : deltaY)

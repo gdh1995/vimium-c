@@ -540,7 +540,6 @@ var VDom = {
   unsafeFramesetTag_: 0 as "FRAMESET" | 0,
   // todo: apply similar checks for HTMLElement and LockableElement
   notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
-    // todo: faster
     let s: Node["nodeName"];
     // tslint:disable-next-line: triple-equals
     return !!el && (typeof (s = el.nodeName) != "string" ||

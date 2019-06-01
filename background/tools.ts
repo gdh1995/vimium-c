@@ -516,7 +516,7 @@ MediaWatcher_ = {
     omniToggled = key ? "dark" : "reduce-motion",
     matched = MediaWatcher_.get_(key), bMatched = !!matched;
     if (!key) {
-      if (payload.reduceMotion_ !== bMatched) { 
+      if (payload.reduceMotion_ !== bMatched) {
         payload.reduceMotion_ = bMatched;
         embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: { reduceMotion_: bMatched } });
       }

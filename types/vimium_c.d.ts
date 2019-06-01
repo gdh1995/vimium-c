@@ -346,7 +346,6 @@ declare const enum GlobalConsts {
   MaxHeightOfLinkHintMarker = 18,
   FirefoxFocusResponseTimeout = 340,
   MaxLimitOfVomnibarMatches = 25,
-  DisplayUseDynamicTitle = 0,
   MaxFindHistory = 50,
   TimeOfSuppressingTailKeydowns = 200,
   CommandCountLimit = 9999,

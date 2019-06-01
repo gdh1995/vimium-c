@@ -651,7 +651,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
       let key = el.dataset.permission as string;
-      if (key[0] === 'C') {
+      if (key[0] === "C") {
         if (!(Build.BTypes & BrowserType.Chrome)
             || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
             || bgBrowserVer_ >= +key.slice(1)) {
