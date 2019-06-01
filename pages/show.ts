@@ -56,6 +56,7 @@ let viewer_: ViewerType | null = null;
 var VData: VDataTy = null as never;
 let encryptKey = window.name && +window.name.split(" ")[0] || 0;
 let wndLoaded = GlobalConsts.DisplayUseDynamicTitle ? false : 0 as never;
+let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
 
 window.onhashchange = function (this: void): void {
   if (VShown) {
@@ -198,6 +199,7 @@ window.onhashchange = function (this: void): void {
       VShown.alt = VData.error = "\xa0(null)\xa0";
     }
     if (file) {
+      VData.file = file = tryToFixFileExt_(file) || file;
       const path = file.split(<RegExpOne> /\/\\/);
       VShown.setAttribute("download", path[path.length - 1]);
       VShown.alt = file;
@@ -533,7 +535,6 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   const parsed = safeParseURL(originUrl);
   if (!parsed || !(<RegExpI> /^s?ftp|^http/i).test(parsed.protocol)) { return null; }
   let search = parsed.search;
-  const ImageExtRe = <RegExpI> /\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
   function DecodeURLPart_(this: void, url1: string | undefined): string {
     if (!url1) { return ""; }
     try {
@@ -569,7 +570,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   let offset = search.lastIndexOf("/") + 1;
   search = search.slice(offset);
   let index = search.lastIndexOf("@") + 1 || search.lastIndexOf("!") + 1;
-  let found: boolean | 0 = index > 2 || ImageExtRe.exec(search) != null, arr2: RegExpExecArray | null = null;
+  let found: boolean | 0 = index > 2 || ImageExtRe.test(search), arr2: RegExpExecArray | null = null;
   if (found) {
     offset += index;
     search = search.slice(index);
@@ -592,7 +593,7 @@ function parseSmartImageUrl_(originUrl: string): string | null {
           offset--;
         }
       } else if (!search && arr2 && arr2.index === 0
-          && !ImageExtRe.exec(path.slice(Math.max(0, offset - 6), offset))) {
+          && !ImageExtRe.test(path.slice(Math.max(0, offset - 6), offset))) {
         search = arr2[0];
       }
     } else if (arr1 = (<RegExpOne> /\b([\da-f]{8,48})([_-][a-z]{1,2})\.[a-z]{2,4}$/).exec(search)) {
@@ -614,6 +615,14 @@ function parseSmartImageUrl_(originUrl: string): string | null {
     found = 0;
   }
   return found !== 0 ? parsed.origin + path.slice(0, offset) + search : null;
+}
+
+function tryToFixFileExt_(file: string): string | void {
+  if (!file || (<RegExpOne> /.\.[a-z]{3,4}\b/i).test(file)) { return; }
+  const ext = ImageExtRe.exec(VData.url);
+  if (ext) {
+    return file + ext[0];
+  }
 }
 
 function tryDecryptUrl(url: string): string {

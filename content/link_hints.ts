@@ -1090,6 +1090,8 @@ _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
   }
   return text || VHud.tip_("Not an image", 1000);
 },
+getImageName_: (img: SafeHTMLElement): string | null =>
+  img.getAttribute("download") || img.title || img.getAttribute("alt"),
 
 openUrl_ (url: string, incognito?: boolean): void {
   let kw = this.options_.keyword, opt: Req.fg<kFgReq.openUrl> = {
@@ -1291,7 +1293,7 @@ Modes_: [
       text = text.slice(0, 39) + "\u2026";
     }
     a.href = url;
-    a.download = img.getAttribute("download") || "";
+    a.download = (this as typeof VHints).getImageName_(img) || "";
     // todo: how to trigger download
     VDom.mouse_(a, "click", [0, 0]);
     return VHud.tip_("Download: " + text, 2000);
@@ -1301,14 +1303,14 @@ Modes_: [
   133: "Open image",
   197: "Open multiple image",
   execute_ (img: SafeHTMLElement): void {
-    let text = (this as typeof VHints)._getImageUrl(img, 1);
+    const a = this as typeof VHints, text = a._getImageUrl(img, 1);
     if (!text) { return; }
     VPort.post_({
       H: kFgReq.openImage,
-      r: (this as typeof VHints).mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      f: img.getAttribute("download"),
+      r: a.mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
+      f: a.getImageName_(img),
       u: text,
-      a: (this as typeof VHints).options_.auto
+      a: a.options_.auto
     });
   }
 } as HintsNS.ModeOpt,
@@ -1324,7 +1326,7 @@ Modes_: [
         changed = true;
       }
     }
-    const hadNoDownload = !link.hasAttribute("download");
+    const kDownload = "download", hadNoDownload = !link.hasAttribute(kDownload);
     if (hadNoDownload) {
       link.download = "";
     }
@@ -1335,7 +1337,7 @@ Modes_: [
       shiftKey_: false
     });
     if (hadNoDownload) {
-      link.removeAttribute("download");
+      link.removeAttribute(kDownload);
     }
     if (!changed) { /* empty */ }
     else if (oldUrl != null) {
