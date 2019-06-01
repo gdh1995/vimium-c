@@ -651,9 +651,19 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
       let key = el.dataset.permission as string;
-      if (key in manifest) { continue; }
+      if (key[0] === 'C') {
+        if (!(Build.BTypes & BrowserType.Chrome)
+            || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
+            || bgBrowserVer_ >= +key.slice(1)) {
+          continue;
+        }
+        key = "on Chrome browsers before v" + key.slice(1);
+      } else {
+        if (key in manifest) { continue; }
+        key = `for lacking permission${key ? ":\n* " + key : ""}`;
+      }
       (el as HTMLInputElement | HTMLTextAreaElement).disabled = true;
-      key = `This option is disabled for lacking permission${key ? ":\n* " + key : ""}`;
+      key = "This option is disabled " + key;
       if (el instanceof HTMLInputElement && el.type === "checkbox") {
         el.checked = false;
         el = el.parentElement as HTMLElement;

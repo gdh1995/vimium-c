@@ -105,7 +105,7 @@ interface BgReq {
   [kBgReq.settingsUpdate]: {
     /** delta */ d: {
       [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
-    } & SafeObject;
+    };
   };
   [kBgReq.url]: {
     /** url */ u?: string;
@@ -417,6 +417,11 @@ interface FgReq {
   };
   [kFgReq.setOmniStyle]: {
     /** style */ s: string;
+  } | {
+    s?: undefined;
+    /** toggled */ t: string;
+    /** enable */ e?: boolean; /* if null, then toggle .t */
+    /** broadcast, default to true */ b?: boolean;
   };
   [kFgReq.findFromVisual]: {};
   [kFgReq.framesGoBack]: { /** step */ s: number; };

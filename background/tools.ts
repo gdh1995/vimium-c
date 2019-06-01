@@ -465,6 +465,81 @@ IncognitoWatcher_ = {
     this.watching_ = false;
   }
 },
+MediaWatcher_ = {
+  _watchers: [
+    !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinMediaQuery$PrefersReducedMotion)
+      && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
+    ? MediaNS.Watcher.NotWatching
+    : Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+    ? ChromeVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion ? MediaNS.Watcher.NotWatching
+      : MediaNS.Watcher.InvalidMedia
+    : Build.DetectAPIOnFirefox ? MediaNS.Watcher.WaitToTest : MediaNS.Watcher.NotWatching,
+    !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinMediaQuery$PrefersColorScheme)
+      && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
+    ? MediaNS.Watcher.NotWatching
+    : Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+    ? ChromeVer >= BrowserVer.MinMediaQuery$PrefersColorScheme ? MediaNS.Watcher.NotWatching
+      : MediaNS.Watcher.InvalidMedia
+    : MediaNS.Watcher.WaitToTest
+  ] as { [k in MediaNS.kName]: MediaNS.Watcher | MediaQueryList } & Array<MediaNS.Watcher | MediaQueryList>,
+  _timer: 0,
+  get_ (key: MediaNS.kName): boolean | null {
+    let watcher = MediaWatcher_._watchers[key];
+    return typeof watcher === "object" ? watcher.matches : null;
+  },
+  listen_ (key: MediaNS.kName, doListen: boolean): void {
+    let a = MediaWatcher_, watchers = a._watchers, cur = watchers[key],
+    name = !key ? "prefers-reduced-motion" as const : "prefers-color-scheme" as const;
+    if (cur === MediaNS.Watcher.WaitToTest && doListen) {
+      watchers[key] = cur = matchMedia(`(${name})`).matches ? MediaNS.Watcher.NotWatching
+          : MediaNS.Watcher.InvalidMedia;
+    }
+    if (doListen && cur === MediaNS.Watcher.NotWatching) {
+      const query = matchMedia(`(${name}: ${!key ? "reduce" : "dark"})`);
+      query.onchange = a.OnChange_;
+      watchers[key] = query;
+      if (Build.BTypes & BrowserType.Chrome
+          && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+          && ChromeVer < BrowserVer.MinMediaChangeEventsOnBackgroundPage
+          && !a._timer) {
+        a._timer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval);
+      }
+      a.update_(key);
+    } else if (!doListen && typeof cur === "object") {
+      cur.onchange = null;
+      watchers[key] = MediaNS.Watcher.NotWatching;
+      a.update_(key);
+    }
+  },
+  update_ (key: MediaNS.kName, embed?: 1): void {
+    const settings = Settings, payload = settings.payload_,
+    omniToggled = key ? "dark" : "reduce-motion",
+    matched = MediaWatcher_.get_(key), bMatched = !!matched;
+    if (!key) {
+      if (payload.reduceMotion_ !== bMatched) { 
+        payload.reduceMotion_ = bMatched;
+        embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: { reduceMotion_: bMatched } });
+      }
+    }
+    Backend.setOmniStyle_({
+      t: omniToggled,
+      e: matched != null ? matched : ` ${settings.cache_.vomnibarOptions.styles} `.indexOf(` ${omniToggled} `) >= 0,
+      b: !embed
+    });
+  },
+  RefreshAll_: Build.BTypes & BrowserType.Chrome ? function (this: void): void {
+    for (let arr = MediaWatcher_._watchers, i = arr.length; 0 <= --i; ) {
+      typeof arr[i] === "object" && MediaWatcher_.update_(i);
+    }
+  } : 0 as never,
+  OnChange_ (this: MediaQueryList): void {
+    if (Build.BTypes & BrowserType.Chrome && MediaWatcher_._timer > 0) {
+      clearInterval(MediaWatcher_._timer);
+      MediaWatcher_._timer = -1;
+    }
+    MediaWatcher_.update_(MediaWatcher_._watchers.indexOf(this));
+  }
+},
 TabRecency_ = {
   tabs_: Object.create<number>(null) as SafeDict<number>,
   last_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
@@ -523,6 +598,16 @@ Utils.timeout_(120, function (): void {
   TabRecency_.rCompare_ = function (a, b): number {
     return (cache[b.id] as number) - (cache[a.id] as number);
   };
+
+  const settings = Settings;
+  settings.updateHooks_.autoDarkMode = settings.updateHooks_.autoReduceMotion = (value: boolean
+      , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
+    const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion
+        : MediaNS.kName.PrefersColorScheme;
+    MediaWatcher_.listen_(key, value);
+  };
+  settings.postUpdate_("autoDarkMode");
+  settings.postUpdate_("autoReduceMotion");
 
   if (!Build.PContentSettings) { return; }
   for (const i of ["images", "plugins", "javascript", "cookies"] as const) {

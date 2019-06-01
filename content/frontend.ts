@@ -894,17 +894,17 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VDom.UI.add_(hud.box_ = el, VHints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, VHints.box_);
     },
     _tween (this: void, fake?: TimerType.fake): void { // safe-interval
-      const el = HUD.box_ as HTMLDivElement, st = el.style;
+      const el = HUD.box_ as HTMLDivElement, st = el.style, reduce = VDom.cache_.reduceMotion_;
       let opacity = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                     && fake ? 0 : +(st.opacity || 1);
       if (opacity === HUD.opacity_) { /* empty */ }
       else if (opacity === 0) {
         HUD.$text_.data = HUD.text_;
-        st.opacity = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
+        st.opacity = reduce ||  Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                       && fake ? "" : "0.25";
         st.visibility = "";
         return VDom.UI.adjust_();
-      } else if (document.hasFocus()) {
+      } else if (!reduce && document.hasFocus()) {
         opacity += opacity < HUD.opacity_ ? 0.25 : -0.25;
       } else {
         opacity = HUD.opacity_;

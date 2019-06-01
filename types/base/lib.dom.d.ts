@@ -5266,11 +5266,12 @@ declare var MediaList: {
     new(): MediaList;
 }
 
-interface MediaQueryList {
+interface MediaQueryList extends EventTarget {
     readonly matches: boolean;
     readonly media: string;
-    addListener(listener: MediaQueryListListener): void;
-    removeListener(listener: MediaQueryListListener): void;
+    onchange: null | MediaQueryListListener;
+    // addListener(listener: MediaQueryListListener): void;
+    // removeListener(listener: MediaQueryListListener): void;
 }
 
 declare var MediaQueryList: {
@@ -8794,7 +8795,7 @@ interface PositionErrorCallback {
     (error: PositionError): void;
 }
 interface MediaQueryListListener {
-    (mql: MediaQueryList): void;
+    (this: MediaQueryList, event: Event): void;
 }
 interface FrameRequestCallback {
     (time: number): void;

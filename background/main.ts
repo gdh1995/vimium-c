@@ -1653,7 +1653,8 @@ Are you sure you want to continue?`);
     /* toggleVomnibarStyle: */ function (this: void, tabs: [Tab]): void {
       const tabId = tabs[0].id, toggled = ((cOptions.style || "") + "").trim(), current = !!cOptions.current;
       if (!toggled) {
-        return Backend.showHUD_("No style name of Vomnibar is given");
+        Backend.showHUD_("No style name of Vomnibar is given");
+        return;
       }
       for (const frame of framesForOmni) {
         if (frame.s.t === tabId) {
@@ -1662,11 +1663,7 @@ Are you sure you want to continue?`);
         }
       }
       if (current) { return; }
-      const payload = Settings.omniPayload_;
-      let toggle = ` ${toggled} `, curStyles = payload.styles_ && ` ${payload.styles_} `;
-      requestHandlers[kFgReq.setOmniStyle]({
-        s: curStyles.indexOf(toggle) >= 0 ? curStyles.replace(toggle, " ") : curStyles + toggled
-      });
+      requestHandlers[kFgReq.setOmniStyle]({ t: toggled });
     }
   ],
   numHeadRe = <RegExpOne> /^-?\d+|^-/;
@@ -2202,13 +2199,21 @@ Are you sure you want to continue?`);
       // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.
       focusAndRun(req, port, indexFrame(port.s.t, 0), req.f);
     },
-    /** setOmniStyle: */ function (this: void, req: FgReq[kFgReq.setOmniStyle]): void {
-      let styles = req.s.trim(), payload = Settings.omniPayload_;
-      if (styles === payload.styles_) { return; }
+    /** setOmniStyle: */ function (this: void, req: FgReq[kFgReq.setOmniStyle], port?: Port): void {
+      let styles: string, payload = Settings.omniPayload_, curStyles = payload.styles_;
+      if (req.s == null) {
+        let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.indexOf(toggled) >= 0;
+        styles = (req.e != null ? req.e : exists) ? exists ? curStyles : extSt + toggled : extSt.replace(toggled, " ");
+        styles = styles.trim();
+        if (req.b === false) { payload.styles_ = styles; return; }
+      } else {
+        styles = req.s;
+      }
+      if (styles === curStyles) { return; }
       payload.styles_ = styles;
       const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { styles_: styles } };
       for (const frame of framesForOmni) {
-        frame.postMessage(request2);
+        frame !== port && frame.postMessage(request2);
       }
     },
     /** findFromVisual */ function (this: void, _: {}, port: Port): void {
@@ -2438,6 +2443,7 @@ Are you sure you want to continue?`);
     openUrl_: requestHandlers[kFgReq.openUrl],
     checkIfEnabled_: requestHandlers[kFgReq.checkIfEnabled],
     focus_: requestHandlers[kFgReq.focusOrLaunch],
+    setOmniStyle_: requestHandlers[kFgReq.setOmniStyle],
     getExcluded_: Utils.getNull_,
     IconBuffer_: null,
     removeSug_ (this: void, { t: type, u: url }: FgReq[kFgReq.removeSug], port?: Port | null): void {

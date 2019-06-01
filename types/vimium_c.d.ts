@@ -236,10 +236,12 @@ declare namespace SettingsNS {
     regexFindMode: boolean;
     scrollStepSize: number;
     smoothScroll: boolean;
+    reduceMotion_: boolean;
   }
   interface FrontendSettingsWithoutSyncing {
     readonly browserVer_?: BrowserVer;
     readonly browser_?: BrowserType;
+    reduceMotion_: boolean;
     /** `mac`: true, `win`: 0, `others`: false */ readonly onMac_: boolean | 0;
     grabBackFocus_: boolean;
   }
@@ -348,6 +350,7 @@ declare const enum GlobalConsts {
   MaxFindHistory = 50,
   TimeOfSuppressingTailKeydowns = 200,
   CommandCountLimit = 9999,
+  MediaWatchInterval = 30_000, // 30 seconds
 }
 
 declare const enum KnownKey {
@@ -737,14 +740,22 @@ declare const enum BrowserVer {
   // re-implement extension APIs into C++ bindings: https://bugs.chromium.org/p/chromium/issues/detail?id=763564
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
   MinNoFocusOrSelectionStringOnHiddenIFrame = 74, // even if EXPERIMENTAL or LEGACY
+  // the below 2 are even if EXPERIMENTAL or LEGACY
+  MinMediaQuery$PrefersReducedMotion = 74,
+  MinMediaQuery$PrefersColorScheme = 76,
   // it's said the deadline is C73 in https://www.chromestatus.com/features/4507242028072960
   // but no source code in Chromium to disable it (tested on 2019-03-13)
   MinNoShadowDOMv0 = 77,
+  // ses https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change
+  // TODO: use a real version code when the bug report above is solved
+  MinMediaChangeEventsOnBackgroundPage = 99,
   assumedVer = 999,
 }
 declare const enum FirefoxBrowserVer {
   MinEnsuredShadowDOMV1 = 63, // also DocumentOrShadowRoot::getSelection
   MinUsable$Navigator$$Clipboard = 63,
+  MinMediaQuery$PrefersReducedMotion = 63,
   Min$Document$$FullscreenElement = 64,
+  MinMediaQuery$PrefersColorScheme = 67,
   MinSupported = 64,
 }

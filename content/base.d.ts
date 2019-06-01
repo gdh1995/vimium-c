@@ -286,8 +286,6 @@ declare const enum AdjustType {
   DEFAULT = Normal,
 }
 
-declare function setInterval(this: void, handler: (this: void, fake?: TimerType.fake) => void, timeout: number): number;
-
 type VimiumContainerElementType = "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog";
 /** ShadowRoot | HTMLDivElement */
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });

@@ -277,8 +277,22 @@ declare namespace IconNS {
   }
 }
 
+declare namespace MediaNS {
+  const enum kName {
+    PrefersReduceMotion = 0, /** {@link #BrowserVer.MinMediaQuery$PrefersReducedMotion} */
+    PrefersColorScheme = 1,
+  }
+  const enum Watcher {
+    InvalidMedia = 0,
+    WaitToTest,
+    NotWatching,
+  }
+}
+
 declare namespace SettingsNS {
   interface BackendSettings extends BaseBackendSettings {
+    autoDarkMode: boolean;
+    autoReduceMotion: boolean;
     dialogMode: boolean;
     exclusionListenHash: boolean;
     exclusionOnlyFirstMatch: boolean;
@@ -381,6 +395,7 @@ declare namespace BackendHandlersNS {
     openUrl_ (this: void, request: FgReq[kFgReq.openUrl], port?: Port | undefined): void;
     checkIfEnabled_: ExclusionsNS.Listener;
     focus_ (this: void, request: MarksNS.FocusOrLaunch): void;
+    setOmniStyle_ (this: void, request: FgReq[kFgReq.setOmniStyle], port?: Port): void;
     reopenTab_ (tab: chrome.tabs.Tab, refresh?: boolean): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
     IconBuffer_: IconNS.AccessIconBuffer | null,

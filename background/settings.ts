@@ -10,10 +10,11 @@ var Settings = {
   payload_: (Build.BTypes & BrowserType.Chrome ? {
     __proto__: null as never,
     browserVer_: ChromeVer,
+    reduceMotion_: false,
     grabBackFocus_: false,
     onMac_: false
   } : {
-    __proto__: null as never, grabBackFocus_: false, onMac_: false
+    __proto__: null as never, reduceMotion_: false, grabBackFocus_: false, onMac_: false
   }) as SettingsNS.FrontendSettingsWithoutSyncing & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
   omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
     browserVer_: ChromeVer,
@@ -76,6 +77,11 @@ var Settings = {
       for (let i = frames.length; 0 < --i; ) {
         frames[i].postMessage(request);
       }
+    }
+  },
+  broadcastOmni_<K extends ValidBgVomnibarReq> (request: Req.bg<K>): void {
+    for (const frame of Backend.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
+      frame.postMessage(request);
     }
   },
   parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
@@ -255,12 +261,7 @@ var Settings = {
           }
         }
       }
-      const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: {
-        css_: a.omniPayload_.css_
-      } };
-      for (const frame of Backend.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
-        frame.postMessage(request2);
-      }
+      a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { css_: a.omniPayload_.css_ } });
     },
     innerCSS (this: {}, css): void {
       const a = this as typeof Settings, cache = a.cache_ as Writeable<typeof Settings.cache_>;
@@ -299,7 +300,8 @@ var Settings = {
       a.set_("vomnibarPage_f", url);
     },
     vomnibarOptions (this: {}, options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void {
-      const a = this as typeof Settings, defaultOptions = a.defaults_.vomnibarOptions;
+      const a = this as typeof Settings, defaultOptions = a.defaults_.vomnibarOptions,
+      payload = a.omniPayload_;
       let isSame = true;
       let { maxMatches, queryInterval, styles } = defaultOptions;
       if (options !== defaultOptions && options && typeof options === "object") {
@@ -321,17 +323,16 @@ var Settings = {
       }
       (a.cache_ as Writeable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
         : options as NonNullable<typeof options>;
-      a.omniPayload_.maxMatches_ = maxMatches;
-      a.omniPayload_.queryInterval_ = queryInterval;
-      a.omniPayload_.styles_ = styles;
-      const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: {
+      payload.maxMatches_ = maxMatches;
+      payload.queryInterval_ = queryInterval;
+      payload.styles_ = styles;
+      MediaWatcher_.update_(MediaNS.kName.PrefersReduceMotion, 1);
+      MediaWatcher_.update_(MediaNS.kName.PrefersColorScheme, 1);
+      a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: {
         maxMatches_: maxMatches,
         queryInterval_: queryInterval,
-        styles_: styles
-      } };
-      for (const frame of Backend.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
-        frame.postMessage(request2);
-      }
+        styles_: payload.styles_
+      } });
     }
   } as { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } as SettingsNS.FullUpdateHookMap,
   /** can only fetch files in the `[ROOT]/front` folder */
@@ -364,6 +365,8 @@ var Settings = {
   // the default of all nullable fields must be set to null for compatibility with @Sync.set
   defaults_: {
     __proto__: null as never,
+    autoDarkMode: true,
+    autoReduceMotion: false,
     deepHints: false,
     dialogMode: false,
     exclusionListenHash: true,

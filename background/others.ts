@@ -77,9 +77,9 @@ Utils.timeout_(1000, function (): void {
   function setAndPost(key: keyof SettingsWithDefaults, value: any): void {
     Settings.set_(key, value);
     if (key in Settings.payload_) {
-      const delta: BgReq[kBgReq.settingsUpdate]["d"] = Object.create(null),
-      req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: delta };
-      delta[key as keyof SettingsNS.FrontendSettings] = Settings.get_(key as keyof SettingsNS.FrontendSettings);
+      const req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: {
+        [key as keyof SettingsNS.FrontendSettings]: Settings.get_(key as keyof SettingsNS.FrontendSettings)
+      } };
       Settings.broadcast_(req);
     }
     Utils.GC_();
