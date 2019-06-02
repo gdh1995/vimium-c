@@ -59,10 +59,13 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.75.1:
+1.75.3:
 * support `prefers-reduced-motion` and `prefers-color-scheme` media queries
   * be able to auto disable animation and enter dark mode when some options are enabled
   * enable the option "Auto reduce UI motions following your system settings" by default
+* LinkHints: add a new option `mapKey` to translated typed keys to match marker text
+  * use a subset of translation rules of `Custom key mappings`
+  * require both sources and targets are single characters (not map `<a-d>`)
 * fix more issues about `passNextKey`
 
 1.75:

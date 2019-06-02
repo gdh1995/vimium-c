@@ -27,6 +27,7 @@ declare namespace HintsNS {
     toggle?: {
       [selector: string]: string;
     };
+    mapKey?: boolean;
     auto?: boolean;
     /** @deprecated */
     force?: boolean;
@@ -1034,7 +1035,8 @@ alphabetHints_: {
         return [];
       }
       a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
-    } else if ((keyChar = VKey.char_(e).toUpperCase()) && keyChar.length === 1) {
+    } else if ((keyChar = VKey.char_(e).toUpperCase()) && keyChar.length === 1
+        && (keyChar = VHints.options_.mapKey ? VEvent.mapKey_(keyChar) : keyChar).length === 1) {
       if (a.chars_.indexOf(keyChar) === -1) {
         return [];
       }
