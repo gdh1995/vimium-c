@@ -44,7 +44,7 @@ gulpPrint = gulpPrint.default || gulpPrint;
 createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
     && getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
-var has_newtab = getNonNullBuildItem("OverrideNewTab") > 0;
+var may_have_newtab = getNonNullBuildItem("MayOverrideNewTab") > 0;
 var es6_viewer = false;
 // es6_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome) || getBuildItem("MinCVer") >= 52;
 const POLYFILL_FILE = "lib/polyfill.ts", NEWTAB_FILE = "pages/newtab.ts";
@@ -57,7 +57,7 @@ var CompileTasks = {
   lib: ["lib/*.ts"].concat(has_polyfill ? [] : ["!" + POLYFILL_FILE]),
   front: [["front/*.ts", has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE
             , "lib/injector.ts", "pages/*.ts"
-            , has_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
+            , may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
             , "!pages/options*.ts", "!pages/show.ts"]
           , ["background/bg.d.ts", "content/*.d.ts"]
           , { inBatch: false }],
@@ -94,7 +94,7 @@ var Tasks = {
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!test*", "!todo*"
     ];
-    has_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
+    may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     getBuildItem("BTypes") & BrowserType.Chrome || arr.push("!" + FILE_URLS_CSS);
     es6_viewer && arr.push("!" + VIEWER_JS);
     var has_wordsRe = getBuildItem("BTypes") & ~BrowserType.Firefox
@@ -132,7 +132,7 @@ var Tasks = {
       curConfig.push(getNonNullBuildItem("Commit"));
     }
     curConfig.push(getNonNullBuildItem("NDEBUG"));
-    curConfig.push(getNonNullBuildItem("OverrideNewTab"));
+    curConfig.push(getNonNullBuildItem("MayOverrideNewTab"));
     curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
     var needClean = true;
@@ -236,7 +236,7 @@ var Tasks = {
       var oriManifest = readJSON("manifest.json", true);
       var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!pages/options*"];
       has_polyfill || res.push("!" + POLYFILL_FILE.replace(".ts", ".*"));
-      has_newtab || res.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
+      may_have_newtab || res.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
       if (!has_dialog_ui) {
         res.push("!*/dialog_ui.*");
       }
@@ -292,7 +292,7 @@ var Tasks = {
     if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {
       manifest.options_ui && (manifest.options_ui.open_in_tab = true);
     }
-    if (getNonNullBuildItem("OverrideNewTab") <= 0) {
+    if (getNonNullBuildItem("MayOverrideNewTab") <= 0) {
       if (manifest.chrome_url_overrides) {
         delete manifest.chrome_url_overrides.newtab;
       }
@@ -408,10 +408,10 @@ gulp.task("locally", function(done) {
     CompileTasks.lib.length = 1;
     has_polyfill || CompileTasks.lib.push("!" + POLYFILL_FILE);
   }
-  var old_has_newtab = has_newtab;
-  has_newtab = getNonNullBuildItem("OverrideNewTab") > 0;
-  if (has_newtab != old_has_newtab) {
-    CompileTasks.front[0][4] = has_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE;
+  var old_has_newtab = may_have_newtab;
+  may_have_newtab = getNonNullBuildItem("MayOverrideNewTab") > 0;
+  if (may_have_newtab != old_has_newtab) {
+    CompileTasks.front[0][4] = may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE;
   }
   es6_viewer = false;
   // es6_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome) || getBuildItem("MinCVer") >= 52;
@@ -1049,7 +1049,7 @@ function getBuildItem(key, literalVal) {
   if (!cached) {
     if (key === "Commit") {
       cached = [literalVal, [safeJSONParse(literalVal), getGitCommit()]];
-    } else if (key === "OverrideNewTab") {
+    } else if (key === "MayOverrideNewTab") {
       if (!manifest.chrome_url_overrides || !manifest.chrome_url_overrides.newtab) {
         cached = buildOptionCache[key] = ["0", 0];
       }

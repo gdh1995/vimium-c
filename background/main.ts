@@ -103,9 +103,10 @@ var Backend: BackendHandlersNS.BackendHandlers;
     if (!url) {
       delete args.url;
     } else if (!(type = Settings.newTabs_[url])) { /* empty */ }
-    else if (!Build.OverrideNewTab && type === Urls.NewTabType.browser) {
+    else if (!(Build.MayOverrideNewTab && Settings.CONST_.OverrideNewTab_)
+        && Settings.CONST_ && type === Urls.NewTabType.browser) {
       delete args.url;
-    } else if (Build.OverrideNewTab && type === Urls.NewTabType.vimium) {
+    } else if (Build.MayOverrideNewTab && Settings.CONST_.OverrideNewTab_ && type === Urls.NewTabType.vimium) {
       args.url = Settings.cache_.newTabUrl_f;
     }
     Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) &&
@@ -2266,7 +2267,7 @@ Are you sure you want to continue?`);
           return;
         }
         sender.f = Frames.Flags.userActed;
-      } else if (Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab && type === PortType.CloseSelf) {
+      } else if (Build.BTypes & BrowserType.Firefox && (Build.MayOverrideNewTab && Settings.CONST_.OverrideNewTab_) && type === PortType.CloseSelf) {
         if (tabId >= 0 && !sender.i) {
           removeTempNewTab(tabId, port);
         }
@@ -2301,7 +2302,7 @@ Are you sure you want to continue?`);
       });
     }
     sender.s = status;
-    if (Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab) {
+    if (Build.BTypes & BrowserType.Firefox && (Build.MayOverrideNewTab && Settings.CONST_.OverrideNewTab_)) {
       (port as chrome.runtime.Port).sender.tab = null as never;
     }
     port.onDisconnect.addListener(OnDisconnect);
@@ -2353,7 +2354,7 @@ Are you sure you want to continue?`);
               : cPort ? cPort.s.t : TabRecency_.last_;
         }
         framesForOmni.push(port);
-        if (Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab) {
+        if (Build.BTypes & BrowserType.Firefox && (Build.MayOverrideNewTab && Settings.CONST_.OverrideNewTab_)) {
           (port as chrome.runtime.Port).sender.tab = null as never;
         }
         port.onDisconnect.addListener(OnOmniDisconnect);
@@ -2397,7 +2398,7 @@ Are you sure you want to continue?`);
       url: "",
       incognito: false
     };
-    if (!(Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab)) {
+    if (!(Build.BTypes & BrowserType.Firefox && (Build.MayOverrideNewTab && Settings.CONST_.OverrideNewTab_))) {
       sender.tab = null as never;
     }
     return (port as Writeable<Port>).s = {

@@ -404,7 +404,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     bgSettings_.broadcast_(req);
   }
 
-  if (!Build.OverrideNewTab) {
+  if (!(Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_)) {
     $<EnsuredMountedElement & HTMLElement>("#focusNewTabContent").parentElement.parentElement.parentElement.remove();
     $<EnsuredMountedElement & HTMLElement>("#newTabUrlRefer").remove();
   }

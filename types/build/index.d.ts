@@ -9,7 +9,7 @@ declare const enum Build {
   NoDialogUI = 0,
   NativeWordMoveOnFirefox = 1,
   PContentSettings = 1,
-  OverrideNewTab = 1,
+  MayOverrideNewTab = 1,
   DetectAPIOnFirefox = 1,
 }
 declare const enum BuildStr {

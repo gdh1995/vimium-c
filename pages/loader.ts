@@ -23,11 +23,15 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     head.appendChild(scriptElement);
     scripts.push(scriptElement);
   }
+  interface BgWindow extends Window { Settings: typeof Settings; }
   scripts[scripts.length - 1].onload = function (): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
     const dom = (window as {} as {VDom?: typeof VDom}).VDom;
     dom && (dom.allowScripts_ = 0);
-    if (Build.BTypes & BrowserType.Firefox && Build.OverrideNewTab
+    let bg: BgWindow;
+    if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab
+        && (bg = chrome.extension.getBackgroundPage() as BgWindow)
+        && bg.Settings.CONST_.OverrideNewTab_
         && location.pathname.indexOf("newtab") >= 0) {
       setTimeout(function (): void {
         const hud = (window as {} as {VHud?: VHUDTy}).VHud;
@@ -35,7 +39,6 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
       }, 100);
     }
   };
-  interface BgWindow extends Window { Settings: typeof Settings; }
   if (location.pathname.toLowerCase().indexOf("options") < 0) {
     const bg = chrome.extension.getBackgroundPage() as BgWindow;
     if (bg && bg.Backend) {

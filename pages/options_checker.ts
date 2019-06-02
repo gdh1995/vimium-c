@@ -81,7 +81,7 @@ let keyMappingChecker_ = {
 Option_.all_.keyMappings.checker_ = keyMappingChecker_;
 keyMappingChecker_ = null as never;
 
-if (Build.OverrideNewTab) {
+if (Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_) {
 Option_.all_.newTabUrl.checker_ = {
   check_ (value: string): string {
     let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
