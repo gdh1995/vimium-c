@@ -31,7 +31,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     let bg: BgWindow;
     if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab
         && (bg = chrome.extension.getBackgroundPage() as BgWindow)
-        && bg.Settings.CONST_.OverrideNewTab_
+        && bg.Settings && bg.Settings.CONST_.OverrideNewTab_
         && location.pathname.indexOf("newtab") >= 0) {
       setTimeout(function (): void {
         const hud = (window as {} as {VHud?: VHUDTy}).VHud;

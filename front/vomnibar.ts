@@ -505,7 +505,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.input_.value = str;
     a.input_.setSelectionRange(oldStart, i, oldDi);
     a.isInputComposing_ = false;
-    return a.update_(-1);
+    a.update_(0);
   },
   onEnter_ (event?: EventControlKeys | true, newSel?: number): void {
     const a = Vomnibar_;
