@@ -43,7 +43,7 @@ var Commands = {
         delete options.$desc;
       }
       if (opt) {
-        Utils.extendIf_(options, opt);
+        BgUtils_.extendIf_(options, opt);
       }
     } else {
       options = opt;
@@ -82,7 +82,7 @@ var Commands = {
       splitLine = line.split(" ");
       key = splitLine[0];
       if (key === "map") {
-        key = Utils.formatKeys_(splitLine[1] || "");
+        key = BgUtils_.formatKeys_(splitLine[1] || "");
         if (!key || key === "__proto__") {
           console.log("Unsupported key sequence %c%s", colorRed, key || '""', `for "${splitLine[2] || ""}"`);
         } else if (key in userDefinedKeys) {
@@ -112,8 +112,8 @@ var Commands = {
       } else if (key === "mapkey" || key === "mapKey") {
         if (splitLine.length !== 3) {
           console.log("MapKey needs both source and target keys:", line);
-        } else if ((key = splitLine[1]).length > 1 && (key.match(Utils.keyRe_) as RegExpMatchArray).length > 1
-          || splitLine[2].length > 1 && (splitLine[2].match(Utils.keyRe_) as RegExpMatchArray).length > 1) {
+        } else if ((key = splitLine[1]).length > 1 && (key.match(BgUtils_.keyRe_) as RegExpMatchArray).length > 1
+          || splitLine[2].length > 1 && (splitLine[2].match(BgUtils_.keyRe_) as RegExpMatchArray).length > 1) {
           console.log("MapKey: a source / target key should be a single key:", line);
         } else if (key in mkReg) {
           console.log("This key %c%s", colorRed, key, "has been mapped to another key:", mkReg[key]);
@@ -126,7 +126,7 @@ var Commands = {
         key = splitLine[1];
         if (splitLine.length < 3) {
           console.log("Lacking command name and options in shortcut:", line);
-        } else if ((Settings.CONST_.GlobalCommands_ as Array<kShortcutNames | string>).indexOf(key) < 0) {
+        } else if ((Settings_.CONST_.GlobalCommands_ as Array<kShortcutNames | string>).indexOf(key) < 0) {
           console.log("Shortcut %c%s", colorRed, key, "doesn't exist!");
         } else if (key in cmdMap) {
           console.log("Shortcut %c%s", colorRed, key, "has been configured");
@@ -139,7 +139,7 @@ var Commands = {
         console.log("Unknown mapping command: %c%s", colorRed, key, "in", line);
       } else if (splitLine.length !== 2) {
         console.log("Unmap needs one mapped key:", line);
-      } else if ((key = Utils.formatKeys_(splitLine[1])) in registry) {
+      } else if ((key = BgUtils_.formatKeys_(splitLine[1])) in registry) {
         delete userDefinedKeys[key];
         delete registry[key];
         continue;
@@ -148,7 +148,7 @@ var Commands = {
       }
       ++errors;
     }
-    for (key of Settings.CONST_.GlobalCommands_) {
+    for (key of Settings_.CONST_.GlobalCommands_) {
       if (!cmdMap[key as kShortcutNames]) {
         cmdMap[key as kShortcutNames] = (this as typeof Commands).makeCommand_(key);
       }
@@ -156,11 +156,11 @@ var Commands = {
     CommandsData_.keyToCommandRegistry_ = registry;
     CommandsData_.shortcutMap_ = cmdMap as ShortcutInfoMap;
     CommandsData_.mapKeyRegistry_ = mk > 0 ? mkReg : null;
-    Settings.temp_.cmdErrors_ = Settings.temp_.cmdErrors_ > 0 ? ~errors : errors;
+    Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
   populateCommandKeys_: (function (this: void, detectNewError: boolean): void {
-    const d = CommandsData_, ref = d.keyMap_ = Object.create<ValidKeyAction | ChildKeyMap>(null), keyRe = Utils.keyRe_,
-    d2 = Settings.temp_, oldErrors = d2.cmdErrors_;
+    const d = CommandsData_, ref = d.keyMap_ = Object.create<ValidKeyAction | ChildKeyMap>(null), keyRe = BgUtils_.keyRe_,
+    d2 = Settings_.temp_, oldErrors = d2.cmdErrors_;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
     ref["-"] = KeyAction.count;
@@ -204,7 +204,7 @@ var Commands = {
   }),
   warnInactive_ (obj: ReadonlyChildKeyMap | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
-    ++Settings.temp_.cmdErrors_;
+    ++Settings_.temp_.cmdErrors_;
   },
   execute_ (message: Partial<ExternalMsgs[kFgReq.command]["req"]> , sender: chrome.runtime.MessageSender
       , exec: (registryEntry: CommandsNS.Item, count: number, lastKey: VKeyCodes, port: Port) => void
@@ -212,8 +212,8 @@ var Commands = {
     let command = message.command;
     command = message.command ? message.command + "" : "";
     if (!(command && this.availableCommands_[command])) { return; }
-    const port: Port | null = sender.tab ? Backend.indexPorts_(sender.tab.id, sender.frameId || 0)
-            || (Backend.indexPorts_(sender.tab.id) || [null])[0] : null;
+    const port: Port | null = sender.tab ? Backend_.indexPorts_(sender.tab.id, sender.frameId || 0)
+            || (Backend_.indexPorts_(sender.tab.id) || [null])[0] : null;
     let options = message.options as CommandsNS.RawOptions | null | undefined
       , lastKey: VKeyCodes | undefined = message.key
       , count = message.count as number | string | undefined;
@@ -353,7 +353,7 @@ availableCommands_: { __proto__: null as never,
             (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
         ? Build.BTypes & BrowserType.Firefox &&
             (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-          ? "about:debugging#addons" : Settings.CONST_.OptionsPage_
+          ? "about:debugging#addons" : Settings_.CONST_.OptionsPage_
         : "chrome://extensions/?id=$id",
       id_mask: "$id"
     }],
@@ -458,22 +458,22 @@ if (!Build.NDEBUG) {
   ];
   Commands.defaultKeyMappings_.push("<a-s-f12>", "debugBackground", "<s-f12>", "focusOptions");
 }
-if (Backend.onInit_) {
-  Commands.parseKeyMappings_(Settings.get_("keyMappings"));
+if (Backend_.onInit_) {
+  Commands.parseKeyMappings_(Settings_.get_("keyMappings"));
   Commands.populateCommandKeys_(true);
-  if (!Settings.get_("vimSync")) {
+  if (!Settings_.get_("vimSync")) {
     Commands = null as never;
   }
   Build.BTypes & BrowserType.Edge && !chrome.commands ||
   (chrome.commands.onCommand as chrome.events.Event<
         (command: kShortcutNames | kShortcutAliases & string, exArg: FakeArg) => void
-      >).addListener(Backend.ExecuteShortcut_);
+      >).addListener(Backend_.ExecuteShortcut_);
 }
 if (Commands) {
-Settings.updateHooks_.keyMappings = function (this: {}, value: string | null): void {
+Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): void {
   value != null && Commands.parseKeyMappings_(value);
   Commands.populateCommandKeys_(value != null);
-  return (this as typeof Settings).broadcast_({
+  return (this as typeof Settings_).broadcast_({
     N: kBgReq.keyMap,
     m: CommandsData_.mapKeyRegistry_,
     k: CommandsData_.keyMap_

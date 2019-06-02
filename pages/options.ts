@@ -306,7 +306,7 @@ readValueFromElement_ (): boolean | null {
 
 ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOption_, isAdd: number): void {
   if (this.list_.length !== isAdd) { return; }
-  isAdd && !BG_.Exclusions && BG_.Utils.require_("Exclusions");
+  isAdd && !BG_.Exclusions && BG_.BgUtils_.require_("Exclusions");
   const el = $("#exclusionToolbar"), options = el.querySelectorAll("[data-model]");
   el.style.visibility = isAdd ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {
@@ -681,7 +681,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       el.placeholder = `lacking permission${key ? ` "${key}"` : ""}`;
     }
   })(_ref);
-  if (BG_.Settings.CONST_.GlobalCommands_.length === 0) {
+  if (BG_.Settings_.CONST_.GlobalCommands_.length === 0) {
     _ref = $$(".require-shortcuts");
     for (let _i = _ref.length; 0 <= --_i; ) {
       _ref[_i].remove();
@@ -710,7 +710,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i] as HTMLInputElement;
     let str = element.dataset.href as string;
-    str = BG_.Utils.convertToUrl_(str, null, Urls.WorkType.ConvertKnown);
+    str = BG_.BgUtils_.convertToUrl_(str, null, Urls.WorkType.ConvertKnown);
     element.removeAttribute("data-href");
     element.setAttribute("href", str);
   }
@@ -733,7 +733,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
   (element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
-    return BG_.Backend.focus_({ u: this.href, r: ReuseType.reuse, p: true });
+    return BG_.Backend_.focus_({ u: this.href, r: ReuseType.reuse, p: true });
   };
 
   if (Build.BTypes & BrowserType.Firefox
@@ -759,7 +759,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     styleDebug = document.createElement("style");
     styleDebug.className = "debugged";
     const patch = function () {
-      /** Note: shoule keep the same as {@link ../background/settings.ts#Settings.updateHooks_.userDefinedCss } */
+      /** Note: shoule keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substr(headEnd + 1, +css.slice(0, headEnd).split(",")[2]);
       VDom.UI.css_(css);
@@ -812,7 +812,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       : (isSame ? "" : "\n.transparent { opacity: 1; }\n") + (css2.omni && css2.omni + "\n" || "");
     const vfind = window.VFind as NonNullable<Window["VFind"]>;
     if (isFind && vfind.css_) {
-      /** Note: shoule keep the same as {@link ../background/settings.ts#Settings.updateHooks_.userDefinedCss } */
+      /** Note: shoule keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
       vfind.css_[2] = vfind.css_[2].slice(0, defaultLen - vfind.css_[0].length - vfind.css_[1].length - 1)
         + "\n" + (css2.find || "");
@@ -920,9 +920,9 @@ window.onhashchange(null as never);
 // below is for programmer debugging
 window.onunload = function (): void {
   BG_.removeEventListener("unload", OnBgUnload);
-  BG_.Utils.GC_(-1);
+  BG_.BgUtils_.GC_(-1);
 };
-BG_.Utils.GC_(1);
+BG_.BgUtils_.GC_(1);
 
 function OnBgUnload(): void {
   BG_.removeEventListener("unload", OnBgUnload);
@@ -933,7 +933,7 @@ function OnBgUnload(): void {
       window.close();
       return;
     }
-    bgSettings_ = BG_.Settings;
+    bgSettings_ = BG_.Settings_;
     if (!bgSettings_) { BG_ = null as never; return; }
     BG_.addEventListener("unload", OnBgUnload);
     if (BG_.document.readyState !== "loading") { setTimeout(callback, 67); return; }
@@ -956,8 +956,8 @@ function OnBgUnload(): void {
     } else if (Option_.all_.keyMappings.checker_) {
       needCommands = true;
     }
-    needExclusions && !BG_.Exclusions && BG_.Utils.require_("Exclusions");
-    needCommands && !BG_.Commands && BG_.Utils.require_("Commands");
+    needExclusions && !BG_.Exclusions && BG_.BgUtils_.require_("Exclusions");
+    needCommands && !BG_.Commands && BG_.BgUtils_.require_("Commands");
   }
 }
 BG_.addEventListener("unload", OnBgUnload);

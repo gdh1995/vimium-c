@@ -15,8 +15,8 @@ interface Window {
   readonly Viewer: typeof Viewer;
 }
 interface BgWindow extends Window {
-  Utils: typeof Utils;
-  Settings: typeof Settings;
+  BgUtils_: typeof BgUtils_;
+  Settings_: typeof Settings_;
 }
 interface ViewerType {
   readonly visible: boolean;
@@ -45,7 +45,7 @@ var $ = function<T extends HTMLElement>(selector: string): T {
   return document.querySelector(selector) as T;
 },
 BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow;
-if (!(BG_ && BG_.Utils && BG_.Utils.convertToUrl_)) {
+if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
   BG_ = null as never;
 }
 
@@ -67,8 +67,8 @@ window.onhashchange = function (this: void): void {
 
   VData = Object.create(null);
   let url = location.hash, type: ValidShowTypes = "", file = "";
-  if (!url && BG_ && BG_.Settings && BG_.Settings.temp_.shownHash_) {
-    url = BG_.Settings.temp_.shownHash_();
+  if (!url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
+    url = BG_.Settings_.temp_.shownHash_();
     encryptKey = encryptKey || Math.floor(Math.random() * 0x100000000) || 0xc3e73c18;
     let encryptedUrl = encrypt(url, encryptKey, true);
     if (history.state) {
@@ -117,8 +117,8 @@ window.onhashchange = function (this: void): void {
   } else if (url.toLowerCase().startsWith("javascript:")) {
     type = url = file = VData.file = "";
   } else if (BG_) {
-    const str2 = BG_.Utils.convertToUrl_(url, null, Urls.WorkType.KeepAll);
-    if (BG_.Utils.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl) {
+    const str2 = BG_.BgUtils_.convertToUrl_(url, null, Urls.WorkType.KeepAll);
+    if (BG_.BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl) {
       url = str2;
     }
   } else if (url.startsWith("//")) {
@@ -150,8 +150,8 @@ window.onhashchange = function (this: void): void {
       this.onerror = this.onload = null as never;
       this.alt = VData.error = "\xa0(fail in loading)\xa0";
       if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || !(Build.BTypes & BrowserType.Chrome)
-          || BG_ && BG_.Settings
-            && BG_.ChromeVer >= BrowserVer.MinNoBorderForBrokenImage) {
+          || BG_ && BG_.Settings_
+            && BG_.CurCVer_ >= BrowserVer.MinNoBorderForBrokenImage) {
         this.classList.add("broken");
       }
       this.classList.remove("hidden");
@@ -210,12 +210,12 @@ window.onhashchange = function (this: void): void {
     if (url && BG_) {
       let str1: Urls.Url | null = null;
       if (url.startsWith("vimium://")) {
-        str1 = BG_.Utils.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true);
+        str1 = BG_.BgUtils_.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true);
       }
-      str1 = str1 !== null ? str1 : BG_.Utils.convertToUrl_(url, null, Urls.WorkType.ConvertKnown);
+      str1 = str1 !== null ? str1 : BG_.BgUtils_.convertToUrl_(url, null, Urls.WorkType.ConvertKnown);
       if (typeof str1 === "string") {
-        str1 = BG_.Utils.detectLinkDeclaration_(str1);
-        str1 = BG_.Utils.reformatURL_(str1);
+        str1 = BG_.BgUtils_.detectLinkDeclaration_(str1);
+        str1 = BG_.BgUtils_.reformatURL_(str1);
       }
       else if (str1 instanceof BG_.Promise) {
         str1.then(function (arr) {

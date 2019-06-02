@@ -1,6 +1,6 @@
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 
-var Settings = {
+var Settings_ = {
   cache_: Object.create(null) as Readonly<SettingsNS.FullCache>,
   temp_: {
     onInstall_: null as Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null,
@@ -9,7 +9,7 @@ var Settings = {
   },
   payload_: (Build.BTypes & BrowserType.Chrome ? {
     __proto__: null as never,
-    browserVer_: ChromeVer,
+    browserVer_: CurCVer_,
     reduceMotion_: false,
     grabBackFocus_: false,
     onMac_: false
@@ -17,7 +17,7 @@ var Settings = {
     __proto__: null as never, reduceMotion_: false, grabBackFocus_: false, onMac_: false
   }) as SettingsNS.FrontendSettingsWithoutSyncing & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
   omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
-    browserVer_: ChromeVer,
+    browserVer_: CurCVer_,
     css_: "",
     maxMatches_: 0,
     queryInterval_: 0,
@@ -63,15 +63,15 @@ var Settings = {
     }
   },
   postUpdate_: function<K extends keyof SettingsWithDefaults> (this: {}, key: K, value?: FullSettings[K]): void {
-    return ((this as typeof Settings).updateHooks_[key] as SettingsNS.SimpleUpdateHook<K>).call(
-      this as typeof Settings,
-      value !== undefined ? value : (this as typeof Settings).get_(key), key);
+    return ((this as typeof Settings_).updateHooks_[key] as SettingsNS.SimpleUpdateHook<K>).call(
+      this as typeof Settings_,
+      value !== undefined ? value : (this as typeof Settings_).get_(key), key);
   } as {
     <K extends SettingsNS.NullableUpdateHooks>(key: K, value?: FullSettings[K] | null): void;
     <K extends SettingsNS.EnsuredUpdateHooks | keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
   },
   broadcast_<K extends keyof BgReq> (request: Req.bg<K>): void {
-    const ref = Backend.indexPorts_();
+    const ref = Backend_.indexPorts_();
     for (const tabId in ref) {
       const frames = ref[+tabId] as Frames.Frames;
       for (let i = frames.length; 0 < --i; ) {
@@ -80,11 +80,11 @@ var Settings = {
     }
   },
   broadcastOmni_<K extends ValidBgVomnibarReq> (request: Req.bg<K>): void {
-    for (const frame of Backend.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
+    for (const frame of Backend_.indexPorts_(GlobalConsts.VomnibarFakeTabId)) {
       frame.postMessage(request);
     }
   },
-  updateOmniStyles_: Utils.blank_ as (key: MediaNS.kName, embed?: 1 | undefined) => void,
+  updateOmniStyles_: BgUtils_.blank_ as (key: MediaNS.kName, embed?: 1 | undefined) => void,
   parseCustomCSS_ (css: string): SettingsNS.ParsedCustomCSS {
     const arr = css ? css.split(<RegExpG & RegExpSearchable<1>> /\/\*\s?#!?([A-Za-z]+)\s?\*\//g) : [""];
     const map: SettingsNS.ParsedCustomCSS = { ui: arr[0].trim() };
@@ -97,8 +97,8 @@ var Settings = {
   updateHooks_: {
     __proto__: null as never,
     extWhiteList (val): void {
-      const old = (this as typeof Settings).extWhiteList_;
-      const map = (this as typeof Settings).extWhiteList_ = Object.create<boolean>(null);
+      const old = (this as typeof Settings_).extWhiteList_;
+      const map = (this as typeof Settings_).extWhiteList_ = Object.create<boolean>(null);
       if (old && Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
         for (const key in old) { if (old[key] === false) { map[key] = false; } }
@@ -111,50 +111,50 @@ var Settings = {
       }
     },
     grabBackFocus (this: {}, value: FullSettings["grabBackFocus"]): void {
-      (this as typeof Settings).payload_.grabBackFocus_ = value;
+      (this as typeof Settings_).payload_.grabBackFocus_ = value;
     },
     newTabUrl (this: {}, url): void {
       url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(url)
-        ? chrome.runtime.getURL(url) : Utils.convertToUrl_(url);
-      return (this as typeof Settings).set_("newTabUrl_f", url);
+        ? chrome.runtime.getURL(url) : BgUtils_.convertToUrl_(url);
+      return (this as typeof Settings_).set_("newTabUrl_f", url);
     },
     searchEngines (this: {}): void {
-      return (this as typeof Settings).set_("searchEngineMap", Object.create<Search.Engine>(null));
+      return (this as typeof Settings_).set_("searchEngineMap", Object.create<Search.Engine>(null));
     },
     searchEngineMap (this: {}, value: FullSettings["searchEngineMap"]): void {
-      const a = this as typeof Settings;
+      const a = this as typeof Settings_;
       "searchKeywords" in a.cache_ && a.set_("searchKeywords", null);
       // Note: this requires `searchUrl` must be a valid URL
-      if (!(Build.NDEBUG || Utils.protocolRe_.test(a.get_("searchUrl")))) {
-        console.log('Assert error: Utils.protocolRe_.test(Settings.get_("searchUrl"))');
+      if (!(Build.NDEBUG || BgUtils_.protocolRe_.test(a.get_("searchUrl")))) {
+        console.log('Assert error: BgUtils_.protocolRe_.test(Settings_.get_("searchUrl"))');
       }
-      const rules = Utils.parseSearchEngines_("~:" + a.get_("searchUrl") + "\n" + a.get_("searchEngines"), value);
+      const rules = BgUtils_.parseSearchEngines_("~:" + a.get_("searchUrl") + "\n" + a.get_("searchEngines"), value);
       return a.set_("searchEngineRules", rules);
     },
     searchUrl (str): void {
-      const cache = (this as typeof Settings).cache_ as Writeable<typeof Settings.cache_>;
+      const cache = (this as typeof Settings_).cache_ as Writeable<typeof Settings_.cache_>;
       if (str) {
-        Utils.parseSearchEngines_("~:" + str, cache.searchEngineMap);
+        BgUtils_.parseSearchEngines_("~:" + str, cache.searchEngineMap);
       } else {
         const initialMap: { "~": Search.Engine } = {
-          "~": { name: "~", blank: "", url: (this as typeof Settings).get_("searchUrl").split(" ", 1)[0] }
+          "~": { name: "~", blank: "", url: (this as typeof Settings_).get_("searchUrl").split(" ", 1)[0] }
         };
         cache.searchEngineMap = initialMap as SafeObject & typeof initialMap;
         cache.searchEngineRules = [];
-        if (str = (this as typeof Settings).get_("newTabUrl_f", true)) {
-          return ((this as typeof Settings).updateHooks_.newTabUrl_f as (this: void, url_f: string) => void)(str);
+        if (str = (this as typeof Settings_).get_("newTabUrl_f", true)) {
+          return ((this as typeof Settings_).updateHooks_.newTabUrl_f as (this: void, url_f: string) => void)(str);
         }
       }
-      return (this as typeof Settings).postUpdate_("newTabUrl");
+      return (this as typeof Settings_).postUpdate_("newTabUrl");
     },
     baseCSS (this: {}, css): void {
-      const a = this as typeof Settings, cacheId = a.CONST_.StyleCacheId_,
-      browserVer = ChromeVer,
+      const a = this as typeof Settings_, cacheId = a.CONST_.StyleCacheId_,
+      browserVer = CurCVer_,
       browserInfo = cacheId.slice(cacheId.indexOf(",") + 1),
       hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All
           || browserInfo.indexOf("a") >= 0;
       if (!(Build.NDEBUG || css.startsWith(":host{"))) {
-        console.log('Assert error: `css.startsWith(":host{")` in Settings.updateHooks_.baseCSS');
+        console.log('Assert error: `css.startsWith(":host{")` in Settings_.updateHooks_.baseCSS');
       }
       if (Build.MinCVer < BrowserVer.MinUnprefixedUserSelect && Build.BTypes & BrowserType.Chrome
             && browserVer < BrowserVer.MinUnprefixedUserSelect
@@ -196,7 +196,7 @@ var Settings = {
       }
       if ((Build.BTypes & (BrowserType.Chrome | BrowserType.Edge) && Build.MinCVer < BrowserVer.MinCSS$Color$$RRGGBBAA
           && ((!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
-            || ChromeVer < BrowserVer.MinCSS$Color$$RRGGBBAA
+            || CurCVer_ < BrowserVer.MinCSS$Color$$RRGGBBAA
           ))) {
         css = css.replace(<RegExpG & RegExpSearchable<0>> /#[0-9a-z]{8}/gi, function (s: string): string {
           const color = parseInt(s.slice(1), 16),
@@ -233,7 +233,7 @@ var Settings = {
       return a.set_("innerCSS", css);
     },
     userDefinedCss (this: {}, css2Str): void {
-      const a = this as typeof Settings;
+      const a = this as typeof Settings_;
       let css = a.storage_.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.slice(0, headEnd + 1 + +css.slice(0, headEnd).split(",")[2]);
       const css2 = a.parseCustomCSS_(css2Str);
@@ -249,7 +249,7 @@ var Settings = {
       a.set_("innerCSS", innerCSS);
       const cache = a.cache_;
       innerCSS = cache.innerCSS;
-      const ref = Backend.indexPorts_(), request: Req.bg<kBgReq.showHUD> = {
+      const ref = Backend_.indexPorts_(), request: Req.bg<kBgReq.showHUD> = {
         N: kBgReq.showHUD, S: innerCSS, f: cache.findCSS_
       };
       for (const tabId in ref) {
@@ -265,9 +265,9 @@ var Settings = {
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { css_: a.omniPayload_.css_ } });
     },
     innerCSS (this: {}, css): void {
-      const a = this as typeof Settings, cache = a.cache_ as Writeable<typeof Settings.cache_>;
+      const a = this as typeof Settings_, cache = a.cache_ as Writeable<typeof Settings_.cache_>;
       let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS");
-      if (!findCSS || omniCSS == null) { Settings.fetchFile_("baseCSS"); return; }
+      if (!findCSS || omniCSS == null) { Settings_.fetchFile_("baseCSS"); return; }
       findCSS = findCSS.slice(findCSS.indexOf("\n") + 1);
       const index = findCSS.indexOf("\n") + 1, index2 = findCSS.indexOf("\n", index);
       // Note: The lines below are allowed as a special use case
@@ -277,9 +277,9 @@ var Settings = {
       a.omniPayload_.css_ = omniCSS;
     },
     vomnibarPage (this: {}, url): void {
-      const a = this as typeof Settings, cur = localStorage.getItem("vomnibarPage_f");
+      const a = this as typeof Settings_, cur = localStorage.getItem("vomnibarPage_f");
       if (cur && !url) {
-        (a.cache_ as Writeable<typeof Settings.cache_>).vomnibarPage_f = cur;
+        (a.cache_ as Writeable<typeof Settings_.cache_>).vomnibarPage_f = cur;
         return;
       }
       url = url || a.get_("vomnibarPage");
@@ -288,11 +288,11 @@ var Settings = {
       } else if (url.startsWith("front/")) {
         url = chrome.runtime.getURL(url);
       } else {
-        url = Utils.convertToUrl_(url);
-        url = Utils.reformatURL_(url);
+        url = BgUtils_.convertToUrl_(url);
+        url = BgUtils_.reformatURL_(url);
         if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
             && Build.BTypes & BrowserType.Chrome
-            && ChromeVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg && !url.startsWith(BrowserProtocol_)) {
+            && CurCVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg && !url.startsWith(BrowserProtocol_)) {
           url = a.CONST_.VomnibarPageInner_;
         } else {
           url = url.replace(":version", "" + parseFloat(a.CONST_.VerCode_));
@@ -301,7 +301,7 @@ var Settings = {
       a.set_("vomnibarPage_f", url);
     },
     vomnibarOptions (this: {}, options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void {
-      const a = this as typeof Settings, defaultOptions = a.defaults_.vomnibarOptions,
+      const a = this as typeof Settings_, defaultOptions = a.defaults_.vomnibarOptions,
       payload = a.omniPayload_;
       let isSame = true;
       let { maxMatches, queryInterval, styles } = defaultOptions;
@@ -347,14 +347,14 @@ var Settings = {
     req.onload = function (): void {
       const text = this.responseText;
       if (file === "baseCSS") {
-        Settings.postUpdate_(file, text);
+        Settings_.postUpdate_(file, text);
       } else if ((Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
           || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
               && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
           && file === "words") {
-        Settings.CONST_.words = text.replace(<RegExpG> /[\n\r]/g, "");
+        Settings_.CONST_.words = text.replace(<RegExpG> /[\n\r]/g, "");
       } else {
-        Settings.set_(file as Exclude<typeof file, "baseCSS" | "words">, text);
+        Settings_.set_(file as Exclude<typeof file, "baseCSS" | "words">, text);
       }
       callback && setTimeout(callback, 0);
       return;
@@ -453,7 +453,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     "deepHints", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
-  sync_: Utils.blank_ as SettingsNS.Sync["set"],
+  sync_: BgUtils_.blank_ as SettingsNS.Sync["set"],
   CONST_: {
     AllowClipboardRead_: true,
     BaseCSSLength_: 0,
@@ -510,9 +510,9 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
   types = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
     ? chrome.runtime.PlatformOs as EnsureNonNull<typeof chrome.runtime.PlatformOs>
     : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
-  Settings.CONST_.Platform_ = os;
-  (Settings.payload_ as Writeable<typeof Settings.payload_>).onMac_ = os === types.MAC || (os === types.WIN && 0);
-}) : (Settings.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
+  Settings_.CONST_.Platform_ = os;
+  (Settings_.payload_ as Writeable<typeof Settings_.payload_>).onMac_ = os === types.MAC || (os === types.WIN && 0);
+}) : (Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown");
 
 if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
@@ -522,7 +522,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     ? !Build.NativeWordMoveOnFirefox
     : Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
       && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-      && ChromeVer < (
+      && CurCVer_ < (
         BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
@@ -531,19 +531,19 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   ( Build.BTypes & ~BrowserType.Firefox
     && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
     && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-      || ChromeVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp)
+      || CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp)
     && (Build.NativeWordMoveOnFirefox || !(Build.BTypes & BrowserType.Firefox) || OnOther !== BrowserType.Firefox)
   || !function (): boolean | void {
     try {
       return new RegExp("\\p{L}", "u").test("a");
     } catch {}
-  }()) ? Settings.fetchFile_("words") : (Settings.CONST_.words = "");
+  }()) ? Settings_.fetchFile_("words") : (Settings_.CONST_.words = "");
 }
 
 (function (): void {
   const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
   ref2 = ref.content_scripts[0].js,
-  settings = Settings,
+  settings = Settings_,
   { CONST_: obj, defaults_: defaults, valuesToLoad_, payload_ } = settings,
   // on Edge, https://www.msn.cn/spartan/ntp also works with some complicated search parameters
   // on Firefox, both "about:newtab" and "about:home" work,
@@ -561,23 +561,23 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   }
   if (Build.MayOverrideNewTab) {
     const overrides = ref.chrome_url_overrides, hasNewTab = overrides && overrides.newtab;
-    Settings.CONST_.OverrideNewTab_ = !!hasNewTab;
+    Settings_.CONST_.OverrideNewTab_ = !!hasNewTab;
     if (hasNewTab) {
       ref3[func(hasNewTab)] = Urls.NewTabType.vimium;
     }
   }
   (defaults as SettingsWithDefaults).newTabUrl = (Build.BTypes & ~BrowserType.Chrome
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
-      ? CommonNewTab : (Build.MayOverrideNewTab && Settings.CONST_.OverrideNewTab_) ? obj.NtpNewTab_ : ChromeNewTab;
+      ? CommonNewTab : (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_) ? obj.NtpNewTab_ : ChromeNewTab;
   // note: on firefox, "about:newtab/" is invalid, but it's OKay if still marking the URL a NewTab URL.
   /** Note: .vimium and .browser should never exist in the same time
-   * use {@link #Build.MayOverrideNewTab} and {@link #Settings.CONST_.OverrideNewTab_)} to decide which one
+   * use {@link #Build.MayOverrideNewTab} and {@link #Settings_.CONST_.OverrideNewTab_)} to decide which one
    * required by {@link main.ts#tabsCreate}
    */
-  ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = (Build.MayOverrideNewTab && Settings.CONST_.OverrideNewTab_)
+  ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_)
       ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
-  (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = (Build.MayOverrideNewTab && Settings.CONST_.OverrideNewTab_)
+  (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_)
       ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
   obj.GlobalCommands_ = (<Array<kShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
       ).map(i => i === kShortcutAliases.nextTab1 ? kShortcutNames.nextTab : i);
@@ -591,7 +591,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   obj.HomePage_ = ref.homepage_url || obj.HomePage_;
   ref2.push(obj.InjectEnd_);
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith
-      && ChromeVer < BrowserVer.MinSafe$String$$StartsWith
+      && CurCVer_ < BrowserVer.MinSafe$String$$StartsWith
       && "".startsWith.name !== "startsWith") {
     ref2.unshift(obj.PolyFill_);
   }
@@ -606,13 +606,13 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   if (localStorage.length <= 0) {
     settings.set_("newTabUrl", obj.NewTabForNewUser_);
   }
-  obj.StyleCacheId_ = obj.VerCode_ + "," + ChromeVer
+  obj.StyleCacheId_ = obj.VerCode_ + "," + CurCVer_
     + ( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
         ? "" : window.ShadowRoot ? "s" : "")
     + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All ? ""
-      : (Build.MinCVer > BrowserVer.MinSafeCSS$All || ChromeVer > BrowserVer.MinSafeCSS$All)
+      : (Build.MinCVer > BrowserVer.MinSafeCSS$All || CurCVer_ > BrowserVer.MinSafeCSS$All)
         && (!(Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))
           || "all" in (document.documentElement as HTMLHtmlElement).style)
       ? "a" : "")

@@ -34,7 +34,7 @@
       "getAttribute", "hasAttribute", "querySelectorAll",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
       "VEvent.lock_", "VEvent.mapKey_", "VLib.safer_",
-      "onRuntimeError", "Utils.runtimeError_",
+      "onRuntimeError", "BgUtils_.runtimeError_",
       "SafeEl_", "notSafe_", "getEditableType_",
       "readyState",
       "_getKeyCharUsingKeyIdentifier", "parentFrame_"
@@ -69,7 +69,7 @@
       "VHints", "VOmni", "VScroller", "VMarks", "VFind", "VVisual",
       "VSettings", "VHud", "VPort", "VEvent",
       // # fixed background global names:
-      "Utils", "OnOther", "ChromeVer", "Settings", "Backend",
+      "OnOther",
       "Commands", "Exclusions", "HelpDialog",
       // # front/vomnibar
       "VCID",

@@ -9,8 +9,8 @@ interface Checker<T extends keyof AllowedOptions> {
   check_ (value: AllowedOptions[T]): AllowedOptions[T];
 }
 interface BgWindow extends Window {
-  Utils: typeof Utils;
-  Settings: typeof Settings;
+  BgUtils_: typeof BgUtils_;
+  Settings_: typeof Settings_;
 }
 
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
@@ -65,9 +65,9 @@ debounce_ = function<T> (this: void, func: (this: T) => void
 
 var $ = function<T extends HTMLElement>(selector: string): T { return document.querySelector(selector) as T; }
   , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow;
-let bgSettings_ = BG_.Settings;
+let bgSettings_ = BG_.Settings_;
 declare var bgOnOther_: BrowserType;
-const bgBrowserVer_ = Build.BTypes & BrowserType.Chrome ? BG_.ChromeVer : BrowserVer.assumedVer;
+const bgBrowserVer_ = Build.BTypes & BrowserType.Chrome ? BG_.CurCVer_ : BrowserVer.assumedVer;
 if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
   var bgOnOther_ = BG_.OnOther as NonNullable<typeof BG_.OnOther>;
 }
@@ -319,7 +319,7 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       pattern += "/";
     }
     if (passKeys) {
-      passKeys = BG_.Utils.formatKeys_(passKeys);
+      passKeys = BG_.BgUtils_.formatKeys_(passKeys);
       const passArr = passKeys.match(KeyRe_);
       if (passArr) {
         const isReverted = passArr[0] === "^" && passArr.length > 1;
@@ -385,13 +385,13 @@ if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
 $<HTMLElement>(".version").textContent = bgSettings_.CONST_.VerName_;
 
 location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
-BG_.Utils.require_("Exclusions").then((function (callback) {
+BG_.BgUtils_.require_("Exclusions").then((function (callback) {
   return function () {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
 })(function (activeTabs: [chrome.tabs.Tab] | never[]): void {
   const curTab = activeTabs[0];
-  let ref = BG_.Backend.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg");
+  let ref = BG_.Backend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg");
   const notRunnable = !ref && !(curTab && curTab.url && curTab.status === "loading"
     && (curTab.url.lastIndexOf("http", 0) === 0 || curTab.url.lastIndexOf("ftp", 0) === 0));
   if (notRunnable) {
@@ -422,7 +422,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG_.Object.create(null);
     a.u = bgSettings_.CONST_.OptionsPage_;
-    BG_.Backend.focus_(a);
+    BG_.Backend_.focus_(a);
     window.close();
   };
   if (notRunnable) {
@@ -439,7 +439,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     t: curTab.id,
     u: curTab.url
   },
-  topUrl = frameInfo.i && ((BG_.Backend.indexPorts_(curTab.id, 0)
+  topUrl = frameInfo.i && ((BG_.Backend_.indexPorts_(curTab.id, 0)
       || {} as Frames.Port).s || {} as Frames.Sender).u || "",
   stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
   url = frameInfo.u;
@@ -558,7 +558,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
       return;
     }
     const testers = bgExclusions.testers_;
-    BG_.Backend.forceStatus_("reset", frameInfo.t);
+    BG_.Backend_.forceStatus_("reset", frameInfo.t);
     exclusions.save_();
     setTimeout(function () {
       bgExclusions.testers_ = testers;
@@ -624,13 +624,13 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
   }
   window.onunload = function (): void {
     bgExclusions.testers_ = null;
-    BG_.Utils.GC_(-1);
+    BG_.BgUtils_.GC_(-1);
   };
-  BG_.Utils.GC_(1);
+  BG_.BgUtils_.GC_(1);
 
   function forceState(act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();
-    BG_.Backend.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", frameInfo.t);
+    BG_.Backend_.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", frameInfo.t);
     window.close();
   }
 }));

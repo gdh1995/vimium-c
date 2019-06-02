@@ -85,7 +85,7 @@ if (Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_) {
 Option_.all_.newTabUrl.checker_ = {
   check_ (value: string): string {
     let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
-        ? chrome.runtime.getURL(value) : BG_.Utils.convertToUrl_(value.toLowerCase());
+        ? chrome.runtime.getURL(value) : BG_.BgUtils_.convertToUrl_(value.toLowerCase());
     url = url.split("?", 1)[0].split("#", 1)[0];
     return value.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_
       || (<RegExpI> /^[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
@@ -97,19 +97,19 @@ Option_.all_.newTabUrl.checker_ = {
 Option_.all_.searchUrl.checker_ = {
   check_ (str: string): string {
     const map = Object.create<Search.RawEngine>(null);
-    BG_.Utils.parseSearchEngines_("k:" + str, map);
+    BG_.BgUtils_.parseSearchEngines_("k:" + str, map);
     const obj = map.k;
     if (obj == null) {
       return bgSettings_.get_("searchUrl", true);
     }
-    let str2 = BG_.Utils.convertToUrl_(obj.url, null, Urls.WorkType.KeepAll);
-    if (BG_.Utils.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
+    let str2 = BG_.BgUtils_.convertToUrl_(obj.url, null, Urls.WorkType.KeepAll);
+    if (BG_.BgUtils_.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
       const err = `The value "${obj.url}" is not a valid plain URL.`;
       console.log("searchUrl checker:", err);
       Option_.all_.searchUrl.showError_(err);
       return bgSettings_.get_("searchUrl", true);
     }
-    str2 = str2.replace(BG_.Utils.spacesRe_, "%20");
+    str2 = str2.replace(BG_.BgUtils_.spacesRe_, "%20");
     if (obj.name && obj.name !== "k") { str2 += " " + obj.name; }
     Option_.all_.searchUrl.showError_("");
     return str2;
@@ -133,7 +133,7 @@ Please only perform one action at a time!`
       :
 `        Warning:
 the current settings will be OVERRIDDEN the next time Vimium C starts!
-Please back up your settings using the "Export Settings" button
+Please back up your settings using the "Export Settings_" button
 !!!        RIGHT NOW        !!!`
     );
     if (tooMany) {
@@ -164,7 +164,7 @@ Option_.all_.keyboard.checker_ = {
   if (info === "keyMappings") { return ReloadCommands(); }
   Option_.all_.keyMappings.element_.addEventListener("input", ReloadCommands);
   function ReloadCommands(this: HTMLElement | void, event?: Event): void {
-    BG_.Commands || BG_.Utils.require_("Commands");
+    BG_.Commands || BG_.BgUtils_.require_("Commands");
     if (!event) { return; }
     (this as HTMLElement).removeEventListener("input", ReloadCommands);
   }

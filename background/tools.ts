@@ -14,7 +14,7 @@ const Clipboard_ = {
   },
   tailSpacesOrNewLineRe_: <RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g,
   format_ (data: string): string {
-    data = data.replace(Utils.A0Re_, " ").replace(this.tailSpacesOrNewLineRe_, "\n");
+    data = data.replace(BgUtils_.A0Re_, " ").replace(this.tailSpacesOrNewLineRe_, "\n");
     let i = data.charCodeAt(data.length - 1);
     if (i !== KnownKey.space && i !== KnownKey.tab) { /* empty */ }
     else if (i = data.lastIndexOf("\n") + 1) {
@@ -25,11 +25,11 @@ const Clipboard_ = {
     return data;
   },
   reformat_ (copied: string): string {
-    copied = copied.replace(Utils.A0Re_, " ");
-    Utils.resetRe_();
+    copied = copied.replace(BgUtils_.A0Re_, " ");
+    BgUtils_.resetRe_();
     return copied;
   },
-  paste_: Settings.CONST_.AllowClipboardRead_
+  paste_: Settings_.CONST_.AllowClipboardRead_
     ? Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
   ? function (this: object): Promise<string> | null {
     const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
@@ -56,42 +56,42 @@ ContentSettings_ = Build.PContentSettings ? {
   },
   complain_ (this: void, contentType: CSTypes, url: string): boolean {
     if (!chrome.contentSettings) {
-      Backend.showHUD_("This version of Vimium C has no permissions to set CSs");
+      Backend_.showHUD_("This version of Vimium C has no permissions to set CSs");
       return true;
     }
     if (!chrome.contentSettings[contentType] || (<RegExpOne> /^[A-Z]/).test(contentType)) {
-      Backend.showHUD_("Unknown content settings type: " + contentType);
+      Backend_.showHUD_("Unknown content settings type: " + contentType);
       return true;
     }
-    if (Utils.protocolRe_.test(url) && !url.startsWith(BrowserProtocol_)) {
+    if (BgUtils_.protocolRe_.test(url) && !url.startsWith(BrowserProtocol_)) {
       return false;
     }
-    Backend.complain_("change its content settings");
+    Backend_.complain_("change its content settings");
     return true;
   },
   parsePattern_ (this: void, pattern: string, level: number): string[] {
     if (pattern.startsWith("file:")) {
       const a = Build.MinCVer >= BrowserVer.MinFailToToggleImageOnFileURL
-          || ChromeVer >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
+          || CurCVer_ >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
       if (a) {
-        Backend.complain_(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}`
+        Backend_.complain_(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}`
           : "set CS of file folders");
         return [];
       }
       return [pattern.split(<RegExpOne> /[?#]/, 1)[0]];
     }
     if (pattern.startsWith("ftp:")) {
-      Backend.complain_("set FTP pages' content settings");
+      Backend_.complain_("set FTP pages' content settings");
       return [];
     }
     let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
-      , hosts = Utils.hostRe_.exec(info[2]) as RegExpExecArray & string[4]
+      , hosts = BgUtils_.hostRe_.exec(info[2]) as RegExpExecArray & string[4]
       , result: string[], host = hosts[3] + (hosts[4] || "");
     pattern = info[1];
     result = [pattern + host + "/*"];
-    if (level < 2 || Utils.isIPHost_(hosts[3], 0)) { return result; }
+    if (level < 2 || BgUtils_.isIPHost_(hosts[3], 0)) { return result; }
     hosts = null as never;
-    const [arr, partsNum] = Utils.splitByPublicSuffix_(host),
+    const [arr, partsNum] = BgUtils_.splitByPublicSuffix_(host),
     end = Math.min(arr.length - partsNum, level - 1);
     for (let j = 0; j < end; j++) {
       host = host.slice(arr[j].length + 1);
@@ -112,14 +112,14 @@ ContentSettings_ = Build.PContentSettings ? {
       return;
     }
     cs.clear({ scope: kRegular });
-    cs.clear({ scope: kIncognito }, Utils.runtimeError_);
+    cs.clear({ scope: kIncognito }, BgUtils_.runtimeError_);
     localStorage.removeItem(ContentSettings_.makeKey_(contentType));
   },
   clearCS_ (options: CommandsNS.Options, port: Port): void {
     const ty = "" + options.type as CSTypes;
     if (!this.complain_(ty, "https://a.cc/")) {
       this.Clear_(ty, port.s);
-      return Backend.showHUD_(ty + " content settings have been cleared.");
+      return Backend_.showHUD_(ty + " content settings have been cleared.");
     }
   },
   toggleCS_ (count: number, options: CommandsNS.Options, tabs: [Tab]): void {
@@ -128,7 +128,7 @@ ContentSettings_ = Build.PContentSettings ? {
       : this.toggleCurrent_(count, ty, tab, options.action === "reopen");
   },
   toggleCurrent_ (this: void, count: number, contentType: CSTypes, tab: Tab, reopen: boolean): void {
-    const pattern = Utils.removeComposedScheme_(tab.url);
+    const pattern = BgUtils_.removeComposedScheme_(tab.url);
     if (ContentSettings_.complain_(contentType, pattern)) { return; }
     chrome.contentSettings[contentType].get({
       primaryUrl: pattern,
@@ -145,26 +145,26 @@ ContentSettings_ = Build.PContentSettings ? {
         }
         if (tab.incognito || reopen) {
           ++tab.index;
-          return Backend.reopenTab_(tab);
+          return Backend_.reopenTab_(tab);
         } else if (tab.index > 0 && chrome.sessions) {
-          return Backend.reopenTab_(tab, true);
+          return Backend_.reopenTab_(tab, true);
         }
         chrome.windows.getCurrent({populate: true}, function (wnd) {
-          !wnd || wnd.type !== "normal" ? chrome.tabs.reload(Utils.runtimeError_)
-            : Backend.reopenTab_(tab, wnd.tabs.length > 1 && !!chrome.sessions);
-          return Utils.runtimeError_();
+          !wnd || wnd.type !== "normal" ? chrome.tabs.reload(BgUtils_.runtimeError_)
+            : Backend_.reopenTab_(tab, wnd.tabs.length > 1 && !!chrome.sessions);
+          return BgUtils_.runtimeError_();
         });
       });
     });
   },
   ensureIncognito_ (this: void, count: number, contentType: CSTypes, tab: Tab): void {
-    if (Settings.CONST_.DisallowIncognito_) {
-      return Backend.complain_("change incognito settings");
+    if (Settings_.CONST_.DisallowIncognito_) {
+      return Backend_.complain_("change incognito settings");
     }
-    const pattern = Utils.removeComposedScheme_(tab.url);
+    const pattern = BgUtils_.removeComposedScheme_(tab.url);
     if (ContentSettings_.complain_(contentType, pattern)) { return; }
     chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function (opt): void {
-      if (Utils.runtimeError_()) {
+      if (BgUtils_.runtimeError_()) {
         chrome.contentSettings[contentType].get({primaryUrl: pattern}, function (opt2) {
           if (opt2 && opt2.setting === "allow") { return; }
           const wndOpt: chrome.windows.CreateData = {
@@ -181,7 +181,7 @@ ContentSettings_ = Build.PContentSettings ? {
             });
           });
         });
-        return Utils.runtimeError_();
+        return BgUtils_.runtimeError_();
       }
       if (opt && opt.setting === "allow" && tab.incognito) {
         return ContentSettings_.updateTab_(tab);
@@ -223,7 +223,7 @@ ContentSettings_ = Build.PContentSettings ? {
       , callback: (this: void, has_err: boolean) => void): void {
     let left: number, has_err = false;
     const ref = chrome.contentSettings[contentType], func = function () {
-      const err = Utils.runtimeError_();
+      const err = BgUtils_.runtimeError_();
       err && console.log("[%o]", Date.now(), err);
       if (has_err) { return err; }
       --left; has_err = !!<boolean> <boolean | void> err;
@@ -236,7 +236,7 @@ ContentSettings_ = Build.PContentSettings ? {
     if (left <= 0) { return callback(true); }
     Object.setPrototypeOf(settings, null);
     for (const pattern of arr) {
-      const info = Utils.extendIf_(Object.create(null) as chrome.contentSettings.SetDetails, settings);
+      const info = BgUtils_.extendIf_(Object.create(null) as chrome.contentSettings.SetDetails, settings);
       info.primaryPattern = pattern;
       ref.set(info, func);
     }
@@ -259,11 +259,11 @@ ContentSettings_ = Build.PContentSettings ? {
       (tab as chrome.tabs.CreateProperties).index = undefined;
       tab.windowId = newWindowId;
     }
-    Backend.reopenTab_(tab);
+    Backend_.reopenTab_(tab);
   }
 } : {
   complain_ () {
-    Backend.showHUD_("This version of Vimium C has no permissions to set CSs");
+    Backend_.showHUD_("This version of Vimium C has no permissions to set CSs");
   }
 } as never,
 Marks_ = { // NOTE: all public members should be static
@@ -297,7 +297,7 @@ Marks_ = { // NOTE: all public members should be static
     if (request.s) {
       return Marks_._set(request as MarksNS.NewMark, port.s.a, tabId);
     }
-    (port = Backend.indexPorts_(tabId, 0) || port) && port.postMessage({
+    (port = Backend_.indexPorts_(tabId, 0) || port) && port.postMessage({
       N: kBgReq.createMark,
       n: request.n,
     });
@@ -319,7 +319,7 @@ Marks_ = { // NOTE: all public members should be static
       }
     }
     if (!str) {
-      return Backend.showHUD_(`${local ? "Local" : "Global"} mark not set : ' ${markName} '.`);
+      return Backend_.showHUD_(`${local ? "Local" : "Global"} mark not set : ' ${markName} '.`);
     }
     const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
     const tabId = +stored.tabId, markInfo: MarksNS.MarkToGo = {
@@ -327,28 +327,28 @@ Marks_ = { // NOTE: all public members should be static
       n: markName, p: true,
     };
     markInfo.p = request.p !== false && markInfo.s[1] === 0 && markInfo.s[0] === 0 &&
-        !!Utils.IsURLHttp_(markInfo.u);
-    if (tabId >= 0 && Backend.indexPorts_(tabId)) {
+        !!BgUtils_.IsURLHttp_(markInfo.u);
+    if (tabId >= 0 && Backend_.indexPorts_(tabId)) {
       chrome.tabs.get(tabId, Marks_.checkTab_.bind(markInfo));
     } else {
-      return Backend.focus_(markInfo);
+      return Backend_.focus_(markInfo);
     }
   },
   checkTab_ (this: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
     const url = tab.url.split("#", 1)[0];
     if (url === this.u || this.p && this.u.startsWith(url)) {
-      Backend.gotoSession_({ s: tab.id });
+      Backend_.gotoSession_({ s: tab.id });
       return Marks_.scrollTab_(this, tab);
     } else {
-      return Backend.focus_(this);
+      return Backend_.focus_(this);
     }
   },
   getLocationKey_ (markName: string, url: string | undefined): string {
-    return (url ? "vimiumMark|" + Utils.prepareReparsingPrefix_(url.split("#", 1)[0])
+    return (url ? "vimiumMark|" + BgUtils_.prepareReparsingPrefix_(url.split("#", 1)[0])
       : "vimiumGlobalMark") + "|" + markName;
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
-    const tabId = tab.id, port = Backend.indexPorts_(tabId, 0);
+    const tabId = tab.id, port = Backend_.indexPorts_(tabId, 0);
     port && Marks_._goto(port, { n: markInfo.n, s: markInfo.s });
     if (markInfo.t !== tabId && markInfo.n) {
       return Marks_._set(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
@@ -374,7 +374,7 @@ Marks_ = { // NOTE: all public members should be static
         }
       }
     }
-    return Backend.showHUD_(`${num} ${url ? "local" : "global"} mark${num !== 1 ? "s have" : " has"} been removed.`);
+    return Backend_.showHUD_(`${num} ${url ? "local" : "global"} mark${num !== 1 ? "s have" : " has"} been removed.`);
   }
 },
 FindModeHistory_ = {
@@ -383,7 +383,7 @@ FindModeHistory_ = {
   listI_: null as string[] | null,
   timer_: 0,
   init_ (): void {
-    const str: string = Settings.get_(this.key_);
+    const str: string = Settings_.get_(this.key_);
     this.list_ = str ? str.split("\n") : [];
     this.init_ = null as never;
   },
@@ -399,7 +399,7 @@ FindModeHistory_ = {
       return a.refreshIn_(query, list, true);
     }
     const str = a.refreshIn_(query, list);
-    str && Settings.set_(a.key_, str);
+    str && Settings_.set_(a.key_, str);
     if (a.listI_) { return a.refreshIn_(query, a.listI_, true); }
   } as {
     (incognito: boolean, query?: undefined | "", nth?: number): string;
@@ -428,7 +428,7 @@ FindModeHistory_ = {
     }
     this.init_ = null as never;
     this.list_ = [];
-    Settings.set_(this.key_, "");
+    Settings_.set_(this.key_, "");
   }
 },
 IncognitoWatcher_ = {
@@ -447,8 +447,8 @@ IncognitoWatcher_ = {
   TestIncognitoWnd_ (this: void): void {
     IncognitoWatcher_.timer_ = 0;
     if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
-        || ChromeVer >= BrowserVer.MinNoUnmatchedIncognito) {
-      let left = false, arr = Backend.indexPorts_();
+        || CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito) {
+      let left = false, arr = Backend_.indexPorts_();
       for (const i in arr) {
         if ((arr[+i] as Frames.Frames)[0].s.a) { left = true; break; }
       }
@@ -471,14 +471,14 @@ MediaWatcher_ = {
       && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
     ? MediaNS.Watcher.NotWatching
     : Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-    ? ChromeVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion ? MediaNS.Watcher.NotWatching
+    ? CurCVer_ >= BrowserVer.MinMediaQuery$PrefersReducedMotion ? MediaNS.Watcher.NotWatching
       : MediaNS.Watcher.InvalidMedia
     : Build.DetectAPIOnFirefox ? MediaNS.Watcher.WaitToTest : MediaNS.Watcher.NotWatching,
     !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinMediaQuery$PrefersColorScheme)
       && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
     ? MediaNS.Watcher.NotWatching
     : Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-    ? ChromeVer >= BrowserVer.MinMediaQuery$PrefersColorScheme ? MediaNS.Watcher.NotWatching
+    ? CurCVer_ >= BrowserVer.MinMediaQuery$PrefersColorScheme ? MediaNS.Watcher.NotWatching
       : MediaNS.Watcher.InvalidMedia
     : MediaNS.Watcher.WaitToTest
   ] as { [k in MediaNS.kName]: MediaNS.Watcher | MediaQueryList } & Array<MediaNS.Watcher | MediaQueryList>,
@@ -500,7 +500,7 @@ MediaWatcher_ = {
       watchers[key] = query;
       if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-          && ChromeVer < BrowserVer.MinMediaChangeEventsOnBackgroundPage
+          && CurCVer_ < BrowserVer.MinMediaChangeEventsOnBackgroundPage
           && !a._timer) {
         a._timer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval);
       }
@@ -512,7 +512,7 @@ MediaWatcher_ = {
     }
   },
   update_ (this: void, key: MediaNS.kName, embed?: 1): void {
-    const settings = Settings, payload = settings.payload_,
+    const settings = Settings_, payload = settings.payload_,
     omniToggled = key ? "dark" : "less-motion",
     matched = MediaWatcher_.get_(key), bMatched = !!matched;
     if (!key) {
@@ -521,7 +521,7 @@ MediaWatcher_ = {
         embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: { reduceMotion_: bMatched } });
       }
     }
-    Backend.setOmniStyle_({
+    Backend_.setOmniStyle_({
       t: omniToggled,
       e: matched != null ? matched : ` ${settings.cache_.vomnibarOptions.styles} `.indexOf(` ${omniToggled} `) >= 0,
       b: !embed
@@ -549,7 +549,7 @@ TabRecency_ = {
   rCompare_: null as never as (a: {id: number}, b: {id: number}) => number,
 };
 
-Utils.timeout_(120, function (): void {
+BgUtils_.timeout_(120, function (): void {
   const cache = TabRecency_.tabs_, noneWnd = chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone;
   let stamp = 1, time = 0;
   function clean(): void {
@@ -569,7 +569,7 @@ Utils.timeout_(120, function (): void {
     TabRecency_.last_ = info.tabId; time = now;
   }
   function onWndFocus(tabs: [chrome.tabs.Tab] | never[]) {
-    if (!tabs) { return Utils.runtimeError_(); }
+    if (!tabs) { return BgUtils_.runtimeError_(); }
     let a = tabs[0];
     if (a) {
       TabRecency_.lastWnd_ = a.windowId;
@@ -588,7 +588,7 @@ Utils.timeout_(120, function (): void {
   chrome.tabs.query({currentWindow: true, active: true}, function (tabs: CurrentTabs): void {
     time = performance.now();
     const a = tabs && tabs[0];
-    if (!a) { return Utils.runtimeError_(); }
+    if (!a) { return BgUtils_.runtimeError_(); }
     TabRecency_.last_ = a.id;
     TabRecency_.lastWnd_ = a.windowId;
     TabRecency_.incognito_ = a.incognito ? IncognitoType.true
@@ -599,7 +599,7 @@ Utils.timeout_(120, function (): void {
     return (cache[b.id] as number) - (cache[a.id] as number);
   };
 
-  const settings = Settings;
+  const settings = Settings_;
   settings.updateHooks_.autoDarkMode = settings.updateHooks_.autoReduceMotion = (value: boolean
       , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
     const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion
@@ -617,7 +617,7 @@ Utils.timeout_(120, function (): void {
   }
 });
 
-Utils.copy_ = Build.BTypes & BrowserType.Firefox
+BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
     && (Build.MinFFVer >= FirefoxBrowserVer.MinUsable$Navigator$$Clipboard || navigator.clipboard)
 ? function (this: void, data: string): void {
@@ -631,11 +631,11 @@ Utils.copy_ = Build.BTypes & BrowserType.Firefox
   document.execCommand("copy");
   textArea.remove();
   textArea.value = "";
-  Utils.resetRe_();
+  BgUtils_.resetRe_();
 };
-(Backend.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
+(Backend_.onInit_ as NonNullable<BackendHandlersNS.BackendHandlers["onInit_"]>)();
 
 chrome.extension.isAllowedIncognitoAccess &&
 chrome.extension.isAllowedIncognitoAccess(function (isAllowedAccess): void {
-  Settings.CONST_.DisallowIncognito_ = isAllowedAccess === false;
+  Settings_.CONST_.DisallowIncognito_ = isAllowedAccess === false;
 });

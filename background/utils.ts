@@ -1,4 +1,4 @@
-var Utils = {
+var BgUtils_ = {
   /**
    * both b and a must extend SafeObject
    */
@@ -55,7 +55,7 @@ var Utils = {
     return url.startsWith("about:") ? url !== "about:blank" && ((Build.BTypes & ~BrowserType.Chrome
           && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) || url !== "about:blank/")
       : url.startsWith("chrome://") ? !url.startsWith("chrome://downloads")
-      : !url.startsWith(Settings.CONST_.NtpNewTab_) && url.startsWith(BrowserProtocol_);
+      : !url.startsWith(Settings_.CONST_.NtpNewTab_) && url.startsWith(BrowserProtocol_);
   },
   _nonENTlds: ".\u4e2d\u4fe1.\u4e2d\u56fd.\u4e2d\u570b.\u4e2d\u6587\u7f51.\u4f01\u4e1a.\u4f5b\u5c71.\u4fe1\u606f\
 .\u516c\u53f8.\u516c\u76ca.\u5546\u57ce.\u5546\u5e97.\u5546\u6807.\u5728\u7ebf.\u5a31\u4e50.\u5e7f\u4e1c\
@@ -94,12 +94,12 @@ var Utils = {
   _backSlashRe: <RegExpG> /\\/g,
   lastUrlType_: Urls.Type.Default,
   convertToUrl_: function (this: {}, str: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
-    const a = this as typeof Utils;
+    const a = this as typeof BgUtils_;
     str = str.trim();
     a.lastUrlType_ = Urls.Type.Full;
     if (a.isJSUrl_(str)) {
       if (Build.MinCVer < BrowserVer.MinAutoDecodeJSURL && Build.BTypes & BrowserType.Chrome
-          && ChromeVer < BrowserVer.MinAutoDecodeJSURL
+          && CurCVer_ < BrowserVer.MinAutoDecodeJSURL
           && str.indexOf("%", 11) > 0
           && !a._jsNotEscapeRe.test(str)) {
         str = a.DecodeURLPart_(str);
@@ -187,7 +187,7 @@ var Utils = {
     // Note: here `string` should be just a host, and can only become a hostname.
     //       Otherwise `type` must not be `NoSchema | NoProtocolName`
     if (type === Urls.TempType.Unspecified && str.indexOf("%") >= 0) {
-      str = Utils.DecodeURLPart_(str);
+      str = BgUtils_.DecodeURLPart_(str);
       if (str.indexOf("/") >= 0) { type = Urls.Type.Search; }
     }
     if (type === Urls.TempType.Unspecified && str.startsWith(".")) { str = str.slice(1); }
@@ -290,7 +290,7 @@ var Utils = {
     (i = url.indexOf(" ")) > 0 && (url = url.slice(0, i));
     ",.;\u3002\uff0c\uff1b".indexOf(url.slice(-1)) >= 0 && (url = url.slice(0, -1));
     url = this.convertToUrl_(url, null, Urls.WorkType.KeepAll);
-    return Utils.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
+    return BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
   },
   isTld_ (tld: string, onlyEN?: boolean): Urls.TldType {
     return !onlyEN && this._nonENTldRe.test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1
@@ -300,8 +300,8 @@ var Utils = {
   },
   splitByPublicSuffix_ (host: string): [string[], /* partsNum */ 1 | 2 | 3] {
     const arr = host.toLowerCase().split("."), i = arr.length;
-    return [arr, Utils.isTld_(arr[i - 1]) === Urls.TldType.NotTld ? 1
-      : i > 2 && arr[i - 1].length === 2 && Utils.isTld_(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2];
+    return [arr, BgUtils_.isTld_(arr[i - 1]) === Urls.TldType.NotTld ? 1
+      : i > 2 && arr[i - 1].length === 2 && BgUtils_.isTld_(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2];
   },
   /** type: 0=all */
   isIPHost_ (hostname: string, type: 0 | 4 | 6): boolean {
@@ -325,12 +325,12 @@ var Utils = {
     }
     if (!this.commonFileExtRe_.test(path)) {
       path = path.toLowerCase();
-      if ((tempStr = Settings.CONST_.RedirectedUrls_[path]) != null) {
-        tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#" ? Settings.CONST_.HomePage_ + tempStr
+      if ((tempStr = Settings_.CONST_.RedirectedUrls_[path]) != null) {
+        tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#" ? Settings_.CONST_.HomePage_ + tempStr
           : tempStr;
       } else if (path === "newtab") {
-        return Settings.cache_.newTabUrl_f;
-      } else if (path[0] === "/" || Settings.CONST_.KnownPages_.indexOf(path) >= 0) {
+        return Settings_.cache_.newTabUrl_f;
+      } else if (path[0] === "/" || Settings_.CONST_.KnownPages_.indexOf(path) >= 0) {
         path += ".html";
       } else if (vimiumUrlWork === Urls.WorkType.ActIfNoSideEffects  || vimiumUrlWork === Urls.WorkType.ConvertKnown) {
         return "vimium://" + fullpath.trim();
@@ -350,7 +350,7 @@ var Utils = {
   _mathSpaceRe: <RegExpG> /[\s+,\uff0c]+/g,
   evalVimiumUrl_: function (this: {}, path: string, workType?: Urls.WorkType
       , onlyOnce?: boolean): Urls.Url | null {
-    const a = this as typeof Utils;
+    const a = this as typeof BgUtils_;
     let ind: number, cmd: string, arr: string[], obj: { u: string } | null, res: Urls.Url | string[];
     workType = (workType as Urls.WorkType) | 0;
     if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim()) || (ind = path.indexOf(" ")) <= 0 ||
@@ -373,9 +373,9 @@ var Utils = {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
       return a.require_("MathParser").catch(() => null
       ).then<Urls.MathEvalResult>(function (MathParser): Urls.MathEvalResult {
-        Utils.quotedStringRe_.test(path) && (path = path.slice(1, -1));
+        BgUtils_.quotedStringRe_.test(path) && (path = path.slice(1, -1));
         path = path.replace(/\uff0c/g as RegExpG, " ");
-        let result = Utils.tryEvalMath_(path, MathParser) || "";
+        let result = BgUtils_.tryEvalMath_(path, MathParser) || "";
         return [result, "math", path];
       });
     case "error":
@@ -390,7 +390,7 @@ var Utils = {
         return res.then(function (arr1): Urls.CopyEvalResult {
           let path2 = arr1[0] || (arr1[2] || "");
           path2 = path2 instanceof Array ? path2.join(" ") : path2;
-          Utils.copy_(path2);
+          BgUtils_.copy_(path2);
           return [path2, "copy"];
         });
       } else {
@@ -400,7 +400,7 @@ var Utils = {
       }
       // no break;
     case "c": case "cp": case "copy": // here `typeof path` must be `string`
-      Utils.copy_(path);
+      BgUtils_.copy_(path);
       return [path, "copy"];
     } }
     switch (cmd) {
@@ -414,7 +414,7 @@ var Utils = {
       path = a.decodeEscapedURL_(path);
       arr = [path];
       path = a.convertToUrl_(path);
-      if (a.lastUrlType_ !== Urls.Type.Search && (obj = Backend.parse_({ u: path }))) {
+      if (a.lastUrlType_ !== Urls.Type.Search && (obj = Backend_.parse_({ u: path }))) {
         if (obj.u === "") {
           arr = [cmd];
         } else {
@@ -468,7 +468,7 @@ var Utils = {
     }
     return (window as { -readonly [K2 in keyof Window]?: any })[name] = new Promise<T>(function (resolve, reject) {
       const script = document.createElement("script");
-      script.src = Settings.CONST_[name];
+      script.src = Settings_.CONST_[name];
       script.onerror = function (): void {
         this.remove();
         reject("ImportError: " + name);
@@ -488,8 +488,8 @@ var Utils = {
   searchWordRe2_: <RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g,
   searchVariable_: <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g,
   createSearchUrl_: function (this: {}, query: string[], keyword: string, vimiumUrlWork: Urls.WorkType): Urls.Url {
-    const a = this as typeof Utils;
-    let url: string, pattern: Search.Engine | undefined = Settings.cache_.searchEngineMap[keyword || query[0]];
+    const a = this as typeof BgUtils_;
+    let url: string, pattern: Search.Engine | undefined = Settings_.cache_.searchEngineMap[keyword || query[0]];
     if (pattern) {
       if (!keyword) { keyword = query.shift() as string; }
       url = a.createSearch_(query, pattern.url, pattern.blank);
@@ -504,7 +504,7 @@ var Utils = {
   } as Urls.Searcher,
   createSearch_: function (this: {}, query: string[], url: string, blank: string, indexes?: number[]
       ): string | Search.Result {
-    const a = this as typeof Utils;
+    const a = this as typeof BgUtils_;
     let q2: string[] | undefined, delta = 0;
     url = query.length === 0 && blank ? blank : url.replace(a.searchWordRe_,
     function (_s: string, s1: string | undefined, s2: string, ind: number): string {
@@ -518,7 +518,7 @@ var Utils = {
       }
       if (arr.length === 0) { return ""; }
       if (s2 && s2.indexOf("$") !== -1) {
-        s2 = s2.replace(Utils.searchVariable_, function (_t: string, s3: string): string {
+        s2 = s2.replace(BgUtils_.searchVariable_, function (_t: string, s3: string): string {
           let i = parseInt(s3, 10);
           if (!i) {
             return arr.join(s1);
@@ -768,7 +768,7 @@ var Utils = {
     return ch !== chLower ? `<${modifiers}s-${chLower}>` : _0;
   },
   formatKeys_: (function (this: {}, keys: string): string {
-    return keys && keys.replace((this as typeof Utils).keyReToFormat_, (this as typeof Utils).onFormatKey_);
+    return keys && keys.replace((this as typeof BgUtils_).keyReToFormat_, (this as typeof BgUtils_).onFormatKey_);
   }),
   getNull_ (this: void): null { return null; },
   timeout_ (timeout: number, callback: (this: void, fakeArgs?: TimerType.fake) => void): void {
@@ -789,7 +789,7 @@ if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox &&
   : BrowserType.Unknown;
 }
 var
-ChromeVer: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
+CurCVer_: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
   (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
   && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer

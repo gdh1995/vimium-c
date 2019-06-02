@@ -365,7 +365,7 @@ declare namespace SettingsNS {
       , "innerCSS" | "newTabUrl_f" | "searchEngineMap" | "searchEngineRules" | "vomnibarPage_f"
         | "vomnibarOptions"
       > {
-    findCSS_: FindCSS; // should not in Settings.defaults
+    findCSS_: FindCSS; // should not in Settings_.defaults
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
@@ -442,9 +442,9 @@ interface Window {
   readonly Exclusions?: object;
   readonly HelpDialog?: BaseHelpDialog;
   readonly OnOther?: BrowserType;
-  readonly ChromeVer: BrowserVer;
+  readonly CurCVer_: BrowserVer;
 
-  readonly Backend: BackendHandlersNS.BackendHandlers;
+  readonly Backend_: BackendHandlersNS.BackendHandlers;
 }
 
 declare const enum Consts {
@@ -452,7 +452,7 @@ declare const enum Consts {
   MaxLengthOfSearchKey = 50, MinInvalidLengthOfSearchKey = MaxLengthOfSearchKey + 1,
 }
 
-declare var Backend: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy;
+declare var Backend_: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy;
 
 declare function setTimeout <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
   timeout: number, a1: T1, a2: T2, a3: T3): number;

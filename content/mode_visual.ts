@@ -785,7 +785,7 @@ init_ (words: string) {
  *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
  *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
  * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
- * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings.CONST_.WordsRe_}
+ * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings_.CONST_.WordsRe_}
  */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
   if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox

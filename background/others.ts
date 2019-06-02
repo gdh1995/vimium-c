@@ -12,7 +12,7 @@ declare const enum OmniboxData {
 declare const enum SyncConsts {
   LocalItemCountWhenInstalled = 6,
 }
-Utils.timeout_(1000, function (): void {
+BgUtils_.timeout_(1000, function (): void {
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
@@ -35,8 +35,8 @@ Utils.timeout_(1000, function (): void {
     return new Date().toLocaleString();
   }
   function storeAndPropagate(key: string, value: any): void {
-    if (!(key in Settings.defaults_) || key in Settings.nonPersistent_ || !shouldSyncKey(key)) { return; }
-    const defaultVal = Settings.defaults_[key];
+    if (!(key in Settings_.defaults_) || key in Settings_.nonPersistent_ || !shouldSyncKey(key)) { return; }
+    const defaultVal = Settings_.defaults_[key];
     if (value == null) {
       if (localStorage.getItem(key) != null) {
         console.log(now(), "sync.local: reset", key);
@@ -44,7 +44,7 @@ Utils.timeout_(1000, function (): void {
       }
       return;
     }
-    let curVal = Settings.get_(key), curJSON: string, jsonVal: string, notJSON: boolean;
+    let curVal = Settings_.get_(key), curJSON: string, jsonVal: string, notJSON: boolean;
     if (notJSON = typeof defaultVal === "string") {
       jsonVal = value as string;
       curJSON = curVal as string;
@@ -70,19 +70,19 @@ Utils.timeout_(1000, function (): void {
     if (!wanted) {
       return setAndPost(key, value);
     }
-    Promise.all<false | object>([wanted === Excl && Utils.require_(Cmd), Utils.require_(wanted)]).then(
+    Promise.all<false | object>([wanted === Excl && BgUtils_.require_(Cmd), BgUtils_.require_(wanted)]).then(
         () => setAndPost(key, value));
-    Utils.GC_();
+    BgUtils_.GC_();
   }
   function setAndPost(key: keyof SettingsWithDefaults, value: any): void {
-    Settings.set_(key, value);
-    if (key in Settings.payload_) {
+    Settings_.set_(key, value);
+    if (key in Settings_.payload_) {
       const req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: {
-        [key as keyof SettingsNS.FrontendSettings]: Settings.get_(key as keyof SettingsNS.FrontendSettings)
+        [key as keyof SettingsNS.FrontendSettings]: Settings_.get_(key as keyof SettingsNS.FrontendSettings)
       } };
-      Settings.broadcast_(req);
+      Settings_.broadcast_(req);
     }
-    Utils.GC_();
+    BgUtils_.GC_();
   }
   function TrySet<K extends keyof SettingsToSync>(this: void, key: K, value: SettingsToSync[K] | null) {
     if (!shouldSyncKey(key)) { return; }
@@ -95,7 +95,7 @@ Utils.timeout_(1000, function (): void {
   function DoUpdate(this: void): void {
     let items = to_update, removed = [] as string[], left = 0;
     to_update = null;
-    if (!items || Settings.sync_ !== TrySet) { return; }
+    if (!items || Settings_.sync_ !== TrySet) { return; }
     for (const key in items) {
       if (items[key as keyof SettingsToUpdate] != null) {
         ++left;
@@ -116,33 +116,33 @@ Utils.timeout_(1000, function (): void {
   function shouldSyncKey(key: string): key is keyof SettingsToSync {
     return !(key in doNotSync);
   }
-  Settings.updateHooks_.vimSync = function (value): void {
+  Settings_.updateHooks_.vimSync = function (value): void {
     if (!storage()) { return; }
     const event = chrome.storage.onChanged;
     if (!value) {
       event.removeListener(HandleStorageUpdate);
-      Settings.sync_ = Utils.blank_;
-    } else if (Settings.sync_ !== TrySet) {
+      Settings_.sync_ = BgUtils_.blank_;
+    } else if (Settings_.sync_ !== TrySet) {
       event.addListener(HandleStorageUpdate);
-      Settings.sync_ = TrySet;
+      Settings_.sync_ = TrySet;
     }
   };
-  const sync1 = Settings.get_("vimSync");
+  const sync1 = Settings_.get_("vimSync");
   if (sync1 === false || (!sync1 && (localStorage.length > SyncConsts.LocalItemCountWhenInstalled
-                                    || Settings.get_("newTabUrl") !== Settings.CONST_.NewTabForNewUser_))) {
+                                    || Settings_.get_("newTabUrl") !== Settings_.CONST_.NewTabForNewUser_))) {
     return;
   }
   if (!storage()) { return; }
   storage().get(null, function (items): void {
-    const err = Utils.runtimeError_();
+    const err = BgUtils_.runtimeError_();
     if (err) {
       console.log(now(), "Error: failed to get storage:", err
         , "\n\tSo disable syncing temporarily.");
-      Settings.updateHooks_.vimSync = Settings.sync_ = Utils.blank_;
+      Settings_.updateHooks_.vimSync = Settings_.sync_ = BgUtils_.blank_;
       return err;
     }
     Object.setPrototypeOf(items, null);
-    const vimSync = items.vimSync || Settings.get_("vimSync");
+    const vimSync = items.vimSync || Settings_.get_("vimSync");
     if (!vimSync) {
       return; // no settings have been modified
     } else if (!items.vimSync) {
@@ -156,7 +156,7 @@ Utils.timeout_(1000, function (): void {
       const key = localStorage.key(i) as string;
       // although storeAndPropagate indeed checks @shouldSyncKey(key)
       // here check it for easier debugging
-      if (!(key in items) && key in Settings.defaults_ && shouldSyncKey(key)) {
+      if (!(key in items) && key in Settings_.defaults_ && shouldSyncKey(key)) {
         toReset.push(key);
       }
     }
@@ -166,13 +166,13 @@ Utils.timeout_(1000, function (): void {
     for (const key in items) {
       storeAndPropagate(key, items[key]);
     }
-    Settings.postUpdate_("vimSync");
+    Settings_.postUpdate_("vimSync");
   });
 });
 
-Utils.timeout_(150, function (): void {
+BgUtils_.timeout_(150, function (): void {
   if (!chrome.browserAction) { return; }
-  const func = Settings.updateHooks_.showActionIcon;
+  const func = Settings_.updateHooks_.showActionIcon;
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
   let mayShowIcons = true;
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
@@ -184,7 +184,7 @@ Utils.timeout_(150, function (): void {
           : "Could not load action icon:", this.getAttribute("src"));
       if (!mayShowIcons) { return; }
       mayShowIcons = false;
-      Backend.setIcon_ = Utils.blank_;
+      Backend_.setIcon_ = BgUtils_.blank_;
       tabIds = null;
       chrome.browserAction.setTitle({ title: "Vimium C\n\nFailed in showing dynamic icons." });
     }
@@ -212,7 +212,7 @@ Utils.timeout_(150, function (): void {
       const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
       for (w = 0, h = arr.length; w < h; w++) {
-        Backend.setIcon_(arr[w], type, true);
+        Backend_.setIcon_(arr[w], type, true);
       }
     }
     Object.setPrototypeOf(path, null);
@@ -222,11 +222,11 @@ Utils.timeout_(150, function (): void {
       img.src = path[i as IconNS.ValidSizes];
     }
   }
-  Backend.IconBuffer_ = function (this: void, enabled?: boolean): object | null | void {
+  Backend_.IconBuffer_ = function (this: void, enabled?: boolean): object | null | void {
     if (enabled === undefined) { return imageData; }
     if (!enabled) {
       imageData && setTimeout(function () {
-        if (Settings.get_("showActionIcon")) { return; }
+        if (Settings_.get_("showActionIcon")) { return; }
         imageData = tabIds = null;
       }, 200);
       return;
@@ -235,7 +235,7 @@ Utils.timeout_(150, function (): void {
     imageData = Object.create(null);
     tabIds = Object.create(null);
   } as IconNS.AccessIconBuffer;
-  Backend.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
+  Backend_.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
     /** Firefox does not use ImageData as inner data format
      * * https://dxr.mozilla.org/mozilla-central/source/toolkit/components/extensions/schemas/manifest.json#577
@@ -246,7 +246,7 @@ Utils.timeout_(150, function (): void {
      */
     if (Build.BTypes & ~BrowserType.Chrome
         && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-      path = Settings.icons_[type];
+      path = Settings_.icons_[type];
       chrome.browserAction.setIcon({ tabId, path });
       return;
     }
@@ -255,25 +255,25 @@ Utils.timeout_(150, function (): void {
         tabId,
         imageData: data
       };
-      isLater ? f(args, Utils.runtimeError_) : f(args);
+      isLater ? f(args, BgUtils_.runtimeError_) : f(args);
     } else if ((tabIds as IconNS.StatusMap<number[]>)[type]) {
       ((tabIds as IconNS.StatusMap<number[]>)[type] as number[]).push(tabId);
-    } else if (path = Settings.icons_[type]) {
+    } else if (path = Settings_.icons_[type]) {
       setTimeout(loadImageAndSetIcon, 0, type, path);
       (tabIds as IconNS.StatusMap<number[]>)[type] = [tabId];
     }
   };
-  Settings.updateHooks_.showActionIcon = function (value): void {
+  Settings_.updateHooks_.showActionIcon = function (value): void {
     func(value);
-    (Backend.IconBuffer_ as IconNS.AccessIconBuffer)(value);
+    (Backend_.IconBuffer_ as IconNS.AccessIconBuffer)(value);
     let title = "Vimium C";
     value || (title += "\n\nAs configured, here's no active state.");
     chrome.browserAction.setTitle({ title });
   };
-  Settings.postUpdate_("showActionIcon");
+  Settings_.postUpdate_("showActionIcon");
 });
 
-Utils.timeout_(600, function (): void {
+BgUtils_.timeout_(600, function (): void {
   if (!chrome.omnibox) { return; }
   type OmniboxCallback = (this: void, suggestResults: chrome.omnibox.SuggestResult[]) => true | void;
   const enum FirstSugType {
@@ -306,7 +306,7 @@ Utils.timeout_(600, function (): void {
       ? <RegExpG> /<\/?match>/g : null as never,
   maxResults = Build.MinCVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12
       && Build.BTypes & BrowserType.Chrome
-      && ChromeVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
+      && CurCVer_ < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
   ;
   function clean(): void {
     if (lastSuggest) { lastSuggest.suggest = null; }
@@ -315,7 +315,7 @@ Utils.timeout_(600, function (): void {
     if (timer) { clearTimeout(timer); }
     inputTime = matchType = cleanTimer = timer = 0;
     firstType = firstResultUrl = "";
-    Utils.resetRe_();
+    BgUtils_.resetRe_();
   }
   function tryClean(): void {
     const delta = Date.now() - inputTime; // safe for time changes
@@ -394,7 +394,7 @@ Utils.timeout_(600, function (): void {
       }
     } else if (sug.type === "search") {
       let text = (sug as CompletersNS.SearchSuggestion).pattern;
-      text = (text && `<dim>${Utils.escapeText_(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
+      text = (text && `<dim>${BgUtils_.escapeText_(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
       defaultSuggestionType = FirstSugType.search;
       chrome.omnibox.setDefaultSuggestion({ description: text });
       if (sug = response[1]) {
@@ -413,12 +413,12 @@ Utils.timeout_(600, function (): void {
       suggestions.shift();
     }
     last = suggest.key;
-    Utils.resetRe_();
+    BgUtils_.resetRe_();
     suggest.suggest(suggestions);
     return;
   }
   function onInput(this: void, key: string, suggest: OmniboxCallback): void {
-    key = key.trim().replace(Utils.spacesRe_, " ");
+    key = key.trim().replace(BgUtils_.spacesRe_, " ");
     if (lastSuggest) {
       let same = key === lastSuggest.key;
       lastSuggest.suggest = same ? suggest : null;
@@ -438,7 +438,7 @@ Utils.timeout_(600, function (): void {
     lastSuggest = { suggest, key, sent: false };
     if (timer) { return; }
     const now = Date.now(),
-    delta = Settings.omniPayload_.queryInterval_ + inputTime - now; /** it's made safe by {@see #onTimer} */
+    delta = Settings_.omniPayload_.queryInterval_ + inputTime - now; /** it's made safe by {@see #onTimer} */
     if (delta > 30 && delta < 3000) { // in case of system time jumping
       timer = setTimeout(onTimer, delta);
       return;
@@ -463,7 +463,7 @@ Utils.timeout_(600, function (): void {
       timer && clearTimeout(timer);
       return onTimer();
     }
-    text = text.trim().replace(Utils.spacesRe_, " ");
+    text = text.trim().replace(BgUtils_.spacesRe_, " ");
     if (last === null && text) {
       // need a re-computation
       // * may has been cleaned, or
@@ -482,14 +482,14 @@ Utils.timeout_(600, function (): void {
   function open(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition
       , sessionId?: string | number | null): void {
     if (!text) {
-      text = Utils.convertToUrl_("");
+      text = BgUtils_.convertToUrl_("");
     } else if (text[0] === ":" && (<RegExpOne> /^:([1-9]|1[0-2]) /).test(text)) {
       text = text.slice(text[2] === " " ? 3 : 4);
     }
     if (text.slice(0, 7).toLowerCase() === "file://") {
-      text = Utils.showFileUrl_(text);
+      text = BgUtils_.showFileUrl_(text);
     }
-    return sessionId != null ? Backend.gotoSession_({ s: sessionId }) : Backend.openUrl_({
+    return sessionId != null ? Backend_.gotoSession_({ s: sessionId }) : Backend_.openUrl_({
       u: text,
       o: true,
       r: (disposition === "currentTab" ? ReuseType.current
@@ -522,12 +522,12 @@ Utils.timeout_(600, function (): void {
     if ((url as string)[0] === ":") {
       url = (url as string).slice((url as string).indexOf(" ") + 1);
     }
-    return Backend.removeSug_({ t: type, u: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
+    return Backend_.removeSug_({ t: type, u: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
   });
 });
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-chrome.runtime.onInstalled.addListener(Settings.temp_.onInstall_ =
+chrome.runtime.onInstalled.addListener(Settings_.temp_.onInstall_ =
 function (details: chrome.runtime.InstalledDetails): void {
   let reason = details.reason;
   if (reason === "install") { reason = ""; }
@@ -540,8 +540,8 @@ function (details: chrome.runtime.InstalledDetails): void {
   chrome.tabs.query({
     status: "complete"
   }, function (tabs) {
-    const t = chrome.tabs, callback = Utils.runtimeError_,
-    offset = location.origin.length, js = Settings.CONST_.ContentScripts_;
+    const t = chrome.tabs, callback = BgUtils_.runtimeError_,
+    offset = location.origin.length, js = Settings_.CONST_.ContentScripts_;
     for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
       let url = tabs[_i].url;
       if (url.startsWith(BrowserProtocol_) || url.indexOf("://") === -1) { continue; }
@@ -558,48 +558,48 @@ function (details: chrome.runtime.InstalledDetails): void {
   console.log("%cVimium C%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
     , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");
 
-  if (Settings.CONST_.DisallowIncognito_) {
+  if (Settings_.CONST_.DisallowIncognito_) {
     console.log("Sorry, but some commands of Vimium C require the permission to run in incognito mode.");
   }
 
   if (!reason) { return; }
 
-  if (parseFloat(Settings.CONST_.VerCode_) <= parseFloat(reason)) { return; }
+  if (parseFloat(Settings_.CONST_.VerCode_) <= parseFloat(reason)) { return; }
 
   reason = "vimium-c_upgrade-notification";
   chrome.notifications && chrome.notifications.create(reason, {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
-    message: `Vimium C has been upgraded to version v${Settings.CONST_.VerName_}.`
+    message: `Vimium C has been upgraded to version v${Settings_.CONST_.VerName_}.`
       + "\nKey mapping usage has UPDATED.",
     contextMessage: "Click here for more information.",
     isClickable: true
   }, function (notificationId): void {
     let err: any;
-    if (err = Utils.runtimeError_()) { return err; }
+    if (err = BgUtils_.runtimeError_()) { return err; }
     reason = notificationId || reason;
     chrome.notifications.onClicked.addListener(function (id): void {
       if (id !== reason) { return; }
       chrome.notifications.clear(reason);
-      Backend.focus_({
-        u: Utils.convertToUrl_("vimium://changelog")
+      Backend_.focus_({
+        u: BgUtils_.convertToUrl_("vimium://changelog")
       });
     });
   });
   }, 500);
 });
 
-Utils.GC_ = function (inc0?: number): void {
+BgUtils_.GC_ = function (inc0?: number): void {
   let timestamp = 0, timeout = 0, referenceCount = 0;
-  Utils.GC_ = function (inc?: number): void {
+  BgUtils_.GC_ = function (inc?: number): void {
     inc && (referenceCount += inc);
     if (!(Commands || Exclusions && Exclusions.rules_.length <= 0)) { return; }
     timestamp = Date.now(); // safe for time changes
     if (timeout > 0 || referenceCount > 0) { return; }
     timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
   };
-  return Utils.GC_(inc0);
+  return BgUtils_.GC_(inc0);
   function later(): void {
     const last = Date.now() - timestamp; // safe for time changes
     if (last < GlobalConsts.TimeoutToReleaseBackendModules - 1000 // for small time adjust
@@ -614,7 +614,7 @@ Utils.GC_ = function (inc0?: number): void {
       return path.startsWith("/pages/options") || path.startsWith("/pages/popup");
     }) : false;
     if (existing) { return; }
-    const hook = Settings.updateHooks_;
+    const hook = Settings_.updateHooks_;
     if (Commands) {
       hook.keyMappings = null as never;
       Commands = null as never;
@@ -627,11 +627,11 @@ Utils.GC_ = function (inc0?: number): void {
   }
 };
 
-Utils.timeout_(1200, function (): void {
-  chrome.runtime.onInstalled.removeListener(Settings.temp_.onInstall_ as NonNullable<typeof Settings.temp_.onInstall_>);
-  Settings.temp_.onInstall_ = null;
+BgUtils_.timeout_(1200, function (): void {
+  chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_ as NonNullable<typeof Settings_.temp_.onInstall_>);
+  Settings_.temp_.onInstall_ = null;
   (document.documentElement as HTMLHtmlElement).textContent = "";
-  Utils.resetRe_();
+  BgUtils_.resetRe_();
   if (!Build.NDEBUG) {
     interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void; }
     (window as WindowExForDebug).a = null;

@@ -1,6 +1,6 @@
-if (Settings.get_("vimSync")
-    || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend.onInit_)
-        && !Settings.updateHooks_.exclusionRules)) {
+if (Settings_.get_("vimSync")
+    || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend_.onInit_)
+        && !Settings_.updateHooks_.exclusionRules)) {
 var Exclusions = {
   testers_: null as SafeDict<ExclusionsNS.Tester> | null,
   getRe_ (pattern: string): ExclusionsNS.Tester {
@@ -8,7 +8,7 @@ var Exclusions = {
     let cur: ExclusionsNS.Tester | undefined = (this.testers_ as TesterDict)[pattern], re: RegExp | null | undefined;
     if (cur) { return cur; }
     if (pattern[0] === "^") {
-      if (re = Utils.makeRegexp_(pattern.startsWith("^$|") ? pattern.slice(3) : pattern, "", false)) {
+      if (re = BgUtils_.makeRegexp_(pattern.startsWith("^$|") ? pattern.slice(3) : pattern, "", false)) {
         /* empty */
       } else {
         console.log("Failed in creating an RegExp from %o", pattern);
@@ -18,19 +18,19 @@ var Exclusions = {
   },
   _listening: false,
   _listeningHash: false,
-  onlyFirstMatch_: Settings.get_("exclusionOnlyFirstMatch"),
+  onlyFirstMatch_: Settings_.get_("exclusionOnlyFirstMatch"),
   rules_: [] as ExclusionsNS.Rules,
   setRules_ (rules: ExclusionsNS.StoredRule[]): void {
     if (rules.length === 0) {
       this.rules_ = [];
-      Backend.getExcluded_ = Utils.getNull_;
+      Backend_.getExcluded_ = BgUtils_.getNull_;
       this.updateListeners_();
       return;
     }
     this.testers_ || (this.testers_ = Object.create<ExclusionsNS.Tester>(null));
     this.rules_ = this.format_(rules);
     this.testers_ = null;
-    Backend.getExcluded_ = this.GetPassKeys_;
+    Backend_.getExcluded_ = this.GetPassKeys_;
     this.updateListeners_();
   },
   GetPassKeys_ (this: void, url: string, sender: Frames.Sender): string | null {
@@ -43,10 +43,10 @@ var Exclusions = {
         matchedKeys += str;
       }
     }
-    if (!matchedKeys && sender.i && url.lastIndexOf("://", 5) < 0 && !Utils.protocolRe_.test(url)) {
-      const mainFrame = Backend.indexPorts_(sender.t, 0);
+    if (!matchedKeys && sender.i && url.lastIndexOf("://", 5) < 0 && !BgUtils_.protocolRe_.test(url)) {
+      const mainFrame = Backend_.indexPorts_(sender.t, 0);
       if (mainFrame) {
-        return Backend.getExcluded_(mainFrame.s.u, mainFrame.s);
+        return Backend_.getExcluded_(mainFrame.s.u, mainFrame.s);
       }
     }
     return matchedKeys || null;
@@ -54,10 +54,10 @@ var Exclusions = {
   getOnURLChange_ (): null | ExclusionsNS.Listener {
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
       : Build.MinCVer >= BrowserVer.MinWithFrameId || !(Build.BTypes & BrowserType.Chrome)
-        || ChromeVer >= BrowserVer.MinWithFrameId
-      ? function (details): void { Backend.checkIfEnabled_(details); }
+        || CurCVer_ >= BrowserVer.MinWithFrameId
+      ? function (details): void { Backend_.checkIfEnabled_(details); }
       : function (details: chrome.webNavigation.WebNavigationCallbackDetails) {
-        const ref = Backend.indexPorts_(details.tabId),
+        const ref = Backend_.indexPorts_(details.tabId),
         msg: Req.bg<kBgReq.url> = { N: kBgReq.url, H: kFgReq.checkIfEnabled as kFgReq.checkIfEnabled };
         // force the tab's ports to reconnect and refresh their pass keys
         for (let i = ref ? ref.length : 0; 0 < --i; ) {
@@ -71,7 +71,7 @@ var Exclusions = {
     const out = [] as ExclusionsNS.Rules;
     for (let _i = 0, _len = rules.length; _i < _len; _i++) {
       const rule = rules[_i];
-      out.push(this.getRe_(rule.pattern), Utils.formatKeys_(rule.passKeys));
+      out.push(this.getRe_(rule.pattern), BgUtils_.formatKeys_(rule.passKeys));
     }
     return out;
   },
@@ -100,14 +100,14 @@ var Exclusions = {
       p: null
     };
     if (old_is_empty) {
-      always_enabled || Settings.broadcast_({
+      always_enabled || Settings_.broadcast_({
         N: kBgReq.url,
         H: kFgReq.checkIfEnabled
       } as Req.fg<kFgReq.checkIfEnabled> & Req.bg<kBgReq.url>);
       return;
     }
-    const ref = Backend.indexPorts_(),
-    needIcon = !!(Backend.IconBuffer_ && (Backend.IconBuffer_() || Settings.get_("showActionIcon")));
+    const ref = Backend_.indexPorts_(),
+    needIcon = !!(Backend_.IconBuffer_ && (Backend_.IconBuffer_() || Settings_.get_("showActionIcon")));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (const tabId in ref) {
       const frames = ref[+tabId] as Frames.Frames, status0 = frames[0].s.s;
@@ -118,7 +118,7 @@ var Exclusions = {
             continue;
           }
         } else {
-          pass = Backend.getExcluded_(port.s.u, port.s);
+          pass = Backend_.getExcluded_(port.s.u, port.s);
           status = pass === null ? Frames.Status.enabled : pass
             ? Frames.Status.partial : Frames.Status.disabled;
           if (!pass && port.s.s === status) {
@@ -130,14 +130,14 @@ var Exclusions = {
         port.s.s = status;
       }
       if (needIcon && status0 !== (status = frames[0].s.s)) {
-        Backend.setIcon_(+tabId, status);
+        Backend_.setIcon_(+tabId, status);
       }
     }
   },
   updateListeners_ (this: void): void {
     const a = Exclusions, listenHistory = a.rules_.length > 0,
     l = a.getOnURLChange_(),
-    listenHash = listenHistory && Settings.get_("exclusionListenHash");
+    listenHash = listenHistory && Settings_.get_("exclusionListenHash");
     if (!l) { return; }
     if (a._listening !== listenHistory) {
       a._listening = listenHistory;
@@ -152,25 +152,25 @@ var Exclusions = {
   }
 };
 
-Exclusions.setRules_(Settings.get_("exclusionRules"));
+Exclusions.setRules_(Settings_.get_("exclusionRules"));
 
-Settings.updateHooks_.exclusionRules = function (this: void, rules: ExclusionsNS.StoredRule[]): void {
+Settings_.updateHooks_.exclusionRules = function (this: void, rules: ExclusionsNS.StoredRule[]): void {
   const isEmpty = Exclusions.rules_.length <= 0, curKeyMap = CommandsData_.keyMap_;
   Exclusions.setRules_(rules);
-  Utils.GC_();
+  BgUtils_.GC_();
   setTimeout(function (): void {
     setTimeout(Exclusions.RefreshStatus_, 10, isEmpty);
     if (CommandsData_.keyMap_ === curKeyMap) {
-      Utils.require_("Commands").then(() => Settings.postUpdate_("keyMappings", null));
+      BgUtils_.require_("Commands").then(() => Settings_.postUpdate_("keyMappings", null));
     }
   }, 1);
 };
 
-Settings.updateHooks_.exclusionOnlyFirstMatch = function (this: void, value: boolean): void {
+Settings_.updateHooks_.exclusionOnlyFirstMatch = function (this: void, value: boolean): void {
   Exclusions.onlyFirstMatch_ = value;
 };
 
-Settings.updateHooks_.exclusionListenHash = Exclusions.updateListeners_;
+Settings_.updateHooks_.exclusionListenHash = Exclusions.updateListeners_;
 } else {
   var Exclusions = null as never as typeof Exclusions;
 }

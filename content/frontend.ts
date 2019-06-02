@@ -93,7 +93,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   function onKeydown(event: KeyboardEvent): void {
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
-            : event.isTrusted !== false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
+            : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
         || !event.keyCode) { return; }
     if (VScroller.keyIsDown_ && events.OnScrolls_[0](event)) { return; }
     if (Build.BTypes & BrowserType.Firefox
@@ -145,7 +145,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   function onKeyup(event: KeyboardEvent): void {
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
-            : event.isTrusted !== false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
+            : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
         || !event.keyCode) { return; }
     VScroller.scrollTick_(0);
     if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {

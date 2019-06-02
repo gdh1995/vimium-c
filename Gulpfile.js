@@ -51,6 +51,13 @@ const POLYFILL_FILE = "lib/polyfill.ts", NEWTAB_FILE = "pages/newtab.ts";
 const VIEWER_JS = "lib/viewer.min.js";
 const FILE_URLS_CSS = "front/file_urls.css";
 
+const KnownBackendGlobals = [
+  "Backend_", "BgUtils_", "BrowserProtocol_",
+  "Clipboard_", "CommandsData_", "Completion_", "ContentSettings_", "CurCVer_",
+  "FindModeHistory_", "IncognitoWatcher_", "Marks_", "MediaWatcher_",
+  "Settings_", "TabRecency_"
+];
+
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
   content: [["content/*.ts", "lib/*.ts", "!" + POLYFILL_FILE, "!lib/injector.ts"], "content/*.d.ts"],
@@ -176,10 +183,7 @@ var Tasks = {
     var exArgs = { nameCache: loadNameCache("content") };
     var config = loadUglifyConfig(!!exArgs.nameCache);
     config.nameCache = exArgs.nameCache;
-    require(LIB_UGLIFY_JS).minify("var CommandsData_, Completion_ \
-      , ContentSettings_, FindModeHistory_, Marks_, TabRecency_, Clipboard_ \
-      , Utils, OnOther, BrowserProtocol_, ChromeVer, Settings, Backend \
-      ;", config);
+    require(LIB_UGLIFY_JS).minify("var " + KnownBackendGlobals.join(",\n"), config);
 
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");
@@ -207,18 +211,22 @@ var Tasks = {
     var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
     if (exArgs.nameCache.vars && exArgs.nameCache.props) {
       let {vars: {props: vars}, props: {props: props}} = exArgs.nameCache;
-      const remembed = [];
       for (let key in vars) {
         if (vars.hasOwnProperty(key)) {
+          let key2 = key.replace(/^\$/, ""), idx = KnownBackendGlobals.indexOf(key2);
+          if (idx < 0) {
+            throw new Error('Unknown backend global variable: ' + key2);
+          }
+          KnownBackendGlobals.splice(idx, 1);
           if (props[key] != null) {
-            throw new Error('The name cache #bg can not be used to build others: values differ for ' + key);
+            throw new Error('The name cache #bg can not be used to build others: values differ for ' + key2);
           }
           props[key] = vars[key];
-          remembed.push(key.replace("$", ""));
         }
       }
-      remembed.sort();
-      console.log("Treat global variables as properties:", remembed.join(", "));
+      if (KnownBackendGlobals.length > 0) {
+        throw new Error('Some global variable are not found: ' + KnownBackendGlobals.join(", "));
+      }
     }
     gulp.task("min/others/omni", function() {
       return uglifyJSFiles(["front/vomnibar*.js"], ".", "", {

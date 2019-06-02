@@ -349,7 +349,7 @@ function importSettings(time: number | string | Date
     const element = loadJS("options_checker.js");
     element.onload = function (): void { resolve(1); };
   });
-  Promise.all([BG_.Utils.require_("Commands"), BG_.Utils.require_("Exclusions"), promisedChecker]).then(function () {
+  Promise.all([BG_.BgUtils_.require_("Commands"), BG_.BgUtils_.require_("Exclusions"), promisedChecker]).then(function () {
     setTimeout(_importSettings, 17, time, new_data, is_recommended);
   });
 }
@@ -391,7 +391,7 @@ _el = null;
   delete (window as OptionWindow)._delayed;
   const node = $<ElementWithDelay>(arr[0]), event = arr[1];
   node.onclick && node.onclick(event);
-  BG_.Utils.GC_();
+  BG_.BgUtils_.GC_();
 })();
 
 function parseJSON(text: string): any {

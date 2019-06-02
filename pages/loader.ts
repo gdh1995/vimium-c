@@ -23,7 +23,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     head.appendChild(scriptElement);
     scripts.push(scriptElement);
   }
-  interface BgWindow extends Window { Settings: typeof Settings; }
+  interface BgWindow extends Window { Settings_: typeof Settings_; }
   scripts[scripts.length - 1].onload = function (): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
     const dom = (window as {} as {VDom?: typeof VDom}).VDom;
@@ -31,7 +31,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     let bg: BgWindow;
     if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab
         && (bg = chrome.extension.getBackgroundPage() as BgWindow)
-        && bg.Settings && bg.Settings.CONST_.OverrideNewTab_
+        && bg.Settings_ && bg.Settings_.CONST_.OverrideNewTab_
         && location.pathname.indexOf("newtab") >= 0) {
       setTimeout(function (): void {
         const hud = (window as {} as {VHud?: VHUDTy}).VHud;
@@ -41,8 +41,8 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
   };
   if (location.pathname.toLowerCase().indexOf("options") < 0) {
     const bg = chrome.extension.getBackgroundPage() as BgWindow;
-    if (bg && bg.Backend) {
-      const uiStyles = bg.Settings.omniPayload_.styles_;
+    if (bg && bg.Backend_) {
+      const uiStyles = bg.Settings_.omniPayload_.styles_;
       if (uiStyles && ` ${uiStyles} `.indexOf(" dark ") >= 0) {
         const style = document.createElement("style");
         style.textContent = "body { background: #1e1e1e; color: #aaa; }";
@@ -52,7 +52,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
   }
   if (!Build.NDEBUG) {
     (window as {} as {updateUI(): void}).updateUI = function (): void {
-      const settings = (chrome.extension.getBackgroundPage() as BgWindow).Settings;
+      const settings = (chrome.extension.getBackgroundPage() as BgWindow).Settings_;
       delete (settings.cache_ as FullSettings).helpDialog;
       delete (settings.cache_ as FullSettings).exclusionTemplate;
       settings.fetchFile_("baseCSS", function (): void {

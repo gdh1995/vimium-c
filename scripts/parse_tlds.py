@@ -47,7 +47,7 @@ tlds = list(i[1] for i in tlds)
 prefix, tail = '  , "', ' // char[%d][%d]'
 format = '%s%s"%s'
 for isEn in (True, False):
-    print('Utils.%s = [""' % ('_tlds' if isEn else '_nonENTlds'))
+    print('BgUtils_.%s = [""' % ('_tlds' if isEn else '_nonENTlds'))
     i, count, len_tld, line, len_line = "", 0, 2, "", len(prefix)
     for i in tlds:
         if (re.match(r'^[0-9A-Za-z]+\Z', i) is not None) != isEn:

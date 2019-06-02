@@ -8,14 +8,14 @@ var HelpDialog = {
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
           && !window.ShadowRoot,
       noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
-          && ChromeVer === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
+          && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
           && noShadow
           || Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
               && noContain) {
-        let template = Settings.cache_.helpDialog as string, styleEnd = template.indexOf("</style>"),
+        let template = Settings_.cache_.helpDialog as string, styleEnd = template.indexOf("</style>"),
         left = template.slice(0, styleEnd), right = template.slice(styleEnd);
         if (Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
             && noContain) {
@@ -28,7 +28,7 @@ var HelpDialog = {
           left = left.replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
             ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv");
         }
-        Settings.set_("helpDialog", left + right);
+        Settings_.set_("helpDialog", left + right);
       }
       HelpDialog.inited_ = true;
     }
@@ -48,8 +48,8 @@ var HelpDialog = {
       (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
     }
     const result = Object.setPrototypeOf({
-      homePage: Settings.CONST_.HomePage_,
-      version: Settings.CONST_.VerName_,
+      homePage: Settings_.CONST_.HomePage_,
+      version: Settings_.CONST_.VerName_,
       title: request.t ? "Command Listing" : "Help",
       reviewPage: (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
@@ -61,7 +61,7 @@ var HelpDialog = {
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;
-    const html = (<string> Settings.cache_.helpDialog).replace(
+    const html = (<string> Settings_.cache_.helpDialog).replace(
         <RegExpSearchable<1>> /\{\{(\w+)}}/g, function (_, group: string) {
       let s = result[group];
       return s != null ? s
@@ -94,7 +94,7 @@ var HelpDialog = {
         for (const item of keys) {
           const help = item[1].help_ as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
           help && (this as typeof HelpDialog).normalizeHelpInfo_(help);
-          const key = help && help.$key || Utils.escapeText_(item[0]);
+          const key = help && help.$key || BgUtils_.escapeText_(item[0]);
           if (help && help.$desc) {
             let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
             html += renderItem(isAdvanced, singleBinding, help.$desc, showNames ? command : "");
