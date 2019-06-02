@@ -28,6 +28,7 @@ declare namespace CompletersNS {
     None = 0,
     SingleLine = 1,
     TabInCurrentWindow = 2,
+    MonospaceURL = 4,
   }
   interface Options {
     /** maxChars */ c?: number;

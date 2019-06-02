@@ -279,7 +279,8 @@ declare namespace VomnibarNS {
     OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
     ListSpaceDelta = MarginTop + MarginV1
       + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0) + GlobalConsts.MaxScrollbarWidth,
-    MarginH = 24, AllHNotUrl = 20 * 2 + 20 + 2 + MarginH, MeanWidthOfChar = 7.7,
+    MarginH = 24, AllHNotUrl = 20 * 2 + 20 + 2 + MarginH,
+    MeanWidthOfMonoFont = 7.7, MeanWidthOfNonMonoFont = 4,
     WindowSizeX = 0.8, AllHNotInput = AllHNotUrl,
   }
 }

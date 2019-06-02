@@ -47,6 +47,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const a = Vomnibar_;
     a.mode_.t = a.mode_.o = a.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, 1);
+    a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
     a.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
@@ -744,6 +745,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (Vomnibar_.darkBtn_) {
       Vomnibar_.darkBtn_.textContent = omniStyles.indexOf(" dark ") >= 0 ? "\u2600" : "\u263D";
     }
+    const monospaceURL = omniStyles.indexOf(" mono-url ") >= 0;
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
@@ -756,6 +758,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     omniStyles = omniStyles.trim();
     const docEl = document.documentElement as HTMLHtmlElement;
     docEl.className !== omniStyles && (docEl.className = omniStyles);
+    if (!!(Vomnibar_.mode_.f & CompletersNS.QueryFlags.MonospaceURL) !== monospaceURL) {
+      Vomnibar_.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, monospaceURL);
+      if (Vomnibar_.isActive_ && !Vomnibar_.init_) {
+        Vomnibar_.refresh_(document.hidden);
+      }
+    }
   },
   ToggleDark_ (this: void, event: MouseEvent): void {
     Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
@@ -944,14 +952,21 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   _realDevRatio: 0,
   onInnerWidth_ (w?: number): void {
-    Vomnibar_.mode_.c = Math.round(((w || innerWidth) / Vomnibar_.docZoom_
-      - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
+    Vomnibar_.mode_.c = Math.floor(((w || innerWidth) / Vomnibar_.docZoom_ - PixelData.AllHNotUrl)
+      / (Vomnibar_.mode_.f & CompletersNS.QueryFlags.MonospaceURL ? PixelData.MeanWidthOfMonoFont
+        : PixelData.MeanWidthOfNonMonoFont));
   },
   updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | BOOL | null): void {
     let isFirst = enable == null;
+    if (isFirst && flag === CompletersNS.QueryFlags.MonospaceURL) {
+      enable = ` ${Vomnibar_.styles_} `.indexOf(" mono-url ") >= 0;
+    }
     var newFlag = (Vomnibar_.mode_.f & ~flag) | (enable ? flag : 0);
     if (Vomnibar_.mode_.f === newFlag) { return; }
     Vomnibar_.mode_.f = newFlag;
+    if (flag === CompletersNS.QueryFlags.MonospaceURL && !isFirst) {
+      Vomnibar_.onInnerWidth_();
+    }
   },
   secret_: null as ((request: BgVomnibarSpecialReq[kBgReq.omni_init]) => void) | null,
 

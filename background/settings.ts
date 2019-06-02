@@ -429,7 +429,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     vomnibarOptions: {
       maxMatches: 10,
       queryInterval: 500,
-      styles: "",
+      styles: "mono-url",
     },
     userDefinedCss: "",
     vimSync: null,
