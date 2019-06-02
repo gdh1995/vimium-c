@@ -1525,13 +1525,14 @@ Completion_ = {
       : [];
     maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number> options.c | 0) || 128
       , Consts.UpperBoundOfMaxChars));
-    singleLine = !!options.s;
+    const flags = options.f;
+    singleLine = !!(flags & CompletersNS.QueryFlags.SingleLine);
     maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
     matchedTotal = 0;
     Completers.callback_ = callback;
     let arr: ReadonlyArray<Completer> | null = knownCs[options.o], str = queryTerms.length >= 1 ? queryTerms[0] : "";
     if (arr === knownCs.tab) {
-       wantInCurrentWindow = !!(options.f && options.f & 1);
+       wantInCurrentWindow = !!(flags & CompletersNS.QueryFlags.TabInCurrentWindow);
     }
     autoSelect = arr != null && arr.length === 1;
     if (str.length === 2 && str[0] === ":") {

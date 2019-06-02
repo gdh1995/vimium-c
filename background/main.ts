@@ -2204,7 +2204,8 @@ Are you sure you want to continue?`);
       let styles: string, payload = Settings.omniPayload_, curStyles = payload.styles_;
       if (req.s == null) {
         let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.indexOf(toggled) >= 0;
-        styles = (req.e != null ? req.e : exists) ? exists ? curStyles : extSt + toggled : extSt.replace(toggled, " ");
+        styles = (req.e != null ? req.e : exists) ? exists ? curStyles : curStyles + toggled
+            : extSt.replace(toggled, " ");
         styles = styles.trim();
         if (req.b === false) { payload.styles_ = styles; return; }
       } else {

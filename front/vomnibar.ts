@@ -46,7 +46,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     Object.setPrototypeOf(options, null);
     const a = Vomnibar_;
     a.mode_.t = a.mode_.o = a.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
-    a.mode_.f = a.mode_.t === "tab" && options.currentWindow ? 1 : 0;
+    a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, 1);
     a.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
@@ -797,10 +797,10 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   blurred_ (this: void, blurred?: boolean): void {
     if (!Vomnibar_) { return; }
-    const a = (document.body as HTMLBodyElement).classList;
+    const a = (document.body as HTMLBodyElement).classList, kTransparent = "transparent" as const;
     // Document.hidden is since C33, according to MDN
     !Vomnibar_.isActive_ || (blurred != null ? !blurred : document.hidden || document.hasFocus())
-      ? a.remove("transparent") : a.add("transparent");
+      ? a.remove(kTransparent) : a.add(kTransparent);
   },
   init_ (): void {
     const a = Vomnibar_;
@@ -947,6 +947,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     Vomnibar_.mode_.c = Math.round(((w || innerWidth) / Vomnibar_.docZoom_
       - PixelData.AllHNotUrl) / PixelData.MeanWidthOfChar);
   },
+  updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | BOOL | null): void {
+    let isFirst = enable == null;
+    var newFlag = (Vomnibar_.mode_.f & ~flag) | (enable ? flag : 0);
+    if (Vomnibar_.mode_.f === newFlag) { return; }
+    Vomnibar_.mode_.f = newFlag;
+  },
   secret_: null as ((request: BgVomnibarSpecialReq[kBgReq.omni_init]) => void) | null,
 
   mode_: {
@@ -955,7 +961,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     t: "omni" as CompletersNS.ValidTypes,
     c: 0,
     r: 0,
-    f: 0,
+    f: CompletersNS.QueryFlags.None,
     i: 0 as 0 | 1 | 2,
     q: ""
   },

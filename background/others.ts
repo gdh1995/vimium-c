@@ -451,7 +451,8 @@ Utils.timeout_(600, function (): void {
         || !key.startsWith(last as string) ? "omni"
       : matchType === CompletersNS.MatchType.searchWanted ? "search"
       : firstType || "omni";
-    return Completion_.filter_(key, { o: "omni", t: type, r: maxResults, c: maxChars, s: true }
+    return Completion_.filter_(key
+      , { o: "omni", t: type, r: maxResults, c: maxChars, f: CompletersNS.QueryFlags.SingleLine }
       , onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
@@ -467,7 +468,8 @@ Utils.timeout_(600, function (): void {
       // need a re-computation
       // * may has been cleaned, or
       // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
-      return Completion_.filter_(text, { o: "omni", t: "omni", r: 3, c: maxChars, s: true }
+      return Completion_.filter_(text
+          , { o: "omni", t: "omni", r: 3, c: maxChars, f: CompletersNS.QueryFlags.SingleLine }
           , function (sugs, autoSelect): void {
         return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) : open(text, disposition);
       });

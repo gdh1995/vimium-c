@@ -3,6 +3,7 @@
 	"environment": {
 		"platform": "win"
 	},
+	"autoReduceMotion": true,
 	"exclusionRules": [],
 	"grabBackFocus": true,
 	"keyMappings": [

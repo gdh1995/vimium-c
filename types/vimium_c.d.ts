@@ -24,11 +24,15 @@ declare namespace CompletersNS {
    * "math" can not be the first suggestion, which is limited by omnibox handlers
    */
   type ValidSugTypes = ValidTypes | "math";
+  const enum QueryFlags {
+    None = 0,
+    SingleLine = 1,
+    TabInCurrentWindow = 2,
+  }
   interface Options {
     /** maxChars */ c?: number;
     /** maxResults */ r?: number;
-    /** singleLine */ s?: boolean;
-    /** flags */ f?: number;
+    /** flags */ f: QueryFlags;
     /** type */ t: ValidTypes;
     /** original type */ o: ValidTypes;
   }

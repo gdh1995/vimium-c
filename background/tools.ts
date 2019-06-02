@@ -513,7 +513,7 @@ MediaWatcher_ = {
   },
   update_ (this: void, key: MediaNS.kName, embed?: 1): void {
     const settings = Settings, payload = settings.payload_,
-    omniToggled = key ? "dark" : "reduce-motion",
+    omniToggled = key ? "dark" : "less-motion",
     matched = MediaWatcher_.get_(key), bMatched = !!matched;
     if (!key) {
       if (payload.reduceMotion_ !== bMatched) {
