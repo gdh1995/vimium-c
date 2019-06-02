@@ -6,7 +6,6 @@ interface Window {
 }
 declare var VPort: VPortTy, VHud: VHUDTy, VEvent: VEventModeTy;
 
-type TextElement = HTMLInputElement | HTMLTextAreaElement;
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEvent | null, hash?: "hash"): void;
 }
@@ -662,20 +661,20 @@ interface AdvancedOptBtn extends HTMLButtonElement {
         if (key in manifest) { continue; }
         key = `for lacking permission${key ? ":\n* " + key : ""}`;
       }
-      (el as HTMLInputElement | HTMLTextAreaElement).disabled = true;
+      (el as TextElement).disabled = true;
       key = "This option is disabled " + key;
       if (el instanceof HTMLInputElement && el.type === "checkbox") {
         el.checked = false;
         el = el.parentElement as HTMLElement;
         el.title = key;
       } else {
-        (el as HTMLInputElement | HTMLTextAreaElement).value = "";
+        (el as TextElement).value = "";
         el.title = key;
         (el.parentElement as HTMLElement).onclick = onclick;
       }
     }
     function onclick(this: HTMLElement): void {
-      const el = this.querySelector("[data-permission]") as HTMLInputElement | HTMLTextAreaElement | null;
+      const el = this.querySelector("[data-permission]") as TextElement | null;
       this.onclick = null as never;
       if (!el) { return; }
       const key = el.dataset.permission;

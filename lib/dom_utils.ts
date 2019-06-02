@@ -9,7 +9,12 @@ var VDom = {
     ? true : !!(Build.BTypes & BrowserType.Chrome),
   docSelectable_: true,
   docNotCompleteWhenVimiumIniting_: document.readyState !== "complete",
-  isHTML_ (this: void): boolean { return document.documentElement instanceof HTMLElement; },
+  isHTML_: (): boolean => "lang" in <ElementToHTML> (document.documentElement || {}),
+  htmlTag_: (element: Element): string =>
+    "lang" in element && !(Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element))
+      ? (element as SafeHTMLElement).tagName.toLowerCase() : "",
+  hasTag_need_safe_: <Tag extends keyof HTMLElementTagNameMap> (element: SafeHTMLElement, tag: Tag
+    ): element is HTMLElementTagNameMap[Tag] & SafeHTMLElement => element.tagName.toLowerCase() === tag,
   isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
     const viewport = document.querySelector("meta[name=viewport]");
     return !!viewport &&
@@ -18,15 +23,15 @@ var VDom = {
   } : 0 as never,
   createElement_: function<K extends VimiumContainerElementType> (this: {},
       tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement | Element {
-    const d = document,
-    node = document.createElement(tagName), valid = node instanceof HTMLElement;
-    (this as typeof VDom).createElement_ = valid ? d.createElement.bind(d) as typeof VDom.createElement_
+    const d = document, node = document.createElement(tagName);
+    (this as typeof VDom).createElement_ = "lang" in <ElementToHTML> node
+      ? d.createElement.bind(d) as typeof VDom.createElement_
       : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", [VimiumContainerElementType]
         , HTMLElement>(d, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
     return node;
   } as {
+    // tslint:disable-next-line: callable-types
     <K extends VimiumContainerElementType> (this: {}, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
-    <K extends 1>(this: {}, tagName: "script" | K): HTMLScriptElement | Element;
   },
   createShadowRoot_<T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T {
     return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
@@ -115,16 +120,17 @@ var VDom = {
      * Known info about Chrome:
      * * a selection / range can only know nodes and text in a same tree scope
      */
-    const E = Element, a = Build.BTypes & ~BrowserType.Firefox ? VDom : 0 as never;
+    const a = Build.BTypes & ~BrowserType.Firefox ? VDom : 0 as never,
+    kPN = "parentNode";
     if (type >= PNType.RevealSlot) {
       if (Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && Build.BTypes & BrowserType.Chrome) {
-        const func = E.prototype.getDestinationInsertionPoints,
+        const func = Element.prototype.getDestinationInsertionPoints,
         arr = func ? func.call(el as Element) : [], len = arr.length;
         len > 0 && (el = arr[len - 1]);
       }
       let slot = (el as Element).assignedSlot;
       Build.BTypes & ~BrowserType.Firefox && slot && a.notSafe_(el) &&
-      (slot = a.Getter_(E, el, "assignedSlot"));
+      (slot = a.Getter_(Element, el, "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
         while (slot = slot.assignedSlot) { el = slot as HTMLSlotElement; }
@@ -134,9 +140,6 @@ var VDom = {
     let pe = el.parentElement as Exclude<PE, Window>
       , pn = el.parentNode as Exclude<PN, Window>;
     if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null; }
-    const NL = Build.BTypes & ~BrowserType.Firefox ? NodeList as { prototype: RadioNodeList; new(): unknown; }
-                : 0 as never,
-    kPN = "parentNode";
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && pe && a.unsafeFramesetTag_) { // may be [a <frameset> with pn or pe overridden], or a <form>
       const action = +((pn as PN as WindowWithTop).top === top) + 2 * +((pe as PE as WindowWithTop).top === top)
@@ -147,8 +150,8 @@ var VDom = {
       }
     }
     // par exists but not in normal tree
-    if (Build.BTypes & ~BrowserType.Firefox && (pn instanceof NL || !pn.contains(el))) { // pn is overridden
-      if (pe && !(pe instanceof NL) && pe.contains(el)) { /* pe is real */ return pe; }
+    if (Build.BTypes & ~BrowserType.Firefox && !(pn.nodeType && pn.contains(el))) { // pn is overridden
+      if (pe && pe.nodeType && pe.contains(el)) { /* pe is real */ return pe; }
       pn = a.Getter_(Node, el, kPN);
     }
     // pn is real (if BrowserVer.MinParentNodeGetterInNodePrototype else) real or null
@@ -184,9 +187,12 @@ var VDom = {
       // but if body is null in the meanwhile, then docEl.scrollHeight is not reliable (scrollY neither)
       //   when it's real scroll height is not larger than innerHeight
     }
+    if (!(Build.NDEBUG
+          || BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset < BrowserVer.MinFramesetHasNoNamedGetter)) {
+      console.log("Assert error: MinEnsured$ScrollingElement$CannotBeFrameset < MinFramesetHasNoNamedGetter");
+    }
     if (Build.MinCVer < BrowserVer.MinEnsured$ScrollingElement$CannotBeFrameset && Build.BTypes & BrowserType.Chrome) {
-      el = (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter ? el && this.notSafe_(el)
-            : el instanceof HTMLFrameSetElement) ? null : el;
+      el = this.notSafe_(el as Exclude<typeof el, undefined>) ? null : el;
     }
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
       return el || !fallback ? el as SafeElement | null : docEl as SafeElement | null;
@@ -296,7 +302,7 @@ var VDom = {
           || !(Build.BTypes & ~BrowserType.Firefox) || element.getRootNode)
         ? (element as EnsureNonNull<typeof element>).getRootNode() as ShadowRoot | Document : document;
       const map = root.querySelector(selector);
-      if (!map || !(map instanceof HTMLMapElement)) { return null; }
+      if (!map || (map as ElementToHTML).lang == null) { return null; }
       areas = map.getElementsByTagName("area");
     }
     const toInt = (a: string) => (a as string | number as number) | 0;
@@ -344,9 +350,7 @@ var VDom = {
     for (let summaries = details.children, i = 0, len = summaries.length; i < len; i++) {
       const summary = summaries[i];
       // there's no window.HTMLSummaryElement on C70
-      // normally, a child element of <details> won't be a <frameset>, so the line below is safe
-      if ((<RegExpI> /^summary$/i).test(summary.tagName as Exclude<Element["tagName"], Window> as string)
-          && summary instanceof HTMLElement) {
+      if (VDom.htmlTag_(summary) === "summary") {
         return summary as SafeHTMLElement;
       }
     }
@@ -490,7 +494,7 @@ var VDom = {
   scrollWndBy_ (left: number, top: number): void {
     !(Build.BTypes & ~BrowserType.Firefox) ||
     !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
-    HTMLElement.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
+    Element.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
   },
   NotVisible_: function (this: void, element: Element | null, rect?: ClientRect): VisibilityType {
     if (!rect) {
@@ -538,7 +542,6 @@ var VDom = {
     return (pe || VDom.GetParent_(element, PNType.DirectNode)) === root;
   } as (element: Element, root?: Element | Document, checkMouseEnter?: 1) => boolean,
   unsafeFramesetTag_: 0 as "FRAMESET" | 0,
-  // todo: apply similar checks for HTMLElement and LockableElement
   notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
     let s: Node["nodeName"];
     // tslint:disable-next-line: triple-equals
@@ -568,16 +571,13 @@ var VDom = {
     embed: EditableType.Embed, object: EditableType.Embed
   },
   /**
-   * if true, then `element` is `LockableElement`
+   * if true, then `element` is `LockableElement`,
+   * so MUST always filter out HTMLFormElement, to keep LockableElement safe
    */
   getEditableType_: function (element: Element): EditableType {
-    const name = element.tagName;
-    if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && typeof name !== "string") {
-      return EditableType.NotEditable;
-    }
-    const ty = VDom.editableTypes_[(name as string).toLowerCase()];
-    return ty !== EditableType.input_ ? (ty ||
-        (element.isContentEditable !== true || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)
+    const tag = VDom.htmlTag_(element), ty = VDom.editableTypes_[tag];
+    return !tag ? EditableType.NotEditable : ty !== EditableType.input_ ? (ty ||
+        ((element as HTMLElement).isContentEditable !== true
         ? EditableType.NotEditable : EditableType.Editbox)
       )
       : VDom.uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.Editbox;
@@ -586,7 +586,7 @@ var VDom = {
     <Ty extends 1>(element: Element): element is LockableElement;
     <Ty extends LockableElement>(element: EventTarget): element is Ty;
   },
-  isInputInTextMode_ (el: HTMLInputElement | HTMLTextAreaElement): boolean | void {
+  isInputInTextMode_ (el: TextElement): boolean | void {
     if (Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull || !(Build.BTypes & BrowserType.Chrome)) {
       return el.selectionEnd != null;
     }
@@ -596,9 +596,10 @@ var VDom = {
   },
   isSelected_ (): boolean {
     const element = document.activeElement as Element, sel = getSelection(), node = sel.anchorNode;
-    return (element as HTMLElement).isContentEditable === true
-      ? !!node && (Build.BTypes & ~BrowserType.Firefox ? document.contains.call(element, node) : element.contains(node))
-      : element === node || node instanceof Element
+    return !node ? false
+      : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
+      ? (Build.BTypes & ~BrowserType.Firefox ? document.contains.call(element, node) : element.contains(node))
+      : element === node || "tagName" in <NodeToElement> node
         && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
               || node.childNodes instanceof NodeList)
         && element === (node.childNodes as NodeList | RadioNodeList)[sel.anchorOffset];
@@ -609,20 +610,16 @@ var VDom = {
    */
   GetSelectionParent_unsafe_ (sel: Selection, selected?: string): Element | null {
     let range = sel.getRangeAt(0), par: Node | null = range.commonAncestorContainer, p0 = par;
-    // no named getters on SVG* elements
-    // just ignore the case of unsafe <frameset>
-    if (Build.BTypes & ~BrowserType.Firefox) {
-      while (par && (par.nodeType !== kNode.ELEMENT_NODE || par instanceof SVGElement)) {
-        par = VDom.GetParent_(par, PNType.DirectNode);
-      }
-      // now par is Element or null, and may be a <form>
-    } else {
-      while (par && !(par instanceof HTMLElement)) { par = par.parentNode as Element; }
-      // now par is HTMLElement or null
+    while (par && (par as NodeToElement as ElementToHTML).lang == null) {
+      par = Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(par, PNType.DirectNode)
+            : par.parentNode as Exclude<Node["parentNode"], Window | RadioNodeList | HTMLCollection>;
     }
-    if (selected && p0 instanceof Text && p0.data.trim().length <= selected.length) {
-      let text: string | Element | RadioNodeList | Window | undefined;
-      while (par && (text = (par as HTMLElement | Element & {innerText?: undefined}).innerText,
+    // in case of Document or other ParentNode types with named getters
+    par = par && (par instanceof Element || par.nodeType === kNode.ELEMENT_NODE) ? par : null;
+    // now par is HTMLElement or null, and may be a <form> / <frameset>
+    if (selected && p0.nodeType === kNode.TEXT_NODE && (p0 as Text).data.trim().length <= selected.length) {
+      let text: HTMLElement["innerText"] | undefined;
+      while (par && (text = (par as  TypeToAssert<Element, HTMLElement, "innerText">).innerText,
             !(Build.BTypes & ~BrowserType.Firefox) || typeof text === "string")
           && selected.length === (text as string).length) {
         par = VDom.GetParent_(par as HTMLElement, PNType.DirectElement);
@@ -632,11 +629,11 @@ var VDom = {
   },
   getSelectionFocusEdge_ (sel: Selection, knownDi: VisualModeNS.ForwardDir): SafeElement | null {
     if (!sel.rangeCount) { return null; }
-    let el = sel.focusNode, E = Element, nt: Node["nodeType"]
+    let el = sel.focusNode as NonNullable<Selection["focusNode"]>, nt: Node["nodeType"]
       , o: Node | null, cn: Node["childNodes"] | null;
-    if (el instanceof E) {
+    if ("tagName" in <NodeToElement> el) {
       el = Build.BTypes & ~BrowserType.Firefox
-        ? ((cn = el.childNodes) instanceof NodeList && !("value" in cn) // exclude RadioNodeList
+        ? ((cn = (el as Element).childNodes) instanceof NodeList && !("value" in cn) // exclude RadioNodeList
             || (cn = this.Getter_(Node, el, "childNodes")))
           && cn[sel.focusOffset] || el
         : (el.childNodes as NodeList)[sel.focusOffset] || el;
@@ -665,8 +662,9 @@ var VDom = {
     let doc = element.ownerDocument;
     Build.BTypes & BrowserType.Chrome &&
     (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && (this as typeof VDom).unsafeFramesetTag_
-      && (doc as WindowWithTop).top === top
-      || (doc as Node | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE) && (doc = document);
+        && (doc as WindowWithTop).top === top
+      || (doc as Node | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE) &&
+    (doc = document);
     const mouseEvent = (doc as Document).createEvent("MouseEvents");
     // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
     //  viewArg: Window, detailArg: number,

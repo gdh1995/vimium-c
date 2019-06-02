@@ -144,6 +144,8 @@ interface ReadonlyChildKeyMap {
 }
 type KeyMap = ReadonlySafeDict<ValidKeyAction | ReadonlyChildKeyMap>;
 
+type TextElement = HTMLInputElement | HTMLTextAreaElement;
+
 declare const enum ReuseType {
   current = 0,
   Default = current,

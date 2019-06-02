@@ -148,7 +148,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   isSelOriginal_: true,
   lastKey_: VKeyCodes.None,
   keyResult_: HandlerResult.Nothing,
-  list_: null as never as HTMLDivElement,
+  list_: null as never as EnsuredMountedHTMLElement,
   onUpdate_: null as (() => void) | null,
   doEnter_: null as ((this: void) => void) | null,
   renderItems_: null as never as Render,
@@ -703,9 +703,9 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.showFavIcon_ ? cl.remove(c) : cl.add(c);
     if (notEmpty) {
       if (a.selection_ === 0) {
-        (list.firstElementChild as HTMLElement).classList.add("s");
+        list.firstElementChild.classList.add("s");
       }
-      (list.lastElementChild as HTMLElement).classList.add("b");
+      list.lastElementChild.classList.add("b");
     }
     if (earlyPost) {
       return a.postUpdate_();
@@ -808,7 +808,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.onWheel_ = a.onWheel_.bind(a);
     Object.setPrototypeOf(a.ctrlMap_, null);
     Object.setPrototypeOf(a.normalMap_, null);
-    const list = a.list_ = document.getElementById("list") as HTMLDivElement;
+    const list = a.list_ = document.getElementById("list") as EnsuredMountedHTMLElement;
     const ver: BrowserVer = Build.BTypes & BrowserType.Chrome ? a.browserVer_ : BrowserVer.assumedVer,
     listen = addEventListener,
     input = a.input_ = document.getElementById("input") as typeof Vomnibar_.input_;

@@ -19,7 +19,8 @@
 
   const symMatch = typeof Symbol === "function" && typeof Symbol.match === "symbol" &&
                     Symbol.match as symbol | string | false as "Symbol(Symbol.match)" | false,
-  S = String as StringConstructor & { readonly prototype: StandardString }, RE = RegExp, TE = TypeError;
+  S = String as StringConstructor & { readonly prototype: StandardString }, TE = TypeError,
+  toStr = Object.prototype.toString;
 
   "".startsWith || (
   S.prototype.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
@@ -54,7 +55,8 @@
       [key: string]: ((this: string, re: RegExp) => boolean) | primitive;
     }
     let f: PossibleTypeOfB[string], u: undefined
-      , i = symMatch && (f = (b as PossibleTypeOfB)[symMatch]) !== u ? f : b instanceof RE;
+      , i = symMatch && (f = (b as PossibleTypeOfB)[symMatch]) !== u ? f
+          : toStr.call(b) === "[object RegExp]";
     return i ? "First argument to String.prototype.${func} must not be a regular expression" : null;
   }
 })();

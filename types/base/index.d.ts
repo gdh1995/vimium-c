@@ -15,6 +15,7 @@ type TypeName<T> =
     T extends Function ? "function" :
     "object";
 type Parameters<F extends Function> = F extends (...args: infer A) => any ? A : never;
+type ThisParameter<F extends Function> = F extends (this: infer T, ...args: any) => any ? T : never;
 type ConstructorParameters<T extends new (...args: any[]) => any> = T extends new (...args: infer P) => any ? P : never;
 type ReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
 type InstanceType<T extends new (...args: any[]) => any> = T extends new (...args: any[]) => infer R ? R : any;
@@ -30,3 +31,6 @@ type Excluded<T, K extends keyof T> = {
     [P in Exclude<keyof T, K>]: T[P];
 };
   
+type TypeToAssert<Parent, Child extends Parent, Key extends keyof Child, Others extends keyof Parent = never> =
+    Key extends keyof Parent ? never :
+    { readonly [P in Others]: unknown; } & { readonly [key in Key]?: Child[Key]; };

@@ -377,8 +377,8 @@ var VFind = {
     Build.BTypes & ~BrowserType.Firefox && (cur = VDom.SafeEl_(cur));
     for (let i = 0, el: Element | null = cur; el && el !== document.body && i++ < 5;
         el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
-      if (el instanceof HTMLAnchorElement) {
-        el.focus();
+      if (VDom.htmlTag_(el) === "a") {
+        (el as HTMLAnchorElement).focus();
         return null;
       }
     }

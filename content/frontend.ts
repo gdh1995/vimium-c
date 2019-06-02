@@ -93,7 +93,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   function onKeydown(event: KeyboardEvent): void {
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
-            : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent))
+            : event.isTrusted !== false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
         || !event.keyCode) { return; }
     if (VScroller.keyIsDown_ && events.OnScrolls_[0](event)) { return; }
     if (Build.BTypes & BrowserType.Firefox
@@ -145,7 +145,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   function onKeyup(event: KeyboardEvent): void {
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
-            : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent))
+            : event.isTrusted !== false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
         || !event.keyCode) { return; }
     VScroller.scrollTick_(0);
     if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
@@ -503,7 +503,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       const arr: ViewOffset = VDom.getViewBox_();
       VDom.prepareCrop_();
       // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
-      const visibleInputs = VHints.traverse_("*", VHints.GetEditable_),
+      const visibleInputs = VHints.traverse_("*", VHints.GetEditable_
+          ) as Array<Hint & { [0]: HintsNS.InputHintItem["target_"]; }>,
       action = options.select;
       let sel = visibleInputs.length;
       if (sel === 0) {
@@ -517,7 +518,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
         hint[2] = j > 0 ? ind / 8192 - j : ind;
       }
-      const hints = visibleInputs.sort((a, b) => a[2] - b[2]).map(function (link): HintsNS.BaseHintItem {
+      const hints: HintsNS.InputHintItem[] = visibleInputs.sort((a, b) => a[2] - b[2]).map(function (link) {
         const marker = VDom.createElement_("span") as HintsNS.BaseHintItem["marker_"],
         rect = VDom.padClientRect_(VDom.getBoundingClientRect_(link[0]), 3);
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
@@ -558,7 +559,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         else if (keep ? VKey.isEscape_(event) || (
             keyCode === VKeyCodes.enter && (keyStat = VKey.getKeyStat_(event),
               keyStat !== KeyStat.shiftKey
-              && (keyStat !== KeyStat.plain || this.hints[sel].target_ instanceof HTMLInputElement) )
+              && (keyStat !== KeyStat.plain || VDom.hasTag_need_safe_(this.hints[sel].target_, "input") ))
           ) : keyCode !== VKeyCodes.ime && keyCode !== VKeyCodes.f12
         ) {
           InsertMode.exitInputHint_();
@@ -575,7 +576,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         (event: Event, target: LockableElement) => void),
     global_: null as CmdOptions[kFgCmd.insertMode] | null,
     hinting_: false,
-    inputHint_: null as { box: HTMLDivElement, hints: HintsNS.BaseHintItem[] } | null,
+    inputHint_: null as { box: HTMLDivElement, hints: HintsNS.InputHintItem[] } | null,
     suppressType_: null as string | null,
     last_: null as LockableElement | null,
     lock_: null as LockableElement | null,
@@ -638,8 +639,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       el = document.activeElement;
       if (el && (el as HTMLElement).isContentEditable === true &&
-         !(Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(el))
-         && el instanceof HTMLElement) {
+          VDom.htmlTag_(el)) {
         InsertMode.lock_ = el as LockableElement;
         return true;
       } else {
@@ -693,8 +693,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   },
 
   Pagination = {
-  followLink_ (linkElement: HTMLElement): boolean {
-    let url = linkElement instanceof HTMLLinkElement && linkElement.href;
+  followLink_ (linkElement: SafeHTMLElement): boolean {
+    let url = VDom.hasTag_need_safe_(linkElement, "link") && linkElement.href;
     if (url) {
       Commands[kFgCmd.reload](1, { url });
     } else {
@@ -706,18 +706,17 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return true;
   },
   GetLinks_ (this: SafeHTMLElement[], element: Element): void {
-    if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { return; }
-    let s: string | null = (element.tagName as string).toLowerCase()
-      , sr = element.shadowRoot as ShadowRoot | null | undefined;
+    let s: string | null;
+    const tag = VDom.htmlTag_(element), isClickable = tag === "a" || tag && (
+      tag === "button" ? !(element as HTMLButtonElement).disabled
+      : VLib.clickable_.has(element) || element.getAttribute("onclick") || (
+        (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
+        : VHints.ngEnabled_ && element.getAttribute("ng-click"))),
+    sr = tag && element.shadowRoot as ShadowRoot | null | undefined | "";
     if (sr) {
       ([].forEach as HintsNS.ElementIterator<Element>).call(
         sr.querySelectorAll("*"), Pagination.GetLinks_, this);
     }
-    const isClickable = s === "a" || (
-      s === "button" ? !(element as HTMLButtonElement).disabled
-      : VLib.clickable_.has(element) || element.getAttribute("onclick") || (
-        (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
-        : VHints.ngEnabled_ && element.getAttribute("ng-click")));
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
     const rect = VDom.getBoundingClientRect_(element);
@@ -728,7 +727,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   findAndFollowLink_: !(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)
       ? (console.log("Assert error: GlobalConsts.MaxNumberOfNextPatterns <= 255"), 0 as never)
       : function (names: string[], isNext: boolean): boolean {
-    interface Candidate { [0]: number; [1]: string; [2]: HTMLElement; }
+    interface Candidate { [0]: number; [1]: string; [2]: ThisParameter<typeof Pagination.GetLinks_>[number]; }
     // Note: this traverser should not need a prepareCrop
     let links = VHints.traverse_("*", Pagination.GetLinks_, true, true);
     const count = names.length,
@@ -771,15 +770,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   },
   findAndFollowRel_ (relName: string): boolean {
     const elements = document.querySelectorAll("[rel]");
-    let s: string | null;
+    let s: string | null | undefined;
+    type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
     for (let _i = 0, _len = elements.length, re1 = <RegExpOne> /\s+/; _i < _len; _i++) {
-      const element = elements[_i], { tagName } = element;
-      if ((!(Build.BTypes & ~BrowserType.Firefox) || typeof tagName === "string")
-          && (<RegExpI> /^(a|area|link)$/i).test(tagName as string)
-          && element instanceof HTMLElement
-          && (s = (element as HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement).rel)
+      const element = elements[_i];
+      if ((<RegExpI> /^(a|area|link)$/).test(VDom.htmlTag_(element))
+          && (s = (element as TypeToAssert<HTMLElement, HTMLElementWithRel, "rel">).rel)
           && s.trim().toLowerCase().split(re1).indexOf(relName) >= 0) {
-        return Pagination.followLink_(element);
+        return Pagination.followLink_(element as HTMLElementWithRel as SafeHTMLElement);
       }
     }
     return false;
@@ -791,13 +789,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     timer_: 0,
     Focus_ (this: void, req: BgReq[kBgReq.focusFrame]): void {
       // Note: .c, .S are ensured to exist
-      const mask = req.m;
-      req.S && VDom.UI.css_(req.S);
+      const mask = req.m, dom = VDom, doc = document;
+      req.S && dom.UI.css_(req.S);
       if (mask !== FrameMaskType.NormalNext) { /* empty */ }
       else if (innerWidth < 3 || innerHeight < 3
         // check <div> to detect whether no other visible elements except <frame>s in this frame
-        || document.body instanceof HTMLFrameSetElement
-            && !document.querySelector('div')
+        || (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && Build.BTypes & BrowserType.Chrome
+                && dom.unsafeFramesetTag_  // treat a doc.body of <form> as <frameset> to simplify logic
+              ? dom.notSafe_(doc.body) : dom.htmlTag_(doc.body as NonNullable<Document["body"]>) === "frameset")
+            && !doc.querySelector("div")
         || events.checkHidden_()) {
         post({
           H: kFgReq.nextFrame,

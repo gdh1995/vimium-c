@@ -183,7 +183,8 @@ VDom.UI = {
       }
     }
     sel = getSelection();
-    let E = Element, offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel;
+    let offset: number, sr: ShadowRoot | null = null, sel2: Selection | null = sel
+      , kTagName = "tagName" as const;
     if (!(  (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) )) {
@@ -192,7 +193,7 @@ VDom.UI = {
       if (Build.MinCVer < BrowserVer.MinEmbedElementIsNotFunction && Build.BTypes & BrowserType.Chrome
             && Build.MinCVer < BrowserVer.MinShadowDOMV0
           // tslint:disable-next-line: triple-equals
-          ? typeof SR != "function" || "tagName" in SR : typeof ShadowRoot != "function") {
+          ? typeof SR != "function" || kTagName in SR : typeof ShadowRoot != "function") {
         return [sel, null];
       }
     }
@@ -200,9 +201,12 @@ VDom.UI = {
       sel2 = null;
       el = sel.anchorNode;
       if (el && el === sel.focusNode && (offset = sel.anchorOffset) === sel.focusOffset) {
-        if (el instanceof E && (!(Build.BTypes & ~BrowserType.Firefox) || el.childNodes instanceof NodeList)) {
+        if (kTagName in <NodeToElement> el
+            && (!(Build.BTypes & ~BrowserType.Firefox)
+                || (el as Element).childNodes instanceof NodeList && !("value" in (el as Element).childNodes)
+            )) {
           el = (el.childNodes as NodeList | RadioNodeList)[offset];
-          if (el instanceof E && (sr = VDom.GetShadowRoot_(el))) {
+          if (el && kTagName in <NodeToElement> el && (sr = VDom.GetShadowRoot_(el as Element))) {
             if (sr.getSelection && (sel2 = sr.getSelection())) {
               sel = sel2;
             } else {
@@ -265,8 +269,8 @@ VDom.UI = {
     let result: ActionType = ActionType.OnlyDispatch;
     if ((!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.browser_ === BrowserType.Firefox)
         && modifiers && !modifiers.altKey_
-        && element instanceof HTMLAnchorElement && element.href
-        && (element.target === "_blank" || modifiers.ctrlKey_ || modifiers.metaKey_)) {
+        && VDom.htmlTag_(element) === "a" && (element as HTMLAnchorElement).href
+        && ((element as HTMLAnchorElement).target === "_blank" || modifiers.ctrlKey_ || modifiers.metaKey_)) {
       // need to work around Firefox's popup blocker
       result = element.getAttribute("onclick") || VLib.clickable_.has(element)
           ? ActionType.DispatchAndMayFix : ActionType.FixButNotDispatch;
@@ -297,9 +301,8 @@ VDom.UI = {
   },
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
   _moveSel_need_safe (element, action): void {
-    type TextElement = HTMLInputElement | HTMLTextAreaElement;
-    const tag = element.tagName.toLowerCase();
-    const type = tag === "textarea" ? EditableType.Editbox : tag === "input" ? EditableType.input_
+    const type = VDom.hasTag_need_safe_(element, "textarea") ? EditableType.Editbox
+        : VDom.hasTag_need_safe_(element, "input") ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
         : EditableType.Default;
     if (type === EditableType.Default) { return; }

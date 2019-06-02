@@ -370,15 +370,15 @@ var VVisual = {
     const a = this, diType = a.diType_;
     a.oldLen_ = 0;
     if (diType & VisualModeNS.DiType.TextBox) {
-      const el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement;
+      const el = VEvent.lock_() as TextElement;
       return el.value.charAt(a.TextOffset_(el
           , a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== "backward"));
     }
     const sel = a.selection_;
     if (!diType) {
-      let { focusNode } = sel;
-      if (focusNode instanceof Text) {
-        const i = sel.focusOffset, str = focusNode.data;
+      let focusNode = sel.focusNode as NonNullable<Selection["focusNode"]>;
+      if (focusNode.nodeType === kNode.TEXT_NODE) {
+        const i = sel.focusOffset, str = (focusNode as Text).data;
         if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.slice(i).trimLeft()
               && (str[i] !== "\n" && !(Build.BTypes & BrowserType.Firefox && str[i] === "\r"))) {
           return str[i];
@@ -532,7 +532,7 @@ var VVisual = {
         }
       } else {
         di = a.di_ as VisualModeNS.ForwardDir;
-        let el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement,
+        let el = VEvent.lock_() as TextElement,
         start = a.TextOffset_(el, 0), end = start + len;
         di ? (end -= toGoLeft) :  (start -= toGoLeft);
         di = di && start > end ? (a.di_ = VisualModeNS.kDir.left) : VisualModeNS.kDir.right;
@@ -553,7 +553,7 @@ var VVisual = {
     }
     const sel = a.selection_, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
     if (a.diType_ & VisualModeNS.DiType.TextBox) {
-      const el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement;
+      const el = VEvent.lock_() as TextElement;
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
       el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), newDi ? "forward" : "backward");
@@ -599,7 +599,8 @@ var VVisual = {
           ) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right; // return `right` in case of unknown cases
       }
       num1 = sel.anchorOffset;
-      if ((num2 = sel.focusOffset - num1) || anchorNode instanceof Text) {
+      // here rechecks `!anchorNode` is just for safety.
+      if ((num2 = sel.focusOffset - num1) || !anchorNode || anchorNode.nodeType === kNode.TEXT_NODE) {
         a.diType_ = VisualModeNS.DiType.Normal;
         return a.di_ = num2 >= 0 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
       }
@@ -607,7 +608,7 @@ var VVisual = {
     // editable text elements
     const lock = VEvent.lock_();
     if (lock && lock.parentElement === anchorNode) { // safe beacuse lock is LockableElement
-      type TextModeElement = HTMLInputElement | HTMLTextAreaElement;
+      type TextModeElement = TextElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)
           && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.MaxNotTextModeElement) {
         let cn: Node["childNodes"];
@@ -735,7 +736,7 @@ var VVisual = {
     }
   },
   /** @argument el must be in text mode  */
-  TextOffset_ (this: void, el: HTMLInputElement | HTMLTextAreaElement, di: VisualModeNS.ForwardDir | boolean): number {
+  TextOffset_ (this: void, el: TextElement, di: VisualModeNS.ForwardDir | boolean): number {
     return (di ? el.selectionEnd : el.selectionStart) as number;
   },
 

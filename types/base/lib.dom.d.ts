@@ -2054,6 +2054,12 @@ interface AttachShadow {
 interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelector, ChildNode, ParentNode
         , Partial<AttachShadow> {
     readonly nodeType: kNode.ELEMENT_NODE | Element | RadioNodeList | Window;
+    readonly childNodes: NodeList | Element | RadioNodeList | Window;
+    readonly nodeName?: string | Element | RadioNodeList | Window;
+    readonly ownerDocument: Document | RadioNodeList | Window;
+    readonly parentElement: Element | RadioNodeList | Window | null;
+    readonly parentNode: Node | RadioNodeList | Window | null;
+
     readonly classList: DOMTokenList;
     className: string;
     readonly clientHeight: number;
@@ -2282,7 +2288,7 @@ declare var HTMLAllCollection: {
 interface HTMLAnchorElement extends HTMLElement {
     readonly tagName: "A" | "a";
     readonly innerText: string;
-    readonly parentElement: HTMLElement | null;
+    readonly parentElement: Element | null;
     readonly parentNode: Node | null;
     Methods: string;
     /**
@@ -2449,7 +2455,7 @@ declare var HTMLAppletElement: {
 interface HTMLAreaElement extends HTMLElement {
     readonly tagName: "area" | "AREA";
     readonly innerText: string;
-    readonly parentElement: HTMLElement | null;
+    readonly parentElement: Element | null;
     readonly parentNode: Node | null;
     /**
       * Sets or retrieves a text alternative to the graphic.
@@ -2763,6 +2769,7 @@ interface HTMLCollectionBase {
 }
 
 interface HTMLCollection extends HTMLCollectionBase {
+    readonly nodeType: undefined;
     /**
       * Retrieves a select object or an object from an options collection.
       */
@@ -3519,7 +3526,7 @@ declare var HTMLIFrameElement: {
 interface HTMLImageElement extends HTMLElement {
     readonly tagName: "img" | "IMG";
     readonly innerText: string;
-    readonly parentElement: HTMLElement | null;
+    readonly parentElement: Element | null;
     readonly parentNode: Node | null;
     /**
       * Sets or retrieves how the object is aligned with adjacent text.
@@ -3598,6 +3605,10 @@ declare var HTMLImageElement: {
 }
 
 interface HTMLInputElement extends HTMLElement {
+    readonly tagName: "INPUT" | "input";
+    readonly innerText: string;
+    readonly parentElement: Element | null;
+    readonly parentNode: Node | null;
     /**
       * Sets or retrieves a comma-separated list of content types.
       */
@@ -4902,6 +4913,10 @@ declare var HTMLTemplateElement: {
 }
 
 interface HTMLTextAreaElement extends HTMLElement {
+    readonly tagName: "TEXTAREA" | "textarea";
+    readonly innerText: string;
+    readonly parentElement: Element | null;
+    readonly parentNode: Node | null;
     /**
       * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user, reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
       */
@@ -5418,6 +5433,7 @@ declare var Navigator: {
 
 declare const enum kNode {
     ELEMENT_NODE = 1,
+    TEXT_NODE = 3,
     DOCUMENT_NODE = 9,
     DOCUMENT_FRAGMENT_NODE = 11,
 
@@ -5431,6 +5447,10 @@ declare const enum kNode {
 interface Node extends EventTarget {
     readonly attributes: NamedNodeMap;
     readonly baseURI: string | null;
+    // Element: <form> -> `[name]` or `[id]`
+    // HTMLCollection: on document / window
+    // RadioNodeList: <form> -> `[name]`
+    // Window: <frameset> -> `frame[name]` or window -> `frame[name], iframe[name]`
     readonly childNodes: NodeList | Element | HTMLCollection | RadioNodeList | Window;
     readonly firstChild: Node | null;
     readonly lastChild: Node | null;
@@ -5440,9 +5460,9 @@ interface Node extends EventTarget {
     readonly nodeName?: string | Element | HTMLCollection | RadioNodeList | Window;
     readonly nodeType: kNode | Element | HTMLCollection | RadioNodeList | Window;
     nodeValue: string | null;
-    readonly ownerDocument: Document | RadioNodeList | Window;
-    readonly parentElement: Element | RadioNodeList | Window | null;
-    readonly parentNode: Node | RadioNodeList | Window | null;
+    readonly ownerDocument: Document | HTMLCollection | RadioNodeList | Window;
+    readonly parentElement: Element | HTMLCollection | RadioNodeList | Window | null;
+    readonly parentNode: Node | HTMLCollection | RadioNodeList | Window | null;
     readonly previousSibling: Node | null;
     readonly isConnected?: boolean;
     textContent: string | null;
@@ -5979,6 +5999,7 @@ interface SVGElementEventMap extends ElementEventMap {
 
 interface SVGElement extends Element {
     readonly tagName: string;
+    readonly dataset? : DOMStringMap; // since C55
     className: any;
     focus(): void;
     blur(): void;
@@ -7656,6 +7677,7 @@ declare var StyleSheetPageList: {
 }
 
 interface Text extends CharacterData {
+    readonly nodeType: kNode.TEXT_NODE;
     readonly wholeText: string;
     readonly assignedSlot?: HTMLSlotElement | null;
     readonly parentElement: Element | null;
@@ -8477,10 +8499,10 @@ interface DocumentEvent {
 
 interface ElementTraversal {
     readonly childElementCount: number;
-    readonly firstElementChild: Element | null;
-    readonly lastElementChild: Element | null;
-    readonly nextElementSibling: Element | null;
-    readonly previousElementSibling: Element | null;
+    readonly firstElementChild: Element | RadioNodeList | Window | null;
+    readonly lastElementChild: Element | RadioNodeList | Window | null;
+    readonly nextElementSibling: Element | RadioNodeList | Window | null;
+    readonly previousElementSibling: Element | RadioNodeList | Window | null;
 }
 
 interface GetSVGDocument {
@@ -8738,8 +8760,8 @@ interface JsonWebKey {
 
 interface ParentNode {
     readonly children: HTMLCollection;
-    readonly firstElementChild: Element | null;
-    readonly lastElementChild: Element | null;
+    readonly firstElementChild: Element | RadioNodeList | Window | null;
+    readonly lastElementChild: Element | RadioNodeList | Window | null;
     readonly childElementCount: number;
 }
 
@@ -8877,6 +8899,7 @@ interface HTMLElementTagNameMap {
     "source": HTMLSourceElement;
     "span": HTMLSpanElement;
     "style": HTMLStyleElement;
+    "summary": HTMLElement;
     "table": HTMLTableElement;
     "tbody": HTMLTableSectionElement;
     "td": HTMLTableDataCellElement;
@@ -9045,6 +9068,7 @@ interface ElementTagNameMap {
     "strong": HTMLElement;
     "style": HTMLStyleElement;
     "sub": HTMLElement;
+    "summary": HTMLElement;
     "sup": HTMLElement;
     "svg": SVGSVGElement;
     "switch": SVGSwitchElement;
@@ -9225,6 +9249,7 @@ interface ElementListTagNameMap {
     "strong": NodeListOf<HTMLElement>;
     "style": NodeListOf<HTMLStyleElement>;
     "sub": NodeListOf<HTMLElement>;
+    "summary": NodeListOf<HTMLElement>;
     "sup": NodeListOf<HTMLElement>;
     "svg": NodeListOf<SVGSVGElement>;
     "switch": NodeListOf<SVGSwitchElement>;

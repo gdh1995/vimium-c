@@ -265,22 +265,21 @@ var VHints = {
    */
   GetClickable_ (this: Hint[], element: Element): void {
     let arr: Rect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
-    if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) {
-      if (element instanceof SVGElement) {
+    // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
+    // elements of the types below (except <div>) should refuse `attachShadow`
+    switch (VDom.htmlTag_(element)) {
+    case "": // not HTML or not safe
+      if ((element as ElementToHTML).lang == null && "tabIndex" in <ElementToHTMLorSVG> element) { // SVG*
         type = VLib.clickable_.has(element) || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
             || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.listener
           : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
           : type;
         if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))) {
-          this.push([element, arr, type]);
+          this.push([element as SVGElement, arr, type]);
         }
       }
       return;
-    }
-    // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
-    // elements of the types below (except <div>) should refuse `attachShadow`
-    switch ((element.tagName as string).toLowerCase()) {
     case "a": isClickable = true; break;
     case "frame": case "iframe":
       if (element === VOmni.box_) {
@@ -296,9 +295,10 @@ var VHints = {
     case "input":
       if ((element as HTMLInputElement).type === "hidden") { return; } // no break;
     case "textarea":
-      if ((element as HTMLTextAreaElement | HTMLInputElement).disabled && VHints.mode1_ <= HintMode.LEAVE) { return; }
-      if (!(element as HTMLTextAreaElement | HTMLInputElement).readOnly || VHints.mode_ >= HintMode.min_job
-        || element instanceof HTMLInputElement && VDom.uneditableInputs_[element.type]) {
+      if ((element as TextElement).disabled && VHints.mode1_ <= HintMode.LEAVE) { return; }
+      if (!(element as TextElement).readOnly || VHints.mode_ >= HintMode.min_job
+          || VDom.hasTag_need_safe_(element as TextElement, "input")
+              && VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
         isClickable = true;
       }
       break;
@@ -314,7 +314,8 @@ var VHints = {
     case "object": case "embed":
       s = (element as HTMLObjectElement | HTMLEmbedElement).type;
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
-      if (element instanceof HTMLObjectElement && element.useMap) {
+      if (VDom.hasTag_need_safe_(element as never as SafeHTMLElement, "object")
+          && (element as HTMLObjectElement).useMap) {
         VDom.getClientRectsForAreas_(element as HTMLObjectElement, this as Hint5[]);
       }
       return;
@@ -322,10 +323,10 @@ var VHints = {
       if ((element as HTMLImageElement).useMap) {
         VDom.getClientRectsForAreas_(element as HTMLImageElement, this as Hint5[]);
       }
-      if ((VHints.forHover_ && !(element.parentNode instanceof HTMLAnchorElement))
-        || ((s = element.style.cursor as string) ? s !== "default"
-          : (s = getComputedStyle(element).cursor as string) && (s.indexOf("zoom") >= 0 || s.startsWith("url"))
-        )) {
+      if ((VHints.forHover_ && VDom.htmlTag_(element.parentNode as Element) !== "a")
+          || ((s = (element as HTMLElement).style.cursor as string) ? s !== "default"
+              : (s = getComputedStyle(element).cursor as string) && (s.indexOf("zoom") >= 0 || s.startsWith("url"))
+          )) {
         isClickable = true;
       }
       break;
@@ -341,7 +342,7 @@ var VHints = {
       }
     }
     if (isClickable === null) {
-      type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
+      type = (s = (element as SafeHTMLElement).contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
         : (VLib.clickable_.has(element) && VHints.isClickListened_) || element.getAttribute("onclick")
           || VHints.ngEnabled_ && element.getAttribute("ng-click")
           || (s = element.getAttribute("role")) && VHints.roleRe_.test(s)
@@ -381,20 +382,20 @@ var VHints = {
     }
     return element ? arr2.length <= len : output ? true : null;
   },
+  /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
   GetEditable_ (this: Hint[], element: Element): void {
-    if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { return; }
     let arr: Rect | null, type = ClickType.Default, s: string;
-    switch ((element.tagName as string).toLowerCase()) {
+    switch (VDom.htmlTag_(element)) {
+    case "": /* not SafeHTMLElement: */ return;
     case "input":
       if (VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
         return;
       } // no break;
     case "textarea":
-      if ((element as HTMLInputElement | HTMLTextAreaElement).disabled ||
-          (element as HTMLInputElement | HTMLTextAreaElement).readOnly) { return; }
+      if ((element as TextElement).disabled || (element as TextElement).readOnly) { return; }
       break;
     default:
-      if ((s = element.contentEditable) === "inherit" || !s || s === "false") {
+      if ((s = (element as SafeHTMLElement).contentEditable) === "inherit" || !s || s === "false") {
         if (element.shadowRoot) {
           VHints.detectMore_(element as SafeHTMLElement, VHints.GetEditable_, this);
         }
@@ -404,16 +405,16 @@ var VHints = {
       break;
     }
     if (arr = VDom.getVisibleClientRect_(element)) {
-      this.push([element as SafeHTMLElement, arr, type]);
+      this.push([element as HintsNS.InputHintItem["target_"], arr, type]);
     }
   },
   GetLinks_ (this: Hint[], element: Element): void {
     let a: string | null, arr: Rect | null;
-    if (element instanceof HTMLAnchorElement && ((a = element.getAttribute("href")) && a !== "#"
+    if (VDom.htmlTag_(element) === "a" && ((a = element.getAttribute("href")) && a !== "#"
         && !VLib.jsRe_.test(a)
-        || element.dataset.vimUrl != null)) {
+        || (element as HTMLAnchorElement).dataset.vimUrl != null)) {
       if (arr = VDom.getVisibleClientRect_(element)) {
-        this.push([element, arr, ClickType.click]);
+        this.push([element as HTMLAnchorElement, arr, ClickType.click]);
       }
     }
   },
@@ -439,11 +440,15 @@ var VHints = {
     }
   },
   GetImages_ (this: Hint[], element: Element): void {
-    if (element instanceof HTMLImageElement) { return VHints._getImagesInImg(this, element); }
-    if (!(element instanceof HTMLElement) || Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element)) { return; }
-    let str = element.dataset.src || element.getAttribute("href"), cr: Rect | null;
+    const tag = VDom.htmlTag_(element);
+    if (!tag) { return; }
+    if (tag === "img") {
+      VHints._getImagesInImg(this, element as HTMLImageElement);
+      return;
+    }
+    let str = (element as SafeHTMLElement).dataset.src || element.getAttribute("href"), cr: Rect | null;
     if (!VLib.isImageUrl_(str)) {
-      str = element.style.backgroundImage as string;
+      str = (element as SafeHTMLElement).style.backgroundImage as string;
       // skip "data:" URLs, becase they are not likely to be big images
       str = (str.startsWith("url") || str.startsWith("URL")) && str.lastIndexOf("data:", 9) < 0 ? str : "";
     }
@@ -579,14 +584,19 @@ var VHints = {
       }
     }
   },
-  _isDescendant (d: Element, p: Element): boolean {
+  _isDescendant (d: Element, p: Hint[0]): boolean {
     // Note: currently, not compute normal shadowDOMs / even <slot>s (too complicated)
     let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null;
-    while (0 < i-- && (c = (Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(d, PNType.DirectElement)
-                            : d.parentElement) as EnsuredMountedElement | null) !== p && c) {
+    while (0 < i--
+        && (c = (Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(d, PNType.DirectElement)
+                : d.parentElement as Element | null) as EnsuredMountedElement | null)
+        && c !== <Element> p
+        && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
+              && VDom.unsafeFramesetTag_ && (c as Element["firstElementChild"] as WindowWithTop).top === top)
+        ) {
       d = c;
     }
-    if (c !== p) { return false; }
+    if (c !== <Element> p) { return false; }
     for (; ; ) {
       if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }
       if (i === 2) { break; }
@@ -615,15 +625,14 @@ var VHints = {
       return output.length !== 0 && null;
     }
     let rect: ClientRect | undefined, rect2: ClientRect, element = output[0][0];
-    if (
-      ((element instanceof HTMLIFrameElement) || (element instanceof HTMLFrameElement))
+    if ((<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element))
         && (rect = element.getClientRects()[0])
         && (rect2 = VDom.getBoundingClientRect_(document.documentElement as HTMLElement))
         && rect.top - rect2.top < 20 && rect.left - rect2.left < 20
         && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20
         && getComputedStyle(element).visibility === "visible"
     ) {
-      return element;
+      return element as HTMLFrameElement | HTMLIFrameElement;
     }
     return null;
   },
@@ -1071,10 +1080,10 @@ getUrlData_ (link: HTMLAnchorElement): string {
 /** return: img is HTMLImageElement | HTMLAnchorElement */
 _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
   let text: string | null, src = img.dataset.src || "";
-  if (img instanceof HTMLImageElement) {
+  if (VDom.hasTag_need_safe_(img, "img")) {
     text = img.currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
   } else {
-    text = img instanceof HTMLAnchorElement ? img.getAttribute("href") && img.href : "";
+    text = VDom.hasTag_need_safe_(img, "a") ? img.getAttribute("href") && img.href : "";
     if (!VLib.isImageUrl_(text)) {
       let arr = (<RegExpI> /^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(img.style.backgroundImage as string);
       if (arr && arr[1]) {
@@ -1142,7 +1151,7 @@ Modes_: [
     VScroller.current_ = element;
     VDom.hover_(element, VDom.center_(rect));
     type || element.tabIndex < 0 ||
-    (<RegExpI> /^i?frame$/i).test(element.tagName) && element.focus && element.focus();
+    (<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus && element.focus();
     const a = this as typeof VHints;
     if (a.mode_ < HintMode.min_job) {
       return VHud.tip_("Hover for scrolling", 1000);
@@ -1208,36 +1217,40 @@ Modes_: [
   257: "Edit link text on Vomnibar",
   execute_ (link): void {
     const a = this as typeof VHints;
-    let isUrl = a.mode1_ >= HintMode.min_link_job && a.mode1_ <= HintMode.max_link_job, str: string | null;
+    let isUrl = a.mode1_ >= HintMode.min_link_job && a.mode1_ <= HintMode.max_link_job, str: string | null | undefined;
     if (isUrl) {
       str = a.getUrlData_(link as HTMLAnchorElement);
       str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.slice(7).trimLeft());
     }
     /** Note: SVGElement::dataset is only since `BrowserVer.Min$SVGElement$$dataset` */
-    else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) { /* empty */ }
+    else if ((str = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$SVGElement$$dataset
+          ?  link.getAttribute("data-vim-text") : (link as EnsureNonNull<typeof link>).dataset.vimText)
+        && (str = str.trim())) { /* empty */ }
     else {
-      if (link instanceof HTMLInputElement) {
-        const type = link.type;
+      const tag = VDom.htmlTag_(link);
+      if (tag === "input") {
+        let type = (link as HTMLInputElement).type, f: HTMLInputElement["files"];
         if (type === "password") {
           return VHud.tip_("Sorry, Vimium C won't copy a password.", 2000);
         }
         if (!VDom.uneditableInputs_[type]) {
-          str = (link.value || link.placeholder).trim();
+          str = ((link as HTMLInputElement).value || (link as HTMLInputElement).placeholder).trim();
         } else if (type === "file") {
-          str = link.files && link.files.length > 0 ? link.files[0].name : "";
+          str = (f = (link as HTMLInputElement).files) && f.length > 0 ? f[0].name : "";
         } else if ("button image submit reset".indexOf(type) >= 0) {
-          str = link.value.trim();
+          str = (link as HTMLInputElement).value.trim();
         }
       } else {
-        str = link instanceof HTMLTextAreaElement ? link.value
-          : link instanceof HTMLSelectElement ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
-          : link instanceof HTMLElement && (str = link.innerText.trim(),
+        str = tag === "textarea" ? (link as HTMLTextAreaElement).value
+          : tag === "select" ? ((link as HTMLSelectElement).selectedIndex < 0
+              ? "" : (link as HTMLSelectElement).options[(link as HTMLSelectElement).selectedIndex].text)
+          : tag && (str = (link as SafeHTMLElement).innerText.trim(),
               str.length > 7 && str.slice(0, 7).toLowerCase() === "mailto:" ? str.slice(7).trimLeft() : str)
             || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
           ;
       }
-      if (!str && link instanceof HTMLElement) {
-        str = (link.title.trim() || link.getAttribute("aria-label") || "").trim();
+      if (!str && tag) {
+        str = ((link as SafeHTMLElement).title.trim() || link.getAttribute("aria-label") || "").trim();
       }
     }
     if (!str) {
@@ -1370,15 +1383,15 @@ Modes_: [
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
   execute_ (link, rect, hint): void | boolean {
-    const a = this as typeof VHints, tag = link instanceof HTMLElement ? (link as SafeHTMLElement).tagName : "";
-    if ((<RegExpOne> /^i?frame$/i).test(tag)) {
+    const a = this as typeof VHints, tag = VDom.htmlTag_(link);
+    if ((<RegExpOne> /^i?frame$/).test(tag)) {
       const highlight = link !== VOmni.box_;
       highlight ? a.highlightChild_(link as HTMLIFrameElement | HTMLFrameElement) : VOmni.focus_();
       a.mode_ = HintMode.DEFAULT;
       return highlight;
     }
     const { UI } = VDom;
-    if ((<RegExpI> /^details$/i).test(tag)) {
+    if (tag === "details") {
       const summary = VDom.findMainSummary_(link as HTMLDetailsElement);
       if (summary) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in

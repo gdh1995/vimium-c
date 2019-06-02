@@ -50,13 +50,38 @@ interface KeydownCacheArray extends SafeObject {
   [keyCode: number]: BOOL | 2 | undefined;
 }
 
+/**
+ * only Element has string .tagName, .id
+ *
+ * when used, MUST handle the cases of `Document` and `ShadowRoot`
+ *
+ * Note .role does not exist on C35
+ */
+type NodeToElement = TypeToAssert<Node, Element, "tagName", "nodeType">;
+/**
+ * Tested on C74, comparing HTMLElement/SVGElement | Element, there're only 5 properties which can be used:
+ * * attributeStyleMap: StylePropertyMap | null,
+ * * dataset: DOMStringMap | undefined, style: CSSStyleDeclaration | undefined,
+ * * nonce: string | undefined, tabIndex: number | undefined
+ *
+ * While C++ wrappers should be avoided, so select "nonce" / "tabIndex". "focus" / "blur" may also be used.
+ * But, "nonce" occurred very late (about C61) and does not exist on Firefox.
+ */
+type ElementToHTMLorSVG = TypeToAssert<Element, HTMLElement | SVGElement, "tabIndex", "tagName">;
+/**
+ * Document & HTMLElement & SVGStyleElement have string .title;
+ * only HTMLElement has a string  .lang;
+ * and, in cs.chromium.org, .title is faster than .tabIndex during C++ DOM parts
+ */
+type ElementToHTML = TypeToAssert<Element, HTMLElement, "lang", "tagName">;
+
 interface SafeElement extends Element {
   tagName: string;
 }
 type BaseSafeHTMLElement = HTMLElement & SafeElement;
 interface SafeHTMLElement extends BaseSafeHTMLElement {
   readonly innerText: string;
-  readonly parentElement: HTMLElement | null;
+  readonly parentElement: Element | null;
   readonly parentNode: Node | null;
 }
 type SaferType<Ty> = Ty extends HTMLElement ? SafeHTMLElement : Ty extends Element ? SafeElement : Ty;
@@ -128,8 +153,8 @@ declare const enum PNType {
 }
 
 declare const enum EditableType {
-  Default = 0,
-  NotEditable = Default,
+  NotEditable = 0,
+  Default = NotEditable,
   Embed = 1,
   Select = 2,
   MaxNotTextModeElement = 2,
@@ -157,6 +182,10 @@ declare namespace HintsNS {
     key_: string;
     refer_: HTMLElementUsingMap | Hint[0] | null;
     zIndex_?: number;
+  }
+
+  interface InputHintItem extends BaseHintItem {
+    target_: SafeHTMLElement;
   }
 }
 

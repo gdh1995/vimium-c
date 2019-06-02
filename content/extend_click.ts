@@ -1,5 +1,5 @@
 if (VDom && VimiumInjector === undefined) {
-(function extendClick(this: void, isFirstTime?: boolean): void | false | undefined {
+(function extendClick(this: void, isFirstTime?: boolean): void {
 /** Note(gdh1995):
  * According to source code of C72,
  *     getElementsByTagName has a special cache (per container node) for tag name queries,
@@ -40,12 +40,12 @@ if (VDom && VimiumInjector === undefined) {
     }): CustomEvent;
   }
 
-  if (!(Build.NDEBUG || !isFirstTime || (VDom.createElement_ + "").indexOf("instanceof HTMLElement") >= 0)) {
+  if (!(Build.NDEBUG || !isFirstTime || (VDom.createElement_ + "").indexOf('"lang"') >= 0)) {
     console.log("Assert error: VDom.createElement_ should have not been called");
   }
   const kVOnClick1 = InnerConsts.kVOnClick, kHook = InnerConsts.kHook
     , d = document, docEl = d.documentElement
-    , script = VDom.createElement_<1>("script")
+    , script = VDom.createElement_("script")
     , secret: number = (Math.random() * InnerConsts.SecretUpperLimit + 1) | 0;
 /**
  * Note:
@@ -58,18 +58,20 @@ if (VDom && VimiumInjector === undefined) {
  * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?g=0&q=Document::CreateRawElement&l=946
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
-  if (!(script instanceof HTMLScriptElement)) {
+  if ((script as Element as ElementToHTML).lang == null) {
     if (!(Build.BTypes & ~BrowserType.Chrome)
         && Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage
         && Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage) {
       return;
     }
-    return isFirstTime != null && VDom.OnDocLoaded_(extendClick); // retry after a while, using a real <script>
+    isFirstTime != null && VDom.OnDocLoaded_(extendClick); // retry after a while, using a real <script>
+    return;
   }
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
   hook = function (event: CustomEvent): void {
     const t = event.target;
+    // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
     if (++hookRetryTimes > InnerConsts.MaxRetryTimesForHook
         || event.detail !== secret || !(t instanceof Element)) { return; }
     // it's unhooking is delayed, so here may no VLib
@@ -478,6 +480,7 @@ _listen("load", delayFindAll, !0);
   }
   let rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? window.requestIdleCallback : 0 as const;
   if (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
+    // use `instanceof` to require `rIC` is a new instance in this world
     // tslint:disable-next-line: triple-equals
     rIC = typeof rIC != "function" || rIC instanceof Element ? 0 : rIC;
   }
