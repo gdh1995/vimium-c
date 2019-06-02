@@ -795,7 +795,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       req.S && VDom.UI.css_(req.S);
       if (mask !== FrameMaskType.NormalNext) { /* empty */ }
       else if (innerWidth < 3 || innerHeight < 3
+        // check <div> to detect whether no other visible elements except <frame>s in this frame
         || document.body instanceof HTMLFrameSetElement
+            && !document.querySelector('div')
         || events.checkHidden_()) {
         post({
           H: kFgReq.nextFrame,

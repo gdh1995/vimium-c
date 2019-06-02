@@ -543,7 +543,7 @@ var VDom = {
     let s: Node["nodeName"];
     // tslint:disable-next-line: triple-equals
     return !!el && (typeof (s = el.nodeName) != "string" ||
-      (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter && Build.BTypes & BrowserType.Chrome
+      (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
         ? s.toUpperCase() === "FORM"
         : (s = s.toUpperCase()) === "FORM" || s === VDom.unsafeFramesetTag_)
     );
