@@ -207,25 +207,22 @@ var Tasks = {
     var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
     if (exArgs.nameCache.vars && exArgs.nameCache.props) {
       let {vars: {props: vars}, props: {props: props}} = exArgs.nameCache;
+      const remembed = [];
       for (let key in vars) {
         if (vars.hasOwnProperty(key)) {
           if (props[key] != null) {
             throw new Error('The name cache #bg can not be used to build others: values differ for ' + key);
           }
           props[key] = vars[key];
+          remembed.push(key.replace("$", ""));
         }
       }
+      remembed.sort();
+      console.log("Treat global variables as properties:", remembed.join(", "));
     }
     gulp.task("min/others/omni", function() {
-      var props = exArgs.nameCache.props && exArgs.nameCache.props.props || null;
-      props = props && {
-        "$destroy_": props["$destroy_"]
-      };
       return uglifyJSFiles(["front/vomnibar*.js"], ".", "", {
-        nameCache: exArgs.nameCache && {
-          vars: exArgs.nameCache.vars,
-          props: { props: props }
-        }
+        nameCache: exArgs.nameCache
       });
     });
     gulp.task("min/others/options", function() {
