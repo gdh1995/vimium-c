@@ -892,7 +892,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       st = Vomnibar_.styleEl_ = <HTMLStyleElement | null> document.querySelector("#custom")
         || document.createElement("style");
       st.type = "text/css";
-      st.className = "custom";
+      st.id = "custom";
       Vomnibar_.init_ || (document.head as HTMLElement).appendChild(st);
     }
     st.textContent = css;
