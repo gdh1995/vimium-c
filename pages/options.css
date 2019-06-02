@@ -264,11 +264,11 @@ label:active {
   top: -2px;
   width: 300px;
 }
-.help-inner.line-1x {
+.line-1x {
   top: 5px;
 }
-.help-inner.line-2x {
-  top: 4px;
+.line-2x {
+  top: 3px;
 }
 .wrap-space {
   padding-left: 0.3em;

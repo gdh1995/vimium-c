@@ -161,13 +161,12 @@ key: https://c.com/$s/space=\s\ space_end
         <tr>
           <td>
             <label class="booleanOption">
-              <input id="deepHints" type="checkbox" data-model="Boolean" />
-              <span>Search shadow DOMs in "url" / "image" mode by default</span>
+              <input id="grabBackFocus" type="checkbox" data-model="Boolean" />
+              <span>Don't let pages steal the focus in loading</span>
             </label>
           </td>
           <td class="help"><div class="help-inner">
-            Search in "click" / "edit" mode is always executed.<br/>
-            Press <kbd>&lt;f2&gt;</kbd> in Link Hint mode to toggle it temporarily.
+            Prevent pages from focusing an input in loading (e.g. Google, Bing, etc.).
           </div></td>
         </tr>
         <tr>
@@ -184,29 +183,7 @@ key: https://c.com/$s/space=\s\ space_end
           </div></td>
         </tr>
         <tr>
-          <td class="caption" rowspan="6"></td>
-          <td>
-            <label class="booleanOption">
-              <input id="grabBackFocus" type="checkbox" data-model="Boolean" />
-              <span>Don't let pages steal the focus in loading</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner">
-            Prevent pages from focusing an input in loading (e.g. Google, Bing, etc.).
-          </div></td>
-        </tr>
-        <tr>
-          <td>
-            <label class="booleanOption">
-              <input id="hideHud" type="checkbox" data-model="Boolean" />
-              <span>Hide the Heads Up Display (HUD) in insert mode</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner">
-            When enabled, the HUD will not be displayed in insert mode.
-          </div></td>
-        </tr>
-        <tr>
+          <td class="caption"></td>
           <td>
             <label class="booleanOption">
               <input id="regexFindMode" type="checkbox" data-model="Boolean" />
@@ -218,6 +195,56 @@ key: https://c.com/$s/space=\s\ space_end
           </div></td>
         </tr>
         <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
+              <input id="deepHints" type="checkbox" data-model="Boolean" />
+              <span>Search shadow DOMs in "url" / "image" mode by default</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            Search in "click" / "edit" mode is always executed.<br/>
+            Press <kbd>&lt;f2&gt;</kbd> in Link Hint mode to toggle it temporarily.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
+              <input id="hideHud" type="checkbox" data-model="Boolean" />
+              <span>Hide the Heads Up Display (HUD) in insert mode</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            When enabled, the HUD will not be displayed in insert mode.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
+              <input id="autoDarkMode" type="checkbox" data-model="Boolean" data-permission="C76" />
+              <span>Auto switch between light and dark mode</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            Follow your system's dark mode. Affect Vomnibar and inner blank page.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
+              <input id="autoReduceMotion" type="checkbox" data-model="Boolean" data-permission="C74" />
+              <span>Auto reduce UI motions following your system settings</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-2x">
+            Affect some animation of HUD and Vomnibar.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
           <td>
             <label class="booleanOption">
               <input id="showActionIcon" type="checkbox" data-model="Boolean" data-permission="browser_action" />
@@ -230,6 +257,7 @@ key: https://c.com/$s/space=\s\ space_end
           </div></td>
         </tr>
         <tr>
+          <td class="caption"></td>
           <td>
             <label class="booleanOption">
               <input id="vimSync" type="checkbox" data-model="Boolean" data-permission="storage" data-check="change" />
@@ -254,29 +282,6 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="help"><div class="help-inner">
             The "Options" link on chrome://extensions will open a dialogue.
             This will only work since Chrome 40.
-          </div></td>
-        </tr>
-        <tr>
-          <td>
-            <label class="booleanOption">
-              <input id="autoReduceMotion" type="checkbox" data-model="Boolean" data-permission="C74" />
-              <span>Auto reduce UI motions following your system settings</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner">
-            Control some animation of HUD and Vomnibar.
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption"></td>
-          <td>
-            <label class="booleanOption">
-              <input id="autoDarkMode" type="checkbox" data-model="Boolean" data-permission="C76" />
-              <span>Auto switch between light and dark mode</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner">
-            Follow your system and browser settings.
           </div></td>
         </tr>
         <tr>
