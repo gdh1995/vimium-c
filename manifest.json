@@ -99,7 +99,7 @@
     "<all_urls>"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.75.2",
+  "version": "1.75.3",
   "version_name": "1.75",
   "web_accessible_resources": [
     "content/*",

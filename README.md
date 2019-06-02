@@ -59,16 +59,17 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.75.3:
+1.75.3 (beta):
 * support `prefers-reduced-motion` and `prefers-color-scheme` media queries
   * be able to auto disable animation and enter dark mode when some options are enabled
   * enable the option "Auto reduce UI motions following your system settings" by default
 * LinkHints: add a new option `mapKey` to translated typed keys to match marker text
   * use a subset of translation rules of `Custom key mappings`
   * require both sources and targets are single characters (not map `<a-d>`)
+* Vomnibar has a default style named `mono-url`. Remove it to switch default fonts for suggestion URLs
 * fix more issues about `passNextKey`
 
-1.75:
+1.75.2:
 * use new icons
 * exclusion: make passKeys take precedence over mappedKeys
 * now `mapKey` can map any key to `<esc>` and map `<esc>` and `<c-[>` to others
