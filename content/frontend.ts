@@ -263,7 +263,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? event.isTrusted : event.isTrusted !== false) {
       const path = event.path,
-      el = (!(Build.BTypes & ~BrowserType.Chrome) || path)
+      el = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$ActivateEvent$$Path || path)
           && (Build.MinCVer >= BrowserVer.Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow
             || !(Build.BTypes & BrowserType.Chrome)
             || (path as EventTarget[]).length > 1)
@@ -880,6 +880,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let el = hud.box_;
       if (el) {
         hud.$text_.data = text;
+        if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval
+            && Build.BTypes & BrowserType.Chrome) {
+          embed && (el.style.opacity = el.style.visibility = "");
+          return;
+        }
         embed && (el.style.cssText = "");
         return;
       }

@@ -411,6 +411,7 @@ declare const enum BrowserType {
  */
 declare const enum BrowserVer {
   MinShadowDOMV0 = 35, // ensured
+  MinEnsured$ActivateEvent$$Path = 35, // = MinShadowDOMV0
   MinSupported = MinShadowDOMV0,
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
   MinEnsuredES6WeakMapAndWeakSet = 36,
