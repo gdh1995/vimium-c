@@ -239,11 +239,11 @@ VDom.UI = {
     rect || (rect = a.getVisibleClientRect_(element));
     const center = a.center_(rect);
     if (Build.BTypes & BrowserType.Chrome
-        && touchMode
         && (!(Build.BTypes & ~BrowserType.Chrome) || VDom.cache_.b === BrowserType.Chrome)
+        && (touchMode || touchMode == null)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
             || VDom.cache_.v >= BrowserVer.MinEnsuredTouchEventConstructor)
-        && (touchMode === !!touchMode || a.isInTouchMode_())) {
+        && (touchMode || a.isInTouchMode_())) {
       a.touch_(element, center, a.touch_(element, center));
     }
     element === a.lastHovered_ || a.hover_(element, center);

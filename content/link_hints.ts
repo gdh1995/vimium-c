@@ -23,7 +23,7 @@ declare namespace HintsNS {
     keyword?: string;
     newtab?: boolean;
     button?: "right";
-    touch?: "auto" | boolean;
+    touch?: boolean | null;
     toggle?: {
       [selector: string]: string;
     };
@@ -1411,15 +1411,16 @@ Modes_: [
       UI.simulateSelect_(link, rect, true);
       return false;
     }
-    const mode = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.m, newTab = mode >= HintMode.newTab;
+    const mode = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.m, newTab = mode >= HintMode.newTab,
+    isRight = a.options_.button === "right";
     UI.click_(link, rect, {
       altKey_: false,
       ctrlKey_: newTab && notMac,
       metaKey_: newTab && !notMac,
       shiftKey_: mode === HintMode.OPEN_IN_NEW_FG_TAB
     }, mode > 0 || link.tabIndex >= 0
-    , a.options_.button === "right" ? 2 : 0
-    , !mode && Build.BTypes & BrowserType.Chrome ? a.options_.touch : 0);
+    , isRight ? 2 : 0
+    , !(Build.BTypes & BrowserType.Chrome) || isRight || mode ? 0 : a.options_.touch);
   }
 } as HintsNS.ModeOpt
 ]

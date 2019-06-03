@@ -237,7 +237,7 @@ var HelpDialog = {
   } as SafeEnum,
   descriptions: { __proto__: null as never,
     "LinkHints.activate": `Open a link in the current tab (use button=""/"right"${
-        Build.BTypes & BrowserType.Chrome ? ', touch=""/"auto"' : ""
+        Build.BTypes & BrowserType.Chrome ? ', touch="auto"/true/false' : ""
       })`,
     "LinkHints.activateMode": "Open a link in the current tab",
     "LinkHints.activateModeToCopyLinkText": "Copy a link text to the clipboard",
