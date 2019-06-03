@@ -1,6 +1,6 @@
 var HelpDialog = {
   inited_: false,
-  templateEl_: null as HTMLTableDataCellElement | null,
+  template_: null as HTMLTableDataCellElement | DOMParser | null,
   render_: (function (this: void, request: FgReq[kFgReq.initHelp]): string {
     if (!HelpDialog.inited_) {
       const noShadow = !( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -67,7 +67,7 @@ var HelpDialog = {
       return s != null ? s
         : HelpDialog.groupHtml_(group, commandToKeys, hideUnbound, showNames);
     });
-    HelpDialog.templateEl_ = null;
+    HelpDialog.template_ = null;
     return html;
   }) as BaseHelpDialog["render_"],
   groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
@@ -138,13 +138,15 @@ var HelpDialog = {
   }),
   normalizeHelpInfo_ (help: Partial<CommandsNS.NormalizedCustomHelpInfo>): void {
     if (help.$key != null) { return; }
-    let a = this.templateEl_;
-    if (!a) {
+    let a = this.template_;
+    if (Build.BTypes & ~BrowserType.Firefox && !a) {
       const template = document.createElement("template"),
       td = document.createElement("td");
       template.content.appendChild(td);
       // make `<td>` inert, so that "onclick" won't be parsed
-      a = this.templateEl_ = td;
+      a = this.template_ = td;
+    } else if (!a) {
+      a = this.template_ = new DOMParser();
     }
     help.$key = help.key ? this.safeHTML_(help.key, a) : "";
     help.$desc = help.desc ? this.safeHTML_(help.desc, a) : "";
@@ -160,9 +162,14 @@ var HelpDialog = {
     __proto__: null as never
   } as SafeEnum,
   _invalidAttrNameRe: <RegExpI> /^on|[^0-9a-z\-]|href$/i,
-  safeHTML_ (raw: string, parent: HTMLElement): string {
-    parent.innerHTML = raw;
-    for (let arr = parent.querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
+  safeHTML_ (raw: string, parent: HTMLTableDataCellElement | HTMLBodyElement | DOMParser): string {
+    type ParentElement = Exclude<typeof parent, DOMParser>;
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      (parent as ParentElement).innerHTML = raw;
+    } else {
+      parent = (parent as DOMParser).parseFromString(`<td>${raw}</td>`, "text/html").body;
+    }
+    for (let arr = (parent as ParentElement).querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
       const el = arr[i];
       if (!((Build.BTypes & ~BrowserType.Firefox ? el.tagName + "" : el.tagName as string
             ).toLowerCase() in this.safeTags)
@@ -181,7 +188,7 @@ var HelpDialog = {
         el.removeAttributeNode(attr);
       }
     }
-    return parent.innerHTML;
+    return (parent as ParentElement).innerHTML;
   },
   commandGroups_: { __proto__: null as never,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"

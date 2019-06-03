@@ -181,7 +181,12 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
   super(element, onUpdated);
   this.inited_ = false;
   bgSettings_.fetchFile_("exclusionTemplate", (): void => {
-    this.element_.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      this.element_.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
+    } else {
+      const parsed = new DOMParser().parseFromString(bgSettings_.cache_.exclusionTemplate as string, "text/html").body;
+      (this.element_ as Ensure<typeof element, "append">).append(... <Element[]> <ArrayLike<Element>> parsed.children);
+    }
     this.template_ = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
     this.$list_ = this.element_.getElementsByTagName("tbody")[0] as HTMLTableSectionElement;
     this.list_ = [];

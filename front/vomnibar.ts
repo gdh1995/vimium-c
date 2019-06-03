@@ -9,7 +9,7 @@ interface SuggestionEx extends SuggestionE {
   parsed?: string;
   text: string;
 }
-type Render = (this: void, list: ReadonlyArray<Readonly<SuggestionE>>) => string;
+type Render = (this: void, list: ReadonlyArray<Readonly<SuggestionE>>, element: HTMLElement) => void;
 interface Post<R extends void | 1> {
   postMessage<K extends keyof FgReq>(request: Req.fg<K>): R;
   postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): R;
@@ -701,7 +701,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     oldH || (msg.m = Math.ceil(a.mode_.r * PixelData.Item + PixelData.OthersIfNotEmpty) * wdZoom);
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.parse_, a);
-    list.innerHTML = a.renderItems_(a.completions_);
+    a.renderItems_(a.completions_, list);
     oldH || (a.bodySt_.display = "");
     let cl = a.barCls_, c = "empty";
     notEmpty ? cl.remove(c) : cl.add(c);
@@ -1088,7 +1088,9 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
 VUtils_ = {
   makeListRenderer_ (this: void, template: string): Render {
     const a = template.split(/\{\{(\w+)}}/g);
-    return function (objectArray): string {
+    const parser = Build.BTypes & ~BrowserType.Firefox ? 0 as never : new DOMParser();
+    return function (objectArray, element): void {
+      if (!(Build.BTypes & ~BrowserType.Firefox)) { element.innerHTML = ""; }
       let html = "", len = a.length - 1;
       for (const o of objectArray) {
         let j = 0;
@@ -1099,7 +1101,12 @@ VUtils_ = {
         }
         html += a[len];
       }
-      return html;
+      if (Build.BTypes & ~BrowserType.Firefox) {
+        element.innerHTML = html;
+      } else {
+        (element as Ensure<typeof element, "append">).append(
+          ... <Element[]> <ArrayLike<Element>> parser.parseFromString(html, "text/html").body.children);
+      }
     };
   },
   decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => string): string {

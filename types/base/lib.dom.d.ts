@@ -1169,7 +1169,7 @@ declare var DOMImplementation: {
 }
 
 interface DOMParser {
-    parseFromString(source: string, mimeType: string): Document;
+    parseFromString(source: string, mimeType: string): Document & { body: HTMLBodyElement; };
 }
 
 declare var DOMParser: {
@@ -5469,6 +5469,7 @@ interface Node extends EventTarget {
     readonly previousSibling: Node | null;
     readonly isConnected?: boolean;
     textContent: string | null;
+    append?(...nodeOrText: Array<Node | string>): void;
     appendChild<T extends Node>(newChild: T): T;
     cloneNode(deep?: boolean): Node;
     compareDocumentPosition(other: Node): kNode;
