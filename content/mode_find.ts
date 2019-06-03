@@ -96,7 +96,7 @@ var VFind = {
     f("blur", a._onUnexpectedBlur = function (this: Window, event): void {
       const b = VFind, delta = Date.now() - now, wnd1 = this;
       if (event && b && b.isActive_ && delta < 500 && delta > -99 && event.target === wnd1) {
-        wnd1.closed || setTimeout(function (): void { VFind && b.focus_(); }, tick++ * 17);
+        wnd1.closed || setTimeout(function (): void { VFind === b && b.isActive_ && b.focus_(); }, tick++ * 17);
       } else {
         wnd1.removeEventListener("blur", b._onUnexpectedBlur, true);
         b._onUnexpectedBlur = null;
