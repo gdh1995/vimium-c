@@ -7965,6 +7965,7 @@ interface URL {
 
 declare var URL: {
     prototype: URL;
+    // since C32
     new(url: string, base?: string): URL;
     createObjectURL(object: any, options?: ObjectURLOptions): string;
     revokeObjectURL(url: string): void;

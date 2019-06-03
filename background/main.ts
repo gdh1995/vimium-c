@@ -2181,8 +2181,7 @@ Are you sure you want to continue?`);
       return Backend_.removeSug_(req, port);
     },
     /** openImage: */ function (this: void, req: FgReq[kFgReq.openImage], port: Port) {
-      let url = req.u, parsed = BgUtils_.safeParseURL_(url);
-      if (!parsed) {
+      if (!BgUtils_.safeParseURL_(req.u)) {
         cPort = port;
         Backend_.showHUD_("The selected image URL is invalid");
         return;
@@ -2194,7 +2193,7 @@ Are you sure you want to continue?`);
       if (req.a !== false) {
         prefix += "auto=once&";
       }
-      openShowPage[0](prefix + url, req.r, { opener: true });
+      openShowPage[0](prefix + req.u, req.r, { opener: true });
     },
     /** gotoMainFrame: */ function (this: void, req: FgReq[kFgReq.gotoMainFrame], port: Port): void {
       // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.

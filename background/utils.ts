@@ -194,7 +194,7 @@ var BgUtils_ = {
     if (type !== Urls.TempType.Unspecified) { /* empty */ }
     else if (!(arr = a.hostRe_.exec(str) as typeof arr)) {
       type = Urls.Type.Search;
-      if (str.length === oldString.length && a.isIPHost_(str = "[" + str + "]", 6)) {
+      if (str.length === oldString.length && a.isIPHost_(str = `[${str}]`, 6)) {
         oldString = str;
         type = Urls.Type.NoSchema;
       }
@@ -306,7 +306,7 @@ var BgUtils_ = {
   /** type: 0=all */
   isIPHost_ (hostname: string, type: 0 | 4 | 6): boolean {
      if (type !== 6 && this._ipv4Re.test(hostname) || type !== 4 && this._ipv6Re.test(hostname)) {
-       return this.safeParseURL_("http://" + hostname) != null;
+       return !!this.safeParseURL_("http://" + hostname);
      }
      return false;
   },
