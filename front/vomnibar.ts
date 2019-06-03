@@ -1210,6 +1210,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
+if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && !Object.setPrototypeOf) {
+  Object.setPrototypeOf = function <T extends object> (obj: T): T & SafeObject {
+    (obj as any).__proto__ = null; return obj as T & SafeObject;
+  };
+}
 }
 
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
@@ -1227,7 +1232,10 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   }
   else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^ftp|^http/).test(curEl.src)) {
     VCID_ = new URL(curEl.src).hostname;
-    if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && VCID_.indexOf("-") > 0) {
+    Build.MinCVer < BrowserVer.Min$URL$NewableAndInstancesHaveProperties && Build.BTypes & BrowserType.Chrome &&
+    (VCID_ = VCID_ || "");
+    if (!(Build.BTypes & BrowserType.Chrome)
+        || Build.BTypes & ~BrowserType.Chrome && (VCID_ as string).indexOf("-") > 0) {
       VCID_ = curEl.dataset.vimiumId || BuildStr.FirefoxID;
     }
   } else {

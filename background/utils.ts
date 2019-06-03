@@ -809,10 +809,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
 String.prototype.startsWith = function (this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 };
-"".endsWith || (String.prototype.endsWith = function (this: string, s: string): boolean {
+String.prototype.endsWith = function (this: string, s: string): boolean {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
-});
+};
+if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && CurCVer_ < BrowserVer.Min$Object$$setPrototypeOf) {
+  Object.setPrototypeOf = function <T extends object> (obj: T): T & SafeObject {
+    (obj as any).__proto__ = null; return obj as T & SafeObject;
+  };
+}
 }
 if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
   window.chrome = browser as typeof chrome;

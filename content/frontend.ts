@@ -1047,7 +1047,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kBgReq.focusFrame: */ FrameMask.Focus_,
     /* kBgReq.exitGrab: */ InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
     /* kBgReq.keyMap: */ function (request: BgReq[kBgReq.keyMap]): void {
-      const map = keyMap = request.k, func = Object.setPrototypeOf;
+      const map = keyMap = request.k, func = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
+        && Build.BTypes & BrowserType.Chrome && browserVer < BrowserVer.Min$Object$$setPrototypeOf
+        ? VLib.safer_ : Object.setPrototypeOf;
       func(map, null);
       function iter(obj: ReadonlyChildKeyMap): void {
         func(obj, null);
@@ -1270,7 +1272,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     },
     OnScrolls_: [function (event): boolean {
-      let repeat = event.repeat;
+      let repeat = Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
+          && Build.BTypes & BrowserType.Chrome ? !!event.repeat : event.repeat;
       repeat && VLib.prevent_(event);
       VScroller.scrollTick_(repeat);
       return repeat;

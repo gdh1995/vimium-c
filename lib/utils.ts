@@ -17,7 +17,11 @@ var VLib = {
     str = (str as EnsureNonNull<String>).substring(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
     return this._imageUrlRe.test(str);
   },
-  safer_<T extends object> (this: void, opt: T): T & SafeObject { return Object.setPrototypeOf(opt, null); },
+  safer_: (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
+      && !Object.setPrototypeOf ? function <T extends object> (obj: T): T & SafeObject {
+        (obj as any).__proto__ = null; return obj as T & SafeObject; }
+      : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null)
+    ) as (<T extends object> (opt: T) => T & SafeObject),
   decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => string): string {
     try { url = (decode || decodeURI)(url); } catch {}
     return url;

@@ -292,8 +292,13 @@ function showBgLink(this: void): void {
 function clickLink(this: void, options: { [key: string]: string; }, event: MouseEvent | KeyboardEvent): void {
   event.preventDefault();
   if (!VData.url) { return; }
-  const a = document.createElement("a");
-  Object.setPrototypeOf(options, null);
+  const a = document.createElement("a"), setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
+      && Build.BTypes & BrowserType.Chrome ? Object.setPrototypeOf : 0 as never;
+  if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome) {
+    setProto ? setProto(options, null) : ((options as any).__proto__ = null);
+  } else {
+    Object.setPrototypeOf(options, null);
+  }
   for (const i in options) {
     a.setAttribute(i, options[i]);
   }

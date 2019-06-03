@@ -353,7 +353,7 @@ interface ObjectConstructor {
      * @param proto The value of the new prototype or null.
      */
     setPrototypeOf<T extends object>(o: T, proto: null): T & SafeObject;
-    setPrototypeOf(o: any, proto: object | null): any;
+    // setPrototypeOf(o: any, proto: object | null): any;
 
     /**
      * Gets the own property descriptor of the specified object.

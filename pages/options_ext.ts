@@ -174,7 +174,13 @@ Are you sure you want to continue?`
     window.VHud && VHud.tip_("You cancelled importing.", 1000);
     return;
   }
-  Object.setPrototypeOf(new_data, null);
+  const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
+      && Build.BTypes & BrowserType.Chrome ? Object.setPrototypeOf : 0 as never;
+  if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome) {
+    setProto ? setProto(new_data, null) : ((new_data as any).__proto__ = null);
+  } else {
+    Object.setPrototypeOf(new_data, null);
+  }
   if (new_data.vimSync == null) {
     const now = bgSettings_.get_("vimSync"), keep = now && confirm(
       "Do you want to keep settings synchronized with your current Google account?"

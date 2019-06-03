@@ -410,19 +410,28 @@ declare const enum BrowserType {
  * #define LATEST_TESTED 73.0.3683.86
  */
 declare const enum BrowserVer {
-  Min$document$$hidden = 33, // even if EXPERIMENTAL or LEGACY; unprefixed; .webkitHidden still exists on C31
+  // display:flex still exists on C31 (C29, from MDN)
+  MinSupported = 32,
+  MinEnsuredES6Promise = 32, // even if LEGACY
+  // the 5 below are correct even if EXPERIMENTAL or LEGACY
+  Min$URL$NewableAndInstancesHaveProperties = 32,
+  Min$KeyboardEvent$$Repeat$ExistsButNotWork = 32, // replaced by MinCorrect$KeyboardEvent$$Repeat (C38)
+  Min$document$$hidden = 33, // unprefixed; .webkitHidden still exists on C31
+  // `<input type=number>.selectionStart` throws since Chrome 33 and before C58 (Min$selectionStart$MayBeNull),
+  Min$selectionStart$MayThrow = 33,
+  Min$Object$$setPrototypeOf = 34,
   // on C34 and if EXPERIMENTAL, then it's not implied; before C37, `'unsafe-inline'` is necessary in CSP
   StyleSrc$UnsafeInline$MayNotImply$UnsafeEval = 34,
   MinShadowDOMV0 = 35, // ensured unprefixed
   MinEnsured$ActivateEvent$$Path = 35, // = MinShadowDOMV0
-  MinSupported = MinShadowDOMV0,
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
   MinEnsuredES6WeakMapAndWeakSet = 36,
-  // but shadowRoot.getElementById still exists on C35
+  // but shadowRoot.getElementById still exists on C31
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEGACY
   MinPhysicalPixelOnWindows = 37, // even if EXPERIMENTAL or LEGACY; replaced by MinHighDPIOnWindows
   // before C37, if a page has no `'unsafe-inline'` in its CSP::`style-src`, then Vimium's styles is totally broken
-  // on FF66, it still breaks Vimium's UI
+  // on FF66, if limited, then `<style>`s created by `.innerHTML = ...` has no effects;
+  //   so need `doc.createElement('style').textContent = ...`
   MinStyleSrcInCSPNotBreakUI = 37, // even if EXPERIMENTAL or LEGACY
   MinSession = 37,
   // even if EXPERIMENTAL; Note: should use MinSafeCSS$All
@@ -441,14 +450,15 @@ declare const enum BrowserVer {
    * so must remove the all: before MinFixedCSS$All$MayMistakenlyResetFixedPosition
    */
   MinCSS$All$MayMistakenlyResetFixedPosition = 37,
-  MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C35 if EXPERIMENTAL
-  // includes for-of, Map, Set, Symbols, even if LEGACY
-  MinES6ForAndSymbols = 38,
-  // .repeat still exists on C35, but only works since C38, even if EXPERIMENTAL
+  MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C31 if EXPERIMENTAL
+  // even if EXPERIMENTAL or LEGACY
+  MinES6$ForOf$Map$SetAnd$Symbol = 38,
+  // .repeat exists since C32, but only works since C38, even if EXPERIMENTAL
   // because there seems no simple fix, just ignore it
   // https://bugs.chromium.org/p/chromium/issues/detail?id=394907
   MinCorrect$KeyboardEvent$$Repeat = 38,
   MinWithFrameIdInArg = 39,
+  MinMaybe$String$$StartsWithAndEndsWith = 39, // if EXPERIMENTAL
   MinOptionsUI = 40,
   MinDisableMoveTabAcrossIncognito = 40,
   // even if EXPERIMENTAL or LEGACY
@@ -456,11 +466,11 @@ declare const enum BrowserVer {
   MinEnsured$Element$$Closest = 41, // even if LEGACY
   MinWithFrameId = 41,
   // just means it's enabled by default
-  Min$String$$StartsWithAndIncludes = 41,
+  Min$String$$StartsWithEndsWithAndIncludes$ByDefault = 41, // no "".includes before 41, even if EXPERIMENTAL
   MinGlobal$HTMLDetailsElement = 41,
-  MinFixedCSS$All$MayMistakenlyResetFixedPosition = 41,
-  MinSafeCSS$All = MinFixedCSS$All$MayMistakenlyResetFixedPosition,
-  // (if EXPERIMENTAL, then it exists but) has no effects before C41;
+  MinFixedCSS$All$MightMistakenlyResetFixedPosition = 41,
+  MinSafeCSS$All = MinFixedCSS$All$MightMistakenlyResetFixedPosition,
+  // (if EXPERIMENTAL, then it exists since C34 but) has no effects before C41;
   // if EXPERIMENTAL, there's Element::scrollTo and Element::scrollBy only since C41
   MinCSS$ScrollBehavior$$Smooth$Work = 41,
   // MethodFunction is accepted since C42 if EMPTY
@@ -473,8 +483,8 @@ declare const enum BrowserVer {
   // before C43, "font-size: ***" of <select> overrides those of its <options>s'
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43
   Min$Option$HasReliableFontSize = 43, // even if LEGACY
-  MinEnsuredES6$String$$StartsWithAndRepeatAndIncludes = 43, // even if LEGACY
-  MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithAndRepeatAndIncludes + 1, // add a margin
+  MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes = 43, // even if LEGACY
+  MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes + 1, // add a margin
   MinRuntimePlatformOs = 44,
   MinCreateWndWithState = 44,
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
@@ -634,9 +644,7 @@ declare const enum BrowserVer {
   // tmp_width := (since 58 ? Math.round : Math.floor)(width * devicePixelRatio * zoom)
   // real_width := width && Math.max(tmp_width, 1)
   MinBorderWidthIsRounded = 58,
-  // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange,
-  // `<input type=number>.selectionStart` throws on Chrome 33,
-  // but ChromeStatus says it has changed the behavior to match the new spec on C58
+  // Chrome changed its behavior to match the new spec on C58 (replace Min$selectionStart$MayThrow)
   Min$selectionStart$MayBeNull = 58,
   // .type is always 'Caret'
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
@@ -669,7 +677,7 @@ declare const enum BrowserVer {
   MinScrollIntoViewOptions = 61,
   // also means ensured Element::scrollBy, Element::scrollTo and window.scrollTo/scrollBy({})
   // not on edge
-  MinEnsuredCSS$ScrollBehavior = 61, // still exists on C35 (although has no effects before C41) if EXPERIMENTAL
+  MinEnsuredCSS$ScrollBehavior = 61, // still exists since C34 (although has no effects before C41) if EXPERIMENTAL
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
     // according to https://github.com/w3ctag/design-reviews/issues/51#issuecomment-96759374 ,

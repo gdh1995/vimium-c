@@ -7952,7 +7952,7 @@ declare var UIEvent: {
 interface URL {
     hash: string;
     host: string;
-    hostname: string;
+    hostname?: string; // exists since C32
     href: string;
     readonly origin: string;
     password: string;
