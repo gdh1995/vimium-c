@@ -766,7 +766,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (!!(Vomnibar_.mode_.f & CompletersNS.QueryFlags.MonospaceURL) !== monospaceURL) {
       Vomnibar_.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, monospaceURL);
       if (Vomnibar_.isActive_ && !Vomnibar_.init_) {
-        Vomnibar_.refresh_(document.hidden);
+        Vomnibar_.refresh_(Build.MinCVer < BrowserVer.Min$document$$hidden && Build.BTypes & BrowserType.Chrome
+            && Vomnibar_.browserVer_ < BrowserVer.Min$document$$hidden ? document.webkitHidden : document.hidden);
       }
     }
   },
@@ -812,7 +813,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (!Vomnibar_) { return; }
     const a = (document.body as HTMLBodyElement).classList, kTransparent = "transparent" as const;
     // Document.hidden is since C33, according to MDN
-    !Vomnibar_.isActive_ || (blurred != null ? !blurred : document.hidden || document.hasFocus())
+    !Vomnibar_.isActive_ ||
+      (blurred != null ? !blurred
+        : (Build.MinCVer < BrowserVer.Min$document$$hidden
+            && Build.BTypes & BrowserType.Chrome && Vomnibar_.browserVer_ < BrowserVer.Min$document$$hidden
+            ? document.webkitHidden : document.hidden
+          ) || document.hasFocus())
       ? a.remove(kTransparent) : a.add(kTransparent);
   },
   init_ (): void {

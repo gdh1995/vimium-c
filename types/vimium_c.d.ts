@@ -410,9 +410,10 @@ declare const enum BrowserType {
  * #define LATEST_TESTED 73.0.3683.86
  */
 declare const enum BrowserVer {
-  MinShadowDOMV0 = 35, // ensured
+  Min$document$$hidden = 33, // even if EXPERIMENTAL or LEGACY; unprefixed; .webkitHidden still exists on C31
   // on C34 and if EXPERIMENTAL, then it's not implied; before C37, `'unsafe-inline'` is necessary in CSP
   StyleSrc$UnsafeInline$MayNotImply$UnsafeEval = 34,
+  MinShadowDOMV0 = 35, // ensured unprefixed
   MinEnsured$ActivateEvent$$Path = 35, // = MinShadowDOMV0
   MinSupported = MinShadowDOMV0,
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony

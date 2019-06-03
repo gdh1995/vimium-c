@@ -1467,6 +1467,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     readonly fullscreenElement: Element | null;
     readonly fullscreenEnabled: boolean;
     readonly hidden: boolean;
+    readonly webkitHidden?: boolean; // replaced by .hidden since C33
     /**
       * Retrieves a collection, in source order, of img objects in the document.
       */
