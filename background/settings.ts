@@ -610,7 +610,10 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     + ( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        ? "" : window.ShadowRoot ? "s" : "")
+        ? ""
+        : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+            ? window.ShadowRoot || (document.body as HTMLElement).webkitCreateShadowRoot : window.ShadowRoot)
+        ? "s" : "")
     + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All ? ""
       : (Build.MinCVer > BrowserVer.MinSafeCSS$All || CurCVer_ > BrowserVer.MinSafeCSS$All)
         && (!(Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))

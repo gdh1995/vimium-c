@@ -411,6 +411,7 @@ declare const enum BrowserType {
  */
 declare const enum BrowserVer {
   // display:flex still exists on C31 (C29, from MDN)
+  MinShadowDOMV0 = 31, // the real version is <= C31; it's prefixed
   MinSupported = 32,
   MinEnsuredES6Promise = 32, // even if LEGACY
   // the 5 below are correct even if EXPERIMENTAL or LEGACY
@@ -422,8 +423,8 @@ declare const enum BrowserVer {
   Min$Object$$setPrototypeOf = 34,
   // on C34 and if EXPERIMENTAL, then it's not implied; before C37, `'unsafe-inline'` is necessary in CSP
   StyleSrc$UnsafeInline$MayNotImply$UnsafeEval = 34,
-  MinShadowDOMV0 = 35, // ensured unprefixed
-  MinEnsured$ActivateEvent$$Path = 35, // = MinShadowDOMV0
+  MinEnsuredUnprefixedShadowDOMV0 = 35, // even if LEGACY
+  MinEnsured$ActivateEvent$$Path = 35, // = MinEnsuredUnprefixedShadowDOMV0
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
   MinEnsuredES6WeakMapAndWeakSet = 36,
   // but shadowRoot.getElementById still exists on C31

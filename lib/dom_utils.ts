@@ -40,8 +40,13 @@ var VDom = {
         || box.attachShadow
       ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
       : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || box.createShadowRoot)
-      ? (box as Ensure<typeof box, "createShadowRoot">).createShadowRoot() : box;
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+            || box.createShadowRoot)
+      ? (box as Ensure<typeof box, "createShadowRoot">).createShadowRoot()
+      : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer > BrowserVer.MinShadowDOMV0
+            || box.webkitCreateShadowRoot)
+      ? (box as Ensure<typeof box, "webkitCreateShadowRoot">).webkitCreateShadowRoot() : box;
   },
   execute_ (callback: (this: void) => void): void { callback(); },
   /** Note:
@@ -91,22 +96,23 @@ var VDom = {
     const desc = Object.getOwnPropertyDescriptor(Cls.prototype, property);
     return desc && desc.get ? desc.get.call(instance) : null;
   } : 0 as never,
-  GetShadowRoot_ (el: Element): ShadowRoot | null {
+  GetShadowRoot_ (el: Element, hasBeenSafe?: BOOL): ShadowRoot | null {
     // check el's type to avoid exceptions
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
       return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ? el.shadowRoot as ShadowRoot | null
         : <ShadowRoot | null | undefined> el.shadowRoot || null;
     }
-    const sr = el.shadowRoot;
+    const sr = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+        && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 ? el.webkitShadowRoot : el.shadowRoot;
     if (sr) {
       // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
       // <form> and <frameset> can not have shadowRoot
-      return VDom.notSafe_(el) ? null : sr as ShadowRoot;
+      return !hasBeenSafe && VDom.notSafe_(el) ? null : sr as ShadowRoot;
     }
     return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-      ? sr as null : sr || null;
+      ? sr as Exclude<typeof sr, undefined> : sr || null;
   },
   /**
    * Try its best to find a real parent

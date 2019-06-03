@@ -188,10 +188,9 @@ VDom.UI = {
     if (!(  (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) )) {
-      let SR = Build.MinCVer < BrowserVer.MinEmbedElementIsNotFunction && Build.BTypes & BrowserType.Chrome
-                && Build.MinCVer < BrowserVer.MinShadowDOMV0 ? window.ShadowRoot : 0 as never;
-      if (Build.MinCVer < BrowserVer.MinEmbedElementIsNotFunction && Build.BTypes & BrowserType.Chrome
-            && Build.MinCVer < BrowserVer.MinShadowDOMV0
+      const SR = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+          ? window.ShadowRoot || HTMLElement.prototype.webkitCreateShadowRoot : 0;
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           // tslint:disable-next-line: triple-equals
           ? typeof SR != "function" || kTagName in SR : typeof ShadowRoot != "function") {
         return [sel, null];

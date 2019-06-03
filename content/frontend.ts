@@ -711,11 +711,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       tag === "button" ? !(element as HTMLButtonElement).disabled
       : VLib.clickable_.has(element) || element.getAttribute("onclick") || (
         (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
-        : VHints.ngEnabled_ && element.getAttribute("ng-click"))),
-    sr = tag && element.shadowRoot as ShadowRoot | null | undefined | "";
-    if (sr) {
-      ([].forEach as HintsNS.ElementIterator<Element>).call(
-        sr.querySelectorAll("*"), Pagination.GetLinks_, this);
+        : VHints.ngEnabled_ && element.getAttribute("ng-click")));
+    if (tag && VDom.GetShadowRoot_(element, 1)) {
+      VHints.detectMore_(element as SafeHTMLElement, Pagination.GetLinks_, this);
     }
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }

@@ -2088,6 +2088,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     readonly assignedSlot: HTMLSlotElement | null;
     slot: string;
     readonly shadowRoot?: ShadowRoot | Element | RadioNodeList | Window | null;
+    readonly webkitShadowRoot?: ShadowRoot | Element | RadioNodeList | Window | null;
     textContent: string;
     focus?(): void;
     blur?(): void;
@@ -2134,6 +2135,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     insertAdjacentHTML(where: 'afterbegin' | 'beforeend', html: string): void;
     insertAdjacentText(where: 'afterbegin' | 'beforeend', text: string): void;
     createShadowRoot?(): ShadowRoot;
+    webkitCreateShadowRoot?(): ShadowRoot;
     addEventListener<K extends keyof ElementEventMap>(type: K, listener: (this: Element, ev: ElementEventMap[K]) => ELRet, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }

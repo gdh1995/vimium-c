@@ -337,7 +337,7 @@ var VHints = {
         : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default;
       // no break;
     default:
-      if (element.shadowRoot) {
+      if (VDom.GetShadowRoot_(element, 1)) {
         VHints.detectMore_(element as SafeHTMLElement, VHints.GetClickable_, this);
         return;
       }
@@ -397,7 +397,7 @@ var VHints = {
       break;
     default:
       if ((s = (element as SafeHTMLElement).contentEditable) === "inherit" || !s || s === "false") {
-        if (element.shadowRoot) {
+        if (VDom.GetShadowRoot_(element, 1)) {
           VHints.detectMore_(element as SafeHTMLElement, VHints.GetEditable_, this);
         }
         return;
@@ -558,9 +558,9 @@ var VHints = {
     }
     return result.length > 12 ? result : list;
   },
-  detectMore_ (element: SafeHTMLElement | null, func: HintsNS.Filter<Hint>, dest: Hint[]): boolean | void {
-    ([].forEach as HintsNS.ElementIterator<Hint>).call(
-      ((element as Element).shadowRoot as ShadowRoot).querySelectorAll("*"),
+  detectMore_<T extends Hint | Element> (element: SafeHTMLElement, func: HintsNS.Filter<T>, dest: T[]): boolean | void {
+    ([].forEach as HintsNS.ElementIterator<T>).call(
+      (VDom.GetShadowRoot_(element, 1) as ShadowRoot).querySelectorAll("*"),
       func, dest);
   },
   deduplicate_ (list: Hint[]): void {

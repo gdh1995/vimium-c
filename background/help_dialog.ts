@@ -6,7 +6,7 @@ var HelpDialog = {
       const noShadow = !( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
-          && !window.ShadowRoot,
+          && Settings_.CONST_.StyleCacheId_.indexOf("s") < 0,
       noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
           && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)

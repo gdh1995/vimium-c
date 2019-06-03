@@ -23,6 +23,7 @@ A <span style="color: #8e5e2f;">C</span>ustomized
 
 It supports Chrome and other Chromium-based browsers whose core versions are >= 35,
   and supports most of the functionality on a latest Firefox (since version 64.0).
+If re-compiled from the source code, Vimium C is able to support Chrome 32.
 
 This project is developed by [gdh1995](https://github.com/gdh1995)
   and licensed under the [MIT license](LICENSE.txt).
