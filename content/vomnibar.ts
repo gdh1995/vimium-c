@@ -121,7 +121,9 @@ var VOmni = {
     this.status_ > VomnibarNS.Status.Initing ? this.port_.postMessage(options) : (this.options_ = options);
   },
   hide_ (fromInner?: 1): void {
-    const a = this, active = a.status_ > VomnibarNS.Status.Inactive;
+    const a = this, active = a.status_ > VomnibarNS.Status.Inactive,
+    style = Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval
+        && Build.BTypes & BrowserType.Chrome ? a.box_.style : 0 as never;
     a.status_ = VomnibarNS.Status.Inactive;
     a.screenHeight_ = a.docZoom_ = 0;
     if (fromInner == null) {
@@ -131,7 +133,11 @@ var VOmni = {
     // needed, in case the iframe is focused and then a `<esc>` is pressed before removing suppressing
     a.RefreshKeyHandler_();
     active || focus();
-    a.box_.style.cssText = "display:none";
+    if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
+      style.height = style.top = ""; style.display = "none";
+    } else {
+      a.box_.style.cssText = "display:none";
+    }
   },
   init_ ({k: secret, v: page, t: type, i: inner}: VomnibarNS.FullOptions): void {
     const el = VDom.createElement_("iframe") as typeof VOmni.box_, UI = VDom.UI;

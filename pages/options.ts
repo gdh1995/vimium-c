@@ -845,7 +845,7 @@ Option_.all_.userDefinedCss.onSave_ = function () {
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
     && bgBrowserVer_ < BrowserVer.Min$Option$HasReliableFontSize) {
-  $("select").style.cssText = "font-size: 13px !important;";
+  $("select").classList.add("font-fix");
 }
 
 $("#importButton").onclick = function (): void {

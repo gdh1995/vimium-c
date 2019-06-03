@@ -184,7 +184,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     window.onkeyup = null as never;
     el.blur();
     fromContent || VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
-    a.bodySt_.cssText = "display: none;";
+    if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
+      a.bodySt_.zoom = "";
+      a.bodySt_.display = "none";
+    } else {
+      a.bodySt_.cssText = "display: none;";
+    }
     a.list_.textContent = el.value = "";
     a.list_.style.height = "";
     a.barCls_.remove("empty");
