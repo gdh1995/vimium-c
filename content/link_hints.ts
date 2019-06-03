@@ -725,7 +725,7 @@ var VHints = {
           reinit = deep !== DeepQueryType.NotAvailable;
           a.queryInDeep_ = DeepQueryType.InDeep - deep;
         }
-      } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VDom.cache_.onMac_)) {
+      } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VDom.cache_.m)) {
         if ((Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinNoShadowDOMv0) {
           reinit = deep === DeepQueryType.NotDeep;
           a.queryInDeep_ = DeepQueryType.InDeep;
@@ -739,7 +739,7 @@ var VHints = {
       }
       reinit && setTimeout(a._reinit.bind(a, null, null), 0);
     } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
-        || (i === VKeyCodes.metaKey && VDom.cache_.onMac_)) {
+        || (i === VKeyCodes.metaKey && VDom.cache_.m)) {
       const mode = a.mode_,
       mode2 = i === VKeyCodes.altKey
         ? mode < HintMode.min_disable_queue
@@ -1411,7 +1411,7 @@ Modes_: [
       UI.simulateSelect_(link, rect, true);
       return false;
     }
-    const mode = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.onMac_, newTab = mode >= HintMode.newTab;
+    const mode = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.m, newTab = mode >= HintMode.newTab;
     UI.click_(link, rect, {
       altKey_: false,
       ctrlKey_: newTab && notMac,

@@ -2201,19 +2201,19 @@ Are you sure you want to continue?`);
       focusAndRun(req, port, indexFrame(port.s.t, 0), req.f);
     },
     /** setOmniStyle: */ function (this: void, req: FgReq[kFgReq.setOmniStyle], port?: Port): void {
-      let styles: string, payload = Settings_.omniPayload_, curStyles = payload.styles_;
+      let styles: string, payload = Settings_.omniPayload_, curStyles = payload.s;
       if (req.s == null) {
         let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.indexOf(toggled) >= 0;
         styles = (req.e != null ? req.e : exists) ? exists ? curStyles : curStyles + toggled
             : extSt.replace(toggled, " ");
         styles = styles.trim();
-        if (req.b === false) { payload.styles_ = styles; return; }
+        if (req.b === false) { payload.s = styles; return; }
       } else {
         styles = req.s;
       }
       if (styles === curStyles) { return; }
-      payload.styles_ = styles;
-      const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { styles_: styles } };
+      payload.s = styles;
+      const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { s: styles } };
       for (const frame of framesForOmni) {
         frame !== port && frame.postMessage(request2);
       }
@@ -2268,7 +2268,8 @@ Are you sure you want to continue?`);
           return;
         }
         sender.f = Frames.Flags.userActed;
-      } else if (Build.BTypes & BrowserType.Firefox && (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_) && type === PortType.CloseSelf) {
+      } else if (Build.BTypes & BrowserType.Firefox && (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_)
+          && type === PortType.CloseSelf) {
         if (tabId >= 0 && !sender.i) {
           removeTempNewTab(tabId, port);
         }

@@ -9,21 +9,21 @@ var Settings_ = {
   },
   payload_: (Build.BTypes & BrowserType.Chrome ? {
     __proto__: null as never,
-    browserVer_: CurCVer_,
-    reduceMotion_: false,
-    grabBackFocus_: false,
-    onMac_: false
+    v: CurCVer_,
+    r: false,
+    g: false,
+    m: false
   } : {
-    __proto__: null as never, reduceMotion_: false, grabBackFocus_: false, onMac_: false
+    __proto__: null as never, r: false, g: false, m: false
   }) as SettingsNS.FrontendSettingsWithoutSyncing & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
   omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
-    browserVer_: CurCVer_,
-    css_: "",
-    maxMatches_: 0,
-    queryInterval_: 0,
-    styles_: ""
+    v: CurCVer_,
+    c: "",
+    m: 0,
+    i: 0,
+    s: ""
   } : {
-    css_: "", maxMatches_: 0, queryInterval_: 0, styles_: ""
+    c: "", m: 0, i: 0, s: ""
   }) as VomnibarPayload,
   newTabs_: Object.create(null) as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
@@ -111,7 +111,7 @@ var Settings_ = {
       }
     },
     grabBackFocus (this: {}, value: FullSettings["grabBackFocus"]): void {
-      (this as typeof Settings_).payload_.grabBackFocus_ = value;
+      (this as typeof Settings_).payload_.g = value;
     },
     newTabUrl (this: {}, url): void {
       url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(url)
@@ -262,7 +262,7 @@ var Settings_ = {
           }
         }
       }
-      a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { css_: a.omniPayload_.css_ } });
+      a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { c: a.omniPayload_.c } });
     },
     innerCSS (this: {}, css): void {
       const a = this as typeof Settings_, cache = a.cache_ as Writeable<typeof Settings_.cache_>;
@@ -274,7 +274,7 @@ var Settings_ = {
       cache.innerCSS = css.slice(css.indexOf("\n") + 1);
       cache.findCSS_ = [findCSS.slice(0, index - 1),
           findCSS.slice(index, index2), findCSS.slice(index2 + 1)];
-      a.omniPayload_.css_ = omniCSS;
+      a.omniPayload_.c = omniCSS;
     },
     vomnibarPage (this: {}, url): void {
       const a = this as typeof Settings_, cur = localStorage.getItem("vomnibarPage_f");
@@ -324,15 +324,15 @@ var Settings_ = {
       }
       (a.cache_ as Writeable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
         : options as NonNullable<typeof options>;
-      payload.maxMatches_ = maxMatches;
-      payload.queryInterval_ = queryInterval;
-      payload.styles_ = styles;
+      payload.m = maxMatches;
+      payload.i = queryInterval;
+      payload.s = styles;
       a.updateOmniStyles_(MediaNS.kName.PrefersReduceMotion, 1);
       a.updateOmniStyles_(MediaNS.kName.PrefersColorScheme, 1);
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: {
-        maxMatches_: maxMatches,
-        queryInterval_: queryInterval,
-        styles_: payload.styles_
+        m: maxMatches,
+        i: queryInterval,
+        s: payload.s
       } });
     }
   } as { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key>; } as SettingsNS.FullUpdateHookMap,
@@ -511,7 +511,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
     ? chrome.runtime.PlatformOs as EnsureNonNull<typeof chrome.runtime.PlatformOs>
     : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
   Settings_.CONST_.Platform_ = os;
-  (Settings_.payload_ as Writeable<typeof Settings_.payload_>).onMac_ = os === types.MAC || (os === types.WIN && 0);
+  (Settings_.payload_ as Writeable<typeof Settings_.payload_>).m = os === types.MAC || (os === types.WIN && 0);
 }) : (Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown");
 
@@ -556,8 +556,8 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
   if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
-    (payload_ as Writeable<typeof payload_>).browser_ =
-        (settings.omniPayload_ as Writeable<VomnibarPayload>).browser_ = OnOther;
+    (payload_ as Writeable<typeof payload_>).b =
+        (settings.omniPayload_ as Writeable<VomnibarPayload>).b = OnOther;
   }
   if (Build.MayOverrideNewTab) {
     const overrides = ref.chrome_url_overrides, hasNewTab = overrides && overrides.newtab;
@@ -597,7 +597,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   }
   obj.ContentScripts_ = ref2.map(func);
 
-  payload_.grabBackFocus_ = settings.get_("grabBackFocus");
+  payload_.g = settings.get_("grabBackFocus");
   for (let _i = valuesToLoad_.length; 0 <= --_i;) {
     const key = valuesToLoad_[_i];
     payload_[key] = settings.get_(key);

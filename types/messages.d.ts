@@ -119,13 +119,14 @@ interface BgReq {
   }
 }
 
+/** Note: should have NO names which may be uglified */
 interface VomnibarPayload {
-  readonly browser_?: BrowserType;
-  readonly browserVer_?: BrowserVer;
-  css_: string;
-  maxMatches_: number;
-  queryInterval_: number;
-  styles_: string;
+  readonly /** browser */ b?: BrowserType;
+  readonly /** browserVer */ v?: BrowserVer;
+  /** css */ c: string;
+  /** maxMatches */ m: number;
+  /** queryInterval */ i: number;
+  /** styles */ s: string;
 }
 
 interface BgVomnibarSpecialReq {
@@ -152,7 +153,7 @@ interface BgVomnibarSpecialReq {
     /** current */ c: boolean;
   };
   [kBgReq.omni_updateOptions]: {
-    /** delta */ d: Partial<Exclude<VomnibarPayload, "browser_" | "browserVer_">>;
+    /** delta */ d: Partial<Exclude<VomnibarPayload, "b" | "v">>;
   }
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;

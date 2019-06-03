@@ -1134,7 +1134,8 @@ knownCs: CompletersMap & SafeObject = {
     buildOthers_ (): void {
       const ss = this.starts_ = [] as CachedRegExp[], ws = this.words_ = [] as CachedRegExp[];
       for (const s of queryTerms) {
-        const start = "\\b" + s.replace(BgUtils_.escapeAllRe_, "\\$&"), flags = BgUtils_.hasUpperCase_(s) ? "" : "i" as "";
+        const start = "\\b" + s.replace(BgUtils_.escapeAllRe_, "\\$&"),
+        flags = BgUtils_.hasUpperCase_(s) ? "" : "i" as "";
         ss.push(new RegExp(start, flags) as CachedRegExp);
         ws.push(new RegExp(start + "\\b", flags) as CachedRegExp);
       }

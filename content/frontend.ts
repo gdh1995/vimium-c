@@ -585,7 +585,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       /** if `notBody` then `activeEl` is not null */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
       KeydownEvents = Object.create(null);
-      if (VDom.cache_.grabBackFocus_ && InsertMode.grabBackFocus_) {
+      if (VDom.cache_.g && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
           counter++ || console.log("An auto-focusing action is blocked by Vimium C.");
         };
@@ -896,7 +896,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VDom.UI.add_(hud.box_ = el, VHints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, VHints.box_);
     },
     _tween (this: void, fake?: TimerType.fake): void { // safe-interval
-      const el = HUD.box_ as HTMLDivElement, st = el.style, reduce = VDom.cache_.reduceMotion_;
+      const el = HUD.box_ as HTMLDivElement, st = el.style, reduce = VDom.cache_.r;
       let opacity = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                     && fake ? 0 : +(st.opacity || 1);
       if (opacity === HUD.opacity_) { /* empty */ }
@@ -940,13 +940,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
       const r = requestHandlers, {c: load, s: flags} = request, D = VDom;
       if (Build.BTypes & BrowserType.Chrome) {
-        browserVer = load.browserVer_ as NonNullable<typeof load.browserVer_>;
+        browserVer = load.v as NonNullable<typeof load.v>;
       }
       if (<number> Build.BTypes !== BrowserType.Chrome && <number> Build.BTypes !== BrowserType.Firefox
           && <number> Build.BTypes !== BrowserType.Edge) {
-        OnOther = load.browser_ as NonNullable<typeof load.browser_>;
+        OnOther = load.b as NonNullable<typeof load.b>;
       }
-      ((settings as Writeable<VSettingsTy>).cache = VDom.cache_ = load).onMac_ &&
+      ((settings as Writeable<VSettingsTy>).cache = VDom.cache_ = load).m &&
         (VKey.correctionMap_ = Object.create<string>(null));
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {

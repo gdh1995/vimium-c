@@ -438,7 +438,7 @@ BgUtils_.timeout_(600, function (): void {
     lastSuggest = { suggest, key, sent: false };
     if (timer) { return; }
     const now = Date.now(),
-    delta = Settings_.omniPayload_.queryInterval_ + inputTime - now; /** it's made safe by {@see #onTimer} */
+    delta = Settings_.omniPayload_.i + inputTime - now; /** it's made safe by {@see #onTimer} */
     if (delta > 30 && delta < 3000) { // in case of system time jumping
       timer = setTimeout(onTimer, delta);
       return;
@@ -628,7 +628,8 @@ BgUtils_.GC_ = function (inc0?: number): void {
 };
 
 BgUtils_.timeout_(1200, function (): void {
-  chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_ as NonNullable<typeof Settings_.temp_.onInstall_>);
+  chrome.runtime.onInstalled.removeListener(
+      Settings_.temp_.onInstall_ as NonNullable<typeof Settings_.temp_.onInstall_>);
   Settings_.temp_.onInstall_ = null;
   (document.documentElement as HTMLHtmlElement).textContent = "";
   BgUtils_.resetRe_();

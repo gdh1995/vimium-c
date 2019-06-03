@@ -385,7 +385,7 @@ var VDom = {
     }
     for (; el && el !== docEl;
         el = a.GetParent_(el, Build.MinCVer < BrowserVer.MinSlotIsNotDisplayContents
-              && Build.BTypes & BrowserType.Chrome && a.cache_.browserVer_ < BrowserVer.MinSlotIsNotDisplayContents
+              && Build.BTypes & BrowserType.Chrome && a.cache_.v < BrowserVer.MinSlotIsNotDisplayContents
             ? PNType.RevealSlotAndGotoParent : PNType.RevealSlot)) {
       zoom *= +gcs(el).zoom || 1;
     }
@@ -432,11 +432,11 @@ var VDom = {
     a.dbZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom * zoom2 : 1;
     let x = !stacking ? float(st.marginLeft)
           : !(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && a.cache_.browser_ === BrowserType.Firefox
+            || Build.BTypes & BrowserType.Firefox && a.cache_.b === BrowserType.Firefox
           ? -float(st.borderLeftWidth) : 0 | -box.clientLeft
       , y = !stacking ? float(st.marginTop)
           : !(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && a.cache_.browser_ === BrowserType.Firefox
+            || Build.BTypes & BrowserType.Firefox && a.cache_.b === BrowserType.Firefox
           ? -float(st.borderTopWidth ) : 0 | -box.clientTop;
     x = x * scale - rect.left, y = y * scale - rect.top;
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)

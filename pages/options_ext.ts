@@ -349,7 +349,8 @@ function importSettings(time: number | string | Date
     const element = loadJS("options_checker.js");
     element.onload = function (): void { resolve(1); };
   });
-  Promise.all([BG_.BgUtils_.require_("Commands"), BG_.BgUtils_.require_("Exclusions"), promisedChecker]).then(function () {
+  Promise.all([BG_.BgUtils_.require_("Commands"), BG_.BgUtils_.require_("Exclusions"), promisedChecker]
+      ).then(function (): void {
     setTimeout(_importSettings, 17, time, new_data, is_recommended);
   });
 }

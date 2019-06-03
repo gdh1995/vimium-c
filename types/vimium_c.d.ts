@@ -243,17 +243,18 @@ declare namespace SettingsNS {
     regexFindMode: boolean;
     scrollStepSize: number;
     smoothScroll: boolean;
-    reduceMotion_: boolean;
+    /** reduceMotion */ r: boolean;
   }
   interface FrontendSettingsWithoutSyncing {
-    readonly browserVer_?: BrowserVer;
-    readonly browser_?: BrowserType;
-    reduceMotion_: boolean;
-    /** `mac`: true, `win`: 0, `others`: false */ readonly onMac_: boolean | 0;
-    grabBackFocus_: boolean;
+    /** browserVer */ readonly v?: BrowserVer;
+    /** browser */ readonly b?: BrowserType;
+    /** reduceMotion */ r: boolean;
+    /** onMac: `mac`: true, `win`: 0, `others`: false */ readonly m: boolean | 0;
+    /** grabBackFocus */ g: boolean;
   }
+  /** Note: should have NO names which may be uglified */
   interface FrontendSettingCache extends FrontendSettings, FrontendSettingsWithoutSyncing {
-    readonly browserVer_: BrowserVer;
+    /** browserVer */ readonly v: BrowserVer;
   }
 }
 

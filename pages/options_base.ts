@@ -602,7 +602,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
   }
   if (!(Build.BTypes & BrowserType.Chrome)
       || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
-      || bgSettings_.payload_.onMac_
+      || bgSettings_.payload_.m
       ) {
     window.addEventListener("keydown", function (event): void {
       if (event.altKey

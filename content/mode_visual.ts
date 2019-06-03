@@ -408,14 +408,14 @@ var VVisual = {
       , count: number): void {
     const shouldSkipSpaceWhenMovingRight = granularity === VisualModeNS.VimG.vimword;
     const isFirefox = !(Build.BTypes & ~BrowserType.Firefox)
-      || !!(Build.BTypes & BrowserType.Firefox) && VDom.cache_.browser_ === BrowserType.Firefox;
+      || !!(Build.BTypes & BrowserType.Firefox) && VDom.cache_.b === BrowserType.Firefox;
     let fixWord: BOOL = 0;
     if (shouldSkipSpaceWhenMovingRight || granularity === VisualModeNS.G.word) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
       if (direction &&
           (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
             ? !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
-            : (VDom.cache_.onMac_ === /* win */ 0) !== shouldSkipSpaceWhenMovingRight)) {
+            : (VDom.cache_.m === /* win */ 0) !== shouldSkipSpaceWhenMovingRight)) {
         fixWord = 1;
         if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
             ? !Build.NativeWordMoveOnFirefox : !shouldSkipSpaceWhenMovingRight) {
@@ -504,14 +504,14 @@ var VVisual = {
         ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
           ? a._rightWhiteSpaceRe : a._rightWhiteSpaceRe || a.WordsRe_
         : !(Build.BTypes & ~BrowserType.Firefox) ? a.WordsRe_
-        : (Build.NativeWordMoveOnFirefox || VDom.cache_.browser_ !== BrowserType.Firefox)
+        : (Build.NativeWordMoveOnFirefox || VDom.cache_.b !== BrowserType.Firefox)
           && a._rightWhiteSpaceRe || a.WordsRe_
         ) as Exclude<typeof a._rightWhiteSpaceRe | typeof a.WordsRe_, null>).exec(str),
     toGoLeft = match ? (!(Build.BTypes & BrowserType.Firefox)
       ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         || <Exclude<typeof a._rightWhiteSpaceRe, null>> a._rightWhiteSpaceRe
       : Build.BTypes & ~BrowserType.Firefox
-        && (Build.NativeWordMoveOnFirefox || VDom.cache_.browser_ !== BrowserType.Firefox)
+        && (Build.NativeWordMoveOnFirefox || VDom.cache_.b !== BrowserType.Firefox)
         && <Exclude<typeof a._rightWhiteSpaceRe, null>> a._rightWhiteSpaceRe
       )
       ? match[0].length : str.length - match.index - match[0].length : 0;
@@ -764,7 +764,7 @@ init_ (words: string) {
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
   a.selType_ = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
-      && VDom.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
+      && VDom.cache_.v === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function (this: typeof VVisual): SelType {
     let type = typeIdx[this.selection_.type];
     return type === SelType.Caret && VVisual.diType_ && ("" + this.selection_) ? SelType.Range : type;
@@ -792,9 +792,9 @@ init_ (words: string) {
       || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Chrome
-            && VDom.cache_.browserVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+            && VDom.cache_.v < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         || Build.BTypes & BrowserType.Firefox && Build.BTypes & BrowserType.Edge
-            && VDom.cache_.browser_ === BrowserType.Firefox) {
+            && VDom.cache_.b === BrowserType.Firefox) {
       // Firefox && not native || Chrome && not only white spaces
       if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
           && !(Build.BTypes & ~BrowserType.Chrome)
@@ -830,8 +830,8 @@ init_ (words: string) {
    */
   (!(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-    || (Build.BTypes & BrowserType.Firefox && VDom.cache_.browser_ === BrowserType.Firefox)
-    || VDom.cache_.browserVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
+    || (Build.BTypes & BrowserType.Firefox && VDom.cache_.b === BrowserType.Firefox)
+    || VDom.cache_.v >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
   // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
   (a._rightWhiteSpaceRe = Build.BTypes & BrowserType.Firefox
       ? /[^\S\n\r\u2029\u202f\ufeff]+$/ as RegExpOne : /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);

@@ -211,11 +211,16 @@ var Tasks = {
     var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
     if (exArgs.nameCache.vars && exArgs.nameCache.props) {
       let {vars: {props: vars}, props: {props: props}} = exArgs.nameCache;
+      var browser = getNonNullBuildItem("BTypes");
+      if ("$OnOther" in vars
+          && (browser === BrowserType.Chrome || browser === BrowserType.Firefox || browser === BrowserType.Edge)) {
+        throw new Error('Unexpected global bariable in backend: OnOther');
+      }
       for (let key in vars) {
         if (vars.hasOwnProperty(key)) {
           let key2 = key.replace(/^\$/, ""), idx = KnownBackendGlobals.indexOf(key2);
           if (idx < 0) {
-            throw new Error('Unknown backend global variable: ' + key2);
+            throw new Error('Unknown global variable in backend: ' + key2);
           }
           KnownBackendGlobals.splice(idx, 1);
           if (props[key] != null) {
@@ -229,8 +234,15 @@ var Tasks = {
       }
     }
     gulp.task("min/others/omni", function() {
+      var props = exArgs.nameCache.props && exArgs.nameCache.props.props || null;
+      props = props && {
+        "$destroy_": props["$destroy_"]
+      };
       return uglifyJSFiles(["front/vomnibar*.js"], ".", "", {
-        nameCache: exArgs.nameCache
+        nameCache: exArgs.nameCache && {
+          vars: exArgs.nameCache.vars,
+          props: { props: props }
+        }
       });
     });
     gulp.task("min/others/options", function() {

@@ -66,7 +66,7 @@ var VOmni = {
     let scale = devicePixelRatio;
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (!(Build.BTypes & ~BrowserType.Chrome)
-            || Build.BTypes & BrowserType.Chrome && dom.cache_.browser_ === BrowserType.Chrome)) {
+            || Build.BTypes & BrowserType.Chrome && dom.cache_.b === BrowserType.Chrome)) {
       options.w = dom.prepareCrop_() * scale;
       options.h = a.screenHeight_ = innerHeight * scale;
     } else {
@@ -144,7 +144,7 @@ var VOmni = {
     } else {
       el.referrerPolicy = "no-referrer";
       if (!(Build.BTypes & ~BrowserType.Chrome)
-          || Build.BTypes & BrowserType.Chrome && VDom.cache_.browser_ === BrowserType.Chrome) {
+          || Build.BTypes & BrowserType.Chrome && VDom.cache_.b === BrowserType.Chrome) {
         el.sandbox = "allow-scripts";
       }
     }
@@ -249,7 +249,7 @@ var VOmni = {
       a.box_.style.height = Math.ceil((data as Req[VomnibarNS.kFReq.style]).h / a.docZoom_
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
               && (!(Build.BTypes & ~BrowserType.Chrome)
-                  || Build.BTypes & BrowserType.Chrome && VDom.cache_.browser_ === BrowserType.Chrome)
+                  || Build.BTypes & BrowserType.Chrome && VDom.cache_.b === BrowserType.Chrome)
               ? devicePixelRatio : 1)) + "px";
       if (a.status_ === VomnibarNS.Status.ToShow) {
         a.onShown_((data as Req[VomnibarNS.kFReq.style]).m as number);
@@ -275,7 +275,7 @@ var VOmni = {
     topHalfThreshold = maxBoxHeight * 0.6 + VomnibarNS.PixelData.MarginTop *
         (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
           && (!(Build.BTypes & ~BrowserType.Chrome)
-              || Build.BTypes & BrowserType.Chrome && VDom.cache_.browser_ === BrowserType.Chrome)
+              || Build.BTypes & BrowserType.Chrome && VDom.cache_.b === BrowserType.Chrome)
           ? devicePixelRatio : 1),
     top = a.screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / a.screenHeight_ * 100) | 0) + "%" : "";
     style.top = !Build.NoDialogUI && VimiumInjector === null && location.hash === "#dialog-ui" ? "8px" : top;

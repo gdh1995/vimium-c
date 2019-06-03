@@ -274,7 +274,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     let oldSel = Vomnibar_.selection_, origin = Vomnibar_.isSelOriginal_;
     Vomnibar_.useInput_ = false;
     Vomnibar_.onInnerWidth_();
-    return Vomnibar_.update_(wait, function (): void {
+    Vomnibar_.update_(wait, function (): void {
       const len = Vomnibar_.completions_.length;
       if (!origin && oldSel >= 0 && len > 0) {
         oldSel = Math.min(oldSel, len - 1);
@@ -770,7 +770,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
     const delta = Object.setPrototypeOf(response.d, null),
-    { css_, maxMatches_, queryInterval_, styles_: styles } = delta;
+    { c: css_, m: maxMatches_, i: queryInterval_, s: styles } = delta;
     if (styles != null && Vomnibar_.styles_ !== styles) {
       Vomnibar_.styles_ = styles;
       Vomnibar_.onStyleUpdate_(styles);
@@ -1253,15 +1253,15 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     Vomnibar_.secret_ = null;
     const payload = request.l;
     if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
-      Vomnibar_.browser_ = payload.browser_ as BrowserType;
+      Vomnibar_.browser_ = payload.b as BrowserType;
     }
     if (Build.BTypes & BrowserType.Chrome) {
-      Vomnibar_.browserVer_ = payload.browserVer_ as NonNullable<typeof payload.browserVer_>;
+      Vomnibar_.browserVer_ = payload.v as NonNullable<typeof payload.v>;
     }
-    Vomnibar_.maxMatches_ = payload.maxMatches_;
-    Vomnibar_.queryInterval_ = payload.queryInterval_;
-    Vomnibar_.styles_ = payload.styles_;
-    Vomnibar_.css_(payload.css_);
+    Vomnibar_.maxMatches_ = payload.m;
+    Vomnibar_.queryInterval_ = payload.i;
+    Vomnibar_.styles_ = payload.s;
+    Vomnibar_.css_(payload.c);
     const { s: secret } = request;
     _sec = secret;
     for (const i of unsafeMsg) {
