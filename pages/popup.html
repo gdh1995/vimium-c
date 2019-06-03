@@ -32,7 +32,7 @@ p {
 	width: 100%;
 }
 
-.state-value {
+#state-value {
 	color: #15c;
 	line-height: 15px;
 }
@@ -77,7 +77,10 @@ a.decorate-none {
     </style>
   </head>
   <body>
-    <div id="state"></div>
+    <div id="state">
+      <span class="Vim">Vim</span>ium <span class="C">C</span>
+      <span id="state-action"></span><span></span><span></span>
+    </div>
 
     <div id="exclusionRules">
       <!-- Populated from exclusions.html by options_base.js. -->
@@ -103,7 +106,7 @@ a.decorate-none {
     <div id="blocked-msg" style="width: 400px; margin: 5px; display: none;">
       <h4>
         Maybe <span class="Vim">Vim</span>ium <span class="C">C</span> is
-          <span class="state-value">not running</span> on this page.
+          <span id="state-value">not running</span> on this page.
       </h4>
       <p>
         Your browser does not run web extensions like Vimium / Vimium C on certain pages,

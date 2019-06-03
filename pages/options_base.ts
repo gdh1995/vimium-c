@@ -441,7 +441,8 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
   },
   topUrl = frameInfo.i && ((BG_.Backend_.indexPorts_(curTab.id, 0)
       || {} as Frames.Port).s || {} as Frames.Sender).u || "",
-  stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
+  stateAction = $<EnsuredMountedHTMLElement>("#state-action"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
+  stateValue = stateAction.nextElementSibling, stateTail = stateValue.nextElementSibling,
   url = frameInfo.u;
   class PopExclusionRulesOption extends ExclusionRulesOption_ {
     addRule_ (_pattern: string, autoFocus?: false): void {
@@ -525,18 +526,15 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     inited = 2;
     const same = pass === oldPass;
     const isReverted = !!pass && pass.length > 2 && pass[0] === "^";
-    let html = '<span class="Vim">Vim</span>ium <span class="C">C</span> '
-      + (isSaving ? pass ? "becomes to " + (isReverted ? "only hook" : "exclude") : "becomes"
+    stateAction.textContent =
+      (isSaving ? pass ? "becomes to " + (isReverted ? "only hook" : "exclude") : "becomes"
         : (same ? "keeps to " : "will ") + (pass ? isReverted ? "only hook" : "exclude" : "be"))
-      + (pass
-      ? `: <span class="state-value code">${isReverted ? pass.slice(2) : pass}</span>`
-      : `:<span class="state-value fixed-width">${pass !== null ? "disabled" : " enabled"}</span>`);
-    if (curIsLocked && !isSaving && same) {
-      html += ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`;
-    } else if (curIsLocked) {
-      html += "if reset";
-    }
-    stateLine.innerHTML = html;
+      + (pass ? ": " : ":");
+    stateValue.className = pass ? "code" : "fixed-width";
+    stateValue.textContent = pass ? isReverted ? pass.slice(2) : pass : pass !== null ? "disabled" : " enabled";
+    stateTail.textContent = curIsLocked && !isSaving && same
+      ? ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`
+      : curIsLocked? " if reset" : "";
     saveBtn.disabled = same;
     (saveBtn.firstChild as Text).data = same ? "No Changes" : "Save Changes";
   }
@@ -591,6 +589,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     , toggleAction = sender.s !== Frames.Status.disabled ? "Disable" : "Enable"
     , curIsLocked = !!(sender.f & Frames.Flags.locked);
   curLockedStatus = curIsLocked ? sender.s : Frames.Status.__fake;
+  stateValue.id = "state-value";
   let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling;
   el0.firstElementChild.textContent = curIsLocked ? toggleAction : toggleAction + " for once";
   el0.onclick = forceState.bind(null, toggleAction);
