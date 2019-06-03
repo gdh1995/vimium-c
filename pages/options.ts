@@ -958,6 +958,7 @@ function OnBgUnload(): void {
     }
     needExclusions && !BG_.Exclusions && BG_.BgUtils_.require_("Exclusions");
     needCommands && !BG_.Commands && BG_.BgUtils_.require_("Commands");
+    BG_.BgUtils_.GC_(1);
   }
 }
 BG_.addEventListener("unload", OnBgUnload);

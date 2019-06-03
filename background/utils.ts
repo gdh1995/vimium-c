@@ -469,13 +469,15 @@ var BgUtils_ = {
     return (window as { -readonly [K2 in keyof Window]?: any })[name] = new Promise<T>(function (resolve, reject) {
       const script = document.createElement("script");
       script.src = Settings_.CONST_[name];
-      script.onerror = function (): void {
-        this.remove();
-        reject("ImportError: " + name);
-      };
+      if (!Build.NDEBUG) {
+        script.onerror = function (): void {
+          this.remove();
+          reject("ImportError: " + name);
+        };
+      }
       script.onload = function (): void {
         this.remove();
-        if (window[name] instanceof Promise) {
+        if (!Build.NDEBUG && window[name] instanceof Promise) {
           reject("ImportError: " + name);
         } else {
           resolve(window[name] as Window[K] as T);

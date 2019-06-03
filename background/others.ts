@@ -597,6 +597,7 @@ BgUtils_.GC_ = function (inc0?: number): void {
     if (!(Commands || Exclusions && Exclusions.rules_.length <= 0)) { return; }
     timestamp = Date.now(); // safe for time changes
     if (timeout > 0 || referenceCount > 0) { return; }
+    referenceCount < 0 && (referenceCount = 0); // safer
     timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
   };
   return BgUtils_.GC_(inc0);

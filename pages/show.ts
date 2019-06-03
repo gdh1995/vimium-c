@@ -426,12 +426,14 @@ function requireJS(name: string, src: string): Promise<any> {
   return (window as any)[name] = new Promise(function (resolve, reject) {
     const script = document.createElement("script");
     script.src = src;
-    script.onerror = function () {
-      reject("ImportError: " + name);
-    };
+    if (!Build.NDEBUG) {
+      script.onerror = function () {
+        reject("ImportError: " + name);
+      };
+    }
     script.onload = function () {
       const obj = (window as any)[name];
-      obj ? resolve(obj) : (this.onerror as () => void)();
+      Build.NDEBUG || obj ? resolve(obj) : (this.onerror as () => void)();
     };
     (document.head as HTMLHeadElement).appendChild(script);
   });

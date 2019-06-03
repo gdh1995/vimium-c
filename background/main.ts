@@ -2071,7 +2071,7 @@ Are you sure you want to continue?`);
         request, port,
         new Promise<void>(function (resolve, reject) {
           const xhr = Settings_.fetchFile_("helpDialog", resolve);
-          xhr && (xhr.onerror = reject);
+          !Build.NDEBUG && xhr && (xhr.onerror = reject);
         })
       ]).then(function (args): void {
         const port2 = args[1].w && indexFrame(args[2].s.t, 0) || args[2];
