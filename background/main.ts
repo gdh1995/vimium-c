@@ -1175,7 +1175,7 @@ Are you sure you want to continue?`);
         return;
       }
       const near = tabs[current + step];
-      if (!near.discarded) {
+      if (!near.discarded && (count < 2 || near.autoDiscardable)) {
         chrome.tabs.discard(near.id, count > 1 ? onRuntimeError : function (): void {
           const err = onRuntimeError();
           err && Backend_.showHUD_("Can not discard the tab");
@@ -1184,7 +1184,7 @@ Are you sure you want to continue?`);
       }
       for (let i = 2; i <= count; i++) {
         const tab = tabs[current + step * i];
-        if (!tab.discarded) {
+        if (!tab.discarded && tab.autoDiscardable) {
           chrome.tabs.discard(tab.id, onRuntimeError);
         }
       }
