@@ -724,6 +724,7 @@ declare const enum BrowserVer {
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
   MinWarningOfEscapingHashInBodyOfDataURL = 66,
   MinSlotIsNotDisplayContents = 67,
+  Min$NotificationOptions$$isClickable$IsDeprecated = 67,
   // even if EXPERIMENTAL or LEGACY
   // but not on pages whose JS is disabled in chrome://settings/content/siteDetails?site=<origin>
   // issue: https://bugs.chromium.org/p/chromium/issues/detail?id=811528
@@ -743,6 +744,7 @@ declare const enum BrowserVer {
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
   MinFramesetHasNoNamedGetter = 70,
   MinContainLayoutBreakUIBox = 70, // even if EXPERIMENTAL
+  Min$NotificationOptions$$silent = 70,
   // means unprefixed properties and event name
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,

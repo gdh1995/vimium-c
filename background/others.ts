@@ -567,15 +567,24 @@ function (details: chrome.runtime.InstalledDetails): void {
   if (parseFloat(Settings_.CONST_.VerCode_) <= parseFloat(reason)) { return; }
 
   reason = "vimium-c_upgrade-notification";
-  chrome.notifications && chrome.notifications.create(reason, {
+  const args: chrome.notifications.NotificationOptions = {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
     message: `Vimium C has been upgraded to version v${Settings_.CONST_.VerName_}.`
       + "\nKey mapping usage has UPDATED.",
-    contextMessage: "Click here for more information.",
-    isClickable: true
-  }, function (notificationId): void {
+    contextMessage: "Click here for more information."
+  };
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$NotificationOptions$$isClickable$IsDeprecated
+      && CurCVer_ < BrowserVer.Min$NotificationOptions$$isClickable$IsDeprecated) {
+    args.isClickable = true; // not supported on Firefox
+  }
+  if (Build.BTypes & BrowserType.Chrome
+      && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+      && CurCVer_ >= BrowserVer.Min$NotificationOptions$$silent) {
+    args.silent = true;
+  }
+  chrome.notifications && chrome.notifications.create(reason, args, function (notificationId): void {
     let err: any;
     if (err = BgUtils_.runtimeError_()) { return err; }
     reason = notificationId || reason;

@@ -1020,8 +1020,13 @@ declare namespace chrome.notifications {
          * Optional.
          * Whether to show UI indicating that the app will visibly respond to clicks on the body of a notification.
          * @since Chrome 32.
+         * @deprecated since Chrome 67.
          */
         isClickable?: boolean;
+        /**
+         * @since Chrome 70.
+         */
+        silent?: boolean;
         /**
          * Optional.
          * A URL to the app icon mask. URLs have the same restrictions as iconUrl. The app icon mask should be in alpha channel, as only the alpha channel of the image will be considered.
@@ -1746,7 +1751,7 @@ declare namespace chrome.sessions {
     interface SessionChangedEvent extends chrome.events.Event<(exArg: FakeArg) => void> {}
 
     /** The maximum number of sessions.Session that will be included in a requested list. */
-    export var MAX_SESSION_RESULTS: number | undefined;
+    export var MAX_SESSION_RESULTS: number;
 
     /**
      * Gets the list of recently closed tabs and/or windows.
@@ -2001,6 +2006,7 @@ declare namespace chrome.tabs {
          * @since Chrome 45.
          */
         audible: boolean;
+        /** only on C45 */ muted?: boolean;
         /**
          * Current tab muted state and the reason for the last state change.
          * @since Chrome 46. Warning: this is the current Beta channel.
@@ -2709,6 +2715,7 @@ declare namespace chrome.webNavigation {
         /** True if the last navigation in this frame was interrupted by an error, i.e. the onErrorOccurred event fired. */
         errorOccurred: boolean;
         /** ID of frame that wraps the frame. Set to -1 of no parent frame exists. */
+        /** has existed since C41. */
         parentFrameId: number;
     }
 

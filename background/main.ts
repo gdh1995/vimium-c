@@ -1138,8 +1138,8 @@ Are you sure you want to continue?`);
       if (count < 2 && count > -2 && cPort.s.a) {
         return Backend_.showHUD_("Can not restore a tab in incognito mode!");
       }
-      const limit = (chrome.sessions.MAX_SESSION_RESULTS as number) | 0;
-      count > limit && limit > 0 && (count = limit);
+      const limit = chrome.sessions.MAX_SESSION_RESULTS;
+      count > limit && (count = limit);
       do {
         chrome.sessions.restore(null, onRuntimeError);
       } while (0 < --count);
@@ -1155,7 +1155,7 @@ Are you sure you want to continue?`);
         const session = list[cRepeat - 1], item = session.tab || session.window;
         item && chrome.sessions.restore(item.sessionId);
       }
-      if (cRepeat > (chrome.sessions.MAX_SESSION_RESULTS || 25)) {
+      if (cRepeat > chrome.sessions.MAX_SESSION_RESULTS) {
         return doRestore([]);
       }
       if (cRepeat <= 1) {
@@ -1259,7 +1259,8 @@ Are you sure you want to continue?`);
       }
       if (!(cOptions.all || cOptions.other)) {
         getCurTab(function ([tab]: [Tab]): void {
-          const wanted = !tab.mutedInfo.muted;
+          const wanted = Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
+              && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted;
           chrome.tabs.update(tab.id, { muted: wanted });
           Backend_.showHUD_(wanted ? "Muted." : "Unmuted.");
         });
@@ -1271,7 +1272,8 @@ Are you sure you want to continue?`);
           , muted = false, action = { muted: true };
         for (let i = tabs.length; 0 <= --i; ) {
           const tab = tabs[i];
-          if (tab.id !== curId && !tab.mutedInfo.muted) {
+          if (tab.id !== curId && (Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
+                  && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted)) {
             muted = true;
             chrome.tabs.update(tab.id, action);
           }
