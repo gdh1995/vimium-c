@@ -2085,7 +2085,7 @@ Are you sure you want to continue?`);
           o: Settings_.CONST_.OptionsPage_,
           a: Settings_.get_("showAdvancedCommands", true)
         });
-      }, function (args): void {
+      }, Build.NDEBUG ? null : function (args): void {
         console.error("Promises for initHelp failed:", args[0], ";", args[3]);
       });
     },

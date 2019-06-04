@@ -145,7 +145,7 @@ var VFind = {
       el.contentEditable = "plaintext-only";
     }
     (a.countEl_ = addElement(0, "c")).textContent = " ";
-    VDom.UI.createStyle_(a.css_[2], a.styleIframe_ = addElement("style") as HTMLStyleElement);
+    VDom.UI.createStyle_(a.css_.i, a.styleIframe_ = addElement("style") as HTMLStyleElement);
     const root = VDom.createShadowRoot_(body), inShadow = a.inShadow_ = root !== body,
     root2 = inShadow ? addElement("div", 0) : body;
     root2.id = "r";
@@ -180,7 +180,7 @@ var VFind = {
   },
   init_ (adjust: AdjustType): void {
     const ref = this.postMode_, UI = VDom.UI,
-    css = this.css_[0], sin = this.styleIn_ = UI.createStyle_(css);
+    css = this.css_.c, sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
     UI.box_ ? UI.adjust_() : UI.add_(sin, adjust, true);
     sin.remove();

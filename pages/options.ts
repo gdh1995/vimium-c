@@ -791,7 +791,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       if (isFind) {
         const oldCSS2 = bgSettings_.parseCustomCSS_(bgSettings_.get_("userDefinedCss")).find || "";
         if (oldCSS2) {
-          const str = bgSettings_.cache_.findCSS_[1];
+          const str = bgSettings_.cache_.findCSS_.i;
           (doc.querySelector("style") as HTMLStyleElement).textContent = str.slice(0, -oldCSS2.length - 1);
         }
         styleDebug = doc.createElement("style");
@@ -814,7 +814,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     if (isFind && vfind.css_) {
       /** Note: shoule keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
-      vfind.css_[2] = vfind.css_[2].slice(0, defaultLen - vfind.css_[0].length - vfind.css_[1].length - 1)
+      vfind.css_.i = vfind.css_.i.slice(0, defaultLen - vfind.css_.c.length - vfind.css_.s.length - 1)
         + "\n" + (css2.find || "");
     }
   }

@@ -1090,7 +1090,6 @@ VUtils_ = {
     const a = template.split(/\{\{(\w+)}}/g);
     const parser = Build.BTypes & ~BrowserType.Firefox ? 0 as never : new DOMParser();
     return function (objectArray, element): void {
-      if (!(Build.BTypes & ~BrowserType.Firefox)) { element.innerHTML = ""; }
       let html = "", len = a.length - 1;
       for (const o of objectArray) {
         let j = 0;
@@ -1104,6 +1103,7 @@ VUtils_ = {
       if (Build.BTypes & ~BrowserType.Firefox) {
         element.innerHTML = html;
       } else {
+        element.innerHTML = "";
         (element as Ensure<typeof element, "append">).append(
           ... <Element[]> <ArrayLike<Element>> parser.parseFromString(html, "text/html").body.children);
       }

@@ -272,8 +272,8 @@ var Settings_ = {
       const index = findCSS.indexOf("\n") + 1, index2 = findCSS.indexOf("\n", index);
       // Note: The lines below are allowed as a special use case
       cache.innerCSS = css.slice(css.indexOf("\n") + 1);
-      cache.findCSS_ = [findCSS.slice(0, index - 1),
-          findCSS.slice(index, index2), findCSS.slice(index2 + 1)];
+      cache.findCSS_ = { c: findCSS.slice(0, index - 1), s: findCSS.slice(index, index2),
+          i: findCSS.slice(index2 + 1) };
       a.omniPayload_.c = omniCSS;
     },
     vomnibarPage (this: {}, url): void {

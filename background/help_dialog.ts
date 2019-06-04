@@ -167,7 +167,9 @@ var HelpDialog = {
     if (Build.BTypes & ~BrowserType.Firefox) {
       (parent as ParentElement).innerHTML = raw;
     } else {
-      parent = (parent as DOMParser).parseFromString(`<td>${raw}</td>`, "text/html").body;
+      parent = (parent as DOMParser).parseFromString(`<td>${raw}</td>`, "text/html"
+          ).body.firstChild as HTMLTableDataCellElement;
+      if (!parent) { return ""; }
     }
     for (let arr = (parent as ParentElement).querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
       const el = arr[i];
