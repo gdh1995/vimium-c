@@ -421,6 +421,9 @@ declare const enum BrowserVer {
   // `<input type=number>.selectionStart` throws since Chrome 33 and before C58 (Min$selectionStart$MayBeNull),
   Min$selectionStart$MayThrow = 33,
   Min$Object$$setPrototypeOf = 34,
+  // before C34, 2 images share a size part (the first one's), and different height/width would work as the smaller one
+  /** {@see ../pages/options.css#select { background: ...; }} */
+  MinMultipleBackgroundImagesNotShareSizePart = 34,
   // on C34 and if EXPERIMENTAL, then it's not implied; before C37, `'unsafe-inline'` is necessary in CSP
   StyleSrc$UnsafeInline$MayNotImply$UnsafeEval = 34,
   MinEnsuredUnprefixedShadowDOMV0 = 35, // even if LEGACY
