@@ -1097,14 +1097,24 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
     if (CSS) { VDom.UI.css_(CSS); }
-    const oldShowHelp = Commands[kFgCmd.showHelp];
+    const oldShowHelp = Commands[kFgCmd.showHelp], suppress = VLib.suppressAll_;
     oldShowHelp("e");
     if (!VDom.isHTML_()) { return; }
     if (oldShowHelp !== Commands[kFgCmd.showHelp]) { return; } // an old dialog exits
-    const box: HTMLDivElement & SafeHTMLElement = VDom.createElement_("div"), suppress = VLib.suppressAll_;
-    box.className = "R Scroll UI";
-    box.id = "HelpDialog";
-    box.innerHTML = html;
+    let box: SafeHTMLElement;
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      // on FF66, if a page is limited by "script-src 'self'; style-src 'self'"
+      //   then `<style>`s created by `.innerHTML = ...` has no effects;
+      //   so need `doc.createElement('style').textContent = ...`
+      box = new DOMParser().parseFromString((html as Exclude<typeof html, string>).b, "text/html"
+          ).body.firstChild as SafeHTMLElement;
+      box.insertBefore(VDom.UI.createStyle_((html as Exclude<typeof html, string>).h), box.firstChild);
+    } else {
+      box = VDom.createElement_("div");
+      box.innerHTML = html as string;
+      box = box.firstChild as SafeHTMLElement;
+    }
     box.onclick = VLib.Stop_;
     suppress(box, "mousedown");
     suppress(box, "mouseup");

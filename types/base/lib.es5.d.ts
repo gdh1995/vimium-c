@@ -416,7 +416,7 @@ interface String {
       * Matches a string with a regular expression, and returns an array containing the results of that search.
       * @param regexp A variable name or string literal containing the regular expression pattern and flags.
       */
-    // match(regexp: string): RegExpMatchArray | null;
+    match(regexp: string): RegExpMatchArray | null;
 
     /**
       * Matches a string with a regular expression, and returns an array containing the results of that search.
@@ -914,7 +914,7 @@ interface DateConstructor {
 declare const Date: DateConstructor;
 
 interface RegExpMatchArray extends Array<string> {
-    index?: number;
+    index: number;
     input?: string;
 }
 

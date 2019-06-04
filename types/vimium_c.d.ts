@@ -431,8 +431,6 @@ declare const enum BrowserVer {
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEGACY
   MinPhysicalPixelOnWindows = 37, // even if EXPERIMENTAL or LEGACY; replaced by MinHighDPIOnWindows
   // before C37, if a page has no `'unsafe-inline'` in its CSP::`style-src`, then Vimium's styles is totally broken
-  // on FF66, if limited, then `<style>`s created by `.innerHTML = ...` has no effects;
-  //   so need `doc.createElement('style').textContent = ...`
   MinStyleSrcInCSPNotBreakUI = 37, // even if EXPERIMENTAL or LEGACY
   MinSession = 37,
   // even if EXPERIMENTAL; Note: should use MinSafeCSS$All

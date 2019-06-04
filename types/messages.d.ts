@@ -98,7 +98,7 @@ interface BgReq {
   [kBgReq.execute]: BaseExecute<object> & Req.baseBg<kBgReq.execute>;
   [kBgReq.exitGrab]: Req.baseBg<kBgReq.exitGrab>;
   [kBgReq.showHelpDialog]: {
-    /** html */ h: string;
+    /** html */ h: string | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string; };
     /** optionUrl */ o: string;
     /** advanced */ a: boolean;
   } & Partial<BgCSSReq>;

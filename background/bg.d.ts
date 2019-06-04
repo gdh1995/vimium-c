@@ -432,7 +432,7 @@ interface VClipboardTy {
 }
 
 interface BaseHelpDialog {
-  render_ (this: void, request: FgReq[kFgReq.initHelp]): string;
+  render_ (this: {}, request: FgReq[kFgReq.initHelp]): BgReq[kBgReq.showHelpDialog]["h"];
 }
 
 interface Window {

@@ -1,36 +1,44 @@
 var HelpDialog = {
-  inited_: false,
+  html_: null as [string, string] | null,
   template_: null as HTMLTableDataCellElement | DOMParser | null,
-  render_: (function (this: void, request: FgReq[kFgReq.initHelp]): string {
-    if (!HelpDialog.inited_) {
+  render_: (function (this: {}, request: FgReq[kFgReq.initHelp]): BgReq[kBgReq.showHelpDialog]["h"] {
+    const a = this as typeof HelpDialog;
+    if (!a.html_
+        && (Build.NDEBUG || /** {@link ../pages/loader.ts#updateUI} */Settings_.cache_.helpDialog)) {
       const noShadow = !( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
           && Settings_.CONST_.StyleCacheId_.indexOf("s") < 0,
+      template = Settings_.cache_.helpDialog as string,
       noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
           && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
+      let pos = template.indexOf("</style>") + 8, head = template.slice(0, pos), body = template.slice(pos).trim();
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+        const arr = head.match("<style.*?>") as RegExpMatchArray;
+        body = head.slice(0, arr.index).trim() + body;
+        head = head.slice(arr.index + arr[0].length, -8);
+      }
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
           && noShadow
           || Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
               && noContain) {
-        let template = Settings_.cache_.helpDialog as string, styleEnd = template.indexOf("</style>"),
-        left = template.slice(0, styleEnd), right = template.slice(styleEnd);
         if (Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
             && noContain) {
-          left = left.replace(<RegExpG> /contain:\s?[\w\s]+/g, "contain: none !important");
+          head = head.replace(<RegExpG> /contain:\s?[\w\s]+/g, "contain: none !important");
         }
         if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
               && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
               && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
             && noShadow) {
-          left = left.replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
+          head = head.replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
             ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv");
         }
-        Settings_.set_("helpDialog", left + right);
+        Settings_.set_("helpDialog", "");
       }
-      HelpDialog.inited_ = true;
+      a.html_ = [head, body];
     }
     Object.setPrototypeOf(request, null);
     const commandToKeys = Object.create<Array<[string, CommandsNS.Item]>>(null),
@@ -61,14 +69,16 @@ var HelpDialog = {
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;
-    const html = (<string> Settings_.cache_.helpDialog).replace(
+    const html = (a as Ensure<typeof a, "html_">).html_, body = html[1].replace(
         <RegExpSearchable<1>> /\{\{(\w+)}}/g, function (_, group: string) {
       let s = result[group];
       return s != null ? s
         : HelpDialog.groupHtml_(group, commandToKeys, hideUnbound, showNames);
     });
-    HelpDialog.template_ = null;
-    return html;
+    a.template_ = null;
+    return Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+        ? { h: html[0], b: body } : html[0] + body;
   }) as BaseHelpDialog["render_"],
   groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
       , hideUnbound: boolean, showNames: boolean): string {
