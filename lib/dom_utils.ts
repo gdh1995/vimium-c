@@ -102,6 +102,7 @@ var VDom = {
       return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ? el.shadowRoot as ShadowRoot | null
         : <ShadowRoot | null | undefined> el.shadowRoot || null;
     }
+    // Note: .webkitShadowRoot and .shadowRoot share a same object
     const sr = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
         && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 ? el.webkitShadowRoot : el.shadowRoot;
     if (sr) {

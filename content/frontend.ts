@@ -949,7 +949,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           && <number> Build.BTypes !== BrowserType.Edge) {
         OnOther = load.b as NonNullable<typeof load.b>;
       }
-      ((settings as Writeable<VSettingsTy>).cache = VDom.cache_ = load).m &&
+      ((settings as Writeable<VSettingsTy>).cache = D.cache_ = load).m &&
         (VKey.correctionMap_ = Object.create<string>(null));
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
