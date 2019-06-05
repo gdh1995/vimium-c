@@ -375,13 +375,15 @@ var VHints = {
     return false;
   },
   checkReplaced_ (element: SafeHTMLElement | null | void, output?: Hint[]): boolean | null {
-    const arr2: Hint[] = output || [], len = arr2.length;
+    const arr2: Hint[] = output || [], len = arr2.length, a = this, clickListened = a.isClickListened_;
     if (element) {
-      if (!output && element.getAttribute("disabled")) { return false; }
+      if (!output && (element as TypeToAssert<HTMLElement, HTMLInputElement, "disabled">).disabled) { return !1; }
       output && VLib.clickable_.add(element);
-      VHints.GetClickable_.call(arr2, element);
+      a.isClickListened_ = true;
+      a.GetClickable_.call(arr2, element);
+      a.isClickListened_ = clickListened;
     }
-    return element ? arr2.length <= len : output ? true : null;
+    return element ? arr2.length <= len : !!output || null;
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
   GetEditable_ (this: Hint[], element: Element): void {
