@@ -132,7 +132,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   focused_: Build.BTypes & ~BrowserType.Firefox ? true : false,
   showing_: false,
   firstShowing_: true,
-  focusByCode_: true,
+  codeFocusTime_: 0,
+  codeFocusReceived_: false,
   blurWanted_: false,
   forceNewTab_: false,
   sameOrigin_: false,
@@ -178,7 +179,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   hide_ (fromContent?: BOOL): void {
     const a = Vomnibar_, el = a.input_;
-    a.isActive_ = a.showing_ = a.isEditing_ = a.isInputComposing_ = a.blurWanted_ = a.focusByCode_ = false;
+    a.isActive_ = a.showing_ = a.isEditing_ = a.isInputComposing_ = a.blurWanted_ = a.codeFocusReceived_ = false;
+    a.codeFocusTime_ = 0;
     removeEventListener("wheel", a.onWheel_, a.wheelOptions_);
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
@@ -238,10 +240,11 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   focus_ (this: void, focus?: false | TimerType.fake | "focus" | 1 | 2 | 3 | 4 | 5): void {
     const a = Vomnibar_;
-    a.focusByCode_ = true;
+    a.codeFocusTime_ = performance.now();
+    a.codeFocusReceived_ = false;
     if (focus !== false) {
       a.input_.focus();
-      if (a.focusByCode_ || !a.focused_) {
+      if (!a.codeFocusReceived_ || !a.focused_) {
         focus = focus ? <number> focus | 0 : 0;
         if (!Build.NDEBUG) {
           if (focus >= 0) {
@@ -786,15 +789,17 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     queryInterval_ != null && (Vomnibar_.queryInterval_ = queryInterval_);
   },
   OnWndFocus_ (this: void, event: Event): void {
-    const a = Vomnibar_, byCode = a.focusByCode_, blurred = event.type === "blur", target = event.target;
+    const a = Vomnibar_, byCode = a.codeFocusTime_ && performance.now() - a.codeFocusTime_ < 120,
+    blurred = event.type === "blur", target = event.target;
     if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !event.isTrusted : event.isTrusted === false) || !VPort_) { return; }
-    a.focusByCode_ = false;
+    a.codeFocusReceived_ = true;
     if (!a.isActive_ || target !== window) {
       target === a.input_ &&
       (Vomnibar_.focused_ = !blurred) && (Vomnibar_.blurWanted_ = false);
       return;
     }
+    a.codeFocusTime_ = 0;
     if (byCode) {
       a.blurred_(blurred);
       return;
