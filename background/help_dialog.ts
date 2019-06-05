@@ -69,7 +69,7 @@ var HelpDialog = {
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;
-    const html = (a as Ensure<typeof a, "html_">).html_, body = html[1].replace(
+    const html = (a as Ensure<typeof a, "html_">).html_, div = html[1].replace(
         <RegExpSearchable<1>> /\{\{(\w+)}}/g, function (_, group: string) {
       let s = result[group];
       return s != null ? s
@@ -78,7 +78,7 @@ var HelpDialog = {
     a.template_ = null;
     return Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        ? { h: html[0], b: body } : html[0] + body;
+        ? { h: html[0], b: div } : html[0] + div;
   }) as BaseHelpDialog["render_"],
   groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
       , hideUnbound: boolean, showNames: boolean): string {

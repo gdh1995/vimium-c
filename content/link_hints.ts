@@ -1226,7 +1226,7 @@ Modes_: [
     }
     /** Note: SVGElement::dataset is only since `BrowserVer.Min$SVGElement$$dataset` */
     else if ((str = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$SVGElement$$dataset
-          ?  link.getAttribute("data-vim-text") : (link as EnsureNonNull<typeof link>).dataset.vimText)
+          ?  link.getAttribute("data-vim-text") : (link.dataset as NonNullable<typeof link.dataset>).vimText)
         && (str = str.trim())) { /* empty */ }
     else {
       const tag = VDom.htmlTag_(link);

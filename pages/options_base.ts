@@ -539,7 +539,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     stateValue.textContent = pass ? isReverted ? pass.slice(2) : pass : pass !== null ? "disabled" : " enabled";
     stateTail.textContent = curIsLocked && !isSaving && same
       ? ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`
-      : curIsLocked? " if reset" : "";
+      : curIsLocked ? " if reset" : "";
     saveBtn.disabled = same;
     (saveBtn.firstChild as Text).data = same ? "No Changes" : "Save Changes";
   }

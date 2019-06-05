@@ -508,7 +508,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
 chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info): void {
   const os = (!(Build.BTypes & ~BrowserType.Chrome) ? info.os : info.os || "").toLowerCase(),
   types = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
-    ? chrome.runtime.PlatformOs as EnsureNonNull<typeof chrome.runtime.PlatformOs>
+    ? chrome.runtime.PlatformOs as NonNullable<typeof chrome.runtime.PlatformOs>
     : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
   Settings_.CONST_.Platform_ = os;
   (Settings_.payload_ as Writeable<typeof Settings_.payload_>).m = os === types.MAC || (os === types.WIN && 0);

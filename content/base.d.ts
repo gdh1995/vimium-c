@@ -10,14 +10,8 @@ interface ShadowRoot {
 interface Window {
   VimiumInjector?: VimiumInjectorTy | null;
   VSettings: VSettingsTy | null;
-  readonly VKey?: {
-    char_ (event: KeyboardEvent): string;
-    key_ (event: EventControlKeys, ch: string): string;
-  };
-  readonly VDom?: {
-    readonly UI: DomUI;
-    view_ (el: Element, oldY?: number | undefined): boolean;
-  };
+  readonly VKey?: object;
+  readonly VDom?: object;
   readonly VFind?: { css_: FindCSS | null; };
 }
 interface WindowWithTop extends Window {

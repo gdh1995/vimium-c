@@ -34,7 +34,7 @@ const Clipboard_ = {
   ? function (this: object): Promise<string> | null {
     const clipboard = navigator.clipboard as EnsureNonNull<Navigator["clipboard"]> | undefined;
     return (Build.MinFFVer >= FirefoxBrowserVer.MinUsable$Navigator$$Clipboard || clipboard)
-      ? (clipboard as EnsureNonNull<Navigator["clipboard"]>).readText().then(
+      ? (clipboard as NonNullable<typeof clipboard>).readText().then(
         (this as typeof Clipboard_).reformat_)
       : null;
   } : function (this: object): string {

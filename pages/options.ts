@@ -3,6 +3,7 @@
 interface Window {
   readonly VPort?: VPortTy;
   readonly VHud?: VHUDTy;
+  // readonly VDom?: typeof VDom;
 }
 declare var VPort: VPortTy, VHud: VHUDTy, VEvent: VEventModeTy;
 
@@ -23,8 +24,8 @@ Option_.syncToFrontend_ = [];
 Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.FrontendSettings
     > (this: Option_<T>, func: (this: Option_<T>) => void): void {
   func.call(this);
-  if (window.VSettings) {
-    window.VSettings.cache[this.field_] = this.readValueFromElement_();
+  if (window.VDom) {
+    VDom.cache_[this.field_] = this.readValueFromElement_();
   }
 };
 
