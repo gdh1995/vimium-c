@@ -803,7 +803,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         });
         return;
       }
-      mask && events.focusAndRun_(); // require FrameMaskType.NoMaskAndNoFocus is 0
+      mask && setTimeout(() => events.focusAndRun_(), 1); // require FrameMaskType.NoMaskAndNoFocus is 0
       if (req.c) {
         type TypeChecked = { [key1 in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
             count: number, options: CmdOptions[T2]) => void; };
@@ -1226,7 +1226,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       return +result as BOOL;
     },
-    focusAndRun_ (cmd?: FgCmdAcrossFrames, count?: number, options?: FgOptions
+    focusAndRun_ (this: void, cmd?: FgCmdAcrossFrames, count?: number, options?: FgOptions
         , showBorder?: 1): void {
       InsertMode.ExitGrab_();
       let old = onWndFocus, failed = true;

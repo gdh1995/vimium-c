@@ -438,6 +438,10 @@ _listen("load", delayFindAll, !0);
   if (!(Build.NDEBUG || !isFirstTime || (VDom.OnDocLoaded_ + "").indexOf("DOMContentLoaded") >= 0)) {
     console.log("Assert error: VDom.OnDocLoaded_ should have not been called");
   }
+  if (!(Build.NDEBUG
+        || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {
+    console.log("Assert error: Warning: may no timer function on sandbox page!");
+  }
   if ((Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         && !(Build.BTypes & ~BrowserType.Chrome))
       ? true : isFirstTime ? !script.parentNode
@@ -489,13 +493,11 @@ _listen("load", delayFindAll, !0);
   function (func: (info?: TimerType.fake) => void, timeout: number): number {
     const cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
-    return (BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage
-            || Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || VDom && VDom.allowRAF_)
-      ? timeout > 19 && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || rIC)
+    return timeout > 19 && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || rIC)
       ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback
           ) as RequestIdleCallback)(cb, { timeout })
       : requestAnimationFrame(cb)
-      : (Promise.resolve(1).then(cb), 1);
+      ;
   };
 })(VDom.docNotCompleteWhenVimiumIniting_);
 }
