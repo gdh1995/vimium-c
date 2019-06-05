@@ -1431,11 +1431,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   VKey.isEscape_ = isEscape;
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
-  if (location.href !== "about:blank" || injector || !+function (): 1 | void {
+  if (isTop || injector || !+function (): 1 | void {
     try {
-      let f = VDom.parentFrame_(),
-      a1 = f && (parent as Window & { VFind?: typeof VFind}).VFind;
-      if (a1 && a1.box_ && a1.box_ === f) {
+      let f = VDom.parentFrame_(), p = (f && parent) as Window & { VFind?: typeof VFind, VLib?: typeof VLib },
+      a1 = f && p.VFind;
+      a1 && (VLib.clickable_ = (p.VLib as NonNullable<typeof p.VLib>).clickable_);
+      if (a1 && a1.box_ === f) {
         safeDestroy(true);
         a1.onLoad_();
         return 1; // not return a function's result so that logic is clearer for compiler

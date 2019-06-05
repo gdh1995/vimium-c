@@ -5,7 +5,11 @@
 VDom.allowScripts_ = 0;
 
 (function () {
-  const injector = VimiumInjector as VimiumInjectorTy, clickable = injector.clickable;
+  const injector = VimiumInjector as VimiumInjectorTy,
+  parentInjector = window !== top && VDom.parentFrame_()
+      && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
+  // share the set of all clickable, if .dataset.vimiumHooks is not "false"
+  clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
   clickable && (VLib.clickable_ = clickable);
 
   injector.checkIfEnabled = (function (this: null

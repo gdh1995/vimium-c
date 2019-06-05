@@ -17,6 +17,7 @@
   window.onload = function() {
     testNode = document.createElement('fake-tag');
     testNode.id = "testNode";
+    testNode.style.color="#00f";
     testNode.textContent = 'this-is-test-span';
     var iframeContent = mainIframe.contentDocument.createElement('div');
     testNode.addEventListener("click", function(event) {
