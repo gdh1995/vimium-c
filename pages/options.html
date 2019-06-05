@@ -323,6 +323,23 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           </div></td>
         </tr>
         <tr>
+          <td class="caption">Vomnibar settings</td>
+          <td>
+            <textarea id="vomnibarOptions" class="code height-5" data-model="JSON">
+            </textarea>
+            <div class="nonEmptyTip"></div>
+          </td>
+          <td class="help"><div class="help-inner">
+            Adjust some inner behaviors of Vomnibar.<br/>
+            <div class="help-block">
+              "<var>maxMatches</var>" should be in <kbd>3 ~ 25</kbd> ;<br/>
+              "<var>queryInterval</var>" should be in <kbd>0 ~ 1200 (ms)</kbd> ;<br/>
+              "<var>styles</var>" may be <kbd>"dark" / "mono-url"</kbd> .<br/>
+            </div>
+            A low <var>queryInterval</var> will cause CPU cost a bit higher.
+          </div></td>
+        </tr>
+        <tr>
           <td class="caption">Phrase blacklist<br/>for Vomnibar</td>
           <td>
             <textarea id="phraseBlacklist" class="code min-height-4" data-model="MaskedText"></textarea>
@@ -380,23 +397,6 @@ so only the default inner version will be used on them
           <td class="help"><div class="help-inner">
             In order to recognize URLs not encoded by <kbd>utf-8</kbd>.<br/>
             The default <kbd class="sel-all">gbk</kbd> is for Chinese.
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption">Vomnibar settings</td>
-          <td>
-            <textarea id="vomnibarOptions" class="code height-5" data-model="JSON">
-            </textarea>
-            <div class="nonEmptyTip"></div>
-          </td>
-          <td class="help"><div class="help-inner">
-            Adjust some inner behaviors of Vomnibar.<br/>
-            <div class="help-block">
-              "<var>maxMatches</var>" should be in <kbd>3 ~ 25</kbd> ;<br/>
-              "<var>queryInterval</var>" should be in <kbd>0 ~ 1200 (ms)</kbd> ;<br/>
-              "<var>styles</var>" may be <kbd>"dark" / "mono-url"</kbd> .<br/>
-            </div>
-            A low <var>queryInterval</var> will cause CPU cost a bit higher.
           </div></td>
         </tr>
         <tr>
