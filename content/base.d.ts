@@ -192,7 +192,7 @@ declare namespace HintsNS {
 declare namespace FindNS {
   const enum Action {
     PassDirectly = -1,
-    DoNothing = 0, Exit, ExitNoFocus, ExitUnexpectedly,
+    DoNothing = 0, Exit, ExitNoAnyFocus, ExitNoFocus, ExitUnexpectedly,
     ExitToPostMode, ExitAndReFocus,
     MaxExitButNoWork = ExitUnexpectedly, MinExitAndwork = ExitToPostMode,
   }
@@ -381,6 +381,7 @@ interface VEventModeTy {
   lock_(this: void): LockableElement | null;
   OnWndFocus_ (this: void): void;
   checkHidden_ (this: void): BOOL;
+  /** may focus the parent frame before returning */
   checkHidden_ (this: void, cmd: FgCmdAcrossFrames
       , count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): BOOL;
   focusAndRun_ (this: void): void;

@@ -323,7 +323,7 @@ var VFind = {
   deactivate_(i: FindNS.Action): void {
     let a = this, sin = a.styleIn_, noStyle = !sin || !sin.parentNode, hasResult = a.hasResults_
       , el: SafeElement | null | undefined, el2: Element | null;
-    focus();
+    i === FindNS.Action.ExitNoAnyFocus || focus();
     a.clean_();
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
       el = VDom.getSelectionFocusEdge_(VDom.UI.getSelected_()[0], 1);

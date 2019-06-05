@@ -338,13 +338,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kFgCmd.scroll: */ VScroller.activate_,
     /* kFgCmd.visualMode: */ VVisual.activate_,
     /* kFgCmd.vomnibar: */ VOmni.activate_,
-    /* kFgCmdreset: */ function (): void {
+    /* kFgCmd.reset: */ function (): void {
       const a = InsertMode;
       VScroller.current_ = VDom.lastHovered_ = a.last_ = a.lock_ = a.global_ = null;
       a.mutable_ = true;
       a.ExitGrab_(); events.setupSuppress_();
       VHints.clean_(); VVisual.deactivate_();
-      VFind.deactivate_(FindNS.Action.ExitNoFocus);
+      VFind.deactivate_(FindNS.Action.ExitNoAnyFocus);
       onWndBlur();
     },
 
@@ -1204,17 +1204,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (isTop || !el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
       parEvents: VEventModeTy,
-      result: boolean | BOOL | 2 = box.height === 0 && box.width === 0 || getComputedStyle(el).visibility === "hidden";
+      result: boolean | BOOL = !box.height && !box.width || getComputedStyle(el).visibility === "hidden";
       if (cmd) {
         if (parEl && (result || box.bottom <= 0 || parent && box.top > (parent as Window).innerHeight)) {
           parEvents = (parent as Window & { VEvent: VEventModeTy }).VEvent;
           if (!parEvents.keydownEvents_(VEvent)) {
             parEvents.focusAndRun_(cmd, count as number, options as FgOptions, 1);
-            result = 2;
+            result = 1;
           }
         }
-        // tslint:disable-next-line: triple-equals
-        if (<number> result == 1) { // if there's a same-origin parent, use it instead of top
+        if (result === true) { // if there's a same-origin parent, use it instead of top
           // here not suppress current cmd, in case of malformed pages;
           // the worst result is doing something in a hidden frame,
           //   which is tolerable, since only few commands do check hidden)
@@ -1225,7 +1224,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           });
         }
       }
-      return <BOOL> +result;
+      return +result as BOOL;
     },
     focusAndRun_ (cmd?: FgCmdAcrossFrames, count?: number, options?: FgOptions
         , showBorder?: 1): void {
