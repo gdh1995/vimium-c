@@ -3,7 +3,7 @@
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.75](https://img.shields.io/badge/release-1.75-orange.svg
+[![Version 1.75.4](https://img.shields.io/badge/release-1.75.4-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -60,16 +60,20 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.75.4 (Not released yet):
+1.75.4:
 * support `prefers-reduced-motion` and `prefers-color-scheme` media queries
   * be able to auto disable animation and enter dark mode when some options are enabled
   * enable the option "Auto reduce UI motions following your system settings" by default
 * LinkHints: add a new option `mapKey` to translated typed keys to match marker text
   * use a subset of translation rules of `Custom key mappings`
-  * require both sources and targets are single characters (not map `<a-d>`)
-* LinkHints: by default, detect and use touch mode automatically on Chrome
-* Vomnibar has a default style named `mono-url`. Remove it to switch default fonts for suggestion URLs
+  * require both sources and targets are single characters (can not map keys like `<a-d>`)
+* LinkHints: by default, detect and use touch mode automatically since Chrome 48
+* Vomnibar has a default style named `mono-url`. Remove it to switch monospace fonts for suggestion URLs
+* fix that LinkHints and Vomnibar might fail to switch to other tabs
 * fix more issues about `passNextKey`
+* `discardTab` only discards those auto-discardable tabs which are marked by the browser if count is greater than 1
+* vimium://show : upgrade the embed Viewer.js
+* Firefox: fix that help dialog may fail to show in rare cases
 
 1.75.2:
 * use new icons
