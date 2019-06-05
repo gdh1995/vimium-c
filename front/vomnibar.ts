@@ -240,6 +240,10 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   focus_ (this: void, focus?: false | TimerType.fake | "focus" | 1 | 2 | 3 | 4 | 5): void {
     const a = Vomnibar_;
+    if (!a.showing_) {
+      a.codeFocusTime_ = 0; a.codeFocusReceived_ = false; // clean again, in case of unknown race conditions
+      return;
+    }
     a.codeFocusTime_ = performance.now();
     a.codeFocusReceived_ = false;
     if (focus !== false) {
