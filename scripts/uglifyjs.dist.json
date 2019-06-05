@@ -65,9 +65,9 @@
       "WeakSet",
       // # content global names:
       "browser",
-      "VimiumInjector", "VimiumClickable", "VLib", "VKey", "VDom",
+      "VimiumInjector", "VLib", "VKey", "VDom",
       "VHints", "VOmni", "VScroller", "VMarks", "VFind", "VVisual",
-      "VSettings", "VHud", "VPort", "VEvent",
+      "VHud", "VPort", "VEvent",
       // # fixed background global names:
       "OnOther",
       "Commands", "Exclusions", "HelpDialog",

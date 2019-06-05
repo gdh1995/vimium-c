@@ -25,7 +25,7 @@ if (VDom && VimiumInjector === undefined) {
   }
   type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[] | null ];
   /**
-   * Note: on FF 66.0.3 x64 (Win 10), a '[sec, cmd]' from {@link ../front/vomnibar#VSettings.destroy_}
+   * Note: on FF 66.0.3 x64 (Win 10), a '[sec, cmd]' from {@link ../front/vomnibar#VEvent.destroy_}
    *     will cause "permission error" when reading property [0] on main world.
    * `high bits` mean secret, `lower bits >> kContentCmd.MaskedBitNumber` mean content cmd
    */
@@ -124,7 +124,7 @@ if (VDom && VimiumInjector === undefined) {
       box && dispatchCmd(cmd);
       return;
     }
-    const r = removeEventListener, settings = VSettings;
+    const r = removeEventListener, events = VEvent;
     /** this function should keep idempotent */
     if (box) {
       r.call(box, kVOnClick1, onClick, !0);
@@ -140,7 +140,7 @@ if (VDom && VimiumInjector === undefined) {
       }
     }
     box = 0;
-    settings && (settings.execute_ = null);
+    events && (events.execute_ = null);
   }
 
   const appInfo = Build.BTypes & BrowserType.Chrome
@@ -410,7 +410,7 @@ _listen("load", delayFindAll, !0);
         appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
     }
-    VSettings.execute_ = execute;
+    VEvent.execute_ = execute;
     addEventListener(kHook, hook, !0);
   } else if (Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       || Build.BTypes & ~BrowserType.Chrome) {
@@ -474,7 +474,7 @@ _listen("load", delayFindAll, !0);
       + " not work because %o is sandboxed.",
     location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
   if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally) {
-    VSettings.destroy_(true);
+    VEvent.destroy_(true);
     return;
   }
   interface TimerLib extends Window {

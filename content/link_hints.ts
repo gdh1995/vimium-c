@@ -713,9 +713,9 @@ var VHints = {
       let deep = a.queryInDeep_, reinit = true;
       if (i & KeyStat.shiftKey) {
         if (i & ~KeyStat.shiftKey) {
-          reinit = !!VSettings.execute_;
+          reinit = !!VEvent.execute_;
           if (reinit) {
-            (VSettings as EnsureNonNull<VSettingsTy>).execute_(kContentCmd.FindAllOnClick);
+            (VEvent as EnsureNonNull<VEventModeTy>).execute_(kContentCmd.FindAllOnClick);
           }
         } else {
           a.isClickListened_ = !a.isClickListened_;
@@ -851,8 +851,8 @@ var VHints = {
     }, 18);
   },
   _reinit (lastEl?: HintsNS.LinkEl | null, rect?: Rect | null): void {
-    const a = this;
-    if (!VSettings.enabled_) { return a.clean_(); }
+    const a = this, events = VEvent;
+    if (!events.keydownEvents_(events)) { return a.clean_(); }
     a.isActive_ = false;
     a.keyStatus_.tab_ = 0;
     a.zIndexes_ = null;

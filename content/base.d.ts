@@ -8,8 +8,6 @@ interface ShadowRoot {
 }
 
 interface Window {
-  VimiumInjector?: VimiumInjectorTy | null;
-  VSettings: VSettingsTy | null;
   readonly VKey?: object;
   readonly VDom?: object;
   readonly VFind?: { css_: FindCSS | null; };
@@ -396,7 +394,9 @@ interface VEventModeTy {
     0: (this: void, event: KeyboardEvent) => boolean;
     1: (wnd: Window, isAdd: BOOL) => void;
     2: (this: Window, event: KeyboardEvent & {type: "keyup"} | Event & {type: "blur"}) => void;
-  } 
+  };
+  execute_: ((this: void, cmd: ValidContentCmds) => void) | null;
+  destroy_: (this: void, silent?: boolean | 9) => void;
 }
 interface VHUDTy {
   readonly box_: HTMLDivElement | null;
@@ -409,13 +409,7 @@ interface VHUDTy {
   copied_ (this: VHUDTy, text: string, type?: string): void;
   hide_ (this: void, info?: TimerType): void;
 }
-interface VSettingsTy {
-  readonly enabled_: boolean;
-  readonly cache: SettingsNS.FrontendSettingCache;
-  execute_: ((this: void, cmd: ValidContentCmds) => void) | null;
-  readonly destroy_: (this: void, silent?: boolean | 9) => void;
-}
-declare var VimiumInjector: VimiumInjectorTy | undefined | null, VSettings: VSettingsTy;
+declare var VimiumInjector: VimiumInjectorTy | undefined | null, VEvent: VEventModeTy;
 
 interface VDataTy {
   full: string;

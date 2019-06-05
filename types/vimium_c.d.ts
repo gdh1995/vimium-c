@@ -316,6 +316,7 @@ interface VimiumInjectorTy {
   version: string;
   $hash: string;
   clickable: WeakSet<Element> | null | undefined;
+  cache: Dict<any> | null;
   getCommandCount: (this: void) => number;
   checkIfEnabled: (this: void) => void;
   $run (taskType: BgReq[kBgReq.injectorRun]): void;

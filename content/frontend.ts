@@ -1,4 +1,4 @@
-var VSettings: VSettingsTy, VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
+var VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   , VimiumInjector: VimiumInjectorTy | undefined | null;
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 
@@ -949,8 +949,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           && <number> Build.BTypes !== BrowserType.Edge) {
         OnOther = load.b as NonNullable<typeof load.b>;
       }
-      ((settings as Writeable<VSettingsTy>).cache = D.cache_ = load).m &&
-        (VKey.correctionMap_ = Object.create<string>(null));
+      D.cache_ = load;
+      load.m && (VKey.correctionMap_ = Object.create<string>(null));
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
         D.specialZoom_ = (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
@@ -983,7 +983,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       } else {
         InsertMode.grabBackFocus_ = false;
         hook(HookAction.Suppress);
-        settings.execute_ && settings.execute_(kContentCmd.SuppressClickable);
+        events.execute_ && events.execute_(kContentCmd.SuppressClickable);
       }
       r[kBgReq.init] = null as never;
       D.OnDocLoaded_(function (): void {
@@ -992,7 +992,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       });
     },
     /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset], initing?: 1): void {
-      const newPassKeys = request.p, enabled = newPassKeys !== "", old = isEnabled;
+      const newPassKeys = request.p, newEnabled = newPassKeys !== "", old = isEnabled;
       passKeys = newPassKeys && Object.create<1>(null);
       if (newPassKeys) {
         isPassKeysReverted = newPassKeys[0] === "^" && newPassKeys.length > 2;
@@ -1000,14 +1000,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           (passKeys as SafeDict<1>)[ch] = 1;
         }
       }
-      (settings as Writeable<VSettingsTy>).enabled_ = isEnabled = enabled;
+      isEnabled = newEnabled;
       if (initing) {
         return;
       }
       isLocked = !!request.f;
       // if true, recover listeners on shadow roots;
       // otherwise listeners on shadow roots will be removed on next blur events
-      if (enabled) {
+      if (newEnabled) {
         esc(HandlerResult.Nothing); // for passNextKey#normal
         old || InsertMode.init_();
         (old && !isLocked) || hook(HookAction.Install);
@@ -1015,7 +1015,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       } else {
         Commands[kFgCmd.reset]();
       }
-      if (VDom.UI.box_) { VDom.UI.adjust_(+enabled ? 1 : 2); }
+      if (VDom.UI.box_) { VDom.UI.adjust_(+newEnabled ? 1 : 2); }
     },
     /* kBgReq.injectorRun: */ injector ? injector.$run : null as never,
     /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
@@ -1194,6 +1194,34 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
   ],
 
+  safeDestroy: VEventModeTy["destroy_"] = function (this: void, silent?: boolean | 9): void {
+    if (!esc) { return; }
+    if (Build.BTypes & BrowserType.Firefox && silent === 9) {
+      vPort._port = null;
+      return;
+    }
+    isEnabled = !!0;
+    hook(HookAction.Destroy);
+
+    Commands[kFgCmd.reset]();
+    let ui = VDom.UI;
+    events.execute_ && events.execute_(kContentCmd.Destroy);
+    ui.box_ && ui.adjust_(2);
+
+    VLib = VKey = VDom = VDom = VLib =
+    VHints = VOmni = VScroller = VMarks = VFind =
+    VHud = VPort = VEvent = VVisual =
+    esc = null as never;
+
+    silent || console.log("%cVimium C%c in %o has been destroyed at %o."
+      , "color:red", "color:auto"
+      , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
+      , Date.now());
+
+    if (vPort._port) { try { vPort._port.disconnect(); } catch {} }
+    injector || (<RegExpOne> /a?/).test("");
+  },
+
   events = VEvent = {
     lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
@@ -1309,38 +1337,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       if (f) { return f(); }
     },
+    execute_: null as VEventModeTy["execute_"],
+    destroy_: safeDestroy,
     keydownEvents_: function (this: void, arr?: VEventModeTy): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
       return !isEnabled || !(KeydownEvents = arr.keydownEvents_());
     } as VEventModeTy["keydownEvents_"]
-  },
-
-  safeDestroy: VSettingsTy["destroy_"] = function (this: void, silent?: boolean | 9): void {
-    if (!esc) { return; }
-    if (Build.BTypes & BrowserType.Firefox && silent === 9) {
-      vPort._port = null;
-      return;
-    }
-    (settings as Writeable<VSettingsTy>).enabled_ = isEnabled = false;
-    hook(HookAction.Destroy);
-
-    Commands[kFgCmd.reset]();
-    let f = settings.execute_, ui = VDom.UI;
-    f && f(kContentCmd.Destroy);
-    ui.box_ && ui.adjust_(2);
-
-    VLib = VKey = VDom = VDom = VLib =
-    VHints = VOmni = VScroller = VMarks = VFind =
-    VSettings = VHud = VPort = VEvent = VVisual =
-    esc = null as never;
-
-    silent || console.log("%cVimium C%c in %o has been destroyed at %o."
-      , "color:red", "color:auto"
-      , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
-      , Date.now());
-
-    if (vPort._port) { try { vPort._port.disconnect(); } catch {} }
-    injector || (<RegExpOne> /a?/).test("");
   },
 
   notChrome = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
@@ -1392,14 +1394,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       port.onDisconnect.addListener(vPort.ClearPort_);
       port.onMessage.addListener(vPort.Listener_);
     })
-  },
-
-  settings: VSettingsTy = VSettings = {
-    enabled_: false,
-    cache: null as never as SettingsNS.FrontendSettingCache,
-    execute_: null,
-    destroy_: safeDestroy
   };
+
   if (injector) {
     injector.$priv = [vPort.SafePost_, function () {
       let keys = currentKeys; esc(HandlerResult.Nothing); return keys;

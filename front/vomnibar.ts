@@ -36,8 +36,8 @@ interface Window extends ConfigurableItems {}
 import PixelData = VomnibarNS.PixelData;
 
 // tslint:disable-next-line: triple-equals
-if (typeof VSettings == "object" && VSettings && typeof VSettings.destroy_ == "function") {
-  VSettings.destroy_(true);
+if (typeof VEvent == "object" && VEvent && typeof VEvent.destroy_ == "function") {
+  VEvent.destroy_(true);
 }
 
 var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
