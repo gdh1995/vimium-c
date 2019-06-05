@@ -702,7 +702,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     toggleHide(element.parentElement as HTMLElement);
     element = element.nextElementSibling as HTMLInputElement;
     element.classList.add("checkboxHint");
-    element.setAttribute("role", "button");
+    element.setAttribute("role", "checkbox");
     element.tabIndex = 0;
     element.setAttribute("aria-hidden", "false");
   }

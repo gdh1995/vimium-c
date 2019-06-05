@@ -31,6 +31,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         ? Build.BTypes as number : BrowserType.Chrome
     , /** should be used only if OnOther is Chrome */ browserVer: BrowserVer = 0
     , isTop = top === window
+    , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
     ;
 
   function post<K extends keyof FgReq>(this: void, request: FgReq[K] & Req.baseFg<K>): 1 {
@@ -275,7 +276,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     VScroller.scrollTick_(0);
     onWndBlur2 && onWndBlur2();
     exitPassMode && exitPassMode();
-    KeydownEvents = Object.create(null);
+    KeydownEvents = safer(null);
     injector || (<RegExpOne> /a?/).test("");
     esc(HandlerResult.ExitPassMode);
   }
@@ -396,7 +397,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         esc(HandlerResult.Nothing);
         return;
       }
-      const keys = Object.create<BOOL>(null);
+      const keys = safer<BOOL>(null);
       VLib.push_(function (event) {
         keyCount += +!keys[event.keyCode];
         keys[event.keyCode] = 1;
@@ -584,7 +585,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     init_ (): void {
       /** if `notBody` then `activeEl` is not null */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
-      KeydownEvents = Object.create(null);
+      KeydownEvents = safer(null);
       if (VDom.cache_.g && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
           counter++ || console.log("An auto-focusing action is blocked by Vimium C.");
@@ -950,7 +951,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         OnOther = load.b as NonNullable<typeof load.b>;
       }
       D.cache_ = load;
-      load.m && (VKey.correctionMap_ = Object.create<string>(null));
+      load.m && (VKey.correctionMap_ = safer<string>(null));
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
         D.specialZoom_ = (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
@@ -993,7 +994,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset], initing?: 1): void {
       const newPassKeys = request.p, newEnabled = newPassKeys !== "", old = isEnabled;
-      passKeys = newPassKeys && Object.create<1>(null);
+      passKeys = newPassKeys && safer<1>(null);
       if (newPassKeys) {
         isPassKeysReverted = newPassKeys[0] === "^" && newPassKeys.length > 2;
         for (const ch of (isPassKeysReverted ? newPassKeys.slice(2) : newPassKeys).split(" ")) {
@@ -1073,7 +1074,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         [key in Keys]: <T2 extends Keys>(this: void, count: number, options: CmdOptions[T2]) => void;
       };
       (Commands as TypeToCheck as TypeChecked)[request.c](request.n
-        , (options ? VLib.safer_(options) : Object.create(null)) as CmdOptions[O]);
+        , (options ? VLib.safer_(options) : safer(null)) as CmdOptions[O]);
     },
     /* kBgReq.createMark: */ function (request: BgReq[kBgReq.createMark]): void { VMarks.createMark_(request.n); },
     /* kBgReq.showHUD: */ function (req: Req.bg<kBgReq.showHUD>): void {
@@ -1200,7 +1201,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       vPort._port = null;
       return;
     }
-    isEnabled = !!0;
+    isEnabled = !1;
     hook(HookAction.Destroy);
 
     Commands[kFgCmd.reset]();
@@ -1349,7 +1350,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect),
   vPort = {
     _port: null as Port | null,
-    _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
+    _callbacks: safer(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
     _id: 1,
     SafePost_<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>): void {
       try {
