@@ -237,7 +237,7 @@ ContentSettings_ = Build.PContentSettings ? {
     if (left <= 0) { return callback(true); }
     Object.setPrototypeOf(settings, null);
     for (const pattern of arr) {
-      const info = BgUtils_.extendIf_(Object.create(null) as chrome.contentSettings.SetDetails, settings);
+      const info = BgUtils_.extendIf_(BgUtils_.safer_() as chrome.contentSettings.SetDetails, settings);
       info.primaryPattern = pattern;
       ref.set(info, func);
     }
@@ -271,7 +271,7 @@ Marks_ = { // NOTE: all public members should be static
   cache_: localStorage,
   cacheI_: null as MarkStorage | null,
   _storage (): MarkStorage {
-    const map: MarkStorage = Object.create(null);
+    const map: MarkStorage = BgUtils_.safer_();
     map.setItem = function (k: string, v: string): void { this[k] = v; };
     return map;
   },
@@ -542,7 +542,7 @@ MediaWatcher_ = {
   }
 },
 TabRecency_ = {
-  tabs_: Object.create<number>(null) as SafeDict<number>,
+  tabs_: BgUtils_.safer_<number>() as SafeDict<number>,
   last_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
   lastWnd_: (chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone) as number,
   incognito_: Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)

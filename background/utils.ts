@@ -78,6 +78,7 @@ var BgUtils_ = {
     , ".company.science.website"
     , ".engineer.software"
   ] as ReadonlyArray<string>,
+  safer_: (() => Object.create(null)) as { (): any; <T>(): SafeDict<T>; },
   domains_: Object.create<CompletersNS.Domain>(null),
   hostRe_: <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
   _ipv4Re: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,

@@ -1,7 +1,7 @@
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 
 var Settings_ = {
-  cache_: Object.create(null) as Readonly<SettingsNS.FullCache>,
+  cache_: BgUtils_.safer_() as Readonly<SettingsNS.FullCache>,
   temp_: {
     onInstall_: null as Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null,
     cmdErrors_: 0,
@@ -25,7 +25,7 @@ var Settings_ = {
   } : {
     c: "", m: 0, i: 0, s: ""
   }) as VomnibarPayload,
-  newTabs_: Object.create(null) as ReadonlySafeDict<Urls.NewTabType>,
+  newTabs_: BgUtils_.safer_() as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
   storage_: localStorage,
   get_<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
@@ -98,7 +98,7 @@ var Settings_ = {
     __proto__: null as never,
     extWhiteList (val): void {
       const old = (this as typeof Settings_).extWhiteList_;
-      const map = (this as typeof Settings_).extWhiteList_ = Object.create<boolean>(null);
+      const map = (this as typeof Settings_).extWhiteList_ = BgUtils_.safer_<boolean>();
       if (old && Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
         for (const key in old) { if (old[key] === false) { map[key] = false; } }
@@ -119,7 +119,7 @@ var Settings_ = {
       return (this as typeof Settings_).set_("newTabUrl_f", url);
     },
     searchEngines (this: {}): void {
-      return (this as typeof Settings_).set_("searchEngineMap", Object.create<Search.Engine>(null));
+      return (this as typeof Settings_).set_("searchEngineMap", BgUtils_.safer_<Search.Engine>());
     },
     searchEngineMap (this: {}, value: FullSettings["searchEngineMap"]): void {
       const a = this as typeof Settings_;

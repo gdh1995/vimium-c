@@ -127,7 +127,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     } while (--count > 1);
   }
 
-  const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
+  const framesForTab: Frames.FramesMap = BgUtils_.safer_<Frames.Frames>(),
   onRuntimeError = BgUtils_.runtimeError_,
   NoFrameId = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome
       && CurCVer_ < BrowserVer.MinWithFrameId;
@@ -1694,7 +1694,7 @@ Are you sure you want to continue?`);
     }
     const { alias_: alias } = registryEntry, func = BackgroundCommands[alias];
     // safe on renaming
-    cOptions = options || Object.create(null);
+    cOptions = options || BgUtils_.safer_();
     cPort = port;
     cRepeat = count;
     cKey = lastKey;
@@ -1941,7 +1941,7 @@ Are you sure you want to continue?`);
         reuse?: ReuseType;
         copied?: boolean;
         keyword?: string | null;
-      } & SafeObject = Object.create(null);
+      } & SafeObject = BgUtils_.safer_();
       opts.reuse = request.r;
       opts.incognito = request.i;
       opts.opener = false;
@@ -2105,7 +2105,7 @@ Are you sure you want to continue?`);
         return;
       } else if (cOptions == null || cOptions.secret !== -1) {
         if (inner) { return; }
-        cOptions = Object.create(null);
+        cOptions = BgUtils_.safer_();
         cRepeat = 1;
       } else if (inner && (cOptions as any as CmdOptions[kFgCmd.vomnibar]).v === Settings_.CONST_.VomnibarPageInner_) {
         return;

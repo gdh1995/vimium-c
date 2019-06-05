@@ -27,7 +27,7 @@ var Exclusions = {
       this.updateListeners_();
       return;
     }
-    this.testers_ || (this.testers_ = Object.create<ExclusionsNS.Tester>(null));
+    this.testers_ || (this.testers_ = BgUtils_.safer_<ExclusionsNS.Tester>());
     this.rules_ = this.format_(rules);
     this.testers_ = null;
     Backend_.getExcluded_ = this.GetPassKeys_;
@@ -76,7 +76,7 @@ var Exclusions = {
     return out;
   },
   getAllPassed_ (): SafeEnum | true | null {
-    const rules = this.rules_, all = Object.create(null) as SafeDict<1>;
+    const rules = this.rules_, all = BgUtils_.safer_() as SafeDict<1>;
     let tick = 0;
     for (let _i = 1, _len = rules.length; _i < _len; _i += 2) {
       const passKeys = rules[_i] as string;

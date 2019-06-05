@@ -41,7 +41,7 @@ var HelpDialog = {
       a.html_ = [head, body];
     }
     Object.setPrototypeOf(request, null);
-    const commandToKeys = Object.create<Array<[string, CommandsNS.Item]>>(null),
+    const commandToKeys = BgUtils_.safer_<Array<[string, CommandsNS.Item]>>(),
     ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !request.b, showNames = !!request.n;
     for (const key in ref) {
       const registry = ref[key] as NonNullable<(typeof ref)[string]>;

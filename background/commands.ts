@@ -2,7 +2,7 @@ var Commands = {
   getOptions_ (item: string[], start: number): CommandsNS.Options | null {
     let opt: CommandsNS.RawOptions, i = start, len = item.length, ind: number, str: string | undefined, val: string;
     if (len <= i) { return null; }
-    opt = Object.create(null);
+    opt = BgUtils_.safer_();
     while (i < len) {
       str = item[i++];
       ind = str.indexOf("=");
@@ -60,10 +60,10 @@ var Commands = {
   parseKeyMappings_: (function (this: {}, line: string): void {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i: number
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
-      , registry = Object.create<CommandsNS.Item>(null)
-      , cmdMap = Object.create<CommandsNS.Item>(null) as Partial<ShortcutInfoMap>
-      , userDefinedKeys = Object.create<true>(null)
-      , mkReg = Object.create<string>(null);
+      , registry = BgUtils_.safer_<CommandsNS.Item>()
+      , cmdMap = BgUtils_.safer_<CommandsNS.Item>() as Partial<ShortcutInfoMap>
+      , userDefinedKeys = BgUtils_.safer_<true>()
+      , mkReg = BgUtils_.safer_<string>();
     const available = (this as typeof Commands).availableCommands_;
     const colorRed = "color:red";
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
@@ -100,10 +100,10 @@ var Commands = {
           continue;
         }
       } else if (key === "unmapAll" || key === "unmapall") {
-        registry = Object.create(null);
-        cmdMap = Object.create<CommandsNS.Item>(null) as Partial<ShortcutInfoMap>;
-        userDefinedKeys = Object.create<true>(null);
-        mkReg = Object.create<string>(null), mk = 0;
+        registry = BgUtils_.safer_();
+        cmdMap = BgUtils_.safer_<CommandsNS.Item>() as Partial<ShortcutInfoMap>;
+        userDefinedKeys = BgUtils_.safer_<true>();
+        mkReg = BgUtils_.safer_<string>(), mk = 0;
         if (errors > 0) {
           console.log("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
             , errors > 1 ? "have" : "has", colorRed, errors, errors > 1 ? "s" : "", "color:auto");
@@ -159,7 +159,7 @@ var Commands = {
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
   populateCommandKeys_: (function (this: void, detectNewError: boolean): void {
-    const d = CommandsData_, ref = d.keyMap_ = Object.create<ValidKeyAction | ChildKeyMap>(null),
+    const d = CommandsData_, ref = d.keyMap_ = BgUtils_.safer_<ValidKeyAction | ChildKeyMap>(),
     keyRe = BgUtils_.keyRe_,
     d2 = Settings_.temp_, oldErrors = d2.cmdErrors_;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
@@ -180,7 +180,7 @@ var Commands = {
         continue;
       }
       tmp != null && detectNewError && C.warnInactive_(tmp, key);
-      while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null) as ChildKeyMap; }
+      while (j < last) { ref2 = ref2[arr[j++]] = BgUtils_.safer_() as ChildKeyMap; }
       ref2[arr[last]] = KeyAction.cmd;
     }
     if (detectNewError && d2.cmdErrors_) {
