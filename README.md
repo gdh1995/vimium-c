@@ -3,7 +3,7 @@
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.75.4](https://img.shields.io/badge/release-1.75.4-orange.svg
+[![Version 1.75.5](https://img.shields.io/badge/release-1.75.5-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -60,7 +60,7 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.75.4:
+1.75.5:
 * support `prefers-reduced-motion` and `prefers-color-scheme` media queries
   * be able to auto disable animation and enter dark mode when some options are enabled
   * enable the option "Auto reduce UI motions following your system settings" by default

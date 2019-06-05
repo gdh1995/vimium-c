@@ -854,7 +854,7 @@ var VHints = {
   },
   _reinit (lastEl?: HintsNS.LinkEl | null, rect?: Rect | null): void {
     const a = this, events = VEvent;
-    if (!events.keydownEvents_(events)) { return a.clean_(); }
+    if (events.keydownEvents_(events)) { return a.clean_(); }
     a.isActive_ = false;
     a.keyStatus_.tab_ = 0;
     a.zIndexes_ = null;
