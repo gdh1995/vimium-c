@@ -55,11 +55,12 @@ ContentSettings_ = Build.PContentSettings ? {
     return "vimiumContent|" + contentType + (url ? "|" + url : "");
   },
   complain_ (this: void, contentType: CSTypes, url: string): boolean {
-    if (!chrome.contentSettings) {
+    const css = chrome.contentSettings;
+    if (!css) {
       Backend_.showHUD_("This version of Vimium C has no permissions to set CSs");
       return true;
     }
-    if (!chrome.contentSettings[contentType] || (<RegExpOne> /^[A-Z]/).test(contentType)) {
+    if (!css[contentType] || (<RegExpOne> /^[A-Z]/).test(contentType) || !css[contentType].get) {
       Backend_.showHUD_("Unknown content settings type: " + contentType);
       return true;
     }
@@ -104,8 +105,8 @@ ContentSettings_ = Build.PContentSettings ? {
     return result;
   },
   Clear_ (this: void, contentType: CSTypes, tab?: Readonly<Pick<Frames.Sender, "a">>): void {
-    if (!chrome.contentSettings) { return; }
-    const cs = chrome.contentSettings[contentType], kIncognito = "incognito_session_only", kRegular = "regular";
+    const css = chrome.contentSettings, cs = css && css[contentType],
+    kIncognito = "incognito_session_only", kRegular = "regular";
     if (!cs || !cs.clear) { return; }
     if (tab) {
       cs.clear({ scope: (tab.a ? kIncognito : kRegular) });
@@ -117,7 +118,7 @@ ContentSettings_ = Build.PContentSettings ? {
   },
   clearCS_ (options: CommandsNS.Options, port: Port): void {
     const ty = "" + options.type as CSTypes;
-    if (!this.complain_(ty, "https://a.cc/")) {
+    if (!this.complain_(ty, "http://a.cc/")) {
       this.Clear_(ty, port.s);
       return Backend_.showHUD_(ty + " content settings have been cleared.");
     }
