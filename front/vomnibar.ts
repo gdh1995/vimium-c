@@ -1018,7 +1018,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       str = str.replace(a._spacesRe, " ");
       if (str === mode.q) { return a.postUpdate_(); }
       mode.t = a.matchType_ < CompletersNS.MatchType.singleMatch || !str.startsWith(mode.q) ? a.modeType_
-        : a.matchType_ === CompletersNS.MatchType.searchWanted ? "search"
+        : a.matchType_ === CompletersNS.MatchType.searchWanted ? str.indexOf(" ") < 0 ? "search" : a.modeType_
         : (newMatchType = a.matchType_, a.completions_[0].type as CompletersNS.ValidTypes);
       mode.q = str;
       a.onInnerWidth_();

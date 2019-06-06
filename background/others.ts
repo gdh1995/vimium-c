@@ -449,7 +449,7 @@ BgUtils_.timeout_(600, function (): void {
     subInfoMap = suggestions = null; firstResultUrl = "";
     const type: CompletersNS.ValidTypes = matchType < CompletersNS.MatchType.singleMatch
         || !key.startsWith(last as string) ? "omni"
-      : matchType === CompletersNS.MatchType.searchWanted ? "search"
+      : matchType === CompletersNS.MatchType.searchWanted && key.indexOf(" ") < 0 ? "search"
       : firstType || "omni";
     return Completion_.filter_(key
       , { o: "omni", t: type, r: maxResults, c: maxChars, f: CompletersNS.QueryFlags.SingleLine }

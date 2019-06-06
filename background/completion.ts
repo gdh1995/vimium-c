@@ -122,6 +122,7 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
     queryTerms: QueryTerms = [""], rawQuery: string = "", rawMore: string = "",
     wantInCurrentWindow = false,
+    hasOmniTypePrefix = false,
     domainToSkip = "",
     phraseBlacklist: string[] | null = null, showThoseInBlacklist: boolean = true;
 
@@ -810,8 +811,9 @@ searchEngine = {
       } else if (ret instanceof Array) {
         switch (ret[1]) {
         case "search":
-          queryTerms = ret[0] as string[];
+          const newQuery = ret[0] as string[];
           const counter = searchEngine._nestedEvalCounter++;
+          queryTerms = newQuery.length > 1 || newQuery.length === 1 && newQuery[0] ? newQuery : queryTerms;
           if (counter > 12) { break; }
           const subVal = searchEngine.preFilter_(query, true);
           if (counter <= 0) { searchEngine._nestedEvalCounter = 0; }
@@ -951,7 +953,7 @@ Completers = {
       queryTerms = queryTerms.join(" ").replace(<RegExpG> /(^| )__proto__(?=$| )/g, " __proto_").trimLeft().split(" ");
     }
     RegExpCache.buildParts_();
-    for (l--; i <= l; i++) {
+    for (; i < l; i++) {
       completers[i].filter_(query, i);
     }
   },
@@ -1017,7 +1019,10 @@ Completers = {
     newMatchType = matchType < MatchType.plain ? (matchType === MatchType.searching_
         && suggestions.length === 0 ? MatchType.searchWanted : MatchType.Default)
       : !showThoseInBlacklist ? MatchType.Default
-      : suggestions.length === 0 ? queryTerms.length > 0 ? MatchType.emptyResult : MatchType.Default
+      : suggestions.length === 0
+      ? queryTerms.length > 0
+        ? !hasOmniTypePrefix && rawQuery === ":" ? MatchType.searchWanted : MatchType.emptyResult
+        : MatchType.Default
       : Completers.sugCounter_ === 1 ? MatchType.singleMatch : MatchType.Default,
     func = Completers.callback_ as CompletersNS.Callback;
     Completers.cleanGlobals_();
@@ -1032,7 +1037,7 @@ Completers = {
     RankingUtils.timeAgo_ = Completers.sugCounter_ = matchType =
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
-    autoSelect = singleLine = false;
+    autoSelect = singleLine = hasOmniTypePrefix = false;
     wantInCurrentWindow = false;
     showThoseInBlacklist = true;
   },
@@ -1536,6 +1541,7 @@ Completion_ = {
        wantInCurrentWindow = !!(flags & CompletersNS.QueryFlags.TabInCurrentWindow);
     }
     autoSelect = arr != null && arr.length === 1;
+    hasOmniTypePrefix = false;
     if (str.length === 2 && str[0] === ":") {
       str = str[1];
       arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
@@ -1543,6 +1549,7 @@ Completion_ = {
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (arr) {
         autoSelect = arr.length === 1;
+        hasOmniTypePrefix = true;
         queryTerms.shift();
         rawQuery = query.slice(3);
       }
