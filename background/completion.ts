@@ -1176,21 +1176,23 @@ knownCs: CompletersMap & SafeObject = {
       });
     },
     Clean_: function (this: void, arr: Array<chrome.history.HistoryItem | HistoryItem>): void {
-      let _this = HistoryCache, len = arr.length;
+      const _this = HistoryCache, len = arr.length;
       _this.Clean_ = null;
       for (let i = 0; i < len; i++) {
-        const j = arr[i] as chrome.history.HistoryItem;
+        let j = arr[i] as chrome.history.HistoryItem, url = j.url;
+        if (url.length > 2000) {
+          url = _this.trimTooLongURL_(url, j);
+        }
         (arr as HistoryItem[])[i] = {
-          text: j.url,
+          text: url,
           title: Build.BTypes & ~BrowserType.Chrome ? j.title || "" : j.title as string,
           time: j.lastVisitTime,
           visible: kVisibility.visible,
-          url: j.url
+          url
         };
       }
       if (phraseBlacklist) {
-        for (let i = 0; i < len; i++) {
-          const k = arr[i] as HistoryItem;
+        for (const k of arr as HistoryItem[]) {
           if (BlacklistFilter.TestNotMatched_(k.text, k.title) === 0) {
             k.visible = kVisibility.hidden;
           }
@@ -1219,7 +1221,11 @@ knownCs: CompletersMap & SafeObject = {
       _this._callbacks = null;
     } as ((arr: chrome.history.HistoryItem[]) => void) | null,
     OnPageVisited_ (this: void, newPage: chrome.history.HistoryItem): void {
-      const _this = HistoryCache, url = newPage.url, time = newPage.lastVisitTime,
+      let _this = HistoryCache, url = newPage.url;
+      if (url.length > 2000) {
+        url = _this.trimTooLongURL_(url, newPage);
+      }
+      const time = newPage.lastVisitTime,
       title = Build.BTypes & ~BrowserType.Chrome ? newPage.title || "" : newPage.title as string,
       updateCount = ++_this.updateCount_,
       d = _this.domains_, i = _this.binarySearch_(url);
@@ -1295,6 +1301,15 @@ knownCs: CompletersMap & SafeObject = {
           delete d[j];
         }
       }
+    },
+    trimTooLongURL_ (url: string, history: chrome.history.HistoryItem): string {
+      const colon = url.lastIndexOf(":", 9), hasHost = colon > 0 && url.substr(colon, 3) === "://", title = history.title;
+      url = url.slice(0, (hasHost ? url.indexOf('/', colon + 4) : colon)
+                + GlobalConsts.TrimmedURLLengthForTooLongURL) + "\u2026";
+      if (title && title.length > GlobalConsts.TrimmedTitleLengthForTooLongURL) {
+        history.title = BgUtils_.unicodeSubstring_(title, 0, GlobalConsts.TrimmedTitleLengthForTooLongURL);
+      }
+      return url;
     },
     refreshInfo_ (): void {
       type Q = chrome.history.HistoryQuery;

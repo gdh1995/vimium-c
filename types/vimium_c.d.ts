@@ -359,6 +359,9 @@ declare const enum GlobalConsts {
   TimeOfSuppressingTailKeydowns = 200,
   CommandCountLimit = 9999,
   MediaWatchInterval = 30_000, // 30 seconds
+  MaxHistoryURLLength = 2_000, // to avoid data: URLs and malformed webpages
+  TrimmedURLLengthForTooLongURL = 320,
+  TrimmedTitleLengthForTooLongURL = 160,
 }
 
 declare const enum KnownKey {
