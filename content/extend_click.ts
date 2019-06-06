@@ -102,7 +102,7 @@ if (VDom && VimiumInjector === undefined) {
     if (detail) {
       resolve(0, detail[0]); detail[1] && resolve(1, detail[1]);
     } else {
-      VLib.clickable_.add(event.target as Element);
+      VDom.clickable_.add(event.target as Element);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
@@ -110,7 +110,7 @@ if (VDom && VimiumInjector === undefined) {
     let list = isBox ? (box as Element).getElementsByTagName("*") : document.getElementsByTagName("*");
     for (const index of nodeIndexList) {
       let el = list[index];
-      el && VLib.clickable_.add(el);
+      el && VDom.clickable_.add(el);
     }
     isBox && ((box as Element).textContent = "");
   }

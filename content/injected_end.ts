@@ -5,22 +5,29 @@
 VDom.allowScripts_ = 0;
 
 (function () {
+  let parentFrame_: typeof frameElement | undefined | false;
+  if (Build.MinCVer >= BrowserVer.MinSafeGlobal$frameElement || !(Build.BTypes & BrowserType.Chrome)) {
+    parentFrame_  = frameElement;
+  } else try {
+    parentFrame_ = window !== top && frameElement as (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null;
+  } catch {}
   const injector = VimiumInjector as VimiumInjectorTy,
-  parentInjector = window !== top && VDom.parentFrame_()
+  parentInjector = parentFrame_
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
   // share the set of all clickable, if .dataset.vimiumHooks is not "false"
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
-  clickable && (VLib.clickable_ = clickable);
+  clickable && (VDom.clickable_ = clickable);
+  VDom.isSameOriginChild_ = !!parentInjector;
 
   injector.checkIfEnabled = (function (this: null
       , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
     func({ H: kFgReq.checkIfEnabled, u: location.href });
-  }).bind(null, (injector.$priv as NonNullable<VimiumInjectorTy["$priv"]>)[0]);
+  }).bind(null, (injector.$p as NonNullable<VimiumInjectorTy["$p"]>)[0]);
   injector.getCommandCount = (function (this: null, func: (this: void) => string): number {
     var currentKeys = func();
     return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
-  }).bind(null, (injector.$priv as NonNullable<VimiumInjectorTy["$priv"]>)[1]);
-  injector.$priv = null;
+  }).bind(null, (injector.$p as NonNullable<VimiumInjectorTy["$p"]>)[1]);
+  injector.$p = null;
 
   // Note: should keep the same with frontend.ts
   const useBrowser = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
@@ -46,7 +53,7 @@ VDom.allowScripts_ = 0;
       , runtime.id || location.host, ".");
   }
   let livingCheckTimer = 0;
-  injector.$_run = function (task): void {
+  injector.$r = function (task): void {
     if (task === InjectorTask.reload) {
       const injector1 = VimiumInjector;
       injector1 && injector1.reload(InjectorTask.reload);
@@ -83,7 +90,7 @@ VEvent.execute_ = function (cmd): void {
     removeEventListener("hashchange", injector.checkIfEnabled);
     injector.alive = 0;
     injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;
-    injector.$_run = injector.$run = null as never;
+    injector.$r = injector.$m = null as never;
     injector.clickable = null;
   }
 };

@@ -276,7 +276,7 @@ var VHints = {
     switch (VDom.htmlTag_(element)) {
     case "": // not HTML or not safe
       if ((element as ElementToHTML).lang == null && "tabIndex" in <ElementToHTMLorSVG> element) { // SVG*
-        type = VLib.clickable_.has(element) || element.getAttribute("onclick")
+        type = VDom.clickable_.has(element) || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
             || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.listener
           : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
@@ -351,7 +351,7 @@ var VHints = {
     }
     if (isClickable === null) {
       type = (s = (element as SafeHTMLElement).contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
-        : (VLib.clickable_.has(element) && VHints.isClickListened_) || element.getAttribute("onclick")
+        : (VDom.clickable_.has(element) && VHints.isClickListened_) || element.getAttribute("onclick")
           || VHints.ngEnabled_ && element.getAttribute("ng-click")
           || (s = element.getAttribute("role")) && VHints.roleRe_.test(s)
           || VHints.forHover_ && element.getAttribute("onmouseover")
@@ -385,7 +385,7 @@ var VHints = {
     const arr2: Hint[] = [], a = this, clickListened = a.isClickListened_;
     if (element) {
       if (!tag && (element as TypeToAssert<HTMLElement, HTMLInputElement, "disabled">).disabled) { return !1; }
-      tag && (VLib.clickable_.add(element), a.isClickListened_ = true);
+      tag && (VDom.clickable_.add(element), a.isClickListened_ = true);
       a.GetClickable_.call(arr2, element);
       a.isClickListened_ = clickListened;
     }

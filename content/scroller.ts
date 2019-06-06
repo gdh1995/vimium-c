@@ -181,8 +181,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (isTo) {
       amount -= a.getDimension_(element, di, kScrollDim.position);
     }
-    if (amount && element === a.top_ && element && window !== top && VDom.parentFrame_()) {
-      const Sc = parent && (parent as Window & { VScroller: typeof VScroller; }).VScroller;
+    if (amount && element === a.top_ && element && VDom.isSameOriginChild_) {
+      const p = parent as Window & { VScroller: typeof VScroller; }, Sc = p && p.VScroller;
       if (Sc && !a._doesScroll(element, di, amount)) {
         Sc.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
         if (Sc.keyIsDown_) {

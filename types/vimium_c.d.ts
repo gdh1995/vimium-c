@@ -314,14 +314,14 @@ interface VimiumInjectorTy {
   alive: 0 | 0.5 | 1 | -1;
   host: string;
   version: string;
-  $hash: string;
+  $h: string;
   clickable: WeakSet<Element> | null | undefined;
   cache: Dict<any> | null;
   getCommandCount: (this: void) => number;
   checkIfEnabled: (this: void) => void;
-  $run (taskType: BgReq[kBgReq.injectorRun]): void;
-  $_run (taskType: InjectorTask): void;
-  $priv?: [
+  /** on message to run */ $m (taskType: BgReq[kBgReq.injectorRun]): void;
+  $r (taskType: InjectorTask): void;
+  $p?: [
     <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void
     , () => string
   ] | null;

@@ -2305,7 +2305,7 @@ Are you sure you want to continue?`);
       });
     }
     sender.s = status;
-    if (Build.BTypes & BrowserType.Firefox && (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_)) {
+    if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab) {
       (port as chrome.runtime.Port).sender.tab = null as never;
     }
     port.onDisconnect.addListener(OnDisconnect);
@@ -2357,7 +2357,7 @@ Are you sure you want to continue?`);
               : cPort ? cPort.s.t : TabRecency_.last_;
         }
         framesForOmni.push(port);
-        if (Build.BTypes & BrowserType.Firefox && (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_)) {
+        if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab) {
           (port as chrome.runtime.Port).sender.tab = null as never;
         }
         port.onDisconnect.addListener(OnOmniDisconnect);
@@ -2401,7 +2401,7 @@ Are you sure you want to continue?`);
       url: "",
       incognito: false
     };
-    if (!(Build.BTypes & BrowserType.Firefox && (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_))) {
+    if (!(Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab)) {
       sender.tab = null as never;
     }
     return (port as Writeable<Port>).s = {

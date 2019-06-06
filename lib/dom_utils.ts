@@ -1,7 +1,13 @@
 /// <reference path="../content/base.d.ts" />
+interface ElementWithClickable { vimiumClick?: boolean; }
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
+  var WeakSet: WeakSetConstructor | undefined;
+}
 var VDom = {
   UI: null as never as DomUI,
   cache_: null as never as SettingsNS.FrontendSettingCache,
+  clickable_: null as never as { add(value: Element): object | void; has(value: Element): boolean; },
+  /** is a child and in a same origin with its parent frame */ isSameOriginChild_: 0 as BOOL | boolean,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as BOOL,
   allowRAF_: 1 as BOOL,
@@ -74,16 +80,6 @@ var VDom = {
       listeners.push(callback1);
     };
     addEventListener(eventName, eventHandler, true);
-  },
-  parentFrame_(): (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null {
-    if (Build.MinCVer >= BrowserVer.MinSafeGlobal$frameElement || !(Build.BTypes & BrowserType.Chrome)) {
-      return frameElement as (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null;
-    }
-    try {
-      return frameElement as (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null;
-    } catch {
-      return null;
-    }
   },
   /** refer to {@link #BrowserVer.MinParentNodeInNodePrototype } */
   Getter_: Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty

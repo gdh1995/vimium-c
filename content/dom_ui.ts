@@ -238,10 +238,10 @@ VDom.UI = {
     rect || (rect = a.getVisibleClientRect_(element));
     const center = a.center_(rect);
     if (Build.BTypes & BrowserType.Chrome
-        && (!(Build.BTypes & ~BrowserType.Chrome) || VDom.cache_.b === BrowserType.Chrome)
+        && (!(Build.BTypes & ~BrowserType.Chrome) || a.cache_.b === BrowserType.Chrome)
         && (touchMode || touchMode == null)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
-            || VDom.cache_.v >= BrowserVer.MinEnsuredTouchEventConstructor)
+            || a.cache_.v >= BrowserVer.MinEnsuredTouchEventConstructor)
         && (touchMode || a.isInTouchMode_())) {
       a.touch_(element, center, a.touch_(element, center));
     }
@@ -266,12 +266,12 @@ VDom.UI = {
       FixButNotDispatch = 2,
     }
     let result: ActionType = ActionType.OnlyDispatch;
-    if ((!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.b === BrowserType.Firefox)
+    if ((!(Build.BTypes & ~BrowserType.Firefox) || a.cache_.b === BrowserType.Firefox)
         && modifiers && !modifiers.altKey_
-        && VDom.htmlTag_(element) === "a" && (element as HTMLAnchorElement).href
+        && a.htmlTag_(element) === "a" && (element as HTMLAnchorElement).href
         && ((element as HTMLAnchorElement).target === "_blank" || modifiers.ctrlKey_ || modifiers.metaKey_)) {
       // need to work around Firefox's popup blocker
-      result = element.getAttribute("onclick") || VLib.clickable_.has(element)
+      result = element.getAttribute("onclick") || a.clickable_.has(element)
           ? ActionType.DispatchAndMayFix : ActionType.FixButNotDispatch;
     }
     if (result >= ActionType.FixButNotDispatch

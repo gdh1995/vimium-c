@@ -3,14 +3,14 @@ var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   alive: -1,
   host: "",
   version: "",
-  $hash: "",
   cache: null,
   clickable: undefined,
   reload: null as never,
   checkIfEnabled: null as never,
-  $run: null as never,
-  $_run: null as never,
-  $priv: null,
+  $h: "",
+  $m: null as never,
+  $r: null as never,
+  $p: null,
   getCommandCount: null as never,
   destroy: null
 };
@@ -71,14 +71,14 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     alive: 0,
     host: !(Build.BTypes & ~BrowserType.Chrome) ? extID : res ? res.host : "",
     version: res ? res.version : "",
-    $hash: res ? res.h : "",
     cache: null,
     clickable: oldClickable,
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
-    $run (task): void { VimiumInjector && VimiumInjector.$_run(task.t); },
-    $_run (): void { /* empty */ },
-    $priv: null,
+    $h: res ? res.h : "",
+    $m (task): void { VimiumInjector && VimiumInjector.$r(task.t); },
+    $r (): void { /* empty */ },
+    $p: null,
     getCommandCount: null as never,
     destroy: null
   };
@@ -156,16 +156,16 @@ interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;
 }
 interface ElementWithClickable {
-  vimiumHasOnclick?: boolean;
+  vimiumClick?: boolean;
 }
 VimiumInjector.clickable = VimiumInjector.clickable ? VimiumInjector.clickable
     : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
       || window.WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() : {
-  add (element: Element) { (element as ElementWithClickable).vimiumHasOnclick = true; return this; },
-  has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; },
+  add (element: Element) { (element as ElementWithClickable).vimiumClick = true; return this; },
+  has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; },
   delete (element: Element): boolean {
-    const oldVal = (element as ElementWithClickable).vimiumHasOnclick;
-    oldVal && ((element as ElementWithClickable).vimiumHasOnclick = false);
+    const oldVal = (element as ElementWithClickable).vimiumClick;
+    oldVal && ((element as ElementWithClickable).vimiumClick = false);
     return !!oldVal;
   }
 };

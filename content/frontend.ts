@@ -31,6 +31,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         ? Build.BTypes as number : BrowserType.Chrome
     , /** should be used only if OnOther is Chrome */ browserVer: BrowserVer = 0
     , isTop = top === window
+    , parentFrame_: Element | undefined | null
     , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
     ;
 
@@ -649,11 +650,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     /** @param key should not be `VKeyCodes.None` */
     focusUpper_ (this: void, key: VKeyCodes, force: boolean, event: Parameters<typeof VLib.prevent_>[0]
-        ) {
-      let el = VDom.parentFrame_();
-      if (!el && (!force || isTop)) { return; }
+        ): void {
+      if (!parentFrame_ && (!force || isTop)) { return; }
       VLib.prevent_(event); // safer
-      if (el) {
+      if (parentFrame_) {
         KeydownEvents[key] = 1;
         const parent1 = parent as Window, a1 = parent1 && (parent1 as Window & { VEvent: VEventModeTy }).VEvent;
         if (a1 && !a1.keydownEvents_(events)) {
@@ -709,7 +709,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     let s: string | null;
     const tag = VDom.htmlTag_(element), isClickable = tag === "a" || tag && (
       tag === "button" ? !(element as HTMLButtonElement).disabled
-      : VLib.clickable_.has(element) || element.getAttribute("onclick") || (
+      : VDom.clickable_.has(element) || element.getAttribute("onclick") || (
         (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
         : VHints.ngEnabled_ && element.getAttribute("ng-click")));
     if (tag && VDom.GetShadowRoot_(element, 1)) {
@@ -1017,7 +1017,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       if (VDom.UI.box_) { VDom.UI.adjust_(+newEnabled ? 1 : 2); }
     },
-    /* kBgReq.injectorRun: */ injector ? injector.$run : null as never,
+    /* kBgReq.injectorRun: */ injector ? injector.$m : null as never,
     /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
       delete (request as Req.bg<kBgReq.url>).N;
       request.u = location.href;
@@ -1228,13 +1228,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     OnWndFocus_ (this: void): void { onWndFocus(); },
     checkHidden_ (this: void, cmd?: FgCmdAcrossFrames
         , count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): BOOL {
-      let docEl = document.documentElement, parEl = !isTop && VDom.parentFrame_(), el = parEl || docEl;
-      if (isTop || !el) { return 0; }
+      let el = !isTop && (parentFrame_ || document.documentElement);
+      if (!el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
       parEvents: VEventModeTy,
       result: boolean | BOOL = !box.height && !box.width || getComputedStyle(el).visibility === "hidden";
       if (cmd) {
-        if (parEl && (result || box.bottom <= 0 || parent && box.top > (parent as Window).innerHeight)) {
+        if (parentFrame_ && (result || box.bottom <= 0 || parent && box.top > (parent as Window).innerHeight)) {
           parEvents = (parent as Window & { VEvent: VEventModeTy }).VEvent;
           if (parEvents && !parEvents.keydownEvents_(events)) {
             parEvents.focusAndRun_(cmd, count as number, options as FgOptions, 1);
@@ -1357,7 +1357,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           vPort.Connect_();
           injector && setTimeout(vPort.TestAlive_, 50);
         } else if (Build.BTypes & BrowserType.Firefox && injector) {
-          injector.$_run(InjectorTask.recheckLiving);
+          injector.$r(InjectorTask.recheckLiving);
         }
         (vPort._port as Port).postMessage(request);
       } catch { // this extension is reloaded or disabled
@@ -1388,7 +1388,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn_ ? PortType.hasCSS : 0),
       name = PortNameEnum.Prefix + (
         PortType.isTop * +isTop + PortType.hasFocus * +document.hasFocus() + status),
-      data = { name: injector ? name + injector.$hash : name },
+      data = { name: injector ? name + injector.$h : name },
       port = vPort._port = injector ? runtime.connect(injector.id, data) as Port
         : runtime.connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);
@@ -1397,7 +1397,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   };
 
   if (injector) {
-    injector.$priv = [vPort.SafePost_, function () {
+    injector.$p = [vPort.SafePost_, function () {
       let keys = currentKeys; esc(HandlerResult.Nothing); return keys;
     }];
   }
@@ -1432,16 +1432,22 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
   if (isTop || injector || !+function (): 1 | void {
     try {
-      let f = VDom.parentFrame_(), p = (f && parent) as Window & { VFind?: typeof VFind, VLib?: typeof VLib },
-      a1 = f && p.VFind;
-      a1 && (VLib.clickable_ = (p.VLib as NonNullable<typeof p.VLib>).clickable_);
-      if (a1 && a1.box_ === f) {
+      parentFrame_ = frameElement as typeof parentFrame_;
+      const a1 = parentFrame_ && (parent as Window & { VFind?: typeof VFind }).VFind;
+      VDom.isSameOriginChild_ = !!a1;
+      if (a1 && a1.box_ === parentFrame_) {
         safeDestroy(true);
         a1.onLoad_();
         return 1; // not return a function's result so that logic is clearer for compiler
       }
-    } catch {}
+    } catch { }
   }()) {
+    VDom.clickable_ = VDom.isSameOriginChild_ ? (parent as Window & { VDom: typeof VDom }).VDom.clickable_
+        : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+            || WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() as never : {
+      add (element: Element): any { (element as ElementWithClickable).vimiumClick = true; },
+      has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
+    };
     hook(HookAction.Install);
     vPort.Connect_();
   }
