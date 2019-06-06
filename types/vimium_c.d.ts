@@ -308,6 +308,7 @@ declare const enum InjectorTask {
   reload = 1,
   recheckLiving = 2,
   reportLiving = 3,
+  extInited = 4,
 }
 interface VimiumInjectorTy {
   id: string;

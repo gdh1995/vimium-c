@@ -63,12 +63,18 @@ VDom.allowScripts_ = 0;
         || (Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)) {
       switch (task) {
       case InjectorTask.recheckLiving:
+        livingCheckTimer && clearTimeout(livingCheckTimer);
         livingCheckTimer = setTimeout(onTimeout, GlobalConsts.FirefoxFocusResponseTimeout);
         return;
       case InjectorTask.reportLiving:
-        clearInterval(livingCheckTimer);
+        clearTimeout(livingCheckTimer);
         return;
       }
+    }
+    switch (task) {
+    case InjectorTask.extInited:
+      (VimiumInjector as VimiumInjectorTy).cache = VDom.cache_;
+      return;
     }
   };
   function onTimeout() {

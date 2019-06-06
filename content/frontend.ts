@@ -986,6 +986,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         events.execute_ && events.execute_(kContentCmd.SuppressClickable);
       }
       r[kBgReq.init] = null as never;
+      injector && injector.$r(InjectorTask.extInited);
       D.OnDocLoaded_(function (): void {
         HUD.enabled_ = true;
         onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>> { H: kFgReq.focus });
