@@ -387,7 +387,7 @@ interface VEventModeTy {
   scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: VKeyCodes }, wnd?: Window): void;
   /** return has_error */
   readonly keydownEvents_: {
-    (this: void, srcFrame: VEventModeTy): boolean;
+    (this: void, srcFrame: Pick<VEventModeTy, "keydownEvents_">): boolean;
     (this: void): KeydownCacheArray;
   };
   readonly OnScrolls_: {

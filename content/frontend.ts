@@ -656,9 +656,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (el) {
         KeydownEvents[key] = 1;
         const parent1 = parent as Window, a1 = parent1 && (parent1 as Window & { VEvent: VEventModeTy }).VEvent;
-        if (a1) {
+        if (a1 && !a1.keydownEvents_(events)) {
           (parent1 as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(1);
-          a1.keydownEvents_(VEvent);
           a1.focusAndRun_(0, 0 as never, 0 as never, 1);
         } else {
           parent1.focus();
@@ -1229,7 +1228,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     OnWndFocus_ (this: void): void { onWndFocus(); },
     checkHidden_ (this: void, cmd?: FgCmdAcrossFrames
         , count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): BOOL {
-      let docEl = document.documentElement, parEl = isTop && VDom.parentFrame_(), el = parEl || docEl;
+      let docEl = document.documentElement, parEl = !isTop && VDom.parentFrame_(), el = parEl || docEl;
       if (isTop || !el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
       parEvents: VEventModeTy,
@@ -1237,7 +1236,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (cmd) {
         if (parEl && (result || box.bottom <= 0 || parent && box.top > (parent as Window).innerHeight)) {
           parEvents = (parent as Window & { VEvent: VEventModeTy }).VEvent;
-          if (!parEvents.keydownEvents_(VEvent)) {
+          if (parEvents && !parEvents.keydownEvents_(events)) {
             parEvents.focusAndRun_(cmd, count as number, options as FgOptions, 1);
             result = 1;
           }
