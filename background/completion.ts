@@ -1303,8 +1303,9 @@ knownCs: CompletersMap & SafeObject = {
       }
     },
     trimTooLongURL_ (url: string, history: chrome.history.HistoryItem): string {
-      const colon = url.lastIndexOf(":", 9), hasHost = colon > 0 && url.substr(colon, 3) === "://", title = history.title;
-      url = url.slice(0, (hasHost ? url.indexOf('/', colon + 4) : colon)
+      const colon = url.lastIndexOf(":", 9), hasHost = colon > 0 && url.substr(colon, 3) === "://",
+      title = history.title;
+      url = url.slice(0, (hasHost ? url.indexOf("/", colon + 4) : colon)
                 + GlobalConsts.TrimmedURLLengthForTooLongURL) + "\u2026";
       if (title && title.length > GlobalConsts.TrimmedTitleLengthForTooLongURL) {
         history.title = BgUtils_.unicodeSubstring_(title, 0, GlobalConsts.TrimmedTitleLengthForTooLongURL);

@@ -30,8 +30,8 @@ var VOmni = {
   activate_ (this: void, count: number, options: VomnibarNS.FullOptions): void {
     const a = VOmni, dom = VDom;
     // hide all further key events to wait iframe loading and focus changing from JS
-    VLib.remove_(a);
-    VLib.push_(dom.UI.SuppressMost_, a);
+    VKey.removeHandler_(a);
+    VKey.pushHandler_(VKey.SuppressMost_, a);
     let timer1 = setTimeout(a.RefreshKeyHandler_, GlobalConsts.TimeOfSuppressingTailKeydowns);
     if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
@@ -290,8 +290,8 @@ var VOmni = {
   },
   RefreshKeyHandler_ (this: void): void {
     const a = VOmni, st = a.status_;
-    st < VomnibarNS.Status.Showing && st > VomnibarNS.Status.Inactive || VLib.remove_(a);
-    st > VomnibarNS.Status.ToShow && VLib.push_(a.onKeydown_, a);
+    st < VomnibarNS.Status.Showing && st > VomnibarNS.Status.Inactive || VKey.removeHandler_(a);
+    st > VomnibarNS.Status.ToShow && VKey.pushHandler_(a.onKeydown_, a);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     if (VEvent.lock_()) { return HandlerResult.Nothing; }

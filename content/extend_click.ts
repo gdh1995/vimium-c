@@ -74,7 +74,7 @@ if (VDom && VimiumInjector === undefined) {
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
     if (++hookRetryTimes > InnerConsts.MaxRetryTimesForHook
         || event.detail !== secret || !(t instanceof Element)) { return; }
-    // it's unhooking is delayed, so here may no VLib
+    // it's unhooking is delayed, so here may no VKey
     event.stopImmediatePropagation();
     removeEventListener(kHook, hook, true);
     hook = null as never;
@@ -85,7 +85,7 @@ if (VDom && VimiumInjector === undefined) {
     }
   };
   function onClick(event: CustomEvent): void {
-    VLib.Stop_(event);
+    VKey.Stop_(event);
     let detail = event.detail as ClickableEventDetail | null;
     if (!Build.NDEBUG) {
       let target = event.target as Element;

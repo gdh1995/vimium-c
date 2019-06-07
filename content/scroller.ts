@@ -365,10 +365,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       return;
     }
     this.scrolled_ = 2;
-    VLib.suppressAll_(window, "scroll");
+    VKey.SuppressAll_(window, "scroll");
     requestAnimationFrame(function (): void {
       VScroller.scrolled_ = 0;
-      VLib.suppressAll_(window, "scroll", true);
+      VKey.SuppressAll_(window, "scroll", true);
     });
   },
   sortByArea_ (this: void, a: ElementScrollInfo, b: ElementScrollInfo): number {

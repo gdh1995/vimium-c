@@ -1,6 +1,5 @@
-[VDom, VHints, VKey, VOmni, VScroller, VMarks,
-  VFind, VHud, VVisual,
-  VLib, VEvent, VPort
+[VDom, VKey, VHints, VScroller, VOmni, VFind, VVisual, VMarks,
+  VHud, VPort, VEvent
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;
 
@@ -8,9 +7,11 @@ VDom.allowScripts_ = 0;
   let parentFrame_: typeof frameElement | undefined | false;
   if (Build.MinCVer >= BrowserVer.MinSafeGlobal$frameElement || !(Build.BTypes & BrowserType.Chrome)) {
     parentFrame_  = frameElement;
-  } else try {
-    parentFrame_ = window !== top && frameElement as (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null;
-  } catch {}
+  } else {
+    try {
+      parentFrame_ = window !== top && frameElement as (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null;
+    } catch {}
+  }
   const injector = VimiumInjector as VimiumInjectorTy,
   parentInjector = parentFrame_
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,

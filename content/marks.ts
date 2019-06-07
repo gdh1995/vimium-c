@@ -10,7 +10,7 @@ var VMarks = {
     a.count_ = count < 0 || count > 9 ? 0 : count - 1;
     a.prefix_ = options.prefix !== false;
     a.swap_ = options.swap === true;
-    VLib.push_(a.onKeydown_, a);
+    VKey.pushHandler_(a.onKeydown_, a);
     return VHud.show_((isGo ? "Go to" : "Create") + " mark\u2026");
   },
   onKeydown_ (event: HandlerNS.Event): HandlerResult {
@@ -20,7 +20,7 @@ var VMarks = {
         || !(keyChar = VKey.char_(event)) || keyChar.length !== 1)) {
       return 1;
     }
-    VLib.remove_(this);
+    VKey.removeHandler_(this);
     cont && keyCode > VKeyCodes.space ? this.onKeyChar_(event, keyChar as string) : VHud.hide_();
     this.prefix_ = this.swap_ = true;
     this.onKeyChar_ = null as never;
@@ -69,7 +69,7 @@ var VMarks = {
       try {
         let pos = null, key = a.getLocationKey_(keyChar), storage = localStorage, markString = storage.getItem(key);
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
-          const { scrollX, scrollY, hash } = VLib.safer_(pos);
+          const { scrollX, scrollY, hash } = VKey.safer_(pos);
           if (scrollX >= 0 && scrollY >= 0) {
             (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).o = {
               x: scrollX | 0, y: scrollY | 0, h: "" + (hash || "")

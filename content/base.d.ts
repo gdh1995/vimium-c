@@ -346,8 +346,6 @@ interface DomUI {
   getRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null;
   flash_ (this: DomUI, el: null, rect: Rect, lifeTime?: number, classNames?: string): void;
   flash_ (this: DomUI, el: Element): void;
-  suppressTail_ (this: void, onlyRepeated: BOOL): void;
-  SuppressMost_: HandlerNS.Handler<{}>;
 }
 
 interface VDomMouse {

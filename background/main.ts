@@ -2233,7 +2233,7 @@ Are you sure you want to continue?`);
       const tabID = typeof port === "number" ? port : port.s.t, count = req.s, reuse = req.r,
       jump = (count > 0 ? chrome.tabs.goForward : chrome.tabs.goBack) as NonNullable<typeof chrome.tabs.goBack>;
       if (reuse) {
-        chrome.tabs.duplicate(tabID, function(tab) {
+        chrome.tabs.duplicate(tabID, function (tab): void {
           if (!tab) { return onRuntimeError(); }
           if (reuse === ReuseType.newBg) {
             chrome.tabs.update(tabID, { active: true });

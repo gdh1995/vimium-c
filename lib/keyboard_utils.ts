@@ -69,5 +69,73 @@ var VKey = {
       && (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
           ? code ? code === "BracketLeft" : this.char_(event) === "["
           : event.code === "BracketLeft");
-  }
+  },
+  /** event section */
+  Stop_ (this: void, event: Pick<Event, "stopImmediatePropagation">): void { event.stopImmediatePropagation(); },
+  prevent_ (this: object, event: Pick<Event, "preventDefault" | "stopImmediatePropagation">): void {
+    event.preventDefault(); (this as typeof VKey).Stop_(event);
+  },
+  SuppressAll_ (this: void, target: EventTarget, eventType: string, disable?: boolean): void {
+    (disable ? removeEventListener : addEventListener).call(target, eventType, VKey.Stop_,
+      {passive: true, capture: true} as EventListenerOptions | boolean as boolean);
+  },
+  SuppressMost_ (this: object, event: KeyboardEvent): HandlerResult {
+    VKey.isEscape_(event) && VKey.removeHandler_(this);
+    const key = event.keyCode;
+    return key > VKeyCodes.f10 && key < VKeyCodes.f13 || key === VKeyCodes.f5 ?
+      HandlerResult.Suppress : HandlerResult.Prevent;
+  },
+  /** if not timeout, then only suppress repeated keys */
+  suppressTail_ (timeout: number): void {
+    let func: HandlerNS.Handler<object>, tick: number, timer: number;
+    if (!timeout) {
+      func = function (event) {
+        if (event.repeat) { return HandlerResult.Prevent; }
+        VKey.removeHandler_(this);
+        return HandlerResult.Nothing;
+      };
+    } else {
+      func = function () { tick = Date.now(); return HandlerResult.Prevent; };
+      tick = Date.now() + timeout;
+      timer = setInterval(function (info?: TimerType.fake) { // safe-interval
+        const delta = Date.now() - tick; // Note: performance.now() may has a worse resolution
+        if (delta > GlobalConsts.TimeOfSuppressingTailKeydowns || delta < -99
+           || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
+              && info) {
+          clearInterval(timer);
+          VKey && VKey.removeHandler_(func); // safe enough even if reloaded
+        }
+      }, (GlobalConsts.TimeOfSuppressingTailKeydowns * 0.36) | 0);
+    }
+    this.pushHandler_(func, func);
+  },
+  /** handler section */
+  _handlers: [] as Array<{ func_: (event: HandlerNS.Event) => HandlerResult; env_: object; }>,
+  pushHandler_<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
+    return this._handlers.push({ func_: func, env_: env });
+  },
+  bubbleEvent_ (event: HandlerNS.Event): HandlerResult {
+    for (let ref = this._handlers, i = ref.length; 0 <= --i; ) {
+      const item = ref[i],
+      result = item.func_.call(item.env_, event);
+      if (result !== HandlerResult.Nothing) {
+        return result;
+      }
+    }
+    return HandlerResult.Default;
+  },
+  removeHandler_ (env: object): void {
+    for (let ref = this._handlers, i = ref.length; 0 <= --i; ) {
+      if (ref[i].env_ === env) {
+        i === ref.length - 1 ? ref.length-- : ref.splice(i, 1);
+        break;
+      }
+    }
+  },
+  /** misc section */
+  safer_: (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
+      && !Object.setPrototypeOf ? function <T extends object> (obj: T): T & SafeObject {
+        (obj as any).__proto__ = null; return obj as T & SafeObject; }
+      : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null)
+    ) as (<T extends object> (opt: T) => T & SafeObject)
 };

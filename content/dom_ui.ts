@@ -22,7 +22,7 @@ VDom.UI = {
       if (!VDom) { removeEventListener("load", Onload, true); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement;
       if (t.parentNode === VDom.UI.UI) {
-        VLib.Stop_(e); t.onload && t.onload(e);
+        VKey.Stop_(e); t.onload && t.onload(e);
       }
     }, true);
     a.add_ = (function<T2 extends HTMLElement> (this: DomUI, element2: T2, adjust2?: AdjustType
@@ -296,7 +296,7 @@ VDom.UI = {
     if (element !== VEvent.lock_()) { return; }
     // then `element` is always safe
     this._moveSel_need_safe(element as LockableElement, action);
-    if (suppressRepeated === true) { return this.suppressTail_(1); }
+    if (suppressRepeated === true) { VKey.suppressTail_(0); }
   },
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
   _moveSel_need_safe (element, action): void {
@@ -370,36 +370,7 @@ VDom.UI = {
       a._lastFlash === flashEl && (a._lastFlash = null);
       flashEl.remove();
     }, lifeTime || GlobalConsts.DefaultRectFlashTime);
-  } as DomUI["flash_"],
-  suppressTail_ (this: void, onlyRepeated: BOOL): void {
-    let func: HandlerNS.Handler<{}>, tick: number, timer: number;
-    if (onlyRepeated) {
-      func = function (event) {
-        if (event.repeat) { return HandlerResult.Prevent; }
-        VLib.remove_(this);
-        return HandlerResult.Nothing;
-      };
-    } else {
-      func = function () { tick = Date.now(); return HandlerResult.Prevent; };
-      tick = Date.now() + VDom.cache_.keyboard[0];
-      timer = setInterval(function (info?: TimerType.fake) { // safe-interval
-        const delta = Date.now() - tick; // Note: performance.now() may has a worse resolution
-        if (delta > GlobalConsts.TimeOfSuppressingTailKeydowns || delta < -99
-           || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
-              && info) {
-          clearInterval(timer);
-          VLib && VLib.remove_(func); // safe enough even if reloaded
-        }
-      }, (GlobalConsts.TimeOfSuppressingTailKeydowns * 0.36) | 0);
-    }
-    VLib.push_(func, func);
-  },
-  SuppressMost_ (event) {
-    VKey.isEscape_(event) && VLib.remove_(this);
-    const key = event.keyCode;
-    return key > VKeyCodes.f10 && key < VKeyCodes.minNotFn || key === VKeyCodes.f5 ?
-      HandlerResult.Suppress : HandlerResult.Prevent;
-  }
+  } as DomUI["flash_"]
 };
 if (!Build.NDEBUG) {
   VDom.UI.flashTime = GlobalConsts.DefaultRectFlashTime;

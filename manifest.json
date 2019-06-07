@@ -41,7 +41,6 @@
   "content_scripts": [ {
     "all_frames": true,
     "js": [
-      "lib/utils.js",
       "lib/dom_utils.js",
       "lib/keyboard_utils.js",
       "content/link_hints.js",

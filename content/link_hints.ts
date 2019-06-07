@@ -98,11 +98,11 @@ var VHints = {
     if (VEvent.checkHidden_(kFgCmd.linkHints, count, options)) {
       return a.clean_();
     }
-    VLib.remove_(a);
+    VKey.removeHandler_(a);
     if (document.body === null) {
       a.clean_();
       if (!a.timer_ && VDom.OnDocLoaded_ !== VDom.execute_) {
-        VLib.push_(VDom.UI.SuppressMost_, a);
+        VKey.pushHandler_(VKey.SuppressMost_, a);
         a.timer_ = setTimeout(a.activate_.bind(a as never, count, options), 300);
         return;
       }
@@ -146,7 +146,7 @@ var VHints = {
     a.dialogMode_ && (a.box_ as HTMLDialogElement).showModal();
 
     a.isActive_ = true;
-    VLib.push_(a.onKeydown_, a);
+    VKey.pushHandler_(a.onKeydown_, a);
     VEvent.onWndBlur_(a.ResetMode_);
   },
   setModeOpt_ (count: number, options: HintsNS.Options): void {
@@ -209,7 +209,7 @@ var VHints = {
     try {
       if (frame.contentDocument && (child = frame.contentWindow as VWindow).VDom.isHTML_()) {
         if (cmd === kFgCmd.linkHints) {
-          (done = child.VHints.isActive_) && child.VHints.deactivate_(1);
+          (done = child.VHints.isActive_) && child.VHints.deactivate_(0);
         }
         err = (events = child.VEvent).keydownEvents_(VEvent);
       }
@@ -420,7 +420,7 @@ var VHints = {
   GetLinks_ (this: Hint[], element: Element): void {
     let a: string | null, arr: Rect | null;
     if (VDom.htmlTag_(element) === "a" && ((a = element.getAttribute("href")) && a !== "#"
-        && !VLib.jsRe_.test(a)
+        && !VHints.jsRe_.test(a)
         || (element as HTMLAnchorElement).dataset.vimUrl != null)) {
       if (arr = VDom.getVisibleClientRect_(element)) {
         this.push([element as HTMLAnchorElement, arr, ClickType.click]);
@@ -456,7 +456,7 @@ var VHints = {
       return;
     }
     let str = (element as SafeHTMLElement).dataset.src || element.getAttribute("href"), cr: Rect | null;
-    if (!VLib.isImageUrl_(str)) {
+    if (!VHints.isImageUrl_(str)) {
       str = (element as SafeHTMLElement).style.backgroundImage as string;
       // skip "data:" URLs, becase they are not likely to be big images
       str = (str.startsWith("url") || str.startsWith("URL")) && str.lastIndexOf("data:", 9) < 0 ? str : "";
@@ -776,7 +776,7 @@ var VHints = {
     } else if (linksMatched.length === 0) {
       a.deactivate_(a.keyStatus_.known_);
     } else if (linksMatched.length === 1) {
-      VLib.prevent_(event);
+      VKey.prevent_(event);
       /** safer; necessary for {@link #VHints.highlightChild_} */
       VEvent.keydownEvents_()[i] = 1;
       a.execute_(linksMatched[0]);
@@ -846,7 +846,7 @@ var VHints = {
     a.pTimer_ = -(VHud.text_ !== str);
     if (!(a.mode_ & HintMode.queue)) {
       a._setupCheck(clickEl, null);
-      return a.deactivate_(1);
+      return a.deactivate_(0);
     }
     a.isActive_ = false;
     a._setupCheck();
@@ -901,7 +901,7 @@ var VHints = {
     ks.tab_ = ks.newHintLength_ = ks.known_ = alpha.countMax_ = 0;
     alpha.hintKeystroke_ = alpha.chars_ = "";
     a.isActive_ = a.noHUD_ = a.tooHigh_ = false;
-    VLib.remove_(a);
+    VKey.removeHandler_(a);
     VEvent.onWndBlur_(null);
     if (a.box_) {
       a.box_.remove();
@@ -909,10 +909,10 @@ var VHints = {
     }
     keepHUD || VHud.hide_();
   },
-  deactivate_ (onlySuppressRepeated: BOOL): void {
+  deactivate_ (isLastKeyKnown: BOOL): void {
     this.clean_(this.pTimer_ < 0);
     (<RegExpOne> /0?/).test("");
-    return VDom.UI.suppressTail_(onlySuppressRepeated);
+    VKey.suppressTail_(isLastKeyKnown ? 0 : VDom.cache_.keyboard[0]);
   },
   rotateHints_ (reverse?: boolean): void {
     const a = this;
@@ -1078,6 +1078,21 @@ alphabetHints_: {
   }
 },
 
+decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => string): string {
+  try { url = (decode || decodeURI)(url); } catch {}
+  return url;
+},
+jsRe_: <RegExpI & RegExpOne> /^javascript:/i,
+_imageUrlRe: <RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|png|svg|tiff?|webp)\b/i,
+isImageUrl_ (str: string | null): boolean {
+  if (!str || str[0] === "#" || str.length < 5 || str.startsWith("data:") || this.jsRe_.test(str)) {
+    return false;
+  }
+  const end = str.lastIndexOf("#") + 1 || str.length;
+  // tslint:disable-next-line: ban-types
+  str = (str as EnsureNonNull<String>).substring(str.lastIndexOf("/", str.lastIndexOf("?") + 1 || end), end);
+  return this._imageUrlRe.test(str);
+},
 getUrlData_ (link: HTMLAnchorElement): string {
   const str = link.dataset.vimUrl;
   if (str) {
@@ -1094,7 +1109,7 @@ _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
     text = img.currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
   } else {
     text = VDom.hasTag_need_safe_(img, "a") ? img.getAttribute("href") && img.href : "";
-    if (!VLib.isImageUrl_(text)) {
+    if (!this.isImageUrl_(text)) {
       let arr = (<RegExpI> /^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(img.style.backgroundImage as string);
       if (arr && arr[1]) {
         const a1 = document.createElement("a");
@@ -1103,7 +1118,7 @@ _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
       }
     }
   }
-  if (!text || forShow && text.startsWith("data:") || VLib.jsRe_.test(text)
+  if (!text || forShow && text.startsWith("data:") || this.jsRe_.test(text)
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
@@ -1168,7 +1183,7 @@ Modes_: [
     }
     const toggleMap = a.options_.toggle;
     if (!toggleMap || typeof toggleMap !== "object") { return; }
-    VLib.safer_(toggleMap);
+    VKey.safer_(toggleMap);
     let ancestors: Element[] = [], topest: Element | null = element, re = <RegExpOne> /^-?\d+/;
     for (let key in toggleMap) {
       // if no Element::closest, go up by 6 levels and then query the selector
@@ -1284,7 +1299,7 @@ Modes_: [
     }
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
-    str = isUrl ? VLib.decodeURL_(str) : str;
+    str = isUrl ? a.decodeURL_(str) : str;
     VPort.post_({
       H: kFgReq.copy,
       d: str

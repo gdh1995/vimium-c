@@ -105,7 +105,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       InsertMode.lock_ = null;
     }
     let keyChar: string, key = event.keyCode, action: HandlerResult;
-    if (action = VLib.bubbleEvent_(event)) { /* empty */ }
+    if (action = VKey.bubbleEvent_(event)) { /* empty */ }
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
       if (g ? !g.code ? VKey.isEscape_(event) : key === g.code && VKey.getKeyStat_(event) === g.stat
@@ -138,9 +138,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     if (action < HandlerResult.MinStopOrPreventEvents) { return; }
     if (action > HandlerResult.MaxNotPrevent) {
-      VLib.prevent_(event);
+      VKey.prevent_(event);
     } else {
-      VLib.Stop_(event);
+      VKey.Stop_(event);
     }
     KeydownEvents[key] = 1;
   }
@@ -155,7 +155,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     if (KeydownEvents[event.keyCode]) {
       KeydownEvents[event.keyCode] = 0;
-      VLib.prevent_(event);
+      VKey.prevent_(event);
     } else if (onKeyup2) {
       onKeyup2(event);
     }
@@ -183,7 +183,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
      */
     const lock = InsertMode.lock_;
     if (lock !== null && lock === document.activeElement) { return; }
-    if (target === VDom.UI.box_) { return VLib.Stop_(event); }
+    if (target === VDom.UI.box_) { return VKey.Stop_(event); }
     const sr = VDom.GetShadowRoot_(target as Element);
     if (sr) {
       let path = event.path, top: EventTarget | undefined,
@@ -352,7 +352,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
     /* kFgCmd.toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
       const key = options.key, backupKey = "_" + key as string as typeof key,
-      cache = VLib.safer_(VDom.cache_), cur = cache[key];
+      cache = VKey.safer_(VDom.cache_), cur = cache[key];
       let val = options.value, u: undefined;
       if (typeof cur === "boolean") {
         val === null && (val = !cur);
@@ -399,7 +399,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return;
       }
       const keys = safer<BOOL>(null);
-      VLib.push_(function (event) {
+      VKey.pushHandler_(function (event) {
         keyCount += +!keys[event.keyCode];
         keys[event.keyCode] = 1;
         return HandlerResult.PassKey;
@@ -414,7 +414,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       };
       exitPassMode = function (): void {
         exitPassMode = onKeyup2 = null;
-        VLib.remove_(keys);
+        VKey.removeHandler_(keys);
         HUD.hide_();
       };
       onKeyup2({keyCode: VKeyCodes.None});
@@ -469,7 +469,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let str = VDom.UI.getSelectionText_(1);
       if (!str) {
         str = options.url ? location.href : document.title;
-        (options.decoded || options.decode) && (str = VLib.decodeURL_(str));
+        (options.decoded || options.decode) && (str = VHints.decodeURL_(str));
         if (str.endsWith(" ") && options.url) {
           str = str.slice(0, -1) + "%20";
         }
@@ -541,13 +541,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       // although old elements can not be GC-ed before this line, it has little influence
       InsertMode.exitInputHint_();
       InsertMode.inputHint_ = { box, hints };
-      VLib.push_(function (event) {
+      VKey.pushHandler_(function (event) {
         const { keyCode } = event;
         if (keyCode === VKeyCodes.tab) {
           const hints2 = this.hints, oldSel = sel, len = hints2.length;
           sel = (oldSel + (event.shiftKey ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
-          VLib.prevent_(event); // in case that selecting is too slow
+          VKey.prevent_(event); // in case that selecting is too slow
           VDom.UI.simulateSelect_(hints2[sel].target_, null, false, action);
           hints2[oldSel].marker_.className = "IH";
           hints2[sel].marker_.className = "IH IHS";
@@ -602,12 +602,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           InsertMode.grabBackFocus_ = function (event: Event, target: LockableElement): void {
             const activeEl1 = document.activeElement;
             if (activeEl1 === target || activeEl1 && VDom.GetShadowRoot_(activeEl1)) {
-              VLib.Stop_(event);
+              VKey.Stop_(event);
               prompt();
               target.blur();
             }
           };
-          VLib.push_(InsertMode.ExitGrab_, InsertMode);
+          VKey.pushHandler_(InsertMode.ExitGrab_, InsertMode);
           addEventListener("mousedown", InsertMode.ExitGrab_, true);
           return;
         }
@@ -622,7 +622,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (!InsertMode.grabBackFocus_) { return /* safer */ HandlerResult.Nothing; }
       InsertMode.grabBackFocus_ = false;
       removeEventListener("mousedown", InsertMode.ExitGrab_, true);
-      VLib.remove_(InsertMode);
+      VKey.removeHandler_(InsertMode);
       // it's acceptable to not set the userActed flag if there's only the top frame;
       // when an iframe gets clicked, the events are mousedown and then focus, so SafePost_ is needed
       !(event instanceof Event) || !frames.length && isTop ||
@@ -649,15 +649,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     },
     /** @param key should not be `VKeyCodes.None` */
-    focusUpper_ (this: void, key: VKeyCodes, force: boolean, event: Parameters<typeof VLib.prevent_>[0]
+    focusUpper_ (this: void, key: VKeyCodes, force: boolean, event: Parameters<typeof VKey.prevent_>[0]
         ): void {
       if (!parentFrame_ && (!force || isTop)) { return; }
-      VLib.prevent_(event); // safer
+      VKey.prevent_(event); // safer
       if (parentFrame_) {
         KeydownEvents[key] = 1;
         const parent1 = parent as Window, a1 = parent1 && (parent1 as Window & { VEvent: VEventModeTy }).VEvent;
         if (a1 && !a1.keydownEvents_(events)) {
-          (parent1 as Window & { VDom: typeof VDom }).VDom.UI.suppressTail_(1);
+          (parent1 as Window & { VKey: typeof VKey }).VKey.suppressTail_(0);
           a1.focusAndRun_(0, 0 as never, 0 as never, 1);
         } else {
           parent1.focus();
@@ -688,7 +688,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (!hint) { return; }
       InsertMode.inputHint_ = null;
       hint.box.remove();
-      VLib.remove_(hint);
+      VKey.removeHandler_(hint);
     }
   },
 
@@ -1032,12 +1032,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kBgReq.eval: */ function (options: BgReq[kBgReq.eval]): void { VPort.evalIfOK_(options.u); },
     /* kBgReq.settingsUpdate: */function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
       type Keys = keyof SettingsNS.FrontendSettings;
-      VLib.safer_(delta);
+      VKey.safer_(delta);
       const cache = VDom.cache_, deepHints = delta.deepHints;
       for (const i in delta) {
         (cache as Generalized<typeof cache>)[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
         const i2 = "_" + i as Keys;
-        (i2 in cache) && (VLib.safer_(cache)[i2] = undefined as never);
+        (i2 in cache) && (VKey.safer_(cache)[i2] = undefined as never);
       }
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 &&
       deepHints != null && VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
@@ -1048,7 +1048,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kBgReq.keyMap: */ function (request: BgReq[kBgReq.keyMap]): void {
       const map = keyMap = request.k, func = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
         && Build.BTypes & BrowserType.Chrome && browserVer < BrowserVer.Min$Object$$setPrototypeOf
-        ? VLib.safer_ : Object.setPrototypeOf;
+        ? VKey.safer_ : Object.setPrototypeOf;
       func(map, null);
       function iter(obj: ReadonlyChildKeyMap): void {
         func(obj, null);
@@ -1074,7 +1074,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         [key in Keys]: <T2 extends Keys>(this: void, count: number, options: CmdOptions[T2]) => void;
       };
       (Commands as TypeToCheck as TypeChecked)[request.c](request.n
-        , (options ? VLib.safer_(options) : safer(null)) as CmdOptions[O]);
+        , (options ? VKey.safer_(options) : safer(null)) as CmdOptions[O]);
     },
     /* kBgReq.createMark: */ function (request: BgReq[kBgReq.createMark]): void { VMarks.createMark_(request.n); },
     /* kBgReq.showHUD: */ function (req: Req.bg<kBgReq.showHUD>): void {
@@ -1098,7 +1098,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
     if (CSS) { VDom.UI.css_(CSS); }
-    const oldShowHelp = Commands[kFgCmd.showHelp], suppress = VLib.suppressAll_;
+    const oldShowHelp = Commands[kFgCmd.showHelp], suppress = VKey.SuppressAll_;
     oldShowHelp("e");
     if (!VDom.isHTML_()) { return; }
     if (oldShowHelp !== Commands[kFgCmd.showHelp]) { return; } // an old dialog exits
@@ -1116,7 +1116,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       box.innerHTML = html as string;
       box = box.firstChild as SafeHTMLElement;
     }
-    box.onclick = VLib.Stop_;
+    box.onclick = VKey.Stop_;
     suppress(box, "mousedown");
     suppress(box, "mouseup");
     // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
@@ -1136,13 +1136,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     advCmd = box.querySelector("#AdvancedCommands") as HTMLElement,
     hide: (this: void, e?: Event | number | "e") => void = function (event): void {
       if (event instanceof Event) {
-        VLib.prevent_(event);
+        VKey.prevent_(event);
       }
       optLink.onclick = closeBtn.onclick = null as never;
       let i = VDom.lastHovered_;
       i && box.contains(i) && (VDom.lastHovered_ = null);
       (i = VScroller.current_) && box.contains(i) && (VScroller.current_ = null);
-      VLib.remove_(box);
+      VKey.removeHandler_(box);
       box.remove();
       Commands[kFgCmd.showHelp] = oldShowHelp;
     };
@@ -1161,7 +1161,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       box.classList.toggle("HelpAdvanced");
     }
     advCmd.onclick = function (event) {
-      VLib.prevent_(event);
+      VKey.prevent_(event);
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
       post({
@@ -1180,7 +1180,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       : Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
       ? VDom.scrollIntoView_(box) : VFind.fixTabNav_(box);
     VScroller.current_ = box;
-    VLib.push_(function (event) {
+    VKey.pushHandler_(function (event) {
       if (!InsertMode.lock_ && VKey.isEscape_(event)) {
         VDom.UI.removeSelection_(VDom.UI.UI) || hide();
         return HandlerResult.Prevent;
@@ -1188,8 +1188,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       return HandlerResult.Nothing;
     }, box);
     if (VOmni.status_ >= VomnibarNS.Status.Showing) {
-      VLib.remove_(VOmni);
-      VLib.push_(VOmni.onKeydown_, VOmni);
+      VKey.removeHandler_(VOmni);
+      VKey.pushHandler_(VOmni.onKeydown_, VOmni);
     }
     setTimeout((): void => box.focus(), 17); // since MinElement$Focus$MayMakeArrowKeySelectIt; also work on Firefox
   }
@@ -1209,10 +1209,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     events.execute_ && events.execute_(kContentCmd.Destroy);
     ui.box_ && ui.adjust_(2);
 
-    VLib = VKey = VDom = VDom = VLib =
-    VHints = VOmni = VScroller = VMarks = VFind =
-    VHud = VPort = VEvent = VVisual =
-    esc = null as never;
+    VDom = VKey = VHints = VScroller = VOmni = VFind = VVisual = VMarks =
+    VHud = VPort = VEvent = esc = null as never;
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
       , "color:red", "color:auto"
@@ -1298,7 +1296,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       const work = keyCode > VKeyCodes.maxNotLeft ? 1 : keyCode > VKeyCodes.maxNotEnd ? 2
         : !(event.ctrlKey || event.metaKey) ? 3 : 0,
       Sc = VScroller;
-      work && event instanceof Event && VLib.prevent_(event as Event);
+      work && event instanceof Event && VKey.prevent_(event as Event);
       if (work === 1) {
         Sc.scroll_((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);
       } else if (work === 2) {
@@ -1310,7 +1308,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     OnScrolls_: [function (event): boolean {
       let repeat = Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
           && Build.BTypes & BrowserType.Chrome ? !!event.repeat : event.repeat;
-      repeat && VLib.prevent_(event);
+      repeat && VKey.prevent_(event);
       VScroller.scrollTick_(repeat);
       return repeat;
     }, function (this: VEventModeTy["OnScrolls_"], wnd, isAdd): void {
@@ -1322,7 +1320,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !event.isTrusted : event.isTrusted === false) {
         if (event.type !== "blur") {
-          VLib.prevent_(event);
+          VKey.prevent_(event);
         } else if (event.target !== this) {
           return;
         }
@@ -1409,17 +1407,17 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         , callback: (this: void, res: FgRes[K]) => void): void {
       let id = ++vPort._id;
       (vPort._port as Port).postMessage({ H: kFgReq.msg, i: id, c: cmd, a: args });
-      vPort._callbacks[id] = callback as <K extends keyof FgRes>(this: void, res: FgRes[K]) => void;
+      vPort._callbacks[id] = callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void;
     },
     evalIfOK_ (url: string): boolean {
-      if (!VLib.jsRe_.test(url)) {
+      if (!VHints.jsRe_.test(url)) {
         return false;
       }
       url = url.slice(11).trim();
       if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
       else if (VDom.allowScripts_) {
         setTimeout(function (): void {
-          VDom.runJS_(VLib.decodeURL_(url, decodeURIComponent));
+          VDom.runJS_(VHints.decodeURL_(url, decodeURIComponent));
         }, 0);
       } else {
         HUD.tip_("Here's not allowed to eval scripts");

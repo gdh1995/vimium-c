@@ -27,60 +27,6 @@ var VDom = {
       (<RegExpI> /\b(device-width|initial-scale)\b/i).test(
           (viewport as HTMLMetaElement).content as string | undefined as /* safe even if undefined */ string);
   } : 0 as never,
-  createElement_: function<K extends VimiumContainerElementType> (this: {},
-      tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement | Element {
-    const d = document, node = document.createElement(tagName);
-    (this as typeof VDom).createElement_ = "lang" in <ElementToHTML> node
-      ? d.createElement.bind(d) as typeof VDom.createElement_
-      : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", [VimiumContainerElementType]
-        , HTMLElement>(d, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
-    return node;
-  } as {
-    // tslint:disable-next-line: callable-types
-    <K extends VimiumContainerElementType> (this: {}, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
-  },
-  createShadowRoot_<T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T {
-    return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || box.attachShadow
-      ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
-      : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-            || box.createShadowRoot)
-      ? (box as Ensure<typeof box, "createShadowRoot">).createShadowRoot()
-      : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer > BrowserVer.MinShadowDOMV0
-            || box.webkitCreateShadowRoot)
-      ? (box as Ensure<typeof box, "webkitCreateShadowRoot">).webkitCreateShadowRoot() : box;
-  },
-  execute_ (callback: (this: void) => void): void { callback(); },
-  /** Note:
-   * won't call functions if Vimium is destroyed;
-   *
-   * should not be called before the one in {@link ../content/extend_click.ts}
-   */
-  OnDocLoaded_ (callback: (this: void) => void): void {
-    const a = this, call = a.execute_;
-    if (document.readyState !== "loading") {
-      a.OnDocLoaded_ = call;
-      return callback();
-    }
-    let listeners = [callback], eventName = "DOMContentLoaded";
-    function eventHandler(): void {
-      // not need to check event.isTrusted
-      removeEventListener(eventName, eventHandler, true);
-      if (VDom === a) { // check `a` for safety even if reloaded
-        VDom.OnDocLoaded_ = call;
-        listeners.forEach(call);
-      }
-      listeners = null as never;
-    }
-    a.OnDocLoaded_ = function (callback1): void {
-      listeners.push(callback1);
-    };
-    addEventListener(eventName, eventHandler, true);
-  },
   /** refer to {@link #BrowserVer.MinParentNodeInNodePrototype } */
   Getter_: Build.BTypes & ~BrowserType.Firefox ? function <Ty extends Node, Key extends keyof Ty
             , ensured extends boolean = false>(this: void
@@ -477,28 +423,6 @@ var VDom = {
     iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0;
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0];
   },
-  scrollIntoView_ (el: Element, dir?: boolean): void {
-    !(Build.BTypes & ~BrowserType.Firefox) ? el.scrollIntoView({ block: "nearest" })
-      : Element.prototype.scrollIntoView.call(el,
-          Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome &&
-          dir != null ? dir : { block: "nearest" });
-  },
-  view_ (el: Element, oldY?: number): boolean {
-    const rect = this.getBoundingClientRect_(el),
-    ty = this.NotVisible_(null, rect);
-    if (ty === VisibilityType.OutOfView) {
-      const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
-      Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome
-      ? this.scrollIntoView_(el, delta < 0) : this.scrollIntoView_(el);
-      (delta || f) && this.scrollWndBy_(0, f ? (oldY as number) - scrollY : delta * ih / 5);
-    }
-    return ty === VisibilityType.Visible;
-  },
-  scrollWndBy_ (left: number, top: number): void {
-    !(Build.BTypes & ~BrowserType.Firefox) ||
-    !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
-    Element.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
-  },
   NotVisible_: function (this: void, element: Element | null, rect?: ClientRect): VisibilityType {
     if (!rect) {
       rect = VDom.getBoundingClientRect_(element as Element);
@@ -653,10 +577,61 @@ var VDom = {
         || (/* el is not Element */ el && el.parentElement as Element | null)
       , PNType.DirectElement);
   },
-  center_ (rect?: Rect | null): Point2D {
-    let zoom = Build.BTypes & ~BrowserType.Firefox ? this.dbZoom_ / 2 : 0.5;
-    rect = rect && this.cropRectToVisible_.apply(this, rect as [number, number, number, number]) || rect;
-    return rect ? [((rect[0] + rect[2]) * zoom) | 0, ((rect[1] + rect[3]) * zoom) | 0] : [0, 0];
+
+  /** action section */
+  createElement_: function<K extends VimiumContainerElementType> (this: {},
+      tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement | Element {
+    const d = document, node = document.createElement(tagName);
+    (this as typeof VDom).createElement_ = "lang" in <ElementToHTML> node
+      ? d.createElement.bind(d) as typeof VDom.createElement_
+      : d.createElementNS.bind<Document, "http://www.w3.org/1999/xhtml", [VimiumContainerElementType]
+        , HTMLElement>(d, "http://www.w3.org/1999/xhtml") as typeof VDom.createElement_;
+    return node;
+  } as {
+    // tslint:disable-next-line: callable-types
+    <K extends VimiumContainerElementType> (this: {}, tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement;
+  },
+  createShadowRoot_<T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T {
+    return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        || box.attachShadow
+      ? (box as Ensure<typeof box, "attachShadow">).attachShadow({mode: "closed"})
+      : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredShadowDOMV1
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+            || box.createShadowRoot)
+      ? (box as Ensure<typeof box, "createShadowRoot">).createShadowRoot()
+      : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer > BrowserVer.MinShadowDOMV0
+            || box.webkitCreateShadowRoot)
+      ? (box as Ensure<typeof box, "webkitCreateShadowRoot">).webkitCreateShadowRoot() : box;
+  },
+  execute_ (callback: (this: void) => void): void { callback(); },
+  /** Note:
+   * won't call functions if Vimium is destroyed;
+   *
+   * should not be called before the one in {@link ../content/extend_click.ts}
+   */
+  OnDocLoaded_ (callback: (this: void) => void): void {
+    const a = this, call = a.execute_, kEventName = "DOMContentLoaded";
+    if (document.readyState !== "loading") {
+      a.OnDocLoaded_ = call;
+      return callback();
+    }
+    let listeners = [callback];
+    function eventHandler(): void {
+      // not need to check event.isTrusted
+      removeEventListener(kEventName, eventHandler, true);
+      if (VDom === a) { // check `a` for safety even if reloaded
+        VDom.OnDocLoaded_ = call;
+        listeners.forEach(call);
+      }
+      listeners = null as never;
+    }
+    a.OnDocLoaded_ = function (callback1): void {
+      listeners.push(callback1);
+    };
+    addEventListener(kEventName, eventHandler, true);
   },
   mouse_: function (this: {}, element: Element
       , type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseenter" | "mouseout" | "mouseleave"
@@ -725,6 +700,28 @@ var VDom = {
     document.dispatchEvent.call(element, touchEvent);
     return newId;
   } : 0 as never,
+  scrollIntoView_ (el: Element, dir?: boolean): void {
+    !(Build.BTypes & ~BrowserType.Firefox) ? el.scrollIntoView({ block: "nearest" })
+      : Element.prototype.scrollIntoView.call(el,
+          Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome &&
+          dir != null ? dir : { block: "nearest" });
+  },
+  view_ (el: Element, oldY?: number): boolean {
+    const rect = this.getBoundingClientRect_(el),
+    ty = this.NotVisible_(null, rect);
+    if (ty === VisibilityType.OutOfView) {
+      const t = rect.top, ih = innerHeight, delta = t < 0 ? -1 : t > ih ? 1 : 0, f = oldY != null;
+      Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && Build.BTypes & BrowserType.Chrome
+      ? this.scrollIntoView_(el, delta < 0) : this.scrollIntoView_(el);
+      (delta || f) && this.scrollWndBy_(0, f ? (oldY as number) - scrollY : delta * ih / 5);
+    }
+    return ty === VisibilityType.Visible;
+  },
+  scrollWndBy_ (left: number, top: number): void {
+    !(Build.BTypes & ~BrowserType.Firefox) ||
+    !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
+    Element.prototype.scrollBy ? scrollBy({behavior: "instant", left, top}) : scrollBy(left, top);
+  },
   runJS_ (code: string): void {
     const script = VDom.createElement_("script"), doc = document, docEl = doc.documentElement;
     script.type = "text/javascript";
@@ -735,6 +732,13 @@ var VDom = {
       (docEl || doc).appendChild(script);
     }
     script.remove();
+  },
+
+  /** rect section */
+  center_ (rect?: Rect | null): Point2D {
+    let zoom = Build.BTypes & ~BrowserType.Firefox ? this.dbZoom_ / 2 : 0.5;
+    rect = rect && this.cropRectToVisible_.apply(this, rect as [number, number, number, number]) || rect;
+    return rect ? [((rect[0] + rect[2]) * zoom) | 0, ((rect[1] + rect[3]) * zoom) | 0] : [0, 0];
   },
   isContaining_ (a: Rect, b: Rect): boolean {
     return a[3] >= b[3] && a[2] >= b[2] && a[1] <= b[1] && a[0] <= b[0];
