@@ -8,6 +8,11 @@ var newer = require('gulp-newer');
 var gulpPrint = require('gulp-print');
 var gulpSome = require('gulp-some');
 var osPath = require('path');
+var {
+  getGitCommit, extendIf, readJSON, readFile,
+  touchFileIfNeeded,
+  loadUglifyConfig: _loadUglifyConfig
+} = require("./scripts/dependencies");
 
 class BrowserType {}
 Object.assign(BrowserType, {
@@ -528,7 +533,7 @@ function makeTasks() {
 
 function tsProject() {
   loadTypeScriptCompiler();
-  removeUnknownOptions();
+  removeSomeTypeScriptOptions();
   return disableErrors ? ts(compilerOptions, ts.reporter.nullReporter()) : ts(compilerOptions);
 }
 
@@ -790,98 +795,19 @@ function compareContentAndTouch(stream, sourceFile, targetPath) {
   ).then(function() {
     sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
     if (!isSame) { return; }
-    var fd = fs.openSync(targetPath, "a"), len1 = targetPath.length, fd2 = null;
-    try {
-      var s = s = fs.fstatSync(fd);
-      if (s.mtime != null && len1 > 3 && targetPath.indexOf(".js", len1 - 3) > 0) {
-        var src = (sourceFile.history && sourceFile.history[0] || targetPath).slice(0, -3) + ".ts";
-        if (fs.existsSync(src)) {
-          var mtime = fs.fstatSync(fd2 = fs.openSync(src, "r")).mtime;
-          if (mtime != null && mtime < s.mtime) {
-            return;
-          }
-        }
-      }
-      fs.futimesSync(fd, parseInt(s.atime.getTime() / 1000, 10), parseInt(Date.now() / 1000, 10));
+    var sourcePath = sourceFile.history && sourceFile.history[0] || targetPath;
+    if (targetPath.slice(-3) === ".js") {
+      let sourcePath2 = sourcePath.slice(-3) === ".js" ? sourcePath.slice(0, -3) + ".ts" : sourcePath;
+      if (fs.existsSync(sourcePath2)) { sourcePath = sourcePath2; }
+    }
+    if (touchFileIfNeeded(targetPath, sourcePath)) {
       var fileName = sourceFile.relative;
       print("Touch an unchanged file:", fileName.indexOf(":\\") > 0 ? fileName : fileName.replace(/\\/g, "/"));
-    } finally {
-      fs.closeSync(fd);
-      if (fd2 != null) {
-        fs.closeSync(fd2);
-      }
     }
   }).catch(function(e) {
     sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
     throw e;
   });
-}
-
-function readFile(fileName, info) {
-  info == null && (info = {});
-  var buffer = fs.readFileSync(fileName);
-  var len = buffer.length;
-  if (len >= 2 && buffer[0] === 0xFE && buffer[1] === 0xFF) {
-      // Big endian UTF-16 byte order mark detected. Since big endian is not supported by node.js,
-      // flip all byte pairs and treat as little endian.
-      len &= ~1;
-      for (var i = 0; i < len; i += 2) {
-          const temp = buffer[i];
-          buffer[i] = buffer[i + 1];
-          buffer[i + 1] = temp;
-      }
-      info.bom = "\uFFFE";
-      return buffer.toString("utf16le", 2);
-  }
-  if (len >= 2 && buffer[0] === 0xFF && buffer[1] === 0xFE) {
-      // Little endian UTF-16 byte order mark detected
-      info.bom = "\uFEFF";
-      return buffer.toString("utf16le", 2);
-  }
-  if (len >= 3 && buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
-      // UTF-8 byte order mark detected
-      info.bom = "\uFEFF";
-      return buffer.toString("utf8", 3);
-  }
-  info.bom = "";
-  // Default is UTF-8 with no byte order mark
-  return buffer.toString("utf8");
-}
-
-function _makeJSONReader() {
-  var stringOrComment = /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*[^]*?\*\//g
-    , notLF = /[^\r\n]+/g, notWhiteSpace = /\S/;
-  function spaceN(str) {
-    return ' '.repeat(str.length);
-  }
-  function onReplace(str) {
-    switch (str[0]) {
-    case '/': case '#':
-      if (str[0] === "/*") {
-        // replace comments with whitespace to preserve original character positions
-        return str.replace(notLF, spaceN);
-      }
-      return spaceN(str);
-    case '"': case "'": // falls through
-    default:
-      return str;
-    }
-  }
-  function readJSON(fileName, throwError) {
-    var text = readFile(fileName);
-    text = text.replace(stringOrComment, onReplace);
-    try {
-      return notWhiteSpace.test(text) ? JSON.parse(text) : {};
-    } catch (e) {
-      if (throwError === true) {
-        throw e;
-      }
-      var err = "Failed to parse file '" + fileName + "': " + e + ".";
-      console.warn("%s", err);
-      return {};
-    }
-  }
-  global._readJSON = readJSON;
 }
 
 function safeJSONParse(literalVal, defaultVal) {
@@ -890,13 +816,6 @@ function safeJSONParse(literalVal, defaultVal) {
     newVal = JSON.parse(literalVal);
   } catch (e) {}
   return newVal;
-}
-
-function readJSON(fileName, throwError) {
-  if (!global._readJSON) {
-    _makeJSONReader();
-  }
-  return _readJSON(fileName, throwError);
 }
 
 function readTSConfig(tsConfigFile, throwError) {
@@ -999,7 +918,7 @@ function loadTypeScriptCompiler(path) {
   gTypescript = compilerOptions.typescript = typescript1;
 }
 
-function removeUnknownOptions() {
+function removeSomeTypeScriptOptions() {
   if (tsOptionsCleaned) { return; }
   var hasOwn = Object.prototype.hasOwnProperty, toDelete = [], key, val;
   for (var key in compilerOptions) {
@@ -1009,6 +928,11 @@ function removeUnknownOptions() {
       return i.name === key;
     });
     declared || toDelete.push(key);
+  }
+  for (const key of ["incremental", "tsBuildInfoFile"]) {
+    if (key in compilerOptions) {
+      toDelete.push(key);
+    }
   }
   for (var i = 0; i < toDelete.length; i++) {
     key = toDelete[i], val = compilerOptions[key];
@@ -1065,7 +989,7 @@ function getBuildItem(key, literalVal) {
   let cached = buildOptionCache[key];
   if (!cached) {
     if (key === "Commit") {
-      cached = [literalVal, [safeJSONParse(literalVal), getGitCommit()]];
+      cached = [literalVal, [safeJSONParse(literalVal), locally ? null : getGitCommit()]];
     } else if (key === "MayOverrideNewTab") {
       if (!manifest.chrome_url_overrides || !manifest.chrome_url_overrides.newtab) {
         cached = buildOptionCache[key] = ["0", 0];
@@ -1104,27 +1028,6 @@ function parseBuildItem(key, newVal) {
     }
   }
   return newVal;
-}
-
-function getGitCommit() {
-  if (locally) { return null; }
-  try {
-    var branch = readFile(".git/HEAD");
-    branch = branch && branch.replace("ref:", "").trim();
-    if (branch) {
-      var commit = readFile(".git/" + branch);
-      return commit ? commit.trim().slice(0, 7) : null;
-    }
-  } catch (e) {}
-  return null;
-}
-
-function extendIf(b, a) {
-  Object.setPrototypeOf(a, null);
-  for (const i in a) {
-    (i in b) || (b[i] = a[i]);
-  }
-  return b;
 }
 
 function print() {
@@ -1289,38 +1192,17 @@ function patchGulpUglify() {
 
 var _uglifyjsConfig = null;
 function loadUglifyConfig(reload) {
-  let a = _uglifyjsConfig;
-  if (a == null || reload) {
-    a = readJSON(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json");
-    if (!reload) {
-      _uglifyjsConfig = a;
-    }
-    a.output || (a.output = {});
-    var c = a.compress || (a.compress = {}); // gd = c.global_defs || (c.global_defs = {});
-    if (typeof c.keep_fnames === "string") {
-      let re = c.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
-      c.keep_fnames = new RegExp(re[1], re[2]);
-    }
+  var a = _loadUglifyConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
+  {
     if (!getNonNullBuildItem("NDEBUG")) {
       a.mangle = false;
       a.output.beautify = true;
       a.output.comments = true;
       a.output.indent_level = 2;
     }
-    var m = a.mangle, p = m && m.properties;
-    if (p && typeof p.regex === "string") {
-      let re = p.regex.match(/^\/(.*)\/([a-z]*)$/);
-      p.regex = new RegExp(re[1], re[2]);
-    }
-    if (m && typeof m.keep_fnames === "string") {
-      let re = m.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
-      m.keep_fnames = new RegExp(re[1], re[2]);
-    }
-    else if (m && !typeof m.keep_fnames) {
-      m.keep_fnames = c.keep_fnames;
-    }
     if (onlyES6) {
       a.ecma = 6;
+      var c = a.compress || (a.compress = {}); // gd = c.global_defs || (c.global_defs = {});
       c.hoist_vars = false;
     }
   }
