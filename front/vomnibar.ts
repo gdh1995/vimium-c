@@ -129,9 +129,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   isSearchOnTop_: false,
   actionType_: ReuseType.Default,
   matchType_: CompletersNS.MatchType.Default,
-  focused_: Build.BTypes & ~BrowserType.Firefox ? true : false,
+  focused_: false,
   showing_: false,
-  firstShowing_: true,
   codeFocusTime_: 0,
   codeFocusReceived_: false,
   blurWanted_: false,
@@ -171,10 +170,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   show_ (): void {
     const a = Vomnibar_;
     a.showing_ = true;
-    Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
-      && a.firstShowing_ ||
     setTimeout(a.focus_, 34);
-    a.firstShowing_ = false;
     addEventListener("wheel", a.onWheel_, a.wheelOptions_);
   },
   hide_ (fromContent?: BOOL): void {

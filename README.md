@@ -60,6 +60,9 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.75.6:
+* fix that Vomnibar can not acquire focus on the first activation on a new page since Chrome 75
+
 1.75.5:
 * support `prefers-reduced-motion` and `prefers-color-scheme` media queries
   * be able to auto disable animation and enter dark mode when some options are enabled

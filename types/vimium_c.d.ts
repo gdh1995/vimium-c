@@ -768,12 +768,13 @@ declare const enum BrowserVer {
   // re-implement extension APIs into C++ bindings: https://bugs.chromium.org/p/chromium/issues/detail?id=763564
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
   MinNoFocusOrSelectionStringOnHiddenIFrame = 74, // even if EXPERIMENTAL or LEGACY
-  // the below 2 are even if EXPERIMENTAL or LEGACY
+  // the below 3 are even if EXPERIMENTAL or LEGACY
   MinMediaQuery$PrefersReducedMotion = 74,
+  MinBlockAutoFocusingInCrossOriginFrame = 75,
   MinMediaQuery$PrefersColorScheme = 76,
   // it's said the deadline is C73 in https://www.chromestatus.com/features/4507242028072960
   // but no source code in Chromium to disable it (tested on 2019-03-13)
-  MinNoShadowDOMv0 = 77,
+  MinNoShadowDOMv0 = 80,
   // ses https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change
   // TODO: use a real version code when the bug report above is solved
   MinMediaChangeEventsOnBackgroundPage = 99,
