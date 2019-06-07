@@ -2,7 +2,7 @@ var Commands = {
   getOptions_ (item: string[], start: number): CommandsNS.Options | null {
     let opt: CommandsNS.RawOptions, i = start, len = item.length, ind: number, str: string | undefined, val: string;
     if (len <= i) { return null; }
-    opt = BgUtils_.safer_();
+    opt = BgUtils_.safeObj_();
     while (i < len) {
       str = item[i++];
       ind = str.indexOf("=");
@@ -32,7 +32,7 @@ var Commands = {
       ): CommandsNS.Item {
     let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null;
     if (!details) { details = Commands.availableCommands_[command] as CommandsNS.Description; }
-    opt = details.length < 4 ? null : Object.setPrototypeOf(details[3] as NonNullable<CommandsNS.Description[3]>, null);
+    opt = details.length < 4 ? null : BgUtils_.safer_(details[3] as NonNullable<CommandsNS.Description[3]>);
     if (options) {
       if ("count" in options) {
         options.count = details[0] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
@@ -60,10 +60,10 @@ var Commands = {
   parseKeyMappings_: (function (this: {}, line: string): void {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i: number
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
-      , registry = BgUtils_.safer_<CommandsNS.Item>()
-      , cmdMap = BgUtils_.safer_<CommandsNS.Item>() as Partial<ShortcutInfoMap>
-      , userDefinedKeys = BgUtils_.safer_<true>()
-      , mkReg = BgUtils_.safer_<string>();
+      , registry = BgUtils_.safeObj_<CommandsNS.Item>()
+      , cmdMap = BgUtils_.safeObj_<CommandsNS.Item>() as Partial<ShortcutInfoMap>
+      , userDefinedKeys = BgUtils_.safeObj_<true>()
+      , mkReg = BgUtils_.safeObj_<string>();
     const available = (this as typeof Commands).availableCommands_;
     const colorRed = "color:red";
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
@@ -100,10 +100,10 @@ var Commands = {
           continue;
         }
       } else if (key === "unmapAll" || key === "unmapall") {
-        registry = BgUtils_.safer_();
-        cmdMap = BgUtils_.safer_<CommandsNS.Item>() as Partial<ShortcutInfoMap>;
-        userDefinedKeys = BgUtils_.safer_<true>();
-        mkReg = BgUtils_.safer_<string>(), mk = 0;
+        registry = BgUtils_.safeObj_();
+        cmdMap = BgUtils_.safeObj_<CommandsNS.Item>() as Partial<ShortcutInfoMap>;
+        userDefinedKeys = BgUtils_.safeObj_<true>();
+        mkReg = BgUtils_.safeObj_<string>(), mk = 0;
         if (errors > 0) {
           console.log("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
             , errors > 1 ? "have" : "has", colorRed, errors, errors > 1 ? "s" : "", "color:auto");
@@ -159,7 +159,7 @@ var Commands = {
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
   populateCommandKeys_: (function (this: void, detectNewError: boolean): void {
-    const d = CommandsData_, ref = d.keyMap_ = BgUtils_.safer_<ValidKeyAction | ChildKeyMap>(),
+    const d = CommandsData_, ref = d.keyMap_ = BgUtils_.safeObj_<ValidKeyAction | ChildKeyMap>(),
     keyRe = BgUtils_.keyRe_,
     d2 = Settings_.temp_, oldErrors = d2.cmdErrors_;
     if (oldErrors < 0) { d2.cmdErrors_ = ~oldErrors; }
@@ -180,7 +180,7 @@ var Commands = {
         continue;
       }
       tmp != null && detectNewError && C.warnInactive_(tmp, key);
-      while (j < last) { ref2 = ref2[arr[j++]] = BgUtils_.safer_() as ChildKeyMap; }
+      while (j < last) { ref2 = ref2[arr[j++]] = BgUtils_.safeObj_() as ChildKeyMap; }
       ref2[arr[last]] = KeyAction.cmd;
     }
     if (detectNewError && d2.cmdErrors_) {
@@ -220,7 +220,7 @@ var Commands = {
       , count = message.count as number | string | undefined;
     count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
     options && typeof options === "object" ?
-        Object.setPrototypeOf(options, null) : (options = null);
+        BgUtils_.safer_(options) : (options = null);
     lastKey = 0 | <number> lastKey;
     return exec(this.makeCommand_(command, options), count, lastKey, port as Port);
   },

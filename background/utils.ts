@@ -41,7 +41,7 @@ var BgUtils_ = {
   },
   unescapeHTML_ (str: string): string {
     const escapedRe = <RegExpG & RegExpSearchable<1>> /\&(amp|gt|lt|nbsp);/g,
-    map = Object.setPrototypeOf({ amp: "&", gt: ">", lt: "<", nbsp: " " }, null) as EnsuredSafeDict<string>,
+    map = BgUtils_.safer_({ amp: "&", gt: ">", lt: "<", nbsp: " " }) as EnsuredSafeDict<string>,
     unescapeCallback = (_0: string, s: string) => map[s];
     this.unescapeHTML_ = s => s.replace(escapedRe, unescapeCallback);
     return this.unescapeHTML_(str);
@@ -78,7 +78,12 @@ var BgUtils_ = {
     , ".company.science.website"
     , ".engineer.software"
   ] as ReadonlyArray<string>,
-  safer_: (() => Object.create(null)) as { (): any; <T>(): SafeDict<T>; },
+  safeObj_: (() => Object.create(null)) as { (): any; <T>(): SafeDict<T>; },
+  safer_: (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
+      && !Object.setPrototypeOf ? function <T extends object> (obj: T): T & SafeObject {
+        (obj as any).__proto__ = null; return obj as T & SafeObject; }
+      : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null)
+    ) as (<T extends object> (opt: T) => T & SafeObject),
   domains_: Object.create<CompletersNS.Domain>(null),
   hostRe_: <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
   _ipv4Re: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,
@@ -814,11 +819,6 @@ String.prototype.endsWith = function (this: string, s: string): boolean {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 };
-if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && CurCVer_ < BrowserVer.Min$Object$$setPrototypeOf) {
-  Object.setPrototypeOf = function <T extends object> (obj: T): T & SafeObject {
-    (obj as any).__proto__ = null; return obj as T & SafeObject;
-  };
-}
 }
 if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
   window.chrome = browser as typeof chrome;

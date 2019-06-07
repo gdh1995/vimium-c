@@ -18,14 +18,14 @@ BgUtils_.timeout_(1000, function (): void {
   };
   function storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; }
   let to_update: SettingsToUpdate | null = null,
-  doNotSync: PartialTypedSafeEnum<SettingsToSync> = Object.setPrototypeOf({
+  doNotSync: PartialTypedSafeEnum<SettingsToSync> = BgUtils_.safer_({
     // Note(gdh1995): need to keep synced with pages/options_ext.ts#_importSettings
     findModeRawQueryList: 1 as 1, innerCSS: 1 as 1, keyboard: 1 as 1, newTabUrl_f: 1 as 1
     , vomnibarPage_f: 1 as 1
-  }, null);
+  });
   function HandleStorageUpdate(changes: { [key: string]: chrome.storage.StorageChange }, area: string): void {
     if (area !== "sync") { return; }
-    Object.setPrototypeOf(changes, null);
+    BgUtils_.safer_(changes);
     for (const key in changes) {
       const change = changes[key];
       storeAndPropagate(key, change != null ? change.newValue : null);
@@ -88,7 +88,7 @@ BgUtils_.timeout_(1000, function (): void {
     if (!shouldSyncKey(key)) { return; }
     if (!to_update) {
       setTimeout(DoUpdate, 800);
-      to_update = BgUtils_.safer_() as SettingsToUpdate;
+      to_update = BgUtils_.safeObj_() as SettingsToUpdate;
     }
     to_update[key] = value;
   }
@@ -141,7 +141,7 @@ BgUtils_.timeout_(1000, function (): void {
       Settings_.updateHooks_.vimSync = Settings_.sync_ = BgUtils_.blank_;
       return err;
     }
-    Object.setPrototypeOf(items, null);
+    BgUtils_.safer_(items);
     const vimSync = items.vimSync || Settings_.get_("vimSync");
     if (!vimSync) {
       return; // no settings have been modified
@@ -176,7 +176,7 @@ BgUtils_.timeout_(150, function (): void {
   let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
   let mayShowIcons = true;
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
-    let img: HTMLImageElement, cache = BgUtils_.safer_() as IconNS.IconBuffer, count = 0,
+    let img: HTMLImageElement, cache = BgUtils_.safeObj_() as IconNS.IconBuffer, count = 0,
     ctx: CanvasRenderingContext2D | null = null;
     function onerror(this: HTMLImageElement, err: Event | 1 | null): void {
       console.log("%cError:%c %s %s", "color:red", "color:auto"
@@ -215,7 +215,7 @@ BgUtils_.timeout_(150, function (): void {
         Backend_.setIcon_(arr[w], type, true);
       }
     }
-    Object.setPrototypeOf(path, null);
+    BgUtils_.safer_(path);
     for (const i in path) {
       img = new Image();
       img.onload = onload, img.onerror = onerror;
@@ -232,8 +232,8 @@ BgUtils_.timeout_(150, function (): void {
       return;
     }
     if (imageData) { return; }
-    imageData = BgUtils_.safer_();
-    tabIds = BgUtils_.safer_();
+    imageData = BgUtils_.safeObj_();
+    tabIds = BgUtils_.safeObj_();
   } as IconNS.AccessIconBuffer;
   Backend_.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
     let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
@@ -352,10 +352,10 @@ BgUtils_.timeout_(600, function (): void {
     firstType = notEmpty ? sug.type as CompletersNS.ValidTypes : "";
     matchType = newMatchType;
     if (notEmpty && (wantDeletable || "sessionId" in response[0])) {
-      subInfoMap = BgUtils_.safer_<SubInfo>();
+      subInfoMap = BgUtils_.safeObj_<SubInfo>();
     }
     suggestions = [];
-    const urlDict = BgUtils_.safer_<number>();
+    const urlDict = BgUtils_.safeObj_<number>();
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       let sugItem = response[i], { title, url, type } = sugItem, tail = "", hasSessionId = sugItem.sessionId != null
         , deletable = wantDeletable && !(autoSelect && i === 0) && (

@@ -40,8 +40,8 @@ var HelpDialog = {
       }
       a.html_ = [head, body];
     }
-    Object.setPrototypeOf(request, null);
-    const commandToKeys = BgUtils_.safer_<Array<[string, CommandsNS.Item]>>(),
+    BgUtils_.safer_(request);
+    const commandToKeys = BgUtils_.safeObj_<Array<[string, CommandsNS.Item]>>(),
     ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !request.b, showNames = !!request.n;
     for (const key in ref) {
       const registry = ref[key] as NonNullable<(typeof ref)[string]>;
@@ -55,7 +55,7 @@ var HelpDialog = {
       }
       (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
     }
-    const result = Object.setPrototypeOf({
+    const result = BgUtils_.safer_<Dict<string>>({
       homePage: Settings_.CONST_.HomePage_,
       version: Settings_.CONST_.VerName_,
       title: request.t ? "Command Listing" : "Help",
@@ -68,7 +68,7 @@ var HelpDialog = {
           ? "Firefox Add-ons" : "Web Store",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
-    }, null) as SafeDict<string>;
+    });
     const html = (a as Ensure<typeof a, "html_">).html_, div = html[1].replace(
         <RegExpSearchable<1>> /\{\{(\w+)}}/g, function (_, group: string) {
       let s = result[group];

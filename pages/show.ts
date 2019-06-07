@@ -256,6 +256,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
 String.prototype.startsWith = function (this: string, s: string): boolean {
   return this.lastIndexOf(s, 0) === 0;
 };
+String.prototype.endsWith = function (this: string, s: string): boolean {
+  const i = this.length - s.length;
+  return i >= 0 && this.indexOf(s, i) === i;
+};
 }
 (window.onhashchange as () => void)();
 
@@ -610,10 +614,10 @@ function tryDecryptUrl(url: string): string {
   try {
     url = atob(url);
   } catch { return ""; }
-  if (url.startsWith("AA") && url.indexOf("ZZ", url.length - 2) > 0) {
+  if (url.startsWith("AA") && url.endsWith("ZZ")) {
     url = url.slice(2, -2);
   }
-  if (url.startsWith("[FLASHGET]") && url.indexOf("[FLASHGET]", url.length - 10) > 0) {
+  if (url.startsWith("[FLASHGET]") && url.endsWith("[FLASHGET]")) {
     url = url.slice(10, -10);
   }
   return tryDecryptUrl(url) || url;

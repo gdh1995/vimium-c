@@ -43,7 +43,7 @@ if (typeof VEvent == "object" && VEvent && typeof VEvent.destroy_ == "function")
 var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,
   activate_ (options: Options): void {
-    Object.setPrototypeOf(options, null);
+    VUtils_.safer_(options);
     const a = Vomnibar_;
     a.mode_.t = a.mode_.o = a.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, 1);
@@ -782,7 +782,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
   },
   updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
-    const delta = Object.setPrototypeOf(response.d, null),
+    const delta = VUtils_.safer_(response.d),
     { c: css_, m: maxMatches_, i: queryInterval_, s: styles } = delta;
     if (styles != null && Vomnibar_.styles_ !== styles) {
       Vomnibar_.styles_ = styles;
@@ -834,8 +834,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const a = Vomnibar_;
     window.onclick = function (e) { Vomnibar_.onClick_(e); };
     a.onWheel_ = a.onWheel_.bind(a);
-    Object.setPrototypeOf(a.ctrlMap_, null);
-    Object.setPrototypeOf(a.normalMap_, null);
+    VUtils_.safer_(a.ctrlMap_);
+    VUtils_.safer_(a.normalMap_);
     const list = a.list_ = document.getElementById("list") as EnsuredMountedHTMLElement;
     const ver: BrowserVer = Build.BTypes & BrowserType.Chrome ? a.browserVer_ : BrowserVer.assumedVer,
     listen = addEventListener,
@@ -1095,6 +1095,11 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   }
 },
 VUtils_ = {
+  safer_: (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
+      && !Object.setPrototypeOf ? function <T extends object> (obj: T): T & SafeObject {
+        (obj as any).__proto__ = null; return obj as T & SafeObject; }
+      : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null)
+    ) as (<T extends object> (opt: T) => T & SafeObject),
   makeListRenderer_ (this: void, template: string): Render {
     const a = template.split(/\{\{(\w+)}}/g);
     const parser = Build.BTypes & ~BrowserType.Firefox ? 0 as never : new DOMParser();
@@ -1226,11 +1231,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
-if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && !Object.setPrototypeOf) {
-  Object.setPrototypeOf = function <T extends object> (obj: T): T & SafeObject {
-    (obj as any).__proto__ = null; return obj as T & SafeObject;
-  };
-}
 }
 
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true

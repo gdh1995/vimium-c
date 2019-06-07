@@ -521,7 +521,7 @@ historyEngine = {
   },
   loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]): void {
     if (query.o) { return; }
-    const arr: SafeDict<number> = BgUtils_.safer_();
+    const arr: SafeDict<number> = BgUtils_.safeObj_();
     let count = 0;
     for (const { url, incognito } of tabs) {
       if (incognito && inNormal) { continue; }
@@ -1277,9 +1277,9 @@ knownCs: CompletersMap & SafeObject = {
       if (toRemove.allHistory) {
         HistoryCache.history_ = [];
         if (HistoryCache.domains_) {
-          HistoryCache.domains_ = BgUtils_.domains_ = BgUtils_.safer_<Domain>();
+          HistoryCache.domains_ = BgUtils_.domains_ = BgUtils_.safeObj_<Domain>();
         }
-        const d2 = BgUtils_.safer_<string>();
+        const d2 = BgUtils_.safeObj_<string>();
         for (const i of bookmarkEngine.bookmarks_) {
           const t = d[i.url]; t && (d2[i.url] = t);
         }
@@ -1449,7 +1449,7 @@ knownCs: CompletersMap & SafeObject = {
       }
       return this.continueToWork_();
     },
-    dict_: BgUtils_.safer_<string>(),
+    dict_: BgUtils_.safeObj_<string>(),
     _jobs: [] as ItemToDecode[],
     _ind: -1,
     continueToWork_ (): void {
@@ -1517,7 +1517,7 @@ knownCs: CompletersMap & SafeObject = {
           return Decoder.decodeList_(bookmarkEngine.bookmarks_);
         }, 100);
       } else {
-        Decoder.dict_ = BgUtils_.safer_<string>();
+        Decoder.dict_ = BgUtils_.safeObj_<string>();
         Decoder._jobs.length = 0;
       }
       if (Decoder.enabled_ === enabled) { return; }

@@ -127,7 +127,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     } while (--count > 1);
   }
 
-  const framesForTab: Frames.FramesMap = BgUtils_.safer_<Frames.Frames>(),
+  const framesForTab: Frames.FramesMap = BgUtils_.safeObj_<Frames.Frames>(),
   onRuntimeError = BgUtils_.runtimeError_,
   NoFrameId = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome
       && CurCVer_ < BrowserVer.MinWithFrameId;
@@ -1221,11 +1221,11 @@ Are you sure you want to continue?`);
         return;
       }
       let url_f = BgUtils_.createSearchUrl_(query.u.split(" "), keyword, Urls.WorkType.ActAnyway);
-      cOptions = Object.setPrototypeOf({
+      cOptions = BgUtils_.safer_({
         reuse: cOptions.reuse | 0,
         opener: true,
         url_f
-      }, null);
+      });
       BackgroundCommands[kBgCmd.openUrl](tabs);
     },
     /* togglePinTab: */ function (this: void, tabs: Tab[]): void {
@@ -1575,13 +1575,13 @@ Are you sure you want to continue?`);
         : port.s.a) || url.startsWith(location.origin) || !!forceInner;
       const useInner: boolean = forceInner || page === inner || port.s.t < 0,
       options: CmdOptions[kFgCmd.vomnibar] & SafeObject = BgUtils_.extendIf_(
-          Object.setPrototypeOf<CmdOptions[kFgCmd.vomnibar]>({
+          BgUtils_.safer_<CmdOptions[kFgCmd.vomnibar]>({
         v: useInner ? inner : page,
         i: useInner ? null : inner,
         t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         s: useInner ? "" : Settings_.CONST_.VomnibarScript_f_,
         k: getSecret(),
-      }, null), cOptions as {} as CmdOptions[kFgCmd.vomnibar]);
+      }), cOptions as {} as CmdOptions[kFgCmd.vomnibar]);
       port.postMessage<1, kFgCmd.vomnibar>({
         N: kBgReq.execute, S: ensureInnerCSS(port),
         c: kFgCmd.vomnibar, n: cRepeat,
@@ -1694,7 +1694,7 @@ Are you sure you want to continue?`);
     }
     const { alias_: alias } = registryEntry, func = BackgroundCommands[alias];
     // safe on renaming
-    cOptions = options || BgUtils_.safer_();
+    cOptions = options || BgUtils_.safeObj_();
     cPort = port;
     cRepeat = count;
     cKey = lastKey;
@@ -1931,7 +1931,7 @@ Are you sure you want to continue?`);
     },
     /** openUrl: */ function (this: void, request: FgReq[kFgReq.openUrl] & { url_f?: Urls.Url, opener?: boolean }
         , port?: Port): void {
-      Object.setPrototypeOf(request, null);
+      BgUtils_.safer_(request);
       let unsafe = port != null && isNotVomnibarPage(port, true);
       cPort = unsafe ? port as Port : findCPort(port) || cPort;
       let url: Urls.Url | undefined = request.u;
@@ -1941,7 +1941,7 @@ Are you sure you want to continue?`);
         reuse?: ReuseType;
         copied?: boolean;
         keyword?: string | null;
-      } & SafeObject = BgUtils_.safer_();
+      } & SafeObject = BgUtils_.safeObj_();
       opts.reuse = request.r;
       opts.incognito = request.i;
       opts.opener = false;
@@ -2100,12 +2100,12 @@ Are you sure you want to continue?`);
       if (count != null) {
         delete request.c, delete request.H, delete request.i;
         cRepeat = +count || 1;
-        cOptions = Object.setPrototypeOf(request, null);
+        cOptions = BgUtils_.safer_(request);
       } else if (request.r !== true) {
         return;
       } else if (cOptions == null || cOptions.secret !== -1) {
         if (inner) { return; }
-        cOptions = BgUtils_.safer_();
+        cOptions = BgUtils_.safeObj_();
         cRepeat = 1;
       } else if (inner && (cOptions as any as CmdOptions[kFgCmd.vomnibar]).v === Settings_.CONST_.VomnibarPageInner_) {
         return;
@@ -2220,7 +2220,7 @@ Are you sure you want to continue?`);
       }
     },
     /** findFromVisual */ function (this: void, _: {}, port: Port): void {
-      cOptions = Object.setPrototypeOf({ active: true, returnToViewport: true }, null);
+      cOptions = BgUtils_.safer_({ active: true, returnToViewport: true });
       cPort = port;
       cRepeat = 1;
       BackgroundCommands[kBgCmd.performFind]();
@@ -2615,13 +2615,8 @@ Are you sure you want to continue?`);
         return OnConnect(port as Frames.Port,
             (port.name.slice(PortNameEnum.PrefixLen) as string | number as number) | 0);
       });
-      if (Build.BTypes & ~BrowserType.Chrome
-          && (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)) {
-        if (chrome.runtime.onConnectExternal) {
-          Settings_.extWhiteList_ || Settings_.postUpdate_("extWhiteList");
-        } else {
-          return;
-        }
+      if (Build.BTypes & BrowserType.Edge && !chrome.runtime.onConnectExternal) {
+        return;
       }
       (chrome.runtime.onConnectExternal as chrome.runtime.ExtensionConnectEvent).addListener(function (port): void {
         let { sender, name } = port, arr: string[];
@@ -2661,9 +2656,7 @@ Are you sure you want to continue?`);
     needIcon = value && !!chrome.browserAction;
   };
 
-  (!(Build.BTypes & ~BrowserType.Chrome)
-    || !(Build.BTypes & ~BrowserType.Firefox) && !Build.DetectAPIOnFirefox
-    || chrome.runtime.onMessageExternal) &&
+  (!(Build.BTypes & BrowserType.Edge) || chrome.runtime.onMessageExternal) &&
   ((chrome.runtime.onMessageExternal as chrome.runtime.ExtensionMessageEvent).addListener(function (this: void
       , message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void {
