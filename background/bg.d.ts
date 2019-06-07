@@ -134,6 +134,7 @@ declare namespace Frames {
     s: Sender;
     postMessage<K extends 1, O extends keyof CmdOptions>(request: Req.FgCmd<O>): K;
     postMessage<K extends keyof FgRes>(response: Req.res<K>): 1;
+    postMessage<K extends 2>(response: Req.res<keyof FgRes>): 1;
     postMessage<K extends kBgReq>(request: Req.bg<K>): 1;
   }
 

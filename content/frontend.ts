@@ -358,12 +358,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         val === null && (val = !cur);
       }
       if (cache[backupKey] === u) {
-        cache[backupKey] = cur;
+        (cache as Generalized<typeof cache>)[backupKey] = cur;
       } else if (cur === val) {
         val = cache[backupKey];
         cache[backupKey] = u as never;
       }
-      cache[key] = val as typeof cur;
+      (cache as Generalized<typeof cache>)[key] = val as typeof cur;
       let msg = val === false ? '"' + key + '" has been turned off'
         : 'Now "' + key + (val === true ? '" is on' : '" use ' + JSON.stringify(val));
       return HUD.tip_(msg, 1000);
@@ -1035,7 +1035,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VLib.safer_(delta);
       const cache = VDom.cache_, deepHints = delta.deepHints;
       for (const i in delta) {
-        cache[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
+        (cache as Generalized<typeof cache>)[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
         const i2 = "_" + i as Keys;
         (i2 in cache) && (VLib.safer_(cache)[i2] = undefined as never);
       }
@@ -1409,7 +1409,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         , callback: (this: void, res: FgRes[K]) => void): void {
       let id = ++vPort._id;
       (vPort._port as Port).postMessage({ H: kFgReq.msg, i: id, c: cmd, a: args });
-      vPort._callbacks[id] = callback;
+      vPort._callbacks[id] = callback as <K extends keyof FgRes>(this: void, res: FgRes[K]) => void;
     },
     evalIfOK_ (url: string): boolean {
       if (!VLib.jsRe_.test(url)) {

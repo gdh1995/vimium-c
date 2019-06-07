@@ -1,4 +1,3 @@
-import SettingsToSync = SettingsNS.PersistentSettings;
 declare const enum OmniboxData {
   DefaultMaxChars = 128,
   MarginH = 160,
@@ -13,6 +12,7 @@ declare const enum SyncConsts {
   LocalItemCountWhenInstalled = 6,
 }
 BgUtils_.timeout_(1000, function (): void {
+  type SettingsToSync = SettingsNS.PersistentSettings;
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };

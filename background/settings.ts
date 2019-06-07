@@ -36,12 +36,12 @@ var Settings_ = {
     const value = str == null ? initial : typeof initial === "string" ? str
         : initial === false || initial === true ? str === "true"
         : JSON.parse<typeof initial>(str);
-    forCache && ((this.cache_ as SettingsNS.FullCache)[key] = value);
-    return value;
+    forCache && ((this.cache_ as Generalized<SettingsNS.FullCache>)[key] = value as SettingsWithDefaults[K]);
+    return value as SettingsWithDefaults[K];
   },
   set_<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void {
     const a = this;
-    (a.cache_ as SettingsNS.FullCache)[key] = value;
+    (a.cache_ as Generalized<SettingsNS.FullCache>)[key] = value;
     if (!(key in a.nonPersistent_)) {
       const initial = a.defaults_[key as keyof SettingsNS.PersistentSettings];
       if (value === initial) {
@@ -53,7 +53,7 @@ var Settings_ = {
           FullSettings[keyof SettingsNS.PersistentSettings]);
       }
       if (key in a.payload_) {
-        a.payload_[key as keyof SettingsNS.FrontendSettings] =
+        (a.payload_ as Generalized<typeof a.payload_>)[key as keyof SettingsNS.FrontendSettings] =
           value as FullSettings[keyof SettingsNS.FrontendSettings];
       }
     }
@@ -63,7 +63,8 @@ var Settings_ = {
     }
   },
   postUpdate_: function<K extends keyof SettingsWithDefaults> (this: {}, key: K, value?: FullSettings[K]): void {
-    return ((this as typeof Settings_).updateHooks_[key] as SettingsNS.SimpleUpdateHook<K>).call(
+    type AllK = keyof SettingsWithDefaults;
+    return ((this as typeof Settings_).updateHooks_[key as AllK] as SettingsNS.SimpleUpdateHook<AllK>).call(
       this as typeof Settings_,
       value !== undefined ? value : (this as typeof Settings_).get_(key), key);
   } as {
@@ -600,7 +601,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   payload_.g = settings.get_("grabBackFocus");
   for (let _i = valuesToLoad_.length; 0 <= --_i;) {
     const key = valuesToLoad_[_i];
-    payload_[key] = settings.get_(key);
+    (payload_ as Generalized<typeof payload_>)[key] = settings.get_(key);
   }
 
   if (localStorage.length <= 0) {

@@ -25,7 +25,7 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.Frontend
     > (this: Option_<T>, func: (this: Option_<T>) => void): void {
   func.call(this);
   if (window.VDom) {
-    VDom.cache_[this.field_] = this.readValueFromElement_();
+    (VDom.cache_ as Generalized<typeof VDom.cache_>)[this.field_] = this.readValueFromElement_();
   }
 };
 
@@ -82,7 +82,7 @@ interface NumberChecker extends Checker<"scrollStepSize"> {
   check_ (value: number): number;
 }
 
-class NumberOption_<T extends keyof AllowedOptions> extends Option_<T> {
+class NumberOption_<T extends PossibleOptionNames<number>> extends Option_<T> {
 readonly element_: HTMLInputElement;
 previous_: number;
 wheelTime_: number;
@@ -145,7 +145,8 @@ static Check_ (this: NumberChecker, value: number): number {
 }
 }
 
-class TextOption_<T extends keyof AllowedOptions> extends Option_<T> {
+type TextOptionNames = PossibleOptionNames<string>;
+class TextOption_<T extends TextOptionNames> extends Option_<T> {
 readonly element_: TextElement;
 readonly converter_: string[];
 needToCovertToCharsOnRead_: boolean;
@@ -187,7 +188,7 @@ readValueFromElement_ (): AllowedOptions[T] {
   }
   return value;
 }
-static charsChecker: Checker<"linkHintCharacters"> = {
+static charsChecker: BaseChecker<string> = {
   check_ (value: string): string {
     return TextOption_.toChars(value);
   }
@@ -205,7 +206,7 @@ static toChars (value: string): string {
 TextOption_.prototype.whiteRe_ = <RegExpG> / /g;
 TextOption_.prototype.whiteMaskRe_ = <RegExpG> /\xa0/g;
 
-class NonEmptyTextOption_<T extends keyof AllowedOptions> extends TextOption_<T> {
+class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<T> {
 readValueFromElement_ (): string {
   let value = super.readValueFromElement_() as string;
   if (!value) {
@@ -235,7 +236,9 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
   this.locked_ = false;
 };
 
-class JSONOption_<T extends keyof AllowedOptions> extends TextOption_<T> {
+type JSONOptionNames = PossibleOptionNames<object>;
+/** in fact, JSONOption_ should accept all of `JSONOptionNames`; */
+class JSONOption_<T extends TextOptionNames> extends TextOption_<T> {
 populateElement_ (obj: AllowedOptions[T], enableUndo?: boolean): void {
   const one = this.element_ instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2),
   s1 = one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, (_, s) => s ? ", " : "") : s0;
@@ -256,7 +259,7 @@ readValueFromElement_ (): AllowedOptions[T] {
 }
 }
 
-class MaskedText_<T extends keyof AllowedOptions> extends TextOption_<T> {
+class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   masked_: boolean;
   _myCancelMask: (() => void) | null;
   constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
@@ -289,7 +292,9 @@ class MaskedText_<T extends keyof AllowedOptions> extends TextOption_<T> {
 
 JSONOption_.prototype.areEqual_ = Option_.areJSONEqual_;
 
-class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
+type NullableBooleanOptionNames = PossibleOptionNames<boolean | null>;
+type BooleanOptionNames = PossibleOptionNames<boolean>;
+class BooleanOption_<T extends Exclude<NullableBooleanOptionNames, BooleanOptionNames>> extends Option_<T> {
 readonly element_: HTMLInputElement;
 previous_: boolean | null;
 constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption_<T>) => void) {
@@ -299,7 +304,7 @@ constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption_<T>) => 
 populateElement_ (value: boolean | null): void {
   this.element_.checked = value || false;
   this.element_.indeterminate = value === null;
-  }
+}
 readValueFromElement_ (): boolean | null {
   return this.element_.indeterminate ? null : this.element_.checked;
 }
@@ -318,7 +323,7 @@ ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOpt
   }
 };
 
-TextOption_.prototype.showError_ = function<T extends keyof AllowedOptions>(this: TextOption_<T>
+TextOption_.prototype.showError_ = function<T extends TextOptionNames>(this: TextOption_<T>
     , msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
   errors != null || (errors = !!msg);
   const { element_: el } = this, { classList: cls } = el, par = el.parentElement as HTMLElement;
@@ -400,7 +405,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     const delta: BgReq[kBgReq.settingsUpdate]["d"] = Object.create(null),
     req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: delta };
     for (const key of toSync) {
-      delta[key] = bgSettings_.get_(key);
+      (delta as Generalized<typeof delta>)[key] = bgSettings_.get_(key);
     }
     bgSettings_.broadcast_(req);
   }

@@ -830,7 +830,7 @@ Are you sure you want to continue?`);
     (this: MarksNS.FocusOrLaunch, tabs: Tab[], wnd: Window) => void,
     (this: MarksNS.MarkToGo, tick: 0 | 1 | 2, tabs: Tab | undefined) => void
   ];
-  function focusAndRun(req: Excluded<FgReq[kFgReq.gotoMainFrame], "f">
+  function focusAndRun(req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
       , port: Port, mainPort: Port | null, focusAndShowFrameBorder: BOOL): void {
     if (mainPort && mainPort.s.s !== Frames.Status.disabled) {
       mainPort.postMessage({
@@ -2248,7 +2248,7 @@ Are you sure you want to continue?`);
         [T2 in ReqK]: <T3 extends ReqK>(req: Req.fg<T3>, port: Frames.Port) => void;
       })[request.H](request as Req.fg<K>, port);
     }
-    port.postMessage<T>({
+    port.postMessage<2>({
       N: kBgReq.msg,
       m: (request as Req.fgWithRes<T>).i,
       r: (requestHandlers as {

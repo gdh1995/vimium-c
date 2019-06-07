@@ -23,6 +23,12 @@ type PartialOrEnsured<T, EnsuredKeys extends keyof T> = {
   [P in Exclude<keyof T, EnsuredKeys>]?: T[P];
 };
 
+// this is to fix a bug of TypeScript ~3.5
+type Generalized<T, K extends keyof T = keyof T> = { [k in K]: __GeneralizedValues<T, K>; };
+type __GeneralizedValues<T, K> = K extends keyof T ? T[K] : never;
+
+type PossibleKeys<T, V, K extends keyof T = keyof T> = K extends keyof T ? T[K] extends V ? K : never : never;
+
 type TypedSafeEnum<Type> = {
   readonly [key in keyof Type]: 1;
 } & SafeObject;

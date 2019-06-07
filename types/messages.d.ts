@@ -313,7 +313,7 @@ interface FgReqWithRes {
     /** url */ u: string;
     /** lastKey */ k: VKeyCodes;
     /** ensured args */ a: FgOptions;
-  } & Excluded<BaseExecute<FgOptions, FgCmdAcrossFrames>, "S">;
+  } & Omit<BaseExecute<FgOptions, FgCmdAcrossFrames>, "S">;
 }
 
 interface FgReq {

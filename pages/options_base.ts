@@ -4,10 +4,12 @@
 /// <reference path="../background/settings.ts" />
 /// <reference path="../background/exclusions.ts" />
 type AllowedOptions = SettingsNS.PersistentSettings;
-interface Checker<T extends keyof AllowedOptions> {
+type PossibleOptionNames<T> = PossibleKeys<AllowedOptions, T>;
+interface BaseChecker<V extends AllowedOptions[keyof AllowedOptions]> {
   init_? (): any;
-  check_ (value: AllowedOptions[T]): AllowedOptions[T];
+  check_ (value: V): V;
 }
+type Checker<T extends keyof AllowedOptions> = BaseChecker<AllowedOptions[T]>;
 interface BgWindow extends Window {
   BgUtils_: typeof BgUtils_;
   Settings_: typeof Settings_;
@@ -124,7 +126,7 @@ save_ (): void {
       value = bgSettings_.defaults_[this.field_];
     }
   }
-  bgSettings_.set_(this.field_, value);
+  bgSettings_.set_<keyof AllowedOptions>(this.field_, value);
   this.previous_ = value = bgSettings_.get_(this.field_);
   this.saved_ = true;
   if (previous !== (isJSON ? JSON.stringify(value) : value)) {
