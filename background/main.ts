@@ -78,6 +78,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     };
     [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
     [kFgReq.setOmniStyle]: (this: void, request: FgReq[kFgReq.setOmniStyle], _port?: Port) => void;
+    [kFgReq.framesGoBack]: (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | number) => void;
   }
 
   /** any change to `cRepeat` should ensure it won't be `0` */
@@ -2228,9 +2229,19 @@ Are you sure you want to continue?`);
     /** framesGoBack: */
         (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || CurCVer_ >= BrowserVer.Min$Tabs$$goBack)
-        ? function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void {
-      const tabID = port.s.t, count = req.s,
+        ? function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | number): void {
+      const tabID = typeof port === "number" ? port : port.s.t, count = req.s, reuse = req.r,
       jump = (count > 0 ? chrome.tabs.goForward : chrome.tabs.goBack) as NonNullable<typeof chrome.tabs.goBack>;
+      if (reuse) {
+        chrome.tabs.duplicate(tabID, function(tab) {
+          if (!tab) { return onRuntimeError(); }
+          if (reuse === ReuseType.newBg) {
+            chrome.tabs.update(tabID, { active: true });
+          }
+          requestHandlers[kFgReq.framesGoBack]({ s: count, r: ReuseType.current }, tab.id);
+        });
+        return;
+      }
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
         jump(tabID, onRuntimeError);
       }

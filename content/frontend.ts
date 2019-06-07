@@ -317,14 +317,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       K extends keyof SpecialCommands ? SpecialCommands[K] :
       (this: void, count: number, options: CmdOptions[K], key?: -42) => void;
   } = [
-    /* kFgCmd.framesGoBack: */ function (rawStep: number): void {
+    /* kFgCmd.framesGoBack: */ function (rawStep: number, options: CmdOptions[kFgCmd.framesGoBack]): void {
       const maxStep = Math.min(Math.abs(rawStep), history.length - 1),
       realStep = rawStep < 0 ? -maxStep : maxStep;
       if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
-          && maxStep > 1
           && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || browserVer >= BrowserVer.Min$Tabs$$goBack)
+          && (maxStep > 1 || maxStep && options.reuse)
       ) {
-        post({ H: kFgReq.framesGoBack, s: realStep });
+        post({ H: kFgReq.framesGoBack, s: realStep, r: options.reuse });
       } else {
         maxStep && history.go(realStep);
       }

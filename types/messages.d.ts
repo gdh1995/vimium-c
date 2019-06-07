@@ -217,6 +217,7 @@ interface CmdOptions {
     action?: "" | "backspace";
   };
   [kFgCmd.framesGoBack]: {
+    reuse?: ReuseType;
   };
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;
@@ -425,7 +426,7 @@ interface FgReq {
     /** broadcast, default to true */ b?: boolean;
   };
   [kFgReq.findFromVisual]: {};
-  [kFgReq.framesGoBack]: { /** step */ s: number; };
+  [kFgReq.framesGoBack]: { /** step */ s: number; /** reuse */ r: ReuseType | undefined };
 }
 
 declare namespace Req {
