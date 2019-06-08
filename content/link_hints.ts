@@ -1,9 +1,7 @@
 const enum ClickType {
-  Default = 0,
-  click = Default, edit, listener,
-  classname = 4, tabindex,
-  maxNotBox = 6, minBox = maxNotBox + 1,
-  frame = minBox, scrollX, scrollY,
+  Default = 0, edit,
+  MaxNotWeak = edit, attrListener, codeListener, classname, tabindex, MinNotWeak,
+  MaxNotBox = 6, frame, scrollX, scrollY,
 }
 const enum DeepQueryType {
   NotDeep = 0, // must be 0 because of `InDeep - deep`
@@ -228,7 +226,7 @@ var VHints = {
   createHint_ (link: Hint): HintsNS.HintItem {
     let i: number = link.length < 4 ? link[1][0] : (link as Hint4)[3][0][0] + (link as Hint4)[3][1];
     const marker = VDom.createElement_("span") as HintsNS.MarkerElement, st = marker.style,
-    isBox = link[2] > ClickType.maxNotBox,
+    isBox = link[2] > ClickType.MaxNotBox,
     hint: HintsNS.HintItem = {
       key_: "", target_: link[0], marker_: marker,
       refer_: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null,
@@ -271,9 +269,10 @@ var VHints = {
     switch (VDom.htmlTag_(element)) {
     case "": // not HTML or not safe
       if ((element as ElementToHTML).lang == null && "tabIndex" in <ElementToHTMLorSVG> element) { // SVG*
+        // not need to distinguish attrListener and codeListener
         type = VDom.clickable_.has(element) || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
-            || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.listener
+            || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.attrListener
           : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
           : type;
         if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))) {
@@ -344,11 +343,12 @@ var VHints = {
     }
     if (isClickable === null) {
       type = (s = (element as SafeHTMLElement).contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
-        : (VDom.clickable_.has(element) && VHints.isClickListened_) || element.getAttribute("onclick")
-          || VHints.ngEnabled_ && element.getAttribute("ng-click")
+        : element.getAttribute("onclick")
           || (s = element.getAttribute("role")) && VHints.roleRe_.test(s)
+          || VHints.ngEnabled_ && element.getAttribute("ng-click")
           || VHints.forHover_ && element.getAttribute("onmouseover")
-          || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.listener
+          || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.attrListener
+        : VDom.clickable_.has(element) && VHints.isClickListened_ ? ClickType.codeListener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
         : type > ClickType.tabindex ? type : (s = element.className) && VHints.btnRe_.test(s) ? ClickType.classname
         : ClickType.Default;
@@ -380,7 +380,7 @@ var VHints = {
       if (!isExpected && (element as TypeToAssert<HTMLElement, HTMLInputElement, "disabled">).disabled) { return !1; }
       isExpected && (VDom.clickable_.add(element), a.isClickListened_ = true);
       a.GetClickable_.call(arr2, element);
-      if (!clickListened && isExpected && arr2.length && arr2[0][2] === ClickType.listener) {
+      if (!clickListened && isExpected && arr2.length && arr2[0][2] === ClickType.codeListener) {
         a.isClickListened_ = clickListened;
         a.GetClickable_.call(arr2, element);
         if (arr2.length < 2) { // note: excluded during normal logic
@@ -422,7 +422,7 @@ var VHints = {
         && !VHints.jsRe_.test(a)
         || (element as HTMLAnchorElement).dataset.vimUrl != null)) {
       if (arr = VDom.getVisibleClientRect_(element)) {
-        this.push([element as HTMLAnchorElement, arr, ClickType.click]);
+        this.push([element as HTMLAnchorElement, arr, ClickType.Default]);
       }
     }
   },
@@ -571,22 +571,28 @@ var VHints = {
       func, dest);
   },
   deduplicate_ (list: Hint[]): void {
-    let j = list.length, i: number, k: ClickType;
+    let j = list.length, i: number, k: ClickType, el: Hint[0];
     while (0 < --j) {
-      if (list[i = j][2] !== ClickType.classname) { /* empty */ }
+      k = list[i = j][2];
+      if (k === ClickType.codeListener) {
+        el = list[i][0];
+        if (!el.className && VDom.hasTag_need_safe_(el as Exclude<Hint[0], SVGElement>, "div") && !el.id
+            && el.querySelector("a")) {
+          list.splice(i, 1);
+        }
+      } else if (k !== ClickType.classname) { /* empty */ }
       else if ((k = list[--j][2]) > ClickType.frame || !this._isDescendant(list[i][0], list[j][0])) {
         continue;
       } else if (VDom.isContaining_(list[j][1], list[i][1])) {
         list.splice(i, 1);
         continue;
-      } else if (k < ClickType.listener || j === 0) {
+      } else if (k < ClickType.attrListener || j === 0) {
         continue;
       }
-      while (0 < j && (k = list[j - 1][2]) >= ClickType.listener && k <= ClickType.tabindex
-          && this._isDescendant(list[j][0], list[j - 1][0])) {
-        j--;
-        if (j === i - 3) { break; }
-      }
+      for (; 0 < j && j > i - 3
+            && (k = list[j - 1][2]) > ClickType.MaxNotWeak && k < ClickType.MinNotWeak
+            && this._isDescendant(list[j][0], list[j - 1][0])
+          ; j--) { /* empty */ }
       if (j < i) {
         list.splice(j, i - j);
       }
@@ -647,7 +653,7 @@ var VHints = {
   getVisibleElements_ (view: ViewBox): Hint[] {
     const a = this;
     let _i: number = a.mode1_;
-    const isNormal = _i < HintMode.min_job,
+    const
     visibleElements = _i === HintMode.DOWNLOAD_IMAGE || _i === HintMode.OPEN_IMAGE
       ? a.traverse_("a[href],img[src],[data-src],div[style],span[style]", a.GetImages_, true)
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? a.traverse_("a", a.GetLinks_)
@@ -665,12 +671,12 @@ var VHints = {
     for (let _len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
       _j > 0 && --_j;
       visibleElement = visibleElements[_len];
-      if (visibleElement[2] > ClickType.maxNotBox) { continue; }
+      if (visibleElement[2] > ClickType.MaxNotBox) { continue; }
       let r = visibleElement[1];
       for (_i = _len; _j <= --_i; ) {
         t = visibleElements[_i][1];
         if (r[3] <= t[1] || r[2] <= t[0] || r[0] >= t[2] || r[1] >= t[3]) { continue; }
-        if (visibleElements[_i][2] > ClickType.maxNotBox) { continue; }
+        if (visibleElements[_i][2] > ClickType.MaxNotBox) { continue; }
         obj[0] = []; obj[1] = t;
         r2 !== null ? r2.forEach(func) : func(r);
         if ((r2 = obj[0]).length === 0) { break; }
@@ -680,8 +686,7 @@ var VHints = {
         t = r2[0];
         t[1] > a.maxTop_ && t[1] > r[1] || t[0] > a.maxLeft_ && t[0] > r[0] ||
           r2.length === 1 && (t[3] - t[1] < 3 || t[2] - t[0] < 3) || (visibleElement[1] = t);
-      } else if ((reason = visibleElement[2]) === ClickType.classname
-            || (reason === ClickType.listener ? isNormal : reason === ClickType.tabindex)
+      } else if ((reason = visibleElement[2]) > ClickType.MaxNotWeak && reason < ClickType.MinNotWeak
           && visibleElement[0].contains(visibleElements[_i][0])) {
         visibleElements.splice(_len, 1);
       } else {
