@@ -16,11 +16,6 @@ declare namespace HintsNS {
     [mode: number]: string | undefined;
     execute_ (this: {}, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintsNS.HintItem, "refer_">): void | boolean;
   }
-  const enum ReplacedTag {
-    _mask = "",
-    LabelForInput = 0,
-    DetailsForSummary = 1,
-  }
   interface Options extends SafeObject {
     action?: string;
     mode?: string | number;
@@ -309,12 +304,10 @@ var VHints = {
       }
       break;
     case "details":
-      isClickable = VHints.checkReplaced_(VDom.findMainSummary_(element as HTMLDetailsElement)
-          , HintsNS.ReplacedTag.DetailsForSummary);
+      isClickable = VHints.checkReplaced_(VDom.findMainSummary_(element as HTMLDetailsElement), this);
       break;
     case "label":
-      isClickable = VHints.checkReplaced_((element as HTMLLabelElement).control as SafeHTMLElement | null
-          , HintsNS.ReplacedTag.LabelForInput);
+      isClickable = VHints.checkReplaced_((element as HTMLLabelElement).control as SafeHTMLElement | null);
       break;
     case "button": case "select":
       isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled || VHints.mode1_ > HintMode.LEAVE;
@@ -381,15 +374,21 @@ var VHints = {
     }
     return false;
   },
-  checkReplaced_ (element: SafeHTMLElement | null | void, tag?: HintsNS.ReplacedTag & number): boolean | null {
+  checkReplaced_ (element: SafeHTMLElement | null | void, isExpected?: Hint[]): boolean | null {
     const arr2: Hint[] = [], a = this, clickListened = a.isClickListened_;
     if (element) {
-      if (!tag && (element as TypeToAssert<HTMLElement, HTMLInputElement, "disabled">).disabled) { return !1; }
-      tag && (VDom.clickable_.add(element), a.isClickListened_ = true);
+      if (!isExpected && (element as TypeToAssert<HTMLElement, HTMLInputElement, "disabled">).disabled) { return !1; }
+      isExpected && (VDom.clickable_.add(element), a.isClickListened_ = true);
       a.GetClickable_.call(arr2, element);
-      a.isClickListened_ = clickListened;
+      if (!clickListened && isExpected && arr2.length && arr2[0][2] === ClickType.listener) {
+        a.isClickListened_ = clickListened;
+        a.GetClickable_.call(arr2, element);
+        if (arr2.length < 2) { // note: excluded during normal logic
+          isExpected.push(arr2[0]);
+        }
+      }
     }
-    return element ? !arr2.length : !!tag || null;
+    return element ? !arr2.length : !!isExpected || null;
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
   GetEditable_ (this: Hint[], element: Element): void {
