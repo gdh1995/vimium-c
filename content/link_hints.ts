@@ -267,7 +267,7 @@ var VHints = {
   btnRe_: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|[-\s_])/,
   roleRe_: <RegExpI> /^(?:button|checkbox|link|radio|tab)$|^menuitem/i,
   /**
-   * Must ensure only call `VScroller.shouldScroll` during `@getVisibleElements`
+   * Must ensure only call {@link scroller.ts#VScroller.shouldScroll_need_safe_} during {@link #getVisibleElements_}
    */
   GetClickable_ (this: Hint[], element: Element): void {
     let arr: Rect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;

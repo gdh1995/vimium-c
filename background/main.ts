@@ -2245,7 +2245,12 @@ Are you sure you want to continue?`);
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
         jump(tabID, onRuntimeError);
       }
-    } : BgUtils_.blank_ as never
+    } : function (_req, port): void {
+      cPort = port as Port;
+      Backend_.showHUD_(Build.BTypes & ~BrowserType.Firefox
+          ? `Can not open history in new tab before Chrome ${BrowserVer.Min$Tabs$$goBack}`
+          : "Can not open history in new tab on Firefox");
+    }
   ],
   framesForOmni: Frames.WritableFrames = [];
   function OnMessage <K extends keyof FgReq, T extends keyof FgRes>(this: void, request: Req.fg<K> | Req.fgWithRes<T>
