@@ -63,6 +63,8 @@
     "reserved": [
       // # expected names in content
       "WeakSet",
+      // # expected names in content of 3rd-party extensions
+      "requestIdleCallback",
       // # content global names:
       "browser",
       "VimiumInjector", "VDom", "VKey",
