@@ -264,7 +264,7 @@ var VHints = {
       st.maxHeight && (st.maxHeight = mt - elements[i][1][1] + 18 + "px");
     }
   },
-  btnRe_: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,
+  btnRe_: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|[-\s_])/,
   roleRe_: <RegExpI> /^(?:button|checkbox|link|radio|tab)$|^menuitem/i,
   /**
    * Must ensure only call `VScroller.shouldScroll` during `@getVisibleElements`
