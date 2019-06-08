@@ -30,7 +30,7 @@ interface ThisType<T> {}
 type Omit<T, K extends keyof T> = {
     [P in Exclude<keyof T, K>]: T[P];
 };
-  
+
 type TypeToAssert<Parent, Child extends Parent, Key extends keyof Child, Others extends keyof Parent = never> =
     Key extends keyof Parent ? never :
     { readonly [P in Others]: unknown; } & { readonly [key in Key]?: Child[Key]; };

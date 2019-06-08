@@ -7,9 +7,6 @@
  * - all others: need a correct @di, and will force @di to be correct on return
  */
 declare namespace VisualModeNS {
-  const enum ValidActions {
-
-  }
   const enum G {
     character = 0, line = 1, lineboundary = 2, paragraph = 3, sentence = 4, word = 6, documentboundary = 7,
   }
@@ -35,12 +32,39 @@ declare namespace VisualModeNS {
   type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
     | DiType.UnsafeComplicated;
 }
+declare const enum VisualAction {
+  MinNotNoop = 0, Noop = MinNotNoop - 1,
+
+  MinWrapSelectionModify = MinNotNoop,
+  char = VisualModeNS.G.character << 1, line = VisualModeNS.G.line << 1,
+  lineboundary = VisualModeNS.G.lineboundary << 1, paragraph = VisualModeNS.G.paragraph << 1,
+  sentence = VisualModeNS.G.sentence << 1, vimword = VisualModeNS.VimG.vimword << 1,
+  word = VisualModeNS.G.word << 1, documentboundary = VisualModeNS.G.documentboundary << 1,
+  dec = VisualModeNS.kDir.left, inc = VisualModeNS.kDir.right,
+
+  MinNotWrapSelectionModify = 20,
+  Reverse = MinNotWrapSelectionModify,
+
+  MaxNotLexical = MinNotWrapSelectionModify,
+  LexicalSentence = MaxNotLexical + VisualModeNS.G.sentence,
+  LexicalWord = MaxNotLexical + VisualModeNS.G.word,
+
+  MaxNotYank = 30, Yank, YankLine, YankWithoutExit, YankAndOpen, YankAndNewTab,
+  MaxNotFind = 35, FindPrevious, FindNext,
+
+  MaxNotNewMode = 50,
+  VisualMode = MaxNotNewMode + VisualModeNS.Mode.Visual, VisualLineMode = MaxNotNewMode + VisualModeNS.Mode.Line,
+  CaretMode = MaxNotNewMode + VisualModeNS.Mode.Caret, EmbeddedFindMode = CaretMode + 2,
+
+  MaxNotScroll = 60, ScrollUp, ScrollDown,
+}
+
 var VVisual = {
   mode_: VisualModeNS.Mode.NotActive,
   hud_: "",
   hudTimer_: 0,
   currentCount_: 0,
-  currentSeconds_: null as SafeDict<VisualModeNS.ValidActions> | null,
+  currentSeconds_: null as SafeDict<VisualAction> | null,
   retainSelection_: false,
   scope_: null as ShadowRoot | null,
   selection_: null as never as Selection,
@@ -92,7 +116,7 @@ var VVisual = {
       mode = ("" + sel).length;
       a.collapseToRight_((a.getDirection_() & +(mode > 1)) as BOOL);
     }
-    a.commandHandler_(-1, 1);
+    a.commandHandler_(VisualAction.Noop, 1);
     VKey.pushHandler_(a.onKeydown_, a);
   },
   /** @safe_di */
@@ -151,7 +175,7 @@ var VVisual = {
     }
     let key0 = VKey.key_(event, ch)
       , key = VEvent.mapKey_(key0)
-      , obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
+      , obj: SafeDict<VisualAction> | null | VisualAction | undefined;
     if (obj = a.currentSeconds_) {
       obj = obj[key];
       count = a.currentCount_;
@@ -182,20 +206,19 @@ var VVisual = {
     this.currentCount_ = 0; this.currentSeconds_ = null;
   },
   /** @unknown_di_result */
-  commandHandler_ (command: VisualModeNS.ValidActions, count: number): void {
+  commandHandler_ (command: VisualAction, count: number): void {
     let movement = this, mode = movement.mode_;
-    if (command > 50) {
-      if (command > 60) {
-        return VScroller.scroll_(1, (command === 61 ? 1 : -1) * count, 0);
-      }
-      if (command === 55) {
+    if (command > VisualAction.MaxNotScroll) {
+      return VScroller.scroll_(1, command - VisualAction.ScrollDown ? -count : count, 0);
+    }
+    if (command > VisualAction.MaxNotNewMode) {
+      if (command === VisualAction.EmbeddedFindMode) {
         clearTimeout(movement.hudTimer_);
         VPort.post_({ H: kFgReq.findFromVisual });
         return;
       }
       return movement.activate_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
-        // command === 1 ? VisualModeNS.Mode.Visual : command === 2 : VisualModeNS.Mode.Line : VisualModeNS.Mode.Caret
-        m: command - 50
+        m: command - VisualAction.MaxNotNewMode
       }));
     }
     if (movement.scope_ && !movement.selection_.rangeCount) {
@@ -207,20 +230,20 @@ var VVisual = {
       }
     }
     mode === VisualModeNS.Mode.Caret && movement.collapseToFocus_(0);
-    if (command > 35) {
-      movement.find_(command - 36 ? -count : count);
+    if (command > VisualAction.MaxNotFind) {
+      movement.find_(command - VisualAction.FindNext ? -count : count);
       return;
-    } else if (command > 30) {
-      // 31 : y, Y, C, p, P : 35
-      command === 32 && movement.selectLine_(count);
+    } else if (command > VisualAction.MaxNotYank) {
+      command === VisualAction.YankLine && movement.selectLine_(count);
       movement.yank_([null, null, true as true,
-          ReuseType.current as ReuseType.current, ReuseType.newFg as ReuseType.newFg][command - 31]);
-      if (command !== 33) { return; }
-    } else if (command > 20) {
-      movement.selectLexicalEntity_((command - 20) as VisualModeNS.G.sentence | VisualModeNS.G.word, count);
-    } else if (command > 19) {
+          ReuseType.current as ReuseType.current, ReuseType.newFg as ReuseType.newFg][command - VisualAction.Yank]);
+      if (command !== VisualAction.YankWithoutExit) { return; }
+    } else if (command > VisualAction.MaxNotLexical) {
+      movement.selectLexicalEntity_((command - VisualAction.MaxNotLexical
+          ) as VisualModeNS.G.sentence | VisualModeNS.G.word, count);
+    } else if (command === VisualAction.Reverse) {
       movement.reverseSelection_();
-    } else if (command >= 0) {
+    } else if (command >= VisualAction.MinWrapSelectionModify) {
       movement.runMovements_((command & 1) as 0 | 1, command >> 1, count);
     }
     if (mode === VisualModeNS.Mode.Caret) {
@@ -309,7 +332,7 @@ var VVisual = {
         }));
       } else {
         a.di_ = VisualModeNS.kDir.unknown;
-        a.commandHandler_(-1, 1);
+        a.commandHandler_(VisualAction.Noop, 1);
       }
       return;
     }
@@ -718,8 +741,9 @@ var VVisual = {
   ensureLine_ (command: number): void {
     const a = this;
     let di = a.getDirection_();
-    if (di && command < 20 && command >= 0 && !a.diType_ && a.selType_() === SelType.Caret) {
-      di = (1 - (command & 1)) as VisualModeNS.ForwardDir; // old Di
+    if (di && command < VisualAction.MinNotWrapSelectionModify
+        && command >= VisualAction.MinWrapSelectionModify && !a.diType_ && a.selType_() === SelType.Caret) {
+      di = (1 & ~command) as VisualModeNS.ForwardDir; // old Di
       a.modify_(di, VisualModeNS.G.lineboundary);
       a.selType_() !== SelType.Range && a.modify_(di, VisualModeNS.G.line);
       a.di_ = di;
@@ -741,22 +765,32 @@ var VVisual = {
   },
 
 keyMap_: {
-  l: 1, h: 0, j: 3, k: 2, e: 13, b: 12, w: 11, ")": 9, "(": 8, "}": 7, "{": 6,
-  0: 4, $: 5, G: 15, g: { g: 14 }, B: 12, W: 11,
-  o: 20,
-  a: {
-    w: 26, s: 24
-  },
-  y: 31, Y: 32, C: 33, p: 34, P: 35,
-  n: 36, N: 37,
-  v: 51, V: 52, c: 53,
-  "/": 55,
-  "<c-e>": 61, "<c-y>": 62, "<c-down>": 61, "<c-up>": 62
+  l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,
+  j: VisualAction.line | VisualAction.inc, k: VisualAction.line | VisualAction.dec,
+  $: VisualAction.lineboundary | VisualAction.inc, 0: VisualAction.lineboundary | VisualAction.dec,
+  "}": VisualAction.paragraph | VisualAction.inc, "{": VisualAction.paragraph | VisualAction.dec,
+  ")": VisualAction.sentence | VisualAction.inc, "(": VisualAction.sentence | VisualAction.dec,
+  w: VisualAction.vimword | VisualAction.inc, /* same as w */ W: VisualAction.vimword | VisualAction.inc,
+  e: VisualAction.word | VisualAction.inc, b: VisualAction.word | VisualAction.dec,
+  /* same as b */ B: VisualAction.word | VisualAction.dec,
+  G: VisualAction.documentboundary | VisualAction.inc, g: { g: VisualAction.documentboundary | VisualAction.dec },
+
+  o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence },
+
+  y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit,
+  p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
+  n: VisualAction.FindNext, N: VisualAction.FindPrevious,
+
+  v: VisualAction.VisualMode, V: VisualAction.VisualLineMode, c: VisualAction.CaretMode,
+  "/": VisualAction.EmbeddedFindMode,
+
+  "<c-e>": VisualAction.ScrollDown, "<c-y>": VisualAction.ScrollUp,
+  "<c-down>": VisualAction.ScrollDown, "<c-up>": VisualAction.ScrollUp
 } as {
-  [key: string]: VisualModeNS.ValidActions | {
-    [key: string]: VisualModeNS.ValidActions;
+  [key: string]: VisualAction | {
+    [key: string]: VisualAction;
   };
-} as SafeDict<VisualModeNS.ValidActions | SafeDict<VisualModeNS.ValidActions>>,
+} as SafeDict<VisualAction | SafeDict<VisualAction>>,
 /** @not_related_to_di */
 init_ (words: string) {
   const a = this;
@@ -835,6 +869,6 @@ init_ (words: string) {
   // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
   (a._rightWhiteSpaceRe = Build.BTypes & BrowserType.Firefox
       ? /[^\S\n\r\u2029\u202f\ufeff]+$/ as RegExpOne : /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);
-  func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
+  func(map); func(map.a as Dict<VisualAction>); func(map.g as Dict<VisualAction>);
 }
 };

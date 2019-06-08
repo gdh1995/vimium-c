@@ -26,7 +26,7 @@ var VDom = {
     }
     return "";
   } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).tagName.toLowerCase() : ""
-  ) as (element : Element) => string, // duplicate the signature, for easier F12 in VS Code
+  ) as (element: Element) => string, // duplicate the signature, for easier F12 in VS Code
   hasTag_need_safe_: <Tag extends keyof HTMLElementTagNameMap> (element: SafeHTMLElement, tag: Tag
     ): element is HTMLElementTagNameMap[Tag] & SafeHTMLElement => element.tagName.toLowerCase() === tag,
   isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
