@@ -16,9 +16,17 @@ var VDom = {
   docSelectable_: true,
   docNotCompleteWhenVimiumIniting_: document.readyState !== "complete",
   isHTML_: (): boolean => "lang" in <ElementToHTML> (document.documentElement || {}),
-  htmlTag_: (element: Element): string =>
-    "lang" in element && !(Build.BTypes & ~BrowserType.Firefox && VDom.notSafe_(element))
-      ? (element as SafeHTMLElement).tagName.toLowerCase() : "",
+  htmlTag_: (Build.BTypes & ~BrowserType.Firefox ? function (element: Element): string {
+    let s: Element["tagName"] = element.tagName;
+    // tslint:disable-next-line: triple-equals
+    if ("lang" in element && typeof s == "string") {
+      s = s.toLowerCase();
+      return (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
+          ? s === "form" : s === "form" || s === VDom.unsafeFramesetTag_) ? "" : s;
+    }
+    return "";
+  } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).tagName.toLowerCase() : ""
+  ) as (element : Element) => string, // duplicate the signature, for easier F12 in VS Code
   hasTag_need_safe_: <Tag extends keyof HTMLElementTagNameMap> (element: SafeHTMLElement, tag: Tag
     ): element is HTMLElementTagNameMap[Tag] & SafeHTMLElement => element.tagName.toLowerCase() === tag,
   isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
@@ -468,14 +476,14 @@ var VDom = {
     // because .GetParent_ will only return a real parent, but not a fake <form>.parentNode
     return (pe || VDom.GetParent_(element, PNType.DirectNode)) === root;
   } as (element: Element, root?: Element | Document, checkMouseEnter?: 1) => boolean,
-  unsafeFramesetTag_: 0 as "FRAMESET" | 0,
+  unsafeFramesetTag_: "" as "frameset" | "",
   notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
     let s: Node["nodeName"];
     // tslint:disable-next-line: triple-equals
     return !!el && (typeof (s = el.nodeName) != "string" ||
       (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
-        ? s.toUpperCase() === "FORM"
-        : (s = s.toUpperCase()) === "FORM" || s === VDom.unsafeFramesetTag_)
+        ? s.toLowerCase() === "form"
+        : (s = s.toLowerCase()) === "form" || s === VDom.unsafeFramesetTag_)
     );
   } : 0 as never,
   /** @safe_even_if_any_overridden_property */
