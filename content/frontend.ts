@@ -1227,17 +1227,18 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { onWndFocus(); },
     checkHidden_ (this: void, cmd?: FgCmdAcrossFrames
-        , count?: number, options?: NonNullable<FgReq[kFgReq.gotoMainFrame]["a"]>): BOOL {
+        , count?: number, options?: OptionsWithForce): BOOL {
       let el = !isTop && (parentFrame_ || document.documentElement);
       if (!el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
       parEvents: VEventModeTy,
       result: boolean | BOOL = !box.height && !box.width || getComputedStyle(el).visibility === "hidden";
       if (cmd) {
+        type EnsuredOptionsTy = Exclude<typeof options, undefined>;
         if (parentFrame_ && (result || box.bottom <= 0 || parent && box.top > (parent as Window).innerHeight)) {
           parEvents = (parent as Window & { VEvent: VEventModeTy }).VEvent;
           if (parEvents && !parEvents.keydownEvents_(events)) {
-            parEvents.focusAndRun_(cmd, count as number, options as FgOptions, 1);
+            parEvents.focusAndRun_(cmd, count as number, options as EnsuredOptionsTy, 1);
             result = 1;
           }
         }
@@ -1245,10 +1246,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           // here not suppress current cmd, in case of malformed pages;
           // the worst result is doing something in a hidden frame,
           //   which is tolerable, since only few commands do check hidden)
-          (options as Exclude<typeof options, undefined>).$forced ? (result = 0) : post({
+          (options as EnsuredOptionsTy).$forced ? (result = 0) : post({
             H: kFgReq.gotoMainFrame, f: 1,
             c: cmd,
-            n: count as number, a: options as Exclude<typeof options, undefined>
+            n: count as number, a: options as EnsuredOptionsTy
           });
         }
       }

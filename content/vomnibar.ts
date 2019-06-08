@@ -9,7 +9,8 @@ declare namespace VomnibarNS {
   interface IFrameWindow extends Window {
     onmessage: (this: void, ev: { source: Window, data: VomnibarNS.MessageData, ports: IframePort[] }) => void | 1;
   }
-  type BaseFullOptions = CmdOptions[kFgCmd.vomnibar] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
+  type BaseFullOptions = CmdOptions[kFgCmd.vomnibar] & VomnibarNS.BaseFgOptions & Partial<ContentOptions>
+      & SafeObject & OptionsWithForce;
   interface FullOptions extends BaseFullOptions {
     /** top URL */ T?: string;
     /** request Name */ N: VomnibarNS.kCReq.activate;
@@ -55,10 +56,15 @@ var VOmni = {
       if (options.url = url = url ? dom.UI.getSelectionText_() : "") {
         options.newtab = true;
       }
-      if (!isTop && !(options as FgReq[kFgReq.gotoMainFrame]["a"]).$forced) { // check $forced to avoid dead loops
+    }
+    if (!isTop && !options.$forced) { // check $forced to avoid dead loops
+      const p = parent as Window & { VOmni?: typeof VOmni | null };
+      if (VDom.isSameOriginChild_ && p === top && p.VOmni) {
+        p.VOmni.activate_(count, options);
+      } else {
         VPort.post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options });
-        return;
       }
+      return;
     }
     if (!dom.isHTML_()) { return; }
     a.options_ = null;
@@ -80,7 +86,10 @@ var VOmni = {
     }
     a.box_ && dom.UI.adjust_();
     if (a.status_ === VomnibarNS.Status.NotInited) {
-      if (VHints.TryNestedFrame_(kFgCmd.vomnibar, count, options)) { return; }
+      if (!options.$forced) { // re-check it for safety
+        options.$forced = 1;
+        if (VHints.TryNestedFrame_(kFgCmd.vomnibar, count, options)) { return; }
+      }
       a.status_ = VomnibarNS.Status.Initing;
       a.init_(options);
     } else if (a.isABlank_()) {

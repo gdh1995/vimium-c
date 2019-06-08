@@ -141,7 +141,6 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   docZoom_: 1,
   lastScrolling_: 0,
   height_: 0,
-  maxHeight_: 0,
   input_: null as never as HTMLInputElement & Ensure<HTMLInputElement
       , "selectionDirection" | "selectionEnd" | "selectionStart">,
   bodySt_: null as never as CSSStyleDeclaration,

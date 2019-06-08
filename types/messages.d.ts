@@ -20,6 +20,9 @@ interface FindCSS {
   /** hud-iframe */ i: string;
 }
 
+interface OptionsWithForce extends FgOptions {
+  $forced?: true | 1;
+}
 
 declare const enum kBgReq {
   START = 0,
@@ -413,9 +416,7 @@ interface FgReq {
     /** command */ c: FgCmdAcrossFrames;
     /** focusMainFrame and showFrameBorder */ f: BOOL;
     /** count */ n: number;
-    /** options */ a: FgOptions & {
-      $forced?: true;
-    };
+    /** options */ a: OptionsWithForce;
   };
   [kFgReq.setOmniStyle]: {
     /** style */ s: string;
