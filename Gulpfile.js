@@ -723,18 +723,38 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
 }
 
 function postUglify(file, needToPatchExtendClick) {
-  var contents = String(file.contents), changed = false;
+  var contents = null, changed = false;
+  function get() { contents == null && (contents = String(file.contents), changed = true); }
   if (onlyES6 && !locally) {
+    get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
-    changed = true;
   }
   if (needToPatchExtendClick) {
+    get();
     contents = patchExtendClick(contents);
-    changed = true;
+  }
+  var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
+  if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {
+    get();
+    contents = removeVariableDeclaration(contents, "browser");
+  }
+  if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsuredES6WeakMapAndWeakSet */ 36) {
+    get();
+    contents = removeVariableDeclaration(contents, "Weak(Set|Map)");
+  }
+  if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$requestIdleCallback */ 47) {
+    get();
+    contents = removeVariableDeclaration(contents, "requestIdleCallback");
   }
   if (changed) {
     file.contents = new Buffer(contents);
   }
+}
+
+function removeVariableDeclaration(contents, nameRegexp) {
+  return contents.replace(new RegExp(",\\s?" + nameRegexp + "(?=[,;])| " + nameRegexp + ","), function(s) {
+    return s[0] === "," ? "" : " ";
+  });
 }
 
 function copyByPath(path) {
