@@ -81,6 +81,7 @@ var VHints = {
     newHintLength_: 0,
     tab_: 0
   } as HintsNS.KeyStatus,
+  keyCode_: kKeyCode.None,
   isActive_: false,
   noHUD_: false,
   options_: null as never as HintsNS.Options,
@@ -783,6 +784,7 @@ var VHints = {
       VKey.prevent_(event);
       /** safer; necessary for {@link #VHints._highlightChild} */
       VEvent.keydownEvents_()[i] = 1;
+      a.keyCode_ = i;
       a.execute_(linksMatched[0]);
     } else {
       a.hideSpans_(linksMatched);
@@ -903,6 +905,7 @@ var VHints = {
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ = a.pTimer_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
     ks.tab_ = ks.newHintLength_ = ks.known_ = alpha.countMax_ = 0;
+    a.keyCode_ = kKeyCode.None;
     alpha.hintKeystroke_ = alpha.chars_ = "";
     a.isActive_ = a.noHUD_ = a.tooHigh_ = false;
     VKey.removeHandler_(a);
@@ -1155,9 +1158,8 @@ _highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   options.mode = this.mode_;
   el.focus();
   if (err) {
-    /* Note: require window.event is KeyboardEvent  */
     VPort.send_(kFgReq.execInChild, {
-      u: el.src, c: kFgCmd.linkHints, n: count, k: (event as KeyboardEvent).keyCode, a: options
+      u: el.src, c: kFgCmd.linkHints, n: count, k: this.keyCode_, a: options
     }, function (res): void {
       if (!res) {
         el.contentWindow.focus();
