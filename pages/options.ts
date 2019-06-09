@@ -662,15 +662,14 @@ interface AdvancedOptBtn extends HTMLButtonElement {
             || bgBrowserVer_ >= +key.slice(1)) {
           continue;
         }
-        key = "on Chrome browsers before v" + key.slice(1);
+        key = "on Chromium browsers before v" + key.slice(1);
       } else {
         if (key in manifest) { continue; }
         key = `for lacking permission${key ? ":\n* " + key : ""}`;
       }
       (el as TextElement).disabled = true;
-      key = "This option is disabled " + key;
+      key = "This option is invalid " + key;
       if (el instanceof HTMLInputElement && el.type === "checkbox") {
-        el.checked = false;
         el = el.parentElement as HTMLElement;
         el.title = key;
       } else {
