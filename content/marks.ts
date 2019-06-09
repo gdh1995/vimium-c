@@ -16,12 +16,12 @@ var VMarks = {
   onKeydown_ (event: HandlerNS.Event): HandlerResult {
     const keyCode = event.keyCode, cont = !VKey.isEscape_(event);
     let keyChar: string | undefined;
-    if (cont && (keyCode > VKeyCodes.f1 && keyCode < VKeyCodes.minNotFn || keyCode < VKeyCodes.minNotSpace
+    if (cont && (keyCode > kKeyCode.f1 && keyCode < kKeyCode.minNotFn || keyCode < kKeyCode.minNotSpace
         || !(keyChar = VKey.char_(event)) || keyChar.length !== 1)) {
       return 1;
     }
     VKey.removeHandler_(this);
-    cont && keyCode > VKeyCodes.space ? this.onKeyChar_(event, keyChar as string) : VHud.hide_();
+    cont && keyCode > kKeyCode.space ? this.onKeyChar_(event, keyChar as string) : VHud.hide_();
     this.prefix_ = this.swap_ = true;
     this.onKeyChar_ = null as never;
     return 2;

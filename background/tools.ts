@@ -16,10 +16,10 @@ const Clipboard_ = {
   format_ (data: string): string {
     data = data.replace(BgUtils_.A0Re_, " ").replace(this.tailSpacesOrNewLineRe_, "\n");
     let i = data.charCodeAt(data.length - 1);
-    if (i !== KnownKey.space && i !== KnownKey.tab) { /* empty */ }
+    if (i !== kCharCode.space && i !== kCharCode.tab) { /* empty */ }
     else if (i = data.lastIndexOf("\n") + 1) {
       data = data.slice(0, i) + data.slice(i).trimRight();
-    } else if ((i = data.charCodeAt(0)) !== KnownKey.space && i !== KnownKey.tab) {
+    } else if ((i = data.charCodeAt(0)) !== kCharCode.space && i !== kCharCode.tab) {
       data = data.trimRight();
     }
     return data;

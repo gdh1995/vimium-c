@@ -517,7 +517,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     const dict = Object.create<1>(null);
     for (let i of pass.split(" ")) {
       const n = i.charCodeAt(0);
-      i = n === KnownKey.lt ? "&lt;" : n === KnownKey.gt ? "&gt;" : n === KnownKey.and ? "&amp;" : i;
+      i = n === kCharCode.lt ? "&lt;" : n === kCharCode.gt ? "&gt;" : n === kCharCode.and ? "&amp;" : i;
       dict[i] = 1;
     }
     return (isReverted ? "^ " : "") + Object.keys(dict).join(" ");
@@ -580,7 +580,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
   }
   saveBtn.onclick = saveOptions;
   document.addEventListener("keyup", function (event): void {
-    if (event.keyCode === VKeyCodes.enter && (event.ctrlKey || event.metaKey)) {
+    if (event.keyCode === kKeyCode.enter && (event.ctrlKey || event.metaKey)) {
       setTimeout(window.close, 300);
       if (!saved) { return saveOptions(); }
     }
@@ -612,12 +612,12 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
       ) {
     window.addEventListener("keydown", function (event): void {
       if (event.altKey
-          && (event.keyCode === VKeyCodes.X || curIsLocked && event.keyCode === VKeyCodes.Z)
+          && (event.keyCode === kKeyCode.X || curIsLocked && event.keyCode === kKeyCode.Z)
           && !(event.shiftKey || event.ctrlKey || event.metaKey)
           ) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        forceState(event.keyCode === VKeyCodes.X ? toggleAction : "Reset");
+        forceState(event.keyCode === kKeyCode.X ? toggleAction : "Reset");
       }
     });
   }

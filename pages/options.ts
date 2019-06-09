@@ -460,9 +460,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   (element as AdvancedOptBtn).onclick(null, true);
 
   document.addEventListener("keydown", function (this: void, event): void {
-    if (event.keyCode !== VKeyCodes.space) {
+    if (event.keyCode !== kKeyCode.space) {
       if (!window.VKey) { return; }
-      let wanted = event.keyCode === VKeyCodes.questionWin || event.keyCode === VKeyCodes.questionMac ? "?" : "";
+      let wanted = event.keyCode === kKeyCode.questionWin || event.keyCode === kKeyCode.questionMac ? "?" : "";
       if (wanted && VKey.char_(event) === wanted && VKey.key_(event, wanted) === wanted) {
         if (!VEvent.lock_()) {
           console.log('The document receives a "?" key which has been passed (excluded) by Vimium C,',
@@ -480,8 +480,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   document.addEventListener("keyup", function (this: void, event): void {
     const el = event.target as Element, i = event.keyCode;
-    if (i !== VKeyCodes.enter) {
-      if (i !== VKeyCodes.space) { return; }
+    if (i !== kKeyCode.enter) {
+      if (i !== kKeyCode.space) { return; }
       if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
         event.preventDefault();
         click(el.parentElement.control as HTMLElement);

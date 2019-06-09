@@ -9,14 +9,14 @@ var VKey = {
   getKeyName_ (event: KeyboardEvent): string {
     const {keyCode: i, shiftKey: c} = event;
     let s: string | undefined;
-    return i < VKeyCodes.minNotInKeyNames ? (s = i > VKeyCodes.maxNotPrintable
-          ? this.keyNames_[i - VKeyCodes.space] : i === VKeyCodes.backspace ? "backspace"
-          : i === VKeyCodes.esc ? "esc"
-          : i === VKeyCodes.tab ? "tab" : i === VKeyCodes.enter ? "enter" : ""
+    return i < kKeyCode.minNotInKeyNames ? (s = i > kKeyCode.maxNotPrintable
+          ? this.keyNames_[i - kKeyCode.space] : i === kKeyCode.backspace ? "backspace"
+          : i === kKeyCode.esc ? "esc"
+          : i === kKeyCode.tab ? "tab" : i === kKeyCode.enter ? "enter" : ""
         , c ? s && s.toUpperCase() : s)
-      : i < VKeyCodes.minNotDelete && i > VKeyCodes.maxNotInsert ? (i > VKeyCodes.insert ? "delete" : "insert")
+      : i < kKeyCode.minNotDelete && i > kKeyCode.maxNotInsert ? (i > kKeyCode.insert ? "delete" : "insert")
       : (s = event.key) ? this._funcKeyRe.test(s) ? c ? s : s.toLowerCase() : ""
-      : i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn ? "fF"[+c] + (i - VKeyCodes.maxNotFn) : "";
+      : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "fF"[+c] + (i - kKeyCode.maxNotFn) : "";
   },
   // we know that BrowserVer.MinEnsured$KeyboardEvent$$Key < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
   _getKeyCharUsingKeyIdentifier: !(Build.BTypes & BrowserType.Chrome)
@@ -24,14 +24,14 @@ var VKey = {
       : function (this: {}, event: OldKeyboardEvent): string {
     let s: string | undefined = event.keyIdentifier || "";
     if (!s.startsWith("U+")) { return ""; }
-    const keyId: KnownKey = parseInt(s.slice(2), 16);
-    if (keyId < KnownKey.minAlphabet) {
-      return keyId < KnownKey.minNotSpace ? ""
-      : (event.shiftKey && keyId > KnownKey.maxNotNum
-          && keyId < KnownKey.minNotNum) ? ")!@#$%^&*("[keyId - KnownKey.N0]
+    const keyId: kCharCode = parseInt(s.slice(2), 16);
+    if (keyId < kCharCode.minAlphabet) {
+      return keyId < kCharCode.minNotSpace ? ""
+      : (event.shiftKey && keyId > kCharCode.maxNotNum
+          && keyId < kCharCode.minNotNum) ? ")!@#$%^&*("[keyId - kCharCode.N0]
       : String.fromCharCode(keyId);
-    } else if (keyId < KnownKey.minNotAlphabet) {
-      return String.fromCharCode(keyId + (event.shiftKey ? 0 : KnownKey.CASE_DELTA));
+    } else if (keyId < kCharCode.minNotAlphabet) {
+      return String.fromCharCode(keyId + (event.shiftKey ? 0 : kCharCode.CASE_DELTA));
     } else {
       return keyId > 185 && (s = (this as typeof VKey).correctionMap_[keyId - 186]) && s[+event.shiftKey] || "";
     }
@@ -44,7 +44,7 @@ var VKey = {
       return this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
         || (this as EnsureNonNull<typeof VKey>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     }
-    return (key as string).length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName_(event) : key as string;
+    return (key as string).length !== 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event) : key as string;
   },
   key_ (event: EventControlKeys, ch: string): string {
     let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`
@@ -60,7 +60,7 @@ var VKey = {
   },
   isEscape_: null as never as (event: KeyboardEvent) => boolean,
   isRawEscape_ (event: KeyboardEvent): boolean {
-    if (event.keyCode !== VKeyCodes.esc && !event.ctrlKey) { return false; }
+    if (event.keyCode !== kKeyCode.esc && !event.ctrlKey) { return false; }
     const i = this.getKeyStat_(event),
     code = Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
             ? event.code : "";
@@ -70,6 +70,7 @@ var VKey = {
           ? code ? code === "BracketLeft" : this.char_(event) === "["
           : event.code === "BracketLeft");
   },
+
   /** event section */
   Stop_ (this: void, event: Pick<Event, "stopImmediatePropagation">): void { event.stopImmediatePropagation(); },
   prevent_ (this: object, event: Pick<Event, "preventDefault" | "stopImmediatePropagation">): void {
@@ -82,7 +83,7 @@ var VKey = {
   SuppressMost_ (this: object, event: KeyboardEvent): HandlerResult {
     VKey.isEscape_(event) && VKey.removeHandler_(this);
     const key = event.keyCode;
-    return key > VKeyCodes.f10 && key < VKeyCodes.f13 || key === VKeyCodes.f5 ?
+    return key > kKeyCode.f10 && key < kKeyCode.f13 || key === kKeyCode.f5 ?
       HandlerResult.Suppress : HandlerResult.Prevent;
   },
   /** if not timeout, then only suppress repeated keys */
@@ -109,6 +110,7 @@ var VKey = {
     }
     this.pushHandler_(func, func);
   },
+
   /** handler section */
   _handlers: [] as Array<{ func_: (event: HandlerNS.Event) => HandlerResult; env_: object; }>,
   pushHandler_<T extends object> (func: HandlerNS.Handler<T>, env: T): number {

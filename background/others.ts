@@ -281,13 +281,13 @@ BgUtils_.timeout_(600, function (): void {
     defaultOpen = 1, search, plainOthers
   }
   interface SuggestCallback {
-    suggest: OmniboxCallback | null;
-    sent: boolean;
-    key: string;
+    suggest_: OmniboxCallback | null;
+    sent_: boolean;
+    key_: string;
   }
   interface SubInfo {
-    type?: "history" | "tab";
-    sessionId?: number | string;
+    type_?: "history" | "tab";
+    sessionId_?: number | string;
   }
   type SubInfoMap = SafeDict<SubInfo>;
   const onDel = (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
@@ -309,7 +309,7 @@ BgUtils_.timeout_(600, function (): void {
       && CurCVer_ < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
   ;
   function clean(): void {
-    if (lastSuggest) { lastSuggest.suggest = null; }
+    if (lastSuggest) { lastSuggest.suggest_ = null; }
     subInfoMap = suggestions = lastSuggest = last = null;
     if (cleanTimer) { clearTimeout(cleanTimer); }
     if (timer) { clearTimeout(timer); }
@@ -327,14 +327,14 @@ BgUtils_.timeout_(600, function (): void {
   function onTimer(): void {
     timer = 0;
     const arr = lastSuggest;
-    if (!arr || arr.sent) { return; }
+    if (!arr || arr.sent_) { return; }
     lastSuggest = null;
-    if (arr.suggest) {
+    if (arr.suggest_) {
       const now = Date.now(); // safe for time changes
       if (now < inputTime) {
         inputTime = now - 1000;
       }
-      return onInput(arr.key, arr.suggest);
+      return onInput(arr.key_, arr.suggest_);
     }
   }
   function onComplete(this: null, suggest: SuggestCallback, response: Suggestion[]
@@ -342,7 +342,7 @@ BgUtils_.timeout_(600, function (): void {
 // Note: in https://chromium.googlesource.com/chromium/src/+/master/chrome/browser/autocomplete/keyword_extensions_delegate_impl.cc#167 ,
 // the block of `case extensions::NOTIFICATION_EXTENSION_OMNIBOX_SUGGESTIONS_READY:`
 //   always refuses suggestions from old input_ids
-    if (!suggest.suggest) {
+    if (!suggest.suggest_) {
       lastSuggest === suggest && (lastSuggest = null);
       return;
     }
@@ -367,7 +367,7 @@ BgUtils_.timeout_(600, function (): void {
         urlDict[url] = 1;
       }
       if (deletable) {
-        info.type = <SubInfo["type"]> type;
+        info.type_ = <SubInfo["type_"]> type;
         tail = ` ~${i + di}~`;
       }
       if (Build.BTypes & BrowserType.Firefox
@@ -380,7 +380,7 @@ BgUtils_.timeout_(600, function (): void {
       }
       const msg: chrome.omnibox.SuggestResult = { content: url, description: tail };
       deletable && (msg.deletable = true);
-      hasSessionId && (info.sessionId = sugItem.sessionId as string | number);
+      hasSessionId && (info.sessionId_ = sugItem.sessionId as string | number);
       if (deletable || hasSessionId) {
         (subInfoMap as SubInfoMap)[url] = info;
         info = {};
@@ -412,16 +412,16 @@ BgUtils_.timeout_(600, function (): void {
       firstResultUrl = response[0].url;
       suggestions.shift();
     }
-    last = suggest.key;
+    last = suggest.key_;
     BgUtils_.resetRe_();
-    suggest.suggest(suggestions);
+    suggest.suggest_(suggestions);
     return;
   }
   function onInput(this: void, key: string, suggest: OmniboxCallback): void {
     key = key.trim().replace(BgUtils_.spacesRe_, " ");
     if (lastSuggest) {
-      let same = key === lastSuggest.key;
-      lastSuggest.suggest = same ? suggest : null;
+      let same = key === lastSuggest.key_;
+      lastSuggest.suggest_ = same ? suggest : null;
       if (same) {
         return;
       }
@@ -435,7 +435,7 @@ BgUtils_.timeout_(600, function (): void {
       suggest([]);
       return;
     }
-    lastSuggest = { suggest, key, sent: false };
+    lastSuggest = { suggest_: suggest, key_: key, sent_: false };
     if (timer) { return; }
     const now = Date.now(),
     delta = Settings_.omniPayload_.i + inputTime - now; /** it's made safe by {@see #onTimer} */
@@ -443,7 +443,7 @@ BgUtils_.timeout_(600, function (): void {
       timer = setTimeout(onTimer, delta);
       return;
     }
-    lastSuggest.sent = true;
+    lastSuggest.sent_ = true;
     cleanTimer || (cleanTimer = setTimeout(tryClean, 30000));
     inputTime = now;
     subInfoMap = suggestions = null; firstResultUrl = "";
@@ -457,9 +457,9 @@ BgUtils_.timeout_(600, function (): void {
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     const arr = lastSuggest;
-    if (arr && arr.suggest) {
-      arr.suggest = onEnter.bind(null, text, disposition);
-      if (arr.sent) { return; }
+    if (arr && arr.suggest_) {
+      arr.suggest_ = onEnter.bind(null, text, disposition);
+      if (arr.sent_) { return; }
       timer && clearTimeout(timer);
       return onTimer();
     }
@@ -475,7 +475,7 @@ BgUtils_.timeout_(600, function (): void {
       });
     }
     if (firstResultUrl && text === last) { text = firstResultUrl; }
-    const sessionId = subInfoMap && subInfoMap[text] && (subInfoMap[text] as SubInfo).sessionId;
+    const sessionId = subInfoMap && subInfoMap[text] && (subInfoMap[text] as SubInfo).sessionId_;
     clean();
     return open(text, disposition, sessionId);
   }
@@ -514,7 +514,7 @@ BgUtils_.timeout_(600, function (): void {
     // tslint:disable-next-line: radix
     const ind = parseInt(text.slice(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
     let url = suggestions && suggestions[ind].content, info = url && subInfoMap && subInfoMap[url],
-    type = info && info.type;
+    type = info && info.type_;
     if (!type) {
       console.log("Error: want to delete a suggestion but no related info found (may spend too long before deleting).");
       return;
@@ -522,7 +522,7 @@ BgUtils_.timeout_(600, function (): void {
     if ((url as string)[0] === ":") {
       url = (url as string).slice((url as string).indexOf(" ") + 1);
     }
-    return Backend_.removeSug_({ t: type, u: type === "tab" ? (info as SubInfo).sessionId as string : url as string });
+    return Backend_.removeSug_({ t: type, u: type === "tab" ? (info as SubInfo).sessionId_ as string : url as string });
   });
 });
 

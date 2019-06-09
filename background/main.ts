@@ -84,7 +84,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
   /** any change to `cRepeat` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, cRepeat: number = 1,
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
-  needIcon = false, cKey: VKeyCodes = VKeyCodes.None,
+  needIcon = false, cKey: kKeyCode = kKeyCode.None,
   _removeTempTabLock: Promise<void> | null | 0 = Build.BTypes & BrowserType.Firefox ? null : 0, // only for Firefox
   gCmdTimer = 0, gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone;
   const getSecret = (function (this: void): (this: void) => number {
@@ -839,7 +839,7 @@ Are you sure you want to continue?`);
         S: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port) : null,
         m: focusAndShowFrameBorder ? FrameMaskType.ForcedSelf : FrameMaskType.NoMaskAndNoFocus,
         c: req.c, n: req.n,
-        k: focusAndShowFrameBorder ? cKey : VKeyCodes.None,
+        k: focusAndShowFrameBorder ? cKey : kKeyCode.None,
         a: req.a
       });
     } else {
@@ -858,7 +858,7 @@ Are you sure you want to continue?`);
       gCmdTimer = 0;
     }
     if (!ports) {
-      return executeCommand(CommandsData_.shortcutMap_[cmd], 1, VKeyCodes.None, null as never as Port);
+      return executeCommand(CommandsData_.shortcutMap_[cmd], 1, kKeyCode.None, null as never as Port);
     }
     gCmdTimer = setTimeout(executeShortcut, 100, cmd, null);
     ports[0].postMessage({ N: kBgReq.count, c: cmd, i: gCmdTimer });
@@ -1495,7 +1495,7 @@ Are you sure you want to continue?`);
     },
     /* enterInsertMode: */ function (): void {
       let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0;
-      code = stat !== KeyStat.plain ? code || VKeyCodes.esc : code === VKeyCodes.esc ? 0 : code;
+      code = stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
       let
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
         : !Settings_.get_("hideHud", true);
@@ -1672,7 +1672,7 @@ Are you sure you want to continue?`);
   ],
   numHeadRe = <RegExpOne> /^-?\d+|^-/;
   function executeCommand(registryEntry: CommandsNS.Item
-      , count: number, lastKey: VKeyCodes, port: Port): void {
+      , count: number, lastKey: kKeyCode, port: Port): void {
     const { options_: options, repeat_: repeat } = registryEntry;
     let scale: number | undefined;
     if (options && (scale = options.count)) { count = count * scale; }
@@ -2097,7 +2097,7 @@ Are you sure you want to continue?`);
     /** vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar] & Req.baseFg<kFgReq.vomnibar>
         , port: Port): void {
       const { c: count, i: inner } = request;
-      cKey = VKeyCodes.None; // it's only from VHints's task / VOmni reloading, so no Key to suppress
+      cKey = kKeyCode.None; // it's only from VHints's task / VOmni reloading, so no Key to suppress
       if (count != null) {
         delete request.c, delete request.H, delete request.i;
         cRepeat = +count || 1;
@@ -2178,7 +2178,7 @@ Are you sure you want to continue?`);
         gCmdTimer = 0;
       }
       return executeCommand(CommandsData_.shortcutMap_[cmd as Exclude<typeof cmd, "">]
-          , request.n, VKeyCodes.None, port);
+          , request.n, kKeyCode.None, port);
     },
     /** removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
       return Backend_.removeSug_(req, port);

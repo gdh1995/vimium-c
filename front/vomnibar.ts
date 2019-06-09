@@ -99,7 +99,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     } else if (search === null) {
       url = VUtils_.decodeURL_(url).replace(<RegExpG> /\s$/g, "%20");
       if (!keyword && (<RegExpI> /^https?:\/\//i).test(url)) {
-        a.baseHttps_ = (url.charCodeAt(4) | KnownKey.CASE_DELTA) === KnownKey.s;
+        a.baseHttps_ = (url.charCodeAt(4) | kCharCode.CASE_DELTA) === kCharCode.s;
         url = url.slice(a.baseHttps_ ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? -1 : void 0);
       }
     } else {
@@ -146,7 +146,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   bodySt_: null as never as CSSStyleDeclaration,
   barCls_: null as never as DOMTokenList,
   isSelOriginal_: true,
-  lastKey_: VKeyCodes.None,
+  lastKey_: kKeyCode.None,
   keyResult_: HandlerResult.Nothing,
   list_: null as never as EnsuredMountedHTMLElement,
   onUpdate_: null as (() => void) | null,
@@ -393,24 +393,24 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.lastKey_ = n;
     if (event.altKey || event.metaKey) {
       if (event.ctrlKey || event.shiftKey) { /* empty */ }
-      else if (n === VKeyCodes.f2) {
+      else if (n === kKeyCode.f2) {
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
       else if (!focused) { /* empty */ }
-      else if (n > VKeyCodes.A && n < VKeyCodes.G && n !== VKeyCodes.C || n === VKeyCodes.backspace) {
-        return a.onBashAction_(n - VKeyCodes.maxNotAlphabet);
+      else if (n > kKeyCode.A && n < kKeyCode.G && n !== kKeyCode.C || n === kKeyCode.backspace) {
+        return a.onBashAction_(n - kKeyCode.maxNotAlphabet);
       }
       if (event.altKey) { a.keyResult_ = HandlerResult.Nothing; return; }
     }
-    if (n === VKeyCodes.enter) {
+    if (n === kKeyCode.enter) {
       window.onkeyup = a.OnEnterUp_;
       return;
     }
     else if (event.ctrlKey || event.metaKey) {
       if (event.shiftKey) {
-        action = n === VKeyCodes.F ? AllowedActions.pagedown : n === VKeyCodes.B ? AllowedActions.pageup
+        action = n === kKeyCode.F ? AllowedActions.pagedown : n === kKeyCode.B ? AllowedActions.pageup
           : AllowedActions.nothing;
-      } else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
+      } else if (n === kKeyCode.up || n === kKeyCode.down || n === kKeyCode.end || n === kKeyCode.home) {
         event.preventDefault();
         a.lastScrolling_ = Date.now();
         window.onkeyup = Vomnibar_.HandleKeydown_;
@@ -423,20 +423,20 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       }
     }
     else if (event.shiftKey) {
-      action = n === VKeyCodes.up ? AllowedActions.pageup : n === VKeyCodes.down ? AllowedActions.pagedown
-        : n === VKeyCodes.tab ? AllowedActions.up : n === VKeyCodes.deleteKey ? AllowedActions.remove
+      action = n === kKeyCode.up ? AllowedActions.pageup : n === kKeyCode.down ? AllowedActions.pagedown
+        : n === kKeyCode.tab ? AllowedActions.up : n === kKeyCode.deleteKey ? AllowedActions.remove
         : AllowedActions.nothing;
     }
     else if (action = a.normalMap_[n] || AllowedActions.nothing) { /* empty */ }
-    else if (n === VKeyCodes.ime || n > VKeyCodes.f1 && n < VKeyCodes.minNotFn) {
+    else if (n === kKeyCode.ime || n > kKeyCode.f1 && n < kKeyCode.minNotFn) {
       a.keyResult_ = HandlerResult.Nothing;
       return;
     }
-    else if (n === VKeyCodes.backspace) {
+    else if (n === kKeyCode.backspace) {
       if (focused) { a.keyResult_ = HandlerResult.Suppress; }
       return;
     }
-    else if (n !== VKeyCodes.space) { /* empty */ }
+    else if (n !== kKeyCode.space) { /* empty */ }
     else if (!focused) { action = AllowedActions.focus; }
     else if ((a.selection_ >= 0
         || a.completions_.length <= 1) && a.input_.value.endsWith("  ")) {
@@ -446,11 +446,11 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       return a.onAction_(action);
     }
 
-    if (!focused && n < VKeyCodes.minNotNum && n > VKeyCodes.maxNotNum) {
-      n = (n - VKeyCodes.N0) || 10;
+    if (!focused && n < kKeyCode.minNotNum && n > kKeyCode.maxNotNum) {
+      n = (n - kKeyCode.N0) || 10;
       return !event.shiftKey && n <= a.completions_.length ? a.onEnter_(event, n - 1) : undefined;
     }
-    a.keyResult_ = focused && n !== VKeyCodes.menuKey ? HandlerResult.Suppress : HandlerResult.Nothing;
+    a.keyResult_ = focused && n !== kKeyCode.menuKey ? HandlerResult.Suppress : HandlerResult.Nothing;
   },
   onAction_ (action: AllowedActions): void {
     const a = Vomnibar_;
@@ -549,16 +549,16 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? event.isTrusted
         : event.isTrusted === true
           || event.isTrusted == null && event instanceof KeyboardEvent
-            && (keyCode === VKeyCodes.enter || keyCode === VKeyCodes.ctrlKey || keyCode === VKeyCodes.shiftKey
-                || keyCode === VKeyCodes.metaKey)
+            && (keyCode === kKeyCode.enter || keyCode === kKeyCode.ctrlKey || keyCode === kKeyCode.shiftKey
+                || keyCode === kKeyCode.metaKey)
     ) { // call onEnter once an enter / control key is up
-      Vomnibar_.lastKey_ = VKeyCodes.None;
+      Vomnibar_.lastKey_ = kKeyCode.None;
       window.onkeyup = null as never;
       var keys = {
-        altKey: event.altKey || keyCode === VKeyCodes.altKey,
-        ctrlKey: event.ctrlKey || keyCode === VKeyCodes.ctrlKey,
-        metaKey: event.metaKey || keyCode === VKeyCodes.metaKey,
-        shiftKey: event.shiftKey || keyCode === VKeyCodes.shiftKey
+        altKey: event.altKey || keyCode === kKeyCode.altKey,
+        ctrlKey: event.ctrlKey || keyCode === kKeyCode.ctrlKey,
+        metaKey: event.metaKey || keyCode === kKeyCode.metaKey,
+        shiftKey: event.shiftKey || keyCode === kKeyCode.shiftKey
       };
       Vomnibar_.onEnter_(keys);
     }
@@ -588,7 +588,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (a.timer_) { VUtils_.Stop_(event, 1); return; }
     while (el && el.parentElement !== a.list_) { el = el.parentElement as SafeHTMLElement | null; }
     if (!el) { return; }
-    a.lastKey_ = VKeyCodes.None;
+    a.lastKey_ = kKeyCode.None;
     a.onEnter_(event, [].indexOf.call(a.list_.children, el));
   },
   OnMenu_ (this: void, event: Event): void {
@@ -607,7 +607,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (el.selectionStart !== 0 || el.selectionDirection !== "backward") { return; }
     let left = el.value,
     end = el.selectionEnd - 1;
-    if (left.charCodeAt(end) !== KnownKey.space || end === left.length - 1) { return; }
+    if (left.charCodeAt(end) !== kCharCode.space || end === left.length - 1) { return; }
     left = left.slice(0, end).trimRight();
     if (left.indexOf(" ") === -1) {
       el.setSelectionRange(0, left.length, "backward");
@@ -948,7 +948,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (window.onkeyup) {
       let stop = !event.repeat, now: number = 0;
       if (!Vomnibar_.lastScrolling_) {
-        stop = event.keyCode > VKeyCodes.ctrlKey || event.keyCode < VKeyCodes.shiftKey;
+        stop = event.keyCode > kKeyCode.ctrlKey || event.keyCode < kKeyCode.shiftKey;
       } else if (stop || (now = Date.now()) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
         VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.scrollEnd : VomnibarNS.kFReq.scrollGoing });
         Vomnibar_.lastScrolling_ = now;
@@ -1047,7 +1047,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       : url;
   },
   navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null): void {
-    if (url.charCodeAt(10) === KnownKey.colon && url.slice(0, 11).toLowerCase() === "javascript:") {
+    if (url.charCodeAt(10) === kCharCode.colon && url.slice(0, 11).toLowerCase() === "javascript:") {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: url });
       return;
     }
@@ -1161,8 +1161,8 @@ VUtils_ = {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
-      return i === KnownKey.and ? "&amp;" : i === KnownKey.quote1 ? "&apos;"
-        : i < KnownKey.quote1 ? "%22" : i === KnownKey.lt ? "%3C" : "%3E";
+      return i === kCharCode.and ? "&amp;" : i === kCharCode.quote1 ? "&apos;"
+        : i < kCharCode.quote1 ? "%22" : i === kCharCode.lt ? "%3C" : "%3E";
     }
     VUtils_.escapeCSSStringInAttr_ = function (s): string {
       return s.replace(escapeRe, escapeCallback);

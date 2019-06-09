@@ -712,15 +712,15 @@ var VHints = {
       // NOTE: should always prevent repeated keys.
     } else if (VKey.isEscape_(event)) {
       a.clean_();
-    } else if ((i = event.keyCode) === VKeyCodes.esc) {
+    } else if ((i = event.keyCode) === kKeyCode.esc) {
       return HandlerResult.Suppress;
-    } else if (i === VKeyCodes.ime) {
+    } else if (i === kKeyCode.ime) {
       a.clean_(1);
       VHud.tip_("LinkHints exits because you're inputting");
       return HandlerResult.Nothing;
-    } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
+    } else if (i > kKeyCode.f1 && i <= kKeyCode.f12) {
       a.ResetMode_();
-      if (i !== VKeyCodes.f2) { return HandlerResult.Nothing; }
+      if (i !== kKeyCode.f2) { return HandlerResult.Nothing; }
       i = VKey.getKeyStat_(event);
       let deep = a.queryInDeep_, reinit = true;
       if (i & KeyStat.shiftKey) {
@@ -737,7 +737,7 @@ var VHints = {
           reinit = deep !== DeepQueryType.NotAvailable;
           a.queryInDeep_ = DeepQueryType.InDeep - deep;
         }
-      } else if (i === KeyStat.ctrlKey || (i === VKeyCodes.metaKey && VDom.cache_.m)) {
+      } else if (i === KeyStat.ctrlKey || (i === kKeyCode.metaKey && VDom.cache_.m)) {
         if ((Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinNoShadowDOMv0) {
           reinit = deep === DeepQueryType.NotDeep;
           a.queryInDeep_ = DeepQueryType.InDeep;
@@ -750,14 +750,14 @@ var VHints = {
         reinit = false;
       }
       reinit && setTimeout(a._reinit.bind(a, null, null), 0);
-    } else if (i === VKeyCodes.shiftKey || i === VKeyCodes.ctrlKey || i === VKeyCodes.altKey
-        || (i === VKeyCodes.metaKey && VDom.cache_.m)) {
+    } else if (i === kKeyCode.shiftKey || i === kKeyCode.ctrlKey || i === kKeyCode.altKey
+        || (i === kKeyCode.metaKey && VDom.cache_.m)) {
       const mode = a.mode_,
-      mode2 = i === VKeyCodes.altKey
+      mode2 = i === kKeyCode.altKey
         ? mode < HintMode.min_disable_queue
           ? ((mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | mode) ^ HintMode.queue : mode
         : mode < HintMode.min_job
-          ? i === VKeyCodes.shiftKey ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
+          ? i === kKeyCode.shiftKey ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
           : (mode | HintMode.newTab) ^ HintMode.focused
         : mode;
       if (mode2 !== mode) {
@@ -765,10 +765,10 @@ var VHints = {
         i = VKey.getKeyStat_(event);
         (i & (i - 1)) || (a.lastMode_ = mode);
       }
-    } else if (i <= VKeyCodes.down && i >= VKeyCodes.pageup) {
+    } else if (i <= kKeyCode.down && i >= kKeyCode.pageup) {
       VEvent.scroll_(event);
       a.ResetMode_();
-    } else if (i === VKeyCodes.space) {
+    } else if (i === kKeyCode.space) {
       a.zIndexes_ === false || a.rotateHints_(event.shiftKey);
       event.shiftKey && a.ResetMode_();
     } else if (!(linksMatched
@@ -817,7 +817,7 @@ var VHints = {
   ResetMode_ (): void {
     if (VHints.mode_ >= HintMode.min_disable_queue || VHints.lastMode_ === VHints.mode_) { return; }
     const d = VEvent.keydownEvents_();
-    if (d[VKeyCodes.ctrlKey] || d[VKeyCodes.metaKey] || d[VKeyCodes.shiftKey] || d[VKeyCodes.altKey]) {
+    if (d[kKeyCode.ctrlKey] || d[kKeyCode.metaKey] || d[kKeyCode.shiftKey] || d[kKeyCode.altKey]) {
       return VHints.setMode_(VHints.lastMode_);
     }
   },
@@ -1031,7 +1031,7 @@ alphabetHints_: {
   matchHintsByKey_ (hints: HintsNS.HintItem[], e: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
     const a = this;
     let keyChar: string, key = e.keyCode, arr = null as HintsNS.HintItem[] | null;
-    if (key === VKeyCodes.tab) {
+    if (key === kKeyCode.tab) {
       if (!a.hintKeystroke_) {
         return false;
       }
@@ -1041,8 +1041,8 @@ alphabetHints_: {
       keyStatus.tab_ = 0;
     }
     keyStatus.known_ = 1;
-    if (key === VKeyCodes.tab) { /* empty */ }
-    else if (key === VKeyCodes.backspace || key === VKeyCodes.deleteKey || key === VKeyCodes.f1) {
+    if (key === kKeyCode.tab) { /* empty */ }
+    else if (key === kKeyCode.backspace || key === kKeyCode.deleteKey || key === kKeyCode.f1) {
       if (!a.hintKeystroke_) {
         return [];
       }

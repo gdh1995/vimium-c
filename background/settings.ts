@@ -554,7 +554,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     ? "about:home" : "about:newtab", ChromeNewTab = "chrome://newtab",
   ref3 = settings.newTabs_ as SafeDict<Urls.NewTabType>;
   function func(path: string): string {
-    return (path.charCodeAt(0) === KnownKey.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
+    return (path.charCodeAt(0) === kCharCode.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
   if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
     (payload_ as Writeable<typeof payload_>).b =

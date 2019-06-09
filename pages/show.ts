@@ -273,7 +273,7 @@ document.addEventListener("keydown", function (this: void, event): void {
   }
   if (!(event.ctrlKey || event.metaKey) || event.altKey
     || event.shiftKey || event.repeat) { return; }
-  const str = String.fromCharCode(event.keyCode as VKeyCodes | KnownKey as KnownKey);
+  const str = String.fromCharCode(event.keyCode as kKeyCode | kCharCode as kCharCode);
   if (str === "S") {
     return clickLink({
       download: VData.file || ""
@@ -320,7 +320,7 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
 function imgOnKeydown(event: KeyboardEvent): boolean {
   const { keyCode } = event;
   if (VData.error) { return false; }
-  if (keyCode === VKeyCodes.space || keyCode === VKeyCodes.enter) {
+  if (keyCode === kKeyCode.space || keyCode === kKeyCode.enter) {
     event.preventDefault();
     simulateClick(VShown as ValidNodeTypes, event);
     return true;

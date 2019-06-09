@@ -272,7 +272,7 @@ const bookmarkEngine = {
     }
     if (bookmarkEngine.status_ === BookmarkStatus.notInited) { return bookmarkEngine.refresh_(); }
   },
-  StartsWithSlash_ (str: string): boolean { return str.charCodeAt(0) === KnownKey.slash; },
+  StartsWithSlash_ (str: string): boolean { return str.charCodeAt(0) === kCharCode.slash; },
   performSearch_ (): void {
     const isPath = queryTerms.some(this.StartsWithSlash_);
     const arr = this.bookmarks_, len = arr.length;
@@ -1045,7 +1045,7 @@ Completers = {
     let str = rawQuery, ind: number, i: number;
     offset = 0; queryType = FirstQuery.nothing; rawMore = "";
     if (str.length === 0 || (ind = (str = str.slice(-5)).lastIndexOf("+")) < 0
-      || ind !== 0 && str.charCodeAt(ind - 1) !== KnownKey.space
+      || ind !== 0 && str.charCodeAt(ind - 1) !== kCharCode.space
     ) {
       return;
     }
@@ -1415,7 +1415,7 @@ knownCs: CompletersMap & SafeObject = {
     OnUpdate_ (this: void, newList: string): void {
       const arr: string[] = [];
       for (let line of newList.split("\n")) {
-        if (!(line && line.trimLeft().charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
+        if (!(line && line.trimLeft().charCodeAt(0) > kCharCode.maxCommentHead)) { continue; } // mask: /[!"#]/
         if (line.trim()) {
           arr.push(line);
         }

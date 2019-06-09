@@ -264,30 +264,30 @@ var VFind = {
     const n = event.keyCode;
     type Result = FindNS.Action;
     let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
-      : n === VKeyCodes.enter
+      : n === kKeyCode.enter
         ? event.shiftKey ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
-      : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? FindNS.Action.DoNothing
-      : a.query_ || (n === VKeyCodes.deleteKey && !VDom.cache_.m || event.repeat) ? FindNS.Action.PassDirectly
+      : (n !== kKeyCode.backspace && n !== kKeyCode.deleteKey) ? FindNS.Action.DoNothing
+      : a.query_ || (n === kKeyCode.deleteKey && !VDom.cache_.m || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
       if (VKey.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
       else if (i = VKey.getKeyStat_(event)) {
         if (i & ~KeyStat.PrimaryModifier) { return; }
-        else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
+        else if (n === kKeyCode.up || n === kKeyCode.down || n === kKeyCode.end || n === kKeyCode.home) {
           VEvent.scroll_(event, a.box_.contentWindow);
         }
-        else if (n === VKeyCodes.J || n === VKeyCodes.K) {
-          a.execute_(null, { n: (VKeyCodes.K - n) || -1 });
+        else if (n === kKeyCode.J || n === kKeyCode.K) {
+          a.execute_(null, { n: (kKeyCode.K - n) || -1 });
         }
         else { return; }
         i = FindNS.Action.DoNothing;
       }
-      else if (n === VKeyCodes.f1) { a.box_.contentDocument.execCommand("delete"); }
-      else if (n === VKeyCodes.f2) {
+      else if (n === kKeyCode.f1) { a.box_.contentDocument.execCommand("delete"); }
+      else if (n === kKeyCode.f2) {
         Build.BTypes & BrowserType.Firefox && a.box_.blur();
         focus(); VEvent.keydownEvents_()[n] = 1;
       }
-      else if (n === VKeyCodes.up || n === VKeyCodes.down) { a.nextQuery_(n !== VKeyCodes.up); }
+      else if (n === kKeyCode.up || n === kKeyCode.down) { a.nextQuery_(n !== kKeyCode.up); }
       else { return; }
     } else if (i === FindNS.Action.PassDirectly) {
       return;
@@ -299,13 +299,13 @@ var VFind = {
   },
   onHostKeydown_ (event: KeyboardEvent): HandlerResult {
     let i = VKey.getKeyStat_(event), n = event.keyCode, a = this;
-    if (!i && n === VKeyCodes.f2) {
+    if (!i && n === kKeyCode.f2) {
       a._onUnexpectedBlur && a._onUnexpectedBlur();
       a.focus_();
       return HandlerResult.Prevent;
     } else if (i && !(i & ~KeyStat.PrimaryModifier)) {
-      if (n === VKeyCodes.J || n === VKeyCodes.K) {
-        a.execute_(null, { n: (VKeyCodes.K - n) || -1 });
+      if (n === kKeyCode.J || n === kKeyCode.K) {
+        a.execute_(null, { n: (kKeyCode.K - n) || -1 });
         return HandlerResult.Prevent;
       }
     }
@@ -537,11 +537,11 @@ var VFind = {
     try { return new RegExp(pattern, flags as "g"); } catch {}
   },
   FormatQuery_ (this: void, str: string): string {
-    let flag = str.charCodeAt(1), enabled = flag >= KnownKey.a, a = VFind;
-    if (flag === KnownKey.backslash) { return str; }
-    flag &= ~KnownKey.CASE_DELTA;
-    if (flag === KnownKey.I || flag === KnownKey.C) { a.ignoreCase_ = enabled === (flag === KnownKey.I); }
-    else if (flag === KnownKey.W) {
+    let flag = str.charCodeAt(1), enabled = flag >= kCharCode.a, a = VFind;
+    if (flag === kCharCode.backslash) { return str; }
+    flag &= ~kCharCode.CASE_DELTA;
+    if (flag === kCharCode.I || flag === kCharCode.C) { a.ignoreCase_ = enabled === (flag === kCharCode.I); }
+    else if (flag === kCharCode.W) {
       if (a.isRegex_) { return str; }
       a.wholeWord_ = enabled;
     }

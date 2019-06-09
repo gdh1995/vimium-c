@@ -47,7 +47,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     return ch ? ch === "<esc>" || ch === "<c-[>" : VKey.isRawEscape_(event);
   }
-  function checkKey(key: string, keyCode: VKeyCodes
+  function checkKey(key: string, keyCode: kKeyCode
       ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc {
     // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
     if (passKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
@@ -80,7 +80,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /** if `notBody` then `activeEl` is not null */
     if (!repeat && VDom.UI.removeSelection_()) {
       /* empty */
-    } else if (repeat && !KeydownEvents[VKeyCodes.esc] && activeEl !== body) {
+    } else if (repeat && !KeydownEvents[kKeyCode.esc] && activeEl !== body) {
       (Build.BTypes & ~BrowserType.Firefox ? typeof (activeEl as Element).blur === "function"
           : (activeEl as Element).blur) &&
       (activeEl as HTMLElement | SVGElement).blur();
@@ -109,9 +109,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
       if (g ? !g.code ? VKey.isEscape_(event) : key === g.code && VKey.getKeyStat_(event) === g.stat
-          : (keyChar = key > VKeyCodes.maxNotFn && key < VKeyCodes.minNotFn
+          : (keyChar = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
               ? VKey.key_(event, VKey.getKeyName_(event))
-              : VKey.isEscape_(event) ? key - VKeyCodes.esc ? "<c-[>" : "<esc>" : "")
+              : VKey.isEscape_(event) ? key - kKeyCode.esc ? "<c-[>" : "<esc>" : "")
             && (action = checkKey(keyChar, key)) === HandlerResult.Esc
       ) {
         if (InsertMode.lock_ === document.body && InsertMode.lock_) {
@@ -123,13 +123,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         }
       }
     }
-    else if (key > VKeyCodes.maxNotPrintable || key === VKeyCodes.backspace || key === VKeyCodes.tab
-        || key === VKeyCodes.esc || key === VKeyCodes.enter) {
+    else if (key > kKeyCode.maxNotPrintable || key === kKeyCode.backspace || key === kKeyCode.tab
+        || key === kKeyCode.esc || key === kKeyCode.enter) {
       if (keyChar = VKey.char_(event)) {
         keyChar = VKey.key_(event, keyChar);
         action = checkKey(keyChar, key);
         if (action === HandlerResult.Esc) {
-          action = key === VKeyCodes.esc ? onEscDown(event) : HandlerResult.Nothing;
+          action = key === kKeyCode.esc ? onEscDown(event) : HandlerResult.Nothing;
         }
         if (action === HandlerResult.Nothing && InsertMode.suppressType_ && keyChar.length === 1) {
           action = HandlerResult.Prevent;
@@ -418,7 +418,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         VKey.removeHandler_(keys);
         HUD.hide_();
       };
-      onKeyup2({keyCode: VKeyCodes.None});
+      onKeyup2({keyCode: kKeyCode.None});
     },
     /* kFgCmd.goNext: */ function (_0: number, {rel, patterns}: CmdOptions[kFgCmd.goNext]): void {
       if (!VDom.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }
@@ -544,7 +544,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       InsertMode.inputHint_ = { box, hints };
       VKey.pushHandler_(function (event) {
         const { keyCode } = event;
-        if (keyCode === VKeyCodes.tab) {
+        if (keyCode === kKeyCode.tab) {
           const hints2 = this.hints, oldSel = sel, len = hints2.length;
           sel = (oldSel + (event.shiftKey ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
@@ -556,14 +556,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           return HandlerResult.Prevent;
         }
         let keyStat: KeyStat;
-        if (keyCode === VKeyCodes.shiftKey || keep && (keyCode === VKeyCodes.altKey
-            || keyCode === VKeyCodes.ctrlKey || keyCode === VKeyCodes.metaKey)) { /* empty */ }
+        if (keyCode === kKeyCode.shiftKey || keep && (keyCode === kKeyCode.altKey
+            || keyCode === kKeyCode.ctrlKey || keyCode === kKeyCode.metaKey)) { /* empty */ }
         else if (event.repeat) { return HandlerResult.Nothing; }
         else if (keep ? VKey.isEscape_(event) || (
-            keyCode === VKeyCodes.enter && (keyStat = VKey.getKeyStat_(event),
+            keyCode === kKeyCode.enter && (keyStat = VKey.getKeyStat_(event),
               keyStat !== KeyStat.shiftKey
               && (keyStat !== KeyStat.plain || VDom.hasTag_need_safe_(this.hints[sel].target_, "input") ))
-          ) : keyCode !== VKeyCodes.ime && keyCode !== VKeyCodes.f12
+          ) : keyCode !== kKeyCode.ime && keyCode !== kKeyCode.f12
         ) {
           InsertMode.exitInputHint_();
           return !VKey.isEscape_(event) ? HandlerResult.Nothing : keep || !InsertMode.lock_ ? HandlerResult.Prevent
@@ -649,8 +649,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return false;
       }
     },
-    /** @param key should not be `VKeyCodes.None` */
-    focusUpper_ (this: void, key: VKeyCodes, force: boolean, event: Parameters<typeof VKey.prevent_>[0]
+    /** @param key should not be {@link #kKeyCode.None} */
+    focusUpper_ (this: void, key: kKeyCode, force: boolean, event: Parameters<typeof VKey.prevent_>[0]
         ): void {
       if (!parentFrame_ && (!force || isTop)) { return; }
       VKey.prevent_(event); // safer
@@ -1293,14 +1293,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     scroll_ (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
-      if (!(keyCode > VKeyCodes.maxNotPageUp && keyCode < VKeyCodes.minNotDown)) { return; }
+      if (!(keyCode > kKeyCode.maxNotPageUp && keyCode < kKeyCode.minNotDown)) { return; }
       wnd && VDom.cache_.smoothScroll && events.OnScrolls_[1](wnd, 1);
-      const work = keyCode > VKeyCodes.maxNotLeft ? 1 : keyCode > VKeyCodes.maxNotEnd ? 2
+      const work = keyCode > kKeyCode.maxNotLeft ? 1 : keyCode > kKeyCode.maxNotEnd ? 2
         : !(event.ctrlKey || event.metaKey) ? 3 : 0,
       Sc = VScroller;
       work && event instanceof Event && VKey.prevent_(event as Event);
       if (work === 1) {
-        Sc.scroll_((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);
+        Sc.scroll_((1 - c) as BOOL, keyCode < kKeyCode.minNotUp ? -1 : 1, 0);
       } else if (work === 2) {
         Sc.scroll_(1, 0, 1, 0, c > 0);
       } else if (work) {

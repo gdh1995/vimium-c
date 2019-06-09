@@ -365,7 +365,7 @@ declare const enum GlobalConsts {
   TrimmedTitleLengthForTooLongURL = 160,
 }
 
-declare const enum KnownKey {
+declare const enum kCharCode {
   tab = 9, space = 32, minNotSpace, bang = 33, quote2 = 34, hash = 35,
   maxCommentHead = hash, and = 38, quote1 = 39, minNotInKeyNames = 41,
   /** '-' */ dash = 45,
@@ -376,7 +376,7 @@ declare const enum KnownKey {
   backslash = 92, s = 115,
 }
 
-declare const enum VKeyCodes {
+declare const enum kKeyCode {
   None = 0,
   backspace = 8, tab = 9, enter = 13, shiftKey = 16, ctrlKey = 17, altKey = 18, esc = 27,
   maxNotPrintable = 32 - 1, space, maxNotPageUp = space, pageup, minNotSpace = pageup,
@@ -388,7 +388,7 @@ declare const enum VKeyCodes {
   O, P, Q, R, S, T, U, V, W, X, Y, Z, MinNotAlphabet,
   metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f5 = f1 + 4,
   f10 = f1 + 9, f12 = f1 + 11, f13, f20 = f1 + 19, minNotFn, ime = 229,
-  questionWin = 191, questionMac = KnownKey.question,
+  questionWin = 191, questionMac = kCharCode.question,
 }
 declare const enum KeyStat {
   Default = 0, plain = Default,

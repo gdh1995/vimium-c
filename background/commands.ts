@@ -38,7 +38,7 @@ var Commands = {
         options.count = details[0] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
       }
       if (options.$desc || options.$key) {
-        help = { key: options.$key || "", desc: options.$desc || "" };
+        help = { key_: options.$key || "", desc_: options.$desc || "" };
         delete options.$key;
         delete options.$desc;
       }
@@ -78,7 +78,7 @@ var Commands = {
     }
     for (_len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
-      if (!(line && line.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
+      if (!(line && line.charCodeAt(0) > kCharCode.maxCommentHead)) { continue; } // mask: /[!"#]/
       splitLine = line.split(" ");
       key = splitLine[0];
       if (key === "map") {
@@ -91,7 +91,8 @@ var Commands = {
           console.log("Lacking command when mapping %c%s", colorRed, key);
         } else if (!(details = available[splitLine[2]])) {
           console.log("Command %c%s", colorRed, splitLine[2], "doesn't exist!");
-        } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum || ch === KnownKey.dash) {
+        } else if ((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum
+            || ch === kCharCode.dash) {
           console.log("Invalid key: %c%s", colorRed, key, "(the first char can not be '-' or number)");
         } else {
           registry[key] = (this as typeof Commands).makeCommand_(splitLine[2],
@@ -208,7 +209,7 @@ var Commands = {
     ++Settings_.temp_.cmdErrors_;
   },
   execute_ (message: Partial<ExternalMsgs[kFgReq.command]["req"]> , sender: chrome.runtime.MessageSender
-      , exec: (registryEntry: CommandsNS.Item, count: number, lastKey: VKeyCodes, port: Port) => void
+      , exec: (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port) => void
       ): void {
     let command = message.command;
     command = message.command ? message.command + "" : "";
@@ -216,7 +217,7 @@ var Commands = {
     const port: Port | null = sender.tab ? Backend_.indexPorts_(sender.tab.id, sender.frameId || 0)
             || (Backend_.indexPorts_(sender.tab.id) || [null])[0] : null;
     let options = message.options as CommandsNS.RawOptions | null | undefined
-      , lastKey: VKeyCodes | undefined = message.key
+      , lastKey: kKeyCode | undefined = message.key
       , count = message.count as number | string | undefined;
     count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
     options && typeof options === "object" ?

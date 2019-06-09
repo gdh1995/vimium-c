@@ -5192,7 +5192,7 @@ interface KeyboardEvent extends UIEvent {
     readonly charCode: number;
     readonly ctrlKey: boolean;
     readonly key?: string;
-    readonly keyCode: VKeyCodes;
+    readonly keyCode: kKeyCode;
     readonly locale: string;
     readonly location: number;
     readonly metaKey: boolean;

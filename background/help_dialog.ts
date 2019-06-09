@@ -158,8 +158,8 @@ var HelpDialog = {
     } else if (!a) {
       a = this.template_ = new DOMParser();
     }
-    help.$key = help.key ? this.safeHTML_(help.key, a) : "";
-    help.$desc = help.desc ? this.safeHTML_(help.desc, a) : "";
+    help.$key = help.key_ ? this.safeHTML_(help.key_, a) : "";
+    help.$desc = help.desc_ ? this.safeHTML_(help.desc_, a) : "";
   },
   // https://support.zendesk.com/hc/en-us/articles/115015895948-Allowing-unsafe-HTML-in-articles
   safeTags: {

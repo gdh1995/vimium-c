@@ -305,7 +305,7 @@ var VOmni = {
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     if (VEvent.lock_()) { return HandlerResult.Nothing; }
     if (VKey.isEscape_(event)) { this.hide_(); return HandlerResult.Prevent; }
-    const key = event.keyCode - VKeyCodes.f1;
+    const key = event.keyCode - kKeyCode.f1;
     if (key === 0 || key === 1) {
       this.focus_();
       return HandlerResult.Prevent;

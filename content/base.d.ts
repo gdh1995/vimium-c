@@ -236,7 +236,7 @@ declare namespace VomnibarNS {
     [kFReq.hide]: {
     };
     [kFReq.scroll]: {
-      /** keyCode */ keyCode: VKeyCodes;
+      /** keyCode */ keyCode: kKeyCode;
     };
     [kFReq.style]: {
       // unit: physical pixel (if C<52)
@@ -245,7 +245,7 @@ declare namespace VomnibarNS {
     };
     [kFReq.hud]: { t: string; };
     [kFReq.focus]: {
-      /** lastKey */ l: VKeyCodes;
+      /** lastKey */ l: kKeyCode;
     };
     [kFReq.evalJS]: {
       u: string;
@@ -382,7 +382,7 @@ interface VEventModeTy {
   onWndBlur_ (this: void, onWndBlur2: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
   mapKey_ (this: void, key: string): string;
-  scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: VKeyCodes }, wnd?: Window): void;
+  scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: kKeyCode }, wnd?: Window): void;
   /** return has_error */
   readonly keydownEvents_: {
     (this: void, srcFrame: Pick<VEventModeTy, "keydownEvents_">): boolean;

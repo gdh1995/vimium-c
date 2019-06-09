@@ -31,8 +31,8 @@ var BgUtils_ = {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
-      return i === KnownKey.and ? "&amp;" : i === KnownKey.quote1 ? "&apos;"
-        : i < KnownKey.quote1 ? "&quot;" : i === KnownKey.lt ? "&lt;" : "&gt;";
+      return i === kCharCode.and ? "&amp;" : i === kCharCode.quote1 ? "&apos;"
+        : i < kCharCode.quote1 ? "&quot;" : i === kCharCode.lt ? "&lt;" : "&gt;";
     }
     this.escapeText_ = function (s: string): string {
       return s.replace(escapeRe, escapeCallback);
@@ -47,7 +47,7 @@ var BgUtils_ = {
     return this.unescapeHTML_(str);
   },
   isJSUrl_ (s: string): boolean {
-    return s.charCodeAt(10) === KnownKey.colon && s.slice(0, 11).toLowerCase() === "javascript:";
+    return s.charCodeAt(10) === kCharCode.colon && s.slice(0, 11).toLowerCase() === "javascript:";
   },
   isRefusingIncognito_ (url: string): boolean {
     url = url.toLowerCase();
@@ -154,7 +154,7 @@ var BgUtils_ = {
       }
       else if ((index = str.indexOf("/")) <= 0) {
         if (index === 0 || str.length < index2) { type = Urls.Type.Search; }
-      } else if (str.length >= index2 || str.charCodeAt(index + 1) > KnownKey.space) {
+      } else if (str.length >= index2 || str.charCodeAt(index + 1) > kCharCode.space) {
         hasPath = str.length > index + 1;
         str = str.slice(0, index);
       } else {
@@ -175,13 +175,13 @@ var BgUtils_ = {
       }
     }
     else if ((index2 = str.indexOf("/", index + 3)) === -1
-        ? str.length < oldString.length : str.charCodeAt(index2 + 1) < KnownKey.minNotSpace
+        ? str.length < oldString.length : str.charCodeAt(index2 + 1) < kCharCode.minNotSpace
     ) {
       type = Urls.Type.Search;
     }
     else if (a._nonENTldRe.test(str.slice(0, index))) {
-      type = (index = str.charCodeAt(index + 3)) > KnownKey.space
-        && index !== KnownKey.slash ? Urls.Type.Full : Urls.Type.Search;
+      type = (index = str.charCodeAt(index + 3)) > kCharCode.space
+        && index !== kCharCode.slash ? Urls.Type.Full : Urls.Type.Search;
     }
     else if (str.startsWith("file:")) { type = Urls.Type.Full; }
     else if (str.startsWith("chrome:")) {
@@ -623,11 +623,11 @@ var BgUtils_ = {
     });
     for (let val of str.replace(<RegExpG> /\\\n/g, "").split("\n")) {
       val = val.trim();
-      if (!(val && val.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
+      if (!(val && val.charCodeAt(0) > kCharCode.maxCommentHead)) { continue; } // mask: /[!"#]/
       ind = 0;
       do {
         ind = val.indexOf(":", ind + 1);
-      } while (val.charCodeAt(ind - 1) === KnownKey.backslash);
+      } while (val.charCodeAt(ind - 1) === kCharCode.backslash);
       if (ind <= 0 || !(key = val.slice(0, ind).trimRight())) { continue; }
       ids = key.replace(rColon, ":").split("|");
       val = val.slice(ind + 1).trimLeft();
@@ -687,7 +687,7 @@ var BgUtils_ = {
             rules.push({prefix: tmpRule.prefix, matcher: tmpRule.matcher, name: ids[0].trimRight(), delimiter: tmpKey});
           }
         }
-      } else if (str.charCodeAt(ind + 4) === KnownKey.slash) {
+      } else if (str.charCodeAt(ind + 4) === kCharCode.slash) {
         key = ind > 1 ? str.slice(1, ind).trim() : "";
         str = str.slice(ind + 5);
         ind = str.search(rSlash) + 1;
@@ -755,7 +755,7 @@ var BgUtils_ = {
   prepareReparsingPrefix_ (prefix: string): string {
     const head = prefix.slice(0, 9).toLowerCase();
     if (this.IsURLHttp_(head)) {
-      prefix = prefix.slice(prefix.charCodeAt(4) === KnownKey.colon ? 7 : 8);
+      prefix = prefix.slice(prefix.charCodeAt(4) === kCharCode.colon ? 7 : 8);
     } else if (head === "vimium://") {
       prefix = this.formatVimiumUrl_(prefix.slice(9), false, Urls.WorkType.ConvertKnown);
     }

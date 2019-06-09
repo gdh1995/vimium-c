@@ -200,8 +200,8 @@ declare namespace CommandsNS {
   interface Options extends ReadonlySafeDict<any> {}
   // encoded info
   interface CustomHelpInfo {
-    key: string;
-    desc: string;
+    key_: string;
+    desc_: string;
     $key?: unknown;
   }
   interface NormalizedCustomHelpInfo extends CustomHelpInfo {

@@ -149,15 +149,15 @@ var VVisual = {
   /** @unknown_di_result */
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     const a = this;
-    let i: VKeyCodes | KeyStat = event.keyCode, count = 0;
-    if (i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn) {
+    let i: kKeyCode | KeyStat = event.keyCode, count = 0;
+    if (i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn) {
       a.resetKeys_();
-      if (i === VKeyCodes.f1) {
+      if (i === kKeyCode.f1) {
         a.flashSelection_();
       }
-      return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing;
+      return i === kKeyCode.f1 ? HandlerResult.Prevent : HandlerResult.Nothing;
     }
-    if (i === VKeyCodes.enter) {
+    if (i === kKeyCode.enter) {
       i = VKey.getKeyStat_(event);
       if ((i & KeyStat.shiftKey) && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
       (i & KeyStat.PrimaryModifier) ? a.deactivate_()
@@ -171,7 +171,7 @@ var VVisual = {
     const ch = VKey.char_(event);
     if (!ch) {
       a.resetKeys_();
-      return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
+      return i === kKeyCode.ime || i === kKeyCode.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
     let key0 = VKey.key_(event, ch)
       , key = VEvent.mapKey_(key0)

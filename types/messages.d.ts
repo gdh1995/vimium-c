@@ -94,7 +94,7 @@ interface BgReq {
   } & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {
     /** mask */ m: FrameMaskType;
-    /** key */ k: VKeyCodes;
+    /** key */ k: kKeyCode;
     // ensure .c, .S exist, for safer code
     /** command */ c: FgCmdAcrossFrames | 0;
   } & BgCSSReq & Partial<Pick<BaseExecute<FgOptions, FgCmdAcrossFrames>, "n" | "a">>;
@@ -141,7 +141,7 @@ interface BgVomnibarSpecialReq {
     /** total */ t: number;
   };
   [kBgReq.omni_returnFocus]: {
-    /** lastKey */ l: VKeyCodes;
+    /** lastKey */ l: kKeyCode;
   } & Req.baseBg<kBgReq.omni_returnFocus>;
   [kBgReq.omni_init]: {
     /** secret */ s: number;
@@ -234,7 +234,7 @@ interface CmdOptions {
     patterns: string[];
   };
   [kFgCmd.insertMode]: {
-    code: VKeyCodes;
+    code: kKeyCode;
     stat: KeyStat;
     passExitKey: boolean;
     hud: boolean;
@@ -315,7 +315,7 @@ interface FgReqWithRes {
   } | FgReqWithRes[kFgReq.parseUpperUrl];
   [kFgReq.execInChild]: {
     /** url */ u: string;
-    /** lastKey */ k: VKeyCodes;
+    /** lastKey */ k: kKeyCode;
     /** ensured args */ a: FgOptions;
   } & Omit<BaseExecute<FgOptions, FgCmdAcrossFrames>, "S">;
 }
@@ -359,7 +359,7 @@ interface FgReq {
   };
   [kFgReq.nextFrame]: {
     /** type */ t?: Frames.NextType;
-    /** key */ k: VKeyCodes;
+    /** key */ k: kKeyCode;
   };
   [kFgReq.exitGrab]: {};
   [kFgReq.initHelp]: {
@@ -387,7 +387,7 @@ interface FgReq {
   };
   [kFgReq.key]: {
     /* keySequence */ k: string;
-    /** lastKey */ l: VKeyCodes;
+    /** lastKey */ l: kKeyCode;
   };
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
     /** action */ a: kMarkAction.clear;
@@ -480,7 +480,7 @@ interface ExternalMsgs {
       command?: string;
       options?: object | null;
       count?: number;
-      key?: VKeyCodes;
+      key?: kKeyCode;
     };
     res: void;
   };

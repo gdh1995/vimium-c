@@ -384,7 +384,7 @@ interface String {
       * Returns the Unicode value of the character at the specified location.
       * @param index The zero-based index of the desired character. If there is no character at the specified index, NaN is returned.
       */
-    charCodeAt(index: number): KnownKey;
+    charCodeAt(index: number): kCharCode;
 
     /**
       * Returns a string that contains the concatenation of two or more strings.
@@ -534,7 +534,7 @@ interface StringConstructor {
     new (value?: any): String;
     (value?: any): string;
     readonly prototype: String;
-    fromCharCode(...codes: KnownKey[]): string;
+    fromCharCode(...codes: kCharCode[]): string;
 }
 
 /**
