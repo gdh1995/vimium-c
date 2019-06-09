@@ -146,6 +146,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   keyIsDown_: 0,
   scale_: 1,
   activate_ (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
+    if (options.$c == null) {
+      options.$c = VEvent.isCmdTriggered_();
+    }
     if (VEvent.checkHidden_(kFgCmd.scroll, count, options)) { return; }
     if (VHints.TryNestedFrame_(kFgCmd.scroll, count, options)) { return; }
     const a = VScroller, di: ScrollByY = options.axis === "x" ? 0 : 1,
@@ -158,6 +161,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       count *= +<number> options.dir || 1;
     }
     a.scroll_(di, count, dest ? 1 as never : 0, options.view, fromMax as false);
+    if (a.keyIsDown_ && !options.$c) {
+      a.scrollTick_(0);
+    }
   },
   /**
    * @param amount0 can not be 0, if `isTo` is 0

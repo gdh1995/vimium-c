@@ -30,6 +30,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           || !(Build.BTypes & ~BrowserType.Edge)
         ? Build.BTypes as number : BrowserType.Chrome
     , /** should be used only if OnOther is Chrome */ browserVer: BrowserVer = 0
+    , isCmdTriggered: BOOL = 0
     , isTop = top === window
     , parentFrame_: Element | undefined | null
     , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
@@ -68,6 +69,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     currentKeys += key;
     if (j === KeyAction.cmd) {
       post({ H: kFgReq.key, k: currentKeys, l: keyCode });
+      isCmdTriggered = 1;
       return esc(HandlerResult.Prevent);
     } else {
       nextKeys = j !== KeyAction.count ? j : keyMap;
@@ -150,6 +152,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
         || !event.keyCode) { return; }
     VScroller.scrollTick_(0);
+    isCmdTriggered = 0;
     if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
       events.setupSuppress_();
     }
@@ -278,6 +281,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     onWndBlur2 && onWndBlur2();
     exitPassMode && exitPassMode();
     KeydownEvents = safer(null);
+    isCmdTriggered = 0;
     injector || (<RegExpOne> /a?/).test("");
     esc(HandlerResult.ExitPassMode);
   }
@@ -1224,6 +1228,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
   events = VEvent = {
     lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
+    isCmdTriggered_: (_i?: any) => isCmdTriggered,
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { onWndFocus(); },
     checkHidden_ (this: void, cmd?: FgCmdAcrossFrames

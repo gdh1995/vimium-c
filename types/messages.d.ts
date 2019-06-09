@@ -197,11 +197,13 @@ interface CmdOptions {
     swap?: false | true;
   };
   [kFgCmd.scroll]: {
+    /** continuous */ $c?: BOOL;
     axis?: "y" | "x";
     dir?: 1 | -1;
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;
   } | {
+    /** continuous */ $c?: BOOL;
     dest: "min" | "max";
     axis?: "y" | "x";
     view?: undefined;

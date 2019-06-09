@@ -369,6 +369,7 @@ interface ComplicatedVPort extends VPortTy {
 }
 interface VEventModeTy {
   lock_(this: void): LockableElement | null;
+  isCmdTriggered_ (this: void): BOOL;
   OnWndFocus_ (this: void): void;
   checkHidden_ (this: void): BOOL;
   /** may focus the parent frame before returning */
