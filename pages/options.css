@@ -358,6 +358,9 @@ label:active {
   width: 80px;
   padding: 0 7px;
 }
+#focusNewTabTitle {
+  cursor: pointer;
+}
 #footer {
   background: #f3f3f3;
   border-top: 0.5px solid #979ca0;

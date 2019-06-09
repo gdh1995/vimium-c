@@ -748,6 +748,19 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     (element.nextSibling as Text).remove();
     element.remove();
   }
+
+  if (Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_) {
+    Option_.all_.focusNewTabContent.onSave_ = function (): void {
+      $("#focusNewTabStatus").textContent = this.previous_ ? "enabled" : "disabled";
+    };
+    Option_.all_.focusNewTabContent.onSave_();
+    $("#focusNewTabTitle").onclick = function (): void {
+      if (!advancedMode) {
+        $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null);
+      }
+      (Option_.all_.focusNewTabContent.element_.nextElementSibling as HTMLElement).focus();
+    };
+  }
 })();
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
