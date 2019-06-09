@@ -43,7 +43,7 @@ var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", fal
 var has_dialog_ui = manifest.options_ui != null && manifest.options_ui.open_in_tab !== true;
 var jsmin_status = [false, false, false];
 var buildOptionCache = Object.create(null);
-var onlyES6 = false;
+var outputES6 = false;
 gulpPrint = gulpPrint.default || gulpPrint;
 
 createBuildConfigCache();
@@ -152,8 +152,12 @@ var Tasks = {
       var oldConfig = readFile(configFile);
       needClean = oldConfig !== curConfig;
     } catch (e) {}
-    if (needClean) {
-      print("found diff:", oldConfig || "(unknown)", "!=", curConfig);
+    var hasLocal2 = false;
+    if (fs.existsSync(osPath.join(DEST, "lib/dom_utils.js"))) {
+      hasLocal2 = true;
+    }
+    if (needClean || hasLocal2) {
+      print("found diff:", oldConfig || (hasLocal2 ? "(local2)" : "(unknown)"), "!=", curConfig);
       gulp.series("build/_clean_diff")(function() {
         if (!fs.existsSync(JSDEST)) {
           fs.mkdirSync(JSDEST, {recursive: true});
@@ -400,7 +404,7 @@ var Tasks = {
     compilerOptions.removeComments = true;
     locally = true;
     var arr = ["static", "_manifest"];
-    if (fs.existsSync(osPath.join(JSDEST, "lib/utils.js"))) {
+    if (fs.existsSync(osPath.join(JSDEST, "lib/dom_utils.js"))) {
       arr.unshift("build/_clean_diff");
     }
     gulp.series(...arr)(function () {
@@ -722,10 +726,12 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   return stream.pipe(gulp.dest(DEST));
 }
 
+var toRemovedGlobal = null;
+
 function postUglify(file, needToPatchExtendClick) {
   var contents = null, changed = false;
   function get() { contents == null && (contents = String(file.contents), changed = true); }
-  if (onlyES6 && !locally) {
+  if (outputES6 && !locally) {
     get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
   }
@@ -733,28 +739,36 @@ function postUglify(file, needToPatchExtendClick) {
     get();
     contents = patchExtendClick(contents);
   }
-  var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
-  if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {
-    get();
-    contents = removeVariableDeclaration(contents, "browser");
+  if (toRemovedGlobal == null) {
+    toRemovedGlobal = "";
+    var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
+    if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {
+      toRemovedGlobal += "browser|";
+    }
+    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsuredES6WeakMapAndWeakSet */ 36) {
+      toRemovedGlobal += "Weak(Set|Map)|";
+    }
+    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$requestIdleCallback */ 47) {
+      toRemovedGlobal += "requestIdleCallback|";
+    }
+    toRemovedGlobal = toRemovedGlobal.slice(0, -1);
+    toRemovedGlobal = new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]`, "g");
   }
-  if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsuredES6WeakMapAndWeakSet */ 36) {
+  if (toRemovedGlobal) {
     get();
-    contents = removeVariableDeclaration(contents, "Weak(Set|Map)");
-  }
-  if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$requestIdleCallback */ 47) {
-    get();
-    contents = removeVariableDeclaration(contents, "requestIdleCallback");
+    let n = 0, remove = str => str[0] === "," ? str.slice(-1) : str.slice(-1) === "," ? str.split(/\s/)[0] + " " : "";
+    for (; ; n++) {
+      let s1 = contents.slice(0, 1000), s2 = s1.replace(toRemovedGlobal, remove);
+      if (s2.length === s1.length) {
+        break;
+      }
+      contents = s2 + contents.slice(1000);
+    }
+    changed = n > 0;
   }
   if (changed) {
     file.contents = new Buffer(contents);
   }
-}
-
-function removeVariableDeclaration(contents, nameRegexp) {
-  return contents.replace(new RegExp(",\\s?" + nameRegexp + "(?=[,;])| " + nameRegexp + ","), function(s) {
-    return s[0] === "," ? "" : " ";
-  });
 }
 
 function copyByPath(path) {
@@ -989,8 +1003,8 @@ function createBuildConfigCache() {
     throw new Error("Unsupported Build.BTypes: " + getBuildItem("BTypes"));
   }
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
-  onlyES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
-  compilerOptions.target = onlyES6 ? "es6" : "es5";
+  outputES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
+  compilerOptions.target = outputES6 ? "es6" : "es5";
 }
 
 function getNonNullBuildItem(key) {
@@ -1220,7 +1234,7 @@ function loadUglifyConfig(reload) {
       a.output.comments = true;
       a.output.indent_level = 2;
     }
-    if (onlyES6) {
+    if (outputES6) {
       a.ecma = 6;
       var c = a.compress || (a.compress = {}); // gd = c.global_defs || (c.global_defs = {});
       c.hoist_vars = false;
