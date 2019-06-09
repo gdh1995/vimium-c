@@ -46,9 +46,13 @@ declare const enum TimerType {
   noTimer = -2,
 }
 type SafeSetTimeout = (this: void, handler: (this: void) => void, timeout: number) => number;
-declare function setTimeout (this: void
-  , handler: (this: void, i: TimerType.fake | undefined) => void, timeout: number): number;
-declare function setInterval(this: void, handler: (this: void, fake?: TimerType.fake) => void, interval: number): number;
+declare var setTimeout: SetTimeout, setInterval: SetInterval;
+interface SetTimeout {
+  (this: void, handler: (this: void, fake?: TimerType.fake) => void, timeout: number): number;
+}
+interface SetInterval {
+  (this: void, handler: (this: void, fake?: TimerType.fake) => void, interval: number): number;
+}
 
 interface String {
   endsWith(searchString: string): boolean;

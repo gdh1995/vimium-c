@@ -611,7 +611,11 @@ var VFind = {
  */
   find_: Build.BTypes & ~BrowserType.Chrome ? function (this: void): boolean {
     try {
-      return window.find.apply(window, arguments);
+      if (Build.BTypes & ~BrowserType.Firefox) {
+        return window.find.apply(window, arguments);
+      } else {
+        return (window as any).find(... <any[]> <ArrayLike<any>> arguments);
+      }
     } catch { return false; }
   } as Window["find"] : 0 as never,
   HookSel_ (t?: TimerType.fake | 1): void {

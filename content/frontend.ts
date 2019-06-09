@@ -76,7 +76,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       return HandlerResult.Prevent;
     }
   }
-  function onEscDown(event: KeyboardEvent): HandlerResult {
+  function onEscDown(event: KeyboardEvent, key: kKeyCode): HandlerResult {
     let action = HandlerResult.Prevent, { repeat } = event
       , { activeElement: activeEl, body } = document;
     /** if `notBody` then `activeEl` is not null */
@@ -87,7 +87,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           : (activeEl as Element).blur) &&
       (activeEl as HTMLElement | SVGElement).blur();
     } else if (!isTop && activeEl === body) {
-      InsertMode.focusUpper_(event.keyCode, repeat, event);
+      InsertMode.focusUpper_(key, repeat, event);
       action = HandlerResult.PassKey;
     } else {
       action = HandlerResult.Default;
@@ -95,10 +95,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return action;
   }
   function onKeydown(event: KeyboardEvent): void {
+    let keyChar: string, key = event.keyCode, action: HandlerResult;
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
             : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
-        || !event.keyCode) { return; }
+        || !key) { return; }
     if (VScroller.keyIsDown_ && events.OnScrolls_[0](event)) { return; }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) ? InsertMode.lock_
@@ -106,7 +107,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         && !VDom.isInDOM_(InsertMode.lock_ as LockableElement, document)) {
       InsertMode.lock_ = null;
     }
-    let keyChar: string, key = event.keyCode, action: HandlerResult;
     if (action = VKey.bubbleEvent_(event)) { /* empty */ }
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
@@ -131,7 +131,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         keyChar = VKey.key_(event, keyChar);
         action = checkKey(keyChar, key);
         if (action === HandlerResult.Esc) {
-          action = key === kKeyCode.esc ? onEscDown(event) : HandlerResult.Nothing;
+          action = key === kKeyCode.esc ? onEscDown(event, key) : HandlerResult.Nothing;
         }
         if (action === HandlerResult.Nothing && InsertMode.suppressType_ && keyChar.length === 1) {
           action = HandlerResult.Prevent;
@@ -147,17 +147,18 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     KeydownEvents[key] = 1;
   }
   function onKeyup(event: KeyboardEvent): void {
+    let key = event.keyCode;
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
             : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
-        || !event.keyCode) { return; }
+        || !key) { return; }
     VScroller.scrollTick_(0);
     isCmdTriggered = 0;
     if (InsertMode.suppressType_ && getSelection().type !== InsertMode.suppressType_) {
       events.setupSuppress_();
     }
-    if (KeydownEvents[event.keyCode]) {
-      KeydownEvents[event.keyCode] = 0;
+    if (KeydownEvents[key]) {
+      KeydownEvents[key] = 0;
       VKey.prevent_(event);
     } else if (onKeyup2) {
       onKeyup2(event);
@@ -653,7 +654,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return false;
       }
     },
-    /** @param key should not be {@link #kKeyCode.None} */
+    /** should only be called during keydown events */
     focusUpper_ (this: void, key: kKeyCode, force: boolean, event: Parameters<typeof VKey.prevent_>[0]
         ): void {
       if (!parentFrame_ && (!force || isTop)) { return; }
@@ -991,11 +992,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         events.execute_ && events.execute_(kContentCmd.SuppressClickable);
       }
       r[kBgReq.init] = null as never;
-      injector && injector.$r(InjectorTask.extInited);
       D.OnDocLoaded_(function (): void {
         HUD.enabled_ = true;
         onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>> { H: kFgReq.focus });
       });
+      injector && injector.$r(InjectorTask.extInited);
     },
     /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset], initing?: 1): void {
       const newPassKeys = request.p, newEnabled = newPassKeys !== "", old = isEnabled;

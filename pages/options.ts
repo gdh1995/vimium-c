@@ -464,9 +464,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       if (!window.VKey) { return; }
       let wanted = event.keyCode === kKeyCode.questionWin || event.keyCode === kKeyCode.questionMac ? "?" : "";
       if (wanted && VKey.char_(event) === wanted && VKey.key_(event, wanted) === wanted) {
-        if (!VEvent.lock_()) {
+        if (!Build.NDEBUG && !VEvent.lock_()) {
           console.log('The document receives a "?" key which has been passed (excluded) by Vimium C,',
             "so open the help dialog.");
+        }
+        if (!VEvent.lock_()) {
           $("#showCommands").click();
         }
       }

@@ -455,8 +455,10 @@ declare const enum Consts {
 
 declare var Backend_: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy;
 
-declare function setTimeout <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
-  timeout: number, a1: T1, a2: T2, a3: T3): number;
-declare function setTimeout <T1, T2>(this: void, handler: (this: void, a1: T1, a2: T2) => void,
-  timeout: number, a1: T1, a2: T2): number;
-declare function setTimeout <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
+declare var setTimeout: SetTimeout;
+interface SetTimeout {
+  <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
+    timeout: number, a1: T1, a2: T2, a3: T3): number;
+  <T1, T2>(this: void, handler: (this: void, a1: T1, a2: T2) => void, timeout: number, a1: T1, a2: T2): number;
+  <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
+}

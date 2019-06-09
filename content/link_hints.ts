@@ -781,7 +781,7 @@ var VHints = {
       a.deactivate_(a.keyStatus_.known_);
     } else if (linksMatched.length === 1) {
       VKey.prevent_(event);
-      /** safer; necessary for {@link #VHints.highlightChild_} */
+      /** safer; necessary for {@link #VHints._highlightChild} */
       VEvent.keydownEvents_()[i] = 1;
       a.execute_(linksMatched[0]);
     } else {
@@ -1141,7 +1141,7 @@ openUrl_ (url: string, incognito?: boolean): void {
   incognito && (opt.i = incognito);
   VPort.post_(opt);
 },
-highlightChild_ (el: HTMLIFrameElement | HTMLFrameElement): false | void {
+_highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   interface VWindow extends Window {
     VEvent: VEventModeTy;
     VHints: typeof VHints;
@@ -1415,7 +1415,7 @@ Modes_: [
     const a = this as typeof VHints, tag = VDom.htmlTag_(link);
     if ((<RegExpOne> /^i?frame$/).test(tag)) {
       const highlight = link !== VOmni.box_;
-      highlight ? a.highlightChild_(link as HTMLIFrameElement | HTMLFrameElement) : VOmni.focus_();
+      highlight ? a._highlightChild(link as HTMLIFrameElement | HTMLFrameElement) : VOmni.focus_();
       a.mode_ = HintMode.DEFAULT;
       return highlight;
     }

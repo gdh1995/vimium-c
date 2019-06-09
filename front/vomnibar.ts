@@ -22,11 +22,14 @@ declare const enum AllowedActions {
   nothing = Default,
   dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, enter, remove
 }
-declare function setTimeout <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
-  timeout: number, a1: T1, a2: T2, a3: T3): number;
-declare function setTimeout <T1, T2>(this: void, handler: (this: void, a1: T1, a2: T2) => void,
+declare var setTimeout: SetTimeout;
+interface SetTimeout {
+  <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
+    timeout: number, a1: T1, a2: T2, a3: T3): number;
+  <T1, T2>(this: void, handler: (this: void, a1: T1, a2: T2) => void,
   timeout: number, a1: T1, a2: T2): number;
-declare function setTimeout <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
+  <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
+}
 
 interface ConfigurableItems {
   VomnibarMaxPageNum?: number;
@@ -1229,7 +1232,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
 }
 
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : window.browser && (browser as typeof chrome).runtime) {
+    : typeof browser === "object" && browser && (browser as typeof chrome).runtime) {
   window.chrome = browser as typeof chrome;
 }
 (function (): void {

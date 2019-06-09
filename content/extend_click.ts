@@ -477,11 +477,6 @@ _listen("load", delayFindAll, !0);
     VEvent.destroy_(true);
     return;
   }
-  interface TimerLib extends Window {
-    setInterval: typeof setInterval;
-    setTimeout: typeof setTimeout | (
-      (this: void, handler: (this: void, fake?: TimerType.fake) => void, timeout: number) => number);
-  }
   let rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? window.requestIdleCallback : 0 as const;
   if (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
     // use `instanceof` to require `rIC` is a new instance in this world
@@ -489,8 +484,7 @@ _listen("load", delayFindAll, !0);
     rIC = typeof rIC != "function" || rIC instanceof Element ? 0 : rIC;
   }
   // here rIC is (not defined), 0 or real
-  (window as TimerLib).setTimeout = (window as TimerLib).setInterval =
-  function (func: (info?: TimerType.fake) => void, timeout: number): number {
+  setTimeout = (setInterval = function (func: (info?: TimerType.fake) => void, timeout: number): number {
     const cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
     return timeout > 19 && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || rIC)
@@ -498,6 +492,6 @@ _listen("load", delayFindAll, !0);
           ) as RequestIdleCallback)(cb, { timeout })
       : requestAnimationFrame(cb)
       ;
-  };
+  } as any);
 })(VDom.docNotCompleteWhenVimiumIniting_);
 }

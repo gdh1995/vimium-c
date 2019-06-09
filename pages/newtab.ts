@@ -10,7 +10,8 @@ chrome_ = (!(Build.BTypes & ~BrowserType.Chrome) ? chrome
     );
 chrome_.tabs[focusContent_ ? "create" as const : "update" as const]({
   url: storage_.newTabUrl_f || "about:blank"
-}, Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || window.browser)
+}, Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox)
+        || typeof browser === "object" && browser)
     ? function (): void {
   let error = chrome_.runtime.lastError;
   if (error as void | object) {
