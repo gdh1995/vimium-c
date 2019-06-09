@@ -18,7 +18,6 @@ var VKey = {
       : (s = event.key) ? this._funcKeyRe.test(s) ? c ? s : s.toLowerCase() : ""
       : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "fF"[+c] + (i - kKeyCode.maxNotFn) : "";
   },
-  // we know that BrowserVer.MinEnsured$KeyboardEvent$$Key < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
   _getKeyCharUsingKeyIdentifier: !(Build.BTypes & BrowserType.Chrome)
         || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key ? 0 as never
       : function (this: {}, event: OldKeyboardEvent): string {
@@ -60,14 +59,13 @@ var VKey = {
   },
   isEscape_: null as never as (event: KeyboardEvent) => boolean,
   isRawEscape_ (event: KeyboardEvent): boolean {
-    if (event.keyCode !== kKeyCode.esc && !event.ctrlKey) { return false; }
+    if (event.keyCode !== kKeyCode.esc && !event.ctrlKey || event.keyCode === kKeyCode.ctrlKey) { return false; }
     const i = this.getKeyStat_(event),
     code = Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
             ? event.code : "";
-    // we know that BrowserVer.MinEnsured$KeyboardEvent$$Code < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier
     return i === KeyStat.plain || i === KeyStat.ctrlKey
       && (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
-          ? code ? code === "BracketLeft" : this.char_(event) === "["
+          ? code ? code === "BracketLeft" : this._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent) === "["
           : event.code === "BracketLeft");
   },
 
@@ -141,3 +139,9 @@ var VKey = {
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null)
     ) as (<T extends object> (opt: T) => T & SafeObject)
 };
+
+if (!(Build.NDEBUG || BrowserVer.MinEnsured$KeyboardEvent$$Code < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier)
+    || !(Build.NDEBUG || BrowserVer.MinEnsured$KeyboardEvent$$Key < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier)) {
+  console.log("Assert error: KeyboardEvent.key/code should exist before Chrome version"
+      , BrowserVer.MinNo$KeyboardEvent$$keyIdentifier);
+}

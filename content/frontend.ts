@@ -41,8 +41,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
   function isEscape(event: KeyboardEvent): boolean {
     let ch: string | undefined;
-    if (mappedKeys) {
-      ch = VKey.getKeyName_(event);
+    if (mappedKeys && event.keyCode !== kKeyCode.ime) {
+      ch = VKey.char_(event);
       ch = ch && mappedKeys[VKey.key_(event, ch)];
     }
     return ch ? ch === "<esc>" || ch === "<c-[>" : VKey.isRawEscape_(event);
