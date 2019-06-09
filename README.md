@@ -60,6 +60,9 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.75.7:
+* fix `mapKey` could not map a key of printable characters to `<esc>`
+
 1.75.6:
 * fix that Vomnibar can not acquire focus on the first activation on a new page since Chrome 75
 * `goBack` command supports an option `reuse`=`-2`/`-1` to open a previous URL in the tab history in a new tab

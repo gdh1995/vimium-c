@@ -451,7 +451,7 @@ declare const enum BrowserVer {
    * * but after a mousemove / wheel, the "position" attr becomes "static" and the view breaks
    * * it recovers if modifying its position/z-index attr
    * * if the Dev Tools is on, and visits styles of the box, then a mousemove won't break the UI
-   * 
+   *
    * a work-around is set <div>.style.position,
    * but the HUD is also affected when pressing <Shift> to switch LinkHint mode,
    * so must remove the all: before MinFixedCSS$All$MayMistakenlyResetFixedPosition
@@ -530,7 +530,7 @@ declare const enum BrowserVer {
   // even if EXPERIMENTAL or LEGACY
   MinSafeGlobal$frameElement = 48,
   // just means it's enabled even if LEGACY;
-  // if EXPERIMENTAL, .code is "" on Chrome 42/43, and works well since C44 
+  // if EXPERIMENTAL, .code is "" on Chrome 42/43, and works well since C44
   MinEnsured$KeyboardEvent$$Code = 48,
   MinMayBeShadowDOMV1 = 48, // if EXPERIMENTAL
   // a path of an older DOMActivate event has all nodes (windows -> nodes in shadow DOM)
@@ -633,7 +633,7 @@ declare const enum BrowserVer {
    * Chrome before 58 does this if #enable-site-per-process or #enable-top-document-isolation;
    * Chrome 56 / 57 always merge extension iframes if EXPERIMENTAL
    * Chrome since 58 always merge extension iframes even if the two flags are disabled and LEGACY
-   * 
+   *
    * Special cases:
    * Chrome 55 does this by default (unless turn one of the flags on and then off);
    * if #enable-top-document-isolation, Chrome since 56 merge them,

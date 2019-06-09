@@ -310,8 +310,14 @@ var HelpDialog = {
     focusInput:
       'Focus the N-th visible text box on the page and cycle using tab (use keep, select=""/all/all-line/start/end)',
     focusOrLaunch: 'focus a tab with given URL or open it (use url="", prefix)',
-    goBack: "Go back in history (use reuse=-2/-1)",
-    goForward: "Go forward in history (use reuse=-2/-1)",
+    goBack: "Go back in history" + (Build.BTypes & BrowserType.Chrome
+          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || CurCVer_ >= BrowserVer.Min$Tabs$$goBack
+                && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome ))
+        ? " (use reuse=-2/-1)" : ""),
+    goForward: "Go forward in history" + (Build.BTypes & BrowserType.Chrome
+          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || CurCVer_ >= BrowserVer.Min$Tabs$$goBack
+                && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome ))
+        ? " (use reuse=-2/-1)" : ""),
     goNext: "Follow the link labeled next or &gt;",
     goPrevious: "Follow the link labeled previous or &lt;",
     goToRoot: "Go to root of current URL hierarchy",

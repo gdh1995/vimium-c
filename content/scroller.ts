@@ -78,9 +78,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     timer = 0;
     running = running || next(animate);
   }
-  this._animate = (function (this: typeof VScroller, newEl, newDi, newAmount): void {
+  this._animate = function (this: typeof VScroller, newEl, newDi, newAmount): void {
     const M = Math;
-    amount = M.abs(newAmount); calibration = 1.0; di = newDi;
+    amount = M.max(1, M.abs(newAmount)); calibration = 1.0; di = newDi;
     duration = M.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * M.log(amount));
     element = newEl;
     sign = newAmount < 0 ? -1 : 1;
@@ -96,8 +96,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       * ScrollerNS.Consts.DelayUnitMs;
     this.scrollTick_(1);
     startAnimate();
-  });
-  return this._animate(e, d, a);
+  };
+  this._animate(e, d, a);
 },
   maxInterval_: ScrollerNS.Consts.DefaultMaxIntervalF as number,
   minDelay_: ScrollerNS.Consts.DefaultMinDelayMs as number,
@@ -127,8 +127,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       return scrollX !== before;
     }
   },
-  _innerScroll (element: SafeElement | null, di: ScrollByY, amount: number): void | number | boolean {
-    if (!amount) { return; }
+  /** @param amount can not be 0 */
+  _innerScroll (element: SafeElement | null, di: ScrollByY, amount: number): void {
     if (VDom.cache_.smoothScroll
         && (Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
             || VDom.allowRAF_)) {
@@ -157,7 +157,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     } else {
       count *= +<number> options.dir || 1;
     }
-    return a.scroll_(di, count, dest ? 1 as never : 0, options.view, fromMax as false);
+    a.scroll_(di, count, dest ? 1 as never : 0, options.view, fromMax as false);
   },
   /**
    * @param amount0 can not be 0, if `isTo` is 0
@@ -193,8 +193,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       }
       a.scrolled_ = 0;
     }
-    amount = (amount > 0 ? Math.ceil : Math.floor)(amount);
-    a._innerScroll(element, di, amount);
+    amount && a._innerScroll(element, di, amount);
     a.top_ = null;
   } as {
     (di: ScrollByY, amount: number, isTo: 0
@@ -202,12 +201,12 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     (di: ScrollByY, amount: number, isTo: 1
       , factor?: undefined | 0, fromMax?: boolean): void;
   },
-  _joined: null as { scrollTick_ (willContinue: BOOL | boolean): void; } | null,
+  _joined: null as unknown,
   scrollTick_ (willContinue: BOOL | boolean): void {
     const a = this;
     a.keyIsDown_ = willContinue ? a.maxInterval_ : 0;
     if (a._joined) {
-      a._joined.scrollTick_(willContinue);
+      (a._joined as typeof VScroller).scrollTick_(willContinue);
       if (!willContinue) {
         a._joined = null;
       }
