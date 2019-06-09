@@ -108,10 +108,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (action = VKey.bubbleEvent_(event)) { /* empty */ }
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
-      if (g ? !g.code ? VKey.isEscape_(event) : key === g.code && VKey.getKeyStat_(event) === g.stat
+      if (g ? !g.code ? isEscape(event) : key === g.code && VKey.getKeyStat_(event) === g.stat
           : (keyChar = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
               ? VKey.key_(event, VKey.getKeyName_(event))
-              : VKey.isEscape_(event) ? key - kKeyCode.esc ? "<c-[>" : "<esc>" : "")
+              : isEscape(event) ? key - kKeyCode.esc ? "<c-[>" : "<esc>" : "")
             && (action = checkKey(keyChar, key)) === HandlerResult.Esc
       ) {
         if (InsertMode.lock_ === document.body && InsertMode.lock_) {
@@ -559,14 +559,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         if (keyCode === kKeyCode.shiftKey || keep && (keyCode === kKeyCode.altKey
             || keyCode === kKeyCode.ctrlKey || keyCode === kKeyCode.metaKey)) { /* empty */ }
         else if (event.repeat) { return HandlerResult.Nothing; }
-        else if (keep ? VKey.isEscape_(event) || (
+        else if (keep ? isEscape(event) || (
             keyCode === kKeyCode.enter && (keyStat = VKey.getKeyStat_(event),
               keyStat !== KeyStat.shiftKey
               && (keyStat !== KeyStat.plain || VDom.hasTag_need_safe_(this.hints[sel].target_, "input") ))
           ) : keyCode !== kKeyCode.ime && keyCode !== kKeyCode.f12
         ) {
           InsertMode.exitInputHint_();
-          return !VKey.isEscape_(event) ? HandlerResult.Nothing : keep || !InsertMode.lock_ ? HandlerResult.Prevent
+          return !isEscape(event) ? HandlerResult.Nothing : keep || !InsertMode.lock_ ? HandlerResult.Prevent
             : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
         }
         return HandlerResult.Nothing;
@@ -900,7 +900,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VDom.UI.add_(hud.box_ = el, VHints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, VHints.box_);
     },
     _tween (this: void, fake?: TimerType.fake): void { // safe-interval
-      const el = HUD.box_ as HTMLDivElement, st = el.style, reduce = VDom.cache_.r;
+      const el = HUD.box_ as HTMLDivElement, st = el.style, reduce = isEnabled && VDom.cache_.r;
       let opacity = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                     && fake ? 0 : +(st.opacity || 1);
       if (opacity === HUD.opacity_) { /* empty */ }
@@ -929,7 +929,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (i = HUD._timer) { clearTimeout(i); HUD._timer = 0; }
       HUD.opacity_ = 0; HUD.text_ = "";
       if (!HUD.box_) { /* empty */ }
-      else if (info === TimerType.noTimer) {
+      else if (info === TimerType.noTimer || !isEnabled) {
         const box = HUD.box_, st = box.style;
         st.opacity = "0";
         st.visibility = "hidden";
@@ -1182,7 +1182,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       ? VDom.scrollIntoView_(box) : VFind.fixTabNav_(box);
     VScroller.current_ = box;
     VKey.pushHandler_(function (event) {
-      if (!InsertMode.lock_ && VKey.isEscape_(event)) {
+      if (!InsertMode.lock_ && isEscape(event)) {
         VDom.UI.removeSelection_(VDom.UI.UI) || hide();
         return HandlerResult.Prevent;
       }
