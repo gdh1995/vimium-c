@@ -1229,7 +1229,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
   events = VEvent = {
     lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
-    isCmdTriggered_: (_i?: any) => isCmdTriggered,
+    isCmdTriggered_: () => isCmdTriggered,
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { onWndFocus(); },
     checkHidden_ (this: void, cmd?: FgCmdAcrossFrames

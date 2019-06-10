@@ -12,7 +12,7 @@ var VDom = {
   allowScripts_: 1 as BOOL,
   allowRAF_: 1 as BOOL,
   specialZoom_: !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
-    ? true : !!(Build.BTypes & BrowserType.Chrome),
+    ? true : Build.BTypes & BrowserType.Chrome ? true : false,
   docSelectable_: true,
   docNotCompleteWhenVimiumIniting_: document.readyState !== "complete",
   isHTML_: (): boolean => "lang" in <ElementToHTML> (document.documentElement || {}),

@@ -14,7 +14,7 @@
     "dead_code": true,
     "defaults": false,
     "evaluate": true,
-    "keep_fargs": true, // typescript will check unused arguments
+    "keep_fargs": false,
     "keep_fnames": true,
     "passes": 1,
     "properties": true,

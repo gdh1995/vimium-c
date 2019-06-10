@@ -18,7 +18,7 @@
     "if_return": true,
     "inline": true,
     "join_vars": true,
-    "keep_fargs": true, // typescript will check unused arguments
+    "keep_fargs": false,
     "keep_fnames": "/^(startsWith|endsWith|addEventListener|toString|VC)$/",
     "keep_infinity": false,
     "loops": true,

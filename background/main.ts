@@ -396,7 +396,7 @@ Are you sure you want to continue?`);
   /** this functions needs to accept any types of arguments and normalize them */
   function executeExternalCmd(message: Partial<ExternalMsgs[kFgReq.command]["req"]>
       , sender: chrome.runtime.MessageSender): void {
-    if (!Commands) { BgUtils_.require_("Commands").then(_ => executeExternalCmd(message, sender)); return; }
+    if (!Commands) { BgUtils_.require_("Commands").then(() => executeExternalCmd(message, sender)); return; }
     BgUtils_.GC_();
     Commands.execute_(message, sender, executeCommand);
   }
