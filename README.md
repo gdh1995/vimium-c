@@ -60,11 +60,10 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.75.7:
-* fix `mapKey` could not map a key of printable characters to `<esc>`
-
 1.75.6:
 * fix that Vomnibar can not acquire focus on the first activation on a new page since Chrome 75
+* fix `mapKey` could not map a key of printable characters to `<esc>` (only fixed in the Firefox version)
+* Firefox: fix LinkHints can not exit itself when clicking an `<iframe>`
 * `goBack` command supports an option `reuse`=`-2`/`-1` to open a previous URL in the tab history in a new tab
   * just like you <kbd>Ctrl+Click</kbd> / <kbd>Ctrl+Shift+Click</kbd> the browser's "Back" button
   * this feature can only work since Chrome 72, and currently not on Firefox

@@ -729,8 +729,8 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
 var toRemovedGlobal = null;
 
 function postUglify(file, needToPatchExtendClick) {
-  var contents = null, changed = false;
-  function get() { contents == null && (contents = String(file.contents), changed = true); }
+  var contents = null, changed = false, oldLen = 0;
+  function get() { contents == null && (contents = String(file.contents), changed = true, oldLen = contents.length); }
   if (outputES6 && !locally) {
     get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
@@ -764,9 +764,9 @@ function postUglify(file, needToPatchExtendClick) {
       }
       contents = s2 + contents.slice(1000);
     }
-    changed = n > 0;
+    changed = changed || n > 0;
   }
-  if (changed) {
+  if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = new Buffer(contents);
   }
 }
@@ -1162,7 +1162,7 @@ function gulpMerge() {
 function patchExtendClick(source) {
   if (locally && envLegacy) { return source; }
   print('Patch the extend_click module');
-  source = source.replace(/(addEventListener|toString) ?: ?function ?\w*/g, "$1");
+  source = source.replace(/\b(addEventListener|toString) ?: ?function ?\w*/g, "$1");
   let match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
   if (match) {
     const start = Math.max(0, match.index - 128), end = match.index;

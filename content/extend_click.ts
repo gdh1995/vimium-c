@@ -24,11 +24,10 @@ if (VDom && VimiumInjector === undefined) {
     kCmd = "Vimium",
   }
   type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[] | null ];
-  /**
-   * Note: on FF 66.0.3 x64 (Win 10), a '[sec, cmd]' from {@link ../front/vomnibar#VEvent.destroy_}
-   *     will cause "permission error" when reading property [0] on main world.
-   * `high bits` mean secret, `lower bits >> kContentCmd.MaskedBitNumber` mean content cmd
-   */
+/** Note: on Firefox, a `[sec, cmd]` can not be visited by the main world:
+ * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Sharing_objects_with_page_scripts#Constructors_from_the_page_context.
+ */
+  // `high bits` mean secret, `lower bits >> kContentCmd.MaskedBitNumber` mean content cmd
   type CommandEventDetail = number;
   interface VimiumCustomEventCls {
     prototype: CustomEvent;
