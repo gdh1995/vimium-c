@@ -172,16 +172,16 @@ var HelpDialog = {
     __proto__: null as never
   } as SafeEnum,
   _invalidAttrNameRe: <RegExpI> /^on|[^0-9a-z\-]|href$/i,
-  safeHTML_ (raw: string, parent: HTMLTableDataCellElement | HTMLBodyElement | DOMParser): string {
-    type ParentElement = Exclude<typeof parent, DOMParser>;
+  safeHTML_ (raw: string, root: HTMLTableDataCellElement | HTMLBodyElement | DOMParser): string {
+    type RootElement = Exclude<typeof root, DOMParser>;
     if (Build.BTypes & ~BrowserType.Firefox) {
-      (parent as ParentElement).innerHTML = raw;
+      (root as RootElement).innerHTML = raw;
     } else {
-      parent = (parent as DOMParser).parseFromString(`<td>${raw}</td>`, "text/html"
+      root = (root as DOMParser).parseFromString(`<td>${raw}</td>`, "text/html"
           ).body.firstChild as HTMLTableDataCellElement;
-      if (!parent) { return ""; }
+      if (!root) { return ""; }
     }
-    for (let arr = (parent as ParentElement).querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
+    for (let arr = (root as RootElement).querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
       const el = arr[i];
       if (!((Build.BTypes & ~BrowserType.Firefox ? el.tagName + "" : el.tagName as string
             ).toLowerCase() in this.safeTags)
@@ -200,7 +200,7 @@ var HelpDialog = {
         el.removeAttributeNode(attr);
       }
     }
-    return (parent as ParentElement).innerHTML;
+    return (root as RootElement).innerHTML;
   },
   commandGroups_: { __proto__: null as never,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"

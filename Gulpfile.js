@@ -1224,7 +1224,6 @@ function patchGulpUglify() {
   _gulpUglifyPatched = true;
 }
 
-var _uglifyjsConfig = null;
 function loadUglifyConfig(reload) {
   var a = _loadUglifyConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
   {
