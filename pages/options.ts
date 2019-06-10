@@ -762,6 +762,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       (Option_.all_.focusNewTabContent.element_.nextElementSibling as HTMLElement).focus();
     };
   }
+  if (BG_.Backend_.setIcon_ === BG_.BgUtils_.blank_ && Option_.all_.showActionIcon.previous_) {
+    element = Option_.all_.showActionIcon.element_;
+    (element as EnsuredMountedHTMLElement).nextElementSibling.classList.add("has-error");
+    (element as EnsuredMountedHTMLElement).parentNode.parentNode.nextElementSibling.firstElementChild.textContent =
+        'Sorry, but the icon can not be dynamic if the browser flag "--disable-reading-from-canvas" is enabled';
+  }
 })();
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
