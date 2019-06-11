@@ -325,7 +325,8 @@ var VFind = {
       , el: SafeElement | null | undefined, el2: Element | null;
     i === FindNS.Action.ExitNoAnyFocus || focus();
     a.clean_();
-    if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
+    if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus
+        && i !== FindNS.Action.ExitNoAnyFocus) {
       el = VDom.getSelectionFocusEdge_(VDom.UI.getSelected_()[0], 1);
       el && (Build.BTypes & ~BrowserType.Firefox ? typeof el.focus === "function" : el.focus) &&
       (el as HTMLElement | SVGElement).focus();

@@ -352,7 +352,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       a.mutable_ = true;
       a.ExitGrab_(); events.setupSuppress_();
       VHints.clean_(); VVisual.deactivate_();
-      VFind.deactivate_(FindNS.Action.ExitNoAnyFocus);
+      VFind.init_ || VFind.deactivate_(FindNS.Action.ExitNoAnyFocus);
       onWndBlur();
     },
 
