@@ -488,6 +488,7 @@ function showSlide(ViewerModule: Window["Viewer"]): Promise<ViewerType> | Viewer
   sel.type === "Range" && sel.collapseToStart();
   const v = viewer_ = viewer_ || new ViewerModule(VShown as HTMLImageElement);
   v.visible || v.show();
+  (scrollX || scrollY) && scrollTo(0, 0);
   if (v.viewed) { return v; }
   return new Promise<ViewerType>(function (resolve, reject): void {
     tempEmit = function (succeed): void {
