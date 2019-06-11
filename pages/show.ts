@@ -484,11 +484,12 @@ function loadViewer(): Promise<Window["Viewer"]> {
 }
 
 function showSlide(ViewerModule: Window["Viewer"]): Promise<ViewerType> | ViewerType {
+  const needToScroll = scrollX || scrollY;
   const sel = getSelection();
   sel.type === "Range" && sel.collapseToStart();
   const v = viewer_ = viewer_ || new ViewerModule(VShown as HTMLImageElement);
   v.visible || v.show();
-  (scrollX || scrollY) && scrollTo(0, 0);
+  needToScroll && scrollTo(0, 0);
   if (v.viewed) { return v; }
   return new Promise<ViewerType>(function (resolve, reject): void {
     tempEmit = function (succeed): void {
