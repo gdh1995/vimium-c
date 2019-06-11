@@ -5,7 +5,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES
 }
 var VDom = {
   UI: null as never as DomUI,
-  cache_: null as never as SettingsNS.FrontendSettingCache,
+  cache_: null as never as EnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
   clickable_: null as never as { add(value: Element): object | void; has(value: Element): boolean; },
   /** is a child and in a same origin with its parent frame */ isSameOriginChild_: 0 as BOOL | boolean,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
@@ -15,6 +15,10 @@ var VDom = {
     ? true : Build.BTypes & BrowserType.Chrome ? true : false,
   docSelectable_: true,
   docNotCompleteWhenVimiumIniting_: document.readyState !== "complete",
+  unsafeFramesetTag_: "" as "frameset" | "",
+
+  /** DOM-compatibility section */
+
   isHTML_: (): boolean => "lang" in <ElementToHTML> (document.documentElement || {}),
   htmlTag_: (Build.BTypes & ~BrowserType.Firefox ? function (element: Element): string {
     let s: Element["tagName"] = element.tagName;
@@ -45,6 +49,25 @@ var VDom = {
           | (ensured extends true ? never : null) {
     const desc = Object.getOwnPropertyDescriptor(Cls.prototype, property);
     return desc && desc.get ? desc.get.call(instance) : null;
+  } : 0 as never,
+  notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
+    let s: Node["nodeName"];
+    // tslint:disable-next-line: triple-equals
+    return !!el && (typeof (s = el.nodeName) != "string" ||
+      (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
+        ? s.toLowerCase() === "form"
+        : (s = s.toLowerCase()) === "form" || s === VDom.unsafeFramesetTag_)
+    );
+  } : 0 as never,
+  /** @safe_even_if_any_overridden_property */
+  SafeEl_: Build.BTypes & ~BrowserType.Firefox ? function (
+      this: void, el: Node | null, type?: PNType.DirectElement | undefined): Node | null {
+    return VDom.notSafe_(el)
+      ? VDom.SafeEl_(VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent), type) : el;
+  } as {
+    (this: void, el: HTMLElement | null): SafeHTMLElement | null;
+    (this: void, el: Element | null, type?: PNType.DirectElement | undefined): SafeElement | null;
+    (this: void, el: Node | null): Node | null;
   } : 0 as never,
   GetShadowRoot_ (el: Element, hasBeenSafe?: BOOL): ShadowRoot | null {
     // check el's type to avoid exceptions
@@ -476,26 +499,6 @@ var VDom = {
     // because .GetParent_ will only return a real parent, but not a fake <form>.parentNode
     return (pe || VDom.GetParent_(element, PNType.DirectNode)) === root;
   } as (element: Element, root?: Element | Document, checkMouseEnter?: 1) => boolean,
-  unsafeFramesetTag_: "" as "frameset" | "",
-  notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
-    let s: Node["nodeName"];
-    // tslint:disable-next-line: triple-equals
-    return !!el && (typeof (s = el.nodeName) != "string" ||
-      (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
-        ? s.toLowerCase() === "form"
-        : (s = s.toLowerCase()) === "form" || s === VDom.unsafeFramesetTag_)
-    );
-  } : 0 as never,
-  /** @safe_even_if_any_overridden_property */
-  SafeEl_: Build.BTypes & ~BrowserType.Firefox ? function (
-      this: void, el: Node | null, type?: PNType.DirectElement | undefined): Node | null {
-    return VDom.notSafe_(el)
-      ? VDom.SafeEl_(VDom.GetParent_(el, type || PNType.RevealSlotAndGotoParent), type) : el;
-  } as {
-    (this: void, el: HTMLElement | null): SafeHTMLElement | null;
-    (this: void, el: Element | null, type?: PNType.DirectElement | undefined): SafeElement | null;
-    (this: void, el: Node | null): Node | null;
-  } : 0 as never,
   uneditableInputs_: <SafeEnum> { __proto__: null as never,
     button: 1, checkbox: 1, color: 1, file: 1, hidden: 1, //
     image: 1, radio: 1, range: 1, reset: 1, submit: 1
@@ -587,6 +590,7 @@ var VDom = {
   },
 
   /** action section */
+
   createElement_: function<K extends VimiumContainerElementType> (this: {},
       tagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement | Element {
     const d = document, node = document.createElement(tagName);
@@ -743,6 +747,7 @@ var VDom = {
   },
 
   /** rect section */
+
   center_ (rect?: Rect | null): Point2D {
     let zoom = Build.BTypes & ~BrowserType.Firefox ? this.dbZoom_ / 2 : 0.5;
     rect = rect && this.cropRectToVisible_.apply(this, rect as [number, number, number, number]) || rect;

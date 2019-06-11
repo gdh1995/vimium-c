@@ -133,7 +133,7 @@ var Settings_ = {
       return a.set_("searchEngineRules", rules);
     },
     searchUrl (str): void {
-      const cache = (this as typeof Settings_).cache_ as Writeable<typeof Settings_.cache_>;
+      const cache = (this as typeof Settings_).cache_ as Writable<typeof Settings_.cache_>;
       if (str) {
         BgUtils_.parseSearchEngines_("~:" + str, cache.searchEngineMap);
       } else {
@@ -266,7 +266,7 @@ var Settings_ = {
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { c: a.omniPayload_.c } });
     },
     innerCSS (this: {}, css): void {
-      const a = this as typeof Settings_, cache = a.cache_ as Writeable<typeof Settings_.cache_>;
+      const a = this as typeof Settings_, cache = a.cache_ as Writable<typeof Settings_.cache_>;
       let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS");
       if (!findCSS || omniCSS == null) { Settings_.fetchFile_("baseCSS"); return; }
       findCSS = findCSS.slice(findCSS.indexOf("\n") + 1);
@@ -280,7 +280,7 @@ var Settings_ = {
     vomnibarPage (this: {}, url): void {
       const a = this as typeof Settings_, cur = localStorage.getItem("vomnibarPage_f");
       if (cur && !url) {
-        (a.cache_ as Writeable<typeof Settings_.cache_>).vomnibarPage_f = cur;
+        (a.cache_ as Writable<typeof Settings_.cache_>).vomnibarPage_f = cur;
         return;
       }
       url = url || a.get_("vomnibarPage");
@@ -323,7 +323,7 @@ var Settings_ = {
         options.queryInterval = newQueryInterval;
         options.styles = newStyles;
       }
-      (a.cache_ as Writeable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
+      (a.cache_ as Writable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
         : options as NonNullable<typeof options>;
       payload.m = maxMatches;
       payload.i = queryInterval;
@@ -512,7 +512,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
     ? chrome.runtime.PlatformOs as NonNullable<typeof chrome.runtime.PlatformOs>
     : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
   Settings_.CONST_.Platform_ = os;
-  (Settings_.payload_ as Writeable<typeof Settings_.payload_>).m = os === types.MAC || (os === types.WIN && 0);
+  (Settings_.payload_ as Writable<typeof Settings_.payload_>).m = os === types.MAC || (os === types.WIN && 0);
 }) : (Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown");
 
@@ -557,8 +557,8 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     return (path.charCodeAt(0) === kCharCode.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
   if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
-    (payload_ as Writeable<typeof payload_>).b =
-        (settings.omniPayload_ as Writeable<VomnibarPayload>).b = OnOther;
+    (payload_ as Writable<typeof payload_>).b =
+        (settings.omniPayload_ as Writable<VomnibarPayload>).b = OnOther;
   }
   if (Build.MayOverrideNewTab) {
     const overrides = ref.chrome_url_overrides, hasNewTab = overrides && overrides.newtab;

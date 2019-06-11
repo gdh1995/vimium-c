@@ -28,7 +28,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     , exitPassMode: ((this: void) => void) | undefined | null
     , OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
           || !(Build.BTypes & ~BrowserType.Edge)
-        ? Build.BTypes as number : BrowserType.Chrome
+        ? Build.BTypes as number
+        : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
+        : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
+        : BrowserType.Chrome
     , /** should be used only if OnOther is Chrome */ browserVer: BrowserVer = 0
     , isCmdTriggered: BOOL = 0
     , isTop = top === window
@@ -307,14 +310,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     let f = action ? removeEventListener : addEventListener;
     if (Build.MinCVer < BrowserVer.Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow
         && Build.BTypes & BrowserType.Chrome) {
-      Build.BTypes & ~BrowserType.Chrome && notChrome || f.call(document, "DOMActivate", onActivate, true);
+      Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome ||
+      f.call(document, "DOMActivate", onActivate, true);
       if (action === HookAction.SuppressActivateOnDocument) { return; }
     }
     f("keydown", onKeydown, true);
     f("keyup", onKeyup, true);
     action !== HookAction.Suppress && f("focus", onFocus, true);
     f("blur", onBlur, true);
-    f((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : notChrome)
+    f(Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
         ? "click" : "DOMActivate", onActivate, true);
   }),
   Commands: {
@@ -955,7 +959,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           && <number> Build.BTypes !== BrowserType.Edge) {
         OnOther = load.b as NonNullable<typeof load.b>;
       }
-      D.cache_ = load;
+      D.cache_ = load as EnsureItemsNonNull<typeof load>;
       load.m && (VKey.correctionMap_ = safer<string>(null));
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
@@ -1201,7 +1205,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
   ],
 
-  safeDestroy: VEventModeTy["destroy_"] = function (this: void, silent?: boolean | 9): void {
+  safeDestroy: VEventModeTy["destroy_"] = function (this: void, silent): void {
     if (!esc) { return; }
     if (Build.BTypes & BrowserType.Firefox && silent === 9) {
       vPort._port = null;
@@ -1352,8 +1356,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     } as VEventModeTy["keydownEvents_"]
   },
 
-  notChrome = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect),
   vPort = {
     _port: null as Port | null,
     _callbacks: safer(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
@@ -1387,8 +1389,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }, requestHandlers[kBgReq.init] ? 2000 : 5000);
     },
     Connect_: (function (this: void): void {
-      const runtime: typeof chrome.runtime = (
-        (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true : notChrome)
+      const runtime: typeof chrome.runtime = (Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
         ? browser as typeof chrome : chrome).runtime,
       status = requestHandlers[0] ? PortType.initing
         : (isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
@@ -1443,7 +1444,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       const a1 = parentFrame_ && (parent as Window & { VFind?: typeof VFind }).VFind;
       VDom.isSameOriginChild_ = !!a1;
       if (a1 && a1.box_ === parentFrame_) {
-        safeDestroy(true);
+        safeDestroy(1);
         a1.onLoad_();
         return 1; // not return a function's result so that logic is clearer for compiler
       }

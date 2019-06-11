@@ -403,7 +403,7 @@ const bookmarkEngine = {
     if (i < len) {
       const cur: Bookmark = arr[i], url = cur.url,
       url2 = info && (info as chrome.bookmarks.BookmarkChangeInfo).url;
-      type WBookmark = Writeable<Bookmark>;
+      type WBookmark = Writable<Bookmark>;
       if (Decoder.enabled_ && (title == null ? url !== cur.text || !info : url2 != null && url !== url2)) {
         url in Decoder.dict_ && HistoryCache.binarySearch_(url) < 0 && delete Decoder.dict_[url];
       }
@@ -1388,7 +1388,7 @@ knownCs: CompletersMap & SafeObject = {
     UpdateAll_ (this: void): void {
       if (bookmarkEngine.bookmarks_) {
         for (const k of bookmarkEngine.bookmarks_) {
-          (k as Writeable<Bookmark>).visible = phraseBlacklist ? BlacklistFilter.TestNotMatched_(k.text, k.path)
+          (k as Writable<Bookmark>).visible = phraseBlacklist ? BlacklistFilter.TestNotMatched_(k.text, k.path)
             : kVisibility.visible;
         }
       }

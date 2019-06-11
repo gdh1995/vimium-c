@@ -16,8 +16,7 @@ if (VDom && VimiumInjector === undefined) {
     DelayForNext = 36,
     DelayForNextComplicatedCase = 1,
     kSecretAttr = "data-vimium",
-    SecretUpperLimit = 1e5,
-    MaxRetryTimesForHook = 99,
+    SecretUpperLimit = 9e4,
 
     kVOnClick = "VimiumOnclick",
     kHook = "VimiumHook",
@@ -71,7 +70,7 @@ if (VDom && VimiumInjector === undefined) {
   hook = function (event: CustomEvent): void {
     const t = event.target;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
-    if (++hookRetryTimes > InnerConsts.MaxRetryTimesForHook
+    if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForExtendClickHook
         || event.detail !== secret || !(t instanceof Element)) { return; }
     // it's unhooking is delayed, so here may no VKey
     event.stopImmediatePropagation();
@@ -473,7 +472,7 @@ _listen("load", delayFindAll, !0);
       + " not work because %o is sandboxed.",
     location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
   if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally) {
-    VEvent.destroy_(true);
+    VEvent.destroy_(1);
     return;
   }
   let rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? window.requestIdleCallback : 0 as const;

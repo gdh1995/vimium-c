@@ -5,15 +5,16 @@ VDom.allowScripts_ = 0;
 
 (function () {
   let parentFrame_: typeof frameElement | undefined | false;
-  if (Build.MinCVer >= BrowserVer.MinSafeGlobal$frameElement || !(Build.BTypes & BrowserType.Chrome)) {
-    parentFrame_  = frameElement;
-  } else {
+  if (Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement && Build.BTypes & BrowserType.Chrome) {
+    (function (): void {
     try {
       parentFrame_ = window !== top && frameElement as (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null;
     } catch {}
+    })();
   }
   const injector = VimiumInjector as VimiumInjectorTy,
-  parentInjector = parentFrame_
+  parentInjector = (Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement && Build.BTypes & BrowserType.Chrome
+          ? parentFrame_ : frameElement)
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
   // share the set of all clickable, if .dataset.vimiumHooks is not "false"
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;

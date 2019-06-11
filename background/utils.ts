@@ -788,13 +788,13 @@ var BgUtils_ = {
 
 declare var OnOther: BrowserType;
 if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
-  (window as Writeable<Window>).OnOther = Build.BTypes & BrowserType.Chrome &&
+  (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome &&
     (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
     || location.protocol.lastIndexOf("chrome", 0) >= 0) // in case Chrome also supports `browser` in the future
   ? BrowserType.Chrome
   : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
-  : Build.BTypes & BrowserType.Firefox && (<RegExpOne> /\bFirefox\//).test(navigator.userAgent) ? BrowserType.Firefox
-  : BrowserType.Unknown;
+  : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
+  : /* an invalid state */ BrowserType.Unknown;
 }
 var
 CurCVer_: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (

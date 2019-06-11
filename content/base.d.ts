@@ -395,7 +395,7 @@ interface VEventModeTy {
     2: (this: Window, event: KeyboardEvent & {type: "keyup"} | Event & {type: "blur"}) => void;
   };
   execute_: ((this: void, cmd: ValidContentCmds) => void) | null;
-  destroy_: (this: void, silent?: boolean | 9) => void;
+  destroy_: (this: void, silent?: boolean | BOOL | 9) => void;
 }
 interface VHUDTy {
   readonly box_: HTMLDivElement | null;

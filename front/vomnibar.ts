@@ -40,7 +40,7 @@ import PixelData = VomnibarNS.PixelData;
 
 // tslint:disable-next-line: triple-equals
 if (typeof VEvent == "object" && VEvent && typeof VEvent.destroy_ == "function") {
-  VEvent.destroy_(true);
+  VEvent.destroy_(1);
 }
 
 var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
@@ -1151,7 +1151,7 @@ VUtils_ = {
     }
     sug.text = text;
     if (str = sug.title) {
-      (sug as Writeable<typeof sug>).title = str.replace(<RegExpG> /<\/?match>/g, "").replace(
+      (sug as Writable<typeof sug>).title = str.replace(<RegExpG> /<\/?match>/g, "").replace(
           <RegExpG & RegExpSearchable<1>> /&(amp|apos|gt|lt|quot);|\u2026/g, VUtils_.onHTMLEntity);
     }
     return i;

@@ -284,13 +284,13 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       f |= Frames.Flags.vomnibarChecked |
         (info.u === Settings_.cache_.vomnibarPage_f || info.u === Settings_.CONST_.VomnibarPageInner_
           ? Frames.Flags.isVomnibar : 0);
-      (info as Writeable<Frames.Sender>).f = f;
+      (info as Writable<Frames.Sender>).f = f;
     }
     if (f & Frames.Flags.isVomnibar) { return false; }
     if (!noLog && !(f & Frames.Flags.sourceWarned)) {
       console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @ tab %o",
         "color:red", "color:auto", info.u, info.t);
-      (info as Writeable<Frames.Sender>).f = f | Frames.Flags.sourceWarned;
+      (info as Writable<Frames.Sender>).f = f | Frames.Flags.sourceWarned;
     }
     return true;
   }
@@ -2339,7 +2339,7 @@ Are you sure you want to continue?`);
       status !== Frames.Status.enabled && needIcon && Backend_.setIcon_(tabId, status);
     }
     if (Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId) {
-      (sender as Writeable<Frames.Sender>).i = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
+      (sender as Writable<Frames.Sender>).i = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
     }
   }
   function OnDisconnect(this: void, port: Port): void {
@@ -2369,7 +2369,7 @@ Are you sure you want to continue?`);
     if (type >= PortType.omnibar) {
       if (!isNotVomnibarPage(port, false)) {
         if (tabId < 0) {
-          (port.s as Writeable<Frames.Sender>).t = type !== PortType.omnibar ? _fakeTabId--
+          (port.s as Writable<Frames.Sender>).t = type !== PortType.omnibar ? _fakeTabId--
               : cPort ? cPort.s.t : TabRecency_.last_;
         }
         framesForOmni.push(port);
@@ -2420,7 +2420,7 @@ Are you sure you want to continue?`);
     if (!(Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab)) {
       sender.tab = null as never;
     }
-    return (port as Writeable<Port>).s = {
+    return (port as Writable<Port>).s = {
       i: Build.MinCVer >= BrowserVer.MinWithFrameId || !(Build.BTypes & BrowserType.Chrome)
           ? sender.frameId as number : sender.frameId || 0,
       a: tab.incognito,
@@ -2702,7 +2702,7 @@ Are you sure you want to continue?`);
     delete ref[removedTabId];
     ref[addedTabId] = frames;
     for (let i = frames.length; 0 < --i; ) {
-      (frames[i].s as Writeable<Frames.Sender>).t = addedTabId;
+      (frames[i].s as Writable<Frames.Sender>).t = addedTabId;
     }
   });
 

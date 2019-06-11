@@ -455,7 +455,7 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
 };
 
 if (!Build.NDEBUG) {
-  (Commands.availableCommands_ as Writeable<typeof Commands.availableCommands_>).focusOptions = [
+  (Commands.availableCommands_ as Writable<typeof Commands.availableCommands_>).focusOptions = [
     kBgCmd.openUrl, 1, 1, { reuse: ReuseType.reuse, url: "vimium://options" }
   ];
   Commands.defaultKeyMappings_.push("<a-s-f12>", "debugBackground", "<s-f12>", "focusOptions");

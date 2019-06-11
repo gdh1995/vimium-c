@@ -363,6 +363,7 @@ declare const enum GlobalConsts {
   MaxHistoryURLLength = 2_000, // to avoid data: URLs and malformed webpages
   TrimmedURLLengthForTooLongURL = 320,
   TrimmedTitleLengthForTooLongURL = 160,
+  MaxRetryTimesForExtendClickHook = 99,
 }
 
 declare const enum kCharCode {
