@@ -17,6 +17,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
 
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
+    , knownGlobalThis: Writable<ContentWindowCore> | undefined
     , currentKeys = "", isEnabled = false, isLocked = false
     , mappedKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
     , esc = function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
@@ -665,12 +666,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VKey.prevent_(event); // safer
       if (parentFrame_) {
         KeydownEvents[key] = 1;
-        const parent1 = parent as Window, a1 = parent1 && (parent1 as Window & { VEvent: VEventModeTy }).VEvent;
-        if (a1 && !a1.keydownEvents_(events)) {
-          (parent1 as Window & { VKey: typeof VKey }).VKey.suppressTail_(0);
+        const p = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_ && VDom.parentCore_()
+            : parent as Window,
+        a1 = p && p.VEvent;
+        if (a1 && !a1.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
+          ((p as Exclude<typeof p, BOOL>).VKey as typeof VKey).suppressTail_(0);
           a1.focusAndRun_(0, 0 as never, 0 as never, 1);
         } else {
-          parent1.focus();
+          (Build.BTypes & BrowserType.Firefox ? parent as Window : p as Window).focus();
         }
       } else if (KeydownEvents[key] !== 2) { // avoid sending too many messages
         post({ H: kFgReq.nextFrame, t: Frames.NextType.parent, k: key });
@@ -974,6 +977,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {
         D.notSafe_ = (_el): _el is HTMLFormElement => false;
+        if (Build.MinFFVer >= FirefoxBrowserVer.Min$globalThis) {
+          (globalThis as any as Writable<ContentWindowCore>).VSec = load.s as NonNullable<typeof load.s>;
+        } else {
+          knownGlobalThis && (knownGlobalThis.VSec = load.s as NonNullable<typeof load.s>);
+        }
       }
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 &&
       load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
@@ -1241,13 +1249,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let el = !isTop && (parentFrame_ || document.documentElement);
       if (!el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
-      parEvents: VEventModeTy,
+      par: ContentWindowCore | 0 | undefined,
+      parEvents: VEventModeTy | undefined,
       result: boolean | BOOL = !box.height && !box.width || getComputedStyle(el).visibility === "hidden";
       if (cmd) {
         type EnsuredOptionsTy = Exclude<typeof options, undefined>;
-        if (parentFrame_ && (result || box.bottom <= 0 || parent && box.top > (parent as Window).innerHeight)) {
-          parEvents = (parent as Window & { VEvent: VEventModeTy }).VEvent;
-          if (parEvents && !parEvents.keydownEvents_(events)) {
+        if ((Build.BTypes & BrowserType.Firefox ? VDom.parentCore_ && (par = VDom.parentCore_()) : parentFrame_)
+            && (result || box.bottom <= 0 || box.top > (parent as Window).innerHeight)) {
+          parEvents = ((Build.BTypes & BrowserType.Firefox ? par : parent) as ContentWindowCore).VEvent;
+          if (parEvents
+              && !parEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
             parEvents.focusAndRun_(cmd, count as number, options as EnsuredOptionsTy, 1);
             result = 1;
           }
@@ -1350,9 +1361,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     execute_: null as VEventModeTy["execute_"],
     destroy_: safeDestroy,
-    keydownEvents_: function (this: void, arr?: VEventModeTy): KeydownCacheArray | boolean {
+    keydownEvents_: function (this: void, arr?: Pick<VEventModeTy, "keydownEvents_"> | KeydownCacheArray
+        ): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
-      return !isEnabled || !(KeydownEvents = arr.keydownEvents_());
+      return !isEnabled || !(KeydownEvents = Build.BTypes & BrowserType.Firefox ? arr as KeydownCacheArray
+          : (arr as VEventModeTy).keydownEvents_());
     } as VEventModeTy["keydownEvents_"]
   },
 
@@ -1438,26 +1451,95 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   VKey.isEscape_ = isEscape;
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
-  if (isTop || injector || !+function (): 1 | void {
-    try {
-      parentFrame_ = frameElement as typeof parentFrame_;
-      const a1 = parentFrame_ && (parent as Window & { VFind?: typeof VFind }).VFind;
-      VDom.isSameOriginChild_ = !!a1;
-      if (a1 && a1.box_ === parentFrame_) {
+  if (isTop || !+function (): 1 | void { // if injected, `parentFrame_` still needs a value
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement) {
+      try { parentFrame_ = frameElement; } catch {}
+    } else {
+      parentFrame_ = frameElement;
+    }
+    if (Build.BTypes & BrowserType.Firefox
+        && (!BuildStr.RandomReq || !BuildStr.RandomRes) // may be compiled directly using tsc.js
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+        || !parentFrame_) {
+      return;
+    }
+    type FindTy = typeof VFind;
+    let core = !(Build.BTypes & BrowserType.Firefox) ? 0 as const // never on Firefox
+        : Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox || injector !== void 0
+        ? parent as ContentWindowCore // know it's in another extension's page, or not on Firefox
+        : VDom.getWndCore_(parent as Window, 1),
+    vfind: FindTy | undefined | 0;
+    if (Build.BTypes & BrowserType.Firefox) {
+      try { // `core` is still unsafe
+        vfind = (core && core.VFind) as FindTy | undefined;
+        if (vfind) {
+          if (vfind && XPCNativeWrapper(vfind).box_ === parentFrame_) {
+            safeDestroy(1);
+            (vfind as FindTy).onLoad_();
+            return 1; // not return a function's result so that logic is clearer for compiler
+          }
+          VDom.clickable_ = ((core as Exclude<NonNullable<typeof core>, 0>).VDom as typeof VDom).clickable_;
+        }
+      } catch (e) { console.log("fail:", e); vfind = 0; }
+    } else {
+      vfind = (parent as ContentWindowCore).VFind as FindTy | undefined;
+      if (vfind && vfind.box_ === parentFrame_) {
         safeDestroy(1);
-        a1.onLoad_();
+        (vfind as FindTy).onLoad_();
         return 1; // not return a function's result so that logic is clearer for compiler
       }
-    } catch { }
+    }
+    // if not `vfind`, then a parent may have destroyed / be from a fake message
+    VDom.parentCore_ = !vfind ? 0 : Build.BTypes & BrowserType.Firefox ? function () {
+      // in this case, `core` is an object and may be true
+      core && core.VSec !== VDom.cache_.s && (core = 0);
+      return core as NonNullable<typeof core>;
+    } : /* if never on Firefox */ 1 as never;
   }()) {
-    VDom.clickable_ = VDom.isSameOriginChild_ ? (parent as Window & { VDom: typeof VDom }).VDom.clickable_
+    VDom.clickable_ = !(Build.BTypes & BrowserType.Firefox)
+        || Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox
+      ? VDom.parentCore_ ? ((parent as ContentWindowCore).VDom as typeof VDom).clickable_
         : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
             || WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() as never : {
       add (element: Element): any { (element as ElementWithClickable).vimiumClick = true; },
       has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
-    };
+    } : /* now know it's on Firefox */
+        BuildStr.RandomReq && BuildStr.RandomRes && VDom.clickable_ || new (WeakSet as WeakSetConstructor)<Element>();
     hook(HookAction.Install);
     vPort.Connect_();
+    if (BuildStr.RandomReq && BuildStr.RandomRes
+        && (!(Build.BTypes & ~BrowserType.Firefox)
+            || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)
+        && injector === void 0) {
+      let __secReq: string | number = BuildStr.RandomReq, errTick = 0,
+      __secRes: string | number = BuildStr.RandomRes;
+      /** @see {@link ../lib/dom_utils.ts#VDom.getWndCore_} */
+      wrappedJSObject[BuildStr.CoreGetterFuncPrefix + BuildStr.Commit] = function (testSec) {
+        if (testSec !== __secReq) {
+          if (errTick > GlobalConsts.MaxRetryTimesForSandboxExportFunc) {
+            __secReq = esc as never;
+          } else {
+            errTick++;
+          }
+          return;
+        }
+        // on Firefox, no unsafe named getters in a webextension world
+        let core: Writable<ContentWindowCore> | 0 = Build.MinFFVer >= FirefoxBrowserVer.Min$globalThis
+              || typeof globalThis === "object" ? globalThis as any : knownGlobalThis;
+        if (Build.MinFFVer < FirefoxBrowserVer.Min$globalThis && !core) {
+          knownGlobalThis = core = {} as Writable<ContentWindowCore>;
+          /** @see {@link base.d.ts#ContentWindowCore} */
+          core.VDom = VDom; core.VKey = VKey; core.VHints = VHints; core.VScroller = VScroller;
+          core.VOmni = VOmni; core.VFind = VFind; core.VEvent = VEvent; core.self = window;
+        }
+        if (__secRes) {
+          (core as Exclude<typeof core, 0>).VRand = __secRes;
+          (core as Exclude<typeof core, 0>).VSec = VDom.cache_ && VDom.cache_.s;
+          __secRes = 0;
+        }
+        return core;
+      };
+    }
   }
 })();
 

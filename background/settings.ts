@@ -556,6 +556,10 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   function func(path: string): string {
     return (path.charCodeAt(0) === kCharCode.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
+  if (Build.BTypes & BrowserType.Firefox && BuildStr.RandomReq && BuildStr.RandomRes
+      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+    (payload_ as Writable<typeof payload_>).s = 1e5 + ((Math.random() * 9e5) | 0);
+  }
   if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
     (payload_ as Writable<typeof payload_>).b =
         (settings.omniPayload_ as Writable<VomnibarPayload>).b = OnOther;

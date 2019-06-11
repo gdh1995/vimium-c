@@ -7,11 +7,6 @@ interface ShadowRoot {
   vimiumListened?: ShadowRootListenType;
 }
 
-interface Window {
-  readonly VKey?: object;
-  readonly VDom?: object;
-  readonly VFind?: { css_: FindCSS | null; };
-}
 interface WindowWithTop extends Window {
   top: Window;
 }
@@ -386,7 +381,7 @@ interface VEventModeTy {
   scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: kKeyCode }, wnd?: Window): void;
   /** return has_error */
   readonly keydownEvents_: {
-    (this: void, srcFrame: Pick<VEventModeTy, "keydownEvents_">): boolean;
+    (this: void, srcFrame: Pick<VEventModeTy, "keydownEvents_"> | KeydownCacheArray): boolean;
     (this: void): KeydownCacheArray;
   };
   readonly OnScrolls_: {
@@ -425,3 +420,29 @@ declare const enum kContentCmd {
 }
 type ValidContentCmds = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minNotDispatchDirectly
     | kContentCmd.MaskedBitNumber>;
+
+interface ContentWindowCore {
+  readonly VDom?: object;
+  readonly VKey?: object;
+  readonly VHints?: object;
+  readonly VScroller?: object;
+  readonly VOmni?: object;
+  readonly VFind?: { css_: FindCSS | null; };
+  readonly VEvent?: VEventModeTy;
+  readonly VRand?: number | string;
+  readonly VSec?: number | string | null;
+  readonly self: Window;
+}
+
+interface SandboxGetterFunc {
+  (secret: number | string): ContentWindowCore | 0 | null | undefined;
+}
+declare var wrappedJSObject: { [key: string]: SandboxGetterFunc; };
+declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;
+type XrayedObject<T extends object> = T & {
+  wrappedJSObject?: T;
+}
+
+interface Window extends ContentWindowCore {
+  wrappedJSObject: typeof wrappedJSObject;
+}

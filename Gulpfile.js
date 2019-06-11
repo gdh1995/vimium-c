@@ -1028,6 +1028,8 @@ function getBuildItem(key, literalVal) {
       if (!manifest.chrome_url_overrides || !manifest.chrome_url_overrides.newtab) {
         cached = buildOptionCache[key] = ["0", 0];
       }
+    } else if (key.startsWith("Random")) {
+      cached = [literalVal, getRandom];
     }
     cached && (buildOptionCache[key] = cached);
   }
@@ -1055,6 +1057,9 @@ function getBuildItem(key, literalVal) {
 function parseBuildItem(key, newVal) {
   if (newVal != null && newVal instanceof Array && newVal.length === 2) {
     newVal = newVal[locally ? 0 : 1];
+  }
+  if (typeof newVal === "function") {
+    newVal = newVal(key);
   }
   if (newVal == null) {
     if (key === "NoDialogUI") {
@@ -1266,4 +1271,28 @@ function loadNameCache(path) {
     print("Loaded nameCache of " + path);
   }
   return nameCache || { vars: {}, props: {}, timestamp: 0 };
+}
+
+var _randMap;
+function getRandom(id) {
+  var rand = _randMap ? _randMap[id] : 0;
+  if (rand) {
+    return rand;
+  }
+  if (locally) {
+    rand = 100000 + (0 | (Math.random() * 899999));
+  } else {
+    var hash = getMD5(osPath.resolve(__dirname) + (id.toLowerCase() !== 'random' ? id : ""));
+    hash = hash.substr(8, 4) + hash.substr(21, 3);
+    rand = hash;
+  }
+  (_randMap || (_randMap = {}))[id] = rand;
+  return rand;
+}
+
+function getMD5(str) {
+  var crypto = require('crypto');
+  var md5 = crypto.createHash('md5');
+  md5.update(str)
+  return md5.digest('hex');
 }

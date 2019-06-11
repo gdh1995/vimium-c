@@ -251,6 +251,7 @@ declare namespace SettingsNS {
     /** reduceMotion */ r: boolean;
     /** onMac: `mac`: true, `win`: 0, `others`: false */ readonly m: boolean | 0;
     /** grabBackFocus */ g: boolean;
+    /** session secret for Firefox */ s?: number | string;
   }
   /** Note: should have NO names which may be uglified */
   interface FrontendSettingCache extends FrontendSettings, FrontendSettingsWithoutSyncing {
@@ -364,6 +365,7 @@ declare const enum GlobalConsts {
   TrimmedURLLengthForTooLongURL = 320,
   TrimmedTitleLengthForTooLongURL = 160,
   MaxRetryTimesForExtendClickHook = 99,
+  MaxRetryTimesForSandboxExportFunc = 999,
 }
 
 declare const enum kCharCode {
@@ -786,6 +788,7 @@ declare const enum FirefoxBrowserVer {
   MinUsable$Navigator$$Clipboard = 63,
   MinMediaQuery$PrefersReducedMotion = 63,
   Min$Document$$FullscreenElement = 64,
+  Min$globalThis = 65,
   MinMediaQuery$PrefersColorScheme = 67,
   MinSupported = 64,
 }

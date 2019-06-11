@@ -7,7 +7,12 @@ var VDom = {
   UI: null as never as DomUI,
   cache_: null as never as EnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
   clickable_: null as never as { add(value: Element): object | void; has(value: Element): boolean; },
-  /** is a child and in a same origin with its parent frame */ isSameOriginChild_: 0 as BOOL | boolean,
+  /**
+   * is a child and in a same origin with its parent frame
+   *
+   * if never on Firefox, then it's `0 | 1`
+   */
+  parentCore_: 0 as ((this: void) => ContentWindowCore | 0) | 0,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as BOOL,
   allowRAF_: 1 as BOOL,
@@ -182,6 +187,22 @@ var VDom = {
       : el || !fallback ? el as SafeElement | null // el is safe object or null
       : this.notSafe_(docEl) ? null : docEl as SafeElement | null;
   },
+  /** Note: this function needs to be safer */
+  getWndCore_: (Build.BTypes & BrowserType.Firefox ? function (anotherWnd, ignoreSec): ContentWindowCore | 0 | void {
+    if (!(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VDom.cache_.b === BrowserType.Firefox) {
+      try {
+        let core: ReturnType<SandboxGetterFunc>,
+        getter = anotherWnd.wrappedJSObject[BuildStr.CoreGetterFuncPrefix + BuildStr.Commit];
+        return getter && (core = getter(BuildStr.RandomReq)) && core.VRand === BuildStr.RandomRes
+            && (ignoreSec || core.VSec === VDom.cache_.s) ? core : 0;
+      } catch {}
+    } else {
+      return anotherWnd as ContentWindowCore;
+    }
+  } : 0 as never) as (window: Window, isFF?: BOOL) => ContentWindowCore | 0 | void,
+
+  /** computation section */
+
   /** depends on .dbZoom_, .bZoom_, .paintBox_ */
   prepareCrop_ (): number {
     let iw: number, ih: number, ihs: number;

@@ -194,18 +194,19 @@ var VHints = {
     }
     interface VWindow extends Window {
       VHints: typeof VHints;
-      VEvent: VEventModeTy;
-      VDom: typeof VDom;
     }
-    let frame = a.frameNested_, child: VWindow = null as never, err = true, done = false;
-    let events: VEventModeTy | undefined;
+    let frame = a.frameNested_, err = true, done = false;
+    let events: VEventModeTy | undefined, core: ContentWindowCore | null | 0 | void | undefined = null;
     if (!frame) { return false; }
     try {
-      if (frame.contentDocument && (child = frame.contentWindow as VWindow).VDom.isHTML_()) {
+      if (frame.contentDocument
+          && (core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(frame.contentWindow) : frame.contentWindow)
+          && core.VDom && (core.VDom as typeof VDom).isHTML_()) {
         if (cmd === kFgCmd.linkHints) {
-          (done = child.VHints.isActive_) && child.VHints.deactivate_(0);
+          (done = (core as VWindow).VHints.isActive_) && (core as VWindow).VHints.deactivate_(0);
         }
-        err = (events = child.VEvent).keydownEvents_(VEvent);
+        events = core.VEvent as VEventModeTy;
+        err = events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VEvent.keydownEvents_() : VEvent);
       }
     } catch {}
     if (err) {
@@ -866,7 +867,10 @@ var VHints = {
   },
   _reinit (lastEl?: HintsNS.LinkEl | null, rect?: Rect | null): void {
     const a = this, events = VEvent;
-    if (events.keydownEvents_(events)) { return a.clean_(); }
+    if (events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
+      a.clean_();
+      return;
+    }
     a.isActive_ = false;
     a.keyStatus_.tab_ = 0;
     a.zIndexes_ = null;
@@ -1145,14 +1149,13 @@ openUrl_ (url: string, incognito?: boolean): void {
   VPort.post_(opt);
 },
 _highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
-  interface VWindow extends Window {
-    VEvent: VEventModeTy;
-    VHints: typeof VHints;
-  }
-  let err: boolean | null = true, childEvents: VEventModeTy | undefined;
+  let err: boolean | null = true, childEvents: VEventModeTy | undefined,
+  core: ContentWindowCore | void | undefined | 0;
   try {
-    err = !el.contentDocument ||
-      (childEvents = (el.contentWindow as VWindow).VEvent).keydownEvents_(VEvent);
+    err = !el.contentDocument
+        || !(core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(el.contentWindow) : el.contentWindow)
+        || !(childEvents = core.VEvent)
+        || childEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VEvent.keydownEvents_() : VEvent);
   } catch {}
   const { count_: count, options_: options } = this;
   options.mode = this.mode_;

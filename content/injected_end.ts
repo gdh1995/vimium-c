@@ -19,7 +19,8 @@ VDom.allowScripts_ = 0;
   // share the set of all clickable, if .dataset.vimiumHooks is not "false"
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
   clickable && (VDom.clickable_ = clickable);
-  VDom.isSameOriginChild_ = !!parentInjector;
+  VDom.parentCore_ = !parentInjector ? 0
+      : Build.BTypes & BrowserType.Firefox ? () => parent as ContentWindowCore : 1 as never;
 
   injector.checkIfEnabled = (function (this: null
       , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {

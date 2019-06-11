@@ -58,9 +58,10 @@ var VOmni = {
       }
     }
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
-      const p = parent as Window & { VOmni?: typeof VOmni | null };
-      if (VDom.isSameOriginChild_ && p === top && p.VOmni) {
-        p.VOmni.activate_(count, options);
+      const p = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_ && VDom.parentCore_()
+          : VDom.parentCore_ ? parent as ContentWindowCore : 0 as const;
+      if (p && (Build.BTypes & BrowserType.Firefox ? p.self : p) === top && p.VOmni) {
+        (p.VOmni as typeof VOmni).activate_(count, options);
       } else {
         VPort.post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options });
       }
