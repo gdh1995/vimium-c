@@ -213,14 +213,15 @@ var VDom = {
       return;
     }
     let isFF = !(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VDom.cache_.b === BrowserType.Firefox,
-    core = !(Build.BTypes & ~BrowserType.Firefox) || isFF ? VDom.getWndCore_(parent as Window, ignoreSec) : 1 as never;
-    if (core) {
+    core = !(Build.BTypes & ~BrowserType.Firefox) || isFF ? VDom.getWndCore_(parent as Window, ignoreSec)
+        : parent as Window;
+    if ((!(Build.BTypes & ~BrowserType.Firefox) || isFF) && core) {
       // in this case, `core` is an object and: {{ may be the real }} if ignoreSec else {{ is real }}
       /** the case of injector is handled in {@link ../content/injected_end.ts} */
-      VDom.parentCore_ = (!(Build.BTypes & ~BrowserType.Firefox) || isFF) ? function () {
+      VDom.parentCore_ = function () {
         core && core.VSec !== VDom.cache_.s && (core = 0);
         return core as NonNullable<typeof core>;
-      } : () => parent as ContentWindowCore;
+      };
     }
     return core;
   } : 0 as never) as (hasKnownOnFireFox?: 1) => ContentWindowCore | 0 | void,
