@@ -1474,7 +1474,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       try { // `core` is still unsafe
         vfind = (core && core.VFind) as FindTy | undefined;
         if (vfind) {
-          if (vfind && XPCNativeWrapper(vfind).box_ === parentFrame_) {
+          if (vfind && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox
+                        ? XPCNativeWrapper(vfind) : vfind).box_ === parentFrame_) {
             safeDestroy(1);
             (vfind as FindTy).onLoad_();
             return;
