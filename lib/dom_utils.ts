@@ -7,12 +7,6 @@ var VDom = {
   UI: null as never as DomUI,
   cache_: null as never as EnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
   clickable_: null as never as { add(value: Element): object | void; has(value: Element): boolean; },
-  /**
-   * is a child and in a same origin with its parent frame
-   *
-   * if never on Firefox, then it's `0 | 1`
-   */
-  parentCore_: 0 as ((this: void) => ContentWindowCore | 0) | 0,
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as BOOL,
   allowRAF_: 1 as BOOL,
@@ -187,19 +181,49 @@ var VDom = {
       : el || !fallback ? el as SafeElement | null // el is safe object or null
       : this.notSafe_(docEl) ? null : docEl as SafeElement | null;
   },
+  frameElement_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+      ? (): Element | null | void => {
+    try {
+      return frameElement;
+    } catch {}
+  } : 0 as never) as () => typeof frameElement | null | void,
   /** Note: this function needs to be safer */
   getWndCore_: (Build.BTypes & BrowserType.Firefox ? function (anotherWnd, ignoreSec): ContentWindowCore | 0 | void {
     if (!(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VDom.cache_.b === BrowserType.Firefox) {
+      if (!BuildStr.RandomReq || !BuildStr.RandomRes) { return; }
       try {
         let core: ReturnType<SandboxGetterFunc>,
-        getter = anotherWnd.wrappedJSObject[BuildStr.CoreGetterFuncPrefix + BuildStr.Commit];
+        getter = anotherWnd.wrappedJSObject[BuildStr.CoreGetterFuncPrefix + BuildStr.RandomFunc];
         return getter && (core = getter(BuildStr.RandomReq)) && core.VRand === BuildStr.RandomRes
             && (ignoreSec || core.VSec === VDom.cache_.s) ? core : 0;
       } catch {}
     } else {
       return anotherWnd as ContentWindowCore;
     }
-  } : 0 as never) as (window: Window, isFF?: BOOL) => ContentWindowCore | 0 | void,
+  } : 0 as never) as (window: Window, ignoreSec?: 1) => ContentWindowCore | 0 | void,
+  /**
+   * Return a valid `ContentWindowCore`
+   * only if is a child which in fact has a same origin with its parent frame (ignore `document.domain`).
+   *
+   * So even if it returns a valid object, `parent.***` may still be blocked
+   */
+  parentCore_: (Build.BTypes & BrowserType.Firefox ? function (ignoreSec): ContentWindowCore | 0 | void {
+    if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+          ? VDom.frameElement_() : frameElement)) {
+      return;
+    }
+    let isFF = !(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VDom.cache_.b === BrowserType.Firefox,
+    core = !(Build.BTypes & ~BrowserType.Firefox) || isFF ? VDom.getWndCore_(parent as Window, ignoreSec) : 1 as never;
+    if (core) {
+      // in this case, `core` is an object and: {{ may be the real }} if ignoreSec else {{ is real }}
+      /** the case of injector is handled in {@link ../content/injected_end.ts} */
+      VDom.parentCore_ = (!(Build.BTypes & ~BrowserType.Firefox) || isFF) ? function () {
+        core && core.VSec !== VDom.cache_.s && (core = 0);
+        return core as NonNullable<typeof core>;
+      } : () => parent as ContentWindowCore;
+    }
+    return core;
+  } : 0 as never) as (hasKnownOnFireFox?: 1) => ContentWindowCore | 0 | void,
 
   /** computation section */
 

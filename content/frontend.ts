@@ -36,7 +36,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     , /** should be used only if OnOther is Chrome */ browserVer: BrowserVer = 0
     , isCmdTriggered: BOOL = 0
     , isTop = top === window
-    , parentFrame_: typeof frameElement | undefined
     , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
     ;
 
@@ -662,13 +661,16 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /** should only be called during keydown events */
     focusUpper_ (this: void, key: kKeyCode, force: boolean, event: Parameters<typeof VKey.prevent_>[0]
         ): void {
-      if (!parentFrame_ && (!force || isTop)) { return; }
+      const sameOrigin = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
+          : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+          ? VDom.frameElement_() : frameElement;
+      if (!sameOrigin && (!force || isTop)) { return; }
       VKey.prevent_(event); // safer
-      if (parentFrame_) {
+      if (sameOrigin) {
         KeydownEvents[key] = 1;
-        const p = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_ && VDom.parentCore_()
+        const p = Build.BTypes & BrowserType.Firefox ? sameOrigin as Exclude<typeof sameOrigin, typeof frameElement>
             : parent as Window,
-        a1 = (Build.BTypes & BrowserType.Firefox ? p : true) && (p as Exclude<typeof p, 0>).VEvent;
+        a1 = (p as Exclude<typeof p, 0>).VEvent;
         if (a1 && !a1.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
           ((p as Exclude<typeof p, BOOL>).VKey as typeof VKey).suppressTail_(0);
           a1.focusAndRun_(0, 0 as never, 0 as never, 1);
@@ -1246,16 +1248,19 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     OnWndFocus_ (this: void): void { onWndFocus(); },
     checkHidden_ (this: void, cmd?: FgCmdAcrossFrames
         , count?: number, options?: OptionsWithForce): BOOL {
-      let el = !isTop && (parentFrame_ || document.documentElement);
+      const curFrameElement_ = !isTop &&
+          (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+            ? VDom.frameElement_() : frameElement),
+      el = !isTop && (curFrameElement_ || document.documentElement);
       if (!el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
-      par: ContentWindowCore | 0 | undefined,
+      par: ContentWindowCore | 0 | void,
       parEvents: VEventModeTy | undefined,
       parentHeight: number | undefined,
       result: boolean | BOOL = !box.height && !box.width || getComputedStyle(el).visibility === "hidden";
       if (cmd) {
         type EnsuredOptionsTy = Exclude<typeof options, undefined>;
-        if ((Build.BTypes & BrowserType.Firefox ? VDom.parentCore_ && (par = VDom.parentCore_()) : parentFrame_)
+        if ((Build.BTypes & BrowserType.Firefox ? (par = VDom.parentCore_()) : curFrameElement_)
             && (result || box.bottom <= 0
                 || (Build.BTypes & BrowserType.Firefox
                       ? (ih(), parentHeight && box.top > parentHeight)
@@ -1457,69 +1462,62 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   VHud = HUD;
   VKey.isEscape_ = isEscape;
 
-  // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
-  isTop ||
+  isTop || injector ||
   function (): void { // if injected, `parentFrame_` still needs a value
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement) {
-      try { parentFrame_ = frameElement; } catch {}
-    } else {
-      parentFrame_ = frameElement;
-    }
+    const parEl = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+        ? VDom.frameElement_() : frameElement;
     if (Build.BTypes & BrowserType.Firefox
         && (!BuildStr.RandomReq || !BuildStr.RandomRes) // may be compiled directly using tsc.js
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        || !parentFrame_) {
+        || !parEl) {
       return;
     }
     type FindTy = typeof VFind;
-    let core = !(Build.BTypes & BrowserType.Firefox) ? 0 as const // never on Firefox
-        : Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox || injector !== void 0
-        ? parent as ContentWindowCore // know it's in another extension's page, or not on Firefox
-        : VDom.getWndCore_(parent as Window, 1),
-    vfind: FindTy | undefined | 0;
     if (Build.BTypes & BrowserType.Firefox) {
+      let core = Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox
+          ? parent as ContentWindowCore // know it's in another extension's page, or not on Firefox
+          : VDom.parentCore_(1);
       try { // `core` is still unsafe
-        vfind = (core && core.VFind) as FindTy | undefined;
+        const vfind = (core && core.VFind) as FindTy | undefined;
         if (vfind) {
           if (vfind && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox
-                        ? XPCNativeWrapper(vfind) : vfind).box_ === parentFrame_) {
+                        ? XPCNativeWrapper(vfind) : vfind).box_ === parEl) {
             safeDestroy(1);
-            (vfind as FindTy).onLoad_();
+            vfind.onLoad_();
             return;
           }
           VDom.clickable_ = ((core as Exclude<NonNullable<typeof core>, 0>).VDom as typeof VDom).clickable_;
-          // now tend to trust core;
-          VDom.parentCore_ = function () {
-            // in this case, `core` is an object and may be true
-            core && core.VSec !== VDom.cache_.s && (core = 0);
-            return core as NonNullable<typeof core>;
-          };
+          return;
         }
       } catch (e) {
         if (!Build.NDEBUG) {
           console.log("Assert error: Parent frame check breaks:", e);
         }
       }
+      // here the `core` is invalid
+      VDom.parentCore_ = () => 0;
     } else {
       // if not `vfind`, then a parent may have destroyed for unknown reasons
-      vfind = (parent as ContentWindowCore).VFind as FindTy | undefined;
-      VDom.parentCore_ = vfind ? 1 as never : 0;
-      if (vfind && vfind.box_ === parentFrame_) {
+      const vfind = (parent as ContentWindowCore).VFind as FindTy | undefined;
+      if (vfind && vfind.box_ === parEl) {
         safeDestroy(1);
-        (vfind as FindTy).onLoad_();
+        vfind.onLoad_();
+      } else {
+        VDom.clickable_ = ((parent as ContentWindowCore).VDom as typeof VDom).clickable_;
       }
     }
   }();
   if (esc) {
     VDom.clickable_ = !(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox
-      ? VDom.parentCore_ ? ((parent as ContentWindowCore).VDom as typeof VDom).clickable_
+        ? VDom.clickable_ ? VDom.clickable_
         : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
             || WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() as never : {
       add (element: Element): any { (element as ElementWithClickable).vimiumClick = true; },
       has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
     } : /* now know it's on Firefox */
         BuildStr.RandomReq && BuildStr.RandomRes && VDom.clickable_ || new (WeakSet as WeakSetConstructor)<Element>();
+    // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);
     vPort.Connect_();
     if (BuildStr.RandomReq && BuildStr.RandomRes
@@ -1529,7 +1527,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let __secReq: string | number = BuildStr.RandomReq, errTick = 0,
       __secRes: string | number = BuildStr.RandomRes;
       /** @see {@link ../lib/dom_utils.ts#VDom.getWndCore_} */
-      wrappedJSObject[BuildStr.CoreGetterFuncPrefix + BuildStr.Commit] = function (testSec) {
+      wrappedJSObject[BuildStr.CoreGetterFuncPrefix + BuildStr.RandomFunc] = function (testSec) {
         if (testSec !== __secReq) {
           if (errTick > GlobalConsts.MaxRetryTimesForSandboxExportFunc) {
             __secReq = esc as never;

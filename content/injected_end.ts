@@ -3,24 +3,22 @@
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;
 
+if (Build.BTypes & BrowserType.Firefox) {
+  VDom.getWndCore_ = wnd => wnd;
+  VDom.parentCore_ = function (): ContentWindowCore | 0 | void {
+    return (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+          ? VDom.frameElement_() : frameElement)) ? parent as ContentWindowCore : 0;
+  };
+}
 (function () {
-  let parentFrame_: typeof frameElement | undefined | false;
-  if (Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement && Build.BTypes & BrowserType.Chrome) {
-    (function (): void {
-    try {
-      parentFrame_ = window !== top && frameElement as (HTMLFrameElement | HTMLIFrameElement) & SafeElement | null;
-    } catch {}
-    })();
-  }
   const injector = VimiumInjector as VimiumInjectorTy,
-  parentInjector = (Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement && Build.BTypes & BrowserType.Chrome
-          ? parentFrame_ : frameElement)
+  parentInjector = top !== window
+      && (Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement && Build.BTypes & BrowserType.Chrome
+          ? VDom.frameElement_() : frameElement)
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
   // share the set of all clickable, if .dataset.vimiumHooks is not "false"
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
   clickable && (VDom.clickable_ = clickable);
-  VDom.parentCore_ = !parentInjector ? 0
-      : Build.BTypes & BrowserType.Firefox ? () => parent as ContentWindowCore : 1 as never;
 
   injector.checkIfEnabled = (function (this: null
       , func: <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void): void {
