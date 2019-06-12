@@ -9,7 +9,6 @@ const Clipboard_ = {
     el.style.width = "0";
     Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
       && (el.contentEditable = "true");
-    this.getTextArea_ = () => el;
     return el;
   },
   tailSpacesOrNewLineRe_: <RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g,
