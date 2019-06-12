@@ -208,7 +208,19 @@ var VHints = {
         events = core.VEvent as VEventModeTy;
         err = events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VEvent.keydownEvents_() : VEvent);
       }
-    } catch {}
+    } catch (e) {
+      if (!Build.NDEBUG) {
+        let notDocError = true;
+        if (Build.BTypes & BrowserType.Chrome && VDom.cache_.v < BrowserVer.Min$ContentDocument$NotThrow) {
+          try {
+            notDocError = frame.contentDocument !== undefined;
+          } catch { notDocError = false; }
+        }
+        if (notDocError) {
+          console.log("Assert error: Child frame check breaks:", e);
+        }
+      }
+    }
     if (err) {
       // It's cross-site, or Vimium C on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
@@ -1156,7 +1168,19 @@ _highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
         || !(core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(el.contentWindow) : el.contentWindow)
         || !(childEvents = core.VEvent)
         || childEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VEvent.keydownEvents_() : VEvent);
-  } catch {}
+  } catch (e) {
+    if (!Build.NDEBUG) {
+      let notDocError = true;
+      if (Build.BTypes & BrowserType.Chrome && VDom.cache_.v < BrowserVer.Min$ContentDocument$NotThrow) {
+        try {
+          notDocError = el.contentDocument !== undefined;
+        } catch { notDocError = false; }
+      }
+      if (notDocError) {
+        console.log("Assert error: Child frame check breaks:", e);
+      }
+    }
+  }
   const { count_: count, options_: options } = this;
   options.mode = this.mode_;
   el.focus();

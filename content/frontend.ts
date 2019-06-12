@@ -36,7 +36,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     , /** should be used only if OnOther is Chrome */ browserVer: BrowserVer = 0
     , isCmdTriggered: BOOL = 0
     , isTop = top === window
-    , parentFrame_: Element | undefined | null
+    , parentFrame_: typeof frameElement | undefined
     , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
     ;
 
@@ -668,7 +668,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         KeydownEvents[key] = 1;
         const p = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_ && VDom.parentCore_()
             : parent as Window,
-        a1 = p && p.VEvent;
+        a1 = (Build.BTypes & BrowserType.Firefox ? p : true) && (p as Exclude<typeof p, 0>).VEvent;
         if (a1 && !a1.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
           ((p as Exclude<typeof p, BOOL>).VKey as typeof VKey).suppressTail_(0);
           a1.focusAndRun_(0, 0 as never, 0 as never, 1);
@@ -1451,7 +1451,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   VKey.isEscape_ = isEscape;
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
-  if (isTop || !+function (): 1 | void { // if injected, `parentFrame_` still needs a value
+  isTop ||
+  function (): void { // if injected, `parentFrame_` still needs a value
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement) {
       try { parentFrame_ = frameElement; } catch {}
     } else {
@@ -1476,26 +1477,32 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           if (vfind && XPCNativeWrapper(vfind).box_ === parentFrame_) {
             safeDestroy(1);
             (vfind as FindTy).onLoad_();
-            return 1; // not return a function's result so that logic is clearer for compiler
+            return;
           }
           VDom.clickable_ = ((core as Exclude<NonNullable<typeof core>, 0>).VDom as typeof VDom).clickable_;
+          // now tend to trust core;
+          VDom.parentCore_ = function () {
+            // in this case, `core` is an object and may be true
+            core && core.VSec !== VDom.cache_.s && (core = 0);
+            return core as NonNullable<typeof core>;
+          };
         }
-      } catch (e) { console.log("fail:", e); vfind = 0; }
+      } catch (e) {
+        if (!Build.NDEBUG) {
+          console.log("Assert error: Parent frame check breaks:", e);
+        }
+      }
     } else {
+      // if not `vfind`, then a parent may have destroyed for unknown reasons
       vfind = (parent as ContentWindowCore).VFind as FindTy | undefined;
+      VDom.parentCore_ = vfind ? 1 as never : 0;
       if (vfind && vfind.box_ === parentFrame_) {
         safeDestroy(1);
         (vfind as FindTy).onLoad_();
-        return 1; // not return a function's result so that logic is clearer for compiler
       }
     }
-    // if not `vfind`, then a parent may have destroyed / be from a fake message
-    VDom.parentCore_ = !vfind ? 0 : Build.BTypes & BrowserType.Firefox ? function () {
-      // in this case, `core` is an object and may be true
-      core && core.VSec !== VDom.cache_.s && (core = 0);
-      return core as NonNullable<typeof core>;
-    } : /* if never on Firefox */ 1 as never;
-  }()) {
+  }();
+  if (esc) {
     VDom.clickable_ = !(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox
       ? VDom.parentCore_ ? ((parent as ContentWindowCore).VDom as typeof VDom).clickable_

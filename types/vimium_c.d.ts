@@ -736,6 +736,8 @@ declare const enum BrowserVer {
   // @see MinEscapeHashInBodyOfDataURL
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
   MinWarningOfEscapingHashInBodyOfDataURL = 66,
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=582245
+  Min$ContentDocument$NotThrow = 67, // even if EXPERIMENTAL or LEGACY
   MinSlotIsNotDisplayContents = 67,
   Min$NotificationOptions$$isClickable$IsDeprecated = 67,
   // even if EXPERIMENTAL or LEGACY
@@ -773,9 +775,11 @@ declare const enum BrowserVer {
   MinSpecCompliantShadowBlurRadius = 73,
   // re-implement extension APIs into C++ bindings: https://bugs.chromium.org/p/chromium/issues/detail?id=763564
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
+  // source code of this change is between chromium/master@{#626128} and {#626161} (included)
   MinNoFocusOrSelectionStringOnHiddenIFrame = 74, // even if EXPERIMENTAL or LEGACY
   // the below 3 are even if EXPERIMENTAL or LEGACY
   MinMediaQuery$PrefersReducedMotion = 74,
+  // https://chromium.googlesource.com/chromium/src/+/5e84b7a819637ed4dd8f9c4d11288127663c8267
   MinBlockAutoFocusingInCrossOriginFrame = 75,
   MinMediaQuery$PrefersColorScheme = 76,
   // it's said the deadline is C73 in https://www.chromestatus.com/features/4507242028072960
