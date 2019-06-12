@@ -16,7 +16,6 @@ if (VDom && VimiumInjector === undefined) {
     DelayForNext = 36,
     DelayForNextComplicatedCase = 1,
     kSecretAttr = "data-vimium",
-    SecretUpperLimit = 9e4,
 
     kVOnClick = "VimiumOnclick",
     kHook = "VimiumHook",
@@ -44,7 +43,7 @@ if (VDom && VimiumInjector === undefined) {
   const kVOnClick1 = InnerConsts.kVOnClick, kHook = InnerConsts.kHook
     , d = document, docEl = d.documentElement
     , script = VDom.createElement_("script")
-    , secret: number = (Math.random() * InnerConsts.SecretUpperLimit + 1) | 0;
+    , secret: number = (Math.random() * GlobalConsts.SecretUpperLimitForExtendClickHook + 1) | 0;
 /**
  * Note:
  *   should not create HTML/SVG elements before document gets ready,

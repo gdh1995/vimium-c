@@ -1280,7 +1280,7 @@ function getRandom(id) {
     return rand;
   }
   if (locally) {
-    rand = 100000 + (0 | (Math.random() * 899999));
+    rand = 1e5 + (0 | (Math.random() * 9e5));
   } else {
     var hash = getMD5(osPath.resolve(__dirname) + (id.toLowerCase() !== 'random' ? id : ""));
     hash = hash.substr(8, 4) + hash.substr(21, 3);
