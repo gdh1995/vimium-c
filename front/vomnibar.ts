@@ -36,6 +36,7 @@ interface ConfigurableItems {
 }
 // tslint:disable-next-line: no-empty-interface
 interface Window extends ConfigurableItems {}
+declare var parent: unknown;
 import PixelData = VomnibarNS.PixelData;
 
 // tslint:disable-next-line: triple-equals

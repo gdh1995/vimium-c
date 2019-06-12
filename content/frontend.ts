@@ -1251,11 +1251,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let box = VDom.getBoundingClientRect_(el),
       par: ContentWindowCore | 0 | undefined,
       parEvents: VEventModeTy | undefined,
+      parentHeight: number | undefined,
       result: boolean | BOOL = !box.height && !box.width || getComputedStyle(el).visibility === "hidden";
       if (cmd) {
         type EnsuredOptionsTy = Exclude<typeof options, undefined>;
         if ((Build.BTypes & BrowserType.Firefox ? VDom.parentCore_ && (par = VDom.parentCore_()) : parentFrame_)
-            && (result || box.bottom <= 0 || box.top > (parent as Window).innerHeight)) {
+            && (result || box.bottom <= 0
+                || (Build.BTypes & BrowserType.Firefox
+                      ? (ih(), parentHeight && box.top > parentHeight)
+                      : box.top > (parent as Window).innerHeight))) {
           parEvents = ((Build.BTypes & BrowserType.Firefox ? par : parent) as ContentWindowCore).VEvent;
           if (parEvents
               && !parEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
@@ -1273,6 +1277,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             n: count as number, a: options as EnsuredOptionsTy
           });
         }
+      }
+      function ih(): void {
+        try { parentHeight = (parent as Window).innerHeight; } catch { }
       }
       return +result as BOOL;
     },
