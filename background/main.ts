@@ -1415,7 +1415,7 @@ Are you sure you want to continue?`);
       chrome.webNavigation.getAllFrames({
         tabId: sender.t
       }, function (frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
-        let frameId = sender.i, found: boolean, count = cRepeat;
+        let self = sender.i, frameId = self, found: boolean, count = cRepeat;
         do {
           found = false;
           for (const i of frames) {
@@ -1426,7 +1426,7 @@ Are you sure you want to continue?`);
             }
           }
         } while (found && 0 < --count);
-        const port = frameId > 0 ? indexFrame(sender.t, frameId) : null;
+        const port = frameId > 0 && frameId !== self ? indexFrame(sender.t, frameId) : null;
         if (!port) {
           return BackgroundCommands[kBgCmd.mainFrame]();
         }
