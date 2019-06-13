@@ -36,6 +36,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     , /** should be used only if OnOther is Chrome */ browserVer: BrowserVer = 0
     , isCmdTriggered: BOOL = 0
     , isTop = top === window
+    , needToRetryParentClickable: BOOL = 0
     , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
     ;
 
@@ -1007,6 +1008,28 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       D.OnDocLoaded_(function (): void {
         HUD.enabled_ = true;
         onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>> { H: kFgReq.focus });
+        needToRetryParentClickable && setTimeout(function (): void {
+          const vdom = VDom,
+          parentCore = Build.BTypes & BrowserType.Firefox ? vdom.allowScripts_ && vdom.parentCore_()
+            : VDom.allowScripts_ && vdom.frameElement_() && parent as Window,
+          parDom = parentCore && parentCore.VDom as typeof VDom,
+          oldSet = vdom.clickable_ as any as Element[] & Set<Element>,
+          set = vdom.clickable_ = parDom ? parDom.clickable_ : new (WeakSet as NonNullable<typeof WeakSet>)<Element>();
+          if (!Build.NDEBUG && parDom) {
+            // here assumes that `set` is not a temp array but a valid WeakSet / Set
+            let count: number;
+            if (Build.MinCVer >= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol || !(Build.BTypes & BrowserType.Chrome)
+                || oldSet.size != null) {
+              count = oldSet.size;
+              oldSet.forEach(el => set.add(el));
+            } else {
+              count = oldSet.filter(el => set.add(el)).length;
+            }
+            console.log(`Vimium C: extend click: ${count ? "add " + count : "no"} local items to the parent's set.`);
+          } else {
+            oldSet.forEach(el => set.add(el));
+          }
+        }, 330);
       });
       injector && injector.$r(InjectorTask.extInited);
     },
@@ -1464,8 +1487,25 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     const parEl = VDom.frameElement_();
     if (Build.BTypes & BrowserType.Firefox
         && (!BuildStr.RandomReq || !BuildStr.RandomRes) // may be compiled directly using tsc.js
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        || !parEl) {
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      return;
+    }
+    if (!parEl) {
+      if ((Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+          || WeakSet) && VDom.docNotCompleteWhenVimiumIniting_) {
+        needToRetryParentClickable = 1;
+        if (Build.MinCVer >= BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol || !(Build.BTypes & BrowserType.Chrome)
+            || Set) {
+          VDom.clickable_ = new (Set as NonNullable<typeof Set>)<Element>();
+        } else {
+          let arr: Element[] & NonNullable<typeof VDom.clickable_> = [] as any;
+          VDom.clickable_ = arr;
+          arr.add = arr.push;
+          // a temp collection, so it's okay just to ignore its elements
+          arr.has = Build.MinCVer >= BrowserVer.MinEnsured$Array$$Includes || !(Build.BTypes & BrowserType.Chrome)
+              ? (arr.includes as NonNullable<typeof arr.includes>) : () => !1;
+        }
+      }
       return;
     }
     type FindTy = typeof VFind;

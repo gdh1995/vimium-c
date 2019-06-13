@@ -1,12 +1,15 @@
 /// <reference path="../content/base.d.ts" />
 interface ElementWithClickable { vimiumClick?: boolean; }
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol) {
+  var Set: SetConstructor | undefined;
+}
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
 }
 var VDom = {
   UI: null as never as DomUI,
   cache_: null as never as EnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
-  clickable_: null as never as { add(value: Element): object | void; has(value: Element): boolean; },
+  clickable_: null as never as { add(value: Element): object | void | number; has(value: Element): boolean; },
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption
   allowScripts_: 1 as BOOL,
   allowRAF_: 1 as BOOL,

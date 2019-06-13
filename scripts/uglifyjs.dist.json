@@ -62,7 +62,7 @@
     },
     "reserved": [
       // # expected names in content
-      "WeakSet",
+      "WeakSet", "Set",
       // # expected names in content of 3rd-party extensions
       "requestIdleCallback",
       // # content global names:
