@@ -187,13 +187,11 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (isTo) {
       amount -= a.getDimension_(element, di, kScrollDim.position);
     }
-    const core = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_() : 0;
+    let core: ReturnType<typeof VDom.parentCore_>;
     if (amount && element === a.top_ && element
-        && (Build.BTypes & BrowserType.Firefox ? core
-            : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-            ? VDom.frameElement_() : frameElement)) {
-      const Sc = (Build.BTypes & BrowserType.Firefox ? core as Exclude<typeof core, 0 | void>
-          : parent as ContentWindowCore).VScroller as typeof VScroller;
+        && (core = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
+                : VDom.frameElement_() && parent as Window)) {
+      const Sc = core.VScroller as typeof VScroller;
       if (Sc && !a._doesScroll(element, di, amount)) {
         Sc.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
         if (Sc.keyIsDown_) {

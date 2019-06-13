@@ -661,21 +661,19 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /** should only be called during keydown events */
     focusUpper_ (this: void, key: kKeyCode, force: boolean, event: Parameters<typeof VKey.prevent_>[0]
         ): void {
-      const sameOrigin = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
-          : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-          ? VDom.frameElement_() : frameElement;
-      if (!sameOrigin && (!force || isTop)) { return; }
+      const parentCore = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
+          : VDom.frameElement_() && parent as Window;
+      if (!parentCore && (!force || isTop)) { return; }
       VKey.prevent_(event); // safer
-      if (sameOrigin) {
+      if (parentCore) {
         KeydownEvents[key] = 1;
-        const p = Build.BTypes & BrowserType.Firefox ? sameOrigin as Exclude<typeof sameOrigin, typeof frameElement>
-            : parent as Window,
-        a1 = (p as Exclude<typeof p, 0>).VEvent;
+        const
+        a1 = parentCore.VEvent;
         if (a1 && !a1.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
-          ((p as Exclude<typeof p, BOOL>).VKey as typeof VKey).suppressTail_(0);
+          (parentCore.VKey as typeof VKey).suppressTail_(0);
           a1.focusAndRun_(0, 0 as never, 0 as never, 1);
         } else {
-          (Build.BTypes & BrowserType.Firefox ? parent as Window : p as Window).focus();
+          (Build.BTypes & BrowserType.Firefox ? parent as Window : parentCore as Window).focus();
         }
       } else if (KeydownEvents[key] !== 2) { // avoid sending too many messages
         post({ H: kFgReq.nextFrame, t: Frames.NextType.parent, k: key });
@@ -1249,12 +1247,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     checkHidden_ (this: void, cmd?: FgCmdAcrossFrames
         , count?: number, options?: OptionsWithForce): BOOL {
       const curFrameElement_ = !isTop &&
-          (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-            ? VDom.frameElement_() : frameElement),
+          VDom.frameElement_(),
       el = !isTop && (curFrameElement_ || document.documentElement);
       if (!el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
-      par: ContentWindowCore | 0 | void,
+      par: ReturnType<typeof VDom.parentCore_>,
       parEvents: VEventModeTy | undefined,
       parentHeight: number | undefined,
       result: boolean | BOOL = !box.height && !box.width || getComputedStyle(el).visibility === "hidden";
@@ -1464,8 +1461,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
   isTop || injector ||
   function (): void { // if injected, `parentFrame_` still needs a value
-    const parEl = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-        ? VDom.frameElement_() : frameElement;
+    const parEl = VDom.frameElement_();
     if (Build.BTypes & BrowserType.Firefox
         && (!BuildStr.RandomReq || !BuildStr.RandomRes) // may be compiled directly using tsc.js
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
@@ -1475,7 +1471,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     type FindTy = typeof VFind;
     if (Build.BTypes & BrowserType.Firefox) {
       let core = Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox
-          ? parent as ContentWindowCore // know it's in another extension's page, or not on Firefox
+          ? parent as Window // know it's in another extension's page, or not on Firefox
           : VDom.parentCore_(1);
       try { // `core` is still unsafe
         const vfind = (core && core.VFind) as FindTy | undefined;
@@ -1498,24 +1494,24 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VDom.parentCore_ = () => 0;
     } else {
       // if not `vfind`, then a parent may have destroyed for unknown reasons
-      const vfind = (parent as ContentWindowCore).VFind as FindTy | undefined;
+      const vfind = (parent as Window).VFind as FindTy | undefined;
       if (vfind && vfind.box_ === parEl) {
         safeDestroy(1);
         vfind.onLoad_();
       } else {
-        VDom.clickable_ = ((parent as ContentWindowCore).VDom as typeof VDom).clickable_;
+        VDom.clickable_ = ((parent as Window).VDom as typeof VDom).clickable_;
       }
     }
   }();
   if (esc) {
     VDom.clickable_ = !(Build.BTypes & BrowserType.Firefox)
         || Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox
-        ? VDom.clickable_ ? VDom.clickable_
-        : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
+        ? VDom.clickable_ ||
+        ( Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
             || WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() as never : {
       add (element: Element): any { (element as ElementWithClickable).vimiumClick = true; },
       has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
-    } : /* now know it's on Firefox */
+    }) : /* now know it's on Firefox */
         BuildStr.RandomReq && BuildStr.RandomRes && VDom.clickable_ || new (WeakSet as WeakSetConstructor)<Element>();
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);

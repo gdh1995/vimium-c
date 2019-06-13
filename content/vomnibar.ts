@@ -59,9 +59,7 @@ var VOmni = {
     }
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
       const p = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
-          : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-              ? VDom.frameElement_() : frameElement)
-          ? parent as ContentWindowCore : 0 as const;
+          : VDom.frameElement_() && parent as Window;
       if (p && (Build.BTypes & BrowserType.Firefox ? p.self : p) === top && p.VOmni) {
         (p.VOmni as typeof VOmni).activate_(count, options);
       } else {

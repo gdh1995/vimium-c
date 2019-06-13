@@ -186,7 +186,7 @@ var VDom = {
     try {
       return frameElement;
     } catch {}
-  } : 0 as never) as () => typeof frameElement | null | void,
+  } : () => frameElement) as () => typeof frameElement | null | void,
   /** Note: this function needs to be safer */
   getWndCore_: (Build.BTypes & BrowserType.Firefox ? function (anotherWnd, ignoreSec): ContentWindowCore | 0 | void {
     if (!(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VDom.cache_.b === BrowserType.Firefox) {
@@ -208,8 +208,7 @@ var VDom = {
    * So even if it returns a valid object, `parent.***` may still be blocked
    */
   parentCore_: (Build.BTypes & BrowserType.Firefox ? function (ignoreSec): ContentWindowCore | 0 | void {
-    if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-          ? VDom.frameElement_() : frameElement)) {
+    if (!VDom.frameElement_()) {
       return;
     }
     let isFF = !(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VDom.cache_.b === BrowserType.Firefox,
@@ -224,7 +223,7 @@ var VDom = {
       };
     }
     return core;
-  } : 0 as never) as (hasKnownOnFireFox?: 1) => ContentWindowCore | 0 | void,
+  } : 0 as never) as (hasKnownOnFireFox?: 1) => ContentWindowCore | 0 | void | null,
 
   /** computation section */
 
