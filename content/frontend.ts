@@ -1530,8 +1530,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           console.log("Assert error: Parent frame check breaks:", e);
         }
       }
-      // here the `core` is invalid
-      VDom.parentCore_ = () => 0;
+      if ((!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && core) {
+        // here the `core` is invalid
+        VDom.parentCore_ = () => 0;
+      }
     } else {
       // if not `vfind`, then a parent may have destroyed for unknown reasons
       const vfind = (parent as Window).VFind as FindTy | undefined;
