@@ -278,16 +278,17 @@ var VHints = {
    */
   GetClickable_ (this: Hint[], element: Element): void {
     let arr: Rect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
+    const tag = VDom.htmlTag_(element);
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
     // elements of the types below (except <div>) should refuse `attachShadow`
-    switch (VDom.htmlTag_(element)) {
+    switch (tag) {
     case "": // not HTML or not safe
       if ((element as ElementToHTML).lang == null && "tabIndex" in <ElementToHTMLorSVG> element) { // SVG*
         // not need to distinguish attrListener and codeListener
         type = VDom.clickable_.has(element) || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
             || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.attrListener
-          : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
+          : (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
           : type;
         if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))) {
           this.push([element as SVGElement, arr, type]);
@@ -311,7 +312,7 @@ var VHints = {
     case "textarea":
       if ((element as TextElement).disabled && VHints.mode1_ <= HintMode.LEAVE) { return; }
       if (!(element as TextElement).readOnly || VHints.mode_ >= HintMode.min_job
-          || VDom.hasTag_need_safe_(element as TextElement, "input")
+          || tag[0] === "i"
               && VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
         isClickable = true;
       }
@@ -328,7 +329,7 @@ var VHints = {
     case "object": case "embed":
       s = (element as HTMLObjectElement | HTMLEmbedElement).type;
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
-      if (VDom.hasTag_need_safe_(element as never as SafeHTMLElement, "object")
+      if (tag[0] === "o"
           && (element as HTMLObjectElement).useMap) {
         VDom.getClientRectsForAreas_(element as HTMLObjectElement, this as Hint5[]);
       }
@@ -362,7 +363,8 @@ var VHints = {
           || VHints.ngEnabled_ && element.getAttribute("ng-click")
           || VHints.forHover_ && element.getAttribute("onmouseover")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.attrListener
-        : VDom.clickable_.has(element) && VHints.isClickListened_ ? ClickType.codeListener
+        : VDom.clickable_.has(element) && VHints.isClickListened_
+        ? VHints.inferTypeOfListener_(element as SafeHTMLElement, tag)
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
         : type > ClickType.tabindex ? type : (s = element.className) && VHints.btnRe_.test(s) ? ClickType.classname
         : ClickType.Default;
@@ -403,6 +405,12 @@ var VHints = {
       }
     }
     return element ? !arr2.length : !!isExpected || null;
+  },
+  inferTypeOfListener_ (el: SafeHTMLElement, tag: string): ClickType.codeListener | ClickType.Default {
+    return (tag === "div" ? !el.className && !el.id && el.querySelector("a")
+        : tag === "tr" ? el.querySelector("input[type=checkbox")
+        : tag === "table"
+        ) ? ClickType.Default : ClickType.codeListener;
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
   GetEditable_ (this: Hint[], element: Element): void {
@@ -590,8 +598,7 @@ var VHints = {
       k = list[i = j][2];
       if (k === ClickType.codeListener) {
         el = list[i][0];
-        if (!el.className && VDom.hasTag_need_safe_(el as Exclude<Hint[0], SVGElement>, "div") && !el.id
-            && el.querySelector("a")) {
+        if (0) {
           list.splice(i, 1);
         }
       } else if (k !== ClickType.classname) { /* empty */ }
