@@ -593,14 +593,23 @@ var VHints = {
       func, dest);
   },
   deduplicate_ (list: Hint[]): void {
-    let j = list.length, i: number, k: ClickType, el: Hint[0];
+    let j = list.length, i: number, k: ClickType;
     while (0 < --j) {
       k = list[i = j][2];
       if (k === ClickType.codeListener) {
-        el = list[i][0];
-        if (0) {
-          list.splice(i, 1);
+        if (VDom.hasTag_need_safe_(list[j][0] as Exclude<Hint[0], SVGElement>, "div")
+            && ++i < list.length
+            && VDom.hasTag_need_safe_(list[i][0] as Exclude<Hint[0], SVGElement>, "a")) {
+          const prect = list[j][1], crect = list[i][1];
+          if (crect[0] < prect[0] + /* icon_16 */ 18 && crect[1] < prect[1] + 9
+              && crect[0] > prect[0] - 4 && crect[1] > prect[1] - 4 && crect[3] > prect[3] - 9
+              && list[j][0].contains(list[i][0])) {
+            // the `<a>` is a single-line box's most left element and the first clickable element,
+            // so think the box is just a layout container
+            list.splice(j, 1);
+          }
         }
+        continue;
       } else if (k !== ClickType.classname) { /* empty */ }
       else if ((k = list[--j][2]) > ClickType.frame || !this._isDescendant(list[i][0], list[j][0])) {
         continue;
