@@ -277,7 +277,7 @@ var VHints = {
    * Must ensure only call {@link scroller.ts#VScroller.shouldScroll_need_safe_} during {@link #getVisibleElements_}
    */
   GetClickable_ (this: Hint[], element: Element): void {
-    let arr: Rect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
+    let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
     const tag = VDom.htmlTag_(element);
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
     // elements of the types below (except <div>) should refuse `attachShadow`
@@ -295,7 +295,9 @@ var VHints = {
         }
       }
       return;
-    case "a": isClickable = true; break;
+    case "a": isClickable = true;
+      arr = VHints.checkAnchor_(element as Parameters<typeof VHints.checkAnchor_>[0]);
+      break;
     case "frame": case "iframe":
       if (element === VOmni.box_) {
         if (arr = VDom.getVisibleClientRect_(element)) {
@@ -370,8 +372,7 @@ var VHints = {
         : ClickType.Default;
     }
     if (!isClickable && type === ClickType.Default) { return; }
-    if (element === document.documentElement || element === document.body) { return; }
-    if ((arr = VDom.getVisibleClientRect_(element))
+    if ((arr = arr || VDom.getVisibleClientRect_(element))
         && (type < ClickType.scrollX
           || VScroller.shouldScroll_need_safe_(element as SafeHTMLElement, type - ClickType.scrollX as 0 | 1) > 0)
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
@@ -389,6 +390,12 @@ var VHints = {
       }
     }
     return false;
+  },
+  checkAnchor_ (anchor: HTMLAnchorElement & EnsuredMountedHTMLElement): Rect | null {
+    // for Google search result pages
+    let el = (anchor.rel || anchor.hasAttribute("ping"))
+        && anchor.firstElementChild as Element | null;
+    return el && (<RegExpOne> /h\d/).test(VDom.htmlTag_(el)) ? VDom.getVisibleClientRect_(el) : null;
   },
   checkReplaced_ (element: SafeHTMLElement | null | void, isExpected?: Hint[]): boolean | null {
     const arr2: Hint[] = [], a = this, clickListened = a.isClickListened_;
@@ -626,6 +633,9 @@ var VHints = {
       if (j < i) {
         list.splice(j, i - j);
       }
+    }
+    while (list.length && (list[0][0] === document.documentElement || list[0][0] === document.body)) {
+      list.shift();
     }
   },
   _isDescendant (d: Element, p: Hint[0]): boolean {
