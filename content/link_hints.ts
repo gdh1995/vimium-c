@@ -417,10 +417,19 @@ var VHints = {
     return element ? !arr2.length : !!isExpected || null;
   },
   inferTypeOfListener_ (el: SafeHTMLElement, tag: string): boolean {
-    return !(tag === "div" ? !el.className && !el.id && el.querySelector("a")
-        : tag === "tr" ? el.querySelector("input[type=checkbox")
-        : tag === "table"
-        );
+    let replacer = tag === "div" ? !el.className && !el.id && el.querySelector("a")
+        : tag === "tr" ? el.querySelector("input[type=checkbox]")
+        : tag === "table",
+    el2: Element["firstElementChild"];
+    if (!replacer && tag === "div") {
+      el2 = el.firstElementChild;
+      if (VDom.clickable_.has(el2 as Element) && ((tag = VDom.htmlTag_(el2 as Element)) === "div" || tag === "span")
+          && (el2 as HTMLDivElement).getClientRects().length) {
+        replacer = true;
+      }
+    }
+    // Note: should avoid nested calling to isNotReplacedBy_
+    return !replacer || replacer !== true && !!this.isNotReplacedBy_(replacer as SafeHTMLElement);
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
   GetEditable_ (this: Hint[], element: Element): void {
@@ -603,19 +612,21 @@ var VHints = {
       func, dest);
   },
   deduplicate_ (list: Hint[]): void {
-    let j = list.length, i: number, k: ClickType;
+    let j = list.length, i: number, k: ClickType, s: string;
     while (0 < --j) {
       k = list[i = j][2];
       if (k === ClickType.codeListener) {
         if (VDom.hasTag_need_safe_(list[j][0] as Exclude<Hint[0], SVGElement>, "div")
             && ++i < list.length
-            && VDom.hasTag_need_safe_(list[i][0] as Exclude<Hint[0], SVGElement>, "a")) {
+            && (s = list[i][0].tagName.toLowerCase(), s === "div" || s === "a")) {
           const prect = list[j][1], crect = list[i][1];
           if (crect[0] < prect[0] + /* icon_16 */ 18 && crect[1] < prect[1] + 9
               && crect[0] > prect[0] - 4 && crect[1] > prect[1] - 4 && crect[3] > prect[3] - 9
-              && list[j][0].contains(list[i][0])) {
+              && (s !== "a" || list[j][0].contains(list[i][0]))) {
             // the `<a>` is a single-line box's most left element and the first clickable element,
             // so think the box is just a layout container
+            // for [i] is `<div>`, not limit the height of parent `<div>`,
+            // if there's more content, it should have hints for itself
             list.splice(j, 1);
           }
         }

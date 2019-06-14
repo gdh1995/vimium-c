@@ -24,8 +24,7 @@ var VDom = {
   isHTML_: (): boolean => "lang" in <ElementToHTML> (document.documentElement || {}),
   htmlTag_: (Build.BTypes & ~BrowserType.Firefox ? function (element: Element): string {
     let s: Element["tagName"] = element.tagName;
-    // tslint:disable-next-line: triple-equals
-    if ("lang" in element && typeof s == "string") {
+    if ("lang" in element && typeof s === "string") {
       s = s.toLowerCase();
       return (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
           ? s === "form" : s === "form" || s === VDom.unsafeFramesetTag_) ? "" : s;
@@ -54,8 +53,7 @@ var VDom = {
   } : 0 as never,
   notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
     let s: Node["nodeName"];
-    // tslint:disable-next-line: triple-equals
-    return !!el && (typeof (s = el.nodeName) != "string" ||
+    return !!el && (typeof (s = el.nodeName) !== "string" ||
       (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
         ? s.toLowerCase() === "form"
         : (s = s.toLowerCase()) === "form" || s === VDom.unsafeFramesetTag_)
