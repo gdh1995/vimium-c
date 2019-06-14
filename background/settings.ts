@@ -558,8 +558,9 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   }
   if (Build.BTypes & BrowserType.Firefox && BuildStr.RandomReq && BuildStr.RandomRes
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-    (payload_ as Writable<typeof payload_>).s = 1e5 +
-        ((Math.random() * GlobalConsts.SecretUpperLimitForSandboxInteop) | 0);
+    let n = window.name, sec = n && +n || 1e5 + ((Math.random() * GlobalConsts.SecretUpperLimitForSandboxInteop) | 0);
+    (payload_ as Writable<typeof payload_>).s = sec;
+    window.name = "" + sec;
   }
   if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
     (payload_ as Writable<typeof payload_>).b =
