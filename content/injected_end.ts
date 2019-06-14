@@ -3,11 +3,21 @@
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;
 
-if (Build.BTypes & BrowserType.Firefox) {
-  VDom.getWndCore_ = wnd => wnd;
-  VDom.parentCore_ = () => VDom.frameElement_() && parent as Window;
-}
-(function () {
+(function (): void {
+  /** Note: should keep the same with {@link frontend.ts#OnOther} */
+  const OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
+        || !(Build.BTypes & ~BrowserType.Edge)
+      ? Build.BTypes as number
+      : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
+      : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
+      : BrowserType.Chrome;
+  if (Build.BTypes & BrowserType.Firefox) {
+    if (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) {
+      VDom.frameElement_ = () => frameElement;
+    }
+    VDom.getWndCore_ = wnd => wnd;
+    VDom.parentCore_ = () => VDom.frameElement_() && parent as Window;
+  }
   const injector = VimiumInjector as VimiumInjectorTy,
   parentInjector = top !== window
       && VDom.frameElement_()
@@ -26,20 +36,9 @@ if (Build.BTypes & BrowserType.Firefox) {
   }).bind(null, (injector.$p as NonNullable<VimiumInjectorTy["$p"]>)[1]);
   injector.$p = null;
 
-  // Note: should keep the same with frontend.ts
-  const useBrowser = !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect),
-  OnOther = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
-      || !(Build.BTypes & ~BrowserType.Edge)
-    ? Build.BTypes as number
-    : Build.BTypes & BrowserType.Chrome && !useBrowser ? BrowserType.Chrome
-    : !(Build.BTypes & BrowserType.Firefox)
-      || Build.BTypes & BrowserType.Edge && ((window as {} as {StyleMedia: unknown}).StyleMedia)
-    ? BrowserType.Edge
-    : BrowserType.Firefox
-    ,
-  runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome)
-      || Build.BTypes & ~BrowserType.Chrome && useBrowser ? browser as typeof chrome : chrome).runtime;
+  const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome)
+        || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
+      ? browser as typeof chrome : chrome).runtime;
   if (runtime.onMessageExternal) {
     injector.alive = 1;
   } else {

@@ -184,12 +184,22 @@ var VDom = {
       : el || !fallback ? el as SafeElement | null // el is safe object or null
       : this.notSafe_(docEl) ? null : docEl as SafeElement | null;
   },
-  frameElement_: (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-      ? (): Element | null | void => {
-    try {
-      return frameElement;
-    } catch {}
-  } : () => frameElement) as () => typeof frameElement | null | void,
+  frameElement_: (hasKnownOnFireFox?: 1): Element | null | void => {
+    let el: typeof frameElement | undefined;
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement) {
+      try {
+        if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
+        el = frameElement;
+      } catch {}
+    } else {
+      if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
+      el = frameElement;
+    }
+    if (el && (!(Build.BTypes & ~BrowserType.Firefox) || hasKnownOnFireFox || VDom.cache_.b === BrowserType.Firefox)) {
+      VDom.frameElement_ = () => el;
+    }
+    return el;
+  },
   /** Note: this function needs to be safer */
   getWndCore_: (Build.BTypes & BrowserType.Firefox ? function (anotherWnd, ignoreSec): ContentWindowCore | 0 | void {
     if (!(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VDom.cache_.b === BrowserType.Firefox) {
@@ -209,11 +219,16 @@ var VDom = {
    * only if is a child which in fact has a same origin with its parent frame (ignore `document.domain`).
    *
    * So even if it returns a valid object, `parent.***` may still be blocked
+   *
+   * @param ignoreSec may be 1 only if knowning on Firefox
    */
   parentCore_: (Build.BTypes & BrowserType.Firefox ? function (ignoreSec): ContentWindowCore | 0 | void {
-    if (!VDom.frameElement_()) {
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+          || !(Build.BTypes & BrowserType.Firefox) ? !VDom.frameElement_() : !frameElement) {
+      // in some cases, not use the cached version of frameElement, for less exceptions in the below code
       return;
     }
+    // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
     let isFF = !(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VDom.cache_.b === BrowserType.Firefox,
     core = !(Build.BTypes & ~BrowserType.Firefox) || isFF ? VDom.getWndCore_(parent as Window, ignoreSec)
         : parent as Window;
@@ -226,7 +241,7 @@ var VDom = {
       };
     }
     return core;
-  } : 0 as never) as (hasKnownOnFireFox?: 1) => ContentWindowCore | 0 | void | null,
+  } : 0 as never) as (ignoreSec?: 1) => ContentWindowCore | 0 | void | null,
 
   /** computation section */
 

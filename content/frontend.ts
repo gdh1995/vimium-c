@@ -662,16 +662,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /** should only be called during keydown events */
     focusUpper_ (this: void, key: kKeyCode, force: boolean, event: Parameters<typeof VKey.prevent_>[0]
         ): void {
-      const parentCore = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
-          : VDom.frameElement_() && parent as Window;
-      if (!parentCore && (!force || isTop)) { return; }
+      const parEl = VDom.frameElement_();
+      if (!parEl && (!force || isTop)) { return; }
       VKey.prevent_(event); // safer
-      if (parentCore) {
+      if (parEl) {
         KeydownEvents[key] = 1;
-        const
-        a1 = parentCore.VEvent;
+        const parentCore = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_() : parent as Window,
+        a1 = parentCore && parentCore.VEvent;
         if (a1 && !a1.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
-          (parentCore.VKey as typeof VKey).suppressTail_(0);
+          ((parentCore as Exclude<typeof parentCore, 0 | void | null>).VKey as typeof VKey).suppressTail_(0);
           a1.focusAndRun_(0, 0 as never, 0 as never, 1);
         } else {
           (Build.BTypes & BrowserType.Firefox ? parent as Window : parentCore as Window).focus();
@@ -1010,8 +1009,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         onWndFocus = vPort.SafePost_.bind(vPort as never, <Req.fg<kFgReq.focus>> { H: kFgReq.focus });
         needToRetryParentClickable && setTimeout(function (): void {
           const vdom = VDom,
-          parentCore = Build.BTypes & BrowserType.Firefox ? vdom.allowScripts_ && vdom.parentCore_()
-            : VDom.allowScripts_ && vdom.frameElement_() && parent as Window,
+          parentCore = vdom.allowScripts_ &&
+              (Build.BTypes & BrowserType.Firefox ? vdom.parentCore_() : vdom.frameElement_() && parent as Window),
           parDom = parentCore && parentCore.VDom as typeof VDom,
           oldSet = vdom.clickable_ as any as Element[] & Set<Element>,
           set = vdom.clickable_ = parDom ? parDom.clickable_ : new (WeakSet as NonNullable<typeof WeakSet>)<Element>();
@@ -1484,7 +1483,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
   isTop || injector ||
   function (): void { // if injected, `parentFrame_` still needs a value
-    const parEl = VDom.frameElement_();
+    const parEl = Build.BTypes & BrowserType.Firefox && Build.BTypes & ~BrowserType.Firefox
+        ? VDom.frameElement_(1) : VDom.frameElement_();
     if (Build.BTypes & BrowserType.Firefox
         && (!BuildStr.RandomReq || !BuildStr.RandomRes) // may be compiled directly using tsc.js
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
@@ -1520,9 +1520,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
                         ? XPCNativeWrapper(vfind) : vfind).box_ === parEl) {
             safeDestroy(1);
             vfind.onLoad_();
-            return;
+          } else {
+            VDom.clickable_ = ((core as Exclude<NonNullable<typeof core>, 0>).VDom as typeof VDom).clickable_;
           }
-          VDom.clickable_ = ((core as Exclude<NonNullable<typeof core>, 0>).VDom as typeof VDom).clickable_;
           return;
         }
       } catch (e) {
@@ -1530,8 +1530,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           console.log("Assert error: Parent frame check breaks:", e);
         }
       }
-      if ((!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && core) {
-        // here the `core` is invalid
+      if ((!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+          && VDom.docNotCompleteWhenVimiumIniting_) {
+        // here the parent `core` is invalid - maybe from a fake provider
         VDom.parentCore_ = () => 0;
       }
     } else {
