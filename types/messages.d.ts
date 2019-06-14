@@ -232,8 +232,10 @@ interface CmdOptions {
     /** secret */ k: number;
   };
   [kFgCmd.goNext]: {
-    rel: string;
-    patterns: string[];
+    /** rel */ r: string;
+    /** patterns */ p: string[];
+    /** length limit list */ l: number[];
+    /** max of length limit list */ m: number;
   };
   [kFgCmd.insertMode]: {
     code: kKeyCode;

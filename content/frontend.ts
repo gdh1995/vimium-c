@@ -430,10 +430,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       };
       onKeyup2({keyCode: kKeyCode.None});
     },
-    /* kFgCmd.goNext: */ function (_0: number, {rel, patterns}: CmdOptions[kFgCmd.goNext]): void {
+    /* kFgCmd.goNext: */ function (_0: number, {r: rel, p: patterns, l, m }: CmdOptions[kFgCmd.goNext]): void {
       if (!VDom.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }
       const isNext = rel === "next";
-      if (patterns.length <= 0 || !Pagination.findAndFollowLink_(patterns, isNext)) {
+      if (patterns.length <= 0 || !Pagination.findAndFollowLink_(patterns, isNext, l, m)) {
         return HUD.tip_("No links to go " + rel);
       }
     },
@@ -737,7 +737,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   },
   findAndFollowLink_: !(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)
       ? (console.log("Assert error: GlobalConsts.MaxNumberOfNextPatterns <= 255"), 0 as never)
-      : function (names: string[], isNext: boolean): boolean {
+      : function (names: string[], isNext: boolean, lenLimit: number[], totalMax: number): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: ThisParameter<typeof Pagination.GetLinks_>[number]; }
     // Note: this traverser should not need a prepareCrop
     let links = VHints.traverse_("*", Pagination.GetLinks_, true, true);
@@ -746,14 +746,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
     refusedStr = isNext ? "<" : ">";
     links.push(document.documentElement as never as SafeHTMLElement);
-    let candidates: Candidate[] = [], ch: string, s: string, maxLen = 99, len: number;
+    let candidates: Candidate[] = [], ch: string, s: string, maxLen = totalMax, len: number;
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
       const link = links[_len];
-      if (link.contains(links[_len + 1]) || (s = link.innerText).length > 99) { continue; }
+      if (link.contains(links[_len + 1]) || (s = link.innerText).length > totalMax) { continue; }
       if (!s && !(s = (ch = (link as HTMLInputElement).value) && ch.toLowerCase && ch || link.title)) { continue; }
+      if (s.length > totalMax) { continue; }
       s = s.toLowerCase();
       for (let i = 0; i < count; i++) {
-        if (s.indexOf(names[i]) !== -1) {
+        if (s.length < lenLimit[i] && s.indexOf(names[i]) !== -1) {
           if (s.indexOf(refusedStr) === -1 && (len = (s = s.trim()).split(re1).length) <= maxLen) {
             let i2 = detectQuirk - i ? names.indexOf(s, i + 1) : s.indexOf(quirk) >= 0 ? quirkIdx : -1;
             if (i2 >= 0) { i = i2; len = 2; }
