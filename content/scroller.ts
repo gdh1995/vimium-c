@@ -254,9 +254,12 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     }
     if (!element && top) {
       const candidate = a._selectFirst({ area_: 0, element_: top, height_: 0 });
-      a.current_ = element = candidate && candidate.element_ !== top
+      element = candidate && candidate.element_ !== top
           && (!a.current_ || candidate.height_ > innerHeight / 2)
           ? candidate.element_ : top;
+      // if .current_, then delay update to .current_, until scrolling ends and ._checkCurrent is called;
+      // otherwise, cache selected element for less further cost
+      a.current_ || (a.current_ = element);
     }
     a.scrolled_ = 0;
     return element;
