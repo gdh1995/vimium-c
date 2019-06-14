@@ -295,7 +295,8 @@ var VHints = {
         }
       }
       return;
-    case "a": isClickable = true;
+    case "a":
+      isClickable = true;
       arr = VHints.checkAnchor_(element as Parameters<typeof VHints.checkAnchor_>[0]);
       break;
     case "frame": case "iframe":
@@ -320,10 +321,10 @@ var VHints = {
       }
       break;
     case "details":
-      isClickable = VHints.checkReplaced_(VDom.findMainSummary_(element as HTMLDetailsElement), this);
+      isClickable = VHints.isNotReplacedBy_(VDom.findMainSummary_(element as HTMLDetailsElement), this);
       break;
     case "label":
-      isClickable = VHints.checkReplaced_((element as HTMLLabelElement).control as SafeHTMLElement | null);
+      isClickable = VHints.isNotReplacedBy_((element as HTMLLabelElement).control as SafeHTMLElement | null);
       break;
     case "button": case "select":
       isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled || VHints.mode1_ > HintMode.LEAVE;
@@ -348,7 +349,7 @@ var VHints = {
       }
       break;
     // elements of the types above should refuse `attachShadow`
-    case "div": case "ul": case "pre": case "ol": case "code":
+    case "div": case "ul": case "pre": case "ol": case "code": case "table":
       type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? ClickType.scrollY
         : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default;
       // no break;
@@ -366,7 +367,8 @@ var VHints = {
           || VHints.forHover_ && element.getAttribute("onmouseover")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.attrListener
         : VDom.clickable_.has(element) && VHints.isClickListened_
-        ? VHints.inferTypeOfListener_(element as SafeHTMLElement, tag)
+          && VHints.inferTypeOfListener_(element as SafeHTMLElement, tag)
+        ? ClickType.codeListener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
         : type > ClickType.tabindex ? type : (s = element.className) && VHints.btnRe_.test(s) ? ClickType.classname
         : ClickType.Default;
@@ -395,9 +397,10 @@ var VHints = {
     // for Google search result pages
     let el = (anchor.rel || anchor.hasAttribute("ping"))
         && anchor.firstElementChild as Element | null;
-    return el && (<RegExpOne> /h\d/).test(VDom.htmlTag_(el)) ? VDom.getVisibleClientRect_(el) : null;
+    return el && (<RegExpOne> /h\d/).test(VDom.htmlTag_(el))
+        && this.isNotReplacedBy_(el as SafeHTMLElement) ? VDom.getVisibleClientRect_(el) : null;
   },
-  checkReplaced_ (element: SafeHTMLElement | null | void, isExpected?: Hint[]): boolean | null {
+  isNotReplacedBy_ (element: SafeHTMLElement | null | void, isExpected?: Hint[]): boolean | null {
     const arr2: Hint[] = [], a = this, clickListened = a.isClickListened_;
     if (element) {
       if (!isExpected && (element as TypeToAssert<HTMLElement, HTMLInputElement, "disabled">).disabled) { return !1; }
@@ -413,11 +416,11 @@ var VHints = {
     }
     return element ? !arr2.length : !!isExpected || null;
   },
-  inferTypeOfListener_ (el: SafeHTMLElement, tag: string): ClickType.codeListener | ClickType.Default {
-    return (tag === "div" ? !el.className && !el.id && el.querySelector("a")
+  inferTypeOfListener_ (el: SafeHTMLElement, tag: string): boolean {
+    return !(tag === "div" ? !el.className && !el.id && el.querySelector("a")
         : tag === "tr" ? el.querySelector("input[type=checkbox")
         : tag === "table"
-        ) ? ClickType.Default : ClickType.codeListener;
+        );
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
   GetEditable_ (this: Hint[], element: Element): void {
