@@ -1280,9 +1280,11 @@ var _randMap;
 function getRandom(id) {
   var rand = _randMap ? _randMap[id] : 0;
   if (rand) {
-    return rand;
+    if ((typeof rand === "string") === locally) {
+      return rand;
+    }
   }
-  if (locally) {
+  if (!locally) {
     rand = 1e5 + (0 | (Math.random() * 9e5));
   } else {
     var hash = getMD5(osPath.resolve(__dirname) + (id.toLowerCase() !== 'random' ? id : ""));

@@ -60,7 +60,12 @@ var VOmni = {
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
       const p = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
           : VDom.frameElement_() && parent as Window;
-      if (p && (Build.BTypes & BrowserType.Firefox ? p.self : p) === top && p.VOmni) {
+      // todo : fix sandbox interop
+      if (p
+          && (!(Build.BTypes & ~BrowserType.Firefox)
+                || Build.BTypes & BrowserType.Firefox && VDom.cache_.b === BrowserType.Firefox
+              ? XPCNativeWrapper(p.self) : p) === top
+          && p.VOmni) {
         (p.VOmni as typeof VOmni).activate_(count, options);
       } else {
         VPort.post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options });
