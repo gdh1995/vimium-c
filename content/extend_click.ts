@@ -56,7 +56,7 @@ if (VDom && VimiumInjector === undefined) {
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
   if ((script as Element as ElementToHTML).lang == null) {
-    if (!(Build.BTypes & ~BrowserType.Chrome)
+      if (!(docEl && (docEl as ElementToHTMLorSVG).tabIndex != null)) {
         && Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage
         && Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage) {
       return;
