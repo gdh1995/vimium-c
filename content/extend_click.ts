@@ -42,8 +42,8 @@ if (VDom && VimiumInjector === undefined) {
   }
   const kVOnClick1 = InnerConsts.kVOnClick, kHook = InnerConsts.kHook
     , d = document, docEl = d.documentElement
-    , script = VDom.createElement_("script")
-    , secret: number = (Math.random() * GlobalConsts.SecretUpperLimitForExtendClickHook + 1) | 0;
+    , secret: number = (Math.random() * GlobalConsts.SecretUpperLimitForExtendClickHook + 1) | 0
+    , script = VDom.createElement_("script");
 /**
  * Note:
  *   should not create HTML/SVG elements before document gets ready,
@@ -145,6 +145,7 @@ if (VDom && VimiumInjector === undefined) {
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         ? navigator.appVersion.match(<RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as 0
     , appVer: BrowserVer | 0 = Build.BTypes & BrowserType.Chrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
@@ -338,7 +339,7 @@ function doRegister(onlyInDocument?: 1): void {
   if (nodeIndexListInDocument.length || nodeIndexListForDetached.length) {
     unsafeDispatchCounter++;
     dispatch(root, new CE(kVOnClick, {
-      detail: [nodeIndexListInDocument, onlyInDocument ? null : nodeIndexListForDetached]
+      detail: [nodeIndexListInDocument, !Build.NDEBUG && onlyInDocument ? null : nodeIndexListForDetached]
     }));
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
   }
@@ -369,7 +370,7 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
       pushInDocument(i);
     }
   }
-  doRegister(1);
+  Build.NDEBUG ? doRegister() : doRegister(1);
   allNodesInDocument = null;
 }
 function executeCmd(eventOrDestroy?: Event): void {
@@ -442,9 +443,6 @@ _listen("load", delayFindAll, !0);
   if ((Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         && !(Build.BTypes & ~BrowserType.Chrome))
       ? true : isFirstTime ? !script.parentNode
-      : !(Build.BTypes & ~BrowserType.Chrome)
-        && Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-      ? true
       : !script.dataset.vimium) { // It succeeded to hook.
     VDom.OnDocLoaded_(function (): void {
       box || execute(kContentCmd.DestroyForCSP);
@@ -465,6 +463,7 @@ _listen("load", delayFindAll, !0);
   }
   // else: Chrome < MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   const breakTotally = Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
+      // still check appVer, so that treat it as a latest version if appVer parsing is failed
       && appVer && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage;
   console.info((Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally
                 ? "Vimium C can" : "Some functions of Vimium C may")

@@ -2949,7 +2949,7 @@ interface HTMLElement extends Element {
     hideFocus: boolean;
     innerText: string | Element | RadioNodeList | Window;
     readonly isContentEditable: boolean;
-    lang: string;
+    /** replaced with a narrower value - for easier debugging */ lang: "";
     readonly offsetHeight: number;
     readonly offsetLeft: number;
     readonly offsetParent: Element;

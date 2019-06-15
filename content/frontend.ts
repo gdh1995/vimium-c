@@ -1,6 +1,7 @@
 var VHud: VHUDTy, VPort: VPortTy, VEvent: VEventModeTy
   , VimiumInjector: VimiumInjectorTy | undefined | null;
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
+declare var VOther: BrowserType;
 
 (function () {
   interface EscF {
@@ -1560,6 +1561,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);
     vPort.Connect_();
+    if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge
+        && !injector) {
+      (window as Writable<Window>).VOther = OnOther;
+    }
     if (BuildStr.RandomReq && BuildStr.RandomRes
         && (!(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)

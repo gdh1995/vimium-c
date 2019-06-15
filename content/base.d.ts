@@ -444,6 +444,7 @@ type XrayedObject<T extends object> = T & {
 }
 
 interface Window extends ContentWindowCore {
+  readonly VOther?: BrowserType;
   wrappedJSObject: typeof wrappedJSObject;
 }
 
