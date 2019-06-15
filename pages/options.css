@@ -476,3 +476,96 @@ select:-moz-focusring {
   color: transparent;
   text-shadow: 0 0 0 #000;
 }
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #202124;
+    color: #9aa0a6;
+  }
+  header {
+    color: #c6cbd2;
+    border-color: #555;
+  }
+  .caption {
+    color: #aab0b6;
+  }
+  a, a:visited {
+    color: #5b96f5;
+  }
+  a:hover {
+    color: #8ab4f8;
+  }
+  .Vim {
+    color: #b3c4e6;
+  }
+  .C {
+    color: #e6ccb3;
+  }
+  .icon {
+    filter: brightness(0.8);
+  }
+  .highlight, .debugging {
+    background: #59594c;
+  }
+  .has-error {
+    background: #50140c;
+  }
+  input, textarea {
+    background: #202124;
+    border-color: #777;
+    color: #d4d4d4;
+  }
+  input[type=checkbox] {
+    filter: brightness(0.8);
+  }
+  pre, .help-block {
+    border-color: #666;
+  }
+  #wrapper:hover .help {
+    color: #9aa0a6;
+  }
+  .exclusionRemoveButton:hover {
+    color: #8ab4f8;
+  }
+  #footer, div#state {
+    background: #292a2d;
+  }
+  button, select, button:hover, select:hover, select.right, select.right:hover, button:active, select:active {
+    background: #292a2d;
+    border-color: #5f6368;
+    box-shadow: none;
+    text-shadow: none;
+    color: #bdc2c7;
+  }
+  button:hover, select:hover {
+    background: #30343c;
+  }
+  button[disabled] {
+    background: #292a2d;
+    color: #9aa0a6;
+  }
+  select.right {
+    background: url(
+      'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7" fill="%23bbb"/></svg>'
+          ) 8px 8px / 7px 7px no-repeat border-box,
+          #292a2d;
+  }
+  select.right:hover {
+    background: url(
+      'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7" fill="%23bbb"/></svg>'
+          ) 8px 8px / 7px 7px no-repeat border-box,
+          #30343c;
+  }
+  select.right > option {
+    background-color: #333;
+  }
+  button:focus, input:focus, select:focus, textarea:focus {
+    border-color: #004fa3;
+  }
+  button.left:focus+select.right {
+    border-left-color: #004fa3;
+  }
+  span#state-value {
+    color: #8ab4f8;
+  }
+}

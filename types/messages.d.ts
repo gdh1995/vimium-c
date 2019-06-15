@@ -107,7 +107,8 @@ interface BgReq {
   } & Partial<BgCSSReq>;
   [kBgReq.settingsUpdate]: {
     /** delta */ d: {
-      [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
+      [key in keyof SettingsNS.FrontendSettings | keyof SettingsNS.FrontendSettingsSyncedManually]?:
+        SettingsNS.FrontendSettingCache[key];
     };
   };
   [kBgReq.url]: {

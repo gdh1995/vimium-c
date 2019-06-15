@@ -520,6 +520,11 @@ MediaWatcher_ = {
         payload.r = bMatched;
         embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: { r: bMatched } });
       }
+    } else {
+      if (!!payload.d !== bMatched) {
+        payload.d = bMatched ? " D" : "";
+        embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: { d: payload.d } });
+      }
     }
     Backend_.setOmniStyle_({
       t: omniToggled,

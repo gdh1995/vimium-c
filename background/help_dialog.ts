@@ -4,7 +4,7 @@ var HelpDialog = {
   render_: (function (this: {}, request: FgReq[kFgReq.initHelp]): BgReq[kBgReq.showHelpDialog]["h"] {
     const a = this as typeof HelpDialog;
     if (!a.html_
-        && (Build.NDEBUG || /** {@link ../pages/loader.ts#updateUI} */Settings_.cache_.helpDialog)) {
+        || !Build.NDEBUG && /** {@link ../pages/loader.ts#updateUI} */Settings_.cache_.helpDialog) {
       const noShadow = !( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
@@ -56,6 +56,7 @@ var HelpDialog = {
       (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
     }
     const result = BgUtils_.safer_<Dict<string>>({
+      className: Settings_.payload_.d,
       homePage: Settings_.CONST_.HomePage_,
       version: Settings_.CONST_.VerName_,
       title: request.t ? "Command Listing" : "Help",
@@ -78,7 +79,7 @@ var HelpDialog = {
     a.template_ = null;
     return Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        ? { h: html[0], b: div } : html[0] + div;
+        ? { h: html[0], b: div } : html[0].replace("{{className}}", Settings_.payload_.d) + div;
   }) as BaseHelpDialog["render_"],
   groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
       , hideUnbound: boolean, showNames: boolean): string {

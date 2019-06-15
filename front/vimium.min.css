@@ -18,10 +18,12 @@ max-width:320px;min-width:152px;overflow:hidden;padding:2px 3.5px;right:148px;te
 .Frame{border:5px solid #ff0;box-sizing:border-box;height:100%;left:0;top:0;width:100%}
 .Omnibar{left:calc(10% - 12px);top:64px;width:calc(80% + 24px)}
 .BH{color:#902809}.MC{color:#d4ac3a}.One{border-color:#ffa07a}.UI{pointer-events:all}
+.D>.LH{background:linear-gradient(#ccbe00,#cc8f00)}.HUD.D{background:#222;color:#ccc}
 /*#find*/
 ::selection { background: #ff9632 !important; }
 html, body, * { user-select: auto; }
 *{cursor:default;font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif!important;
 height:14px;margin:0;outline:none;overflow:hidden;vertical-align:top;white-space:nowrap}
-#r{display:flex}#s{flex:0 0 4px;}#i{flex:0 1 auto;min-width:9px}#h{flex:1 0 auto}#c{flex:0 0 auto}
+.r{display:flex}#s{flex:0 0 4px;}#i{flex:0 1 auto;min-width:9px}#h{flex:1 0 auto}#c{flex:0 0 auto}
+.r.D{color:#d4d4d4}
 #i,#h{cursor:text}br{all:inherit!important;display:inline!important}:host{margin:0;}

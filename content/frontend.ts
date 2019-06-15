@@ -861,6 +861,7 @@ declare var VOther: BrowserType;
   },
   HUD = {
     _tweenId: 0,
+    className_: "R HUD",
     box_: null as HTMLDivElement | null,
     $text_: null as never as Text,
     text_: "",
@@ -902,7 +903,7 @@ declare var VOther: BrowserType;
         return;
       }
       el = VDom.createElement_("div");
-      el.className = "R HUD";
+      el.className = "R HUD" + VDom.cache_.d;
       el.textContent = text;
       hud.$text_ = el.firstChild as Text;
       if (!embed) {
@@ -1084,6 +1085,7 @@ declare var VOther: BrowserType;
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 &&
       deepHints != null && VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
       (VHints.queryInDeep_ = deepHints ? DeepQueryType.InDeep : DeepQueryType.NotDeep);
+      delta.d != null && HUD.box_ && HUD.box_.classList.toggle("D", !!delta.d);
     },
     /* kBgReq.focusFrame: */ FrameMask.Focus_,
     /* kBgReq.exitGrab: */ InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,

@@ -11,11 +11,13 @@ var Settings_ = {
     __proto__: null as never,
     v: CurCVer_,
     r: false,
+    d: "",
     g: false,
     m: false
   } : {
-    __proto__: null as never, r: false, g: false, m: false
-  }) as SettingsNS.FrontendSettingsWithoutSyncing & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
+    __proto__: null as never, r: false, d: "", g: false, m: false
+  }) as SettingsNS.FrontendSettingsWithoutSyncing & SettingsNS.FrontendSettingsSyncedManually
+      & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
   omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
     v: CurCVer_,
     c: "",

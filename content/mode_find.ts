@@ -57,7 +57,7 @@ var VFind = {
     a.activeRegexIndex_ = 0;
 
     const el = a.box_ = dom.createElement_("iframe") as typeof VFind.box_, st = el.style;
-    el.className = "R HUD UI";
+    el.className = "R HUD UI" + VDom.cache_.d;
     st.display = "none"; st.width = "0";
     if (Build.BTypes & ~BrowserType.Firefox && dom.wdZoom_ !== 1) { st.zoom = "" + 1 / dom.wdZoom_; }
     el.onload = function (this: HTMLIFrameElement): void { VFind.notDisableScript_() && VFind.onLoad_(1); };
@@ -148,7 +148,7 @@ var VFind = {
     VDom.UI.createStyle_(a.css_.i, a.styleIframe_ = addElement("style") as HTMLStyleElement);
     const root = VDom.createShadowRoot_(body), inShadow = a.inShadow_ = root !== body,
     root2 = inShadow ? addElement("div", 0) : body;
-    root2.id = "r";
+    root2.className = "r" + VDom.cache_.d;
     root2.spellcheck = false;
     root2.appendChild(list);
     if (inShadow) {
