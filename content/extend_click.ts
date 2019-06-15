@@ -56,7 +56,14 @@ if (VDom && VimiumInjector === undefined) {
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
   if ((script as Element as ElementToHTML).lang == null) {
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
       if (!(docEl && (docEl as ElementToHTMLorSVG).tabIndex != null)) {
+        // Raw XML: should never create any HTMLElement instance
+        VDom.allowScripts_ = 0;
+        return;
+      }
+    } else if (!(Build.BTypes & BrowserType.Edge)
         && Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage
         && Build.MinCVer >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage) {
       return;
@@ -129,7 +136,9 @@ if (VDom && VimiumInjector === undefined) {
     }
     if (box == null && isFirstTime) {
       r(kHook, hook, !0);
-      if (cmd === kContentCmd.DestroyForCSP) {
+      if (Build.BTypes & ~BrowserType.Firefox
+          && (!(Build.BTypes & BrowserType.Firefox) || VOther !== BrowserType.Firefox)
+          && cmd === kContentCmd.DestroyForCSP) {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
         //     which might mean curCVer has no ES6...
@@ -190,6 +199,7 @@ hooks = {
     str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
                 funcToString,
                 a === myAEL ? _listen : a === hooks.toString ? funcToString : a, arguments);
+    Build.BTypes & ~BrowserType.Firefox &&
     detectDisabled && str === `Vimium${sec}=>9` && executeCmd();
     return str;
   },
@@ -444,6 +454,7 @@ _listen("load", delayFindAll, !0);
         && !(Build.BTypes & ~BrowserType.Chrome))
       ? true : isFirstTime ? !script.parentNode
       : !script.dataset.vimium) { // It succeeded to hook.
+    !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox ||
     VDom.OnDocLoaded_(function (): void {
       box || execute(kContentCmd.DestroyForCSP);
     });
