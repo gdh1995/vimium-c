@@ -69,6 +69,14 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       totalDelta += delta;
       next(animate);
     } else {
+      if ((!(Build.BTypes & BrowserType.Chrome) || VDom.cache_.v >= BrowserVer.MinMaybeScrollEndAndOverScrollEvents)
+          && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? HTMLElement.prototype : document)) {
+        // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
+        // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
+        const notEl: boolean = !element || element === VDom.scrollingEl_();
+        (notEl ? document : element as NonNullable<typeof element>).dispatchEvent(
+            new Event("scrollend", {cancelable: false, bubbles: notEl}));
+      }
       _this._checkCurrent(element);
       element = null;
       running = 0;

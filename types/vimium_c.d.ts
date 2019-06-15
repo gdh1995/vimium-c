@@ -778,6 +778,9 @@ declare const enum BrowserVer {
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
   // source code of this change is between chromium/master@{#626128} and {#626161} (included)
   MinNoFocusOrSelectionStringOnHiddenIFrame = 74, // even if EXPERIMENTAL or LEGACY
+  // https://www.chromestatus.com/features/5650553247891456
+  // https://docs.google.com/document/d/1CJgCg7Y31v5MbO14RDHyBAa5Sf0ZnPVtZMiOFCNbgWc/edit
+  MinMaybeScrollEndAndOverScrollEvents = 74, // if EXPERIMENTAL
   // the below 3 are even if EXPERIMENTAL or LEGACY
   MinMediaQuery$PrefersReducedMotion = 74,
   // https://chromium.googlesource.com/chromium/src/+/5e84b7a819637ed4dd8f9c4d11288127663c8267
