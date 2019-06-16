@@ -63,7 +63,7 @@ __Other extensions supporting Vimium C:__
 1.75.7:
 * LinkHints: add some new rules to exclude useless hints for container nodes
   * much smarter on Google search result pages
-* a global dark mode for Chrome 76+ is now enabled by default
+* a global dark mode for Chrome 76+ and Firefox 67+ is now enabled by default
   * include new styles for hint markers, HUD, options page and the help dialog
 * Scroller: fix it might scroll too far in some cases (for example, a long page is loading) (#45)
 * Scroller: fix a bug of losing current active elements after switching scrolling directions

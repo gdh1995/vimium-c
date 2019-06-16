@@ -227,8 +227,8 @@ var Settings_ = {
         }
         body += `\n${prefix}:before,${prefix}:after,.R:before,.R:after{display:none!important}`;
         css = prefix + css.slice(5, hostEnd) +
-          // Note: &vimium.min.css: this requires no ID/attr selectors in base styles
-          body.replace(<RegExpG> /\.[A-Z]/g, `${prefix} $&`);
+            // Note: &vimium.min.css: this requires no ID/attr selectors in base styles
+            body.replace(<RegExpG> /\.(?!D\{)[A-Z]/g, `${prefix} $&`).replace(new RegExp(`>${prefix} `, "g"), ">");
       }
       css = cacheId + css.length + "\n" + css;
       const css2 = a.parseCustomCSS_(a.get_("userDefinedCss"));

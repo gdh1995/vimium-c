@@ -287,9 +287,11 @@ var Tasks = {
       delete manifest.minimum_chrome_version;
       delete manifest.key;
       delete manifest.update_url;
-      delete manifest.background.persistent;
     } else if (minVer && minVer < 999) {
       manifest.minimum_chrome_version = "" + (minVer | 0);
+    }
+    if (!(browser & ~BrowserType.Firefox)) {
+      delete manifest.background.persistent;
     }
     if (browser === BrowserType.Chrome) {
       delete manifest.browser_specific_settings;
