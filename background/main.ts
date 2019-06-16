@@ -1485,7 +1485,7 @@ Are you sure you want to continue?`);
         }
       }
       if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
-      const maxLens: number[] = p2.map(i => Math.max(i.length + 9, i.length * 4)),
+      const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),
       totalMaxLen: number = Math.max.apply(Math, maxLens);
       cPort.postMessage<1, kFgCmd.goNext>({ N: kBgReq.execute,
         S: null, c: kFgCmd.goNext, n: 1,

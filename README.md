@@ -3,7 +3,7 @@
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.75.6](https://img.shields.io/badge/release-1.75.6-orange.svg
+[![Version 1.75.7](https://img.shields.io/badge/release-1.75.7-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -59,6 +59,17 @@ __Other extensions supporting Vimium C:__
       https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 
 # Release Notes
+
+1.75.7:
+* LinkHints: add some new rules to exclude useless hints for container nodes
+  * much smarter on Google search result pages
+* a global dark mode for Chrome 76+ is now enabled by default
+  * include new styles for hint markers, HUD, options page and the help dialog
+* Scroller: fix it might scroll too far in some cases (for example, a long page is loading) (#45)
+* Scroller: fix a bug of losing current active elements after switching scrolling directions
+* Firefox: fix broken FindMode (#48) and some other issues on pages with multiple iframes
+* Firefox: now both auto-dark-mode and auto-reduce-motion can response to system setting changes
+* goNext: stricter: not match long text
 
 1.75.6:
 * fix that Vomnibar can not acquire focus on the first activation on a new page since Chrome 75
