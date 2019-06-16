@@ -498,16 +498,19 @@ MediaWatcher_ = {
       const query = matchMedia(`(${name}: ${!key ? "reduce" : "dark"})`);
       query.onchange = a.OnChange_;
       watchers[key] = query;
-      if (Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-          && CurCVer_ < BrowserVer.MinMediaChangeEventsOnBackgroundPage
-          && !a._timer) {
+      if (!a._timer) {
         a._timer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval);
       }
       a.update_(key);
     } else if (!doListen && typeof cur === "object") {
       cur.onchange = null;
       watchers[key] = MediaNS.Watcher.NotWatching;
+      if (a._timer > 0) {
+        if (!watchers.some(i => typeof i === "object")) {
+          clearInterval(a._timer);
+          a._timer = 0;
+        }
+      }
       a.update_(key);
     }
   },
@@ -532,17 +535,30 @@ MediaWatcher_ = {
       b: !embed
     });
   },
-  RefreshAll_: Build.BTypes & BrowserType.Chrome ? function (this: void): void {
+  RefreshAll_ (this: void): void {
     for (let arr = MediaWatcher_._watchers, i = arr.length; 0 <= --i; ) {
-      typeof arr[i] === "object" && MediaWatcher_.update_(i);
+      let watcher = arr[i];
+      if (typeof watcher === "object") {
+        if (!(Build.BTypes & ~BrowserType.Firefox)
+            || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
+          let watcher2 = matchMedia(watcher.media);
+          watcher2.onchange = watcher.onchange;
+          watcher.onchange = null;
+          arr[i] = watcher2;
+        }
+        MediaWatcher_.update_(i);
+      }
     }
-  } : 0 as never,
+  },
   OnChange_ (this: MediaQueryList): void {
-    if (Build.BTypes & BrowserType.Chrome && MediaWatcher_._timer > 0) {
+    if (MediaWatcher_._timer > 0) {
       clearInterval(MediaWatcher_._timer);
-      MediaWatcher_._timer = -1;
     }
-    MediaWatcher_.update_(MediaWatcher_._watchers.indexOf(this));
+    MediaWatcher_._timer = -1;
+    let index = MediaWatcher_._watchers.indexOf(this);
+    if (index >= 0) {
+      MediaWatcher_.update_(index);
+    }
   }
 },
 TabRecency_ = {
