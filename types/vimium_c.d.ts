@@ -621,7 +621,7 @@ declare const enum BrowserVer {
   Min$Node$$getRootNode = 54, // not on Edge
   MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM = 55,
   // before C55, onActivate should only be installed on document
-  Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow = 55,
+  Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow = 55,
   Min$SVGElement$$dataset = 55,
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
   MinSomeDocumentListenersArePassiveByDefault = 56,

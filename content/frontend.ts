@@ -34,7 +34,8 @@ declare var VOther: BrowserType;
         : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
         : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
         : BrowserType.Chrome
-    , /** should be used only if OnOther is Chrome */ browserVer: BrowserVer = 0
+    , browserVer: BrowserVer = 0 /** should be used only if BTypes includes Chrome;
+        its initial value should be 0, need by {@link #hook} */
     , isCmdTriggered: BOOL = 0
     , isTop = top === window
     , needToRetryParentClickable: BOOL = 0
@@ -275,7 +276,7 @@ declare var VOther: BrowserType;
         ? event.isTrusted : event.isTrusted !== false) {
       const path = event.path,
       el = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$ActivateEvent$$Path || path)
-          && (Build.MinCVer >= BrowserVer.Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow
+          && (Build.MinCVer >= BrowserVer.Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow
             || !(Build.BTypes & BrowserType.Chrome)
             || (path as EventTarget[]).length > 1)
           ? (path as EventTarget[])[0] as Element : event.target as Element;
@@ -310,9 +311,10 @@ declare var VOther: BrowserType;
   const injector = VimiumInjector,
   hook = (function (action: HookAction): void {
     let f = action ? removeEventListener : addEventListener;
-    if (Build.MinCVer < BrowserVer.Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow
+    if (Build.MinCVer < BrowserVer.Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow
         && Build.BTypes & BrowserType.Chrome) {
       Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome ||
+      (action || browserVer < BrowserVer.Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow) &&
       f.call(document, "DOMActivate", onActivate, true);
       if (action === HookAction.SuppressActivateOnDocument) { return; }
     }
@@ -996,9 +998,9 @@ declare var VOther: BrowserType;
       (r[kBgReq.reset] as (request: BgReq[kBgReq.reset], initing?: 1) => void)(request, 1);
       if (isEnabled) {
         InsertMode.init_();
-        if (Build.MinCVer < BrowserVer.Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow
+        if (Build.MinCVer < BrowserVer.Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow
             && Build.BTypes & BrowserType.Chrome
-            && browserVer >= BrowserVer.Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow) {
+            && browserVer >= BrowserVer.Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow) {
           hook(HookAction.SuppressActivateOnDocument);
         }
       } else {
