@@ -68,6 +68,7 @@ __Other extensions supporting Vimium C:__
 * Scroller: fix it might scroll too far in some cases (for example, a long page is loading) (#45)
 * Scroller: fix a bug of losing current active elements after switching scrolling directions
 * Firefox: fix broken FindMode (#48) and some other issues on pages with multiple iframes
+* Firefox: fix LinkHints may cause scrollbars to show in some cases
 * Firefox: now both auto-dark-mode and auto-reduce-motion can response to system setting changes
 * goNext: stricter: not match long text
 

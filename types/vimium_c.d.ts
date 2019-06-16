@@ -760,6 +760,8 @@ declare const enum BrowserVer {
   // (MinStaticSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled)
   // https://github.com/chromium/chromium/commit/c81707c532183d4e6b878041964e85b0441b9f50
   MinNoSelector$GtGtGt = 69,
+  // if an element has position:absolute and is at the right/bottom edge, it won't cause the page shows a scrollbar
+  MinAbsolutePositionNotCauseScrollbar = 69, // even if EXPERIMENTAL or LEGACY
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
   MinFramesetHasNoNamedGetter = 70,
   MinContainLayoutBreakUIBox = 70, // even if EXPERIMENTAL

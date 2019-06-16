@@ -247,12 +247,14 @@ var VHints = {
     };
     marker.className = isBox ? "LH BH" : "LH";
     st.left = i + "px";
-    if (i > this.maxLeft_ && this.maxRight_) {
+    if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
+        && i > this.maxLeft_ && this.maxRight_) {
       st.maxWidth = this.maxRight_ - i + "px";
     }
     i = link[1][1];
     st.top = i + "px";
-    if (i > this.maxTop_) {
+    if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
+        && i > this.maxTop_) {
       st.maxHeight = this.maxTop_ - i + GlobalConsts.MaxHeightOfLinkHintMarker + "px";
     }
     return hint;
@@ -263,10 +265,16 @@ var VHints = {
     if (!root || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
     const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).slice(0, 5) : "",
     arr = this.hints_ as HintsNS.HintItem[],
-    mr = this.maxRight_ * zi, mt = this.maxTop_ * zi;
+    mr = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
+        ? this.maxRight_ * zi : 0,
+    mt = Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
+        ? this.maxTop_ * zi : 0;
     while (0 <= i && root.contains(elements[i][0])) {
       let st = arr[i--].marker_.style;
       Build.BTypes & ~BrowserType.Firefox && (st.zoom = z);
+      if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
+        continue;
+      }
       st.maxWidth && (st.maxWidth = mr - elements[i][1][0] + "px");
       st.maxHeight && (st.maxHeight = mt - elements[i][1][1] + 18 + "px");
     }

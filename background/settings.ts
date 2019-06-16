@@ -207,6 +207,13 @@ var Settings_ = {
           return `rgba(${r},${g},${b},${alpha.slice(0, 4)})`;
         });
       }
+      if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+          && (Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar
+              || CurCVer_ >= BrowserVer.MinAbsolutePositionNotCauseScrollbar)) {
+        const beforeLH = css.indexOf(".LH"), endLH = css.indexOf("}", beforeLH);
+        css = css.slice(0, beforeLH) + css.slice(beforeLH, endLH).replace("box-sizing:border-box;", "") +
+            css.slice(endLH);
+      }
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
