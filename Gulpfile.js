@@ -1284,14 +1284,17 @@ function getRandom(id) {
       return rand;
     }
   }
+  _randMap || (_randMap = {});
   if (!locally) {
-    rand = 1e5 + (0 | (Math.random() * 9e5));
+    while (!rand || Object.values(_randMap).includes(rand)) {
+      rand = 1e5 + (0 | (Math.random() * 9e5));
+    }
   } else {
     var hash = getMD5(osPath.resolve(__dirname) + (id.toLowerCase() !== 'random' ? id : ""));
     hash = hash.substr(8, 4) + hash.substr(21, 3);
     rand = hash;
   }
-  (_randMap || (_randMap = {}))[id] = rand;
+  _randMap[id] = rand;
   return rand;
 }
 

@@ -14,6 +14,10 @@ declare const enum Build {
 }
 declare const enum BuildStr {
   Commit = "dev",
+  /** used by {@see ../../content/extend_click.ts} */
+  RandomName0 = 1000,
+  RandomName1 = 1001,
+  RandomName2 = 1002,
   RandomFunc = 2019, // may be a string if not in release mode
   RandomReq = 0, // 0 means not to enable this access; may be a string if not in release mode
   RandomRes = 20080808, // may be a string if not in release mode

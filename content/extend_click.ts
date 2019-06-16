@@ -40,7 +40,8 @@ if (VDom && VimiumInjector === undefined) {
   if (!(Build.NDEBUG || !isFirstTime || (VDom.createElement_ + "").indexOf('"lang"') >= 0)) {
     console.log("Assert error: VDom.createElement_ should have not been called");
   }
-  const kVOnClick1 = InnerConsts.kVOnClick, kHook = InnerConsts.kHook
+  const kVOnClick1 = InnerConsts.kVOnClick
+    , kHook = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
     , d = document, docEl = d.documentElement
     , secret: number = (Math.random() * GlobalConsts.SecretUpperLimitForExtendClickHook + 1) | 0
     , script = VDom.createElement_("script");
@@ -119,7 +120,8 @@ if (VDom && VimiumInjector === undefined) {
     isBox && ((box as Element).textContent = "");
   }
   function dispatchCmd(cmd: ValidContentCmds) {
-    (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new CustomEvent(InnerConsts.kCmd, {
+    (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new CustomEvent(
+        (InnerConsts.kCmd + BuildStr.RandomName1) as InnerConsts.kCmd, {
       detail: <CommandEventDetail> (secret << kContentCmd.MaskedBitNumber) | cmd
     }));
   }
@@ -193,15 +195,18 @@ sec: number = +<string> cs.dataset.vimium,
 kVOnClick = InnerConsts.kVOnClick,
 kOnDomReady = "DOMContentLoaded",
 kValue = "value",
+strIndexOf = kOnDomReady.indexOf,
 hooks = {
   toString: function toString(this: FUNC): string {
     const a = this,
     str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
                 funcToString,
-                a === myAEL ? _listen : a === hooks.toString ? funcToString : a, arguments);
+                a === myAEL ? _listen : a === hooks.toString ? funcToString : a, arguments),
+    name = a.name, baseFunc = name === "toString" ? funcToString : name === "addEventListener" ? _listen : 0;
     Build.BTypes & ~BrowserType.Firefox &&
     detectDisabled && str === `Vimium${sec}=>9` && executeCmd();
-    return str;
+    return baseFunc && call(strIndexOf, str, InnerConsts.kVOnClick + BuildStr.RandomName2) > 0
+        ? call(funcToString, baseFunc) : str;
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
@@ -211,7 +216,7 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
     if (type === "click" ? listener && !(a instanceof HA) && a instanceof E
-        : type === kVOnClick
+        : type === InnerConsts.kVOnClick + BuildStr.RandomName2
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
       toRegister.p(a as Element);
@@ -232,8 +237,10 @@ let handler = function (this: void): void {
   handler = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
   call(Attr, el, key, "");
-  listen(el, InnerConsts.kCmd, executeCmd, !0);
-  call(Append, docEl2, el), dispatch(el, new CE(InnerConsts.kHook, {detail: sec})), call(Remove, el);
+  listen(el, (InnerConsts.kCmd + BuildStr.RandomName1) as InnerConsts.kCmd, executeCmd, !0);
+  call(Append, docEl2, el),
+  dispatch(el, new CE((InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook, {detail: sec})),
+  call(Remove, el);
   if (call(HasAttr, el, key)) {
     executeCmd();
   } else {
@@ -355,15 +362,16 @@ function doRegister(onlyInDocument?: 1): void {
   }
 }
 function safeReRegister(element: Element, doc1: Document): void {
-  let localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
+  let localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function"
+    , eventName = kVOnClick + BuildStr.RandomName2;
   // tslint:disable-next-line: triple-equals
   if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
     try {
       // Note: here may break in case .addEventListener is an <embed> or overridden by host code
-      call(localAEL, element, kVOnClick, noop);
+      call(localAEL, element, eventName, noop);
     } catch {}
     try {
-      call(localREL, element, kVOnClick, noop);
+      call(localREL, element, eventName, noop);
     } catch {}
   }
 }
