@@ -565,7 +565,8 @@ function (details: chrome.runtime.InstalledDetails): void {
   if (!reason) { return; }
 
   if (parseFloat(Settings_.CONST_.VerCode_) <= parseFloat(reason)
-      && Settings_.CONST_.VerCode_ !== "1.75.7") { return; }
+      && Settings_.CONST_.VerCode_ !== "1.75.7"
+      || Settings_.CONST_.VerCode_ === reason) { return; }
 
   reason = "vimium-c_upgrade-notification";
   const args: chrome.notifications.NotificationOptions = {
