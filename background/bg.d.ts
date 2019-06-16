@@ -328,7 +328,7 @@ declare namespace SettingsNS {
   }
   interface BaseNonPersistentSettings {
     searchEngineRules: Search.Rule[];
-    searchKeywords: string[] | null;
+    searchKeywords: string | null;
   }
   interface NonPersistentSettings extends BaseNonPersistentSettings, OtherSettingsWithDefaults, CachedFiles {}
   interface PersistentSettings extends FrontendSettings, BackendSettings {}

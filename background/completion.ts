@@ -864,14 +864,12 @@ searchEngine = {
   timer_: 0,
   calcNextMatchType_ (): MatchType {
     const key = queryTerms[0], arr = Settings_.cache_.searchKeywords;
-    if (!arr) {
+    if (arr == null) {
       searchEngine.timer_ = searchEngine.timer_ || setTimeout(searchEngine.BuildSearchKeywords_, 67);
       return MatchType.searching_;
     }
     if (key.length >= searchEngine.searchKeywordMaxLength_) { return MatchType.plain; }
-    const next = searchEngine.binaryInsert_(key, arr);
-    return next < arr.length && arr[next].startsWith(key) ? MatchType.searching_
-      : MatchType.plain;
+    return arr.indexOf("\n" + key) >= 0 ? MatchType.searching_ : MatchType.plain;
   },
   makeText_ (url: string, arr: number[]): string {
     let len = arr.length, i: number, str: string, ind: number;
@@ -902,26 +900,14 @@ searchEngine = {
     return sug;
   },
   BuildSearchKeywords_ (): void {
-    let arr = Object.keys(Settings_.cache_.searchEngineMap), max = 0;
-    arr.sort();
+    let arr = Object.keys(Settings_.cache_.searchEngineMap), max = 0, j: number;
     for (const i of arr) {
-      const j = i.length;
+      j = i.length;
       max < j && (max = j);
     }
-    Settings_.set_("searchKeywords", arr);
+    Settings_.set_("searchKeywords", "\n" + arr.join("\n"));
     searchEngine.searchKeywordMaxLength_ = max;
     searchEngine.timer_ = 0;
-  },
-  binaryInsert_ (u: string, a: string[]): number {
-    let e = "", h = a.length - 1, l = 0, m = 0;
-    while (l <= h) {
-      m = (l + h) >>> 1;
-      e = a[m];
-      if (e > u) { h = m - 1; }
-      else { l = m + 1; }
-    }
-    // m + (e < u ? 1 : 0) = (e < u ? m + 1 : m) = (e < u ? l : l) = l
-    return l;
   },
   compute9_ (this: void): number { return 9; }
 },
@@ -1604,6 +1590,13 @@ Settings_.postUpdate_("phraseBlacklist");
 BgUtils_.timeout_(80, function () {
   Settings_.postUpdate_("searchEngines", null);
 });
+if (!Build.NDEBUG) {
+  (window as any).Completers = Completers;
+  (window as any).knownCs = knownCs;
+  (window as any).HistoryCache = HistoryCache;
+  (window as any).Decoder = Decoder;
+  (window as any).HistoryCache = HistoryCache;
+}
 });
 
 var Completion_ = { filter_ (a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
