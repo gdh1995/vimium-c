@@ -187,7 +187,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     fromContent || VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ });
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
       a.bodySt_.zoom = "";
-      a.bodySt_.display = "none";
+      (Build.BTypes & BrowserType.Firefox && a.browser_ === BrowserType.Firefox
+          ? (document.body as HTMLBodyElement).style : a.bodySt_).display = "none";
+    } else if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
+      a.bodySt_.cssText = "";
+      (document.body as HTMLBodyElement).style.display = "none";
     } else {
       a.bodySt_.cssText = "display: none;";
     }
@@ -708,7 +713,11 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.parse_, a);
     a.renderItems_(a.completions_, list);
-    oldH || (a.bodySt_.display = "");
+    if (!oldH) {
+      (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
+        ? (document.body as HTMLBodyElement).style : a.bodySt_).display = "";
+    }
     let cl = a.barCls_, c = "empty";
     notEmpty ? cl.remove(c) : cl.add(c);
     cl = list.classList, c = "no-favicon";
