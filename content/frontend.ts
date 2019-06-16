@@ -863,7 +863,6 @@ declare var VOther: BrowserType;
   },
   HUD = {
     _tweenId: 0,
-    className_: "R HUD",
     box_: null as HTMLDivElement | null,
     $text_: null as never as Text,
     text_: "",

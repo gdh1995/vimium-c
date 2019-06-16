@@ -782,6 +782,22 @@ declare const enum BrowserVer {
   // re-implement extension APIs into C++ bindings: https://bugs.chromium.org/p/chromium/issues/detail?id=763564
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
   // source code of this change is between chromium/master@{#626128} and {#626161} (included)
+  /** Related: https://chromium.googlesource.com/chromium/src/+/0146a7468d623a36bcb55fc6ae69465702bae7fa%5E%21/#F18
+   * Stack Trace:
+   * * an `<iframe>` has `embedded_content_view_` member, and has `.IsDisplayNone: () => !embedded_content_view_`
+   * * if `.style.display` is updated, its `LayoutEmbeddedContent` layout instance is destroyed
+   * * so call `HTMLFrameOwnerElement::SetEmbeddedContentView`, and then `FrameOwnerPropertiesChanged`
+   * * in `LocalFrameClientImpl::DidChangeFrameOwnerProperties`, a new `WebFrameOwnerProperties` is created
+   *   * it has the latest "is_display_none" state and is passed to `RenderFrameImpl::DidChangeFrameOwnerProperties`
+   * * then `ConvertWebFrameOwnerPropertiesToFrameOwnerProperties` is used to convert message classes
+   *   * the default value of `FrameOwnerProperties::is_display_none` and `Web~::~` is `false`
+   *   * the old code does not sync `.is_display_none`
+   *   * this commit 0146a74 begins to update `FrameOwnerProperties::is_display_none`
+   * * the child frame gets notified and runs `RenderFrameHostImpl::OnDidChangeFrameOwnerProperties`
+   * * `FrameTreeNode::set_frame_owner_properties` is called, and then
+   *   * `OnSetFrameOwnerProperties` of either `RenderFrameImpl` or `RenderFrameProxy` is called
+   *   * run `WebFrame::SetFrameOwnerProperties` to notify changes and recalc styles
+   */
   MinNoFocusOrSelectionStringOnHiddenIFrame = 74, // even if EXPERIMENTAL or LEGACY
   // https://www.chromestatus.com/features/5650553247891456
   // https://docs.google.com/document/d/1CJgCg7Y31v5MbO14RDHyBAa5Sf0ZnPVtZMiOFCNbgWc/edit
