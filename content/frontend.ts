@@ -1577,7 +1577,7 @@ declare var VOther: BrowserType;
       /** @see {@link ../lib/dom_utils.ts#VDom.getWndCore_} */
       wrappedJSObject[BuildStr.CoreGetterFuncPrefix + BuildStr.RandomFunc] = function (testSec) {
         if (testSec !== __secReq) {
-          if (errTick > GlobalConsts.MaxRetryTimesForSandboxExportFunc) {
+          if (errTick > GlobalConsts.MaxRetryTimesForSecret) {
             __secReq = esc as never;
           } else {
             errTick++;

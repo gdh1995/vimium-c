@@ -43,7 +43,7 @@ if (VDom && VimiumInjector === undefined) {
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHook = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
     , d = document, docEl = d.documentElement
-    , secret: number = (Math.random() * GlobalConsts.SecretUpperLimitForExtendClickHook + 1) | 0
+    , secret: number = (Math.random() * GlobalConsts.SecretUpperLimit + 1) | 0
     , script = VDom.createElement_("script");
 /**
  * Note:
@@ -77,7 +77,7 @@ if (VDom && VimiumInjector === undefined) {
   hook = function (event: CustomEvent): void {
     const t = event.target;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
-    if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForExtendClickHook
+    if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
         || event.detail !== secret || !(t instanceof Element)) { return; }
     // it's unhooking is delayed, so here may no VKey
     event.stopImmediatePropagation();

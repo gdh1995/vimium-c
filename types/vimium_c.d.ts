@@ -367,11 +367,9 @@ declare const enum GlobalConsts {
   MaxHistoryURLLength = 2_000, // to avoid data: URLs and malformed webpages
   TrimmedURLLengthForTooLongURL = 320,
   TrimmedTitleLengthForTooLongURL = 160,
-  SecretUpperLimitForExtendClickHook = 9e5,
-  SecretUpperLimitForSandboxInteop = 9e5,
-  MaxRetryTimesForExtendClickHook = 90, // (1 - 1/9e5) ** 90 >= 0.9999
-  /** (1 - 1/9e5) ** 900 >= 0.999; {@see ../Gulpfile.js#getRandom } */
-  MaxRetryTimesForSandboxExportFunc = 900,
+  // so that `P` = 89 / 9e5 < 1e-4
+  SecretUpperLimit = 9e5,
+  MaxRetryTimesForSecret = 89,
 }
 
 declare const enum kCharCode {

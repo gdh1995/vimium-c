@@ -1289,6 +1289,7 @@ function getRandom(id) {
   _randMap || (_randMap = {});
   if (!locally) {
     while (!rand || Object.values(_randMap).includes(rand)) {
+      // {@see #GlobalConsts.SecretUpperLimit}
       rand = 1e5 + (0 | (Math.random() * 9e5));
     }
   } else {
