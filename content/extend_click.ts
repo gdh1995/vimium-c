@@ -175,7 +175,7 @@ toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = 
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
-doc = document, cs = doc.currentScript as HTMLScriptElement, Create = doc.createElement as Document["createElement"],
+doc = document, cs = doc.currentScript as HTMLScriptElement,
 E = Element, EP = E.prototype, Append = EP.appendChild, Insert = EP.insertBefore,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
@@ -186,27 +186,31 @@ IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Ele
 push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
 CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement,
-FP = Function.prototype, funcToString = FP.toString,
+FP = Function.prototype, _toString = FP.toString,
 listen = _call.bind<(this: EventTarget,
         type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions) => any,
     [EventTarget, string, EventListenerOrEventListenerObject, EventListenerOptions?], any>(_listen),
 rEL = removeEventListener, clearTimeout_ = clearTimeout,
 sec: number = +<string> cs.dataset.vimium,
 kVOnClick = InnerConsts.kVOnClick,
+kEventName2 = kVOnClick + BuildStr.RandomName2,
 kOnDomReady = "DOMContentLoaded",
 kValue = "value",
-strIndexOf = kOnDomReady.indexOf,
 hooks = {
+  // the code below must include direct reference to at least one of `hooks`'s properties
+  // so that uglifyJS / terse won't remove the `hooks` variable
+  /** Create */ C: doc.createElement as Document["createElement"],
   toString: function toString(this: FUNC): string {
-    const a = this,
+    const a = this, replaced = a === myAEL ? _listen : a === myToStr ? _toString : 0,
     str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
-                funcToString,
-                a === myAEL ? _listen : a === hooks.toString ? funcToString : a, arguments),
-    name = a.name, baseFunc = name === "toString" ? funcToString : name === "addEventListener" ? _listen : 0;
+                _toString, replaced || a, arguments),
+    name = a.name,
+    funcType = replaced ? 0 : name === _listen.name ? 1 : name === _toString.name ? 3 : 0;
     Build.BTypes & ~BrowserType.Firefox &&
     detectDisabled && str === `Vimium${sec}=>9` && executeCmd();
-    return baseFunc && call(strIndexOf, str, InnerConsts.kVOnClick + BuildStr.RandomName2) > 0
-        ? call(funcToString, baseFunc) : str;
+    return funcType
+        && call(_toString, funcType < 3 ? myAEL : myToStr) === (Build.NDEBUG ? str : str || BuildStr.RandomName2)
+        ? call(_toString, funcType < 3 ? _listen : _toString) : str;
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
@@ -216,7 +220,8 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
     if (type === "click" ? listener && !(a instanceof HA) && a instanceof E
-        : type === InnerConsts.kVOnClick + BuildStr.RandomName2
+        // use a literal RandomName2 to randomize this function's text in a local version
+        : type === (Build.NDEBUG ? kEventName2 : kVOnClick + BuildStr.RandomName2)
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
       toRegister.p(a as Element);
@@ -224,7 +229,7 @@ hooks = {
     }
     // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
   }
-}, myAEL = hooks.addEventListener;
+}, myAEL = hooks.addEventListener, myToStr = hooks.toString;
 
 let handler = function (this: void): void {
   /** not check if a DOMReady event is trusted: keep the same as {@link ../lib/dom_utils.ts#VDom.OnDocLoaded_ } */
@@ -232,7 +237,7 @@ let handler = function (this: void): void {
   clearTimeout_(timer);
   detectDisabled = 0;
   const docEl2 = docChildren[0] as Element | null,
-  el = call(Create, doc, "div") as HTMLDivElement,
+  el = call(hooks.C, doc, "div") as HTMLDivElement,
   key = InnerConsts.kSecretAttr;
   handler = docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
@@ -362,16 +367,15 @@ function doRegister(onlyInDocument?: 1): void {
   }
 }
 function safeReRegister(element: Element, doc1: Document): void {
-  let localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function"
-    , eventName = kVOnClick + BuildStr.RandomName2;
+  const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
   // tslint:disable-next-line: triple-equals
   if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
     try {
       // Note: here may break in case .addEventListener is an <embed> or overridden by host code
-      call(localAEL, element, eventName, noop);
+      call(localAEL, element, kEventName2, noop);
     } catch {}
     try {
-      call(localREL, element, eventName, noop);
+      call(localREL, element, kEventName2, noop);
     } catch {}
   }
 }
