@@ -37,13 +37,13 @@ if [ -z "$output" -o -d "$output" ]; then
     pkg_name=
     if [ -n "$ori_output" ]; then :
     elif bool "$WITH_MAP"; then
-      ver=${ver}_debug
+      ver=${ver}-debug
     elif test -f "$ZIP_BASE/.build/.chrome.build"; then
-      ver=${ver}_chrome
+      ver=${ver}-chrome
     elif test -f "$ZIP_BASE/.build/.firefox.build"; then
-      ver=${ver}_firefox
+      ver=${ver}-fx
     else
-      ver=${ver}_dist
+      ver=${ver}-dist
     fi
     if [ -d '/wo' ]; then
       output=/wo/
@@ -54,12 +54,12 @@ if [ -z "$output" -o -d "$output" ]; then
     output=/wo/
   fi
   pkg_name=$(basename "${pkg_name:-$PWD}")
-  pkg_name=${pkg_name//++/-plus}
-  pkg_name=${pkg_name//+/-}
-  pkg_name=${pkg_name// /-}
+  pkg_name=${pkg_name//++/_plus}
+  pkg_name=${pkg_name//+/_}
+  pkg_name=${pkg_name// /_}
   pkg_name=${pkg_name%-}
   pkg_name=${pkg_name%_}
-  output=$output${pkg_name:-vimium-c}${ver:+_$ver}.zip
+  output=$output${pkg_name:-vimium_c}${ver:+-$ver}.zip
 elif [ "${output%.[a-z]*}" = "$output" ]; then
   output=$output.zip
 fi

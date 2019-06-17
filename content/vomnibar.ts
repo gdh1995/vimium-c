@@ -60,7 +60,6 @@ var VOmni = {
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
       const p = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
           : VDom.frameElement_() && parent as Window;
-      // todo : fix sandbox interop
       if (p
           && (!(Build.BTypes & ~BrowserType.Firefox)
                 || Build.BTypes & BrowserType.Firefox && VDom.cache_.b === BrowserType.Firefox
