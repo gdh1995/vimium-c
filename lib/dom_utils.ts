@@ -182,12 +182,12 @@ var VDom = {
       : el || !fallback ? el as SafeElement | null // el is safe object or null
       : this.notSafe_(docEl) ? null : docEl as SafeElement | null;
   },
-  frameElement_: (hasKnownOnFireFox?: 1): Element | null | void => {
+  frameElement_ (hasKnownOnFireFox?: 1): Element | null | void {
     let el: typeof frameElement | undefined;
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement) {
       try {
         if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
-        el = frameElement;
+        else { el = frameElement; }
       } catch {}
     } else {
       if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
