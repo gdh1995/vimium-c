@@ -201,16 +201,15 @@ hooks = {
   // so that uglifyJS / terse won't remove the `hooks` variable
   /** Create */ C: doc.createElement as Document["createElement"],
   toString: function toString(this: FUNC): string {
-    if (!sAEL) { sAEL = call(_toString, myAEL); sToStr = call(_toString, _toString); }
     const a = this, replaced = a === myAEL ? _listen : a === myToStr ? _toString : 0,
     str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
                 _toString, replaced || a, arguments),
-    guessedFunc = replaced ? 0 : str === sAEL ? myAEL : str === sToStr ? myToStr : 0;
+    expectedFunc = replaced ? 0 : str === sAEL ? _listen
+        : str === (Build.NDEBUG ? sToStr : sToStr || BuildStr.RandomName2) ? _toString : 0;
     Build.BTypes & ~BrowserType.Firefox &&
     detectDisabled && str === `Vimium${sec}=>9` && executeCmd();
-    return guessedFunc
-        && call(_toString, guessedFunc) === (Build.NDEBUG ? str : str || BuildStr.RandomName2)
-        ? call(_toString, guessedFunc === myAEL ? _listen : _toString) : str;
+    return expectedFunc
+        ? call(_toString, expectedFunc) : str;
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
@@ -229,7 +228,9 @@ hooks = {
     }
     // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
   }
-}, myAEL = hooks.addEventListener, myToStr = hooks.toString;
+},
+myAEL = hooks.addEventListener, myToStr = hooks.toString,
+sAEL = myAEL + "", sToStr = myToStr + "";
 
 let handler = function (this: void): void {
   /** not check if a DOMReady event is trusted: keep the same as {@link ../lib/dom_utils.ts#VDom.OnDocLoaded_ } */
@@ -253,7 +254,6 @@ let handler = function (this: void): void {
     timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   }
 },
-sAEL = myAEL + "", sToStr = myToStr + "",
 detectDisabled: BOOL = 1,
 // here `setTimeout` is normal and won't use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
