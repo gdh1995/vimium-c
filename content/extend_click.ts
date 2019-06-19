@@ -167,8 +167,32 @@ if (VDom && VimiumInjector === undefined) {
   if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome) {
     VDom.allowRAF_ = appVer !== BrowserVer.NoRAFOrRICOnSandboxedPage ? 1 : 0;
   }
+
+  /** the `VerifierA` needs to satisfy
+   * * never return any object (aka. keep void)
+   * * never change the global environment / break this closure
+   * * must look like a real task, so that its body won't be uglified and removed
+   */
+  interface InnerVerifier {
+    (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier | unknown): void;
+    (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"]] | void;
+  }
+  type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
   let injected: string = '"use strict";(' + (function VC(this: void): void {
 
+function verifier (maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown): ReturnType<InnerVerifier> {
+  if (maybeSecret === BuildStr.MarkForName3 + BuildStr.RandomName3_prefix + BuildStr.RandomName3
+      && noAbnormalVerifying) {
+    if (maybeVerifierB) {
+      [anotherAEL, anotherToStr] = (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
+          ) as NonNullable<ReturnType<InnerVerifier>>;
+    } else {
+      return [myAEL, myToStr];
+    }
+  } else {
+    noAbnormalVerifying = 0;
+  }
+}
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const doc = document, cs = doc.currentScript as HTMLScriptElement,
 sec: number = +<string> cs.dataset.vimium,
@@ -194,33 +218,54 @@ listen = _call.bind<(this: EventTarget,
 rEL = removeEventListener, clearTimeout_ = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomName2,
+kMarkToVerify = BuildStr.MarkForName3 + BuildStr.RandomName3_prefix,
 kOnDomReady = "DOMContentLoaded",
 kValue = "value",
+StringIndexOf = kValue.indexOf, StringSubstr = kValue.substr,
+decryptFromVerifier = (func: InnerVerifier | unknown): string => {
+  const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMarkToVerify);
+  return call(StringSubstr, str, offset
+      , GlobalConsts.MarkForName3Length + GlobalConsts.SecretStringLength + GlobalConsts.SecretStringLength);
+},
 hooks = {
   // the code below must include direct reference to at least one of `hooks`'s properties
   // so that uglifyJS / terse won't remove the `hooks` variable
   /** Create */ C: doc.createElement as Document["createElement"],
   toString: function toString(this: FUNC): string {
-    const a = this, replaced = a === myAEL ? _listen : a === myToStr ? _toString : 0,
+    const a = this, args = arguments;
+    if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
+      // randomize the body of this function
+      (args[1] as InnerVerifier)(decryptFromVerifier(args[1] || BuildStr.RandomName3), verifier);
+    }
+    const replaced = a === myAEL || BuildStr.RandomName3 && a === anotherAEL ? _listen
+        : a === myToStr || BuildStr.RandomName3 && a === anotherToStr ? _toString : 0,
     str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
-                _toString, replaced || a, arguments),
-    expectedFunc = replaced ? 0 : str === sAEL ? _listen
-        : str === (Build.NDEBUG ? sToStr : sToStr || BuildStr.RandomName2) ? _toString : 0;
+                _toString, replaced || a, args),
+    expectedFunc = replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString : 0;
     Build.BTypes & ~BrowserType.Firefox &&
-    detectDisabled && str === `Vimium${sec}=>9` && executeCmd();
-    return expectedFunc
-        ? call(_toString, expectedFunc) : str;
+    detectDisabled && str === detectDisabled && executeCmd();
+    return !expectedFunc
+        ? BuildStr.RandomName3 && call(StringIndexOf, str, kMarkToVerify) > 0 ? call(_toString, noop) : str
+        : BuildStr.RandomName3 && (
+          noAbnormalVerifying && (a as PublicFunction)(kMarkToVerify, verifier),
+          a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
+          : ""
+        ) || (/* todo: being attacked, so disable this check */ str);
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
+    if (BuildStr.RandomName3 && type === kMarkToVerify) {
+      (listener as any as InnerVerifier)(decryptFromVerifier(listener || BuildStr.RandomName3), verifier);
+      return;
+    }
     len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
       : call(_apply as (this: (this: EventTarget, ...args: Array<{}>) => void
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
     if (type === "click" ? listener && !(a instanceof HA) && a instanceof E
-        // use a literal RandomName2 to randomize this function's text in a local version
-        : type === (Build.NDEBUG ? kEventName2 : kVOnClick + BuildStr.RandomName2)
+        // not randomize this function's text in a local version: has little impact on its safety
+        : type === kEventName2
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
       toRegister.p(a as Element);
@@ -256,6 +301,8 @@ let handler = function (this: void): void {
   }
 },
 detectDisabled: string | 0 = `Vimium${sec}=>9`,
+noAbnormalVerifying: BOOL = 1,
+anotherAEL: typeof myAEL | undefined, anotherToStr: typeof myToStr | undefined,
 // here `setTimeout` is normal and won't use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 delayFindAll = function (e?: Event): void {
@@ -430,6 +477,10 @@ _listen("load", delayFindAll, !0);
     if (Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction && Build.BTypes & BrowserType.Chrome &&
         appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
+    }
+    if (BuildStr.RandomName3) {
+      injected = injected.replace(BuildStr.RandomName3 + '"'
+          , "" + ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0));
     }
     VEvent.execute_ = execute;
     addEventListener(kHook, hook, !0);

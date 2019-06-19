@@ -417,7 +417,7 @@ declare const enum kContentCmd {
   Destroy = 6,
   DestroyForCSP = 7,
   MaskedBitNumber = 3,
-  SecretUpperLimit = 9e7,
+  SecretRange = 9e7,
 }
 type ValidContentCmds = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minNotDispatchDirectly
     | kContentCmd.MaskedBitNumber>;

@@ -18,6 +18,9 @@ declare const enum BuildStr {
   RandomName0 = 1000,
   RandomName1 = 1001,
   RandomName2 = 1002,
+  RandomName3 = 0, // for communication safely across unsafe frame worlds
+  RandomName3_prefix = 0,
+  MarkForName3 = "__VimiumC_", // .length should be {@link #GlobalConsts.MarkForName3Length}
   RandomFunc = 2019, // may be a string if not in release mode
   RandomReq = 0, // 0 means not to enable this access; may be a string if not in release mode
   RandomRes = 20080808, // may be a string if not in release mode

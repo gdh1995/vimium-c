@@ -371,6 +371,8 @@ declare const enum GlobalConsts {
   SecretRange = 9e6,
   SecretBase = 1e6,
   MaxRetryTimesForSecret = 89,
+  SecretStringLength = 7,
+  MarkForName3Length = 10,
 }
 
 declare const enum kCharCode {
