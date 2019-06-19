@@ -204,7 +204,7 @@ dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ET
 E = Element, EP = E.prototype, Append = EP.appendChild, Insert = EP.insertBefore,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
-contains = EP.contains.bind(doc), // in fact, it's Node.prototype.contains
+contains = EP.contains.bind(doc), // in fact, it is Node.prototype.contains
 nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
 getElementsByTagNameInDoc = doc.getElementsByTagName, getElementsByTagNameInEP = EP.getElementsByTagName,
 IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Element>, item: Element) => number,
@@ -228,7 +228,7 @@ decryptFromVerifier = (func: InnerVerifier | unknown): string => {
       , GlobalConsts.MarkForName3Length + GlobalConsts.SecretStringLength + GlobalConsts.SecretStringLength);
 },
 hooks = {
-  // the code below must include direct reference to at least one of `hooks`'s properties
+  // the code below must include direct reference to at least one property in `hooks`
   // so that uglifyJS / terse won't remove the `hooks` variable
   /** Create */ C: doc.createElement as Document["createElement"],
   toString: function toString(this: FUNC): string {
@@ -264,7 +264,6 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
     if (type === "click" ? listener && !(a instanceof HA) && a instanceof E
-        // not randomize this function's text in a local version: has little impact on its safety
         : type === kEventName2
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
@@ -303,7 +302,7 @@ let handler = function (this: void): void {
 detectDisabled: string | 0 = `Vimium${sec}=>9`,
 noAbnormalVerifying: BOOL = 1,
 anotherAEL: typeof myAEL | undefined, anotherToStr: typeof myToStr | undefined,
-// here `setTimeout` is normal and won't use TimerType.fake
+// here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 delayFindAll = function (e?: Event): void {
   if (e && (e.target !== doc
@@ -347,7 +346,7 @@ function prepareRegister(this: void, element: Element): void {
   const doc1 = element.ownerDocument;
   // in case element is <form> / <frameset> / adopted into another document, or aEL is from another frame
   if (doc1 !== doc) {
-    // although on Firefox element.__proto__ is auto-updated when it's adopted
+    // although on Firefox element.__proto__ is auto-updated when it is adopted
     // but aEl may be called before real insertion
     if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           || (doc1 as WindowWithTop).top !== top)
@@ -355,19 +354,19 @@ function prepareRegister(this: void, element: Element): void {
         && (doc1 as Document).defaultView) {
       // just smell like a Document
       safeReRegister(element, doc1 as Document);
-    } // `defaultView` is to check whether element is in a real frame's DOM tree
+    } // `defaultView` is to check whether element is in a DOM tree of a real frame
     // Note: on C72, ownerDocument of elements under <template>.content
     // is a fake "about:blank" document object
     return;
   }
   let e1: Element | null = element, e2: Node | RadioNodeList | null, e3: Node | RadioNodeList | null | undefined;
   for (; e2 = e1.parentElement as Exclude<Element["parentElement"], Window>; e1 = e2 as Element) {
-    // according to tests and source code, <frameset>'s named getter requires <frame>.contentDocument is valid
-    // so here pe and pn won't be Window if only ignoring the case of `<div> -> #shadow-root -> <frameset>`
+    // according to tests and source code, the named getter for <frameset> requires <frame>.contentDocument is valid
+    // so here pe and pn will not be Window if only ignoring the case of `<div> -> #shadow-root -> <frameset>`
     if (Build.BTypes & ~BrowserType.Firefox
         && e2 !== (e3 = e1.parentNode as Exclude<Element["parentNode"], Window>)
         && kValue in e2) {
-      // here skips more cases than a most precise solution, but it's enough
+      // here skips more cases than a most precise solution, but it is enough
       if (!e3 || kValue in e3) { return; }
       if (e3.nodeType !== kNode.ELEMENT_NODE) { break; }
       e2 = e3 as Element;
@@ -383,7 +382,7 @@ function prepareRegister(this: void, element: Element): void {
   // Note: ignore the case that a plain #document-fragment has a fake .host
   } else if (e2.nodeType === kNode.DOCUMENT_FRAGMENT_NODE
       && !((e2 as ShadowRoot | DocumentFragment & { host?: undefined }).host
-    // here use a larger matching of `"value" in`, so that a RadioNodeList cann't crash the block below
+    // here use a larger matching of `"value" in`, so that a RadioNodeList can not crash the block below
             || Build.BTypes & ~BrowserType.Firefox && (e3 = e1.nextSibling) && e3.parentElement !== null)) {
     // not register, if ShadowRoot or .nextSibling is not real
     // NOTE: ignore nodes belonging to a shadowRoot,
@@ -468,7 +467,7 @@ toRegister.p = push as any, toRegister.s = toRegister.splice;
 // only the below can affect outsides
 cs.remove();
 ETP.addEventListener = myAEL;
-FP.toString = hooks.toString;
+FP.toString = myToStr;
 _listen(kOnDomReady, handler, !0);
 _listen("load", delayFindAll, !0);
 
@@ -480,7 +479,7 @@ _listen("load", delayFindAll, !0);
     }
     if (BuildStr.RandomName3) {
       injected = injected.replace(BuildStr.RandomName3 + '"'
-          , "" + ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0));
+          , ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + '"');
     }
     VEvent.execute_ = execute;
     addEventListener(kHook, hook, !0);
