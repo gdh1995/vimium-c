@@ -144,5 +144,6 @@ $RUN "$EXE" \
   --homepage ${HOME_PAGE:-chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html} \
   --disable-office-editing-component-extension \
   --disable-extensions-file-access-check \
+  --disable-component-update \
   $OTHER_ARGS \
   --start-maximized $FLAGS "$@"
