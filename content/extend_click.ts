@@ -175,7 +175,7 @@ if (VDom && VimiumInjector === undefined) {
    */
   interface InnerVerifier {
     (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier | unknown): void;
-    (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"]] | void;
+    (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"], Function["toString"]?] | void;
   }
   type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
   let injected: string = '"use strict";(' + (function VC(this: void): void {
@@ -183,11 +183,15 @@ if (VDom && VimiumInjector === undefined) {
 function verifier (maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown): ReturnType<InnerVerifier> {
   if (maybeSecret === BuildStr.MarkForName3 + BuildStr.RandomName3_prefix + BuildStr.RandomName3
       && noAbnormalVerifying) {
-    if (maybeVerifierB) {
-      [anotherAEL, anotherToStr] = (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
+    if (!maybeVerifierB) {
+      return Build.BTypes & BrowserType.Firefox ? [myAEL, myToStr, myToSource] : [myAEL, myToStr];
+    } else if (Build.BTypes & BrowserType.Firefox) {
+      [anotherAEL, anotherToStr, anotherToSource] =
+          (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
           ) as NonNullable<ReturnType<InnerVerifier>>;
     } else {
-      return [myAEL, myToStr];
+      [anotherAEL, anotherToStr] =(maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
+          ) as NonNullable<ReturnType<InnerVerifier>>;
     }
   } else {
     noAbnormalVerifying = 0;
@@ -212,6 +216,7 @@ push = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
 CE = CustomEvent as VimiumCustomEventCls, HA = HTMLAnchorElement,
 FP = Function.prototype, _toString = FP.toString,
+_toSource = Build.BTypes & BrowserType.Firefox && (FP as {toSource?: any}).toSource,
 listen = _call.bind<(this: EventTarget,
         type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions) => any,
     [EventTarget, string, EventListenerOrEventListenerObject, EventListenerOptions?], any>(_listen),
@@ -238,10 +243,15 @@ hooks = {
       (args[1] as InnerVerifier)(decryptFromVerifier(args[1] || BuildStr.RandomName3), verifier);
     }
     const replaced = a === myAEL || BuildStr.RandomName3 && a === anotherAEL ? _listen
-        : a === myToStr || BuildStr.RandomName3 && a === anotherToStr ? _toString : 0,
+        : a === myToStr || BuildStr.RandomName3 && a === anotherToStr ? _toString
+        : Build.BTypes & BrowserType.Firefox
+          && (a === myToSource || BuildStr.RandomName3 && a === anotherToSource) ? _toSource
+        : 0,
     str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
                 _toString, replaced || a, args),
-    expectedFunc = replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString : 0;
+    expectedFunc = replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString
+        : Build.BTypes & BrowserType.Firefox && _toSource &&  str === myToSourceObj.s ? _toSource
+        : 0;
     Build.BTypes & ~BrowserType.Firefox &&
     detectDisabled && str === detectDisabled && executeCmd();
     return !expectedFunc
@@ -249,6 +259,7 @@ hooks = {
         : BuildStr.RandomName3 && (
           noAbnormalVerifying && (a as PublicFunction)(kMarkToVerify, verifier),
           a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
+          : Build.BTypes & BrowserType.Firefox && a === anotherToSource ? call(_toString, _toSource)
           : ""
         ) || (/* todo: being attacked, so disable this check */ str);
   },
@@ -275,7 +286,23 @@ hooks = {
 },
 noop = (): 1 => 1,
 myAEL = hooks.addEventListener, myToStr = hooks.toString,
+myToSourceObj = Build.BTypes & BrowserType.Firefox && _toSource ? {
+  s: 0 as number | string as string,
+  toSource (this: any): string {
+    const args = arguments;
+    if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
+      // randomize the body of this function
+      (args[1] as InnerVerifier)(decryptFromVerifier(args[1] || BuildStr.RandomName3), verifier);
+    }
+    return call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
+        typeof this === "function" ? myToStr : _toSource as typeof myToStr, this, args);
+  }
+} : 0 as never,
+myToSource = Build.BTypes & BrowserType.Firefox && _toSource && myToSourceObj.toSource,
 sAEL = myAEL + "", sToStr = myToStr + "";
+if (Build.BTypes & BrowserType.Firefox && _toSource) {
+  myToSourceObj.s = myToSource + "";
+}
 
 let handler = function (this: void): void {
   /** not check if a DOMReady event is trusted: keep the same as {@link ../lib/dom_utils.ts#VDom.OnDocLoaded_ } */
@@ -302,6 +329,7 @@ let handler = function (this: void): void {
 detectDisabled: string | 0 = `Vimium${sec}=>9`,
 noAbnormalVerifying: BOOL = 1,
 anotherAEL: typeof myAEL | undefined, anotherToStr: typeof myToStr | undefined,
+anotherToSource: typeof myToSource | undefined,
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 delayFindAll = function (e?: Event): void {
@@ -448,7 +476,7 @@ function executeCmd(eventOrDestroy?: Event): void {
   cmd = detail ? (detail >> kContentCmd.MaskedBitNumber) === sec ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1)
         : kContentCmd._fake
         : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
-  // always stop prop even if the secret doesn't match, so that an attacker can not detect secret by enumerating numbers
+  // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy as Event);
   if (cmd < kContentCmd.Destroy) {
     cmd === kContentCmd.FindAllOnClick && findAllOnClick(cmd);
@@ -468,6 +496,9 @@ toRegister.p = push as any, toRegister.s = toRegister.splice;
 cs.remove();
 ETP.addEventListener = myAEL;
 FP.toString = myToStr;
+if (Build.BTypes & BrowserType.Firefox && _toSource) {
+  (FP as {toSource?: any}).toSource = myToSource;
+}
 _listen(kOnDomReady, handler, !0);
 _listen("load", delayFindAll, !0);
 
