@@ -43,7 +43,7 @@ if (VDom && VimiumInjector === undefined) {
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHook = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
     , d = document, docEl = d.documentElement
-    , secret: number = (Math.random() * GlobalConsts.SecretUpperLimit + 1) | 0
+    , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = VDom.createElement_("script");
 /**
  * Note:
@@ -170,12 +170,13 @@ if (VDom && VimiumInjector === undefined) {
   let injected: string = '"use strict";(' + (function VC(this: void): void {
 
 type FUNC = (this: unknown, ...args: never[]) => unknown;
-const ETP = EventTarget.prototype, _listen = ETP.addEventListener,
+const doc = document, cs = doc.currentScript as HTMLScriptElement,
+sec: number = +<string> cs.dataset.vimium,
+ETP = EventTarget.prototype, _listen = ETP.addEventListener,
 toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
 _apply = _listen.apply, _call = _listen.call,
 call = _call.bind(_call) as <T, A extends any[], R>(func: (this: T, ...args: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(evt: Event) => boolean, [EventTarget, Event], boolean>(ETP.dispatchEvent),
-doc = document, cs = doc.currentScript as HTMLScriptElement,
 E = Element, EP = E.prototype, Append = EP.appendChild, Insert = EP.insertBefore,
 Attr = EP.setAttribute, HasAttr = EP.hasAttribute, Remove = EP.remove,
 StopProp = Event.prototype.stopImmediatePropagation as (this: Event) => void,
@@ -191,7 +192,6 @@ listen = _call.bind<(this: EventTarget,
         type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions) => any,
     [EventTarget, string, EventListenerOrEventListenerObject, EventListenerOptions?], any>(_listen),
 rEL = removeEventListener, clearTimeout_ = clearTimeout,
-sec: number = +<string> cs.dataset.vimium,
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomName2,
 kOnDomReady = "DOMContentLoaded",
@@ -229,6 +229,7 @@ hooks = {
     // returns void: https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/events/event_target.idl
   }
 },
+noop = (): 1 => 1,
 myAEL = hooks.addEventListener, myToStr = hooks.toString,
 sAEL = myAEL + "", sToStr = myToStr + "";
 
@@ -254,7 +255,7 @@ let handler = function (this: void): void {
     timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   }
 },
-detectDisabled: BOOL = 1,
+detectDisabled: string | 0 = `Vimium${sec}=>9`,
 // here `setTimeout` is normal and won't use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 delayFindAll = function (e?: Event): void {
@@ -384,7 +385,7 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
   if (!root) { return; }
   call(Remove, root);
   allNodesInDocument = call(getElementsByTagNameInDoc, doc, "*");
-  let len = allNodesInDocument.length, i = 0;
+  let len = allNodesInDocument.length, i = unsafeDispatchCounter = 0;
   len = cmd || len < GlobalConsts.MinElementCountToStopScanOnClick ? len : 0; // stop it
   for (; i < len; i++) {
     const el: Element | HTMLElement = allNodesInDocument[i];
@@ -408,14 +409,13 @@ function executeCmd(eventOrDestroy?: Event): void {
     return;
   }
   toRegister.length = detectDisabled = 0;
-  toRegister.p = setTimeout_ = Build.BTypes & ~BrowserType.Firefox ? noop as () => 1 : function (): 1 { return 1; };
+  toRegister.p = setTimeout_ = noop;
   root = null as never;
   clearTimeout_(timer);
   timer = 1;
   rEL(kOnDomReady, handler, !0);
   delayFindAll && delayFindAll(); // clean the "load" listener
 }
-function noop(): void | 1 { return; }
 
 toRegister.p = push as any, toRegister.s = toRegister.splice;
 // only the below can affect outsides

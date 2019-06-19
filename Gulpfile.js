@@ -1064,7 +1064,7 @@ function parseBuildItem(key, newVal) {
     newVal = newVal[locally ? 0 : 1];
   }
   if (typeof newVal === "function") {
-    newVal = newVal(key);
+    newVal = newVal(key, buildOptionCache[key][0]);
   }
   if (newVal == null) {
     if (key === "NoDialogUI") {
@@ -1279,7 +1279,7 @@ function loadNameCache(path) {
 }
 
 var _randMap;
-function getRandom(id) {
+function getRandom(id, literalVal) {
   var rand = _randMap ? _randMap[id] : 0;
   if (rand) {
     if ((typeof rand === "string") === locally) {
@@ -1289,21 +1289,22 @@ function getRandom(id) {
   _randMap || (_randMap = {});
   if (!locally) {
     while (!rand || Object.values(_randMap).includes(rand)) {
-      // {@see #GlobalConsts.SecretUpperLimit}
-      rand = 1e5 + (0 | (Math.random() * 9e5));
+      /** {@see #GlobalConsts.SecretRange} */
+      rand = 1e6 + (0 | (Math.random() * 9e6));
     }
   } else {
-    var hash = getMD5(osPath.resolve(__dirname) + (id.toLowerCase() !== 'random' ? id : ""));
-    hash = hash.substr(8, 4) + hash.substr(21, 3);
+    var hash = osPath.resolve(__dirname) + "/" + (id.toLowerCase() !== 'random' ? id : "") + "=" + literalVal;
+    hash = compute_hash(hash);
+    hash = hash.slice(0, 7);
     rand = hash;
   }
   _randMap[id] = rand;
   return rand;
 }
 
-function getMD5(str) {
+function compute_hash(str) {
   var crypto = require('crypto');
-  var md5 = crypto.createHash('md5');
+  var md5 = crypto.createHash('sha1');
   md5.update(str)
   return md5.digest('hex');
 }
