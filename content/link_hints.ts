@@ -307,6 +307,7 @@ var VHints = {
       isClickable = true;
       arr = VHints.checkAnchor_(element as Parameters<typeof VHints.checkAnchor_>[0]);
       break;
+    case "audio": case "video": isClickable = true; break;
     case "frame": case "iframe":
       if (element === VOmni.box_) {
         if (arr = VDom.getVisibleClientRect_(element)) {
@@ -357,7 +358,7 @@ var VHints = {
       }
       break;
     // elements of the types above should refuse `attachShadow`
-    case "div": case "ul": case "pre": case "ol": case "code": case "table":
+    case "div": case "ul": case "pre": case "ol": case "code": case "table": case "tbody":
       type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? ClickType.scrollY
         : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default;
       // no break;
