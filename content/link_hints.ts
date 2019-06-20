@@ -286,22 +286,31 @@ var VHints = {
    */
   GetClickable_ (this: Hint[], element: Element): void {
     let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
-    const tag = VDom.htmlTag_(element);
-    // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
-    // elements of the types below (except <div>) should refuse `attachShadow`
-    switch (tag) {
-    case "": // not HTML or not safe
-      if ((element as ElementToHTML).lang == null && "tabIndex" in <ElementToHTMLorSVG> element) { // SVG*
+    if ((element as ElementToHTML).lang == null) { // not HTML*
+      if ("tabIndex" in <ElementToHTMLorSVG> element) { // SVG*
         // not need to distinguish attrListener and codeListener
         type = VDom.clickable_.has(element) || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
             || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.attrListener
           : (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
-          : type;
+          : ClickType.Default;
         if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))) {
           this.push([element as SVGElement, arr, type]);
         }
       }
+      return;
+    }
+    const unsafeTag = element.tagName, tag = typeof unsafeTag === "string" ? unsafeTag.toLowerCase() : "";
+    if (tag) {
+      if (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
+          ? unsafeTag === "form" : unsafeTag === "form" || unsafeTag === VDom.unsafeFramesetTag_) {
+        return;
+      }
+    }
+    // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
+    // elements of the types below (except <div>) should refuse `attachShadow`
+    switch (tag) {
+    case "": // not safe
       return;
     case "a":
       isClickable = true;
@@ -363,7 +372,9 @@ var VHints = {
         : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default;
       // no break;
     default:
-      if (VDom.GetShadowRoot_(element, 1)) {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+            && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+          ? element.webkitShadowRoot : element.shadowRoot) {
         VHints.detectMore_(element as SafeHTMLElement, VHints.GetClickable_, this);
         return;
       }
@@ -402,11 +413,12 @@ var VHints = {
     }
     return false;
   },
+  _HNTagRe: <RegExpOne> /h\d/,
   checkAnchor_ (anchor: HTMLAnchorElement & EnsuredMountedHTMLElement): Rect | null {
     // for Google search result pages
     let el = (anchor.rel || anchor.hasAttribute("ping"))
         && anchor.firstElementChild as Element | null;
-    return el && (<RegExpOne> /h\d/).test(VDom.htmlTag_(el))
+    return el && this._HNTagRe.test(VDom.htmlTag_(el))
         && this.isNotReplacedBy_(el as SafeHTMLElement) ? VDom.getVisibleClientRect_(el) : null;
   },
   isNotReplacedBy_ (element: SafeHTMLElement | null | void, isExpected?: Hint[]): boolean | null {
@@ -454,7 +466,9 @@ var VHints = {
       break;
     default:
       if ((s = (element as SafeHTMLElement).contentEditable) === "inherit" || !s || s === "false") {
-        if (VDom.GetShadowRoot_(element, 1)) {
+        if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+              && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+            ? element.webkitShadowRoot : element.shadowRoot) {
           VHints.detectMore_(element as SafeHTMLElement, VHints.GetEditable_, this);
         }
         return;
@@ -617,7 +631,9 @@ var VHints = {
   },
   detectMore_<T extends Hint | Element> (element: SafeHTMLElement, func: HintsNS.Filter<T>, dest: T[]): boolean | void {
     ([].forEach as HintsNS.ElementIterator<T>).call(
-      (VDom.GetShadowRoot_(element, 1) as ShadowRoot).querySelectorAll("*"),
+      (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+          && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+        ? element.webkitShadowRoot as ShadowRoot : element.shadowRoot as ShadowRoot).querySelectorAll("*"),
       func, dest);
   },
   deduplicate_ (list: Hint[]): void {

@@ -728,7 +728,9 @@ declare var VOther: BrowserType;
       : VDom.clickable_.has(element) || element.getAttribute("onclick") || (
         (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
         : VHints.ngEnabled_ && element.getAttribute("ng-click")));
-    if (tag && VDom.GetShadowRoot_(element, 1)) {
+    if (tag && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+                  && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+                ? element.webkitShadowRoot : element.shadowRoot)) {
       VHints.detectMore_(element as SafeHTMLElement, Pagination.GetLinks_, this);
     }
     if (!isClickable) { return; }

@@ -69,7 +69,7 @@ var VDom = {
     (this: void, el: Element | null, type?: PNType.DirectElement | undefined): SafeElement | null;
     (this: void, el: Node | null): Node | null;
   } : 0 as never,
-  GetShadowRoot_ (el: Element, hasBeenSafe?: BOOL): ShadowRoot | null {
+  GetShadowRoot_ (el: Element): ShadowRoot | null {
     // check el's type to avoid exceptions
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
       return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ? el.shadowRoot as ShadowRoot | null
@@ -81,7 +81,7 @@ var VDom = {
     if (sr) {
       // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
       // <form> and <frameset> can not have shadowRoot
-      return !hasBeenSafe && VDom.notSafe_(el) ? null : sr as ShadowRoot;
+      return VDom.notSafe_(el) ? null : sr as ShadowRoot;
     }
     return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
         && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)

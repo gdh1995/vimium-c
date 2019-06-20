@@ -59,6 +59,7 @@ if [ -z "$output" -o -d "$output" ]; then
   pkg_name=${pkg_name// /_}
   pkg_name=${pkg_name%-}
   pkg_name=${pkg_name%_}
+  pkg_name=${pkg_name//-c/_c}
   output=$output${pkg_name:-vimium_c}${ver:+-$ver}.zip
 elif [ "${output%.[a-z]*}" = "$output" ]; then
   output=$output.zip
