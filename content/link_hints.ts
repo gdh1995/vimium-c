@@ -438,19 +438,18 @@ var VHints = {
     return element ? !arr2.length : !!isExpected || null;
   },
   inferTypeOfListener_ (el: SafeHTMLElement, tag: string): boolean {
-    let replacer = tag === "div" ? !el.className && !el.id && el.querySelector("a")
-        : tag === "tr" ? el.querySelector("input[type=checkbox]")
-        : tag === "table",
-    el2: Element["firstElementChild"];
-    if (!replacer && tag === "div") {
-      el2 = el.firstElementChild;
-      if (VDom.clickable_.has(el2 as Element) && ((tag = VDom.htmlTag_(el2 as Element)) === "div" || tag === "span")
-          && (el2 as HTMLDivElement).getClientRects().length) {
+    let el2: Element | null | undefined,
+    replacer = tag === "div" ? !!(el2 = el.firstElementChild as Element | null) && !el.className && !el.id
+        : tag === "tr" ? el.querySelector("input[type=checkbox]") as SafeHTMLElement
+        : tag === "table";
+    if (!replacer && el2) {
+      if (VDom.clickable_.has(el2) && ((tag = VDom.htmlTag_(el2)) === "div" || tag === "span")
+          && (el2).getClientRects().length) {
         replacer = true;
       }
     }
     // Note: should avoid nested calling to isNotReplacedBy_
-    return !replacer || replacer !== true && !!this.isNotReplacedBy_(replacer as SafeHTMLElement);
+    return !replacer || replacer !== true && !!this.isNotReplacedBy_(replacer);
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
   GetEditable_ (this: Hint[], element: Element): void {
