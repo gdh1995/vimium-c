@@ -660,8 +660,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       let key = el.dataset.permission as string;
       if (key[0] === "C") {
         if (!(Build.BTypes & BrowserType.Chrome)
-            || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
-            || bgBrowserVer_ >= +key.slice(1)) {
+            || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome) {
+          if (key === "C") { // hide directly
+            (el as EnsuredMountedHTMLElement).parentElement.parentElement.parentElement.style.display = "none";
+          }
+          continue;
+        } else if (bgBrowserVer_ >= +key.slice(1)) {
           continue;
         }
         key = "on Chromium browsers before v" + key.slice(1);
@@ -693,6 +697,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     for (let _i = _ref.length; 0 <= --_i; ) {
       _ref[_i].remove();
     }
+  }
+  if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
+      && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+      && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) {
+    $("#tipForNoShadow").remove();
   }
 
   function toggleHide(element2: HTMLElement): void | 1 {
@@ -759,7 +768,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       if (!advancedMode) {
         $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null);
       }
-      (Option_.all_.focusNewTabContent.element_.nextElementSibling as HTMLElement).focus();
+      const node2 = Option_.all_.focusNewTabContent.element_.nextElementSibling as SafeHTMLElement;
+      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
+        && bgBrowserVer_ < BrowserVer.MinScrollIntoViewOptions
+      ? window.VDom ? VDom.view_(node2) : (node2 as EnsureItemsNonNull<SafeHTMLElement>).scrollIntoViewIfNeeded()
+      : node2.scrollIntoView({ block: "center" });
+      node2.focus();
     };
   }
   if (BG_.Backend_.setIcon_ === BG_.BgUtils_.blank_ && Option_.all_.showActionIcon.previous_) {

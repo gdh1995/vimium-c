@@ -203,12 +203,12 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="caption"></td>
           <td>
             <label class="booleanOption">
-              <input id="deepHints" type="checkbox" data-model="Boolean" />
+              <input id="deepHints" type="checkbox" data-model="Boolean" data-permission="C" />
               <span>Search shadow DOMs in "url" / "image" mode by default</span>
             </label>
           </td>
           <td class="help"><div class="help-inner">
-            Search in "click" / "edit" mode is always executed.<br/>
+            This is only useful on old versions of Chrome.<br/>
             Press <kbd>&lt;f2&gt;</kbd> in Link Hint mode to toggle it temporarily.
           </div></td>
         </tr>
@@ -221,7 +221,7 @@ key: https://c.com/$s/space=\s\ space_end
             </label>
           </td>
           <td class="help"><div class="help-inner">
-            When enabled, the HUD will not be displayed in insert mode.
+            When enabled, the HUD will not be displayed in insert mode, just like a command option of `hideHUD=true`.
           </div></td>
         </tr>
         <tr>
@@ -321,7 +321,8 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           </td>
           <td class="help"><div class="help-inner">
             To style Vimium C nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>"
-            (On Edge and Firefox, may need "<kbd>#VimiumUI</kbd>" as prefix if no Shadow DOM).<br/>
+            <span id="tipForNoShadow">(On Edge and Firefox,
+              may need "<kbd>#VimiumUI</kbd>" as prefix if no Shadow DOM)</span>.<br/>
             These styles work in addition to and take precedence over Vimium C's
             default styles.
             <a class="wrap-left-space" data-auto-resize="userDefinedCss"></a>.
