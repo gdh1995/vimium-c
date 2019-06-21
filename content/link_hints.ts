@@ -566,7 +566,8 @@ var VHints = {
       a.queryInDeep_ = DeepQueryType.InDeep;
       if (a.getDeepDescendantCombinator_()) {
         forEach.call(
-          querySelectorAll.call(box, a.getDeepDescendantCombinator_() + key), filter, output);
+          querySelectorAll.call(box, key.replace(<RegExpG>/(^|,)/g, "$0" + a.getDeepDescendantCombinator_())),
+          filter, output);
       }
     }
     list = null;
