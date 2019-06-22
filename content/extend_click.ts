@@ -175,12 +175,13 @@ if (VDom && VimiumInjector === undefined) {
    */
   interface InnerVerifier {
     (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier | unknown): void;
+    // tslint:disable-next-line: ban-types
     (maybeSecret: string): [EventTarget["addEventListener"], Function["toString"], Function["toString"]?] | void;
   }
   type PublicFunction = (maybeKNeedToVerify: string, verifierFunc: InnerVerifier | unknown) => void | string;
   let injected: string = '"use strict";(' + (function VC(this: void): void {
 
-function verifier (maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown): ReturnType<InnerVerifier> {
+function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown): ReturnType<InnerVerifier> {
   if (maybeSecret === BuildStr.MarkForName3 + BuildStr.RandomName3_prefix + BuildStr.RandomName3
       && noAbnormalVerifying) {
     if (!maybeVerifierB) {
@@ -190,7 +191,7 @@ function verifier (maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown
           (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
           ) as NonNullable<ReturnType<InnerVerifier>>;
     } else {
-      [anotherAEL, anotherToStr] =(maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
+      [anotherAEL, anotherToStr] = (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
           ) as NonNullable<ReturnType<InnerVerifier>>;
     }
   } else {

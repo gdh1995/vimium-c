@@ -162,7 +162,7 @@ declare namespace HintsNS {
   }
   interface BaseHintItem {
     marker_: MarkerElement;
-    target_: Hint[0];
+    dest_: Hint[0];
   }
 
   interface HintItem extends BaseHintItem {
@@ -172,7 +172,7 @@ declare namespace HintsNS {
   }
 
   interface InputHintItem extends BaseHintItem {
-    target_: SafeHTMLElement;
+    dest_: SafeHTMLElement;
   }
 }
 

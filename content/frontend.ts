@@ -34,8 +34,8 @@ declare var VOther: BrowserType;
         : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
         : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
         : BrowserType.Chrome
-    , browserVer: BrowserVer = 0 /** should be used only if BTypes includes Chrome;
-        its initial value should be 0, need by {@link #hook} */
+    /** its initial value should be 0, need by {@link #hook} */
+    , browserVer: BrowserVer = 0 // should be used only if BTypes includes Chrome
     , isCmdTriggered: BOOL = 0
     , isTop = top === window
     , needToRetryParentClickable: BOOL = 0
@@ -520,7 +520,7 @@ declare var VOther: BrowserType;
       VDom.prepareCrop_();
       // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
       const visibleInputs = VHints.traverse_("*", VHints.GetEditable_
-          ) as Array<Hint & { [0]: HintsNS.InputHintItem["target_"]; }>,
+          ) as Array<Hint & { [0]: HintsNS.InputHintItem["dest_"]; }>,
       action = options.select;
       let sel = visibleInputs.length;
       if (sel === 0) {
@@ -534,13 +534,14 @@ declare var VOther: BrowserType;
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
         hint[2] = j > 0 ? ind / 8192 - j : ind;
       }
-      const hints: HintsNS.InputHintItem[] = visibleInputs.sort((a, b) => a[2] - b[2]).map(function (link) {
+      const hints: HintsNS.InputHintItem[] = visibleInputs.sort((a, b) => a[2] - b[2]).map(
+          function (link): HintsNS.InputHintItem {
         const marker = VDom.createElement_("span") as HintsNS.BaseHintItem["marker_"],
         rect = VDom.padClientRect_(VDom.getBoundingClientRect_(link[0]), 3);
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
         marker.className = "IH";
         VDom.setBoundary_(marker.style, rect);
-        return {marker_: marker, target_: link[0]};
+        return {marker_: marker, dest_: link[0]};
       });
       if (count === 1 && InsertMode.last_) {
         sel = Math.max(0, visibleInputs.map(link => link[0]).indexOf(InsertMode.last_));
@@ -562,7 +563,7 @@ declare var VOther: BrowserType;
           sel = (oldSel + (event.shiftKey ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
           VKey.prevent_(event); // in case that selecting is too slow
-          VDom.UI.simulateSelect_(hints2[sel].target_, null, false, action);
+          VDom.UI.simulateSelect_(hints2[sel].dest_, null, false, action);
           hints2[oldSel].marker_.className = "IH";
           hints2[sel].marker_.className = "IH IHS";
           InsertMode.hinting_ = false;
@@ -575,7 +576,7 @@ declare var VOther: BrowserType;
         else if (keep ? isEscape(event) || (
             keyCode === kKeyCode.enter && (keyStat = VKey.getKeyStat_(event),
               keyStat !== KeyStat.shiftKey
-              && (keyStat !== KeyStat.plain || VDom.hasTag_need_safe_(this.hints[sel].target_, "input") ))
+              && (keyStat !== KeyStat.plain || VDom.hasTag_need_safe_(this.hints[sel].dest_, "input") ))
           ) : keyCode !== kKeyCode.ime && keyCode !== kKeyCode.f12
         ) {
           InsertMode.exitInputHint_();

@@ -242,7 +242,7 @@ var VHints = {
     const marker = VDom.createElement_("span") as HintsNS.MarkerElement, st = marker.style,
     isBox = link[2] > ClickType.MaxNotBox,
     hint: HintsNS.HintItem = {
-      key_: "", target_: link[0], marker_: marker,
+      key_: "", dest_: link[0], marker_: marker,
       refer_: link.length > 4 ? (link as Hint5)[4] : isBox ? link[0] : null,
     };
     marker.className = isBox ? "LH BH" : "LH";
@@ -467,7 +467,7 @@ var VHints = {
       break;
     }
     if (arr = VDom.getVisibleClientRect_(element)) {
-      this.push([element as HintsNS.InputHintItem["target_"], arr, type]);
+      this.push([element as HintsNS.InputHintItem["dest_"], arr, type]);
     }
   },
   GetLinks_ (this: Hint[], element: HTMLAnchorElement | Element): void {
@@ -563,7 +563,7 @@ var VHints = {
       a.queryInDeep_ = DeepQueryType.InDeep;
       if (a.getDeepDescendantCombinator_()) {
         forEach.call(
-          querySelectorAll.call(box, key.replace(<RegExpG>/(^|,)/g, "$1" + a.getDeepDescendantCombinator_())),
+          querySelectorAll.call(box, key.replace(<RegExpG> /(^|,)/g, "$1" + a.getDeepDescendantCombinator_())),
           filter, output);
       }
     }
@@ -902,11 +902,11 @@ var VHints = {
     let ref = this.hints_, i = 0, len = ref ? ref.length : 0;
     this.hints_ = this.zIndexes_ = null;
     this.pTimer_ > 0 && clearTimeout(this.pTimer_);
-    while (i < len) { (ref as HintsNS.HintItem[])[i++].target_ = null as never; }
+    while (i < len) { (ref as HintsNS.HintItem[])[i++].dest_ = null as never; }
   },
   execute_ (hint: HintsNS.HintItem): void {
     const a = this;
-    let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.target_;
+    let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.dest_;
     a.resetHints_();
     const str = (a.modeOpt_ as HintsNS.ModeOpt)[a.mode_] as string;
     (VHud as Writable<VHUDTy>).text_ = str; // in case pTimer > 0
