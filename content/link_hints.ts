@@ -412,7 +412,7 @@ var VHints = {
     let el = (anchor.rel || anchor.hasAttribute("ping"))
         && anchor.firstElementChild as Element | null;
     return el && this._HNTagRe.test(VDom.htmlTag_(el))
-        && this.isNotReplacedBy_(el as SafeHTMLElement) ? VDom.getVisibleClientRect_(el) : null;
+        && this.isNotReplacedBy_(el as HTMLHeadingElement & SafeHTMLElement) ? VDom.getVisibleClientRect_(el) : null;
   },
   isNotReplacedBy_ (element: SafeHTMLElement | null, isExpected?: Hint[]): boolean | null {
     const arr2: Hint[] = [], a = this, clickListened = a.isClickListened_;
@@ -433,13 +433,15 @@ var VHints = {
   inferTypeOfListener_ (el: SafeHTMLElement, tag: string): boolean {
     // Note: should avoid nested calling to isNotReplacedBy_
     let el2: Element | null | undefined;
-    return tag !== "div"
+    return tag !== "div" && tag !== "li"
         ? tag === "tr" ? !!this.isNotReplacedBy_(el.querySelector("input[type=checkbox]") as SafeHTMLElement | null)
           : tag !== "table"
         : !(el2 = el.firstElementChild as Element | null) ||
-          !(!el.className && !el.id
-            || VDom.clickable_.has(el2) && ((tag = VDom.htmlTag_(el2)) === "div" || tag === "span")
+          !(!el.className && !el.id && tag === "div"
+            || ((tag = VDom.htmlTag_(el2)) === "div" || tag === "span") && VDom.clickable_.has(el2)
                 && el2.getClientRects().length
+            || VHints._HNTagRe.test(tag) && (el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null)
+                && VDom.htmlTag_(el2) === "a"
           );
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
