@@ -18,13 +18,14 @@ var VDom = {
   docSelectable_: true,
   docNotCompleteWhenVimiumIniting_: document.readyState !== "complete",
   unsafeFramesetTag_: "" as "frameset" | "",
+  selectorToQueryAll_: Build.BTypes & ~BrowserType.Firefox ? ":not(form)" : "*",
 
   /** DOM-compatibility section */
 
   isHTML_: (): boolean => "lang" in <ElementToHTML> (document.documentElement || {}),
-  htmlTag_: (Build.BTypes & ~BrowserType.Firefox ? function (element: Element): string {
-    let s: Element["tagName"] = element.tagName;
-    if ("lang" in element && typeof s === "string") {
+  htmlTag_: (Build.BTypes & ~BrowserType.Firefox ? function (element: Element | HTMLElement): string {
+    let s: Element["tagName"];
+    if ("lang" in element && typeof (s = element.tagName) === "string") {
       s = s.toLowerCase();
       return (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
           ? s === "form" : s === "form" || s === VDom.unsafeFramesetTag_) ? "" : s;
@@ -384,7 +385,7 @@ var VDom = {
       ): Rect | null;
     (element: HTMLElementUsingMap, output: Hint5[]): null;
   },
-  findMainSummary_ (details: HTMLDetailsElement): SafeHTMLElement | void {
+  findMainSummary_ (details: HTMLDetailsElement): SafeHTMLElement | null {
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
     // `HTMLDetailsElement::FindMainSummary()` in
     // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
@@ -395,6 +396,7 @@ var VDom = {
         return summary as SafeHTMLElement;
       }
     }
+    return null;
   },
   paintBox_: null as [number, number] | null, // it may need to use `paintBox[] / <body>.zoom`
   wdZoom_: 1, // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels

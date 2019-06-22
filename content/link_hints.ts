@@ -284,44 +284,37 @@ var VHints = {
   /**
    * Must ensure only call {@link scroller.ts#VScroller.shouldScroll_need_safe_} during {@link #getVisibleElements_}
    */
-  GetClickable_ (this: Hint[], element: Element): void {
+  GetClickable_ (this: Hint[], element: SafeHTMLElement | SVGElement | Element): void {
     let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
-    if ((element as ElementToHTML).lang == null) { // not HTML*
-      if ("tabIndex" in <ElementToHTMLorSVG> element) { // SVG*
+    if (!("lang" in /* <ElementToHTML> */ element)) { // not HTML*
+      // never accept raw `Element` instances, so that properties like .tabIndex and .dataset are ensured
+      if ("tabIndex" in /* <ElementToHTMLorSVG> */ element) { // SVG*
         // not need to distinguish attrListener and codeListener
         type = VDom.clickable_.has(element) || element.getAttribute("onclick")
             || VHints.ngEnabled_ && element.getAttribute("ng-click")
             || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.attrListener
-          : (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
+          : element.tabIndex >= 0 ? ClickType.tabindex
           : ClickType.Default;
         if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))) {
-          this.push([element as SVGElement, arr, type]);
+          this.push([element, arr, type]);
         }
       }
       return;
     }
-    const unsafeTag = element.tagName, tag = typeof unsafeTag === "string" ? unsafeTag.toLowerCase() : "";
-    if (tag) {
-      if (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
-          ? unsafeTag === "form" : unsafeTag === "form" || unsafeTag === VDom.unsafeFramesetTag_) {
-        return;
-      }
-    }
+    const tag = element.tagName.toLowerCase();
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
     // elements of the types below (except <div>) should refuse `attachShadow`
     switch (tag) {
-    case "": // not safe
-      return;
     case "a":
       isClickable = true;
-      arr = VHints.checkAnchor_(element as Parameters<typeof VHints.checkAnchor_>[0]);
+      arr = VHints.checkAnchor_(element as HTMLAnchorElement & EnsuredMountedHTMLElement);
       break;
     case "audio": case "video": isClickable = true; break;
     case "frame": case "iframe":
       if (element === VOmni.box_) {
         if (arr = VDom.getVisibleClientRect_(element)) {
           (arr as WritableRect)[0] += 12; (arr as WritableRect)[1] += 9;
-          this.push([element as SafeHTMLElement, arr, ClickType.frame]);
+          this.push([element, arr, ClickType.frame]);
         }
         return;
       }
@@ -350,7 +343,7 @@ var VHints = {
     case "object": case "embed":
       s = (element as HTMLObjectElement | HTMLEmbedElement).type;
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
-      if (tag[0] === "o"
+      if (tag !== "embed"
           && (element as HTMLObjectElement).useMap) {
         VDom.getClientRectsForAreas_(element as HTMLObjectElement, this as Hint5[]);
       }
@@ -375,19 +368,19 @@ var VHints = {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
             && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           ? element.webkitShadowRoot : element.shadowRoot) {
-        VHints.detectMore_(element as SafeHTMLElement, VHints.GetClickable_, this);
+        VHints.detectMore_(element, VHints.GetClickable_, this);
         return;
       }
     }
     if (isClickable === null) {
-      type = (s = (element as SafeHTMLElement).contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
+      type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
         : element.getAttribute("onclick")
           || (s = element.getAttribute("role")) && VHints.roleRe_.test(s)
           || VHints.ngEnabled_ && element.getAttribute("ng-click")
           || VHints.forHover_ && element.getAttribute("onmouseover")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction_(s) ? ClickType.attrListener
         : VDom.clickable_.has(element) && VHints.isClickListened_
-          && VHints.inferTypeOfListener_(element as SafeHTMLElement, tag)
+          && VHints.inferTypeOfListener_(element, tag)
         ? ClickType.codeListener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
         : type > ClickType.tabindex ? type : (s = element.className) && VHints.btnRe_.test(s) ? ClickType.classname
@@ -396,11 +389,11 @@ var VHints = {
     if (!isClickable && type === ClickType.Default) { return; }
     if ((arr = arr || VDom.getVisibleClientRect_(element))
         && (type < ClickType.scrollX
-          || VScroller.shouldScroll_need_safe_(element as SafeHTMLElement, type - ClickType.scrollX as 0 | 1) > 0)
+          || VScroller.shouldScroll_need_safe_(element, type - ClickType.scrollX as 0 | 1) > 0)
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
           || VHints.mode_ >= HintMode.min_job) // note: might need to apply aria-disable on FOCUS/HOVER/LEAVE mode?
-    ) { this.push([element as SafeHTMLElement, arr, type]); }
+    ) { this.push([element, arr, type]); }
   },
   noneActionRe_: <RegExpOne> /\._\b(?![\$\.])/,
   checkJSAction_ (str: string): boolean {
@@ -421,7 +414,7 @@ var VHints = {
     return el && this._HNTagRe.test(VDom.htmlTag_(el))
         && this.isNotReplacedBy_(el as SafeHTMLElement) ? VDom.getVisibleClientRect_(el) : null;
   },
-  isNotReplacedBy_ (element: SafeHTMLElement | null | void, isExpected?: Hint[]): boolean | null {
+  isNotReplacedBy_ (element: SafeHTMLElement | null, isExpected?: Hint[]): boolean | null {
     const arr2: Hint[] = [], a = this, clickListened = a.isClickListened_;
     if (element) {
       if (!isExpected && (element as TypeToAssert<HTMLElement, HTMLInputElement, "disabled">).disabled) { return !1; }
@@ -438,24 +431,22 @@ var VHints = {
     return element ? !arr2.length : !!isExpected || null;
   },
   inferTypeOfListener_ (el: SafeHTMLElement, tag: string): boolean {
-    let el2: Element | null | undefined,
-    replacer = tag === "div" ? !!(el2 = el.firstElementChild as Element | null) && !el.className && !el.id
-        : tag === "tr" ? el.querySelector("input[type=checkbox]") as SafeHTMLElement
-        : tag === "table";
-    if (!replacer && el2) {
-      if (VDom.clickable_.has(el2) && ((tag = VDom.htmlTag_(el2)) === "div" || tag === "span")
-          && (el2).getClientRects().length) {
-        replacer = true;
-      }
-    }
     // Note: should avoid nested calling to isNotReplacedBy_
-    return !replacer || replacer !== true && !!this.isNotReplacedBy_(replacer);
+    let el2: Element | null | undefined;
+    return tag !== "div"
+        ? tag === "tr" ? !!this.isNotReplacedBy_(el.querySelector("input[type=checkbox]") as SafeHTMLElement | null)
+          : tag !== "table"
+        : !(el2 = el.firstElementChild as Element | null) ||
+          !(!el.className && !el.id
+            || VDom.clickable_.has(el2) && ((tag = VDom.htmlTag_(el2)) === "div" || tag === "span")
+                && el2.getClientRects().length
+          );
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
-  GetEditable_ (this: Hint[], element: Element): void {
+  GetEditable_ (this: Hint[], element: SafeHTMLElement | SVGElement | Element): void {
     let arr: Rect | null, type = ClickType.Default, s: string;
-    switch (VDom.htmlTag_(element)) {
-    case "": /* not SafeHTMLElement: */ return;
+    if (!("lang" in element)) { return; }
+    switch (element.tagName.toLowerCase()) {
     case "input":
       if (VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
         return;
@@ -479,9 +470,9 @@ var VHints = {
       this.push([element as HintsNS.InputHintItem["target_"], arr, type]);
     }
   },
-  GetLinks_ (this: Hint[], element: Element): void {
+  GetLinks_ (this: Hint[], element: HTMLAnchorElement | Element): void {
     let a: string | null, arr: Rect | null;
-    if (VDom.htmlTag_(element) === "a" && ((a = element.getAttribute("href")) && a !== "#"
+    if ("lang" in /* <ElementToHTML> */ element && ((a = element.getAttribute("href")) && a !== "#"
         && !VHints.jsRe_.test(a)
         || (element as HTMLAnchorElement).dataset.vimUrl != null)) {
       if (arr = VDom.getVisibleClientRect_(element)) {
@@ -548,7 +539,8 @@ var VHints = {
     querySelectorAll = Build.BTypes & ~BrowserType.Firefox
       ? isD ? D.querySelectorAll : Element.prototype.querySelectorAll : box.querySelectorAll;
     wantClickable && Sc.getScale_();
-    let list: HintsNS.ElementList | null = querySelectorAll.call(box, query);
+    let list: HintsNS.ElementList | null = querySelectorAll.call(box
+        , matchAll ? VDom.selectorToQueryAll_ : query);
     if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
       list = a.getElementsInViewPort_(list);
     }
@@ -633,7 +625,8 @@ var VHints = {
     ([].forEach as HintsNS.ElementIterator<T>).call(
       (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-        ? element.webkitShadowRoot as ShadowRoot : element.shadowRoot as ShadowRoot).querySelectorAll("*"),
+        ? element.webkitShadowRoot as ShadowRoot : element.shadowRoot as ShadowRoot
+      ).querySelectorAll(VDom.selectorToQueryAll_),
       func, dest);
   },
   deduplicate_ (list: Hint[]): void {

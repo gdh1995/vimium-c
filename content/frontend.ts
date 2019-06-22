@@ -979,6 +979,7 @@ declare var VOther: BrowserType;
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
           && browserVer < BrowserVer.MinFramesetHasNoNamedGetter) {
         D.unsafeFramesetTag_ = "frameset";
+        D.selectorToQueryAll_ = ":not(form,frameset)";
       }
       if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {
