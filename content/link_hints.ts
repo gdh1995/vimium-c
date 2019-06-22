@@ -508,11 +508,16 @@ var VHints = {
       VHints._getImagesInImg(this, element as HTMLImageElement);
       return;
     }
-    let str = (element as SafeHTMLElement).dataset.src || element.getAttribute("href"), cr: Rect | null;
-    if (!VHints.isImageUrl_(str)) {
-      str = (element as SafeHTMLElement).style.backgroundImage as string;
-      // skip "data:" URLs, becase they are not likely to be big images
-      str = (str.startsWith("url") || str.startsWith("URL")) && str.lastIndexOf("data:", 9) < 0 ? str : "";
+    let str: string | null, cr: Rect | null;
+    if (VHints.mode1_ === HintMode.DOWNLOAD_MEDIA && (tag === "video" || tag === "audio")) {
+      str = (element as HTMLImageElement).currentSrc || (element as HTMLImageElement).src;
+    } else {
+      str = (element as SafeHTMLElement).dataset.src || element.getAttribute("href");
+      if (!VHints.isImageUrl_(str)) {
+        str = (element as SafeHTMLElement).style.backgroundImage as string;
+        // skip "data:" URLs, becase they are not likely to be big images
+        str = str && str.slice(0, 3).toLowerCase() === "url" && str.lastIndexOf("data:", 9) < 0 ? str : "";
+      }
     }
     if (str) {
       if (cr = VDom.getVisibleClientRect_(element)) {
@@ -558,7 +563,7 @@ var VHints = {
       a.queryInDeep_ = DeepQueryType.InDeep;
       if (a.getDeepDescendantCombinator_()) {
         forEach.call(
-          querySelectorAll.call(box, key.replace(<RegExpG>/(^|,)/g, "$0" + a.getDeepDescendantCombinator_())),
+          querySelectorAll.call(box, key.replace(<RegExpG>/(^|,)/g, "$1" + a.getDeepDescendantCombinator_())),
           filter, output);
       }
     }
@@ -723,11 +728,10 @@ var VHints = {
     return null;
   },
   getVisibleElements_ (view: ViewBox): Hint[] {
-    const a = this;
-    let _i: number = a.mode1_;
-    const
-    visibleElements = _i === HintMode.DOWNLOAD_IMAGE || _i === HintMode.OPEN_IMAGE
-      ? a.traverse_("a[href],img[src],[data-src],div[style],span[style]", a.GetImages_, true)
+    let a = this, _i: number = a.mode1_,
+    visibleElements = _i === HintMode.DOWNLOAD_MEDIA || _i === HintMode.OPEN_IMAGE
+      ? a.traverse_("a[href],img[src],[data-src],div[style],span[style]" + (
+          _i === HintMode.DOWNLOAD_MEDIA ? ",video,audio" : ""), a.GetImages_, true)
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? a.traverse_("a", a.GetLinks_)
       : a.traverse_("*", _i === HintMode.FOCUS_EDITABLE ? a.GetEditable_ : a.GetClickable_
           );
@@ -1409,10 +1413,16 @@ Modes_: [
   }
 } as HintsNS.ModeOpt,
 {
-  132: "Download image",
-  196: "Download multiple images",
-  execute_ (img: SafeHTMLElement): void {
-    let text = (this as typeof VHints)._getImageUrl(img);
+  132: "Download media",
+  196: "Download multiple media",
+  execute_ (element: SafeHTMLElement): void {
+    let tag = VDom.htmlTag_(element);
+    let text;
+    if (tag === "video" || tag === "audio") {
+      text = (element as HTMLImageElement).currentSrc || (element as HTMLImageElement).src;
+    } else {
+      text = (this as typeof VHints)._getImageUrl(element);
+    }
     if (!text) { return; }
     const url = text, i = text.indexOf("://"), a = VDom.createElement_("a");
     if (i > 0) {
@@ -1422,7 +1432,7 @@ Modes_: [
       text = text.slice(0, 39) + "\u2026";
     }
     a.href = url;
-    a.download = (this as typeof VHints).getImageName_(img) || "";
+    a.download = (this as typeof VHints).getImageName_(element) || "";
     // todo: how to trigger download
     VDom.mouse_(a, "click", [0, 0]);
     return VHud.tip_("Download: " + text, 2000);

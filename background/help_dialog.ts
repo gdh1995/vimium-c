@@ -262,7 +262,7 @@ var HelpDialog = {
     "LinkHints.activateMode": "Open a link in the current tab",
     "LinkHints.activateModeToCopyLinkText": "Copy a link text to the clipboard",
     "LinkHints.activateModeToCopyLinkUrl": "Copy a link URL to the clipboard",
-    "LinkHints.activateModeToDownloadImage": "Download image",
+    "LinkHints.activateModeToDownloadImage": "Download image, video and audio",
     "LinkHints.activateModeToDownloadLink": "Download link URL",
     "LinkHints.activateModeToEdit": "Select an editable area",
     "LinkHints.activateModeToHover": "select an element and hover",

@@ -277,7 +277,7 @@ declare const enum HintMode {
   LEAVE,
   COPY_TEXT,
   SEARCH_TEXT,
-  DOWNLOAD_IMAGE,
+  DOWNLOAD_MEDIA,
   OPEN_IMAGE,
   FOCUS,
   DOWNLOAD_LINK = min_link_job,
