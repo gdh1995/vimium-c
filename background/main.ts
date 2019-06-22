@@ -1121,11 +1121,11 @@ Are you sure you want to continue?`);
       }
       removeTabsInOrder(tab, tabs, start, end);
       let goto = cOptions.goto || (cOptions.left ? "left" : "");
-      let goToIndex = goto === "left" ? start > 0 ? start - 1 : end
+      let tab1: Tab | undefined, goToIndex = goto === "left" ? start > 0 ? start - 1 : end
           : goto === "right" ? end < total ? end : start - 1
-          : goto !== "previous" ? -1
-          : tabs.filter((_i, ind) => ind < start || ind >= end).filter(i => i.id in TabRecency_.tabs_)
-              .sort(TabRecency_.rCompare_)[0].index;
+          : goto !== "previous" ? total
+          : (tab1 = tabs.filter((_i, ind) => ind < start || ind >= end).filter(i => i.id in TabRecency_.tabs_)
+              .sort(TabRecency_.rCompare_)[0]) ? tab1.index : total;
       if (goToIndex >= 0 && goToIndex < total) {
         // note: here not wait real removing, otherwise the browser window may flicker
         chrome.tabs.update(tabs[goToIndex].id, { active: true });
