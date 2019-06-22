@@ -144,6 +144,7 @@ var Settings_ = {
         };
         cache.searchEngineMap = initialMap as SafeObject & typeof initialMap;
         cache.searchEngineRules = [];
+        Build.MayOverrideNewTab && (this as typeof Settings_).get_("focusNewTabContent", true);
         if (str = (this as typeof Settings_).get_("newTabUrl_f", true)) {
           return ((this as typeof Settings_).updateHooks_.newTabUrl_f as (this: void, url_f: string) => void)(str);
         }
@@ -481,7 +482,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     Exclusions: "/background/exclusions.js",
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: "pages/options.html#!newTabUrl",
-    OverrideNewTab_: !!Build.MayOverrideNewTab,
+    OverrideNewTab_: Build.MayOverrideNewTab ? true : false,
     OptionsPage_: "pages/options.html", Platform_: "browser",
     baseCSS: "vimium.min.css",
     exclusionTemplate: "exclusions.html",
@@ -578,23 +579,15 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   if (Build.MayOverrideNewTab) {
     const overrides = ref.chrome_url_overrides, hasNewTab = overrides && overrides.newtab;
     Settings_.CONST_.OverrideNewTab_ = !!hasNewTab;
-    if (hasNewTab) {
-      ref3[func(hasNewTab)] = Urls.NewTabType.vimium;
-    }
+    ref3[func(hasNewTab || "pages/newtab.html")] = Urls.NewTabType.vimium;
   }
   (defaults as SettingsWithDefaults).newTabUrl = (Build.BTypes & ~BrowserType.Chrome
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
       ? CommonNewTab : (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_) ? obj.NtpNewTab_ : ChromeNewTab;
   // note: on firefox, "about:newtab/" is invalid, but it's OKay if still marking the URL a NewTab URL.
-  /** Note: .vimium and .browser should never exist in the same time
-   * use {@link #Build.MayOverrideNewTab} and {@link #Settings_.CONST_.OverrideNewTab_)} to decide which one
-   * required by {@link main.ts#tabsCreate}
-   */
-  ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_)
-      ? Urls.NewTabType.vimium : Urls.NewTabType.browser;
+  ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
-  (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_)
-      ? Urls.NewTabType.vimium : Urls.NewTabType.browser);
+  (ref3[ChromeNewTab] = ref3[ChromeNewTab + "/"] = Urls.NewTabType.browser);
   obj.GlobalCommands_ = (<Array<kShortcutNames | kShortcutAliases & string>> Object.keys(ref.commands || {})
       ).map(i => i === kShortcutAliases.nextTab1 ? kShortcutNames.nextTab : i);
   obj.VerCode_ = ref.version;

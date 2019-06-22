@@ -102,19 +102,25 @@ var Backend_: BackendHandlersNS.BackendHandlers;
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
     if (!url) {
-      delete args.url;
+      if (!(Build.MayOverrideNewTab && !Settings_.cache_.focusNewTabContent && Settings_.CONST_.OverrideNewTab_)) {
+        args.url = Settings_.cache_.newTabUrl_f;
+      } else if (url != null) {
+        delete args.url;
+      }
     } else if (!(type = Settings_.newTabs_[url])) { /* empty */ }
-    else if (!(Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_)
-        && Settings_.CONST_ && type === Urls.NewTabType.browser) {
+    else if (type === Urls.NewTabType.browser) {
+      // ignore Build.MayOverrideNewTab and other things,
+      // so that if another extension manages the NTP, this line still works
       delete args.url;
-    } else if (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_ && type === Urls.NewTabType.vimium) {
+    } else if (Build.MayOverrideNewTab && type === Urls.NewTabType.vimium) {
+      /** if not MayOverride, no .vimium cases in {@link settings.ts#__init__} */
       args.url = Settings_.cache_.newTabUrl_f;
     }
     Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) &&
       (delete args.openerTabId);
     return chrome.tabs.create(args, callback);
   }
-  /** if count <= 1, only open once */
+  /** if count <= 1, only open once; option.url should not be required for kBgCmd.createTab */
   function openMultiTab(this: void, option: InfoToCreateMultiTab, count: number): void {
     const wndId = option.windowId, hasIndex = option.index != null;
     tabsCreate(option, option.active ? function (tab) {
@@ -447,7 +453,7 @@ Are you sure you want to continue?`);
       incognito: true, focused: active
     }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "");
   }
-  function standardCreateTab(this: void, url: string, onlyNormal?: boolean, tabs?: [Tab]): void {
+  function standardCreateTab(this: void, onlyNormal?: boolean, tabs?: [Tab]): void {
     if (cOptions.url || cOptions.urls) {
       BackgroundCommands[kBgCmd.openUrl](tabs);
       return onRuntimeError();
@@ -457,19 +463,15 @@ Are you sure you want to continue?`);
     else if (tabs.length > 0) { tab = tabs[0]; }
     else if (TabRecency_.last_ >= 0) {
       chrome.tabs.get(TabRecency_.last_, function (lastTab): void {
-        standardCreateTab(url, onlyNormal, lastTab && [lastTab]);
+        standardCreateTab(onlyNormal, lastTab && [lastTab]);
       });
       return onRuntimeError();
     }
-    if (!tab) {
-      openMultiTab({url, active: true}, cRepeat);
-      return onRuntimeError();
-    }
-    if (tab.incognito && onlyNormal) { url = ""; }
-    return openMultiTab({
-      url, active: tab.active, windowId: tab.windowId,
+    openMultiTab((tab ? {
+      active: tab.active, windowId: tab.windowId,
       index: newTabIndex(tab, cOptions.position)
-    }, cRepeat);
+    } : {active: true}) as InfoToCreateMultiTab, cRepeat);
+    return onRuntimeError();
   }
 
   const hackedCreateTab =
@@ -492,8 +494,8 @@ Are you sure you want to continue?`);
         }
       } : null, wnd.tabs);
     }
-    return openMultiTab({
-      url: this, active: tab.active, windowId: wnd.type === "normal" ? tab.windowId : undefined,
+    openMultiTab({
+      url: "", active: tab.active, windowId: wnd.type === "normal" ? tab.windowId : undefined,
       index: newTabIndex(tab, cOptions.position)
     }, cRepeat);
   }, function (url, tab, repeat, allTabs): void {
@@ -644,7 +646,7 @@ Are you sure you want to continue?`);
   const
   openShowPage = [function (url, reuse, options, tab): boolean {
     const prefix = Settings_.CONST_.ShowPage_;
-    if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
+    if (url.length < prefix.length + 3 || !url.startsWith(prefix)) { return false; }
     if (!tab) {
       getCurTab(function (tabs: [Tab]): void {
         if (!tabs || tabs.length <= 0) { return onRuntimeError(); }
@@ -730,7 +732,7 @@ Are you sure you want to continue?`);
       }
     }
     if (url) {
-      tabsCreate({ index: curTabs.length, url: Settings_.cache_.newTabUrl_f, windowId });
+      tabsCreate({ index: curTabs.length, url: "", windowId });
     }
     removeTabsInOrder(tab, curTabs, 0, curTabs.length);
   }
@@ -2289,7 +2291,7 @@ Are you sure you want to continue?`);
           return;
         }
         sender.f = Frames.Flags.userActed;
-      } else if (Build.BTypes & BrowserType.Firefox && (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_)
+      } else if (Build.BTypes & ~BrowserType.Chrome && Build.MayOverrideNewTab
           && type === PortType.CloseSelf) {
         if (tabId >= 0 && !sender.i) {
           removeTempNewTab(tabId, port);
@@ -2666,7 +2668,7 @@ Are you sure you want to continue?`);
     BackgroundCommands[kBgCmd.createTab] = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
         && Build.BTypes & BrowserType.Chrome && mayForceIncognito ? function (): void {
       getCurWnd(true, hackedCreateTab[0].bind(url));
-    } : standardCreateTab.bind(null, url, onlyNormal);
+    } : standardCreateTab.bind(null, onlyNormal);
     if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome) {
       BgCmdInfo[kBgCmd.createTab] = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
     }
