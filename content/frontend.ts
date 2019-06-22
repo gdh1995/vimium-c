@@ -122,7 +122,7 @@ declare var VOther: BrowserType;
               : isEscape(event) ? key - kKeyCode.esc ? "<c-[>" : "<esc>" : "")
             && (action = checkKey(keyChar, key)) === HandlerResult.Esc
       ) {
-        if (InsertMode.lock_ === document.body && InsertMode.lock_) {
+        if (InsertMode.lock_ === document.body && InsertMode.lock_ || !isTop && innerHeight < 3) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
           action = HandlerResult.PassKey;
         } else {
@@ -654,8 +654,7 @@ declare var VOther: BrowserType;
         return true;
       }
       el = document.activeElement;
-      if (el && (el as HTMLElement).isContentEditable === true &&
-          VDom.htmlTag_(el)) {
+      if (el && (el as HTMLElement).isContentEditable === true) {
         InsertMode.lock_ = el as LockableElement;
         return true;
       } else {
@@ -664,7 +663,7 @@ declare var VOther: BrowserType;
     },
     /** should only be called during keydown events */
     focusUpper_ (this: void, key: kKeyCode, force: boolean, event: Parameters<typeof VKey.prevent_>[0]
-        ): void {
+        ): void | 1 {
       const parEl = VDom.frameElement_();
       if (!parEl && (!force || isTop)) { return; }
       VKey.prevent_(event); // safer
@@ -809,13 +808,13 @@ declare var VOther: BrowserType;
       const mask = req.m, dom = VDom, doc = document;
       req.S && dom.UI.css_(req.S);
       if (mask !== FrameMaskType.NormalNext) { /* empty */ }
-      else if (innerWidth < 3 || innerHeight < 3
+      else if (events.checkHidden_()
         // check <div> to detect whether no other visible elements except <frame>s in this frame
         || (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && Build.BTypes & BrowserType.Chrome
                 && dom.unsafeFramesetTag_  // treat a doc.body of <form> as <frameset> to simplify logic
               ? dom.notSafe_(doc.body) : dom.htmlTag_(doc.body as NonNullable<Document["body"]>) === "frameset")
             && !doc.querySelector("div")
-        || events.checkHidden_()) {
+      ) {
         post({
           H: kFgReq.nextFrame,
           k: req.k
@@ -1276,6 +1275,7 @@ declare var VOther: BrowserType;
     OnWndFocus_ (this: void): void { onWndFocus(); },
     checkHidden_ (this: void, cmd?: FgCmdAcrossFrames
         , count?: number, options?: OptionsWithForce): BOOL {
+      if (innerHeight < 3 || innerWidth < 3) { return 1; }
       const curFrameElement_ = !isTop &&
           VDom.frameElement_(),
       el = !isTop && (curFrameElement_ || document.documentElement);
