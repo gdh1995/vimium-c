@@ -444,7 +444,7 @@ CommandsData_: CommandsDataTy = CommandsData_ as never || {
     openCopiedUrlInNewTab: "Open the clipboard's URL in N new tab(s)",
     openUrl: 'open URL (use url="", urls:string[], reuse=-1/0/1/-2, incognito, window, end)',
     reloadTab: "Reload N tab(s) (use hard, bypassCache)",
-    removeTab: "Close N tab(s) (use allow_close, limited=null/&lt;boolean&gt;, left)",
+    removeTab: 'Close N tab(s) (use allow_close, goto=""/left/right/previous)',
     restoreTab: "Restore closed tab(s)",
     togglePinTab: "Pin or unpin N tab(s)",
   },

@@ -1120,9 +1120,15 @@ Are you sure you want to continue?`);
         return;
       }
       removeTabsInOrder(tab, tabs, start, end);
-      if (start > 0 && cOptions.left) {
+      let goto = cOptions.goto || (cOptions.left ? "left" : "");
+      let goToIndex = goto === "left" ? start > 0 ? start - 1 : end
+          : goto === "right" ? end < total ? end : start - 1
+          : goto !== "previous" ? -1
+          : tabs.filter((_i, ind) => ind < start || ind >= end).filter(i => i.id in TabRecency_.tabs_)
+              .sort(TabRecency_.rCompare_)[0].index;
+      if (goToIndex >= 0 && goToIndex < total) {
         // note: here not wait real removing, otherwise the browser window may flicker
-        chrome.tabs.update(tabs[start - 1].id, { active: true });
+        chrome.tabs.update(tabs[goToIndex].id, { active: true });
       }
     },
     /* removeTabsR: */ function (this: void, tabs: Tab[]): void {
