@@ -23,7 +23,8 @@ p {
 }
 
 #state {
-	background: #f3f3f3;
+  background: #f3f3f3;
+  background: var(--panel-background-color);
 	border-bottom: 0.5px solid #979ca0;
 	box-sizing: border-box;
 	margin: 0;
@@ -33,11 +34,13 @@ p {
 }
 
 #state-value {
-	color: #15c;
+  color: #15c;
+  color: var(--state-color, #15c);
 	line-height: 15px;
 }
 .action {
   color: #15c;
+  color: var(--link-color);
 }
 .fixed-width {
 	display: inline-block;

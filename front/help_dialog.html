@@ -52,7 +52,7 @@
 	color: #2f508e;
 }
 .VimC {
-	color: #8e5e2f;
+	color: #a55e18;
 }
 .HelpTables {
 	border-spacing: 0;
@@ -197,7 +197,7 @@
 	border-color: #555;
 	color: #d4d4d4;
 }
-.D .Vim { color: #b3c4e6; }
+.D .Vim { color: #9bf; }
 .D .VimC { color: #e6ccb3; }
 .D .VimL { color: #5b96f5; }
 .D .VimL:active, .D #HClose:hover { color: #8ab4f8; }
@@ -206,7 +206,13 @@
 .D .HelpKey {
 	background: #282828;
 	color: #ccc;
+	border-color: #666;
+}
+.D.Scroll::-webkit-scrollbar:vertical, .D.Scroll::-webkit-scrollbar:horizontal {
 	border-color: #555;
+}
+.D.Scroll:hover::-webkit-scrollbar-thumb {
+	background: #666;
 }
 
 /* Scrollbar */
@@ -238,10 +244,10 @@
 .Scroll::-webkit-scrollbar-thumb:horizontal {
 	border-radius: 0 0 6px 6px;
 }
-.Scroll::-webkit-scrollbar-thumb:hover {
+#HelpDialog.Scroll::-webkit-scrollbar-thumb:hover {
 	background: #929292;
 }
-.Scroll::-webkit-scrollbar-thumb:active {
+#HelpDialog.Scroll::-webkit-scrollbar-thumb:active {
 	background: #666;
 }
 </style>

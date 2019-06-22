@@ -390,6 +390,8 @@ if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
 })(); }
 
 $<HTMLElement>(".version").textContent = bgSettings_.CONST_.VerName_;
+(document.documentElement as HTMLHtmlElement).classList.toggle("auto-dark", !!bgSettings_.payload_.d);
+(document.documentElement as HTMLHtmlElement).classList.toggle("less-motion", !!bgSettings_.payload_.r);
 
 location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
 BG_.BgUtils_.require_("Exclusions").then((function (callback) {

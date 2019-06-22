@@ -883,6 +883,13 @@ Option_.all_.userDefinedCss.onSave_ = function () {
   }, 500);
 };
 
+Option_.all_.autoDarkMode.onSave_ = function(): void {
+  (document.documentElement as HTMLHtmlElement).classList.toggle("auto-dark", this.previous_);
+};
+Option_.all_.autoReduceMotion.onSave_ = function(): void {
+  (document.documentElement as HTMLHtmlElement).classList.toggle("less-motion", this.previous_);
+};
+
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
     && bgBrowserVer_ < BrowserVer.Min$Option$HasReliableFontSize) {
   $("select").classList.add("font-fix");
