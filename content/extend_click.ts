@@ -15,6 +15,7 @@ if (VDom && VimiumInjector === undefined) {
     DelayToStartIteration = 666,
     DelayForNext = 36,
     DelayForNextComplicatedCase = 1,
+    TimeoutOf3rdPartyFunctionsCache = 1e4, // 10 seconds
     kSecretAttr = "data-vimium",
 
     kVOnClick = "VimiumOnclick",
@@ -190,6 +191,9 @@ function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown)
       [anotherAEL, anotherToStr, anotherToSource] =
           (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
           ) as NonNullable<ReturnType<InnerVerifier>>;
+      setTimeout_(function(): void {
+        anotherAEL = anotherToStr = anotherToSource = 0;
+      }, InnerConsts.TimeoutOf3rdPartyFunctionsCache);
     } else {
       [anotherAEL, anotherToStr] = (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
           ) as NonNullable<ReturnType<InnerVerifier>>;
@@ -329,8 +333,8 @@ let handler = function (this: void): void {
 },
 detectDisabled: string | 0 = `Vimium${sec}=>9`,
 noAbnormalVerifying: BOOL = 1,
-anotherAEL: typeof myAEL | undefined, anotherToStr: typeof myToStr | undefined,
-anotherToSource: typeof myToSource | undefined,
+anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
+anotherToSource: typeof myToSource | undefined | 0,
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 delayFindAll = function (e?: Event): void {
