@@ -140,7 +140,8 @@ declare var VOther: BrowserType;
         }
       }
     }
-    else if (key > kKeyCode.maxNotPrintable || key === kKeyCode.backspace || key === kKeyCode.tab
+    else if (key > kKeyCode.maxNotPrintable && key !== kKeyCode.ime
+        || key === kKeyCode.backspace || key === kKeyCode.tab
         || key === kKeyCode.esc || key === kKeyCode.enter) {
       if (keyChar = VKey.char_(event)) {
         action = checkKey(keyChar, key, event);
