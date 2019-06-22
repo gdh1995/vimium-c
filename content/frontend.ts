@@ -46,21 +46,31 @@ declare var VOther: BrowserType;
     return (vPort._port as Port).postMessage(request);
   }
 
+  function mapKey(this: void, /* not "" */ char: string, event: EventControlKeys): string {
+    let key = VKey.key_(event, char), mapped: string | undefined, chLower: string;
+    if (mappedKeys) {
+      mapped = mappedKeys[key];
+      key = mapped || ((mapped = mappedKeys[chLower = char.toLowerCase()])
+                        ? VKey.key_(event, char === chLower ? mapped : mapped.toUpperCase()) : key);
+    }
+    return key;
+  }
   function isEscape(event: KeyboardEvent): boolean {
     let ch: string | undefined;
     if (mappedKeys && event.keyCode !== kKeyCode.ime) {
       ch = VKey.char_(event);
-      ch = ch && mappedKeys[VKey.key_(event, ch)];
+      ch = ch && mapKey(ch, event);
     }
     return ch ? ch === "<esc>" || ch === "<c-[>" : VKey.isRawEscape_(event);
   }
-  function checkKey(key: string, keyCode: kKeyCode
+  function checkKey(char: string, code: kKeyCode, event: EventControlKeys
       ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc {
     // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
+    let key = VKey.key_(event, char);
     if (passKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
       return esc(HandlerResult.Nothing);
     }
-    mappedKeys !== null && (key = mappedKeys[key] || key);
+    mappedKeys && (key = mapKey(char, event));
     if (key === "<esc>" || key === "<c-[>") {
       return nextKeys ? (esc(HandlerResult.ExitPassMode), HandlerResult.Prevent) : HandlerResult.Esc;
     }
@@ -74,7 +84,7 @@ declare var VOther: BrowserType;
     }
     currentKeys += key;
     if (j === KeyAction.cmd) {
-      post({ H: kFgReq.key, k: currentKeys, l: keyCode });
+      post({ H: kFgReq.key, k: currentKeys, l: code });
       isCmdTriggered = 1;
       return esc(HandlerResult.Prevent);
     } else {
@@ -117,10 +127,9 @@ declare var VOther: BrowserType;
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
       if (g ? !g.code ? isEscape(event) : key === g.code && VKey.getKeyStat_(event) === g.stat
-          : (keyChar = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
-              ? VKey.key_(event, VKey.getKeyName_(event))
-              : isEscape(event) ? key - kKeyCode.esc ? "<c-[>" : "<esc>" : "")
-            && (action = checkKey(keyChar, key)) === HandlerResult.Esc
+          : key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
+          ? (action = checkKey(VKey.getKeyName_(event), key, event)) === HandlerResult.Esc
+          : isEscape(event)
       ) {
         if (InsertMode.lock_ === document.body && InsertMode.lock_ || !isTop && innerHeight < 3) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
@@ -134,12 +143,12 @@ declare var VOther: BrowserType;
     else if (key > kKeyCode.maxNotPrintable || key === kKeyCode.backspace || key === kKeyCode.tab
         || key === kKeyCode.esc || key === kKeyCode.enter) {
       if (keyChar = VKey.char_(event)) {
-        keyChar = VKey.key_(event, keyChar);
-        action = checkKey(keyChar, key);
+        action = checkKey(keyChar, key, event);
         if (action === HandlerResult.Esc) {
           action = key === kKeyCode.esc ? onEscDown(event, key) : HandlerResult.Nothing;
         }
-        if (action === HandlerResult.Nothing && InsertMode.suppressType_ && keyChar.length === 1) {
+        if (action === HandlerResult.Nothing
+            && InsertMode.suppressType_ && keyChar.length < 2 && !VKey.getKeyStat_(event)) {
           action = HandlerResult.Prevent;
         }
       }
@@ -1350,7 +1359,7 @@ declare var VOther: BrowserType;
         showBorder && FrameMask.show_(FrameMaskType.ForcedSelf);
       }
     },
-    mapKey_ (this: void, key): string { return mappedKeys !== null && mappedKeys[key] || key; },
+    mapKey_: mapKey,
     scroll_ (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;

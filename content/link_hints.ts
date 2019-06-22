@@ -81,6 +81,7 @@ var VHints = {
     newHintLength_: 0,
     tab_: 0
   } as HintsNS.KeyStatus,
+  doesMapKey_: false,
   keyCode_: kKeyCode.None,
   isActive_: false,
   noHUD_: false,
@@ -103,12 +104,13 @@ var VHints = {
       if (!VDom.isHTML_()) { return; }
     }
     a.setModeOpt_(count, options);
-    let str = options.characters ? options.characters + "" : VDom.cache_.linkHintCharacters;
+    let s0 = options.characters, str = s0 ? s0 + "" : VDom.cache_.linkHintCharacters;
     if (str.length < 3) {
       a.clean_(1);
       return VHud.tip_("Characters for LinkHints are too few.", 1000);
     }
     a.alphabetHints_.chars_ = str.toUpperCase();
+    a.doesMapKey_ = options.mapKey !== false;
 
     const arr: ViewBox = VDom.getViewBox_(1) as ViewBox;
     VDom.prepareCrop_();
@@ -987,7 +989,7 @@ var VHints = {
     ks.tab_ = ks.newHintLength_ = ks.known_ = alpha.countMax_ = 0;
     a.keyCode_ = kKeyCode.None;
     alpha.hintKeystroke_ = alpha.chars_ = "";
-    a.isActive_ = a.noHUD_ = a.tooHigh_ = false;
+    a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
     VKey.removeHandler_(a);
     VEvent.onWndBlur_(null);
     if (a.box_) {
@@ -1130,8 +1132,8 @@ alphabetHints_: {
         return [];
       }
       a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
-    } else if ((keyChar = VKey.char_(e).toUpperCase()) && keyChar.length === 1
-        && (keyChar = VHints.options_.mapKey ? VEvent.mapKey_(keyChar) : keyChar).length === 1) {
+    } else if ((keyChar = VKey.char_(e)) && keyChar.length === 1
+        && (keyChar = (VHints.doesMapKey_ ? VEvent.mapKey_(keyChar, e) : keyChar).toUpperCase()).length === 1) {
       if (a.chars_.indexOf(keyChar) === -1) {
         return [];
       }

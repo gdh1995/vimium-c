@@ -377,7 +377,7 @@ interface VEventModeTy {
   focusAndRun_ (this: void, cmd: 0, count: never, options: never, showBorder: 1): void;
   onWndBlur_ (this: void, onWndBlur2: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
-  mapKey_ (this: void, key: string): string;
+  mapKey_ (this: void, char: string, event: EventControlKeys): string;
   scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: kKeyCode }, wnd?: Window): void;
   /** return has_error */
   readonly keydownEvents_: {
