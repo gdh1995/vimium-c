@@ -736,7 +736,7 @@ Are you sure you want to continue?`);
     }
     removeTabsInOrder(tab, curTabs, 0, curTabs.length);
   }
-  function removeTabsInOrder(tab: Tab, tabs: Tab[], start: number, end: number): void {
+  function removeTabsInOrder(tab: Tab, tabs: ReadonlyArray<Tab>, start: number, end: number): void {
     const browserTabs = chrome.tabs, i = tab.index;
     browserTabs.remove(tab.id, onRuntimeError);
     let parts1 = tabs.slice(i + 1, end), parts2 = tabs.slice(start, i);
@@ -1098,9 +1098,9 @@ Are you sure you want to continue?`);
       }
       if (!toSelect.active) { return selectTab(toSelect.id); }
     },
-    /* removeTab: */ function (this: void, tabs: Tab[]): void {
+    /* removeTab: */ function (this: void, tabs: ReadonlyArray<Tab>): void {
       if (!tabs || tabs.length <= 0) { return onRuntimeError(); }
-      const total = tabs.length, tab = selectFrom(tabs), i = tab.index;
+      const total = tabs.length, tab = selectFrom(tabs as Tab[]), i = tab.index;
       let count = 1, start = i, end = i + 1;
       if (Math.abs(cRepeat) > 1 && total > 1) {
         const noPinned = tabs[0].pinned !== tab.pinned && !(cRepeat < 0 && tabs[i - 1].pinned);
@@ -1119,13 +1119,23 @@ Are you sure you want to continue?`);
         chrome.windows.getAll(removeAllTabsInWnd.bind(null, tab, tabs));
         return;
       }
-      removeTabsInOrder(tab, tabs, start, end);
-      let goto = cOptions.goto || (cOptions.left ? "left" : "");
-      let tab1: Tab | undefined, goToIndex = goto === "left" ? start > 0 ? start - 1 : end
+      let goto = cOptions.goto || (cOptions.left ? "left" : ""),
+      goToIndex = goto === "left" ? start > 0 ? start - 1 : end
           : goto === "right" ? end < total ? end : start - 1
-          : goto !== "previous" ? total
-          : (tab1 = tabs.filter((_i, ind) => ind < start || ind >= end).filter(i => i.id in TabRecency_.tabs_)
-              .sort(TabRecency_.rCompare_)[0]) ? tab1.index : total;
+          : goto === "previous" ? -2 : total;
+      if (goToIndex === -2) {
+        goToIndex = tab.openerTabId || -1;
+        let nextTab: Tab | undefined = tabs.filter(i => i.id == goToIndex)[0] || tab;
+        if (nextTab) {
+          nextTab = tabs.find((i, ind) => ind >= end && ind >= (nextTab as Tab).index && !(i.id in TabRecency_.tabs_));
+        }
+        if (!nextTab) {
+          nextTab = tabs.filter((i, ind) => (ind < start || ind >= end) && i.id in TabRecency_.tabs_)
+            .sort(TabRecency_.rCompare_)[0];
+        }
+        goToIndex = nextTab ? nextTab.index : total;
+      }
+      removeTabsInOrder(tab, tabs, start, end);
       if (goToIndex >= 0 && goToIndex < total) {
         // note: here not wait real removing, otherwise the browser window may flicker
         chrome.tabs.update(tabs[goToIndex].id, { active: true });
