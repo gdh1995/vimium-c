@@ -184,6 +184,7 @@ var HelpDialog = {
     }
     for (let arr = (root as RootElement).querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
       const el = arr[i];
+      // here force to match ignoring cases - safer
       if (!((Build.BTypes & ~BrowserType.Firefox ? el.tagName + "" : el.tagName as string
             ).toLowerCase() in this.safeTags)
           && !(el instanceof HTMLUnknownElement)) {

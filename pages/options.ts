@@ -883,10 +883,10 @@ Option_.all_.userDefinedCss.onSave_ = function () {
   }, 500);
 };
 
-Option_.all_.autoDarkMode.onSave_ = function(): void {
+Option_.all_.autoDarkMode.onSave_ = function (): void {
   (document.documentElement as HTMLHtmlElement).classList.toggle("auto-dark", this.previous_);
 };
-Option_.all_.autoReduceMotion.onSave_ = function(): void {
+Option_.all_.autoReduceMotion.onSave_ = function (): void {
   (document.documentElement as HTMLHtmlElement).classList.toggle("less-motion", this.previous_);
 };
 

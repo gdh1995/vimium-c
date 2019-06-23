@@ -64,6 +64,8 @@ type ElementToHTML = TypeToAssert<Element, HTMLElement, "lang", "tagName">;
 
 interface SafeElement extends Element {
   tagName: string;
+  nodeName: string;
+  localName: string;
 }
 type BaseSafeHTMLElement = HTMLElement & SafeElement;
 interface SafeHTMLElement extends BaseSafeHTMLElement {

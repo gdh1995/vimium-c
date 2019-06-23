@@ -24,17 +24,14 @@ var VDom = {
 
   isHTML_: (): boolean => "lang" in <ElementToHTML> (document.documentElement || {}),
   htmlTag_: (Build.BTypes & ~BrowserType.Firefox ? function (element: Element | HTMLElement): string {
-    let s: Element["tagName"];
-    if ("lang" in element && typeof (s = element.tagName) === "string") {
-      s = s.toLowerCase();
+    let s: Element["localName"];
+    if ("lang" in element && typeof (s = element.localName) === "string") {
       return (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
           ? s === "form" : s === "form" || s === VDom.unsafeFramesetTag_) ? "" : s;
     }
     return "";
-  } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).tagName.toLowerCase() : ""
+  } : (element: Element): string => "lang" in element ? (element as SafeHTMLElement).localName as string : ""
   ) as (element: Element) => string, // duplicate the signature, for easier F12 in VS Code
-  hasTag_need_safe_: <Tag extends keyof HTMLElementTagNameMap> (element: SafeHTMLElement, tag: Tag
-    ): element is HTMLElementTagNameMap[Tag] & SafeHTMLElement => element.tagName.toLowerCase() === tag,
   isInTouchMode_: Build.BTypes & BrowserType.Chrome ? function (): boolean {
     const viewport = document.querySelector("meta[name=viewport]");
     return !!viewport &&

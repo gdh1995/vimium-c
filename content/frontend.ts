@@ -586,7 +586,7 @@ declare var VOther: BrowserType;
         else if (keep ? isEscape(event) || (
             keyCode === kKeyCode.enter && (keyStat = VKey.getKeyStat_(event),
               keyStat !== KeyStat.shiftKey
-              && (keyStat !== KeyStat.plain || VDom.hasTag_need_safe_(this.hints[sel].dest_, "input") ))
+              && (keyStat !== KeyStat.plain || this.hints[sel].dest_.localName === "input" ))
           ) : keyCode !== kKeyCode.ime && keyCode !== kKeyCode.f12
         ) {
           InsertMode.exitInputHint_();
@@ -720,7 +720,7 @@ declare var VOther: BrowserType;
 
   Pagination = {
   followLink_ (linkElement: SafeHTMLElement): boolean {
-    let url = VDom.hasTag_need_safe_(linkElement, "link") && linkElement.href;
+    let url = linkElement.localName === "link" && (linkElement as HTMLLinkElement).href;
     if (url) {
       Commands[kFgCmd.reload](1, { url });
     } else {
@@ -1340,7 +1340,7 @@ declare var VOther: BrowserType;
       } else {
         // cur is safe because on Firefox
         let cur: SafeElement | null = document.activeElement as SaferType<Document["activeElement"]>;
-        cur && (<RegExpI> /^i?frame$/i).test(cur.tagName) && cur.blur &&
+        cur && (<RegExpOne> /^i?frame$/).test(cur.localName) && cur.blur &&
         (cur as HTMLFrameElement | HTMLIFrameElement).blur();
       }
       focus();

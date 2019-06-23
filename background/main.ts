@@ -1125,12 +1125,12 @@ Are you sure you want to continue?`);
           : goto === "previous" ? -2 : total;
       if (goToIndex === -2) {
         goToIndex = tab.openerTabId || -1;
-        let nextTab: Tab | undefined = tabs.filter(i => i.id == goToIndex)[0] || tab;
+        let nextTab: Tab | undefined = goToIndex >= 0 && tabs.filter(j => j.id === goToIndex)[0] || tab;
         if (nextTab) {
-          nextTab = tabs.find((i, ind) => ind >= end && ind >= (nextTab as Tab).index && !(i.id in TabRecency_.tabs_));
+          nextTab = tabs.find((j, ind) => ind >= end && ind >= (nextTab as Tab).index && !(j.id in TabRecency_.tabs_));
         }
         if (!nextTab) {
-          nextTab = tabs.filter((i, ind) => (ind < start || ind >= end) && i.id in TabRecency_.tabs_)
+          nextTab = tabs.filter((j, ind) => (ind < start || ind >= end) && j.id in TabRecency_.tabs_)
             .sort(TabRecency_.rCompare_)[0];
         }
         goToIndex = nextTab ? nextTab.index : total;

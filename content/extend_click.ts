@@ -99,8 +99,8 @@ if (VDom && VimiumInjector === undefined) {
           detail ? Build.BTypes & ~BrowserType.Firefox ? "[%o + %o]" : "[%o+%o]" : "<%o>%s"
         } in %o @t=%o .`
         , detail ? detail[0].length
-          : (Build.BTypes & ~BrowserType.Firefox && typeof target.tagName !== "string" ? target + ""
-              : target.tagName as string).toLowerCase()
+          : Build.BTypes & ~BrowserType.Firefox && typeof target.localName !== "string" ? target + ""
+          : target.localName as string
         , detail ? detail[1] ? detail[1].length : -0 : ""
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
@@ -191,7 +191,7 @@ function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown)
       [anotherAEL, anotherToStr, anotherToSource] =
           (maybeVerifierB as InnerVerifier)(decryptFromVerifier(maybeVerifierB)
           ) as NonNullable<ReturnType<InnerVerifier>>;
-      setTimeout_(function(): void {
+      setTimeout_(function (): void {
         anotherAEL = anotherToStr = anotherToSource = 0;
       }, InnerConsts.TimeoutOf3rdPartyFunctionsCache);
     } else {

@@ -634,7 +634,7 @@ var VVisual = {
     if (lock && lock.parentElement === anchorNode) { // safe beacuse lock is LockableElement
       type TextModeElement = TextElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)
-          && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.MaxNotTextModeElement) {
+          && (VDom.editableTypes_[lock.localName] as EditableType) > EditableType.MaxNotTextModeElement) {
         let cn: Node["childNodes"];
         const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes as NodeList
             : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype

@@ -300,8 +300,8 @@ VDom.UI = {
   },
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
   _moveSel_need_safe (element, action): void {
-    const type = VDom.hasTag_need_safe_(element, "textarea") ? EditableType.Editbox
-        : VDom.hasTag_need_safe_(element, "input") ? EditableType.input_
+    const elTag = element.localName, type = elTag === "textarea" ? EditableType.Editbox
+        : elTag === "input" ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
         : EditableType.Default;
     if (type === EditableType.Default) { return; }

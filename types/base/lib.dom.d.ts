@@ -2056,7 +2056,8 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
         , Partial<AttachShadow> {
     readonly nodeType: kNode.ELEMENT_NODE | Element | RadioNodeList | Window;
     readonly childNodes: NodeList | Element | RadioNodeList | Window;
-    readonly nodeName?: string | Element | RadioNodeList | Window;
+    readonly nodeName: string | Element | RadioNodeList | Window;
+    readonly localName: string | Element | RadioNodeList | Window;
     readonly ownerDocument: Document | RadioNodeList | Window;
     readonly parentElement: Element | RadioNodeList | Window | null;
     readonly parentNode: Node | RadioNodeList | Window | null;
@@ -2289,7 +2290,9 @@ declare var HTMLAllCollection: {
 }
 
 interface HTMLAnchorElement extends HTMLElement {
-    readonly tagName: "A" | "a";
+    readonly tagName: "A";
+    readonly nodeName: "A";
+    readonly localName: "a";
     readonly innerText: string;
     readonly parentElement: Element | null;
     readonly parentNode: Node | null;
@@ -2456,7 +2459,9 @@ declare var HTMLAppletElement: {
 }
 
 interface HTMLAreaElement extends HTMLElement {
-    readonly tagName: "area" | "AREA";
+    readonly tagName: "AREA";
+    readonly nodeName: "AREA";
+    readonly localName: "area";
     readonly innerText: string;
     readonly parentElement: Element | null;
     readonly parentNode: Node | null;
@@ -2618,7 +2623,9 @@ interface HTMLBodyElementEventMap extends HTMLElementEventMap {
 }
 
 interface HTMLBodyElement extends HTMLElement {
-    readonly tagName: "body" | "BODY";
+    readonly tagName: "BODY";
+    readonly nodeName: "BODY";
+    readonly localName: "body";
     readonly innerText: string;
     aLink: any;
     background: string;
@@ -3423,7 +3430,9 @@ declare var HTMLHeadingElement: {
 }
 
 interface HTMLHtmlElement extends HTMLElement {
-    readonly tagName: "html" | "HTML";
+    readonly tagName: "HTML";
+    readonly nodeName: "HTML";
+    readonly localName: "html";
     /**
       * Sets or retrieves the DTD version that governs the current document.
       */
@@ -3527,7 +3536,9 @@ declare var HTMLIFrameElement: {
 }
 
 interface HTMLImageElement extends HTMLElement {
-    readonly tagName: "img" | "IMG";
+    readonly tagName: "IMG";
+    readonly nodeName: "IMG";
+    readonly localName: "img";
     readonly innerText: string;
     readonly parentElement: Element | null;
     readonly parentNode: Node | null;
@@ -3608,7 +3619,9 @@ declare var HTMLImageElement: {
 }
 
 interface HTMLInputElement extends HTMLElement {
-    readonly tagName: "INPUT" | "input";
+    readonly tagName: "INPUT";
+    readonly nodeName: "INPUT";
+    readonly localName: "input";
     readonly innerText: string;
     readonly parentElement: Element | null;
     readonly parentNode: Node | null;
@@ -4916,7 +4929,9 @@ declare var HTMLTemplateElement: {
 }
 
 interface HTMLTextAreaElement extends HTMLElement {
-    readonly tagName: "TEXTAREA" | "textarea";
+    readonly tagName: "TEXTAREA";
+    readonly nodeName: "TEXTAREA";
+    readonly localName: "textarea";
     readonly innerText: string;
     readonly parentElement: Element | null;
     readonly parentNode: Node | null;
@@ -5457,10 +5472,10 @@ interface Node extends EventTarget {
     readonly childNodes: NodeList | Element | HTMLCollection | RadioNodeList | Window;
     readonly firstChild: Node | null;
     readonly lastChild: Node | null;
-    readonly localName: string | null;
+    readonly localName: string | Element | RadioNodeList | Window | null;
     readonly namespaceURI: string | null;
     readonly nextSibling: Node | null;
-    readonly nodeName?: string | Element | HTMLCollection | RadioNodeList | Window;
+    readonly nodeName: string | Element | HTMLCollection | RadioNodeList | Window;
     readonly nodeType: kNode | Element | HTMLCollection | RadioNodeList | Window;
     nodeValue: string | null;
     readonly ownerDocument: Document | HTMLCollection | RadioNodeList | Window;
@@ -6003,6 +6018,8 @@ interface SVGElementEventMap extends ElementEventMap {
 
 interface SVGElement extends Element {
     readonly tagName: string;
+    readonly nodeName: string;
+    readonly localName: string;
     readonly dataset? : DOMStringMap; // since C55
     className: any;
     focus(): void;
@@ -7216,7 +7233,9 @@ interface SVGSVGElementEventMap extends SVGElementEventMap {
 }
 
 interface SVGSVGElement extends SVGGraphicsElement, DocumentEvent, SVGFitToViewBox, SVGZoomAndPan {
-    readonly tagName: "svg" | "SVG";
+    readonly tagName: "SVG";
+    readonly nodeName: "SVG";
+    readonly localName: "svg";
     contentScriptType: string;
     contentStyleType: string;
     currentScale: number;

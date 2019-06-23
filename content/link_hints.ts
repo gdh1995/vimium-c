@@ -287,9 +287,10 @@ var VHints = {
   /**
    * Must ensure only call {@link scroller.ts#VScroller.shouldScroll_need_safe_} during {@link #getVisibleElements_}
    */
-  GetClickable_ (this: Hint[], element: SafeHTMLElement | SVGElement | Element): void {
+  GetClickable_ (this: Hint[],
+      element: SafeHTMLElement | SVGElement & {lang: undefined} | Element & {lang: undefined}): void {
     let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
-    if (!("lang" in /* <ElementToHTML> */ element)) { // not HTML*
+    if ((/* <ElementToHTML> */ element).lang == null) { // not HTML*
       // never accept raw `Element` instances, so that properties like .tabIndex and .dataset are ensured
       if ("tabIndex" in /* <ElementToHTMLorSVG> */ element) { // SVG*
         // not need to distinguish attrListener and codeListener
@@ -304,7 +305,7 @@ var VHints = {
       }
       return;
     }
-    const tag = element.tagName.toLowerCase();
+    const tag = element.localName;
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
     // elements of the types below (except <div>) should refuse `attachShadow`
     switch (tag) {
@@ -453,7 +454,7 @@ var VHints = {
   GetEditable_ (this: Hint[], element: SafeHTMLElement | SVGElement | Element): void {
     let arr: Rect | null, type = ClickType.Default, s: string;
     if (!("lang" in element)) { return; }
-    switch (element.tagName.toLowerCase()) {
+    switch (element.localName) {
     case "input":
       if (VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
         return;
@@ -653,9 +654,9 @@ var VHints = {
     while (0 < --i) {
       k = list[i][2];
       if (k === ClickType.codeListener) {
-        if (VDom.hasTag_need_safe_(list[i][0] as Exclude<Hint[0], SVGElement>, "div")
+        if ((list[i][0] as Exclude<Hint[0], SVGElement>).localName === "div"
             && (j = i + 1) < list.length
-            && (s = list[j][0].tagName.toLowerCase(), s === "div" || s === "a")) {
+            && (s = list[j][0].localName, s === "div" || s === "a")) {
           const prect = list[i][1], crect = list[j][1];
           if (crect[0] < prect[0] + /* icon_16 */ 18 && crect[1] < prect[1] + 9
               && crect[0] > prect[0] - 4 && crect[1] > prect[1] - 4 && crect[3] > prect[3] - 9
@@ -1205,11 +1206,11 @@ getUrlData_ (link: HTMLAnchorElement): string {
 },
 /** return: img is HTMLImageElement | HTMLAnchorElement */
 _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
-  let text: string | null, src = img.dataset.src || "";
-  if (VDom.hasTag_need_safe_(img, "img")) {
-    text = img.currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
+  let text: string | null, src = img.dataset.src || "", elTag = img.localName;
+  if (elTag === "img") {
+    text = (img as HTMLImageElement).currentSrc || img.getAttribute("src") && (img as HTMLImageElement).src;
   } else {
-    text = VDom.hasTag_need_safe_(img, "a") ? img.getAttribute("href") && img.href : "";
+    text = elTag === "a" ? img.getAttribute("href") && (img as HTMLAnchorElement).href : "";
     if (!this.isImageUrl_(text)) {
       let arr = (<RegExpI> /^url\(\s?['"]?((?:\\['"]|[^'"])+?)['"]?\s?\)/i).exec(img.style.backgroundImage as string);
       if (arr && arr[1]) {
@@ -1432,7 +1433,7 @@ Modes_: [
   132: "Download media",
   196: "Download multiple media",
   execute_ (element: SafeHTMLElement): void {
-    let tag = VDom.htmlTag_(element);
+    let tag = element.localName;
     let text;
     if (tag === "video" || tag === "audio") {
       text = (element as HTMLImageElement).currentSrc || (element as HTMLImageElement).src;
