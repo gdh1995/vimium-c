@@ -385,7 +385,9 @@ var VHints = {
           && VHints.inferTypeOfListener_(element, tag)
         ? ClickType.codeListener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
-        : type > ClickType.tabindex ? type : (s = element.className) && VHints.btnRe_.test(s) ? ClickType.classname
+        : type > ClickType.tabindex ? type
+        : element.getAttribute("aria-selected")
+          || (s = element.className) && VHints.btnRe_.test(s) ? ClickType.classname
         : ClickType.Default;
     }
     if (!isClickable && type === ClickType.Default) { return; }
