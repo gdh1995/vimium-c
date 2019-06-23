@@ -1,6 +1,7 @@
 const enum ClickType {
   Default = 0, edit,
-  MaxNotWeak = edit, attrListener, codeListener, classname, tabindex, MinNotWeak,
+  MaxNotWeak = edit, attrListener, MinWeak = attrListener, codeListener, classname, tabindex, MaxWeak = tabindex,
+  MinNotWeak, // should <= MaxNotBox
   MaxNotBox = 6, frame, scrollX, scrollY,
 }
 const enum DeepQueryType {
@@ -544,9 +545,13 @@ var VHints = {
       || matchAll || a.queryInDeep_ !== DeepQueryType.InDeep ? key : a.getDeepDescendantCombinator_() + key,
     Sc = VScroller,
     wantClickable = matchAll && filter === a.GetClickable_,
+    isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as {}) instanceof Element,
     box = !wholeDoc && (!(Build.BTypes & ~BrowserType.Chrome)
           || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
-        ? D.fullscreenElement : D.webkitFullscreenElement) || D, isD = box === D,
+        ? D.fullscreenElement : D.webkitFullscreenElement)
+        || !Build.NDEBUG && isInAnElement && wholeDoc as {} as Element
+        || D,
+    isD = box === D,
     querySelectorAll = Build.BTypes & ~BrowserType.Firefox
       ? isD ? D.querySelectorAll : Element.prototype.querySelectorAll : box.querySelectorAll;
     wantClickable && Sc.getScale_();
@@ -555,11 +560,14 @@ var VHints = {
     if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
       list = a.getElementsInViewPort_(list);
     }
+    if (!Build.NDEBUG && isInAnElement) {
+      filter.call(output, wholeDoc as {} as Element);
+    }
     const forEach = (list.forEach || output.forEach) as HintsNS.ElementIterator<Hint | Element>;
     forEach.call(list, filter, output);
-    if (wholeDoc) {
+    if (wholeDoc && (Build.NDEBUG || !isInAnElement)) {
       // this requires not detecting scrollable elements if wholeDoc
-      if (!(Build.NDEBUG || filter !== a.GetClickable_)) {
+      if (!(Build.NDEBUG || filter !== a.GetClickable_ && !isInAnElement)) {
         console.log("Assert error: `filter !== VHints.GetClickable_` in VHints.traverse_");
       }
       return output;
@@ -641,40 +649,42 @@ var VHints = {
       func, dest);
   },
   deduplicate_ (list: Hint[]): void {
-    let j = list.length, i: number, k: ClickType, s: string;
-    while (0 < --j) {
-      k = list[i = j][2];
+    let i = list.length, j: number, k: ClickType, s: string;
+    while (0 < --i) {
+      k = list[i][2];
       if (k === ClickType.codeListener) {
-        if (VDom.hasTag_need_safe_(list[j][0] as Exclude<Hint[0], SVGElement>, "div")
-            && ++i < list.length
-            && (s = list[i][0].tagName.toLowerCase(), s === "div" || s === "a")) {
-          const prect = list[j][1], crect = list[i][1];
+        if (VDom.hasTag_need_safe_(list[i][0] as Exclude<Hint[0], SVGElement>, "div")
+            && (j = i + 1) < list.length
+            && (s = list[j][0].tagName.toLowerCase(), s === "div" || s === "a")) {
+          const prect = list[i][1], crect = list[j][1];
           if (crect[0] < prect[0] + /* icon_16 */ 18 && crect[1] < prect[1] + 9
               && crect[0] > prect[0] - 4 && crect[1] > prect[1] - 4 && crect[3] > prect[3] - 9
-              && (s !== "a" || list[j][0].contains(list[i][0]))) {
+              && (s !== "a" || list[i][0].contains(list[j][0]))) {
             // the `<a>` is a single-line box's most left element and the first clickable element,
             // so think the box is just a layout container
             // for [i] is `<div>`, not limit the height of parent `<div>`,
             // if there's more content, it should have hints for itself
-            list.splice(j, 1);
+            list.splice(i, 1);
           }
+          continue;
         }
-        continue;
-      } else if (k !== ClickType.classname) { /* empty */ }
-      else if ((k = list[--j][2]) > ClickType.frame || !this._isDescendant(list[i][0], list[j][0])) {
+        j = i;
+      } else if (k !== ClickType.classname) { j = i; }
+      else if ((k = list[j = i - 1][2]) > ClickType.MaxWeak || !this._isDescendant(list[i][0], list[j][0])) {
         continue;
       } else if (VDom.isContaining_(list[j][1], list[i][1])) {
         list.splice(i, 1);
         continue;
-      } else if (k < ClickType.attrListener || j === 0) {
+      } else if (k < ClickType.MinWeak) {
         continue;
       }
-      for (; 0 < j && j > i - 3
+      for (; j > i - 3 && 0 < j
             && (k = list[j - 1][2]) > ClickType.MaxNotWeak && k < ClickType.MinNotWeak
             && this._isDescendant(list[j][0], list[j - 1][0])
           ; j--) { /* empty */ }
       if (j < i) {
         list.splice(j, i - j);
+        i = j;
       }
     }
     while (list.length && (list[0][0] === document.documentElement || list[0][0] === document.body)) {
