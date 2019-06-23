@@ -549,7 +549,7 @@ var VHints = {
       ? isD ? D.querySelectorAll : Element.prototype.querySelectorAll : box.querySelectorAll;
     wantClickable && Sc.getScale_();
     let list: HintsNS.ElementList | null = querySelectorAll.call(box
-        , matchAll ? VDom.selectorToQueryAll_ : query);
+        , Build.BTypes & ~BrowserType.Firefox && matchAll ? VDom.selectorToQueryAll_ : query);
     if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
       list = a.getElementsInViewPort_(list);
     }
@@ -635,7 +635,7 @@ var VHints = {
       (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
         ? element.webkitShadowRoot as ShadowRoot : element.shadowRoot as ShadowRoot
-      ).querySelectorAll(VDom.selectorToQueryAll_),
+      ).querySelectorAll(Build.BTypes & ~BrowserType.Firefox ? VDom.selectorToQueryAll_ : "*"),
       func, dest);
   },
   deduplicate_ (list: Hint[]): void {

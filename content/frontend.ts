@@ -994,6 +994,7 @@ declare var VOther: BrowserType;
       if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {
         D.notSafe_ = (_el): _el is HTMLFormElement => false;
+        D.selectorToQueryAll_ = "*";
         if (Build.MinFFVer >= FirefoxBrowserVer.Min$globalThis) {
           (globalThis as any as Writable<ContentWindowCore>).VSec = load.s as NonNullable<typeof load.s>;
         } else {
