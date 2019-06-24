@@ -583,7 +583,11 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   }
   (defaults as SettingsWithDefaults).newTabUrl = (Build.BTypes & ~BrowserType.Chrome
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
-      ? CommonNewTab : (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_) ? obj.NtpNewTab_ : ChromeNewTab;
+      ? Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_
+        ? Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
+          ? "https://www.msn.cn/spartan/ntp" : "pages/blank.html"
+        : CommonNewTab
+      : (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_) ? obj.NtpNewTab_ : ChromeNewTab;
   // note: on firefox, "about:newtab/" is invalid, but it's OKay if still marking the URL a NewTab URL.
   ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
