@@ -81,19 +81,6 @@ let keyMappingChecker_ = {
 Option_.all_.keyMappings.checker_ = keyMappingChecker_;
 keyMappingChecker_ = null as never;
 
-if (Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_) {
-Option_.all_.newTabUrl.checker_ = {
-  check_ (value: string): string {
-    let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
-        ? chrome.runtime.getURL(value) : BG_.BgUtils_.convertToUrl_(value.toLowerCase());
-    url = url.split("?", 1)[0].split("#", 1)[0];
-    return value.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_
-      || (<RegExpI> /^[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
-      ) ? bgSettings_.defaults_.newTabUrl : value;
-  }
-};
-}
-
 Option_.all_.searchUrl.checker_ = {
   check_ (str: string): string {
     const map = Object.create<Search.RawEngine>(null);

@@ -332,7 +332,7 @@ TextOption_.prototype.showError_ = function<T extends TextOptionNames>(this: Tex
     if (errEl == null) {
       errEl = document.createElement("div");
       errEl.className = "tip";
-      par.insertBefore(errEl, par.querySelector(".nonEmptyTip"));
+      par.insertBefore(errEl, el.nextElementSibling as Element | null);
     }
     errEl.textContent = msg;
     tag !== null && cls.add(tag || "has-error");
@@ -783,6 +783,32 @@ interface AdvancedOptBtn extends HTMLButtonElement {
         'Sorry, but the icon can not be dynamic if the browser flag "--disable-reading-from-canvas" is enabled';
   }
 })();
+
+if (!(Build.BTypes & ~BrowserType.Firefox)
+    || Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_
+    || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
+Option_.all_.newTabUrl.checker_ = {
+  check_ (value: string): string {
+    let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
+        ? chrome.runtime.getURL(value) : BG_.BgUtils_.convertToUrl_(value.toLowerCase());
+    url = url.split("?", 1)[0].split("#", 1)[0];
+    if (!(Build.BTypes & ~BrowserType.Firefox)
+        || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
+      if ((<RegExpI> /^chrome|^(javascript|data|file):|^about:(?!newtab\/?$)/i).test(url)) {
+        const err = `The URL "${url}" is refused by the Firefox browser to be opened by a web-extension.`;
+        console.log("newTabUrl checker:", err);
+        Option_.all_.newTabUrl.showError_(err);
+      } else {
+        Option_.all_.newTabUrl.showError_("");
+      }
+    }
+    return value.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_
+      || (<RegExpI> /^[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
+      ) ? bgSettings_.defaults_.newTabUrl : value;
+  }
+};
+Option_.all_.newTabUrl.checker_.check_(Option_.all_.newTabUrl.previous_);
+}
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   if (!window.VDom) { return; }
