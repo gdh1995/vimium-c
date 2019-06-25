@@ -365,6 +365,7 @@ declare const enum GlobalConsts {
   CommandCountLimit = 9999,
   MediaWatchInterval = 30_000, // 30 seconds
   MaxHistoryURLLength = 2_000, // to avoid data: URLs and malformed webpages
+  MaxSenderURLLength = 4_000, // if too long, keep the first `MaxSenderURLLength` characters and append a "..."
   TrimmedURLLengthForTooLongURL = 320,
   TrimmedTitleLengthForTooLongURL = 160,
   // so that `P` = 89 / 9e6 < 1e-5

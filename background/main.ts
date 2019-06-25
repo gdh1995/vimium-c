@@ -71,7 +71,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       , request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port) => void;
     [kFgReq.gotoSession]: BackendHandlersNS.BackendHandlers["gotoSession_"];
     [kFgReq.checkIfEnabled]: ExclusionsNS.Listener & (
-        (this: void, request: FgReq[kFgReq.checkIfEnabled], port?: Frames.Port) => void);
+        (this: void, request: FgReq[kFgReq.checkIfEnabled], port: Frames.Port) => void);
     [kFgReq.parseUpperUrl]: {
       (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl] & { execute: true }, port: Port): void;
       (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl];
@@ -295,7 +295,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     if (f & Frames.Flags.isVomnibar) { return false; }
     if (!noLog && !(f & Frames.Flags.sourceWarned)) {
       console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @ tab %o",
-        "color:red", "color:auto", info.u, info.t);
+        "color:red", "color:auto", info.u.slice(0, 128), info.t);
       (info as Writable<Frames.Sender>).f = f | Frames.Flags.sourceWarned;
     }
     return true;
@@ -382,7 +382,8 @@ Are you sure you want to continue?`);
   }
   function requireURL <k extends keyof FgReq>(request: Req.fg<k> & BgReq[kBgReq.url], ignoreHash?: true): void {
     if (Exclusions == null || Exclusions.rules_.length <= 0
-        || !(ignoreHash || Settings_.get_("exclusionListenHash", true))) {
+        || !(ignoreHash || Settings_.get_("exclusionListenHash", true))
+        || cPort.s.u.length > GlobalConsts.MaxSenderURLLength) {
       request.N = kBgReq.url;
       cPort.postMessage(request as Req.bg<kBgReq.url>);
       return;
@@ -2013,14 +2014,16 @@ Are you sure you want to continue?`);
       ref[0] = port;
     },
     /** checkIfEnabled: */ function (this: void, request: ExclusionsNS.Details | FgReq[kFgReq.checkIfEnabled]
-        , port?: Frames.Port | null): void {
+        , from_content?: Frames.Port): void {
+      let port: Frames.Port | null | undefined = from_content;
       if (!port) {
         port = indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId);
         if (!port) { return; }
       }
       const { s: sender } = port, { u: oldUrl } = sender,
-      pattern = Backend_.getExcluded_(sender.u = (request as ExclusionsNS.Details).url
-          || (request as FgReq[kFgReq.checkIfEnabled]).u
+      url1: string | undefined = (request as ExclusionsNS.Details).url,
+      pattern = Backend_.getExcluded_(sender.u = from_content ? (request as FgReq[kFgReq.checkIfEnabled]).u
+                  : url1.length > GlobalConsts.MaxSenderURLLength ? BgUtils_.limitUrlInSender_(url1) : url1
         , sender),
       status = pattern === null ? Frames.Status.enabled : pattern ? Frames.Status.partial : Frames.Status.disabled;
       if (sender.s !== status) {
@@ -2438,7 +2441,7 @@ Are you sure you want to continue?`);
       id: _fakeTabId--,
       url: "",
       incognito: false
-    };
+    }, url = Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url as string;
     if (!(Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab)) {
       sender.tab = null as never;
     }
@@ -2449,7 +2452,7 @@ Are you sure you want to continue?`);
       s: Frames.Status.enabled,
       f: Frames.Flags.blank,
       t: tab.id,
-      u: Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url as string
+      u: url.length > GlobalConsts.MaxSenderURLLength ? BgUtils_.limitUrlInSender_(url) : url
     };
   }
 
