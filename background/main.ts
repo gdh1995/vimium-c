@@ -2073,18 +2073,37 @@ Are you sure you want to continue?`);
     },
     /** execInChild: */ function (this: void, request: FgReqWithRes[kFgReq.execInChild]
         , port: Port): FgRes[kFgReq.execInChild] {
-      const ports = framesForTab[port.s.t], url = request.u;
+      const tabId = port.s.t, ports = framesForTab[tabId], url = request.u;
       if (!ports || ports.length < 3) { return false; }
       let iport: Port | null = null, i = ports.length;
       while (1 <= --i) {
         if (ports[i].s.u === url) {
-          if (iport) { return false; }
+          if (iport) { iport = null; break; }
           iport = ports[i];
         }
       }
       if (iport) {
         cKey = request.k;
         focusAndRun(request, port, iport, 1);
+      } else {
+        const nav = chrome.webNavigation;
+        nav && nav.getAllFrames({tabId: port.s.t}, function(frames): void {
+          let childId = 0, self = port.s.i;
+          for (const i of frames as NonNullable<typeof frames>) {
+            if (i.parentFrameId === self) {
+              if (childId) { childId = 0; break; }
+              childId = i.frameId;
+              break;
+            }
+          }
+          const port2 = childId && indexFrame(tabId, childId);
+          if (port2) {
+            cKey = request.k;
+            focusAndRun(request, port, port2, 1);
+          }
+          // here seems useless if to retry to inject content scripts,
+          // see https://github.com/philc/vimium/issues/3353#issuecomment-505564921
+        });
       }
       return !!iport;
     },
