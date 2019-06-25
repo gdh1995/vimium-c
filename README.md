@@ -3,7 +3,7 @@
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.75.7](https://img.shields.io/badge/release-1.75.7-orange.svg
+[![Version 1.75.8](https://img.shields.io/badge/release-1.75.8-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -59,6 +59,14 @@ __Other extensions supporting Vimium C:__
       https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 
 # Release Notes
+
+1.75.8:
+* LinkHints: smarter hinting and now `<video>` and `<audio>` are clickable
+* on Google Docs, now can press `<esc>` for a while to move focus from document content to the window
+* `removeTab` command now supports an option of `goto=""/left/right/previous`
+* click listener watcher: fix a known vulnerability in v1.75.7
+* the options page won't be dark if the option "auto-dark-mode" is unchecked
+* Firefox: the options page now shows a tip if the value of New tab URL has a mistake
 
 1.75.7:
 * LinkHints: add some new rules to exclude useless hints for container nodes
