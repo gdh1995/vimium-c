@@ -46,31 +46,21 @@ declare var VOther: BrowserType;
     return (vPort._port as Port).postMessage(request);
   }
 
-  function mapKey(this: void, /* not "" */ char: string, event: EventControlKeys): string {
-    let key = VKey.key_(event, char), mapped: string | undefined, chLower: string;
-    if (mappedKeys) {
-      mapped = mappedKeys[key];
-      key = mapped || ((mapped = mappedKeys[chLower = char.toLowerCase()])
-                        ? VKey.key_(event, char === chLower ? mapped : mapped.toUpperCase()) : key);
-    }
-    return key;
-  }
   function isEscape(event: KeyboardEvent): boolean {
     let ch: string | undefined;
     if (mappedKeys && event.keyCode !== kKeyCode.ime) {
       ch = VKey.char_(event);
-      ch = ch && mapKey(ch, event);
+      ch = ch && mappedKeys[VKey.key_(event, ch)];
     }
     return ch ? ch === "<esc>" || ch === "<c-[>" : VKey.isRawEscape_(event);
   }
-  function checkKey(char: string, code: kKeyCode, event: EventControlKeys
+  function checkKey(key: string, keyCode: kKeyCode
       ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc {
     // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
-    let key = VKey.key_(event, char);
     if (passKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
       return esc(HandlerResult.Nothing);
     }
-    mappedKeys && (key = mapKey(char, event));
+    mappedKeys !== null && (key = mappedKeys[key] || key);
     if (key === "<esc>" || key === "<c-[>") {
       return nextKeys ? (esc(HandlerResult.ExitPassMode), HandlerResult.Prevent) : HandlerResult.Esc;
     }
@@ -84,7 +74,7 @@ declare var VOther: BrowserType;
     }
     currentKeys += key;
     if (j === KeyAction.cmd) {
-      post({ H: kFgReq.key, k: currentKeys, l: code });
+      post({ H: kFgReq.key, k: currentKeys, l: keyCode });
       isCmdTriggered = 1;
       return esc(HandlerResult.Prevent);
     } else {
@@ -127,9 +117,10 @@ declare var VOther: BrowserType;
     else if (InsertMode.isActive_()) {
       const g = InsertMode.global_;
       if (g ? !g.code ? isEscape(event) : key === g.code && VKey.getKeyStat_(event) === g.stat
-          : key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
-          ? (action = checkKey(VKey.getKeyName_(event), key, event)) === HandlerResult.Esc
-          : isEscape(event)
+          : (keyChar = key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
+              ? VKey.key_(event, VKey.getKeyName_(event))
+              : isEscape(event) ? key - kKeyCode.esc ? "<c-[>" : "<esc>" : "")
+            && (action = checkKey(keyChar, key)) === HandlerResult.Esc
       ) {
         if (InsertMode.lock_ === document.body && InsertMode.lock_ || !isTop && innerHeight < 3) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
@@ -144,12 +135,12 @@ declare var VOther: BrowserType;
         || key === kKeyCode.backspace || key === kKeyCode.tab
         || key === kKeyCode.esc || key === kKeyCode.enter) {
       if (keyChar = VKey.char_(event)) {
-        action = checkKey(keyChar, key, event);
+        keyChar = VKey.key_(event, keyChar);
+        action = checkKey(keyChar, key);
         if (action === HandlerResult.Esc) {
           action = key === kKeyCode.esc ? onEscDown(event, key) : HandlerResult.Nothing;
         }
-        if (action === HandlerResult.Nothing
-            && InsertMode.suppressType_ && keyChar.length < 2 && !VKey.getKeyStat_(event)) {
+        if (action === HandlerResult.Nothing && InsertMode.suppressType_ && keyChar.length === 1) {
           action = HandlerResult.Prevent;
         }
       }
@@ -1361,7 +1352,7 @@ declare var VOther: BrowserType;
         showBorder && FrameMask.show_(FrameMaskType.ForcedSelf);
       }
     },
-    mapKey_: mapKey,
+    mapKey_ (this: void, key): string { return mappedKeys !== null && mappedKeys[key] || key; },
     scroll_ (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
