@@ -45,7 +45,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
       const uiStyles = bg.Settings_.omniPayload_.s;
       if (uiStyles && ` ${uiStyles} `.indexOf(" dark ") >= 0) {
         const style = document.createElement("style");
-        style.textContent = "body { background: #1e1e1e; color: #aaa; }";
+        style.textContent = "body { background: #202124; color: #aab0b6; }";
         (document.head as HTMLHeadElement).appendChild(style);
       }
     }

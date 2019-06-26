@@ -2254,7 +2254,7 @@ Are you sure you want to continue?`);
         let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.indexOf(toggled) >= 0;
         styles = (req.e != null ? req.e : exists) ? exists ? curStyles : curStyles + toggled
             : extSt.replace(toggled, " ");
-        styles = styles.trim();
+        styles = styles.trim().replace(BgUtils_.spacesRe_, " ");
         if (req.b === false) { payload.s = styles; return; }
       } else {
         styles = req.s;

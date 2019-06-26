@@ -107,7 +107,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         url = url.slice(a.baseHttps_ ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? -1 : void 0);
       }
     } else {
-      url = VUtils_.decodeURL_(url, decodeURIComponent).trim().replace(a._spacesRe, " ");
+      url = VUtils_.decodeURL_(url, decodeURIComponent).trim().replace(a.spacesRe_, " ");
     }
     if (keyword) {
       start = (start || 0) + keyword.length + 1;
@@ -230,7 +230,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.inputText_ = input;
     a.useInput_ = a.showing_ = false;
     a.isHttps_ = a.baseHttps_;
-    a.mode_.q = a.lastQuery_ = input && input.trim().replace(a._spacesRe, " ");
+    a.mode_.q = a.lastQuery_ = input && input.trim().replace(a.spacesRe_, " ");
     a.height_ = 0;
     a.isActive_ = true;
     // also clear @timer
@@ -750,7 +750,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     let omniStyles = Vomnibar_.styles_, toggle = ` ${req.t} `;
     omniStyles = omniStyles && ` ${omniStyles} `;
     omniStyles = omniStyles.indexOf(toggle) >= 0 ? omniStyles.replace(toggle, " ") : omniStyles + req.t;
-    omniStyles = omniStyles.trim();
+    omniStyles = omniStyles.trim().replace(Vomnibar_.spacesRe_, " ");
     Vomnibar_.styles_ = omniStyles;
     Vomnibar_.onStyleUpdate_(omniStyles);
     if (toggle && !req.c) {
@@ -775,7 +775,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         omniStyles = omniStyles.replace(key, " ");
       }
     }
-    omniStyles = omniStyles.trim();
+    omniStyles = omniStyles.trim().replace(Vomnibar_.spacesRe_, " ");
     const docEl = document.documentElement as HTMLHtmlElement;
     docEl.className !== omniStyles && (docEl.className = omniStyles);
     if (!!(Vomnibar_.mode_.f & CompletersNS.QueryFlags.MonospaceURL) !== monospaceURL) {
@@ -1008,7 +1008,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     i: 0 as 0 | 1 | 2,
     q: ""
   },
-  _spacesRe: <RegExpG> /\s+/g,
+  spacesRe_: <RegExpG> /\s+/g,
   _singleQuoteRe: <RegExpG> /'/g,
   fetch_ (): void {
     const a = Vomnibar_;
@@ -1023,7 +1023,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       } else {
         str = str.replace(a._singleQuoteRe, " ");
       }
-      str = str.replace(a._spacesRe, " ");
+      str = str.replace(a.spacesRe_, " ");
       if (str === mode.q) { return a.postUpdate_(); }
       mode.t = a.matchType_ < CompletersNS.MatchType.singleMatch || !str.startsWith(mode.q) ? a.modeType_
         : a.matchType_ === CompletersNS.MatchType.searchWanted ? str.indexOf(" ") < 0 ? "search" : a.modeType_

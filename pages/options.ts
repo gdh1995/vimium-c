@@ -794,7 +794,7 @@ Option_.all_.newTabUrl.checker_ = {
     url = url.split("?", 1)[0].split("#", 1)[0];
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
-      if ((<RegExpI> /^chrome|^(javascript|data|file):|^about:(?!newtab\/?$)/i).test(url)) {
+      if ((<RegExpI> /^chrome|^(javascript|data|file):|^about:(?!(newtab|blank)\/?$)/i).test(url)) {
         const err = `The URL "${url}" is refused by the Firefox browser to be opened by a web-extension.`;
         console.log("newTabUrl checker:", err);
         Option_.all_.newTabUrl.showError_(err);
