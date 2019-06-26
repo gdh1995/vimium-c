@@ -1591,12 +1591,14 @@ Are you sure you want to continue?`);
         // not go to the top frame here, so that a current frame can suppress keys for a while
       }
       const page = Settings_.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
+      isCurOnExt = url.startsWith(BrowserProtocol_),
       inner = forceInner || !page.startsWith(location.origin) ? Settings_.CONST_.VomnibarPageInner_ : page;
-      forceInner = (preferWeb ? url.startsWith(BrowserProtocol_) || page.startsWith("file:") && !url.startsWith("file:")
+      forceInner = forceInner ? forceInner
+        : preferWeb ? isCurOnExt || page.startsWith("file:") && !url.startsWith("file:")
           // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
           // that HTTPS refusing HTTP iframes.
           || page.startsWith("http:") && url.startsWith("https:")
-        : port.s.a) || url.startsWith(location.origin) || !!forceInner;
+        : port.s.a || isCurOnExt && !page.startsWith(url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1));
       const useInner: boolean = forceInner || page === inner || port.s.t < 0,
       options: CmdOptions[kFgCmd.vomnibar] & SafeObject = BgUtils_.extendIf_(
           BgUtils_.safer_<CmdOptions[kFgCmd.vomnibar]>({
