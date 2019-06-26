@@ -1554,6 +1554,7 @@ Completion_ = {
         hasOmniTypePrefix = true;
         queryTerms.shift();
         rawQuery = query.slice(3);
+        if (options.t !== options.o) { arr = null; }
       }
     } else {
       arr = null;
