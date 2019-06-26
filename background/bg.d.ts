@@ -184,7 +184,20 @@ declare namespace ExclusionsNS {
     pattern: string;
     passKeys: string;
   }
-  type Tester = RegExpOne | string;
+  const enum TesterType { RegExp = 1, StringPrefix = 1, _mask = "", }
+  interface BaseTester {
+    readonly type_: TesterType & number,
+    readonly value_: RegExpOne | string;
+  }
+  interface RegExpTester extends BaseTester {
+    readonly type_: TesterType.RegExp,
+    readonly value_: RegExpOne;
+  }
+  interface PrefixTester extends BaseTester {
+    readonly type_: TesterType.StringPrefix,
+    readonly value_: string;
+  }
+  type Tester = RegExpTester | PrefixTester;
   type Rules = Array<Tester | string>;
   type Details = chrome.webNavigation.WebNavigationFramedCallbackDetails;
   interface Listener {

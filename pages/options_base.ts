@@ -459,10 +459,11 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     }
     isPatternMatched_ (pattern: string) {
       if (!pattern) { return false; }
-      const rule = (bgExclusions.testers_ as EnsureNonNull<typeof bgExclusions.testers_>)[pattern];
-      if (typeof rule === "string"
-          ? !url.lastIndexOf(rule, 0) && (!topUrl || !topUrl.lastIndexOf(rule, 0))
-          : rule.test(url) && (!topUrl || rule.test(topUrl))) {
+      const rule = bgExclusions.testers_[pattern] as ExclusionsNS.Tester;
+      if (rule.type_ === ExclusionsNS.TesterType.StringPrefix
+          ? !url.lastIndexOf(rule.value_ as string, 0) && (!topUrl || !topUrl.lastIndexOf(rule.value_ as string, 0))
+          : (rule as ExclusionsNS.RegExpTester).value_.test(url)
+            && (!topUrl || (rule as ExclusionsNS.RegExpTester).value_.test(topUrl))) {
         return true;
       }
       return false;
@@ -491,7 +492,9 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
         return;
       }
       const parsedPattern = bgExclusions.getRe_(pattern), patternElement = vnode.$pattern_;
-      if (typeof parsedPattern === "string" ? !url.lastIndexOf(parsedPattern, 0) : parsedPattern.test(url)) {
+      if (parsedPattern.type_ === ExclusionsNS.TesterType.StringPrefix
+          ? !url.lastIndexOf((parsedPattern as ExclusionsNS.PrefixTester).value_, 0)
+          : (parsedPattern as ExclusionsNS.RegExpTester).value_.test(url)) {
         patternElement.title = patternElement.style.color = "";
       } else {
         patternElement.style.color = "red";
@@ -631,7 +634,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     (window as WindowEx).exclusions = exclusions;
   }
   window.onunload = function (): void {
-    bgExclusions.testers_ = null;
+    bgExclusions.testers_ = null as never;
     BG_.BgUtils_.GC_(-1);
   };
   BG_.BgUtils_.GC_(1);

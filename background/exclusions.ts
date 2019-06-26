@@ -2,10 +2,9 @@ if (Settings_.get_("vimSync")
     || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend_.onInit_)
         && !Settings_.updateHooks_.exclusionRules)) {
 var Exclusions = {
-  testers_: null as SafeDict<ExclusionsNS.Tester> | null,
+  testers_: null as never as SafeDict<ExclusionsNS.Tester>,
   getRe_ (pattern: string): ExclusionsNS.Tester {
-    type TesterDict = NonNullable<typeof Exclusions.testers_>;
-    let cur: ExclusionsNS.Tester | undefined = (this.testers_ as TesterDict)[pattern], re: RegExp | null | undefined;
+    let cur: ExclusionsNS.Tester | undefined = this.testers_[pattern], re: RegExp | null | undefined;
     if (cur) { return cur; }
     if (pattern[0] === "^") {
       if (re = BgUtils_.makeRegexp_(pattern.startsWith("^$|") ? pattern.slice(3) : pattern, "", false)) {
@@ -14,7 +13,8 @@ var Exclusions = {
         console.log("Failed in creating an RegExp from %o", pattern);
       }
     }
-    return (this.testers_ as TesterDict)[pattern] = <typeof cur> re || pattern.slice(1);
+    return this.testers_[pattern] = re ? { type_: ExclusionsNS.TesterType.RegExp, value_: re as RegExpOne }
+        : { type_: ExclusionsNS.TesterType.StringPrefix, value_: pattern.slice(1) };
   },
   _listening: false,
   _listeningHash: false,
@@ -29,15 +29,17 @@ var Exclusions = {
     }
     this.testers_ || (this.testers_ = BgUtils_.safeObj_<ExclusionsNS.Tester>());
     this.rules_ = this.format_(rules);
-    this.testers_ = null;
+    this.testers_ = null as never;
     Backend_.getExcluded_ = this.GetPassKeys_;
     this.updateListeners_();
   },
   GetPassKeys_ (this: void, url: string, sender: Frames.Sender): string | null {
     let rules = Exclusions.rules_, matchedKeys = "";
     for (let _i = 0, _len = rules.length; _i < _len; _i += 2) {
-      const rule = rules[_i] as ExclusionsNS.Tester;
-      if (typeof rule === "string" ? url.startsWith(rule) : rule.test(url)) {
+      const rule: ExclusionsNS.Tester = rules[_i] as Exclude<(typeof rules)[number], string>;
+      if (rule.type_ === ExclusionsNS.TesterType.StringPrefix
+          ? url.startsWith((rule as ExclusionsNS.PrefixTester).value_)
+          : (rule as ExclusionsNS.RegExpTester).value_.test(url)) {
         const str = rules[_i + 1] as string;
         if (str.length === 0 || Exclusions.onlyFirstMatch_ || str[0] === "^" && str.length > 2) { return str; }
         matchedKeys += str;

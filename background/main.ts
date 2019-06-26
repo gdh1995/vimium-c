@@ -2089,12 +2089,12 @@ Are you sure you want to continue?`);
         focusAndRun(request, port, iport, 1);
       } else {
         const nav = chrome.webNavigation;
-        nav && nav.getAllFrames({tabId: port.s.t}, function(frames): void {
+        nav && nav.getAllFrames({tabId: port.s.t}, function (frames): void {
           let childId = 0, self = port.s.i;
-          for (const i of frames as NonNullable<typeof frames>) {
-            if (i.parentFrameId === self) {
+          for (const i1 of frames as NonNullable<typeof frames>) {
+            if (i1.parentFrameId === self) {
               if (childId) { childId = 0; break; }
-              childId = i.frameId;
+              childId = i1.frameId;
               break;
             }
           }
