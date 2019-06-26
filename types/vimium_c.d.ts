@@ -363,7 +363,7 @@ declare const enum GlobalConsts {
   MaxFindHistory = 50,
   TimeOfSuppressingTailKeydowns = 200,
   CommandCountLimit = 9999,
-  MediaWatchInterval = 30_000, // 30 seconds
+  MediaWatchInterval = 60_000, // 60 seconds - chrome.alarms only accepts an interval >= 1min, so do us
   MaxHistoryURLLength = 2_000, // to avoid data: URLs and malformed webpages
   MaxSenderURLLength = 4_000, // if too long, keep the first `MaxSenderURLLength` characters and append a "..."
   TrimmedURLLengthForTooLongURL = 320,
