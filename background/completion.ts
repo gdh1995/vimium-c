@@ -90,12 +90,10 @@ const enum FirstQuery {
 }
 
 interface SuggestionConstructor {
+  // pass enough arguments, so that it runs faster
   new (type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
        computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number,
        extraData: number): Suggestion;
-  new (type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
-       computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion) => number
-      ): Suggestion;
 }
 
 type CachedRegExp = (RegExpOne | RegExpI) & RegExpSearchable<0>;
@@ -129,7 +127,7 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
 const Suggestion: SuggestionConstructor = function Suggestion_(
     this: CompletersNS.WritableCoreSuggestion,
     type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
-    computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data?: number) => number, extraData?: number
+    computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number, extraData: number
     ) {
   this.type = type;
   this.url = url;
@@ -253,6 +251,7 @@ function ComputeRelevancy(this: void, text: string, title: string, lastVisitTime
     wordRelevancy = RankingUtils.wordRelevancy_(text, title);
   return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
 }
+function get2ndArg (_s: CompletersNS.CoreSuggestion, score: number): number { return score; }
 
 const bookmarkEngine = {
   bookmarks_: [] as Bookmark[],
@@ -331,10 +330,10 @@ const bookmarkEngine = {
       clearTimeout(bookmarkEngine._timer);
       bookmarkEngine._timer = 0;
     }
-    chrome.bookmarks.getTree(bookmarkEngine.readTree_.bind(bookmarkEngine));
+    chrome.bookmarks.getTree(bookmarkEngine.readTree_);
   },
-  readTree_ (tree: chrome.bookmarks.BookmarkTreeNode[]): void {
-    const a = this;
+  readTree_ (this: void, tree: chrome.bookmarks.BookmarkTreeNode[]): void {
+    const a = bookmarkEngine;
     a.status_ = BookmarkStatus.inited;
     a.bookmarks_ = [];
     a.dirs_ = [];
@@ -501,7 +500,6 @@ historyEngine = {
       curMinScore = results[maxNum];
     }
     matchedTotal += matched;
-    const getExtra = this.getExtra_;
     if (queryType === FirstQuery.history) {
       i = offset * 2;
       offset = 0;
@@ -513,7 +511,7 @@ historyEngine = {
       if (score <= 0) { break; }
       const item = history[results[i + 1]];
       if (item.url !== domainToSkip) {
-        sugs.push(new Suggestion("history", item.url, item.text, item.title, getExtra, score));
+        sugs.push(new Suggestion("history", item.url, item.text, item.title, get2ndArg, score));
       }
     }
     Decoder.continueToWork_();
@@ -575,11 +573,10 @@ historyEngine = {
   } as (historys: UrlItem[]) => void,
   MakeSuggestion_ (e: UrlItem, i: number, arr: Array<UrlItem | Suggestion>): void {
     const u = e.url, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title || "",
-      historyEngine.getExtra_, (99 - i) / 100);
+      get2ndArg, (99 - i) / 100);
     e.sessionId && (o.sessionId = e.sessionId, o.label = "&#8617;");
     arr[i] = o;
   },
-  getExtra_ (_s: CompletersNS.CoreSuggestion, score: number): number { return score; },
   urlNotIn_ (this: Dict<number>, i: UrlItem): boolean {
     return !(i.url in this);
   }
@@ -646,7 +643,8 @@ domainEngine = {
         offset--;
       } else {
         autoSelect = isMainPart || autoSelect;
-        sug = new Suggestion("domain", url, word === queryTerms[0] ? result : result + "/", "", this.compute2_);
+        sug = new Suggestion("domain", url, word === queryTerms[0] ? result : result + "/", "",
+            get2ndArg, 2);
         prepareHtml(sug);
         const ind = HistoryCache.binarySearch_(url), item = (HistoryCache.history_ as HistoryItem[])[ind];
         item && (showThoseInBlacklist || item.visible) && (sug.title = BgUtils_.escapeText_(item.title));
@@ -680,8 +678,7 @@ domainEngine = {
     else { return null; }
     url = url.slice(d, url.indexOf("/", d));
     return { domain: url !== "__proto__" ? url : ".__proto__", schema: d };
-  },
-  compute2_ (): number { return 2; }
+  }
 },
 
 tabEngine = {
@@ -827,7 +824,7 @@ searchEngine = {
       url = BgUtils_.convertToUrl_(url, null, Urls.WorkType.KeepAll);
     }
     sug = new Suggestion("search", url, text
-      , pattern.name + ": " + q.join(" "), searchEngine.compute9_) as SearchSuggestion;
+      , pattern.name + ": " + q.join(" "), get2ndArg, 9) as SearchSuggestion;
 
     if (q.length > 0) {
       sug.text = searchEngine.makeText_(text, indexes);
@@ -852,7 +849,7 @@ searchEngine = {
     if (!result) {
       return Completers.next_([output]);
     }
-    const sug = new Suggestion("math", "vimium://copy " + result, result, result, this.compute9_);
+    const sug = new Suggestion("math", "vimium://copy " + result, result, result, get2ndArg, 9);
     --sug.relevancy;
     sug.title = "<match style=\"text-decoration: none;\">" + BgUtils_.escapeText_(sug.title) + "<match>";
     sug.textSplit = BgUtils_.escapeText_(arr[2]);
@@ -893,7 +890,7 @@ searchEngine = {
     const url = BgUtils_.convertToUrl_(keyword, null, Urls.WorkType.KeepAll),
     isSearch = BgUtils_.lastUrlType_ === Urls.Type.Search,
     sug = new Suggestion("search", url, text || BgUtils_.DecodeURLPart_(shortenUrl(url))
-      , "", this.compute9_) as SearchSuggestion;
+      , "", get2ndArg, 9) as SearchSuggestion;
     sug.textSplit = BgUtils_.escapeText_(sug.text);
     sug.title = isSearch ? "~: " + highlight(keyword, [0, keyword.length]) : BgUtils_.escapeText_(keyword);
     sug.pattern = isSearch ? "~" : "";
@@ -908,8 +905,7 @@ searchEngine = {
     Settings_.set_("searchKeywords", "\n" + arr.join("\n"));
     searchEngine.searchKeywordMaxLength_ = max;
     searchEngine.timer_ = 0;
-  },
-  compute9_ (this: void): number { return 9; }
+  }
 },
 
 Completers = {
