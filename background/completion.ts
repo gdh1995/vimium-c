@@ -14,6 +14,7 @@ const enum TimeEnums {
   timeCalibrator = 1814400000, // 21 days
   futureTimeTolerance = 1.000165, // 1 + 5 * 60 * 1000 / timeCalibrator, // +5min
   futureTimeScore = 0.666446, // (1 - 5 * 60 * 1000 / timeCalibrator) ** 2 * RankingEnums.recCalibrator, // -5min
+  bookmarkFakeVisitTime = 1000 * 60 * 5,
 }
 const enum InnerConsts {
   bookmarkBasicDelay = 1000 * 60, bookmarkFurtherDelay = bookmarkBasicDelay / 2,
@@ -256,7 +257,7 @@ function get2ndArg (_s: CompletersNS.CoreSuggestion, score: number): number { re
 const bookmarkEngine = {
   bookmarks_: [] as Bookmark[],
   dirs_: [] as string[],
-  currentSearch_: null as CompletersNS.QueryStatus | null,
+  currentSearch_: null as [CompletersNS.QueryStatus, number] | null,
   path_: "",
   depth_: 0,
   status_: BookmarkStatus.notInited,
@@ -265,14 +266,14 @@ const bookmarkEngine = {
       Completers.next_([]);
       if (index !== 0) { return; }
     } else if (bookmarkEngine.status_ === BookmarkStatus.inited) {
-      return bookmarkEngine.performSearch_();
+      return bookmarkEngine.performSearch_(index);
     } else {
-      bookmarkEngine.currentSearch_ = query;
+      bookmarkEngine.currentSearch_ = [query, index];
     }
     if (bookmarkEngine.status_ === BookmarkStatus.notInited) { return bookmarkEngine.refresh_(); }
   },
   StartsWithSlash_ (str: string): boolean { return str.charCodeAt(0) === kCharCode.slash; },
-  performSearch_ (): void {
+  performSearch_ (completerIndex: number): void {
     const isPath = queryTerms.some(this.StartsWithSlash_);
     const arr = this.bookmarks_, len = arr.length;
     let results: Array<[number, number]> = [];
@@ -294,11 +295,18 @@ const bookmarkEngine = {
         results.length = maxResults;
       }
     }
-    let score = 0, c = function () { return score; }, results2: Suggestion[] = [];
-    for (const ind of results) {
-      const i = arr[ind[1]];
-      score = -ind[0];
-      const sug = new Suggestion("bookm", i.url, i.text, isPath ? i.path : i.title, c);
+    const results2: Suggestion[] = [],
+    /** inline of {@link #RankingUtils.recencyScore_} */
+    fakeTimeScore = completerIndex !== 2 ? 0
+      : -1 * (1 - TimeEnums.bookmarkFakeVisitTime / TimeEnums.timeCalibrator)
+        * (1 - TimeEnums.bookmarkFakeVisitTime / TimeEnums.timeCalibrator) * RankingEnums.recCalibrator;
+    for (let [score, ind] of results) {
+      const i = arr[ind];
+      if (fakeTimeScore) {
+        /** inline of {@link #ComputeRelevancy} */
+        score = fakeTimeScore > score ? score : (score + fakeTimeScore) / 2;
+      }
+      const sug = new Suggestion("bookm", i.url, i.text, isPath ? i.path : i.title, get2ndArg, -score);
       results2.push(sug);
       if (i.jsUrl === null) { continue; }
       (sug as CompletersNS.WritableCoreSuggestion).url = (i as JSBookmark).jsUrl;
@@ -345,8 +353,8 @@ const bookmarkEngine = {
       setTimeout(a.Listen_, 0);
       a.Listen_ = null;
     }
-    if (query && !query.o) {
-      return a.performSearch_();
+    if (query && !query[0].o) {
+      return a.performSearch_(query[1]);
     }
   },
   traverseBookmark_ (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
@@ -1050,6 +1058,7 @@ knownCs: CompletersMap & SafeObject = {
   domain: [domainEngine],
   history: [historyEngine],
   omni: [searchEngine, domainEngine, historyEngine, bookmarkEngine],
+  bomni: [searchEngine, domainEngine, bookmarkEngine, historyEngine],
   search: [searchEngine],
   tab: [tabEngine]
 },
@@ -1544,6 +1553,7 @@ Completion_ = {
       str = str[1];
       arr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
         : str === "t" || str === "w" ? (wantInCurrentWindow = str === "w", knownCs.tab)
+        : str === "B" ? knownCs.bomni
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (arr) {
         autoSelect = arr.length === 1;

@@ -349,7 +349,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   parsed_ ({ i: id, s: search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
     const line: SuggestionEx = Vomnibar_.completions_[id] as SuggestionEx;
-    line.parsed = search ? (Vomnibar_.modeType_ !== "omni" ? ":o " : "") + search.k + " " + search.u + " " : line.text;
+    line.parsed = search ? (Vomnibar_.modeType_.endsWith("omni") ? "" : ":o ")
+        + search.k + " " + search.u + " " : line.text;
     if (id === Vomnibar_.selection_) {
       return Vomnibar_._updateInput(line, line.parsed);
     }

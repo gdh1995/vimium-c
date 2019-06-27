@@ -19,7 +19,7 @@ declare namespace CompletersNS {
      */
     searching_ = -2,
   }
-  type ValidTypes = "bookm" | "domain" | "history" | "omni" | "search" | "tab";
+  type ValidTypes = "bookm" | "domain" | "history" | "omni" | "bomni" | "search" | "tab";
   /**
    * "math" can not be the first suggestion, which is limited by omnibox handlers
    */
