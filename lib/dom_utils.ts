@@ -6,6 +6,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinES6$ForOf
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
 }
+declare var VOther: BrowserType;
+
 var VDom = {
   UI: null as never as DomUI,
   cache_: null as never as EnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
@@ -191,14 +193,14 @@ var VDom = {
       if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
       el = frameElement;
     }
-    if (el && (!(Build.BTypes & ~BrowserType.Firefox) || hasKnownOnFireFox || VDom.cache_.b === BrowserType.Firefox)) {
+    if (el && (!(Build.BTypes & ~BrowserType.Firefox) || hasKnownOnFireFox || VOther === BrowserType.Firefox)) {
       VDom.frameElement_ = () => el;
     }
     return el;
   },
   /** Note: this function needs to be safer */
   getWndCore_: (Build.BTypes & BrowserType.Firefox ? function (anotherWnd, ignoreSec): ContentWindowCore | 0 | void {
-    if (!(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VDom.cache_.b === BrowserType.Firefox) {
+    if (!(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VOther === BrowserType.Firefox) {
       if (!BuildStr.RandomReq || !BuildStr.RandomRes) { return; }
       try {
         let core: ReturnType<SandboxGetterFunc>,
@@ -225,7 +227,7 @@ var VDom = {
       return;
     }
     // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
-    let isFF = !(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VDom.cache_.b === BrowserType.Firefox,
+    let isFF = !(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VOther === BrowserType.Firefox,
     core = !(Build.BTypes & ~BrowserType.Firefox) || isFF ? VDom.getWndCore_(parent as Window, ignoreSec)
         : parent as Window;
     if ((!(Build.BTypes & ~BrowserType.Firefox) || isFF) && core) {
@@ -472,11 +474,11 @@ var VDom = {
     a.dbZoom_ = Build.BTypes & ~BrowserType.Firefox ? zoom * zoom2 : 1;
     let x = !stacking ? float(st.marginLeft)
           : !(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && a.cache_.b === BrowserType.Firefox
+            || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
           ? -float(st.borderLeftWidth) : 0 | -box.clientLeft
       , y = !stacking ? float(st.marginTop)
           : !(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && a.cache_.b === BrowserType.Firefox
+            || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
           ? -float(st.borderTopWidth ) : 0 | -box.clientTop;
     x = x * scale - rect.left, y = y * scale - rect.top;
     // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)

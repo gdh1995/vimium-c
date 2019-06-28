@@ -78,7 +78,7 @@ VDom.UI = {
     const style = parent.style, zoom = VDom.bZoom_ / VDom.dScale_,
     left = offset[0] + "px", top = offset[1] + "px";
     if ((!(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && VDom.cache_.b === BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
         && zoom - 1) {
       style.cssText = `left:0;top:0;transform:scale(${zoom})translate(${left},${top})`;
     } else {
@@ -107,7 +107,7 @@ VDom.UI = {
     if (el || event) {
       const func = (el && event !== 2 ? addEventListener : removeEventListener), name = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.Chrome) || VDom.cache_.b === BrowserType.Chrome)) {
+          && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
         func("webkit" + name, UI.adjust_, true);
       }
       if (!(Build.BTypes & BrowserType.Chrome)
@@ -238,7 +238,7 @@ VDom.UI = {
     rect || (rect = a.getVisibleClientRect_(element));
     const center = a.center_(rect);
     if (Build.BTypes & BrowserType.Chrome
-        && (!(Build.BTypes & ~BrowserType.Chrome) || a.cache_.b === BrowserType.Chrome)
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
         && (touchMode || touchMode == null)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
             || a.cache_.v >= BrowserVer.MinEnsuredTouchEventConstructor)
@@ -266,7 +266,7 @@ VDom.UI = {
       FixButNotDispatch = 2,
     }
     let result: ActionType = ActionType.OnlyDispatch;
-    if ((!(Build.BTypes & ~BrowserType.Firefox) || a.cache_.b === BrowserType.Firefox)
+    if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && modifiers && !modifiers.altKey_
         && a.htmlTag_(element) === "a" && (element as HTMLAnchorElement).href
         && ((element as HTMLAnchorElement).target === "_blank" || modifiers.ctrlKey_ || modifiers.metaKey_)) {

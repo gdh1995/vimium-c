@@ -107,7 +107,7 @@ var VFind = {
         VEvent.OnWndFocus_();
       }
       Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.b === BrowserType.Firefox)
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         || VKey.Stop_(event);
     }, t);
     box.onload = later ? null as never : function (): void {
@@ -498,7 +498,7 @@ var VFind = {
       }
     }
     if (ww && (isRe || !(Build.BTypes & BrowserType.Chrome)
-              || ((Build.BTypes & ~BrowserType.Chrome) && VDom.cache_.b !== BrowserType.Chrome)
+              || ((Build.BTypes & ~BrowserType.Chrome) && VOther !== BrowserType.Chrome)
         )) {
       query = B + query.replace(a._bslashRe, "\\").replace(a._escapeAllRe, "\\$&") + B;
       ww = false;
@@ -582,7 +582,7 @@ var VFind = {
     back && (count = -count);
     const isRe = a.isRegex_, pR = a.parsedRegexp_;
     const focusHUD = !!(Build.BTypes & BrowserType.Firefox)
-      && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.b === BrowserType.Firefox)
+      && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
       && a.isActive_ && a.box_.contentDocument.hasFocus();
     do {
       q = query != null ? query : isRe ? a.getNextQueryFromRegexMatches_(back) : a.parsedQuery_;
