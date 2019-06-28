@@ -20,7 +20,6 @@ var VDom = {
   docSelectable_: true,
   docNotCompleteWhenVimiumIniting_: document.readyState !== "complete",
   unsafeFramesetTag_: "" as "frameset" | "",
-  selectorToQueryAll_: Build.BTypes & ~BrowserType.Firefox ? ":not(form)" : "*",
 
   /** DOM-compatibility section */
 

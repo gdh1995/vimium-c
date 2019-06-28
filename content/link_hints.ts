@@ -553,11 +553,17 @@ var VHints = {
         || !Build.NDEBUG && isInAnElement && wholeDoc as {} as Element
         || D,
     isD = box === D,
+    d = VDom,
     querySelectorAll = Build.BTypes & ~BrowserType.Firefox
-      ? isD ? D.querySelectorAll : Element.prototype.querySelectorAll : box.querySelectorAll;
+      ? /* just smaller code */ (isD ? D : Element.prototype).querySelectorAll : box.querySelectorAll;
     wantClickable && Sc.getScale_();
     let list: HintsNS.ElementList | null = querySelectorAll.call(box
-        , Build.BTypes & ~BrowserType.Firefox && matchAll ? VDom.selectorToQueryAll_ : query);
+        , Build.BTypes & ~BrowserType.Firefox && matchAll ? ":not(form)" : query);
+    if (Build.BTypes & BrowserType.Chrome
+        && d.unsafeFramesetTag_ && matchAll
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
+      list = a.excludeFramesets_(list, querySelectorAll.call(box, d.unsafeFramesetTag_));
+    }
     if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
       list = a.getElementsInViewPort_(list);
     }
@@ -583,12 +589,12 @@ var VHints = {
       }
     }
     list = null;
-    const uiRoot = VDom.UI.UI;
+    const uiRoot = d.UI.UI;
     if (uiRoot
         && ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-          || uiRoot !== VDom.UI.box_)
+          || uiRoot !== d.UI.box_)
         && !notWantVUI
         && ( !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0)
           || (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
@@ -597,7 +603,7 @@ var VHints = {
           || uiRoot.mode === "closed"
           || !matchAll && a.queryInDeep_ !== DeepQueryType.InDeep)
         ) {
-      const d = VDom, z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
+      const z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
       if (bz !== 1 && isD) {
         d.dbZoom_ = z / bz;
         d.prepareCrop_();
@@ -624,6 +630,19 @@ var VHints = {
     (key: string, filter: HintsNS.Filter<SafeHTMLElement>, notWantVUI?: true, wholeDoc?: true): SafeHTMLElement[];
     (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: boolean): Hint[];
   },
+  excludeFramesets_: Build.BTypes & BrowserType.Chrome
+      ? function (list: HintsNS.ElementList, framesets: NodeListOf<Element>): HintsNS.ElementList {
+    if (framesets.length > 0) {
+      list = [].slice.call(list);
+      for (let unsafeEl of framesets) {
+        let i = list.indexOf(unsafeEl);
+        if (i >= 0) {
+          list.splice(i);
+        }
+      }
+    }
+    return list;
+  } : 0 as never,
   getElementsInViewPort_ (list: HintsNS.ElementList): HintsNS.ElementList {
     const result: Element[] = [], height = innerHeight;
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
@@ -642,12 +661,16 @@ var VHints = {
     return result.length > 12 ? result : list;
   },
   detectMore_<T extends Hint | Element> (element: SafeHTMLElement, func: HintsNS.Filter<T>, dest: T[]): boolean | void {
-    ([].forEach as HintsNS.ElementIterator<T>).call(
-      (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+    let shadowRoot = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-        ? element.webkitShadowRoot as ShadowRoot : element.shadowRoot as ShadowRoot
-      ).querySelectorAll(Build.BTypes & ~BrowserType.Firefox ? VDom.selectorToQueryAll_ : "*"),
-      func, dest);
+        ? element.webkitShadowRoot as ShadowRoot : element.shadowRoot as ShadowRoot,
+    list: HintsNS.ElementList = shadowRoot.querySelectorAll(Build.BTypes & ~BrowserType.Firefox ? ":not(form)" : "*");
+    if (Build.BTypes & BrowserType.Chrome
+        && VDom.unsafeFramesetTag_
+        && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
+      list = this.excludeFramesets_(list, shadowRoot.querySelectorAll(VDom.unsafeFramesetTag_));
+    }
+    ([].forEach as HintsNS.ElementIterator<T>).call(list, func, dest);
   },
   deduplicate_ (list: Hint[]): void {
     let i = list.length, j: number, k: ClickType, s: string;

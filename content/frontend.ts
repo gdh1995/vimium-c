@@ -988,12 +988,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
           && browserVer < BrowserVer.MinFramesetHasNoNamedGetter) {
         D.unsafeFramesetTag_ = "frameset";
-        D.selectorToQueryAll_ = ":not(form,frameset)";
       }
       if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {
         D.notSafe_ = (_el): _el is HTMLFormElement => false;
-        D.selectorToQueryAll_ = "*";
         if (Build.MinFFVer >= FirefoxBrowserVer.Min$globalThis) {
           (globalThis as any as Writable<ContentWindowCore>).VSec = load.s as NonNullable<typeof load.s>;
         } else {
