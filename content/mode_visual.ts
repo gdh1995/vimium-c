@@ -173,7 +173,8 @@ var VVisual = {
       a.resetKeys_();
       return i === kKeyCode.ime || i === kKeyCode.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    let key = VEvent.mapKey_(ch, event)
+    let key0 = VKey.key_(event, ch)
+      , key = VEvent.mapKey_(key0)
       , obj: SafeDict<VisualAction> | null | VisualAction | undefined;
     if (obj = a.currentSeconds_) {
       obj = obj[key];
@@ -193,9 +194,7 @@ var VVisual = {
       count = a.currentCount_;
       a.currentCount_ = 0;
     }
-    if (obj == null) {
-      return ch.length === 1 && !VKey.getKeyStat_(event) ? HandlerResult.Prevent : HandlerResult.Suppress;
-    }
+    if (obj == null) { return ch.length === 1 && ch === key0 ? HandlerResult.Prevent : HandlerResult.Suppress; }
     VKey.prevent_(event);
     a.di_ = VisualModeNS.kDir.unknown; // make @di safe even when a user modifies the selection
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
