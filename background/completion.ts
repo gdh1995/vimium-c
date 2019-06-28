@@ -1,4 +1,5 @@
 import MatchType = CompletersNS.MatchType;
+import SugType = CompletersNS.SugType;
 
 BgUtils_.timeout_(200, function (): void {
 type Domain = CompletersNS.Domain;
@@ -72,10 +73,6 @@ interface TextTab extends chrome.tabs.Tab {
 interface Completer {
   filter_ (query: CompletersNS.QueryStatus, index: number): void;
 }
-interface PreCompleter extends Completer {
-  preFilter_ (query: CompletersNS.QueryStatus, failIfNull: true): void | true;
-  preFilter_ (query: CompletersNS.QueryStatus): void;
-}
 interface QueryTerms extends Array<string> {
 }
 
@@ -123,6 +120,7 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     wantInCurrentWindow = false,
     hasOmniTypePrefix = false,
     domainToSkip = "",
+    allExpectedTypes = SugType.Empty,
     phraseBlacklist: string[] | null = null, showThoseInBlacklist: boolean = true;
 
 const Suggestion: SuggestionConstructor = function Suggestion_(
@@ -262,8 +260,8 @@ const bookmarkEngine = {
   depth_: 0,
   status_: BookmarkStatus.notInited,
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if (queryTerms.length === 0) {
-      Completers.next_([]);
+    if (queryTerms.length === 0 || !(allExpectedTypes & SugType.bookmark)) {
+      Completers.next_([], SugType.bookmark);
       if (index !== 0) { return; }
     } else if (bookmarkEngine.status_ === BookmarkStatus.inited) {
       return bookmarkEngine.performSearch_(index);
@@ -314,7 +312,7 @@ const bookmarkEngine = {
       sug.textSplit = "javascript: \u2026";
       sug.text = (i as JSBookmark).jsText;
     }
-    return Completers.next_(results2);
+    Completers.next_(results2, SugType.bookmark);
   },
   Listen_: function (): void {
     const bBm = chrome.bookmarks, { Delay_: listener, Expire_: Expire } = bookmarkEngine;
@@ -449,18 +447,19 @@ const bookmarkEngine = {
 
 historyEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if (!chrome.history) { return Completers.next_([]); }
+    if (Build.BTypes & BrowserType.Edge && !chrome.history
+        || !(allExpectedTypes & SugType.history)) { return Completers.next_([], SugType.history); }
     const history = HistoryCache.history_;
     if (queryType === FirstQuery.waitFirst) {
       queryType = queryTerms.length === 0 || index === 0 ? FirstQuery.history : FirstQuery.historyIncluded;
     }
     if (queryTerms.length > 0) {
       if (history) {
-        return Completers.next_(historyEngine.quickSearch_(history));
+        return Completers.next_(historyEngine.quickSearch_(history), SugType.history);
       }
       return HistoryCache.use_(function (historyList): void {
         if (query.o) { return; }
-        return Completers.next_(historyEngine.quickSearch_(historyList));
+        return Completers.next_(historyEngine.quickSearch_(historyList), SugType.history);
       });
     }
     if (history) {
@@ -577,7 +576,7 @@ historyEngine = {
     historys.forEach((this as typeof historyEngine).MakeSuggestion_);
     offset = 0;
     Decoder.continueToWork_();
-    return Completers.next_(historys as Suggestion[]);
+    Completers.next_(historys as Suggestion[], SugType.history);
   } as (historys: UrlItem[]) => void,
   MakeSuggestion_ (e: UrlItem, i: number, arr: Array<UrlItem | Suggestion>): void {
     const u = e.url, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title || "",
@@ -594,15 +593,16 @@ domainEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
     let i: number;
     if (queryTerms.length !== 1 || queryType === FirstQuery.searchEngines
+        || !(allExpectedTypes & SugType.domain)
         || (i = queryTerms[0].indexOf("/") + 1) && i < queryTerms[0].length) {
-      return Completers.next_([]);
+      return Completers.next_([], SugType.domain);
     }
     const cache = HistoryCache;
     if (cache.domains_) { /* empty */ }
     else if (cache.history_) {
       this.refresh_(cache.history_);
     } else {
-      return index > 0 ? Completers.next_([]) : cache.use_(function () {
+      return index > 0 ? Completers.next_([], SugType.domain) : cache.use_(function () {
         if (query.o) { return; }
         return domainEngine.filter_(query, 0);
       });
@@ -660,7 +660,7 @@ domainEngine = {
       }
     }
     RankingUtils.maxScoreP_ = p;
-    return Completers.next_(sug ? [sug] : []);
+    Completers.next_(sug ? [sug] : [], SugType.domain);
   },
   refresh_ (history: HistoryItem[]): void {
     this.refresh_ = null as never;
@@ -691,6 +691,9 @@ domainEngine = {
 
 tabEngine = {
   filter_ (query: CompletersNS.QueryStatus): void {
+    if (!(allExpectedTypes & SugType.tab)) { // just in case of logic in the future
+      return Completers.next_([], SugType.tab);
+    }
     Completers.requireNormalOrIncognito_(this.performSearch_, query);
   },
   performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
@@ -715,7 +718,7 @@ tabEngine = {
       } else {
         offset -= tabs.length;
       }
-      return Completers.next_(suggestions);
+      return Completers.next_(suggestions, SugType.tab);
     }
     wndIds = wndIds.sort(tabEngine.SortNumbers_);
     const c = noFilter ? tabEngine.computeRecency_ : ComputeWordRelevancy;
@@ -751,7 +754,7 @@ tabEngine = {
       offset = 0;
     }
     Decoder.continueToWork_();
-    return Completers.next_(suggestions);
+    Completers.next_(suggestions, SugType.tab);
   },
   SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
   computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
@@ -763,8 +766,11 @@ searchEngine = {
   _nestedEvalCounter: 0,
   filter_: BgUtils_.blank_,
   preFilter_ (query: CompletersNS.QueryStatus, failIfNull?: true): void | true {
+    if (!(allExpectedTypes & SugType.search)) {
+      return Completers.next_([], SugType.search);
+    }
     let sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
-       pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined;
+       pattern: Search.Engine | null | undefined, promise: Promise<Urls.BaseEvalResult> | undefined;
     if (q.length === 0) { /* empty */ }
     else if (failIfNull !== true && keyword[0] === "\\" && keyword[1] !== "\\") {
       if (keyword.length > 1) {
@@ -778,9 +784,9 @@ searchEngine = {
       maxResults--;
       matchedTotal++;
       showThoseInBlacklist = showThoseInBlacklist && BlacklistFilter.IsExpectingHidden_([keyword]);
-      return Completers.next_([sug]);
+      return Completers.next_([sug], SugType.search);
     } else {
-      pattern = Settings_.cache_.searchEngineMap[keyword];
+      pattern = Settings_.cache_.searchEngineMap[keyword as "__proto__"] as Search.Engine | null | undefined;
     }
     if (failIfNull === true) {
       if (!pattern) { return true; }
@@ -788,7 +794,7 @@ searchEngine = {
       if (matchType === MatchType.plain && q.length <= 1) {
         matchType = q.length ? searchEngine.calcNextMatchType_() : MatchType.reset;
       }
-      return Completers.next_([]);
+      return Completers.next_([], SugType.search);
     } else {
       autoSelect = true;
       maxResults--;
@@ -847,7 +853,7 @@ searchEngine = {
     sug.pattern = pattern.name;
 
     if (!promise) {
-      return Completers.next_([sug]);
+      return Completers.next_([sug], SugType.search);
     }
     promise.then(searchEngine.onPrimose_.bind(searchEngine, query, sug));
   },
@@ -855,15 +861,15 @@ searchEngine = {
     if (query.o) { return; }
     const result = arr[0];
     if (!result) {
-      return Completers.next_([output]);
+      return Completers.next_([output], SugType.search);
     }
     const sug = new Suggestion("math", "vimium://copy " + result, result, result, get2ndArg, 9);
     --sug.relevancy;
-    sug.title = "<match style=\"text-decoration: none;\">" + BgUtils_.escapeText_(sug.title) + "<match>";
+    sug.title = `<match style="text-decoration: none;">${BgUtils_.escapeText_(sug.title)}<match>`;
     sug.textSplit = BgUtils_.escapeText_(arr[2]);
     maxResults--;
     matchedTotal++;
-    return Completers.next_([output, sug]);
+    Completers.next_([output, sug], SugType.search);
   },
   searchKeywordMaxLength_: 0,
   timer_: 0,
@@ -918,7 +924,7 @@ searchEngine = {
 
 Completers = {
   counter_: 0,
-  sugCounter_: 0,
+  sugTypes_: SugType.Empty,
   suggestions_: null as ReadonlyArray<Suggestion> | null,
   mostRecentQuery_: null as CompletersNS.QueryStatus | null,
   callback_: null as CompletersNS.Callback | null,
@@ -927,15 +933,16 @@ Completers = {
     const query: CompletersNS.QueryStatus = Completers.mostRecentQuery_ = {
       o: false
     };
-    let i = Completers.sugCounter_ = 0, l = Completers.counter_ = completers.length;
+    Completers.sugTypes_ = SugType.Empty;
+    let i = 0, l = Completers.counter_ = completers.length;
     Completers.suggestions_ = [];
     matchType = offset && MatchType.reset;
     if (completers[0] === searchEngine) {
-      if (l < 2) {
-        return (searchEngine as PreCompleter).preFilter_(query);
-      }
       searchEngine.preFilter_(query);
       i = 1;
+      if (l < 2) {
+        return;
+      }
     }
     RankingUtils.timeAgo_ = Date.now() - TimeEnums.timeCalibrator; // safe for time change
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore * queryTerms.length || 0.01;
@@ -974,10 +981,10 @@ Completers = {
       chrome.tabs.query({}, cb);
     });
   },
-  next_ (newSugs: Suggestion[]): void {
+  next_ (newSugs: Suggestion[], type: Exclude<SugType, SugType.Empty>): void {
     let arr = Completers.suggestions_;
     if (newSugs.length > 0) {
-      Completers.sugCounter_++;
+      Completers.sugTypes_ |= type;
       Completers.suggestions_ = (arr as Suggestion[]).length === 0 ? newSugs : (arr as Suggestion[]).concat(newSugs);
     }
     if (0 === --Completers.counter_) {
@@ -1005,18 +1012,19 @@ Completers = {
     }
     suggestions.forEach(prepareHtml);
 
-    const newAutoSelect = autoSelect && suggestions.length > 0, matched = matchedTotal,
+    const someMatches = suggestions.length > 0,
+    newAutoSelect = autoSelect && someMatches, matched = matchedTotal,
     newMatchType = matchType < MatchType.plain ? (matchType === MatchType.searching_
-        && suggestions.length === 0 ? MatchType.searchWanted : MatchType.Default)
-      : !showThoseInBlacklist ? MatchType.Default
-      : suggestions.length === 0
-      ? queryTerms.length > 0
-        ? !hasOmniTypePrefix && rawQuery === ":" ? MatchType.searchWanted : MatchType.emptyResult
-        : MatchType.Default
-      : Completers.sugCounter_ === 1 ? MatchType.singleMatch : MatchType.Default,
+          && !someMatches ? MatchType.searchWanted : MatchType.Default)
+        : !showThoseInBlacklist ? MatchType.Default
+        : queryTerms.length <= 0 ? MatchType.Default
+        : someMatches ? MatchType.someMatches
+        : rawQuery === ":" && !hasOmniTypePrefix ? MatchType.searchWanted
+        : MatchType.emptyResult,
+    newSugTypes = newMatchType === MatchType.someMatches ? Completers.sugTypes_ : SugType.Empty,
     func = Completers.callback_ as CompletersNS.Callback;
     Completers.cleanGlobals_();
-    return func(suggestions, newAutoSelect, newMatchType, matched);
+    return func(suggestions, newAutoSelect, newMatchType, newSugTypes, matched);
   },
   cleanGlobals_ (): void {
     Completers.mostRecentQuery_ = Completers.callback_ = inNormal = null;
@@ -1024,7 +1032,8 @@ Completers = {
     rawQuery = rawMore = domainToSkip = "";
     RegExpCache.parts_ = null as never;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
-    RankingUtils.timeAgo_ = Completers.sugCounter_ = matchType =
+    RankingUtils.timeAgo_ = matchType =
+    Completers.sugTypes_ =
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
     autoSelect = singleLine = hasOmniTypePrefix = false;
@@ -1543,7 +1552,8 @@ Completion_ = {
     maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
     matchedTotal = 0;
     Completers.callback_ = callback;
-    let arr: ReadonlyArray<Completer> | null = knownCs[options.o], str = queryTerms.length >= 1 ? queryTerms[0] : "";
+    let arr: ReadonlyArray<Completer> | null = knownCs[options.o], str = queryTerms.length >= 1 ? queryTerms[0] : ""
+      , expectedTypes = options.t;
     if (arr === knownCs.tab) {
        wantInCurrentWindow = !!(flags & CompletersNS.QueryFlags.TabInCurrentWindow);
     }
@@ -1560,7 +1570,7 @@ Completion_ = {
         hasOmniTypePrefix = true;
         queryTerms.shift();
         rawQuery = query.slice(3);
-        if (options.t !== options.o) { arr = null; }
+        if (expectedTypes !== SugType.Empty) { arr = null; }
       }
     } else {
       arr = null;
@@ -1569,7 +1579,8 @@ Completion_ = {
       queryTerms[0] = BgUtils_.fixCharsInUrl_(queryTerms[0]);
     }
     showThoseInBlacklist = BlacklistFilter.IsExpectingHidden_(queryTerms);
-    Completers.filter_(arr || knownCs[options.t] || knownCs.omni);
+    allExpectedTypes = expectedTypes !== SugType.Empty ? expectedTypes : SugType.Full;
+    Completers.filter_(arr || knownCs.omni);
   },
   removeSug_ (url, type, callback): void {
     switch (type) {

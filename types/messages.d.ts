@@ -138,6 +138,7 @@ interface BgVomnibarSpecialReq {
     /** list */ l: CompletersNS.Suggestion[];
     /** autoSelect */ a: boolean;
     /** matchType */ m: CompletersNS.MatchType;
+    /** sugTypes */ s: CompletersNS.SugType;
     /** favIcon  */ i: 0 | 1 | 2;
     /** total */ t: number;
   };

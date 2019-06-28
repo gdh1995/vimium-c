@@ -49,7 +49,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   activate_ (options: Options): void {
     VUtils_.safer_(options);
     const a = Vomnibar_;
-    a.mode_.t = a.mode_.o = a.modeType_ = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
+    a.mode_.o = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
+    a.mode_.t = CompletersNS.SugType.Empty;
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, 1);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
     a.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
@@ -121,7 +122,6 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   inputText_: "",
   lastQuery_: "",
   lastNormalInput_: "",
-  modeType_: "omni" as CompletersNS.ValidTypes,
   useInput_: true,
   completions_: null as never as SuggestionE[],
   total_: 0,
@@ -133,6 +133,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   isSearchOnTop_: false,
   actionType_: ReuseType.Default,
   matchType_: CompletersNS.MatchType.Default,
+  sugTypes_: CompletersNS.SugType.Empty,
   focused_: false,
   showing_: false,
   codeFocusTime_: 0,
@@ -215,13 +216,14 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   onHidden_ (): void {
     VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide });
     const a = Vomnibar_;
-    a.timer_ = a.height_ = a.matchType_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
+    a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
     a.total_ = a.lastKey_ = a.wheelDelta_ = 0;
     a.docZoom_ = 1;
     a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never;
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = "";
+    a.mode_.o = "omni";
+    a.mode_.t = CompletersNS.SugType.Empty;
     a.isSearchOnTop_ = false;
-    a.modeType_ = a.mode_.t = a.mode_.o = "omni";
     a.doEnter_ ? setTimeout(a.doEnter_, 0) : (<RegExpOne> /a?/).test("");
     a.doEnter_ = null;
   },
@@ -349,7 +351,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   parsed_ ({ i: id, s: search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
     const line: SuggestionEx = Vomnibar_.completions_[id] as SuggestionEx;
-    line.parsed = search ? (Vomnibar_.modeType_.endsWith("omni") ? "" : ":o ")
+    line.parsed = search ? (Vomnibar_.mode_.o.endsWith("omni") ? "" : ":o ")
         + search.k + " " + search.u + " " : line.text;
     if (id === Vomnibar_.selection_) {
       return Vomnibar_._updateInput(line, line.parsed);
@@ -691,6 +693,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.total_ = response.t;
     a.showFavIcon_ = response.i;
     a.matchType_ = response.m;
+    a.sugTypes_ = response.s;
     a.completions_ = list;
     a.selection_ = response.a ? 0 : -1;
     a.isSelOriginal_ = true;
@@ -1002,7 +1005,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   mode_: {
     H: kFgReq.omni as kFgReq.omni,
     o: "omni" as CompletersNS.ValidTypes,
-    t: "omni" as CompletersNS.ValidTypes,
+    t: CompletersNS.SugType.Empty,
     c: 0,
     r: 0,
     f: CompletersNS.QueryFlags.None,
@@ -1026,12 +1029,13 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       }
       str = str.replace(a.spacesRe_, " ");
       if (str === mode.q) { return a.postUpdate_(); }
-      mode.t = a.matchType_ < CompletersNS.MatchType.singleMatch || !str.startsWith(mode.q) ? a.modeType_
-        : a.matchType_ === CompletersNS.MatchType.searchWanted ? str.indexOf(" ") < 0 ? "search" : a.modeType_
-        : (newMatchType = a.matchType_, a.completions_[0].type as CompletersNS.ValidTypes);
+      mode.t = a.matchType_ < CompletersNS.MatchType.someMatches || !str.startsWith(mode.q) ? CompletersNS.SugType.Empty
+        : a.matchType_ === CompletersNS.MatchType.searchWanted
+        ? str.indexOf(" ") < 0 ? CompletersNS.SugType.search : CompletersNS.SugType.Empty
+        : (newMatchType = a.matchType_, a.sugTypes_);
       mode.q = str;
-      a.onInnerWidth_();
       a.matchType_ = newMatchType;
+      a.onInnerWidth_();
     } else {
       a.useInput_ = true;
     }

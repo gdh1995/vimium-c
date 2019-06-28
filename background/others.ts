@@ -299,7 +299,7 @@ BgUtils_.timeout_(600, function (): void {
     , maxChars = OmniboxData.DefaultMaxChars
     , suggestions: chrome.omnibox.SuggestResult[] | null = null, cleanTimer = 0, inputTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
-    , firstType: CompletersNS.ValidTypes | "";
+    , matchedSugTypes = CompletersNS.SugType.Empty;
   const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
   matchTagRe = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
@@ -313,8 +313,8 @@ BgUtils_.timeout_(600, function (): void {
     subInfoMap = suggestions = lastSuggest = last = null;
     if (cleanTimer) { clearTimeout(cleanTimer); }
     if (timer) { clearTimeout(timer); }
-    inputTime = matchType = cleanTimer = timer = 0;
-    firstType = firstResultUrl = "";
+    inputTime = matchType = matchedSugTypes = cleanTimer = timer = 0;
+    firstResultUrl = "";
     BgUtils_.resetRe_();
   }
   function tryClean(): void {
@@ -338,7 +338,7 @@ BgUtils_.timeout_(600, function (): void {
     }
   }
   function onComplete(this: null, suggest: SuggestCallback, response: Suggestion[]
-      , autoSelect: boolean, newMatchType: CompletersNS.MatchType): void {
+      , autoSelect: boolean, newMatchType: CompletersNS.MatchType, newMatchedSugTypes: CompletersNS.SugType): void {
 // Note: in https://chromium.googlesource.com/chromium/src/+/master/chrome/browser/autocomplete/keyword_extensions_delegate_impl.cc#167 ,
 // the block of `case extensions::NOTIFICATION_EXTENSION_OMNIBOX_SUGGESTIONS_READY:`
 //   always refuses suggestions from old input_ids
@@ -349,8 +349,8 @@ BgUtils_.timeout_(600, function (): void {
     lastSuggest = null;
     let notEmpty = response.length > 0, sug: Suggestion = notEmpty ? response[0] : null as never
       , info: SubInfo = {};
-    firstType = notEmpty ? sug.type as CompletersNS.ValidTypes : "";
     matchType = newMatchType;
+    matchedSugTypes = newMatchedSugTypes;
     if (notEmpty && (wantDeletable || "sessionId" in response[0])) {
       subInfoMap = BgUtils_.safeObj_<SubInfo>();
     }
@@ -447,10 +447,9 @@ BgUtils_.timeout_(600, function (): void {
     cleanTimer || (cleanTimer = setTimeout(tryClean, 30000));
     inputTime = now;
     subInfoMap = suggestions = null; firstResultUrl = "";
-    const type: CompletersNS.ValidTypes = matchType < CompletersNS.MatchType.singleMatch
-        || !key.startsWith(last as string) ? "omni"
-      : matchType === CompletersNS.MatchType.searchWanted ? key.indexOf(" ") < 0 ? "search" : "omni"
-      : firstType || "omni";
+    const type: SugType = matchType < MatchType.someMatches || !key.startsWith(last as string) ? SugType.Empty
+      : matchType === MatchType.searchWanted ? key.indexOf(" ") < 0 ? SugType.search : SugType.Empty
+      : matchedSugTypes;
     return Completion_.filter_(key
       , { o: "omni", t: type, r: maxResults, c: maxChars, f: CompletersNS.QueryFlags.SingleLine }
       , onComplete.bind(null, lastSuggest));
@@ -469,7 +468,7 @@ BgUtils_.timeout_(600, function (): void {
       // * may has been cleaned, or
       // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
       return Completion_.filter_(text
-          , { o: "omni", t: "omni", r: 3, c: maxChars, f: CompletersNS.QueryFlags.SingleLine }
+          , { o: "omni", t: SugType.Empty, r: 3, c: maxChars, f: CompletersNS.QueryFlags.SingleLine }
           , function (sugs, autoSelect): void {
         return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) : open(text, disposition);
       });

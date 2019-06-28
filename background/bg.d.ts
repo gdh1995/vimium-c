@@ -252,7 +252,7 @@ declare namespace CompletersNS {
   }
 
   type Callback = (this: void, sugs: Readonly<Suggestion>[],
-    newAutoSelect: boolean, newMatchType: MatchType, newMatchedTotal: number) => void;
+    newAutoSelect: boolean, newMatchType: MatchType, newMatchedSugTypes: SugType, newMatchedTotal: number) => void;
 
   type FullOptions = Options & {
   };

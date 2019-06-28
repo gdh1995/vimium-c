@@ -301,7 +301,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     return true;
   }
   function PostCompletions(this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>
-      , autoSelect: boolean, matchType: CompletersNS.MatchType, total: number): void {
+      , autoSelect: boolean, matchType: CompletersNS.MatchType, sugTypes: CompletersNS.SugType, total: number): void {
     let { u: url } = this.s, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
@@ -338,7 +338,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       }
       }
     }
-    safePost(this, { N: kBgReq.omni_omni, a: autoSelect, m: matchType, l: list, i: favIcon, t: total });
+    safePost(this, { N: kBgReq.omni_omni, a: autoSelect, m: matchType, s: sugTypes, l: list, i: favIcon, t: total });
     BgUtils_.resetRe_();
   }
   function safePost<K extends keyof FullBgReq>(port: Port, req: Req.bg<K>): BOOL {
@@ -2164,7 +2164,7 @@ Are you sure you want to continue?`);
       if (isNotVomnibarPage(port, false)) { return; }
       return Completion_.filter_(request.q, request,
       PostCompletions.bind<Port, 0 | 1 | 2
-          , [Array<Readonly<CompletersNS.Suggestion>>, boolean, CompletersNS.MatchType, number], void>(port
+          , Parameters<CompletersNS.Callback>, void>(port
         , (<number> request.i | 0) as number as 0 | 1 | 2));
     },
     /** copy: */ function (this: void, request: FgReq[kFgReq.copy]): void {

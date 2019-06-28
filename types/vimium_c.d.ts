@@ -1,5 +1,14 @@
 
 declare namespace CompletersNS {
+  const enum SugType {
+    Empty = 0,
+    bookmark = 1,
+    history = 2,
+    domain = 4,
+    search = 8,
+    tab = 16,
+    Full = 0x3f,
+  }
   /**
    * only those >= .Default can be used in content
    */
@@ -7,10 +16,9 @@ declare namespace CompletersNS {
     plain = 0,
     Default = plain,
     emptyResult = 1, // require query is not empty
-    /** only matches one single engine */
-    singleMatch = 2,
+    someMatches = 2,
     /**
-     * must >= singleMatch
+     * must > someMatches
      */
     searchWanted = 3,
     reset = -1,
@@ -18,6 +26,8 @@ declare namespace CompletersNS {
      * is the same as searchWanted
      */
     searching_ = -2,
+    SugTypeOffset = 3,
+    MatchTypeMask = (1 << SugTypeOffset) - 1,
   }
   type ValidTypes = "bookm" | "domain" | "history" | "omni" | "bomni" | "search" | "tab";
   /**
@@ -34,7 +44,7 @@ declare namespace CompletersNS {
     /** maxChars */ c?: number;
     /** maxResults */ r?: number;
     /** flags */ f: QueryFlags;
-    /** type */ t: ValidTypes;
+    /** last sug types: empty means all */ t: SugType;
     /** original type */ o: ValidTypes;
   }
 
