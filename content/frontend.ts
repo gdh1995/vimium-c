@@ -1497,8 +1497,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   };
   VHud = HUD;
   VKey.isEscape_ = isEscape;
-  if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge
-      && !injector) {
+  if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
     (window as Writable<Window>).VOther = OnOther;
   }
 
