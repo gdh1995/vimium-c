@@ -940,7 +940,7 @@ Completers = {
     if (completers[0] === searchEngine) {
       searchEngine.preFilter_(query);
       i = 1;
-      if (l < 2) {
+      if (l < 2 || !(allExpectedTypes & ~SugType.search)) {
         return;
       }
     }
@@ -1572,8 +1572,6 @@ Completion_ = {
         rawQuery = query.slice(3);
         if (expectedTypes !== SugType.Empty) { arr = null; }
       }
-    } else {
-      arr = null;
     }
     if (queryTerms.length >= 1) {
       queryTerms[0] = BgUtils_.fixCharsInUrl_(queryTerms[0]);
