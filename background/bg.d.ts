@@ -184,7 +184,7 @@ declare namespace ExclusionsNS {
     pattern: string;
     passKeys: string;
   }
-  const enum TesterType { RegExp = 1, StringPrefix = 1, _mask = "", }
+  const enum TesterType { RegExp = 0, StringPrefix = 1, _mask = "", }
   interface BaseTester {
     readonly type_: TesterType & number,
     readonly value_: RegExpOne | string;

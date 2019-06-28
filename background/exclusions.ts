@@ -38,8 +38,7 @@ var Exclusions = {
     for (let _i = 0, _len = rules.length; _i < _len; _i += 2) {
       const rule: ExclusionsNS.Tester = rules[_i] as Exclude<(typeof rules)[number], string>;
       if (rule.type_ === ExclusionsNS.TesterType.StringPrefix
-          ? url.startsWith((rule as ExclusionsNS.PrefixTester).value_)
-          : (rule as ExclusionsNS.RegExpTester).value_.test(url)) {
+          ? url.startsWith(rule.value_) : rule.value_.test(url)) {
         const str = rules[_i + 1] as string;
         if (str.length === 0 || Exclusions.onlyFirstMatch_ || str[0] === "^" && str.length > 2) { return str; }
         matchedKeys += str;
