@@ -289,7 +289,8 @@ var VHints = {
    */
   GetClickable_ (this: Hint[],
       element: SafeHTMLElement | SVGElement & {lang: undefined} | Element & {lang: undefined}): void {
-    let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
+    let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null
+      , type = ClickType.Default, scrollOrShadow: 0 | 1 | 2 = 0;
     if ((/* <ElementToHTML> */ element).lang == null) { // not HTML*
       // never accept raw `Element` instances, so that properties like .tabIndex and .dataset are ensured
       if ("tabIndex" in /* <ElementToHTMLorSVG> */ element) { // SVG*
@@ -365,16 +366,11 @@ var VHints = {
       break;
     // elements of the types above should refuse `attachShadow`
     case "div": case "ul": case "pre": case "ol": case "code": case "table": case "tbody":
-      type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? ClickType.scrollY
-        : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default;
-      // no break;
+      scrollOrShadow = 2;
+      break;
     default:
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-            && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          ? element.webkitShadowRoot : element.shadowRoot) {
-        VHints.detectMore_(element, VHints.GetClickable_, this);
-        return;
-      }
+      scrollOrShadow = 1;
+      break;
     }
     if (isClickable === null) {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
@@ -387,9 +383,12 @@ var VHints = {
           && VHints.inferTypeOfListener_(element, tag)
         ? ClickType.codeListener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
-        : type > ClickType.tabindex ? type
-        : element.getAttribute("aria-selected")
-          || (s = element.className) && VHints.btnRe_.test(s) ? ClickType.classname
+        : scrollOrShadow > 1 && (
+          type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? ClickType.scrollY
+            : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default,
+          type) ? type
+        : (s = element.className) && VHints.btnRe_.test(s)
+          || element.getAttribute("aria-selected") ? ClickType.classname
         : ClickType.Default;
     }
     if (!isClickable && type === ClickType.Default) { return; }
@@ -400,6 +399,12 @@ var VHints = {
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
           || VHints.mode_ >= HintMode.min_job) // note: might need to apply aria-disable on FOCUS/HOVER/LEAVE mode?
     ) { this.push([element, arr, type]); }
+    if (scrollOrShadow &&
+        (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+          && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+        ? element.webkitShadowRoot : element.shadowRoot)) {
+      VHints.detectMore_(element, VHints.GetClickable_, this);
+    }
   },
   noneActionRe_: <RegExpOne> /\._\b(?![\$\.])/,
   checkJSAction_ (str: string): boolean {
@@ -545,7 +550,7 @@ var VHints = {
     query = !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0)
       || matchAll || a.queryInDeep_ !== DeepQueryType.InDeep ? key : a.getDeepDescendantCombinator_() + key,
     Sc = VScroller,
-    wantClickable = matchAll && filter === a.GetClickable_,
+    wantClickable = filter === a.GetClickable_,
     isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as {}) instanceof Element,
     box = !wholeDoc && (!(Build.BTypes & ~BrowserType.Chrome)
           || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement

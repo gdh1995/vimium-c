@@ -299,7 +299,7 @@ var VDom = {
             el_style || (el_style = getComputedStyle(element));
             isVisible = el_style.visibility === "visible";
           }
-          if (isVisible) { return cr; }
+          return isVisible ? cr : null;
         }
         continue;
       }
