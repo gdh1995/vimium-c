@@ -730,29 +730,24 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     return true;
   },
-  GetLinks_ (this: SafeHTMLElement[], element: Element): void {
+  GetLinks_ (this: {}, hints: SafeHTMLElement[], element: Element): void {
     let s: string | null;
-    const tag = VDom.htmlTag_(element), isClickable = tag === "a" || tag && (
+    const tag = element.localName, isClickable = tag === "a" || tag && (
       tag === "button" ? !(element as HTMLButtonElement).disabled
       : VDom.clickable_.has(element) || element.getAttribute("onclick") || (
         (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
         : VHints.ngEnabled_ && element.getAttribute("ng-click")));
-    if (tag && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-                  && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-                ? element.webkitShadowRoot : element.shadowRoot)) {
-      VHints.detectMore_(element as SafeHTMLElement, Pagination.GetLinks_, this);
-    }
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
     const rect = VDom.getBoundingClientRect_(element);
     if (rect.width > 2 && rect.height > 2 && getComputedStyle(element).visibility === "visible") {
-      this.push(element as SafeHTMLElement);
+      hints.push(element as SafeHTMLElement);
     }
   },
   findAndFollowLink_: !(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)
       ? (console.log("Assert error: GlobalConsts.MaxNumberOfNextPatterns <= 255"), 0 as never)
       : function (names: string[], isNext: boolean, lenLimit: number[], totalMax: number): boolean {
-    interface Candidate { [0]: number; [1]: string; [2]: ThisParameter<typeof Pagination.GetLinks_>[number]; }
+    interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof Pagination.GetLinks_>[0][number]; }
     // Note: this traverser should not need a prepareCrop
     let links = VHints.traverse_("*", Pagination.GetLinks_, true, true);
     const count = names.length,
@@ -998,8 +993,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           knownGlobalThis && (knownGlobalThis.VSec = load.s as NonNullable<typeof load.s>);
         }
       }
-      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 &&
-      load.deepHints && (VHints.queryInDeep_ = DeepQueryType.InDeep);
       r[kBgReq.keyMap](request);
       if (flags) {
         InsertMode.grabBackFocus_ = InsertMode.grabBackFocus_ && !(flags & Frames.Flags.userActed);
@@ -1088,15 +1081,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kBgReq.settingsUpdate: */function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       VKey.safer_(delta);
-      const cache = VDom.cache_, deepHints = delta.deepHints;
+      const cache = VDom.cache_;
       for (const i in delta) {
         (cache as Generalized<typeof cache>)[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
         const i2 = "_" + i as Keys;
         (i2 in cache) && (VKey.safer_(cache)[i2] = undefined as never);
       }
-      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 &&
-      deepHints != null && VHints.queryInDeep_ !== DeepQueryType.NotAvailable &&
-      (VHints.queryInDeep_ = deepHints ? DeepQueryType.InDeep : DeepQueryType.NotDeep);
       delta.d != null && HUD.box_ && HUD.box_.classList.toggle("D", !!delta.d);
     },
     /* kBgReq.focusFrame: */ FrameMask.Focus_,

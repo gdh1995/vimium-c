@@ -19,7 +19,7 @@ var VDom = {
     ? true : Build.BTypes & BrowserType.Chrome ? true : false,
   docSelectable_: true,
   docNotCompleteWhenVimiumIniting_: document.readyState !== "complete",
-  unsafeFramesetTag_: "" as "frameset" | "",
+  unsafeFramesetTag_: (Build.BTypes & BrowserType.Chrome ? "" : 0 as never) as "frameset" | "",
 
   /** DOM-compatibility section */
 
