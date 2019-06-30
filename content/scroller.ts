@@ -99,7 +99,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (timer) {
       clearTimeout(timer);
     }
-    const keyboard = VDom.cache_.keyboard;
+    const keyboard = VDom.cache_.k;
     this.maxInterval_ = M.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
     this.minDelay_ = (((keyboard[0] + M.max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
           + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
@@ -139,7 +139,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     return newPos - before;
   },
   _innerScroll (element: SafeElement | null, di: ScrollByY, amount: number): void {
-    if (VDom.cache_.smoothScroll
+    if (VDom.cache_.S
         && (Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
             || VDom.allowRAF_)) {
       amount && this._animate(element, di, amount);
@@ -233,7 +233,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     }
   },
   _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
-    amount *= VDom.cache_.scrollStepSize;
+    amount *= VDom.cache_.t;
     return !di && amount && element && element.scrollWidth <= element.scrollHeight * (element.scrollWidth < 720 ? 2 : 1)
       ? amount * 0.6 : amount;
   },

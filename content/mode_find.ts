@@ -488,7 +488,7 @@ var VFind = {
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b";
     if (a.isQueryRichText_) {
     if (isRe === null && !ww) {
-      isRe = VDom.cache_.regexFindMode;
+      isRe = VDom.cache_.R;
       const info = 2 * +query.startsWith(B) + +query.endsWith(B);
       if (info === 3 && !isRe && query.length > 3) {
         query = query.slice(2, -2);

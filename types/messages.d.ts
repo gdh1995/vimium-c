@@ -107,8 +107,7 @@ interface BgReq {
   } & Partial<BgCSSReq>;
   [kBgReq.settingsUpdate]: {
     /** delta */ d: {
-      [key in keyof SettingsNS.FrontendSettings | keyof SettingsNS.FrontendSettingsSyncedManually]?:
-        SettingsNS.FrontendSettingCache[key];
+      [key in keyof SettingsNS.FrontendSettingsWithSync]?: SettingsNS.FrontendSettingsWithSync[key];
     };
   };
   [kBgReq.url]: {
@@ -213,8 +212,8 @@ interface CmdOptions {
   };
   [kFgCmd.reset]: FgOptions;
   [kFgCmd.toggle]: {
-    key: keyof SettingsNS.FrontendSettings;
-    value: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
+    k: keyof SettingsNS.CachedFrontendSettings;
+    v: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
   };
   [kFgCmd.passNextKey]: {
     normal?: false | true;

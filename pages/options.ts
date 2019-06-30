@@ -25,7 +25,8 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.Frontend
     > (this: Option_<T>, func: (this: Option_<T>) => void): void {
   func.call(this);
   if (window.VDom) {
-    (VDom.cache_ as Generalized<typeof VDom.cache_>)[this.field_] = this.readValueFromElement_();
+    (VDom.cache_ as Generalized<typeof VDom.cache_>
+        )[bgSettings_.valuesToLoad_[this.field_]] = this.readValueFromElement_();
   }
 };
 
@@ -405,7 +406,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     const delta: BgReq[kBgReq.settingsUpdate]["d"] = Object.create(null),
     req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: delta };
     for (const key of toSync) {
-      (delta as Generalized<typeof delta>)[key] = bgSettings_.get_(key);
+      (delta as Generalized<typeof delta>)[bgSettings_.valuesToLoad_[key]] = bgSettings_.get_(key);
     }
     bgSettings_.broadcast_(req);
   }

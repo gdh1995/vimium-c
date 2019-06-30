@@ -253,6 +253,17 @@ declare namespace SettingsNS {
     scrollStepSize: number;
     smoothScroll: boolean;
   }
+  interface FrontendSettingNameMap {
+    keyboard: "k";
+    linkHintCharacters: "l";
+    regexFindMode: "R";
+    smoothScroll: "S";
+    scrollStepSize: "t";
+  }
+  type CachedFrontendSettingsTemplate<T> = T extends keyof FrontendSettingNameMap ? {
+    [k in FrontendSettingNameMap[T]]: FrontendSettings[T];
+  } : never;
+  type CachedFrontendSettings = UnionToIntersection<CachedFrontendSettingsTemplate<keyof FrontendSettings>>;
   interface FrontendSettingsSyncedManually {
     /** reduceMotion */ r: boolean;
     /** darkMode */ d: " D" | "";
@@ -264,9 +275,9 @@ declare namespace SettingsNS {
     /** grabBackFocus */ g: boolean;
     /** session secret for Firefox */ s?: number | string;
   }
+  interface FrontendSettingsWithSync extends CachedFrontendSettings, FrontendSettingsSyncedManually {}
   /** Note: should have NO names which may be uglified */
-  interface FrontendSettingCache extends FrontendSettings
-      , FrontendSettingsSyncedManually, FrontendSettingsWithoutSyncing {
+  interface FrontendSettingCache extends FrontendSettingsWithSync, FrontendSettingsWithoutSyncing {
     /** browserVer */ readonly v: BrowserVer;
   }
 }

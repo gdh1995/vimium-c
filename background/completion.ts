@@ -87,12 +87,11 @@ const enum FirstQuery {
   historyIncluded = QueryTypeMask + 1 + history,
 }
 
-interface SuggestionConstructor {
+type SuggestionConstructor =
   // pass enough arguments, so that it runs faster
   new (type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
        computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number,
-       extraData: number): Suggestion;
-}
+       extraData: number) => Suggestion;
 
 type CachedRegExp = (RegExpOne | RegExpI) & RegExpSearchable<0>;
 
@@ -123,7 +122,7 @@ let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType
     allExpectedTypes = SugType.Empty,
     phraseBlacklist: string[] | null = null, showThoseInBlacklist: boolean = true;
 
-const Suggestion: SuggestionConstructor = function Suggestion_(
+const Suggestion: SuggestionConstructor = function (
     this: CompletersNS.WritableCoreSuggestion,
     type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
     computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number, extraData: number
@@ -250,7 +249,7 @@ function ComputeRelevancy(this: void, text: string, title: string, lastVisitTime
     wordRelevancy = RankingUtils.wordRelevancy_(text, title);
   return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
 }
-function get2ndArg (_s: CompletersNS.CoreSuggestion, score: number): number { return score; }
+function get2ndArg(_s: CompletersNS.CoreSuggestion, score: number): number { return score; }
 
 const bookmarkEngine = {
   bookmarks_: [] as Bookmark[],

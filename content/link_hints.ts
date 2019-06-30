@@ -102,7 +102,7 @@ var VHints = {
       if (!VDom.isHTML_()) { return; }
     }
     a.setModeOpt_(count, options);
-    let s0 = options.characters, str = s0 ? s0 + "" : VDom.cache_.linkHintCharacters;
+    let s0 = options.characters, str = s0 ? s0 + "" : VDom.cache_.l;
     if (str.length < 3) {
       a.clean_(1);
       return VHud.tip_("Characters for LinkHints are too few.", 1000);
@@ -1048,7 +1048,7 @@ var VHints = {
   deactivate_ (isLastKeyKnown: BOOL): void {
     this.clean_(this.pTimer_ < 0);
     (<RegExpOne> /0?/).test("");
-    VKey.suppressTail_(isLastKeyKnown ? 0 : VDom.cache_.keyboard[0]);
+    VKey.suppressTail_(isLastKeyKnown ? 0 : VDom.cache_.k[0]);
   },
   rotateHints_ (reverse?: boolean): void {
     const a = this;

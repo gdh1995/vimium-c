@@ -54,8 +54,8 @@ var Settings_ = {
         a.sync_(key as keyof SettingsNS.PersistentSettings, value as
           FullSettings[keyof SettingsNS.PersistentSettings]);
       }
-      if (key in a.payload_) {
-        (a.payload_ as Generalized<typeof a.payload_>)[key as keyof SettingsNS.FrontendSettings] =
+      if (key in a.valuesToLoad_) {
+        (a.payload_ as Generalized<typeof a.payload_>)[a.valuesToLoad_[key as keyof SettingsNS.FrontendSettings]] =
           value as FullSettings[keyof SettingsNS.FrontendSettings];
       }
     }
@@ -459,10 +459,10 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     { 19: "/icons/partial_19.png", 38: "/icons/partial_38.png" },
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
-  valuesToLoad_: [
-    "keyboard", "linkHintCharacters" //
-    , "regexFindMode", "scrollStepSize", "smoothScroll" //
-  ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
+  valuesToLoad_: { __proto__: null as never,
+    keyboard: "k", linkHintCharacters: "l",
+    regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t"
+  } as SettingsNS.FrontendSettingNameMap & SafeObject,
   sync_: BgUtils_.blank_ as SettingsNS.Sync["set"],
   CONST_: {
     AllowClipboardRead_: true,
@@ -610,9 +610,9 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   obj.ContentScripts_ = ref2.map(func);
 
   payload_.g = settings.get_("grabBackFocus");
-  for (let _i = valuesToLoad_.length; 0 <= --_i;) {
-    const key = valuesToLoad_[_i];
-    (payload_ as Generalized<typeof payload_>)[key] = settings.get_(key);
+  for (let _i in valuesToLoad_) {
+    const key = valuesToLoad_[_i as keyof SettingsNS.FrontendSettingNameMap];
+    (payload_ as Generalized<typeof payload_>)[key] = settings.get_(_i as keyof SettingsNS.FrontendSettingNameMap);
   }
 
   if (localStorage.length <= 0) {

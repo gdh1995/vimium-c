@@ -374,11 +374,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
 
     /* kFgCmd.toggle: */ function (_0: number, options: CmdOptions[kFgCmd.toggle]): void {
-      const key = options.key, backupKey = "_" + key as string as typeof key,
+      const key = options.k, backupKey = "_" + key as string as typeof key,
       cache = VKey.safer_(VDom.cache_), cur = cache[key];
-      let val = options.value, u: undefined;
-      if (typeof cur === "boolean") {
-        val === null && (val = !cur);
+      let val = options.v, u: undefined;
+      if (val === null && (cur === true || cur === false)) {
+        val = !cur;
       }
       if (cache[backupKey] === u) {
         (cache as Generalized<typeof cache>)[backupKey] = cur;
@@ -1079,11 +1079,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     /* kBgReq.eval: */ function (options: BgReq[kBgReq.eval]): void { VPort.evalIfOK_(options.u); },
     /* kBgReq.settingsUpdate: */function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
-      type Keys = keyof SettingsNS.FrontendSettings;
+      type Keys = keyof typeof delta;
       VKey.safer_(delta);
       const cache = VDom.cache_;
       for (const i in delta) {
-        (cache as Generalized<typeof cache>)[i as Keys] = delta[i as Keys] as SettingsNS.FrontendSettings[Keys];
+        (cache as Generalized<typeof cache>)[i as Keys] = (delta as EnsureItemsNonNull<typeof delta>)[i as Keys];
         const i2 = "_" + i as Keys;
         (i2 in cache) && (VKey.safer_(cache)[i2] = undefined as never);
       }
@@ -1353,7 +1353,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
       if (!(keyCode > kKeyCode.maxNotPageUp && keyCode < kKeyCode.minNotDown)) { return; }
-      wnd && VDom.cache_.smoothScroll && events.OnScrolls_[1](wnd, 1);
+      wnd && VDom.cache_.S && events.OnScrolls_[1](wnd, 1);
       const work = keyCode > kKeyCode.maxNotLeft ? 1 : keyCode > kKeyCode.maxNotEnd ? 2
         : !(event.ctrlKey || event.metaKey) ? 3 : 0,
       Sc = VScroller;

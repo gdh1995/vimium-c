@@ -1651,11 +1651,11 @@ Are you sure you want to continue?`);
       cOptions.local ? requireURL({ H: kFgReq.marks, u: "", a: kMarkAction.clear }, true) : Marks_.clear_();
     },
     /* kBgCmd.toggle: */ function (this: void): void {
-      type Keys = CmdOptions[kFgCmd.toggle]["key"];
+      type Keys = keyof SettingsNS.FrontendSettingNameMap;
       const all = Settings_.payload_, key: Keys = (cOptions.key || "") + "" as Keys,
-      old = all[key], keyRepr = '"' + key + '"';
+      key2 = Settings_.valuesToLoad_[key], old = key2 ? all[key2] : 0, keyRepr = '"' + key + '"';
       let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
-      if (Settings_.valuesToLoad_.indexOf(key) < 0) {
+      if (!key2) {
         msg = key in Settings_.defaults_ ? "option " + keyRepr + " is not a valid switch" : "unknown option " + keyRepr;
       } else if (typeof old === "boolean") {
         isBool || (value = null);
@@ -1675,7 +1675,7 @@ Are you sure you want to continue?`);
           N: kBgReq.execute,
           S: ensureInnerCSS(cPort),
           c: kFgCmd.toggle, n: 1,
-          a: { key, value }
+          a: { k: key2, v: value }
         });
       }
     },
