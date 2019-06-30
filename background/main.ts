@@ -371,14 +371,18 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       : pos ? [current, total] : [0, current + 1] // limited
       ;
   }
-  function confirm(this: void, command: string, count: number): boolean {
+  function confirm_(this: void, command: string, count: number): number {
+    // todo: check delta(now)
     let msg = CommandsData_.cmdDescriptions_[command];
     msg = (msg as NonNullable<typeof msg>).replace(<RegExpOne> / \(use .*|&nbsp\(.*|<br\/>/, "");
+    let now = Date.now();
     return window.confirm(
 `You have asked Vimium C to perform ${count} repeats of the command:
       ${BgUtils_.unescapeHTML_(msg)}
 
-Are you sure you want to continue?`);
+Are you sure you want to continue?`) ? count
+        : Math.abs(Date.now() - now) > 5 ? 0
+        : (Build.NDEBUG || console.log("A confirmation dialog may fail in showing."), 1);
   }
   function requireURL <k extends keyof FgReq>(request: Req.fg<k> & BgReq[kBgReq.url], ignoreHash?: true): void {
     if (Exclusions == null || Exclusions.rules_.length <= 0
@@ -931,11 +935,11 @@ Are you sure you want to continue?`);
       function moveTabToNewWindow0(this: void, wnd: PopWindow): void {
         const tabs0 = wnd.tabs, total = tabs0.length;
         if (total <= 1) { return; } // not need to show a tip
-        const tab = selectFrom(tabs0), i = tab.index,
-        range = getTabRange(i, total),
-        count = range[1] - range[0];
+        const tab = selectFrom(tabs0), i = tab.index;
+        let range = getTabRange(i, total), count = range[1] - range[0];
         if (count >= total) { return Backend_.showHUD_("It does nothing to move all tabs of this window"); }
-        if (count > 30 && !confirm("moveTabToNewWindow", count)) { return; }
+        if (count > 30 && !(count = confirm_("moveTabToNewWindow", count))) { return; }
+        if (count < 2) { range = [i, i + 1]; };
         return makeWindow({
           tabId: tab.id,
           incognito: tab.incognito
@@ -1110,10 +1114,12 @@ Are you sure you want to continue?`);
           while (tabs[skipped].pinned) { skipped++; }
         }
         const range = getTabRange(i, total - skipped, total);
-        start = skipped + range[0], end = skipped + range[1];
-        count = end - start;
-        if (count > 20 && !confirm("removeTab", count)) {
+        count = range[1] - range[0];
+        if (count > 20 && !(count = confirm_("removeTab", count))) {
           return;
+        }
+        if (count > 1) {
+          start = skipped + range[0], end = skipped + range[1];
         }
       }
       if (count >= total && cOptions.allow_close !== true) {
@@ -1189,9 +1195,10 @@ Are you sure you want to continue?`);
           && CurCVer_ < BrowserVer.Min$tabs$$discard) {
         Backend_.showHUD_(`Vimium C can not discard tabs before Chrome ${BrowserVer.Min$tabs$$discard}`);
       }
-      const current = selectFrom(tabs, 1).index, end = Math.max(0, Math.min(current + cRepeat, tabs.length - 1)),
+      let current = selectFrom(tabs, 1).index, end = Math.max(0, Math.min(current + cRepeat, tabs.length - 1)),
       count = Math.abs(end - current), step = end > current ? 1 : -1;
-      if (!count || count > 20 && !confirm("discardTab", count)) {
+      count > 20 && (count = confirm_("discardTab", count));
+      if (!count) {
         return;
       }
       const near = tabs[current + step];
@@ -1256,15 +1263,20 @@ Are you sure you want to continue?`);
       }
       const range = getTabRange(tab.index, tabs.length - skipped, tabs.length);
       let start = skipped + range[offset] - offset, end = skipped + range[1 - offset] - offset;
-      const wantedTabIds = [] as number[];
+      let wantedTabIds = [] as number[];
       for (; start !== end; start += pin ? 1 : -1) {
         if (pin || tabs[start].pinned) {
           wantedTabIds.push(tabs[start].id);
         }
       }
       end = wantedTabIds.length;
-      if (end > 30 && !confirm("togglePinTab", end)) {
-        return;
+      if (end > 30) {
+        if (!(end = confirm_("togglePinTab", end))) {
+          return;
+        }
+        if (end === 1) {
+          wantedTabIds = [tab.id];
+        }
       }
       for (start = 0; start < end; start++) {
         chrome.tabs.update(wantedTabIds[start], action);
@@ -1322,9 +1334,14 @@ Are you sure you want to continue?`);
         ind = ind + 1 === end || cRepeat > 0 && start !== ind ? start : end - 1;
         start = ind; end = ind + 1;
       }
-      const count = end - start;
-      if (count > 20 && !confirm("reloadTab", count)) {
-        return;
+      let count = end - start;
+      if (count > 20) {
+        if (!(count = confirm_("reloadTab", count))) {
+          return;
+        }
+        if (count === 1) {
+          start = ind, end = ind + 1;
+        }
       }
       chrome.tabs.reload(tabs[ind].id, reloadProperties);
       for (; start !== end; start++) {
@@ -1706,9 +1723,10 @@ Are you sure you want to continue?`);
       : (count | 0) || 1;
     if (count === 1) { /* empty */ }
     else if (repeat === 1) { count = 1; }
-    else if (repeat > 0 && (count > repeat || count < -repeat) && !confirm(registryEntry.command_, Math.abs(count))) {
-      return;
-    }else { count = count || 1; }
+    else if (repeat > 0 && (count > repeat || count < -repeat)) {
+      count = confirm_(registryEntry.command_, Math.abs(count)) * (count < 0 ? -1 : 1);
+      if (!count) { return; }
+    } else { count = count || 1; }
     if (!registryEntry.background_) {
       const { alias_: fgAlias } = registryEntry,
       dot = ((
