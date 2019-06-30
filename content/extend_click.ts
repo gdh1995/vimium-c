@@ -169,10 +169,10 @@ if (VDom && VimiumInjector === undefined) {
     VDom.allowRAF_ = appVer !== BrowserVer.NoRAFOrRICOnSandboxedPage ? 1 : 0;
   }
 
-  /** the `VerifierA` needs to satisfy
-   * * never return any object (aka. keep void)
+  /** the `InnerVerifier` needs to satisfy
+   * * never return any object (aka. keep void) if only "not absolutely safe"
    * * never change the global environment / break this closure
-   * * must look like a real task, so that its body won't be uglified and removed
+   * * must look like a real task and contain raondom string
    */
   interface InnerVerifier {
     (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier | unknown): void;

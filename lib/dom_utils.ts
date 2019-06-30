@@ -181,7 +181,7 @@ var VDom = {
       : el || !fallback ? el as SafeElement | null // el is safe object or null
       : this.notSafe_(docEl) ? null : docEl as SafeElement | null;
   },
-  frameElement_ (hasKnownOnFireFox?: 1): Element | null | void {
+  frameElement_ (): Element | null | void {
     let el: typeof frameElement | undefined;
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement) {
       try {
@@ -192,14 +192,16 @@ var VDom = {
       if (!(Build.BTypes & BrowserType.Firefox)) { return frameElement; }
       el = frameElement;
     }
-    if (el && (!(Build.BTypes & ~BrowserType.Firefox) || hasKnownOnFireFox || VOther === BrowserType.Firefox)) {
-      VDom.frameElement_ = () => el;
+    if (Build.BTypes & BrowserType.Firefox) {
+      if (el && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
+        VDom.frameElement_ = () => el;
+      }
+      return el;
     }
-    return el;
   },
-  /** Note: this function needs to be safer */
+  /** Note: this function needs to be safe enough */
   getWndCore_: (Build.BTypes & BrowserType.Firefox ? function (anotherWnd, ignoreSec): ContentWindowCore | 0 | void {
-    if (!(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VOther === BrowserType.Firefox) {
+    if (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox) {
       if (!BuildStr.RandomReq || !BuildStr.RandomRes) { return; }
       try {
         let core: ReturnType<SandboxGetterFunc>,
@@ -222,11 +224,11 @@ var VDom = {
   parentCore_: (Build.BTypes & BrowserType.Firefox ? function (ignoreSec): ContentWindowCore | 0 | void {
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
           || !(Build.BTypes & BrowserType.Firefox) ? !VDom.frameElement_() : !frameElement) {
-      // in some cases, not use the cached version of frameElement, for less exceptions in the below code
+      // (in Firefox) not use the cached version of frameElement - for less exceptions in the below code
       return;
     }
     // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
-    let isFF = !(Build.BTypes & ~BrowserType.Firefox) || ignoreSec || VOther === BrowserType.Firefox,
+    let isFF = !(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox,
     core = !(Build.BTypes & ~BrowserType.Firefox) || isFF ? VDom.getWndCore_(parent as Window, ignoreSec)
         : parent as Window;
     if ((!(Build.BTypes & ~BrowserType.Firefox) || isFF) && core) {

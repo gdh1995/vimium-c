@@ -1493,8 +1493,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
   isTop || injector ||
   function (): void { // if injected, `parentFrame_` still needs a value
-    const parEl = Build.BTypes & BrowserType.Firefox && Build.BTypes & ~BrowserType.Firefox
-        ? VDom.frameElement_(1) : VDom.frameElement_();
+    const parEl = VDom.frameElement_();
     if (Build.BTypes & BrowserType.Firefox
         && (!BuildStr.RandomReq || !BuildStr.RandomRes) // may be compiled directly using tsc.js
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
