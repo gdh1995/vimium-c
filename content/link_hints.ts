@@ -84,6 +84,7 @@ var VHints = {
   noHUD_: false,
   options_: null as never as HintsNS.Options,
   timer_: 0,
+  yankedList_: "",
   kEditableSelector_: "input,textarea,[contenteditable]" as const,
   activate_ (this: void, count: number, options: FgOptions): void {
     const a = VHints;
@@ -892,7 +893,11 @@ var VHints = {
     } else if (i === kKeyCode.shiftKey || i === kKeyCode.ctrlKey || i === kKeyCode.altKey
         || (i === kKeyCode.metaKey && VDom.cache_.m)) {
       const mode = a.mode_,
-      mode2 = i === kKeyCode.altKey
+      mode2 = a.mode1_ >= HintMode.COPY_TEXT && a.mode1_ <= HintMode.COPY_LINK_URL_LIST
+        ? i === kKeyCode.ctrlKey ? (a.mode1_ | HintMode.queue) ^ HintMode.focused // if & 1, then copy a list
+          : i === kKeyCode.altKey ? (mode & ~HintMode.focused) ^ HintMode.queue
+          : mode
+        : i === kKeyCode.altKey
         ? mode < HintMode.min_disable_queue
           ? ((mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | mode) ^ HintMode.queue : mode
         : mode < HintMode.min_job
@@ -1027,15 +1032,15 @@ var VHints = {
     }
   },
   clean_ (keepHUD?: boolean | BOOL): void {
-    const a = this;
-    const ks = a.keyStatus_, alpha = a.alphabetHints_;
+    const a = this,
+    ks = a.keyStatus_, alpha = a.alphabetHints_;
     a.options_ = a.modeOpt_ = a.zIndexes_ = a.hints_ = null as never;
     a.pTimer_ > 0 && clearTimeout(a.pTimer_);
     a.lastMode_ = a.mode_ = a.mode1_ = a.count_ = a.pTimer_ =
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
     ks.tab_ = ks.newHintLength_ = ks.known_ = alpha.countMax_ = 0;
     a.keyCode_ = kKeyCode.None;
-    alpha.hintKeystroke_ = alpha.chars_ = "";
+    alpha.hintKeystroke_ = alpha.chars_ = a.yankedList_ = "";
     a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
     VKey.removeHandler_(a);
     VEvent.onWndBlur_(null);
@@ -1378,12 +1383,14 @@ Modes_: [
   }
 } as HintsNS.ModeOpt,
 {
-  130: "Copy link text to Clipboard",
-  131: "Search selected text",
-  137: "Copy link URL to Clipboard",
-  194: "Copy link text one by one",
-  195: "Search link text one by one",
-  201: "Copy link URL one by one",
+  133: "Search selected text",
+  134: "Copy link text to Clipboard",
+  136: "Copy link URL to Clipboard",
+  197: "Search link text one by one",
+  198: "Copy link text one by one",
+  199: "Copy text list",
+  200: "Copy link URL one by one",
+  201: "Copy URL list",
   256: "Edit link URL on Vomnibar",
   257: "Edit link text on Vomnibar",
   execute_ (link): void {
@@ -1440,22 +1447,30 @@ Modes_: [
       });
       return;
     } else if (a.mode1_ === HintMode.SEARCH_TEXT) {
-      a.openUrl_(str);
-      return;
+      return a.openUrl_(str);
     }
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? a.decodeURL_(str) : str;
+    let shownText = str, lastYanked = a.yankedList_, oldCount = lastYanked ? lastYanked.split("\n").length : 0;
+    if (a.mode1_ === HintMode.COPY_TEXT_LIST || a.mode1_ === HintMode.COPY_LINK_URL_LIST) {
+      if (`\n${lastYanked}\n`.indexOf(`\n${str}\n`) >= 0) {
+        return VHud.show_("Nothing new to copy");
+      }
+      shownText = `[${oldCount + 1}] ${str}`;
+      str = oldCount ? lastYanked + "\n" + str + "\n" : str;
+    }
     VPort.post_({
       H: kFgReq.copy,
       d: str
     });
-    VHud.copied_(str);
+    a.yankedList_ = str.trim();
+    return VHud.copied_(shownText);
   }
 } as HintsNS.ModeOpt,
 {
-  138: "Open link in incognito window",
-  202: "Open multi incognito tabs",
+  139: "Open link in incognito window",
+  203: "Open multiple incognito tabs",
   execute_ (link: HTMLAnchorElement): void {
     const url = (this as typeof VHints).getUrlData_(link);
     if (!VPort.evalIfOK_(url)) {
@@ -1464,8 +1479,8 @@ Modes_: [
   }
 } as HintsNS.ModeOpt,
 {
-  132: "Download media",
-  196: "Download multiple media",
+  131: "Download media",
+  195: "Download multiple media",
   execute_ (element: SafeHTMLElement): void {
     let tag = element.localName;
     let text;
@@ -1490,8 +1505,8 @@ Modes_: [
   }
 } as HintsNS.ModeOpt,
 {
-  133: "Open image",
-  197: "Open multiple image",
+  132: "Open image",
+  196: "Open multiple images",
   execute_ (img: SafeHTMLElement): void {
     const a = this as typeof VHints, text = a._getImageUrl(img, 1);
     if (!text) { return; }
@@ -1505,8 +1520,8 @@ Modes_: [
   }
 } as HintsNS.ModeOpt,
 {
-  136: "Download link",
-  200: "Download multiple links",
+  138: "Download link",
+  202: "Download multiple links",
   execute_ (this: void, link: HTMLAnchorElement, rect): void {
     let oldUrl: string | null = link.getAttribute("href"), changed = false;
     if (!oldUrl || oldUrl === "#") {
@@ -1538,8 +1553,8 @@ Modes_: [
   }
 } as HintsNS.ModeOpt,
 {
-  134: "Focus node",
-  198: "Focus nodes continuously",
+  130: "Focus node",
+  194: "Focus nodes continuously",
   258: "Select an editable area",
   execute_ (link, rect): void | false {
     if ((this as typeof VHints).mode_ < HintMode.min_disable_queue) {
