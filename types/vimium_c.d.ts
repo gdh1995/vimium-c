@@ -522,8 +522,11 @@ declare const enum BrowserVer {
   // - it's said this behavior is for compatibility with websites at that time
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
-  // even if EXPERIMENTAL or EMPTY
+  // the 2 below are even if EXPERIMENTAL or EMPTY
   MinMayBeES6ArrowFunction = 45,
+  // for VHints.traverse_, Array.from takes >= 2x time to convert a static NodeList of 7242 elements to an array
+  // and the average time data is 119~126ms / 255~266ms for 100 times
+  Min$Array$$From = 45,
   // even if LEGACY
   MinEnsuredES6MethodFunction = 45, // e.g.: `a = { b() {} }`
   MinMuted = 45,

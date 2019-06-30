@@ -44,7 +44,7 @@ declare namespace HintsNS {
     newHintLength_: number;
     tab_: BOOL;
   }
-  type ElementList = Element[];
+  type ElementList = Element[] | NodeListOf<Element>;
 }
 
 var VHints = {
@@ -549,8 +549,8 @@ var VHints = {
     querySelectorAll = Build.BTypes & ~BrowserType.Firefox
       ? /* just smaller code */ (isD ? D : Element.prototype).querySelectorAll : box.querySelectorAll;
     wantClickable && Sc.getScale_();
-    let list: HintsNS.ElementList | null = [].slice.call(querySelectorAll.call(box
-        , Build.BTypes & ~BrowserType.Firefox ? queryAll : selector));
+    let list: HintsNS.ElementList | null = querySelectorAll.call(box
+        , Build.BTypes & ~BrowserType.Firefox ? queryAll : selector);
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && d.unsafeFramesetTag_ && matchAll) {
       list = a.excludeFramesets_(list, querySelectorAll.call(box, d.unsafeFramesetTag_));
@@ -560,13 +560,14 @@ var VHints = {
     }
     if (!Build.NDEBUG && isInAnElement) {
       // just for easier debugging
+      list = [].slice.call(list);
       list.unshift(wholeDoc as {} as Element);
     }
-    const tree_scopes: [Element[], number][] = [[list, 0]];
+    const tree_scopes: Array<[HintsNS.ElementList, number]> = [[list, 0]];
     while (tree_scopes.length > 0) {
-      for (let cur_scope = tree_scopes[tree_scopes.length - 1], [cur_tree, i] = cur_scope
-            , el: Element & {lang?: undefined} | SafeHTMLElement, shadowRoot: ShadowRoot | null | undefined;
-          i < cur_tree.length; ) {
+      let cur_scope = tree_scopes[tree_scopes.length - 1], [cur_tree, i] = cur_scope, len = cur_tree.length
+        , el: Element & {lang?: undefined} | SafeHTMLElement, shadowRoot: ShadowRoot | null | undefined;
+      for (; i < len; ) {
         el = cur_tree[i++] as Element & {lang?: undefined} | SafeHTMLElement;
         if (el.lang != null) {
           filter.call(a, output, el);
@@ -574,21 +575,24 @@ var VHints = {
                 && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
               ? el.webkitShadowRoot as ShadowRoot | null | undefined : el.shadowRoot as ShadowRoot | null | undefined;
           if (shadowRoot) {
-            let sub_tree = [].slice.call<ArrayLike<Element>, [number?, number?], Element[]>(shadowRoot.querySelectorAll(
-                  Build.BTypes & ~BrowserType.Firefox ? queryAll : selector));
+            let sub_tree: HintsNS.ElementList = shadowRoot.querySelectorAll(
+                  Build.BTypes & ~BrowserType.Firefox ? queryAll : selector);
             if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
                 && d.unsafeFramesetTag_) {
               // just in case of malformed pages
               sub_tree = a.excludeFramesets_(sub_tree, shadowRoot.querySelectorAll(d.unsafeFramesetTag_));
             }
             cur_scope[1] = i;
-            tree_scopes.push(cur_scope = [cur_tree = sub_tree, i = 0]);
+            tree_scopes.push([sub_tree, i = 0]);
+            break;
           }
         } else if (wantClickable) {
           a.GetClickableInMaybeSVG_(output as Exclude<typeof output, Element[]>, el);
         }
       }
-      tree_scopes.pop();
+      if (i >= len) {
+        tree_scopes.pop();
+      }
     }
     if (wholeDoc && (Build.NDEBUG || !isInAnElement)) {
       // this requires not detecting scrollable elements if wholeDoc
@@ -640,9 +644,10 @@ var VHints = {
     (key: string, filter: HintsNS.Filter<SafeHTMLElement>, notWantVUI?: true, wholeDoc?: true): SafeHTMLElement[];
     (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: boolean): Hint[];
   },
-  excludeFramesets_: Build.BTypes & BrowserType.Chrome
+  excludeFramesets_: (Build.BTypes & BrowserType.Chrome
       ? function (list: HintsNS.ElementList, framesets: NodeListOf<Element>): HintsNS.ElementList {
     if (framesets.length > 0) {
+      list = [].slice.call(list);
       for (let unsafeEl of framesets) {
         let i = list.indexOf(unsafeEl);
         if (i >= 0) {
@@ -651,7 +656,7 @@ var VHints = {
       }
     }
     return list;
-  } : 0 as never,
+  } : 0 as never) as (list: NodeListOf<Element>, framesets: NodeListOf<Element>) => HintsNS.ElementList,
   getElementsInViewPort_ (list: HintsNS.ElementList): HintsNS.ElementList {
     const result: Element[] = [], height = innerHeight;
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
