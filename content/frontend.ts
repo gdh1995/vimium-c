@@ -730,13 +730,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     return true;
   },
-  GetLinks_ (this: {}, hints: SafeHTMLElement[], element: Element): void {
+  GetButtons_ (this: {}, hints: SafeHTMLElement[], element: Element): void {
     let s: string | null;
     const tag = element.localName, isClickable = tag === "a" || tag && (
       tag === "button" ? !(element as HTMLButtonElement).disabled
       : VDom.clickable_.has(element) || element.getAttribute("onclick") || (
         (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
-        : VHints.ngEnabled_ && element.getAttribute("ng-click")));
+        : (this as typeof VHints).ngEnabled_ && element.getAttribute("ng-click")));
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
     const rect = VDom.getBoundingClientRect_(element);
@@ -747,9 +747,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   findAndFollowLink_: !(Build.NDEBUG || GlobalConsts.MaxNumberOfNextPatterns <= 255)
       ? (console.log("Assert error: GlobalConsts.MaxNumberOfNextPatterns <= 255"), 0 as never)
       : function (names: string[], isNext: boolean, lenLimit: number[], totalMax: number): boolean {
-    interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof Pagination.GetLinks_>[0][number]; }
+    interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof Pagination.GetButtons_>[0][number]; }
     // Note: this traverser should not need a prepareCrop
-    let links = VHints.traverse_("*", Pagination.GetLinks_, true, true);
+    let links = VHints.traverse_("*", Pagination.GetButtons_, true, true);
     const count = names.length,
     quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
     detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,

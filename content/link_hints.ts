@@ -158,6 +158,9 @@ var VHints = {
         break;
       }
     }
+    if (!(Build.NDEBUG || ref.length === 9)) {
+      console.log("Assert error: VHints.Modes_ should have 9 items");
+    }
     if (!modeOpt) {
       modeOpt = ref[8];
       mode = count > 1 ? HintMode.OPEN_WITH_QUEUE : HintMode.OPEN_IN_CURRENT_TAB;
@@ -447,7 +450,7 @@ var VHints = {
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
   GetEditable_ (hints: Hint[], element: SafeHTMLElement): void {
-    let arr: Rect | null, type = ClickType.Default, s: string;
+    let arr: Rect | null, s: string;
     switch (element.localName) {
     case "input":
       if (VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
@@ -457,14 +460,13 @@ var VHints = {
       if ((element as TextElement).disabled || (element as TextElement).readOnly) { return; }
       break;
     default:
-      if ((s = element.contentEditable) === "inherit" || !s || s === "false") {
+      if ((s = element.contentEditable) === "inherit" || s === "false" || !s) {
         return;
       }
-      type = ClickType.edit;
       break;
     }
     if (arr = VDom.getVisibleClientRect_(element)) {
-      hints.push([element as HintsNS.InputHintItem["dest_"], arr, type]);
+      hints.push([element as HintsNS.InputHintItem["dest_"], arr, ClickType.edit]);
     }
   },
   GetLinks_ (hints: Hint[], element: SafeHTMLElement): void {
@@ -620,8 +622,7 @@ var VHints = {
         d.dbZoom_ = z / bz;
         d.prepareCrop_();
       }
-      for (const el of (<ShadowRoot> uiRoot).querySelectorAll(
-                        Build.BTypes & ~BrowserType.Firefox ? queryAll : selector)) {
+      for (const el of (<ShadowRoot> uiRoot).querySelectorAll(selector)) {
         filter.call(a, output, el as SafeHTMLElement);
       }
       d.dbZoom_ = z;
@@ -1569,5 +1570,5 @@ Modes_: [
     , !(Build.BTypes & BrowserType.Chrome) || isRight || mode ? 0 : a.options_.touch);
   }
 } as HintsNS.ModeOpt
-]
+] as const
 };
