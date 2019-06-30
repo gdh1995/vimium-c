@@ -51,6 +51,7 @@ var VHints = {
   CONST_: {
     focus: HintMode.FOCUS,
     hover: HintMode.HOVER,
+    input: HintMode.FOCUS_EDITABLE,
     leave: HintMode.LEAVE,
     unhover: HintMode.LEAVE,
     text: HintMode.COPY_TEXT,
@@ -83,6 +84,7 @@ var VHints = {
   noHUD_: false,
   options_: null as never as HintsNS.Options,
   timer_: 0,
+  kEditableSelector_: "input,textarea,[contenteditable]" as const,
   activate_ (this: void, count: number, options: FgOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
@@ -537,7 +539,7 @@ var VHints = {
       }
     }
     const output: Hint[] | Element[] = [],
-    queryAll = Build.BTypes & ~BrowserType.Firefox ? matchAll ? ":not(form)" : selector : "",
+    queryAll = Build.BTypes & ~BrowserType.Firefox ? ":not(form)" : "*",
     Sc = VScroller,
     wantClickable = filter === a.GetClickable_,
     isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as {}) instanceof Element,
@@ -552,10 +554,14 @@ var VHints = {
       ? /* just smaller code */ (isD ? D : Element.prototype).querySelectorAll : box.querySelectorAll;
     wantClickable && Sc.getScale_();
     let list: HintsNS.ElementList | null = querySelectorAll.call(box
-        , Build.BTypes & ~BrowserType.Firefox ? queryAll : selector);
+        , Build.BTypes & ~BrowserType.Firefox && matchAll ? queryAll : selector),
+    shadowQueryAll: ShadowRoot["querySelectorAll"] | undefined;
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && d.unsafeFramesetTag_ && matchAll) {
       list = a.excludeFramesets_(list, querySelectorAll.call(box, d.unsafeFramesetTag_));
+    }
+    if (!matchAll) {
+      list = a.addShadowHosts_(list, querySelectorAll.call(box, Build.BTypes & ~BrowserType.Firefox ? "*" : queryAll));
     }
     if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
       list = a.getElementsInViewPort_(list);
@@ -577,12 +583,17 @@ var VHints = {
                 && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
               ? el.webkitShadowRoot as ShadowRoot | null | undefined : el.shadowRoot as ShadowRoot | null | undefined;
           if (shadowRoot) {
-            let sub_tree: HintsNS.ElementList = shadowRoot.querySelectorAll(
-                  Build.BTypes & ~BrowserType.Firefox ? queryAll : selector);
+            shadowQueryAll || (shadowQueryAll = shadowRoot.querySelectorAll);
+            let sub_tree: HintsNS.ElementList = shadowQueryAll.call(shadowRoot,
+                  Build.BTypes & ~BrowserType.Firefox && matchAll ? queryAll : selector);
             if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
                 && d.unsafeFramesetTag_) {
               // just in case of malformed pages
-              sub_tree = a.excludeFramesets_(sub_tree, shadowRoot.querySelectorAll(d.unsafeFramesetTag_));
+              sub_tree = a.excludeFramesets_(sub_tree, shadowQueryAll.call(shadowRoot, d.unsafeFramesetTag_));
+            }
+            if (!matchAll) {
+              sub_tree = a.addShadowHosts_(sub_tree,
+                  shadowQueryAll.call(shadowRoot, Build.BTypes & ~BrowserType.Firefox ? "*" : queryAll));
             }
             cur_scope[1] = i;
             tree_scopes.push([sub_tree, i = 0]);
@@ -658,6 +669,22 @@ var VHints = {
     }
     return list;
   } : 0 as never) as (list: NodeListOf<Element>, framesets: NodeListOf<Element>) => HintsNS.ElementList,
+  addShadowHosts_ (list: ArrayLike<Element>, allNodes: NodeListOf<Element>): HintsNS.ElementList {
+    let matchWebkit = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+                      && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
+    let hosts: SafeHTMLElement[] = [], matched: Element | undefined;
+    for (let i = 0, len = allNodes.length; i < len; i++) {
+      let el = allNodes[i];
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+            && matchWebkit ? el.webkitShadowRoot : el.shadowRoot) {
+        if (Build.BTypes & ~BrowserType.Firefox || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1
+            ? VDom.htmlTag_(el) : "lang" in <ElementToHTML> el) {
+          hosts.push(matched = el as SafeHTMLElement);
+        }
+      }
+    }
+    return matched ? [].slice.call<ArrayLike<Element>, [], Element[]>(list).concat(hosts) : hosts;
+  },
   getElementsInViewPort_ (list: HintsNS.ElementList): HintsNS.ElementList {
     const result: Element[] = [], height = innerHeight;
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
@@ -775,11 +802,12 @@ var VHints = {
   getVisibleElements_ (view: ViewBox): Hint[] {
     let a = this, _i: number = a.mode1_,
     visibleElements = _i === HintMode.DOWNLOAD_MEDIA || _i === HintMode.OPEN_IMAGE
-      ? a.traverse_("a[href],img[src],[data-src],div[style],span[style]" + (
+      // not check `img[src]` in case of `<img srcset=... >`
+      ? a.traverse_("a[href],img,[data-src],div[style],span[style]" + (
           _i === HintMode.DOWNLOAD_MEDIA ? ",video,audio" : ""), a.GetImages_, true)
-      : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? a.traverse_("*", a.GetLinks_)
-      : a.traverse_("*", _i === HintMode.FOCUS_EDITABLE ? a.GetEditable_ : a.GetClickable_
-          );
+      : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? a.traverse_("a", a.GetLinks_)
+      : _i === HintMode.FOCUS_EDITABLE ? a.traverse_(a.kEditableSelector_, a.GetEditable_)
+      : a.traverse_("*", a.GetClickable_);
     a.maxLeft_ = view[2], a.maxTop_ = view[3], a.maxRight_ = view[4];
     if (a.maxRight_ > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(a.alphabetHints_.chars_.length));

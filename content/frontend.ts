@@ -528,7 +528,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       const arr: ViewOffset = VDom.getViewBox_();
       VDom.prepareCrop_();
       // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
-      const visibleInputs = VHints.traverse_("*", VHints.GetEditable_
+      const visibleInputs = VHints.traverse_(VHints.kEditableSelector_, VHints.GetEditable_
           ) as Array<Hint & { [0]: HintsNS.InputHintItem["dest_"]; }>,
       action = options.select;
       let sel = visibleInputs.length;
