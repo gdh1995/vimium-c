@@ -12,6 +12,7 @@ declare const enum Build {
   MayOverrideNewTab = 1,
   DetectAPIOnFirefox = 1,
 }
+// Note: one random value must be used only in one .ts file, to avoid issues caused by partly building
 declare const enum BuildStr {
   Commit = "dev",
   /** used by {@see ../../content/extend_click.ts} */
@@ -23,7 +24,6 @@ declare const enum BuildStr {
   MarkForName3 = "__VimiumC_", // .length should be {@link #GlobalConsts.MarkForName3Length}
   RandomFunc = 2019, // may be a string if not in release mode
   RandomReq = 0, // 0 means not to enable this access; may be a string if not in release mode
-  RandomRes = 20080808, // may be a string if not in release mode
   FirefoxID = "vimium-c@gdh1995.cn",
   CoreGetterFuncPrefix = "__VimiumC_",
   FirefoxAddonPage = "https://addons.mozilla.org/en-US/firefox/addon/vimium-c/",

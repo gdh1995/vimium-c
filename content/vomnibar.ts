@@ -58,14 +58,11 @@ var VOmni = {
       }
     }
     if (!isTop && !options.$forced) { // check $forced to avoid dead loops
-      const p = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
-          : VDom.frameElement_() && parent as Window;
-      if (p
-          && (!(Build.BTypes & ~BrowserType.Firefox)
-                || Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox
-              ? XPCNativeWrapper(p.self) : p) === top
-          && p.VOmni) {
-        (p.VOmni as typeof VOmni).activate_(count, options);
+      let p: ContentWindowCore | void | 0 | null = parent as Window;
+      if (p === top
+          && (Build.BTypes & BrowserType.Firefox ? (p = VDom.parentCore_()) : VDom.frameElement_())
+          && (p as ContentWindowCore).VOmni) {
+        ((p as ContentWindowCore).VOmni as typeof VOmni).activate_(count, options);
       } else {
         VPort.post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options });
       }
@@ -93,8 +90,8 @@ var VOmni = {
     if (a.status_ === VomnibarNS.Status.NotInited) {
       if (!options.$forced) { // re-check it for safety
         options.$forced = 1;
-        if (VHints.TryNestedFrame_(kFgCmd.vomnibar, count, options)) { return; }
       }
+      if (VHints.TryNestedFrame_(kFgCmd.vomnibar, count, options)) { return; }
       a.status_ = VomnibarNS.Status.Initing;
       a.init_(options);
     } else if (a.isABlank_()) {

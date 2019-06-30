@@ -17,7 +17,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
 
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
-    , knownGlobalThis: Writable<ContentWindowCore> | undefined
+    , thisCore: Writable<ContentWindowCore> | undefined
     , currentKeys = "", isEnabled = false, isLocked = false
     , mappedKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
     , esc = function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
@@ -39,6 +39,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     , isTop = top === window
     , needToRetryParentClickable: BOOL = 0
     , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
+    , coreTester: { name_: string, recvTick_: number, sendTick_: number,
+        encrypt_ (randKey: number): string; compare_: Parameters<SandboxGetterFunc>[0] }
     ;
 
   function post<K extends keyof FgReq>(this: void, request: FgReq[K] & Req.baseFg<K>): 1 {
@@ -987,11 +989,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {
         D.notSafe_ = (_el): _el is HTMLFormElement => false;
-        if (Build.MinFFVer >= FirefoxBrowserVer.Min$globalThis) {
-          (globalThis as any as Writable<ContentWindowCore>).VSec = load.s as NonNullable<typeof load.s>;
-        } else {
-          knownGlobalThis && (knownGlobalThis.VSec = load.s as NonNullable<typeof load.s>);
-        }
       }
       r[kBgReq.keyMap](request);
       if (flags) {
@@ -1275,21 +1272,24 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     checkHidden_ (this: void, cmd?: FgCmdAcrossFrames
         , count?: number, options?: OptionsWithForce): BOOL {
       if (innerHeight < 3 || innerWidth < 3) { return 1; }
-      const curFrameElement_ = !isTop &&
-          VDom.frameElement_(),
+      // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
+      const curFrameElement_ = !isTop && (Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+              || !(Build.BTypes & ~BrowserType.Firefox) ? frameElement : VDom.frameElement_()),
       el = !isTop && (curFrameElement_ || document.documentElement);
       if (!el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
-      par: ReturnType<typeof VDom.parentCore_>,
+      par: ReturnType<typeof VDom.parentCore_> | undefined,
       parEvents: VEventModeTy | undefined,
-      parentHeight: number | undefined,
       result: boolean | BOOL = !box.height && !box.width || getComputedStyle(el).visibility === "hidden";
       if (cmd) {
         type EnsuredOptionsTy = Exclude<typeof options, undefined>;
+        // if in a forced cross-origin env (by setting doc.domain),
+        // then par.self.innerHeight works, but this behavior is undocumented,
+        // so here only use `par.VIh()` in case
         if ((Build.BTypes & BrowserType.Firefox ? (par = VDom.parentCore_()) : curFrameElement_)
             && (result || box.bottom <= 0
-                || (Build.BTypes & BrowserType.Firefox
-                      ? (ih(), parentHeight && box.top > parentHeight)
+                || (Build.BTypes & BrowserType.Firefox && par !== parent
+                      ? (box.top > (par as EnsureItemsNonNull<ContentWindowCore>).VIh() )
                       : box.top > (parent as Window).innerHeight))) {
           parEvents = ((Build.BTypes & BrowserType.Firefox ? par : parent) as ContentWindowCore).VEvent;
           if (parEvents
@@ -1308,9 +1308,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             n: count as number, a: options as EnsuredOptionsTy
           });
         }
-      }
-      function ih(): void {
-        try { parentHeight = (parent as Window).innerHeight; } catch { }
       }
       return +result as BOOL;
     },
@@ -1490,12 +1487,66 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
     (window as Writable<Window>).VOther = OnOther;
   }
+  if (!(Build.BTypes & BrowserType.Firefox)) { /* empty */ }
+  else if (Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox || injector !== void 0) {
+    VDom.getWndCore_ = wnd => wnd;
+  } else {
+    coreTester = {
+      name_: BuildStr.CoreGetterFuncPrefix + BuildStr.RandomFunc,
+      recvTick_: 0,
+      sendTick_: 0,
+      encrypt_ (randKey: number): string {
+        let a = BuildStr.RandomReq as string | number;
+        if (typeof <string | number> BuildStr.RandomReq !== "number" || !BuildStr.RandomReq) { // gulp && local
+          a = parseInt(a as string, 16) || 1e6;
+        }
+        a = (<number> a / (((randKey + 1) * GlobalConsts.SqrtSecretRange) | 0)) | 0;
+        return (browser as typeof chrome).runtime.getURL(a + "");
+      },
+      compare_ (publicRand: number, testEncrypted: string): boolean {
+        let diff = coreTester.encrypt_(publicRand) !== testEncrypted;
+        coreTester.recvTick_ += diff || coreTester.recvTick_ > 99 ? 0 : 1;
+        return diff;
+      }
+    };
+    /** Note: this function needs to be safe enough */
+    VDom.getWndCore_ = function (anotherWnd: Window, ignoreSec?: 1): ContentWindowCore | 0 | void {
+      coreTester.recvTick_ = -1;
+      try {
+        let core: ReturnType<SandboxGetterFunc>,
+        getter = anotherWnd.wrappedJSObject[coreTester.name_];
+        return getter && (core = getter(coreTester.compare_)) && !coreTester.recvTick_
+            && (ignoreSec || (core.VDom as typeof VDom).cache_.s === VDom.cache_.s) ? core : 0;
+      } catch {}
+    };
+    /** @see {@link ../lib/dom_utils.ts#VDom.getWndCore_} */
+    // on Firefox, such a exported function can only be called from privildged environments
+    wrappedJSObject[coreTester.name_] = function (comparer) {
+      let rand = Math.random();
+      // an ES6 method function is always using the strict mode, so the arguments are not visited outside it
+      if (coreTester.sendTick_ > GlobalConsts.MaxRetryTimesForSecret
+          || esc.toString.call(comparer) !== coreTester.compare_ + ""
+          || comparer(rand, coreTester.encrypt_(rand))) {
+        if (coreTester.sendTick_ <= GlobalConsts.MaxRetryTimesForSecret) {
+          coreTester.sendTick_++;
+        }
+        return;
+      }
+      if (!thisCore) {
+        // not expose VPort, in case of unpredictable attacks
+        thisCore = {} as Writable<ContentWindowCore>;
+        /** @see {@link base.d.ts#ContentWindowCore} */
+        thisCore.VDom = VDom; thisCore.VKey = VKey; thisCore.VHints = VHints; thisCore.VScroller = VScroller;
+        thisCore.VOmni = VOmni; thisCore.VFind = VFind; thisCore.VEvent = VEvent; thisCore.VIh = () => innerHeight;
+      }
+      return thisCore;
+    };
+  }
 
   isTop || injector ||
   function (): void { // if injected, `parentFrame_` still needs a value
     const parEl = VDom.frameElement_();
     if (Build.BTypes & BrowserType.Firefox
-        && (!BuildStr.RandomReq || !BuildStr.RandomRes) // may be compiled directly using tsc.js
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
       return;
     }
@@ -1564,43 +1615,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       add (element: Element): any { (element as ElementWithClickable).vimiumClick = true; },
       has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; }
     }) : /* now know it's on Firefox */
-        BuildStr.RandomReq && BuildStr.RandomRes && VDom.clickable_ || new (WeakSet as WeakSetConstructor)<Element>();
+        VDom.clickable_ || new (WeakSet as WeakSetConstructor)<Element>();
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hook(HookAction.Install);
     vPort.Connect_();
-    if (BuildStr.RandomReq && BuildStr.RandomRes
-        && (!(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)
-        && injector === void 0) {
-      let __secReq: string | number = BuildStr.RandomReq, errTick = 0,
-      __secRes: string | number = BuildStr.RandomRes;
-      /** @see {@link ../lib/dom_utils.ts#VDom.getWndCore_} */
-      wrappedJSObject[BuildStr.CoreGetterFuncPrefix + BuildStr.RandomFunc] = function (testSec) {
-        if (testSec !== __secReq) {
-          if (errTick > GlobalConsts.MaxRetryTimesForSecret) {
-            __secReq = esc as never;
-          } else {
-            errTick++;
-          }
-          return;
-        }
-        // on Firefox, no unsafe named getters in a webextension world
-        let core: Writable<ContentWindowCore> | 0 = Build.MinFFVer >= FirefoxBrowserVer.Min$globalThis
-              || typeof globalThis === "object" ? globalThis as any : knownGlobalThis;
-        if (Build.MinFFVer < FirefoxBrowserVer.Min$globalThis && !core) {
-          knownGlobalThis = core = {} as Writable<ContentWindowCore>;
-          /** @see {@link base.d.ts#ContentWindowCore} */
-          core.VDom = VDom; core.VKey = VKey; core.VHints = VHints; core.VScroller = VScroller;
-          core.VOmni = VOmni; core.VFind = VFind; core.VEvent = VEvent; core.self = window;
-        }
-        if (__secRes) {
-          (core as Exclude<typeof core, 0>).VRand = __secRes;
-          (core as Exclude<typeof core, 0>).VSec = VDom.cache_ && VDom.cache_.s;
-          __secRes = 0;
-        }
-        return core;
-      };
-    }
   }
 })();
 

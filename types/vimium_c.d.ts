@@ -390,6 +390,7 @@ declare const enum GlobalConsts {
   TrimmedTitleLengthForTooLongURL = 160,
   // so that `P` = 89 / 9e6 < 1e-5
   SecretRange = 9e6,
+  SqrtSecretRange = 3e3,
   SecretBase = 1e6,
   MaxRetryTimesForSecret = 89,
   SecretStringLength = 7,
@@ -845,7 +846,7 @@ declare const enum FirefoxBrowserVer {
   MinUsable$Navigator$$Clipboard = 63,
   MinMediaQuery$PrefersReducedMotion = 63,
   Min$Document$$FullscreenElement = 64,
-  Min$globalThis = 65,
+  // Min$globalThis = 65, // should not export `globalThis` into the outside
   MinMediaQuery$PrefersColorScheme = 67,
   MinSupported = 64,
 }

@@ -181,6 +181,7 @@ var VDom = {
       : el || !fallback ? el as SafeElement | null // el is safe object or null
       : this.notSafe_(docEl) ? null : docEl as SafeElement | null;
   },
+  // Note: sometimes a cached frameElement is not the wanted
   frameElement_ (): Element | null | void {
     let el: typeof frameElement | undefined;
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement) {
@@ -199,20 +200,8 @@ var VDom = {
       return el;
     }
   },
-  /** Note: this function needs to be safe enough */
-  getWndCore_: (Build.BTypes & BrowserType.Firefox ? function (anotherWnd, ignoreSec): ContentWindowCore | 0 | void {
-    if (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox) {
-      if (!BuildStr.RandomReq || !BuildStr.RandomRes) { return; }
-      try {
-        let core: ReturnType<SandboxGetterFunc>,
-        getter = anotherWnd.wrappedJSObject[BuildStr.CoreGetterFuncPrefix + BuildStr.RandomFunc];
-        return getter && (core = getter(BuildStr.RandomReq)) && core.VRand === BuildStr.RandomRes
-            && (ignoreSec || core.VSec === VDom.cache_.s) ? core : 0;
-      } catch {}
-    } else {
-      return anotherWnd as ContentWindowCore;
-    }
-  } : 0 as never) as (window: Window, ignoreSec?: 1) => ContentWindowCore | 0 | void,
+  /** must be called only if having known anotherWindow is "in a same origin" */
+  getWndCore_: 0 as never as (anotherWindow: Window, ignoreSec?: 1) => ContentWindowCore | 0 | void,
   /**
    * Return a valid `ContentWindowCore`
    * only if is a child which in fact has a same origin with its parent frame (ignore `document.domain`).
@@ -229,13 +218,14 @@ var VDom = {
     }
     // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
     let isFF = !(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox,
-    core = !(Build.BTypes & ~BrowserType.Firefox) || isFF ? VDom.getWndCore_(parent as Window, ignoreSec)
+    core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(parent as Window, ignoreSec)
         : parent as Window;
     if ((!(Build.BTypes & ~BrowserType.Firefox) || isFF) && core) {
       // in this case, `core` is an object and: {{ may be the real }} if ignoreSec else {{ is real }}
       /** the case of injector is handled in {@link ../content/injected_end.ts} */
       VDom.parentCore_ = function () {
-        core && core.VSec !== VDom.cache_.s && (core = 0);
+        let vdom = core && core.VDom as typeof VDom;
+        (vdom && vdom.cache_ && vdom.cache_.s === VDom.cache_.s) || (core = 0);
         return core as NonNullable<typeof core>;
       };
     }

@@ -432,13 +432,11 @@ interface ContentWindowCore {
   readonly VOmni?: object;
   readonly VFind?: { css_: FindCSS | null; };
   readonly VEvent?: VEventModeTy;
-  readonly VRand?: number | string;
-  readonly VSec?: number | string | null;
-  readonly self: Window;
+  readonly VIh?: (this: void) => number;
 }
 
 interface SandboxGetterFunc {
-  (secret: number | string): ContentWindowCore | 0 | null | undefined;
+  (comparer: (publicRand: number, testEncrypted: string) => boolean | BOOL): ContentWindowCore | 0 | null | undefined;
 }
 declare var wrappedJSObject: { [key: string]: SandboxGetterFunc; };
 declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;

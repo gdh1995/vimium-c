@@ -565,7 +565,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   function func(path: string): string {
     return (path.charCodeAt(0) === kCharCode.slash ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
-  if (Build.BTypes & BrowserType.Firefox && BuildStr.RandomReq && BuildStr.RandomRes
+  if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
     let n = window.name, sec = n && +n || GlobalConsts.SecretBase + ((Math.random() * GlobalConsts.SecretRange) | 0);
     (payload_ as Writable<typeof payload_>).s = sec;
