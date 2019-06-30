@@ -247,7 +247,6 @@ declare namespace SettingsNS {
     showAdvancedCommands: 0;
   }
   interface FrontendSettings {
-    deepHints: boolean;
     keyboard: [number, number];
     linkHintCharacters: string;
     regexFindMode: boolean;

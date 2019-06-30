@@ -60,6 +60,9 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.76:
+* LinkHints: now always search shadow DOMs and the related boolean option is useless and removed
+
 1.75.8:
 * LinkHints: smarter hinting and now `<video>` and `<audio>` are clickable
 * on Google Docs, now can press `<esc>` for a while to move focus from document content to the window

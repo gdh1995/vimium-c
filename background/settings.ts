@@ -379,7 +379,6 @@ var Settings_ = {
     __proto__: null as never,
     autoDarkMode: true,
     autoReduceMotion: false,
-    deepHints: false,
     dialogMode: false,
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
@@ -461,7 +460,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
   valuesToLoad_: [
-    "deepHints", "keyboard", "linkHintCharacters" //
+    "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as ReadonlyArray<keyof SettingsNS.FrontendSettings>,
   sync_: BgUtils_.blank_ as SettingsNS.Sync["set"],
