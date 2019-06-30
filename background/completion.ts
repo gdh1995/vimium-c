@@ -938,10 +938,10 @@ Completers = {
     matchType = offset && MatchType.reset;
     if (completers[0] === searchEngine) {
       searchEngine.preFilter_(query);
-      i = 1;
-      if (l < 2 || !(allExpectedTypes & ~SugType.search)) {
+      if (l < 2) {
         return;
       }
+      i = 1;
     }
     RankingUtils.timeAgo_ = Date.now() - TimeEnums.timeCalibrator; // safe for time change
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore * queryTerms.length || 0.01;

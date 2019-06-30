@@ -669,7 +669,7 @@ var VHints = {
     }
     return list;
   } : 0 as never) as (list: NodeListOf<Element>, framesets: NodeListOf<Element>) => HintsNS.ElementList,
-  addShadowHosts_ (list: ArrayLike<Element>, allNodes: NodeListOf<Element>): HintsNS.ElementList {
+  addShadowHosts_ (list: HintsNS.ElementList, allNodes: NodeListOf<Element>): HintsNS.ElementList {
     let matchWebkit = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
                       && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
     let hosts: SafeHTMLElement[] = [], matched: Element | undefined;
@@ -683,7 +683,7 @@ var VHints = {
         }
       }
     }
-    return matched ? [].slice.call<ArrayLike<Element>, [], Element[]>(list).concat(hosts) : hosts;
+    return matched ? [].slice.call<ArrayLike<Element>, [], Element[]>(list).concat(hosts) : list;
   },
   getElementsInViewPort_ (list: HintsNS.ElementList): HintsNS.ElementList {
     const result: Element[] = [], height = innerHeight;
