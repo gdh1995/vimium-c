@@ -1498,15 +1498,17 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       encrypt_ (randKey: number): string {
         let a = BuildStr.RandomReq as string | number;
         if (typeof <string | number> BuildStr.RandomReq !== "number" || !BuildStr.RandomReq) { // gulp && local
-          a = parseInt(a as string, 16) || 1e6;
+          a = parseInt(a as string, 16) || 4e6;
         }
-        a = (<number> a / (((randKey + 1) * GlobalConsts.SqrtSecretRange) | 0)) | 0;
-        return (browser as typeof chrome).runtime.getURL(a + "");
+        a = (<number> a / GlobalConsts.SecretRangeScale * (randKey < 1 && randKey >= 0 ? randKey
+              : /* a fake value */ Math.random()) + 240) & 0x3fff;
+        return (new URL((browser as typeof chrome).runtime.getURL("")).host.replace(<RegExpG> /-/g, ""
+            ).match(<RegExpG> /[\da-f]{4}/g) as string[]).map(i => parseInt(i, 16) & <number> a).join("");
       },
       compare_ (publicRand: number, testEncrypted: string): boolean {
-        let diff = coreTester.encrypt_(publicRand) !== testEncrypted;
-        coreTester.recvTick_ += diff || coreTester.recvTick_ > 99 ? 0 : 1;
-        return diff;
+        let diff = coreTester.encrypt_(+publicRand) !== testEncrypted, d2 = coreTester.recvTick_ > 64;
+        coreTester.recvTick_ += d2 ? 0 : diff ? 2 : 1;
+        return diff || d2; // hide the real result if too many errors
       }
     };
     /** Note: this function needs to be safe enough */
@@ -1519,7 +1521,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             && (ignoreSec || (core.VDom as typeof VDom).cache_.s === VDom.cache_.s) ? core : 0;
       } catch {}
     };
-    /** @see {@link ../lib/dom_utils.ts#VDom.getWndCore_} */
     // on Firefox, such a exported function can only be called from privildged environments
     wrappedJSObject[coreTester.name_] = function (comparer) {
       let rand = Math.random();

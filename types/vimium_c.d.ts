@@ -392,8 +392,8 @@ declare const enum GlobalConsts {
   TrimmedTitleLengthForTooLongURL = 160,
   // so that `P` = 89 / 9e6 < 1e-5
   SecretRange = 9e6,
-  SqrtSecretRange = 3e3,
   SecretBase = 1e6,
+  SecretRangeScale = 640, // project (1e6 + 9e6) to 0x4000 - 200
   MaxRetryTimesForSecret = 89,
   SecretStringLength = 7,
   MarkForName3Length = 10,

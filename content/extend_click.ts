@@ -204,7 +204,7 @@ if (VDom && VimiumInjector === undefined) {
 
 function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown): ReturnType<InnerVerifier> {
   if (maybeSecret === BuildStr.MarkForName3 + BuildStr.RandomName3_prefix + BuildStr.RandomName3
-      && noAbnormalVerifying) {
+      && noAbnormalVerifyingFound) {
     if (!maybeVerifierB) {
       return Build.BTypes & BrowserType.Firefox ? [myAEL, myToStr, myToSource] : [myAEL, myToStr];
     } else if (Build.BTypes & BrowserType.Firefox) {
@@ -219,7 +219,7 @@ function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown)
           ) as NonNullable<ReturnType<InnerVerifier>>;
     }
   } else {
-    noAbnormalVerifying = 0;
+    noAbnormalVerifyingFound = 0;
   }
 }
 type FUNC = (this: unknown, ...args: never[]) => unknown;
@@ -265,7 +265,7 @@ hooks = {
     const a = this, args = arguments;
     if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
       // randomize the body of this function
-      (args[1] as InnerVerifier)(decryptFromVerifier(args[1] || BuildStr.RandomName3), verifier);
+      (args[1] as InnerVerifier)(decryptFromVerifier(args[1] || BuildStr.RandomName3_prefix), verifier);
     }
     const replaced = a === myAEL || BuildStr.RandomName3 && a === anotherAEL ? _listen
         : a === myToStr || BuildStr.RandomName3 && a === anotherToStr ? _toString
@@ -282,7 +282,7 @@ hooks = {
     return !expectedFunc
         ? BuildStr.RandomName3 && call(StringIndexOf, str, kMarkToVerify) > 0 ? call(_toString, noop) : str
         : BuildStr.RandomName3 && (
-          noAbnormalVerifying && (a as PublicFunction)(kMarkToVerify, verifier),
+          noAbnormalVerifyingFound && (a as PublicFunction)(kMarkToVerify, verifier),
           a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
           : Build.BTypes & BrowserType.Firefox && a === anotherToSource ? call(_toString, _toSource)
           : ""
@@ -292,7 +292,7 @@ hooks = {
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
     if (BuildStr.RandomName3 && type === kMarkToVerify) {
-      (listener as any as InnerVerifier)(decryptFromVerifier(listener || BuildStr.RandomName3), verifier);
+      (listener as any as InnerVerifier)(decryptFromVerifier(listener || BuildStr.RandomName3_prefix), verifier);
       return;
     }
     len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
@@ -317,7 +317,7 @@ myToSourceObj = Build.BTypes & BrowserType.Firefox && _toSource ? {
     const args = arguments;
     if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
       // randomize the body of this function
-      (args[1] as InnerVerifier)(decryptFromVerifier(args[1] || BuildStr.RandomName3), verifier);
+      (args[1] as InnerVerifier)(decryptFromVerifier(args[1] || BuildStr.RandomName3_prefix), verifier);
     }
     return call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
         typeof this === "function" ? myToStr : _toSource as typeof myToStr, this, args);
@@ -352,7 +352,7 @@ let handler = function (this: void): void {
   }
 },
 detectDisabled: string | 0 = `Vimium${sec}=>9`,
-noAbnormalVerifying: BOOL = 1,
+noAbnormalVerifyingFound: BOOL = 1,
 anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,
 anotherToSource: typeof myToSource | undefined | 0,
 // here `setTimeout` is normal and will not use TimerType.fake
