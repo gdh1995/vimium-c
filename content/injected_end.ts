@@ -8,14 +8,11 @@ VDom.allowScripts_ = 0;
   const OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
         || !(Build.BTypes & ~BrowserType.Edge)
       ? Build.BTypes as number
-      : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
-      : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
-      : BrowserType.Chrome;
+      : VOther;
   if (Build.BTypes & BrowserType.Firefox) {
     if (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) {
       VDom.frameElement_ = () => frameElement;
     }
-    VDom.getWndCore_ = wnd => wnd;
     VDom.parentCore_ = () => VDom.frameElement_() && parent as Window;
   }
   const injector = VimiumInjector as VimiumInjectorTy,
