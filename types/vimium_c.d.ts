@@ -273,7 +273,6 @@ declare namespace SettingsNS {
     /** browser */ readonly b?: BrowserType;
     /** onMac: `mac`: true, `win`: 0, `others`: false */ readonly m: boolean | 0;
     /** grabBackFocus */ g: boolean;
-    /** session secret for Firefox */ s?: number | string;
   }
   interface FrontendSettingsWithSync extends CachedFrontendSettings, FrontendSettingsSyncedManually {}
   /** Note: should have NO names which may be uglified */
@@ -393,7 +392,6 @@ declare const enum GlobalConsts {
   // so that `P` = 89 / 9e6 < 1e-5
   SecretRange = 9e6,
   SecretBase = 1e6,
-  SecretRangeScale = 640, // project (1e6 + 9e6) to 0x4000 - 200
   MaxRetryTimesForSecret = 89,
   SecretStringLength = 7,
   MarkForName3Length = 10,

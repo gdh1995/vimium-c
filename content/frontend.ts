@@ -39,8 +39,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     , isTop = top === window
     , needToRetryParentClickable: BOOL = 0
     , safer = Object.create as { (o: null): any; <T>(o: null): SafeDict<T>; }
-    , coreTester: { name_: string, recvTick_: number, sendTick_: number,
-        encrypt_ (randKey: number): string; compare_: Parameters<SandboxGetterFunc>[0] }
+    , coreTester: { name_: string, rand_: number, recvTick_: number, sendTick_: number,
+        encrypt_ (trustedRand: number, unsafeRand: number): string,
+        compare_: Parameters<SandboxGetterFunc>[0] }
     ;
 
   function post<K extends keyof FgReq>(this: void, request: FgReq[K] & Req.baseFg<K>): 1 {
@@ -1493,41 +1494,40 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   } else {
     coreTester = {
       name_: BuildStr.CoreGetterFuncPrefix + BuildStr.RandomFunc,
+      rand_: 0,
       recvTick_: 0,
       sendTick_: 0,
-      encrypt_ (randKey: number): string {
-        let a = BuildStr.RandomReq as string | number;
-        if (typeof <string | number> BuildStr.RandomReq !== "number" || !BuildStr.RandomReq) { // gulp && local
-          a = parseInt(a as string, 16) || 4e6;
-        }
-        a = (<number> a / GlobalConsts.SecretRangeScale * (randKey < 1 && randKey >= 0 ? randKey
-              : /* a fake value */ Math.random()) + 240) & 0x3fff;
-        return (new URL((browser as typeof chrome).runtime.getURL("")).host.replace(<RegExpG> /-/g, ""
-            ).match(<RegExpG> /[\da-f]{4}/g) as string[]).map(i => parseInt(i, 16) & <number> a).join("");
+      encrypt_ (trustedRand: number, unsafeRand: number): string {
+        trustedRand += (unsafeRand >= 0 && unsafeRand < 1 ? unsafeRand : trustedRand);
+        let a = (0x8000 * trustedRand) | 0,
+        host = new URL((browser as typeof chrome).runtime.getURL("")).host.replace(<RegExpG> /-/g, "");
+        return ((host + (BuildStr.RandomReq as number | string as number).toString(16)
+            ).match(<RegExpG> /[\da-f]{1,4}/gi) as string[]
+            ).map((i, ind) => parseInt(i, 16) & (ind & 1 ? ~a : a)).join("");
       },
-      compare_ (publicRand: number, testEncrypted: string): boolean {
-        let diff = coreTester.encrypt_(+publicRand) !== testEncrypted, d2 = coreTester.recvTick_ > 64;
+      compare_ (rand2: number, testEncrypted: string): boolean {
+        const diff = coreTester.encrypt_(coreTester.rand_, +rand2) !== testEncrypted, d2 = coreTester.recvTick_ > 64;
         coreTester.recvTick_ += d2 ? 0 : diff ? 2 : 1;
         return diff || d2; // hide the real result if too many errors
       }
     };
     /** Note: this function needs to be safe enough */
-    VDom.getWndCore_ = function (anotherWnd: Window, ignoreSec?: 1): ContentWindowCore | 0 | void {
+    VDom.getWndCore_ = function (anotherWnd: Window): ContentWindowCore | 0 | void {
       coreTester.recvTick_ = -1;
       try {
         let core: ReturnType<SandboxGetterFunc>,
         getter = anotherWnd.wrappedJSObject[coreTester.name_];
-        return getter && (core = getter(coreTester.compare_)) && !coreTester.recvTick_
-            && (ignoreSec || (core.VDom as typeof VDom).cache_.s === VDom.cache_.s) ? core : 0;
+        return getter && (core = getter(coreTester.compare_, coreTester.rand_ = Math.random())) &&
+          !coreTester.recvTick_ ? core : 0;
       } catch {}
     };
     // on Firefox, such a exported function can only be called from privildged environments
-    wrappedJSObject[coreTester.name_] = function (comparer) {
-      let rand = Math.random();
+    wrappedJSObject[coreTester.name_] = function (comparer, rand1) {
+      let rand2 = Math.random();
       // an ES6 method function is always using the strict mode, so the arguments are not visited outside it
       if (coreTester.sendTick_ > GlobalConsts.MaxRetryTimesForSecret
           || esc.toString.call(comparer) !== coreTester.compare_ + ""
-          || comparer(rand, coreTester.encrypt_(rand))) {
+          || comparer(rand2, coreTester.encrypt_(rand2, +rand1))) {
         if (coreTester.sendTick_ <= GlobalConsts.MaxRetryTimesForSecret) {
           coreTester.sendTick_++;
         }
@@ -1535,10 +1535,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       if (!thisCore) {
         // not expose VPort, in case of unpredictable attacks
-        thisCore = {} as Writable<ContentWindowCore>;
         /** @see {@link base.d.ts#ContentWindowCore} */
-        thisCore.VDom = VDom; thisCore.VKey = VKey; thisCore.VHints = VHints; thisCore.VScroller = VScroller;
-        thisCore.VOmni = VOmni; thisCore.VFind = VFind; thisCore.VEvent = VEvent; thisCore.VIh = () => innerHeight;
+        thisCore = { VDom, VKey, VHints, VScroller, VOmni, VFind, VEvent, VIh: () => innerHeight };
       }
       return thisCore;
     };
@@ -1573,7 +1571,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (Build.BTypes & BrowserType.Firefox) {
       let core = Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox
           ? parent as Window // know it's in another extension's page, or not on Firefox
-          : VDom.parentCore_(1);
+          : VDom.parentCore_();
       try { // `core` is still unsafe
         const vfind = (core && core.VFind) as FindTy | undefined;
         if (vfind) {

@@ -201,7 +201,7 @@ var VDom = {
     }
   },
   /** must be called only if having known anotherWindow is "in a same origin" */
-  getWndCore_: 0 as never as (anotherWindow: Window, ignoreSec?: 1) => ContentWindowCore | 0 | void,
+  getWndCore_: 0 as never as (anotherWindow: Window) => ContentWindowCore | 0 | void,
   /**
    * Return a valid `ContentWindowCore`
    * only if is a child which in fact has a same origin with its parent frame (ignore `document.domain`).
@@ -210,27 +210,20 @@ var VDom = {
    *
    * @param ignoreSec may be 1 only if knowning on Firefox
    */
-  parentCore_: (Build.BTypes & BrowserType.Firefox ? function (ignoreSec): ContentWindowCore | 0 | void {
+  parentCore_: (Build.BTypes & BrowserType.Firefox ? function (): ContentWindowCore | 0 | void {
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
-          || !(Build.BTypes & BrowserType.Firefox) ? !VDom.frameElement_() : !frameElement) {
+        ? !VDom.frameElement_() : !frameElement) {
       // (in Firefox) not use the cached version of frameElement - for less exceptions in the below code
       return;
     }
     // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
-    let isFF = !(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox,
-    core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(parent as Window, ignoreSec)
-        : parent as Window;
-    if ((!(Build.BTypes & ~BrowserType.Firefox) || isFF) && core) {
-      // in this case, `core` is an object and: {{ may be the real }} if ignoreSec else {{ is real }}
+    const core = VDom.getWndCore_(parent as Window);
+    if ((!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox) && core) {
       /** the case of injector is handled in {@link ../content/injected_end.ts} */
-      VDom.parentCore_ = function () {
-        let vdom = core && core.VDom as typeof VDom;
-        (vdom && vdom.cache_ && vdom.cache_.s === VDom.cache_.s) || (core = 0);
-        return core as NonNullable<typeof core>;
-      };
+      VDom.parentCore_ = () => core;
     }
     return core;
-  } : 0 as never) as (ignoreSec?: 1) => ContentWindowCore | 0 | void | null,
+  } : 0 as never) as () => ContentWindowCore | 0 | void | null,
 
   /** computation section */
 

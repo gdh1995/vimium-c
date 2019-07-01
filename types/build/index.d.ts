@@ -23,7 +23,7 @@ declare const enum BuildStr {
   RandomName3_prefix = 0,
   MarkForName3 = "__VimiumC_", // .length should be {@link #GlobalConsts.MarkForName3Length}
   RandomFunc = 2019, // may be a string if not in release mode
-  RandomReq = 0, // 0 means not to enable this access; may be a string if not in release mode
+  RandomReq = 2019070,
   FirefoxID = "vimium-c@gdh1995.cn",
   CoreGetterFuncPrefix = "__VimiumC_",
   FirefoxAddonPage = "https://addons.mozilla.org/en-US/firefox/addon/vimium-c/",
