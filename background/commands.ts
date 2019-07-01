@@ -6,8 +6,8 @@ var Commands = {
     while (i < len) {
       str = item[i++];
       ind = str.indexOf("=");
-      if (ind === 0 || str === "__proto__") {
-        console.log(ind === 0 ? "Missing" : "Unsupported", "option key:", str);
+      if (ind === 0 || str === "__proto__" || str[0] === "$") {
+        this.logError_(ind === 0 ? "Missing" : "Unsupported", "option key:", str);
       } else if (ind < 0) {
         opt[str] = true;
       } else {
@@ -64,14 +64,14 @@ var Commands = {
       , cmdMap = BgUtils_.safeObj_<CommandsNS.Item>() as Partial<ShortcutInfoMap>
       , userDefinedKeys = BgUtils_.safeObj_<true>()
       , mkReg = BgUtils_.safeObj_<string>();
-    const available = (this as typeof Commands).availableCommands_;
+    const a = this as typeof Commands, available = a.availableCommands_;
     const colorRed = "color:red";
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
-      const defaultMap = (this as typeof Commands).defaultKeyMappings_;
+      const defaultMap = a.defaultKeyMappings_;
       for (_i = defaultMap.length; 0 < _i; ) {
         _i -= 2;
-        registry[defaultMap[_i]] = (this as typeof Commands).makeCommand_(defaultMap[_i + 1]);
+        registry[defaultMap[_i]] = a.makeCommand_(defaultMap[_i + 1]);
       }
     } else {
       _i = 1;
@@ -84,19 +84,18 @@ var Commands = {
       if (key === "map") {
         key = BgUtils_.formatKeys_(splitLine[1] || "");
         if (!key || key === "__proto__") {
-          console.log("Unsupported key sequence %c%s", colorRed, key || '""', `for "${splitLine[2] || ""}"`);
+          a.logError_("Unsupported key sequence %c%s", colorRed, key || '""', `for "${splitLine[2] || ""}"`);
         } else if (key in userDefinedKeys) {
-          console.log("Key %c%s", colorRed, key, "has been mapped to", (registry[key] as CommandsNS.Item).command_);
+          a.logError_("Key %c%s", colorRed, key, "has been mapped to", (registry[key] as CommandsNS.Item).command_);
         } else if (splitLine.length < 3) {
-          console.log("Lacking command when mapping %c%s", colorRed, key);
+          a.logError_("Lacking command when mapping %c%s", colorRed, key);
         } else if (!(details = available[splitLine[2]])) {
-          console.log("Command %c%s", colorRed, splitLine[2], "doesn't exist!");
+          a.logError_("Command %c%s", colorRed, splitLine[2], "doesn't exist!");
         } else if ((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum
             || ch === kCharCode.dash) {
-          console.log("Invalid key: %c%s", colorRed, key, "(the first char can not be '-' or number)");
+              a.logError_("Invalid key: %c%s", colorRed, key, "(the first char can not be '-' or number)");
         } else {
-          registry[key] = (this as typeof Commands).makeCommand_(splitLine[2],
-              (<typeof Commands> this).getOptions_(splitLine, 3), details);
+          registry[key] = a.makeCommand_(splitLine[2], a.getOptions_(splitLine, 3), details);
           userDefinedKeys[key] = true;
           continue;
         }
@@ -106,18 +105,18 @@ var Commands = {
         userDefinedKeys = BgUtils_.safeObj_<true>();
         mkReg = BgUtils_.safeObj_<string>(), mk = 0;
         if (errors > 0) {
-          console.log("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
+          a.logError_("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
             , errors > 1 ? "have" : "has", colorRed, errors, errors > 1 ? "s" : "", "color:auto");
         }
         continue;
       } else if (key === "mapkey" || key === "mapKey") {
         if (splitLine.length !== 3) {
-          console.log("MapKey needs both source and target keys:", line);
+          a.logError_("MapKey needs both source and target keys:", line);
         } else if ((key = splitLine[1]).length > 1 && (key.match(BgUtils_.keyRe_) as RegExpMatchArray).length > 1
           || splitLine[2].length > 1 && (splitLine[2].match(BgUtils_.keyRe_) as RegExpMatchArray).length > 1) {
-          console.log("MapKey: a source / target key should be a single key:", line);
+          a.logError_("MapKey: a source / target key should be a single key:", line);
         } else if (key in mkReg) {
-          console.log("This key %c%s", colorRed, key, "has been mapped to another key:", mkReg[key]);
+          a.logError_("This key %c%s", colorRed, key, "has been mapped to another key:", mkReg[key]);
         } else {
           mkReg[key] = splitLine[2];
           mk++;
@@ -126,32 +125,31 @@ var Commands = {
       } else if (key === "shortcut" || key === "commmand") {
         key = splitLine[1];
         if (splitLine.length < 3) {
-          console.log("Lacking command name and options in shortcut:", line);
+          a.logError_("Lacking command name and options in shortcut:", line);
         } else if ((Settings_.CONST_.GlobalCommands_ as Array<kShortcutNames | string>).indexOf(key) < 0) {
-          console.log("Shortcut %c%s", colorRed, key, "doesn't exist!");
+          a.logError_("Shortcut %c%s", colorRed, key, "doesn't exist!");
         } else if (key in cmdMap) {
-          console.log("Shortcut %c%s", colorRed, key, "has been configured");
+          a.logError_("Shortcut %c%s", colorRed, key, "has been configured");
         } else {
-          cmdMap[key as kShortcutNames] = (this as typeof Commands).makeCommand_(key,
-              (this as typeof Commands).getOptions_(splitLine, 2));
+          cmdMap[key as kShortcutNames] = a.makeCommand_(key, a.getOptions_(splitLine, 2));
           continue;
         }
       } else if (key !== "unmap") {
-        console.log("Unknown mapping command: %c%s", colorRed, key, "in", line);
+        a.logError_("Unknown mapping command: %c%s", colorRed, key, "in", line);
       } else if (splitLine.length !== 2) {
-        console.log("Unmap needs one mapped key:", line);
+        a.logError_("Unmap needs one mapped key:", line);
       } else if ((key = BgUtils_.formatKeys_(splitLine[1])) in registry) {
         delete userDefinedKeys[key];
         delete registry[key];
         continue;
       } else {
-        console.log("Unmapping: %c%s", colorRed, key, "has not been mapped");
+        a.logError_("Unmapping: %c%s", colorRed, key, "has not been mapped");
       }
       ++errors;
     }
     for (key of Settings_.CONST_.GlobalCommands_) {
       if (!cmdMap[key as kShortcutNames]) {
-        cmdMap[key as kShortcutNames] = (this as typeof Commands).makeCommand_(key);
+        cmdMap[key as kShortcutNames] = a.makeCommand_(key);
       }
     }
     CommandsData_.keyToCommandRegistry_ = registry;
@@ -204,6 +202,9 @@ var Commands = {
       if (val !== KeyAction.cmd && val !== KeyAction.count) { func(val); }
     }
   }),
+  logError_: function (): void {
+    console.log.apply(console, arguments);
+  } as (firstMsg: string, ...args: any[]) => void ,
   warnInactive_ (obj: ReadonlyChildKeyMap | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
     ++Settings_.temp_.cmdErrors_;
