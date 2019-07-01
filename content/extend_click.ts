@@ -22,7 +22,8 @@ if (VDom && VimiumInjector === undefined) {
     kHook = "VimiumHook",
     kCmd = "Vimium",
   }
-  type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[] | null ];
+  type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[]
+          , /** fromAttrs */ BOOL ];
 /** Note: on Firefox, a `[sec, cmd]` can not be visited by the main world:
  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Sharing_objects_with_page_scripts#Constructors_from_the_page_context.
  */
@@ -75,6 +76,7 @@ if (VDom && VimiumInjector === undefined) {
   }
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
+  isFirstResolve: [BOOL, BOOL] = [1, 1],
   hook = function (event: CustomEvent): void {
     const t = event.target;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
@@ -92,7 +94,7 @@ if (VDom && VimiumInjector === undefined) {
   };
   function onClick(event: CustomEvent): void {
     VKey.Stop_(event);
-    let detail = event.detail as ClickableEventDetail | null;
+    let detail = event.detail as ClickableEventDetail | null, fromAttrs = detail ? detail[2] : 0;
     if (!Build.NDEBUG) {
       let target = event.target as Element;
       console.log(`Vimium C: extend click: resolve ${
@@ -101,14 +103,18 @@ if (VDom && VimiumInjector === undefined) {
         , detail ? detail[0].length
           : Build.BTypes & ~BrowserType.Firefox && typeof target.localName !== "string" ? target + ""
           : target.localName as string
-        , detail ? detail[1] ? detail[1].length : -0 : ""
+        , detail ? detail[2] ? -0 : detail[1].length : ""
         , location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1")
         , Date.now() % 3600000);
     }
     if (detail) {
-      resolve(0, detail[0]); detail[1] && resolve(1, detail[1]);
+      resolve(0, detail[0]); resolve(1, detail[1]);
     } else {
       VDom.clickable_.add(event.target as Element);
+    }
+    if (isFirstResolve[fromAttrs]) {
+      isFirstResolve[fromAttrs] = 0;
+      VHints.isActive_ && performance.now() < 3e3 && window === top && setTimeout(VHints.CheckLast_, 34);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
@@ -128,6 +134,9 @@ if (VDom && VimiumInjector === undefined) {
   }
   function execute(cmd: ValidContentCmds): void {
     if (cmd < kContentCmd._minNotDispatchDirectly) {
+      if (cmd === kContentCmd.FindAllOnClick) {
+        isFirstResolve[1] = 0;
+      }
       box && dispatchCmd(cmd);
       return;
     }
@@ -363,7 +372,7 @@ next = function (): void {
   for (let i = unsafeDispatchCounter = 0; i < slice.length; i++) {
     prepareRegister(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
   }
-  doRegister();
+  doRegister(0);
   allNodesInDocument = allNodesForDetached = null;
 }
 , root: HTMLDivElement, timer = setTimeout_(handler, InnerConsts.DelayToWaitDomReady)
@@ -422,7 +431,7 @@ function prepareRegister(this: void, element: Element): void {
     // in case of `<html> -> ... -> <div> -> #shadow-root -> ... -> <iframe>`,
     // because `<iframe>` will destroy if removed
     if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick - 2) {
-      doRegister();
+      doRegister(0);
       Build.BTypes & ~BrowserType.Firefox || (e3 = e1.nextSibling);
       call(Append, root, e1);
       unsafeDispatchCounter++;
@@ -438,11 +447,11 @@ function prepareRegister(this: void, element: Element): void {
     }
   }
 }
-function doRegister(onlyInDocument?: 1): void {
+function doRegister(fromAttrs: BOOL): void {
   if (nodeIndexListInDocument.length || nodeIndexListForDetached.length) {
     unsafeDispatchCounter++;
     dispatch(root, new CE(kVOnClick, {
-      detail: [nodeIndexListInDocument, !Build.NDEBUG && onlyInDocument ? null : nodeIndexListForDetached]
+      detail: [nodeIndexListInDocument, nodeIndexListForDetached, fromAttrs]
     }));
     nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0;
   }
@@ -473,7 +482,7 @@ function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
       pushInDocument(i);
     }
   }
-  Build.NDEBUG ? doRegister() : doRegister(1);
+  doRegister(1);
   allNodesInDocument = null;
 }
 function executeCmd(eventOrDestroy?: Event): void {

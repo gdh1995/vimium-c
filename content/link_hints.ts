@@ -1013,21 +1013,28 @@ var VHints = {
     this.timer_ && clearTimeout(this.timer_);
     this.timer_ = el && (isClick === true || this.mode_ < HintMode.min_job) ? setTimeout(function (i): void {
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
-      VHints && VHints._CheckLast(el, r);
+      VHints && VHints.CheckLast_(el, r);
     }, 255) : 0;
   },
-  _CheckLast (this: void, el: HintsNS.LinkEl, r?: Rect | null): void {
-    const _this = VHints;
+  // if not el, then reinit if only no key stroke and hints.length < 64
+  CheckLast_ (this: void, el?: HintsNS.LinkEl | TimerType.fake, r?: Rect | null): void {
+    const _this = VHints, events = VEvent;
     if (!_this) { return; }
     _this.timer_ = 0;
-    const r2 = VDom.getBoundingClientRect_(el),
-    hidden = r2.width < 1 && r2.height < 1 || getComputedStyle(el).visibility !== "visible";
+    if (events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
+      _this.clean_();
+      return;
+    }
+    const r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
+                      || el !== TimerType.fake) ? VDom.getBoundingClientRect_(el as HintsNS.LinkEl) : 0,
+    hidden = !r2 || r2.width < 1 && r2.height < 1 || getComputedStyle(el as HintsNS.LinkEl).visibility !== "visible";
     if (hidden && VDom.lastHovered_ === el) {
       VDom.lastHovered_ = null;
     }
-    if (r && _this.isActive_ && (_this.hints_ as HintsNS.HintItem[]).length < 64
+    if ((!r2 || r) && _this.isActive_ && (_this.hints_ as HintsNS.HintItem[]).length < 64
         && !_this.alphabetHints_.hintKeystroke_
-        && (hidden || Math.abs(r2.left - r[0]) > 100 || Math.abs(r2.top - r[1]) > 60)) {
+        && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect)[0]) > 100
+            || Math.abs((r2 as ClientRect).top - (r as Rect)[1]) > 60)) {
       return _this._reinit();
     }
   },
