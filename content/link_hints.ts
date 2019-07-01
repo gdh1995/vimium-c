@@ -982,7 +982,7 @@ var VHints = {
     }
     a.pTimer_ = -(VHud.text_ !== str);
     if (!(a.mode_ & HintMode.queue)) {
-      a._setupCheck(clickEl, null);
+      a._setupCheck(clickEl);
       return a.deactivate_(0);
     }
     a.isActive_ = false;
@@ -1010,8 +1010,9 @@ var VHints = {
     a._setupCheck(lastEl, rect, isClick);
   },
   _setupCheck (el?: HintsNS.LinkEl | null, r?: Rect | null, isClick?: boolean): void {
-    this.timer_ && clearTimeout(this.timer_);
-    this.timer_ = el && (isClick === true || this.mode_ < HintMode.min_job) ? setTimeout(function (i): void {
+    const a = this;
+    a.timer_ && clearTimeout(a.timer_);
+    a.timer_ = el && (isClick || a.mode_ < HintMode.min_job) ? setTimeout(function (i): void {
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
       VHints && VHints.CheckLast_(el, r);
     }, 255) : 0;
@@ -1022,8 +1023,7 @@ var VHints = {
     if (!_this) { return; }
     _this.timer_ = 0;
     if (events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
-      _this.clean_();
-      return;
+      return _this.clean_();
     }
     const r2 = el && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake
                       || el !== TimerType.fake) ? VDom.getBoundingClientRect_(el as HintsNS.LinkEl) : 0,

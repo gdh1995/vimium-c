@@ -413,7 +413,7 @@ interface VDataTy {
 
 declare const enum kContentCmd {
   _fake = 0,
-  FindAllOnClick = 1,
+  FindAllOnClick = 2,
   _minNotDispatchDirectly = 4,
   SuppressClickable = 5,
   Destroy = 6,

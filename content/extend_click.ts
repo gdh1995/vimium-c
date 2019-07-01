@@ -44,7 +44,7 @@ if (VDom && VimiumInjector === undefined) {
   }
   const kVOnClick1 = InnerConsts.kVOnClick
     , kHook = (InnerConsts.kHook + BuildStr.RandomName0) as InnerConsts.kHook
-    , d = document, docEl = d.documentElement
+    , docEl = document.documentElement
     , secret: number = (Math.random() * kContentCmd.SecretRange + 1) | 0
     , script = VDom.createElement_("script");
 /**
@@ -76,7 +76,7 @@ if (VDom && VimiumInjector === undefined) {
   }
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
-  isFirstResolve: [BOOL, BOOL] = [1, 1],
+  isFirstResolve: 0 | 1 | 2 | 3 = isFirstTime && window === top ? 3 : 0,
   hook = function (event: CustomEvent): void {
     const t = event.target;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
@@ -91,10 +91,21 @@ if (VDom && VimiumInjector === undefined) {
       t.addEventListener(kVOnClick1, onClick, true);
       box = t;
     }
+  },
+  delayFindAll = function (e: Event): void {
+    if (e && (e.target !== document
+            || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+                ? !e.isTrusted : e.isTrusted === !1))) { return; }
+    removeEventListener("load", delayFindAll, !0);
+    delayFindAll = null as never;
+    box && setTimeout(function(): void {
+      box && dispatchCmd(kContentCmd.FindAllOnClick);
+      isFirstResolve = 0;
+    }, InnerConsts.DelayToFindAll);
   };
   function onClick(event: CustomEvent): void {
     VKey.Stop_(event);
-    let detail = event.detail as ClickableEventDetail | null, fromAttrs = detail ? detail[2] : 0;
+    let detail = event.detail as ClickableEventDetail | null, fromAttrs: 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 1;
     if (!Build.NDEBUG) {
       let target = event.target as Element;
       console.log(`Vimium C: extend click: resolve ${
@@ -112,9 +123,9 @@ if (VDom && VimiumInjector === undefined) {
     } else {
       VDom.clickable_.add(event.target as Element);
     }
-    if (isFirstResolve[fromAttrs]) {
-      isFirstResolve[fromAttrs] = 0;
-      VHints.isActive_ && performance.now() < 3e3 && window === top && setTimeout(VHints.CheckLast_, 34);
+    if (isFirstResolve & fromAttrs) {
+      isFirstResolve ^= fromAttrs;
+      VHints.isActive_ && setTimeout(VHints.CheckLast_, 34);
     }
   }
   function resolve(isBox: BOOL, nodeIndexList: number[]): void {
@@ -135,7 +146,7 @@ if (VDom && VimiumInjector === undefined) {
   function execute(cmd: ValidContentCmds): void {
     if (cmd < kContentCmd._minNotDispatchDirectly) {
       if (cmd === kContentCmd.FindAllOnClick) {
-        isFirstResolve[1] = 0;
+        isFirstResolve = 0;
       }
       box && dispatchCmd(cmd);
       return;
@@ -346,14 +357,6 @@ anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefin
 anotherToSource: typeof myToSource | undefined | 0,
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
-delayFindAll = function (e?: Event): void {
-  if (e && (e.target !== doc
-          || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-              ? !e.isTrusted : e.isTrusted === !1))) { return; }
-  rEL("load", delayFindAll, !0);
-  delayFindAll = null as never;
-  setTimeout_(findAllOnClick, InnerConsts.DelayToFindAll);
-},
 docChildren = doc.children,
 unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
@@ -502,7 +505,6 @@ function executeCmd(eventOrDestroy?: Event): void {
   clearTimeout_(timer);
   timer = 1;
   rEL(kOnDomReady, handler, !0);
-  delayFindAll && delayFindAll(); // clean the "load" listener
 }
 
 toRegister.p = push as any, toRegister.s = toRegister.splice;
@@ -514,7 +516,6 @@ if (Build.BTypes & BrowserType.Firefox && _toSource) {
   (FP as {toSource?: any}).toSource = myToSource;
 }
 _listen(kOnDomReady, handler, !0);
-_listen("load", delayFindAll, !0);
 
   }).toString() + ")();" /** need "toString()": {@see Gulpfile.js#patchExtendClick} */;
   if (isFirstTime) {
@@ -548,7 +549,7 @@ _listen("load", delayFindAll, !0);
   script.type = "text/javascript";
   script.dataset.vimium = secret as number | string as string;
   docEl ? Build.BTypes & ~BrowserType.Firefox ? script.insertBefore.call(docEl, script, docEl.firstChild)
-    : docEl.insertBefore(script, docEl.firstChild) : d.appendChild(script);
+    : docEl.insertBefore(script, docEl.firstChild) : document.appendChild(script);
   isFirstTime ? (script.dataset.vimium = "") : script.remove();
   }
   if (!(Build.NDEBUG || !isFirstTime || (VDom.OnDocLoaded_ + "").indexOf("DOMContentLoaded") >= 0)) {
@@ -566,6 +567,7 @@ _listen("load", delayFindAll, !0);
     VDom.OnDocLoaded_(function (): void {
       box || execute(kContentCmd.DestroyForCSP);
     });
+    addEventListener("load", delayFindAll, !0);
     Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage ||
     !(Build.BTypes & BrowserType.Chrome) ||
     VDom.allowRAF_ || requestAnimationFrame(() => { VDom.allowRAF_ = 1; });
