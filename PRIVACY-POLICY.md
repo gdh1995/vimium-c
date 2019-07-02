@@ -44,6 +44,7 @@ Vimium C overrides the "newtab" chrome url in order to provide better user exper
 Vimium C also registers a search key `v` for Chrome omni box,which makes the box work just like Vomnibar in omni mode.
 
 Such permissions can be removed safely and won't break Vimium C, while some commands might then fail:
-* `webNavigation`, `contentSettings`, `notifications`, `sessions` and `storage`
+* `webNavigation`, `contentSettings`, `notifications`, and `storage`
+* some manifest fields including `commands`, `chrome_url_overrides` and `omnibox` can also be removed safely
 * before Chrome 37, there's no `sessions` functionality, so a few commands of Vimium C won't work,
     but most others are not influenced.

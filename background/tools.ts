@@ -143,15 +143,18 @@ ContentSettings_ = Build.PContentSettings ? {
           const key = ContentSettings_.makeKey_(contentType);
           localStorage.getItem(key) !== "1" && localStorage.setItem(key, "1");
         }
+        const couldNotRefresh = !!(Build.BTypes & BrowserType.Edge
+                || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions
+            ;
         if (tab.incognito || reopen) {
           ++tab.index;
           return Backend_.reopenTab_(tab);
-        } else if (tab.index > 0 && chrome.sessions) {
+        } else if (tab.index > 0 && !couldNotRefresh) {
           return Backend_.reopenTab_(tab, true);
         }
         chrome.windows.getCurrent({populate: true}, function (wnd) {
           !wnd || wnd.type !== "normal" ? chrome.tabs.reload(BgUtils_.runtimeError_)
-            : Backend_.reopenTab_(tab, wnd.tabs.length > 1 && !!chrome.sessions);
+            : Backend_.reopenTab_(tab, wnd.tabs.length > 1 && !couldNotRefresh);
           return BgUtils_.runtimeError_();
         });
       });

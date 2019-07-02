@@ -258,9 +258,9 @@ var Backend_: BackendHandlersNS.BackendHandlers;
   }
   function complainNoSession(this: void): void {
     (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
-    || Build.MinCVer >= BrowserVer.MinSession || CurCVer_ >= BrowserVer.MinSession
+    || Build.MinCVer >= BrowserVer.MinSessions || CurCVer_ >= BrowserVer.MinSessions
       ? Backend_.complain_("control tab sessions")
-      : Backend_.showHUD_(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
+      : Backend_.showHUD_(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSessions}`);
   }
   function upperGitUrls(url: string, path: string): string | void | null {
     const obj = BgUtils_.safeParseURL_(url), host: string | undefined = obj ? obj.hostname : "";
@@ -1157,7 +1157,8 @@ Are you sure you want to continue?`) ? count
       chrome.tabs.remove(tabs[ind + 1 === end || cRepeat > 0 && start !== ind ? start : end - 1].id);
     },
     /* restoreTab: */ function (this: void): void {
-      if (!chrome.sessions) {
+      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome
+          && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions) {
         return complainNoSession();
       }
       let count = cRepeat;
@@ -1171,7 +1172,8 @@ Are you sure you want to continue?`) ? count
       } while (0 < --count);
     },
     /* restoreGivenTab: */ function (): void {
-      if (!chrome.sessions) {
+      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome
+          && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions) {
         return complainNoSession();
       }
       function doRestore(this: void, list: chrome.sessions.Session[]): void {
@@ -1960,7 +1962,8 @@ Are you sure you want to continue?`) ? count
         });
         return;
       }
-      if (!chrome.sessions) {
+      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome
+          && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions) {
         return complainNoSession();
       }
       chrome.sessions.restore(id, function (): void {

@@ -472,7 +472,7 @@ declare const enum BrowserVer {
   MinPhysicalPixelOnWindows = 37, // even if EXPERIMENTAL or LEGACY; replaced by MinHighDPIOnWindows
   // before C37, if a page has no `'unsafe-inline'` in its CSP::`style-src`, then Vimium's styles is totally broken
   MinStyleSrcInCSPNotBreakUI = 37, // even if EXPERIMENTAL or LEGACY
-  MinSession = 37,
+  MinSessions = 37,
   // even if EXPERIMENTAL; Note: should use MinSafeCSS$All
   /** @deprecated */
   MinCSS$All$Attr = 37,

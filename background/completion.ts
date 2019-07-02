@@ -1160,6 +1160,7 @@ knownCs: CompletersMap & SafeObject = {
     _callbacks: null as HistoryCallback[] | null,
     domains_: null as typeof BgUtils_.domains_ | null,
     use_ (callback?: HistoryCallback): void {
+      if (Build.BTypes & BrowserType.Edge && !chrome.history) { callback && callback([]); return; }
       if (this._callbacks) {
         callback && this._callbacks.push(callback);
         return;
