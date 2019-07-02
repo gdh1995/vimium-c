@@ -281,12 +281,13 @@ hooks = {
     detectDisabled && str === detectDisabled && executeCmd();
     return !expectedFunc
         ? BuildStr.RandomName3 && call(StringIndexOf, str, kMarkToVerify) > 0 ? call(_toString, noop) : str
-        : BuildStr.RandomName3 && (
+        : !BuildStr.RandomName3 ? str
+        : (
           noAbnormalVerifyingFound && (a as PublicFunction)(kMarkToVerify, verifier),
           a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
           : Build.BTypes & BrowserType.Firefox && a === anotherToSource ? call(_toString, _toSource)
-          : ""
-        ) || (/* todo: being attacked, so disable this check */ str);
+          : (noAbnormalVerifyingFound = 0, str)
+        );
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {

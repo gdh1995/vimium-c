@@ -372,7 +372,6 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       ;
   }
   function confirm_(this: void, command: string, count: number): number {
-    // todo: check delta(now)
     let msg = CommandsData_.cmdDescriptions_[command];
     msg = (msg as NonNullable<typeof msg>).replace(<RegExpOne> / \(use .*|&nbsp\(.*|<br\/>/, "");
     let now = Date.now();
