@@ -65,7 +65,7 @@ debounce_ = function<T> (this: void, func: (this: T) => void
           , wait: number, bound_context: T, also_immediate: BOOL
           ) => (this: void) => void;
 
-var $ = function<T extends HTMLElement>(selector: string): T { return document.querySelector(selector) as T; }
+var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
   , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow;
 let bgSettings_ = BG_.Settings_;
 declare var bgOnOther_: BrowserType;

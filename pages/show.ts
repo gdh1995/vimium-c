@@ -41,9 +41,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
 }
-var $ = function<T extends HTMLElement>(selector: string): T {
-  return document.querySelector(selector) as T;
-},
+var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
 BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow;
 if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
   BG_ = null as never;
