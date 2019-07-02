@@ -410,7 +410,7 @@ declare namespace BackendHandlersNS {
     checkIfEnabled_: ExclusionsNS.Listener;
     focus_ (this: void, request: MarksNS.FocusOrLaunch): void;
     setOmniStyle_ (this: void, request: FgReq[kFgReq.setOmniStyle], port?: Port): void;
-    reopenTab_ (tab: chrome.tabs.Tab, refresh?: boolean): void;
+    reopenTab_ (tab: chrome.tabs.Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
     IconBuffer_: IconNS.AccessIconBuffer | null,
     removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;

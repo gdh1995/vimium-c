@@ -2596,15 +2596,17 @@ Are you sure you want to continue?`) ? count
         s: selectLast ? url.lastIndexOf(" ") + 1 : 0
       };
     },
-    reopenTab_ (this: void, tab: Tab, refresh?: boolean): void {
-      const tabId = tab.id;
+    reopenTab_ (this: void, tab: Tab, refresh?: 0 | 1 | 2): void {
+      const tabId = tab.id, needTempBlankTab = refresh === 1;
       if (refresh) {
-        chrome.tabs.remove(tabId, onRuntimeError);
         let step = RefreshTabStep.start,
+        tempTabId = -1,
         onRefresh = function (this: void): void {
           const err = onRuntimeError();
           if (err) {
             chrome.sessions.restore();
+            tempTabId >= 0 && chrome.tabs.remove(tempTabId);
+            tempTabId = 0;
             return err;
           }
           step = step + 1;
@@ -2613,6 +2615,12 @@ Are you sure you want to continue?`) ? count
             chrome.tabs.get(tabId, onRefresh);
           }, 50 * step * step);
         };
+        if (needTempBlankTab) {
+          chrome.tabs.create({url: "about:blank", active: false, windowId: tab.windowId}, (temp_tab): void => {
+            tempTabId /* === -1 */ ? (tempTabId = temp_tab.id) : chrome.tabs.remove(temp_tab.id);
+          });
+        }
+        chrome.tabs.remove(tabId, onRuntimeError);
         chrome.tabs.get(tabId, onRefresh);
         return;
       }
@@ -2625,6 +2633,7 @@ Are you sure you want to continue?`) ? count
         openerTabId: tab.openerTabId,
       });
       chrome.tabs.remove(tabId);
+      // should never remove its session item - in case that goBack/goForward might be wanted
       // not seems to need to restore muted status
     },
     showHUD_ (message: string, isCopy?: boolean): void {

@@ -792,6 +792,9 @@ declare const enum BrowserVer {
   MinFramesetHasNoNamedGetter = 70,
   MinContainLayoutBreakUIBox = 70, // even if EXPERIMENTAL
   Min$NotificationOptions$$silent = 70,
+  // if `toggleCS` repeatedly, then a 3rd-party iframe gets a new CS later than its owner top frame
+  // and if reopenTab, the CS is synced among frames again
+  MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings = 70, // even if EXPERIMENTAL or LEGACY
   // means unprefixed properties and event name
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,

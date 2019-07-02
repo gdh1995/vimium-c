@@ -103,6 +103,14 @@ ContentSettings_ = Build.PContentSettings ? {
     }
     return result;
   },
+  hasOtherOrigins_ (ports: Frames.Frames): boolean {
+    let last: string | undefined, i = ports.length, cur: string;
+    do {
+      cur = new URL(ports[--i].s.u).host;
+      last || (last = cur);
+    } while (1 < i && cur === last);
+    return cur !== last;
+  },
   Clear_ (this: void, contentType: CSTypes, tab?: Readonly<Pick<Frames.Sender, "a">>): void {
     const css = chrome.contentSettings, cs = css && css[contentType],
     kIncognito = "incognito_session_only", kRegular = "regular";
@@ -143,18 +151,24 @@ ContentSettings_ = Build.PContentSettings ? {
           const key = ContentSettings_.makeKey_(contentType);
           localStorage.getItem(key) !== "1" && localStorage.setItem(key, "1");
         }
-        const couldNotRefresh = !!(Build.BTypes & BrowserType.Edge
+        let arr: Frames.Frames | null,
+        couldNotRefresh = !!(Build.BTypes & BrowserType.Edge
                 || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions
+            || !!(Build.BTypes & BrowserType.Chrome)
+                // work around a bug of Chrome
+                && (Build.MinCVer >= BrowserVer.MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings
+                    || CurCVer_ >= BrowserVer.MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings)
+                && (arr = Backend_.indexPorts_(tab.id)) && arr.length > 2 && ContentSettings_.hasOtherOrigins_(arr)
             ;
         if (tab.incognito || reopen) {
           ++tab.index;
           return Backend_.reopenTab_(tab);
-        } else if (tab.index > 0 && !couldNotRefresh) {
-          return Backend_.reopenTab_(tab, true);
+        } else if (tab.index > 0) {
+          return Backend_.reopenTab_(tab, couldNotRefresh ? 0 : 2);
         }
         chrome.windows.getCurrent({populate: true}, function (wnd) {
           !wnd || wnd.type !== "normal" ? chrome.tabs.reload(BgUtils_.runtimeError_)
-            : Backend_.reopenTab_(tab, wnd.tabs.length > 1 && !couldNotRefresh);
+            : Backend_.reopenTab_(tab, couldNotRefresh ? 0 : wnd.tabs.length > 1 ? 2 : 1);
           return BgUtils_.runtimeError_();
         });
       });
