@@ -62,6 +62,8 @@ __Other extensions supporting Vimium C:__
 
 1.76:
 * LinkHints: now always search shadow DOMs and the related boolean option is useless and removed
+* add a new command `closeDownloadBar` to close Chrome's download bar at the bottom
+* work around a bug of Chrome 70+, which affects command `toggleCS`
 
 1.75.8:
 * LinkHints: smarter hinting and now `<video>` and `<audio>` are clickable

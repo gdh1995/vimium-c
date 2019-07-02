@@ -87,10 +87,10 @@ var HelpDialog = {
       , secondDescriptions = (this as typeof HelpDialog).descriptions
       , firstDescriptions = CommandsData_.cmdDescriptions_;
     let html = "";
-    for (const command of (this as typeof HelpDialog).commandGroups_[group] || []) {
+    for (const command of (this as typeof HelpDialog).commandGroups_[group]) {
       let keys = commandToKeys[command];
       if (hideUnbound && !keys) { continue; }
-      const isAdvanced = command in (this as typeof HelpDialog).advancedCommands_
+      const isAdvanced = (this as typeof HelpDialog).advancedCommands_[command] === 1
         , description = secondDescriptions[command] || <string> firstDescriptions[command];
       if (!Build.NDEBUG) {
         if (!description) {
@@ -237,7 +237,7 @@ var HelpDialog = {
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
       , "enableCSTemp", "toggleCS", "clearCS"],
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "toggleLinkHintCharacters"
-      , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
+      , "toggleSwitchTemp", "passNextKey", "debugBackground", "closeDownloadBar", "blank"]
   } as Readonly< EnsuredSafeDict<ReadonlyArray<string>> >,
   advancedCommands_: { __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
@@ -255,6 +255,7 @@ var HelpDialog = {
     , "LinkHints.activateModeToHover": 1, "LinkHints.unhoverLast": 1
     , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateModeToLeave": 1
     , "Vomnibar.activateUrl": 1, "Vomnibar.activateUrlInNewTab": 1
+    , closeDownloadBar: Build.BTypes & BrowserType.Chrome ? 0 : 1
   } as SafeEnum,
   descriptions: { __proto__: null as never,
     "LinkHints.activate": `Open a link in the current tab (use button=""/"right"${
@@ -373,6 +374,7 @@ var HelpDialog = {
     toggleSwitchTemp: "Toggle switch only on current page (use key[, value])",
     toggleViewSource: "View page source",
     toggleVomnibarStyle: "Toggle style(s) of vomnibar page (use style=dark, current)",
+    closeDownloadBar: "Close the bottom download bar",
     visitPreviousTab: "Go to previously-visited tab on current window"
   } as ReadonlySafeDict<string>
 };

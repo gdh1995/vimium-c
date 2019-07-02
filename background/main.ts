@@ -932,13 +932,17 @@ Are you sure you want to continue?`) ? count
       }
       chrome.windows.getCurrent({populate: true}, incognito ? moveTabToIncognito : moveTabToNewWindow0);
       function moveTabToNewWindow0(this: void, wnd: PopWindow): void {
-        const tabs0 = wnd.tabs, total = tabs0.length;
-        if (total <= 1) { return; } // not need to show a tip
+        const tabs0 = wnd.tabs, total = tabs0.length, all = !!cOptions.all;
+        if (!all && total <= 1) { return; } // not need to show a tip
         const tab = selectFrom(tabs0), i = tab.index;
         let range = getTabRange(i, total), count = range[1] - range[0];
-        if (count >= total) { return Backend_.showHUD_("It does nothing to move all tabs of this window"); }
-        if (count > 30 && !(count = confirm_("moveTabToNewWindow", count))) { return; }
-        if (count < 2) { range = [i, i + 1]; };
+        if (all) {
+          range = [0, count = tabs0.length];
+        } else {
+          if (count >= total) { return Backend_.showHUD_("It does nothing to move all tabs of this window"); }
+          if (count > 30 && !(count = confirm_("moveTabToNewWindow", count))) { return; }
+          if (count < 2) { range = [i, i + 1]; };
+        }
         return makeWindow({
           tabId: tab.id,
           incognito: tab.incognito
