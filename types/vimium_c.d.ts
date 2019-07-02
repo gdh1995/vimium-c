@@ -378,6 +378,7 @@ declare const enum GlobalConsts {
   LinkHintPageHeightLimitToCheckViewportFirst = 15000,
   MinElementCountToStopScanOnClick = 5000,
   MaxScrollbarWidth = 24,
+  MinScrollableAreaSizeForDetection = 50,
   MaxHeightOfLinkHintMarker = 18,
   FirefoxFocusResponseTimeout = 340,
   MaxLimitOfVomnibarMatches = 25,

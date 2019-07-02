@@ -290,7 +290,7 @@ var VHints = {
    */
   GetClickable_ (hints: Hint[], element: SafeHTMLElement): void {
     let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null
-      , type = ClickType.Default, scrollOrShadow: 0 | 1 | 2 = 0;
+      , type = ClickType.Default, clientSize: number = 0;
     const tag = element.localName;
     switch (tag) {
     case "a":
@@ -349,10 +349,7 @@ var VHints = {
       break;
     // elements of the types above should refuse `attachShadow`
     case "div": case "ul": case "pre": case "ol": case "code": case "table": case "tbody":
-      scrollOrShadow = 2;
-      break;
-    default:
-      scrollOrShadow = 1;
+      clientSize = element.clientHeight;
       break;
     }
     if (isClickable === null) {
@@ -367,13 +364,15 @@ var VHints = {
           && this.inferTypeOfListener_(element, tag)
         ? ClickType.codeListener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
-        : scrollOrShadow > 1 && (
-          type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? ClickType.scrollY
-            : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default,
-          type) ? type
-        : (s = element.className) && this.btnRe_.test(s)
-          || element.getAttribute("aria-selected") ? ClickType.classname
-        : ClickType.Default;
+        : clientSize
+          && (clientSize > GlobalConsts.MinScrollableAreaSizeForDetection - 1
+                && clientSize + 5 < element.scrollHeight ? ClickType.scrollY
+              : clientSize > /* scrollbar:12 + font:9 */ 20
+                && (clientSize = element.clientWidth) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
+                && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
+              : ClickType.Default)
+          || ((s = element.className) && this.btnRe_.test(s)
+              || element.getAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
     }
     if ((isClickable || type !== ClickType.Default)
         && (arr = arr || VDom.getVisibleClientRect_(element))
