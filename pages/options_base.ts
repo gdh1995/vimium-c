@@ -376,7 +376,7 @@ if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
       && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
   || devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
       || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
-) { (function (): void {
+) { setTimeout(function (): void {
   const css = document.createElement("style"), ratio = devicePixelRatio;
   const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
       || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
@@ -387,7 +387,7 @@ if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
   css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
     : `* { border-width: ${scale}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
-})(); }
+}, 12); }
 
 $<HTMLElement>(".version").textContent = bgSettings_.CONST_.VerName_;
 (document.documentElement as HTMLHtmlElement).classList.toggle("auto-dark", !!bgSettings_.payload_.d);
