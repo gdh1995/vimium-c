@@ -282,26 +282,22 @@ declare namespace SettingsNS {
 }
 
 declare const enum HintMode {
-  empty = 0, focused = 1, newTab = 2, queue = 64,
-  mask_focus_new = focused | newTab, mask_queue_focus_new = mask_focus_new | queue,
-  min_job = 128, min_link_job = 136, min_disable_queue = 256,
-  DEFAULT = empty,
-  OPEN_IN_CURRENT_TAB = DEFAULT, // also 1
+  empty = 0, focused = 1, list = 1, newTab = 2, mask_focus_new = focused | newTab,
+  queue = 16, min_job = 32, min_disable_queue = 64,
+  OPEN_IN_CURRENT_TAB = empty, DEFAULT = OPEN_IN_CURRENT_TAB, // also 1
   OPEN_IN_NEW_BG_TAB = newTab,
   OPEN_IN_NEW_FG_TAB = newTab | focused,
   OPEN_CURRENT_WITH_QUEUE = queue,
   OPEN_WITH_QUEUE = queue | newTab,
   OPEN_FG_WITH_QUEUE = queue | newTab | focused,
-  HOVER = min_job,
-  LEAVE,
+  HOVER = min_job, min_hovering = HOVER,
+  LEAVE, max_hovering = LEAVE, max_mouse_events = LEAVE,
   FOCUS,
-  DOWNLOAD_MEDIA,
-  OPEN_IMAGE,
+  DOWNLOAD_MEDIA, min_media = DOWNLOAD_MEDIA,
+  OPEN_IMAGE, max_media = OPEN_IMAGE,
   SEARCH_TEXT,
-  COPY_TEXT,
-  COPY_TEXT_LIST, // its real value is always | 64
-  COPY_LINK_URL = min_link_job,
-  COPY_LINK_URL_LIST, // its real value is always | 64
+  COPY_TEXT = ((SEARCH_TEXT + 1) & ~1), min_copying = COPY_TEXT, mode1_text_list = COPY_TEXT | list,
+  COPY_URL, mode1_url_list = COPY_URL | list, min_link_job = COPY_URL, max_copying = mode1_url_list,
   DOWNLOAD_LINK,
   OPEN_INCOGNITO_LINK,
   EDIT_LINK_URL = min_disable_queue,
@@ -412,6 +408,7 @@ declare const enum kCharCode {
 declare const enum kKeyCode {
   None = 0,
   backspace = 8, tab = 9, enter = 13, shiftKey = 16, ctrlKey = 17, altKey = 18, esc = 27,
+  minAcsKeys = 16, maxAcsKeys = 18,
   maxNotPrintable = 32 - 1, space, maxNotPageUp = space, pageup, minNotSpace = pageup,
   pagedown, maxNotEnd = pagedown, end, home, maxNotLeft = home, left, up,
   right, minNotUp = right, down, minNotDown, minNotInKeyNames = minNotDown,

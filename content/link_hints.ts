@@ -11,9 +11,13 @@ const enum DeepQueryType {
 }
 declare namespace HintsNS {
   type LinkEl = Hint[0];
-  interface ModeOpt {
-    [mode: number]: string | undefined;
-    execute_ (this: {}, linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintsNS.HintItem, "refer_">): void | boolean;
+  interface Executor {
+    (linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintsNS.HintItem, "refer_">): void | boolean;
+  }
+  interface ModeOpt extends ReadonlyArray<Executor | HintMode | string> {
+    [0]: Executor,
+    [1]: HintMode,
+    [2]: string,
   }
   interface Options extends SafeObject {
     action?: string;
@@ -56,7 +60,7 @@ var VHints = {
     unhover: HintMode.LEAVE,
     text: HintMode.COPY_TEXT,
     "copy-text": HintMode.COPY_TEXT,
-    url: HintMode.COPY_LINK_URL,
+    url: HintMode.COPY_URL,
     image: HintMode.OPEN_IMAGE
   } as Dict<HintMode>,
   box_: null as HTMLDivElement | HTMLDialogElement | null,
@@ -64,7 +68,7 @@ var VHints = {
   hints_: null as HintsNS.HintItem[] | null,
   mode_: 0 as HintMode,
   mode1_: 0 as HintMode,
-  modeOpt_: null as HintsNS.ModeOpt | null,
+  modeOpt_: null as never as HintsNS.ModeOpt,
   forHover_: false,
   count_: 0,
   lastMode_: 0 as HintMode,
@@ -147,7 +151,7 @@ var VHints = {
   setModeOpt_ (count: number, options: HintsNS.Options): void {
     const a = this;
     if (a.options_ === options) { return; }
-    let ref = a.Modes_, modeOpt: HintsNS.ModeOpt | undefined,
+    let modeOpt: HintsNS.ModeOpt | undefined,
     mode = (<number> options.mode > 0 ? options.mode as number
       : a.CONST_[options.action || options.mode as string] as number | undefined | {} as number) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
@@ -155,17 +159,18 @@ var VHints = {
     }
     count = Math.abs(count);
     if (count > 1) { mode < HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
-    for (let _i = ref.length; 0 <= --_i; ) {
-      if (ref[_i].hasOwnProperty(mode)) {
-        modeOpt = ref[_i];
+    for (let modes of a.Modes_) {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Array$$Includes
+          ? modes.indexOf(mode) > 0 : (modes as ReadonlyArrayWithIncludes<(typeof modes)[number]>).includes(mode)) {
+        modeOpt = modes;
         break;
       }
     }
-    if (!(Build.NDEBUG || ref.length === 9)) {
+    if (!(Build.NDEBUG || a.Modes_.length === 9)) {
       console.log("Assert error: VHints.Modes_ should have 9 items");
     }
     if (!modeOpt) {
-      modeOpt = ref[8];
+      modeOpt = a.Modes_[8];
       mode = count > 1 ? HintMode.OPEN_WITH_QUEUE : HintMode.OPEN_IN_CURRENT_TAB;
     }
     a.modeOpt_ = modeOpt;
@@ -177,14 +182,14 @@ var VHints = {
     const a = this;
     a.lastMode_ = a.mode_ = mode;
     a.mode1_ = mode = mode & ~HintMode.queue;
-    a.forHover_ = mode >= HintMode.HOVER && mode <= HintMode.LEAVE;
+    a.forHover_ = mode > HintMode.min_hovering - 1 && mode < HintMode.max_hovering + 1;
     if (slient || a.noHUD_) { return; }
     if (a.pTimer_ < 0) {
       a.pTimer_ = setTimeout(a.SetHUDLater_, 1000);
       return;
     }
     const msg = a.dialogMode_ ? " (modal UI)" : "";
-    return VHud.show_((a.modeOpt_ as HintsNS.ModeOpt)[a.mode_] + msg, true);
+    return VHud.show_(a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] + msg, true);
   },
   SetHUDLater_ (this: void): void {
     const a = VHints;
@@ -312,8 +317,9 @@ var VHints = {
     case "input":
       if ((element as HTMLInputElement).type === "hidden") { return; } // no break;
     case "textarea":
-      if ((element as TextElement).disabled && this.mode1_ <= HintMode.LEAVE) { return; }
-      if (!(element as TextElement).readOnly || this.mode_ >= HintMode.min_job
+      // on C75, a <textarea disabled> is still focusable
+      if ((element as TextElement).disabled && this.mode1_ < HintMode.max_mouse_events + 1) { return; }
+      if (!(element as TextElement).readOnly || this.mode1_ > HintMode.min_job - 1
           || tag[0] === "i"
               && VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
         isClickable = true;
@@ -326,7 +332,8 @@ var VHints = {
       isClickable = this.isNotReplacedBy_((element as HTMLLabelElement).control as SafeHTMLElement | null);
       break;
     case "button": case "select":
-      isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled || this.mode1_ > HintMode.LEAVE;
+      isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled
+        || this.mode1_ > HintMode.max_mouse_events;
       break;
     case "object": case "embed":
       s = (element as HTMLObjectElement | HTMLEmbedElement).type;
@@ -347,9 +354,8 @@ var VHints = {
         isClickable = true;
       }
       break;
-    // elements of the types above should refuse `attachShadow`
     case "div": case "ul": case "pre": case "ol": case "code": case "table": case "tbody":
-      clientSize = element.clientHeight;
+      clientSize = 1;
       break;
     }
     if (isClickable === null) {
@@ -365,7 +371,7 @@ var VHints = {
         ? ClickType.codeListener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
         : clientSize
-          && (clientSize > GlobalConsts.MinScrollableAreaSizeForDetection - 1
+          && ((clientSize = element.clientHeight) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
                 && clientSize + 5 < element.scrollHeight ? ClickType.scrollY
               : clientSize > /* scrollbar:12 + font:9 */ 20
                 && (clientSize = element.clientWidth) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
@@ -380,7 +386,7 @@ var VHints = {
           || VScroller.shouldScroll_need_safe_(element, type - ClickType.scrollX as 0 | 1) > 0)
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
-          || this.mode_ >= HintMode.min_job) // note: might need to apply aria-disable on FOCUS/HOVER/LEAVE mode?
+            || this.mode_ > HintMode.min_job - 1)
     ) { hints.push([element, arr, type]); }
   },
   GetClickableInMaybeSVG_ (hints: Hint[], element: SVGElement | Element): void {
@@ -801,13 +807,13 @@ var VHints = {
   },
   getVisibleElements_ (view: ViewBox): Hint[] {
     let a = this, _i: number = a.mode1_,
-    visibleElements = _i === HintMode.DOWNLOAD_MEDIA || _i === HintMode.OPEN_IMAGE
+    visibleElements = _i > HintMode.min_media - 1 && _i < HintMode.max_media + 1
       // not check `img[src]` in case of `<img srcset=... >`
       ? a.traverse_("a[href],img,[data-src],div[style],span[style]" + (
-          _i === HintMode.DOWNLOAD_MEDIA ? ",video,audio" : ""), a.GetImages_, true)
-      : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? a.traverse_("a", a.GetLinks_)
-      : _i === HintMode.FOCUS_EDITABLE ? a.traverse_(a.kEditableSelector_, a.GetEditable_)
-      : a.traverse_("*", a.GetClickable_);
+          _i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio"), a.GetImages_, true)
+      : _i > HintMode.min_link_job - 1 && _i < HintMode.max_link_job + 1 ? a.traverse_("a", a.GetLinks_)
+      : _i - HintMode.FOCUS_EDITABLE ? a.traverse_("*", a.GetClickable_)
+      : a.traverse_(a.kEditableSelector_, a.GetEditable_);
     a.maxLeft_ = view[2], a.maxTop_ = view[3], a.maxRight_ = view[4];
     if (a.maxRight_ > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(a.alphabetHints_.chars_.length));
@@ -889,17 +895,17 @@ var VHints = {
         reinit = false;
       }
       reinit && setTimeout(a._reinit.bind(a, null, null), 0);
-    } else if (i === kKeyCode.shiftKey || i === kKeyCode.ctrlKey || i === kKeyCode.altKey
+    } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
         || (i === kKeyCode.metaKey && VDom.cache_.m)) {
-      const mode = a.mode_,
-      mode2 = a.mode1_ >= HintMode.COPY_TEXT && a.mode1_ <= HintMode.COPY_LINK_URL_LIST
-        ? i === kKeyCode.ctrlKey ? (a.mode1_ | HintMode.queue) ^ HintMode.focused // if & 1, then copy a list
-          : i === kKeyCode.altKey ? (mode & ~HintMode.focused) ^ HintMode.queue
+      const mode = a.mode_, mode1 = a.mode1_,
+      mode2 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
+        ? i === kKeyCode.ctrlKey ? (mode1 | HintMode.queue) ^ HintMode.list
+          : i === kKeyCode.altKey ? (mode & ~HintMode.list) ^ HintMode.queue
           : mode
         : i === kKeyCode.altKey
         ? mode < HintMode.min_disable_queue
-          ? ((mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | mode) ^ HintMode.queue : mode
-        : mode < HintMode.min_job
+          ? ((mode1 < HintMode.min_job ? HintMode.newTab : HintMode.empty) | mode) ^ HintMode.queue : mode
+        : mode1 < HintMode.min_job
           ? i === kKeyCode.shiftKey ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
           : (mode | HintMode.newTab) ^ HintMode.focused
         : mode;
@@ -947,10 +953,12 @@ var VHints = {
     }
   },
   ResetMode_ (): void {
-    if (VHints.mode_ >= HintMode.min_disable_queue || VHints.lastMode_ === VHints.mode_) { return; }
-    const d = VEvent.keydownEvents_();
-    if (d[kKeyCode.ctrlKey] || d[kKeyCode.metaKey] || d[kKeyCode.shiftKey] || d[kKeyCode.altKey]) {
-      return VHints.setMode_(VHints.lastMode_);
+    let a = VHints, d: KeydownCacheArray;
+    if (a.lastMode_ !== a.mode_ && a.mode_ < HintMode.min_disable_queue) {
+      d = VEvent.keydownEvents_();
+      if (d[kKeyCode.ctrlKey] || d[kKeyCode.metaKey] || d[kKeyCode.shiftKey] || d[kKeyCode.altKey]) {
+        a.setMode_(a.lastMode_);
+      }
     }
   },
   resetHints_ (): void {
@@ -963,13 +971,13 @@ var VHints = {
     const a = this;
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.dest_;
     a.resetHints_();
-    const str = (a.modeOpt_ as HintsNS.ModeOpt)[a.mode_] as string;
+    const str = a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] as string;
     (VHud as Writable<VHUDTy>).text_ = str; // in case pTimer > 0
     if (VDom.isInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
       rect = VDom.UI.getRect_(clickEl, hint.refer_ !== clickEl ? hint.refer_ as HTMLElementUsingMap | null : null);
-      const showRect = (a.modeOpt_ as HintsNS.ModeOpt).execute_.call(a, clickEl, rect, hint);
+      const showRect = a.modeOpt_[0](clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
         setTimeout(function (): void {
           (showRect || document.hasFocus()) && VDom.UI.flash_(null, rect as Rect);
@@ -1004,14 +1012,14 @@ var VHints = {
     a.keyStatus_.tab_ = 0;
     a.zIndexes_ = null;
     a.resetHints_();
-    const isClick = a.mode_ < HintMode.min_job;
+    const isClick = a.mode1_ < HintMode.min_job;
     a.activate_(0, a.options_);
     a._setupCheck(lastEl, rect, isClick);
   },
   _setupCheck (el?: HintsNS.LinkEl | null, r?: Rect | null, isClick?: boolean): void {
     const a = this;
     a.timer_ && clearTimeout(a.timer_);
-    a.timer_ = el && (isClick || a.mode_ < HintMode.min_job) ? setTimeout(function (i): void {
+    a.timer_ = el && (isClick || a.mode1_ < HintMode.min_job) ? setTimeout(function (i): void {
       Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i ||
       VHints && VHints.CheckLast_(el, r);
     }, 255) : 0;
@@ -1323,22 +1331,18 @@ _highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
 },
 
 Modes_: [
-{
-  128: "Hover over node",
-  192: "Hover over nodes continuously",
-  execute_ (element, rect): void {
-    const type = VDom.getEditableType_<0>(element);
+[
+  (element, rect): void => {
+    const a = VHints, type = VDom.getEditableType_<0>(element), toggleMap = a.options_.toggle;
     // here not check VDom.lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     VScroller.current_ = element;
     VDom.hover_(element, VDom.center_(rect));
     type || element.tabIndex < 0 ||
     (<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus && element.focus();
-    const a = this as typeof VHints;
-    if (a.mode_ < HintMode.min_job) {
+    if (a.mode1_ < HintMode.min_job) { // called from Modes[-1]
       return VHud.tip_("Hover for scrolling", 1000);
     }
-    const toggleMap = a.options_.toggle;
     if (!toggleMap || typeof toggleMap !== "object") { return; }
     VKey.safer_(toggleMap);
     let ancestors: Element[] = [], topest: Element | null = element, re = <RegExpOne> /^-?\d+/;
@@ -1374,11 +1378,11 @@ Modes_: [
       }
     }
   }
-} as HintsNS.ModeOpt,
-{
-  129: "Simulate mouse leaving link",
-  193: "Simulate mouse leaving continuously",
-  execute_ (this: void, element: SafeHTMLElement | SVGElement): void {
+  , HintMode.HOVER, "Hover over node"
+  , HintMode.HOVER | HintMode.queue, "Hover over nodes continuously"
+] as HintsNS.ModeOpt,
+[
+  (element: SafeHTMLElement | SVGElement): void => {
     const a = VDom;
     if (a.lastHovered_ !== element) {
       a.hover_(null);
@@ -1387,21 +1391,14 @@ Modes_: [
     a.hover_(null);
     if (document.activeElement === element) { element.blur(); }
   }
-} as HintsNS.ModeOpt,
-{
-  133: "Search selected text",
-  134: "Copy link text to Clipboard",
-  136: "Copy link URL to Clipboard",
-  197: "Search link text one by one",
-  198: "Copy link text one by one",
-  199: "Copy text list",
-  200: "Copy link URL one by one",
-  201: "Copy URL list",
-  256: "Edit link URL on Vomnibar",
-  257: "Edit link text on Vomnibar",
-  execute_ (link): void {
-    const a = this as typeof VHints;
-    let isUrl = a.mode1_ >= HintMode.min_link_job && a.mode1_ <= HintMode.max_link_job, str: string | null | undefined;
+  , HintMode.LEAVE, "Simulate mouse leaving link"
+  , HintMode.LEAVE | HintMode.queue, "Simulate mouse leaving continuously"
+] as HintsNS.ModeOpt,
+[
+  (link): void => {
+    const a = VHints, mode1 = a.mode1_;
+    let isUrl = mode1 > HintMode.min_link_job - 1 && mode1 < HintMode.max_link_job + 1,
+        str: string | null | undefined;
     if (isUrl) {
       str = a.getUrlData_(link as HTMLAnchorElement);
       str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.slice(7).trimLeft());
@@ -1440,7 +1437,7 @@ Modes_: [
     if (!str) {
       return VHud.copied_("", isUrl ? "url" : "");
     }
-    if (a.mode_ >= HintMode.min_edit && a.mode_ <= HintMode.max_edit) {
+    if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
       let newtab = a.options_.newtab;
       newtab == null && (newtab = a.options_.force);
       // this frame is normal, so during Vomnibar.activate, checkHidden will only pass (in most cases)
@@ -1452,14 +1449,15 @@ Modes_: [
         keyword: (a.options_.keyword || "") + ""
       });
       return;
-    } else if (a.mode1_ === HintMode.SEARCH_TEXT) {
+    } else if (mode1 === HintMode.SEARCH_TEXT) {
       return a.openUrl_(str);
     }
+    // then mode1 can only be copy
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? a.decodeURL_(str) : str;
     let shownText = str, lastYanked = a.yankedList_, oldCount = lastYanked ? lastYanked.split("\n").length : 0;
-    if (a.mode1_ === HintMode.COPY_TEXT_LIST || a.mode1_ === HintMode.COPY_LINK_URL_LIST) {
+    if (mode1 & HintMode.list) {
       if (`\n${lastYanked}\n`.indexOf(`\n${str}\n`) >= 0) {
         return VHud.show_("Nothing new to copy");
       }
@@ -1473,27 +1471,34 @@ Modes_: [
     a.yankedList_ = str.trim();
     return VHud.copied_(shownText);
   }
-} as HintsNS.ModeOpt,
-{
-  139: "Open link in incognito window",
-  203: "Open multiple incognito tabs",
-  execute_ (link: HTMLAnchorElement): void {
-    const url = (this as typeof VHints).getUrlData_(link);
+  , HintMode.SEARCH_TEXT, "Search selected text"
+  , HintMode.COPY_TEXT, "Copy link text to Clipboard"
+  , HintMode.COPY_URL, "Copy link URL to Clipboard"
+  , HintMode.SEARCH_TEXT | HintMode.queue, "Search link text one by one"
+  , HintMode.COPY_TEXT | HintMode.queue, "Copy link text one by one"
+  , HintMode.COPY_TEXT | HintMode.queue | HintMode.list, "Copy link text list"
+  , HintMode.COPY_URL | HintMode.queue, "Copy link URL one by one"
+  , HintMode.COPY_URL | HintMode.queue | HintMode.list, "Copy link URL list"
+  , HintMode.EDIT_LINK_URL, "Edit link URL on Vomnibar"
+  , HintMode.EDIT_TEXT, "Edit link text on Vomnibar"
+] as HintsNS.ModeOpt,
+[
+  (link: HTMLAnchorElement): void => {
+    const url = VHints.getUrlData_(link);
     if (!VPort.evalIfOK_(url)) {
-      return (this as typeof VHints).openUrl_(url, true);
+      return VHints.openUrl_(url, true);
     }
   }
-} as HintsNS.ModeOpt,
-{
-  131: "Download media",
-  195: "Download multiple media",
-  execute_ (element: SafeHTMLElement): void {
-    let tag = element.localName;
-    let text;
+  , HintMode.OPEN_INCOGNITO_LINK, "Open link in incognito window"
+  , HintMode.OPEN_INCOGNITO_LINK | HintMode.queue, "Open multiple incognito tabs"
+] as HintsNS.ModeOpt,
+[
+  (element: SafeHTMLElement): void => {
+    let tag = element.localName, text: string | void;
     if (tag === "video" || tag === "audio") {
       text = (element as HTMLImageElement).currentSrc || (element as HTMLImageElement).src;
     } else {
-      text = (this as typeof VHints)._getImageUrl(element);
+      text = VHints._getImageUrl(element);
     }
     if (!text) { return; }
     const url = text, i = text.indexOf("://"), a = VDom.createElement_("a");
@@ -1504,17 +1509,17 @@ Modes_: [
       text = text.slice(0, 39) + "\u2026";
     }
     a.href = url;
-    a.download = (this as typeof VHints).getImageName_(element) || "";
+    a.download = VHints.getImageName_(element) || "";
     // todo: how to trigger download
     VDom.mouse_(a, "click", [0, 0]);
     return VHud.tip_("Download: " + text, 2000);
   }
-} as HintsNS.ModeOpt,
-{
-  132: "Open image",
-  196: "Open multiple images",
-  execute_ (img: SafeHTMLElement): void {
-    const a = this as typeof VHints, text = a._getImageUrl(img, 1);
+  , HintMode.DOWNLOAD_MEDIA, "Download media"
+  , HintMode.DOWNLOAD_MEDIA | HintMode.queue, "Download multiple media"
+] as HintsNS.ModeOpt,
+[
+  (img: SafeHTMLElement): void => {
+    const a = VHints, text = a._getImageUrl(img, 1);
     if (!text) { return; }
     VPort.post_({
       H: kFgReq.openImage,
@@ -1524,11 +1529,11 @@ Modes_: [
       a: a.options_.auto
     });
   }
-} as HintsNS.ModeOpt,
-{
-  138: "Download link",
-  202: "Download multiple links",
-  execute_ (this: void, link: HTMLAnchorElement, rect): void {
+  , HintMode.OPEN_IMAGE, "Open image"
+  , HintMode.OPEN_IMAGE | HintMode.queue, "Open multiple images"
+] as HintsNS.ModeOpt,
+[
+  (link: HTMLAnchorElement, rect): void => {
     let oldUrl: string | null = link.getAttribute("href"), changed = false;
     if (!oldUrl || oldUrl === "#") {
       let newUrl = link.dataset.vimUrl;
@@ -1557,13 +1562,12 @@ Modes_: [
       link.removeAttribute("href");
     }
   }
-} as HintsNS.ModeOpt,
-{
-  130: "Focus node",
-  194: "Focus nodes continuously",
-  258: "Select an editable area",
-  execute_ (link, rect): void | false {
-    if ((this as typeof VHints).mode_ < HintMode.min_disable_queue) {
+  , HintMode.DOWNLOAD_LINK, "Download link"
+  , HintMode.DOWNLOAD_LINK | HintMode.queue, "Download multiple links"
+] as HintsNS.ModeOpt,
+[
+  (link, rect): void | false => {
+    if (VHints.mode_ < HintMode.min_disable_queue) {
       VDom.view_(link);
       link.focus();
       VDom.UI.flash_(link);
@@ -1572,16 +1576,13 @@ Modes_: [
     }
     return false;
   }
-} as HintsNS.ModeOpt,
-{
-  0: "Open link in current tab",
-  2: "Open link in new tab",
-  3: "Open link in new active tab",
-  64: "Open multiple links in current tab",
-  66: "Open multiple links in new tabs",
-  67: "Activate link and hold on",
-  execute_ (link, rect, hint): void | boolean {
-    const a = this as typeof VHints, tag = VDom.htmlTag_(link);
+  , HintMode.FOCUS, "Focus node"
+  , HintMode.FOCUS | HintMode.queue, "Focus nodes continuously"
+  , HintMode.FOCUS_EDITABLE, "Select an editable area"
+] as HintsNS.ModeOpt,
+[
+  (link, rect, hint): void | boolean => {
+    const a = VHints, tag = VDom.htmlTag_(link);
     if ((<RegExpOne> /^i?frame$/).test(tag)) {
       const highlight = link !== VOmni.box_;
       highlight ? a._highlightChild(link as HTMLIFrameElement | HTMLFrameElement) : VOmni.focus_();
@@ -1602,22 +1603,28 @@ Modes_: [
       (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
       return;
     } else if (hint.refer_ && hint.refer_ === link) {
-      return a.Modes_[0].execute_.call(a, link, rect, hint);
+      return a.Modes_[0][0](link, rect, hint);
     } else if (VDom.getEditableType_<0>(link) >= EditableType.Editbox) {
       UI.simulateSelect_(link, rect, true);
       return false;
     }
-    const mode = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.m, newTab = mode >= HintMode.newTab,
+    const mask = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.m, newTab = mask > HintMode.newTab - 1,
     isRight = a.options_.button === "right";
     UI.click_(link, rect, {
       altKey_: false,
       ctrlKey_: newTab && notMac,
       metaKey_: newTab && !notMac,
-      shiftKey_: mode === HintMode.OPEN_IN_NEW_FG_TAB
-    }, mode > 0 || link.tabIndex >= 0
+      shiftKey_: mask > HintMode.mask_focus_new - 1
+    }, mask > 0 || link.tabIndex >= 0
     , isRight ? 2 : 0
-    , !(Build.BTypes & BrowserType.Chrome) || isRight || mode ? 0 : a.options_.touch);
+    , !(Build.BTypes & BrowserType.Chrome) || isRight || mask ? 0 : a.options_.touch);
   }
-} as HintsNS.ModeOpt
+  , HintMode.OPEN_IN_CURRENT_TAB, "Open link in current tab"
+  , HintMode.OPEN_IN_NEW_BG_TAB, "Open link in new tab"
+  , HintMode.OPEN_IN_NEW_FG_TAB, "Open link in new active tab"
+  , HintMode.OPEN_IN_CURRENT_TAB | HintMode.queue, "Open multiple links in current tab"
+  , HintMode.OPEN_IN_NEW_BG_TAB | HintMode.queue, "Open multiple links in new tabs"
+  , HintMode.OPEN_IN_NEW_FG_TAB | HintMode.queue, "Activate link and hold on"
+] as HintsNS.ModeOpt
 ] as const
 };

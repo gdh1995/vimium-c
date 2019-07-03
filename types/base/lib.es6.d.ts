@@ -63,6 +63,10 @@ interface Array<T> {
     includes? (valueToFind: T): boolean;
 }
 
+interface ReadonlyArrayWithIncludes<T> extends ReadonlyArray<T> {
+    includes (valueToFind: T): boolean;
+}
+
 interface ReadonlyArray<T> {
     /** Iterator of values in the array. */
     [Symbol.iterator](): IterableIterator<T>;
