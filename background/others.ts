@@ -274,7 +274,8 @@ BgUtils_.timeout_(150, function (): void {
 });
 
 BgUtils_.timeout_(600, function (): void {
-  if (!chrome.omnibox) { return; }
+  const omnibox = chrome.omnibox;
+  if (!omnibox) { return; }
   type OmniboxCallback = (this: void, suggestResults: chrome.omnibox.SuggestResult[]) => true | void;
   const enum FirstSugType {
     Default = 0,
@@ -291,20 +292,23 @@ BgUtils_.timeout_(600, function (): void {
   }
   type SubInfoMap = SafeDict<SubInfo>;
   const onDel = (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
-      ? chrome.omnibox.onDeleteSuggestion : null,
+      ? omnibox.onDeleteSuggestion : null,
   wantDeletable = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
-      || !!onDel && typeof onDel.addListener === "function";
+      || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
+          && !!onDel && typeof onDel.addListener === "function";
   let last: string | null = null, firstResultUrl: string = "", lastSuggest: SuggestCallback | null = null
     , timer = 0, subInfoMap: SubInfoMap | null = null
     , maxChars = OmniboxData.DefaultMaxChars
     , suggestions: chrome.omnibox.SuggestResult[] | null = null, cleanTimer = 0, inputTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , matchedSugTypes = CompletersNS.SugType.Empty;
-  const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
+  const
   matchTagRe = Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
       ? <RegExpG> /<\/?match>/g : null as never,
-  maxResults = Build.MinCVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12
+  maxResults = !(Build.BTypes & ~BrowserType.Firefox)
+    || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+    || Build.MinCVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12
       && Build.BTypes & BrowserType.Chrome
       && CurCVer_ < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
   ;
@@ -348,17 +352,22 @@ BgUtils_.timeout_(600, function (): void {
     }
     lastSuggest = null;
     let notEmpty = response.length > 0, sug: Suggestion = notEmpty ? response[0] : null as never
-      , info: SubInfo = {};
+      , defaultDesc: string | undefined, info: SubInfo = {};
     matchType = newMatchType;
     matchedSugTypes = newMatchedSugTypes;
-    if (notEmpty && (wantDeletable || "sessionId" in response[0])) {
+    if (notEmpty
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
+            || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && wantDeletable
+            || "sessionId" in response[0])) {
       subInfoMap = BgUtils_.safeObj_<SubInfo>();
     }
     suggestions = [];
     const urlDict = BgUtils_.safeObj_<number>();
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       let sugItem = response[i], { title, url, type } = sugItem, tail = "", hasSessionId = sugItem.sessionId != null
-        , deletable = wantDeletable && !(autoSelect && i === 0) && (
+        , deletable = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
+              || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && wantDeletable)
+            && !(autoSelect && i === 0) && (
           type === "tab" ? sugItem.sessionId !== TabRecency_.last_ : type === "history" && !hasSessionId
         );
       if (url in urlDict) {
@@ -387,34 +396,45 @@ BgUtils_.timeout_(600, function (): void {
       }
       suggestions.push(msg);
     }
+    last = suggest.key_;
     if (!autoSelect) {
-      if (defaultSuggestionType !== FirstSugType.defaultOpen) {
-        chrome.omnibox.setDefaultSuggestion(defaultSug);
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+        defaultDesc = "Open: <input>";
+      } else if (defaultSuggestionType !== FirstSugType.defaultOpen) {
+        defaultDesc = "<dim>Open: </dim><url>%s</url>";
         defaultSuggestionType = FirstSugType.defaultOpen;
       }
     } else if (sug.type === "search") {
       let text = (sug as CompletersNS.SearchSuggestion).pattern;
-      text = (text && `<dim>${BgUtils_.escapeText_(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+        defaultDesc = (text && `${BgUtils_.escapeText_(text)} - `) + (sug.textSplit as string).replace(matchTagRe, "");
+      } else {
+        defaultDesc = (text && `<dim>${BgUtils_.escapeText_(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
+      }
       defaultSuggestionType = FirstSugType.search;
-      chrome.omnibox.setDefaultSuggestion({ description: text });
       if (sug = response[1]) {
         switch (sug.type) {
         case "math":
-          suggestions[1].description = `<dim>${sug.textSplit} = </dim><url><match>${sug.text}</match></url>`;
+          suggestions[1].description = Build.BTypes & BrowserType.Firefox
+                && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+              ? (sug.textSplit as string).replace(matchTagRe, "") + " = sug.text"
+              : `<dim>${sug.textSplit} = </dim><url><match>${sug.text}</match></url>`;
           break;
         }
       }
     } else {
       defaultSuggestionType = FirstSugType.plainOthers;
-      chrome.omnibox.setDefaultSuggestion({ description: suggestions[0].description });
+      defaultDesc = suggestions[0].description;
     }
     if (autoSelect) {
       firstResultUrl = response[0].url;
       suggestions.shift();
     }
-    last = suggest.key_;
-    BgUtils_.resetRe_();
+    defaultDesc && chrome.omnibox.setDefaultSuggestion({ description: defaultDesc });
     suggest.suggest_(suggestions);
+    BgUtils_.resetRe_();
     return;
   }
   function onInput(this: void, key: string, suggest: OmniboxCallback): void {
@@ -432,6 +452,13 @@ BgUtils_.timeout_(600, function (): void {
     }
     if (matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last as string)) {
       // avoid Chrome showing results from its inner search engine because of `suggest` being destroyed
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+        // note: firefox always uses a previous version of "default suggestion" for `current` query
+        // which is annoying, so here should not show dynamic content;
+        // in other cases like searching, do show the real result to provide as much info as possible
+        chrome.omnibox.setDefaultSuggestion({ description: "Open: <input>" });
+      }
       suggest([]);
       return;
     }
@@ -450,7 +477,7 @@ BgUtils_.timeout_(600, function (): void {
     const type: SugType = matchType < MatchType.someMatches || !key.startsWith(last as string) ? SugType.Empty
       : matchType === MatchType.searchWanted ? key.indexOf(" ") < 0 ? SugType.search : SugType.Empty
       : matchedSugTypes;
-    return Completion_.filter_(key
+    Completion_.filter_(key
       , { o: "omni", t: type, r: maxResults, c: maxChars, f: CompletersNS.QueryFlags.SingleLine }
       , onComplete.bind(null, lastSuggest));
   }
@@ -495,7 +522,7 @@ BgUtils_.timeout_(600, function (): void {
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
     });
   }
-  chrome.omnibox.onInputStarted.addListener(function (): void {
+  omnibox.onInputStarted.addListener(function (): void {
     chrome.windows.getCurrent(function (wnd?: chrome.windows.Window): void {
       const width = wnd && wnd.width;
       maxChars = width
@@ -506,9 +533,10 @@ BgUtils_.timeout_(600, function (): void {
       return clean();
     }
   });
-  chrome.omnibox.onInputChanged.addListener(onInput);
-  chrome.omnibox.onInputEntered.addListener(onEnter);
-  (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable || wantDeletable) &&
+  omnibox.onInputChanged.addListener(onInput);
+  omnibox.onInputEntered.addListener(onEnter);
+  (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
+    || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && wantDeletable) &&
   (onDel as NonNullable<typeof onDel>).addListener(function (text): void {
     // tslint:disable-next-line: radix
     const ind = parseInt(text.slice(text.lastIndexOf("~", text.length - 2) + 1)) - 1;

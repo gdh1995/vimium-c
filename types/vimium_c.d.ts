@@ -71,6 +71,7 @@ declare namespace CompletersNS {
   }
   interface SearchSuggestion extends Suggestion {
     type: "search";
+    // not empty
     pattern: string;
   }
 }
