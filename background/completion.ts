@@ -933,7 +933,7 @@ Completers = {
       o: false
     };
     Completers.sugTypes_ = SugType.Empty;
-    let i = 0, l = Completers.counter_ = completers.length;
+    let i = 0, l = Completers.counter_ = allExpectedTypes & ~SugType.search ? completers.length : 1;
     Completers.suggestions_ = [];
     matchType = offset && MatchType.reset;
     if (completers[0] === searchEngine) {
