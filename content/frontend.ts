@@ -531,7 +531,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       const arr: ViewOffset = VDom.getViewBox_();
       VDom.prepareCrop_();
       // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
-      const visibleInputs = VHints.traverse_(VHints.kEditableSelector_, VHints.GetEditable_
+      const visibleInputs = VHints.traverse_(Build.BTypes & ~BrowserType.Firefox
+            ? VHints.kEditableSelector_ + VHints.kSafeAllSelector_ : VHints.kEditableSelector_, VHints.GetEditable_
           ) as Array<Hint & { [0]: HintsNS.InputHintItem["dest_"]; }>,
       action = options.select;
       let sel = visibleInputs.length;
@@ -752,7 +753,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       : function (names: string[], isNext: boolean, lenLimit: number[], totalMax: number): boolean {
     interface Candidate { [0]: number; [1]: string; [2]: Parameters<typeof Pagination.GetButtons_>[0][number]; }
     // Note: this traverser should not need a prepareCrop
-    let links = VHints.traverse_("*", Pagination.GetButtons_, true, true);
+    let links = VHints.traverse_(VHints.kSafeAllSelector_, Pagination.GetButtons_, true, true);
     const count = names.length,
     quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
     detectQuirk = quirkIdx > 0 ? names.lastIndexOf(isNext ? ">" : "<", quirkIdx) : -1,
@@ -985,7 +986,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
           && browserVer < BrowserVer.MinFramesetHasNoNamedGetter) {
-        D.unsafeFramesetTag_ = "frameset";
+        VHints.kSafeAllSelector_ += ":not(" + (D.unsafeFramesetTag_ = "frameset") + ")";
       }
       if (Build.BTypes & ~BrowserType.Firefox && Build.BTypes & BrowserType.Firefox
           && OnOther === BrowserType.Firefox) {

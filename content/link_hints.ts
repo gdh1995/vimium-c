@@ -48,7 +48,7 @@ declare namespace HintsNS {
     newHintLength_: number;
     tab_: BOOL;
   }
-  type ElementList = Element[] | NodeListOf<Element>;
+  type HintSources = SafeElement[] | NodeListOf<SafeElement>;
 }
 
 var VHints = {
@@ -89,6 +89,7 @@ var VHints = {
   options_: null as never as HintsNS.Options,
   timer_: 0,
   yankedList_: "",
+  kSafeAllSelector_: Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const,
   kEditableSelector_: "input,textarea,[contenteditable]" as const,
   activate_ (this: void, count: number, options: FgOptions): void {
     const a = VHints;
@@ -533,19 +534,14 @@ var VHints = {
   },
   /** @safe_even_if_any_overridden_property */
   traverse_: function (selector: string
-      , filter: HintsNS.Filter<Hint | Element>, notWantVUI?: boolean
+      , filter: HintsNS.Filter<Hint | SafeHTMLElement>, notWantVUI?: boolean
       , wholeDoc?: true): Hint[] | Element[] {
-    const a = VHints, matchAll = selector === "*", D = document;
-    if (matchAll) {
-      if (a.ngEnabled_ === null) {
-        a.ngEnabled_ = !!D.querySelector(".ng-scope");
-      }
-      if (a.jsaEnabled_ === null) {
-        a.jsaEnabled_ = !!D.querySelector("[jsaction]");
-      }
+    if (!Build.NDEBUG && Build.BTypes & ~BrowserType.Firefox && selector === "*") {
+      selector = VHints.kSafeAllSelector_; // for easier debugging
     }
-    const output: Hint[] | Element[] = [],
-    queryAll = Build.BTypes & ~BrowserType.Firefox ? ":not(form)" : "*",
+    const a = VHints, matchAll = selector === a.kSafeAllSelector_, D = document,
+    output: Hint[] | SafeHTMLElement[] = [],
+    d = VDom, uiRoot = d.UI.UI,
     Sc = VScroller,
     wantClickable = filter === a.GetClickable_,
     isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as {}) instanceof Element,
@@ -555,19 +551,22 @@ var VHints = {
         || !Build.NDEBUG && isInAnElement && wholeDoc as {} as Element
         || D,
     isD = box === D,
-    d = VDom,
     querySelectorAll = Build.BTypes & ~BrowserType.Firefox
       ? /* just smaller code */ (isD ? D : Element.prototype).querySelectorAll : box.querySelectorAll;
-    wantClickable && Sc.getScale_();
-    let list: HintsNS.ElementList | null = querySelectorAll.call(box
-        , Build.BTypes & ~BrowserType.Firefox && matchAll ? queryAll : selector),
+    let list: HintsNS.HintSources | null = querySelectorAll.call(box, selector) as NodeListOf<SafeElement>,
+    tree_scopes: Array<[HintsNS.HintSources, number]> = [[list, 0]],
     shadowQueryAll: ShadowRoot["querySelectorAll"] | undefined;
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-        && d.unsafeFramesetTag_ && matchAll) {
-      list = a.excludeFramesets_(list, querySelectorAll.call(box, d.unsafeFramesetTag_));
+    wantClickable && Sc.getScale_();
+    if (matchAll) {
+      if (a.ngEnabled_ === null) {
+        a.ngEnabled_ = !!D.querySelector(".ng-scope");
+      }
+      if (a.jsaEnabled_ === null) {
+        a.jsaEnabled_ = !!D.querySelector("[jsaction]");
+      }
     }
     if (!matchAll) {
-      list = a.addShadowHosts_(list, querySelectorAll.call(box, Build.BTypes & ~BrowserType.Firefox ? "*" : queryAll));
+      list = a.addShadowHosts_(list, querySelectorAll.call(box, a.kSafeAllSelector_) as NodeListOf<SafeElement>);
     }
     if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
       list = a.getElementsInViewPort_(list);
@@ -575,14 +574,13 @@ var VHints = {
     if (!Build.NDEBUG && isInAnElement) {
       // just for easier debugging
       list = [].slice.call(list);
-      list.unshift(wholeDoc as {} as Element);
+      list.unshift(wholeDoc as {} as SafeElement);
     }
-    const tree_scopes: Array<[HintsNS.ElementList, number]> = [[list, 0]];
     while (tree_scopes.length > 0) {
       let cur_scope = tree_scopes[tree_scopes.length - 1], [cur_tree, i] = cur_scope, len = cur_tree.length
-        , el: Element & {lang?: undefined} | SafeHTMLElement, shadowRoot: ShadowRoot | null | undefined;
+        , el: SafeElement & {lang?: undefined} | SafeHTMLElement, shadowRoot: ShadowRoot | null | undefined;
       for (; i < len; ) {
-        el = cur_tree[i++] as Element & {lang?: undefined} | SafeHTMLElement;
+        el = cur_tree[i++] as SafeElement & {lang?: undefined} | SafeHTMLElement;
         if (el.lang != null) {
           filter.call(a, output, el);
           shadowRoot = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
@@ -590,23 +588,17 @@ var VHints = {
               ? el.webkitShadowRoot as ShadowRoot | null | undefined : el.shadowRoot as ShadowRoot | null | undefined;
           if (shadowRoot) {
             shadowQueryAll || (shadowQueryAll = shadowRoot.querySelectorAll);
-            let sub_tree: HintsNS.ElementList = shadowQueryAll.call(shadowRoot,
-                  Build.BTypes & ~BrowserType.Firefox && matchAll ? queryAll : selector);
-            if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-                && d.unsafeFramesetTag_) {
-              // just in case of malformed pages
-              sub_tree = a.excludeFramesets_(sub_tree, shadowQueryAll.call(shadowRoot, d.unsafeFramesetTag_));
-            }
+            let sub_tree: HintsNS.HintSources = shadowQueryAll.call(shadowRoot, selector) as NodeListOf<SafeElement>;
             if (!matchAll) {
               sub_tree = a.addShadowHosts_(sub_tree,
-                  shadowQueryAll.call(shadowRoot, Build.BTypes & ~BrowserType.Firefox ? "*" : queryAll));
+                  shadowQueryAll.call(shadowRoot, a.kSafeAllSelector_) as NodeListOf<SafeElement>);
             }
             cur_scope[1] = i;
             tree_scopes.push([sub_tree, i = 0]);
             break;
           }
         } else if (wantClickable) {
-          a.GetClickableInMaybeSVG_(output as Exclude<typeof output, Element[]>, el);
+          a.GetClickableInMaybeSVG_(output as Exclude<typeof output, SafeHTMLElement[]>, el);
         }
       }
       if (i >= len) {
@@ -621,7 +613,6 @@ var VHints = {
       return output;
     }
     list = null;
-    const uiRoot = d.UI.UI;
     if (uiRoot
         && ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
@@ -662,37 +653,21 @@ var VHints = {
     (key: string, filter: HintsNS.Filter<SafeHTMLElement>, notWantVUI?: true, wholeDoc?: true): SafeHTMLElement[];
     (key: string, filter: HintsNS.Filter<Hint>, notWantVUI?: boolean): Hint[];
   },
-  excludeFramesets_: (Build.BTypes & BrowserType.Chrome
-      ? function (list: HintsNS.ElementList, framesets: NodeListOf<Element>): HintsNS.ElementList {
-    if (framesets.length > 0) {
-      list = [].slice.call(list);
-      for (let unsafeEl of framesets) {
-        let i = list.indexOf(unsafeEl);
-        if (i >= 0) {
-          list.splice(i);
-        }
-      }
-    }
-    return list;
-  } : 0 as never) as (list: NodeListOf<Element>, framesets: NodeListOf<Element>) => HintsNS.ElementList,
-  addShadowHosts_ (list: HintsNS.ElementList, allNodes: NodeListOf<Element>): HintsNS.ElementList {
+  addShadowHosts_ (list: HintsNS.HintSources, allNodes: NodeListOf<SafeElement>): HintsNS.HintSources {
     let matchWebkit = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
                       && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
-    let hosts: SafeHTMLElement[] = [], matched: Element | undefined;
+    let hosts: SafeElement[] = [], matched: SafeElement | undefined;
     for (let i = 0, len = allNodes.length; i < len; i++) {
       let el = allNodes[i];
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
             && matchWebkit ? el.webkitShadowRoot : el.shadowRoot) {
-        if (Build.BTypes & ~BrowserType.Firefox || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1
-            ? VDom.htmlTag_(el) : "lang" in <ElementToHTML> el) {
-          hosts.push(matched = el as SafeHTMLElement);
-        }
+        hosts.push(matched = el);
       }
     }
-    return matched ? [].slice.call<ArrayLike<Element>, [], Element[]>(list).concat(hosts) : list;
+    return matched ? [].slice.call<ArrayLike<SafeElement>, [], SafeElement[]>(list).concat(hosts) : list;
   },
-  getElementsInViewPort_ (list: HintsNS.ElementList): HintsNS.ElementList {
-    const result: Element[] = [], height = innerHeight;
+  getElementsInViewPort_ (list: HintsNS.HintSources): HintsNS.HintSources {
+    const result: SafeElement[] = [], height = innerHeight;
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
       const el = list[i];
       const cr = VDom.getBoundingClientRect_(el);
@@ -809,11 +784,13 @@ var VHints = {
     let a = this, _i: number = a.mode1_,
     visibleElements = _i > HintMode.min_media - 1 && _i < HintMode.max_media + 1
       // not check `img[src]` in case of `<img srcset=... >`
-      ? a.traverse_("a[href],img,[data-src],div[style],span[style]" + (
-          _i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio"), a.GetImages_, true)
+      ? a.traverse_("a[href],img,div[style],span[style],[data-src]"
+          + (Build.BTypes & ~BrowserType.Firefox ? a.kSafeAllSelector_ : "")
+          + (_i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio"), a.GetImages_, true)
       : _i > HintMode.min_link_job - 1 && _i < HintMode.max_link_job + 1 ? a.traverse_("a", a.GetLinks_)
-      : _i - HintMode.FOCUS_EDITABLE ? a.traverse_("*", a.GetClickable_)
-      : a.traverse_(a.kEditableSelector_, a.GetEditable_);
+      : _i - HintMode.FOCUS_EDITABLE ? a.traverse_(a.kSafeAllSelector_, a.GetClickable_)
+      : a.traverse_(Build.BTypes & ~BrowserType.Firefox
+            ? a.kEditableSelector_ + a.kSafeAllSelector_ : a.kEditableSelector_, a.GetEditable_);
     a.maxLeft_ = view[2], a.maxTop_ = view[3], a.maxRight_ = view[4];
     if (a.maxRight_ > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(a.alphabetHints_.chars_.length));
