@@ -1013,14 +1013,15 @@ Completers = {
 
     const someMatches = suggestions.length > 0,
     newAutoSelect = autoSelect && someMatches, matched = matchedTotal,
+    mayGoToAnotherMode = rawQuery === ":" && !hasOmniTypePrefix,
     newMatchType = matchType < MatchType.plain ? (matchType === MatchType.searching_
           && !someMatches ? MatchType.searchWanted : MatchType.Default)
         : !showThoseInBlacklist ? MatchType.Default
         : queryTerms.length <= 0 ? MatchType.Default
         : someMatches ? MatchType.someMatches
-        : rawQuery === ":" && !hasOmniTypePrefix ? MatchType.searchWanted
+        : mayGoToAnotherMode ? MatchType.searchWanted
         : MatchType.emptyResult,
-    newSugTypes = newMatchType === MatchType.someMatches ? Completers.sugTypes_ : SugType.Empty,
+    newSugTypes = newMatchType === MatchType.someMatches && !mayGoToAnotherMode ? Completers.sugTypes_ : SugType.Empty,
     func = Completers.callback_ as CompletersNS.Callback;
     Completers.cleanGlobals_();
     return func(suggestions, newAutoSelect, newMatchType, newSugTypes, matched);
@@ -1573,7 +1574,7 @@ Completion_ = {
         if (expectedTypes !== SugType.Empty) { arr = null; }
       }
     }
-    if (queryTerms.length >= 1) {
+    if (queryTerms.length > 0) {
       queryTerms[0] = BgUtils_.fixCharsInUrl_(queryTerms[0]);
     }
     showThoseInBlacklist = BlacklistFilter.IsExpectingHidden_(queryTerms);
