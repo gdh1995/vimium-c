@@ -463,6 +463,14 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   document.addEventListener("keydown", function (this: void, event): void {
     if (event.keyCode !== kKeyCode.space) {
       if (!window.VKey) { return; }
+      if (!Build.NDEBUG && VKey.key_(event, VKey.char_(event)) === "<a-f12>") {
+        $<HTMLOptionElement>("#recommendedSettings").selected = true;
+        let el = $<HTMLSelectElement>("#importOptions");
+        el.onchange ? (el as any).onchange() : setTimeout(() => {
+          el.onchange && (el as any).onchange();
+        }, 100) && el.click();
+        return;
+      }
       let wanted = event.keyCode === kKeyCode.questionWin || event.keyCode === kKeyCode.questionMac ? "?" : "";
       if (wanted && VKey.char_(event) === wanted && VKey.key_(event, wanted) === wanted) {
         if (!Build.NDEBUG && !VEvent.lock_()) {
