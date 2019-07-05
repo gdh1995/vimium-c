@@ -290,6 +290,8 @@ label:active {
 .icon {
   float: left;
   margin: -16px 4px 0 0;
+  width: 48px;
+  height: 48px;
 }
 .Vim {
   color: #2f508e;

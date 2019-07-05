@@ -376,7 +376,7 @@ if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
       && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
   || devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
       || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
-) { setTimeout(function (): void {
+) { location.pathname.toLowerCase().indexOf("/options.html") !== -1 && setTimeout(function (): void {
   const css = document.createElement("style"), ratio = devicePixelRatio;
   const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
       || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
