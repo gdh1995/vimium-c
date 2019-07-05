@@ -984,10 +984,14 @@ Completers = {
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(<RegExpG> /(^| )__proto__(?=$| )/g, " __proto_").trimLeft().split(" ");
     }
+    queryTerms.sort(Completers.rsortQueryTerms_);
     RegExpCache.buildParts_();
     for (; i < l; i++) {
       completers[i].filter_(query, i);
     }
+  },
+  rsortQueryTerms_ (a: string, b: string): number {
+    return b.length - a.length || (a < b ? -1 : a === b ? 0 : 1);
   },
   requireNormalOrIncognito_<T> (
       func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
