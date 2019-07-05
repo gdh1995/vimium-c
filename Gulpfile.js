@@ -405,6 +405,10 @@ var Tasks = {
     gNoComments = true;
     compilerOptions.removeComments = true;
     locally = true;
+    if (!process.env.LOCAL_DIST) {
+      process.env.LOCAL_DIST = "dist";
+      print("Set env's default: BUILD_BTypes = dist");
+    }
     var arr = ["static", "_manifest"];
     if (fs.existsSync(osPath.join(JSDEST, "lib/dom_utils.js"))) {
       arr.unshift("build/_clean_diff");
@@ -753,7 +757,8 @@ function postUglify(file, needToPatchExtendClick) {
     if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinES6$ForOf$Map$SetAnd$Symbol */ 38) {
       toRemovedGlobal += "Set|";
     }
-    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$requestIdleCallback */ 47) {
+    if ((!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$requestIdleCallback */ 47)
+        && !(btypes & BrowserType.Edge)) {
       toRemovedGlobal += "requestIdleCallback|";
     }
     toRemovedGlobal = toRemovedGlobal.slice(0, -1);

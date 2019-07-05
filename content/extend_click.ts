@@ -595,7 +595,8 @@ _listen(kOnDomReady, handler, !0);
     VEvent.destroy_(1);
     return;
   }
-  let rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? window.requestIdleCallback : 0 as const;
+  let rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || Build.BTypes & BrowserType.Edge
+      ? window.requestIdleCallback : 0 as const;
   if (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
     // use `instanceof` to require `rIC` is a new instance in this world
     // tslint:disable-next-line: triple-equals
@@ -605,7 +606,9 @@ _listen(kOnDomReady, handler, !0);
   setTimeout = (setInterval = function (func: (info?: TimerType.fake) => void, timeout: number): number {
     const cb = () => func(TimerType.fake);
     // in case there's `$("#requestIdleCallback")`
-    return timeout > 19 && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || rIC)
+    return timeout > 19
+      && (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback && !(Build.BTypes & BrowserType.Edge)
+          || rIC)
       ? ((Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback
           ) as RequestIdleCallback)(cb, { timeout })
       : requestAnimationFrame(cb)

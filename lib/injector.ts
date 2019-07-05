@@ -18,7 +18,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
 }
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback) {
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback
+    || Build.BTypes & BrowserType.Edge) {
   var requestIdleCallback: RequestIdleCallback | undefined;
 }
 
@@ -28,6 +29,7 @@ let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes &
     ) ? browser as typeof chrome : chrome).runtime;
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3,
 onIdle = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
+    || Build.BTypes & BrowserType.Edge
   ? window.requestIdleCallback as Exclude<Window["requestIdleCallback"], Element | Window | HTMLCollection>
   : requestIdleCallback;
 let tick = 1, extID = scriptSrc.slice(i0, scriptSrc.indexOf("/", i0));
@@ -110,7 +112,8 @@ function call() {
 }
 function start() {
   removeEventListener("DOMContentLoaded", start);
-  Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || !(Build.BTypes & BrowserType.Chrome) || onIdle
+  (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || !(Build.BTypes & BrowserType.Chrome))
+    && !(Build.BTypes & BrowserType.Edge) || onIdle
   ? (onIdle as Exclude<typeof onIdle, null | undefined>)(function (): void {
     (onIdle as Exclude<typeof onIdle, null | undefined>)(function (): void { setTimeout(call, 0); }, {timeout: 67});
   }, {timeout: 330}) : setTimeout(call, 67);

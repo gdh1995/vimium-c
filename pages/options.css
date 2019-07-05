@@ -11,6 +11,9 @@ html {
       );
   --icon-button-hover-color: #444;
   --icon-button-active-color: #4d90fe;
+  --link-color: #15c;
+  --link-hover-color: #15c;
+  --link-active-color: #052577;
 }
 .less-motion {
   --transition-duration: 0;
@@ -71,7 +74,7 @@ body.dialog-ui {
 }
 a, a:visited {
   color: #15c;
-  color: var(--link-color, #15c);
+  color: var(--link-color);
   cursor: pointer;
   text-decoration: none;
 }
@@ -80,11 +83,11 @@ a[href], a:hover {
 }
 a:hover {
   color: #15c;
-  color: var(--link-hover-color, #15c);
+  color: var(--link-hover-color);
 }
 a:active {
   color: #052577;
-  color: var(--link-active-color, #052577);
+  color: var(--link-active-color);
   outline: none;
 }
 header {
@@ -590,6 +593,14 @@ select:-moz-focusring {
   text-shadow: 0 0 0 var(--button-hover-color);
 }
 
+@supports (display:-ms-grid) {
+  option:hover {
+    color: var(--icon-button-active-color);
+  }
+  option:checked {
+    color: var(--link-color);
+  }
+}
 @media (prefers-color-scheme: dark) {
   body {
     background: var(--background-color, white);

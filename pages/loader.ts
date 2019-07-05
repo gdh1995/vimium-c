@@ -16,15 +16,18 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     , scripts: HTMLScriptElement[] = [loader]
     , prefix = chrome.runtime.getURL("")
     , arr = chrome.runtime.getManifest().content_scripts[0].js;
-  for (const src of arr) {
-    const scriptElement = document.createElement("script");
-    scriptElement.async = false;
-    scriptElement.src = src[0] === "/" || src.lastIndexOf(prefix, 0) === 0 ? src : "/" + src;
-    head.appendChild(scriptElement);
-    scripts.push(scriptElement);
+  if (!(Build.BTypes & BrowserType.Edge)) {
+    for (const src of arr) {
+      const scriptElement = document.createElement("script");
+      scriptElement.async = false;
+      scriptElement.src = src[0] === "/" || src.lastIndexOf(prefix, 0) === 0 ? src : "/" + src;
+      head.appendChild(scriptElement);
+      scripts.push(scriptElement);
+    }
+    scripts[scripts.length - 1].onload = onLastLoad;
   }
   interface BgWindow extends Window { Settings_: typeof Settings_; }
-  scripts[scripts.length - 1].onload = function (): void {
+  function onLastLoad(): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
     const dom = (window as {} as {VDom?: typeof VDom}).VDom;
     dom && (dom.allowScripts_ = 0);
@@ -62,5 +65,18 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void; }
     (window as WindowExForDebug).a = null;
     (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log("%o", b); };
+  }
+  function next(index: number): void {
+    if (index >= arr.length) {
+      return onLastLoad();
+    }
+    const scriptElement = document.createElement("script"), src = arr[index];
+    scriptElement.src = src[0] === "/" || src.lastIndexOf(prefix, 0) === 0 ? src : "/" + src;
+    scriptElement.onload = () => next(index + 1);
+    scripts.push(scriptElement);
+    head.appendChild(scriptElement);
+  }
+  if (Build.BTypes & BrowserType.Edge) {
+    next(0);
   }
 })();

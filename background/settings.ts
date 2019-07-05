@@ -107,7 +107,7 @@ var Settings_ = {
         for (const key in old) { if (old[key] === false) { map[key] = false; } }
       }
       if (!val) { return; }
-      for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\da-z]/i as RegExpI; 0 <= --i; ) {
+      for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\da-z_]/i as RegExpI; 0 <= --i; ) {
         if ((val = arr[i].trim()) && wordCharRe.test(val)) {
           map[val] = true;
         }
