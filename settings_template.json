@@ -58,7 +58,7 @@
 		"map FT LinkHints.activateModeToOpenVomnibar",
 		"map o Vomnibar.activate",
 		"map g Vomnibar.activateInNewTab",
-		"map t Vomnibar.activateTabSelection",
+		"map t Vomnibar.activateTabSelection currentWindow=true",
 		"map T Vomnibar.activateTabSelection",
 		"map h Vomnibar.activateHistoryInNewTab",
 		"map b Vomnibar.activateInNewTab keyword=\"bing\"",

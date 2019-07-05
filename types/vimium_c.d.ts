@@ -400,6 +400,7 @@ declare const enum GlobalConsts {
   SYNC_QUOTA_BYTES_PER_ITEM = 8192,
   LOCAL_QUOTA_BYTES = 5_242_880, // 5MB ; no QUOTA_BYTES_PER_ITEM for local
   LOCAL_STORAGE_BYTES = 10_485_760, // 10MB
+  MaxTabTreeIndent = 5,
 }
 
 declare const enum kCharCode {

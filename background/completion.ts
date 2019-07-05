@@ -701,6 +701,19 @@ tabEngine = {
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
     treeMode = wantInCurrentWindow && noFilter;
     let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined;
+    if (treeMode && tabs0.length > offset) {
+      treeMap = BgUtils_.safeObj_<Tab>();
+      for (const tab of tabs0) { treeMap[tab.id] = tab; }
+      if (tabs0.length > maxTotal) {
+        let curTab = treeMap[curTabId], pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap[pId] : null,
+        start = pTab ? pTab.index : curTab ? <number> curTab.index - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
+        for (; 1 < --i && start > 0 && tabs0[start - 1].openerTabId === pId; start--) { /* empty */ }
+        if (start > 0) {
+          let tabs1 = tabs0.splice(0, start);
+          tabs0 = tabs0.concat(tabs1);
+        }
+      }
+    }
     const tabs: TextTab[] = [], wndIds: number[] = [];
     for (const tab of tabs0) {
       if (!wantInCurrentWindow && inNormal && tab.incognito) { continue; }
@@ -726,18 +739,28 @@ tabEngine = {
     treeLevels: SafeDict<number> = treeMode ? BgUtils_.safeObj_() : null as never,
     curWndId = wndIds.length > 1 ? TabRecency_.lastWnd_ : 0;
     let ind = 0;
+    if (treeMode) {
+      for (const tab of tabs) { // only from start to end, and should not execute nested queries
+        const pid = tab.openerTabId, pLevel = pid && treeLevels[pid];
+        treeLevels[tab.id] = pLevel
+            ? pLevel < GlobalConsts.MaxTabTreeIndent ? pLevel + 1 : GlobalConsts.MaxTabTreeIndent : 1;
+      }
+    }
     for (const tab of tabs) {
       let id = "#";
       curWndId && tab.windowId !== curWndId && (id += `${wndIds.indexOf(tab.windowId) + 1}:`);
       id += <string> <string | number> (tab.index + 1);
       if (!inNormal && tab.incognito) { id += "*"; }
       if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { id += "~"; }
-      const tabId = tab.id,
+      const tabId = tab.id, level = treeMode ? treeLevels[tabId] as number : 1,
       suggestion = new Suggestion("tab", tab.url, tab.text, tab.title,
           c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
       if (curTabId === tabId) {
-        suggestion.relevancy = 1;
+        treeMode || (suggestion.relevancy = 1);
         id = `#(${id.slice(1)})`;
+      }
+      if (level > 1) {
+        suggestion.level = " level-" + level;
       }
       suggestion.sessionId = tabId;
       suggestion.label = id;
