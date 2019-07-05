@@ -367,6 +367,16 @@ _el.onchange = function (this: HTMLInputElement): void {
   const file = (this.files as FileList)[0];
   this.value = "";
   if (!file) { return; }
+  const max_size = Option_.all_.vimSync.previous_ ? GlobalConsts.SYNC_QUOTA_BYTES : GlobalConsts.LOCAL_STORAGE_BYTES;
+  if (file.size && file.size > max_size) {
+    alert(
+`   Fatal Error:
+
+Your settings file "${file.name}" seems too large!
+
+As limited by your browser, the max size is only ${max_size / 1024} KB.`);
+    return;
+  }
   const reader = new FileReader(), lastModified = file.lastModified || file.lastModifiedDate || 0;
   reader.onload = function (this: FileReader) {
     let result: string = this.result;
