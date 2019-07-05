@@ -698,15 +698,17 @@ tabEngine = {
   performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.o) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
-    const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0;
-    let suggestions = [] as Suggestion[], tabs = [] as TextTab[], wndIds: number[] = [];
+    const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
+    treeMode = wantInCurrentWindow && noFilter;
+    let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined;
+    const tabs: TextTab[] = [], wndIds: number[] = [];
     for (const tab of tabs0) {
-      if (tab.incognito && inNormal) { continue; }
-      const u = tab.url, text = Decoder.decodeURL_(u, tab.incognito ? false : u);
+      if (!wantInCurrentWindow && inNormal && tab.incognito) { continue; }
+      const u = tab.url, text = Decoder.decodeURL_(u, tab.incognito ? "" : u);
       if (noFilter || RankingUtils.Match2_(text, tab.title)) {
         (tab as TextTab).text = text;
         const wndId = tab.windowId;
-        wndIds.lastIndexOf(wndId) < 0 && wndIds.push(wndId);
+        !wantInCurrentWindow && wndIds.lastIndexOf(wndId) < 0 && wndIds.push(wndId);
         tabs.push(tab as TextTab);
       }
     }
@@ -719,16 +721,24 @@ tabEngine = {
       }
       return Completers.next_(suggestions, SugType.tab);
     }
-    wndIds = wndIds.sort(tabEngine.SortNumbers_);
-    const c = noFilter ? tabEngine.computeRecency_ : ComputeWordRelevancy;
+    wndIds.sort(tabEngine.SortNumbers_);
+    const c = noFilter ? treeMode ? tabEngine.computeIndex_ : tabEngine.computeRecency_ : ComputeWordRelevancy,
+    treeLevels: SafeDict<number> = treeMode ? BgUtils_.safeObj_() : null as never,
+    curWndId = wndIds.length > 1 ? TabRecency_.lastWnd_ : 0;
+    let ind = 0;
     for (const tab of tabs) {
       let id = "#";
-      wndIds.length > 1 && (id += `${wndIds.indexOf(tab.windowId) + 1}:`);
-      id += "" + (tab.index + 1);
-      if (tab.incognito) { id += "*"; }
-      if (tab.discarded) { id += "~"; }
-      const tabId = tab.id, suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
-      if (curTabId === tabId) { suggestion.relevancy = 1; }
+      curWndId && tab.windowId !== curWndId && (id += `${wndIds.indexOf(tab.windowId) + 1}:`);
+      id += <string> <string | number> (tab.index + 1);
+      if (!inNormal && tab.incognito) { id += "*"; }
+      if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { id += "~"; }
+      const tabId = tab.id,
+      suggestion = new Suggestion("tab", tab.url, tab.text, tab.title,
+          c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
+      if (curTabId === tabId) {
+        suggestion.relevancy = 1;
+        id = `#(${id.slice(1)})`;
+      }
       suggestion.sessionId = tabId;
       suggestion.label = id;
       if (Build.BTypes & BrowserType.Firefox
@@ -758,6 +768,9 @@ tabEngine = {
   SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
   computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
     return TabRecency_.tabs_[tabId] || -tabId;
+  },
+  computeIndex_ (_0: CompletersNS.CoreSuggestion, index: number): number {
+    return 1 / index;
   }
 },
 
@@ -1428,12 +1441,12 @@ knownCs: CompletersMap & SafeObject = {
 
   Decoder = {
     _f: decodeURIComponent, // core function
-    decodeURL_ (a: string, o: ItemToDecode | false): string {
+    decodeURL_ (a: string, o: ItemToDecode): string {
       if (a.length >= 400 || a.indexOf("%") < 0) { return a; }
       try {
         return this._f(a);
       } catch {}
-      return this.dict_[a] || (o !== false && this._jobs.push(o), a);
+      return this.dict_[a] || (o && this._jobs.push(o), a);
     },
     decodeList_ (a: DecodedItem[]): void {
       const { _f: f, dict_: m, _jobs: w } = this;

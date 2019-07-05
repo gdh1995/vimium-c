@@ -74,6 +74,9 @@ declare namespace CompletersNS {
     // not empty
     pattern: string;
   }
+  interface TabSuggestion extends Suggestion {
+    level?: string;
+  }
 }
 
 declare namespace MarksNS {
