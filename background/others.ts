@@ -17,7 +17,7 @@ BgUtils_.timeout_(1000, function (): void {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
   function storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; }
-  let to_update: SettingsToUpdate | null = null,
+  let to_update: SettingsToUpdate | null = null, keyInDownloading: keyof SettingsToUpdate | "" = "",
   doNotSync: PartialTypedSafeEnum<SettingsToSync> = BgUtils_.safer_({
     // Note(gdh1995): need to keep synced with pages/options_ext.ts#_importSettings
     findModeRawQueryList: 1 as 1, innerCSS: 1 as 1, keyboard: 1 as 1, newTabUrl_f: 1 as 1
@@ -39,7 +39,7 @@ BgUtils_.timeout_(1000, function (): void {
     const defaultVal = Settings_.defaults_[key];
     if (value == null) {
       if (localStorage.getItem(key) != null) {
-        console.log(now(), "sync.local: reset", key);
+        console.log(now(), "sync.this: reset", key);
         doSet(key, defaultVal);
       }
       return;
@@ -57,13 +57,13 @@ BgUtils_.timeout_(1000, function (): void {
     if (jsonVal === curVal) {
       value = defaultVal;
     }
-    console.log(now(), "sync.local: update", key,
+    console.log(now(), "sync.this: update", key,
       typeof value === "string"
       ? (value.length > 32 ? value.slice(0, 30) + "..." : value).replace(<RegExpG> /\n/g, "\\n")
       : value);
     doSet(key, value);
   }
-  function doSet(key: keyof SettingsWithDefaults, value: any): void {
+  function doSet(key: keyof SettingsToSync, value: any): void {
     const Cmd = "Commands", Excl = "Exclusions",
     wanted: SettingsNS.DynamicFiles | "" = key === "keyMappings" ? Cmd
         : key.startsWith("exclusion") ? Excl : "";
@@ -74,8 +74,10 @@ BgUtils_.timeout_(1000, function (): void {
         () => setAndPost(key, value));
     BgUtils_.GC_();
   }
-  function setAndPost(key: keyof SettingsWithDefaults, value: any): void {
+  function setAndPost(key: keyof SettingsToSync, value: any): void {
+    keyInDownloading = key;
     Settings_.set_(key, value);
+    keyInDownloading = "";
     if (key in Settings_.payload_) {
       const req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: {
         [key as keyof SettingsNS.FrontendSettings]: Settings_.get_(key as keyof SettingsNS.FrontendSettings)
@@ -85,7 +87,7 @@ BgUtils_.timeout_(1000, function (): void {
     BgUtils_.GC_();
   }
   function TrySet<K extends keyof SettingsToSync>(this: void, key: K, value: SettingsToSync[K] | null) {
-    if (!shouldSyncKey(key)) { return; }
+    if (!shouldSyncKey(key) || key === keyInDownloading) { return; }
     if (!to_update) {
       setTimeout(DoUpdate, 800);
       to_update = BgUtils_.safeObj_() as SettingsToUpdate;
@@ -93,24 +95,28 @@ BgUtils_.timeout_(1000, function (): void {
     to_update[key] = value;
   }
   function DoUpdate(this: void): void {
-    let items = to_update, removed = [] as string[], left = 0;
+    const items = to_update, removed: string[] = [], updated: string[] = [], reseted: string[] = [],
+    serializedDict: Dict<boolean | string | number | object> = {};
     to_update = null;
     if (!items || Settings_.sync_ !== TrySet) { return; }
     for (const key in items) {
-      if (items[key as keyof SettingsToUpdate] != null) {
-        ++left;
+      let value = items[key as keyof SettingsToUpdate];
+      if (value != null) {
+          serializedDict[key] = value;
+          updated.push(key);
       } else {
-        delete items[key as keyof SettingsToUpdate];
+        reseted.push(key);
         removed.push(key);
       }
     }
     if (removed.length > 0) {
-      console.log(now(), "sync.cloud: reset", removed.join(" "));
-      storage().remove(removed);
+      console.log(now(), "sync.cloud: reset", removed.join(", "));
+      storage().remove(reseted);
     }
-    if (left > 0) {
-      console.log(now(), "sync.cloud: update", Object.keys(items).join(" "));
-      storage().set(items);
+    if (updated.length > 0) {
+      console.log(now(), "sync.cloud: update", updated.join(", "));
+      storage().set(serializedDict);
+    }
     }
   }
   function shouldSyncKey(key: string): key is keyof SettingsToSync {
