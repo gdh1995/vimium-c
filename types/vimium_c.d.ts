@@ -398,6 +398,8 @@ declare const enum GlobalConsts {
   MarkForName3Length = 10,
   SYNC_QUOTA_BYTES = 102_400, // QUOTA_BYTES of storage.sync in https://developer.chrome.com/extensions/storage
   SYNC_QUOTA_BYTES_PER_ITEM = 8192,
+  /** ceil(102_400 / (8192 - (12 + 16) * 4)) ; 12 and 16 is inner consts in {@link ../background/others.ts} */
+  MaxSyncedSlices = 13,
   LOCAL_QUOTA_BYTES = 5_242_880, // 5MB ; no QUOTA_BYTES_PER_ITEM for local
   LOCAL_STORAGE_BYTES = 10_485_760, // 10MB
   MaxTabTreeIndent = 5,
@@ -503,6 +505,7 @@ declare const enum BrowserVer {
   // because there seems no simple fix, just ignore it
   // https://bugs.chromium.org/p/chromium/issues/detail?id=394907
   MinCorrect$KeyboardEvent$$Repeat = 38,
+  MinEnsuredTextEncoderAndDecoder = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
   MinWithFrameIdInArg = 39,
   MinMaybe$String$$StartsWithAndEndsWith = 39, // if EXPERIMENTAL
   MinOptionsUI = 40,

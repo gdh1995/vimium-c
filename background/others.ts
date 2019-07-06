@@ -16,8 +16,21 @@ BgUtils_.timeout_(1000, function (): void {
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
+  interface SerializationMetaData {
+    $_serialize: "split";
+    k: string;
+    s: number;
+  }
+  interface SingleSerialized {
+    $_serialize: "single";
+    d: any;
+  }
+  type MultiLineSerialized = { [key: string]: SerializationMetaData | string | undefined; } & {
+      [key in keyof SettingsToUpdate]: SerializationMetaData; };
   function storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; }
   let to_update: SettingsToUpdate | null = null, keyInDownloading: keyof SettingsToUpdate | "" = "",
+  changes_to_merge: { [key: string]: chrome.storage.StorageChange } | null = null,
+  textDecoder: TextDecoder | null = null,
   doNotSync: PartialTypedSafeEnum<SettingsToSync> = BgUtils_.safer_({
     // Note(gdh1995): need to keep synced with pages/options_ext.ts#_importSettings
     findModeRawQueryList: 1 as 1, innerCSS: 1 as 1, keyboard: 1 as 1, newTabUrl_f: 1 as 1
@@ -26,17 +39,50 @@ BgUtils_.timeout_(1000, function (): void {
   function HandleStorageUpdate(changes: { [key: string]: chrome.storage.StorageChange }, area: string): void {
     if (area !== "sync") { return; }
     BgUtils_.safer_(changes);
+    if (changes_to_merge) {
+      BgUtils_.extendIf_(changes, changes_to_merge);
+      changes_to_merge = null;
+    }
     for (const key in changes) {
-      const change = changes[key];
-      storeAndPropagate(key, change != null ? change.newValue : null);
+      const change = changes[key], is_part = key.indexOf(":") > 0,
+      result = is_part ? 8 : storeAndPropagate(key, change != null ? change.newValue : null);
+      if (result === 8) {
+        changes_to_merge = changes;
+        storage().get(waitAndUpdate);
+        return;
+      }
+      delete changes[key];
+    }
+    function waitAndUpdate(items: { [key: string]: any }): void {
+      if (changes_to_merge) {
+        BgUtils_.safer_(items);
+        for (const key in changes_to_merge) {
+          const key2 = key.split(":")[0], isSame = key2 === key;
+          if (isSame || !(key2 in changes_to_merge)) {
+            const change = isSame ? changes_to_merge[key] : null;
+            storeAndPropagate(key2, change != null ? change.newValue : items[key2], items);
+          }
+        }
+        changes_to_merge = null;
+      }
     }
   }
   function now() {
     return new Date().toLocaleString();
   }
-  function storeAndPropagate(key: string, value: any): void {
+  /** return `8` only when expect a valid `map` */
+  function storeAndPropagate(key: string, value: any, map?: Dict<any>): void | 8 {
     if (!(key in Settings_.defaults_) || key in Settings_.nonPersistent_ || !shouldSyncKey(key)) { return; }
     const defaultVal = Settings_.defaults_[key];
+    const serialized = value && typeof value === "object"
+        && (value as Partial<SerializationMetaData | SingleSerialized>).$_serialize || "";
+    if (serialized) {
+      if (serialized === "split" && !map) { return 8; }
+      value = deserialize(key, value, map);
+      if (value === 8) { // still lack fields
+        return;
+      }
+    }
     if (value == null) {
       if (localStorage.getItem(key) != null) {
         console.log(now(), "sync.this: reset", key);
@@ -94,29 +140,191 @@ BgUtils_.timeout_(1000, function (): void {
     }
     to_update[key] = value;
   }
+  if (!Build.NDEBUG) {
+    (window as any).serializeSync = function(key: any, val: any, enc?: any) {
+      let serialized = serialize(key, val
+            , (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
+              && !(Build.BTypes & BrowserType.Edge) || enc ? new TextEncoder() : null);
+      return serialized ? typeof serialized === "object" ?  serialized
+          : <SingleSerialized> { $_serialize: "single", d: JSON.parse(serialized) } : val;
+    };
+    (window as any).deserializeSync = function(key: any, val: any, items?: any) {
+      if (items) {
+        val = val || items && items[key] || val;
+      } else {
+        items = val;
+        val = items && items[key] || val;
+      }
+      if (!val || !val.$_serialize) { return val; }
+      let result = deserialize(key, val, items);
+      return result != null ? result : val;
+    }
+  }
+
+/** Chromium's base::JsonWritter will translate all "<" to "\u003C"
+ * https://cs.chromium.org/chromium/src/extensions/browser/api/storage/settings_storage_quota_enforcer.cc?dr=CSs&q=Allocate&g=0&l=37e 
+ * https://cs.chromium.org/chromium/src/base/json/json_writer.cc?dr=CSs&q=EscapeJSONString&g=0&l=104
+ * https://cs.chromium.org/chromium/src/base/json/string_escape.cc?dr=CSs&q=EscapeSpecialCodePoint&g=0&l=35
+ */
+  function fixCharsInJSON(text: string): string {
+    return text.replace(<RegExpSearchable<0>> /[<`\u2028\u2029]/g
+        , s => s === "<" ? "`l" : s === "`" ? "`d" : s === "\u2028" ? "`r" : "`n");
+  }
+  function escapeQuotes(text: string): string {
+    return text.replace(<RegExpSearchable<0>> /"|\\[\\"]/g, s => s === '"' ? "`q" : s === '\\"' ? "`Q" : "`S");
+  }
+  function revertEscaping(text: string) {
+    const map: Dict<string> = { Q: '\\"', S: "\\\\", d: "`", l: "<", n: "\u2029", q: '"', r: "\u2028" };
+    return text.replace(<RegExpSearchable<0>> /`[QSdlnqr]/g, s => <string> map[s[1]]);
+  }
+  // Note: allow failures
+  function deserialize(key: keyof SettingsToUpdate, value: SingleSerialized | SerializationMetaData
+      , map?: Dict<any>): string | object | null | 8 {
+    let serialized = "";
+    switch (value.$_serialize) {
+    case "split":
+      // check whether changes are only synced partially
+      for (let { k: prefix, s: slice } = value as SerializationMetaData, i = 0; i < slice; i++) {
+        let part = (map as NonNullable<typeof map>)[key + ":" + i];
+        if (!part || !part.startsWith(prefix)) { return 8; } // only parts
+        serialized += part.slice(prefix.length);
+      }
+      break;
+    case "single":
+      return JSON.parse(revertEscaping(JSON.stringify(value.d)));
+    default: // in case of methods in newer versions
+      console.log("Error: can not support the data format in synced settings data:"
+          , (value as unknown as SerializationMetaData | SingleSerialized).$_serialize);
+      return null;
+    }
+    if (typeof Settings_.defaults_[key] === "string") {
+      serialized = revertEscaping(serialized);
+      return serialized;
+    }
+    serialized = revertEscaping(JSON.stringify(serialized));
+    return JSON.parse(serialized.slice(1, -1));
+  }
+  function serialize(key: keyof SettingsToUpdate, value: boolean | string | number | object
+      , encoder: TextEncoder | null): MultiLineSerialized | void | string {
+    if (!value || (typeof value !== "string" ? typeof value !== "object"
+        : value.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM / 6 - 40)) { return; }
+    let string = JSON.stringify(value), encoded: Uint8Array | string = "";
+    if (string.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM / 6 - 40) { return; }
+    string = fixCharsInJSON(string);
+    if (string.length * /* utf-8 limit */ 4 < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return string; }
+    if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
+        && !(Build.BTypes & BrowserType.Edge) || encoder) {
+      encoded = (encoder as TextEncoder).encode(string);
+    } else {
+      encoded = string = string.replace(<RegExpG & RegExpSearchable<0>> /[^\x00-\xff]/g, s => {
+        let ch = s.charCodeAt(0); return "\\u" + (ch > 0xfff ? "" : "0") + ch.toString(16);
+      });
+    }
+    if (encoded.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return string; }
+    let slice = 0, prefix = Date.now().toString(36) + ":", dict: MultiLineSerialized = {};
+    string = typeof Settings_.defaults_[key] === "string" ? string.slice(1, -1) : escapeQuotes(string);
+    if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
+        && !(Build.BTypes & BrowserType.Edge) || encoder) {
+      textDecoder || (textDecoder = new TextDecoder());
+      encoded = (encoder as TextEncoder).encode(string);
+    } else {
+      encoded = string.replace(<RegExpG & RegExpSearchable<0>> /[^\x00-\xff]/g, s => {
+        let ch = s.charCodeAt(0); return "\\u" + (ch > 0xfff ? "" : "0") + ch.toString(16);
+      });
+    }
+    for (let start = 0, end = encoded.length; start < end; ) {
+      let pos = Math.min(start + (GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 40 - 16 - 2), end), part: string,
+      delta = 0;
+      if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
+          && !(Build.BTypes & BrowserType.Edge) || encoder) {
+        // find a boundary of char points
+        for (; pos < end && ((encoded as Uint8Array)[pos] & 0xc0) === 0x80; pos--) { /* empty */ }
+        part = (textDecoder as TextDecoder).decode((encoded as Uint8Array).subarray(start, pos));
+      } else {
+        part = (encoded as string).slice(start, pos)
+      }
+      string = part.slice(-6);
+      delta = string.lastIndexOf("\\");
+      if (delta > string.length - 2) {
+        part += "b";
+        delta = 1;
+      } else if (delta > 0 && string[delta + 1] === "u") {
+        delta = string.length - delta; // then delta in [2..5]
+        for (let i = delta; i++ < 6; part += "b") { /* empty */ }
+      } else {
+        delta = 0;
+      }
+      part = JSON.parse(`"${part}"`);
+      if (delta) {
+        let hadConsumedSlash = part.endsWith("b");
+        if (!hadConsumedSlash) { pos -= delta; }
+        part = part.slice(0, delta > 1 && hadConsumedSlash ? delta - 6 : -1);
+      }
+      dict[key + ":" + slice++] = prefix + part;
+      start = pos;
+    }
+    // for (let start = 0, end = string.length, part: string; start < end; start += part.length) {
+    //   part = BgUtils_.unicodeSubstring_(string, start,
+    //       Math.min(start + ((((GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM) / 4) | 0) - 12), end));
+    //   dict[key + ":" + slice++] = prefix + part;
+    // }
+    dict[key] = { $_serialize: "split", k: prefix, s: slice };
+    return dict;
+  }
   function DoUpdate(this: void): void {
     const items = to_update, removed: string[] = [], updated: string[] = [], reseted: string[] = [],
+    delayedSerializedItems: EnsuredSafeDict<MultiLineSerialized> = BgUtils_.safeObj_(),
     serializedDict: Dict<boolean | string | number | object> = {};
     to_update = null;
     if (!items || Settings_.sync_ !== TrySet) { return; }
+    let encoder = (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
+        && !(Build.BTypes & BrowserType.Edge) || (window as any).TextEncoder ? new TextEncoder() : null;
     for (const key in items) {
-      let value = items[key as keyof SettingsToUpdate];
+      let value = items[key as keyof SettingsToUpdate],
+      defaultVal = Settings_.defaults_[key as keyof SettingsToUpdate],
+      startToResetList = typeof defaultVal === "string"
+          || typeof defaultVal === "object" && (key as keyof SettingsToUpdate) !== "vimSync"
+          ? 0 : GlobalConsts.MaxSyncedSlices;
       if (value != null) {
-          serializedDict[key] = value;
+        let serialized = serialize(key as keyof SettingsToUpdate, value, encoder);
+        if (serialized && typeof serialized === "object") {
+          delayedSerializedItems[key] = serialized;
+          startToResetList = (serialized as EnsureItemsNonNull<typeof serialized>
+              )[key as keyof SettingsToUpdate].s;
+        } else {
+          serializedDict[key] = serialized ? <SingleSerialized> {
+              $_serialize: "single", d: JSON.parse(serialized) } : value;
           updated.push(key);
+        }
       } else {
         reseted.push(key);
         removed.push(key);
       }
+      for (; startToResetList < GlobalConsts.MaxSyncedSlices; startToResetList++) {
+        reseted.push(key + ":" + startToResetList);
+      }
     }
+    textDecoder = encoder = null as never;
     if (removed.length > 0) {
       console.log(now(), "sync.cloud: reset", removed.join(", "));
+    }
+    if (reseted.length > 0) {
       storage().remove(reseted);
     }
     if (updated.length > 0) {
       console.log(now(), "sync.cloud: update", updated.join(", "));
       storage().set(serializedDict);
     }
+    for (let key in delayedSerializedItems) {
+      storage().set(delayedSerializedItems[key], (): void => {
+        const err = BgUtils_.runtimeError_();
+        if (err) {
+          console.log(now(), "Failed to update", key, ":", err.message || err);
+        } else {
+          console.log(now(), "sync.cloud: update (serialized) " + key);
+        }
+        return err;
+      });
     }
   }
   function shouldSyncKey(key: string): key is keyof SettingsToSync {
@@ -170,7 +378,9 @@ BgUtils_.timeout_(1000, function (): void {
       storeAndPropagate(key, null);
     }
     for (const key in items) {
-      storeAndPropagate(key, items[key]);
+      if (key.indexOf(":") < 0) {
+        storeAndPropagate(key, items[key], items);
+      }
     }
     Settings_.postUpdate_("vimSync");
   });
