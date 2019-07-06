@@ -14,17 +14,19 @@ var BgUtils_ = {
     return this._reToReset.test("") as true;
   },
   runtimeError_ (this: void): any { return chrome.runtime.lastError; },
+  // start should in [0 .. length]; end should in [0 .. inf)
   unicodeSubstring_ (str: string, start: number, end: number): string {
-    const charCode = end < str.length ? str.charCodeAt(end - 1) : 0;
+    const charCode = end < str.length && end > start ? str.charCodeAt(end - 1) : 0;
     // Note: ZWJ is too hard to split correctly (https://en.wikipedia.org/wiki/Zero-width_joiner)
     // so just remove such a character (if any)
     // unicode surrogates: https://www.jianshu.com/p/7ae9005e0671
-    end += charCode === 0x200D ? -1 : charCode >= 0xD800 && charCode < 0xDC00 ? 1 : 0;
+    end += charCode >= 0xD800 && charCode < 0xDC00 ? 1 : charCode === 0x200D && end > start + 1 ? -1 : 0;
     return str.slice(start, end);
   },
   unicodeLsubstring_ (str: string, start: number, end: number): string {
-    const charCode = start > 0 ? str.charCodeAt(start) : 0;
-    start += charCode === 0x200D ? 1 : charCode >= 0xDC00 && charCode <= 0xDFFF ? -1 : 0;
+    const charCode = start > 0 && start < str.length ? str.charCodeAt(start) : 0;
+    start += charCode >= 0xDC00 && charCode <= 0xDFFF ? -1
+        : charCode === 0x200D && start < str.length - 1 && start < end - 1 ? 1 : 0;
     return str.slice(start, end);
   },
   escapeText_ (str: string): string {
