@@ -12,12 +12,13 @@ const enum DeepQueryType {
 declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface Executor {
+    // tslint:disable-next-line: callable-types
     (linkEl: LinkEl, rect: Rect | null, hintEl: Pick<HintsNS.HintItem, "refer_">): void | boolean;
   }
   interface ModeOpt extends ReadonlyArray<Executor | HintMode | string> {
-    [0]: Executor,
-    [1]: HintMode,
-    [2]: string,
+    [0]: Executor;
+    [1]: HintMode;
+    [2]: string;
   }
   interface Options extends SafeObject {
     action?: string;

@@ -941,7 +941,7 @@ Are you sure you want to continue?`) ? count
         } else {
           if (count >= total) { return Backend_.showHUD_("It does nothing to move all tabs of this window"); }
           if (count > 30 && !(count = confirm_("moveTabToNewWindow", count))) { return; }
-          if (count < 2) { range = [i, i + 1]; };
+          if (count < 2) { range = [i, i + 1]; }
         }
         return makeWindow({
           tabId: tab.id,

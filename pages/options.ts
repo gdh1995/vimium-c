@@ -465,10 +465,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       if (!window.VKey) { return; }
       if (!Build.NDEBUG && VKey.key_(event, VKey.char_(event)) === "<a-f12>") {
         $<HTMLOptionElement>("#recommendedSettings").selected = true;
-        let el = $<HTMLSelectElement>("#importOptions");
-        el.onchange ? (el as any).onchange() : setTimeout(() => {
-          el.onchange && (el as any).onchange();
-        }, 100) && el.click();
+        let el2 = $<HTMLSelectElement>("#importOptions");
+        el2.onchange ? (el2 as any).onchange() : setTimeout(() => {
+          el2.onchange && (el2 as any).onchange();
+        }, 100) && el2.click();
         return;
       }
       let wanted = event.keyCode === kKeyCode.questionWin || event.keyCode === kKeyCode.questionMac ? "?" : "";

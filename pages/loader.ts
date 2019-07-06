@@ -41,7 +41,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
         hud && hud.tip_("Not allowed to open the target new tab URL", 2560);
       }, 100);
     }
-  };
+  }
   if (location.pathname.toLowerCase().indexOf("options") < 0) {
     const bg = chrome.extension.getBackgroundPage() as BgWindow;
     if (bg && bg.Backend_) {

@@ -98,7 +98,7 @@ if (VDom && VimiumInjector === undefined) {
                 ? !e.isTrusted : e.isTrusted === !1))) { return; }
     removeEventListener("load", delayFindAll, !0);
     delayFindAll = null as never;
-    box && setTimeout(function(): void {
+    box && setTimeout(function (): void {
       box && dispatchCmd(kContentCmd.FindAllOnClick);
       isFirstResolve = 0;
     }, InnerConsts.DelayToFindAll);

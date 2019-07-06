@@ -141,14 +141,14 @@ BgUtils_.timeout_(1000, function (): void {
     to_update[key] = value;
   }
   if (!Build.NDEBUG) {
-    (window as any).serializeSync = function(key: any, val: any, enc?: any) {
+    (window as any).serializeSync = function (key: any, val: any, enc?: any): any {
       let serialized = serialize(key, val
             , (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
               && !(Build.BTypes & BrowserType.Edge) || enc ? new TextEncoder() : null);
       return serialized ? typeof serialized === "object" ?  serialized
           : <SingleSerialized> { $_serialize: "single", d: JSON.parse(serialized) } : val;
     };
-    (window as any).deserializeSync = function(key: any, val: any, items?: any) {
+    (window as any).deserializeSync = function (key: any, val: any, items?: any): any {
       if (items) {
         val = val || items && items[key] || val;
       } else {
@@ -158,11 +158,11 @@ BgUtils_.timeout_(1000, function (): void {
       if (!val || !val.$_serialize) { return val; }
       let result = deserialize(key, val, items);
       return result != null ? result : val;
-    }
+    };
   }
 
 /** Chromium's base::JsonWritter will translate all "<" to "\u003C"
- * https://cs.chromium.org/chromium/src/extensions/browser/api/storage/settings_storage_quota_enforcer.cc?dr=CSs&q=Allocate&g=0&l=37e 
+ * https://cs.chromium.org/chromium/src/extensions/browser/api/storage/settings_storage_quota_enforcer.cc?dr=CSs&q=Allocate&g=0&l=37e
  * https://cs.chromium.org/chromium/src/base/json/json_writer.cc?dr=CSs&q=EscapeJSONString&g=0&l=104
  * https://cs.chromium.org/chromium/src/base/json/string_escape.cc?dr=CSs&q=EscapeSpecialCodePoint&g=0&l=35
  */
@@ -208,27 +208,27 @@ BgUtils_.timeout_(1000, function (): void {
       , encoder: TextEncoder | null): MultiLineSerialized | void | string {
     if (!value || (typeof value !== "string" ? typeof value !== "object"
         : value.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM / 6 - 40)) { return; }
-    let string = JSON.stringify(value), encoded: Uint8Array | string = "";
-    if (string.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM / 6 - 40) { return; }
-    string = fixCharsInJSON(string);
-    if (string.length * /* utf-8 limit */ 4 < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return string; }
+    let jsonStr = JSON.stringify(value), encoded: Uint8Array | string = "";
+    if (jsonStr.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM / 6 - 40) { return; }
+    jsonStr = fixCharsInJSON(jsonStr);
+    if (jsonStr.length * /* utf-8 limit */ 4 < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return jsonStr; }
     if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
         && !(Build.BTypes & BrowserType.Edge) || encoder) {
-      encoded = (encoder as TextEncoder).encode(string);
+      encoded = (encoder as TextEncoder).encode(jsonStr);
     } else {
-      encoded = string = string.replace(<RegExpG & RegExpSearchable<0>> /[^\x00-\xff]/g, s => {
+      encoded = jsonStr = jsonStr.replace(<RegExpG & RegExpSearchable<0>> /[^\x00-\xff]/g, s => {
         let ch = s.charCodeAt(0); return "\\u" + (ch > 0xfff ? "" : "0") + ch.toString(16);
       });
     }
-    if (encoded.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return string; }
+    if (encoded.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return jsonStr; }
     let slice = 0, prefix = Date.now().toString(36) + ":", dict: MultiLineSerialized = {};
-    string = typeof Settings_.defaults_[key] === "string" ? string.slice(1, -1) : escapeQuotes(string);
+    jsonStr = typeof Settings_.defaults_[key] === "string" ? jsonStr.slice(1, -1) : escapeQuotes(jsonStr);
     if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
         && !(Build.BTypes & BrowserType.Edge) || encoder) {
       textDecoder || (textDecoder = new TextDecoder());
-      encoded = (encoder as TextEncoder).encode(string);
+      encoded = (encoder as TextEncoder).encode(jsonStr);
     } else {
-      encoded = string.replace(<RegExpG & RegExpSearchable<0>> /[^\x00-\xff]/g, s => {
+      encoded = jsonStr.replace(<RegExpG & RegExpSearchable<0>> /[^\x00-\xff]/g, s => {
         let ch = s.charCodeAt(0); return "\\u" + (ch > 0xfff ? "" : "0") + ch.toString(16);
       });
     }
@@ -241,15 +241,15 @@ BgUtils_.timeout_(1000, function (): void {
         for (; pos < end && ((encoded as Uint8Array)[pos] & 0xc0) === 0x80; pos--) { /* empty */ }
         part = (textDecoder as TextDecoder).decode((encoded as Uint8Array).subarray(start, pos));
       } else {
-        part = (encoded as string).slice(start, pos)
+        part = (encoded as string).slice(start, pos);
       }
-      string = part.slice(-6);
-      delta = string.lastIndexOf("\\");
-      if (delta > string.length - 2) {
+      jsonStr = part.slice(-6);
+      delta = jsonStr.lastIndexOf("\\");
+      if (delta > jsonStr.length - 2) {
         part += "b";
         delta = 1;
-      } else if (delta > 0 && string[delta + 1] === "u") {
-        delta = string.length - delta; // then delta in [2..5]
+      } else if (delta > 0 && jsonStr[delta + 1] === "u") {
+        delta = jsonStr.length - delta; // then delta in [2..5]
         for (let i = delta; i++ < 6; part += "b") { /* empty */ }
       } else {
         delta = 0;
