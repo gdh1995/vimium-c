@@ -28,7 +28,7 @@ BgUtils_.timeout_(1000, function (): void {
   type MultiLineSerialized = { [key: string]: SerializationMetaData | string | undefined; } & {
       [key in keyof SettingsToUpdate]: SerializationMetaData; };
   function storage(): chrome.storage.StorageArea { return chrome.storage && chrome.storage.sync; }
-  let to_update: SettingsToUpdate | null = null, keyInDownloading: keyof SettingsToUpdate | "" = "",
+  let to_update: SettingsToUpdate | null = null, keyInDownloading: keyof SettingsWithDefaults | "" = "",
   changes_to_merge: { [key: string]: chrome.storage.StorageChange } | null = null,
   textDecoder: TextDecoder | null = null,
   doNotSync: PartialTypedSafeEnum<SettingsToSync> = BgUtils_.safer_({
@@ -90,10 +90,11 @@ BgUtils_.timeout_(1000, function (): void {
       }
       return;
     }
-    let curVal = Settings_.get_(key), curJSON: string, jsonVal: string, notJSON: boolean;
-    if (notJSON = typeof defaultVal === "string") {
-      jsonVal = value as string;
-      curJSON = curVal as string;
+    let curVal = Settings_.get_(key), curJSON: string | boolean | number, jsonVal: string | boolean | number
+      , notJSON: boolean;
+    if (notJSON = typeof defaultVal !== "object") {
+      jsonVal = value as string | boolean | number;
+      curJSON = curVal as string | boolean | number;
     } else {
       jsonVal = JSON.stringify(value);
       curJSON = JSON.stringify(curVal);
@@ -160,6 +161,19 @@ BgUtils_.timeout_(1000, function (): void {
       return result != null ? result : val;
     };
   }
+  function SetLocal<K extends keyof SettingsToSync>(this: void, key: K, value: SettingsToSync[K] | null) {
+    if (!storage()) {
+      Settings_.sync_ = BgUtils_.blank_;
+      return;
+    }
+    chrome.storage.local.set({ [key]: value }, () => {
+      const err = BgUtils_.runtimeError_();
+      if (err) {
+        console.log(now(), "storage.local: Failed to update", key, ":", err.message || err);
+        return err;
+      }
+    });
+  }
 
 /** Chromium's base::JsonWritter will translate all "<" to "\u003C"
  * https://cs.chromium.org/chromium/src/extensions/browser/api/storage/settings_storage_quota_enforcer.cc?dr=CSs&q=Allocate&g=0&l=37e
@@ -193,7 +207,8 @@ BgUtils_.timeout_(1000, function (): void {
     case "single":
       return JSON.parse(revertEscaping(JSON.stringify(value.d)));
     default: // in case of methods in newer versions
-      console.log("Error: can not support the data format in synced settings data:"
+      console.log(now(), "Error: can not support the data format in synced settings data:"
+          , key, ":"
           , (value as unknown as SerializationMetaData | SingleSerialized).$_serialize);
       return null;
     }
@@ -262,6 +277,10 @@ BgUtils_.timeout_(1000, function (): void {
       }
       dict[key + ":" + slice++] = prefix + part;
       start = pos;
+      if (slice >= GlobalConsts.MaxSyncedSlices) {
+        // force to throw all the left, so that all slices can be cleaned when the value gets short again
+        break;
+      }
     }
     // for (let start = 0, end = string.length, part: string; start < end; start += part.length) {
     //   part = BgUtils_.unicodeSubstring_(string, start,
@@ -330,25 +349,73 @@ BgUtils_.timeout_(1000, function (): void {
   function shouldSyncKey(key: string): key is keyof SettingsToSync {
     return !(key in doNotSync);
   }
+  function saveAllToClocal(timeout: number): void {
+    Settings_.temp_.backupSettingsToLocal_ = null;
+    BgUtils_.timeout_(timeout, () => { chrome.storage.local.get(null, (items): void => {
+      if (Settings_.get_("vimSync")) { return; }
+      console.log(now(), "storage.local: backup all settings from localStorage");
+      BgUtils_.safer_(items);
+      for (let i = 0, end = localStorage.length; i < end; i++) {
+        const key = localStorage.key(i) as string;
+        if (key in Settings_.defaults_ && (shouldSyncKey(key) || key === "keyboard")) {
+          const defaultVal = Settings_.defaults_[key], value = items[key], curVal = Settings_.get_(key);
+          let curJSON = curVal, jsonVal: string = value;
+          if (typeof defaultVal === "object") { jsonVal = JSON.stringify(value); curJSON = JSON.stringify(curVal); }
+          if (curJSON !== jsonVal) {
+            SetLocal(key, curVal);
+          }
+        }
+        delete items[key];
+      }
+      const left = Object.keys(items);
+      if (left.length > 0) { chrome.storage.local.remove(left); }
+    }); });
+  }
   Settings_.updateHooks_.vimSync = function (value): void {
     if (!storage()) { return; }
     const event = chrome.storage.onChanged;
     if (!value) {
       event.removeListener(HandleStorageUpdate);
-      Settings_.sync_ = BgUtils_.blank_;
+      if (Settings_.sync_ !== SetLocal) {
+        Settings_.sync_ = SetLocal;
+        saveAllToClocal(600);
+      }
+      return;
     } else if (Settings_.sync_ !== TrySet) {
       event.addListener(HandleStorageUpdate);
       Settings_.sync_ = TrySet;
+      chrome.storage.local.clear();
     }
   };
   const sync1 = Settings_.get_("vimSync");
-  if (sync1 === false || (!sync1 && (localStorage.length > SyncConsts.LocalItemCountWhenInstalled
+  if (sync1 === false || (!sync1 && !Settings_.temp_.hasEmptyLocalStorage_
+                          && (localStorage.length > SyncConsts.LocalItemCountWhenInstalled
                                     || Settings_.get_("newTabUrl") !== Settings_.CONST_.NewTabForNewUser_))) {
+    let doBackup = Settings_.temp_.backupSettingsToLocal_;
+    Settings_.temp_.backupSettingsToLocal_ = doBackup ? null : saveAllToClocal;
+    doBackup && saveAllToClocal(6000);
+    Settings_.sync_ = SetLocal;
     return;
   }
   if (!storage()) { return; }
   storage().get(null, function (items): void {
     const err = BgUtils_.runtimeError_();
+    Settings_.temp_.hasEmptyLocalStorage_ && chrome.storage.local.get(null, (items2): void => {
+      console.log(now(), "storage.local: restore settings to localStorage");
+      BgUtils_.safer_(items2);
+      let vimSync2 = items2.vimSync;
+      delete items2.vimSync;
+      for (let key in items2) {
+        if (key in Settings_.defaults_) {
+          keyInDownloading = key as keyof SettingsWithDefaults;
+          Settings_.set_(key as keyof SettingsWithDefaults, items2[key]);
+        }
+      }
+      keyInDownloading = "";
+      if (vimSync2 != null) {
+        Settings_.set_("vimSync", vimSync2);
+      }
+    });
     if (err) {
       console.log(now(), "Error: failed to get storage:", err
         , "\n\tSo disable syncing temporarily.");
@@ -358,10 +425,11 @@ BgUtils_.timeout_(1000, function (): void {
     BgUtils_.safer_(items);
     const vimSync = items.vimSync || Settings_.get_("vimSync");
     if (!vimSync) {
+      Settings_.sync_ = SetLocal;
       return; // no settings have been modified
     } else if (!items.vimSync) {
       // cloud may be empty, but the local computer wants to sync, so enable it
-      console.log("sync.cloud: enable vimSync");
+      console.log(now(), "sync.cloud: enable vimSync");
       items.vimSync = vimSync;
       storage().set({ vimSync });
     }
@@ -808,6 +876,12 @@ function (details: chrome.runtime.InstalledDetails): void {
   if (!reason) { return; }
 
   if (parseFloat(Settings_.CONST_.VerCode_) <= parseFloat(reason)) { return; }
+  let ref1 = Settings_.temp_;
+  if (ref1.backupSettingsToLocal_) {
+    (ref1.backupSettingsToLocal_ as Exclude<typeof ref1.backupSettingsToLocal_, true | null>)(6000);
+  } else {
+    ref1.backupSettingsToLocal_ = true;
+  }
 
   reason = "vimium-c_upgrade-notification";
   const args: chrome.notifications.NotificationOptions = {

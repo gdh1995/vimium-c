@@ -3,6 +3,8 @@ import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 var Settings_ = {
   cache_: BgUtils_.safeObj_() as Readonly<SettingsNS.FullCache>,
   temp_: {
+    hasEmptyLocalStorage_: false,
+    backupSettingsToLocal_: null as null | ((wait: number) => void) | true,
     onInstall_: null as Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null,
     cmdErrors_: 0,
     shownHash_: null as ((this: void) => string) | null
@@ -480,7 +482,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     Commands: "/background/commands.js",
     Exclusions: "/background/exclusions.js",
     InjectEnd_: "content/injected_end.js",
-    NewTabForNewUser_: "pages/options.html#!newTabUrl",
+    NewTabForNewUser_: Build.MayOverrideNewTab ? "pages/options.html#!newTabUrl" : "",
     OverrideNewTab_: Build.MayOverrideNewTab ? true : false,
     OptionsPage_: "pages/options.html", Platform_: "browser",
     baseCSS: "vimium.min.css",
@@ -574,6 +576,11 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     Settings_.CONST_.OverrideNewTab_ = !!hasNewTab;
     ref3[func(hasNewTab || "pages/newtab.html")] = Urls.NewTabType.vimium;
   }
+  if (!Build.MayOverrideNewTab || !Settings_.CONST_.OverrideNewTab_) {
+    obj.NewTabForNewUser_ = (Build.BTypes & ~BrowserType.Chrome
+        && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
+        ? CommonNewTab : ChromeNewTab;
+  }
   (defaults as SettingsWithDefaults).newTabUrl = (Build.BTypes & ~BrowserType.Chrome
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
       ? Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_
@@ -609,7 +616,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     (payload_ as Generalized<typeof payload_>)[key] = settings.get_(_i as keyof SettingsNS.FrontendSettingNameMap);
   }
 
-  if (localStorage.length <= 0) {
+  if (settings.temp_.hasEmptyLocalStorage_ = localStorage.length <= 0) {
     settings.set_("newTabUrl", obj.NewTabForNewUser_);
   }
   obj.StyleCacheId_ = obj.VerCode_ + "," + CurCVer_
