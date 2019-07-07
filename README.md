@@ -64,8 +64,8 @@ __Other extensions supporting Vimium C:__
 * add a new command `closeDownloadBar` to close Chrome's download bar at the bottom
 * `mapKey`: now apply mappings for lower-case characters to every keys including it
   * for example, if `mapKey f g`, then `<c-f>` will be translated into `<c-g>`
-  * also works in LinkHints mode unless there's an option of `mapKey=false` ([#39 (comment)](
-      https://github.com/gdh1995/vimium-c/issues/39#issuecomment-504325384))
+  * also work in LinkHints mode ([#39 (comment)](https://github.com/gdh1995/vimium-c/issues/39#issuecomment-504303346)),
+    unless there's an option of `mapKey=false`
   * so if your IME is not English, you may map alphabets to the English versions (in Vimium C) using a list of `mapKey`
 * LinkHints: now always search shadow DOMs and the related boolean option is useless and removed
 * LinkHints: if press <kbd>Ctrl</kbd> in "text"/"url" modes, then it will copy multiple lines to the clipboard

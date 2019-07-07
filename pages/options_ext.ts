@@ -132,7 +132,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
     exported_data = exported_data.replace(<RegExpG> /\n/g, "\r\n");
   }
   exported_object = null;
-  let file_name = "vimium-c_";
+  let file_name = "vimium_c-";
   if (all_static) {
     file_name += "settings";
   } else {
