@@ -1,9 +1,9 @@
-<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
+<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>
 ![ ](icons/icon32.png)
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.75.8](https://img.shields.io/badge/release-1.75.8-orange.svg
+[![Version 1.76.0](https://img.shields.io/badge/release-1.76.0-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -14,12 +14,12 @@
   https://addons.mozilla.org/en-US/firefox/addon/vimium-c/
   )**
 
-A <span style="color: #8e5e2f;">C</span>ustomized
+A <span style="color: #a55e18;">C</span>ustomized
   [<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)
-  having <span style="color: #8e5e2f;">**C**</span>hinese support,
-    global <span style="color: #8e5e2f;">**C**</span>ommands
+  having <span style="color: #a55e18;">**C**</span>hinese support,
+    global <span style="color: #a55e18;">**C**</span>ommands
     and inje**c**tion functionality,
-  in <span style="color: #8e5e2f;">**C**</span>-style code for qui**c**ker action and less resource **c**ost.
+  in <span style="color: #a55e18;">**C**</span>-style code for qui**c**ker action and less resource **c**ost.
 
 It supports Chrome and other Chromium-based browsers whose core versions are >= 35,
   and supports most of the functionality on a latest Firefox (since version 64.0).
@@ -36,7 +36,7 @@ It can also run on MS Edge, though there're still some errors.
 
 # Project Introduction
 
-__<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>:__
+__<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>:__
 
 * a web extension on Chrome and Firefox that provides keyboard-based navigation and control
     of the web, in the spirit of the Vim editor.
@@ -61,15 +61,33 @@ __Other extensions supporting Vimium C:__
 # Release Notes
 
 1.76:
-* LinkHints: now always search shadow DOMs and the related boolean option is useless and removed
 * add a new command `closeDownloadBar` to close Chrome's download bar at the bottom
-* work around a bug of Chrome 70+, which affects command `toggleCS`
+* `mapKey`: now apply mappings for lower-case characters to every keys including it
+  * for example, if `mapKey f g`, then `<c-f>` will be translated into `<c-g>`
+  * also works in LinkHints mode unless there's an option of `mapKey=false` ([#39 (comment)](
+      https://github.com/gdh1995/vimium-c/issues/39#issuecomment-504325384))
+  * so if your IME is not English, you may map alphabets to the English versions (in Vimium C) using a list of `mapKey`
+* LinkHints: now always search shadow DOMs and the related boolean option is useless and removed
+* LinkHints: if press <kbd>Ctrl</kbd> in "text"/"url" modes, then it will copy multiple lines to the clipboard
+* Vomnibar supports a new mode "`bomni`" in which bookmarks' priority is higher ([#50](
+    https://github.com/gdh1995/vimium-c/issues/50))
+* Vomnibar now shows a "tab tree" when in "current window tabs" mode
+* now it can sync much longer (bigger than 8KB) key mapping list and search engines through the browser syncing service
+  * all the synced data is still limited under 100KB
+* in case you clean all browsering data, now it can recover most settings (at most 5MB) even if syncing is off
+* now LinkHints and Vomnibar are faster
+* partly work around a bug of Chrome 70+, which affects command `toggleCS`
+* if the confirmation dialog is forbidden by mistake, then now a too large count will be treated as 1
+  * the old behavior was to do nothing, which is somehow inconvenient
+  * the dialog works again if you reload this extension, or just restart Chrome
+* Firefox: fix a potential vulnerability in v1.75.7 and v1.75.8
+* update some notes in PRIVACY-POLICY about which permissions may be removed safely
 
-1.75.8:
+1.75.8 (only released on Firefox):
 * LinkHints: smarter hinting and now `<video>` and `<audio>` are clickable
 * on Google Docs, now can press `<esc>` for a while to move focus from document content to the window
 * `removeTab` command now supports an option of `goto=""/left/right/previous`
-* click listener watcher: fix a known vulnerability in v1.75.7
+* click listener watcher: fix a vulnerability in v1.75.7
 * the options page won't be dark if the option "auto-dark-mode" is unchecked
 * Firefox: the options page now shows a tip if the value of New tab URL has a mistake
 
@@ -78,9 +96,11 @@ __Other extensions supporting Vimium C:__
   * much smarter on Google search result pages
 * a global dark mode for Chrome 76+ and Firefox 67+ is now enabled by default
   * include new styles for hint markers, HUD, options page and the help dialog
-* Scroller: fix it might scroll too far in some cases (for example, a long page is loading) (#45)
+* Scroller: fix it might scroll too far in some cases (for example, a long page is loading) ([#45](
+    https://github.com/gdh1995/vimium-c/issues/45))
 * Scroller: fix a bug of losing current active elements after switching scrolling directions
-* Firefox: fix broken FindMode (#48) and some other issues on pages with multiple iframes
+* Firefox: fix broken FindMode ([#48](https://github.com/gdh1995/vimium-c/issues/48
+    )) and some other issues on pages with multiple iframes
 * Firefox: fix LinkHints may cause scrollbars to show in some cases
 * Firefox: now both auto-dark-mode and auto-reduce-motion can response to system setting changes
 * goNext: stricter: not match long text
