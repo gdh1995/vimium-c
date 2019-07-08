@@ -743,7 +743,7 @@ var toRemovedGlobal = null;
 function beforeUglify(file) {
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = String(file.contents), changed = true, oldLen = contents.length); }
-  if (!locally) {
+  if (!locally && outputES6) {
     get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
   }

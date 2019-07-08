@@ -126,7 +126,7 @@ function getDefaultUglifyConfig() {
   if (!defaultUglifyConfig) {
     defaultUglifyConfig = lib.loadUglifyConfig("scripts/uglifyjs.local.json");
     var compress = defaultUglifyConfig.compress || (defaultUglifyConfig.compress = {});
-    compress.passes = 2;
+    compress.passes = 1;
   }
   return defaultUglifyConfig;
 }
