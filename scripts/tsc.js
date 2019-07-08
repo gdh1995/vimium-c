@@ -115,6 +115,10 @@ var getUglifyJS = function() {
     minify = function(data, config) {
       config || (config = getDefaultUglifyConfig());
       data = uglify.minify(data, config).code;
+      var old_mangle = config.mangle;
+      config.mangle = false;
+      data = uglify.minify(data, config).code;
+      config.mangle = old_mangle != null ? old_mangle : null;
       return data;
     };
   }

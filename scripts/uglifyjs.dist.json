@@ -8,7 +8,7 @@
   "compress": {
     "booleans": false,
     "collapse_vars": true,
-    "comparisons": false,
+    "comparisons": true,
     "conditionals": true,
     "dead_code": true,
     "drop_debugger": true,
@@ -52,7 +52,7 @@
     "unsafe_regexp": false,
     "unsafe": false,
     "unused": true,
-    "warnings": true
+    "warnings": false
     // `true` will remove `/a?/.test("")`
     // so "unsafe" is not what Vimium C needs
   },

@@ -213,7 +213,7 @@ var Commands = {
       , exec: (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port) => void
       ): void {
     let command = message.command;
-    command = message.command ? message.command + "" : "";
+    command = command ? command + "" : "";
     if (!(command && this.availableCommands_[command])) { return; }
     const port: Port | null = sender.tab ? Backend_.indexPorts_(sender.tab.id, sender.frameId || 0)
             || (Backend_.indexPorts_(sender.tab.id) || [null])[0] : null;
