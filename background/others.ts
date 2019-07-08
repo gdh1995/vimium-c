@@ -883,7 +883,7 @@ function (details: chrome.runtime.InstalledDetails): void {
     ref1.backupSettingsToLocal_ = true;
   }
 
-  reason = "vimium-c_upgrade-notification";
+  reason = "vimium_c-upgrade-notification";
   const args: chrome.notifications.NotificationOptions = {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",

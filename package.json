@@ -21,9 +21,9 @@
     "gulp-sourcemaps": "*",
     "gulp-typescript": "*",
     "gulp-uglify": ">=3",
-    "terser": "*",
-    "tslint": "^5.13.1",
-    "typescript-tslint-plugin": "^0.3.1"
+    "terser": "^4.1.2",
+    "tslint": "^5.18.0",
+    "typescript-tslint-plugin": "^0.5.3"
   },
   "scripts": {
     "tsc": "node scripts/tsc.js",

@@ -12,7 +12,7 @@ before_script:
   - eval openssl aes-256-cbc -K \$encrypted_${key}_key -iv \$encrypted_${key}_iv -in $pem.enc -out $pem -d
 script:
   - NEED_COMMIT=1 gulp dist
-  - IN_DIST=1 WITH_MAP=0 ./scripts/make.sh ./vimium-c_\${VERSION}_chrome.zip $pem
+  - IN_DIST=1 WITH_MAP=0 ./scripts/make.sh ./vimium_c-\${VERSION}-chrome.zip $pem
   - rm -rf $pem
 cache:
   directories:

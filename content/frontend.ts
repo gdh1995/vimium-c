@@ -1525,7 +1525,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     // on Firefox, such a exported function can only be called from privildged environments
     wrappedJSObject[coreTester.name_] = function (comparer, rand1) {
       let rand2 = Math.random();
-      // an ES6 method function is always using the strict mode, so the arguments are not visited outside it
+      // an ES6 method function is always using the strict mode, so the arguments are inaccessible outside it
       if (coreTester.sendTick_ > GlobalConsts.MaxRetryTimesForSecret
           || esc.toString.call(comparer) !== coreTester.compare_ + ""
           || comparer(rand2, coreTester.encrypt_(rand2, +rand1))) {

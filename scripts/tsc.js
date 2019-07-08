@@ -114,7 +114,7 @@ var getUglifyJS = function() {
   } else {
     minify = function(data, config) {
       config || (config = getDefaultUglifyConfig());
-      data = uglify.minify(data, config || defaultUglifyConfig).code;
+      data = uglify.minify(data, config).code;
       return data;
     };
   }
@@ -125,6 +125,8 @@ var getUglifyJS = function() {
 function getDefaultUglifyConfig() {
   if (!defaultUglifyConfig) {
     defaultUglifyConfig = lib.loadUglifyConfig("scripts/uglifyjs.local.json");
+    var compress = defaultUglifyConfig.compress || (defaultUglifyConfig.compress = {});
+    compress.passes = 2;
   }
   return defaultUglifyConfig;
 }

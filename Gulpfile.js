@@ -605,6 +605,9 @@ function compile(pathOrStream, header_files, done, options) {
 
 function outputJSResult(stream) {
   if (locally) {
+    stream = stream.pipe(gulpMap(function(file) {
+      beforeUglify(file);
+    }));
     if (doesUglifyLocalFiles) {
       var config = loadUglifyConfig();
       stream = stream.pipe(getGulpUglify()(config));
@@ -714,6 +717,9 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     config.nameCache = exArgs.nameCache;
     patchGulpUglify();
   }
+  stream = stream.pipe(gulpMap(function(file) {
+    beforeUglify(file);
+  }));
   stream = stream.pipe(getGulpUglify()(config));
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
@@ -734,13 +740,21 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
 
 var toRemovedGlobal = null;
 
-function postUglify(file, needToPatchExtendClick) {
+function beforeUglify(file) {
   var contents = null, changed = false, oldLen = 0;
   function get() { contents == null && (contents = String(file.contents), changed = true, oldLen = contents.length); }
-  if (outputES6 && !locally) {
+  if (!locally) {
     get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
   }
+  if (changed || oldLen > 0 && contents.length !== oldLen) {
+    file.contents = new Buffer(contents);
+  }
+}
+
+function postUglify(file, needToPatchExtendClick) {
+  var contents = null, changed = false, oldLen = 0;
+  function get() { contents == null && (contents = String(file.contents), changed = true, oldLen = contents.length); }
   if (needToPatchExtendClick) {
     get();
     contents = patchExtendClick(contents);
