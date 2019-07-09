@@ -721,7 +721,7 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     beforeUglify(file);
   }));
   stream = stream.pipe(getGulpUglify()(config));
-  // stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
+  stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
   }

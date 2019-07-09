@@ -120,7 +120,7 @@ Please only perform one action at a time!`
       :
 `        Warning:
 the current settings will be OVERRIDDEN the next time Vimium C starts!
-Please back up your settings using the "Export Settings_" button
+Please back up your settings using the "Export Settings" button
 !!!        RIGHT NOW        !!!`
     );
     if (tooMany) {
