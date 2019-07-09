@@ -1546,10 +1546,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   isTop || injector ||
   function (): void { // if injected, `parentFrame_` still needs a value
     const parEl = VDom.frameElement_();
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-      return;
-    }
     if (!parEl) {
       if ((Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
           || WeakSet) && VDom.docNotCompleteWhenVimiumIniting_) {
@@ -1602,7 +1598,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         safeDestroy(1);
         vfind.onLoad_();
       } else {
-        VDom.clickable_ = ((parent as Window).VDom as typeof VDom).clickable_;
+        VDom.clickable_ = vfind as object | null as never && ((parent as Window).VDom as typeof VDom).clickable_;
       }
     }
   }();
