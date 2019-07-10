@@ -36,6 +36,33 @@ __extends = function<Child, Super, Base> (
   __.prototype = parent.prototype;
   child.prototype = new __();
 },
+nextTick_ = (function (): {<T>(task: (self: T) => void, context: T): void; (task: (this: void) => void): void; } {
+  type Callback = () => void;
+  const tasks: Callback[] = [],
+  ticked = function (): void {
+    const oldSize = tasks.length;
+    for (const task of tasks) {
+      task();
+    }
+    if (tasks.length > oldSize) {
+      tasks.splice(0, oldSize);
+      Promise.resolve(1).then(ticked);
+    } else {
+      tasks.length = 0;
+    }
+  };
+  return function <T> (task: ((self: T) => void) | ((this: void) => void), context?: T): void {
+    if (tasks.length <= 0) {
+      Promise.resolve(1).then(ticked);
+    }
+    if (context as unknown as number === 9) {
+      // here ignores the case of re-entry
+      tasks.unshift(task as (this: void) => void);
+    } else {
+      tasks.push(context ? task.bind(null, context) : task as (this: void) => void);
+    }
+  };
+})(),
 debounce_ = function<T> (this: void, func: (this: T) => void
     , wait: number, bound_context: T, also_immediate: number
     ): (this: void) => void {
@@ -88,6 +115,7 @@ abstract class Option_<T extends keyof AllowedOptions> {
     [T in keyof AllowedOptions]: Option_<T>;
   } & SafeObject;
   static syncToFrontend_: Array<keyof SettingsNS.FrontendSettings>;
+  static suppressPopulate_ = true;
 
 constructor (element: HTMLElement, onUpdated: (this: Option_<T>) => void) {
   this.element_ = element;
@@ -102,7 +130,10 @@ constructor (element: HTMLElement, onUpdated: (this: Option_<T>) => void) {
 
 fetch_ (): void {
   this.saved_ = true;
-  return this.populateElement_(this.previous_ = bgSettings_.get_(this.field_));
+  this.previous_ = bgSettings_.get_(this.field_);
+  if (!Option_.suppressPopulate_) {
+    this.populateElement_(this.previous_);
+  }
 }
 normalize_ (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOptions[T] {
   const checker = this.checker_;
@@ -183,23 +214,29 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
   super(element, onUpdated);
   this.inited_ = false;
   bgSettings_.fetchFile_("exclusionTemplate", (): void => {
+    const container = document.createElement("div");
     if (Build.BTypes & ~BrowserType.Firefox) {
-      this.element_.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
+      container.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
     } else {
       const parsed = new DOMParser().parseFromString(bgSettings_.cache_.exclusionTemplate as string, "text/html").body;
-      (this.element_ as Ensure<typeof element, "append">).append(... <Element[]> <ArrayLike<Element>> parsed.children);
+      (container as Ensure<typeof element, "append">).append(... <Element[]> <ArrayLike<Element>> parsed.children);
     }
-    this.template_ = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
-    this.$list_ = this.element_.getElementsByTagName("tbody")[0] as HTMLTableSectionElement;
+    this.template_ = (container.querySelector("#exclusionRuleTemplate") as HTMLTemplateElement
+        ).content.firstChild as HTMLTableRowElement;
+    this.$list_ = container.querySelector("tbody") as HTMLTableSectionElement;
     this.list_ = [];
     this.$list_.addEventListener("input", ExclusionRulesOption_.MarkChanged_);
     this.$list_.addEventListener("input", this.onUpdated_);
     this.$list_.addEventListener("click", e => this.onRemoveRow_(e));
     $("#exclusionAddButton").onclick = () => this.addRule_("");
+    let table = container.firstElementChild as HTMLElement;
+    table.remove();
+    this.template_.remove();
     this.inited_ = true;
     if (this.saved_) { // async and .fetch called
-      this.populateElement_(this.previous_);
+      nextTick_(() => this.populateElement_(this.previous_));
     }
+    nextTick_(table1 => this.element_.appendChild(table1), table);
   });
 }
 onRowChange_ (_isInc: number): void { /* empty */ }
@@ -214,7 +251,7 @@ addRule_ (pattern: string, autoFocus?: false | undefined): void {
   });
   const item = this.list_[this.list_.length - 1] as ExclusionVisibleVirtualNode;
   if (autoFocus !== false) {
-    item.$pattern_.focus();
+    nextTick_(() => item.$pattern_.focus());
   }
   if (pattern) {
     this.onUpdated_();
@@ -371,28 +408,6 @@ timer_?: number;
 ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
-if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-      && Build.BTypes & BrowserType.Chrome
-      && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
-  || devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
-      || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
-) { location.pathname.toLowerCase().indexOf("/options.html") !== -1 && setTimeout(function (): void {
-  const css = document.createElement("style"), ratio = devicePixelRatio;
-  const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
-      || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
-  let scale: string | number = Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-      || onlyInputs || bgBrowserVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
-  scale = scale + 0.00000999;
-  scale = ("" + scale).slice(0, 7).replace(<RegExpOne> /\.?0+$/, "");
-  css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
-    : `* { border-width: ${scale}px !important; }`;
-  (document.head as HTMLHeadElement).appendChild(css);
-}, 12); }
-
-$<HTMLElement>(".version").textContent = bgSettings_.CONST_.VerName_;
-(document.documentElement as HTMLHtmlElement).classList.toggle("auto-dark", !!bgSettings_.payload_.d);
-(document.documentElement as HTMLHtmlElement).classList.toggle("less-motion", !!bgSettings_.payload_.r);
-
 location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
 BG_.BgUtils_.require_("Exclusions").then((function (callback) {
   return function () {
@@ -404,7 +419,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
   const notRunnable = !ref && !(curTab && curTab.url && curTab.status === "loading"
     && (curTab.url.lastIndexOf("http", 0) === 0 || curTab.url.lastIndexOf("ftp", 0) === 0));
   if (notRunnable) {
-    const body = document.body as HTMLBodyElement;
+    const body = document.body as HTMLBodyElement, docEl = document.documentElement as HTMLHtmlElement;
     body.textContent = "";
     blockedMsg.style.display = "";
     (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST_.VerName_;
@@ -420,10 +435,17 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     }
     body.style.width = "auto";
     body.appendChild(blockedMsg);
-    (document.documentElement as HTMLHtmlElement).style.height = "";
+    docEl.classList.toggle("auto-dark", !!bgSettings_.payload_.d);
+    docEl.style.height = "";
   } else {
-    blockedMsg.remove();
-    blockedMsg = null as never;
+    nextTick_(versionEl => {
+      blockedMsg.remove();
+      blockedMsg = null as never;
+      const docCls = (document.documentElement as HTMLHtmlElement).classList;
+      docCls.toggle("auto-dark", !!bgSettings_.payload_.d);
+      docCls.toggle("less-motion", !!bgSettings_.payload_.r);
+      versionEl.textContent = bgSettings_.CONST_.VerName_;
+    }, $<HTMLElement>(".version"));
   }
   const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST_.OptionsPage_;
   element.href !== optionsUrl && (element.href = optionsUrl);
@@ -599,16 +621,18 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     , toggleAction = sender.s !== Frames.Status.disabled ? "Disable" : "Enable"
     , curIsLocked = !!(sender.f & Frames.Flags.locked);
   curLockedStatus = curIsLocked ? sender.s : Frames.Status.__fake;
-  stateValue.id = "state-value";
   let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling;
+  nextTick_(() => {
   el0.firstElementChild.textContent = curIsLocked ? toggleAction : toggleAction + " for once";
   el0.onclick = forceState.bind(null, toggleAction);
+  stateValue.id = "state-value";
   if (curIsLocked) {
     el1.classList.remove("hidden");
     el1.firstElementChild.onclick = forceState.bind(null, "Reset");
   } else {
     el1.remove();
   }
+  });
   if (!(Build.BTypes & BrowserType.Chrome)
       || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
       || bgSettings_.payload_.m
@@ -624,6 +648,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
       }
     });
   }
+  Option_.suppressPopulate_ = false;
   let exclusions: PopExclusionRulesOption = null as never;
   exclusions = new PopExclusionRulesOption($("#exclusionRules"), onUpdated);
   exclusions.fetch_();

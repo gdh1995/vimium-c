@@ -21,10 +21,15 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
       const scriptElement = document.createElement("script");
       scriptElement.async = false;
       scriptElement.src = src[0] === "/" || src.lastIndexOf(prefix, 0) === 0 ? src : "/" + src;
-      head.appendChild(scriptElement);
       scripts.push(scriptElement);
     }
     scripts[scripts.length - 1].onload = onLastLoad;
+    // wait a while so that the page gets ready earlier
+    setTimeout(function (): void {
+      for (const scriptEl of scripts) {
+        head.appendChild(scriptEl);
+      }
+    }, 100);
   }
   interface BgWindow extends Window { Settings_: typeof Settings_; }
   function onLastLoad(): void {
@@ -77,6 +82,8 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     head.appendChild(scriptElement);
   }
   if (Build.BTypes & BrowserType.Edge) {
-    next(0);
+    setTimeout(function (): void {
+      next(0);
+    }, 100);
   }
 })();

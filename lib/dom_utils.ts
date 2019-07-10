@@ -314,7 +314,7 @@ var VDom = {
     return null;
   },
   getClientRectsForAreas_: function (this: {}, element: HTMLElementUsingMap, output: Hint5[]
-      , areas?: HTMLCollectionOf<HTMLAreaElement> | HTMLAreaElement[]): Rect | null {
+      , areas?: NodeListOf<HTMLAreaElement | Element> | HTMLAreaElement[]): Rect | null {
     let diff: number, x1: number, x2: number, y1: number, y2: number, rect: Rect | null | undefined;
     const cr = element.getClientRects()[0] as ClientRect | undefined;
     if (!cr || cr.height < 3 || cr.width < 3) { return null; }
@@ -329,11 +329,13 @@ var VDom = {
         ? (element as EnsureNonNull<typeof element>).getRootNode() as ShadowRoot | Document : document;
       const map = root.querySelector(selector);
       if (!map || (map as ElementToHTML).lang == null) { return null; }
-      areas = map.getElementsByTagName("area");
+      areas = map.querySelectorAll("area");
     }
     const toInt = (a: string) => (a as string | number as number) | 0;
     for (let _i = 0, _len = (areas as NonNullable<typeof areas>).length; _i < _len; _i++) {
-      const area = (areas as NonNullable<typeof areas>)[_i], coords = area.coords.split(",").map(toInt);
+      const area = (areas as NonNullable<typeof areas>)[_i] as HTMLAreaElement | Element;
+      if (!("lang" in area)) { continue; }
+      let coords = area.coords.split(",").map(toInt);
       switch (area.shape.toLowerCase()) {
       case "circle": case "circ": // note: "circ" is non-conforming
         x2 = coords[0]; y2 = coords[1]; diff = coords[2] / Math.sqrt(2);

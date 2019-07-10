@@ -154,8 +154,8 @@ needToCovertToCharsOnRead_: boolean;
 previous_: string;
 constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
   super(element, onUpdated);
-  this.element_.oninput = this.onUpdated_;
   const conv = this.element_.dataset.converter || "", ops = conv ? conv.split(" ") : [];
+  this.element_.oninput = this.onUpdated_;
   this.converter_ = ops;
   this.needToCovertToCharsOnRead_ = false;
   if (ops.indexOf("chars") >= 0) {
@@ -266,7 +266,9 @@ class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
     super(element, onUpdated);
     this.masked_ = true;
-    this.element_.classList.add("masked");
+    nextTick_(() => {
+      this.element_.classList.add("masked");
+    });
     this._myCancelMask = this.cancelMask_.bind(this);
     (this.element_ as HTMLTextAreaElement).addEventListener("focus", this._myCancelMask);
   }
@@ -329,6 +331,7 @@ TextOption_.prototype.showError_ = function<T extends TextOptionNames>(this: Tex
   errors != null || (errors = !!msg);
   const { element_: el } = this, { classList: cls } = el, par = el.parentElement as HTMLElement;
   let errEl = par.querySelector(".tip") as HTMLElement | null;
+  nextTick_(() => {
   if (errors) {
     if (errEl == null) {
       errEl = document.createElement("div");
@@ -341,7 +344,33 @@ TextOption_.prototype.showError_ = function<T extends TextOptionNames>(this: Tex
     cls.remove("has-error"), cls.remove("highlight");
     errEl && errEl.remove();
   }
+  });
 };
+
+if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+  && Build.BTypes & BrowserType.Chrome
+  && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
+|| devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+  || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
+) { nextTick_((): void => {
+const css = document.createElement("style"), ratio = devicePixelRatio;
+const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+  || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
+let scale: string | number = Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+  || onlyInputs || bgBrowserVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
+scale = scale + 0.00000999;
+scale = ("" + scale).slice(0, 7).replace(<RegExpOne> /\.?0+$/, "");
+css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
+: `* { border-width: ${scale}px !important; }`;
+(document.head as HTMLHeadElement).appendChild(css);
+}); }
+
+nextTick_(versionEl => {
+  const docCls = (document.documentElement as HTMLHtmlElement).classList;
+  bgSettings_.payload_.d && docCls.add("auto-dark");
+  bgSettings_.payload_.r && docCls.add("less-motion");
+  versionEl.textContent = bgSettings_.CONST_.VerName_;
+}, $<HTMLElement>(".version"));
 
 interface SaveBtn extends HTMLButtonElement {
   onclick (this: SaveBtn, virtually?: MouseEvent | false): void;
@@ -411,12 +440,34 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     bgSettings_.broadcast_(req);
   }
 
+  let advancedMode = false, _element: HTMLElement = $<AdvancedOptBtn>("#advancedOptionsButton");
+  (_element as AdvancedOptBtn).onclick = function (this: AdvancedOptBtn, _0, init): void {
+    if (init == null || (init === "hash" && bgSettings_.get_("showAdvancedOptions") === false)) {
+      advancedMode = !advancedMode;
+      bgSettings_.set_("showAdvancedOptions", advancedMode);
+    } else {
+      advancedMode = bgSettings_.get_("showAdvancedOptions");
+    }
+    const el = $("#advancedOptions");
+    nextTick_((): void => {
+    (el.previousElementSibling as HTMLElement).style.display = el.style.display = advancedMode ? "" : "none";
+    (this.firstChild as Text).data = (advancedMode ? "Hide" : "Show") + " Advanced Options";
+    this.setAttribute("aria-checked", "" + advancedMode);
+    }, 9);
+  };
+  (_element as AdvancedOptBtn).onclick(null, true);
+
   if (!(Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_)) {
-    $<EnsuredMountedElement & HTMLElement>("#focusNewTabContent").parentElement.parentElement.parentElement.remove();
-    $<EnsuredMountedElement & HTMLElement>("#newTabUrlRefer").remove();
+    nextTick_(context => {
+      context[0].remove();
+      context[1].remove();
+    }, [
+      $<EnsuredMountedElement & HTMLElement>("#focusNewTabContent").parentElement.parentElement.parentElement,
+      $<EnsuredMountedElement & HTMLElement>("#newTabUrlRefer")
+    ]);
   }
 
-  let _ref: {length: number, [index: number]: HTMLElement} = $$("[data-model]"), element: HTMLElement;
+  let _ref: {length: number, [index: number]: HTMLElement} = $$("[data-model]");
   const types = {
     Number: NumberOption_,
     Text: TextOption_,
@@ -427,67 +478,31 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     ExclusionRules: ExclusionRulesOption_,
   };
   for (let _i = _ref.length; 0 <= --_i; ) {
-    element = _ref[_i];
-    const cls = types[element.dataset.model as "Text"];
+    _element = _ref[_i];
+    const cls = types[_element.dataset.model as "Text"];
     // tslint:disable-next-line: no-unused-expression
-    const instance = new cls(element as TextElement, onUpdated);
+    const instance = new cls(_element as TextElement, onUpdated);
     instance.fetch_();
     (Option_.all_ as SafeDict<Option_<keyof AllowedOptions>>)[instance.field_] = instance;
   }
+  nextTick_(() => {
+    const ref = Option_.all_;
+    Option_.suppressPopulate_ = false;
+    for (let key in ref) {
+      ref[key as "vimSync"].populateElement_(ref[key as "vimSync"].previous_);
+    }
+  });
   if (Option_.all_.exclusionRules.previous_.length > 0) {
-    $("#exclusionToolbar").style.visibility = "";
+    nextTick_(el => {
+      el.style.visibility = "";
+    }, $("#exclusionToolbar"));
   }
 
   _ref = $$("[data-check]");
   for (let _i = _ref.length; 0 <= --_i; ) {
-    element = _ref[_i];
-    element.addEventListener(element.dataset.check || "input", loadChecker);
+    _element = _ref[_i];
+    _element.addEventListener(_element.dataset.check || "input", loadChecker);
   }
-
-  let advancedMode = false;
-  element = $<AdvancedOptBtn>("#advancedOptionsButton");
-  (element as AdvancedOptBtn).onclick = function (this: AdvancedOptBtn, _0, init): void {
-    if (init == null || (init === "hash" && bgSettings_.get_("showAdvancedOptions") === false)) {
-      advancedMode = !advancedMode;
-      bgSettings_.set_("showAdvancedOptions", advancedMode);
-    } else {
-      advancedMode = bgSettings_.get_("showAdvancedOptions");
-    }
-    const el = $("#advancedOptions");
-    (el.previousElementSibling as HTMLElement).style.display = el.style.display = advancedMode ? "" : "none";
-    (this.firstChild as Text).data = (advancedMode ? "Hide" : "Show") + " Advanced Options";
-    this.setAttribute("aria-checked", "" + advancedMode);
-  };
-  (element as AdvancedOptBtn).onclick(null, true);
-
-  document.addEventListener("keydown", function (this: void, event): void {
-    if (event.keyCode !== kKeyCode.space) {
-      if (!window.VKey) { return; }
-      if (!Build.NDEBUG && VKey.key_(event, VKey.char_(event)) === "<a-f12>") {
-        $<HTMLOptionElement>("#recommendedSettings").selected = true;
-        let el2 = $<HTMLSelectElement>("#importOptions");
-        el2.onchange ? (el2 as any).onchange() : setTimeout(() => {
-          el2.onchange && (el2 as any).onchange();
-        }, 100) && el2.click();
-        return;
-      }
-      let wanted = event.keyCode === kKeyCode.questionWin || event.keyCode === kKeyCode.questionMac ? "?" : "";
-      if (wanted && VKey.char_(event) === wanted && VKey.key_(event, wanted) === wanted) {
-        if (!Build.NDEBUG && !VEvent.lock_()) {
-          console.log('The document receives a "?" key which has been passed (excluded) by Vimium C,',
-            "so open the help dialog.");
-        }
-        if (!VEvent.lock_()) {
-          $("#showCommands").click();
-        }
-      }
-      return;
-    }
-    const el = event.target as Element;
-    if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
-      event.preventDefault();
-    }
-  });
 
   document.addEventListener("keyup", function (this: void, event): void {
     const el = event.target as Element, i = event.keyCode;
@@ -512,12 +527,13 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   });
 
-  _ref = document.getElementsByClassName("nonEmptyTip") as HTMLCollectionOf<HTMLElement>;
-  for (let _i = _ref.length; 0 <= --_i; ) {
-    element = _ref[_i];
+  nextTick_(ref1 => {
+  for (let _i = ref1.length; 0 <= --_i; ) {
+    const element = ref1[_i];
     element.className += " info";
     element.textContent = "Delete all to reset this option.";
   }
+  }, $$(".nonEmptyTip") as NodeListOf<HTMLElement>);
 
   let func: (this: HTMLElement, event: MouseEvent) => void = function (this: HTMLElement): void {
     const target = $("#" + this.dataset.autoResize as string);
@@ -537,12 +553,16 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   };
   _ref = $$("[data-auto-resize]");
   for (let _i = _ref.length; 0 <= --_i; ) {
-    element = _ref[_i];
-    element.onclick = func;
+    _ref[_i].onclick = func;
+  }
+  nextTick_(ref => {
+    for (let _i = ref.length; 0 <= --_i; ) {
+    const element = ref[_i];
     element.tabIndex = 0;
     element.textContent = "Auto resize";
     element.setAttribute("role", "button");
-  }
+    }
+  }, _ref);
 
   func = function (event): void {
     let str = this.dataset.delay as string, e = null as MouseEvent | null;
@@ -570,36 +590,42 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   _ref = $$(".sel-all");
   func = function (this: HTMLElement, event: MouseEvent): void {
     if (event.target !== this) { return; }
-    getSelection().selectAllChildren(this);
     event.preventDefault();
+    getSelection().selectAllChildren(this);
   } as ElementWithDelay["onmousedown"];
   for (let _i = _ref.length; 0 <= --_i; ) {
     _ref[_i].onmousedown = func;
   }
 
-  function setUI(curTabId: number | null): void {
+  let setUI = function (curTabId: number | null): void {
     const ratio = BG_.devicePixelRatio, element2 = document.getElementById("openInTab") as HTMLAnchorElement;
-    (document.body as HTMLBodyElement).classList.add("dialog-ui");
-    (document.getElementById("mainHeader") as HTMLElement).remove();
+    const mainHeader = document.getElementById("mainHeader") as HTMLElement;
     element2.onclick = function (this: HTMLAnchorElement): void {
       setTimeout(window.close, 17);
     };
+    nextTick_(() => {
+    (document.body as HTMLBodyElement).classList.add("dialog-ui");
+    mainHeader.remove();
     element2.style.display = "";
     (element2.nextElementSibling as Element).remove();
+    });
     if (Build.MinCVer >= BrowserVer.MinCorrectBoxWidthForOptionUI
         || !(Build.BTypes & BrowserType.Chrome)
         || bgBrowserVer_ >= BrowserVer.MinCorrectBoxWidthForOptionUI) { return; }
+    nextTick_(() => {
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
+    });
     chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function (zoom): void {
       // >= BrowserVer.Min$Tabs$$getZoom
       if (!zoom) { return chrome.runtime.lastError; }
       const ratio2 = Math.round(devicePixelRatio / zoom * 1024) / 1024;
       (document.body as HTMLBodyElement).style.width = ratio2 !== 1 ? 910 / ratio2 + "px" : "";
     });
-  }
+  };
   if (Build.NoDialogUI) { /* empty */ }
   else if (location.hash.toLowerCase() === "#dialog-ui") {
     setUI(null);
+    setUI = null as never;
   } else if (chrome.tabs.query) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs): void {
       let url: string;
@@ -607,6 +633,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
               && url.lastIndexOf(location.protocol, 0) < 0) {
         setUI(tabs[0].id);
       }
+      setUI = null as never;
     });
   }
   Option_.all_.keyMappings.onSave_ = function (): void {
@@ -629,7 +656,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
         && Build.BTypes & BrowserType.Chrome
         && bgBrowserVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
-      element2.style.textDecoration = isExtPage ? "" : "line-through";
+      nextTick_(() => {
+        element2.style.textDecoration = isExtPage ? "" : "line-through";
+      });
       return this.showError_(
         url === bgSettings_.defaults_.vomnibarPage ? ""
           : `Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`,
@@ -659,7 +688,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   Option_.all_.vomnibarPage.onSave_();
 
   _ref = $$("[data-permission]");
-  _ref.length > 0 && (function (this: void, els: typeof _ref): void {
+  _ref.length > 0 && ((els: typeof _ref): void => {
     const manifest = chrome.runtime.getManifest();
     for (const key of manifest.permissions || []) {
       manifest[key] = true;
@@ -671,7 +700,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
         if (!(Build.BTypes & BrowserType.Chrome)
             || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome) {
           if (key === "C") { // hide directly
-            (el as EnsuredMountedHTMLElement).parentElement.parentElement.parentElement.style.display = "none";
+            nextTick_(parentEl => {
+              parentEl.style.display = "none";
+            }, (el as EnsuredMountedHTMLElement).parentElement.parentElement.parentElement);
           }
           continue;
         } else if (bgBrowserVer_ >= +key.slice(1)) {
@@ -682,16 +713,18 @@ interface AdvancedOptBtn extends HTMLButtonElement {
         if (key in manifest) { continue; }
         key = `for lacking permission${key ? ":\n* " + key : ""}`;
       }
-      (el as TextElement).disabled = true;
       key = "This option is invalid " + key;
-      if (el instanceof HTMLInputElement && el.type === "checkbox") {
-        el = el.parentElement as HTMLElement;
-        el.title = key;
-      } else {
-        (el as TextElement).value = "";
-        el.title = key;
-        (el.parentElement as HTMLElement).onclick = onclick;
-      }
+      nextTick_(el1 => {
+        (el1 as TextElement).disabled = true;
+        if (el1 instanceof HTMLInputElement && el1.type === "checkbox") {
+          el1 = el1.parentElement as HTMLElement;
+          el1.title = key;
+        } else {
+          (el1 as TextElement).value = "";
+          el1.title = key;
+          (el1.parentElement as HTMLElement).onclick = onclick;
+        }
+      }, el);
     }
     function onclick(this: HTMLElement): void {
       const el = this.querySelector("[data-permission]") as TextElement | null;
@@ -702,25 +735,28 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   })(_ref);
   if (BG_.Settings_.CONST_.GlobalCommands_.length === 0) {
-    _ref = $$(".require-shortcuts");
-    for (let _i = _ref.length; 0 <= --_i; ) {
-      _ref[_i].remove();
-    }
+    nextTick_(ref2 => {
+      for (let _i = ref2.length; 0 <= --_i; ) {
+        ref2[_i].remove();
+      }
+    }, $$(".require-shortcuts"));
   }
   if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
       && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
       && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) {
-    $("#tipForNoShadow").remove();
+    nextTick_(tipForNoShadow => {
+      tipForNoShadow.remove();
+    }, $("#tipForNoShadow"));
   }
 
+  nextTick_(ref2 => {
   function toggleHide(element2: HTMLElement): void | 1 {
     element2.tabIndex = -1;
     return element2.setAttribute("aria-hidden", "true");
   }
 
-  _ref = $$('[data-model="Boolean"]');
-  for (let _i = _ref.length; 0 <= --_i; ) {
-    element = _ref[_i] as HTMLInputElement;
+  for (let _i = ref2.length; 0 <= --_i; ) {
+    let element = ref2[_i] as HTMLInputElement;
     if ((element as HTMLInputElement).disabled) { continue; }
     toggleHide(element);
     toggleHide(element.parentElement as HTMLElement);
@@ -730,47 +766,57 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     element.tabIndex = 0;
     element.setAttribute("aria-hidden", "false");
   }
+  }, $$('[data-model="Boolean"]'));
 
-  _ref = $$("[data-href]");
-  for (let _i = _ref.length; 0 <= --_i; ) {
-    element = _ref[_i] as HTMLInputElement;
+  nextTick_(ref2 => {
+  for (let _i = ref2.length; 0 <= --_i; ) {
+    const element = ref2[_i] as HTMLInputElement;
     let str = element.dataset.href as string;
     str = BG_.BgUtils_.convertToUrl_(str, null, Urls.WorkType.ConvertKnown);
     element.removeAttribute("data-href");
     element.setAttribute("href", str);
   }
+  }, $$("[data-href]"));
 
   function onBeforeUnload(): string {
     return "You have unsaved changes to options.";
   }
 
-  element = $<HTMLAnchorElement>("#openExtensionPage");
+  _element = $<HTMLAnchorElement>("#openExtensionPage");
   if (Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
       && Build.BTypes & BrowserType.Chrome
       && bgBrowserVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
-    (element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
-    (element.parentElement as HTMLElement).insertBefore(document.createTextNode('"Keyboard shortcuts" of '), element);
+    nextTick_(el => {
+      el.href = "chrome://extensions/configureCommands";
+      (el.parentElement as HTMLElement).insertBefore(document.createTextNode('"Keyboard shortcuts" of '), el);
+    }, _element as HTMLAnchorElement);
   } else if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
-    (element as HTMLAnchorElement).textContent = (element as HTMLAnchorElement).href = "about:addons";
-    (element.parentElement as HTMLElement).insertBefore(
-      document.createTextNode('"Manage Shortcuts" in "Tools Menu" of '), element);
+    nextTick_(el => {
+      el.textContent = el.href = "about:addons";
+      (el.parentElement as HTMLElement).insertBefore(
+        document.createTextNode('"Manage Shortcuts" in "Tools Menu" of '), el);
+    }, _element as HTMLAnchorElement);
   }
-  (element as HTMLAnchorElement).onclick = function (event): void {
+  (_element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
     return BG_.Backend_.focus_({ u: this.href, r: ReuseType.reuse, p: true });
   };
 
   if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
-    element = $("#chromeExtVomnibar");
-    (element.nextSibling as Text).remove();
-    element.remove();
+    _element = $("#chromeExtVomnibar");
+    nextTick_(el => {
+      (el.nextSibling as Text).remove();
+      el.remove();
+    }, _element);
   }
 
   if (Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_) {
     Option_.all_.focusNewTabContent.onSave_ = function (): void {
-      $("#focusNewTabStatus").textContent = this.previous_ ? "enabled" : "disabled";
+      nextTick_(ref2 => {
+        ref2[0].textContent = ref2[1];
+      }, [$("#focusNewTabStatus"), this.previous_ ? "enabled" : "disabled"] as const);
     };
     Option_.all_.focusNewTabContent.onSave_();
     $("#focusNewTabTitle").onclick = function (): void {
@@ -786,16 +832,15 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     };
   }
   if (BG_.Backend_.setIcon_ === BG_.BgUtils_.blank_ && Option_.all_.showActionIcon.previous_) {
-    element = Option_.all_.showActionIcon.element_;
+    nextTick_(() => {
+    let element = Option_.all_.showActionIcon.element_;
     (element as EnsuredMountedHTMLElement).nextElementSibling.classList.add("has-error");
     (element as EnsuredMountedHTMLElement).parentNode.parentNode.nextElementSibling.firstElementChild.textContent =
         'Sorry, but the icon can not be dynamic if the browser flag "--disable-reading-from-canvas" is enabled';
+    });
   }
 })();
 
-if (!(Build.BTypes & ~BrowserType.Firefox)
-    || Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_
-    || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
 Option_.all_.newTabUrl.checker_ = {
   check_ (value: string): string {
     let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
@@ -817,7 +862,6 @@ Option_.all_.newTabUrl.checker_ = {
   }
 };
 Option_.all_.newTabUrl.checker_.check_(Option_.all_.newTabUrl.previous_);
-}
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   if (!window.VDom) { return; }
@@ -935,11 +979,16 @@ $("#importButton").onclick = function (): void {
   opt.onchange ? opt.onchange(null as never) : click($("#settingsFile"));
 };
 
-$("#defaultNewTab").textContent = bgSettings_.defaults_.newTabUrl;
+nextTick_(([el1, el2]) => {
+  el1.textContent = bgSettings_.defaults_.newTabUrl;
+  el2.textContent = bgSettings_.defaults_.searchUrl;
+}, [
+  $("#defaultNewTab"),
+  $("#defaultSearchEngine")
+] as const);
 
-$("#defaultSearchEngine").textContent = bgSettings_.defaults_.searchUrl;
-
-$("#browserName").textContent = (Build.BTypes & BrowserType.Edge
+nextTick_(el => {
+el.textContent = (Build.BTypes & BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)
     ? "MS Edge"
     : Build.BTypes & BrowserType.Firefox
@@ -953,6 +1002,7 @@ $("#browserName").textContent = (Build.BTypes & BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Chrome) || bgOnOther_ === BrowserType.Chrome)
     ? " " + bgBrowserVer_ : ""
   ) + (", " + bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.slice(1));
+}, $("#browserName"));
 
 function loadJS(file: string): HTMLScriptElement {
   const script = document.createElement("script");
@@ -967,6 +1017,35 @@ function loadChecker(this: HTMLElement): void {
   loadJS("options_checker.js");
 }
 
+document.addEventListener("keydown", function (this: void, event): void {
+  if (event.keyCode !== kKeyCode.space) {
+    if (!window.VKey) { return; }
+    if (!Build.NDEBUG && VKey.key_(event, VKey.char_(event)) === "<a-f12>") {
+      $<HTMLOptionElement>("#recommendedSettings").selected = true;
+      let el2 = $<HTMLSelectElement>("#importOptions");
+      el2.onchange ? (el2 as any).onchange() : setTimeout(() => {
+        el2.onchange && (el2 as any).onchange();
+      }, 100) && el2.click();
+      return;
+    }
+    let wanted = event.keyCode === kKeyCode.questionWin || event.keyCode === kKeyCode.questionMac ? "?" : "";
+    if (wanted && VKey.char_(event) === wanted && VKey.key_(event, wanted) === wanted) {
+      if (!Build.NDEBUG && !VEvent.lock_()) {
+        console.log('The document receives a "?" key which has been passed (excluded) by Vimium C,',
+          "so open the help dialog.");
+      }
+      if (!VEvent.lock_()) {
+        $("#showCommands").click();
+      }
+    }
+    return;
+  }
+  const el = event.target as Element;
+  if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
+    event.preventDefault();
+  }
+});
+
 window.onhashchange = function (this: void): void {
   let hash = location.hash, node: HTMLElement | null;
   hash = hash.slice(hash[1] === "!" ? 2 : 1);
@@ -976,11 +1055,14 @@ window.onhashchange = function (this: void): void {
   if (!hash || !(<RegExpI> /^[a-z][a-z\d_-]*$/i).test(hash)) { return; }
   if (node = $(`[data-hash="${hash}"]`) as HTMLElement | null) {
     if (node.onclick) {
-      return (node as ElementWithHash).onclick(null, "hash");
+      nextTick_(() => {
+        (node as ElementWithHash).onclick(null, "hash");
+      });
     }
   } else if ((node = $("#" + hash))) {
-    if (node.dataset.model) {
-      node.classList.add("highlight");
+    nextTick_((): void => {
+    if ((node as HTMLElement).dataset.model) {
+      (node as HTMLElement).classList.add("highlight");
     }
     const callback = function (event?: Event): void {
       if (event && event.target !== window) { return; }
@@ -995,6 +1077,7 @@ window.onhashchange = function (this: void): void {
     if (document.readyState === "complete") { return callback(); }
     window.scrollTo(0, 0);
     window.onload = callback;
+    });
   }
 };
 window.onhashchange(null as never);
@@ -1056,7 +1139,7 @@ if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) { (function (): void
     }
   }
   if (matched) {
-    $("#questionShortcut").textContent = matched;
+    nextTick_(el => el.textContent = matched, $("#questionShortcut"));
   }
 })(); }
 
