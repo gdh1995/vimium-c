@@ -2296,30 +2296,53 @@ Are you sure you want to continue?`) ? count
       cRepeat = 1;
       BackgroundCommands[kBgCmd.performFind]();
     },
-    /** framesGoBack: */
-        (!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
-          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || CurCVer_ >= BrowserVer.Min$Tabs$$goBack)
-        ? function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | number): void {
-      const tabID = typeof port === "number" ? port : port.s.t, count = req.s, reuse = req.r,
-      jump = (count > 0 ? chrome.tabs.goForward : chrome.tabs.goBack) as NonNullable<typeof chrome.tabs.goBack>;
-      if (reuse) {
+    /** framesGoBack: */ function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | number): void {
+      const tabID = Build.BTypes & BrowserType.Chrome && typeof port === "number" ? port : (port as Port).s.t,
+      count = req.s, reuse = req.r;
+      let needToExecCode: boolean = Build.BTypes & BrowserType.Chrome ? false : true;
+      if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.Min$Tabs$$goBack)
+          && (!(Build.BTypes & BrowserType.Chrome)
+              || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
+              || CurCVer_ < BrowserVer.Min$Tabs$$goBack)) {
+        /** then `reuse` must be non-zero - ensured by {@link ../content/frontend.ts#Commands[framesGoBack]} */
+        const mainPort = (port as Port).s.i ? indexFrame(tabID, 0) as Port : port as Port;
+        if (!mainPort.s.u.startsWith(BrowserProtocol_)
+            || !!(Build.BTypes & BrowserType.Firefox)
+                && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+                && mainPort.s.u.startsWith(location.origin)) {
+          /* empty */
+        } else {
+          cPort = port as Port;
+          Backend_.showHUD_(`Can not open a history of this tab`);
+          return;
+        }
+        if (Build.BTypes & BrowserType.Chrome) {
+          needToExecCode = true;
+        }
+      }
+      if (!(Build.BTypes & BrowserType.Chrome) || reuse) {
         chrome.tabs.duplicate(tabID, function (tab): void {
           if (!tab) { return onRuntimeError(); }
           if (reuse === ReuseType.newBg) {
             chrome.tabs.update(tabID, { active: true });
           }
-          requestHandlers[kFgReq.framesGoBack]({ s: count, r: ReuseType.current }, tab.id);
+          if (!(Build.BTypes & BrowserType.Chrome)
+              || (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.Min$Tabs$$goBack)
+                  && needToExecCode) {
+            chrome.tabs.executeScript(tab.id, {
+              code: `history.go(${count})`,
+              runAt: "document_start",
+            }, onRuntimeError);
+          } else {
+            requestHandlers[kFgReq.framesGoBack]({ s: count, r: ReuseType.current }, tab.id);
+          }
         });
         return;
       }
+      const jump = (count > 0 ? chrome.tabs.goForward : chrome.tabs.goBack) as NonNullable<typeof chrome.tabs.goBack>;
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
         jump(tabID, onRuntimeError);
       }
-    } : function (_req, port): void {
-      cPort = port as Port;
-      Backend_.showHUD_(Build.BTypes & ~BrowserType.Firefox
-          ? `Can not open history in new tab before Chrome ${BrowserVer.Min$Tabs$$goBack}`
-          : "Can not open history in new tab on Firefox");
     }
   ],
   framesForOmni: Frames.WritableFrames = [];

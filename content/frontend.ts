@@ -344,13 +344,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   } = [
     /* kFgCmd.framesGoBack: */ function (rawStep: number, options: CmdOptions[kFgCmd.framesGoBack]): void {
       const maxStep = Math.min(Math.abs(rawStep), history.length - 1),
+      reuse = options.reuse,
       realStep = rawStep < 0 ? -maxStep : maxStep;
       if ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome)
           && maxStep > 1
           && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || browserVer >= BrowserVer.Min$Tabs$$goBack)
-          || maxStep && options.reuse
+          || maxStep && reuse
       ) {
-        post({ H: kFgReq.framesGoBack, s: realStep, r: options.reuse });
+        post({ H: kFgReq.framesGoBack, s: realStep, r: reuse });
       } else {
         maxStep && history.go(realStep);
       }
