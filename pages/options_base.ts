@@ -497,14 +497,16 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
       (document.documentElement as HTMLHtmlElement).style.height = "";
       PopExclusionRulesOption.prototype.isPatternMatched_ = ExclusionRulesOption_.prototype.isPatternMatched_;
       let visible_ = a.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0;
+      let element: SafeHTMLElement;
       inited = some ? 2 : 1;
       if (some) {
-        visible_[0].$keys_.focus();
+        element = visible_[0].$keys_;
         updateState(true);
       } else {
         a.addRule_("", false);
-        (a.list_[a.list_.length - 1] as ExclusionVisibleVirtualNode).$keys_.focus();
+        element = (a.list_[a.list_.length - 1] as ExclusionVisibleVirtualNode).$keys_;
       }
+      nextTick_(() => element.focus());
     }
     updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
       const patternIsSame = vnode.rule_.pattern === pattern;
