@@ -266,7 +266,7 @@ Are you sure you want to continue?`
     if (!item.areEqual_(bgSettings_.get_(key), new_value)) {
       logUpdate("import", key, new_value);
       bgSettings_.set_(key, new_value);
-      if (key in bgSettings_.payload_) {
+      if (key in bgSettings_.valuesToLoad_) {
         Option_.syncToFrontend_.push(key as keyof SettingsNS.FrontendSettings);
       }
       item.fetch_();

@@ -122,7 +122,7 @@ constructor (element: HTMLElement, onUpdated: (this: Option_<T>) => void) {
   this.field_ = element.id as T;
   this.previous_ = this.onUpdated_ = null as never;
   this.saved_ = false;
-  if (this.field_ in bgSettings_.payload_) {
+  if (this.field_ in bgSettings_.valuesToLoad_) {
     onUpdated = this._onCacheUpdated.bind(this, onUpdated);
   }
   this.onUpdated_ = debounce_(onUpdated, 330, this, 1);
@@ -163,7 +163,7 @@ save_ (): void {
   if (previous !== (isJSON ? JSON.stringify(value) : value)) {
     this.populateElement_(value, true);
   }
-  if (this.field_ in bgSettings_.payload_) {
+  if (this.field_ in bgSettings_.valuesToLoad_) {
     Option_.syncToFrontend_.push(this.field_ as keyof SettingsNS.FrontendSettings);
   }
   this.onSave_();
@@ -497,16 +497,16 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
       (document.documentElement as HTMLHtmlElement).style.height = "";
       PopExclusionRulesOption.prototype.isPatternMatched_ = ExclusionRulesOption_.prototype.isPatternMatched_;
       let visible_ = a.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0;
-      let element: SafeHTMLElement;
+      let element1: SafeHTMLElement;
       inited = some ? 2 : 1;
       if (some) {
-        element = visible_[0].$keys_;
+        element1 = visible_[0].$keys_;
         updateState(true);
       } else {
         a.addRule_("", false);
-        element = (a.list_[a.list_.length - 1] as ExclusionVisibleVirtualNode).$keys_;
+        element1 = (a.list_[a.list_.length - 1] as ExclusionVisibleVirtualNode).$keys_;
       }
-      nextTick_(() => element.focus());
+      nextTick_(() => element1.focus());
     }
     updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
       const patternIsSame = vnode.rule_.pattern === pattern;

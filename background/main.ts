@@ -1784,9 +1784,14 @@ Are you sure you want to continue?`) ? count
       }
       const key = allowed[k];
       Settings_.set_(key, request.v);
-      if (key in Settings_.payload_) {
-        type CacheValue = SettingsNS.FullCache[keyof SettingsNS.FrontUpdateAllowedSettings];
-        (Settings_.payload_ as SafeDict<CacheValue>)[key] = Settings_.cache_[key];
+      interface BaseCheck { key: 123; }
+      type Map1<T> = T extends keyof SettingsNS.FrontendSettingNameMap ? T : 123;
+      interface Check extends BaseCheck { key: Map1<keyof SettingsNS.FrontUpdateAllowedSettings>; }
+      if (!Build.NDEBUG) { // just a type assertion
+        let obj: Check = {
+          key: key as keyof SettingsNS.FrontUpdateAllowedSettings & keyof SettingsNS.FrontendSettingNameMap
+        };
+        console.log("updated from content scripts:", obj);
       }
     },
     /** findQuery: */ function (this: void, request: FgReq[kFgReq.findQuery] | FgReqWithRes[kFgReq.findQuery]
@@ -2320,7 +2325,7 @@ Are you sure you want to continue?`) ? count
           /* empty */
         } else {
           cPort = port as Port;
-          Backend_.showHUD_(`Can not open a history of this tab`);
+          Backend_.showHUD_("Can not open a history of this tab");
           return;
         }
         if (Build.BTypes & BrowserType.Chrome) {

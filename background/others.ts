@@ -125,7 +125,7 @@ BgUtils_.timeout_(1000, function (): void {
     keyInDownloading = key;
     Settings_.set_(key, value);
     keyInDownloading = "";
-    if (key in Settings_.payload_) {
+    if (key in Settings_.valuesToLoad_) {
       const req: Req.bg<kBgReq.settingsUpdate> = { N: kBgReq.settingsUpdate, d: {
         [key as keyof SettingsNS.FrontendSettings]: Settings_.get_(key as keyof SettingsNS.FrontendSettings)
       } };
@@ -412,6 +412,7 @@ BgUtils_.timeout_(1000, function (): void {
         }
       }
       keyInDownloading = "";
+      Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: Settings_.payload_ });
       if (vimSync2 != null) {
         Settings_.set_("vimSync", vimSync2);
       }
