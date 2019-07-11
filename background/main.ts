@@ -183,7 +183,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
   }
   function makeWindow(this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
       , callback?: ((wnd: Window) => void) | null): void {
-    if (option.focused === false) {
+    const focused = option.focused !== false;
+    if (!focused) {
       state !== "minimized" && (state = "normal");
     } else if (state === "minimized") {
       state = "normal";
@@ -193,7 +194,6 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       option.state = state;
       state = "";
     }
-    const focused = option.focused !== false;
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
       delete option.focused;
@@ -932,41 +932,48 @@ Are you sure you want to continue?`) ? count
       }
       chrome.windows.getCurrent({populate: true}, incognito ? moveTabToIncognito : moveTabToNewWindow0);
       function moveTabToNewWindow0(this: void, wnd: PopWindow): void {
-        const tabs0 = wnd.tabs, total = tabs0.length, all = !!cOptions.all;
+        const tabs = wnd.tabs, total = tabs.length, all = !!cOptions.all;
         if (!all && total <= 1) { return; } // not need to show a tip
-        const tab = selectFrom(tabs0), i = tab.index;
-        let range = getTabRange(i, total), count = range[1] - range[0];
+        const tab = selectFrom(tabs), { incognito: curIncognito, index: activeTabIndex } = tab;
+        let firstMoved = activeTabIndex, range: [number, number], count: number;
         if (all) {
-          range = [0, count = tabs0.length];
+          range = [0, count = total];
+          if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+              || tabs[total - 1].incognito === curIncognito) {
+            firstMoved = total - 1;
+          }
         } else {
+          range = getTabRange(activeTabIndex, total), count = range[1] - range[0];
           if (count >= total) { return Backend_.showHUD_("It does nothing to move all tabs of this window"); }
           if (count > 30 && !(count = confirm_("moveTabToNewWindow", count))) { return; }
-          if (count < 2) { range = [i, i + 1]; }
+          if (count < 2) { range = [activeTabIndex, activeTabIndex + 1]; }
         }
         return makeWindow({
-          tabId: tab.id,
-          incognito: tab.incognito
+          tabId: tabs[firstMoved].id,
+          incognito: curIncognito
         }, wnd.type === "normal" ? wnd.state : "", count > 1 ?
         function (wnd2: Window): void {
-          let curTab = tabs0[i], tabs = tabs0.slice(i + 1, range[1]), tabs2 = tabs0.slice(range[0], i);
+          let leftTabs = tabs.slice(range[0], firstMoved), rightTabs = tabs.slice(firstMoved + 1, range[1]);
           if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
               && Build.BTypes & BrowserType.Chrome
               && wnd.incognito && CurCVer_ < BrowserVer.MinNoUnmatchedIncognito) {
-            let { incognito: incognito2 } = curTab, filter = (tab2: Tab): boolean => tab2.incognito === incognito2;
-            tabs = tabs.filter(filter);
-            tabs2 = tabs2.filter(filter);
+            const filter = (tab2: Tab): boolean => tab2.incognito === curIncognito;
+            leftTabs = leftTabs.filter(filter);
+            rightTabs = rightTabs.filter(filter);
           }
-          let curInd = 0;
+          const leftNum = leftTabs.length;
           const getId = (tab2: Tab): number => tab2.id;
-          if (tabs2 && tabs2.length > 0) {
-            chrome.tabs.move(tabs2.map(getId), {index: 0, windowId: wnd2.id}, onRuntimeError);
-            curInd = tabs2.length;
-            if (curInd > 1) { // Chrome only accepts the first two tabs of tabs2
-              chrome.tabs.move(curTab.id, {index: curInd});
+          if (leftNum > 0) {
+            chrome.tabs.move(leftTabs.map(getId), {index: 0, windowId: wnd2.id}, onRuntimeError);
+            if (leftNum > 1) { // on Chrome, current order is [left[0], firstMoved, ...left[1:]], so need to move again
+              chrome.tabs.move(tabs[firstMoved].id, { index: leftNum });
+            }
+            if (firstMoved !== activeTabIndex) {
+              chrome.tabs.update(tabs[activeTabIndex].id, { active: true });
             }
           }
-          if (tabs && tabs.length > 0) {
-            chrome.tabs.move(tabs.map(getId), {index: curInd + 1, windowId: wnd2.id}, onRuntimeError);
+          if (rightTabs.length > 0) {
+            chrome.tabs.move(rightTabs.map(getId), { index: leftNum + 1, windowId: wnd2.id }, onRuntimeError);
           }
         } : null);
       }
