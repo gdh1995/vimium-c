@@ -203,7 +203,7 @@ if (VDom && VimiumInjector === undefined) {
   let injected: string = '"use strict";(' + (function VC(this: void): void {
 
 function verifier(maybeSecret: string, maybeVerifierB?: InnerVerifier | unknown): ReturnType<InnerVerifier> {
-  if (maybeSecret === BuildStr.MarkForName3 + BuildStr.RandomName3_prefix + BuildStr.RandomName3
+  if (maybeSecret === BuildStr.MarkForName3 + BuildStr.RandomName3
       && noAbnormalVerifyingFound) {
     if (!maybeVerifierB) {
       return Build.BTypes & BrowserType.Firefox ? [myAEL, myToStr, myToSource] : [myAEL, myToStr];
@@ -248,14 +248,13 @@ listen = _call.bind<(this: EventTarget,
 rEL = removeEventListener, clearTimeout_ = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
 kEventName2 = kVOnClick + BuildStr.RandomName2,
-kMarkToVerify = BuildStr.MarkForName3 + BuildStr.RandomName3_prefix,
 kOnDomReady = "DOMContentLoaded",
 kValue = "value",
 StringIndexOf = kValue.indexOf, StringSubstr = kValue.substr,
 decryptFromVerifier = (func: InnerVerifier | unknown): string => {
   const str = call(_toString, func as InnerVerifier), offset = call(StringIndexOf, str, kMarkToVerify);
   return call(StringSubstr, str, offset
-      , GlobalConsts.MarkForName3Length + GlobalConsts.SecretStringLength + GlobalConsts.SecretStringLength);
+      , GlobalConsts.MarkForName3Length + GlobalConsts.SecretStringLength);
 },
 hooks = {
   // the code below must include direct reference to at least one property in `hooks`
@@ -265,7 +264,9 @@ hooks = {
     const a = this, args = arguments;
     if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
       // randomize the body of this function
-      (args[1] as InnerVerifier)(decryptFromVerifier(args[1] || BuildStr.RandomName3_prefix), verifier);
+      (args[1] as InnerVerifier)(
+          decryptFromVerifier(Build.BTypes & BrowserType.Firefox ? args[1] : args[1] || BuildStr.RandomName3_public),
+          verifier);
     }
     const replaced = a === myAEL || BuildStr.RandomName3 && a === anotherAEL ? _listen
         : a === myToStr || BuildStr.RandomName3 && a === anotherToStr ? _toString
@@ -293,7 +294,9 @@ hooks = {
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
     if (BuildStr.RandomName3 && type === kMarkToVerify) {
-      (listener as any as InnerVerifier)(decryptFromVerifier(listener || BuildStr.RandomName3_prefix), verifier);
+      (listener as any as InnerVerifier)(
+        decryptFromVerifier(Build.BTypes & BrowserType.Firefox ? listener : listener || BuildStr.RandomName3_public),
+        verifier);
       return;
     }
     len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
@@ -318,7 +321,9 @@ myToSourceObj = Build.BTypes & BrowserType.Firefox && _toSource ? {
     const args = arguments;
     if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
       // randomize the body of this function
-      (args[1] as InnerVerifier)(decryptFromVerifier(args[1] || BuildStr.RandomName3_prefix), verifier);
+      (args[1] as InnerVerifier)(
+        decryptFromVerifier(Build.BTypes & BrowserType.Firefox ? args[1] : args[1] || BuildStr.RandomName3_public),
+        verifier);
     }
     return call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
         typeof this === "function" ? myToStr : _toSource as typeof myToStr, this, args);
@@ -352,6 +357,7 @@ let handler = function (this: void): void {
     timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   }
 },
+kMarkToVerify = BuildStr.MarkForName3 as const, // declare it later so that terser v3.10.3 won't embed it in 2-pass mode
 detectDisabled: string | 0 = `Vimium${sec}=>9`,
 noAbnormalVerifyingFound: BOOL = 1,
 anotherAEL: typeof myAEL | undefined | 0, anotherToStr: typeof myToStr | undefined | 0,

@@ -1495,7 +1495,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     VDom.getWndCore_ = wnd => wnd;
   } else {
     coreTester = {
-      name_: BuildStr.CoreGetterFuncPrefix + BuildStr.RandomFunc,
+      name_: BuildStr.CoreGetterFuncName as const,
       rand_: 0,
       recvTick_: 0,
       sendTick_: 0,
