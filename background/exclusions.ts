@@ -1,4 +1,4 @@
-if (Settings_.get_("vimSync")
+if (Settings_.get_("vimSync") || Settings_.temp_.hasEmptyLocalStorage_
     || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend_.onInit_)
         && !Settings_.updateHooks_.exclusionRules)) {
 var Exclusions = {

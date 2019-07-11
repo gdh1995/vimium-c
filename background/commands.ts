@@ -465,7 +465,7 @@ if (!Build.NDEBUG) {
 if (Backend_.onInit_) {
   Commands.parseKeyMappings_(Settings_.get_("keyMappings"));
   Commands.populateCommandKeys_(true);
-  if (!Settings_.get_("vimSync")) {
+  if (!Settings_.get_("vimSync") && !Settings_.temp_.hasEmptyLocalStorage_) {
     Commands = null as never;
   }
   Build.BTypes & BrowserType.Edge && !chrome.commands ||

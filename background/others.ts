@@ -397,10 +397,10 @@ BgUtils_.timeout_(1000, function (): void {
     Settings_.sync_ = SetLocal;
     return;
   }
-  if (!storage()) { return; }
+  if (!storage()) { BgUtils_.GC_(); return; }
   storage().get(null, function (items): void {
     const err = BgUtils_.runtimeError_();
-    Settings_.temp_.hasEmptyLocalStorage_ && chrome.storage.local.get(null, (items2): void => {
+    Settings_.temp_.hasEmptyLocalStorage_ && !err && chrome.storage.local.get(null, (items2): void => {
       console.log(now(), "storage.local: restore settings to localStorage");
       BgUtils_.safer_(items2);
       let vimSync2 = items2.vimSync;
@@ -412,12 +412,16 @@ BgUtils_.timeout_(1000, function (): void {
         }
       }
       keyInDownloading = "";
-      Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: Settings_.payload_ });
       if (vimSync2 != null) {
         Settings_.set_("vimSync", vimSync2);
       }
+      setTimeout(() => {
+        Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: Settings_.payload_ });
+        BgUtils_.GC_();
+      }, 100);
     });
     if (err) {
+      BgUtils_.GC_();
       console.log(now(), "Error: failed to get storage:", err
         , "\n\tSo disable syncing temporarily.");
       Settings_.updateHooks_.vimSync = Settings_.sync_ = BgUtils_.blank_;
