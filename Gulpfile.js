@@ -192,7 +192,7 @@ var Tasks = {
     var exArgs = { nameCache: loadNameCache("content") };
     var config = loadUglifyConfig(!!exArgs.nameCache);
     config.nameCache = exArgs.nameCache;
-    require(LIB_UGLIFY_JS).minify("var " + KnownBackendGlobals.join(",\n"), config);
+    require(LIB_UGLIFY_JS).minify("var " + KnownBackendGlobals.join(" = {},\n") + " = {};", config);
 
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");
@@ -200,7 +200,7 @@ var Tasks = {
     // on Firefox, a browser-inner file `resource://devtools/server/main.js` is also shown as `main.js`
     // which makes debugging annoying
     var body = sources.splice(0, sources.indexOf("background/main.js") + 1, "background/body.js");
-    var index = sources.indexOf("background/tools.js");
+    var index = sources.indexOf("background/tools.js") + 1;
     var tail = sources.splice(index, sources.length - index, "background/tail.js");
     var rest = ["background/*.js"];
     for (var arr = ori_sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
