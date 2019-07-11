@@ -20,8 +20,8 @@
 dist/
 front/*.png
 node_modules*
-test*
-!tests/
+test.*
+!/tests/**
 todo*
 !Gulpfile.js
 !make.sh
