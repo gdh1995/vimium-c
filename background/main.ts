@@ -1141,15 +1141,9 @@ Are you sure you want to continue?`) ? count
           : goto === "right" ? end < total ? end : start - 1
           : goto === "previous" ? -2 : total;
       if (goToIndex === -2) {
-        goToIndex = tab.openerTabId || -1;
-        let nextTab: Tab | undefined = goToIndex >= 0 && tabs.filter(j => j.id === goToIndex)[0] || tab;
-        if (nextTab) {
-          nextTab = tabs.find((j, ind) => ind >= end && ind >= (nextTab as Tab).index && !(j.id in TabRecency_.tabs_));
-        }
-        if (!nextTab) {
-          nextTab = tabs.filter((j, ind) => (ind < start || ind >= end) && j.id in TabRecency_.tabs_)
+        let nextTab: Tab | null | undefined = end < total && !(tabs[end].id in TabRecency_.tabs_) ? tabs[end]
+          : tabs.filter((j, ind) => (ind < start || ind >= end) && j.id in TabRecency_.tabs_)
             .sort(TabRecency_.rCompare_)[0];
-        }
         goToIndex = nextTab ? nextTab.index : total;
       }
       removeTabsInOrder(tab, tabs, start, end);
