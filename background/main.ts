@@ -1146,11 +1146,11 @@ Are you sure you want to continue?`) ? count
             .sort(TabRecency_.rCompare_)[0];
         goToIndex = nextTab ? nextTab.index : total;
       }
-      removeTabsInOrder(tab, tabs, start, end);
       if (goToIndex >= 0 && goToIndex < total) {
         // note: here not wait real removing, otherwise the browser window may flicker
         chrome.tabs.update(tabs[goToIndex].id, { active: true });
       }
+      removeTabsInOrder(tab, tabs, start, end);
     },
     /* removeTabsR: */ function (this: void, tabs: Tab[]): void {
       return removeTabsRelative(selectFrom(tabs), cOptions.other ? 0 : cRepeat, tabs);
