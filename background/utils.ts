@@ -780,9 +780,9 @@ var BgUtils_ = {
     const chLower = ch.toLowerCase();
     return ch !== chLower ? `<${modifiers}s-${chLower}>` : _0;
   },
-  formatKeys_: (function (this: {}, keys: string): string {
-    return keys && keys.replace((this as typeof BgUtils_).keyReToFormat_, (this as typeof BgUtils_).onFormatKey_);
-  }),
+  formatKeys_ (keys: string): string {
+    return keys && keys.replace(this.keyReToFormat_, this.onFormatKey_);
+  },
   getNull_ (this: void): null { return null; },
   timeout_ (timeout: number, callback: (this: void, fakeArgs?: TimerType.fake) => void): void {
     setTimeout(callback, timeout);

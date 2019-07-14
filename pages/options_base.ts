@@ -372,6 +372,7 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
         isReverted ? passArr.unshift("^") : passArr[0] === "^" && (passArr.shift(), passArr.push("^"));
       }
       passKeys = passArr ? (passArr.join(" ") + " ") : "";
+      passKeys = passKeys.replace(<RegExpG> /<escape>/gi, "<esc>");
     }
     let tip = passKeys ? passKeys.length > 1 && passKeys[0] === "^" ? "only hook such keys" : "pass through such keys"
               : "completely disabled";
