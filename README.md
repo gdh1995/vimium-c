@@ -60,6 +60,9 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.76.2 (not released yet):
+* fix a bug of parsing failures if a line in key mapping rules ends with the <kbd>\\</kbd> character
+
 1.76.1 for Firefox:
 * fix broken FindMode
 
