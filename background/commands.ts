@@ -118,7 +118,7 @@ var Commands = {
         } else if (key in mkReg) {
           a.logError_("This key %c%s", colorRed, key, "has been mapped to another key:", mkReg[key]);
         } else {
-          mkReg[key] = splitLine[2];
+          mkReg[key === "<escape>" ? "<esc>" : key] = splitLine[2] === "<escape>" ? "<esc>" : splitLine[2];
           mk++;
           continue;
         }

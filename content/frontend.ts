@@ -66,7 +66,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     return ch ? ch === "<esc>" || ch === "<c-[>" : VKey.isRawEscape_(event);
   }
   function checkKey(char: string, code: kKeyCode, event: EventControlKeys
-      ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc {
+      ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc | HandlerResult.AdvancedEscEnum {
     // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
     let key = VKey.key_(event, char);
     if (passKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
@@ -74,7 +74,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     mappedKeys && (key = mapKey(char, event));
     if (key === "<esc>" || key === "<c-[>") {
-      return nextKeys ? (esc(HandlerResult.ExitPassMode), HandlerResult.Prevent) : HandlerResult.Esc;
+      return nextKeys ? (esc(HandlerResult.ExitPassMode), HandlerResult.Prevent)
+        : key[1] === "c" ? HandlerResult.Esc : HandlerResult.AdvancedEscEnum;
     }
     let j: ReadonlyChildKeyMap | ValidKeyAction | undefined;
     if (!nextKeys || (j = nextKeys[key]) == null) {
@@ -130,7 +131,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       const g = InsertMode.global_;
       if (g ? !g.code ? isEscape(event) : key === g.code && VKey.getKeyStat_(event) === g.stat
           : key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn
-          ? (action = checkKey(VKey.getKeyName_(event), key, event)) === HandlerResult.Esc
+          ? ((action = checkKey(VKey.getKeyName_(event), key, event))
+              & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc
           : isEscape(event)
       ) {
         if (InsertMode.lock_ === document.body && InsertMode.lock_ || !isTop && innerHeight < 3) {
@@ -147,8 +149,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         || key === kKeyCode.esc || key === kKeyCode.enter) {
       if (keyChar = VKey.char_(event)) {
         action = checkKey(keyChar, key, event);
-        if (action === HandlerResult.Esc) {
-          action = key === kKeyCode.esc ? onEscDown(event, key) : HandlerResult.Nothing;
+        if ((action & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc) {
+          action = action & HandlerResult.AdvancedEscFlag ? onEscDown(event, key) : HandlerResult.Nothing;
         }
         if (action === HandlerResult.Nothing
             && InsertMode.suppressType_ && keyChar.length < 2 && !VKey.getKeyStat_(event)) {

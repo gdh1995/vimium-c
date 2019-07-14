@@ -20,6 +20,9 @@ declare const enum HandlerResult {
   Prevent = 2,
   Esc = 3,
   ExitPassMode = 4,
+  // for `<c-[>`, do nothing advanced; but treat any mapped `<esc>` as a plain `<esc>` (apply `AdvancedFlag`)
+  AdvancedEscFlag = 8,
+  AdvancedEscEnum = 11, // `Esc | 8`
 }
 declare const enum VisibilityType {
   Visible = 0,
