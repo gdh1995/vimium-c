@@ -66,7 +66,8 @@ var Commands = {
       , mkReg = BgUtils_.safeObj_<string>();
     const a = this as typeof Commands, available = a.availableCommands_;
     const colorRed = "color:red";
-    lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
+    lines = line.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
+               ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
       const defaultMap = a.defaultKeyMappings_;
       for (_i = defaultMap.length; 0 < _i; ) {
@@ -111,7 +112,7 @@ var Commands = {
         continue;
       } else if (key === "mapkey" || key === "mapKey") {
         if (splitLine.length !== 3) {
-          a.logError_("MapKey needs both source and target keys:", line);
+          a.logError_(`MapKey needs ${splitLine.length > 3 ? "only" : "both"} source and target keys`, line);
         } else if ((key = splitLine[1]).length > 1 && (key.match(BgUtils_.keyRe_) as RegExpMatchArray).length > 1
           || splitLine[2].length > 1 && (splitLine[2].match(BgUtils_.keyRe_) as RegExpMatchArray).length > 1) {
           a.logError_("MapKey: a source / target key should be a single key:", line);

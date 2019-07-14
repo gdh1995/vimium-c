@@ -626,7 +626,7 @@ var BgUtils_ = {
       return (k = k.trim()) && k !== "__proto__" && k.length < Consts.MinInvalidLengthOfSearchKey
         ? (map[k] = obj, true) : false;
     });
-    for (let val of str.replace(<RegExpG> /\\\n/g, "").split("\n")) {
+    for (let val of str.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : "").split("\n")) {
       val = val.trim();
       if (!(val && val.charCodeAt(0) > kCharCode.maxCommentHead)) { continue; } // mask: /[!"#]/
       ind = 0;

@@ -32,6 +32,8 @@ let keyMappingChecker_ = {
     if (s2) {
       s2 = s2.replace(this.hexCharRe_, this.onHex_);
       value = `"${s2}"`;
+    } else if (!tail && value === "\\\\") {
+      value = '\\';
     }
     try {
       const obj = JSON.parse(value);
@@ -66,12 +68,12 @@ let keyMappingChecker_ = {
   },
   mapKeyRe_: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:un)?map\s+)(\S+)([^\n]*)/g,
   cmdKeyRe_: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
-  wrapLineRe_: <RegExpG & RegExpSearchable<0>> /\\\n/g,
+  wrapLineRe_: <RegExpG & RegExpSearchable<0>> /\\\\?\n/g,
   wrapLineRe2_: <RegExpG & RegExpSearchable<0>> /\\\r/g,
   check_ (str: string): string {
     if (!str) { return str; }
     this.init_ && this.init_();
-    str = "\n" + str.replace(this.wrapLineRe_, "\\\r");
+    str = "\n" + str.replace(this.wrapLineRe_, i => i.length === 3 ? i : "\\\r");
     str = str.replace(this.mapKeyRe_, this.normalizeMap_);
     str = str.replace(this.cmdKeyRe_, this.normalizeCmd_);
     str = str.replace(this.wrapLineRe2_, "\\\n").trim();
