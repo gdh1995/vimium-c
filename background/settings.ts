@@ -384,7 +384,7 @@ var Settings_ = {
     dialogMode: false,
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
-    exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}] as ExclusionsNS.StoredRule[],
+    exclusionRules: [{pattern: ":https://mail.google.com/", passKeys: ""}] as ExclusionsNS.StoredRule[],
     extWhiteList: !(Build.BTypes & ~BrowserType.Chrome)
       || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome
 ? `# modified { Vomnibar Page, X New Tab, PDF Viewer }
