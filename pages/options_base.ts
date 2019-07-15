@@ -515,7 +515,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
       if (patternIsSame) {
         return;
       }
-      const parsedPattern = bgExclusions.getRe_(pattern), patternElement = vnode.$pattern_;
+      const parsedPattern = bgExclusions.createRule_(pattern, ""), patternElement = vnode.$pattern_;
       if (parsedPattern.type_ === ExclusionsNS.TesterType.StringPrefix
           ? !url.lastIndexOf(parsedPattern.value_, 0) : parsedPattern.value_.test(url)) {
         patternElement.title = patternElement.style.color = "";

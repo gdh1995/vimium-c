@@ -3,9 +3,15 @@ if (Settings_.get_("vimSync") || Settings_.temp_.hasEmptyLocalStorage_
         && !Settings_.updateHooks_.exclusionRules)) {
 var Exclusions = {
   testers_: null as never as SafeDict<ExclusionsNS.Tester>,
-  getRe_ (pattern: string): ExclusionsNS.Tester {
+  createRule_ (pattern: string, keys: string): ExclusionsNS.Tester {
     let cur: ExclusionsNS.Tester | undefined = this.testers_[pattern], re: RegExp | null | undefined;
-    if (cur) { return cur; }
+    if (cur) {
+      return {
+        type_: cur.type_ as ExclusionsNS.TesterType.RegExp,
+        value_: (cur as ExclusionsNS.RegExpTester).value_,
+        keys_: cur.keys_
+      };
+    }
     if (pattern[0] === "^") {
       if (re = BgUtils_.makeRegexp_(pattern.startsWith("^$|") ? pattern.slice(3) : pattern, "", false)) {
         /* empty */
@@ -13,11 +19,15 @@ var Exclusions = {
         console.log("Failed in creating an RegExp from %o", pattern);
       }
     }
-    return this.testers_[pattern] = re ? { type_: ExclusionsNS.TesterType.RegExp, value_: re as RegExpOne }
-        : {
+    return this.testers_[pattern] = re ? {
+      type_: ExclusionsNS.TesterType.RegExp,
+      value_: re as RegExpOne,
+      keys_: keys
+    } : {
       type_: ExclusionsNS.TesterType.StringPrefix,
       value_: pattern.startsWith(":vimium://")
-          ? BgUtils_.formatVimiumUrl_(pattern.slice(10), false, Urls.WorkType.ConvertKnown) : pattern.slice(1)
+          ? BgUtils_.formatVimiumUrl_(pattern.slice(10), false, Urls.WorkType.ConvertKnown) : pattern.slice(1),
+      keys_: keys
     };
   },
   _listening: false,
@@ -38,12 +48,11 @@ var Exclusions = {
     this.updateListeners_();
   },
   GetPassKeys_ (this: void, url: string, sender: Frames.Sender): string | null {
-    let rules = Exclusions.rules_, matchedKeys = "";
-    for (let _i = 0, _len = rules.length; _i < _len; _i += 2) {
-      const rule: ExclusionsNS.Tester = rules[_i] as Exclude<(typeof rules)[number], string>;
+    let matchedKeys = "";
+    for (const rule of Exclusions.rules_) {
       if (rule.type_ === ExclusionsNS.TesterType.StringPrefix
           ? url.startsWith(rule.value_) : rule.value_.test(url)) {
-        const str = rules[_i + 1] as string;
+        const str = rule.keys_;
         if (str.length === 0 || Exclusions.onlyFirstMatch_ || str[0] === "^" && str.length > 2) { return str; }
         matchedKeys += str;
       }
@@ -73,18 +82,11 @@ var Exclusions = {
     return onURLChange;
   },
   format_ (rules: ExclusionsNS.StoredRule[]): ExclusionsNS.Rules {
-    const out = [] as ExclusionsNS.Rules;
-    for (let _i = 0, _len = rules.length; _i < _len; _i++) {
-      const rule = rules[_i];
-      out.push(this.getRe_(rule.pattern), BgUtils_.formatKeys_(rule.passKeys));
-    }
-    return out;
+    return rules.map(rule => Exclusions.createRule_(rule.pattern, BgUtils_.formatKeys_(rule.passKeys)));
   },
   getAllPassed_ (): SafeEnum | true | null {
-    const rules = this.rules_, all = BgUtils_.safeObj_() as SafeDict<1>;
-    let tick = 0;
-    for (let _i = 1, _len = rules.length; _i < _len; _i += 2) {
-      const passKeys = rules[_i] as string;
+    let all = BgUtils_.safeObj_() as SafeDict<1>, tick = 0;
+    for (const { keys_: passKeys } of this.rules_) {
       if (passKeys) {
         if (passKeys[0] === "^" && passKeys.length > 2) { return true; }
         for (const ch of passKeys.split(" ")) { all[ch] = 1; tick++; }

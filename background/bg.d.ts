@@ -186,8 +186,9 @@ declare namespace ExclusionsNS {
   }
   const enum TesterType { RegExp = 0, StringPrefix = 1, _mask = "", }
   interface BaseTester {
-    readonly type_: TesterType & number,
+    readonly type_: TesterType & number;
     readonly value_: RegExpOne | string;
+    readonly keys_: string;
   }
   interface RegExpTester extends BaseTester {
     readonly type_: TesterType.RegExp,
@@ -198,7 +199,7 @@ declare namespace ExclusionsNS {
     readonly value_: string;
   }
   type Tester = RegExpTester | PrefixTester;
-  type Rules = Array<Tester | string>;
+  type Rules = Tester[];
   type Details = chrome.webNavigation.WebNavigationFramedCallbackDetails;
   interface Listener {
     (this: void, details: Details): void;
