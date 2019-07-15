@@ -263,9 +263,9 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       : Backend_.showHUD_(`Vimium C can not control tab sessions before Chrome ${BrowserVer.MinSessions}`);
   }
   function upperGitUrls(url: string, path: string): string | void | null {
-    const obj = BgUtils_.safeParseURL_(url), host: string | undefined = obj ? obj.hostname : "";
+    const obj = BgUtils_.safeParseURL_(url), host: string | undefined = obj ? obj.host : "";
     if (!host) { return; }
-    if (!(<RegExpI> /git\b|\bgit/i).test(host) || !(<RegExpI> /^[\w\-]+(\.\w+)?$/).test(host)) {
+    if (!(<RegExpI> /git\b|\bgit/i).test(host) || !(<RegExpI> /^[\w\-]+(\.\w+)?(:\d{2,5})?$/).test(host)) {
       return;
     }
     let arr = path.split("/"), lastIndex = arr.length - 1;

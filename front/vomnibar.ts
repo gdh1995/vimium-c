@@ -1260,7 +1260,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     /* is inner or web */
   }
   else if (curEl.src.endsWith("/front/vomnibar.js") && !(<RegExpOne> /^ftp|^http/).test(curEl.src)) {
-    VCID_ = new URL(curEl.src).hostname;
+    VCID_ = new URL(curEl.src).host;
     Build.MinCVer < BrowserVer.Min$URL$NewableAndInstancesHaveProperties && Build.BTypes & BrowserType.Chrome &&
     (VCID_ = VCID_ || "");
     if (!(Build.BTypes & BrowserType.Chrome)

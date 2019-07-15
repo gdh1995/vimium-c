@@ -14,7 +14,11 @@ var Exclusions = {
       }
     }
     return this.testers_[pattern] = re ? { type_: ExclusionsNS.TesterType.RegExp, value_: re as RegExpOne }
-        : { type_: ExclusionsNS.TesterType.StringPrefix, value_: pattern.slice(1) };
+        : {
+      type_: ExclusionsNS.TesterType.StringPrefix,
+      value_: pattern.startsWith(":vimium://")
+          ? BgUtils_.formatVimiumUrl_(pattern.slice(10), false, Urls.WorkType.ConvertKnown) : pattern.slice(1)
+    };
   },
   _listening: false,
   _listeningHash: false,

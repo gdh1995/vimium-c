@@ -527,6 +527,8 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     static generateDefaultPattern_ (this: void): string {
       const url2 = url.lastIndexOf("http:", 0) === 0
         ? "^https?://" + url.split("/", 3)[2].replace(<RegExpG> /[.[\]]/g, "\\$&") + "/"
+        : url.lastIndexOf(location.origin, 0) === 0
+        ? ":vimium:/" + new URL(url).pathname.replace("/pages", "")
         : (<RegExpOne> /^[^:]+:\/\/./).test(url) && url.lastIndexOf("file:", 0) < 0
         ? ":" + (url.split("/", 3).join("/") + "/")
         : ":" + url;
