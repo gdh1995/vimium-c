@@ -91,15 +91,15 @@ Option_.all_.searchUrl.checker_ = {
     if (obj == null) {
       return bgSettings_.get_("searchUrl", true);
     }
-    let str2 = BG_.BgUtils_.convertToUrl_(obj.url, null, Urls.WorkType.KeepAll);
+    let str2 = BG_.BgUtils_.convertToUrl_(obj.url_, null, Urls.WorkType.KeepAll);
     if (BG_.BgUtils_.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
-      const err = `The value "${obj.url}" is not a valid plain URL.`;
+      const err = `The value "${obj.url_}" is not a valid plain URL.`;
       console.log("searchUrl checker:", err);
       Option_.all_.searchUrl.showError_(err);
       return bgSettings_.get_("searchUrl", true);
     }
     str2 = str2.replace(BG_.BgUtils_.spacesRe_, "%20");
-    if (obj.name && obj.name !== "k") { str2 += " " + obj.name; }
+    if (obj.name_ && obj.name_ !== "k") { str2 += " " + obj.name_; }
     Option_.all_.searchUrl.showError_("");
     return str2;
   }
@@ -142,8 +142,8 @@ Option_.all_.keyboard.checker_ = {
 };
 
 (function (): void {
-  const func = loadChecker, info = (loadChecker as CheckerLoader).info;
-  (loadChecker as CheckerLoader).info = "";
+  const func = loadChecker, info = (loadChecker as CheckerLoader).info_;
+  (loadChecker as CheckerLoader).info_ = "";
   let _ref = $$("[data-check]"), _i: number;
   for (_i = _ref.length; 0 <= --_i; ) {
     const element = _ref[_i];

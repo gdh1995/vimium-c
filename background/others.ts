@@ -647,17 +647,17 @@ BgUtils_.timeout_(600, function (): void {
     if (notEmpty
         && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
             || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && wantDeletable
-            || "sessionId" in response[0])) {
+            || response[0].sessionId_ != null)) {
       subInfoMap = BgUtils_.safeObj_<SubInfo>();
     }
     suggestions = [];
     const urlDict = BgUtils_.safeObj_<number>();
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
-      let sugItem = response[i], { title, url, type } = sugItem, tail = "", hasSessionId = sugItem.sessionId != null
+      let sugItem = response[i], { title, url_: url, type_: type } = sugItem, tail = "", hasSessionId = sugItem.sessionId_ != null
         , deletable = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
               || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && wantDeletable)
             && !(autoSelect && i === 0) && (
-          type === "tab" ? sugItem.sessionId !== TabRecency_.last_ : type === "history" && !hasSessionId
+          type === "tab" ? sugItem.sessionId_ !== TabRecency_.last_ : type === "history" && !hasSessionId
         );
       if (url in urlDict) {
         url = `:${i + di} ` + url;
@@ -678,7 +678,7 @@ BgUtils_.timeout_(600, function (): void {
       }
       const msg: chrome.omnibox.SuggestResult = { content: url, description: tail };
       deletable && (msg.deletable = true);
-      hasSessionId && (info.sessionId_ = sugItem.sessionId as string | number);
+      hasSessionId && (info.sessionId_ = sugItem.sessionId_ as string | number);
       if (deletable || hasSessionId) {
         (subInfoMap as SubInfoMap)[url] = info;
         info = {};
@@ -694,8 +694,8 @@ BgUtils_.timeout_(600, function (): void {
         defaultDesc = "<dim>Open: </dim><url>%s</url>";
         defaultSuggestionType = FirstSugType.defaultOpen;
       }
-    } else if (sug.type === "search") {
-      let text = (sug as CompletersNS.SearchSuggestion).pattern;
+    } else if (sug.type_ === "search") {
+      let text = (sug as CompletersNS.SearchSuggestion).pattern_;
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
         defaultDesc = (text && `${BgUtils_.escapeText_(text)} - `) + (sug.textSplit as string).replace(matchTagRe, "");
@@ -704,12 +704,12 @@ BgUtils_.timeout_(600, function (): void {
       }
       defaultSuggestionType = FirstSugType.search;
       if (sug = response[1]) {
-        switch (sug.type) {
+        switch (sug.type_) {
         case "math":
           suggestions[1].description = Build.BTypes & BrowserType.Firefox
                 && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
               ? (sug.textSplit as string).replace(matchTagRe, "") + " = sug.text"
-              : `<dim>${sug.textSplit} = </dim><url><match>${sug.text}</match></url>`;
+              : `<dim>${sug.textSplit} = </dim><url><match>${sug.text_}</match></url>`;
           break;
         }
       }
@@ -718,7 +718,7 @@ BgUtils_.timeout_(600, function (): void {
       defaultDesc = suggestions[0].description;
     }
     if (autoSelect) {
-      firstResultUrl = response[0].url;
+      firstResultUrl = response[0].url_;
       suggestions.shift();
     }
     defaultDesc && chrome.omnibox.setDefaultSuggestion({ description: defaultDesc });
@@ -786,7 +786,7 @@ BgUtils_.timeout_(600, function (): void {
       return Completion_.filter_(text
           , { o: "omni", t: SugType.Empty, r: 3, c: maxChars, f: CompletersNS.QueryFlags.SingleLine }
           , function (sugs, autoSelect): void {
-        return autoSelect ? open(sugs[0].url, disposition, sugs[0].sessionId) : open(text, disposition);
+        return autoSelect ? open(sugs[0].url_, disposition, sugs[0].sessionId_) : open(text, disposition);
       });
     }
     if (firstResultUrl && text === last) { text = firstResultUrl; }

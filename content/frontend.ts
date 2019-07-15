@@ -530,7 +530,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       });
     },
     /* kFgCmd.focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {
-      InsertMode.inputHint_ && (InsertMode.inputHint_.hints = null as never);
+      InsertMode.inputHint_ && (InsertMode.inputHint_.h = null as never);
       const arr: ViewOffset = VDom.getViewBox_();
       VDom.prepareCrop_();
       // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
@@ -571,11 +571,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       // delay exiting the old to avoid some layout actions
       // although old elements can not be GC-ed before this line, it has little influence
       InsertMode.exitInputHint_();
-      InsertMode.inputHint_ = { box, hints };
+      InsertMode.inputHint_ = { b: box, h: hints };
       VKey.pushHandler_(function (event) {
         const { keyCode } = event;
         if (keyCode === kKeyCode.tab) {
-          const hints2 = this.hints, oldSel = sel, len = hints2.length;
+          const hints2 = this.h, oldSel = sel, len = hints2.length;
           sel = (oldSel + (event.shiftKey ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
           VKey.prevent_(event); // in case that selecting is too slow
@@ -592,7 +592,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         else if (keep ? isEscape(event) || (
             keyCode === kKeyCode.enter && (keyStat = VKey.getKeyStat_(event),
               keyStat !== KeyStat.shiftKey
-              && (keyStat !== KeyStat.plain || this.hints[sel].dest_.localName === "input" ))
+              && (keyStat !== KeyStat.plain || this.h[sel].dest_.localName === "input" ))
           ) : keyCode !== kKeyCode.ime && keyCode !== kKeyCode.f12
         ) {
           InsertMode.exitInputHint_();
@@ -609,7 +609,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         (event: Event, target: LockableElement) => void),
     global_: null as CmdOptions[kFgCmd.insertMode] | null,
     hinting_: false,
-    inputHint_: null as { box: HTMLDivElement, hints: HintsNS.InputHintItem[] } | null,
+    inputHint_: null as { /** box */ b: HTMLDivElement, /** hints */ h: HintsNS.InputHintItem[] } | null,
     suppressType_: null as string | null,
     last_: null as LockableElement | null,
     lock_: null as LockableElement | null,
@@ -719,7 +719,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       let hint = InsertMode.inputHint_;
       if (!hint) { return; }
       InsertMode.inputHint_ = null;
-      hint.box.remove();
+      hint.b.remove();
       VKey.removeHandler_(hint);
     }
   },

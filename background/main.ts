@@ -305,7 +305,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     let { u: url } = this.s, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        && list.length > 0 && list[0].type === "tab") {
+        && list.length > 0 && list[0].type_ === "tab") {
       favIcon = 2;
     }
     else if (favIcon0 === 1 && Build.BTypes & BrowserType.Chrome
@@ -2598,13 +2598,13 @@ Are you sure you want to continue?`) ? count
       }
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
-        if (!url.startsWith(pattern.prefix)) { continue; }
-        arr = s0.slice(pattern.prefix.length).match(pattern.matcher);
+        if (!url.startsWith(pattern.prefix_)) { continue; }
+        arr = s0.slice(pattern.prefix_.length).match(pattern.matcher_);
         if (arr) { break; }
       }
       if (!arr || !pattern) { BgUtils_.resetRe_(); return null; }
-      if (arr.length > 1 && !pattern.matcher.global) { arr.shift(); }
-      const re = pattern.delimiter;
+      if (arr.length > 1 && !pattern.matcher_.global) { arr.shift(); }
+      const re = pattern.delimiter_;
       if (arr.length > 1) {
         selectLast = true;
       } else if (re instanceof RegExp) {
@@ -2623,7 +2623,7 @@ Are you sure you want to continue?`) ? count
       url = url.trim().replace(BgUtils_.spacesRe_, " ");
       BgUtils_.resetRe_();
       return {
-        k: pattern.name,
+        k: pattern.name_,
         u: url,
         s: selectLast ? url.lastIndexOf(" ") + 1 : 0
       };
@@ -2823,7 +2823,7 @@ Are you sure you want to continue?`) ? count
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
     let ref = framesForTab as Frames.FramesMapToDestroy;
-    ref.omni = framesForOmni;
+    ref.o = framesForOmni;
     for (const tabId in ref) {
       const arr = ref[tabId];
       for (let i = arr.length; 0 < --i; ) {

@@ -252,7 +252,7 @@ var BgUtils_ = {
   } as Urls.Converter,
   checkInDomain_ (host: string, port?: string | null): 0 | 1 | 2 {
     const domain = port && this.domains_[host + port] || this.domains_[host];
-    return domain ? domain.https ? 2 : 1 : 0;
+    return domain ? domain.https_ ? 2 : 1 : 0;
   },
   checkSpecialSchemes_ (str: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
     const a = this;
@@ -505,7 +505,7 @@ var BgUtils_ = {
     let url: string, pattern: Search.Engine | undefined = Settings_.cache_.searchEngineMap[keyword || query[0]];
     if (pattern) {
       if (!keyword) { keyword = query.shift() as string; }
-      url = a.createSearch_(query, pattern.url, pattern.blank);
+      url = a.createSearch_(query, pattern.url_, pattern.blank_);
     } else {
       url = query.join(" ");
     }
@@ -553,7 +553,7 @@ var BgUtils_ = {
       return s2;
     });
     a.resetRe_();
-    return indexes == null ? url : { url, indexes };
+    return indexes == null ? url : { url_: url, indexes_: indexes };
   } as Search.Executor,
   DecodeURLPart_ (this: void, url: string | undefined, func?: (this: void, url: string) => string): string {
     if (!url) { return ""; }
@@ -614,7 +614,7 @@ var BgUtils_ = {
   },
   parseSearchEngines_ (str: string, map: Search.EngineMap): Search.Rule[] {
     const a = this;
-    let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter"],
+    let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter_"],
     key: string, obj: Search.RawEngine,
     ind: number, rSlash = <RegExpOne> /[^\\]\//, rules = [] as Search.Rule[],
     rEscapeSpace = <RegExpG & RegExpSearchable<0>> /\\\s/g, rSpace = <RegExpOne> /\s/,
@@ -658,9 +658,9 @@ var BgUtils_ = {
       val = val.replace(rEscapeS, " ").trim().replace(a.searchWordRe2_, "$1$$$2"
         ).replace(rPercent, "%");
       obj = {
-        name: "",
-        blank,
-        url: val
+        name_: "",
+        blank_: blank,
+        url_: val
       };
       ids = ids.filter(func);
       if (ids.length === 0) { continue; }
@@ -689,7 +689,7 @@ var BgUtils_ = {
             } else {
               tmpKey = key.trim() || " ";
             }
-            rules.push({prefix: tmpRule.prefix, matcher: tmpRule.matcher, name: ids[0].trimRight(), delimiter: tmpKey});
+            rules.push({prefix_: tmpRule.prefix, matcher_: tmpRule.matcher, name_: ids[0].trimRight(), delimiter_: tmpKey});
           }
         }
       } else if (str.charCodeAt(ind + 4) === kCharCode.slash) {
@@ -702,15 +702,15 @@ var BgUtils_ = {
         const tmpKey2 = a.makeRegexp_(val, ind >= 0 ? str.slice(0, ind) : str);
         if (tmpKey2) {
           key = a.prepareReparsingPrefix_(key);
-          rules.push({prefix: key, matcher: tmpKey2, name: ids[0].trimRight(),
-             delimiter: obj.url.lastIndexOf("$S") >= 0 ? " " : "+"});
+          rules.push({prefix_: key, matcher_: tmpKey2, name_: ids[0].trimRight(),
+             delimiter_: obj.url_.lastIndexOf("$S") >= 0 ? " " : "+"});
         }
         str = ind >= 0 ? str.slice(ind + 1) : "";
       } else {
         str = str.slice(ind + 4);
       }
       str = str.trimLeft();
-      obj.name = str ? a.DecodeURLPart_(str) : ids[ids.length - 1].trimLeft();
+      obj.name_ = str ? a.DecodeURLPart_(str) : ids[ids.length - 1].trimLeft();
     }
     return rules;
   },

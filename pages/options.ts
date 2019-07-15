@@ -1010,10 +1010,10 @@ function loadJS(file: string): HTMLScriptElement {
   return (document.head as HTMLHeadElement).appendChild(script);
 }
 
-interface CheckerLoader { info?: string; }
+interface CheckerLoader { info_?: string; }
 function loadChecker(this: HTMLElement): void {
-  if ((loadChecker as CheckerLoader).info != null) { return; }
-  (loadChecker as CheckerLoader).info = this.id;
+  if ((loadChecker as CheckerLoader).info_ != null) { return; }
+  (loadChecker as CheckerLoader).info_ = this.id;
   loadJS("options_checker.js");
 }
 

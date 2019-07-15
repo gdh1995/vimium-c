@@ -105,10 +105,10 @@ var HelpDialog = {
         for (const item of keys) {
           const help = item[1].help_ as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
           help && (this as typeof HelpDialog).normalizeHelpInfo_(help);
-          const key = help && help.$key || BgUtils_.escapeText_(item[0]);
-          if (help && help.$desc) {
+          const key = help && help.$key_ || BgUtils_.escapeText_(item[0]);
+          if (help && help.$desc_) {
             let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
-            html += renderItem(isAdvanced, singleBinding, help.$desc, showNames ? command : "");
+            html += renderItem(isAdvanced, singleBinding, help.$desc_, showNames ? command : "");
             continue;
           }
           if (klen >= 0) {
@@ -148,7 +148,7 @@ var HelpDialog = {
     return html + "</td>\n</tr>\n";
   }),
   normalizeHelpInfo_ (help: Partial<CommandsNS.NormalizedCustomHelpInfo>): void {
-    if (help.$key != null) { return; }
+    if (help.$key_ != null) { return; }
     let a = this.template_;
     if (Build.BTypes & ~BrowserType.Firefox && !a) {
       const template = document.createElement("template"),
@@ -159,8 +159,8 @@ var HelpDialog = {
     } else if (!a) {
       a = this.template_ = new DOMParser();
     }
-    help.$key = help.key_ ? this.safeHTML_(help.key_, a) : "";
-    help.$desc = help.desc_ ? this.safeHTML_(help.desc_, a) : "";
+    help.$key_ = help.key_ ? this.safeHTML_(help.key_, a) : "";
+    help.$desc_ = help.desc_ ? this.safeHTML_(help.desc_, a) : "";
   },
   // https://support.zendesk.com/hc/en-us/articles/115015895948-Allowing-unsafe-HTML-in-articles
   safeTags: {

@@ -27,7 +27,7 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
 ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOption_
     , element?: HTMLElement): void {
   interface Rule extends ExclusionsNS.StoredRule {
-    key: string;
+    key_: string;
   }
   if (element && this.timer_) { return; }
   const rules = this.readValueFromElement_() as Rule[],
@@ -41,9 +41,9 @@ ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOptio
       arr.reverse();
       key = arr.join(".") + key;
     }
-    rule.key = key;
+    rule.key_ = key;
   }
-  rules.sort((a, b) => a.key < b.key ? -1 : a.key === b.key ? 0 : 1);
+  rules.sort((a, b) => a.key_ < b.key_ ? -1 : a.key_ === b.key_ ? 0 : 1);
   this.populateElement_(rules);
   this.onUpdated_();
   if (!element) { return; }

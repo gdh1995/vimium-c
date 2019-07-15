@@ -1,13 +1,13 @@
 declare namespace Search {
   interface RawEngine {
-    url: string;
-    blank: string;
-    name: string;
+    url_: string;
+    blank_: string;
+    name_: string;
   }
   interface Engine extends Readonly<RawEngine> {}
   interface Result {
-    readonly url: string;
-    readonly indexes: number[];
+    readonly url_: string;
+    readonly indexes_: number[];
   }
   interface Executor {
     (query: string[], url: string, blank: string, indexes: number[]): Result;
@@ -15,10 +15,10 @@ declare namespace Search {
   }
   type TmpRule = { prefix: string, matcher: RegExpOne | RegExpI };
   interface Rule {
-    readonly prefix: string;
-    readonly matcher: RegExp;
-    readonly name: string;
-    readonly delimiter: RegExpOne | RegExpI | string;
+    readonly prefix_: string;
+    readonly matcher_: RegExp;
+    readonly name_: string;
+    readonly delimiter_: RegExpOne | RegExpI | string;
   }
   interface EngineMap extends SafeDict<Engine> {}
 }
@@ -151,7 +151,7 @@ declare namespace Frames {
 
   interface FramesMapToDestroy extends FramesMap {
     [tabId: number]: Frames;
-    omni?: Frames;
+    /** omni */ o?: Frames;
   }
 }
 interface Port extends Frames.Port {
@@ -216,11 +216,11 @@ declare namespace CommandsNS {
   interface CustomHelpInfo {
     key_: string;
     desc_: string;
-    $key?: unknown;
+    $key_?: unknown;
   }
   interface NormalizedCustomHelpInfo extends CustomHelpInfo {
-    $key: string;
-    $desc: string;
+    $key_: string;
+    $desc_: string;
   }
   type BgDescription = [ kBgCmd & number, 1, number, {}? ];
   type FgDescription = [ kFgCmd & number, 0, number, {}? ];
@@ -247,9 +247,9 @@ declare namespace CompletersNS {
   }
 
   interface Domain {
-    time: number;
-    count: number;
-    https: BOOL;
+    time_: number;
+    count_: number;
+    https_: BOOL;
   }
 
   type Callback = (this: void, sugs: Readonly<Suggestion>[],

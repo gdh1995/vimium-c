@@ -142,7 +142,7 @@ var Settings_ = {
         BgUtils_.parseSearchEngines_("~:" + str, cache.searchEngineMap);
       } else {
         const initialMap: { "~": Search.Engine } = {
-          "~": { name: "~", blank: "", url: (this as typeof Settings_).get_("searchUrl").split(" ", 1)[0] }
+          "~": { name_: "~", blank_: "", url_: (this as typeof Settings_).get_("searchUrl").split(" ", 1)[0] }
         };
         cache.searchEngineMap = initialMap as SafeObject & typeof initialMap;
         cache.searchEngineRules = [];

@@ -2,12 +2,12 @@
 interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
   favIcon?: string;
   label?: string;
-  relevancy: number | string;
+  relevancy_: number | string;
 }
 interface SuggestionEx extends SuggestionE {
-  https: boolean;
-  parsed?: string;
-  text: string;
+  https_: boolean;
+  parsed_?: string;
+  text_: string;
 }
 type Render = (this: void, list: ReadonlyArray<Readonly<SuggestionE>>, element: HTMLElement) => void;
 interface Post<R extends void | 1> {
@@ -313,27 +313,27 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     }
     blurred && focused && a.input_.blur();
     const line: SuggestionEx = a.completions_[sel] as SuggestionEx;
-    if (line.parsed) {
-      return a._updateInput(line, line.parsed);
+    if (line.parsed_) {
+      return a._updateInput(line, line.parsed_);
     }
-    (line as Partial<SuggestionEx>).https == null && (line.https = line.url.startsWith("https://"));
-    if (line.type !== "history" && line.type !== "tab") {
-      if (line.parsed == null) {
+    (line as Partial<SuggestionEx>).https_ == null && (line.https_ = line.url_.startsWith("https://"));
+    if (line.type_ !== "history" && line.type_ !== "tab") {
+      if (line.parsed_ == null) {
         VUtils_.ensureText_(line);
-        line.parsed = "";
+        line.parsed_ = "";
       }
-      a._updateInput(line, line.text);
-      if (line.type === "math") {
+      a._updateInput(line, line.text_);
+      if (line.type_ === "math") {
         a.input_.select();
       }
       return;
     }
-    const onlyUrl = !line.text, url = line.url;
+    const onlyUrl = !line.text_, url = line.url_;
     const ind = VUtils_.ensureText_(line);
     let str = onlyUrl ? url : VUtils_.decodeURL_(url, decodeURIComponent);
     if (!onlyUrl && str.length === url.length && url.indexOf("%") >= 0) {
       // has error during decoding
-      str = line.text;
+      str = line.text_;
       if (ind) {
         if (str.lastIndexOf("://", 5) < 0) {
           str = (ind === ProtocolType.http ? "http://" : "https://") + str;
@@ -351,10 +351,10 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   parsed_ ({ i: id, s: search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
     const line: SuggestionEx = Vomnibar_.completions_[id] as SuggestionEx;
-    line.parsed = search ? (Vomnibar_.mode_.o.endsWith("omni") ? "" : ":o ")
-        + search.k + " " + search.u + " " : line.text;
+    line.parsed_ = search ? (Vomnibar_.mode_.o.endsWith("omni") ? "" : ":o ")
+        + search.k + " " + search.u + " " : line.text_;
     if (id === Vomnibar_.selection_) {
-      return Vomnibar_._updateInput(line, line.parsed);
+      return Vomnibar_._updateInput(line, line.parsed_);
     }
   },
   toggleInput_ (): void {
@@ -365,17 +365,17 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       return a.updateInput_(a.selection_);
     }
     let line = a.completions_[a.selection_] as SuggestionEx, str = a.input_.value.trim();
-    str = str === (line.title || line.url) ? (line.parsed || line.text)
-      : line.title && str === line.url ? line.title
-      : str === line.text ? line.url : line.text;
+    str = str === (line.title || line.url_) ? (line.parsed_ || line.text_)
+      : line.title && str === line.url_ ? line.title
+      : str === line.text_ ? line.url_ : line.text_;
     return a._updateInput(line, str);
   },
   _updateInput (line: SuggestionEx, str: string): void {
     const maxW = str.length * 10, tooLong = maxW > innerWidth - PixelData.AllHNotInput;
     Vomnibar_.input_.value = str;
     tooLong && (Vomnibar_.input_.scrollLeft = maxW);
-    Vomnibar_.isHttps_ = line.https && str === line.text;
-    Vomnibar_.isEditing_ = str !== line.parsed || line.parsed === line.text;
+    Vomnibar_.isHttps_ = line.https_ && str === line.text_;
+    Vomnibar_.isEditing_ = str !== line.parsed_ || line.parsed_ === line.text_;
   },
   updateSelection_ (sel: number): void {
     const a = Vomnibar_;
@@ -508,12 +508,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const a = Vomnibar_;
     if (a.isSearchOnTop_) { return; }
     const len = a.completions_.length, n = a.mode_.r;
-    let str = len ? a.completions_[0].type : "", delta = +dirOrNum || -1;
+    let str = len ? a.completions_[0].type_ : "", delta = +dirOrNum || -1;
     str = (a.isSelOriginal_ || a.selection_ < 0 ? a.input_.value : a.inputText_).trimRight();
     let arr = a._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
     if (len >= n) { delta *= n; }
     else if (i > 0 && delta < 0) { delta *= i >= n ? n : 1; }
-    else if (len < (len && a.completions_[0].type !== "tab" ? n : 3)) { return; }
+    else if (len < (len && a.completions_[0].type_ !== "tab" ? n : 3)) { return; }
 
     const dest = Math.min(Math.max(0, i + delta), a.maxPageNum_ * n - n);
     if (delta > 0 && (dest === i || dest >= a.total_ && a.total_ > 0)) { return; }
@@ -544,12 +544,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       a.onUpdate_ = a.onEnter_;
       return;
     }
-    interface UrlInfo { url: string; sessionId?: undefined; }
-    const item: SuggestionE | UrlInfo = sel >= 0 ? a.completions_[sel] : { url: a.input_.value.trim() },
+    interface UrlInfo { url_: string; sessionId_?: undefined; }
+    const item: SuggestionE | UrlInfo = sel >= 0 ? a.completions_[sel] : { url_: a.input_.value.trim() },
     action = a.actionType_, https = a.isHttps_,
     func = function (this: void): void {
-      item.sessionId != null ? Vomnibar_.gotoSession_(item as SuggestionE & { sessionId: string | number })
-        : Vomnibar_.navigateToUrl_((item as UrlInfo).url, action, https);
+      item.sessionId_ != null ? Vomnibar_.gotoSession_(item as SuggestionE & Ensure<SuggestionE, "sessionId_">)
+        : Vomnibar_.navigateToUrl_((item as UrlInfo).url_, action, https);
       (<RegExpOne> /a?/).test("");
     };
     if (a.actionType_ < ReuseType.newFg) { return func(); }
@@ -577,15 +577,15 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   removeCur_ (): void {
     if (Vomnibar_.selection_ < 0) { return; }
-    const completion = Vomnibar_.completions_[Vomnibar_.selection_], type = completion.type;
-    if (type !== "tab" && (type !== "history" || completion.sessionId != null)) {
+    const completion = Vomnibar_.completions_[Vomnibar_.selection_], type = completion.type_;
+    if (type !== "tab" && (type !== "history" || completion.sessionId_ != null)) {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, t: "This item can not be deleted." });
       return;
     }
     VPort_.post_({
       H: kFgReq.removeSug,
       t: type,
-      u: type === "tab" ? completion.sessionId + "" : completion.url
+      u: type === "tab" ? completion.sessionId_ + "" : completion.url_
     });
     return Vomnibar_.refresh_();
   },
@@ -612,7 +612,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       /* empty */
     }
     const _i = [].indexOf.call(Vomnibar_.list_.children, item);
-    _i >= 0 && (el.href = Vomnibar_.completions_[_i].url);
+    _i >= 0 && (el.href = Vomnibar_.completions_[_i].url_);
   },
   OnSelect_ (this: HTMLInputElement): void {
     let el = this as typeof Vomnibar_.input_;
@@ -658,7 +658,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   onInput_ (event: InputEvent): void {
     const a = Vomnibar_, s0 = a.lastQuery_, s1 = a.input_.value, str = s1.trim();
     a.blurWanted_ = false;
-    if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].text)) {
+    if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].text_)) {
       return;
     }
     if (a.matchType_ === CompletersNS.MatchType.emptyResult && str.startsWith(s0)) { return; }
@@ -697,7 +697,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.completions_ = list;
     a.selection_ = response.a ? 0 : -1;
     a.isSelOriginal_ = true;
-    a.isSearchOnTop_ = height > 0 && list[0].type === "search";
+    a.isSearchOnTop_ = height > 0 && list[0].type_ === "search";
     return a.populateUI_();
   },
   populateUI_ (): void {
@@ -917,7 +917,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     let arr: RegExpExecArray | null;
     while (arr = re.exec(styles)) { pathMap[arr[1]] = arr[2]; }
     a.getTypeIcon_ = function (sug: Readonly<SuggestionE>): string {
-      const type = sug.type, path = pathMap[type];
+      const type = sug.type_, path = pathMap[type];
       return path ? `${type}" d="${path}` : type;
     };
   },
@@ -937,7 +937,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     }
     st.textContent = css;
   },
-  getTypeIcon_ (sug: Readonly<SuggestionE>): string { return sug.type; },
+  getTypeIcon_ (sug: Readonly<SuggestionE>): string { return sug.type_; },
   preInit_ (type: VomnibarNS.PageType): void {
     const a = Vomnibar_;
     a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
@@ -1045,7 +1045,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   _favPrefix: "",
   parse_ (item: SuggestionE): void {
     let str: string | undefined;
-    item.relevancy = Vomnibar_.showRelevancy_ ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
+    item.relevancy_ = Vomnibar_.showRelevancy_ ? `\n\t\t\t<span class="relevancy">${item.relevancy_}</span>` : "";
     (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
     if (Build.BTypes & BrowserType.Firefox) {
       if (item.favIcon) {
@@ -1053,14 +1053,14 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         return;
       }
     }
-    item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.url : "") && Vomnibar_._favPrefix +
+    item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.url_ : "") && Vomnibar_._favPrefix +
         ((str = Vomnibar_._parseFavIcon(item, str)) ? VUtils_.escapeCSSStringInAttr_(str) : "about:blank") + "&quot;);";
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
     let str = url.slice(0, 11).toLowerCase();
     return str.startsWith("vimium://") ? "chrome-extension://" + (VCID_ || chrome.runtime.id) + "/pages/options.html"
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
-      : item.type === "search" && !item.visited
+      : item.type_ === "search" && !item.visited_
         ? url.startsWith("http") ? url.slice(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || void 0) : ""
       : url;
   },
@@ -1075,14 +1075,14 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
       return Vomnibar_.refresh_();
     }
   },
-  gotoSession_ (item: SuggestionE & { sessionId: string | number }): void {
+  gotoSession_ (item: SuggestionE & Ensure<SuggestionE, "sessionId_">): void {
     VPort_.post_({
       H: kFgReq.gotoSession,
       a: Vomnibar_.actionType_ > ReuseType.newBg,
-      s: item.sessionId
+      s: item.sessionId_
     });
     if (Vomnibar_.actionType_ === ReuseType.newBg) {
-      return Vomnibar_.refresh_(item.type === "tab");
+      return Vomnibar_.refresh_(item.type_ === "tab");
     }
   },
   refresh_ (waitFocus?: boolean): void {
@@ -1143,7 +1143,7 @@ VUtils_ = {
     return url;
   },
   ensureText_ (sug: SuggestionEx): ProtocolType {
-    let { url, text } = sug, str = url.slice(0, 8).toLowerCase();
+    let { url_: url, text_: text } = sug, str = url.slice(0, 8).toLowerCase();
     let i = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https
             : ProtocolType.others;
     i >= url.length && (i = ProtocolType.others);
@@ -1164,7 +1164,7 @@ VUtils_ = {
         text += "/";
       }
     }
-    sug.text = text;
+    sug.text_ = text;
     if (str = sug.title) {
       (sug as Writable<typeof sug>).title = str.replace(<RegExpG> /<\/?match>/g, "").replace(
           <RegExpG & RegExpSearchable<1>> /&(amp|apos|gt|lt|quot);|\u2026/g, VUtils_.onHTMLEntity);
