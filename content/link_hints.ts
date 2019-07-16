@@ -856,20 +856,18 @@ var VHints = {
       if (i !== kKeyCode.f2) { return HandlerResult.Nothing; }
       i = VKey.getKeyStat_(event);
       let reinit = true;
-      if (i & KeyStat.shiftKey) {
-        if (i & ~KeyStat.shiftKey) {
-          reinit = !!VEvent.execute_;
-          if (reinit) {
-            a.isClickListened_ = true;
-            (VEvent as EnsureNonNull<VEventModeTy>).execute_(kContentCmd.FindAllOnClick);
-          }
-        } else {
-          a.isClickListened_ = !a.isClickListened_;
-        }
-      } else if (i === KeyStat.altKey) {
+      if (i === KeyStat.altKey) {
         reinit = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement)
           || typeof HTMLDialogElement === "function"; // safe enough even if it's an <embed>
         a.dialogMode_ = reinit && !a.dialogMode_;
+      } else if (i & KeyStat.PrimaryModifier) {
+        reinit = !!VEvent.execute_;
+        if (reinit) {
+          a.isClickListened_ = true;
+          (VEvent as EnsureNonNull<VEventModeTy>).execute_(kContentCmd.FindAllOnClick);
+        }
+      } else if (i & KeyStat.shiftKey) {
+        a.isClickListened_ = !a.isClickListened_;
       } else {
         reinit = false;
       }
