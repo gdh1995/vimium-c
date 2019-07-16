@@ -860,6 +860,7 @@ var VHints = {
         if (i & ~KeyStat.shiftKey) {
           reinit = !!VEvent.execute_;
           if (reinit) {
+            a.isClickListened_ = true;
             (VEvent as EnsureNonNull<VEventModeTy>).execute_(kContentCmd.FindAllOnClick);
           }
         } else {
