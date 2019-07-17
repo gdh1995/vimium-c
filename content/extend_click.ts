@@ -256,39 +256,41 @@ decryptFromVerifier = (func: InnerVerifier | unknown): string => {
   return call(StringSubstr, str, offset
       , GlobalConsts.MarkForName3Length + GlobalConsts.SecretStringLength);
 },
-hooks = {
-  // the code below must include direct reference to at least one property in `hooks`
-  // so that uglifyJS / terse won't remove the `hooks` variable
-  /** Create */ C: doc.createElement as Document["createElement"],
-  toString: function toString(this: FUNC): string {
-    const a = this, args = arguments;
-    if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
-      // randomize the body of this function
-      (args[1] as InnerVerifier)(
-          decryptFromVerifier(Build.BTypes & BrowserType.Firefox ? args[1] : args[1] || BuildStr.RandomName3_public),
-          verifier);
-    }
+toStringOrSource = function (a: FUNC, args: IArguments, realToStrOrSrc: (this: FUNC) => string): string {
     const replaced = a === myAEL || BuildStr.RandomName3 && a === anotherAEL ? _listen
         : a === myToStr || BuildStr.RandomName3 && a === anotherToStr ? _toString
         : Build.BTypes & BrowserType.Firefox
           && (a === myToSource || BuildStr.RandomName3 && a === anotherToSource) ? _toSource
         : 0,
     str = call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
-                _toString, replaced || a, args),
-    expectedFunc = replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString
-        : Build.BTypes & BrowserType.Firefox && _toSource &&  str === myToSourceObj.s ? _toSource
+              realToStrOrSrc, replaced || a, args),
+    expectedFunc = !BuildStr.RandomName3 || replaced ? 0 : str === sAEL ? _listen : str === sToStr ? _toString
+        : Build.BTypes & BrowserType.Firefox && str === myToSourceObj.s ? _toSource
         : 0;
     Build.BTypes & ~BrowserType.Firefox &&
     detectDisabled && str === detectDisabled && executeCmd();
-    return !expectedFunc
-        ? BuildStr.RandomName3 && call(StringIndexOf, str, kMarkToVerify) > 0 ? call(_toString, noop) : str
-        : !BuildStr.RandomName3 ? str
+    return !BuildStr.RandomName3 ? str
+        : !expectedFunc ? call(StringIndexOf, str, kMarkToVerify) > 0 ? call(realToStrOrSrc, noop) : str
         : (
           noAbnormalVerifyingFound && (a as PublicFunction)(kMarkToVerify, verifier),
-          a === anotherAEL ? call(_toString, _listen) : a === anotherToStr ? call(_toString, _toString)
-          : Build.BTypes & BrowserType.Firefox && a === anotherToSource ? call(_toString, _toSource)
+          a === anotherAEL ? call(realToStrOrSrc, _listen) : a === anotherToStr ? call(realToStrOrSrc, _toString)
+          : Build.BTypes & BrowserType.Firefox && a === anotherToSource ? call(realToStrOrSrc, _toSource)
           : (noAbnormalVerifyingFound = 0, str)
         );
+},
+hooks = {
+  // the code below must include direct reference to at least one property in `hooks`
+  // so that uglifyJS / terse won't remove the `hooks` variable
+  /** Create */ C: doc.createElement as Document["createElement"],
+  toString: function toString(this: FUNC): string {
+    const args = arguments;
+    if (BuildStr.RandomName3 && args.length === 2 && (args[0] as any) === kMarkToVerify) {
+      // randomize the body of this function
+      (args[1] as InnerVerifier)(
+          decryptFromVerifier(Build.BTypes & BrowserType.Firefox ? args[1] : args[1] || BuildStr.RandomName3_public),
+          verifier);
+    }
+    return toStringOrSource(this, args, _toString);
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
@@ -325,8 +327,7 @@ myToSourceObj = Build.BTypes & BrowserType.Firefox && _toSource ? {
         decryptFromVerifier(Build.BTypes & BrowserType.Firefox ? args[1] : args[1] || BuildStr.RandomName3_public),
         verifier);
     }
-    return call(_apply as (this: (this: FUNC, ...args: Array<{}>) => string, self: FUNC, args: IArguments) => string,
-        typeof this === "function" ? myToStr : _toSource as typeof myToStr, this, args);
+    return toStringOrSource(this, args, _toSource);
   }
 } : 0 as never,
 myToSource = Build.BTypes & BrowserType.Firefox && _toSource && myToSourceObj.toSource,
