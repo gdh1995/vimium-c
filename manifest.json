@@ -25,17 +25,362 @@
     "newtab": "pages/newtab.html"
   },
   "commands": {
+    "LinkHints.activate": {
+        "description": "Open a link in the current tab"
+    },
+    "LinkHints.activateMode": {
+        "description": "Open a link in the current tab"
+    },
+    "LinkHints.activateModeToCopyLinkText": {
+        "description": "Copy a link text to the clipboard"
+    },
+    "LinkHints.activateModeToCopyLinkUrl": {
+        "description": "Copy a link URL to the clipboard"
+    },
+    "LinkHints.activateModeToDownloadImage": {
+        "description": "Download image, video and audio"
+    },
+    "LinkHints.activateModeToDownloadLink": {
+        "description": "Download link URL"
+    },
+    "LinkHints.activateModeToEdit": {
+        "description": "Select an editable area"
+    },
+    "LinkHints.activateModeToHover": {
+        "description": "Select an element and hover"
+    },
+    "LinkHints.activateModeToLeave": {
+        "description": "Let mouse leave link"
+    },
+    "LinkHints.activateModeToOpenImage": {
+        "description": "Show image in a new tab"
+    },
+    "LinkHints.activateModeToOpenIncognito": {
+        "description": "Open a link in incognito window"
+    },
+    "LinkHints.activateModeToOpenInNewForegroundTab": {
+        "description": "Open a link in a new tab and switch to it"
+    },
+    "LinkHints.activateModeToOpenInNewTab": {
+        "description": "Open a link in a new tab"
+    },
+    "LinkHints.activateModeToOpenVomnibar": {
+        "description": "Edit a link text on Vomnibar"
+    },
+    "LinkHints.activateModeToSearchLinkText": {
+        "description": "Open or search a link text"
+    },
+    "LinkHints.activateModeWithQueue": {
+        "description": "Open multiple links in a new tab"
+    },
+    "LinkHints.unhoverLast": {
+        "description": "Stop hovering at last location"
+    },
+    "Marks.activate": {
+        "description": "Go to a mark"
+    },
+    "Marks.activateCreateMode": {
+        "description": "Create a new mark"
+    },
+    "Marks.clearGlobal": {
+        "description": "Remove all global marks"
+    },
+    "Marks.clearLocal": {
+        "description": "Remove all local marks for this site"
+    },
+    "Vomnibar.activate": {
+        "description": "Open URL, bookmark, or history entry"
+    },
+    "Vomnibar.activateBookmarks": {
+        "description": "Open a bookmark"
+    },
+    "Vomnibar.activateBookmarksInNewTab": {
+        "description": "Open a bookmark in a new tab"
+    },
+    "Vomnibar.activateEditUrl": {
+        "description": "Edit the current URL"
+    },
+    "Vomnibar.activateEditUrlInNewTab": {
+        "description": "Edit the current URL and open in a new tab"
+    },
+    "Vomnibar.activateHistory": {
+        "description": "Open a history"
+    },
+    "Vomnibar.activateHistoryInNewTab": {
+        "description": "Open a history in a new tab"
+    },
+    "Vomnibar.activateInNewTab": {
+        "description": "Open URL, history, etc, in a new tab"
+    },
+    "Vomnibar.activateTabSelection": {
+        "description": "Search through your open tabs"
+    },
+    "Vomnibar.activateUrl": {
+        "description": "Edit the current URL"
+    },
+    "Vomnibar.activateUrlInNewTab": {
+        "description": "Edit the current URL and open in a new tab"
+    },
+    "autoCopy": {
+        "description": "Copy selected text or current frame's title or URL"
+    },
+    "autoOpen": {
+        "description": "Open selected or copied text in a new tab"
+    },
+    "blank": {
+        "description": "Do nothing"
+    },
+    "clearCS": {
+        "description": "Clear extension's content settings"
+    },
+    "clearFindHistory": {
+        "description": "Clear find mode history"
+    },
+    "clearGlobalMarks": {
+        "description": "Remove all global marks (deprecated)"
+    },
+    "closeOtherTabs": {
+        "description": "Close all other tabs"
+    },
+    "closeTabsOnLeft": {
+        "description": "Close tabs on the left"
+    },
+    "closeTabsOnRight": {
+        "description": "Close tabs on the right"
+    },
+    "copyCurrentTitle": {
+        "description": "Copy current tab's title"
+    },
+    "copyCurrentUrl": {
+        "description": "Copy page's info"
+    },
     "createTab": {
-      "description": "Create new tab"
+        "description": "Create new tab(s)"
+    },
+    "discardTab": {
+        "description": "Discard some other tab(s)"
+    },
+    "duplicateTab": {
+        "description": "Duplicate current tab for N times"
+    },
+    "debugBackground": {
+        "description": "Debug the background page"
+    },
+    "enableCSTemp": {
+        "description": "Enable the site's CS in incognito window"
+    },
+    "enterFindMode": {
+        "description": "Enter find mode"
+    },
+    "enterInsertMode": {
+        "description": "Enter insert mode"
+    },
+    "enterVisualLineMode": {
+        "description": "Enter visual line mode"
+    },
+    "enterVisualMode": {
+        "description": "Enter visual mode"
+    },
+    "firstTab": {
+        "description": "Go to the first N-th tab"
+    },
+    "focusInput": {
+        "description": "Focus the N-th visible text box on the page and cycle using tab"
+    },
+    "focusOrLaunch": {
+        "description": "Focus a tab with given URL or open it"
+    },
+    "goBack": {
+        "description": "Go back in history"
+    },
+    "goForward": {
+        "description": "Go forward in history"
+    },
+    "goNext": {
+        "description": "Follow the link labeled next or >"
+    },
+    "goPrevious": {
+        "description": "Follow the link labeled previous or <"
+    },
+    "goToRoot": {
+        "description": "Go to root of current URL hierarchy"
+    },
+    "goUp": {
+        "description": "Go up the URL hierarchy"
+    },
+    "lastTab": {
+        "description": "Go to the last N-th tab"
+    },
+    "mainFrame": {
+        "description": "Select the tab's main/top frame"
+    },
+    "moveTabLeft": {
+        "description": "Move tab to the left"
+    },
+    "moveTabRight": {
+        "description": "Move tab to the right"
+    },
+    "moveTabToIncognito": {
+        "description": "Make tab in incognito window"
+    },
+    "moveTabToNewWindow": {
+        "description": "Move N tab(s) to new window"
+    },
+    "moveTabToNextWindow": {
+        "description": "Move tab to next window"
+    },
+    "nextFrame": {
+        "description": "Cycle forward to the next frame on the page"
+    },
+    "nextTab": {
+        "description": "Go one tab right"
+    },
+    "openCopiedUrlInCurrentTab": {
+        "description": "Open the clipboard's URL in the current tab"
+    },
+    "openCopiedUrlInNewTab": {
+        "description": "Open the clipboard's URL in N new tab(s)"
+    },
+    "openUrl": {
+        "description": "Open URL"
+    },
+    "parentFrame": {
+        "description": "Focus a parent frame"
+    },
+    "passNextKey": {
+        "description": "Pass the next key(s) to the page"
+    },
+    "performAnotherFind": {
+        "description": "Find the second or even eariler query words"
+    },
+    "performBackwardsFind": {
+        "description": "Cycle backward to the previous find match"
+    },
+    "performFind": {
+        "description": "Cycle forward to the next find match"
     },
     "previousTab": {
-      "description": "Go one tab left"
+        "description": "Go one tab left"
     },
     "quickNext": {
-      "description": "Go one tab right"
+        "description": "Go one tab right"
+    },
+    "reload": {
+        "description": "Reload current frame"
+    },
+    "reloadGivenTab": {
+        "description": "Reload N-th tab"
     },
     "reloadTab": {
-      "description": "Reload tab"
+        "description": "Reload N tab(s)"
+    },
+    "removeRightTab": {
+        "description": "Close N-th tab on the right"
+    },
+    "removeTab": {
+        "description": "Close N tab(s)"
+    },
+    "reopenTab": {
+        "description": "Reopen current page"
+    },
+    "restoreGivenTab": {
+        "description": "Restore the last N-th tab"
+    },
+    "restoreTab": {
+        "description": "Restore closed tab(s)"
+    },
+    "scrollDown": {
+        "description": "Scroll down"
+    },
+    "scrollFullPageDown": {
+        "description": "Scroll a full page down"
+    },
+    "scrollFullPageUp": {
+        "description": "Scroll a full page up"
+    },
+    "scrollLeft": {
+        "description": "Scroll left"
+    },
+    "scrollPageDown": {
+        "description": "Scroll a page down"
+    },
+    "scrollPageUp": {
+        "description": "Scroll a page up"
+    },
+    "scrollPxDown": {
+        "description": "Scroll 1px down"
+    },
+    "scrollPxLeft": {
+        "description": "Scroll 1px left"
+    },
+    "scrollPxRight": {
+        "description": "Scroll 1px right"
+    },
+    "scrollPxUp": {
+        "description": "Scroll 1px up"
+    },
+    "scrollRight": {
+        "description": "Scroll right"
+    },
+    "scrollTo": {
+        "description": "Scroll to custom position"
+    },
+    "scrollToBottom": {
+        "description": "Scroll to the bottom of the page"
+    },
+    "scrollToLeft": {
+        "description": "Scroll all the way to the left"
+    },
+    "scrollToRight": {
+        "description": "Scroll all the way to the right"
+    },
+    "scrollToTop": {
+        "description": "Scroll to the top of the page"
+    },
+    "scrollUp": {
+        "description": "Scroll up"
+    },
+    "searchAs": {
+        "description": "Search selected or copied text using current search engine"
+    },
+    "searchInAnother": {
+        "description": "Redo search in another search engine"
+    },
+    "showHelp": {
+        "description": "Show help"
+    },
+    "simBackspace": {
+        "description": "Simulate backspace for once if focused"
+    },
+    "switchFocus": {
+        "description": "Blur activeElement or refocus it"
+    },
+    "toggleCS": {
+        "description": "Turn on/off the site's CS"
+    },
+    "toggleLinkHintCharacters": {
+        "description": "Toggle the other link hints"
+    },
+    "toggleMuteTab": {
+        "description": "Mute or unmute current tab"
+    },
+    "togglePinTab": {
+        "description": "Pin or unpin N tab(s)"
+    },
+    "toggleSwitchTemp": {
+        "description": "Toggle switch only on current page"
+    },
+    "toggleViewSource": {
+        "description": "View page source"
+    },
+    "toggleVomnibarStyle": {
+        "description": "Toggle style(s) of vomnibar page"
+    },
+    "closeDownloadBar": {
+        "description": "Close the bottom download bar of Chrome elegantly"
+    },
+    "visitPreviousTab": {
+        "description": "Go to previously-visited tab on current window"
     }
   },
   "content_scripts": [ {
