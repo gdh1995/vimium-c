@@ -817,7 +817,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     timer_: 0,
     Focus_ (this: void, req: BgReq[kBgReq.focusFrame]): void {
       // Note: .c, .S are ensured to exist
-      const mask = req.m, dom = VDom, doc = document;
+      let mask = req.m, dom = VDom, doc = document, div;
       req.S && dom.UI.css_(req.S);
       if (mask !== FrameMaskType.NormalNext) { /* empty */ }
       else if (events.checkHidden_()
@@ -825,7 +825,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         || (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && Build.BTypes & BrowserType.Chrome
                 && dom.unsafeFramesetTag_  // treat a doc.body of <form> as <frameset> to simplify logic
               ? dom.notSafe_(doc.body) : dom.htmlTag_(doc.body as NonNullable<Document["body"]>) === "frameset")
-            && !doc.querySelector("div")
+            && (div = doc.querySelector("div"), !div || div === VDom.UI.box_ && !VKey._handlers.length)
       ) {
         post({
           H: kFgReq.nextFrame,

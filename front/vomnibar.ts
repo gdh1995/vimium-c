@@ -773,7 +773,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     for (const style of (document.querySelectorAll("style[id]") as {} as HTMLStyleElement[])) {
-      const key = " " + style.id + " ", found = omniStyles.indexOf(key) >= 0;
+      const key = " " + style.id + " ", found = key === "custom" || omniStyles.indexOf(key) >= 0;
       (style.sheet as CSSStyleSheet).disabled = !found;
       if (found) {
         omniStyles = omniStyles.replace(key, " ");
