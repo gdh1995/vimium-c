@@ -671,6 +671,18 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return true;
       }
       el = document.activeElement;
+/** Ignore standalone usages of `{-webkit-user-modify:}` without `[content-editable]`
+ * On Chromestatus, this is tagged `WebKitUserModify{PlainText,ReadWrite,ReadOnly}Effective`
+ * * https://www.chromestatus.com/metrics/css/timeline/popularity/338
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/element.cc?dr=C&q=IsRootEditableElementWithCounting&g=0&l=213
+ * `only used {-wum:RW}` in [0.2914%, 0.2926%]
+ * * Total percentage of `WebKitUserModifyReadWriteEffective` is 0.2926%, `WebKitUserModifyReadOnlyEffective` is ~ 0.000006%
+ * * `all used [ce=PT]` := `PlainTextEditingEffective - WebKitUserModifyPlainTextEffective` = 0.5754% - 0.5742% = 0.0012%
+ * * `contributed WebKitUserModifyReadWriteEffective` <= 0.0012%
+ * `only used {-wum:PT}` in [0, 0.5742%]
+ * And in top sites only "tre-rj.*.br" (Brazil) and "slatejs.org" causes `WebKitUserModify{RW/PT}Effective`
+ * * in slatejs.org, there's `[content-editable=true]` and `{-webkit-user-modify:*plaintext*}` for browser compatibility
+ */
       if (el && (el as HTMLElement).isContentEditable === true) {
         InsertMode.lock_ = el as LockableElement;
         return true;
