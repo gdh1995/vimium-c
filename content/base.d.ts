@@ -266,7 +266,7 @@ declare namespace VomnibarNS {
     MarginTop = 64,
     InputBar = 54, InputBarWithLine = InputBar + 1,
     Item = 44, LastItemDelta = 46 - Item,
-    MarginV1 = 9, MarginV2 = 10, MarginV = MarginV1 + MarginV2,
+    MarginV1 = 9, MarginV2 = 10, ShadowOffset = 2, MarginV = MarginV1 + MarginV2 + ShadowOffset * 2,
     OthersIfEmpty = InputBar + MarginV,
     OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
     ListSpaceDelta = MarginTop + MarginV1
