@@ -393,8 +393,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         cache[backupKey] = u as never;
       }
       (cache as Generalized<typeof cache>)[key] = val as typeof cur;
-      let msg = val === false ? '"' + key + '" has been turned off'
-        : 'Now "' + key + (val === true ? '" is on' : '" use ' + JSON.stringify(val));
+      let msg = val === false ? options.n + " has been turned off"
+        : "Now " + options.n + (val === true ? " is on" : " use " + JSON.stringify(val));
       return HUD.tip_(msg, 1000);
     },
     /* kFgCmd.insertMode: */ function (_0: number, opt: CmdOptions[kFgCmd.insertMode]): void {

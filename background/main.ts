@@ -1698,7 +1698,7 @@ Are you sure you want to continue?`) ? count
           N: kBgReq.execute,
           S: ensureInnerCSS(cPort),
           c: kFgCmd.toggle, n: 1,
-          a: { k: key2, v: value }
+          a: { k: key2, n: keyRepr, v: value }
         });
       }
     },

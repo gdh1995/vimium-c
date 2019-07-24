@@ -213,6 +213,7 @@ interface CmdOptions {
   [kFgCmd.reset]: FgOptions;
   [kFgCmd.toggle]: {
     k: keyof SettingsNS.CachedFrontendSettings;
+    n: string; // `"${keyof SettingsNS.FrontendSettingNameMap}"`
     v: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
   };
   [kFgCmd.passNextKey]: {
