@@ -48,13 +48,17 @@ declare const enum kFgReq {
   msg = 90,
   inject = 99,
   command = "command",
+  shortcut = "shortcut",
 }
 
 declare const enum kShortcutNames {
   createTab = "createTab",
+  goBack = "goBack",
+  goForward = "goForward",
   previousTab = "previousTab",
   nextTab = "nextTab",
   reloadTab = "reloadTab",
+  userCustomized = "userCustomized",
 }
 declare const enum kShortcutAliases {
   _mask = 0,
@@ -165,14 +169,15 @@ interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 
 declare const enum kBgCmd {
-  createTab, duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
+  blank, createTab, duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
   clearCS, goTab, removeTab, removeTabsR, removeRightTab,
-  restoreTab, restoreGivenTab, discardTab, blank, openUrl, searchInAnother,
+  restoreTab, restoreGivenTab, discardTab, openUrl, searchInAnother,
   togglePinTab, toggleMuteTab, reloadTab, reloadGivenTab, reopenTab,
   goToRoot, goUp, moveTab, nextFrame, mainFrame,
   parentFrame, visitPreviousTab, copyTabInfo, goNext, enterInsertMode,
   enterVisualMode, performFind, showVomnibar, clearFindHistory, showHelp,
   toggleViewSource, clearMarks, toggle, toggleVomnibarStyle,
+  goBackFallback,
   END = "END",
 }
 
@@ -487,6 +492,13 @@ interface ExternalMsgs {
       options?: object | null;
       count?: number;
       key?: kKeyCode;
+    };
+    res: void;
+  };
+  [kFgReq.shortcut]: {
+    req: {
+      handler: kFgReq.shortcut;
+      shortcut?: string;
     };
     res: void;
   };

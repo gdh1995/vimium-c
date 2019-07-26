@@ -47,6 +47,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     [kBgCmd.copyTabInfo]: UseTab.ActiveTab;
     [kBgCmd.toggleViewSource]: UseTab.ActiveTab;
     [kBgCmd.toggleVomnibarStyle]: UseTab.ActiveTab;
+    [kBgCmd.goBackFallback]: UseTab.ActiveTab;
   }
 
   interface ReopenOptions extends chrome.tabs.CreateProperties {
@@ -78,7 +79,10 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     };
     [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
     [kFgReq.setOmniStyle]: (this: void, request: FgReq[kFgReq.setOmniStyle], _port?: Port) => void;
-    [kFgReq.framesGoBack]: (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | number) => void;
+    [kFgReq.framesGoBack]: {
+      (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void;
+      (this: void, req: FgReq[kFgReq.framesGoBack], port: null, tabId: Pick<Tab, "id" | "url">): void;
+    };
   }
 
   /** any change to `cRepeat` should ensure it won't be `0` */
@@ -419,9 +423,8 @@ Are you sure you want to continue?`) ? count
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
     ? chrome.tabs.query.bind(null, { currentWindow: true, hidden: false }) : 0 as never,
   getCurWnd = function (populate: boolean, callback: (window: chrome.windows.Window, exArg: FakeArg) => void): 1 {
-    const wndId = TabRecency_.lastWnd_;
-    return wndId >= 0 ? chrome.windows.get(wndId, { populate }, callback)
-      : chrome.windows.getCurrent({ populate }, callback);
+    const wndId = TabRecency_.lastWnd_, args = { populate };
+    return wndId >= 0 ? chrome.windows.get(wndId, args, callback) : chrome.windows.getCurrent(args, callback);
   } as {
     (populate: true, callback: (window: (chrome.windows.Window & { tabs: chrome.tabs.Tab[] }) | null | undefined
       , exArg: FakeArg) => void): 1;
@@ -858,29 +861,61 @@ Are you sure you want to continue?`) ? count
       });
     }
   }
-  function executeShortcut(cmd: kShortcutNames, ports: Frames.Frames | null | undefined): void {
+  function executeShortcut(shortcutName: kShortcutNames, ports: Frames.Frames | null | undefined): void {
     if (gCmdTimer) {
       clearTimeout(gCmdTimer);
       gCmdTimer = 0;
     }
     if (!ports) {
-      return executeCommand(CommandsData_.shortcutMap_[cmd], 1, kKeyCode.None, null as never as Port);
+      let registry = CommandsData_.shortcutMap_[shortcutName], cmdName = registry.command_,
+      cmdFallback: kBgCmd & number = 0;
+      if (cmdName === "goBack" || cmdName === "goForward") {
+        if (Build.BTypes & BrowserType.Chrome
+            && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
+          cmdFallback = kBgCmd.goBackFallback;
+        }
+      }
+      if (cmdFallback) {
+        /** this object shape should keep the same as the one in {@link commands.ts#Commands.makeCommand_} */
+        registry = {
+          alias_: cmdFallback,
+          background_: 1,
+          command_: cmdName,
+          help_: null,
+          options_: registry.options_,
+          repeat_: registry.repeat_
+        };
+      }
+      if (!registry.background_) { return; }
+      // with the feature of userCustomized*, cmdName may be arbitrary
+      // but most commands may use a valid port to do something
+      // so here uses a strong rule to refuse them
+      if (cmdName in CommandsData_.shortcutMap_ || Settings_.get_("acceptAllShortcuts", true) && !(
+            ((
+              (1 << kBgCmd.showVomnibar) | (1 << kBgCmd.performFind) | (1 << kBgCmd.enterVisualMode) |
+              (1 << kBgCmd.showHelp)
+            ) >> registry.alias_) & 1
+          )) {
+        executeCommand(registry, 1, kKeyCode.None, null as never as Port);
+      }
+      return;
     }
-    gCmdTimer = setTimeout(executeShortcut, 100, cmd, null);
-    ports[0].postMessage({ N: kBgReq.count, c: cmd, i: gCmdTimer });
+    gCmdTimer = setTimeout(executeShortcut, 100, shortcutName, null);
+    ports[0].postMessage({ N: kBgReq.count, c: shortcutName, i: gCmdTimer });
   }
   const
   BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
+    UseTab.NoTab,
     Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
       ? UseTab.NoTab : UseTab.ActiveTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
     UseTab.NoTab, UseTab.CurShownTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
-    UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab,
+    UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.CurWndTabs, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.CurWndTabs, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
-    UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab
+    UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab
   ],
   BackgroundCommands: {
     [K in kBgCmd & number]:
@@ -892,6 +927,7 @@ Are you sure you want to continue?`) ? count
         never :
       BgCmdNoTab;
   } = [
+    /* blank: */ BgUtils_.blank_,
     /* createTab: */ BgUtils_.blank_,
     /* duplicateTab: */ function (): void {
       const tabId = cPort.s.t;
@@ -969,7 +1005,7 @@ Are you sure you want to continue?`) ? count
               chrome.tabs.move(tabs[firstMoved].id, { index: leftNum });
             }
             if (firstMoved !== activeTabIndex) {
-              chrome.tabs.update(tabs[activeTabIndex].id, { active: true });
+              selectTab(tabs[activeTabIndex].id);
             }
           }
           if (rightTabs.length > 0) {
@@ -1148,7 +1184,7 @@ Are you sure you want to continue?`) ? count
       }
       if (goToIndex >= 0 && goToIndex < total) {
         // note: here not wait real removing, otherwise the browser window may flicker
-        chrome.tabs.update(tabs[goToIndex].id, { active: true });
+        selectTab(tabs[goToIndex].id);
       }
       removeTabsInOrder(tab, tabs, start, end);
     },
@@ -1222,8 +1258,6 @@ Are you sure you want to continue?`) ? count
         }
       }
     },
-    /* blank: */ BgUtils_.blank_
-    ,
     /* openUrl: */ function (this: void, tabs?: [Tab] | never[]): void {
       if (cOptions.urls) {
         if (!(cOptions.urls instanceof Array)) { cOptions = null as never; return; }
@@ -1716,7 +1750,12 @@ Are you sure you want to continue?`) ? count
       }
       if (current) { return; }
       requestHandlers[kFgReq.setOmniStyle]({ t: toggled });
-    }
+    },
+    // only work on Chrome: Firefox has neither tabs.goBack, nor support for tabs.update("javascript:...")
+    /* goBackFallback: */ Build.BTypes & BrowserType.Chrome ? function (tabs: [Tab]): void {
+      if (!tabs.length) { return onRuntimeError(); }
+      requestHandlers[kFgReq.framesGoBack]({ s: cRepeat, r: cOptions.reuse }, null, tabs[0]);
+    } : BgUtils_.blank_ as never
   ],
   numHeadRe = <RegExpOne> /^-?\d+|^-/;
   function executeCommand(registryEntry: CommandsNS.Item
@@ -2302,23 +2341,25 @@ Are you sure you want to continue?`) ? count
       cRepeat = 1;
       BackgroundCommands[kBgCmd.performFind]();
     },
-    /** framesGoBack: */ function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | number): void {
-      const tabID = Build.BTypes & BrowserType.Chrome && typeof port === "number" ? port : (port as Port).s.t,
+    /** framesGoBack: */ function (this: void, req: FgReq[kFgReq.framesGoBack], port: Port | null
+        , curTab?: Pick<Tab, "id" | "url">): void {
+      const tabID = Build.BTypes & BrowserType.Chrome && curTab ? curTab.id : (port as Port).s.t,
       count = req.s, reuse = req.r;
       let needToExecCode: boolean = Build.BTypes & BrowserType.Chrome ? false : true;
       if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.Min$Tabs$$goBack)
           && (!(Build.BTypes & BrowserType.Chrome)
               || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
               || CurCVer_ < BrowserVer.Min$Tabs$$goBack)) {
-        /** then `reuse` must be non-zero - ensured by {@link ../content/frontend.ts#Commands[framesGoBack]} */
-        const mainPort = (port as Port).s.i ? indexFrame(tabID, 0) as Port : port as Port;
-        if (!mainPort.s.u.startsWith(BrowserProtocol_)
+        // on old Chrome || on other browsers
+        const url = Build.BTypes & BrowserType.Chrome && curTab ? curTab.url
+          : ((port as Port).s.i ? indexFrame(tabID, 0) as Port : port as Port).s.u;
+        if (!url.startsWith(BrowserProtocol_)
             || !!(Build.BTypes & BrowserType.Firefox)
                 && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-                && mainPort.s.u.startsWith(location.origin)) {
+                && url.startsWith(location.origin)) {
           /* empty */
         } else {
-          cPort = port as Port;
+          cPort = port as Port /* Port | null -> Port */;
           Backend_.showHUD_("Can not open a history of this tab");
           return;
         }
@@ -2330,24 +2371,33 @@ Are you sure you want to continue?`) ? count
         chrome.tabs.duplicate(tabID, function (tab): void {
           if (!tab) { return onRuntimeError(); }
           if (reuse === ReuseType.newBg) {
-            chrome.tabs.update(tabID, { active: true });
+            selectTab(tabID);
           }
           if (!(Build.BTypes & BrowserType.Chrome)
               || (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.Min$Tabs$$goBack)
                   && needToExecCode) {
-            chrome.tabs.executeScript(tab.id, {
-              code: `history.go(${count})`,
-              runAt: "document_start",
-            }, onRuntimeError);
+            execGoBack(tab, count);
           } else {
-            requestHandlers[kFgReq.framesGoBack]({ s: count, r: ReuseType.current }, tab.id);
+            requestHandlers[kFgReq.framesGoBack]({ s: count, r: ReuseType.current }, null, tab);
           }
         });
         return;
+      } else {
+        // Chrome + reuse=0: must be from a shortcut or Chrome is new enough
       }
       const jump = (count > 0 ? chrome.tabs.goForward : chrome.tabs.goBack) as NonNullable<typeof chrome.tabs.goBack>;
+      if (!jump) {
+        execGoBack(curTab as NonNullable<typeof curTab>, count);
+        return;
+      }
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
         jump(tabID, onRuntimeError);
+      }
+      function execGoBack(tab: Pick<Tab, "id">, goStep: number): void {
+        chrome.tabs.executeScript(tab.id, {
+          code: `history.go(${goStep})`,
+          runAt: "document_start",
+        }, onRuntimeError);
       }
     }
   ],
@@ -2714,15 +2764,21 @@ Are you sure you want to continue?`) ? count
         return this.setIcon_(tabId, newStatus);
       }
     },
-    ExecuteShortcut_ (this: void, cmd: kShortcutNames | kShortcutAliases & string): void {
+    ExecuteShortcut_ (this: void, cmd: string): void {
       const tabId = TabRecency_.last_, ports = framesForTab[tabId];
       if (cmd === kShortcutAliases.nextTab1) { cmd = kShortcutNames.nextTab; }
+      if (!(cmd in CommandsData_.shortcutMap_)) {
+        // normally, only userCustomized* and those from 3rd-party extensions will enter this branch
+        console.log("Shortcut %o has not been configured.", cmd);
+        return;
+      }
       if (ports == null || (ports[0].s.f & Frames.Flags.userActed) || tabId < 0) {
-        return executeShortcut(cmd, ports);
+        return executeShortcut(cmd as keyof typeof CommandsData_.shortcutMap_, ports);
       }
       ports && (ports[0].s.f |= Frames.Flags.userActed);
       chrome.tabs.get(tabId, function (tab): void {
-        executeShortcut(cmd as kShortcutNames, tab && tab.status === "complete" ? framesForTab[tab.id] : null);
+        executeShortcut(cmd as keyof typeof CommandsData_.shortcutMap_,
+          tab && tab.status === "complete" ? framesForTab[tab.id] : null);
         return onRuntimeError();
       });
     },
@@ -2799,8 +2855,8 @@ Are you sure you want to continue?`) ? count
         host: !(Build.BTypes & ~BrowserType.Chrome) ? "" : location.host,
         h: PortNameEnum.Delimiter + Settings_.CONST_.GitVer
       });
-    } else if (message.handler === kFgReq.command) {
-      executeExternalCmd(message, sender);
+    } else if (message.handler === kFgReq.shortcut) {
+      Backend_.ExecuteShortcut_(message.shortcut + "");
     }
   }), Settings_.postUpdate_("extWhiteList"));
 

@@ -28,6 +28,12 @@
     "createTab": {
       "description": "Create new tab"
     },
+    "goBack": {
+      "description": "Go back in history"
+    },
+    "goForward": {
+      "description": "Go forward in history"
+    },
     "previousTab": {
       "description": "Go one tab left"
     },
@@ -36,6 +42,12 @@
     },
     "reloadTab": {
       "description": "Reload tab"
+    },
+    "userCustomized1": {
+      "description": "Custom shortcut 1"
+    },
+    "userCustomized2": {
+      "description": "Custom shortcut 2"
     }
   },
   "content_scripts": [ {

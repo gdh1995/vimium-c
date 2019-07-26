@@ -306,6 +306,7 @@ declare namespace MediaNS {
 
 declare namespace SettingsNS {
   interface BackendSettings extends BaseBackendSettings {
+    acceptAllShortcuts: boolean;
     autoDarkMode: boolean;
     autoReduceMotion: boolean;
     dialogMode: boolean;
@@ -425,7 +426,7 @@ declare namespace BackendHandlersNS {
       (this: void, tabId: number): Frames.Frames | null;
       (this: void): Frames.FramesMap;
     };
-    ExecuteShortcut_ (this: void, command: kShortcutNames | kShortcutAliases & string): void;
+    ExecuteShortcut_ (this: void, command: string): void;
     onInit_: ((this: void) => void) | null;
   }
 }

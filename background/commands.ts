@@ -65,7 +65,7 @@ var Commands = {
       , userDefinedKeys = BgUtils_.safeObj_<true>()
       , mkReg = BgUtils_.safeObj_<string>();
     const a = this as typeof Commands, available = a.availableCommands_;
-    const colorRed = "color:red";
+    const colorRed = "color:red", shortcutLogPrefix = "Shortcut %c%s";
     lines = line.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     if (lines[0] !== "unmapAll" && lines[0] !== "unmapall") {
@@ -127,13 +127,15 @@ var Commands = {
         key = splitLine[1];
         if (splitLine.length < 3) {
           a.logError_("Lacking command name and options in shortcut:", line);
-        } else if ((Settings_.CONST_.GlobalCommands_ as Array<kShortcutNames | string>).indexOf(key) < 0) {
-          a.logError_("Shortcut %c%s", colorRed, key, "doesn't exist!");
+        } else if (!key.startsWith("userCustomized")
+            && (Settings_.CONST_.GlobalCommands_ as Array<kShortcutNames | string>).indexOf(key) < 0) {
+          a.logError_(shortcutLogPrefix, colorRed, key, "doesn't exist");
         } else if (key in cmdMap) {
-          a.logError_("Shortcut %c%s", colorRed, key, "has been configured");
+          a.logError_(shortcutLogPrefix, colorRed, key, "has been configured");
         } else {
-          cmdMap[key as kShortcutNames] = a.makeCommand_(key, a.getOptions_(splitLine, 2));
-          continue;
+          key = a.setupUserCustomized_(cmdMap, key as kShortcutNames, a.getOptions_(splitLine, 2));
+          if (!key) { continue; }
+          a.logError_(shortcutLogPrefix, colorRed, splitLine[1], key);
         }
       } else if (key !== "unmap") {
         a.logError_("Unknown mapping command: %c%s", colorRed, key, "in", line);
@@ -149,7 +151,7 @@ var Commands = {
       ++errors;
     }
     for (key of Settings_.CONST_.GlobalCommands_) {
-      if (!cmdMap[key as kShortcutNames]) {
+      if (!key.startsWith("user") && !cmdMap[key as kShortcutNames]) {
         cmdMap[key as kShortcutNames] = a.makeCommand_(key);
       }
     }
@@ -158,6 +160,15 @@ var Commands = {
     CommandsData_.mapKeyRegistry_ = mk > 0 ? mkReg : null;
     Settings_.temp_.cmdErrors_ = Settings_.temp_.cmdErrors_ > 0 ? ~errors : errors;
   }),
+  setupUserCustomized_ (cmdMap: Partial<ShortcutInfoMap>, key: kShortcutNames
+      , options: CommandsNS.Options | null): string {
+    let command: string = options && options.command, ret: 0 | 1 | 2 = command ? 1 : 0;
+    if (ret && (command in this.availableCommands_)) {
+      cmdMap[key] = this.makeCommand_(command, options);
+      ret = 2;
+    }
+    return ret < 1 ? 'requires a "command" option' : ret > 1 ? "" : "gets an unknown command";
+  },
   populateCommandKeys_: (function (this: void, detectNewError: boolean): void {
     const d = CommandsData_, ref = d.keyMap_ = BgUtils_.safeObj_<ValidKeyAction | ChildKeyMap>(),
     keyRe = BgUtils_.keyRe_,

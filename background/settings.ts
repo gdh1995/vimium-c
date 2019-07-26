@@ -379,6 +379,7 @@ var Settings_ = {
   // the default of all nullable fields must be set to null for compatibility with @Sync.set
   defaults_: {
     __proto__: null as never,
+    acceptAllShortcuts: false,
     autoDarkMode: true,
     autoReduceMotion: false,
     dialogMode: false,
