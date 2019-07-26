@@ -446,6 +446,7 @@ availableCommands_: { __proto__: null as never,
   toggleViewSource: [ kBgCmd.toggleViewSource, 1, 1 ],
   toggleVomnibarStyle: [ kBgCmd.toggleVomnibarStyle, 1, 1, { style: "dark" } ],
   closeDownloadBar: [ kBgCmd.moveTabToNewWindow, 1, 1, { all: 1 } ],
+  showTip: [ kBgCmd.showTip, 1, 1 ],
   visitPreviousTab: [ kBgCmd.visitPreviousTab, 1, 0 ]
 } as ReadonlySafeDict<CommandsNS.Description>
 },

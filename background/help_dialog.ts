@@ -375,6 +375,7 @@ var HelpDialog = {
     toggleViewSource: "View page source",
     toggleVomnibarStyle: "Toggle style(s) of vomnibar page (use style=dark, current)",
     closeDownloadBar: "Close the bottom download bar of Chrome elegantly",
+    showTip: "Show a tip on the HUD (use text=&lt;string&gt;)",
     visitPreviousTab: "Go to previously-visited tab on current window"
   } as ReadonlySafeDict<string>
 };

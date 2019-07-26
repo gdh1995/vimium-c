@@ -915,7 +915,7 @@ Are you sure you want to continue?`) ? count
     UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.CurWndTabs, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
-    UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab
+    UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab, UseTab.NoTab
   ],
   BackgroundCommands: {
     [K in kBgCmd & number]:
@@ -1755,7 +1755,11 @@ Are you sure you want to continue?`) ? count
     /* goBackFallback: */ Build.BTypes & BrowserType.Chrome ? function (tabs: [Tab]): void {
       if (!tabs.length) { return onRuntimeError(); }
       requestHandlers[kFgReq.framesGoBack]({ s: cRepeat, r: cOptions.reuse }, null, tabs[0]);
-    } : BgUtils_.blank_ as never
+    } : BgUtils_.blank_ as never,
+    /* showTip: */ function (this: void): void {
+      let text = cOptions.text;
+      Backend_.showHUD_(text ? text + "" : '"showTip" needs a "text" option');
+    }
   ],
   numHeadRe = <RegExpOne> /^-?\d+|^-/;
   function executeCommand(registryEntry: CommandsNS.Item
