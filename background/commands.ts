@@ -129,7 +129,7 @@ var Commands = {
           a.logError_("Lacking command name and options in shortcut:", line);
         } else if (!key.startsWith("userCustomized")
             && (Settings_.CONST_.GlobalCommands_ as Array<kShortcutNames | string>).indexOf(key) < 0) {
-          a.logError_(shortcutLogPrefix, colorRed, key, "doesn't exist");
+          a.logError_(shortcutLogPrefix, colorRed, key, "is not a valid name");
         } else if (key in cmdMap) {
           a.logError_(shortcutLogPrefix, colorRed, key, "has been configured");
         } else {
@@ -162,7 +162,8 @@ var Commands = {
   }),
   setupUserCustomized_ (cmdMap: Partial<ShortcutInfoMap>, key: kShortcutNames
       , options: CommandsNS.Options | null): string {
-    let command: string = options && options.command, ret: 0 | 1 | 2 = command ? 1 : 0;
+    let command: string = options && options.command || (key.startsWith("user") ? "" : key)
+      , ret: 0 | 1 | 2 = command ? 1 : 0;
     if (ret && (command in this.availableCommands_)) {
       cmdMap[key] = this.makeCommand_(command, options);
       ret = 2;
