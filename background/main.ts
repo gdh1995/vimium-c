@@ -2732,15 +2732,28 @@ Are you sure you want to continue?`) ? count
       const ref = framesForTab[tabId || (tabId = TabRecency_.last_)];
       if (!ref) { return; }
       act = act.toLowerCase() as Frames.ForcedStatusText;
+      let spaceInd = act.indexOf(" "), newPassedKeys = spaceInd > 0 ? act.slice(spaceInd + 1) : "";
+      if (spaceInd > 0) {
+        act = act.slice(0, spaceInd) as Frames.ForcedStatusText;
+      }
+      if (newPassedKeys && !newPassedKeys.startsWith("^ ")) {
+        console.log('"vimium://status" only accepts a list of hooked keys');
+        newPassedKeys = "";
+      }
       const always_enabled = Exclusions == null || Exclusions.rules_.length <= 0, oldStatus = ref[0].s.s,
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
-        : act === "toggle" ? oldStatus !== Frames.Status.enabled ? Frames.Status.enabled : Frames.Status.disabled
+        : act === "toggle" || act === "next"
+        ? oldStatus !== Frames.Status.enabled ? Frames.Status.enabled : Frames.Status.disabled
         : null,
       locked = stat !== null, unknown = !(locked || always_enabled),
-      msg: Req.bg<kBgReq.reset> = { N: kBgReq.reset, p: stat !== Frames.Status.disabled ? null : "", f: locked };
+      msg: Req.bg<kBgReq.reset> = {
+        N: kBgReq.reset,
+        p: stat !== Frames.Status.disabled ? null : newPassedKeys,
+        f: locked
+      };
       cPort = indexFrame(tabId, 0) || ref[0];
       if (stat === null && tabId < 0) {
-        oldStatus !== Frames.Status.disabled && this.showHUD_("Got an unknown action on status: " + act);
+        oldStatus !== Frames.Status.disabled && this.showHUD_("Got an unknown action of status: " + act);
         return;
       }
       let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.Status.enabled;
