@@ -2861,15 +2861,17 @@ Are you sure you want to continue?`) ? count
       executeExternalCmd({command: message}, sender);
     }
     else if (typeof message !== "object" || !message) { /* empty */ }
-    else if (message.handler === kFgReq.inject) {
+    else if (message.handler === kFgReq.shortcut) {
+      Backend_.ExecuteShortcut_(message.shortcut + "");
+    } else if (message.handler === kFgReq.inject) {
       (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
         s: message.scripts ? Settings_.CONST_.ContentScripts_ : null,
         version: Settings_.CONST_.VerCode_,
         host: !(Build.BTypes & ~BrowserType.Chrome) ? "" : location.host,
         h: PortNameEnum.Delimiter + Settings_.CONST_.GitVer
       });
-    } else if (message.handler === kFgReq.shortcut) {
-      Backend_.ExecuteShortcut_(message.shortcut + "");
+    } else if (message.handler === kFgReq.command) {
+      executeExternalCmd(message, sender);
     }
   }), Settings_.postUpdate_("extWhiteList"));
 

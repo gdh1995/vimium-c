@@ -31,7 +31,7 @@ var Commands = {
   makeCommand_ (command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description
       ): CommandsNS.Item {
     let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null;
-    if (!details) { details = Commands.availableCommands_[command] as CommandsNS.Description; }
+    if (!details) { details = this.availableCommands_[command] as CommandsNS.Description; }
     opt = details.length < 4 ? null : BgUtils_.safer_(details[3] as NonNullable<CommandsNS.Description[3]>);
     if (options) {
       if ("count" in options) {
@@ -227,9 +227,13 @@ var Commands = {
       ): void {
     let command = message.command;
     command = command ? command + "" : "";
-    if (!(command && this.availableCommands_[command])) { return; }
+    const description = command ? this.availableCommands_[command] : null;
+    if (!description) { return; }
     const port: Port | null = sender.tab ? Backend_.indexPorts_(sender.tab.id, sender.frameId || 0)
             || (Backend_.indexPorts_(sender.tab.id) || [null])[0] : null;
+    if (!port && !description[1]) { /** {@link bg.d.ts#CommandsNS.FgDescription} */
+      return;
+    }
     let options = message.options as CommandsNS.RawOptions | null | undefined
       , lastKey: kKeyCode | undefined = message.key
       , count = message.count as number | string | undefined;
