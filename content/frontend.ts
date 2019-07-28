@@ -240,6 +240,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         (InsertMode.grabBackFocus_ as Exclude<typeof InsertMode.grabBackFocus_, boolean>)(event, target);
         return;
       }
+      esc(HandlerResult.Nothing);
       InsertMode.lock_ = target;
       if (InsertMode.mutable_) {
         if (document.activeElement !== document.body) {
@@ -667,7 +668,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     isActive_ (): boolean {
       if (InsertMode.suppressType_) { return false; }
       let el: Element | null = InsertMode.lock_;
-      if (el !== null || InsertMode.global_) {
+      if (el || InsertMode.global_) {
         return true;
       }
       el = document.activeElement;
@@ -684,6 +685,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
  * * in slatejs.org, there's `[content-editable=true]` and `{-webkit-user-modify:*plaintext*}` for browser compatibility
  */
       if (el && (el as HTMLElement).isContentEditable === true) {
+        esc(HandlerResult.Nothing);
         InsertMode.lock_ = el as LockableElement;
         return true;
       } else {
@@ -1125,6 +1127,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
       if (request.S) { VDom.UI.css_(request.S); }
+      esc(HandlerResult.Nothing);
       const options: CmdOptions[O] | null = request.a;
       type Keys = keyof CmdOptions;
       type TypeToCheck = {

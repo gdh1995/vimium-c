@@ -105,6 +105,12 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       return secret;
     };
   })();
+  function setupSingletonCmdTimer(newTimer: number): void {
+    if (gCmdTimer) {
+      clearTimeout(gCmdTimer);
+    }
+    gCmdTimer = newTimer;
+  }
 
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
@@ -172,7 +178,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     }
     return tabs[0] as ActiveTab;
   }
-  function fixTabsIndexes(tabs: Tab[]): Tab[] {
+  function fixTabsIndexes(tabs: Tab[]): void {
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
       const len = tabs.length;
@@ -182,7 +188,6 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         }
       }
     }
-    return tabs;
   }
   function newTabIndex(this: void, tab: Readonly<Tab>, pos: OpenUrlOptions["position"]): number | undefined {
     return pos === "before" ? tab.index : pos === "start" ? 0
@@ -381,13 +386,13 @@ var Backend_: BackendHandlersNS.BackendHandlers;
   function confirm_(this: void, command: string, count: number): number {
     let msg = CommandsData_.cmdDescriptions_[command];
     msg = (msg as NonNullable<typeof msg>).replace(<RegExpOne> / \(use .*|&nbsp\(.*|<br\/>/, "");
-    let now = Date.now();
-    return window.confirm(
+    msg =
 `You have asked Vimium C to perform ${count} repeats of the command:
       ${BgUtils_.unescapeHTML_(msg)}
 
-Are you sure you want to continue?`) ? count
-        : Math.abs(Date.now() - now) > 5 ? 0
+Are you sure you want to continue?`;
+    const now = Date.now(), result = window.confirm(msg);
+    return Math.abs(Date.now() - now) > 9 ? result ? count : 0
         : (Build.NDEBUG || console.log("A confirmation dialog may fail in showing."), 1);
   }
   function requireURL <k extends keyof FgReq>(request: Req.fg<k> & BgReq[kBgReq.url], ignoreHash?: true): void {
@@ -865,10 +870,7 @@ Are you sure you want to continue?`) ? count
     }
   }
   function executeShortcut(shortcutName: kShortcutNames, ports: Frames.Frames | null | undefined): void {
-    if (gCmdTimer) {
-      clearTimeout(gCmdTimer);
-      gCmdTimer = 0;
-    }
+    setupSingletonCmdTimer(0);
     if (!ports) {
       let registry = CommandsData_.shortcutMap_[shortcutName], cmdName = registry.command_,
       cmdFallback: kBgCmd & number = 0;
