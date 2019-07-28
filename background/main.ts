@@ -1,5 +1,8 @@
 var Backend_: BackendHandlersNS.BackendHandlers;
 (function () {
+  interface LatestPromise extends Promise<void> {
+    finally (onFinally: (() => void) | Promise<void>): LatestPromise;
+  }
   type Tab = chrome.tabs.Tab;
   type Window = chrome.windows.Window;
   interface IncNormalWnd extends Window {
@@ -89,7 +92,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, cRepeat: number = 1,
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: kKeyCode = kKeyCode.None,
-  _removeTempTabLock: Promise<void> | null | 0 = Build.BTypes & BrowserType.Firefox ? null : 0, // only for Firefox
+  _lockToRemoveTempTab: {p: LatestPromise} | null | 0 = Build.BTypes & BrowserType.Firefox ? null : 0,
   gCmdTimer = 0, gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone;
   const getSecret = (function (this: void): (this: void) => number {
     let secret = 0, time = 0;
@@ -2441,7 +2444,7 @@ Are you sure you want to continue?`) ? count
       } else if (Build.BTypes & ~BrowserType.Chrome && Build.MayOverrideNewTab
           && type === PortType.CloseSelf) {
         if (tabId >= 0 && !sender.i) {
-          removeTempNewTab(tabId, port);
+          removeTempNewTab(tabId, ((port as chrome.runtime.Port).sender.tab as chrome.tabs.Tab).windowId);
         }
         return;
       } else {
@@ -2584,31 +2587,24 @@ Are you sure you want to continue?`) ? count
     };
   }
 
-  function removeTempNewTab(tabId: number, port: chrome.runtime.Port): void {
-    let wndId = (port.sender.tab as chrome.tabs.Tab).windowId;
-    if (_removeTempTabLock) {
-      _removeTempTabLock.then(_removeTempNewTab.bind(null, tabId, wndId));
-    } else {
-      interface LatestPromise extends Promise<void> {
-        finally (onFinally: () => void): LatestPromise;
-      }
-      _removeTempTabLock = (_removeTempNewTab(tabId, wndId) as LatestPromise).finally(function (): void {
-        _removeTempTabLock = null;
-      });
-    }
+  function removeTempNewTab(tabId: number, wndId: number): void {
+    let lock: Partial<typeof _lockToRemoveTempTab> = {},
+    p = _removeTempNewTab(tabId, wndId, lock);
+    lock.p = _lockToRemoveTempTab ? _lockToRemoveTempTab.p.finally(p) : p as LatestPromise;
+    _lockToRemoveTempTab = lock as EnsureItemsNonNull<typeof lock>;
   }
 
-  function _removeTempNewTab(tabId: number, windowId: number): Promise<void> {
-    let promise = chrome.tabs.remove(tabId) as never as Promise<void>;
-    promise = promise.then(function () {
-      return chrome.sessions.getRecentlyClosed({ maxResults: 1 });
-    }).then(function (sessions: chrome.sessions.Session[]): void {
-      const tab = sessions && sessions[0] && sessions[0].tab;
-      if (tab && Settings_.newTabs_[tab.url] === Urls.NewTabType.vimium) {
-        chrome.sessions.forgetClosedTab(windowId, tab.sessionId as string);
-      }
-    });
-    return promise;
+  async function _removeTempNewTab(tabId: number, windowId: number, selfLock: object): Promise<void> {
+    await (chrome.tabs.remove(tabId) as never as Promise<void>).catch(BgUtils_.blank_);
+    const sessions = await chrome.sessions.getRecentlyClosed({ maxResults: 1 }),
+    tab = sessions && sessions[0] && sessions[0].tab;
+    if (tab && Settings_.newTabs_[tab.url] === Urls.NewTabType.vimium) {
+        await chrome.sessions.forgetClosedTab(windowId, tab.sessionId as string).catch(BgUtils_.blank_);
+    }
+    if (_lockToRemoveTempTab === selfLock) {
+      _lockToRemoveTempTab = null;
+      return;
+    }
   }
 
   Backend_ = {

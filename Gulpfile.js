@@ -1029,7 +1029,7 @@ function createBuildConfigCache() {
   }
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
   outputES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
-  compilerOptions.target = outputES6 ? "es6" : "es5";
+  compilerOptions.target = outputES6 ? !(btypes & BrowserType.Chrome) ? "es2017" : "es6" : "es5";
 }
 
 function getNonNullBuildItem(key) {

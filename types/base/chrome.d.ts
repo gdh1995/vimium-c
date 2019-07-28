@@ -1791,7 +1791,7 @@ declare namespace chrome.sessions {
     export function restore(sessionId?: string | null, callback?: (restoredSession: Session, exArg: FakeArg) => void): 1;
 
     /** only on Firefox */
-    export function forgetClosedTab(windowId: number, sessionId: string): 1;
+    export function forgetClosedTab(windowId: number, sessionId: string): Promise<void>;
 
     /** Fired when recently closed tabs and/or windows are changed. This event does not monitor synced sessions changes. */
     export var onChanged: SessionChangedEvent;
