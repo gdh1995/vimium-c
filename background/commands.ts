@@ -223,7 +223,7 @@ var Commands = {
     ++Settings_.temp_.cmdErrors_;
   },
   execute_ (message: Partial<ExternalMsgs[kFgReq.command]["req"]> , sender: chrome.runtime.MessageSender
-      , exec: (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port) => void
+      , exec: (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port, oCount: number) => void
       ): void {
     let command = message.command;
     command = command ? command + "" : "";
@@ -241,7 +241,7 @@ var Commands = {
     options && typeof options === "object" ?
         BgUtils_.safer_(options) : (options = null);
     lastKey = 0 | <number> lastKey;
-    return exec(this.makeCommand_(command, options), count, lastKey, port as Port);
+    return exec(this.makeCommand_(command, options), count, lastKey, port as Port, 0);
   },
 
 defaultKeyMappings_: [

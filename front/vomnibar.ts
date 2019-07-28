@@ -822,7 +822,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     }
     setTimeout(a.blurred_, 50, null);
     if (!blurred) {
-      VPort_.post_({ H: kFgReq.cmd, c: "", n: 1, i: -1 });
+      VPort_.post_({ H: kFgReq.cmd, c: "", n: 1, i: -1, r: 0 });
       if (a.pageType_ === VomnibarNS.PageType.ext && VPort_) {
         setTimeout(function (): void {
           VPort_ && !VPort_._port && VPort_.postToOwner_({ N: VomnibarNS.kFReq.broken });

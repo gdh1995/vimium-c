@@ -1152,9 +1152,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       req.t ? req.c ? HUD.copied_(req.t) : HUD.tip_(req.t) : 0;
     },
     /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
-      const n = parseInt(currentKeys, 10) || 1;
+      let n = parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0;
       esc(HandlerResult.Nothing);
-      post({ H: kFgReq.cmd, c: request.c, n, i: request.i});
+      if (Build.BTypes & ~BrowserType.Chrome && request.m) {
+        const now = Date.now(), result = window.confirm(request.m);
+        count2 = Math.abs(Date.now() - now) > 9 ? result ? 3 : 1 : 2;
+      }
+      post({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
     },
     /* kBgReq.showHelpDialog: */
   function ({ h: html, a: shouldShowAdvanced, o: optionUrl, S: CSS }: Req.bg<kBgReq.showHelpDialog>): void {

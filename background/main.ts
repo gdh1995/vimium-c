@@ -90,6 +90,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
 
   /** any change to `cRepeat` should ensure it won't be `0` */
   let cOptions: CommandsNS.Options = null as never, cPort: Frames.Port = null as never, cRepeat: number = 1,
+  cNeedConfirm: BOOL = 1, gOnConfirmCallback: ((arg: FakeArg) => void) | null = null,
   _fakeTabId: number = GlobalConsts.MaxImpossibleTabId,
   needIcon = false, cKey: kKeyCode = kKeyCode.None,
   _lockToRemoveTempTab: {p: LatestPromise} | null | 0 = Build.BTypes & BrowserType.Firefox ? null : 0,
@@ -383,7 +384,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       : pos ? [current, total] : [0, current + 1] // limited
       ;
   }
-  function confirm_(this: void, command: string, count: number): number {
+  function confirm_(this: void, command: string, count: number
+      , callback?: (_arg: FakeArg) => void): number | void {
     let msg = CommandsData_.cmdDescriptions_[command];
     msg = (msg as NonNullable<typeof msg>).replace(<RegExpOne> / \(use .*|&nbsp\(.*|<br\/>/, "");
     msg =
@@ -391,9 +393,32 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       ${BgUtils_.unescapeHTML_(msg)}
 
 Are you sure you want to continue?`;
+    if (Build.BTypes & ~BrowserType.Chrome) {
+      gOnConfirmCallback = callback as NonNullable<typeof callback>;
+      setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0));
+      cPort ? (indexFrame(cPort.s.t, 0) || cPort).postMessage({
+        N: kBgReq.count,
+        c: "",
+        i: gCmdTimer,
+        m: msg,
+      }) : onConfirm(1);
+      return;
+    }
     const now = Date.now(), result = window.confirm(msg);
     return Math.abs(Date.now() - now) > 9 ? result ? count : 0
         : (Build.NDEBUG || console.log("A confirmation dialog may fail in showing."), 1);
+  }
+  function onConfirm(response: Exclude<FgReq[kFgReq.cmd]["r"], null | undefined | 0>): void {
+    let callback = gOnConfirmCallback;
+    gOnConfirmCallback = null;
+    if (response > 1 && callback) {
+      if (response < 3) {
+        cRepeat = cRepeat > 0 ? 1 : -1;
+      }
+      cNeedConfirm = 0;
+      (callback as () => void)();
+      cNeedConfirm = 1;
+    }
   }
   function requireURL <k extends keyof FgReq>(request: Req.fg<k> & BgReq[kBgReq.url], ignoreHash?: true): void {
     if (Exclusions == null || Exclusions.rules_.length <= 0
@@ -901,12 +926,12 @@ Are you sure you want to continue?`;
               (1 << kBgCmd.showHelp)
             ) >> registry.alias_) & 1
           )) {
-        executeCommand(registry, 1, kKeyCode.None, null as never as Port);
+        executeCommand(registry, 1, kKeyCode.None, null as never as Port, 0);
       }
       return;
     }
-    gCmdTimer = setTimeout(executeShortcut, 100, shortcutName, null);
-    ports[0].postMessage({ N: kBgReq.count, c: shortcutName, i: gCmdTimer });
+    setupSingletonCmdTimer(setTimeout(executeShortcut, 100, shortcutName, null));
+    ports[0].postMessage({ N: kBgReq.count, c: shortcutName, i: gCmdTimer, m: "" });
   }
   const
   BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
@@ -986,8 +1011,17 @@ Are you sure you want to continue?`;
         } else {
           range = getTabRange(activeTabIndex, total), count = range[1] - range[0];
           if (count >= total) { return Backend_.showHUD_("It does nothing to move all tabs of this window"); }
-          if (count > 30 && !(count = confirm_("moveTabToNewWindow", count))) { return; }
-          if (count < 2) { range = [activeTabIndex, activeTabIndex + 1]; }
+          if (count > 30) {
+            if (Build.BTypes & ~BrowserType.Chrome) {
+              if (cNeedConfirm) {
+                confirm_("moveTabToNewWindow", count, moveTabToNewWindow0.bind(null, wnd));
+                return;
+              }
+            } else {
+              if (!(count = confirm_("moveTabToNewWindow", count) as number)) { return; }
+              if (count < 2) { range = [activeTabIndex, activeTabIndex + 1]; }
+            }
+          }
         }
         return makeWindow({
           tabId: tabs[firstMoved].id,
@@ -1166,8 +1200,15 @@ Are you sure you want to continue?`;
         }
         const range = getTabRange(i, total - skipped, total);
         count = range[1] - range[0];
-        if (count > 20 && !(count = confirm_("removeTab", count))) {
-          return;
+        if (count > 20) {
+          if (Build.BTypes & ~BrowserType.Chrome) {
+            if (cNeedConfirm) {
+              confirm_("removeTab", count, BackgroundCommands[kBgCmd.removeTab].bind(null, tabs));
+              return;
+            }
+          } else if (!(count = confirm_("removeTab", count) as number)) {
+            return;
+          }
         }
         if (count > 1) {
           start = skipped + range[0], end = skipped + range[1];
@@ -1244,7 +1285,16 @@ Are you sure you want to continue?`;
       }
       let current = selectFrom(tabs, 1).index, end = Math.max(0, Math.min(current + cRepeat, tabs.length - 1)),
       count = Math.abs(end - current), step = end > current ? 1 : -1;
-      count > 20 && (count = confirm_("discardTab", count));
+      if (count > 20) {
+        if (Build.BTypes & ~BrowserType.Chrome) {
+          if (cNeedConfirm) {
+            confirm_("discardTab", count, BackgroundCommands[kBgCmd.discardTab].bind(null, tabs));
+            return;
+          }
+        } else {
+          count = confirm_("removeTab", count) as number;
+        }
+      }
       if (!count) {
         return;
       }
@@ -1316,11 +1366,18 @@ Are you sure you want to continue?`;
       }
       end = wantedTabIds.length;
       if (end > 30) {
-        if (!(end = confirm_("togglePinTab", end))) {
-          return;
-        }
-        if (end === 1) {
-          wantedTabIds = [tab.id];
+        if (Build.BTypes & ~BrowserType.Chrome) {
+          if (cNeedConfirm) {
+            confirm_("togglePinTab", end, BackgroundCommands[kBgCmd.togglePinTab].bind(null, tabs));
+            return;
+          }
+        } else {
+          if (!(end = confirm_("togglePinTab", end) as number)) {
+            return;
+          }
+          if (end === 1) {
+            wantedTabIds = [tab.id];
+          }
         }
       }
       for (start = 0; start < end; start++) {
@@ -1381,11 +1438,18 @@ Are you sure you want to continue?`;
       }
       let count = end - start;
       if (count > 20) {
-        if (!(count = confirm_("reloadTab", count))) {
-          return;
-        }
-        if (count === 1) {
-          start = ind, end = ind + 1;
+        if (Build.BTypes & ~BrowserType.Chrome) {
+          if (cNeedConfirm) {
+            confirm_("reloadTab", end, BackgroundCommands[kBgCmd.reloadTab].bind(null, tabs));
+            return;
+          }
+        } else {
+          if (!(count = confirm_("reloadTab", count) as number)) {
+            return;
+          }
+          if (count === 1) {
+            start = ind, end = ind + 1;
+          }
         }
       }
       chrome.tabs.reload(tabs[ind].id, reloadProperties);
@@ -1767,18 +1831,31 @@ Are you sure you want to continue?`;
     }
   ],
   numHeadRe = <RegExpOne> /^-?\d+|^-/;
+  function onLargeCountConfirmed (this: CommandsNS.Item) {
+    executeCommand(this, 1, cKey, cPort, cRepeat);
+  }
   function executeCommand(registryEntry: CommandsNS.Item
-      , count: number, lastKey: kKeyCode, port: Port): void {
+      , count: number, lastKey: kKeyCode, port: Port, overriddenCount: number): void {
     const { options_: options, repeat_: repeat } = registryEntry;
     let scale: number | undefined;
     if (options && (scale = options.count)) { count = count * scale; }
-    count = count >= GlobalConsts.CommandCountLimit + 1 ? GlobalConsts.CommandCountLimit
-      : count <= -GlobalConsts.CommandCountLimit - 1 ? -GlobalConsts.CommandCountLimit
-      : (count | 0) || 1;
+    count = Build.BTypes & ~BrowserType.Chrome && overriddenCount
+      || (count >= GlobalConsts.CommandCountLimit + 1 ? GlobalConsts.CommandCountLimit
+          : count <= -GlobalConsts.CommandCountLimit - 1 ? -GlobalConsts.CommandCountLimit
+          : (count | 0) || 1);
     if (count === 1) { /* empty */ }
     else if (repeat === 1) { count = 1; }
     else if (repeat > 0 && (count > repeat || count < -repeat)) {
-      count = confirm_(registryEntry.command_, Math.abs(count)) * (count < 0 ? -1 : 1);
+      if (Build.BTypes & ~BrowserType.Chrome) {
+        if (!overriddenCount) {
+          cKey = lastKey;
+          cPort = port;
+          confirm_(registryEntry.command_, Math.abs(cRepeat = count), onLargeCountConfirmed.bind(registryEntry));
+          return;
+        }
+      } else {
+        count = (confirm_(registryEntry.command_, Math.abs(count)) as number) * (count < 0 ? -1 : 1);
+      }
       if (!count) { return; }
     } else { count = count || 1; }
     if (!registryEntry.background_) {
@@ -2265,7 +2342,7 @@ Are you sure you want to continue?`;
       }
       const registryEntry = ref[key] as CommandsNS.Item;
       BgUtils_.resetRe_();
-      return executeCommand(registryEntry, count, request.l, port);
+      executeCommand(registryEntry, count, request.l, port, 0);
     },
     /** marks: */ function (this: void, request: FgReq[kFgReq.marks], port: Port): void {
       cPort = port;
@@ -2297,12 +2374,13 @@ Are you sure you want to continue?`;
     /** cmd: */ function (this: void, request: FgReq[kFgReq.cmd], port: Port): void {
       const cmd = request.c, id = request.i;
       if (id >= -1 && gCmdTimer !== id) { return; } // an old / aborted / test message
-      if (gCmdTimer) {
-        clearTimeout(gCmdTimer);
-        gCmdTimer = 0;
+      setupSingletonCmdTimer(0);
+      if (request.r) {
+        onConfirm(request.r);
+        return;
       }
-      return executeCommand(CommandsData_.shortcutMap_[cmd as Exclude<typeof cmd, "">]
-          , request.n, kKeyCode.None, port);
+      executeCommand(CommandsData_.shortcutMap_[cmd as Exclude<typeof cmd, "">]
+          , request.n, kKeyCode.None, port, 0);
     },
     /** removeSug: */ function (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void {
       return Backend_.removeSug_(req, port);

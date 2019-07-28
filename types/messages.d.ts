@@ -121,9 +121,10 @@ interface BgReq {
     /** url */ u: string; // a javascript: URL
   } & Req.baseBg<kBgReq.eval>;
   [kBgReq.count]: {
-    /** cmd */ c: kShortcutNames;
+    /** cmd */ c: kShortcutNames | "";
     /** id */ i: number;
-  }
+    /** message-in-confirmation-dialog */ m: string;
+  };
 }
 
 /** Note: should have NO names which may be uglified */
@@ -408,10 +409,9 @@ interface FgReq {
    * .url is guaranteed to be well formatted by frontend
    */
   [kFgReq.focusOrLaunch]: MarksNS.FocusOrLaunch;
-  [kFgReq.cmd]: {
-    /** cmd */ c: kShortcutNames | "";
+  [kFgReq.cmd]: Pick<BgReq[kBgReq.count], "c" | "i"> & {
     /** count */ n: number;
-    /** id */ i: number;
+    /** confirmation-response */ r: 0 | 1 | 2 | 3;
   };
   [kFgReq.removeSug]: {
     /** type */ t: "tab" | "history";
