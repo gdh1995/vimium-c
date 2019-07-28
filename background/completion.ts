@@ -120,21 +120,21 @@ const Suggestion: SuggestionConstructor = function (
     type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
     computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number, extraData: number
     ) {
-  this.type_ = type;
-  this.url_ = url;
-  this.text_ = text;
+  this.e = type;
+  this.u = url;
+  this.t = text;
   this.title = title;
-  (this as Suggestion).relevancy_ = computeRelevancy(this, extraData);
+  (this as Suggestion).r = computeRelevancy(this, extraData);
 } as any;
 
 function prepareHtml(sug: Suggestion): void {
   if (sug.textSplit != null) {
-    if (sug.text_ === sug.url_) { sug.text_ = ""; }
+    if (sug.t === sug.u) { sug.t = ""; }
     return;
   }
   sug.title = cutTitle(sug.title);
-  const text = sug.text_, str = shortenUrl(text);
-  sug.text_ = text.length !== sug.url_.length ? str : "";
+  const text = sug.t, str = shortenUrl(text);
+  sug.t = text.length !== sug.u.length ? str : "";
   sug.textSplit = cutUrl(str, getMatchRanges(str), text.length - str.length
     , singleLine ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
 }
@@ -235,7 +235,7 @@ function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, max
   }
 }
 function ComputeWordRelevancy(this: void, suggestion: CompletersNS.CoreSuggestion): number {
-  return RankingUtils.wordRelevancy_(suggestion.text_, suggestion.title);
+  return RankingUtils.wordRelevancy_(suggestion.t, suggestion.title);
 }
 function ComputeRelevancy(this: void, text: string, title: string, lastVisitTime: number): number {
   const recencyScore = RankingUtils.recencyScore_(lastVisitTime),
@@ -299,10 +299,10 @@ const bookmarkEngine = {
       const sug = new Suggestion("bookm", i.url_, i.text_, isPath ? i.path_ : i.title_, get2ndArg, -score);
       results2.push(sug);
       if (i.jsUrl_ === null) { continue; }
-      (sug as CompletersNS.WritableCoreSuggestion).url_ = (i as JSBookmark).jsUrl_;
+      (sug as CompletersNS.WritableCoreSuggestion).u = (i as JSBookmark).jsUrl_;
       sug.title = cutTitle(sug.title);
       sug.textSplit = "javascript: \u2026";
-      sug.text_ = (i as JSBookmark).jsText_;
+      sug.t = (i as JSBookmark).jsText_;
     }
     Completers.next_(results2, SugType.bookmark);
   },
@@ -574,7 +574,7 @@ historyEngine = {
     const u = e.url, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title || "",
       get2ndArg, (99 - i) / 100),
     sessionId = e.sessionId;
-    sessionId && (o.sessionId_ = sessionId, o.label = "&#8617;");
+    sessionId && (o.s = sessionId, o.label = "&#8617;");
     arr[i] = o;
   },
   urlNotIn_ (this: Dict<number>, i: chrome.history.HistoryItem): boolean {
@@ -749,13 +749,13 @@ tabEngine = {
       suggestion = new Suggestion("tab", tab.url, text, tab.title,
           c, treeMode ? ++ind : tabId) as CompletersNS.TabSuggestion;
       if (curTabId === tabId) {
-        treeMode || (suggestion.relevancy_ = 1);
+        treeMode || (suggestion.r = 1);
         id = `#(${id.slice(1)})`;
       }
       if (level > 1) {
         suggestion.level = " level-" + level;
       }
-      suggestion.sessionId_ = tabId;
+      suggestion.s = tabId;
       suggestion.label = id;
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
@@ -774,7 +774,7 @@ tabEngine = {
     } else if (offset > 0) {
       suggestions = suggestions.slice(offset).concat(suggestions.slice(0, maxResults + offset - suggestions.length));
       for (let i = 0, len = suggestions.length, score = len; i < len; i++) {
-        suggestions[i].relevancy_ = score--;
+        suggestions[i].r = score--;
       }
       offset = 0;
     }
@@ -869,17 +869,17 @@ searchEngine = {
       , pattern.name_ + ": " + q.join(" "), get2ndArg, 9) as SearchSuggestion;
 
     if (q.length > 0) {
-      sug.text_ = searchEngine.makeText_(text, indexes);
-      sug.textSplit = highlight(sug.text_, indexes);
+      sug.t = searchEngine.makeText_(text, indexes);
+      sug.textSplit = highlight(sug.t, indexes);
       sug.title = highlight(sug.title, [pattern.name_.length + 2, sug.title.length]);
-      sug.visited_ = !!HistoryCache.history_ && HistoryCache.binarySearch_(url) >= 0;
+      sug.v = !!HistoryCache.history_ && HistoryCache.binarySearch_(url) >= 0;
     } else {
-      sug.text_ = BgUtils_.DecodeURLPart_(shortenUrl(text));
-      sug.textSplit = BgUtils_.escapeText_(sug.text_);
+      sug.t = BgUtils_.DecodeURLPart_(shortenUrl(text));
+      sug.textSplit = BgUtils_.escapeText_(sug.t);
       sug.title = BgUtils_.escapeText_(sug.title);
-      sug.visited_ = false;
+      sug.v = false;
     }
-    sug.pattern_ = pattern.name_;
+    sug.p = pattern.name_;
 
     if (!promise) {
       return Completers.next_([sug], SugType.search);
@@ -893,7 +893,7 @@ searchEngine = {
       return Completers.next_([output], SugType.search);
     }
     const sug = new Suggestion("math", "vimium://copy " + result, result, result, get2ndArg, 9);
-    --sug.relevancy_;
+    --sug.r;
     sug.title = `<match style="text-decoration: none;">${BgUtils_.escapeText_(sug.title)}<match>`;
     sug.textSplit = BgUtils_.escapeText_(arr[2]);
     maxResults--;
@@ -934,9 +934,9 @@ searchEngine = {
     isSearch = BgUtils_.lastUrlType_ === Urls.Type.Search,
     sug = new Suggestion("search", url, text || BgUtils_.DecodeURLPart_(shortenUrl(url))
       , "", get2ndArg, 9) as SearchSuggestion;
-    sug.textSplit = BgUtils_.escapeText_(sug.text_);
+    sug.textSplit = BgUtils_.escapeText_(sug.t);
     sug.title = isSearch ? "~: " + highlight(keyword, [0, keyword.length]) : BgUtils_.escapeText_(keyword);
-    sug.pattern_ = isSearch ? "~" : "";
+    sug.p = isSearch ? "~" : "";
     return sug;
   },
   BuildSearchKeywords_ (): void {
@@ -1093,7 +1093,7 @@ Completers = {
     rawMore = str;
     queryType = FirstQuery.waitFirst;
   },
-  rsortByRelevancy_ (a: Suggestion, b: Suggestion): number { return b.relevancy_ - a.relevancy_; }
+  rsortByRelevancy_ (a: Suggestion, b: Suggestion): number { return b.r - a.r; }
 },
 knownCs: CompletersMap & SafeObject = {
   __proto__: null as never,

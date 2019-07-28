@@ -49,30 +49,30 @@ declare namespace CompletersNS {
   }
 
   interface WritableCoreSuggestion {
-    type_: ValidSugTypes;
-    url_: string;
+    /** enumType */ e: ValidSugTypes;
+    /** url */ u: string;
     title: string; // used by vomnibar.html
-    text_: string;
+    /** text */ t: string;
   }
 
   type CoreSuggestion = Readonly<WritableCoreSuggestion>;
 
   interface BaseSuggestion extends CoreSuggestion {
-    text_: string;
+    t: string;
     textSplit?: string;
     title: string;
-    sessionId_?: string | number;
+    /** sessionId */ s?: string | number;
     label?: string;
-    visited_?: boolean;
+    /** visited */ v?: boolean;
     favIcon?: string;
   }
   interface Suggestion extends BaseSuggestion {
-    relevancy_: number;
+    /** relevancy */ r: number;
   }
   interface SearchSuggestion extends Suggestion {
-    type_: "search";
+    e: "search";
     // not empty
-    pattern_: string;
+    /** pattern */ p: string;
   }
   interface TabSuggestion extends Suggestion {
     level?: string;
