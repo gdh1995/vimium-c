@@ -3,7 +3,7 @@
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.76.1](https://img.shields.io/badge/release-1.76.1-orange.svg
+[![Version 1.76.2](https://img.shields.io/badge/release-1.76.2-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -60,7 +60,22 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.76.2 (not released yet):
+1.76.2:
+* fix a regression "Custom CSS" could not work on Vomnibar ([#57](https://github.com/gdh1995/vimium-c/issues/57))
+* add a new feature to support user-customized shortcuts ([#55 (comment)](
+      https://github.com/gdh1995/vimium-c/issues/55#issuecomment-515323624))
+  * add 4 shortcuts, and 2 items are to go in a tab's history list, and the other 2 are for user to customize
+* support  `vimium://status toggle ["^" ...hooked-keys]` to switch between "enabled" mode and "exclusion-matched" mode
+  * for example, `map <a-s-v> openUrl url="vimium://status\u0020toggle\u0020^\u0020<a-s-v>"`
+    will make <kbd>`<a-s-v>`</kbd> a shortcut to enable Vimium C or disable Vimium C (almost) completely
+  * if you have configured global shortcuts, then
+   `shortcut userCustomized1 command="openUrl" url="vimium://status\u0020toggle\u0020^\u0020<a-s-v>"`
+   will make the shortcut a convenient switch button of Vimium C's working status
+* `goBack` now tries its best to simulate the feature of "duplicate-and-go-back" on older versions of Chrome (before 72)
+* the behavior of `removeTab goto=previous` is changed, and the new logic is simpler and easier to use
+* now mapped <kbd>`<esc>`</kbd> and <kbd>`<escape>`</kbd> keys work the same as native <kbd>`<esc>`</kbd> keys
+* LinkHints: now <kbd>`<c-f2>`</kbd> will hint all elements with non-null "onclick" properties
+* Firefox: now can show a confirmation dialog if a command count is too large
 * fix a bug of parsing failures if a line in key mapping rules ends with the <kbd>\\</kbd> character
 
 1.76.1 for Firefox:

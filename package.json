@@ -1,6 +1,6 @@
 {
   "name": "vimium-c",
-  "version": "1.76.1",
+  "version": "1.76.2",
   "description": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts",
   "private": true,
   "config": {
@@ -22,7 +22,7 @@
     "gulp-sourcemaps": "*",
     "gulp-typescript": "*",
     "gulp-uglify": ">=3",
-    "terser": "^3.14.0",
+    "terser": "^3.10.13",
     "tslint": "^5.18.0",
     "typescript-tslint-plugin": "^0.5.3"
   },
