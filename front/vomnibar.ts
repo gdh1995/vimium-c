@@ -1047,11 +1047,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     let str: string | undefined;
     item.r = Vomnibar_.showRelevancy_ ? `\n\t\t\t<span class="relevancy">${item.r}</span>` : "";
     (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
-    if (Build.BTypes & BrowserType.Firefox) {
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)) {
       if (item.favIcon) {
         item.favIcon = Vomnibar_._favPrefix + VUtils_.escapeCSSStringInAttr_(item.favIcon) + "&quot;);";
-        return;
       }
+      return;
     }
     item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.u : "") && Vomnibar_._favPrefix +
         ((str = Vomnibar_._parseFavIcon(item, str)) ? VUtils_.escapeCSSStringInAttr_(str) : "about:blank") + "&quot;);";
