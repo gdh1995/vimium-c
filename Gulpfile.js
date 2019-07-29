@@ -1298,22 +1298,34 @@ function loadNameCache(path) {
   return nameCache || { vars: {}, props: {}, timestamp: 0 };
 }
 
-var _randMap;
-function getRandom(id, literalVal) {
+var _randMap, _randSeed;
+function getRandom(id) {
   var rand = _randMap ? _randMap[id] : 0;
   if (rand) {
     if ((typeof rand === "string") === locally) {
       return rand;
     }
   }
-  _randMap || (_randMap = {});
+  if (!_randMap) {
+    _randMap = {};
+    _randSeed = `${osPath.resolve(__dirname).replace(/\\/g, "/")}@${parseInt(fs.statSync("manifest.json").mtimeMs)}/`;
+    var rng;
+    if (!locally) {
+      try {
+        rng = require('seedrandom');
+      } catch (e) {}
+    }
+    if (rng) {
+      _randSeed = rng = rng(_randSeed);
+    }
+  }
   if (!locally) {
     while (!rand || Object.values(_randMap).includes(rand)) {
       /** {@see #GlobalConsts.SecretRange} */
-      rand = 1e6 + (0 | (Math.random() * 9e6));
+      rand = 1e6 + (0 | ((typeof _randSeed === "function" ? _randSeed() : Math.random()) * 9e6));
     }
   } else {
-    var hash = osPath.resolve(__dirname) + "/" + (id.toLowerCase() !== 'random' ? id : "") + "=" + literalVal;
+    var hash = _randSeed + id;
     hash = compute_hash(hash);
     hash = hash.slice(0, 7);
     rand = hash;

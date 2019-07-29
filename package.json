@@ -22,6 +22,7 @@
     "gulp-sourcemaps": "*",
     "gulp-typescript": "*",
     "gulp-uglify": ">=3",
+    "seedrandom": ">=3.0.1",
     "terser": "^3.10.13",
     "tslint": "^5.18.0",
     "typescript-tslint-plugin": "^0.5.3"
