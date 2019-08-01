@@ -409,7 +409,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
       else if (!focused) { /* empty */ }
-      else if (n > kKeyCode.A && n < kKeyCode.G && n !== kKeyCode.C || n === kKeyCode.backspace) {
+      else if (n > kKeyCode.A && n < kKeyCode.G && n !== kKeyCode.C || n === kKeyCode.backspace && event.altKey) {
         return a.onBashAction_(n - kKeyCode.maxNotAlphabet);
       }
       if (event.altKey) { a.keyResult_ = HandlerResult.Nothing; return; }
@@ -1221,7 +1221,6 @@ VPort_ = {
     type Res = VomnibarNS.CReq;
     let name: keyof VomnibarNS.CReq = typeof data === "number" ? data : (data as VomnibarNS.Msg<keyof Res>).N;
     name === VomnibarNS.kCReq.activate ? Vomnibar_.activate_(data as VomnibarNS.CReq[VomnibarNS.kCReq.activate]) :
-    name === VomnibarNS.kCReq.backspace ? Vomnibar_.onAction_(AllowedActions.backspace) :
     name === VomnibarNS.kCReq.focus ? Vomnibar_.focus_() :
     name === VomnibarNS.kCReq.hide ? Vomnibar_.hide_(1) :
     // tslint:disable-next-line: no-unused-expression

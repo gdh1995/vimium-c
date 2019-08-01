@@ -218,7 +218,7 @@ declare namespace VomnibarNS {
   type Msg<T extends (kCReq | kFReq) & number> = { N: T };
 
   const enum kCReq {
-    activate, hide, focus, backspace,
+    activate, hide, focus,
     _mask = "",
   }
   const enum kFReq {
@@ -230,7 +230,6 @@ declare namespace VomnibarNS {
     [kCReq.activate]: FgOptions & Msg<kCReq.activate>;
     [kCReq.hide]: kCReq.hide;
     [kCReq.focus]: kCReq.focus;
-    [kCReq.backspace]: kCReq.backspace;
   }
   interface FReq {
     [kFReq.hide]: {
