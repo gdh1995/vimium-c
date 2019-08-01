@@ -25,9 +25,10 @@ var Settings_ = {
     c: "",
     m: 0,
     i: 0,
+    n: "",
     s: ""
   } : {
-    c: "", m: 0, i: 0, s: ""
+    c: "", m: 0, i: 0, n: "", s: ""
   }) as VomnibarPayload,
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
@@ -317,34 +318,41 @@ var Settings_ = {
       const a = this as typeof Settings_, defaultOptions = a.defaults_.vomnibarOptions,
       payload = a.omniPayload_;
       let isSame = true;
-      let { maxMatches, queryInterval, styles } = defaultOptions;
+      let { maxMatches, queryInterval, styles, sizes } = defaultOptions;
       if (options !== defaultOptions && options && typeof options === "object") {
         const newMaxMatches = Math.max(3, Math.min((options.maxMatches | 0) || maxMatches
             , GlobalConsts.MaxLimitOfVomnibarMatches)),
         newInterval = +options.queryInterval,
         newStyles = ((options.styles || "") + "").trim(),
+        // use `<=` in case of further updates
+        newSizes = ((options.sizes || "") + "").trim(),
         newQueryInterval = Math.max(0, Math.min(newInterval >= 0 ? newInterval : queryInterval, 1200));
         isSame = maxMatches === newMaxMatches && queryInterval === newQueryInterval
+                  && newSizes === sizes
                   && styles === newStyles;
         if (!isSame) {
           maxMatches = newMaxMatches;
           queryInterval = newQueryInterval;
+          sizes = newSizes;
           styles = newStyles;
         }
         options.maxMatches = newMaxMatches;
         options.queryInterval = newQueryInterval;
+        options.sizes = newSizes;
         options.styles = newStyles;
       }
       (a.cache_ as Writable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
         : options as NonNullable<typeof options>;
       payload.m = maxMatches;
       payload.i = queryInterval;
+      payload.n = sizes;
       payload.s = styles;
       a.updateOmniStyles_(MediaNS.kName.PrefersReduceMotion, 1);
       a.updateOmniStyles_(MediaNS.kName.PrefersColorScheme, 1);
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: {
         m: maxMatches,
         i: queryInterval,
+        n: sizes,
         s: payload.s
       } });
     }
@@ -442,7 +450,11 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     vomnibarOptions: {
       maxMatches: 10,
       queryInterval: 500,
-      styles: "mono-url",
+      sizes: VomnibarNS.PixelData.OthersIfEmpty + ","
+          + (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty) + ","
+          + VomnibarNS.PixelData.Item
+          ,
+      styles: "mono-url"
     },
     userDefinedCss: "",
     vimSync: null,

@@ -134,6 +134,7 @@ interface VomnibarPayload {
   /** css */ c: string;
   /** maxMatches */ m: number;
   /** queryInterval */ i: number;
+  /** comma-joined size numbers */ n: string;
   /** styles */ s: string;
 }
 
@@ -339,7 +340,7 @@ interface FgReq {
     /** url */ u: string;
   };
   [kFgReq.parseUpperUrl]: FgReqWithRes[kFgReq.parseUpperUrl] & {
-    /** execute */ E: true;
+    /** execute */ E: boolean;
   };
   [kFgReq.findQuery]: {
     /** query */ q: string;

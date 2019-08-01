@@ -261,19 +261,6 @@ declare namespace VomnibarNS {
     onmessage (this: void, msg: { data: CReq[keyof CReq] }): void | 1;
   }
   type FgOptionsToFront = CReq[kCReq.activate];
-  const enum PixelData {
-    MarginTop = 64,
-    InputBar = 54, InputBarWithLine = InputBar + 1,
-    Item = 44, LastItemDelta = 46 - Item,
-    MarginV1 = 9, MarginV2 = 10, ShadowOffset = 2, MarginV = MarginV1 + MarginV2 + ShadowOffset * 2,
-    OthersIfEmpty = InputBar + MarginV,
-    OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
-    ListSpaceDelta = MarginTop + MarginV1
-      + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0) + GlobalConsts.MaxScrollbarWidth,
-    MarginH = 24, AllHNotUrl = 20 * 2 + 20 + 2 + MarginH,
-    MeanWidthOfMonoFont = 7.7, MeanWidthOfNonMonoFont = 4,
-    WindowSizeX = 0.8, AllHNotInput = AllHNotUrl,
-  }
 }
 
 declare type ScrollByY = 0 | 1;

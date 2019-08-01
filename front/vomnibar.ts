@@ -74,7 +74,10 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
               && (!(Build.BTypes & ~BrowserType.Chrome)
                   || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
               ? scale : 1)
-        - PixelData.ListSpaceDelta) / PixelData.Item), a.maxMatches_));
+          - a.baseHeightIfNotEmepty_
+          - (PixelData.MarginTop - ((PixelData.MarginV2 / 2 + 1) | 0) - PixelData.ShadowOffset * 2
+             + GlobalConsts.MaxScrollbarWidth)
+        ) / a.itemHeight_), a.maxMatches_));
     a.mode_.r = max;
     a.init_ && a.preInit_(options.t);
     if (Build.BTypes & ~BrowserType.Firefox) {
@@ -168,6 +171,9 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
   maxMatches_: 0,
   queryInterval_: 0,
+  heightIfEmepty_: VomnibarNS.PixelData.OthersIfEmpty,
+  baseHeightIfNotEmepty_: VomnibarNS.PixelData.OthersIfNotEmpty,
+  itemHeight_: VomnibarNS.PixelData.Item,
   styles_: "",
   styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
@@ -705,7 +711,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const a = Vomnibar_;
     const len = a.completions_.length, notEmpty = len > 0, oldH = a.height_, list = a.list_;
     const height = a.height_
-      = Math.ceil(notEmpty ? len * PixelData.Item + PixelData.OthersIfNotEmpty : PixelData.OthersIfEmpty),
+      = Math.ceil(notEmpty ? len * a.itemHeight_ + a.baseHeightIfNotEmepty_ : a.heightIfEmepty_),
     needMsg = height !== oldH, earlyPost = height > oldH || a.sameOrigin_,
     wdZoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
           && (!(Build.BTypes & ~BrowserType.Chrome)
@@ -714,7 +720,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
       N: VomnibarNS.kFReq.style, h: height * wdZoom
     };
-    oldH || (msg.m = Math.ceil(a.mode_.r * PixelData.Item + PixelData.OthersIfNotEmpty) * wdZoom);
+    oldH || (msg.m = Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmepty_) * wdZoom);
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.parse_, a);
     a.renderItems_(a.completions_, list);
@@ -796,7 +802,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
     const delta = VUtils_.safer_(response.d),
-    { c: css_, m: maxMatches_, i: queryInterval_, s: styles } = delta;
+    { c: css_, m: maxMatches_, i: queryInterval_, n: sizes_str, s: styles } = delta;
     if (styles != null && Vomnibar_.styles_ !== styles) {
       Vomnibar_.styles_ = styles;
       Vomnibar_.onStyleUpdate_(styles);
@@ -804,6 +810,15 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     css_ != null && Vomnibar_.css_(css_);
     maxMatches_ != null && (Vomnibar_.maxMatches_ = maxMatches_);
     queryInterval_ != null && (Vomnibar_.queryInterval_ = queryInterval_);
+    if (sizes_str != null) {
+      let sizes = sizes_str.split(","), n = +sizes[0], m = Math.min, M = Math.max;
+      Vomnibar_.heightIfEmepty_ = M(24, m(n || VomnibarNS.PixelData.OthersIfEmpty, 320));
+      n = +sizes[1];
+      Vomnibar_.baseHeightIfNotEmepty_ = M(24, m(Vomnibar_.heightIfEmepty_
+          + (n || (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty)), 320));
+      n = +sizes[2];
+      Vomnibar_.itemHeight_ = M(14, m(n || VomnibarNS.PixelData.Item, 120));
+    }
   },
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.codeFocusTime_ && performance.now() - a.codeFocusTime_ < 120,
@@ -1307,10 +1322,10 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     if (Build.BTypes & BrowserType.Chrome) {
       Vomnibar_.browserVer_ = payload.v as NonNullable<typeof payload.v>;
     }
-    Vomnibar_.maxMatches_ = payload.m;
-    Vomnibar_.queryInterval_ = payload.i;
     Vomnibar_.styles_ = payload.s;
-    Vomnibar_.css_(payload.c);
+    Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: {
+      c: payload.c, m: payload.m, i: payload.i, n: payload.n
+    } });
     const { s: secret } = request;
     _sec = secret;
     for (const i of unsafeMsg) {
