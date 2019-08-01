@@ -131,8 +131,9 @@ interface BgReq {
 interface VomnibarPayload {
   readonly /** browser */ b?: BrowserType;
   readonly /** browserVer */ v?: BrowserVer;
+  readonly /** browserVer */ m?: SettingsNS.FrontendSettingsWithoutSyncing["m"];
   /** css */ c: string;
-  /** maxMatches */ m: number;
+  /** maxMatches */ M: number;
   /** queryInterval */ i: number;
   /** comma-joined size numbers */ n: string;
   /** styles */ s: string;
@@ -152,7 +153,7 @@ interface BgVomnibarSpecialReq {
   } & Req.baseBg<kBgReq.omni_returnFocus>;
   [kBgReq.omni_init]: {
     /** secret */ s: number;
-    /* payload */ l: VomnibarPayload;
+    /* payload */ l: EnsureItemsNonNull<VomnibarPayload>;
   };
   [kBgReq.omni_parsed]: {
     /** id */ i: number;

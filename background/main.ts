@@ -2638,7 +2638,7 @@ Are you sure you want to continue?`;
         type === PortType.omnibar &&
         port.postMessage({
           N: kBgReq.omni_init,
-          l: Settings_.omniPayload_,
+          l: Settings_.omniPayload_ as EnsureItemsNonNull<typeof Settings_.omniPayload_>,
           s: getSecret()
         });
         return true;

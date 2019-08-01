@@ -169,6 +169,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   wheelDelta_: 0,
   browser_: BrowserType.Chrome,
   browserVer_: Build.BTypes & BrowserType.Chrome ? BrowserVer.assumedVer : BrowserVer.assumedVer,
+  onMac_: 0 as SettingsNS.FrontendSettingsWithoutSyncing["m"],
   maxMatches_: 0,
   queryInterval_: 0,
   heightIfEmepty_: VomnibarNS.PixelData.OthersIfEmpty,
@@ -416,7 +417,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
       }
       else if (!focused) { /* empty */ }
-      else if (n > kKeyCode.A && n < kKeyCode.G && n !== kKeyCode.C || n === kKeyCode.backspace && event.altKey) {
+      else if (n > kKeyCode.A && n < kKeyCode.G && n !== kKeyCode.C
+          || n === kKeyCode.backspace && !a.onMac_) {
         return a.onBashAction_(n - kKeyCode.maxNotAlphabet);
       }
       if (event.altKey) { a.keyResult_ = HandlerResult.Nothing; return; }
@@ -435,6 +437,10 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         window.onkeyup = Vomnibar_.HandleKeydown_;
         VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll, keyCode: n });
         return;
+      } else if (Build.BTypes & ~BrowserType.Firefox
+          && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)
+          && n === kKeyCode.backspace && event.ctrlKey && a.onMac_) {
+        return a.onBashAction_(n - kKeyCode.maxNotAlphabet);
       } else {
         action = event.code === "BracketLeft" ? AllowedActions.dismiss
           : event.code === "BracketRight" ? AllowedActions.toggle
@@ -504,6 +510,16 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     }
   },
   onBashAction_ (code: number): void {
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)
+        && code < 0) { // alt+backspace
+      console.log(1);
+      Vomnibar_.input_.value = "";
+      console.log(2);
+      Vomnibar_.onInput_();
+      console.log(4);
+      return;
+    }
     const sel = getSelection(), isExtend = code === 4 || code < 0;
     sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
     if (isExtend && Vomnibar_.input_.selectionStart < Vomnibar_.input_.selectionEnd) {
@@ -662,7 +678,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.wheelStart_ = now;
     a.goPage_(deltaY > 0);
   },
-  onInput_ (event: InputEvent): void {
+  onInput_ (event?: InputEvent): void {
+    console.log(3, event && event + "");
     const a = Vomnibar_, s0 = a.lastQuery_, s1 = a.input_.value, str = s1.trim();
     a.blurWanted_ = false;
     if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].t)) {
@@ -683,7 +700,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         a.input_.setSelectionRange(i, i);
       }
     }
-    const { isComposing } = event;
+    const isComposing = !!event && event.isComposing;
     if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing || !(Build.BTypes & BrowserType.Chrome)
         || isComposing != null) {
       if (isComposing && !a.isInputComposing_) {
@@ -802,7 +819,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
     const delta = VUtils_.safer_(response.d),
-    { c: css_, m: maxMatches_, i: queryInterval_, n: sizes_str, s: styles } = delta;
+    { c: css_, M: maxMatches_, i: queryInterval_, n: sizes_str, s: styles } = delta;
     if (styles != null && Vomnibar_.styles_ !== styles) {
       Vomnibar_.styles_ = styles;
       Vomnibar_.onStyleUpdate_(styles);
@@ -875,7 +892,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     listen("keydown", a.HandleKeydown_, true);
     listen("focus", a.OnWndFocus_, true);
     listen("blur", a.OnWndFocus_, true);
-    input.oninput = a.onInput_.bind(a);
+    input.oninput = (a.onInput_ as (e: InputEvent) => void as (e: Event) => void).bind(a);
     input.onselect = a.OnSelect_;
 
     a.renderItems_ = VUtils_.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
@@ -1322,9 +1339,10 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     if (Build.BTypes & BrowserType.Chrome) {
       Vomnibar_.browserVer_ = payload.v as NonNullable<typeof payload.v>;
     }
+    Vomnibar_.onMac_ = payload.m;
     Vomnibar_.styles_ = payload.s;
     Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: {
-      c: payload.c, m: payload.m, i: payload.i, n: payload.n
+      c: payload.c, M: payload.M, i: payload.i, n: payload.n
     } });
     const { s: secret } = request;
     _sec = secret;

@@ -229,7 +229,8 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
   this.locked_ = locked;
   this.element_.select();
   document.execCommand("insertText", false, value);
-  if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome) {
+  if (!(Build.BTypes & ~BrowserType.Firefox)
+      || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
     if (this.element_.value !== value) {
       this.element_.value = value;
     }

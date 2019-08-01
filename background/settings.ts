@@ -22,13 +22,14 @@ var Settings_ = {
       & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
   omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
     v: CurCVer_,
-    c: "",
     m: 0,
+    c: "",
+    M: 0,
     i: 0,
     n: "",
     s: ""
   } : {
-    c: "", m: 0, i: 0, n: "", s: ""
+    m: 0, c: "", M: 0, i: 0, n: "", s: ""
   }) as VomnibarPayload,
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
@@ -343,14 +344,14 @@ var Settings_ = {
       }
       (a.cache_ as Writable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
         : options as NonNullable<typeof options>;
-      payload.m = maxMatches;
+      payload.M = maxMatches;
       payload.i = queryInterval;
       payload.n = sizes;
       payload.s = styles;
       a.updateOmniStyles_(MediaNS.kName.PrefersReduceMotion, 1);
       a.updateOmniStyles_(MediaNS.kName.PrefersColorScheme, 1);
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: {
-        m: maxMatches,
+        M: maxMatches,
         i: queryInterval,
         n: sizes,
         s: payload.s
@@ -536,6 +537,7 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
     ? chrome.runtime.PlatformOs as NonNullable<typeof chrome.runtime.PlatformOs>
     : chrome.runtime.PlatformOs || { MAC: "mac", WIN: "win" };
   Settings_.CONST_.Platform_ = os;
+  (Settings_.omniPayload_ as Writable<typeof Settings_.omniPayload_>).m =
   (Settings_.payload_ as Writable<typeof Settings_.payload_>).m = os === types.MAC || (os === types.WIN && 0);
 }) : (Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown");
