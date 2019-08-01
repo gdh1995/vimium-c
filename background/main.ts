@@ -77,7 +77,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     [kFgReq.checkIfEnabled]: ExclusionsNS.Listener & (
         (this: void, request: FgReq[kFgReq.checkIfEnabled], port: Frames.Port) => void);
     [kFgReq.parseUpperUrl]: {
-      (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl] & { e: true }, port: Port | null): void;
+      (this: void,
+        request: FgReqWithRes[kFgReq.parseUpperUrl] & Pick<FgReq[kFgReq.parseUpperUrl], "E">, port: Port | null): void;
       (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl];
     };
     [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
@@ -422,18 +423,25 @@ Are you sure you want to continue?`;
     }
   }
   function requireURL <k extends keyof FgReq>(request: Req.fg<k> & BgReq[kBgReq.url], ignoreHash?: true): void {
-    if (Exclusions == null || Exclusions.rules_.length <= 0
-        || !(ignoreHash || Settings_.get_("exclusionListenHash", true))
-        || cPort.s.u.length > GlobalConsts.MaxSenderURLLength) {
+    type T1 = keyof FgReq;
+    type Req1 = { [K in T1]: (req: FgReq[K], port: Frames.Port) => void; };
+    type Req2 = { [K in T1]: <T extends T1>(req: FgReq[T], port: Frames.Port) => void; };
+    const excl = Exclusions;
+    if (!cPort) {
+      getCurTab(tabs => {
+        if (!tabs) { return onRuntimeError(); }
+        request.u = tabs[0].url;
+        (requestHandlers as Req1 as Req2)[request.H](request, cPort);
+      });
+    } else if (excl && excl.rules_.length > 0
+        && (ignoreHash || excl._listeningHash)
+        && (cPort.s.u.length <= GlobalConsts.MaxSenderURLLength)) {
+      request.u = cPort.s.u;
+      (requestHandlers as Req1 as Req2)[request.H](request, cPort);
+    } else {
       request.N = kBgReq.url;
       cPort.postMessage(request as Req.bg<kBgReq.url>);
-      return;
     }
-    request.u = cPort.s.u;
-    type T1 = keyof FgReq;
-    (requestHandlers as { [K in T1]: (req: FgReq[K], port: Frames.Port) => void; } as {
-      [K in T1]: <T extends T1>(req: FgReq[T], port: Frames.Port) => void;
-    })[request.H](request, cPort);
   }
   function ensureInnerCSS(this: void, port: Frames.Port): string | null {
     const { s: sender } = port;
@@ -961,7 +969,7 @@ Are you sure you want to continue?`;
     /* blank: */ BgUtils_.blank_,
     /* createTab: */ BgUtils_.blank_,
     /* duplicateTab: */ function (): void {
-      const tabId = cPort.s.t;
+      const tabId = cPort ? cPort.s.t : TabRecency_.last_;
       if (tabId < 0) {
         return Backend_.complain_("duplicate such a tab");
       }
@@ -1402,7 +1410,7 @@ Are you sure you want to continue?`;
         return;
       }
       chrome.tabs.query({audible: true}, function (tabs: Tab[]): void {
-        let curId = cOptions.other ? cPort.s.t : GlobalConsts.TabIdNone
+        let curId = cOptions.other ? cPort ? cPort.s.t : TabRecency_.last_ : GlobalConsts.TabIdNone
           , prefix = curId === GlobalConsts.TabIdNone ? "All" : "Other"
           , muted = false, action = { muted: true };
         for (let i = tabs.length; 0 <= --i; ) {
@@ -1503,7 +1511,7 @@ Are you sure you want to continue?`;
         u: "", // just a hack to make TypeScript compiler happy
         p: -cRepeat,
         t: trail != null ? !!trail : null,
-        e: true
+        E: true
       });
     },
     /* moveTab: */ function (this: void, tabs: Tab[]): void {
@@ -1827,7 +1835,7 @@ Are you sure you want to continue?`;
     }
   ],
   numHeadRe = <RegExpOne> /^-?\d+|^-/;
-  function onLargeCountConfirmed (this: CommandsNS.Item) {
+  function onLargeCountConfirmed(this: CommandsNS.Item) {
     executeCommand(this, 1, cKey, cPort, cRepeat);
   }
   function executeCommand(registryEntry: CommandsNS.Item
@@ -1923,17 +1931,19 @@ Are you sure you want to continue?`;
       }
     },
     /** parseUpperUrl: */ function (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl]
-        , port?: Port): FgRes[kFgReq.parseUpperUrl] | void {
-      if (port && (request as FgReq[kFgReq.parseUpperUrl]).e) {
+        , port?: Port | null): FgRes[kFgReq.parseUpperUrl] | void {
+      if ((request as FgReq[kFgReq.parseUpperUrl]).E) {
         const result = requestHandlers[kFgReq.parseUpperUrl](request);
-        if (result.p != null) {
+        if (result.p == null) {
+          cPort = port as Port;
+          Backend_.showHUD_(result.u);
+        } else if (port) {
           port.postMessage<1, kFgCmd.reload>({ N: kBgReq.execute,
             S: null, c: kFgCmd.reload, n: 1,
             a: { url: result.u } });
-          return;
+        } else {
+          chrome.tabs.update({ url: result.u });
         }
-        cPort = port;
-        Backend_.showHUD_(result.u);
         return;
       }
       let { u: url } = request, url_l = url.toLowerCase();

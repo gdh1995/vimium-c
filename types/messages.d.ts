@@ -339,7 +339,7 @@ interface FgReq {
     /** url */ u: string;
   };
   [kFgReq.parseUpperUrl]: FgReqWithRes[kFgReq.parseUpperUrl] & {
-    /** execute */ e: true;
+    /** execute */ E: true;
   };
   [kFgReq.findQuery]: {
     /** query */ q: string;

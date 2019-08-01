@@ -13,7 +13,7 @@ declare namespace Search {
     (query: string[], url: string, blank: string, indexes: number[]): Result;
     (query: string[], url: string, blank: string): string;
   }
-  type TmpRule = { prefix: string, matcher: RegExpOne | RegExpI };
+  type TmpRule = { prefix_: string, matcher_: RegExpOne | RegExpI };
   interface Rule {
     readonly prefix_: string;
     readonly matcher_: RegExp;

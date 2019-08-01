@@ -689,7 +689,11 @@ var BgUtils_ = {
             } else {
               tmpKey = key.trim() || " ";
             }
-            rules.push({prefix_: tmpRule.prefix, matcher_: tmpRule.matcher, name_: ids[0].trimRight(), delimiter_: tmpKey});
+            rules.push({
+              prefix_: tmpRule.prefix_,
+              matcher_: tmpRule.matcher_,
+              name_: ids[0].trimRight(), delimiter_: tmpKey
+            });
           }
         }
       } else if (str.charCodeAt(ind + 4) === kCharCode.slash) {
@@ -748,8 +752,8 @@ var BgUtils_ = {
     str2 = str2 && str2.replace(a.escapeAllRe_, "\\$&").replace(a._spaceOrPlusRe, "(?:\\+|%20| )");
     prefix = a.prepareReparsingPrefix_(prefix);
     return {
-      prefix,
-      matcher: new RegExp(str + str2 + url, a.alphaRe_.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne
+      prefix_: prefix,
+      matcher_: new RegExp(str + str2 + url, a.alphaRe_.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne
     };
   },
   IsURLHttp_ (this: void, url: string): ProtocolType {
