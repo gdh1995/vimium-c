@@ -33,7 +33,7 @@ let keyMappingChecker_ = {
       s2 = s2.replace(this.hexCharRe_, this.onHex_);
       value = `"${s2}"`;
     } else if (!tail && value === "\\\\") {
-      value = '\\';
+      value = "\\";
     }
     try {
       const obj = JSON.parse(value);
@@ -142,12 +142,10 @@ Option_.all_.keyboard.checker_ = {
 };
 
 (function (): void {
-  const func = loadChecker, info = (loadChecker as CheckerLoader).info_;
-  (loadChecker as CheckerLoader).info_ = "";
-  let _ref = $$("[data-check]"), _i: number;
-  for (_i = _ref.length; 0 <= --_i; ) {
-    const element = _ref[_i];
-    element.removeEventListener(element.dataset.check || "input", func);
+  const func = loadChecker as CheckerLoader, info = func.info_;
+  func.info_ = "";
+  for (const element of $$("[data-check]")) {
+    element.removeEventListener(element.dataset.check || "input", func as typeof loadChecker);
   }
 
   if (info === "keyMappings") { return ReloadCommands(); }

@@ -396,6 +396,10 @@ interface FgReq {
   } & CompletersNS.Options;
   [kFgReq.copy]: {
     /** data */ d: string;
+    u?: undefined;
+  } | {
+    /** url */ u: string;
+    /** decode */ d: boolean;
   };
   [kFgReq.key]: {
     /* keySequence */ k: string;

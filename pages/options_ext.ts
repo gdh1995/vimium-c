@@ -352,8 +352,13 @@ function importSettings(time: number | string | Date
     return alert(err_msg);
   }
   const promisedChecker = Option_.all_.keyMappings.checker_ ? 1 : new Promise<1>(function (resolve): void {
-    const element = loadJS("options_checker.js");
-    element.onload = function (): void { resolve(1); };
+    const element = $<HTMLScriptElement>("script[src*=options_checker]") || loadJS("options_checker.js"),
+    cb = function (): void {
+      element.removeEventListener("load", cb);
+      resolve(1);
+    };
+    (loadChecker as CheckerLoader).info_ = "";
+    element.addEventListener("load", cb);
   });
   Promise.all([BG_.BgUtils_.require_("Commands"), BG_.BgUtils_.require_("Exclusions"), promisedChecker]
       ).then(function (): void {

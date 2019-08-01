@@ -77,7 +77,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     [kFgReq.checkIfEnabled]: ExclusionsNS.Listener & (
         (this: void, request: FgReq[kFgReq.checkIfEnabled], port: Frames.Port) => void);
     [kFgReq.parseUpperUrl]: {
-      (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl] & { execute: true }, port: Port): void;
+      (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl] & { e: true }, port: Port | null): void;
       (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl];
     };
     [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
@@ -86,6 +86,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void;
       (this: void, req: FgReq[kFgReq.framesGoBack], port: null, tabId: Pick<Tab, "id" | "url">): void;
     };
+    [kFgReq.copy]: (this: void, req: FgReq[kFgReq.copy]) => void;
   }
 
   /** any change to `cRepeat` should ensure it won't be `0` */
@@ -1597,19 +1598,14 @@ Are you sure you want to continue?`;
       switch (cOptions.type) {
       case "title": str = tabs[0].title; break;
       case "frame":
-        if (needIcon && (str = cPort.s.u)) { break; }
-        cPort.postMessage<1, kFgCmd.autoCopy>({
-          N: kBgReq.execute,
-          S: ensureInnerCSS(cPort),
-          c: kFgCmd.autoCopy, n: 1,
-          a: { url: true, decoded }
-        });
-        return;
+        if (cPort) {
+          requireURL({ H: kFgReq.copy, u: "", d: decoded });
+          return;
+        }
+        // no break;
       default: str = tabs[0].url; break;
       }
-      decoded && (str = BgUtils_.DecodeURLPart_(str, decodeURI));
-      BgUtils_.copy_(str);
-      return Backend_.showHUD_(str, true);
+      requestHandlers[kFgReq.copy]({ u: str, d: decoded });
     },
     /* goNext: */ function (): void {
       let rel: string | undefined = cOptions.rel, p2: string[] = []
@@ -2323,7 +2319,13 @@ Are you sure you want to continue?`;
         , (<number> request.i | 0) as number as 0 | 1 | 2));
     },
     /** copy: */ function (this: void, request: FgReq[kFgReq.copy]): void {
-      BgUtils_.copy_(request.d);
+      if (request.u != null) {
+        let str = request.d ? BgUtils_.DecodeURLPart_(request.u, decodeURI) : request.u;
+        BgUtils_.copy_(str);
+        Backend_.showHUD_(str, true);
+      } else {
+        BgUtils_.copy_(request.d);
+      }
     },
     /** key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {
       (port.s as Frames.Sender).f |= Frames.Flags.userActed;
