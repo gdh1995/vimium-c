@@ -52,6 +52,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.mode_.o = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, options.currentWindow ? 1 : 0);
+    a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, options.tree ? 1 : 0);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
     a.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
     a.baseHttps_ = null;

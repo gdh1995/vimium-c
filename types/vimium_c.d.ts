@@ -39,6 +39,7 @@ declare namespace CompletersNS {
     SingleLine = 1,
     TabInCurrentWindow = 2,
     MonospaceURL = 4,
+    TabTree = 8,
   }
   interface Options {
     /** maxChars */ c?: number;
@@ -326,6 +327,7 @@ declare namespace VomnibarNS {
     force: boolean;
     keyword: string;
     url?: true | string | null;
+    tree?: boolean; // show tabs in tree mode
   }
 }
 

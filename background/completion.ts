@@ -107,6 +107,7 @@ type Visibility = kVisibility.hidden | kVisibility.visible;
 
 let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType.plain,
     inNormal: boolean | null = null, autoSelect: boolean = false, singleLine: boolean = false,
+    wantTreeMode = false,
     maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
     queryTerms: string[] = [""], rawQuery: string = "", rawMore: string = "",
     wantInCurrentWindow = false,
@@ -693,7 +694,7 @@ tabEngine = {
     if (query.o) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
-    treeMode = wantInCurrentWindow && noFilter;
+    treeMode = wantTreeMode && wantInCurrentWindow && noFilter && !singleLine;
     let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined;
     if (treeMode && tabs0.length > offset) {
       treeMap = BgUtils_.safeObj_<Tab>();
@@ -1284,7 +1285,9 @@ knownCs: CompletersMap & SafeObject = {
           if (i < 0) { slot.count_ += j.visible_; }
           if (domain.schema_ >= Urls.SchemaId.HTTP) { slot.https_ = domain.schema_ === Urls.SchemaId.HTTPS ? 1 : 0; }
         } else {
-          d[domain.domain_] = { time_: time, count_: j.visible_, https_: domain.schema_ === Urls.SchemaId.HTTPS ? 1 : 0 };
+          d[domain.domain_] = {
+            time_: time, count_: j.visible_, https_: domain.schema_ === Urls.SchemaId.HTTPS ? 1 : 0
+          };
         }
       }
       if (i >= 0) {
@@ -1584,6 +1587,7 @@ Completion_ = {
       , Consts.UpperBoundOfMaxChars));
     const flags = options.f;
     singleLine = !!(flags & CompletersNS.QueryFlags.SingleLine);
+    wantTreeMode = !!(flags & CompletersNS.QueryFlags.TabTree);
     maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
     matchedTotal = 0;
     Completers.callback_ = callback;
