@@ -162,9 +162,11 @@ var Commands = {
   }),
   setupUserCustomized_ (cmdMap: Partial<ShortcutInfoMap>, key: kShortcutNames
       , options: CommandsNS.Options | null): string {
-    let command: string = options && options.command || (key.startsWith("user") ? "" : key)
+    let has_cmd: BOOL = 1
+      , command: string = options && options.command || (has_cmd = 0, key.startsWith("user") ? "" : key)
       , ret: 0 | 1 | 2 = command ? 1 : 0;
     if (ret && (command in this.availableCommands_)) {
+      has_cmd && delete (options as CommandsNS.RawOptions).command;
       cmdMap[key] = this.makeCommand_(command, options);
       ret = 2;
     }

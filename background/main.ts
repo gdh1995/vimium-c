@@ -429,7 +429,7 @@ Are you sure you want to continue?`;
     const excl = Exclusions;
     if (!cPort) {
       getCurTab(tabs => {
-        if (!tabs) { return onRuntimeError(); }
+        if (!tabs || !tabs.length) { return onRuntimeError(); }
         request.u = tabs[0].url;
         (requestHandlers as Req1 as Req2)[request.H](request, cPort);
       });
@@ -1941,6 +1941,7 @@ Are you sure you want to continue?`;
     /** parseUpperUrl: */ function (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl]
         , port?: Port | null): FgRes[kFgReq.parseUpperUrl] | void {
       if ((request as FgReq[kFgReq.parseUpperUrl]).E) {
+        (request as FgReq[kFgReq.parseUpperUrl]).E = false;
         const result = requestHandlers[kFgReq.parseUpperUrl](request);
         if (result.p == null) {
           cPort = port as Port;
