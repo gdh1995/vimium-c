@@ -1222,13 +1222,21 @@ Are you sure you want to continue?`;
         if (count > 1) {
           start = skipped + range[0], end = skipped + range[1];
         }
+      } else if (cOptions.highlighted) {
+        const highlighted = tabs.filter(j => j.highlighted), noCurrent = cOptions.highlighted === "no-current";
+        count = highlighted.length;
+        if (count > 1 && (noCurrent || count < total)) {
+          chrome.tabs.remove(highlighted.filter(j => j !== tab).map(j => j.id), onRuntimeError);
+          count = 1;
+        }
+        if (noCurrent) { return; }
       }
       if (count >= total && cOptions.allow_close !== true) {
         chrome.windows.getAll(removeAllTabsInWnd.bind(null, tab, tabs));
         return;
       }
       let goto = cOptions.goto || (cOptions.left ? "left" : ""),
-      goToIndex = goto === "left" ? start > 0 ? start - 1 : end
+      goToIndex = count >= total ? total : goto === "left" ? start > 0 ? start - 1 : end
           : goto === "right" ? end < total ? end : start - 1
           : goto === "previous" ? -2 : total;
       if (goToIndex === -2) {
@@ -1257,7 +1265,7 @@ Are you sure you want to continue?`;
         return complainNoSession();
       }
       let count = cRepeat;
-      if (count < 2 && count > -2 && cPort.s.a) {
+      if (count < 2 && count > -2 && (cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true)) {
         return Backend_.showHUD_("Can not restore a tab in incognito mode!");
       }
       const limit = chrome.sessions.MAX_SESSION_RESULTS;
