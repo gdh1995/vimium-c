@@ -926,15 +926,7 @@ Are you sure you want to continue?`;
         };
       }
       if (!registry.background_) { return; }
-      // with the feature of userCustomized*, cmdName may be arbitrary
-      // but most commands may use a valid port to do something
-      // so here uses a strong rule to refuse them
-      if (cmdName in CommandsData_.shortcutMap_ || Settings_.get_("acceptAllShortcuts", true) && !(
-            ((
-              (1 << kBgCmd.showVomnibar) | (1 << kBgCmd.performFind) | (1 << kBgCmd.enterVisualMode) |
-              (1 << kBgCmd.showHelp)
-            ) >> registry.alias_) & 1
-          )) {
+      if (registry.alias_ > kBgCmd.MAX_NEED_CPORT || registry.alias_ < kBgCmd.MIN_NEED_CPORT) {
         executeCommand(registry, 1, kKeyCode.None, null as never as Port, 0);
       }
       return;
@@ -947,14 +939,15 @@ Are you sure you want to continue?`;
     UseTab.NoTab,
     Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
       ? UseTab.NoTab : UseTab.ActiveTab,
+    UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
+    UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
     UseTab.NoTab, UseTab.CurShownTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
     UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.CurWndTabs, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
-    UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
-    UseTab.NoTab, UseTab.CurWndTabs, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab,
-    UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
-    UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab, UseTab.NoTab
+    UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab,
+    UseTab.CurWndTabs, UseTab.ActiveTab, UseTab.NoTab,
+    UseTab.ActiveTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab, UseTab.NoTab
   ],
   BackgroundCommands: {
     [K in kBgCmd & number]:
@@ -968,6 +961,241 @@ Are you sure you want to continue?`;
   } = [
     /* blank: */ BgUtils_.blank_,
     /* createTab: */ BgUtils_.blank_,
+    /* kBgCmd.nextFrame: */ function (this: void): void {
+      let port = cPort, ind = -1;
+      const frames = framesForTab[port.s.t];
+      if (frames && frames.length > 2) {
+        ind = Math.max(0, frames.indexOf(port, 1));
+        for (let count = Math.abs(cRepeat); count > 0; count--) {
+          ind += cRepeat > 0 ? 1 : -1;
+          if (ind === frames.length) { ind = 1; }
+          else if (ind < 1) { ind = frames.length - 1; }
+        }
+        port = frames[ind];
+      }
+      port.postMessage({
+        N: kBgReq.focusFrame,
+        S: port.s.i === 0 ? ensureInnerCSS(port) : null,
+        k: cKey,
+        c: 0,
+        m: port !== cPort && frames && port !== frames[0] ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
+      });
+    },
+    /* kBgCmd.parentFrame: */ function (): void {
+      const sender = cPort.s as typeof cPort.s | undefined,
+      msg = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
+        ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
+        : !(sender && sender.t >= 0 && framesForTab[sender.t])
+          ? "Vimium C can not access frames in current tab"
+        : null;
+      msg && Backend_.showHUD_(msg);
+      if (!sender || !sender.i
+          || Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
+          || !chrome.webNavigation) {
+        return BackgroundCommands[kBgCmd.mainFrame]();
+      }
+      chrome.webNavigation.getAllFrames({
+        tabId: sender.t
+      }, function (frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
+        let self = sender.i, frameId = self, found: boolean, count = cRepeat;
+        do {
+          found = false;
+          for (const i of frames) {
+            if (i.frameId === frameId) {
+              frameId = i.parentFrameId;
+              found = frameId > 0;
+              break;
+            }
+          }
+        } while (found && 0 < --count);
+        const port = frameId > 0 && frameId !== self ? indexFrame(sender.t, frameId) : null;
+        if (!port) {
+          return BackgroundCommands[kBgCmd.mainFrame]();
+        }
+        port.postMessage({
+          N: kBgReq.focusFrame,
+          S: ensureInnerCSS(port),
+          k: cKey,
+          c: 0,
+          m: FrameMaskType.ForcedSelf
+        });
+      });
+    },
+    /* kBgCmd.goNext: */ function (): void {
+      let rel: string | undefined = cOptions.rel, p2: string[] = []
+        , patterns: string | string[] | boolean | number = cOptions.patterns;
+      rel = rel ? rel + "" : "next";
+      if (patterns instanceof Array) {
+        for (let i of patterns) {
+          i = i && (i + "").trim();
+          i && p2.push(i.toLowerCase());
+        }
+      } else {
+        typeof patterns === "string" || (patterns = "");
+        patterns = (patterns as string) || Settings_.get_(rel !== "next" ? "previousPatterns" : "nextPatterns", true);
+        patterns = patterns.trim().toLowerCase().split(",");
+        for (let i of patterns) {
+          i = i.trim();
+          i && p2.push(i);
+        }
+      }
+      if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
+      const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),
+      totalMaxLen: number = Math.max.apply(Math, maxLens);
+      cPort.postMessage<1, kFgCmd.goNext>({ N: kBgReq.execute,
+        S: null, c: kFgCmd.goNext, n: 1,
+        a: {
+          r: rel,
+          p: p2,
+          l: maxLens,
+          m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
+        }
+      });
+    },
+    /* kBgCmd.toggle: */ function (this: void): void {
+      type Keys = keyof SettingsNS.FrontendSettingNameMap;
+      const all = Settings_.payload_, key: Keys = (cOptions.key || "") + "" as Keys,
+      key2 = Settings_.valuesToLoad_[key], old = key2 ? all[key2] : 0, keyRepr = '"' + key + '"';
+      let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
+      if (!key2) {
+        msg = key in Settings_.defaults_ ? "option " + keyRepr + " is not a valid switch" : "unknown option " + keyRepr;
+      } else if (typeof old === "boolean") {
+        isBool || (value = null);
+      } else if (value === undefined) {
+        msg = "need value=... for option " + keyRepr;
+      } else if (isBool) {
+        msg = keyRepr + " is not a boolean switch";
+      } else if (typeof value !== typeof old) {
+        msg = JSON.stringify(old);
+        msg = "value of " + keyRepr + " should be like " +
+          (msg.length > 10 ? msg.slice(0, 9) + "\u2026" : msg);
+      }
+      if (msg) {
+        Backend_.showHUD_(msg);
+      } else {
+        cPort.postMessage<1, kFgCmd.toggle>({
+          N: kBgReq.execute,
+          S: ensureInnerCSS(cPort),
+          c: kFgCmd.toggle, n: 1,
+          a: { k: key2, n: keyRepr, v: value }
+        });
+      }
+    },
+    /* kBgCmd.showHelp: */ function (this: void): void {
+      if (cPort.s.i === 0 && !(cPort.s.f & Frames.Flags.hadHelpDialog)) {
+        return requestHandlers[kFgReq.initHelp]({}, cPort);
+      }
+      if (!window.HelpDialog) {
+        BgUtils_.require_("HelpDialog");
+      }
+      cPort.postMessage<1, kFgCmd.showHelp>({
+        N: kBgReq.execute,
+        S: null,
+        c: kFgCmd.showHelp,
+        n: 1,
+        a: null
+      });
+    },
+    /* kBgCmd.enterInsertMode: */ function (): void {
+      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0;
+      code = stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
+      let
+      hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
+        : !Settings_.get_("hideHud", true);
+      cPort.postMessage<1, kFgCmd.insertMode>({ N: kBgReq.execute,
+        S: hud ? ensureInnerCSS(cPort) : null,
+        c: kFgCmd.insertMode,
+        n: 1,
+        a: {
+          code, stat,
+          passExitKey: !!cOptions.passExitKey,
+          hud
+        }
+      });
+    },
+    /* kBgCmd.enterVisualMode: */ function (): void {
+      if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
+        return Backend_.complain_("control selection on MS Edge");
+      }
+      const flags = cPort.s.f, str = typeof cOptions.mode === "string" ? (cOptions.mode as string).toLowerCase() : "";
+      let words = "";
+      if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
+        || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+          && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+      ) {
+        if (~flags & Frames.Flags.hadVisualMode) {
+          words = Settings_.CONST_.words;
+          cPort.s.f = Frames.Flags.hadVisualMode | flags;
+        }
+      }
+      cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
+        S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
+        a: {
+          m: (str === "caret" ? VisualModeNS.Mode.Caret
+              : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual
+            ) as VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret,
+          w: words,
+        }
+      });
+    },
+    /* kBgCmd.performFind: */ function (): void {
+      const sender = cPort.s, absRepeat = cRepeat < 0 ? -cRepeat : cRepeat, rawIndex = cOptions.index,
+      nth = rawIndex ? rawIndex === "other" ? absRepeat + 1 : rawIndex === "count" ? absRepeat
+                : rawIndex >= 0 ? -1 - (0 | rawIndex) : 0 : 0,
+      leave = !!nth || !cOptions.active;
+      let findCSS: CmdOptions[kFgCmd.findMode]["f"] = null;
+      if (!(sender.f & Frames.Flags.hasFindCSS)) {
+        sender.f |= Frames.Flags.hasFindCSS;
+        findCSS = Settings_.cache_.findCSS_;
+      }
+      cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
+          , S: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
+          , a: {
+        n: nth > 0 ? cRepeat / absRepeat : cRepeat,
+        l: leave,
+        f: findCSS,
+        r: cOptions.returnToViewport === true,
+        s: !nth && absRepeat < 2 && !!cOptions.selected,
+        q: leave || cOptions.last ? FindModeHistory_.query_(sender.a, "", nth < 0 ? -nth : nth) : ""
+      }});
+    },
+    /* kBgCmd.showVomnibar: */ function (this: void, forceInner?: boolean): void {
+      let port = cPort as Port | null, optUrl: VomnibarNS.GlobalOptions["url"] = cOptions.url;
+      if (optUrl != null && optUrl !== true && typeof optUrl !== "string") {
+        optUrl = null;
+        delete (cOptions as {} as VomnibarNS.GlobalOptions).url;
+      }
+      if (!port) {
+        port = cPort = indexFrame(TabRecency_.last_, 0) as Port;
+        if (!port) { return; }
+        // not go to the top frame here, so that a current frame can suppress keys for a while
+      }
+      const page = Settings_.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
+      isCurOnExt = url.startsWith(BrowserProtocol_),
+      inner = forceInner || !page.startsWith(location.origin) ? Settings_.CONST_.VomnibarPageInner_ : page;
+      forceInner = forceInner ? forceInner
+        : preferWeb ? isCurOnExt || page.startsWith("file:") && !url.startsWith("file:")
+          // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
+          // that HTTPS refusing HTTP iframes.
+          || page.startsWith("http:") && url.startsWith("https:")
+        : port.s.a || isCurOnExt && !page.startsWith(url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1));
+      const useInner: boolean = forceInner || page === inner || port.s.t < 0,
+      options: CmdOptions[kFgCmd.vomnibar] & SafeObject = BgUtils_.extendIf_(
+          BgUtils_.safer_<CmdOptions[kFgCmd.vomnibar]>({
+        v: useInner ? inner : page,
+        i: useInner ? null : inner,
+        t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
+        s: useInner ? "" : Settings_.CONST_.VomnibarScript_f_,
+        k: getSecret(),
+      }), cOptions as {} as CmdOptions[kFgCmd.vomnibar]);
+      port.postMessage<1, kFgCmd.vomnibar>({
+        N: kBgReq.execute, S: ensureInnerCSS(port),
+        c: kFgCmd.vomnibar, n: cRepeat,
+        a: options
+      });
+      options.k = -1;
+      cOptions = options; // safe on renaming
+    },
     /* duplicateTab: */ function (): void {
       const tabId = cPort ? cPort.s.t : TabRecency_.last_;
       if (tabId < 0) {
@@ -1530,26 +1758,6 @@ Are you sure you want to continue?`;
         chrome.tabs.move(tab.id, { index });
       }
     },
-    /* nextFrame: */ function (this: void): void {
-      let port = cPort, ind = -1;
-      const frames = framesForTab[port.s.t];
-      if (frames && frames.length > 2) {
-        ind = Math.max(0, frames.indexOf(port, 1));
-        for (let count = Math.abs(cRepeat); count > 0; count--) {
-          ind += cRepeat > 0 ? 1 : -1;
-          if (ind === frames.length) { ind = 1; }
-          else if (ind < 1) { ind = frames.length - 1; }
-        }
-        port = frames[ind];
-      }
-      port.postMessage({
-        N: kBgReq.focusFrame,
-        S: port.s.i === 0 ? ensureInnerCSS(port) : null,
-        k: cKey,
-        c: 0,
-        m: port !== cPort && frames && port !== frames[0] ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
-      });
-    },
     /* mainFrame: */ function (): void {
       const tabId = cPort ? cPort.s.t : TabRecency_.last_, port = indexFrame(tabId, 0);
       if (!port) { return; }
@@ -1559,46 +1767,6 @@ Are you sure you want to continue?`;
         k: cKey,
         c: 0,
         m: (framesForTab[tabId] as Frames.Frames)[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
-      });
-    },
-    /* parentFrame: */ function (): void {
-      const sender = cPort.s as typeof cPort.s | undefined,
-      msg = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
-        ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
-        : !(sender && sender.t >= 0 && framesForTab[sender.t])
-          ? "Vimium C can not access frames in current tab"
-        : null;
-      msg && Backend_.showHUD_(msg);
-      if (!sender || !sender.i
-          || Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
-          || !chrome.webNavigation) {
-        return BackgroundCommands[kBgCmd.mainFrame]();
-      }
-      chrome.webNavigation.getAllFrames({
-        tabId: sender.t
-      }, function (frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
-        let self = sender.i, frameId = self, found: boolean, count = cRepeat;
-        do {
-          found = false;
-          for (const i of frames) {
-            if (i.frameId === frameId) {
-              frameId = i.parentFrameId;
-              found = frameId > 0;
-              break;
-            }
-          }
-        } while (found && 0 < --count);
-        const port = frameId > 0 && frameId !== self ? indexFrame(sender.t, frameId) : null;
-        if (!port) {
-          return BackgroundCommands[kBgCmd.mainFrame]();
-        }
-        port.postMessage({
-          N: kBgReq.focusFrame,
-          S: ensureInnerCSS(port),
-          k: cKey,
-          c: 0,
-          m: FrameMaskType.ForcedSelf
-        });
       });
     },
     /* visitPreviousTab: */ function (this: void, tabs: Tab[]): void {
@@ -1623,156 +1791,10 @@ Are you sure you want to continue?`;
       }
       requestHandlers[kFgReq.copy]({ u: str, d: decoded });
     },
-    /* goNext: */ function (): void {
-      let rel: string | undefined = cOptions.rel, p2: string[] = []
-        , patterns: string | string[] | boolean | number = cOptions.patterns;
-      rel = rel ? rel + "" : "next";
-      if (patterns instanceof Array) {
-        for (let i of patterns) {
-          i = i && (i + "").trim();
-          i && p2.push(i.toLowerCase());
-        }
-      } else {
-        typeof patterns === "string" || (patterns = "");
-        patterns = (patterns as string) || Settings_.get_(rel !== "next" ? "previousPatterns" : "nextPatterns", true);
-        patterns = patterns.trim().toLowerCase().split(",");
-        for (let i of patterns) {
-          i = i.trim();
-          i && p2.push(i);
-        }
-      }
-      if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
-      const maxLens: number[] = p2.map(i => Math.max(i.length + 12, i.length * 4)),
-      totalMaxLen: number = Math.max.apply(Math, maxLens);
-      cPort.postMessage<1, kFgCmd.goNext>({ N: kBgReq.execute,
-        S: null, c: kFgCmd.goNext, n: 1,
-        a: {
-          r: rel,
-          p: p2,
-          l: maxLens,
-          m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32
-        }
-      });
-    },
-    /* enterInsertMode: */ function (): void {
-      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0;
-      code = stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
-      let
-      hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
-        : !Settings_.get_("hideHud", true);
-      cPort.postMessage<1, kFgCmd.insertMode>({ N: kBgReq.execute,
-        S: hud ? ensureInnerCSS(cPort) : null,
-        c: kFgCmd.insertMode,
-        n: 1,
-        a: {
-          code, stat,
-          passExitKey: !!cOptions.passExitKey,
-          hud
-        }
-      });
-    },
-    /* enterVisualMode: */ function (): void {
-      if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
-        return Backend_.complain_("control selection on MS Edge");
-      }
-      const flags = cPort.s.f, str = typeof cOptions.mode === "string" ? (cOptions.mode as string).toLowerCase() : "";
-      let words = "";
-      if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
-        || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-          && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-      ) {
-        if (~flags & Frames.Flags.hadVisualMode) {
-          words = Settings_.CONST_.words;
-          cPort.s.f = Frames.Flags.hadVisualMode | flags;
-        }
-      }
-      cPort.postMessage<1, kFgCmd.visualMode>({ N: kBgReq.execute,
-        S: ensureInnerCSS(cPort), c: kFgCmd.visualMode, n: 1,
-        a: {
-          m: (str === "caret" ? VisualModeNS.Mode.Caret
-              : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual
-            ) as VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret,
-          w: words,
-        }
-      });
-    },
-    /* performFind: */ function (): void {
-      const sender = cPort.s, absRepeat = cRepeat < 0 ? -cRepeat : cRepeat, rawIndex = cOptions.index,
-      nth = rawIndex ? rawIndex === "other" ? absRepeat + 1 : rawIndex === "count" ? absRepeat
-                : rawIndex >= 0 ? -1 - (0 | rawIndex) : 0 : 0,
-      leave = !!nth || !cOptions.active;
-      let findCSS: CmdOptions[kFgCmd.findMode]["f"] = null;
-      if (!(sender.f & Frames.Flags.hasFindCSS)) {
-        sender.f |= Frames.Flags.hasFindCSS;
-        findCSS = Settings_.cache_.findCSS_;
-      }
-      cPort.postMessage<1, kFgCmd.findMode>({ N: kBgReq.execute
-          , S: ensureInnerCSS(cPort), c: kFgCmd.findMode, n: 1
-          , a: {
-        n: nth > 0 ? cRepeat / absRepeat : cRepeat,
-        l: leave,
-        f: findCSS,
-        r: cOptions.returnToViewport === true,
-        s: !nth && absRepeat < 2 && !!cOptions.selected,
-        q: leave || cOptions.last ? FindModeHistory_.query_(sender.a, "", nth < 0 ? -nth : nth) : ""
-      }});
-    },
-    /* showVomnibar: */ function (this: void, forceInner?: boolean): void {
-      let port = cPort as Port | null, optUrl: VomnibarNS.GlobalOptions["url"] = cOptions.url;
-      if (optUrl != null && optUrl !== true && typeof optUrl !== "string") {
-        optUrl = null;
-        delete (cOptions as {} as VomnibarNS.GlobalOptions).url;
-      }
-      if (!port) {
-        port = cPort = indexFrame(TabRecency_.last_, 0) as Port;
-        if (!port) { return; }
-        // not go to the top frame here, so that a current frame can suppress keys for a while
-      }
-      const page = Settings_.cache_.vomnibarPage_f, { u: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
-      isCurOnExt = url.startsWith(BrowserProtocol_),
-      inner = forceInner || !page.startsWith(location.origin) ? Settings_.CONST_.VomnibarPageInner_ : page;
-      forceInner = forceInner ? forceInner
-        : preferWeb ? isCurOnExt || page.startsWith("file:") && !url.startsWith("file:")
-          // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
-          // that HTTPS refusing HTTP iframes.
-          || page.startsWith("http:") && url.startsWith("https:")
-        : port.s.a || isCurOnExt && !page.startsWith(url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1));
-      const useInner: boolean = forceInner || page === inner || port.s.t < 0,
-      options: CmdOptions[kFgCmd.vomnibar] & SafeObject = BgUtils_.extendIf_(
-          BgUtils_.safer_<CmdOptions[kFgCmd.vomnibar]>({
-        v: useInner ? inner : page,
-        i: useInner ? null : inner,
-        t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
-        s: useInner ? "" : Settings_.CONST_.VomnibarScript_f_,
-        k: getSecret(),
-      }), cOptions as {} as CmdOptions[kFgCmd.vomnibar]);
-      port.postMessage<1, kFgCmd.vomnibar>({
-        N: kBgReq.execute, S: ensureInnerCSS(port),
-        c: kFgCmd.vomnibar, n: cRepeat,
-        a: options
-      });
-      options.k = -1;
-      cOptions = options; // safe on renaming
-    },
     /* clearFindHistory: */ function (this: void): void {
       const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true;
       FindModeHistory_.removeAll_(incognito);
       return Backend_.showHUD_((incognito ? "incognito " : "") + "find history has been cleared.");
-    },
-    /* showHelp: */ function (this: void): void {
-      if (cPort.s.i === 0 && !(cPort.s.f & Frames.Flags.hadHelpDialog)) {
-        return requestHandlers[kFgReq.initHelp]({}, cPort);
-      }
-      if (!window.HelpDialog) {
-        BgUtils_.require_("HelpDialog");
-      }
-      cPort.postMessage<1, kFgCmd.showHelp>({
-        N: kBgReq.execute,
-        S: null,
-        c: kFgCmd.showHelp,
-        n: 1,
-        a: null
-      });
     },
     /* toggleViewSource: */ function (this: void, tabs: [Tab]): void {
       let tab = tabs[0], url = tab.url;
@@ -1787,35 +1809,6 @@ Are you sure you want to continue?`;
     },
     /* clearMarks: */ function (this: void): void {
       cOptions.local ? requireURL({ H: kFgReq.marks, u: "", a: kMarkAction.clear }, true) : Marks_.clear_();
-    },
-    /* kBgCmd.toggle: */ function (this: void): void {
-      type Keys = keyof SettingsNS.FrontendSettingNameMap;
-      const all = Settings_.payload_, key: Keys = (cOptions.key || "") + "" as Keys,
-      key2 = Settings_.valuesToLoad_[key], old = key2 ? all[key2] : 0, keyRepr = '"' + key + '"';
-      let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
-      if (!key2) {
-        msg = key in Settings_.defaults_ ? "option " + keyRepr + " is not a valid switch" : "unknown option " + keyRepr;
-      } else if (typeof old === "boolean") {
-        isBool || (value = null);
-      } else if (value === undefined) {
-        msg = "need value=... for option " + keyRepr;
-      } else if (isBool) {
-        msg = keyRepr + " is not a boolean switch";
-      } else if (typeof value !== typeof old) {
-        msg = JSON.stringify(old);
-        msg = "value of " + keyRepr + " should be like " +
-          (msg.length > 10 ? msg.slice(0, 9) + "\u2026" : msg);
-      }
-      if (msg) {
-        Backend_.showHUD_(msg);
-      } else {
-        cPort.postMessage<1, kFgCmd.toggle>({
-          N: kBgReq.execute,
-          S: ensureInnerCSS(cPort),
-          c: kFgCmd.toggle, n: 1,
-          a: { k: key2, n: keyRepr, v: value }
-        });
-      }
     },
     /* toggleVomnibarStyle: */ function (this: void, tabs: [Tab]): void {
       const tabId = tabs[0].id, toggled = ((cOptions.style || "") + "").trim(), current = !!cOptions.current;
