@@ -309,7 +309,7 @@ See the [MIT LICENSE](LICENSE.txt) for details.
   Copyright (c) 2015 Matthew Crumley.
   [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
 * [Viewer.js](https://github.com/fengyuanchen/viewerjs)
-  ([Modified by gdh1995](https://github.com/gdh1995/viewerjs/tree/for-vimium-c)):
+  ([Modified by gdh1995](https://github.com/gdh1995/viewerjs)):
   Copyright (c) 2015-present Chen Fengyuan.
   [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
 * [TypeScript](https://github.com/Microsoft/TypeScript):

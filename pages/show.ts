@@ -19,10 +19,12 @@ interface BgWindow extends Window {
   Settings_: typeof Settings_;
 }
 interface ViewerType {
-  readonly visible: boolean;
+  readonly isShown: boolean;
+  readonly played: boolean;
   readonly viewed: boolean;
   destroy(): any;
   show(): any;
+  play(fullscreen: true): any;
   zoom(ratio: number, hasTooltip: boolean): ViewerType;
   rotate(degree: number): any;
 }
@@ -320,7 +322,11 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
   if (VData.error) { return false; }
   if (keyCode === kKeyCode.space || keyCode === kKeyCode.enter) {
     event.preventDefault();
-    simulateClick(VShown as ValidNodeTypes, event);
+    if (keyCode === kKeyCode.enter && viewer_ && viewer_.isShown && !viewer_.played) {
+      viewer_.play(true);
+    } else if (!viewer_ || !viewer_.isShown) {
+      simulateClick(VShown as ValidNodeTypes, event);
+    }
     return true;
   }
   if (!window.VKey) {
@@ -418,7 +424,7 @@ function copyThing(event: Event): void {
 
 function toggleInvert(event: Event): void {
   if (VData.type === "image") {
-    if (VData.error || viewer_ && viewer_.visible) {
+    if (VData.error || viewer_ && viewer_.isShown) {
       event.preventDefault();
     } else {
       (VShown as ValidNodeTypes).classList.toggle("invert");
@@ -486,7 +492,7 @@ function showSlide(ViewerModule: Window["Viewer"]): Promise<ViewerType> | Viewer
   const sel = getSelection();
   sel.type === "Range" && sel.collapseToStart();
   const v = viewer_ = viewer_ || new ViewerModule(VShown as HTMLImageElement);
-  v.visible || v.show();
+  v.isShown || v.show();
   needToScroll && scrollTo(0, 0);
   if (v.viewed) { return v; }
   return new Promise<ViewerType>(function (resolve, reject): void {

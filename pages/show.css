@@ -88,3 +88,6 @@ img.broken {
 .viewer-next, .viewer-prev {
   visibility: hidden;
 }
+.viewer-player {
+  cursor: default !important;
+}
