@@ -928,6 +928,9 @@ Are you sure you want to continue?`;
       if (!registry.background_) { return; }
       if (registry.alias_ > kBgCmd.MAX_NEED_CPORT || registry.alias_ < kBgCmd.MIN_NEED_CPORT) {
         executeCommand(registry, 1, kKeyCode.None, null as never as Port, 0);
+      } else {
+        (registry as Writable<typeof registry>).alias_ = kBgCmd.blank;
+        console.log("Error: Command", cmdName, "must run on pages which are not priviledged");
       }
       return;
     }
@@ -937,10 +940,10 @@ Are you sure you want to continue?`;
   const
   BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
     UseTab.NoTab,
-    Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
-      ? UseTab.NoTab : UseTab.ActiveTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
+    Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
+      ? UseTab.NoTab : UseTab.ActiveTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
     UseTab.NoTab, UseTab.CurShownTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
     UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
@@ -960,7 +963,6 @@ Are you sure you want to continue?`;
       BgCmdNoTab;
   } = [
     /* blank: */ BgUtils_.blank_,
-    /* createTab: */ BgUtils_.blank_,
     /* kBgCmd.nextFrame: */ function (this: void): void {
       let port = cPort, ind = -1;
       const frames = framesForTab[port.s.t];
@@ -1196,6 +1198,7 @@ Are you sure you want to continue?`;
       options.k = -1;
       cOptions = options; // safe on renaming
     },
+    /* createTab: */ BgUtils_.blank_,
     /* duplicateTab: */ function (): void {
       const tabId = cPort ? cPort.s.t : TabRecency_.last_;
       if (tabId < 0) {

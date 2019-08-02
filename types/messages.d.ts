@@ -172,12 +172,13 @@ interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 
 declare const enum kBgCmd {
-  blank, createTab,
+  blank,
   // region: need cport
   nextFrame, parentFrame, goNext, toggle, showHelp,
   enterInsertMode, enterVisualMode, performFind, showVomnibar,
   MIN_NEED_CPORT = nextFrame, MAX_NEED_CPORT = showVomnibar,
   // endregion: need cport
+  createTab,
   duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
   clearCS, goTab, removeTab, removeTabsR, removeRightTab,
   restoreTab, restoreGivenTab, discardTab, openUrl, searchInAnother,
