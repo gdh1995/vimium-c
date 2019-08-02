@@ -58,16 +58,17 @@
             placeholder="# Insert your preferred key mappings here."></textarea>
         </td>
         <td class="help"><div class="help-inner">
-          Enter commands to remap your keys.
-          <span class="require-shortcuts">And 4 <i>global</i> shortcuts can be configured
+          Remap keys and commands. <span class="require-shortcuts"><i>Global</i> shortcuts can be configured
           on <a id="openExtensionPage" href="chrome://extensions/shortcuts">chrome://extensions/&#8230;</a>.</span>
           Some examples:
           <code>
           <pre>
 map &lt;f1&gt; LinkHints.activate
 unmap &lt;a-s-f&gt;
+mapKey &lt;a-e&gt; &lt;esc&gt; 
 <span class="require-shortcuts">shortcut createTab position="end"</span>
-# "unmapAll" to unmap all above and default</pre>
+<span class="require-shortcuts">shortcut userCustomized1 command="goBack"</span>
+# "unmapAll" unmaps all above and default</pre>
           </code>
           <a id="showCommands" href="#commands" data-hash="commands" data-delay="">Show available commands</a>.
           <a class="wrap-left-space" data-auto-resize="keyMappings"></a>.
@@ -104,9 +105,8 @@ unmap &lt;a-s-f&gt;
           <input id="searchUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" />
           <div class="nonEmptyTip"></div>
         </td>
-        <td class="help"><div class="help-inner">
-          Used when no engine (or "<kbd>~</kbd>") matched. The default is:<br/>
-          <kbd id="defaultSearchEngine" class="sel-all" role="button">https://www.google.com/search?q=%s Google</kbd>
+        <td class="help"><div class="help-inner line-1x">
+          Used when no search engine (or "<kbd>~</kbd>") matched.
         </div></td>
       </tr>
       <tr>

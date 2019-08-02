@@ -980,13 +980,9 @@ $("#importButton").onclick = function (): void {
   opt.onchange ? opt.onchange(null as never) : click($("#settingsFile"));
 };
 
-nextTick_(([el1, el2]) => {
+nextTick_(el1 => {
   el1.textContent = bgSettings_.defaults_.newTabUrl;
-  el2.textContent = bgSettings_.defaults_.searchUrl;
-}, [
-  $("#defaultNewTab"),
-  $("#defaultSearchEngine")
-] as const);
+}, $("#defaultNewTab"));
 
 nextTick_(el => {
 el.textContent = (Build.BTypes & BrowserType.Edge
