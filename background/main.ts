@@ -1755,7 +1755,7 @@ Are you sure you want to continue?`;
       cOptions = options; // safe on renaming
     },
     /* clearFindHistory: */ function (this: void): void {
-      const { a: incognito } = cPort.s;
+      const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true;
       FindModeHistory_.removeAll_(incognito);
       return Backend_.showHUD_((incognito ? "incognito " : "") + "find history has been cleared.");
     },

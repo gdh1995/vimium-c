@@ -111,22 +111,22 @@ ContentSettings_ = Build.PContentSettings ? {
     } while (1 < i && cur === last);
     return cur !== last;
   },
-  Clear_ (this: void, contentType: CSTypes, tab?: Readonly<Pick<Frames.Sender, "a">>): void {
+  Clear_ (this: void, contentType: CSTypes, incognito?: Frames.Sender["a"]): void {
     const css = chrome.contentSettings, cs = css && css[contentType],
     kIncognito = "incognito_session_only", kRegular = "regular";
     if (!cs || !cs.clear) { return; }
-    if (tab) {
-      cs.clear({ scope: (tab.a ? kIncognito : kRegular) });
+    if (incognito != null) {
+      cs.clear({ scope: (incognito ? kIncognito : kRegular) });
       return;
     }
     cs.clear({ scope: kRegular });
     cs.clear({ scope: kIncognito }, BgUtils_.runtimeError_);
     localStorage.removeItem(ContentSettings_.makeKey_(contentType));
   },
-  clearCS_ (options: CommandsNS.Options, port: Port): void {
+  clearCS_ (options: CommandsNS.Options, port: Port | null): void {
     const ty = "" + options.type as CSTypes;
     if (!this.complain_(ty, "http://a.cc/")) {
-      this.Clear_(ty, port.s);
+      this.Clear_(ty, port ? port.s.a : TabRecency_.incognito_ === IncognitoType.true);
       return Backend_.showHUD_(ty + " content settings have been cleared.");
     }
   },
