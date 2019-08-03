@@ -7,6 +7,7 @@ var Settings_ = {
     backupSettingsToLocal_: null as null | ((wait: number) => void) | true,
     onInstall_: null as Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null,
     cmdErrors_: 0,
+    newSettingsToBroadcast_: null as BgReq[kBgReq.settingsUpdate]["d"] | null,
     shownHash_: null as ((this: void) => string) | null
   },
   payload_: (Build.BTypes & BrowserType.Chrome ? {
@@ -80,7 +81,27 @@ var Settings_ = {
     <K extends SettingsNS.NullableUpdateHooks>(key: K, value?: FullSettings[K] | null): void;
     <K extends SettingsNS.EnsuredUpdateHooks | keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
   },
-  broadcast_<K extends keyof BgReq> (request: Req.bg<K>): void {
+  broadcast_<K extends kBgReq.settingsUpdate | kBgReq.url | kBgReq.keyMap> (request: Req.bg<K>): void {
+    if (request.N === kBgReq.settingsUpdate) {
+      const cur = BgUtils_.safer_((request as Req.bg<kBgReq.settingsUpdate>).d)
+        , old = Settings_.temp_.newSettingsToBroadcast_;
+      if (old) {
+        BgUtils_.extendIf_(cur, old);
+      } else {
+        Promise.resolve(request).then(Settings_._BroadcastSettingsUpdates);
+      }
+      Settings_.temp_.newSettingsToBroadcast_ = cur;
+      return;
+    } else {
+      Settings_._BroadcastSettingsUpdates(request);
+    }
+  },
+  _BroadcastSettingsUpdates<K extends keyof BgReq> (this: void, request: Req.bg<K>): void {
+    if (request.N === kBgReq.settingsUpdate) {
+      (request as Req.bg<kBgReq.settingsUpdate>).d =
+        Settings_.temp_.newSettingsToBroadcast_ as NonNullable<typeof Settings_.temp_.newSettingsToBroadcast_>;
+      Settings_.temp_.newSettingsToBroadcast_ = null;
+    }
     const ref = Backend_.indexPorts_();
     for (const tabId in ref) {
       const frames = ref[+tabId] as Frames.Frames;
@@ -284,6 +305,7 @@ var Settings_ = {
     },
     ignoreCapsLock (this: {}, value: FullSettings["ignoreCapsLock"]): void {
       const flag = value > 1 || value === 1 && !!Settings_.payload_.m;
+      if (Settings_.payload_.i === flag) { return; }
       Settings_.payload_.i = Settings_.omniPayload_.i = flag;
       Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: { i: flag } });
       Settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { i: flag } });
