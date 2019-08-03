@@ -82,8 +82,8 @@ interface NumberChecker extends Checker<"scrollStepSize"> {
   default: number;
   check_ (value: number): number;
 }
-
-class NumberOption_<T extends PossibleOptionNames<number>> extends Option_<T> {
+type UniversalNumberSettings = Exclude<PossibleOptionNames<number>, "ignoreCapsLock">;
+class NumberOption_<T extends UniversalNumberSettings> extends Option_<T> {
 readonly element_: HTMLInputElement;
 previous_: number;
 wheelTime_: number;
@@ -296,22 +296,47 @@ class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
 
 JSONOption_.prototype.areEqual_ = Option_.areJSONEqual_;
 
-type NullableBooleanOptionNames = PossibleOptionNames<boolean | null>;
-type BooleanOptionNames = PossibleOptionNames<boolean>;
-class BooleanOption_<T extends Exclude<NullableBooleanOptionNames, BooleanOptionNames>> extends Option_<T> {
-readonly element_: HTMLInputElement;
-previous_: boolean | null;
-constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption_<T>) => void) {
-  super(element, onUpdated);
-  this.element_.onchange = this.onUpdated_;
-}
-populateElement_ (value: boolean | null): void {
-  this.element_.checked = value || false;
-  this.element_.indeterminate = value === null;
-}
-readValueFromElement_ (): boolean | null {
-  return this.element_.indeterminate ? null : this.element_.checked;
-}
+class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
+  readonly element_: HTMLInputElement;
+  previous_: FullSettings[T];
+  map_: any[];
+  true_index_: 2 | 1;
+  static readonly map_for_2_ = [false, true] as const;
+  static readonly map_for_3_ = [false, null, true] as const;
+  inner_status_: 0 | 1 | 2;
+  constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption_<T>) => void) {
+    super(element, onUpdated);
+    let map = element.dataset.map;
+    this.map_ = map ? JSON.parse(map)
+        : this.element_.dataset.allowNull ? BooleanOption_.map_for_2_ : BooleanOption_.map_for_3_;
+    this.true_index_ = (this.map_.length - 1) as 2 | 1;
+    if (this.true_index_ > 1 && this.field_ !== "vimSync") {
+      this.element_.addEventListener("change", this.onTripleStatusesClicked.bind(this), true);
+    }
+    this.element_.onchange = this.onUpdated_;
+  }
+  populateElement_ (value: FullSettings[T]): void {
+    this.element_.checked = value === this.map_[this.true_index_];
+    this.element_.indeterminate = this.true_index_ > 1 && value === this.map_[1];
+    this.inner_status_ = this.map_.indexOf(value) as 0 | 1 | 2;
+  }
+  readValueFromElement_ (): FullSettings[T] {
+    let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0];
+    if (this.field_ === "ignoreCapsLock" && window.VDom) {
+      VKey.ignoreCapsLock_ = VDom.cache_.i = value > 1 || value === 1 && !!bgSettings_.payload_.m;
+    }
+    return value;
+  }
+  onTripleStatusesClicked (event: Event): void {
+    if (this.inner_status_ === 0) {
+      event.preventDefault();
+      this.element_.indeterminate = true;
+      this.element_.checked = false;
+      this.inner_status_ = 1;
+    } else {
+      this.inner_status_ = this.element_.checked ? 2 : 0;
+    }
+  }
 }
 
 ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOption_, isAdd: number): void {

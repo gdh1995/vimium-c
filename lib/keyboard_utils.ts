@@ -5,6 +5,7 @@ var VKey = {
     0: ";:", 1: "=+", 2: ",<", 3: "-_", 4: ".>", 5: "/?", 6: "`~",
     33: "[{", 34: "\\|", 35: "]}", 36: "'\""
   } as ReadonlySafeDict<string>,
+  ignoreCapsLock_: true as SettingsNS.FrontendSettingsSyncedManually["i"],
   _funcKeyRe: <RegExpOne> /^F\d\d?$/,
   getKeyName_ (event: KeyboardEvent): string {
     const {keyCode: i, shiftKey: c} = event;
@@ -36,14 +37,16 @@ var VKey = {
     }
   },
   char_ (event: KeyboardEvent): string {
-    const key = event.key;
+    let key = event.key;
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
-      return this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
+      key = this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
         || (this as EnsureNonNull<typeof VKey>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
+    } else {
+      key = (key as string).length !== 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event) : key as string;
     }
-    return (key as string).length !== 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event) : key as string;
+    return this.ignoreCapsLock_ ? event.shiftKey ? key.toUpperCase() : key.toLowerCase() : key as string;
   },
   key_ (event: EventControlKeys, ch: string): string {
     let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`

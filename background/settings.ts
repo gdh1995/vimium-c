@@ -15,22 +15,23 @@ var Settings_ = {
     r: false,
     d: "",
     g: false,
+    i: false,
     m: false
   } : {
-    __proto__: null as never, r: false, d: "", g: false, m: false
+    __proto__: null as never, r: false, d: "", g: false, i: false, m: false
   }) as SettingsNS.FrontendSettingsWithoutSyncing & SettingsNS.FrontendSettingsSyncedManually
       & SafeObject as SettingsNS.FrontendSettingCache & SafeObject,
   omniPayload_: (Build.BTypes & BrowserType.Chrome ? {
     v: CurCVer_,
+    i: false,
     m: 0,
     c: "",
     I: 0,
     M: 0,
-    i: 0,
     n: "",
     s: ""
   } : {
-    m: 0,
+    i: false, m: 0,
     c: "", M: 0, I: 0, n: "", s: ""
   }) as VomnibarPayload,
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
@@ -281,6 +282,12 @@ var Settings_ = {
       }
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { c: a.omniPayload_.c } });
     },
+    ignoreCapsLock (this: {}, value: FullSettings["ignoreCapsLock"]): void {
+      const flag = value > 1 || value === 1 && !!Settings_.payload_.m;
+      Settings_.payload_.i = Settings_.omniPayload_.i = flag;
+      Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: { i: flag } });
+      Settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { i: flag } });
+    },
     innerCSS (this: {}, css): void {
       const a = this as typeof Settings_, cache = a.cache_ as Writable<typeof Settings_.cache_>;
       let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS");
@@ -411,6 +418,7 @@ nacjakoppgmdcpemlfnfegmlhipddanj`
     focusNewTabContent: true,
     grabBackFocus: false,
     hideHud: false,
+    ignoreCapsLock: 0,
     innerCSS: "",
     keyboard: [560, 33],
     keyMappings: "",
@@ -540,6 +548,9 @@ chrome.runtime.getPlatformInfo ? chrome.runtime.getPlatformInfo(function (info):
   Settings_.CONST_.Platform_ = os;
   (Settings_.omniPayload_ as Writable<typeof Settings_.omniPayload_>).m =
   (Settings_.payload_ as Writable<typeof Settings_.payload_>).m = os === types.MAC || (os === types.WIN && 0);
+  const ignoreCapsLock = Settings_.get_("ignoreCapsLock");
+  Settings_.payload_.i = Settings_.omniPayload_.i =
+      ignoreCapsLock > 1 || ignoreCapsLock === 1 && os === types.MAC;
 }) : (Settings_.CONST_.Platform_ = Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & BrowserType.Edge) || OnOther === BrowserType.Edge) ? "win" : "unknown");
 

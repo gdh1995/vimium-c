@@ -196,6 +196,18 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="caption"></td>
           <td>
             <label class="booleanOption">
+              <input id="ignoreCapsLock" type="checkbox" data-model="Boolean" data-map="[0,1,2]" />
+              <span>Ignore CapsLock status</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            If partially checked, Vimium C will only ignore CapsLock on macOS.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
               <input id="regexFindMode" type="checkbox" data-model="Boolean" />
               <span>Treat find queries as JavaScript regular expressions</span>
             </label>
@@ -257,7 +269,8 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="caption"></td>
           <td>
             <label class="booleanOption">
-              <input id="vimSync" type="checkbox" data-model="Boolean" data-permission="storage" data-check="change" />
+              <input id="vimSync" type="checkbox" data-model="Boolean" data-allow-null="true"
+                  data-permission="storage" data-check="change" />
               <span>Synchronize settings with your current account for this browser</span>
             </label>
           </td>

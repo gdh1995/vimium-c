@@ -132,6 +132,7 @@ interface VomnibarPayload {
   readonly /** browser */ b?: BrowserType;
   readonly /** browserVer */ v?: BrowserVer;
   readonly /** onMac */ m?: SettingsNS.FrontendSettingsWithoutSyncing["m"];
+  /** ignoreCapsLock */ i: boolean;
   /** css */ c: string;
   /** maxMatches */ M: number;
   /** queryInterval */ I: number;

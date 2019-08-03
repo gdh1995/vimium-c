@@ -240,6 +240,7 @@ declare const enum PortType {
 declare namespace SettingsNS {
   interface BaseBackendSettings {
     focusNewTabContent: boolean;
+    ignoreCapsLock: 0 | 1 | 2;
     newTabUrl_f: string;
     showAdvancedCommands: boolean;
     vomnibarOptions: {
@@ -273,6 +274,7 @@ declare namespace SettingsNS {
   interface FrontendSettingsSyncedManually {
     /** reduceMotion */ r: boolean;
     /** darkMode */ d: " D" | "";
+    /** ignoreCapsLock */ i: boolean;
   }
   interface FrontendSettingsWithoutSyncing {
     /** browserVer */ readonly v?: BrowserVer;

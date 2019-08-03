@@ -995,6 +995,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       D.cache_ = load as EnsureItemsNonNull<typeof load>;
       load.m && (VKey.correctionMap_ = safer<string>(null));
+      VKey.ignoreCapsLock_ = load.i;
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
         D.specialZoom_ = (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
@@ -1104,6 +1105,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         (i2 in cache) && (VKey.safer_(cache)[i2] = undefined as never);
       }
       delta.d != null && HUD.box_ && HUD.box_.classList.toggle("D", !!delta.d);
+      delta.i != null && (VKey.ignoreCapsLock_ = delta.i);
     },
     /* kBgReq.focusFrame: */ FrameMask.Focus_,
     /* kBgReq.exitGrab: */ InsertMode.ExitGrab_ as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
