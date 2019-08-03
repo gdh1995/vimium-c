@@ -1055,9 +1055,11 @@ Are you sure you want to continue?`;
       });
     },
     /* kBgCmd.toggle: */ function (this: void): void {
-      type Keys = keyof SettingsNS.FrontendSettingNameMap;
+      type Keys = keyof SettingsNS.FrontendSettingMutableNames;
       const all = Settings_.payload_, key: Keys = (cOptions.key || "") + "" as Keys,
-      key2 = Settings_.valuesToLoad_[key], old = key2 ? all[key2] : 0, keyRepr = '"' + key + '"';
+      kIgnoreCapsLock = "ignoreCapsLock",
+      key2 = key === kIgnoreCapsLock ? "i" : Settings_.valuesToLoad_[key],
+      old = key2 ? all[key2] : 0, keyRepr = '"' + key + '"';
       let value = cOptions.value, isBool = typeof value === "boolean", msg = "";
       if (!key2) {
         msg = key in Settings_.defaults_ ? "option " + keyRepr + " is not a valid switch" : "unknown option " + keyRepr;

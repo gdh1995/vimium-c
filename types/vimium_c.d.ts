@@ -240,6 +240,7 @@ declare const enum PortType {
 declare namespace SettingsNS {
   interface BaseBackendSettings {
     focusNewTabContent: boolean;
+    /** if want to rework it, must search it in all files and take care */
     ignoreCapsLock: 0 | 1 | 2;
     newTabUrl_f: string;
     showAdvancedCommands: boolean;
@@ -266,6 +267,9 @@ declare namespace SettingsNS {
     regexFindMode: "R";
     smoothScroll: "S";
     scrollStepSize: "t";
+  }
+  interface FrontendSettingMutableNames extends FrontendSettingNameMap {
+    ignoreCapsLock: "i";
   }
   type CachedFrontendSettingsTemplate<T> = T extends keyof FrontendSettingNameMap ? {
     [k in FrontendSettingNameMap[T]]: FrontendSettings[T];

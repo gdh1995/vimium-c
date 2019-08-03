@@ -227,7 +227,7 @@ interface CmdOptions {
   };
   [kFgCmd.reset]: FgOptions;
   [kFgCmd.toggle]: {
-    k: keyof SettingsNS.CachedFrontendSettings;
+    k: keyof SettingsNS.FrontendSettingsWithSync;
     n: string; // `"${keyof SettingsNS.FrontendSettingNameMap}"`
     v: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
   };

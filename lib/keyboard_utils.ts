@@ -5,7 +5,7 @@ var VKey = {
     0: ";:", 1: "=+", 2: ",<", 3: "-_", 4: ".>", 5: "/?", 6: "`~",
     33: "[{", 34: "\\|", 35: "]}", 36: "'\""
   } as ReadonlySafeDict<string>,
-  ignoreCapsLock_: true as SettingsNS.FrontendSettingsSyncedManually["i"],
+  _cache: null as never as EnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
   _funcKeyRe: <RegExpOne> /^F\d\d?$/,
   getKeyName_ (event: KeyboardEvent): string {
     const {keyCode: i, shiftKey: c} = event;
@@ -46,7 +46,7 @@ var VKey = {
     } else {
       key = (key as string).length !== 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event) : key as string;
     }
-    return this.ignoreCapsLock_ ? event.shiftKey ? key.toUpperCase() : key.toLowerCase() : key as string;
+    return this._cache.i ? event.shiftKey ? key.toUpperCase() : key.toLowerCase() : key as string;
   },
   key_ (event: EventControlKeys, ch: string): string {
     let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`
