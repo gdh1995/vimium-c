@@ -308,7 +308,7 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     super(element, onUpdated);
     let map = element.dataset.map;
     this.map_ = map ? JSON.parse(map)
-        : this.element_.dataset.allowNull ? BooleanOption_.map_for_2_ : BooleanOption_.map_for_3_;
+        : this.element_.dataset.allowNull ? BooleanOption_.map_for_3_ : BooleanOption_.map_for_2_;
     this.true_index_ = (this.map_.length - 1) as 2 | 1;
     if (this.true_index_ > 1 && this.field_ !== "vimSync") {
       this.element_.addEventListener("change", this.onTripleStatusesClicked.bind(this), true);
