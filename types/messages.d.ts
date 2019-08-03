@@ -131,10 +131,10 @@ interface BgReq {
 interface VomnibarPayload {
   readonly /** browser */ b?: BrowserType;
   readonly /** browserVer */ v?: BrowserVer;
-  readonly /** browserVer */ m?: SettingsNS.FrontendSettingsWithoutSyncing["m"];
+  readonly /** onMac */ m?: SettingsNS.FrontendSettingsWithoutSyncing["m"];
   /** css */ c: string;
   /** maxMatches */ M: number;
-  /** queryInterval */ i: number;
+  /** queryInterval */ I: number;
   /** comma-joined size numbers */ n: string;
   /** styles */ s: string;
 }

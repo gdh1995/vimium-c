@@ -754,7 +754,7 @@ BgUtils_.timeout_(600, function (): void {
     lastSuggest = { suggest_: suggest, key_: key, sent_: false };
     if (timer) { return; }
     const now = Date.now(),
-    delta = Settings_.omniPayload_.i + inputTime - now; /** it's made safe by {@see #onTimer} */
+    delta = Settings_.omniPayload_.I + inputTime - now; /** it's made safe by {@see #onTimer} */
     if (delta > 30 && delta < 3000) { // in case of system time jumping
       timer = setTimeout(onTimer, delta);
       return;

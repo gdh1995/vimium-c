@@ -306,7 +306,6 @@ declare namespace MediaNS {
 
 declare namespace SettingsNS {
   interface BackendSettings extends BaseBackendSettings {
-    acceptAllShortcuts: boolean;
     autoDarkMode: boolean;
     autoReduceMotion: boolean;
     dialogMode: boolean;

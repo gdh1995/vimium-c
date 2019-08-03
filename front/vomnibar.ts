@@ -819,7 +819,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
     const delta = VUtils_.safer_(response.d),
-    { c: css_, M: maxMatches_, i: queryInterval_, n: sizes_str, s: styles } = delta;
+    { c: css_, M: maxMatches_, I: queryInterval_, n: sizes_str, s: styles } = delta;
     if (styles != null && Vomnibar_.styles_ !== styles) {
       Vomnibar_.styles_ = styles;
       Vomnibar_.onStyleUpdate_(styles);
@@ -1342,7 +1342,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     Vomnibar_.onMac_ = payload.m;
     Vomnibar_.styles_ = payload.s;
     Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: {
-      c: payload.c, M: payload.M, i: payload.i, n: payload.n
+      c: payload.c, M: payload.M, I: payload.I, n: payload.n
     } });
     const { s: secret } = request;
     _sec = secret;

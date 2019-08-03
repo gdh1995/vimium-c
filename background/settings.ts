@@ -24,12 +24,14 @@ var Settings_ = {
     v: CurCVer_,
     m: 0,
     c: "",
+    I: 0,
     M: 0,
     i: 0,
     n: "",
     s: ""
   } : {
-    m: 0, c: "", M: 0, i: 0, n: "", s: ""
+    m: 0,
+    c: "", M: 0, I: 0, n: "", s: ""
   }) as VomnibarPayload,
   newTabs_: BgUtils_.safeObj_() as ReadonlySafeDict<Urls.NewTabType>,
   extWhiteList_: null as never as SafeDict<boolean>,
@@ -282,7 +284,7 @@ var Settings_ = {
     innerCSS (this: {}, css): void {
       const a = this as typeof Settings_, cache = a.cache_ as Writable<typeof Settings_.cache_>;
       let findCSS = a.storage_.getItem("findCSS"), omniCSS = a.storage_.getItem("omniCSS");
-      if (!findCSS || omniCSS == null) { Settings_.fetchFile_("baseCSS"); return; }
+      if (!findCSS || omniCSS == null) { a.fetchFile_("baseCSS"); return; }
       findCSS = findCSS.slice(findCSS.indexOf("\n") + 1);
       const index = findCSS.indexOf("\n") + 1, index2 = findCSS.indexOf("\n", index);
       // Note: The lines below are allowed as a special use case
@@ -345,14 +347,14 @@ var Settings_ = {
       (a.cache_ as Writable<typeof a.cache_>).vomnibarOptions = options = isSame ? defaultOptions
         : options as NonNullable<typeof options>;
       payload.M = maxMatches;
-      payload.i = queryInterval;
+      payload.I = queryInterval;
       payload.n = sizes;
       payload.s = styles;
       a.updateOmniStyles_(MediaNS.kName.PrefersReduceMotion, 1);
       a.updateOmniStyles_(MediaNS.kName.PrefersColorScheme, 1);
       a.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: {
         M: maxMatches,
-        i: queryInterval,
+        I: queryInterval,
         n: sizes,
         s: payload.s
       } });
@@ -388,7 +390,6 @@ var Settings_ = {
   // the default of all nullable fields must be set to null for compatibility with @Sync.set
   defaults_: {
     __proto__: null as never,
-    acceptAllShortcuts: false,
     autoDarkMode: true,
     autoReduceMotion: false,
     dialogMode: false,
