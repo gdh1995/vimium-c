@@ -51,7 +51,7 @@ var VKey = {
   key_ (event: EventControlKeys, ch: string): string {
     let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`
       , isLong = ch.length > 1, chLower = ch.toLowerCase();
-    event.shiftKey && (isLong || modifiers && ch !== chLower) && (modifiers += "s-");
+    event.shiftKey && (isLong || modifiers && ch.toUpperCase() !== chLower) && (modifiers += "s-");
     return isLong || modifiers ? `<${modifiers}${chLower}>` : ch;
   },
   getKeyStat_ (event: EventControlKeys): KeyStat {
