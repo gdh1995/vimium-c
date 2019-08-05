@@ -441,6 +441,7 @@ nacjakoppgmdcpemlfnfegmlhipddanj`
     grabBackFocus: false,
     hideHud: false,
     ignoreCapsLock: 0,
+    ignoreKeyboardLayout: false,
     innerCSS: "",
     keyboard: [560, 33],
     keyMappings: "",
@@ -507,6 +508,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
   valuesToLoad_: { __proto__: null as never,
+    ignoreKeyboardLayout: "L",
     keyboard: "k", linkHintCharacters: "l",
     regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t"
   } as SettingsNS.FrontendSettingNameMap & SafeObject,

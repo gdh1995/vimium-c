@@ -255,6 +255,7 @@ declare namespace SettingsNS {
     showAdvancedCommands: 0;
   }
   interface FrontendSettings {
+    ignoreKeyboardLayout: boolean;
     keyboard: [number, number];
     linkHintCharacters: string;
     regexFindMode: boolean;
@@ -262,6 +263,7 @@ declare namespace SettingsNS {
     smoothScroll: boolean;
   }
   interface FrontendSettingNameMap {
+    ignoreKeyboardLayout: "L";
     keyboard: "k";
     linkHintCharacters: "l";
     regexFindMode: "R";
@@ -432,7 +434,7 @@ declare const enum kCharCode {
   /** '-' */ dash = 45,
   dot = 46, slash = 47,
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62, question = 63,
-  A = 65, minAlphabet = A, B, C, I = A + 8, W = A + 22, minLastAlphabet = A + 25, minNotAlphabet,
+  A = 65, minAlphabet = A, B, C, I = A + 8, K = I + 2, W = A + 22, minLastAlphabet = A + 25, minNotAlphabet,
   a = 97, CASE_DELTA = a - A,
   backslash = 92, s = 115,
 }

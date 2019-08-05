@@ -208,6 +208,19 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="caption"></td>
           <td>
             <label class="booleanOption">
+              <input id="ignoreKeyboardLayout" type="checkbox" data-model="Boolean" />
+              <span>Ignore keyboard layout</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            This forces the use of <kbd>en-US</kbd> QWERTY layout and
+            can be helpful for non-Latin keyboards.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
               <input id="regexFindMode" type="checkbox" data-model="Boolean" />
               <span>Treat find queries as JavaScript regular expressions</span>
             </label>
