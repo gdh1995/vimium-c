@@ -929,8 +929,11 @@ Are you sure you want to continue?`;
       if (registry.alias_ > kBgCmd.MAX_NEED_CPORT || registry.alias_ < kBgCmd.MIN_NEED_CPORT) {
         executeCommand(registry, 1, kKeyCode.None, null as never as Port, 0);
       } else {
-        (registry as Writable<typeof registry>).alias_ = kBgCmd.blank;
-        console.log("Error: Command", cmdName, "must run on pages which are not priviledged");
+        let opts = registry.options_ || ((registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>());
+        if (!opts.$noWarn) {
+          (opts as Writable<typeof opts>).$noWarn = true;
+          console.log("Error: Command", cmdName, "must run on pages which are not priviledged");
+        }
       }
       return;
     }
