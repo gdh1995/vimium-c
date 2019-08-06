@@ -994,7 +994,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         OnOther = load.b as NonNullable<typeof load.b>;
       }
       D.cache_ = VKey._cache = load as EnsureItemsNonNull<typeof load>;
-      load.m && (VKey.correctionMap_ = safer<string>(null));
+      load.m && (VKey.keyCodeCorrectionMap_ = safer<string>(null));
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
         D.specialZoom_ = (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)

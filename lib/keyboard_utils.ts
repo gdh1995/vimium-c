@@ -1,25 +1,25 @@
 var VKey = {
   keyNames_: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down"] as ReadonlyArray<string>,
-  correctionMap_: {
+  keyCodeCorrectionMap_: {
     __proto__: null as never,
     0: ";:", 1: "=+", 2: ",<", 3: "-_", 4: ".>", 5: "/?", 6: "`~",
     33: "[{", 34: "\\|", 35: "]}", 36: "'\""
   } as ReadonlySafeDict<string>,
   _codeCorrectionMap: {
     Backquote: "`~",
-    Minus: "-_",
-    Equal: "=+",
     Backslash: "\\|",
-    IntlBackslash: "\\|",
-    BracketLeft: "{",
-    BracketRight: "}",
-    Semicolon: ";:",
-    Quote: "'\"",
+    BracketLeft: "[{",
+    BracketRight: "]}",
     Comma: ",<",
+    Equal: "=+",
+    IntlBackslash: "\\|",
+    Minus: "-_",
     Period: ".>",
+    Quote: "'\"",
+    Semicolon: ";:",
     Slash: "/?"
   } as { [key in string]: string; },
-  _cache: null as never as EnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
+  _cache: null as never as SettingsNS.FrontendSettingCache,
   _funcKeyRe: <RegExpOne> /^F\d\d?$/,
   getKeyName_ (event: KeyboardEvent): string {
     const {keyCode: i, shiftKey: c} = event;
@@ -47,22 +47,22 @@ var VKey = {
     } else if (keyId < kCharCode.minNotAlphabet) {
       return String.fromCharCode(keyId + (event.shiftKey ? 0 : kCharCode.CASE_DELTA));
     } else {
-      return keyId > 185 && (s = (this as typeof VKey).correctionMap_[keyId - 186]) && s[+event.shiftKey] || "";
+      return keyId > 185 && (s = (this as typeof VKey).keyCodeCorrectionMap_[keyId - 186]) && s[+event.shiftKey] || "";
     }
   },
-  _forceEnLayout (event: KeyboardEvent): string {
-    let key = event.code as string, prefix = key.slice(0, 5);
-    if (prefix === "Numpad") {
-      key = event.key as string;
+  _forceEnLayout (event: Ensure<KeyboardEvent, "code" | "key" | "shiftKey">): string {
+    let { code, shiftKey } = event, prefix = code.slice(0, 5), mapped: string | null;
+    if (prefix === "Numpa") {
+      code = event.key;
     } else {
-      if (key.startsWith("Key") || prefix === "Digit" || prefix === "Arrow") {
-        key = key.slice(key > "D" ? 3 : 5);
+      if (code.startsWith("Key") || prefix === "Digit" || prefix === "Arrow") {
+        code = code.slice(code > "D" ? 3 : 5);
       }
-      key = key < "0" || key > "9"
-          ? this._codeCorrectionMap[key] ? this._codeCorrectionMap[key][+event.shiftKey] : key
-          : event.shiftKey ? ")!@#$%^&*("[+key] : key;
+      code = code < "0" || code > "9"
+          ? (mapped = this._codeCorrectionMap[code]) ? mapped[+shiftKey] : code
+          : shiftKey ? ")!@#$%^&*("[+code] : code;
     }
-    return event.shiftKey && key.length < 2 ? key : key.toLowerCase();
+    return shiftKey && code.length < 2 ? code : code.toLowerCase();
   },
   char_ (event: KeyboardEvent): string {
     let key = event.key;
@@ -73,8 +73,9 @@ var VKey = {
       key = this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
         || (this as EnsureNonNull<typeof VKey>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     } else {
-      key = (key as string).length !== 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event)
-        : this._cache.L ? this._forceEnLayout(event) : key as string;
+      key = this._cache.L ? this._forceEnLayout(event as EnsureItemsNonNull<KeyboardEvent>)
+        : (key as string).length !== 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event)
+        : key as string;
     }
     return this._cache.i ? event.shiftKey ? key.toUpperCase() : key.toLowerCase() : key as string;
   },
@@ -177,4 +178,7 @@ if (!(Build.NDEBUG || BrowserVer.MinEnsured$KeyboardEvent$$Code < BrowserVer.Min
     || !(Build.NDEBUG || BrowserVer.MinEnsured$KeyboardEvent$$Key < BrowserVer.MinNo$KeyboardEvent$$keyIdentifier)) {
   console.log("Assert error: KeyboardEvent.key/code should exist before Chrome version"
       , BrowserVer.MinNo$KeyboardEvent$$keyIdentifier);
+}
+if (!(Build.NDEBUG || BrowserVer.MinEnsured$KeyboardEvent$$Code < BrowserVer.MinEnsured$KeyboardEvent$$Key)) {
+  console.log("Assert error: need KeyboardEvent.code to exist if only .key exists");
 }
