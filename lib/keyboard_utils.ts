@@ -20,7 +20,7 @@ var VKey = {
     Semicolon: ";:",
     Slash: "/?"
   } as ReadonlySafeDict<string>,
-  modifierCodes_: {
+  modifierKeys_: {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
@@ -65,7 +65,7 @@ var VKey = {
       }
       code = code < "0" || code > "9"
           ? (mapped = this._codeCorrectionMap[code]) ? mapped[+shiftKey]
-            : code.length > 1 && this.modifierCodes_[code] ? "" : code
+            : code.length > 1 && this.modifierKeys_[event.key] ? "" : code
           : shiftKey ? ")!@#$%^&*("[+code] : code;
     }
     return shiftKey && code.length < 2 ? code : code.toLowerCase();
