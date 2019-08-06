@@ -33,7 +33,7 @@ Note:
 * the "**browsing activity**" listed above actually includes many permissions:
     `tabs`, `<all_urls>` and `webNavigation`.
 * Vimium C never deletes any browser history item,
-  unless there's an explicit user operation like <kbd>Shift+Enter</kbd>.
+  unless there's an explicit user operation like <kbd>Shift+Delete</kbd>.
 
 
 Other Explanations
