@@ -2961,7 +2961,17 @@ Are you sure you want to continue?`;
     }
     else if (typeof message !== "object" || !message) { /* empty */ }
     else if (message.handler === kFgReq.shortcut) {
-      Backend_.ExecuteShortcut_(message.shortcut + "");
+      let shortcut = message.shortcut;
+      if (shortcut) {
+        Backend_.ExecuteShortcut_(shortcut + "");
+      }
+    } else if (message.handler === kFgReq.id) {
+      (sendResponse as (res: ExternalMsgs[kFgReq.id]["res"]) => void | 1)({
+        name: "Vimium C",
+        host: location.host,
+        shortcuts: Object.keys(CommandsData_.shortcutMap_).length > 0,
+        version: Settings_.CONST_.VerCode_
+      });
     } else if (message.handler === kFgReq.inject) {
       (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
         s: message.scripts ? Settings_.CONST_.ContentScripts_ : null,

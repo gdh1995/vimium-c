@@ -48,6 +48,7 @@ declare const enum kFgReq {
   msg = 90,
   inject = 99,
   command = "command",
+  id = "id",
   shortcut = "shortcut",
 }
 
@@ -485,6 +486,17 @@ interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> e
 }
 
 interface ExternalMsgs {
+  [kFgReq.id]: {
+    req: {
+      handler: kFgReq.id;
+    };
+    res: {
+      name: string;
+      host: string;
+      shortcuts: boolean;
+      version: string;
+    };
+  };
   [kFgReq.inject]: {
     req: {
       handler: kFgReq.inject;

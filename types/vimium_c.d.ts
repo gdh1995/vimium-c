@@ -748,7 +748,7 @@ declare const enum BrowserVer {
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
   // a bug of styke.zoom not working is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
-  MinCorrectBoxWidthForOptionUI = 61,
+  MinCorrectBoxWidthForOptionsUI = 61,
   Min$visualViewPort$ = 61,
   MinScrollIntoViewOptions = 61,
   // also means ensured Element::scrollBy, Element::scrollTo and window.scrollTo/scrollBy({})

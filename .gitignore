@@ -30,6 +30,7 @@ todo*
 !/lib/math_parser.js
 !/lib/viewer.min.js
 weidu/
+helpers/
 scripts/*public_suffix*
 package-lock.json
 scripts/*releases*

@@ -379,7 +379,7 @@ var Tasks = {
   tsc: ["locally", function(done) {
     debugging = true;
     doesMergeProjects = true;
-    compile(["*/*.ts"], false, done);
+    compile(["*/*.ts", "!helpers/**"], false, done);
   }],
   "default": ["local"],
   watch: ["locally", function(done) {
