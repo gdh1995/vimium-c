@@ -306,7 +306,7 @@ hooks = {
                         , self: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args: Array<{}>) => void, a, args);
     if (type === "click" ? listener && !(a instanceof HA) && a instanceof E
-        : type === kEventName2
+        : type === kEventName2 && !isReRegistering
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
       toRegister.p(a as Element);
@@ -369,6 +369,7 @@ docChildren = doc.children,
 unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
+isReRegistering: BOOL | boolean = 0,
 next = function (): void {
   const len = toRegister.length,
   start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
@@ -471,6 +472,7 @@ function safeReRegister(element: Element, doc1: Document): void {
   const localAEL = doc1.addEventListener, localREL = doc1.removeEventListener, kFunc = "function";
   // tslint:disable-next-line: triple-equals
   if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
+    isReRegistering = 1;
     try {
       // Note: here may break in case .addEventListener is an <embed> or overridden by host code
       call(localAEL, element, kEventName2, noop);
@@ -478,6 +480,7 @@ function safeReRegister(element: Element, doc1: Document): void {
     try {
       call(localREL, element, kEventName2, noop);
     } catch {}
+    isReRegistering = 0;
   }
 }
 function findAllOnClick(cmd?: kContentCmd.FindAllOnClick): void {
