@@ -6,6 +6,7 @@ var VKey = {
     33: "[{", 34: "\\|", 35: "]}", 36: "'\""
   } as ReadonlySafeDict<string>,
   _codeCorrectionMap: {
+    __proto__: null as never,
     Backquote: "`~",
     Backslash: "\\|",
     BracketLeft: "[{",
@@ -18,7 +19,11 @@ var VKey = {
     Quote: "'\"",
     Semicolon: ";:",
     Slash: "/?"
-  } as { [key in string]: string; },
+  } as ReadonlySafeDict<string>,
+  modifierCodes_: {
+    __proto__: null as never,
+    Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
+  } as SafeEnum,
   _cache: null as never as SettingsNS.FrontendSettingCache,
   _funcKeyRe: <RegExpOne> /^F\d\d?$/,
   getKeyName_ (event: KeyboardEvent): string {
@@ -50,8 +55,8 @@ var VKey = {
       return keyId > 185 && (s = (this as typeof VKey).keyCodeCorrectionMap_[keyId - 186]) && s[+event.shiftKey] || "";
     }
   },
-  _forceEnLayout (event: Ensure<KeyboardEvent, "code" | "key" | "shiftKey">): string {
-    let { code, shiftKey } = event, prefix = code.slice(0, 5), mapped: string | null;
+  _forceEnUSLayout (event: Ensure<KeyboardEvent, "code" | "key" | "shiftKey">): string {
+    let { code, shiftKey } = event, prefix = code.slice(0, 5), mapped: string | undefined;
     if (prefix === "Numpa") {
       code = event.key;
     } else {
@@ -59,7 +64,8 @@ var VKey = {
         code = code.slice(code > "D" ? 3 : 5);
       }
       code = code < "0" || code > "9"
-          ? (mapped = this._codeCorrectionMap[code]) ? mapped[+shiftKey] : code
+          ? (mapped = this._codeCorrectionMap[code]) ? mapped[+shiftKey]
+            : code.length > 1 && this.modifierCodes_[code] ? "" : code
           : shiftKey ? ")!@#$%^&*("[+code] : code;
     }
     return shiftKey && code.length < 2 ? code : code.toLowerCase();
@@ -73,7 +79,7 @@ var VKey = {
       key = this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
         || (this as EnsureNonNull<typeof VKey>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     } else {
-      key = this._cache.L ? this._forceEnLayout(event as EnsureItemsNonNull<KeyboardEvent>)
+      key = this._cache.L ? this._forceEnUSLayout(event as EnsureItemsNonNull<KeyboardEvent>)
         : (key as string).length !== 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event)
         : key as string;
     }
