@@ -2882,9 +2882,13 @@ Are you sure you want to continue?`;
     ExecuteShortcut_ (this: void, cmd: string): void {
       const tabId = TabRecency_.last_, ports = framesForTab[tabId];
       if (cmd === kShortcutAliases.nextTab1) { cmd = kShortcutNames.nextTab; }
-      if (!(cmd in CommandsData_.shortcutMap_)) {
+      type NullableShortcutMap = ShortcutInfoMap & { [key in string]?: CommandsNS.Item | null; };
+      if (!((CommandsData_.shortcutMap_ as NullableShortcutMap)[cmd])) {
         // normally, only userCustomized* and those from 3rd-party extensions will enter this branch
-        console.log("Shortcut %o has not been configured.", cmd);
+        if ((CommandsData_.shortcutMap_ as NullableShortcutMap)[cmd] !== null) {
+          (CommandsData_.shortcutMap_ as NullableShortcutMap)[cmd] = null;
+          console.log("Shortcut %o has not been configured.", cmd);
+        }
         return;
       }
       if (ports == null || (ports[0].s.f & Frames.Flags.userActed) || tabId < 0) {
