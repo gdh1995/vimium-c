@@ -2543,8 +2543,7 @@ Are you sure you want to continue?`;
           return;
         }
         sender.f = Frames.Flags.userActed;
-      } else if (Build.BTypes & ~BrowserType.Chrome && Build.MayOverrideNewTab
-          && type === PortType.CloseSelf) {
+      } else if (Build.BTypes & ~BrowserType.Chrome && type === PortType.CloseSelf) {
         if (tabId >= 0 && !sender.i) {
           removeTempNewTab(tabId, ((port as chrome.runtime.Port).sender.tab as chrome.tabs.Tab).windowId);
         }
@@ -2579,7 +2578,7 @@ Are you sure you want to continue?`;
       });
     }
     sender.s = status;
-    if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab) {
+    if (Build.BTypes & ~BrowserType.Chrome) {
       (port as chrome.runtime.Port).sender.tab = null as never;
     }
     port.onDisconnect.addListener(OnDisconnect);
@@ -2631,7 +2630,7 @@ Are you sure you want to continue?`;
               : cPort ? cPort.s.t : TabRecency_.last_;
         }
         framesForOmni.push(port);
-        if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab) {
+        if (Build.BTypes & ~BrowserType.Chrome) {
           (port as chrome.runtime.Port).sender.tab = null as never;
         }
         port.onDisconnect.addListener(OnOmniDisconnect);
@@ -2675,7 +2674,7 @@ Are you sure you want to continue?`;
       url: "",
       incognito: false
     }, url = Build.BTypes & BrowserType.Edge ? sender.url || tab.url || "" : sender.url as string;
-    if (!(Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab)) {
+    if (!(Build.BTypes & ~BrowserType.Chrome)) {
       sender.tab = null as never;
     }
     return (port as Writable<Port>).s = {
