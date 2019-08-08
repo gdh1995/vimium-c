@@ -323,7 +323,7 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   readValueFromElement_ (): FullSettings[T] {
     let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0];
     if (this.field_ === "ignoreCapsLock" && window.VDom) {
-      VKey.ignoreCapsLock_ = VDom.cache_.i = value > 1 || value === 1 && !!bgSettings_.payload_.m;
+      VDom.cache_.i = value > 1 || value === 1 && !!bgSettings_.payload_.m;
     }
     return value;
   }
@@ -619,9 +619,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     element2.style.display = "";
     (element2.nextElementSibling as Element).remove();
     });
-    if (Build.MinCVer >= BrowserVer.MinCorrectBoxWidthForOptionUI
+    if (Build.MinCVer >= BrowserVer.MinCorrectBoxWidthForOptionsUI
         || !(Build.BTypes & BrowserType.Chrome)
-        || bgBrowserVer_ >= BrowserVer.MinCorrectBoxWidthForOptionUI) { return; }
+        || bgBrowserVer_ >= BrowserVer.MinCorrectBoxWidthForOptionsUI) { return; }
     nextTick_(() => {
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
     });
@@ -800,11 +800,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }, _element as HTMLAnchorElement);
   } else if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
-    nextTick_(el => {
+    nextTick_(([el, el2]) => {
       el.textContent = el.href = "about:addons";
       (el.parentElement as HTMLElement).insertBefore(
         document.createTextNode('"Manage Shortcuts" in "Tools Menu" of '), el);
-    }, _element as HTMLAnchorElement);
+      el2.remove();
+    }, [_element as HTMLAnchorElement, $<HTMLAnchorElement>("#shortcutHelper")] as const);
   }
   (_element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
