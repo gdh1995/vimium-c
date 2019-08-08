@@ -553,14 +553,6 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   });
 
-  nextTick_(ref1 => {
-  for (let _i = ref1.length; 0 <= --_i; ) {
-    const element = ref1[_i];
-    element.className += " info";
-    element.textContent = "Delete all to reset this option.";
-  }
-  }, $$(".nonEmptyTip") as NodeListOf<HTMLElement>);
-
   let func: (this: HTMLElement, event: MouseEvent) => void = function (this: HTMLElement): void {
     const target = $("#" + this.dataset.autoResize as string);
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
@@ -581,14 +573,6 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   for (let _i = _ref.length; 0 <= --_i; ) {
     _ref[_i].onclick = func;
   }
-  nextTick_(ref => {
-    for (let _i = ref.length; 0 <= --_i; ) {
-    const element = ref[_i];
-    element.tabIndex = 0;
-    element.textContent = "Auto resize";
-    element.setAttribute("role", "button");
-    }
-  }, _ref);
 
   func = function (event): void {
     let str = this.dataset.delay as string, e = null as MouseEvent | null;
@@ -767,11 +751,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       }
     }, $$(".require-shortcuts"));
   }
-  if ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-      && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-      && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) {
+  if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)) {
     nextTick_(tipForNoShadow => {
-      tipForNoShadow.remove();
+      tipForNoShadow.innerHTML = '(On Edge, may need "<kbd>#VimiumUI</kbd>" as prefix if no Shadow DOM)';
     }, $("#tipForNoShadow"));
   }
 
@@ -1006,7 +988,10 @@ $("#importButton").onclick = function (): void {
 };
 
 nextTick_(el1 => {
-  el1.textContent = bgSettings_.defaults_.newTabUrl;
+  let url = bgSettings_.defaults_.newTabUrl;
+  if (el1.textContent !== url) {
+    el1.textContent = url;
+  }
 }, $("#defaultNewTab"));
 
 nextTick_(el => {

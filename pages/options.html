@@ -71,8 +71,8 @@ mapKey &lt;a-e&gt; &lt;esc&gt;
 # "unmapAll" unmaps all above and default</pre>
           </code>
           <a id="showCommands" href="#commands" data-hash="commands" data-delay="">Show available commands</a>.
-          <a class="wrap-left-space" data-auto-resize="keyMappings"></a>.
-          <br/><a target="_blank" rel="noopener noreferrer"
+          <a class="wrap-left-space" data-auto-resize="keyMappings" role="button" tabindex="0">Auto resize</a>.
+          <br/><a href="" target="_blank" rel="noopener noreferrer"
               data-href="vimium://home/wiki/Use-in-another-keyboard-layout">
             How to map keys in another keyboard layout?
           </a>
@@ -87,13 +87,13 @@ mapKey &lt;a-e&gt; &lt;esc&gt;
             "<span id="focusNewTabTitle" role="button">Focus web page when creating a new tab</span>"
             is <span id="focusNewTabStatus">enabled</span>.
           </div>
-          <div class="nonEmptyTip"></div>
+          <div class="nonEmptyTip info">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner">
           "<kbd class="sel-all" role="button">pages/blank.html</kbd>" for a blank page.
           The default is
           <kbd class="sel-all" role="button" id="defaultNewTab">chrome-search://local-ntp/local-ntp.html</kbd>.<br/>
-          <a target="_blank" rel="noopener noreferrer"
+          <a href="" target="_blank" rel="noopener noreferrer"
               data-href="vimium://home/wiki/Use-another-extension-as-the-New-Tab">
             How to redirect to another extension's newtab?
           </a>
@@ -103,7 +103,7 @@ mapKey &lt;a-e&gt; &lt;esc&gt;
         <td class="caption">Default search<br/>engine</td>
         <td>
           <input id="searchUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" />
-          <div class="nonEmptyTip"></div>
+          <div class="nonEmptyTip info">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner line-1x">
           Used when no search engine (or "<kbd>~</kbd>") matched.
@@ -113,7 +113,7 @@ mapKey &lt;a-e&gt; &lt;esc&gt;
         <td class="caption">Custom search<br/>engines</td>
         <td>
           <textarea id="searchEngines" data-model="NonEmptyText"></textarea>
-          <div class="nonEmptyTip"></div>
+          <div class="nonEmptyTip info">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner">
           Add search engine shortcuts to the Vomnibar. Format:
@@ -125,8 +125,8 @@ key: https://c.com/$s/space=\s\ space_end
 # this is a comment</pre>
           </code>
           <kbd title="%s is equal with $s">$s</kbd> will be replaced with real search terms.
-          <a data-auto-resize="searchEngines"></a>.<br/>
-          <a target="_blank" rel="noopener noreferrer"
+          <a data-auto-resize="searchEngines" role="button" tabindex="0">Auto resize</a>.<br/>
+          <a href="" target="_blank" rel="noopener noreferrer"
               data-href="vimium://home/wiki/Search-engine-rules">
             How to write advanced search engine rules?
           </a>
@@ -137,7 +137,7 @@ key: https://c.com/$s/space=\s\ space_end
         <td>
           <input id="linkHintCharacters" type="text" data-model="NonEmptyText"
             data-converter="lower chars" class="code" />
-          <div class="nonEmptyTip"></div>
+          <div class="nonEmptyTip info">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner">
           The characters placed next to each link after typing "f" to enter link-hint mode.
@@ -311,7 +311,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="caption">Previous patterns</td>
           <td>
             <input id="previousPatterns" type="text" data-model="NonEmptyText" data-converter="lower" />
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             The "navigate to previous page" command uses these patterns to find the link to follow (ignore case).
@@ -321,7 +321,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="caption">Next patterns</td>
           <td>
             <input id="nextPatterns" type="text" data-model="NonEmptyText" data-converter="lower" />
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             The "navigate to next page" command uses these patterns to find the link to follow (ignore case).
@@ -339,11 +339,10 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           </td>
           <td class="help"><div class="help-inner">
             To style Vimium C nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>"
-            <span id="tipForNoShadow">(On Edge and Firefox,
-              may need "<kbd>#VimiumUI</kbd>" as prefix if no Shadow DOM)</span>.<br/>
+            <span id="tipForNoShadow"></span>.<br/>
             These styles work in addition to and take precedence over Vimium C's
             default styles.
-            <a class="wrap-left-space" data-auto-resize="userDefinedCss"></a>.
+            <a class="wrap-left-space" data-auto-resize="userDefinedCss" role="button" tabindex="0">Auto resize</a>.
           </div></td>
         </tr>
         <tr>
@@ -351,7 +350,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td>
             <textarea id="vomnibarOptions" class="code height-5" data-model="JSON">
             </textarea>
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             Adjust some inner behaviors of Vomnibar.<br/>
@@ -380,14 +379,14 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td>
             <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"
               data-permission="web_accessible_resources"></textarea>
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             Only browser extensions in this list are allowed to request Vimium C's support.
             One extension id per line.<br/>
             Any line the first char of which is neither a letter nor a number or "<kbd>_</kbd>" will be ignored.
-            <a class="wrap-left-space" data-auto-resize="extWhiteList"></a>.<br/>
-            <a target="_blank" rel="noopener noreferrer"
+            <a class="wrap-left-space" data-auto-resize="extWhiteList" role="button" tabindex="0">Auto resize</a>.<br/>
+            <a href="" target="_blank" rel="noopener noreferrer"
                 data-href="vimium://home/wiki/Inject-into-other-extensions">
               How to inject Vimium C into other extensions?</a>
           </div></td>
@@ -396,7 +395,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="caption">Preferred<br/> Vomnibar Page</td>
           <td>
             <input id="vomnibarPage" type="text" inputmode="url" data-model="NonEmptyText" />
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner break-all">
             Example:
@@ -427,7 +426,7 @@ so only the default inner version will be used on them
           <td class="caption">Keyboard settings</td>
           <td>
             <input id="keyboard" type="text" inputmode="numeric" data-model="JSON" data-check="" />
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             <span title="This option won't be synced.">
