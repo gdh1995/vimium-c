@@ -493,6 +493,7 @@ interface ExternalMsgs {
     res: {
       name: string;
       host: string;
+      injector: string;
       shortcuts: boolean;
       version: string;
     };

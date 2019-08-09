@@ -523,6 +523,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     VerCode_: "", VerName_: "",
     GitVer: BuildStr.Commit as string,
     StyleCacheId_: "",
+    Injector_: "/lib/injector.js",
     KnownPages_: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
@@ -653,6 +654,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   obj.VomnibarPageInner_ = func(defaults.vomnibarPage);
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
   obj.HomePage_ = ref.homepage_url || obj.HomePage_;
+  obj.Injector_ = func(obj.Injector_);
   ref2.push(obj.InjectEnd_);
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith
       && CurCVer_ < BrowserVer.MinSafe$String$$StartsWith

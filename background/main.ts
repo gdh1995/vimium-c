@@ -2545,7 +2545,7 @@ Are you sure you want to continue?`;
         sender.f = Frames.Flags.userActed;
       } else if (Build.BTypes & ~BrowserType.Chrome && type === PortType.CloseSelf) {
         if (tabId >= 0 && !sender.i) {
-          removeTempNewTab(tabId, ((port as chrome.runtime.Port).sender.tab as chrome.tabs.Tab).windowId);
+          removeTempTab(tabId, ((port as chrome.runtime.Port).sender.tab as chrome.tabs.Tab).windowId, sender.u);
         }
         return;
       } else {
@@ -2688,19 +2688,19 @@ Are you sure you want to continue?`;
     };
   }
 
-  function removeTempNewTab(tabId: number, wndId: number): void {
+  function removeTempTab(tabId: number, wndId: number, url: string): void {
     let lock: Partial<typeof _lockToRemoveTempTab> = {},
-    p = _removeTempNewTab(tabId, wndId, lock);
+    p = _removeTempTab(tabId, wndId, url, lock);
     lock.p = _lockToRemoveTempTab ? _lockToRemoveTempTab.p.finally(p) : p as LatestPromise;
     _lockToRemoveTempTab = lock as EnsureItemsNonNull<typeof lock>;
   }
 
-  async function _removeTempNewTab(tabId: number, windowId: number, selfLock: object): Promise<void> {
+  async function _removeTempTab(tabId: number, windowId: number, url: string, selfLock: object): Promise<void> {
     await (chrome.tabs.remove(tabId) as never as Promise<void>).catch(BgUtils_.blank_);
     const sessions = await chrome.sessions.getRecentlyClosed({ maxResults: 1 }),
     tab = sessions && sessions[0] && sessions[0].tab;
-    if (tab && Settings_.newTabs_[tab.url] === Urls.NewTabType.vimium) {
-        await chrome.sessions.forgetClosedTab(windowId, tab.sessionId as string).catch(BgUtils_.blank_);
+    if (tab && tab.url === url) {
+      await chrome.sessions.forgetClosedTab(windowId, tab.sessionId as string).catch(BgUtils_.blank_);
     }
     if (_lockToRemoveTempTab === selfLock) {
       _lockToRemoveTempTab = null;
@@ -2975,7 +2975,8 @@ Are you sure you want to continue?`;
       (sendResponse as (res: ExternalMsgs[kFgReq.id]["res"]) => void | 1)({
         name: "Vimium C",
         host: location.host,
-        shortcuts: Object.keys(CommandsData_.shortcutMap_).length > 0,
+        shortcuts: true,
+        injector: Settings_.CONST_.Injector_,
         version: Settings_.CONST_.VerCode_
       });
     } else if (message.handler === kFgReq.inject) {

@@ -36,6 +36,7 @@ let tick = 1, extID = scriptSrc.slice(i0, scriptSrc.indexOf("/", i0));
 if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extID.indexOf("-") > 0) {
   extID = curEl.dataset.vimiumId || BuildStr.FirefoxID;
 }
+extID = curEl.dataset.extensionId || extID;
 VimiumInjector.id = extID;
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
   type LastError = chrome.runtime.LastError;
