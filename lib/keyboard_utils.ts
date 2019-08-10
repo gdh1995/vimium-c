@@ -61,7 +61,7 @@ var VKey = {
       code = event.key;
     } else {
       if (code.startsWith("Key") || prefix === "Digit" || prefix === "Arrow") {
-        code = code.slice(code > "D" ? 3 : 5);
+        code = code.slice(code < "K" ? 5 : 3);
       }
       code = code < "0" || code > "9"
           ? (mapped = this._codeCorrectionMap[code]) ? mapped[+shiftKey]
