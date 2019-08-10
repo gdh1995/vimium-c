@@ -485,12 +485,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   if (!(Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_)) {
     nextTick_(context => {
-      context[0].remove();
-      context[1].remove();
-    }, [
+      context.remove();
+    },
       $<EnsuredMountedElement & HTMLElement>("#focusNewTabContent").parentElement.parentElement.parentElement,
-      $<EnsuredMountedElement & HTMLElement>("#newTabUrlRefer")
-    ]);
+    );
   }
 
   let _ref: {length: number, [index: number]: HTMLElement} = $$("[data-model]");
@@ -821,25 +819,6 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }, _element);
   }
 
-  if (Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_) {
-    Option_.all_.focusNewTabContent.onSave_ = function (): void {
-      nextTick_(ref2 => {
-        ref2[0].textContent = ref2[1];
-      }, [$("#focusNewTabStatus"), this.previous_ ? "enabled" : "disabled"] as const);
-    };
-    Option_.all_.focusNewTabContent.onSave_();
-    $("#focusNewTabTitle").onclick = function (): void {
-      if (!advancedMode) {
-        $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null);
-      }
-      const node2 = Option_.all_.focusNewTabContent.element_.nextElementSibling as SafeHTMLElement;
-      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-        && bgBrowserVer_ < BrowserVer.MinScrollIntoViewOptions
-      ? window.VDom ? VDom.view_(node2) : (node2 as EnsureItemsNonNull<SafeHTMLElement>).scrollIntoViewIfNeeded()
-      : node2.scrollIntoView({ block: "center" });
-      node2.focus();
-    };
-  }
   if (BG_.Backend_.setIcon_ === BG_.BgUtils_.blank_ && Option_.all_.showActionIcon.previous_) {
     nextTick_(() => {
     let element = Option_.all_.showActionIcon.element_;
@@ -987,13 +966,6 @@ $("#importButton").onclick = function (): void {
   const opt = $<HTMLSelectElement>("#importOptions");
   opt.onchange ? opt.onchange(null as never) : click($("#settingsFile"));
 };
-
-nextTick_(el1 => {
-  let url = bgSettings_.defaults_.newTabUrl;
-  if (el1.textContent !== url) {
-    el1.textContent = url;
-  }
-}, $("#defaultNewTab"));
 
 nextTick_(el => {
 el.textContent = (Build.BTypes & BrowserType.Edge
