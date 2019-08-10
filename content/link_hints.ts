@@ -66,6 +66,7 @@ var VHints = {
   } as Dict<HintMode>,
   box_: null as HTMLDivElement | HTMLDialogElement | null,
   dialogMode_: false,
+  wantDialogMode_: null as boolean | null,
   hints_: null as HintsNS.HintItem[] | null,
   mode_: 0 as HintMode,
   mode1_: 0 as HintMode,
@@ -123,6 +124,9 @@ var VHints = {
       a.tooHigh_ = (VDom.scrollingEl_(1) as HTMLElement).scrollHeight / innerHeight
         > GlobalConsts.LinkHintTooHighThreshold;
     }
+    a.dialogMode_ = !!(a.wantDialogMode_ != null ? a.wantDialogMode_ : document.querySelector("dialog[open]"))
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement
+            || typeof HTMLDialogElement === "function");
     let elements = a.getVisibleElements_(arr);
     if (a.frameNested_) {
       if (a.TryNestedFrame_(kFgCmd.linkHints, count, options)) {
@@ -857,9 +861,7 @@ var VHints = {
       i = VKey.getKeyStat_(event);
       let reinit = true;
       if (i === KeyStat.altKey) {
-        reinit = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement)
-          || typeof HTMLDialogElement === "function"; // safe enough even if it's an <embed>
-        a.dialogMode_ = reinit && !a.dialogMode_;
+        a.wantDialogMode_ = !a.wantDialogMode_;
       } else if (i & KeyStat.PrimaryModifier) {
         reinit = !!VEvent.execute_;
         if (reinit) {
