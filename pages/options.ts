@@ -322,7 +322,7 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   }
   readValueFromElement_ (): FullSettings[T] {
     let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0];
-    if (this.field_ === "ignoreCapsLock" && window.VDom) {
+    if (this.field_ === "ignoreCapsLock" && window.VDom && VDom.cache_) {
       VDom.cache_.i = value > 1 || value === 1 && !!bgSettings_.payload_.m;
     }
     return value;

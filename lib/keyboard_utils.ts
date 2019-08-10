@@ -24,7 +24,7 @@ var VKey = {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
   } as SafeEnum,
-  _cache: null as never as SettingsNS.FrontendSettingCache,
+  cache_: null as never as SettingsNS.FrontendSettingCache,
   _funcKeyRe: <RegExpOne> /^F\d\d?$/,
   getKeyName_ (event: KeyboardEvent): string {
     const {keyCode: i, shiftKey: c} = event;
@@ -79,11 +79,11 @@ var VKey = {
       key = this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
         || (this as EnsureNonNull<typeof VKey>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     } else {
-      key = this._cache.L ? this._forceEnUSLayout(event as EnsureItemsNonNull<KeyboardEvent>)
+      key = this.cache_.L ? this._forceEnUSLayout(event as EnsureItemsNonNull<KeyboardEvent>)
         : (key as string).length !== 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event)
         : key as string;
     }
-    return this._cache.i ? event.shiftKey ? key.toUpperCase() : key.toLowerCase() : key as string;
+    return this.cache_.i ? event.shiftKey ? key.toUpperCase() : key.toLowerCase() : key as string;
   },
   key_ (event: EventControlKeys, ch: string): string {
     let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`

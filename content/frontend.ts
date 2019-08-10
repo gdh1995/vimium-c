@@ -993,7 +993,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           && <number> Build.BTypes !== BrowserType.Edge) {
         OnOther = load.b as NonNullable<typeof load.b>;
       }
-      D.cache_ = VKey._cache = load as EnsureItemsNonNull<typeof load>;
+      D.cache_ = VKey.cache_ = load as EnsureItemsNonNull<typeof load>;
       load.m && (VKey.keyCodeCorrectionMap_ = safer<string>(null));
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
