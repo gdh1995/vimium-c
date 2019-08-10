@@ -56,11 +56,11 @@ var VKey = {
     }
   },
   _forceEnUSLayout (event: Ensure<KeyboardEvent, "code" | "key" | "shiftKey">): string {
-    let { code, shiftKey } = event, prefix = code.slice(0, 5), mapped: string | undefined;
-    if (prefix === "Numpa") {
+    let { code, shiftKey } = event, prefix = code.slice(0, 2), mapped: string | undefined;
+    if (prefix === "Nu") { // Numpad* or NumLock
       code = event.key;
     } else {
-      if (code.startsWith("Key") || prefix === "Digit" || prefix === "Arrow") {
+      if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
         code = code.slice(code < "K" ? 5 : 3);
       }
       code = code < "0" || code > "9"
