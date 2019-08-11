@@ -845,7 +845,7 @@ Option_.all_.newTabUrl.checker_ = {
       }
     }
     return value.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_
-      || (<RegExpI> /^[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
+      || (<RegExpI> /^(?!http|ftp)[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
       ) ? bgSettings_.defaults_.newTabUrl : value;
   }
 };

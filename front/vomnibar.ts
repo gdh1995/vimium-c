@@ -972,10 +972,11 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
   getTypeIcon_ (sug: Readonly<SuggestionE>): string { return sug.e; },
   preInit_ (type: VomnibarNS.PageType): void {
-    const a = Vomnibar_;
-    a.bodySt_ = (document.documentElement as HTMLHtmlElement).style;
+    const a = Vomnibar_, docEl = document.documentElement as HTMLHtmlElement;
+    a.bodySt_ = docEl.style;
     a.pageType_ = type;
-    let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
+    let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
+      , str: string | undefined;
     const canShowOnExtOrWeb = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
           || Build.BTypes & BrowserType.Chrome
               && a.browserVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
@@ -985,6 +986,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
         || location.origin.indexOf("-") < 0) { /* empty */ }
     else if (type === VomnibarNS.PageType.inner) {
       fav = canShowOnExtOrWeb || a.sameOrigin_ ? 2 : 0;
+    } else if ((canShowOnExtOrWeb || a.sameOrigin_) && (str = docEl.dataset.favicons) != null) {
+      fav = !str || str.toLowerCase() === "true" ? 2 : 0;
     } else if ((canShowOnExtOrWeb || a.sameOrigin_) && (f = chrome.runtime.getManifest) && (manifest = f())) {
       const arr = manifest.permissions || [];
       fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? a.sameOrigin_ ? 2 : 1 : 0;
