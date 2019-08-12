@@ -798,12 +798,14 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }, _element as HTMLAnchorElement);
   } else if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
-    nextTick_(([el, el2]) => {
+    nextTick_(([el, el2, el3]) => {
       el.textContent = el.href = "about:addons";
       (el.parentElement as HTMLElement).insertBefore(
         document.createTextNode('"Manage Shortcuts" in "Tools Menu" of '), el);
-      el2.remove();
-    }, [_element as HTMLAnchorElement, $<HTMLAnchorElement>("#shortcutHelper")] as const);
+      el2.href = "https://addons.mozilla.org/en-US/firefox/addon/shortcut-forwarding-tool/";
+      el3.href = "https://addons.mozilla.org/en-US/firefox/addon/newtab-adapter/";
+    }, [_element as HTMLAnchorElement,
+        $<HTMLAnchorElement>("#shortcutHelper"), $<HTMLAnchorElement>("#newTabAdapter")] as const);
   }
   (_element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();

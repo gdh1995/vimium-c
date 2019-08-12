@@ -339,6 +339,11 @@ label:active {
 #keyMappings {
   min-height: 166px;
 }
+@-moz-document url-prefix() {
+  #keyMappings {
+    min-height: 181px;
+  }
+}
 #searchEngines {
   min-height: 117px;
   line-height: 18px;
