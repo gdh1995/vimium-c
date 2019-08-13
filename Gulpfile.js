@@ -126,7 +126,7 @@ var Tasks = {
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
     return cleanByPath([".build/**", "manifest.json", "lib/polyfill.js", "pages/dialog_ui.*", "*/vomnibar.html"
-      , "**/*.js"
+      , "**/*.js", "!helpers/*/*.js"
       , FILE_URLS_CSS]);
   },
   "build/_all": ["build/scripts", "build/options", "build/show"],
@@ -260,7 +260,7 @@ var Tasks = {
     });
     gulp.task("min/others/misc", function() {
       var oriManifest = readJSON("manifest.json", true);
-      var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!pages/options*"];
+      var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!helpers/*/*.js", "!pages/options*"];
       has_polyfill || res.push("!" + POLYFILL_FILE.replace(".ts", ".*"));
       may_have_newtab || res.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
       if (!has_dialog_ui) {
@@ -358,7 +358,7 @@ var Tasks = {
   rebuild: [["clean"], "dist"],
   all: ["build"],
   clean: function() {
-    return cleanByPath([".build/**", "**/*.js"
+    return cleanByPath([".build/**", "**/*.js", "!helpers/*/*.js"
       , "front/vomnibar.html", "front/words.txt"]);
   },
 
