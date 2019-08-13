@@ -427,14 +427,17 @@ var Settings_ = {
     exclusionRules: [{pattern: ":https://mail.google.com/", passKeys: ""}] as ExclusionsNS.StoredRule[],
     extWhiteList: !(Build.BTypes & ~BrowserType.Chrome)
       || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome
-? `# modified { Vomnibar Page, X New Tab, PDF Viewer }
-ekohaelnhhdhbccgefjmjpdjoijhojgd
+? `# modified versions of X New Tab and PDF Viewer,
+# NewTab Adapter, and Shortcuts Forwarding Tool
 hdnehngglnbnehkfcidabjckinphnief
-nacjakoppgmdcpemlfnfegmlhipddanj`
+nacjakoppgmdcpemlfnfegmlhipddanj
+cglpcedifkgalfdklahhcchnjepcckfn
+clnalilglegcjmlgenoppklmfppddien`
 : !(Build.BTypes & ~BrowserType.Firefox)
   || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
 ? `# extension id or hostname
-# like "${BuildStr.FirefoxID}"`
+newtab-adapter@gdh1995.cn
+shortcut-forwarding-tool@gdh1995.cn`
 : "",
     findModeRawQueryList: "",
     focusNewTabContent: true,
