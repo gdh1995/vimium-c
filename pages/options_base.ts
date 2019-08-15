@@ -620,7 +620,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     , ref1 = bgExclusions.testers_ = BG_.Object.create(null)
     , ref2 = bgExclusions.rules_;
   for (let _i = 0, _len = rules.length; _i < _len; _i++) {
-    ref1[rules[_i].pattern] = ref2[_i * 2];
+    ref1[rules[_i].pattern] = ref2[_i];
   }
   const sender = ref ? ref[0].s : <Readonly<Frames.Sender>> { s: Frames.Status.enabled, f: Frames.Flags.Default }
     , toggleAction = sender.s !== Frames.Status.disabled ? "Disable" : "Enable"

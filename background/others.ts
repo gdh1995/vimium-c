@@ -951,7 +951,7 @@ BgUtils_.GC_ = function (inc0?: number): void {
       hook.keyMappings = null as never;
       Commands = null as never;
     }
-    if (Exclusions && Exclusions.rules_.length === 0) {
+    if (Exclusions && Exclusions.rules_.length <= 0) {
       hook.exclusionRules = hook.exclusionOnlyFirstMatch =
       hook.exclusionListenHash = null as never;
       Exclusions = null as never;
