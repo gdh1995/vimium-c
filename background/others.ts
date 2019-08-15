@@ -401,10 +401,12 @@ BgUtils_.timeout_(1000, function (): void {
   storage().get(null, function (items): void {
     const err = BgUtils_.runtimeError_();
     Settings_.temp_.hasEmptyLocalStorage_ && !err && chrome.storage.local.get(null, (items2): void => {
-      console.log(now(), "storage.local: restore settings to localStorage");
       BgUtils_.safer_(items2);
       let vimSync2 = items2.vimSync;
       delete items2.vimSync;
+      if (vimSync2 !== undefined || Object.keys(items2).length > 0) {
+        console.log(now(), "storage.local: restore settings to localStorage");
+      }
       for (let key in items2) {
         if (key in Settings_.defaults_) {
           keyInDownloading = key as keyof SettingsWithDefaults;

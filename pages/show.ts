@@ -333,9 +333,10 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
     return false;
   }
   let ch = VKey.char_(event);
+  // todo: map key
   if (!ch) { return false; }
   let action: number = 0;
-  switch (VKey.key_(event, ch)) {
+  switch (VEvent.mapKey_(ch, event)) {
   case "<c-=>": case "+": case "=": case "<up>": action = 1; break;
   case "<left>": action = -2; break;
   case "<right>": action = 2; break;
