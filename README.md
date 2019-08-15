@@ -3,7 +3,7 @@
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.76.4](https://img.shields.io/badge/release-1.76.4-orange.svg
+[![Version 1.76.5](https://img.shields.io/badge/release-1.76.5-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -59,6 +59,25 @@ __Other extensions supporting Vimium C:__
       https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 
 # Release Notes
+
+1.76.5:
+* fix a bug in the popup page ([#64](https://github.com/gdh1995/vimium-c/issues/64))
+* extension whitelist: allow [Vimium C's helpers](https://github.com/gdh1995/vimium-c-helpers) by default
+
+1.76.4:
+* fix that <kbd>Alt+Shift+F</kbd> was not translated into <kbd>&lt;a-s-f&gt;</kbd> when CapsLock is on
+* Now the feature of overriding browser newtab settings is deprecated
+* add an option to ignore keyboard layout (fix [#39](https://github.com/gdh1995/vimium-c/issues/39) completely)
+  * Most of its logic is the same as [philc/vimium:lib/keyboard_utils.coffee:21](
+      https://github.com/philc/vimium/blob/8c9404f84fd4310b89818e132c0ef0822cbcd059/lib/keyboard_utils.coffee#L21-L46)
+* add an option to ignore CapsLock status, which is useful on macOS if using CapsLock to switch IMEs
+* most backend commands are allowed for user-customized shortcuts ([#55](https://github.com/gdh1995/vimium-c/issues/55))
+* `removeTab`: add an option "highlighted" to remove those tabs ([#58](https://github.com/gdh1995/vimium-c/issues/58))
+* LinkHints: auto enable modal UI when needed (<kbd>&lt;a-f2&gt;</kbd> to toggle it)
+* Vomnibar: add some text-handling shortcuts on Firefox ([#59](https://github.com/gdh1995/vimium-c/issues/59))
+* Vomnibar: disable tab tree mode by default, unless there's an option "`tree=true`" ([#60](
+    https://github.com/gdh1995/vimium-c/issues/60))
+* fix some other edge cases
 
 1.76.3:
 * Chrome: fix that Vomnibar can not show favicons

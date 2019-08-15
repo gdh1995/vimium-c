@@ -321,7 +321,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
         && list.length > 0 && list[0].e === "tab") {
-      favIcon = 2;
+      favIcon = favIcon && 2;
     }
     else if (favIcon0 === 1 && Build.BTypes & BrowserType.Chrome
           && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
