@@ -65,7 +65,8 @@ var VKey = {
       }
       code = code < "0" || code > "9"
           ? (mapped = this._codeCorrectionMap[code]) ? mapped[+shiftKey]
-            : code.length > 1 && this.modifierKeys_[event.key] ? "" : code
+            : code.length > 1 ? this.modifierKeys_[event.key] ? "" : code === "Escape" ? "esc" : code
+            : code
           : shiftKey ? ")!@#$%^&*("[+code] : code;
     }
     return shiftKey && code.length < 2 ? code : code.toLowerCase();
