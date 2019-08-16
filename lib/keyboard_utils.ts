@@ -1,5 +1,6 @@
 var VKey = {
-  keyNames_: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down"] as ReadonlyArray<string>,
+  keyNames_: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down",
+    /* 41 */ "", "", "", "", "insert", "delete"] as ReadonlyArray<string>,
   keyCodeCorrectionMap_: {
     __proto__: null as never,
     0: ";:", 1: "=+", 2: ",<", 3: "-_", 4: ".>", 5: "/?", 6: "`~",
@@ -27,64 +28,60 @@ var VKey = {
   cache_: null as never as SettingsNS.FrontendSettingCache,
   _funcKeyRe: <RegExpOne> /^F\d\d?$/,
   getKeyName_ (event: KeyboardEvent): string {
-    const {keyCode: i, shiftKey: c} = event;
-    let s: string | undefined;
-    return i < kKeyCode.minNotInKeyNames ? (s = i > kKeyCode.maxNotPrintable
+    let {keyCode: i} = event, s: string | undefined;
+    return i < kKeyCode.minNotDelete ? (i > kKeyCode.maxNotPrintable
           ? this.keyNames_[i - kKeyCode.space] : i === kKeyCode.backspace ? "backspace"
           : i === kKeyCode.esc ? "esc"
           : i === kKeyCode.tab ? "tab" : i === kKeyCode.enter ? "enter" : ""
-        , c ? s && s.toUpperCase() : s)
-      : i < kKeyCode.minNotDelete && i > kKeyCode.maxNotInsert ? (i > kKeyCode.insert ? "delete" : "insert")
-      : (s = event.key) ? this._funcKeyRe.test(s) ? c ? s : s.toLowerCase() : ""
-      : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "fF"[+c] + (i - kKeyCode.maxNotFn) : "";
+        )
+      : (s = event.key) ? this._funcKeyRe.test(s) ? s : ""
+      : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "F" + (i - kKeyCode.maxNotFn) : "";
   },
-  _getKeyCharUsingKeyIdentifier: !(Build.BTypes & BrowserType.Chrome)
+  _getKeyCharUsingKeyIdentifier: (!(Build.BTypes & BrowserType.Chrome)
         || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key ? 0 as never
-      : function (this: {}, event: OldKeyboardEvent): string {
+      : function (this: {}, event: OldKeyboardEvent, shiftKey: BOOL): string {
     let s: string | undefined = event.keyIdentifier || "";
     if (!s.startsWith("U+")) { return ""; }
     const keyId: kCharCode = parseInt(s.slice(2), 16);
-    if (keyId < kCharCode.minAlphabet) {
+    if (keyId < kCharCode.minNotAlphabet) {
       return keyId < kCharCode.minNotSpace ? ""
-      : (event.shiftKey && keyId > kCharCode.maxNotNum
+      : (shiftKey && keyId > kCharCode.maxNotNum
           && keyId < kCharCode.minNotNum) ? ")!@#$%^&*("[keyId - kCharCode.N0]
-      : String.fromCharCode(keyId);
-    } else if (keyId < kCharCode.minNotAlphabet) {
-      return String.fromCharCode(keyId + (event.shiftKey ? 0 : kCharCode.CASE_DELTA));
+      : String.fromCharCode(keyId < kCharCode.minAlphabet ? keyId : keyId + (shiftKey ? 0 : kCharCode.CASE_DELTA));
     } else {
-      return keyId > 185 && (s = (this as typeof VKey).keyCodeCorrectionMap_[keyId - 186]) && s[+event.shiftKey] || "";
+      return keyId > 185 && (s = (this as typeof VKey).keyCodeCorrectionMap_[keyId - 186]) && s[shiftKey] || "";
     }
-  },
-  _forceEnUSLayout (event: Ensure<KeyboardEvent, "code" | "key" | "shiftKey">): string {
-    let { code, shiftKey } = event, prefix = code.slice(0, 2), mapped: string | undefined;
-    if (prefix === "Nu") { // Numpad* or NumLock
-      code = event.key;
-    } else {
+  }) as (this: {}, event: OldKeyboardEvent, shiftKey: BOOL) => string,
+  _forceEnUSLayout (key: string, code: string, shiftKey: boolean): string {
+    let prefix = code.slice(0, 2), mapped: string | undefined;
+    if (prefix !== "Nu") { // not (Numpad* or NumLock)
       if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
         code = code.slice(code < "K" ? 5 : 3);
       }
-      code = code < "0" || code > "9"
+      key = code < "0" || code > "9"
           ? (mapped = this._codeCorrectionMap[code]) ? mapped[+shiftKey]
-            : code.length > 1 ? this.modifierKeys_[event.key] ? "" : code === "Escape" ? "esc" : code
+            : code.length > 1 ? this.modifierKeys_[key] ? "" : code === "Escape" ? "esc" : code
             : code
           : shiftKey ? ")!@#$%^&*("[+code] : code;
     }
-    return shiftKey && code.length < 2 ? code : code.toLowerCase();
+    return shiftKey && key.length < 2 ? key : key.toLowerCase();
   },
+  /** not constrain letter cases if returned name is long */
   char_ (event: KeyboardEvent): string {
-    let key = event.key;
+    let {key, shiftKey} = event;
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
       // it seems that KeyIdentifier doesn't follow keyboard layouts
       key = this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
-        || (this as EnsureNonNull<typeof VKey>)._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
+        || this._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent, +shiftKey as BOOL);
     } else {
-      key = this.cache_.L ? this._forceEnUSLayout(event as EnsureItemsNonNull<KeyboardEvent>)
-        : (key as string).length !== 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event)
+      key = this.cache_.L
+        ? this._forceEnUSLayout(key as string, event.code as NonNullable<KeyboardEvent["code"]>, shiftKey)
+        : (key as string).length > 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event)
         : key as string;
     }
-    return this.cache_.i ? event.shiftKey ? key.toUpperCase() : key.toLowerCase() : key as string;
+    return this.cache_.i ? shiftKey ? key.toUpperCase() : key.toLowerCase() : key as string;
   },
   key_ (event: EventControlKeys, ch: string): string {
     let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`
@@ -106,7 +103,7 @@ var VKey = {
             ? event.code : "";
     return i === KeyStat.plain || i === KeyStat.ctrlKey
       && (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Code && Build.BTypes & BrowserType.Chrome
-          ? code ? code === "BracketLeft" : this._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent) === "["
+          ? code ? code === "BracketLeft" : this._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent, 0) === "["
           : event.code === "BracketLeft");
   },
 

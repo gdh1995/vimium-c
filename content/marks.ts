@@ -14,17 +14,17 @@ var VMarks = {
     return VHud.show_((isGo ? "Go to" : "Create") + " mark\u2026");
   },
   onKeydown_ (event: HandlerNS.Event): HandlerResult {
-    const keyCode = event.keyCode, cont = !VKey.isEscape_(event);
+    const keyCode = event.keyCode, notEsc = !VKey.isEscape_(event);
     let keyChar: string | undefined;
-    if (cont && (keyCode > kKeyCode.f1 && keyCode < kKeyCode.minNotFn || keyCode < kKeyCode.minNotSpace
-        || !(keyChar = VKey.char_(event)) || keyChar.length !== 1)) {
-      return 1;
+    if (notEsc && (keyCode > kKeyCode.f1 && keyCode < kKeyCode.minNotFn || keyCode < kKeyCode.minNotSpace
+        || (keyChar = VKey.char_(event)).length !== 1)) {
+      return HandlerResult.Suppress;
     }
     VKey.removeHandler_(this);
-    cont && keyCode > kKeyCode.space ? this.onKeyChar_(event, keyChar as string) : VHud.hide_();
+    notEsc && keyCode > kKeyCode.space ? this.onKeyChar_(event, keyChar as string) : VHud.hide_();
     this.prefix_ = this.swap_ = true;
     this.onKeyChar_ = null as never;
-    return 2;
+    return HandlerResult.Prevent;
   },
   getLocationKey_ (keyChar: string): string {
     return `vimiumMark|${location.href.split("#", 1)[0]}|${keyChar}`;
