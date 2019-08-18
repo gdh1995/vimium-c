@@ -412,6 +412,7 @@ FindModeHistory_ = {
     if (!query) {
       return list[list.length - (nth || 1)] || "";
     }
+    query = query.replace(/\n/g as RegExpG, " ");
     if (incognito) {
       return a.refreshIn_(query, list, true);
     }
