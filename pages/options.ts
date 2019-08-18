@@ -816,8 +816,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
     _element = $("#chromeExtVomnibar");
     nextTick_(el => {
-      (el.nextSibling as Text).remove();
-      el.remove();
+      const children = el.children, anchor = children[1] as HTMLAnchorElement;
+      children[0].textContent = "moz";
+      anchor.textContent = "NewTab Adapter";
+      anchor.href = "https://addons.mozilla.org/firefox/addon/newtab-adapter/";
+      anchor.title = "NewTab Adapter - Firefox Add-ons";
     }, _element);
   }
 
