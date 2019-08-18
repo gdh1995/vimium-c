@@ -1236,7 +1236,21 @@ knownCs: CompletersMap & SafeObject = {
       }
       setTimeout(function (): void {
         setTimeout(function (): void {
-          Decoder.decodeList_(HistoryCache.history_ as HistoryItem[]);
+          const arr = HistoryCache.history_ as HistoryItem[];
+          for (let i = arr.length - 1; 0 < i; ) {
+            const j = arr[i], url = j.url_, text = j.text_ = Decoder.decodeURL_(url, j),
+            isSame = text.length >= url.length;
+            while (0 <= --i) {
+              const k = arr[i], url2 = k.url_;
+              if (url2.length >= url.length || !url.startsWith(url2)) {
+                break;
+              }
+              (k as Writable<HistoryItem>).url_ = url.slice(0, url2.length);
+              const decoded = isSame ? url2 : Decoder.decodeURL_(url2, k);
+              // handle the case that j has been decoded in another charset but k hasn't
+              k.text_ = isSame || decoded.length < url2.length ? text.slice(0, decoded.length) : decoded;
+            }
+          }
           HistoryCache.domains_ || setTimeout(function (): void {
             domainEngine.refresh_ && domainEngine.refresh_(HistoryCache.history_ as HistoryItem[]);
           }, 200);
