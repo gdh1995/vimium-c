@@ -27,7 +27,7 @@ var VKey = {
   } as SafeEnum,
   cache_: null as never as SettingsNS.FrontendSettingCache,
   _funcKeyRe: <RegExpOne> /^F\d\d?$/,
-  getKeyName_ (event: KeyboardEvent): string {
+  getKeyName_ (event: Pick<KeyboardEvent, "key" | "keyCode">): string {
     let {keyCode: i} = event, s: string | undefined;
     return i < kKeyCode.minNotDelete ? (i > kKeyCode.maxNotPrintable
           ? this.keyNames_[i - kKeyCode.space] : i === kKeyCode.backspace ? "backspace"
@@ -39,8 +39,9 @@ var VKey = {
   },
   _getKeyCharUsingKeyIdentifier: (!(Build.BTypes & BrowserType.Chrome)
         || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key ? 0 as never
-      : function (this: {}, event: OldKeyboardEvent, shiftKey: BOOL): string {
-    let s: string | undefined = event.keyIdentifier || "";
+      : function (this: {}, event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL): string {
+    let s: string | undefined = Build.BTypes & ~BrowserType.Chrome
+        ? event.keyIdentifier || "" : event.keyIdentifier;
     if (!s.startsWith("U+")) { return ""; }
     const keyId: kCharCode = parseInt(s.slice(2), 16);
     if (keyId < kCharCode.minNotAlphabet) {
@@ -51,7 +52,7 @@ var VKey = {
     } else {
       return keyId > 185 && (s = (this as typeof VKey).keyCodeCorrectionMap_[keyId - 186]) && s[shiftKey] || "";
     }
-  }) as (this: {}, event: OldKeyboardEvent, shiftKey: BOOL) => string,
+  }) as (this: {}, event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL) => string,
   _forceEnUSLayout (key: string, code: string, shiftKey: boolean): string {
     let prefix = code.slice(0, 2), mapped: string | undefined;
     if (prefix !== "Nu") { // not (Numpad* or NumLock)
@@ -67,23 +68,27 @@ var VKey = {
     return shiftKey && key.length < 2 ? key : key.toLowerCase();
   },
   /** not constrain letter cases if returned name is long */
-  char_ (event: KeyboardEvent): string {
+  char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "shiftKey">): string {
     let {key, shiftKey} = event;
     if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key) {
       // since Browser.Min$KeyboardEvent$MayHas$$Key and before .MinEnsured$KeyboardEvent$$Key
       // event.key may be an empty string if some modifier keys are held on
       // it seems that KeyIdentifier doesn't follow keyboard layouts
       key = this.getKeyName_(event) // it's safe to skip the check of `event.keyCode`
-        || this._getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent, +shiftKey as BOOL);
+        || this._getKeyCharUsingKeyIdentifier(event as Pick<OldKeyboardEvent, "keyIdentifier">, +shiftKey as BOOL);
     } else {
       key = this.cache_.L
-        ? this._forceEnUSLayout(key as string, event.code as NonNullable<KeyboardEvent["code"]>, shiftKey)
+        ? this._forceEnUSLayout(key as string, event.code as NonNullable<typeof event.code>, shiftKey)
         : (key as string).length > 1 || event.keyCode === kKeyCode.space ? this.getKeyName_(event)
         : key as string;
     }
     return this.cache_.i ? shiftKey ? key.toUpperCase() : key.toLowerCase() : key as string;
   },
+  /** @argument ch must not be `""` */
   key_ (event: EventControlKeys, ch: string): string {
+    if (!(Build.NDEBUG || ch)) {
+      console.log("Assert error: VKey.key_ must receive a non-empty char");
+    }
     let modifiers = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`
       , isLong = ch.length > 1, chLower = ch.toLowerCase();
     event.shiftKey && (isLong || modifiers && ch.toUpperCase() !== chLower) && (modifiers += "s-");

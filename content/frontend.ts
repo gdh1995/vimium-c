@@ -44,8 +44,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         compare_: Parameters<SandboxGetterFunc>[0] }
     ;
 
-  function post<K extends keyof FgReq>(this: void, request: FgReq[K] & Req.baseFg<K>): 1 {
-    return (vPort._port as Port).postMessage(request);
+  function post<K extends keyof FgReq>(this: void, request: FgReq[K] & Req.baseFg<K>): 1 | void {
+    (vPort._port as Port).postMessage(request);
   }
 
   function mapKey(this: void, /* not "" */ char: string, event: EventControlKeys): string {
@@ -1440,7 +1440,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         } else if (Build.BTypes & BrowserType.Firefox && injector) {
           injector.$r(InjectorTask.recheckLiving);
         }
-        (vPort._port as Port).postMessage(request);
+        post(request);
       } catch { // this extension is reloaded or disabled
         safeDestroy();
       }
@@ -1461,16 +1461,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }, requestHandlers[kBgReq.init] ? 2000 : 5000);
     },
     Connect_: (function (this: void): void {
-      const runtime: typeof chrome.runtime = (Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
-        ? browser as typeof chrome : chrome).runtime,
+      const connect = (Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
+        ? browser as typeof chrome : chrome).runtime.connect,
       status = requestHandlers[0] ? PortType.initing
         : (isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
         + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn_ ? PortType.hasCSS : 0),
       name = PortNameEnum.Prefix + (
         PortType.isTop * +isTop + PortType.hasFocus * +document.hasFocus() + status),
       data = { name: injector ? name + injector.$h : name },
-      port = vPort._port = injector ? runtime.connect(injector.id, data) as Port
-        : runtime.connect(data) as Port;
+      port = vPort._port = injector ? connect(injector.id, data) as Port : connect(data) as Port;
       port.onDisconnect.addListener(vPort.ClearPort_);
       port.onMessage.addListener(vPort.Listener_);
     })
@@ -1487,7 +1486,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     send_ <K extends keyof FgRes> (this: void, cmd: K, args: Req.fgWithRes<K>["a"]
         , callback: (this: void, res: FgRes[K]) => void): void {
       let id = ++vPort._id;
-      (vPort._port as Port).postMessage({ H: kFgReq.msg, i: id, c: cmd, a: args });
+      (post as Port["postMessage"])({ H: kFgReq.msg, i: id, c: cmd, a: args });
       vPort._callbacks[id] = callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void;
     },
     evalIfOK_ (url: string): boolean {

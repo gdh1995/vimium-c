@@ -5208,6 +5208,7 @@ interface KeyboardEvent extends UIEvent {
     readonly ctrlKey: boolean;
     readonly key?: string;
     readonly keyCode: kKeyCode;
+    readonly keyIdentifier: unknown;
     readonly locale: string;
     readonly location: number;
     readonly metaKey: boolean;
