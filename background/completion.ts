@@ -673,10 +673,10 @@ domainEngine = {
     }
   },
   ParseDomainAndScheme_ (this: void, url: string): UrlDomain | null {
-    let d: Urls.SchemaId;
-    if (url.startsWith("http://")) { d = Urls.SchemaId.HTTP; }
-    else if (url.startsWith("https://")) { d = Urls.SchemaId.HTTPS; }
-    else if (url.startsWith("ftp://")) { d = Urls.SchemaId.FTP; }
+    let d: Urls.SchemaId, n = url.lastIndexOf(":", 5), schema = n > 0 ? url.slice(0, n) : "";
+    if (schema === "http") { d = Urls.SchemaId.HTTP; }
+    else if (schema === "https") { d = Urls.SchemaId.HTTPS; }
+    else if (schema === "ftp") { d = Urls.SchemaId.FTP; }
     else { return null; }
     url = url.slice(d, url.indexOf("/", d));
     return { domain_: url !== "__proto__" ? url : ".__proto__", schema_: d };
@@ -1463,23 +1463,23 @@ knownCs: CompletersMap & SafeObject = {
     }
   },
 
+  _decodeFunc = decodeURIComponent, // core function
   Decoder = {
-    _f: decodeURIComponent, // core function
     decodeURL_ (a: string, o: ItemToDecode): string {
       if (a.length >= 400 || a.indexOf("%") < 0) { return a; }
       try {
-        return this._f(a);
+        return _decodeFunc(a);
       } catch {}
       return this.dict_[a] || (o && this._jobs.push(o), a);
     },
     decodeList_ (a: DecodedItem[]): void {
-      const { _f: f, dict_: m, _jobs: w } = this;
+      const { dict_: m, _jobs: w } = this;
       let i = -1, j: DecodedItem | undefined, l = a.length, s: string | undefined;
       for (; ; ) {
         try {
           while (++i < l) {
             j = a[i]; s = j.url_;
-            j.text_ = s.length >= 400 || s.indexOf("%") < 0 ? s : f(s);
+            j.text_ = s.length >= 400 || s.indexOf("%") < 0 ? s : _decodeFunc(s);
           }
           break;
         } catch {

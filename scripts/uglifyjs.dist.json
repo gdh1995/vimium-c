@@ -36,7 +36,7 @@
       "VEvent.lock_", "VEvent.mapKey_", "VKey.safer_",
       "onRuntimeError", "BgUtils_.runtimeError_",
       "SafeEl_", "notSafe_", "getEditableType_",
-      "readyState",
+      "readyState", "binarySearch_",
       "_getKeyCharUsingKeyIdentifier", "parentFrame_"
     ],
     "pure_getters": true,
