@@ -513,11 +513,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)
         && code < 0) { // alt+backspace
-      console.log(1);
       Vomnibar_.input_.value = "";
-      console.log(2);
       Vomnibar_.onInput_();
-      console.log(4);
       return;
     }
     const sel = getSelection(), isExtend = code === 4 || code < 0;
@@ -679,7 +676,6 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.goPage_(deltaY > 0);
   },
   onInput_ (event?: InputEvent): void {
-    console.log(3, event && event + "");
     const a = Vomnibar_, s0 = a.lastQuery_, s1 = a.input_.value, str = s1.trim();
     a.blurWanted_ = false;
     if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].t)) {
