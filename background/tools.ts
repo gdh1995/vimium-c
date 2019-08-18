@@ -416,6 +416,7 @@ FindModeHistory_ = {
     if (incognito) {
       return a.refreshIn_(query, list, true);
     }
+    query = BgUtils_.unicodeSubstring_(query, 0, 99);
     const str = a.refreshIn_(query, list);
     str && Settings_.set_(a.key_, str);
     if (a.listI_) { return a.refreshIn_(query, a.listI_, true); }

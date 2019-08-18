@@ -60,6 +60,12 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.76.6:
+* fix a bug <kbd>Escape</kbd> can not work when ignoring keyboard layout
+* fix a regression that in LinkHints mode `<c-a>` was not treated as `a` since v1.76.0
+* Firefox: FindMode now wraps around, like the behavior of Chrome
+* FindMode history now limits query words as one line and not more than 99 characters on saving by <kbd>Enter</kbd>
+
 1.76.5:
 * fix a bug in the popup page ([#64](https://github.com/gdh1995/vimium-c/issues/64))
 * extension whitelist: allow [Vimium C's helpers](https://github.com/gdh1995/vimium-c-helpers) by default
