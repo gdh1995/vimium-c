@@ -754,13 +754,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     return true;
   },
-  GetButtons_ (this: {}, hints: SafeHTMLElement[], element: Element): void {
+  GetButtons_ (this: void, hints: SafeHTMLElement[], element: Element): void {
     let s: string | null;
     const tag = element.localName, isClickable = tag === "a" || tag && (
       tag === "button" ? !(element as HTMLButtonElement).disabled
       : VDom.clickable_.has(element) || element.getAttribute("onclick") || (
         (s = element.getAttribute("role")) ? (<RegExpI> /^(button|link)$/i).test(s)
-        : (this as typeof VHints).ngEnabled_ && element.getAttribute("ng-click")));
+        : VHints.ngEnabled_ && element.getAttribute("ng-click")));
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
     const rect = VDom.getBoundingClientRect_(element);

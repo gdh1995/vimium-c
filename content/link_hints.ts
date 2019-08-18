@@ -39,7 +39,7 @@ declare namespace HintsNS {
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
   interface Filter<T> {
     // tslint:disable-next-line: callable-types
-    (this: {}, hints: T[], element: SafeHTMLElement): void;
+    (this: void, hints: T[], element: SafeHTMLElement): void;
   }
   type LinksMatched = false | null | HintItem[];
   type Stack = number[];
@@ -299,14 +299,14 @@ var VHints = {
   /**
    * Must ensure only call {@link scroller.ts#VScroller.shouldScroll_need_safe_} during {@link #getVisibleElements_}
    */
-  GetClickable_ (hints: Hint[], element: SafeHTMLElement): void {
+  GetClickable_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null
       , type = ClickType.Default, clientSize: number = 0;
-    const tag = element.localName;
+    const tag = element.localName, _this = VHints;
     switch (tag) {
     case "a":
       isClickable = true;
-      arr = this.checkAnchor_(element as HTMLAnchorElement & EnsuredMountedHTMLElement);
+      arr = _this.checkAnchor_(element as HTMLAnchorElement & EnsuredMountedHTMLElement);
       break;
     case "audio": case "video": isClickable = true; break;
     case "frame": case "iframe":
@@ -324,22 +324,22 @@ var VHints = {
       if ((element as HTMLInputElement).type === "hidden") { return; } // no break;
     case "textarea":
       // on C75, a <textarea disabled> is still focusable
-      if ((element as TextElement).disabled && this.mode1_ < HintMode.max_mouse_events + 1) { return; }
-      if (!(element as TextElement).readOnly || this.mode1_ > HintMode.min_job - 1
+      if ((element as TextElement).disabled && _this.mode1_ < HintMode.max_mouse_events + 1) { return; }
+      if (!(element as TextElement).readOnly || _this.mode1_ > HintMode.min_job - 1
           || tag[0] === "i"
               && VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
         isClickable = true;
       }
       break;
     case "details":
-      isClickable = this.isNotReplacedBy_(VDom.findMainSummary_(element as HTMLDetailsElement), hints);
+      isClickable = _this.isNotReplacedBy_(VDom.findMainSummary_(element as HTMLDetailsElement), hints);
       break;
     case "label":
-      isClickable = this.isNotReplacedBy_((element as HTMLLabelElement).control as SafeHTMLElement | null);
+      isClickable = _this.isNotReplacedBy_((element as HTMLLabelElement).control as SafeHTMLElement | null);
       break;
     case "button": case "select":
       isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled
-        || this.mode1_ > HintMode.max_mouse_events;
+        || _this.mode1_ > HintMode.max_mouse_events;
       break;
     case "object": case "embed":
       s = (element as HTMLObjectElement | HTMLEmbedElement).type;
@@ -353,7 +353,7 @@ var VHints = {
       if ((element as HTMLImageElement).useMap) {
         VDom.getClientRectsForAreas_(element as HTMLImageElement, hints as Hint5[]);
       }
-      if ((this.forHover_ && VDom.htmlTag_(element.parentNode as Element) !== "a")
+      if ((_this.forHover_ && VDom.htmlTag_(element.parentNode as Element) !== "a")
           || ((s = (element as HTMLElement).style.cursor as string) ? s !== "default"
               : (s = getComputedStyle(element).cursor as string) && (s.indexOf("zoom") >= 0 || s.startsWith("url"))
           )) {
@@ -367,13 +367,13 @@ var VHints = {
     if (isClickable === null) {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
         : element.getAttribute("onclick")
-          || (s = element.getAttribute("role")) && this.roleRe_.test(s)
-          || this.ngEnabled_ && element.getAttribute("ng-click")
-          || this.forHover_ && element.getAttribute("onmouseover")
-          || this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && this.checkJSAction_(s)
+          || (s = element.getAttribute("role")) && _this.roleRe_.test(s)
+          || _this.ngEnabled_ && element.getAttribute("ng-click")
+          || _this.forHover_ && element.getAttribute("onmouseover")
+          || _this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && _this.checkJSAction_(s)
         ? ClickType.attrListener
-        : VDom.clickable_.has(element) && this.isClickListened_
-          && this.inferTypeOfListener_(element, tag)
+        : VDom.clickable_.has(element) && _this.isClickListened_
+          && _this.inferTypeOfListener_(element, tag)
         ? ClickType.codeListener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
         : clientSize
@@ -383,7 +383,7 @@ var VHints = {
                 && (clientSize = element.clientWidth) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
                 && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
               : ClickType.Default)
-          || ((s = element.className) && this.btnRe_.test(s)
+          || ((s = element.className) && _this.btnRe_.test(s)
               || element.getAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
     }
     if ((isClickable || type !== ClickType.Default)
@@ -392,10 +392,10 @@ var VHints = {
           || VScroller.shouldScroll_need_safe_(element, type - ClickType.scrollX as 0 | 1) > 0)
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
-            || this.mode_ > HintMode.min_job - 1)
+            || _this.mode_ > HintMode.min_job - 1)
     ) { hints.push([element, arr, type]); }
   },
-  GetClickableInMaybeSVG_ (hints: Hint[], element: SVGElement | Element): void {
+  _getClickableInMaybeSVG (hints: Hint[], element: SVGElement | Element): void {
     let arr: Rect | null | undefined, s: string | null , type = ClickType.Default;
     { // not HTML*
       // never accept raw `Element` instances, so that properties like .tabIndex and .dataset are ensured
@@ -463,7 +463,7 @@ var VHints = {
           );
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
-  GetEditable_ (hints: Hint[], element: SafeHTMLElement): void {
+  GetEditable_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     let arr: Rect | null, s: string;
     switch (element.localName) {
     case "input":
@@ -483,17 +483,17 @@ var VHints = {
       hints.push([element as HintsNS.InputHintItem["dest_"], arr, ClickType.edit]);
     }
   },
-  GetLinks_ (hints: Hint[], element: SafeHTMLElement): void {
+  GetLinks_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     let a: string | null, arr: Rect | null;
     if (element.localName === "a" && ((a = element.getAttribute("href")) && a !== "#"
-        && !this.jsRe_.test(a)
+        && !VHints.jsRe_.test(a)
         || (element as HTMLAnchorElement).dataset.vimUrl != null)) {
       if (arr = VDom.getVisibleClientRect_(element)) {
         hints.push([element as HTMLAnchorElement, arr, ClickType.Default]);
       }
     }
   },
-  GetImagesInImg_ (hints: Hint[], element: HTMLImageElement): void {
+  _getImagesInImg (hints: Hint[], element: HTMLImageElement): void {
     // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
     // <img>.currentSrc is since C45
     if (!element.getAttribute("src") && !element.currentSrc && !element.dataset.src) { return; }
@@ -514,18 +514,18 @@ var VHints = {
       hints.push([element, cr, ClickType.Default]);
     }
   },
-  GetImages_ (hints: Hint[], element: Element): void {
+  GetImages_ (this: void, hints: Hint[], element: Element): void {
     const tag = element.localName;
     if (tag === "img") {
-      this.GetImagesInImg_(hints, element as HTMLImageElement);
+      VHints._getImagesInImg(hints, element as HTMLImageElement);
       return;
     }
     let str: string | null, cr: Rect | null;
-    if (this.mode1_ === HintMode.DOWNLOAD_MEDIA && (tag === "video" || tag === "audio")) {
+    if (VHints.mode1_ === HintMode.DOWNLOAD_MEDIA && (tag === "video" || tag === "audio")) {
       str = (element as HTMLImageElement).currentSrc || (element as HTMLImageElement).src;
     } else {
       str = (element as SafeHTMLElement).dataset.src || element.getAttribute("href");
-      if (!this.isImageUrl_(str)) {
+      if (!VHints.isImageUrl_(str)) {
         str = (element as SafeHTMLElement).style.backgroundImage as string;
         // skip "data:" URLs, becase they are not likely to be big images
         str = str && str.slice(0, 3).toLowerCase() === "url" && str.lastIndexOf("data:", 9) < 0 ? str : "";
@@ -587,7 +587,7 @@ var VHints = {
       for (; i < len; ) {
         el = cur_tree[i++] as SafeElement & {lang?: undefined} | SafeHTMLElement;
         if (el.lang != null) {
-          filter.call(a, output, el);
+          filter(output, el);
           shadowRoot = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
                 && VDom.cache_.v < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
               ? el.webkitShadowRoot as ShadowRoot | null | undefined : el.shadowRoot as ShadowRoot | null | undefined;
@@ -603,7 +603,7 @@ var VHints = {
             break;
           }
         } else if (wantClickable) {
-          a.GetClickableInMaybeSVG_(output as Exclude<typeof output, SafeHTMLElement[]>, el);
+          a._getClickableInMaybeSVG(output as Exclude<typeof output, SafeHTMLElement[]>, el);
         }
       }
       if (i >= len) {
@@ -636,7 +636,7 @@ var VHints = {
         d.prepareCrop_();
       }
       for (const el of (<ShadowRoot> uiRoot).querySelectorAll(selector)) {
-        filter.call(a, output, el as SafeHTMLElement);
+        filter(output, el as SafeHTMLElement);
       }
       d.dbZoom_ = z;
       if (notHookScroll) {
