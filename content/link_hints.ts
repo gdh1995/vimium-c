@@ -1178,7 +1178,8 @@ alphabetHints_: {
       }
       a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
     } else if ((keyChar = VKey.char_(e))
-        && (keyChar = (VHints.doesMapKey_ ? VEvent.mapKey_(keyChar, e) : keyChar).toUpperCase()).length === 1) {
+        && (keyChar = (VHints.doesMapKey_ ? VEvent.mapKey_(keyChar, e, keyChar) : keyChar).toUpperCase()
+            ).length === 1) {
       if (a.chars_.indexOf(keyChar) === -1) {
         return [];
       }

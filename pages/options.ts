@@ -1002,7 +1002,8 @@ function loadChecker(this: HTMLElement): void {
 document.addEventListener("keydown", function (this: void, event): void {
   if (event.keyCode !== kKeyCode.space) {
     if (!window.VKey) { return; }
-    if (!Build.NDEBUG && VKey.key_(event, VKey.char_(event)) === "<a-f12>") {
+    let ch: string;
+    if (!Build.NDEBUG && (ch = VKey.char_(event)) && VKey.key_(event, ch) === "<a-f12>") {
       $<HTMLOptionElement>("#recommendedSettings").selected = true;
       let el2 = $<HTMLSelectElement>("#importOptions");
       el2.onchange ? (el2 as any).onchange() : setTimeout(() => {

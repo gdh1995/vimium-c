@@ -48,12 +48,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     (vPort._port as Port).postMessage(request);
   }
 
-  function mapKey(this: void, /* not "" */ char: string, event: EventControlKeys): string {
-    let key = VKey.key_(event, char), mapped: string | undefined, chLower: string;
+  function mapKey(this: void, /* not "" */ char: string, event: EventControlKeys, onlyChar?: string): string {
+    let key = onlyChar || VKey.key_(event, char), mapped: string | undefined, chLower: string;
     if (mappedKeys) {
-      mapped = mappedKeys[key];
-      key = mapped || ((mapped = mappedKeys[chLower = char.toLowerCase()])
-                        ? VKey.key_(event, char === chLower ? mapped : mapped.toUpperCase()) : key);
+      key = mappedKeys[key] || (
+        (mapped = mappedKeys[chLower = char.toLowerCase()]) ? (
+          mapped = char === chLower ? mapped : mapped.toUpperCase(),
+          onlyChar ? mapped : VKey.key_(event, mapped)
+        ) : key
+      );
     }
     return key;
   }
