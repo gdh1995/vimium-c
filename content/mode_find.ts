@@ -589,6 +589,12 @@ var VFind = {
       found = Build.BTypes & ~BrowserType.Chrome
         ? a.find_(q, !notSens, back, true, a.wholeWord_, false, false)
         : window.find(q, !notSens, back, true, a.wholeWord_, false, false);
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+          && !found) {
+        getSelection().removeAllRanges(); // move to start
+        found = a.find_(q, !notSens, back, true, a.wholeWord_, false, false);
+      }
       if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VDom.UI.getSelected_()[0]), q))) {
         pR.lastIndex = 0;
         let text = (par as HTMLElement | Element & {innerText?: undefined}).innerText;
@@ -611,6 +617,7 @@ var VFind = {
  * Therefore `@styleIn_` is always needed, and VFind may not need a sub-scope selection.
  */
   find_: Build.BTypes & ~BrowserType.Chrome ? function (this: void): boolean {
+    // (string, caseSensitive, backwards, wrapAround, wholeWord, searchInFrames, showDialog);
     try {
       if (Build.BTypes & ~BrowserType.Firefox) {
         return window.find.apply(window, arguments);
