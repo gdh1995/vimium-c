@@ -843,7 +843,6 @@ declare const enum BrowserVer {
   MinSpecCompliantShadowBlurRadius = 73,
   // re-implement extension APIs into C++ bindings: https://bugs.chromium.org/p/chromium/issues/detail?id=763564
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
-  // source code of this change is between chromium/master@{#626128} and {#626161} (included)
   /** Related: https://chromium.googlesource.com/chromium/src/+/0146a7468d623a36bcb55fc6ae69465702bae7fa%5E%21/#F18
    * Stack Trace:
    * * an `<iframe>` has `embedded_content_view_` member, and has `.IsDisplayNone: () => !embedded_content_view_`
@@ -869,8 +868,7 @@ declare const enum BrowserVer {
   // https://chromium.googlesource.com/chromium/src/+/5e84b7a819637ed4dd8f9c4d11288127663c8267
   MinBlockAutoFocusingInCrossOriginFrame = 75,
   MinMediaQuery$PrefersColorScheme = 76,
-  // it's said the deadline is C73 in https://www.chromestatus.com/features/4507242028072960
-  // but no source code in Chromium to disable it (tested on 2019-03-13)
+  // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
   MinNoShadowDOMv0 = 80,
   // ses https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change
   // TODO: use a real version code when the bug report above is solved

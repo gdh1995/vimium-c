@@ -623,11 +623,9 @@ var VHints = {
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
           || uiRoot !== d.UI.box_)
+        // now must have shadow DOM, because `UI.UI` !== `UI.box_`
         && !notWantVUI
-        && ( !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0)
-          || (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
-            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
           || uiRoot.mode === "closed")
         ) {
       const z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;

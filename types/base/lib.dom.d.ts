@@ -8290,7 +8290,7 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     readonly devicePixelRatio: number;
     readonly doNotTrack: string;
     readonly document: Document;
-    event: Event | undefined;
+    // event: Event | undefined; // NOT use window.event
     readonly external: External;
     readonly frameElement: Element | null;
     readonly frames: Window[] | object | null | undefined;
@@ -9384,7 +9384,7 @@ declare var devicePixelRatio: number;
 declare var doNotTrack: string;
 declare var document: Document;
 declare var fullScreen: boolean | undefined;
-declare var event: unknown;
+declare var event: -42;
 /*
 declare var external: External;
 */
