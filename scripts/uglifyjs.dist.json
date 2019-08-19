@@ -58,7 +58,8 @@
   },
   "mangle": {
     "properties": {
-      "regex": "/^_|_$/"
+      "regex": "/^_|_$/",
+      "undeclared": true
     },
     "reserved": [
       // # expected names in content
