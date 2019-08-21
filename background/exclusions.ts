@@ -9,7 +9,7 @@ var Exclusions = {
       return {
         type_: cur.type_ as ExclusionsNS.TesterType.RegExp,
         value_: (cur as ExclusionsNS.RegExpTester).value_,
-        keys_: cur.keys_
+        keys_: keys
       };
     }
     if (pattern[0] === "^") {
