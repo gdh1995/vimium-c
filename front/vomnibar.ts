@@ -261,6 +261,9 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.codeFocusTime_ = performance.now();
     a.codeFocusReceived_ = false;
     if (focus !== false) {
+      if (Build.BTypes & BrowserType.Firefox) {
+        window.focus();
+      }
       a.input_.focus();
       if (!a.codeFocusReceived_ || !a.focused_) {
         focus = focus ? <number> focus | 0 : 0;
