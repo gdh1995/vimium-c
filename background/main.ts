@@ -913,6 +913,7 @@ Are you sure you want to continue?`;
         requestHandlers[kFgReq.exitGrab]({}, port);
         port.postMessage({N: kBgReq.exitGrab});
       }
+      ports[0].s.f |= Frames.Flags.userActed;
     } else {
       let registry = CommandsData_.shortcutMap_[shortcutName], cmdName = registry.command_,
       cmdFallback: kBgCmd & number = 0;
@@ -2898,7 +2899,6 @@ Are you sure you want to continue?`;
       if (ports == null || (ports[0].s.f & Frames.Flags.userActed) || tabId < 0) {
         return executeShortcut(cmd as keyof typeof CommandsData_.shortcutMap_, ports);
       }
-      ports && (ports[0].s.f |= Frames.Flags.userActed);
       chrome.tabs.get(tabId, function (tab): void {
         executeShortcut(cmd as keyof typeof CommandsData_.shortcutMap_,
           tab && tab.status === "complete" ? framesForTab[tab.id] : null);
