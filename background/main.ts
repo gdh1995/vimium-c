@@ -905,7 +905,15 @@ Are you sure you want to continue?`;
   }
   function executeShortcut(shortcutName: kShortcutNames, ports: Frames.Frames | null | undefined): void {
     setupSingletonCmdTimer(0);
-    if (!ports) {
+    if (ports) {
+      let port = ports[0];
+      setupSingletonCmdTimer(setTimeout(executeShortcut, 100, shortcutName, null));
+      port.postMessage({ N: kBgReq.count, c: shortcutName, i: gCmdTimer, m: "" });
+      if (!(port.s.f & Frames.Flags.hasCSSAndActed)) {
+        requestHandlers[kFgReq.exitGrab]({}, port);
+        port.postMessage({N: kBgReq.exitGrab});
+      }
+    } else {
       let registry = CommandsData_.shortcutMap_[shortcutName], cmdName = registry.command_,
       cmdFallback: kBgCmd & number = 0;
       if (cmdName === "goBack" || cmdName === "goForward") {
@@ -935,10 +943,7 @@ Are you sure you want to continue?`;
           console.log("Error: Command", cmdName, "must run on pages which are not priviledged");
         }
       }
-      return;
     }
-    setupSingletonCmdTimer(setTimeout(executeShortcut, 100, shortcutName, null));
-    ports[0].postMessage({ N: kBgReq.count, c: shortcutName, i: gCmdTimer, m: "" });
   }
   const
   BgCmdInfo: { [K in kBgCmd & number]: K extends keyof BgCmdInfoNS ? BgCmdInfoNS[K] : UseTab.NoTab; } = [
