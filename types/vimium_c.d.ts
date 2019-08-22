@@ -698,6 +698,7 @@ declare const enum BrowserVer {
   MinNoKeygenElement = 57,
   MinCSSPlaceholderPseudo = 57,
   MinEnsuredCSSGrid = 57, // even if LEGACY; still partly works on C35 if EXPERIMENTAL
+  MinEnsuredAsyncFunctions = 57, // even if LEGACY
   /*
    * Chrome before 58 does this if #enable-site-per-process or #enable-top-document-isolation;
    * Chrome 56 / 57 always merge extension iframes if EXPERIMENTAL
