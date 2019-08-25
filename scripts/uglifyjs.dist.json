@@ -33,7 +33,7 @@
       "Object.create", "Object.setPrototypeOf",
       "getAttribute", "hasAttribute", "querySelectorAll",
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
-      "VEvent.lock_", "VEvent.mapKey_", "VKey.safer_",
+      "VEvent.lock_", "lock_", "VEvent.mapKey_", "VKey.safer_", "safer_",
       "onRuntimeError", "BgUtils_.runtimeError_",
       "SafeEl_", "notSafe_", "getEditableType_",
       "readyState", "binarySearch_",

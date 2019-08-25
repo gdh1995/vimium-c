@@ -50,8 +50,9 @@ createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
     && getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
 var may_have_newtab = getNonNullBuildItem("MayOverrideNewTab") > 0;
-var es6_viewer = false;
-// es6_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome) || getBuildItem("MinCVer") >= 52;
+var uglify_viewer = false;
+uglify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
+    || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
 const POLYFILL_FILE = "lib/polyfill.ts", NEWTAB_FILE = "pages/newtab.ts";
 const VIEWER_JS = "lib/viewer.min.js";
 const FILE_URLS_CSS = "front/file_urls.css";
@@ -86,13 +87,13 @@ var Tasks = {
   "build/pages": ["build/options", "build/show", "build/others"],
   "static/special": function() {
     const path = ["lib/*.min.js"];
-    es6_viewer && path.push("!" + VIEWER_JS);
+    uglify_viewer && path.push("!" + VIEWER_JS);
     return copyByPath(path);
   },
   "static/uglify": function() {
     const path = ["lib/math_parser*.js"];
     // todo: currently, generated es6 code of viewer.js always breaks (can not .shown()), so disable it
-    es6_viewer && path.push(VIEWER_JS);
+    uglify_viewer && path.push(VIEWER_JS);
     if (!getNonNullBuildItem("NDEBUG")) {
       return copyByPath(path);
     }
@@ -108,7 +109,7 @@ var Tasks = {
     ];
     may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
     getBuildItem("BTypes") & BrowserType.Chrome || arr.push("!" + FILE_URLS_CSS);
-    es6_viewer && arr.push("!" + VIEWER_JS);
+    uglify_viewer && arr.push("!" + VIEWER_JS);
     var has_wordsRe = getBuildItem("BTypes") & ~BrowserType.Firefox
             && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
@@ -125,7 +126,7 @@ var Tasks = {
 
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
-    return cleanByPath([".build/**", "manifest.json", "lib/polyfill.js", "pages/dialog_ui.*", "*/vomnibar.html"
+    return cleanByPath([".build/**", "manifest.json", "pages/dialog_ui.*", "*/vomnibar.html"
       , "**/*.js", "!helpers/*/*.js"
       , FILE_URLS_CSS]);
   },
@@ -445,8 +446,8 @@ gulp.task("locally", function(done) {
   if (may_have_newtab != old_has_newtab) {
     CompileTasks.front[0][4] = may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE;
   }
-  es6_viewer = false;
-  // es6_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome) || getBuildItem("MinCVer") >= 52;
+  uglify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
+      || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
   if (!has_dialog_ui) {
     let i = CompileTasks.others[0].indexOf("!*/dialog_ui.*");
     if (i >= 0) {
@@ -748,6 +749,10 @@ function beforeUglify(file) {
     get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
   }
+  if (file.history.join("|").indexOf("viewer") >= 0) {
+    get();
+    contents = contents.replace(/\.offsetWidth\b/g, ".$offsetWidth()");
+  }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = new Buffer(contents);
   }
@@ -790,6 +795,10 @@ function postUglify(file, needToPatchExtendClick) {
       contents = s2 + contents.slice(1000);
     }
     changed = changed || n > 0;
+  }
+  if (file.history.join("|").indexOf("viewer") >= 0) {
+    get();
+    contents = contents.replace(/\.\$offsetWidth\(\)/g, ".offsetWidth");
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = new Buffer(contents);
