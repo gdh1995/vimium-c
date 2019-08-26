@@ -911,9 +911,8 @@ Are you sure you want to continue?`;
       port.postMessage({ N: kBgReq.count, c: shortcutName, i: gCmdTimer, m: "" });
       if (!(port.s.f & Frames.Flags.hasCSSAndActed)) {
         requestHandlers[kFgReq.exitGrab]({}, port);
-        port.postMessage({N: kBgReq.exitGrab});
       }
-      ports[0].s.f |= Frames.Flags.userActed;
+      port.s.f |= Frames.Flags.userActed;
     } else {
       let registry = CommandsData_.shortcutMap_[shortcutName], cmdName = registry.command_,
       cmdFallback: kBgCmd & number = 0;

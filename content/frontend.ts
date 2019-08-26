@@ -1157,6 +1157,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
       let n = parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0;
       esc(HandlerResult.Nothing);
+      InsertMode.ExitGrab_();
       if (Build.BTypes & ~BrowserType.Chrome && request.m) {
         const now = Date.now(), result = window.confirm(request.m);
         count2 = Math.abs(Date.now() - now) > 9 ? result ? 3 : 1 : 2;
