@@ -465,7 +465,7 @@ var BgUtils_ = {
           result = "" + result;
         }
       } catch {}
-      mathParser.expression = "";
+      mathParser.clean();
     }
     return result;
   },
