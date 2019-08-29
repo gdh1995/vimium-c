@@ -2548,8 +2548,8 @@ Are you sure you want to continue?`;
           return;
         }
         sender.f = Frames.Flags.userActed;
-      } else if (Build.BTypes & ~BrowserType.Chrome && type === PortType.CloseSelf) {
-        if (tabId >= 0 && !sender.i) {
+      } else if (type === PortType.CloseSelf) {
+        if (Build.BTypes & ~BrowserType.Chrome && tabId >= 0 && !sender.i) {
           removeTempTab(tabId, ((port as chrome.runtime.Port).sender.tab as chrome.tabs.Tab).windowId, sender.u);
         }
         return;
