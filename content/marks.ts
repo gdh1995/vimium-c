@@ -10,6 +10,7 @@ var VMarks = {
     a.count_ = count < 0 || count > 9 ? 0 : count - 1;
     a.prefix_ = options.prefix !== false;
     a.swap_ = options.swap === true;
+    VKey.removeHandler_(a);
     VKey.pushHandler_(a.onKeydown_, a);
     return VHud.show_((isGo ? "Go to" : "Create") + " mark\u2026");
   },
