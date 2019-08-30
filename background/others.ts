@@ -882,7 +882,8 @@ function (details: chrome.runtime.InstalledDetails): void {
 
   if (!reason) { return; }
 
-  if (parseFloat(Settings_.CONST_.VerCode_) <= parseFloat(reason)) { return; }
+  if (parseFloat(Settings_.CONST_.VerCode_) < parseFloat(reason)) { return; }
+  // if (Settings_.CONST_.VerCode_ === reason) { return; }
   let ref1 = Settings_.temp_;
   if (ref1.backupSettingsToLocal_) {
     (ref1.backupSettingsToLocal_ as Exclude<typeof ref1.backupSettingsToLocal_, true | null>)(6000);
@@ -895,8 +896,7 @@ function (details: chrome.runtime.InstalledDetails): void {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C Upgrade",
-    message: `Vimium C has been upgraded to v${Settings_.CONST_.VerName_}.`
-      + "\nNow LinkHints always searches shadow DOMs.",
+    message: "The next version of Vimium C\n WILL NOT manage browser NewTab !!!",
     contextMessage: "Click here for more information."
   };
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$NotificationOptions$$isClickable$IsDeprecated

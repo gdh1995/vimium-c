@@ -1,9 +1,9 @@
 <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>
-![ ](icons/icon32.png)
+![Icon](icons/icon32.png)
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.76.6](https://img.shields.io/badge/release-1.76.6-orange.svg
+[![Version 1.76.7](https://img.shields.io/badge/release-1.76.7-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -59,6 +59,17 @@ __Other extensions supporting Vimium C:__
       https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 
 # Release Notes
+
+1.77 (Not released yet):
+* **not manage browser NewTab any more** in released versions ([#53](https://github.com/gdh1995/vimium-c/issues/53),
+    [#51](https://github.com/gdh1995/vimium-c/issues/51), [#42](https://github.com/gdh1995/vimium-c/issues/42),
+    [#28](https://github.com/gdh1995/vimium-c/issues/28), [#14](https://github.com/gdh1995/vimium-c/issues/14))
+* `ignoreKeyboardLayout` is enabled by default, to **support most keyboard layouts by default**
+* some other bug fixes
+
+1.76.7:
+* fix Vomnibar might lose focus on YouTube and GMail
+* some other bug fixes
 
 1.76.6:
 * fix a bug <kbd>Escape</kbd> can not work when ignoring keyboard layout
