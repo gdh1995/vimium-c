@@ -6,7 +6,7 @@ var Commands = {
     while (i < len) {
       str = item[i++];
       ind = str.indexOf("=");
-      if (ind === 0 || str === "__proto__" || str[0] === "$") {
+      if (ind === 0 || str === "__proto__" || str[0] === "$" && "$if=$key=$desc=".indexOf(str.slice(0, ind + 1)) < 0) {
         this.logError_(ind === 0 ? "Missing" : "Unsupported", "option key:", str);
       } else if (ind < 0) {
         opt[str] = true;

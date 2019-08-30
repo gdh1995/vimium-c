@@ -119,7 +119,8 @@ var HelpDialog = {
         }
         bindings += "</span>\n\t";
       }
-      if (klen <= 12) {
+      if (klen < 0) {}
+      else if (klen <= 12) {
         html += renderItem(isAdvanced, bindings, description, showNames ? command : "");
       } else {
         html += renderItem(isAdvanced, bindings, "", "");
