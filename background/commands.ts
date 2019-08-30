@@ -29,8 +29,8 @@ var Commands = {
     return val;
   },
   makeCommand_ (command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description
-      ): CommandsNS.Item {
-    let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null;
+      ): CommandsNS.Item | null {
+    let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null, cond: any;
     if (!details) { details = this.availableCommands_[command] as CommandsNS.Description; }
     opt = details.length < 4 ? null : BgUtils_.safer_(details[3] as NonNullable<CommandsNS.Description[3]>);
     if (options) {
@@ -41,6 +41,16 @@ var Commands = {
         help = { key_: options.$key || "", desc_: options.$desc || "" };
         delete options.$key;
         delete options.$desc;
+      }
+      if (cond = options.$if) {
+        if (cond.sys && cond.sys !== Settings_.CONST_.Platform_
+            || cond.browser && ! (cond.browser & (Build.BTypes & ~BrowserType.Chrome
+                    && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge
+                  ? OnOther : Build.BTypes & BrowserType._mask))
+            ) {
+          return null;
+        }
+        delete options.$if;
       }
       if (opt) {
         BgUtils_.extendIf_(options, opt);
@@ -63,6 +73,7 @@ var Commands = {
       , registry = BgUtils_.safeObj_<CommandsNS.Item>()
       , cmdMap = BgUtils_.safeObj_<CommandsNS.Item>() as Partial<ShortcutInfoMap>
       , userDefinedKeys = BgUtils_.safeObj_<true>()
+      , regItem: CommandsNS.Item | null
       , mkReg = BgUtils_.safeObj_<string>();
     const a = this as typeof Commands, available = a.availableCommands_;
     const colorRed = "color:red", shortcutLogPrefix = "Shortcut %c%s";
@@ -72,7 +83,7 @@ var Commands = {
       const defaultMap = a.defaultKeyMappings_;
       for (_i = defaultMap.length; 0 < _i; ) {
         _i -= 2;
-        registry[defaultMap[_i]] = a.makeCommand_(defaultMap[_i + 1]);
+        registry[defaultMap[_i]] = a.makeCommand_(defaultMap[_i + 1]) as NonNullable<ReturnType<typeof a.makeCommand_>>;
       }
     } else {
       _i = 1;
@@ -96,8 +107,11 @@ var Commands = {
             || ch === kCharCode.dash) {
               a.logError_("Invalid key: %c%s", colorRed, key, "(the first char can not be '-' or number)");
         } else {
-          registry[key] = a.makeCommand_(splitLine[2], a.getOptions_(splitLine, 3), details);
-          userDefinedKeys[key] = true;
+          regItem = a.makeCommand_(splitLine[2], a.getOptions_(splitLine, 3), details);
+          if (regItem) {
+            registry[key] = regItem;
+            userDefinedKeys[key] = true;
+          }
           continue;
         }
       } else if (key === "unmapAll" || key === "unmapall") {
@@ -152,7 +166,9 @@ var Commands = {
     }
     for (key of Settings_.CONST_.GlobalCommands_) {
       if (!key.startsWith("user") && !cmdMap[key as kShortcutNames]) {
-        cmdMap[key as kShortcutNames] = a.makeCommand_(key);
+        if (regItem = a.makeCommand_(key)) {
+          cmdMap[key as kShortcutNames] = regItem;
+        }
       }
     }
     CommandsData_.keyToCommandRegistry_ = registry;
@@ -164,10 +180,13 @@ var Commands = {
       , options: CommandsNS.Options | null): string {
     let has_cmd: BOOL = 1
       , command: string = options && options.command || (has_cmd = 0, key.startsWith("user") ? "" : key)
+      , regItem: CommandsNS.Item | null
       , ret: 0 | 1 | 2 = command ? 1 : 0;
     if (ret && (command in this.availableCommands_)) {
       has_cmd && delete (options as CommandsNS.RawOptions).command;
-      cmdMap[key] = this.makeCommand_(command, options);
+      if (regItem = this.makeCommand_(command, options)) {
+        cmdMap[key] = regItem;
+      }
       ret = 2;
     }
     return ret < 1 ? 'requires a "command" option' : ret > 1 ? "" : "gets an unknown command";
@@ -238,12 +257,14 @@ var Commands = {
     }
     let options = message.options as CommandsNS.RawOptions | null | undefined
       , lastKey: kKeyCode | undefined = message.key
+      , regItem = this.makeCommand_(command, options)
       , count = message.count as number | string | undefined;
+    if (!regItem) { return; }
     count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
     options && typeof options === "object" ?
         BgUtils_.safer_(options) : (options = null);
     lastKey = 0 | <number> lastKey;
-    return exec(this.makeCommand_(command, options), count, lastKey, port as Port, 0);
+    exec(regItem, count, lastKey, port as Port, 0);
   },
 
 defaultKeyMappings_: [
