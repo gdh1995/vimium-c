@@ -23,7 +23,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     , esc = function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
       currentKeys = ""; nextKeys = null; return i;
     } as EscF
-    , onKeyup2: ((this: void, event: Pick<KeyboardEvent, "keyCode">) => void) | null | undefined
+    , onKeyup2: ((this: void, event?: Pick<KeyboardEvent, "keyCode">) => void) | null | undefined
     , passKeys = null as SafeEnum | null | "", isPassKeysReverted = false
     , onWndFocus = function (this: void): void { /* empty */ }, onWndBlur2: ((this: void) => void) | undefined | null
     , exitPassMode: ((this: void) => void) | undefined | null
@@ -431,6 +431,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         esc(HandlerResult.Nothing);
         return;
       }
+      exitPassMode && exitPassMode();
       const keys = safer<BOOL>(null);
       VKey.pushHandler_(function (event) {
         keyCount += +!keys[event.keyCode];
@@ -439,7 +440,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }, keys);
       onKeyup2 = function (event): void {
         if (keyCount === 0 || --keyCount || --count) {
-          keys[event.keyCode] = 0;
+          keys[event ? event.keyCode : kKeyCode.None] = 0;
           HUD.show_(`Pass next ${count > 1 ? count + " keys." : "key."}`);
         } else {
           (exitPassMode as NonNullable<typeof exitPassMode>)();
@@ -450,7 +451,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         VKey.removeHandler_(keys);
         HUD.hide_();
       };
-      onKeyup2({keyCode: kKeyCode.None});
+      onKeyup2();
     },
     /* kFgCmd.goNext: */ function (_0: number, {r: rel, p: patterns, l, m }: CmdOptions[kFgCmd.goNext]): void {
       if (!VDom.isHTML_() || Pagination.findAndFollowRel_(rel)) { return; }
