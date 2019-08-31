@@ -719,7 +719,8 @@ Are you sure you want to continue?`;
           Build.MinCVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId ||
           CurCVer_ >= BrowserVer.Min$Extension$$GetView$AcceptsTabId)
         ? chrome.extension.getViews({ tabId: tab.id }) : [];
-      if (Build.BTypes & BrowserType.Chrome && views.length > 0 && views[0].onhashchange) {
+      if (Build.BTypes & BrowserType.Chrome && views.length > 0
+          && views[0].location.href.startsWith(prefix) && views[0].onhashchange) {
         (views[0].onhashchange as () => void)();
       } else {
         chrome.tabs.update(tab.id, { url: prefix });
@@ -2100,10 +2101,11 @@ Are you sure you want to continue?`;
           : (query2 = (query2 as string).trim()) ? "" : "No selected or copied text found";
         if (err) {
           cPort = port;
-          return Backend_.showHUD_(err);
+          Backend_.showHUD_(err);
+          return;
         }
         query2 = BgUtils_.createSearchUrl_((query2 as string).split(BgUtils_.spacesRe_), (search as ParsedSearch).k);
-        return safeUpdate(query2);
+        openShowPage[0](query2, ReuseType.current, {}) || safeUpdate(query2);
       }
     },
     /** gotoSession: */ function (this: void, request: FgReq[kFgReq.gotoSession], port?: Port): void {

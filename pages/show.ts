@@ -88,12 +88,13 @@ window.onhashchange = function (this: void): void {
   VData.full = url;
   if (url.length < 3) { /* empty */ }
   else if (url.startsWith("#!image")) {
-    url = url.slice(8);
+    url = url.slice(7);
     type = "image";
   } else if (url.startsWith("#!url")) {
-    url = url.slice(6);
+    url = url.slice(5);
     type = "url";
   }
+  url = url.startsWith("%20") ? url.slice(3) : url.trim();
   for (let ind: number; ind = url.indexOf("&") + 1; ) {
     if (url.startsWith("download=")) {
       // avoid confusing meanings in title content
@@ -109,9 +110,7 @@ window.onhashchange = function (this: void): void {
       break;
     }
   }
-  if (url.indexOf(":") <= 0 && url.indexOf("/") < 0) {
-    url = decodeURLPart(url).trim();
-  }
+  url = decodeURLPart(url, url.indexOf(":") <= 0 && url.indexOf("/") < 0 ? null : decodeURI).trim();
   if (!url) {
     type === "image" && (type = "");
   } else if (url.toLowerCase().startsWith("javascript:")) {
@@ -364,9 +363,9 @@ function doImageAction(viewer: ViewerType, action: number) {
   }
 }
 
-function decodeURLPart(url: string): string {
+function decodeURLPart(url: string, func?: typeof decodeURI | null): string {
   try {
-    url = decodeURIComponent(url);
+    url = (func || decodeURIComponent)(url);
   } catch {}
   return url;
 }
