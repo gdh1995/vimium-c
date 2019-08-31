@@ -238,8 +238,13 @@ function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, max
 function ComputeWordRelevancy(this: void, suggestion: CompletersNS.CoreSuggestion): number {
   return RankingUtils.wordRelevancy_(suggestion.t, suggestion.title);
 }
+function ComputeRecency (lastAccessedTime: number): number {
+  let score = (lastAccessedTime - RankingUtils.timeAgo_) / TimeEnums.timeCalibrator;
+  return score < 0 ? 0 : score < 1 ? score * score * RankingEnums.recCalibrator
+    : score < TimeEnums.futureTimeTolerance ? TimeEnums.futureTimeScore : 0;
+}
 function ComputeRelevancy(this: void, text: string, title: string, lastVisitTime: number): number {
-  const recencyScore = RankingUtils.recencyScore_(lastVisitTime),
+  const recencyScore = ComputeRecency(lastVisitTime),
     wordRelevancy = RankingUtils.wordRelevancy_(text, title);
   return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
 }
@@ -287,7 +292,7 @@ const bookmarkEngine = {
       }
     }
     const results2: Suggestion[] = [],
-    /** inline of {@link #RankingUtils.recencyScore_} */
+    /** inline of {@link #recencyScore_} */
     fakeTimeScore = completerIndex !== 2 ? 0
       : -1 * (1 - TimeEnums.bookmarkFakeVisitTime / TimeEnums.timeCalibrator)
         * (1 - TimeEnums.bookmarkFakeVisitTime / TimeEnums.timeCalibrator) * RankingEnums.recCalibrator;
@@ -477,19 +482,20 @@ historyEngine = {
       : (BgUtils_.convertToUrl_(queryTerms[0], null, Urls.WorkType.KeepAll),
         BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
     ),
-    results = [0.0, 0.0], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2_,
-    parts0 = RegExpCache.parts_[0], getRele = ComputeRelevancy;
+    results = [-1.1, -1.1], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2_,
+    parts0 = RegExpCache.parts_[0];
     let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0)
       , i = 0, j = 0, matched = 0;
     domainToSkip && maxNum++;
-    for (j = maxNum; --j; ) { results.push(0.0, 0.0); }
+    for (j = maxNum; --j; ) { results.push(-1.1, -1.1); }
     maxNum = maxNum * 2 - 2;
-    let curMinScore = 0.0;
+    let curMinScore = -1.1;
     for (const len = history.length; i < len; i++) {
       const item = history[i];
       if (onlyUseTime ? !parts0.test(item.text_) : !Match2(item.text_, item.title_)) { continue; }
       if (!(showThoseInBlacklist || item.visible_)) { continue; }
-      const score = onlyUseTime ? RankingUtils.recencyScore_(item.time_) : getRele(item.text_, item.title_, item.time_);
+      const score = onlyUseTime ? ComputeRecency(item.time_) || /* < 0.0002 */ 1e-16 * item.time_
+          : ComputeRelevancy(item.text_, item.title_, item.time_);
       matched++;
       if (curMinScore >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
@@ -606,7 +612,7 @@ domainEngine = {
   performSearch_ (): void {
     const ref = BgUtils_.domains_ as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP_,
     word = queryTerms[0].replace("/", "").toLowerCase();
-    let sug: Suggestion | undefined, result = "", matchedDomain: Domain | undefined, result_score = -1;
+    let sug: Suggestion | undefined, result = "", matchedDomain: Domain | undefined, result_score = -1.1;
     RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
     for (const domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
@@ -1149,11 +1155,6 @@ knownCs: CompletersMap & SafeObject = {
       return (urlScore < titleScore) ? titleScore : ((urlScore + titleScore) / 2);
     },
     timeAgo_: 0,
-    recencyScore_ (lastAccessedTime: number): number {
-      let score = (lastAccessedTime - this.timeAgo_) / TimeEnums.timeCalibrator;
-      return score < 0 ? 0 : score < 1 ? score * score * RankingEnums.recCalibrator
-        : score < TimeEnums.futureTimeTolerance ? TimeEnums.futureTimeScore : 0;
-    },
     normalizeDifference_ (a: number, b: number): number {
       return a < b ? a / b : b / a;
     }
