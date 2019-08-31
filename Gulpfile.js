@@ -92,7 +92,6 @@ var Tasks = {
   },
   "static/uglify": function() {
     const path = ["lib/math_parser*.js"];
-    // todo: currently, generated es6 code of viewer.js always breaks (can not .shown()), so disable it
     uglify_viewer && path.push(VIEWER_JS);
     if (!getNonNullBuildItem("NDEBUG")) {
       return copyByPath(path);
@@ -1039,7 +1038,7 @@ function createBuildConfigCache() {
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
   outputES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
   compilerOptions.target = outputES6
-    ? !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es6"
+    ? !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es2017"
     : "es6" : "es5";
 }
 
@@ -1276,7 +1275,7 @@ function loadUglifyConfig(reload) {
     }
     if (outputES6) {
       a.ecma = 6;
-      var c = a.compress || (a.compress = {}); // gd = c.global_defs || (c.global_defs = {});
+      var c = a.compress || (a.compress = {});
       c.hoist_vars = false;
     }
   }
