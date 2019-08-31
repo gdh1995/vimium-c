@@ -152,6 +152,8 @@ var VFind = {
     root2.spellcheck = false;
     root2.appendChild(list);
     if (inShadow) {
+      // here can not use `body.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
+      body.setAttribute("role", "textbox");
       root2.addEventListener("mousedown", a.OnMousedown_, true);
       root.appendChild(root2);
     }
