@@ -1236,12 +1236,12 @@ knownCs: CompletersMap & SafeObject = {
       }
       setTimeout(function (): void {
         setTimeout(function (): void {
-          const arr = HistoryCache.history_ as HistoryItem[];
-          for (let i = arr.length - 1; 0 < i; ) {
-            const j = arr[i], url = j.url_, text = j.text_ = Decoder.decodeURL_(url, j),
+          const arr1 = HistoryCache.history_ as HistoryItem[];
+          for (let i = arr1.length - 1; 0 < i; ) {
+            const j = arr1[i], url = j.url_, text = j.text_ = Decoder.decodeURL_(url, j),
             isSame = text.length >= url.length;
             while (0 <= --i) {
-              const k = arr[i], url2 = k.url_;
+              const k = arr1[i], url2 = k.url_;
               if (url2.length >= url.length || !url.startsWith(url2)) {
                 break;
               }

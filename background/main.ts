@@ -613,13 +613,14 @@ Are you sure you want to continue?`;
     options = cOptions as OpenUrlOptions;
     cOptions = null as never;
     BgUtils_.resetRe_();
-    return typeof url !== "string" ? onEvalUrl(url as Urls.SpecialUrl)
-      : openShowPage[0](url, reuse, options) ? void 0
+    typeof url !== "string" ? onEvalUrl(url as Urls.SpecialUrl)
+      // tslint:disable-next-line: no-unused-expression
+      : openShowPage[0](url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? openJSUrl(url)
       : reuse === ReuseType.reuse ? requestHandlers[kFgReq.focusOrLaunch]({ u: url })
       : reuse === ReuseType.current ? safeUpdate(url)
       : tabs ? openUrlInNewTab(url, reuse, options, tabs as [Tab])
-      : void getCurTab(openUrlInNewTab.bind(null, url, reuse, options))
+      : getCurTab(openUrlInNewTab.bind(null, url, reuse, options))
       ;
   }
   function openCopiedUrl(this: void, tabs: [Tab] | never[] | undefined, url: string | null): void {
