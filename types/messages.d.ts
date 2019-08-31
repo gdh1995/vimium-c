@@ -188,7 +188,7 @@ declare const enum kBgCmd {
   goToRoot, goUp, moveTab, mainFrame,
   visitPreviousTab, copyTabInfo, clearFindHistory,
   toggleViewSource, clearMarks, toggleVomnibarStyle,
-  goBackFallback, showTip,
+  goBackFallback, showTip, autoOpenFallback,
   END = "END",
 }
 

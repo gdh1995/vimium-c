@@ -63,6 +63,12 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     opener?: boolean;
     window?: boolean;
   }
+  interface OpenUrlOptionsInBgCmd extends OpenUrlOptions {
+    url_f?: Urls.Url;
+    reuse?: ReuseType;
+    copied?: boolean;
+    keyword?: string | null;
+  }
   type ShowPageData = [string, typeof Settings_.temp_.shownHash_, number];
 
   const enum RefreshTabStep {
@@ -923,6 +929,8 @@ Are you sure you want to continue?`;
             && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
           cmdFallback = kBgCmd.goBackFallback;
         }
+      } else if (cmdName === "autoOpen") {
+        cmdFallback = kBgCmd.autoOpenFallback;
       }
       if (cmdFallback) {
         /** this object shape should keep the same as the one in {@link commands.ts#Commands.makeCommand_} */
@@ -960,7 +968,7 @@ Are you sure you want to continue?`;
     UseTab.CurWndTabs, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab,
     UseTab.CurWndTabs, UseTab.ActiveTab, UseTab.NoTab,
-    UseTab.ActiveTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab, UseTab.NoTab
+    UseTab.ActiveTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab
   ],
   BackgroundCommands: {
     [K in kBgCmd & number]:
@@ -1573,7 +1581,7 @@ Are you sure you want to continue?`;
         }
       }
     },
-    /* openUrl: */ function (this: void, tabs?: [Tab] | never[]): void {
+    /* kBgCmd.openUrl: */ function (this: void, tabs?: [Tab] | never[]): void {
       if (cOptions.urls) {
         if (!(cOptions.urls instanceof Array)) { cOptions = null as never; return; }
         return tabs && tabs.length > 0 ? openUrls(tabs as [Tab]) : void getCurTab(openUrls);
@@ -1848,6 +1856,13 @@ Are you sure you want to continue?`;
     /* showTip: */ function (this: void): void {
       let text = cOptions.text;
       Backend_.showHUD_(text ? text + "" : '"showTip" needs a "text" option');
+    },
+    /* kBgCmd.autoOpenFallback: */ function (this: void): void {
+      cOptions = BgUtils_.safer_<OpenUrlOptionsInBgCmd>({
+        copied: true,
+        keyword: cOptions.keyword,
+      });
+      BackgroundCommands[kBgCmd.openUrl]();
     }
   ],
   numHeadRe = <RegExpOne> /^-?\d+|^-/;
@@ -2141,12 +2156,7 @@ Are you sure you want to continue?`;
       cPort = unsafe ? port as Port : findCPort(port) || cPort;
       let url: Urls.Url | undefined = request.u;
       // { url_f: string, ... } | { copied: true, ... }
-      const opts: OpenUrlOptions & {
-        url_f?: Urls.Url;
-        reuse?: ReuseType;
-        copied?: boolean;
-        keyword?: string | null;
-      } & SafeObject = BgUtils_.safeObj_();
+      const opts: OpenUrlOptionsInBgCmd & SafeObject = BgUtils_.safeObj_();
       opts.reuse = request.r;
       opts.incognito = request.i;
       opts.opener = false;
@@ -2164,17 +2174,15 @@ Are you sure you want to continue?`;
         } else if (unsafe && type === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")) {
           url = BgUtils_.convertToUrl_(url as string);
         }
-        request.u = "";
-        request.k = "";
-        opts.url_f = url;
         opts.opener = unsafe && !request.n;
+        opts.url_f = url;
       } else {
         opts.copied = request.c;
         opts.keyword = request.k;
       }
       cRepeat = 1;
       cOptions = opts;
-      return BackgroundCommands[kBgCmd.openUrl]();
+      BackgroundCommands[kBgCmd.openUrl]();
     },
     /** focus: */ function (this: void, _0: FgReq[kFgReq.focus], port: Port): void {
       if (!(Build.BTypes & ~BrowserType.Firefox)
