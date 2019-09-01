@@ -649,6 +649,7 @@ BgUtils_.timeout_(120, function (): void {
   settings.postUpdate_("autoDarkMode");
   settings.postUpdate_("autoReduceMotion");
   settings.updateOmniStyles_ = MediaWatcher_.update_;
+  settings.updateMediaQueries_ = MediaWatcher_.RefreshAll_;
 
   if (!Build.PContentSettings) { return; }
   for (const i of ["images", "plugins", "javascript", "cookies"] as const) {

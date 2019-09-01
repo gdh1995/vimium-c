@@ -238,7 +238,7 @@ function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, max
 function ComputeWordRelevancy(this: void, suggestion: CompletersNS.CoreSuggestion): number {
   return RankingUtils.wordRelevancy_(suggestion.t, suggestion.title);
 }
-function ComputeRecency (lastAccessedTime: number): number {
+function ComputeRecency(lastAccessedTime: number): number {
   let score = (lastAccessedTime - RankingUtils.timeAgo_) / TimeEnums.timeCalibrator;
   return score < 0 ? 0 : score < 1 ? score * score * RankingEnums.recCalibrator
     : score < TimeEnums.futureTimeTolerance ? TimeEnums.futureTimeScore : 0;

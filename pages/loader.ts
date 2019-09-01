@@ -47,10 +47,11 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
       }, 100);
     }
   }
-  if (location.pathname.toLowerCase().indexOf("options") < 0) {
-    const bg = chrome.extension.getBackgroundPage() as BgWindow;
-    if (bg && bg.Backend_) {
-      const uiStyles = bg.Settings_.omniPayload_.s;
+  const bg0 = chrome.extension.getBackgroundPage() as BgWindow;
+  if (bg0 && bg0.Settings_) {
+    bg0.Settings_.updateMediaQueries_();
+    if (location.pathname.toLowerCase().indexOf("options") < 0) {
+      const uiStyles = bg0.Settings_.omniPayload_.s;
       if (uiStyles && ` ${uiStyles} `.indexOf(" dark ") >= 0) {
         const style = document.createElement("style");
         style.textContent = "body { background: #000; color: #aab0b6; }";
