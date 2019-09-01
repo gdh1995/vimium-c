@@ -883,7 +883,7 @@ function (details: chrome.runtime.InstalledDetails): void {
   if (!reason) { return; }
 
   if (parseFloat(Settings_.CONST_.VerCode_) < parseFloat(reason)) { return; }
-  // if (Settings_.CONST_.VerCode_ === reason) { return; }
+  if (Settings_.CONST_.VerCode_ === reason) { return; }
   let ref1 = Settings_.temp_;
   if (ref1.backupSettingsToLocal_) {
     (ref1.backupSettingsToLocal_ as Exclude<typeof ref1.backupSettingsToLocal_, true | null>)(6000);
