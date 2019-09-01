@@ -21,8 +21,8 @@ html {
 @media (prefers-color-scheme: dark) {
   .auto-dark {
     --plain-color: #9aa0a6;
-    --background-color: #202124;
-    --panel-background-color: #292a2d;
+    --background-color: #000;
+    --panel-background-color: #18191b;
     --heading-color: #c6cbd2;
     --heading-border-color: #555;
     --item-caption-color: #aab0b6;
@@ -46,7 +46,7 @@ html {
     --input-focus-border-color: #004fa3;
     --button-color: #bdc2c7;
     --button-disabled-color: #9aa0a6;
-    --button-background-color: #292a2d;
+    --button-background-color: #18191b;
     --button-border-color: #5f6368;
     --button-background-image: none;
     --button-hover-color: #bdc2c7;
