@@ -550,7 +550,7 @@ MediaWatcher_ = {
     }
     Backend_.setOmniStyle_({
       t: omniToggled,
-      e: matched != null ? matched : ` ${settings.cache_.vomnibarOptions.styles} `.indexOf(` ${omniToggled} `) >= 0,
+      e: ` ${settings.cache_.vomnibarOptions.styles} `.indexOf(` ${omniToggled} `) >= 0 || bMatched,
       b: !embed
     });
   },
