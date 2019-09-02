@@ -50,7 +50,7 @@ for isEn in (True, False):
     print('BgUtils_.%s = [""' % ('_tlds' if isEn else '_nonENTlds'))
     i, count, len_tld, line, len_line = "", 0, 2, "", len(prefix)
     for i in tlds:
-        if (re.match(r'^[0-9A-Za-z]+\Z', i) is not None) != isEn:
+        if (re.match(r'^[\dA-Za-z]+\Z', i) is not None) != isEn:
             continue
         leni = len(i)
         if leni > len_tld:

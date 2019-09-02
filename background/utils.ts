@@ -322,7 +322,7 @@ var BgUtils_ = {
      return false;
   },
   safeParseURL_(url: string): URL | null { try { return new URL(url); } catch {} return null; },
-  commonFileExtRe_: <RegExpOne> /\.[0-9A-Za-z]+$/,
+  commonFileExtRe_: <RegExpOne> /\.\w+$/,
   formatVimiumUrl_ (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, subPath = "", query = "", tempStr: string | undefined, path = fullpath.trim();
     if (!path) { return partly ? "" : location.origin + "/pages/"; }
@@ -779,7 +779,7 @@ var BgUtils_ = {
     return null;
   },
   keyRe_: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,4}.\w*?>|./g, /* need to support "<<left>" */
-  keyReToFormat_: <RegExpG & RegExpSearchable<2>> /<(?!<)((?:[acm]-){0,3})([^a-z0-9][\dA-Z]*)>/g,
+  keyReToFormat_: <RegExpG & RegExpSearchable<2>> /<(?!<)((?:[acm]-){0,3})([^a-z\d][\dA-Z]*)>/g,
   onFormatKey_ (this: void, _0: string, modifiers: string, ch: string): string {
     const chLower = ch.toLowerCase();
     return ch !== chLower ? `<${modifiers}s-${chLower}>` : _0;

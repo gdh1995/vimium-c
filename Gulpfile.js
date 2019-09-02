@@ -1071,7 +1071,7 @@ function getBuildItem(key, literalVal) {
   if (cached != null) {
     return parseBuildItem(key, cached[1]);
   }
-  var env_key = key.replace(/[A-Z]+[a-z0-9]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
+  var env_key = key.replace(/[A-Z]+[a-z\d]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
   var newVal = process.env["BUILD_" + env_key];
   if (!newVal) {
     newVal = process.env["BUILD_" + key];
