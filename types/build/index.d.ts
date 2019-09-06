@@ -9,7 +9,7 @@ declare const enum Build {
   NoDialogUI = 0,
   NativeWordMoveOnFirefox = 1,
   PContentSettings = 1,
-  MayOverrideNewTab = 1,
+  MayOverrideNewTab = 0,
   DetectAPIOnFirefox = 1,
 }
 // Note: one random value must be used only in one .ts file, to avoid issues caused by partly building

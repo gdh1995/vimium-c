@@ -21,9 +21,6 @@
     "default_popup": "pages/popup.html",
     "default_title": "Vimium C"
   },
-  "chrome_url_overrides": {
-    "newtab": "pages/newtab.html"
-  },
   "commands": {
     "createTab": {
       "description": "Create new tab"
