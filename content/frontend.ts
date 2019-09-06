@@ -102,7 +102,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     let action = HandlerResult.Prevent, { repeat } = event
       , { activeElement: activeEl, body } = document;
     /** if `notBody` then `activeEl` is not null */
-    if (!repeat && VDom.UI.removeSelection_()) {
+    if (!repeat && VCui.removeSelection_()) {
       /* empty */
     } else if (repeat && !KeydownEvents[kKeyCode.esc] && activeEl !== body) {
       (Build.BTypes & ~BrowserType.Firefox ? typeof (activeEl as Element).blur === "function"
@@ -210,7 +210,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
      */
     const lock = InsertMode.lock_;
     if (lock !== null && lock === document.activeElement) { return; }
-    if (target === VDom.UI.box_) { return VKey.Stop_(event); }
+    if (target === VCui.box_) { return VKey.Stop_(event); }
     const sr = VDom.GetShadowRoot_(target as Element);
     if (sr) {
       let path = event.path, top: EventTarget | undefined,
@@ -272,7 +272,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       InsertMode.lock_ = null;
       InsertMode.inputHint_ && !InsertMode.hinting_ && document.hasFocus() && InsertMode.exitInputHint_();
     }
-    if (!sr || target === VDom.UI.box_) { return; }
+    if (!sr || target === VCui.box_) { return; }
     if (same) {
       sr.vimiumListened = ShadowRootListenType.Blur;
       return;
@@ -488,7 +488,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       InsertMode.mutable_ = true;
       VDom.getZoom_(newEl);
       VDom.prepareCrop_();
-      return VDom.UI.simulateSelect_(newEl, null, false, "", true);
+      return VCui.simulateSelect_(newEl, null, false, "", true);
     },
     /* kFgCmd.showHelp: */ function (msg?: number | "e"): void {
       if (msg === "e") { return; }
@@ -500,7 +500,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       post({ H: kFgReq.initHelp, w: wantTop });
     },
     /* kFgCmd.autoCopy: */ function (_0: number, options: CmdOptions[kFgCmd.autoCopy]): void {
-      let str = VDom.UI.getSelectionText_(1);
+      let str = VCui.getSelectionText_(1);
       if (!str) {
         str = options.url ? location.href : document.title;
         (options.decoded || options.decode) && (str = VHints.decodeURL_(str));
@@ -519,7 +519,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       return HUD.copied_(str);
     },
     /* kFgCmd.autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
-      let url = VDom.UI.getSelectionText_(), keyword = (options.keyword || "") + "";
+      let url = VCui.getSelectionText_(), keyword = (options.keyword || "") + "";
       url && VPort.evalIfOK_(url) || post({
         H: kFgReq.openUrl,
         c: !url,
@@ -531,7 +531,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         H: kFgReq.searchAs,
         u: location.href,
         c: options.copied,
-        s: options.selected ? VDom.UI.getSelectionText_() : ""
+        s: options.selected ? VCui.getSelectionText_() : ""
       });
     },
     /* kFgCmd.focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {
@@ -549,7 +549,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return HUD.tip_("There are no inputs to focus.", 1000);
       } else if (sel === 1) {
         InsertMode.exitInputHint_();
-        return VDom.UI.simulateSelect_(visibleInputs[0][0], visibleInputs[0][1], true, action, true);
+        return VCui.simulateSelect_(visibleInputs[0][0], visibleInputs[0][1], true, action, true);
       }
       for (let ind = 0; ind < sel; ind++) {
         const hint = visibleInputs[ind], j = hint[0].tabIndex;
@@ -570,9 +570,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         sel = count > 0 ? Math.min(count, sel) - 1 : Math.max(0, sel + count);
       }
       hints[sel].marker_.className = "IH IHS";
-      VDom.UI.simulateSelect_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
-      VDom.UI.ensureBorder_(VDom.wdZoom_);
-      const box = VDom.UI.addElementList_<false>(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
+      VCui.simulateSelect_(visibleInputs[sel][0], visibleInputs[sel][1], false, action, false);
+      VCui.ensureBorder_(VDom.wdZoom_);
+      const box = VCui.addElementList_<false>(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       // delay exiting the old to avoid some layout actions
       // although old elements can not be GC-ed before this line, it has little influence
       InsertMode.exitInputHint_();
@@ -584,7 +584,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           sel = (oldSel + (event.shiftKey ? len - 1 : 1)) % len;
           InsertMode.hinting_ = true;
           VKey.prevent_(event); // in case that selecting is too slow
-          VDom.UI.simulateSelect_(hints2[sel].dest_, null, false, action);
+          VCui.simulateSelect_(hints2[sel].dest_, null, false, action);
           hints2[oldSel].marker_.className = "IH";
           hints2[sel].marker_.className = "IH IHS";
           InsertMode.hinting_ = false;
@@ -750,8 +750,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     } else {
       VDom.view_(linkElement);
       // note: prepareCrop is called during UI.flash_
-      VDom.UI.flash_(linkElement);
-      setTimeout(function () { VDom.UI.click_(linkElement); }, 100);
+      VCui.flash_(linkElement);
+      setTimeout(function () { VCui.click_(linkElement); }, 100);
     }
     return true;
   },
@@ -835,15 +835,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     timer_: 0,
     Focus_ (this: void, req: BgReq[kBgReq.focusFrame]): void {
       // Note: .c, .S are ensured to exist
-      let mask = req.m, dom = VDom, doc = document, div;
-      req.S && dom.UI.css_(req.S);
+      let mask = req.m, doc = document, div;
+      req.S && VCui.css_(req.S);
       if (mask !== FrameMaskType.NormalNext) { /* empty */ }
       else if (events.checkHidden_()
         // check <div> to detect whether no other visible elements except <frame>s in this frame
         || (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && Build.BTypes & BrowserType.Chrome
-                && dom.unsafeFramesetTag_  // treat a doc.body of <form> as <frameset> to simplify logic
-              ? dom.notSafe_(doc.body) : dom.htmlTag_(doc.body as NonNullable<Document["body"]>) === "frameset")
-            && (div = doc.querySelector("div"), !div || div === VDom.UI.box_ && !VKey._handlers.length)
+                && VDom.unsafeFramesetTag_  // treat a doc.body of <form> as <frameset> to simplify logic
+              ? VDom.notSafe_(doc.body) : VDom.htmlTag_(doc.body as NonNullable<Document["body"]>) === "frameset")
+            && (div = doc.querySelector("div"), !div || div === VCui.box_ && !VKey._handlers.length)
       ) {
         post({
           H: kFgReq.nextFrame,
@@ -881,7 +881,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         _this.node_ = dom1;
         _this.timer_ = setInterval(_this.Remove_, isTop ? 200 : 350);
       }
-      VDom.UI.add_(dom1);
+      VCui.add_(dom1);
     },
     Remove_ (this: void, fake?: TimerType.fake): void { // safe-interval
       const _this = FrameMask, { more_ } = _this;
@@ -942,9 +942,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         const st = el.style;
         st.opacity = "0";
         st.visibility = "hidden";
-        VDom.UI.box_ || VDom.UI.ensureBorder_();
+        VCui.box_ || VCui.ensureBorder_();
       }
-      VDom.UI.add_(hud.box_ = el, VHints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, VHints.box_);
+      VCui.add_(hud.box_ = el, VHints.hints_ ? AdjustType.NotAdjust : AdjustType.DEFAULT, VHints.box_);
     },
     _tween (this: void, fake?: TimerType.fake): void { // safe-interval
       const el = HUD.box_ as HTMLDivElement, st = el.style, reduce = isEnabled && VDom.cache_.r;
@@ -956,7 +956,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         st.opacity = reduce ||  Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
                       && fake ? "" : "0.25";
         st.visibility = "";
-        return VDom.UI.adjust_();
+        return VCui.adjust_();
       } else if (!reduce && document.hasFocus()) {
         opacity += opacity < HUD.opacity_ ? 0.25 : -0.25;
       } else {
@@ -1084,7 +1084,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       } else {
         Commands[kFgCmd.reset]();
       }
-      if (VDom.UI.box_) { VDom.UI.adjust_(+newEnabled ? 1 : 2); }
+      if (VCui.box_) { VCui.adjust_(+newEnabled ? 1 : 2); }
     },
     /* kBgReq.injectorRun: */ injector ? injector.$m : null as never,
     /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
@@ -1130,7 +1130,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       (mappedKeys = request.m) && func(mappedKeys, null);
     },
     /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: Req.FgCmd<O>): void {
-      if (request.S) { VDom.UI.css_(request.S); }
+      if (request.S) { VCui.css_(request.S); }
       esc(HandlerResult.Nothing);
       const options: CmdOptions[O] | null = request.a;
       type Keys = keyof CmdOptions;
@@ -1146,7 +1146,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kBgReq.createMark: */ function (request: BgReq[kBgReq.createMark]): void { VMarks.createMark_(request.n); },
     /* kBgReq.showHUD: */ function (req: Req.bg<kBgReq.showHUD>): void {
       if (req.S) {
-        VDom.UI.css_(req.S);
+        VCui.css_(req.S);
         if (req.f) {
           VFind.css_ = req.f;
           VFind.styleIframe_ && (VFind.styleIframe_.textContent = req.f.i);
@@ -1169,7 +1169,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   function ({ h: html, a: shouldShowAdvanced, o: optionUrl, S: CSS }: Req.bg<kBgReq.showHelpDialog>): void {
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
-    if (CSS) { VDom.UI.css_(CSS); }
+    if (CSS) { VCui.css_(CSS); }
     const oldShowHelp = Commands[kFgCmd.showHelp], suppress = VKey.SuppressAll_;
     oldShowHelp("e");
     if (!VDom.isHTML_()) { return; }
@@ -1182,7 +1182,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       //   so need `doc.createElement('style').textContent = ...`
       box = new DOMParser().parseFromString((html as Exclude<typeof html, string>).b, "text/html"
           ).body.firstChild as SafeHTMLElement;
-      box.insertBefore(VDom.UI.createStyle_((html as Exclude<typeof html, string>).h), box.firstChild);
+      box.insertBefore(VCui.createStyle_((html as Exclude<typeof html, string>).h), box.firstChild);
     } else {
       box = VDom.createElement_("div");
       box.innerHTML = html as string;
@@ -1243,8 +1243,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       });
     };
     shouldShowAdvanced && toggleAdvanced();
-    VDom.UI.ensureBorder_();
-    VDom.UI.add_(box, AdjustType.Normal, true);
+    VCui.ensureBorder_();
+    VCui.add_(box, AdjustType.Normal, true);
     document.hasFocus() || events.focusAndRun_();
     // on FF66, `scrollIntoView` does not set tab-navigation node
     // tslint:disable-next-line: no-unused-expression
@@ -1254,7 +1254,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     VScroller.current_ = box;
     VKey.pushHandler_(function (event) {
       if (!InsertMode.lock_ && isEscape(event)) {
-        VDom.UI.removeSelection_(VDom.UI.UI) || hide();
+        VCui.removeSelection_(VCui.root_) || hide();
         return HandlerResult.Prevent;
       }
       return HandlerResult.Nothing;
@@ -1276,12 +1276,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     isEnabled = !1;
     hook(HookAction.Destroy);
 
+    let ui = VCui;
     Commands[kFgCmd.reset]();
-    let ui = VDom.UI;
     events.execute_ && events.execute_(kContentCmd.Destroy);
     ui.box_ && ui.adjust_(2);
 
-    VDom = VKey = VHints = VScroller = VOmni = VFind = VVisual = VMarks =
+    VDom = VKey = VCui = VHints = VScroller = VOmni = VFind = VVisual = VMarks =
     VHud = VPort = VEvent = esc = null as never;
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
@@ -1470,7 +1470,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         ? browser as typeof chrome : chrome).runtime.connect,
       status = requestHandlers[0] ? PortType.initing
         : (isEnabled ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
-        + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn_ ? PortType.hasCSS : 0),
+        + (isLocked ? PortType.isLocked : 0) + (VCui.styleIn_ ? PortType.hasCSS : 0),
       name = PortNameEnum.Prefix + (
         PortType.isTop * +isTop + PortType.hasFocus * +document.hasFocus() + status),
       data = { name: injector ? name + injector.$h : name },

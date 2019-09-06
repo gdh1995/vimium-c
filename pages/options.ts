@@ -858,7 +858,7 @@ Option_.all_.newTabUrl.checker_.check_(Option_.all_.newTabUrl.previous_);
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   if (!window.VDom) { return; }
-  const root = VDom.UI.UI as VUIRoot | null, self = Option_.all_.userDefinedCss;
+  const root = VCui.root_ as VUIRoot | null, self = Option_.all_.userDefinedCss;
   let styleDebug = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (styleDebug) {
     if (styleDebug.nextElementSibling) {
@@ -874,13 +874,13 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       /** Note: shoule keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substr(headEnd + 1, +css.slice(0, headEnd).split(",")[2]);
-      VDom.UI.css_(css);
-      (VDom.UI.UI as NonNullable<VUIRoot>).appendChild(styleDebug as HTMLStyleElement);
+      VCui.css_(css);
+      (VCui.root_ as NonNullable<VUIRoot>).appendChild(styleDebug as HTMLStyleElement);
     };
     if (root) {
       patch();
     } else {
-      VDom.UI.add_(styleDebug);
+      VCui.add_(styleDebug);
       styleDebug.remove();
       setTimeout(patch, 200);
     }
@@ -934,12 +934,12 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
 
 Option_.all_.userDefinedCss.onSave_ = function () {
   if (!window.VDom) { return; }
-  const root = VDom.UI.UI;
+  const root = VCui.root_;
   let styledebugged = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (!styledebugged) { return; }
   setTimeout(function () {
     (styledebugged as HTMLStyleElement).remove();
-    const iframes = VDom.UI.UI.querySelectorAll("iframe");
+    const iframes = VCui.root_.querySelectorAll("iframe");
     for (let i = 0, end = iframes.length; i < end; i++) {
       const frame = iframes[i], isFind = frame.classList.contains("HUD"),
       doc = frame.contentDocument as HTMLDocument,
@@ -1130,9 +1130,9 @@ if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) { (function (): void
 })(); }
 
 document.addEventListener("click", function onClickOnce(): void {
-  if (!window.VDom || !VDom.UI.UI) { return; }
+  if (!window.VDom || !VCui.root_) { return; }
   document.removeEventListener("click", onClickOnce, true);
-  (VDom.UI.UI as Node).addEventListener("click", function (event): void {
+  (VCui.root_ as Node).addEventListener("click", function (event): void {
     let target = event.target as HTMLElement, str: string;
     if (VPort && target.classList.contains("HelpCommandName")) {
       str = target.textContent.slice(1, -1);

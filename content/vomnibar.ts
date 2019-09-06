@@ -53,7 +53,7 @@ var VOmni = {
     }
     if (url === true || count !== 1 && url == null) {
       // update options.url to string, so that this block can only run once per command
-      if (options.url = url = url ? dom.UI.getSelectionText_() : "") {
+      if (options.url = url = url ? VCui.getSelectionText_() : "") {
         options.newtab = true;
       }
     }
@@ -86,7 +86,7 @@ var VOmni = {
     if (!(Build.NDEBUG || VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1)) {
       console.log("Assert error: VomnibarNS.Status.Inactive - VomnibarNS.Status.NotInited === 1");
     }
-    a.box_ && dom.UI.adjust_();
+    a.box_ && VCui.adjust_();
     if (a.status_ === VomnibarNS.Status.NotInited) {
       if (!options.$forced) { // re-check it for safety
         options.$forced = 1;
@@ -151,7 +151,7 @@ var VOmni = {
     }
   },
   init_ ({k: secret, v: page, t: type, i: inner}: VomnibarNS.FullOptions): void {
-    const el = VDom.createElement_("iframe") as typeof VOmni.box_, UI = VDom.UI;
+    const el = VDom.createElement_("iframe") as typeof VOmni.box_;
     el.className = "R UI Omnibar";
     el.style.display = "none";
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
@@ -223,7 +223,7 @@ var VOmni = {
       wnd.onmessage({ source: window, data: sec, ports: [port] });
       checkBroken(1);
     };
-    UI.add_(this.box_ = el, AdjustType.MustAdjust, VHud.box_);
+    VCui.add_(this.box_ = el, AdjustType.MustAdjust, VHud.box_);
     type !== VomnibarNS.PageType.inner &&
     setTimeout(function (i): void {
       loaded || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||

@@ -1,4 +1,4 @@
-[VDom, VKey, VHints, VScroller, VOmni, VFind, VVisual, VMarks,
+[VDom, VKey, VCui, VHints, VScroller, VOmni, VFind, VVisual, VMarks,
   VHud, VPort, VEvent
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;

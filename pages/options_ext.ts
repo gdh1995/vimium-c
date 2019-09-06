@@ -1,6 +1,6 @@
 $<ElementWithDelay>("#showCommands").onclick = function (event): void {
   if (!window.VDom) { return; }
-  let node: HTMLElement | null, root = VDom.UI.UI;
+  let node: HTMLElement | null, root = VCui.root_;
   event && event.preventDefault();
   if (!root) { /* empty */ }
   else if (node = root.querySelector("#HClose") as HTMLElement | null) {
@@ -16,7 +16,7 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
   });
   if (event) { return; }
   setTimeout(function (): void {
-    const node2 = VDom.UI.UI && VDom.UI.UI.querySelector("#HelpDialog") as HTMLElement;
+    const node2 = VCui.root_ && VCui.root_.querySelector("#HelpDialog") as HTMLElement;
     if (!node2) { return; }
     (node2.querySelector("#HClose") as HTMLElement).addEventListener("click", function (): void {
       location.hash = "";
@@ -317,7 +317,7 @@ Are you sure you want to continue?`
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
-  const node = window.VDom && VDom.UI.UI && VDom.UI.UI.querySelector("#HClose") as HTMLElement;
+  const node = window.VDom && VCui.root_ && VCui.root_.querySelector("#HClose") as HTMLElement;
   if (node) { // reload help dialog
     node.click();
     $("#showCommands").click();

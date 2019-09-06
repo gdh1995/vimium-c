@@ -2,14 +2,14 @@ interface ShadowRootWithSelection extends ShadowRoot {
   getSelection(): Selection | null;
 }
 
-VDom.UI = {
-  box_: null,
-  styleIn_: null,
-  styleOut_: null,
-  UI: null as never,
-  add_<T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
-    const a = VDom.UI, box = a.box_ = VDom.createElement_("div"),
-    root: VUIRoot = a.UI = VDom.createShadowRoot_(box);
+var VCui = {
+  box_: null as HTMLDivElement & SafeHTMLElement | null,
+  styleIn_: null as HTMLStyleElement | string | null,
+  styleOut_: null as HTMLStyleElement | null,
+  root_: null as never as VUIRoot,
+  add_: (function <T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
+    let a = VCui, box = a.box_ = VDom.createElement_("div"),
+    root: VUIRoot = a.root_ = VDom.createShadowRoot_(box);
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
@@ -21,23 +21,23 @@ VDom.UI = {
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { removeEventListener("load", Onload, true); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement;
-      if (t.parentNode === VDom.UI.UI) {
+      if (t.parentNode === VCui.root_) {
         VKey.Stop_(e); t.onload && t.onload(e);
       }
     }, true);
-    a.add_ = (function<T2 extends HTMLElement> (this: DomUI, element2: T2, adjust2?: AdjustType
+    a.add_ = (function<T2 extends HTMLElement> (this: typeof VCui, element2: T2, adjust2?: AdjustType
         , before?: Element | null | true): void {
       const noPar = !(this.box_ as NonNullable<typeof this.box_>).parentNode;
       adjust2 !== AdjustType.NotAdjust && !noPar && this.adjust_();
-      this.UI.insertBefore(element2, before === true ? this.UI.firstChild : before || null);
+      this.root_.insertBefore(element2, before === true ? this.root_.firstChild : before || null);
       adjust2 !== AdjustType.NotAdjust && noPar && this.adjust_();
     });
     a.css_ = (function (innerCSS): void {
-      const a1 = VDom.UI, box2 = a1.box_ as HTMLElement;
+      const a1 = VCui, box2 = a1.box_ as HTMLElement;
       if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) &&
-          box2 === a1.UI) {
+          box2 === a1.root_) {
         box2.id = "VimiumUI";
       }
       let el: HTMLStyleElement | null = a1.styleIn_ = a1.createStyle_();
@@ -45,7 +45,7 @@ VDom.UI = {
         (this.styleIn_ as HTMLStyleElement).textContent = this.cssPatch_ ? this.cssPatch_[1](css) : css;
       };
       a1.css_(innerCSS);
-      a1.UI.appendChild(el);
+      a1.root_.appendChild(el);
       /**
        * Note: Tests on C35, 38, 41, 44, 47, 50, 53, 57, 60, 63, 67, 71, 72 confirmed
        *        that el.sheet has been valid when promise.then, even on XML pages.
@@ -67,9 +67,10 @@ VDom.UI = {
       }
       VPort.post_({ H: kFgReq.css });
     }
-  },
-  addElementList_: function (this: DomUI
-      , els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset, dialogContainer) {
+  }) as <T extends HTMLElement> (element: T, adjust?: AdjustType, before?: Element | null | true) => void,
+  addElementList_ <T extends boolean | BOOL> (
+      els: ReadonlyArray<HintsNS.BaseHintItem>, offset: ViewOffset, dialogContainer?: T | null
+      ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = VDom.createElement_(dialogContainer ? "dialog" : "div");
     parent.className = "R HM" + (dialogContainer ? " DHM" : "") + VDom.cache_.d;
     for (const el of els) {
@@ -89,14 +90,14 @@ VDom.UI = {
       : !(Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
       ? document.fullscreenElement : document.webkitIsFullScreen) && (style.position = "fixed");
     this.add_(parent, AdjustType.DEFAULT, this._lastFlash);
-    return parent;
-  } as DomUI["addElementList_"],
-  adjust_ (event): void {
-    const UI = VDom.UI, el: Element | null = !(Build.BTypes & ~BrowserType.Chrome)
+    return parent as (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement;
+  },
+  adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void {
+    const UI = VCui, el: Element | null = !(Build.BTypes & ~BrowserType.Chrome)
           || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
         ? document.fullscreenElement : document.webkitFullscreenElement,
     box = UI.box_ as NonNullable<typeof UI.box_>,
-    el2 = el && !(UI.UI as Node).contains(el) ? el : document.documentElement as Element;
+    el2 = el && !(UI.root_ as Node).contains(el) ? el : document.documentElement as Element;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
@@ -116,7 +117,7 @@ VDom.UI = {
       }
     }
   },
-  cssPatch_: null,
+  cssPatch_: null as [string, (css: string) => string] | null,
   ensureBorder_ (zoom?: number): void {
     zoom || (VDom.getZoom_(), zoom = VDom.wdZoom_);
     let patch = this.cssPatch_;
@@ -127,7 +128,7 @@ VDom.UI = {
         ? 1.01 : 0.51) / zoom).slice(0, 5)
       , st = this.styleIn_;
     if (!patch) {
-      patch = this.cssPatch_ = ["", function (this: NonNullable<DomUI["cssPatch_"]>, css) {
+      patch = this.cssPatch_ = ["", function (this: NonNullable<typeof VCui["cssPatch_"]>, css) {
         return css.replace(<RegExpG> /\b(border(?:-\w*-?width)?: ?)(0\.5px\b|[^;}]+\/\*!DPI\*\/)/g, "$1" + this[0]
           + "px \/\*!DPI\*\/");
       }];
@@ -136,13 +137,13 @@ VDom.UI = {
     patch[0] = width;
     st && this.css_(typeof st === "string" ? st : st.textContent);
   },
-  createStyle_ (text, css): HTMLStyleElement {
+  createStyle_ (text?: string, css?: HTMLStyleElement): HTMLStyleElement {
     css = css || VDom.createElement_("style");
     css.type = "text/css";
     text && (css.textContent = text);
     return css;
   },
-  css_ (innerCSS): void { this.styleIn_ = innerCSS; },
+  css_ (innerCSS: string): void { this.styleIn_ = innerCSS; },
   getDocSelectable_ (): boolean {
     let sout: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut_;
     if (sout && sout.parentNode) { return false; }
@@ -225,15 +226,17 @@ VDom.UI = {
     }
     return notTrim ? s : s.trim();
   },
-  removeSelection_ (root: VUIRoot & {getSelection?: ShadowRootWithSelection["getSelection"]}): boolean {
+  removeSelection_: function (root?: VUIRoot & {getSelection?: ShadowRootWithSelection["getSelection"]}): boolean {
     const sel = (root && root.getSelection ? root as ShadowRootWithSelection : window).getSelection();
     if (!sel || sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }
     sel.collapseToStart();
     return true;
-  },
-  click_ (element, rect, modifiers, addFocus, button, touchMode): void {
+  } as (root?: VUIRoot) => boolean,
+  click_ (element: Element
+      , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean
+      , button?: 0 | 2, touchMode?: /** default: auto */ null | boolean | /** false */ 0): void {
     const a = VDom;
     rect || (rect = a.getVisibleClientRect_(element));
     const center = a.center_(rect);
@@ -287,7 +290,8 @@ VDom.UI = {
       });
     }
   },
-  simulateSelect_ (element, rect, flash, action, suppressRepeated): void {
+  simulateSelect_ (element: Element, rect?: Rect | null, flash?: boolean
+      , action?: SelectActions, suppressRepeated?: boolean): void {
     const y = scrollY;
     this.click_(element, rect, null, true);
     VDom.view_(element, y);
@@ -299,7 +303,7 @@ VDom.UI = {
     if (suppressRepeated === true) { VKey.suppressTail_(0); }
   },
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
-  _moveSel_need_safe (element, action): void {
+  _moveSel_need_safe (element: LockableElement, action: SelectActions | undefined): void {
     const elTag = element.localName, type = elTag === "textarea" ? EditableType.Editbox
         : elTag === "input" ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
@@ -336,7 +340,7 @@ VDom.UI = {
       }
     } catch {}
   },
-  getRect_ (this: void, clickEl, refer): Rect | null {
+  getRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null {
     const a = VDom;
     a.getZoom_(clickEl);
     a.prepareCrop_();
@@ -349,9 +353,9 @@ VDom.UI = {
     return rect && !a.isContaining_(bcr, rect) ? rect
       : a.cropRectToVisible_.apply(a, bcr as [number, number, number, number]) ? bcr : null;
   },
-  _lastFlash: null,
-  flash_: function (this: DomUI, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string): void {
-    const a = this;
+  _lastFlash: null as HTMLElement | null,
+  flash_: function (this: {}, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string): void {
+    const a = this as typeof VCui;
     rect || (rect = a.getRect_(el as Element));
     if (!rect) { return; }
     const flashEl = VDom.createElement_("div"), nfs = !(!(Build.BTypes & ~BrowserType.Firefox) ? fullScreen
@@ -364,14 +368,18 @@ VDom.UI = {
     a.add_(flashEl);
     a._lastFlash = flashEl;
     if (!Build.NDEBUG) {
-      lifeTime = Math.max(lifeTime || 0, <number> VDom.UI.flashTime | 0);
+      lifeTime = Math.max(lifeTime || 0, <number> (VCui as DomUIEx).flashTime | 0);
     }
     setTimeout(function (): void {
       a._lastFlash === flashEl && (a._lastFlash = null);
       flashEl.remove();
     }, lifeTime || GlobalConsts.DefaultRectFlashTime);
-  } as DomUI["flash_"]
+  } as {
+    (el: null, rect: Rect, lifeTime?: number, classNames?: string): void;
+    (el: Element): void;
+  }
 };
+type DomUIEx = typeof VCui & { flashTime: number | undefined; };
 if (!Build.NDEBUG) {
-  VDom.UI.flashTime = GlobalConsts.DefaultRectFlashTime;
+  (VCui as DomUIEx).flashTime = GlobalConsts.DefaultRectFlashTime;
 }

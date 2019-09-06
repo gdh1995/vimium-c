@@ -27,7 +27,7 @@ var VFind = {
   css_: null as never as NonNullable<NonNullable<ContentWindowCore["VFind"]>["css_"]>,
   styleIframe_: null as HTMLStyleElement | null,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
-    const a = VFind, dom = VDom, UI = dom.UI;
+    const a = VFind, dom = VDom, UI = VCui;
     a.css_ = options.f || a.css_;
     if (!dom.isHTML_()) { return; }
     let query: string = options.s ? UI.getSelectionText_() : "";
@@ -145,7 +145,7 @@ var VFind = {
       el.contentEditable = "plaintext-only";
     }
     (a.countEl_ = addElement(0, "c")).textContent = " ";
-    VDom.UI.createStyle_(a.css_.i, a.styleIframe_ = addElement("style") as HTMLStyleElement);
+    VCui.createStyle_(a.css_.i, a.styleIframe_ = addElement("style") as HTMLStyleElement);
     const root = VDom.createShadowRoot_(body), inShadow = a.inShadow_ = root !== body,
     root2 = inShadow ? addElement("div", 0) : body;
     root2.className = "r" + VDom.cache_.d;
@@ -181,7 +181,7 @@ var VFind = {
     a.notEmpty_ && a.box_.contentDocument.execCommand("selectAll", false);
   },
   init_ (adjust: AdjustType): void {
-    const ref = this.postMode_, UI = VDom.UI,
+    const ref = this.postMode_, UI = VCui,
     css = this.css_.c, sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
     UI.box_ ? UI.adjust_() : UI.add_(sin, adjust, true);
@@ -189,7 +189,7 @@ var VFind = {
     this.styleOut_ = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
           && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
+        || UI.box_ !== UI.root_ ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
   findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
@@ -208,13 +208,13 @@ var VFind = {
     a.isQueryRichText_ = true;
     const style = a.isActive_ || VHud.opacity_ !== 1 ? null : (VHud.box_ as HTMLDivElement).style;
     style && (style.visibility = "hidden");
-    VDom.UI.toggleSelectStyle_(0);
+    VCui.toggleSelectStyle_(0);
     a.execute_(null, options);
     style && (style.visibility = "");
     if (!a.hasResults_) {
       a.ToggleStyle_(1);
       if (!a.isActive_) {
-        VDom.UI.toggleSelectStyle_(0);
+        VCui.toggleSelectStyle_(0);
         VHud.tip_(`No matches for '${a.query_}'`);
       }
       return;
@@ -329,7 +329,7 @@ var VFind = {
     a.clean_();
     if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus
         && i !== FindNS.Action.ExitNoAnyFocus) {
-      el = VDom.getSelectionFocusEdge_(VDom.UI.getSelected_()[0], 1);
+      el = VDom.getSelectionFocusEdge_(VCui.getSelected_()[0], 1);
       el && (Build.BTypes & ~BrowserType.Firefox ? typeof el.focus === "function" : el.focus) &&
       (el as HTMLElement | SVGElement).focus();
     }
@@ -348,14 +348,14 @@ var VFind = {
       if (container && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
           && VDom.getEditableType_(el2) >= EditableType.Editbox && container.contains(el2)) {
         VDom.prepareCrop_();
-        VDom.UI.simulateSelect_(el2);
+        VCui.simulateSelect_(el2);
       } else if (el) {
         // always call scrollIntoView if only possible, to keep a consistent behavior
         !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
           ? VDom.scrollIntoView_(el) : a.fixTabNav_(el);
       }
     }
-    VDom.UI.toggleSelectStyle_(0);
+    VCui.toggleSelectStyle_(0);
     if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
   },
 /** ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)
@@ -376,7 +376,7 @@ var VFind = {
   },
   /** return an element if no <a> else null */
   focusFoundLinkIfAny_ (): SafeElement | null {
-    let sel = VDom.UI.getSelected_()[0], cur = sel.rangeCount ? VDom.GetSelectionParent_unsafe_(sel) : null;
+    let sel = VCui.getSelected_()[0], cur = sel.rangeCount ? VDom.GetSelectionParent_unsafe_(sel) : null;
     Build.BTypes & ~BrowserType.Firefox && (cur = VDom.SafeEl_(cur));
     for (let i = 0, el: Element | null = cur; el && el !== document.body && i++ < 5;
         el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
@@ -597,7 +597,7 @@ var VFind = {
         getSelection().removeAllRanges(); // move to start
         found = a.find_(q, !notSens, back, true, a.wholeWord_, false, false);
       }
-      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VDom.UI.getSelected_()[0]), q))) {
+      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VCui.getSelected_()[0]), q))) {
         pR.lastIndex = 0;
         let text = (par as HTMLElement | Element & {innerText?: undefined}).innerText;
         if (text && !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string")
@@ -633,7 +633,7 @@ var VFind = {
   },
   /** must be called after initing */
   ToggleStyle_ (this: void, disable: BOOL | boolean | Event): void {
-    const a = VFind, sout = a.styleOut_, sin = a.styleIn_, UI = VDom.UI, active = a.isActive_;
+    const a = VFind, sout = a.styleOut_, sin = a.styleIn_, UI = VCui, active = a.isActive_;
     if (!sout) { return; }
     a.HookSel_(1);
     disable = !!disable;
@@ -654,7 +654,7 @@ var VFind = {
     sin.sheet && (sin.sheet.disabled = disable);
   },
   getCurrentRange_ (): void {
-    let sel = VDom.UI.getSelected_()[0], range: Range;
+    let sel = VCui.getSelected_()[0], range: Range;
     if (!sel.rangeCount) {
       range = document.createRange();
       range.setStart(document.body || document.documentElement as Element, 0);

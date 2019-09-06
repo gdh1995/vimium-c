@@ -145,9 +145,9 @@ var VHints = {
     a.alphabetHints_.initMarkers_(a.hints_);
 
     a.noHUD_ = arr[3] <= 40 || arr[2] <= 320 || (options.hideHUD || options.hideHud) === true;
-    VDom.UI.ensureBorder_(VDom.wdZoom_);
+    VCui.ensureBorder_(VDom.wdZoom_);
     a.setMode_(a.mode_, false);
-    a.box_ = VDom.UI.addElementList_(a.hints_, arr, a.dialogMode_);
+    a.box_ = VCui.addElementList_(a.hints_, arr, a.dialogMode_);
     a.dialogMode_ && (a.box_ as HTMLDialogElement).showModal();
 
     a.isActive_ = true;
@@ -275,7 +275,7 @@ var VHints = {
     return hint;
   },
   adjustMarkers_ (elements: Hint[]): void {
-    const zi = VDom.bZoom_, root = VDom.UI.UI;
+    const zi = VDom.bZoom_, root = VCui.root_;
     let i = elements.length - 1;
     if (!root || elements[i][0] !== VOmni.box_ && !root.querySelector("#HelpDialog")) { return; }
     const z = Build.BTypes & ~BrowserType.Firefox ? ("" + 1 / zi).slice(0, 5) : "",
@@ -546,7 +546,7 @@ var VHints = {
     }
     const a = VHints, matchAll = selector === a.kSafeAllSelector_, D = document,
     output: Hint[] | SafeHTMLElement[] = [],
-    d = VDom, uiRoot = d.UI.UI,
+    d = VDom, uiRoot = VCui.root_,
     Sc = VScroller,
     wantClickable = filter === a.GetClickable_,
     isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as {}) instanceof Element,
@@ -622,8 +622,8 @@ var VHints = {
         && ((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-          || uiRoot !== d.UI.box_)
-        // now must have shadow DOM, because `UI.UI` !== `UI.box_`
+          || uiRoot !== VCui.box_)
+        // now must have shadow DOM, because `UI.root_` !== `UI.box_`
         && !notWantVUI
         && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
           || uiRoot.mode === "closed")
@@ -953,11 +953,11 @@ var VHints = {
     if (VDom.isInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
-      rect = VDom.UI.getRect_(clickEl, hint.refer_ !== clickEl ? hint.refer_ as HTMLElementUsingMap | null : null);
+      rect = VCui.getRect_(clickEl, hint.refer_ !== clickEl ? hint.refer_ as HTMLElementUsingMap | null : null);
       const showRect = a.modeOpt_[0](clickEl, rect, hint);
       if (showRect !== false && (rect || (rect = VDom.getVisibleClientRect_(clickEl)))) {
         setTimeout(function (): void {
-          (showRect || document.hasFocus()) && VDom.UI.flash_(null, rect as Rect);
+          (showRect || document.hasFocus()) && VCui.flash_(null, rect as Rect);
         }, 17);
       }
     } else {
@@ -1524,7 +1524,7 @@ Modes_: [
     if (hadNoDownload) {
       link.download = "";
     }
-    VDom.UI.click_(link, rect, {
+    VCui.click_(link, rect, {
       altKey_: true,
       ctrlKey_: false,
       metaKey_: false,
@@ -1548,9 +1548,9 @@ Modes_: [
     if (VHints.mode_ < HintMode.min_disable_queue) {
       VDom.view_(link);
       link.focus();
-      VDom.UI.flash_(link);
+      VCui.flash_(link);
     } else {
-      VDom.UI.simulateSelect_(link, rect, true);
+      VCui.simulateSelect_(link, rect, true);
     }
     return false;
   }
@@ -1567,15 +1567,14 @@ Modes_: [
       a.mode_ = HintMode.DEFAULT;
       return highlight;
     }
-    const { UI } = VDom;
     if (tag === "details") {
       const summary = VDom.findMainSummary_(link as HTMLDetailsElement);
       if (summary) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
           rect = (link as HTMLDetailsElement).open || !rect ? VDom.getVisibleClientRect_(summary) : rect;
-          UI.click_(summary, rect, null, true);
-          rect && UI.flash_(null, rect);
+          VCui.click_(summary, rect, null, true);
+          rect && VCui.flash_(null, rect);
           return false;
       }
       (link as HTMLDetailsElement).open = !(link as HTMLDetailsElement).open;
@@ -1583,12 +1582,12 @@ Modes_: [
     } else if (hint.refer_ && hint.refer_ === link) {
       return a.Modes_[0][0](link, rect, hint);
     } else if (VDom.getEditableType_<0>(link) >= EditableType.Editbox) {
-      UI.simulateSelect_(link, rect, true);
+      VCui.simulateSelect_(link, rect, true);
       return false;
     }
     const mask = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.m, newTab = mask > HintMode.newTab - 1,
     isRight = a.options_.button === "right";
-    UI.click_(link, rect, {
+    VCui.click_(link, rect, {
       altKey_: false,
       ctrlKey_: newTab && notMac,
       metaKey_: newTab && !notMac,

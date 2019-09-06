@@ -69,7 +69,7 @@
       // # content global names:
       "browser",
       "VimiumInjector", "VDom", "VKey",
-      "VHints", "VScroller", "VOmni", "VFind", "VVisual", "VMarks",
+      "VCui", "VHints", "VScroller", "VOmni", "VFind", "VVisual", "VMarks",
       "VHud", "VPort", "VEvent",
       // # fixed background global names:
       "OnOther",

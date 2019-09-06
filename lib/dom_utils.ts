@@ -9,7 +9,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES
 declare var VOther: BrowserType;
 
 var VDom = {
-  UI: null as never as DomUI,
   cache_: null as never as EnsureItemsNonNull<SettingsNS.FrontendSettingCache>,
   clickable_: null as never as { add(value: Element): object | void | number; has(value: Element): boolean; },
   // note: scripts always means allowing timers - vPort.ClearPort requires this assumption

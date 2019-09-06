@@ -287,7 +287,7 @@ interface Hint5 extends Hint4 {
 }
 
 declare const enum AdjustType {
-  /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#VDom.UI.add_ : VDom.UI.css_} */
+  /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#VCui.add_ : VCui.css_} */
   Normal = 0,
   MustAdjust = 1,
   NotAdjust = 2,
@@ -299,40 +299,6 @@ type VimiumContainerElementType = "div" | "span" | "style" | "iframe" | "a" | "s
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 
 interface MyMouseControlKeys { altKey_: boolean; ctrlKey_: boolean; metaKey_: boolean; shiftKey_: boolean; }
-
-interface DomUI {
-  box_: HTMLDivElement & SafeHTMLElement | null;
-  styleIn_: HTMLStyleElement | string | null;
-  styleOut_: HTMLStyleElement | null;
-  /** `!!@UI` must keep the same as `!!@box_`*/
-  UI: VUIRoot;
-  _lastFlash: HTMLElement | null;
-  /** only exists under DEBUG mode */ flashTime?: number;
-  add_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): void;
-  addElementList_<T extends boolean | BOOL>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
-    offset: ViewOffset, dialogContainer?: T | null
-    ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement;
-  adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void;
-  cssPatch_: [string, (css: string) => string] | null;
-  ensureBorder_ (this: DomUI, zoom?: number): void;
-  createStyle_ (this: DomUI, text?: string, css?: HTMLStyleElement): HTMLStyleElement;
-  css_ (this: DomUI, innerCSS: string): void;
-  getDocSelectable_ (this: DomUI): boolean;
-  toggleSelectStyle_ (this: DomUI, enable: BOOL): void;
-  getSelected_ (this: DomUI, notExpectCount?: 1): [Selection, ShadowRoot | null];
-  getSelectionText_ (notTrim?: 1): string;
-  removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
-  click_ (this: DomUI, element: Element
-    , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean
-    , button?: 0 | 2, touchMode?: /** default: auto */ null | boolean | /** false */ 0): void;
-  simulateSelect_ (this: DomUI, element: Element, rect?: Rect | null, flash?: boolean
-    , action?: SelectActions, suppressRepeated?: boolean): void;
-  /** @NEED_SAFE_ELEMENTS */
-  _moveSel_need_safe (this: DomUI, element: LockableElement, action: SelectActions | undefined): void;
-  getRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null;
-  flash_ (this: DomUI, el: null, rect: Rect, lifeTime?: number, classNames?: string): void;
-  flash_ (this: DomUI, el: Element): void;
-}
 
 interface VDomMouse {
   (element: Element, type: "mousedown" | "mouseup" | "click"

@@ -73,10 +73,10 @@ var VVisual = {
     const a = VVisual;
     a.init_ && a.init_(options.w as string);
     VKey.removeHandler_(a);
-    VDom.docSelectable_ = VDom.UI.getDocSelectable_();
+    VDom.docSelectable_ = VCui.getDocSelectable_();
     VScroller.prepareTop_();
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
-    let theSelected = VDom.UI.getSelected_(1),
+    let theSelected = VCui.getSelected_(1),
     sel: Selection = a.selection_ = theSelected[0],
     type: SelType = a.selType_(), mode: CmdOptions[kFgCmd.visualMode]["m"] = options.m;
     a.scope_ = theSelected[1];
@@ -103,7 +103,7 @@ var VVisual = {
     if (newMode !== mode) {
       a.prompt_("No usable selection, entering caret mode\u2026", 1000);
     }
-    VDom.UI.toggleSelectStyle_(1);
+    VCui.toggleSelectStyle_(1);
     a.di_ = isRange ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right;
     a.mode_ = newMode;
     a.alterMethod_ = toCaret ? "move" : "extend";
@@ -136,7 +136,7 @@ var VVisual = {
     const el = VEvent.lock_();
     oldDiType & (VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Complicated) ||
     el && el.blur();
-    VDom.UI.toggleSelectStyle_(0);
+    VCui.toggleSelectStyle_(0);
     VScroller.top_ = null;
     a.retainSelection_ = false;
     a.resetKeys_();
@@ -361,7 +361,7 @@ var VVisual = {
     br = range && range.getBoundingClientRect();
     if (br && br.height > 0 && br.right > 0) { // width may be 0 in Caret mode
       let cr = VDom.cropRectToVisible_(br.left - 4, br.top - 5, br.right + 3, br.bottom + 4);
-      cr && VDom.UI.flash_(null, cr, 660, " Sel");
+      cr && VCui.flash_(null, cr, 660, " Sel");
     }
   },
 
