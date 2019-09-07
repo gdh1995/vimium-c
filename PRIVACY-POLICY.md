@@ -37,9 +37,9 @@ Vimium C requires these permissions:
 * **`notifications`**: to show a notification whenever Vimium C is upgraded.
 * **`sessions`**: to allow you to restore closed tabs. This functionality was
   enabled in Chrome 37 and up.
-* **`storage`**: **not in use** by default.
-    When you enable "`Sync settings with your current account for this browser`" manually,
-    Vimium C will require this permission to sync your settings items with Google servers.
+* **`storage`**: is **not in use** by default. However, if you enable "`Sync settings
+  with your current account for this browser`", Vimium C will require
+  **`storage`**, to sync your settings items with Google servers.
 
 Note:
 * The "**browsing activity**" listed above actually includes a number of
