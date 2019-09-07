@@ -107,21 +107,24 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
       && (!(Build.BTypes & ~BrowserType.Chrome) || bgOnOther_ === BrowserType.Chrome)) {
     exported_object.environment.chrome = bgBrowserVer_;
   }
-  for (let storage = localStorage, all = bgSettings_.defaults_, i = 0, len = storage.length, j: string[]
-      ; i < len; i++) {
-    const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
-    if (key.indexOf("|") >= 0 || key.slice(-2) === "_f"
-        || key === "findModeRawQueryList"
-        || key.lastIndexOf("CSS") === key.length - 3 // ignore innerCSS, findCSS, omniCSS
+  const storedKeys: Array<keyof SettingsNS.PersistentSettings> = [],
+  storage = localStorage, all = bgSettings_.defaults_;
+  for (let i = 0, len = storage.length; i < len; i++) {
+    const key = storage.key(i) as string;
+    if (key.indexOf("|") < 0 && key.slice(-2) !== "_f"
+        && key !== "findModeRawQueryList"
+        && key.slice(-3) !== "CSS" // ignore innerCSS, findCSS, omniCSS
     ) {
-      continue;
+      storedKeys.push(key as keyof SettingsNS.PersistentSettings);
     }
+  }
+  storedKeys.sort();
+  for (const key of storedKeys) {
     const storedVal = storage.getItem(key) as string;
     if (typeof all[key] !== "string") {
       exported_object[key] = (key in all) ? bgSettings_.get_(key) : storedVal;
     } else if (storedVal.indexOf("\n") > 0) {
-      exported_object[key] = j = storedVal.split("\n");
-      j.push("");
+      (exported_object[key] = storedVal.split("\n")).push("");
     } else {
       exported_object[key] = storedVal;
     }

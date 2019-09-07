@@ -4,6 +4,7 @@
 		"platform": "win"
 	},
 	"autoReduceMotion": true,
+	"exclusionListenHash": false,
 	"exclusionRules": [],
 	"grabBackFocus": true,
 	"keyMappings": [
@@ -70,7 +71,7 @@
 		"  value=\"hjklyuiopnm\"",
 		"",
 		"map z restoreTab",
-		"map x removeTab goto=\"previous\"",
+		"map x removeTab goto=\"previous\" highlighted",
 		"map c previousTab",
 		"map v nextTab",
 		"map Z restoreGivenTab",
@@ -147,14 +148,16 @@
 		"map Gs searchInAnother keyword=\"g.s\"",
 		"",
 		"map Gn toggleVomnibarStyle",
-		"map FF showTip text=\"Maybe Caps Lock is ON !!!\"",
+		"map FF showTip \\",
+		"  text=\"Maybe\\u0020Caps\\u0020Lock\\u0020is\\u0020ON\\u0020!!!\"",
 		"map <a-s-d> closeDownloadBar",
 		"",
 		"#shortcut createTab position=\"end\"",
+		"#shortcut userCustomized1 command=\"autoOpen\" keyword=\"dict\"",
 		""
 	],
 	"linkHintCharacters": "asdqwerzxcv",
-	"newTabUrl": "pages/options.html#!newTabUrl",
+	"newTabUrl": "about:newtab",
 	"searchEngines": [
 		"b|吧|把|ba|bd|baidu|Baidu|百度: https://www.baidu.com/s?ie=utf-8&wd=$s blank=https://www.baidu.com",
 		"bi: https://cn.bing.com/search?q=$s",

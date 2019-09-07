@@ -1,5 +1,6 @@
 /// <reference path="../lib/dom_utils.ts" />
 /// <reference path="../lib/keyboard_utils.ts" />
+/// <reference path="../content/dom_ui.ts" />
 interface Window {
   readonly VPort?: VPortTy;
   readonly VHud?: VHUDTy;
@@ -34,7 +35,8 @@ Option_.saveOptions_ = function (): boolean {
   const arr = Option_.all_, dirty: string[] = [];
   for (const i in arr) {
     const opt = arr[i as keyof AllowedOptions];
-    if (!opt.saved_ && !opt.areEqual_(opt.previous_ as never, bgSettings_.get_(opt.field_) as never)) {
+    if (!opt.saved_
+        && !(opt as Option_<any>).areEqual_(opt.previous_, bgSettings_.get_(opt.field_))) {
       dirty.push(opt.field_);
     }
   }
@@ -71,10 +73,7 @@ Option_.needSaveOptions_ = function (): boolean {
   return false;
 };
 
-Option_.prototype.areEqual_ = function<T extends keyof AllowedOptions
-    >(a: AllowedOptions[T], b: AllowedOptions[T]): boolean {
-  return a === b;
-};
+Option_.prototype.areEqual_ = (a, b) => a === b;
 
 interface NumberChecker extends Checker<"scrollStepSize"> {
   min: number | null;
@@ -146,12 +145,12 @@ static Check_ (this: NumberChecker, value: number): number {
 }
 }
 
+type TextualizedOptionNames = PossibleOptionNames<string | object>;
 type TextOptionNames = PossibleOptionNames<string>;
-class TextOption_<T extends TextOptionNames> extends Option_<T> {
+class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
 readonly element_: TextElement;
 readonly converter_: string[];
 needToCovertToCharsOnRead_: boolean;
-previous_: string;
 constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
   super(element, onUpdated);
   const conv = this.element_.dataset.converter || "", ops = conv ? conv.split(" ") : [];
@@ -159,7 +158,7 @@ constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
   this.converter_ = ops;
   this.needToCovertToCharsOnRead_ = false;
   if (ops.indexOf("chars") >= 0) {
-    this.checker_ = TextOption_.charsChecker;
+    (this as Option_<TextOptionNames>).checker_ = TextOption_.charsChecker_;
   }
 }
 whiteRe_: RegExpG;
@@ -168,33 +167,34 @@ fetch_ (): void {
   super.fetch_();
   // allow old users to correct mistaken chars and save
   this.needToCovertToCharsOnRead_ = this.converter_.indexOf("chars") >= 0
-    && TextOption_.charsChecker.check_(this.previous_) === this.previous_;
+    && TextOption_.charsChecker_.check_(this.previous_ as AllowedOptions[TextOptionNames]) === this.previous_;
 }
-populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
-  value = (value as string).replace(this.whiteRe_, "\xa0");
+populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void {
+  const value2 = (value as string).replace(this.whiteRe_, "\xa0");
   if (enableUndo !== true) {
-    this.element_.value = value as string;
-    return;
+    this.element_.value = value2;
+  } else {
+    this.atomicUpdate_(value2, true, true);
   }
-  return this.atomicUpdate_(value as string, true, true);
 }
+/** @returns string */
 readValueFromElement_ (): AllowedOptions[T] {
   let value = this.element_.value.trim().replace(this.whiteMaskRe_, " "), ops = this.converter_;
   if (value && ops.length > 0) {
     ops.indexOf("lower") >= 0 && (value = value.toLowerCase());
     ops.indexOf("upper") >= 0 && (value = value.toUpperCase());
     if (this.needToCovertToCharsOnRead_) {
-      value = TextOption_.toChars(value);
+      value = TextOption_.toChars_(value);
     }
   }
-  return value;
+  return value as AllowedOptions[T];
 }
-static charsChecker: BaseChecker<string> = {
+static charsChecker_: Checker<TextOptionNames> = {
   check_ (value: string): string {
-    return TextOption_.toChars(value);
+    return TextOption_.toChars_(value);
   }
 };
-static toChars (value: string): string {
+static toChars_ (value: string): string {
   let str2 = "";
   for (let ch of value.replace(<RegExpG> /\s/g, "")) {
     if (str2.indexOf(ch) < 0) {
@@ -240,7 +240,7 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
 
 type JSONOptionNames = PossibleOptionNames<object>;
 /** in fact, JSONOption_ should accept all of `JSONOptionNames`; */
-class JSONOption_<T extends TextOptionNames> extends TextOption_<T> {
+class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
 populateElement_ (obj: AllowedOptions[T], enableUndo?: boolean): void {
   const one = this.element_ instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2),
   s1 = one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, (_, s) => s ? ", " : "") : s0;
@@ -250,7 +250,7 @@ readValueFromElement_ (): AllowedOptions[T] {
   let value = super.readValueFromElement_(), obj: AllowedOptions[T] = null as never;
   if (value) {
     try {
-      obj = JSON.parse<AllowedOptions[T]>(value as string);
+      obj = JSON.parse<AllowedOptions[T]>(value as AllowedOptions[T] & string);
     } catch {
     }
   } else {
@@ -294,7 +294,7 @@ class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   }
 }
 
-JSONOption_.prototype.areEqual_ = Option_.areJSONEqual_;
+(JSONOption_.prototype as JSONOption_<JSONOptionNames>).areEqual_ = Option_.areJSONEqual_;
 
 class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   readonly element_: HTMLInputElement;
@@ -352,7 +352,7 @@ ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOpt
   }
 };
 
-TextOption_.prototype.showError_ = function<T extends TextOptionNames>(this: TextOption_<T>
+TextOption_.prototype.showError_ = function<T extends TextualizedOptionNames>(this: TextOption_<T>
     , msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
   errors != null || (errors = !!msg);
   const { element_: el } = this, { classList: cls } = el, par = el.parentElement as HTMLElement;

@@ -65,6 +65,7 @@ __Other extensions supporting Vimium C:__
     [#51](https://github.com/gdh1995/vimium-c/issues/51), [#42](https://github.com/gdh1995/vimium-c/issues/42),
     [#28](https://github.com/gdh1995/vimium-c/issues/28), [#14](https://github.com/gdh1995/vimium-c/issues/14))
 * `ignoreKeyboardLayout` is enabled by default, to **support most keyboard layouts by default**
+* the [PRIVACY-POLICY.md](PRIVACY-POLICY.md) has been updated
 * some other bug fixes
 
 1.76.8:
