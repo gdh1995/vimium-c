@@ -32,6 +32,8 @@ let keyMappingChecker_ = {
     if (s2) {
       s2 = s2.replace(this.hexCharRe_, this.onHex_);
       value = `"${s2}"`;
+    } else if (!tail && value === "\\\\") {
+      value = "\\";
     }
     try {
       const obj = JSON.parse(value);
@@ -49,7 +51,7 @@ let keyMappingChecker_ = {
   toHexCharRe_: <RegExpG & RegExpSearchable<0>> /\s/g,
   onToHex_ (this: void, s: string): string {
     const hex = s.charCodeAt(0) + 0x100000;
-    return "\\u" + hex.toString(16).substring(2);
+    return "\\u" + hex.toString(16).slice(2);
   },
   normalizeMap_ (_0: string, cmd: string, keys: string, options: string) {
     const keys2 = this.normalizeKeys_(keys);
@@ -66,12 +68,12 @@ let keyMappingChecker_ = {
   },
   mapKeyRe_: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:un)?map\s+)(\S+)([^\n]*)/g,
   cmdKeyRe_: <RegExpG & RegExpSearchable<3>> /(\n[ \t]*#?(?:command|shortcut)\s+)(\S+)([^\n]*)/g,
-  wrapLineRe_: <RegExpG & RegExpSearchable<0>> /\\\n/g,
+  wrapLineRe_: <RegExpG & RegExpSearchable<0>> /\\\\?\n/g,
   wrapLineRe2_: <RegExpG & RegExpSearchable<0>> /\\\r/g,
   check_ (str: string): string {
     if (!str) { return str; }
     this.init_ && this.init_();
-    str = "\n" + str.replace(this.wrapLineRe_, "\\\r");
+    str = "\n" + str.replace(this.wrapLineRe_, i => i.length === 3 ? i : "\\\r");
     str = str.replace(this.mapKeyRe_, this.normalizeMap_);
     str = str.replace(this.cmdKeyRe_, this.normalizeCmd_);
     str = str.replace(this.wrapLineRe2_, "\\\n").trim();
@@ -81,36 +83,23 @@ let keyMappingChecker_ = {
 Option_.all_.keyMappings.checker_ = keyMappingChecker_;
 keyMappingChecker_ = null as never;
 
-if (Build.OverrideNewTab) {
-Option_.all_.newTabUrl.checker_ = {
-  check_ (value: string): string {
-    let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
-        ? chrome.runtime.getURL(value) : BG_.Utils.convertToUrl_(value.toLowerCase());
-    url = url.split("?", 1)[0].split("#", 1)[0];
-    return value.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_
-      || (<RegExpI> /^[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
-      ) ? bgSettings_.defaults_.newTabUrl : value;
-  }
-};
-}
-
 Option_.all_.searchUrl.checker_ = {
   check_ (str: string): string {
     const map = Object.create<Search.RawEngine>(null);
-    BG_.Utils.parseSearchEngines_("k:" + str, map);
+    BG_.BgUtils_.parseSearchEngines_("k:" + str, map);
     const obj = map.k;
     if (obj == null) {
       return bgSettings_.get_("searchUrl", true);
     }
-    let str2 = BG_.Utils.convertToUrl_(obj.url, null, Urls.WorkType.KeepAll);
-    if (BG_.Utils.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
-      const err = `The value "${obj.url}" is not a valid plain URL.`;
+    let str2 = BG_.BgUtils_.convertToUrl_(obj.url_, null, Urls.WorkType.KeepAll);
+    if (BG_.BgUtils_.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
+      const err = `The value "${obj.url_}" is not a valid plain URL.`;
       console.log("searchUrl checker:", err);
       Option_.all_.searchUrl.showError_(err);
       return bgSettings_.get_("searchUrl", true);
     }
-    str2 = str2.replace(BG_.Utils.spacesRe_, "%20");
-    if (obj.name && obj.name !== "k") { str2 += " " + obj.name; }
+    str2 = str2.replace(BG_.BgUtils_.spacesRe_, "%20");
+    if (obj.name_ && obj.name_ !== "k") { str2 += " " + obj.name_; }
     Option_.all_.searchUrl.showError_("");
     return str2;
   }
@@ -153,18 +142,16 @@ Option_.all_.keyboard.checker_ = {
 };
 
 (function (): void {
-  const func = loadChecker, info = (loadChecker as CheckerLoader).info;
-  (loadChecker as CheckerLoader).info = "";
-  let _ref = $$("[data-check]"), _i: number;
-  for (_i = _ref.length; 0 <= --_i; ) {
-    const element = _ref[_i];
-    element.removeEventListener(element.dataset.check || "input", func);
+  const func = loadChecker as CheckerLoader, info = func.info_;
+  func.info_ = "";
+  for (const element of $$("[data-check]")) {
+    element.removeEventListener(element.dataset.check || "input", func as typeof loadChecker);
   }
 
   if (info === "keyMappings") { return ReloadCommands(); }
   Option_.all_.keyMappings.element_.addEventListener("input", ReloadCommands);
   function ReloadCommands(this: HTMLElement | void, event?: Event): void {
-    BG_.Commands || BG_.Utils.require_("Commands");
+    BG_.Commands || BG_.BgUtils_.require_("Commands");
     if (!event) { return; }
     (this as HTMLElement).removeEventListener("input", ReloadCommands);
   }

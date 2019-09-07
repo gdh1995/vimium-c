@@ -6,6 +6,7 @@ var VFind = {
   parsedRegexp_: null as RegExpG | null,
   historyIndex_: 0,
   notEmpty_: false,
+  isQueryRichText_: true,
   isRegex_: null as boolean | null,
   ignoreCase_: null as boolean | null,
   wholeWord_: false,
@@ -15,23 +16,26 @@ var VFind = {
   initialRange_: null as Range | null,
   activeRegexIndex_: 0,
   regexMatches_: null as RegExpMatchArray | null,
+  inShadow_: true,
   box_: null as never as HTMLIFrameElement & { contentDocument: Document },
-  input_: null as never as HTMLBodyElement,
-  countEl_: null as never as HTMLSpanElement,
+  input_: null as never as SafeHTMLElement,
+  countEl_: null as never as SafeHTMLElement,
   styleIn_: null as never as HTMLStyleElement,
   styleOut_: null as never as HTMLStyleElement,
   A0Re_: <RegExpG> /\xa0/g,
   tailRe_: <RegExpOne> /\n$/,
-  css_: null as never as FindCSS,
+  css_: null as never as NonNullable<NonNullable<ContentWindowCore["VFind"]>["css_"]>,
   styleIframe_: null as HTMLStyleElement | null,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
-    const a = VFind;
+    const a = VFind, dom = VDom, UI = VCui;
     a.css_ = options.f || a.css_;
-    if (!VDom.isHTML_()) { return; }
-    const query: string | undefined | null = (options.q || "") + "",
-    UI = VDom.UI;
+    if (!dom.isHTML_()) { return; }
+    let query: string = options.s ? UI.getSelectionText_() : "";
+    (query.length > 99 || query.indexOf("\n") > 0) && (query = "");
+    a.isQueryRichText_ = !query;
+    query || (query = options.q);
     a.isActive_ || query === a.query_ && options.l || VMarks.setPreviousPosition_();
-    VDom.docSelectable_ = UI.getDocSelectable_();
+    dom.docSelectable_ = UI.getDocSelectable_();
     UI.ensureBorder_();
     if (options.l) {
       return a.findAndFocus_(query || a.query_, options);
@@ -52,12 +56,12 @@ var VFind = {
     a.parsedRegexp_ = a.regexMatches_ = null;
     a.activeRegexIndex_ = 0;
 
-    const el = a.box_ = VDom.createElement_("iframe") as typeof VFind.box_, st = el.style;
-    el.className = "R HUD UI";
-    st.cssText = "display:none;width:0";
-    if (Build.BTypes & ~BrowserType.Firefox && VDom.wdZoom_ !== 1) { st.zoom = "" + 1 / VDom.wdZoom_; }
+    const el = a.box_ = dom.createElement_("iframe") as typeof VFind.box_, st = el.style;
+    el.className = "R HUD UI" + VDom.cache_.d;
+    st.display = "none"; st.width = "0";
+    if (Build.BTypes & ~BrowserType.Firefox && dom.wdZoom_ !== 1) { st.zoom = "" + 1 / dom.wdZoom_; }
     el.onload = function (this: HTMLIFrameElement): void { VFind.notDisableScript_() && VFind.onLoad_(1); };
-    VUtils.push_(UI.SuppressMost_, a);
+    VKey.pushHandler_(VKey.SuppressMost_, a);
     a.query_ || (a.query0_ = query);
     a.init_ && a.init_(AdjustType.NotAdjust);
     UI.toggleSelectStyle_(1);
@@ -75,22 +79,24 @@ var VFind = {
   onLoad_ (later?: 1): void {
     const a = this, box: HTMLIFrameElement = a.box_,
     wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
-    now = Date.now(), s = VUtils.Stop_, t = true;
+    onKey = a.onKeydown_.bind(a),
+    now = Date.now(), s = VKey.Stop_, t = true;
     let tick = 0;
     f("mousedown", a.OnMousedown_, t);
-    f("keydown", a.onKeydown_.bind(a), t);
+    f("keydown", onKey, t);
+    f("keyup", onKey, t);
     f("input", a.OnInput_, t);
     if (Build.BTypes & ~BrowserType.Chrome) {
       f("paste", a._OnPaste, t);
     }
     f("unload", a.OnUnload_, t);
-    for (const i of ["keypress", "keyup", "mouseup", "click", "contextmenu", "copy", "cut", "paste"]) {
+    for (const i of ["keypress", "mouseup", "click", "contextmenu", "copy", "cut", "paste"]) {
       f(i, s, t);
     }
     f("blur", a._onUnexpectedBlur = function (this: Window, event): void {
       const b = VFind, delta = Date.now() - now, wnd1 = this;
       if (event && b && b.isActive_ && delta < 500 && delta > -99 && event.target === wnd1) {
-        wnd1.closed || setTimeout(function (): void { VFind && b.focus_(); }, tick++ * 17);
+        wnd1.closed || setTimeout(function (): void { VFind === b && b.isActive_ && b.focus_(); }, tick++ * 17);
       } else {
         wnd1.removeEventListener("blur", b._onUnexpectedBlur, true);
         b._onUnexpectedBlur = null;
@@ -101,8 +107,8 @@ var VFind = {
         VEvent.OnWndFocus_();
       }
       Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.browser_ === BrowserType.Firefox)
-        || VUtils.Stop_(event);
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+        || VKey.Stop_(event);
     }, t);
     box.onload = later ? null as never : function (): void {
       this.onload = null as never; VFind.onLoad2_(this.contentWindow);
@@ -111,12 +117,21 @@ var VFind = {
   },
   onLoad2_ (wnd: Window): void {
     const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
+    body = doc.body as HTMLBodyElement,
     a = VFind,
-    el: HTMLElement = a.input_ = doc.body as HTMLBodyElement,
-    zoom = wnd.devicePixelRatio;
+    zoom = wnd.devicePixelRatio, list = doc.createDocumentFragment(),
+    addElement = function (tag: 0 | "div" | "style", id?: string | 0): SafeHTMLElement {
+      const newEl = doc.createElement(tag || "span") as SafeHTMLElement;
+      id && (newEl.id = id);
+      id !== 0 && list.appendChild(newEl);
+      return newEl;
+    };
+    addElement(0, "s").textContent = "/";
+    const el = a.input_ = addElement(0, "i");
+    addElement(0, "h");
     if (!(Build.BTypes & BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
       el.contentEditable = "true";
-      wnd.removeEventListener("paste", VUtils.Stop_, true);
+      wnd.removeEventListener("paste", VKey.Stop_, true);
     } else if (Build.BTypes & ~BrowserType.Chrome) {
       let plain = true;
       try {
@@ -125,22 +140,28 @@ var VFind = {
         plain = false;
         el.contentEditable = "true";
       }
-      wnd.removeEventListener("paste", plain ? a._OnPaste : VUtils.Stop_, true);
+      wnd.removeEventListener("paste", plain ? a._OnPaste : VKey.Stop_, true);
     } else {
       el.contentEditable = "plaintext-only";
     }
-    el.spellcheck = false;
-    const el2 = a.countEl_ = doc.createElement("count");
-    el2.appendChild(doc.createTextNode(""));
+    (a.countEl_ = addElement(0, "c")).textContent = " ";
+    VCui.createStyle_(a.css_.i, a.styleIframe_ = addElement("style") as HTMLStyleElement);
+    const root = VDom.createShadowRoot_(body), inShadow = a.inShadow_ = root !== body,
+    root2 = inShadow ? addElement("div", 0) : body;
+    root2.className = "r" + VDom.cache_.d;
+    root2.spellcheck = false;
+    root2.appendChild(list);
+    if (inShadow) {
+      // here can not use `body.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
+      body.setAttribute("role", "textbox");
+      root2.addEventListener("mousedown", a.OnMousedown_, true);
+      root.appendChild(root2);
+    }
     Build.BTypes & ~BrowserType.Firefox &&
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
-    (doc.head as HTMLHeadElement).appendChild(a.styleIframe_
-      = VDom.UI.createStyle_(a.css_[2], doc.createElement("style")));
-    docEl.insertBefore(doc.createTextNode("/"), el);
-    docEl.appendChild(el2);
     a.box_.style.display = "";
-    VUtils.remove_(a);
-    VUtils.push_(a.onHostKeydown_, a);
+    VKey.removeHandler_(a);
+    VKey.pushHandler_(a.onHostKeydown_, a);
     return a.setFirstQuery_(a.query0_);
   },
   _onUnexpectedBlur: null as ((event?: Event) => void) | null,
@@ -155,18 +176,20 @@ var VFind = {
     a.focus_();
     a.query0_ = "";
     a.query_ || a.SetQuery_(query);
+    a.isQueryRichText_ = true;
     a.notEmpty_ = !!a.query_;
     a.notEmpty_ && a.box_.contentDocument.execCommand("selectAll", false);
   },
   init_ (adjust: AdjustType): void {
-    const ref = this.postMode_, UI = VDom.UI,
-    css = this.css_[0], sin = this.styleIn_ = UI.createStyle_(css);
+    const ref = this.postMode_, UI = VCui,
+    css = this.css_.c, sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
     UI.box_ ? UI.adjust_() : UI.add_(sin, adjust, true);
     sin.remove();
-    this.styleOut_ = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-        || UI.box_ !== UI.UI ? UI.createStyle_(css) : sin;
+    this.styleOut_ = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+          && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        || UI.box_ !== UI.root_ ? UI.createStyle_(css) : sin;
     this.init_ = null as never;
   },
   findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
@@ -182,15 +205,16 @@ var VFind = {
         a.showCount_(1);
       }
     }
+    a.isQueryRichText_ = true;
     const style = a.isActive_ || VHud.opacity_ !== 1 ? null : (VHud.box_ as HTMLDivElement).style;
     style && (style.visibility = "hidden");
-    VDom.UI.toggleSelectStyle_(0);
+    VCui.toggleSelectStyle_(0);
     a.execute_(null, options);
     style && (style.visibility = "");
     if (!a.hasResults_) {
       a.ToggleStyle_(1);
       if (!a.isActive_) {
-        VDom.UI.toggleSelectStyle_(0);
+        VCui.toggleSelectStyle_(0);
         VHud.tip_(`No matches for '${a.query_}'`);
       }
       return;
@@ -203,7 +227,7 @@ var VFind = {
     _this.coords_ && VMarks.ScrollTo_(_this.coords_);
     _this.hasResults_ =
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
-    VUtils.remove_(this);
+    VKey.removeHandler_(_this);
     _this.box_ && _this.box_.remove();
     if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
     _this.parsedQuery_ = _this.query_ = _this.query0_ = "";
@@ -218,88 +242,94 @@ var VFind = {
               ? !e.isTrusted : e.isTrusted === false)) { return; }
     f.isActive_ && f.deactivate_(FindNS.Action.ExitUnexpectedly);
   },
-  OnMousedown_ (this: void, event: MouseEvent): void {
-    if (event.target !== VFind.input_
+  OnMousedown_ (this: Window | ShadowRoot, event: MouseEvent): void {
+    const target = event.target as Element;
+    if (target !== VFind.input_ && (!VFind.inShadow_ || target.parentNode === this)
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? event.isTrusted : event.isTrusted !== false)) {
-      VUtils.prevent_(event);
+      VKey.prevent_(event);
       VFind.focus_();
     }
   },
   _OnPaste: Build.BTypes & ~BrowserType.Chrome ? function (this: Window, event: ClipboardEvent): void {
     const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
-    VUtils.prevent_(event);
+    VKey.prevent_(event);
     if (!text) { return; }
     this.document.execCommand("insertText", false, text + "");
-  } : null,
+  } : 0 as never,
   onKeydown_ (event: KeyboardEvent): void {
-    VUtils.Stop_(event);
+    VKey.Stop_(event);
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? !event.isTrusted : event.isTrusted === false) { return; }
-    if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event)) { return; }
+    if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event) || event.type === "keyup") { return; }
     const a = this;
     const n = event.keyCode;
     type Result = FindNS.Action;
     let i: Result | KeyStat = event.altKey ? FindNS.Action.DoNothing
-      : n === VKeyCodes.enter
+      : n === kKeyCode.enter
         ? event.shiftKey ? FindNS.Action.PassDirectly : (a.saveQuery_(), FindNS.Action.ExitToPostMode)
-      : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? FindNS.Action.DoNothing
-      : a.query_ || (n === VKeyCodes.deleteKey && !VDom.cache_.onMac_ || event.repeat) ? FindNS.Action.PassDirectly
+      : (n !== kKeyCode.backspace && n !== kKeyCode.deleteKey) ? FindNS.Action.DoNothing
+      : a.query_ || (n === kKeyCode.deleteKey && !VDom.cache_.m || event.repeat) ? FindNS.Action.PassDirectly
       : FindNS.Action.Exit;
     if (!i) {
-      if (VKeyboard.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
-      else if (i = VKeyboard.getKeyStat_(event)) {
+      if (VKey.isEscape_(event)) { i = FindNS.Action.ExitAndReFocus; }
+      else if (i = VKey.getKeyStat_(event)) {
         if (i & ~KeyStat.PrimaryModifier) { return; }
-        else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
+        else if (n === kKeyCode.up || n === kKeyCode.down || n === kKeyCode.end || n === kKeyCode.home) {
           VEvent.scroll_(event, a.box_.contentWindow);
         }
-        else if (n === VKeyCodes.J || n === VKeyCodes.K) {
-          a.execute_(null, { n: (VKeyCodes.K - n) || -1 });
+        else if (n === kKeyCode.J || n === kKeyCode.K) {
+          a.execute_(null, { n: (kKeyCode.K - n) || -1 });
         }
         else { return; }
         i = FindNS.Action.DoNothing;
       }
-      else if (n === VKeyCodes.f1) { a.box_.contentDocument.execCommand("delete"); }
-      else if (n === VKeyCodes.f2) {
+      else if (n === kKeyCode.f1) { a.box_.contentDocument.execCommand("delete"); }
+      else if (n === kKeyCode.f2) {
         Build.BTypes & BrowserType.Firefox && a.box_.blur();
         focus(); VEvent.keydownEvents_()[n] = 1;
       }
-      else if (n === VKeyCodes.up || n === VKeyCodes.down) { a.nextQuery_(n !== VKeyCodes.up); }
+      else if (n === kKeyCode.up || n === kKeyCode.down) { a.nextQuery_(n !== kKeyCode.up); }
       else { return; }
     } else if (i === FindNS.Action.PassDirectly) {
       return;
     }
-    VUtils.prevent_(event);
+    VKey.prevent_(event);
     if (!i) { return; }
     VEvent.keydownEvents_()[n] = 1;
     a.deactivate_(i as FindNS.Action);
   },
   onHostKeydown_ (event: KeyboardEvent): HandlerResult {
-    let i = VKeyboard.getKeyStat_(event), n = event.keyCode, a = this;
-    if (!i && n === VKeyCodes.f2) {
+    let i = VKey.getKeyStat_(event), n = event.keyCode, a = this;
+    if (!i && n === kKeyCode.f2) {
       a._onUnexpectedBlur && a._onUnexpectedBlur();
       a.focus_();
       return HandlerResult.Prevent;
     } else if (i && !(i & ~KeyStat.PrimaryModifier)) {
-      if (n === VKeyCodes.J || n === VKeyCodes.K) {
-        a.execute_(null, { n: (VKeyCodes.K - n) || -1 });
+      if (n === kKeyCode.J || n === kKeyCode.K) {
+        a.execute_(null, { n: (kKeyCode.K - n) || -1 });
         return HandlerResult.Prevent;
       }
     }
-    if (!VEvent.lock_() && VKeyboard.isEscape_(event)) {
-      VUtils.prevent_(event); // safer
+    if (!VEvent.lock_() && VKey.isEscape_(event)) {
+      VKey.prevent_(event); // safer
       a.deactivate_(FindNS.Action.ExitNoFocus); // should exit
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
   },
+  /** Note: host page may have no range (type is "None"), if:
+   * * press <Enter> on HUD to exit FindMode
+   * * a host script has removed all ranges
+   */
   deactivate_(i: FindNS.Action): void {
     let a = this, sin = a.styleIn_, noStyle = !sin || !sin.parentNode, hasResult = a.hasResults_
       , el: SafeElement | null | undefined, el2: Element | null;
-    focus();
+    i === FindNS.Action.ExitNoAnyFocus || focus();
     a.clean_();
-    if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus) {
-      el = VDom.getSelectionFocusEdge_(VDom.UI.getSelected_()[0], 1);
+    if (i !== FindNS.Action.ExitUnexpectedly && i !== FindNS.Action.ExitNoFocus
+        && i !== FindNS.Action.ExitNoAnyFocus) {
+      el = VDom.getSelectionFocusEdge_(VCui.getSelected_()[0], 1);
       el && (Build.BTypes & ~BrowserType.Firefox ? typeof el.focus === "function" : el.focus) &&
       (el as HTMLElement | SVGElement).focus();
     }
@@ -308,7 +338,7 @@ var VFind = {
       a.restoreSelection_(true);
     }
     if (VVisual.mode_) {
-      return VVisual.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
+      return VVisual.activate_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
         m: VisualModeNS.Mode.Visual,
         r: true
       }));
@@ -318,14 +348,14 @@ var VFind = {
       if (container && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
           && VDom.getEditableType_(el2) >= EditableType.Editbox && container.contains(el2)) {
         VDom.prepareCrop_();
-        VDom.UI.simulateSelect_(el2);
+        VCui.simulateSelect_(el2);
       } else if (el) {
         // always call scrollIntoView if only possible, to keep a consistent behavior
         !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
           ? VDom.scrollIntoView_(el) : a.fixTabNav_(el);
       }
     }
-    VDom.UI.toggleSelectStyle_(0);
+    VCui.toggleSelectStyle_(0);
     if (i === FindNS.Action.ExitToPostMode) { return a.postMode_.activate_(); }
   },
 /** ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)
@@ -337,21 +367,21 @@ var VFind = {
  * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=SetSequentialFocusNavigationStartingPoint&g=0&l=4773
  */
   fixTabNav_: !(Build.BTypes & BrowserType.Chrome) // firefox seems to have "focused" it
-        || Build.BTypes & BrowserType.Chrome && Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
+        || Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions ? 0 as never
       : function (el: Element): void {
-    let oldPos: MarksNS.ScrollInfo | 0 = VDom.cache_.browserVer_ < BrowserVer.MinScrollIntoViewOptions
+    let oldPos: MarksNS.ScrollInfo | 0 = VDom.cache_.v < BrowserVer.MinScrollIntoViewOptions
           ? [scrollX, scrollY] : 0;
     VDom.scrollIntoView_(el);
     oldPos && VMarks.ScrollTo_(oldPos);
   },
   /** return an element if no <a> else null */
   focusFoundLinkIfAny_ (): SafeElement | null {
-    let cur = VDom.GetSelectionParent_unsafe_(VDom.UI.getSelected_()[0]);
+    let sel = VCui.getSelected_()[0], cur = sel.rangeCount ? VDom.GetSelectionParent_unsafe_(sel) : null;
     Build.BTypes & ~BrowserType.Firefox && (cur = VDom.SafeEl_(cur));
     for (let i = 0, el: Element | null = cur; el && el !== document.body && i++ < 5;
         el = VDom.GetParent_(el, PNType.RevealSlotAndGotoParent)) {
-      if (el instanceof HTMLAnchorElement) {
-        el.focus();
+      if (VDom.htmlTag_(el) === "a") {
+        (el as HTMLAnchorElement).focus();
         return null;
       }
     }
@@ -362,7 +392,8 @@ var VFind = {
     if (ind < 0) { return; }
     this.historyIndex_ = ind;
     if (!back) {
-      return VPort.send_({ c: kFgReq.findQuery, a: { i: ind } }, this.SetQuery_);
+      VPort.send_(kFgReq.findQuery, { i: ind }, this.SetQuery_);
+      return;
     }
     const wnd = this.box_.contentWindow;
     wnd.document.execCommand("undo", false);
@@ -374,10 +405,10 @@ var VFind = {
     if (!query && _this.historyIndex_ > 0) { --_this.historyIndex_; return; }
     doc.execCommand("selectAll", false);
     doc.execCommand("insertText", false, query.replace(<RegExpOne> /^ /, "\xa0"));
-    return _this.OnInput_();
+    _this.OnInput_();
   },
-  saveQuery_ (): string | void | 1 {
-    return this.query_ && VPort.post_({
+  saveQuery_ (): void {
+    this.query_ && VPort.post_({
       H: kFgReq.findQuery,
       q: this.input_.innerText.replace(this.A0Re_, " ").replace(this.tailRe_, "")
     });
@@ -388,7 +419,7 @@ var VFind = {
       const pm = this, hook = addEventListener;
       const el = VEvent.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
-      VUtils.push_(pm.onKeydown_, pm);
+      VKey.pushHandler_(pm.onKeydown_, pm);
       if (el === pm.lock_) { return; }
       if (!pm.lock_) {
         hook("click", Exit, true);
@@ -399,8 +430,8 @@ var VFind = {
       hook.call(el, "blur", Exit, true);
     },
     onKeydown_ (event: KeyboardEvent): HandlerResult {
-      const exit = VKeyboard.isEscape_(event);
-      exit ? this.exit_() : VUtils.remove_(this);
+      const exit = VKey.isEscape_(event);
+      exit ? this.exit_() : VKey.removeHandler_(this);
       return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
     },
     exit_ (skip?: boolean | Event): void {
@@ -412,20 +443,20 @@ var VFind = {
       if (!a.lock_ || skip === true) { return; }
       a.lock_ = null;
       unhook("click", a.exit_, true);
-      VUtils.remove_(a);
+      VKey.removeHandler_(a);
       VEvent.setupSuppress_();
     }
   },
   OnInput_ (this: void, e?: Event): void {
     if (e != null) {
-      VUtils.Stop_(e);
+      VKey.Stop_(e);
       if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !e.isTrusted : e.isTrusted === false) { return; }
     }
     const _this = VFind, query = _this.input_.innerText.replace(_this.A0Re_, " ").replace(_this.tailRe_, "");
     let s = _this.query_;
     if (!_this.hasResults_ && !_this.isRegex_ && !_this.wholeWord_ && _this.notEmpty_ && query.startsWith(s)
-        && query.substring(s.length - 1).indexOf("\\") < 0) {
+        && query.slice(s.length - 1).indexOf("\\") < 0) {
       return _this.showCount_(0);
     }
     s = "";
@@ -443,7 +474,7 @@ var VFind = {
       (a.countEl_.firstChild as Text).data = !a.parsedQuery_ ? ""
         : "(" + (count || (a.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
     }
-    count = (a.input_.offsetWidth + a.countEl_.offsetWidth + 31) & ~31;
+    count = (a.input_.scrollWidth + a.countEl_.offsetWidth + 35) & ~31;
     if (a._small && count < 152) { return; }
     a.box_.style.width = ((a._small = count < 152) ? 0 as number | string as string : count + "px");
   },
@@ -455,10 +486,11 @@ var VFind = {
     a.query_ = query;
     a.wholeWord_ = false;
     a.isRegex_ = a.ignoreCase_ = null as boolean | null;
-    query = query.replace(a._ctrlRe, a.FormatQuery_);
+    query = a.isQueryRichText_ ? query.replace(a._ctrlRe, a.FormatQuery_) : query;
     let isRe = a.isRegex_, ww = a.wholeWord_, B = "\\b";
+    if (a.isQueryRichText_) {
     if (isRe === null && !ww) {
-      isRe = VDom.cache_.regexFindMode;
+      isRe = VDom.cache_.R;
       const info = 2 * +query.startsWith(B) + +query.endsWith(B);
       if (info === 3 && !isRe && query.length > 3) {
         query = query.slice(2, -2);
@@ -467,17 +499,17 @@ var VFind = {
         isRe = true;
       }
     }
-    isRe = isRe || false;
     if (ww && (isRe || !(Build.BTypes & BrowserType.Chrome)
-              || ((Build.BTypes & ~BrowserType.Chrome) && VDom.cache_.browser_ !== BrowserType.Chrome)
+              || ((Build.BTypes & ~BrowserType.Chrome) && VOther !== BrowserType.Chrome)
         )) {
       query = B + query.replace(a._bslashRe, "\\").replace(a._escapeAllRe, "\\$&") + B;
       ww = false;
       isRe = true;
     }
     query = isRe ? query !== "\\b\\b" && query !== B ? query : "" : query.replace(a._bslashRe, "\\");
+    }
     a.parsedQuery_ = query;
-    a.isRegex_ = isRe;
+    a.isRegex_ = !!isRe;
     a.wholeWord_ = ww;
     a.notEmpty_ = !!query;
     a.ignoreCase_ !== null || (a.ignoreCase_ = query.toLowerCase() === query);
@@ -508,11 +540,11 @@ var VFind = {
     try { return new RegExp(pattern, flags as "g"); } catch {}
   },
   FormatQuery_ (this: void, str: string): string {
-    let flag = str.charCodeAt(1), enabled = flag >= KnownKey.a, a = VFind;
-    if (flag === KnownKey.backslash) { return str; }
-    flag &= KnownKey.AlphaMask;
-    if (flag === KnownKey.I || flag === KnownKey.C) { a.ignoreCase_ = enabled === (flag === KnownKey.I); }
-    else if (flag === KnownKey.W) {
+    let flag = str.charCodeAt(1), enabled = flag >= kCharCode.a, a = VFind;
+    if (flag === kCharCode.backslash) { return str; }
+    flag &= ~kCharCode.CASE_DELTA;
+    if (flag === kCharCode.I || flag === kCharCode.C) { a.ignoreCase_ = enabled === (flag === kCharCode.I); }
+    else if (flag === kCharCode.W) {
       if (a.isRegex_) { return str; }
       a.wholeWord_ = enabled;
     }
@@ -535,7 +567,7 @@ var VFind = {
     return a.regexMatches_[count];
   },
   execute_ (query?: string | null, options?: FindNS.ExecuteOptions): void {
-    options = options ? VUtils.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
+    options = options ? VKey.safer_(options) : Object.create(null) as FindNS.ExecuteOptions;
     const a = this;
     let el: LockableElement | null
       , found: boolean, count = ((options.n as number) | 0) || 1, back = count < 0
@@ -552,14 +584,20 @@ var VFind = {
     back && (count = -count);
     const isRe = a.isRegex_, pR = a.parsedRegexp_;
     const focusHUD = !!(Build.BTypes & BrowserType.Firefox)
-      && (!(Build.BTypes & ~BrowserType.Firefox) || VDom.cache_.browser_ === BrowserType.Firefox)
+      && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
       && a.isActive_ && a.box_.contentDocument.hasFocus();
     do {
       q = query != null ? query : isRe ? a.getNextQueryFromRegexMatches_(back) : a.parsedQuery_;
       found = Build.BTypes & ~BrowserType.Chrome
         ? a.find_(q, !notSens, back, true, a.wholeWord_, false, false)
         : window.find(q, !notSens, back, true, a.wholeWord_, false, false);
-      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VDom.UI.getSelected_()[0]), q))) {
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+          && !found) {
+        getSelection().removeAllRanges(); // move to start
+        found = a.find_(q, !notSens, back, true, a.wholeWord_, false, false);
+      }
+      if (found && pR && (par = VDom.GetSelectionParent_unsafe_(sel || (sel = VCui.getSelected_()[0]), q))) {
         pR.lastIndex = 0;
         let text = (par as HTMLElement | Element & {innerText?: undefined}).innerText;
         if (text && !(Build.BTypes & ~BrowserType.Firefox && typeof text !== "string")
@@ -581,8 +619,13 @@ var VFind = {
  * Therefore `@styleIn_` is always needed, and VFind may not need a sub-scope selection.
  */
   find_: Build.BTypes & ~BrowserType.Chrome ? function (this: void): boolean {
+    // (string, caseSensitive, backwards, wrapAround, wholeWord, searchInFrames, showDialog);
     try {
-      return window.find.apply(window, arguments);
+      if (Build.BTypes & ~BrowserType.Firefox) {
+        return window.find.apply(window, arguments);
+      } else {
+        return (window as any).find(... <any[]> <ArrayLike<any>> arguments);
+      }
     } catch { return false; }
   } as Window["find"] : 0 as never,
   HookSel_ (t?: TimerType.fake | 1): void {
@@ -590,7 +633,7 @@ var VFind = {
   },
   /** must be called after initing */
   ToggleStyle_ (this: void, disable: BOOL | boolean | Event): void {
-    const a = VFind, sout = a.styleOut_, sin = a.styleIn_, UI = VDom.UI, active = a.isActive_;
+    const a = VFind, sout = a.styleOut_, sin = a.styleIn_, UI = VCui, active = a.isActive_;
     if (!sout) { return; }
     a.HookSel_(1);
     disable = !!disable;
@@ -602,15 +645,16 @@ var VFind = {
     }
     if (sout.parentNode !== UI.box_) {
       (UI.box_ as HTMLDivElement).appendChild(sout);
-      ((Build.BTypes & ~BrowserType.Chrome) || Build.MinCVer < BrowserVer.MinShadowDOMV0) &&
-      (Build.BTypes & ~BrowserType.Firefox || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1) &&
+      !((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)) &&
       sin === sout || UI.add_(sin, AdjustType.NotAdjust, true);
     }
     sout.sheet && (sout.sheet.disabled = disable);
     sin.sheet && (sin.sheet.disabled = disable);
   },
   getCurrentRange_ (): void {
-    let sel = VDom.UI.getSelected_()[0], range: Range;
+    let sel = VCui.getSelected_()[0], range: Range;
     if (!sel.rangeCount) {
       range = document.createRange();
       range.setStart(document.body || document.documentElement as Element, 0);

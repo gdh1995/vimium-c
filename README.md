@@ -1,7 +1,9 @@
-<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>
+<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>
+![Icon](icons/icon32.png)
 ========
+
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.74](https://img.shields.io/badge/release-1.74-orange.svg
+[![Version 1.76.8](https://img.shields.io/badge/release-1.76.8-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -12,15 +14,16 @@
   https://addons.mozilla.org/en-US/firefox/addon/vimium-c/
   )**
 
-A <span style="color: #8e5e2f;">C</span>ustomized
+A <span style="color: #a55e18;">C</span>ustomized
   [<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium)
-  having <span style="color: #8e5e2f;">**C**</span>hinese support,
-    global <span style="color: #8e5e2f;">**C**</span>ommands
+  having <span style="color: #a55e18;">**C**</span>hinese support,
+    global <span style="color: #a55e18;">**C**</span>ommands
     and inje**c**tion functionality,
-  in <span style="color: #8e5e2f;">**C**</span>-style code for qui**c**ker response and less resource **c**ost.
+  in <span style="color: #a55e18;">**C**</span>-style code for qui**c**ker action and less resource **c**ost.
 
 It supports Chrome and other Chromium-based browsers whose core versions are >= 35,
   and supports most of the functionality on a latest Firefox (since version 64.0).
+If re-compiled from the source code, Vimium C is able to support Chrome 32.
 
 This project is developed by [gdh1995](https://github.com/gdh1995)
   and licensed under the [MIT license](LICENSE.txt).
@@ -33,7 +36,7 @@ It can also run on MS Edge, though there're still some errors.
 
 # Project Introduction
 
-__<span style="color: #2f508e;">Vim</span>ium <span style="color: #8e5e2f;">C</span>:__
+__<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>:__
 
 * a web extension on Chrome and Firefox that provides keyboard-based navigation and control
     of the web, in the spirit of the Vim editor.
@@ -57,6 +60,166 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.77 (Not released yet):
+* **not manage browser NewTab any more** in released versions ([#53](https://github.com/gdh1995/vimium-c/issues/53),
+    [#51](https://github.com/gdh1995/vimium-c/issues/51), [#42](https://github.com/gdh1995/vimium-c/issues/42),
+    [#28](https://github.com/gdh1995/vimium-c/issues/28), [#14](https://github.com/gdh1995/vimium-c/issues/14))
+* `ignoreKeyboardLayout` is enabled by default, to **support most keyboard layouts by default**
+* some other bug fixes
+
+1.76.8:
+* fix Vomnibar might lose focus on YouTube and GMail
+* history completer: fix some old items are skipped in prefix matching mode
+* Commands: add option `$if={"sys":"win","browser":1}/...` to filter mappings
+  * `"sys"` can be `"win"`, `"mac"` or `"linux"`
+  * `"browser"` can be `1` (Chrome) | `2` (Firefox) | `4` (EdgeHTML)
+* now most commands support shortcuts well
+* "`dark`" in `vomnibarOptions` now overrides the status of `autoDarkMode`
+* some other bug fixes
+
+1.76.6:
+* fix a bug <kbd>Escape</kbd> can not work when ignoring keyboard layout
+* fix a regression of v1.76.0 that in LinkHints mode `<c-a>` was not treated as `a`
+* Firefox: FindMode now wraps around, like the behavior of Chrome
+* FindMode history now limits query words as one line and not more than 99 characters on saving by <kbd>Enter</kbd>
+* some other bug fixes
+
+1.76.5:
+* fix a bug in the popup page ([#64](https://github.com/gdh1995/vimium-c/issues/64))
+* extension whitelist: allow [Vimium C's helpers](https://github.com/gdh1995/vimium-c-helpers) by default
+
+1.76.4:
+* fix that <kbd>Alt+Shift+F</kbd> was not translated into <kbd>&lt;a-s-f&gt;</kbd> when CapsLock is on
+* Now the feature of overriding browser newtab settings is deprecated
+* add an option to ignore keyboard layout (fix [#39](https://github.com/gdh1995/vimium-c/issues/39) completely)
+  * Most of its logic is the same as [philc/vimium:lib/keyboard_utils.coffee:21](
+      https://github.com/philc/vimium/blob/8c9404f84fd4310b89818e132c0ef0822cbcd059/lib/keyboard_utils.coffee#L21-L46)
+* add an option to ignore CapsLock status, which is useful on macOS if using CapsLock to switch IMEs
+* most backend commands are allowed for user-customized shortcuts ([#55](https://github.com/gdh1995/vimium-c/issues/55))
+* `removeTab`: add an option "highlighted" to remove those tabs ([#58](https://github.com/gdh1995/vimium-c/issues/58))
+* LinkHints: auto enable modal UI when needed (<kbd>&lt;a-f2&gt;</kbd> to toggle it)
+* Vomnibar: add some text-handling shortcuts on Firefox ([#59](https://github.com/gdh1995/vimium-c/issues/59))
+* Vomnibar: disable tab tree mode by default, unless there's an option "`tree=true`" ([#60](
+    https://github.com/gdh1995/vimium-c/issues/60))
+* fix some other edge cases
+
+1.76.3:
+* Chrome: fix that Vomnibar can not show favicons
+
+1.76.2:
+* fix a regression "Custom CSS" could not work on Vomnibar ([#57](https://github.com/gdh1995/vimium-c/issues/57))
+* add a new feature to support user-customized shortcuts ([#55 (comment)](
+      https://github.com/gdh1995/vimium-c/issues/55#issuecomment-515323624))
+  * add 4 shortcuts, and 2 items are to go in a tab's history list, and the other 2 are for user to customize
+* support  `vimium://status toggle ["^" ...hooked-keys]` to switch between "enabled" mode and "exclusion-matched" mode
+  * for example, `map <a-s-v> openUrl url="vimium://status\u0020toggle\u0020^\u0020<a-s-v>"`
+    will make <kbd>`<a-s-v>`</kbd> a shortcut to enable Vimium C or disable Vimium C (almost) completely
+  * if you have configured global shortcuts, then
+   `shortcut userCustomized1 command="openUrl" url="vimium://status\u0020toggle\u0020^\u0020<a-s-v>"`
+   will make the shortcut a convenient switch button of Vimium C's working status
+* `goBack` now tries its best to simulate the feature of "duplicate-and-go-back" on older versions of Chrome (before 72)
+* the behavior of `removeTab goto=previous` is changed, and the new logic is simpler and easier to use
+* now mapped <kbd>`<esc>`</kbd> and <kbd>`<escape>`</kbd> keys work the same as native <kbd>`<esc>`</kbd> keys
+* LinkHints: now <kbd>`<c-f2>`</kbd> will hint all elements with non-null "onclick" properties
+* Firefox: now can show a confirmation dialog if a command count is too large
+* fix a bug of parsing failures if a line in key mapping rules ends with the <kbd>\\</kbd> character
+
+1.76.1 for Firefox:
+* fix broken FindMode
+
+1.76:
+* add a new command `closeDownloadBar` to close Chrome's download bar at the bottom
+* `mapKey`: now apply mappings for lower-case characters to every keys including it
+  * for example, if `mapKey f g`, then `<c-f>` will be translated into `<c-g>`
+  * also work in LinkHints mode ([#39 (comment)](https://github.com/gdh1995/vimium-c/issues/39#issuecomment-504303346)),
+    unless there's an option of `mapKey=false`
+  * so if your IME is not English, you may map alphabets to the English versions (in Vimium C) using a list of `mapKey`
+* LinkHints: now always search shadow DOMs and the related boolean option is useless and removed
+* LinkHints: if press <kbd>Ctrl</kbd> in "text"/"url" modes, then it will copy multiple lines to the clipboard
+* Vomnibar supports a new mode "`bomni`" in which bookmarks' priority is higher ([#50](
+    https://github.com/gdh1995/vimium-c/issues/50))
+* Vomnibar now shows a "tab tree" when in "current window tabs" mode
+* now it can sync much longer (bigger than 8KB) key mapping list and search engines through the browser syncing service
+  * all the synced data is still limited under 100KB
+* in case you clean all browsering data, now it can recover most settings (at most 5MB) even if syncing is off
+* now LinkHints and Vomnibar are faster
+* partly work around a bug of Chrome 70+, which affects command `toggleCS`
+* if the confirmation dialog is forbidden by mistake, then now a too large count will be treated as 1
+  * the old behavior was to do nothing, which is somehow inconvenient
+  * the dialog works again if you reload this extension, or just restart Chrome
+* Firefox: fix a potential vulnerability in v1.75.7 and v1.75.8
+* update some notes in PRIVACY-POLICY about which permissions may be removed safely
+
+1.75.8 (only released on Firefox):
+* LinkHints: smarter hinting and now `<video>` and `<audio>` are clickable
+* on Google Docs, now can press `<esc>` for a while to move focus from document content to the window
+* `removeTab` command now supports an option of `goto=""/left/right/previous`
+* click listener watcher: fix a vulnerability in v1.75.7
+* the options page won't be dark if the option "auto-dark-mode" is unchecked
+* Firefox: the options page now shows a tip if the value of New tab URL has a mistake
+
+1.75.7:
+* LinkHints: add some new rules to exclude useless hints for container nodes
+  * much smarter on Google search result pages
+* a global dark mode for Chrome 76+ and Firefox 67+ is now enabled by default
+  * include new styles for hint markers, HUD, options page and the help dialog
+* Scroller: fix it might scroll too far in some cases (for example, a long page is loading) ([#45](
+    https://github.com/gdh1995/vimium-c/issues/45))
+* Scroller: fix a bug of losing current active elements after switching scrolling directions
+* Firefox: fix broken FindMode ([#48](https://github.com/gdh1995/vimium-c/issues/48
+    )) and some other issues on pages with multiple iframes
+* Firefox: fix LinkHints may cause scrollbars to show in some cases
+* Firefox: now both auto-dark-mode and auto-reduce-motion can response to system setting changes
+* goNext: stricter: not match long text
+
+1.75.6:
+* fix that Vomnibar can not acquire focus on the first activation on a new page since Chrome 75
+* fix `mapKey` could not map a key of printable characters to `<esc>` (only fixed in the Firefox version)
+* Firefox: fix LinkHints can not exit itself when clicking an `<iframe>`
+* `goBack` command supports an option `reuse`=`-2`/`-1` to open a previous URL in the tab history in a new tab
+  * just like you <kbd>Ctrl+Click</kbd> / <kbd>Ctrl+Shift+Click</kbd> the browser's "Back" button
+  * this feature can only work since Chrome 72, and currently not on Firefox
+
+1.75.5:
+* support `prefers-reduced-motion` and `prefers-color-scheme` media queries
+  * be able to auto disable animation and enter dark mode when some options are enabled
+  * enable the option "Auto reduce UI motions following your system settings" by default
+* LinkHints: add a new option `mapKey` to translated typed keys to match marker text
+  * use a subset of translation rules of `Custom key mappings`
+  * require both sources and targets are single characters (can not map keys like `<a-d>`)
+* LinkHints: by default, detect and use touch mode automatically since Chrome 48
+* Vomnibar has a default style named `mono-url`. Remove it to switch monospace fonts for suggestion URLs
+* fix that LinkHints and Vomnibar might fail to switch to other tabs
+* fix more issues about `passNextKey`
+* `discardTab` only discards those auto-discardable tabs which are marked by the browser if count is greater than 1
+* vimium://show : upgrade the embed Viewer.js
+* Firefox: fix that help dialog may fail to show in rare cases
+
+1.75.2:
+* use new icons
+* exclusion: make passKeys take precedence over mappedKeys
+* now `mapKey` can map any key to `<esc>` and map `<esc>` and `<c-[>` to others
+* LinkHints/Scroller/Vomnibar: activate on a parent frame if needed
+* FindMode: auto fill/search with selected text by default
+  * a new option `selected=false` can prevent this behavior
+* fix some bugs of `passNextKey`
+* fix some rare edge cases on malformed webpages
+
+1.74.9:
+* fix `scrollPx*` commands might scroll too much
+* popup page: add `<a-x>` and `<a-z>` shortcuts to toggle status buttons
+* options page: show normalized exclusion rules after saving and fix some issues
+* Firefox: fix some issues breaking Vomnibar
+
+1.74.8:
+* Vomnibar: make effects of the dark mode button not persistent
+* Options page: normalize exclusions and link hints characters on saving
+
+1.74.7:
+* `goBack`, `goForward`: now works perfectly since Chrome 72
+* add a command `discardTab` to discard tab(s) on the right (or left if count is negative)
+* help dialog show AMO links on Firefox
+
 1.74.6:
 * *BREAKING*: now **use `s-` to represent the `ShiftKey`** is being pressed when constructing keys
   * e.g. `<a-s-f>`: just like using `a-`, `c-` and `m-` to represent `AltKey`, `CtrlKey` and `MetaKey`
@@ -76,9 +239,9 @@ __Other extensions supporting Vimium C:__
   * can simulate touching the middle area of an element (use an option of `touch="auto"/true`)
   * in hover mode, can toggle class names of given HTML nodes (use `toggle={".selector":"className"}`)
 * Vomnibar: make max number of suggestions and query interval configurable
-* `goBack`, `goForward`: now works perfectly since Chrome 72
+* ~~`goBack`, `goForward`: now works perfectly since Chrome 72~~
 * FindMode: focus found node on exit, for easier `<tab>` navigation
-* add command `performAnotherFind` to find the second or even eariler query in the query history list.
+* add a command `performAnotherFind` to find the second or even eariler query in the query history list.
 * `Marks.activate` supports extra 8 temporary marks besides the "last" mark, and uses `2` ~ `9` prefix to specify them.
 * Scroller: a better default value of keyboard settings
 * vimium://show : now auto decrypt "thunder://" URLs
@@ -163,7 +326,7 @@ and please read https://github.com/gdh1995/vimium-c/wiki/Known-issues-on-various
 If you want to compile this project manually, please run:
 
 ``` bash
-npm install typescript@3.3.1
+npm install typescript@3.4.3
 node scripts/tsc all
 #./scripts/make.sh output-file.zip
 ```
@@ -189,7 +352,7 @@ See the [MIT LICENSE](LICENSE.txt) for details.
   Copyright (c) 2015 Matthew Crumley.
   [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
 * [Viewer.js](https://github.com/fengyuanchen/viewerjs)
-  ([Modified by gdh1995](https://github.com/gdh1995/viewerjs/tree/for-vimium-c)):
+  ([Modified by gdh1995](https://github.com/gdh1995/viewerjs)):
   Copyright (c) 2015-present Chen Fengyuan.
   [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
 * [TypeScript](https://github.com/Microsoft/TypeScript):
@@ -200,3 +363,4 @@ See the [MIT LICENSE](LICENSE.txt) for details.
 * [PDF.js](https://github.com/mozilla/pdf.js/):
   Copyright (c) Mozilla and individual contributors.
   Licensed under the Apache License, Version 2.0.
+* The Orange in icon is from https://pixabay.com/vectors/orange-fruit-mandarin-citrus-fruit-158258/

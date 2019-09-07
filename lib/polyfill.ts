@@ -19,14 +19,15 @@
 
   const symMatch = typeof Symbol === "function" && typeof Symbol.match === "symbol" &&
                     Symbol.match as symbol | string | false as "Symbol(Symbol.match)" | false,
-  S = String as StringConstructor & { readonly prototype: StandardString }, RE = RegExp, TE = TypeError;
+  S = String as StringConstructor & { readonly prototype: StandardString }, TE = TypeError,
+  toStr = Object.prototype.toString;
 
   "".startsWith || (
   S.prototype.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString), a = this != null && err !== 1 ? S(this) : "";
     if (err === 1 || err === 2) { return !((err === 1 ? this : searchString) + ""); }
     if (err !== null) { throw new TE(err.replace("${func}", "startsWith")); }
-    let b = S(searchString), c = +arguments[1];
+    let b = S(searchString), args = arguments, c = args.length > 1 ? +args[1] : 0;
     c = c > 0 ? c | 0 : 0;
     c > a.length && (c = a.length);
     return a.lastIndexOf(b, c) === c;
@@ -37,7 +38,8 @@
     const err = check(this, searchString), a = this != null && err !== 1 ? S(this) : "";
     if (err === 1 || err === 2) { return !((err === 1 ? this : searchString) + ""); }
     if (err !== null) { throw new TE(err.replace("${func}", "endsWith")); }
-    let b = S(searchString), p: primitive | object = arguments[1], l = a.length, u: undefined, c: number;
+    let b = S(searchString), args = arguments, u: undefined, c: number
+      , p: primitive | object = args.length > 1 ? args[1] : u, l = a.length;
     c = (p === u ? l : (c = +<number | string> p) > 0 ? c | 0 : 0) - b.length;
     c > l && (c = l);
     return c >= 0 && a.indexOf(b, c) === c;
@@ -53,7 +55,8 @@
       [key: string]: ((this: string, re: RegExp) => boolean) | primitive;
     }
     let f: PossibleTypeOfB[string], u: undefined
-      , i = symMatch && (f = (b as PossibleTypeOfB)[symMatch]) !== u ? f : b instanceof RE;
+      , i = symMatch && (f = (b as PossibleTypeOfB)[symMatch]) !== u ? f
+          : toStr.call(b) === "[object RegExp]";
     return i ? "First argument to String.prototype.${func} must not be a regular expression" : null;
   }
 })();

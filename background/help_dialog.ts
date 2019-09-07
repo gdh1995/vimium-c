@@ -1,42 +1,53 @@
 var HelpDialog = {
-  inited_: false,
-  templateEl_: null as HTMLTableDataCellElement | null,
-  render_: (function (this: void, request: FgReq[kFgReq.initHelp]): string {
-    if (!HelpDialog.inited_) {
-      const noShadow = !( !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-            || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-          && !window.ShadowRoot,
+  html_: null as [string, string] | null,
+  template_: null as HTMLTableDataCellElement | DOMParser | null,
+  render_: (function (this: {}, request: FgReq[kFgReq.initHelp]): BgReq[kBgReq.showHelpDialog]["h"] {
+    const a = this as typeof HelpDialog;
+    if (!a.html_
+        || !Build.NDEBUG && /** {@link ../pages/loader.ts#updateUI} */Settings_.cache_.helpDialog) {
+      const noShadow = !( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
+          && Settings_.CONST_.StyleCacheId_.indexOf("s") < 0,
+      template = Settings_.cache_.helpDialog as string,
       noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
-          && ChromeVer === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
-      if (!( !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-            || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+          && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
+      let pos = template.indexOf("</style>") + 8, head = template.slice(0, pos), body = template.slice(pos).trim();
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+        const arr = head.match("<style.*?>") as RegExpMatchArray;
+        body = head.slice(0, arr.index).trim() + body;
+        head = head.slice(arr.index + arr[0].length, -8);
+      }
+      if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
           && noShadow
           || Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
               && noContain) {
-        let template = Settings.cache_.helpDialog as string, styleEnd = template.indexOf("</style>"),
-        left = template.substring(0, styleEnd), right = template.substring(styleEnd);
         if (Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
             && noContain) {
-          left = left.replace(<RegExpG> /contain:\s?[\w\s]+/g, "contain: none !important");
+          head = head.replace(<RegExpG> /contain:\s?[\w\s]+/g, "contain: none !important");
         }
-        if (!( !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-              || !(Build.BTypes & ~BrowserType.Firefox) && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+              && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+              && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
             && noShadow) {
-          left = left.replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
+          head = head.replace(<RegExpG> /[#.][A-Z]/g, "#VimiumUI $&"
             ).replace("HelpAdvanced #VimiumUI .HelpAdv", "HelpAdvanced .HelpAdv");
         }
-        Settings.set_("helpDialog", left + right);
+        Settings_.set_("helpDialog", "");
       }
-      HelpDialog.inited_ = true;
+      a.html_ = [head, body];
     }
-    Object.setPrototypeOf(request, null);
-    const commandToKeys = Object.create<Array<[string, CommandsNS.Item]>>(null),
+    BgUtils_.safer_(request);
+    const commandToKeys = BgUtils_.safeObj_<Array<[string, CommandsNS.Item]>>(),
     ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !request.b, showNames = !!request.n;
     for (const key in ref) {
       const registry = ref[key] as NonNullable<(typeof ref)[string]>;
-      let command = registry.command;
+      let command = registry.command_;
       if (command.endsWith(".activateMode")) {
-        command = command.substring(0, command.length - 4);
+        command = command.slice(0, -4);
       } else if (command.indexOf("EditUrl") > 0) {
         command = command.replace("EditUrl", "Url");
       } else if (command === kShortcutAliases.nextTab1) {
@@ -44,9 +55,10 @@ var HelpDialog = {
       }
       (commandToKeys[command] || (commandToKeys[command] = [])).push([key, registry]);
     }
-    const result = Object.setPrototypeOf({
-      homePage: Settings.CONST_.HomePage_,
-      version: Settings.CONST_.VerName_,
+    const result = BgUtils_.safer_<Dict<string>>({
+      className: Settings_.payload_.d,
+      homePage: Settings_.CONST_.HomePage_,
+      version: Settings_.CONST_.VerName_,
       title: request.t ? "Command Listing" : "Help",
       reviewPage: (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
@@ -57,36 +69,46 @@ var HelpDialog = {
           ? "Firefox Add-ons" : "Web Store",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
-    }, null) as SafeDict<string>;
-    const html = (<string> Settings.cache_.helpDialog).replace(
+    });
+    const html = (a as Ensure<typeof a, "html_">).html_, div = html[1].replace(
         <RegExpSearchable<1>> /\{\{(\w+)}}/g, function (_, group: string) {
       let s = result[group];
       return s != null ? s
         : HelpDialog.groupHtml_(group, commandToKeys, hideUnbound, showNames);
     });
-    HelpDialog.templateEl_ = null;
-    return html;
+    a.template_ = null;
+    return Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+        ? { h: html[0], b: div } : html[0].replace("{{className}}", Settings_.payload_.d) + div;
   }) as BaseHelpDialog["render_"],
   groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
       , hideUnbound: boolean, showNames: boolean): string {
     const renderItem = (this as typeof HelpDialog).commandHtml_
-      , availableCommands = CommandsData_.availableCommands_ as Readonly<EnsuredSafeDict<CommandsNS.Description>>;
+      , secondDescriptions = (this as typeof HelpDialog).descriptions
+      , firstDescriptions = CommandsData_.cmdDescriptions_;
     let html = "";
-    for (const command of (this as typeof HelpDialog).commandGroups_[group] || []) {
+    for (const command of (this as typeof HelpDialog).commandGroups_[group]) {
       let keys = commandToKeys[command];
       if (hideUnbound && !keys) { continue; }
-      const isAdvanced = command in (this as typeof HelpDialog).advancedCommands_
-        , description = availableCommands[command][0];
+      const isAdvanced = (this as typeof HelpDialog).advancedCommands_[command] === 1
+        , description = secondDescriptions[command] || <string> firstDescriptions[command];
+      if (!Build.NDEBUG) {
+        if (!description) {
+          console.log("Error: lack a description for %c%s", "color:red", command);
+        } else if (secondDescriptions[command] && firstDescriptions[command]) {
+          console.log("Error: duplicated descriptions for %c%s", "color:red", command);
+        }
+      }
       let klen = -2, bindings = "";
       if (keys && keys.length > 0) {
         bindings = '\n\t\t<span class="HelpKey">';
         for (const item of keys) {
-          const help = item[1].help as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
+          const help = item[1].help_ as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
           help && (this as typeof HelpDialog).normalizeHelpInfo_(help);
-          const key = help && help.$key || Utils.escapeText_(item[0]);
-          if (help && help.$desc) {
+          const key = help && help.$key_ || BgUtils_.escapeText_(item[0]);
+          if (help && help.$desc_) {
             let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
-            html += renderItem(isAdvanced, singleBinding, help.$desc, showNames ? command : "");
+            html += renderItem(isAdvanced, singleBinding, help.$desc_, showNames ? command : "");
             continue;
           }
           if (klen >= 0) {
@@ -97,7 +119,8 @@ var HelpDialog = {
         }
         bindings += "</span>\n\t";
       }
-      if (klen <= 12) {
+      if (klen < 0) { /* empty */ }
+      else if (klen <= 12) {
         html += renderItem(isAdvanced, bindings, description, showNames ? command : "");
       } else {
         html += renderItem(isAdvanced, bindings, "", "");
@@ -126,17 +149,19 @@ var HelpDialog = {
     return html + "</td>\n</tr>\n";
   }),
   normalizeHelpInfo_ (help: Partial<CommandsNS.NormalizedCustomHelpInfo>): void {
-    if (help.$key != null) { return; }
-    let a = this.templateEl_;
-    if (!a) {
+    if (help.$key_ != null) { return; }
+    let a = this.template_;
+    if (Build.BTypes & ~BrowserType.Firefox && !a) {
       const template = document.createElement("template"),
       td = document.createElement("td");
       template.content.appendChild(td);
       // make `<td>` inert, so that "onclick" won't be parsed
-      a = this.templateEl_ = td;
+      a = this.template_ = td;
+    } else if (!a) {
+      a = this.template_ = new DOMParser();
     }
-    help.$key = help.key ? this.safeHTML_(help.key, a) : "";
-    help.$desc = help.desc ? this.safeHTML_(help.desc, a) : "";
+    help.$key_ = help.key_ ? this.safeHTML_(help.key_, a) : "";
+    help.$desc_ = help.desc_ ? this.safeHTML_(help.desc_, a) : "";
   },
   // https://support.zendesk.com/hc/en-us/articles/115015895948-Allowing-unsafe-HTML-in-articles
   safeTags: {
@@ -148,11 +173,19 @@ var HelpDialog = {
     thead: 1, tr: 1, tt: 1, u: 1, ul: 1, var: 1,
     __proto__: null as never
   } as SafeEnum,
-  _invalidAttrNameRe: <RegExpI> /^on|[^0-9a-z\-]|href$/i,
-  safeHTML_ (raw: string, parent: HTMLElement): string {
-    parent.innerHTML = raw;
-    for (let arr = parent.querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
+  _invalidAttrNameRe: <RegExpI> /^on|[^\w\-]|href$|^is/i,
+  safeHTML_ (raw: string, root: HTMLTableDataCellElement | HTMLBodyElement | DOMParser): string {
+    type RootElement = Exclude<typeof root, DOMParser>;
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      (root as RootElement).innerHTML = raw;
+    } else {
+      root = (root as DOMParser).parseFromString(`<td>${raw}</td>`, "text/html"
+          ).body.firstChild as HTMLTableDataCellElement;
+      if (!root) { return ""; }
+    }
+    for (let arr = (root as RootElement).querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
       const el = arr[i];
+      // here force to match ignoring cases - safer
       if (!((Build.BTypes & ~BrowserType.Firefox ? el.tagName + "" : el.tagName as string
             ).toLowerCase() in this.safeTags)
           && !(el instanceof HTMLUnknownElement)) {
@@ -170,7 +203,7 @@ var HelpDialog = {
         el.removeAttributeNode(attr);
       }
     }
-    return parent.innerHTML;
+    return (root as RootElement).innerHTML;
   },
   commandGroups_: { __proto__: null as never,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
@@ -200,12 +233,12 @@ var HelpDialog = {
     historyNavigation: ["goBack", "goForward", "reopenTab"],
     findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "performAnotherFind", "clearFindHistory"],
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
-      , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
+      , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "discardTab", "moveTabToNextWindow"
       , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab", "toggleMuteTab", "visitPreviousTab"
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
       , "enableCSTemp", "toggleCS", "clearCS"],
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "toggleLinkHintCharacters"
-      , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
+      , "toggleSwitchTemp", "passNextKey", "debugBackground", "closeDownloadBar", "blank"]
   } as Readonly< EnsuredSafeDict<ReadonlyArray<string>> >,
   advancedCommands_: { __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
@@ -215,6 +248,7 @@ var HelpDialog = {
     , toggleCS: 1, clearCS: 1, "LinkHints.activateModeToDownloadImage": 1, reopenTab: 1
     , "LinkHints.activateModeToOpenImage": 1, removeRightTab: 1
     , "LinkHints.activateModeToDownloadLink": 1, restoreGivenTab: 1
+    , discardTab: 1
     , "LinkHints.activateModeToOpenIncognito": 1, passNextKey: 1
     , goNext: 1, goPrevious: 1, "Marks.clearLocal": 1, "Marks.clearGlobal": 1
     , moveTabLeft: 1, moveTabRight: 1, closeTabsOnLeft: 1, closeTabsOnRight: 1, closeOtherTabs: 1
@@ -222,5 +256,127 @@ var HelpDialog = {
     , "LinkHints.activateModeToHover": 1, "LinkHints.unhoverLast": 1
     , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateModeToLeave": 1
     , "Vomnibar.activateUrl": 1, "Vomnibar.activateUrlInNewTab": 1
-  } as SafeEnum
+    , closeDownloadBar: Build.BTypes & BrowserType.Chrome ? 0 : 1
+  } as SafeEnum,
+  descriptions: { __proto__: null as never,
+    "LinkHints.activate": `Open a link in the current tab (use button=""/"right"${
+        Build.BTypes & BrowserType.Chrome ? ', touch="auto"/true/false' : ""
+      })`,
+    "LinkHints.activateMode": "Open a link in the current tab",
+    "LinkHints.activateModeToCopyLinkText": "Copy a link text to the clipboard",
+    "LinkHints.activateModeToCopyLinkUrl": "Copy a link URL to the clipboard",
+    "LinkHints.activateModeToDownloadImage": "Download image, video and audio",
+    "LinkHints.activateModeToDownloadLink": "Download link URL",
+    "LinkHints.activateModeToEdit": "Select an editable area",
+    "LinkHints.activateModeToHover": "select an element and hover",
+    "LinkHints.activateModeToLeave": "let mouse leave link",
+    "LinkHints.activateModeToOpenImage": "Show image in a new tab (use auto=true)",
+    "LinkHints.activateModeToOpenIncognito": "Open a link in incognito window",
+    "LinkHints.activateModeToOpenInNewForegroundTab": "Open a link in a new tab and switch to it",
+    "LinkHints.activateModeToOpenInNewTab": "Open a link in a new tab",
+    "LinkHints.activateModeToOpenVomnibar": "Edit a link text on Vomnibar (use url, newtab)",
+    "LinkHints.activateModeToSearchLinkText": "Open or search a link text",
+    "LinkHints.activateModeWithQueue": "Open multiple links in a new tab",
+    "LinkHints.unhoverLast": "Stop hovering at last location",
+    "Marks.activate": "Go to a mark (use prefix=true, swap)",
+    "Marks.activateCreateMode": "Create a new mark (use swap)",
+    "Marks.clearGlobal": "Remove all global marks",
+    "Marks.clearLocal": "Remove all local marks for this site",
+    "Vomnibar.activate": 'Open URL, bookmark, or history entry<br/> (use keyword="", url=false/true/&lt;string&gt;)',
+    "Vomnibar.activateBookmarks": "Open a bookmark",
+    "Vomnibar.activateBookmarksInNewTab": "Open a bookmark in a new tab",
+    "Vomnibar.activateEditUrl": "Edit the current URL",
+    "Vomnibar.activateEditUrlInNewTab": "Edit the current URL and open in a new tab",
+    "Vomnibar.activateHistory": "Open a history",
+    "Vomnibar.activateHistoryInNewTab": "Open a history in a new tab",
+    "Vomnibar.activateInNewTab": "Open URL, history, etc,<br/> in a new tab (use keyword, url)",
+    "Vomnibar.activateTabSelection": "Search through your open tabs",
+    "Vomnibar.activateUrl": "Edit the current URL",
+    "Vomnibar.activateUrlInNewTab": "Edit the current URL and open in a new tab",
+    autoCopy: "Copy selected text or current frame's title or URL (use url, decoded)",
+    autoOpen: "Open selected or copied text in a new tab",
+    blank: "Do nothing",
+    clearCS: "clear extension's content settings (use type=images)",
+    clearFindHistory: "Clear find mode history",
+    clearGlobalMarks: "Remove all global marks (deprecated)",
+    closeOtherTabs: "Close all other tabs",
+    closeTabsOnLeft: "Close tabs on the left",
+    closeTabsOnRight: "Close tabs on the right",
+    copyCurrentTitle: "Copy current tab's title",
+    copyCurrentUrl: "Copy page's info (use type=url/frame, decoded)",
+    debugBackground: "Debug the background page",
+    enableCSTemp: "enable the site's CS in incognito window (use type=images)",
+    enterFindMode: "Enter find mode (use last, selected=true)",
+    enterInsertMode: "Enter insert mode (use code=27, stat=0)",
+    enterVisualLineMode: "Enter visual line mode",
+    enterVisualMode: "Enter visual mode",
+    firstTab: "Go to the first N-th tab",
+    focusInput:
+      'Focus the N-th visible text box on the page and cycle using tab (use keep, select=""/all/all-line/start/end)',
+    focusOrLaunch: 'focus a tab with given URL or open it (use url="", prefix)',
+    goBack: "Go back in history" + (Build.BTypes & BrowserType.Chrome
+          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || CurCVer_ >= BrowserVer.Min$Tabs$$goBack
+                && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome ))
+        ? " (use reuse=-2/-1)" : ""),
+    goForward: "Go forward in history" + (Build.BTypes & BrowserType.Chrome
+          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || CurCVer_ >= BrowserVer.Min$Tabs$$goBack
+                && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome ))
+        ? " (use reuse=-2/-1)" : ""),
+    goNext: "Follow the link labeled next or &gt;",
+    goPrevious: "Follow the link labeled previous or &lt;",
+    goToRoot: "Go to root of current URL hierarchy",
+    goUp: "Go up the URL hierarchy (use trailing_slash=null/&lt;boolean&gt;)",
+    lastTab: "Go to the last N-th tab",
+    mainFrame: "Select the tab's main/top frame",
+    moveTabLeft: "Move tab to the left",
+    moveTabRight: "Move tab to the right",
+    moveTabToIncognito: "Make tab in incognito window",
+    moveTabToNextWindow: "Move tab to next window (use right)",
+    nextFrame: "Cycle forward to the next frame on the page",
+    nextTab: "Go one tab right",
+    openCopiedUrlInCurrentTab: "Open the clipboard's URL in the current tab",
+    parentFrame: "Focus a parent frame",
+    passNextKey: "Pass the next key(s) to the page (use normal)",
+    performAnotherFind: "Find the second or even eariler query words",
+    performBackwardsFind: "Cycle backward to the previous find match",
+    performFind: "Cycle forward to the next find match",
+    previousTab: "Go one tab left",
+    quickNext: "Go one tab right",
+    reload: "Reload current frame (use hard)",
+    reloadGivenTab: "Reload N-th tab (use hard)",
+    removeRightTab: "Close N-th tab on the right",
+    reopenTab: "Reopen current page",
+    restoreGivenTab: "Restore the last N-th tab",
+    scrollDown: "Scroll down",
+    scrollFullPageDown: "Scroll a full page down",
+    scrollFullPageUp: "Scroll a full page up",
+    scrollLeft: "Scroll left",
+    scrollPageDown: "Scroll a page down",
+    scrollPageUp: "Scroll a page up",
+    scrollPxDown: "Scroll 1px down",
+    scrollPxLeft: "Scroll 1px left",
+    scrollPxRight: "Scroll 1px right",
+    scrollPxUp: "Scroll 1px up",
+    scrollRight: "Scroll right",
+    scrollTo: "Scroll to custom position",
+    scrollToBottom: "Scroll to the bottom of the page",
+    scrollToLeft: "Scroll all the way to the left",
+    scrollToRight: "Scroll all the way to the right",
+    scrollToTop: "Scroll to the top of the page",
+    scrollUp: "Scroll up",
+    searchAs: "Search selected or copied text using current search engine (use copied=true, selected=true)",
+    searchInAnother: "Redo search in another search engine (use keyword, reuse=0)",
+    showHelp: "Show help",
+    simBackspace: "simulate backspace for once if focused",
+    switchFocus: "blur activeElement or refocus it",
+    toggleCS: "turn on/off the site's CS (use type=images)",
+    toggleLinkHintCharacters: "Toggle the other link hints (use value)",
+    toggleMuteTab: "Mute or unmute current tab (use all, other)",
+    toggleSwitchTemp: "Toggle switch only on current page (use key[, value])",
+    toggleViewSource: "View page source",
+    toggleVomnibarStyle: "Toggle style(s) of vomnibar page (use style=dark, current)",
+    closeDownloadBar: "Close the bottom download bar of Chrome elegantly",
+    showTip: "Show a tip on the HUD (use text=&lt;string&gt;)",
+    visitPreviousTab: "Go to previously-visited tab on current window"
+  } as ReadonlySafeDict<string>
 };

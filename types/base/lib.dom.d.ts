@@ -1169,7 +1169,7 @@ declare var DOMImplementation: {
 }
 
 interface DOMParser {
-    parseFromString(source: string, mimeType: string): Document;
+    parseFromString(source: string, mimeType: string): Document & { body: HTMLBodyElement; };
 }
 
 declare var DOMParser: {
@@ -1387,7 +1387,7 @@ interface DocumentAttrsToBeDetected {
 }
 
 interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEvent, ParentNode, DocumentOrShadowRoot {
-    readonly nodeType: kNode.DOCUMENT_NODE | Element;
+    readonly nodeType: kNode.DOCUMENT_NODE | Element | HTMLCollection | Window;
     /**
       * Sets or gets the URL for the current document. 
       */
@@ -1467,6 +1467,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     readonly fullscreenElement: Element | null;
     readonly fullscreenEnabled: boolean;
     readonly hidden: boolean;
+    readonly webkitHidden?: boolean; // replaced by .hidden since C33
     /**
       * Retrieves a collection, in source order, of img objects in the document.
       */
@@ -2053,7 +2054,14 @@ interface AttachShadow {
 }
 interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelector, ChildNode, ParentNode
         , Partial<AttachShadow> {
-    readonly nodeType: kNode.ELEMENT_NODE | Element;
+    readonly nodeType: kNode.ELEMENT_NODE | Element | RadioNodeList | Window;
+    readonly childNodes: NodeList | Element | RadioNodeList | Window;
+    readonly nodeName: string | Element | RadioNodeList | Window;
+    readonly localName: string | Element | RadioNodeList | Window;
+    readonly ownerDocument: Document | RadioNodeList | Window;
+    readonly parentElement: Element | RadioNodeList | Window | null;
+    readonly parentNode: Node | RadioNodeList | Window | null;
+
     readonly classList: DOMTokenList;
     className: string;
     readonly clientHeight: number;
@@ -2077,10 +2085,11 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     scrollLeft: number;
     scrollTop: number;
     readonly scrollWidth: number;
-    readonly tagName: string | Element | Window;
+    readonly tagName: string | Element | RadioNodeList | Window;
     readonly assignedSlot: HTMLSlotElement | null;
     slot: string;
-    readonly shadowRoot?: ShadowRoot | Element | null;
+    readonly shadowRoot?: ShadowRoot | Element | RadioNodeList | Window | null;
+    readonly webkitShadowRoot?: ShadowRoot | Element | RadioNodeList | Window | null;
     textContent: string;
     focus?(): void;
     blur?(): void;
@@ -2127,14 +2136,16 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     insertAdjacentHTML(where: 'afterbegin' | 'beforeend', html: string): void;
     insertAdjacentText(where: 'afterbegin' | 'beforeend', text: string): void;
     createShadowRoot?(): ShadowRoot;
+    webkitCreateShadowRoot?(): ShadowRoot;
     addEventListener<K extends keyof ElementEventMap>(type: K, listener: (this: Element, ev: ElementEventMap[K]) => ELRet, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
-declare var Element: {
+interface ElementConstructor {
     prototype: Element;
     new(): Element;
 }
+declare var Element: ElementConstructor;
 
 interface ErrorEvent extends Event {
     readonly type: "error";
@@ -2279,8 +2290,12 @@ declare var HTMLAllCollection: {
 }
 
 interface HTMLAnchorElement extends HTMLElement {
-    readonly tagName: "A" | "a";
+    readonly tagName: "A";
+    readonly nodeName: "A";
+    readonly localName: "a";
     readonly innerText: string;
+    readonly parentElement: Element | null;
+    readonly parentNode: Node | null;
     Methods: string;
     /**
       * Sets or retrieves the character set used to encode the object.
@@ -2444,8 +2459,12 @@ declare var HTMLAppletElement: {
 }
 
 interface HTMLAreaElement extends HTMLElement {
-    readonly tagName: "area" | "AREA";
+    readonly tagName: "AREA";
+    readonly nodeName: "AREA";
+    readonly localName: "area";
     readonly innerText: string;
+    readonly parentElement: Element | null;
+    readonly parentNode: Node | null;
     /**
       * Sets or retrieves a text alternative to the graphic.
       */
@@ -2604,7 +2623,9 @@ interface HTMLBodyElementEventMap extends HTMLElementEventMap {
 }
 
 interface HTMLBodyElement extends HTMLElement {
-    readonly tagName: "body" | "BODY";
+    readonly tagName: "BODY";
+    readonly nodeName: "BODY";
+    readonly localName: "body";
     readonly innerText: string;
     aLink: any;
     background: string;
@@ -2758,6 +2779,7 @@ interface HTMLCollectionBase {
 }
 
 interface HTMLCollection extends HTMLCollectionBase {
+    readonly nodeType: undefined;
     /**
       * Retrieves a select object or an object from an options collection.
       */
@@ -2801,7 +2823,7 @@ declare var HTMLDetailsElement: {
 };
 
 interface Window {
-    HTMLDetailsElement?: typeof HTMLDetailsElement | Element;
+    HTMLDetailsElement?: typeof HTMLDetailsElement | Element | RadioNodeList | Window;
 }
 
 interface HTMLDialogElement extends HTMLElement {
@@ -2932,9 +2954,9 @@ interface HTMLElement extends Element {
     draggable: boolean;
     hidden: boolean;
     hideFocus: boolean;
-    innerText: string | Element;
+    innerText: string | Element | RadioNodeList | Window;
     readonly isContentEditable: boolean;
-    lang: string;
+    /** replaced with a narrower value - for easier debugging */ lang: "";
     readonly offsetHeight: number;
     readonly offsetLeft: number;
     readonly offsetParent: Element;
@@ -3408,7 +3430,9 @@ declare var HTMLHeadingElement: {
 }
 
 interface HTMLHtmlElement extends HTMLElement {
-    readonly tagName: "html" | "HTML";
+    readonly tagName: "HTML";
+    readonly nodeName: "HTML";
+    readonly localName: "html";
     /**
       * Sets or retrieves the DTD version that governs the current document.
       */
@@ -3512,8 +3536,12 @@ declare var HTMLIFrameElement: {
 }
 
 interface HTMLImageElement extends HTMLElement {
-    readonly tagName: "img" | "IMG";
+    readonly tagName: "IMG";
+    readonly nodeName: "IMG";
+    readonly localName: "img";
     readonly innerText: string;
+    readonly parentElement: Element | null;
+    readonly parentNode: Node | null;
     /**
       * Sets or retrieves how the object is aligned with adjacent text.
       */
@@ -3591,6 +3619,12 @@ declare var HTMLImageElement: {
 }
 
 interface HTMLInputElement extends HTMLElement {
+    readonly tagName: "INPUT";
+    readonly nodeName: "INPUT";
+    readonly localName: "input";
+    readonly innerText: string;
+    readonly parentElement: Element | null;
+    readonly parentNode: Node | null;
     /**
       * Sets or retrieves a comma-separated list of content types.
       */
@@ -4895,6 +4929,12 @@ declare var HTMLTemplateElement: {
 }
 
 interface HTMLTextAreaElement extends HTMLElement {
+    readonly tagName: "TEXTAREA";
+    readonly nodeName: "TEXTAREA";
+    readonly localName: "textarea";
+    readonly innerText: string;
+    readonly parentElement: Element | null;
+    readonly parentNode: Node | null;
     /**
       * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user, reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
       */
@@ -5166,15 +5206,16 @@ interface KeyboardEvent extends UIEvent {
     readonly char: string | null;
     readonly charCode: number;
     readonly ctrlKey: boolean;
-    readonly key: string;
-    readonly keyCode: VKeyCodes;
+    readonly key?: string;
+    readonly keyCode: kKeyCode;
+    readonly keyIdentifier: unknown;
     readonly locale: string;
     readonly location: number;
     readonly metaKey: boolean;
     readonly repeat: boolean;
     readonly shiftKey: boolean;
     readonly which: number;
-    readonly code: string;
+    readonly code?: string;
     getModifierState(keyArg: string): boolean;
     initKeyboardEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, keyArg: string, locationArg: number, modifiersListArg: string, repeat: boolean, locale: string): void;
     readonly DOM_KEY_LOCATION_JOYSTICK: number;
@@ -5187,8 +5228,8 @@ interface KeyboardEvent extends UIEvent {
 }
 interface OldKeyboardEvent extends KeyboardEvent {
     readonly keyIdentifier: string;
-    readonly code: never;
-    readonly key: never;
+    readonly code: undefined;
+    readonly key: undefined;
 }
 
 declare var KeyboardEvent: {
@@ -5259,11 +5300,12 @@ declare var MediaList: {
     new(): MediaList;
 }
 
-interface MediaQueryList {
+interface MediaQueryList extends EventTarget {
     readonly matches: boolean;
     readonly media: string;
-    addListener(listener: MediaQueryListListener): void;
-    removeListener(listener: MediaQueryListListener): void;
+    onchange: null | MediaQueryListListener;
+    // addListener(listener: MediaQueryListListener): void;
+    // removeListener(listener: MediaQueryListListener): void;
 }
 
 declare var MediaQueryList: {
@@ -5410,6 +5452,7 @@ declare var Navigator: {
 
 declare const enum kNode {
     ELEMENT_NODE = 1,
+    TEXT_NODE = 3,
     DOCUMENT_NODE = 9,
     DOCUMENT_FRAGMENT_NODE = 11,
 
@@ -5423,25 +5466,30 @@ declare const enum kNode {
 interface Node extends EventTarget {
     readonly attributes: NamedNodeMap;
     readonly baseURI: string | null;
-    readonly childNodes: NodeList;
+    // Element: <form> -> `[name]` or `[id]`
+    // HTMLCollection: on document / window
+    // RadioNodeList: <form> -> `[name]`
+    // Window: <frameset> -> `frame[name]` or window -> `frame[name], iframe[name]`
+    readonly childNodes: NodeList | Element | HTMLCollection | RadioNodeList | Window;
     readonly firstChild: Node | null;
     readonly lastChild: Node | null;
-    readonly localName: string | null;
+    readonly localName: string | Element | RadioNodeList | Window | null;
     readonly namespaceURI: string | null;
     readonly nextSibling: Node | null;
-    readonly nodeName?: string | Element;
-    readonly nodeType: number | Element;
+    readonly nodeName: string | Element | HTMLCollection | RadioNodeList | Window;
+    readonly nodeType: kNode | Element | HTMLCollection | RadioNodeList | Window;
     nodeValue: string | null;
-    readonly ownerDocument: Document;
-    readonly parentElement: Element | null;
-    readonly parentNode: Node | null;
+    readonly ownerDocument: Document | HTMLCollection | RadioNodeList | Window;
+    readonly parentElement: Element | HTMLCollection | RadioNodeList | Window | null;
+    readonly parentNode: Node | HTMLCollection | RadioNodeList | Window | null;
     readonly previousSibling: Node | null;
     readonly isConnected?: boolean;
     textContent: string | null;
+    append?(...nodeOrText: Array<Node | string>): void;
     appendChild<T extends Node>(newChild: T): T;
     cloneNode(deep?: boolean): Node;
     compareDocumentPosition(other: Node): kNode;
-    contains(child: Node): boolean;
+    contains(this: Node, child: Node): boolean;
     getRootNode?(options?: { composed?: boolean }): Node;
     hasAttributes(): boolean;
     hasChildNodes(): boolean;
@@ -5503,6 +5551,14 @@ interface NodeList {
     readonly length: number;
     item(index: number): Node;
     [index: number]: Node;
+}
+
+interface RadioNodeList /* extends NodeList */ {
+  readonly length: number;
+  value: string;
+  item(index: number): HTMLInputElement & { type: "radio" };
+  [index: number]: HTMLInputElement & { type: "radio" };
+  nodeType?: undefined;
 }
 
 declare var NodeList: {
@@ -5963,6 +6019,9 @@ interface SVGElementEventMap extends ElementEventMap {
 
 interface SVGElement extends Element {
     readonly tagName: string;
+    readonly nodeName: string;
+    readonly localName: string;
+    readonly dataset? : DOMStringMap; // since C55
     className: any;
     focus(): void;
     blur(): void;
@@ -7175,7 +7234,9 @@ interface SVGSVGElementEventMap extends SVGElementEventMap {
 }
 
 interface SVGSVGElement extends SVGGraphicsElement, DocumentEvent, SVGFitToViewBox, SVGZoomAndPan {
-    readonly tagName: "svg" | "SVG";
+    readonly tagName: "SVG";
+    readonly nodeName: "SVG";
+    readonly localName: "svg";
     contentScriptType: string;
     contentStyleType: string;
     currentScale: number;
@@ -7640,14 +7701,85 @@ declare var StyleSheetPageList: {
 }
 
 interface Text extends CharacterData {
+    readonly nodeType: kNode.TEXT_NODE;
     readonly wholeText: string;
-    readonly assignedSlot: HTMLSlotElement | null;
+    readonly assignedSlot?: HTMLSlotElement | null;
+    readonly parentElement: Element | null;
     splitText(offset: number): Text;
 }
 
 declare var Text: {
     prototype: Text;
     new(): Text;
+}
+
+interface TextDecodeOptions {
+  stream?: boolean;
+}
+
+interface TextDecoderOptions {
+  fatal?: boolean;
+  ignoreBOM?: boolean;
+}
+
+interface TextEncoderEncodeIntoResult {
+  read?: number;
+  written?: number;
+}
+
+interface TextEncoderEncodeIntoResult {
+  read?: number;
+  written?: number;
+}
+
+/** A decoder for a specific method, that is a specific character encoding, like utf-8, iso-8859-2, koi8, cp1261, gbk, etc. A decoder takes a stream of bytes as input and emits a stream of code points. For a more scalable, non-native library, see StringView – a C-like representation of strings based on typed arrays. */
+interface TextDecoder extends TextDecoderCommon {
+  /**
+   * Returns the result of running encoding's decoder.
+   * The method can be invoked zero or more times with options's stream set to
+   * true, and then once without options's stream (or set to false), to process
+   * a fragmented stream. If the invocation without options's stream (or set to
+   * false) has no input, it's clearest to omit both arguments.
+   * var string = "", decoder = new TextDecoder(encoding), buffer;
+   * while(buffer = next_chunk()) {
+   * string += decoder.decode(buffer, {stream:true});
+   * }
+   * string += decoder.decode(); // end-of-stream
+   * If the error mode is "fatal" and encoding's decoder returns error, throws a TypeError.
+   */
+  decode(input?: BufferSource, options?: TextDecodeOptions): string;
+}
+
+declare var TextDecoder: {
+  prototype: TextDecoder;
+  new(label?: string, options?: TextDecoderOptions): TextDecoder;
+};
+
+interface TextDecoderCommon {
+  readonly encoding: string;
+  readonly fatal: boolean;
+  readonly ignoreBOM: boolean;
+}
+
+/** TextEncoder takes a stream of code points as input and emits a stream of bytes. For a more scalable, non-native library, see StringView – a C-like representation of strings based on typed arrays. */
+interface TextEncoder extends TextEncoderCommon {
+  /**
+   * Returns the result of running UTF-8's encoder.
+   */
+  encode(input?: string): Uint8Array;
+  /**
+   * Runs the UTF-8 encoder on source, stores the result of that operation into destination, and returns the progress made as a dictionary whereby read is the number of converted code units of source and written is the number of bytes modified in destination.
+   */
+  encodeInto(source: string, destination: Uint8Array): TextEncoderEncodeIntoResult;
+}
+
+declare var TextEncoder: {
+  prototype: TextEncoder;
+  new(encoding?: "utf-8"): TextEncoder;
+};
+
+interface TextEncoderCommon {
+  readonly encoding: string;
 }
 
 interface TextEvent extends UIEvent {
@@ -7912,7 +8044,7 @@ declare var UIEvent: {
 interface URL {
     hash: string;
     host: string;
-    hostname: string;
+    hostname?: string; // exists since C32
     href: string;
     readonly origin: string;
     password: string;
@@ -7926,6 +8058,7 @@ interface URL {
 
 declare var URL: {
     prototype: URL;
+    // since C32
     new(url: string, base?: string): URL;
     createObjectURL(object: any, options?: ObjectURLOptions): string;
     revokeObjectURL(url: string): void;
@@ -8157,7 +8290,7 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     readonly devicePixelRatio: number;
     readonly doNotTrack: string;
     readonly document: Document;
-    event: Event | undefined;
+    // event: Event | undefined; // NOT use window.event
     readonly external: External;
     readonly frameElement: Element | null;
     readonly frames: Window[] | object | null | undefined;
@@ -8299,10 +8432,9 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     webkitRequestAnimationFrame(callback: FrameRequestCallback): number;
     addEventListener<K extends keyof WindowEventMap>(type: K, listener: (this: Window, ev: WindowEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
-    // the below are what may not exist (so may be overriden by element with such a id)
-    ShadowRoot?: typeof ShadowRoot | Element;
-    requestIdleCallback?: ((callback: (idleDeadline: { didTimeout: boolean }) => void, options?: { timeout?: number }) => number
-        ) | Element;
+
+    ShadowRoot?: ShadowRootConstructor | Element | HTMLCollection | Window;
+    requestIdleCallback?: RequestIdleCallback | Element | HTMLCollection | Window;
 }
 
 // declare var Window: {
@@ -8461,10 +8593,10 @@ interface DocumentEvent {
 
 interface ElementTraversal {
     readonly childElementCount: number;
-    readonly firstElementChild: Element | null;
-    readonly lastElementChild: Element | null;
-    readonly nextElementSibling: Element | null;
-    readonly previousElementSibling: Element | null;
+    readonly firstElementChild: Element | RadioNodeList | Window | null;
+    readonly lastElementChild: Element | RadioNodeList | Window | null;
+    readonly nextElementSibling: Element | RadioNodeList | Window | null;
+    readonly previousElementSibling: Element | RadioNodeList | Window | null;
 }
 
 interface GetSVGDocument {
@@ -8722,8 +8854,8 @@ interface JsonWebKey {
 
 interface ParentNode {
     readonly children: HTMLCollection;
-    readonly firstElementChild: Element | null;
-    readonly lastElementChild: Element | null;
+    readonly firstElementChild: Element | RadioNodeList | Window | null;
+    readonly lastElementChild: Element | RadioNodeList | Window | null;
     readonly childElementCount: number;
 }
 
@@ -8742,10 +8874,11 @@ interface ShadowRoot extends DocumentOrShadowRoot, DocumentFragment {
     innerHTML: string;
     getElementById(elementId: string): Element | null;
 }
-declare var ShadowRoot: {
+interface ShadowRootConstructor {
     prototype: ShadowRoot;
     new(): never;
 }
+declare var ShadowRoot: ShadowRootConstructor | undefined | Element | HTMLCollection | Window;
 
 interface ShadowRootInit {
     mode: 'open'|'closed';
@@ -8778,7 +8911,7 @@ interface PositionErrorCallback {
     (error: PositionError): void;
 }
 interface MediaQueryListListener {
-    (mql: MediaQueryList): void;
+    (this: MediaQueryList, event: Event): void;
 }
 interface FrameRequestCallback {
     (time: number): void;
@@ -8860,6 +8993,7 @@ interface HTMLElementTagNameMap {
     "source": HTMLSourceElement;
     "span": HTMLSpanElement;
     "style": HTMLStyleElement;
+    "summary": HTMLElement;
     "table": HTMLTableElement;
     "tbody": HTMLTableSectionElement;
     "td": HTMLTableDataCellElement;
@@ -9028,6 +9162,7 @@ interface ElementTagNameMap {
     "strong": HTMLElement;
     "style": HTMLStyleElement;
     "sub": HTMLElement;
+    "summary": HTMLElement;
     "sup": HTMLElement;
     "svg": SVGSVGElement;
     "switch": SVGSwitchElement;
@@ -9208,6 +9343,7 @@ interface ElementListTagNameMap {
     "strong": NodeListOf<HTMLElement>;
     "style": NodeListOf<HTMLStyleElement>;
     "sub": NodeListOf<HTMLElement>;
+    "summary": NodeListOf<HTMLElement>;
     "sup": NodeListOf<HTMLElement>;
     "svg": NodeListOf<SVGSVGElement>;
     "switch": NodeListOf<SVGSwitchElement>;
@@ -9248,8 +9384,8 @@ declare var devicePixelRatio: number;
 declare var doNotTrack: string;
 declare var document: Document;
 declare var fullScreen: boolean | undefined;
+declare var event: -42;
 /*
-declare var event: Event | undefined;
 declare var external: External;
 */
 declare var frameElement: Element | null;
@@ -9356,7 +9492,6 @@ declare var statusbar: BarProp;
 declare var styleMedia: StyleMedia;
 declare var toolbar: BarProp;
 */
-declare var parent: Window | null | undefined;
 declare var top: Window;
 declare var scrollX: number;
 declare var scrollY: number;
@@ -9421,7 +9556,10 @@ declare function addEventListener<K extends keyof WindowEventMap>(type: K,
   ): void;
 declare var close: unknown;
 declare function addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
-declare var requestIdleCallback: Window["requestIdleCallback"];
+interface RequestIdleCallback {
+  (callback: (idleDeadline: { didTimeout: boolean }) => void, options?: { timeout?: number }): number;
+}
+declare var requestIdleCallback: RequestIdleCallback | undefined;
 type AAGUID = string;
 type AlgorithmIdentifier = string | Algorithm;
 type ConstrainBoolean = boolean | ConstrainBooleanParameters;

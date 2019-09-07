@@ -4,8 +4,8 @@ VER=
 FLAGS=
 OTHER_EXT=
 OTHER_ARGS=
-GUD=/r/TEMP/GUD
-WORKING_DIR=/r/working
+GUD=${GUD:-/r/TEMP/GUD}
+WORKING_DIR=${WORKING_DIR:-/r/working}
 VC_ROOT=
 DIST=0
 UBO=0
@@ -55,7 +55,7 @@ case "$1" in
   only|--only)
     exit 0
     ;;
-  [3-9][0-9]|cur|wo|prev) # ver
+  [3-9][0-9]|cur|wo|prev|[1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f]*) # ver
     VER=$1
     shift
     ;;
@@ -72,6 +72,7 @@ case "$1" in
       VC_ROOT=$1
       shift
     else
+      echo "Unknown arg: $1" >&2
       break
     fi
     ;;
@@ -143,5 +144,6 @@ $RUN "$EXE" \
   --homepage ${HOME_PAGE:-chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html} \
   --disable-office-editing-component-extension \
   --disable-extensions-file-access-check \
+  --disable-component-update \
   $OTHER_ARGS \
   --start-maximized $FLAGS "$@"

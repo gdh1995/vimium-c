@@ -4,13 +4,15 @@
 /// <reference path="../background/settings.ts" />
 /// <reference path="../background/exclusions.ts" />
 type AllowedOptions = SettingsNS.PersistentSettings;
-interface Checker<T extends keyof AllowedOptions> {
+type PossibleOptionNames<T> = PossibleKeys<AllowedOptions, T>;
+interface BaseChecker<V extends AllowedOptions[keyof AllowedOptions]> {
   init_? (): any;
-  check_ (value: AllowedOptions[T]): AllowedOptions[T];
+  check_ (value: V): V;
 }
+type Checker<T extends keyof AllowedOptions> = BaseChecker<AllowedOptions[T]>;
 interface BgWindow extends Window {
-  Utils: typeof Utils;
-  Settings: typeof Settings;
+  BgUtils_: typeof BgUtils_;
+  Settings_: typeof Settings_;
 }
 
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
@@ -34,13 +36,40 @@ __extends = function<Child, Super, Base> (
   __.prototype = parent.prototype;
   child.prototype = new __();
 },
+nextTick_ = (function (): {<T>(task: (self: T) => void, context: T): void; (task: (this: void) => void): void; } {
+  type Callback = () => void;
+  const tasks: Callback[] = [],
+  ticked = function (): void {
+    const oldSize = tasks.length;
+    for (const task of tasks) {
+      task();
+    }
+    if (tasks.length > oldSize) {
+      tasks.splice(0, oldSize);
+      Promise.resolve(1).then(ticked);
+    } else {
+      tasks.length = 0;
+    }
+  };
+  return function <T> (task: ((self: T) => void) | ((this: void) => void), context?: T): void {
+    if (tasks.length <= 0) {
+      Promise.resolve(1).then(ticked);
+    }
+    if (context as unknown as number === 9) {
+      // here ignores the case of re-entry
+      tasks.unshift(task as (this: void) => void);
+    } else {
+      tasks.push(context ? task.bind(null, context) : task as (this: void) => void);
+    }
+  };
+})(),
 debounce_ = function<T> (this: void, func: (this: T) => void
     , wait: number, bound_context: T, also_immediate: number
     ): (this: void) => void {
   let timeout = 0, timestamp: number;
   const later = function () {
     const last = Date.now() - timestamp; // safe for time changes
-    if (last < wait && last >= 0) {
+    if (last < wait - /* for resolution tolerance */ 4 && last >= 0) {
       timeout = setTimeout(later, wait - last);
       return;
     }
@@ -63,13 +92,14 @@ debounce_ = function<T> (this: void, func: (this: T) => void
           , wait: number, bound_context: T, also_immediate: BOOL
           ) => (this: void) => void;
 
-var $ = function<T extends HTMLElement>(selector: string): T { return document.querySelector(selector) as T; }
+var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
   , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow;
-let bgSettings_ = BG_.Settings;
-const bgOnOther_ = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
-      || !(Build.BTypes & ~BrowserType.Edge)
-    ? Build.BTypes as number as BrowserType : BG_.OnOther,
-bgBrowserVer_ = BG_.ChromeVer;
+let bgSettings_ = BG_.Settings_;
+declare var bgOnOther_: BrowserType;
+const bgBrowserVer_ = Build.BTypes & BrowserType.Chrome ? BG_.CurCVer_ : BrowserVer.assumedVer;
+if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
+  var bgOnOther_ = BG_.OnOther as NonNullable<typeof BG_.OnOther>;
+}
 
 abstract class Option_<T extends keyof AllowedOptions> {
   readonly element_: HTMLElement;
@@ -78,29 +108,32 @@ abstract class Option_<T extends keyof AllowedOptions> {
   saved_: boolean;
   locked_?: boolean;
   readonly onUpdated_: (this: void) => void;
-  onSave_?: () => void;
+  onSave_ (): void { /* empty */ }
   checker_?: Checker<T>;
 
   static all_ = Object.create(null) as {
     [T in keyof AllowedOptions]: Option_<T>;
   } & SafeObject;
   static syncToFrontend_: Array<keyof SettingsNS.FrontendSettings>;
+  static suppressPopulate_ = true;
 
 constructor (element: HTMLElement, onUpdated: (this: Option_<T>) => void) {
   this.element_ = element;
   this.field_ = element.id as T;
   this.previous_ = this.onUpdated_ = null as never;
-  this.saved_ = true;
-  if (this.field_ in bgSettings_.payload_) {
+  this.saved_ = false;
+  if (this.field_ in bgSettings_.valuesToLoad_) {
     onUpdated = this._onCacheUpdated.bind(this, onUpdated);
   }
-  this.fetch_();
   this.onUpdated_ = debounce_(onUpdated, 330, this, 1);
 }
 
 fetch_ (): void {
   this.saved_ = true;
-  return this.populateElement_(this.previous_ = bgSettings_.get_(this.field_));
+  this.previous_ = bgSettings_.get_(this.field_);
+  if (!Option_.suppressPopulate_) {
+    this.populateElement_(this.previous_);
+  }
 }
 normalize_ (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOptions[T] {
   const checker = this.checker_;
@@ -124,16 +157,16 @@ save_ (): void {
       value = bgSettings_.defaults_[this.field_];
     }
   }
-  bgSettings_.set_(this.field_, value);
+  bgSettings_.set_<keyof AllowedOptions>(this.field_, value);
   this.previous_ = value = bgSettings_.get_(this.field_);
   this.saved_ = true;
   if (previous !== (isJSON ? JSON.stringify(value) : value)) {
     this.populateElement_(value, true);
   }
-  if (this.field_ in bgSettings_.payload_) {
+  if (this.field_ in bgSettings_.valuesToLoad_) {
     Option_.syncToFrontend_.push(this.field_ as keyof SettingsNS.FrontendSettings);
   }
-  this.onSave_ && this.onSave_();
+  this.onSave_();
 }
 abstract readValueFromElement_ (): AllowedOptions[T];
 abstract populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void;
@@ -176,41 +209,57 @@ class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   template_: HTMLTableRowElement;
   list_: Array<ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode>;
   $list_: HTMLTableSectionElement;
+  inited_: boolean;
 constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => void) {
   super(element, onUpdated);
+  this.inited_ = false;
   bgSettings_.fetchFile_("exclusionTemplate", (): void => {
-    this.element_.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
-    this.template_ = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
-    this.$list_ = this.element_.getElementsByTagName("tbody")[0] as HTMLTableSectionElement;
+    const container = document.createElement("div");
+    if (Build.BTypes & ~BrowserType.Firefox) {
+      container.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
+    } else {
+      const parsed = new DOMParser().parseFromString(bgSettings_.cache_.exclusionTemplate as string, "text/html").body;
+      (container as Ensure<typeof element, "append">).append(... <Element[]> <ArrayLike<Element>> parsed.children);
+    }
+    this.template_ = (container.querySelector("#exclusionRuleTemplate") as HTMLTemplateElement
+        ).content.firstChild as HTMLTableRowElement;
+    this.$list_ = container.querySelector("tbody") as HTMLTableSectionElement;
     this.list_ = [];
-    this.fetch_ = super.fetch_;
-    this.fetch_();
     this.$list_.addEventListener("input", ExclusionRulesOption_.MarkChanged_);
     this.$list_.addEventListener("input", this.onUpdated_);
     this.$list_.addEventListener("click", e => this.onRemoveRow_(e));
     $("#exclusionAddButton").onclick = () => this.addRule_("");
-    return this.onInit_();
+    let table = container.firstElementChild as HTMLElement;
+    table.remove();
+    this.template_.remove();
+    this.inited_ = true;
+    if (this.saved_) { // async and .fetch called
+      nextTick_(() => this.populateElement_(this.previous_));
+    }
+    nextTick_(table1 => this.element_.appendChild(table1), table);
   });
 }
-fetch_ (): void { /* empty */ }
 onRowChange_ (_isInc: number): void { /* empty */ }
 static MarkChanged_ (this: void, event: Event): void {
   const vnode = (event.target as HTMLInputElement & Partial<ExclusionRealNode>).vnode;
   vnode && (vnode.changed_ = true);
 }
-addRule_ (pattern: string): void {
+addRule_ (pattern: string, autoFocus?: false | undefined): void {
   this.appendRuleTo_(this.$list_, {
     pattern,
     passKeys: ""
   });
   const item = this.list_[this.list_.length - 1] as ExclusionVisibleVirtualNode;
-  item.$pattern_.focus();
+  if (autoFocus !== false) {
+    nextTick_(() => item.$pattern_.focus());
+  }
   if (pattern) {
     this.onUpdated_();
   }
   this.onRowChange_(1);
 }
 populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
+  if (!this.inited_) { return; }
   this.$list_.textContent = "";
   this.list_ = [];
   if (rules.length <= 0) { /* empty */ }
@@ -257,11 +306,9 @@ appendRuleTo_ (list: HTMLTableSectionElement | DocumentFragment, { pattern, pass
   this.list_.push(vnode2);
   list.appendChild(row);
 }
-static OnNewPassKeysInput_ (passKeysEl: HTMLInputElement): void {
-  const placeholder = passKeysEl.placeholder;
-  if (placeholder) {
-    passKeysEl.title = "Example: " + placeholder;
-    passKeysEl.placeholder = "";
+static OnNewKeys_ (vnode: ExclusionVisibleVirtualNode): void {
+  if (vnode.rule_.pattern && vnode.$keys_.placeholder) {
+    vnode.$keys_.placeholder = "";
   }
 }
 onRemoveRow_ (event: Event): void {
@@ -287,14 +334,17 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       continue;
     }
     if (!vnode.changed_) {
-      rules.push(vnode.rule_);
+      if (vnode.rule_.pattern) {
+        rules.push(vnode.rule_);
+      }
       continue;
     }
     let pattern = vnode.$pattern_.value.trim();
+    let fixTail = false, passKeys = vnode.$keys_.value;
     if (!pattern) {
+      this.updateVNode_(vnode, "", passKeys);
       continue;
     }
-    let fixTail = false, passKeys = vnode.$keys_.value;
     if (pattern[0] === ":") { /* empty */ }
     else if (!this._reChar.test(pattern)) {
       fixTail = pattern.indexOf("/", pattern.indexOf("://") + 3) < 0;
@@ -313,7 +363,7 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       pattern += "/";
     }
     if (passKeys) {
-      passKeys = BG_.Utils.formatKeys_(passKeys);
+      passKeys = BG_.BgUtils_.formatKeys_(passKeys);
       const passArr = passKeys.match(KeyRe_);
       if (passArr) {
         const isReverted = passArr[0] === "^" && passArr.length > 1;
@@ -322,61 +372,55 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
         isReverted ? passArr.unshift("^") : passArr[0] === "^" && (passArr.shift(), passArr.push("^"));
       }
       passKeys = passArr ? (passArr.join(" ") + " ") : "";
+      passKeys = passKeys.replace(<RegExpG> /<escape>/gi, "<esc>");
     }
-    this.updateVNode_(vnode, { pattern, passKeys });
+    let tip = passKeys ? passKeys.length > 1 && passKeys[0] === "^" ? "only hook such keys" : "pass through such keys"
+              : "completely disabled";
+    vnode.$keys_.title !== tip && (vnode.$keys_.title = tip);
+    this.updateVNode_(vnode, pattern, passKeys);
     rules.push(vnode.rule_);
   }
   return rules;
 }
-updateVNode_ (vnode: ExclusionVisibleVirtualNode, rule: ExclusionsNS.StoredRule) {
-  if (!vnode.rule_.passKeys && rule.passKeys) {
-    ExclusionRulesOption_.OnNewPassKeysInput_(vnode.$keys_);
-  }
-  vnode.rule_ = rule;
+updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string) {
+  const hasNewKeys = !vnode.rule_.passKeys && !!keys;
+  vnode.rule_ = { pattern, passKeys: keys };
   vnode.changed_ = false;
+  if (hasNewKeys) {
+    ExclusionRulesOption_.OnNewKeys_(vnode);
+  }
+}
+onSave_ (): void {
+  for (let rule of this.list_) {
+    if (!rule.visible_) { continue; }
+    if (rule.$pattern_.value !== rule.rule_.pattern) {
+      rule.$pattern_.value = rule.rule_.pattern;
+    }
+    if (rule.$keys_.value !== rule.rule_.passKeys) {
+      rule.$keys_.value = rule.rule_.passKeys;
+    }
+  }
 }
 
 readonly areEqual_ = Option_.areJSONEqual_;
-onInit_ (): void { /* empty */ }
 sortRules_: (el?: HTMLElement) => void;
 timer_?: number;
 }
 ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
-if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-      && Build.BTypes & BrowserType.Chrome
-      && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
-  || devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
-      || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
-) { (function (): void {
-  const css = document.createElement("style"), ratio = devicePixelRatio;
-  const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
-      || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
-  let scale: string | number = Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-      || onlyInputs || bgBrowserVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
-  scale = scale + 0.00000999;
-  scale = ("" + scale).substring(0, 7).replace(<RegExpOne> /\.?0+$/, "");
-  css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
-    : `* { border-width: ${scale}px !important; }`;
-  (document.head as HTMLHeadElement).appendChild(css);
-})(); }
-
-$<HTMLElement>(".version").textContent = bgSettings_.CONST_.VerName_;
-
 location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
-BG_.Utils.require_("Exclusions").then((function (callback) {
+BG_.BgUtils_.require_("Exclusions").then((function (callback) {
   return function () {
-    BG_.Utils.require_("Commands");
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
 })(function (activeTabs: [chrome.tabs.Tab] | never[]): void {
   const curTab = activeTabs[0];
-  let ref = BG_.Backend.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg");
+  let ref = BG_.Backend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg");
   const notRunnable = !ref && !(curTab && curTab.url && curTab.status === "loading"
     && (curTab.url.lastIndexOf("http", 0) === 0 || curTab.url.lastIndexOf("ftp", 0) === 0));
   if (notRunnable) {
-    const body = document.body as HTMLBodyElement;
+    const body = document.body as HTMLBodyElement, docEl = document.documentElement as HTMLHtmlElement;
     body.textContent = "";
     blockedMsg.style.display = "";
     (blockedMsg.querySelector(".version") as HTMLElement).textContent = bgSettings_.CONST_.VerName_;
@@ -392,10 +436,17 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     }
     body.style.width = "auto";
     body.appendChild(blockedMsg);
-    (document.documentElement as HTMLHtmlElement).style.height = "";
+    docEl.classList.toggle("auto-dark", !!bgSettings_.payload_.d);
+    docEl.style.height = "";
   } else {
-    blockedMsg.remove();
-    blockedMsg = null as never;
+    nextTick_(versionEl => {
+      blockedMsg.remove();
+      blockedMsg = null as never;
+      const docCls = (document.documentElement as HTMLHtmlElement).classList;
+      docCls.toggle("auto-dark", !!bgSettings_.payload_.d);
+      docCls.toggle("less-motion", !!bgSettings_.payload_.r);
+      versionEl.textContent = bgSettings_.CONST_.VerName_;
+    }, $<HTMLElement>(".version"));
   }
   const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST_.OptionsPage_;
   element.href !== optionsUrl && (element.href = optionsUrl);
@@ -403,14 +454,14 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG_.Object.create(null);
     a.u = bgSettings_.CONST_.OptionsPage_;
-    BG_.Backend.focus_(a);
+    BG_.Backend_.focus_(a);
     window.close();
   };
   if (notRunnable) {
     return;
   }
 
-  const bgExclusions: ExclusionsNS.ExclusionsCls = BG_.Exclusions as ExclusionsNS.ExclusionsCls,
+  const bgExclusions = BG_.Exclusions as typeof Exclusions,
   frameInfo: Frames.Sender = ref ? ref[0].s : {
     /** must keep aligned with {@link ../background/main.ts#formatPortSender} */
     i: 0,
@@ -420,52 +471,53 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     t: curTab.id,
     u: curTab.url
   },
-  topUrl = frameInfo.i && ((BG_.Backend.indexPorts_(curTab.id, 0)
+  topUrl = frameInfo.i && ((BG_.Backend_.indexPorts_(curTab.id, 0)
       || {} as Frames.Port).s || {} as Frames.Sender).u || "",
-  stateLine = $("#state"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
+  stateAction = $<EnsuredMountedHTMLElement>("#state-action"), saveBtn = $<HTMLButtonElement>("#saveOptions"),
+  stateValue = stateAction.nextElementSibling, stateTail = stateValue.nextElementSibling,
   url = frameInfo.u;
-  let delayedInit: (() => void) | null = function (): void {
-    if (exclusions != null) {
-      delayedInit = null as never;
-      updateState(true);
-      (document.documentElement as HTMLHtmlElement).style.height = "";
-    }
-  };
   class PopExclusionRulesOption extends ExclusionRulesOption_ {
-    addRule_ (): void {
-      super.addRule_(PopExclusionRulesOption.generateDefaultPattern_());
+    addRule_ (_pattern: string, autoFocus?: false): void {
+      super.addRule_(PopExclusionRulesOption.generateDefaultPattern_(), autoFocus);
     }
     isPatternMatched_ (pattern: string) {
       if (!pattern) { return false; }
-      const rule = (bgExclusions.testers_ as EnsuredSafeDict<ExclusionsNS.Tester>)[pattern];
-      if (typeof rule === "string"
-          ? !url.lastIndexOf(rule, 0) && (!topUrl || !topUrl.lastIndexOf(rule, 0))
-          : rule.test(url) && (!topUrl || rule.test(topUrl))) {
+      const rule = bgExclusions.testers_[pattern] as NonNullable<(typeof bgExclusions.testers_)[string]>;
+      if (rule.type_ === ExclusionsNS.TesterType.StringPrefix
+          ? !url.lastIndexOf(rule.value_, 0) && (!topUrl || !topUrl.lastIndexOf(rule.value_, 0))
+          : rule.value_.test(url) && (!topUrl || rule.value_.test(topUrl))) {
         return true;
       }
       return false;
     }
     populateElement_ (rules1: ExclusionsNS.StoredRule[]): void {
       super.populateElement_(rules1);
+      const a = this;
+      if (!a.inited_) { return; }
+      a.populateElement_ = null as never; // ensure .populateElement_ is only executed for once
+      (document.documentElement as HTMLHtmlElement).style.height = "";
       PopExclusionRulesOption.prototype.isPatternMatched_ = ExclusionRulesOption_.prototype.isPatternMatched_;
-      if (inited <= 0) {
-        let visible_ = this.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0;
-        if (some) {
-          visible_[0].$keys_.focus();
-        } else {
-          this.addRule_();
-        }
-        inited = some ? 2 : 1;
+      let visible_ = a.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0;
+      let element1: SafeHTMLElement;
+      inited = some ? 2 : 1;
+      if (some) {
+        element1 = visible_[0].$keys_;
+        updateState(true);
+      } else {
+        a.addRule_("", false);
+        element1 = (a.list_[a.list_.length - 1] as ExclusionVisibleVirtualNode).$keys_;
       }
+      nextTick_(() => element1.focus());
     }
-    updateVNode_ (vnode: ExclusionVisibleVirtualNode, rule: ExclusionsNS.StoredRule): void {
-      const pattern = rule.pattern, patternIsSame = vnode.rule_.pattern === pattern;
-      super.updateVNode_(vnode, rule);
+    updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
+      const patternIsSame = vnode.rule_.pattern === pattern;
+      super.updateVNode_(vnode, pattern, keys);
       if (patternIsSame) {
         return;
       }
-      const parsedPattern = bgExclusions.getRe_(pattern), patternElement = vnode.$pattern_;
-      if (typeof parsedPattern === "string" ? !url.lastIndexOf(parsedPattern, 0) : parsedPattern.test(url)) {
+      const parsedPattern = bgExclusions.createRule_(pattern, ""), patternElement = vnode.$pattern_;
+      if (parsedPattern.type_ === ExclusionsNS.TesterType.StringPrefix
+          ? !url.lastIndexOf(parsedPattern.value_, 0) : parsedPattern.value_.test(url)) {
         patternElement.title = patternElement.style.color = "";
       } else {
         patternElement.style.color = "red";
@@ -473,8 +525,10 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
       }
     }
     static generateDefaultPattern_ (this: void): string {
-      const url2 = url.lastIndexOf("https:", 0) === 0
+      const url2 = url.lastIndexOf("http:", 0) === 0
         ? "^https?://" + url.split("/", 3)[2].replace(<RegExpG> /[.[\]]/g, "\\$&") + "/"
+        : url.lastIndexOf(location.origin, 0) === 0
+        ? ":vimium:/" + new URL(url).pathname.replace("/pages", "")
         : (<RegExpOne> /^[^:]+:\/\/./).test(url) && url.lastIndexOf("file:", 0) < 0
         ? ":" + (url.split("/", 3).join("/") + "/")
         : ":" + url;
@@ -489,35 +543,35 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
   function collectPass(pass: string): string {
     pass = pass.trim();
     const isReverted = pass && pass[0] === "^";
-    isReverted && (pass = pass.substring(1).trimLeft());
+    isReverted && (pass = pass.slice(1).trimLeft());
     const dict = Object.create<1>(null);
     for (let i of pass.split(" ")) {
       const n = i.charCodeAt(0);
-      i = n === KnownKey.lt ? "&lt;" : n === KnownKey.gt ? "&gt;" : n === KnownKey.and ? "&amp;" : i;
+      i = n === kCharCode.lt ? "&lt;" : n === kCharCode.gt ? "&gt;" : n === kCharCode.and ? "&amp;" : i;
       dict[i] = 1;
     }
     return (isReverted ? "^ " : "") + Object.keys(dict).join(" ");
   }
-  function updateState(initing: boolean): void {
-    let pass = bgExclusions.getTemp_(url, frameInfo, exclusions.readValueFromElement_(true));
+  function updateState(updateOldPass: boolean): void {
+    const isSaving = inited === 3;
+    let pass = isSaving ? bgExclusions.GetPassKeys_(url, frameInfo)
+          : bgExclusions.getTemp_(url, frameInfo, exclusions.readValueFromElement_(true));
     pass && (pass = collectPass(pass));
-    if (initing) {
+    if (updateOldPass) {
       oldPass = inited >= 2 ? pass : null;
     }
-    const isSaving = inited === 3;
     inited = 2;
     const same = pass === oldPass;
     const isReverted = !!pass && pass.length > 2 && pass[0] === "^";
-    let html = '<span class="Vim">Vim</span>ium <span class="C">C</span> '
-      + (isSaving ? pass ? "becomes to " + (isReverted ? "only hook" : "exclude") : "becomes"
+    stateAction.textContent =
+      (isSaving ? pass ? "becomes to " + (isReverted ? "only hook" : "exclude") : "becomes"
         : (same ? "keeps to " : "will ") + (pass ? isReverted ? "only hook" : "exclude" : "be"))
-      + (pass
-      ? `: <span class="state-value code">${isReverted ? pass.substring(2) : pass}</span>`
-      : `:<span class="state-value fixed-width">${pass !== null ? "disabled" : " enabled"}</span>`);
-    if (curLockedStatus !== Frames.Status.__fake && !isSaving && same) {
-      html += ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`;
-    }
-    stateLine.innerHTML = html;
+      + (pass ? ": " : ":");
+    stateValue.className = pass ? "code" : "fixed-width";
+    stateValue.textContent = pass ? isReverted ? pass.slice(2) : pass : pass !== null ? "disabled" : " enabled";
+    stateTail.textContent = curIsLocked && !isSaving && same
+      ? ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`
+      : curIsLocked ? " if reset" : "";
     saveBtn.disabled = same;
     (saveBtn.firstChild as Text).data = same ? "No Changes" : "Save Changes";
   }
@@ -532,16 +586,14 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
       saveBtn.removeAttribute("disabled");
       (saveBtn.firstChild as Text).data = "Save Changes";
     }
-    if (!delayedInit) {
-      updateState(false);
-    }
+    updateState(inited < 2);
   }
   function saveOptions(this: void): void {
     if (saveBtn.disabled) {
       return;
     }
     const testers = bgExclusions.testers_;
-    BG_.Backend.forceStatus_("reset", frameInfo.t);
+    BG_.Backend_.forceStatus_("reset", frameInfo.t);
     exclusions.save_();
     setTimeout(function () {
       bgExclusions.testers_ = testers;
@@ -558,7 +610,7 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
   }
   saveBtn.onclick = saveOptions;
   document.addEventListener("keyup", function (event): void {
-    if (event.keyCode === VKeyCodes.enter && (event.ctrlKey || event.metaKey)) {
+    if (event.keyCode === kKeyCode.enter && (event.ctrlKey || event.metaKey)) {
       setTimeout(window.close, 300);
       if (!saved) { return saveOptions(); }
     }
@@ -568,38 +620,56 @@ BG_.Utils.require_("Exclusions").then((function (callback) {
     , ref1 = bgExclusions.testers_ = BG_.Object.create(null)
     , ref2 = bgExclusions.rules_;
   for (let _i = 0, _len = rules.length; _i < _len; _i++) {
-    ref1[rules[_i].pattern] = ref2[_i * 2];
+    ref1[rules[_i].pattern] = ref2[_i];
   }
   const sender = ref ? ref[0].s : <Readonly<Frames.Sender>> { s: Frames.Status.enabled, f: Frames.Flags.Default }
-    , initialStat = sender.s !== Frames.Status.disabled ? "Disable" : "Enable";
-  curLockedStatus = sender.f & Frames.Flags.locked ? sender.s : Frames.Status.__fake;
-  let el0 = $<HTMLElement>("#toggleOnce");
-  el0.textContent = initialStat + " for once";
-  el0.onclick = forceState.bind(null, initialStat);
-  if (sender.f & Frames.Flags.locked) {
-    el0 = el0.nextElementSibling as HTMLElement;
-    el0.classList.remove("hidden");
-    el0 = el0.firstElementChild as HTMLElement;
-    el0.onclick = forceState.bind(null, "Reset");
+    , toggleAction = sender.s !== Frames.Status.disabled ? "Disable" : "Enable"
+    , curIsLocked = !!(sender.f & Frames.Flags.locked);
+  curLockedStatus = curIsLocked ? sender.s : Frames.Status.__fake;
+  let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling;
+  nextTick_(() => {
+  el0.firstElementChild.textContent = curIsLocked ? toggleAction : toggleAction + " for once";
+  el0.onclick = forceState.bind(null, toggleAction);
+  stateValue.id = "state-value";
+  if (curIsLocked) {
+    el1.classList.remove("hidden");
+    el1.firstElementChild.onclick = forceState.bind(null, "Reset");
+  } else {
+    el1.remove();
   }
+  });
+  if (!(Build.BTypes & BrowserType.Chrome)
+      || Build.BTypes & ~BrowserType.Chrome && bgOnOther_ !== BrowserType.Chrome
+      || bgSettings_.payload_.m
+      ) {
+    window.addEventListener("keydown", function (event): void {
+      if (event.altKey
+          && (event.keyCode === kKeyCode.X || curIsLocked && event.keyCode === kKeyCode.Z)
+          && !(event.shiftKey || event.ctrlKey || event.metaKey)
+          ) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        forceState(event.keyCode === kKeyCode.X ? toggleAction : "Reset");
+      }
+    });
+  }
+  Option_.suppressPopulate_ = false;
   let exclusions: PopExclusionRulesOption = null as never;
-  PopExclusionRulesOption.prototype.onInit_ = delayedInit;
   exclusions = new PopExclusionRulesOption($("#exclusionRules"), onUpdated);
-  if (inited > 0) {
-    delayedInit();
-  }
+  exclusions.fetch_();
   if (!Build.NDEBUG) {
     interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
     (window as WindowEx).exclusions = exclusions;
   }
   window.onunload = function (): void {
-    bgExclusions.testers_ = null;
-    BG_.Utils.GC_();
+    bgExclusions.testers_ = null as never;
+    BG_.BgUtils_.GC_(-1);
   };
+  BG_.BgUtils_.GC_(1);
 
   function forceState(act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();
-    BG_.Backend.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", frameInfo.t);
+    BG_.Backend_.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", frameInfo.t);
     window.close();
   }
 }));

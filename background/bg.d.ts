@@ -1,24 +1,24 @@
 declare namespace Search {
   interface RawEngine {
-    url: string;
-    blank: string;
-    name: string;
+    url_: string;
+    blank_: string;
+    name_: string;
   }
   interface Engine extends Readonly<RawEngine> {}
   interface Result {
-    readonly url: string;
-    readonly indexes: number[];
+    readonly url_: string;
+    readonly indexes_: number[];
   }
   interface Executor {
     (query: string[], url: string, blank: string, indexes: number[]): Result;
     (query: string[], url: string, blank: string): string;
   }
-  type TmpRule = { prefix: string, matcher: RegExpOne | RegExpI };
+  type TmpRule = { prefix_: string, matcher_: RegExpOne | RegExpI };
   interface Rule {
-    readonly prefix: string;
-    readonly matcher: RegExp;
-    readonly name: string;
-    readonly delimiter: RegExpOne | RegExpI | string;
+    readonly prefix_: string;
+    readonly matcher_: RegExp;
+    readonly name_: string;
+    readonly delimiter_: RegExpOne | RegExpI | string;
   }
   interface EngineMap extends SafeDict<Engine> {}
 }
@@ -118,7 +118,7 @@ declare namespace Urls {
 
 declare namespace Frames {
   type ValidStatus = Status.enabled | Status.partial | Status.disabled;
-  type ForcedStatusText = "reset" | "enable" | "disable" | "toggle";
+  type ForcedStatusText = "reset" | "enable" | "disable" | "toggle" | "next";
 
   interface Sender {
     /** frameId */ readonly i: number;
@@ -134,6 +134,7 @@ declare namespace Frames {
     s: Sender;
     postMessage<K extends 1, O extends keyof CmdOptions>(request: Req.FgCmd<O>): K;
     postMessage<K extends keyof FgRes>(response: Req.res<K>): 1;
+    postMessage<K extends 2>(response: Req.res<keyof FgRes>): 1;
     postMessage<K extends kBgReq>(request: Req.bg<K>): 1;
   }
 
@@ -150,7 +151,7 @@ declare namespace Frames {
 
   interface FramesMapToDestroy extends FramesMap {
     [tabId: number]: Frames;
-    omni?: Frames;
+    /** omni */ o?: Frames;
   }
 }
 interface Port extends Frames.Port {
@@ -183,9 +184,28 @@ declare namespace ExclusionsNS {
     pattern: string;
     passKeys: string;
   }
+  const enum TesterType { RegExp = 0, StringPrefix = 1, _mask = "", }
+  interface BaseTester {
+    readonly type_: TesterType & number;
+    readonly value_: RegExpOne | string;
+    readonly keys_: string;
+  }
+  interface RegExpTester extends BaseTester {
+    readonly type_: TesterType.RegExp,
+    readonly value_: RegExpOne;
+  }
+  interface PrefixTester extends BaseTester {
+    readonly type_: TesterType.StringPrefix,
+    readonly value_: string;
+  }
+  type Tester = RegExpTester | PrefixTester;
+  type Rules = Tester[];
   type Details = chrome.webNavigation.WebNavigationFramedCallbackDetails;
   interface Listener {
     (this: void, details: Details): void;
+  }
+  interface GetExcluded {
+    (this: void, url: string, sender: Frames.Sender): string | null;
   }
 }
 
@@ -194,30 +214,30 @@ declare namespace CommandsNS {
   interface Options extends ReadonlySafeDict<any> {}
   // encoded info
   interface CustomHelpInfo {
-    key: string;
-    desc: string;
-    $key?: unknown;
+    key_: string;
+    desc_: string;
+    $key_?: unknown;
   }
   interface NormalizedCustomHelpInfo extends CustomHelpInfo {
-    $key: string;
-    $desc: string;
+    $key_: string;
+    $desc_: string;
   }
-  type BgDescription = [ string, 0 | 1, 1, kBgCmd & number, {}? ];
-  type FgDescription = [ string, 0 | 1, 0, kFgCmd & number, {}? ];
-  /** [ description, count limit, is background, enum, default options ] */
+  type BgDescription = [ kBgCmd & number, 1, number, {}? ];
+  type FgDescription = [ kFgCmd & number, 0, number, {}? ];
+  /** [ enum, is background, count limit, default options ] */
   type Description = BgDescription | FgDescription;
   interface BaseItem {
-    readonly command: string;
-    readonly options: Options | null;
-    readonly repeat: number;
-    readonly help: CustomHelpInfo | null;
+    readonly command_: string;
+    readonly options_: Options | null;
+    readonly repeat_: number;
+    readonly help_: CustomHelpInfo | null;
   }
   type Item = (BaseItem & {
-    readonly alias: kBgCmd & number;
-    readonly background: 1;
+    readonly alias_: kBgCmd & number;
+    readonly background_: 1;
   }) | (BaseItem & {
-    readonly alias: kFgCmd & number;
-    readonly background: 0;
+    readonly alias_: kFgCmd & number;
+    readonly background_: 0;
   });
 }
 
@@ -227,13 +247,13 @@ declare namespace CompletersNS {
   }
 
   interface Domain {
-    time: number;
-    count: number;
-    https: BOOL;
+    time_: number;
+    count_: number;
+    https_: BOOL;
   }
 
   type Callback = (this: void, sugs: Readonly<Suggestion>[],
-    newAutoSelect: boolean, newMatchType: MatchType, newMatchedTotal: number) => void;
+    newAutoSelect: boolean, newMatchType: MatchType, newMatchedSugTypes: SugType, newMatchedTotal: number) => void;
 
   type FullOptions = Options & {
   };
@@ -262,18 +282,32 @@ declare namespace IconNS {
   }
   type IconBuffer = {
     [size in ValidSizes]?: ImageData;
-  }
+  };
   type PathBuffer = {
     readonly [size in ValidSizes]: string;
-  }
+  };
   interface AccessIconBuffer {
     (this: void, enabled: boolean): void;
     (this: void): object | null;
   }
 }
 
+declare namespace MediaNS {
+  const enum kName {
+    PrefersReduceMotion = 0, /** {@link #BrowserVer.MinMediaQuery$PrefersReducedMotion} */
+    PrefersColorScheme = 1,
+  }
+  const enum Watcher {
+    InvalidMedia = 0,
+    WaitToTest,
+    NotWatching,
+  }
+}
+
 declare namespace SettingsNS {
   interface BackendSettings extends BaseBackendSettings {
+    autoDarkMode: boolean;
+    autoReduceMotion: boolean;
     dialogMode: boolean;
     exclusionListenHash: boolean;
     exclusionOnlyFirstMatch: boolean;
@@ -291,7 +325,6 @@ declare namespace SettingsNS {
     searchUrl: string;
     searchEngines: string;
     showActionIcon: boolean;
-    showAdvancedCommands: boolean;
     showAdvancedOptions: boolean;
     userDefinedCss: string;
     vimSync: boolean | null;
@@ -309,13 +342,13 @@ declare namespace SettingsNS {
   }
   interface BaseNonPersistentSettings {
     searchEngineRules: Search.Rule[];
-    searchKeywords: string[] | null;
+    searchKeywords: string | null;
   }
   interface NonPersistentSettings extends BaseNonPersistentSettings, OtherSettingsWithDefaults, CachedFiles {}
   interface PersistentSettings extends FrontendSettings, BackendSettings {}
 
   interface SettingsWithDefaults extends PersistentSettings, OtherSettingsWithDefaults {}
-  interface FullSettings extends PersistentSettings, NonPersistentSettings, FrontUpdateAllowedSettings {}
+  interface FullSettings extends PersistentSettings, NonPersistentSettings {}
 
   interface SimpleUpdateHook<K extends keyof FullSettings> {
     (this: {}, value: FullSettings[K], key: K): void;
@@ -345,10 +378,9 @@ declare namespace SettingsNS {
 
   interface FullCache extends SafeObject, PartialOrEnsured<FullSettings
       , "innerCSS" | "newTabUrl_f" | "searchEngineMap" | "searchEngineRules" | "vomnibarPage_f"
-        | "vomnibarOptions"
+        | "vomnibarOptions" | "focusNewTabContent"
       > {
-    findCSS_: FindCSS; // should not in Settings.defaults
-    omniCSS_: string; // should not in Settings.defaults
+    findCSS_: FindCSS; // should not in Settings_.defaults
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
@@ -378,13 +410,14 @@ declare namespace BackendHandlersNS {
     openUrl_ (this: void, request: FgReq[kFgReq.openUrl], port?: Port | undefined): void;
     checkIfEnabled_: ExclusionsNS.Listener;
     focus_ (this: void, request: MarksNS.FocusOrLaunch): void;
-    reopenTab_ (tab: chrome.tabs.Tab, refresh?: boolean): void;
+    setOmniStyle_ (this: void, request: FgReq[kFgReq.setOmniStyle], port?: Port): void;
+    reopenTab_ (tab: chrome.tabs.Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
     IconBuffer_: IconNS.AccessIconBuffer | null,
     removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
     showHUD_ (message: string, isCopy?: boolean | undefined): void;
-    getExcluded_ (this: void, url: string, sender: Frames.Sender): string | null,
+    getExcluded_: ExclusionsNS.GetExcluded,
     forceStatus_ (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
     indexPorts_: {
       (this: void, tabId: number, frameId: number): Port | null;
@@ -392,7 +425,7 @@ declare namespace BackendHandlersNS {
       (this: void, tabId: number): Frames.Frames | null;
       (this: void): Frames.FramesMap;
     };
-    ExecuteShortcut_ (this: void, command: kShortcutNames | kShortcutAliases & string): void;
+    ExecuteShortcut_ (this: void, command: string): void;
     onInit_: ((this: void) => void) | null;
   }
 }
@@ -402,11 +435,11 @@ type ShortcutInfoMap = {
 };
 
 interface CommandsDataTy {
+  cmdDescriptions_: ReadonlySafeDict<string>;
   keyToCommandRegistry_: SafeDict<CommandsNS.Item>;
   keyMap_: KeyMap;
   shortcutMap_: ShortcutInfoMap;
   mapKeyRegistry_: SafeDict<string> | null;
-  availableCommands_: ReadonlySafeDict<CommandsNS.Description>;
 }
 
 interface VClipboardTy {
@@ -414,7 +447,7 @@ interface VClipboardTy {
 }
 
 interface BaseHelpDialog {
-  render_ (this: void, request: FgReq[kFgReq.initHelp]): string;
+  render_ (this: {}, request: FgReq[kFgReq.initHelp]): BgReq[kBgReq.showHelpDialog]["h"];
 }
 
 interface Window {
@@ -423,10 +456,10 @@ interface Window {
   readonly CommandsData_: CommandsDataTy;
   readonly Exclusions?: object;
   readonly HelpDialog?: BaseHelpDialog;
-  readonly OnOther: BrowserType;
-  readonly ChromeVer: BrowserVer;
+  readonly OnOther?: BrowserType;
+  readonly CurCVer_: BrowserVer;
 
-  readonly Backend: BackendHandlersNS.BackendHandlers;
+  readonly Backend_: BackendHandlersNS.BackendHandlers;
 }
 
 declare const enum Consts {
@@ -434,10 +467,12 @@ declare const enum Consts {
   MaxLengthOfSearchKey = 50, MinInvalidLengthOfSearchKey = MaxLengthOfSearchKey + 1,
 }
 
-declare var Backend: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy;
+declare var Backend_: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy;
 
-declare function setTimeout <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
-  timeout: number, a1: T1, a2: T2, a3: T3): number;
-declare function setTimeout <T1, T2>(this: void, handler: (this: void, a1: T1, a2: T2) => void,
-  timeout: number, a1: T1, a2: T2): number;
-declare function setTimeout <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
+declare var setTimeout: SetTimeout;
+interface SetTimeout {
+  <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
+    timeout: number, a1: T1, a2: T2, a3: T3): number;
+  <T1, T2>(this: void, handler: (this: void, a1: T1, a2: T2) => void, timeout: number, a1: T1, a2: T2): number;
+  <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
+}

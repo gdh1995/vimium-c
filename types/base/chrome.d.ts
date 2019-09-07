@@ -1020,8 +1020,13 @@ declare namespace chrome.notifications {
          * Optional.
          * Whether to show UI indicating that the app will visibly respond to clicks on the body of a notification.
          * @since Chrome 32.
+         * @deprecated since Chrome 67.
          */
         isClickable?: boolean;
+        /**
+         * @since Chrome 70.
+         */
+        silent?: boolean;
         /**
          * Optional.
          * A URL to the app icon mask. URLs have the same restrictions as iconUrl. The app icon mask should be in alpha channel, as only the alpha channel of the image will be considered.
@@ -1746,7 +1751,7 @@ declare namespace chrome.sessions {
     interface SessionChangedEvent extends chrome.events.Event<(exArg: FakeArg) => void> {}
 
     /** The maximum number of sessions.Session that will be included in a requested list. */
-    export var MAX_SESSION_RESULTS: number | undefined;
+    export var MAX_SESSION_RESULTS: number;
 
     /**
      * Gets the list of recently closed tabs and/or windows.
@@ -1786,7 +1791,7 @@ declare namespace chrome.sessions {
     export function restore(sessionId?: string | null, callback?: (restoredSession: Session, exArg: FakeArg) => void): 1;
 
     /** only on Firefox */
-    export function forgetClosedTab(windowId: number, sessionId: string): 1;
+    export function forgetClosedTab(windowId: number, sessionId: string): Promise<void>;
 
     /** Fired when recently closed tabs and/or windows are changed. This event does not monitor synced sessions changes. */
     export var onChanged: SessionChangedEvent;
@@ -1985,6 +1990,7 @@ declare namespace chrome.tabs {
          * The URL of the tab's favicon. This property is only present if the extension's manifest includes the "tabs" permission. It may also be an empty string if the tab is loading.
          */
         favIconUrl: string;
+        hidden?: boolean;
         /**
          * The ID of the tab. Tab IDs are unique within a browser session. Under some circumstances a Tab may not be assigned an ID, for example when querying foreign tabs using the sessions API, in which case a session ID may be present. Tab ID can also be set to chrome.tabs.TAB_ID_NONE for apps and devtools windows.
          */
@@ -2001,6 +2007,7 @@ declare namespace chrome.tabs {
          * @since Chrome 45.
          */
         audible: boolean;
+        /** only on C45 */ muted?: boolean;
         /**
          * Current tab muted state and the reason for the last state change.
          * @since Chrome 46. Warning: this is the current Beta channel.
@@ -2016,6 +2023,17 @@ declare namespace chrome.tabs {
          * @since Chrome 31.
          */
         height?: number;
+        /**
+         * Whether the tab can be discarded automatically by the browser when resources are low.
+         * @since Chrome 54.
+         */
+        autoDiscardable?: boolean;
+        /**
+         * Whether the tab is discarded. A discarded tab is one whose content has been unloaded from memory,
+         * but is still visible in the tab strip. Its content is reloaded the next time it is activated.
+         * @since Chrome 54.
+         */
+        discarded?: boolean;
     }
 
     /**
@@ -2477,9 +2495,14 @@ declare namespace chrome.tabs {
     export function reload(tabId: number, callback?: (exArg: FakeArg) => void): 1;
     /**
      * Reload the selected tab of the current window.
-      * @since Chrome 16.
+     * @since Chrome 16.
      */
     export function reload(callback?: (exArg: FakeArg) => void): 1;
+    /**
+     * Discards a tab from memory. Discarded tabs are still visible on the tab strip and are reloaded when activated.
+     * @since Chrome 54
+     */
+    export function discard(tabId: number, callback?: (exArg: FakeArg) => void): 1;
     /**
      * Duplicates a tab.
      * @since Chrome 23.
@@ -2693,6 +2716,7 @@ declare namespace chrome.webNavigation {
         /** True if the last navigation in this frame was interrupted by an error, i.e. the onErrorOccurred event fired. */
         errorOccurred: boolean;
         /** ID of frame that wraps the frame. Set to -1 of no parent frame exists. */
+        /** has existed since C41. */
         parentFrameId: number;
     }
 

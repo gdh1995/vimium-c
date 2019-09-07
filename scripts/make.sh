@@ -37,13 +37,13 @@ if [ -z "$output" -o -d "$output" ]; then
     pkg_name=
     if [ -n "$ori_output" ]; then :
     elif bool "$WITH_MAP"; then
-      ver=${ver}_debug
+      ver=${ver}-debug
     elif test -f "$ZIP_BASE/.build/.chrome.build"; then
-      ver=${ver}_chrome
+      ver=${ver}-chrome
     elif test -f "$ZIP_BASE/.build/.firefox.build"; then
-      ver=${ver}_firefox
+      ver=${ver}-fx
     else
-      ver=${ver}_dist
+      ver=${ver}-dist
     fi
     if [ -d '/wo' ]; then
       output=/wo/
@@ -54,12 +54,13 @@ if [ -z "$output" -o -d "$output" ]; then
     output=/wo/
   fi
   pkg_name=$(basename "${pkg_name:-$PWD}")
-  pkg_name=${pkg_name//++/-plus}
-  pkg_name=${pkg_name//+/-}
-  pkg_name=${pkg_name// /-}
+  pkg_name=${pkg_name//++/_plus}
+  pkg_name=${pkg_name//+/_}
+  pkg_name=${pkg_name// /_}
   pkg_name=${pkg_name%-}
   pkg_name=${pkg_name%_}
-  output=$output${pkg_name:-vimium-c}${ver:+_$ver}.zip
+  pkg_name=${pkg_name//-c/_c}
+  output=$output${pkg_name:-vimium_c}${ver:+-$ver}.zip
 elif [ "${output%.[a-z]*}" = "$output" ]; then
   output=$output.zip
 fi
@@ -95,11 +96,11 @@ fi
 if ! bool "$NOT_IGNORE_FRONT"; then
   ZIP_IGNORE=$ZIP_IGNORE' front/manifest* front/*.png'
 fi
-zip -rX -MM $args "$output_for_zip" ${input[@]} -x 'weidu*' 'test*' 'git*' \
-  'dist*' 'front/vimium.css' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
+zip -rX -MM $args "$output_for_zip" ${input[@]} -x 'weidu*' 'helpers*' 'test*' 'git*' \
+  'dist*' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
   'pages/dialog_ui*' 'GUD*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
   '*tslint*' \
-  '*.coffee' '*.crx' '*.enc' '*.log' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
+  '*.coffee' '*.crx' '*.enc' '*.log' '*.psd' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
 err=$?
 [ $pushd_err -eq 0 ] && popd >/dev/null 2>&1
 

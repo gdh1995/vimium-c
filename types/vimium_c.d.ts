@@ -1,5 +1,14 @@
 
 declare namespace CompletersNS {
+  const enum SugType {
+    Empty = 0,
+    bookmark = 1,
+    history = 2,
+    domain = 4,
+    search = 8,
+    tab = 16,
+    Full = 0x3f,
+  }
   /**
    * only those >= .Default can be used in content
    */
@@ -7,10 +16,9 @@ declare namespace CompletersNS {
     plain = 0,
     Default = plain,
     emptyResult = 1, // require query is not empty
-    /** only matches one single engine */
-    singleMatch = 2,
+    someMatches = 2,
     /**
-     * must >= singleMatch
+     * must > someMatches
      */
     searchWanted = 3,
     reset = -1,
@@ -18,45 +26,57 @@ declare namespace CompletersNS {
      * is the same as searchWanted
      */
     searching_ = -2,
+    SugTypeOffset = 3,
+    MatchTypeMask = (1 << SugTypeOffset) - 1,
   }
-  type ValidTypes = "bookm" | "domain" | "history" | "omni" | "search" | "tab";
+  type ValidTypes = "bookm" | "domain" | "history" | "omni" | "bomni" | "search" | "tab";
   /**
    * "math" can not be the first suggestion, which is limited by omnibox handlers
    */
   type ValidSugTypes = ValidTypes | "math";
+  const enum QueryFlags {
+    None = 0,
+    SingleLine = 1,
+    TabInCurrentWindow = 2,
+    MonospaceURL = 4,
+    TabTree = 8,
+  }
   interface Options {
     /** maxChars */ c?: number;
     /** maxResults */ r?: number;
-    /** singleLine */ s?: boolean;
-    /** flags */ f?: number;
-    /** type */ t: ValidTypes;
+    /** flags */ f: QueryFlags;
+    /** last sug types: empty means all */ t: SugType;
     /** original type */ o: ValidTypes;
   }
 
   interface WritableCoreSuggestion {
-    type: ValidSugTypes;
-    url: string;
-    title: string;
-    text: string;
+    /** enumType */ e: ValidSugTypes;
+    /** url */ u: string;
+    title: string; // used by vomnibar.html
+    /** text */ t: string;
   }
 
   type CoreSuggestion = Readonly<WritableCoreSuggestion>;
 
   interface BaseSuggestion extends CoreSuggestion {
-    text: string;
+    t: string;
     textSplit?: string;
     title: string;
-    sessionId?: string | number;
+    /** sessionId */ s?: string | number;
     label?: string;
-    visited?: boolean;
+    /** visited */ v?: boolean;
     favIcon?: string;
   }
   interface Suggestion extends BaseSuggestion {
-    relevancy: number;
+    /** relevancy */ r: number;
   }
   interface SearchSuggestion extends Suggestion {
-    type: "search";
-    pattern: string;
+    e: "search";
+    // not empty
+    /** pattern */ p: string;
+  }
+  interface TabSuggestion extends Suggestion {
+    level?: string;
   }
 }
 
@@ -144,6 +164,8 @@ interface ReadonlyChildKeyMap {
 }
 type KeyMap = ReadonlySafeDict<ValidKeyAction | ReadonlyChildKeyMap>;
 
+type TextElement = HTMLInputElement | HTMLTextAreaElement;
+
 declare const enum ReuseType {
   current = 0,
   Default = current,
@@ -153,11 +175,12 @@ declare const enum ReuseType {
 }
 
 declare const enum FrameMaskType {
-  NoMask = 0,
-  minWillMask = NoMask + 1,
-  OnlySelf = minWillMask,
-  NormalNext = 2,
-  ForcedSelf = 3,
+  NoMaskAndNoFocus = 0,
+  NoMask = 1,
+  OnlySelf = 2,
+  NormalNext = 3,
+  ForcedSelf = 4,
+  minWillMask = OnlySelf,
 }
 
 declare const enum ProtocolType {
@@ -217,54 +240,79 @@ declare const enum PortType {
 declare namespace SettingsNS {
   interface BaseBackendSettings {
     focusNewTabContent: boolean;
+    /** if want to rework it, must search it in all files and take care */
+    ignoreCapsLock: 0 | 1 | 2;
     newTabUrl_f: string;
+    showAdvancedCommands: boolean;
     vomnibarOptions: {
       maxMatches: number;
       queryInterval: number;
+      sizes: string; // comma-joined size numbers
       styles: string;
     };
   }
   interface FrontUpdateAllowedSettings {
-    showAdvancedCommands: boolean;
+    showAdvancedCommands: 0;
   }
   interface FrontendSettings {
-    deepHints: boolean;
+    ignoreKeyboardLayout: boolean;
     keyboard: [number, number];
     linkHintCharacters: string;
     regexFindMode: boolean;
     scrollStepSize: number;
     smoothScroll: boolean;
   }
-  interface FrontendConsts {
-    readonly browserVer_: BrowserVer;
-    readonly browser_: BrowserType;
-    /** `mac`: true, `win`: 0, `others`: false */ readonly onMac_: boolean | 0;
+  interface FrontendSettingNameMap {
+    ignoreKeyboardLayout: "L";
+    keyboard: "k";
+    linkHintCharacters: "l";
+    regexFindMode: "R";
+    smoothScroll: "S";
+    scrollStepSize: "t";
   }
-  interface FrontendSettingCache extends FrontendSettings, FrontendConsts {
-    grabBackFocus_: boolean;
+  interface FrontendSettingMutableNames extends FrontendSettingNameMap {
+    ignoreCapsLock: "i";
+  }
+  type CachedFrontendSettingsTemplate<T> = T extends keyof FrontendSettingNameMap ? {
+    [k in FrontendSettingNameMap[T]]: FrontendSettings[T];
+  } : never;
+  type CachedFrontendSettings = UnionToIntersection<CachedFrontendSettingsTemplate<keyof FrontendSettings>>;
+  interface FrontendSettingsSyncedManually {
+    /** reduceMotion */ r: boolean;
+    /** darkMode */ d: " D" | "";
+    /** ignoreCapsLock */ i: boolean;
+  }
+  interface FrontendSettingsWithoutSyncing {
+    /** browserVer */ readonly v?: BrowserVer;
+    /** browser */ readonly b?: BrowserType;
+    /** onMac: `mac`: true, `win`: 0, `others`: false */ readonly m: boolean | 0;
+    /** grabBackFocus */ g: boolean;
+  }
+  interface FrontendSettingsWithSync extends CachedFrontendSettings, FrontendSettingsSyncedManually {}
+  /** Note: should have NO names which may be uglified */
+  interface FrontendSettingCache extends FrontendSettingsWithSync, FrontendSettingsWithoutSyncing {
+    /** browserVer */ readonly v: BrowserVer;
   }
 }
 
 declare const enum HintMode {
-  empty = 0, focused = 1, newTab = 2, queue = 64,
-  mask_focus_new = focused | newTab, mask_queue_focus_new = mask_focus_new | queue,
-  min_job = 128, min_link_job = 136, min_disable_queue = 256,
-  DEFAULT = empty,
-  OPEN_IN_CURRENT_TAB = DEFAULT, // also 1
+  empty = 0, focused = 1, list = 1, newTab = 2, mask_focus_new = focused | newTab,
+  queue = 16, min_job = 32, min_disable_queue = 64,
+  OPEN_IN_CURRENT_TAB = empty, DEFAULT = OPEN_IN_CURRENT_TAB, // also 1
   OPEN_IN_NEW_BG_TAB = newTab,
   OPEN_IN_NEW_FG_TAB = newTab | focused,
   OPEN_CURRENT_WITH_QUEUE = queue,
   OPEN_WITH_QUEUE = queue | newTab,
   OPEN_FG_WITH_QUEUE = queue | newTab | focused,
-  HOVER = min_job,
-  LEAVE,
-  COPY_TEXT,
-  SEARCH_TEXT,
-  DOWNLOAD_IMAGE,
-  OPEN_IMAGE,
+  HOVER = min_job, min_hovering = HOVER,
+  LEAVE, max_hovering = LEAVE, max_mouse_events = LEAVE,
   FOCUS,
-  DOWNLOAD_LINK = min_link_job,
-  COPY_LINK_URL,
+  DOWNLOAD_MEDIA, min_media = DOWNLOAD_MEDIA,
+  OPEN_IMAGE, max_media = OPEN_IMAGE,
+  SEARCH_TEXT,
+  COPY_TEXT = ((SEARCH_TEXT + 1) & ~1), min_copying = COPY_TEXT, mode1_text_list = COPY_TEXT | list,
+  COPY_URL, mode1_url_list = COPY_URL | list, min_link_job = COPY_URL, max_copying = mode1_url_list,
+  DOWNLOAD_LINK,
   OPEN_INCOGNITO_LINK,
   EDIT_LINK_URL = min_disable_queue,
     max_link_job = EDIT_LINK_URL,
@@ -279,6 +327,18 @@ declare namespace VomnibarNS {
     inner = 0, ext = 1, web = 2,
     Default = inner,
   }
+  const enum PixelData {
+    MarginTop = 64,
+    InputBar = 54, InputBarWithLine = InputBar + 1,
+    Item = 44, LastItemDelta = 46 - Item,
+    MarginV1 = 9, MarginV2 = 10, ShadowOffset = 2, MarginV = MarginV1 + MarginV2 + ShadowOffset * 2,
+    OthersIfEmpty = InputBar + MarginV,
+    OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
+    ListSpaceDeltaWithoutScrollbar = MarginTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
+    MarginH = 24, AllHNotUrl = 20 * 2 + 20 + 2 + MarginH,
+    MeanWidthOfMonoFont = 7.7, MeanWidthOfNonMonoFont = 4,
+    WindowSizeX = 0.8, AllHNotInput = AllHNotUrl,
+  }
   interface GlobalOptions {
     mode: string;
     currentWindow?: boolean;
@@ -288,6 +348,7 @@ declare namespace VomnibarNS {
     force: boolean;
     keyword: string;
     url?: true | string | null;
+    tree?: boolean; // show tabs in tree mode
   }
 }
 
@@ -295,19 +356,21 @@ declare const enum InjectorTask {
   reload = 1,
   recheckLiving = 2,
   reportLiving = 3,
+  extInited = 4,
 }
 interface VimiumInjectorTy {
   id: string;
   alive: 0 | 0.5 | 1 | -1;
   host: string;
   version: string;
-  versionHash: string;
+  $h: string;
   clickable: WeakSet<Element> | null | undefined;
+  cache: Dict<any> | null;
   getCommandCount: (this: void) => number;
   checkIfEnabled: (this: void) => void;
-  $run (taskType: BgReq[kBgReq.injectorRun]): void;
-  $_run (taskType: InjectorTask): void;
-  $priv?: [
+  /** on message to run */ $m (taskType: BgReq[kBgReq.injectorRun]): void;
+  $r (taskType: InjectorTask): void;
+  $p?: [
     <K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void
     , () => string
   ] | null;
@@ -331,42 +394,65 @@ declare const enum GlobalConsts {
   // limited by Pagination.findAndFollowLink_
   MaxNumberOfNextPatterns = 200,
   MaxBufferLengthForPasting = 8192,
-  TimeoutToReleaseBackendModules = /** (to make TS silent) 1000 * 60 */ 60000,
+  TimeoutToReleaseBackendModules = /** (to make TS silent) 1000 * 60 * 5 */ 300000,
   ToleranceOfNegativeTimeDelta = 5000,
   ThresholdToAutoLimitTabOperation = 2, // 2 * Tab[].length
   LinkHintTooHighThreshold = 20, // scrollHeight / innerHeight
-  LinkHintLimitToCheckViewportFirst = 15000,
+  LinkHintPageHeightLimitToCheckViewportFirst = 15000,
   MinElementCountToStopScanOnClick = 5000,
   MaxScrollbarWidth = 24,
+  MinScrollableAreaSizeForDetection = 50,
   MaxHeightOfLinkHintMarker = 18,
   FirefoxFocusResponseTimeout = 340,
   MaxLimitOfVomnibarMatches = 25,
-  DisplayUseDynamicTitle = 0,
   MaxFindHistory = 50,
   TimeOfSuppressingTailKeydowns = 200,
+  CommandCountLimit = 9999,
+  MediaWatchInterval = 60_000, // 60 seconds - chrome.alarms only accepts an interval >= 1min, so do us
+  MaxHistoryURLLength = 2_000, // to avoid data: URLs and malformed webpages
+  MaxSenderURLLength = 4_000, // if too long, keep the first `MaxSenderURLLength` characters and append a "..."
+  TrimmedURLLengthForTooLongURL = 320,
+  TrimmedTitleLengthForTooLongURL = 160,
+  // so that `P` = 89 / 9e6 < 1e-5
+  SecretRange = 9e6,
+  SecretBase = 1e6,
+  MaxRetryTimesForSecret = 89,
+  SecretStringLength = 7,
+  MarkForName3Length = 10,
+  SYNC_QUOTA_BYTES = 102_400, // QUOTA_BYTES of storage.sync in https://developer.chrome.com/extensions/storage
+  SYNC_QUOTA_BYTES_PER_ITEM = 8192,
+  /** ceil(102_400 / (8192 - (12 + 16) * 4)) ; 12 and 16 is inner consts in {@link ../background/others.ts} */
+  MaxSyncedSlices = 13,
+  LOCAL_QUOTA_BYTES = 5_242_880, // 5MB ; no QUOTA_BYTES_PER_ITEM for local
+  LOCAL_STORAGE_BYTES = 10_485_760, // 10MB
+  MaxTabTreeIndent = 5,
 }
 
-declare const enum KnownKey {
+declare const enum kCharCode {
   tab = 9, space = 32, minNotSpace, bang = 33, quote2 = 34, hash = 35,
-  maxCommentHead = hash, and = 38, quote1 = 39, minNotInKeyNames = 41, dot = 46, slash = 47,
+  maxCommentHead = hash, and = 38, quote1 = 39, minNotInKeyNames = 41,
+  /** '-' */ dash = 45,
+  dot = 46, slash = 47,
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62, question = 63,
-  A = 65, minAlphabet = A, B, C, I = A + 8, W = A + 22, minLastAlphabet = A + 25, minNotAlphabet,
-  a = 97, CASE_DELTA = a - A, AlphaMask = 0xff & ~CASE_DELTA,
+  A = 65, minAlphabet = A, B, C, I = A + 8, K = I + 2, W = A + 22, minLastAlphabet = A + 25, minNotAlphabet,
+  a = 97, CASE_DELTA = a - A,
   backslash = 92, s = 115,
 }
 
-declare const enum VKeyCodes {
+declare const enum kKeyCode {
   None = 0,
   backspace = 8, tab = 9, enter = 13, shiftKey = 16, ctrlKey = 17, altKey = 18, esc = 27,
+  minAcsKeys = 16, maxAcsKeys = 18,
   maxNotPrintable = 32 - 1, space, maxNotPageUp = space, pageup, minNotSpace = pageup,
   pagedown, maxNotEnd = pagedown, end, home, maxNotLeft = home, left, up,
   right, minNotUp = right, down, minNotDown, minNotInKeyNames = minNotDown,
   maxNotInsert = 45 - 1, insert, deleteKey, minNotDelete,
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum,
-  maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K,
+  maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K, L, M, N,
+  O, P, Q, R, S, T, U, V, W, X, Y, Z, MinNotAlphabet,
   metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f5 = f1 + 4,
-  f10 = f1 + 9, f12 = f1 + 11, f20 = f1 + 19, minNotFn, ime = 229,
-  questionWin = 191, questionMac = KnownKey.question,
+  f10 = f1 + 9, f12 = f1 + 11, f13, f20 = f1 + 19, minNotFn, ime = 229,
+  questionWin = 191, questionMac = kCharCode.question,
 }
 declare const enum KeyStat {
   Default = 0, plain = Default,
@@ -374,12 +460,12 @@ declare const enum KeyStat {
   PrimaryModifier = ctrlKey | metaKey,
 }
 
-/** `OnOther` and `fg::reqH.init` requires .Chrome must be 0 */
 declare const enum BrowserType {
   Chrome = 1,
   Firefox = 2,
   Edge = 4,
   Unknown = 8,
+  ChromeOrFirefox = Chrome | Firefox,
   _mask = 127,
 }
 
@@ -393,17 +479,32 @@ declare const enum BrowserType {
  * #define LATEST_TESTED 73.0.3683.86
  */
 declare const enum BrowserVer {
-  MinShadowDOMV0 = 35, // ensured
-  MinSupported = MinShadowDOMV0,
+  // display:flex still exists on C31 (C29, from MDN)
+  MinShadowDOMV0 = 31, // the real version is <= C31; it's prefixed
+  MinSupported = 32,
+  MinEnsuredES6Promise = 32, // even if LEGACY
+  // the 5 below are correct even if EXPERIMENTAL or LEGACY
+  Min$URL$NewableAndInstancesHaveProperties = 32,
+  Min$KeyboardEvent$$Repeat$ExistsButNotWork = 32, // replaced by MinCorrect$KeyboardEvent$$Repeat (C38)
+  Min$document$$hidden = 33, // unprefixed; .webkitHidden still exists on C31
+  // `<input type=number>.selectionStart` throws since Chrome 33 and before C58 (Min$selectionStart$MayBeNull),
+  Min$selectionStart$MayThrow = 33,
+  Min$Object$$setPrototypeOf = 34,
+  // before C34, 2 images share a size part (the first one's), and different height/width would work as the smaller one
+  /** {@see ../pages/options.css#select { background: ...; }} */
+  MinMultipleBackgroundImagesNotShareSizePart = 34,
+  // on C34 and if EXPERIMENTAL, then it's not implied; before C37, `'unsafe-inline'` is necessary in CSP
+  StyleSrc$UnsafeInline$MayNotImply$UnsafeEval = 34,
+  MinEnsuredUnprefixedShadowDOMV0 = 35, // even if LEGACY
+  MinEnsured$ActivateEvent$$Path = 35, // = MinEnsuredUnprefixedShadowDOMV0
   // there're WeakMap, WeakSet, Map, Set and Symbols on C35 if #enable-javascript-harmony
   MinEnsuredES6WeakMapAndWeakSet = 36,
-  // but shadowRoot.getElementById still exists on C35
+  // but shadowRoot.getElementById still exists on C31
   Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEGACY
   MinPhysicalPixelOnWindows = 37, // even if EXPERIMENTAL or LEGACY; replaced by MinHighDPIOnWindows
   // before C37, if a page has no `'unsafe-inline'` in its CSP::`style-src`, then Vimium's styles is totally broken
-  // on FF66, it still breaks Vimium's UI
   MinStyleSrcInCSPNotBreakUI = 37, // even if EXPERIMENTAL or LEGACY
-  MinSession = 37,
+  MinSessions = 37,
   // even if EXPERIMENTAL; Note: should use MinSafeCSS$All
   /** @deprecated */
   MinCSS$All$Attr = 37,
@@ -414,20 +515,22 @@ declare const enum BrowserVer {
    * * but after a mousemove / wheel, the "position" attr becomes "static" and the view breaks
    * * it recovers if modifying its position/z-index attr
    * * if the Dev Tools is on, and visits styles of the box, then a mousemove won't break the UI
-   * 
+   *
    * a work-around is set <div>.style.position,
    * but the HUD is also affected when pressing <Shift> to switch LinkHint mode,
    * so must remove the all: before MinFixedCSS$All$MayMistakenlyResetFixedPosition
    */
   MinCSS$All$MayMistakenlyResetFixedPosition = 37,
-  MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C35 if EXPERIMENTAL
-  // includes for-of, Map, Set, Symbols, even if LEGACY
-  MinES6ForAndSymbols = 38,
-  // .repeat still exists on C35, but only works since C38, even if EXPERIMENTAL
+  MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C31 if EXPERIMENTAL
+  // even if EXPERIMENTAL or LEGACY
+  MinES6$ForOf$Map$SetAnd$Symbol = 38,
+  // .repeat exists since C32, but only works since C38, even if EXPERIMENTAL
   // because there seems no simple fix, just ignore it
   // https://bugs.chromium.org/p/chromium/issues/detail?id=394907
   MinCorrect$KeyboardEvent$$Repeat = 38,
+  MinEnsuredTextEncoderAndDecoder = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
   MinWithFrameIdInArg = 39,
+  MinMaybe$String$$StartsWithAndEndsWith = 39, // if EXPERIMENTAL
   MinOptionsUI = 40,
   MinDisableMoveTabAcrossIncognito = 40,
   // even if EXPERIMENTAL or LEGACY
@@ -435,11 +538,11 @@ declare const enum BrowserVer {
   MinEnsured$Element$$Closest = 41, // even if LEGACY
   MinWithFrameId = 41,
   // just means it's enabled by default
-  Min$String$$StartsWithAndIncludes = 41,
+  Min$String$$StartsWithEndsWithAndIncludes$ByDefault = 41, // no "".includes before 41, even if EXPERIMENTAL
   MinGlobal$HTMLDetailsElement = 41,
-  MinFixedCSS$All$MayMistakenlyResetFixedPosition = 41,
-  MinSafeCSS$All = MinFixedCSS$All$MayMistakenlyResetFixedPosition,
-  // (if EXPERIMENTAL, then it exists but) has no effects before C41;
+  MinFixedCSS$All$MightMistakenlyResetFixedPosition = 41,
+  MinSafeCSS$All = MinFixedCSS$All$MightMistakenlyResetFixedPosition,
+  // (if EXPERIMENTAL, then it exists since C34 but) has no effects before C41;
   // if EXPERIMENTAL, there's Element::scrollTo and Element::scrollBy only since C41
   MinCSS$ScrollBehavior$$Smooth$Work = 41,
   // MethodFunction is accepted since C42 if EMPTY
@@ -452,8 +555,8 @@ declare const enum BrowserVer {
   // before C43, "font-size: ***" of <select> overrides those of its <options>s'
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43
   Min$Option$HasReliableFontSize = 43, // even if LEGACY
-  MinEnsuredES6$String$$StartsWithAndRepeatAndIncludes = 43, // even if LEGACY
-  MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithAndRepeatAndIncludes + 1, // add a margin
+  MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes = 43, // even if LEGACY
+  MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes + 1, // add a margin
   MinRuntimePlatformOs = 44,
   MinCreateWndWithState = 44,
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
@@ -463,8 +566,11 @@ declare const enum BrowserVer {
   // - it's said this behavior is for compatibility with websites at that time
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
-  // even if EXPERIMENTAL or EMPTY
+  // the 2 below are even if EXPERIMENTAL or EMPTY
   MinMayBeES6ArrowFunction = 45,
+  // for VHints.traverse_, Array.from takes >= 2x time to convert a static NodeList of 7242 elements to an array
+  // and the average time data is 119~126ms / 255~266ms for 100 times
+  Min$Array$$From = 45,
   // even if LEGACY
   MinEnsuredES6MethodFunction = 45, // e.g.: `a = { b() {} }`
   MinMuted = 45,
@@ -492,7 +598,7 @@ declare const enum BrowserVer {
   // even if EXPERIMENTAL or LEGACY
   MinSafeGlobal$frameElement = 48,
   // just means it's enabled even if LEGACY;
-  // if EXPERIMENTAL, .code is "" on Chrome 42/43, and works well since C44 
+  // if EXPERIMENTAL, .code is "" on Chrome 42/43, and works well since C44
   MinEnsured$KeyboardEvent$$Code = 48,
   MinMayBeShadowDOMV1 = 48, // if EXPERIMENTAL
   // a path of an older DOMActivate event has all nodes (windows -> nodes in shadow DOM)
@@ -500,6 +606,7 @@ declare const enum BrowserVer {
   // and replaced by MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since C56
   MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument = 48, // if EXPERIMENTAL
   MinEnsuredTouchEventConstructor = 48, // even if LEGACY
+  MinEnsured$Array$$Includes = 49, // even if LEGACY
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinES6No$Promise$$defer = 49,
@@ -564,6 +671,7 @@ declare const enum BrowserVer {
   // only Chrome accepts it:
   // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
   Min$Extension$$GetView$AcceptsTabId = 54,
+  Min$tabs$$discard = 54,
   // the 7 below are correct even if EXPERIMENTAL or LEGACY
   MinUnprefixedUserSelect = 54,
   MinHighDPIOnWindows = 54, // replace MinPhysicalPixelOnWindows
@@ -572,7 +680,7 @@ declare const enum BrowserVer {
   Min$Node$$getRootNode = 54, // not on Edge
   MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInShadowDOM = 55,
   // before C55, onActivate should only be installed on document
-  Min$ActivateEvent$$Path$OnlyIncludeWindowIfListenedOnWindow = 55,
+  Min$ActivateEvent$$Path$IncludeWindowAndElementsIfListenedOnWindow = 55,
   Min$SVGElement$$dataset = 55,
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
   MinSomeDocumentListenersArePassiveByDefault = 56,
@@ -590,11 +698,12 @@ declare const enum BrowserVer {
   MinNoKeygenElement = 57,
   MinCSSPlaceholderPseudo = 57,
   MinEnsuredCSSGrid = 57, // even if LEGACY; still partly works on C35 if EXPERIMENTAL
+  MinEnsuredAsyncFunctions = 57, // even if LEGACY
   /*
    * Chrome before 58 does this if #enable-site-per-process or #enable-top-document-isolation;
    * Chrome 56 / 57 always merge extension iframes if EXPERIMENTAL
    * Chrome since 58 always merge extension iframes even if the two flags are disabled and LEGACY
-   * 
+   *
    * Special cases:
    * Chrome 55 does this by default (unless turn one of the flags on and then off);
    * if #enable-top-document-isolation, Chrome since 56 merge them,
@@ -612,9 +721,7 @@ declare const enum BrowserVer {
   // tmp_width := (since 58 ? Math.round : Math.floor)(width * devicePixelRatio * zoom)
   // real_width := width && Math.max(tmp_width, 1)
   MinBorderWidthIsRounded = 58,
-  // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange,
-  // `<input type=number>.selectionStart` throws on Chrome 33,
-  // but ChromeStatus says it has changed the behavior to match the new spec on C58
+  // Chrome changed its behavior to match the new spec on C58 (replace Min$selectionStart$MayThrow)
   Min$selectionStart$MayBeNull = 58,
   // .type is always 'Caret'
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
@@ -642,12 +749,12 @@ declare const enum BrowserVer {
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
   // a bug of styke.zoom not working is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
-  MinCorrectBoxWidthForOptionUI = 61,
+  MinCorrectBoxWidthForOptionsUI = 61,
   Min$visualViewPort$ = 61,
   MinScrollIntoViewOptions = 61,
   // also means ensured Element::scrollBy, Element::scrollTo and window.scrollTo/scrollBy({})
   // not on edge
-  MinEnsuredCSS$ScrollBehavior = 61, // still exists on C35 (although has no effects before C41) if EXPERIMENTAL
+  MinEnsuredCSS$ScrollBehavior = 61, // still exists since C34 (although has no effects before C41) if EXPERIMENTAL
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
     // according to https://github.com/w3ctag/design-reviews/issues/51#issuecomment-96759374 ,
@@ -659,6 +766,13 @@ declare const enum BrowserVer {
   MinMaybe$Document$$fullscreenElement = 61, // if EXPERIMENTAL
   MinCSS$Color$$RRGGBBAA = 62,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
+  // there's a bug of C62/63 even if EXPERIMENTAL or LEGACY:
+  // * if a `createShadowRoot()` from ext isolates after docReady and before wnd.onload,
+  //   then some pages using ShadowDOM v0 heavily may be stuck.
+  // * before C62 / since C64 / attachShadow has no such a bug
+  // https://github.com/philc/vimium/issues/2921#issuecomment-361052160
+  CreateShadowRootOnDocReadyBreakPages1 = 62,
+  CreateShadowRootOnDocReadyBreakPages2 = 63,
   // the 6 below are correct even if EXPERIMENTAL or LEGACY
   // `/deep/` works on C35 even if LEGACY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
@@ -686,7 +800,10 @@ declare const enum BrowserVer {
   // @see MinEscapeHashInBodyOfDataURL
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
   MinWarningOfEscapingHashInBodyOfDataURL = 66,
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=582245
+  Min$ContentDocument$NotThrow = 67, // even if EXPERIMENTAL or LEGACY
   MinSlotIsNotDisplayContents = 67,
+  Min$NotificationOptions$$isClickable$IsDeprecated = 67,
   // even if EXPERIMENTAL or LEGACY
   // but not on pages whose JS is disabled in chrome://settings/content/siteDetails?site=<origin>
   // issue: https://bugs.chromium.org/p/chromium/issues/detail?id=811528
@@ -703,9 +820,15 @@ declare const enum BrowserVer {
   // (MinStaticSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled)
   // https://github.com/chromium/chromium/commit/c81707c532183d4e6b878041964e85b0441b9f50
   MinNoSelector$GtGtGt = 69,
+  // if an element has position:absolute and is at the right/bottom edge, it won't cause the page shows a scrollbar
+  MinAbsolutePositionNotCauseScrollbar = 69, // even if EXPERIMENTAL or LEGACY
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
   MinFramesetHasNoNamedGetter = 70,
   MinContainLayoutBreakUIBox = 70, // even if EXPERIMENTAL
+  Min$NotificationOptions$$silent = 70,
+  // if `toggleCS` repeatedly, then a 3rd-party iframe gets a new CS later than its owner top frame
+  // and if reopenTab, the CS is synced among frames again
+  MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings = 70, // even if EXPERIMENTAL or LEGACY
   // means unprefixed properties and event name
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,
@@ -721,15 +844,44 @@ declare const enum BrowserVer {
   MinSpecCompliantShadowBlurRadius = 73,
   // re-implement extension APIs into C++ bindings: https://bugs.chromium.org/p/chromium/issues/detail?id=763564
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
-  // it's said the deadline is C73 in https://www.chromestatus.com/features/4507242028072960
-  // but no source code in Chromium to disable it (tested on 2019-03-13)
+  /** Related: https://chromium.googlesource.com/chromium/src/+/0146a7468d623a36bcb55fc6ae69465702bae7fa%5E%21/#F18
+   * Stack Trace:
+   * * an `<iframe>` has `embedded_content_view_` member, and has `.IsDisplayNone: () => !embedded_content_view_`
+   * * if `.style.display` is updated, its `LayoutEmbeddedContent` layout instance is destroyed
+   * * so call `HTMLFrameOwnerElement::SetEmbeddedContentView`, and then `FrameOwnerPropertiesChanged`
+   * * in `LocalFrameClientImpl::DidChangeFrameOwnerProperties`, a new `WebFrameOwnerProperties` is created
+   *   * it has the latest "is_display_none" state and is passed to `RenderFrameImpl::DidChangeFrameOwnerProperties`
+   * * then `ConvertWebFrameOwnerPropertiesToFrameOwnerProperties` is used to convert message classes
+   *   * the default value of `FrameOwnerProperties::is_display_none` and `Web~::~` is `false`
+   *   * the old code does not sync `.is_display_none`
+   *   * this commit 0146a74 begins to update `FrameOwnerProperties::is_display_none`
+   * * the child frame gets notified and runs `RenderFrameHostImpl::OnDidChangeFrameOwnerProperties`
+   * * `FrameTreeNode::set_frame_owner_properties` is called, and then
+   *   * `OnSetFrameOwnerProperties` of either `RenderFrameImpl` or `RenderFrameProxy` is called
+   *   * run `WebFrame::SetFrameOwnerProperties` to notify changes and recalc styles
+   */
   MinNoFocusOrSelectionStringOnHiddenIFrame = 74, // even if EXPERIMENTAL or LEGACY
-  MinNoShadowDOMv0 = 77,
+  // https://www.chromestatus.com/features/5650553247891456
+  // https://docs.google.com/document/d/1CJgCg7Y31v5MbO14RDHyBAa5Sf0ZnPVtZMiOFCNbgWc/edit
+  MinMaybeScrollEndAndOverScrollEvents = 74, // if EXPERIMENTAL
+  // the below 3 are even if EXPERIMENTAL or LEGACY
+  MinMediaQuery$PrefersReducedMotion = 74,
+  // https://chromium.googlesource.com/chromium/src/+/5e84b7a819637ed4dd8f9c4d11288127663c8267
+  MinBlockAutoFocusingInCrossOriginFrame = 75,
+  MinMediaQuery$PrefersColorScheme = 76,
+  // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
+  MinNoShadowDOMv0 = 80,
+  // ses https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change
+  // TODO: use a real version code when the bug report above is solved
+  MinMediaChangeEventsOnBackgroundPage = 99,
   assumedVer = 999,
 }
 declare const enum FirefoxBrowserVer {
   MinEnsuredShadowDOMV1 = 63, // also DocumentOrShadowRoot::getSelection
   MinUsable$Navigator$$Clipboard = 63,
+  MinMediaQuery$PrefersReducedMotion = 63,
   Min$Document$$FullscreenElement = 64,
+  // Min$globalThis = 65, // should not export `globalThis` into the outside
+  MinMediaQuery$PrefersColorScheme = 67,
   MinSupported = 64,
 }

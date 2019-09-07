@@ -23,6 +23,12 @@ type PartialOrEnsured<T, EnsuredKeys extends keyof T> = {
   [P in Exclude<keyof T, EnsuredKeys>]?: T[P];
 };
 
+// this is to fix a bug of TypeScript ~3.5
+type Generalized<T, K extends keyof T = keyof T> = { [k in K]: __GeneralizedValues<T, K>; };
+type __GeneralizedValues<T, K> = K extends keyof T ? T[K] : never;
+
+type PossibleKeys<T, V, K extends keyof T = keyof T> = K extends keyof T ? T[K] extends V ? K : never : never;
+
 type TypedSafeEnum<Type> = {
   readonly [key in keyof Type]: 1;
 } & SafeObject;
@@ -40,8 +46,13 @@ declare const enum TimerType {
   noTimer = -2,
 }
 type SafeSetTimeout = (this: void, handler: (this: void) => void, timeout: number) => number;
-declare function setTimeout (this: void
-  , handler: (this: void, i: TimerType.fake | undefined) => void, timeout: number): number;
+declare var setTimeout: SetTimeout, setInterval: SetInterval;
+interface SetTimeout {
+  (this: void, handler: (this: void, fake?: TimerType.fake) => void, timeout: number): number;
+}
+interface SetInterval {
+  (this: void, handler: (this: void, fake?: TimerType.fake) => void, interval: number): number;
+}
 
 interface String {
   endsWith(searchString: string): boolean;
@@ -68,4 +79,12 @@ interface EnsuredMountedElement extends Element {
     readonly lastElementChild: EnsuredMountedElement;
     readonly parentNode: EnsuredMountedElement;
     readonly parentElement: EnsuredMountedElement;
+}
+
+interface EnsuredMountedHTMLElement extends HTMLElement {
+  readonly firstElementChild: EnsuredMountedHTMLElement;
+  readonly lastElementChild: EnsuredMountedHTMLElement;
+  readonly parentNode: EnsuredMountedHTMLElement;
+  readonly parentElement: EnsuredMountedHTMLElement;
+  readonly nextElementSibling: EnsuredMountedHTMLElement;
 }
