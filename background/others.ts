@@ -349,7 +349,7 @@ BgUtils_.timeout_(1000, function (): void {
   function shouldSyncKey(key: string): key is keyof SettingsToSync {
     return !(key in doNotSync);
   }
-  function saveAllToClocal(timeout: number): void {
+  function saveAllToLocal(timeout: number): void {
     Settings_.temp_.backupSettingsToLocal_ = null;
     BgUtils_.timeout_(timeout, () => { chrome.storage.local.get(null, (items): void => {
       if (Settings_.get_("vimSync")) { return; }
@@ -378,7 +378,7 @@ BgUtils_.timeout_(1000, function (): void {
       event.removeListener(HandleStorageUpdate);
       if (Settings_.sync_ !== SetLocal) {
         Settings_.sync_ = SetLocal;
-        saveAllToClocal(600);
+        saveAllToLocal(600);
       }
       return;
     } else if (Settings_.sync_ !== TrySet) {
@@ -392,8 +392,8 @@ BgUtils_.timeout_(1000, function (): void {
                           && (localStorage.length > SyncConsts.LocalItemCountWhenInstalled
                                     || Settings_.get_("newTabUrl") !== Settings_.CONST_.NewTabForNewUser_))) {
     let doBackup = Settings_.temp_.backupSettingsToLocal_;
-    Settings_.temp_.backupSettingsToLocal_ = doBackup ? null : saveAllToClocal;
-    doBackup && saveAllToClocal(6000);
+    Settings_.temp_.backupSettingsToLocal_ = doBackup ? null : saveAllToLocal;
+    doBackup && saveAllToLocal(6000);
     Settings_.sync_ = SetLocal;
     return;
   }
