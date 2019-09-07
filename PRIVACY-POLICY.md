@@ -1,58 +1,70 @@
-Privacy Policy
-==============
+How Vimium C Respects Your Privacy
+==================================
 
-Vimium C supports both export, and cloud-based synchronization of your settings,
-    including key mappings and search engines, but no browsing behavior.
+Vimium C supports both export and cloud-based synchronization of your
+settings (including key mappings and search engines). None of your browsing
+behavior is included.
 
-By default, Vimium C only downloads synced settings during the first installation,
-and if no synced settings found, it will never sync with your Chrome account.
-However, if you do wish to enable this behavior, you may enable the advanced
-    `Synchronize settings with your current account for this browser` setting.
+By default, Vimium C only downloads synced settings during the first
+installation, and if no synced settings are found, it will never sync with your
+Chrome account. However, if you do wish to enable this behavior, you may enable
+the advanced `Synchronize settings with your current account for this browser`
+setting.
 
-All information handled by Vimium C, including history, bookmarks, page titles and URLs, will only be used locally.
+All information handled by Vimium C, including history, bookmarks, page titles
+and URLs, will only be used locally.
 
-Your search history in `Vomnibar` and `Link Hints` modes will be purged immediately after use.
-
-Your keyword searches using `FindMode` are never included in these.
-Please note that your `FindMode` search keywords on Incognito windows are stored temporarily,
-    and will remain in memory, until all your Incognito windows are destroyed.
+Your search history in `Vomnibar` and `Link Hints` modes will be purged
+immediately after use. Your keyword searches -- entered when using `FindMode`
+-- are never included in these. Please note that your `FindMode` search
+keywords on Incognito windows are stored temporarily, and will remain in
+memory, until all of your Incognito windows have been destroyed.
 
 
 Permissions Required
 ====================
 
-This extension Vimium C requires such types of information and permissions:
-* **`bookmarks` & `history`**: match queries and generate suggestions for Vomnibar
-* **`tabs`**: operate your tabs, including opening / removing / moving / updating
-* **`webNavigation`**: get a page's new url to check if Vimium C should be enabled / disabled on the page
-* **clipboard read+write & browsing activity**: add shortcuts to copy/paste page title/url, link text/href and so on
-* **`contentSettings`**: toggle browser's content settings on special websites, such as whether to show images
-* **`notifications`**: show a notification whenever Vimium C is upgraded to a higher version
-* **`sessions`**: allow you to restore closed tabs (supported from Chrome 37)
+Vimium C requires these permissions:
+* **`bookmarks` & `history`**: to match queries and generate suggestions for Vomnibar.
+* **`tabs`**: to operate your tabs, including opening, removing, moving and updating.
+* **`webNavigation`**: to match an incoming URL, confirming whether Vimium
+  C should be enabled or disabled on the page.
+* **clipboard read+write & browsing activity**: to add shortcuts for copying
+  and pasting the page title/URL, link text/href, and the like.
+* **`contentSettings`**: to toggle your browser's content settings. For
+  example, displaying your preferred typeface, or a larger font size, on
+  selected websites.
+* **`notifications`**: to show a notification whenever Vimium C is upgraded.
+* **`sessions`**: to allow you to restore closed tabs. This functionality was
+  enabled in Chrome 37 and up.
 * **`storage`**: **not in use** by default.
     When you enable "`Sync settings with your current account for this browser`" manually,
     Vimium C will require this permission to sync your settings items with Google servers.
 
 Note:
-* The "**browsing activity**" listed above actually includes many permissions:
-    `tabs`, `<all_urls>` and `webNavigation`.
-* Vimium C never deletes any browser history item, except on explicit user request (such as <kbd>Shift+Delete</kbd>).
+* The "**browsing activity**" listed above actually includes a number of
+  separate permissions: `tabs`, `<all_urls>` and `webNavigation`.
+* Vimium C never deletes any browser history item, except on explicit user
+  request (such as <kbd>Shift+Delete</kbd>).
 
 
 Further Information
 ===================
 
-In old versions (before v1.77.0),
-Vimium C overrides the "newtab" chrome URL in order to provide a better user experience on the `chrome://newtab` page.
-But since 2019/09 the default behavior has been updated, so there's no more overriding in public releases.
-As an alternative, the extension [NewTab Adapter](https://github.com/gdh1995/vimium-c-helpers/tree/master/newtab#readme)
-    does the same thing.
+Vimium C formerly overrode the "newtab" chrome URL, to provide a better user
+experience on the `chrome://newtab` page. That behavior was reversed in version
+1.77.0, released in Sep 2019; Vimium C no longer overrides this setting. If
+you'd like to restore the previous behavior, we recommend [NewTab
+Adapter](https://github.com/gdh1995/vimium-c-helpers/tree/master/newtab#readme).
 
-Vimium C also registers a search key (`v`) for Chrome's [omnibox](https://developer.chrome.com/extensions/omnibox).
-This makes the box work just like Vomnibar in omni mode.
+Vimium C registers a search key (`v`) for Chrome's
+[omnibox](https://developer.chrome.com/extensions/omnibox). This makes the box
+work just like Vomnibar in omni mode.
 
-You may remove certain permissions without breaking Vimium C (note that some commands might fail as a result):
+You may remove certain permissions without breaking Vimium C (note that some
+commands might fail as a result):
 * `webNavigation`, `contentSettings`, `notifications`, and `storage` may be removed.
-* Certain manifest fields, including `commands`, `chrome_url_overrides`, and `omnibox`, can be removed safely.
-* In versions previous to Chrome 37, no `sessions` functionality exists, so a few of Vimium C's commands won't work.
-    Most others will remain unchanged.
+* Certain manifest fields, including `commands`, `chrome_url_overrides`, and
+  `omnibox`, can be removed safely.
+* In versions previous to Chrome 37, no `sessions` functionality exists, so
+  a few of Vimium C's commands won't work. Most others will remain unchanged.
