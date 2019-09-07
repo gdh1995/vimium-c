@@ -7,18 +7,8 @@ interface ShadowRoot {
   vimiumListened?: ShadowRootListenType;
 }
 
-interface Window {
-  VimiumInjector?: VimiumInjectorTy | null;
-  VSettings: VSettingsTy | null;
-  readonly VKeyboard?: {
-    char_ (event: KeyboardEvent): string;
-    key_ (event: EventControlKeys, ch: string): string;
-  };
-  readonly VDom?: {
-    readonly UI: DomUI;
-    view_ (el: Element, oldY?: number | undefined): boolean;
-  };
-  readonly VFind?: { css_: FindCSS | null; };
+interface WindowWithTop extends Window {
+  top: Window;
 }
 declare const enum HandlerResult {
   PassKey = -1,
@@ -28,6 +18,11 @@ declare const enum HandlerResult {
   MinStopOrPreventEvents = 1,
   MaxNotPrevent = 1,
   Prevent = 2,
+  Esc = 3,
+  ExitPassMode = 4,
+  // for `<c-[>`, do nothing advanced; but treat any mapped `<esc>` as a plain `<esc>` (apply `AdvancedFlag`)
+  AdvancedEscFlag = 8,
+  AdvancedEscEnum = 11, // `Esc | 8`
 }
 declare const enum VisibilityType {
   Visible = 0,
@@ -45,12 +40,43 @@ interface KeydownCacheArray extends SafeObject {
   [keyCode: number]: BOOL | 2 | undefined;
 }
 
+/**
+ * only Element has string .tagName, .id
+ *
+ * when used, MUST handle the cases of `Document` and `ShadowRoot`
+ *
+ * Note .role does not exist on C35
+ */
+type NodeToElement = TypeToAssert<Node, Element, "tagName", "nodeType">;
+/**
+ * Tested on C74, comparing HTMLElement/SVGElement | Element, there're only 5 properties which can be used:
+ * * attributeStyleMap: StylePropertyMap | null,
+ * * dataset: DOMStringMap | undefined, style: CSSStyleDeclaration | undefined,
+ * * nonce: string | undefined, tabIndex: number | undefined
+ *
+ * While C++ wrappers should be avoided, so select "nonce" / "tabIndex". "focus" / "blur" may also be used.
+ * But, "nonce" occurred very late (about C61) and does not exist on Firefox.
+ */
+type ElementToHTMLorSVG = TypeToAssert<Element, HTMLElement | SVGElement, "tabIndex", "tagName">;
+/**
+ * Document & HTMLElement & SVGStyleElement have string .title;
+ * only HTMLElement has a string  .lang;
+ * and, in cs.chromium.org, .title is faster than .tabIndex during C++ DOM parts
+ */
+type ElementToHTML = TypeToAssert<Element, HTMLElement, "lang", "tagName">;
+
 interface SafeElement extends Element {
   tagName: string;
+  nodeName: string;
+  localName: string;
 }
-type SafeHTMLElement = HTMLElement & SafeElement & {
+type BaseSafeHTMLElement = HTMLElement & SafeElement;
+interface SafeHTMLElement extends BaseSafeHTMLElement {
   readonly innerText: string;
-};
+  readonly parentElement: Element | null;
+  readonly parentNode: Node | null;
+}
+type SaferType<Ty> = Ty extends HTMLElement ? SafeHTMLElement : Ty extends Element ? SafeElement : Ty;
 interface LockableElement extends SafeHTMLElement {
 }
 
@@ -119,8 +145,8 @@ declare const enum PNType {
 }
 
 declare const enum EditableType {
-  Default = 0,
-  NotEditable = Default,
+  NotEditable = 0,
+  Default = NotEditable,
   Embed = 1,
   Select = 2,
   MaxNotTextModeElement = 2,
@@ -136,22 +162,29 @@ declare const enum SelType {
 }
 
 declare namespace HintsNS {
+  interface MarkerElement extends HTMLSpanElement {
+    readonly childNodes: NodeListOf<HTMLSpanElement | Text>
+  }
   interface BaseHintItem {
-    marker: HTMLSpanElement;
-    target: Hint[0];
+    marker_: MarkerElement;
+    dest_: Hint[0];
   }
 
   interface HintItem extends BaseHintItem {
-    key: string;
-    refer: HTMLElementUsingMap | Hint[0] | null;
-    zIndex?: number;
+    key_: string;
+    refer_: HTMLElementUsingMap | Hint[0] | null;
+    zIndex_?: number;
+  }
+
+  interface InputHintItem extends BaseHintItem {
+    dest_: SafeHTMLElement;
   }
 }
 
 declare namespace FindNS {
   const enum Action {
     PassDirectly = -1,
-    DoNothing = 0, Exit, ExitNoFocus, ExitUnexpectedly,
+    DoNothing = 0, Exit, ExitNoAnyFocus, ExitNoFocus, ExitUnexpectedly,
     ExitToPostMode, ExitAndReFocus,
     MaxExitButNoWork = ExitUnexpectedly, MinExitAndwork = ExitToPostMode,
   }
@@ -185,7 +218,7 @@ declare namespace VomnibarNS {
   type Msg<T extends (kCReq | kFReq) & number> = { N: T };
 
   const enum kCReq {
-    activate, hide, focus, backspace,
+    activate, hide, focus,
     _mask = "",
   }
   const enum kFReq {
@@ -197,13 +230,12 @@ declare namespace VomnibarNS {
     [kCReq.activate]: FgOptions & Msg<kCReq.activate>;
     [kCReq.hide]: kCReq.hide;
     [kCReq.focus]: kCReq.focus;
-    [kCReq.backspace]: kCReq.backspace;
   }
   interface FReq {
     [kFReq.hide]: {
     };
     [kFReq.scroll]: {
-      /** keyCode */ keyCode: VKeyCodes;
+      /** keyCode */ keyCode: kKeyCode;
     };
     [kFReq.style]: {
       // unit: physical pixel (if C<52)
@@ -212,7 +244,7 @@ declare namespace VomnibarNS {
     };
     [kFReq.hud]: { t: string; };
     [kFReq.focus]: {
-      /** lastKey */ l: VKeyCodes;
+      /** lastKey */ l: kKeyCode;
     };
     [kFReq.evalJS]: {
       u: string;
@@ -229,18 +261,6 @@ declare namespace VomnibarNS {
     onmessage (this: void, msg: { data: CReq[keyof CReq] }): void | 1;
   }
   type FgOptionsToFront = CReq[kCReq.activate];
-  const enum PixelData {
-    MarginTop = 64,
-    InputBar = 54, InputBarWithLine = InputBar + 1,
-    Item = 44, LastItemDelta = 46 - Item,
-    MarginV1 = 9, MarginV2 = 10, MarginV = MarginV1 + MarginV2,
-    OthersIfEmpty = InputBar + MarginV,
-    OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
-    ListSpaceDelta = MarginTop + MarginV1
-      + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0) + GlobalConsts.MaxScrollbarWidth,
-    MarginH = 24, AllHNotUrl = 20 * 2 + 20 + 2 + MarginH, MeanWidthOfChar = 7.7,
-    WindowSizeX = 0.8, AllHNotInput = AllHNotUrl,
-  }
 }
 
 declare type ScrollByY = 0 | 1;
@@ -267,56 +287,18 @@ interface Hint5 extends Hint4 {
 }
 
 declare const enum AdjustType {
-  /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#VDom.UI.add_ : VDom.UI.css_} */
+  /** Note(gdh1995): NotAdjust must be used carefully: @see {@link dom_ui.ts#VCui.add_ : VCui.css_} */
   Normal = 0,
   MustAdjust = 1,
   NotAdjust = 2,
   DEFAULT = Normal,
 }
 
-declare function setInterval(this: void, handler: (this: void, fake?: TimerType.fake) => void, timeout: number): number;
-
 type VimiumContainerElementType = "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog";
 /** ShadowRoot | HTMLDivElement */
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 
 interface MyMouseControlKeys { altKey_: boolean; ctrlKey_: boolean; metaKey_: boolean; shiftKey_: boolean; }
-
-interface DomUI {
-  box_: HTMLDivElement | null;
-  styleIn_: HTMLStyleElement | string | null;
-  styleOut_: HTMLStyleElement | null;
-  /** `!!@UI` must keep the same as `!!@box_`*/
-  UI: VUIRoot;
-  _lastFlash: HTMLElement | null;
-  /** only exists under DEBUG mode */ flashTime?: number;
-  add_<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): void;
-  addElementList_<T extends boolean | BOOL>(this: DomUI, els: ReadonlyArray<HintsNS.BaseHintItem>,
-    offset: ViewOffset, dialogContainer?: T | null
-    ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement;
-  adjust_ (this: void, event?: Event | /* enable */ 1 | /* disable */ 2): void;
-  cssPatch_: [string, (css: string) => string] | null;
-  ensureBorder_ (this: DomUI, zoom?: number): void;
-  createStyle_ (this: DomUI, text?: string, css?: HTMLStyleElement): HTMLStyleElement;
-  css_ (this: DomUI, innerCSS: string): void;
-  getDocSelectable_ (this: DomUI): boolean;
-  toggleSelectStyle_ (this: DomUI, enable: BOOL): void;
-  getSelected_ (this: DomUI, notExpectCount?: 1): [Selection, ShadowRoot | null];
-  getSelectionText_ (notTrim?: 1): string;
-  removeSelection_ (this: DomUI, root?: VUIRoot): boolean;
-  click_ (this: DomUI, element: Element
-    , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean
-    , button?: 0 | 2, touchMode?: boolean | "auto" | 0): void;
-  simulateSelect_ (this: DomUI, element: Element, rect?: Rect | null, flash?: boolean
-    , action?: SelectActions, suppressRepeated?: boolean): void;
-  /** @NEED_SAFE_ELEMENTS */
-  _moveSel_need_safe (this: DomUI, element: LockableElement, action: SelectActions | undefined): void;
-  getRect_ (this: void, clickEl: Element, refer?: HTMLElementUsingMap | null): Rect | null;
-  flash_ (this: DomUI, el: null, rect: Rect, lifeTime?: number): HTMLElement;
-  flash_ (this: DomUI, el: Element): HTMLElement | void;
-  suppressTail_ (this: void, onlyRepeated: BOOL): void;
-  SuppressMost_: HandlerNS.Handler<{}>;
-}
 
 interface VDomMouse {
   (element: Element, type: "mousedown" | "mouseup" | "click"
@@ -330,7 +312,7 @@ interface VDomMouse {
 interface VPortTy {
   post_<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
   post_<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
-  send_<K extends keyof FgRes>(this: void, req: Pick<Req.fgWithRes<K>, "a" | "c">
+  send_<K extends keyof FgRes>(this: void, cmd: K, args: Req.fgWithRes<K>["a"]
     , callback: (this: void, res: FgRes[K]) => void): void;
   evalIfOK_ (url: string): boolean;
 }
@@ -339,25 +321,33 @@ interface ComplicatedVPort extends VPortTy {
 }
 interface VEventModeTy {
   lock_(this: void): LockableElement | null;
+  isCmdTriggered_ (this: void): BOOL;
   OnWndFocus_ (this: void): void;
-  checkHidden_ (this: void): boolean;
-  checkHidden_ (this: void, cmd: kFgCmd, count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): boolean;
-  focusAndListen_ (this: void, callback?: (() => void) | null, timedout?: 0): void;
-  focus_ (this: void, request: BgReq[kBgReq.focusFrame]): void;
+  checkHidden_ (this: void): BOOL;
+  /** may focus the parent frame before returning */
+  checkHidden_ (this: void, cmd: FgCmdAcrossFrames
+      , count: number, opts: NonNullable<FgReq[kFgReq.gotoMainFrame]['a']>): BOOL;
+  focusAndRun_ (this: void): void;
+  focusAndRun_ (this: void, cmd: FgCmdAcrossFrames
+      , count: number, options: FgOptions
+      , showBorder?: 1): void;
+  focusAndRun_ (this: void, cmd: 0, count: never, options: never, showBorder: 1): void;
   onWndBlur_ (this: void, onWndBlur2: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
-  mapKey_ (this: void, key: string): string;
-  scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: VKeyCodes }, wnd?: Window): void;
+  mapKey_ (this: void, char: string, event: EventControlKeys, onlyChar?: string): string;
+  scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: kKeyCode }, wnd?: Window): void;
   /** return has_error */
   readonly keydownEvents_: {
-    (this: void, newArr: KeydownCacheArray): boolean;
+    (this: void, srcFrame: Pick<VEventModeTy, "keydownEvents_"> | KeydownCacheArray): boolean;
     (this: void): KeydownCacheArray;
   };
   readonly OnScrolls_: {
-    0: (this: void, event: KeyboardEvent) => BOOL | 28;
-    1: (wnd: Window, interval?: number) => void;
+    0: (this: void, event: KeyboardEvent) => boolean;
+    1: (wnd: Window, isAdd: BOOL) => void;
     2: (this: Window, event: KeyboardEvent & {type: "keyup"} | Event & {type: "blur"}) => void;
-  } 
+  };
+  execute_: ((this: void, cmd: ValidContentCmds) => void) | null;
+  destroy_: (this: void, silent?: boolean | BOOL | 9) => void;
 }
 interface VHUDTy {
   readonly box_: HTMLDivElement | null;
@@ -370,13 +360,7 @@ interface VHUDTy {
   copied_ (this: VHUDTy, text: string, type?: string): void;
   hide_ (this: void, info?: TimerType): void;
 }
-interface VSettingsTy {
-  readonly enabled_: boolean;
-  readonly cache: SettingsNS.FrontendSettingCache;
-  execute_: ((this: void, cmd: ValidContentCmds) => void) | null;
-  readonly destroy_: (this: void, silent?: boolean | 9) => void;
-}
-declare var VimiumInjector: VimiumInjectorTy | undefined | null, VSettings: VSettingsTy;
+declare var VimiumInjector: VimiumInjectorTy | undefined | null, VEvent: VEventModeTy;
 
 interface VDataTy {
   full: string;
@@ -384,10 +368,56 @@ interface VDataTy {
 
 declare const enum kContentCmd {
   _fake = 0,
-  FindAllOnClick = 1,
+  FindAllOnClick = 2,
   _minNotDispatchDirectly = 4,
-  SuppressClickable = 6,
-  Destroy = 7,
-  DestroyForCSP = 8,
+  SuppressClickable = 5,
+  Destroy = 6,
+  DestroyForCSP = 7,
+  MaskedBitNumber = 3,
+  SecretRange = 9e7,
 }
-type ValidContentCmds = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minNotDispatchDirectly>;
+type ValidContentCmds = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minNotDispatchDirectly
+    | kContentCmd.MaskedBitNumber>;
+
+interface ContentWindowCore {
+  readonly VDom?: object;
+  readonly VKey?: object;
+  readonly VHints?: object;
+  readonly VScroller?: object;
+  readonly VOmni?: object;
+  readonly VFind?: { css_: FindCSS | null; };
+  readonly VEvent?: VEventModeTy;
+  readonly VIh?: (this: void) => number;
+}
+
+interface SandboxGetterFunc {
+  (comparer: (this: void, rand2: number, testEncrypted: string) => boolean,
+    rand1: number): ContentWindowCore | 0 | null | undefined;
+}
+declare var wrappedJSObject: { [key: string]: SandboxGetterFunc; };
+declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;
+type XrayedObject<T extends object> = T & {
+  wrappedJSObject?: T;
+}
+
+interface Window extends ContentWindowCore {
+  readonly VOther?: BrowserType;
+  wrappedJSObject: typeof wrappedJSObject;
+}
+
+/** Warning on Firefox:
+ * Even when `frameElement` is valid, `parent.innerWidth` may still throw.
+ *
+ * Common cases:
+ * * on QQMail desktop version, the inbox is an `<iframe src="//mail.qq.com/...">`
+ * * if the top frame is using HTTPS, then there's an auto-upgrading from HTTP to HTTPS
+ * * its first element is an inline `<script>`, and the first line is `document.domain="mail.qq.com";`
+ * * before this line, access to `parent.innerWidth` is blocked
+ * * after this line, the access is re-enabled on Chrome and most time of Firefox
+ *
+ * Bug cases:
+ * * But on Firefox, if debugging code and access `webextension.parent.***` before the line,
+ * * then the `parent` is generated as an instance of `Restricted` lazily,
+ * * when the page is loaded, the `parent` is still restricted and only `.focus` and `.location.href` can be accessed
+ */
+declare var parent: unknown;

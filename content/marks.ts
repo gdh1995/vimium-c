@@ -10,21 +10,22 @@ var VMarks = {
     a.count_ = count < 0 || count > 9 ? 0 : count - 1;
     a.prefix_ = options.prefix !== false;
     a.swap_ = options.swap === true;
-    VUtils.push_(a.onKeydown_, a);
+    VKey.removeHandler_(a);
+    VKey.pushHandler_(a.onKeydown_, a);
     return VHud.show_((isGo ? "Go to" : "Create") + " mark\u2026");
   },
   onKeydown_ (event: HandlerNS.Event): HandlerResult {
-    const keyCode = event.keyCode, cont = !VKeyboard.isEscape_(event);
+    const keyCode = event.keyCode, notEsc = !VKey.isEscape_(event);
     let keyChar: string | undefined;
-    if (cont && (keyCode > VKeyCodes.f1 && keyCode < VKeyCodes.minNotFn || keyCode < VKeyCodes.minNotSpace
-        || !(keyChar = VKeyboard.char_(event)) || keyChar.length !== 1)) {
-      return 1;
+    if (notEsc && (keyCode > kKeyCode.f1 && keyCode < kKeyCode.minNotFn || keyCode < kKeyCode.minNotSpace
+        || (keyChar = VKey.char_(event)).length !== 1)) {
+      return HandlerResult.Suppress;
     }
-    VUtils.remove_(this);
-    cont && keyCode > VKeyCodes.space ? this.onKeyChar_(event, keyChar as string) : VHud.hide_();
+    VKey.removeHandler_(this);
+    notEsc && keyCode > kKeyCode.space ? this.onKeyChar_(event, keyChar as string) : VHud.hide_();
     this.prefix_ = this.swap_ = true;
     this.onKeyChar_ = null as never;
-    return 2;
+    return HandlerResult.Prevent;
   },
   getLocationKey_ (keyChar: string): string {
     return `vimiumMark|${location.href.split("#", 1)[0]}|${keyChar}`;
@@ -69,7 +70,7 @@ var VMarks = {
       try {
         let pos = null, key = a.getLocationKey_(keyChar), storage = localStorage, markString = storage.getItem(key);
         if (markString && (pos = JSON.parse(markString)) && typeof pos === "object") {
-          const { scrollX, scrollY, hash } = VUtils.safer_(pos);
+          const { scrollX, scrollY, hash } = VKey.safer_(pos);
           if (scrollX >= 0 && scrollY >= 0) {
             (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).o = {
               x: scrollX | 0, y: scrollY | 0, h: "" + (hash || "")
@@ -99,15 +100,15 @@ var VMarks = {
       u: location.href,
       s: [scrollX | 0, scrollY | 0]
     });
-    return VHud.tip_(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
+    VHud.tip_(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },
   GoTo_ (this: void, _0: number, options: CmdOptions[kFgCmd.goToMarks]): void {
     const { s: scroll, l: local, n: a } = options;
     a && VMarks.setPreviousPosition_();
     VMarks.ScrollTo_(scroll);
-    local || VEvent.focusAndListen_();
+    local || VEvent.focusAndRun_();
     if (a) {
-      return VHud.tip_(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
+      VHud.tip_(`Jumped to ${local ? "local" : "global"} mark : ' ${a} '.`, local ? 1000 : 2000);
     }
   }
 };

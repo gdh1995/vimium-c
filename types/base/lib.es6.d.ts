@@ -60,9 +60,19 @@ interface IterableIterator<T> extends Iterator<T> {
 interface Array<T> {
     /** Iterator */
     [Symbol.iterator](): IterableIterator<T>;
+    includes? (valueToFind: T): boolean;
+}
+
+interface ReadonlyArrayWithIncludes<T> extends ReadonlyArray<T> {
+    includes (valueToFind: T): boolean;
 }
 
 interface ReadonlyArray<T> {
     /** Iterator of values in the array. */
     [Symbol.iterator](): IterableIterator<T>;
+}
+
+interface String {
+    /** Iterator */
+    [Symbol.iterator](): IterableIterator<string>;
 }

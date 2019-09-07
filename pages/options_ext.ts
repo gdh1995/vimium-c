@@ -1,6 +1,6 @@
 $<ElementWithDelay>("#showCommands").onclick = function (event): void {
   if (!window.VDom) { return; }
-  let node: HTMLElement | null, root = VDom.UI.UI;
+  let node: HTMLElement | null, root = VCui.root_;
   event && event.preventDefault();
   if (!root) { /* empty */ }
   else if (node = root.querySelector("#HClose") as HTMLElement | null) {
@@ -16,7 +16,7 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
   });
   if (event) { return; }
   setTimeout(function (): void {
-    const node2 = VDom.UI.UI && VDom.UI.UI.querySelector("#HelpDialog") as HTMLElement;
+    const node2 = VCui.root_ && VCui.root_.querySelector("#HelpDialog") as HTMLElement;
     if (!node2) { return; }
     (node2.querySelector("#HClose") as HTMLElement).addEventListener("click", function (): void {
       location.hash = "";
@@ -27,22 +27,25 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
 ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOption_
     , element?: HTMLElement): void {
   interface Rule extends ExclusionsNS.StoredRule {
-    key: string;
+    key_: string;
   }
   if (element && this.timer_) { return; }
-  const rules = this.readValueFromElement_() as Rule[], hostRe = <RegExpOne> /^([:^]?[a-z\-?*]+:\/\/)?([^\/]+)(\/.*)?/;
+  const rules = this.readValueFromElement_() as Rule[],
+  hostRe = <RegExpOne> /^([:^]?[a-z\-?*]+:\/\/)?((?:[^\/]|\/])+)(\/[^\]].*|\/?$)/,
+  escapedDotRe = <RegExpG> /\\\./g;
   let key: Rule["pattern"], arr: string[] | null;
   for (const rule of rules) {
-    if ((arr = hostRe.exec(key = rule.pattern)) && arr[1] && arr[2]) {
-      key = arr[3] || "";
-      arr = arr[2].split(".");
+    if ((arr = hostRe.exec(key = rule.pattern.replace("(?:[^./]+\\.)*?", "*."))) && arr[1] && arr[2]) {
+      key = arr[3] ? arr[3].replace(escapedDotRe, ".") : "";
+      arr = arr[2].replace(escapedDotRe, ".").split(".");
       arr.reverse();
       key = arr.join(".") + key;
     }
-    rule.key = key;
+    rule.key_ = key;
   }
-  rules.sort((a, b) => a.key < b.key ? -1 : a.key === b.key ? 0 : 1);
+  rules.sort((a, b) => a.key_ < b.key_ ? -1 : a.key_ === b.key_ ? 0 : 1);
   this.populateElement_(rules);
+  this.onUpdated_();
   if (!element) { return; }
   let self = this;
   this.timer_ = setTimeout(function (el, text) {
@@ -57,7 +60,7 @@ $("#exclusionSortButton").onclick = function (): void {
 
 function formatDate(time: number | Date): string {
   return new Date(+time - new Date().getTimezoneOffset() * 1000 * 60
-    ).toJSON().substring(0, 19).replace("T", " ");
+    ).toJSON().slice(0, 19).replace("T", " ");
 }
 
 interface ExportedSettings {
@@ -107,7 +110,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
   for (let storage = localStorage, all = bgSettings_.defaults_, i = 0, len = storage.length, j: string[]
       ; i < len; i++) {
     const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
-    if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f"
+    if (key.indexOf("|") >= 0 || key.slice(-2) === "_f"
         || key === "findModeRawQueryList"
         || key.lastIndexOf("CSS") === key.length - 3 // ignore innerCSS, findCSS, omniCSS
     ) {
@@ -129,7 +132,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
     exported_data = exported_data.replace(<RegExpG> /\n/g, "\r\n");
   }
   exported_object = null;
-  let file_name = "vimium-c_";
+  let file_name = "vimium_c-";
   if (all_static) {
     file_name += "settings";
   } else {
@@ -159,11 +162,11 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   let env = new_data.environment, plat = env && env.platform || ""
     , ext_ver = env && parseFloat(env.extension || 0) || 0
     , newer = ext_ver > parseFloat(bgSettings_.CONST_.VerCode_);
-  plat && (plat = ("" + plat).substring(0, 10));
+  plat && (plat = ("" + plat).slice(0, 10));
   if (!confirm(
 `You are loading ${is_recommended !== true ? "a settings copy" : "the recommended settings:"}
       * from ${ext_ver > 1 ? `version ${ext_ver} of ` : "" }Vimium C${newer ? " (newer)" : ""}
-      * for ${plat ? `the ${plat[0].toUpperCase() + plat.substring(1)} platform` : "common platforms" }
+      * for ${plat ? `the ${plat[0].toUpperCase() + plat.slice(1)} platform` : "common platforms" }
       * exported ${time ? "at " + formatDate(time) : "before"}
 
 Are you sure you want to continue?`
@@ -171,7 +174,13 @@ Are you sure you want to continue?`
     window.VHud && VHud.tip_("You cancelled importing.", 1000);
     return;
   }
-  Object.setPrototypeOf(new_data, null);
+  const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
+      && Build.BTypes & BrowserType.Chrome ? Object.setPrototypeOf : 0 as never;
+  if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome) {
+    setProto ? setProto(new_data, null) : ((new_data as any).__proto__ = null);
+  } else {
+    Object.setPrototypeOf(new_data, null);
+  }
   if (new_data.vimSync == null) {
     const now = bgSettings_.get_("vimSync"), keep = now && confirm(
       "Do you want to keep settings synchronized with your current Google account?"
@@ -187,7 +196,7 @@ Are you sure you want to continue?`
   const logUpdate = function (method: string, key: string, ...args: any[]): any {
     let val = args.pop();
     val = typeof val !== "string" || val.length <= 72 ? val
-      : val.substring(0, 71).trimRight() + "\u2026";
+      : val.slice(0, 71).trimRight() + "\u2026";
     return console.log("%s %c%s", method, "color:darkred", key, ...args, val);
   } as {
     (method: string, key: string, val: any): any;
@@ -231,6 +240,13 @@ Are you sure you want to continue?`
     bgSettings_.set_("vimSync", new_data.vimSync);
     _ref.vimSync.fetch_();
   }
+  { // delay the update of keyMappings
+    const tmp1 = _ref.keyMappings;
+    if (tmp1 !== undefined) {
+      delete _ref.keyMappings;
+      _ref.keyMappings = tmp1;
+    }
+  }
   for (const _key in _ref) {
     const item: Option_<any> = _ref[_key as keyof AllowedOptions];
     let key: keyof AllowedOptions = item.field_, new_value: any = new_data[key];
@@ -250,7 +266,7 @@ Are you sure you want to continue?`
     if (!item.areEqual_(bgSettings_.get_(key), new_value)) {
       logUpdate("import", key, new_value);
       bgSettings_.set_(key, new_value);
-      if (key in bgSettings_.payload_) {
+      if (key in bgSettings_.valuesToLoad_) {
         Option_.syncToFrontend_.push(key as keyof SettingsNS.FrontendSettings);
       }
       item.fetch_();
@@ -301,7 +317,7 @@ Are you sure you want to continue?`
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
-  const node = window.VDom && VDom.UI.UI && VDom.UI.UI.querySelector("#HClose") as HTMLElement;
+  const node = window.VDom && VCui.root_ && VCui.root_.querySelector("#HClose") as HTMLElement;
   if (node) { // reload help dialog
     node.click();
     $("#showCommands").click();
@@ -336,10 +352,16 @@ function importSettings(time: number | string | Date
     return alert(err_msg);
   }
   const promisedChecker = Option_.all_.keyMappings.checker_ ? 1 : new Promise<1>(function (resolve): void {
-    const element = loadJS("options_checker.js");
-    element.onload = function (): void { resolve(1); };
+    const element = $<HTMLScriptElement>("script[src*=options_checker]") || loadJS("options_checker.js"),
+    cb = function (): void {
+      element.removeEventListener("load", cb);
+      resolve(1);
+    };
+    (loadChecker as CheckerLoader).info_ = "";
+    element.addEventListener("load", cb);
   });
-  Promise.all([BG_.Utils.require_("Commands"), BG_.Utils.require_("Exclusions"), promisedChecker]).then(function () {
+  Promise.all([BG_.BgUtils_.require_("Commands"), BG_.BgUtils_.require_("Exclusions"), promisedChecker]
+      ).then(function (): void {
     setTimeout(_importSettings, 17, time, new_data, is_recommended);
   });
 }
@@ -350,6 +372,16 @@ _el.onchange = function (this: HTMLInputElement): void {
   const file = (this.files as FileList)[0];
   this.value = "";
   if (!file) { return; }
+  const max_size = Option_.all_.vimSync.previous_ ? GlobalConsts.SYNC_QUOTA_BYTES : GlobalConsts.LOCAL_STORAGE_BYTES;
+  if (file.size && file.size > max_size) {
+    alert(
+`   Fatal Error:
+
+Your settings file "${file.name}" seems too large!
+
+As limited by your browser, the max size is only ${max_size / 1024} KB.`);
+    return;
+  }
   const reader = new FileReader(), lastModified = file.lastModified || file.lastModifiedDate || 0;
   reader.onload = function (this: FileReader) {
     let result: string = this.result;
@@ -381,7 +413,7 @@ _el = null;
   delete (window as OptionWindow)._delayed;
   const node = $<ElementWithDelay>(arr[0]), event = arr[1];
   node.onclick && node.onclick(event);
-  BG_.Utils.GC_();
+  BG_.BgUtils_.GC_();
 })();
 
 function parseJSON(text: string): any {
@@ -406,7 +438,7 @@ function parseJSON(text: string): any {
     err_line = +match[2]; err_offset = +match[3];
   } else if (+match[1] > 0) {
     const LF = text.indexOf("\r") < 0 ? "\n" : text.indexOf("\r\n") < 0 ? "\r\n" : "\r"
-      , arr = text.substring(0, +match[1]).split(LF);
+      , arr = text.slice(0, +match[1]).split(LF);
     err_line = arr.length; err_offset = arr[err_line - 1].length + 1;
   } else {
     err_line = err_offset = 1;

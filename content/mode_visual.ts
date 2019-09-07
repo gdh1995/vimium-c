@@ -7,9 +7,6 @@
  * - all others: need a correct @di, and will force @di to be correct on return
  */
 declare namespace VisualModeNS {
-  const enum ValidActions {
-
-  }
   const enum G {
     character = 0, line = 1, lineboundary = 2, paragraph = 3, sentence = 4, word = 6, documentboundary = 7,
   }
@@ -35,12 +32,39 @@ declare namespace VisualModeNS {
   type ValidDiTypes = DiType.Normal | DiType.UnsafeTextBox | DiType.SafeTextBox | DiType.Complicated
     | DiType.UnsafeComplicated;
 }
+declare const enum VisualAction {
+  MinNotNoop = 0, Noop = MinNotNoop - 1,
+
+  MinWrapSelectionModify = MinNotNoop,
+  char = VisualModeNS.G.character << 1, line = VisualModeNS.G.line << 1,
+  lineboundary = VisualModeNS.G.lineboundary << 1, paragraph = VisualModeNS.G.paragraph << 1,
+  sentence = VisualModeNS.G.sentence << 1, vimword = VisualModeNS.VimG.vimword << 1,
+  word = VisualModeNS.G.word << 1, documentboundary = VisualModeNS.G.documentboundary << 1,
+  dec = VisualModeNS.kDir.left, inc = VisualModeNS.kDir.right,
+
+  MinNotWrapSelectionModify = 20,
+  Reverse = MinNotWrapSelectionModify,
+
+  MaxNotLexical = MinNotWrapSelectionModify,
+  LexicalSentence = MaxNotLexical + VisualModeNS.G.sentence,
+  LexicalWord = MaxNotLexical + VisualModeNS.G.word,
+
+  MaxNotYank = 30, Yank, YankLine, YankWithoutExit, YankAndOpen, YankAndNewTab,
+  MaxNotFind = 35, FindPrevious, FindNext,
+
+  MaxNotNewMode = 50,
+  VisualMode = MaxNotNewMode + VisualModeNS.Mode.Visual, VisualLineMode = MaxNotNewMode + VisualModeNS.Mode.Line,
+  CaretMode = MaxNotNewMode + VisualModeNS.Mode.Caret, EmbeddedFindMode = CaretMode + 2,
+
+  MaxNotScroll = 60, ScrollUp, ScrollDown,
+}
+
 var VVisual = {
   mode_: VisualModeNS.Mode.NotActive,
   hud_: "",
   hudTimer_: 0,
   currentCount_: 0,
-  currentSeconds_: null as SafeDict<VisualModeNS.ValidActions> | null,
+  currentSeconds_: null as SafeDict<VisualAction> | null,
   retainSelection_: false,
   scope_: null as ShadowRoot | null,
   selection_: null as never as Selection,
@@ -48,11 +72,11 @@ var VVisual = {
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.visualMode]): void {
     const a = VVisual;
     a.init_ && a.init_(options.w as string);
-    VUtils.remove_(a);
-    VDom.docSelectable_ = VDom.UI.getDocSelectable_();
+    VKey.removeHandler_(a);
+    VDom.docSelectable_ = VCui.getDocSelectable_();
     VScroller.prepareTop_();
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
-    let theSelected = VDom.UI.getSelected_(1),
+    let theSelected = VCui.getSelected_(1),
     sel: Selection = a.selection_ = theSelected[0],
     type: SelType = a.selType_(), mode: CmdOptions[kFgCmd.visualMode]["m"] = options.m;
     a.scope_ = theSelected[1];
@@ -79,7 +103,7 @@ var VVisual = {
     if (newMode !== mode) {
       a.prompt_("No usable selection, entering caret mode\u2026", 1000);
     }
-    VDom.UI.toggleSelectStyle_(1);
+    VCui.toggleSelectStyle_(1);
     a.di_ = isRange ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right;
     a.mode_ = newMode;
     a.alterMethod_ = toCaret ? "move" : "extend";
@@ -92,8 +116,8 @@ var VVisual = {
       mode = ("" + sel).length;
       a.collapseToRight_((a.getDirection_() & +(mode > 1)) as BOOL);
     }
-    a.commandHandler_(-1, 1);
-    VUtils.push_(a.onKeydown_, a);
+    a.commandHandler_(VisualAction.Noop, 1);
+    VKey.pushHandler_(a.onKeydown_, a);
   },
   /** @safe_di */
   deactivate_ (isEsc?: 1): void {
@@ -103,7 +127,7 @@ var VVisual = {
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     a.getDirection_("");
     const oldDiType = a.diType_ as VisualModeNS.DiType;
-    VUtils.remove_(a);
+    VKey.removeHandler_(a);
     if (!a.retainSelection_) {
       a.collapseToFocus_(isEsc && a.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
@@ -112,7 +136,7 @@ var VVisual = {
     const el = VEvent.lock_();
     oldDiType & (VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Complicated) ||
     el && el.blur();
-    VDom.UI.toggleSelectStyle_(0);
+    VCui.toggleSelectStyle_(0);
     VScroller.top_ = null;
     a.retainSelection_ = false;
     a.resetKeys_();
@@ -125,33 +149,32 @@ var VVisual = {
   /** @unknown_di_result */
   onKeydown_ (event: KeyboardEvent): HandlerResult {
     const a = this;
-    let i: VKeyCodes | KeyStat = event.keyCode, count = 0;
-    if (i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn) {
+    let i: kKeyCode | KeyStat = event.keyCode, count = 0;
+    if (i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn) {
       a.resetKeys_();
-      if (i === VKeyCodes.f1) {
+      if (i === kKeyCode.f1) {
         a.flashSelection_();
       }
-      return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing;
+      return i === kKeyCode.f1 ? HandlerResult.Prevent : HandlerResult.Nothing;
     }
-    if (i === VKeyCodes.enter) {
-      i = VKeyboard.getKeyStat_(event);
+    if (i === kKeyCode.enter) {
+      i = VKey.getKeyStat_(event);
       if ((i & KeyStat.shiftKey) && a.mode_ !== VisualModeNS.Mode.Caret) { a.retainSelection_ = true; }
       (i & KeyStat.PrimaryModifier) ? a.deactivate_()
         : (a.resetKeys_(), a.yank_(i === KeyStat.altKey || null));
       return HandlerResult.Prevent;
     }
-    if (VKeyboard.isEscape_(event)) {
+    if (VKey.isEscape_(event)) {
       a.currentCount_ || a.currentSeconds_ ? a.resetKeys_() : a.deactivate_(1);
       return HandlerResult.Prevent;
     }
-    const ch = VKeyboard.char_(event);
+    const ch = VKey.char_(event);
     if (!ch) {
       a.resetKeys_();
-      return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
+      return i === kKeyCode.ime || i === kKeyCode.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    let key = VKeyboard.key_(event, ch)
-      , obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
-    key = VEvent.mapKey_(key);
+    let key = VEvent.mapKey_(ch, event)
+      , obj: SafeDict<VisualAction> | null | VisualAction | undefined;
     if (obj = a.currentSeconds_) {
       obj = obj[key];
       count = a.currentCount_;
@@ -170,8 +193,10 @@ var VVisual = {
       count = a.currentCount_;
       a.currentCount_ = 0;
     }
-    if (obj == null) { return ch.length === 1 && ch === key ? HandlerResult.Prevent : HandlerResult.Suppress; }
-    VUtils.prevent_(event);
+    if (obj == null) {
+      return ch.length === 1 && !VKey.getKeyStat_(event) ? HandlerResult.Prevent : HandlerResult.Suppress;
+    }
+    VKey.prevent_(event);
     a.di_ = VisualModeNS.kDir.unknown; // make @di safe even when a user modifies the selection
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     a.commandHandler_(obj, count || 1);
@@ -182,20 +207,19 @@ var VVisual = {
     this.currentCount_ = 0; this.currentSeconds_ = null;
   },
   /** @unknown_di_result */
-  commandHandler_ (command: VisualModeNS.ValidActions, count: number): void {
+  commandHandler_ (command: VisualAction, count: number): void {
     let movement = this, mode = movement.mode_;
-    if (command > 50) {
-      if (command > 60) {
-        return VScroller.scrollBy_(1, (command === 61 ? 1 : -1) * count, 0);
-      }
-      if (command === 55) {
+    if (command > VisualAction.MaxNotScroll) {
+      return VScroller.scroll_(1, command - VisualAction.ScrollDown ? -count : count, 0);
+    }
+    if (command > VisualAction.MaxNotNewMode) {
+      if (command === VisualAction.EmbeddedFindMode) {
         clearTimeout(movement.hudTimer_);
         VPort.post_({ H: kFgReq.findFromVisual });
         return;
       }
-      return movement.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
-        // command === 1 ? VisualModeNS.Mode.Visual : command === 2 : VisualModeNS.Mode.Line : VisualModeNS.Mode.Caret
-        m: command - 50
+      return movement.activate_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
+        m: command - VisualAction.MaxNotNewMode
       }));
     }
     if (movement.scope_ && !movement.selection_.rangeCount) {
@@ -207,20 +231,20 @@ var VVisual = {
       }
     }
     mode === VisualModeNS.Mode.Caret && movement.collapseToFocus_(0);
-    if (command > 35) {
-      movement.find_(command - 36 ? -count : count);
+    if (command > VisualAction.MaxNotFind) {
+      movement.find_(command - VisualAction.FindNext ? -count : count);
       return;
-    } else if (command > 30) {
-      // 31 : y, Y, C, p, P : 35
-      command === 32 && movement.selectLine_(count);
+    } else if (command > VisualAction.MaxNotYank) {
+      command === VisualAction.YankLine && movement.selectLine_(count);
       movement.yank_([null, null, true as true,
-          ReuseType.current as ReuseType.current, ReuseType.newFg as ReuseType.newFg][command - 31]);
-      if (command !== 33) { return; }
-    } else if (command > 20) {
-      movement.selectLexicalEntity_((command - 20) as VisualModeNS.G.sentence | VisualModeNS.G.word, count);
-    } else if (command > 19) {
+          ReuseType.current as ReuseType.current, ReuseType.newFg as ReuseType.newFg][command - VisualAction.Yank]);
+      if (command !== VisualAction.YankWithoutExit) { return; }
+    } else if (command > VisualAction.MaxNotLexical) {
+      movement.selectLexicalEntity_((command - VisualAction.MaxNotLexical
+          ) as VisualModeNS.G.sentence | VisualModeNS.G.word, count);
+    } else if (command === VisualAction.Reverse) {
       movement.reverseSelection_();
-    } else if (command >= 0) {
+    } else if (command >= VisualAction.MinWrapSelectionModify) {
       movement.runMovements_((command & 1) as 0 | 1, command >> 1, count);
     }
     if (mode === VisualModeNS.Mode.Caret) {
@@ -238,12 +262,11 @@ var VVisual = {
       VScroller.scrollIntoView_need_safe_(focused);
     }
   },
-  /**
-   * @safe_di requires selection is None on called
-   *
-   * Note: may change `selection_`
-   */
+  /** @safe_di requires selection is None on called, and may change `selection_` */
   establishInitialSelectionAnchor_ (sr?: ShadowRoot | null): boolean {
+    if (!(Build.NDEBUG || VVisual.selection_ && VVisual.selection_.type === "None")) {
+      console.log('Assert error: VVisual.selection_?.type === "None"');
+    }
     let node: Text | null, str: string | undefined, offset: number;
     if (!VDom.isHTML_()) { return true; }
     VDom.getZoom_(1);
@@ -252,7 +275,7 @@ var VVisual = {
             , NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
-        const element = node.parentElement;
+        const element = node.parentElement; // safe because node is Text
         // Note(gdh1995): I'm not sure whether element might be null
         if (element && VDom.getVisibleClientRect_(element) && !VDom.getEditableType_(element)) {
           break;
@@ -288,7 +311,7 @@ var VVisual = {
   },
   find_ (count: number): void {
     if (!VFind.query_) {
-      VPort.send_({ c: kFgReq.findQuery, a: {} }, function (query): void {
+      VPort.send_(kFgReq.findQuery, {}, function (query): void {
         if (query) {
           VFind.updateQuery_(query);
           VVisual.find_(count);
@@ -305,12 +328,12 @@ var VVisual = {
     if (VFind.hasResults_) {
       a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
       if (a.mode_ === VisualModeNS.Mode.Caret && a.selType_() === SelType.Range) {
-        a.activate_(1, VUtils.safer_<CmdOptions[kFgCmd.visualMode]>({
+        a.activate_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
           m: VisualModeNS.Mode.Visual
         }));
       } else {
         a.di_ = VisualModeNS.kDir.unknown;
-        a.commandHandler_(-1, 1);
+        a.commandHandler_(VisualAction.Noop, 1);
       }
       return;
     }
@@ -338,7 +361,7 @@ var VVisual = {
     br = range && range.getBoundingClientRect();
     if (br && br.height > 0 && br.right > 0) { // width may be 0 in Caret mode
       let cr = VDom.cropRectToVisible_(br.left - 4, br.top - 5, br.right + 3, br.bottom + 4);
-      cr && VDom.UI.flash_(null, cr, 660).classList.add("Sel");
+      cr && VCui.flash_(null, cr, 660, " Sel");
     }
   },
 
@@ -371,16 +394,16 @@ var VVisual = {
     const a = this, diType = a.diType_;
     a.oldLen_ = 0;
     if (diType & VisualModeNS.DiType.TextBox) {
-      const el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement;
+      const el = VEvent.lock_() as TextElement;
       return el.value.charAt(a.TextOffset_(el
           , a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== "backward"));
     }
     const sel = a.selection_;
     if (!diType) {
-      let { focusNode } = sel;
-      if (focusNode instanceof Text) {
-        const i = sel.focusOffset, str = focusNode.data;
-        if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.substring(i).trimLeft()
+      let focusNode = sel.focusNode as NonNullable<Selection["focusNode"]>;
+      if (focusNode.nodeType === kNode.TEXT_NODE) {
+        const i = sel.focusOffset, str = (focusNode as Text).data;
+        if (str.charAt(i).trim() || i && str.charAt(i - 1).trim() && str.slice(i).trimLeft()
               && (str[i] !== "\n" && !(Build.BTypes & BrowserType.Firefox && str[i] === "\r"))) {
           return str[i];
         }
@@ -409,14 +432,14 @@ var VVisual = {
       , count: number): void {
     const shouldSkipSpaceWhenMovingRight = granularity === VisualModeNS.VimG.vimword;
     const isFirefox = !(Build.BTypes & ~BrowserType.Firefox)
-      || !!(Build.BTypes & BrowserType.Firefox) && VDom.cache_.browser_ === BrowserType.Firefox;
+      || !!(Build.BTypes & BrowserType.Firefox) && VOther === BrowserType.Firefox;
     let fixWord: BOOL = 0;
     if (shouldSkipSpaceWhenMovingRight || granularity === VisualModeNS.G.word) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
       if (direction &&
           (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
             ? !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
-            : (VDom.cache_.onMac_ === /* win */ 0) !== shouldSkipSpaceWhenMovingRight)) {
+            : (VDom.cache_.m === /* win */ 0) !== shouldSkipSpaceWhenMovingRight)) {
         fixWord = 1;
         if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && isFirefox
             ? !Build.NativeWordMoveOnFirefox : !shouldSkipSpaceWhenMovingRight) {
@@ -499,20 +522,20 @@ var VVisual = {
     a.extend_(VisualModeNS.kDir.right, VisualModeNS.G.word);
     const str2 = "" + sel;
     if (!di) { a.di_ = str2 ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right; }
-    str = di ? str2.substring(len) : a.getDirection_() ? str + str2 : str.substring(0, len - str2.length);
+    str = di ? str2.slice(len) : a.getDirection_() ? str + str2 : str.slice(0, len - str2.length);
     // now a.di_ is correct, and can be left / right
     let match = ((!(Build.BTypes & BrowserType.Firefox)
         ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
           ? a._rightWhiteSpaceRe : a._rightWhiteSpaceRe || a.WordsRe_
         : !(Build.BTypes & ~BrowserType.Firefox) ? a.WordsRe_
-        : (Build.NativeWordMoveOnFirefox || VDom.cache_.browser_ !== BrowserType.Firefox)
+        : (Build.NativeWordMoveOnFirefox || VOther !== BrowserType.Firefox)
           && a._rightWhiteSpaceRe || a.WordsRe_
         ) as Exclude<typeof a._rightWhiteSpaceRe | typeof a.WordsRe_, null>).exec(str),
     toGoLeft = match ? (!(Build.BTypes & BrowserType.Firefox)
       ? Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         || <Exclude<typeof a._rightWhiteSpaceRe, null>> a._rightWhiteSpaceRe
       : Build.BTypes & ~BrowserType.Firefox
-        && (Build.NativeWordMoveOnFirefox || VDom.cache_.browser_ !== BrowserType.Firefox)
+        && (Build.NativeWordMoveOnFirefox || VOther !== BrowserType.Firefox)
         && <Exclude<typeof a._rightWhiteSpaceRe, null>> a._rightWhiteSpaceRe
       )
       ? match[0].length : str.length - match.index - match[0].length : 0;
@@ -533,7 +556,7 @@ var VVisual = {
         }
       } else {
         di = a.di_ as VisualModeNS.ForwardDir;
-        let el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement,
+        let el = VEvent.lock_() as TextElement,
         start = a.TextOffset_(el, 0), end = start + len;
         di ? (end -= toGoLeft) :  (start -= toGoLeft);
         di = di && start > end ? (a.di_ = VisualModeNS.kDir.left) : VisualModeNS.kDir.right;
@@ -554,7 +577,7 @@ var VVisual = {
     }
     const sel = a.selection_, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
     if (a.diType_ & VisualModeNS.DiType.TextBox) {
-      const el = VEvent.lock_() as HTMLInputElement | HTMLTextAreaElement;
+      const el = VEvent.lock_() as TextElement;
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
       el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), newDi ? "forward" : "backward");
@@ -600,21 +623,24 @@ var VVisual = {
           ) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right; // return `right` in case of unknown cases
       }
       num1 = sel.anchorOffset;
-      if ((num2 = sel.focusOffset - num1) || anchorNode instanceof Text) {
+      // here rechecks `!anchorNode` is just for safety.
+      if ((num2 = sel.focusOffset - num1) || !anchorNode || anchorNode.nodeType === kNode.TEXT_NODE) {
         a.diType_ = VisualModeNS.DiType.Normal;
         return a.di_ = num2 >= 0 ? VisualModeNS.kDir.right : VisualModeNS.kDir.left;
       }
     }
     // editable text elements
     const lock = VEvent.lock_();
-    if (lock && lock.parentElement === anchorNode) {
-      type TextModeElement = HTMLInputElement | HTMLTextAreaElement;
+    if (lock && lock.parentElement === anchorNode) { // safe beacuse lock is LockableElement
+      type TextModeElement = TextElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)
-          && (VDom.editableTypes_[lock.tagName.toLowerCase()] as EditableType) > EditableType.MaxNotTextModeElement) {
-        const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes
+          && (VDom.editableTypes_[lock.localName] as EditableType) > EditableType.MaxNotTextModeElement) {
+        let cn: Node["childNodes"];
+        const child = (!(Build.BTypes & ~BrowserType.Firefox) ? (anchorNode as Element).childNodes as NodeList
             : Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
-            ? VDom.Getter_(Node, anchorNode as Element, "childNodes") as NodeList
-            : VDom.Getter_(Node, anchorNode as Element, "childNodes") || (anchorNode as Element).childNodes
+            ? VDom.Getter_<Node, "childNodes", true>(Node, anchorNode as Element, "childNodes")
+            : (cn = (anchorNode as Element).childNodes) instanceof NodeList && !("value" in cn) ? cn
+            : VDom.Getter_(Node, anchorNode as Element, "childNodes") || []
             )[num1 >= 0 ? num1 : sel.anchorOffset] as Node | undefined;
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (VDom.isInputInTextMode_(lock as TextModeElement)) {
@@ -716,8 +742,9 @@ var VVisual = {
   ensureLine_ (command: number): void {
     const a = this;
     let di = a.getDirection_();
-    if (di && command < 20 && command >= 0 && !a.diType_ && a.selType_() === SelType.Caret) {
-      di = (1 - (command & 1)) as VisualModeNS.ForwardDir; // old Di
+    if (di && command < VisualAction.MinNotWrapSelectionModify
+        && command >= VisualAction.MinWrapSelectionModify && !a.diType_ && a.selType_() === SelType.Caret) {
+      di = (1 & ~command) as VisualModeNS.ForwardDir; // old Di
       a.modify_(di, VisualModeNS.G.lineboundary);
       a.selType_() !== SelType.Range && a.modify_(di, VisualModeNS.G.line);
       a.di_ = di;
@@ -734,42 +761,52 @@ var VVisual = {
     }
   },
   /** @argument el must be in text mode  */
-  TextOffset_ (this: void, el: HTMLInputElement | HTMLTextAreaElement, di: VisualModeNS.ForwardDir | boolean): number {
+  TextOffset_ (this: void, el: TextElement, di: VisualModeNS.ForwardDir | boolean): number {
     return (di ? el.selectionEnd : el.selectionStart) as number;
   },
 
 keyMap_: {
-  l: 1, h: 0, j: 3, k: 2, e: 13, b: 12, w: 11, ")": 9, "(": 8, "}": 7, "{": 6,
-  0: 4, $: 5, G: 15, g: { g: 14 }, B: 12, W: 11,
-  o: 20,
-  a: {
-    w: 26, s: 24
-  },
-  y: 31, Y: 32, C: 33, p: 34, P: 35,
-  n: 36, N: 37,
-  v: 51, V: 52, c: 53,
-  "/": 55,
-  "<c-e>": 61, "<c-y>": 62, "<c-down>": 61, "<c-up>": 62
+  l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,
+  j: VisualAction.line | VisualAction.inc, k: VisualAction.line | VisualAction.dec,
+  $: VisualAction.lineboundary | VisualAction.inc, 0: VisualAction.lineboundary | VisualAction.dec,
+  "}": VisualAction.paragraph | VisualAction.inc, "{": VisualAction.paragraph | VisualAction.dec,
+  ")": VisualAction.sentence | VisualAction.inc, "(": VisualAction.sentence | VisualAction.dec,
+  w: VisualAction.vimword | VisualAction.inc, /* same as w */ W: VisualAction.vimword | VisualAction.inc,
+  e: VisualAction.word | VisualAction.inc, b: VisualAction.word | VisualAction.dec,
+  /* same as b */ B: VisualAction.word | VisualAction.dec,
+  G: VisualAction.documentboundary | VisualAction.inc, g: { g: VisualAction.documentboundary | VisualAction.dec },
+
+  o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence },
+
+  y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit,
+  p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
+  n: VisualAction.FindNext, N: VisualAction.FindPrevious,
+
+  v: VisualAction.VisualMode, V: VisualAction.VisualLineMode, c: VisualAction.CaretMode,
+  "/": VisualAction.EmbeddedFindMode,
+
+  "<c-e>": VisualAction.ScrollDown, "<c-y>": VisualAction.ScrollUp,
+  "<c-down>": VisualAction.ScrollDown, "<c-up>": VisualAction.ScrollUp
 } as {
-  [key: string]: VisualModeNS.ValidActions | {
-    [key: string]: VisualModeNS.ValidActions;
+  [key: string]: VisualAction | {
+    [key: string]: VisualAction;
   };
-} as SafeDict<VisualModeNS.ValidActions | SafeDict<VisualModeNS.ValidActions>>,
+} as SafeDict<VisualAction | SafeDict<VisualAction>>,
 /** @not_related_to_di */
 init_ (words: string) {
   const a = this;
   a.init_ = null as never;
   const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range };
-  a.selType_ = !!(Build.BTypes & BrowserType.Chrome)
+  a.selType_ = Build.BTypes & BrowserType.Chrome
       && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
-      && VDom.cache_.browserVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
+      && VDom.cache_.v === BrowserVer.$Selection$NotShowStatusInTextBox
   ? function (this: typeof VVisual): SelType {
     let type = typeIdx[this.selection_.type];
     return type === SelType.Caret && VVisual.diType_ && ("" + this.selection_) ? SelType.Range : type;
   } : function (this: typeof VVisual): SelType {
     return typeIdx[this.selection_.type];
   };
-  const map = a.keyMap_, func = VUtils.safer_;
+  const map = a.keyMap_, func = VKey.safer_;
 /**
  * Call stack (Chromium > icu):
  * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
@@ -783,15 +820,16 @@ init_ (words: string) {
  *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
  *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
  * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
- * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings.CONST_.WordsRe_}
+ * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings_.CONST_.WordsRe_}
  */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
   if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
       || Build.BTypes & ~BrowserType.Firefox && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
     if (!(Build.BTypes & ~BrowserType.Firefox)
-        || VDom.cache_.browserVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+        || Build.BTypes & BrowserType.Chrome
+            && VDom.cache_.v < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
         || Build.BTypes & BrowserType.Firefox && Build.BTypes & BrowserType.Edge
-            && VDom.cache_.browser_ === BrowserType.Firefox) {
+            && VOther === BrowserType.Firefox) {
       // Firefox && not native || Chrome && not only white spaces
       if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
           && !(Build.BTypes & ~BrowserType.Chrome)
@@ -825,13 +863,13 @@ init_ (words: string) {
    *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
    * Min$Space$NotMatch$U180e$InRegExp=59
    */
-  (!(Build.BTypes & ~BrowserType.Firefox)
+  (!(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-    || (Build.BTypes & BrowserType.Firefox && VDom.cache_.browser_ === BrowserType.Firefox)
-    || VDom.cache_.browserVer_ >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
+    || (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
+    || VDom.cache_.v >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
   // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
   (a._rightWhiteSpaceRe = Build.BTypes & BrowserType.Firefox
       ? /[^\S\n\r\u2029\u202f\ufeff]+$/ as RegExpOne : /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);
-  func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
+  func(map); func(map.a as Dict<VisualAction>); func(map.g as Dict<VisualAction>);
 }
 };

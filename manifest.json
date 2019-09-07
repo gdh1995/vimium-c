@@ -21,12 +21,15 @@
     "default_popup": "pages/popup.html",
     "default_title": "Vimium C"
   },
-  "chrome_url_overrides": {
-    "newtab": "pages/newtab.html"
-  },
   "commands": {
     "createTab": {
       "description": "Create new tab"
+    },
+    "goBack": {
+      "description": "Go back in history"
+    },
+    "goForward": {
+      "description": "Go forward in history"
     },
     "previousTab": {
       "description": "Go one tab left"
@@ -36,21 +39,26 @@
     },
     "reloadTab": {
       "description": "Reload tab"
+    },
+    "userCustomized1": {
+      "description": "Custom shortcut 1"
+    },
+    "userCustomized2": {
+      "description": "Custom shortcut 2"
     }
   },
   "content_scripts": [ {
     "all_frames": true,
     "js": [
-      "lib/utils.js",
       "lib/dom_utils.js",
       "lib/keyboard_utils.js",
+      "content/dom_ui.js",
       "content/link_hints.js",
       "content/scroller.js",
       "content/vomnibar.js",
       "content/mode_find.js",
       "content/mode_visual.js",
       "content/marks.js",
-      "content/dom_ui.js",
       "content/frontend.js",
       "content/extend_click.js"
     ],
@@ -63,17 +71,18 @@
     "matches": [ "file:///*" ]
   } ],
   "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'none'; object-src 'none'; connect-src 'self' data:",
-  "description": "customized Vimium in C-Style code, supporting Chinese, global commands and injection into some other extensions",
+  "description": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts",
   "homepage_url": "https://github.com/gdh1995/vimium-c",
   "icons": {
     "128": "icons/icon128.png",
     "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
     "48": "icons/icon48.png"
   },
   "incognito": "spanning",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnaZQnkvrHvNlwXPnSfavEya+9sPtVgBR2hWLsNvwdv6+zHRGr/qhqEbtof1v7gDXzpC5+Dr4kOay6aflw5CaFzA1zyVJySAjpb0RkVh774kp9msRpjyb39obSIWAIB76PTwawEAE+K1f26jXDbTC2gEBe4OWk5KW9u9+KoTmeKLHo73ScR1jFcFaOTbrhwHtIDqj00vpIfrSAofpLIq1gP//Og+FoOT4dF107fwlVfDJuu171svuT68wmcKStl6OANxcnXCXE6OWbeZcjMehcQH41wzTtDugmt0o8w+hJ2WVugwWWmGmE8qSiwo9QYZTJW+5EvMcmNZWUmPbTLGkGQIDAQAB",
   "manifest_version": 2,
-  "minimum_chrome_version": "35",
+  "minimum_chrome_version": "32",
   "name": "Vimium C",
   "omnibox": {
     "keyword": "v"
@@ -98,8 +107,7 @@
     "<all_urls>"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.74.6",
-  "version_name": "1.74",
+  "version": "1.76.8",
   "web_accessible_resources": [
     "content/*",
     "front/vomnibar.*",

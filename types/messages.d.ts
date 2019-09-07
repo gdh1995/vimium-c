@@ -15,11 +15,14 @@ interface ParsedSearch {
 }
 
 interface FindCSS {
-  /** change-selection-color */ [0]: string;
-  /** hud-iframe */ [1]: string;
-  /** force-content-selectable */ [2]: string;
+  /** change-selection-color */ c: string;
+  /** force-content-selectable */ s: string;
+  /** hud-iframe */ i: string;
 }
 
+interface OptionsWithForce extends FgOptions {
+  $forced?: true | 1;
+}
 
 declare const enum kBgReq {
   START = 0,
@@ -27,8 +30,8 @@ declare const enum kBgReq {
   settingsUpdate, focusFrame, exitGrab, keyMap, execute,
   createMark, showHUD, count, showHelpDialog,
   OMNI_MIN = 42,
-  omni_secret = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
-  omni_toggleStyle, omni_globalOptions,
+  omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
+  omni_toggleStyle, omni_updateOptions,
   END = "END", // without it, TypeScript will report errors for number indexes
 }
 
@@ -37,19 +40,26 @@ declare const enum kFgReq {
   searchAs, gotoSession, openUrl, focus, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, marks,
-  focusOrLaunch, cmd, removeSug, openImage, gotoMainFrame,
-  setOmniStyle, findFromVisual,
+  focusOrLaunch, cmd, removeSug, openImage,
+  /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
+  gotoMainFrame,
+  setOmniStyle, findFromVisual, framesGoBack,
   END,
-  msg = 90, injectDeprecated = 91,
+  msg = 90,
   inject = 99,
   command = "command",
+  id = "id",
+  shortcut = "shortcut",
 }
 
 declare const enum kShortcutNames {
   createTab = "createTab",
+  goBack = "goBack",
+  goForward = "goForward",
   previousTab = "previousTab",
   nextTab = "nextTab",
   reloadTab = "reloadTab",
+  userCustomized = "userCustomized",
 }
 declare const enum kShortcutAliases {
   _mask = 0,
@@ -89,19 +99,21 @@ interface BgReq {
   } & Req.baseBg<kBgReq.showHUD> & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {
     /** mask */ m: FrameMaskType;
-    /** key */ k: VKeyCodes;
-  } & Partial<BgCSSReq>;
+    /** key */ k: kKeyCode;
+    // ensure .c, .S exist, for safer code
+    /** command */ c: FgCmdAcrossFrames | 0;
+  } & BgCSSReq & Partial<Pick<BaseExecute<FgOptions, FgCmdAcrossFrames>, "n" | "a">>;
   [kBgReq.execute]: BaseExecute<object> & Req.baseBg<kBgReq.execute>;
   [kBgReq.exitGrab]: Req.baseBg<kBgReq.exitGrab>;
   [kBgReq.showHelpDialog]: {
-    /** html */ h: string;
+    /** html */ h: string | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string; };
     /** optionUrl */ o: string;
     /** advanced */ a: boolean;
   } & Partial<BgCSSReq>;
   [kBgReq.settingsUpdate]: {
     /** delta */ d: {
-      [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
-    } & SafeObject;
+      [key in keyof SettingsNS.FrontendSettingsWithSync]?: SettingsNS.FrontendSettingsWithSync[key];
+    };
   };
   [kBgReq.url]: {
     /** url */ u?: string;
@@ -110,9 +122,23 @@ interface BgReq {
     /** url */ u: string; // a javascript: URL
   } & Req.baseBg<kBgReq.eval>;
   [kBgReq.count]: {
-    /** cmd */ c: kShortcutNames;
+    /** cmd */ c: kShortcutNames | "";
     /** id */ i: number;
-  }
+    /** message-in-confirmation-dialog */ m: string;
+  };
+}
+
+/** Note: should have NO names which may be uglified */
+interface VomnibarPayload {
+  readonly /** browser */ b?: BrowserType;
+  readonly /** browserVer */ v?: BrowserVer;
+  readonly /** onMac */ m?: SettingsNS.FrontendSettingsWithoutSyncing["m"];
+  /** ignoreCapsLock */ i: boolean;
+  /** css */ c: string;
+  /** maxMatches */ M: number;
+  /** queryInterval */ I: number;
+  /** comma-joined size numbers */ n: string;
+  /** styles */ s: string;
 }
 
 interface BgVomnibarSpecialReq {
@@ -120,18 +146,16 @@ interface BgVomnibarSpecialReq {
     /** list */ l: CompletersNS.Suggestion[];
     /** autoSelect */ a: boolean;
     /** matchType */ m: CompletersNS.MatchType;
+    /** sugTypes */ s: CompletersNS.SugType;
     /** favIcon  */ i: 0 | 1 | 2;
     /** total */ t: number;
   };
   [kBgReq.omni_returnFocus]: {
-    /** lastKey */ l: VKeyCodes;
+    /** lastKey */ l: kKeyCode;
   } & Req.baseBg<kBgReq.omni_returnFocus>;
-  [kBgReq.omni_secret]: {
+  [kBgReq.omni_init]: {
     /** secret */ s: number;
-    /** browser */ b: BrowserType;
-    /** browserVer */ v: BrowserVer;
-    /** globalOptions */ o: SettingsNS.BaseBackendSettings["vomnibarOptions"],
-    /** CSS */ S: string;
+    /* payload */ l: EnsureItemsNonNull<VomnibarPayload>;
   };
   [kBgReq.omni_parsed]: {
     /** id */ i: number;
@@ -141,42 +165,48 @@ interface BgVomnibarSpecialReq {
     /** toggled */ t: string;
     /** current */ c: boolean;
   };
-  [kBgReq.omni_globalOptions]: {
-    o: SettingsNS.BaseBackendSettings["vomnibarOptions"];
+  [kBgReq.omni_updateOptions]: {
+    /** delta */ d: Partial<Exclude<VomnibarPayload, "b" | "v">>;
   }
 }
-type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.showHUD | kBgReq.injectorRun;
+type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 
 declare const enum kBgCmd {
-  goBack, createTab, duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
+  blank,
+  // region: need cport
+  nextFrame, parentFrame, goNext, toggle, showHelp,
+  enterInsertMode, enterVisualMode, performFind, showVomnibar,
+  MIN_NEED_CPORT = nextFrame, MAX_NEED_CPORT = showVomnibar,
+  // endregion: need cport
+  createTab,
+  duplicateTab, moveTabToNewWindow, moveTabToNextWindow, toggleCS,
   clearCS, goTab, removeTab, removeTabsR, removeRightTab,
-  restoreTab, restoreGivenTab, blank, openUrl, searchInAnother,
+  restoreTab, restoreGivenTab, discardTab, openUrl, searchInAnother,
   togglePinTab, toggleMuteTab, reloadTab, reloadGivenTab, reopenTab,
-  goToRoot, goUp, moveTab, nextFrame, mainFrame,
-  parentFrame, visitPreviousTab, copyTabInfo, goNext, enterInsertMode,
-  enterVisualMode, performFind, showVomnibar, clearFindHistory, showHelp,
-  toggleViewSource, clearMarks, toggle, toggleVomnibarStyle,
+  goToRoot, goUp, moveTab, mainFrame,
+  visitPreviousTab, copyTabInfo, clearFindHistory,
+  toggleViewSource, clearMarks, toggleVomnibarStyle,
+  goBackFallback, showTip, autoOpenFallback,
   END = "END",
 }
-// keep same index: goBack
 
 declare const enum kFgCmd {
-  goBack, findMode, linkHints, focusAndHint, unhoverLast, marks,
+  framesGoBack, findMode, linkHints, unhoverLast, marks,
   goToMarks, scroll, visualMode, vomnibar,
   reset, toggle, insertMode, passNextKey, goNext,
   reload, switchFocus, showHelp, autoCopy,
   autoOpen, searchAs, focusInput,
   END = "END",
 }
+type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar;
 
 interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
 interface CmdOptions {
   [kFgCmd.linkHints]: FgOptions;
-  [kFgCmd.focusAndHint]: FgOptions;
   [kFgCmd.unhoverLast]: FgOptions;
   [kFgCmd.marks]: {
     mode?: "create" | /* all others are treated as "goto"  */ "goto" | "goTo";
@@ -184,19 +214,23 @@ interface CmdOptions {
     swap?: false | true;
   };
   [kFgCmd.scroll]: {
+    /** continuous */ $c?: BOOL;
     axis?: "y" | "x";
     dir?: 1 | -1;
-    view?: 0 | 1 | "max" | /* all others are treated as "viewSize" */ "viewSize" | "view";
+    view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;
   } | {
+    /** continuous */ $c?: BOOL;
     dest: "min" | "max";
     axis?: "y" | "x";
     view?: undefined;
+    dir?: undefined;
   };
   [kFgCmd.reset]: FgOptions;
   [kFgCmd.toggle]: {
-    key: keyof SettingsNS.FrontendSettings;
-    value: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
+    k: keyof SettingsNS.FrontendSettingsWithSync;
+    n: string; // `"${keyof SettingsNS.FrontendSettingNameMap}"`
+    v: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
   };
   [kFgCmd.passNextKey]: {
     normal?: false | true;
@@ -205,8 +239,8 @@ interface CmdOptions {
     act?: "" | "backspace";
     action?: "" | "backspace";
   };
-  [kFgCmd.goBack]: {
-    dir: -1 | 1;
+  [kFgCmd.framesGoBack]: {
+    reuse?: ReuseType;
   };
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;
@@ -216,11 +250,13 @@ interface CmdOptions {
     /** secret */ k: number;
   };
   [kFgCmd.goNext]: {
-    rel: string;
-    patterns: string[];
+    /** rel */ r: string;
+    /** patterns */ p: string[];
+    /** length limit list */ l: number[];
+    /** max of length limit list */ m: number;
   };
   [kFgCmd.insertMode]: {
-    code: VKeyCodes;
+    code: kKeyCode;
     stat: KeyStat;
     passExitKey: boolean;
     hud: boolean;
@@ -238,6 +274,7 @@ interface CmdOptions {
     /** leave find mode */ l: boolean,
     /** query */ q: string;
     /* return to view port */ r: boolean;
+    /* auto use selected text */ s: boolean;
     /** findCSS */ f: FindCSS | null;
   };
   [kFgCmd.goToMarks]: {
@@ -300,7 +337,9 @@ interface FgReqWithRes {
   } | FgReqWithRes[kFgReq.parseUpperUrl];
   [kFgReq.execInChild]: {
     /** url */ u: string;
-  } & Pick<BaseExecute<object>, Exclude<keyof BaseExecute<object>, "S">>;
+    /** lastKey */ k: kKeyCode;
+    /** ensured args */ a: FgOptions;
+  } & Omit<BaseExecute<FgOptions, FgCmdAcrossFrames>, "S">;
 }
 
 interface FgReq {
@@ -310,7 +349,7 @@ interface FgReq {
     /** url */ u: string;
   };
   [kFgReq.parseUpperUrl]: FgReqWithRes[kFgReq.parseUpperUrl] & {
-    /** execute */ e: true;
+    /** execute */ E: boolean;
   };
   [kFgReq.findQuery]: {
     /** query */ q: string;
@@ -342,7 +381,7 @@ interface FgReq {
   };
   [kFgReq.nextFrame]: {
     /** type */ t?: Frames.NextType;
-    /** key */ k: VKeyCodes;
+    /** key */ k: kKeyCode;
   };
   [kFgReq.exitGrab]: {};
   [kFgReq.initHelp]: {
@@ -367,10 +406,14 @@ interface FgReq {
   } & CompletersNS.Options;
   [kFgReq.copy]: {
     /** data */ d: string;
+    u?: undefined;
+  } | {
+    /** url */ u: string;
+    /** decode */ d: boolean;
   };
   [kFgReq.key]: {
     /* keySequence */ k: string;
-    /** lastKey */ l: VKeyCodes;
+    /** lastKey */ l: kKeyCode;
   };
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
     /** action */ a: kMarkAction.clear;
@@ -380,10 +423,9 @@ interface FgReq {
    * .url is guaranteed to be well formatted by frontend
    */
   [kFgReq.focusOrLaunch]: MarksNS.FocusOrLaunch;
-  [kFgReq.cmd]: {
-    /** cmd */ c: kShortcutNames | "";
+  [kFgReq.cmd]: Pick<BgReq[kBgReq.count], "c" | "i"> & {
     /** count */ n: number;
-    /** id */ i: number;
+    /** confirmation-response */ r: 0 | 1 | 2 | 3;
   };
   [kFgReq.removeSug]: {
     /** type */ t: "tab" | "history";
@@ -396,16 +438,21 @@ interface FgReq {
     /** auto: default to true */ a?: boolean;
   };
   [kFgReq.gotoMainFrame]: {
-    /** command */ c: kFgCmd,
+    /** command */ c: FgCmdAcrossFrames;
+    /** focusMainFrame and showFrameBorder */ f: BOOL;
     /** count */ n: number;
-    /** options */ a: null | (object & {
-      $forced?: true;
-    });
+    /** options */ a: OptionsWithForce;
   };
   [kFgReq.setOmniStyle]: {
     /** style */ s: string;
+  } | {
+    s?: undefined;
+    /** toggled */ t: string;
+    /** enable */ e?: boolean; /* if null, then toggle .t */
+    /** broadcast, default to true */ b?: boolean;
   };
   [kFgReq.findFromVisual]: {};
+  [kFgReq.framesGoBack]: { /** step */ s: number; /** reuse */ r: ReuseType | undefined };
 }
 
 declare namespace Req {
@@ -434,30 +481,50 @@ declare namespace Req {
 }
 
 interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> extends Req.baseFg<kFgReq.setSetting> {
-  key: T;
-  value: SettingsNS.FrontUpdateAllowedSettings[T];
+  /** key */ k: SettingsNS.FrontUpdateAllowedSettings[T];
+  /** value */ v: T extends keyof SettingsNS.BaseBackendSettings ? SettingsNS.BaseBackendSettings[T] : never;
 }
 
 interface ExternalMsgs {
+  [kFgReq.id]: {
+    req: {
+      handler: kFgReq.id;
+    };
+    res: {
+      name: string;
+      host: string;
+      injector: string;
+      shortcuts: boolean;
+      version: string;
+    };
+  };
   [kFgReq.inject]: {
     req: {
-      handler: kFgReq.inject | kFgReq.injectDeprecated;
+      handler: kFgReq.inject;
       scripts?: boolean;
     };
     res: {
       version: string;
-      scripts: string[] | null;
       host: string;
-      versionHash: string;
+      /** the blow are only for inner usages  */
+      /** scripts */ s: string[] | null;
+      /** versionHash */ h: string;
     }
   };
   [kFgReq.command]: {
     req: {
       handler: kFgReq.command;
-      command: string;
+      command?: string;
       options?: object | null;
       count?: number;
-      key?: VKeyCodes;
+      key?: kKeyCode;
+    };
+    res: void;
+  };
+  [kFgReq.shortcut]: {
+    req: {
+      handler: kFgReq.shortcut;
+      shortcut?: string;
     };
     res: void;
   };

@@ -3,27 +3,40 @@ var VimiumInjector: VimiumInjectorTy | undefined | null = VimiumInjector || {
   alive: -1,
   host: "",
   version: "",
-  versionHash: "",
+  cache: null,
   clickable: undefined,
   reload: null as never,
   checkIfEnabled: null as never,
-  $run: null as never,
-  $_run: null as never,
-  $priv: null,
+  $h: "",
+  $m: null as never,
+  $r: null as never,
+  $p: null,
   getCommandCount: null as never,
   destroy: null
 };
+if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
+  var WeakSet: WeakSetConstructor | undefined;
+}
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback
+    || Build.BTypes & BrowserType.Edge) {
+  var requestIdleCallback: RequestIdleCallback | undefined;
+}
+
 (function (_a0: 1, injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]) {
 let runtime = ((!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-  : typeof browser !== "undefined" && browser &&
-  !((browser as typeof chrome | Element) instanceof Element)) ? browser as typeof chrome : chrome).runtime;
+      : !!(browser && (browser as typeof chrome).runtime && (browser as typeof chrome).runtime.connect)
+    ) ? browser as typeof chrome : chrome).runtime;
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3,
 onIdle = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
-  ? window.requestIdleCallback : requestIdleCallback;
-let tick = 1, extID = scriptSrc.substring(i0, scriptSrc.indexOf("/", i0));
+    || Build.BTypes & BrowserType.Edge
+  ? window.requestIdleCallback as Exclude<Window["requestIdleCallback"], Element | Window | HTMLCollection>
+  : requestIdleCallback;
+let tick = 1, extID = scriptSrc.slice(i0, scriptSrc.indexOf("/", i0));
 if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && extID.indexOf("-") > 0) {
   extID = curEl.dataset.vimiumId || BuildStr.FirefoxID;
 }
+extID = curEl.dataset.extensionId || extID;
 VimiumInjector.id = extID;
 function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined | false): void {
   type LastError = chrome.runtime.LastError;
@@ -61,13 +74,14 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     alive: 0,
     host: !(Build.BTypes & ~BrowserType.Chrome) ? extID : res ? res.host : "",
     version: res ? res.version : "",
-    versionHash: res ? res.versionHash : "",
+    cache: null,
     clickable: oldClickable,
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
-    $run (task): void { VimiumInjector && VimiumInjector.$_run(task.t); },
-    $_run (): void { /* empty */ },
-    $priv: null,
+    $h: res ? res.h : "",
+    $m (task): void { VimiumInjector && VimiumInjector.$r(task.t); },
+    $r (): void { /* empty */ },
+    $p: null,
     getCommandCount: null as never,
     destroy: null
   };
@@ -75,11 +89,11 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   if (!res || !(docEl instanceof HTMLHtmlElement)) {
     return err as void;
   }
-  const inserAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild as Node
-    , insertBefore = inserAfter.nextSibling
-    , parentElement = inserAfter.parentElement as Element;
+  const insertAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild as Node
+    , insertBefore = insertAfter.nextSibling
+    , parentElement = insertAfter.parentElement as Element;
   let scripts: HTMLScriptElement[] = [];
-  for (const i of res.scripts as string[]) {
+  for (const i of res.s as NonNullable<typeof res.s>) {
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.async = false;
@@ -99,10 +113,10 @@ function call() {
 }
 function start() {
   removeEventListener("DOMContentLoaded", start);
-  onIdle && !(Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback && Build.BTypes & BrowserType.Chrome
-              && onIdle instanceof Element)
-  ? (onIdle as Exclude<typeof onIdle, null | Element>)(function (): void {
-    (onIdle as Exclude<typeof onIdle, null | Element>)(function (): void { setTimeout(call, 0); }, {timeout: 67});
+  (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback || !(Build.BTypes & BrowserType.Chrome))
+    && !(Build.BTypes & BrowserType.Edge) || onIdle
+  ? (onIdle as Exclude<typeof onIdle, null | undefined>)(function (): void {
+    (onIdle as Exclude<typeof onIdle, null | undefined>)(function (): void { setTimeout(call, 0); }, {timeout: 67});
   }, {timeout: 330}) : setTimeout(call, 67);
 }
 if (document.readyState !== "loading") {
@@ -146,16 +160,16 @@ interface EventTargetEx extends _EventTargetEx {
   vimiumRemoveHooks: (this: void) => void;
 }
 interface ElementWithClickable {
-  vimiumHasOnclick?: boolean;
+  vimiumClick?: boolean;
 }
 VimiumInjector.clickable = VimiumInjector.clickable ? VimiumInjector.clickable
     : Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || !(Build.BTypes & BrowserType.Chrome)
-      || window.WeakSet ? new WeakSet<Element>() : {
-  add (element: Element) { (element as ElementWithClickable).vimiumHasOnclick = true; return this; },
-  has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumHasOnclick; },
+      || window.WeakSet ? new (WeakSet as WeakSetConstructor)<Element>() : {
+  add (element: Element) { (element as ElementWithClickable).vimiumClick = true; return this; },
+  has (element: Element): boolean { return !!(element as ElementWithClickable).vimiumClick; },
   delete (element: Element): boolean {
-    const oldVal = (element as ElementWithClickable).vimiumHasOnclick;
-    oldVal && ((element as ElementWithClickable).vimiumHasOnclick = false);
+    const oldVal = (element as ElementWithClickable).vimiumClick;
+    oldVal && ((element as ElementWithClickable).vimiumClick = false);
     return !!oldVal;
   }
 };

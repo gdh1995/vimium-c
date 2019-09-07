@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html spellcheck="false">
+<head>
+  <meta charset="utf-8">
+  <title>Wrappers in different JS worlds</title>
+</head>
+<body>
+<div>before iframe</div>
+<div id="frameBox">
+  <iframe src="about:blank" id="mainIframe" name="mainChild"
+    style="border:1px black solid;min-width:300px;min-height:150px"></iframe>
+</div>
+<div id="mainContent"></div>
+<div>after iframe</div>
+<script>
+  var testNode = null;
+  window.onload = function() {
+    testNode = document.createElement('fake-tag');
+    testNode.id = "testNode";
+    testNode.style.color="#00f";
+    testNode.textContent = 'this-is-test-span';
+    var iframeContent = mainIframe.contentDocument.createElement('div');
+    testNode.addEventListener("click", function(event) {
+      var path = event.path, loc = path && path[path.length - 1].location;
+      loc && console.log("current is", loc.protocol === "about:" ? loc.href : loc.pathname.replace(/.*\//, "") || "/");
+      if (testNode.parentNode === iframeContent) {
+        mainContent.appendChild(testNode);
+      } else {
+        iframeContent.appendChild(testNode);
+      }
+    }, true);
+    console.log('iframeContent is local::HTMLElement =', iframeContent instanceof HTMLElement);
+    iframeContent.innerHTML = "<div>this is in iframe</div>";
+    var oldIsLocalHTML = testNode instanceof HTMLElement, oldProto = testNode.__proto__;
+    iframeContent.appendChild(testNode);
+    var newProto = testNode.__proto__, topCls = HTMLElement, childCls = mainIframe.contentWindow.HTMLElement;
+    console.log('old is-local-html:', oldIsLocalHTML
+        , "; new is-local:", testNode instanceof topCls
+        , "; new is-child:", testNode instanceof childCls);
+    console.log('old proto:', oldProto, oldProto === newProto ? "===" : "!==", "new proto", newProto);
+    mainIframe.contentDocument.body.appendChild(iframeContent);
+  }
+</script>
+</body>
+</html>

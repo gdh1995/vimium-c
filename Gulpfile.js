@@ -8,6 +8,11 @@ var newer = require('gulp-newer');
 var gulpPrint = require('gulp-print');
 var gulpSome = require('gulp-some');
 var osPath = require('path');
+var {
+  getGitCommit, extendIf, readJSON, readFile,
+  touchFileIfNeeded,
+  loadUglifyConfig: _loadUglifyConfig
+} = require("./scripts/dependencies");
 
 class BrowserType {}
 Object.assign(BrowserType, {
@@ -25,9 +30,11 @@ var gTypescript = null, tsOptionsCleaned = false;
 var buildConfig = null;
 var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var envLegacy = process.env.SUPPORT_LEGACY === "1";
+var needCommitInfo = process.env.NEED_COMMIT === "1";
 var envSourceMap = process.env.ENABLE_SOURCE_MAP === "1";
 var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var doesUglifyLocalFiles = process.env.UGLIFY_LOCAL !== "0";
+var gNoComments = process.env.NO_COMMENT === "1";
 var disableErrors = process.env.SHOW_ERRORS !== "1" && (process.env.SHOW_ERRORS === "0" || !compileInBatch);
 var forcedESTarget = (process.env.TARGET || "").toLowerCase();
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES !== "0";
@@ -36,17 +43,26 @@ var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", fal
 var has_dialog_ui = manifest.options_ui != null && manifest.options_ui.open_in_tab !== true;
 var jsmin_status = [false, false, false];
 var buildOptionCache = Object.create(null);
-var onlyES6 = false;
+var outputES6 = false;
 gulpPrint = gulpPrint.default || gulpPrint;
 
 createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
     && getBuildItem("MinCVer") < 44 /* MinSafe$String$$StartsWith */;
-var has_newtab = getNonNullBuildItem("OverrideNewTab") > 0;
-var es6_viewer = false;
-// es6_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome) || getBuildItem("MinCVer") >= 52;
+var may_have_newtab = getNonNullBuildItem("MayOverrideNewTab") > 0;
+var uglify_viewer = false;
+uglify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
+    || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
 const POLYFILL_FILE = "lib/polyfill.ts", NEWTAB_FILE = "pages/newtab.ts";
 const VIEWER_JS = "lib/viewer.min.js";
+const FILE_URLS_CSS = "front/file_urls.css";
+
+const KnownBackendGlobals = [
+  "Backend_", "BgUtils_", "BrowserProtocol_",
+  "Clipboard_", "CommandsData_", "Completion_", "ContentSettings_", "CurCVer_",
+  "FindModeHistory_", "IncognitoWatcher_", "Marks_", "MediaWatcher_",
+  "Settings_", "TabRecency_"
+];
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
@@ -54,9 +70,10 @@ var CompileTasks = {
   lib: ["lib/*.ts"].concat(has_polyfill ? [] : ["!" + POLYFILL_FILE]),
   front: [["front/*.ts", has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE
             , "lib/injector.ts", "pages/*.ts"
-            , has_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
+            , may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE
             , "!pages/options*.ts", "!pages/show.ts"]
-          , ["background/bg.d.ts", "content/*.d.ts"]],
+          , ["background/bg.d.ts", "content/*.d.ts"]
+          , { inBatch: false }],
   vomnibar: ["front/vomnibar*.ts", ["background/bg.d.ts", "content/*.d.ts"]],
   polyfill: [POLYFILL_FILE],
   injector: ["lib/injector.ts"],
@@ -70,24 +87,28 @@ var Tasks = {
   "build/pages": ["build/options", "build/show", "build/others"],
   "static/special": function() {
     const path = ["lib/*.min.js"];
-    es6_viewer && path.push("!" + VIEWER_JS);
+    uglify_viewer && path.push("!" + VIEWER_JS);
     return copyByPath(path);
   },
   "static/uglify": function() {
     const path = ["lib/math_parser*.js"];
-    // todo: currently, generated es6 code of viewer.js always breaks (can not .shown()), so disable it
-    es6_viewer && path.push(VIEWER_JS);
+    uglify_viewer && path.push(VIEWER_JS);
+    if (!getNonNullBuildItem("NDEBUG")) {
+      return copyByPath(path);
+    }
     return uglifyJSFiles(path, ".", "", { base: "." });
   },
   static: ["static/special", "static/uglify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*.css"
       , "settings_template.json", "*.txt", "*.md"
       , "!**/manifest*.json"
+      , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
-      , "!front/vimium.css", "!test*", "!todo*"
+      , "!test*", "!todo*"
     ];
-    has_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
-    es6_viewer && arr.push("!" + VIEWER_JS);
+    may_have_newtab || arr.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
+    getBuildItem("BTypes") & BrowserType.Chrome || arr.push("!" + FILE_URLS_CSS);
+    uglify_viewer && arr.push("!" + VIEWER_JS);
     var has_wordsRe = getBuildItem("BTypes") & ~BrowserType.Firefox
             && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
@@ -101,15 +122,12 @@ var Tasks = {
     }
     return copyByPath(arr);
   }],
-  "static/local": function(cb) {
-    locally = true;
-    gulp.series("static", "_manifest")(cb);
-  },
-  "local/static": ["static/local"],
 
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
-    return cleanByPath([".build/**", "manifest.json", "lib/polyfill.js", "pages/dialog_ui.*", "*/vomnibar.html"]);
+    return cleanByPath([".build/**", "manifest.json", "pages/dialog_ui.*", "*/vomnibar.html"
+      , "**/*.js", "!helpers/*/*.js"
+      , FILE_URLS_CSS]);
   },
   "build/_all": ["build/scripts", "build/options", "build/show"],
   "build/ts": function(cb) {
@@ -122,8 +140,11 @@ var Tasks = {
       curConfig.push(getNonNullBuildItem("FirefoxID"));
       curConfig.push(getNonNullBuildItem("NativeWordMoveOnFirefox"));
     }
-    curConfig.push(getNonNullBuildItem("Commit"));
-    curConfig.push(getNonNullBuildItem("OverrideNewTab"));
+    if (needCommitInfo) {
+      curConfig.push(getNonNullBuildItem("Commit"));
+    }
+    curConfig.push(getNonNullBuildItem("NDEBUG"));
+    curConfig.push(getNonNullBuildItem("MayOverrideNewTab"));
     curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
     var needClean = true;
@@ -131,7 +152,12 @@ var Tasks = {
       var oldConfig = readFile(configFile);
       needClean = oldConfig !== curConfig;
     } catch (e) {}
-    if (needClean) {
+    var hasLocal2 = false;
+    if (fs.existsSync(osPath.join(DEST, "lib/dom_utils.js"))) {
+      hasLocal2 = true;
+    }
+    if (needClean || hasLocal2) {
+      print("found diff:", oldConfig || (hasLocal2 ? "(local2)" : "(unknown)"), "!=", curConfig);
       gulp.series("build/_clean_diff")(function() {
         if (!fs.existsSync(JSDEST)) {
           fs.mkdirSync(JSDEST, {recursive: true});
@@ -166,16 +192,15 @@ var Tasks = {
     var exArgs = { nameCache: loadNameCache("content") };
     var config = loadUglifyConfig(!!exArgs.nameCache);
     config.nameCache = exArgs.nameCache;
-    require(LIB_UGLIFY_JS).minify("var CommandsData_, Completion_ \
-      , ContentSettings_, FindModeHistory_, Marks_, TabRecency_, Clipboard_ \
-      , Utils, OnOther, BrowserProtocol_, ChromeVer, Settings, Backend \
-      ;", config);
+    require(LIB_UGLIFY_JS).minify("var " + KnownBackendGlobals.join(" = {},\n") + " = {};", config);
 
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");
     var ori_sources = sources.slice(0);
-    var body = sources.splice(0, sources.indexOf("background/main.js") + 1, "background/main.js");
-    var index = sources.indexOf("background/tools.js");
+    // on Firefox, a browser-inner file `resource://devtools/server/main.js` is also shown as `main.js`
+    // which makes debugging annoying
+    var body = sources.splice(0, sources.indexOf("background/main.js") + 1, "background/body.js");
+    var index = sources.indexOf("background/tools.js") + 1;
     var tail = sources.splice(index, sources.length - index, "background/tail.js");
     var rest = ["background/*.js"];
     for (var arr = ori_sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
@@ -195,13 +220,26 @@ var Tasks = {
     var exArgs = { nameCache: loadNameCache("bg"), nameCachePath: getNameCacheFilePath("bg") };
     if (exArgs.nameCache.vars && exArgs.nameCache.props) {
       let {vars: {props: vars}, props: {props: props}} = exArgs.nameCache;
+      var browser = getNonNullBuildItem("BTypes");
+      if ("$OnOther" in vars
+          && (browser === BrowserType.Chrome || browser === BrowserType.Firefox || browser === BrowserType.Edge)) {
+        throw new Error('Unexpected global bariable in backend: OnOther');
+      }
       for (let key in vars) {
         if (vars.hasOwnProperty(key)) {
+          let key2 = key.replace(/^\$/, ""), idx = KnownBackendGlobals.indexOf(key2);
+          if (idx < 0) {
+            throw new Error('Unknown global variable in backend: ' + key2);
+          }
+          KnownBackendGlobals.splice(idx, 1);
           if (props[key] != null) {
-            throw new Error('The name cache #bg can not be used to build others: values differ for ' + key);
+            throw new Error('The name cache #bg can not be used to build others: values differ for ' + key2);
           }
           props[key] = vars[key];
         }
+      }
+      if (KnownBackendGlobals.length > 0) {
+        throw new Error('Some global variable are not found: ' + KnownBackendGlobals.join(", "));
       }
     }
     gulp.task("min/others/omni", function() {
@@ -222,9 +260,9 @@ var Tasks = {
     });
     gulp.task("min/others/misc", function() {
       var oriManifest = readJSON("manifest.json", true);
-      var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!pages/options*"];
+      var res = ["**/*.js", "!background/*.js", "!content/*.js", "!front/vomnibar*", "!helpers/*/*.js", "!pages/options*"];
       has_polyfill || res.push("!" + POLYFILL_FILE.replace(".ts", ".*"));
-      has_newtab || res.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
+      may_have_newtab || res.push("!" + NEWTAB_FILE.replace(".ts", ".*"));
       if (!has_dialog_ui) {
         res.push("!*/dialog_ui.*");
       }
@@ -249,9 +287,11 @@ var Tasks = {
       delete manifest.minimum_chrome_version;
       delete manifest.key;
       delete manifest.update_url;
-      delete manifest.background.persistent;
     } else if (minVer && minVer < 999) {
       manifest.minimum_chrome_version = "" + (minVer | 0);
+    }
+    if (!(browser & ~BrowserType.Firefox)) {
+      delete manifest.background.persistent;
     }
     if (browser === BrowserType.Chrome) {
       delete manifest.browser_specific_settings;
@@ -280,14 +320,22 @@ var Tasks = {
     if (dialog_ui != null && !!dialog_ui !== has_dialog_ui && !dialog_ui) {
       manifest.options_ui && (manifest.options_ui.open_in_tab = true);
     }
-    if (getNonNullBuildItem("OverrideNewTab") <= 0) {
+    if (getNonNullBuildItem("MayOverrideNewTab") <= 0) {
       if (manifest.chrome_url_overrides) {
         delete manifest.chrome_url_overrides.newtab;
       }
     }
+    if (!(browser & BrowserType.Chrome)) {
+      manifest.content_scripts = manifest.content_scripts.filter(function(item) {
+        return item.matches.length > 1 || item.matches.indexOf("file:///*") < 0 && item.matches.indexOf("file://*") < 0;
+      });
+    }
     if (manifest.chrome_url_overrides && Object.keys(manifest.chrome_url_overrides) == 0) {
       delete manifest.chrome_url_overrides;
     }
+    let newManifest = {};
+    for (let key of Object.keys(manifest).sort()) { newManifest[key] = manifest[key]; }
+    manifest = newManifest;
     var file = osPath.join(DEST, "manifest.json")
       , data = JSON.stringify(manifest, null, "  ");
     if (fs.existsSync(file) && fs.statSync(file).isFile()) {
@@ -310,7 +358,7 @@ var Tasks = {
   rebuild: [["clean"], "dist"],
   all: ["build"],
   clean: function() {
-    return cleanByPath([".build/**", "**/*.js"
+    return cleanByPath([".build/**", "**/*.js", "!helpers/*/*.js"
       , "front/vomnibar.html", "front/words.txt"]);
   },
 
@@ -331,7 +379,7 @@ var Tasks = {
   tsc: ["locally", function(done) {
     debugging = true;
     doesMergeProjects = true;
-    compile(["*/*.ts"], false, done);
+    compile(["*/*.ts", "!helpers/**"], false, done);
   }],
   "default": ["local"],
   watch: ["locally", function(done) {
@@ -346,11 +394,31 @@ var Tasks = {
     ["background", "content", "vomnibar", "polyfill", "injector", "options", "show", "others"].forEach(makeWatchTask);
     done();
   }],
-  lint: function (done) {
+  tslint: function (done) {
     var node = process.argv[0];
     process.argv = [node, ..."./node_modules/tslint/bin/tslint --project .".split(" ")];
     require(process.argv[1]);
     done();
+  },
+  lint: ["tslint"],
+  local2: function(cb) {
+    gNoComments = true;
+    compilerOptions.removeComments = true;
+    locally = true;
+    if (!process.env.LOCAL_DIST) {
+      process.env.LOCAL_DIST = "dist";
+      print("Set env's default: BUILD_BTypes = dist");
+    }
+    var arr = ["static", "_manifest"];
+    if (fs.existsSync(osPath.join(JSDEST, "lib/dom_utils.js"))) {
+      arr.unshift("build/_clean_diff");
+    }
+    gulp.series(...arr)(function () {
+      locally = false;
+      gulp.series("local")(function() {
+        cb();
+      });
+    });
   },
   test: ["local", "lint"]
 };
@@ -372,13 +440,13 @@ gulp.task("locally", function(done) {
     CompileTasks.lib.length = 1;
     has_polyfill || CompileTasks.lib.push("!" + POLYFILL_FILE);
   }
-  var old_has_newtab = has_newtab;
-  has_newtab = getNonNullBuildItem("OverrideNewTab") > 0;
-  if (has_newtab != old_has_newtab) {
-    CompileTasks.front[0][4] = has_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE;
+  var old_has_newtab = may_have_newtab;
+  may_have_newtab = getNonNullBuildItem("MayOverrideNewTab") > 0;
+  if (may_have_newtab != old_has_newtab) {
+    CompileTasks.front[0][4] = may_have_newtab ? NEWTAB_FILE : "!" + NEWTAB_FILE;
   }
-  es6_viewer = false;
-  // es6_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome) || getBuildItem("MinCVer") >= 52;
+  uglify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
+      || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
   if (!has_dialog_ui) {
     let i = CompileTasks.others[0].indexOf("!*/dialog_ui.*");
     if (i >= 0) {
@@ -389,7 +457,9 @@ gulp.task("locally", function(done) {
       CompileTasks.front[0].splice(i, 1);
     }
   }
-  JSDEST = compilerOptions.outDir = process.env.LOCAL_DIST || ".";
+  JSDEST = process.env.LOCAL_DIST || ".";
+  /[\/\\]$/.test(JSDEST) && (JSDEST = JSDEST.slice(0, -1));
+  compilerOptions.outDir = JSDEST;
   enableSourceMap = false;
   willListEmittedFiles = true;
   done();
@@ -397,10 +467,10 @@ gulp.task("locally", function(done) {
 makeCompileTasks();
 makeTasks();
 
-function makeCompileTask(src, header_files) {
+function makeCompileTask(src, header_files, options) {
   header_files = typeof header_files === "string" ? [header_files] : header_files || [];
   return function(done) {
-    compile(src, header_files, done);
+    compile(src, header_files, done, options);
   };
 }
 
@@ -408,7 +478,7 @@ function makeCompileTasks() {
   var hasOwn = Object.prototype.hasOwnProperty;
   for (var key in CompileTasks) {
     if (!hasOwn.call(CompileTasks, key)) { continue; }
-    var config = CompileTasks[key], task = makeCompileTask(config[0], config[1]);
+    var config = CompileTasks[key], task = makeCompileTask(config[0], config[1], config.length > 2 ? config[2] : null);
     gulp.task(key, gulp.series("locally", task));
     gulp.task("build/" + key, task);
     if (fs.existsSync(key) && fs.statSync(key).isDirectory()) {
@@ -473,12 +543,12 @@ function makeTasks() {
 
 function tsProject() {
   loadTypeScriptCompiler();
-  removeUnknownOptions();
+  removeSomeTypeScriptOptions();
   return disableErrors ? ts(compilerOptions, ts.reporter.nullReporter()) : ts(compilerOptions);
 }
 
 var _mergedProject = null, _mergedProjectInput = null;
-function compile(pathOrStream, header_files, done) {
+function compile(pathOrStream, header_files, done, options) {
   if (typeof pathOrStream === "string") {
     pathOrStream = [pathOrStream];
   }
@@ -491,7 +561,10 @@ function compile(pathOrStream, header_files, done) {
     : ["types/**/*.d.ts", "types/*.d.ts", "!types/build/*.ts"].concat(header_files
         ).concat(buildConfig ? ["scripts/gulp.tsconfig.json"] : []);
   var allIfNotEmpty = gulpAllIfNotEmpty();
-  stream = stream.pipe(allIfNotEmpty.prepare);
+  var localCompileInBatch = options && options.inBatch != null ? options.inBatch : compileInBatch;
+  if (localCompileInBatch) {
+    stream = stream.pipe(allIfNotEmpty.prepare);
+  }
   if (!debugging) {
     stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: extra }));
   }
@@ -499,7 +572,7 @@ function compile(pathOrStream, header_files, done) {
     var t = file.relative, s = ".d.ts", i = t.length - s.length;
     return i < 0 || t.indexOf(s, i) !== i;
   }));
-  if (compileInBatch) {
+  if (localCompileInBatch) {
     stream = stream.pipe(allIfNotEmpty.cond);
   }
   if (willListFiles) {
@@ -532,6 +605,9 @@ function compile(pathOrStream, header_files, done) {
 
 function outputJSResult(stream) {
   if (locally) {
+    stream = stream.pipe(gulpMap(function(file) {
+      beforeUglify(file);
+    }));
     if (doesUglifyLocalFiles) {
       var config = loadUglifyConfig();
       stream = stream.pipe(getGulpUglify()(config));
@@ -641,7 +717,11 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     config.nameCache = exArgs.nameCache;
     patchGulpUglify();
   }
+  stream = stream.pipe(gulpMap(function(file) {
+    beforeUglify(file);
+  }));
   stream = stream.pipe(getGulpUglify()(config));
+  stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(require('gulp-rename')({ suffix: new_suffix }));
   }
@@ -659,17 +739,67 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
   return stream.pipe(gulp.dest(DEST));
 }
 
-function postUglify(file, needToPatchExtendClick) {
-  var contents = String(file.contents), changed = false;
-  if (onlyES6) {
+var toRemovedGlobal = null;
+
+function beforeUglify(file) {
+  var contents = null, changed = false, oldLen = 0;
+  function get() { contents == null && (contents = String(file.contents), changed = true, oldLen = contents.length); }
+  if (!locally && outputES6) {
+    get();
     contents = contents.replace(/\bconst([\s{\[])/g, "let$1");
-    changed = true;
   }
+  if (file.history.join("|").indexOf("viewer") >= 0) {
+    get();
+    contents = contents.replace(/\.offsetWidth\b/g, ".$offsetWidth()");
+  }
+  if (changed || oldLen > 0 && contents.length !== oldLen) {
+    file.contents = new Buffer(contents);
+  }
+}
+
+function postUglify(file, needToPatchExtendClick) {
+  var contents = null, changed = false, oldLen = 0;
+  function get() { contents == null && (contents = String(file.contents), changed = true, oldLen = contents.length); }
   if (needToPatchExtendClick) {
+    get();
     contents = patchExtendClick(contents);
-    changed = true;
   }
-  if (changed) {
+  if (toRemovedGlobal == null) {
+    toRemovedGlobal = "";
+    var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
+    if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {
+      toRemovedGlobal += "browser|";
+    }
+    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsuredES6WeakMapAndWeakSet */ 36) {
+      toRemovedGlobal += "Weak(Set|Map)|";
+    }
+    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinES6$ForOf$Map$SetAnd$Symbol */ 38) {
+      toRemovedGlobal += "Set|";
+    }
+    if ((!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$requestIdleCallback */ 47)
+        && !(btypes & BrowserType.Edge)) {
+      toRemovedGlobal += "requestIdleCallback|";
+    }
+    toRemovedGlobal = toRemovedGlobal.slice(0, -1);
+    toRemovedGlobal = new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]`, "g");
+  }
+  if (toRemovedGlobal) {
+    get();
+    let n = 0, remove = str => str[0] === "," ? str.slice(-1) : str.slice(-1) === "," ? str.split(/\s/)[0] + " " : "";
+    for (; ; n++) {
+      let s1 = contents.slice(0, 1000), s2 = s1.replace(toRemovedGlobal, remove);
+      if (s2.length === s1.length) {
+        break;
+      }
+      contents = s2 + contents.slice(1000);
+    }
+    changed = changed || n > 0;
+  }
+  if (file.history.join("|").indexOf("viewer") >= 0) {
+    get();
+    contents = contents.replace(/\.\$offsetWidth\(\)/g, ".offsetWidth");
+  }
+  if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = new Buffer(contents);
   }
 }
@@ -712,7 +842,7 @@ function formatPath(path, base) {
   if (base && base !== ".") {
     for (var i = 0; i < path.length; i++) {
       var p = path[i];
-      path[i] = p[0] !== "!" ? osPath.join(base, p) : "!" + osPath.join(base, p.substring(1));
+      path[i] = p[0] !== "!" ? osPath.join(base, p) : "!" + osPath.join(base, p.slice(1));
     }
   }
   return path;
@@ -732,97 +862,19 @@ function compareContentAndTouch(stream, sourceFile, targetPath) {
   ).then(function() {
     sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
     if (!isSame) { return; }
-    var fd = fs.openSync(targetPath, "a"), len1 = targetPath.length, fd2 = null;
-    try {
-      var s = s = fs.fstatSync(fd);
-      if (s.mtime != null && len1 > 3 && targetPath.indexOf(".js", len1 - 3) > 0) {
-        var src = (sourceFile.history && sourceFile.history[0] || targetPath).substring(0, len1 - 3) + ".ts";
-        if (fs.existsSync(src)) {
-          var mtime = fs.fstatSync(fd2 = fs.openSync(src, "r")).mtime;
-          if (mtime != null && mtime < s.mtime) {
-            return;
-          }
-        }
-      }
-      fs.futimesSync(fd, parseInt(s.atime.getTime() / 1000, 10), parseInt(Date.now() / 1000, 10));
-      print("Touch an unchanged file:", sourceFile.relative);
-    } finally {
-      fs.closeSync(fd);
-      if (fd2 != null) {
-        fs.closeSync(fd2);
-      }
+    var sourcePath = sourceFile.history && sourceFile.history[0] || targetPath;
+    if (targetPath.slice(-3) === ".js") {
+      let sourcePath2 = sourcePath.slice(-3) === ".js" ? sourcePath.slice(0, -3) + ".ts" : sourcePath;
+      if (fs.existsSync(sourcePath2)) { sourcePath = sourcePath2; }
+    }
+    if (touchFileIfNeeded(targetPath, sourcePath)) {
+      var fileName = sourceFile.relative;
+      print("Touch an unchanged file:", fileName.indexOf(":\\") > 0 ? fileName : fileName.replace(/\\/g, "/"));
     }
   }).catch(function(e) {
     sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
     throw e;
   });
-}
-
-function readFile(fileName, info) {
-  info == null && (info = {});
-  var buffer = fs.readFileSync(fileName);
-  var len = buffer.length;
-  if (len >= 2 && buffer[0] === 0xFE && buffer[1] === 0xFF) {
-      // Big endian UTF-16 byte order mark detected. Since big endian is not supported by node.js,
-      // flip all byte pairs and treat as little endian.
-      len &= ~1;
-      for (var i = 0; i < len; i += 2) {
-          const temp = buffer[i];
-          buffer[i] = buffer[i + 1];
-          buffer[i + 1] = temp;
-      }
-      info.bom = "\uFFFE";
-      return buffer.toString("utf16le", 2);
-  }
-  if (len >= 2 && buffer[0] === 0xFF && buffer[1] === 0xFE) {
-      // Little endian UTF-16 byte order mark detected
-      info.bom = "\uFEFF";
-      return buffer.toString("utf16le", 2);
-  }
-  if (len >= 3 && buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
-      // UTF-8 byte order mark detected
-      info.bom = "\uFEFF";
-      return buffer.toString("utf8", 3);
-  }
-  info.bom = "";
-  // Default is UTF-8 with no byte order mark
-  return buffer.toString("utf8");
-}
-
-function _makeJSONReader() {
-  var stringOrComment = /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*[^]*?\*\//g
-    , notLF = /[^\r\n]+/g, notWhiteSpace = /\S/;
-  function spaceN(str) {
-    return ' '.repeat(str.length);
-  }
-  function onReplace(str) {
-    switch (str[0]) {
-    case '/': case '#':
-      if (str[0] === "/*") {
-        // replace comments with whitespace to preserve original character positions
-        return str.replace(notLF, spaceN);
-      }
-      return spaceN(str);
-    case '"': case "'": // falls through
-    default:
-      return str;
-    }
-  }
-  function readJSON(fileName, throwError) {
-    var text = readFile(fileName);
-    text = text.replace(stringOrComment, onReplace);
-    try {
-      return notWhiteSpace.test(text) ? JSON.parse(text) : {};
-    } catch (e) {
-      if (throwError === true) {
-        throw e;
-      }
-      var err = "Failed to parse file '" + fileName + "': " + e + ".";
-      console.warn("%s", err);
-      return {};
-    }
-  }
-  global._readJSON = readJSON;
 }
 
 function safeJSONParse(literalVal, defaultVal) {
@@ -831,13 +883,6 @@ function safeJSONParse(literalVal, defaultVal) {
     newVal = JSON.parse(literalVal);
   } catch (e) {}
   return newVal;
-}
-
-function readJSON(fileName, throwError) {
-  if (!global._readJSON) {
-    _makeJSONReader();
-  }
-  return _readJSON(fileName, throwError);
 }
 
 function readTSConfig(tsConfigFile, throwError) {
@@ -881,6 +926,9 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
   }
   if (opts.noImplicitUseStrict) {
     opts.alwaysStrict = false;
+  }
+  if (gNoComments) {
+    opts.removeComments = true;
   }
   const arr = opts.plugins || [];
   for (let i = 0; i < arr.length; i++) {
@@ -937,7 +985,7 @@ function loadTypeScriptCompiler(path) {
   gTypescript = compilerOptions.typescript = typescript1;
 }
 
-function removeUnknownOptions() {
+function removeSomeTypeScriptOptions() {
   if (tsOptionsCleaned) { return; }
   var hasOwn = Object.prototype.hasOwnProperty, toDelete = [], key, val;
   for (var key in compilerOptions) {
@@ -947,6 +995,11 @@ function removeUnknownOptions() {
       return i.name === key;
     });
     declared || toDelete.push(key);
+  }
+  for (const key of ["incremental", "tsBuildInfoFile"]) {
+    if (key in compilerOptions) {
+      toDelete.push(key);
+    }
   }
   for (var i = 0; i < toDelete.length; i++) {
     key = toDelete[i], val = compilerOptions[key];
@@ -983,8 +1036,10 @@ function createBuildConfigCache() {
     throw new Error("Unsupported Build.BTypes: " + getBuildItem("BTypes"));
   }
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
-  onlyES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
-  compilerOptions.target = onlyES6 ? "es6" : "es5";
+  outputES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
+  compilerOptions.target = outputES6
+    ? !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es2017"
+    : "es6" : "es5";
 }
 
 function getNonNullBuildItem(key) {
@@ -1003,18 +1058,20 @@ function getBuildItem(key, literalVal) {
   let cached = buildOptionCache[key];
   if (!cached) {
     if (key === "Commit") {
-      cached = [literalVal, [safeJSONParse(literalVal), getGitCommit()]];
-    } else if (key === "OverrideNewTab") {
+      cached = [literalVal, [safeJSONParse(literalVal), locally ? null : getGitCommit()]];
+    } else if (key === "MayOverrideNewTab") {
       if (!manifest.chrome_url_overrides || !manifest.chrome_url_overrides.newtab) {
         cached = buildOptionCache[key] = ["0", 0];
       }
+    } else if (key.startsWith("Random")) {
+      cached = [literalVal, getRandom];
     }
     cached && (buildOptionCache[key] = cached);
   }
   if (cached != null) {
     return parseBuildItem(key, cached[1]);
   }
-  var env_key = key.replace(/[A-Z]+[a-z0-9]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
+  var env_key = key.replace(/[A-Z]+[a-z\d]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
   var newVal = process.env["BUILD_" + env_key];
   if (!newVal) {
     newVal = process.env["BUILD_" + key];
@@ -1036,33 +1093,15 @@ function parseBuildItem(key, newVal) {
   if (newVal != null && newVal instanceof Array && newVal.length === 2) {
     newVal = newVal[locally ? 0 : 1];
   }
+  if (typeof newVal === "function") {
+    newVal = newVal(key, buildOptionCache[key][0]);
+  }
   if (newVal == null) {
     if (key === "NoDialogUI") {
       newVal = !has_dialog_ui;
     }
   }
   return newVal;
-}
-
-function getGitCommit() {
-  if (locally) { return null; }
-  try {
-    var branch = readFile(".git/HEAD");
-    branch = branch && branch.replace("ref:", "").trim();
-    if (branch) {
-      var commit = readFile(".git/" + branch);
-      return commit ? commit.trim().substring(0, 7) : null;
-    }
-  } catch (e) {}
-  return null;
-}
-
-function extendIf(b, a) {
-  Object.setPrototypeOf(a, null);
-  for (const i in a) {
-    (i in b) || (b[i] = a[i]);
-  }
-  return b;
 }
 
 function print() {
@@ -1163,13 +1202,13 @@ function gulpMerge() {
 function patchExtendClick(source) {
   if (locally && envLegacy) { return source; }
   print('Patch the extend_click module');
-  source = source.replace(/(addEventListener|toString) ?: ?function ?\w*/g, "$1");
+  source = source.replace(/\b(addEventListener|toString) ?: ?function ?\w*/g, "$1");
   let match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
   if (match) {
     const start = Math.max(0, match.index - 128), end = match.index;
-    let prefix = source.substring(0, start), suffix = source.substring(end);
-    source = source.substring(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
-    suffix = '/\\b(addEventListener|toString)\\(/g, "$1:function $1("' + suffix.substring(match[0].length);
+    let prefix = source.slice(0, start), suffix = source.slice(end);
+    source = source.slice(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
+    suffix = '/\\b(addEventListener|toString)\\(/g, "$1:function $1("' + suffix.slice(match[0].length);
     source = prefix + source + suffix;
   }
   match = /' ?\+ ?\(?function VC ?\(/.exec(source);
@@ -1180,11 +1219,11 @@ function patchExtendClick(source) {
     if (end2 <= 0) {
       throw new Error('Can not find the end ".toString() + \')();\'" around the injected function.');
     }
-    let prefix = source.substring(0, start), suffix = source.substring(end2 + ")();'".length);
-    source = source.substring(start + match[0].length, end).replace(/ \/\/[^\n]*?$/g, "").replace(/'/g, '"');
+    let prefix = source.slice(0, start), suffix = source.slice(end2 + ")();'".length);
+    source = source.slice(start + match[0].length, end).replace(/ \/\/[^\n]*?$/g, "").replace(/'/g, '"');
     source = source.replace(/\\/g, "\\\\");
     if (locally) {
-      source = source.replace(/([\r\n]) {4,8}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");
+      source = source.replace(/([\r\n]) {4}/g, "$1").replace(/\r\n?|\n/g, "\\n\\\n");
     } else {
       source = source.replace(/[\r\n]\s*/g, "");
     }
@@ -1225,38 +1264,22 @@ function patchGulpUglify() {
   _gulpUglifyPatched = true;
 }
 
-var _uglifyjsConfig = null;
 function loadUglifyConfig(reload) {
-  let a = _uglifyjsConfig;
-  if (a == null || reload) {
-    a = readJSON(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json");
-    if (!reload) {
-      _uglifyjsConfig = a;
+  var a = _loadUglifyConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
+  {
+    if (!getNonNullBuildItem("NDEBUG")) {
+      a.mangle = false;
+      a.output.beautify = true;
+      a.output.comments = true;
+      a.output.indent_level = 2;
     }
-    a.output || (a.output = {});
-    var c = a.compress || (a.compress = {}); // gd = c.global_defs || (c.global_defs = {});
-    if (typeof c.keep_fnames === "string") {
-      let re = c.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
-      c.keep_fnames = new RegExp(re[1], re[2]);
-    }
-    var m = a.mangle, p = m && m.properties;
-    if (p && typeof p.regex === "string") {
-      let re = p.regex.match(/^\/(.*)\/([a-z]*)$/);
-      p.regex = new RegExp(re[1], re[2]);
-    }
-    if (m && typeof m.keep_fnames === "string") {
-      let re = m.keep_fnames.match(/^\/(.*)\/([a-z]*)$/);
-      m.keep_fnames = new RegExp(re[1], re[2]);
-    }
-    else if (m && !typeof m.keep_fnames) {
-      m.keep_fnames = c.keep_fnames;
-    }
-    if (onlyES6) {
+    if (outputES6) {
       a.ecma = 6;
+      var c = a.compress || (a.compress = {});
       c.hoist_vars = false;
     }
   }
-  if (!locally) {
+  if (gNoComments || !locally && getNonNullBuildItem("NDEBUG")) {
     a.output.comments = /^!/;
   }
   return a;
@@ -1266,7 +1289,7 @@ function getNameCacheFilePath(path) {
   if (path.indexOf(".cache") >= 0 ) {
     return path;
   }
-  return JSDEST + osPath.sep + ".names-" + path.replace("min/", "") + ".cache";
+  return osPath.join(JSDEST, ".names-" + path.replace("min/", "") + ".cache");
 }
 
 function saveNameCacheIfNeeded(key, nameCache) {
@@ -1283,4 +1306,47 @@ function loadNameCache(path) {
     print("Loaded nameCache of " + path);
   }
   return nameCache || { vars: {}, props: {}, timestamp: 0 };
+}
+
+var _randMap, _randSeed;
+function getRandom(id) {
+  var rand = _randMap ? _randMap[id] : 0;
+  if (rand) {
+    if ((typeof rand === "string") === locally) {
+      return rand;
+    }
+  }
+  if (!_randMap) {
+    _randMap = {};
+    _randSeed = `${osPath.resolve(__dirname).replace(/\\/g, "/")}@${parseInt(fs.statSync("manifest.json").mtimeMs)}/`;
+    var rng;
+    if (!locally) {
+      try {
+        rng = require('seedrandom');
+      } catch (e) {}
+    }
+    if (rng) {
+      _randSeed = rng = rng(_randSeed);
+    }
+  }
+  if (!locally) {
+    while (!rand || Object.values(_randMap).includes(rand)) {
+      /** {@see #GlobalConsts.SecretRange} */
+      rand = 1e6 + (0 | ((typeof _randSeed === "function" ? _randSeed() : Math.random()) * 9e6));
+    }
+  } else {
+    var hash = _randSeed + id;
+    hash = compute_hash(hash);
+    hash = hash.slice(0, 7);
+    rand = hash;
+  }
+  _randMap[id] = rand;
+  return rand;
+}
+
+function compute_hash(str) {
+  var crypto = require('crypto');
+  var md5 = crypto.createHash('sha1');
+  md5.update(str)
+  return md5.digest('hex');
 }

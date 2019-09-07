@@ -6,8 +6,8 @@
 declare namespace ScrollerNS {
   const enum Consts {
     calibrationBoundary = 150, maxCalibration = 1.6, minCalibration = 0.5,
-    invalidTime = 0, minDuration = 100, durationScaleForAmount = 20,
-    maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17,
+    minDuration = 100, durationScaleForAmount = 20,
+    maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17, firstTick = 17,
 
     DelayMinDelta = 60, DelayTolerance = 60,
     DelayUnitMs = 30, FrameIntervalMs = 16.67, MaxSkippedF = 4,
@@ -17,6 +17,8 @@ declare namespace ScrollerNS {
     // low:   15f /  250ms :   33ms /  2f # 200 / 6
     HighDelayMs = 1000, LowDelayMs = 250, DefaultMinDelayMs = 660,
     HighIntervalF = 24, LowIntervalF = 2, DefaultMaxIntervalF = HighIntervalF + MaxSkippedF,
+
+    AmountLimitToScrollAndWaitRepeatedKeys = 20,
   }
 }
 declare const enum kScrollDim {
@@ -33,97 +35,119 @@ interface ElementScrollInfo {
 var VScroller = {
 _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
-  sign = 0, timestamp = ScrollerNS.Consts.invalidTime as number, totalDelta = 0.0, totalElapsed = 0.0, //
-  running = 0 as number, next = requestAnimationFrame;
+  sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
+  running = 0 as number, next = requestAnimationFrame, timer = 0;
   function animate(newTimestamp: number): void {
-    let int1 = timestamp, elapsed: number, continuous: boolean;
+    const _this = VScroller,
+    // although timestamp is mono, Firefox adds too many limits to its precision
+    elapsed = !timestamp ? (newTimestamp = performance.now(), ScrollerNS.Consts.firstTick)
+              : newTimestamp > timestamp ? newTimestamp - timestamp
+              : (newTimestamp += ScrollerNS.Consts.tickForUnexpectedTime, ScrollerNS.Consts.tickForUnexpectedTime),
+    continuous = _this.keyIsDown_ > 0;
+    if (!_this) { return; }
     timestamp = newTimestamp;
-    {
-      elapsed = newTimestamp - int1;
-      // although timestamp is mono, Firefox adds too many limits to its precision
-      elapsed = elapsed > 0 ? elapsed
-        : (timestamp += ScrollerNS.Consts.tickForUnexpectedTime, ScrollerNS.Consts.tickForUnexpectedTime);
-      int1 = (totalElapsed += elapsed);
-      const _this = VScroller;
-      if (!_this) { return; }
-      if (continuous = _this.keyIsDown_ > 0) {
-        if (int1 >= ScrollerNS.Consts.delayToChangeSpeed) {
-          if (int1 > _this.minDelay_) { --_this.keyIsDown_; }
-          int1 = calibration;
-          if (ScrollerNS.Consts.minCalibration <= int1 && int1 <= ScrollerNS.Consts.maxCalibration) {
-            int1 = ScrollerNS.Consts.calibrationBoundary / amount / int1;
-            calibration *= (int1 > ScrollerNS.Consts.maxS) ? ScrollerNS.Consts.maxS
-              : (int1 < ScrollerNS.Consts.minS) ? ScrollerNS.Consts.minS : 1.0;
-          }
+    totalElapsed += elapsed;
+    if (amount < ScrollerNS.Consts.AmountLimitToScrollAndWaitRepeatedKeys
+        && continuous && totalDelta >= amount && totalElapsed < _this.minDelay_ - 2) {
+      running = 0;
+      timer = setTimeout(startAnimate, _this.minDelay_ - totalElapsed);
+      return;
+    }
+    if (continuous) {
+      if (totalElapsed >= ScrollerNS.Consts.delayToChangeSpeed) {
+        if (totalElapsed > _this.minDelay_) { --_this.keyIsDown_; }
+        if (ScrollerNS.Consts.minCalibration <= calibration && calibration <= ScrollerNS.Consts.maxCalibration) {
+          const calibrationScale = ScrollerNS.Consts.calibrationBoundary / amount / calibration;
+          calibration *= calibrationScale > ScrollerNS.Consts.maxS ? ScrollerNS.Consts.maxS
+            : calibrationScale < ScrollerNS.Consts.minS ? ScrollerNS.Consts.minS : 1;
         }
       }
-      int1 = Math.ceil(amount * (elapsed / duration) * calibration);
-      continuous || (int1 = Math.min(int1, amount - totalDelta));
-      if (int1 > 0 && _this._performScroll(element, di, sign * int1)) {
-        totalDelta += int1;
-        next(animate);
-      } else {
-        _this._checkCurrent(element);
-        element = null;
-        running = 0;
+    }
+    let delta = amount * (elapsed / duration) * calibration;
+    continuous || (delta = Math.min(delta, amount - totalDelta));
+    // not use `sign * _performScroll()`, so that the code is safer even though there're bounce effects
+    delta = delta > 0 ? Math.abs(_this._performScroll(element, di, sign * Math.ceil(delta))) : 0;
+    if (delta) {
+      totalDelta += delta;
+      next(animate);
+    } else {
+      if ((!(Build.BTypes & BrowserType.Chrome) || VDom.cache_.v >= BrowserVer.MinMaybeScrollEndAndOverScrollEvents)
+          && "onscrollend" in (Build.BTypes & ~BrowserType.Firefox ? HTMLElement.prototype : document)) {
+        // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
+        // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
+        const notEl: boolean = !element || element === VDom.scrollingEl_();
+        (notEl ? document : element as NonNullable<typeof element>).dispatchEvent(
+            new Event("scrollend", {cancelable: false, bubbles: notEl}));
       }
+      _this._checkCurrent(element);
+      element = null;
+      running = 0;
     }
   }
-  this._animate = (function (this: typeof VScroller, newEl, newDi, newAmount): void {
+  function startAnimate(): void {
+    timer = 0;
+    running = running || next(animate);
+  }
+  this._animate = function (this: typeof VScroller, newEl, newDi, newAmount): void {
     const M = Math;
-    amount = M.abs(newAmount); calibration = 1.0; di = newDi;
+    amount = M.max(1, M.abs(newAmount)); calibration = 1.0; di = newDi;
     duration = M.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * M.log(amount));
     element = newEl;
     sign = newAmount < 0 ? -1 : 1;
     totalDelta = totalElapsed = 0.0;
-    const keyboard = VDom.cache_.keyboard;
+    timestamp = 0;
+    if (timer) {
+      clearTimeout(timer);
+    }
+    const keyboard = VDom.cache_.k;
     this.maxInterval_ = M.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
     this.minDelay_ = (((keyboard[0] + M.max(keyboard[1], ScrollerNS.Consts.DelayMinDelta)
           + ScrollerNS.Consts.DelayTolerance) / ScrollerNS.Consts.DelayUnitMs) | 0)
       * ScrollerNS.Consts.DelayUnitMs;
-    this.keyIsDown_ = this.maxInterval_;
-    timestamp = performance.now();
-    running = running || next(animate);
-  });
-  return this._animate(e, d, a);
+    startAnimate();
+  };
+  this._animate(e, d, a);
 },
   maxInterval_: ScrollerNS.Consts.DefaultMaxIntervalF as number,
   minDelay_: ScrollerNS.Consts.DefaultMinDelayMs as number,
-  _performScroll (el: SafeElement | null, di: ScrollByY, amount: number, before?: number): boolean {
+  _performScroll (el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number {
+    let newPos: number, kInstant = "instant" as const;
     if (di) {
       if (el) {
         before = before == null ? el.scrollTop : before;
         !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
         !(Build.BTypes & ~BrowserType.Firefox) ||
-        el.scrollBy ? el.scrollBy({behavior: "instant", top: amount}) : (el.scrollTop += amount);
-        return el.scrollTop !== before;
+        el.scrollBy ? el.scrollBy({behavior: kInstant, top: amount}) : (el.scrollTop += amount);
+        newPos = el.scrollTop;
       } else {
         before = scrollY;
         // avoid using `Element`, so that users may override it
         VDom.scrollWndBy_(0, amount);
-        return scrollY !== before;
+        newPos = scrollY;
       }
     } else if (el) {
-      before = before == null ? el.scrollTop : before;
+      before = before == null ? el.scrollLeft : before;
       !(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
       !(Build.BTypes & ~BrowserType.Firefox) ||
-      el.scrollBy ? el.scrollBy({behavior: "instant", left: amount}) : (el.scrollLeft += amount);
-      return el.scrollLeft !== before;
+      el.scrollBy ? el.scrollBy({behavior: kInstant, left: amount}) : (el.scrollLeft += amount);
+      newPos = el.scrollLeft;
     } else {
       before = scrollX;
       VDom.scrollWndBy_(amount, 0);
-      return scrollX !== before;
+      newPos = scrollX;
     }
+    return newPos - before;
   },
-  scroll_ (element: SafeElement | null, di: ScrollByY, amount: number): void | number | boolean {
-    if (!amount) { return; }
-    if (VDom.cache_.smoothScroll
+  _innerScroll (element: SafeElement | null, di: ScrollByY, amount: number): void {
+    if (VDom.cache_.S
         && (Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
             || VDom.allowRAF_)) {
-      return this._animate(element, di, amount);
+      amount && this._animate(element, di, amount);
+      this.scrollTick_(1);
+    } else if (amount) {
+      this._performScroll(element, di, amount);
+      this._checkCurrent(element);
     }
-    this._performScroll(element, di, amount);
-    return this._checkCurrent(element);
   },
 
   /** @NEED_SAFE_ELEMENTS */
@@ -132,47 +156,86 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   top_: null as SafeElement | null,
   keyIsDown_: 0,
   scale_: 1,
-  Sc (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
+  activate_ (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
+    if (options.$c == null) {
+      options.$c = VEvent.isCmdTriggered_();
+    }
     if (VEvent.checkHidden_(kFgCmd.scroll, count, options)) { return; }
-    if (VHints.TryNestedFrame_("VScroller", "Sc", count, options)) { return; }
-    const a = VScroller, di: ScrollByY = options.axis === "x" ? 0 : 1;
-    if (options.dest) {
-      let fromMax: BOOL = options.dest === "max" ? 1 : 0;
-      if (count < 0) { fromMax = (1 - fromMax as BOOL); count = -count; }
-      return a.scrollTo_(di, count - 1, fromMax);
+    if (VHints.TryNestedFrame_(kFgCmd.scroll, count, options)) { return; }
+    const a = VScroller, di: ScrollByY = options.axis === "x" ? 0 : 1,
+    dest = options.dest;
+    let fromMax = dest === "max";
+    if (dest) {
+      if (count < 0) { fromMax = !fromMax; count = -count; }
+      count--;
+    } else {
+      count *= +<number> options.dir || 1;
     }
-    return a.scrollBy_(di, (+<number> options.dir || 1) * count, options.view);
+    a.scroll_(di, count, dest ? 1 as never : 0, options.view, fromMax as false);
+    if (a.keyIsDown_ && !options.$c) {
+      a.scrollTick_(0);
+    }
   },
-  /** amount: can not be 0 */
-  scrollBy_ (di: ScrollByY, amount: number, factor: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined): void {
-    const a = this;
+  /**
+   * @param amount0 can not be 0, if `isTo` is 0; can not be negative, if `isTo` is 1
+   * @param factor `!!factor` can be true only if `isTo` is 0
+   * @param fromMax can not be true, if `isTo` is 0
+   */
+  scroll_: function (this: {}, di: ScrollByY, amount0: number, isTo: BOOL
+      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: boolean): void {
+    const a = this as typeof VScroller;
     a.prepareTop_();
-    const element = a.findScrollable_(di, amount);
+    isTo && di && VMarks.setPreviousPosition_();
+    let amount = amount0;
+    const element = a.findScrollable_(di, isTo ? fromMax ? 1 : -1 : amount);
     amount = !factor ? a._adjustAmount(di, amount, element)
-      : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
+      : factor === 1 ? amount
       : amount * a.getDimension_(element, di, factor === "max" ? kScrollDim.scrollSize : kScrollDim.viewSize);
-    a.scroll_(element, di, amount);
-    a.top_ = null;
-  },
-  /** `amount`: default to be `0` */
-  scrollTo_ (di: ScrollByY, amount: number, fromMax: BOOL): void {
-    const a = this;
-    a.prepareTop_();
-    di && VMarks.setPreviousPosition_();
-    const element = a.findScrollable_(di, fromMax ? 1 : -1);
-    amount = a._adjustAmount(di, amount, element);
-    if (fromMax) {
-      amount = a.getDimension_(element, di, kScrollDim.scrollSize) - amount
-        - a.getDimension_(element, di, kScrollDim.viewSize);
+    if (isTo) {
+      const curPos = a.getDimension_(element, di, kScrollDim.position),
+      viewSize = a.getDimension_(element, di, kScrollDim.viewSize),
+      max = (fromMax || amount) && a.getDimension_(element, di, kScrollDim.scrollSize) - viewSize;
+      amount = element ? Math.max(0, Math.min(fromMax ? max - amount : amount, max)) - curPos
+          : fromMax ? viewSize : amount - curPos;
     }
-    amount -= element ? a.getDimension_(element, di, kScrollDim.position) : di ? scrollY : scrollX;
-    a.scroll_(element, di, amount);
+    let core: ReturnType<typeof VDom.parentCore_>;
+    if (element === a.top_ && element
+        && (core = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
+                : VDom.frameElement_() && parent as Window)) {
+      const Sc = core.VScroller as typeof VScroller;
+      if (Sc && !a._doesScroll(element, di, amount || (fromMax ? 1 : 0))) {
+        Sc.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
+        if (Sc.keyIsDown_) {
+          a.scrollTick_(1);
+          a._joined = Sc;
+        }
+        amount = 0;
+      }
+      a.scrolled_ = 0;
+    }
+    a._innerScroll(element, di, amount);
     a.top_ = null;
+  } as {
+    (di: ScrollByY, amount: number, isTo: 0
+      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false): void;
+    (di: ScrollByY, amount: number, isTo: 1
+      , factor?: undefined | 0, fromMax?: boolean): void;
+  },
+  _joined: null as unknown,
+  scrollTick_ (willContinue: BOOL | boolean): void {
+    const a = this;
+    a.keyIsDown_ = willContinue ? a.maxInterval_ : 0;
+    if (a._joined) {
+      (a._joined as typeof VScroller).scrollTick_(willContinue);
+      if (!willContinue) {
+        a._joined = null;
+      }
+    }
   },
   _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
-    amount *= VDom.cache_.scrollStepSize;
+    amount *= VDom.cache_.t;
     return !di && amount && element && element.scrollWidth <= element.scrollHeight * (element.scrollWidth < 720 ? 2 : 1)
-      ? Math.ceil(amount * 0.6) : amount;
+      ? amount * 0.6 : amount;
   },
   /**
    * @param amount should not be 0
@@ -185,7 +248,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       type Element2 = NonNullable<typeof element>;
       while (element !== top && (reason = a.shouldScroll_need_safe_(element as Element2, di, amount)) < 1) {
         if (!reason) {
-          notNeedToRecheck = notNeedToRecheck || a._scrollDo(element as Element2, 1, -amount);
+          notNeedToRecheck = notNeedToRecheck || a._doesScroll(element as Element2, 1, -amount);
         }
         element = (Build.BTypes & ~BrowserType.Firefox
             ? VDom.SafeEl_(VDom.GetParent_(element as Element, PNType.RevealSlotAndGotoParent))
@@ -202,9 +265,12 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     }
     if (!element && top) {
       const candidate = a._selectFirst({ area_: 0, element_: top, height_: 0 });
-      a.current_ = element = candidate && candidate.element_ !== top
+      element = candidate && candidate.element_ !== top
           && (!a.current_ || candidate.height_ > innerHeight / 2)
           ? candidate.element_ : top;
+      // if .current_, then delay update to .current_, until scrolling ends and ._checkCurrent is called;
+      // otherwise, cache selected element for less further cost
+      a.current_ || (a.current_ = element);
     }
     a.scrolled_ = 0;
     return element;
@@ -227,16 +293,17 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     const cur = this.current_;
     if (cur !== el && cur && VDom.NotVisible_(cur)) { this.current_ = el; }
   },
+  /** if `el` is null, then return viewSize for `kScrollDim.scrollSize` */
   getDimension_ (el: SafeElement | null, di: ScrollByY, index: kScrollDim & number): number {
     return el !== this.top_ || index && el
-      ? index === kScrollDim.viewSize ? di ? (el as SafeElement).clientHeight : (el as SafeElement).clientWidth
-        : index === kScrollDim.scrollSize ? di ? (el as SafeElement).scrollHeight : (el as SafeElement).scrollWidth
+      ? !index ? di ? (el as SafeElement).clientHeight : (el as SafeElement).clientWidth
+        : index < kScrollDim.position ? di ? (el as SafeElement).scrollHeight : (el as SafeElement).scrollWidth
         : di ? (el as SafeElement).scrollTop : (el as SafeElement).scrollLeft
-      : di ? innerHeight : innerWidth;
+      : index > kScrollDim.scrollSize ? di ? scrollY : scrollX : di ? innerHeight : innerWidth;
   },
-  _scrollDo (el: SafeElement, di: ScrollByY, amount: number): boolean {
+  _doesScroll (el: SafeElement, di: ScrollByY, amount: number): boolean {
     const before = this.getDimension_(el, di, kScrollDim.position),
-    changed = this._performScroll(el, di, (amount > 0 ? 1 : -1) * this.scale_, before);
+    changed = !!this._performScroll(el, di, (amount > 0 ? 1 : -1) * this.scale_, before);
     if (changed) {
       if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
           || !(Build.BTypes & ~BrowserType.Firefox) || el.scrollTo) {
@@ -253,7 +320,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   _selectFirst (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null {
     let element = info.element_;
     if (element.clientHeight + 3 < element.scrollHeight &&
-        (this._scrollDo(element, 1, 1) || element.scrollTop > 0 && this._scrollDo(element, 1, 0))) {
+        (this._doesScroll(element, 1, 1) || element.scrollTop > 0 && this._doesScroll(element, 1, 0))) {
       return info;
     }
     skipPrepare || VDom.prepareCrop_();
@@ -298,20 +365,21 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         }
       }
       if (hasX) {
-        (hasY ? a._performScroll : a.scroll_).call(a, a.findScrollable_(0, hasX), 0, hasX);
+        (hasY ? a._performScroll : a._innerScroll).call(a, a.findScrollable_(0, hasX), 0, hasX);
       }
       if (hasY) {
-        a.scroll_(a.findScrollable_(1, hasY), 1, hasY);
+        a._innerScroll(a.findScrollable_(1, hasY), 1, hasY);
       }
     }
-    a.keyIsDown_ = 0; // it's safe to only clean keyIsDown here
+    a.scrollTick_(0); // it's safe to only clean keyIsDown here
   },
   scrolled_: 0,
   /** @NEED_SAFE_ELEMENTS */
   shouldScroll_need_safe_ (element: SafeElement, di: ScrollByY, amount?: number): -1 | 0 | 1 {
     const st = getComputedStyle(element);
     return (di ? st.overflowY : st.overflowX) === "hidden" || st.display === "none" || st.visibility !== "visible" ? -1
-      : <BOOL> +this._scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
+      : <BOOL> +this._doesScroll(element, di
+                  , amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
   },
   supressScroll_ (): void {
     if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
@@ -320,10 +388,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       return;
     }
     this.scrolled_ = 2;
-    VUtils.suppressAll_(window, "scroll");
+    VKey.SuppressAll_(window, "scroll");
     requestAnimationFrame(function (): void {
       VScroller.scrolled_ = 0;
-      VUtils.suppressAll_(window, "scroll", true);
+      VKey.SuppressAll_(window, "scroll", true);
     });
   },
   sortByArea_ (this: void, a: ElementScrollInfo, b: ElementScrollInfo): number {

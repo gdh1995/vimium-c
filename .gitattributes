@@ -7,16 +7,18 @@
 *.jpeg binary
 *.jpg binary
 *.png binary
-*.sh linguist-detectable=false linguist-language=Shell
+*.xpi binary
+*.js linguist-detectable=false linguist-language=JavaScript
+*.json linguist-language=jsonc
+*.rb linguist-vendored
 *.py linguist-detectable=false linguist-language=Python
+*.sh linguist-detectable=false linguist-language=Shell
+front/vimium.min.css linguist-generated=false linguist-language=CSS linguist-vendored=false
+lib/math_parser.js linguist-vendored
+lib/viewer.min.css  linguist-generated=true linguist-vendored=true linguist-language=CSS
+lib/viewer.min.js  linguist-generated=true linguist-vendored=true linguist-language=JavaScript
 tests/*.html linguist-detectable=false linguist-language=HTML
 tests/**/*.html linguist-detectable=false linguist-language=HTML
-tsc.js linguist-language=TypeScript
-Gulpfile.js linguist-language=TypeScript
-lib/math_parser.js linguist-vendored
-types/* linguist-vendored
-types/*.d.ts linguist-vendored=false
 types/base/* linguist-vendored
 types/base/base.d.ts linguist-vendored=false
-types/build/*.d.ts linguist-vendored=false
-scripts/*.json linguist-language=jsonc
+types/lib/* linguist-detectable=false

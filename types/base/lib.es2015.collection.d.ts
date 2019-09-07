@@ -68,7 +68,7 @@ interface SetConstructor {
     new <T = any>(values?: ReadonlyArray<T> | null): Set<T>;
     readonly prototype: Set<any>;
 }
-declare var Set: SetConstructor;
+declare var Set: SetConstructor | undefined;
 
 interface ReadonlySet<T> {
     forEach(callbackfn: (value: T, value2: T, set: ReadonlySet<T>) => void, thisArg?: any): void;
@@ -86,7 +86,7 @@ interface WeakSetConstructor {
     new <T extends object = object>(values?: ReadonlyArray<T> | null): WeakSet<T>;
     readonly prototype: WeakSet<object>;
 }
-declare var WeakSet: WeakSetConstructor;
+declare var WeakSet: WeakSetConstructor | undefined;
 interface Window {
     WeakSet?: WeakSetConstructor;
 }

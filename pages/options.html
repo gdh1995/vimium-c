@@ -3,16 +3,20 @@
   <head>
     <meta charset="utf-8">
     <title>Vimium C Options</title>
-    <link rel="stylesheet" href="options.css">
+    <meta name="supported-color-schemes" content="light dark">
     <script defer src="options_base.js"></script>
     <script defer src="options.js"></script>
+    <link rel="stylesheet" href="options.css">
     <script defer src="loader.js"></script>
   </head>
 
   <body>
     <table id="wrapper">
       <thead><tr><td colspan="2">
-        <header id="mainHeader"><span class="Vim">Vim</span>ium <span class="C">C</span> Options</header>
+        <header id="mainHeader">
+          <img class="icon" src="../icons/icon48.png" alt="Icon" />
+          <span class="Vim">Vim</span>ium <span class="C">C</span> Options
+        </header>
       </td><td></td></tr></thead>
       <tbody>
       <tr>
@@ -40,10 +44,10 @@
           or "<kbd class="wrap-space">:</kbd>" + the header of a URL.
           Otherwise it will be converted.
           <br/>
-          If "<var>Keys</var>" is empty, then Vimium C gets wholly disabled.<br/>
-          If it starts with "<kbd class="wrap-space">^</kbd>", only listed keys are enabled,<br/>
-          and all others are passed through.<br/>
-          Otherwise, just the listed keys are passed through.
+          If "<var>Keys</var>" is empty, then Vimium C gets wholly disabled;<br/>
+          if "<var>Keys</var>" starts with "<kbd class="wrap-space">^</kbd>", only listed keys are enabled,<br/>
+          and all others are passed through;<br/>
+          otherwise, just the listed keys are passed through.
         </div></td>
       </tr>
       <tr>
@@ -53,33 +57,42 @@
             placeholder="# Insert your preferred key mappings here."></textarea>
         </td>
         <td class="help"><div class="help-inner">
-          Enter commands to remap your keys.
-          <span class="require-shortcuts">And 4 <i>global</i> shortcuts can be configured
-          on <a id="openExtensionPage" href="chrome://extensions/shortcuts">chrome://extensions/&#8230;</a>.</span>
+          Remap keys and commands.
           Some examples:
           <code>
           <pre>
 map &lt;f1&gt; LinkHints.activate
 unmap &lt;a-s-f&gt;
+mapKey &lt;a-e&gt; &lt;esc&gt; 
 <span class="require-shortcuts">shortcut createTab position="end"</span>
-# "unmapAll" to unmap all above and default</pre>
+<span class="require-shortcuts">shortcut userCustomized1 command="goBack"</span>
+# "unmapAll" unmaps all above and default</pre>
           </code>
           <a id="showCommands" href="#commands" data-hash="commands" data-delay="">Show available commands</a>.
-          <a class="wrap-left-space" data-auto-resize="keyMappings"></a>.
+          <a class="wrap-left-space" data-auto-resize="keyMappings" role="button" tabindex="0">Auto resize</a>.
+          <br/><a href="" target="_blank" rel="noopener noreferrer"
+              data-href="vimium://home/wiki/Use-in-another-keyboard-layout">
+            How to map keys in another keyboard layout?
+          </a>
+          <span class="require-shortcuts"><br/><i>Global shortcuts</i> are
+            on <a id="openExtensionPage" href="chrome://extensions/shortcuts">chrome://extensions/&#8230;</a>.
+            <a id="shortcutHelper"
+                href="https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien"
+                title="Shortcut Forwarding Tool:&#10;Provide 32 configurable shortcuts">More?</a>
+          </span>
         </div></td>
       </tr>
       <tr>
         <td class="caption">New tab URL</td>
         <td>
-          <input id="newTabUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" />
-          <div class="info" id="newTabUrlRefer">Related advanced option: Focus web page when creating a new tab.</div>
-          <div class="nonEmptyTip"></div>
+          <input id="newTabUrl" type="text" inputmode="url" data-model="NonEmptyText" />
+          <div class="nonEmptyTip info">Delete all to reset this option.</div>
         </td>
-        <td class="help"><div class="help-inner">
-          "<kbd class="sel-all" role="link">pages/blank.html</kbd>" for a blank page.
-          The default is
-          <kbd class="sel-all" id="defaultNewTab">chrome-search://local-ntp/local-ntp.html</kbd>.<br/>
-          <a target="_blank" rel="noopener noreferrer"
+        <td class="help"><div class="help-inner break-all">
+          "<kbd class="sel-all" role="button">pages/blank.html</kbd>" for a blank page.
+          <a href="https://github.com/gdh1995/vimium-c/issues/53">In next versions,
+            Vimium C won't manage browser new tab any more.</a><br/>
+          <a href="" target="_blank" rel="noopener noreferrer"
               data-href="vimium://home/wiki/Use-another-extension-as-the-New-Tab">
             How to redirect to another extension's newtab?
           </a>
@@ -89,18 +102,17 @@ unmap &lt;a-s-f&gt;
         <td class="caption">Default search<br/>engine</td>
         <td>
           <input id="searchUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" />
-          <div class="nonEmptyTip"></div>
+          <div class="nonEmptyTip info">Delete all to reset this option.</div>
         </td>
-        <td class="help"><div class="help-inner">
-          Used when no engine (or "<kbd>~</kbd>") matched. The default is:<br/>
-          <kbd id="defaultSearchEngine" class="sel-all" role="link">https://www.google.com/search?q=%s Google</kbd>
+        <td class="help"><div class="help-inner line-1x">
+          Used when no search engine (or "<kbd>~</kbd>") matched.
         </div></td>
       </tr>
       <tr>
         <td class="caption">Custom search<br/>engines</td>
         <td>
           <textarea id="searchEngines" data-model="NonEmptyText"></textarea>
-          <div class="nonEmptyTip"></div>
+          <div class="nonEmptyTip info">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner">
           Add search engine shortcuts to the Vomnibar. Format:
@@ -112,8 +124,8 @@ key: https://c.com/$s/space=\s\ space_end
 # this is a comment</pre>
           </code>
           <kbd title="%s is equal with $s">$s</kbd> will be replaced with real search terms.
-          <a data-auto-resize="searchEngines"></a>.<br/>
-          <a target="_blank" rel="noopener noreferrer"
+          <a data-auto-resize="searchEngines" role="button" tabindex="0">Auto resize</a>.<br/>
+          <a href="" target="_blank" rel="noopener noreferrer"
               data-href="vimium://home/wiki/Search-engine-rules">
             How to write advanced search engine rules?
           </a>
@@ -123,8 +135,8 @@ key: https://c.com/$s/space=\s\ space_end
         <td class="caption">Characters used<br/> for link hints</td>
         <td>
           <input id="linkHintCharacters" type="text" data-model="NonEmptyText"
-            data-converter="lower" class="code" />
-          <div class="nonEmptyTip"></div>
+            data-converter="lower chars" class="code" />
+          <div class="nonEmptyTip info">Delete all to reset this option.</div>
         </td>
         <td class="help"><div class="help-inner">
           The characters placed next to each link after typing "f" to enter link-hint mode.
@@ -158,32 +170,6 @@ key: https://c.com/$s/space=\s\ space_end
         <tr>
           <td>
             <label class="booleanOption">
-              <input id="deepHints" type="checkbox" data-model="Boolean" />
-              <span>Search shadow DOMs in "url" / "image" mode by default</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner">
-            Search in "click" / "edit" mode is always executed.<br/>
-            Press <kbd>&lt;f2&gt;</kbd> in Link Hint mode to toggle it temporarily.
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption"></td>
-          <td>
-            <label class="booleanOption">
-              <input id="focusNewTabContent" type="checkbox" data-model="Boolean" />
-              <span>Focus web page when creating a new tab</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner">
-            If the browser focuses its address bar for new tab (e.g. on <kbd>Ctrl+T</kbd>),
-            this option re-focuses the page content.
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption" rowspan="5"></td>
-          <td>
-            <label class="booleanOption">
               <input id="grabBackFocus" type="checkbox" data-model="Boolean" />
               <span>Don't let pages steal the focus in loading</span>
             </label>
@@ -193,17 +179,48 @@ key: https://c.com/$s/space=\s\ space_end
           </div></td>
         </tr>
         <tr>
+          <td class="caption"></td>
           <td>
-            <label class="booleanOption">
-              <input id="hideHud" type="checkbox" data-model="Boolean" />
-              <span>Hide the Heads Up Display (HUD) in insert mode</span>
+            <label class="booleanOption deprecated">
+              <input id="focusNewTabContent" type="checkbox" data-model="Boolean" />
+              <span>Focus web page when creating a new tab (deprecated)</span>
             </label>
           </td>
           <td class="help"><div class="help-inner">
-            When enabled, the HUD will not be displayed in insert mode.
+            This option will be removed in a next minor version.<br/>
+            It can be replaced by extensions like
+            <a id="newTabAdapter" title="NewTab Adapter:&#10;Take over browser's new tab settings"
+                href="https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn">
+              NewTab Adapter</a>.
           </div></td>
         </tr>
         <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
+              <input id="ignoreCapsLock" type="checkbox" data-model="Boolean" data-map="[0,1,2]" />
+              <span>Ignore CapsLock status</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            If partially checked, Vimium C will only ignore CapsLock on macOS.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
+              <input id="ignoreKeyboardLayout" type="checkbox" data-model="Boolean" />
+              <span>Ignore keyboard layout</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            This forces the use of <kbd>en-US</kbd> QWERTY layout and
+            can be helpful for non-Latin keyboards.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
           <td>
             <label class="booleanOption">
               <input id="regexFindMode" type="checkbox" data-model="Boolean" />
@@ -215,6 +232,43 @@ key: https://c.com/$s/space=\s\ space_end
           </div></td>
         </tr>
         <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
+              <input id="hideHud" type="checkbox" data-model="Boolean" />
+              <span>Hide the Heads Up Display (HUD) in insert mode</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            When enabled, the HUD will not be displayed in insert mode, just like a command option of `hideHUD=true`.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
+              <input id="autoDarkMode" type="checkbox" data-model="Boolean" data-permission="C76" />
+              <span>Auto switch between light and dark mode</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            Follow your system's dark mode. Affect Vomnibar and inner blank page.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption">
+              <input id="autoReduceMotion" type="checkbox" data-model="Boolean" data-permission="C74" />
+              <span>Auto reduce UI motions following your system settings</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-2x">
+            Affect some animation of HUD and Vomnibar.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
           <td>
             <label class="booleanOption">
               <input id="showActionIcon" type="checkbox" data-model="Boolean" data-permission="browser_action" />
@@ -227,9 +281,11 @@ key: https://c.com/$s/space=\s\ space_end
           </div></td>
         </tr>
         <tr>
+          <td class="caption"></td>
           <td>
             <label class="booleanOption">
-              <input id="vimSync" type="checkbox" data-model="Boolean" data-permission="storage" data-check="change" />
+              <input id="vimSync" type="checkbox" data-model="Boolean" data-allow-null="true"
+                  data-permission="storage" data-check="change" />
               <span>Synchronize settings with your current account for this browser</span>
             </label>
           </td>
@@ -257,7 +313,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="caption">Previous patterns</td>
           <td>
             <input id="previousPatterns" type="text" data-model="NonEmptyText" data-converter="lower" />
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             The "navigate to previous page" command uses these patterns to find the link to follow (ignore case).
@@ -267,7 +323,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="caption">Next patterns</td>
           <td>
             <input id="nextPatterns" type="text" data-model="NonEmptyText" data-converter="lower" />
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             The "navigate to next page" command uses these patterns to find the link to follow (ignore case).
@@ -285,10 +341,28 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           </td>
           <td class="help"><div class="help-inner">
             To style Vimium C nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>"
-            (On Edge and Firefox, may need "<kbd>#VimiumUI</kbd>" as prefix if no Shadow DOM).<br/>
+            <span id="tipForNoShadow"></span>.<br/>
             These styles work in addition to and take precedence over Vimium C's
             default styles.
-            <a class="wrap-left-space" data-auto-resize="userDefinedCss"></a>.
+            <a class="wrap-left-space" data-auto-resize="userDefinedCss" role="button" tabindex="0">Auto resize</a>.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption">Vomnibar settings</td>
+          <td>
+            <textarea id="vomnibarOptions" class="code height-6" data-model="JSON">
+            </textarea>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
+          </td>
+          <td class="help"><div class="help-inner">
+            Adjust some inner behaviors of Vomnibar.<br/>
+            <div class="help-block">
+              "<var>maxMatches</var>" should be in <kbd>3 ~ 25</kbd> ;<br/>
+              "<var>queryInterval</var>" should be in <kbd>0 ~ 1200 (ms)</kbd> ;<br/>
+              "<var>size</var>" is to calculate Vomnibar's height;<br/>
+              "<var>styles</var>" may be <kbd>"dark" &amp; "mono-url"</kbd> .<br/>
+            </div>
+            A low <var>queryInterval</var> will cause CPU cost a bit higher.
           </div></td>
         </tr>
         <tr>
@@ -308,14 +382,14 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td>
             <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"
               data-permission="web_accessible_resources"></textarea>
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             Only browser extensions in this list are allowed to request Vimium C's support.
             One extension id per line.<br/>
-            Any line the first char of which is neither a letter nor a number will be ignored.
-            <a class="wrap-left-space" data-auto-resize="extWhiteList"></a>.<br/>
-            <a target="_blank" rel="noopener noreferrer"
+            Any line the first char of which is neither a letter nor a number or "<kbd>_</kbd>" will be ignored.
+            <a class="wrap-left-space" data-auto-resize="extWhiteList" role="button" tabindex="0">Auto resize</a>.<br/>
+            <a href="" target="_blank" rel="noopener noreferrer"
                 data-href="vimium://home/wiki/Inject-into-other-extensions">
               How to inject Vimium C into other extensions?</a>
           </div></td>
@@ -324,16 +398,16 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="caption">Preferred<br/> Vomnibar Page</td>
           <td>
             <input id="vomnibarPage" type="text" inputmode="url" data-model="NonEmptyText" />
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner break-all">
             Example:
             <kbd class="sel-all" role="link" id="chromeExtVomnibar" title="
 Note: Need to install and enable the extension first
-						">chrome-extension://<a
-              title="Modified X New Tab Page - Chrome Web Store" target="_blank" rel="noopener noreferrer" tabindex="-1"
-              href="https://chrome.google.com/webstore/detail/%E5%BE%AE%E5%BA%A6%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5%E4%BF%AE%E6%94%B9%E7%89%88/hdnehngglnbnehkfcidabjckinphnief"
-            >hdnehngglnbnehkfcidabjckinphnief</a>/vomnibar.html</kbd>
+            "><span>chrome</span>-extension://<a
+              title="NewTab Adapter - Chrome Web Store" target="_blank" rel="noopener noreferrer" tabindex="-1"
+              href="https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn"
+            >cglpcedifkgalfdklahhcchnjepcckfn</a>/vomnibar.html</kbd>
             or
             <kbd class="sel-all" role="link" title="
 Note: Web pages are no usable on extension pages,
@@ -352,27 +426,10 @@ so only the default inner version will be used on them
           </div></td>
         </tr>
         <tr>
-          <td class="caption">Vomnibar settings</td>
-          <td>
-            <textarea id="vomnibarOptions" class="code height-5" data-model="JSON">
-            </textarea>
-            <div class="nonEmptyTip"></div>
-          </td>
-          <td class="help"><div class="help-inner">
-            Adjust some inner behaviors of Vomnibar.<br/>
-            <div class="help-block">
-              "<var>maxMatches</var>" should be in <kbd>3 ~ 25</kbd> ;<br/>
-              "<var>queryInterval</var>" should be in <kbd>0 ~ 1200 (ms)</kbd> ;<br/>
-              "<var>styles</var>" may be <kbd>"dark"</kbd> .<br/>
-            </div>
-            A low <var>queryInterval</var> will cause CPU cost a bit higher.
-          </div></td>
-        </tr>
-        <tr>
           <td class="caption">Keyboard settings</td>
           <td>
             <input id="keyboard" type="text" inputmode="numeric" data-model="JSON" data-check="" />
-            <div class="nonEmptyTip"></div>
+            <div class="nonEmptyTip info">Delete all to reset this option.</div>
           </td>
           <td class="help"><div class="help-inner">
             <span title="This option won't be synced.">
@@ -404,7 +461,7 @@ so only the default inner version will be used on them
               id="importOptions" class="right" data-delay="">
             <option value="exported" selected="selected">&nbsp;Exported File</option>
             <option class="option-hr" disabled="disabled">&nbsp;-----------------</option>
-            <option value="recommended">&nbsp;Recommended</option>
+            <option id="recommendedSettings" value="recommended">&nbsp;Recommended</option>
           </select>
           <button id="exportButton" data-hash="export" data-delay="event">Export Settings</button>
         </span>

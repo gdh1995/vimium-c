@@ -15,14 +15,16 @@ interface Window {
   readonly Viewer: typeof Viewer;
 }
 interface BgWindow extends Window {
-  Utils: typeof Utils;
-  Settings: typeof Settings;
+  BgUtils_: typeof BgUtils_;
+  Settings_: typeof Settings_;
 }
 interface ViewerType {
-  readonly visible: boolean;
+  readonly isShown: boolean;
+  readonly played: boolean;
   readonly viewed: boolean;
   destroy(): any;
   show(): any;
+  play(fullscreen: true): any;
   zoom(ratio: number, hasTooltip: boolean): ViewerType;
   rotate(degree: number): any;
 }
@@ -41,11 +43,9 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
 }
-var $ = function<T extends HTMLElement>(selector: string): T {
-  return document.querySelector(selector) as T;
-},
+var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
 BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow;
-if (!(BG_ && BG_.Utils && BG_.Utils.convertToUrl_)) {
+if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
   BG_ = null as never;
 }
 
@@ -55,7 +55,7 @@ let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
 var VData: VDataTy = null as never;
 let encryptKey = window.name && +window.name.split(" ")[0] || 0;
-let wndLoaded = GlobalConsts.DisplayUseDynamicTitle ? false : 0 as never;
+let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
 
 window.onhashchange = function (this: void): void {
   if (VShown) {
@@ -67,8 +67,8 @@ window.onhashchange = function (this: void): void {
 
   VData = Object.create(null);
   let url = location.hash, type: ValidShowTypes = "", file = "";
-  if (!url && BG_ && BG_.Settings && BG_.Settings.temp_.shownHash_) {
-    url = BG_.Settings.temp_.shownHash_();
+  if (!url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
+    url = BG_.Settings_.temp_.shownHash_();
     encryptKey = encryptKey || Math.floor(Math.random() * 0x100000000) || 0xc3e73c18;
     let encryptedUrl = encrypt(url, encryptKey, true);
     if (history.state) {
@@ -88,37 +88,36 @@ window.onhashchange = function (this: void): void {
   VData.full = url;
   if (url.length < 3) { /* empty */ }
   else if (url.startsWith("#!image")) {
-    url = url.substring(8);
+    url = url.slice(7);
     type = "image";
   } else if (url.startsWith("#!url")) {
-    url = url.substring(6);
+    url = url.slice(5);
     type = "url";
   }
+  url = url.startsWith("%20") ? url.slice(3) : url.trim();
   for (let ind: number; ind = url.indexOf("&") + 1; ) {
     if (url.startsWith("download=")) {
       // avoid confusing meanings in title content
-      file = decodeURLPart(url.substring(9, ind - 1)).split(<RegExpOne> /\||\uff5c| [-·] /, 1)[0].trim();
+      file = decodeURLPart(url.slice(9, ind - 1)).split(<RegExpOne> /\||\uff5c| [-\xb7] /, 1)[0].trim();
       file = file.replace(<RegExpG> /[\r\n"]/g, "");
       VData.file = file;
-      url = url.substring(ind);
+      url = url.slice(ind);
     } else if (url.startsWith("auto=")) {
-      let i = url.substring(5, 12).split("&", 1)[0].toLowerCase();
+      let i = url.slice(5, 12).split("&", 1)[0].toLowerCase();
       VData.auto = i === "once" ? i : i === "true" ? true : i === "false" ? false : parseInt(i, 10) > 0;
-      url = url.substring(ind);
+      url = url.slice(ind);
     } else {
       break;
     }
   }
-  if (url.indexOf(":") <= 0 && url.indexOf("/") < 0) {
-    url = decodeURLPart(url).trim();
-  }
+  url = decodeURLPart(url, url.indexOf(":") <= 0 && url.indexOf("/") < 0 ? null : decodeURI).trim();
   if (!url) {
     type === "image" && (type = "");
   } else if (url.toLowerCase().startsWith("javascript:")) {
     type = url = file = VData.file = "";
   } else if (BG_) {
-    const str2 = BG_.Utils.convertToUrl_(url, null, Urls.WorkType.KeepAll);
-    if (BG_.Utils.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl) {
+    const str2 = BG_.BgUtils_.convertToUrl_(url, null, Urls.WorkType.KeepAll);
+    if (BG_.BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl) {
       url = str2;
     }
   } else if (url.startsWith("//")) {
@@ -150,8 +149,8 @@ window.onhashchange = function (this: void): void {
       this.onerror = this.onload = null as never;
       this.alt = VData.error = "\xa0(fail in loading)\xa0";
       if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || !(Build.BTypes & BrowserType.Chrome)
-          || BG_ && BG_.Settings
-            && BG_.ChromeVer >= BrowserVer.MinNoBorderForBrokenImage) {
+          || BG_ && BG_.Settings_
+            && BG_.CurCVer_ >= BrowserVer.MinNoBorderForBrokenImage) {
         this.classList.add("broken");
       }
       this.classList.remove("hidden");
@@ -198,6 +197,7 @@ window.onhashchange = function (this: void): void {
       VShown.alt = VData.error = "\xa0(null)\xa0";
     }
     if (file) {
+      VData.file = file = tryToFixFileExt_(file) || file;
       const path = file.split(<RegExpOne> /\/\\/);
       VShown.setAttribute("download", path[path.length - 1]);
       VShown.alt = file;
@@ -209,12 +209,12 @@ window.onhashchange = function (this: void): void {
     if (url && BG_) {
       let str1: Urls.Url | null = null;
       if (url.startsWith("vimium://")) {
-        str1 = BG_.Utils.evalVimiumUrl_(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
+        str1 = BG_.BgUtils_.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true);
       }
-      str1 = str1 !== null ? str1 : BG_.Utils.convertToUrl_(url, null, Urls.WorkType.ConvertKnown);
+      str1 = str1 !== null ? str1 : BG_.BgUtils_.convertToUrl_(url, null, Urls.WorkType.ConvertKnown);
       if (typeof str1 === "string") {
-        str1 = BG_.Utils.detectLinkDeclaration_(str1);
-        str1 = BG_.Utils.reformatURL_(str1);
+        str1 = BG_.BgUtils_.detectLinkDeclaration_(str1);
+        str1 = BG_.BgUtils_.reformatURL_(str1);
       }
       else if (str1 instanceof BG_.Promise) {
         str1.then(function (arr) {
@@ -235,7 +235,7 @@ window.onhashchange = function (this: void): void {
   default:
     url = "";
     VShown = (importBody as ImportBody)("shownImage");
-    VShown.src = "../icons/vimium.png";
+    VShown.src = "../icons/icon128.png";
     bgLink.style.display = "none";
     break;
   }
@@ -249,43 +249,15 @@ window.onhashchange = function (this: void): void {
     bgLink.removeAttribute("download");
   }
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
-  updateDocTitle();
 };
-
-function _updateDocTitle(file: string) {
-  if (!GlobalConsts.DisplayUseDynamicTitle) { return; }
-  let str = $<HTMLTitleElement>("title").dataset.title as string;
-  str = BG_ ? BG_.Utils.createSearch_(file ? file.split(/\s+/) : [], str, "")
-    : str.replace(<RegExpOne> /\$[sS](?:\{[^}]*})?/, file && (file + " | "));
-  document.title = str;
-}
-
-function updateDocTitle(): void {
-  if (GlobalConsts.DisplayUseDynamicTitle && wndLoaded && VData && VData.file) {
-    // todo: a better way to hide title in history
-    setTimeout(function (): void {
-      if (document.readyState !== "complete") {
-        setTimeout(updateDocTitle, 220);
-        return;
-      }
-      VData && _updateDocTitle(VData.file || "");
-    }, 220);
-  }
-}
-
-if (GlobalConsts.DisplayUseDynamicTitle) {
-window.onload = function (): void {
-  wndLoaded = true;
-  updateDocTitle();
-};
-window.onbeforeunload = function (): void { // hide title in session
-  VData && VData.file && _updateDocTitle("");
-};
-}
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
 String.prototype.startsWith = function (this: string, s: string): boolean {
   return this.lastIndexOf(s, 0) === 0;
+};
+String.prototype.endsWith = function (this: string, s: string): boolean {
+  const i = this.length - s.length;
+  return i >= 0 && this.indexOf(s, i) === i;
 };
 }
 (window.onhashchange as () => void)();
@@ -300,7 +272,7 @@ document.addEventListener("keydown", function (this: void, event): void {
   }
   if (!(event.ctrlKey || event.metaKey) || event.altKey
     || event.shiftKey || event.repeat) { return; }
-  const str = String.fromCharCode(event.keyCode as VKeyCodes | KnownKey as KnownKey);
+  const str = String.fromCharCode(event.keyCode as kKeyCode | kCharCode as kCharCode);
   if (str === "S") {
     return clickLink({
       download: VData.file || ""
@@ -323,8 +295,13 @@ function showBgLink(this: void): void {
 function clickLink(this: void, options: { [key: string]: string; }, event: MouseEvent | KeyboardEvent): void {
   event.preventDefault();
   if (!VData.url) { return; }
-  const a = document.createElement("a");
-  Object.setPrototypeOf(options, null);
+  const a = document.createElement("a"), setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
+      && Build.BTypes & BrowserType.Chrome ? Object.setPrototypeOf : 0 as never;
+  if (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome) {
+    setProto ? setProto(options, null) : ((options as any).__proto__ = null);
+  } else {
+    Object.setPrototypeOf(options, null);
+  }
   for (const i in options) {
     a.setAttribute(i, options[i]);
   }
@@ -342,18 +319,23 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
 function imgOnKeydown(event: KeyboardEvent): boolean {
   const { keyCode } = event;
   if (VData.error) { return false; }
-  if (keyCode === VKeyCodes.space || keyCode === VKeyCodes.enter) {
+  if (keyCode === kKeyCode.space || keyCode === kKeyCode.enter) {
     event.preventDefault();
-    simulateClick(VShown as ValidNodeTypes, event);
+    if (keyCode === kKeyCode.enter && viewer_ && viewer_.isShown && !viewer_.played) {
+      viewer_.play(true);
+    } else if (!viewer_ || !viewer_.isShown) {
+      simulateClick(VShown as ValidNodeTypes, event);
+    }
     return true;
   }
-  if (!window.VKeyboard) {
+  if (!window.VKey) {
     return false;
   }
-  let ch = VKeyboard.char_(event);
+  let ch = VKey.char_(event);
+  // todo: map key
   if (!ch) { return false; }
   let action: number = 0;
-  switch (VKeyboard.key_(event, ch)) {
+  switch (VEvent.mapKey_(ch, event)) {
   case "<c-=>": case "+": case "=": case "<up>": action = 1; break;
   case "<left>": action = -2; break;
   case "<right>": action = 2; break;
@@ -381,9 +363,9 @@ function doImageAction(viewer: ViewerType, action: number) {
   }
 }
 
-function decodeURLPart(url: string): string {
+function decodeURLPart(url: string, func?: typeof decodeURI | null): string {
   try {
-    url = decodeURIComponent(url);
+    url = (func || decodeURIComponent)(url);
   } catch {}
   return url;
 }
@@ -442,7 +424,7 @@ function copyThing(event: Event): void {
 
 function toggleInvert(event: Event): void {
   if (VData.type === "image") {
-    if (VData.error || viewer_ && viewer_.visible) {
+    if (VData.error || viewer_ && viewer_.isShown) {
       event.preventDefault();
     } else {
       (VShown as ValidNodeTypes).classList.toggle("invert");
@@ -457,12 +439,14 @@ function requireJS(name: string, src: string): Promise<any> {
   return (window as any)[name] = new Promise(function (resolve, reject) {
     const script = document.createElement("script");
     script.src = src;
-    script.onerror = function () {
-      reject("ImportError: " + name);
-    };
+    if (!Build.NDEBUG) {
+      script.onerror = function () {
+        reject("ImportError: " + name);
+      };
+    }
     script.onload = function () {
       const obj = (window as any)[name];
-      obj ? resolve(obj) : (this.onerror as () => void)();
+      Build.NDEBUG || obj ? resolve(obj) : (this.onerror as () => void)();
     };
     (document.head as HTMLHeadElement).appendChild(script);
   });
@@ -504,10 +488,12 @@ function loadViewer(): Promise<Window["Viewer"]> {
 }
 
 function showSlide(ViewerModule: Window["Viewer"]): Promise<ViewerType> | ViewerType {
+  const needToScroll = scrollX || scrollY;
   const sel = getSelection();
   sel.type === "Range" && sel.collapseToStart();
   const v = viewer_ = viewer_ || new ViewerModule(VShown as HTMLImageElement);
-  v.visible || v.show();
+  v.isShown || v.show();
+  needToScroll && scrollTo(0, 0);
   if (v.viewed) { return v; }
   return new Promise<ViewerType>(function (resolve, reject): void {
     tempEmit = function (succeed): void {
@@ -533,7 +519,6 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   const parsed = safeParseURL(originUrl);
   if (!parsed || !(<RegExpI> /^s?ftp|^http/i).test(parsed.protocol)) { return null; }
   let search = parsed.search;
-  const ImageExtRe = <RegExpI> /\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
   function DecodeURLPart_(this: void, url1: string | undefined): string {
     if (!url1) { return ""; }
     try {
@@ -544,9 +529,9 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   if (search.length > 10) {
     const keyRe = <RegExpOne> /^(?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)$/i,
     encodedSignRe = <RegExpOne> /%(?:3[aA]|2[fF])/;
-    for (const item of search.substring(1).split("&")) {
+    for (const item of search.slice(1).split("&")) {
       const key = item.split("=", 1)[0];
-      search = item.substring(key.length + 1);
+      search = item.slice(key.length + 1);
       if (search.length > 7) {
         search.indexOf("://") < 0 && encodedSignRe.test(search) && (search = DecodeURLPart_(search).trim());
         if (search.indexOf("/") > 0 && safeParseURL(search) != null) {
@@ -567,71 +552,79 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   }
   const path = search = parsed.pathname;
   let offset = search.lastIndexOf("/") + 1;
-  search = search.substring(offset);
+  search = search.slice(offset);
   let index = search.lastIndexOf("@") + 1 || search.lastIndexOf("!") + 1;
-  let found: boolean | 0 = index > 2 || ImageExtRe.exec(search) != null, arr2: RegExpExecArray | null = null;
+  let found: boolean | 0 = index > 2 || ImageExtRe.test(search), arr2: RegExpExecArray | null = null;
   if (found) {
     offset += index;
-    search = search.substring(index);
+    search = search.slice(index);
     let re = <RegExpG & RegExpI // tslint:disable-next-line: max-line-length
 > /(?:[.\-_]|\b)(?:[1-9]\d{2,3}[a-z]{1,3}[_\-]?|[1-9]\d?[a-z][_\-]?|0[a-z][_\-]?|[1-9]\d{1,3}[_\-]|[1-9]\d{1,2}(?=[.\-_]|\b)){2,6}(?=[.\-_]|\b)/gi;
     for (; arr2 = re.exec(search); arr1 = arr2) { /* empty */ }
     if (arr1 && (<RegExpI> /.[_\-].|\d\dx\d/i).test(arr1[0])) {
       let next = arr1.index + arr1[0].length;
-      arr2 = ImageExtRe.exec(search.substring(next));
+      arr2 = ImageExtRe.exec(search.slice(next));
       offset += arr1.index;
       let len = arr1[0].length;
       if (arr2 && arr2.index === 0) {
         len += arr2[0].length;
       }
-      search = path.substring(offset + len);
+      search = path.slice(offset + len);
       if ((<RegExpOne> /[@!]$/).test(search || path.charAt(offset - 1))) {
         if (search) {
-          search = search.substring(0, search.length - 1);
+          search = search.slice(0, -1);
         } else {
           offset--;
         }
       } else if (!search && arr2 && arr2.index === 0
-          && !ImageExtRe.exec(path.substring(Math.max(0, offset - 6), offset))) {
+          && !ImageExtRe.test(path.slice(Math.max(0, offset - 6), offset))) {
         search = arr2[0];
       }
     } else if (arr1 = (<RegExpOne> /\b([\da-f]{8,48})([_-][a-z]{1,2})\.[a-z]{2,4}$/).exec(search)) {
       offset += arr1.index + arr1[1].length;
-      search = search.substring(arr1.index + arr1[1].length + arr1[2].length);
+      search = search.slice(arr1.index + arr1[1].length + arr1[2].length);
     } else {
       found = false;
     }
   }
   if (found || index > 2) { found = found || 0; }
   else if (arr1 = (<RegExpOne> /_(0x)?[1-9]\d{2,3}(x0)?\./).exec(search)) {
-    search = search.substring(0, arr1.index) + search.substring(arr1.index + arr1[0].length - 1);
+    search = search.slice(0, arr1.index) + search.slice(arr1.index + arr1[0].length - 1);
   } else if (search.startsWith("thumb_")) {
-    search = search.substring(6);
+    search = search.slice(6);
   } else if ((<RegExpOne> /^[1-9]\d+$/).test(search) && +search > 0 && +search < 640) {
     offset--;
     search = "";
   } else {
     found = 0;
   }
-  return found !== 0 ? parsed.origin + path.substring(0, offset) + search : null;
+  return found !== 0 ? parsed.origin + path.slice(0, offset) + search : null;
+}
+
+function tryToFixFileExt_(file: string): string | void {
+  if (!file || (<RegExpOne> /.\.[a-z]{3,4}\b/i).test(file)) { return; }
+  const ext = ImageExtRe.exec(VData.url);
+  if (ext) {
+    return file + ext[0];
+  }
 }
 
 function tryDecryptUrl(url: string): string {
   const schema = url.split(":", 1)[0];
   switch (schema.toLowerCase()) {
   case "thunder": case "flashget": case "qqdl":
-    url = url.substring(schema.length + 3).split("&", 1)[0];
+    url = url.slice(schema.length + 3).split("&", 1)[0];
     break;
   default: return "";
   }
   try {
     url = atob(url);
   } catch { return ""; }
-  if (url.startsWith("AA") && url.indexOf("ZZ", url.length - 2) > 0) {
-    url = url.substring(2, url.length - 2);
+  if (url.startsWith("AA") && url.endsWith("ZZ")) {
+    url = url.slice(2, -2);
   }
-  if (url.startsWith("[FLASHGET]") && url.indexOf("[FLASHGET]", url.length - 10) > 0) {
-    url = url.substring(10, url.length - 10);
+  if (url.startsWith("[FLASHGET]") && url.endsWith("[FLASHGET]")) {
+    url = url.slice(10, -10);
   }
   return tryDecryptUrl(url) || url;
 }
