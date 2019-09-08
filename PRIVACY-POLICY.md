@@ -5,15 +5,15 @@ Vimium C supports both export and cloud-based synchronization of your settings (
 engines). None of your browsing behavior is included.
 
 By default, Vimium C only downloads synced settings during the first installation, and if no synced settings are found,
-it will never sync with your Chrome account. However, if you do wish to enable this behavior, you may enable the
+it will never sync with your browser account. However, if you do wish to enable this behavior, you may enable the
 advanced `Synchronize settings with your current account for this browser` setting.
 
 All information handled by Vimium C, including history, bookmarks, page titles and URLs, will only be used locally.
 
 Your search history in `Vomnibar` and `Link Hints` modes will be purged immediately after use. Your keyword searches --
-entered when using `FindMode` -- are never included in these. Please note that your `FindMode` search keywords on
-Incognito windows are stored temporarily, and will remain in memory, until all of your Incognito windows have been
-destroyed.
+entered when using `FindMode` -- are stored but never included in synced settings. Please note that your `FindMode`
+search keywords on Incognito windows are stored temporarily, and will remain in memory, until all of your Incognito
+windows have been destroyed.
 
 
 Permissions Required
@@ -28,26 +28,27 @@ Vimium C requires these permissions:
 * **`contentSettings`**: to toggle your browser's content settings. For example, displaying your preferred typeface, or
   a larger font size, on selected websites.
 * **`notifications`**: to show a notification whenever Vimium C is upgraded.
-* **`sessions`**: to allow you to restore closed tabs. This functionality was enabled in Chrome 37 and up.
-* **`storage`**: is **not in use** by default. However, if you enable "`Sync settings with your current account for this
-  browser`", Vimium C will require **`storage`**, to sync your settings items with Google servers.
+* **`sessions`**: to allow you to restore closed tabs. This functionality requires Chrome 37+ or Firefox.
+* **`storage`**: its syncing functionality is **not in use** by default. However, if you enable "`Sync settings with
+  your current account for this browser`", Vimium C will require **`storage.sync`**, to sync your settings items with
+  the browser account servers.
 
 Note:
 * The "**browsing activity**" listed above actually includes a number of separate permissions: `tabs`, `<all_urls>` and
   `webNavigation`.
-* Vimium C never deletes any browser history item, except on explicit user request (such as <kbd>Shift+Delete</kbd>).
+* Vimium C never deletes any browser history item, except on explicit user requests (such as <kbd>Shift+Delete</kbd>).
 
 
 Further Information
 ===================
 
-Vimium C formerly overrode the "newtab" chrome URL, to provide a better user experience on the `chrome://newtab` page.
+Vimium C formerly overrode the "newtab" browser URL, to provide a better user experience on the `chrome://newtab` page.
 That behavior was reversed in version 1.77.0, released in Sep 2019; Vimium C no longer overrides this setting. If you'd
 like to restore the previous behavior, we recommend [NewTab
 Adapter](https://github.com/gdh1995/vimium-c-helpers/tree/master/newtab#readme).
 
-Vimium C registers a search key (`v`) for Chrome's [omnibox](https://developer.chrome.com/extensions/omnibox). This
-makes the box work just like Vomnibar in omni mode.
+Vimium C registers a search key (`v`) for browser's [omnibox](https://developer.chrome.com/extensions/omnibox) (the
+address bar). This makes the box work just like Vomnibar in omni mode.
 
 You may remove certain permissions without breaking Vimium C (note that some commands might fail as a result):
 * `webNavigation`, `contentSettings`, `notifications`, and `storage` may be removed.
