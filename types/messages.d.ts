@@ -267,8 +267,7 @@ interface CmdOptions {
     /** words */ w?: string;
   };
   [kFgCmd.showHelp]: {};
-  [kFgCmd.reload]: { url: string, /** @deprecated */ force?: undefined, hard?: undefined
-    } | { /** @deprecated */ force?: boolean, hard?: boolean, url?: undefined };
+  [kFgCmd.reload]: { url: string, hard?: undefined } | { hard?: boolean, url?: undefined };
   [kFgCmd.findMode]: {
     /** count */ n: number;
     /** leave find mode */ l: boolean,

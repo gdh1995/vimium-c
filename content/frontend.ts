@@ -462,7 +462,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     /* kFgCmd.reload: */ function (_0: number, options: CmdOptions[kFgCmd.reload]): void {
       setTimeout(function () {
-        options.url ? (location.href = options.url) : location.reload(!!(options.hard || options.force));
+        options.url ? (location.href = options.url) : location.reload(!!options.hard);
       }, 17);
     },
     /* kFgCmd.switchFocus: */ function (_0: number, options: CmdOptions[kFgCmd.switchFocus]): void {

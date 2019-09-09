@@ -344,8 +344,6 @@ declare namespace VomnibarNS {
     currentWindow?: boolean;
     silentOnEmpty: boolean;
     newtab: boolean;
-    /** @deprecated */
-    force: boolean;
     keyword: string;
     url?: true | string | null;
     tree?: boolean; // show tabs in tree mode
@@ -506,8 +504,8 @@ declare const enum BrowserVer {
   MinStyleSrcInCSPNotBreakUI = 37, // even if EXPERIMENTAL or LEGACY
   MinSessions = 37,
   // even if EXPERIMENTAL; Note: should use MinSafeCSS$All
-  /** @deprecated */
-  MinCSS$All$Attr = 37,
+  // so this is deprecated
+  MinUnsafeCSS$All$Attr = 37,
   /*
    * an `all:initial` prevents position/z-index attrs in other matched rules from working
    * this Chrome bug causes the help dialog may have `position: static;`

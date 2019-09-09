@@ -164,7 +164,7 @@ var HelpDialog = {
     help.$desc_ = help.desc_ ? this.safeHTML_(help.desc_, a) : "";
   },
   // https://support.zendesk.com/hc/en-us/articles/115015895948-Allowing-unsafe-HTML-in-articles
-  safeTags: {
+  _safeTags: {
     a: 1, abbr: 1, acronym: 1, address: 1, b: 1, big: 1, blockquote: 1, br: 1,
     cite: 1, code: 1, colgroup: 1, dd: 1, del: 1, dfn: 1, div: 1, dl: 1, dt: 1,
     em: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, h6: 1, hr: 1, i: 1, id: 1, img: 1,
@@ -187,7 +187,7 @@ var HelpDialog = {
       const el = arr[i];
       // here force to match ignoring cases - safer
       if (!((Build.BTypes & ~BrowserType.Firefox ? el.tagName + "" : el.tagName as string
-            ).toLowerCase() in this.safeTags)
+            ).toLowerCase() in this._safeTags)
           && !(el instanceof HTMLUnknownElement)) {
         el.remove();
         continue;

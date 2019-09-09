@@ -33,8 +33,6 @@ declare namespace HintsNS {
     };
     mapKey?: boolean;
     auto?: boolean;
-    /** @deprecated */
-    force?: boolean;
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
   interface Filter<T> {
@@ -1417,7 +1415,6 @@ Modes_: [
     }
     if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
       let newtab = a.options_.newtab;
-      newtab == null && (newtab = a.options_.force);
       // this frame is normal, so during Vomnibar.activate, checkHidden will only pass (in most cases)
       (VPort as ComplicatedVPort).post_<kFgReq.vomnibar, { c: number } & Partial<VomnibarNS.ContentOptions>>({
         H: kFgReq.vomnibar,
