@@ -470,6 +470,9 @@
 	"previousTab_s": {
 		"message": "Go one tab left"
 	},
+	"quickNext_s": {
+		"message": "Go one tab right"
+	},
 	"reloadTab_s": {
 		"message": "Reload tab"
 	},
@@ -700,7 +703,7 @@
 		"message": "Vimium C has been upgraded to v$1.\n"
 	},
 	"upgradeMsg2": {
-		"message": "Browser NewTab setting is not managed any more!"
+		"message": "Browser NewTab is not managed any more!"
 	},
 	"clickForMore": {
 		"message": "Click here for more information."
