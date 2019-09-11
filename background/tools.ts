@@ -336,7 +336,7 @@ Marks_ = { // NOTE: all public members should be static
       }
     }
     if (!str) {
-      return Backend_.showHUD_(trans_("noMark", [trans_(local ? "Local" : "Global"), markName]));
+      return Backend_.showHUD_(trans_("noMark", [trans_(local ? "Local_" : "Global_"), markName]));
     }
     const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
     const tabId = +stored.tabId, markInfo: MarksNS.MarkToGo = {

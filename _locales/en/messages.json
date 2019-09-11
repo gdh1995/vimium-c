@@ -906,10 +906,10 @@
 	"noMark": {
 		"message": "$1 mark not set : ' $2 '."
 	},
-	"Local": {
+	"Local_": {
 		"message": "Local"
 	},
-	"Global": {
+	"Global_": {
 		"message": "Global"
 	},
 	"markRemoved": {

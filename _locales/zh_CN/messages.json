@@ -336,7 +336,7 @@
 		"message": "临时切换搜索框的样式风格"
 	},
 	"closeDownloadBar": {
-		"message": "关闭底部的下载进度栏"
+		"message": "关闭窗口底部的下载进度栏"
 	},
 	"showTip": {
 		"message": "显示任意提示文字"
@@ -907,7 +907,7 @@
 		"message": "序号字符数量太少，应至少有 3 个字符。"
 	},
 	"onlyExtVomnibar": {
-		"message": "在 Chrome $1 之前，只有扩展程序内的搜索框页面才可用。"
+		"message": "在 Chromium $1 之前，只有扩展程序内的搜索框页面才可用。"
 	},
 	"fileVomnibar" : {
 		"message": "本地文件的页面会被限制，只能在网址是 file://* 的页面上打开"
@@ -1017,14 +1017,14 @@
 	"t_search": {
 		"message": "搜索"
 	},
+	"t_ERROR": {
+		"message": "错误"
+	},
 	"fail_to_load": {
 		"message": "（图片加载失败）"
 	},
 	"none": {
 		"message": "（空）"
-	},
-	"ERROR": {
-		"message": "错误"
 	},
 	"Disable": {
 		"message": "禁用"
@@ -1266,10 +1266,10 @@
 	"noMark": {
 		"message": "$1中不存在“ $2 ”"
 	},
-	"Local": {
+	"Local_": {
 		"message": "当前网站下的标记"
 	},
-	"Global": {
+	"Global_": {
 		"message": "全局标记"
 	},
 	"markRemoved": {

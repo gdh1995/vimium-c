@@ -60,12 +60,13 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.77 (Not released yet):
+1.77:
 * **not manage browser NewTab any more** in released versions ([#53](https://github.com/gdh1995/vimium-c/issues/53),
     [#51](https://github.com/gdh1995/vimium-c/issues/51), [#42](https://github.com/gdh1995/vimium-c/issues/42),
     [#28](https://github.com/gdh1995/vimium-c/issues/28), [#14](https://github.com/gdh1995/vimium-c/issues/14))
 * `ignoreKeyboardLayout` is enabled by default, to **support most keyboard layouts by default**
 * the [PRIVACY-POLICY.md](PRIVACY-POLICY.md) has been updated
+* translated into Chinese
 * some other bug fixes
 
 1.76.8:
