@@ -61,7 +61,7 @@ const KnownBackendGlobals = [
   "Backend_", "BgUtils_", "BrowserProtocol_",
   "Clipboard_", "CommandsData_", "Completion_", "ContentSettings_", "CurCVer_",
   "FindModeHistory_", "IncognitoWatcher_", "Marks_", "MediaWatcher_",
-  "Settings_", "TabRecency_"
+  "Settings_", "TabRecency_", "trans_"
 ];
 
 var CompileTasks = {
@@ -101,6 +101,7 @@ var Tasks = {
   static: ["static/special", "static/uglify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*.css"
       , "settings_template.json", "*.txt", "*.md"
+      , "_locales/**"
       , "!**/manifest*.json"
       , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
@@ -402,8 +403,8 @@ var Tasks = {
   },
   lint: ["tslint"],
   local2: function(cb) {
-    gNoComments = true;
-    compilerOptions.removeComments = true;
+    gNoComments = false;
+    compilerOptions.removeComments = false;
     locally = true;
     if (!process.env.LOCAL_DIST) {
       process.env.LOCAL_DIST = "dist";

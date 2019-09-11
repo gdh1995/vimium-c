@@ -536,6 +536,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: Build.MayOverrideNewTab ? "pages/options.html#!newTabUrl" : "",
     OverrideNewTab_: Build.MayOverrideNewTab ? true : false,
+    OptionsUIOpenInTab_: Build.NoDialogUI ? true : false,
     OptionsPage_: "pages/options.html", Platform_: "browser",
     baseCSS: "vimium.min.css",
     exclusionTemplate: "exclusions.html",
@@ -631,6 +632,10 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     const overrides = ref.chrome_url_overrides, hasNewTab = overrides && overrides.newtab;
     Settings_.CONST_.OverrideNewTab_ = !!hasNewTab;
     ref3[func(hasNewTab || "pages/newtab.html")] = Urls.NewTabType.vimium;
+  }
+  if (!Build.NoDialogUI) {
+    const options_ui = ref.options_ui, open_in_tab = options_ui && options_ui.open_in_tab;
+    Settings_.CONST_.OptionsUIOpenInTab_ = !!open_in_tab;
   }
   if (!Build.MayOverrideNewTab || !Settings_.CONST_.OverrideNewTab_) {
     obj.NewTabForNewUser_ = (Build.BTypes & ~BrowserType.Chrome

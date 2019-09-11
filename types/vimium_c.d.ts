@@ -320,6 +320,7 @@ declare const enum HintMode {
   EDIT_TEXT,
     max_edit = EDIT_TEXT,
   FOCUS_EDITABLE,
+    min_not_hint,
 }
 
 declare namespace VomnibarNS {

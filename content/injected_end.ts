@@ -1,20 +1,27 @@
-[VDom, VKey, VCui, VHints, VScroller, VOmni, VFind, VVisual, VMarks,
-  VHud, VPort, VEvent
+[VDom, VKey, VCui, VHints, VSc, VOmni, VFind, VVisual, VMarks,
+  VHud, VPort, VApis
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;
 
 (function (): void {
-  /** Note: should keep the same with {@link frontend.ts#OnOther} */
   const OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
         || !(Build.BTypes & ~BrowserType.Edge)
       ? Build.BTypes as number
-      : VOther;
+      : VOther,
+  transArgsRe = <RegExpSearchable<0>> /\$\d/g;
   if (Build.BTypes & BrowserType.Firefox) {
     if (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) {
       VDom.frameElement_ = () => frameElement;
     }
     VDom.parentCore_ = () => VDom.frameElement_() && parent as Window;
   }
+  VTr = (tid, fallback, args): string => {
+    if (typeof tid === "string") {
+      return tid;
+    }
+    fallback = fallback || "";
+    return args ? fallback.replace(transArgsRe, s => <string> args[+s[1] - 1]) : fallback;
+  };
   const injector = VimiumInjector as VimiumInjectorTy,
   parentInjector = top !== window
       && VDom.frameElement_()
@@ -72,8 +79,8 @@ VDom.allowScripts_ = 0;
   };
   function onTimeout() {
     if (Build.BTypes & BrowserType.Firefox) {
-      VEvent.destroy_(9); // note: here Firefox is just like a (9)
-      VEvent.OnWndFocus_();
+      VApis.destroy_(9); // note: here Firefox is just like a (9)
+      VApis.OnWndFocus_();
     }
   }
 })();
@@ -83,7 +90,7 @@ VDom.OnDocLoaded_(function () {
   injector && addEventListener("hashchange", injector.checkIfEnabled);
 });
 
-VEvent.execute_ = function (cmd): void {
+VApis.execute_ = function (cmd): void {
   const injector = VimiumInjector;
   if (cmd === kContentCmd.Destroy && injector) {
     removeEventListener("hashchange", injector.checkIfEnabled);
@@ -95,4 +102,4 @@ VEvent.execute_ = function (cmd): void {
 };
 
 (VimiumInjector as VimiumInjectorTy).cache = VDom.cache_;
-(VimiumInjector as VimiumInjectorTy).destroy = VEvent.destroy_;
+(VimiumInjector as VimiumInjectorTy).destroy = VApis.destroy_;

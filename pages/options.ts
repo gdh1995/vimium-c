@@ -4,9 +4,10 @@
 interface Window {
   readonly VPort?: VPortTy;
   readonly VHud?: VHUDTy;
+  readonly VCui?: typeof VCui;
   // readonly VDom?: typeof VDom;
 }
-declare var VPort: VPortTy, VHud: VHUDTy, VEvent: VEventModeTy;
+declare var VPort: VPortTy, VHud: VHUDTy, VApis: VApisModeTy;
 
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEvent | null, hash?: "hash"): void;
@@ -17,8 +18,6 @@ interface ElementWithDelay extends HTMLElement {
 interface OptionWindow extends Window {
   _delayed: [string, MouseEvent | null];
 }
-
-const $$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(selector: string) => NodeListOf<T>;
 
 Option_.syncToFrontend_ = [];
 
@@ -41,10 +40,7 @@ Option_.saveOptions_ = function (): boolean {
     }
   }
   if (dirty.length > 0) {
-    let ok = confirm(
-`Such options have been changed at other places:
-  * ${dirty.join("\n  * ")}
-Continue to save and override these changes?`);
+    let ok = confirm(pTrans_("dirtyOptions", [dirty.join("\n  * ")]));
     if (!ok) {
       return false;
     }
@@ -284,7 +280,9 @@ class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   }
   populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
     if (this.masked_) {
-      this.element_.placeholder = this.element_.dataset.mask || "  # Click to unmask the content\u2026";
+      let s: string = this.element_.dataset.mask || "";
+      s = pTrans_(s || "clickToUnmask") || s;
+      s && (this.element_.placeholder = s);
       return;
     }
     super.populateElement_(value, enableUndo);
@@ -417,7 +415,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
           saveBtn.blur();
         }
         saveBtn.disabled = true;
-        (saveBtn.firstChild as Text).data = "No Changes";
+        (saveBtn.firstChild as Text).data = pTrans_("o115");
         exportBtn.disabled = false;
         status = false;
         window.onbeforeunload = null as never;
@@ -429,7 +427,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     window.onbeforeunload = onBeforeUnload;
     status = true;
     saveBtn.disabled = false;
-    (saveBtn.firstChild as Text).data = "Save Changes";
+    (saveBtn.firstChild as Text).data = pTrans_("o115_2");
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
       exportBtn.blur();
@@ -450,7 +448,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       this.blur();
     }
     this.disabled = true;
-    (this.firstChild as Text).data = "Saved";
+    (this.firstChild as Text).data = pTrans_("o115_3");
     exportBtn.disabled = false;
     status = false;
     window.onbeforeunload = null as never;
@@ -477,18 +475,20 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     const el = $("#advancedOptions");
     nextTick_((): void => {
     (el.previousElementSibling as HTMLElement).style.display = el.style.display = advancedMode ? "" : "none";
-    (this.firstChild as Text).data = (advancedMode ? "Hide" : "Show") + " Advanced Options";
+    let s = advancedMode ? "Hide" : "Show";
+    (this.firstChild as Text).data = pTrans_(s) || s;
     this.setAttribute("aria-checked", "" + advancedMode);
     }, 9);
   };
   (_element as AdvancedOptBtn).onclick(null, true);
 
-  if (!(Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_)) {
-    nextTick_(context => {
-      context.remove();
-    },
-      $<EnsuredMountedElement & HTMLElement>("#focusNewTabContent").parentElement.parentElement.parentElement,
-    );
+  if (Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_) {
+    $("#focusNewTabContent").dataset.model = "Boolean";
+    nextTick_(box => box.style.display = "", $("#focusNewTabContentBox"));
+  }
+  if (!Build.NoDialogUI && bgSettings_.CONST_.OptionsUIOpenInTab_) {
+    $("#dialogMode").dataset.model = "Boolean";
+    nextTick_(box => box.style.display = "", $("#dialogModeBox"));
   }
 
   let _ref: {length: number, [index: number]: HTMLElement} = $$("[data-model]");
@@ -646,15 +646,14 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
   Option_.all_.keyMappings.onSave_ = function (): void {
     const errors = bgSettings_.temp_.cmdErrors_,
-    msg = !errors ? "" : (errors === 1 ? "There's 1 error" : `There're ${errors} errors`
-      ) + " found.\nPlease see logs of background page for more details.";
+    msg = !errors ? "" : pTrans_("openBgLogs", [pTrans_(errors === 1 ? "error" : "errors", [errors])]);
     return this.showError_(msg);
   };
   Option_.all_.keyMappings.onSave_();
 
   Option_.all_.linkHintCharacters.onSave_ = function (): void {
     const errors = this.previous_.length < 3;
-    return this.showError_(errors ? "Characters for LinkHints are too few." : "");
+    return this.showError_(errors ? pTrans_("hintCharsTooFew") : "");
   };
   Option_.all_.linkHintCharacters.onSave_();
 
@@ -669,27 +668,16 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       });
       return this.showError_(
         url === bgSettings_.defaults_.vomnibarPage ? ""
-          : `Only extension vomnibar pages can work before Chrome ${BrowserVer.Min$tabs$$executeScript$hasFrameIdArg}.`,
+          : pTrans_("onlyExtVomnibar", [BrowserVer.Min$tabs$$executeScript$hasFrameIdArg]),
         null);
     }
     url = bgSettings_.cache_.vomnibarPage_f || url; // for the case Chrome is initing
     if (isExtPage) { /* empty */ }
-    else if (!(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
-      // Note(gdh1995): tests on FF 66.0.3 (stable) / 67.0b19 (beta) (x64, Win 10)
-      //     shows that the web page iframe may fail to receive ANY messages from content/vomnibar.ts,
-      //     and neither re-sending nor re-adding-listener can work.
-      // This bug often occurs after Vimium C gets reloaded and the test page gets refreshed,
-      // and after further several refreshing, sometimes it may work - sometimes still not.
-      return this.showError_("A web page of vomnibar may fail because of bugs of Firefox."
-        , "highlight");
-    }
+    // Note: the old code here thought on Firefox web pages couldn't be used, but it was just because of wrappedJSObject
     else if (url.lastIndexOf("file://", 0) !== -1) {
-      return this.showError_("A file page of vomnibar is limited by Chrome to only work on file://* pages."
-        , "highlight");
+      return this.showError_(pTrans_("fileVomnibar"), "highlight");
     } else if (url.lastIndexOf("http://", 0) !== -1) {
-      return this.showError_("A HTTP page of vomnibar is limited by Chrome and doesn't work on HTTPS pages."
-        , "highlight");
+      return this.showError_(pTrans_("httpVomnibar"), "highlight");
     }
     return this.showError_("");
   };
@@ -716,12 +704,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
         } else if (bgBrowserVer_ >= +key.slice(1)) {
           continue;
         }
-        key = "on Chromium browsers before v" + key.slice(1);
+        key = pTrans_("beforeChromium", [key.slice(1)]);
       } else {
         if (key in manifest) { continue; }
-        key = `for lacking permission${key ? ":\n* " + key : ""}`;
+        key = pTrans_("lackPermission", [key ? ":\n* " + key : ""]);
       }
-      key = "This option is invalid " + key;
+      key = pTrans_("invalidOption", [key]);
       nextTick_(el1 => {
         (el1 as TextElement).disabled = true;
         if (el1 instanceof HTMLInputElement && el1.type === "checkbox") {
@@ -739,7 +727,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       this.onclick = null as never;
       if (!el) { return; }
       const key = el.dataset.permission;
-      el.placeholder = `lacking permission${key ? ` "${key}"` : ""}`;
+      el.placeholder = pTrans_("lackPermission", [key ? `: "${key}"` : ""]);
     }
   })(_ref);
   if (BG_.Settings_.CONST_.GlobalCommands_.length === 0) {
@@ -756,25 +744,6 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   nextTick_(ref2 => {
-  function toggleHide(element2: HTMLElement): void | 1 {
-    element2.tabIndex = -1;
-    return element2.setAttribute("aria-hidden", "true");
-  }
-
-  for (let _i = ref2.length; 0 <= --_i; ) {
-    let element = ref2[_i] as HTMLInputElement;
-    if ((element as HTMLInputElement).disabled) { continue; }
-    toggleHide(element);
-    toggleHide(element.parentElement as HTMLElement);
-    element = element.nextElementSibling as HTMLInputElement;
-    element.classList.add("checkboxHint");
-    element.setAttribute("role", "checkbox");
-    element.tabIndex = 0;
-    element.setAttribute("aria-hidden", "false");
-  }
-  }, $$('[data-model="Boolean"]'));
-
-  nextTick_(ref2 => {
   for (let _i = ref2.length; 0 <= --_i; ) {
     const element = ref2[_i] as HTMLInputElement;
     let str = element.dataset.href as string;
@@ -785,7 +754,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }, $$("[data-href]"));
 
   function onBeforeUnload(): string {
-    return "You have unsaved changes to options.";
+    return pTrans_("beforeUnload");
   }
 
   _element = $<HTMLAnchorElement>("#openExtensionPage");
@@ -794,14 +763,15 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       && bgBrowserVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
     nextTick_(el => {
       el.href = "chrome://extensions/configureCommands";
-      (el.parentElement as HTMLElement).insertBefore(document.createTextNode('"Keyboard shortcuts" of '), el);
+      (el.parentElement as HTMLElement).insertBefore(document.createTextNode(pTrans_("keyShortcutOf")), el);
     }, _element as HTMLAnchorElement);
   } else if (Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
     nextTick_(([el, el2, el3]) => {
       el.textContent = el.href = "about:addons";
-      (el.parentElement as HTMLElement).insertBefore(
-        document.createTextNode('"Manage Shortcuts" in "Tools Menu" of '), el);
+      const el1 = el.parentElement as HTMLElement, d = document;
+      el1.insertBefore(d.createTextNode(pTrans_("manageShortcut")), el);
+      el1.insertBefore(d.createTextNode(pTrans_("manageShortcut_2")), el.nextSibling);
       el2.href = "https://addons.mozilla.org/en-US/firefox/addon/shortcut-forwarding-tool/";
       el3.href = "https://addons.mozilla.org/en-US/firefox/addon/newtab-adapter/";
     }, [_element as HTMLAnchorElement,
@@ -812,25 +782,29 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     return BG_.Backend_.focus_({ u: this.href, r: ReuseType.reuse, p: true });
   };
 
-  if (Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+  if (Build.BTypes & BrowserType.ChromeOrFirefox
+      && (!(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
+          || (bgOnOther_ & BrowserType.ChromeOrFirefox))) {
     _element = $("#chromeExtVomnibar");
     nextTick_(el => {
-      const children = el.children, anchor = children[1] as HTMLAnchorElement;
-      children[0].textContent = "moz";
-      anchor.textContent = "NewTab Adapter";
+      const children = el.children, anchor = children[1] as HTMLAnchorElement, name = pTrans_("NewTabAdapter");
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+        children[0].textContent = "moz";
+      }
+      anchor.textContent = name;
       anchor.href = "https://addons.mozilla.org/firefox/addon/newtab-adapter/";
-      anchor.title = "NewTab Adapter - Firefox Add-ons";
+      anchor.title = name + " - " + pTrans_(Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox) ? "addons" : "webstore");
     }, _element);
   }
 
   if (BG_.Backend_.setIcon_ === BG_.BgUtils_.blank_ && Option_.all_.showActionIcon.previous_) {
-    nextTick_(() => {
+    nextTick_(el2 => {
     let element = Option_.all_.showActionIcon.element_;
     (element as EnsuredMountedHTMLElement).nextElementSibling.classList.add("has-error");
-    (element as EnsuredMountedHTMLElement).parentNode.parentNode.nextElementSibling.firstElementChild.textContent =
-        'Sorry, but the icon can not be dynamic if the browser flag "--disable-reading-from-canvas" is enabled';
-    });
+    el2.textContent = pTrans_("notReadCanvas");
+    }, $("#showActionIconHelp"));
   }
 })();
 
@@ -841,13 +815,12 @@ Option_.all_.newTabUrl.checker_ = {
     url = url.split("?", 1)[0].split("#", 1)[0];
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
+      let err = "";
       if ((<RegExpI> /^chrome|^(javascript|data|file):|^about:(?!(newtab|blank)\/?$)/i).test(url)) {
-        const err = `The URL "${url}" is refused by the Firefox browser to be opened by a web-extension.`;
+        err = pTrans_("refusedURLs", [url]);
         console.log("newTabUrl checker:", err);
-        Option_.all_.newTabUrl.showError_(err);
-      } else {
-        Option_.all_.newTabUrl.showError_("");
       }
+      Option_.all_.newTabUrl.showError_(err);
     }
     return value.lastIndexOf("http", 0) < 0 && (url in bgSettings_.newTabs_
       || (<RegExpI> /^(?!http|ftp)[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
@@ -857,7 +830,7 @@ Option_.all_.newTabUrl.checker_ = {
 Option_.all_.newTabUrl.checker_.check_(Option_.all_.newTabUrl.previous_);
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
-  if (!window.VDom) { return; }
+  if (!window.VDom || !VDom.cache_) { return; }
   const root = VCui.root_ as VUIRoot | null, self = Option_.all_.userDefinedCss;
   let styleDebug = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (styleDebug) {
@@ -870,7 +843,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     }
     styleDebug = document.createElement("style");
     styleDebug.className = "debugged";
-    const patch = function () {
+    const patch = function (): void {
       /** Note: shoule keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substr(headEnd + 1, +css.slice(0, headEnd).split(",")[2]);
@@ -922,18 +895,18 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     }
     styleDebug.textContent = isFind ? css2.find || ""
       : (isSame ? "" : "\n.transparent { opacity: 1; }\n") + (css2.omni && css2.omni + "\n" || "");
-    const vfind = window.VFind as NonNullable<Window["VFind"]>;
-    if (isFind && vfind.css_) {
+    const UI = window.VCui, findCss = UI && UI.findCss_;
+    if (isFind && findCss) {
       /** Note: shoule keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
-      vfind.css_.i = vfind.css_.i.slice(0, defaultLen - vfind.css_.c.length - vfind.css_.s.length - 1)
+      findCss.i = findCss.i.slice(0, defaultLen - findCss.c.length - findCss.s.length - 1)
         + "\n" + (css2.find || "");
     }
   }
 }, 1800, $("#userDefinedCss") as HTMLTextAreaElement, 0));
 
 Option_.all_.userDefinedCss.onSave_ = function () {
-  if (!window.VDom) { return; }
+  if (!window.VDom || !VDom.cache_) { return; }
   const root = VCui.root_;
   let styledebugged = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
   if (!styledebugged) { return; }
@@ -975,7 +948,7 @@ $("#importButton").onclick = function (): void {
 nextTick_(el => {
 el.textContent = (Build.BTypes & BrowserType.Edge
         && (!(Build.BTypes & ~BrowserType.Edge) || bgOnOther_ === BrowserType.Edge)
-    ? "MS Edge"
+    ? "MS Edge (EdgeHTML)"
     : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
     ? "Firefox"
@@ -986,7 +959,8 @@ el.textContent = (Build.BTypes & BrowserType.Edge
     : Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || bgOnOther_ === BrowserType.Chrome)
     ? " " + bgBrowserVer_ : ""
-  ) + (", " + bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.slice(1));
+  ) + pTrans_("comma") + (pTrans_(bgSettings_.CONST_.Platform_)
+        || bgSettings_.CONST_.Platform_[0].toUpperCase() + bgSettings_.CONST_.Platform_.slice(1));
 }, $("#browserName"));
 
 function loadJS(file: string): HTMLScriptElement {
@@ -1004,7 +978,7 @@ function loadChecker(this: HTMLElement): void {
 
 document.addEventListener("keydown", function (this: void, event): void {
   if (event.keyCode !== kKeyCode.space) {
-    if (!window.VKey) { return; }
+    if (!window.VKey || !VKey.cache_) { return; }
     let ch: string;
     if (!Build.NDEBUG && (ch = VKey.char_(event)) && VKey.key_(event, ch) === "<a-f12>") {
       $<HTMLOptionElement>("#recommendedSettings").selected = true;
@@ -1015,12 +989,12 @@ document.addEventListener("keydown", function (this: void, event): void {
       return;
     }
     let wanted = event.keyCode === kKeyCode.questionWin || event.keyCode === kKeyCode.questionMac ? "?" : "";
-    if (wanted && VKey.char_(event) === wanted && VEvent.mapKey_(wanted, event) === wanted) {
-      if (!Build.NDEBUG && !VEvent.lock_()) {
+    if (wanted && VKey.char_(event) === wanted && VApis.mapKey_(wanted, event) === wanted) {
+      if (!Build.NDEBUG && !VApis.lock_()) {
         console.log('The document receives a "?" key which has been passed (excluded) by Vimium C,',
           "so open the help dialog.");
       }
-      if (!VEvent.lock_()) {
+      if (!VApis.lock_()) {
         $("#showCommands").click();
       }
     }

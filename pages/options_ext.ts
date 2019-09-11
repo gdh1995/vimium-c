@@ -1,5 +1,5 @@
 $<ElementWithDelay>("#showCommands").onclick = function (event): void {
-  if (!window.VDom) { return; }
+  if (!window.VDom || !VDom.cache_) { return; }
   let node: HTMLElement | null, root = VCui.root_;
   event && event.preventDefault();
   if (!root) { /* empty */ }
@@ -51,7 +51,7 @@ ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOptio
   this.timer_ = setTimeout(function (el, text) {
     (el.firstChild as Text).data = text, self.timer_ = 0;
   }, 1000, element, (element.firstChild as Text).data);
-  (element.firstChild as Text).data = "(Sorted)";
+  (element.firstChild as Text).data = pTrans_("o3_2");
 };
 
 $("#exclusionSortButton").onclick = function (): void {
@@ -166,15 +166,14 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     , ext_ver = env && parseFloat(env.extension || 0) || 0
     , newer = ext_ver > parseFloat(bgSettings_.CONST_.VerCode_);
   plat && (plat = ("" + plat).slice(0, 10));
-  if (!confirm(
-`You are loading ${is_recommended !== true ? "a settings copy" : "the recommended settings:"}
-      * from ${ext_ver > 1 ? `version ${ext_ver} of ` : "" }Vimium C${newer ? " (newer)" : ""}
-      * for ${plat ? `the ${plat[0].toUpperCase() + plat.slice(1)} platform` : "common platforms" }
-      * exported ${time ? "at " + formatDate(time) : "before"}
-
-Are you sure you want to continue?`
-  )) {
-    window.VHud && VHud.tip_("You cancelled importing.", 1000);
+  if (!confirm(pTrans_("confirmImport", [
+        pTrans_(is_recommended !== true ? "backupFile" : "recommendedFile"),
+        ext_ver > 1 ? pTrans_("fileVCVer").replace("*", "" + ext_ver) : "",
+        (ext_ver > 1 ? pTrans_("fileVCVer_2").replace("*", "" + ext_ver) : "") + (newer ? pTrans_("fileVCNewer") : ""),
+        plat ? pTrans_("filePlatform", [pTrans_(plat) || plat[0].toUpperCase() + plat.slice(1)])
+          : pTrans_("commonPlatform"),
+        time ? pTrans_("atTime", [formatDate(time)]) : pTrans_("before")]))) {
+    window.VHud && VHud.tip_(kTip.cancelImport, "", 1000);
     return;
   }
   const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
@@ -185,9 +184,7 @@ Are you sure you want to continue?`
     Object.setPrototypeOf(new_data, null);
   }
   if (new_data.vimSync == null) {
-    const now = bgSettings_.get_("vimSync"), keep = now && confirm(
-      "Do you want to keep settings synchronized with your current Google account?"
-    );
+    const now = bgSettings_.get_("vimSync"), keep = now && confirm(pTrans_("keeySyncing"));
     new_data.vimSync = keep || null;
     if (now) {
       console.log("Before importing: You chose to", keep ? "keep settings synced." : "stop syncing settings.");
@@ -325,7 +322,7 @@ Are you sure you want to continue?`
     node.click();
     $("#showCommands").click();
   }
-  if (window.VHud) { return VHud.tip_("Import settings data: OK!", 1000); }
+  if (window.VHud) { VHud.tip_(kTip.importOK, "", 1000); }
 }
 
 function importSettings(time: number | string | Date
@@ -334,20 +331,18 @@ function importSettings(time: number | string | Date
   try {
     let d = parseJSON(is_recommended ? data : data.replace(<RegExpG> /\xa0/g, " "));
     if (d instanceof Error) { e = d; }
-    else if (!d) { err_msg = "No JSON data found!"; }
+    else if (!d) { err_msg = pTrans_("notJSON"); }
     else { new_data = d; }
   } catch (_e) { e = _e; }
   if (e != null) {
-    err_msg = e ? (e.message || e) + "" : "Error: " + (e !== "" ? e : "(unknown)");
+    err_msg = e ? (e.message || e) + "" : pTrans_("exc") + (e !== "" ? e : pTrans_("unknown"));
     let arr = (<RegExpSearchable<2> & RegExpOne> /^(\d+):(\d+)$/).exec(err_msg);
-    err_msg = !arr ? err_msg :
-`Sorry, Vimium C can not parse the JSON file:
-  an unexpect character at line ${arr[1]}, column ${arr[2]}`;
+    err_msg = !arr ? err_msg : pTrans_("JSONParseError", [arr[1], arr[2]]);
   }
   if (new_data) {
     time = +new Date(new_data && new_data.time || (typeof time === "object" ? +time : time)) || 0;
     if ((new_data.name !== "Vimium C" && new_data.name !== "Vimium++") || (time < 10000 && time > 0)) {
-      err_msg = "Sorry, no Vimium C settings data found!";
+      err_msg = pTrans_("notVCJSON");
       new_data = null;
     }
   }
@@ -377,12 +372,7 @@ _el.onchange = function (this: HTMLInputElement): void {
   if (!file) { return; }
   const max_size = Option_.all_.vimSync.previous_ ? GlobalConsts.SYNC_QUOTA_BYTES : GlobalConsts.LOCAL_STORAGE_BYTES;
   if (file.size && file.size > max_size) {
-    alert(
-`   Fatal Error:
-
-Your settings file "${file.name}" seems too large!
-
-As limited by your browser, the max size is only ${max_size / 1024} KB.`);
+    alert(pTrans_("JSONTooLarge", [file.name, max_size / 1024]));
     return;
   }
   const reader = new FileReader(), lastModified = file.lastModified || file.lastModifiedDate || 0;

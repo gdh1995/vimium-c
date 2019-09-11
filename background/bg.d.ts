@@ -435,7 +435,6 @@ type ShortcutInfoMap = {
 };
 
 interface CommandsDataTy {
-  cmdDescriptions_: ReadonlySafeDict<string>;
   keyToCommandRegistry_: SafeDict<CommandsNS.Item>;
   keyMap_: KeyMap;
   shortcutMap_: ShortcutInfoMap;

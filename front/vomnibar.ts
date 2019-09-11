@@ -40,8 +40,8 @@ declare var parent: unknown;
 import PixelData = VomnibarNS.PixelData;
 
 // tslint:disable-next-line: triple-equals
-if (typeof VEvent == "object" && VEvent && typeof VEvent.destroy_ == "function") {
-  VEvent.destroy_(1);
+if (typeof VApis == "object" && VApis && typeof VApis.destroy_ == "function") {
+  VApis.destroy_(1);
 }
 
 var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
@@ -54,7 +54,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabInCurrentWindow, options.currentWindow ? 1 : 0);
     a.updateQueryFlag_(CompletersNS.QueryFlags.TabTree, options.tree ? 1 : 0);
     a.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, null);
-    a.forceNewTab_ = options.newtab != null ? !!options.newtab : !!options.force;
+    a.forceNewTab_ = !!options.newtab;
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
@@ -602,7 +602,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     if (Vomnibar_.selection_ < 0) { return; }
     const completion = Vomnibar_.completions_[Vomnibar_.selection_], type = completion.e;
     if (type !== "tab" && (type !== "history" || completion.s != null)) {
-      VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, t: "This item can not be deleted." });
+      VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, k: kTip.failToDelSug, t: "This item can not be deleted." });
       return;
     }
     VPort_.post_({

@@ -7,6 +7,9 @@ var VCui = {
   styleIn_: null as HTMLStyleElement | string | null,
   styleOut_: null as HTMLStyleElement | null,
   root_: null as never as VUIRoot,
+  findCss_: null as never as FindCSS,
+  /** @NEED_SAFE_ELEMENTS */
+  activeEl_: null as SafeElement | null,
   add_: (function <T extends HTMLElement> (this: void, element: T, adjust?: AdjustType): void {
     let a = VCui, box = a.box_ = VDom.createElement_("div"),
     root: VUIRoot = a.root_ = VDom.createShadowRoot_(box);
@@ -160,14 +163,14 @@ var VCui = {
             || st.webkitUserSelect) !== "none";
   },
   toggleSelectStyle_ (enable: BOOL): void {
-    let sout = this.styleOut_;
+    let a = VCui, sout = a.styleOut_;
     if (enable ? VDom.docSelectable_ : !sout || !sout.parentNode) { return; }
-    sout || (this.styleOut_ = sout = this.createStyle_(VFind.css_.s));
-    enable ? (this.box_ as HTMLElement).appendChild(sout) : sout.remove();
+    sout || (a.styleOut_ = sout = a.createStyle_(a.findCss_.s));
+    enable ? (a.box_ as HTMLElement).appendChild(sout) : sout.remove();
   },
   getSelected_ (notExpectCount?: 1): [Selection, ShadowRoot | null] {
     let d = document, el: Node | null, sel: Selection | null;
-    if (el = VScroller.current_) {
+    if (el = VCui.activeEl_) {
       if (Build.MinCVer >= BrowserVer.Min$Node$$getRootNode && !(Build.BTypes & BrowserType.Edge)
           || !(Build.BTypes & ~BrowserType.Firefox)
           || el.getRootNode) {
@@ -220,7 +223,7 @@ var VCui = {
   },
   getSelectionText_ (notTrim?: 1): string {
     let sel = getSelection(), s = "" + sel, el: Element | null, rect: ClientRect;
-    if (s && !VEvent.lock_() && (el = VScroller.current_) && VDom.getEditableType_(el) === EditableType.Editbox
+    if (s && !VApis.lock_() && (el = VCui.activeEl_) && VDom.getEditableType_(el) === EditableType.Editbox
         && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
       s = "";
     }
@@ -251,7 +254,7 @@ var VCui = {
     element === a.lastHovered_ || a.hover_(element, center);
     a.mouse_(element, "mousedown", center, modifiers, null, button);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    addFocus && element !== VEvent.lock_() && element !== document.activeElement &&
+    addFocus && element !== VApis.lock_() && element !== document.activeElement &&
       !(element as Partial<HTMLInputElement>).disabled &&
       (Build.BTypes & ~BrowserType.Firefox ? typeof element.focus === "function" : element.focus) &&
       (element as HTMLElement | SVGElement).focus();
@@ -297,7 +300,7 @@ var VCui = {
     VDom.view_(element, y);
     // re-compute rect of element, in case that an input is resized when focused
     flash && this.flash_(element);
-    if (element !== VEvent.lock_()) { return; }
+    if (element !== VApis.lock_()) { return; }
     // then `element` is always safe
     this._moveSel_need_safe(element as LockableElement, action);
     if (suppressRepeated === true) { VKey.suppressTail_(0); }

@@ -242,7 +242,7 @@ declare namespace VomnibarNS {
       h: number;
       m?: number;
     };
-    [kFReq.hud]: { t: string; };
+    [kFReq.hud]: { k: kTip, t: string; };
     [kFReq.focus]: {
       /** lastKey */ l: kKeyCode;
     };
@@ -319,7 +319,7 @@ interface VPortTy {
 interface ComplicatedVPort extends VPortTy {
   post_<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
-interface VEventModeTy {
+interface VApisModeTy {
   lock_(this: void): LockableElement | null;
   isCmdTriggered_ (this: void): BOOL;
   OnWndFocus_ (this: void): void;
@@ -338,7 +338,7 @@ interface VEventModeTy {
   scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: kKeyCode }, wnd?: Window): void;
   /** return has_error */
   readonly keydownEvents_: {
-    (this: void, srcFrame: Pick<VEventModeTy, "keydownEvents_"> | KeydownCacheArray): boolean;
+    (this: void, srcFrame: Pick<VApisModeTy, "keydownEvents_"> | KeydownCacheArray): boolean;
     (this: void): KeydownCacheArray;
   };
   readonly OnScrolls_: {
@@ -351,20 +351,36 @@ interface VEventModeTy {
 }
 interface VHUDTy {
   readonly box_: HTMLDivElement | null;
-  readonly text_: string;
+  readonly t: string;
   readonly opacity_: 0 | 0.25 | 0.5 | 0.75 | 1;
-  show_ (text: string, embed?: boolean): void;
+  show_ (tid: kTip | HintMode, text: string, args?: Array<string | number>, embed?: boolean): void;
   /** duration is default to 1500 */
-  tip_ (text: string, duration?: number): void;
-  copied_ (this: VHUDTy, text: string, type: string, virtual: true): string;
-  copied_ (this: VHUDTy, text: string, type?: string): void;
+  tip_ (tid: kTip | HintMode, text: string, duration?: number, args?: Array<string | number>): void;
+  copied_ (text: string, type: string, virtual: 1): string;
+  copied_ (text: string, type?: "url" | ""): void;
   hide_ (this: void, info?: TimerType): void;
 }
-declare var VimiumInjector: VimiumInjectorTy | undefined | null, VEvent: VEventModeTy;
+declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApis: VApisModeTy;
 
 interface VDataTy {
   full: string;
 }
+
+declare const enum kTip {
+  /* 4..15 is not used by HintMode */
+  /* 4..9 */ didUnhoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
+  /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
+  /* 20..25 */ copiedIs = 20, failToEvalJS, blockAutoFocus, useVal, turnOn, turnOff,
+  /* 26..31 */ nMatches, oneMatch, someMatches, noMatches,
+  raw = 69, START_FOR_OTHERS = raw,
+  /* 70: */ fewChars = 70, noLinks, exitForIME, linkRemoved, notImg,
+  /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, nowGotoMark,
+  /* 80: */ nowCreateMark, didCreateLastMark, didLocalMarkTask, didJumpTo, didCreate,
+  /* 85: */ lastMark, didNormalMarkTask, findFrameFail, noOldQuery, noMatchFor,
+  /* 90: */ visualMode, noUsableSel, loseSel, needSel, omniFrameFail,
+  /* 95: */ failToDelSug, firefoxRefuseURL, cancelImport, importOK,
+}
+type VTransType = (tid: kTip | HintMode | string, fallback?: string, args?: Array<string | number>) => string;
 
 declare const enum kContentCmd {
   _fake = 0,
@@ -383,10 +399,10 @@ interface ContentWindowCore {
   readonly VDom?: object;
   readonly VKey?: object;
   readonly VHints?: object;
-  readonly VScroller?: object;
+  readonly VSc?: object;
   readonly VOmni?: object;
-  readonly VFind?: { css_: FindCSS | null; };
-  readonly VEvent?: VEventModeTy;
+  readonly VFind?: object;
+  readonly VApis?: VApisModeTy;
   readonly VIh?: (this: void) => number;
 }
 

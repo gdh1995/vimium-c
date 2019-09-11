@@ -34,9 +34,9 @@ var VOmni = {
     VKey.removeHandler_(a);
     VKey.pushHandler_(VKey.SuppressMost_, a);
     let timer1 = setTimeout(a.RefreshKeyHandler_, GlobalConsts.TimeOfSuppressingTailKeydowns);
-    if (VEvent.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
+    if (VApis.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
-      return VHud.tip_("Sorry, Vomnibar page seems to fail in loading.", 2000);
+      return VHud.tip_(kTip.omniFrameFail, "Sorry, Vomnibar page seems to fail in loading.", 2000);
     }
     if (!options || !options.k || !options.v) { return; }
     if (dom.OnDocLoaded_ !== dom.execute_) {
@@ -274,15 +274,17 @@ var VOmni = {
       break;
     case VomnibarNS.kFReq.focus:
       focus();
-      return VEvent.keydownEvents_()[(data as Req[VomnibarNS.kFReq.focus]).l] = 1;
+      return VApis.keydownEvents_()[(data as Req[VomnibarNS.kFReq.focus]).l] = 1;
     case VomnibarNS.kFReq.hide: return a.hide_(1);
-    case VomnibarNS.kFReq.scroll: return VEvent.scroll_(data as Req[VomnibarNS.kFReq.scroll]);
+    case VomnibarNS.kFReq.scroll: return VApis.scroll_(data as Req[VomnibarNS.kFReq.scroll]);
     case VomnibarNS.kFReq.scrollGoing: // no break;
-    case VomnibarNS.kFReq.scrollEnd: VScroller.scrollTick_(data.N === VomnibarNS.kFReq.scrollGoing); break;
+    case VomnibarNS.kFReq.scrollEnd: VSc.scrollTick_(data.N === VomnibarNS.kFReq.scrollGoing); break;
     case VomnibarNS.kFReq.evalJS: VPort.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
     case VomnibarNS.kFReq.broken: focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
-    case VomnibarNS.kFReq.hud: VHud.tip_((data as Req[VomnibarNS.kFReq.hud]).t); return;
+    case VomnibarNS.kFReq.hud:
+      VHud.tip_((data as Req[VomnibarNS.kFReq.hud]).k, (data as Req[VomnibarNS.kFReq.hud]).t);
+      return;
     }
   },
   onShown_ (maxBoxHeight: number): void {
@@ -305,7 +307,7 @@ var VOmni = {
     st > VomnibarNS.Status.ToShow && VKey.pushHandler_(a.onKeydown_, a);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
-    if (VEvent.lock_()) { return HandlerResult.Nothing; }
+    if (VApis.lock_()) { return HandlerResult.Nothing; }
     if (VKey.isEscape_(event)) { this.hide_(); return HandlerResult.Prevent; }
     const key = event.keyCode - kKeyCode.f1;
     if (key === 0 || key === 1) {

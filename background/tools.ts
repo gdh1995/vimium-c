@@ -60,13 +60,13 @@ ContentSettings_ = Build.PContentSettings ? {
       return true;
     }
     if (!css[contentType] || (<RegExpOne> /^[A-Z]/).test(contentType) || !css[contentType].get) {
-      Backend_.showHUD_("Unknown content settings type: " + contentType);
+      Backend_.showHUD_(trans_("unknownCS", [contentType]));
       return true;
     }
     if (BgUtils_.protocolRe_.test(url) && !url.startsWith(BrowserProtocol_)) {
       return false;
     }
-    Backend_.complain_("change its content settings");
+    Backend_.complain_(trans_("changeItsCS"));
     return true;
   },
   parsePattern_ (this: void, pattern: string, level: number): string[] {
@@ -74,14 +74,14 @@ ContentSettings_ = Build.PContentSettings ? {
       const a = Build.MinCVer >= BrowserVer.MinFailToToggleImageOnFileURL
           || CurCVer_ >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
       if (a) {
-        Backend_.complain_(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}`
-          : "set CS of file folders");
+        Backend_.complain_(a === 1 ? trans_("setFileCS", [BrowserVer.MinFailToToggleImageOnFileURL])
+          : trans_("setFolderCS"));
         return [];
       }
       return [pattern.split(<RegExpOne> /[?#]/, 1)[0]];
     }
     if (pattern.startsWith("ftp:")) {
-      Backend_.complain_("set FTP pages' content settings");
+      Backend_.complain_(trans_("setFTPCS"));
       return [];
     }
     let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
@@ -127,7 +127,7 @@ ContentSettings_ = Build.PContentSettings ? {
     const ty = "" + options.type as CSTypes;
     if (!this.complain_(ty, "http://a.cc/")) {
       this.Clear_(ty, port ? port.s.a : TabRecency_.incognito_ === IncognitoType.true);
-      return Backend_.showHUD_(ty + " content settings have been cleared.");
+      return Backend_.showHUD_(trans_("csCleared", [trans_(ty) || ty]));
     }
   },
   toggleCS_ (count: number, options: CommandsNS.Options, tabs: [Tab]): void {
@@ -176,7 +176,7 @@ ContentSettings_ = Build.PContentSettings ? {
   },
   ensureIncognito_ (this: void, count: number, contentType: CSTypes, tab: Tab): void {
     if (Settings_.CONST_.DisallowIncognito_) {
-      return Backend_.complain_("change incognito settings");
+      return Backend_.complain_("setIncogCS");
     }
     const pattern = BgUtils_.removeComposedScheme_(tab.url);
     if (ContentSettings_.complain_(contentType, pattern)) { return; }
@@ -332,11 +332,11 @@ Marks_ = { // NOTE: all public members should be static
         }
       }
       if (scroll) {
-        return Marks_._goto(port, { n: markName, s: scroll, l: true });
+        return Marks_._goto(port, { n: markName, s: scroll, k: "local", l: true });
       }
     }
     if (!str) {
-      return Backend_.showHUD_(`${local ? "Local" : "Global"} mark not set : ' ${markName} '.`);
+      return Backend_.showHUD_(trans_("noMark", [trans_(local ? "Local" : "Global"), markName]));
     }
     const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
     const tabId = +stored.tabId, markInfo: MarksNS.MarkToGo = {
@@ -366,7 +366,7 @@ Marks_ = { // NOTE: all public members should be static
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Backend_.indexPorts_(tabId, 0);
-    port && Marks_._goto(port, { n: markInfo.n, s: markInfo.s });
+    port && Marks_._goto(port, { n: markInfo.n, s: markInfo.s, k: "global" });
     if (markInfo.t !== tabId && markInfo.n) {
       return Marks_._set(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
     }
@@ -391,7 +391,9 @@ Marks_ = { // NOTE: all public members should be static
         }
       }
     }
-    return Backend_.showHUD_(`${num} ${url ? "local" : "global"} mark${num !== 1 ? "s have" : " has"} been removed.`);
+    return Backend_.showHUD_(trans_("markRemoved", [
+      num, trans_(url ? "local" : "global"), trans_(num !== 1 ? "have" : "has")
+    ]));
   }
 },
 FindModeHistory_ = {

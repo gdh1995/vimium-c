@@ -12,7 +12,7 @@
     "MinCVer": [ 74, 35 ], // keep dist to be 35 : the relase version
     "MinFFVer": [ 64, 64 ],
     "BTypes": [ 3, 1 ], // [ Chrome | Firefox, Chrome ]
-    "NoDialogUI": [ 0, 1 ],
+    "NoDialogUI": [ 1, 1 ],
     "DetectAPIOnFirefox": [1, 0],
     "NDEBUG": [ 0, 1 ]
   },

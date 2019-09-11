@@ -1,0 +1,1575 @@
+{
+	"createTab": {
+		"message": "打开新的标签页"
+	},
+	"discardTab": {
+		"message": "暂时丢弃某个网页以节约资源"
+	},
+	"duplicateTab": {
+		"message": "复制当前标签页"
+	},
+	"moveTabToNewWindow": {
+		"message": "移动标签页到新窗口"
+	},
+	"openCopiedUrlInNewTab": {
+		"message": "新建标签页访问复制的网址"
+	},
+	"openUrl": {
+		"message": "访问网址"
+	},
+	"reloadTab": {
+		"message": "刷新整个网页"
+	},
+	"removeTab": {
+		"message": "关闭标签页"
+	},
+	"restoreTab": {
+		"message": "恢复最近关闭的网页"
+	},
+	"togglePinTab": {
+		"message": "固定/取消固定标签页"
+	},
+	"LinkHints_activate": {
+		"message": "点击网页中的链接和按钮"
+	},
+	"LinkHints_activateModeToCopyLinkText": {
+		"message": "复制链接的文字内容"
+	},
+	"LinkHints_activateModeToCopyLinkUrl": {
+		"message": "复制链接的网址"
+	},
+	"LinkHints_activateModeToDownloadImage": {
+		"message": "下载图片或音视频文件"
+	},
+	"LinkHints_activateModeToDownloadLink": {
+		"message": "下载任意链接"
+	},
+	"LinkHints_activateModeToEdit": {
+		"message": "选择文本框"
+	},
+	"LinkHints_activateModeToHover": {
+		"message": "模拟鼠标移动到网页内容上"
+	},
+	"LinkHints_activateModeToLeave": {
+		"message": "模拟鼠标从网页内容上移出"
+	},
+	"LinkHints_activateModeToOpenImage": {
+		"message": "展示图片"
+	},
+	"LinkHints_activateModeToOpenIncognito": {
+		"message": "在隐私窗口中打开链接"
+	},
+	"LinkHints_activateModeToOpenInNewForegroundTab": {
+		"message": "在新标签页中打开链接"
+	},
+	"LinkHints_activateModeToOpenInNewTab": {
+		"message": "在新标签页中打开链接（不转到）"
+	},
+	"LinkHints_activateModeToOpenVomnibar": {
+		"message": "用搜索框编辑链接的文字内容"
+	},
+	"LinkHints_activateModeToSearchLinkText": {
+		"message": "搜索链接的文字"
+	},
+	"LinkHints_activateModeWithQueue": {
+		"message": "连续点击网页中的链接和按钮"
+	},
+	"LinkHints_unhoverLast": {
+		"message": "模拟鼠标从上一次点击的对象上移出"
+	},
+	"Marks_activate": {
+		"message": "跳转到指定标记"
+	},
+	"Marks_activateCreateMode": {
+		"message": "创建一个新标记"
+	},
+	"Marks_clearGlobal": {
+		"message": "清理所有全局标记"
+	},
+	"Marks_clearLocal": {
+		"message": "清理当前网站下的所有标记"
+	},
+	"Vomnibar_activate": {
+		"message": "显示多功能搜索框"
+	},
+	"Vomnibar_activateBookmarks": {
+		"message": "显示搜索框并搜索收藏夹的内容"
+	},
+	"Vomnibar_activateBookmarksInNewTab": {
+		"message": "搜索收藏夹的内容并在新标签页打开"
+	},
+	"Vomnibar_activateHistory": {
+		"message": "显示搜索框并搜索历史记录"
+	},
+	"Vomnibar_activateHistoryInNewTab": {
+		"message": "搜索历史记录并在新标签页打开"
+	},
+	"Vomnibar_activateInNewTab": {
+		"message": "搜索混合内容并在新标签页打开"
+	},
+	"Vomnibar_activateTabSelection": {
+		"message": "在所有标签页中搜索"
+	},
+	"Vomnibar_activateUrl": {
+		"message": "显示搜索框并编辑当前网址"
+	},
+	"Vomnibar_activateUrlInNewTab": {
+		"message": "编辑当前网址并在新标签页打开"
+	},
+	"autoCopy": {
+		"message": "复制选中文字、网页标题或网址"
+	},
+	"autoOpen": {
+		"message": "打开或搜索选中文字或已复制的网址"
+	},
+	"blank": {
+		"message": "空操作"
+	},
+	"clearCS": {
+		"message": "撤销所有对网站的功能使用权限的修改"
+	},
+	"clearFindHistory": {
+		"message": "清理页内查找功能中最近用过的词语"
+	},
+	"closeOtherTabs": {
+		"message": "关闭本窗口的其它全部标签页"
+	},
+	"closeTabsOnLeft": {
+		"message": "关闭左侧标签页"
+	},
+	"closeTabsOnRight": {
+		"message": "关闭右侧标签页"
+	},
+	"copyCurrentTitle": {
+		"message": "复制当前标签页的标题"
+	},
+	"copyCurrentUrl": {
+		"message": "复制当前标签页或当前子页面的网址或标题"
+	},
+	"debugBackground": {
+		"message": "打开 Vimium C 扩展程序的管理页"
+	},
+	"enableCSTemp": {
+		"message": "在无痕窗口中赋予网站对一项功能的使用权限"
+	},
+	"enterFindMode": {
+		"message": "进入页内查找模式"
+	},
+	"enterInsertMode": {
+		"message": "暂时禁用快捷键，按Esc退出"
+	},
+	"enterVisualLineMode": {
+		"message": "进入文字选择模式（对齐到行）"
+	},
+	"enterVisualMode": {
+		"message": "进入文字自由选择模式"
+	},
+	"firstTab": {
+		"message": "切换到左数指定位置的标签页"
+	},
+	"focusInput": {
+		"message": "进入文本框选择模式（Tab切换）"
+	},
+	"focusOrLaunch": {
+		"message": "切换到或新建指定网址的标签页"
+	},
+	"goBack": {
+		"message": "在历史记录中后退"
+	},
+	"goForward": {
+		"message": "在历史记录中前进"
+	},
+	"goNext": {
+		"message": "自动识别并访问下一个页面"
+	},
+	"goPrevious": {
+		"message": "自动识别并访问上一个页面"
+	},
+	"goToRoot": {
+		"message": "访问当前网站的首页"
+	},
+	"goUp": {
+		"message": "访问当前网址的上一层"
+	},
+	"lastTab": {
+		"message": "切换到右数指定位置的标签页"
+	},
+	"mainFrame": {
+		"message": "移动键盘焦点到最外层页面"
+	},
+	"moveTabLeft": {
+		"message": "向左移动标签页"
+	},
+	"moveTabRight": {
+		"message": "向右移动标签页"
+	},
+	"moveTabToIncognito": {
+		"message": "在无痕窗口中打开当前网页"
+	},
+	"moveTabToNextWindow": {
+		"message": "移动当前标签页到下一个窗口"
+	},
+	"nextFrame": {
+		"message": "移动键盘焦点到下一个子页面"
+	},
+	"nextTab": {
+		"message": "切换到右侧标签页"
+	},
+	"openCopiedUrlInCurrentTab": {
+		"message": "在当前标签页打开复制的网址"
+	},
+	"parentFrame": {
+		"message": "移动键盘焦点到当前子页面的外层"
+	},
+	"passNextKey": {
+		"message": "使下一次按键不识别为快捷键"
+	},
+	"performAnotherFind": {
+		"message": "使用最近几次用过的词语在页内查找"
+	},
+	"performBackwardsFind": {
+		"message": "在页内查找上一处"
+	},
+	"performFind": {
+		"message": "在页内查找下一处"
+	},
+	"previousTab": {
+		"message": "切换到左侧标签页"
+	},
+	"reload": {
+		"message": "刷新当前子页面"
+	},
+	"reloadGivenTab": {
+		"message": "刷新右侧指定位置的标签页"
+	},
+	"removeRightTab": {
+		"message": "关闭右侧指定位置的标签页"
+	},
+	"reopenTab": {
+		"message": "重新打开当前页面（不可前进后退）"
+	},
+	"restoreGivenTab": {
+		"message": "恢复指定序号的最近关闭的标签页"
+	},
+	"scrollDown": {
+		"message": "向下滚动"
+	},
+	"scrollFullPageDown": {
+		"message": "向下滚动整个页面的高度"
+	},
+	"scrollFullPageUp": {
+		"message": "向上滚动整个页面的高度"
+	},
+	"scrollLeft": {
+		"message": "向左滚动"
+	},
+	"scrollPageDown": {
+		"message": "向下滚动半个页面的高度"
+	},
+	"scrollPageUp": {
+		"message": "向上滚动半个页面的高度"
+	},
+	"scrollPxDown": {
+		"message": "向下滚动 1 像素"
+	},
+	"scrollPxLeft": {
+		"message": "向左滚动 1 像素"
+	},
+	"scrollPxRight": {
+		"message": "向右滚动 1 像素"
+	},
+	"scrollPxUp": {
+		"message": "向上滚动 1 像素"
+	},
+	"scrollRight": {
+		"message": "向右滚动"
+	},
+	"scrollTo": {
+		"message": "滚动到指定位置"
+	},
+	"scrollToBottom": {
+		"message": "滚动到底部"
+	},
+	"scrollToLeft": {
+		"message": "滚动到最左侧"
+	},
+	"scrollToRight": {
+		"message": "滚动到最右侧"
+	},
+	"scrollToTop": {
+		"message": "滚动到顶部"
+	},
+	"scrollUp": {
+		"message": "向上滚动"
+	},
+	"searchAs": {
+		"message": "在当前搜索引擎中智能搜索选中或已复制的文字"
+	},
+	"searchInAnother": {
+		"message": "智能切换到其它搜索引擎"
+	},
+	"showHelp": {
+		"message": "显示帮助页面"
+	},
+	"simBackspace": {
+		"message": "模拟退格键删除文字"
+	},
+	"switchFocus": {
+		"message": "从当前文本框移走键盘焦点或恢复"
+	},
+	"toggleCS": {
+		"message": "切换网站对一项功能的使用权限"
+	},
+	"toggleLinkHintCharacters": {
+		"message": "在当前页面临时切换用于定位链接和按钮的序号字符"
+	},
+	"toggleMuteTab": {
+		"message": "切换网页静音"
+	},
+	"toggleSwitchTemp": {
+		"message": "在当前页面临时切换任意设置"
+	},
+	"toggleViewSource": {
+		"message": "显示当前页面的源代码"
+	},
+	"toggleVomnibarStyle": {
+		"message": "临时切换搜索框的样式风格"
+	},
+	"closeDownloadBar": {
+		"message": "关闭底部的下载进度栏"
+	},
+	"showTip": {
+		"message": "显示任意提示文字"
+	},
+	"visitPreviousTab": {
+		"message": "切换到最近访问的上一个标签页"
+	},
+	"createTab_s": {
+		"message": "打开新的标签页"
+	},
+	"goBack_s": {
+		"message": "在历史记录中后退"
+	},
+	"goForward_s": {
+		"message": "在历史记录中前进"
+	},
+	"previousTab_s": {
+		"message": "切换到左侧标签页"
+	},
+	"quickNext_s": {
+		"message": "切换到右侧标签页"
+	},
+	"reloadTab_s": {
+		"message": "刷新整个页面"
+	},
+	"userCustomized": {
+		"message": "自定义快捷键"
+	},
+	"cmdParams": {
+		"message": "（参数：*）"
+	},
+	"name": {
+		"message": "Vimium C – 全键盘操作浏览器"
+	},
+	"description": {
+		"message": "一个支持全键盘操作浏览器的辅助工具，只用键盘即可点击任意链接、切换标签页和快速搜索任意内容，支持自定义快捷键和调整操作细节"
+	},
+	"NS": { "message": "" },
+	"period": {
+		"message": "。"
+	},
+	"colon": {
+		"message": "："
+	},
+	"semicolon": {
+		"message": "；"
+	},
+	"question": {
+		"message": "？"
+	},
+	"period2": {
+		"message": "。"
+	},
+	"semicolon2": {
+		"message": "；"
+	},
+	"question2": {
+		"message": "？"
+	},
+	"Options": {
+		"message": "设置"
+	},
+	"Patterns": {
+		"message": "网址模式"
+	},
+	"Pattern": {
+		"message": "网址模式"
+	},
+	"Keys": {
+		"message": "按键列表"
+	},
+	"Remove": {
+		"message": "删除"
+	},
+	"autoResize": {
+		"message": "使文本框大小适合内容"
+	},
+	"nonEmpty": {
+		"message": "删除所有内容来重置此设置项"
+	},
+	"Show": {
+		"message": "显示"
+	},
+	"Hide": {
+		"message": "隐藏"
+	},
+	"o1": {
+		"message": "网址过滤规则"
+	},
+	"o2": {
+		"message": "增加规则"
+	},
+	"o3": {
+		"message": "排序"
+	},
+	"o3_2": {
+		"message": "已排序"
+	},
+	"o4": {
+		"message": "只匹配一次"
+	},
+	"o5": {
+		"message": "监听网址中锚（hash）的变化"
+	},
+	"o6": {
+		"message": "完全或者部分禁用 Vimium C。“"
+	},
+	"o7": {
+		"message": " ”可以是以“"
+	},
+	"o8": {
+		"message": "”开头的正则表达式，也可以是以“"
+	},
+	"o9": {
+		"message": "”开头的网址前部。否则会自动转换成二者之一。"
+	},
+	"o10": {
+		"message": "如果“"
+	},
+	"o11": {
+		"message": " ”是空的，那么在相应页面上Vimium C会完全停止工作，但可以点击右上角扩展图标来临时启用；"
+	},
+	"o12": {
+		"message": "如果“"
+	},
+	"o13": {
+		"message": " ”以“"
+	},
+	"o14": {
+		"message": "”开头，则只有列表中的按键会生效；"
+	},
+	"o15": {
+		"message": "否则，只有这些按键会被禁用（不组成快捷键）。"
+	},
+	"o16": {
+		"message": "自定义快捷键"
+	},
+	"o17": {
+		"message": "为命令设置新的快捷键。例如："
+	},
+	"o18": {
+		"message": "清除所有已设置的快捷键或映射"
+	},
+	"o19": {
+		"message": "显示所有命令"
+	},
+	"o20": {
+		"message": "如何在其它键盘布局上设置快捷键？"
+	},
+	"o21": {
+		"message": "全局快捷键"
+	},
+	"o22": {
+		"message": " 参见 "
+	},
+	"o23": {
+		"message": "；"
+	},
+	"o24": {
+		"message": "更多？"
+	},
+	"o25": {
+		"message": "新标签页默认网址"
+	},
+	"o26": {
+		"message": "可以用作空白页。"
+	},
+	"o27": {
+		"message": "从1.77.0版开始，Vimium C 不再接管浏览器新标签页设置。"
+	},
+	"o28": {
+		"message": "如何使用其它扩展程序提供的页面？"
+	},
+	"o29": {
+		"message": "默认搜索引擎"
+	},
+	"o30": {
+		"message": "在没有指定搜索引擎，或者指定了“"
+	},
+	"o31": {
+		"message": "”的时候使用。"
+	},
+	"o32": {
+		"message": "自定义搜索引擎"
+	},
+	"o33": {
+		"message": "定义搜索引擎来生成和解析网址。格式："
+	},
+	"o34": {
+		"message": "这行文字是注释"
+	},
+	"o35": {
+		"message": "会被替换成实际的搜索词。"
+	},
+	"o36": {
+		"message": "如何使用高级语法定义复杂的搜索引擎？"
+	},
+	"o37": {
+		"message": "用于定位链接和\n按钮的序号字符"
+	},
+	"o38": {
+		"message": "按“F”进入提示模式后，这些字符会显示到链接旁，依次输入一个链接对应的所有字符就会点击它。"
+	},
+	"o39": {
+		"message": "高级选项"
+	},
+	"o40": {
+		"message": "屏幕滚动速度"
+	},
+	"o41": {
+		"message": "像素"
+	},
+	"o42": {
+		"message": "沿长边滚动网页时的基础速度（短边会降为 60%）。"
+	},
+	"o43": {
+		"message": "一些功能开关"
+	},
+	"o44": {
+		"message": "滚动时使用此扩展集成的平滑滚动算法"
+	},
+	"o45": {
+		"message": "在新网页上阻止文本框自动获取键盘焦点"
+	},
+	"o46": {
+		"message": "阻止刚加载或刷新的网页获取键盘焦点（处于输入状态时，大部分按键将不会被 Vimium C 用于组成快捷键）。"
+	},
+	"o48": {
+		"message": "忽略大小写锁定键的状态"
+	},
+	"o49": {
+		"message": "忽略时，仅当按住 Shift 键时才视为大写。部分选中的状态表示只在 macOS 上忽略大小写锁定键。"
+	},
+	"o50": {
+		"message": "忽略键盘布局"
+	},
+	"o51": {
+		"message": "始终按照"
+	},
+	"o52": {
+		"message": "英文"
+	},
+	"o53": {
+		"message": " QWERTY 键盘布局来识别按键，使用非拉丁语的键盘布局可能需要启用此设置。"
+	},
+	"o54": {
+		"message": "页内查找时默认将搜索词视为正则表达式"
+	},
+	"o55": {
+		"message": "输入“"
+	},
+	"o56": {
+		"message": "”可以切换回普通查找模式，如果不启用此设置，则“\\r”可以开启正则表达式模式。还支持“\\i”和“\\w”等。"
+	},
+	"o57": {
+		"message": "在暂时禁用快捷键时隐藏右下角提示框"
+	},
+	"o58": {
+		"message": "启用此设置项时，隐藏“Vimium C 暂时禁用中”的提示框，和“enterInsertMode hideHUD=true”效果相同。"
+	},
+	"o59": {
+		"message": "自动切换亮色和暗色模式"
+	},
+	"o60": {
+		"message": "启用此设置项时，自动跟随系统的暗色模式设置来启用暗色模式。"
+	},
+	"o61": {
+		"message": "自动跟随系统“减少动画”的设置"
+	},
+	"o62": {
+		"message": "可能影响右下角提示条和搜索框的动画。"
+	},
+	"o63": {
+		"message": "右上角显示动态图标"
+	},
+	"o64": {
+		"message": "使用扩展程序图标反映 Vimium C 在当前页面的工作状态。禁用此设置可以小幅度减少资源消耗。"
+	},
+	"o65": {
+		"message": "借助浏览器账号同步功能来同步 Vimium C 设置"
+	},
+	"o66": {
+		"message": "修改后建议立即重启浏览器或重新加载此扩展。"
+	},
+	"o68": {
+		"message": "“上一页”的关键词"
+	},
+	"o69": {
+		"message": "“自动识别并访问上一个页面”命令使用这些关键词来寻找表示“上一页”的按钮或链接（不区分大小写）。"
+	},
+	"o70": {
+		"message": "“下一页”的关键词"
+	},
+	"o71": {
+		"message": "“自动识别并访问下一个页面”命令使用这些关键词来寻找表示“下一页”的按钮或链接（不区分大小写）。"
+	},
+	"o72": {
+		"message": "自定义界面样式"
+	},
+	"o73": {
+		"message": "修改 Vimium C 界面元素的样式，可以使用类似于“"
+	},
+	"o74": {
+		"message": "”和“"
+	},
+	"o75": {
+		"message": "”的 CSS 选择器"
+	},
+	"o76": {
+		"message": "此处定义的样式会覆盖默认样式，而且不会影响到正常网页内容。"
+	},
+	"o77": {
+		"message": "搜索框设置"
+	},
+	"o78": {
+		"message": "可以调整搜索框的部分细节设置："
+	},
+	"o79": {
+		"message": "应当在"
+	},
+	"o80": {
+		"message": "；"
+	},
+	"o81": {
+		"message": "（单位：毫秒）"
+	},
+	"o82": {
+		"message": "用于计算搜索框高度"
+	},
+	"o83": {
+		"message": "可以添加"
+	},
+	"o83_2": {
+		"message": "、"
+	},
+	"o84": {
+		"message": "等样式。"
+	},
+	"o85": {
+		"message": "如果"
+	},
+	"o86": {
+		"message": "过小，搜索时CPU使用率可能略高。"
+	},
+	"o87": {
+		"message": "搜索框屏蔽词"
+	},
+	"o88": {
+		"message": "用于屏蔽特定历史记录和收藏夹条目。如果某条历史或收藏的标题或网址包含任意一个屏蔽词，那么它就不会被显示在搜索框中，除非搜索词也包含了任意一个屏蔽词。"
+	},
+	"o89": {
+		"message": "每行一个屏蔽词，保留任何空格、区分大小写。"
+	},
+	"o90": {
+		"message": "开头的行是注释。"
+	},
+	"o91": {
+		"message": "第三方扩展\n白名单"
+	},
+	"o92": {
+		"message": "只有白名单中的浏览器扩展才能调用 Vimium C 的功能。每行一个扩展 ID。"
+	},
+	"o93": {
+		"message": "任何不以字母、数字或“"
+	},
+	"o94": {
+		"message": "”字符开头的行都会被忽略。"
+	},
+	"o95": {
+		"message": "如何将 Vimium C 注入到其它扩展的私有页面中？"
+	},
+	"o96": {
+		"message": "定制搜索框页面"
+	},
+	"o97": {
+		"message": "例如："
+	},
+	"o98": {
+		"message": "或"
+	},
+	"o99": {
+		"message": "备选字符集"
+	},
+	"o100": {
+		"message": "用于识别使用了非"
+	},
+	"o101": {
+		"message": "编码的网址。"
+	},
+	"o102": {
+		"message": "默认的"
+	},
+	"o103": {
+		"message": "编码包括了中文、日文、朝鲜语。"
+	},
+	"o104": {
+		"message": "当前设备键盘设置"
+	},
+	"o105": {
+		"message": "在这台计算机上的键盘延迟相关设置。"
+	},
+	"o106": {
+		"message": "格式："
+	},
+	"o107": {
+		"message": "重复延迟"
+	},
+	"o108": {
+		"message": "重复间隔"
+	},
+	"o109": {
+		"message": "注：此设置项始终不会被同步到浏览器账户设置中。"
+	},
+	"o112": {
+		"message": "保存所有修改过的设置；"
+	},
+	"o113": {
+		"message": "显示帮助页面。"
+	},
+	"o115": {
+		"message": "无需保存"
+	},
+	"o115_2": {
+		"message": "保存"
+	},
+	"o115_3": {
+		"message": "已保存"
+	},
+	"o116": {
+		"message": "导入设置"
+	},
+	"o117": {
+		"message": "\u00a0设置备份文件"
+	},
+	"o118": {
+		"message": "\u00a0推荐的设置"
+	},
+	"o119": {
+		"message": "导出设置"
+	},
+	"o120": {
+		"message": "禁用一次"
+	},
+	"o121": {
+		"message": "重置"
+	},
+	"o121_2": {
+		"message": "更多设置"
+	},
+	"o122": {
+		"message": "上表是适用于当前网页的规则。"
+	},
+	"o123": {
+		"message": "可以保存修改并关闭此对话框。"
+	},
+	"o124": {
+		"message": "似乎"
+	},
+	"o125": {
+		"message": " "
+	},
+	"o126": {
+		"message": "尚未运行"
+	},
+	"o127": {
+		"message": "在当前页面上。"
+	},
+	"o128": {
+		"message": "目前，浏览器为了保护您的隐私和运行安全，会禁止 Vimium 和 Vimium C 在某些页面上运行，比如浏览器设置页面。"
+	},
+	"o129": {
+		"message": "因此除非未来浏览器主动放宽限制，否则您将始终不能使Vimium C（或其它任何普通的扩展程序）在这类页面上运行起来。"
+	},
+	"o130": {
+		"message": "如果您刚刚安装了"
+	},
+	"o131": {
+		"message": "，那么请"
+	},
+	"o132": {
+		"message": "刷新"
+	},
+	"o133": {
+		"message": "当前页面以重试。"
+	},
+	"o134": {
+		"message": "更多设置请参见 "
+	},
+	"o135": {
+		"message": "Vimium C 设置"
+	},
+	"o136": {
+		"message": " 页面。"
+	},
+	"o137": {
+		"message": "将会"
+	},
+	"o138": {
+		"message": "只识别"
+	},
+	"o139": {
+		"message": "不识别"
+	},
+	"o140": {
+		"message": "将会"
+	},
+	"o141": {
+		"message": "继续"
+	},
+	"o142": {
+		"message": "将会"
+	},
+	"o143": {
+		"message": "处于"
+	},
+	"o144": {
+		"message": "禁用"
+	},
+	"o145": {
+		"message": "启用"
+	},
+	"o146": {
+		"message": "状态"
+	},
+	"o147": {
+		"message": "（当前网页处于 临时$1 状态）"
+	},
+	"o148": {
+		"message": "（保存时自动取消状态锁定）"
+	},
+	"keyMappingsP": {
+		"message": "# 在此处定义新的按键映射和快捷键"
+	},
+	"sft": {
+		"message": "Shortcut Forwarding Tool 提供了 32 个可配置的快捷键栏位"
+	},
+	"twoS": {
+		"message": "%s 和 $s 的用法作用完全相同"
+	},
+	"needToInstallExt": {
+		"message": "注意此用法需要先安装相应的扩展程序"
+	},
+	"webPageLimits": {
+		"message": "注意：扩展程序内置页面中不能访问普通网页，\n因此在这种情况下只会使用 Vimium C 内置的搜索框页面。"
+	},
+	"dirtyOptions": {
+		"message": "以下设置项已经在其它地方被修改：\n      * $1\n    是否继续保存并覆盖这些改动？"
+	},
+	"clickToUnmask": {
+		"message": "# 点击显示隐藏内容"
+	},
+	"beforeUnload": {
+		"message": "您有尚未保存的改动！"
+	},
+	"comma": {
+		"message": "，"
+	},
+	"error": {
+		"message": "发现了 $1 处错误"
+	},
+	"errors": {
+		"message": "发现了 $1 处错误"
+	},
+	"openBgLogs": {
+		"message": "$1，请打开扩展后台页面的调试控制台，以查看具体的错误信息。"
+	},
+	"hintCharsTooFew": {
+		"message": "序号字符数量太少，应至少有 3 个字符。"
+	},
+	"onlyExtVomnibar": {
+		"message": "在 Chrome $1 之前，只有扩展程序内的搜索框页面才可用。"
+	},
+	"fileVomnibar" : {
+		"message": "本地文件的页面会被限制，只能在网址是 file://* 的页面上打开"
+	},
+	"httpVomnibar" : {
+		"message": "HTTP 网站上的页面会被限制，不能在 HTTPS 网站上打开"
+	},
+	"beforeChromium": {
+		"message": " Chromium 版本低于 $1"
+	},
+	"lackPermission": {
+		"message": "缺少相关权限$1"
+	},
+	"invalidOption": {
+		"message": "此设置项无效，因为$1"
+	},
+	"keyShortcutOf": {
+		"message": ""
+	},
+	"manageShortcut": {
+		"message": ""
+	},
+	"manageShortcut_2": {
+		"message": " 上“工具”按钮的“管理扩展快捷键”"
+	},
+	"addons": {
+		"message": "Firefox 扩展"
+	},
+	"webstore": {
+		"message": "Chrome 网上应用店"
+	},
+	"NewTabAdapter": {
+		"message": "NewTab Adapter"
+	},
+	"notReadCanvas": {
+		"message": "您启用了浏览器实验性参数“--disable-reading-from-canvas”，因此无法使用动态图标"
+	},
+	"refusedURLs": {
+		"message": "Firefox 不允许扩展程序打开“$1”这个网址。"
+	},
+	"nonPlainURL": {
+		"message": "“$1”不是一个合法的普通网址。"
+	},
+	"changedBeforeSync": {
+		"message": "        错误：\n您希望启用 同步Vimium C设置 这一功能，\n但是其它设置项已经被修改且尚未保存。\n请在启用同步和保存其它设置之间做出选择！"
+	},
+	"warningForSync": {
+		"message": "        警告：\n下次启动 Vimium C（即启动浏览器）时，当前所有设置会被覆盖成已同步的设置！\n请立即点击“导出设置”按钮备份您当前的设置\n!!!        立刻、马上        !!!"
+	},
+	"confirmImport": {
+		"message": "您将要导入 $1:\n      * 创建于 $2Vimium C$3\n      * 适合$4\n      * 导出时间$5\n\n确定要继续导入吗?"
+	},
+	"backupFile": {
+		"message": "一份设置备份文件"
+	},
+	"recommendedFile": {
+		"message": "推荐的设置"
+	},
+	"fileVCVer": {
+		"message": ""
+	},
+	"fileVCVer_2": {
+		"message": " * 版"
+	},
+	"fileVCNewer": {
+		"message": "（较新）"
+	},
+	"filePlatform": {
+		"message": " $1 平台"
+	},
+	"commonPlatform": {
+		"message": "一般平台"
+	},
+	"atTime": {
+		"message": "是 $1"
+	},
+	"before": {
+		"message": "未知"
+	},
+	"keepSyncing": {
+		"message": "是否继续 借助浏览器账号同步功能 来同步 Vimium C 设置？"
+	},
+	"notJSON": {
+		"message": "未找到 JSON 格式的数据！"
+	},
+	"JSONParseError": {
+		"message": "无法解析 JSON 文件：\n  在第 $1 行、第 $2 列发现错误字符！"
+	},
+	"notVCJSON": {
+		"message": "未找到 Vimium C 设置的相关数据！"
+	},
+	"exc": {
+		"message": "错误："
+	},
+	"unknown": {
+		"message": "（未知）"
+	},
+	"JSONTooLarge": {
+		"message": "    导入失败！\n\n指定的设置备份文件 “$1” 太大!\n\n受限于浏览器内部参数，支持导入的备份文件的大小不应超过 $2 KB。"
+	},
+	"t_math": {
+		"message": "计算器"
+	},
+	"t_copy": {
+		"message": "复制"
+	},
+	"t_search": {
+		"message": "搜索"
+	},
+	"fail_to_load": {
+		"message": "（图片加载失败）"
+	},
+	"none": {
+		"message": "（空）"
+	},
+	"ERROR": {
+		"message": "错误"
+	},
+	"Disable": {
+		"message": "禁用"
+	},
+	"Enable": {
+		"message": "启用"
+	},
+	"Once": {
+		"message": "一次"
+	},
+	"Upgrade": {
+		"message": "已更新"
+	},
+	"upgradeMsg": {
+		"message": "您的 Vimium C 已经更新至 $1 版。\n"
+	},
+	"upgradeMsg2": {
+		"message": "此版本不再接管浏览器新标签页设置！"
+	},
+	"clickForMore": {
+		"message": "点击阅读详细信息。"
+	},
+	"vOptions": {
+		"message": "Vimium C 设置"
+	},
+	"vDisplay": {
+		"message": "Vimium C 展示"
+	},
+	"vBlank": {
+		"message": "空白页"
+	},
+	"cmdList": {
+		"message": "命令列表"
+	},
+	"help": {
+		"message": "帮助"
+	},
+	"tipClickToCopy": {
+		"message": "提示：点击命令名称即可复制到剪贴板。"
+	},
+	"Wiki": {
+		"message": "操作手册"
+	},
+	"Close": {
+		"message": "关闭"
+	},
+	"pageNav": {
+		"message": "网页内操作"
+	},
+	"useVomnibar": {
+		"message": "搜索框"
+	},
+	"useFind": {
+		"message": "页内查找"
+	},
+	"historyNav": {
+		"message": "前进/后退"
+	},
+	"changeTabs": {
+		"message": "标签页和窗口"
+	},
+	"misc": {
+		"message": "其它"
+	},
+	"advCmd": {
+		"message": "高级命令"
+	},
+	"ext": {
+		"message": "扩展"
+	},
+	"VerIs": {
+		"message": "版本："
+	},
+	"Enjoying": {
+		"message": "喜欢"
+	},
+	"HStar": {
+		"message": "在 GitHub 上收藏本项目"
+	},
+	"HReview": {
+		"message": "在 "
+	},
+	"_HReview_2": {
+		"message": " 上给予好评"
+	},
+	"ifBug": {
+		"message": "发现了Bug？"
+	},
+	"HReport": {
+		"message": "请点此反馈您的问题"
+	},
+	"HCredits": {
+		"message": "致谢："
+	},
+	"HOriginal": {
+		"message": "（起源项目），"
+	},
+	"HBy": {
+		"message": "（作者："
+	},
+	"HAnd": {
+		"message": "），和 "
+	},
+	"HEnd": {
+		"message": "）。"
+	},
+	"noCopied": {
+		"message": "剪贴板中没有文字"
+	},
+	"quoteA": {
+		"message": "“$1”"
+	},
+	"notFgOpt": {
+		"message": "$1不是合适的设置项"
+	},
+	"unknownA": {
+		"message": "$1不是一个设置项"
+	},
+	"notBool": {
+		"message": "$1不是开关类型的"
+	},
+	"needVal": {
+		"message": "需要为$1指定“value”参数"
+	},
+	"unlikeVal": {
+		"message": "$1的值应当类似于“$2”"
+	},
+	"moveAllTabs": {
+		"message": "不应该移动全部标签页"
+	},
+	"hasIncog": {
+		"message": "此标签页已经在无痕窗口中了"
+	},
+	"notRestoreIfIncog": {
+		"message": "无法恢复已关闭的无痕标签页！"
+	},
+	"indexOOR": {
+		"message": "标签页序号超出了范围"
+	},
+	"noDiscardIfOld": {
+		"message": "在 Chromium $1 之前扩展不能丢弃网页"
+	},
+	"discardFail": {
+		"message": "无法丢弃此网页"
+	},
+	"notEngine": {
+		"message": "未找到该名称的自定义搜索引擎"
+	},
+	"noKw": {
+		"message": "需要参数“keyword”为某个已定义的搜索引擎"
+	},
+	"noMute": {
+		"message": "在 Chromium $1 之前扩展不能设置静音"
+	},
+	"muted": {
+		"message": "已静音"
+	},
+	"unmuted": {
+		"message": "已取消静音"
+	},
+	"mute": {
+		"message": "已为 $1 个标签页设置了静音"
+	},
+	"unmute": {
+		"message": "已取消 $1 个标签页的静音状态"
+	},
+	"fhCleared": {
+		"message": "页内查找历史已经清空"
+	},
+	"incog": {
+		"message": "无痕窗口的"
+	},
+	"noStyleName": {
+		"message": "需要用“style”参数指定样式名称"
+	},
+	"needText": {
+		"message": "需要“text”参数为提示文字"
+	},
+	"noEngineFind": {
+		"message": "未指定某个已定义的搜索引擎"
+	},
+	"noSelOrCopied": {
+		"message": "没有选中文字，剪贴板中也没有文字"
+	},
+	"noTabItem": {
+		"message": "目标标签页不存在"
+	},
+	"noSessionItem": {
+		"message": "想要恢复的标签页已经关闭太久了"
+	},
+	"invalidImg": {
+		"message": "所选内容不是一个有效的网址"
+	},
+	"noTabHistory": {
+		"message": "无法获取此网页的访问历史"
+	},
+	"notRemoveCur": {
+		"message": "不应该以这种方式关闭当前网页"
+	},
+	"delSug": {
+		"message": "成功删除所选$1"
+	},
+	"notDelSug": {
+		"message": "未找到指定的$1"
+	},
+	"sug_tab": {
+		"message": "标签页"
+	},
+	"sug_history": {
+		"message": "历史记录条目"
+	},
+	"notAllowA": {
+		"message": "Vimium C 无法$1"
+	},
+	"unknownStatAction": {
+		"message": "未知的动作：$1"
+	},
+	"newStat": {
+		"message": "现在Vimium C的工作状态是$1"
+	},
+	"enabled": {
+		"message": "完全启用"
+	},
+	"halfDisabled": {
+		"message": "部分禁用"
+	},
+	"unknownCS": {
+		"message": "未知的网站功能类型：$1"
+	},
+	"changeItsCS": {
+		"message": "改变此网页的功能权限"
+	},
+	"csCleared": {
+		"message": "对各网站 $1 功能权限的修改已重置"
+	},
+	"images": {
+		"message": "图片"
+	},
+	"noMark": {
+		"message": "$1中不存在“ $2 ”"
+	},
+	"Local": {
+		"message": "当前网站下的标记"
+	},
+	"Global": {
+		"message": "全局标记"
+	},
+	"markRemoved": {
+		"message": "$3清理了$1个$2标记"
+	},
+	"local": {
+		"message": "当前网站下的"
+	},
+	"global": {
+		"message": "全局"
+	},
+	"have": {
+		"message": "已经"
+	},
+	"has": {
+		"message": "已经"
+	},
+	"dupTab": {
+		"message": "复制这个标签页"
+	},
+	"openIncog": {
+		"message": "在无痕模式下打开此网页"
+	},
+	"openExtSrc": {
+		"message": "显示一个扩展程序网页的源代码"
+	},
+	"notModify": {
+		"message": "修改设置项“$1”"
+	},
+	"setFileCS": {
+		"message": "在Chromium $1+设置本地文件网页的功能权限"
+	},
+	"setFolderCS": {
+		"message": "设置本地文件夹网页的功能权限"
+	},
+	"setFTPCS": {
+		"message": "设置 FTP 网页的功能权限"
+	},
+	"setIncogCS": {
+		"message": "设置无痕模式下网页的功能权限"
+	},
+	"70": {
+		"message": "用于定位链接的序号字符过少"
+	},
+	"71": {
+		"message": "没有找到可点击的页面对象"
+	},
+	"72": {
+		"message": "检测到文字输入，自动退出选择模式"
+	},
+	"73": {
+		"message": "所选对象已经被网页自身删除了"
+	},
+	"74": {
+		"message": "所选对象不是一个有效的图片"
+	},
+	"75": {
+		"message": "已选中此可滚动区域"
+	},
+	"76": {
+		"message": "出错了，不应使用Vimium C复制网页中的密码"
+	},
+	"77": {
+		"message": "此内容已经被复制到剪贴板了"
+	},
+	"78": {
+		"message": "将要下载：$1"
+	},
+	"79": {
+		"message": "将要跳转到……"
+	},
+	"80": {
+		"message": "将要创建标记……"
+	},
+	"81": {
+		"message": "已记录当前位置"
+	},
+	"82": {
+		"message": "$1 #$2 位置记录"
+	},
+	"83": {
+		"message": "跳转到"
+	},
+	"84": {
+		"message": "创建了"
+	},
+	"85": {
+		"message": "默认"
+	},
+	"86": {
+		"message": "$1 $2标记：“ $3 ”"
+	},
+	"87": {
+		"message": "很抱歉，无法为当前网页显示页内查找浮层"
+	},
+	"88": {
+		"message": "页内查找历史是空的"
+	},
+	"89": {
+		"message": "没有找到“$1”"
+	},
+	"90": {
+		"message": "$1模式"
+	},
+	"Caret": {
+		"message": "光标"
+	},
+	"Line": {
+		"message": "整行选择"
+	},
+	"Visual": {
+		"message": "自由选择"
+	},
+	"91": {
+		"message": "没有找到可选择的文字，自动进入光标模式"
+	},
+	"92": {
+		"message": "旧的选区已丢失，请重新选取文字。"
+	},
+	"93": {
+		"message": "在进入文字选择模式之前请先给出一个选区。"
+	},
+	"94": {
+		"message": "很抱歉，搜索框页面在当前网页上加载失败了"
+	},
+	"95": {
+		"message": "该条搜索建议不可被删除"
+	},
+	"96": {
+		"message": "很抱歉，您的浏览器不允许扩展程序打开您设置的网址"
+	},
+	"97": {
+		"message": "设置导入操作已取消！"
+	},
+	"98": {
+		"message": "设置导入完成！"
+	},
+	"4": {
+		"message": "模拟了鼠标从上次选中内容上移出"
+	},
+	"5": {
+		"message": "Vimium C 暂时禁用中$1"
+	},
+	"6": {
+		"message": "没有被禁用的快捷键"
+	},
+	"7": {
+		"message": "临时启用所有按键$1"
+	},
+	"8": {
+		"message": "：剩余 $1 次"
+	},
+	"9": {
+		"message": "临时禁用所有快捷键$1"
+	},
+	"10": {
+		"message": "没有找到“$1”对应的按钮或链接"
+	},
+	"next": {
+		"message": "后一页"
+	},
+	"prev": {
+		"message": "前一页"
+	},
+	"11": {
+		"message": "没有文本框获得过键盘焦点"
+	},
+	"12": {
+		"message": "上次有键盘焦点的文本框现在不可见"
+	},
+	"13": {
+		"message": "没有找到可以输入的文本框"
+	},
+	"14": {
+		"message": "没有发现网址！"
+	},
+	"15": {
+		"message": "没有发现文字内容！"
+	},
+	"20": {
+		"message": "已复制：$1"
+	},
+	"21": {
+		"message": "很抱歉，Vimium C 无法在当前网页上执行 JavaScript 脚本程序"
+	},
+	"22": {
+		"message": "Vimium C 拦截了一次网页文本框自动获取键盘焦点的操作。"
+	},
+	"23": {
+		"message": "$1 已被临时设置为 $2"
+	},
+	"24": {
+		"message": "已临时启用 $1"
+	},
+	"25": {
+		"message": "已临时禁用 $1"
+	},
+	"26": {
+		"message": "（$1 处）"
+	},
+	"27": {
+		"message": "（1 处）"
+	},
+	"28": {
+		"message": "（一些）"
+	},
+	"29": {
+		"message": "（未找到）"
+	},
+	"0": {
+		"message": "在当前页面打开链接"
+	},
+	"2": {
+		"message": "在新标签页中打开链接"
+	},
+	"3": {
+		"message": "切换到新标签页来打开链接"
+	},
+	"16": {
+		"message": "在当前页面打开多个链接"
+	},
+	"18": {
+		"message": "在新标签页中打开多个链接"
+	},
+	"19": {
+		"message": "切换到新标签页来打开链接（不退出选择模式）"
+	},
+	"32": {
+		"message": "模拟鼠标移动到网页内容上"
+	},
+	"33": {
+		"message": "模拟鼠标从网页内容上移出"
+	},
+	"34": {
+		"message": "设置键盘焦点到网页内容上"
+	},
+	"35": {
+		"message": "下载图片等多媒体文件"
+	},
+	"36": {
+		"message": "在新标签页中展示图片"
+	},
+	"37": {
+		"message": "选择文字以搜索"
+	},
+	"38": {
+		"message": "选择文字以复制到剪贴板"
+	},
+	"40": {
+		"message": "选择链接以复制网址"
+	},
+	"42": {
+		"message": "选择链接以下载"
+	},
+	"43": {
+		"message": "在无痕窗口中打开链接"
+	},
+	"51": {
+		"message": "下载多个多媒体文件"
+	},
+	"52": {
+		"message": "选择并展示多张图片"
+	},
+	"58": {
+		"message": "选择并下载多个链接"
+	},
+	"59": {
+		"message": "在无痕窗口中打开多个链接"
+	},
+	"48": {
+		"message": "不断模拟鼠标移动到网页内容上"
+	},
+	"49": {
+		"message": "不断模拟鼠标从网页内容上移出"
+	},
+	"50": {
+		"message": "不断设置键盘焦点到新的网页内容上"
+	},
+	"53": {
+		"message": "依次搜索多条文字"
+	},
+	"54": {
+		"message": "依次复制选中的文字"
+	},
+	"55": {
+		"message": "依次选择文字并复制为多行文本"
+	},
+	"56": {
+		"message": "依次复制链接网址"
+	},
+	"57": {
+		"message": "依次选择链接并复制网址为多行文本"
+	},
+	"64": {
+		"message": "在搜索框中编辑链接网址"
+	},
+	"65": {
+		"message": "在搜索框中编辑链接文字"
+	},
+	"66": {
+		"message": "选择一个文本框"
+	}
+}

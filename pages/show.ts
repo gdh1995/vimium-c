@@ -44,6 +44,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   window.chrome = browser as typeof chrome;
 }
 var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
+pTrans_ = chrome.i18n.getMessage,
 BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow;
 if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
   BG_ = null as never;
@@ -56,6 +57,10 @@ let viewer_: ViewerType | null = null;
 var VData: VDataTy = null as never;
 let encryptKey = window.name && +window.name.split(" ")[0] || 0;
 let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
+
+if (navigator.language.slice(0, 2).toLowerCase() !== "en") {
+  document.title = chrome.i18n.getMessage("vDisplay") || document.title;
+}
 
 window.onhashchange = function (this: void): void {
   if (VShown) {
@@ -140,14 +145,14 @@ window.onhashchange = function (this: void): void {
     VShown = (importBody as ImportBody)("shownImage");
     VShown.classList.add("hidden");
     VShown.onerror = function (): void {
-      if (VData.url !== VData.original) {
+      if (VData.url !== VData.original && VData.url) {
         disableAutoAndReload_();
         return;
       }
       resetOnceProperties_();
       VData.auto = false;
       this.onerror = this.onload = null as never;
-      this.alt = VData.error = "\xa0(fail in loading)\xa0";
+      this.alt = VData.error = pTrans_("failInLoading");
       if (Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage || !(Build.BTypes & BrowserType.Chrome)
           || BG_ && BG_.Settings_
             && BG_.CurCVer_ >= BrowserVer.MinNoBorderForBrokenImage) {
@@ -194,7 +199,7 @@ window.onhashchange = function (this: void): void {
     } else {
       url = VData.url = "";
       (VShown as HTMLImageElement).onerror(null as never);
-      VShown.alt = VData.error = "\xa0(null)\xa0";
+      VShown.alt = VData.error = pTrans_("none");
     }
     if (file) {
       VData.file = file = tryToFixFileExt_(file) || file;
@@ -328,14 +333,14 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
     }
     return true;
   }
-  if (!window.VKey) {
+  if (!window.VKey || !VKey.cache_) {
     return false;
   }
   let ch = VKey.char_(event);
   // todo: map key
   if (!ch) { return false; }
   let action: number = 0;
-  switch (VEvent.mapKey_(ch, event)) {
+  switch (VApis.mapKey_(ch, event)) {
   case "<c-=>": case "+": case "=": case "<up>": action = 1; break;
   case "<left>": action = -2; break;
   case "<right>": action = 2; break;
@@ -400,7 +405,8 @@ function clickShownNode(event: MouseEvent): void {
 }
 
 function showText(tip: string, body: string | string[]): void {
-  $("#textTip").dataset.text = tip;
+  $("#textTip").dataset.text = pTrans_("t_" + tip) || tip;
+  $(".colon").dataset.colon = pTrans_("colon") + pTrans_("NS");
   const textBody = $("#textBody");
   if (body) {
     textBody.textContent = typeof body !== "string" ? body.join(" ") : body;

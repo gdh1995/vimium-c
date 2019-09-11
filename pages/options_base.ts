@@ -15,6 +15,29 @@ interface BgWindow extends Window {
   Settings_: typeof Settings_;
 }
 
+const lang_ = navigator.language.slice(0, 2).toLowerCase(),
+$$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(selector: string) => NodeListOf<T>;
+
+var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
+  , pTrans_ = chrome.i18n.getMessage;
+if (lang_ !== "en") {
+  (function () {
+    let t = pTrans_("keyMappingsP"), el: HTMLElement | null = $("#keyMappings");
+    t && el && ((el as HTMLInputElement).placeholder = t);
+    for (el of $$("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+      t = pTrans_(el.dataset.i as string);
+      t && (el.innerText = t);
+    }
+    for (el of $$("[data-i-t]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+      t = pTrans_(el.dataset.iT as string);
+      t && (el.title = t);
+    }
+    (document.documentElement as HTMLHtmlElement).lang = lang_ as "";
+    t = pTrans_("vOptions");
+    t && (document.title = t);
+  })();
+}
+
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
   window.chrome = browser as typeof chrome;
@@ -92,8 +115,7 @@ debounce_ = function<T> (this: void, func: (this: T) => void
           , wait: number, bound_context: T, also_immediate: BOOL
           ) => (this: void) => void;
 
-var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
-  , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow;
+var BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow;
 let bgSettings_ = BG_.Settings_;
 declare var bgOnOther_: BrowserType;
 const bgBrowserVer_ = Build.BTypes & BrowserType.Chrome ? BG_.CurCVer_ : BrowserVer.assumedVer;
@@ -223,6 +245,17 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
     }
     this.template_ = (container.querySelector("#exclusionRuleTemplate") as HTMLTemplateElement
         ).content.firstChild as HTMLTableRowElement;
+    if (lang_ !== "en") {
+      let el: HTMLElement, t: string;
+      for (el of container.querySelectorAll("[data-i]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+        t = pTrans_(el.dataset.i as string);
+        t && (el.innerText = t);
+      }
+      for (el of this.template_.querySelectorAll("[aria-label]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+        t = pTrans_(el.getAttribute("aria-label") as string);
+        t && el.setAttribute("aria-label", t);
+      }
+    }
     this.$list_ = container.querySelector("tbody") as HTMLTableSectionElement;
     this.list_ = [];
     this.$list_.addEventListener("input", ExclusionRulesOption_.MarkChanged_);
@@ -564,16 +597,17 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     const same = pass === oldPass;
     const isReverted = !!pass && pass.length > 2 && pass[0] === "^";
     stateAction.textContent =
-      (isSaving ? pass ? "becomes to " + (isReverted ? "only hook" : "exclude") : "becomes"
-        : (same ? "keeps to " : "will ") + (pass ? isReverted ? "only hook" : "exclude" : "be"))
-      + (pass ? ": " : ":");
+      (isSaving ? pass ? pTrans_("o137") + pTrans_(isReverted ? "o138" : "o139") : pTrans_("o140")
+        : pTrans_(same ? "o141" : "o142") + pTrans_(pass ? isReverted ? "o138" : "o139" : "o143"))
+      + pTrans_("colon") + (pass ? pTrans_("NS") : "");
     stateValue.className = pass ? "code" : "fixed-width";
-    stateValue.textContent = pass ? isReverted ? pass.slice(2) : pass : pass !== null ? "disabled" : " enabled";
+    stateValue.textContent = pass ? isReverted ? pass.slice(2) : pass
+      : pTrans_(pass !== null ? "o144" : "o145") + pTrans_("o146");
     stateTail.textContent = curIsLocked && !isSaving && same
-      ? ` (on this tab, ${curLockedStatus === Frames.Status.enabled ? "enabled" : "disabled"} for once)`
-      : curIsLocked ? " if reset" : "";
+      ? pTrans_("o147", [pTrans_(curLockedStatus !== Frames.Status.enabled ? "o144" : "o145")])
+      : curIsLocked ? pTrans_("o148") : "";
     saveBtn.disabled = same;
-    (saveBtn.firstChild as Text).data = same ? "No Changes" : "Save Changes";
+    (saveBtn.firstChild as Text).data = pTrans_(same ? "o115" : "o115_2");
   }
   function onUpdated(this: void): void {
     if (saved) {
@@ -584,7 +618,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
         el.remove();
       }
       saveBtn.removeAttribute("disabled");
-      (saveBtn.firstChild as Text).data = "Save Changes";
+      (saveBtn.firstChild as Text).data = pTrans_("o115_2");
     }
     updateState(inited < 2);
   }
@@ -600,7 +634,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
     }, 50);
     inited = 3;
     updateState(true);
-    (saveBtn.firstChild as Text).data = "Saved";
+    (saveBtn.firstChild as Text).data = pTrans_("o115_3");
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
       saveBtn.blur();
@@ -628,7 +662,7 @@ BG_.BgUtils_.require_("Exclusions").then((function (callback) {
   curLockedStatus = curIsLocked ? sender.s : Frames.Status.__fake;
   let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling;
   nextTick_(() => {
-  el0.firstElementChild.textContent = curIsLocked ? toggleAction : toggleAction + " for once";
+  el0.firstElementChild.textContent = (pTrans_(toggleAction) || toggleAction) + (curIsLocked ? "" : pTrans_("Once"));
   el0.onclick = forceState.bind(null, toggleAction);
   stateValue.id = "state-value";
   if (curIsLocked) {

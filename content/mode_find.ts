@@ -24,11 +24,10 @@ var VFind = {
   styleOut_: null as never as HTMLStyleElement,
   A0Re_: <RegExpG> /\xa0/g,
   tailRe_: <RegExpOne> /\n$/,
-  css_: null as never as NonNullable<NonNullable<ContentWindowCore["VFind"]>["css_"]>,
   styleIframe_: null as HTMLStyleElement | null,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
     const a = VFind, dom = VDom, UI = VCui;
-    a.css_ = options.f || a.css_;
+    UI.findCss_ = options.f || UI.findCss_;
     if (!dom.isHTML_()) { return; }
     let query: string = options.s ? UI.getSelectionText_() : "";
     (query.length > 99 || query.indexOf("\n") > 0) && (query = "");
@@ -74,7 +73,7 @@ var VFind = {
     } catch {}
     this.deactivate_(FindNS.Action.ExitUnexpectedly);
     let s = "Sorry, Vimium C can not open a HUD on this page", b = VVisual;
-    b.mode_ ? b.prompt_(s, 2000) : VHud.tip_(s);
+    b.mode_ ? b.prompt_(kTip.findFrameFail, s, 2000) : VHud.tip_(kTip.findFrameFail, s);
   },
   onLoad_ (later?: 1): void {
     const a = this, box: HTMLIFrameElement = a.box_,
@@ -104,7 +103,7 @@ var VFind = {
     }, t);
     f("focus", function (this: Window, event: Event): void {
       if (VFind._actived && event.target === this) {
-        VEvent.OnWndFocus_();
+        VApis.OnWndFocus_();
       }
       Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
@@ -145,7 +144,7 @@ var VFind = {
       el.contentEditable = "plaintext-only";
     }
     (a.countEl_ = addElement(0, "c")).textContent = " ";
-    VCui.createStyle_(a.css_.i, a.styleIframe_ = addElement("style") as HTMLStyleElement);
+    VCui.createStyle_(VCui.findCss_.i, a.styleIframe_ = addElement("style") as HTMLStyleElement);
     const root = VDom.createShadowRoot_(body), inShadow = a.inShadow_ = root !== body,
     root2 = inShadow ? addElement("div", 0) : body;
     root2.className = "r" + VDom.cache_.d;
@@ -184,7 +183,7 @@ var VFind = {
   },
   init_ (adjust: AdjustType): void {
     const ref = this.postMode_, UI = VCui,
-    css = this.css_.c, sin = this.styleIn_ = UI.createStyle_(css);
+    css = UI.findCss_.c, sin = this.styleIn_ = UI.createStyle_(css);
     ref.exit_ = ref.exit_.bind(ref);
     UI.box_ ? UI.adjust_() : UI.add_(sin, adjust, true);
     sin.remove();
@@ -196,7 +195,7 @@ var VFind = {
   },
   findAndFocus_ (query: string, options: CmdOptions[kFgCmd.findMode]): void {
     if (!query) {
-      return VHud.tip_("No old queries to find.");
+      return VHud.tip_(kTip.noOldQuery, "No history queries");
     }
     const a = this;
     a.init_ && a.init_(AdjustType.MustAdjust);
@@ -217,7 +216,7 @@ var VFind = {
       a.ToggleStyle_(1);
       if (!a.isActive_) {
         VCui.toggleSelectStyle_(0);
-        VHud.tip_(`No matches for '${a.query_}'`);
+        VHud.tip_(kTip.noMatchFor, 'No matches for "$1"', 0, [a.query_]);
       }
       return;
     }
@@ -263,7 +262,7 @@ var VFind = {
     VKey.Stop_(event);
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? !event.isTrusted : event.isTrusted === false) { return; }
-    if (VScroller.keyIsDown_ && VEvent.OnScrolls_[0](event) || event.type === "keyup") { return; }
+    if (VSc.keyIsDown_ && VApis.OnScrolls_[0](event) || event.type === "keyup") { return; }
     const a = this;
     const n = event.keyCode;
     type Result = FindNS.Action;
@@ -278,7 +277,7 @@ var VFind = {
       else if (i = VKey.getKeyStat_(event)) {
         if (i & ~KeyStat.PrimaryModifier) { return; }
         else if (n === kKeyCode.up || n === kKeyCode.down || n === kKeyCode.end || n === kKeyCode.home) {
-          VEvent.scroll_(event, a.box_.contentWindow);
+          VApis.scroll_(event, a.box_.contentWindow);
         }
         else if (n === kKeyCode.J || n === kKeyCode.K) {
           a.execute_(null, { n: (kKeyCode.K - n) || -1 });
@@ -289,7 +288,7 @@ var VFind = {
       else if (n === kKeyCode.f1) { a.box_.contentDocument.execCommand("delete"); }
       else if (n === kKeyCode.f2) {
         Build.BTypes & BrowserType.Firefox && a.box_.blur();
-        focus(); VEvent.keydownEvents_()[n] = 1;
+        focus(); VApis.keydownEvents_()[n] = 1;
       }
       else if (n === kKeyCode.up || n === kKeyCode.down) { a.nextQuery_(n !== kKeyCode.up); }
       else { return; }
@@ -298,7 +297,7 @@ var VFind = {
     }
     VKey.prevent_(event);
     if (!i) { return; }
-    VEvent.keydownEvents_()[n] = 1;
+    VApis.keydownEvents_()[n] = 1;
     a.deactivate_(i as FindNS.Action);
   },
   onHostKeydown_ (event: KeyboardEvent): HandlerResult {
@@ -313,7 +312,7 @@ var VFind = {
         return HandlerResult.Prevent;
       }
     }
-    if (!VEvent.lock_() && VKey.isEscape_(event)) {
+    if (!VApis.lock_() && VKey.isEscape_(event)) {
       VKey.prevent_(event); // safer
       a.deactivate_(FindNS.Action.ExitNoFocus); // should exit
       return HandlerResult.Prevent;
@@ -345,7 +344,7 @@ var VFind = {
         r: true
       }));
     }
-    if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VEvent.lock_())) {
+    if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VApis.lock_())) {
       let container = a.focusFoundLinkIfAny_();
       if (container && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
           && VDom.getEditableType_(el2) >= EditableType.Editbox && container.contains(el2)) {
@@ -419,13 +418,13 @@ var VFind = {
     lock_: null as Element | null,
     activate_  (): void {
       const pm = this, hook = addEventListener;
-      const el = VEvent.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
+      const el = VApis.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
       VKey.pushHandler_(pm.onKeydown_, pm);
       if (el === pm.lock_) { return; }
       if (!pm.lock_) {
         hook("click", Exit, true);
-        VEvent.setupSuppress_(Exit);
+        VApis.setupSuppress_(Exit);
       }
       Exit(true);
       pm.lock_ = el;
@@ -446,7 +445,7 @@ var VFind = {
       a.lock_ = null;
       unhook("click", a.exit_, true);
       VKey.removeHandler_(a);
-      VEvent.setupSuppress_();
+      VApis.setupSuppress_();
     }
   },
   OnInput_ (this: void, e?: Event): void {
@@ -473,8 +472,11 @@ var VFind = {
     const a = this;
     let count = a.matchCount_;
     if (changed) {
-      (a.countEl_.firstChild as Text).data = !a.parsedQuery_ ? ""
-        : "(" + (count || (a.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
+      (a.countEl_.firstChild as Text).data = !a.parsedQuery_ ? "" : VTr(
+          count > 1 ? kTip.nMatches : count ? kTip.oneMatch : a.hasResults_ ? kTip.someMatches : kTip.noMatches,
+          "(" + (count || (a.hasResults_ ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")"),
+          [count]
+      );
     }
     count = (a.input_.scrollWidth + a.countEl_.offsetWidth + 35) & ~31;
     if (a._small && count < 152) { return; }
@@ -610,7 +612,7 @@ var VFind = {
       }
     } while (0 < --count && found);
     options.noColor || setTimeout(a.HookSel_, 0);
-    (el = VEvent.lock_()) && !VDom.isSelected_() && el.blur();
+    (el = VApis.lock_()) && !VDom.isSelected_() && el.blur();
     Build.BTypes & BrowserType.Firefox && focusHUD && a.focus_();
     a.hasResults_ = found;
   },

@@ -93,7 +93,7 @@ Option_.all_.searchUrl.checker_ = {
     }
     let str2 = BG_.BgUtils_.convertToUrl_(obj.url_, null, Urls.WorkType.KeepAll);
     if (BG_.BgUtils_.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
-      const err = `The value "${obj.url_}" is not a valid plain URL.`;
+      const err = pTrans_("nonPlainURL", [obj.url_]);
       console.log("searchUrl checker:", err);
       Option_.all_.searchUrl.showError_(err);
       return bgSettings_.get_("searchUrl", true);
@@ -114,17 +114,7 @@ Option_.all_.vimSync.allowToSave_ = function (): boolean {
       arr[i as keyof AllowedOptions].saved_ || ++delta;
     }
     let tooMany = delta > 1;
-    setTimeout(alert, 100, tooMany ?
-`        Error:
-Sorry, but you're enabling the "Sync settings" option
-    while some other options are also modified.
-Please only perform one action at a time!`
-      :
-`        Warning:
-the current settings will be OVERRIDDEN the next time Vimium C starts!
-Please back up your settings using the "Export Settings" button
-!!!        RIGHT NOW        !!!`
-    );
+    setTimeout(alert, 100, pTrans_(tooMany ? "changedBeforeSync" : "warningForSync"));
     if (tooMany) {
       return false;
     }

@@ -817,7 +817,8 @@ const BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) ? "moz"
   : Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? "ms-browser" : "about"
-  : "chrome"
+  : "chrome",
+trans_ = chrome.i18n.getMessage
 ;
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {

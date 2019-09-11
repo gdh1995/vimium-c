@@ -277,7 +277,8 @@ interface CmdOptions {
     /** findCSS */ f: FindCSS | null;
   };
   [kFgCmd.goToMarks]: {
-    /** local */ l?: boolean;
+    /** local */ l?: true;
+    /** local-i18n-key */ k: "local" | "global";
     /** markName */ n?: string | undefined;
     /** scroll */ s: MarksNS.FgMark;
   };

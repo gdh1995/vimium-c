@@ -23,28 +23,28 @@
   },
   "commands": {
     "createTab": {
-      "description": "Create new tab"
+      "description": "__MSG_createTab_s__"
     },
     "goBack": {
-      "description": "Go back in history"
+      "description": "__MSG_goBack_s__"
     },
     "goForward": {
-      "description": "Go forward in history"
+      "description": "__MSG_goForward_s__"
     },
     "previousTab": {
-      "description": "Go one tab left"
+      "description": "__MSG_previousTab_s__"
     },
     "quickNext": {
-      "description": "Go one tab right"
+      "description": "__MSG_quickNext_s__"
     },
     "reloadTab": {
-      "description": "Reload tab"
+      "description": "__MSG_reloadTab_s__"
     },
     "userCustomized1": {
-      "description": "Custom shortcut 1"
+      "description": "__MSG_userCustomized__ 1"
     },
     "userCustomized2": {
-      "description": "Custom shortcut 2"
+      "description": "__MSG_userCustomized__ 2"
     }
   },
   "content_scripts": [ {
@@ -71,7 +71,8 @@
     "matches": [ "file:///*" ]
   } ],
   "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'none'; object-src 'none'; connect-src 'self' data:",
-  "description": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts",
+  "default_locale": "en",
+  "description": "__MSG_description__",
   "homepage_url": "https://github.com/gdh1995/vimium-c",
   "icons": {
     "128": "icons/icon128.png",
@@ -83,7 +84,7 @@
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnaZQnkvrHvNlwXPnSfavEya+9sPtVgBR2hWLsNvwdv6+zHRGr/qhqEbtof1v7gDXzpC5+Dr4kOay6aflw5CaFzA1zyVJySAjpb0RkVh774kp9msRpjyb39obSIWAIB76PTwawEAE+K1f26jXDbTC2gEBe4OWk5KW9u9+KoTmeKLHo73ScR1jFcFaOTbrhwHtIDqj00vpIfrSAofpLIq1gP//Og+FoOT4dF107fwlVfDJuu171svuT68wmcKStl6OANxcnXCXE6OWbeZcjMehcQH41wzTtDugmt0o8w+hJ2WVugwWWmGmE8qSiwo9QYZTJW+5EvMcmNZWUmPbTLGkGQIDAQAB",
   "manifest_version": 2,
   "minimum_chrome_version": "32",
-  "name": "Vimium C",
+  "name": "__MSG_name__",
   "omnibox": {
     "keyword": "v"
   },
@@ -106,8 +107,9 @@
     "webNavigation",
     "<all_urls>"
   ],
+  "short_name": "Vimium C",
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.76.8",
+  "version": "1.77.0",
   "web_accessible_resources": [
     "content/*",
     "front/vomnibar.*",

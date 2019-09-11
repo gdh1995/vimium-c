@@ -61,7 +61,7 @@ declare const enum VisualAction {
 
 var VVisual = {
   mode_: VisualModeNS.Mode.NotActive,
-  hud_: "",
+  modeName_: "",
   hudTimer_: 0,
   currentCount_: 0,
   currentSeconds_: null as SafeDict<VisualAction> | null,
@@ -74,7 +74,7 @@ var VVisual = {
     a.init_ && a.init_(options.w as string);
     VKey.removeHandler_(a);
     VDom.docSelectable_ = VCui.getDocSelectable_();
-    VScroller.prepareTop_();
+    VSc.prepareTop_();
     a.diType_ = VisualModeNS.DiType.UnsafeUnknown;
     let theSelected = VCui.getSelected_(1),
     sel: Selection = a.selection_ = theSelected[0],
@@ -82,7 +82,7 @@ var VVisual = {
     a.scope_ = theSelected[1];
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
     if (mode !== VisualModeNS.Mode.Caret) {
-      if (!VEvent.lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
+      if (!VApis.lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
         VDom.getZoom_(1);
         VDom.prepareCrop_();
@@ -98,10 +98,11 @@ var VVisual = {
     const isRange = type === SelType.Range, newMode = isRange ? mode : VisualModeNS.Mode.Caret,
     toCaret = newMode === VisualModeNS.Mode.Caret;
     a.hudTimer_ && clearTimeout(a.hudTimer_);
-    VHud.show_(a.hud_ = (toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual") + " mode"
-      , !!options.r);
+    VHud.show_(kTip.visualMode, "$1 mode",
+        [a.modeName_ = VTr(toCaret ? "Caret" : newMode === VisualModeNS.Mode.Line ? "Line" : "Visual")],
+        !!options.r);
     if (newMode !== mode) {
-      a.prompt_("No usable selection, entering caret mode\u2026", 1000);
+      a.prompt_(kTip.noUsableSel, "No usable selection, entering caret mode\u2026", 1000);
     }
     VCui.toggleSelectStyle_(1);
     a.di_ = isRange ? VisualModeNS.kDir.unknown : VisualModeNS.kDir.right;
@@ -109,7 +110,7 @@ var VVisual = {
     a.alterMethod_ = toCaret ? "move" : "extend";
     if (/* type === SelType.None */ !type && a.establishInitialSelectionAnchor_(theSelected[1])) {
       a.deactivate_();
-      return VHud.tip_("Create a selection before entering visual mode.");
+      return VHud.tip_(kTip.needSel, "Create a selection before entering visual mode.");
     }
     if (toCaret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
@@ -131,13 +132,13 @@ var VVisual = {
     if (!a.retainSelection_) {
       a.collapseToFocus_(isEsc && a.mode_ !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
-    a.mode_ = VisualModeNS.Mode.NotActive; a.hud_ = "";
+    a.mode_ = VisualModeNS.Mode.NotActive; a.modeName_ = "";
     VFind.clean_();
-    const el = VEvent.lock_();
+    const el = VApis.lock_();
     oldDiType & (VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Complicated) ||
     el && el.blur();
     VCui.toggleSelectStyle_(0);
-    VScroller.top_ = null;
+    VSc.top_ = null;
     a.retainSelection_ = false;
     a.resetKeys_();
     a.selection_ = null as never;
@@ -173,7 +174,7 @@ var VVisual = {
       a.resetKeys_();
       return i === kKeyCode.ime || i === kKeyCode.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    let key = VEvent.mapKey_(ch, event)
+    let key = VApis.mapKey_(ch, event)
       , obj: SafeDict<VisualAction> | null | VisualAction | undefined;
     if (obj = a.currentSeconds_) {
       obj = obj[key];
@@ -210,7 +211,7 @@ var VVisual = {
   commandHandler_ (command: VisualAction, count: number): void {
     let movement = this, mode = movement.mode_;
     if (command > VisualAction.MaxNotScroll) {
-      return VScroller.scroll_(1, command - VisualAction.ScrollDown ? -count : count, 0);
+      return VSc.scroll_(1, command - VisualAction.ScrollDown ? -count : count, 0);
     }
     if (command > VisualAction.MaxNotNewMode) {
       if (command === VisualAction.EmbeddedFindMode) {
@@ -227,7 +228,7 @@ var VVisual = {
       movement.selection_ = getSelection();
       if (!movement.selection_.rangeCount) {
         movement.deactivate_();
-        return VHud.tip_("Selection is lost.");
+        return VHud.tip_(kTip.loseSel, "Selection is lost.");
       }
     }
     mode === VisualModeNS.Mode.Caret && movement.collapseToFocus_(0);
@@ -259,7 +260,7 @@ var VVisual = {
     if (movement.diType_ & VisualModeNS.DiType.Complicated) { return; }
     const focused = VDom.getSelectionFocusEdge_(movement.selection_, movement.di_ as VisualModeNS.ForwardDir);
     if (focused) {
-      VScroller.scrollIntoView_need_safe_(focused);
+      VSc.scrollIntoView_need_safe_(focused);
     }
   },
   /** @safe_di requires selection is None on called, and may change `selection_` */
@@ -297,17 +298,17 @@ var VVisual = {
     return !a.selection_.rangeCount;
   },
   /** @not_related_to_di */
-  prompt_ (text: string, duration: number): void {
+  prompt_ (tid: kTip, text: string, duration: number, args?: string[]): void {
     this.hudTimer_ && clearTimeout(this.hudTimer_);
     this.hudTimer_ = setTimeout(this.ResetHUD_, duration);
-    return VHud.show_(text);
+    return VHud.show_(tid, text, args);
   },
   /** @not_related_to_di */
   ResetHUD_ (i?: TimerType.fake): void {
     const a = VVisual;
     if (!a || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) { return; }
     a.hudTimer_ = 0;
-    if (a.hud_) { VHud.show_(a.hud_); }
+    if (a.modeName_) { VHud.show_(kTip.visualMode, "$1 mode", [a.modeName_]); }
   },
   find_ (count: number): void {
     if (!VFind.query_) {
@@ -316,7 +317,7 @@ var VVisual = {
           VFind.updateQuery_(query);
           VVisual.find_(count);
         } else {
-          VVisual.prompt_("No history queries", 1000);
+          VVisual.prompt_(kTip.noOldQuery, "No history queries", 1000);
         }
       });
       return;
@@ -338,7 +339,7 @@ var VVisual = {
       return;
     }
     range && !sel.rangeCount && sel.addRange(range);
-    a.prompt_("No matches for " + VFind.query_, 1000);
+    a.prompt_(kTip.noMatchFor, 'No matches for "$1"', 1000, [VFind.query_]);
   },
   /**
    * @safe_di if action !== true
@@ -347,7 +348,7 @@ var VVisual = {
   yank_ (action?: true | ReuseType.current | ReuseType.newFg | null): void {
     const str = "" + this.selection_;
     if (action === true) {
-      this.prompt_(VHud.copied_(str, "", true), 2000);
+      this.prompt_(kTip.copiedIs, "Copied: $1", 2000, [VHud.copied_(str, "", 1)]);
       action = null;
     } else {
       this.deactivate_();
@@ -394,7 +395,7 @@ var VVisual = {
     const a = this, diType = a.diType_;
     a.oldLen_ = 0;
     if (diType & VisualModeNS.DiType.TextBox) {
-      const el = VEvent.lock_() as TextElement;
+      const el = VApis.lock_() as TextElement;
       return el.value.charAt(a.TextOffset_(el
           , a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== "backward"));
     }
@@ -556,7 +557,7 @@ var VVisual = {
         }
       } else {
         di = a.di_ as VisualModeNS.ForwardDir;
-        let el = VEvent.lock_() as TextElement,
+        let el = VApis.lock_() as TextElement,
         start = a.TextOffset_(el, 0), end = start + len;
         di ? (end -= toGoLeft) :  (start -= toGoLeft);
         di = di && start > end ? (a.di_ = VisualModeNS.kDir.left) : VisualModeNS.kDir.right;
@@ -577,7 +578,7 @@ var VVisual = {
     }
     const sel = a.selection_, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
     if (a.diType_ & VisualModeNS.DiType.TextBox) {
-      const el = VEvent.lock_() as TextElement;
+      const el = VApis.lock_() as TextElement;
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
       el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), newDi ? "forward" : "backward");
@@ -630,7 +631,7 @@ var VVisual = {
       }
     }
     // editable text elements
-    const lock = VEvent.lock_();
+    const lock = VApis.lock_();
     if (lock && lock.parentElement === anchorNode) { // safe beacuse lock is LockableElement
       type TextModeElement = TextElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)

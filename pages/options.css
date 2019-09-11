@@ -122,6 +122,12 @@ button, select {
   text-align: center;
   text-shadow: 0 1px #f0f0f0;
 }
+button.fixed-size {
+  padding: 0;
+}
+[lang=zh] button, [lang=zh] select {
+  font-size: 13px !important;
+}
 .dialog-ui button {
   margin-right: 0;
 }
@@ -381,10 +387,13 @@ label:active {
   top: -2px;
   width: 300px;
 }
-.line-1x {
+[lang=zh] .line-help {
+  top: -6px;
+}
+.help > .line-1x {
   top: 5px;
 }
-.line-2x {
+.help > .line-2x {
   top: 3px;
 }
 .wrap-space {
@@ -393,6 +402,9 @@ label:active {
 }
 .wrap-left-space {
   margin-left: 0.25em;
+}
+[lang=zh] .wrap-left-space {
+  margin-left: 0;
 }
 .break-all {
   white-space: normal;
@@ -470,12 +482,15 @@ label:active {
   color: #798086;
 }
 #exclusionAddButton {
+  overflow: hidden;
   visibility: visible;
+  width: 76px;
 }
 #exclusionSortButton {
   margin-right: 4px;
-  width: 80px;
+  overflow: hidden;
   padding: 0 7px;
+  width: 76px;
 }
 #focusNewTabTitle {
   cursor: pointer;
@@ -508,10 +523,10 @@ label:active {
   width: 300px;
 }
 #advancedOptionsButton {
-  width: 156px;
+  width: 148px;
 }
 #saveOptions {
-  width: 103px;
+  width: 96px;
 }
 #settingFileManager {
   position: absolute;

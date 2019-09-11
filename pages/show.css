@@ -45,7 +45,7 @@ body.filled:not(.viewer-open) {
 
 .colon::after {
   color: gray;
-  content: ": ";
+  content: attr(data-colon);
   font-style: italic;
 }
 

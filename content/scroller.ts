@@ -32,13 +32,13 @@ interface ElementScrollInfo {
   element_: SafeElement;
   height_: number; /* cropped visible */
 }
-var VScroller = {
+var VSc = {
 _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: SafeElement | null = null, //
   sign = 0, timestamp = 0, totalDelta = 0.0, totalElapsed = 0.0, //
   running = 0 as number, next = requestAnimationFrame, timer = 0;
   function animate(newTimestamp: number): void {
-    const _this = VScroller,
+    const _this = VSc,
     // although timestamp is mono, Firefox adds too many limits to its precision
     elapsed = !timestamp ? (newTimestamp = performance.now(), ScrollerNS.Consts.firstTick)
               : newTimestamp > timestamp ? newTimestamp - timestamp
@@ -88,7 +88,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     timer = 0;
     running = running || next(animate);
   }
-  this._animate = function (this: typeof VScroller, newEl, newDi, newAmount): void {
+  this._animate = function (this: typeof VSc, newEl, newDi, newAmount): void {
     const M = Math;
     amount = M.max(1, M.abs(newAmount)); calibration = 1.0; di = newDi;
     duration = M.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * M.log(amount));
@@ -151,18 +151,16 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   },
 
   /** @NEED_SAFE_ELEMENTS */
-  current_: null as SafeElement | null,
-  /** @NEED_SAFE_ELEMENTS */
   top_: null as SafeElement | null,
   keyIsDown_: 0,
   scale_: 1,
   activate_ (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
     if (options.$c == null) {
-      options.$c = VEvent.isCmdTriggered_();
+      options.$c = VApis.isCmdTriggered_();
     }
-    if (VEvent.checkHidden_(kFgCmd.scroll, count, options)) { return; }
+    if (VApis.checkHidden_(kFgCmd.scroll, count, options)) { return; }
     if (VHints.TryNestedFrame_(kFgCmd.scroll, count, options)) { return; }
-    const a = VScroller, di: ScrollByY = options.axis === "x" ? 0 : 1,
+    const a = VSc, di: ScrollByY = options.axis === "x" ? 0 : 1,
     dest = options.dest;
     let fromMax = dest === "max";
     if (dest) {
@@ -183,7 +181,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
    */
   scroll_: function (this: {}, di: ScrollByY, amount0: number, isTo: BOOL
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: boolean): void {
-    const a = this as typeof VScroller;
+    const a = this as typeof VSc;
     a.prepareTop_();
     isTo && di && VMarks.setPreviousPosition_();
     let amount = amount0;
@@ -202,7 +200,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (element === a.top_ && element
         && (core = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_()
                 : VDom.frameElement_() && parent as Window)) {
-      const Sc = core.VScroller as typeof VScroller;
+      const Sc = core.VSc as typeof VSc;
       if (Sc && !a._doesScroll(element, di, amount || (fromMax ? 1 : 0))) {
         Sc.scroll_(di, amount0, isTo as 0, factor, fromMax as false);
         if (Sc.keyIsDown_) {
@@ -226,7 +224,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     const a = this;
     a.keyIsDown_ = willContinue ? a.maxInterval_ : 0;
     if (a._joined) {
-      (a._joined as typeof VScroller).scrollTick_(willContinue);
+      (a._joined as typeof VSc).scrollTick_(willContinue);
       if (!willContinue) {
         a._joined = null;
       }
@@ -242,7 +240,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
    */
   findScrollable_ (di: ScrollByY, amount: number): SafeElement | null {
     const a = this, top = a.top_;
-    let element: SafeElement | null = a.current_;
+    let element: SafeElement | null = VCui.activeEl_;
     if (element) {
       let reason, notNeedToRecheck = !di;
       type Element2 = NonNullable<typeof element>;
@@ -266,11 +264,11 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     if (!element && top) {
       const candidate = a._selectFirst({ area_: 0, element_: top, height_: 0 });
       element = candidate && candidate.element_ !== top
-          && (!a.current_ || candidate.height_ > innerHeight / 2)
+          && (!VCui.activeEl_ || candidate.height_ > innerHeight / 2)
           ? candidate.element_ : top;
-      // if .current_, then delay update to .current_, until scrolling ends and ._checkCurrent is called;
+      // if VCui.activeEl_, then delay update to VCui.activeEl_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
-      a.current_ || (a.current_ = element);
+      VCui.activeEl_ || (VCui.activeEl_ = element);
     }
     a.scrolled_ = 0;
     return element;
@@ -290,8 +288,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     this.scale_ = (Build.BTypes & BrowserType.Firefox ? 2 : 1) / Math.min(1, VDom.wdZoom_) / Math.min(1, VDom.bZoom_);
   },
   _checkCurrent (el: SafeElement | null): void {
-    const cur = this.current_;
-    if (cur !== el && cur && VDom.NotVisible_(cur)) { this.current_ = el; }
+    const cur = VCui.activeEl_;
+    if (cur !== el && cur && VDom.NotVisible_(cur)) { VCui.activeEl_ = el; }
   },
   /** if `el` is null, then return viewSize for `kScrollDim.scrollSize` */
   getDimension_ (el: SafeElement | null, di: ScrollByY, index: kScrollDim & number): number {
@@ -355,7 +353,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     { bottom: b, top: t, right: r, left: l } = rect,
     hasY = b < ihm ? max(b - ih + ihm, t - ihm) : ih < t + ihm ? min(b - ih + ihm, t - ihm) : 0,
     hasX = r < 0 ? max(l - iwm, r - iw + iwm) : iw < l ? min(r - iw + iwm, l - iwm) : 0;
-    a.current_ = el as SafeElement;
+    VCui.activeEl_ = el as SafeElement;
     if (hasX || hasY) {
       for (let el2: Element | null = el; el2; el2 = VDom.GetParent_(el2, PNType.RevealSlotAndGotoParent)) {
         const pos = getComputedStyle(el2).position;
@@ -390,7 +388,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     this.scrolled_ = 2;
     VKey.SuppressAll_(window, "scroll");
     requestAnimationFrame(function (): void {
-      VScroller.scrolled_ = 0;
+      VSc.scrolled_ = 0;
       VKey.SuppressAll_(window, "scroll", true);
     });
   },

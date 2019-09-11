@@ -38,6 +38,7 @@ var HelpDialog = {
         }
         Settings_.set_("helpDialog", "");
       }
+      body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g, (_, s) => trans_(s) || (s[0] === "_" ? "" : s));
       a.html_ = [head, body];
     }
     BgUtils_.safer_(request);
@@ -59,15 +60,15 @@ var HelpDialog = {
       className: Settings_.payload_.d,
       homePage: Settings_.CONST_.HomePage_,
       version: Settings_.CONST_.VerName_,
-      title: request.t ? "Command Listing" : "Help",
+      title: trans_(request.t ? "cmdList" : "help"),
       reviewPage: (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
             ? BuildStr.FirefoxAddonPage : BuildStr.ChromeWebStorePage
           ).replace("$id", chrome.runtime.id),
       webStore: !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-          ? "Firefox Add-ons" : "Web Store",
-      tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
+          ? trans_("addons") : trans_("webstore"),
+      tip: showNames ? trans_("tipClickToCopy")  : "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     });
     const html = (a as Ensure<typeof a, "html_">).html_, div = html[1].replace(
@@ -84,22 +85,22 @@ var HelpDialog = {
   groupHtml_: (function (this: {}, group: string, commandToKeys: SafeDict<Array<[string, CommandsNS.Item]>>
       , hideUnbound: boolean, showNames: boolean): string {
     const renderItem = (this as typeof HelpDialog).commandHtml_
-      , secondDescriptions = (this as typeof HelpDialog).descriptions
-      , firstDescriptions = CommandsData_.cmdDescriptions_;
+      , cmdParams = trans_("cmdParams")
+      , cachedDescriptions = (this as typeof HelpDialog).descriptions_;
     let html = "";
     for (const command of (this as typeof HelpDialog).commandGroups_[group]) {
       let keys = commandToKeys[command];
       if (hideUnbound && !keys) { continue; }
-      const isAdvanced = (this as typeof HelpDialog).advancedCommands_[command] === 1
-        , description = secondDescriptions[command] || <string> firstDescriptions[command];
-      if (!Build.NDEBUG) {
-        if (!description) {
-          console.log("Error: lack a description for %c%s", "color:red", command);
-        } else if (secondDescriptions[command] && firstDescriptions[command]) {
-          console.log("Error: duplicated descriptions for %c%s", "color:red", command);
+      const isAdvanced = (this as typeof HelpDialog).advancedCommands_[command] === 1;
+      let klen = -2, bindings = "", description = cachedDescriptions[command];
+      if (!description) {
+        let key = command.replace(".", "_"), params = trans_(key + "_p");
+        description = trans_(key) + (params ? cmdParams.replace("*", params) : "");
+        cachedDescriptions[command] = description;
+        if (!(Build.NDEBUG || description)) {
+          console.log("Assert error: lack a description for %c%s", "color:red", command);
         }
       }
-      let klen = -2, bindings = "";
       if (keys && keys.length > 0) {
         bindings = '\n\t\t<span class="HelpKey">';
         for (const item of keys) {
@@ -258,125 +259,5 @@ var HelpDialog = {
     , "Vomnibar.activateUrl": 1, "Vomnibar.activateUrlInNewTab": 1
     , closeDownloadBar: Build.BTypes & BrowserType.Chrome ? 0 : 1
   } as SafeEnum,
-  descriptions: { __proto__: null as never,
-    "LinkHints.activate": `Open a link in the current tab (use button=""/"right"${
-        Build.BTypes & BrowserType.Chrome ? ', touch="auto"/true/false' : ""
-      })`,
-    "LinkHints.activateMode": "Open a link in the current tab",
-    "LinkHints.activateModeToCopyLinkText": "Copy a link text to the clipboard",
-    "LinkHints.activateModeToCopyLinkUrl": "Copy a link URL to the clipboard",
-    "LinkHints.activateModeToDownloadImage": "Download image, video and audio",
-    "LinkHints.activateModeToDownloadLink": "Download link URL",
-    "LinkHints.activateModeToEdit": "Select an editable area",
-    "LinkHints.activateModeToHover": "select an element and hover",
-    "LinkHints.activateModeToLeave": "let mouse leave link",
-    "LinkHints.activateModeToOpenImage": "Show image in a new tab (use auto=true)",
-    "LinkHints.activateModeToOpenIncognito": "Open a link in incognito window",
-    "LinkHints.activateModeToOpenInNewForegroundTab": "Open a link in a new tab and switch to it",
-    "LinkHints.activateModeToOpenInNewTab": "Open a link in a new tab",
-    "LinkHints.activateModeToOpenVomnibar": "Edit a link text on Vomnibar (use url, newtab)",
-    "LinkHints.activateModeToSearchLinkText": "Open or search a link text",
-    "LinkHints.activateModeWithQueue": "Open multiple links in a new tab",
-    "LinkHints.unhoverLast": "Stop hovering at last location",
-    "Marks.activate": "Go to a mark (use prefix=true, swap)",
-    "Marks.activateCreateMode": "Create a new mark (use swap)",
-    "Marks.clearGlobal": "Remove all global marks",
-    "Marks.clearLocal": "Remove all local marks for this site",
-    "Vomnibar.activate": 'Open URL, bookmark, or history entry<br/> (use keyword="", url=false/true/&lt;string&gt;)',
-    "Vomnibar.activateBookmarks": "Open a bookmark",
-    "Vomnibar.activateBookmarksInNewTab": "Open a bookmark in a new tab",
-    "Vomnibar.activateEditUrl": "Edit the current URL",
-    "Vomnibar.activateEditUrlInNewTab": "Edit the current URL and open in a new tab",
-    "Vomnibar.activateHistory": "Open a history",
-    "Vomnibar.activateHistoryInNewTab": "Open a history in a new tab",
-    "Vomnibar.activateInNewTab": "Open URL, history, etc,<br/> in a new tab (use keyword, url)",
-    "Vomnibar.activateTabSelection": "Search through your open tabs",
-    "Vomnibar.activateUrl": "Edit the current URL",
-    "Vomnibar.activateUrlInNewTab": "Edit the current URL and open in a new tab",
-    autoCopy: "Copy selected text or current frame's title or URL (use url, decoded)",
-    autoOpen: "Open selected or copied text in a new tab",
-    blank: "Do nothing",
-    clearCS: "clear extension's content settings (use type=images)",
-    clearFindHistory: "Clear find mode history",
-    clearGlobalMarks: "Remove all global marks (deprecated)",
-    closeOtherTabs: "Close all other tabs",
-    closeTabsOnLeft: "Close tabs on the left",
-    closeTabsOnRight: "Close tabs on the right",
-    copyCurrentTitle: "Copy current tab's title",
-    copyCurrentUrl: "Copy page's info (use type=url/frame, decoded)",
-    debugBackground: "Debug the background page",
-    enableCSTemp: "enable the site's CS in incognito window (use type=images)",
-    enterFindMode: "Enter find mode (use last, selected=true)",
-    enterInsertMode: "Enter insert mode (use code=27, stat=0)",
-    enterVisualLineMode: "Enter visual line mode",
-    enterVisualMode: "Enter visual mode",
-    firstTab: "Go to the first N-th tab",
-    focusInput:
-      'Focus the N-th visible text box on the page and cycle using tab (use keep, select=""/all/all-line/start/end)',
-    focusOrLaunch: 'focus a tab with given URL or open it (use url="", prefix)',
-    goBack: "Go back in history" + (Build.BTypes & BrowserType.Chrome
-          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || CurCVer_ >= BrowserVer.Min$Tabs$$goBack
-                && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome ))
-        ? " (use reuse=-2/-1)" : ""),
-    goForward: "Go forward in history" + (Build.BTypes & BrowserType.Chrome
-          && (Build.MinCVer >= BrowserVer.Min$Tabs$$goBack || CurCVer_ >= BrowserVer.Min$Tabs$$goBack
-                && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome ))
-        ? " (use reuse=-2/-1)" : ""),
-    goNext: "Follow the link labeled next or &gt;",
-    goPrevious: "Follow the link labeled previous or &lt;",
-    goToRoot: "Go to root of current URL hierarchy",
-    goUp: "Go up the URL hierarchy (use trailing_slash=null/&lt;boolean&gt;)",
-    lastTab: "Go to the last N-th tab",
-    mainFrame: "Select the tab's main/top frame",
-    moveTabLeft: "Move tab to the left",
-    moveTabRight: "Move tab to the right",
-    moveTabToIncognito: "Make tab in incognito window",
-    moveTabToNextWindow: "Move tab to next window (use right)",
-    nextFrame: "Cycle forward to the next frame on the page",
-    nextTab: "Go one tab right",
-    openCopiedUrlInCurrentTab: "Open the clipboard's URL in the current tab",
-    parentFrame: "Focus a parent frame",
-    passNextKey: "Pass the next key(s) to the page (use normal)",
-    performAnotherFind: "Find the second or even eariler query words",
-    performBackwardsFind: "Cycle backward to the previous find match",
-    performFind: "Cycle forward to the next find match",
-    previousTab: "Go one tab left",
-    quickNext: "Go one tab right",
-    reload: "Reload current frame (use hard)",
-    reloadGivenTab: "Reload N-th tab (use hard)",
-    removeRightTab: "Close N-th tab on the right",
-    reopenTab: "Reopen current page",
-    restoreGivenTab: "Restore the last N-th tab",
-    scrollDown: "Scroll down",
-    scrollFullPageDown: "Scroll a full page down",
-    scrollFullPageUp: "Scroll a full page up",
-    scrollLeft: "Scroll left",
-    scrollPageDown: "Scroll a page down",
-    scrollPageUp: "Scroll a page up",
-    scrollPxDown: "Scroll 1px down",
-    scrollPxLeft: "Scroll 1px left",
-    scrollPxRight: "Scroll 1px right",
-    scrollPxUp: "Scroll 1px up",
-    scrollRight: "Scroll right",
-    scrollTo: "Scroll to custom position",
-    scrollToBottom: "Scroll to the bottom of the page",
-    scrollToLeft: "Scroll all the way to the left",
-    scrollToRight: "Scroll all the way to the right",
-    scrollToTop: "Scroll to the top of the page",
-    scrollUp: "Scroll up",
-    searchAs: "Search selected or copied text using current search engine (use copied=true, selected=true)",
-    searchInAnother: "Redo search in another search engine (use keyword, reuse=0)",
-    showHelp: "Show help",
-    simBackspace: "simulate backspace for once if focused",
-    switchFocus: "blur activeElement or refocus it",
-    toggleCS: "turn on/off the site's CS (use type=images)",
-    toggleLinkHintCharacters: "Toggle the other link hints (use value)",
-    toggleMuteTab: "Mute or unmute current tab (use all, other)",
-    toggleSwitchTemp: "Toggle switch only on current page (use key[, value])",
-    toggleViewSource: "View page source",
-    toggleVomnibarStyle: "Toggle style(s) of vomnibar page (use style=dark, current)",
-    closeDownloadBar: "Close the bottom download bar of Chrome elegantly",
-    showTip: "Show a tip on the HUD (use text=&lt;string&gt;)",
-    visitPreviousTab: "Go to previously-visited tab on current window"
-  } as ReadonlySafeDict<string>
+  descriptions_: BgUtils_.safeObj_<string>()
 };

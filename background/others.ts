@@ -881,10 +881,9 @@ function (details: chrome.runtime.InstalledDetails): void {
   }
 
   if (!reason) { return; }
+  if (parseFloat(Settings_.CONST_.VerCode_) <= parseFloat(reason)) { return; }
 
-  if (parseFloat(Settings_.CONST_.VerCode_) < parseFloat(reason)) { return; }
-  if (Settings_.CONST_.VerCode_ === reason) { return; }
-  let ref1 = Settings_.temp_;
+  const ref1 = Settings_.temp_;
   if (ref1.backupSettingsToLocal_) {
     (ref1.backupSettingsToLocal_ as Exclude<typeof ref1.backupSettingsToLocal_, true | null>)(6000);
   } else {
@@ -895,9 +894,9 @@ function (details: chrome.runtime.InstalledDetails): void {
   const args: chrome.notifications.NotificationOptions = {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
-    title: "Vimium C Upgrade",
-    message: "The next version of Vimium C\n WILL NOT manage browser NewTab !!!",
-    contextMessage: "Click here for more information."
+    title: "Vimium C " + trans_("Upgrade"),
+    message: trans_("upgradeMsg", [Settings_.CONST_.VerName_]) + trans_("upgradeMsg2")
+        + "\n\n" + trans_("clickForMore")
   };
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$NotificationOptions$$isClickable$IsDeprecated
       && CurCVer_ < BrowserVer.Min$NotificationOptions$$isClickable$IsDeprecated) {

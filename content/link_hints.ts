@@ -94,7 +94,7 @@ var VHints = {
   activate_ (this: void, count: number, options: FgOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
-    if (VEvent.checkHidden_(kFgCmd.linkHints, count, options)) {
+    if (VApis.checkHidden_(kFgCmd.linkHints, count, options)) {
       return a.clean_();
     }
     VKey.removeHandler_(a);
@@ -111,7 +111,7 @@ var VHints = {
     let s0 = options.characters, str = s0 ? s0 + "" : VDom.cache_.l;
     if (str.length < 3) {
       a.clean_(1);
-      return VHud.tip_("Characters for LinkHints are too few.", 1000);
+      return VHud.tip_(kTip.fewChars, "Characters for LinkHints are too few.", 1000);
     }
     a.alphabetHints_.chars_ = str.toUpperCase();
     a.doesMapKey_ = options.mapKey !== false;
@@ -133,7 +133,7 @@ var VHints = {
     }
     if (elements.length === 0) {
       a.clean_(1);
-      return VHud.tip_("No links to select.", 1000);
+      return VHud.tip_(kTip.noLinks, "No links to select.", 1000);
     }
 
     if (a.box_) { a.box_.remove(); a.box_ = null; }
@@ -150,13 +150,13 @@ var VHints = {
 
     a.isActive_ = true;
     VKey.pushHandler_(a.onKeydown_, a);
-    VEvent.onWndBlur_(a.ResetMode_);
+    VApis.onWndBlur_(a.ResetMode_);
   },
   setModeOpt_ (count: number, options: HintsNS.Options): void {
     const a = this;
     if (a.options_ === options) { return; }
     let modeOpt: HintsNS.ModeOpt | undefined,
-    mode = (<number> options.mode > 0 ? options.mode as number
+    mode = (<number> options.mode > 0 ? + <number> options.mode
       : a.CONST_[options.action || options.mode as string] as number | undefined | {} as number) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
@@ -193,7 +193,7 @@ var VHints = {
       return;
     }
     const msg = a.dialogMode_ ? " (modal UI)" : "";
-    return VHud.show_(a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] + msg, true);
+    return VHud.show_(a.mode_, a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] + msg, [msg], true);
   },
   SetHUDLater_ (this: void): void {
     const a = VHints;
@@ -209,7 +209,7 @@ var VHints = {
       VHints: typeof VHints;
     }
     let frame = a.frameNested_, err = true, done = false;
-    let events: VEventModeTy | undefined, core: ContentWindowCore | null | 0 | void | undefined = null;
+    let events: VApisModeTy | undefined, core: ContentWindowCore | null | 0 | void | undefined = null;
     if (!frame) { return false; }
     try {
       if (frame.contentDocument
@@ -218,8 +218,8 @@ var VHints = {
         if (cmd === kFgCmd.linkHints) {
           (done = (core as VWindow).VHints.isActive_) && (core as VWindow).VHints.deactivate_(0);
         }
-        events = core.VEvent as VEventModeTy;
-        err = events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VEvent.keydownEvents_() : VEvent);
+        events = core.VApis as VApisModeTy;
+        err = events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApis.keydownEvents_() : VApis);
       }
     } catch (e) {
       if (!Build.NDEBUG) {
@@ -295,7 +295,7 @@ var VHints = {
   btnRe_: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|[-\s_])/,
   roleRe_: <RegExpI> /^(?:button|checkbox|link|radio|tab)$|^menuitem/i,
   /**
-   * Must ensure only call {@link scroller.ts#VScroller.shouldScroll_need_safe_} during {@link #getVisibleElements_}
+   * Must ensure only call {@link scroller.ts#VSc.shouldScroll_need_safe_} during {@link #getVisibleElements_}
    */
   GetClickable_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null
@@ -387,7 +387,7 @@ var VHints = {
     if ((isClickable || type !== ClickType.Default)
         && (arr = arr || VDom.getVisibleClientRect_(element))
         && (type < ClickType.scrollX
-          || VScroller.shouldScroll_need_safe_(element, type - ClickType.scrollX as 0 | 1) > 0)
+          || VSc.shouldScroll_need_safe_(element, type - ClickType.scrollX as 0 | 1) > 0)
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
             || _this.mode_ > HintMode.min_job - 1)
@@ -545,7 +545,7 @@ var VHints = {
     const a = VHints, matchAll = selector === a.kSafeAllSelector_, D = document,
     output: Hint[] | SafeHTMLElement[] = [],
     d = VDom, uiRoot = VCui.root_,
-    Sc = VScroller,
+    Sc = VSc,
     wantClickable = filter === a.GetClickable_,
     isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as {}) instanceof Element,
     box = !wholeDoc && (!(Build.BTypes & ~BrowserType.Chrome)
@@ -849,7 +849,7 @@ var VHints = {
       return HandlerResult.Suppress;
     } else if (i === kKeyCode.ime) {
       a.clean_(1);
-      VHud.tip_("LinkHints exits because you're inputting");
+      VHud.tip_(kTip.exitForIME, "LinkHints exits because you're inputting");
       return HandlerResult.Nothing;
     } else if (i > kKeyCode.f1 && i <= kKeyCode.f12) {
       a.ResetMode_();
@@ -859,10 +859,10 @@ var VHints = {
       if (i === KeyStat.altKey) {
         a.wantDialogMode_ = !a.wantDialogMode_;
       } else if (i & KeyStat.PrimaryModifier) {
-        reinit = !!VEvent.execute_;
+        reinit = !!VApis.execute_;
         if (reinit) {
           a.isClickListened_ = true;
-          (VEvent as EnsureNonNull<VEventModeTy>).execute_(kContentCmd.FindAllOnClick);
+          (VApis as EnsureNonNull<VApisModeTy>).execute_(kContentCmd.FindAllOnClick);
         }
       } else if (i & KeyStat.shiftKey) {
         a.isClickListened_ = !a.isClickListened_;
@@ -890,7 +890,7 @@ var VHints = {
         (i & (i - 1)) || (a.lastMode_ = mode);
       }
     } else if (i <= kKeyCode.down && i >= kKeyCode.pageup) {
-      VEvent.scroll_(event);
+      VApis.scroll_(event);
       a.ResetMode_();
     } else if (i === kKeyCode.space) {
       a.zIndexes_ === false || a.rotateHints_(event.shiftKey);
@@ -906,7 +906,7 @@ var VHints = {
     } else if (linksMatched.length === 1) {
       VKey.prevent_(event);
       /** safer; necessary for {@link #VHints._highlightChild} */
-      VEvent.keydownEvents_()[i] = 1;
+      VApis.keydownEvents_()[i] = 1;
       a.keyCode_ = i;
       a.execute_(linksMatched[0]);
     } else {
@@ -930,7 +930,7 @@ var VHints = {
   ResetMode_ (): void {
     let a = VHints, d: KeydownCacheArray;
     if (a.lastMode_ !== a.mode_ && a.mode_ < HintMode.min_disable_queue) {
-      d = VEvent.keydownEvents_();
+      d = VApis.keydownEvents_();
       if (d[kKeyCode.ctrlKey] || d[kKeyCode.metaKey] || d[kKeyCode.shiftKey] || d[kKeyCode.altKey]) {
         a.setMode_(a.lastMode_);
       }
@@ -946,8 +946,7 @@ var VHints = {
     const a = this;
     let rect: Rect | null | undefined, clickEl: HintsNS.LinkEl | null = hint.dest_;
     a.resetHints_();
-    const str = a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] as string;
-    (VHud as Writable<VHUDTy>).text_ = str; // in case pTimer > 0
+    (VHud as Writable<VHUDTy>).t = "";
     if (VDom.isInDOM_(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       // must use UI.getRect, so that VDom.zooms are updated, and prepareCrop is called
@@ -960,9 +959,9 @@ var VHints = {
       }
     } else {
       clickEl = null;
-      VHud.tip_("The link has been removed from page", 2000);
+      VHud.tip_(kTip.linkRemoved, "The link has been removed from page", 2000);
     }
-    a.pTimer_ = -(VHud.text_ !== str);
+    a.pTimer_ = -!!VHud.t;
     if (!(a.mode_ & HintMode.queue)) {
       a._setupCheck(clickEl);
       return a.deactivate_(0);
@@ -978,7 +977,7 @@ var VHints = {
     }, 18);
   },
   _reinit (lastEl?: HintsNS.LinkEl | null, rect?: Rect | null): void {
-    const a = this, events = VEvent;
+    const a = this, events = VApis;
     if (events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
       a.clean_();
       return;
@@ -1001,7 +1000,7 @@ var VHints = {
   },
   // if not el, then reinit if only no key stroke and hints.length < 64
   CheckLast_ (this: void, el?: HintsNS.LinkEl | TimerType.fake, r?: Rect | null): void {
-    const _this = VHints, events = VEvent;
+    const _this = VHints, events = VApis;
     if (!_this) { return; }
     _this.timer_ = 0;
     if (events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
@@ -1032,7 +1031,7 @@ var VHints = {
     alpha.hintKeystroke_ = alpha.chars_ = a.yankedList_ = "";
     a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
     VKey.removeHandler_(a);
-    VEvent.onWndBlur_(null);
+    VApis.onWndBlur_(null);
     if (a.box_) {
       a.box_.remove();
       a.box_ = null;
@@ -1174,7 +1173,7 @@ alphabetHints_: {
       }
       a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
     } else if ((keyChar = VKey.char_(e))
-        && (keyChar = (VHints.doesMapKey_ ? VEvent.mapKey_(keyChar, e, keyChar) : keyChar).toUpperCase()
+        && (keyChar = (VHints.doesMapKey_ ? VApis.mapKey_(keyChar, e, keyChar) : keyChar).toUpperCase()
             ).length === 1) {
       if (a.chars_.indexOf(keyChar) === -1) {
         return [];
@@ -1253,7 +1252,7 @@ _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
       || src.length > text.length + 7 && (text === (img as HTMLElement & {href?: string}).href)) {
     text = src;
   }
-  return text || VHud.tip_("Not an image", 1000);
+  return text || VHud.tip_(kTip.notImg, "Not an image", 1000);
 },
 getImageName_: (img: SafeHTMLElement): string | null =>
   img.getAttribute("download") || img.title || img.getAttribute("alt"),
@@ -1269,13 +1268,13 @@ openUrl_ (url: string, incognito?: boolean): void {
   VPort.post_(opt);
 },
 _highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
-  let err: boolean | null = true, childEvents: VEventModeTy | undefined,
+  let err: boolean | null = true, childEvents: VApisModeTy | undefined,
   core: ContentWindowCore | void | undefined | 0;
   try {
     err = !el.contentDocument
         || !(core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(el.contentWindow) : el.contentWindow)
-        || !(childEvents = core.VEvent)
-        || childEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VEvent.keydownEvents_() : VEvent);
+        || !(childEvents = core.VApis)
+        || childEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApis.keydownEvents_() : VApis);
   } catch (e) {
     if (!Build.NDEBUG) {
       let notDocError = true;
@@ -1312,12 +1311,12 @@ Modes_: [
     const a = VHints, type = VDom.getEditableType_<0>(element), toggleMap = a.options_.toggle;
     // here not check VDom.lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
-    VScroller.current_ = element;
+    VCui.activeEl_ = element;
     VDom.hover_(element, VDom.center_(rect));
     type || element.tabIndex < 0 ||
     (<RegExpI> /^i?frame$/).test(VDom.htmlTag_(element)) && element.focus && element.focus();
     if (a.mode1_ < HintMode.min_job) { // called from Modes[-1]
-      return VHud.tip_("Hover for scrolling", 1000);
+      return VHud.tip_(kTip.hoverScrollable, "Hover for scrolling", 1000);
     }
     if (!toggleMap || typeof toggleMap !== "object") { return; }
     VKey.safer_(toggleMap);
@@ -1388,7 +1387,7 @@ Modes_: [
       if (tag === "input") {
         let type = (link as HTMLInputElement).type, f: HTMLInputElement["files"];
         if (type === "password") {
-          return VHud.tip_("Sorry, Vimium C won't copy a password.", 2000);
+          return VHud.tip_(kTip.ignorePassword, "Sorry, Vimium C won't copy a password.", 2000);
         }
         if (!VDom.uneditableInputs_[type]) {
           str = ((link as HTMLInputElement).value || (link as HTMLInputElement).placeholder).trim();
@@ -1434,7 +1433,7 @@ Modes_: [
     let shownText = str, lastYanked = a.yankedList_, oldCount = lastYanked ? lastYanked.split("\n").length : 0;
     if (mode1 & HintMode.list) {
       if (`\n${lastYanked}\n`.indexOf(`\n${str}\n`) >= 0) {
-        return VHud.show_("Nothing new to copy");
+        return VHud.show_(kTip.noNewToCopy, "Nothing new to copy");
       }
       shownText = `[${oldCount + 1}] ${str}`;
       str = oldCount ? lastYanked + "\n" + str + "\n" : str;
@@ -1487,7 +1486,7 @@ Modes_: [
     a.download = VHints.getImageName_(element) || "";
     // todo: how to trigger download
     VDom.mouse_(a, "click", [0, 0]);
-    return VHud.tip_("Download: " + text, 2000);
+    return VHud.tip_(kTip.downloaded, "Download: $1", 2000, [text]);
   }
   , HintMode.DOWNLOAD_MEDIA, "Download media"
   , HintMode.DOWNLOAD_MEDIA | HintMode.queue, "Download multiple media"
@@ -1602,3 +1601,6 @@ Modes_: [
 ] as HintsNS.ModeOpt
 ] as const
 };
+if (!(Build.NDEBUG || HintMode.min_not_hint <= <number> kTip.START_FOR_OTHERS)) {
+  console.log("Assert error: HintMode.min_not_hint <= kTip.START_FOR_OTHERS");
+}

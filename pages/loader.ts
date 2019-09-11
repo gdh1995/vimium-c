@@ -15,6 +15,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
   const head = loader.parentElement as HTMLElement
     , scripts: HTMLScriptElement[] = [loader]
     , prefix = chrome.runtime.getURL("")
+    , curPath = location.pathname.toLowerCase()
     , arr = chrome.runtime.getManifest().content_scripts[0].js;
   if (!(Build.BTypes & BrowserType.Edge)) {
     for (const src of arr) {
@@ -40,23 +41,29 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
     if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab
         && (bg = chrome.extension.getBackgroundPage() as BgWindow)
         && bg.Settings_ && bg.Settings_.CONST_.OverrideNewTab_
-        && location.pathname.indexOf("newtab") >= 0) {
+        && curPath.indexOf("newtab") >= 0) {
       setTimeout(function (): void {
         const hud = (window as {} as {VHud?: VHUDTy}).VHud;
-        hud && hud.tip_("Not allowed to open the target new tab URL", 2560);
+        hud && hud.tip_(kTip.firefoxRefuseURL, "", 2560);
       }, 100);
     }
   }
   const bg0 = chrome.extension.getBackgroundPage() as BgWindow;
   if (bg0 && bg0.Settings_) {
     bg0.Settings_.updateMediaQueries_();
-    if (location.pathname.toLowerCase().indexOf("options") < 0) {
+    if (curPath.indexOf("options") < 0) {
       const uiStyles = bg0.Settings_.omniPayload_.s;
       if (uiStyles && ` ${uiStyles} `.indexOf(" dark ") >= 0) {
         const style = document.createElement("style");
         style.textContent = "body { background: #000; color: #aab0b6; }";
         (document.head as HTMLHeadElement).appendChild(style);
       }
+    }
+  }
+  if (curPath.indexOf("blank") > 0) {
+    if (navigator.language.slice(0, 2).toLowerCase() !== "en") {
+      let s = chrome.i18n.getMessage("vBlank");
+      s && (document.title = s);
     }
   }
   if (!Build.NDEBUG) {
