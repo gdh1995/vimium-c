@@ -467,6 +467,9 @@
 	"goForward_s": {
 		"message": "Go forward in history"
 	},
+	"previousTab_s": {
+		"message": "Go one tab left"
+	},
 	"reloadTab_s": {
 		"message": "Reload tab"
 	},
