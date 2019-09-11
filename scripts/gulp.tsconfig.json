@@ -9,7 +9,7 @@
     "typescript": "typescript/lib/typescript"
   },
   "build": { // for [ local, dist ]
-    "MinCVer": [ 74, 35 ], // keep dist to be 35 : the relase version
+    "MinCVer": [ 74, 38 ], // keep dist to be 38 : the relase version
     "MinFFVer": [ 64, 64 ],
     "BTypes": [ 3, 1 ], // [ Chrome | Firefox, Chrome ]
     "NoDialogUI": [ 1, 1 ],

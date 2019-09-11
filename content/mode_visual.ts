@@ -869,8 +869,8 @@ init_ (words: string) {
     || (Build.BTypes & BrowserType.Firefox && VOther === BrowserType.Firefox)
     || VDom.cache_.v >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) &&
   // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
-  (a._rightWhiteSpaceRe = Build.BTypes & BrowserType.Firefox
-      ? /[^\S\n\r\u2029\u202f\ufeff]+$/ as RegExpOne : /[^\S\n\u2029\u202f\ufeff]+$/ as RegExpOne);
+  (a._rightWhiteSpaceRe = <RegExpOne> (Build.BTypes & BrowserType.Firefox
+      ? /[^\S\n\r\u2029\u202f\ufeff]+$/ : /[^\S\n\u2029\u202f\ufeff]+$/));
   func(map); func(map.a as Dict<VisualAction>); func(map.g as Dict<VisualAction>);
 }
 };

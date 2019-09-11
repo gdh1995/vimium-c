@@ -21,7 +21,7 @@ A <span style="color: #a55e18;">C</span>ustomized
     and inje**c**tion functionality,
   in <span style="color: #a55e18;">**C**</span>-style code for qui**c**ker action and less resource **c**ost.
 
-It supports Chrome and other Chromium-based browsers whose core versions are >= 35,
+It supports Chrome and other Chromium-based browsers whose core versions are >= 38,
   and supports most of the functionality on a latest Firefox (since version 64.0).
 If re-compiled from the source code, Vimium C is able to support Chrome 32.
 
