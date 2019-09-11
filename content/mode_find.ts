@@ -47,8 +47,8 @@ var VFind = {
         a.coords_ = [scrollX, scrollY];
       }
     }
-    VHud.hide_(TimerType.noTimer);
     if (a.isActive_) {
+      VHud.hide_(TimerType.noTimer);
       return a.setFirstQuery_(query);
     }
 
@@ -162,7 +162,9 @@ var VFind = {
     a.box_.style.display = "";
     VKey.removeHandler_(a);
     VKey.pushHandler_(a.onHostKeydown_, a);
-    return a.setFirstQuery_(a.query0_);
+    // delay VHud.hide_, so that avoid flicker on Firefox
+    VHud.hide_(TimerType.noTimer);
+    a.setFirstQuery_(a.query0_);
   },
   _onUnexpectedBlur: null as ((event?: Event) => void) | null,
   focus_ (): void {
