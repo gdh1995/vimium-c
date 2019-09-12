@@ -243,7 +243,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
       const parsed = new DOMParser().parseFromString(bgSettings_.cache_.exclusionTemplate as string, "text/html").body;
       (container as Ensure<typeof element, "append">).append(... <Element[]> <ArrayLike<Element>> parsed.children);
     }
-    this.template_ = (container.querySelector("#exclusionRuleTemplate") as HTMLTemplateElement
+    this.template_ = (container.querySelector("#exclusionTemplate") as HTMLTemplateElement
         ).content.firstChild as HTMLTableRowElement;
     if (lang_ !== "en") {
       let el: HTMLElement, t: string;
@@ -346,9 +346,9 @@ static OnNewKeys_ (vnode: ExclusionVisibleVirtualNode): void {
 }
 onRemoveRow_ (event: Event): void {
   let element = event.target as HTMLElement;
-  if (!element.classList.contains("exclusionRemoveButton")) { return; }
+  if (!element.classList.contains("exclusionRemove")) { return; }
   element = (element.parentNode as Node).parentNode as HTMLElement;
-  if (element.classList.contains("exclusionRuleInstance")) {
+  if (element.classList.contains("exclusionRule")) {
     const vnode = (element.querySelector(".pattern") as ExclusionRealNode).vnode;
     element.remove();
     this.list_.splice(this.list_.indexOf(vnode), 1);
@@ -378,14 +378,15 @@ readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"] {
       this.updateVNode_(vnode, "", passKeys);
       continue;
     }
-    if (pattern[0] === ":") { /* empty */ }
+    let schemaLen = pattern[0] === ":" ? 0 : pattern.indexOf("://");
+    if (!schemaLen) { /* empty */ }
     else if (!this._reChar.test(pattern)) {
-      fixTail = pattern.indexOf("/", pattern.indexOf("://") + 3) < 0;
+      fixTail = pattern.indexOf("/", schemaLen + 3) < 0 && pattern.lastIndexOf("vimium:", 0) < 0;
       pattern = pattern.replace(this._escapeRe, "$1");
-      pattern = (pattern.indexOf("://") === -1 ? ":http://" : ":") + pattern;
+      pattern = (schemaLen < 0 ? ":http://" : ":") + pattern;
     } else if (pattern[0] !== "^") {
-      fixTail = pattern.indexOf("/", pattern.indexOf("://") + 3) < 0;
-      pattern = (pattern.indexOf("://") === -1 ? "^https?://" : "^") +
+      fixTail = pattern.indexOf("/", schemaLen + 3) < 0;
+      pattern = (schemaLen < 0 ? "^https?://" : "^") +
           (pattern[0] !== "*" || pattern[1] === "."
             ? ((pattern = pattern.replace(<RegExpG> /\./g, "\\.")),
               pattern[0] !== "*" ? pattern.replace("://*\\.", "://(?:[^./]+\\.)*?")
@@ -429,8 +430,9 @@ onSave_ (): void {
     if (rule.$pattern_.value !== rule.rule_.pattern) {
       rule.$pattern_.value = rule.rule_.pattern;
     }
-    if (rule.$keys_.value !== rule.rule_.passKeys) {
-      rule.$keys_.value = rule.rule_.passKeys;
+    const passKeys = rule.rule_.passKeys.trim();
+    if (rule.$keys_.value !== passKeys) {
+      rule.$keys_.value = passKeys;
     }
   }
 }

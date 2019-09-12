@@ -339,7 +339,7 @@ label:active {
   min-height: 75px;
 }
 .height-6 {
-  min-height: 105px;
+  min-height: 110px;
 }
 #keyMappings {
   min-height: 166px;
@@ -440,23 +440,23 @@ label:active {
   box-sizing: border-box;
   color: #444;
   margin: -2px 0 3px 0;
-  max-height: 140px;
+  max-height: 141px;
   min-height: 81px;
   overflow-x: hidden;
   overflow-y: auto;
   width: 100%;
 }
-#exclusionRulesTable {
+#exclusionTable {
   border-spacing: 2px;
   width: 100%;
 }
-.exclusionRulePassKeys {
+.exclusionPassKeysTd {
   width: 33%;
 }
 .exclusionRemoveTd {
   width: 20px;
 }
-.exclusionRemoveButton {
+.exclusionRemove {
   border: none;
   background: none;
   color: #979ca0;
@@ -468,16 +468,16 @@ label:active {
   -webkit-user-select: none;
   user-select: none;
 }
-.exclusionRemoveButton:hover {
+.exclusionRemove:hover {
   color: #444;
   color: var(--icon-button-hover-color);
 }
-.exclusionRemoveButton:active {
+.exclusionRemove:active {
   color: #4d90fe;
   color: var(--icon-button-active-color);
   outline: none;
 }
-.exclusionHeaderText {
+.exclusionHeader {
   padding-left: 3px;
   color: #798086;
 }

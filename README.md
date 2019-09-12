@@ -65,7 +65,7 @@ __Other extensions supporting Vimium C:__
     [#51](https://github.com/gdh1995/vimium-c/issues/51), [#42](https://github.com/gdh1995/vimium-c/issues/42),
     [#28](https://github.com/gdh1995/vimium-c/issues/28), [#14](https://github.com/gdh1995/vimium-c/issues/14))
 * `ignoreKeyboardLayout` is enabled by default, to **support most keyboard layouts by default**
-* the [PRIVACY-POLICY.md](PRIVACY-POLICY.md) has been updated
+* the [PRIVACY POLICY](PRIVACY-POLICY.md) has been updated
 * translated into Chinese
 * some other bug fixes
 
@@ -150,7 +150,7 @@ __Other extensions supporting Vimium C:__
   * the old behavior was to do nothing, which is somehow inconvenient
   * the dialog works again if you reload this extension, or just restart Chrome
 * Firefox: fix a potential vulnerability in v1.75.7 and v1.75.8
-* update some notes in PRIVACY-POLICY about which permissions may be removed safely
+* update some notes in PRIVACY POLICY about which permissions may be removed safely
 
 1.75.8 (only released on Firefox):
 * LinkHints: smarter hinting and now `<video>` and `<audio>` are clickable
