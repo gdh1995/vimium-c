@@ -27,5 +27,5 @@ declare const enum BuildStr {
   CoreGetterFuncName = "__VimiumC_priv__",
   FirefoxID = "vimium-c@gdh1995.cn",
   FirefoxAddonPage = "https://addons.mozilla.org/en-US/firefox/addon/vimium-c/",
-  ChromeWebStorePage = "https://chrome.google.com/webstore/detail/vimium-c/$id/reviews",
+  ChromeWebStorePage = "https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/$id/reviews",
 }

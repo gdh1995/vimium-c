@@ -486,7 +486,7 @@
 		"message": "You have asked Vimium C to perform $1 repeats of the command:\n    $2\n\nAre you sure you want to continue?"
 	},
 	"name": {
-		"message": "Vimium C - Use Keyboard Everywhere"
+		"message": "Vimium C - All by Keyboard"
 	},
 	"description": {
 		"message": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts"
