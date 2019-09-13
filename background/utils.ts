@@ -809,7 +809,8 @@ var
 CurCVer_: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
   (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
   && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
-  || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer
+  || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer,
+trans_ = chrome.i18n.getMessage;
 ;
 const BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
@@ -817,9 +818,7 @@ const BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) ? "moz"
   : Build.BTypes & BrowserType.Edge
     && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? "ms-browser" : "about"
-  : "chrome",
-trans_ = chrome.i18n.getMessage
-;
+  : "chrome";
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".startsWith) {
 String.prototype.startsWith = function (this: string, s: string): boolean {

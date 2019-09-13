@@ -32,14 +32,14 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
       }
     }, 100);
   }
-  interface BgWindow extends Window { Settings_: typeof Settings_; }
+  interface BgWindow2 extends Window { Settings_: typeof Settings_; }
   function onLastLoad(): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
     const dom = (window as {} as {VDom?: typeof VDom}).VDom;
     dom && (dom.allowScripts_ = 0);
-    let bg: BgWindow;
+    let bg: BgWindow2;
     if (Build.BTypes & BrowserType.Firefox && Build.MayOverrideNewTab
-        && (bg = chrome.extension.getBackgroundPage() as BgWindow)
+        && (bg = chrome.extension.getBackgroundPage() as BgWindow2)
         && bg.Settings_ && bg.Settings_.CONST_.OverrideNewTab_
         && curPath.indexOf("newtab") >= 0) {
       setTimeout(function (): void {
@@ -48,7 +48,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
       }, 100);
     }
   }
-  const bg0 = chrome.extension.getBackgroundPage() as BgWindow;
+  const bg0 = chrome.extension.getBackgroundPage() as BgWindow2;
   if (bg0 && bg0.Settings_) {
     bg0.Settings_.updateMediaQueries_();
     if (curPath.indexOf("options") < 0) {
@@ -62,13 +62,13 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function () {
   }
   if (curPath.indexOf("blank") > 0) {
     if (navigator.language.slice(0, 2).toLowerCase() !== "en") {
-      let s = chrome.i18n.getMessage("vBlank");
+      let s = (Build.BTypes & BrowserType.Firefox && bg0 && bg0.trans_ || chrome.i18n.getMessage)("vBlank");
       s && (document.title = s);
     }
   }
   if (!Build.NDEBUG) {
     (window as {} as {updateUI(): void}).updateUI = function (): void {
-      const settings = (chrome.extension.getBackgroundPage() as BgWindow).Settings_;
+      const settings = (chrome.extension.getBackgroundPage() as BgWindow2).Settings_;
       delete (settings.cache_ as FullSettings).helpDialog;
       delete (settings.cache_ as FullSettings).exclusionTemplate;
       settings.fetchFile_("baseCSS", function (): void {

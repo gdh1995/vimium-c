@@ -491,6 +491,9 @@
 	"description": {
 		"message": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts"
 	},
+	"i18nVer": { "message": "1.0" },
+	"lang1": { "message": "" },
+	"lang2": { "message": "" },
 	"NS": { "message": " " },
 	"period": {
 		"message": "."

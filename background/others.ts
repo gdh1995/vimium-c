@@ -844,6 +844,47 @@ BgUtils_.timeout_(600, function (): void {
   });
 });
 
+declare var fetch: any;
+declare const enum I18nConsts {
+  storageKey = "i18n_f",
+  verKey = "i18nVer",
+}
+if (Build.BTypes & BrowserType.Firefox
+    && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+BgUtils_.timeout_(500, function (): void {
+  const i18nVer = navigator.language + trans_(I18nConsts.verKey), nativeTrans = trans_,
+  newTrans: typeof chrome.i18n.getMessage = (messageName: string, substitutions?: Array<string | number>): string => {
+    return i18nKeys.has(messageName) ? nativeTrans(messageName, substitutions) : "";
+  };
+  let oldStr = localStorage.getItem(I18nConsts.storageKey), keyArrs: string[] = [], i18nKeys: Set<string>, todos = 0,
+  fixTrans = (updateCache: BOOL): void => {
+    i18nKeys = new (Set as SetConstructor)<string>(keyArrs);
+    trans_ = newTrans;
+    keyArrs = fixTrans = null as never;
+    if (updateCache) {
+      localStorage.setItem(I18nConsts.storageKey, i18nVer + [...(i18nKeys as any).values()].join(","));
+    }
+  };
+  if (oldStr && oldStr.startsWith(i18nVer)) {
+    keyArrs = oldStr.slice(i18nVer.length).split(",");
+    fixTrans(0);
+    return;
+  }
+  const onload = (messages: Dict<{ message: string }>): void => {
+    keyArrs = keyArrs.concat(Object.keys(messages).filter(i => !(parseInt(i, 10) >= 0)));
+    if (0 === --todos) {
+      fixTrans(1);
+    }
+  };
+  for (const langName of new (Set as SetConstructor)<string>(["en", trans_("lang1"), trans_("lang2")]) as any) {
+    if (langName) {
+      fetch(`/_locales/${langName}/messages.json`).then((r: any) => r.json()).then(onload);
+      todos++;
+    }
+  }
+});
+}
+
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 chrome.runtime.onInstalled.addListener(Settings_.temp_.onInstall_ =
 function (details: chrome.runtime.InstalledDetails): void {

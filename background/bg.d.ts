@@ -459,6 +459,7 @@ interface Window {
   readonly CurCVer_: BrowserVer;
 
   readonly Backend_: BackendHandlersNS.BackendHandlers;
+  readonly trans_: typeof chrome.i18n.getMessage;
 }
 
 declare const enum Consts {

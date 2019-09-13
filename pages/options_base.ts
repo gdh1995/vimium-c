@@ -18,8 +18,18 @@ interface BgWindow extends Window {
 const lang_ = navigator.language.slice(0, 2).toLowerCase(),
 $$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(selector: string) => NodeListOf<T>;
 
+declare var bgOnOther_: BrowserType;
+if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+    : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
+  window.chrome = browser as typeof chrome;
+}
 var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
-  , pTrans_ = chrome.i18n.getMessage;
+  , BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow
+  , bgOnOther_: BrowserType = Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox
+      && Build.BTypes & ~BrowserType.Edge ? BG_.OnOther as BrowserType : Build.BTypes as number
+  , pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
+      && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
+      ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
 if (lang_ !== "en") {
   (function () {
     let t = pTrans_("keyMappingsP"), el: HTMLElement | null = $("#keyMappings");
@@ -38,10 +48,6 @@ if (lang_ !== "en") {
   })();
 }
 
-if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : typeof browser !== "undefined" && (browser && (browser as typeof chrome).runtime) != null) {
-  window.chrome = browser as typeof chrome;
-}
 const KeyRe_ = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:s-)?(?:[a-z][\da-z]+|[^\sA-Z])>|\S/g,
 __extends = function<Child, Super, Base> (
     child: (new <Args extends any[]> (...args: Args) => Child) & {
@@ -113,15 +119,10 @@ debounce_ = function<T> (this: void, func: (this: T) => void
   };
 } as <T> (this: void, func: (this: T) => void
           , wait: number, bound_context: T, also_immediate: BOOL
-          ) => (this: void) => void;
+          ) => (this: void) => void,
+bgBrowserVer_ = Build.BTypes & BrowserType.Chrome ? BG_.CurCVer_ : BrowserVer.assumedVer;
 
-var BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow;
 let bgSettings_ = BG_.Settings_;
-declare var bgOnOther_: BrowserType;
-const bgBrowserVer_ = Build.BTypes & BrowserType.Chrome ? BG_.CurCVer_ : BrowserVer.assumedVer;
-if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
-  var bgOnOther_ = BG_.OnOther as NonNullable<typeof BG_.OnOther>;
-}
 
 abstract class Option_<T extends keyof AllowedOptions> {
   readonly element_: HTMLElement;

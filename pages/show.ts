@@ -44,8 +44,10 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   window.chrome = browser as typeof chrome;
 }
 var $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T,
-pTrans_ = chrome.i18n.getMessage,
-BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow;
+BG_ = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow,
+pTrans_: typeof chrome.i18n.getMessage = Build.BTypes & BrowserType.Firefox
+      && (!(Build.BTypes & ~BrowserType.Firefox) || BG_.OnOther === BrowserType.Firefox)
+      ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
 if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
   BG_ = null as never;
 }
@@ -59,7 +61,7 @@ let encryptKey = window.name && +window.name.split(" ")[0] || 0;
 let ImageExtRe = <RegExpI> /\.(bmp|gif|icon?|jpe?g|png|tiff?|webp)(?=[.\-_]|\b)/i;
 
 if (navigator.language.slice(0, 2).toLowerCase() !== "en") {
-  document.title = chrome.i18n.getMessage("vDisplay") || document.title;
+  document.title = pTrans_("vDisplay") || document.title;
 }
 
 window.onhashchange = function (this: void): void {
