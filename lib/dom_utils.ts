@@ -50,14 +50,14 @@ var VDom = {
     const desc = Object.getOwnPropertyDescriptor(Cls.prototype, property);
     return desc && desc.get ? desc.get.call(instance) : null;
   } : 0 as never,
-  notSafe_: Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
+  notSafe_: (Build.BTypes & ~BrowserType.Firefox ? function (el: Node | null): el is HTMLFormElement {
     let s: Node["nodeName"];
     return !!el && (typeof (s = el.nodeName) !== "string" ||
       (Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || !(Build.BTypes & BrowserType.Chrome)
         ? s.toLowerCase() === "form"
         : (s = s.toLowerCase()) === "form" || s === VDom.unsafeFramesetTag_)
     );
-  } : 0 as never,
+  } : 0 as never) as (el: Node | null) => el is HTMLFormElement,
   /** @safe_even_if_any_overridden_property */
   SafeEl_: Build.BTypes & ~BrowserType.Firefox ? function (
       this: void, el: Node | null, type?: PNType.DirectElement | undefined): Node | null {

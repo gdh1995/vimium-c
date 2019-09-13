@@ -397,16 +397,16 @@ var VHints = {
     let arr: Rect | null | undefined, s: string | null , type = ClickType.Default;
     { // not HTML*
       // never accept raw `Element` instances, so that properties like .tabIndex and .dataset are ensured
-      if ("tabIndex" in /* <ElementToHTMLorSVG> */ element) { // SVG*
+      if ((element as ElementToHTMLorSVG).tabIndex != null) { // SVG*
         // not need to distinguish attrListener and codeListener
         type = VDom.clickable_.has(element) || element.getAttribute("onclick")
             || this.ngEnabled_ && element.getAttribute("ng-click")
             || this.jsaEnabled_ && (s = element.getAttribute("jsaction")) && this.checkJSAction_(s)
           ? ClickType.attrListener
-          : element.tabIndex >= 0 ? ClickType.tabindex
+          : (element as SVGElement).tabIndex >= 0 ? ClickType.tabindex
           : ClickType.Default;
         if (type > ClickType.Default && (arr = VDom.getVisibleClientRect_(element))) {
-          hints.push([element, arr, type]);
+          hints.push([element as SVGElement, arr, type]);
         }
       }
     }
@@ -705,7 +705,19 @@ var VHints = {
           continue;
         }
         j = i;
-      } else if (k !== ClickType.classname) { j = i; }
+      } else if (k !== ClickType.classname) {
+        j = i;
+        if (k === ClickType.tabindex && list[i][0].childElementCount === 1 && i + 1 < list.length
+            && list[i + 1][0].parentNode !== list[i][0]) {
+          const child = list[i][0].lastElementChild as Element,
+          prect = list[i][1], crect = VDom.getVisibleClientRect_(child);
+          if (crect && crect[0] - 4 < prect[0] && crect[2] > prect[2] - 4
+              && crect[1] - 4 < prect[1] && crect[3] > prect[3] - 4
+              && VDom.htmlTag_(child)) {
+            list[i] = [child as SafeHTMLElement, crect, ClickType.tabindex];
+          }
+        }
+      }
       else if ((k = list[j = i - 1][2]) > ClickType.MaxWeak || !this._isDescendant(list[i][0], list[j][0])) {
         continue;
       } else if (VDom.isContaining_(list[j][1], list[i][1])) {
