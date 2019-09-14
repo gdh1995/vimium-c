@@ -847,12 +847,15 @@ BgUtils_.timeout_(600, function (): void {
 declare var fetch: any;
 declare const enum I18nConsts {
   storageKey = "i18n_f",
-  verKey = "i18nVer",
+  ver = "langv",
+  v1 = "langv1",
+  v2 = "langv2",
 }
 if (Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
 BgUtils_.timeout_(500, function (): void {
-  const i18nVer = navigator.language + trans_(I18nConsts.verKey), nativeTrans = trans_,
+  const i18nVer = `${navigator.language}@${trans_(I18nConsts.ver)}#${trans_(I18nConsts.v1)}#${trans_(I18nConsts.v2)},`,
+  nativeTrans = trans_,
   newTrans: typeof chrome.i18n.getMessage = (messageName: string, substitutions?: Array<string | number>): string => {
     return i18nKeys.has(messageName) ? nativeTrans(messageName, substitutions) : "";
   };
@@ -862,7 +865,7 @@ BgUtils_.timeout_(500, function (): void {
     trans_ = newTrans;
     keyArrs = fixTrans = null as never;
     if (updateCache) {
-      localStorage.setItem(I18nConsts.storageKey, i18nVer + [...(i18nKeys as any).values()].join(","));
+      localStorage.setItem(I18nConsts.storageKey, i18nVer + [...(i18nKeys as any)].join(","));
     }
   };
   if (oldStr && oldStr.startsWith(i18nVer)) {
