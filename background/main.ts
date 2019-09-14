@@ -124,7 +124,11 @@ var Backend_: BackendHandlersNS.BackendHandlers;
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
     if (!url) {
-      if (!(Build.MayOverrideNewTab && !Settings_.cache_.focusNewTabContent && Settings_.CONST_.OverrideNewTab_)) {
+      if (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_
+          ? Settings_.cache_.focusNewTabContent
+          : !(Build.BTypes & BrowserType.Firefox)
+            || (Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox)
+            || !Settings_.newTabs_[Settings_.cache_.newTabUrl_f]) {
         args.url = Settings_.cache_.newTabUrl_f;
       } else if (url != null) {
         delete args.url;
