@@ -2357,7 +2357,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         BgUtils_.copy_(str);
         Backend_.showHUD_(str, true);
       } else {
-        BgUtils_.copy_(request.d);
+        BgUtils_.copy_(request.d, request.j);
       }
     },
     /** kFgReq.key: */ function (this: void, request: FgReq[kFgReq.key], port: Port): void {

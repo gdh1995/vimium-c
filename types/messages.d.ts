@@ -405,7 +405,8 @@ interface FgReq {
     /** favIcon */ i?: 0 | 1 | 2;
   } & CompletersNS.Options;
   [kFgReq.copy]: {
-    /** data */ d: string;
+    /** data */ d: string | string[];
+    /** [].join($j) */ j?: string;
     u?: undefined;
   } | {
     /** url */ u: string;

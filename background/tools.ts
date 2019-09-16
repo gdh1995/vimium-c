@@ -12,7 +12,10 @@ const Clipboard_ = {
     return el;
   },
   tailSpacesOrNewLineRe_: <RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g,
-  format_ (data: string): string {
+  format_ (data: string | string[], join?: string): string {
+    if (typeof data !== "string") {
+      data = data.join(join || "\n") + (data.length > 1 && !join ? "\n" : "");
+    }
     data = data.replace(BgUtils_.A0Re_, " ").replace(this.tailSpacesOrNewLineRe_, "\n");
     let i = data.charCodeAt(data.length - 1);
     if (i !== kCharCode.space && i !== kCharCode.tab) { /* empty */ }
@@ -663,10 +666,10 @@ BgUtils_.timeout_(120, function (): void {
 BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
     && (Build.MinFFVer >= FirefoxBrowserVer.MinUsable$Navigator$$Clipboard || navigator.clipboard)
-? function (this: void, data: string): void {
-  (navigator.clipboard as EnsureNonNull<Navigator["clipboard"]>).writeText(Clipboard_.format_(data));
-} : function (this: void, data: string): void {
-  data = Clipboard_.format_(data);
+? function (this: void, data, join): void {
+  (navigator.clipboard as EnsureNonNull<Navigator["clipboard"]>).writeText(Clipboard_.format_(data, join));
+} : function (this: void, data, join): void {
+  data = Clipboard_.format_(data, join);
   const textArea = Clipboard_.getTextArea_();
   textArea.value = data;
   (document.documentElement as HTMLHtmlElement).appendChild(textArea);

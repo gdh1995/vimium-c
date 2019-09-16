@@ -28,6 +28,7 @@ declare namespace HintsNS {
     newtab?: boolean;
     button?: "right";
     touch?: boolean | null;
+    join?: string;
     toggle?: {
       [selector: string]: string;
     };
@@ -88,7 +89,7 @@ var VHints = {
   noHUD_: false,
   options_: null as never as HintsNS.Options,
   timer_: 0,
-  yankedList_: "",
+  yankedList_: [] as string[],
   kSafeAllSelector_: Build.BTypes & ~BrowserType.Firefox ? ":not(form)" as const : "*" as const,
   kEditableSelector_: "input,textarea,[contenteditable]" as const,
   activate_ (this: void, count: number, options: FgOptions): void {
@@ -160,6 +161,9 @@ var VHints = {
       : a.CONST_[options.action || options.mode as string] as number | undefined | {} as number) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
+    }
+    if (mode === HintMode.COPY_TEXT && options.join) {
+      mode = HintMode.COPY_TEXT | HintMode.queue | HintMode.list;
     }
     count = Math.abs(count);
     if (count > 1) { mode < HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
@@ -1040,7 +1044,8 @@ var VHints = {
     a.maxLeft_ = a.maxTop_ = a.maxRight_ =
     ks.tab_ = ks.newHintLength_ = ks.known_ = alpha.countMax_ = 0;
     a.keyCode_ = kKeyCode.None;
-    alpha.hintKeystroke_ = alpha.chars_ = a.yankedList_ = "";
+    a.yankedList_ = [];
+    alpha.hintKeystroke_ = alpha.chars_ = "";
     a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
     VKey.removeHandler_(a);
     VApis.onWndBlur_(null);
@@ -1388,7 +1393,7 @@ Modes_: [
         str: string | null | undefined;
     if (isUrl) {
       str = a.getUrlData_(link as HTMLAnchorElement);
-      str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.slice(7).trimLeft());
+      str.length > 7 && str.toLowerCase().startsWith("mailto:") && (str = str.slice(7).trim());
     }
     /** Note: SVGElement::dataset is only since `BrowserVer.Min$SVGElement$$dataset` */
     else if ((str = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$SVGElement$$dataset
@@ -1402,23 +1407,24 @@ Modes_: [
           return VHud.tip_(kTip.ignorePassword, "Sorry, Vimium C won't copy a password.", 2000);
         }
         if (!VDom.uneditableInputs_[type]) {
-          str = ((link as HTMLInputElement).value || (link as HTMLInputElement).placeholder).trim();
+          str = (link as HTMLInputElement).value || (link as HTMLInputElement).placeholder;
         } else if (type === "file") {
           str = (f = (link as HTMLInputElement).files) && f.length > 0 ? f[0].name : "";
         } else if ("button image submit reset".indexOf(type) >= 0) {
-          str = (link as HTMLInputElement).value.trim();
+          str = (link as HTMLInputElement).value;
         }
       } else {
         str = tag === "textarea" ? (link as HTMLTextAreaElement).value
           : tag === "select" ? ((link as HTMLSelectElement).selectedIndex < 0
               ? "" : (link as HTMLSelectElement).options[(link as HTMLSelectElement).selectedIndex].text)
           : tag && (str = (link as SafeHTMLElement).innerText.trim(),
-              str.length > 7 && str.slice(0, 7).toLowerCase() === "mailto:" ? str.slice(7).trimLeft() : str)
+              str.length > 7 && str.slice(0, 7).toLowerCase() === "mailto:" ? str.slice(7).trim() : str)
             || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
           ;
       }
+      str = str && str.trim();
       if (!str && tag) {
-        str = ((link as SafeHTMLElement).title.trim() || link.getAttribute("aria-label") || "").trim();
+        str = (link as SafeHTMLElement).title.trim() || (link.getAttribute("aria-label") || "").trim();
       }
     }
     if (!str) {
@@ -1442,19 +1448,19 @@ Modes_: [
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? a.decodeURL_(str) : str;
-    let shownText = str, lastYanked = a.yankedList_, oldCount = lastYanked ? lastYanked.split("\n").length : 0;
-    if (mode1 & HintMode.list) {
-      if (`\n${lastYanked}\n`.indexOf(`\n${str}\n`) >= 0) {
+    let shownText = str, lastYanked = mode1 & HintMode.list ? a.yankedList_ : 0 as const;
+    if (lastYanked) {
+      if (lastYanked.indexOf(str) >= 0) {
         return VHud.show_(kTip.noNewToCopy, "Nothing new to copy");
       }
-      shownText = `[${oldCount + 1}] ${str}`;
-      str = oldCount ? lastYanked + "\n" + str + "\n" : str;
+      shownText = `[${lastYanked.length + 1}] ` + str;
+      lastYanked.push(str);
     }
     VPort.post_({
       H: kFgReq.copy,
-      d: str
+      j: a.options_.join,
+      d: lastYanked || str
     });
-    a.yankedList_ = str.trim();
     return VHud.copied_(shownText);
   }
   , HintMode.SEARCH_TEXT, "Search selected text"
