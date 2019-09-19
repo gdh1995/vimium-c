@@ -12,9 +12,10 @@ const Clipboard_ = {
     return el;
   },
   tailSpacesOrNewLineRe_: <RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g,
-  format_ (data: string | string[], join?: string): string {
+  format_ (data: string | string[], join?: FgReq[kFgReq.copy]["j"]): string {
     if (typeof data !== "string") {
-      data = data.join(join || "\n") + (data.length > 1 && !join ? "\n" : "");
+      data = data.join(join !== !!join && (join as string) || "\n") +
+          (data.length > 1 && (!join || join === !!join) ? "\n" : "");
     }
     data = data.replace(BgUtils_.A0Re_, " ").replace(this.tailSpacesOrNewLineRe_, "\n");
     let i = data.charCodeAt(data.length - 1);

@@ -406,10 +406,11 @@ interface FgReq {
   } & CompletersNS.Options;
   [kFgReq.copy]: {
     /** data */ d: string | string[];
-    /** [].join($j) */ j?: string;
+    /** [].join($j) */ j?: string | boolean;
     u?: undefined;
   } | {
     /** url */ u: string;
+    j?: undefined;
     /** decode */ d: boolean;
   };
   [kFgReq.key]: {

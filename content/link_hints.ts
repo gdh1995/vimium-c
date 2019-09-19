@@ -28,7 +28,7 @@ declare namespace HintsNS {
     newtab?: boolean;
     button?: "right";
     touch?: boolean | null;
-    join?: string;
+    join?: FgReq[kFgReq.copy]["j"];
     toggle?: {
       [selector: string]: string;
     };

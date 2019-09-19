@@ -469,7 +469,7 @@ var BgUtils_ = {
     }
     return result;
   },
-  copy_ (this: void, _s: string | string[], _j?: string): void | Promise<void> { /* empty */ },
+  copy_ (this: void, _s: string | string[], _j?: FgReq[kFgReq.copy]["j"]): void | Promise<void> { /* empty */ },
   require_ <K extends SettingsNS.DynamicFiles> (name: K): Promise<NonNullable<Window[K]>> {
     type T = NonNullable<Window[K]>;
     type P = Promise<T>;
