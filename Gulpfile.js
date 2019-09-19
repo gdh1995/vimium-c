@@ -2,7 +2,7 @@
 var fs = require("fs");
 var gulp = require("gulp");
 var logger = require("fancy-log");
-var changed = require('gulp-changed');
+var gulpChanged = require('gulp-changed');
 var ts = require("gulp-typescript");
 var newer = require('gulp-newer');
 var gulpPrint = require('gulp-print');
@@ -101,7 +101,7 @@ var Tasks = {
   static: ["static/special", "static/uglify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*.css"
       , "settings_template.json", "*.txt", "*.md"
-      , "_locales/**"
+      , "_locales/*/messages.json"
       , "!**/manifest*.json"
       , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
@@ -617,7 +617,7 @@ function outputJSResult(stream) {
       postUglify(file, file.history.join("|").indexOf("extend_click") >= 0);
     }));
   }
-  stream = stream.pipe(changed(JSDEST, {
+  stream = stream.pipe(gulpChanged(JSDEST, {
     hasChanged: compareContentAndTouch
   }));
   if (willListEmittedFiles) {
@@ -818,7 +818,7 @@ function copyByPath(path) {
             ).replace(/body ?\{/, "html{font-size:1px;}\nbody{"));
       }
     }))
-    .pipe(changed(DEST, {
+    .pipe(gulpChanged(DEST, {
       hasChanged: compareContentAndTouch
     }));
   if (willListEmittedFiles) {
@@ -851,7 +851,7 @@ function formatPath(path, base) {
 
 function compareContentAndTouch(stream, sourceFile, targetPath) {
   if (sourceFile.isNull()) {
-    return changed.compareContents.apply(this, arguments);
+    return gulpChanged.compareContents.apply(this, arguments);
   }
   var isSame = false, equals = sourceFile.contents.equals,
   newEquals = sourceFile.contents.equals = function(targetData) {
@@ -859,7 +859,7 @@ function compareContentAndTouch(stream, sourceFile, targetPath) {
     isSame || (isSame = curIsSame);
     return curIsSame;
   };
-  return changed.compareContents.apply(this, arguments
+  return gulpChanged.compareContents.apply(this, arguments
   ).then(function() {
     sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
     if (!isSame) { return; }
