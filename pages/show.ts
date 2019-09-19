@@ -70,6 +70,7 @@ window.onhashchange = function (this: void): void {
     bgLink.style.display = "none";
     VShown.remove();
     VShown = null;
+    listenWheelForImage(false);
   }
 
   VData = Object.create(null);
@@ -210,6 +211,7 @@ window.onhashchange = function (this: void): void {
       VShown.alt = file;
       VShown.title = file;
     }
+    listenWheelForImage(true);
     break;
   case "url":
     VShown = (importBody as ImportBody)("shownText");
@@ -244,6 +246,7 @@ window.onhashchange = function (this: void): void {
     VShown = (importBody as ImportBody)("shownImage");
     VShown.src = "../icons/icon128.png";
     bgLink.style.display = "none";
+    listenWheelForImage(true);
     break;
   }
 
@@ -291,6 +294,18 @@ document.addEventListener("keydown", function (this: void, event): void {
     return toggleInvert(event);
   }
 });
+
+function listenWheelForImage(doListen: boolean) {
+  (doListen ? addEventListener : removeEventListener)("wheel", myOnWheel, { passive: false, capture: true } as const);
+}
+
+function myOnWheel(this: void, event: WheelEvent) {
+  if (event.ctrlKey) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    defaultOnClick(event);
+  }
+}
 
 function showBgLink(this: void): void {
   const height = (VShown as ValidNodeTypes).scrollHeight, width = (VShown as ValidNodeTypes).scrollWidth;
@@ -485,10 +500,11 @@ function loadViewer(): Promise<Window["Viewer"]> {
       shown (this: void) {
         bgLink.style.display = "none";
       },
-      viewed (): void { if (tempEmit) { return tempEmit(true); } },
+      viewed (): void { if (tempEmit) {  listenWheelForImage(false); tempEmit(true); } },
       hide (this: void) {
         bgLink.style.display = "";
-        if (tempEmit) { return tempEmit(false); }
+        listenWheelForImage(true);
+        if (tempEmit) { tempEmit(false); }
       }
     });
     return ViewerModule;

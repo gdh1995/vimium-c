@@ -178,7 +178,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   styles_: "",
   styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
-  wheelOptions_: { passive: false, capture: true as true },
+  wheelOptions_: { passive: false, capture: true } as const,
   show_ (): void {
     const a = Vomnibar_;
     a.showing_ = true;
