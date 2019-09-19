@@ -649,13 +649,20 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   Option_.all_.keyMappings.onSave_ = function (): void {
     const errors = bgSettings_.temp_.cmdErrors_,
     msg = !errors ? "" : pTrans_("openBgLogs", [pTrans_(errors === 1 ? "error" : "errors", [errors])]);
-    return this.showError_(msg);
+    if (bgSettings_.payload_.L && !msg) {
+      let str = Object.keys(BG_.CommandsData_.keyMap_).join(""), mapKey = BG_.CommandsData_.mapKeyRegistry_;
+      str += mapKey ? Object.keys(mapKey).join("") : "";
+      if ((<RegExpOne> /[^ -\xff]/).test(str)) {
+        this.showError_(pTrans_("ignoredNonEN"), null);
+        return;
+      }
+    }
+    this.showError_(msg);
   };
   Option_.all_.keyMappings.onSave_();
 
   Option_.all_.linkHintCharacters.onSave_ = function (): void {
-    const errors = this.previous_.length < 3;
-    return this.showError_(errors ? pTrans_("hintCharsTooFew") : "");
+    this.showError_(this.previous_.length < 3 ? pTrans_("hintCharsTooFew") : "");
   };
   Option_.all_.linkHintCharacters.onSave_();
 

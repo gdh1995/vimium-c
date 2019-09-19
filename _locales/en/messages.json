@@ -593,6 +593,9 @@
 	"openBgLogs": {
 		"message": "$1. Please see logs of background page for more details."
 	},
+	"ignoredNonEN": {
+		"message": "Keyboard layout has been ignored! Please consider disabling the option."
+	},
 	"hintCharsTooFew": {
 		"message": "Characters for LinkHints are too few."
 	},
