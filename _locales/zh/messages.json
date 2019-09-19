@@ -374,8 +374,8 @@
 	"description": {
 		"message": "一个支持全键盘操作浏览器的辅助工具，只用键盘即可点击任意链接、切换标签页和快速搜索任意内容，支持自定义快捷键和调整操作细节"
 	},
-	"langv2": { "message": "1.0" },
-	"lang2": { "message": "zh_CN" },
+	"langv1": { "message": "1.0" },
+	"lang1": { "message": "zh" },
 	"NS": { "message": "" },
 	"period": {
 		"message": "。"
