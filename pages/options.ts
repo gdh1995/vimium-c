@@ -485,6 +485,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   if (Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_) {
     $("#focusNewTabContent").dataset.model = "Boolean";
     nextTick_(box => box.style.display = "", $("#focusNewTabContentBox"));
+    nextTick_(([el1, el2]) => el2.previousElementSibling !== el1 && el2.parentElement.insertBefore(el1, el2)
+      , [$<HTMLElement>("#newTabUrlBox"), $<EnsuredMountedHTMLElement>("searchUrlBox")] as const);
   }
   if (!Build.NoDialogUI && bgSettings_.CONST_.OptionsUIOpenInTab_) {
     $("#dialogMode").dataset.model = "Boolean";

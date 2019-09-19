@@ -93,23 +93,7 @@ mapKey &lt;a-e&gt; &lt;esc&gt;
           </span>
         </div></td>
       </tr>
-      <tr>
-        <td class="caption" data-i="o25">New tab URL</td>
-        <td>
-          <input id="newTabUrl" type="text" inputmode="url" data-model="NonEmptyText" />
-          <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
-        </td>
-        <td class="help"><div class="help-inner break-all">
-          "<kbd class="sel-all" role="button">pages/blank.html</kbd>" <span data-i="o26">for a blank page.</span>
-          <a href="https://github.com/gdh1995/vimium-c/issues/53" data-i="o27">Since v1.77.0,
-            Vimium C doesn't manage browser new tab any more.</a><br/>
-          <a href="" target="_blank" rel="noopener noreferrer" data-i="o28"
-              data-href="vimium://home/wiki/Use-another-extension-as-the-New-Tab">
-            How to redirect to another extension's newtab?
-          </a>
-        </div></td>
-      </tr>
-      <tr>
+      <tr id="searchUrlBox">
         <td class="caption" data-i="o29">Default search<br/>engine</td>
         <td>
           <input id="searchUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" />
@@ -335,6 +319,22 @@ title="Warning: Chrome has a bug of mistaken dialogue width if you has changed s
           <td class="help"><div class="help-inner">
             The "Options" link on chrome://extensions will open a dialogue.
             This will only work since Chrome 40.
+          </div></td>
+        </tr>
+        <tr id="newTabUrlBox">
+          <td class="caption" data-i="o25">New tab URL</td>
+          <td>
+            <input id="newTabUrl" type="text" inputmode="url" data-model="NonEmptyText" />
+            <div class="nonEmptyTip info" data-i="nonEmpty">Delete all to reset this option.</div>
+          </td>
+          <td class="help"><div class="help-inner break-all">
+            "<kbd class="sel-all" role="button">pages/blank.html</kbd>" <span data-i="o26">for a blank page.</span>
+            <a href="https://github.com/gdh1995/vimium-c/issues/53" data-i="o27">Since v1.77.0,
+              Vimium C doesn't manage browser new tab any more.</a><br/>
+            <a href="" target="_blank" rel="noopener noreferrer" data-i="o28"
+                data-href="vimium://home/wiki/Use-another-extension-as-the-New-Tab">
+              How to redirect to another extension's newtab?
+            </a>
           </div></td>
         </tr>
         <tr>
