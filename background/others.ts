@@ -847,14 +847,11 @@ BgUtils_.timeout_(600, function (): void {
 declare var fetch: any;
 declare const enum I18nConsts {
   storageKey = "i18n_f",
-  ver = "langv",
-  v1 = "langv1",
-  v2 = "langv2",
 }
 if (Build.BTypes & BrowserType.Firefox
     && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
 BgUtils_.timeout_(500, function (): void {
-  const i18nVer = `${navigator.language}@${trans_(I18nConsts.ver)}#${trans_(I18nConsts.v1)}#${trans_(I18nConsts.v2)},`,
+  const i18nVer = `${navigator.language}@${Settings_.CONST_.VerCode_},`,
   nativeTrans = trans_,
   newTrans: typeof chrome.i18n.getMessage = (messageName: string, substitutions?: Array<string | number>): string => {
     return i18nKeys.has(messageName) ? nativeTrans(messageName, substitutions) : "";

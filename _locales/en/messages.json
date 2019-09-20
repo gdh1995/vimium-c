@@ -53,6 +53,9 @@
 	"LinkHints_activateModeToCopyLinkText": {
 		"message": "Copy a link text to the clipboard"
 	},
+	"LinkHints_activateModeToCopyLinkText_p": {
+		"message": "join:boolean/string"
+	},
 	"LinkHints_activateModeToCopyLinkUrl": {
 		"message": "Copy a link URL to the clipboard"
 	},
@@ -123,7 +126,7 @@
 		"message": "Open URL, bookmark, or history entry"
 	},
 	"Vomnibar_activate_p": {
-		"message": "keyword=\"\", url=false/true/(string)"
+		"message": "keyword=\"\", url:boolean/string"
 	},
 	"Vomnibar_activateBookmarks": {
 		"message": "Open a bookmark"
@@ -491,9 +494,6 @@
 	"description": {
 		"message": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts"
 	},
-	"langv": { "message": "1.0" },
-	"langv1": { "message": "" },
-	"langv2": { "message": "" },
 	"lang1": { "message": "" },
 	"lang2": { "message": "" },
 	"NS": { "message": " " },
