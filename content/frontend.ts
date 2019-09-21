@@ -71,25 +71,21 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   function checkKey(char: string, code: kKeyCode, event: EventControlKeys
       ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc | HandlerResult.AdvancedEscEnum {
     // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
-    let key = VKey.key_(event, char);
-    if (passKeys && !currentKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
+    const key0 = VKey.key_(event, char);
+    if (passKeys && !currentKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
       return esc(HandlerResult.Nothing);
     }
-    mappedKeys && (key = mapKey(char, event));
+    let key: string = mappedKeys ? mapKey(char, event) : key0, j: ReadonlyChildKeyMap | ValidKeyAction | undefined;
     if (key === "<esc>" || key === "<c-[>") {
       return nextKeys ? (esc(HandlerResult.ExitPassMode), HandlerResult.Prevent)
         : key[1] === "c" ? HandlerResult.Esc : HandlerResult.AdvancedEscEnum;
     }
-    let j: ReadonlyChildKeyMap | ValidKeyAction | undefined;
     if (!nextKeys || (j = nextKeys[key]) == null) {
-      if (passKeys && nextKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
-        return esc(HandlerResult.Nothing);
-      }
       j = keyMap[key];
-      if (j == null) {
+      if (j == null || nextKeys && passKeys && (key0 in <SafeEnum> passKeys) !== isPassKeysReverted) {
         return esc(HandlerResult.Nothing);
       }
-      if (j !== KeyAction.cmd && nextKeys) { currentKeys = ""; }
+      if (j !== KeyAction.cmd) { currentKeys = ""; }
     }
     currentKeys += key;
     if (j === KeyAction.cmd) {

@@ -60,6 +60,10 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.78 (Not released yet):
+* its UI uses Simplified Chinese (简体中文) for all "zh-*" language regions
+* the `passKeys` will only exclude key strokes when the "current key" sequence is empty
+
 1.77.3:
 * 1.77.3: only for Firefox; fix that it could not open "about:newtab"
 * 1.77.2: only for Firefox; avoid some error logs in the console of background process
