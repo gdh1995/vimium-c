@@ -342,12 +342,15 @@ label:active {
   min-height: 110px;
 }
 #keyMappings {
-  min-height: 166px;
+  min-height: 148px;
 }
 @-moz-document url-prefix() {
   #keyMappings {
-    min-height: 181px;
+    min-height: 166px;
   }
+}
+.ref-text {
+  cursor: pointer;
 }
 #searchEngines {
   min-height: 117px;
@@ -360,15 +363,14 @@ label:active {
 .info, .tip {
   color: #999;
   font-size: 12px;
+  height: 16px;
   line-height: 16px;
   margin-left: 4px;
-}
-.nonEmptyTip {
-  height: 16px;
 }
 .tip {
   color: darkred;
   color: var(--tip-color, darkred);
+  height: unset;
 }
 .help {
   padding-left: 20px;
@@ -491,9 +493,6 @@ label:active {
   overflow: hidden;
   padding: 0 7px;
   width: 76px;
-}
-#focusNewTabTitle {
-  cursor: pointer;
 }
 #footer {
   background: #f3f3f3;

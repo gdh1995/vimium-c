@@ -2886,7 +2886,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         port.postMessage(msg);
       }
       newStatus !== Frames.Status.disabled && this.showHUD_(trans_("newStat", [
-        trans_(newStatus === Frames.Status.enabled ? "enabled" : "partially disabled")
+        trans_(newStatus === Frames.Status.enabled ? "fullEnabled" : "halfDisabled")
       ]));
       if (needIcon && (newStatus = ref[0].s.s) !== oldStatus) {
         return this.setIcon_(tabId, newStatus);

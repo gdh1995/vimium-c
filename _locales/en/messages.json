@@ -566,6 +566,9 @@
 	"o145": {
 		"message": " enabled"
 	},
+	"o145_2": {
+		"message": "enabled"
+	},
 	"o147": {
 		"message": " (on this tab, $1 for once)"
 	},
@@ -890,7 +893,7 @@
 	"newStat": {
 		"message": "Now the page status is $1"
 	},
-	"enabled": {
+	"fullEnabled": {
 		"message": "enabled"
 	},
 	"halfDisabled": {

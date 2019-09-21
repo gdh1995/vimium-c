@@ -631,7 +631,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       const ratio2 = Math.round(devicePixelRatio / zoom * 1024) / 1024;
       (document.body as HTMLBodyElement).style.width = ratio2 !== 1 ? 910 / ratio2 + "px" : "";
     });
-  };
+  }, opt: Option_<keyof AllowedOptions>;
   if (Build.NoDialogUI) { /* empty */ }
   else if (location.hash.toLowerCase() === "#dialog-ui") {
     setUI(null);
@@ -646,7 +646,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       setUI = null as never;
     });
   }
-  Option_.all_.keyMappings.onSave_ = function (): void {
+  opt = Option_.all_.keyMappings;
+  opt.onSave_ = function (): void {
     const errors = bgSettings_.temp_.cmdErrors_,
     msg = !errors ? "" : pTrans_("openBgLogs", [pTrans_(errors === 1 ? "error" : "errors", [errors])]);
     if (bgSettings_.payload_.L && !msg) {
@@ -659,14 +660,16 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
     this.showError_(msg);
   };
-  Option_.all_.keyMappings.onSave_();
+  opt.onSave_();
 
-  Option_.all_.linkHintCharacters.onSave_ = function (): void {
+  opt = Option_.all_.linkHintCharacters;
+  opt.onSave_ = function (this: Option_<"linkHintCharacters">): void {
     this.showError_(this.previous_.length < 3 ? pTrans_("hintCharsTooFew") : "");
   };
-  Option_.all_.linkHintCharacters.onSave_();
+  opt.onSave_();
 
-  Option_.all_.vomnibarPage.onSave_ = function (): void {
+  opt = Option_.all_.vomnibarPage;
+  opt.onSave_ = function (this: Option_<"vomnibarPage">): void {
     let {element_: element2} = this, url: string = this.previous_
       , isExtPage = !url.lastIndexOf(location.protocol, 0) || !url.lastIndexOf("front/", 0);
     if (Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
@@ -690,7 +693,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
     return this.showError_("");
   };
-  Option_.all_.vomnibarPage.onSave_();
+  opt.onSave_();
 
   _ref = $$("[data-permission]");
   _ref.length > 0 && ((els: typeof _ref): void => {
@@ -815,6 +818,27 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     el2.textContent = pTrans_("notReadCanvas");
     }, $("#showActionIconHelp"));
   }
+
+  opt = Option_.all_.ignoreKeyboardLayout;
+  opt.onSave_ = function (): void {
+    nextTick_(ref2 => {
+      ref2.textContent = pTrans_(this.previous_ ? "o145_2" : "o144");
+    }, $("#ignoreKeyboardLayoutStatus"));
+  };
+  opt.onSave_();
+  $("[for=ignoreKeyboardLayout]").onclick = event => {
+    if (!advancedMode) {
+      $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null);
+    }
+    event.preventDefault();
+    nextTick_(node2 => {
+      Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
+        && bgBrowserVer_ < BrowserVer.MinScrollIntoViewOptions
+      ? window.VDom ? VDom.view_(node2) : (node2 as EnsureItemsNonNull<SafeHTMLElement>).scrollIntoViewIfNeeded()
+      : node2.scrollIntoView({ block: "center" });
+      node2.focus();
+    }, Option_.all_.ignoreKeyboardLayout.element_.nextElementSibling as SafeHTMLElement);
+  };
 })();
 
 Option_.all_.newTabUrl.checker_ = {
