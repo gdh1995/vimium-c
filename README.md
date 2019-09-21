@@ -11,7 +11,7 @@
   https://chrome.google.com/webstore/detail/vimium-c/hfjbmagddngcpeloejdejnfgbamkjaeg
   )** /
 **[Firefox Add-ons](
-  https://addons.mozilla.org/en-US/firefox/addon/vimium-c/
+  https://addons.mozilla.org/firefox/addon/vimium-c/
   )**
 
 A <span style="color: #a55e18;">C</span>ustomized

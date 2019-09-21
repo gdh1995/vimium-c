@@ -63,7 +63,7 @@ var HelpDialog = {
       title: trans_(request.t ? "cmdList" : "help"),
       reviewPage: (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-            ? BuildStr.FirefoxAddonPage : BuildStr.ChromeWebStorePage
+            ? BuildStr.FirefoxAddonPrefix + "vimium-c/" : BuildStr.ChromeWebStorePage
           ).replace("$id", chrome.runtime.id),
       webStore: !(Build.BTypes & ~BrowserType.Firefox)
             || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox

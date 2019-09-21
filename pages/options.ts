@@ -781,11 +781,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
     nextTick_(([el, el2, el3]) => {
       el.textContent = el.href = "about:addons";
-      const el1 = el.parentElement as HTMLElement, d = document;
+      const el1 = el.parentElement as HTMLElement, d = document, prefix = BuildStr.FirefoxAddonPrefix;
       el1.insertBefore(d.createTextNode(pTrans_("manageShortcut")), el);
       el1.insertBefore(d.createTextNode(pTrans_("manageShortcut_2")), el.nextSibling);
-      el2.href = "https://addons.mozilla.org/en-US/firefox/addon/shortcut-forwarding-tool/";
-      el3.href = "https://addons.mozilla.org/en-US/firefox/addon/newtab-adapter/";
+      el2.href = prefix + "shortcut-forwarding-tool/";
+      el3.href = prefix + "newtab-adapter/";
     }, [_element as HTMLAnchorElement,
         $<HTMLAnchorElement>("#shortcutHelper"), $<HTMLAnchorElement>("#newTabAdapter")] as const);
   }
@@ -797,18 +797,17 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   if (Build.BTypes & BrowserType.ChromeOrFirefox
       && (!(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
           || (bgOnOther_ & BrowserType.ChromeOrFirefox))) {
-    _element = $("#chromeExtVomnibar");
     nextTick_(el => {
       const children = el.children, anchor = children[1] as HTMLAnchorElement, name = pTrans_("NewTabAdapter");
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
         children[0].textContent = "moz";
+        anchor.textContent = name;
+        anchor.href = BuildStr.FirefoxAddonPrefix + "newtab-adapter/";
       }
-      anchor.textContent = name;
-      anchor.href = "https://addons.mozilla.org/firefox/addon/newtab-adapter/";
       anchor.title = name + " - " + pTrans_(Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox) ? "addons" : "webstore");
-    }, _element);
+    }, $("#chromeExtVomnibar"));
   }
 
   if (BG_.Backend_.setIcon_ === BG_.BgUtils_.blank_ && Option_.all_.showActionIcon.previous_) {
