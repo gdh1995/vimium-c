@@ -98,7 +98,6 @@ var VHints = {
     if (VApis.checkHidden_(kFgCmd.linkHints, count, options)) {
       return a.clean_();
     }
-    VKey.removeHandler_(a);
     if (document.body === null) {
       a.clean_();
       if (!a.timer_ && VDom.OnDocLoaded_ !== VDom.execute_) {
@@ -108,12 +107,13 @@ var VHints = {
       }
       if (!VDom.isHTML_()) { return; }
     }
-    a.setModeOpt_(count, options);
     let s0 = options.characters, str = s0 ? s0 + "" : VDom.cache_.l;
     if (str.length < 3) {
       a.clean_(1);
       return VHud.tip_(kTip.fewChars, "Characters for LinkHints are too few.", 1000);
     }
+    VKey.removeHandler_(a);
+    a.setModeOpt_(count, options);
     a.alphabetHints_.chars_ = str.toUpperCase();
     a.doesMapKey_ = options.mapKey !== false;
 
@@ -498,7 +498,8 @@ var VHints = {
   _getImagesInImg (hints: Hint[], element: HTMLImageElement): void {
     // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
     // <img>.currentSrc is since C45
-    if (!element.getAttribute("src") && !element.currentSrc && !element.dataset.src) { return; }
+    const src: string | null | undefined = element.getAttribute("src") || element.currentSrc || element.dataset.src;
+    if (!src || src.startsWith("data:")) { return; }
     let rect: ClientRect | undefined, cr: Rect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
@@ -1249,7 +1250,7 @@ getUrlData_ (link: HTMLAnchorElement): string {
   // $1.href is ensured well-formed by @GetLinks_
   return link.href;
 },
-/** return: img is HTMLImageElement | HTMLAnchorElement */
+/** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
 _getImageUrl (img: SafeHTMLElement, forShow?: 1): string | void {
   let text: string | null, src = img.dataset.src || "", elTag = img.localName;
   if (elTag === "img") {
