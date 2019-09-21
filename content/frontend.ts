@@ -82,6 +82,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     let j: ReadonlyChildKeyMap | ValidKeyAction | undefined;
     if (!nextKeys || (j = nextKeys[key]) == null) {
+      if (passKeys && nextKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
+        return esc(HandlerResult.Nothing);
+      }
       j = keyMap[key];
       if (j == null) {
         return esc(HandlerResult.Nothing);
