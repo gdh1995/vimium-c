@@ -72,7 +72,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.Esc | HandlerResult.AdvancedEscEnum {
     // when checkValidKey, Vimium C must be enabled, so passKeys won't be `""`
     let key = VKey.key_(event, char);
-    if (passKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
+    if (passKeys && !currentKeys && (key in <SafeEnum> passKeys) !== isPassKeysReverted) {
       return esc(HandlerResult.Nothing);
     }
     mappedKeys && (key = mapKey(char, event));
