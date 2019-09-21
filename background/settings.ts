@@ -445,7 +445,7 @@ shortcut-forwarding-tool@gdh1995.cn`
     grabBackFocus: false,
     hideHud: false,
     ignoreCapsLock: 0,
-    ignoreKeyboardLayout: true,
+    ignoreKeyboardLayout: false,
     innerCSS: "",
     keyboard: [560, 33],
     keyMappings: "",
