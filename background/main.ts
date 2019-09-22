@@ -329,12 +329,11 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       , autoSelect: boolean, matchType: CompletersNS.MatchType, sugTypes: CompletersNS.SugType, total: number): void {
     let { u: url } = this.s, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
     if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        && list.length > 0 && list[0].e === "tab") {
-      favIcon = favIcon && 2;
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      favIcon = list.length > 0 && list[0].e === "tab" ? favIcon && 2 : 0;
     }
-    else if (favIcon0 === 1 && Build.BTypes & BrowserType.Chrome
-          && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
+    else if (Build.BTypes & BrowserType.Chrome && favIcon0 === 1
+        && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
           || CurCVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon)) {
       url = url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
       const map = framesForTab;

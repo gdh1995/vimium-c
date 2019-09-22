@@ -87,7 +87,6 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
-      a._favPrefix = '" style="background-image: url(&quot;';
     } else if (a.mode_.i) {
       scale = scale === 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
 /**
@@ -96,7 +95,13 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
  * * parser: https://cs.chromium.org/chromium/src/components/favicon_base/favicon_url_parser.cc?type=cs&q=ParseFaviconPath&g=0&l=33
  * * if no '@', then Chromium's buggy code would misunderstand the wanted URL (BrowserVer.MinChar$At$InFaviconUrl)
  */
-      a._favPrefix = '" style="background-image: url(&quot;chrome://favicon/size/16@' + scale + "x/";
+      const prefix = '" style="background-image: url(&quot;';
+      // if (Build.BTypes >= BrowserVer.MinChromeFavicon2 || a.browserVer_ >= BrowserVer.MinChromeFavicon2) {
+      //   a._favPrefix = prefix + "chrome://favicon2/?size=16&scale_factor=" + scale + "x&url_type=page_url&url=";
+      // } else
+      {
+        a._favPrefix = prefix + "chrome://favicon/size/16@" + scale + "x/";
+      }
     }
     if (url == null) {
       return a.reset_(keyword ? keyword + " " : "");
@@ -738,7 +743,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     };
     oldH || (msg.m = Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmepty_) * wdZoom);
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
-    a.completions_.forEach(a.parse_, a);
+    a.completions_.forEach(a.Parse_);
     a.renderItems_(a.completions_, list);
     if (!oldH) {
       (Build.BTypes & BrowserType.Firefox
@@ -979,9 +984,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const canShowOnExtOrWeb = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
           || Build.BTypes & BrowserType.Chrome
               && a.browserVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
-    if (( !(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-          : a.browser_ !== BrowserType.Chrome)
-        || type === VomnibarNS.PageType.web
+    if (type === VomnibarNS.PageType.web
         || location.origin.indexOf("-") < 0) { /* empty */ }
     else if (type === VomnibarNS.PageType.inner) {
       fav = canShowOnExtOrWeb || a.sameOrigin_ ? 2 : 0;
@@ -1078,19 +1081,22 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   },
 
   _favPrefix: "",
-  parse_ (item: SuggestionE): void {
+  Parse_ (this: void, item: SuggestionE): void {
     let str: string | undefined;
     item.r = Vomnibar_.showRelevancy_ ? `\n\t\t\t<span class="relevancy">${item.r}</span>` : "";
     (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)) {
       if (item.favIcon) {
-        item.favIcon = Vomnibar_._favPrefix + VUtils_.escapeCSSStringInAttr_(item.favIcon) + "&quot;);";
+        item.favIcon = `" style="background-image: url(&quot;${VUtils_.escapeCSSUrlInAttr_(item.favIcon)}&quot;);`;
       }
       return;
     }
     item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.u : "") && Vomnibar_._favPrefix +
-        ((str = Vomnibar_._parseFavIcon(item, str)) ? VUtils_.escapeCSSStringInAttr_(str) : "about:blank") + "&quot;);";
+        VUtils_.escapeCSSUrlInAttr_(str = Vomnibar_._parseFavIcon(item, str) ? str : "about:blank"
+          /* , Build.BTypes >= BrowserVer.MinChromeFavicon2 || Vomnibar_.browserVer_ >= BrowserVer.MinChromeFavicon2 */
+          ) +
+        "&quot;);";
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
     let str = url.slice(0, 11).toLowerCase();
@@ -1211,17 +1217,17 @@ VUtils_ = {
     return str === "amp" ? "&" : str === "apos" ? "'" : str === "quot" ? '"'
       : str === "gt" ? ">" : str === "lt" ? "<" : "";
   },
-  escapeCSSStringInAttr_ (s0: string): string {
+  escapeCSSUrlInAttr_ (s0: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
       return i === kCharCode.and ? "&amp;" : i === kCharCode.quote1 ? "&apos;"
         : i < kCharCode.quote1 ? "%22" : i === kCharCode.lt ? "%3C" : "%3E";
     }
-    VUtils_.escapeCSSStringInAttr_ = function (s): string {
+    VUtils_.escapeCSSUrlInAttr_ = function (s): string {
       return s.replace(escapeRe, escapeCallback);
     };
-    return VUtils_.escapeCSSStringInAttr_(s0);
+    return VUtils_.escapeCSSUrlInAttr_(s0);
   },
   Stop_ (event: Event, prevent: boolean | BOOL): void {
     prevent && event.preventDefault();
