@@ -547,11 +547,10 @@ var VHints = {
     if (!Build.NDEBUG && Build.BTypes & ~BrowserType.Firefox && selector === "*") {
       selector = VHints.kSafeAllSelector_; // for easier debugging
     }
-    const a = VHints, matchAll = selector === a.kSafeAllSelector_, D = document,
+    const a = VHints, matchAll = /* wantClickable = */ selector === a.kSafeAllSelector_, D = document,
     output: Hint[] | SafeHTMLElement[] = [],
     d = VDom, uiRoot = VCui.root_,
     Sc = VSc,
-    wantClickable = filter === a.GetClickable_,
     isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as {}) instanceof Element,
     box = !wholeDoc && (!(Build.BTypes & ~BrowserType.Chrome)
           || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
@@ -562,9 +561,11 @@ var VHints = {
     querySelectorAll = Build.BTypes & ~BrowserType.Firefox
       ? /* just smaller code */ (isD ? D : Element.prototype).querySelectorAll : box.querySelectorAll;
     let list: HintsNS.HintSources | null = querySelectorAll.call(box, selector) as NodeListOf<SafeElement>,
-    tree_scopes: Array<[HintsNS.HintSources, number]> = [[list, 0]],
     shadowQueryAll: ShadowRoot["querySelectorAll"] | undefined;
-    wantClickable && Sc.getScale_();
+    matchAll && Sc.getScale_();
+    if (!(Build.NDEBUG || matchAll !== (filter === a.GetClickable_))) {
+      console.log("Assert error: `wholeDoc => !wantClickable` in VHints.traverse_");
+    }
     if (matchAll) {
       if (a.ngEnabled_ === null) {
         a.ngEnabled_ = !!D.querySelector(".ng-scope");
@@ -584,7 +585,7 @@ var VHints = {
       list = [].slice.call(list);
       list.unshift(wholeDoc as {} as SafeElement);
     }
-    while (tree_scopes.length > 0) {
+    for (const tree_scopes: Array<[HintsNS.HintSources, number]> = [[list, 0]]; tree_scopes.length > 0; ) {
       let cur_scope = tree_scopes[tree_scopes.length - 1], [cur_tree, i] = cur_scope, len = cur_tree.length
         , el: SafeElement & {lang?: undefined} | SafeHTMLElement, shadowRoot: ShadowRoot | null | undefined;
       for (; i < len; ) {
@@ -605,7 +606,7 @@ var VHints = {
             tree_scopes.push([sub_tree, i = 0]);
             break;
           }
-        } else if (wantClickable) {
+        } else if (matchAll) {
           a._getClickableInMaybeSVG(output as Exclude<typeof output, SafeHTMLElement[]>, el);
         }
       }
@@ -615,8 +616,8 @@ var VHints = {
     }
     if (wholeDoc && (Build.NDEBUG || !isInAnElement)) {
       // this requires not detecting scrollable elements if wholeDoc
-      if (!(Build.NDEBUG || filter !== a.GetClickable_ && !isInAnElement)) {
-        console.log("Assert error: `filter !== VHints.GetClickable_` in VHints.traverse_");
+      if (!(Build.NDEBUG || !matchAll && !isInAnElement)) {
+        console.log("Assert error: `wholeDoc => !wantClickable` in VHints.traverse_");
       }
       return output;
     }
@@ -645,9 +646,9 @@ var VHints = {
       }
     }
     Sc.scrolled_ === 1 && Sc.supressScroll_();
-    if (wantClickable) { a.deduplicate_(output as Hint[]); }
+    if (matchAll) { a.deduplicate_(output as Hint[]); }
     if (a.frameNested_ === null) { /* empty */ }
-    else if (wantClickable) {
+    else if (matchAll) {
       a.checkNestedFrame_(output as Hint[]);
     } else if (output.length > 0) {
       a.frameNested_ = null;
