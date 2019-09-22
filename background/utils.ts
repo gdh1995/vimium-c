@@ -811,7 +811,6 @@ CurCVer_: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
   && navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
   || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer,
 trans_ = chrome.i18n.getMessage;
-;
 const BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
     && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
   ? Build.BTypes & BrowserType.Firefox

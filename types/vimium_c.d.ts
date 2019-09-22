@@ -882,5 +882,7 @@ declare const enum FirefoxBrowserVer {
   Min$Document$$FullscreenElement = 64,
   // Min$globalThis = 65, // should not export `globalThis` into the outside
   MinMediaQuery$PrefersColorScheme = 67,
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1561546
+  MinValidMediaQueryWatchersInBgProc = 71,
   MinSupported = 64,
 }

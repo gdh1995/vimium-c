@@ -391,8 +391,12 @@ css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
 
 nextTick_(versionEl => {
   const docCls = (document.documentElement as HTMLHtmlElement).classList;
-  bgSettings_.payload_.d && docCls.add("auto-dark");
-  bgSettings_.payload_.r && docCls.add("less-motion");
+  const kEventName = "DOMContentLoaded", onload = () => {
+    removeEventListener(kEventName, onload);
+    bgSettings_.payload_.d && docCls.add("auto-dark");
+    bgSettings_.payload_.r && docCls.add("less-motion");
+  };
+  addEventListener(kEventName, onload);
   versionEl.textContent = bgSettings_.CONST_.VerName_;
 }, $<HTMLElement>(".version"));
 

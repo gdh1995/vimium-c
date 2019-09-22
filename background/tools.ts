@@ -521,12 +521,23 @@ MediaWatcher_ = {
     }
     if (doListen && cur === MediaNS.Watcher.NotWatching) {
       const query = matchMedia(`(${name}: ${!key ? "reduce" : "dark"})`);
-      query.onchange = a.OnChange_;
+      query.onchange = a._onChange;
       watchers[key] = query;
-      if (!a._timer) {
-        a._timer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval);
+      if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+          && (!(Build.BTypes & ~BrowserType.Firefox)
+              || Build.MinFFVer >= FirefoxBrowserVer.MinValidMediaQueryWatchersInBgProc)
+          && (!(Build.BTypes & ~BrowserType.Chrome)
+              || Build.MinFFVer >= BrowserVer.MinMediaChangeEventsOnBackgroundPage)) { /* empty */ }
+      else if (!a._timer) {
+        if ((!(Build.BTypes & BrowserType.Firefox)
+              || (Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox))
+            ? (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, ""])[1]
+              < FirefoxBrowserVer.MinValidMediaQueryWatchersInBgProc
+            : true) {
+          a._timer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval);
+        }
       }
-      a.update_(key);
+      a.update_(key, 0);
     } else if (!doListen && typeof cur === "object") {
       cur.onchange = null;
       watchers[key] = MediaNS.Watcher.NotWatching;
@@ -536,13 +547,22 @@ MediaWatcher_ = {
           a._timer = 0;
         }
       }
-      a.update_(key);
+      a.update_(key, 0);
     }
   },
-  update_ (this: void, key: MediaNS.kName, embed?: 1): void {
+  update_ (this: void, key: MediaNS.kName, embed?: 1 | 0): void {
+    let watcher = MediaWatcher_._watchers[key], isObj = typeof watcher === "object";
+    if ((!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)
+        && embed == null && isObj) {
+      let watcher2 = matchMedia((watcher as Exclude<typeof watcher, number>).media);
+      watcher2.onchange = (watcher as Exclude<typeof watcher, number>).onchange;
+      (watcher as Exclude<typeof watcher, number>).onchange = null;
+      MediaWatcher_._watchers[key] = watcher = watcher2;
+    }
     const settings = Settings_, payload = settings.payload_,
     omniToggled = key ? "dark" : "less-motion",
-    matched = MediaWatcher_.get_(key), bMatched = !!matched;
+    bMatched: boolean = isObj ? (watcher as Exclude<typeof watcher, number>).matches : false;
     if (!key) {
       if (payload.r !== bMatched) {
         payload.r = bMatched;
@@ -564,18 +584,11 @@ MediaWatcher_ = {
     for (let arr = MediaWatcher_._watchers, i = arr.length; 0 <= --i; ) {
       let watcher = arr[i];
       if (typeof watcher === "object") {
-        if (!(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
-          let watcher2 = matchMedia(watcher.media);
-          watcher2.onchange = watcher.onchange;
-          watcher.onchange = null;
-          arr[i] = watcher2;
-        }
         MediaWatcher_.update_(i);
       }
     }
   },
-  OnChange_ (this: MediaQueryList): void {
+  _onChange (this: MediaQueryList): void {
     if (MediaWatcher_._timer > 0) {
       clearInterval(MediaWatcher_._timer);
     }
