@@ -480,8 +480,12 @@ label:active {
   outline: none;
 }
 .exclusionHeader {
-  padding-left: 3px;
   color: #798086;
+  display: inline-block;
+  font: 14px/16px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB"
+    ,"Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;
+  height: 16px;
+  padding-left: 3px;
 }
 #exclusionAddButton {
   overflow: hidden;
