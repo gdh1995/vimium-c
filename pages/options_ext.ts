@@ -193,11 +193,13 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     // this is useful, in case the below itering localStorage and setting-null was changed
   }
 
-  const logUpdate = function (method: string, key: string, ...args: any[]): any {
-    let val = args.pop();
+  const logUpdate = function (method: string, key: string, a2: string | any, a3?: any): any {
+    let hasA3 = arguments.length > 3, val = hasA3 ? a3 : a2, args = ["%s %c%s", method, "color:darkred", key];
     val = typeof val !== "string" || val.length <= 72 ? val
       : val.slice(0, 71).trimRight() + "\u2026";
-    return console.log("%s %c%s", method, "color:darkred", key, ...args, val);
+    hasA3 && args.push(a2);
+    args.push(val);
+    console.log(...args);
   } as {
     (method: string, key: string, val: any): any;
     (method: string, key: string, actionName: string, val: any): any;
