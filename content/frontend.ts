@@ -1548,13 +1548,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       coreTester.recvTick_ = -1;
       try {
         let core: ReturnType<SandboxGetterFunc>,
-        getter = anotherWnd.wrappedJSObject[coreTester.name_];
+        wrapper = anotherWnd.wrappedJSObject[coreTester.name_], getter = wrapper && wrapper._get;
         return getter && (core = getter(coreTester.compare_, coreTester.rand_ = Math.random())) &&
           !coreTester.recvTick_ ? core : 0;
       } catch {}
     };
     // on Firefox, such a exported function can only be called from privildged environments
-    wrappedJSObject[coreTester.name_] = function (comparer, rand1) {
+    Object.defineProperty(wrappedJSObject[coreTester.name_] = (new window.Object() as any).wrappedJSObject,
+        "_get", { configurable: false, enumerable: false, writable: false,
+                  value: (comparer: Parameters<SandboxGetterFunc>[0], rand1: number): ContentWindowCore | void => {
       let rand2 = Math.random();
       // an ES6 method function is always using the strict mode, so the arguments are inaccessible outside it
       if (coreTester.sendTick_ > GlobalConsts.MaxRetryTimesForSecret
@@ -1571,7 +1573,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         thisCore = { VDom, VKey, VHints, VSc, VOmni, VFind, VApis, VIh: () => innerHeight };
       }
       return thisCore;
-    };
+    }});
   }
 
   isTop || injector ||

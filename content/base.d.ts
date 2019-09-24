@@ -410,7 +410,8 @@ interface SandboxGetterFunc {
   (comparer: (this: void, rand2: number, testEncrypted: string) => boolean,
     rand1: number): ContentWindowCore | 0 | null | undefined;
 }
-declare var wrappedJSObject: { [key: string]: SandboxGetterFunc; };
+interface SandboxGetterWrapper { _get: SandboxGetterFunc; }
+declare var wrappedJSObject: { [key: string]: SandboxGetterWrapper; };
 declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>;
 type XrayedObject<T extends object> = T & {
   wrappedJSObject?: T;
