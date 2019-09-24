@@ -63,7 +63,10 @@ __Other extensions supporting Vimium C:__
 1.78 (Not released yet):
 * its UI uses Simplified Chinese (简体中文) for all `zh-*` language regions
 * the default value of `ignore keyboard layout` option rolls back to `false` again
+* Chrome: fix broken importing settings on v1.77.1
 * the `passKeys` will only exclude key strokes when the "current key" sequence is empty
+* `LinkHints.activateModeToCopyLinkUrl`: fix not finding those in shadow DOM trees
+* `LinkHints.activateModeToCopyLinkText`: add an option `join:string/boolean` to join selected text pieces
 
 1.77.3:
 * 1.77.3: only for Firefox; fix that it could not open "about:newtab"
