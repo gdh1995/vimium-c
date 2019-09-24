@@ -716,9 +716,7 @@ var VHints = {
             && list[i + 1][0].parentNode !== list[i][0]) {
           const child = list[i][0].lastElementChild as Element,
           prect = list[i][1], crect = VDom.getVisibleClientRect_(child);
-          if (crect && crect[0] - 4 < prect[0] && crect[2] > prect[2] - 4
-              && crect[1] - 4 < prect[1] && crect[3] > prect[3] - 4
-              && VDom.htmlTag_(child)) {
+          if (crect && VDom.isContaining_(crect, prect) && VDom.htmlTag_(child)) {
             list[i] = [child as SafeHTMLElement, crect, ClickType.tabindex];
           }
         }

@@ -801,8 +801,9 @@ var VDom = {
     rect = rect && this.cropRectToVisible_.apply(this, rect as [number, number, number, number]) || rect;
     return rect ? [((rect[0] + rect[2]) * zoom) | 0, ((rect[1] + rect[3]) * zoom) | 0] : [0, 0];
   },
+  /** still return `true` if `paddings <= 4px` */
   isContaining_ (a: Rect, b: Rect): boolean {
-    return a[3] >= b[3] && a[2] >= b[2] && a[1] <= b[1] && a[0] <= b[0];
+    return b[3] - 5 < a[3] && b[2] - 5 < a[2] && b[1] > a[1] - 5 && b[0] > a[0] - 5;
   },
   padClientRect_ (rect: ClientRect, padding: number): WritableRect {
     const x = rect.left, y = rect.top, max = Math.max;
