@@ -4,11 +4,6 @@ const enum ClickType {
   MinNotWeak, // should <= MaxNotBox
   MaxNotBox = 6, frame, scrollX, scrollY,
 }
-const enum DeepQueryType {
-  NotDeep = 0, // must be 0 because of `InDeep - deep`
-  NotAvailable = 1,
-  InDeep = 2,
-}
 declare namespace HintsNS {
   type LinkEl = Hint[0];
   interface Executor {
@@ -1284,12 +1279,21 @@ openUrl_ (url: string, incognito?: boolean): void {
   incognito && (opt.i = incognito);
   VPort.post_(opt);
 },
-_highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
+_highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
+  if (!(<RegExpOne> /^i?frame$/).test(tag)) {
+    return 0;
+  }
+  if (el === VOmni.box_) {
+    VOmni.focus_();
+    return 1;
+  }
   let err: boolean | null = true, childEvents: VApisModeTy | undefined,
   core: ContentWindowCore | void | undefined | 0;
   try {
-    err = !el.contentDocument
-        || !(core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(el.contentWindow) : el.contentWindow)
+    err = !(el as HTMLIFrameElement | HTMLFrameElement).contentDocument
+        || !(core = Build.BTypes & BrowserType.Firefox
+              ? VDom.getWndCore_((el as HTMLIFrameElement | HTMLFrameElement).contentWindow)
+              : (el as HTMLIFrameElement | HTMLFrameElement).contentWindow)
         || !(childEvents = core.VApis)
         || childEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApis.keydownEvents_() : VApis);
   } catch (e) {
@@ -1297,7 +1301,7 @@ _highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
       let notDocError = true;
       if (Build.BTypes & BrowserType.Chrome && VDom.cache_.v < BrowserVer.Min$ContentDocument$NotThrow) {
         try {
-          notDocError = el.contentDocument !== undefined;
+          notDocError = (el as HTMLIFrameElement | HTMLFrameElement).contentDocument !== undefined;
         } catch { notDocError = false; }
       }
       if (notDocError) {
@@ -1307,19 +1311,21 @@ _highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   }
   const { count_: count, options_: options } = this;
   options.mode = this.mode_;
+  this.mode_ = HintMode.DEFAULT;
   el.focus();
   if (err) {
     VPort.send_(kFgReq.execInChild, {
-      u: el.src, c: kFgCmd.linkHints, n: count, k: this.keyCode_, a: options
+      u: (el as HTMLIFrameElement | HTMLFrameElement).src,
+      c: kFgCmd.linkHints, n: count, k: this.keyCode_, a: options
     }, function (res): void {
       if (!res) {
-        el.contentWindow.focus();
+        (el as HTMLIFrameElement | HTMLFrameElement).contentWindow.focus();
       }
     });
-    return;
+  } else {
+    (childEvents as NonNullable<typeof childEvents>).focusAndRun_(kFgCmd.linkHints, count, options, 1);
   }
-  (childEvents as NonNullable<typeof childEvents>).focusAndRun_(kFgCmd.linkHints, count, options, 1);
-  return false;
+  return 2;
 },
 
 Modes_: [
@@ -1387,7 +1393,7 @@ Modes_: [
   , HintMode.LEAVE | HintMode.queue, "Simulate mouse leaving continuously"
 ] as HintsNS.ModeOpt,
 [
-  (link): void => {
+  (link): boolean | void => {
     const a = VHints, mode1 = a.mode1_;
     let isUrl = mode1 > HintMode.min_link_job - 1 && mode1 < HintMode.max_link_job + 1,
         str: string | null | undefined;
@@ -1400,7 +1406,8 @@ Modes_: [
           ?  link.getAttribute("data-vim-text") : (link.dataset as NonNullable<typeof link.dataset>).vimText)
         && (str = str.trim())) { /* empty */ }
     else {
-      const tag = VDom.htmlTag_(link);
+      const tag = VDom.htmlTag_(link), isChild = a._highlightChild(link, tag);
+      if (isChild) { return isChild > 1; }
       if (tag === "input") {
         let type = (link as HTMLInputElement).type, f: HTMLInputElement["files"];
         if (type === "password") {
@@ -1574,12 +1581,9 @@ Modes_: [
 ] as HintsNS.ModeOpt,
 [
   (link, rect, hint): void | boolean => {
-    const a = VHints, tag = VDom.htmlTag_(link);
-    if ((<RegExpOne> /^i?frame$/).test(tag)) {
-      const highlight = link !== VOmni.box_;
-      highlight ? a._highlightChild(link as HTMLIFrameElement | HTMLFrameElement) : VOmni.focus_();
-      a.mode_ = HintMode.DEFAULT;
-      return highlight;
+    const a = VHints, tag = VDom.htmlTag_(link), isChild = a._highlightChild(link, tag);
+    if (isChild) {
+      return isChild > 1;
     }
     if (tag === "details") {
       const summary = VDom.findMainSummary_(link as HTMLDetailsElement);
