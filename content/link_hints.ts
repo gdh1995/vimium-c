@@ -542,10 +542,11 @@ var VHints = {
     if (!Build.NDEBUG && Build.BTypes & ~BrowserType.Firefox && selector === "*") {
       selector = VHints.kSafeAllSelector_; // for easier debugging
     }
-    const a = VHints, matchAll = /* wantClickable = */ selector === a.kSafeAllSelector_, D = document,
+    const a = VHints, matchAll = selector === a.kSafeAllSelector_, D = document,
     output: Hint[] | SafeHTMLElement[] = [],
     d = VDom, uiRoot = VCui.root_,
     Sc = VSc,
+    wantClickable = filter === a.GetClickable_,
     isInAnElement = !Build.NDEBUG && !!wholeDoc && (wholeDoc as {}) instanceof Element,
     box = !wholeDoc && (!(Build.BTypes & ~BrowserType.Chrome)
           || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
@@ -557,10 +558,7 @@ var VHints = {
       ? /* just smaller code */ (isD ? D : Element.prototype).querySelectorAll : box.querySelectorAll;
     let list: HintsNS.HintSources | null = querySelectorAll.call(box, selector) as NodeListOf<SafeElement>,
     shadowQueryAll: ShadowRoot["querySelectorAll"] | undefined;
-    matchAll && Sc.getScale_();
-    if (!(Build.NDEBUG || matchAll !== (filter === a.GetClickable_))) {
-      console.log("Assert error: `wholeDoc => !wantClickable` in VHints.traverse_");
-    }
+    wantClickable && Sc.getScale_();
     if (matchAll) {
       if (a.ngEnabled_ === null) {
         a.ngEnabled_ = !!D.querySelector(".ng-scope");
@@ -601,7 +599,7 @@ var VHints = {
             tree_scopes.push([sub_tree, i = 0]);
             break;
           }
-        } else if (matchAll) {
+        } else if (wantClickable) {
           a._getClickableInMaybeSVG(output as Exclude<typeof output, SafeHTMLElement[]>, el);
         }
       }
@@ -611,8 +609,8 @@ var VHints = {
     }
     if (wholeDoc && (Build.NDEBUG || !isInAnElement)) {
       // this requires not detecting scrollable elements if wholeDoc
-      if (!(Build.NDEBUG || !matchAll && !isInAnElement)) {
-        console.log("Assert error: `wholeDoc => !wantClickable` in VHints.traverse_");
+      if (!(Build.NDEBUG || !wantClickable && !isInAnElement)) {
+        console.log("Assert error: `!wantClickable if wholeDoc` in VHints.traverse_");
       }
       return output;
     }
@@ -641,9 +639,9 @@ var VHints = {
       }
     }
     Sc.scrolled_ === 1 && Sc.supressScroll_();
-    if (matchAll) { a.deduplicate_(output as Hint[]); }
+    if (wantClickable) { a.deduplicate_(output as Hint[]); }
     if (a.frameNested_ === null) { /* empty */ }
-    else if (matchAll) {
+    else if (wantClickable) {
       a.checkNestedFrame_(output as Hint[]);
     } else if (output.length > 0) {
       a.frameNested_ = null;
