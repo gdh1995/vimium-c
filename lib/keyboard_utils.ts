@@ -136,7 +136,9 @@ var VKey = {
         VKey.removeHandler_(this);
         return HandlerResult.Nothing;
       };
-    } else {
+      this.pushHandler_(func, func);
+    }
+    {
       func = function () { tick = Date.now(); return HandlerResult.Prevent; };
       tick = Date.now() + timeout;
       timer = setInterval(function (info?: TimerType.fake) { // safe-interval
@@ -148,8 +150,8 @@ var VKey = {
           VKey && VKey.removeHandler_(func); // safe enough even if reloaded
         }
       }, (GlobalConsts.TimeOfSuppressingTailKeydowns * 0.36) | 0);
+      this.pushHandler_(func, func);
     }
-    this.pushHandler_(func, func);
   },
 
   /** handler section */
