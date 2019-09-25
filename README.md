@@ -67,6 +67,7 @@ __Other extensions supporting Vimium C:__
 * the `passKeys` will only exclude key strokes when the "current key" sequence is empty
 * `LinkHints.activateModeToCopyLinkUrl`: fix not finding those in shadow DOM trees
 * `LinkHints.activateModeToCopyLinkText`: add an option `join:string/boolean` to join selected text pieces
+* `LinkHints` now uses a single <kbd>F2</kbd> to re-find new page nodes with `onclick` event listeners
 
 1.77.3:
 * 1.77.3: only for Firefox; fix that it could not open "about:newtab"

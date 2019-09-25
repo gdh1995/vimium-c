@@ -865,21 +865,16 @@ var VHints = {
       a.ResetMode_();
       if (i !== kKeyCode.f2) { return HandlerResult.Nothing; }
       i = VKey.getKeyStat_(event);
-      let reinit = true;
       if (i === KeyStat.altKey) {
         a.wantDialogMode_ = !a.wantDialogMode_;
-      } else if (i & KeyStat.PrimaryModifier) {
-        reinit = !!VApis.execute_;
-        if (reinit) {
-          a.isClickListened_ = true;
-          (VApis as EnsureNonNull<VApisModeTy>).execute_(kContentCmd.FindAllOnClick);
-        }
       } else if (i & KeyStat.shiftKey) {
         a.isClickListened_ = !a.isClickListened_;
       } else {
-        reinit = false;
+        if (!VApis.execute_) { return HandlerResult.Prevent; }
+        a.isClickListened_ = true;
+        (VApis as EnsureNonNull<VApisModeTy>).execute_(kContentCmd.FindAllOnClick);
       }
-      reinit && setTimeout(a._reinit.bind(a, null, null), 0);
+      setTimeout(a._reinit.bind(a, null, null), 0);
     } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
         || (i === kKeyCode.metaKey && VDom.cache_.m)) {
       const mode = a.mode_, mode1 = a.mode1_,
