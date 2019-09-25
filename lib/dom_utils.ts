@@ -370,6 +370,10 @@ var VDom = {
       ): Rect | null;
     (element: HTMLElementUsingMap, output: Hint5[]): null;
   },
+  getCroppedRect_ (el: SafeHTMLElement, crect: Rect): Rect {
+    const parent = el.parentNode as Element, prect = this.getVisibleClientRect_(parent);
+    return prect && this.isContaining_(crect, prect) && getComputedStyle(parent).overflow === "hidden" ? prect : crect;
+  },
   findMainSummary_ (details: HTMLDetailsElement): SafeHTMLElement | null {
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
     // `HTMLDetailsElement::FindMainSummary()` in

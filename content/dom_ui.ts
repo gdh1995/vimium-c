@@ -353,6 +353,9 @@ var VCui = {
     const rect = a.getVisibleClientRect_(clickEl),
     cr = a.getBoundingClientRect_(clickEl),
     bcr = a.padClientRect_(cr, 8);
+    if (rect && a.htmlTag_(clickEl) === "img") {
+      return a.getCroppedRect_(clickEl as SafeHTMLElement, rect);
+    }
     return rect && !a.isContaining_(bcr, rect) ? rect
       : a.cropRectToVisible_.apply(a, bcr as [number, number, number, number]) ? bcr : null;
   },

@@ -323,7 +323,7 @@ var VHints = {
       // on C75, a <textarea disabled> is still focusable
       if ((element as TextElement).disabled && _this.mode1_ < HintMode.max_mouse_events + 1) { return; }
       if (!(element as TextElement).readOnly || _this.mode1_ > HintMode.min_job - 1
-          || tag[0] === "i"
+          || tag === "input"
               && VDom.uneditableInputs_[(element as HTMLInputElement).type]) {
         isClickable = true;
       }
@@ -390,7 +390,7 @@ var VHints = {
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
             || _this.mode_ > HintMode.min_job - 1)
-    ) { hints.push([element, arr, type]); }
+    ) { hints.push([element, tag === "img" ? VDom.getCroppedRect_(element, arr) : arr, type]); }
   },
   _getClickableInMaybeSVG (hints: Hint[], element: SVGElement | Element): void {
     let arr: Rect | null | undefined, s: string | null , type = ClickType.Default;
