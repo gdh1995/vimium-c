@@ -141,7 +141,7 @@ var VKey = {
       tick = Date.now() + timeout;
       timer = setInterval(function (info?: TimerType.fake) { // safe-interval
         const delta = Date.now() - tick; // Note: performance.now() may has a worse resolution
-        if (delta > GlobalConsts.TimeOfSuppressingTailKeydowns || delta < -99
+        if (delta > GlobalConsts.TimeOfSuppressingTailKeydowns || delta < -3e3
            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
               && info) {
           clearInterval(timer);
