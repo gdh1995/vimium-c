@@ -132,7 +132,7 @@
 		"message": "清理页内查找功能中最近用过的词语"
 	},
 	"closeOtherTabs": {
-		"message": "关闭本窗口的其它全部标签页"
+		"message": "关闭当前窗口的其它全部标签页"
 	},
 	"closeTabsOnLeft": {
 		"message": "关闭左侧标签页"
@@ -1118,7 +1118,7 @@
 		"message": "喜欢"
 	},
 	"HStar": {
-		"message": "在 GitHub 上收藏本项目"
+		"message": "在 GitHub 上收藏此项目"
 	},
 	"HReview": {
 		"message": "在 "
@@ -1494,6 +1494,9 @@
 	},
 	"29": {
 		"message": "（未找到）"
+	},
+	"30": {
+		"message": "（置顶模式）"
 	},
 	"0": {
 		"message": "在当前页面打开链接"

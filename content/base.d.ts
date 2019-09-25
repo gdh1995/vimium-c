@@ -371,7 +371,7 @@ declare const enum kTip {
   /* 4..9 */ didUnhoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
   /* 20..25 */ copiedIs = 20, failToEvalJS, blockAutoFocus, useVal, turnOn, turnOff,
-  /* 26..31 */ nMatches, oneMatch, someMatches, noMatches,
+  /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints,
   raw = 69, START_FOR_OTHERS = raw,
   /* 70: */ fewChars = 70, noLinks, exitForIME, linkRemoved, notImg,
   /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, nowGotoMark,

@@ -191,8 +191,9 @@ var VHints = {
       a.pTimer_ = setTimeout(a.SetHUDLater_, 1000);
       return;
     }
-    const msg = a.dialogMode_ ? " (modal UI)" : "";
-    return VHud.show_(a.mode_, a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] + msg, [msg], true);
+    const msg = a.dialogMode_ ? " (modal UI)" : "", base = VTr(a.mode_);
+    return VHud.show_(kTip.raw, base || a.modeOpt_[a.modeOpt_.indexOf(a.mode_) + 1] + msg
+        , [base + (msg && VTr(kTip.modalHints))], true);
   },
   SetHUDLater_ (this: void): void {
     const a = VHints;
