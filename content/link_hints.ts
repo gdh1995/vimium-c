@@ -251,7 +251,7 @@ var VHints = {
   maxRight_: 0,
   zIndexes_: null as null | false | HintsNS.Stacks,
   createHint_ (link: Hint): HintsNS.HintItem {
-    let i: number = link.length < 4 ? link[1][0] : (link as Hint4)[3][0][0] + (link as Hint4)[3][1];
+    let i: number = link.length < 4 ? link[1].l : (link as Hint4)[3][0].l + (link as Hint4)[3][1];
     const marker = VDom.createElement_("span") as HintsNS.MarkerElement, st = marker.style,
     isBox = link[2] > ClickType.MaxNotBox,
     hint: HintsNS.HintItem = {
@@ -264,7 +264,7 @@ var VHints = {
         && i > this.maxLeft_ && this.maxRight_) {
       st.maxWidth = this.maxRight_ - i + "px";
     }
-    i = link[1][1];
+    i = link[1].t;
     st.top = i + "px";
     if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
         && i > this.maxTop_) {
@@ -288,8 +288,8 @@ var VHints = {
       if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
         continue;
       }
-      st.maxWidth && (st.maxWidth = mr - elements[i][1][0] + "px");
-      st.maxHeight && (st.maxHeight = mt - elements[i][1][1] + 18 + "px");
+      st.maxWidth && (st.maxWidth = mr - elements[i][1].l + "px");
+      st.maxHeight && (st.maxHeight = mt - elements[i][1].t + 18 + "px");
     }
   },
   btnRe_: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|[-\s_])/,
@@ -310,7 +310,7 @@ var VHints = {
     case "frame": case "iframe":
       if (element === VOmni.box_) {
         if (arr = VDom.getVisibleClientRect_(element)) {
-          (arr as WritableRect)[0] += 12; (arr as WritableRect)[1] += 9;
+          (arr as WritableRect).l += 12; (arr as WritableRect).t += 9;
           hints.push([element, arr, ClickType.frame]);
         }
         return;
@@ -693,8 +693,8 @@ var VHints = {
             && (j = i + 1) < list.length
             && (s = list[j][0].localName, s === "div" || s === "a")) {
           const prect = list[i][1], crect = list[j][1];
-          if (crect[0] < prect[0] + /* icon_16 */ 18 && crect[1] < prect[1] + 9
-              && crect[0] > prect[0] - 4 && crect[1] > prect[1] - 4 && crect[3] > prect[3] - 9
+          if (crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9
+              && crect.l > prect.l - 4 && crect.t > prect.t - 4 && crect.b > prect.b - 9
               && (s !== "a" || list[i][0].contains(list[j][0]))) {
             // the `<a>` is a single-line box's most left element and the first clickable element,
             // so think the box is just a layout container
@@ -709,8 +709,8 @@ var VHints = {
         j = i;
         if (k === ClickType.tabindex && list[i][0].childElementCount === 1 && i + 1 < list.length
             && list[i + 1][0].parentNode !== list[i][0]) {
-          const child = list[i][0].lastElementChild as Element,
-          prect = list[i][1], crect = VDom.getVisibleClientRect_(child);
+          child = list[i][0].lastElementChild as Element;
+          prect = list[i][1]; crect = VDom.getVisibleClientRect_(child);
           if (crect && VDom.isContaining_(crect, prect) && VDom.htmlTag_(child)) {
             list[i] = [child as SafeHTMLElement, crect, ClickType.tabindex];
           }
@@ -809,7 +809,7 @@ var VHints = {
     }
     visibleElements.reverse();
 
-    const obj = [null as never, null as never] as [Rect[], Rect], func = VDom.SubtractSequence_.bind(obj);
+    const obj = {l: null as never, t: null as never} as {l: Rect[], t: Rect}, func = VDom.SubtractSequence_.bind(obj);
     let r2 = null as Rect[] | null, t: Rect, reason: ClickType, visibleElement: Hint;
     for (let _len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
       _j > 0 && --_j;
@@ -818,17 +818,17 @@ var VHints = {
       let r = visibleElement[1];
       for (_i = _len; _j <= --_i; ) {
         t = visibleElements[_i][1];
-        if (r[3] <= t[1] || r[2] <= t[0] || r[0] >= t[2] || r[1] >= t[3]) { continue; }
-        if (visibleElements[_i][2] > ClickType.MaxNotBox) { continue; }
-        obj[0] = []; obj[1] = t;
-        r2 !== null ? r2.forEach(func) : func(r);
-        if ((r2 = obj[0]).length === 0) { break; }
+        if (r.b > t.t && r.r > t.l && r.l < t.r && r.t < t.b && visibleElements[_i][2] < ClickType.MaxNotBox + 1) {
+          obj.l = []; obj.t = t;
+          r2 !== null ? r2.forEach(func) : func(r);
+          if ((r2 = obj.l).length === 0) { break; }
+        }
       }
       if (r2 === null) { continue; }
       if (r2.length > 0) {
         t = r2[0];
-        t[1] > a.maxTop_ && t[1] > r[1] || t[0] > a.maxLeft_ && t[0] > r[0] ||
-          r2.length === 1 && (t[3] - t[1] < 3 || t[2] - t[0] < 3) || (visibleElement[1] = t);
+        t.t > a.maxTop_ && t.t > r.t || t.l > a.maxLeft_ && t.l > r.l ||
+          r2.length === 1 && (t.b - t.t < 3 || t.r - t.l < 3) || (visibleElement[1] = t);
       } else if ((reason = visibleElement[2]) > ClickType.MaxNotWeak && reason < ClickType.MinNotWeak
           && visibleElement[0].contains(visibleElements[_i][0])) {
         visibleElements.splice(_len, 1);
@@ -836,7 +836,7 @@ var VHints = {
         visibleElement.length > 3 && (r = (visibleElement as Hint4)[3][0]);
         for (let _k = _len; _i <= --_k; ) {
           t = visibleElements[_k][1];
-          if (r[0] >= t[0] && r[1] >= t[1] && r[0] < t[0] + 10 && r[1] < t[1] + 8) {
+          if (r.l >= t.l && r.t >= t.t && r.l < t.l + 10 && r.t < t.t + 8) {
             const offset: HintOffset = [r, visibleElement.length > 3 ? (visibleElement as Hint4)[3][1] + 13 : 13],
             hint2 = visibleElements[_k] as Hint4;
             hint2.length > 3 ? (hint2[3] = offset) : (hint2 as {} as HintOffset[]).push(offset);
@@ -1019,8 +1019,8 @@ var VHints = {
     }
     if ((!r2 || r) && _this.isActive_ && (_this.hints_ as HintsNS.HintItem[]).length < 64
         && !_this.alphabetHints_.hintKeystroke_
-        && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect)[0]) > 100
-            || Math.abs((r2 as ClientRect).top - (r as Rect)[1]) > 60)) {
+        && (hidden || Math.abs((r2 as ClientRect).left - (r as Rect).l) > 100
+            || Math.abs((r2 as ClientRect).top - (r as Rect).t) > 60)) {
       return _this._reinit();
     }
   },

@@ -87,6 +87,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
+      /* empty */
     } else if (a.mode_.i) {
       scale = scale === 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
 /**

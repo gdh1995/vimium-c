@@ -257,13 +257,13 @@ var VDom = {
       if (top > ihs || bottom < 3) {
         return null;
       }
-      const cr: Rect = [ //
-        left   >  0 ? (left   | 0) :  0, //
-        top    >  0 ? (top    | 0) :  0, //
-        right  < iw ? (right  | 0) : iw, //
-        bottom < ih ? (bottom | 0) : ih  //
-      ];
-      return cr[2] - cr[0] >= 3 && cr[3] - cr[1] >= 3 ? cr : null;
+      const cr: Rect = { //
+        l: left   >  0 ? (left   | 0) :  0, //
+        t: top    >  0 ? (top    | 0) :  0, //
+        r: right  < iw ? (right  | 0) : iw, //
+        b: bottom < ih ? (bottom | 0) : ih  //
+      };
+      return cr.r - cr.l >= 3 && cr.b - cr.t >= 3 ? cr : null;
     });
     return this.prepareCrop_();
   },
@@ -802,42 +802,42 @@ var VDom = {
 
   center_ (rect?: Rect | null): Point2D {
     let zoom = Build.BTypes & ~BrowserType.Firefox ? this.dbZoom_ / 2 : 0.5;
-    rect = rect && this.cropRectToVisible_.apply(this, rect as [number, number, number, number]) || rect;
-    return rect ? [((rect[0] + rect[2]) * zoom) | 0, ((rect[1] + rect[3]) * zoom) | 0] : [0, 0];
+    rect = rect && this.cropRectToVisible_(rect.l, rect.t, rect.r, rect.b) || rect;
+    return rect ? [((rect.l + rect.r) * zoom) | 0, ((rect.t + rect.b) * zoom) | 0] : [0, 0];
   },
   /** still return `true` if `paddings <= 4px` */
   isContaining_ (a: Rect, b: Rect): boolean {
-    return b[3] - 5 < a[3] && b[2] - 5 < a[2] && b[1] > a[1] - 5 && b[0] > a[0] - 5;
+    return b.b - 5 < a.b && b.r - 5 < a.r && b.t > a.t - 5 && b.l > a.l - 5;
   },
   padClientRect_ (rect: ClientRect, padding: number): WritableRect {
     const x = rect.left, y = rect.top, max = Math.max;
     padding = x || y ? padding : 0;
-    return [x | 0, y | 0, (x + max(rect.width, padding)) | 0, (y + max(rect.height, padding)) | 0];
+    return {l: x | 0, t: y | 0, r: (x + max(rect.width, padding)) | 0, b: (y + max(rect.height, padding)) | 0};
   },
   setBoundary_ (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): void {
-    if (allow_abs && (r[1] < 0 || r[0] < 0 || r[3] > innerHeight || r[2] > innerWidth)) {
+    if (allow_abs && (r.t < 0 || r.l < 0 || r.b > innerHeight || r.r > innerWidth)) {
       const arr: ViewOffset = this.getViewBox_();
-      r[0] += arr[0], r[2] += arr[0], r[1] += arr[1], r[3] += arr[1];
+      r.l += arr[0], r.r += arr[0], r.t += arr[1], r.b += arr[1];
       style.position = "absolute";
     }
-    style.left = r[0] + "px", style.top = r[1] + "px";
-    style.width = (r[2] - r[0]) + "px", style.height = (r[3] - r[1]) + "px";
+    style.left = r.l + "px", style.top = r.t + "px";
+    style.width = (r.r - r.l) + "px", style.height = (r.b - r.t) + "px";
   },
   cropRectToVisible_: null as never as (left: number, top: number, right: number, bottom: number) => Rect | null,
-  SubtractSequence_ (this: [Rect[], Rect], rect1: Rect): void { // rect1 - rect2
-    let rect2 = this[1], a = this[0], x1: number, x2: number
-      , y1 = Math.max(rect1[1], rect2[1]), y2 = Math.min(rect1[3], rect2[3]);
-    if (y1 >= y2 || ((x1 = Math.max(rect1[0], rect2[0])) >= (x2 = Math.min(rect1[2], rect2[2])))) {
+  SubtractSequence_ (this: {l: Rect[], t: Rect}, rect1: Rect): void { // rect1 - rect2
+    let rect2 = this.t, a = this.l, x1: number, x2: number
+      , y1 = Math.max(rect1.t, rect2.t), y2 = Math.min(rect1.b, rect2.b);
+    if (y1 >= y2 || ((x1 = Math.max(rect1.l, rect2.l)) >= (x2 = Math.min(rect1.r, rect2.r)))) {
       a.push(rect1);
       return;
     }
     // 1 2 3
     // 4   5
     // 6 7 8
-    const x0 = rect1[0], x3 = rect1[2], y0 = rect1[1], y3 = rect1[3];
-    x0 < x1 && a.push([x0, y0, x1, y3]); // (1)4(6)
-    y0 < y1 && a.push([x1, y0, x3, y1]); // 2(3)
-    y2 < y3 && a.push([x1, y2, x3, y3]); // 7(8)
-    x2 < x3 && a.push([x2, y1, x3, y2]); // 5
+    const x0 = rect1.l, x3 = rect1.r, y0 = rect1.t, y3 = rect1.b;
+    x0 < x1 && a.push({l: x0, t: y0, r: x1, b: y3}); // (1)4(6)
+    y0 < y1 && a.push({l: x1, t: y0, r: x3, b: y1}); // 2(3)
+    y2 < y3 && a.push({l: x1, t: y2, r: x3, b: y3}); // 7(8)
+    x2 < x3 && a.push({l: x2, t: y1, r: x3, b: y2}); // 5
   }
 };

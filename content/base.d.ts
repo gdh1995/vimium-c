@@ -88,16 +88,16 @@ interface EventControlKeys {
 }
 
 interface WritableRect {
-  [0]: number; // left
-  [1]: number; // top
-  [2]: number; // right
-  [3]: number; // bottom
+  l: number; // left
+  t: number; // top
+  r: number; // right
+  b: number; // bottom
 }
 interface Rect extends WritableRect {
-  readonly [0]: number; // left
-  readonly [1]: number; // top
-  readonly [2]: number; // right
-  readonly [3]: number; // bottom
+  readonly l: number; // left
+  readonly t: number; // top
+  readonly r: number; // right
+  readonly b: number; // bottom
 }
 interface Point2D extends Array<number> {
   readonly [0]: number;

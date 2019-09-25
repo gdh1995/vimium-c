@@ -357,7 +357,7 @@ var VCui = {
       return a.getCroppedRect_(clickEl as SafeHTMLElement, rect);
     }
     return rect && !a.isContaining_(bcr, rect) ? rect
-      : a.cropRectToVisible_.apply(a, bcr as [number, number, number, number]) ? bcr : null;
+      : a.cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
   },
   _lastFlash: null as HTMLElement | null,
   flash_: function (this: {}, el: Element | null, rect?: Rect | null, lifeTime?: number, classNames?: string): void {

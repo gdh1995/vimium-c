@@ -561,7 +561,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           function (link): HintsNS.InputHintItem {
         const marker = VDom.createElement_("span") as HintsNS.BaseHintItem["marker_"],
         rect = VDom.padClientRect_(VDom.getBoundingClientRect_(link[0]), 3);
-        rect[0]--, rect[1]--, rect[2]--, rect[3]--;
+        rect.l--, rect.t--, rect.r--, rect.b--;
         marker.className = "IH";
         VDom.setBoundary_(marker.style, rect);
         return {marker_: marker, dest_: link[0]};

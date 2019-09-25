@@ -332,8 +332,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       visible = rect.height > 0 ? VDom.cropRectToVisible_(rect.left, rect.top, rect.right, rect.bottom)
         : VDom.getVisibleClientRect_(element);
       if (visible) {
-        let height_ = visible[3] - visible[1];
-        children.push({ area_: (visible[2] - visible[0]) * height_, element_: element, height_});
+        let height_ = visible.b - visible.t;
+        children.push({ area_: (visible.r - visible.l) * height_, element_: element, height_});
       }
     }
     children.sort(this.sortByArea_);
