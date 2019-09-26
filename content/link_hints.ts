@@ -382,7 +382,8 @@ var VHints = {
                 && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
               : ClickType.Default)
           || ((s = element.className) && _this.btnRe_.test(s)
-              || element.getAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
+                && (s = VDom.htmlTag_(element.parentNode as Element), s.indexOf("button") < 0 && s !== "a")
+              || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
     }
     if ((isClickable || type !== ClickType.Default)
         && (arr = arr || VDom.getVisibleClientRect_(element))
