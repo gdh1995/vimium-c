@@ -313,20 +313,23 @@ const bookmarkEngine = {
     Completers.next_(results2, SugType.bookmark);
   },
   Listen_: function (): void {
-    const bBm = chrome.bookmarks, { Delay_: listener, Expire_: Expire } = bookmarkEngine;
-    if (!bBm.onCreated) { return; }
-    bBm.onCreated.addListener(listener);
-    bBm.onRemoved.addListener(Expire);
-    bBm.onChanged.addListener(Expire);
-    bBm.onMoved.addListener(listener);
-    bBm.onImportBegan && bBm.onImportBegan.addListener(function (): void {
-      chrome.bookmarks.onCreated.removeListener(bookmarkEngine.Delay_);
-    });
-    bBm.onImportEnded && bBm.onImportEnded.addListener(function (): void {
-      const f = bookmarkEngine.Delay_;
-      chrome.bookmarks.onCreated.addListener(f);
-      f();
-    });
+    const bBm = chrome.bookmarks;
+    if (Build.BTypes & BrowserType.Edge && !bBm.onCreated) { return; }
+    bBm.onCreated.addListener(bookmarkEngine.Delay_);
+    bBm.onRemoved.addListener(bookmarkEngine.Expire_);
+    bBm.onChanged.addListener(bookmarkEngine.Expire_);
+    bBm.onMoved.addListener(bookmarkEngine.Delay_);
+    if (!(Build.BTypes & ~BrowserType.Chrome)
+        || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome) {
+      bBm.onImportBegan.addListener(function (): void {
+        chrome.bookmarks.onCreated.removeListener(bookmarkEngine.Delay_);
+      });
+      bBm.onImportEnded.addListener(function (): void {
+        const f = bookmarkEngine.Delay_;
+        chrome.bookmarks.onCreated.addListener(f);
+        f();
+      });
+    }
   } as ((this: void) => void) | null,
   refresh_ (): void {
     bookmarkEngine.status_ = BookmarkStatus.initing;
@@ -337,38 +340,36 @@ const bookmarkEngine = {
     chrome.bookmarks.getTree(bookmarkEngine.readTree_);
   },
   readTree_ (this: void, tree: chrome.bookmarks.BookmarkTreeNode[]): void {
-    const a = bookmarkEngine;
-    a.status_ = BookmarkStatus.inited;
-    a.bookmarks_ = [];
-    a.dirs_ = [];
-    tree.forEach(a.traverseBookmark_, a);
-    const query = a.currentSearch_;
-    a.currentSearch_ = null;
+    bookmarkEngine.status_ = BookmarkStatus.inited;
+    bookmarkEngine.bookmarks_ = [];
+    bookmarkEngine.dirs_ = [];
+    tree.forEach(bookmarkEngine.traverseBookmark_, bookmarkEngine);
+    const query = bookmarkEngine.currentSearch_;
+    bookmarkEngine.currentSearch_ = null;
     setTimeout(() => Decoder.decodeList_(bookmarkEngine.bookmarks_), 50);
-    if (a.Listen_) {
-      setTimeout(a.Listen_, 0);
-      a.Listen_ = null;
+    if (bookmarkEngine.Listen_) {
+      setTimeout(bookmarkEngine.Listen_, 0);
+      bookmarkEngine.Listen_ = null;
     }
     if (query && !query[0].o) {
-      return a.performSearch_(query[1]);
+      return bookmarkEngine.performSearch_(query[1]);
     }
   },
   traverseBookmark_ (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
-    const a = bookmarkEngine;
-    const title = bookmark.title, id = bookmark.id, path = a.path_ + "/" + (title || id);
+    const title = bookmark.title, id = bookmark.id, path = bookmarkEngine.path_ + "/" + (title || id);
     if (bookmark.children) {
-      a.dirs_.push(id);
-      const oldPath = a.path_;
-      if (2 < ++a.depth_) {
-        a.path_ = path;
+      bookmarkEngine.dirs_.push(id);
+      const oldPath = bookmarkEngine.path_;
+      if (2 < ++bookmarkEngine.depth_) {
+        bookmarkEngine.path_ = path;
       }
-      bookmark.children.forEach(a.traverseBookmark_, a);
-      --a.depth_;
-      a.path_ = oldPath;
+      bookmark.children.forEach(bookmarkEngine.traverseBookmark_, bookmarkEngine);
+      --bookmarkEngine.depth_;
+      bookmarkEngine.path_ = oldPath;
       return;
     }
     const url = bookmark.url as string, jsSchema = "javascript:", isJS = url.startsWith(jsSchema);
-    a.bookmarks_.push({
+    bookmarkEngine.bookmarks_.push({
       id_: id, path_: path, title_: title || id,
       text_: isJS ? jsSchema : url,
       visible_: phraseBlacklist ? BlacklistFilter.TestNotMatched_(url, title) : kVisibility.visible,
@@ -380,16 +381,16 @@ const bookmarkEngine = {
   _stamp: 0,
   _expiredUrls: false,
   Later_ (this: void): void {
-    const _this = bookmarkEngine, last = performance.now() - _this._stamp;
-    if (_this.status_ !== BookmarkStatus.notInited) { return; }
+    const last = performance.now() - bookmarkEngine._stamp;
+    if (bookmarkEngine.status_ !== BookmarkStatus.notInited) { return; }
     if (last >= InnerConsts.bookmarkBasicDelay || last < -GlobalConsts.ToleranceOfNegativeTimeDelta) {
-      _this._timer = _this._stamp = 0;
-      _this._expiredUrls = false;
-      _this.refresh_();
+      bookmarkEngine._timer = bookmarkEngine._stamp = 0;
+      bookmarkEngine._expiredUrls = false;
+      bookmarkEngine.refresh_();
     } else {
-      _this.bookmarks_ = [];
-      _this.dirs_ = [];
-      _this._timer = setTimeout(_this.Later_, InnerConsts.bookmarkFurtherDelay);
+      bookmarkEngine.bookmarks_ = [];
+      bookmarkEngine.dirs_ = [];
+      bookmarkEngine._timer = setTimeout(bookmarkEngine.Later_, InnerConsts.bookmarkFurtherDelay);
     }
   },
   Delay_ (this: void): void {
@@ -400,7 +401,7 @@ const bookmarkEngine = {
   },
   Expire_ (
       this: void, id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
-    const _this = bookmarkEngine, arr = _this.bookmarks_, len = arr.length,
+    const arr = bookmarkEngine.bookmarks_, len = arr.length,
     title = info && (info as chrome.bookmarks.BookmarkChangeInfo).title;
     let i = 0; for (; i < len && arr[i].id_ !== id; i++) { /* empty */ }
     if (i < len) {
@@ -423,23 +424,23 @@ const bookmarkEngine = {
         }
       } else {
         arr.splice(i, 1);
-        info || _this.Delay_(); // may need to re-add it in case of lacking info
+        info || bookmarkEngine.Delay_(); // may need to re-add it in case of lacking info
       }
       return;
     }
-    if (_this.dirs_.indexOf(id) < 0) { return; } // some "new" items which haven't been read are changed
-    if (title != null) { /* a folder is renamed */ return _this.Delay_(); }
+    if (bookmarkEngine.dirs_.indexOf(id) < 0) { return; } // some "new" items which haven't been read are changed
+    if (title != null) { /* a folder is renamed */ return bookmarkEngine.Delay_(); }
     // a folder is removed
-    if (!_this._expiredUrls && Decoder.enabled_) {
+    if (!bookmarkEngine._expiredUrls && Decoder.enabled_) {
       const dict = Decoder.dict_, bs = HistoryCache.binarySearch_;
       for (const { url_: url } of arr) {
         if ((url in dict) && bs(url) < 0) {
           delete dict[url];
         }
       }
-      _this._expiredUrls = false;
+      bookmarkEngine._expiredUrls = false;
     }
-    return _this.Delay_();
+    return bookmarkEngine.Delay_();
   }
 },
 
@@ -597,12 +598,11 @@ domainEngine = {
         || (i = queryTerms[0].indexOf("/") + 1) && i < queryTerms[0].length) {
       return Completers.next_([], SugType.domain);
     }
-    const cache = HistoryCache;
-    if (cache.domains_) { /* empty */ }
-    else if (cache.history_) {
-      this.refresh_(cache.history_);
+    if (HistoryCache.domains_) { /* empty */ }
+    else if (HistoryCache.history_) {
+      this.refresh_(HistoryCache.history_);
     } else {
-      return index > 0 ? Completers.next_([], SugType.domain) : cache.use_(function () {
+      return index > 0 ? Completers.next_([], SugType.domain) : HistoryCache.use_(function () {
         if (query.o) { return; }
         return domainEngine.filter_(query, 0);
       });
@@ -1213,12 +1213,11 @@ knownCs: CompletersMap & SafeObject = {
       });
     },
     Clean_: function (this: void, arr: Array<chrome.history.HistoryItem | HistoryItem>): void {
-      const _this = HistoryCache, len = arr.length;
-      _this.Clean_ = null;
-      for (let i = 0; i < len; i++) {
+      HistoryCache.Clean_ = null;
+      for (let i = 0, len = arr.length; i < len; i++) {
         let j = arr[i] as chrome.history.HistoryItem, url = j.url;
         if (url.length > GlobalConsts.MaxHistoryURLLength) {
-          url = _this.trimTooLongURL_(url, j);
+          url = HistoryCache.trimTooLongURL_(url, j);
         }
         (arr as HistoryItem[])[i] = {
           text_: url,
@@ -1260,31 +1259,33 @@ knownCs: CompletersMap & SafeObject = {
         chrome.history.onVisitRemoved.addListener(HistoryCache.OnVisitRemoved_);
         chrome.history.onVisited.addListener(HistoryCache.OnPageVisited_);
       }, 100);
-      _this.history_ = arr as HistoryItem[];
-      _this.use_ = function (this: typeof HistoryCache, callback?: HistoryCallback): void {
+      HistoryCache.history_ = arr as HistoryItem[];
+      HistoryCache.use_ = function (this: typeof HistoryCache, callback?: HistoryCallback): void {
         if (callback) { callback(this.history_ as HistoryItem[]); }
       };
-      _this._callbacks && _this._callbacks.length > 0 && setTimeout(function (ref: HistoryCallback[]): void {
+      HistoryCache._callbacks && HistoryCache._callbacks.length > 0 &&
+      setTimeout(function (ref: HistoryCallback[]): void {
         for (const f of ref) {
           f(HistoryCache.history_ as HistoryItem[]);
         }
-      }, 1, _this._callbacks);
-      _this._callbacks = null;
+      }, 1, HistoryCache._callbacks);
+      HistoryCache._callbacks = null;
     } as ((arr: chrome.history.HistoryItem[]) => void) | null,
     OnPageVisited_ (this: void, newPage: chrome.history.HistoryItem): void {
-      let _this = HistoryCache, url = newPage.url;
+      let url = newPage.url;
       if (url.length > GlobalConsts.MaxHistoryURLLength) {
-        url = _this.trimTooLongURL_(url, newPage);
+        url = HistoryCache.trimTooLongURL_(url, newPage);
       }
       const time = newPage.lastVisitTime,
       title = Build.BTypes & ~BrowserType.Chrome ? newPage.title || "" : newPage.title as string,
-      updateCount = ++_this.updateCount_,
-      d = _this.domains_, i = _this.binarySearch_(url);
-      if (i < 0) { _this.toRefreshCount_++; }
-      if (updateCount > 59 || (updateCount > 10 && Date.now() - _this.lastRefresh_ > 300000)) { // safe for time change
-        _this.refreshInfo_();
+      updateCount = ++HistoryCache.updateCount_,
+      d = HistoryCache.domains_, i = HistoryCache.binarySearch_(url);
+      if (i < 0) { HistoryCache.toRefreshCount_++; }
+      if (updateCount > 59
+          || (updateCount > 10 && Date.now() - HistoryCache.lastRefresh_ > 300000)) { // safe for time change
+        HistoryCache.refreshInfo_();
       }
-      const j: HistoryItem = i >= 0 ? (_this.history_ as HistoryItem[])[i] : {
+      const j: HistoryItem = i >= 0 ? (HistoryCache.history_ as HistoryItem[])[i] : {
         text_: "",
         title_: title,
         time_: time,
@@ -1322,7 +1323,7 @@ knownCs: CompletersMap & SafeObject = {
         return;
       }
       j.text_ = Decoder.decodeURL_(url, j);
-      (_this.history_ as HistoryItem[]).splice(~i, 0, j);
+      (HistoryCache.history_ as HistoryItem[]).splice(~i, 0, j);
     },
     OnVisitRemoved_ (this: void, toRemove: chrome.history.RemovedResult): void {
       Decoder._jobs.length = 0;
@@ -1368,18 +1369,18 @@ knownCs: CompletersMap & SafeObject = {
     refreshInfo_ (): void {
       type Q = chrome.history.HistoryQuery;
       type C = (results: chrome.history.HistoryItem[]) => void;
-      const a = HistoryCache, i = Date.now(); // safe for time change
-      if (a.toRefreshCount_ <= 0) { /* empty */ }
-      else if (i < a.lastRefresh_ + 1000 && i >= a.lastRefresh_) { return; }
+      const i = Date.now(); // safe for time change
+      if (HistoryCache.toRefreshCount_ <= 0) { /* empty */ }
+      else if (i < HistoryCache.lastRefresh_ + 1000 && i >= HistoryCache.lastRefresh_) { return; }
       else {
         setTimeout(chrome.history.search as ((q: Q, c: C) => void | 1) as (q: Q, c: C) => void, 50, {
           text: "",
-          maxResults: Math.min(999, a.updateCount_ + 10),
-          startTime: i < a.lastRefresh_ ? i - 5 * 60 * 1000 : a.lastRefresh_
-        }, a.OnInfo_);
+          maxResults: Math.min(999, HistoryCache.updateCount_ + 10),
+          startTime: i < HistoryCache.lastRefresh_ ? i - 5 * 60 * 1000 : HistoryCache.lastRefresh_
+        }, HistoryCache.OnInfo_);
       }
-      a.lastRefresh_ = i;
-      a.toRefreshCount_ = a.updateCount_ = 0;
+      HistoryCache.lastRefresh_ = i;
+      HistoryCache.toRefreshCount_ = HistoryCache.updateCount_ = 0;
       return Decoder.continueToWork_();
     },
     OnInfo_ (history: chrome.history.HistoryItem[]): void {
