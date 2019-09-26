@@ -216,7 +216,7 @@ var VHints = {
           && (core = Build.BTypes & BrowserType.Firefox ? VDom.getWndCore_(frame.contentWindow) : frame.contentWindow)
           && core.VDom && (core.VDom as typeof VDom).isHTML_()) {
         if (cmd === kFgCmd.linkHints) {
-          (done = (core as VWindow).VHints.isActive_) && (core as VWindow).VHints.deactivate_(0);
+          (done = (core as VWindow).VHints.isActive_) && (core as VWindow).VHints.deactivate_(1);
         }
         events = core.VApis as VApisModeTy;
         err = events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApis.keydownEvents_() : VApis);
@@ -970,7 +970,7 @@ var VHints = {
     a.pTimer_ = -!!VHud.t;
     if (!(a.mode_ & HintMode.queue)) {
       a._setupCheck(clickEl);
-      return a.deactivate_(0);
+      return a.deactivate_(1);
     }
     a.isActive_ = false;
     a._setupCheck();
