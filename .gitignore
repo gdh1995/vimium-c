@@ -17,6 +17,7 @@
 *.tsbuild*
 .ts*
 *.zip
+dist
 dist/
 front/*.png
 node_modules*

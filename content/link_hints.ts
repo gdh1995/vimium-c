@@ -685,14 +685,15 @@ var VHints = {
     return result.length > 12 ? result : list;
   },
   deduplicate_ (list: Hint[]): void {
-    let i = list.length, j: number, k: ClickType, s: string;
+    let i = list.length, j = 0, k: ClickType, s: string;
+    let child: Element, prect: Rect, crect: Rect | null;
     while (0 < --i) {
       k = list[i][2];
       if (k === ClickType.codeListener) {
         if ((list[i][0] as Exclude<Hint[0], SVGElement>).localName === "div"
             && (j = i + 1) < list.length
             && (s = list[j][0].localName, s === "div" || s === "a")) {
-          const prect = list[i][1], crect = list[j][1];
+          prect = list[i][1]; crect = list[j][1];
           if (crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9
               && crect.l > prect.l - 4 && crect.t > prect.t - 4 && crect.b > prect.b - 9
               && (s !== "a" || list[i][0].contains(list[j][0]))) {
