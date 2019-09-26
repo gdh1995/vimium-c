@@ -686,36 +686,36 @@ var VHints = {
   },
   deduplicate_ (list: Hint[]): void {
     let i = list.length, j = 0, k: ClickType, s: string;
-    let child: Element, prect: Rect, crect: Rect | null;
+    let element: Element, prect: Rect, crect: Rect | null;
     while (0 < --i) {
       k = list[i][2];
-      if (k === ClickType.codeListener) {
-        if ((list[i][0] as Exclude<Hint[0], SVGElement>).localName === "div"
-            && (j = i + 1) < list.length
-            && (s = list[j][0].localName, s === "div" || s === "a")) {
-          prect = list[i][1]; crect = list[j][1];
-          if (crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9
-              && crect.l > prect.l - 4 && crect.t > prect.t - 4 && crect.b > prect.b - 9
-              && (s !== "a" || list[i][0].contains(list[j][0]))) {
-            // the `<a>` is a single-line box's most left element and the first clickable element,
-            // so think the box is just a layout container
-            // for [i] is `<div>`, not limit the height of parent `<div>`,
-            // if there's more content, it should have hints for itself
-            list.splice(i, 1);
+      if (k !== ClickType.classname) {
+        if (k === ClickType.codeListener) {
+          if (((element = list[i][0] as Hint[0]) as Exclude<Hint[0], SVGElement>).localName === "div"
+              && (j = i + 1) < list.length
+              && (s = list[j][0].localName, s === "div" || s === "a")) {
+            prect = list[i][1]; crect = list[j][1];
+            if (crect.l < prect.l + /* icon_16 */ 19 && crect.t < prect.t + 9
+                && crect.l > prect.l - 4 && crect.t > prect.t - 4 && crect.b > prect.b - 9
+                && (s !== "a" || element.contains(list[j][0]))) {
+              // the `<a>` is a single-line box's most left element and the first clickable element,
+              // so think the box is just a layout container
+              // for [i] is `<div>`, not limit the height of parent `<div>`,
+              // if there's more content, it should have hints for itself
+              list.splice(i, 1);
+            }
+            continue;
           }
-          continue;
+        } else if (k === ClickType.tabindex
+            && (element = list[i][0] as Hint[0]).childElementCount === 1 && i + 1 < list.length
+            && list[i + 1][0].parentNode !== element) {
+          element = element.lastElementChild as Element;
+          prect = list[i][1]; crect = VDom.getVisibleClientRect_(element);
+          if (crect && VDom.isContaining_(crect, prect) && VDom.htmlTag_(element)) {
+            list[i] = [element as SafeHTMLElement, crect, ClickType.tabindex];
+          }
         }
         j = i;
-      } else if (k !== ClickType.classname) {
-        j = i;
-        if (k === ClickType.tabindex && list[i][0].childElementCount === 1 && i + 1 < list.length
-            && list[i + 1][0].parentNode !== list[i][0]) {
-          child = list[i][0].lastElementChild as Element;
-          prect = list[i][1]; crect = VDom.getVisibleClientRect_(child);
-          if (crect && VDom.isContaining_(crect, prect) && VDom.htmlTag_(child)) {
-            list[i] = [child as SafeHTMLElement, crect, ClickType.tabindex];
-          }
-        }
       }
       else if ((k = list[j = i - 1][2]) > ClickType.MaxWeak || !this._isDescendant(list[i][0], list[j][0])) {
         continue;
@@ -1375,7 +1375,7 @@ Modes_: [
   , HintMode.HOVER | HintMode.queue, "Hover over nodes continuously"
 ] as HintsNS.ModeOpt,
 [
-  (element: SafeHTMLElement | SVGElement): void => {
+  (element: Hint[0]): void => {
     const a = VDom;
     if (a.lastHovered_ !== element) {
       a.hover_(null);
