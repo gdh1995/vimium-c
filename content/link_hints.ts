@@ -299,7 +299,7 @@ var VHints = {
    */
   GetClickable_ (this: void, hints: Hint[], element: SafeHTMLElement): void {
     let arr: Rect | null | undefined, isClickable = null as boolean | null, s: string | null
-      , type = ClickType.Default, clientSize: number = 0;
+      , type = ClickType.Default, anotherEl: Element | null, clientSize: number = 0;
     const tag = element.localName, _this = VHints;
     switch (tag) {
     case "a":
@@ -351,7 +351,7 @@ var VHints = {
       if ((element as HTMLImageElement).useMap) {
         VDom.getClientRectsForAreas_(element as HTMLImageElement, hints as Hint5[]);
       }
-      if ((_this.forHover_ && VDom.htmlTag_(element.parentNode as Element) !== "a")
+      if ((_this.forHover_ && (!(anotherEl = element.parentElement) || VDom.htmlTag_(anotherEl) !== "a"))
           || ((s = (element as HTMLElement).style.cursor as string) ? s !== "default"
               : (s = getComputedStyle(element).cursor as string) && (s.indexOf("zoom") >= 0 || s.startsWith("url"))
           )) {
@@ -382,7 +382,8 @@ var VHints = {
                 && clientSize + 5 < element.scrollWidth ? ClickType.scrollX
               : ClickType.Default)
           || ((s = element.className) && _this.btnRe_.test(s)
-                && (s = VDom.htmlTag_(element.parentNode as Element), s.indexOf("button") < 0 && s !== "a")
+                && (!(anotherEl = element.parentElement)
+                    || (s = VDom.htmlTag_(anotherEl), s.indexOf("button") < 0 && s !== "a"))
               || element.hasAttribute("aria-selected") ? ClickType.classname : ClickType.Default);
     }
     if ((isClickable || type !== ClickType.Default)
