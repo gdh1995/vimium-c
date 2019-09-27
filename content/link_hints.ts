@@ -1279,6 +1279,9 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
   if (!(<RegExpOne> /^i?frame$/).test(tag)) {
     return 0;
   }
+  const { count_: count, options_: options } = this;
+  options.mode = this.mode_;
+  this.mode_ = HintMode.DEFAULT;
   if (el === VOmni.box_) {
     VOmni.focus_();
     return 1;
@@ -1305,9 +1308,6 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
       }
     }
   }
-  const { count_: count, options_: options } = this;
-  options.mode = this.mode_;
-  this.mode_ = HintMode.DEFAULT;
   el.focus();
   if (err) {
     VPort.send_(kFgReq.execInChild, {
