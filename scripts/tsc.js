@@ -48,7 +48,7 @@ function patchTSC() {
       }
       code = code + patched;;
       fs.writeFileSync(path, code);
-      print("Patch TypeScript/lib/tsc.js: succeed");
+      console.log("Patch TypeScript/lib/tsc.js: succeed");
     }
     _tscPatched = true;
   } catch (e) {
@@ -84,6 +84,7 @@ ts.sys.writeFile = function(path, data, writeBom) {
   var srcPath = isJS ? path.slice(0, -3) + ".ts" : path;
   if (cache[path] === data) {
     if (fs.existsSync(targetPath)) {
+      console.log("\tTOUCH:", path);
       lib.touchFileIfNeeded(path, srcPath);
     } else {
       fs.closeSync(fs.openSync(targetPath, "w"));
@@ -95,6 +96,7 @@ ts.sys.writeFile = function(path, data, writeBom) {
     data = getUglifyJS()(data);
   }
   if (fs.existsSync(path) && lib.readFile(path, {}) === data) {
+    console.log("\tTOUCH:", path);
     lib.touchFileIfNeeded(path, srcPath);
   } else {
     return real_write(path, data, writeBom);

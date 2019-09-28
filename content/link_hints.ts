@@ -1549,7 +1549,7 @@ Modes_: [
       ctrlKey_: false,
       metaKey_: false,
       shiftKey_: false
-    });
+    }, 0, 0);
     if (hadNoDownload) {
       link.removeAttribute(kDownload);
     }
@@ -1590,7 +1590,7 @@ Modes_: [
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
           rect = (link as HTMLDetailsElement).open || !rect ? VDom.getVisibleClientRect_(summary) : rect;
-          VCui.click_(summary, rect, null, true);
+          VCui.click_(summary, rect, null, 1);
           rect && VCui.flash_(null, rect);
           return false;
       }
@@ -1602,16 +1602,17 @@ Modes_: [
       VCui.simulateSelect_(link, rect, true);
       return false;
     }
-    const mask = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.m, newTab = mask > HintMode.newTab - 1,
-    isRight = a.options_.button === "right";
+    const mask = a.mode_ & HintMode.mask_focus_new, notMac = !VDom.cache_.m,
+    isRight = a.options_.button === "right",
+    newTab = mask > HintMode.newTab - 1 && !isRight;
     VCui.click_(link, rect, {
       altKey_: false,
       ctrlKey_: newTab && notMac,
       metaKey_: newTab && !notMac,
-      shiftKey_: mask > HintMode.mask_focus_new - 1
+      shiftKey_: newTab && mask > HintMode.mask_focus_new - 1
     }, mask > 0 || link.tabIndex >= 0
     , isRight ? 2 : 0
-    , !(Build.BTypes & BrowserType.Chrome) || isRight || mask ? 0 : a.options_.touch);
+    , !(Build.BTypes & BrowserType.Chrome) || isRight || newTab ? 0 : a.options_.touch);
   }
   , HintMode.OPEN_IN_CURRENT_TAB, "Open link in current tab"
   , HintMode.OPEN_IN_NEW_BG_TAB, "Open link in new tab"

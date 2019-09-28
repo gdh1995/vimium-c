@@ -480,6 +480,8 @@ declare const enum BrowserType {
 declare const enum BrowserVer {
   // display:flex still exists on C31 (C29, from MDN)
   MinShadowDOMV0 = 31, // the real version is <= C31; it's prefixed
+  // mouseEvent.buttons is since C43 but a `buttons` property does no harm on Chrome <= 42
+  MinUsable$MouseEvent$$constructor = 31, // the real version is <= C31
   MinSupported = 32,
   MinEnsuredES6Promise = 32, // even if LEGACY
   // the 5 below are correct even if EXPERIMENTAL or LEGACY

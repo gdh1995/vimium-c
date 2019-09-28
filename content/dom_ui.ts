@@ -238,7 +238,7 @@ var VCui = {
     return true;
   } as (root?: VUIRoot) => boolean,
   click_ (element: Element
-      , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean
+      , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
       , button?: 0 | 2, touchMode?: /** default: auto */ null | boolean | /** false */ 0): void {
     const a = VDom;
     rect || (rect = a.getVisibleClientRect_(element));
@@ -259,7 +259,8 @@ var VCui = {
       (Build.BTypes & ~BrowserType.Firefox ? typeof element.focus === "function" : element.focus) &&
       (element as HTMLElement | SVGElement).focus();
     a.mouse_(element, "mouseup", center, modifiers, null, button);
-    if ((element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
+    if (button /* is the right button */
+        || (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
       return;
     }
     if (!(Build.BTypes & BrowserType.Firefox)) {

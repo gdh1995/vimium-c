@@ -699,27 +699,37 @@ var VDom = {
   },
   mouse_: function (this: {}, element: Element
       , type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseenter" | "mouseout" | "mouseleave"
-      , center: Point2D, modifiers?: MyMouseControlKeys | null, related?: Element | null
-      , button?: number): boolean {
-    let doc = element.ownerDocument;
+      , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: Element | null
+      , button?: 0 | 2): boolean {
+    let mouseEvent: MouseEvent, doc = element.ownerDocument, u: undefined;
     Build.BTypes & BrowserType.Chrome &&
     (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && (this as typeof VDom).unsafeFramesetTag_
         && (doc as WindowWithTop).top === top
       || (doc as Node | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE) &&
     (doc = document);
-    const mouseEvent = (doc as Document).createEvent("MouseEvents");
-    // (typeArg: string, canBubbleArg: boolean, cancelableArg: boolean,
-    //  viewArg: Window, detailArg: number,
-    //  screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number,
-    //  ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean,
-    //  buttonArg: number, relatedTargetArg: EventTarget | null)
+    button = (<number> button | 0) as 0 | 2;
+    relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : <undefined> u;
+    const view = (doc as Document).defaultView || window,
+    tyKey = type.slice(5, 6),
+    isAboutButtons = "du".indexOf(tyKey) >= 0, // is: down / up / (click)
+    x = center[0], y = center[1], ctrlKey = modifiers ? modifiers.ctrlKey_ : !1,
+    altKey = modifiers ? modifiers.altKey_ : !1, shiftKey = modifiers ? modifiers.shiftKey_ : !1,
+    metaKey = modifiers ? modifiers.metaKey_ : !1;
     // note: there seems no way to get correct screenX/Y of an element
-    mouseEvent.initMouseEvent(type, !0, !0
-      , (doc as Document).defaultView || window, type.startsWith("mouseo") ? 0 : 1
-      , center[0], center[1], center[0], center[1]
-      , modifiers ? modifiers.ctrlKey_ : !1, modifiers ? modifiers.altKey_ : !1, modifiers ? modifiers.shiftKey_ : !1
-      , modifiers ? modifiers.metaKey_ : !1
-      , <number> button | 0, related && related.ownerDocument === doc ? related : null);
+    if (!(Build.BTypes & BrowserType.Chrome)
+        || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
+        || (this as typeof VDom).cache_.v >= BrowserVer.MinUsable$MouseEvent$$constructor) {
+      mouseEvent = new MouseEvent(type, {
+        bubbles: !0, cancelable: !0, detail: +isAboutButtons, view,
+        screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, shiftKey, altKey, metaKey,
+        button, buttons: tyKey === "d" ? button || 1 : 0,
+        relatedTarget
+      });
+    } else {
+      mouseEvent = (doc as Document).createEvent("MouseEvents");
+      mouseEvent.initMouseEvent(type, !0, !0, view, +isAboutButtons, x, y, x, y
+        , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget || null);
+    }
     return Build.BTypes & ~BrowserType.Firefox ? dispatchEvent.call(element, mouseEvent)
       : element.dispatchEvent(mouseEvent);
   } as VDomMouse,
