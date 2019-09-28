@@ -300,15 +300,6 @@ type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 
 interface MyMouseControlKeys { altKey_: boolean; ctrlKey_: boolean; metaKey_: boolean; shiftKey_: boolean; }
 
-interface VDomMouse {
-  (element: Element, type: "mousedown" | "mouseup" | "click"
-    , rect: Point2D // rect must be not optional, so that human can understand program logic easily
-    , modifiers?: MyMouseControlKeys | null, related?: Element | null, button?: 0 | 2): boolean;
-  (element: Element, type: "mouseover" | "mouseenter", rect: Point2D
-    , modifiers?: null, related?: Element | null): boolean;
-  (element: Element, type: "mouseout" | "mouseleave", rect: Point2D
-    , modifiers?: null, related?: Element | null): boolean;
-}
 interface VPortTy {
   post_<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
   post_<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;

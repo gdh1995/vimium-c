@@ -698,7 +698,7 @@ var VDom = {
     addEventListener(kEventName, eventHandler, true);
   },
   mouse_: function (this: {}, element: Element
-      , type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseenter" | "mouseout" | "mouseleave"
+      , type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave"
       , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: Element | null
       , button?: 0 | 2): boolean {
     let mouseEvent: MouseEvent, doc = element.ownerDocument, u: undefined;
@@ -732,10 +732,19 @@ var VDom = {
     }
     return Build.BTypes & ~BrowserType.Firefox ? dispatchEvent.call(element, mouseEvent)
       : element.dispatchEvent(mouseEvent);
-  } as VDomMouse,
+  } as {
+    (element: Element, type: "mousedown" | "mouseup" | "click"
+      , rect: Point2D // rect must be not optional, so that human can understand program logic easily
+      , modifiers?: MyMouseControlKeys | null, related?: Element | null, button?: 0 | 2): boolean;
+    (element: Element, type: "mouseover" | "mouseenter" | "mousemove", rect: Point2D
+      , modifiers?: null, related?: Element | null): boolean;
+    (element: Element, type: "mouseout" | "mouseleave", rect: Point2D
+      , modifiers?: null, related?: Element | null): boolean;
+  },
   lastHovered_: null as Element | null,
   /** note: will NOT skip even if newEl == @lastHovered */
   hover_: function (this: {}, newEl: Element | null, center?: Point2D): void {
+    const canDispatchMove = center && document.elementFromPoint(center[0], center[1]) === newEl;
     let a = VDom as typeof VDom, last = a.lastHovered_;
     if (last && a.isInDOM_(last)) {
       const notSame = newEl !== last;
@@ -750,6 +759,7 @@ var VDom = {
     if (newEl) {
       a.mouse_(newEl, "mouseover", center as Point2D, null, last);
       a.mouse_(newEl, "mouseenter", center as Point2D, null, last);
+      canDispatchMove && a.mouse_(newEl, "mousemove", center as Point2D);
     }
   } as {
     (newEl: Element, center: Point2D): void;
