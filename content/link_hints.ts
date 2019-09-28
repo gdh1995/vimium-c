@@ -742,7 +742,7 @@ var VHints = {
   },
   _isDescendant (d: Element, p: Hint[0]): boolean {
     // Note: currently, not compute normal shadowDOMs / even <slot>s (too complicated)
-    let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null;
+    let i = 3, c: EnsuredMountedElement | null | undefined, f: Node | null, s: string;
     while (0 < i--
         && (c = (Build.BTypes & ~BrowserType.Firefox ? VDom.GetParent_(d, PNType.DirectElement)
                 : d.parentElement as Element | null) as EnsuredMountedElement | null)
@@ -753,10 +753,12 @@ var VHints = {
       d = c;
     }
     if (c !== <Element> p) { return false; }
-    for (; ; ) {
-      if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }
-      if (i === 2) { break; }
-      c = c.firstElementChild; i++;
+    if ((s = p.localName).indexOf("button") < 0 && s !== "a") {
+      for (; ; ) {
+        if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }
+        if (i++ === 2) { break; }
+        c = c.firstElementChild;
+      }
     }
     return true;
   },
