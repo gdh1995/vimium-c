@@ -371,8 +371,13 @@ var VDom = {
     (element: HTMLElementUsingMap, output: Hint5[]): null;
   },
   getCroppedRect_ (el: SafeHTMLElement, crect: Rect): Rect {
-    const parent = el.parentNode as Element, prect = this.getVisibleClientRect_(parent);
-    return prect && this.isContaining_(crect, prect) && getComputedStyle(parent).overflow === "hidden" ? prect : crect;
+    let parent: Element | null | undefined, prect: Rect | null | undefined, i: number = 3, bcr: ClientRect;
+    while (0 < i-- && (parent = this.GetParent_(el, PNType.RevealSlotAndGotoParent))
+        && !(bcr = this.getBoundingClientRect_(parent),
+              prect = this.cropRectToVisible_(bcr.left, bcr.top, bcr.right, bcr.bottom))
+        ) { /* empty */ }
+    return prect && this.isContaining_(crect, prect) && getComputedStyle(parent as Element).overflow === "hidden"
+        ? prect : crect;
   },
   findMainSummary_ (details: HTMLDetailsElement): SafeHTMLElement | null {
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
