@@ -370,14 +370,19 @@ var VDom = {
       ): Rect | null;
     (element: HTMLElementUsingMap, output: Hint5[]): null;
   },
-  getCroppedRect_ (el: SafeHTMLElement, crect: Rect): Rect {
-    let parent: Element | null | undefined, prect: Rect | null | undefined, i: number = 3, bcr: ClientRect;
-    while (0 < i-- && (parent = this.GetParent_(el, PNType.RevealSlotAndGotoParent))
-        && !(bcr = this.getBoundingClientRect_(parent),
-              prect = this.cropRectToVisible_(bcr.left, bcr.top, bcr.right, bcr.bottom))
+  getCroppedRect_: function (this: {}, el: SafeHTMLElement, crect: Rect | null): Rect | null {
+    let parent: Element | null = el, prect: Rect | null | undefined
+      , i: number = crect ? 3 : 0, bcr: ClientRect;
+    while (0 < i-- && (parent = (this as typeof VDom).GetParent_(parent, PNType.RevealSlotAndGotoParent))
+        && !(bcr = (this as typeof VDom).getBoundingClientRect_(parent),
+              prect = (this as typeof VDom).cropRectToVisible_(bcr.left, bcr.top, bcr.right, bcr.bottom))
         ) { /* empty */ }
-    return prect && this.isContaining_(crect, prect) && getComputedStyle(parent as Element).overflow === "hidden"
+    return prect && (this as typeof VDom).isContaining_(crect as Rect, prect)
+        && getComputedStyle(parent as Element).overflow === "hidden"
         ? prect : crect;
+  } as {
+    (el: SafeHTMLElement, crect: Rect): Rect;
+    (el: SafeHTMLElement, crect: Rect | null): Rect | null;
   },
   findMainSummary_ (details: HTMLDetailsElement): SafeHTMLElement | null {
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element

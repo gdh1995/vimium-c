@@ -427,10 +427,15 @@ var VHints = {
   _HNTagRe: <RegExpOne> /h\d/,
   checkAnchor_ (anchor: HTMLAnchorElement & EnsuredMountedHTMLElement): Rect | null {
     // for Google search result pages
-    let el = (anchor.rel || anchor.hasAttribute("ping"))
-        && anchor.firstElementChild as Element | null;
-    return el && this._HNTagRe.test(VDom.htmlTag_(el))
-        && this.isNotReplacedBy_(el as HTMLHeadingElement & SafeHTMLElement) ? VDom.getVisibleClientRect_(el) : null;
+    let mayBeSearchResult = !!(anchor.rel || anchor.hasAttribute("ping")),
+    el = mayBeSearchResult || anchor.childElementCount === 1 ? anchor.lastElementChild as Element | null : null,
+    tag = el ? VDom.htmlTag_(el) : "";
+    return el && (mayBeSearchResult
+        ? this._HNTagRe.test(tag) && this.isNotReplacedBy_(el as HTMLHeadingElement & SafeHTMLElement)
+          ? VDom.getVisibleClientRect_(el) : null
+        : tag === "img" && !anchor.clientHeight
+          ? VDom.getCroppedRect_(el as HTMLImageElement, VDom.getVisibleClientRect_(el))
+        : null);
   },
   isNotReplacedBy_ (element: SafeHTMLElement | null, isExpected?: Hint[]): boolean | null {
     const arr2: Hint[] = [], a = this, clickListened = a.isClickListened_;
@@ -763,7 +768,7 @@ var VHints = {
       for (; ; ) {
         if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }
         if (i++ === 2) { break; }
-        c = c.firstElementChild;
+        c = c.lastElementChild;
       }
     }
     return true;
