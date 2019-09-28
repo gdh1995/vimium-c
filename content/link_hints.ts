@@ -689,11 +689,11 @@ var VHints = {
   deduplicate_ (list: Hint[]): void {
     let i = list.length, j = 0, k: ClickType, s: string;
     let element: Element, prect: Rect, crect: Rect | null;
-    while (0 < --i) {
+    while (0 <= --i) {
       k = list[i][2];
       if (k !== ClickType.classname) {
         if (k === ClickType.codeListener) {
-          if (((element = list[i][0] as Hint[0]) as Exclude<Hint[0], SVGElement>).localName === "div"
+          if (((element = list[i][0]) as Exclude<Hint[0], SVGElement>).localName === "div"
               && (j = i + 1) < list.length
               && (s = list[j][0].localName, s === "div" || s === "a")) {
             prect = list[i][1]; crect = list[j][1];
@@ -709,7 +709,7 @@ var VHints = {
             continue;
           }
         } else if (k === ClickType.tabindex
-            && (element = list[i][0] as Hint[0]).childElementCount === 1 && i + 1 < list.length
+            && (element = list[i][0]).childElementCount === 1 && i + 1 < list.length
             && list[i + 1][0].parentNode !== element) {
           element = element.lastElementChild as Element;
           prect = list[i][1]; crect = VDom.getVisibleClientRect_(element);
@@ -719,7 +719,13 @@ var VHints = {
         }
         j = i;
       }
-      else if ((k = list[j = i - 1][2]) > ClickType.MaxWeak || !this._isDescendant(list[i][0], list[j][0])) {
+      else if (i + 1 < list.length && list[j = i + 1][2] === ClickType.Default
+          && (element = list[i + 1][0]).parentNode === list[i][0]
+          && (element as Hint[0]).localName.indexOf("button") >= 0) {
+        list.splice(i, 1);
+        continue;
+      }
+      else if (i > 0 && (k = list[j = i - 1][2]) > ClickType.MaxWeak || !this._isDescendant(list[i][0], list[j][0])) {
         continue;
       } else if (VDom.isContaining_(list[j][1], list[i][1])) {
         list.splice(i, 1);
