@@ -427,8 +427,9 @@ var VHints = {
   _HNTagRe: <RegExpOne> /h\d/,
   checkAnchor_ (anchor: HTMLAnchorElement & EnsuredMountedHTMLElement): Rect | null {
     // for Google search result pages
-    let mayBeSearchResult = !!(anchor.rel || anchor.hasAttribute("ping")),
-    el = mayBeSearchResult || anchor.childElementCount === 1 ? anchor.lastElementChild as Element | null : null,
+    let mayBeSearchResult = !!(anchor.rel
+          || (Build.BTypes & ~BrowserType.Chrome ? anchor.getAttribute("ping") : anchor.ping)),
+    el = mayBeSearchResult || anchor.childElementCount === 1 ? anchor.firstElementChild as Element | null : null,
     tag = el ? VDom.htmlTag_(el) : "";
     return el && (mayBeSearchResult
         ? this._HNTagRe.test(tag) && this.isNotReplacedBy_(el as HTMLHeadingElement & SafeHTMLElement)

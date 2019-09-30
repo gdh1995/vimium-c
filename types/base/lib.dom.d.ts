@@ -2336,6 +2336,8 @@ interface HTMLAnchorElement extends HTMLElement {
       * Contains the pathname of the URL.
       */
     pathname: string;
+    /** is only ensured on Chrome */
+    ping?: string;
     /**
       * Sets or retrieves the port number associated with a URL.
       */
