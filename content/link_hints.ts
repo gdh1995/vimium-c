@@ -464,8 +464,11 @@ var VHints = {
           !(!el.className && !el.id && tag === "div"
             || ((tag = VDom.htmlTag_(el2)) === "div" || tag === "span") && VDom.clickable_.has(el2)
                 && el2.getClientRects().length
-            || this._HNTagRe.test(tag) && (el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null)
-                && VDom.htmlTag_(el2) === "a"
+            || ((tag !== "div"
+                  || !!(el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null,
+                        tag = el2 ? VDom.htmlTag_(el2) : ""))
+                && this._HNTagRe.test(tag) && (el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null)
+                && VDom.htmlTag_(el2) === "a")
           );
   },
   /** Note: required by {@link #kFgCmd.focusInput}, should only add SafeHTMLElement instances */
