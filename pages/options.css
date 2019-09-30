@@ -344,7 +344,7 @@ label:active {
 #keyMappings {
   min-height: 148px;
 }
-@-moz-document url-prefix() {
+@supports (-moz-appearance: none) {
   #keyMappings {
     min-height: 166px;
   }

@@ -21,9 +21,9 @@ A <span style="color: #a55e18;">C</span>ustomized
     and inje**c**tion functionality,
   in <span style="color: #a55e18;">**C**</span>-style code for qui**c**ker action and less resource **c**ost.
 
-It supports Chrome and other Chromium-based browsers whose core versions are >= 38,
-  and supports most of the functionality on a latest Firefox (since version 64.0).
-If re-compiled from the source code, Vimium C is able to support Chrome 32.
+It (the version in Web Store) supports Chrome and other Chromium-based browsers whose core versions are >= 38,
+  and supports almost all of the functionality on a latest Firefox (since version 64.0).
+If re-compiled from the source code, Vimium C is able to support Chromium 32.
 
 This project is developed by [gdh1995](https://github.com/gdh1995)
   and licensed under the [MIT license](LICENSE.txt).
@@ -32,7 +32,7 @@ This project is developed by [gdh1995](https://github.com/gdh1995)
 
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
-It can also run on MS Edge, though there're still some errors.
+For MS Edge (Chromium), it works well, and it can even run on MS Edge (EdgeHTML), though there're still some errors.
 
 # Project Introduction
 
@@ -63,12 +63,13 @@ __Other extensions supporting Vimium C:__
 1.78 (Not released yet):
 * its UI uses Simplified Chinese (简体中文) for all `zh-*` language regions
 * the default value of `ignore keyboard layout` option rolls back to `false` again
-* Chrome: fix broken importing settings on v1.77.1
 * the `passKeys` will only exclude key strokes when the "current key" sequence is empty
-* `LinkHints.activateModeToCopyLinkUrl`: fix not finding those in shadow DOM trees
-* `LinkHints.activateModeToCopyLinkText`: add an option `join:string/boolean` to join selected text pieces
 * `LinkHints` now uses a single <kbd>F2</kbd> to re-find new page nodes with `onclick` event listeners
-* `LinkHints`: better support for pages using Material Design
+* `LinkHints.activateModeToCopyLinkText`: add an option `join:string/boolean` to join selected text pieces
+* `LinkHints`: better support for "weibo.com" and pages using Material Design
+* Chrome: fix broken `importing settings` on v1.77.1
+* `LinkHints.activateModeToCopyLinkUrl`: fix not finding those in shadow DOM trees
+* fix some other small bugs
 
 1.77.3:
 * 1.77.3: only for Firefox; fix that it could not open "about:newtab"

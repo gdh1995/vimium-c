@@ -886,6 +886,7 @@ declare const enum FirefoxBrowserVer {
   // Min$globalThis = 65, // should not export `globalThis` into the outside
   MinMediaQuery$PrefersColorScheme = 67,
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1561546
+  // TODO: recheck this, because it's not fixed on Firefox nightly 71.0a1 (2019-09-29)
   MinValidMediaQueryWatchersInBgProc = 71,
   MinSupported = 64,
 }
