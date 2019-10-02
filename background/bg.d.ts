@@ -446,7 +446,7 @@ interface VClipboardTy {
 }
 
 interface BaseHelpDialog {
-  render_ (this: {}, request: FgReq[kFgReq.initHelp]): BgReq[kBgReq.showHelpDialog]["h"];
+  render_ (this: {}, isOptionsPage: boolean): BgReq[kBgReq.showHelpDialog]["h"];
 }
 
 interface Window {

@@ -385,10 +385,7 @@ interface FgReq {
   };
   [kFgReq.exitGrab]: {};
   [kFgReq.initHelp]: {
-    /** unbound */ b?: boolean;
     /** wantTop */ w?: boolean;
-    /** names */ n?: boolean;
-    /** "Command Listing" title */ t?: boolean;
   };
   [kFgReq.css]: {};
   [kFgReq.vomnibar]: ({

@@ -343,7 +343,6 @@ declare namespace VomnibarNS {
   interface GlobalOptions {
     mode: string;
     currentWindow?: boolean;
-    silentOnEmpty: boolean;
     newtab: boolean;
     keyword: string;
     url?: true | string | null;

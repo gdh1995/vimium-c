@@ -1199,14 +1199,17 @@ var Backend_: BackendHandlersNS.BackendHandlers;
           || page.startsWith("http:") && url.startsWith("https:")
         : port.s.a || isCurOnExt && !page.startsWith(url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1));
       const useInner: boolean = forceInner || page === inner || port.s.t < 0,
-      options: CmdOptions[kFgCmd.vomnibar] & SafeObject = BgUtils_.extendIf_(
+      options: CmdOptions[kFgCmd.vomnibar] & SafeObject & Partial<VomnibarNS.GlobalOptions> = BgUtils_.extendIf_(
           BgUtils_.safer_<CmdOptions[kFgCmd.vomnibar]>({
         v: useInner ? inner : page,
         i: useInner ? null : inner,
         t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         s: useInner ? "" : Settings_.CONST_.VomnibarScript_f_,
         k: getSecret(),
-      }), cOptions as {} as CmdOptions[kFgCmd.vomnibar]);
+      }), cOptions as {} as CmdOptions[kFgCmd.vomnibar] & Partial<VomnibarNS.GlobalOptions>);
+      if (options.mode === "bookmark") {
+        options.mode = "bookm";
+      }
       port.postMessage<1, kFgCmd.vomnibar>({
         N: kBgReq.execute, S: ensureInnerCSS(port),
         c: kFgCmd.vomnibar, n: cRepeat,
@@ -2293,30 +2296,23 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       return !!iport;
     },
     /** kFgReq.initHelp: */ function (this: void, request: FgReq[kFgReq.initHelp], port: Port): void {
-      if (port.s.u.startsWith(Settings_.CONST_.OptionsPage_)) {
-        request.t = true;
-        request.b = true;
-        request.n = true;
-      }
       Promise.all([
         BgUtils_.require_("HelpDialog"),
-        request, port,
-        new Promise<void>(function (resolve, reject) {
-          const xhr = Settings_.fetchFile_("helpDialog", resolve);
-          !Build.NDEBUG && xhr && (xhr.onerror = reject);
+        new Promise<void>(function (resolve) {
+          Settings_.fetchFile_("helpDialog", resolve);
         })
       ]).then(function (args): void {
-        const port2 = args[1].w && indexFrame(args[2].s.t, 0) || args[2];
+        const port2 = request.w && indexFrame(port.s.t, 0) || port;
         (port2.s as Frames.Sender).f |= Frames.Flags.hadHelpDialog;
         port2.postMessage({
           N: kBgReq.showHelpDialog,
           S: ensureInnerCSS(port2),
-          h: args[0].render_(args[1]),
+          h: args[0].render_(port2.s.u.startsWith(Settings_.CONST_.OptionsPage_)),
           o: Settings_.CONST_.OptionsPage_,
           a: Settings_.get_("showAdvancedCommands", true)
         });
       }, Build.NDEBUG ? null : function (args): void {
-        console.error("Promises for initHelp failed:", args[0], ";", args[3]);
+        console.error("Promises for initHelp failed:", args[0], ";", args[1]);
       });
     },
     /** kFgReq.css: */ function (this: void, _0: {}, port: Port): void {

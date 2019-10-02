@@ -1,7 +1,7 @@
 var HelpDialog = {
   html_: null as [string, string] | null,
   template_: null as HTMLTableDataCellElement | DOMParser | null,
-  render_: (function (this: {}, request: FgReq[kFgReq.initHelp]): BgReq[kBgReq.showHelpDialog]["h"] {
+  render_: (function (this: {}, isOptionsPage: boolean): BgReq[kBgReq.showHelpDialog]["h"] {
     const a = this as typeof HelpDialog;
     if (!a.html_
         || !Build.NDEBUG && /** {@link ../pages/loader.ts#updateUI} */Settings_.cache_.helpDialog) {
@@ -41,9 +41,8 @@ var HelpDialog = {
       body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g, (_, s) => trans_(s) || (s[0] === "_" ? "" : s));
       a.html_ = [head, body];
     }
-    BgUtils_.safer_(request);
     const commandToKeys = BgUtils_.safeObj_<Array<[string, CommandsNS.Item]>>(),
-    ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !request.b, showNames = !!request.n;
+    ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !isOptionsPage, showNames = isOptionsPage;
     for (const key in ref) {
       const registry = ref[key] as NonNullable<(typeof ref)[string]>;
       let command = registry.command_;
@@ -60,7 +59,7 @@ var HelpDialog = {
       className: Settings_.payload_.d,
       homePage: Settings_.CONST_.HomePage_,
       version: Settings_.CONST_.VerName_,
-      title: trans_(request.t ? "cmdList" : "help"),
+      title: trans_(isOptionsPage ? "cmdList" : "help"),
       reviewPage: (!(Build.BTypes & ~BrowserType.Firefox)
               || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
             ? BuildStr.FirefoxAddonPrefix + "vimium-c/" : BuildStr.ChromeWebStorePage
@@ -120,8 +119,8 @@ var HelpDialog = {
         }
         bindings += "</span>\n\t";
       }
-      if (klen < 0) { /* empty */ }
-      else if (klen <= 12) {
+      // keep rendering if not hideUnbound
+      if (klen <= 12) {
         html += renderItem(isAdvanced, bindings, description, showNames ? command : "");
       } else {
         html += renderItem(isAdvanced, bindings, "", "");
