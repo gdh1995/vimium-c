@@ -186,10 +186,16 @@
 		"message": "Close all other tabs"
 	},
 	"closeTabsOnLeft": {
-		"message": "Close tabs on the left"
+		"message": "Close all tabs on the left"
+	},
+	"closeTabsOnLeft_p": {
+		"message": "count:number"
 	},
 	"closeTabsOnRight": {
-		"message": "Close tabs on the right"
+		"message": "Close all tabs on the right"
+	},
+	"closeTabsOnRight_p": {
+		"message": "count:number"
 	},
 	"copyCurrentTitle": {
 		"message": "Copy current tab's title"

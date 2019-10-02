@@ -132,13 +132,13 @@
 		"message": "清理页内查找功能中最近用过的词语"
 	},
 	"closeOtherTabs": {
-		"message": "关闭当前窗口的其它全部标签页"
+		"message": "关闭当前窗口的其它所有标签页"
 	},
 	"closeTabsOnLeft": {
-		"message": "关闭左侧标签页"
+		"message": "关闭左侧所有标签页"
 	},
 	"closeTabsOnRight": {
-		"message": "关闭右侧标签页"
+		"message": "关闭右侧所有标签页"
 	},
 	"copyCurrentTitle": {
 		"message": "复制当前标签页的标题"
@@ -1169,7 +1169,7 @@
 		"message": "$1的值应当类似于“$2”"
 	},
 	"moveAllTabs": {
-		"message": "不应该移动全部标签页"
+		"message": "不应该移动一个窗口的所有标签页"
 	},
 	"hasIncog": {
 		"message": "此标签页已经在无痕窗口中了"

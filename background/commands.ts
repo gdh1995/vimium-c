@@ -6,7 +6,8 @@ var Commands = {
     while (i < len) {
       str = item[i++];
       ind = str.indexOf("=");
-      if (ind === 0 || str === "__proto__" || str[0] === "$" && "$if=$key=$desc=".indexOf(str.slice(0, ind + 1)) < 0) {
+      if (ind === 0 || str === "__proto__"
+          || str[0] === "$" && "$if=$key=$desc=$count=".indexOf(str.slice(0, ind + 1)) < 0) {
         this.logError_(ind === 0 ? "Missing" : "Unsupported", "option key:", str);
       } else if (ind < 0) {
         opt[str] = true;
@@ -34,7 +35,11 @@ var Commands = {
     if (!details) { details = this.availableCommands_[command] as CommandsNS.Description; }
     opt = details.length < 4 ? null : BgUtils_.safer_(details[3] as NonNullable<CommandsNS.Description[3]>);
     if (options) {
-      if ("count" in options) {
+      if ("$count" in options) {
+        let n = parseFloat(options.$count) || 1;
+        delete options.$count;
+        options.count = n;
+      } else if ("count" in options) {
         options.count = details[0] === 1 ? 1 : (parseFloat(options.count) || 1) * (opt && opt.count || 1);
       }
       if (options.$desc || options.$key) {
@@ -383,8 +388,8 @@ availableCommands_: { __proto__: null as never,
   clearCS: [ kBgCmd.clearCS, 1, 1, { type: "images" } ],
   clearFindHistory: [ kBgCmd.clearFindHistory, 1, 1 ],
   closeOtherTabs: [ kBgCmd.removeTabsR, 1, 1, { other: true } ],
-  closeTabsOnLeft: [ kBgCmd.removeTabsR, 1, 0, { count: -1 } ],
-  closeTabsOnRight: [ kBgCmd.removeTabsR, 1, 0 ],
+  closeTabsOnLeft: [ kBgCmd.removeTabsR, 1, 0, { count: -1e6 } ],
+  closeTabsOnRight: [ kBgCmd.removeTabsR, 1, 0, { count: 1e6 } ],
   copyCurrentTitle: [ kBgCmd.copyTabInfo, 1, 1, { type: "title" } ],
   copyCurrentUrl: [ kBgCmd.copyTabInfo, 1, 1 ],
   createTab: [ kBgCmd.createTab, 1, 20 as 0 ],
