@@ -521,7 +521,10 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     AllowClipboardRead_: true,
     BaseCSSLength_: 0,
     // should keep lower case
-    NtpNewTab_: "chrome-search://local-ntp/local-ntp.html",
+    NtpNewTab_: Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
+        ? "https://www.msn.cn/spartan/ntp"
+        : Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+        ? "chrome-search://local-ntp/local-ntp.html" : "pages/blank.html",
     DisallowIncognito_: false,
     ContentScripts_: null as never as string[],
     VerCode_: "", VerName_: "",
@@ -642,13 +645,10 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
         && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
         ? CommonNewTab : ChromeNewTab;
   }
-  (defaults as SettingsWithDefaults).newTabUrl = (Build.BTypes & ~BrowserType.Chrome
-      && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
-      ? Build.MayOverrideNewTab && settings.CONST_.OverrideNewTab_
-        ? Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
-          ? "https://www.msn.cn/spartan/ntp" : "pages/blank.html"
-        : CommonNewTab
-      : (Build.MayOverrideNewTab && settings.CONST_.OverrideNewTab_) ? obj.NtpNewTab_ : ChromeNewTab;
+  (defaults as SettingsWithDefaults).newTabUrl = Build.MayOverrideNewTab && settings.CONST_.OverrideNewTab_
+      ? obj.NtpNewTab_
+      : (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome))
+      ? ChromeNewTab : CommonNewTab;
   // note: on firefox, "about:newtab/" is invalid, but it's OKay if still marking the URL a NewTab URL.
   ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
