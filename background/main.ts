@@ -47,7 +47,6 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     [kBgCmd.searchInAnother]: UseTab.ActiveTab;
     [kBgCmd.reopenTab]: UseTab.ActiveTab;
     [kBgCmd.goToRoot]: UseTab.ActiveTab;
-    [kBgCmd.copyTabInfo]: UseTab.ActiveTab;
     [kBgCmd.toggleViewSource]: UseTab.ActiveTab;
     [kBgCmd.toggleVomnibarStyle]: UseTab.ActiveTab;
     [kBgCmd.goBackFallback]: UseTab.ActiveTab;
@@ -967,7 +966,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.CurWndTabs, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
     UseTab.ActiveTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab,
-    UseTab.CurWndTabs, UseTab.ActiveTab, UseTab.NoTab,
+    UseTab.CurWndTabs, UseTab.NoTab, UseTab.NoTab,
     UseTab.ActiveTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab, UseTab.NoTab, UseTab.NoTab
   ],
   BackgroundCommands: {
@@ -1799,19 +1798,31 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         : Math.max(0, tabs.length + cRepeat)];
       tab && selectTab(tab.id);
     },
-    /* kBgCmd.copyTabInfo: */ function (this: void, tabs: [Tab]): void {
-      let str: string, decoded = !!(cOptions.decoded || cOptions.decode);
-      switch (cOptions.type) {
-      case "title": str = tabs[0].title; break;
-      case "frame":
-        if (cPort) {
-          requireURL({ H: kFgReq.copy, u: "", d: decoded });
+    /* kBgCmd.copyTabInfo: */ function (this: void): void {
+      let decoded = !!(cOptions.decoded || cOptions.decode), type = cOptions.type;
+      if (type === "frame" && cPort) {
+        requireURL({ H: kFgReq.copy, u: "", d: decoded });
+        return;
+      }
+      // include those hidden on Firefox
+      chrome.tabs.query(type === "browser" ? {windowType: "normal"}
+          : {active: type !== "window" || void 0, currentWindow: true}, (tabs): void => {
+        if (type === "title" || type === "frame" || type === "url") {
+          requestHandlers[kFgReq.copy]({ u: type === "title" ? tabs[0].title : tabs[0].url, d: decoded });
           return;
         }
-        // no break;
-      default: str = tabs[0].url; break;
-      }
-      requestHandlers[kFgReq.copy]({ u: str, d: decoded });
+        const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true,
+        format = "" + (cOptions.format || "${title}: ${url}"),
+        nameRe = <RegExpG & RegExpSearchable<1>> /\$\{([^}]+)\}/g;
+        tabs = tabs.filter(i => i.incognito === incognito);
+        tabs.sort((a, b) => (a.windowId - b.windowId || a.index - b.index));
+        const data: string[] = tabs.map(i => format.replace(nameRe, (_, s1): string => {
+          return decoded && s1 === "url" ? BgUtils_.DecodeURLPart_(i.url, decodeURI)
+            : s1 !== "__proto__" && (i as Dict<any>)[s1] || "";
+        }));
+        BgUtils_.copy_(data, cOptions.join);
+        Backend_.showHUD_(type === "tab" ? data[0] : trans_("copiedWndInfo"), true);
+      });
     },
     /* kBgCmd.clearFindHistory: */ function (this: void): void {
       const incognito = cPort ? cPort.s.a : TabRecency_.incognito_ === IncognitoType.true;

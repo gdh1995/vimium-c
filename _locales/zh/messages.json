@@ -146,6 +146,9 @@
 	"copyCurrentUrl": {
 		"message": "复制当前标签页或当前子页面的网址或标题"
 	},
+	"copyWindowInfo": {
+		"message": "复制当前窗口所有标签页的标题和网址"
+	},
 	"debugBackground": {
 		"message": "打开 Vimium C 扩展程序的管理页"
 	},
@@ -1326,6 +1329,9 @@
 	},
 	"setIncogCS": {
 		"message": "设置无痕模式下网页的功能权限"
+	},
+	"copiedWndInfo": {
+		"message": "（标签页信息）"
 	},
 	"70": {
 		"message": "用于定位链接的序号字符过少"

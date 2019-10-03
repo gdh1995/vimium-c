@@ -236,7 +236,7 @@ var HelpDialog = {
       , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "discardTab", "moveTabToNextWindow"
       , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab", "toggleMuteTab", "visitPreviousTab"
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
-      , "enableCSTemp", "toggleCS", "clearCS"],
+      , "enableCSTemp", "toggleCS", "clearCS", "copyWindowInfo"],
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "toggleLinkHintCharacters"
       , "toggleSwitchTemp", "passNextKey", "debugBackground", "closeDownloadBar", "blank"]
   } as Readonly< EnsuredSafeDict<ReadonlyArray<string>> >,
@@ -248,7 +248,7 @@ var HelpDialog = {
     , toggleCS: 1, clearCS: 1, "LinkHints.activateModeToDownloadImage": 1, reopenTab: 1
     , "LinkHints.activateModeToOpenImage": 1, removeRightTab: 1
     , "LinkHints.activateModeToDownloadLink": 1, restoreGivenTab: 1
-    , discardTab: 1
+    , discardTab: 1, copyWindowInfo: 1
     , "LinkHints.activateModeToOpenIncognito": 1, passNextKey: 1
     , goNext: 1, goPrevious: 1, "Marks.clearLocal": 1, "Marks.clearGlobal": 1
     , moveTabLeft: 1, moveTabRight: 1, closeTabsOnLeft: 1, closeTabsOnRight: 1, closeOtherTabs: 1

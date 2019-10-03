@@ -206,6 +206,12 @@
 	"copyCurrentUrl_p": {
 		"message": "type=url/title/frame, decoded"
 	},
+	"copyWindowInfo": {
+		"message": "Copy title/URL info of a current window"
+	},
+	"copyWindowInfo_p": {
+		"message": "format=\"${title}: ${url}\", join=true/string, decoded"
+	},
 	"debugBackground": {
 		"message": "Debug the background page"
 	},
@@ -967,6 +973,9 @@
 	},
 	"setIncogCS": {
 		"message": "change incognito settings"
+	},
+	"copiedWndInfo": {
+		"message": "(info of tabs)"
 	},
 	"69": {
 		"message": "$1"

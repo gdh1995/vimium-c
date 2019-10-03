@@ -392,6 +392,7 @@ availableCommands_: { __proto__: null as never,
   closeTabsOnRight: [ kBgCmd.removeTabsR, 1, 0, { count: 1e6 } ],
   copyCurrentTitle: [ kBgCmd.copyTabInfo, 1, 1, { type: "title" } ],
   copyCurrentUrl: [ kBgCmd.copyTabInfo, 1, 1 ],
+  copyWindowInfo: [ kBgCmd.copyTabInfo, 1, 1, { type: "window" } ],
   createTab: [ kBgCmd.createTab, 1, 20 as 0 ],
   debugBackground: [ kBgCmd.openUrl, 1, 1,
     {
