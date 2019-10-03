@@ -189,13 +189,13 @@
 		"message": "Close all tabs on the left"
 	},
 	"closeTabsOnLeft_p": {
-		"message": "count:number"
+		"message": "$count=0"
 	},
 	"closeTabsOnRight": {
 		"message": "Close all tabs on the right"
 	},
 	"closeTabsOnRight_p": {
-		"message": "count:number"
+		"message": "$count=0"
 	},
 	"copyCurrentTitle": {
 		"message": "Copy current tab's title"

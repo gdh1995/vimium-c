@@ -35,7 +35,7 @@ var Commands = {
     if (!details) { details = this.availableCommands_[command] as CommandsNS.Description; }
     opt = details.length < 4 ? null : BgUtils_.safer_(details[3] as NonNullable<CommandsNS.Description[3]>);
     if (options) {
-      if ("$count" in options) {
+      if (options.$count) {
         let n = parseFloat(options.$count) || 1;
         delete options.$count;
         options.count = n;
