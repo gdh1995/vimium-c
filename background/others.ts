@@ -390,7 +390,8 @@ BgUtils_.timeout_(1000, function (): void {
   const sync1 = Settings_.get_("vimSync");
   if (sync1 === false || (!sync1 && !Settings_.temp_.hasEmptyLocalStorage_
                           && (localStorage.length > SyncConsts.LocalItemCountWhenInstalled
-                                    || Settings_.get_("newTabUrl") !== Settings_.CONST_.NewTabForNewUser_))) {
+                              || Build.MayOverrideNewTab
+                                  && Settings_.get_("newTabUrl") !== Settings_.CONST_.NewTabForNewUser_))) {
     let doBackup = Settings_.temp_.backupSettingsToLocal_;
     Settings_.temp_.backupSettingsToLocal_ = doBackup ? null : saveAllToLocal;
     doBackup && saveAllToLocal(6000);

@@ -1045,7 +1045,8 @@ document.addEventListener("keydown", function (this: void, event): void {
 window.onhashchange = function (this: void): void {
   let hash = location.hash, node: HTMLElement | null;
   hash = hash.slice(hash[1] === "!" ? 2 : 1);
-  if (!hash && Option_.all_.newTabUrl.previous_ === bgSettings_.CONST_.NewTabForNewUser_) {
+  if (Build.MayOverrideNewTab
+      && !hash && Option_.all_.newTabUrl.previous_ === bgSettings_.CONST_.NewTabForNewUser_) {
     hash = "newTabUrl";
   }
   if (!hash || !(<RegExpI> /^[a-z][a-z\d_-]*$/i).test(hash)) { return; }

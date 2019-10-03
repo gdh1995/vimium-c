@@ -630,25 +630,25 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   }
   if (Build.MayOverrideNewTab) {
     const overrides = ref.chrome_url_overrides, hasNewTab = overrides && overrides.newtab;
-    Settings_.CONST_.OverrideNewTab_ = !!hasNewTab;
+    settings.CONST_.OverrideNewTab_ = !!hasNewTab;
     ref3[func(hasNewTab || "pages/newtab.html")] = Urls.NewTabType.vimium;
   }
   if (!Build.NoDialogUI) {
     const options_ui = ref.options_ui, open_in_tab = options_ui && options_ui.open_in_tab;
-    Settings_.CONST_.OptionsUIOpenInTab_ = !!open_in_tab;
+    settings.CONST_.OptionsUIOpenInTab_ = !!open_in_tab;
   }
-  if (!Build.MayOverrideNewTab || !Settings_.CONST_.OverrideNewTab_) {
+  if (Build.MayOverrideNewTab && !settings.CONST_.OverrideNewTab_) {
     obj.NewTabForNewUser_ = (Build.BTypes & ~BrowserType.Chrome
         && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
         ? CommonNewTab : ChromeNewTab;
   }
   (defaults as SettingsWithDefaults).newTabUrl = (Build.BTypes & ~BrowserType.Chrome
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome))
-      ? Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_
+      ? Build.MayOverrideNewTab && settings.CONST_.OverrideNewTab_
         ? Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
           ? "https://www.msn.cn/spartan/ntp" : "pages/blank.html"
         : CommonNewTab
-      : (Build.MayOverrideNewTab && Settings_.CONST_.OverrideNewTab_) ? obj.NtpNewTab_ : ChromeNewTab;
+      : (Build.MayOverrideNewTab && settings.CONST_.OverrideNewTab_) ? obj.NtpNewTab_ : ChromeNewTab;
   // note: on firefox, "about:newtab/" is invalid, but it's OKay if still marking the URL a NewTab URL.
   ref3[CommonNewTab] = ref3[CommonNewTab + "/"] = Urls.NewTabType.browser;
   (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) ||
@@ -679,7 +679,9 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
   }
 
   if (settings.temp_.hasEmptyLocalStorage_ = localStorage.length <= 0) {
-    settings.set_("newTabUrl", obj.NewTabForNewUser_);
+    if (Build.MayOverrideNewTab) {
+      settings.set_("newTabUrl", obj.NewTabForNewUser_);
+    }
   }
   obj.StyleCacheId_ = obj.VerCode_ + "," + CurCVer_
     + ( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
