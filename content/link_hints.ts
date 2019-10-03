@@ -113,7 +113,7 @@ var VHints = {
     a.doesMapKey_ = options.mapKey !== false;
 
     const arr: ViewBox = VDom.getViewBox_(1) as ViewBox;
-    VDom.prepareCrop_();
+    VDom.prepareCrop_(1);
     if (a.tooHigh_ !== null) {
       a.tooHigh_ = (VDom.scrollingEl_(1) as HTMLElement).scrollHeight / innerHeight
         > GlobalConsts.LinkHintTooHighThreshold;
@@ -583,7 +583,7 @@ var VHints = {
       list = a.addShadowHosts_(list, querySelectorAll.call(box, a.kSafeAllSelector_) as NodeListOf<SafeElement>);
     }
     if (!wholeDoc && a.tooHigh_ && isD && list.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst) {
-      list = a.getElementsInViewPort_(list);
+      list = a.getElementsInViewport_(list);
     }
     if (!Build.NDEBUG && isInAnElement) {
       // just for easier debugging
@@ -640,7 +640,7 @@ var VHints = {
       const z = d.dbZoom_, bz = d.bZoom_, notHookScroll = Sc.scrolled_ === 0;
       if (bz !== 1 && isD) {
         d.dbZoom_ = z / bz;
-        d.prepareCrop_();
+        d.prepareCrop_(1);
       }
       for (const el of (<ShadowRoot> uiRoot).querySelectorAll(selector)) {
         filter(output, el as SafeHTMLElement);
@@ -678,7 +678,7 @@ var VHints = {
     }
     return matched ? [].slice.call<ArrayLike<SafeElement>, [], SafeElement[]>(list).concat(hosts) : list;
   },
-  getElementsInViewPort_ (list: HintsNS.HintSources): HintsNS.HintSources {
+  getElementsInViewport_ (list: HintsNS.HintSources): HintsNS.HintSources {
     const result: SafeElement[] = [], height = innerHeight;
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
       const el = list[i];

@@ -354,7 +354,6 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
     return false;
   }
   let ch = VKey.char_(event);
-  // todo: map key
   if (!ch) { return false; }
   let action: number = 0;
   switch (VApis.mapKey_(ch, event)) {

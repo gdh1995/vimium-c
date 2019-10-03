@@ -6,6 +6,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinES6$ForOf
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
 }
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$visualViewport$) {
+  interface VisualViewport { width: number; height: number; offsetLeft: number; offsetTop: number;
+      pageLeft: number; pageTop: number; scale: number; }
+  var visualViewport: VisualViewport | undefined;
+}
 declare var VOther: BrowserType;
 
 var VDom = {
@@ -228,20 +233,29 @@ var VDom = {
   /** computation section */
 
   /** depends on .dbZoom_, .bZoom_, .paintBox_ */
-  prepareCrop_ (): number {
-    let iw: number, ih: number, ihs: number;
-    this.prepareCrop_ = (function (this: void): number {
+  prepareCrop_ (inVisualViewport?: 1): number {
+    let vright: number, vbottom: number, ihs: number, vleft: number, vtop: number, vtops: number;
+    this.prepareCrop_ = (function (this: void, inVisual?: 1): number {
       const a = VDom, fz = a.dbZoom_, dz = fz / a.bZoom_, b = a.paintBox_,
-      d = document, doc = document.documentElement,
-      el = Build.MinCVer >= BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled || !(Build.BTypes & BrowserType.Chrome)
-            ? a.scrollingEl_() : d.compatMode === "BackCompat" ? d.body : doc;
-      let i: number, j: number;
-      if (Build.MinCVer < BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled && Build.BTypes & BrowserType.Chrome
-          ? el && !a.notSafe_(el) : el) {
+      d = document, visual = inVisual && visualViewport;
+      let i: number, j: number, el: Element | null, doc: typeof d.documentElement;
+      vleft = vtop = 0; vtops = 3;
+      if (visual && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUseful$visualViewport$
+                      || visual.width)) {
+        // todo: before MinPinchZoomOnWindowsAndTouchpad ?
+        vleft = visual.offsetLeft | 0, vtop = visual.offsetTop | 0;
+        vtops = vtop + 3;
+        i = vleft + visual.width | 0; j = vtop + visual.height | 0;
+      }
+      else if (doc = d.documentElement,
+          el = Build.MinCVer >= BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled
+              || !(Build.BTypes & BrowserType.Chrome) ? a.scrollingEl_() : d.compatMode === "BackCompat" ? d.body : doc,
+          Build.MinCVer < BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled && Build.BTypes & BrowserType.Chrome
+            ? el && !a.notSafe_(el) : el) {
         i = (el as SafeElement).clientWidth, j = (el as SafeElement).clientHeight;
       } else {
         i = innerWidth, j = innerHeight;
-        if (!doc) { return ih = j, ihs = j - 8, iw = i; }
+        if (!doc) { return vbottom = j, ihs = j - 8, vright = i; }
         // the below is not reliable but safe enough, even when docEl is unsafe
         i = Math.min(Math.max(i - GlobalConsts.MaxScrollbarWidth, (doc.clientWidth * dz) | 0), i);
         j = Math.min(Math.max(j - GlobalConsts.MaxScrollbarWidth, (doc.clientHeight * dz) | 0), j);
@@ -249,23 +263,23 @@ var VDom = {
       if (b) {
         i = Math.min(i, b[0] * dz); j = Math.min(j, b[1] * dz);
       }
-      iw = (i / fz) | 0, ih = (j / fz) | 0;
+      vright = (i / fz) | 0, vbottom = (j / fz) | 0;
       ihs = ((j - 8) / fz) | 0;
-      return iw;
+      return vright;
     });
     this.cropRectToVisible_ = (function (left, top, right, bottom): Rect | null {
-      if (top > ihs || bottom < 3) {
+      if (top > ihs || bottom < vtops) {
         return null;
       }
-      const cr: Rect = { //
-        l: left   >  0 ? (left   | 0) :  0, //
-        t: top    >  0 ? (top    | 0) :  0, //
-        r: right  < iw ? (right  | 0) : iw, //
-        b: bottom < ih ? (bottom | 0) : ih  //
+      const cr: Rect = {
+        l: left   > vleft   ? (left   | 0) : vleft,
+        t: top    > vtop    ? (top    | 0) : vtop,
+        r: right  < vright  ? (right  | 0) : vright,
+        b: bottom < vbottom ? (bottom | 0) : vbottom
       };
-      return cr.r - cr.l >= 3 && cr.b - cr.t >= 3 ? cr : null;
+      return cr.r - cr.l > 2 && cr.b - cr.t > 2 ? cr : null;
     });
-    return this.prepareCrop_();
+    return this.prepareCrop_(inVisualViewport);
   },
   getBoundingClientRect_ (el: Element): ClientRect {
     return Build.BTypes & ~BrowserType.Firefox ? Element.prototype.getBoundingClientRect.call(el)

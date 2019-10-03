@@ -539,7 +539,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kFgCmd.focusInput: */ function (count: number, options: CmdOptions[kFgCmd.focusInput]): void {
       InsertMode.inputHint_ && (InsertMode.inputHint_.h = null as never);
       const arr: ViewOffset = VDom.getViewBox_();
-      VDom.prepareCrop_();
+      VDom.prepareCrop_(1);
       // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
       const visibleInputs = VHints.traverse_(Build.BTypes & ~BrowserType.Firefox
             ? VHints.kEditableSelector_ + VHints.kSafeAllSelector_ : VHints.kEditableSelector_, VHints.GetEditable_

@@ -781,6 +781,10 @@ function postUglify(file, needToPatchExtendClick) {
         && !(btypes & BrowserType.Edge)) {
       toRemovedGlobal += "requestIdleCallback|";
     }
+    if ((!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$visualViewport$ */ 61)
+        && !(btypes & BrowserType.Edge)) {
+      toRemovedGlobal += "visualViewport|";
+    }
     toRemovedGlobal = toRemovedGlobal.slice(0, -1);
     toRemovedGlobal = new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]`, "g");
   }

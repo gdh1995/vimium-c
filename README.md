@@ -69,6 +69,7 @@ __Other extensions supporting Vimium C:__
 * `LinkHints` now uses a single <kbd>F2</kbd> to re-find new page nodes with `onclick` event listeners
 * `LinkHints.activateModeToCopyLinkText`: add an option `join:string/boolean` to join selected text pieces
 * `LinkHints`: better support for "weibo.com" and pages using Material Design
+* `LinkHints`: better support for pinch zooming on laptops
 * `LinkHints.activateModeToCopyLinkUrl`: fix not finding those in shadow DOM trees
 * add a command `copyWindowInfo` to copy title and URL info of all tabs
 * fix some other small bugs

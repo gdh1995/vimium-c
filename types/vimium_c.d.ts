@@ -666,8 +666,9 @@ declare const enum BrowserVer {
   MinUserSelectAll = 53,
   // even if EXPERIMENTAL or LEGACY
   MinUntrustedEventsDoNothing = 53, // fake click events won't show a <select>'s popup
-  // before Chrome 53, there may be window.VisualViewPort under flags, but not the instance
-  Min$visualViewPort$UnderFlags = 53, // window.visualViewPort occurs if EXPERIMENTAL
+  // before Chrome 53, there may be window.VisualViewport under flags, but not the instance
+  // between C53 and C59, `visualViewport` only has .clientW/H .scrollL/T, .pageX/Y and .scale
+  Min$visualViewport$UnderFlags = 53, // window.visualViewport occurs if EXPERIMENTAL (though not on C60)
   // only Chrome accepts it:
   // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
   Min$Extension$$GetView$AcceptsTabId = 54,
@@ -750,7 +751,8 @@ declare const enum BrowserVer {
   // a bug of styke.zoom not working is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   MinCorrectBoxWidthForOptionsUI = 61,
-  Min$visualViewPort$ = 61,
+  MinUseful$visualViewport$ = 61, // visualViewport.width/h, .pageL/T and .offsetL/T occurs
+  MinEnsured$visualViewport$ = 61,
   MinScrollIntoViewOptions = 61,
   // also means ensured Element::scrollBy, Element::scrollTo and window.scrollTo/scrollBy({})
   // not on edge
@@ -804,6 +806,7 @@ declare const enum BrowserVer {
   Min$ContentDocument$NotThrow = 67, // even if EXPERIMENTAL or LEGACY
   MinSlotIsNotDisplayContents = 67,
   Min$NotificationOptions$$isClickable$IsDeprecated = 67,
+  MinPinchZoomOnWindowsAndTouchpad = 67, // even if EXPERIMENTAL or LEGACY
   // even if EXPERIMENTAL or LEGACY
   // but not on pages whose JS is disabled in chrome://settings/content/siteDetails?site=<origin>
   // issue: https://bugs.chromium.org/p/chromium/issues/detail?id=811528
