@@ -94,7 +94,7 @@ var HelpDialog = {
       let klen = -2, bindings = "", description = cachedDescriptions[command];
       if (!description) {
         let key = command.replace(".", "_"), params = trans_(key + "_p");
-        description = trans_(key) + (params ? cmdParams.replace("*", params) : "");
+        description = trans_(key) + (params ? cmdParams.replace("*", params) : " ");
         cachedDescriptions[command] = description;
         if (!(Build.NDEBUG || description)) {
           console.log("Assert error: lack a description for %c%s", "color:red", command);
@@ -105,10 +105,10 @@ var HelpDialog = {
         for (const item of keys) {
           const help = item[1].help_ as Partial<CommandsNS.NormalizedCustomHelpInfo> | null;
           help && (this as typeof HelpDialog).normalizeHelpInfo_(help);
-          const key = help && help.$key_ || BgUtils_.escapeText_(item[0]);
-          if (help && help.$desc_) {
+          const key = help && help.$key_ || BgUtils_.escapeText_(item[0]), desc2 = help && help.$desc_;
+          if (desc2) {
             let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
-            html += renderItem(isAdvanced, singleBinding, help.$desc_, showNames ? command : "");
+            html += renderItem(isAdvanced, singleBinding, showNames ? desc2 + " " : desc2, showNames ? command : "");
             continue;
           }
           if (klen >= 0) {
@@ -138,7 +138,7 @@ var HelpDialog = {
       html += '</td>\n\t<td class="HelpTd HelpCommandInfo">';
       html += description;
       if (command) {
-        html += '\n\t\t<span class="HelpCommandName" role="button">(';
+        html += '<span class="HelpCommandName" role="button">(';
         html += command;
         html += ")</span>\n\t";
       }

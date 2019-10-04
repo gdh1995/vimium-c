@@ -125,7 +125,7 @@ button, select {
 button.fixed-size {
   padding: 0;
 }
-[lang=zh] button, [lang=zh] select {
+button:lang(zh), select:lang(zh) {
   font-size: 13px !important;
 }
 .dialog-ui button {
@@ -389,7 +389,7 @@ label:active {
   top: -2px;
   width: 300px;
 }
-[lang=zh] .line-help {
+.line-help:lang(zh) {
   top: -6px;
 }
 .help > .line-1x {
@@ -405,7 +405,7 @@ label:active {
 .wrap-left-space {
   margin-left: 0.25em;
 }
-[lang=zh] .wrap-left-space {
+.wrap-left-space:lang(zh) {
   margin-left: 0;
 }
 .break-all {
@@ -534,6 +534,11 @@ label:active {
 #settingFileManager {
   position: absolute;
   margin-left: 20px;
+}
+#o37:lang(zh) {
+  padding-top: 0;
+  transform: translateY(-3px);
+  line-height: 20px;
 }
 @media (min-width: 1067px) {
   #wrapper, #footerWrapper {
