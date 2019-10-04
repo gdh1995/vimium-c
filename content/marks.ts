@@ -42,7 +42,7 @@ var VMarks = {
       if (top === window) {
         return this.createMark_(keyChar);
       } else {
-        VPort.post_({H: kFgReq.marks, a: kMarkAction.create, n: keyChar});
+        VApi.post_({H: kFgReq.marks, a: kMarkAction.create, n: keyChar});
         return VHud.hide_();
       }
     } else {
@@ -83,7 +83,7 @@ var VMarks = {
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).l = true;
       (req as MarksNS.FgQuery as MarksNS.FgLocalQuery).u = location.href;
     }
-    VPort.post_(req);
+    VApi.post_(req);
   },
   ScrollTo_ (this: void, scroll: Readonly<MarksNS.FgMark>) {
     if (scroll[1] === 0 && scroll[2] && scroll[0] === 0) {
@@ -93,7 +93,7 @@ var VMarks = {
     }
   },
   createMark_ (markName: string, local?: "local"): void {
-    VPort.post_<kFgReq.marks>({
+    VApi.post_<kFgReq.marks>({
       H: kFgReq.marks,
       a: kMarkAction.create,
       l: !!local,
@@ -107,7 +107,7 @@ var VMarks = {
   GoTo_ (this: void, _0: number, { n: a, s: scroll, k: typeKey, l: local }: CmdOptions[kFgCmd.goToMarks]): void {
     a && VMarks.setPreviousPosition_();
     VMarks.ScrollTo_(scroll);
-    local || VApis.focusAndRun_();
+    local || VApi.focusAndRun_();
     if (a) {
       VHud.tip_(kTip.didNormalMarkTask, "Jumped to $2 mark : ' $3 '.", local ? 1000 : 2000,
           [ VTr(kTip.didJumpTo), VTr(typeKey), a ]);

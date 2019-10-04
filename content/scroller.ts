@@ -156,9 +156,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   scale_: 1,
   activate_ (this: void, count: number, options: CmdOptions[kFgCmd.scroll] & SafeObject): void {
     if (options.$c == null) {
-      options.$c = VApis.isCmdTriggered_();
+      options.$c = VApi.isCmdTriggered_();
     }
-    if (VApis.checkHidden_(kFgCmd.scroll, count, options)) { return; }
+    if (VApi.checkHidden_(kFgCmd.scroll, count, options)) { return; }
     if (VHints.TryNestedFrame_(kFgCmd.scroll, count, options)) { return; }
     const a = VSc, di: ScrollByY = options.axis === "x" ? 0 : 1,
     dest = options.dest;

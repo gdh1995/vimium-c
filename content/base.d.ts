@@ -300,17 +300,16 @@ type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 
 interface MyMouseControlKeys { altKey_: boolean; ctrlKey_: boolean; metaKey_: boolean; shiftKey_: boolean; }
 
-interface VPortTy {
+interface ComplicatedVPort extends VApiTy {
+  post_<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
+}
+interface VApiTy {
   post_<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
   post_<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
   send_<K extends keyof FgRes>(this: void, cmd: K, args: Req.fgWithRes<K>["a"]
     , callback: (this: void, res: FgRes[K]) => void): void;
   evalIfOK_ (url: string): boolean;
-}
-interface ComplicatedVPort extends VPortTy {
-  post_<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
-}
-interface VApisModeTy {
+
   lock_(this: void): LockableElement | null;
   isCmdTriggered_ (this: void): BOOL;
   OnWndFocus_ (this: void): void;
@@ -329,7 +328,7 @@ interface VApisModeTy {
   scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: kKeyCode }, wnd?: Window): void;
   /** return has_error */
   readonly keydownEvents_: {
-    (this: void, srcFrame: Pick<VApisModeTy, "keydownEvents_"> | KeydownCacheArray): boolean;
+    (this: void, srcFrame: Pick<VApiTy, "keydownEvents_"> | KeydownCacheArray): boolean;
     (this: void): KeydownCacheArray;
   };
   readonly OnScrolls_: {
@@ -351,7 +350,7 @@ interface VHUDTy {
   copied_ (text: string, type?: "url" | ""): void;
   hide_ (this: void, info?: TimerType): void;
 }
-declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApis: VApisModeTy;
+declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApi: VApiTy;
 
 interface VDataTy {
   full: string;
@@ -393,7 +392,7 @@ interface ContentWindowCore {
   readonly VSc?: object;
   readonly VOmni?: object;
   readonly VFind?: object;
-  readonly VApis?: VApisModeTy;
+  readonly VApi?: VApiTy;
   readonly VIh?: (this: void) => number;
 }
 

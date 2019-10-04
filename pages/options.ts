@@ -2,12 +2,12 @@
 /// <reference path="../lib/keyboard_utils.ts" />
 /// <reference path="../content/dom_ui.ts" />
 interface Window {
-  readonly VPort?: VPortTy;
+  readonly VApi?: VApiTy;
   readonly VHud?: VHUDTy;
   readonly VCui?: typeof VCui;
   // readonly VDom?: typeof VDom;
 }
-declare var VPort: VPortTy, VHud: VHUDTy, VApis: VApisModeTy;
+declare var VHud: VHUDTy, VApi: VApiTy;
 
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEvent | null, hash?: "hash"): void;
@@ -1025,12 +1025,12 @@ document.addEventListener("keydown", function (this: void, event): void {
       return;
     }
     let wanted = event.keyCode === kKeyCode.questionWin || event.keyCode === kKeyCode.questionMac ? "?" : "";
-    if (wanted && VKey.char_(event) === wanted && VApis.mapKey_(wanted, event) === wanted) {
-      if (!Build.NDEBUG && !VApis.lock_()) {
+    if (wanted && VKey.char_(event) === wanted && VApi.mapKey_(wanted, event) === wanted) {
+      if (!Build.NDEBUG && !VApi.lock_()) {
         console.log('The document receives a "?" key which has been passed (excluded) by Vimium C,',
           "so open the help dialog.");
       }
-      if (!VApis.lock_()) {
+      if (!VApi.lock_()) {
         $("#showCommands").click();
       }
     }
@@ -1145,9 +1145,9 @@ document.addEventListener("click", function onClickOnce(): void {
   document.removeEventListener("click", onClickOnce, true);
   (VCui.root_ as Node).addEventListener("click", function (event): void {
     let target = event.target as HTMLElement, str: string;
-    if (VPort && target.classList.contains("HelpCommandName")) {
+    if (VApi && target.classList.contains("HelpCommandName")) {
       str = target.textContent.slice(1, -1);
-      VPort.post_({
+      VApi.post_({
         H: kFgReq.copy,
         d: str
       });

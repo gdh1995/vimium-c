@@ -82,7 +82,7 @@ var VVisual = {
     a.scope_ = theSelected[1];
     if (!a.mode_) { a.retainSelection_ = type === SelType.Range; }
     if (mode !== VisualModeNS.Mode.Caret) {
-      if (!VApis.lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
+      if (!VApi.lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
         VDom.getZoom_(1);
         VDom.prepareCrop_();
@@ -134,7 +134,7 @@ var VVisual = {
     }
     a.mode_ = VisualModeNS.Mode.NotActive; a.modeName_ = "";
     VFind.clean_();
-    const el = VApis.lock_();
+    const el = VApi.lock_();
     oldDiType & (VisualModeNS.DiType.TextBox | VisualModeNS.DiType.Complicated) ||
     el && el.blur();
     VCui.toggleSelectStyle_(0);
@@ -174,7 +174,7 @@ var VVisual = {
       a.resetKeys_();
       return i === kKeyCode.ime || i === kKeyCode.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress;
     }
-    let key = VApis.mapKey_(ch, event)
+    let key = VApi.mapKey_(ch, event)
       , obj: SafeDict<VisualAction> | null | VisualAction | undefined;
     if (obj = a.currentSeconds_) {
       obj = obj[key];
@@ -216,7 +216,7 @@ var VVisual = {
     if (command > VisualAction.MaxNotNewMode) {
       if (command === VisualAction.EmbeddedFindMode) {
         clearTimeout(movement.hudTimer_);
-        VPort.post_({ H: kFgReq.findFromVisual });
+        VApi.post_({ H: kFgReq.findFromVisual });
         return;
       }
       return movement.activate_(1, VKey.safer_<CmdOptions[kFgCmd.visualMode]>({
@@ -312,7 +312,7 @@ var VVisual = {
   },
   find_ (count: number): void {
     if (!VFind.query_) {
-      VPort.send_(kFgReq.findQuery, {}, function (query): void {
+      VApi.send_(kFgReq.findQuery, {}, function (query): void {
         if (query) {
           VFind.updateQuery_(query);
           VVisual.find_(count);
@@ -354,7 +354,7 @@ var VVisual = {
       this.deactivate_();
       action != null || VHud.copied_(str);
     }
-    VPort.post_(action != null ? { H: kFgReq.openUrl, u: str, r: action }
+    VApi.post_(action != null ? { H: kFgReq.openUrl, u: str, r: action }
         : { H: kFgReq.copy, d: str });
   },
   flashSelection_(): void {
@@ -395,7 +395,7 @@ var VVisual = {
     const a = this, diType = a.diType_;
     a.oldLen_ = 0;
     if (diType & VisualModeNS.DiType.TextBox) {
-      const el = VApis.lock_() as TextElement;
+      const el = VApi.lock_() as TextElement;
       return el.value.charAt(a.TextOffset_(el
           , a.di_ === VisualModeNS.kDir.right || el.selectionDirection !== "backward"));
     }
@@ -557,7 +557,7 @@ var VVisual = {
         }
       } else {
         di = a.di_ as VisualModeNS.ForwardDir;
-        let el = VApis.lock_() as TextElement,
+        let el = VApi.lock_() as TextElement,
         start = a.TextOffset_(el, 0), end = start + len;
         di ? (end -= toGoLeft) :  (start -= toGoLeft);
         di = di && start > end ? (a.di_ = VisualModeNS.kDir.left) : VisualModeNS.kDir.right;
@@ -578,7 +578,7 @@ var VVisual = {
     }
     const sel = a.selection_, direction = a.getDirection_(), newDi = (1 - direction) as VisualModeNS.ForwardDir;
     if (a.diType_ & VisualModeNS.DiType.TextBox) {
-      const el = VApis.lock_() as TextElement;
+      const el = VApi.lock_() as TextElement;
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
       el.setSelectionRange(a.TextOffset_(el, 0), a.TextOffset_(el, 1), newDi ? "forward" : "backward");
@@ -631,7 +631,7 @@ var VVisual = {
       }
     }
     // editable text elements
-    const lock = VApis.lock_();
+    const lock = VApi.lock_();
     if (lock && lock.parentElement === anchorNode) { // safe beacuse lock is LockableElement
       type TextModeElement = TextElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)

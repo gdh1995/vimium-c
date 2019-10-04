@@ -7,10 +7,10 @@ interface ImportBody {
   (id: "shownImage"): HTMLImageElement;
   (id: "shownText"): HTMLDivElement;
 }
-declare var VPort: VPortTy, VHud: VHUDTy,
+declare var VApi: VApiTy, VHud: VHUDTy,
   Viewer: new (root: HTMLElement) => ViewerType;
 interface Window {
-  readonly VPort?: VPortTy;
+  readonly VApi?: VApiTy;
   readonly VHud?: VHUDTy;
   readonly Viewer: typeof Viewer;
 }
@@ -356,7 +356,7 @@ function imgOnKeydown(event: KeyboardEvent): boolean {
   let ch = VKey.char_(event);
   if (!ch) { return false; }
   let action: number = 0;
-  switch (VApis.mapKey_(ch, event)) {
+  switch (VApi.mapKey_(ch, event)) {
   case "<c-=>": case "+": case "=": case "<up>": action = 1; break;
   case "<left>": action = -2; break;
   case "<right>": action = 2; break;
@@ -436,8 +436,8 @@ function showText(tip: string, body: string | string[]): void {
 function copyThing(event: Event): void {
   event.preventDefault();
   const str = VData.type === "url" ? $("#textBody").textContent : VData.url;
-  if (!(str && window.VPort)) { return; }
-  VPort.post_({
+  if (!(str && window.VApi)) { return; }
+  VApi.post_({
     H: kFgReq.copy,
     d: str
   });

@@ -90,7 +90,7 @@ var VHints = {
   activate_ (this: void, count: number, options: FgOptions): void {
     const a = VHints;
     if (a.isActive_) { return; }
-    if (VApis.checkHidden_(kFgCmd.linkHints, count, options)) {
+    if (VApi.checkHidden_(kFgCmd.linkHints, count, options)) {
       return a.clean_();
     }
     if (document.body === null) {
@@ -146,7 +146,7 @@ var VHints = {
 
     a.isActive_ = true;
     VKey.pushHandler_(a.onKeydown_, a);
-    VApis.onWndBlur_(a.ResetMode_);
+    VApi.onWndBlur_(a.ResetMode_);
   },
   setModeOpt_ (count: number, options: HintsNS.Options): void {
     const a = this;
@@ -209,7 +209,7 @@ var VHints = {
       VHints: typeof VHints;
     }
     let frame = a.frameNested_, err = true, done = false;
-    let events: VApisModeTy | undefined, core: ContentWindowCore | null | 0 | void | undefined = null;
+    let events: VApiTy | undefined, core: ContentWindowCore | null | 0 | void | undefined = null;
     if (!frame) { return false; }
     try {
       if (frame.contentDocument
@@ -218,8 +218,8 @@ var VHints = {
         if (cmd === kFgCmd.linkHints) {
           (done = (core as VWindow).VHints.isActive_) && (core as VWindow).VHints.deactivate_(1);
         }
-        events = core.VApis as VApisModeTy;
-        err = events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApis.keydownEvents_() : VApis);
+        events = core.VApi as VApiTy;
+        err = events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApi.keydownEvents_() : VApi);
       }
     } catch (e) {
       if (!Build.NDEBUG) {
@@ -890,9 +890,9 @@ var VHints = {
       } else if (i & KeyStat.shiftKey) {
         a.isClickListened_ = !a.isClickListened_;
       } else {
-        if (!VApis.execute_) { return HandlerResult.Prevent; }
+        if (!VApi.execute_) { return HandlerResult.Prevent; }
         a.isClickListened_ = true;
-        (VApis as EnsureNonNull<VApisModeTy>).execute_(kContentCmd.FindAllOnClick);
+        (VApi as EnsureNonNull<VApiTy>).execute_(kContentCmd.FindAllOnClick);
       }
       setTimeout(a._reinit.bind(a, null, null), 0);
     } else if (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
@@ -915,7 +915,7 @@ var VHints = {
         (i & (i - 1)) || (a.lastMode_ = mode);
       }
     } else if (i <= kKeyCode.down && i >= kKeyCode.pageup) {
-      VApis.scroll_(event);
+      VApi.scroll_(event);
       a.ResetMode_();
     } else if (i === kKeyCode.space) {
       a.zIndexes_ === false || a.rotateHints_(event.shiftKey);
@@ -931,7 +931,7 @@ var VHints = {
     } else if (linksMatched.length === 1) {
       VKey.prevent_(event);
       /** safer; necessary for {@link #VHints._highlightChild} */
-      VApis.keydownEvents_()[i] = 1;
+      VApi.keydownEvents_()[i] = 1;
       a.keyCode_ = i;
       a.execute_(linksMatched[0]);
     } else {
@@ -955,7 +955,7 @@ var VHints = {
   ResetMode_ (): void {
     let a = VHints, d: KeydownCacheArray;
     if (a.lastMode_ !== a.mode_ && a.mode_ < HintMode.min_disable_queue) {
-      d = VApis.keydownEvents_();
+      d = VApi.keydownEvents_();
       if (d[kKeyCode.ctrlKey] || d[kKeyCode.metaKey] || d[kKeyCode.shiftKey] || d[kKeyCode.altKey]) {
         a.setMode_(a.lastMode_);
       }
@@ -1002,7 +1002,7 @@ var VHints = {
     }, 18);
   },
   _reinit (lastEl?: HintsNS.LinkEl | null, rect?: Rect | null): void {
-    const a = this, events = VApis;
+    const a = this, events = VApi;
     if (events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
       a.clean_();
       return;
@@ -1025,7 +1025,7 @@ var VHints = {
   },
   // if not el, then reinit if only no key stroke and hints.length < 64
   CheckLast_ (this: void, el?: HintsNS.LinkEl | TimerType.fake, r?: Rect | null): void {
-    const _this = VHints, events = VApis;
+    const _this = VHints, events = VApi;
     if (!_this) { return; }
     _this.timer_ = 0;
     if (events.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
@@ -1057,7 +1057,7 @@ var VHints = {
     alpha.hintKeystroke_ = alpha.chars_ = "";
     a.isActive_ = a.noHUD_ = a.tooHigh_ = a.doesMapKey_ = false;
     VKey.removeHandler_(a);
-    VApis.onWndBlur_(null);
+    VApi.onWndBlur_(null);
     if (a.box_) {
       a.box_.remove();
       a.box_ = null;
@@ -1199,7 +1199,7 @@ alphabetHints_: {
       }
       a.hintKeystroke_ = a.hintKeystroke_.slice(0, -1);
     } else if ((keyChar = VKey.char_(e))
-        && (keyChar = (VHints.doesMapKey_ ? VApis.mapKey_(keyChar, e, keyChar) : keyChar).toUpperCase()
+        && (keyChar = (VHints.doesMapKey_ ? VApi.mapKey_(keyChar, e, keyChar) : keyChar).toUpperCase()
             ).length === 1) {
       if (a.chars_.indexOf(keyChar) === -1) {
         return [];
@@ -1291,7 +1291,7 @@ openUrl_ (url: string, incognito?: boolean): void {
     k: kw != null ? kw + "" : ""
   };
   incognito && (opt.i = incognito);
-  VPort.post_(opt);
+  VApi.post_(opt);
 },
 _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
   if (!(<RegExpOne> /^i?frame$/).test(tag)) {
@@ -1304,15 +1304,15 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
     VOmni.focus_();
     return 1;
   }
-  let err: boolean | null = true, childEvents: VApisModeTy | undefined,
+  let err: boolean | null = true, childEvents: VApiTy | undefined,
   core: ContentWindowCore | void | undefined | 0;
   try {
     err = !(el as HTMLIFrameElement | HTMLFrameElement).contentDocument
         || !(core = Build.BTypes & BrowserType.Firefox
               ? VDom.getWndCore_((el as HTMLIFrameElement | HTMLFrameElement).contentWindow)
               : (el as HTMLIFrameElement | HTMLFrameElement).contentWindow)
-        || !(childEvents = core.VApis)
-        || childEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApis.keydownEvents_() : VApis);
+        || !(childEvents = core.VApi)
+        || childEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? VApi.keydownEvents_() : VApi);
   } catch (e) {
     if (!Build.NDEBUG) {
       let notDocError = true;
@@ -1328,7 +1328,7 @@ _highlightChild (el: HintsNS.LinkEl, tag: string): 0 | 1 | 2 {
   }
   el.focus();
   if (err) {
-    VPort.send_(kFgReq.execInChild, {
+    VApi.send_(kFgReq.execInChild, {
       u: (el as HTMLIFrameElement | HTMLFrameElement).src,
       c: kFgCmd.linkHints, n: count, k: this.keyCode_, a: options
     }, function (res): void {
@@ -1454,7 +1454,7 @@ Modes_: [
     if (mode1 > HintMode.min_edit - 1 && mode1 < HintMode.max_edit + 1) {
       let newtab = a.options_.newtab;
       // this frame is normal, so during Vomnibar.activate, checkHidden will only pass (in most cases)
-      (VPort as ComplicatedVPort).post_<kFgReq.vomnibar, { c: number } & Partial<VomnibarNS.ContentOptions>>({
+      (VApi as ComplicatedVPort).post_<kFgReq.vomnibar, { c: number } & Partial<VomnibarNS.ContentOptions>>({
         H: kFgReq.vomnibar,
         c: 1,
         newtab: newtab != null ? !!newtab : !isUrl,
@@ -1477,7 +1477,7 @@ Modes_: [
       shownText = `[${lastYanked.length + 1}] ` + str;
       lastYanked.push(str);
     }
-    VPort.post_({
+    VApi.post_({
       H: kFgReq.copy,
       j: a.options_.join,
       d: lastYanked || str
@@ -1498,7 +1498,7 @@ Modes_: [
 [
   (link: HTMLAnchorElement): void => {
     const url = VHints.getUrlData_(link);
-    if (!VPort.evalIfOK_(url)) {
+    if (!VApi.evalIfOK_(url)) {
       return VHints.openUrl_(url, true);
     }
   }
@@ -1534,7 +1534,7 @@ Modes_: [
   (img: SafeHTMLElement): void => {
     const a = VHints, text = a._getImageUrl(img, 1);
     if (!text) { return; }
-    VPort.post_({
+    VApi.post_({
       H: kFgReq.openImage,
       r: a.mode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       f: a.getImageName_(img),

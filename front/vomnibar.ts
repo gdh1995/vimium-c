@@ -40,8 +40,8 @@ declare var parent: unknown;
 import PixelData = VomnibarNS.PixelData;
 
 // tslint:disable-next-line: triple-equals
-if (typeof VApis == "object" && VApis && typeof VApis.destroy_ == "function") {
-  VApis.destroy_(1);
+if (typeof VApi == "object" && VApi && typeof VApi.destroy_ == "function") {
+  VApi.destroy_(1);
 }
 
 var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {

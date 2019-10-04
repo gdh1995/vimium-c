@@ -151,7 +151,7 @@ if (VDom && VimiumInjector === undefined) {
       box && dispatchCmd(cmd);
       return;
     }
-    const r = removeEventListener, events = VApis;
+    const r = removeEventListener, events = VApi;
     /** this function should keep idempotent */
     if (box) {
       r.call(box, kVOnClick1, onClick, !0);
@@ -538,7 +538,7 @@ _listen(kOnDomReady, handler, !0);
       injected = injected.replace(BuildStr.RandomName3 + '"'
           , ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + '"');
     }
-    VApis.execute_ = execute;
+    VApi.execute_ = execute;
     addEventListener(kHook, hook, !0);
   } else if (Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       || Build.BTypes & ~BrowserType.Chrome) {
@@ -602,7 +602,7 @@ _listen(kOnDomReady, handler, !0);
       + " not work because %o is sandboxed.",
     location.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"));
   if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage && breakTotally) {
-    VApis.destroy_(1);
+    VApi.destroy_(1);
     return;
   }
   let rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || Build.BTypes & BrowserType.Edge

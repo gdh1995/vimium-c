@@ -34,7 +34,7 @@ var VOmni = {
     VKey.removeHandler_(a);
     VKey.pushHandler_(VKey.SuppressMost_, a);
     let timer1 = setTimeout(a.RefreshKeyHandler_, GlobalConsts.TimeOfSuppressingTailKeydowns);
-    if (VApis.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
+    if (VApi.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
       return VHud.tip_(kTip.omniFrameFail, "Sorry, Vomnibar page seems to fail in loading.", 2000);
     }
@@ -64,7 +64,7 @@ var VOmni = {
           && (p as ContentWindowCore).VOmni) {
         ((p as ContentWindowCore).VOmni as typeof VOmni).activate_(count, options);
       } else {
-        VPort.post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options });
+        VApi.post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options });
       }
       return;
     }
@@ -119,7 +119,7 @@ var VOmni = {
       url = url.split("#", 1)[0] + VData.full.replace(<RegExpOne> /^-?\d+ /, "");
     }
     const trail = options.trailing_slash;
-    VPort.send_(kFgReq.parseSearchUrl, {
+    VApi.send_(kFgReq.parseSearchUrl, {
         t: trail != null ? !!trail : null,
         p: upper, u: url
     }, function (search): void {
@@ -241,7 +241,7 @@ var VOmni = {
     a.options_ = null;
     if (a.onReset_) { return a.onReset_(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
-    return VPort.post_({ H: kFgReq.vomnibar, r: true, i: true });
+    return VApi.post_({ H: kFgReq.vomnibar, r: true, i: true });
   },
   isABlank_ (): boolean {
     try {
@@ -274,12 +274,12 @@ var VOmni = {
       break;
     case VomnibarNS.kFReq.focus:
       focus();
-      return VApis.keydownEvents_()[(data as Req[VomnibarNS.kFReq.focus]).l] = 1;
+      return VApi.keydownEvents_()[(data as Req[VomnibarNS.kFReq.focus]).l] = 1;
     case VomnibarNS.kFReq.hide: return a.hide_(1);
-    case VomnibarNS.kFReq.scroll: return VApis.scroll_(data as Req[VomnibarNS.kFReq.scroll]);
+    case VomnibarNS.kFReq.scroll: return VApi.scroll_(data as Req[VomnibarNS.kFReq.scroll]);
     case VomnibarNS.kFReq.scrollGoing: // no break;
     case VomnibarNS.kFReq.scrollEnd: VSc.scrollTick_(data.N === VomnibarNS.kFReq.scrollGoing); break;
-    case VomnibarNS.kFReq.evalJS: VPort.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
+    case VomnibarNS.kFReq.evalJS: VApi.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
     case VomnibarNS.kFReq.broken: focus(); // no break;
     case VomnibarNS.kFReq.unload: return VOmni ? a.reset_(data.N === VomnibarNS.kFReq.broken) : undefined;
     case VomnibarNS.kFReq.hud:
@@ -307,7 +307,7 @@ var VOmni = {
     st > VomnibarNS.Status.ToShow && VKey.pushHandler_(a.onKeydown_, a);
   },
   onKeydown_ (event: KeyboardEvent): HandlerResult {
-    if (VApis.lock_()) { return HandlerResult.Nothing; }
+    if (VApi.lock_()) { return HandlerResult.Nothing; }
     if (VKey.isEscape_(event)) { this.hide_(); return HandlerResult.Prevent; }
     const key = event.keyCode - kKeyCode.f1;
     if (key === 0 || key === 1) {

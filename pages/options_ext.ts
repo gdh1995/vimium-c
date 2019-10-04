@@ -8,7 +8,7 @@ $<ElementWithDelay>("#showCommands").onclick = function (event): void {
     click(node);
     if (isCommand) { return; }
   }
-  VPort.post_({ H: kFgReq.initHelp });
+  VApi.post_({ H: kFgReq.initHelp });
   if (event) { return; }
   setTimeout(function (): void {
     const node2 = VCui.root_ && VCui.root_.querySelector("#HelpDialog") as HTMLElement;

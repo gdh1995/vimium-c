@@ -103,7 +103,7 @@ var VFind = {
     }, t);
     f("focus", function (this: Window, event: Event): void {
       if (VFind._actived && event.target === this) {
-        VApis.OnWndFocus_();
+        VApi.OnWndFocus_();
       }
       Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
@@ -262,7 +262,7 @@ var VFind = {
     VKey.Stop_(event);
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? !event.isTrusted : event.isTrusted === false) { return; }
-    if (VSc.keyIsDown_ && VApis.OnScrolls_[0](event) || event.type === "keyup") { return; }
+    if (VSc.keyIsDown_ && VApi.OnScrolls_[0](event) || event.type === "keyup") { return; }
     const a = this;
     const n = event.keyCode;
     type Result = FindNS.Action;
@@ -277,7 +277,7 @@ var VFind = {
       else if (i = VKey.getKeyStat_(event)) {
         if (i & ~KeyStat.PrimaryModifier) { return; }
         else if (n === kKeyCode.up || n === kKeyCode.down || n === kKeyCode.end || n === kKeyCode.home) {
-          VApis.scroll_(event, a.box_.contentWindow);
+          VApi.scroll_(event, a.box_.contentWindow);
         }
         else if (n === kKeyCode.J || n === kKeyCode.K) {
           a.execute_(null, { n: (kKeyCode.K - n) || -1 });
@@ -288,7 +288,7 @@ var VFind = {
       else if (n === kKeyCode.f1) { a.box_.contentDocument.execCommand("delete"); }
       else if (n === kKeyCode.f2) {
         Build.BTypes & BrowserType.Firefox && a.box_.blur();
-        focus(); VApis.keydownEvents_()[n] = 1;
+        focus(); VApi.keydownEvents_()[n] = 1;
       }
       else if (n === kKeyCode.up || n === kKeyCode.down) { a.nextQuery_(n !== kKeyCode.up); }
       else { return; }
@@ -297,7 +297,7 @@ var VFind = {
     }
     VKey.prevent_(event);
     if (!i) { return; }
-    VApis.keydownEvents_()[n] = 1;
+    VApi.keydownEvents_()[n] = 1;
     a.deactivate_(i as FindNS.Action);
   },
   onHostKeydown_ (event: KeyboardEvent): HandlerResult {
@@ -312,7 +312,7 @@ var VFind = {
         return HandlerResult.Prevent;
       }
     }
-    if (!VApis.lock_() && VKey.isEscape_(event)) {
+    if (!VApi.lock_() && VKey.isEscape_(event)) {
       VKey.prevent_(event); // safer
       a.deactivate_(FindNS.Action.ExitNoFocus); // should exit
       return HandlerResult.Prevent;
@@ -344,7 +344,7 @@ var VFind = {
         r: true
       }));
     }
-    if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VApis.lock_())) {
+    if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VApi.lock_())) {
       let container = a.focusFoundLinkIfAny_();
       if (container && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
           && VDom.getEditableType_(el2) >= EditableType.Editbox && container.contains(el2)) {
@@ -393,7 +393,7 @@ var VFind = {
     if (ind < 0) { return; }
     this.historyIndex_ = ind;
     if (!back) {
-      VPort.send_(kFgReq.findQuery, { i: ind }, this.SetQuery_);
+      VApi.send_(kFgReq.findQuery, { i: ind }, this.SetQuery_);
       return;
     }
     const wnd = this.box_.contentWindow;
@@ -409,7 +409,7 @@ var VFind = {
     _this.OnInput_();
   },
   saveQuery_ (): void {
-    this.query_ && VPort.post_({
+    this.query_ && VApi.post_({
       H: kFgReq.findQuery,
       q: this.input_.innerText.replace(this.A0Re_, " ").replace(this.tailRe_, "")
     });
@@ -418,13 +418,13 @@ var VFind = {
     lock_: null as Element | null,
     activate_  (): void {
       const pm = this, hook = addEventListener;
-      const el = VApis.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
+      const el = VApi.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
       VKey.pushHandler_(pm.onKeydown_, pm);
       if (el === pm.lock_) { return; }
       if (!pm.lock_) {
         hook("click", Exit, true);
-        VApis.setupSuppress_(Exit);
+        VApi.setupSuppress_(Exit);
       }
       Exit(true);
       pm.lock_ = el;
@@ -445,7 +445,7 @@ var VFind = {
       a.lock_ = null;
       unhook("click", a.exit_, true);
       VKey.removeHandler_(a);
-      VApis.setupSuppress_();
+      VApi.setupSuppress_();
     }
   },
   OnInput_ (this: void, e?: Event): void {
@@ -612,7 +612,7 @@ var VFind = {
       }
     } while (0 < --count && found);
     options.noColor || setTimeout(a.HookSel_, 0);
-    (el = VApis.lock_()) && !VDom.isSelected_() && el.blur();
+    (el = VApi.lock_()) && !VDom.isSelected_() && el.blur();
     Build.BTypes & BrowserType.Firefox && focusHUD && a.focus_();
     a.hasResults_ = found;
   },

@@ -68,7 +68,7 @@ var VCui = {
       if ((adjust as AdjustType) === AdjustType.MustAdjust) {
         a.adjust_();
       }
-      VPort.post_({ H: kFgReq.css });
+      VApi.post_({ H: kFgReq.css });
     }
   }) as <T extends HTMLElement> (element: T, adjust?: AdjustType, before?: Element | null | true) => void,
   addElementList_ <T extends boolean | BOOL> (
@@ -223,7 +223,7 @@ var VCui = {
   },
   getSelectionText_ (notTrim?: 1): string {
     let sel = getSelection(), s = "" + sel, el: Element | null, rect: ClientRect;
-    if (s && !VApis.lock_() && (el = VCui.activeEl_) && VDom.getEditableType_(el) === EditableType.Editbox
+    if (s && !VApi.lock_() && (el = VCui.activeEl_) && VDom.getEditableType_(el) === EditableType.Editbox
         && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
       s = "";
     }
@@ -254,7 +254,7 @@ var VCui = {
     element === a.lastHovered_ || a.hover_(element, center);
     a.mouse_(element, "mousedown", center, modifiers, null, button);
     // Note: here we can check doc.activeEl only when @click is used on the current focused document
-    addFocus && element !== VApis.lock_() && element !== document.activeElement &&
+    addFocus && element !== VApi.lock_() && element !== document.activeElement &&
       !(element as Partial<HTMLInputElement>).disabled &&
       (Build.BTypes & ~BrowserType.Firefox ? typeof element.focus === "function" : element.focus) &&
       (element as HTMLElement | SVGElement).focus();
@@ -287,7 +287,7 @@ var VCui = {
     if (result >= ActionType.FixButNotDispatch
         || a.mouse_(element, "click", center, modifiers, null, button) && result) {
       // do fix
-      VPort.post_({
+      VApi.post_({
         H: kFgReq.openUrl,
         u: (element as HTMLAnchorElement).href,
         n: ((element as HTMLAnchorElement).rel.split(<RegExpOne> /\s/) as ES6Array<string>).includes("noopener"),
@@ -304,7 +304,7 @@ var VCui = {
     VDom.view_(element, y);
     // re-compute rect of element, in case that an input is resized when focused
     flash && this.flash_(element);
-    if (element !== VApis.lock_()) { return; }
+    if (element !== VApi.lock_()) { return; }
     // then `element` is always safe
     this._moveSel_need_safe(element as LockableElement, action);
     if (suppressRepeated === true) { VKey.suppressTail_(0); }

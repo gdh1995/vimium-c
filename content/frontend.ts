@@ -1,4 +1,4 @@
-var VHud: VHUDTy, VPort: VPortTy, VApis: VApisModeTy, VTr: VTransType
+var VHud: VHUDTy, VApi: VApiTy, VTr: VTransType
   , VimiumInjector: VimiumInjectorTy | undefined | null;
 if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { var browser: unknown; }
 
@@ -522,7 +522,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     /* kFgCmd.autoOpen: */ function (_0: number, options: CmdOptions[kFgCmd.autoOpen]): void {
       let url = VCui.getSelectionText_(), keyword = (options.keyword || "") + "";
-      url && VPort.evalIfOK_(url) || post({
+      url && VApi.evalIfOK_(url) || post({
         H: kFgReq.openUrl,
         c: !url,
         k: keyword, u: url
@@ -707,7 +707,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (parEl) {
         KeydownEvents[key] = 1;
         const parentCore = Build.BTypes & BrowserType.Firefox ? VDom.parentCore_() : parent as Window,
-        a1 = parentCore && parentCore.VApis;
+        a1 = parentCore && parentCore.VApi;
         if (a1 && !a1.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
           ((parentCore as Exclude<typeof parentCore, 0 | void | null>).VKey as typeof VKey).suppressTail_(0);
           a1.focusAndRun_(0, 0 as never, 0 as never, 1);
@@ -1098,7 +1098,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       delete arr[id];
       handler(response.r);
     },
-    /* kBgReq.eval: */ function (options: BgReq[kBgReq.eval]): void { VPort.evalIfOK_(options.u); },
+    /* kBgReq.eval: */ function (options: BgReq[kBgReq.eval]): void { VApi.evalIfOK_(options.u); },
     /* kBgReq.settingsUpdate: */function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
       type Keys = keyof typeof delta;
       VKey.safer_(delta);
@@ -1270,7 +1270,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
   ],
 
-  safeDestroy: VApisModeTy["destroy_"] = function (this: void, silent): void {
+  safeDestroy: VApiTy["destroy_"] = function (this: void, silent): void {
     if (!esc) { return; }
     if (Build.BTypes & BrowserType.Firefox && silent === 9) {
       vPort._port = null;
@@ -1285,7 +1285,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     ui.box_ && ui.adjust_(2);
 
     VDom = VKey = VCui = VHints = VSc = VOmni = VFind = VVisual = VMarks =
-    VHud = VPort = VApis = esc = null as never;
+    VHud = VApi = esc = null as never;
 
     silent || console.log("%cVimium C%c in %o has been destroyed at %o."
       , "color:red", "color:auto"
@@ -1296,7 +1296,30 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     injector || (<RegExpOne> /a?/).test("");
   },
 
-  events = VApis = {
+  events = VApi = {
+    post_: post,
+    send_ <K extends keyof FgRes> (this: void, cmd: K, args: Req.fgWithRes<K>["a"]
+        , callback: (this: void, res: FgRes[K]) => void): void {
+      let id = ++vPort._id;
+      (post as Port["postMessage"])({ H: kFgReq.msg, i: id, c: cmd, a: args });
+      vPort._callbacks[id] = callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void;
+    },
+    evalIfOK_ (url: string): boolean {
+      if (!VHints.jsRe_.test(url)) {
+        return false;
+      }
+      url = url.slice(11).trim();
+      if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
+      else if (VDom.allowScripts_) {
+        setTimeout(function (): void {
+          VDom.runJS_(VHints.decodeURL_(url, decodeURIComponent));
+        }, 0);
+      } else {
+        HUD.tip_(kTip.failToEvalJS, "Here's not allowed to eval scripts");
+      }
+      return true;
+    },
+
     lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
     isCmdTriggered_: () => isCmdTriggered,
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
@@ -1311,7 +1334,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       if (!el) { return 0; }
       let box = VDom.getBoundingClientRect_(el),
       par: ReturnType<typeof VDom.parentCore_> | undefined,
-      parEvents: VApisModeTy | undefined,
+      parEvents: VApiTy | undefined,
       result: boolean | BOOL = !box.height && !box.width || getComputedStyle(el).visibility === "hidden";
       if (cmd) {
         type EnsuredOptionsTy = Exclude<typeof options, undefined>;
@@ -1323,7 +1346,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
                 || (Build.BTypes & BrowserType.Firefox && par !== parent
                       ? (box.top > (par as EnsureItemsNonNull<ContentWindowCore>).VIh() )
                       : box.top > (parent as Window).innerHeight))) {
-          parEvents = ((Build.BTypes & BrowserType.Firefox ? par : parent) as ContentWindowCore).VApis;
+          parEvents = ((Build.BTypes & BrowserType.Firefox ? par : parent) as ContentWindowCore).VApi;
           if (parEvents
               && !parEvents.keydownEvents_(Build.BTypes & BrowserType.Firefox ? events.keydownEvents_() : events)) {
             parEvents.focusAndRun_(cmd, count as number, options as EnsuredOptionsTy, 1);
@@ -1401,7 +1424,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       repeat && VKey.prevent_(event);
       VSc.scrollTick_(repeat);
       return repeat;
-    }, function (this: VApisModeTy["OnScrolls_"], wnd, isAdd): void {
+    }, function (this: VApiTy["OnScrolls_"], wnd, isAdd): void {
       const f = isAdd ? addEventListener : removeEventListener,
       listener = this[2];
       VSc.scrollTick_(isAdd);
@@ -1414,7 +1437,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         } else if (event.target !== this) {
           return;
         }
-        (events as VApisModeTy).OnScrolls_[1](this, 0);
+        (events as VApiTy).OnScrolls_[1](this, 0);
       }
     }],
     setupSuppress_ (this: void, onExit?: (this: void) => void): void {
@@ -1426,14 +1449,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       if (f) { return f(); }
     },
-    execute_: null as VApisModeTy["execute_"],
+    execute_: null as VApiTy["execute_"],
     destroy_: safeDestroy,
-    keydownEvents_: function (this: void, arr?: Pick<VApisModeTy, "keydownEvents_"> | KeydownCacheArray
+    keydownEvents_: function (this: void, arr?: Pick<VApiTy, "keydownEvents_"> | KeydownCacheArray
         ): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
       return !isEnabled || !(KeydownEvents = Build.BTypes & BrowserType.Firefox ? arr as KeydownCacheArray
-          : (arr as VApisModeTy).keydownEvents_());
-    } as VApisModeTy["keydownEvents_"]
+          : (arr as VApiTy).keydownEvents_());
+    } as VApiTy["keydownEvents_"]
   },
 
   vPort = {
@@ -1492,30 +1515,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }];
   }
 
-  VPort = {
-    post_: post,
-    send_ <K extends keyof FgRes> (this: void, cmd: K, args: Req.fgWithRes<K>["a"]
-        , callback: (this: void, res: FgRes[K]) => void): void {
-      let id = ++vPort._id;
-      (post as Port["postMessage"])({ H: kFgReq.msg, i: id, c: cmd, a: args });
-      vPort._callbacks[id] = callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void;
-    },
-    evalIfOK_ (url: string): boolean {
-      if (!VHints.jsRe_.test(url)) {
-        return false;
-      }
-      url = url.slice(11).trim();
-      if ((<RegExpOne> /^void\s*\( ?0 ?\)\s*;?$|^;?$/).test(url)) { /* empty */ }
-      else if (VDom.allowScripts_) {
-        setTimeout(function (): void {
-          VDom.runJS_(VHints.decodeURL_(url, decodeURIComponent));
-        }, 0);
-      } else {
-        HUD.tip_(kTip.failToEvalJS, "Here's not allowed to eval scripts");
-      }
-      return true;
-    }
-  };
   VHud = HUD;
   VKey.isEscape_ = isEscape;
   if (Build.BTypes & ~BrowserType.Chrome && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge) {
@@ -1569,9 +1568,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return;
       }
       if (!thisCore) {
-        // not expose VPort, in case of unpredictable attacks
+        // not expose VApi, in case of unpredictable attacks
         /** @see {@link base.d.ts#ContentWindowCore} */
-        thisCore = { VDom, VKey, VHints, VSc, VOmni, VFind, VApis, VIh: () => innerHeight };
+        thisCore = { VDom, VKey, VHints, VSc, VOmni, VFind, VApi, VIh: () => innerHeight };
       }
       return thisCore;
     }});

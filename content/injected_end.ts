@@ -1,5 +1,5 @@
 [VDom, VKey, VCui, VHints, VSc, VOmni, VFind, VVisual, VMarks,
-  VHud, VPort, VApis
+  VHud, VApi
   ].forEach(Object.seal);
 VDom.allowScripts_ = 0;
 
@@ -79,8 +79,8 @@ VDom.allowScripts_ = 0;
   };
   function onTimeout() {
     if (Build.BTypes & BrowserType.Firefox) {
-      VApis.destroy_(9); // note: here Firefox is just like a (9)
-      VApis.OnWndFocus_();
+      VApi.destroy_(9); // note: here Firefox is just like a (9)
+      VApi.OnWndFocus_();
     }
   }
 })();
@@ -90,7 +90,7 @@ VDom.OnDocLoaded_(function () {
   injector && addEventListener("hashchange", injector.checkIfEnabled);
 });
 
-VApis.execute_ = function (cmd): void {
+VApi.execute_ = function (cmd): void {
   const injector = VimiumInjector;
   if (cmd === kContentCmd.Destroy && injector) {
     removeEventListener("hashchange", injector.checkIfEnabled);
@@ -102,4 +102,4 @@ VApis.execute_ = function (cmd): void {
 };
 
 (VimiumInjector as VimiumInjectorTy).cache = VDom.cache_;
-(VimiumInjector as VimiumInjectorTy).destroy = VApis.destroy_;
+(VimiumInjector as VimiumInjectorTy).destroy = VApi.destroy_;
