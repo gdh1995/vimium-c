@@ -129,11 +129,17 @@
 }
 
 .VimL {
-	all: initial;
+	all: unset;
+	background: none;
+	border: none;
 	color: #15c;
 	cursor: pointer;
 	font: inherit;
+	padding: 0;
 	text-decoration: underline;
+}
+.VimL:visited {
+	color: #15c;
 }
 .VimL:active {
 	color: #052577;
@@ -258,8 +264,8 @@
 		<span id="HelpLinks">
 			<a class="VimL TopLink" id="OptionsPage">$Options</a>
 			<a class="VimL TopLink" target="_blank" rel="noopener noreferrer" href="{{homePage}}/wiki">$Wiki</a>
-			<a class="VimL TopLink" id="HClose" role="button" title="$Close" href="javascript:;"
-				><span id="HCloseT">&#215;</span></a>
+			<button class="VimL TopLink" id="HClose" role="button" title="$Close"
+				><span id="HCloseT">&#215;</span></button>
 		</span>
 	</div>
 	<div class="HDivider"></div>
@@ -290,8 +296,8 @@
 
 	<div id="HelpFooter">
 		<div id="HelpTip">{{tip}}</div>
-		<a class="VimL" id="AdvancedCommands" role="button" href="javascript:;"
-				><span data-s="$Show" data-h="$Hide">$Show</span><span>$advCmd</span></a>
+		<button class="VimL" id="AdvancedCommands"
+				><span data-s="$Show" data-h="$Hide">$Show</span><span>$advCmd</span></button>
 
 		<div id="HelpAbout">
 			<div id="HelpVersion">$VerIs{{version}}</div>
