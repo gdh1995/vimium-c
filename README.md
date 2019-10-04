@@ -65,13 +65,13 @@ __Other extensions supporting Vimium C:__
 * the default value of `ignore keyboard layout` option rolls back to `false` again
 * the `passKeys` will only exclude key strokes when the "current key" sequence is empty
 * `closeTabsOnRight` now closes ***all tabs*** on the right, just like what Vimium does (so does `closeTabsOnLeft`)
-* Chrome: fix broken `importing settings` on v1.77.1
 * `LinkHints` now uses a single <kbd>F2</kbd> to re-find new page nodes with `onclick` event listeners
 * `LinkHints.activateModeToCopyLinkText`: add an option `join:string/boolean` to join selected text pieces
 * `LinkHints`: better support for "weibo.com" and pages using Material Design
 * `LinkHints`: better support for pinch zooming on laptops
-* `LinkHints.activateModeToCopyLinkUrl`: fix not finding those in shadow DOM trees
 * add a command `copyWindowInfo` to copy title and URL info of all tabs
+* Chrome: fix broken `importing settings` on v1.77.1
+* `LinkHints.activateModeToCopyLinkUrl`: fix not finding those in shadow DOM trees
 * fix some other small bugs
 
 1.77.3:
