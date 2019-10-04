@@ -1194,6 +1194,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     suppress(box, "mouseup");
     // note: if wheel is listened, then mousewheel won't be dispatched even on Chrome 35
     suppress(box, "wheel");
+    suppress(box, "auxclick");
     suppress(box, "contextmenu");
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)

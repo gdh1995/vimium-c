@@ -89,7 +89,7 @@ var VFind = {
       f("paste", a._OnPaste, t);
     }
     f("unload", a.OnUnload_, t);
-    for (const i of ["keypress", "mouseup", "click", "contextmenu", "copy", "cut", "paste"]) {
+    for (const i of ["keypress", "mouseup", "click", "auxclick", "contextmenu", "copy", "cut", "paste"]) {
       f(i, s, t);
     }
     f("blur", a._onUnexpectedBlur = function (this: Window, event): void {

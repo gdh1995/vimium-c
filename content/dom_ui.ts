@@ -261,6 +261,9 @@ var VCui = {
     a.mouse_(element, "mouseup", center, modifiers, null, button);
     if (button /* is the right button */
         || (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
+      if (button) { // if button is the right, then auxclick can be triggered even if element.disabled
+        a.mouse_(element, "auxclick", center, modifiers, null, button);
+      }
       return;
     }
     if (!(Build.BTypes & BrowserType.Firefox)) {

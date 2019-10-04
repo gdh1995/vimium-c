@@ -69,6 +69,7 @@ __Other extensions supporting Vimium C:__
 * `LinkHints.activateModeToCopyLinkText`: add an option `join:string/boolean` to join selected text pieces
 * `LinkHints`: better support for "weibo.com" and pages using Material Design
 * `LinkHints`: better support for pinch zooming on laptops
+* `LinkHints.activate button="right"`: now simulate `auxclick` events
 * add a command `copyWindowInfo` to copy title and URL info of all tabs
 * Chrome: fix broken `importing settings` on v1.77.1
 * `LinkHints.activateModeToCopyLinkUrl`: fix not finding those in shadow DOM trees

@@ -1,5 +1,7 @@
 /// <reference path="../content/base.d.ts" />
 interface ElementWithClickable { vimiumClick?: boolean; }
+type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
+type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick";
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol) {
   var Set: SetConstructor | undefined;
 }
@@ -722,7 +724,7 @@ var VDom = {
     addEventListener(kEventName, eventHandler, true);
   },
   mouse_: function (this: {}, element: Element
-      , type: "mousedown" | "mouseup" | "click" | "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave"
+      , type: kMouseClickEvents | kMouseMoveEvents
       , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: Element | null
       , button?: 0 | 2): boolean {
     let mouseEvent: MouseEvent, doc = element.ownerDocument, u: undefined;
@@ -735,7 +737,7 @@ var VDom = {
     relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : <undefined> u;
     const view = (doc as Document).defaultView || window,
     tyKey = type.slice(5, 6),
-    isAboutButtons = "du".indexOf(tyKey) >= 0, // is: down / up / (click)
+    isAboutButtons = "dui".indexOf(tyKey) >= 0, // is: down | up | (click) | auxclick
     x = center[0], y = center[1], ctrlKey = modifiers ? modifiers.ctrlKey_ : !1,
     altKey = modifiers ? modifiers.altKey_ : !1, shiftKey = modifiers ? modifiers.shiftKey_ : !1,
     metaKey = modifiers ? modifiers.metaKey_ : !1;
@@ -757,12 +759,10 @@ var VDom = {
     return Build.BTypes & ~BrowserType.Firefox ? dispatchEvent.call(element, mouseEvent)
       : element.dispatchEvent(mouseEvent);
   } as {
-    (element: Element, type: "mousedown" | "mouseup" | "click"
+    (element: Element, type: kMouseClickEvents
       , rect: Point2D // rect must be not optional, so that human can understand program logic easily
       , modifiers?: MyMouseControlKeys | null, related?: Element | null, button?: 0 | 2): boolean;
-    (element: Element, type: "mouseover" | "mouseenter" | "mousemove", rect: Point2D
-      , modifiers?: null, related?: Element | null): boolean;
-    (element: Element, type: "mouseout" | "mouseleave", rect: Point2D
+    (element: Element, type: kMouseMoveEvents, rect: Point2D
       , modifiers?: null, related?: Element | null): boolean;
   },
   lastHovered_: null as Element | null,
