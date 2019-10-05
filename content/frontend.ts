@@ -17,6 +17,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
   }
 
   let KeydownEvents: KeydownCacheArray, keyMap: KeyMap
+    , insertLock = null as LockableElement | null
     , thisCore: Writable<ContentWindowCore> | undefined
     , currentKeys = "", isEnabled = false, isLocked = false
     , mappedKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
@@ -123,10 +124,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         || !key) { return; }
     if (VSc.keyIsDown_ && events.OnScrolls_[0](event)) { return; }
     if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) ? InsertMode.lock_
-          : InsertMode.lock_ && OnOther === BrowserType.Firefox)
-        && !VDom.isInDOM_(InsertMode.lock_ as LockableElement, document)) {
-      InsertMode.lock_ = null;
+        && (!(Build.BTypes & ~BrowserType.Firefox) ? insertLock
+          : insertLock && OnOther === BrowserType.Firefox)
+        && !VDom.isInDOM_(insertLock as LockableElement, document)) {
+      insertLock = null;
     }
     if (action = VKey.bubbleEvent_(event)) { /* empty */ }
     else if (InsertMode.isActive_()) {
@@ -137,7 +138,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
               & ~HandlerResult.AdvancedEscFlag) === HandlerResult.Esc
           : isEscape(event)
       ) {
-        if (InsertMode.lock_ === document.body && InsertMode.lock_ || !isTop && innerHeight < 3) {
+        if (insertLock === document.body && insertLock || !isTop && innerHeight < 3) {
           event.repeat && InsertMode.focusUpper_(key, true, event);
           action = HandlerResult.PassKey;
         } else {
@@ -207,7 +208,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
      *   `lock !== target` ignores the case a blur event is missing or not captured;
      *   `target !== doc.active` lets it mistakenly passes the case of `target === lock === doc.active`
      */
-    const lock = InsertMode.lock_;
+    const lock = insertLock;
     if (lock !== null && lock === document.activeElement) { return; }
     if (target === VCui.box_) { return VKey.Stop_(event); }
     const sr = VDom.GetShadowRoot_(target as Element);
@@ -243,7 +244,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return;
       }
       esc(HandlerResult.Nothing);
-      InsertMode.lock_ = target;
+      insertLock = target;
       if (InsertMode.mutable_) {
         if (document.activeElement !== document.body) {
           InsertMode.last_ = target;
@@ -267,8 +268,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           ? (top = (path as EventPath)[0]) === target
           : !(top = path && path[0]) || top === window || top === target
       , sr = VDom.GetShadowRoot_(target as Element);
-    if (InsertMode.lock_ === (same ? target : top)) {
-      InsertMode.lock_ = null;
+    if (insertLock === (same ? target : top)) {
+      insertLock = null;
       InsertMode.inputHint_ && !InsertMode.hinting_ && document.hasFocus() && InsertMode.exitInputHint_();
     }
     if (!sr || target === VCui.box_) { return; }
@@ -374,7 +375,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kFgCmd.vomnibar: */ VOmni.activate_,
     /* kFgCmd.reset: */ function (): void {
       const a = InsertMode;
-      VCui.activeEl_ = VDom.lastHovered_ = a.last_ = a.lock_ = a.global_ = null;
+      VCui.activeEl_ = VDom.lastHovered_ = a.last_ = insertLock = a.global_ = null;
       a.mutable_ = true;
       a.ExitGrab_(); events.setupSuppress_();
       VHints.clean_(); VVisual.deactivate_();
@@ -468,7 +469,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }, 17);
     },
     /* kFgCmd.switchFocus: */ function (_0: number, options: CmdOptions[kFgCmd.switchFocus]): void {
-      let newEl = InsertMode.lock_;
+      let newEl = insertLock;
       if (newEl) {
         if ((options.act || options.action) === "backspace") {
           if (VDom.view_(newEl)) { document.execCommand("delete"); }
@@ -603,7 +604,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           ) : keyCode !== kKeyCode.ime && keyCode !== kKeyCode.f12
         ) {
           InsertMode.exitInputHint_();
-          return !isEscape(event) ? HandlerResult.Nothing : keep || !InsertMode.lock_ ? HandlerResult.Prevent
+          return !isEscape(event) ? HandlerResult.Nothing : keep || !insertLock ? HandlerResult.Prevent
             : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
         }
         return HandlerResult.Nothing;
@@ -619,7 +620,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     inputHint_: null as { /** box */ b: HTMLDivElement, /** hints */ h: HintsNS.InputHintItem[] } | null,
     suppressType_: null as string | null,
     last_: null as LockableElement | null,
-    lock_: null as LockableElement | null,
     mutable_: true,
     init_ (): void {
       /** if `notBody` then `activeEl` is not null */
@@ -652,7 +652,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
       InsertMode.grabBackFocus_ = false;
       if (notBody && VDom.getEditableType_<1>(activeEl)) {
-        InsertMode.lock_ = activeEl;
+        insertLock = activeEl;
       }
     },
     ExitGrab_: function (this: void, event?: Req.fg<kFgReq.exitGrab> | MouseEvent | KeyboardEvent
@@ -673,11 +673,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     },
     isActive_ (): boolean {
       if (InsertMode.suppressType_) { return false; }
-      let el: Element | null = InsertMode.lock_;
-      if (el || InsertMode.global_) {
+      if (insertLock || InsertMode.global_) {
         return true;
       }
-      el = document.activeElement;
+      const el: Element | null = document.activeElement;
 /** Ignore standalone usages of `{-webkit-user-modify:}` without `[contenteditable]`
  * On Chromestatus, this is tagged `WebKitUserModify{PlainText,ReadWrite,ReadOnly}Effective`
  * * https://www.chromestatus.com/metrics/css/timeline/popularity/338
@@ -692,7 +691,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
  */
       if (el && (el as HTMLElement).isContentEditable === true) {
         esc(HandlerResult.Nothing);
-        InsertMode.lock_ = el as LockableElement;
+        insertLock = el as LockableElement;
         return true;
       } else {
         return false;
@@ -722,15 +721,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     exit_ (event: KeyboardEvent): void {
       let target: Element | null = event.target as Element;
       if (VDom.GetShadowRoot_(target)) {
-        if (target = InsertMode.lock_) {
-          InsertMode.lock_ = null;
+        if (target = insertLock) {
+          insertLock = null;
           (target as LockableElement).blur();
         }
-      } else if (target === InsertMode.lock_ ? (InsertMode.lock_ = null, 1) : VDom.getEditableType_<1>(target)) {
+      } else if (target === insertLock ? (insertLock = null, 1) : VDom.getEditableType_<1>(target)) {
         (target as LockableElement).blur();
       }
       if (InsertMode.global_) {
-        InsertMode.lock_ = null; InsertMode.global_ = null;
+        insertLock = null; InsertMode.global_ = null;
         HUD.hide_();
       }
     },
@@ -1256,7 +1255,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       ? VDom.scrollIntoView_(box) : VFind.fixTabNav_(box);
     VCui.activeEl_ = box;
     VKey.pushHandler_(function (event) {
-      if (!InsertMode.lock_ && isEscape(event)) {
+      if (!insertLock && isEscape(event)) {
         VCui.removeSelection_(VCui.root_) || hide();
         return HandlerResult.Prevent;
       }
@@ -1320,7 +1319,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       return true;
     },
 
-    lock_ (this: void): LockableElement | null { return InsertMode.lock_; },
+    lock_: () => insertLock,
     isCmdTriggered_: () => isCmdTriggered,
     onWndBlur_ (this: void, f): void { onWndBlur2 = f; },
     OnWndFocus_ (this: void): void { onWndFocus(); },
