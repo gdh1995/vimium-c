@@ -88,12 +88,13 @@ BgUtils_.timeout_(1000, function (): void {
     }
     if (value == null) {
       if (localStorage.getItem(key) != null) {
+        restoringPromise ||
         console.log(now(), "sync.this: reset", key);
         doSet(key, defaultVal);
       }
       return;
     }
-    let curVal = restoringPromise === null ? Settings_.get_(key) : defaultVal
+    let curVal = restoringPromise ? defaultVal : Settings_.get_(key)
       , curJSON: string | boolean | number, jsonVal: string | boolean | number
       , notJSON: boolean;
     if (notJSON = typeof defaultVal !== "object") {
@@ -108,7 +109,7 @@ BgUtils_.timeout_(1000, function (): void {
     if (jsonVal === curVal) {
       value = defaultVal;
     }
-    restoringPromise === null &&
+    restoringPromise ||
     console.log(now(), "sync.this: update", key,
       typeof value === "string"
       ? (value.length > 32 ? value.slice(0, 30) + "..." : value).replace(<RegExpG> /\n/g, "\\n")
@@ -456,6 +457,7 @@ BgUtils_.timeout_(1000, function (): void {
     }
     Settings_.postUpdate_("vimSync");
     BgUtils_.timeout_(4, () => { --kSources || resolve(); });
+    restoringPromise &&
     console.log(now(), "sync.cloud: download settings to localStorage");
   }
   Settings_.restore_ = () => {
@@ -492,6 +494,7 @@ BgUtils_.timeout_(1000, function (): void {
       Settings_.restore_ = null;
       return err;
     }
+    restoringPromise = Promise.resolve();
     restoringPromise = new Promise(r => beginToRestore(items, 3, r)).then<void>(_ => { restoringPromise = null; });
   });
 });

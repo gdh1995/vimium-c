@@ -629,7 +629,7 @@ var VFind = {
     } catch { return false; }
   } as Window["find"] : 0 as never,
   HookSel_ (t?: TimerType.fake | 1): void {
-    (<number> t > 0 ? removeEventListener : addEventListener)("selectionchange", VFind && VFind.ToggleStyle_, true);
+    VFind && VKey.SetupEventListener_(window, "selectionchange", <number> t > 0, VFind.ToggleStyle_);
   },
   /** must be called after initing */
   ToggleStyle_ (this: void, disable: BOOL | boolean | Event): void {

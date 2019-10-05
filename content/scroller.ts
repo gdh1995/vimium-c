@@ -386,10 +386,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       return;
     }
     this.scrolled_ = 2;
-    VKey.SuppressAll_(window, "scroll");
+    VKey.SetupEventListener_(window, "scroll");
     requestAnimationFrame(function (): void {
       VSc.scrolled_ = 0;
-      VKey.SuppressAll_(window, "scroll", true);
+      VKey.SetupEventListener_(window, "scroll", 1);
     });
   },
   sortByArea_ (this: void, a: ElementScrollInfo, b: ElementScrollInfo): number {

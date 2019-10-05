@@ -108,7 +108,8 @@ interface BgReq {
   [kBgReq.showHelpDialog]: {
     /** html */ h: string | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string; };
     /** optionUrl */ o: string;
-    /** advanced */ a: boolean;
+    /** extra args */ a: CmdOptions[kFgCmd.showHelp];
+    /** advanced */ c: boolean;
   } & Partial<BgCSSReq>;
   [kBgReq.settingsUpdate]: {
     /** delta */ d: {
@@ -386,6 +387,7 @@ interface FgReq {
   [kFgReq.exitGrab]: {};
   [kFgReq.initHelp]: {
     /** wantTop */ w?: boolean;
+    /** args */ a?: CmdOptions[kFgCmd.showHelp];
   };
   [kFgReq.css]: {};
   [kFgReq.vomnibar]: ({

@@ -109,14 +109,14 @@ var VCui = {
     const sin = UI.styleIn_, s = sin && (sin as HTMLStyleElement).sheet;
     s && (s.disabled = false);
     if (el || event) {
-      const func = (el && event !== 2 ? addEventListener : removeEventListener), name = "fullscreenchange";
+      const removeEL = !el || event === 2, name = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
-        func("webkit" + name, UI.adjust_, true);
+        VKey.SetupEventListener_(window, "webkit" + name, removeEL, UI.adjust_);
       }
       if (!(Build.BTypes & BrowserType.Chrome)
           || VDom.cache_.v >= BrowserVer.MinEnsured$Document$$fullscreenElement) {
-        func(name, UI.adjust_, true);
+        VKey.SetupEventListener_(window, name, removeEL, UI.adjust_);
       }
     }
   },

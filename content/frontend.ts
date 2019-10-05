@@ -493,14 +493,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VDom.prepareCrop_();
       return VCui.simulateSelect_(newEl, null, false, "", true);
     },
-    /* kFgCmd.showHelp: */ function (msg?: number | "e"): void {
+    /* kFgCmd.showHelp: */ function (msg?: number | "e", options?: CmdOptions[kFgCmd.showHelp]): void {
       if (msg === "e") { return; }
       let wantTop = innerWidth < 400 || innerHeight < 320;
       if (!VDom.isHTML_()) {
         if (isTop) { return; }
         wantTop = true;
       }
-      post({ H: kFgReq.initHelp, w: wantTop });
+      post({ H: kFgReq.initHelp, w: wantTop, a: options });
     },
     /* kFgCmd.autoCopy: */ function (_0: number, options: CmdOptions[kFgCmd.autoCopy]): void {
       let str = VCui.getSelectionText_(1);
@@ -1166,11 +1166,11 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       post({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
     },
     /* kBgReq.showHelpDialog: */
-  function ({ h: html, a: shouldShowAdvanced, o: optionUrl, S: CSS }: Req.bg<kBgReq.showHelpDialog>): void {
+  function ({ h: html, c: shouldShowAdvanced, o: optionUrl, S: CSS, a: options }: Req.bg<kBgReq.showHelpDialog>): void {
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
     if (CSS) { VCui.css_(CSS); }
-    const oldShowHelp = Commands[kFgCmd.showHelp], suppress = VKey.SuppressAll_;
+    const oldShowHelp = Commands[kFgCmd.showHelp], suppress = VKey.SetupEventListener_;
     oldShowHelp("e");
     if (!VDom.isHTML_()) { return; }
     if (oldShowHelp !== Commands[kFgCmd.showHelp]) { return; } // an old dialog exits
@@ -1198,15 +1198,14 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     if (Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || !(Build.BTypes & BrowserType.Chrome)
         || browserVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument) {
-      box.addEventListener(
+      suppress(box,
         (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
           : OnOther !== BrowserType.Chrome)
-        ? "click" : "DOMActivate", onActivate, true);
+        ? "click" : "DOMActivate", 0, onActivate);
     }
 
-    const closeBtn = box.querySelector("#HClose") as HTMLElement,
-    optLink = box.querySelector("#OptionsPage") as HTMLAnchorElement,
-    advCmd = box.querySelector("#AdvancedCommands") as HTMLElement,
+    const query = box.querySelector.bind(box), closeBtn = query("#HClose") as HTMLElement,
+    optLink = query("#OptionsPage") as HTMLAnchorElement, advCmd = query("#AdvancedCommands") as HTMLElement,
     hide: (this: void, e?: Event | number | "e") => void = function (event): void {
       if (event instanceof Event) {
         VKey.prevent_(event);
@@ -1424,10 +1423,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VSc.scrollTick_(repeat);
       return repeat;
     }, function (this: VApiTy["OnScrolls_"], wnd, isAdd): void {
-      const f = isAdd ? addEventListener : removeEventListener,
-      listener = this[2];
+      const listener = this[2];
       VSc.scrollTick_(isAdd);
-      f.call(wnd, "keyup", listener, true); f.call(wnd, "blur", listener, true);
+      VKey.SetupEventListener_(wnd, "keyup", !isAdd, listener, true);
+      VKey.SetupEventListener_(wnd, "blur", !isAdd, listener);
     }, function (event): void {
       if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !event.isTrusted : event.isTrusted === false) {

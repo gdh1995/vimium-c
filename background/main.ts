@@ -1112,7 +1112,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         S: null,
         c: kFgCmd.showHelp,
         n: 1,
-        a: null
+        a: cOptions as {}
       });
     },
     /* kBgCmd.enterInsertMode: */ function (): void {
@@ -2320,7 +2320,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
           S: ensureInnerCSS(port2),
           h: args[0].render_(port2.s.u.startsWith(Settings_.CONST_.OptionsPage_)),
           o: Settings_.CONST_.OptionsPage_,
-          a: Settings_.get_("showAdvancedCommands", true)
+          a: request.a || {},
+          c: Settings_.get_("showAdvancedCommands", true)
         });
       }, Build.NDEBUG ? null : function (args): void {
         console.error("Promises for initHelp failed:", args[0], ";", args[1]);

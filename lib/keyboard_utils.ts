@@ -117,9 +117,15 @@ var VKey = {
   prevent_ (this: object, event: Pick<Event, "preventDefault" | "stopImmediatePropagation">): void {
     event.preventDefault(); (this as typeof VKey).Stop_(event);
   },
-  SuppressAll_ (this: void, target: EventTarget, eventType: string, disable?: boolean): void {
-    (disable ? removeEventListener : addEventListener).call(target, eventType, VKey.Stop_,
-      {passive: true, capture: true} as EventListenerOptions | boolean as boolean);
+  /**
+   * @param disable Default to `0`
+   * @param func Default to `VKey.Stop_`
+   * @param params Default to `{passive: true, capture: true}`
+   */
+  SetupEventListener_<T extends EventTarget> (this: void, target: T, eventType: string, disable?: boolean | BOOL
+      , func?: (this: T, e: Event) => void, params?: true): void {
+    (disable ? removeEventListener : addEventListener).call(target, eventType, func || VKey.Stop_,
+        params || {passive: true, capture: true} as EventListenerOptions | boolean as boolean);
   },
   SuppressMost_ (this: object, event: KeyboardEvent): HandlerResult {
     VKey.isEscape_(event) && VKey.removeHandler_(this);
