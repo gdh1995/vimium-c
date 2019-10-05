@@ -3,7 +3,7 @@
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.77.3](https://img.shields.io/badge/release-1.77.3-orange.svg
+[![Version 1.78.0](https://img.shields.io/badge/release-1.78.0-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -60,7 +60,7 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-1.78 (Not released yet):
+1.78.0:
 * its UI uses Simplified Chinese (简体中文) for all `zh-*` language regions
 * the default value of `ignore keyboard layout` option rolls back to `false` again
 * the `passKeys` will only exclude key strokes when the "current key" sequence is empty
@@ -72,6 +72,7 @@ __Other extensions supporting Vimium C:__
 * `LinkHints.activate button="right"`: now simulate `auxclick` events
 * add a command `copyWindowInfo` to copy title and URL info of all tabs
 * Vomnibar and Help Dialog now support an option `exitOnClick`
+* Firefox: when browser data is cleared, Vimium C's local data is erased, too, so auto recover those data in time
 * Chrome: fix broken `importing settings` on v1.77.1
 * `LinkHints.activateModeToCopyLinkUrl`: fix not finding those in shadow DOM trees
 * fix some other small bugs
@@ -225,114 +226,6 @@ __Other extensions supporting Vimium C:__
 * fix some bugs of `passNextKey`
 * fix some rare edge cases on malformed webpages
 
-1.74.9:
-* fix `scrollPx*` commands might scroll too much
-* popup page: add `<a-x>` and `<a-z>` shortcuts to toggle status buttons
-* options page: show normalized exclusion rules after saving and fix some issues
-* Firefox: fix some issues breaking Vomnibar
-
-1.74.8:
-* Vomnibar: make effects of the dark mode button not persistent
-* Options page: normalize exclusions and link hints characters on saving
-
-1.74.7:
-* `goBack`, `goForward`: now works perfectly since Chrome 72
-* add a command `discardTab` to discard tab(s) on the right (or left if count is negative)
-* help dialog show AMO links on Firefox
-
-1.74.6:
-* *BREAKING*: now **use `s-` to represent the `ShiftKey`** is being pressed when constructing keys
-  * e.g. `<a-s-f>`: just like using `a-`, `c-` and `m-` to represent `AltKey`, `CtrlKey` and `MetaKey`
-  * if a key is one of function key, space and arrow keys, should also use `s-` (like `<s-space>` and `<s-f12>`)
-  * an exception is when a key is a punctuation (is a single character and has no lower/UPPER forms)
-    * in this case, use `<a-#>` and `<c-+>` directly
-  * if only one of Alt/Ctrl/Meta is pressed, then ignore the CapsLock (just like what Chrome does),
-    and a key can be translated into `<a-s-f>` only when the ShiftKey is pressed
-* add an **option to stop focusing new tab page** and leave browser's address bar focused
-* full-featured Firefox support (although Firefox has no "contentSettings" support)
-* Exclusions:
-  * passKeys always takes effects, even when a prior key has matched
-  * passKeys supports `<esc>` and `<c-[>`
-  * *BREAKING*: use "`^`" as a prefix of passKeys now means it's a whitelist of hooked keys
-* LinkHints:
-  * can simulate clicking the right mouse button (use an option of `button="right"`)
-  * can simulate touching the middle area of an element (use an option of `touch="auto"/true`)
-  * in hover mode, can toggle class names of given HTML nodes (use `toggle={".selector":"className"}`)
-* Vomnibar: make max number of suggestions and query interval configurable
-* ~~`goBack`, `goForward`: now works perfectly since Chrome 72~~
-* FindMode: focus found node on exit, for easier `<tab>` navigation
-* add a command `performAnotherFind` to find the second or even eariler query in the query history list.
-* `Marks.activate` supports extra 8 temporary marks besides the "last" mark, and uses `2` ~ `9` prefix to specify them.
-* Scroller: a better default value of keyboard settings
-* vimium://show : now auto decrypt "thunder://" URLs
-* fix the broken option "Preferred Vomnibar Page"
-* fix some typos about `<a-c>` and `<a-t>` in recommended key mappings
-* fix the detection of fullscreen status on Chrome >= 71
-
-1.73:
-* now LinkHints can hint items using the `.onclick` handler
-  * work well in websites like https://youpin.mi.com
-* in LinkHints mode, press `<a-f2>` if some hint markers are covered by page content
-* Vomnibar supports keyword/phase blacklist, and matched items are hidden except you type the keyword
-* on Vomnibar, a perfectly matched domain suggestion may get auto selected
-* on Vomnibar, query "`:w`" to search tabs only in current window (or use an option `currentWindow`)
-* if an iframe is embeded dynamically and no exclusion rules found, now apply those rules of the top frame on it
-  * for pages like https://docs.google.com
-* `w` and `e` in visual mode now jump among words much more smartly
-* Vimium C's blank page will also be dark if Vomnibar is in dark mode
-* FindMode supports `<c-j/k>` to go next on a host frame
-* fix broken `togglePinTab`
-* Vomnibar fixes some UI issues including the wrong box shadow on Chrome 73
-* fix issues when syncing settings
-* fix lots of edge cases
-
-1.72:
-* fix that UI may break on some pages since Chrome 70.
-* be able to read the system clipboard since Firefox 63.
-* VisualMode: support cursor movement on `<input type=number>` correctly
-* make usages of command count consistent, for `removeTab`, `removeRightTab`, `reloadTab`, `moveTabToNewWindow` and `togglePinTab`
-* add a dark theme of Vomnibar, and use `gn` to toggle it
-* search engines: support default URLs when a query is empty
-* custom CSS: now can specify styles for FindMode HUD and Vomnibar, and live preview any changes
-* VisualMode: `<f1>` to flash selection area
-* help dialog: support customized key mapping names and descriptions
-
-1.71.3:
-* fix broken code on Vimium C's background process
-* a few bug fixes and improvements of `FindMode` and `VisualMode`
-* Firefox: fix Vomnibar UI and broken `FindMode`
-* `vimium://show` now supports history actions and stores history data safely and secretly
-
-1.71:
-* use Google, instead of Baidu, as the default search engine, for non-Chinese users
-* LinkHints: always match all links under Shadow DOMs
-* LinkHints.activateModeToOpenImage / `vimium://show#image` : try to auto parse higher-res image URLs
-* VisualMode: rewrite all code and make commands cost much less CPU and energy
-* redesign the whole message + build systems: smaller code size
-* fix lots of regressions and edge bugs
-* now can run absolutely safely on all malformed HTML webpages, and avoid potential crashes or dead loops
-* inject Vimium C into other extensions: auto reload content scripts when Vimium C updates to a new version
-
-1.69.2:
-* fix that Vomnibar often shows and disappears on reopening
-* fix that some web pages can not be scrolled without a click
-* fix the functionality of syncing with the cloud which is broken for a long time
-* fix some old bugs of the options page
-
-1.69.0:
-* FindMode: `\w` means to enable whole-word searching
-  * now it ensures search results to match regexp queries, so `\bword\b` will work well
-* fix that Vimium C could not scroll on some pages
-  * some of scrolling failures are because of a bug of Chrome 69, which will be fixed on Chrome 70
-* LinkHints: fix that the drawer menu hides unexpectedly on google docs
-* fix that `visitPreviousTab` breaks if some new tabs are not visited yet
-* LinkHints: add `focus` mode and `hideHUD` switch
-* limit command count: must between `-9999` and `9999`
-* fix that it might break some pages in case Vimium C got disabled suddenly
-* fix many edge cases
-
-1.68.2:
-* rename this project into "Vimium C"
 
 ### Known Issues
 
