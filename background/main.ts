@@ -1946,8 +1946,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         cPort = port;
         return Backend_.complain_(trans_("notModify", [k]));
       }
-      const key = allowed[k];
-      Settings_.set_(key, request.v);
+      const key = allowed[k], p = Settings_.restore_ && Settings_.restore_();
+      p ? p.then(() => { Settings_.set_(key, request.v); }) : Settings_.set_(key, request.v);
       interface BaseCheck { key: 123; }
       type Map1<T> = T extends keyof SettingsNS.FrontendSettingNameMap ? T : 123;
       interface Check extends BaseCheck { key: Map1<keyof SettingsNS.FrontUpdateAllowedSettings>; }

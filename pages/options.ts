@@ -406,7 +406,7 @@ interface SaveBtn extends HTMLButtonElement {
 interface AdvancedOptBtn extends HTMLButtonElement {
   onclick (_0: MouseEvent | null, init?: "hash" | true): void;
 }
-(function () {
+let optionsInit1_ = function (): void {
   const saveBtn = $<SaveBtn>("#saveOptions"), exportBtn = $<HTMLButtonElement>("#exportButton");
   let status = false;
 
@@ -842,9 +842,13 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       node2.focus();
     }, Option_.all_.ignoreKeyboardLayout.element_.nextElementSibling as SafeHTMLElement);
   };
-})();
+},
+optionsInitAll_ = function (): void {
 
-Option_.all_.newTabUrl.checker_ = {
+optionsInit1_();
+
+const newTabUrlOption = Option_.all_.newTabUrl;
+newTabUrlOption.checker_ = {
   check_ (value: string): string {
     let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
         ? chrome.runtime.getURL(value) : BG_.BgUtils_.convertToUrl_(value.toLowerCase());
@@ -863,7 +867,7 @@ Option_.all_.newTabUrl.checker_ = {
       ) ? bgSettings_.defaults_.newTabUrl : value;
   }
 };
-Option_.all_.newTabUrl.checker_.check_(Option_.all_.newTabUrl.previous_);
+newTabUrlOption.checker_.check_(newTabUrlOption.previous_);
 
 Option_.all_.userDefinedCss.onSave_ = function () {
   if (!window.VDom || !VDom.cache_) { return; }
@@ -893,6 +897,10 @@ Option_.all_.autoDarkMode.onSave_ = function (): void {
 };
 Option_.all_.autoReduceMotion.onSave_ = function (): void {
   (document.documentElement as HTMLHtmlElement).classList.toggle("less-motion", this.previous_);
+};
+
+optionsInit1_ = optionsInitAll_ = null as never;
+(window.onhashchange as () => void)();
 };
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
@@ -1078,6 +1086,12 @@ window.onhashchange = function (this: void): void {
     });
   }
 };
+
+bgSettings_.restore_ && bgSettings_.restore_() ? (
+  Build.NDEBUG || console.log("Now restore settings before page loading"),
+  (bgSettings_.restore_() as NonNullable<ReturnType<typeof bgSettings_.restore_>>).then(optionsInitAll_)
+) : optionsInitAll_();
+
 window.onhashchange(null as never);
 
 // below is for programmer debugging

@@ -518,6 +518,7 @@ v.m|v\\:math: vimium://math\\ $S re= Calculate
     regexFindMode: "R", smoothScroll: "S", scrollStepSize: "t"
   } as SettingsNS.FrontendSettingNameMap & SafeObject,
   sync_: BgUtils_.blank_ as SettingsNS.Sync["set"],
+  restore_: null as (() => Promise<void> | null) | null,
   CONST_: {
     AllowClipboardRead_: true,
     BaseCSSLength_: 0,

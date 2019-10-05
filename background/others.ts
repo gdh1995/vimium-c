@@ -5,12 +5,6 @@ declare const enum OmniboxData {
   PreservedTitle = 16,
 }
 
-// Note: if localStorage is cleaned
-//       (considering: newTabUrl (the alerting one), newTabUrl_f, vomnibarPage_f, innerCSS, findCSS, omniCSS),
-//       try to get vimSync from storage.sync
-declare const enum SyncConsts {
-  LocalItemCountWhenInstalled = 6,
-}
 BgUtils_.timeout_(1000, function (): void {
   type SettingsToSync = SettingsNS.PersistentSettings;
   type SettingsToUpdate = {
@@ -31,6 +25,8 @@ BgUtils_.timeout_(1000, function (): void {
   let to_update: SettingsToUpdate | null = null, keyInDownloading: keyof SettingsWithDefaults | "" = "",
   changes_to_merge: { [key: string]: chrome.storage.StorageChange } | null = null,
   textDecoder: TextDecoder | null = null,
+  restoringPromise: Promise<void> | null = null,
+  cachedSync = Settings_.get_("vimSync"),
   doNotSync: PartialTypedSafeEnum<SettingsToSync> = BgUtils_.safer_({
     // Note(gdh1995): need to keep synced with pages/options_ext.ts#_importSettings
     findModeRawQueryList: 1 as 1, innerCSS: 1 as 1, keyboard: 1 as 1, newTabUrl_f: 1 as 1
@@ -39,6 +35,13 @@ BgUtils_.timeout_(1000, function (): void {
   function HandleStorageUpdate(changes: { [key: string]: chrome.storage.StorageChange }, area: string): void {
     if (area !== "sync") { return; }
     BgUtils_.safer_(changes);
+    const needToRestoreFirst = Settings_.restore_ && Settings_.restore_();
+    if (needToRestoreFirst) {
+      changes_to_merge && BgUtils_.extendIf_(changes, changes_to_merge);
+      changes_to_merge = changes;
+      needToRestoreFirst.then(_ => HandleStorageUpdate({}, area));
+      return;
+    }
     if (changes_to_merge) {
       BgUtils_.extendIf_(changes, changes_to_merge);
       changes_to_merge = null;
@@ -90,7 +93,8 @@ BgUtils_.timeout_(1000, function (): void {
       }
       return;
     }
-    let curVal = Settings_.get_(key), curJSON: string | boolean | number, jsonVal: string | boolean | number
+    let curVal = restoringPromise === null ? Settings_.get_(key) : defaultVal
+      , curJSON: string | boolean | number, jsonVal: string | boolean | number
       , notJSON: boolean;
     if (notJSON = typeof defaultVal !== "object") {
       jsonVal = value as string | boolean | number;
@@ -104,6 +108,7 @@ BgUtils_.timeout_(1000, function (): void {
     if (jsonVal === curVal) {
       value = defaultVal;
     }
+    restoringPromise === null &&
     console.log(now(), "sync.this: update", key,
       typeof value === "string"
       ? (value.length > 32 ? value.slice(0, 30) + "..." : value).replace(<RegExpG> /\n/g, "\\n")
@@ -351,8 +356,8 @@ BgUtils_.timeout_(1000, function (): void {
   }
   function saveAllToLocal(timeout: number): void {
     Settings_.temp_.backupSettingsToLocal_ = null;
-    BgUtils_.timeout_(timeout, () => { chrome.storage.local.get(null, (items): void => {
-      if (Settings_.get_("vimSync")) { return; }
+    BgUtils_.timeout_(timeout, () => { chrome.storage.local.get((items): void => {
+      if (Settings_.get_("vimSync") || !localStorage.length) { return; }
       console.log(now(), "storage.local: backup all settings from localStorage");
       BgUtils_.safer_(items);
       for (let i = 0, end = localStorage.length; i < end; i++) {
@@ -372,6 +377,7 @@ BgUtils_.timeout_(1000, function (): void {
     }); });
   }
   Settings_.updateHooks_.vimSync = function (value): void {
+    cachedSync = value;
     if (!storage()) { return; }
     const event = chrome.storage.onChanged;
     if (!value) {
@@ -387,22 +393,18 @@ BgUtils_.timeout_(1000, function (): void {
       chrome.storage.local.clear();
     }
   };
-  const sync1 = Settings_.get_("vimSync");
-  if (cachedSync === false || !cachedSync && !Settings_.temp_.hasEmptyLocalStorage_) {
-    let doBackup = Settings_.temp_.backupSettingsToLocal_;
-    Settings_.temp_.backupSettingsToLocal_ = doBackup ? null : saveAllToLocal;
-    doBackup && saveAllToLocal(6000);
-    Settings_.sync_ = SetLocal;
-    return;
-  }
-  if (!storage()) { BgUtils_.GC_(); return; }
-  storage().get(null, function (items): void {
-    const err = BgUtils_.runtimeError_();
-    Settings_.temp_.hasEmptyLocalStorage_ && !err && chrome.storage.local.get(null, (items2): void => {
+  function beginToRestore(items: Dict<any>, kSources: 1 | 2 | 3, resolve: (this: void) => void): void {
+    kSources & 2 && chrome.storage.local.get((items2): void => {
+      const err = BgUtils_.runtimeError_();
+      if (err) {
+        Settings_.restore_ = null;
+        (kSources -= 2) || resolve();
+        return err;
+      }
       BgUtils_.safer_(items2);
-      let vimSync2 = items2.vimSync;
+      let vimSync2 = items2.vimSync, nowDoRestore = vimSync2 !== undefined || Object.keys(items2).length > 0;
       delete items2.vimSync;
-      if (vimSync2 !== undefined || Object.keys(items2).length > 0) {
+      if (nowDoRestore) {
         console.log(now(), "storage.local: restore settings to localStorage");
       }
       for (let key in items2) {
@@ -415,22 +417,19 @@ BgUtils_.timeout_(1000, function (): void {
       if (vimSync2 != null) {
         Settings_.set_("vimSync", vimSync2);
       }
-      setTimeout(() => {
+      BgUtils_.timeout_(100, () => {
         Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: Settings_.payload_ });
         BgUtils_.GC_();
-      }, 100);
+      });
+      (kSources -= 2) || resolve();
     });
-    if (err) {
-      BgUtils_.GC_();
-      console.log(now(), "Error: failed to get storage:", err
-        , "\n\tSo disable syncing temporarily.");
-      Settings_.updateHooks_.vimSync = Settings_.sync_ = BgUtils_.blank_;
-      return err;
-    }
+    if (kSources === 2) { return; }
     BgUtils_.safer_(items);
     const vimSync = items.vimSync || Settings_.get_("vimSync");
     if (!vimSync) {
+      cachedSync = vimSync;
       Settings_.sync_ = SetLocal;
+      --kSources || resolve();
       return; // no settings have been modified
     } else if (!items.vimSync) {
       // cloud may be empty, but the local computer wants to sync, so enable it
@@ -456,6 +455,44 @@ BgUtils_.timeout_(1000, function (): void {
       }
     }
     Settings_.postUpdate_("vimSync");
+    BgUtils_.timeout_(4, () => { --kSources || resolve(); });
+    console.log(now(), "sync.cloud: download settings to localStorage");
+  }
+  Settings_.restore_ = () => {
+    if (restoringPromise) { /* empty */ }
+    else if (!localStorage.length) {
+      restoringPromise = Promise.all([BgUtils_.require_("Commands"), BgUtils_.require_("Exclusions")]).then(_ => {
+        return new Promise<void>(resolve => {
+          cachedSync ? storage().get(items => {
+            const err = BgUtils_.runtimeError_();
+            err ? (Settings_.restore_ = null, resolve()) : beginToRestore(items, 1, resolve);
+            return err;
+          }) : beginToRestore({}, 2, resolve);
+        }).then(_ => { restoringPromise = null; });
+      });
+    } else {
+      return null;
+    }
+    return restoringPromise;
+  };
+  if (cachedSync === false || !cachedSync && !Settings_.temp_.hasEmptyLocalStorage_) {
+    let doBackup = Settings_.temp_.backupSettingsToLocal_;
+    Settings_.temp_.backupSettingsToLocal_ = doBackup ? null : saveAllToLocal;
+    doBackup && saveAllToLocal(6000);
+    Settings_.sync_ = SetLocal;
+    return;
+  }
+  if (!storage()) {  Settings_.restore_ = null; BgUtils_.GC_(); return; }
+  storage().get(items => {
+    const err = BgUtils_.runtimeError_();
+    if (err) {
+      BgUtils_.GC_();
+      console.log(now(), "Error: failed to get storage:", err, "\n\tSo disable syncing temporarily.");
+      Settings_.updateHooks_.vimSync = Settings_.sync_ = BgUtils_.blank_;
+      Settings_.restore_ = null;
+      return err;
+    }
+    restoringPromise = new Promise(r => beginToRestore(items, 3, r)).then<void>(_ => { restoringPromise = null; });
   });
 });
 

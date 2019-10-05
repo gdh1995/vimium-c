@@ -446,7 +446,7 @@ ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|
 ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
 location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
-BG_.BgUtils_.require_("Exclusions").then((function (callback) {
+Promise.all([BG_.BgUtils_.require_("Exclusions"), bgSettings_.restore_ && bgSettings_.restore_()]).then((callback => {
   return function () {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
