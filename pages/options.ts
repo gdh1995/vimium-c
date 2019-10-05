@@ -865,6 +865,36 @@ Option_.all_.newTabUrl.checker_ = {
 };
 Option_.all_.newTabUrl.checker_.check_(Option_.all_.newTabUrl.previous_);
 
+Option_.all_.userDefinedCss.onSave_ = function () {
+  if (!window.VDom || !VDom.cache_) { return; }
+  const root = VCui.root_;
+  let styledebugged = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
+  if (!styledebugged) { return; }
+  setTimeout(function () {
+    (styledebugged as HTMLStyleElement).remove();
+    const iframes = VCui.root_.querySelectorAll("iframe");
+    for (let i = 0, end = iframes.length; i < end; i++) {
+      const frame = iframes[i], isFind = frame.classList.contains("HUD"),
+      doc = frame.contentDocument as HTMLDocument,
+      style = doc.querySelector("style.debugged") as HTMLStyleElement | null;
+      if (!style) { /* empty */ }
+      else if (isFind) {
+        style.remove();
+      } else {
+        style.classList.remove("debugged");
+      }
+    }
+    Option_.all_.userDefinedCss.element_.classList.remove("debugging");
+  }, 500);
+};
+
+Option_.all_.autoDarkMode.onSave_ = function (): void {
+  (document.documentElement as HTMLHtmlElement).classList.toggle("auto-dark", this.previous_);
+};
+Option_.all_.autoReduceMotion.onSave_ = function (): void {
+  (document.documentElement as HTMLHtmlElement).classList.toggle("less-motion", this.previous_);
+};
+
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   if (!window.VDom || !VDom.cache_) { return; }
   const root = VCui.root_ as VUIRoot | null, self = Option_.all_.userDefinedCss;
@@ -941,35 +971,6 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   }
 }, 1800, $("#userDefinedCss") as HTMLTextAreaElement, 0));
 
-Option_.all_.userDefinedCss.onSave_ = function () {
-  if (!window.VDom || !VDom.cache_) { return; }
-  const root = VCui.root_;
-  let styledebugged = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
-  if (!styledebugged) { return; }
-  setTimeout(function () {
-    (styledebugged as HTMLStyleElement).remove();
-    const iframes = VCui.root_.querySelectorAll("iframe");
-    for (let i = 0, end = iframes.length; i < end; i++) {
-      const frame = iframes[i], isFind = frame.classList.contains("HUD"),
-      doc = frame.contentDocument as HTMLDocument,
-      style = doc.querySelector("style.debugged") as HTMLStyleElement | null;
-      if (!style) { /* empty */ }
-      else if (isFind) {
-        style.remove();
-      } else {
-        style.classList.remove("debugged");
-      }
-    }
-    Option_.all_.userDefinedCss.element_.classList.remove("debugging");
-  }, 500);
-};
-
-Option_.all_.autoDarkMode.onSave_ = function (): void {
-  (document.documentElement as HTMLHtmlElement).classList.toggle("auto-dark", this.previous_);
-};
-Option_.all_.autoReduceMotion.onSave_ = function (): void {
-  (document.documentElement as HTMLHtmlElement).classList.toggle("less-motion", this.previous_);
-};
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
     && bgBrowserVer_ < BrowserVer.Min$Option$HasReliableFontSize) {

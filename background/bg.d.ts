@@ -379,6 +379,7 @@ declare namespace SettingsNS {
   interface FullCache extends SafeObject, PartialOrEnsured<FullSettings
       , "innerCSS" | "newTabUrl_f" | "searchEngineMap" | "searchEngineRules" | "vomnibarPage_f"
         | "vomnibarOptions" | "focusNewTabContent"
+        | "hideHud" | "previousPatterns" | "nextPatterns"
       > {
     findCSS_: FindCSS; // should not in Settings_.defaults
   }
@@ -413,7 +414,6 @@ declare namespace BackendHandlersNS {
     setOmniStyle_ (this: void, request: FgReq[kFgReq.setOmniStyle], port?: Port): void;
     reopenTab_ (tab: chrome.tabs.Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2): void;
     setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
-    IconBuffer_: IconNS.AccessIconBuffer | null,
     removeSug_ (this: void, req: FgReq[kFgReq.removeSug], port?: Port): void;
     complain_ (this: BackendHandlers, message: string): void;
     showHUD_ (message: string, isCopy?: boolean | undefined): void;

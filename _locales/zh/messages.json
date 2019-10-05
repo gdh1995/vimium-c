@@ -629,7 +629,7 @@
 		"message": "使用扩展程序图标反映 Vimium C 在当前页面的工作状态。禁用此设置可以小幅度减少资源消耗。"
 	},
 	"o65": {
-		"message": "借助浏览器账号同步功能来同步 Vimium C 设置"
+		"message": "借助浏览器账号云服务来同步 Vimium C 设置"
 	},
 	"o66": {
 		"message": "修改后建议立即重启浏览器或重新加载此扩展。"
@@ -1007,7 +1007,7 @@
 		"message": "未知"
 	},
 	"keepSyncing": {
-		"message": "是否继续 借助浏览器账号同步功能 来同步 Vimium C 设置？"
+		"message": "是否继续 借助浏览器账号云服务 来同步 Vimium C 设置？"
 	},
 	"notJSON": {
 		"message": "未找到 JSON 格式的数据！"

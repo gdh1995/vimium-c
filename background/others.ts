@@ -388,10 +388,7 @@ BgUtils_.timeout_(1000, function (): void {
     }
   };
   const sync1 = Settings_.get_("vimSync");
-  if (sync1 === false || (!sync1 && !Settings_.temp_.hasEmptyLocalStorage_
-                          && (localStorage.length > SyncConsts.LocalItemCountWhenInstalled
-                              || Build.MayOverrideNewTab
-                                  && Settings_.get_("newTabUrl") !== Settings_.CONST_.NewTabForNewUser_))) {
+  if (cachedSync === false || !cachedSync && !Settings_.temp_.hasEmptyLocalStorage_) {
     let doBackup = Settings_.temp_.backupSettingsToLocal_;
     Settings_.temp_.backupSettingsToLocal_ = doBackup ? null : saveAllToLocal;
     doBackup && saveAllToLocal(6000);
@@ -514,7 +511,7 @@ BgUtils_.timeout_(150, function (): void {
       img.src = path[i as IconNS.ValidSizes];
     }
   }
-  Backend_.IconBuffer_ = function (this: void, enabled?: boolean): object | null | void {
+  Settings_.temp_.IconBuffer_ = function (this: void, enabled?: boolean): object | null | void {
     if (enabled === undefined) { return imageData; }
     if (!enabled) {
       imageData && setTimeout(function () {
@@ -557,7 +554,7 @@ BgUtils_.timeout_(150, function (): void {
   };
   Settings_.updateHooks_.showActionIcon = function (value): void {
     func(value);
-    (Backend_.IconBuffer_ as IconNS.AccessIconBuffer)(value);
+    (Settings_.temp_.IconBuffer_ as IconNS.AccessIconBuffer)(value);
     let title = "Vimium C";
     value || (title += "\n\nAs configured, here's no active state.");
     chrome.browserAction.setTitle({ title });

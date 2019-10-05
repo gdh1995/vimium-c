@@ -1,7 +1,7 @@
 /// <reference path="../types/base/index.d.ts" />
 /// <reference path="../types/lib/index.d.ts" />
 /// <reference path="../types/build/index.d.ts" />
-interface LocalStorageEx extends Storage, MappedType<SettingsNS.BaseBackendSettings, string> {
+interface LocalStorageEx extends Storage, MappedType<SettingsNS.BaseBackendSettings, string | undefined> {
 }
 let storage_ = localStorage as LocalStorageEx,
 focusContent_ = !!Build.MayOverrideNewTab && storage_.focusNewTabContent !== "false",

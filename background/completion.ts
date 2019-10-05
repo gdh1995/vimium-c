@@ -1521,7 +1521,7 @@ knownCs: CompletersMap & SafeObject = {
           isStr || ((url as DecodedItem).text_ = text);
           continue;
         }
-        if (!xhr && !(xhr = Decoder.init_())) {
+        if (!xhr && !(xhr = Decoder.xhr_())) {
           Decoder._jobs.length = 0;
           Decoder._ind = -1;
           return;
@@ -1549,22 +1549,22 @@ knownCs: CompletersMap & SafeObject = {
     },
     enabled_: true,
     _dataUrl: "1",
-    xhr_ (): XMLHttpRequest | null {
-      if (!this._dataUrl) { return null; }
+    xhr_ (this: void): XMLHttpRequest | null {
+      if (!Decoder._dataUrl) { return null; }
       const xhr = new XMLHttpRequest();
       xhr.responseType = "text";
-      xhr.onload = this.OnXHR_;
-      xhr.onerror = this.OnXHR_;
+      xhr.onload = Decoder.OnXHR_;
+      xhr.onerror = Decoder.OnXHR_;
       return xhr;
     },
     onUpdate_ (this: void, charset: string): void {
       const enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false,
       newDataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "",
-      isSame = newDataUrl === Decoder._dataUrl;
-      if (isSame) { return; }
+      oldUrl = Decoder._dataUrl;
+      if (newDataUrl === oldUrl) { return; }
       Decoder._dataUrl = newDataUrl;
       if (enabled) {
-        Decoder.init_ === Decoder.xhr_ && /* inited */
+        oldUrl !== "1" && /* inited */
         setTimeout(function (): void {
           if (HistoryCache.history_) {
             Decoder.decodeList_(HistoryCache.history_);
@@ -1579,12 +1579,6 @@ knownCs: CompletersMap & SafeObject = {
       Decoder._jobs = enabled ? [] as ItemToDecode[] : { length: 0, push: BgUtils_.blank_ } as any;
       Decoder.enabled_ = enabled;
       Decoder._ind = -1;
-    },
-    init_ (): XMLHttpRequest | null {
-      Settings_.updateHooks_.localeEncoding = Decoder.onUpdate_;
-      Decoder.onUpdate_(Settings_.get_("localeEncoding"));
-      Decoder.init_ = Decoder.xhr_;
-      return Decoder.xhr_();
     }
   };
 
@@ -1656,7 +1650,9 @@ Completion_ = {
 };
 
 Settings_.updateHooks_.phraseBlacklist = BlacklistFilter.OnUpdate_;
+Settings_.updateHooks_.localeEncoding = Decoder.onUpdate_;
 Settings_.postUpdate_("phraseBlacklist");
+Settings_.postUpdate_("localeEncoding");
 
 BgUtils_.timeout_(80, function () {
   Settings_.postUpdate_("searchEngines", null);

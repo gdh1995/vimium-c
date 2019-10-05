@@ -3,11 +3,12 @@ import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 var Settings_ = {
   cache_: BgUtils_.safeObj_() as Readonly<SettingsNS.FullCache>,
   temp_: {
-    hasEmptyLocalStorage_: false,
+    hasEmptyLocalStorage_: localStorage.length <= 0,
     backupSettingsToLocal_: null as null | ((wait: number) => void) | true,
     onInstall_: null as Parameters<chrome.runtime.RuntimeInstalledEvent["addListener"]>[0] | null,
     cmdErrors_: 0,
     newSettingsToBroadcast_: null as BgReq[kBgReq.settingsUpdate]["d"] | null,
+    IconBuffer_: null as IconNS.AccessIconBuffer | null,
     shownHash_: null as ((this: void) => string) | null
   },
   payload_: (Build.BTypes & BrowserType.Chrome ? {
@@ -678,8 +679,8 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
     (payload_ as Generalized<typeof payload_>)[key] = settings.get_(_i as keyof SettingsNS.FrontendSettingNameMap);
   }
 
-  if (settings.temp_.hasEmptyLocalStorage_ = localStorage.length <= 0) {
-    if (Build.MayOverrideNewTab) {
+  if (Build.MayOverrideNewTab) {
+    if (settings.temp_.hasEmptyLocalStorage_) {
       settings.set_("newTabUrl", obj.NewTabForNewUser_);
     }
   }

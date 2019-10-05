@@ -1,5 +1,5 @@
 if (Settings_.get_("vimSync") || Settings_.temp_.hasEmptyLocalStorage_
-    || ((localStorage.getItem("exclusionRules") !== "[]" || !Backend_.onInit_)
+    || ((!Backend_.onInit_ || localStorage.getItem("exclusionRules") !== "[]")
         && !Settings_.updateHooks_.exclusionRules)) {
 var Exclusions = {
   testers_: null as never as SafeDict<ExclusionsNS.Tester>,
@@ -114,7 +114,7 @@ var Exclusions = {
       return;
     }
     const ref = Backend_.indexPorts_(),
-    needIcon = !!(Backend_.IconBuffer_ && (Backend_.IconBuffer_() || Settings_.get_("showActionIcon")));
+    needIcon = !!(Settings_.temp_.IconBuffer_ && (Settings_.temp_.IconBuffer_() || Settings_.get_("showActionIcon")));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (const tabId in ref) {
       const frames = ref[+tabId] as Frames.Frames, status0 = frames[0].s.s;

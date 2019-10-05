@@ -1051,7 +1051,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         }
       } else {
         typeof patterns === "string" || (patterns = "");
-        patterns = (patterns as string) || Settings_.get_(rel !== "next" ? "previousPatterns" : "nextPatterns", true);
+        patterns = (patterns as string)
+            || (rel !== "next" ? Settings_.cache_.previousPatterns : Settings_.cache_.nextPatterns);
         patterns = patterns.trim().toLowerCase().split(",");
         for (let i of patterns) {
           i = i.trim();
@@ -1115,11 +1116,10 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       });
     },
     /* kBgCmd.enterInsertMode: */ function (): void {
-      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0;
-      code = stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
-      let
+      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0,
       hud = cOptions.hideHUD != null ? !cOptions.hideHUD : cOptions.hideHud != null ? !cOptions.hideHud
-        : !Settings_.get_("hideHud", true);
+          : !Settings_.cache_.hideHud;
+      code = stat !== KeyStat.plain ? code || kKeyCode.esc : code === kKeyCode.esc ? 0 : code;
       cPort.postMessage<1, kFgCmd.insertMode>({ N: kBgReq.execute,
         S: hud ? ensureInnerCSS(cPort) : null,
         c: kFgCmd.insertMode,
@@ -2734,7 +2734,6 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     focus_: requestHandlers[kFgReq.focusOrLaunch],
     setOmniStyle_: requestHandlers[kFgReq.setOmniStyle],
     getExcluded_: BgUtils_.getNull_,
-    IconBuffer_: null,
     removeSug_ (this: void, { t: type, u: url }: FgReq[kFgReq.removeSug], port?: Port | null): void {
       const name = type === "tab" ? type : type + " item";
       cPort = findCPort(port) as Port;
@@ -2928,6 +2927,9 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       // the line below requires all necessary have inited when calling this
       Backend_.onInit_ = null;
       Settings_.postUpdate_("vomnibarOptions");
+      Settings_.get_("hideHud", true);
+      Settings_.get_("nextPatterns", true);
+      Settings_.get_("previousPatterns", true);
       chrome.runtime.onConnect.addListener(function (port): void {
         return OnConnect(port as Frames.Port,
             (port.name.slice(PortNameEnum.PrefixLen) as string | number as number) | 0);

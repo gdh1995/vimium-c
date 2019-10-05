@@ -179,7 +179,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     Object.setPrototypeOf(new_data, null);
   }
   if (new_data.vimSync == null) {
-    const now = bgSettings_.get_("vimSync"), keep = now && confirm(pTrans_("keeySyncing"));
+    const now = bgSettings_.get_("vimSync"), keep = now && confirm(pTrans_("keepSyncing"));
     new_data.vimSync = keep || null;
     if (now) {
       console.log("Before importing: You chose to", keep ? "keep settings synced." : "stop syncing settings.");
