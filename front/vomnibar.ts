@@ -633,9 +633,9 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.onEnter_(event, [].indexOf.call(a.list_.children, el));
   },
   OnMenu_ (this: void, event: Event): void {
-    let el = event.target as SafeHTMLElement | null, item: Element | null, Anchor = HTMLAnchorElement;
-    while (el && !(el instanceof Anchor)) { el = el.parentElement as SafeHTMLElement | null; }
-    if (!el || el.href) { return; }
+    let el = event.target as SafeHTMLElement, item: Element | null, Anchor = HTMLAnchorElement;
+    if (!(el instanceof Anchor)) { el = el.parentElement as SafeHTMLElement; }
+    if (!(el instanceof Anchor) || el.href) { return; }
     for (item = el; item && item.parentElement !== Vomnibar_.list_;
           item = item.parentElement as SafeHTMLElement | null) {
       /* empty */
@@ -891,7 +891,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     listen = addEventListener,
     input = a.input_ = document.getElementById("input") as typeof Vomnibar_.input_;
     a.barCls_ = (input.parentElement as HTMLElement).classList;
-    list.oncontextmenu = a.OnMenu_;
+    list.onmouseover = list.oncontextmenu = a.OnMenu_;
     (document.getElementById("close") as HTMLElement).onclick = function (): void { return Vomnibar_.hide_(); };
 
     listen("keydown", a.HandleKeydown_, true);
