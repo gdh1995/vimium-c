@@ -8,7 +8,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinES6$ForOf
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
 }
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$visualViewport$) {
+if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsured$visualViewport$) {
   interface VisualViewport { width: number; height: number; offsetLeft: number; offsetTop: number;
       pageLeft: number; pageTop: number; scale: number; }
   var visualViewport: VisualViewport | undefined;
