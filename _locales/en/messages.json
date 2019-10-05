@@ -690,7 +690,7 @@
 		"message": "before"
 	},
 	"keepSyncing": {
-		"message": "Do you want to keep settings synchronized with your current browser account?"
+		"message": "Do you want to keep settings synchronized with your current browser account?\n\nPress \"Cancel\" to stop it."
 	},
 	"notJSON": {
 		"message": "No JSON data found!"

@@ -39,6 +39,7 @@
 		"map <a-s-r> reopenTab",
 		"map f LinkHints.activateMode",
 		"map Fq LinkHints.activateModeWithQueue",
+		"map Fr LinkHints.activateMode button=\"right\"",
 		"map Fa LinkHints.activateModeToCopyLinkUrl",
 		"map Ft LinkHints.activateModeToCopyLinkText",
 		"map Fs LinkHints.activateModeToSearchLinkText",
@@ -157,7 +158,6 @@
 		""
 	],
 	"linkHintCharacters": "asdqwerzxcv",
-	"newTabUrl": "about:newtab",
 	"searchEngines": [
 		"b|吧|把|ba|bd|baidu|Baidu|百度: https://www.baidu.com/s?ie=utf-8&wd=$s blank=https://www.baidu.com",
 		"bi: https://cn.bing.com/search?q=$s",
