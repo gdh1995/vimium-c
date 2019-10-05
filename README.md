@@ -71,6 +71,7 @@ __Other extensions supporting Vimium C:__
 * `LinkHints`: better support for pinch zooming on laptops
 * `LinkHints.activate button="right"`: now simulate `auxclick` events
 * add a command `copyWindowInfo` to copy title and URL info of all tabs
+* Vomnibar and Help Dialog now support an option `exitOnClick`
 * Chrome: fix broken `importing settings` on v1.77.1
 * `LinkHints.activateModeToCopyLinkUrl`: fix not finding those in shadow DOM trees
 * fix some other small bugs

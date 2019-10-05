@@ -229,14 +229,15 @@ var VCui = {
     }
     return notTrim ? s : s.trim();
   },
-  removeSelection_: function (root?: VUIRoot & {getSelection?: ShadowRootWithSelection["getSelection"]}): boolean {
+  removeSelection_: function (root?: VUIRoot & {getSelection?: ShadowRootWithSelection["getSelection"]}
+      , justTest?: 1): boolean {
     const sel = (root && root.getSelection ? root as ShadowRootWithSelection : window).getSelection();
     if (!sel || sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }
-    sel.collapseToStart();
+    justTest || sel.collapseToStart();
     return true;
-  } as (root?: VUIRoot) => boolean,
+  } as (root?: VUIRoot, justTest?: 1) => boolean,
   click_ (element: Element
       , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
       , button?: 0 | 2, touchMode?: /** default: auto */ null | boolean | /** false */ 0): void {
@@ -387,6 +388,31 @@ var VCui = {
   } as {
     (el: null, rect: Rect, lifeTime?: number, classNames?: string): void;
     (el: Element): void;
+  },
+  _toExit: [0, 0] as Array<((this: void) => void) | 0>,
+  /** key: 0 := vomnibar; 1 := help dialog */
+  setupExitOnClick_ (key: number, callback: ((this: void) => void) | 0): void {
+    const arr = this._toExit, diff = arr[key] !== callback;
+    arr[key] = callback;
+    diff && VKey.SetupEventListener_(window, "click", !(arr[0] || arr[1]), this.DoExitOnClick_);
+  },
+  DoExitOnClick_ (event?: Event): void {
+    if (event
+        && (!(VCui.box_ as NonNullable<typeof VCui.box_>).parentNode
+            || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+                ? event.isTrusted : event.isTrusted !== false)
+            && (((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+              && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+              && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
+              ? event.target === VCui.box_
+              : !(event.target instanceof Element) || VCui.root_.contains(event.target))
+            || VCui.removeSelection_(VCui.root_, 1)
+        )) {
+      return;
+    }
+    for (const i of VCui._toExit) { i && i(); }
+    VCui._toExit[1] = 0;
+    VCui.setupExitOnClick_(0, 0);
   }
 };
 type DomUIEx = typeof VCui & { flashTime: number | undefined; };

@@ -1102,7 +1102,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     },
     /* kBgCmd.showHelp: */ function (this: void): void {
       if (cPort.s.i === 0 && !(cPort.s.f & Frames.Flags.hadHelpDialog)) {
-        return requestHandlers[kFgReq.initHelp]({}, cPort);
+        return requestHandlers[kFgReq.initHelp]({ a: cOptions as {} }, cPort);
       }
       if (!window.HelpDialog) {
         BgUtils_.require_("HelpDialog");

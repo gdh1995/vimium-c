@@ -103,6 +103,7 @@ var VOmni = {
       a.focus_();
       a.status_ = VomnibarNS.Status.ToShow;
     }
+    VCui.setupExitOnClick_(0, options.exitOnClick ? a.hide_ : 0);
     let upper = 0;
     if (url != null) {
       url = options.url = url || options.T as string;
@@ -131,12 +132,13 @@ var VOmni = {
   setOptions_ (options: VomnibarNS.FgOptionsToFront): void {
     this.status_ > VomnibarNS.Status.Initing ? this.port_.postMessage(options) : (this.options_ = options);
   },
-  hide_ (fromInner?: 1): void {
-    const a = this, active = a.status_ > VomnibarNS.Status.Inactive,
+  hide_ (this: void, fromInner?: 1): void {
+    const a = VOmni, active = a.status_ > VomnibarNS.Status.Inactive,
     style = Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval
         && Build.BTypes & BrowserType.Chrome ? a.box_.style : 0 as never;
     a.status_ = VomnibarNS.Status.Inactive;
     a.screenHeight_ = a.docZoom_ = 0;
+    VCui.setupExitOnClick_(0, 0);
     if (fromInner == null) {
       active && a.port_.postMessage(VomnibarNS.kCReq.hide);
       return;

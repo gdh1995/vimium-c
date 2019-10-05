@@ -1217,6 +1217,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VKey.removeHandler_(box);
       box.remove();
       Commands[kFgCmd.showHelp] = oldShowHelp;
+      VCui.setupExitOnClick_(1, 0);
     };
     closeBtn.onclick = Commands[kFgCmd.showHelp] = hide;
     if (! location.href.startsWith(optionUrl)) {
@@ -1246,6 +1247,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     shouldShowAdvanced && toggleAdvanced();
     VCui.ensureBorder_();
     VCui.add_(box, AdjustType.Normal, true);
+    options.exitOnClick && VCui.setupExitOnClick_(1, hide);
     document.hasFocus() || events.focusAndRun_();
     // on FF66, `scrollIntoView` does not set tab-navigation node
     // tslint:disable-next-line: no-unused-expression
@@ -1281,6 +1283,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     Commands[kFgCmd.reset]();
     events.execute_ && events.execute_(kContentCmd.Destroy);
     ui.box_ && ui.adjust_(2);
+    ui.DoExitOnClick_();
 
     VDom = VKey = VCui = VHints = VSc = VOmni = VFind = VVisual = VMarks =
     VHud = VApi = esc = null as never;

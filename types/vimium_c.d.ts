@@ -346,6 +346,7 @@ declare namespace VomnibarNS {
     newtab: boolean;
     keyword: string;
     url?: true | string | null;
+    exitOnClick?: boolean;
     tree?: boolean; // show tabs in tree mode
   }
 }
