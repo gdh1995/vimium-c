@@ -36,7 +36,7 @@ declare namespace CompletersNS {
   type ValidSugTypes = ValidTypes | "math";
   const enum QueryFlags {
     None = 0,
-    SingleLine = 1,
+    AddressBar = 1,
     TabInCurrentWindow = 2,
     MonospaceURL = 4,
     TabTree = 8,
@@ -889,7 +889,7 @@ declare const enum FirefoxBrowserVer {
   // Min$globalThis = 65, // should not export `globalThis` into the outside
   MinMediaQuery$PrefersColorScheme = 67,
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1561546
-  // TODO: recheck this, because it's not fixed on Firefox nightly 71.0a1 (2019-09-29)
-  MinValidMediaQueryWatchersInBgProc = 71,
+  // TODO: recheck this, because it's not fixed on Firefox nightly 71.0a1 (2019-10-06)
+  MinValidMediaQueryWatchersInBgProc = 72,
   MinSupported = 64,
 }

@@ -41,13 +41,6 @@ var BgUtils_ = {
     };
     return this.escapeText_(str);
   },
-  unescapeHTML_ (str: string): string {
-    const escapedRe = <RegExpG & RegExpSearchable<1>> /\&(amp|gt|lt|nbsp);/g,
-    map = BgUtils_.safer_({ amp: "&", gt: ">", lt: "<", nbsp: " " }) as EnsuredSafeDict<string>,
-    unescapeCallback = (_0: string, s: string) => map[s];
-    this.unescapeHTML_ = s => s.replace(escapedRe, unescapeCallback);
-    return this.unescapeHTML_(str);
-  },
   isJSUrl_ (s: string): boolean {
     return s.charCodeAt(10) === kCharCode.colon && s.slice(0, 11).toLowerCase() === "javascript:";
   },

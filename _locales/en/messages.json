@@ -267,10 +267,10 @@
 		"message": "reuse=-2/-1"
 	},
 	"goNext": {
-		"message": "Follow the link labeled next or &gt;"
+		"message": "Follow the link labeled next or \">\""
 	},
 	"goPrevious": {
-		"message": "Follow the link labeled previous or &lt;"
+		"message": "Follow the link labeled previous or \"<\""
 	},
 	"goToRoot": {
 		"message": "Go to root of current URL hierarchy"

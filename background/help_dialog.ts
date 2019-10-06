@@ -94,7 +94,8 @@ var HelpDialog = {
       let klen = -2, bindings = "", description = cachedDescriptions[command];
       if (!description) {
         let key = command.replace(".", "_"), params = trans_(key + "_p");
-        description = trans_(key) + (params ? cmdParams.replace("*", params) : " ");
+        description = trans_(key).replace("<", "&lt;").replace(">", "&gt;")
+            + (params ? cmdParams.replace("*", params) : " ");
         cachedDescriptions[command] = description;
         if (!(Build.NDEBUG || description)) {
           console.log("Assert error: lack a description for %c%s", "color:red", command);

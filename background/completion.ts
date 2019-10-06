@@ -106,7 +106,7 @@ const enum kVisibility {
 type Visibility = kVisibility.hidden | kVisibility.visible;
 
 let queryType: FirstQuery = FirstQuery.nothing, matchType: MatchType = MatchType.plain,
-    inNormal: boolean | null = null, autoSelect: boolean = false, singleLine: boolean = false,
+    inNormal: boolean | null = null, autoSelect: boolean = false, isForAddressBar: boolean = false,
     wantTreeMode = false,
     maxChars: number = 0, maxResults: number = 0, maxTotal: number = 0, matchedTotal: number = 0, offset: number = 0,
     queryTerms: string[] = [""], rawQuery: string = "", rawMore: string = "",
@@ -137,7 +137,7 @@ function prepareHtml(sug: Suggestion): void {
   const text = sug.t, str = shortenUrl(text);
   sug.t = text.length !== sug.u.length ? str : "";
   sug.textSplit = cutUrl(str, getMatchRanges(str), text.length - str.length
-    , singleLine ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
+    , isForAddressBar ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
 }
 function cutTitle(title: string): string {
   let cut = title.length > maxChars + 40;
@@ -145,6 +145,10 @@ function cutTitle(title: string): string {
   return highlight(cut ? title + "\u2026" : title, getMatchRanges(title));
 }
 function highlight(this: void, str: string, ranges: number[]): string {
+  if (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+      && isForAddressBar) {
+    return str;
+  }
   if (ranges.length === 0) { return BgUtils_.escapeText_(str); }
   let out = "", end = 0;
   for (let _i = 0; _i < ranges.length; _i += 2) {
@@ -191,7 +195,7 @@ function getMatchRanges(str: string): number[] {
 function sortBy0(this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; }
 // deltaLen may be: 0, 1, 7/8/9
 function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, maxLen: number): string {
-  let out = "", end = str.length, cutStart = end;
+  let out = "", end = str.length, cutStart = end, slice = "";
   if (end <= maxLen) { /* empty */ }
   else if (deltaLen > 1) { cutStart = str.indexOf("/") + 1 || end; }
   else if ((cutStart = str.indexOf(":")) < 0) { cutStart = end; }
@@ -217,21 +221,42 @@ function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, max
     const start = ranges[i], temp = Math.max(end, cutStart), delta = start - 20 - temp;
     if (delta > 0) {
       maxLen += delta;
-      out += BgUtils_.escapeText_(BgUtils_.unicodeSubstring_(str, end, temp + 11));
+      slice = BgUtils_.unicodeSubstring_(str, end, temp + 11);
+      out += Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+          ? slice : BgUtils_.escapeText_(slice);
       out += "\u2026";
-      out += BgUtils_.escapeText_(BgUtils_.unicodeLsubstring_(str, start - 8, start));
+      slice = BgUtils_.unicodeLsubstring_(str, start - 8, start);
+      out += Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+          ? slice : BgUtils_.escapeText_(slice);
     } else if (end < start) {
-      out += BgUtils_.escapeText_(str.slice(end, start));
+      slice = str.slice(end, start);
+      out += Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+          ? slice : BgUtils_.escapeText_(slice);
     }
     end = ranges[i + 1];
+    slice = str.slice(start, end);
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar) {
+      out += slice;
+      continue;
+    }
     out += "<match>";
-    out += BgUtils_.escapeText_(str.slice(start, end));
+    out += BgUtils_.escapeText_(slice);
     out += "</match>";
   }
   if (str.length <= maxLen) {
-    return out + BgUtils_.escapeText_(str.slice(end));
+    slice = str.slice(end);
+    return Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+        ? out + slice : out + BgUtils_.escapeText_(slice);
   } else {
-    return out + BgUtils_.escapeText_(BgUtils_.unicodeSubstring_(str, end, maxLen - 1 > end ? maxLen - 1 : end + 10)) +
+    slice = BgUtils_.unicodeSubstring_(str, end, maxLen - 1 > end ? maxLen - 1 : end + 10);
+    return out + (Build.BTypes & BrowserType.Firefox
+                  && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+                  ? slice : BgUtils_.escapeText_(slice)) +
       "\u2026";
   }
 }
@@ -655,7 +680,11 @@ domainEngine = {
             get2ndArg, 2);
         prepareHtml(sug);
         const ind = HistoryCache.binarySearch_(url), item = (HistoryCache.history_ as HistoryItem[])[ind];
-        item && (showThoseInBlacklist || item.visible_) && (sug.title = BgUtils_.escapeText_(item.title_));
+        if (item && (showThoseInBlacklist || item.visible_)) {
+          sug.title = Build.BTypes & BrowserType.Firefox
+              && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+              ? item.title_ : BgUtils_.escapeText_(item.title_);
+        }
         --maxResults;
       }
     }
@@ -700,7 +729,7 @@ tabEngine = {
     if (query.o) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
     const curTabId = TabRecency_.last_, noFilter = queryTerms.length <= 0,
-    treeMode = wantTreeMode && wantInCurrentWindow && noFilter && !singleLine;
+    treeMode = wantTreeMode && wantInCurrentWindow && noFilter && !isForAddressBar;
     let suggestions: CompletersNS.TabSuggestion[] = [], treeMap: SafeDict<Tab> | undefined;
     if (treeMode && tabs0.length > offset) {
       treeMap = BgUtils_.safeObj_<Tab>();
@@ -877,13 +906,18 @@ searchEngine = {
 
     if (q.length > 0) {
       sug.t = searchEngine.makeText_(text, indexes);
-      sug.textSplit = highlight(sug.t, indexes);
       sug.title = highlight(sug.title, [pattern.name_.length + 2, sug.title.length]);
+      sug.textSplit = highlight(sug.t, indexes);
       sug.v = !!HistoryCache.history_ && HistoryCache.binarySearch_(url) >= 0;
     } else {
       sug.t = BgUtils_.DecodeURLPart_(shortenUrl(text));
-      sug.textSplit = BgUtils_.escapeText_(sug.t);
-      sug.title = BgUtils_.escapeText_(sug.title);
+      if (!(Build.BTypes & BrowserType.Firefox
+            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar)) {
+        sug.title = BgUtils_.escapeText_(sug.title);
+      }
+      sug.textSplit = Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+          ? sug.t : BgUtils_.escapeText_(sug.t);
       sug.v = false;
     }
     sug.p = pattern.name_;
@@ -901,8 +935,13 @@ searchEngine = {
     }
     const sug = new Suggestion("math", "vimium://copy " + result, result, result, get2ndArg, 9);
     --sug.r;
-    sug.title = `<match style="text-decoration: none;">${BgUtils_.escapeText_(sug.title)}<match>`;
-    sug.textSplit = BgUtils_.escapeText_(arr[2]);
+    if (!(Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar)) {
+      sug.title = `<match style="text-decoration: none;">${BgUtils_.escapeText_(sug.title)}<match>`;
+    }
+    sug.textSplit = Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+        ? arr[2] : BgUtils_.escapeText_(arr[2]);
     maxResults--;
     matchedTotal++;
     Completers.next_([output, sug], SugType.search);
@@ -941,8 +980,13 @@ searchEngine = {
     isSearch = BgUtils_.lastUrlType_ === Urls.Type.Search,
     sug = new Suggestion("search", url, text || BgUtils_.DecodeURLPart_(shortenUrl(url))
       , "", get2ndArg, 9) as SearchSuggestion;
-    sug.textSplit = BgUtils_.escapeText_(sug.t);
-    sug.title = isSearch ? "~: " + highlight(keyword, [0, keyword.length]) : BgUtils_.escapeText_(keyword);
+    sug.title = isSearch ? "~: " + highlight(keyword, [0, keyword.length])
+        : Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+        ? keyword : BgUtils_.escapeText_(keyword);
+    sug.textSplit = Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
+        ? sug.t : BgUtils_.escapeText_(sug.t);
     sug.p = isSearch ? "~" : "";
     return sug;
   },
@@ -1077,7 +1121,7 @@ Completers = {
     Completers.sugTypes_ =
     maxResults = maxTotal = matchedTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
-    autoSelect = singleLine = hasOmniTypePrefix = false;
+    autoSelect = isForAddressBar = hasOmniTypePrefix = false;
     wantInCurrentWindow = false;
     showThoseInBlacklist = true;
   },
@@ -1596,7 +1640,7 @@ Completion_ = {
     maxChars = Math.max(Consts.LowerBoundOfMaxChars, Math.min((<number> options.c | 0) || 128
       , Consts.UpperBoundOfMaxChars));
     const flags = options.f;
-    singleLine = !!(flags & CompletersNS.QueryFlags.SingleLine);
+    isForAddressBar = !!(flags & CompletersNS.QueryFlags.AddressBar);
     wantTreeMode = !!(flags & CompletersNS.QueryFlags.TabTree);
     maxTotal = maxResults = Math.min(Math.max(3, ((options.r as number) | 0) || 10), 25);
     matchedTotal = 0;

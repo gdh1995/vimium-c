@@ -399,7 +399,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     if (!(Build.NDEBUG || command.indexOf(".") < 0)) {
       console.log("Assert error: command should has no limit on repeats: %c%s", "color:red", command);
     }
-    let msg = trans_("cmdConfirm", [count, BgUtils_.unescapeHTML_(trans_(command))]);
+    let msg = trans_("cmdConfirm", [count, trans_(command)]);
     if (Build.BTypes & ~BrowserType.Chrome) {
       gOnConfirmCallback = callback as NonNullable<typeof callback>;
       setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0));

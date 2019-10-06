@@ -632,9 +632,6 @@ BgUtils_.timeout_(600, function (): void {
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , matchedSugTypes = CompletersNS.SugType.Empty;
   const
-  matchTagRe = Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-      ? <RegExpG> /<\/?match>/g : null as never,
   maxResults = !(Build.BTypes & ~BrowserType.Firefox)
     || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
     || Build.MinCVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12
@@ -710,8 +707,7 @@ BgUtils_.timeout_(600, function (): void {
       }
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-        tail = (sugItem.textSplit as string).replace(matchTagRe, "")
-          + (title && " - " + title.replace(matchTagRe, "")) + tail;
+        tail = (sugItem.textSplit as string) + (title && " - " + title) + tail;
       } else {
         tail = title ? `</url><dim> - ${title}${tail}</dim>` : tail ? `</url><dim>${tail}</dim>` : "</url>";
         tail = "<url>" + (sugItem.textSplit as string) + tail;
@@ -738,7 +734,7 @@ BgUtils_.timeout_(600, function (): void {
       let text = (sug as CompletersNS.SearchSuggestion).p;
       if (Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-        defaultDesc = (text && `${BgUtils_.escapeText_(text)} - `) + (sug.textSplit as string).replace(matchTagRe, "");
+        defaultDesc = (text && `${text} - `) + <string> sug.textSplit;
       } else {
         defaultDesc = (text && `<dim>${BgUtils_.escapeText_(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
       }
@@ -748,7 +744,7 @@ BgUtils_.timeout_(600, function (): void {
         case "math":
           suggestions[1].description = Build.BTypes & BrowserType.Firefox
                 && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-              ? (sug.textSplit as string).replace(matchTagRe, "") + " = sug.text"
+              ? <string> sug.textSplit + " = " + sug.t
               : `<dim>${sug.textSplit} = </dim><url><match>${sug.t}</match></url>`;
           break;
         }
@@ -807,7 +803,7 @@ BgUtils_.timeout_(600, function (): void {
       : matchType === MatchType.searchWanted ? key.indexOf(" ") < 0 ? SugType.search : SugType.Empty
       : matchedSugTypes;
     Completion_.filter_(key
-      , { o: "omni", t: type, r: maxResults, c: maxChars, f: CompletersNS.QueryFlags.SingleLine }
+      , { o: "omni", t: type, r: maxResults, c: maxChars, f: CompletersNS.QueryFlags.AddressBar }
       , onComplete.bind(null, lastSuggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
@@ -824,7 +820,7 @@ BgUtils_.timeout_(600, function (): void {
       // * may has been cleaned, or
       // * search `v `"t.e abc", and then input "t.e abc", press Down to select `v `"t.e abc", and then press Enter
       return Completion_.filter_(text
-          , { o: "omni", t: SugType.Empty, r: 3, c: maxChars, f: CompletersNS.QueryFlags.SingleLine }
+          , { o: "omni", t: SugType.Empty, r: 3, c: maxChars, f: CompletersNS.QueryFlags.AddressBar }
           , function (sugs, autoSelect): void {
         return autoSelect ? open(sugs[0].u, disposition, sugs[0].s) : open(text, disposition);
       });

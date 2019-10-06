@@ -38,6 +38,8 @@
       "trans_", "pTrans_", "VTr",
       "SafeEl_", "notSafe_", "getEditableType_",
       "readyState", "binarySearch_",
+      "getMatchRanges",
+      "BgUtils_.escapeText_", "escapeText_", "highlight", "cutTitle", "BgUtils_.unicodeSubstring_", "unicodeSubstring_",
       "_getKeyCharUsingKeyIdentifier", "parentFrame_"
     ],
     "pure_getters": true,
