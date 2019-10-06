@@ -504,7 +504,7 @@ label:active {
   border-top: 0.5px solid #979ca0;
   bottom: 0;
   left: 0;
-  padding-top: 6px;
+  padding: 5px 0 1px;
   position: fixed;
   right: 0;
   white-space: nowrap;

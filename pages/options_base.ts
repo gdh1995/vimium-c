@@ -252,9 +252,9 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
         t = pTrans_(el.dataset.i as string);
         t && (el.innerText = t);
       }
-      for (el of this.template_.querySelectorAll("[aria-label]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
-        t = pTrans_(el.getAttribute("aria-label") as string);
-        t && el.setAttribute("aria-label", t);
+      for (el of this.template_.querySelectorAll("[title]") as ArrayLike<Element> as Element[] as HTMLElement[]) {
+        t = pTrans_(el.title);
+        t && (el.title = t);
       }
     }
     this.$list_ = container.querySelector("tbody") as HTMLTableSectionElement;

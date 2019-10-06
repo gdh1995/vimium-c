@@ -941,6 +941,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
     a.darkBtn_ && (a.darkBtn_.onclick = a.ToggleDark_);
     a.onStyleUpdate_(a.styles_);
+    if (a.pageType_ === VomnibarNS.PageType.inner) {
+      for (const el of document.querySelectorAll("[title]") as ArrayLike<Element> as HTMLElement[]) {
+        let t = chrome.i18n.getMessage(el.title.replace(" ", "_"));
+        t && (el.title = t);
+      }
+    }
     a.init_ = VUtils_.makeListRenderer_ = null as never;
     if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)

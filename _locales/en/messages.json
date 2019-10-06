@@ -977,6 +977,12 @@
 	"copiedWndInfo": {
 		"message": "(info of tabs)"
 	},
+	"Close": {
+		"message": ""
+	},
+	"Toggle_Dark": {
+		"message": ""
+	},
 	"69": {
 		"message": "$1"
 	},
