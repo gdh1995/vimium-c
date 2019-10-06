@@ -3,7 +3,7 @@
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.78.0](https://img.shields.io/badge/release-1.78.0-orange.svg
+[![Version 1.78.1](https://img.shields.io/badge/release-1.78.1-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -59,6 +59,9 @@ __Other extensions supporting Vimium C:__
       https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 
 # Release Notes
+
+1.78.1
+* Firefox: fix broken `LinkHints`
 
 1.78.0:
 * its UI uses Simplified Chinese (简体中文) for all `zh-*` language regions
