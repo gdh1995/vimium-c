@@ -1139,13 +1139,13 @@
 		"message": "致谢："
 	},
 	"HOriginal": {
-		"message": "（前身项目），"
+		"message": "（前身项目）、"
 	},
 	"HBy": {
 		"message": "（作者："
 	},
 	"HAnd": {
-		"message": "），和 "
+		"message": "）和 "
 	},
 	"HEnd": {
 		"message": "）。"
@@ -1506,6 +1506,9 @@
 	},
 	"30": {
 		"message": "（置顶模式）"
+	},
+	"31": {
+		"message": "在 Firefox 上您必须手动访问此链接"
 	},
 	"0": {
 		"message": "在当前页面打开链接"

@@ -792,7 +792,7 @@
 		"message": " by "
 	},
 	"HAnd": {
-		"message": ", and "
+		"message": " and "
 	},
 	"HEnd": {
 		"message": "."
@@ -1131,7 +1131,7 @@
 		"message": "Here's not allowed to eval scripts"
 	},
 	"22": {
-		"message": "An auto-focusing action is blocked by Vimium C."
+		"message": "Vimium C has blocked auto-focusing of an editable box."
 	},
 	"23": {
 		"message": "Now $1 use $2"
@@ -1156,6 +1156,9 @@
 	},
 	"30": {
 		"message": " (modal UI)"
+	},
+	"31": {
+		"message": "On Firefox you have to visit this URL manually"
 	},
 	"0": {
 		"message": "Open link in current tab"

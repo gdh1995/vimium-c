@@ -795,7 +795,12 @@ let optionsInit1_ = function (): void {
   }
   (_element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
-    return BG_.Backend_.focus_({ u: this.href, r: ReuseType.reuse, p: true });
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)) {
+      window.VHud ? VHud.tip_(kTip.haveToOpenManually, "") : alert(pTrans_("" + kTip.haveToOpenManually));
+    } else {
+      BG_.Backend_.focus_({ u: this.href, r: ReuseType.reuse, p: true });
+    }
   };
 
   if (Build.BTypes & BrowserType.ChromeOrFirefox
@@ -997,7 +1002,7 @@ el.textContent = (Build.BTypes & BrowserType.Edge
     : Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
     ? "Firefox"
-    : ((<RegExpOne> /\bChrom(e|ium)/).exec(navigator.appVersion) || ["Chrome"])[0]
+    : ((<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0]
   ) + (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || bgOnOther_ === BrowserType.Firefox)
     ? " " + (navigator.userAgent.match(/\bFirefox\/(\d+)/) || [0, ""])[1]
