@@ -293,11 +293,13 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
   },
   /** if `el` is null, then return viewSize for `kScrollDim.scrollSize` */
   getDimension_ (el: SafeElement | null, di: ScrollByY, index: kScrollDim & number): number {
+    let visual;
     return el !== this.top_ || index && el
       ? !index ? di ? (el as SafeElement).clientHeight : (el as SafeElement).clientWidth
         : index < kScrollDim.position ? di ? (el as SafeElement).scrollHeight : (el as SafeElement).scrollWidth
         : di ? (el as SafeElement).scrollTop : (el as SafeElement).scrollLeft
-      : index > kScrollDim.scrollSize ? di ? scrollY : scrollX : di ? innerHeight : innerWidth;
+      : index > kScrollDim.scrollSize ? di ? scrollY : scrollX
+      : (visual = visualViewport, visual ? di ? visual.height : visual.width : di ? innerHeight : innerWidth);
   },
   _doesScroll (el: SafeElement, di: ScrollByY, amount: number): boolean {
     const before = this.getDimension_(el, di, kScrollDim.position),
