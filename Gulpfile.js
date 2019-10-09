@@ -673,6 +673,8 @@ function checkJSAndUglifyAll(taskOrder, maps, key, exArgs, cb) {
 function uglifyJSFiles(path, output, new_suffix, exArgs) {
   const base = exArgs && exArgs.base || JSDEST;
   path = formatPath(path, base);
+  const pathId = path.filter(i => i[0] !== "!").join(""),
+  isContent = pathId.indexOf("content") >= 0, isBackground = !isContent && pathId.indexOf("background") >= 0;
   if (path.join("\n").indexOf("viewer.min.js") < 0) {
     path.push("!**/*.min.js");
   }
@@ -713,14 +715,20 @@ function uglifyJSFiles(path, output, new_suffix, exArgs) {
     }
     stream = stream.pipe(require('gulp-concat')(output));
   }
-  var config = loadUglifyConfig(!!exArgs.nameCache);
+  var stdConfig = loadUglifyConfig(!!exArgs.nameCache);
   if (exArgs.nameCache) {
-    config.nameCache = exArgs.nameCache;
+    stdConfig.nameCache = exArgs.nameCache;
     patchGulpUglify();
   }
   stream = stream.pipe(gulpMap(function(file) {
     beforeUglify(file);
   }));
+  const config = {...stdConfig};
+  if (stdConfig.compress.inline === 3 || stdConfig.compress.inline === true) {
+    config.compress = {...config.compress};
+    config.compress.inline = isContent ? 3 : 2;
+    // print("Terser: Use compress.inline =", config.compress.inline)
+  }
   stream = stream.pipe(getGulpUglify()(config));
   stream = stream.pipe(getGulpUglify()({...config, mangle: null}));
   if (!is_file && new_suffix !== "") {
@@ -1285,6 +1293,17 @@ function loadUglifyConfig(reload) {
   }
   if (gNoComments || !locally && getNonNullBuildItem("NDEBUG")) {
     a.output.comments = /^!/;
+  }
+  var hasOptionUndeclared = require('terser/package').version >= '4.1.2';
+  var mangle = a.mangle, properties = mangle && mangle.properties;
+  if (mangle) {
+    if (hasOptionUndeclared) {
+      if (properties.undeclared == null) {
+        properties.undeclared = true;
+      }
+    } else {
+      delete properties.undeclared;
+    }
   }
   return a;
 }

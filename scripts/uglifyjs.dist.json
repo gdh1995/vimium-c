@@ -16,7 +16,7 @@
     "hoist_funs": true,
     "hoist_vars": true,
     "if_return": true,
-    "inline": true,
+    "inline": true, // only for content/
     "join_vars": true,
     "keep_fargs": false,
     "keep_fnames": "/^(startsWith|endsWith|addEventListener|toString|VC)$/",
