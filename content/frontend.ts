@@ -1149,7 +1149,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         VCui.css_(req.S);
         if (req.f) {
           VCui.findCss_ = req.f;
-          VFind.styleIframe_ && (VFind.styleIframe_.textContent = req.f.i);
+          VCui.styleFind_ && (VCui.styleFind_.textContent = req.f.i);
         }
       }
       // tslint:disable-next-line: no-unused-expression

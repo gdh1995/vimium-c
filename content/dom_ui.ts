@@ -6,6 +6,7 @@ var VCui = {
   box_: null as HTMLDivElement & SafeHTMLElement | null,
   styleIn_: null as HTMLStyleElement | string | null,
   styleOut_: null as HTMLStyleElement | null,
+  styleFind_: null as HTMLStyleElement | null,
   root_: null as never as VUIRoot,
   findCss_: null as never as FindCSS,
   /** @NEED_SAFE_ELEMENTS */

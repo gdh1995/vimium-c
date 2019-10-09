@@ -948,18 +948,21 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   styleDebug.textContent = css2.ui || "";
   const iframes = root ? root.querySelectorAll("iframe") : [];
   for (let i = 0, end = iframes.length; i < end; i++) {
+    type StyleEl = HTMLStyleElement;
     const frame = iframes[i], isFind = frame.classList.contains("HUD"),
-    doc = frame.contentDocument as HTMLDocument;
-    styleDebug = doc.querySelector("style.debugged") as HTMLStyleElement | null;
+    doc = frame.contentDocument as HTMLDocument,
+    root2 = isFind ? (VCui.styleFind_ as StyleEl).parentNode as HTMLElement : doc;
+    styleDebug = root2.querySelector("style.debugged") as HTMLStyleElement | null;
     if (!styleDebug) {
       if (isFind) {
         const oldCSS2 = bgSettings_.parseCustomCSS_(bgSettings_.get_("userDefinedCss")).find || "";
         if (oldCSS2) {
           const str = bgSettings_.cache_.findCSS_.i;
-          (doc.querySelector("style") as HTMLStyleElement).textContent = str.slice(0, -oldCSS2.length - 1);
+          (VCui.styleFind_ as StyleEl).textContent = str.slice(0, -oldCSS2.length - 1);
         }
         styleDebug = doc.createElement("style");
         styleDebug.type = "text/css";
+        styleDebug.parentNode || root2.appendChild(styleDebug);
       } else {
         styleDebug = doc.querySelector("#custom") as HTMLStyleElement | null;
         if (!styleDebug) {
@@ -968,9 +971,9 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
           styleDebug.type = "text/css";
           styleDebug.id = "custom";
         }
+        styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug);
       }
       styleDebug.classList.add("debugged");
-      styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug);
     }
     styleDebug.textContent = isFind ? css2.find || ""
       : (isSame ? "" : "\n.transparent { opacity: 1; }\n") + (css2.omni && css2.omni + "\n" || "");

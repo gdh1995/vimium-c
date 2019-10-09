@@ -24,7 +24,6 @@ var VFind = {
   styleOut_: null as never as HTMLStyleElement,
   A0Re_: <RegExpG> /\xa0/g,
   tailRe_: <RegExpOne> /\n$/,
-  styleIframe_: null as HTMLStyleElement | null,
   activate_ (this: void, _0: number, options: CmdOptions[kFgCmd.findMode]): void {
     const a = VFind, dom = VDom, UI = VCui;
     UI.findCss_ = options.f || UI.findCss_;
@@ -144,7 +143,7 @@ var VFind = {
       el.contentEditable = "plaintext-only";
     }
     (a.countEl_ = addElement(0, "c")).textContent = " ";
-    VCui.createStyle_(VCui.findCss_.i, a.styleIframe_ = addElement("style") as HTMLStyleElement);
+    VCui.createStyle_(VCui.findCss_.i, VCui.styleFind_ = addElement("style") as HTMLStyleElement);
     const root = VDom.createShadowRoot_(body), inShadow = a.inShadow_ = root !== body,
     root2 = inShadow ? addElement("div", 0) : body;
     root2.className = "r" + VDom.cache_.d;
@@ -224,7 +223,7 @@ var VFind = {
     return a.postMode_.activate_();
   },
   clean_ (): void {
-    let _this = VFind;
+    const _this = VFind;
     _this.coords_ && VMarks.ScrollTo_(_this.coords_);
     _this.hasResults_ =
     _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
@@ -233,7 +232,7 @@ var VFind = {
     if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
     _this.parsedQuery_ = _this.query_ = _this.query0_ = "";
     _this.historyIndex_ = _this.matchCount_ = 0;
-    _this.styleIframe_ = _this._onUnexpectedBlur =
+    VCui.styleFind_ = _this._onUnexpectedBlur =
     _this.box_ = _this.input_ = _this.countEl_ = _this.parsedRegexp_ =
     _this.initialRange_ = _this.regexMatches_ = _this.coords_ = null as never;
   },
