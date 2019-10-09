@@ -142,7 +142,7 @@ var Commands = {
           mk++;
           continue;
         }
-      } else if (key === "shortcut" || key === "commmand") {
+      } else if (key === "shortcut" || key === "command") {
         key = splitLine[1];
         if (splitLine.length < 3) {
           a.logError_("Lacking command name and options in shortcut:", line);

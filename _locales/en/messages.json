@@ -321,7 +321,7 @@
 		"message": "normal"
 	},
 	"performAnotherFind": {
-		"message": "Find the second or even eariler query words"
+		"message": "Find the second or even earlier query words"
 	},
 	"performBackwardsFind": {
 		"message": "Cycle backward to the previous find match"
@@ -696,7 +696,7 @@
 		"message": "No JSON data found!"
 	},
 	"JSONParseError": {
-		"message": "Sorry, Vimium C can not parse the JSON file:\n  an unexpect character at line $1, column $2"
+		"message": "Sorry, Vimium C can not parse the JSON file:\n  an unexpected character at line $1, column $2"
 	},
 	"notVCJSON": {
 		"message": "Sorry, no Vimium C settings data found!"

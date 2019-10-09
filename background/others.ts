@@ -470,7 +470,7 @@ BgUtils_.timeout_(1000, function (): void {
             err ? (Settings_.restore_ = null, resolve()) : beginToRestore(items, 1, resolve);
             return err;
           }) : beginToRestore({}, 2, resolve);
-        }).then(_ => { restoringPromise = null; });
+        }).then(_1 => { restoringPromise = null; });
       });
     } else {
       return null;
