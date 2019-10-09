@@ -33,7 +33,7 @@ var VOmni = {
     // hide all further key events to wait iframe loading and focus changing from JS
     VKey.removeHandler_(a);
     VKey.pushHandler_(VKey.SuppressMost_, a);
-    let timer1 = setTimeout(a.RefreshKeyHandler_, GlobalConsts.TimeOfSuppressingTailKeydowns);
+    let timer1 = setTimeout(a.RefreshKeyHandler_, GlobalConsts.TimeOfSuppressingTailKeydownEvents);
     if (VApi.checkHidden_(kFgCmd.vomnibar, count, options)) { return; }
     if (a.status_ === VomnibarNS.Status.KeepBroken) {
       return VHud.tip_(kTip.omniFrameFail, "Sorry, Vomnibar page seems to fail in loading.", 2000);

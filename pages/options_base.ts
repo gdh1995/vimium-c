@@ -323,13 +323,13 @@ appendRuleTo_ (list: HTMLTableSectionElement | DocumentFragment, { pattern, pass
   const row = document.importNode(this.template_, true),
   patternEl = row.querySelector(".pattern") as HTMLInputElement & ExclusionRealNode,
   passKeysEl = row.querySelector(".passKeys") as HTMLInputElement & ExclusionRealNode,
-  trimedKeys = passKeys.trimRight();
+  trimmedKeys = passKeys.trimRight();
   patternEl.value = pattern;
   if (pattern) {
     patternEl.placeholder = "";
   }
-  passKeysEl.value = trimedKeys;
-  if (trimedKeys) {
+  passKeysEl.value = trimmedKeys;
+  if (trimmedKeys) {
     passKeysEl.placeholder = "";
   }
   const vnode2 = vnode as ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode as ExclusionVisibleVirtualNode;

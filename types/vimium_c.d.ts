@@ -405,7 +405,7 @@ declare const enum GlobalConsts {
   FirefoxFocusResponseTimeout = 340,
   MaxLimitOfVomnibarMatches = 25,
   MaxFindHistory = 50,
-  TimeOfSuppressingTailKeydowns = 200,
+  TimeOfSuppressingTailKeydownEvents = 200,
   CommandCountLimit = 9999,
   MediaWatchInterval = 60_000, // 60 seconds - chrome.alarms only accepts an interval >= 1min, so do us
   MaxHistoryURLLength = 2_000, // to avoid data: URLs and malformed webpages
@@ -663,7 +663,7 @@ declare const enum BrowserVer {
   MinEnsuredShadowDOMV1 = 53,
   // since C53, Vimium's inner styles have been really safe, because `>>>` only works on "open" mode shadow trees
   MinEnsuredSafeInnerCSS = MinEnsuredShadowDOMV1,
-  // wekitUserSelect still works on C35
+  // webkitUserSelect still works on C35
   MinUserSelectAll = 53,
   // even if EXPERIMENTAL or LEGACY
   MinUntrustedEventsDoNothing = 53, // fake click events won't show a <select>'s popup
@@ -719,7 +719,7 @@ declare const enum BrowserVer {
   MinExtensionContentPageAlwaysCanShowFavIcon = MinExtIframesAlwaysInSharedProcess,
   MinEmbedElementIsNotFunction = 58,
   // the 6 below are correct even if EXPERIMENTAL or LEGACY
-  MinCaseSensitiveUsemap = 58,
+  MinCaseSensitiveUseMap = 58,
   // tmp_width := (since 58 ? Math.round : Math.floor)(width * devicePixelRatio * zoom)
   // real_width := width && Math.max(tmp_width, 1)
   MinBorderWidthIsRounded = 58,
@@ -749,7 +749,7 @@ declare const enum BrowserVer {
   MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused = 60,
   MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `width * ratio * zoom >= 0.5`
-  // a bug of styke.zoom not working is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
+  // a bug that special style.zoom may not work is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
   MinDevicePixelRatioImplyZoomOfDocEl = 61,
   MinCorrectBoxWidthForOptionsUI = 61,
   MinUseful$visualViewport$ = 61, // visualViewport.width/h, .pageL/T and .offsetL/T occurs
@@ -782,7 +782,7 @@ declare const enum BrowserVer {
   // https://www.chromestatus.com/features/6750456638341120
   MinSelector$deep$InDynamicCSSMeansNothing = 63,
   MinCSS$OverscrollBehavior = 63,
-  MinOmniboxSupportDeletable = 63,
+  MinOmniboxSupportDeleting = 63,
   Min$addEventListener$IsInStrictMode = 64, // otherwise addEventListener has null .caller and null .arguments
   MinCSS$textDecorationSkipInk = 64,
   MinNoMultipleShadowRootsOfV0 = 64,
@@ -862,7 +862,7 @@ declare const enum BrowserVer {
    * * the child frame gets notified and runs `RenderFrameHostImpl::OnDidChangeFrameOwnerProperties`
    * * `FrameTreeNode::set_frame_owner_properties` is called, and then
    *   * `OnSetFrameOwnerProperties` of either `RenderFrameImpl` or `RenderFrameProxy` is called
-   *   * run `WebFrame::SetFrameOwnerProperties` to notify changes and recalc styles
+   *   * run `WebFrame::SetFrameOwnerProperties` to notify changes and re-compute styles
    */
   MinNoFocusOrSelectionStringOnHiddenIFrame = 74, // even if EXPERIMENTAL or LEGACY
   // https://www.chromestatus.com/features/5650553247891456

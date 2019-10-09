@@ -165,7 +165,7 @@ __Other extensions supporting Vimium C:__
 * Vomnibar now shows a "tab tree" when in "current window tabs" mode
 * now it can sync much longer (bigger than 8KB) key mapping list and search engines through the browser syncing service
   * all the synced data is still limited under 100KB
-* in case you clean all browsering data, now it can recover most settings (at most 5MB) even if syncing is off
+* in case you clean all browsing data, now it can recover most settings (at most 5MB) even if syncing is off
 * now LinkHints and Vomnibar are faster
 * partly work around a bug of Chrome 70+, which affects command `toggleCS`
 * if the confirmation dialog is forbidden by mistake, then now a too large count will be treated as 1

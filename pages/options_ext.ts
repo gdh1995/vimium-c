@@ -185,7 +185,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       console.log("Before importing: You chose to", keep ? "keep settings synced." : "stop syncing settings.");
     }
     // if `new_data.vimSync` was undefined, then now it's null
-    // this is useful, in case the below itering localStorage and setting-null was changed
+    // this is useful, in case the below "iterating over localStorage and setting-null" was changed
   }
 
   const logUpdate = function (method: string, key: string, a2: string | any, a3?: any): any {

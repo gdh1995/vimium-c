@@ -365,7 +365,7 @@ Marks_ = { // NOTE: all public members should be static
     }
   },
   getLocationKey_ (markName: string, url: string | undefined): string {
-    return (url ? "vimiumMark|" + BgUtils_.prepareReparsingPrefix_(url.split("#", 1)[0])
+    return (url ? "vimiumMark|" + BgUtils_.prepareReParsingPrefix_(url.split("#", 1)[0])
       : "vimiumGlobalMark") + "|" + markName;
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
@@ -641,7 +641,7 @@ BgUtils_.timeout_(120, function (): void {
   chrome.tabs.onActivated.addListener(listener);
   chrome.windows.onFocusChanged.addListener(function (windowId): void {
     if (windowId === noneWnd) { return; }
-    // here windowId may pointer to a devtools window on C45 - see BrowserVer.Min$windows$APIsFilterOutDevToolsByDefault
+    // here windowId may pointer to a devTools window on C45 - see BrowserVer.Min$windows$APIsFilterOutDevToolsByDefault
     chrome.tabs.query({windowId, active: true}, onWndFocus);
   });
   chrome.tabs.query({currentWindow: true, active: true}, function (tabs: CurrentTabs): void {

@@ -181,7 +181,7 @@ BgUtils_.timeout_(1000, function (): void {
     });
   }
 
-/** Chromium's base::JsonWritter will translate all "<" to "\u003C"
+/** Chromium's base::JsonWriter will translate all "<" to "\u003C"
  * https://cs.chromium.org/chromium/src/extensions/browser/api/storage/settings_storage_quota_enforcer.cc?dr=CSs&q=Allocate&g=0&l=37e
  * https://cs.chromium.org/chromium/src/base/json/json_writer.cc?dr=CSs&q=EscapeJSONString&g=0&l=104
  * https://cs.chromium.org/chromium/src/base/json/string_escape.cc?dr=CSs&q=EscapeSpecialCodePoint&g=0&l=35
@@ -297,7 +297,7 @@ BgUtils_.timeout_(1000, function (): void {
     return dict;
   }
   function DoUpdate(this: void): void {
-    const items = to_update, removed: string[] = [], updated: string[] = [], reseted: string[] = [],
+    const items = to_update, removed: string[] = [], updated: string[] = [], reset: string[] = [],
     delayedSerializedItems: EnsuredSafeDict<MultiLineSerialized> = BgUtils_.safeObj_(),
     serializedDict: Dict<boolean | string | number | object> = {};
     to_update = null;
@@ -322,19 +322,19 @@ BgUtils_.timeout_(1000, function (): void {
           updated.push(key);
         }
       } else {
-        reseted.push(key);
+        reset.push(key);
         removed.push(key);
       }
       for (; startToResetList < GlobalConsts.MaxSyncedSlices; startToResetList++) {
-        reseted.push(key + ":" + startToResetList);
+        reset.push(key + ":" + startToResetList);
       }
     }
     textDecoder = encoder = null as never;
     if (removed.length > 0) {
       console.log(now(), "sync.cloud: reset", removed.join(", "));
     }
-    if (reseted.length > 0) {
-      storage().remove(reseted);
+    if (reset.length > 0) {
+      storage().remove(reset);
     }
     if (updated.length > 0) {
       console.log(now(), "sync.cloud: update", updated.join(", "));
@@ -622,7 +622,7 @@ BgUtils_.timeout_(600, function (): void {
   type SubInfoMap = SafeDict<SubInfo>;
   const onDel = (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
       ? omnibox.onDeleteSuggestion : null,
-  wantDeletable = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
+  mayDelete = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
       || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
           && !!onDel && typeof onDel.addListener === "function";
   let last: string | null = null, firstResultUrl: string = "", lastSuggest: SuggestCallback | null = null
@@ -682,8 +682,8 @@ BgUtils_.timeout_(600, function (): void {
     matchType = newMatchType;
     matchedSugTypes = newMatchedSugTypes;
     if (notEmpty
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
-            || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && wantDeletable
+        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
+            || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete
             || response[0].s != null)) {
       subInfoMap = BgUtils_.safeObj_<SubInfo>();
     }
@@ -691,8 +691,8 @@ BgUtils_.timeout_(600, function (): void {
     const urlDict = BgUtils_.safeObj_<number>();
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       let sugItem = response[i], { title, u: url, e: type } = sugItem, tail = "", hasSessionId = sugItem.s != null
-        , deletable = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
-              || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && wantDeletable)
+        , canBeDeleted = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
+              || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete)
             && !(autoSelect && i === 0) && (
           type === "tab" ? sugItem.s !== TabRecency_.last_ : type === "history" && !hasSessionId
         );
@@ -701,7 +701,7 @@ BgUtils_.timeout_(600, function (): void {
       } else {
         urlDict[url] = 1;
       }
-      if (deletable) {
+      if (canBeDeleted) {
         info.type_ = <SubInfo["type_"]> type;
         tail = ` ~${i + di}~`;
       }
@@ -713,9 +713,9 @@ BgUtils_.timeout_(600, function (): void {
         tail = "<url>" + (sugItem.textSplit as string) + tail;
       }
       const msg: chrome.omnibox.SuggestResult = { content: url, description: tail };
-      deletable && (msg.deletable = true);
+      canBeDeleted && (msg.deletable = true);
       hasSessionId && (info.sessionId_ = sugItem.s as string | number);
-      if (deletable || hasSessionId) {
+      if (canBeDeleted || hasSessionId) {
         (subInfoMap as SubInfoMap)[url] = info;
         info = {};
       }
@@ -860,8 +860,8 @@ BgUtils_.timeout_(600, function (): void {
   });
   omnibox.onInputChanged.addListener(onInput);
   omnibox.onInputEntered.addListener(onEnter);
-  (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeletable
-    || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && wantDeletable) &&
+  (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
+    || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete) &&
   (onDel as NonNullable<typeof onDel>).addListener(function (text): void {
     // tslint:disable-next-line: radix
     const ind = parseInt(text.slice(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
@@ -890,30 +890,30 @@ BgUtils_.timeout_(500, function (): void {
   newTrans: typeof chrome.i18n.getMessage = (messageName: string, substitutions?: Array<string | number>): string => {
     return i18nKeys.has(messageName) ? nativeTrans(messageName, substitutions) : "";
   };
-  let oldStr = localStorage.getItem(I18nConsts.storageKey), keyArrs: string[] = [], i18nKeys: Set<string>, todos = 0,
+  let oldStr = localStorage.getItem(I18nConsts.storageKey), keyArrays: string[] = [], i18nKeys: Set<string>, toDos = 0,
   fixTrans = (updateCache: BOOL): void => {
-    i18nKeys = new (Set as SetConstructor)<string>(keyArrs);
+    i18nKeys = new (Set as SetConstructor)<string>(keyArrays);
     trans_ = newTrans;
-    keyArrs = fixTrans = null as never;
+    keyArrays = fixTrans = null as never;
     if (updateCache) {
       localStorage.setItem(I18nConsts.storageKey, i18nVer + [...(i18nKeys as any)].join(","));
     }
   };
   if (oldStr && oldStr.startsWith(i18nVer)) {
-    keyArrs = oldStr.slice(i18nVer.length).split(",");
+    keyArrays = oldStr.slice(i18nVer.length).split(",");
     fixTrans(0);
     return;
   }
   const onload = (messages: Dict<{ message: string }>): void => {
-    keyArrs = keyArrs.concat(Object.keys(messages).filter(i => !(parseInt(i, 10) >= 0)));
-    if (0 === --todos) {
+    keyArrays = keyArrays.concat(Object.keys(messages).filter(i => !(parseInt(i, 10) >= 0)));
+    if (0 === --toDos) {
       fixTrans(1);
     }
   };
   for (const langName of new (Set as SetConstructor)<string>(["en", trans_("lang1"), trans_("lang2")]) as any) {
     if (langName) {
       fetch(`/_locales/${langName}/messages.json`).then((r: any) => r.json()).then(onload);
-      todos++;
+      toDos++;
     }
   }
 });

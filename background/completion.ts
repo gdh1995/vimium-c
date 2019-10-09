@@ -226,7 +226,7 @@ function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, max
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
           ? slice : BgUtils_.escapeText_(slice);
       out += "\u2026";
-      slice = BgUtils_.unicodeLsubstring_(str, start - 8, start);
+      slice = BgUtils_.unicodeLSubstring_(str, start - 8, start);
       out += Build.BTypes & BrowserType.Firefox
           && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
           ? slice : BgUtils_.escapeText_(slice);
@@ -562,7 +562,7 @@ historyEngine = {
   },
   loadSessions_ (query: CompletersNS.QueryStatus, sessions: chrome.sessions.Session[]): void {
     if (query.o) { return; }
-    const historys: BrowserUrlItem[] = [], arr: Dict<number> = {};
+    const historyArr: BrowserUrlItem[] = [], arr: Dict<number> = {};
     let i = queryType === FirstQuery.history ? -offset : 0;
     return sessions.some(function (item): boolean {
       const entry = item.tab;
@@ -571,38 +571,38 @@ historyEngine = {
       const key = entry.url + "\n" + entry.title;
       if (key in arr) { return false; }
       arr[key] = 1; arr[entry.url] = 1;
-      ++i > 0 && historys.push(entry);
-      return historys.length >= maxResults;
-    }) ? historyEngine.filterFinish_(historys) : historyEngine.filterFill_(historys, query, arr, -i, 0);
+      ++i > 0 && historyArr.push(entry);
+      return historyArr.length >= maxResults;
+    }) ? historyEngine.filterFinish_(historyArr) : historyEngine.filterFill_(historyArr, query, arr, -i, 0);
   },
-  filterFill_ (historys: BrowserUrlItem[], query: CompletersNS.QueryStatus, arr: Dict<number>,
+  filterFill_ (historyArr: BrowserUrlItem[], query: CompletersNS.QueryStatus, arr: Dict<number>,
       cut: number, neededMore: number): void {
     chrome.history.search({
       text: "",
       maxResults: offset + maxResults * (showThoseInBlacklist ? 1 : 2) + neededMore
-    }, function (historys2: chrome.history.HistoryItem[] | BrowserUrlItem[]): void {
+    }, function (historyArr2: chrome.history.HistoryItem[] | BrowserUrlItem[]): void {
       if (query.o) { return; }
-      historys2 = (historys2 as chrome.history.HistoryItem[]).filter(historyEngine.urlNotIn_, arr);
+      historyArr2 = (historyArr2 as chrome.history.HistoryItem[]).filter(historyEngine.urlNotIn_, arr);
       if (!showThoseInBlacklist) {
-        historys2 = (historys2 as chrome.history.HistoryItem[]).filter(function (entry) {
+        historyArr2 = (historyArr2 as chrome.history.HistoryItem[]).filter(function (entry) {
           return BlacklistFilter.TestNotMatched_(entry.url, entry.title || "");
         });
       }
       if (cut < 0) {
-        historys2.length = Math.min(historys2.length, maxResults - historys.length);
-        historys2 = historys.concat(historys2);
+        historyArr2.length = Math.min(historyArr2.length, maxResults - historyArr.length);
+        historyArr2 = historyArr.concat(historyArr2);
       } else if (cut > 0) {
-        historys2 = historys2.slice(cut, cut + maxResults);
+        historyArr2 = historyArr2.slice(cut, cut + maxResults);
       }
-      return historyEngine.filterFinish_(historys2);
+      return historyEngine.filterFinish_(historyArr2);
     });
   },
-  filterFinish_: function (historys: Array<BrowserUrlItem | Suggestion>): void {
-    historys.forEach(historyEngine.MakeSuggestion_);
+  filterFinish_: function (historyArr: Array<BrowserUrlItem | Suggestion>): void {
+    historyArr.forEach(historyEngine.MakeSuggestion_);
     offset = 0;
     Decoder.continueToWork_();
-    Completers.next_(historys as Suggestion[], SugType.history);
-  } as (historys: BrowserUrlItem[]) => void,
+    Completers.next_(historyArr as Suggestion[], SugType.history);
+  } as (historyArr: BrowserUrlItem[]) => void,
   MakeSuggestion_ (e: BrowserUrlItem, i: number, arr: Array<BrowserUrlItem | Suggestion>): void {
     const u = e.url, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title || "",
       get2ndArg, (99 - i) / 100),
@@ -800,7 +800,7 @@ tabEngine = {
       suggestions.push(suggestion);
     }
     if (queryType !== FirstQuery.tabs && offset !== 0) { /* empty */ }
-    else if (suggestions.sort(Completers.rsortByRelevancy_).length > offset + maxResults || !noFilter) {
+    else if (suggestions.sort(Completers.rSortByRelevancy_).length > offset + maxResults || !noFilter) {
       if (offset > 0) {
         suggestions = suggestions.slice(offset, offset + maxResults);
         offset = 0;
@@ -925,9 +925,9 @@ searchEngine = {
     if (!promise) {
       return Completers.next_([sug], SugType.search);
     }
-    promise.then(searchEngine.onPrimose_.bind(searchEngine, query, sug));
+    promise.then(searchEngine.onPromise_.bind(searchEngine, query, sug));
   },
-  onPrimose_ (query: CompletersNS.QueryStatus, output: Suggestion, arr: Urls.MathEvalResult): void {
+  onPromise_ (query: CompletersNS.QueryStatus, output: Suggestion, arr: Urls.MathEvalResult): void {
     if (query.o) { return; }
     const result = arr[0];
     if (!result) {
@@ -1029,13 +1029,13 @@ Completers = {
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(<RegExpG> /(^| )__proto__(?=$| )/g, " __proto_").trimLeft().split(" ");
     }
-    queryTerms.sort(Completers.rsortQueryTerms_);
+    queryTerms.sort(Completers.rSortQueryTerms_);
     RegExpCache.buildParts_();
     for (; i < l; i++) {
       completers[i].filter_(query, i);
     }
   },
-  rsortQueryTerms_ (a: string, b: string): number {
+  rSortQueryTerms_ (a: string, b: string): number {
     return b.length - a.length || (a < b ? -1 : a === b ? 0 : 1);
   },
   requireNormalOrIncognito_<T> (
@@ -1079,7 +1079,7 @@ Completers = {
   finish_ (): void {
     let suggestions = Completers.suggestions_ as Suggestion[];
     Completers.suggestions_ = null;
-    suggestions.sort(Completers.rsortByRelevancy_);
+    suggestions.sort(Completers.rSortByRelevancy_);
     if (offset > 0) {
       suggestions = suggestions.slice(offset, offset + maxTotal);
       offset = 0;
@@ -1144,7 +1144,7 @@ Completers = {
     rawMore = str;
     queryType = FirstQuery.waitFirst;
   },
-  rsortByRelevancy_ (a: Suggestion, b: Suggestion): number { return b.r - a.r; }
+  rSortByRelevancy_ (a: Suggestion, b: Suggestion): number { return b.r - a.r; }
 },
 knownCs: CompletersMap & SafeObject = {
   __proto__: null as never,

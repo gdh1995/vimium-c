@@ -366,7 +366,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     /* kFgCmd.linkHints: */ VHints.activate_,
     /* kFgCmd.unhoverLast: */ function (this: void): void {
       VDom.hover_(null);
-      HUD.tip_(kTip.didUnhoverLast, "The last element is unhovered");
+      HUD.tip_(kTip.didUnHoverLast, "The last element is unhovered");
     },
     /* kFgCmd.marks: */ VMarks.activate_,
     /* kFgCmd.goToMarks: */ VMarks.GoTo_,
@@ -808,9 +808,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     for (let re2 = <RegExpOne> /\b/, i = candidates[0][0] >> 23; i < count; ) {
       s = names[i++];
       const re = new RegExp(re2.test(s[0]) || re2.test(s.slice(-1)) ? `\\b${s}\\b` : s, ""), j = i << 23;
-      for (const cand of candidates) {
-        if (cand[0] > j) { break; }
-        if (re.test(cand[1])) { return Pagination.followLink_(cand[2]); }
+      for (const candidate of candidates) {
+        if (candidate[0] > j) { break; }
+        if (re.test(candidate[1])) { return Pagination.followLink_(candidate[2]); }
       }
     }
     return false;
@@ -1554,7 +1554,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
           !coreTester.recvTick_ ? core : 0;
       } catch {}
     };
-    // on Firefox, such a exported function can only be called from privildged environments
+    // on Firefox, such a exported function can only be called from privileged environments
     Object.defineProperty(wrappedJSObject[coreTester.name_] = (new window.Object() as any).wrappedJSObject,
         "_get", { configurable: false, enumerable: false, writable: false,
                   value: (comparer: Parameters<SandboxGetterFunc>[0], rand1: number): ContentWindowCore | void => {

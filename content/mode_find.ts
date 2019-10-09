@@ -101,7 +101,7 @@ var VFind = {
       }
     }, t);
     f("focus", function (this: Window, event: Event): void {
-      if (VFind._actived && event.target === this) {
+      if (VFind._active && event.target === this) {
         VApi.OnWndFocus_();
       }
       Build.BTypes & BrowserType.Firefox
@@ -166,11 +166,11 @@ var VFind = {
   },
   _onUnexpectedBlur: null as ((event?: Event) => void) | null,
   focus_ (): void {
-    this._actived = false;
+    this._active = false;
     this.input_.focus();
-    this._actived = true;
+    this._active = true;
   },
-  _actived: false,
+  _active: false,
   setFirstQuery_ (query: string): void {
     const a = this;
     a.focus_();
@@ -226,7 +226,7 @@ var VFind = {
     const _this = VFind;
     _this.coords_ && VMarks.ScrollTo_(_this.coords_);
     _this.hasResults_ =
-    _this.isActive_ = _this._small = _this._actived = _this.notEmpty_ = false;
+    _this.isActive_ = _this._small = _this._active = _this.notEmpty_ = false;
     VKey.removeHandler_(_this);
     _this.box_ && _this.box_.remove();
     if (_this.box_ === VDom.lastHovered_) { VDom.lastHovered_ = null; }
@@ -346,7 +346,7 @@ var VFind = {
     if (i > FindNS.Action.MaxExitButNoWork && hasResult && (!el || el !== VApi.lock_())) {
       let container = a.focusFoundLinkIfAny_();
       if (container && i === FindNS.Action.ExitAndReFocus && (el2 = document.activeElement)
-          && VDom.getEditableType_(el2) >= EditableType.Editbox && container.contains(el2)) {
+          && VDom.getEditableType_(el2) >= EditableType.TextBox && container.contains(el2)) {
         VDom.prepareCrop_();
         VCui.simulateSelect_(el2);
       } else if (el) {
@@ -482,7 +482,7 @@ var VFind = {
     a.box_.style.width = ((a._small = count < 152) ? 0 as number | string as string : count + "px");
   },
   _ctrlRe: <RegExpG & RegExpSearchable<0>> /\\[CIRW\\cirw]/g,
-  _bslashRe: <RegExpG & RegExpSearchable<0>> /\\\\/g,
+  _backslashRe: <RegExpG & RegExpSearchable<0>> /\\\\/g,
   _escapeAllRe: <RegExpG> /[$()*+.?\[\\\]\^{|}]/g,
   updateQuery_ (query: string): void {
     const a = this;
@@ -505,11 +505,11 @@ var VFind = {
     if (ww && (isRe || !(Build.BTypes & BrowserType.Chrome)
               || ((Build.BTypes & ~BrowserType.Chrome) && VOther !== BrowserType.Chrome)
         )) {
-      query = B + query.replace(a._bslashRe, "\\").replace(a._escapeAllRe, "\\$&") + B;
+      query = B + query.replace(a._backslashRe, "\\").replace(a._escapeAllRe, "\\$&") + B;
       ww = false;
       isRe = true;
     }
-    query = isRe ? query !== "\\b\\b" && query !== B ? query : "" : query.replace(a._bslashRe, "\\");
+    query = isRe ? query !== "\\b\\b" && query !== B ? query : "" : query.replace(a._backslashRe, "\\");
     }
     a.parsedQuery_ = query;
     a.isRegex_ = !!isRe;

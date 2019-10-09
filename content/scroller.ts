@@ -379,7 +379,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       : <BOOL> +this._doesScroll(element, di
                   , amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft));
   },
-  supressScroll_ (): void {
+  suppressScroll_ (): void {
     if (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && Build.BTypes & BrowserType.Chrome
         && !VDom.allowRAF_) {
       this.scrolled_ = 0;

@@ -91,7 +91,7 @@ var HelpDialog = {
       let keys = commandToKeys[command];
       if (hideUnbound && !keys) { continue; }
       const isAdvanced = (this as typeof HelpDialog).advancedCommands_[command] === 1;
-      let klen = -2, bindings = "", description = cachedDescriptions[command];
+      let keyLen = -2, bindings = "", description = cachedDescriptions[command];
       if (!description) {
         let key = command.replace(".", "_"), params = trans_(key + "_p");
         description = trans_(key).replace("<", "&lt;").replace(">", "&gt;")
@@ -112,16 +112,16 @@ var HelpDialog = {
             html += renderItem(isAdvanced, singleBinding, showNames ? desc2 + " " : desc2, showNames ? command : "");
             continue;
           }
-          if (klen >= 0) {
+          if (keyLen >= 0) {
             bindings += '</span>, <span class="HelpKey">';
           }
           bindings += key;
-          klen += item[0].length + 2;
+          keyLen += item[0].length + 2;
         }
         bindings += "</span>\n\t";
       }
       // keep rendering if not hideUnbound
-      if (klen <= 12) {
+      if (keyLen <= 12) {
         html += renderItem(isAdvanced, bindings, description, showNames ? command : "");
       } else {
         html += renderItem(isAdvanced, bindings, "", "");

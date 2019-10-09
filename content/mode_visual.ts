@@ -8,10 +8,10 @@
  */
 declare namespace VisualModeNS {
   const enum G {
-    character = 0, line = 1, lineboundary = 2, paragraph = 3, sentence = 4, word = 6, documentboundary = 7,
+    character = 0, line = 1, lineBoundary = 2, paragraph = 3, sentence = 4, word = 6, documentBoundary = 7,
   }
   const enum VimG {
-    vimword = 5,
+    vimWord = 5,
     _mask = -1,
   }
   /** although values are made by flags, these types are exclusive */
@@ -37,9 +37,9 @@ declare const enum VisualAction {
 
   MinWrapSelectionModify = MinNotNoop,
   char = VisualModeNS.G.character << 1, line = VisualModeNS.G.line << 1,
-  lineboundary = VisualModeNS.G.lineboundary << 1, paragraph = VisualModeNS.G.paragraph << 1,
-  sentence = VisualModeNS.G.sentence << 1, vimword = VisualModeNS.VimG.vimword << 1,
-  word = VisualModeNS.G.word << 1, documentboundary = VisualModeNS.G.documentboundary << 1,
+  lineBoundary = VisualModeNS.G.lineBoundary << 1, paragraph = VisualModeNS.G.paragraph << 1,
+  sentence = VisualModeNS.G.sentence << 1, vimWord = VisualModeNS.VimG.vimWord << 1,
+  word = VisualModeNS.G.word << 1, documentBoundary = VisualModeNS.G.documentBoundary << 1,
   dec = VisualModeNS.kDir.left, inc = VisualModeNS.kDir.right,
 
   MinNotWrapSelectionModify = 20,
@@ -368,7 +368,7 @@ var VVisual = {
 
   _D: ["backward", "forward"] as const,
   _G: ["character", "line", "lineboundary", /*3*/ "paragraph",
-      "sentence", /** VisualModeNS.VimG.vimword */ "", /*6*/ "word",
+      "sentence", /** VisualModeNS.VimG.vimWord */ "", /*6*/ "word",
       "documentboundary"] as const,
   alterMethod_: "" as "move" | "extend",
   di_: VisualModeNS.kDir.unknown as VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown,
@@ -429,9 +429,9 @@ var VVisual = {
     }
     return "";
   },
-  runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG.vimword
+  runMovements_ (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG.vimWord
       , count: number): void {
-    const shouldSkipSpaceWhenMovingRight = granularity === VisualModeNS.VimG.vimword;
+    const shouldSkipSpaceWhenMovingRight = granularity === VisualModeNS.VimG.vimWord;
     const isFirefox = !(Build.BTypes & ~BrowserType.Firefox)
       || !!(Build.BTypes & BrowserType.Firefox) && VOther === BrowserType.Firefox;
     let fixWord: BOOL = 0;
@@ -632,7 +632,7 @@ var VVisual = {
     }
     // editable text elements
     const lock = VApi.lock_();
-    if (lock && lock.parentElement === anchorNode) { // safe beacuse lock is LockableElement
+    if (lock && lock.parentElement === anchorNode) { // safe because lock is LockableElement
       type TextModeElement = TextElement;
       if ((oldDiType & VisualModeNS.DiType.Unknown)
           && (VDom.editableTypes_[lock.localName] as EditableType) > EditableType.MaxNotTextModeElement) {
@@ -727,12 +727,12 @@ var VVisual = {
     a.alterMethod_ = "extend";
     {
       oldDi && a.reverseSelection_();
-      a.modify_(VisualModeNS.kDir.left, VisualModeNS.G.lineboundary);
+      a.modify_(VisualModeNS.kDir.left, VisualModeNS.G.lineBoundary);
       a.di_ = VisualModeNS.kDir.left; // safe
       a.reverseSelection_();
     }
     while (0 < --count) { a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.line); }
-    a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.lineboundary);
+    a.modify_(VisualModeNS.kDir.right, VisualModeNS.G.lineBoundary);
     const ch = a.getNextRightCharacter_(0);
     const num1 = a.oldLen_;
     if (ch && num1 && ch !== "\n" && !(Build.BTypes & BrowserType.Firefox && ch === "\r")) {
@@ -746,19 +746,19 @@ var VVisual = {
     if (di && command < VisualAction.MinNotWrapSelectionModify
         && command >= VisualAction.MinWrapSelectionModify && !a.diType_ && a.selType_() === SelType.Caret) {
       di = (1 & ~command) as VisualModeNS.ForwardDir; // old Di
-      a.modify_(di, VisualModeNS.G.lineboundary);
+      a.modify_(di, VisualModeNS.G.lineBoundary);
       a.selType_() !== SelType.Range && a.modify_(di, VisualModeNS.G.line);
       a.di_ = di;
       a.reverseSelection_();
       let len = (a.selection_ + "").length;
-      a.modify_(di = a.di_ = 1 - di, VisualModeNS.G.lineboundary);
+      a.modify_(di = a.di_ = 1 - di, VisualModeNS.G.lineBoundary);
       (a.selection_ + "").length - len || a.modify_(di, VisualModeNS.G.line);
       return;
     }
     for (let mode = 2; 0 < mode--; ) {
       a.reverseSelection_();
       di = a.di_ = (1 - di) as VisualModeNS.ForwardDir;
-      a.modify_(di, VisualModeNS.G.lineboundary);
+      a.modify_(di, VisualModeNS.G.lineBoundary);
     }
   },
   /** @argument el must be in text mode  */
@@ -769,13 +769,13 @@ var VVisual = {
 keyMap_: {
   l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,
   j: VisualAction.line | VisualAction.inc, k: VisualAction.line | VisualAction.dec,
-  $: VisualAction.lineboundary | VisualAction.inc, 0: VisualAction.lineboundary | VisualAction.dec,
+  $: VisualAction.lineBoundary | VisualAction.inc, 0: VisualAction.lineBoundary | VisualAction.dec,
   "}": VisualAction.paragraph | VisualAction.inc, "{": VisualAction.paragraph | VisualAction.dec,
   ")": VisualAction.sentence | VisualAction.inc, "(": VisualAction.sentence | VisualAction.dec,
-  w: VisualAction.vimword | VisualAction.inc, /* same as w */ W: VisualAction.vimword | VisualAction.inc,
+  w: VisualAction.vimWord | VisualAction.inc, /* same as w */ W: VisualAction.vimWord | VisualAction.inc,
   e: VisualAction.word | VisualAction.inc, b: VisualAction.word | VisualAction.dec,
   /* same as b */ B: VisualAction.word | VisualAction.dec,
-  G: VisualAction.documentboundary | VisualAction.inc, g: { g: VisualAction.documentboundary | VisualAction.dec },
+  G: VisualAction.documentBoundary | VisualAction.inc, g: { g: VisualAction.documentBoundary | VisualAction.dec },
 
   o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence },
 

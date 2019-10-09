@@ -224,7 +224,7 @@ var VCui = {
   },
   getSelectionText_ (notTrim?: 1): string {
     let sel = getSelection(), s = "" + sel, el: Element | null, rect: ClientRect;
-    if (s && !VApi.lock_() && (el = VCui.activeEl_) && VDom.getEditableType_(el) === EditableType.Editbox
+    if (s && !VApi.lock_() && (el = VCui.activeEl_) && VDom.getEditableType_(el) === EditableType.TextBox
         && (rect = sel.getRangeAt(0).getBoundingClientRect(), !rect.width || !rect.height)) {
       s = "";
     }
@@ -313,12 +313,12 @@ var VCui = {
   },
   /** @NEED_SAFE_ELEMENTS element is LockableElement */
   _moveSel_need_safe (element: LockableElement, action: SelectActions | undefined): void {
-    const elTag = element.localName, type = elTag === "textarea" ? EditableType.Editbox
+    const elTag = element.localName, type = elTag === "textarea" ? EditableType.TextBox
         : elTag === "input" ? EditableType.input_
         : element.isContentEditable ? EditableType.rich_
         : EditableType.Default;
     if (type === EditableType.Default) { return; }
-    const isBox = type === EditableType.Editbox || type === EditableType.rich_
+    const isBox = type === EditableType.TextBox || type === EditableType.rich_
         && element.textContent.indexOf("\n") >= 0,
     lineAllAndBoxEnd = action === "all-input" || action === "all-line",
     gotoStart = action === "start",

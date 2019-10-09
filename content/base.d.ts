@@ -150,7 +150,7 @@ declare const enum EditableType {
   Embed = 1,
   Select = 2,
   MaxNotTextModeElement = 2,
-  Editbox = 3,
+  TextBox = 3,
   input_ = 4,
   rich_ = 5,
 }
@@ -186,7 +186,7 @@ declare namespace FindNS {
     PassDirectly = -1,
     DoNothing = 0, Exit, ExitNoAnyFocus, ExitNoFocus, ExitUnexpectedly,
     ExitToPostMode, ExitAndReFocus,
-    MaxExitButNoWork = ExitUnexpectedly, MinExitAndwork = ExitToPostMode,
+    MaxExitButNoWork = ExitUnexpectedly, MinExitAndWork = ExitToPostMode,
   }
   interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "n">> {
     noColor?: boolean;
@@ -336,7 +336,7 @@ interface VApiTy {
     1: (wnd: Window, isAdd: BOOL) => void;
     2: (this: Window, event: KeyboardEvent & {type: "keyup"} | Event & {type: "blur"}) => void;
   };
-  execute_: ((this: void, cmd: ValidContentCmds) => void) | null;
+  execute_: ((this: void, cmd: ValidContentCommands) => void) | null;
   destroy_: (this: void, silent?: boolean | BOOL | 9) => void;
 }
 interface VHUDTy {
@@ -358,7 +358,7 @@ interface VDataTy {
 
 declare const enum kTip {
   /* 4..15 is not used by HintMode */
-  /* 4..9 */ didUnhoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
+  /* 4..9 */ didUnHoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
   /* 20..25 */ copiedIs = 20, failToEvalJS, blockAutoFocus, useVal, turnOn, turnOff,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, haveToOpenManually,
@@ -382,7 +382,7 @@ declare const enum kContentCmd {
   MaskedBitNumber = 3,
   SecretRange = 9e7,
 }
-type ValidContentCmds = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minNotDispatchDirectly
+type ValidContentCommands = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minNotDispatchDirectly
     | kContentCmd.MaskedBitNumber>;
 
 interface ContentWindowCore {

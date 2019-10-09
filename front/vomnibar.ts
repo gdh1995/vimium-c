@@ -74,7 +74,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
               && (!(Build.BTypes & ~BrowserType.Chrome)
                   || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
               ? scale : 1)
-          - a.baseHeightIfNotEmepty_
+          - a.baseHeightIfNotEmpty_
           - (PixelData.MarginTop - ((PixelData.MarginV2 / 2 + 1) | 0) - PixelData.ShadowOffset * 2
              + GlobalConsts.MaxScrollbarWidth)
         ) / a.itemHeight_), a.maxMatches_));
@@ -168,7 +168,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   doEnter_: null as ((this: void) => void) | null,
   renderItems_: null as never as Render,
   selection_: -1,
-  atimer_: 0,
+  afterHideTimer_: 0,
   timer_: 0,
   wheelStart_: 0,
   wheelTime_: 0,
@@ -178,8 +178,8 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
   onMac_: 0 as SettingsNS.FrontendSettingsWithoutSyncing["m"],
   maxMatches_: 0,
   queryInterval_: 0,
-  heightIfEmepty_: VomnibarNS.PixelData.OthersIfEmpty,
-  baseHeightIfNotEmepty_: VomnibarNS.PixelData.OthersIfNotEmpty,
+  heightIfEmpty_: VomnibarNS.PixelData.OthersIfEmpty,
+  baseHeightIfNotEmpty_: VomnibarNS.PixelData.OthersIfNotEmpty,
   itemHeight_: VomnibarNS.PixelData.Item,
   styles_: "",
   styleEl_: null as HTMLStyleElement | null,
@@ -216,12 +216,12 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     a.barCls_.remove("empty");
     a.list_.classList.remove("no-favicon");
     if (a.sameOrigin_) { return a.onHidden_(); }
-    a.atimer_ = requestAnimationFrame(a.AfterHide_);
+    a.afterHideTimer_ = requestAnimationFrame(a.AfterHide_);
     a.timer_ = setTimeout(a.AfterHide_, 35);
   },
   AfterHide_ (this: void): void {
     const a = Vomnibar_;
-    cancelAnimationFrame(a.atimer_);
+    cancelAnimationFrame(a.afterHideTimer_);
     clearTimeout(a.timer_);
     if (a.height_) {
       a.onHidden_();
@@ -733,7 +733,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     const a = Vomnibar_;
     const len = a.completions_.length, notEmpty = len > 0, oldH = a.height_, list = a.list_;
     const height = a.height_
-      = Math.ceil(notEmpty ? len * a.itemHeight_ + a.baseHeightIfNotEmepty_ : a.heightIfEmepty_),
+      = Math.ceil(notEmpty ? len * a.itemHeight_ + a.baseHeightIfNotEmpty_ : a.heightIfEmpty_),
     needMsg = height !== oldH, earlyPost = height > oldH || a.sameOrigin_,
     wdZoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
           && (!(Build.BTypes & ~BrowserType.Chrome)
@@ -742,7 +742,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
       N: VomnibarNS.kFReq.style, h: height * wdZoom
     };
-    oldH || (msg.m = Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmepty_) * wdZoom);
+    oldH || (msg.m = Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmpty_) * wdZoom);
     if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.Parse_);
     a.renderItems_(a.completions_, list);
@@ -834,9 +834,9 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     queryInterval_ != null && (Vomnibar_.queryInterval_ = queryInterval_);
     if (sizes_str != null) {
       let sizes = sizes_str.split(","), n = +sizes[0], m = Math.min, M = Math.max;
-      Vomnibar_.heightIfEmepty_ = M(24, m(n || VomnibarNS.PixelData.OthersIfEmpty, 320));
+      Vomnibar_.heightIfEmpty_ = M(24, m(n || VomnibarNS.PixelData.OthersIfEmpty, 320));
       n = +sizes[1];
-      Vomnibar_.baseHeightIfNotEmepty_ = M(24, m(Vomnibar_.heightIfEmepty_
+      Vomnibar_.baseHeightIfNotEmpty_ = M(24, m(Vomnibar_.heightIfEmpty_
           + (n || (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty)), 320));
       n = +sizes[2];
       Vomnibar_.itemHeight_ = M(14, m(n || VomnibarNS.PixelData.Item, 120));

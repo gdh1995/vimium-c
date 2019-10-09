@@ -10,7 +10,6 @@ interface ImportBody {
 declare var VApi: VApiTy, VHud: VHUDTy,
   Viewer: new (root: HTMLElement) => ViewerType;
 interface Window {
-  readonly VApi?: VApiTy;
   readonly VHud?: VHUDTy;
   readonly Viewer: typeof Viewer;
 }
@@ -141,7 +140,7 @@ window.onhashchange = function (this: void): void {
     if (VData.auto) {
       let newUrl = parseSmartImageUrl_(url);
       if (newUrl) {
-        console.log("Auto predict a better URL of\n %o =>\n %o", url, newUrl);
+        console.log("Auto predict a better URL:\n %o =>\n %o", url, newUrl);
         url = VData.url = newUrl;
       }
     }

@@ -31,7 +31,7 @@ var Commands = {
   },
   makeCommand_ (command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description
       ): CommandsNS.Item | null {
-    let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null, cond: any;
+    let opt: CommandsNS.Options | null, help: CommandsNS.CustomHelpInfo | null = null, condition: any;
     if (!details) { details = this.availableCommands_[command] as CommandsNS.Description; }
     opt = details.length < 4 ? null : BgUtils_.safer_(details[3] as NonNullable<CommandsNS.Description[3]>);
     if (options) {
@@ -47,9 +47,9 @@ var Commands = {
         delete options.$key;
         delete options.$desc;
       }
-      if (cond = options.$if) {
-        if (cond.sys && cond.sys !== Settings_.CONST_.Platform_
-            || cond.browser && ! (cond.browser & (Build.BTypes & ~BrowserType.Chrome
+      if (condition = options.$if) {
+        if (condition.sys && condition.sys !== Settings_.CONST_.Platform_
+            || condition.browser && ! (condition.browser & (Build.BTypes & ~BrowserType.Chrome
                     && Build.BTypes & ~BrowserType.Firefox && Build.BTypes & ~BrowserType.Edge
                   ? OnOther : Build.BTypes & BrowserType._mask))
             ) {

@@ -40,6 +40,14 @@ case "$1" in
     OTHER_ARGS=$OTHER_ARGS" --enable-automation"
     shift
     ;;
+  zh|cn|zh-cn|zh-CN|--zh|--cn|--zh-cn|--zh-CN)
+    FLAGS=$FLAGS" --lang=zh-CN"
+    shift
+    ;;
+  en|en-us|en-US|--en|--en-us|--en-US)
+    FLAGS=$FLAGS" --lang=en-US"
+    shift
+    ;;
   dist|--dist)
     DIST=1
     shift

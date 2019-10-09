@@ -137,13 +137,13 @@ if (VDom && VimiumInjector === undefined) {
     }
     isBox && ((box as Element).textContent = "");
   }
-  function dispatchCmd(cmd: ValidContentCmds) {
+  function dispatchCmd(cmd: ValidContentCommands) {
     (box as Exclude<typeof box, 0 | undefined>).dispatchEvent(new CustomEvent(
         (InnerConsts.kCmd + BuildStr.RandomName1) as InnerConsts.kCmd, {
       detail: <CommandEventDetail> (secret << kContentCmd.MaskedBitNumber) | cmd
     }));
   }
-  function execute(cmd: ValidContentCmds): void {
+  function execute(cmd: ValidContentCommands): void {
     if (cmd < kContentCmd._minNotDispatchDirectly) {
       if (cmd === kContentCmd.FindAllOnClick) {
         isFirstResolve = 0;
@@ -192,7 +192,7 @@ if (VDom && VimiumInjector === undefined) {
   /** the `InnerVerifier` needs to satisfy
    * * never return any object (aka. keep void) if only "not absolutely safe"
    * * never change the global environment / break this closure
-   * * must look like a real task and contain raondom string
+   * * must look like a real task and contain random string
    */
   interface InnerVerifier {
     (maybeSecret: string, maybeAnotherVerifierInner: InnerVerifier | unknown): void;
@@ -427,7 +427,7 @@ function prepareRegister(this: void, element: Element): void {
     }
   }
   // note: the below changes DOM trees,
-  // so `dispatch` MUST NEVER throw. Otherwises a page might break
+  // so `dispatch` MUST NEVER throw. Otherwise a page might break
   if (!(e2 = e1.parentNode as Exclude<Element["parentNode"], Window>)) {
     root !== e1 && call(Append, root, e1);
     pushForDetached(

@@ -76,7 +76,7 @@ var VDom = {
     (this: void, el: Node | null): Node | null;
   } : 0 as never,
   GetShadowRoot_ (el: Element): ShadowRoot | null {
-    // check el's type to avoid exceptions
+    // check type of el to avoid exceptions
     if (!(Build.BTypes & ~BrowserType.Firefox)) {
       return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ? el.shadowRoot as ShadowRoot | null
         : <ShadowRoot | null | undefined> el.shadowRoot || null;
@@ -580,7 +580,7 @@ var VDom = {
     image: 1, radio: 1, range: 1, reset: 1, submit: 1
   },
   editableTypes_: <SafeDict<EditableType>> { __proto__: null as never,
-    input: EditableType.input_, textarea: EditableType.Editbox,
+    input: EditableType.input_, textarea: EditableType.TextBox,
     keygen: EditableType.Select, select: EditableType.Select,
     embed: EditableType.Embed, object: EditableType.Embed
   },
@@ -592,9 +592,9 @@ var VDom = {
     const tag = VDom.htmlTag_(element), ty = VDom.editableTypes_[tag];
     return !tag ? EditableType.NotEditable : ty !== EditableType.input_ ? (ty ||
         ((element as HTMLElement).isContentEditable !== true
-        ? EditableType.NotEditable : EditableType.Editbox)
+        ? EditableType.NotEditable : EditableType.TextBox)
       )
-      : VDom.uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.Editbox;
+      : VDom.uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.TextBox;
   } as {
     <Ty extends 0>(element: Element): EditableType;
     <Ty extends 1>(element: Element): element is LockableElement;

@@ -949,7 +949,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         let opts = registry.options_ || ((registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>());
         if (!opts.$noWarn) {
           (opts as Writable<typeof opts>).$noWarn = true;
-          console.log("Error: Command", cmdName, "must run on pages which are not priviledged");
+          console.log("Error: Command", cmdName, "must run on pages which are not privileged");
         }
       }
     }
@@ -2334,7 +2334,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     /** kFgReq.vomnibar: */ function (this: void, request: FgReq[kFgReq.vomnibar] & Req.baseFg<kFgReq.vomnibar>
         , port: Port): void {
       const { c: count, i: inner } = request;
-      cKey = kKeyCode.None; // it's only from VHints's task / VOmni reloading, so no Key to suppress
+      cKey = kKeyCode.None; // it's only from VHints' task / VOmni reloading, so no Key to suppress
       if (count != null) {
         delete request.c, delete request.H, delete request.i;
         cRepeat = +count || 1;

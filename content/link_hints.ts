@@ -181,12 +181,12 @@ var VHints = {
     a.count_ = count;
     return a.setMode_(mode, true);
   },
-  setMode_ (mode: HintMode, slient?: boolean): void {
+  setMode_ (mode: HintMode, silent?: boolean): void {
     const a = this;
     a.lastMode_ = a.mode_ = mode;
     a.mode1_ = mode = mode & ~HintMode.queue;
     a.forHover_ = mode > HintMode.min_hovering - 1 && mode < HintMode.max_hovering + 1;
-    if (slient || a.noHUD_) { return; }
+    if (silent || a.noHUD_) { return; }
     if (a.pTimer_ < 0) {
       a.pTimer_ = setTimeout(a.SetHUDLater_, 1000);
       return;
@@ -537,7 +537,7 @@ var VHints = {
       str = (element as SafeHTMLElement).dataset.src || element.getAttribute("href");
       if (!VHints.isImageUrl_(str)) {
         str = (element as SafeHTMLElement).style.backgroundImage as string;
-        // skip "data:" URLs, becase they are not likely to be big images
+        // skip "data:" URLs, because they are not likely to be big images
         str = str && str.slice(0, 3).toLowerCase() === "url" && str.lastIndexOf("data:", 9) < 0 ? str : "";
       }
     }
@@ -650,7 +650,7 @@ var VHints = {
         Sc.scrolled_ = 0;
       }
     }
-    Sc.scrolled_ === 1 && Sc.supressScroll_();
+    Sc.scrolled_ === 1 && Sc.suppressScroll_();
     if (wantClickable) { a.deduplicate_(output as Hint[]); }
     if (a.frameNested_ === null) { /* empty */ }
     else if (wantClickable) {
@@ -1357,7 +1357,7 @@ Modes_: [
     }
     if (!toggleMap || typeof toggleMap !== "object") { return; }
     VKey.safer_(toggleMap);
-    let ancestors: Element[] = [], topest: Element | null = element, re = <RegExpOne> /^-?\d+/;
+    let ancestors: Element[] = [], top: Element | null = element, re = <RegExpOne> /^-?\d+/;
     for (let key in toggleMap) {
       // if no Element::closest, go up by 6 levels and then query the selector
       let selector = key, prefix = re.exec(key), upper = prefix && prefix[0];
@@ -1369,9 +1369,9 @@ Modes_: [
         up = element.closest ? 0 : 6;
       }
       selector = selector.trim();
-      while (up && up + 1 >= ancestors.length && topest) {
-        ancestors.push(topest);
-        topest = VDom.GetParent_(topest, PNType.RevealSlotAndGotoParent);
+      while (up && up + 1 >= ancestors.length && top) {
+        ancestors.push(top);
+        top = VDom.GetParent_(top, PNType.RevealSlotAndGotoParent);
       }
       try {
         if (selector && (selected = up
@@ -1613,7 +1613,7 @@ Modes_: [
       return;
     } else if (hint.refer_ && hint.refer_ === link) {
       return a.Modes_[0][0](link, rect, hint);
-    } else if (VDom.getEditableType_<0>(link) >= EditableType.Editbox) {
+    } else if (VDom.getEditableType_<0>(link) >= EditableType.TextBox) {
       VCui.simulateSelect_(link, rect, true);
       return false;
     }

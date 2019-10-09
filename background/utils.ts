@@ -23,7 +23,7 @@ var BgUtils_ = {
     end += charCode >= 0xD800 && charCode < 0xDC00 ? 1 : charCode === 0x200D && end > start + 1 ? -1 : 0;
     return str.slice(start, end);
   },
-  unicodeLsubstring_ (str: string, start: number, end: number): string {
+  unicodeLSubstring_ (str: string, start: number, end: number): string {
     const charCode = start > 0 && start < str.length ? str.charCodeAt(start) : 0;
     start += charCode >= 0xDC00 && charCode <= 0xDFFF ? -1
         : charCode === 0x200D && start < str.length - 1 && start < end - 1 ? 1 : 0;
@@ -89,7 +89,7 @@ var BgUtils_ = {
   A0Re_: <RegExpG> /\xa0/g,
   _nonENTldRe: <RegExpOne> /[^a-z]/,
   protocolRe_: <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//,
-  _nonENDoaminRe: <RegExpOne> /[^.\da-z\-]|^-/,
+  _nonENDomainRe: <RegExpOne> /[^.\da-z\-]|^-/,
   _jsNotEscapeRe: <RegExpOne> /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   quotedStringRe_: <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/,
   filePathRe_: <RegExpOne> /^[A-Za-z]:(?:[\\/][^:*?"<>|]*)?$|^\/(?:Users|home|root)\/[^:*?"<>|]+$/,
@@ -213,7 +213,7 @@ var BgUtils_ = {
       type = expected !== Urls.Type.NoSchema && (index < 0 || index2 >= 3 && index2 <= 5)
         || a.checkInDomain_(str, arr[4]) > 0 ? expected : Urls.Type.Search;
     } else if (str.length !== index + 3 && type === Urls.TldType.ENTld
-        && a._nonENDoaminRe.test(str)) {
+        && a._nonENDomainRe.test(str)) {
       // `notEnglish-domain.English-notCC-TLD`
       type = Urls.Type.Search;
     } else if (expected !== Urls.Type.NoSchema || hasPath) {
@@ -317,8 +317,8 @@ var BgUtils_ = {
   },
   safeParseURL_(url: string): URL | null { try { return new URL(url); } catch {} return null; },
   commonFileExtRe_: <RegExpOne> /\.\w+$/,
-  formatVimiumUrl_ (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
-    let ind: number, subPath = "", query = "", tempStr: string | undefined, path = fullpath.trim();
+  formatVimiumUrl_ (fullPath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
+    let ind: number, subPath = "", query = "", tempStr: string | undefined, path = fullPath.trim();
     if (!path) { return partly ? "" : location.origin + "/pages/"; }
     if (ind = path.indexOf(" ") + 1) {
       query = path.slice(ind).trim();
@@ -338,7 +338,7 @@ var BgUtils_ = {
       } else if (path[0] === "/" || Settings_.CONST_.KnownPages_.indexOf(path) >= 0) {
         path += ".html";
       } else if (vimiumUrlWork === Urls.WorkType.ActIfNoSideEffects  || vimiumUrlWork === Urls.WorkType.ConvertKnown) {
-        return "vimium://" + fullpath.trim();
+        return "vimium://" + fullPath.trim();
       } else {
         path = "show.html#!url vimium://" + path;
       }
@@ -675,7 +675,7 @@ var BgUtils_ = {
           } else if (a.lastUrlType_ !== Urls.Type.Full) {
             ind += a.lastUrlType_ === Urls.Type.NoSchema ? 7 : 5;
           }
-          if (tmpRule = a.reparseSearchUrl_(val.toLowerCase(), ind)) {
+          if (tmpRule = a.reParseSearchUrl_(val.toLowerCase(), ind)) {
             if (key.indexOf("$") >= 0) {
               key = key.replace(a.searchVariable_, "(.*)");
               tmpKey = new RegExp("^" + key, a.alphaRe_.test(key) ? "i" as "" : ""
@@ -699,7 +699,7 @@ var BgUtils_ = {
         ind = str.search(rSpace);
         const tmpKey2 = a.makeRegexp_(val, ind >= 0 ? str.slice(0, ind) : str);
         if (tmpKey2) {
-          key = a.prepareReparsingPrefix_(key);
+          key = a.prepareReParsingPrefix_(key);
           rules.push({prefix_: key, matcher_: tmpKey2, name_: ids[0].trimRight(),
              delimiter_: obj.url_.lastIndexOf("$S") >= 0 ? " " : "+"});
         }
@@ -716,7 +716,7 @@ var BgUtils_ = {
   _spaceOrPlusRe: <RegExpG> /\\\+|%20| /g,
   _queryRe: <RegExpOne> /[#?]/,
   alphaRe_: <RegExpI> /[a-z]/i,
-  reparseSearchUrl_ (url: string, ind: number): Search.TmpRule | null {
+  reParseSearchUrl_ (url: string, ind: number): Search.TmpRule | null {
     const a = this;
     if (ind < 1 || !a.protocolRe_.test(url)) { return null; }
     let prefix: string, str: string, str2: string, ind2: number;
@@ -744,7 +744,7 @@ var BgUtils_ = {
       url = "";
     }
     str2 = str2 && str2.replace(a.escapeAllRe_, "\\$&").replace(a._spaceOrPlusRe, "(?:\\+|%20| )");
-    prefix = a.prepareReparsingPrefix_(prefix);
+    prefix = a.prepareReParsingPrefix_(prefix);
     return {
       prefix_: prefix,
       matcher_: new RegExp(str + str2 + url, a.alphaRe_.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne
@@ -755,7 +755,7 @@ var BgUtils_ = {
     return url.startsWith("http://") ? ProtocolType.http : url === "https://" ? ProtocolType.https
       : ProtocolType.others;
   },
-  prepareReparsingPrefix_ (prefix: string): string {
+  prepareReParsingPrefix_ (prefix: string): string {
     const head = prefix.slice(0, 9).toLowerCase();
     if (this.IsURLHttp_(head)) {
       prefix = prefix.slice(prefix.charCodeAt(4) === kCharCode.colon ? 7 : 8);

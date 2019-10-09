@@ -2,10 +2,8 @@
 /// <reference path="../lib/keyboard_utils.ts" />
 /// <reference path="../content/dom_ui.ts" />
 interface Window {
-  readonly VApi?: VApiTy;
   readonly VHud?: VHUDTy;
   readonly VCui?: typeof VCui;
-  // readonly VDom?: typeof VDom;
 }
 declare var VHud: VHUDTy, VApi: VApiTy;
 
@@ -149,7 +147,7 @@ readonly converter_: string[];
 needToCovertToCharsOnRead_: boolean;
 constructor (element: TextElement, onUpdated: (this: TextOption_<T>) => void) {
   super(element, onUpdated);
-  const conv = this.element_.dataset.converter || "", ops = conv ? conv.split(" ") : [];
+  const converter = this.element_.dataset.converter || "", ops = converter ? converter.split(" ") : [];
   this.element_.oninput = this.onUpdated_;
   this.converter_ = ops;
   this.needToCovertToCharsOnRead_ = false;
@@ -877,10 +875,10 @@ newTabUrlOption.checker_.check_(newTabUrlOption.previous_);
 Option_.all_.userDefinedCss.onSave_ = function () {
   if (!window.VDom || !VDom.cache_) { return; }
   const root = VCui.root_;
-  let styledebugged = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
-  if (!styledebugged) { return; }
+  let debuggedStyle = root && root.querySelector("style.debugged") as HTMLStyleElement | null;
+  if (!debuggedStyle) { return; }
   setTimeout(function () {
-    (styledebugged as HTMLStyleElement).remove();
+    (debuggedStyle as HTMLStyleElement).remove();
     const iframes = VCui.root_.querySelectorAll("iframe");
     for (let i = 0, end = iframes.length; i < end; i++) {
       const frame = iframes[i], isFind = frame.classList.contains("HUD"),
@@ -923,7 +921,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
     styleDebug = document.createElement("style");
     styleDebug.className = "debugged";
     const patch = function (): void {
-      /** Note: shoule keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
+      /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("innerCSS") as string, headEnd = css.indexOf("\n");
       css = css.substr(headEnd + 1, +css.slice(0, headEnd).split(",")[2]);
       VCui.css_(css);
@@ -966,7 +964,7 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       } else {
         styleDebug = doc.querySelector("#custom") as HTMLStyleElement | null;
         if (!styleDebug) {
-          /** shoule keep the same as {@link ../front/vomnibar#Vomnibar_.css_} */
+          /** should keep the same as {@link ../front/vomnibar#Vomnibar_.css_} */
           styleDebug = doc.createElement("style");
           styleDebug.type = "text/css";
           styleDebug.id = "custom";
@@ -979,14 +977,13 @@ $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
       : (isSame ? "" : "\n.transparent { opacity: 1; }\n") + (css2.omni && css2.omni + "\n" || "");
     const UI = window.VCui, findCss = UI && UI.findCss_;
     if (isFind && findCss) {
-      /** Note: shoule keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
+      /** Note: should keep the same as {@link ../background/settings.ts#Settings_.updateHooks_.userDefinedCss } */
       let css = localStorage.getItem("findCSS") as string, defaultLen = parseInt(css, 10);
       findCss.i = findCss.i.slice(0, defaultLen - findCss.c.length - findCss.s.length - 1)
         + "\n" + (css2.find || "");
     }
   }
 }, 1800, $("#userDefinedCss") as HTMLTextAreaElement, 0));
-
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
     && bgBrowserVer_ < BrowserVer.Min$Option$HasReliableFontSize) {

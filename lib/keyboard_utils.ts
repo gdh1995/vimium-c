@@ -147,13 +147,13 @@ var VKey = {
       tick = Date.now() + timeout;
       timer = setInterval(function (info?: TimerType.fake) { // safe-interval
         const delta = Date.now() - tick; // Note: performance.now() may has a worse resolution
-        if (delta > GlobalConsts.TimeOfSuppressingTailKeydowns || delta < -3e3
+        if (delta > GlobalConsts.TimeOfSuppressingTailKeydownEvents || delta < -3e3
            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake
               && info) {
           clearInterval(timer);
           VKey && VKey.removeHandler_(func); // safe enough even if reloaded
         }
-      }, (GlobalConsts.TimeOfSuppressingTailKeydowns * 0.36) | 0);
+      }, (GlobalConsts.TimeOfSuppressingTailKeydownEvents * 0.36) | 0);
     }
     this.pushHandler_(func, func);
   },
