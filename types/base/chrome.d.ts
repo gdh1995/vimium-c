@@ -2424,13 +2424,6 @@ declare namespace chrome.tabs {
     export function move(tabIds: number[], moveProperties: MoveProperties, callback?: (tabs: Tab[], exArg: FakeArg) => void): 1;
     export function move(tabId: number, moveProperties: MoveProperties, callback?: (tab: Tab, exArg: FakeArg) => void): 1;
     /**
-     * Moves one or more tabs to a new position within its window, or to a new window. Note that tabs can only be moved to and from normal (window.type === "normal") windows.
-     * @param tabIds The tabs to move.
-     * @param callback Optional.
-     * Parameter tabs: Details about the moved tabs.
-     */
-    export function move(tabIds: number[], moveProperties: MoveProperties, callback?: (tabs: Tab[], exArg: FakeArg) => void): 1;
-    /**
      * Modifies the properties of a tab. Properties that are not specified in updateProperties are not modified.
      * @param callback Optional.
      * Optional parameter tab: Details about the updated tab. The tabs.Tab object doesn't contain url, title and favIconUrl if the "tabs" permission has not been requested.

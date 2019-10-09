@@ -1295,18 +1295,30 @@ var Backend_: BackendHandlersNS.BackendHandlers;
             leftTabs = leftTabs.filter(filter);
             rightTabs = rightTabs.filter(filter);
           }
-          const leftNum = leftTabs.length;
+          const leftNum = leftTabs.length, rightNum = rightTabs.length;
           const getId = (tab2: Tab): number => tab2.id;
-          if (leftNum > 0) {
+          if (!leftNum) { /* empty */ }
+          else if (Build.BTypes & BrowserType.Firefox
+              && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+            for (let i = 0; i < leftNum; i++) {
+              chrome.tabs.move(leftTabs[i].id, { index: i, windowId: wnd2.id }, onRuntimeError);
+            }
+          } else {
             chrome.tabs.move(leftTabs.map(getId), {index: 0, windowId: wnd2.id}, onRuntimeError);
             if (leftNum > 1) { // on Chrome, current order is [left[0], firstMoved, ...left[1:]], so need to move again
               chrome.tabs.move(tabs[firstMoved].id, { index: leftNum });
             }
-            if (firstMoved !== activeTabIndex) {
-              selectTab(tabs[activeTabIndex].id);
-            }
           }
-          if (rightTabs.length > 0) {
+          if (firstMoved !== activeTabIndex) {
+            selectTab(tabs[activeTabIndex].id);
+          }
+          if (!rightNum) { /* empty */ }
+          else if (Build.BTypes & BrowserType.Firefox
+              && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+            for (let i = 0; i < rightNum; i++) {
+              chrome.tabs.move(rightTabs[i].id, { index: leftNum + 1 + i, windowId: wnd2.id }, onRuntimeError);
+            }
+          } else {
             chrome.tabs.move(rightTabs.map(getId), { index: leftNum + 1, windowId: wnd2.id }, onRuntimeError);
           }
         } : null);
