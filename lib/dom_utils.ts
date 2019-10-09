@@ -214,8 +214,6 @@ var VDom = {
    * only if is a child which in fact has a same origin with its parent frame (ignore `document.domain`).
    *
    * So even if it returns a valid object, `parent.***` may still be blocked
-   *
-   * @param ignoreSec may be 1 only if knowning on Firefox
    */
   parentCore_: (Build.BTypes & BrowserType.Firefox ? function (): ContentWindowCore | 0 | void {
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement

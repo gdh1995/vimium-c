@@ -1569,7 +1569,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         return;
       }
       if (!thisCore) {
-        // not expose VApi, in case of unpredictable attacks
         /** @see {@link base.d.ts#ContentWindowCore} */
         thisCore = { VDom, VKey, VHints, VSc, VOmni, VFind, VApi, VIh: () => innerHeight };
       }
