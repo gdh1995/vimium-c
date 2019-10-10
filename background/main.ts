@@ -530,7 +530,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
 
   const hackedCreateTab =
       (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
-        || CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito
+        || !Build.CreateFakeIncognito || CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito
       ? null : [function (wnd): void {
     if (cOptions.url || cOptions.urls) {
       return BackgroundCommands[kBgCmd.openUrl]([selectFrom((wnd as PopWindow).tabs)]);
@@ -960,7 +960,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
     Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
-      ? UseTab.NoTab : UseTab.ActiveTab,
+        && Build.CreateFakeIncognito ? UseTab.NoTab : UseTab.ActiveTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
     UseTab.NoTab, UseTab.CurShownTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
     UseTab.NoTab, UseTab.NoTab, UseTab.CurWndTabs, UseTab.NoTab, UseTab.ActiveTab,
@@ -1340,6 +1340,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
           return Backend_.reopenTab_(tab);
         } else if (BgUtils_.isRefusingIncognito_(url)) {
           if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome) ||
+              !Build.CreateFakeIncognito ||
               CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito || Settings_.CONST_.DisallowIncognito_) {
             return Backend_.complain_(trans_("openIncog"));
           }
@@ -1356,7 +1357,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
             chrome.tabs.query({ windowId: wnds[wnds.length - 1].id, active: true }, function ([tab2]): void {
               const tabId2 = options.tabId as number;
               if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
-                  || options.url) {
+                  || !Build.CreateFakeIncognito || options.url) {
                 chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
                 selectWnd(tab2);
                 chrome.tabs.remove(tabId2);
@@ -2974,12 +2975,14 @@ var Backend_: BackendHandlersNS.BackendHandlers;
   Settings_.updateHooks_.newTabUrl_f = function (url) {
     const onlyNormal = BgUtils_.isRefusingIncognito_(url),
     mayForceIncognito = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
-      && onlyNormal && CurCVer_ < BrowserVer.MinNoUnmatchedIncognito;
+        && Build.CreateFakeIncognito ? onlyNormal && CurCVer_ < BrowserVer.MinNoUnmatchedIncognito : false;
     BackgroundCommands[kBgCmd.createTab] = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
-        && Build.BTypes & BrowserType.Chrome && mayForceIncognito ? function (): void {
+        && Build.BTypes & BrowserType.Chrome && Build.CreateFakeIncognito
+        && mayForceIncognito ? function (): void {
       getCurWnd(true, hackedCreateTab[0].bind(url));
     } : standardCreateTab.bind(null, onlyNormal);
-    if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome) {
+    if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
+        && Build.CreateFakeIncognito) {
       BgCmdInfo[kBgCmd.createTab] = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
     }
   };

@@ -11,6 +11,7 @@ declare const enum Build {
   PContentSettings = 1,
   MayOverrideNewTab = 0,
   DetectAPIOnFirefox = 1,
+  CreateFakeIncognito = 1,
 }
 // Note: one random value must be used only in one .ts file, to avoid issues caused by partly building
 declare const enum BuildStr {
