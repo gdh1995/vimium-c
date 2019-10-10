@@ -3,7 +3,8 @@
     "ascii_only": true, // if `false` by default, '\xa0' is replaced with '\xc2\xa0', which is wrong
     "comments": "all", // in gulp, replaced with `/^!/`
     "keep_quoted_props": false,
-    "wrap_iife": true
+    "wrap_iife": true,
+    "wrap_func_args": false
   },
   "compress": {
     "booleans": false,

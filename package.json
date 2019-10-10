@@ -23,7 +23,7 @@
     "gulp-typescript": "*",
     "gulp-uglify": ">=3",
     "seedrandom": ">=3.0.1",
-    "terser": "^4.2.1",
+    "terser": "^4.3.8",
     "tslint": "^5.19.0",
     "typescript-tslint-plugin": "^0.5.4"
   },

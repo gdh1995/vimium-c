@@ -1294,17 +1294,6 @@ function loadUglifyConfig(reload) {
   if (gNoComments || !locally && getNonNullBuildItem("NDEBUG")) {
     a.output.comments = /^!/;
   }
-  var hasOptionUndeclared = require('terser/package').version >= '4.1.2';
-  var mangle = a.mangle, properties = mangle && mangle.properties;
-  if (mangle) {
-    if (hasOptionUndeclared) {
-      if (properties.undeclared == null) {
-        properties.undeclared = true;
-      }
-    } else {
-      delete properties.undeclared;
-    }
-  }
   return a;
 }
 

@@ -627,7 +627,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       KeydownEvents = safer(null);
       if (VDom.cache_.g && InsertMode.grabBackFocus_) {
         let counter = 0, prompt = function (): void {
-          counter++ || console.log(VTr(kTip.blockAutoFocus, "Vimium C has blocked auto-focusing of an editable box."));
+          counter++ || console.log(VTr(kTip.blockAutoFocus, "Vimium C blocks auto-focusing."));
         };
         if (notBody) {
           InsertMode.last_ = null;

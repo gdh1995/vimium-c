@@ -105,6 +105,27 @@ function loadUglifyConfig(path, reload) {
     else if (m && !m.keep_fnames) {
       m.keep_fnames = c.keep_fnames;
     }
+    let ver = "";
+    try {
+      ver = require('terser/package').version;
+    } catch (e) {
+      console.log("Can not read the version of terser.");
+    }
+    if (ver) {
+      var hasOptionUndeclared = ver >= '4.1.2', has_wrap_func_args = ver >= '4.3';
+      if (m) {
+        if (hasOptionUndeclared) {
+          if (p.undeclared == null) {
+            p.undeclared = true;
+          }
+        } else {
+          delete p.undeclared;
+        }
+      }
+      if (!has_wrap_func_args && a.output && a.output.wrap_func_args !== undefined) {
+        delete a.output.wrap_func_args;
+      }
+    }
   }
   return a;
 }
