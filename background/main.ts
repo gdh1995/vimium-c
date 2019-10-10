@@ -1811,7 +1811,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       tab && selectTab(tab.id);
     },
     /* kBgCmd.copyTabInfo: */ function (this: void): void {
-      let decoded = !!(cOptions.decoded || cOptions.decode), type = cOptions.type;
+      let decoded = !!(cOptions.decoded || cOptions.decode), type = cOptions.type as string | undefined;
       if (type === "frame" && cPort) {
         requireURL({ H: kFgReq.copy, u: "", d: decoded });
         return;
@@ -1819,7 +1819,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       // include those hidden on Firefox
       chrome.tabs.query(type === "browser" ? {windowType: "normal"}
           : {active: type !== "window" || void 0, currentWindow: true}, (tabs): void => {
-        if (type === "title" || type === "frame" || type === "url") {
+        if (!type || type === "title" || type === "frame" || type === "url") {
           requestHandlers[kFgReq.copy]({ u: type === "title" ? tabs[0].title : tabs[0].url, d: decoded });
           return;
         }
