@@ -461,6 +461,11 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     BgUtils_.GC_();
     Commands.execute_(message, sender, executeCommand);
   }
+  function notifyCKey() {
+    cPort && cPort.postMessage({ N: kBgReq.focusFrame,
+      S: null, k: cKey, c: 0, m: FrameMaskType.NoMaskAndNoFocus
+    });
+  }
 
   const
   getCurTab = chrome.tabs.query.bind<null, { active: true, currentWindow: true }
@@ -502,7 +507,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       openMultiTab(options, cRepeat);
       return !inCurWnd && active ? selectWnd(options) : undefined;
     }
-    return makeWindow({
+    makeWindow({
       url,
       incognito: true, focused: active
     }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "");
@@ -663,8 +668,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     }
     if (window) {
       getCurWnd(false, function ({ state }): void {
-        return makeWindow({ url, focused: active },
-          state !== "minimized" && state !== "docked" ? state : "");
+        makeWindow({ url, focused: active }, state !== "minimized" && state !== "docked" ? state : "");
       });
       return;
     }
@@ -1260,13 +1264,9 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         const tabs = wnd.tabs, total = tabs.length, all = !!cOptions.all;
         if (!all && total <= 1) { return; } // not need to show a tip
         const tab = selectFrom(tabs), { incognito: curIncognito, index: activeTabIndex } = tab;
-        let firstMoved = activeTabIndex, range: [number, number], count: number;
+        let range: [number, number], count: number;
         if (all) {
           range = [0, count = total];
-          if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
-              || tabs[total - 1].incognito === curIncognito) {
-            firstMoved = total - 1;
-          }
         } else {
           range = getTabRange(activeTabIndex, total), count = range[1] - range[0];
           if (count >= total) { return Backend_.showHUD_(trans_("moveAllTabs")); }
@@ -1283,11 +1283,12 @@ var Backend_: BackendHandlersNS.BackendHandlers;
           }
         }
         return makeWindow({
-          tabId: tabs[firstMoved].id,
+          tabId: tabs[activeTabIndex].id,
           incognito: curIncognito
         }, wnd.type === "normal" ? wnd.state : "", count > 1 ?
         function (wnd2: Window): void {
-          let leftTabs = tabs.slice(range[0], firstMoved), rightTabs = tabs.slice(firstMoved + 1, range[1]);
+          notifyCKey();
+          let leftTabs = tabs.slice(range[0], activeTabIndex), rightTabs = tabs.slice(activeTabIndex + 1, range[1]);
           if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
               && Build.BTypes & BrowserType.Chrome
               && wnd.incognito && CurCVer_ < BrowserVer.MinNoUnmatchedIncognito) {
@@ -1305,12 +1306,10 @@ var Backend_: BackendHandlersNS.BackendHandlers;
             }
           } else {
             chrome.tabs.move(leftTabs.map(getId), {index: 0, windowId: wnd2.id}, onRuntimeError);
-            if (leftNum > 1) { // on Chrome, current order is [left[0], firstMoved, ...left[1:]], so need to move again
-              chrome.tabs.move(tabs[firstMoved].id, { index: leftNum });
+            if (leftNum > 1) {
+              // on Chrome, current order is [left[0], activeTabIndex, ...left[1:]], so need to move again
+              chrome.tabs.move(tabs[activeTabIndex].id, { index: leftNum });
             }
-          }
-          if (firstMoved !== activeTabIndex) {
-            selectTab(tabs[activeTabIndex].id);
           }
           if (!rightNum) { /* empty */ }
           else if (Build.BTypes & BrowserType.Firefox
@@ -1321,7 +1320,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
           } else {
             chrome.tabs.move(rightTabs.map(getId), { index: leftNum + 1, windowId: wnd2.id }, onRuntimeError);
           }
-        } : null);
+        } : notifyCKey);
       }
       function reportNoop(): void {
         return Backend_.showHUD_(trans_("hasIncog"));
@@ -1364,7 +1363,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
               } else {
                 makeTempWindow(tabId2, true, function (): void {
                   chrome.tabs.move(tabId2, {index: tab2.index + 1, windowId: tab2.windowId}, function (): void {
-                    return selectTab(tabId2, true);
+                    selectTab(tabId2, true);
+                    notifyCKey();
                   });
                 });
               }
@@ -1382,8 +1382,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
           }
           // in tests on Chrome 46/51, Chrome hangs at once after creating a new normal window from an incognito tab
           // so there's no need to worry about stranger edge cases like "normal window + incognito tab + not allowed"
-          makeWindow(options, state);
-          if (tabId != null) {
+          makeWindow(options, state, tabId ? null : notifyCKey);
+          if (tabId) {
             chrome.tabs.remove(tabId);
           }
         });
@@ -1405,7 +1405,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
               ? chrome.tabs.move(tab.id, {
                 index: tab2.index + (cOptions.right > 0 ? 1 : 0), windowId: tab2.windowId
               }, function (): void {
-                return selectTab(tab.id, true);
+                notifyCKey();
+                selectTab(tab.id, true);
               })
               : index >= 0 || CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito ? callback()
               : makeTempWindow(tab.id, tab.incognito, callback);
@@ -1413,7 +1414,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
                 chrome.tabs.move(tab.id, {
                   index: tab2.index + (cOptions.right > 0 ? 1 : 0), windowId: tab2.windowId
                 }, function (): void {
-                  return selectTab(tab.id, true);
+                  notifyCKey();
+                  selectTab(tab.id, true);
                 });
               }
             });
@@ -1422,10 +1424,10 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         } else {
           wnds = wnds0.filter(wnd => wnd.id === index);
         }
-        return makeWindow({
+        makeWindow({
           tabId: tab.id,
           incognito: tab.incognito
-        }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "");
+        }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "", notifyCKey);
       });
     },
     /* kBgCmd.toggleCS: */ function (this: void, tabs: [Tab]): void {
