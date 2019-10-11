@@ -241,16 +241,15 @@ var VCui = {
   } as (root?: VUIRoot, justTest?: 1) => boolean,
   click_ (element: Element
       , rect?: Rect | null, modifiers?: MyMouseControlKeys | null, addFocus?: boolean | BOOL
-      , button?: 0 | 2, touchMode?: /** default: auto */ null | boolean | /** false */ 0): void {
+      , button?: 0 | 2, touchMode?: /** default: false */ null | false | /** false */ 0 | true | "auto"): void {
     const a = VDom;
     rect || (rect = a.getVisibleClientRect_(element));
     const center = a.center_(rect);
     if (Build.BTypes & BrowserType.Chrome
         && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)
-        && (touchMode || touchMode == null)
         && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
             || a.cache_.v >= BrowserVer.MinEnsuredTouchEventConstructor)
-        && (touchMode || a.isInTouchMode_())) {
+        && (touchMode === !0 || touchMode && a.isInTouchMode_())) {
       a.touch_(element, center, a.touch_(element, center));
     }
     element === a.lastHovered_ || a.hover_(element, center);

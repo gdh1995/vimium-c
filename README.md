@@ -60,6 +60,9 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
+1.78.2
+* LinkHints: `touch` mode: now disabled by default; use `touch=true` or `touch="auto"` to enable it
+
 1.78.1
 * Firefox: fix broken `LinkHints`
 

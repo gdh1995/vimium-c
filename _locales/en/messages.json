@@ -45,7 +45,7 @@
 		"message": "Open a link in the current tab"
 	},
 	"LinkHints_activate_p": {
-		"message": "button=\"\"/right, touch=auto/true/false"
+		"message": "button=\"\"/right, touch=false/true/\"auto\""
 	},
 	"LinkHints_activateMode": {
 		"message": "Open a link in the current tab"
