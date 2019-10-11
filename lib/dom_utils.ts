@@ -8,9 +8,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinES6$ForOf
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
   var WeakSet: WeakSetConstructor | undefined;
 }
+interface VisualViewport { width?: number; height: number; offsetLeft: number; offsetTop: number;
+    pageLeft: number; pageTop: number; scale: number; }
 if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsured$visualViewport$) {
-  interface VisualViewport { width: number; height: number; offsetLeft: number; offsetTop: number;
-      pageLeft: number; pageTop: number; scale: number; }
   var visualViewport: VisualViewport | undefined;
 }
 declare var VOther: BrowserType;
@@ -245,7 +245,7 @@ var VDom = {
         // todo: before MinPinchZoomOnWindowsAndTouchpad ?
         vleft = visual.offsetLeft | 0, vtop = visual.offsetTop | 0;
         vtops = vtop + 3;
-        i = vleft + visual.width | 0; j = vtop + visual.height | 0;
+        i = vleft + <number> visual.width | 0; j = vtop + visual.height | 0;
       }
       else if (doc = d.documentElement,
           el = Build.MinCVer >= BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled

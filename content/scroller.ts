@@ -299,7 +299,12 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
         : index < kScrollDim.position ? di ? (el as SafeElement).scrollHeight : (el as SafeElement).scrollWidth
         : di ? (el as SafeElement).scrollTop : (el as SafeElement).scrollLeft
       : index > kScrollDim.scrollSize ? di ? scrollY : scrollX
-      : (visual = visualViewport, visual ? di ? visual.height : visual.width : di ? innerHeight : innerWidth);
+      : (visual = visualViewport,
+          !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$
+          || visual && (!(Build.BTypes & BrowserType.Chrome)
+              || Build.MinCVer >= BrowserVer.MinUseful$visualViewport$ || visual.width)
+          ? di ? (visual as VisualViewport).height : (visual as EnsureItemsNonNull<VisualViewport>).width
+          : di ? innerHeight : innerWidth);
   },
   _doesScroll (el: SafeElement, di: ScrollByY, amount: number): boolean {
     const before = this.getDimension_(el, di, kScrollDim.position),
