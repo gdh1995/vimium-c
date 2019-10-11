@@ -26,4 +26,4 @@ html, body, * { user-select: auto; }
 height:14px;margin:0;outline:none;overflow:hidden;vertical-align:top;white-space:nowrap}
 .r{display:flex}#s{flex:0 0 4px;}#i{flex:0 1 auto;min-width:9px}#h{flex:1 0 auto}#c{flex:0 0 auto}
 .r.D{color:#d4d4d4}
-#i,#h{cursor:text}br{all:inherit!important;display:inline!important}:host{margin:0;}
+#i,#h{cursor:text}br{all:inherit!important;display:inline!important}:host{margin:0!important;}

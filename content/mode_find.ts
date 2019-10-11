@@ -117,7 +117,8 @@ var VFind = {
     const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
     body = doc.body as HTMLBodyElement,
     a = VFind,
-    zoom = wnd.devicePixelRatio, list = doc.createDocumentFragment(),
+    zoom = Build.BTypes & BrowserType.Firefox ? wnd.devicePixelRatio : 1,
+    list = doc.createDocumentFragment(),
     addElement = function (tag: 0 | "div" | "style", id?: string | 0): SafeHTMLElement {
       const newEl = doc.createElement(tag || "span") as SafeHTMLElement;
       id && (newEl.id = id);
@@ -144,19 +145,32 @@ var VFind = {
     }
     (a.countEl_ = addElement(0, "c")).textContent = " ";
     VCui.createStyle_(VCui.findCss_.i, VCui.styleFind_ = addElement("style") as HTMLStyleElement);
-    const root = VDom.createShadowRoot_(body), inShadow = a.inShadow_ = root !== body,
-    root2 = inShadow ? addElement("div", 0) : body;
+    // an extra <div> may be necessary: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
+    const box = Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
+        && VDom.cache_.m === false
+        ? addElement("div", 0) as HTMLDivElement : body,
+    root = VDom.createShadowRoot_(box), inShadow = a.inShadow_ = root !== box,
+    root2 = inShadow ? addElement("div", 0) : box;
     root2.className = "r" + VDom.cache_.d;
     root2.spellcheck = false;
     root2.appendChild(list);
     if (inShadow) {
-      // here can not use `body.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
-      body.setAttribute("role", "textbox");
+      // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
+      box.setAttribute("role", "textbox");
       root2.addEventListener("mousedown", a.OnMousedown_, true);
       root.appendChild(root2);
     }
-    Build.BTypes & ~BrowserType.Firefox &&
-    zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
+      if (box !== body) {
+        (doc.head as HTMLHeadElement).appendChild(addElement("style", 0) as HTMLStyleElement
+            ).textContent = "body{margin:0!important}";
+        body.appendChild(box);
+      }
+    } else if (zoom < 1) {
+      docEl.style.zoom = "" + 1 / zoom;
+    }
     a.box_.style.display = "";
     VKey.removeHandler_(a);
     VKey.pushHandler_(a.onHostKeydown_, a);
