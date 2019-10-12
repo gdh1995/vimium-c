@@ -137,7 +137,6 @@ BgUtils_.timeout_(1000, function (): void {
       } };
       Settings_.broadcast_(req);
     }
-    BgUtils_.GC_();
   }
   function TrySet<K extends keyof SettingsToSync>(this: void, key: K, value: SettingsToSync[K] | null) {
     if (!shouldSyncKey(key) || key === keyInDownloading) { return; }
@@ -420,7 +419,6 @@ BgUtils_.timeout_(1000, function (): void {
       }
       BgUtils_.timeout_(100, () => {
         Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: Settings_.payload_ });
-        BgUtils_.GC_();
       });
       (kSources -= 2) || resolve();
     });
@@ -463,6 +461,7 @@ BgUtils_.timeout_(1000, function (): void {
   Settings_.restore_ = () => {
     if (restoringPromise) { /* empty */ }
     else if (!localStorage.length) {
+      BgUtils_.GC_();
       restoringPromise = Promise.all([BgUtils_.require_("Commands"), BgUtils_.require_("Exclusions")]).then(_ => {
         return new Promise<void>(resolve => {
           cachedSync ? storage().get(items => {
@@ -484,11 +483,11 @@ BgUtils_.timeout_(1000, function (): void {
     Settings_.sync_ = SetLocal;
     return;
   }
-  if (!storage()) {  Settings_.restore_ = null; BgUtils_.GC_(); return; }
+  BgUtils_.GC_();
+  if (!storage()) {  Settings_.restore_ = null;  return; }
   storage().get(items => {
     const err = BgUtils_.runtimeError_();
     if (err) {
-      BgUtils_.GC_();
       console.log(now(), "Error: failed to get storage:", err, "\n\tSo disable syncing temporarily.");
       Settings_.updateHooks_.vimSync = Settings_.sync_ = BgUtils_.blank_;
       Settings_.restore_ = null;
@@ -1005,23 +1004,23 @@ BgUtils_.GC_ = function (inc0?: number): void {
    * which means `later` should never be called in the next real-world time period after once GC().
    * As a result, `Date.now` is not strong enough, so a frequent `clearTimeout` is necessary.
    */
-  let timeout = 0, referenceCount = 0;
+  let now = 0, timeout = 0, referenceCount = 0;
   BgUtils_.GC_ = function (inc?: number): void {
-    timeout && clearTimeout(timeout);
-    inc && (referenceCount += inc);
-    if (referenceCount > 0) { return; }
-    referenceCount < 0 && (referenceCount = 0); // safer
-    timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
+    inc && (referenceCount = referenceCount + inc > 0 ? referenceCount + inc : 0);
+    if (referenceCount > 0 || !Commands || !Exclusions || Exclusions.rules_.length > 0) {
+      if (timeout) { clearTimeout(timeout); timeout = 0; }
+      return;
+    }
+    now = performance.now();
+    timeout = timeout || setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
   };
   return BgUtils_.GC_(inc0);
   function later(): void {
+    if (Math.abs(performance.now() - now) < GlobalConsts.ToleranceForTimeoutToGC) {
+      timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
+      return;
+    }
     timeout = 0;
-    const existing = !(Build.BTypes & ~BrowserType.Chrome) || chrome.extension.getViews
-    ? chrome.extension.getViews().some(function (wnd): boolean {
-      const path = wnd.location.pathname.toLowerCase();
-      return path.startsWith("/pages/options") || path.startsWith("/pages/popup");
-    }) : false;
-    if (existing) { return; }
     const hook = Settings_.updateHooks_;
     if (Commands) {
       hook.keyMappings = null as never;

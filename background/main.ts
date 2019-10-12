@@ -457,8 +457,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
   /** this functions needs to accept any types of arguments and normalize them */
   function executeExternalCmd(message: Partial<ExternalMsgs[kFgReq.command]["req"]>
       , sender: chrome.runtime.MessageSender): void {
-    if (!Commands) { BgUtils_.require_("Commands").then(() => executeExternalCmd(message, sender)); return; }
     BgUtils_.GC_();
+    if (!Commands) { BgUtils_.require_("Commands").then(() => executeExternalCmd(message, sender)); return; }
     Commands.execute_(message, sender, executeCommand);
   }
   function notifyCKey() {
