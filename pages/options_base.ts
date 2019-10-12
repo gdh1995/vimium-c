@@ -445,6 +445,26 @@ timer_?: number;
 ExclusionRulesOption_.prototype._reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption_.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
+if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+      && Build.BTypes & BrowserType.Chrome
+      && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
+    || devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+        || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
+    ) {
+nextTick_((): void => {
+  const css = document.createElement("style"), ratio = devicePixelRatio;
+  const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
+    || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
+  let scale: string | number = Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
+    || onlyInputs || bgBrowserVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
+  scale = scale + 0.00000999;
+  scale = ("" + scale).slice(0, 7).replace(<RegExpOne> /\.?0+$/, "");
+  css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
+  : `* { border-width: ${scale}px !important; }`;
+  (document.head as HTMLHeadElement).appendChild(css);
+});
+}
+
 location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
 Promise.all([BG_.BgUtils_.require_("Exclusions"), bgSettings_.restore_ && bgSettings_.restore_()]).then((callback => {
   return function () {

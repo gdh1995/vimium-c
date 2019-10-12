@@ -369,24 +369,6 @@ TextOption_.prototype.showError_ = function<T extends TextualizedOptionNames>(th
   });
 };
 
-if ((Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-  && Build.BTypes & BrowserType.Chrome
-  && bgBrowserVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo)
-|| devicePixelRatio < 2 && (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
-  || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured)
-) { nextTick_((): void => {
-const css = document.createElement("style"), ratio = devicePixelRatio;
-const onlyInputs = (Build.MinCVer >= BrowserVer.MinRoundedBorderWidthIsNotEnsured
-  || bgBrowserVer_ >= BrowserVer.MinRoundedBorderWidthIsNotEnsured) && ratio >= 1;
-let scale: string | number = Build.MinCVer >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
-  || onlyInputs || bgBrowserVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
-scale = scale + 0.00000999;
-scale = ("" + scale).slice(0, 7).replace(<RegExpOne> /\.?0+$/, "");
-css.textContent = onlyInputs ? `input, textarea { border-width: ${scale}px; }`
-: `* { border-width: ${scale}px !important; }`;
-(document.head as HTMLHeadElement).appendChild(css);
-}); }
-
 nextTick_(versionEl => {
   const docCls = (document.documentElement as HTMLHtmlElement).classList;
   const kEventName = "DOMContentLoaded", onload = () => {
