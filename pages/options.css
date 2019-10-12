@@ -347,11 +347,6 @@ label:active {
 #keyMappings {
   min-height: 148px;
 }
-@supports (-moz-appearance: none) {
-  #keyMappings {
-    min-height: 166px;
-  }
-}
 .ref-text {
   cursor: pointer;
 }
@@ -624,7 +619,12 @@ select:-moz-focusring {
   text-shadow: 0 0 0 var(--button-hover-color);
 }
 
-@supports (display:-ms-grid) {
+@supports (-moz-appearance: none) {
+  #keyMappings {
+    min-height: 166px;
+  }
+}
+@supports (display: -ms-grid) {
   option:hover {
     color: var(--icon-button-active-color);
   }
@@ -643,5 +643,8 @@ select:-moz-focusring {
   .auto-dark button, .auto-dark select {
     box-shadow: none;
     text-shadow: none;
+  }
+  .exclusionHeader {
+    color: var(--item-caption-color);
   }
 }

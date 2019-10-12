@@ -597,6 +597,9 @@ var VFind = {
      * `nsDocViewerFocusListener::HandleEvent` calls `SetDisplaySelection(SELECTION_DISABLED)`,
      *   if only a trusted "blur" event gets dispatched into Document
      */
+    /** On 2019/10/13, tested on Firefox 69 + Win 10,
+     * the bg color could be orange even when a top frame is not focused
+     */
     options.noColor || a.ToggleStyle_(0);
     back && (count = -count);
     const isRe = a.isRegex_, pR = a.parsedRegexp_;
