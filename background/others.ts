@@ -1000,23 +1000,21 @@ function (details: chrome.runtime.InstalledDetails): void {
 });
 
 BgUtils_.GC_ = function (inc0?: number): void {
-  let timestamp = 0, timeout = 0, referenceCount = 0;
+  /**
+   * GC should work as a "robust" debouncing function,
+   * which means `later` should never be called in the next real-world time period after once GC().
+   * As a result, `Date.now` is not strong enough, so a frequent `clearTimeout` is necessary.
+   */
+  let timeout = 0, referenceCount = 0;
   BgUtils_.GC_ = function (inc?: number): void {
+    timeout && clearTimeout(timeout);
     inc && (referenceCount += inc);
-    if (!(Commands || Exclusions && Exclusions.rules_.length <= 0)) { return; }
-    timestamp = Date.now(); // safe for time changes
-    if (timeout > 0 || referenceCount > 0) { return; }
+    if (referenceCount > 0) { return; }
     referenceCount < 0 && (referenceCount = 0); // safer
     timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
   };
   return BgUtils_.GC_(inc0);
   function later(): void {
-    const last = Date.now() - timestamp, margin = GlobalConsts.TimeoutToReleaseBackendModules - last;
-    if (margin > 1000) { // safe for time changes
-      timeout = setTimeout(later,
-          last > -GlobalConsts.ToleranceOfNegativeTimeDelta ? margin : GlobalConsts.TimeoutToReleaseBackendModules);
-      return;
-    }
     timeout = 0;
     const existing = !(Build.BTypes & ~BrowserType.Chrome) || chrome.extension.getViews
     ? chrome.extension.getViews().some(function (wnd): boolean {
