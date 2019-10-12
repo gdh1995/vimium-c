@@ -373,7 +373,7 @@ var VHints = {
         : VDom.clickable_.has(element) && _this.isClickListened_
           && _this.inferTypeOfListener_(element, tag)
         ? ClickType.codeListener
-        : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
+        : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 && !element.shadowRoot ? ClickType.tabindex
         : clientSize
           && ((clientSize = element.clientHeight) > GlobalConsts.MinScrollableAreaSizeForDetection - 1
                 && clientSize + 5 < element.scrollHeight ? ClickType.scrollY
