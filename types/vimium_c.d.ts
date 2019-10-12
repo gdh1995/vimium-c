@@ -648,7 +648,7 @@ declare const enum BrowserVer {
   // on C51, the above passes, but the Developer Tools can not be opened if LEGACY
   MinEnsuredFullES6Environment = 52,
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
-  MinNoUnmatchedIncognito = 52,
+  MinNoAbnormalIncognito = 52,
   // since https://github.com/chromium/chromium/commit/866d1237c72059624def2242e218a7dfe78b125e
   MinEventListenersFromExtensionOnSandboxedPage = 52,
   // the 4 below are correct even if LEGACY

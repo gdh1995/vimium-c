@@ -1011,10 +1011,10 @@ BgUtils_.GC_ = function (inc0?: number): void {
   };
   return BgUtils_.GC_(inc0);
   function later(): void {
-    const last = Date.now() - timestamp; // safe for time changes
-    if (last < GlobalConsts.TimeoutToReleaseBackendModules - 1000 // for small time adjust
-        && last > -GlobalConsts.ToleranceOfNegativeTimeDelta) {
-      timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules - last);
+    const last = Date.now() - timestamp, margin = GlobalConsts.TimeoutToReleaseBackendModules - last;
+    if (margin > 1000) { // safe for time changes
+      timeout = setTimeout(later,
+          last > -GlobalConsts.ToleranceOfNegativeTimeDelta ? margin : GlobalConsts.TimeoutToReleaseBackendModules);
       return;
     }
     timeout = 0;

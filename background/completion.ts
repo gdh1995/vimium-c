@@ -1042,14 +1042,14 @@ Completers = {
       func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
       , query: CompletersNS.QueryStatus): 1 {
     const cb = func.bind(null, query);
-    if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)) {
+    if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)) {
       inNormal = TabRecency_.incognito_ !== IncognitoType.true;
       return chrome.tabs.query(wantInCurrentWindow ? { currentWindow: true } : {}, cb);
     }
     if (inNormal === null) {
       inNormal = TabRecency_.incognito_ !== IncognitoType.mayFalse
         ? TabRecency_.incognito_ !== IncognitoType.true
-        : CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito || Settings_.CONST_.DisallowIncognito_
+        : CurCVer_ >= BrowserVer.MinNoAbnormalIncognito || Settings_.CONST_.DisallowIncognito_
           || null;
     }
     if (inNormal !== null) {

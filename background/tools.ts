@@ -471,8 +471,8 @@ IncognitoWatcher_ = {
   },
   TestIncognitoWnd_ (this: void): void {
     IncognitoWatcher_.timer_ = 0;
-    if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
-        || CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito) {
+    if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
+        || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito) {
       let left = false, arr = Backend_.indexPorts_();
       for (const i in arr) {
         if ((arr[+i] as Frames.Frames)[0].s.a) { left = true; break; }
@@ -603,7 +603,7 @@ TabRecency_ = {
   tabs_: BgUtils_.safeObj_<number>() as SafeDict<number>,
   last_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
   lastWnd_: (chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone) as number,
-  incognito_: Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+  incognito_: Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse,
   rCompare_: null as never as (a: {id: number}, b: {id: number}) => number,
 };
@@ -633,7 +633,7 @@ BgUtils_.timeout_(120, function (): void {
     if (a) {
       TabRecency_.lastWnd_ = a.windowId;
       TabRecency_.incognito_ = a.incognito ? IncognitoType.true
-        : Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+        : Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
         ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
       return listener({ tabId: a.id });
     }
@@ -651,7 +651,7 @@ BgUtils_.timeout_(120, function (): void {
     TabRecency_.last_ = a.id;
     TabRecency_.lastWnd_ = a.windowId;
     TabRecency_.incognito_ = a.incognito ? IncognitoType.true
-      : Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+      : Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
   });
   TabRecency_.rCompare_ = function (a, b): number {

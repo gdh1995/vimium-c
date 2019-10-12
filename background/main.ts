@@ -534,8 +534,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
   }
 
   const hackedCreateTab =
-      (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
-        || !Build.CreateFakeIncognito || CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito
+      (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
+        || !Build.CreateFakeIncognito || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
       ? null : [function (wnd): void {
     if (cOptions.url || cOptions.urls) {
       return BackgroundCommands[kBgCmd.openUrl]([selectFrom((wnd as PopWindow).tabs)]);
@@ -963,7 +963,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
     UseTab.NoTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.NoTab, UseTab.NoTab,
-    Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
+    Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome
         && Build.CreateFakeIncognito ? UseTab.NoTab : UseTab.ActiveTab,
     UseTab.NoTab, UseTab.NoTab, UseTab.ActiveTab, UseTab.ActiveTab,
     UseTab.NoTab, UseTab.CurShownTabs, UseTab.CurWndTabs, UseTab.CurWndTabs, UseTab.CurWndTabs,
@@ -1229,8 +1229,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       }
       chrome.tabs.duplicate(tabId);
       if (cRepeat < 2) { return; }
-      if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
-          || CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito
+      if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
+          || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
           || TabRecency_.incognito_ === IncognitoType.ensuredFalse
           || Settings_.CONST_.DisallowIncognito_
           ) {
@@ -1289,9 +1289,9 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         function (wnd2: Window): void {
           notifyCKey();
           let leftTabs = tabs.slice(range[0], activeTabIndex), rightTabs = tabs.slice(activeTabIndex + 1, range[1]);
-          if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
+          if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito
               && Build.BTypes & BrowserType.Chrome
-              && wnd.incognito && CurCVer_ < BrowserVer.MinNoUnmatchedIncognito) {
+              && wnd.incognito && CurCVer_ < BrowserVer.MinNoAbnormalIncognito) {
             const filter = (tab2: Tab): boolean => tab2.incognito === curIncognito;
             leftTabs = leftTabs.filter(filter);
             rightTabs = rightTabs.filter(filter);
@@ -1330,7 +1330,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
         if (wnd.incognito && tab.incognito) { return reportNoop(); }
         const options: chrome.windows.CreateData = {tabId: tab.id, incognito: true}, url = tab.url;
         if (tab.incognito) { /* empty */ }
-        else if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
+        else if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome
             && wnd.incognito) {
           if (BgUtils_.isRefusingIncognito_(url)) {
             return reportNoop();
@@ -1338,9 +1338,9 @@ var Backend_: BackendHandlersNS.BackendHandlers;
           ++tab.index;
           return Backend_.reopenTab_(tab);
         } else if (BgUtils_.isRefusingIncognito_(url)) {
-          if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome) ||
+          if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome) ||
               !Build.CreateFakeIncognito ||
-              CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito || Settings_.CONST_.DisallowIncognito_) {
+              CurCVer_ >= BrowserVer.MinNoAbnormalIncognito || Settings_.CONST_.DisallowIncognito_) {
             return Backend_.complain_(trans_("openIncog"));
           }
         } else {
@@ -1355,7 +1355,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
           if (wnds.length) {
             chrome.tabs.query({ windowId: wnds[wnds.length - 1].id, active: true }, function ([tab2]): void {
               const tabId2 = options.tabId as number;
-              if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+              if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
                   || !Build.CreateFakeIncognito || options.url) {
                 chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
                 selectWnd(tab2);
@@ -1401,14 +1401,14 @@ var Backend_: BackendHandlersNS.BackendHandlers;
             index < 0 && cRepeat < 0 && dest++;
             dest < 0 && (dest += ids.length);
             chrome.tabs.query({windowId: ids[dest], active: true}, function ([tab2]): void {
-              Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
+              Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
               ? chrome.tabs.move(tab.id, {
                 index: tab2.index + (cOptions.right > 0 ? 1 : 0), windowId: tab2.windowId
               }, function (): void {
                 notifyCKey();
                 selectTab(tab.id, true);
               })
-              : index >= 0 || CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito ? callback()
+              : index >= 0 || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito ? callback()
               : makeTempWindow(tab.id, tab.incognito, callback);
               function callback(): void {
                 chrome.tabs.move(tab.id, {
@@ -1750,8 +1750,8 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       if (tabs.length <= 0) { return; }
       const tab = tabs[0];
       ++tab.index;
-      if (Build.MinCVer >= BrowserVer.MinNoUnmatchedIncognito || !(Build.BTypes & BrowserType.Chrome)
-          || CurCVer_ >= BrowserVer.MinNoUnmatchedIncognito
+      if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
+          || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
           || TabRecency_.incognito_ === IncognitoType.ensuredFalse
           || Settings_.CONST_.DisallowIncognito_
           || !BgUtils_.isRefusingIncognito_(tab.url)) {
@@ -2976,14 +2976,14 @@ var Backend_: BackendHandlersNS.BackendHandlers;
 
   Settings_.updateHooks_.newTabUrl_f = function (url) {
     const onlyNormal = BgUtils_.isRefusingIncognito_(url),
-    mayForceIncognito = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
-        && Build.CreateFakeIncognito ? onlyNormal && CurCVer_ < BrowserVer.MinNoUnmatchedIncognito : false;
-    BackgroundCommands[kBgCmd.createTab] = Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito
+    mayForceIncognito = Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome
+        && Build.CreateFakeIncognito ? onlyNormal && CurCVer_ < BrowserVer.MinNoAbnormalIncognito : false;
+    BackgroundCommands[kBgCmd.createTab] = Build.MinCVer < BrowserVer.MinNoAbnormalIncognito
         && Build.BTypes & BrowserType.Chrome && Build.CreateFakeIncognito
         && mayForceIncognito ? function (): void {
       getCurWnd(true, hackedCreateTab[0].bind(url));
     } : standardCreateTab.bind(null, onlyNormal);
-    if (Build.MinCVer < BrowserVer.MinNoUnmatchedIncognito && Build.BTypes & BrowserType.Chrome
+    if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome
         && Build.CreateFakeIncognito) {
       BgCmdInfo[kBgCmd.createTab] = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
     }
