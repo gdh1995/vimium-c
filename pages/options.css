@@ -115,7 +115,7 @@ button, select {
   box-sizing: border-box;
   color: #444;
   color: var(--button-color, #444);
-  font: 12px Arial,sans-serif !important;
+  font: 12px/100% Arial,sans-serif !important;
   height: 24px;
   outline: none;
   padding: 0 10px;
@@ -256,6 +256,9 @@ input[type=checkbox] {
   top: 2px;
   vertical-align: bottom;
   width: 13px;
+}
+input[type=checkbox]:lang(zh) {
+  top: 1px;
 }
 input[type=text]:read-only,
 input[type=number]:read-only,

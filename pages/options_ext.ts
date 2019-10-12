@@ -403,7 +403,6 @@ _el = null;
   delete (window as OptionWindow)._delayed;
   const node = $<ElementWithDelay>(arr[0]), event = arr[1];
   node.onclick && node.onclick(event);
-  BG_.BgUtils_.GC_();
 })();
 
 function parseJSON(text: string): any {

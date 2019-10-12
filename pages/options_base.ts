@@ -466,10 +466,10 @@ nextTick_((): void => {
 }
 
 location.pathname.toLowerCase().indexOf("/popup.html") !== -1 &&
-Promise.all([BG_.BgUtils_.require_("Exclusions"), bgSettings_.restore_ && bgSettings_.restore_()]).then((callback => {
-  return function () {
+Promise.all([ BG_.BgUtils_.require_("Exclusions"),
+    BG_.BgUtils_.GC_(1), bgSettings_.restore_ && bgSettings_.restore_()
+]).then((callback => () => {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
-  };
 })(function (activeTabs: [chrome.tabs.Tab] | never[]): void {
   const curTab = activeTabs[0];
   let ref = BG_.Backend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg");
@@ -722,7 +722,6 @@ Promise.all([BG_.BgUtils_.require_("Exclusions"), bgSettings_.restore_ && bgSett
     bgExclusions.testers_ = null as never;
     BG_.BgUtils_.GC_(-1);
   };
-  BG_.BgUtils_.GC_(1);
 
   function forceState(act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();

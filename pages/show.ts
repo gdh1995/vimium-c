@@ -77,7 +77,7 @@ window.onhashchange = function (this: void): void {
   if (!url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
     url = BG_.Settings_.temp_.shownHash_();
     encryptKey = encryptKey || Math.floor(Math.random() * 0x100000000) || 0xc3e73c18;
-    let encryptedUrl = encrypt(url, encryptKey, true);
+    let encryptedUrl = encrypt_(url, encryptKey, true);
     if (history.state) {
       history.pushState(encryptedUrl, "", "");
     } else {
@@ -87,7 +87,7 @@ window.onhashchange = function (this: void): void {
   }
   else if (url || !history.state) { /* empty */ }
   else if (encryptKey) {
-    url = encrypt(history.state, encryptKey, false);
+    url = encrypt_(history.state, encryptKey, false);
     window.name = encryptKey + " " + url;
   } else {
     history.replaceState(null, "", ""); // clear useless data
@@ -679,72 +679,39 @@ function recoverHash_(): void {
       + VData.original;
   window.name = encryptKey + " " + url;
   VData.full = url;
-  let encryptedUrl = encrypt(url, encryptKey, true);
+  let encryptedUrl = encrypt_(url, encryptKey, true);
   history.replaceState(encryptedUrl, "", "");
 }
 
-function encrypt(message: string, password: number, doEncrypt: boolean): string {
-  const arr: number[] = [], useCodePoint = !!("".codePointAt && String.fromCodePoint);
-  if (doEncrypt) {
-    // Unicode <-> UTF8 : https://www.ibm.com/support/knowledgecenter/en/ssw_aix_71/com.ibm.aix.nlsgdrf/utf-8.htm
-    for (let i = 0; i < message.length; i++) {
-      const ch = useCodePoint ? (message.codePointAt as NonNullable<string["codePointAt"]>)(i) : message.charCodeAt(i);
-      if (ch == null || isNaN(ch)) { break; }
-      if (ch <= 0x7f) {
-        arr.push(ch);
-      } else if (ch <= 0x7ff) {
-        arr.push(0xc0 | (ch >> 6), 0x80 | (ch & 0x3f));
-      } else if (ch <= 0xffff) {
-        arr.push(0xe0 | (ch >> 12), 0x80 | ((ch >> 6) & 0x3f), 0x80 | (ch & 0x3f));
-      } else if (ch <= 0x1fffff) {
-        arr.push(0xf0 | (ch >> 18), 0x80 | ((ch >> 12) & 0x3f), 0x80 | ((ch >> 6) & 0x3f), 0x80 | (ch & 0x3f));
-      // } else if (ch <= 0x3ffffff) {
-      //   arr.push(0xf8 | (ch >> 24), 0x80 | ((ch >> 18) & 0x3f), 0x80 | ((ch >> 12) & 0x3f)
-      //     , 0x80 | ((ch >> 6) & 0x3f), 0x80 | (ch & 0x3f));
-      // } else {
-      //   arr.push(0xfc | (ch >>> 30), 0x80 | ((ch >> 24) & 0x3f), 0x80 | ((ch >> 18) & 0x3f)
-      //     , 0x80 | ((ch >> 12) & 0x3f), 0x80 | ((ch >> 6) & 0x3f), 0x80 | (ch & 0x3f));
-      }
-    }
+function encrypt_(message: string, password: number, doEncrypt: boolean): string {
+  let arr: number[] | Uint8Array = [] as number[];
+  if (!doEncrypt) {
+    for (const ch of atob(message)) { arr.push(ch.charCodeAt(0)); }
+  }
+  else if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
+      && !(Build.BTypes & BrowserType.Edge)) {
+    arr = new TextEncoder().encode(message).slice(0);
   } else {
+    message = encodeURIComponent(message);
     for (let i = 0; i < message.length; i++) {
-      const ch = message.charCodeAt(i);
-      if (ch == null || isNaN(ch)) { break; }
-      arr.push(ch);
+      const ch = message[i];
+      if (ch === "%") {
+        arr.push(parseInt(message.substr(i + 1, 2), 16));
+        i += 2;
+      } else {
+        arr.push(ch.charCodeAt(0));
+      }
     }
   }
   for (let i = 0; i < arr.length; i++) {
-    arr[i] = arr[i] ^ (0xff & (password >>> (8 * (i & 3))));
+    arr[i] = 0xff & (arr[i] ^ (password >>> (8 * (i & 3))));
   }
   if (doEncrypt) {
-    return String.fromCharCode.apply(String, arr);
+    return btoa(String.fromCharCode(... <number[]> arr));
   }
-  const decoded: number[] = [];
-  for (let i = 0; i < arr.length; ) {
-    const ch = arr[i];
-    if (ch <= 0x7f) {
-      decoded.push(ch);
-      i++;
-    } else if (ch < 0xc1) {
-      decoded.push(((ch & 0x1f) << 6) | (arr[i + 1] & 0x3f));
-      i += 2;
-    } else if (ch < 0xe1) {
-      decoded.push(((ch & 0x0f) << 12) | ((arr[i + 1] & 0x3f) << 6) | (arr[i + 2] & 0x3f));
-      i += 3;
-    } else if (ch < 0xf1) {
-      decoded.push(((ch & 0x07) << 18) | ((arr[i + 1] & 0x3f) << 12) | ((arr[i + 2] & 0x3f) << 6)
-        | (arr[i + 3] & 0x3f));
-      i += 4;
-    // } else if (ch < 0xf9) {
-    //   decoded.push(((ch & 0x03) << 24) | ((arr[i + 1] & 0x3f) << 18) | ((arr[i + 2] & 0x3f) << 12)
-    //     | ((arr[i + 3] & 0x3f) << 6) | (arr[i + 4] & 0x3f));
-    //   i += 5;
-    // } else {
-    //   decoded.push(((ch & 0x03) << 30) | ((arr[i + 1] & 0x3f) << 24) | ((arr[i + 2] & 0x3f) << 18)
-    //     | ((arr[i + 3] & 0x3f) << 12) | ((arr[i + 4] & 0x3f) << 6) | (arr[i + 5] & 0x3f));
-    //   i += 6;
-    }
+  if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
+      && !(Build.BTypes & BrowserType.Edge)) {
+    return new TextDecoder().decode(new Uint8Array(arr));
   }
-  return (useCodePoint ? String.fromCodePoint as NonNullable<typeof String.fromCharCode> : String.fromCharCode
-    ).apply(String, decoded);
+  return decodeURIComponent((arr as number[]).map(i => "%" + i.toString(16)).join(""));
 }
