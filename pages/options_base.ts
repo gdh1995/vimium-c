@@ -232,6 +232,7 @@ class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   template_: HTMLTableRowElement;
   list_: Array<ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode>;
   $list_: HTMLTableSectionElement;
+  dragged_: HTMLTableRowElement | null;
   inited_: boolean;
 constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => void) {
   super(element, onUpdated);

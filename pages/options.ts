@@ -886,6 +886,41 @@ Option_.all_.autoReduceMotion.onSave_ = function (): void {
 
 optionsInit1_ = optionsInitAll_ = null as never;
 (window.onhashchange as () => void)();
+
+const table = (Option_.all_.exclusionRules as ExclusionRulesOption_).$list_;
+table.ondragstart = event => {
+  let dragged = (Option_.all_.exclusionRules as ExclusionRulesOption_).dragged_ = event.target as HTMLTableRowElement;
+  dragged.style.opacity = "0.5";
+  if (!(Build.BTypes & ~BrowserType.Firefox)
+      || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
+    event.dataTransfer.setData("text/plain", "");
+  }
+};
+table.ondragend = () => {
+  const exclusionRules = Option_.all_.exclusionRules as ExclusionRulesOption_, dragged = exclusionRules.dragged_;
+  exclusionRules.dragged_ = null;
+  dragged && (dragged.style.opacity = "");
+};
+table.ondragover = event => event.preventDefault();
+table.ondrop = event => {
+  event.preventDefault();
+  const exclusionRules = Option_.all_.exclusionRules as ExclusionRulesOption_, dragged = exclusionRules.dragged_;
+  let target = event.target as Element | null;
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest) {
+    while (target && target.classList.contains("exclusionRule")) {
+      target = target.parentElement as SafeHTMLElement | null;
+    }
+  } else {
+    target = (target as Ensure<Element, "closest">).closest(".exclusionRule");
+  }
+  if (!dragged || !target || dragged === target) { return; }
+  exclusionRules.$list_.insertBefore(dragged, target);
+  const list = exclusionRules.list_, srcNode = (dragged.querySelector(".pattern") as ExclusionRealNode).vnode,
+  targetNode = (target.querySelector(".pattern") as ExclusionRealNode).vnode;
+  list.splice(list.indexOf(srcNode), 1);
+  list.splice(list.indexOf(targetNode), 0, srcNode);
+  exclusionRules.onUpdated_();
+};
 };
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
