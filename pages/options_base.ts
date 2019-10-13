@@ -234,6 +234,7 @@ class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   $list_: HTMLTableSectionElement;
   dragged_: HTMLTableRowElement | null;
   inited_: boolean;
+  onInited_?: () => void;
 constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => void) {
   super(element, onUpdated);
   this.inited_ = false;
@@ -272,6 +273,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
       nextTick_(() => this.populateElement_(this.previous_));
     }
     nextTick_(table1 => this.element_.appendChild(table1), table);
+    nextTick_(() => this.onInited_ && this.onInited_());
   });
 }
 onRowChange_ (_isInc: number): void { /* empty */ }

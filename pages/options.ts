@@ -884,12 +884,16 @@ Option_.all_.autoReduceMotion.onSave_ = function (): void {
   (document.documentElement as HTMLHtmlElement).classList.toggle("less-motion", this.previous_);
 };
 
+(Option_.all_.exclusionRules as ExclusionRulesOption_).onInited_ = onExclusionRulesInited;
+
 optionsInit1_ = optionsInitAll_ = null as never;
 (window.onhashchange as () => void)();
+};
 
-const table = (Option_.all_.exclusionRules as ExclusionRulesOption_).$list_;
+function onExclusionRulesInited(this: ExclusionRulesOption_): void {
+const exclusionRules = this, table = exclusionRules.$list_;
 table.ondragstart = event => {
-  let dragged = (Option_.all_.exclusionRules as ExclusionRulesOption_).dragged_ = event.target as HTMLTableRowElement;
+  let dragged = exclusionRules.dragged_ = event.target as HTMLTableRowElement;
   dragged.style.opacity = "0.5";
   if (!(Build.BTypes & ~BrowserType.Firefox)
       || Build.BTypes & BrowserType.Firefox && bgOnOther_ === BrowserType.Firefox) {
@@ -897,14 +901,14 @@ table.ondragstart = event => {
   }
 };
 table.ondragend = () => {
-  const exclusionRules = Option_.all_.exclusionRules as ExclusionRulesOption_, dragged = exclusionRules.dragged_;
+  const dragged = exclusionRules.dragged_;
   exclusionRules.dragged_ = null;
   dragged && (dragged.style.opacity = "");
 };
 table.ondragover = event => event.preventDefault();
 table.ondrop = event => {
   event.preventDefault();
-  const exclusionRules = Option_.all_.exclusionRules as ExclusionRulesOption_, dragged = exclusionRules.dragged_;
+  const dragged = exclusionRules.dragged_;
   let target = event.target as Element | null;
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest) {
     while (target && target.classList.contains("exclusionRule")) {
@@ -921,7 +925,7 @@ table.ondrop = event => {
   list.splice(list.indexOf(targetNode), 0, srcNode);
   exclusionRules.onUpdated_();
 };
-};
+}
 
 $("#userDefinedCss").addEventListener("input", debounce_(function (): void {
   if (!window.VDom || !VDom.cache_) { return; }
