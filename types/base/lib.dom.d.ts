@@ -688,6 +688,8 @@ interface CSSStyleDeclaration {
     rubyPosition: string | null;
     scale: string | null;
     scrollBehavior?: "smooth" | "auto" | "inherit" | "initial" | "unset" | "";
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type
+    scrollSnapType?: "none" | "mandatory" | "proximity" | "y mandatory" | "inherit" | "initial" | "unset";
     stopColor: string | null;
     stopOpacity: string | null;
     stroke: string | null;

@@ -139,7 +139,12 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     return newPos - before;
   },
   _innerScroll (element: SafeElement | null, di: ScrollByY, amount: number): void {
-    if (VDom.cache_.S
+    if (this.hasSpecialScrollSnap_(element)) {
+      while (Math.abs(amount) >= 1 && !this._performScroll(element, di, amount)) {
+        amount /= 2;
+      }
+      this._checkCurrent(element);
+    } else if (VDom.cache_.S
         && (Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage || !(Build.BTypes & BrowserType.Chrome)
             || VDom.allowRAF_)) {
       amount && this._animate(element, di, amount);
@@ -306,21 +311,30 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
           ? di ? (visual as VisualViewport).height : (visual as EnsureItemsNonNull<VisualViewport>).width
           : di ? innerHeight : innerWidth);
   },
+  hasSpecialScrollSnap_ (el: SafeElement | null): boolean {
+    const scrollSnap: string | null | undefined = el && getComputedStyle(el).scrollSnapType;
+    return !!scrollSnap && scrollSnap !== "none";
+  },
   _doesScroll (el: SafeElement, di: ScrollByY, amount: number): boolean {
     const before = this.getDimension_(el, di, kScrollDim.position),
-    changed = !!this._performScroll(el, di, (amount > 0 ? 1 : -1) * this.scale_, before);
+    changed = this._performScroll(el, di, (amount > 0 ? 1 : -1) * this.scale_, before);
     if (changed) {
-      if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
+      if (!di && this.hasSpecialScrollSnap_(el)) {
+        /**
+         * Here needs the third scrolling, because in `X Prox. LTR` mode, a second scrolling may jump very far.
+         * Tested on https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type .
+         */
+        let changed2 = this._performScroll(el, di, -changed, before);
+        Math.abs(changed2) > 0.2 && this._performScroll(el, di, -changed2, before);
+      } else if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
           || !(Build.BTypes & ~BrowserType.Firefox) || el.scrollTo) {
-        let arg: ScrollToOptions = {behavior: "instant"};
-        arg[di ? "top" : "left"] = before;
-        el.scrollTo(arg);
+        el.scrollTo({behavior: "instant", [di ? "top" : "left"]: before });
       } else {
         di ? (el.scrollTop = before) : (el.scrollLeft = before);
       }
       this.scrolled_ = this.scrolled_ || 1;
     }
-    return changed;
+    return !!changed;
   },
   _selectFirst (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null {
     let element = info.element_;
