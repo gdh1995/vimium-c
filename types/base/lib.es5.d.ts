@@ -84,14 +84,15 @@ declare function encodeURI(uri: string): string;
   */
 declare function encodeURIComponent(uriComponent: string): string;
 
-interface PropertyDescriptor {
+interface PropertyDescriptorT<ValueType> {
     configurable?: boolean;
     enumerable?: boolean;
-    value?: any;
+    value?: ValueType;
     writable?: boolean;
     get? (): any;
     set? (v: any): void;
 }
+type PropertyDescriptor = PropertyDescriptorT<any>;
 
 interface PropertyDescriptorMap {
     [s: string]: PropertyDescriptor;

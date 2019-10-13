@@ -398,7 +398,7 @@ interface ContentWindowCore {
 
 interface SandboxGetterFunc {
   (comparer: (this: void, rand2: number, testEncrypted: string) => boolean,
-    rand1: number): ContentWindowCore | 0 | null | undefined;
+    rand1: number): ContentWindowCore | 0 | null | undefined | void;
 }
 interface SandboxGetterWrapper { _get: SandboxGetterFunc; }
 declare var wrappedJSObject: { [key: string]: SandboxGetterWrapper; };

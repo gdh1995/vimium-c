@@ -242,7 +242,6 @@ var VDom = {
       vleft = vtop = 0; vtops = 3;
       if (visual && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUseful$visualViewport$
                       || visual.width)) {
-        // todo: before MinPinchZoomOnWindowsAndTouchpad ?
         vleft = visual.offsetLeft | 0, vtop = visual.offsetTop | 0;
         vtops = vtop + 3;
         i = vleft + <number> visual.width | 0; j = vtop + visual.height | 0;

@@ -372,6 +372,7 @@ interface ObjectConstructor {
      * @param attributes Descriptor for the property. It can be for a data property or an accessor
      *  property.
      */
+    defineProperty<ValueType>(o: any, propertyKey: PropertyKey, attributes: PropertyDescriptorT<ValueType>): any;
     defineProperty(o: any, propertyKey: PropertyKey, attributes: PropertyDescriptor): any;
 }
 

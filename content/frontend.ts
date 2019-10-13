@@ -1555,9 +1555,10 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       } catch {}
     };
     // on Firefox, such a exported function can only be called from privileged environments
-    Object.defineProperty(wrappedJSObject[coreTester.name_] = (new window.Object() as any).wrappedJSObject,
+    wrappedJSObject[coreTester.name_] = Object.defineProperty<SandboxGetterFunc>(
+        (new window.Object() as any).wrappedJSObject,
         "_get", { configurable: false, enumerable: false, writable: false,
-                  value: (comparer: Parameters<SandboxGetterFunc>[0], rand1: number): ContentWindowCore | void => {
+                  value (comparer, rand1) {
       let rand2 = Math.random();
       // an ES6 method function is always using the strict mode, so the arguments are inaccessible outside it
       if (coreTester.sendTick_ > GlobalConsts.MaxRetryTimesForSecret
