@@ -3,7 +3,7 @@
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.78.1](https://img.shields.io/badge/release-1.78.1-orange.svg
+[![Version 1.78.2](https://img.shields.io/badge/release-1.78.2-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -62,6 +62,11 @@ __Other extensions supporting Vimium C:__
 
 1.78.2
 * LinkHints: `touch` mode: now disabled by default; use `touch=true` or `touch="auto"` to enable it
+* Scroller: support `visualViewport` when computing view size
+* Scroller: a try to support `scroll-snap-type` on Chrome
+* `goNext`: add "上一封" / "下一封" (Chinese words) to the default patterns
+* options page: `drag-and-drop` exclusion rules to reorder them
+* fix some bugs
 
 1.78.1
 * Firefox: fix broken `LinkHints`

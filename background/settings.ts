@@ -185,7 +185,7 @@ var Settings_ = {
       const a = this as typeof Settings_, cacheId = a.CONST_.StyleCacheId_,
       browserVer = CurCVer_,
       browserInfo = cacheId.slice(cacheId.indexOf(",") + 1),
-      hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All
+      hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All
           || browserInfo.indexOf("a") >= 0;
       if (!(Build.NDEBUG || css.startsWith(":host{"))) {
         console.log('Assert error: `css.startsWith(":host{")` in Settings_.updateHooks_.baseCSS');
@@ -202,7 +202,7 @@ var Settings_ = {
       const findOffset = css.lastIndexOf("/*#find*/");
       let findCSS = css.slice(findOffset + /* '/*#find*\/\n' */ 10);
       css = css.slice(0, findOffset - /* `\n` */ 1);
-      if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All || hasAll) {
+      if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All || hasAll) {
         // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCSSMeansNothing
         // in case that ":host" is set [style="all:unset"]
         const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2),
@@ -253,7 +253,7 @@ var Settings_ = {
         const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1,
         prefix = "#VimiumUI";
         let body = css.slice(secondEnd);
-        if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All || hasAll) {
+        if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All || hasAll) {
           body = body.replace(<RegExpG> /\b[IL]H\s?\{/g, "$&all:inherit;");
         }
         body += `\n${prefix}:before,${prefix}:after,.R:before,.R:after{display:none!important}`;
@@ -693,8 +693,8 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
         : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
             ? window.ShadowRoot || (document.body as HTMLElement).webkitCreateShadowRoot : window.ShadowRoot)
         ? "s" : "")
-    + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinSafeCSS$All ? ""
-      : (Build.MinCVer > BrowserVer.MinSafeCSS$All || CurCVer_ > BrowserVer.MinSafeCSS$All)
+    + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
+      : (Build.MinCVer > BrowserVer.MinUsableCSS$All || CurCVer_ > BrowserVer.MinUsableCSS$All)
         && (!(Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))
           || "all" in (document.documentElement as HTMLHtmlElement).style)
       ? "a" : "")

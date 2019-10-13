@@ -507,7 +507,7 @@ declare const enum BrowserVer {
   // before C37, if a page has no `'unsafe-inline'` in its CSP::`style-src`, then Vimium's styles is totally broken
   MinStyleSrcInCSPNotBreakUI = 37, // even if EXPERIMENTAL or LEGACY
   MinSessions = 37,
-  // even if EXPERIMENTAL; Note: should use MinSafeCSS$All
+  // even if EXPERIMENTAL; Note: should use MinUsableCSS$All
   // so this is deprecated
   MinUnsafeCSS$All$Attr = 37,
   /*
@@ -542,8 +542,9 @@ declare const enum BrowserVer {
   // just means it's enabled by default
   Min$String$$StartsWithEndsWithAndIncludes$ByDefault = 41, // no "".includes before 41, even if EXPERIMENTAL
   MinGlobal$HTMLDetailsElement = 41,
-  MinFixedCSS$All$MightMistakenlyResetFixedPosition = 41,
-  MinSafeCSS$All = MinFixedCSS$All$MightMistakenlyResetFixedPosition,
+  MinFixedCSS$All$MightOverwriteFixedPosition = 41,
+  // ignore MinFixedCSS$All$MightOverwriteAnchorColor
+  MinUsableCSS$All = MinFixedCSS$All$MightOverwriteFixedPosition,
   // (if EXPERIMENTAL, then it exists since C34 but) has no effects before C41;
   // if EXPERIMENTAL, there's Element::scrollTo and Element::scrollBy only since C41
   MinCSS$ScrollBehavior$$Smooth$Work = 41,
@@ -561,13 +562,14 @@ declare const enum BrowserVer {
   MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithEndsWithAndRepeatAndIncludes + 1, // add a margin
   MinRuntimePlatformOs = 44,
   MinCreateWndWithState = 44,
-  // the 2 below are correct even if EXPERIMENTAL or LEGACY
+  // the 3 below are correct even if EXPERIMENTAL or LEGACY
   // #scroll-top-left-interop is also since C44
   // `scrollingElement` is added in (commit 8df26a52e71e5b239c3749ec6f4180441ee4fc7e)
   // before C44, the real scrolling may be <body> even if document.compatMode is "CSS1Compat"
   // - it's said this behavior is for compatibility with websites at that time
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
+  MinFixedCSS$All$MightOverwriteAnchorColor = 44, // affect links on the help dialog; ignored
   // the 2 below are even if EXPERIMENTAL or EMPTY
   MinMayBeES6ArrowFunction = 45,
   // for VHints.traverse_, Array.from takes >= 2x time to convert a static NodeList of 7242 elements to an array
