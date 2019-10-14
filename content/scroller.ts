@@ -316,6 +316,9 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
     return !!scrollSnap && scrollSnap !== "none";
   },
   _doesScroll (el: SafeElement, di: ScrollByY, amount: number): boolean {
+    // todo: check whether it's scrollable when hasSpecialScrollSnap_ on Firefox.
+    // Currently, Firefox corrects positions before .scrollBy returns,
+    // so it always fails if amount < next-box-size
     const before = this.getDimension_(el, di, kScrollDim.position),
     changed = this._performScroll(el, di, (amount > 0 ? 1 : -1) * this.scale_, before);
     if (changed) {
@@ -324,8 +327,8 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
          * Here needs the third scrolling, because in `X Prox. LTR` mode, a second scrolling may jump very far.
          * Tested on https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type .
          */
-        let changed2 = this._performScroll(el, di, -changed, before);
-        Math.abs(changed2) > 0.2 && this._performScroll(el, di, -changed2, before);
+        let changed2 = this._performScroll(el, 0, -changed, before);
+        Math.abs(changed2) > 0.2 && this._performScroll(el, 0, -changed2, before);
       } else if (!(Build.BTypes & BrowserType.Edge) && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
           || !(Build.BTypes & ~BrowserType.Firefox) || el.scrollTo) {
         el.scrollTo({behavior: "instant", [di ? "top" : "left"]: before });
