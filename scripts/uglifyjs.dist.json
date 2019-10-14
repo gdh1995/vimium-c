@@ -36,11 +36,12 @@
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
       "VApi.lock_", "lock_", "VApi.mapKey_", "VKey.safer_", "safer_",
       "onRuntimeError", "BgUtils_.runtimeError_",
-      "trans_", "pTrans_", "VTr",
+      "trans_", "pTrans_", "sTrans_", "VTr",
       "SafeEl_", "notSafe_", "getEditableType_",
       "readyState", "binarySearch_",
       "getMatchRanges",
       "BgUtils_.escapeText_", "escapeText_", "highlight", "cutTitle", "BgUtils_.unicodeSubstring_", "unicodeSubstring_",
+      "safeObj_", "BgUtils_.safeObj_",
       "_getKeyCharUsingKeyIdentifier", "parentFrame_"
     ],
     "pure_getters": true,

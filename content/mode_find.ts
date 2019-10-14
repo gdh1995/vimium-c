@@ -164,8 +164,9 @@ var VFind = {
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)) {
       if (box !== body) {
-        (doc.head as HTMLHeadElement).appendChild(addElement("style", 0) as HTMLStyleElement
-            ).textContent = "body{margin:0!important}";
+        const st = addElement("style", 0) as HTMLStyleElement;
+        st.textContent = "body{margin:0!important}";
+        (doc.head as HTMLHeadElement).appendChild(st);
         body.appendChild(box);
       }
     } else if (zoom < 1) {

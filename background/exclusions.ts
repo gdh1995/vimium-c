@@ -114,7 +114,7 @@ var Exclusions = {
       return;
     }
     const ref = Backend_.indexPorts_(),
-    needIcon = !!(Settings_.temp_.IconBuffer_ && (Settings_.temp_.IconBuffer_() || Settings_.get_("showActionIcon")));
+    needIcon = !!Settings_.temp_.IconBuffer_ && (Settings_.temp_.IconBuffer_() || Settings_.get_("showActionIcon"));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (const tabId in ref) {
       const frames = ref[+tabId] as Frames.Frames, status0 = frames[0].s.s;

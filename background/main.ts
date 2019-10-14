@@ -2102,7 +2102,7 @@ var Backend_: BackendHandlersNS.BackendHandlers;
       } else {
         endSlash = request.t != null ? !!request.t
           : path.length > 1 && path.endsWith("/")
-            || (<RegExpI> /\.([a-z]{2,3}|jpeg|tiff)$/i).test(path); // just a try: not include .html
+            || (<RegExpI> /\.([a-z]{2,3}|apng|jpeg|tiff)$/i).test(path); // just a try: not include .html
       }
       if (!i || i === 1) {
         path = "/";

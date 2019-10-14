@@ -509,6 +509,7 @@
 	"lang1": { "message": "" },
 	"lang2": { "message": "" },
 	"NS": { "message": " " },
+	"noActiveState": { "message": "As configured, here's no active state" },
 	"period": {
 		"message": "."
 	},
@@ -552,7 +553,7 @@
 		"message": "Saved"
 	},
 	"o137": {
-		"message": "becomes to "
+		"message": "has changed to "
 	},
 	"o138": {
 		"message": "only hook"
@@ -570,6 +571,9 @@
 		"message": "will "
 	},
 	"o143": {
+		"message": "be"
+	},
+	"o143_2": {
 		"message": "be"
 	},
 	"o144": {

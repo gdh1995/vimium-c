@@ -288,7 +288,7 @@ declare namespace IconNS {
   };
   interface AccessIconBuffer {
     (this: void, enabled: boolean): void;
-    (this: void): object | null;
+    (this: void, enabled?: undefined): boolean;
   }
 }
 

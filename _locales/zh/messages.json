@@ -379,6 +379,7 @@
 	},
 	"lang1": { "message": "zh" },
 	"NS": { "message": "" },
+	"noActiveState": { "message": "已配置不显示工作状态" },
 	"period": {
 		"message": "。"
 	},
@@ -863,7 +864,10 @@
 		"message": "将会"
 	},
 	"o143": {
-		"message": "处于"
+		"message": "保持"
+	},
+	"o143_2": {
+		"message": "转为"
 	},
 	"o144": {
 		"message": "禁用"

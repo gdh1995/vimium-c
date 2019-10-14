@@ -1180,7 +1180,7 @@ VUtils_ = {
         element.innerHTML = html;
       } else {
         element.innerHTML = "";
-        (element as Ensure<typeof element, "append">).append(
+        (element as NodeWithAppend).append(
           ... <Element[]> <ArrayLike<Element>> parser.parseFromString(html, "text/html").body.children);
       }
     };

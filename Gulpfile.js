@@ -773,9 +773,10 @@ function postUglify(file, needToPatchExtendClick) {
     get();
     contents = patchExtendClick(contents);
   }
+  var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
+  var noAppendChild = !(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$ParentNode$$append */ 54;
   if (toRemovedGlobal == null) {
     toRemovedGlobal = "";
-    var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
     if (btypes === BrowserType.Chrome || !(btypes & BrowserType.Chrome)) {
       toRemovedGlobal += "browser|";
     }
@@ -810,6 +811,10 @@ function postUglify(file, needToPatchExtendClick) {
   if (file.history.join("|").indexOf("viewer") >= 0) {
     get();
     contents = contents.replace(/\.\$offsetWidth\(\)/g, ".offsetWidth");
+  }
+  if (noAppendChild) {
+    get();
+    contents = contents.replace(/\bappendChild\b/g, "append");
   }
   if (changed || oldLen > 0 && contents.length !== oldLen) {
     file.contents = new Buffer(contents);

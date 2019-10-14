@@ -578,7 +578,7 @@ var BgUtils_ = {
     this.convertToUrl_(str, null, Urls.WorkType.KeepAll);
     return this.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? str : url;
   },
-  imageFileRe_: <RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|png|tiff?|webp)$/i, // SVG is not blocked by images CS
+  imageFileRe_: <RegExpI & RegExpOne> /\.(?:bmp|gif|icon?|jpe?g|a?png|tiff?|webp)$/i, // SVG is not blocked by images CS
   showFileUrl_ (url: string): string {
     return this.imageFileRe_.test(url) ? this.formatVimiumUrl_("show image " + url, false, Urls.WorkType.Default)
       : url;

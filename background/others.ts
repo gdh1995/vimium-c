@@ -550,13 +550,18 @@ BgUtils_.timeout_(150, function (): void {
       img.src = path[i as IconNS.ValidSizes];
     }
   }
-  Settings_.temp_.IconBuffer_ = function (this: void, enabled?: boolean): object | null | void {
-    if (enabled === undefined) { return imageData; }
+  Settings_.temp_.IconBuffer_ = function (this: void, enabled?: boolean): boolean | void {
+    if (enabled == null) { return !!imageData; }
     if (!enabled) {
       imageData && setTimeout(function () {
         if (Settings_.get_("showActionIcon")) { return; }
-        imageData = tabIds = null;
+        imageData = null;
+        if (Build.BTypes & BrowserType.Chrome) { tabIds = null; }
       }, 200);
+      return;
+    }
+    if (!(Build.BTypes & BrowserType.Chrome)) {
+      imageData = 1 as unknown as IconNS.StatusMap<IconNS.IconBuffer>;
       return;
     }
     if (imageData) { return; }
@@ -574,8 +579,7 @@ BgUtils_.timeout_(150, function (): void {
      */
     if (Build.BTypes & ~BrowserType.Chrome
         && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-      path = Settings_.icons_[type];
-      chrome.browserAction.setIcon({ tabId, path });
+      chrome.browserAction.setIcon({ tabId, path: Settings_.icons_[type] });
       return;
     }
     if (data = (imageData as Exclude<typeof imageData, null>)[type]) {
@@ -594,8 +598,8 @@ BgUtils_.timeout_(150, function (): void {
   Settings_.updateHooks_.showActionIcon = function (value): void {
     func(value);
     (Settings_.temp_.IconBuffer_ as IconNS.AccessIconBuffer)(value);
-    let title = "Vimium C";
-    value || (title += "\n\nAs configured, here's no active state.");
+    let title = trans_("name");
+    value || (title += "\n\n" + trans_("noActiveState"));
     chrome.browserAction.setTitle({ title });
   };
   Settings_.postUpdate_("showActionIcon");

@@ -1037,7 +1037,8 @@ el.textContent = (Build.BTypes & BrowserType.Edge
 function loadJS(file: string): HTMLScriptElement {
   const script = document.createElement("script");
   script.src = file;
-  return (document.head as HTMLHeadElement).appendChild(script);
+  (document.head as HTMLHeadElement).appendChild(script);
+  return script;
 }
 
 interface CheckerLoader { info_?: string; }

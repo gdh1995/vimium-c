@@ -244,7 +244,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption_) => v
       container.innerHTML = bgSettings_.cache_.exclusionTemplate as string;
     } else {
       const parsed = new DOMParser().parseFromString(bgSettings_.cache_.exclusionTemplate as string, "text/html").body;
-      (container as Ensure<typeof element, "append">).append(... <Element[]> <ArrayLike<Element>> parsed.children);
+      (container as NodeWithAppend).append(... <Element[]> <ArrayLike<Element>> parsed.children);
     }
     this.template_ = (container.querySelector("#exclusionTemplate") as HTMLTemplateElement
         ).content.firstChild as HTMLTableRowElement;
@@ -624,7 +624,8 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     const isReverted = !!pass && pass.length > 2 && pass[0] === "^";
     stateAction.textContent =
       (isSaving ? pass ? pTrans_("o137") + pTrans_(isReverted ? "o138" : "o139") : pTrans_("o140")
-        : pTrans_(same ? "o141" : "o142") + pTrans_(pass ? isReverted ? "o138" : "o139" : "o143"))
+        : pTrans_(same ? "o141" : "o142") + pTrans_(pass ? isReverted ? "o138" : "o139" : same ? "o143" : "o143_2")
+        ).replace(" to be", "")
       + pTrans_("colon") + (pass ? pTrans_("NS") : "");
     stateValue.className = pass ? "code" : "fixed-width";
     stateValue.textContent = pass ? isReverted ? pass.slice(2) : pass

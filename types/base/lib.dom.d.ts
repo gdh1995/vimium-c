@@ -5490,7 +5490,7 @@ interface Node extends EventTarget {
     readonly isConnected?: boolean;
     textContent: string | null;
     append?(...nodeOrText: Array<Node | string>): void;
-    appendChild<T extends Node>(newChild: T): T;
+    appendChild<T extends Node>(newChild: T): void; // force it to be compatible with `.append`
     cloneNode(deep?: boolean): Node;
     compareDocumentPosition(other: Node): kNode;
     contains(this: Node, child: Node): boolean;
@@ -5506,6 +5506,10 @@ interface Node extends EventTarget {
     normalize(): void;
     removeChild(oldChild: Node): Node;
     replaceChild(newChild: Node, oldChild: Node): Node;
+}
+
+interface NodeWithAppend extends Node {
+    append(...nodeOrText: Array<Node | string>): void;
 }
 
 declare var Node: {
