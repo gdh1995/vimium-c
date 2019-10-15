@@ -3,7 +3,7 @@
 ========
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-[![Version 1.78.2](https://img.shields.io/badge/release-1.78.2-orange.svg
+[![Version 1.78.3](https://img.shields.io/badge/release-1.78.3-orange.svg
   )](https://github.com/gdh1995/vimium-c/releases)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
   )](https://travis-ci.org/gdh1995/vimium-c)
@@ -59,6 +59,11 @@ __Other extensions supporting Vimium C:__
       https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 
 # Release Notes
+
+1.78.3
+* LinkHints: fix a regression since v1.78.0 that Vimium C might fail in clicking targets inside shadow-DOM trees
+* image filename extension: add support for `.apng`
+* `exitOnClick` option: fix a bug so that Vomnibar won't exit on simulated mouse events from page scripts
 
 1.78.2
 * LinkHints: `touch` mode: now disabled by default; use `touch=true` or `touch="auto"` to enable it
