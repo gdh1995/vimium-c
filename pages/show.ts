@@ -689,19 +689,10 @@ function encrypt_(message: string, password: number, doEncrypt: boolean): string
     for (const ch of atob(message)) { arr.push(ch.charCodeAt(0)); }
   }
   else if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-      && !(Build.BTypes & BrowserType.Edge)) {
+      && !(Build.BTypes & BrowserType.Edge) || (window as any).TextEncoder) {
     arr = new TextEncoder().encode(message).slice(0);
   } else {
-    message = encodeURIComponent(message);
-    for (let i = 0; i < message.length; i++) {
-      const ch = message[i];
-      if (ch === "%") {
-        arr.push(parseInt(message.substr(i + 1, 2), 16));
-        i += 2;
-      } else {
-        arr.push(ch.charCodeAt(0));
-      }
-    }
+    for (const ch of encodeURIComponent(message)) { arr.push(ch.charCodeAt(0)); }
   }
   for (let i = 0; i < arr.length; i++) {
     arr[i] = 0xff & (arr[i] ^ (password >>> (8 * (i & 3))));
@@ -710,8 +701,8 @@ function encrypt_(message: string, password: number, doEncrypt: boolean): string
     return btoa(String.fromCharCode(... <number[]> arr));
   }
   if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-      && !(Build.BTypes & BrowserType.Edge)) {
+      && !(Build.BTypes & BrowserType.Edge) || (window as any).TextEncoder) {
     return new TextDecoder().decode(new Uint8Array(arr));
   }
-  return decodeURIComponent((arr as number[]).map(i => "%" + i.toString(16)).join(""));
+  return decodeURIComponent(String.fromCharCode(... <number[]> arr));
 }
