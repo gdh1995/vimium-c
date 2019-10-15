@@ -786,6 +786,9 @@ function postUglify(file, needToPatchExtendClick) {
     if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinES6$ForOf$Map$SetAnd$Symbol */ 38) {
       toRemovedGlobal += "Set|";
     }
+    if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$InputDeviceCapabilities */ 47) {
+      toRemovedGlobal += "InputDeviceCapabilities|";
+    }
     if ((!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$requestIdleCallback */ 47)
         && !(btypes & BrowserType.Edge)) {
       toRemovedGlobal += "requestIdleCallback|";

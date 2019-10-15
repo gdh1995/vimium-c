@@ -221,9 +221,20 @@ interface StoreSiteSpecificExceptionsInformation extends StoreExceptionsInformat
     arrayOfDomainStrings?: string[];
 }
 
+interface InputDeviceCapabilities {
+    fireTouchEvents: boolean;
+}
+
+type InputDeviceCapabilitiesVar = {
+    prototype: InputDeviceCapabilities;
+    new (init?: Partial<InputDeviceCapabilities>): InputDeviceCapabilities;
+};
+declare var InputDeviceCapabilities: InputDeviceCapabilitiesVar | undefined;
+
 interface UIEventInit extends EventInit {
     view?: Window;
     detail?: number;
+    sourceCapabilities?: InputDeviceCapabilities | null;
 }
 
 interface WheelEventInit extends MouseEventInit {
@@ -5411,9 +5422,15 @@ interface MouseEvent extends UIEvent {
     initMouseEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number, ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean, buttonArg: number, relatedTargetArg: EventTarget | null): void;
 }
 
+type EnsuredMouseEventInitKeys = "sourceCapabilities";
+type ValidMouseEventInit = {
+    [P in Exclude<keyof MouseEventInit, EnsuredMouseEventInitKeys>]-?: Exclude<MouseEventInit[P], undefined>;
+} & {
+    [P in EnsuredMouseEventInitKeys]?: MouseEventInit[P];
+};
 declare var MouseEvent: {
     prototype: MouseEvent;
-    new(typeArg: string, eventInitDict?: { [P in keyof MouseEventInit]-?: MouseEventInit[P] }): MouseEvent;
+    new(typeArg: string, eventInitDict?: ValidMouseEventInit): MouseEvent;
 }
 
 interface NamedNodeMap {

@@ -591,6 +591,7 @@ declare const enum BrowserVer {
   // if .key exists, it's "v" for `v`, but "" (empty) for `<c-v>` - doesn't support all cases
   Min$KeyboardEvent$MayHas$$Key = 47, // if EXPERIMENTAL
   Min$IFrame$MayHas$$Referrerpolicy = 47, // if EXPERIMENTAL
+  MinEnsured$InputDeviceCapabilities = 47, // even if LEGACY; also ensured UIEvent.sourceCapabilities
   // even if EXPERIMENTAL or LEGACY
   // before: real-width := Math.floor(width * zoom)
   // after: real-width := Math.floor(width * zoom) || (width ? 1 : 0)

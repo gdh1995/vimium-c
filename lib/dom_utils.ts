@@ -2,11 +2,14 @@
 interface ElementWithClickable { vimiumClick?: boolean; }
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave";
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick";
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
+  var WeakSet: WeakSetConstructor | undefined;
+}
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinES6$ForOf$Map$SetAnd$Symbol) {
   var Set: SetConstructor | undefined;
 }
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {
-  var WeakSet: WeakSetConstructor | undefined;
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$InputDeviceCapabilities) {
+  var InputDeviceCapabilities: InputDeviceCapabilitiesVar | undefined;
 }
 interface VisualViewport { width?: number; height: number; offsetLeft: number; offsetTop: number;
     pageLeft: number; pageTop: number; scale: number; }
@@ -742,12 +745,24 @@ var VDom = {
     if (!(Build.BTypes & BrowserType.Chrome)
         || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
         || (this as typeof VDom).cache_.v >= BrowserVer.MinUsable$MouseEvent$$constructor) {
-      mouseEvent = new MouseEvent(type, {
+      // Note: The `composed` here may require Shadow DOM support
+      const init: ValidMouseEventInit = {
         bubbles: !0, cancelable: !0, composed: !0, detail: +isAboutButtons, view,
         screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, shiftKey, altKey, metaKey,
         button, buttons: tyKey === "d" ? button || 1 : 0,
         relatedTarget
-      });
+      },
+      IDC = Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || !(Build.BTypes & BrowserType.Chrome)
+          ? null : InputDeviceCapabilities;
+      if (Build.BTypes & BrowserType.Chrome
+          && (!(Build.BTypes & ~BrowserType.Chrome) || (this as typeof VDom).cache_.b & BrowserType.Chrome)
+          && (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || IDC)
+          ) {
+        init.sourceCapabilities = (this as typeof VDom)._idc = (this as typeof VDom)._idc ||
+            new ((Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities ? InputDeviceCapabilities
+                  : IDC) as NonNullable<typeof IDC>)({fireTouchEvents: !1});
+      }
+      mouseEvent = new MouseEvent(type, init);
     } else {
       mouseEvent = (doc as Document).createEvent("MouseEvents");
       mouseEvent.initMouseEvent(type, !0, !0, view, +isAboutButtons, x, y, x, y
@@ -762,6 +777,7 @@ var VDom = {
     (element: Element, type: kMouseMoveEvents, rect: Point2D
       , modifiers?: null, related?: Element | null): boolean;
   },
+  _idc: null as InputDeviceCapabilities | null,
   lastHovered_: null as Element | null,
   /** note: will NOT skip even if newEl == @lastHovered */
   hover_: function (this: {}, newEl: Element | null, center?: Point2D): void {
