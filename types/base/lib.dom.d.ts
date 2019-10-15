@@ -94,9 +94,10 @@ interface DoubleRange {
 }
 
 interface EventInit {
-    scoped?: boolean;
+    // scoped?: boolean;
     bubbles?: boolean;
     cancelable?: boolean;
+    composed?: boolean;
 }
 
 interface EventModifierInit extends UIEventInit {
@@ -104,17 +105,17 @@ interface EventModifierInit extends UIEventInit {
     shiftKey?: boolean;
     altKey?: boolean;
     metaKey?: boolean;
-    modifierAltGraph?: boolean;
-    modifierCapsLock?: boolean;
-    modifierFn?: boolean;
-    modifierFnLock?: boolean;
-    modifierHyper?: boolean;
-    modifierNumLock?: boolean;
-    modifierOS?: boolean;
-    modifierScrollLock?: boolean;
-    modifierSuper?: boolean;
-    modifierSymbol?: boolean;
-    modifierSymbolLock?: boolean;
+    // modifierAltGraph?: boolean;
+    // modifierCapsLock?: boolean;
+    // modifierFn?: boolean;
+    // modifierFnLock?: boolean;
+    // modifierHyper?: boolean;
+    // modifierNumLock?: boolean;
+    // modifierOS?: boolean;
+    // modifierScrollLock?: boolean;
+    // modifierSuper?: boolean;
+    // modifierSymbol?: boolean;
+    // modifierSymbolLock?: boolean;
 }
 
 interface ExceptionInformation {
@@ -172,7 +173,7 @@ interface MouseEventInit extends EventModifierInit {
     clientY?: number;
     button?: number;
     buttons?: number;
-    relatedTarget?: EventTarget;
+    relatedTarget?: EventTarget | null;
 }
 
 interface MutationObserverInit {
@@ -5412,7 +5413,7 @@ interface MouseEvent extends UIEvent {
 
 declare var MouseEvent: {
     prototype: MouseEvent;
-    new(typeArg: string, eventInitDict?: MouseEventInit): MouseEvent;
+    new(typeArg: string, eventInitDict?: { [P in keyof MouseEventInit]-?: MouseEventInit[P] }): MouseEvent;
 }
 
 interface NamedNodeMap {

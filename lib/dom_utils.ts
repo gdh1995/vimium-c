@@ -724,14 +724,14 @@ var VDom = {
       , type: kMouseClickEvents | kMouseMoveEvents
       , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: Element | null
       , button?: 0 | 2): boolean {
-    let mouseEvent: MouseEvent, doc = element.ownerDocument, u: undefined;
+    let mouseEvent: MouseEvent, doc = element.ownerDocument;
     Build.BTypes & BrowserType.Chrome &&
     (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter && (this as typeof VDom).unsafeFramesetTag_
         && (doc as WindowWithTop).top === top
       || (doc as Node | RadioNodeList).nodeType !== kNode.DOCUMENT_NODE) &&
     (doc = document);
     button = (<number> button | 0) as 0 | 2;
-    relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : <undefined> u;
+    relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc ? relatedTarget : null;
     const view = (doc as Document).defaultView || window,
     tyKey = type.slice(5, 6),
     isAboutButtons = "dui".indexOf(tyKey) >= 0, // is: down | up | (click) | auxclick
@@ -743,7 +743,7 @@ var VDom = {
         || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
         || (this as typeof VDom).cache_.v >= BrowserVer.MinUsable$MouseEvent$$constructor) {
       mouseEvent = new MouseEvent(type, {
-        bubbles: !0, cancelable: !0, detail: +isAboutButtons, view,
+        bubbles: !0, cancelable: !0, composed: !0, detail: +isAboutButtons, view,
         screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, shiftKey, altKey, metaKey,
         button, buttons: tyKey === "d" ? button || 1 : 0,
         relatedTarget
@@ -751,7 +751,7 @@ var VDom = {
     } else {
       mouseEvent = (doc as Document).createEvent("MouseEvents");
       mouseEvent.initMouseEvent(type, !0, !0, view, +isAboutButtons, x, y, x, y
-        , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget || null);
+        , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
     }
     return Build.BTypes & ~BrowserType.Firefox ? dispatchEvent.call(element, mouseEvent)
       : element.dispatchEvent(mouseEvent);
