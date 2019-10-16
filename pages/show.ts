@@ -542,11 +542,10 @@ function parseSmartImageUrl_(originUrl: string): string | null {
   if (!parsed || !(<RegExpI> /^s?ftp|^http/i).test(parsed.protocol)) { return null; }
   let search = parsed.search;
   function DecodeURLPart_(this: void, url1: string | undefined): string {
-    if (!url1) { return ""; }
     try {
-      url1 = decodeURIComponent(url1);
+      url1 = decodeURIComponent(url1 || "");
     } catch {}
-    return url1;
+    return url1 as string;
   }
   if (search.length > 10) {
     const keyRe = <RegExpOne> /^(?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)$/i,
@@ -685,24 +684,34 @@ function recoverHash_(): void {
 
 function encrypt_(message: string, password: number, doEncrypt: boolean): string {
   let arr: number[] | Uint8Array = [] as number[];
-  if (!doEncrypt) {
-    for (const ch of atob(message)) { arr.push(ch.charCodeAt(0)); }
-  }
-  else if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-      && !(Build.BTypes & BrowserType.Edge) || (window as any).TextEncoder) {
+  if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
+      && !(Build.BTypes & BrowserType.Edge)
+      ? doEncrypt : doEncrypt && (window as any).TextEncoder) {
     arr = new TextEncoder().encode(message).slice(0);
   } else {
-    for (const ch of encodeURIComponent(message)) { arr.push(ch.charCodeAt(0)); }
+    for (const ch of (
+        (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
+          && !(Build.BTypes & BrowserType.Edge)
+        || !doEncrypt ? atob : encodeURIComponent)(message)) {
+      arr.push(ch.charCodeAt(0));
+    }
   }
   for (let i = 0; i < arr.length; i++) {
     arr[i] = 0xff & (arr[i] ^ (password >>> (8 * (i & 3))));
   }
-  if (doEncrypt) {
-    return btoa(String.fromCharCode(... <number[]> arr));
-  }
   if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-      && !(Build.BTypes & BrowserType.Edge) || (window as any).TextEncoder) {
+      && !(Build.BTypes & BrowserType.Edge)
+      ? doEncrypt : doEncrypt && (window as any).TextEncoder) {
     return new TextDecoder().decode(new Uint8Array(arr));
   }
-  return decodeURIComponent(String.fromCharCode(... <number[]> arr));
+  message = String.fromCharCode(... <number[]> arr);
+  if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
+      && !(Build.BTypes & BrowserType.Edge) || !doEncrypt) {
+    try {
+      message = decodeURIComponent(message);
+    } catch { message = ""; }
+  } else {
+    message = btoa(message);
+  }
+  return message;
 }
