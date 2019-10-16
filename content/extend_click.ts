@@ -77,7 +77,7 @@ if (VDom && VimiumInjector === undefined) {
 
   let box: Element | undefined | 0, hookRetryTimes = 0,
   isFirstResolve: 0 | 1 | 2 | 3 = isFirstTime && window === top ? 3 : 0,
-  hook = function (event: CustomEvent): void {
+  hook = function (event: CustomEvent & ToPrevent): void {
     const t = event.target;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
     if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret

@@ -30,7 +30,7 @@ declare const enum VisibilityType {
   NoSpace = 2,
 }
 declare namespace HandlerNS {
-  type Event = KeyboardEvent;
+  type Event = KeyboardEventToPrevent;
 
   interface Handler<T extends object> {
     (this: T, event: HandlerNS.Event): HandlerResult;

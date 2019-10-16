@@ -114,7 +114,7 @@ var VKey = {
 
   /** event section */
   Stop_ (this: void, event: Pick<Event, "stopImmediatePropagation">): void { event.stopImmediatePropagation(); },
-  prevent_ (this: object, event: Pick<Event, "preventDefault" | "stopImmediatePropagation">): void {
+  prevent_ (this: object, event: ToPrevent): void {
     event.preventDefault(); (this as typeof VKey).Stop_(event);
   },
   /**
@@ -123,9 +123,10 @@ var VKey = {
    * @param disable Default to `0`
    * @param activeMode Default to `{passive: true, capture: true}`; `1` means `passive: false`
    */
-  SetupEventListener_<T extends EventTarget> (this: void
+  SetupEventListener_<T extends EventTarget, Active extends 1 | undefined = undefined> (this: void
       , target: T | 0, eventType: string
-      , func?: ((this: T, e: Event) => void) | null, disable?: boolean | BOOL, activeMode?: 1): void {
+      , func?: ((this: T, e: Active extends 1 ? EventToPrevent : Event) => void) | null
+      , disable?: boolean | BOOL, activeMode?: Active): void {
     (disable ? removeEventListener : addEventListener).call(target || window, eventType, func || VKey.Stop_,
         {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean);
   },

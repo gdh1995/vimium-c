@@ -148,7 +148,7 @@ var VVisual = {
   /** need real diType */
   selType_: null as never as () => SelType,
   /** @unknown_di_result */
-  onKeydown_ (event: KeyboardEvent): HandlerResult {
+  onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
     const a = this;
     let i: kKeyCode | KeyStat = event.keyCode, count = 0;
     if (i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn) {

@@ -509,7 +509,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
   }
   const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST_.OptionsPage_;
   element.href !== optionsUrl && (element.href = optionsUrl);
-  element.onclick = function (this: HTMLAnchorElement, event: Event): void {
+  element.onclick = function (this: HTMLAnchorElement, event: EventToPrevent): void {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG_.Object.create(null);
     a.u = bgSettings_.CONST_.OptionsPage_;
@@ -727,7 +727,7 @@ Promise.all([ BG_.BgUtils_.require_("Exclusions"),
     BG_.BgUtils_.GC_(-1);
   };
 
-  function forceState(act: "Reset" | "Enable" | "Disable", event?: Event): void {
+  function forceState(act: "Reset" | "Enable" | "Disable", event?: EventToPrevent): void {
     event && event.preventDefault();
     BG_.Backend_.forceStatus_(act.toLowerCase() as "reset" | "enable" | "disable", frameInfo.t);
     window.close();

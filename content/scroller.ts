@@ -235,7 +235,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       }
     }
   },
-  BeginScroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: kKeyCode }): void {
+  BeginScroll_ (event?: Partial<EventControlKeys> & (KeyboardEventToPrevent | { keyCode: kKeyCode })): void {
     if (!event || event.shiftKey || event.altKey) { return; }
     const { keyCode } = event, c = (keyCode & 1) as BOOL;
     if (!(keyCode > kKeyCode.maxNotPageUp && keyCode < kKeyCode.minNotDown)) { return; }
@@ -251,7 +251,7 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       Sc.scroll_(1, 0.5 - c, 0, 2);
     }
   },
-  OnScrolls_ (event: KeyboardEvent): boolean {
+  OnScrolls_ (event: KeyboardEventToPrevent): boolean {
     let repeat = Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
         && Build.BTypes & BrowserType.Chrome ? !!event.repeat : event.repeat;
     repeat && VKey.prevent_(event);

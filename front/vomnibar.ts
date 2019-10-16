@@ -416,7 +416,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     , 33: AllowedActions.pageup, 34: AllowedActions.pagedown, 38: AllowedActions.up, 40: AllowedActions.down
     , 112: AllowedActions.backspace, 113: AllowedActions.blur
   } as Readonly<Dict<AllowedActions>>,
-  onKeydown_ (event: KeyboardEvent): void {
+  onKeydown_ (event: KeyboardEventToPrevent): void {
     const a = Vomnibar_;
     let action: AllowedActions = AllowedActions.nothing, n = event.keyCode, focused = a.focused_;
     a.lastKey_ = n;
@@ -618,7 +618,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     });
     return Vomnibar_.refresh_();
   },
-  onClick_ (event: MouseEvent): void {
+  onClick_ (event: MouseEventToPrevent): void {
     const a = Vomnibar_;
     let el: SafeHTMLElement | null = event.target as SafeHTMLElement;
     if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
@@ -655,7 +655,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     }
   },
   OnTimer_ (this: void): void { if (Vomnibar_) { return Vomnibar_.fetch_(); } },
-  onWheel_ (event: WheelEvent): void {
+  onWheel_ (event: WheelEvent & ToPrevent): void {
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
@@ -1003,7 +1003,7 @@ var VCID_: string | undefined = VCID_ || "", Vomnibar_ = {
     }
     a.mode_.i = fav;
   },
-  HandleKeydown_ (this: void, event: KeyboardEvent): void {
+  HandleKeydown_ (this: void, event: KeyboardEventToPrevent): void {
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
         : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
     Vomnibar_.keyResult_ = HandlerResult.Prevent as HandlerResult;
@@ -1236,9 +1236,12 @@ VUtils_ = {
     };
     return VUtils_.escapeCSSUrlInAttr_(s0);
   },
-  Stop_ (event: Event, prevent: boolean | BOOL): void {
-    prevent && event.preventDefault();
+  Stop_: function (event: Event & Partial<ToPrevent>, prevent: boolean | BOOL): void {
+    prevent && (event as EventToPrevent).preventDefault();
     event.stopImmediatePropagation();
+  } as {
+    (event: EventToPrevent, prevent: boolean | BOOL): void;
+    (event: Event, prevent: false | 0): void;
   }
 },
 VPort_ = {

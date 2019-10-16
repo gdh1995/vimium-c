@@ -98,7 +98,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       return HandlerResult.Prevent;
     }
   }
-  function onEscDown(event: KeyboardEvent, key: kKeyCode): HandlerResult {
+  function onEscDown(event: KeyboardEventToPrevent, key: kKeyCode): HandlerResult {
     let action = HandlerResult.Prevent, { repeat } = event
       , { activeElement: activeEl, body } = document;
     /** if `notBody` then `activeEl` is not null */
@@ -116,7 +116,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     return action;
   }
-  function onKeydown(event: KeyboardEvent): void {
+  function onKeydown(event: KeyboardEventToPrevent): void {
     let keyChar: string, key = event.keyCode, action: HandlerResult;
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
@@ -169,7 +169,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }
     KeydownEvents[key] = 1;
   }
-  function onKeyup(event: KeyboardEvent): void {
+  function onKeyup(event: KeyboardEventToPrevent): void {
     let key = event.keyCode;
     if (!isEnabled
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
@@ -698,7 +698,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     },
     /** should only be called during keydown events */
-    focusUpper_ (this: void, key: kKeyCode, force: boolean, event: Parameters<typeof VKey.prevent_>[0]
+    focusUpper_ (this: void, key: kKeyCode, force: boolean, event: ToPrevent
         ): void | 1 {
       const parEl = VDom.frameElement_();
       if (!parEl && (!force || isTop)) { return; }
@@ -1206,7 +1206,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
 
     const query = box.querySelector.bind(box), closeBtn = query("#HClose") as HTMLElement,
     optLink = query("#OptionsPage") as HTMLAnchorElement, advCmd = query("#AdvancedCommands") as HTMLElement,
-    hide: (this: void, e?: Event | number | "e") => void = function (event): void {
+    hide: (this: void, e?: (EventToPrevent) | number | "e") => void = function (event): void {
       if (event instanceof Event) {
         VKey.prevent_(event);
       }

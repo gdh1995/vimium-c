@@ -1332,9 +1332,9 @@ interface DocumentEventMap extends GlobalEventHandlersEventMap {
     "fullscreenerror": Event;
     "input": Event;
     "invalid": Event;
-    "keydown": KeyboardEvent;
-    "keypress": KeyboardEvent;
-    "keyup": KeyboardEvent;
+    "keydown": KeyboardEventToPrevent;
+    "keypress": KeyboardEventToPrevent;
+    "keyup": KeyboardEventToPrevent;
     "load": Event;
     "loadeddata": Event;
     "loadedmetadata": Event;
@@ -2193,7 +2193,7 @@ interface Event {
     readonly type: string;
     readonly scoped: boolean;
     initEvent(eventTypeArg: string, canBubbleArg: boolean, cancelableArg: boolean): void;
-    preventDefault(): void;
+    // preventDefault?(): void;
     stopImmediatePropagation(): void;
     stopPropagation(): void;
     deepPath?(): EventTarget[];
@@ -2202,6 +2202,17 @@ interface Event {
     readonly BUBBLING_PHASE: number;
     readonly CAPTURING_PHASE: number;
 }
+
+interface ToPrevent {
+  preventDefault(): void;
+  stopImmediatePropagation(): void;
+}
+type __EventToPrevent = Event & ToPrevent;
+interface EventToPrevent extends __EventToPrevent {}
+type __KeyboardEventToPrevent = KeyboardEvent & ToPrevent;
+interface KeyboardEventToPrevent extends __KeyboardEventToPrevent {}
+type __MouseEventToPrevent = MouseEvent & ToPrevent;
+interface MouseEventToPrevent extends __MouseEventToPrevent {}
 
 interface TypedEvent<T extends string> extends Event {
     readonly type: T;
@@ -2926,7 +2937,7 @@ interface HTMLElementEventMap extends ElementEventMap {
     "focus": FocusEvent;
     "input": Event;
     "invalid": Event;
-    "keydown": KeyboardEvent;
+    "keydown": KeyboardEventToPrevent;
     "keypress": KeyboardEvent;
     "keyup": KeyboardEvent;
     "load": Event;
@@ -2989,7 +3000,7 @@ interface HTMLElement extends Element {
     oncanplay: (ev: Event) => any;
     oncanplaythrough: (ev: Event) => any;
     onchange: (ev: Event) => any;
-    onclick: (ev: MouseEvent) => any;
+    onclick: (ev: MouseEventToPrevent) => any;
     oncontextmenu: (ev: PointerEvent) => any;
     oncopy: (ev: ClipboardEvent) => any;
     oncuechange: (ev: Event) => any;
@@ -3000,9 +3011,9 @@ interface HTMLElement extends Element {
     ondragend: (ev: DragEvent) => any;
     ondragenter: (ev: DragEvent) => any;
     ondragleave: (ev: DragEvent) => any;
-    ondragover: (ev: DragEvent) => any;
+    ondragover: (ev: DragEvent & ToPrevent) => any;
     ondragstart: (ev: DragEvent) => any;
-    ondrop: (ev: DragEvent) => any;
+    ondrop: (ev: DragEvent & ToPrevent) => any;
     ondurationchange: (ev: Event) => any;
     onemptied: (ev: Event) => any;
     onerror: (ev: ErrorEvent) => any;
@@ -3016,7 +3027,7 @@ interface HTMLElement extends Element {
     onloadeddata: (ev: Event) => any;
     onloadedmetadata: (ev: Event) => any;
     onloadstart: (ev: Event) => any;
-    onmousedown: (ev: MouseEvent) => any;
+    onmousedown: (ev: MouseEventToPrevent) => any;
     onmouseenter: (ev: MouseEvent) => any;
     onmouseleave: (ev: MouseEvent) => any;
     onmousemove: (ev: MouseEvent) => any;
@@ -8264,7 +8275,7 @@ interface WindowEventMap extends GlobalEventHandlersEventMap {
     "hashchange": HashChangeEvent;
     "input": Event;
     "invalid": Event;
-    "keydown": KeyboardEvent;
+    "keydown": KeyboardEventToPrevent;
     "keypress": KeyboardEvent;
     "keyup": KeyboardEvent;
     "load": Event;
@@ -8338,7 +8349,7 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     oncanplay: (this: Window, ev: Event) => any;
     oncanplaythrough: (this: Window, ev: Event) => any;
     onchange: (this: Window, ev: Event) => any;
-    onclick: (this: Window, ev: MouseEvent) => any;
+    onclick: (this: Window, ev: MouseEventToPrevent) => any;
     oncompassneedscalibration: (this: Window, ev: Event) => any;
     oncontextmenu: (this: Window, ev: PointerEvent) => any;
     ondblclick: (this: Window, ev: MouseEvent) => any;

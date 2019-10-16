@@ -261,7 +261,7 @@ var VFind = {
               ? !e.isTrusted : e.isTrusted === false)) { return; }
     f.isActive_ && f.deactivate_(FindNS.Action.ExitUnexpectedly);
   },
-  OnMousedown_ (this: Window | HTMLElement, event: MouseEvent): void {
+  OnMousedown_ (this: Window | HTMLElement, event: MouseEventToPrevent): void {
     const target = event.target as Element;
     if (target !== VFind.input_ && (!VFind.inShadow_ || target.parentNode === this)
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
@@ -270,13 +270,13 @@ var VFind = {
       VFind.focus_();
     }
   },
-  _OnPaste: Build.BTypes & ~BrowserType.Chrome ? function (this: Window, event: ClipboardEvent): void {
+  _OnPaste: Build.BTypes & ~BrowserType.Chrome ? function (this: Window, event: ClipboardEvent & ToPrevent): void {
     const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
     VKey.prevent_(event);
     if (!text) { return; }
     this.document.execCommand("insertText", false, text + "");
   } : 0 as never,
-  onKeydown_ (event: KeyboardEvent): void {
+  onKeydown_ (event: KeyboardEventToPrevent): void {
     VKey.Stop_(event);
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? !event.isTrusted : event.isTrusted === false) { return; }
@@ -318,7 +318,7 @@ var VFind = {
     VApi.keydownEvents_()[n] = 1;
     a.deactivate_(i as FindNS.Action);
   },
-  onHostKeydown_ (event: KeyboardEvent): HandlerResult {
+  onHostKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
     let i = VKey.getKeyStat_(event), n = event.keyCode, a = this;
     if (!i && n === kKeyCode.f2) {
       a._onUnexpectedBlur && a._onUnexpectedBlur();

@@ -8,13 +8,13 @@ interface Window {
 declare var VHud: VHUDTy, VApi: VApiTy;
 
 interface ElementWithHash extends HTMLElement {
-  onclick (this: ElementWithHash, event: MouseEvent | null, hash?: "hash"): void;
+  onclick (this: ElementWithHash, event: MouseEventToPrevent | null, hash?: "hash"): void;
 }
 interface ElementWithDelay extends HTMLElement {
-  onclick (this: ElementWithDelay, event?: MouseEvent | null): void;
+  onclick (this: ElementWithDelay, event?: MouseEventToPrevent | null): void;
 }
 interface OptionWindow extends Window {
-  _delayed: [string, MouseEvent | null];
+  _delayed: [string, MouseEventToPrevent | null];
 }
 
 Option_.syncToFrontend_ = [];
@@ -100,7 +100,7 @@ readValueFromElement_ (): number {
   return parseFloat(this.element_.value);
 }
 addWheelListener_ (): void {
-  const el = this.element_, func = (e: WheelEvent): void => this.onWheel_(e), onBlur = (): void => {
+  const el = this.element_, func = (e: WheelEvent & ToPrevent): void => this.onWheel_(e), onBlur = (): void => {
     el.removeEventListener("wheel", func, {passive: false});
     el.removeEventListener("blur", onBlur);
     this.wheelTime_ = 0;
@@ -109,7 +109,7 @@ addWheelListener_ (): void {
   el.addEventListener("wheel", func, {passive: false});
   el.addEventListener("blur", onBlur);
 }
-onWheel_ (event: WheelEvent): void {
+onWheel_ (event: WheelEvent & ToPrevent): void {
   event.preventDefault();
   const oldTime = this.wheelTime_;
   let i = Date.now(); // safe for time changes
@@ -323,7 +323,7 @@ class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     }
     return value;
   }
-  onTripleStatusesClicked (event: Event): void {
+  onTripleStatusesClicked (event: EventToPrevent): void {
     if (this.inner_status_ === 0) {
       event.preventDefault();
       this.element_.indeterminate = true;
@@ -537,7 +537,7 @@ let optionsInit1_ = function (): void {
     }
   });
 
-  let func: (this: HTMLElement, event: MouseEvent) => void = function (this: HTMLElement): void {
+  let func: (this: HTMLElement, event: MouseEventToPrevent) => void = function (this: HTMLElement): void {
     const target = $("#" + this.dataset.autoResize as string);
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
@@ -559,7 +559,7 @@ let optionsInit1_ = function (): void {
   }
 
   func = function (event): void {
-    let str = this.dataset.delay as string, e = null as MouseEvent | null;
+    let str = this.dataset.delay as string, e = null as MouseEventToPrevent | null;
     if (str !== "continue") {
       event && event.preventDefault();
     }
@@ -582,7 +582,7 @@ let optionsInit1_ = function (): void {
   }
 
   _ref = $$(".sel-all");
-  func = function (this: HTMLElement, event: MouseEvent): void {
+  func = function (this: HTMLElement, event): void {
     if (event.target !== this) { return; }
     event.preventDefault();
     getSelection().selectAllChildren(this);

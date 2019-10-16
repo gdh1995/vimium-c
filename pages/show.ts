@@ -298,7 +298,7 @@ function listenWheelForImage(doListen: boolean) {
   (doListen ? addEventListener : removeEventListener)("wheel", myOnWheel, { passive: false, capture: true } as const);
 }
 
-function myOnWheel(this: void, event: WheelEvent) {
+function myOnWheel(this: void, event: WheelEvent & ToPrevent) {
   if (event.ctrlKey) {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -313,7 +313,8 @@ function showBgLink(this: void): void {
   bgLink.style.display = "";
 }
 
-function clickLink(this: void, options: { [key: string]: string; }, event: MouseEvent | KeyboardEvent): void {
+function clickLink(this: void, options: { [key: string]: string; }
+    , event: MouseEventToPrevent | KeyboardEventToPrevent): void {
   event.preventDefault();
   if (!VData.url) { return; }
   const a = document.createElement("a"), setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
@@ -337,7 +338,7 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
   return a.dispatchEvent(mouseEvent);
 }
 
-function imgOnKeydown(event: KeyboardEvent): boolean {
+function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   const { keyCode } = event;
   if (VData.error) { return false; }
   if (keyCode === kKeyCode.space || keyCode === kKeyCode.enter) {
@@ -398,7 +399,7 @@ function importBody(id: string): HTMLElement {
   return node;
 }
 
-function defaultOnClick(event: MouseEvent): void {
+function defaultOnClick(event: MouseEventToPrevent): void {
   if (event.altKey) {
     event.stopImmediatePropagation();
     return clickLink({ download: VData.file || "" }, event);
@@ -412,7 +413,7 @@ function defaultOnClick(event: MouseEvent): void {
   } }
 }
 
-function clickShownNode(event: MouseEvent): void {
+function clickShownNode(event: MouseEventToPrevent): void {
   event.preventDefault();
   if ((VShown as ValidNodeTypes).onclick) {
     (VShown as ValidNodeTypes).onclick(event);
@@ -432,7 +433,7 @@ function showText(tip: string, body: string | string[]): void {
   return showBgLink();
 }
 
-function copyThing(event: Event): void {
+function copyThing(event: EventToPrevent): void {
   event.preventDefault();
   const str = VData.type === "url" ? $("#textBody").textContent : VData.url;
   if (!(str && window.VApi)) { return; }
@@ -443,7 +444,7 @@ function copyThing(event: Event): void {
   return VHud.copied_(str);
 }
 
-function toggleInvert(event: Event): void {
+function toggleInvert(event: EventToPrevent): void {
   if (VData.type === "image") {
     if (VData.error || viewer_ && viewer_.isShown) {
       event.preventDefault();

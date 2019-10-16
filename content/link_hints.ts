@@ -868,7 +868,7 @@ var VHints = {
     }
     return visibleElements.reverse();
   },
-  onKeydown_ (event: KeyboardEvent): HandlerResult {
+  onKeydown_ (event: KeyboardEventToPrevent): HandlerResult {
     const a = this;
     let linksMatched: HintsNS.LinksMatched, i: number;
     if (event.repeat || !a.isActive_) {
