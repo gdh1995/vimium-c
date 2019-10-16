@@ -1432,7 +1432,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       VKey.SetupEventListener_(wnd, "blur", listener, !isAdd);
     }, function (event): void {
       if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-          ? !event.isTrusted : event.isTrusted === false) {
+          ? event.isTrusted : event.isTrusted !== false) {
         if (event.type !== "blur") {
           VKey.prevent_(event);
         } else if (event.target !== this) {
