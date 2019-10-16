@@ -410,10 +410,10 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       return;
     }
     this.scrolled_ = 2;
-    VKey.SetupEventListener_(window, "scroll");
+    VKey.SetupEventListener_(0, "scroll");
     requestAnimationFrame(function (): void {
       VSc.scrolled_ = 0;
-      VKey.SetupEventListener_(window, "scroll", 1);
+      VKey.SetupEventListener_(0, "scroll", null, 1);
     });
   },
   sortByArea_ (this: void, a: ElementScrollInfo, b: ElementScrollInfo): number {

@@ -96,7 +96,7 @@ var VFind = {
       if (event && b && b.isActive_ && delta < 500 && delta > -99 && event.target === wnd1) {
         wnd1.closed || setTimeout(function (): void { VFind === b && b.isActive_ && b.focus_(); }, tick++ * 17);
       } else {
-        wnd1.removeEventListener("blur", b._onUnexpectedBlur, true);
+        VKey.SetupEventListener_(wnd1, "blur", b._onUnexpectedBlur, 0, 1);
         b._onUnexpectedBlur = null;
       }
     }, t);
@@ -130,7 +130,7 @@ var VFind = {
     addElement(0, "h");
     if (!(Build.BTypes & BrowserType.Firefox) && !Build.DetectAPIOnFirefox) {
       el.contentEditable = "true";
-      wnd.removeEventListener("paste", VKey.Stop_, true);
+      VKey.SetupEventListener_(wnd, "paste", null, 1, 1);
     } else if (Build.BTypes & ~BrowserType.Chrome) {
       let plain = true;
       try {
@@ -139,7 +139,7 @@ var VFind = {
         plain = false;
         el.contentEditable = "true";
       }
-      wnd.removeEventListener("paste", plain ? a._OnPaste : VKey.Stop_, true);
+      VKey.SetupEventListener_(wnd, "paste", plain ? a._OnPaste : null, 1, 1);
     } else {
       el.contentEditable = "plaintext-only";
     }
@@ -150,7 +150,11 @@ var VFind = {
         && (!(Build.BTypes & ~BrowserType.Firefox) || VOther === BrowserType.Firefox)
         && VDom.cache_.m === false
         ? addElement("div", 0) as HTMLDivElement : body,
-    root = VDom.createShadowRoot_(box), inShadow = a.inShadow_ = root !== box,
+    root = VDom.createShadowRoot_(box),
+    inShadow = (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+        && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        ? true : (a.inShadow_ = root !== box),
     root2 = inShadow ? addElement("div", 0) : box;
     root2.className = "r" + VDom.cache_.d;
     root2.spellcheck = false;
@@ -158,7 +162,7 @@ var VFind = {
     if (inShadow) {
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
       box.setAttribute("role", "textbox");
-      root2.addEventListener("mousedown", a.OnMousedown_, true);
+      VKey.SetupEventListener_(root2, "mousedown", a.OnMousedown_, 0, 1);
       root.appendChild(root2);
     }
     if (Build.BTypes & BrowserType.Firefox
@@ -257,7 +261,7 @@ var VFind = {
               ? !e.isTrusted : e.isTrusted === false)) { return; }
     f.isActive_ && f.deactivate_(FindNS.Action.ExitUnexpectedly);
   },
-  OnMousedown_ (this: Window | ShadowRoot, event: MouseEvent): void {
+  OnMousedown_ (this: Window | HTMLElement, event: MouseEvent): void {
     const target = event.target as Element;
     if (target !== VFind.input_ && (!VFind.inShadow_ || target.parentNode === this)
         && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
@@ -431,18 +435,18 @@ var VFind = {
   postMode_: {
     lock_: null as Element | null,
     activate_  (): void {
-      const pm = this, hook = addEventListener;
+      const pm = this;
       const el = VApi.lock_(), Exit = pm.exit_ as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
       VKey.pushHandler_(pm.onKeydown_, pm);
       if (el === pm.lock_) { return; }
       if (!pm.lock_) {
-        hook("click", Exit, true);
+        VKey.SetupEventListener_(0, "click", Exit);
         VApi.setupSuppress_(Exit);
       }
       Exit(true);
       pm.lock_ = el;
-      hook.call(el, "blur", Exit, true);
+      VKey.SetupEventListener_(el, "blur", Exit);
     },
     onKeydown_ (event: KeyboardEvent): HandlerResult {
       const exit = VKey.isEscape_(event);
@@ -453,11 +457,11 @@ var VFind = {
       if (skip instanceof Event
           && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
               ? !skip.isTrusted : skip.isTrusted === false)) { return; }
-      const a = this, unhook = removeEventListener;
-      a.lock_ && unhook.call(a.lock_, "blur", a.exit_, true);
+      const a = this;
+      a.lock_ && VKey.SetupEventListener_(a.lock_, "blur", a.exit_, 1);
       if (!a.lock_ || skip === true) { return; }
       a.lock_ = null;
-      unhook("click", a.exit_, true);
+      VKey.SetupEventListener_(0, "click", a.exit_, 1);
       VKey.removeHandler_(a);
       VApi.setupSuppress_();
     }
@@ -646,7 +650,7 @@ var VFind = {
     } catch { return false; }
   } as Window["find"] : 0 as never,
   HookSel_ (t?: TimerType.fake | 1): void {
-    VFind && VKey.SetupEventListener_(window, "selectionchange", <number> t > 0, VFind.ToggleStyle_);
+    VFind && VKey.SetupEventListener_(0, "selectionchange", VFind.ToggleStyle_, <number> t > 0);
   },
   /** must be called after initing */
   ToggleStyle_ (this: void, disable: BOOL | boolean | Event): void {

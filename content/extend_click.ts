@@ -84,11 +84,11 @@ if (VDom && VimiumInjector === undefined) {
         || event.detail !== secret || !(t instanceof Element)) { return; }
     // it's unhooking is delayed, so here may no VKey
     event.stopImmediatePropagation();
-    removeEventListener(kHook, hook, true);
+    removeEventListener(kHook, hook, !0);
     hook = null as never;
     if (box == null) {
       t.removeAttribute(InnerConsts.kSecretAttr);
-      t.addEventListener(kVOnClick1, onClick, true);
+      VKey.SetupEventListener_(t, kVOnClick1, onClick);
       box = t;
     }
   },
@@ -151,14 +151,14 @@ if (VDom && VimiumInjector === undefined) {
       box && dispatchCmd(cmd);
       return;
     }
-    const r = removeEventListener, events = VApi;
+    const events = VApi;
     /** this function should keep idempotent */
     if (box) {
-      r.call(box, kVOnClick1, onClick, !0);
+      VKey.SetupEventListener_(box, kVOnClick1, onClick, 1);
       dispatchCmd(kContentCmd.Destroy);
     }
     if (box == null && isFirstTime) {
-      r(kHook, hook, !0);
+      removeEventListener(kHook, hook, !0);
       if (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || VOther !== BrowserType.Firefox)
           && cmd === kContentCmd.DestroyForCSP) {
@@ -539,7 +539,7 @@ _listen(kOnDomReady, handler, !0);
           , ((Math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + '"');
     }
     VApi.execute_ = execute;
-    addEventListener(kHook, hook, !0);
+    VKey.SetupEventListener_(0, kHook, hook, 0, 1);
   } else if (Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       || Build.BTypes & ~BrowserType.Chrome) {
     injected = 'document.currentScript.dataset.vimium=""';
@@ -578,7 +578,7 @@ _listen(kOnDomReady, handler, !0);
     VDom.OnDocLoaded_(function (): void {
       box || execute(kContentCmd.DestroyForCSP);
     });
-    addEventListener("load", delayFindAll, !0);
+    VKey.SetupEventListener_(0, "load", delayFindAll, 0, 1);
     Build.MinCVer > BrowserVer.NoRAFOrRICOnSandboxedPage ||
     !(Build.BTypes & BrowserType.Chrome) ||
     VDom.allowRAF_ || requestAnimationFrame(() => { VDom.allowRAF_ = 1; });

@@ -118,14 +118,16 @@ var VKey = {
     event.preventDefault(); (this as typeof VKey).Stop_(event);
   },
   /**
-   * @param disable Default to `0`
+   * @param target Default to `window`
    * @param func Default to `VKey.Stop_`
-   * @param params Default to `{passive: true, capture: true}`
+   * @param disable Default to `0`
+   * @param activeMode Default to `{passive: true, capture: true}`; `1` means `passive: false`
    */
-  SetupEventListener_<T extends EventTarget> (this: void, target: T, eventType: string, disable?: boolean | BOOL
-      , func?: (this: T, e: Event) => void, params?: true): void {
-    (disable ? removeEventListener : addEventListener).call(target, eventType, func || VKey.Stop_,
-        params || {passive: true, capture: true} as EventListenerOptions | boolean as boolean);
+  SetupEventListener_<T extends EventTarget> (this: void
+      , target: T | 0, eventType: string
+      , func?: ((this: T, e: Event) => void) | null, disable?: boolean | BOOL, activeMode?: 1): void {
+    (disable ? removeEventListener : addEventListener).call(target || window, eventType, func || VKey.Stop_,
+        {passive: !activeMode, capture: true} as EventListenerOptions | boolean as boolean);
   },
   SuppressMost_ (this: object, event: KeyboardEvent): HandlerResult {
     VKey.isEscape_(event) && VKey.removeHandler_(this);

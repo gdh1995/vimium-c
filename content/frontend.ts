@@ -232,8 +232,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         const root = (path as EventPath)[len] as Node;
         if (root.nodeType !== kNode.DOCUMENT_FRAGMENT_NODE
             || (root as ShadowRoot).vimiumListened === ShadowRootListenType.Full) { continue; }
-        root.addEventListener("focus", onShadow, true);
-        root.addEventListener("blur", onShadow, true);
+        VKey.SetupEventListener_(root, "focus", onShadow);
+        VKey.SetupEventListener_(root, "blur", onShadow);
         (root as ShadowRoot).vimiumListened = ShadowRootListenType.Full;
       }
     }
@@ -284,12 +284,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       // root is target or inside target, so always a Node
       const root = (path as EventPath)[len] as Node;
       if (root.nodeType !== kNode.DOCUMENT_FRAGMENT_NODE) { continue; }
-      root.removeEventListener("focus", onShadow, true);
-      root.removeEventListener("blur", onShadow, true);
+      VKey.SetupEventListener_(root, "focus", onShadow, 1);
+      VKey.SetupEventListener_(root, "blur", onShadow, 1);
       (root as ShadowRoot).vimiumListened = ShadowRootListenType.None;
     }
   }
-  function onActivate(event: UIEvent | MouseEvent): void {
+  function onActivate(event: Event): void {
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? event.isTrusted : event.isTrusted !== false) {
       const path = event.path,
@@ -317,8 +317,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       return onFocus(event);
     }
     if (!isEnabled || this.vimiumListened === ShadowRootListenType.Blur) {
-      const r = this.removeEventListener.bind(this) as Element["removeEventListener"];
-      r("focus", onShadow, true); r("blur", onShadow, true);
+      VKey.SetupEventListener_(this, "focus", onShadow, 1);
+      VKey.SetupEventListener_(this, "blur", onShadow, 1);
       this.vimiumListened = ShadowRootListenType.None;
     }
     if (isEnabled) {
@@ -646,7 +646,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
             }
           };
           VKey.pushHandler_(InsertMode.ExitGrab_, InsertMode);
-          addEventListener("mousedown", InsertMode.ExitGrab_, true);
+          VKey.SetupEventListener_(0, "mousedown", InsertMode.ExitGrab_);
           return;
         }
       }
@@ -659,8 +659,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         ): HandlerResult.Nothing | void {
       if (!InsertMode.grabBackFocus_) { return /* safer */ HandlerResult.Nothing; }
       InsertMode.grabBackFocus_ = false;
-      removeEventListener("mousedown", InsertMode.ExitGrab_, true);
       VKey.removeHandler_(InsertMode);
+      VKey.SetupEventListener_(0, "mousedown", InsertMode.ExitGrab_, 1);
       // it's acceptable to not set the userActed flag if there's only the top frame;
       // when an iframe gets clicked, the events are mousedown and then focus, so SafePost_ is needed
       !(event instanceof Event) || !frames.length && isTop ||
@@ -1201,7 +1201,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       suppress(box,
         (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
           : OnOther !== BrowserType.Chrome)
-        ? "click" : "DOMActivate", 0, onActivate);
+        ? "click" : "DOMActivate", onActivate);
     }
 
     const query = box.querySelector.bind(box), closeBtn = query("#HClose") as HTMLElement,
@@ -1428,8 +1428,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
     }, function (this: VApiTy["OnScrolls_"], wnd, isAdd): void {
       const listener = this[2];
       VSc.scrollTick_(isAdd);
-      VKey.SetupEventListener_(wnd, "keyup", !isAdd, listener, true);
-      VKey.SetupEventListener_(wnd, "blur", !isAdd, listener);
+      VKey.SetupEventListener_(wnd, "keyup", listener, !isAdd, 1);
+      VKey.SetupEventListener_(wnd, "blur", listener, !isAdd);
     }, function (event): void {
       if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !event.isTrusted : event.isTrusted === false) {

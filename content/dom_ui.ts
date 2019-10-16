@@ -20,15 +20,16 @@ var VCui = {
       && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
       && !(Build.BTypes & ~BrowserType.ChromeOrFirefox) ||
     root.mode === "closed" ||
-    (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || root !== box
-      ? root as ShadowRoot : window).addEventListener("load",
+    VKey.SetupEventListener_(
+      !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || root !== box
+      ? root as ShadowRoot : 0, "load",
     function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!VDom) { removeEventListener("load", Onload, true); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement;
       if (t.parentNode === VCui.root_) {
         VKey.Stop_(e); t.onload && t.onload(e);
       }
-    }, true);
+    }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
     a.add_ = (function<T2 extends HTMLElement> (this: typeof VCui, element2: T2, adjust2?: AdjustType
         , before?: Element | null | true): void {
       const noPar = !(this.box_ as NonNullable<typeof this.box_>).parentNode;
@@ -113,11 +114,11 @@ var VCui = {
       const removeEL = !el || event === 2, name = "fullscreenchange";
       if (Build.BTypes & BrowserType.Chrome
           && (!(Build.BTypes & ~BrowserType.Chrome) || VOther === BrowserType.Chrome)) {
-        VKey.SetupEventListener_(window, "webkit" + name, removeEL, UI.adjust_);
+        VKey.SetupEventListener_(0, "webkit" + name, UI.adjust_, removeEL);
       }
       if (!(Build.BTypes & BrowserType.Chrome)
           || VDom.cache_.v >= BrowserVer.MinEnsured$Document$$fullscreenElement) {
-        VKey.SetupEventListener_(window, name, removeEL, UI.adjust_);
+        VKey.SetupEventListener_(0, name, UI.adjust_, removeEL);
       }
     }
   },
@@ -394,7 +395,7 @@ var VCui = {
   setupExitOnClick_ (key: number, callback: ((this: void) => void) | 0): void {
     const arr = this._toExit, diff = arr[key] !== callback;
     arr[key] = callback;
-    diff && VKey.SetupEventListener_(window, "click", !(arr[0] || arr[1]), this.DoExitOnClick_);
+    diff && VKey.SetupEventListener_(0, "click", this.DoExitOnClick_, !(arr[0] || arr[1]));
   },
   DoExitOnClick_ (event?: Event): void {
     if (event) {
