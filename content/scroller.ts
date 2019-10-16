@@ -235,6 +235,29 @@ _animate (e: SafeElement | null, d: ScrollByY, a: number): void {
       }
     }
   },
+  BeginScroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: kKeyCode }): void {
+    if (!event || event.shiftKey || event.altKey) { return; }
+    const { keyCode } = event, c = (keyCode & 1) as BOOL;
+    if (!(keyCode > kKeyCode.maxNotPageUp && keyCode < kKeyCode.minNotDown)) { return; }
+    const work = keyCode > kKeyCode.maxNotLeft ? 1 : keyCode > kKeyCode.maxNotEnd ? 2
+      : !(event.ctrlKey || event.metaKey) ? 3 : 0,
+    Sc = VSc;
+    work && event instanceof Event && VKey.prevent_(event);
+    if (work === 1) {
+      Sc.scroll_((1 - c) as BOOL, keyCode < kKeyCode.minNotUp ? -1 : 1, 0);
+    } else if (work === 2) {
+      Sc.scroll_(1, 0, 1, 0, c > 0);
+    } else if (work) {
+      Sc.scroll_(1, 0.5 - c, 0, 2);
+    }
+  },
+  OnScrolls_ (event: KeyboardEvent): boolean {
+    let repeat = Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
+        && Build.BTypes & BrowserType.Chrome ? !!event.repeat : event.repeat;
+    repeat && VKey.prevent_(event);
+    VSc.scrollTick_(repeat);
+    return repeat;
+  },
   _adjustAmount (di: ScrollByY, amount: number, element: SafeElement | null): number {
     amount *= VDom.cache_.t;
     return !di && amount && element && element.scrollWidth <= element.scrollHeight * (element.scrollWidth < 720 ? 2 : 1)

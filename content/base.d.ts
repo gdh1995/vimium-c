@@ -325,16 +325,10 @@ interface VApiTy {
   onWndBlur_ (this: void, onWndBlur2: ((this: void) => void) | null): void;
   setupSuppress_ (this: void, onExit?: (this: void) => void): void;
   mapKey_ (this: void, char: string, event: EventControlKeys, onlyChar?: string): string;
-  scroll_ (this: void, event?: Partial<EventControlKeys> & { keyCode: kKeyCode }, wnd?: Window): void;
   /** return has_error */
   readonly keydownEvents_: {
     (this: void, srcFrame: Pick<VApiTy, "keydownEvents_"> | KeydownCacheArray): boolean;
     (this: void): KeydownCacheArray;
-  };
-  readonly OnScrolls_: {
-    0: (this: void, event: KeyboardEvent) => boolean;
-    1: (wnd: Window, isAdd: BOOL) => void;
-    2: (this: Window, event: KeyboardEvent & {type: "keyup"} | Event & {type: "blur"}) => void;
   };
   execute_: ((this: void, cmd: ValidContentCommands) => void) | null;
   destroy_: (this: void, silent?: boolean | BOOL | 9) => void;

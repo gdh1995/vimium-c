@@ -122,7 +122,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
             : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
         || !key) { return; }
-    if (VSc.keyIsDown_ && events.OnScrolls_[0](event)) { return; }
+    if (VSc.keyIsDown_ && VSc.OnScrolls_(event)) { return; }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) ? insertLock
           : insertLock && OnOther === BrowserType.Firefox)
@@ -1402,45 +1402,6 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
       }
     },
     mapKey_: mapKey,
-    scroll_ (this: void, event, wnd): void {
-      if (!event || event.shiftKey || event.altKey) { return; }
-      const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
-      if (!(keyCode > kKeyCode.maxNotPageUp && keyCode < kKeyCode.minNotDown)) { return; }
-      wnd && VDom.cache_.S && events.OnScrolls_[1](wnd, 1);
-      const work = keyCode > kKeyCode.maxNotLeft ? 1 : keyCode > kKeyCode.maxNotEnd ? 2
-        : !(event.ctrlKey || event.metaKey) ? 3 : 0,
-      Sc = VSc;
-      work && event instanceof Event && VKey.prevent_(event as Event);
-      if (work === 1) {
-        Sc.scroll_((1 - c) as BOOL, keyCode < kKeyCode.minNotUp ? -1 : 1, 0);
-      } else if (work === 2) {
-        Sc.scroll_(1, 0, 1, 0, c > 0);
-      } else if (work) {
-        Sc.scroll_(1, 0.5 - c, 0, 2);
-      }
-    },
-    OnScrolls_: [function (event): boolean {
-      let repeat = Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
-          && Build.BTypes & BrowserType.Chrome ? !!event.repeat : event.repeat;
-      repeat && VKey.prevent_(event);
-      VSc.scrollTick_(repeat);
-      return repeat;
-    }, function (this: VApiTy["OnScrolls_"], wnd, isAdd): void {
-      const listener = this[2];
-      VSc.scrollTick_(isAdd);
-      VKey.SetupEventListener_(wnd, "keyup", listener, !isAdd, 1);
-      VKey.SetupEventListener_(wnd, "blur", listener, !isAdd);
-    }, function (event): void {
-      if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-          ? event.isTrusted : event.isTrusted !== false) {
-        if (event.type !== "blur") {
-          VKey.prevent_(event);
-        } else if (event.target !== this) {
-          return;
-        }
-        (events as VApiTy).OnScrolls_[1](this, 0);
-      }
-    }],
     setupSuppress_ (this: void, onExit?: (this: void) => void): void {
       const mode = InsertMode, f = mode.onExitSuppress_;
       mode.onExitSuppress_ = mode.suppressType_ = null;

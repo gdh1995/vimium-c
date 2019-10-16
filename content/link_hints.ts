@@ -915,7 +915,7 @@ var VHints = {
         (i & (i - 1)) || (a.lastMode_ = mode);
       }
     } else if (i <= kKeyCode.down && i >= kKeyCode.pageup) {
-      VApi.scroll_(event);
+      VSc.BeginScroll_(event);
       a.ResetMode_();
     } else if (i === kKeyCode.space) {
       a.zIndexes_ === false || a.rotateHints_(event.shiftKey);

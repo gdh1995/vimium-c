@@ -280,7 +280,7 @@ var VFind = {
     VKey.Stop_(event);
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
         ? !event.isTrusted : event.isTrusted === false) { return; }
-    if (VSc.keyIsDown_ && VApi.OnScrolls_[0](event) || event.type === "keyup") { return; }
+    if (VSc.keyIsDown_ && VSc.OnScrolls_(event) || event.type === "keyup") { return; }
     const a = this;
     const n = event.keyCode;
     type Result = FindNS.Action;
@@ -295,7 +295,7 @@ var VFind = {
       else if (i = VKey.getKeyStat_(event)) {
         if (i & ~KeyStat.PrimaryModifier) { return; }
         else if (n === kKeyCode.up || n === kKeyCode.down || n === kKeyCode.end || n === kKeyCode.home) {
-          VApi.scroll_(event, a.box_.contentWindow);
+          VSc.BeginScroll_(event);
         }
         else if (n === kKeyCode.J || n === kKeyCode.K) {
           a.execute_(null, { n: (kKeyCode.K - n) || -1 });

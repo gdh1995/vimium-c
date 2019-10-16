@@ -278,7 +278,7 @@ var VOmni = {
       focus();
       return VApi.keydownEvents_()[(data as Req[VomnibarNS.kFReq.focus]).l] = 1;
     case VomnibarNS.kFReq.hide: return a.hide_(1);
-    case VomnibarNS.kFReq.scroll: return VApi.scroll_(data as Req[VomnibarNS.kFReq.scroll]);
+    case VomnibarNS.kFReq.scroll: return VSc.BeginScroll_(data as Req[VomnibarNS.kFReq.scroll]);
     case VomnibarNS.kFReq.scrollGoing: // no break;
     case VomnibarNS.kFReq.scrollEnd: VSc.scrollTick_(data.N === VomnibarNS.kFReq.scrollGoing); break;
     case VomnibarNS.kFReq.evalJS: VApi.evalIfOK_((data as Req[VomnibarNS.kFReq.evalJS]).u); break;
