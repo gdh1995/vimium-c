@@ -879,7 +879,7 @@ var VHints = {
       return HandlerResult.Suppress;
     } else if (i === kKeyCode.ime) {
       a.clean_(1);
-      VHud.tip_(kTip.exitForIME, "LinkHints exits because you're inputting");
+      VHud.tip_(kTip.exitForIME, "LinkHints exits because you're typing");
       return HandlerResult.Nothing;
     } else if (i > kKeyCode.f1 && i <= kKeyCode.f12) {
       a.ResetMode_();

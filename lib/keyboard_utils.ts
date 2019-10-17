@@ -1,11 +1,8 @@
 var VKey = {
   keyNames_: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down",
     /* 41 */ "", "", "", "", "insert", "delete"] as ReadonlyArray<string>,
-  keyCodeCorrectionMap_: {
-    __proto__: null as never,
-    0: ";:", 1: "=+", 2: ",<", 3: "-_", 4: ".>", 5: "/?", 6: "`~",
-    33: "[{", 34: "\\|", 35: "]}", 36: "'\""
-  } as ReadonlySafeDict<string>,
+  keyIdCorrectionOffset_: Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+      ? 185 : 0,
   _codeCorrectionMap: {
     __proto__: null as never,
     Backquote: "`~",
@@ -41,16 +38,19 @@ var VKey = {
         || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key ? 0 as never
       : function (this: {}, event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL): string {
     let s: string | undefined = Build.BTypes & ~BrowserType.Chrome
-        ? event.keyIdentifier || "" : event.keyIdentifier;
-    if (!s.startsWith("U+")) { return ""; }
-    const keyId: kCharCode = parseInt(s.slice(2), 16);
+        ? event.keyIdentifier || "" : event.keyIdentifier,
+    keyId: kCharCode = s.startsWith("U+") ? parseInt(s.slice(2), 16) : 0;
     if (keyId < kCharCode.minNotAlphabet) {
       return keyId < kCharCode.minNotSpace ? ""
       : (shiftKey && keyId > kCharCode.maxNotNum
           && keyId < kCharCode.minNotNum) ? ")!@#$%^&*("[keyId - kCharCode.N0]
-      : String.fromCharCode(keyId < kCharCode.minAlphabet ? keyId : keyId + (shiftKey ? 0 : kCharCode.CASE_DELTA));
+      : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA);
     } else {
-      return keyId > 185 && (s = (this as typeof VKey).keyCodeCorrectionMap_[keyId - 186]) && s[shiftKey] || "";
+      // here omits a `(...)` after the first `&&`, since there has been `keyId >= kCharCode.minNotAlphabet`
+      return keyId > (this as typeof VKey).keyIdCorrectionOffset_
+          && (keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11
+          ? ";=,-./`[\\]':+<_>?~{|}\""[keyId + shiftKey * 11]
+          : "";
     }
   }) as (this: {}, event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL) => string,
   _forceEnUSLayout (key: string, code: string, shiftKey: boolean): string {

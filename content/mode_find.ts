@@ -596,14 +596,12 @@ var VFind = {
       , par: Element | null = null, timesRegExpNotMatch = 0
       , sel: Selection | undefined
       , q: string, notSens = a.ignoreCase_ && !options.caseSensitive;
-    /** Note:
-     * On Firefox, it's impossible to replace the gray bg color for blurred selection:
+    /** Note: FirefoxBrowserVer.MinFollowSelectionColorOnInactiveFrame
+     * Before Firefox 68, it's impossible to replace the gray bg color for blurred selection:
      * In https://hg.mozilla.org/mozilla-central/file/tip/layout/base/nsDocumentViewer.cpp#l3463 ,
      * `nsDocViewerFocusListener::HandleEvent` calls `SetDisplaySelection(SELECTION_DISABLED)`,
      *   if only a trusted "blur" event gets dispatched into Document
-     */
-    /** On 2019/10/13, tested on Firefox 69 + Win 10,
-     * the bg color could be orange even when a top frame is not focused
+     * See https://bugzilla.mozilla.org/show_bug.cgi?id=1479760 .
      */
     options.noColor || a.ToggleStyle_(0);
     back && (count = -count);

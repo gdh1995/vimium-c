@@ -998,7 +998,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) { v
         OnOther = load.b as NonNullable<typeof load.b>;
       }
       D.cache_ = VKey.cache_ = load as EnsureItemsNonNull<typeof load>;
-      load.m && (VKey.keyCodeCorrectionMap_ = safer<string>(null));
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
+        load.m && (VKey.keyIdCorrectionOffset_ = 300);
+      }
       if (Build.BTypes & BrowserType.Chrome
           && (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl)) {
         D.specialZoom_ = (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)

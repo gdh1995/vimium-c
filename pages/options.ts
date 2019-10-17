@@ -1051,7 +1051,7 @@ function loadChecker(this: HTMLElement): void {
 document.addEventListener("keydown", function (this: void, event): void {
   if (event.keyCode !== kKeyCode.space) {
     if (!window.VKey || !VKey.cache_) { return; }
-    let ch: string;
+    let ch: string | undefined;
     if (!Build.NDEBUG && (ch = VKey.char_(event)) && VKey.key_(event, ch) === "<a-f12>") {
       $<HTMLOptionElement>("#recommendedSettings").selected = true;
       let el2 = $<HTMLSelectElement>("#importOptions");
@@ -1061,7 +1061,8 @@ document.addEventListener("keydown", function (this: void, event): void {
       return;
     }
     let wanted = event.keyCode === kKeyCode.questionWin || event.keyCode === kKeyCode.questionMac ? "?" : "";
-    if (wanted && VKey.char_(event) === wanted && VApi.mapKey_(wanted, event) === wanted) {
+    if (wanted && (!Build.NDEBUG ? <string> ch : VKey.char_(event)) === wanted
+        && VApi.mapKey_(wanted, event) === wanted) {
       if (!Build.NDEBUG && !VApi.lock_()) {
         console.log('The document receives a "?" key which has been passed (excluded) by Vimium C,',
           "so open the help dialog.");
